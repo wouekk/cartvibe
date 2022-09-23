@@ -11,6 +11,7 @@ import (
 func SetReceiptBodyData(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
+			// TODO: Come up with a better way to handdle this
 			var receipt models.Receipt
 			bodyData, err := utils.GetBodyData(w, r)
 
