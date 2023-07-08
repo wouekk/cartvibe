@@ -22,8 +22,11 @@ func run(m *testing.M) (code int, err error) {
 	db.InitTestDb()
 	db.MakeMigrations()
 
-	defer func() {
-	}()
+	defer teardown()
 
 	return m.Run(), nil
+}
+
+func teardown() {
+	utils.TestTeardown()
 }
