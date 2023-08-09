@@ -19,6 +19,5 @@ RUN go build
 RUN mkdir data
 VOLUME /go/api/data
 
-# Run
-RUN ./api --env prod
+# Expose port
 EXPOSE 8081
