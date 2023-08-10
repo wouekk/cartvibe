@@ -3,8 +3,7 @@ package middleware
 import (
 	"fmt"
 	"os"
-	db "receipt-wrangler/api/internal/database"
-	"receipt-wrangler/api/internal/utils"
+	"receipt-wrangler/api/internal/repositories"
 	"testing"
 )
 
@@ -17,10 +16,10 @@ func TestMain(m *testing.M) {
 }
 
 func run(m *testing.M) (code int, err error) {
-	utils.SetUpTestEnv()
+	repositories.SetUpTestEnv()
 	InitMiddlewareLogger()
-	db.InitTestDb()
-	db.MakeMigrations()
+	repositories.InitTestDb()
+	repositories.MakeMigrations()
 
 	defer teardown()
 
@@ -28,5 +27,5 @@ func run(m *testing.M) (code int, err error) {
 }
 
 func teardown() {
-	utils.TestTeardown()
+	repositories.TestTeardown()
 }
