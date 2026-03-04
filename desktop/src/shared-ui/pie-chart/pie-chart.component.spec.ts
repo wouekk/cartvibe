@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import { ChartData, ChartConfiguration } from "chart.js";
-import { NgChartsModule } from "ng2-charts";
+import { BaseChartDirective, provideCharts, withDefaultRegisterables } from "ng2-charts";
 
 import { PieChartUiComponent } from "./pie-chart.component";
 
@@ -11,7 +11,8 @@ describe("PieChartUiComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PieChartUiComponent, NgChartsModule],
+      imports: [PieChartUiComponent],
+      providers: [provideCharts(withDefaultRegisterables())],
     }).compileComponents();
 
     fixture = TestBed.createComponent(PieChartUiComponent);
