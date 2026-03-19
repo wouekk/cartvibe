@@ -14,6 +14,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/shopspring/decimal"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type ItemView struct {
@@ -485,6 +486,57 @@ func BulkDeleteUsers(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
+
+			w.WriteHeader(http.StatusOK)
+			return 0, nil
+		},
+	}
+
+	HandleRequest(handler)
+}
+
+func DeleteAccount(w http.ResponseWriter, r *http.Request) {
+	handler := structs.Handler{
+		ErrorMessage: "Error deleting account.",
+		Writer:       w,
+		Request:      r,
+		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
+			token := structs.GetClaims(r)
+			command := r.Context().Value("deleteAccountCommand").(commands.DeleteAccountCommand)
+			userId := utils.UintToString(token.UserId)
+
+			db := repositories.GetDB()
+			var dbUser models.User
+			err := db.Model(models.User{}).Where("id = ?", token.UserId).First(&dbUser).Error
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(command.Password))
+			if err != nil {
+				return http.StatusUnauthorized, errors.New("invalid password")
+			}
+
+			if dbUser.UserRole == models.ADMIN {
+				var adminCount int64
+				err = db.Model(models.User{}).Where("user_role = ?", models.ADMIN).Count(&adminCount).Error
+				if err != nil {
+					return http.StatusInternalServerError, err
+				}
+				if adminCount <= 1 {
+					return http.StatusBadRequest, errors.New("cannot delete the last admin account")
+				}
+			}
+
+			err = services.DeleteUser(userId)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			accessTokenCookie := services.GetEmptyAccessTokenCookie()
+			refreshTokenCookie := services.GetEmptyRefreshTokenCookie()
+			http.SetCookie(w, &accessTokenCookie)
+			http.SetCookie(w, &refreshTokenCookie)
 
 			w.WriteHeader(http.StatusOK)
 			return 0, nil

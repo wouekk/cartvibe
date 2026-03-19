@@ -1811,6 +1811,32 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
+  /user/deleteAccount:
+    post:
+      tags:
+        - User
+      summary: Delete own account
+      description: This will delete the currently logged in user's account after verifying their password
+      requestBody:
+        description: Password confirmation for account deletion
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteAccountCommand"
+      operationId: deleteAccount
+      responses:
+        200:
+          $ref: "#/components/responses/Ok"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
   /user/appData:
     get:
       tags:
@@ -2699,6 +2725,8 @@ components:
       description: The request was malformed
     Forbidden:
       description: The request was not allowed
+    Unauthorized:
+      description: The request was not authorized
     Internal:
       description: There was an error processing the request
       content:
@@ -3583,6 +3611,15 @@ components:
           type: string
           description: User's new password
       description: Command to reset user's password profile
+    DeleteAccountCommand:
+      required:
+        - password
+      type: object
+      properties:
+        password:
+          type: string
+          description: User's current password for confirmation
+      description: Command to delete the user's own account
     LoginCommand:
       required:
         - username

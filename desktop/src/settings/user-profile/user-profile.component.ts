@@ -1,13 +1,16 @@
 import {Component, OnInit} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {MatDialog} from "@angular/material/dialog";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Store} from "@ngxs/store";
-import {switchMap, take, tap} from "rxjs";
+import {of, switchMap, take, tap} from "rxjs";
+import {DEFAULT_DIALOG_CONFIG} from "src/constants/dialog.constant";
 import {FormMode} from "src/enums/form-mode.enum";
 import {FormConfig} from "src/interfaces";
 import {AuthService, User, UserService} from "../../open-api";
 import {ClaimsService, SnackbarService} from "../../services";
-import {AuthState, UpdateUser} from "../../store";
+import {AuthState, Logout, UpdateUser} from "../../store";
+import {DeleteAccountDialogComponent} from "../delete-account-dialog/delete-account-dialog.component";
 
 @Component({
     selector: "app-user-profile",
@@ -31,6 +34,7 @@ export class UserProfileComponent implements OnInit {
     private authService: AuthService,
     private claimsService: ClaimsService,
     private formBuilder: FormBuilder,
+    private matDialog: MatDialog,
     private route: ActivatedRoute,
     private router: Router,
     private snackbarService: SnackbarService,
@@ -88,5 +92,33 @@ export class UserProfileComponent implements OnInit {
         )
         .subscribe();
     }
+  }
+
+  public deleteAccount(): void {
+    const dialogRef = this.matDialog.open(
+      DeleteAccountDialogComponent,
+      DEFAULT_DIALOG_CONFIG,
+    );
+
+    dialogRef
+      .afterClosed()
+      .pipe(
+        take(1),
+        switchMap((password) => {
+          if (password) {
+            return this.userService.deleteAccount({ password }).pipe(
+              switchMap(() => this.store.dispatch(new Logout())),
+              tap(() => {
+                this.snackbarService.success(
+                  "Your account has been successfully deleted"
+                );
+                this.router.navigate(["/"]);
+              })
+            );
+          }
+          return of(undefined);
+        })
+      )
+      .subscribe();
   }
 }

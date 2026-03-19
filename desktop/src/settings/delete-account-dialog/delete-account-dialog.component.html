@@ -1,0 +1,19 @@
+<app-dialog headerText="Delete Account">
+  <p>
+    This action is <strong>permanent</strong> and cannot be undone. All of your
+    data, including receipts, group memberships, and preferences will be deleted.
+  </p>
+  <p>Please enter your password to confirm account deletion.</p>
+  <app-input
+    appearance="outline"
+    label="Password"
+    type="password"
+    [showVisibilityEye]="true"
+    [inputFormControl]="form | formGet : 'password'"
+  ></app-input>
+  <app-dialog-footer
+    submitButtonTooltip="Delete Account"
+    (submitClicked)="submitButtonClicked()"
+    (cancelClicked)="cancelButtonClicked()"
+  ></app-dialog-footer>
+</app-dialog>

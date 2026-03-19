@@ -2,6 +2,7 @@ import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 import { MatIconModule } from "@angular/material/icon";
+import { MatDialogModule } from "@angular/material/dialog";
 import { MatListModule } from "@angular/material/list";
 import { MatTabsModule } from "@angular/material/tabs";
 import { MatTooltipModule } from "@angular/material/tooltip";
@@ -17,6 +18,7 @@ import { CheckboxModule } from "../checkbox/checkbox.module";
 import { DirectivesModule } from "../directives";
 import { InputModule } from "../input";
 import { ApiKeyFormDialogComponent } from "./api-key-form-dialog/api-key-form-dialog.component";
+import { DeleteAccountDialogComponent } from "./delete-account-dialog/delete-account-dialog.component";
 import { ApiKeyTableFilterComponent } from "./api-key-table-filter/api-key-table-filter.component";
 import { ApiKeyTableComponent } from "./api-key-table/api-key-table.component";
 import { ApiKeysComponent } from "./api-keys/api-keys.component";
@@ -32,6 +34,7 @@ import { UserShortcutComponent } from './user-shortcut/user-shortcut.component';
     ApiKeyTableComponent,
     ApiKeyTableFilterComponent,
     ApiKeysComponent,
+    DeleteAccountDialogComponent,
     SettingsComponent,
     UserProfileComponent,
     UserPreferencesComponent,
@@ -45,6 +48,7 @@ import { UserShortcutComponent } from './user-shortcut/user-shortcut.component';
     CommonModule,
     DirectivesModule,
     InputModule,
+    MatDialogModule,
     MatIconModule,
     MatListModule,
     MatTabsModule,

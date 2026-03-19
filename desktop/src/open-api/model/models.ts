@@ -26,6 +26,7 @@ export * from './customFieldOption';
 export * from './customFieldType';
 export * from './customFieldValue';
 export * from './dashboard';
+export * from './deleteAccountCommand';
 export * from './encodedImage';
 export * from './exportFormat';
 export * from './featureConfig';
