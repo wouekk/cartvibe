@@ -1,0 +1,15 @@
+.danger-zone {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--bs-danger);
+  border-radius: 0.375rem;
+  background-color: rgba(var(--bs-danger-rgb), 0.05);
+
+  strong {
+    color: var(--bs-danger);
+  }
+
+  p {
+    margin: 0.5rem 0 1rem;
+  }
+}

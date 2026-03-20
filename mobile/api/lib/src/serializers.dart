@@ -42,6 +42,7 @@ import 'package:openapi/src/model/custom_field_option.dart';
 import 'package:openapi/src/model/custom_field_type.dart';
 import 'package:openapi/src/model/custom_field_value.dart';
 import 'package:openapi/src/model/dashboard.dart';
+import 'package:openapi/src/model/delete_account_command.dart';
 import 'package:openapi/src/model/encoded_image.dart';
 import 'package:openapi/src/model/export_format.dart';
 import 'package:openapi/src/model/feature_config.dart';
@@ -158,6 +159,7 @@ part 'serializers.g.dart';
   CustomFieldType,
   CustomFieldValue,
   Dashboard,
+  DeleteAccountCommand,
   EncodedImage,
   ExportFormat,
   FeatureConfig,

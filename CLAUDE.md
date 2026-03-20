@@ -190,3 +190,20 @@ receipt-wrangler-api/          # Monorepo root
     ├── Dockerfile             # Production monolith
     └── dev/Dockerfile         # Development container
 ```
+
+## Code Changes Philosophy
+
+- Prefer minimal, targeted changes. Do not refactor or restructure code beyond what was explicitly requested.
+- A primary focus of yours is overall code quality. Your focus should be on producing code that is stable, flexible when
+  needed, readable and maintainable. You should not be writing code that is difficult to read, confusing, insecure or
+  too long.
+- Follow **DRY (Don't Repeat Yourself) pragmatically**. If two or more places share nearly identical logic that would
+  need to be updated together, extract it into a shared utility, function, or component. This is not a dogmatic rule —
+  three similar lines in a single file or minor template repetition is fine. Apply DRY when it meaningfully reduces
+  maintenance burden, not for every tiny duplication.
+- When the first approach fails, stop and ask the user for direction rather than trying multiple speculative approaches
+  in sequence.
+- After you have completed the planning phase, and you have your plan, please iterate over your plan at a maximum of 3
+  times. During these iterations, your goals are to verify that your code makes sense, and solves the requested things,
+  that your code is sound, secure and consistent with style across the codebase, and that your code is clean, and not a
+  hacked together solution.

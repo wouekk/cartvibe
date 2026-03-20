@@ -27,3 +27,15 @@
     ></app-color-picker>
   </app-form-section>
 </ng-template>
+
+<div class="danger-zone">
+  <strong>Danger Zone</strong>
+  <p>Account deletion is irreversible. This will permanently remove all associated data including receipts, group memberships, and preferences.</p>
+  <button
+    type="button"
+    class="btn btn-danger"
+    (click)="deleteAccount()"
+  >
+    Delete Account
+  </button>
+</div>

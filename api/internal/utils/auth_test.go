@@ -3,8 +3,6 @@ package utils
 import (
 	"testing"
 	"time"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 func TestHashPasswordShouldHashPassword(t *testing.T) {
@@ -20,7 +18,7 @@ func TestHashPasswordShouldHashPassword(t *testing.T) {
 	}
 
 	// Verify the hash can be compared with the original password
-	err = bcrypt.CompareHashAndPassword(hashedPassword, []byte(password))
+	err = VerifyPassword(string(hashedPassword), password)
 	if err != nil {
 		PrintTestError(t, err, nil)
 	}
@@ -38,9 +36,35 @@ func TestHashPasswordShouldHashEmptyPassword(t *testing.T) {
 		PrintTestError(t, len(hashedPassword), "> 0")
 	}
 
-	err = bcrypt.CompareHashAndPassword(hashedPassword, []byte(password))
+	err = VerifyPassword(string(hashedPassword), password)
 	if err != nil {
 		PrintTestError(t, err, nil)
+	}
+}
+
+func TestVerifyPasswordShouldSucceedWithCorrectPassword(t *testing.T) {
+	password := "testPassword123"
+	hashedPassword, err := HashPassword(password)
+	if err != nil {
+		t.Fatalf("HashPassword failed: %v", err)
+	}
+
+	err = VerifyPassword(string(hashedPassword), password)
+	if err != nil {
+		t.Errorf("VerifyPassword should succeed with correct password, got: %v", err)
+	}
+}
+
+func TestVerifyPasswordShouldFailWithWrongPassword(t *testing.T) {
+	password := "testPassword123"
+	hashedPassword, err := HashPassword(password)
+	if err != nil {
+		t.Fatalf("HashPassword failed: %v", err)
+	}
+
+	err = VerifyPassword(string(hashedPassword), "wrongPassword")
+	if err == nil {
+		t.Errorf("VerifyPassword should fail with wrong password")
 	}
 }
 

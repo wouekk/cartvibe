@@ -493,3 +493,30 @@ func BulkDeleteUsers(w http.ResponseWriter, r *http.Request) {
 
 	HandleRequest(handler)
 }
+
+func DeleteAccount(w http.ResponseWriter, r *http.Request) {
+	handler := structs.Handler{
+		ErrorMessage: "Error deleting account.",
+		Writer:       w,
+		Request:      r,
+		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
+			token := structs.GetClaims(r)
+			command := r.Context().Value("deleteAccountCommand").(commands.DeleteAccountCommand)
+
+			statusCode, err := services.DeleteAccountForUser(token.UserId, command.Password)
+			if err != nil {
+				return statusCode, err
+			}
+
+			accessTokenCookie := services.GetEmptyAccessTokenCookie()
+			refreshTokenCookie := services.GetEmptyRefreshTokenCookie()
+			http.SetCookie(w, &accessTokenCookie)
+			http.SetCookie(w, &refreshTokenCookie)
+
+			w.WriteHeader(http.StatusOK)
+			return 0, nil
+		},
+	}
+
+	HandleRequest(handler)
+}

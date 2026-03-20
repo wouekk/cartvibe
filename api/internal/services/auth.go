@@ -14,7 +14,6 @@ import (
 
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/golang-jwt/jwt/v5"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func customClaims() validator.CustomClaims {
@@ -47,7 +46,7 @@ func LoginUser(loginAttempt commands.LoginCommand) (models.User, bool, error) {
 		return models.User{}, false, err
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(loginAttempt.Password))
+	err = utils.VerifyPassword(dbUser.Password, loginAttempt.Password)
 	if err != nil {
 		return models.User{}, false, err
 	}

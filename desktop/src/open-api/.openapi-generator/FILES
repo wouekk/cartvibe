@@ -57,6 +57,7 @@ model/customFieldOption.ts
 model/customFieldType.ts
 model/customFieldValue.ts
 model/dashboard.ts
+model/deleteAccountCommand.ts
 model/encodedImage.ts
 model/exportFormat.ts
 model/featureConfig.ts
