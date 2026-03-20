@@ -6,7 +6,7 @@ import { MatDialog, MatDialogModule, MatDialogRef } from "@angular/material/dial
 import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { ActivatedRoute, Router } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
-import { of } from "rxjs";
+import { of, throwError } from "rxjs";
 import { PipesModule } from "src/pipes/pipes.module";
 import { ApiModule, AuthService, UserService } from "../../open-api";
 import { AuthState, Logout, UserState } from "../../store";
@@ -147,6 +147,34 @@ describe("UserProfileComponent", () => {
     expect(deleteAccountSpy).toHaveBeenCalledWith({ password: "userpassword" });
     expect(dispatchSpy).toHaveBeenCalledWith(expect.any(Logout));
     expect(navigateSpy).toHaveBeenCalledWith(["/"]);
+  });
+
+  it("should re-open dialog when deleteAccount returns 401", () => {
+    const matDialog = TestBed.inject(MatDialog);
+    const store = TestBed.inject(Store);
+    const userService = TestBed.inject(UserService);
+
+    const passwordDialogRef = {
+      afterClosed: () => of("userpassword"),
+      componentInstance: {},
+    } as any;
+    const cancelledDialogRef = {
+      afterClosed: () => of(false),
+      componentInstance: {},
+    } as any;
+
+    const dialogSpy = jest.spyOn(matDialog, "open")
+      .mockReturnValueOnce(passwordDialogRef)
+      .mockReturnValueOnce(cancelledDialogRef);
+    jest.spyOn(userService, "deleteAccount").mockReturnValue(
+      throwError(() => ({ status: 401, error: { errorMsg: "Error deleting account." } }))
+    );
+    const dispatchSpy = jest.spyOn(store, "dispatch");
+
+    component.deleteAccount();
+
+    expect(dialogSpy).toHaveBeenCalledTimes(2);
+    expect(dispatchSpy).not.toHaveBeenCalledWith(expect.any(Logout));
   });
 
   it("should not call deleteAccount API when dialog is cancelled", () => {

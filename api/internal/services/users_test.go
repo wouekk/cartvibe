@@ -2,6 +2,7 @@ package services
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"receipt-wrangler/api/internal/commands"
 	"receipt-wrangler/api/internal/models"
@@ -651,7 +652,7 @@ func TestDeleteUser_ShouldPreventLastAdminDeletion(t *testing.T) {
 	if err == nil {
 		t.Fatalf("expected error when deleting last admin, got nil")
 	}
-	if err.Error() != "cannot delete the last admin account" {
+	if !errors.Is(err, ErrLastAdmin) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
@@ -723,8 +724,8 @@ func TestDeleteAccountForUser_ShouldPreventLastAdminDeletion(t *testing.T) {
 	if statusCode != http.StatusBadRequest {
 		t.Errorf("expected status %d, got %d", http.StatusBadRequest, statusCode)
 	}
-	if err.Error() != "cannot delete the last admin account" {
-		t.Errorf("unexpected error message: %v", err)
+	if !errors.Is(err, ErrLastAdmin) {
+		t.Errorf("unexpected error: %v", err)
 	}
 
 	assertCount(t, &models.User{}, "id = ?", []interface{}{admin.ID}, 1, "last admin should survive")

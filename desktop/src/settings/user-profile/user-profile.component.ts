@@ -3,7 +3,7 @@ import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {MatDialog} from "@angular/material/dialog";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Store} from "@ngxs/store";
-import {of, switchMap, take, tap} from "rxjs";
+import {catchError, of, switchMap, take, tap} from "rxjs";
 import {DEFAULT_DIALOG_CONFIG} from "src/constants/dialog.constant";
 import {FormMode} from "src/enums/form-mode.enum";
 import {FormConfig} from "src/interfaces";
@@ -113,6 +113,12 @@ export class UserProfileComponent implements OnInit {
                   "Your account has been successfully deleted"
                 );
                 this.router.navigate(["/"]);
+              }),
+              catchError((err) => {
+                if (err.status === 401) {
+                  this.deleteAccount();
+                }
+                return of(undefined);
               })
             );
           }

@@ -10,6 +10,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var ErrLastAdmin = errors.New("cannot delete the last admin account")
+
 func DeleteUser(userId string) error {
 	db := repositories.GetDB()
 	uintUserId, err := utils.StringToUint(userId)
@@ -31,7 +33,7 @@ func DeleteUser(userId string) error {
 				return txErr
 			}
 			if adminCount <= 1 {
-				return errors.New("cannot delete the last admin account")
+				return ErrLastAdmin
 			}
 		}
 
@@ -239,7 +241,7 @@ func DeleteAccountForUser(userId uint, password string) (int, error) {
 
 	err = DeleteUser(utils.UintToString(userId))
 	if err != nil {
-		if err.Error() == "cannot delete the last admin account" {
+		if errors.Is(err, ErrLastAdmin) {
 			return http.StatusBadRequest, err
 		}
 		return http.StatusInternalServerError, err
