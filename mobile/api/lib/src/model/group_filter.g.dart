@@ -11,15 +11,16 @@ class _$GroupFilter extends GroupFilter {
   final AssociatedGroup? associatedGroup;
 
   factory _$GroupFilter([void Function(GroupFilterBuilder)? updates]) =>
-      (GroupFilterBuilder()..update(updates))._build();
+      (new GroupFilterBuilder()..update(updates))._build();
 
   _$GroupFilter._({this.associatedGroup}) : super._();
+
   @override
   GroupFilter rebuild(void Function(GroupFilterBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  GroupFilterBuilder toBuilder() => GroupFilterBuilder()..replace(this);
+  GroupFilterBuilder toBuilder() => new GroupFilterBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -66,6 +67,7 @@ class GroupFilterBuilder implements Builder<GroupFilter, GroupFilterBuilder> {
 
   @override
   void replace(GroupFilter other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$GroupFilter;
   }
 
@@ -78,10 +80,8 @@ class GroupFilterBuilder implements Builder<GroupFilter, GroupFilterBuilder> {
   GroupFilter build() => _build();
 
   _$GroupFilter _build() {
-    final _$result = _$v ??
-        _$GroupFilter._(
-          associatedGroup: associatedGroup,
-        );
+    final _$result =
+        _$v ?? new _$GroupFilter._(associatedGroup: associatedGroup);
     replace(_$result);
     return _$result;
   }

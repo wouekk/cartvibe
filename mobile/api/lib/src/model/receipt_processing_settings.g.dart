@@ -40,7 +40,7 @@ class _$ReceiptProcessingSettings extends ReceiptProcessingSettings {
 
   factory _$ReceiptProcessingSettings(
           [void Function(ReceiptProcessingSettingsBuilder)? updates]) =>
-      (ReceiptProcessingSettingsBuilder()..update(updates))._build();
+      (new ReceiptProcessingSettingsBuilder()..update(updates))._build();
 
   _$ReceiptProcessingSettings._(
       {this.ocrEngine,
@@ -58,7 +58,13 @@ class _$ReceiptProcessingSettings extends ReceiptProcessingSettings {
       this.createdBy,
       this.createdByString,
       this.updatedAt})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(
+        id, r'ReceiptProcessingSettings', 'id');
+    BuiltValueNullFieldError.checkNotNull(
+        createdAt, r'ReceiptProcessingSettings', 'createdAt');
+  }
+
   @override
   ReceiptProcessingSettings rebuild(
           void Function(ReceiptProcessingSettingsBuilder) updates) =>
@@ -66,7 +72,7 @@ class _$ReceiptProcessingSettings extends ReceiptProcessingSettings {
 
   @override
   ReceiptProcessingSettingsBuilder toBuilder() =>
-      ReceiptProcessingSettingsBuilder()..replace(this);
+      new ReceiptProcessingSettingsBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -171,7 +177,7 @@ class ReceiptProcessingSettingsBuilder
   set model(covariant String? model) => _$this._model = model;
 
   PromptBuilder? _prompt;
-  PromptBuilder get prompt => _$this._prompt ??= PromptBuilder();
+  PromptBuilder get prompt => _$this._prompt ??= new PromptBuilder();
   set prompt(covariant PromptBuilder? prompt) => _$this._prompt = prompt;
 
   String? _url;
@@ -232,6 +238,7 @@ class ReceiptProcessingSettingsBuilder
 
   @override
   void replace(covariant ReceiptProcessingSettings other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ReceiptProcessingSettings;
   }
 
@@ -247,32 +254,31 @@ class ReceiptProcessingSettingsBuilder
     _$ReceiptProcessingSettings _$result;
     try {
       _$result = _$v ??
-          _$ReceiptProcessingSettings._(
-            ocrEngine: ocrEngine,
-            isVisionModel: isVisionModel,
-            aiType: aiType,
-            promptId: promptId,
-            name: name,
-            description: description,
-            model: model,
-            prompt: _prompt?.build(),
-            url: url,
-            key: key,
-            id: BuiltValueNullFieldError.checkNotNull(
-                id, r'ReceiptProcessingSettings', 'id'),
-            createdAt: BuiltValueNullFieldError.checkNotNull(
-                createdAt, r'ReceiptProcessingSettings', 'createdAt'),
-            createdBy: createdBy,
-            createdByString: createdByString,
-            updatedAt: updatedAt,
-          );
+          new _$ReceiptProcessingSettings._(
+              ocrEngine: ocrEngine,
+              isVisionModel: isVisionModel,
+              aiType: aiType,
+              promptId: promptId,
+              name: name,
+              description: description,
+              model: model,
+              prompt: _prompt?.build(),
+              url: url,
+              key: key,
+              id: BuiltValueNullFieldError.checkNotNull(
+                  id, r'ReceiptProcessingSettings', 'id'),
+              createdAt: BuiltValueNullFieldError.checkNotNull(
+                  createdAt, r'ReceiptProcessingSettings', 'createdAt'),
+              createdBy: createdBy,
+              createdByString: createdByString,
+              updatedAt: updatedAt);
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'prompt';
         _prompt?.build();
       } catch (e) {
-        throw BuiltValueNestedFieldError(
+        throw new BuiltValueNestedFieldError(
             r'ReceiptProcessingSettings', _$failedField, e.toString());
       }
       rethrow;

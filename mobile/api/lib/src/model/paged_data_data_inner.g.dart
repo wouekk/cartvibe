@@ -12,9 +12,13 @@ class _$PagedDataDataInner extends PagedDataDataInner {
 
   factory _$PagedDataDataInner(
           [void Function(PagedDataDataInnerBuilder)? updates]) =>
-      (PagedDataDataInnerBuilder()..update(updates))._build();
+      (new PagedDataDataInnerBuilder()..update(updates))._build();
 
-  _$PagedDataDataInner._({required this.anyOf}) : super._();
+  _$PagedDataDataInner._({required this.anyOf}) : super._() {
+    BuiltValueNullFieldError.checkNotNull(
+        anyOf, r'PagedDataDataInner', 'anyOf');
+  }
+
   @override
   PagedDataDataInner rebuild(
           void Function(PagedDataDataInnerBuilder) updates) =>
@@ -22,7 +26,7 @@ class _$PagedDataDataInner extends PagedDataDataInner {
 
   @override
   PagedDataDataInnerBuilder toBuilder() =>
-      PagedDataDataInnerBuilder()..replace(this);
+      new PagedDataDataInnerBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -69,6 +73,7 @@ class PagedDataDataInnerBuilder
 
   @override
   void replace(PagedDataDataInner other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$PagedDataDataInner;
   }
 
@@ -82,10 +87,9 @@ class PagedDataDataInnerBuilder
 
   _$PagedDataDataInner _build() {
     final _$result = _$v ??
-        _$PagedDataDataInner._(
-          anyOf: BuiltValueNullFieldError.checkNotNull(
-              anyOf, r'PagedDataDataInner', 'anyOf'),
-        );
+        new _$PagedDataDataInner._(
+            anyOf: BuiltValueNullFieldError.checkNotNull(
+                anyOf, r'PagedDataDataInner', 'anyOf'));
     replace(_$result);
     return _$result;
   }

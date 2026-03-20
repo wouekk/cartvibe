@@ -31,7 +31,7 @@ class _$UserPreferences extends UserPreferences {
   final String? updatedAt;
 
   factory _$UserPreferences([void Function(UserPreferencesBuilder)? updates]) =>
-      (UserPreferencesBuilder()..update(updates))._build();
+      (new UserPreferencesBuilder()..update(updates))._build();
 
   _$UserPreferences._(
       {this.quickScanDefaultStatus,
@@ -45,13 +45,20 @@ class _$UserPreferences extends UserPreferences {
       this.createdBy,
       this.createdByString,
       this.updatedAt})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(userId, r'UserPreferences', 'userId');
+    BuiltValueNullFieldError.checkNotNull(id, r'UserPreferences', 'id');
+    BuiltValueNullFieldError.checkNotNull(
+        createdAt, r'UserPreferences', 'createdAt');
+  }
+
   @override
   UserPreferences rebuild(void Function(UserPreferencesBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  UserPreferencesBuilder toBuilder() => UserPreferencesBuilder()..replace(this);
+  UserPreferencesBuilder toBuilder() =>
+      new UserPreferencesBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -119,7 +126,7 @@ class UserPreferencesBuilder
 
   ListBuilder<UserShortcut>? _userShortcuts;
   ListBuilder<UserShortcut> get userShortcuts =>
-      _$this._userShortcuts ??= ListBuilder<UserShortcut>();
+      _$this._userShortcuts ??= new ListBuilder<UserShortcut>();
   set userShortcuts(covariant ListBuilder<UserShortcut>? userShortcuts) =>
       _$this._userShortcuts = userShortcuts;
 
@@ -188,6 +195,7 @@ class UserPreferencesBuilder
 
   @override
   void replace(covariant UserPreferences other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$UserPreferences;
   }
 
@@ -203,29 +211,28 @@ class UserPreferencesBuilder
     _$UserPreferences _$result;
     try {
       _$result = _$v ??
-          _$UserPreferences._(
-            quickScanDefaultStatus: quickScanDefaultStatus,
-            userShortcuts: _userShortcuts?.build(),
-            showLargeImagePreviews: showLargeImagePreviews,
-            userId: BuiltValueNullFieldError.checkNotNull(
-                userId, r'UserPreferences', 'userId'),
-            quickScanDefaultGroupId: quickScanDefaultGroupId,
-            quickScanDefaultPaidById: quickScanDefaultPaidById,
-            id: BuiltValueNullFieldError.checkNotNull(
-                id, r'UserPreferences', 'id'),
-            createdAt: BuiltValueNullFieldError.checkNotNull(
-                createdAt, r'UserPreferences', 'createdAt'),
-            createdBy: createdBy,
-            createdByString: createdByString,
-            updatedAt: updatedAt,
-          );
+          new _$UserPreferences._(
+              quickScanDefaultStatus: quickScanDefaultStatus,
+              userShortcuts: _userShortcuts?.build(),
+              showLargeImagePreviews: showLargeImagePreviews,
+              userId: BuiltValueNullFieldError.checkNotNull(
+                  userId, r'UserPreferences', 'userId'),
+              quickScanDefaultGroupId: quickScanDefaultGroupId,
+              quickScanDefaultPaidById: quickScanDefaultPaidById,
+              id: BuiltValueNullFieldError.checkNotNull(
+                  id, r'UserPreferences', 'id'),
+              createdAt: BuiltValueNullFieldError.checkNotNull(
+                  createdAt, r'UserPreferences', 'createdAt'),
+              createdBy: createdBy,
+              createdByString: createdByString,
+              updatedAt: updatedAt);
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'userShortcuts';
         _userShortcuts?.build();
       } catch (e) {
-        throw BuiltValueNestedFieldError(
+        throw new BuiltValueNestedFieldError(
             r'UserPreferences', _$failedField, e.toString());
       }
       rethrow;

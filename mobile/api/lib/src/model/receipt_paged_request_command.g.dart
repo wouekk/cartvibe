@@ -22,7 +22,7 @@ class _$ReceiptPagedRequestCommand extends ReceiptPagedRequestCommand {
 
   factory _$ReceiptPagedRequestCommand(
           [void Function(ReceiptPagedRequestCommandBuilder)? updates]) =>
-      (ReceiptPagedRequestCommandBuilder()..update(updates))._build();
+      (new ReceiptPagedRequestCommandBuilder()..update(updates))._build();
 
   _$ReceiptPagedRequestCommand._(
       {required this.page,
@@ -31,7 +31,13 @@ class _$ReceiptPagedRequestCommand extends ReceiptPagedRequestCommand {
       this.sortDirection,
       this.filter,
       this.fullReceipts})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(
+        page, r'ReceiptPagedRequestCommand', 'page');
+    BuiltValueNullFieldError.checkNotNull(
+        pageSize, r'ReceiptPagedRequestCommand', 'pageSize');
+  }
+
   @override
   ReceiptPagedRequestCommand rebuild(
           void Function(ReceiptPagedRequestCommandBuilder) updates) =>
@@ -39,7 +45,7 @@ class _$ReceiptPagedRequestCommand extends ReceiptPagedRequestCommand {
 
   @override
   ReceiptPagedRequestCommandBuilder toBuilder() =>
-      ReceiptPagedRequestCommandBuilder()..replace(this);
+      new ReceiptPagedRequestCommandBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -103,7 +109,7 @@ class ReceiptPagedRequestCommandBuilder
 
   ReceiptPagedRequestFilterBuilder? _filter;
   ReceiptPagedRequestFilterBuilder get filter =>
-      _$this._filter ??= ReceiptPagedRequestFilterBuilder();
+      _$this._filter ??= new ReceiptPagedRequestFilterBuilder();
   set filter(ReceiptPagedRequestFilterBuilder? filter) =>
       _$this._filter = filter;
 
@@ -131,6 +137,7 @@ class ReceiptPagedRequestCommandBuilder
 
   @override
   void replace(ReceiptPagedRequestCommand other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ReceiptPagedRequestCommand;
   }
 
@@ -146,23 +153,22 @@ class ReceiptPagedRequestCommandBuilder
     _$ReceiptPagedRequestCommand _$result;
     try {
       _$result = _$v ??
-          _$ReceiptPagedRequestCommand._(
-            page: BuiltValueNullFieldError.checkNotNull(
-                page, r'ReceiptPagedRequestCommand', 'page'),
-            pageSize: BuiltValueNullFieldError.checkNotNull(
-                pageSize, r'ReceiptPagedRequestCommand', 'pageSize'),
-            orderBy: orderBy,
-            sortDirection: sortDirection,
-            filter: _filter?.build(),
-            fullReceipts: fullReceipts,
-          );
+          new _$ReceiptPagedRequestCommand._(
+              page: BuiltValueNullFieldError.checkNotNull(
+                  page, r'ReceiptPagedRequestCommand', 'page'),
+              pageSize: BuiltValueNullFieldError.checkNotNull(
+                  pageSize, r'ReceiptPagedRequestCommand', 'pageSize'),
+              orderBy: orderBy,
+              sortDirection: sortDirection,
+              filter: _filter?.build(),
+              fullReceipts: fullReceipts);
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'filter';
         _filter?.build();
       } catch (e) {
-        throw BuiltValueNestedFieldError(
+        throw new BuiltValueNestedFieldError(
             r'ReceiptPagedRequestCommand', _$failedField, e.toString());
       }
       rethrow;

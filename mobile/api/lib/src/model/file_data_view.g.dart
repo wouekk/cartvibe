@@ -23,7 +23,7 @@ class _$FileDataView extends FileDataView {
   final String? updatedAt;
 
   factory _$FileDataView([void Function(FileDataViewBuilder)? updates]) =>
-      (FileDataViewBuilder()..update(updates))._build();
+      (new FileDataViewBuilder()..update(updates))._build();
 
   _$FileDataView._(
       {required this.encodedImage,
@@ -33,13 +33,21 @@ class _$FileDataView extends FileDataView {
       this.createdBy,
       this.createdByString,
       this.updatedAt})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(
+        encodedImage, r'FileDataView', 'encodedImage');
+    BuiltValueNullFieldError.checkNotNull(name, r'FileDataView', 'name');
+    BuiltValueNullFieldError.checkNotNull(id, r'FileDataView', 'id');
+    BuiltValueNullFieldError.checkNotNull(
+        createdAt, r'FileDataView', 'createdAt');
+  }
+
   @override
   FileDataView rebuild(void Function(FileDataViewBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  FileDataViewBuilder toBuilder() => FileDataViewBuilder()..replace(this);
+  FileDataViewBuilder toBuilder() => new FileDataViewBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -137,6 +145,7 @@ class FileDataViewBuilder
 
   @override
   void replace(covariant FileDataView other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$FileDataView;
   }
 
@@ -150,18 +159,18 @@ class FileDataViewBuilder
 
   _$FileDataView _build() {
     final _$result = _$v ??
-        _$FileDataView._(
-          encodedImage: BuiltValueNullFieldError.checkNotNull(
-              encodedImage, r'FileDataView', 'encodedImage'),
-          name: BuiltValueNullFieldError.checkNotNull(
-              name, r'FileDataView', 'name'),
-          id: BuiltValueNullFieldError.checkNotNull(id, r'FileDataView', 'id'),
-          createdAt: BuiltValueNullFieldError.checkNotNull(
-              createdAt, r'FileDataView', 'createdAt'),
-          createdBy: createdBy,
-          createdByString: createdByString,
-          updatedAt: updatedAt,
-        );
+        new _$FileDataView._(
+            encodedImage: BuiltValueNullFieldError.checkNotNull(
+                encodedImage, r'FileDataView', 'encodedImage'),
+            name: BuiltValueNullFieldError.checkNotNull(
+                name, r'FileDataView', 'name'),
+            id: BuiltValueNullFieldError.checkNotNull(
+                id, r'FileDataView', 'id'),
+            createdAt: BuiltValueNullFieldError.checkNotNull(
+                createdAt, r'FileDataView', 'createdAt'),
+            createdBy: createdBy,
+            createdByString: createdByString,
+            updatedAt: updatedAt);
     replace(_$result);
     return _$result;
   }

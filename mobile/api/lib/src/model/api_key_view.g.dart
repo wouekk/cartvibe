@@ -29,7 +29,7 @@ class _$ApiKeyView extends ApiKeyView {
   final DateTime? lastUsedAt;
 
   factory _$ApiKeyView([void Function(ApiKeyViewBuilder)? updates]) =>
-      (ApiKeyViewBuilder()..update(updates))._build();
+      (new ApiKeyViewBuilder()..update(updates))._build();
 
   _$ApiKeyView._(
       {this.id,
@@ -43,12 +43,13 @@ class _$ApiKeyView extends ApiKeyView {
       this.scope,
       this.lastUsedAt})
       : super._();
+
   @override
   ApiKeyView rebuild(void Function(ApiKeyViewBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  ApiKeyViewBuilder toBuilder() => ApiKeyViewBuilder()..replace(this);
+  ApiKeyViewBuilder toBuilder() => new ApiKeyViewBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -168,6 +169,7 @@ class ApiKeyViewBuilder implements Builder<ApiKeyView, ApiKeyViewBuilder> {
 
   @override
   void replace(ApiKeyView other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ApiKeyView;
   }
 
@@ -181,18 +183,17 @@ class ApiKeyViewBuilder implements Builder<ApiKeyView, ApiKeyViewBuilder> {
 
   _$ApiKeyView _build() {
     final _$result = _$v ??
-        _$ApiKeyView._(
-          id: id,
-          createdAt: createdAt,
-          updatedAt: updatedAt,
-          createdBy: createdBy,
-          createdByString: createdByString,
-          name: name,
-          description: description,
-          userId: userId,
-          scope: scope,
-          lastUsedAt: lastUsedAt,
-        );
+        new _$ApiKeyView._(
+            id: id,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            createdBy: createdBy,
+            createdByString: createdByString,
+            name: name,
+            description: description,
+            userId: userId,
+            scope: scope,
+            lastUsedAt: lastUsedAt);
     replace(_$result);
     return _$result;
   }

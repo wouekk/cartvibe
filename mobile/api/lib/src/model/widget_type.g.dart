@@ -22,11 +22,12 @@ WidgetType _$valueOf(String name) {
     case 'PIE_CHART':
       return _$PIE_CHART;
     default:
-      throw ArgumentError(name);
+      throw new ArgumentError(name);
   }
 }
 
-final BuiltSet<WidgetType> _$values = BuiltSet<WidgetType>(const <WidgetType>[
+final BuiltSet<WidgetType> _$values =
+    new BuiltSet<WidgetType>(const <WidgetType>[
   _$GROUP_SUMMARY,
   _$FILTERED_RECEIPTS,
   _$GROUP_ACTIVITY,
@@ -48,7 +49,7 @@ abstract class _$WidgetTypeMixin {
   _$WidgetTypeMeta get WidgetType => const _$WidgetTypeMeta();
 }
 
-Serializer<WidgetType> _$widgetTypeSerializer = _$WidgetTypeSerializer();
+Serializer<WidgetType> _$widgetTypeSerializer = new _$WidgetTypeSerializer();
 
 class _$WidgetTypeSerializer implements PrimitiveSerializer<WidgetType> {
   static const Map<String, Object> _toWire = const <String, Object>{

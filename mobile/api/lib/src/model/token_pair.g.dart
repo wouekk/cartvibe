@@ -13,15 +13,20 @@ class _$TokenPair extends TokenPair {
   final String refreshToken;
 
   factory _$TokenPair([void Function(TokenPairBuilder)? updates]) =>
-      (TokenPairBuilder()..update(updates))._build();
+      (new TokenPairBuilder()..update(updates))._build();
 
-  _$TokenPair._({required this.jwt, required this.refreshToken}) : super._();
+  _$TokenPair._({required this.jwt, required this.refreshToken}) : super._() {
+    BuiltValueNullFieldError.checkNotNull(jwt, r'TokenPair', 'jwt');
+    BuiltValueNullFieldError.checkNotNull(
+        refreshToken, r'TokenPair', 'refreshToken');
+  }
+
   @override
   TokenPair rebuild(void Function(TokenPairBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  TokenPairBuilder toBuilder() => TokenPairBuilder()..replace(this);
+  TokenPairBuilder toBuilder() => new TokenPairBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -76,6 +81,7 @@ class TokenPairBuilder implements Builder<TokenPair, TokenPairBuilder> {
 
   @override
   void replace(TokenPair other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$TokenPair;
   }
 
@@ -89,11 +95,11 @@ class TokenPairBuilder implements Builder<TokenPair, TokenPairBuilder> {
 
   _$TokenPair _build() {
     final _$result = _$v ??
-        _$TokenPair._(
-          jwt: BuiltValueNullFieldError.checkNotNull(jwt, r'TokenPair', 'jwt'),
-          refreshToken: BuiltValueNullFieldError.checkNotNull(
-              refreshToken, r'TokenPair', 'refreshToken'),
-        );
+        new _$TokenPair._(
+            jwt:
+                BuiltValueNullFieldError.checkNotNull(jwt, r'TokenPair', 'jwt'),
+            refreshToken: BuiltValueNullFieldError.checkNotNull(
+                refreshToken, r'TokenPair', 'refreshToken'));
     replace(_$result);
     return _$result;
   }

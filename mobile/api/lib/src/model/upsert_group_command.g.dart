@@ -20,7 +20,7 @@ class _$UpsertGroupCommand extends UpsertGroupCommand {
 
   factory _$UpsertGroupCommand(
           [void Function(UpsertGroupCommandBuilder)? updates]) =>
-      (UpsertGroupCommandBuilder()..update(updates))._build();
+      (new UpsertGroupCommandBuilder()..update(updates))._build();
 
   _$UpsertGroupCommand._(
       {required this.groupMembers,
@@ -28,7 +28,14 @@ class _$UpsertGroupCommand extends UpsertGroupCommand {
       required this.name,
       this.isAllGroup,
       required this.status})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(
+        groupMembers, r'UpsertGroupCommand', 'groupMembers');
+    BuiltValueNullFieldError.checkNotNull(name, r'UpsertGroupCommand', 'name');
+    BuiltValueNullFieldError.checkNotNull(
+        status, r'UpsertGroupCommand', 'status');
+  }
+
   @override
   UpsertGroupCommand rebuild(
           void Function(UpsertGroupCommandBuilder) updates) =>
@@ -36,7 +43,7 @@ class _$UpsertGroupCommand extends UpsertGroupCommand {
 
   @override
   UpsertGroupCommandBuilder toBuilder() =>
-      UpsertGroupCommandBuilder()..replace(this);
+      new UpsertGroupCommandBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -79,7 +86,7 @@ class UpsertGroupCommandBuilder
 
   ListBuilder<UpsertGroupMemberCommand>? _groupMembers;
   ListBuilder<UpsertGroupMemberCommand> get groupMembers =>
-      _$this._groupMembers ??= ListBuilder<UpsertGroupMemberCommand>();
+      _$this._groupMembers ??= new ListBuilder<UpsertGroupMemberCommand>();
   set groupMembers(ListBuilder<UpsertGroupMemberCommand>? groupMembers) =>
       _$this._groupMembers = groupMembers;
 
@@ -118,6 +125,7 @@ class UpsertGroupCommandBuilder
 
   @override
   void replace(UpsertGroupCommand other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$UpsertGroupCommand;
   }
 
@@ -133,22 +141,21 @@ class UpsertGroupCommandBuilder
     _$UpsertGroupCommand _$result;
     try {
       _$result = _$v ??
-          _$UpsertGroupCommand._(
-            groupMembers: groupMembers.build(),
-            isDefault: isDefault,
-            name: BuiltValueNullFieldError.checkNotNull(
-                name, r'UpsertGroupCommand', 'name'),
-            isAllGroup: isAllGroup,
-            status: BuiltValueNullFieldError.checkNotNull(
-                status, r'UpsertGroupCommand', 'status'),
-          );
+          new _$UpsertGroupCommand._(
+              groupMembers: groupMembers.build(),
+              isDefault: isDefault,
+              name: BuiltValueNullFieldError.checkNotNull(
+                  name, r'UpsertGroupCommand', 'name'),
+              isAllGroup: isAllGroup,
+              status: BuiltValueNullFieldError.checkNotNull(
+                  status, r'UpsertGroupCommand', 'status'));
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'groupMembers';
         groupMembers.build();
       } catch (e) {
-        throw BuiltValueNestedFieldError(
+        throw new BuiltValueNestedFieldError(
             r'UpsertGroupCommand', _$failedField, e.toString());
       }
       rethrow;

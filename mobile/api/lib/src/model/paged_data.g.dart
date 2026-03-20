@@ -13,15 +13,20 @@ class _$PagedData extends PagedData {
   final int totalCount;
 
   factory _$PagedData([void Function(PagedDataBuilder)? updates]) =>
-      (PagedDataBuilder()..update(updates))._build();
+      (new PagedDataBuilder()..update(updates))._build();
 
-  _$PagedData._({required this.data, required this.totalCount}) : super._();
+  _$PagedData._({required this.data, required this.totalCount}) : super._() {
+    BuiltValueNullFieldError.checkNotNull(data, r'PagedData', 'data');
+    BuiltValueNullFieldError.checkNotNull(
+        totalCount, r'PagedData', 'totalCount');
+  }
+
   @override
   PagedData rebuild(void Function(PagedDataBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  PagedDataBuilder toBuilder() => PagedDataBuilder()..replace(this);
+  PagedDataBuilder toBuilder() => new PagedDataBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -54,7 +59,7 @@ class PagedDataBuilder implements Builder<PagedData, PagedDataBuilder> {
 
   ListBuilder<PagedDataDataInner>? _data;
   ListBuilder<PagedDataDataInner> get data =>
-      _$this._data ??= ListBuilder<PagedDataDataInner>();
+      _$this._data ??= new ListBuilder<PagedDataDataInner>();
   set data(ListBuilder<PagedDataDataInner>? data) => _$this._data = data;
 
   int? _totalCount;
@@ -77,6 +82,7 @@ class PagedDataBuilder implements Builder<PagedData, PagedDataBuilder> {
 
   @override
   void replace(PagedData other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$PagedData;
   }
 
@@ -92,18 +98,17 @@ class PagedDataBuilder implements Builder<PagedData, PagedDataBuilder> {
     _$PagedData _$result;
     try {
       _$result = _$v ??
-          _$PagedData._(
-            data: data.build(),
-            totalCount: BuiltValueNullFieldError.checkNotNull(
-                totalCount, r'PagedData', 'totalCount'),
-          );
+          new _$PagedData._(
+              data: data.build(),
+              totalCount: BuiltValueNullFieldError.checkNotNull(
+                  totalCount, r'PagedData', 'totalCount'));
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'data';
         data.build();
       } catch (e) {
-        throw BuiltValueNestedFieldError(
+        throw new BuiltValueNestedFieldError(
             r'PagedData', _$failedField, e.toString());
       }
       rethrow;

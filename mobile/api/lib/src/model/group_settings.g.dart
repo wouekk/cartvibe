@@ -43,7 +43,7 @@ class _$GroupSettings extends GroupSettings {
   final String? updatedAt;
 
   factory _$GroupSettings([void Function(GroupSettingsBuilder)? updates]) =>
-      (GroupSettingsBuilder()..update(updates))._build();
+      (new GroupSettingsBuilder()..update(updates))._build();
 
   _$GroupSettings._(
       {required this.id,
@@ -63,13 +63,17 @@ class _$GroupSettings extends GroupSettings {
       this.createdAt,
       this.createdBy,
       this.updatedAt})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(id, r'GroupSettings', 'id');
+    BuiltValueNullFieldError.checkNotNull(groupId, r'GroupSettings', 'groupId');
+  }
+
   @override
   GroupSettings rebuild(void Function(GroupSettingsBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  GroupSettingsBuilder toBuilder() => GroupSettingsBuilder()..replace(this);
+  GroupSettingsBuilder toBuilder() => new GroupSettingsBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -166,7 +170,7 @@ class GroupSettingsBuilder
 
   SystemEmailBuilder? _systemEmail;
   SystemEmailBuilder get systemEmail =>
-      _$this._systemEmail ??= SystemEmailBuilder();
+      _$this._systemEmail ??= new SystemEmailBuilder();
   set systemEmail(SystemEmailBuilder? systemEmail) =>
       _$this._systemEmail = systemEmail;
 
@@ -176,13 +180,13 @@ class GroupSettingsBuilder
 
   ListBuilder<SubjectLineRegex>? _subjectLineRegexes;
   ListBuilder<SubjectLineRegex> get subjectLineRegexes =>
-      _$this._subjectLineRegexes ??= ListBuilder<SubjectLineRegex>();
+      _$this._subjectLineRegexes ??= new ListBuilder<SubjectLineRegex>();
   set subjectLineRegexes(ListBuilder<SubjectLineRegex>? subjectLineRegexes) =>
       _$this._subjectLineRegexes = subjectLineRegexes;
 
   ListBuilder<GroupSettingsWhiteListEmail>? _emailWhiteList;
   ListBuilder<GroupSettingsWhiteListEmail> get emailWhiteList =>
-      _$this._emailWhiteList ??= ListBuilder<GroupSettingsWhiteListEmail>();
+      _$this._emailWhiteList ??= new ListBuilder<GroupSettingsWhiteListEmail>();
   set emailWhiteList(
           ListBuilder<GroupSettingsWhiteListEmail>? emailWhiteList) =>
       _$this._emailWhiteList = emailWhiteList;
@@ -199,7 +203,7 @@ class GroupSettingsBuilder
       _$this._emailDefaultReceiptPaidById = emailDefaultReceiptPaidById;
 
   PromptBuilder? _prompt;
-  PromptBuilder get prompt => _$this._prompt ??= PromptBuilder();
+  PromptBuilder get prompt => _$this._prompt ??= new PromptBuilder();
   set prompt(PromptBuilder? prompt) => _$this._prompt = prompt;
 
   int? _promptId;
@@ -208,7 +212,7 @@ class GroupSettingsBuilder
 
   PromptBuilder? _fallbackPrompt;
   PromptBuilder get fallbackPrompt =>
-      _$this._fallbackPrompt ??= PromptBuilder();
+      _$this._fallbackPrompt ??= new PromptBuilder();
   set fallbackPrompt(PromptBuilder? fallbackPrompt) =>
       _$this._fallbackPrompt = fallbackPrompt;
 
@@ -260,6 +264,7 @@ class GroupSettingsBuilder
 
   @override
   void replace(GroupSettings other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$GroupSettings;
   }
 
@@ -275,27 +280,26 @@ class GroupSettingsBuilder
     _$GroupSettings _$result;
     try {
       _$result = _$v ??
-          _$GroupSettings._(
-            id: BuiltValueNullFieldError.checkNotNull(
-                id, r'GroupSettings', 'id'),
-            groupId: BuiltValueNullFieldError.checkNotNull(
-                groupId, r'GroupSettings', 'groupId'),
-            emailIntegrationEnabled: emailIntegrationEnabled,
-            systemEmailId: systemEmailId,
-            systemEmail: _systemEmail?.build(),
-            emailToRead: emailToRead,
-            subjectLineRegexes: _subjectLineRegexes?.build(),
-            emailWhiteList: _emailWhiteList?.build(),
-            emailDefaultReceiptStatus: emailDefaultReceiptStatus,
-            emailDefaultReceiptPaidById: emailDefaultReceiptPaidById,
-            prompt: _prompt?.build(),
-            promptId: promptId,
-            fallbackPrompt: _fallbackPrompt?.build(),
-            fallbackPromptId: fallbackPromptId,
-            createdAt: createdAt,
-            createdBy: createdBy,
-            updatedAt: updatedAt,
-          );
+          new _$GroupSettings._(
+              id: BuiltValueNullFieldError.checkNotNull(
+                  id, r'GroupSettings', 'id'),
+              groupId: BuiltValueNullFieldError.checkNotNull(
+                  groupId, r'GroupSettings', 'groupId'),
+              emailIntegrationEnabled: emailIntegrationEnabled,
+              systemEmailId: systemEmailId,
+              systemEmail: _systemEmail?.build(),
+              emailToRead: emailToRead,
+              subjectLineRegexes: _subjectLineRegexes?.build(),
+              emailWhiteList: _emailWhiteList?.build(),
+              emailDefaultReceiptStatus: emailDefaultReceiptStatus,
+              emailDefaultReceiptPaidById: emailDefaultReceiptPaidById,
+              prompt: _prompt?.build(),
+              promptId: promptId,
+              fallbackPrompt: _fallbackPrompt?.build(),
+              fallbackPromptId: fallbackPromptId,
+              createdAt: createdAt,
+              createdBy: createdBy,
+              updatedAt: updatedAt);
     } catch (_) {
       late String _$failedField;
       try {
@@ -313,7 +317,7 @@ class GroupSettingsBuilder
         _$failedField = 'fallbackPrompt';
         _fallbackPrompt?.build();
       } catch (e) {
-        throw BuiltValueNestedFieldError(
+        throw new BuiltValueNestedFieldError(
             r'GroupSettings', _$failedField, e.toString());
       }
       rethrow;

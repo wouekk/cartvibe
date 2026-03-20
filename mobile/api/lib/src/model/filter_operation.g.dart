@@ -32,12 +32,12 @@ FilterOperation _$valueOf(String name) {
     case 'empty':
       return _$empty;
     default:
-      throw ArgumentError(name);
+      throw new ArgumentError(name);
   }
 }
 
 final BuiltSet<FilterOperation> _$values =
-    BuiltSet<FilterOperation>(const <FilterOperation>[
+    new BuiltSet<FilterOperation>(const <FilterOperation>[
   _$CONTAINS,
   _$EQUALS,
   _$GREATER_THAN,
@@ -66,7 +66,7 @@ abstract class _$FilterOperationMixin {
 }
 
 Serializer<FilterOperation> _$filterOperationSerializer =
-    _$FilterOperationSerializer();
+    new _$FilterOperationSerializer();
 
 class _$FilterOperationSerializer
     implements PrimitiveSerializer<FilterOperation> {

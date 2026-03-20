@@ -33,7 +33,7 @@ class _$Claims extends Claims {
   final String? jti;
 
   factory _$Claims([void Function(ClaimsBuilder)? updates]) =>
-      (ClaimsBuilder()..update(updates))._build();
+      (new ClaimsBuilder()..update(updates))._build();
 
   _$Claims._(
       {required this.userId,
@@ -48,13 +48,24 @@ class _$Claims extends Claims {
       this.nbf,
       this.iat,
       this.jti})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(userId, r'Claims', 'userId');
+    BuiltValueNullFieldError.checkNotNull(userRole, r'Claims', 'userRole');
+    BuiltValueNullFieldError.checkNotNull(
+        displayName, r'Claims', 'displayName');
+    BuiltValueNullFieldError.checkNotNull(
+        defaultAvatarColor, r'Claims', 'defaultAvatarColor');
+    BuiltValueNullFieldError.checkNotNull(username, r'Claims', 'username');
+    BuiltValueNullFieldError.checkNotNull(iss, r'Claims', 'iss');
+    BuiltValueNullFieldError.checkNotNull(exp, r'Claims', 'exp');
+  }
+
   @override
   Claims rebuild(void Function(ClaimsBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  ClaimsBuilder toBuilder() => ClaimsBuilder()..replace(this);
+  ClaimsBuilder toBuilder() => new ClaimsBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -145,7 +156,7 @@ class ClaimsBuilder implements Builder<Claims, ClaimsBuilder> {
   set sub(String? sub) => _$this._sub = sub;
 
   ListBuilder<String>? _aud;
-  ListBuilder<String> get aud => _$this._aud ??= ListBuilder<String>();
+  ListBuilder<String> get aud => _$this._aud ??= new ListBuilder<String>();
   set aud(ListBuilder<String>? aud) => _$this._aud = aud;
 
   int? _exp;
@@ -190,6 +201,7 @@ class ClaimsBuilder implements Builder<Claims, ClaimsBuilder> {
 
   @override
   void replace(Claims other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$Claims;
   }
 
@@ -205,32 +217,31 @@ class ClaimsBuilder implements Builder<Claims, ClaimsBuilder> {
     _$Claims _$result;
     try {
       _$result = _$v ??
-          _$Claims._(
-            userId: BuiltValueNullFieldError.checkNotNull(
-                userId, r'Claims', 'userId'),
-            userRole: BuiltValueNullFieldError.checkNotNull(
-                userRole, r'Claims', 'userRole'),
-            displayName: BuiltValueNullFieldError.checkNotNull(
-                displayName, r'Claims', 'displayName'),
-            defaultAvatarColor: BuiltValueNullFieldError.checkNotNull(
-                defaultAvatarColor, r'Claims', 'defaultAvatarColor'),
-            username: BuiltValueNullFieldError.checkNotNull(
-                username, r'Claims', 'username'),
-            iss: BuiltValueNullFieldError.checkNotNull(iss, r'Claims', 'iss'),
-            sub: sub,
-            aud: _aud?.build(),
-            exp: BuiltValueNullFieldError.checkNotNull(exp, r'Claims', 'exp'),
-            nbf: nbf,
-            iat: iat,
-            jti: jti,
-          );
+          new _$Claims._(
+              userId: BuiltValueNullFieldError.checkNotNull(
+                  userId, r'Claims', 'userId'),
+              userRole: BuiltValueNullFieldError.checkNotNull(
+                  userRole, r'Claims', 'userRole'),
+              displayName: BuiltValueNullFieldError.checkNotNull(
+                  displayName, r'Claims', 'displayName'),
+              defaultAvatarColor: BuiltValueNullFieldError.checkNotNull(
+                  defaultAvatarColor, r'Claims', 'defaultAvatarColor'),
+              username: BuiltValueNullFieldError.checkNotNull(
+                  username, r'Claims', 'username'),
+              iss: BuiltValueNullFieldError.checkNotNull(iss, r'Claims', 'iss'),
+              sub: sub,
+              aud: _aud?.build(),
+              exp: BuiltValueNullFieldError.checkNotNull(exp, r'Claims', 'exp'),
+              nbf: nbf,
+              iat: iat,
+              jti: jti);
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'aud';
         _aud?.build();
       } catch (e) {
-        throw BuiltValueNestedFieldError(
+        throw new BuiltValueNestedFieldError(
             r'Claims', _$failedField, e.toString());
       }
       rethrow;

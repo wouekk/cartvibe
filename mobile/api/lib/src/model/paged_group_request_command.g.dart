@@ -20,7 +20,7 @@ class _$PagedGroupRequestCommand extends PagedGroupRequestCommand {
 
   factory _$PagedGroupRequestCommand(
           [void Function(PagedGroupRequestCommandBuilder)? updates]) =>
-      (PagedGroupRequestCommandBuilder()..update(updates))._build();
+      (new PagedGroupRequestCommandBuilder()..update(updates))._build();
 
   _$PagedGroupRequestCommand._(
       {this.filter,
@@ -28,7 +28,13 @@ class _$PagedGroupRequestCommand extends PagedGroupRequestCommand {
       required this.pageSize,
       this.orderBy,
       this.sortDirection})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(
+        page, r'PagedGroupRequestCommand', 'page');
+    BuiltValueNullFieldError.checkNotNull(
+        pageSize, r'PagedGroupRequestCommand', 'pageSize');
+  }
+
   @override
   PagedGroupRequestCommand rebuild(
           void Function(PagedGroupRequestCommandBuilder) updates) =>
@@ -36,7 +42,7 @@ class _$PagedGroupRequestCommand extends PagedGroupRequestCommand {
 
   @override
   PagedGroupRequestCommandBuilder toBuilder() =>
-      PagedGroupRequestCommandBuilder()..replace(this);
+      new PagedGroupRequestCommandBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -80,7 +86,7 @@ class PagedGroupRequestCommandBuilder
   _$PagedGroupRequestCommand? _$v;
 
   GroupFilterBuilder? _filter;
-  GroupFilterBuilder get filter => _$this._filter ??= GroupFilterBuilder();
+  GroupFilterBuilder get filter => _$this._filter ??= new GroupFilterBuilder();
   set filter(covariant GroupFilterBuilder? filter) => _$this._filter = filter;
 
   int? _page;
@@ -119,6 +125,7 @@ class PagedGroupRequestCommandBuilder
 
   @override
   void replace(covariant PagedGroupRequestCommand other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$PagedGroupRequestCommand;
   }
 
@@ -134,22 +141,21 @@ class PagedGroupRequestCommandBuilder
     _$PagedGroupRequestCommand _$result;
     try {
       _$result = _$v ??
-          _$PagedGroupRequestCommand._(
-            filter: _filter?.build(),
-            page: BuiltValueNullFieldError.checkNotNull(
-                page, r'PagedGroupRequestCommand', 'page'),
-            pageSize: BuiltValueNullFieldError.checkNotNull(
-                pageSize, r'PagedGroupRequestCommand', 'pageSize'),
-            orderBy: orderBy,
-            sortDirection: sortDirection,
-          );
+          new _$PagedGroupRequestCommand._(
+              filter: _filter?.build(),
+              page: BuiltValueNullFieldError.checkNotNull(
+                  page, r'PagedGroupRequestCommand', 'page'),
+              pageSize: BuiltValueNullFieldError.checkNotNull(
+                  pageSize, r'PagedGroupRequestCommand', 'pageSize'),
+              orderBy: orderBy,
+              sortDirection: sortDirection);
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'filter';
         _filter?.build();
       } catch (e) {
-        throw BuiltValueNestedFieldError(
+        throw new BuiltValueNestedFieldError(
             r'PagedGroupRequestCommand', _$failedField, e.toString());
       }
       rethrow;

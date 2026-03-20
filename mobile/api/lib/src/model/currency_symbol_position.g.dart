@@ -16,12 +16,12 @@ CurrencySymbolPosition _$valueOf(String name) {
     case 'END':
       return _$END;
     default:
-      throw ArgumentError(name);
+      throw new ArgumentError(name);
   }
 }
 
 final BuiltSet<CurrencySymbolPosition> _$values =
-    BuiltSet<CurrencySymbolPosition>(const <CurrencySymbolPosition>[
+    new BuiltSet<CurrencySymbolPosition>(const <CurrencySymbolPosition>[
   _$START,
   _$END,
 ]);
@@ -41,7 +41,7 @@ abstract class _$CurrencySymbolPositionMixin {
 }
 
 Serializer<CurrencySymbolPosition> _$currencySymbolPositionSerializer =
-    _$CurrencySymbolPositionSerializer();
+    new _$CurrencySymbolPositionSerializer();
 
 class _$CurrencySymbolPositionSerializer
     implements PrimitiveSerializer<CurrencySymbolPosition> {

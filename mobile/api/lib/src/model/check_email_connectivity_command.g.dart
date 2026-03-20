@@ -20,11 +20,12 @@ class _$CheckEmailConnectivityCommand extends CheckEmailConnectivityCommand {
 
   factory _$CheckEmailConnectivityCommand(
           [void Function(CheckEmailConnectivityCommandBuilder)? updates]) =>
-      (CheckEmailConnectivityCommandBuilder()..update(updates))._build();
+      (new CheckEmailConnectivityCommandBuilder()..update(updates))._build();
 
   _$CheckEmailConnectivityCommand._(
       {this.id, this.host, this.port, this.username, this.password})
       : super._();
+
   @override
   CheckEmailConnectivityCommand rebuild(
           void Function(CheckEmailConnectivityCommandBuilder) updates) =>
@@ -32,7 +33,7 @@ class _$CheckEmailConnectivityCommand extends CheckEmailConnectivityCommand {
 
   @override
   CheckEmailConnectivityCommandBuilder toBuilder() =>
-      CheckEmailConnectivityCommandBuilder()..replace(this);
+      new CheckEmailConnectivityCommandBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -114,6 +115,7 @@ class CheckEmailConnectivityCommandBuilder
 
   @override
   void replace(CheckEmailConnectivityCommand other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$CheckEmailConnectivityCommand;
   }
 
@@ -127,13 +129,12 @@ class CheckEmailConnectivityCommandBuilder
 
   _$CheckEmailConnectivityCommand _build() {
     final _$result = _$v ??
-        _$CheckEmailConnectivityCommand._(
-          id: id,
-          host: host,
-          port: port,
-          username: username,
-          password: password,
-        );
+        new _$CheckEmailConnectivityCommand._(
+            id: id,
+            host: host,
+            port: port,
+            username: username,
+            password: password);
     replace(_$result);
     return _$result;
   }

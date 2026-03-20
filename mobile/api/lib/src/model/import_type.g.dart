@@ -13,11 +13,12 @@ ImportType _$valueOf(String name) {
     case 'IMPORT_CONFIG':
       return _$IMPORT_CONFIG;
     default:
-      throw ArgumentError(name);
+      throw new ArgumentError(name);
   }
 }
 
-final BuiltSet<ImportType> _$values = BuiltSet<ImportType>(const <ImportType>[
+final BuiltSet<ImportType> _$values =
+    new BuiltSet<ImportType>(const <ImportType>[
   _$IMPORT_CONFIG,
 ]);
 
@@ -33,7 +34,7 @@ abstract class _$ImportTypeMixin {
   _$ImportTypeMeta get ImportType => const _$ImportTypeMeta();
 }
 
-Serializer<ImportType> _$importTypeSerializer = _$ImportTypeSerializer();
+Serializer<ImportType> _$importTypeSerializer = new _$ImportTypeSerializer();
 
 class _$ImportTypeSerializer implements PrimitiveSerializer<ImportType> {
   static const Map<String, Object> _toWire = const <String, Object>{

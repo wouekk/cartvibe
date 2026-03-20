@@ -21,7 +21,7 @@ class _$Category extends Category {
   final String? updatedAt;
 
   factory _$Category([void Function(CategoryBuilder)? updates]) =>
-      (CategoryBuilder()..update(updates))._build();
+      (new CategoryBuilder()..update(updates))._build();
 
   _$Category._(
       {this.createdAt,
@@ -31,12 +31,13 @@ class _$Category extends Category {
       this.description,
       this.updatedAt})
       : super._();
+
   @override
   Category rebuild(void Function(CategoryBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  CategoryBuilder toBuilder() => CategoryBuilder()..replace(this);
+  CategoryBuilder toBuilder() => new CategoryBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -123,6 +124,7 @@ class CategoryBuilder implements Builder<Category, CategoryBuilder> {
 
   @override
   void replace(Category other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$Category;
   }
 
@@ -136,14 +138,13 @@ class CategoryBuilder implements Builder<Category, CategoryBuilder> {
 
   _$Category _build() {
     final _$result = _$v ??
-        _$Category._(
-          createdAt: createdAt,
-          createdBy: createdBy,
-          id: id,
-          name: name,
-          description: description,
-          updatedAt: updatedAt,
-        );
+        new _$Category._(
+            createdAt: createdAt,
+            createdBy: createdBy,
+            id: id,
+            name: name,
+            description: description,
+            updatedAt: updatedAt);
     replace(_$result);
     return _$result;
   }

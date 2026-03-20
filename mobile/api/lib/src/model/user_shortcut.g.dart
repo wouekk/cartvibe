@@ -27,7 +27,7 @@ class _$UserShortcut extends UserShortcut {
   final String? updatedAt;
 
   factory _$UserShortcut([void Function(UserShortcutBuilder)? updates]) =>
-      (UserShortcutBuilder()..update(updates))._build();
+      (new UserShortcutBuilder()..update(updates))._build();
 
   _$UserShortcut._(
       {required this.name,
@@ -39,13 +39,19 @@ class _$UserShortcut extends UserShortcut {
       this.createdBy,
       this.createdByString,
       this.updatedAt})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(name, r'UserShortcut', 'name');
+    BuiltValueNullFieldError.checkNotNull(id, r'UserShortcut', 'id');
+    BuiltValueNullFieldError.checkNotNull(
+        createdAt, r'UserShortcut', 'createdAt');
+  }
+
   @override
   UserShortcut rebuild(void Function(UserShortcutBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  UserShortcutBuilder toBuilder() => UserShortcutBuilder()..replace(this);
+  UserShortcutBuilder toBuilder() => new UserShortcutBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -159,6 +165,7 @@ class UserShortcutBuilder
 
   @override
   void replace(covariant UserShortcut other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$UserShortcut;
   }
 
@@ -172,19 +179,19 @@ class UserShortcutBuilder
 
   _$UserShortcut _build() {
     final _$result = _$v ??
-        _$UserShortcut._(
-          name: BuiltValueNullFieldError.checkNotNull(
-              name, r'UserShortcut', 'name'),
-          icon: icon,
-          userPreferncesId: userPreferncesId,
-          url: url,
-          id: BuiltValueNullFieldError.checkNotNull(id, r'UserShortcut', 'id'),
-          createdAt: BuiltValueNullFieldError.checkNotNull(
-              createdAt, r'UserShortcut', 'createdAt'),
-          createdBy: createdBy,
-          createdByString: createdByString,
-          updatedAt: updatedAt,
-        );
+        new _$UserShortcut._(
+            name: BuiltValueNullFieldError.checkNotNull(
+                name, r'UserShortcut', 'name'),
+            icon: icon,
+            userPreferncesId: userPreferncesId,
+            url: url,
+            id: BuiltValueNullFieldError.checkNotNull(
+                id, r'UserShortcut', 'id'),
+            createdAt: BuiltValueNullFieldError.checkNotNull(
+                createdAt, r'UserShortcut', 'createdAt'),
+            createdBy: createdBy,
+            createdByString: createdByString,
+            updatedAt: updatedAt);
     replace(_$result);
     return _$result;
   }

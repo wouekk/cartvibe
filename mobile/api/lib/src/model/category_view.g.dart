@@ -23,7 +23,7 @@ class _$CategoryView extends CategoryView {
   final int numberOfReceipts;
 
   factory _$CategoryView([void Function(CategoryViewBuilder)? updates]) =>
-      (CategoryViewBuilder()..update(updates))._build();
+      (new CategoryViewBuilder()..update(updates))._build();
 
   _$CategoryView._(
       {this.createdAt,
@@ -33,13 +33,19 @@ class _$CategoryView extends CategoryView {
       this.description,
       this.updatedAt,
       required this.numberOfReceipts})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(id, r'CategoryView', 'id');
+    BuiltValueNullFieldError.checkNotNull(name, r'CategoryView', 'name');
+    BuiltValueNullFieldError.checkNotNull(
+        numberOfReceipts, r'CategoryView', 'numberOfReceipts');
+  }
+
   @override
   CategoryView rebuild(void Function(CategoryViewBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  CategoryViewBuilder toBuilder() => CategoryViewBuilder()..replace(this);
+  CategoryViewBuilder toBuilder() => new CategoryViewBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -136,6 +142,7 @@ class CategoryViewBuilder
 
   @override
   void replace(CategoryView other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$CategoryView;
   }
 
@@ -149,17 +156,17 @@ class CategoryViewBuilder
 
   _$CategoryView _build() {
     final _$result = _$v ??
-        _$CategoryView._(
-          createdAt: createdAt,
-          createdBy: createdBy,
-          id: BuiltValueNullFieldError.checkNotNull(id, r'CategoryView', 'id'),
-          name: BuiltValueNullFieldError.checkNotNull(
-              name, r'CategoryView', 'name'),
-          description: description,
-          updatedAt: updatedAt,
-          numberOfReceipts: BuiltValueNullFieldError.checkNotNull(
-              numberOfReceipts, r'CategoryView', 'numberOfReceipts'),
-        );
+        new _$CategoryView._(
+            createdAt: createdAt,
+            createdBy: createdBy,
+            id: BuiltValueNullFieldError.checkNotNull(
+                id, r'CategoryView', 'id'),
+            name: BuiltValueNullFieldError.checkNotNull(
+                name, r'CategoryView', 'name'),
+            description: description,
+            updatedAt: updatedAt,
+            numberOfReceipts: BuiltValueNullFieldError.checkNotNull(
+                numberOfReceipts, r'CategoryView', 'numberOfReceipts'));
     replace(_$result);
     return _$result;
   }

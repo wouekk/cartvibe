@@ -18,11 +18,17 @@ class _$UpsertCustomFieldCommand extends UpsertCustomFieldCommand {
 
   factory _$UpsertCustomFieldCommand(
           [void Function(UpsertCustomFieldCommandBuilder)? updates]) =>
-      (UpsertCustomFieldCommandBuilder()..update(updates))._build();
+      (new UpsertCustomFieldCommandBuilder()..update(updates))._build();
 
   _$UpsertCustomFieldCommand._(
       {required this.name, required this.type, this.description, this.options})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(
+        name, r'UpsertCustomFieldCommand', 'name');
+    BuiltValueNullFieldError.checkNotNull(
+        type, r'UpsertCustomFieldCommand', 'type');
+  }
+
   @override
   UpsertCustomFieldCommand rebuild(
           void Function(UpsertCustomFieldCommandBuilder) updates) =>
@@ -30,7 +36,7 @@ class _$UpsertCustomFieldCommand extends UpsertCustomFieldCommand {
 
   @override
   UpsertCustomFieldCommandBuilder toBuilder() =>
-      UpsertCustomFieldCommandBuilder()..replace(this);
+      new UpsertCustomFieldCommandBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -83,7 +89,7 @@ class UpsertCustomFieldCommandBuilder
 
   ListBuilder<UpsertCustomFieldOptionCommand>? _options;
   ListBuilder<UpsertCustomFieldOptionCommand> get options =>
-      _$this._options ??= ListBuilder<UpsertCustomFieldOptionCommand>();
+      _$this._options ??= new ListBuilder<UpsertCustomFieldOptionCommand>();
   set options(ListBuilder<UpsertCustomFieldOptionCommand>? options) =>
       _$this._options = options;
 
@@ -105,6 +111,7 @@ class UpsertCustomFieldCommandBuilder
 
   @override
   void replace(UpsertCustomFieldCommand other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$UpsertCustomFieldCommand;
   }
 
@@ -120,21 +127,20 @@ class UpsertCustomFieldCommandBuilder
     _$UpsertCustomFieldCommand _$result;
     try {
       _$result = _$v ??
-          _$UpsertCustomFieldCommand._(
-            name: BuiltValueNullFieldError.checkNotNull(
-                name, r'UpsertCustomFieldCommand', 'name'),
-            type: BuiltValueNullFieldError.checkNotNull(
-                type, r'UpsertCustomFieldCommand', 'type'),
-            description: description,
-            options: _options?.build(),
-          );
+          new _$UpsertCustomFieldCommand._(
+              name: BuiltValueNullFieldError.checkNotNull(
+                  name, r'UpsertCustomFieldCommand', 'name'),
+              type: BuiltValueNullFieldError.checkNotNull(
+                  type, r'UpsertCustomFieldCommand', 'type'),
+              description: description,
+              options: _options?.build());
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'options';
         _options?.build();
       } catch (e) {
-        throw BuiltValueNestedFieldError(
+        throw new BuiltValueNestedFieldError(
             r'UpsertCustomFieldCommand', _$failedField, e.toString());
       }
       rethrow;

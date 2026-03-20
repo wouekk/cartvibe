@@ -16,11 +16,17 @@ class _$BulkStatusUpdateCommand extends BulkStatusUpdateCommand {
 
   factory _$BulkStatusUpdateCommand(
           [void Function(BulkStatusUpdateCommandBuilder)? updates]) =>
-      (BulkStatusUpdateCommandBuilder()..update(updates))._build();
+      (new BulkStatusUpdateCommandBuilder()..update(updates))._build();
 
   _$BulkStatusUpdateCommand._(
       {this.comment, required this.status, required this.receiptIds})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(
+        status, r'BulkStatusUpdateCommand', 'status');
+    BuiltValueNullFieldError.checkNotNull(
+        receiptIds, r'BulkStatusUpdateCommand', 'receiptIds');
+  }
+
   @override
   BulkStatusUpdateCommand rebuild(
           void Function(BulkStatusUpdateCommandBuilder) updates) =>
@@ -28,7 +34,7 @@ class _$BulkStatusUpdateCommand extends BulkStatusUpdateCommand {
 
   @override
   BulkStatusUpdateCommandBuilder toBuilder() =>
-      BulkStatusUpdateCommandBuilder()..replace(this);
+      new BulkStatusUpdateCommandBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -73,7 +79,8 @@ class BulkStatusUpdateCommandBuilder
   set status(String? status) => _$this._status = status;
 
   ListBuilder<int>? _receiptIds;
-  ListBuilder<int> get receiptIds => _$this._receiptIds ??= ListBuilder<int>();
+  ListBuilder<int> get receiptIds =>
+      _$this._receiptIds ??= new ListBuilder<int>();
   set receiptIds(ListBuilder<int>? receiptIds) =>
       _$this._receiptIds = receiptIds;
 
@@ -94,6 +101,7 @@ class BulkStatusUpdateCommandBuilder
 
   @override
   void replace(BulkStatusUpdateCommand other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$BulkStatusUpdateCommand;
   }
 
@@ -109,19 +117,18 @@ class BulkStatusUpdateCommandBuilder
     _$BulkStatusUpdateCommand _$result;
     try {
       _$result = _$v ??
-          _$BulkStatusUpdateCommand._(
-            comment: comment,
-            status: BuiltValueNullFieldError.checkNotNull(
-                status, r'BulkStatusUpdateCommand', 'status'),
-            receiptIds: receiptIds.build(),
-          );
+          new _$BulkStatusUpdateCommand._(
+              comment: comment,
+              status: BuiltValueNullFieldError.checkNotNull(
+                  status, r'BulkStatusUpdateCommand', 'status'),
+              receiptIds: receiptIds.build());
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'receiptIds';
         receiptIds.build();
       } catch (e) {
-        throw BuiltValueNestedFieldError(
+        throw new BuiltValueNestedFieldError(
             r'BulkStatusUpdateCommand', _$failedField, e.toString());
       }
       rethrow;

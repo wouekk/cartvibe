@@ -13,15 +13,19 @@ class _$About extends About {
   final String version;
 
   factory _$About([void Function(AboutBuilder)? updates]) =>
-      (AboutBuilder()..update(updates))._build();
+      (new AboutBuilder()..update(updates))._build();
 
-  _$About._({required this.buildDate, required this.version}) : super._();
+  _$About._({required this.buildDate, required this.version}) : super._() {
+    BuiltValueNullFieldError.checkNotNull(buildDate, r'About', 'buildDate');
+    BuiltValueNullFieldError.checkNotNull(version, r'About', 'version');
+  }
+
   @override
   About rebuild(void Function(AboutBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  AboutBuilder toBuilder() => AboutBuilder()..replace(this);
+  AboutBuilder toBuilder() => new AboutBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -76,6 +80,7 @@ class AboutBuilder implements Builder<About, AboutBuilder> {
 
   @override
   void replace(About other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$About;
   }
 
@@ -89,12 +94,11 @@ class AboutBuilder implements Builder<About, AboutBuilder> {
 
   _$About _build() {
     final _$result = _$v ??
-        _$About._(
-          buildDate: BuiltValueNullFieldError.checkNotNull(
-              buildDate, r'About', 'buildDate'),
-          version: BuiltValueNullFieldError.checkNotNull(
-              version, r'About', 'version'),
-        );
+        new _$About._(
+            buildDate: BuiltValueNullFieldError.checkNotNull(
+                buildDate, r'About', 'buildDate'),
+            version: BuiltValueNullFieldError.checkNotNull(
+                version, r'About', 'version'));
     replace(_$result);
     return _$result;
   }

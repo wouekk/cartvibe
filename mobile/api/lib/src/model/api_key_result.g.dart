@@ -11,15 +11,18 @@ class _$ApiKeyResult extends ApiKeyResult {
   final String key;
 
   factory _$ApiKeyResult([void Function(ApiKeyResultBuilder)? updates]) =>
-      (ApiKeyResultBuilder()..update(updates))._build();
+      (new ApiKeyResultBuilder()..update(updates))._build();
 
-  _$ApiKeyResult._({required this.key}) : super._();
+  _$ApiKeyResult._({required this.key}) : super._() {
+    BuiltValueNullFieldError.checkNotNull(key, r'ApiKeyResult', 'key');
+  }
+
   @override
   ApiKeyResult rebuild(void Function(ApiKeyResultBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  ApiKeyResultBuilder toBuilder() => ApiKeyResultBuilder()..replace(this);
+  ApiKeyResultBuilder toBuilder() => new ApiKeyResultBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -65,6 +68,7 @@ class ApiKeyResultBuilder
 
   @override
   void replace(ApiKeyResult other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ApiKeyResult;
   }
 
@@ -78,10 +82,9 @@ class ApiKeyResultBuilder
 
   _$ApiKeyResult _build() {
     final _$result = _$v ??
-        _$ApiKeyResult._(
-          key: BuiltValueNullFieldError.checkNotNull(
-              key, r'ApiKeyResult', 'key'),
-        );
+        new _$ApiKeyResult._(
+            key: BuiltValueNullFieldError.checkNotNull(
+                key, r'ApiKeyResult', 'key'));
     replace(_$result);
     return _$result;
   }

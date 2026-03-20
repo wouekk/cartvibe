@@ -27,7 +27,7 @@ class _$SearchResult extends SearchResult {
   final String createdAt;
 
   factory _$SearchResult([void Function(SearchResultBuilder)? updates]) =>
-      (SearchResultBuilder()..update(updates))._build();
+      (new SearchResultBuilder()..update(updates))._build();
 
   _$SearchResult._(
       {required this.id,
@@ -39,13 +39,22 @@ class _$SearchResult extends SearchResult {
       this.receiptStatus,
       this.paidByUserId,
       required this.createdAt})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(id, r'SearchResult', 'id');
+    BuiltValueNullFieldError.checkNotNull(name, r'SearchResult', 'name');
+    BuiltValueNullFieldError.checkNotNull(type, r'SearchResult', 'type');
+    BuiltValueNullFieldError.checkNotNull(groupId, r'SearchResult', 'groupId');
+    BuiltValueNullFieldError.checkNotNull(date, r'SearchResult', 'date');
+    BuiltValueNullFieldError.checkNotNull(
+        createdAt, r'SearchResult', 'createdAt');
+  }
+
   @override
   SearchResult rebuild(void Function(SearchResultBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  SearchResultBuilder toBuilder() => SearchResultBuilder()..replace(this);
+  SearchResultBuilder toBuilder() => new SearchResultBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -158,6 +167,7 @@ class SearchResultBuilder
 
   @override
   void replace(SearchResult other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$SearchResult;
   }
 
@@ -171,22 +181,22 @@ class SearchResultBuilder
 
   _$SearchResult _build() {
     final _$result = _$v ??
-        _$SearchResult._(
-          id: BuiltValueNullFieldError.checkNotNull(id, r'SearchResult', 'id'),
-          name: BuiltValueNullFieldError.checkNotNull(
-              name, r'SearchResult', 'name'),
-          type: BuiltValueNullFieldError.checkNotNull(
-              type, r'SearchResult', 'type'),
-          groupId: BuiltValueNullFieldError.checkNotNull(
-              groupId, r'SearchResult', 'groupId'),
-          date: BuiltValueNullFieldError.checkNotNull(
-              date, r'SearchResult', 'date'),
-          amount: amount,
-          receiptStatus: receiptStatus,
-          paidByUserId: paidByUserId,
-          createdAt: BuiltValueNullFieldError.checkNotNull(
-              createdAt, r'SearchResult', 'createdAt'),
-        );
+        new _$SearchResult._(
+            id: BuiltValueNullFieldError.checkNotNull(
+                id, r'SearchResult', 'id'),
+            name: BuiltValueNullFieldError.checkNotNull(
+                name, r'SearchResult', 'name'),
+            type: BuiltValueNullFieldError.checkNotNull(
+                type, r'SearchResult', 'type'),
+            groupId: BuiltValueNullFieldError.checkNotNull(
+                groupId, r'SearchResult', 'groupId'),
+            date: BuiltValueNullFieldError.checkNotNull(
+                date, r'SearchResult', 'date'),
+            amount: amount,
+            receiptStatus: receiptStatus,
+            paidByUserId: paidByUserId,
+            createdAt: BuiltValueNullFieldError.checkNotNull(
+                createdAt, r'SearchResult', 'createdAt'));
     replace(_$result);
     return _$result;
   }

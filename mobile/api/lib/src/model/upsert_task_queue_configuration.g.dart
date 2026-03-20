@@ -14,9 +14,10 @@ class _$UpsertTaskQueueConfiguration extends UpsertTaskQueueConfiguration {
 
   factory _$UpsertTaskQueueConfiguration(
           [void Function(UpsertTaskQueueConfigurationBuilder)? updates]) =>
-      (UpsertTaskQueueConfigurationBuilder()..update(updates))._build();
+      (new UpsertTaskQueueConfigurationBuilder()..update(updates))._build();
 
   _$UpsertTaskQueueConfiguration._({this.name, this.priority}) : super._();
+
   @override
   UpsertTaskQueueConfiguration rebuild(
           void Function(UpsertTaskQueueConfigurationBuilder) updates) =>
@@ -24,7 +25,7 @@ class _$UpsertTaskQueueConfiguration extends UpsertTaskQueueConfiguration {
 
   @override
   UpsertTaskQueueConfigurationBuilder toBuilder() =>
-      UpsertTaskQueueConfigurationBuilder()..replace(this);
+      new UpsertTaskQueueConfigurationBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -82,6 +83,7 @@ class UpsertTaskQueueConfigurationBuilder
 
   @override
   void replace(UpsertTaskQueueConfiguration other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$UpsertTaskQueueConfiguration;
   }
 
@@ -95,10 +97,7 @@ class UpsertTaskQueueConfigurationBuilder
 
   _$UpsertTaskQueueConfiguration _build() {
     final _$result = _$v ??
-        _$UpsertTaskQueueConfiguration._(
-          name: name,
-          priority: priority,
-        );
+        new _$UpsertTaskQueueConfiguration._(name: name, priority: priority);
     replace(_$result);
     return _$result;
   }

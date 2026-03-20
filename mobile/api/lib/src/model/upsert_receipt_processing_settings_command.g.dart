@@ -30,7 +30,7 @@ class _$UpsertReceiptProcessingSettingsCommand
   factory _$UpsertReceiptProcessingSettingsCommand(
           [void Function(UpsertReceiptProcessingSettingsCommandBuilder)?
               updates]) =>
-      (UpsertReceiptProcessingSettingsCommandBuilder()..update(updates))
+      (new UpsertReceiptProcessingSettingsCommandBuilder()..update(updates))
           ._build();
 
   _$UpsertReceiptProcessingSettingsCommand._(
@@ -43,7 +43,17 @@ class _$UpsertReceiptProcessingSettingsCommand
       this.isVisionModel,
       required this.ocrEngine,
       required this.promptId})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(
+        name, r'UpsertReceiptProcessingSettingsCommand', 'name');
+    BuiltValueNullFieldError.checkNotNull(
+        aiType, r'UpsertReceiptProcessingSettingsCommand', 'aiType');
+    BuiltValueNullFieldError.checkNotNull(
+        ocrEngine, r'UpsertReceiptProcessingSettingsCommand', 'ocrEngine');
+    BuiltValueNullFieldError.checkNotNull(
+        promptId, r'UpsertReceiptProcessingSettingsCommand', 'promptId');
+  }
+
   @override
   UpsertReceiptProcessingSettingsCommand rebuild(
           void Function(UpsertReceiptProcessingSettingsCommandBuilder)
@@ -52,7 +62,7 @@ class _$UpsertReceiptProcessingSettingsCommand
 
   @override
   UpsertReceiptProcessingSettingsCommandBuilder toBuilder() =>
-      UpsertReceiptProcessingSettingsCommandBuilder()..replace(this);
+      new UpsertReceiptProcessingSettingsCommandBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -168,6 +178,7 @@ class UpsertReceiptProcessingSettingsCommandBuilder
 
   @override
   void replace(UpsertReceiptProcessingSettingsCommand other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$UpsertReceiptProcessingSettingsCommand;
   }
 
@@ -182,21 +193,20 @@ class UpsertReceiptProcessingSettingsCommandBuilder
 
   _$UpsertReceiptProcessingSettingsCommand _build() {
     final _$result = _$v ??
-        _$UpsertReceiptProcessingSettingsCommand._(
-          name: BuiltValueNullFieldError.checkNotNull(
-              name, r'UpsertReceiptProcessingSettingsCommand', 'name'),
-          description: description,
-          aiType: BuiltValueNullFieldError.checkNotNull(
-              aiType, r'UpsertReceiptProcessingSettingsCommand', 'aiType'),
-          url: url,
-          key: key,
-          model: model,
-          isVisionModel: isVisionModel,
-          ocrEngine: BuiltValueNullFieldError.checkNotNull(ocrEngine,
-              r'UpsertReceiptProcessingSettingsCommand', 'ocrEngine'),
-          promptId: BuiltValueNullFieldError.checkNotNull(
-              promptId, r'UpsertReceiptProcessingSettingsCommand', 'promptId'),
-        );
+        new _$UpsertReceiptProcessingSettingsCommand._(
+            name: BuiltValueNullFieldError.checkNotNull(
+                name, r'UpsertReceiptProcessingSettingsCommand', 'name'),
+            description: description,
+            aiType: BuiltValueNullFieldError.checkNotNull(
+                aiType, r'UpsertReceiptProcessingSettingsCommand', 'aiType'),
+            url: url,
+            key: key,
+            model: model,
+            isVisionModel: isVisionModel,
+            ocrEngine: BuiltValueNullFieldError.checkNotNull(ocrEngine,
+                r'UpsertReceiptProcessingSettingsCommand', 'ocrEngine'),
+            promptId: BuiltValueNullFieldError.checkNotNull(promptId,
+                r'UpsertReceiptProcessingSettingsCommand', 'promptId'));
     replace(_$result);
     return _$result;
   }

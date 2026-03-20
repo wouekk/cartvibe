@@ -25,7 +25,7 @@ class _$Widget extends Widget {
   final BuiltMap<String, JsonObject?>? configuration;
 
   factory _$Widget([void Function(WidgetBuilder)? updates]) =>
-      (WidgetBuilder()..update(updates))._build();
+      (new WidgetBuilder()..update(updates))._build();
 
   _$Widget._(
       {this.createdAt,
@@ -36,13 +36,18 @@ class _$Widget extends Widget {
       this.updatedAt,
       this.widgetType,
       this.configuration})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(id, r'Widget', 'id');
+    BuiltValueNullFieldError.checkNotNull(
+        dashboardId, r'Widget', 'dashboardId');
+  }
+
   @override
   Widget rebuild(void Function(WidgetBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  WidgetBuilder toBuilder() => WidgetBuilder()..replace(this);
+  WidgetBuilder toBuilder() => new WidgetBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -121,7 +126,7 @@ class WidgetBuilder implements Builder<Widget, WidgetBuilder> {
 
   MapBuilder<String, JsonObject?>? _configuration;
   MapBuilder<String, JsonObject?> get configuration =>
-      _$this._configuration ??= MapBuilder<String, JsonObject?>();
+      _$this._configuration ??= new MapBuilder<String, JsonObject?>();
   set configuration(MapBuilder<String, JsonObject?>? configuration) =>
       _$this._configuration = configuration;
 
@@ -147,6 +152,7 @@ class WidgetBuilder implements Builder<Widget, WidgetBuilder> {
 
   @override
   void replace(Widget other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$Widget;
   }
 
@@ -162,24 +168,23 @@ class WidgetBuilder implements Builder<Widget, WidgetBuilder> {
     _$Widget _$result;
     try {
       _$result = _$v ??
-          _$Widget._(
-            createdAt: createdAt,
-            createdBy: createdBy,
-            id: BuiltValueNullFieldError.checkNotNull(id, r'Widget', 'id'),
-            name: name,
-            dashboardId: BuiltValueNullFieldError.checkNotNull(
-                dashboardId, r'Widget', 'dashboardId'),
-            updatedAt: updatedAt,
-            widgetType: widgetType,
-            configuration: _configuration?.build(),
-          );
+          new _$Widget._(
+              createdAt: createdAt,
+              createdBy: createdBy,
+              id: BuiltValueNullFieldError.checkNotNull(id, r'Widget', 'id'),
+              name: name,
+              dashboardId: BuiltValueNullFieldError.checkNotNull(
+                  dashboardId, r'Widget', 'dashboardId'),
+              updatedAt: updatedAt,
+              widgetType: widgetType,
+              configuration: _configuration?.build());
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'configuration';
         _configuration?.build();
       } catch (e) {
-        throw BuiltValueNestedFieldError(
+        throw new BuiltValueNestedFieldError(
             r'Widget', _$failedField, e.toString());
       }
       rethrow;

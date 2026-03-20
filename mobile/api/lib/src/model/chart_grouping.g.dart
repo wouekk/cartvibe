@@ -19,12 +19,12 @@ ChartGrouping _$valueOf(String name) {
     case 'PAIDBY':
       return _$PAIDBY;
     default:
-      throw ArgumentError(name);
+      throw new ArgumentError(name);
   }
 }
 
 final BuiltSet<ChartGrouping> _$values =
-    BuiltSet<ChartGrouping>(const <ChartGrouping>[
+    new BuiltSet<ChartGrouping>(const <ChartGrouping>[
   _$CATEGORIES,
   _$TAGS,
   _$PAIDBY,
@@ -45,7 +45,7 @@ abstract class _$ChartGroupingMixin {
 }
 
 Serializer<ChartGrouping> _$chartGroupingSerializer =
-    _$ChartGroupingSerializer();
+    new _$ChartGroupingSerializer();
 
 class _$ChartGroupingSerializer implements PrimitiveSerializer<ChartGrouping> {
   static const Map<String, Object> _toWire = const <String, Object>{

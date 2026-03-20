@@ -20,7 +20,7 @@ class _$PagedActivityRequestCommand extends PagedActivityRequestCommand {
 
   factory _$PagedActivityRequestCommand(
           [void Function(PagedActivityRequestCommandBuilder)? updates]) =>
-      (PagedActivityRequestCommandBuilder()..update(updates))._build();
+      (new PagedActivityRequestCommandBuilder()..update(updates))._build();
 
   _$PagedActivityRequestCommand._(
       {this.groupIds,
@@ -28,7 +28,13 @@ class _$PagedActivityRequestCommand extends PagedActivityRequestCommand {
       required this.pageSize,
       this.orderBy,
       this.sortDirection})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(
+        page, r'PagedActivityRequestCommand', 'page');
+    BuiltValueNullFieldError.checkNotNull(
+        pageSize, r'PagedActivityRequestCommand', 'pageSize');
+  }
+
   @override
   PagedActivityRequestCommand rebuild(
           void Function(PagedActivityRequestCommandBuilder) updates) =>
@@ -36,7 +42,7 @@ class _$PagedActivityRequestCommand extends PagedActivityRequestCommand {
 
   @override
   PagedActivityRequestCommandBuilder toBuilder() =>
-      PagedActivityRequestCommandBuilder()..replace(this);
+      new PagedActivityRequestCommandBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -81,7 +87,7 @@ class PagedActivityRequestCommandBuilder
   _$PagedActivityRequestCommand? _$v;
 
   ListBuilder<int>? _groupIds;
-  ListBuilder<int> get groupIds => _$this._groupIds ??= ListBuilder<int>();
+  ListBuilder<int> get groupIds => _$this._groupIds ??= new ListBuilder<int>();
   set groupIds(covariant ListBuilder<int>? groupIds) =>
       _$this._groupIds = groupIds;
 
@@ -121,6 +127,7 @@ class PagedActivityRequestCommandBuilder
 
   @override
   void replace(covariant PagedActivityRequestCommand other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$PagedActivityRequestCommand;
   }
 
@@ -136,22 +143,21 @@ class PagedActivityRequestCommandBuilder
     _$PagedActivityRequestCommand _$result;
     try {
       _$result = _$v ??
-          _$PagedActivityRequestCommand._(
-            groupIds: _groupIds?.build(),
-            page: BuiltValueNullFieldError.checkNotNull(
-                page, r'PagedActivityRequestCommand', 'page'),
-            pageSize: BuiltValueNullFieldError.checkNotNull(
-                pageSize, r'PagedActivityRequestCommand', 'pageSize'),
-            orderBy: orderBy,
-            sortDirection: sortDirection,
-          );
+          new _$PagedActivityRequestCommand._(
+              groupIds: _groupIds?.build(),
+              page: BuiltValueNullFieldError.checkNotNull(
+                  page, r'PagedActivityRequestCommand', 'page'),
+              pageSize: BuiltValueNullFieldError.checkNotNull(
+                  pageSize, r'PagedActivityRequestCommand', 'pageSize'),
+              orderBy: orderBy,
+              sortDirection: sortDirection);
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'groupIds';
         _groupIds?.build();
       } catch (e) {
-        throw BuiltValueNestedFieldError(
+        throw new BuiltValueNestedFieldError(
             r'PagedActivityRequestCommand', _$failedField, e.toString());
       }
       rethrow;

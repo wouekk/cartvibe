@@ -54,12 +54,12 @@ SystemTaskType _$valueOf(String name) {
     case 'API_KEY_DELETED':
       return _$API_KEY_DELETED;
     default:
-      throw ArgumentError(name);
+      throw new ArgumentError(name);
   }
 }
 
 final BuiltSet<SystemTaskType> _$values =
-    BuiltSet<SystemTaskType>(const <SystemTaskType>[
+    new BuiltSet<SystemTaskType>(const <SystemTaskType>[
   _$OCR_PROCESSING,
   _$CHAT_COMPLETION,
   _$MAGIC_FILL,
@@ -100,7 +100,7 @@ abstract class _$SystemTaskTypeMixin {
 }
 
 Serializer<SystemTaskType> _$systemTaskTypeSerializer =
-    _$SystemTaskTypeSerializer();
+    new _$SystemTaskTypeSerializer();
 
 class _$SystemTaskTypeSerializer
     implements PrimitiveSerializer<SystemTaskType> {

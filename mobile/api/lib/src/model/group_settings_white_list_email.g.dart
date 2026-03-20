@@ -22,7 +22,7 @@ class _$GroupSettingsWhiteListEmail extends GroupSettingsWhiteListEmail {
 
   factory _$GroupSettingsWhiteListEmail(
           [void Function(GroupSettingsWhiteListEmailBuilder)? updates]) =>
-      (GroupSettingsWhiteListEmailBuilder()..update(updates))._build();
+      (new GroupSettingsWhiteListEmailBuilder()..update(updates))._build();
 
   _$GroupSettingsWhiteListEmail._(
       {required this.id,
@@ -31,7 +31,15 @@ class _$GroupSettingsWhiteListEmail extends GroupSettingsWhiteListEmail {
       this.createdAt,
       this.createdBy,
       this.updatedAt})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(
+        id, r'GroupSettingsWhiteListEmail', 'id');
+    BuiltValueNullFieldError.checkNotNull(
+        groupSettingsId, r'GroupSettingsWhiteListEmail', 'groupSettingsId');
+    BuiltValueNullFieldError.checkNotNull(
+        email, r'GroupSettingsWhiteListEmail', 'email');
+  }
+
   @override
   GroupSettingsWhiteListEmail rebuild(
           void Function(GroupSettingsWhiteListEmailBuilder) updates) =>
@@ -39,7 +47,7 @@ class _$GroupSettingsWhiteListEmail extends GroupSettingsWhiteListEmail {
 
   @override
   GroupSettingsWhiteListEmailBuilder toBuilder() =>
-      GroupSettingsWhiteListEmailBuilder()..replace(this);
+      new GroupSettingsWhiteListEmailBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -130,6 +138,7 @@ class GroupSettingsWhiteListEmailBuilder
 
   @override
   void replace(GroupSettingsWhiteListEmail other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$GroupSettingsWhiteListEmail;
   }
 
@@ -143,19 +152,18 @@ class GroupSettingsWhiteListEmailBuilder
 
   _$GroupSettingsWhiteListEmail _build() {
     final _$result = _$v ??
-        _$GroupSettingsWhiteListEmail._(
-          id: BuiltValueNullFieldError.checkNotNull(
-              id, r'GroupSettingsWhiteListEmail', 'id'),
-          groupSettingsId: BuiltValueNullFieldError.checkNotNull(
-              groupSettingsId,
-              r'GroupSettingsWhiteListEmail',
-              'groupSettingsId'),
-          email: BuiltValueNullFieldError.checkNotNull(
-              email, r'GroupSettingsWhiteListEmail', 'email'),
-          createdAt: createdAt,
-          createdBy: createdBy,
-          updatedAt: updatedAt,
-        );
+        new _$GroupSettingsWhiteListEmail._(
+            id: BuiltValueNullFieldError.checkNotNull(
+                id, r'GroupSettingsWhiteListEmail', 'id'),
+            groupSettingsId: BuiltValueNullFieldError.checkNotNull(
+                groupSettingsId,
+                r'GroupSettingsWhiteListEmail',
+                'groupSettingsId'),
+            email: BuiltValueNullFieldError.checkNotNull(
+                email, r'GroupSettingsWhiteListEmail', 'email'),
+            createdAt: createdAt,
+            createdBy: createdBy,
+            updatedAt: updatedAt);
     replace(_$result);
     return _$result;
   }

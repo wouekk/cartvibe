@@ -21,7 +21,7 @@ class _$Tag extends Tag {
   final String? updatedAt;
 
   factory _$Tag([void Function(TagBuilder)? updates]) =>
-      (TagBuilder()..update(updates))._build();
+      (new TagBuilder()..update(updates))._build();
 
   _$Tag._(
       {this.createdAt,
@@ -30,13 +30,16 @@ class _$Tag extends Tag {
       required this.name,
       this.description,
       this.updatedAt})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(name, r'Tag', 'name');
+  }
+
   @override
   Tag rebuild(void Function(TagBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  TagBuilder toBuilder() => TagBuilder()..replace(this);
+  TagBuilder toBuilder() => new TagBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -123,6 +126,7 @@ class TagBuilder implements Builder<Tag, TagBuilder> {
 
   @override
   void replace(Tag other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$Tag;
   }
 
@@ -136,14 +140,13 @@ class TagBuilder implements Builder<Tag, TagBuilder> {
 
   _$Tag _build() {
     final _$result = _$v ??
-        _$Tag._(
-          createdAt: createdAt,
-          createdBy: createdBy,
-          id: id,
-          name: BuiltValueNullFieldError.checkNotNull(name, r'Tag', 'name'),
-          description: description,
-          updatedAt: updatedAt,
-        );
+        new _$Tag._(
+            createdAt: createdAt,
+            createdBy: createdBy,
+            id: id,
+            name: BuiltValueNullFieldError.checkNotNull(name, r'Tag', 'name'),
+            description: description,
+            updatedAt: updatedAt);
     replace(_$result);
     return _$result;
   }

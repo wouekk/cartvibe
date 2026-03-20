@@ -14,16 +14,17 @@ class _$PagedRequestField extends PagedRequestField {
 
   factory _$PagedRequestField(
           [void Function(PagedRequestFieldBuilder)? updates]) =>
-      (PagedRequestFieldBuilder()..update(updates))._build();
+      (new PagedRequestFieldBuilder()..update(updates))._build();
 
   _$PagedRequestField._({this.operation, this.value}) : super._();
+
   @override
   PagedRequestField rebuild(void Function(PagedRequestFieldBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
   PagedRequestFieldBuilder toBuilder() =>
-      PagedRequestFieldBuilder()..replace(this);
+      new PagedRequestFieldBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -61,7 +62,7 @@ class PagedRequestFieldBuilder
 
   PagedRequestFieldValueBuilder? _value;
   PagedRequestFieldValueBuilder get value =>
-      _$this._value ??= PagedRequestFieldValueBuilder();
+      _$this._value ??= new PagedRequestFieldValueBuilder();
   set value(PagedRequestFieldValueBuilder? value) => _$this._value = value;
 
   PagedRequestFieldBuilder() {
@@ -80,6 +81,7 @@ class PagedRequestFieldBuilder
 
   @override
   void replace(PagedRequestField other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$PagedRequestField;
   }
 
@@ -95,17 +97,15 @@ class PagedRequestFieldBuilder
     _$PagedRequestField _$result;
     try {
       _$result = _$v ??
-          _$PagedRequestField._(
-            operation: operation,
-            value: _value?.build(),
-          );
+          new _$PagedRequestField._(
+              operation: operation, value: _value?.build());
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'value';
         _value?.build();
       } catch (e) {
-        throw BuiltValueNestedFieldError(
+        throw new BuiltValueNestedFieldError(
             r'PagedRequestField', _$failedField, e.toString());
       }
       rethrow;

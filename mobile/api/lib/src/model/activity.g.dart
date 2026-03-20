@@ -27,7 +27,7 @@ class _$Activity extends Activity {
   final bool? canBeRestarted;
 
   factory _$Activity([void Function(ActivityBuilder)? updates]) =>
-      (ActivityBuilder()..update(updates))._build();
+      (new ActivityBuilder()..update(updates))._build();
 
   _$Activity._(
       {required this.id,
@@ -39,13 +39,20 @@ class _$Activity extends Activity {
       this.receiptId,
       this.groupId,
       this.canBeRestarted})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(id, r'Activity', 'id');
+    BuiltValueNullFieldError.checkNotNull(type, r'Activity', 'type');
+    BuiltValueNullFieldError.checkNotNull(status, r'Activity', 'status');
+    BuiltValueNullFieldError.checkNotNull(startedAt, r'Activity', 'startedAt');
+    BuiltValueNullFieldError.checkNotNull(endedAt, r'Activity', 'endedAt');
+  }
+
   @override
   Activity rebuild(void Function(ActivityBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  ActivityBuilder toBuilder() => ActivityBuilder()..replace(this);
+  ActivityBuilder toBuilder() => new ActivityBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -157,6 +164,7 @@ class ActivityBuilder implements Builder<Activity, ActivityBuilder> {
 
   @override
   void replace(Activity other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$Activity;
   }
 
@@ -170,21 +178,20 @@ class ActivityBuilder implements Builder<Activity, ActivityBuilder> {
 
   _$Activity _build() {
     final _$result = _$v ??
-        _$Activity._(
-          id: BuiltValueNullFieldError.checkNotNull(id, r'Activity', 'id'),
-          type:
-              BuiltValueNullFieldError.checkNotNull(type, r'Activity', 'type'),
-          status: BuiltValueNullFieldError.checkNotNull(
-              status, r'Activity', 'status'),
-          startedAt: BuiltValueNullFieldError.checkNotNull(
-              startedAt, r'Activity', 'startedAt'),
-          endedAt: BuiltValueNullFieldError.checkNotNull(
-              endedAt, r'Activity', 'endedAt'),
-          ranByUserId: ranByUserId,
-          receiptId: receiptId,
-          groupId: groupId,
-          canBeRestarted: canBeRestarted,
-        );
+        new _$Activity._(
+            id: BuiltValueNullFieldError.checkNotNull(id, r'Activity', 'id'),
+            type: BuiltValueNullFieldError.checkNotNull(
+                type, r'Activity', 'type'),
+            status: BuiltValueNullFieldError.checkNotNull(
+                status, r'Activity', 'status'),
+            startedAt: BuiltValueNullFieldError.checkNotNull(
+                startedAt, r'Activity', 'startedAt'),
+            endedAt: BuiltValueNullFieldError.checkNotNull(
+                endedAt, r'Activity', 'endedAt'),
+            ranByUserId: ranByUserId,
+            receiptId: receiptId,
+            groupId: groupId,
+            canBeRestarted: canBeRestarted);
     replace(_$result);
     return _$result;
   }

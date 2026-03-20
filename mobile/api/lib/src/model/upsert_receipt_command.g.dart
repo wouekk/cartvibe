@@ -32,7 +32,7 @@ class _$UpsertReceiptCommand extends UpsertReceiptCommand {
 
   factory _$UpsertReceiptCommand(
           [void Function(UpsertReceiptCommandBuilder)? updates]) =>
-      (UpsertReceiptCommandBuilder()..update(updates))._build();
+      (new UpsertReceiptCommandBuilder()..update(updates))._build();
 
   _$UpsertReceiptCommand._(
       {required this.name,
@@ -46,7 +46,21 @@ class _$UpsertReceiptCommand extends UpsertReceiptCommand {
       this.receiptItems,
       this.comments,
       this.customFields})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(
+        name, r'UpsertReceiptCommand', 'name');
+    BuiltValueNullFieldError.checkNotNull(
+        amount, r'UpsertReceiptCommand', 'amount');
+    BuiltValueNullFieldError.checkNotNull(
+        date, r'UpsertReceiptCommand', 'date');
+    BuiltValueNullFieldError.checkNotNull(
+        groupId, r'UpsertReceiptCommand', 'groupId');
+    BuiltValueNullFieldError.checkNotNull(
+        paidByUserId, r'UpsertReceiptCommand', 'paidByUserId');
+    BuiltValueNullFieldError.checkNotNull(
+        status, r'UpsertReceiptCommand', 'status');
+  }
+
   @override
   UpsertReceiptCommand rebuild(
           void Function(UpsertReceiptCommandBuilder) updates) =>
@@ -54,7 +68,7 @@ class _$UpsertReceiptCommand extends UpsertReceiptCommand {
 
   @override
   UpsertReceiptCommandBuilder toBuilder() =>
-      UpsertReceiptCommandBuilder()..replace(this);
+      new UpsertReceiptCommandBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -139,30 +153,30 @@ class UpsertReceiptCommandBuilder
 
   ListBuilder<UpsertCategoryCommand>? _categories;
   ListBuilder<UpsertCategoryCommand> get categories =>
-      _$this._categories ??= ListBuilder<UpsertCategoryCommand>();
+      _$this._categories ??= new ListBuilder<UpsertCategoryCommand>();
   set categories(ListBuilder<UpsertCategoryCommand>? categories) =>
       _$this._categories = categories;
 
   ListBuilder<UpsertTagCommand>? _tags;
   ListBuilder<UpsertTagCommand> get tags =>
-      _$this._tags ??= ListBuilder<UpsertTagCommand>();
+      _$this._tags ??= new ListBuilder<UpsertTagCommand>();
   set tags(ListBuilder<UpsertTagCommand>? tags) => _$this._tags = tags;
 
   ListBuilder<UpsertItemCommand>? _receiptItems;
   ListBuilder<UpsertItemCommand> get receiptItems =>
-      _$this._receiptItems ??= ListBuilder<UpsertItemCommand>();
+      _$this._receiptItems ??= new ListBuilder<UpsertItemCommand>();
   set receiptItems(ListBuilder<UpsertItemCommand>? receiptItems) =>
       _$this._receiptItems = receiptItems;
 
   ListBuilder<UpsertCommentCommand>? _comments;
   ListBuilder<UpsertCommentCommand> get comments =>
-      _$this._comments ??= ListBuilder<UpsertCommentCommand>();
+      _$this._comments ??= new ListBuilder<UpsertCommentCommand>();
   set comments(ListBuilder<UpsertCommentCommand>? comments) =>
       _$this._comments = comments;
 
   ListBuilder<UpsertCustomFieldValueCommand>? _customFields;
   ListBuilder<UpsertCustomFieldValueCommand> get customFields =>
-      _$this._customFields ??= ListBuilder<UpsertCustomFieldValueCommand>();
+      _$this._customFields ??= new ListBuilder<UpsertCustomFieldValueCommand>();
   set customFields(ListBuilder<UpsertCustomFieldValueCommand>? customFields) =>
       _$this._customFields = customFields;
 
@@ -191,6 +205,7 @@ class UpsertReceiptCommandBuilder
 
   @override
   void replace(UpsertReceiptCommand other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$UpsertReceiptCommand;
   }
 
@@ -206,25 +221,24 @@ class UpsertReceiptCommandBuilder
     _$UpsertReceiptCommand _$result;
     try {
       _$result = _$v ??
-          _$UpsertReceiptCommand._(
-            name: BuiltValueNullFieldError.checkNotNull(
-                name, r'UpsertReceiptCommand', 'name'),
-            amount: BuiltValueNullFieldError.checkNotNull(
-                amount, r'UpsertReceiptCommand', 'amount'),
-            date: BuiltValueNullFieldError.checkNotNull(
-                date, r'UpsertReceiptCommand', 'date'),
-            groupId: BuiltValueNullFieldError.checkNotNull(
-                groupId, r'UpsertReceiptCommand', 'groupId'),
-            paidByUserId: BuiltValueNullFieldError.checkNotNull(
-                paidByUserId, r'UpsertReceiptCommand', 'paidByUserId'),
-            status: BuiltValueNullFieldError.checkNotNull(
-                status, r'UpsertReceiptCommand', 'status'),
-            categories: _categories?.build(),
-            tags: _tags?.build(),
-            receiptItems: _receiptItems?.build(),
-            comments: _comments?.build(),
-            customFields: _customFields?.build(),
-          );
+          new _$UpsertReceiptCommand._(
+              name: BuiltValueNullFieldError.checkNotNull(
+                  name, r'UpsertReceiptCommand', 'name'),
+              amount: BuiltValueNullFieldError.checkNotNull(
+                  amount, r'UpsertReceiptCommand', 'amount'),
+              date: BuiltValueNullFieldError.checkNotNull(
+                  date, r'UpsertReceiptCommand', 'date'),
+              groupId: BuiltValueNullFieldError.checkNotNull(
+                  groupId, r'UpsertReceiptCommand', 'groupId'),
+              paidByUserId: BuiltValueNullFieldError.checkNotNull(
+                  paidByUserId, r'UpsertReceiptCommand', 'paidByUserId'),
+              status: BuiltValueNullFieldError.checkNotNull(
+                  status, r'UpsertReceiptCommand', 'status'),
+              categories: _categories?.build(),
+              tags: _tags?.build(),
+              receiptItems: _receiptItems?.build(),
+              comments: _comments?.build(),
+              customFields: _customFields?.build());
     } catch (_) {
       late String _$failedField;
       try {
@@ -239,7 +253,7 @@ class UpsertReceiptCommandBuilder
         _$failedField = 'customFields';
         _customFields?.build();
       } catch (e) {
-        throw BuiltValueNestedFieldError(
+        throw new BuiltValueNestedFieldError(
             r'UpsertReceiptCommand', _$failedField, e.toString());
       }
       rethrow;

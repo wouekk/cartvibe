@@ -16,12 +16,12 @@ SystemTaskStatus _$valueOf(String name) {
     case 'FAILED':
       return _$FAILED;
     default:
-      throw ArgumentError(name);
+      throw new ArgumentError(name);
   }
 }
 
 final BuiltSet<SystemTaskStatus> _$values =
-    BuiltSet<SystemTaskStatus>(const <SystemTaskStatus>[
+    new BuiltSet<SystemTaskStatus>(const <SystemTaskStatus>[
   _$SUCCEEDED,
   _$FAILED,
 ]);
@@ -40,7 +40,7 @@ abstract class _$SystemTaskStatusMixin {
 }
 
 Serializer<SystemTaskStatus> _$systemTaskStatusSerializer =
-    _$SystemTaskStatusSerializer();
+    new _$SystemTaskStatusSerializer();
 
 class _$SystemTaskStatusSerializer
     implements PrimitiveSerializer<SystemTaskStatus> {

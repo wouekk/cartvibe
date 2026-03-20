@@ -16,12 +16,12 @@ AssociatedApiKeys _$valueOf(String name) {
     case 'ALL':
       return _$ALL;
     default:
-      throw ArgumentError(name);
+      throw new ArgumentError(name);
   }
 }
 
 final BuiltSet<AssociatedApiKeys> _$values =
-    BuiltSet<AssociatedApiKeys>(const <AssociatedApiKeys>[
+    new BuiltSet<AssociatedApiKeys>(const <AssociatedApiKeys>[
   _$MINE,
   _$ALL,
 ]);
@@ -41,7 +41,7 @@ abstract class _$AssociatedApiKeysMixin {
 }
 
 Serializer<AssociatedApiKeys> _$associatedApiKeysSerializer =
-    _$AssociatedApiKeysSerializer();
+    new _$AssociatedApiKeysSerializer();
 
 class _$AssociatedApiKeysSerializer
     implements PrimitiveSerializer<AssociatedApiKeys> {

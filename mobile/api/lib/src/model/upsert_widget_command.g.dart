@@ -16,11 +16,15 @@ class _$UpsertWidgetCommand extends UpsertWidgetCommand {
 
   factory _$UpsertWidgetCommand(
           [void Function(UpsertWidgetCommandBuilder)? updates]) =>
-      (UpsertWidgetCommandBuilder()..update(updates))._build();
+      (new UpsertWidgetCommandBuilder()..update(updates))._build();
 
   _$UpsertWidgetCommand._(
       {this.name, required this.widgetType, this.configuration})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(
+        widgetType, r'UpsertWidgetCommand', 'widgetType');
+  }
+
   @override
   UpsertWidgetCommand rebuild(
           void Function(UpsertWidgetCommandBuilder) updates) =>
@@ -28,7 +32,7 @@ class _$UpsertWidgetCommand extends UpsertWidgetCommand {
 
   @override
   UpsertWidgetCommandBuilder toBuilder() =>
-      UpsertWidgetCommandBuilder()..replace(this);
+      new UpsertWidgetCommandBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -73,7 +77,7 @@ class UpsertWidgetCommandBuilder
 
   MapBuilder<String, JsonObject?>? _configuration;
   MapBuilder<String, JsonObject?> get configuration =>
-      _$this._configuration ??= MapBuilder<String, JsonObject?>();
+      _$this._configuration ??= new MapBuilder<String, JsonObject?>();
   set configuration(MapBuilder<String, JsonObject?>? configuration) =>
       _$this._configuration = configuration;
 
@@ -94,6 +98,7 @@ class UpsertWidgetCommandBuilder
 
   @override
   void replace(UpsertWidgetCommand other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$UpsertWidgetCommand;
   }
 
@@ -109,19 +114,18 @@ class UpsertWidgetCommandBuilder
     _$UpsertWidgetCommand _$result;
     try {
       _$result = _$v ??
-          _$UpsertWidgetCommand._(
-            name: name,
-            widgetType: BuiltValueNullFieldError.checkNotNull(
-                widgetType, r'UpsertWidgetCommand', 'widgetType'),
-            configuration: _configuration?.build(),
-          );
+          new _$UpsertWidgetCommand._(
+              name: name,
+              widgetType: BuiltValueNullFieldError.checkNotNull(
+                  widgetType, r'UpsertWidgetCommand', 'widgetType'),
+              configuration: _configuration?.build());
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'configuration';
         _configuration?.build();
       } catch (e) {
-        throw BuiltValueNestedFieldError(
+        throw new BuiltValueNestedFieldError(
             r'UpsertWidgetCommand', _$failedField, e.toString());
       }
       rethrow;

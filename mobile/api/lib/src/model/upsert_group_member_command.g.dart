@@ -16,11 +16,19 @@ class _$UpsertGroupMemberCommand extends UpsertGroupMemberCommand {
 
   factory _$UpsertGroupMemberCommand(
           [void Function(UpsertGroupMemberCommandBuilder)? updates]) =>
-      (UpsertGroupMemberCommandBuilder()..update(updates))._build();
+      (new UpsertGroupMemberCommandBuilder()..update(updates))._build();
 
   _$UpsertGroupMemberCommand._(
       {required this.groupId, required this.groupRole, required this.userId})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(
+        groupId, r'UpsertGroupMemberCommand', 'groupId');
+    BuiltValueNullFieldError.checkNotNull(
+        groupRole, r'UpsertGroupMemberCommand', 'groupRole');
+    BuiltValueNullFieldError.checkNotNull(
+        userId, r'UpsertGroupMemberCommand', 'userId');
+  }
+
   @override
   UpsertGroupMemberCommand rebuild(
           void Function(UpsertGroupMemberCommandBuilder) updates) =>
@@ -28,7 +36,7 @@ class _$UpsertGroupMemberCommand extends UpsertGroupMemberCommand {
 
   @override
   UpsertGroupMemberCommandBuilder toBuilder() =>
-      UpsertGroupMemberCommandBuilder()..replace(this);
+      new UpsertGroupMemberCommandBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -93,6 +101,7 @@ class UpsertGroupMemberCommandBuilder
 
   @override
   void replace(UpsertGroupMemberCommand other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$UpsertGroupMemberCommand;
   }
 
@@ -106,14 +115,13 @@ class UpsertGroupMemberCommandBuilder
 
   _$UpsertGroupMemberCommand _build() {
     final _$result = _$v ??
-        _$UpsertGroupMemberCommand._(
-          groupId: BuiltValueNullFieldError.checkNotNull(
-              groupId, r'UpsertGroupMemberCommand', 'groupId'),
-          groupRole: BuiltValueNullFieldError.checkNotNull(
-              groupRole, r'UpsertGroupMemberCommand', 'groupRole'),
-          userId: BuiltValueNullFieldError.checkNotNull(
-              userId, r'UpsertGroupMemberCommand', 'userId'),
-        );
+        new _$UpsertGroupMemberCommand._(
+            groupId: BuiltValueNullFieldError.checkNotNull(
+                groupId, r'UpsertGroupMemberCommand', 'groupId'),
+            groupRole: BuiltValueNullFieldError.checkNotNull(
+                groupRole, r'UpsertGroupMemberCommand', 'groupRole'),
+            userId: BuiltValueNullFieldError.checkNotNull(
+                userId, r'UpsertGroupMemberCommand', 'userId'));
     replace(_$result);
     return _$result;
   }

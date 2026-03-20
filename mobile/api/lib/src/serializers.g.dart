@@ -6,7 +6,7 @@ part of 'serializers.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
-Serializers _$serializers = (Serializers().toBuilder()
+Serializers _$serializers = (new Serializers().toBuilder()
       ..add($BaseModel.serializer)
       ..add($PagedRequestCommand.serializer)
       ..add(About.serializer)
@@ -122,159 +122,159 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(WidgetType.serializer)
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Category)]),
-          () => ListBuilder<Category>())
+          () => new ListBuilder<Category>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Comment)]),
-          () => ListBuilder<Comment>())
+          () => new ListBuilder<Comment>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(CustomFieldValue)]),
-          () => ListBuilder<CustomFieldValue>())
+          () => new ListBuilder<CustomFieldValue>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(FileData)]),
-          () => ListBuilder<FileData>())
+          () => new ListBuilder<FileData>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Item)]),
-          () => ListBuilder<Item>())
+          () => new ListBuilder<Item>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Tag)]),
-          () => ListBuilder<Tag>())
+          () => new ListBuilder<Tag>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(CustomFieldOption)]),
-          () => ListBuilder<CustomFieldOption>())
+          () => new ListBuilder<CustomFieldOption>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Group)]),
-          () => ListBuilder<Group>())
+          () => new ListBuilder<Group>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(UserView)]),
-          () => ListBuilder<UserView>())
+          () => new ListBuilder<UserView>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Category)]),
-          () => ListBuilder<Category>())
+          () => new ListBuilder<Category>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Tag)]),
-          () => ListBuilder<Tag>())
+          () => new ListBuilder<Tag>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Icon)]),
-          () => ListBuilder<Icon>())
+          () => new ListBuilder<Icon>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(GroupMember)]),
-          () => ListBuilder<GroupMember>())
+          () => new ListBuilder<GroupMember>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Item)]),
-          () => ListBuilder<Item>())
+          () => new ListBuilder<Item>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Category)]),
-          () => ListBuilder<Category>())
+          () => new ListBuilder<Category>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Tag)]),
-          () => ListBuilder<Tag>())
+          () => new ListBuilder<Tag>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(PagedDataDataInner)]),
-          () => ListBuilder<PagedDataDataInner>())
+          () => new ListBuilder<PagedDataDataInner>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(PieChartDataPoint)]),
-          () => ListBuilder<PieChartDataPoint>())
+          () => new ListBuilder<PieChartDataPoint>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(String)]),
-          () => ListBuilder<String>())
+          () => new ListBuilder<String>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(String)]),
-          () => ListBuilder<String>())
+          () => new ListBuilder<String>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(SubjectLineRegex)]),
-          () => ListBuilder<SubjectLineRegex>())
+          () => new ListBuilder<SubjectLineRegex>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(GroupSettingsWhiteListEmail)]),
-          () => ListBuilder<GroupSettingsWhiteListEmail>())
+          () => new ListBuilder<GroupSettingsWhiteListEmail>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(SubjectLineRegex)]),
-          () => ListBuilder<SubjectLineRegex>())
+          () => new ListBuilder<SubjectLineRegex>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(GroupSettingsWhiteListEmail)]),
-          () => ListBuilder<GroupSettingsWhiteListEmail>())
+          () => new ListBuilder<GroupSettingsWhiteListEmail>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(SystemTask)]),
-          () => ListBuilder<SystemTask>())
+          () => new ListBuilder<SystemTask>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(TaskQueueConfiguration)]),
-          () => ListBuilder<TaskQueueConfiguration>())
+          () => new ListBuilder<TaskQueueConfiguration>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(UpsertCategoryCommand)]),
-          () => ListBuilder<UpsertCategoryCommand>())
+          () => new ListBuilder<UpsertCategoryCommand>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(UpsertTagCommand)]),
-          () => ListBuilder<UpsertTagCommand>())
+          () => new ListBuilder<UpsertTagCommand>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(UpsertItemCommand)]),
-          () => ListBuilder<UpsertItemCommand>())
+          () => new ListBuilder<UpsertItemCommand>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(UpsertCategoryCommand)]),
-          () => ListBuilder<UpsertCategoryCommand>())
+          () => new ListBuilder<UpsertCategoryCommand>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(UpsertTagCommand)]),
-          () => ListBuilder<UpsertTagCommand>())
+          () => new ListBuilder<UpsertTagCommand>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(UpsertItemCommand)]),
-          () => ListBuilder<UpsertItemCommand>())
+          () => new ListBuilder<UpsertItemCommand>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(UpsertCommentCommand)]),
-          () => ListBuilder<UpsertCommentCommand>())
+          () => new ListBuilder<UpsertCommentCommand>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(UpsertCustomFieldValueCommand)]),
-          () => ListBuilder<UpsertCustomFieldValueCommand>())
+          () => new ListBuilder<UpsertCustomFieldValueCommand>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(UpsertCustomFieldOptionCommand)]),
-          () => ListBuilder<UpsertCustomFieldOptionCommand>())
+          () => new ListBuilder<UpsertCustomFieldOptionCommand>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(UpsertGroupMemberCommand)]),
-          () => ListBuilder<UpsertGroupMemberCommand>())
+          () => new ListBuilder<UpsertGroupMemberCommand>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(UpsertTaskQueueConfiguration)]),
-          () => ListBuilder<UpsertTaskQueueConfiguration>())
+          () => new ListBuilder<UpsertTaskQueueConfiguration>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(UpsertWidgetCommand)]),
-          () => ListBuilder<UpsertWidgetCommand>())
+          () => new ListBuilder<UpsertWidgetCommand>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(UserShortcut)]),
-          () => ListBuilder<UserShortcut>())
+          () => new ListBuilder<UserShortcut>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Widget)]),
-          () => ListBuilder<Widget>())
+          () => new ListBuilder<Widget>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(int)]),
-          () => ListBuilder<int>())
+          () => new ListBuilder<int>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(int)]),
-          () => ListBuilder<int>())
+          () => new ListBuilder<int>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(int)]),
-          () => ListBuilder<int>())
+          () => new ListBuilder<int>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(int)]),
-          () => ListBuilder<int>())
+          () => new ListBuilder<int>())
       ..addBuilderFactory(
           const FullType(BuiltMap, const [
             const FullType(String),
             const FullType.nullable(JsonObject)
           ]),
-          () => MapBuilder<String, JsonObject?>())
+          () => new MapBuilder<String, JsonObject?>())
       ..addBuilderFactory(
           const FullType(BuiltMap, const [
             const FullType(String),
             const FullType.nullable(JsonObject)
           ]),
-          () => MapBuilder<String, JsonObject?>()))
+          () => new MapBuilder<String, JsonObject?>()))
     .build();
 
 // ignore_for_file: deprecated_member_use_from_same_package,type=lint

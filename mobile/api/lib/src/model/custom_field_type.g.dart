@@ -25,12 +25,12 @@ CustomFieldType _$valueOf(String name) {
     case 'BOOLEAN':
       return _$BOOLEAN;
     default:
-      throw ArgumentError(name);
+      throw new ArgumentError(name);
   }
 }
 
 final BuiltSet<CustomFieldType> _$values =
-    BuiltSet<CustomFieldType>(const <CustomFieldType>[
+    new BuiltSet<CustomFieldType>(const <CustomFieldType>[
   _$TEXT,
   _$DATE,
   _$SELECT,
@@ -55,7 +55,7 @@ abstract class _$CustomFieldTypeMixin {
 }
 
 Serializer<CustomFieldType> _$customFieldTypeSerializer =
-    _$CustomFieldTypeSerializer();
+    new _$CustomFieldTypeSerializer();
 
 class _$CustomFieldTypeSerializer
     implements PrimitiveSerializer<CustomFieldType> {

@@ -20,7 +20,7 @@ class _$PagedApiKeyRequestCommand extends PagedApiKeyRequestCommand {
 
   factory _$PagedApiKeyRequestCommand(
           [void Function(PagedApiKeyRequestCommandBuilder)? updates]) =>
-      (PagedApiKeyRequestCommandBuilder()..update(updates))._build();
+      (new PagedApiKeyRequestCommandBuilder()..update(updates))._build();
 
   _$PagedApiKeyRequestCommand._(
       {this.filter,
@@ -28,7 +28,13 @@ class _$PagedApiKeyRequestCommand extends PagedApiKeyRequestCommand {
       required this.pageSize,
       this.orderBy,
       this.sortDirection})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(
+        page, r'PagedApiKeyRequestCommand', 'page');
+    BuiltValueNullFieldError.checkNotNull(
+        pageSize, r'PagedApiKeyRequestCommand', 'pageSize');
+  }
+
   @override
   PagedApiKeyRequestCommand rebuild(
           void Function(PagedApiKeyRequestCommandBuilder) updates) =>
@@ -36,7 +42,7 @@ class _$PagedApiKeyRequestCommand extends PagedApiKeyRequestCommand {
 
   @override
   PagedApiKeyRequestCommandBuilder toBuilder() =>
-      PagedApiKeyRequestCommandBuilder()..replace(this);
+      new PagedApiKeyRequestCommandBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -80,7 +86,8 @@ class PagedApiKeyRequestCommandBuilder
   _$PagedApiKeyRequestCommand? _$v;
 
   ApiKeyFilterBuilder? _filter;
-  ApiKeyFilterBuilder get filter => _$this._filter ??= ApiKeyFilterBuilder();
+  ApiKeyFilterBuilder get filter =>
+      _$this._filter ??= new ApiKeyFilterBuilder();
   set filter(covariant ApiKeyFilterBuilder? filter) => _$this._filter = filter;
 
   int? _page;
@@ -119,6 +126,7 @@ class PagedApiKeyRequestCommandBuilder
 
   @override
   void replace(covariant PagedApiKeyRequestCommand other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$PagedApiKeyRequestCommand;
   }
 
@@ -134,22 +142,21 @@ class PagedApiKeyRequestCommandBuilder
     _$PagedApiKeyRequestCommand _$result;
     try {
       _$result = _$v ??
-          _$PagedApiKeyRequestCommand._(
-            filter: _filter?.build(),
-            page: BuiltValueNullFieldError.checkNotNull(
-                page, r'PagedApiKeyRequestCommand', 'page'),
-            pageSize: BuiltValueNullFieldError.checkNotNull(
-                pageSize, r'PagedApiKeyRequestCommand', 'pageSize'),
-            orderBy: orderBy,
-            sortDirection: sortDirection,
-          );
+          new _$PagedApiKeyRequestCommand._(
+              filter: _filter?.build(),
+              page: BuiltValueNullFieldError.checkNotNull(
+                  page, r'PagedApiKeyRequestCommand', 'page'),
+              pageSize: BuiltValueNullFieldError.checkNotNull(
+                  pageSize, r'PagedApiKeyRequestCommand', 'pageSize'),
+              orderBy: orderBy,
+              sortDirection: sortDirection);
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'filter';
         _filter?.build();
       } catch (e) {
-        throw BuiltValueNestedFieldError(
+        throw new BuiltValueNestedFieldError(
             r'PagedApiKeyRequestCommand', _$failedField, e.toString());
       }
       rethrow;

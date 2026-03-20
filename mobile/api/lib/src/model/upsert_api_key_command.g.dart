@@ -16,11 +16,16 @@ class _$UpsertApiKeyCommand extends UpsertApiKeyCommand {
 
   factory _$UpsertApiKeyCommand(
           [void Function(UpsertApiKeyCommandBuilder)? updates]) =>
-      (UpsertApiKeyCommandBuilder()..update(updates))._build();
+      (new UpsertApiKeyCommandBuilder()..update(updates))._build();
 
   _$UpsertApiKeyCommand._(
       {required this.name, this.description, required this.scope})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(name, r'UpsertApiKeyCommand', 'name');
+    BuiltValueNullFieldError.checkNotNull(
+        scope, r'UpsertApiKeyCommand', 'scope');
+  }
+
   @override
   UpsertApiKeyCommand rebuild(
           void Function(UpsertApiKeyCommandBuilder) updates) =>
@@ -28,7 +33,7 @@ class _$UpsertApiKeyCommand extends UpsertApiKeyCommand {
 
   @override
   UpsertApiKeyCommandBuilder toBuilder() =>
-      UpsertApiKeyCommandBuilder()..replace(this);
+      new UpsertApiKeyCommandBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -92,6 +97,7 @@ class UpsertApiKeyCommandBuilder
 
   @override
   void replace(UpsertApiKeyCommand other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$UpsertApiKeyCommand;
   }
 
@@ -105,13 +111,12 @@ class UpsertApiKeyCommandBuilder
 
   _$UpsertApiKeyCommand _build() {
     final _$result = _$v ??
-        _$UpsertApiKeyCommand._(
-          name: BuiltValueNullFieldError.checkNotNull(
-              name, r'UpsertApiKeyCommand', 'name'),
-          description: description,
-          scope: BuiltValueNullFieldError.checkNotNull(
-              scope, r'UpsertApiKeyCommand', 'scope'),
-        );
+        new _$UpsertApiKeyCommand._(
+            name: BuiltValueNullFieldError.checkNotNull(
+                name, r'UpsertApiKeyCommand', 'name'),
+            description: description,
+            scope: BuiltValueNullFieldError.checkNotNull(
+                scope, r'UpsertApiKeyCommand', 'scope'));
     replace(_$result);
     return _$result;
   }

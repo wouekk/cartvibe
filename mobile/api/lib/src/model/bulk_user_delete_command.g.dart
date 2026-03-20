@@ -12,9 +12,13 @@ class _$BulkUserDeleteCommand extends BulkUserDeleteCommand {
 
   factory _$BulkUserDeleteCommand(
           [void Function(BulkUserDeleteCommandBuilder)? updates]) =>
-      (BulkUserDeleteCommandBuilder()..update(updates))._build();
+      (new BulkUserDeleteCommandBuilder()..update(updates))._build();
 
-  _$BulkUserDeleteCommand._({required this.userIds}) : super._();
+  _$BulkUserDeleteCommand._({required this.userIds}) : super._() {
+    BuiltValueNullFieldError.checkNotNull(
+        userIds, r'BulkUserDeleteCommand', 'userIds');
+  }
+
   @override
   BulkUserDeleteCommand rebuild(
           void Function(BulkUserDeleteCommandBuilder) updates) =>
@@ -22,7 +26,7 @@ class _$BulkUserDeleteCommand extends BulkUserDeleteCommand {
 
   @override
   BulkUserDeleteCommandBuilder toBuilder() =>
-      BulkUserDeleteCommandBuilder()..replace(this);
+      new BulkUserDeleteCommandBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -51,7 +55,8 @@ class BulkUserDeleteCommandBuilder
   _$BulkUserDeleteCommand? _$v;
 
   ListBuilder<String>? _userIds;
-  ListBuilder<String> get userIds => _$this._userIds ??= ListBuilder<String>();
+  ListBuilder<String> get userIds =>
+      _$this._userIds ??= new ListBuilder<String>();
   set userIds(ListBuilder<String>? userIds) => _$this._userIds = userIds;
 
   BulkUserDeleteCommandBuilder() {
@@ -69,6 +74,7 @@ class BulkUserDeleteCommandBuilder
 
   @override
   void replace(BulkUserDeleteCommand other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$BulkUserDeleteCommand;
   }
 
@@ -83,17 +89,14 @@ class BulkUserDeleteCommandBuilder
   _$BulkUserDeleteCommand _build() {
     _$BulkUserDeleteCommand _$result;
     try {
-      _$result = _$v ??
-          _$BulkUserDeleteCommand._(
-            userIds: userIds.build(),
-          );
+      _$result = _$v ?? new _$BulkUserDeleteCommand._(userIds: userIds.build());
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'userIds';
         userIds.build();
       } catch (e) {
-        throw BuiltValueNestedFieldError(
+        throw new BuiltValueNestedFieldError(
             r'BulkUserDeleteCommand', _$failedField, e.toString());
       }
       rethrow;

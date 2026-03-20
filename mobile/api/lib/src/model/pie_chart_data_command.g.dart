@@ -14,10 +14,14 @@ class _$PieChartDataCommand extends PieChartDataCommand {
 
   factory _$PieChartDataCommand(
           [void Function(PieChartDataCommandBuilder)? updates]) =>
-      (PieChartDataCommandBuilder()..update(updates))._build();
+      (new PieChartDataCommandBuilder()..update(updates))._build();
 
   _$PieChartDataCommand._({required this.chartGrouping, this.filter})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(
+        chartGrouping, r'PieChartDataCommand', 'chartGrouping');
+  }
+
   @override
   PieChartDataCommand rebuild(
           void Function(PieChartDataCommandBuilder) updates) =>
@@ -25,7 +29,7 @@ class _$PieChartDataCommand extends PieChartDataCommand {
 
   @override
   PieChartDataCommandBuilder toBuilder() =>
-      PieChartDataCommandBuilder()..replace(this);
+      new PieChartDataCommandBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -64,7 +68,7 @@ class PieChartDataCommandBuilder
 
   ReceiptPagedRequestFilterBuilder? _filter;
   ReceiptPagedRequestFilterBuilder get filter =>
-      _$this._filter ??= ReceiptPagedRequestFilterBuilder();
+      _$this._filter ??= new ReceiptPagedRequestFilterBuilder();
   set filter(ReceiptPagedRequestFilterBuilder? filter) =>
       _$this._filter = filter;
 
@@ -84,6 +88,7 @@ class PieChartDataCommandBuilder
 
   @override
   void replace(PieChartDataCommand other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$PieChartDataCommand;
   }
 
@@ -99,18 +104,17 @@ class PieChartDataCommandBuilder
     _$PieChartDataCommand _$result;
     try {
       _$result = _$v ??
-          _$PieChartDataCommand._(
-            chartGrouping: BuiltValueNullFieldError.checkNotNull(
-                chartGrouping, r'PieChartDataCommand', 'chartGrouping'),
-            filter: _filter?.build(),
-          );
+          new _$PieChartDataCommand._(
+              chartGrouping: BuiltValueNullFieldError.checkNotNull(
+                  chartGrouping, r'PieChartDataCommand', 'chartGrouping'),
+              filter: _filter?.build());
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'filter';
         _filter?.build();
       } catch (e) {
-        throw BuiltValueNestedFieldError(
+        throw new BuiltValueNestedFieldError(
             r'PieChartDataCommand', _$failedField, e.toString());
       }
       rethrow;

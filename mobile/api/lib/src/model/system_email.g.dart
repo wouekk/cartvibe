@@ -29,7 +29,7 @@ class _$SystemEmail extends SystemEmail {
   final String? updatedAt;
 
   factory _$SystemEmail([void Function(SystemEmailBuilder)? updates]) =>
-      (SystemEmailBuilder()..update(updates))._build();
+      (new SystemEmailBuilder()..update(updates))._build();
 
   _$SystemEmail._(
       {this.password,
@@ -42,13 +42,18 @@ class _$SystemEmail extends SystemEmail {
       this.createdBy,
       this.createdByString,
       this.updatedAt})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(id, r'SystemEmail', 'id');
+    BuiltValueNullFieldError.checkNotNull(
+        createdAt, r'SystemEmail', 'createdAt');
+  }
+
   @override
   SystemEmail rebuild(void Function(SystemEmailBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  SystemEmailBuilder toBuilder() => SystemEmailBuilder()..replace(this);
+  SystemEmailBuilder toBuilder() => new SystemEmailBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -170,6 +175,7 @@ class SystemEmailBuilder
 
   @override
   void replace(covariant SystemEmail other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$SystemEmail;
   }
 
@@ -183,19 +189,18 @@ class SystemEmailBuilder
 
   _$SystemEmail _build() {
     final _$result = _$v ??
-        _$SystemEmail._(
-          password: password,
-          port: port,
-          host: host,
-          useStartTLS: useStartTLS,
-          username: username,
-          id: BuiltValueNullFieldError.checkNotNull(id, r'SystemEmail', 'id'),
-          createdAt: BuiltValueNullFieldError.checkNotNull(
-              createdAt, r'SystemEmail', 'createdAt'),
-          createdBy: createdBy,
-          createdByString: createdByString,
-          updatedAt: updatedAt,
-        );
+        new _$SystemEmail._(
+            password: password,
+            port: port,
+            host: host,
+            useStartTLS: useStartTLS,
+            username: username,
+            id: BuiltValueNullFieldError.checkNotNull(id, r'SystemEmail', 'id'),
+            createdAt: BuiltValueNullFieldError.checkNotNull(
+                createdAt, r'SystemEmail', 'createdAt'),
+            createdBy: createdBy,
+            createdByString: createdByString,
+            updatedAt: updatedAt);
     replace(_$result);
     return _$result;
   }

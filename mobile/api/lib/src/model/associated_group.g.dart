@@ -16,12 +16,12 @@ AssociatedGroup _$valueOf(String name) {
     case 'ALL':
       return _$ALL;
     default:
-      throw ArgumentError(name);
+      throw new ArgumentError(name);
   }
 }
 
 final BuiltSet<AssociatedGroup> _$values =
-    BuiltSet<AssociatedGroup>(const <AssociatedGroup>[
+    new BuiltSet<AssociatedGroup>(const <AssociatedGroup>[
   _$MINE,
   _$ALL,
 ]);
@@ -40,7 +40,7 @@ abstract class _$AssociatedGroupMixin {
 }
 
 Serializer<AssociatedGroup> _$associatedGroupSerializer =
-    _$AssociatedGroupSerializer();
+    new _$AssociatedGroupSerializer();
 
 class _$AssociatedGroupSerializer
     implements PrimitiveSerializer<AssociatedGroup> {

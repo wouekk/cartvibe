@@ -16,17 +16,20 @@ class _$UpsertTagCommand extends UpsertTagCommand {
 
   factory _$UpsertTagCommand(
           [void Function(UpsertTagCommandBuilder)? updates]) =>
-      (UpsertTagCommandBuilder()..update(updates))._build();
+      (new UpsertTagCommandBuilder()..update(updates))._build();
 
   _$UpsertTagCommand._({this.id, required this.name, this.description})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(name, r'UpsertTagCommand', 'name');
+  }
+
   @override
   UpsertTagCommand rebuild(void Function(UpsertTagCommandBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
   UpsertTagCommandBuilder toBuilder() =>
-      UpsertTagCommandBuilder()..replace(this);
+      new UpsertTagCommandBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -90,6 +93,7 @@ class UpsertTagCommandBuilder
 
   @override
   void replace(UpsertTagCommand other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$UpsertTagCommand;
   }
 
@@ -103,12 +107,11 @@ class UpsertTagCommandBuilder
 
   _$UpsertTagCommand _build() {
     final _$result = _$v ??
-        _$UpsertTagCommand._(
-          id: id,
-          name: BuiltValueNullFieldError.checkNotNull(
-              name, r'UpsertTagCommand', 'name'),
-          description: description,
-        );
+        new _$UpsertTagCommand._(
+            id: id,
+            name: BuiltValueNullFieldError.checkNotNull(
+                name, r'UpsertTagCommand', 'name'),
+            description: description);
     replace(_$result);
     return _$result;
   }

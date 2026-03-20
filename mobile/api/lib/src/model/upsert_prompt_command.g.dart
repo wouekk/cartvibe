@@ -16,11 +16,16 @@ class _$UpsertPromptCommand extends UpsertPromptCommand {
 
   factory _$UpsertPromptCommand(
           [void Function(UpsertPromptCommandBuilder)? updates]) =>
-      (UpsertPromptCommandBuilder()..update(updates))._build();
+      (new UpsertPromptCommandBuilder()..update(updates))._build();
 
   _$UpsertPromptCommand._(
       {required this.name, this.description, required this.prompt})
-      : super._();
+      : super._() {
+    BuiltValueNullFieldError.checkNotNull(name, r'UpsertPromptCommand', 'name');
+    BuiltValueNullFieldError.checkNotNull(
+        prompt, r'UpsertPromptCommand', 'prompt');
+  }
+
   @override
   UpsertPromptCommand rebuild(
           void Function(UpsertPromptCommandBuilder) updates) =>
@@ -28,7 +33,7 @@ class _$UpsertPromptCommand extends UpsertPromptCommand {
 
   @override
   UpsertPromptCommandBuilder toBuilder() =>
-      UpsertPromptCommandBuilder()..replace(this);
+      new UpsertPromptCommandBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -92,6 +97,7 @@ class UpsertPromptCommandBuilder
 
   @override
   void replace(UpsertPromptCommand other) {
+    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$UpsertPromptCommand;
   }
 
@@ -105,13 +111,12 @@ class UpsertPromptCommandBuilder
 
   _$UpsertPromptCommand _build() {
     final _$result = _$v ??
-        _$UpsertPromptCommand._(
-          name: BuiltValueNullFieldError.checkNotNull(
-              name, r'UpsertPromptCommand', 'name'),
-          description: description,
-          prompt: BuiltValueNullFieldError.checkNotNull(
-              prompt, r'UpsertPromptCommand', 'prompt'),
-        );
+        new _$UpsertPromptCommand._(
+            name: BuiltValueNullFieldError.checkNotNull(
+                name, r'UpsertPromptCommand', 'name'),
+            description: description,
+            prompt: BuiltValueNullFieldError.checkNotNull(
+                prompt, r'UpsertPromptCommand', 'prompt'));
     replace(_$result);
     return _$result;
   }
