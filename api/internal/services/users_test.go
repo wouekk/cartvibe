@@ -2,6 +2,7 @@ package services
 
 import (
 	"encoding/json"
+	"net/http"
 	"receipt-wrangler/api/internal/commands"
 	"receipt-wrangler/api/internal/models"
 	"receipt-wrangler/api/internal/repositories"
@@ -23,6 +24,11 @@ func createUserForDeletion(t *testing.T, username string) models.User {
 	if err != nil {
 		t.Fatalf("failed to create user %s: %v", username, err)
 	}
+	// Ensure user is non-admin so the last-admin guard doesn't interfere
+	// with tests that aren't specifically testing admin deletion behavior.
+	// Tests that need admin role should explicitly set it.
+	repositories.GetDB().Model(&models.User{}).Where("id = ?", user.ID).Update("user_role", models.USER)
+	user.UserRole = models.USER
 	return user
 }
 
@@ -632,4 +638,94 @@ func TestBulkDeleteUsers(t *testing.T) {
 	assertCount(t, &models.User{}, "id = ?", []interface{}{user1.ID}, 0, "user1 should be deleted")
 	assertCount(t, &models.User{}, "id = ?", []interface{}{user2.ID}, 0, "user2 should be deleted")
 	assertCount(t, &models.User{}, "id = ?", []interface{}{survivor.ID}, 1, "survivor should remain")
+}
+
+func TestDeleteUser_ShouldPreventLastAdminDeletion(t *testing.T) {
+	defer repositories.TruncateTestDb()
+	admin := createUserForDeletion(t, "soloadmin")
+
+	db := repositories.GetDB()
+	db.Model(&models.User{}).Where("id = ?", admin.ID).Update("user_role", models.ADMIN)
+
+	err := DeleteUser(utils.UintToString(admin.ID))
+	if err == nil {
+		t.Fatalf("expected error when deleting last admin, got nil")
+	}
+	if err.Error() != "cannot delete the last admin account" {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	assertCount(t, &models.User{}, "id = ?", []interface{}{admin.ID}, 1, "last admin should survive")
+}
+
+func TestDeleteUser_ShouldAllowDeletionWhenMultipleAdmins(t *testing.T) {
+	defer repositories.TruncateTestDb()
+	admin1 := createUserForDeletion(t, "admin1")
+	admin2 := createUserForDeletion(t, "admin2")
+
+	db := repositories.GetDB()
+	db.Model(&models.User{}).Where("id = ?", admin1.ID).Update("user_role", models.ADMIN)
+	db.Model(&models.User{}).Where("id = ?", admin2.ID).Update("user_role", models.ADMIN)
+
+	err := DeleteUser(utils.UintToString(admin1.ID))
+	if err != nil {
+		t.Fatalf("DeleteUser failed: %v", err)
+	}
+
+	assertCount(t, &models.User{}, "id = ?", []interface{}{admin1.ID}, 0, "admin1 should be deleted")
+	assertCount(t, &models.User{}, "id = ?", []interface{}{admin2.ID}, 1, "admin2 should survive")
+}
+
+func TestDeleteAccountForUser_ShouldFailWithWrongPassword(t *testing.T) {
+	defer repositories.TruncateTestDb()
+	user := createUserForDeletion(t, "wrongpwuser")
+
+	statusCode, err := DeleteAccountForUser(user.ID, "wrongpassword")
+	if err == nil {
+		t.Fatalf("expected error for wrong password, got nil")
+	}
+	if statusCode != http.StatusUnauthorized {
+		t.Errorf("expected status %d, got %d", http.StatusUnauthorized, statusCode)
+	}
+	if err.Error() != "invalid password" {
+		t.Errorf("unexpected error message: %v", err)
+	}
+
+	assertCount(t, &models.User{}, "id = ?", []interface{}{user.ID}, 1, "user should survive wrong password attempt")
+}
+
+func TestDeleteAccountForUser_ShouldSucceed(t *testing.T) {
+	defer repositories.TruncateTestDb()
+	user := createUserForDeletion(t, "deleteacctuser")
+
+	statusCode, err := DeleteAccountForUser(user.ID, "password")
+	if err != nil {
+		t.Fatalf("DeleteAccountForUser failed: %v", err)
+	}
+	if statusCode != 0 {
+		t.Errorf("expected status 0, got %d", statusCode)
+	}
+
+	assertCount(t, &models.User{}, "id = ?", []interface{}{user.ID}, 0, "user should be deleted")
+}
+
+func TestDeleteAccountForUser_ShouldPreventLastAdminDeletion(t *testing.T) {
+	defer repositories.TruncateTestDb()
+	admin := createUserForDeletion(t, "lastadminacct")
+
+	db := repositories.GetDB()
+	db.Model(&models.User{}).Where("id = ?", admin.ID).Update("user_role", models.ADMIN)
+
+	statusCode, err := DeleteAccountForUser(admin.ID, "password")
+	if err == nil {
+		t.Fatalf("expected error when deleting last admin account, got nil")
+	}
+	if statusCode != http.StatusBadRequest {
+		t.Errorf("expected status %d, got %d", http.StatusBadRequest, statusCode)
+	}
+	if err.Error() != "cannot delete the last admin account" {
+		t.Errorf("unexpected error message: %v", err)
+	}
+
+	assertCount(t, &models.User{}, "id = ?", []interface{}{admin.ID}, 1, "last admin should survive")
 }
