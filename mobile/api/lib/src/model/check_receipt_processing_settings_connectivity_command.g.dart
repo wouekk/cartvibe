@@ -31,7 +31,7 @@ class _$CheckReceiptProcessingSettingsConnectivityCommand
           [void Function(
                   CheckReceiptProcessingSettingsConnectivityCommandBuilder)?
               updates]) =>
-      (new CheckReceiptProcessingSettingsConnectivityCommandBuilder()
+      (CheckReceiptProcessingSettingsConnectivityCommandBuilder()
             ..update(updates))
           ._build();
 
@@ -46,7 +46,6 @@ class _$CheckReceiptProcessingSettingsConnectivityCommand
       this.ocrEngine,
       this.promptId})
       : super._();
-
   @override
   CheckReceiptProcessingSettingsConnectivityCommand rebuild(
           void Function(
@@ -56,8 +55,7 @@ class _$CheckReceiptProcessingSettingsConnectivityCommand
 
   @override
   CheckReceiptProcessingSettingsConnectivityCommandBuilder toBuilder() =>
-      new CheckReceiptProcessingSettingsConnectivityCommandBuilder()
-        ..replace(this);
+      CheckReceiptProcessingSettingsConnectivityCommandBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -172,7 +170,6 @@ class CheckReceiptProcessingSettingsConnectivityCommandBuilder
 
   @override
   void replace(CheckReceiptProcessingSettingsConnectivityCommand other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$CheckReceiptProcessingSettingsConnectivityCommand;
   }
 
@@ -188,16 +185,17 @@ class CheckReceiptProcessingSettingsConnectivityCommandBuilder
 
   _$CheckReceiptProcessingSettingsConnectivityCommand _build() {
     final _$result = _$v ??
-        new _$CheckReceiptProcessingSettingsConnectivityCommand._(
-            id: id,
-            name: name,
-            aiType: aiType,
-            url: url,
-            key: key,
-            model: model,
-            numWorkers: numWorkers,
-            ocrEngine: ocrEngine,
-            promptId: promptId);
+        _$CheckReceiptProcessingSettingsConnectivityCommand._(
+          id: id,
+          name: name,
+          aiType: aiType,
+          url: url,
+          key: key,
+          model: model,
+          numWorkers: numWorkers,
+          ocrEngine: ocrEngine,
+          promptId: promptId,
+        );
     replace(_$result);
     return _$result;
   }

@@ -26,7 +26,7 @@ class _$UpdateGroupSettingsCommand extends UpdateGroupSettingsCommand {
 
   factory _$UpdateGroupSettingsCommand(
           [void Function(UpdateGroupSettingsCommandBuilder)? updates]) =>
-      (new UpdateGroupSettingsCommandBuilder()..update(updates))._build();
+      (UpdateGroupSettingsCommandBuilder()..update(updates))._build();
 
   _$UpdateGroupSettingsCommand._(
       {required this.systemEmailId,
@@ -37,15 +37,7 @@ class _$UpdateGroupSettingsCommand extends UpdateGroupSettingsCommand {
       this.emailDefaultReceiptPaidById,
       this.promptId,
       this.fallbackPromptId})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        systemEmailId, r'UpdateGroupSettingsCommand', 'systemEmailId');
-    BuiltValueNullFieldError.checkNotNull(subjectLineRegexes,
-        r'UpdateGroupSettingsCommand', 'subjectLineRegexes');
-    BuiltValueNullFieldError.checkNotNull(
-        emailWhiteList, r'UpdateGroupSettingsCommand', 'emailWhiteList');
-  }
-
+      : super._();
   @override
   UpdateGroupSettingsCommand rebuild(
           void Function(UpdateGroupSettingsCommandBuilder) updates) =>
@@ -53,7 +45,7 @@ class _$UpdateGroupSettingsCommand extends UpdateGroupSettingsCommand {
 
   @override
   UpdateGroupSettingsCommandBuilder toBuilder() =>
-      new UpdateGroupSettingsCommandBuilder()..replace(this);
+      UpdateGroupSettingsCommandBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -116,13 +108,13 @@ class UpdateGroupSettingsCommandBuilder
 
   ListBuilder<SubjectLineRegex>? _subjectLineRegexes;
   ListBuilder<SubjectLineRegex> get subjectLineRegexes =>
-      _$this._subjectLineRegexes ??= new ListBuilder<SubjectLineRegex>();
+      _$this._subjectLineRegexes ??= ListBuilder<SubjectLineRegex>();
   set subjectLineRegexes(ListBuilder<SubjectLineRegex>? subjectLineRegexes) =>
       _$this._subjectLineRegexes = subjectLineRegexes;
 
   ListBuilder<GroupSettingsWhiteListEmail>? _emailWhiteList;
   ListBuilder<GroupSettingsWhiteListEmail> get emailWhiteList =>
-      _$this._emailWhiteList ??= new ListBuilder<GroupSettingsWhiteListEmail>();
+      _$this._emailWhiteList ??= ListBuilder<GroupSettingsWhiteListEmail>();
   set emailWhiteList(
           ListBuilder<GroupSettingsWhiteListEmail>? emailWhiteList) =>
       _$this._emailWhiteList = emailWhiteList;
@@ -169,7 +161,6 @@ class UpdateGroupSettingsCommandBuilder
 
   @override
   void replace(UpdateGroupSettingsCommand other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$UpdateGroupSettingsCommand;
   }
 
@@ -185,18 +176,17 @@ class UpdateGroupSettingsCommandBuilder
     _$UpdateGroupSettingsCommand _$result;
     try {
       _$result = _$v ??
-          new _$UpdateGroupSettingsCommand._(
-              systemEmailId: BuiltValueNullFieldError.checkNotNull(
-                  systemEmailId,
-                  r'UpdateGroupSettingsCommand',
-                  'systemEmailId'),
-              emailIntegrationEnabled: emailIntegrationEnabled,
-              subjectLineRegexes: subjectLineRegexes.build(),
-              emailWhiteList: emailWhiteList.build(),
-              emailDefaultReceiptStatus: emailDefaultReceiptStatus,
-              emailDefaultReceiptPaidById: emailDefaultReceiptPaidById,
-              promptId: promptId,
-              fallbackPromptId: fallbackPromptId);
+          _$UpdateGroupSettingsCommand._(
+            systemEmailId: BuiltValueNullFieldError.checkNotNull(
+                systemEmailId, r'UpdateGroupSettingsCommand', 'systemEmailId'),
+            emailIntegrationEnabled: emailIntegrationEnabled,
+            subjectLineRegexes: subjectLineRegexes.build(),
+            emailWhiteList: emailWhiteList.build(),
+            emailDefaultReceiptStatus: emailDefaultReceiptStatus,
+            emailDefaultReceiptPaidById: emailDefaultReceiptPaidById,
+            promptId: promptId,
+            fallbackPromptId: fallbackPromptId,
+          );
     } catch (_) {
       late String _$failedField;
       try {
@@ -205,7 +195,7 @@ class UpdateGroupSettingsCommandBuilder
         _$failedField = 'emailWhiteList';
         emailWhiteList.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
+        throw BuiltValueNestedFieldError(
             r'UpdateGroupSettingsCommand', _$failedField, e.toString());
       }
       rethrow;

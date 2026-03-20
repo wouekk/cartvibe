@@ -19,7 +19,7 @@ class _$SignUpCommand extends SignUpCommand {
   final UserRole? userRole;
 
   factory _$SignUpCommand([void Function(SignUpCommandBuilder)? updates]) =>
-      (new SignUpCommandBuilder()..update(updates))._build();
+      (SignUpCommandBuilder()..update(updates))._build();
 
   _$SignUpCommand._(
       {required this.username,
@@ -27,19 +27,13 @@ class _$SignUpCommand extends SignUpCommand {
       this.displayName,
       this.isDummyUser,
       this.userRole})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        username, r'SignUpCommand', 'username');
-    BuiltValueNullFieldError.checkNotNull(
-        password, r'SignUpCommand', 'password');
-  }
-
+      : super._();
   @override
   SignUpCommand rebuild(void Function(SignUpCommandBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  SignUpCommandBuilder toBuilder() => new SignUpCommandBuilder()..replace(this);
+  SignUpCommandBuilder toBuilder() => SignUpCommandBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -119,7 +113,6 @@ class SignUpCommandBuilder
 
   @override
   void replace(SignUpCommand other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$SignUpCommand;
   }
 
@@ -133,14 +126,15 @@ class SignUpCommandBuilder
 
   _$SignUpCommand _build() {
     final _$result = _$v ??
-        new _$SignUpCommand._(
-            username: BuiltValueNullFieldError.checkNotNull(
-                username, r'SignUpCommand', 'username'),
-            password: BuiltValueNullFieldError.checkNotNull(
-                password, r'SignUpCommand', 'password'),
-            displayName: displayName,
-            isDummyUser: isDummyUser,
-            userRole: userRole);
+        _$SignUpCommand._(
+          username: BuiltValueNullFieldError.checkNotNull(
+              username, r'SignUpCommand', 'username'),
+          password: BuiltValueNullFieldError.checkNotNull(
+              password, r'SignUpCommand', 'password'),
+          displayName: displayName,
+          isDummyUser: isDummyUser,
+          userRole: userRole,
+        );
     replace(_$result);
     return _$result;
   }

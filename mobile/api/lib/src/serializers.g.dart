@@ -6,7 +6,7 @@ part of 'serializers.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
-Serializers _$serializers = (new Serializers().toBuilder()
+Serializers _$serializers = (Serializers().toBuilder()
       ..add($BaseModel.serializer)
       ..add($PagedRequestCommand.serializer)
       ..add(About.serializer)
@@ -36,6 +36,7 @@ Serializers _$serializers = (new Serializers().toBuilder()
       ..add(CustomFieldType.serializer)
       ..add(CustomFieldValue.serializer)
       ..add(Dashboard.serializer)
+      ..add(DeleteAccountCommand.serializer)
       ..add(EncodedImage.serializer)
       ..add(ExportFormat.serializer)
       ..add(FeatureConfig.serializer)
@@ -121,159 +122,159 @@ Serializers _$serializers = (new Serializers().toBuilder()
       ..add(WidgetType.serializer)
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Category)]),
-          () => new ListBuilder<Category>())
+          () => ListBuilder<Category>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Comment)]),
-          () => new ListBuilder<Comment>())
+          () => ListBuilder<Comment>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(CustomFieldValue)]),
-          () => new ListBuilder<CustomFieldValue>())
+          () => ListBuilder<CustomFieldValue>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(FileData)]),
-          () => new ListBuilder<FileData>())
+          () => ListBuilder<FileData>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Item)]),
-          () => new ListBuilder<Item>())
+          () => ListBuilder<Item>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Tag)]),
-          () => new ListBuilder<Tag>())
+          () => ListBuilder<Tag>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(CustomFieldOption)]),
-          () => new ListBuilder<CustomFieldOption>())
+          () => ListBuilder<CustomFieldOption>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Group)]),
-          () => new ListBuilder<Group>())
+          () => ListBuilder<Group>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(UserView)]),
-          () => new ListBuilder<UserView>())
+          () => ListBuilder<UserView>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Category)]),
-          () => new ListBuilder<Category>())
+          () => ListBuilder<Category>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Tag)]),
-          () => new ListBuilder<Tag>())
+          () => ListBuilder<Tag>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Icon)]),
-          () => new ListBuilder<Icon>())
+          () => ListBuilder<Icon>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(GroupMember)]),
-          () => new ListBuilder<GroupMember>())
+          () => ListBuilder<GroupMember>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Item)]),
-          () => new ListBuilder<Item>())
+          () => ListBuilder<Item>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Category)]),
-          () => new ListBuilder<Category>())
+          () => ListBuilder<Category>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Tag)]),
-          () => new ListBuilder<Tag>())
+          () => ListBuilder<Tag>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(PagedDataDataInner)]),
-          () => new ListBuilder<PagedDataDataInner>())
+          () => ListBuilder<PagedDataDataInner>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(PieChartDataPoint)]),
-          () => new ListBuilder<PieChartDataPoint>())
+          () => ListBuilder<PieChartDataPoint>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(String)]),
-          () => new ListBuilder<String>())
+          () => ListBuilder<String>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(String)]),
-          () => new ListBuilder<String>())
+          () => ListBuilder<String>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(SubjectLineRegex)]),
-          () => new ListBuilder<SubjectLineRegex>())
+          () => ListBuilder<SubjectLineRegex>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(GroupSettingsWhiteListEmail)]),
-          () => new ListBuilder<GroupSettingsWhiteListEmail>())
+          () => ListBuilder<GroupSettingsWhiteListEmail>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(SubjectLineRegex)]),
-          () => new ListBuilder<SubjectLineRegex>())
+          () => ListBuilder<SubjectLineRegex>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(GroupSettingsWhiteListEmail)]),
-          () => new ListBuilder<GroupSettingsWhiteListEmail>())
+          () => ListBuilder<GroupSettingsWhiteListEmail>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(SystemTask)]),
-          () => new ListBuilder<SystemTask>())
+          () => ListBuilder<SystemTask>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(TaskQueueConfiguration)]),
-          () => new ListBuilder<TaskQueueConfiguration>())
+          () => ListBuilder<TaskQueueConfiguration>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(UpsertCategoryCommand)]),
-          () => new ListBuilder<UpsertCategoryCommand>())
+          () => ListBuilder<UpsertCategoryCommand>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(UpsertTagCommand)]),
-          () => new ListBuilder<UpsertTagCommand>())
+          () => ListBuilder<UpsertTagCommand>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(UpsertItemCommand)]),
-          () => new ListBuilder<UpsertItemCommand>())
+          () => ListBuilder<UpsertItemCommand>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(UpsertCategoryCommand)]),
-          () => new ListBuilder<UpsertCategoryCommand>())
+          () => ListBuilder<UpsertCategoryCommand>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(UpsertTagCommand)]),
-          () => new ListBuilder<UpsertTagCommand>())
+          () => ListBuilder<UpsertTagCommand>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(UpsertItemCommand)]),
-          () => new ListBuilder<UpsertItemCommand>())
+          () => ListBuilder<UpsertItemCommand>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(UpsertCommentCommand)]),
-          () => new ListBuilder<UpsertCommentCommand>())
+          () => ListBuilder<UpsertCommentCommand>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(UpsertCustomFieldValueCommand)]),
-          () => new ListBuilder<UpsertCustomFieldValueCommand>())
+          () => ListBuilder<UpsertCustomFieldValueCommand>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(UpsertCustomFieldOptionCommand)]),
-          () => new ListBuilder<UpsertCustomFieldOptionCommand>())
+          () => ListBuilder<UpsertCustomFieldOptionCommand>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(UpsertGroupMemberCommand)]),
-          () => new ListBuilder<UpsertGroupMemberCommand>())
+          () => ListBuilder<UpsertGroupMemberCommand>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(UpsertTaskQueueConfiguration)]),
-          () => new ListBuilder<UpsertTaskQueueConfiguration>())
+          () => ListBuilder<UpsertTaskQueueConfiguration>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(UpsertWidgetCommand)]),
-          () => new ListBuilder<UpsertWidgetCommand>())
+          () => ListBuilder<UpsertWidgetCommand>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(UserShortcut)]),
-          () => new ListBuilder<UserShortcut>())
+          () => ListBuilder<UserShortcut>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Widget)]),
-          () => new ListBuilder<Widget>())
+          () => ListBuilder<Widget>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(int)]),
-          () => new ListBuilder<int>())
+          () => ListBuilder<int>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(int)]),
-          () => new ListBuilder<int>())
+          () => ListBuilder<int>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(int)]),
-          () => new ListBuilder<int>())
+          () => ListBuilder<int>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(int)]),
-          () => new ListBuilder<int>())
+          () => ListBuilder<int>())
       ..addBuilderFactory(
           const FullType(BuiltMap, const [
             const FullType(String),
             const FullType.nullable(JsonObject)
           ]),
-          () => new MapBuilder<String, JsonObject?>())
+          () => MapBuilder<String, JsonObject?>())
       ..addBuilderFactory(
           const FullType(BuiltMap, const [
             const FullType(String),
             const FullType.nullable(JsonObject)
           ]),
-          () => new MapBuilder<String, JsonObject?>()))
+          () => MapBuilder<String, JsonObject?>()))
     .build();
 
 // ignore_for_file: deprecated_member_use_from_same_package,type=lint

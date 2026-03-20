@@ -156,6 +156,7 @@ Class | Method | HTTP request | Description
 [*UserApi*](doc/UserApi.md) | [**bulkDeleteUsers**](doc/UserApi.md#bulkdeleteusers) | **DELETE** /user/bulk | Bulk delete users
 [*UserApi*](doc/UserApi.md) | [**convertDummyUserById**](doc/UserApi.md#convertdummyuserbyid) | **POST** /user/{userId}/convertDummyUserToNormalUser | Converts dummy user
 [*UserApi*](doc/UserApi.md) | [**createUser**](doc/UserApi.md#createuser) | **POST** /user | Create user
+[*UserApi*](doc/UserApi.md) | [**deleteAccount**](doc/UserApi.md#deleteaccount) | **POST** /user/deleteAccount | Delete own account
 [*UserApi*](doc/UserApi.md) | [**deleteUserById**](doc/UserApi.md#deleteuserbyid) | **DELETE** /user/{userId} | Delete user
 [*UserApi*](doc/UserApi.md) | [**getAmountOwedForUser**](doc/UserApi.md#getamountowedforuser) | **GET** /user/amountOwedForUser | Get amount owed for user
 [*UserApi*](doc/UserApi.md) | [**getAppData**](doc/UserApi.md#getappdata) | **GET** /user/appData | Get app data
@@ -200,6 +201,7 @@ Class | Method | HTTP request | Description
  - [CustomFieldType](doc/CustomFieldType.md)
  - [CustomFieldValue](doc/CustomFieldValue.md)
  - [Dashboard](doc/Dashboard.md)
+ - [DeleteAccountCommand](doc/DeleteAccountCommand.md)
  - [EncodedImage](doc/EncodedImage.md)
  - [ExportFormat](doc/ExportFormat.md)
  - [FeatureConfig](doc/FeatureConfig.md)

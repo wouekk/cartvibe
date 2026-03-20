@@ -67,7 +67,7 @@ class _TopAppBar extends State<TopAppBar> {
   }
 
   Widget? getIconButton() {
-    if (widget.leadingArrowRedirect != null) {
+    if (widget.leadingArrowRedirect != null || widget.leadingArrowPop == true) {
       return IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () {
@@ -99,10 +99,12 @@ class _TopAppBar extends State<TopAppBar> {
         itemBuilder: (BuildContext context) {
           return [
             PopupMenuItem(
-              child: TextButton(
-                onPressed: () => _logout(),
-                child: const Text('Logout'),
-              ),
+              onTap: () => context.push('/profile'),
+              child: const Text('User Profile'),
+            ),
+            PopupMenuItem(
+              onTap: () => _logout(),
+              child: const Text('Logout'),
             ),
           ];
         });

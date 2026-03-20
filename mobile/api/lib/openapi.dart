@@ -62,6 +62,7 @@ export 'package:openapi/src/model/custom_field_option.dart';
 export 'package:openapi/src/model/custom_field_type.dart';
 export 'package:openapi/src/model/custom_field_value.dart';
 export 'package:openapi/src/model/dashboard.dart';
+export 'package:openapi/src/model/delete_account_command.dart';
 export 'package:openapi/src/model/encoded_image.dart';
 export 'package:openapi/src/model/export_format.dart';
 export 'package:openapi/src/model/feature_config.dart';

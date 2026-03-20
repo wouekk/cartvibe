@@ -25,6 +25,7 @@ import 'package:receipt_wrangler_mobile/models/tag_model.dart';
 import 'package:receipt_wrangler_mobile/models/user_model.dart';
 import 'package:receipt_wrangler_mobile/models/user_preferences_model.dart';
 import 'package:receipt_wrangler_mobile/persistence/global_shared_preferences.dart';
+import 'package:receipt_wrangler_mobile/profile/screens/user_profile_screen.dart';
 import 'package:receipt_wrangler_mobile/receipts/screens/receipt_form_screen.dart';
 import 'package:receipt_wrangler_mobile/search/nav/search_app_bar.dart';
 import 'package:receipt_wrangler_mobile/search/screens/search_screen.dart';
@@ -117,6 +118,10 @@ final _router = GoRouter(
             builder: (context, state) => const GroupReceiptsScreen(),
           ),
         ]),
+    GoRoute(
+      path: '/profile',
+      builder: (context, state) => const UserProfileScreen(),
+    ),
     GoRoute(
       path: '/receipts/add',
       redirect: (context, state) {

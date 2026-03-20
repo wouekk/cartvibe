@@ -41,7 +41,7 @@ class _$AppData extends AppData {
   final BuiltList<Icon> icons;
 
   factory _$AppData([void Function(AppDataBuilder)? updates]) =>
-      (new AppDataBuilder()..update(updates))._build();
+      (AppDataBuilder()..update(updates))._build();
 
   _$AppData._(
       {required this.about,
@@ -60,28 +60,13 @@ class _$AppData extends AppData {
       this.currencySymbolPosition,
       this.currencyHideDecimalPlaces,
       required this.icons})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(about, r'AppData', 'about');
-    BuiltValueNullFieldError.checkNotNull(claims, r'AppData', 'claims');
-    BuiltValueNullFieldError.checkNotNull(groups, r'AppData', 'groups');
-    BuiltValueNullFieldError.checkNotNull(users, r'AppData', 'users');
-    BuiltValueNullFieldError.checkNotNull(
-        userPreferences, r'AppData', 'userPreferences');
-    BuiltValueNullFieldError.checkNotNull(
-        featureConfig, r'AppData', 'featureConfig');
-    BuiltValueNullFieldError.checkNotNull(categories, r'AppData', 'categories');
-    BuiltValueNullFieldError.checkNotNull(tags, r'AppData', 'tags');
-    BuiltValueNullFieldError.checkNotNull(
-        currencyDisplay, r'AppData', 'currencyDisplay');
-    BuiltValueNullFieldError.checkNotNull(icons, r'AppData', 'icons');
-  }
-
+      : super._();
   @override
   AppData rebuild(void Function(AppDataBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  AppDataBuilder toBuilder() => new AppDataBuilder()..replace(this);
+  AppDataBuilder toBuilder() => AppDataBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -155,42 +140,41 @@ class AppDataBuilder implements Builder<AppData, AppDataBuilder> {
   _$AppData? _$v;
 
   AboutBuilder? _about;
-  AboutBuilder get about => _$this._about ??= new AboutBuilder();
+  AboutBuilder get about => _$this._about ??= AboutBuilder();
   set about(AboutBuilder? about) => _$this._about = about;
 
   ClaimsBuilder? _claims;
-  ClaimsBuilder get claims => _$this._claims ??= new ClaimsBuilder();
+  ClaimsBuilder get claims => _$this._claims ??= ClaimsBuilder();
   set claims(ClaimsBuilder? claims) => _$this._claims = claims;
 
   ListBuilder<Group>? _groups;
-  ListBuilder<Group> get groups => _$this._groups ??= new ListBuilder<Group>();
+  ListBuilder<Group> get groups => _$this._groups ??= ListBuilder<Group>();
   set groups(ListBuilder<Group>? groups) => _$this._groups = groups;
 
   ListBuilder<UserView>? _users;
-  ListBuilder<UserView> get users =>
-      _$this._users ??= new ListBuilder<UserView>();
+  ListBuilder<UserView> get users => _$this._users ??= ListBuilder<UserView>();
   set users(ListBuilder<UserView>? users) => _$this._users = users;
 
   UserPreferencesBuilder? _userPreferences;
   UserPreferencesBuilder get userPreferences =>
-      _$this._userPreferences ??= new UserPreferencesBuilder();
+      _$this._userPreferences ??= UserPreferencesBuilder();
   set userPreferences(UserPreferencesBuilder? userPreferences) =>
       _$this._userPreferences = userPreferences;
 
   FeatureConfigBuilder? _featureConfig;
   FeatureConfigBuilder get featureConfig =>
-      _$this._featureConfig ??= new FeatureConfigBuilder();
+      _$this._featureConfig ??= FeatureConfigBuilder();
   set featureConfig(FeatureConfigBuilder? featureConfig) =>
       _$this._featureConfig = featureConfig;
 
   ListBuilder<Category>? _categories;
   ListBuilder<Category> get categories =>
-      _$this._categories ??= new ListBuilder<Category>();
+      _$this._categories ??= ListBuilder<Category>();
   set categories(ListBuilder<Category>? categories) =>
       _$this._categories = categories;
 
   ListBuilder<Tag>? _tags;
-  ListBuilder<Tag> get tags => _$this._tags ??= new ListBuilder<Tag>();
+  ListBuilder<Tag> get tags => _$this._tags ??= ListBuilder<Tag>();
   set tags(ListBuilder<Tag>? tags) => _$this._tags = tags;
 
   String? _jwt;
@@ -231,7 +215,7 @@ class AppDataBuilder implements Builder<AppData, AppDataBuilder> {
       _$this._currencyHideDecimalPlaces = currencyHideDecimalPlaces;
 
   ListBuilder<Icon>? _icons;
-  ListBuilder<Icon> get icons => _$this._icons ??= new ListBuilder<Icon>();
+  ListBuilder<Icon> get icons => _$this._icons ??= ListBuilder<Icon>();
   set icons(ListBuilder<Icon>? icons) => _$this._icons = icons;
 
   AppDataBuilder() {
@@ -264,7 +248,6 @@ class AppDataBuilder implements Builder<AppData, AppDataBuilder> {
 
   @override
   void replace(AppData other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$AppData;
   }
 
@@ -280,24 +263,25 @@ class AppDataBuilder implements Builder<AppData, AppDataBuilder> {
     _$AppData _$result;
     try {
       _$result = _$v ??
-          new _$AppData._(
-              about: about.build(),
-              claims: claims.build(),
-              groups: groups.build(),
-              users: users.build(),
-              userPreferences: userPreferences.build(),
-              featureConfig: featureConfig.build(),
-              categories: categories.build(),
-              tags: tags.build(),
-              jwt: jwt,
-              refreshToken: refreshToken,
-              currencyDisplay: BuiltValueNullFieldError.checkNotNull(
-                  currencyDisplay, r'AppData', 'currencyDisplay'),
-              currencyThousandthsSeparator: currencyThousandthsSeparator,
-              currencyDecimalSeparator: currencyDecimalSeparator,
-              currencySymbolPosition: currencySymbolPosition,
-              currencyHideDecimalPlaces: currencyHideDecimalPlaces,
-              icons: icons.build());
+          _$AppData._(
+            about: about.build(),
+            claims: claims.build(),
+            groups: groups.build(),
+            users: users.build(),
+            userPreferences: userPreferences.build(),
+            featureConfig: featureConfig.build(),
+            categories: categories.build(),
+            tags: tags.build(),
+            jwt: jwt,
+            refreshToken: refreshToken,
+            currencyDisplay: BuiltValueNullFieldError.checkNotNull(
+                currencyDisplay, r'AppData', 'currencyDisplay'),
+            currencyThousandthsSeparator: currencyThousandthsSeparator,
+            currencyDecimalSeparator: currencyDecimalSeparator,
+            currencySymbolPosition: currencySymbolPosition,
+            currencyHideDecimalPlaces: currencyHideDecimalPlaces,
+            icons: icons.build(),
+          );
     } catch (_) {
       late String _$failedField;
       try {
@@ -321,7 +305,7 @@ class AppDataBuilder implements Builder<AppData, AppDataBuilder> {
         _$failedField = 'icons';
         icons.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
+        throw BuiltValueNestedFieldError(
             r'AppData', _$failedField, e.toString());
       }
       rethrow;
