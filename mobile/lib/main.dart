@@ -34,6 +34,8 @@ import 'package:receipt_wrangler_mobile/shared/widgets/screen_wrapper.dart';
 import 'package:receipt_wrangler_mobile/utils/auth.dart';
 import 'package:receipt_wrangler_mobile/utils/permissions.dart';
 
+import 'package:receipt_wrangler_mobile/profile/screens/user_profile_screen.dart';
+
 import 'constants/search.dart';
 import 'models/context_model.dart';
 import 'models/custom_field_model.dart';
@@ -132,6 +134,10 @@ final _router = GoRouter(
     GoRoute(
       path: '/receipts/:receiptId/edit',
       builder: (context, state) => const ReceiptFormScreen(),
+    ),
+    GoRoute(
+      path: '/profile',
+      builder: (context, state) => const UserProfileScreen(),
     ),
     ShellRoute(
       builder: (context, state, child) {
