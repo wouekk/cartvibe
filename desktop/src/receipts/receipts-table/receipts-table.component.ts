@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, TemplateRef, ViewChild, ViewEncapsulation, } from "@angular/core";
+import { AfterViewInit, ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild, ViewEncapsulation, } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { PageEvent } from "@angular/material/paginator";
 import { Sort } from "@angular/material/sort";
@@ -53,6 +53,7 @@ import { ColumnConfigurationDialogComponent } from "../column-configuration-dial
 export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   constructor(
     private activatedRoute: ActivatedRoute,
+    private cdr: ChangeDetectorRef,
     private groupPipe: GroupRolePipe,
     private groupsService: GroupsService,
     private matDialog: MatDialog,
@@ -165,6 +166,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
           this.dataSource = new MatTableDataSource<PagedDataDataInner>(pagedData.data);
           this.totalCount = pagedData.totalCount;
           this.setColumns();
+          this.cdr.detectChanges();
         })
       )
       .subscribe();
@@ -387,6 +389,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
         tap((pagedData) => {
           this.dataSource.data = pagedData.data;
           this.totalCount = pagedData.totalCount;
+          this.cdr.detectChanges();
         })
       )
       .subscribe();
