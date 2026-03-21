@@ -31,10 +31,11 @@ class _GroupDashboard extends State<GroupDashboard> {
 
   Widget buildChoiceChipList(List<api.Dashboard> dashboards) {
     var widgets = <Widget>[];
+    var effectiveIndex = selectedDashboardIndex ?? 0;
+
     for (int i = 0; i < dashboards.length; i++) {
       var dashboard = dashboards[i];
-      var defaultSelected = i == 0 && selectedDashboardIndex == null;
-      var selected = i == selectedDashboardIndex || defaultSelected;
+      var selected = i == effectiveIndex;
       var theme = Theme.of(context);
 
       widgets.add(ChoiceChip(
@@ -45,10 +46,6 @@ class _GroupDashboard extends State<GroupDashboard> {
         onSelected: (value) => setSelectedDashboardIndex(i),
       ));
       widgets.add(const SizedBox(width: 10));
-
-      if (selected) {
-        selectedDashboardIndex = i;
-      }
     }
 
     return SizedBox(
@@ -59,15 +56,19 @@ class _GroupDashboard extends State<GroupDashboard> {
         ));
   }
 
-  List<Widget> buildDashboardWidgets(api.Dashboard? dashboard) {
+  List<Widget> buildDashboardWidgets(
+      api.Dashboard? dashboard, double widgetHeight) {
     var widgets = <Widget>[];
 
     if (dashboard != null) {
       for (var widget in (dashboard.widgets)?.toList() ?? []) {
         switch (widget.widgetType) {
           case api.WidgetType.FILTERED_RECEIPTS:
-            widgets.add(FilteredReceipts(
-              dashboardWidget: widget,
+            widgets.add(SizedBox(
+              height: widgetHeight,
+              child: FilteredReceipts(
+                dashboardWidget: widget,
+              ),
             ));
             break;
           case api.WidgetType.GROUP_SUMMARY:
@@ -76,13 +77,19 @@ class _GroupDashboard extends State<GroupDashboard> {
             ));
             break;
           case api.WidgetType.GROUP_ACTIVITY:
-            widgets.add(GroupActivities(
-              dashboardWidget: widget,
+            widgets.add(SizedBox(
+              height: widgetHeight,
+              child: GroupActivities(
+                dashboardWidget: widget,
+              ),
             ));
             break;
           case api.WidgetType.PIE_CHART:
-            widgets.add(DashboardPieChart(
-              dashboardWidget: widget,
+            widgets.add(SizedBox(
+              height: widgetHeight,
+              child: DashboardPieChart(
+                dashboardWidget: widget,
+              ),
             ));
             break;
         }
@@ -93,33 +100,31 @@ class _GroupDashboard extends State<GroupDashboard> {
   }
 
   api.Dashboard? getSelectedDashboard(List<api.Dashboard>? dashboards) {
-    if (selectedDashboardIndex == null) {
+    if (dashboards == null || dashboards.isEmpty) {
       return null;
-    } else {
-      return dashboards![selectedDashboardIndex!];
     }
+    var index = selectedDashboardIndex ?? 0;
+    return dashboards[index];
   }
 
   @override
   Widget build(BuildContext context) {
-    var chipList = buildChoiceChipList(widget.dashboards);
-    api.Dashboard? selectedDashboard = getSelectedDashboard(widget.dashboards);
-
-    List<Widget> children = [];
-
     if (widget.dashboards.isEmpty) {
       return const Center(child: Text("No dashboards found"));
-    } else {
-      children.addAll(buildDashboardWidgets(selectedDashboard));
     }
 
-    return SizedBox(
-        child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+    var chipList = buildChoiceChipList(widget.dashboards);
+    api.Dashboard? selectedDashboard = getSelectedDashboard(widget.dashboards);
+    var widgetHeight = MediaQuery.of(context).size.height * 0.6;
+    List<Widget> children =
+        buildDashboardWidgets(selectedDashboard, widgetHeight);
+
+    return Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           chipList,
-          Expanded(child: GridView.count(crossAxisCount: 1, children: children))
-        ]));
+          Expanded(child: ListView(children: children))
+        ]);
   }
 }

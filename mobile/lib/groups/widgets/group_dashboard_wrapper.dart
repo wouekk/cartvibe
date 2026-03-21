@@ -13,17 +13,36 @@ class GroupDashboardWrapper extends StatefulWidget {
 }
 
 class _GroupDashboardWrapper extends State<GroupDashboardWrapper> {
+  late Future _dashboardFuture;
+  bool _isInitialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      _loadData();
+      _isInitialized = true;
+    }
+  }
+
+  void _loadData() {
+    var groupId = getGroupId(context);
+    _dashboardFuture = OpenApiClient.client
+        .getDashboardApi()
+        .getDashboardsForUserByGroupId(groupId: groupId);
+  }
+
   @override
   Widget build(BuildContext context) {
-    var groupId = getGroupId(context);
-    var dashboardFuture = OpenApiClient.client
-        .getDashboardApi()
-        .getDashboardsForUserByGroupId(groupId: groupId ?? "");
-
     return FutureBuilder(
-        future: dashboardFuture,
+        future: _dashboardFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
+            if (snapshot.hasError) {
+              return const Center(
+                child: Text("Failed to load dashboards"),
+              );
+            }
             return GroupDashboard(
               dashboards: snapshot.data?.data?.toList() ?? [],
             );
