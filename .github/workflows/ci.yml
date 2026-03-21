@@ -43,6 +43,8 @@ jobs:
     container: golang:1.24-trixie
     steps:
       - uses: actions/checkout@v4
+      - name: Mark workspace as safe directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Install app dependencies
         run: sh set-up-dependencies.sh
         working-directory: ./api

@@ -6,7 +6,7 @@ apt-get install python3-pip -y
 apt-get install python3.13-venv -y
 # Set up venv
 python3 -m venv wranglervenv
-source wranglervenv/bin/activate
+. wranglervenv/bin/activate
 # Install requirements
 pip3 install -r ./imap-client/requirements.txt
 # Install pytorch cpu
