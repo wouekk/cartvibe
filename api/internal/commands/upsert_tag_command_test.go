@@ -1,0 +1,70 @@
+package commands
+
+import (
+	"receipt-wrangler/api/internal/utils"
+	"testing"
+)
+
+func TestUpsertTagCommand_Validate_ValidInputs(t *testing.T) {
+	tests := map[string]struct {
+		command UpsertTagCommand
+	}{
+		"valid with name only": {
+			command: UpsertTagCommand{
+				Name: "Test Tag",
+			},
+		},
+		"valid with name and description": {
+			command: UpsertTagCommand{
+				Name:        "Test Tag",
+				Description: "A description",
+			},
+		},
+	}
+
+	for testName, test := range tests {
+		t.Run(testName, func(t *testing.T) {
+			vErr := test.command.Validate()
+
+			if len(vErr.Errors) > 0 {
+				utils.PrintTestError(t, len(vErr.Errors), 0)
+			}
+		})
+	}
+}
+
+func TestUpsertTagCommand_Validate_InvalidInputs(t *testing.T) {
+	tests := map[string]struct {
+		command       UpsertTagCommand
+		expectedError string
+	}{
+		"missing name": {
+			command:       UpsertTagCommand{},
+			expectedError: "name",
+		},
+		"empty name": {
+			command: UpsertTagCommand{
+				Name: "",
+			},
+			expectedError: "name",
+		},
+	}
+
+	for testName, test := range tests {
+		t.Run(testName, func(t *testing.T) {
+			vErr := test.command.Validate()
+
+			if len(vErr.Errors) == 0 {
+				utils.PrintTestError(t, len(vErr.Errors), "greater than 0")
+			}
+
+			if _, exists := vErr.Errors[test.expectedError]; !exists {
+				utils.PrintTestError(t, "error should exist for field", test.expectedError)
+			}
+
+			if vErr.Errors["name"] != "Name is required" {
+				utils.PrintTestError(t, vErr.Errors["name"], "Name is required")
+			}
+		})
+	}
+}
