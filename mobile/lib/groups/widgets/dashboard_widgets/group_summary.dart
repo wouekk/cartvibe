@@ -19,6 +19,26 @@ class GroupSummary extends StatefulWidget {
 }
 
 class _GroupSummary extends State<GroupSummary> {
+  late Future _groupSummaryFuture;
+  bool _isInitialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      _loadData();
+      _isInitialized = true;
+    }
+  }
+
+  void _loadData() {
+    var groupId = int.tryParse(getGroupId(context) ?? "");
+    _groupSummaryFuture =
+        OpenApiClient.client.getUserApi().getAmountOwedForUser(
+              groupId: groupId ?? 0,
+            );
+  }
+
   String _getUserOwesText(
       MapEntry<String, String> mapEntry, UserModel userModel) {
     var user = userModel.getUserById(mapEntry.key);
@@ -56,16 +76,15 @@ class _GroupSummary extends State<GroupSummary> {
 
   @override
   Widget build(BuildContext context) {
-    var groupId = int.tryParse(getGroupId(context) ?? "");
-    var groupSummaryFuture =
-        OpenApiClient.client.getUserApi().getAmountOwedForUser(
-              groupId: groupId ?? 0,
-            );
-
     return FutureBuilder(
-        future: groupSummaryFuture,
+        future: _groupSummaryFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
+            if (snapshot.hasError) {
+              return const Center(
+                child: Text("Failed to load group summary"),
+              );
+            }
             return Column(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,7 +99,7 @@ class _GroupSummary extends State<GroupSummary> {
               ],
             );
           }
-          return const CircularProgressIndicator();
+          return const Center(child: CircularProgressIndicator());
         });
   }
 }
