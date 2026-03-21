@@ -150,6 +150,104 @@ func createTestSystemTaskForDeletion(t *testing.T, userId uint) models.SystemTas
 	return task
 }
 
+func createTestTagForDeletion(t *testing.T, name string) models.Tag {
+	t.Helper()
+	db := repositories.GetDB()
+	tag := models.Tag{Name: name}
+	if err := db.Create(&tag).Error; err != nil {
+		t.Fatalf("failed to create tag %s: %v", name, err)
+	}
+	return tag
+}
+
+func createTestCategoryForDeletion(t *testing.T, name string) models.Category {
+	t.Helper()
+	db := repositories.GetDB()
+	category := models.Category{Name: name}
+	if err := db.Create(&category).Error; err != nil {
+		t.Fatalf("failed to create category %s: %v", name, err)
+	}
+	return category
+}
+
+func createTestCustomFieldForDeletion(t *testing.T, name string) models.CustomField {
+	t.Helper()
+	db := repositories.GetDB()
+	cf := models.CustomField{
+		Name: name,
+		Type: models.TEXT,
+	}
+	if err := db.Create(&cf).Error; err != nil {
+		t.Fatalf("failed to create custom field %s: %v", name, err)
+	}
+	return cf
+}
+
+func createTestFileDataForDeletion(t *testing.T, receiptId uint) models.FileData {
+	t.Helper()
+	db := repositories.GetDB()
+	fd := models.FileData{
+		Name:      "test-image.jpg",
+		FileType:  "image/jpeg",
+		Size:      1024,
+		ReceiptId: receiptId,
+	}
+	if err := db.Create(&fd).Error; err != nil {
+		t.Fatalf("failed to create file data: %v", err)
+	}
+	return fd
+}
+
+func createTestItemWithAssociationsForDeletion(
+	t *testing.T,
+	receiptId uint,
+	chargedToUserId uint,
+	categories []models.Category,
+	tags []models.Tag,
+	linkedItems []models.Item,
+) models.Item {
+	t.Helper()
+	db := repositories.GetDB()
+	item := models.Item{
+		Name:            "test item with associations",
+		Amount:          decimal.NewFromFloat(5.00),
+		ReceiptId:       receiptId,
+		ChargedToUserId: &chargedToUserId,
+		Status:          models.ITEM_OPEN,
+	}
+	if err := db.Create(&item).Error; err != nil {
+		t.Fatalf("failed to create item: %v", err)
+	}
+	if len(categories) > 0 {
+		if err := db.Model(&item).Association("Categories").Replace(categories); err != nil {
+			t.Fatalf("failed to associate categories: %v", err)
+		}
+	}
+	if len(tags) > 0 {
+		if err := db.Model(&item).Association("Tags").Replace(tags); err != nil {
+			t.Fatalf("failed to associate tags: %v", err)
+		}
+	}
+	if len(linkedItems) > 0 {
+		if err := db.Model(&item).Association("LinkedItems").Replace(linkedItems); err != nil {
+			t.Fatalf("failed to associate linked items: %v", err)
+		}
+	}
+	return item
+}
+
+func assertJunctionCount(t *testing.T, table string, where string, args []interface{}, expected int64, desc string) {
+	t.Helper()
+	db := repositories.GetDB()
+	var count int64
+	if err := db.Table(table).Where(where, args...).Count(&count).Error; err != nil {
+		t.Fatalf("failed to count %s in %s: %v", desc, table, err)
+	}
+	if count != expected {
+		t.Errorf("%s: expected %d rows in %s, got %d", desc, expected, table, count)
+	}
+}
+
 func assertCount(t *testing.T, model interface{}, where string, args []interface{}, expected int64, desc string) {
 	t.Helper()
 	db := repositories.GetDB()
@@ -513,15 +611,67 @@ func TestDeleteUser_Comprehensive(t *testing.T) {
 	// Add otherUser to user's group (making it multi-member)
 	db.Create(&models.GroupMember{UserID: otherUser.ID, GroupID: userGroup.ID})
 
+	// Create global resources
+	compCat1 := createTestCategoryForDeletion(t, "compcat1")
+	compCat2 := createTestCategoryForDeletion(t, "compcat2")
+	compTag1 := createTestTagForDeletion(t, "comptag1")
+	compTag2 := createTestTagForDeletion(t, "comptag2")
+	compCustomField := createTestCustomFieldForDeletion(t, "comp field")
+
 	// Create receipts
 	userReceipt := createTestReceiptForDeletion(t, "user receipt", user.ID, userGroup.ID)
 	otherReceipt := createTestReceiptForDeletion(t, "other receipt", otherUser.ID, otherGroup.ID)
 
-	// Item charged to user on other's receipt
-	createTestItemForDeletion(t, otherReceipt.ID, user.ID)
+	// Add receipt-level categories and tags to user's receipt
+	db.Model(&userReceipt).Association("Categories").Replace([]models.Category{compCat1})
+	db.Model(&userReceipt).Association("Tags").Replace([]models.Tag{compTag1})
 
-	// Comment on other's receipt
-	createTestCommentForDeletion(t, otherReceipt.ID, user.ID, "comprehensive comment")
+	// Create items on user's receipt with associations
+	userItem1 := createTestItemForDeletion(t, userReceipt.ID, user.ID)
+	userItem2 := createTestItemForDeletion(t, userReceipt.ID, otherUser.ID)
+	db.Model(&userItem1).Association("Categories").Replace([]models.Category{compCat1})
+	db.Model(&userItem1).Association("Tags").Replace([]models.Tag{compTag1})
+	db.Model(&userItem1).Association("LinkedItems").Replace([]models.Item{userItem2})
+
+	// Comment with reply on user's receipt
+	userReceiptComment := createTestCommentForDeletion(t, userReceipt.ID, otherUser.ID, "comment on user receipt")
+	userReceiptReply := models.Comment{
+		Comment:   "reply on user receipt",
+		ReceiptId: userReceipt.ID,
+		UserId:    &user.ID,
+		CommentId: &userReceiptComment.ID,
+	}
+	db.Create(&userReceiptReply)
+
+	// Custom field value on user's receipt
+	compStrVal := "comp value"
+	db.Create(&models.CustomFieldValue{
+		ReceiptId:     userReceipt.ID,
+		CustomFieldId: compCustomField.ID,
+		StringValue:   &compStrVal,
+	})
+
+	// File data on user's receipt
+	compFileData := createTestFileDataForDeletion(t, userReceipt.ID)
+
+	// Item charged to user on other's receipt with categories, tags, and linked items
+	otherReceiptPlainItem := createTestItemForDeletion(t, otherReceipt.ID, otherUser.ID)
+	chargedItem := createTestItemWithAssociationsForDeletion(
+		t, otherReceipt.ID, user.ID,
+		[]models.Category{compCat2},
+		[]models.Tag{compTag2},
+		[]models.Item{otherReceiptPlainItem},
+	)
+
+	// Comment on other's receipt with reply
+	parentComment := createTestCommentForDeletion(t, otherReceipt.ID, user.ID, "comprehensive comment")
+	compReply := models.Comment{
+		Comment:   "reply from other user",
+		ReceiptId: otherReceipt.ID,
+		UserId:    &otherUser.ID,
+		CommentId: &parentComment.ID,
+	}
+	db.Create(&compReply)
 
 	// Dashboard
 	dashboard := createTestDashboardForDeletion(t, user.ID, userGroup.ID)
@@ -586,6 +736,24 @@ func TestDeleteUser_Comprehensive(t *testing.T) {
 	assertCount(t, &models.UserPrefernces{}, "user_id = ?", []interface{}{user.ID}, 0, "preferences should be deleted")
 	assertCount(t, &models.GroupMember{}, "user_id = ?", []interface{}{user.ID}, 0, "group memberships should be removed")
 
+	// User's receipt child data should be gone
+	assertCount(t, &models.Item{}, "receipt_id = ?", []interface{}{userReceipt.ID}, 0, "user receipt items should be deleted")
+	assertCount(t, &models.Comment{}, "receipt_id = ?", []interface{}{userReceipt.ID}, 0, "user receipt comments should be deleted")
+	assertCount(t, &models.CustomFieldValue{}, "receipt_id = ?", []interface{}{userReceipt.ID}, 0, "user receipt custom field values should be deleted")
+	assertCount(t, &models.FileData{}, "id = ?", []interface{}{compFileData.ID}, 0, "user receipt file data should be deleted")
+
+	// User's receipt junction tables should be cleaned up
+	assertJunctionCount(t, "receipt_categories", "receipt_id = ?", []interface{}{userReceipt.ID}, 0, "user receipt_categories should be cleaned up")
+	assertJunctionCount(t, "receipt_tags", "receipt_id = ?", []interface{}{userReceipt.ID}, 0, "user receipt_tags should be cleaned up")
+	assertJunctionCount(t, "item_categories", "item_id IN (?,?)", []interface{}{userItem1.ID, userItem2.ID}, 0, "user receipt item_categories should be cleaned up")
+	assertJunctionCount(t, "item_tags", "item_id IN (?,?)", []interface{}{userItem1.ID, userItem2.ID}, 0, "user receipt item_tags should be cleaned up")
+	assertJunctionCount(t, "item_linked_items", "item_id IN (?,?) OR linked_item_id IN (?,?)", []interface{}{userItem1.ID, userItem2.ID, userItem1.ID, userItem2.ID}, 0, "user receipt item_linked_items should be cleaned up")
+
+	// Charged item on other's receipt: junction tables should be cleaned up
+	assertJunctionCount(t, "item_categories", "item_id = ?", []interface{}{chargedItem.ID}, 0, "charged item_categories should be cleaned up")
+	assertJunctionCount(t, "item_tags", "item_id = ?", []interface{}{chargedItem.ID}, 0, "charged item_tags should be cleaned up")
+	assertJunctionCount(t, "item_linked_items", "item_id = ? OR linked_item_id = ?", []interface{}{chargedItem.ID, chargedItem.ID}, 0, "charged item_linked_items should be cleaned up")
+
 	// Multi-member group should survive
 	assertCount(t, &models.Group{}, "id = ?", []interface{}{userGroup.ID}, 1, "multi-member group should survive")
 
@@ -594,6 +762,16 @@ func TestDeleteUser_Comprehensive(t *testing.T) {
 	db.Where("receipt_id = ? AND comment = ?", otherReceipt.ID, "comprehensive comment").First(&comment)
 	if comment.UserId != nil {
 		t.Errorf("Comment.UserId should be nil")
+	}
+
+	// Reply on other's receipt should survive with correct parent reference
+	var updatedCompReply models.Comment
+	db.First(&updatedCompReply, compReply.ID)
+	if updatedCompReply.CommentId == nil || *updatedCompReply.CommentId != parentComment.ID {
+		t.Errorf("reply should still reference parent comment")
+	}
+	if updatedCompReply.UserId == nil || *updatedCompReply.UserId != otherUser.ID {
+		t.Errorf("reply UserId should still be other user")
 	}
 
 	var updatedApiTask models.SystemTask
@@ -620,9 +798,15 @@ func TestDeleteUser_Comprehensive(t *testing.T) {
 		t.Errorf("Receipt.CreatedBy should be nil")
 	}
 
+	// Global resources should survive
+	assertCount(t, &models.Category{}, "", nil, 2, "categories should survive")
+	assertCount(t, &models.Tag{}, "", nil, 2, "tags should survive")
+	assertCount(t, &models.CustomField{}, "id = ?", []interface{}{compCustomField.ID}, 1, "custom field should survive")
+
 	// Other user should be unaffected
 	assertCount(t, &models.User{}, "id = ?", []interface{}{otherUser.ID}, 1, "other user should survive")
 	assertCount(t, &models.Receipt{}, "id = ?", []interface{}{otherReceipt.ID}, 1, "other user's receipt should survive")
+	assertCount(t, &models.Item{}, "id = ?", []interface{}{otherReceiptPlainItem.ID}, 1, "other user's plain item should survive")
 }
 
 func TestBulkDeleteUsers(t *testing.T) {
@@ -729,4 +913,274 @@ func TestDeleteAccountForUser_ShouldPreventLastAdminDeletion(t *testing.T) {
 	}
 
 	assertCount(t, &models.User{}, "id = ?", []interface{}{admin.ID}, 1, "last admin should survive")
+}
+
+func TestDeleteUser_WithItemsHavingCategoriesTagsAndLinkedItems(t *testing.T) {
+	defer repositories.TruncateTestDb()
+	user := createUserForDeletion(t, "itemassocuser")
+	otherUser := createUserForDeletion(t, "otheritemassocuser")
+
+	db := repositories.GetDB()
+	otherGroup := getNonAllGroupForUser(t, otherUser.ID)
+
+	// Create categories and tags
+	cat1 := createTestCategoryForDeletion(t, "cat1")
+	cat2 := createTestCategoryForDeletion(t, "cat2")
+	tag1 := createTestTagForDeletion(t, "tag1")
+	tag2 := createTestTagForDeletion(t, "tag2")
+
+	// Receipt owned by other user
+	receipt := createTestReceiptForDeletion(t, "assoc receipt", otherUser.ID, otherGroup.ID)
+
+	// A plain item on the receipt (will be used as a linked item)
+	plainItem := createTestItemForDeletion(t, receipt.ID, otherUser.ID)
+
+	// Item charged to user being deleted, with categories, tags, and linked items
+	item := createTestItemWithAssociationsForDeletion(
+		t, receipt.ID, user.ID,
+		[]models.Category{cat1, cat2},
+		[]models.Tag{tag1, tag2},
+		[]models.Item{plainItem},
+	)
+
+	// Verify associations exist before deletion
+	assertJunctionCount(t, "item_categories", "item_id = ?", []interface{}{item.ID}, 2, "item should have 2 categories before deletion")
+	assertJunctionCount(t, "item_tags", "item_id = ?", []interface{}{item.ID}, 2, "item should have 2 tags before deletion")
+	assertJunctionCount(t, "item_linked_items", "item_id = ? OR linked_item_id = ?", []interface{}{item.ID, item.ID}, 1, "item should have 1 linked item before deletion")
+
+	err := DeleteUser(utils.UintToString(user.ID))
+	if err != nil {
+		t.Fatalf("DeleteUser failed: %v", err)
+	}
+
+	// Item should be deleted
+	assertCount(t, &models.Item{}, "id = ?", []interface{}{item.ID}, 0, "item charged to deleted user should be gone")
+
+	// Junction table entries should be cleaned up
+	assertJunctionCount(t, "item_categories", "item_id = ?", []interface{}{item.ID}, 0, "item_categories should be cleaned up")
+	assertJunctionCount(t, "item_tags", "item_id = ?", []interface{}{item.ID}, 0, "item_tags should be cleaned up")
+	assertJunctionCount(t, "item_linked_items", "item_id = ? OR linked_item_id = ?", []interface{}{item.ID, item.ID}, 0, "item_linked_items should be cleaned up")
+
+	// Global resources should survive
+	assertCount(t, &models.Category{}, "id = ?", []interface{}{cat1.ID}, 1, "category should survive")
+	assertCount(t, &models.Tag{}, "id = ?", []interface{}{tag1.ID}, 1, "tag should survive")
+
+	// Plain item on other user's receipt should survive
+	assertCount(t, &models.Item{}, "id = ?", []interface{}{plainItem.ID}, 1, "other user's item should survive")
+
+	// Other user's receipt should survive
+	assertCount(t, &models.Receipt{}, "id = ?", []interface{}{receipt.ID}, 1, "other user's receipt should survive")
+
+	// Verify the plain item hasn't lost its own associations
+	var plainItemCount int64
+	db.Table("item_linked_items").Where("item_id = ? OR linked_item_id = ?", plainItem.ID, plainItem.ID).Count(&plainItemCount)
+	if plainItemCount != 0 {
+		t.Errorf("plain item should have no linked item entries after cleanup, got %d", plainItemCount)
+	}
+}
+
+func TestDeleteUser_WithReceiptHavingFullAssociations(t *testing.T) {
+	defer repositories.TruncateTestDb()
+	user := createUserForDeletion(t, "fullreceiptuser")
+	otherUser := createUserForDeletion(t, "otherfullreceiptuser")
+
+	db := repositories.GetDB()
+	group := getNonAllGroupForUser(t, user.ID)
+
+	// Create global resources
+	cat1 := createTestCategoryForDeletion(t, "rcat1")
+	cat2 := createTestCategoryForDeletion(t, "rcat2")
+	tag1 := createTestTagForDeletion(t, "rtag1")
+	tag2 := createTestTagForDeletion(t, "rtag2")
+	customField := createTestCustomFieldForDeletion(t, "test field")
+
+	// Create receipt owned by user with categories and tags
+	receipt := createTestReceiptForDeletion(t, "full receipt", user.ID, group.ID)
+	db.Model(&receipt).Association("Categories").Replace([]models.Category{cat1, cat2})
+	db.Model(&receipt).Association("Tags").Replace([]models.Tag{tag1, tag2})
+
+	// Create items with associations
+	item1 := createTestItemForDeletion(t, receipt.ID, user.ID)
+	item2 := createTestItemForDeletion(t, receipt.ID, otherUser.ID)
+
+	// Give items their own categories and tags
+	db.Model(&item1).Association("Categories").Replace([]models.Category{cat1})
+	db.Model(&item1).Association("Tags").Replace([]models.Tag{tag1})
+	db.Model(&item2).Association("Categories").Replace([]models.Category{cat2})
+	db.Model(&item2).Association("Tags").Replace([]models.Tag{tag2})
+
+	// Link items to each other
+	db.Model(&item1).Association("LinkedItems").Replace([]models.Item{item2})
+
+	// Create comment with a reply
+	comment := createTestCommentForDeletion(t, receipt.ID, user.ID, "parent comment")
+	reply := models.Comment{
+		Comment:   "reply comment",
+		ReceiptId: receipt.ID,
+		UserId:    &otherUser.ID,
+		CommentId: &comment.ID,
+	}
+	db.Create(&reply)
+
+	// Create custom field value
+	strVal := "test value"
+	cfv := models.CustomFieldValue{
+		ReceiptId:     receipt.ID,
+		CustomFieldId: customField.ID,
+		StringValue:   &strVal,
+	}
+	db.Create(&cfv)
+
+	// Create file data
+	fileData := createTestFileDataForDeletion(t, receipt.ID)
+
+	// Verify setup
+	assertJunctionCount(t, "receipt_categories", "receipt_id = ?", []interface{}{receipt.ID}, 2, "receipt should have 2 categories")
+	assertJunctionCount(t, "receipt_tags", "receipt_id = ?", []interface{}{receipt.ID}, 2, "receipt should have 2 tags")
+	assertJunctionCount(t, "item_categories", "item_id IN (?,?)", []interface{}{item1.ID, item2.ID}, 2, "items should have categories")
+	assertJunctionCount(t, "item_tags", "item_id IN (?,?)", []interface{}{item1.ID, item2.ID}, 2, "items should have tags")
+	assertJunctionCount(t, "item_linked_items", "item_id = ?", []interface{}{item1.ID}, 1, "item1 should have linked item")
+
+	err := DeleteUser(utils.UintToString(user.ID))
+	if err != nil {
+		t.Fatalf("DeleteUser failed: %v", err)
+	}
+
+	// Receipt and all child data should be gone
+	assertCount(t, &models.Receipt{}, "id = ?", []interface{}{receipt.ID}, 0, "receipt should be deleted")
+	assertCount(t, &models.Item{}, "receipt_id = ?", []interface{}{receipt.ID}, 0, "items should be deleted")
+	assertCount(t, &models.Comment{}, "receipt_id = ?", []interface{}{receipt.ID}, 0, "comments should be deleted")
+	assertCount(t, &models.CustomFieldValue{}, "receipt_id = ?", []interface{}{receipt.ID}, 0, "custom field values should be deleted")
+	assertCount(t, &models.FileData{}, "id = ?", []interface{}{fileData.ID}, 0, "file data should be deleted")
+
+	// Junction tables should be cleaned up
+	assertJunctionCount(t, "receipt_categories", "receipt_id = ?", []interface{}{receipt.ID}, 0, "receipt_categories should be cleaned up")
+	assertJunctionCount(t, "receipt_tags", "receipt_id = ?", []interface{}{receipt.ID}, 0, "receipt_tags should be cleaned up")
+	assertJunctionCount(t, "item_categories", "item_id IN (?,?)", []interface{}{item1.ID, item2.ID}, 0, "item_categories should be cleaned up")
+	assertJunctionCount(t, "item_tags", "item_id IN (?,?)", []interface{}{item1.ID, item2.ID}, 0, "item_tags should be cleaned up")
+	assertJunctionCount(t, "item_linked_items", "item_id IN (?,?) OR linked_item_id IN (?,?)", []interface{}{item1.ID, item2.ID, item1.ID, item2.ID}, 0, "item_linked_items should be cleaned up")
+
+	// Global resources should survive
+	assertCount(t, &models.Category{}, "", nil, 2, "categories should survive")
+	assertCount(t, &models.Tag{}, "", nil, 2, "tags should survive")
+	assertCount(t, &models.CustomField{}, "id = ?", []interface{}{customField.ID}, 1, "custom field should survive")
+}
+
+func TestDeleteUser_WithItemChargedToUserLinkedToOtherItems(t *testing.T) {
+	defer repositories.TruncateTestDb()
+	user := createUserForDeletion(t, "linkeditemuser")
+	otherUser := createUserForDeletion(t, "otherlinkeditemuser")
+
+	db := repositories.GetDB()
+	otherGroup := getNonAllGroupForUser(t, otherUser.ID)
+
+	receipt := createTestReceiptForDeletion(t, "linked receipt", otherUser.ID, otherGroup.ID)
+
+	// Item A: charged to user being deleted
+	itemA := createTestItemForDeletion(t, receipt.ID, user.ID)
+	// Item B: charged to other user
+	itemB := createTestItemForDeletion(t, receipt.ID, otherUser.ID)
+
+	// Link A and B together
+	db.Model(&itemA).Association("LinkedItems").Replace([]models.Item{itemB})
+
+	// Also give item B its own category to ensure it's not affected
+	cat := createTestCategoryForDeletion(t, "linkedcat")
+	db.Model(&itemB).Association("Categories").Replace([]models.Category{cat})
+
+	// Verify links exist
+	assertJunctionCount(t, "item_linked_items", "item_id = ? OR linked_item_id = ?", []interface{}{itemA.ID, itemA.ID}, 1, "link should exist before deletion")
+
+	err := DeleteUser(utils.UintToString(user.ID))
+	if err != nil {
+		t.Fatalf("DeleteUser failed: %v", err)
+	}
+
+	// Item A should be deleted
+	assertCount(t, &models.Item{}, "id = ?", []interface{}{itemA.ID}, 0, "item A should be deleted")
+
+	// Item B should survive
+	assertCount(t, &models.Item{}, "id = ?", []interface{}{itemB.ID}, 1, "item B should survive")
+
+	// The link should be cleaned up
+	assertJunctionCount(t, "item_linked_items", "item_id = ? OR linked_item_id = ?", []interface{}{itemA.ID, itemA.ID}, 0, "item_linked_items for item A should be cleaned up")
+
+	// Item B's own category should survive
+	assertJunctionCount(t, "item_categories", "item_id = ?", []interface{}{itemB.ID}, 1, "item B should still have its category")
+}
+
+func TestDeleteUser_WithCommentsHavingReplies(t *testing.T) {
+	defer repositories.TruncateTestDb()
+	user := createUserForDeletion(t, "replycommentuser")
+	otherUser := createUserForDeletion(t, "otherreplycommentuser")
+
+	db := repositories.GetDB()
+	otherGroup := getNonAllGroupForUser(t, otherUser.ID)
+
+	receipt := createTestReceiptForDeletion(t, "reply receipt", otherUser.ID, otherGroup.ID)
+
+	// User's comment with a reply from other user
+	comment := createTestCommentForDeletion(t, receipt.ID, user.ID, "parent from deleted user")
+	reply := models.Comment{
+		Comment:   "reply from other user",
+		ReceiptId: receipt.ID,
+		UserId:    &otherUser.ID,
+		CommentId: &comment.ID,
+	}
+	db.Create(&reply)
+
+	// Other user's comment with a reply from user being deleted
+	otherComment := createTestCommentForDeletion(t, receipt.ID, otherUser.ID, "parent from other user")
+	userReply := models.Comment{
+		Comment:   "reply from deleted user",
+		ReceiptId: receipt.ID,
+		UserId:    &user.ID,
+		CommentId: &otherComment.ID,
+	}
+	db.Create(&userReply)
+
+	err := DeleteUser(utils.UintToString(user.ID))
+	if err != nil {
+		t.Fatalf("DeleteUser failed: %v", err)
+	}
+
+	// Parent comment by deleted user should still exist with nullified user_id
+	var updatedComment models.Comment
+	db.First(&updatedComment, comment.ID)
+	if updatedComment.UserId != nil {
+		t.Errorf("parent comment UserId should be nil, got %v", *updatedComment.UserId)
+	}
+	if updatedComment.Comment != "parent from deleted user" {
+		t.Errorf("parent comment text should be preserved, got %s", updatedComment.Comment)
+	}
+
+	// Reply from other user should be intact
+	var updatedReply models.Comment
+	db.First(&updatedReply, reply.ID)
+	if updatedReply.UserId == nil || *updatedReply.UserId != otherUser.ID {
+		t.Errorf("reply UserId should be %d, got %v", otherUser.ID, updatedReply.UserId)
+	}
+	if updatedReply.CommentId == nil || *updatedReply.CommentId != comment.ID {
+		t.Errorf("reply should still reference parent comment %d", comment.ID)
+	}
+
+	// Other user's comment should be intact
+	var updatedOtherComment models.Comment
+	db.First(&updatedOtherComment, otherComment.ID)
+	if updatedOtherComment.UserId == nil || *updatedOtherComment.UserId != otherUser.ID {
+		t.Errorf("other comment UserId should be %d", otherUser.ID)
+	}
+
+	// Reply from deleted user should still exist with nullified user_id
+	var updatedUserReply models.Comment
+	db.First(&updatedUserReply, userReply.ID)
+	if updatedUserReply.UserId != nil {
+		t.Errorf("user reply UserId should be nil, got %v", *updatedUserReply.UserId)
+	}
+	if updatedUserReply.Comment != "reply from deleted user" {
+		t.Errorf("user reply text should be preserved, got %s", updatedUserReply.Comment)
+	}
+	if updatedUserReply.CommentId == nil || *updatedUserReply.CommentId != otherComment.ID {
+		t.Errorf("user reply should still reference parent comment %d", otherComment.ID)
+	}
 }

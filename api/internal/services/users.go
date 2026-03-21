@@ -81,6 +81,53 @@ func DeleteUser(userId string) error {
 			}
 		}
 
+		// Clean up orphaned items left behind by DeleteReceipt (which detaches items by setting receipt_id = NULL)
+		orphanedItemsSubquery := tx.Table("items").Select("id").Where("receipt_id IS NULL")
+
+		txErr = tx.Table("item_linked_items").Where(
+			"item_id IN (?) OR linked_item_id IN (?)",
+			orphanedItemsSubquery, orphanedItemsSubquery,
+		).Delete(&struct{}{}).Error
+		if txErr != nil {
+			return txErr
+		}
+
+		txErr = tx.Table("item_categories").Where("item_id IN (?)", orphanedItemsSubquery).Delete(&struct{}{}).Error
+		if txErr != nil {
+			return txErr
+		}
+
+		txErr = tx.Table("item_tags").Where("item_id IN (?)", orphanedItemsSubquery).Delete(&struct{}{}).Error
+		if txErr != nil {
+			return txErr
+		}
+
+		txErr = tx.Where("receipt_id IS NULL").Delete(&models.Item{}).Error
+		if txErr != nil {
+			return txErr
+		}
+
+		// Clear junction tables for items charged to this user before deleting them
+		chargedItemsSubquery := tx.Table("items").Select("id").Where("charged_to_user_id = ?", userId)
+
+		txErr = tx.Table("item_linked_items").Where(
+			"item_id IN (?) OR linked_item_id IN (?)",
+			chargedItemsSubquery, chargedItemsSubquery,
+		).Delete(&struct{}{}).Error
+		if txErr != nil {
+			return txErr
+		}
+
+		txErr = tx.Table("item_categories").Where("item_id IN (?)", chargedItemsSubquery).Delete(&struct{}{}).Error
+		if txErr != nil {
+			return txErr
+		}
+
+		txErr = tx.Table("item_tags").Where("item_id IN (?)", chargedItemsSubquery).Delete(&struct{}{}).Error
+		if txErr != nil {
+			return txErr
+		}
+
 		// Remove receipt items
 		txErr = tx.Where("charged_to_user_id = ?", userId).Delete(&models.Item{}).Error
 		if txErr != nil {
