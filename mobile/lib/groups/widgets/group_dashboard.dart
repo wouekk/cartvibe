@@ -103,7 +103,7 @@ class _GroupDashboard extends State<GroupDashboard> {
     if (dashboards == null || dashboards.isEmpty) {
       return null;
     }
-    var index = selectedDashboardIndex ?? 0;
+    var index = (selectedDashboardIndex ?? 0).clamp(0, dashboards.length - 1);
     return dashboards[index];
   }
 
