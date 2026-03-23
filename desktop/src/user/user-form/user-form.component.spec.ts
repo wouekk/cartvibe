@@ -6,9 +6,9 @@ import { MatDialogModule, MatDialogRef } from "@angular/material/dialog";
 import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
-import { ApiModule, AuthService, User, UserRole, UserService } from "../../open-api";
+import { ApiModule, User, UserRole, UserService } from "../../open-api";
 import { PipesModule } from "../../pipes";
-import { SnackbarService } from "../../services";
+import { SnackbarService, TokenRefreshService } from "../../services";
 import { AddUser, AuthState, UpdateUser, UserState } from "../../store";
 import { UserFormComponent } from "./user-form.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
@@ -98,8 +98,8 @@ describe("UserFormComponent", () => {
     userServiceSpy.mockReturnValue(of(undefined as any));
 
     const authServiceSpy = jest.spyOn(
-      TestBed.inject(AuthService),
-      "getNewRefreshToken"
+      TestBed.inject(TokenRefreshService),
+      "refreshToken"
     );
     authServiceSpy.mockReturnValue(of(undefined as any));
 
@@ -157,8 +157,8 @@ describe("UserFormComponent", () => {
     userServiceSpy.mockReturnValue(of(undefined as any));
 
     const authServiceSpy = jest.spyOn(
-      TestBed.inject(AuthService),
-      "getNewRefreshToken"
+      TestBed.inject(TokenRefreshService),
+      "refreshToken"
     );
     authServiceSpy.mockReturnValue(of(undefined as any));
 

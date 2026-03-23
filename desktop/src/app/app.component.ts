@@ -1,11 +1,10 @@
 import { Component, OnInit } from "@angular/core";
-import { EventType, Router } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
 import { interval, take, tap } from "rxjs";
 import { HideProgressBar } from "src/store/layout.state.actions";
-import { AuthService, Claims } from "../open-api";
-import { AuthState, SetAuthState } from "../store";
+import { TokenRefreshService } from "../services";
+import { AuthState } from "../store";
 
 @UntilDestroy()
 @Component({
@@ -17,14 +16,12 @@ import { AuthState, SetAuthState } from "../store";
 export class AppComponent implements OnInit {
 
   constructor(
-    private authService: AuthService,
-    private router: Router,
+    private tokenRefreshService: TokenRefreshService,
     private store: Store
   ) {}
 
   public ngOnInit(): void {
     this.store.dispatch(new HideProgressBar());
-    this.listenForNavigationStart();
     this.refreshTokens();
   }
 
@@ -34,35 +31,10 @@ export class AppComponent implements OnInit {
       .pipe(
         untilDestroyed(this),
         tap(() => {
-          this.getNewRefreshToken();
+          if (this.store.selectSnapshot(AuthState.isLoggedIn)) {
+            this.tokenRefreshService.refreshToken().pipe(take(1)).subscribe();
+          }
         })
       ).subscribe();
-  }
-
-  private getNewRefreshToken(): void {
-    if (this.store.selectSnapshot(AuthState.isLoggedIn)) {
-      this.authService.getNewRefreshToken()
-        .pipe
-        (
-          take(1),
-          tap((response) => {
-            this.store.dispatch(new SetAuthState(response as Claims));
-          })
-        )
-        .subscribe();
-    }
-  }
-
-  private listenForNavigationStart(): void {
-    this.router.events.subscribe((e: any) => {
-      if (e.type === EventType.NavigationStart) {
-        const tokenExpired = this.store.selectSnapshot(
-          AuthState.isTokenExpired
-        );
-        if (tokenExpired) {
-          this.authService.getNewRefreshToken().pipe(take(1)).subscribe();
-        }
-      }
-    });
   }
 }

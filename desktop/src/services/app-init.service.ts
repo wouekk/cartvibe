@@ -1,16 +1,17 @@
 import { Injectable } from "@angular/core";
 import { Store } from "@ngxs/store";
 import { catchError, finalize, Observable, of, switchMap, take, tap, } from "rxjs";
-import { AppData, AuthService, FeatureConfigService, UserService, } from "../open-api";
+import { AppData, FeatureConfigService, UserService, } from "../open-api";
 import { AuthState, SetFeatureConfig } from "../store";
 import { setAppData } from "../utils";
+import { TokenRefreshService } from "./token-refresh.service";
 
 @Injectable({
   providedIn: "root",
 })
 export class AppInitService {
   constructor(
-    private authService: AuthService,
+    private tokenRefreshService: TokenRefreshService,
     private store: Store,
     private userService: UserService,
     private featureConfigService: FeatureConfigService
@@ -32,7 +33,7 @@ export class AppInitService {
         return;
       }
 
-      this.authService.getNewRefreshToken().pipe(
+      this.tokenRefreshService.refreshToken().pipe(
         take(1),
         switchMap(() => this.getAppData()),
         tap(() => resolve(true)),

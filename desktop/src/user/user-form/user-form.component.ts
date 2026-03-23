@@ -7,8 +7,8 @@ import { catchError, defer, iif, of, startWith, switchMap, take, tap, } from "rx
 import { USER_ROLE_OPTIONS } from "src/group/role-options";
 import { FormOption } from "src/interfaces/form-option.interface";
 import { UserValidators } from "src/validators/user-validators";
-import { AuthService, User, UserService } from "../../open-api";
-import { SnackbarService } from "../../services";
+import { User, UserService } from "../../open-api";
+import { SnackbarService, TokenRefreshService } from "../../services";
 import { AddUser, AuthState, UpdateUser } from "../../store";
 
 @UntilDestroy()
@@ -26,10 +26,10 @@ export class UserFormComponent implements OnInit {
     "A dummy user is a user who cannot log in, but can still act as a receipt payer, or be charged shares. Dummy users can be converted to normal users, but normal users cannot be converted to dummy users.";
 
   constructor(
-    private authService: AuthService,
     private formBuilder: FormBuilder,
     private snackbarService: SnackbarService,
     private store: Store,
+    private tokenRefreshService: TokenRefreshService,
     private userService: UserService,
     private userValidators: UserValidators,
     public matDialogRef: MatDialogRef<UserFormComponent>
@@ -111,7 +111,7 @@ export class UserFormComponent implements OnInit {
               () =>
                 this.store.selectSnapshot(AuthState.loggedInUser).id ===
                 this.user?.id,
-              defer(() => this.authService.getNewRefreshToken()),
+              defer(() => this.tokenRefreshService.refreshToken()),
               of(undefined)
             )
           ),

@@ -8,7 +8,8 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of, throwError } from "rxjs";
 import { PipesModule } from "src/pipes/pipes.module";
-import { ApiModule, AuthService, UserService } from "../../open-api";
+import { ApiModule, UserService } from "../../open-api";
+import { TokenRefreshService } from "../../services";
 import { AuthState, Logout, UserState } from "../../store";
 import { UserProfileComponent } from "./user-profile.component";
 import { DeleteAccountDialogComponent } from "../delete-account-dialog/delete-account-dialog.component";
@@ -67,7 +68,7 @@ describe("UserProfileComponent", () => {
   it("should submit form and update state correctly", () => {
     const store = TestBed.inject(Store);
     const serviceSpy = jest.spyOn(TestBed.inject(UserService), "updateUserProfile");
-    const authSpy = jest.spyOn(TestBed.inject(AuthService), "getNewRefreshToken");
+    const authSpy = jest.spyOn(TestBed.inject(TokenRefreshService), "refreshToken");
 
     jest.spyOn(TestBed.inject(UserService), "getUserClaims").mockReturnValue(
       of({

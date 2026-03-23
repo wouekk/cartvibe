@@ -1,6 +1,8 @@
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 import { NgxsModule } from '@ngxs/store';
+import { ApiModule } from '../open-api';
 import { AuthGuard } from './auth.guard';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
@@ -9,7 +11,7 @@ describe('AuthGuard', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    imports: [NgxsModule.forRoot([])],
+    imports: [NgxsModule.forRoot([]), ApiModule, RouterTestingModule],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 });
     guard = TestBed.inject(AuthGuard);
