@@ -89,6 +89,7 @@ export class ReceiptProcessingSettingsFormComponent extends BaseFormComponent im
       url: [this.originalReceiptProcessingSettings?.url],
       model: [this.originalReceiptProcessingSettings?.model],
       isVisionModel: [this.originalReceiptProcessingSettings?.isVisionModel],
+      enforceJsonResponseFormat: [this.originalReceiptProcessingSettings?.enforceJsonResponseFormat ?? true],
     });
 
     this.listenForTypeChange();
@@ -99,6 +100,7 @@ export class ReceiptProcessingSettingsFormComponent extends BaseFormComponent im
       this.form.get("aiType")?.disable();
       this.form.get("promptId")?.disable();
       this.form.get("isVisionModel")?.disable();
+      this.form.get("enforceJsonResponseFormat")?.disable();
     }
   }
 

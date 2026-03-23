@@ -17,7 +17,8 @@ type ReceiptProcessingSettings struct {
 	OcrEngine     *OcrEngine   `json:"ocrEngine"`
 	Prompt        Prompt       `json:"prompt"`
 	PromptId      uint         `json:"promptId"`
-	IsVisionModel bool         `json:"isVisionModel"`
+	IsVisionModel             bool         `json:"isVisionModel"`
+	EnforceJsonResponseFormat bool         `gorm:"default:true" json:"enforceJsonResponseFormat"`
 }
 
 func (ReceiptProcessingSettings *ReceiptProcessingSettings) LoadDataFromRequest(w http.ResponseWriter, r *http.Request) error {

@@ -15,8 +15,9 @@ type UpsertReceiptProcessingSettingsCommand struct {
 	Url           string              `json:"url"`
 	Key           string              `json:"key"`
 	Model         string              `json:"model"`
-	IsVisionModel bool                `json:"isVisionModel"`
-	OcrEngine     models.OcrEngine    `json:"ocrEngine"`
+	IsVisionModel             bool                `json:"isVisionModel"`
+	EnforceJsonResponseFormat bool                `json:"enforceJsonResponseFormat"`
+	OcrEngine                 models.OcrEngine    `json:"ocrEngine"`
 	PromptId      uint                `json:"promptId"`
 }
 
@@ -85,6 +86,7 @@ func (command *UpsertReceiptProcessingSettingsCommand) IsEmpty() bool {
 		command.Key == "" &&
 		command.Model == "" &&
 		command.IsVisionModel == false &&
+		command.EnforceJsonResponseFormat == false &&
 		command.OcrEngine == "" &&
 		command.PromptId == 0
 }

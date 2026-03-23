@@ -72,6 +72,7 @@ describe("ReceiptProcessingSettingsFormComponent", () => {
       url: null,
       model: null,
       isVisionModel: null,
+      enforceJsonResponseFormat: true,
     });
   });
 
@@ -85,6 +86,7 @@ describe("ReceiptProcessingSettingsFormComponent", () => {
       key: "key",
       promptId: 1,
       isVisionModel: false,
+      enforceJsonResponseFormat: true,
     } as ReceiptProcessingSettings;
 
     activatedRoute.snapshot.data["receiptProcessingSettings"] = settings;
@@ -100,6 +102,19 @@ describe("ReceiptProcessingSettingsFormComponent", () => {
       url: null,
       model: null,
       isVisionModel: settings.isVisionModel,
+      enforceJsonResponseFormat: settings.enforceJsonResponseFormat,
     });
+  });
+
+  it("should default enforceJsonResponseFormat to true when undefined", () => {
+    const activatedRoute = TestBed.inject(ActivatedRoute);
+    const settings = {
+      name: "name",
+    } as ReceiptProcessingSettings;
+
+    activatedRoute.snapshot.data["receiptProcessingSettings"] = settings;
+    component.ngOnInit();
+
+    expect(component.form.get("enforceJsonResponseFormat")?.value).toBe(true);
   });
 });

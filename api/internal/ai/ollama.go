@@ -33,7 +33,10 @@ func (ollama OllamaClient) GetChatCompletion() (structs.ChatCompletionResult, er
 		"messages":    ollama.Options.Messages,
 		"temperature": 0,
 		"stream":      false,
-		"format":      "json",
+	}
+
+	if ollama.ReceiptProcessingSettings.EnforceJsonResponseFormat {
+		body["format"] = "json"
 	}
 	httpClient := http.Client{}
 	httpClient.Timeout = constants.AiHttpTimeout

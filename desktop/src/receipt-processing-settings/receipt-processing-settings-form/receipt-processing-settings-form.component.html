@@ -83,6 +83,13 @@
         [readonly]="formConfig.mode | inputReadonly"
         [inputFormControl]="form | formGet: 'isVisionModel'"
       ></app-checkbox>
+      <app-checkbox
+        class="ms-4 mb-2"
+        label="Enforce JSON Response Format"
+        helpText="Enforces JSON output from the LLM provider. Disable this if your provider does not support it. Not all providers support this flag."
+        [readonly]="formConfig.mode | inputReadonly"
+        [inputFormControl]="form | formGet: 'enforceJsonResponseFormat'"
+      ></app-checkbox>
     </div>
   </app-form-section>
   <app-form-section

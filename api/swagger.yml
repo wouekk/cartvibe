@@ -4697,6 +4697,9 @@ components:
             isVisionModel:
               type: boolean
               description: Is vision model
+            enforceJsonResponseFormat:
+              type: boolean
+              description: Enforce JSON response format on the LLM provider. Disable if the provider does not support this flag.
             ocrEngine:
               $ref: "#/components/schemas/OcrEngine"
             prompt:
@@ -4733,6 +4736,9 @@ components:
         isVisionModel:
           type: boolean
           description: Is vision model
+        enforceJsonResponseFormat:
+          type: boolean
+          description: Enforce JSON response format on the LLM provider. Disable if the provider does not support this flag.
         ocrEngine:
           $ref: "#/components/schemas/OcrEngine"
         promptId:
@@ -4790,6 +4796,9 @@ components:
         model:
           type: string
           description: LLM model
+        enforceJsonResponseFormat:
+          type: boolean
+          description: Enforce JSON response format on the LLM provider. Disable if the provider does not support this flag.
         numWorkers:
           type: integer
           description: Number of workers to use

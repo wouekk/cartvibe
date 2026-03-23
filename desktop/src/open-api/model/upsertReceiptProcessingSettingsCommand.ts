@@ -37,6 +37,10 @@ export interface UpsertReceiptProcessingSettingsCommand {
      * Is vision model
      */
     isVisionModel?: boolean;
+    /**
+     * Enforce JSON response format on the LLM provider. Disable if the provider does not support this flag.
+     */
+    enforceJsonResponseFormat?: boolean;
     ocrEngine: OcrEngine;
     /**
      * Prompt foreign key

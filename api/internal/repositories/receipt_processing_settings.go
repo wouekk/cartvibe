@@ -65,15 +65,16 @@ func (repository ReceiptProcessingSettingsRepository) CreateReceiptProcessingSet
 	}
 
 	settings := models.ReceiptProcessingSettings{
-		Name:          command.Name,
-		Description:   command.Description,
-		AiType:        command.AiType,
-		Url:           command.Url,
-		Key:           encryptedKey,
-		Model:         command.Model,
-		IsVisionModel: command.IsVisionModel,
-		OcrEngine:     &command.OcrEngine,
-		PromptId:      command.PromptId,
+		Name:                      command.Name,
+		Description:               command.Description,
+		AiType:                    command.AiType,
+		Url:                       command.Url,
+		Key:                       encryptedKey,
+		Model:                     command.Model,
+		IsVisionModel:             command.IsVisionModel,
+		EnforceJsonResponseFormat: command.EnforceJsonResponseFormat,
+		OcrEngine:                 &command.OcrEngine,
+		PromptId:                  command.PromptId,
 	}
 
 	err := db.Create(&settings).Error
@@ -112,6 +113,7 @@ func (repository ReceiptProcessingSettingsRepository) UpdateReceiptProcessingSet
 	settings.Url = command.Url
 	settings.Model = command.Model
 	settings.IsVisionModel = command.IsVisionModel
+	settings.EnforceJsonResponseFormat = command.EnforceJsonResponseFormat
 	settings.OcrEngine = &command.OcrEngine
 	settings.PromptId = command.PromptId
 

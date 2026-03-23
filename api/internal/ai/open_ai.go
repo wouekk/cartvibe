@@ -89,17 +89,22 @@ func (openAi OpenAiClient) GetChatCompletion() (structs.ChatCompletionResult, er
 		model = openai.GPT3Dot5Turbo
 	}
 
+	request := openai.ChatCompletionRequest{
+		Model:       model,
+		Messages:    openAiMessages,
+		N:           1,
+		Temperature: 0,
+	}
+
+	if openAi.ReceiptProcessingSettings.EnforceJsonResponseFormat {
+		request.ResponseFormat = &openai.ChatCompletionResponseFormat{
+			Type: openai.ChatCompletionResponseFormatTypeJSONObject,
+		}
+	}
+
 	resp, err := client.CreateChatCompletion(
 		context.Background(),
-		openai.ChatCompletionRequest{
-			Model:       model,
-			Messages:    openAiMessages,
-			N:           1,
-			Temperature: 0,
-			ResponseFormat: &openai.ChatCompletionResponseFormat{
-				Type: openai.ChatCompletionResponseFormatTypeJSONObject,
-			},
-		},
+		request,
 	)
 	if err != nil {
 		responseBytes, _ := json.Marshal(resp)
