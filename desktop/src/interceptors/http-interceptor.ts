@@ -20,7 +20,7 @@ export const httpInterceptor: HttpInterceptorFn = (req, next) => {
       const isLoggedIn = store.selectSnapshot(AuthState.isLoggedIn);
 
       // Don't intercept errors from token refresh requests — let TokenRefreshService handle them
-      if (req.url.includes("token")) {
+      if (req.url.includes("/api/token/")) {
         return throwError(() => e);
       }
 
