@@ -34,6 +34,10 @@ export interface CheckReceiptProcessingSettingsConnectivityCommand {
      */
     model?: string;
     /**
+     * Enforce JSON response format on the LLM provider. Disable if the provider does not support this flag.
+     */
+    enforceJsonResponseFormat?: boolean;
+    /**
      * Number of workers to use
      */
     numWorkers?: number;

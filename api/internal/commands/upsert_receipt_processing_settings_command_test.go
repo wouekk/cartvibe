@@ -220,6 +220,10 @@ func TestUpsertReceiptProcessingSettingsCommand_IsEmpty(t *testing.T) {
 			command:  UpsertReceiptProcessingSettingsCommand{IsVisionModel: true},
 			expected: false,
 		},
+		"enforceJsonResponseFormat set": {
+			command:  UpsertReceiptProcessingSettingsCommand{EnforceJsonResponseFormat: true},
+			expected: false,
+		},
 	}
 
 	for testName, test := range tests {

@@ -239,15 +239,16 @@ func CheckReceiptProcessingSettingsConnectivity(w http.ResponseWriter, r *http.R
 				decryptKey = true
 			} else {
 				receiptProcessingSettings := models.ReceiptProcessingSettings{
-					BaseModel:   models.BaseModel{ID: command.ID},
-					Name:        command.Name,
-					Description: command.Description,
-					AiType:      command.AiType,
-					Url:         command.Url,
-					Key:         command.Key,
-					Model:       command.Model,
-					OcrEngine:   &command.OcrEngine,
-					PromptId:    command.PromptId,
+					BaseModel:                 models.BaseModel{ID: command.ID},
+					Name:                      command.Name,
+					Description:               command.Description,
+					AiType:                    command.AiType,
+					Url:                       command.Url,
+					Key:                       command.Key,
+					Model:                     command.Model,
+					EnforceJsonResponseFormat: command.EnforceJsonResponseFormat,
+					OcrEngine:                 &command.OcrEngine,
+					PromptId:                  command.PromptId,
 				}
 
 				client := services.AiService{}

@@ -44,7 +44,9 @@ func (gemini GeminiClient) GetChatCompletion() (structs.ChatCompletionResult, er
 	defer client.Close()
 
 	model := client.GenerativeModel(gemini.ReceiptProcessingSettings.Model)
-	model.GenerationConfig.ResponseMIMEType = "application/json"
+	if gemini.ReceiptProcessingSettings.EnforceJsonResponseFormat {
+		model.GenerationConfig.ResponseMIMEType = "application/json"
+	}
 	parts := make([]genai.Part, 0)
 	for _, aiMessage := range gemini.Options.Messages {
 		parts = append(parts, genai.Text(aiMessage.Content))
