@@ -43,9 +43,6 @@ export const httpInterceptor: HttpInterceptorFn = (req, next) => {
       }
 
       if (e.status === 403 && isLoggedIn && req.headers.has(RETRY_HEADER)) {
-        store.dispatch(new Logout());
-        localStorage.clear();
-        router.navigate(["/auth/login"]);
         return throwError(() => e);
       }
 

@@ -21,28 +21,30 @@ export class AppInitService {
 
     return new Promise((resolve) => {
       const isLoggedIn = this.store.selectSnapshot(AuthState.isLoggedIn);
+      const hadSession = !!this.store.selectSnapshot(
+        (appState: any) => appState.auth?.expirationDate
+      );
 
-      if (!isLoggedIn) {
-        this.featureConfigService.getFeatureConfig().pipe(
+      if (isLoggedIn || hadSession) {
+        this.tokenRefreshService.refreshToken().pipe(
           take(1),
-          switchMap((config) => this.store.dispatch(new SetFeatureConfig(config))),
-          finalize(() => {
-            resolve(true);
+          switchMap(() => this.getAppData()),
+          tap(() => resolve(true)),
+          catchError((err) => {
+            resolve(false);
+            return of(err);
           })
         ).subscribe();
         return;
       }
 
-      this.tokenRefreshService.refreshToken().pipe(
+      this.featureConfigService.getFeatureConfig().pipe(
         take(1),
-        switchMap(() => this.getAppData()),
-        tap(() => resolve(true)),
-        catchError((err) => {
-          resolve(false);
-          return of(err);
+        switchMap((config) => this.store.dispatch(new SetFeatureConfig(config))),
+        finalize(() => {
+          resolve(true);
         })
-      )
-        .subscribe();
+      ).subscribe();
     });
   }
 
