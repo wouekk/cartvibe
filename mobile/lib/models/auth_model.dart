@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:openapi/openapi.dart' as api;
+import 'package:receipt_wrangler_mobile/interceptors/auth_interceptor.dart';
 import 'package:receipt_wrangler_mobile/persistence/global_shared_preferences.dart';
 
 import '../client/client.dart';
@@ -99,6 +100,7 @@ class AuthModel extends ChangeNotifier {
     }
 
     newClient.dio.options.receiveTimeout = Duration(minutes: 5);
+    newClient.dio.interceptors.add(AuthInterceptor());
     OpenApiClient.client = newClient;
     return;
   }
