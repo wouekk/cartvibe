@@ -7,8 +7,8 @@ import {catchError, of, switchMap, take, tap} from "rxjs";
 import {DEFAULT_DIALOG_CONFIG} from "src/constants/dialog.constant";
 import {FormMode} from "src/enums/form-mode.enum";
 import {FormConfig} from "src/interfaces";
-import {AuthService, User, UserService} from "../../open-api";
-import {ClaimsService, SnackbarService} from "../../services";
+import {User, UserService} from "../../open-api";
+import {ClaimsService, SnackbarService, TokenRefreshService} from "../../services";
 import {AuthState, Logout, UpdateUser} from "../../store";
 import {DeleteAccountDialogComponent} from "../delete-account-dialog/delete-account-dialog.component";
 
@@ -31,7 +31,6 @@ export class UserProfileComponent implements OnInit {
     "Only system admin may change your username.";
 
   constructor(
-    private authService: AuthService,
     private claimsService: ClaimsService,
     private formBuilder: FormBuilder,
     private matDialog: MatDialog,
@@ -39,6 +38,7 @@ export class UserProfileComponent implements OnInit {
     private router: Router,
     private snackbarService: SnackbarService,
     private store: Store,
+    private tokenRefreshService: TokenRefreshService,
     private userService: UserService,
   ) {
   }
@@ -70,7 +70,7 @@ export class UserProfileComponent implements OnInit {
         .updateUserProfile(this.form.value)
         .pipe(
           take(1),
-          switchMap(() => this.authService.getNewRefreshToken()),
+          switchMap(() => this.tokenRefreshService.refreshToken()),
           switchMap(() => this.claimsService.getAndSetClaimsForLoggedInUser()),
           switchMap(() => {
             const loggedInUser = this.store.selectSnapshot(

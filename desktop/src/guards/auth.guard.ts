@@ -1,14 +1,19 @@
 import { Injectable } from "@angular/core";
 import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree, } from "@angular/router";
 import { Store } from "@ngxs/store";
-import { Observable } from "rxjs";
+import { catchError, map, Observable, of } from "rxjs";
+import { TokenRefreshService } from "../services";
 import { AuthState, GroupState } from "../store";
 
 @Injectable({
   providedIn: "root",
 })
 export class AuthGuard {
-  constructor(private router: Router, private store: Store) {}
+  constructor(
+    private router: Router,
+    private store: Store,
+    private tokenRefreshService: TokenRefreshService,
+  ) {}
 
   canActivate(
     route: ActivatedRouteSnapshot,
@@ -31,10 +36,22 @@ export class AuthGuard {
       return true;
     }
 
-    if (!isLoggedIn) {
-      this.router.navigate(["/auth/login"]);
+    if (isLoggedIn) {
+      return true;
     }
 
-    return isLoggedIn;
+    // Token is expired but user had a previous session — attempt refresh
+    const hadSession = !!this.store.selectSnapshot(
+      (appState: any) => appState.auth?.expirationDate
+    );
+
+    if (hadSession) {
+      return this.tokenRefreshService.refreshToken().pipe(
+        map(() => true),
+        catchError(() => of(this.router.createUrlTree(["/auth/login"]))),
+      );
+    }
+
+    return this.router.createUrlTree(["/auth/login"]);
   }
 }

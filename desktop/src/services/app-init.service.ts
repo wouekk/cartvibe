@@ -1,16 +1,17 @@
 import { Injectable } from "@angular/core";
 import { Store } from "@ngxs/store";
 import { catchError, finalize, Observable, of, switchMap, take, tap, } from "rxjs";
-import { AppData, AuthService, FeatureConfigService, UserService, } from "../open-api";
+import { AppData, FeatureConfigService, UserService, } from "../open-api";
 import { AuthState, SetFeatureConfig } from "../store";
 import { setAppData } from "../utils";
+import { TokenRefreshService } from "./token-refresh.service";
 
 @Injectable({
   providedIn: "root",
 })
 export class AppInitService {
   constructor(
-    private authService: AuthService,
+    private tokenRefreshService: TokenRefreshService,
     private store: Store,
     private userService: UserService,
     private featureConfigService: FeatureConfigService
@@ -20,28 +21,30 @@ export class AppInitService {
 
     return new Promise((resolve) => {
       const isLoggedIn = this.store.selectSnapshot(AuthState.isLoggedIn);
+      const hadSession = !!this.store.selectSnapshot(
+        (appState: any) => appState.auth?.expirationDate
+      );
 
-      if (!isLoggedIn) {
-        this.featureConfigService.getFeatureConfig().pipe(
+      if (isLoggedIn || hadSession) {
+        this.tokenRefreshService.refreshToken().pipe(
           take(1),
-          switchMap((config) => this.store.dispatch(new SetFeatureConfig(config))),
-          finalize(() => {
-            resolve(true);
+          switchMap(() => this.getAppData()),
+          tap(() => resolve(true)),
+          catchError((err) => {
+            resolve(false);
+            return of(err);
           })
         ).subscribe();
         return;
       }
 
-      this.authService.getNewRefreshToken().pipe(
+      this.featureConfigService.getFeatureConfig().pipe(
         take(1),
-        switchMap(() => this.getAppData()),
-        tap(() => resolve(true)),
-        catchError((err) => {
-          resolve(false);
-          return of(err);
+        switchMap((config) => this.store.dispatch(new SetFeatureConfig(config))),
+        finalize(() => {
+          resolve(true);
         })
-      )
-        .subscribe();
+      ).subscribe();
     });
   }
 
