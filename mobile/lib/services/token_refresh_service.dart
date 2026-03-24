@@ -35,6 +35,12 @@ class TokenRefreshService {
 
   bool _initialized = false;
 
+  /// Resets the singleton state. Only intended for use in tests.
+  void resetForTesting() {
+    _refreshCompleter = null;
+    _initialized = false;
+  }
+
   void initialize({
     required AuthModel authModel,
     required GroupModel groupModel,
