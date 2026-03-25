@@ -58,6 +58,17 @@ class AuthModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Writes both tokens and rebuilds the API client once, avoiding the
+  /// double client rebuild that occurs when calling setJwt + setRefreshToken
+  /// individually.
+  Future<void> setTokens(String? jwt, String? refreshToken) async {
+    await _storage.write(key: _jwtKey, value: jwt);
+    await _storage.write(key: _refreshTokenKey, value: refreshToken);
+    await _updateDefaultApiClient();
+
+    notifyListeners();
+  }
+
   Future<void> purgeTokens() async {
     await _storage.delete(key: _jwtKey);
     await _storage.delete(key: _refreshTokenKey);

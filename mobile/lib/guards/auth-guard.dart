@@ -6,7 +6,7 @@ import '../models/auth_model.dart';
 import '../utils/currency.dart';
 
 Future<String?> protectedRouteRedirect(
-    BuildContext context, String? redirect) async {
+    BuildContext _, String? redirect) async {
   var tokensValid = await TokenRefreshService().refreshTokens();
   var redirectRoute = redirect ?? "/";
 

@@ -1,45 +1,14 @@
-import 'dart:async';
-
 import 'package:built_collection/built_collection.dart';
-import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:one_of/any_of.dart';
 import 'package:openapi/openapi.dart';
 import 'package:receipt_wrangler_mobile/client/client.dart';
-import 'package:receipt_wrangler_mobile/models/auth_model.dart';
-import 'package:receipt_wrangler_mobile/models/category_model.dart';
-import 'package:receipt_wrangler_mobile/models/group_model.dart';
-import 'package:receipt_wrangler_mobile/models/system_settings_model.dart';
-import 'package:receipt_wrangler_mobile/models/tag_model.dart';
-import 'package:receipt_wrangler_mobile/models/user_model.dart';
-import 'package:receipt_wrangler_mobile/models/user_preferences_model.dart';
 import 'package:receipt_wrangler_mobile/services/token_refresh_service.dart';
 
-// --- Mocks ---
+import '../helpers/auth_test_helpers.dart';
 
-class MockAuthModel extends Mock implements AuthModel {}
-
-class MockGroupModel extends Mock implements GroupModel {}
-
-class MockUserModel extends Mock implements UserModel {}
-
-class MockUserPreferencesModel extends Mock implements UserPreferencesModel {}
-
-class MockCategoryModel extends Mock implements CategoryModel {}
-
-class MockTagModel extends Mock implements TagModel {}
-
-class MockSystemSettingsModel extends Mock implements SystemSettingsModel {}
-
-class MockOpenapi extends Mock implements Openapi {}
-
-class MockAuthApi extends Mock implements AuthApi {}
-
-class MockUserApi extends Mock implements UserApi {}
-
-class MockGroup extends Mock implements Group {}
+// --- Test-specific mocks (not shared) ---
 
 class MockAppData extends Mock implements AppData {}
 
@@ -48,38 +17,6 @@ class MockClaims extends Mock implements Claims {}
 class MockFeatureConfig extends Mock implements FeatureConfig {}
 
 class MockUserPreferences extends Mock implements UserPreferences {}
-
-class FakeLogoutCommand extends Fake implements LogoutCommand {}
-
-// --- Helpers ---
-
-/// Creates a signed JWT with the given expiration.
-String createTestJwt({required DateTime exp}) {
-  final jwt = JWT({'exp': exp.millisecondsSinceEpoch ~/ 1000});
-  return jwt.sign(SecretKey('test-secret'));
-}
-
-String get validJwt =>
-    createTestJwt(exp: DateTime.now().add(const Duration(hours: 1)));
-
-String get expiredJwt =>
-    createTestJwt(exp: DateTime.now().subtract(const Duration(hours: 1)));
-
-/// Creates a mock token refresh response wrapping the given token pair.
-Response<GetNewRefreshToken200Response> createTokenRefreshResponse(
-    String jwt, String refreshToken) {
-  final tokenPair = TokenPair((b) => b
-    ..jwt = jwt
-    ..refreshToken = refreshToken);
-  final anyOf = AnyOf2<TokenPair, Claims>(values: {0: tokenPair});
-  final responseData =
-      (GetNewRefreshToken200ResponseBuilder()..anyOf = anyOf).build();
-  return Response(
-    data: responseData,
-    requestOptions: RequestOptions(path: '/token/'),
-    statusCode: 200,
-  );
-}
 
 void main() {
   late MockAuthModel mockAuthModel;
@@ -146,8 +83,7 @@ void main() {
         when(() => mockAuthModel.getJwt()).thenAnswer((_) async => validJwt);
         when(() => mockAuthModel.getRefreshToken())
             .thenAnswer((_) async => validJwt);
-        when(() => mockGroupModel.groups)
-            .thenReturn([MockGroup()]);
+        when(() => mockGroupModel.groups).thenReturn([MockGroup()]);
 
         final result = await service.refreshTokens();
 
@@ -164,22 +100,19 @@ void main() {
         when(() => mockAuthModel.getJwt()).thenAnswer((_) async => expiredJwt);
         when(() => mockAuthModel.getRefreshToken())
             .thenAnswer((_) async => validJwt);
-        when(() => mockGroupModel.groups)
-            .thenReturn([MockGroup()]);
+        when(() => mockGroupModel.groups).thenReturn([MockGroup()]);
 
         when(() => mockAuthApi.getNewRefreshToken(
                 logoutCommand: any(named: 'logoutCommand')))
             .thenAnswer(
                 (_) async => createTokenRefreshResponse(newJwt, newRefresh));
-        when(() => mockAuthModel.setJwt(any())).thenAnswer((_) async {});
-        when(() => mockAuthModel.setRefreshToken(any()))
+        when(() => mockAuthModel.setTokens(any(), any()))
             .thenAnswer((_) async {});
 
         final result = await service.refreshTokens();
 
         expect(result, true);
-        verify(() => mockAuthModel.setJwt(newJwt)).called(1);
-        verify(() => mockAuthModel.setRefreshToken(newRefresh)).called(1);
+        verify(() => mockAuthModel.setTokens(newJwt, newRefresh)).called(1);
       });
 
       test('purges tokens when both JWT and refresh token are expired',
@@ -237,15 +170,13 @@ void main() {
         when(() => mockAuthModel.getJwt()).thenAnswer((_) async => validJwt);
         when(() => mockAuthModel.getRefreshToken())
             .thenAnswer((_) async => validJwt);
-        when(() => mockGroupModel.groups)
-            .thenReturn([MockGroup()]);
+        when(() => mockGroupModel.groups).thenReturn([MockGroup()]);
 
         when(() => mockAuthApi.getNewRefreshToken(
                 logoutCommand: any(named: 'logoutCommand')))
             .thenAnswer(
                 (_) async => createTokenRefreshResponse(newJwt, newRefresh));
-        when(() => mockAuthModel.setJwt(any())).thenAnswer((_) async {});
-        when(() => mockAuthModel.setRefreshToken(any()))
+        when(() => mockAuthModel.setTokens(any(), any()))
             .thenAnswer((_) async {});
 
         final result = await service.refreshTokens(force: true);
@@ -281,22 +212,18 @@ void main() {
         when(() => mockAuthModel.getJwt()).thenAnswer((_) async => expiredJwt);
         when(() => mockAuthModel.getRefreshToken())
             .thenAnswer((_) async => validJwt);
-        when(() => mockGroupModel.groups)
-            .thenReturn([MockGroup()]);
+        when(() => mockGroupModel.groups).thenReturn([MockGroup()]);
 
         when(() => mockAuthApi.getNewRefreshToken(
                 logoutCommand: any(named: 'logoutCommand')))
             .thenAnswer((_) async {
           callCount++;
-          // Simulate network delay to ensure concurrency window
           await Future.delayed(const Duration(milliseconds: 50));
           return createTokenRefreshResponse(newJwt, newRefresh);
         });
-        when(() => mockAuthModel.setJwt(any())).thenAnswer((_) async {});
-        when(() => mockAuthModel.setRefreshToken(any()))
+        when(() => mockAuthModel.setTokens(any(), any()))
             .thenAnswer((_) async {});
 
-        // Fire 5 concurrent refresh calls
         final results = await Future.wait([
           service.refreshTokens(),
           service.refreshTokens(),
@@ -305,9 +232,7 @@ void main() {
           service.refreshTokens(),
         ]);
 
-        // All should succeed
         expect(results, everyElement(true));
-        // But only ONE HTTP request should have been made
         expect(callCount, 1);
       });
 
@@ -319,8 +244,7 @@ void main() {
         when(() => mockAuthModel.getJwt()).thenAnswer((_) async => expiredJwt);
         when(() => mockAuthModel.getRefreshToken())
             .thenAnswer((_) async => validJwt);
-        when(() => mockGroupModel.groups)
-            .thenReturn([MockGroup()]);
+        when(() => mockGroupModel.groups).thenReturn([MockGroup()]);
 
         when(() => mockAuthApi.getNewRefreshToken(
                 logoutCommand: any(named: 'logoutCommand')))
@@ -328,15 +252,12 @@ void main() {
           callCount++;
           return createTokenRefreshResponse(newJwt, newRefresh);
         });
-        when(() => mockAuthModel.setJwt(any())).thenAnswer((_) async {});
-        when(() => mockAuthModel.setRefreshToken(any()))
+        when(() => mockAuthModel.setTokens(any(), any()))
             .thenAnswer((_) async {});
 
-        // First call completes
         await service.refreshTokens();
         expect(callCount, 1);
 
-        // Second call should make a new request (completer was cleared)
         await service.refreshTokens();
         expect(callCount, 2);
       });
@@ -377,7 +298,6 @@ void main() {
             .thenAnswer((_) async => validJwt);
         when(() => mockGroupModel.groups).thenReturn([]);
 
-        // Use a mock AppData to avoid deeply nested builder requirements
         final mockAppData = MockAppData();
         when(() => mockAppData.jwt).thenReturn('');
         when(() => mockAppData.refreshToken).thenReturn('');
@@ -403,6 +323,8 @@ void main() {
               requestOptions: RequestOptions(path: '/user/appData'),
               statusCode: 200,
             ));
+        when(() => mockAuthModel.setTokens(any(), any()))
+            .thenAnswer((_) async {});
         when(() => mockAuthModel.setJwt(any())).thenAnswer((_) async {});
         when(() => mockAuthModel.setRefreshToken(any()))
             .thenAnswer((_) async {});
@@ -435,8 +357,7 @@ void main() {
         when(() => mockAuthModel.getJwt()).thenAnswer((_) async => validJwt);
         when(() => mockAuthModel.getRefreshToken())
             .thenAnswer((_) async => validJwt);
-        when(() => mockGroupModel.groups)
-            .thenReturn([MockGroup()]);
+        when(() => mockGroupModel.groups).thenReturn([MockGroup()]);
 
         final result = await service.refreshTokens();
 

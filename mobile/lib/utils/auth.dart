@@ -20,10 +20,7 @@ Future<void> getAndSetTokens(AuthModel authModel) async {
 
   var tokenPair = tokenPairResponse.data?.anyOf.values[0] as TokenPair;
 
-  authModel.setJwt(tokenPair.jwt);
-  authModel.setRefreshToken(tokenPair.refreshToken);
-
-  return;
+  await authModel.setTokens(tokenPair.jwt, tokenPair.refreshToken);
 }
 
 bool isTokenValid(String? token) {
@@ -48,12 +45,11 @@ Future<void> storeAppData(
     TagModel tagModel,
     SystemSettingsModel systemSettingsModel,
     AppData appData) async {
-  if (appData!.jwt!.isNotEmpty) {
-    await authModel.setJwt(appData.jwt);
-  }
-
-  if (appData.refreshToken!.isNotEmpty) {
-    await authModel.setRefreshToken(appData.refreshToken);
+  if (appData.jwt!.isNotEmpty || appData.refreshToken!.isNotEmpty) {
+    await authModel.setTokens(
+      appData.jwt!.isNotEmpty ? appData.jwt : null,
+      appData.refreshToken!.isNotEmpty ? appData.refreshToken : null,
+    );
   }
 
   authModel.setClaims(appData.claims);

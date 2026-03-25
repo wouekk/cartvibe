@@ -32,7 +32,6 @@ import 'package:receipt_wrangler_mobile/search/widgets/searchbar.dart';
 import 'package:receipt_wrangler_mobile/services/token_refresh_service.dart';
 import 'package:receipt_wrangler_mobile/shared/widgets/circular_loading_progress.dart';
 import 'package:receipt_wrangler_mobile/shared/widgets/screen_wrapper.dart';
-import 'package:receipt_wrangler_mobile/utils/auth.dart';
 import 'package:receipt_wrangler_mobile/utils/permissions.dart';
 
 import 'package:receipt_wrangler_mobile/profile/screens/user_profile_screen.dart';
@@ -234,10 +233,6 @@ class _ReceiptWrangler extends State<ReceiptWrangler> {
 
       _refreshTimer =
           Timer.periodic(const Duration(minutes: 15), (timer) async {
-        var jwt = await authModel.getJwt();
-        if (isTokenValid(jwt)) {
-          return;
-        }
         await TokenRefreshService().refreshTokens();
       });
     }

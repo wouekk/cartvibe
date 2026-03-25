@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:openapi/openapi.dart';
 import 'package:receipt_wrangler_mobile/client/client.dart';
 import 'package:receipt_wrangler_mobile/models/auth_model.dart';
@@ -35,7 +36,7 @@ class TokenRefreshService {
 
   bool _initialized = false;
 
-  /// Resets the singleton state. Only intended for use in tests.
+  @visibleForTesting
   void resetForTesting() {
     _refreshCompleter = null;
     _initialized = false;
@@ -104,13 +105,16 @@ class TokenRefreshService {
 
     try {
       await getAndSetTokens(_authModel);
-      await _loadAppDataIfNeeded();
-      return true;
     } catch (e) {
       print(e);
       _authModel.purgeTokens();
       return false;
     }
+
+    // App data loading is independent of token validity — don't purge
+    // freshly-obtained tokens if this fails.
+    await _loadAppDataIfNeeded();
+    return true;
   }
 
   Future<void> _loadAppDataIfNeeded() async {
