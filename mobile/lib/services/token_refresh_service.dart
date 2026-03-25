@@ -94,7 +94,7 @@ class TokenRefreshService {
     bool needsRefresh = force || !isTokenValid(jwt);
 
     if (!needsRefresh) {
-      await _loadAppDataIfNeeded();
+      await _tryLoadAppData();
       return true;
     }
 
@@ -111,10 +111,19 @@ class TokenRefreshService {
       return false;
     }
 
-    // App data loading is independent of token validity — don't purge
-    // freshly-obtained tokens if this fails.
-    await _loadAppDataIfNeeded();
+    await _tryLoadAppData();
     return true;
+  }
+
+  /// Attempts to load app data, swallowing errors so that a transient
+  /// getAppData failure never causes refreshTokens() to report false
+  /// (which would trigger token purge and logout).
+  Future<void> _tryLoadAppData() async {
+    try {
+      await _loadAppDataIfNeeded();
+    } catch (e) {
+      print(e);
+    }
   }
 
   Future<void> _loadAppDataIfNeeded() async {

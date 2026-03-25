@@ -353,6 +353,64 @@ void main() {
         verify(() => mockUserApi.getAppData()).called(1);
       });
 
+      test(
+          'returns true when app data loading fails after successful token refresh',
+          () async {
+        when(() => mockAuthModel.getJwt()).thenAnswer((_) async => expiredJwt);
+        when(() => mockAuthModel.getRefreshToken())
+            .thenAnswer((_) async => validJwt);
+        when(() => mockGroupModel.groups).thenReturn([]);
+        when(() => mockAuthModel.purgeTokens()).thenAnswer((_) async {});
+
+        final newJwt = validJwt;
+        final newRefresh = validJwt;
+
+        when(() => mockAuthApi.getNewRefreshToken(
+                logoutCommand: any(named: 'logoutCommand')))
+            .thenAnswer(
+                (_) async => createTokenRefreshResponse(newJwt, newRefresh));
+        when(() => mockAuthModel.setTokens(any(), any()))
+            .thenAnswer((_) async {});
+
+        // App data loading throws
+        when(() => mockUserApi.getAppData()).thenThrow(DioException(
+          requestOptions: RequestOptions(path: '/user/appData'),
+          response: Response(
+            statusCode: 500,
+            requestOptions: RequestOptions(path: '/user/appData'),
+          ),
+        ));
+
+        final result = await service.refreshTokens();
+
+        // Should still return true because tokens were refreshed successfully
+        expect(result, true);
+        // Should NOT purge the freshly-obtained tokens
+        verifyNever(() => mockAuthModel.purgeTokens());
+      });
+
+      test('returns true when app data loading fails with valid JWT',
+          () async {
+        when(() => mockAuthModel.getJwt()).thenAnswer((_) async => validJwt);
+        when(() => mockAuthModel.getRefreshToken())
+            .thenAnswer((_) async => validJwt);
+        when(() => mockGroupModel.groups).thenReturn([]);
+        when(() => mockAuthModel.purgeTokens()).thenAnswer((_) async {});
+
+        when(() => mockUserApi.getAppData()).thenThrow(DioException(
+          requestOptions: RequestOptions(path: '/user/appData'),
+          response: Response(
+            statusCode: 500,
+            requestOptions: RequestOptions(path: '/user/appData'),
+          ),
+        ));
+
+        final result = await service.refreshTokens();
+
+        expect(result, true);
+        verifyNever(() => mockAuthModel.purgeTokens());
+      });
+
       test('skips app data loading when groups already exist', () async {
         when(() => mockAuthModel.getJwt()).thenAnswer((_) async => validJwt);
         when(() => mockAuthModel.getRefreshToken())
