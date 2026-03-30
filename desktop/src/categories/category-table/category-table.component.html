@@ -6,9 +6,9 @@
   <app-table
     [columns]="columns"
     [displayedColumns]="displayedColumns"
-    [dataSource]="dataSource"
+    [dataSource]="dataSource()"
     [pagination]="true"
-    [length]="totalCount"
+    [length]="totalCount()"
     [pageSize]="state()?.pageSize ?? 1"
     [page]="(state()?.page ?? 1) - 1"
     (sorted)="sorted($event)"

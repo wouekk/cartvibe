@@ -3,7 +3,7 @@
   icon="edit"
   [color]="color"
   [tooltip]="tooltip ? tooltip : 'Edit'"
-  [disabled]="disabled"
+  [disabled]="disabled()"
   [buttonRouterLink]="buttonRouterLink()"
   [buttonQueryParams]="buttonQueryParams()"
   (clicked)="clicked.emit()"

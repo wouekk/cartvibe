@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, TemplateRef, viewChild } from "@angular/core";
+import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { PageEvent } from "@angular/material/paginator";
 import { Sort } from "@angular/material/sort";
@@ -36,9 +36,9 @@ export class PromptTableComponent implements OnInit, AfterViewInit {
 
   public displayedColumns: string[] = [];
 
-  public dataSource = new MatTableDataSource<Prompt>([]);
+  public dataSource = signal(new MatTableDataSource<Prompt>([]));
 
-  public totalCount = 0;
+  public totalCount = signal(0);
 
   public receiptProcessingSettings: ReceiptProcessingSettings[] = [];
 
@@ -126,8 +126,8 @@ export class PromptTableComponent implements OnInit, AfterViewInit {
       .pipe(
         take(1),
         tap((pagedData) => {
-          this.dataSource = new MatTableDataSource(pagedData.data as any as Prompt[]);
-          this.totalCount = pagedData.totalCount;
+          this.dataSource.set(new MatTableDataSource(pagedData.data as any as Prompt[]));
+          this.totalCount.set(pagedData.totalCount);
           this.setDefaultPromptExists();
           this.setPromptsWithRelatedData(pagedData.data as any as Prompt[]);
         })

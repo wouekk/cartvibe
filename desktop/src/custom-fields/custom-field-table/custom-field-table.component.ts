@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, TemplateRef, viewChild } from "@angular/core";
+import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { PageEvent } from "@angular/material/paginator";
 import { Sort } from "@angular/material/sort";
@@ -35,15 +35,14 @@ export class CustomFieldTableComponent implements OnInit, AfterViewInit {
   public readonly table = viewChild.required(TableComponent);
 
   public state = this.store.selectSignal(CategoryTableState.state);
-  // @ts-ignore
-  public dataSource: MatTableDataSource<PagedDataDataInner> =
-    new MatTableDataSource<PagedDataDataInner>([]);
+
+  public dataSource = signal(new MatTableDataSource<PagedDataDataInner>([]));
 
   public displayedColumns: string[] = [];
 
   public columns: TableColumn[] = [];
 
-  public totalCount: number = 0;
+  public totalCount = signal(0);
 
   constructor(
     private customFieldService: CustomFieldService,
@@ -109,10 +108,10 @@ export class CustomFieldTableComponent implements OnInit, AfterViewInit {
       .pipe(
         take(1),
         tap((pagedData) => {
-          this.dataSource = new MatTableDataSource<PagedDataDataInner>(
+          this.dataSource.set(new MatTableDataSource<PagedDataDataInner>(
             pagedData.data
-          );
-          this.totalCount = pagedData.totalCount;
+          ));
+          this.totalCount.set(pagedData.totalCount);
         })
       )
       .subscribe();

@@ -3,7 +3,7 @@
   icon="delete"
   type="button"
   [color]="color || 'warn'"
-  [disabled]="disabled"
+  [disabled]="disabled()"
   [tooltip]="tooltip ?? 'Delete'"
   (clicked)="clicked.emit()"
 ></app-button>

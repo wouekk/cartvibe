@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, TemplateRef, viewChild } from "@angular/core";
+import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { PageEvent } from "@angular/material/paginator";
 import { Sort } from "@angular/material/sort";
@@ -41,14 +41,13 @@ export class TagTableComponent implements OnInit, AfterViewInit {
     private tagService: TagService
   ) {}
 
-  public dataSource: MatTableDataSource<PagedDataDataInner> =
-    new MatTableDataSource<PagedDataDataInner>([]);
+  public dataSource = signal(new MatTableDataSource<PagedDataDataInner>([]));
 
   public displayedColumns: string[] = [];
 
   public columns: TableColumn[] = [];
 
-  public totalCount: number = 0;
+  public totalCount = signal(0);
 
   public headerText: string = "Tags";
 
@@ -74,8 +73,8 @@ export class TagTableComponent implements OnInit, AfterViewInit {
       .pipe(
         take(1),
         tap((pagedData) => {
-          this.dataSource = new MatTableDataSource<PagedDataDataInner>(pagedData.data);
-          this.totalCount = pagedData.totalCount;
+          this.dataSource.set(new MatTableDataSource<PagedDataDataInner>(pagedData.data));
+          this.totalCount.set(pagedData.totalCount);
         })
       )
       .subscribe();

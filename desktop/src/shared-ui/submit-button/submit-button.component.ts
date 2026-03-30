@@ -28,7 +28,7 @@ export class SubmitButtonComponent extends FormButtonComponent {
   private showProgressBar = this.store.selectSignal(LayoutState.showProgressBar);
 
   public effectiveDisabled = computed(() =>
-    this.disableOnLoading() && this.showProgressBar() ? true : this.disabled
+    this.disableOnLoading() && this.showProgressBar() ? true : this.disabled()
   );
 
   constructor(private store: Store) {

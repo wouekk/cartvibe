@@ -6,11 +6,11 @@
   <app-table
     [columns]="columns"
     [displayedColumns]="displayedColumns"
-    [dataSource]="dataSource"
+    [dataSource]="dataSource()"
     [pagination]="true"
     [page]="(tagTableState()?.page ?? 1) - 1"
     [pageSize]="tagTableState()?.pageSize ?? 1"
-    [length]="totalCount"
+    [length]="totalCount()"
     (sorted)="sorted($event)"
     (pageChange)="updatePageData($event)"
   ></app-table>

@@ -12,7 +12,7 @@ export class FormButtonComponent {
 
   @Input() public tooltip?: string;
 
-  @Input() public disabled: boolean = false;
+  public readonly disabled = input<boolean>(false);
 
   @Input() public color: string = "primary";
 

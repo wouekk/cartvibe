@@ -5,9 +5,9 @@
 <div class="table-container">
   <app-table
     [columns]="columns"
-    [dataSource]="dataSource"
+    [dataSource]="dataSource()"
     [displayedColumns]="displayedColumns"
-    [length]="totalCount"
+    [length]="totalCount()"
     [pageSize]="state()?.pageSize ?? 1"
     [page]="(state()?.page ?? 1) - 1"
     [pagination]="true"

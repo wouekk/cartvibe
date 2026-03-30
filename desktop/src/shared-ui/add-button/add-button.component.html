@@ -3,7 +3,7 @@
   matButtonType="iconButton"
   type="button"
   [tooltip]="tooltip ?? ''"
-  [disabled]="disabled"
+  [disabled]="disabled()"
   [routerLink]="buttonRouterLink()"
   (clicked)="clicked.emit($event)"
 ></app-button>
