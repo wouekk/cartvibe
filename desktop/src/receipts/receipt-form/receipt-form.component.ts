@@ -1,4 +1,4 @@
-import { Component, EmbeddedViewRef, HostListener, OnInit, TemplateRef, ViewChild } from "@angular/core";
+import { ChangeDetectorRef, Component, EmbeddedViewRef, HostListener, OnInit, TemplateRef, ViewChild } from "@angular/core";
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { MatDialog } from "@angular/material/dialog";
 import { MatExpansionPanel } from "@angular/material/expansion";
@@ -7,7 +7,7 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Select, Store } from "@ngxs/store";
 import { addHours } from "date-fns";
-import { debounceTime, finalize, forkJoin, iif, map, Observable, of, startWith, switchMap, take, tap } from "rxjs";
+import { debounceTime, catchError, finalize, forkJoin, iif, map, Observable, of, startWith, switchMap, take, tap } from "rxjs";
 import { CarouselComponent } from "src/carousel/carousel/carousel.component";
 import { DEFAULT_DIALOG_CONFIG, DEFAULT_HOST_CLASS } from "src/constants";
 import { RECEIPT_STATUS_OPTIONS } from "src/constants/receipt-status-options";
@@ -163,6 +163,7 @@ export class ReceiptFormComponent implements OnInit {
 
   constructor(
     private activatedRoute: ActivatedRoute,
+    private cdr: ChangeDetectorRef,
     private customFieldTypePipe: CustomFieldTypePipe,
     private formBuilder: FormBuilder,
     private matDialog: MatDialog,
@@ -428,17 +429,21 @@ export class ReceiptFormComponent implements OnInit {
       this.originalReceipt?.imageFiles?.length > 0
     ) {
       this.imagesLoading = true;
-      this.originalReceipt?.imageFiles.forEach((file) => {
-        this.receiptImageService
-          .getReceiptImageById(file.id)
-          .pipe(
-            tap((data) => {
-              this.images = [...this.images, data];
-            }),
-            finalize(() => (this.imagesLoading = false))
+      forkJoin(
+        this.originalReceipt.imageFiles.map((file) =>
+          this.receiptImageService.getReceiptImageById(file.id).pipe(
+            catchError(() => of(null))
           )
-          .subscribe();
-      });
+        )
+      )
+        .pipe(
+          tap((allImages) => {
+            this.images = allImages.filter((img): img is FileDataView => img !== null);
+            this.cdr.detectChanges();
+          }),
+          finalize(() => (this.imagesLoading = false))
+        )
+        .subscribe();
     }
   }
 
@@ -454,6 +459,7 @@ export class ReceiptFormComponent implements OnInit {
       .subscribe((result: boolean) => {
         if (result) {
           this.shareListComponent.setUserItemMap();
+          this.cdr.detectChanges();
         }
       });
   }
@@ -475,6 +481,7 @@ export class ReceiptFormComponent implements OnInit {
             newImages.splice(index, 1);
             this.images = newImages;
             this.snackbarService.success("Image successfully removed");
+            this.cdr.detectChanges();
           })
         )
         .subscribe();
@@ -501,6 +508,7 @@ export class ReceiptFormComponent implements OnInit {
         take(1),
         tap((magicFilledReceipt) => {
           this.patchMagicValues(magicFilledReceipt);
+          this.cdr.detectChanges();
         }),
         finalize(() => this.store.dispatch(new HideProgressBar()))
       )
@@ -614,6 +622,7 @@ export class ReceiptFormComponent implements OnInit {
             this.successDuplicateSnackbar,
             { duration: 8000 }
           );
+          this.cdr.detectChanges();
         })
       )
       .subscribe();
@@ -635,6 +644,7 @@ export class ReceiptFormComponent implements OnInit {
             tap((data) => {
               this.snackbarService.success("Successfully uploaded image(s)");
               this.images = [...Array.from(this.images), data];
+              this.cdr.detectChanges();
             })
           )
           .subscribe();
@@ -708,35 +718,21 @@ export class ReceiptFormComponent implements OnInit {
   public onItemAdded(item: Item): void {
     const newFormGroup = buildItemForm(item, this.originalReceipt?.id?.toString(), !!item.chargedToUserId, this.syncAmountWithItems);
     this.receiptItemsFormArray.push(newFormGroup);
-    this.shareListComponent.setUserItemMap();
-    this.itemListComponent.setItems();
-
-    // Auto-sync amount if enabled
-    if (this.syncAmountWithItems) {
-      this.updateAmountFromItems();
-    }
+    this.refreshComponentsAndSync();
   }
 
   public onItemRemoved(data: { item: Item; arrayIndex: number; isLinkedItem?: boolean; linkedItemIndex?: number }): void {
     if (data.isLinkedItem && data.linkedItemIndex !== undefined) {
-      // Remove linked item from parent's linkedItems array
       const parentItemFormGroup = this.receiptItemsFormArray.at(data.arrayIndex) as FormGroup;
       const linkedItemsArray = parentItemFormGroup.get("linkedItems") as FormArray;
       if (linkedItemsArray && data.linkedItemIndex < linkedItemsArray.length) {
         linkedItemsArray.removeAt(data.linkedItemIndex);
       }
     } else {
-      // Remove regular item from main receiptItems array
       this.receiptItemsFormArray.removeAt(data.arrayIndex);
     }
-    
-    this.shareListComponent.setUserItemMap();
-    this.itemListComponent.setItems();
 
-    // Auto-sync amount if enabled
-    if (this.syncAmountWithItems) {
-      this.updateAmountFromItems();
-    }
+    this.refreshComponentsAndSync();
   }
 
   public onQuickActionItemsAdded(data: { items: Item[], itemIndex?: number }): void {
@@ -780,9 +776,9 @@ export class ReceiptFormComponent implements OnInit {
   }
 
   private refreshComponentsAndSync(): void {
-    // Refresh component views
     this.shareListComponent?.setUserItemMap();
     this.itemListComponent?.setItems();
+    this.cdr.detectChanges();
 
     // Auto-sync amount if enabled
     if (this.syncAmountWithItems) {
