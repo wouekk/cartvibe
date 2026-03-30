@@ -1,4 +1,4 @@
-<ng-container *ngIf="!!(isLoggedIn | async)">
+@if (isLoggedIn()) {
   <div
     id="header-container"
     class="header-container d-flex justify-content-between align-items-center"
@@ -19,7 +19,7 @@
         class="nav-button"
         matTooltip="Dashboard"
         routerLinkActive="active-link"
-        [routerLink]="dashboardHeaderLink"
+        [routerLink]="dashboardHeaderLink()"
       >
         <mat-icon>dashboard</mat-icon>
       </button>
@@ -29,11 +29,11 @@
         class="nav-button"
         matTooltip="Receipt List"
         routerLinkActive="active-link"
-        [routerLink]="receiptHeaderLink"
+        [routerLink]="receiptHeaderLink()"
       >
         <mat-icon>receipt_long</mat-icon>
       </button>
-      @for (shortcut of (userPreferences | async)?.userShortcuts ?? []; track shortcut["id"]) {
+      @for (shortcut of userPreferences()?.userShortcuts ?? []; track shortcut["id"]) {
         <a [href]="shortcut.url">
           <button
             mat-icon-button
@@ -57,7 +57,7 @@
         triggers="click:clickouside"
         autoClose="outside"
         placement="bottom-end"
-        [matBadgeContent]="notificationCount"
+        [matBadgeContent]="notificationCount()"
         [ngbPopover]="notifications"
         (clicked)="notificationsPopover.open()"
       ></app-button>
@@ -68,10 +68,10 @@
       >
     </div>
   </div>
-</ng-container>
-<ng-container *ngIf="showProgressBar | async">
+}
+@if (showProgressBar()) {
   <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-</ng-container>
+}
 
 <ng-template
   #navButton

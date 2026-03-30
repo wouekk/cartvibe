@@ -18,29 +18,29 @@
           type="text"
           [isCurrency]="true"
           [inputFormControl]="newItemFormGroup | formGet : 'amount'"
-          [readonly]="mode | inputReadonly"
+          [readonly]="mode() | inputReadonly"
           (keydown.enter)="onAmountEnter($event)"
           (keydown.escape)="onCancel()"
         >
         </app-input>
 
-        @if (!selectedGroup?.groupReceiptSettings?.hideItemCategories) {
+        @if (!selectedGroup()?.groupReceiptSettings?.hideItemCategories) {
           <app-category-autocomplete
             #categoryInput
-            [categories]="categories"
+            [categories]="categories()"
             [inputFormControl]="newItemFormGroup | formGet : 'categories'"
-            [readonly]="mode | inputReadonly"
+            [readonly]="mode() | inputReadonly"
             (keydown.enter)="onCategoryEnter($event)"
             (keydown.escape)="onCancel()"
           ></app-category-autocomplete>
         }
 
-        @if (!selectedGroup?.groupReceiptSettings?.hideItemTags) {
+        @if (!selectedGroup()?.groupReceiptSettings?.hideItemTags) {
           <app-tag-autocomplete
             #tagInput
-            [tags]="tags"
+            [tags]="tags()"
             [inputFormControl]="newItemFormGroup | formGet : 'tags'"
-            [readonly]="mode | inputReadonly"
+            [readonly]="mode() | inputReadonly"
             (keydown.enter)="onTagEnter($event)"
             (keydown.escape)="onCancel()"
           ></app-tag-autocomplete>

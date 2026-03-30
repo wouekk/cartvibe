@@ -1,7 +1,6 @@
-import { Component, Input } from "@angular/core";
+import { Component, input } from "@angular/core";
 import { FormControl } from "@angular/forms";
-import { Select, Store } from "@ngxs/store";
-import { Observable } from "rxjs";
+import { Store } from "@ngxs/store";
 import { Group } from "../../open-api";
 import { GroupState } from "../../store";
 
@@ -12,11 +11,11 @@ import { GroupState } from "../../store";
     standalone: false
 })
 export class GroupAutocompleteComponent {
-  @Input() public inputFormControl!: FormControl;
+  public readonly inputFormControl = input.required<FormControl>();
 
-  @Input() public readonly: boolean = false;
+  public readonly readonly = input<boolean>(false);
 
-  @Select(GroupState.groupsWithoutAll) public groups!: Observable<Group[]>;
+  public groups = this.store.selectSignal(GroupState.groupsWithoutAll);
 
   constructor(private store: Store) {}
 

@@ -1,17 +1,17 @@
-<div class="pie-chart-ui-container" [style.height]="height">
-  @if (isLoading) {
+<div class="pie-chart-ui-container" [style.height]="height()">
+  @if (isLoading()) {
     <div class="pie-chart-ui-message">
-      <span>{{ loadingMessage }}</span>
+      <span>{{ loadingMessage() }}</span>
     </div>
-  } @else if (!hasData) {
+  } @else if (!hasData()) {
     <div class="pie-chart-ui-message">
-      <span>{{ noDataMessage }}</span>
+      <span>{{ noDataMessage() }}</span>
     </div>
   } @else {
     <canvas
       baseChart
-      [data]="chartData"
-      [options]="chartOptions"
+      [data]="chartData()"
+      [options]="chartOptions()"
       type="pie"
     ></canvas>
   }

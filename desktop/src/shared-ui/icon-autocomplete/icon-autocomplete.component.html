@@ -2,9 +2,9 @@
   optionFilterKey="displayValue"
   optionDisplayKey="displayValue"
   optionValueKey="value"
-  [label]="label"
-  [inputFormControl]="inputFormControl"
-  [options]="(icons | async) ?? []"
+  [label]="label()"
+  [inputFormControl]="inputFormControl()"
+  [options]="icons() ?? []"
   [optionTemplate]="optionTemplate"
   [displayWith]="displayWith.bind(this)"
 ></app-autocomlete>

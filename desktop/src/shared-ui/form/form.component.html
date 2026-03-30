@@ -1,17 +1,17 @@
 <app-form-header
-  [headerText]="formConfig.headerText"
+  [headerText]="formConfig().headerText"
   [headerButtonsTemplate]="headerButtonsTemplate"
-  [bottomSpacing]="bottomSpacing"
+  [bottomSpacing]="bottomSpacing()"
 ></app-form-header>
-<form [formGroup]="form" (ngSubmit)="submitted.emit()">
+<form [formGroup]="form()" (ngSubmit)="submitted.emit()">
   <div class="w-100">
-    <ng-template [ngTemplateOutlet]="formTemplate"></ng-template>
+    <ng-template [ngTemplateOutlet]="formTemplate()"></ng-template>
   </div>
-  <app-form-button-bar [mode]="formConfig.mode">
+  <app-form-button-bar [mode]="formConfig().mode">
     <app-submit-button
-      *ngIf="!(formConfig.mode | inputReadonly)"
+      *ngIf="!(formConfig().mode | inputReadonly)"
       class="mb-3"
-      [disabled]="submitButtonDisabled"
+      [disabled]="submitButtonDisabled()"
       [onlyIcon]="false"
     ></app-submit-button>
   </app-form-button-bar>
@@ -19,10 +19,10 @@
 
 <ng-template #headerButtonsTemplate>
   <app-edit-button
-    *ngIf="(formConfig.mode | inputReadonly) && canEdit"
+    *ngIf="(formConfig().mode | inputReadonly) && canEdit()"
     color="accent"
-    [buttonRouterLink]="editButtonRouterLink"
-    [buttonQueryParams]="editButtonQueryParams"
+    [buttonRouterLink]="editButtonRouterLink()"
+    [buttonQueryParams]="editButtonQueryParams()"
   >
   </app-edit-button>
 </ng-template>

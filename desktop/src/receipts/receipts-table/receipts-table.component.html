@@ -17,7 +17,7 @@
     @if (dataSource.data.length > 0) {
       <app-export-button
         [groupId]="groupId"
-        [filter]="(filter | async) ?? undefined"
+        [filter]="filter() ?? undefined"
       ></app-export-button>
     }
     <app-button
@@ -27,7 +27,7 @@
       tooltip="Filter Receipts"
       color="accent"
       matBadgeColor="accent"
-      [matBadgeContent]="numFiltersApplied | async"
+      [matBadgeContent]="numFiltersApplied()"
       (clicked)="filterButtonClicked()"
     ></app-button>
     <app-button
@@ -39,7 +39,7 @@
       (clicked)="configureColumnsButtonClicked()"
     ></app-button>
     <app-button
-      *ngIf="(numFiltersApplied | async) ?? 0 > 0"
+      *ngIf="(numFiltersApplied() ?? 0) > 0"
       @fadeInOut
       class="me-2"
       icon="restart_alt"
@@ -92,7 +92,7 @@
   @fadeInOut
   headerText="Selected Receipt summary"
   [receiptIds]="selectedReceiptIds"
-  [groupId]="(selectedGroupId | async) ?? ''"
+  [groupId]="selectedGroupId() ?? ''"
 ></app-summary-card>
 <div class="table-container">
   <app-table
@@ -102,8 +102,8 @@
     [pagination]="true"
     [length]="totalCount"
     [selectionCheckboxes]="true"
-    [page]="$any(page | async) - 1"
-    [pageSize]="(pageSize | async) ?? 50"
+    [page]="$any(page()) - 1"
+    [pageSize]="pageSize() ?? 50"
     (sorted)="sort($event)"
     (pageChange)="updatePageData($event)"
   ></app-table>

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, EventEmitter, HostListener, Input, OnChanges, OnDestroy, Output, SimpleChanges } from "@angular/core";
+import { ChangeDetectorRef, Component, HostListener, Input, OnChanges, OnDestroy, SimpleChanges, input, output } from "@angular/core";
 
 @Component({
     selector: "app-image-viewer",
@@ -14,11 +14,11 @@ export class ImageViewerComponent implements OnChanges, OnDestroy {
 
   @Input() public imageBase64?: string = "";
 
-  @Input() public imageFile?: File;
+  public readonly imageFile = input<File>();
 
-  @Input() public scale: number = 1;
+  public readonly scale = input<number>(1);
 
-  @Output() public wheel: EventEmitter<WheelEvent> = new EventEmitter<WheelEvent>();
+  public readonly wheel = output<WheelEvent>();
 
   public imageFileUrl: string = "";
 

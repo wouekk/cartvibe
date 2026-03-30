@@ -2,7 +2,7 @@
   <ng-container header>
     <div class="d-flex justify-content-between align-items-center">
       <h3>
-        {{ widget.name }}
+        {{ widget().name }}
       </h3>
       @if (receipts.length > 1) {
         <div>
@@ -14,8 +14,8 @@
           >
           </app-queue-start-menu>
           <app-export-button
-            [groupId]="groupId?.toString()"
-            [filter]="$any(widget.configuration)"
+            [groupId]="groupId()?.toString()"
+            [filter]="$any(widget().configuration)"
           ></app-export-button>
         </div>
       }

@@ -1,16 +1,16 @@
-<ng-container [ngSwitch]="matButtonType">
+<ng-container [ngSwitch]="matButtonType()">
   <button
     mat-button
     *ngSwitchCase="'basic'"
-    [class]="buttonClass"
-    [type]="type"
-    [color]="color"
-    [disabled]="disabled"
-    [matTooltip]="tooltip"
-    [routerLink]="buttonRouterLink"
-    [queryParams]="buttonQueryParams"
-    [matBadgeColor]="matBadgeColor"
-    [matBadge]="matBadgeContent"
+    [class]="buttonClass()"
+    [type]="type()"
+    [color]="color()"
+    [disabled]="disabled()"
+    [matTooltip]="tooltip()"
+    [routerLink]="buttonRouterLink()"
+    [queryParams]="buttonQueryParams()"
+    [matBadgeColor]="matBadgeColor()"
+    [matBadge]="matBadgeContent()"
     (click)="emitClicked($event)"
   >
     <div class="d-flex align-items-center">
@@ -19,7 +19,7 @@
       </mat-icon>
       <span>
         <strong>
-          {{ buttonText }}
+          {{ buttonText() }}
         </strong>
       </span>
     </div>
@@ -28,15 +28,15 @@
   <button
     mat-raised-button
     *ngSwitchCase="'matRaisedButton'"
-    [class]="buttonClass"
-    [type]="type"
-    [color]="color"
-    [disabled]="disabled"
-    [matTooltip]="tooltip"
-    [matBadgeColor]="matBadgeColor"
-    [matBadge]="matBadgeContent"
-    [routerLink]="buttonRouterLink"
-    [queryParams]="buttonQueryParams"
+    [class]="buttonClass()"
+    [type]="type()"
+    [color]="color()"
+    [disabled]="disabled()"
+    [matTooltip]="tooltip()"
+    [matBadgeColor]="matBadgeColor()"
+    [matBadge]="matBadgeContent()"
+    [routerLink]="buttonRouterLink()"
+    [queryParams]="buttonQueryParams()"
     (click)="emitClicked($event)"
   >
     <div class="d-flex align-items-center">
@@ -45,7 +45,7 @@
       </mat-icon>
       <span>
         <strong>
-          {{ buttonText }}
+          {{ buttonText() }}
         </strong>
       </span>
     </div>
@@ -54,15 +54,15 @@
   <button
     mat-icon-button
     *ngSwitchCase="'iconButton'"
-    [class]="buttonClass"
-    [type]="type"
-    [color]="color"
-    [disabled]="disabled"
-    [routerLink]="buttonRouterLink"
-    [queryParams]="buttonQueryParams"
-    [matTooltip]="tooltip"
-    [matBadgeColor]="matBadgeColor"
-    [matBadge]="matBadgeContent"
+    [class]="buttonClass()"
+    [type]="type()"
+    [color]="color()"
+    [disabled]="disabled()"
+    [routerLink]="buttonRouterLink()"
+    [queryParams]="buttonQueryParams()"
+    [matTooltip]="tooltip()"
+    [matBadgeColor]="matBadgeColor()"
+    [matBadge]="matBadgeContent()"
     (click)="emitClicked($event)"
   >
     <mat-icon *ngIf="customIcon" [svgIcon]="customIcon"></mat-icon>

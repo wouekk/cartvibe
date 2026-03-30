@@ -1,4 +1,4 @@
-import { Component, Input } from "@angular/core";
+import { Component, input } from "@angular/core";
 import { FormControl, FormGroup } from "@angular/forms";
 import { CustomField, CustomFieldType } from "../../open-api/index";
 
@@ -9,7 +9,7 @@ import { CustomField, CustomFieldType } from "../../open-api/index";
   styleUrl: "./custom-field.component.scss"
 })
 export class CustomFieldComponent {
-  @Input() public formGroup!: FormGroup<{
+  public readonly formGroup = input.required<FormGroup<{
     receiptId: FormControl<number>;
     customFieldId: FormControl<number>;
     stringValue: FormControl<string>;
@@ -17,11 +17,11 @@ export class CustomFieldComponent {
     selectValue: FormControl<number>;
     currencyValue: FormControl<number>;
     booleanValue: FormControl<boolean>;
-  }>;
+}>>();
 
-  @Input() public customFields: CustomField[] = [];
+  public readonly customFields = input<CustomField[]>([]);
 
-  @Input() public readonly: boolean = false;
+  public readonly readonly = input<boolean>(false);
 
   protected readonly CustomFieldType = CustomFieldType;
 }

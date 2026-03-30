@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Input, OnChanges, OnInit, SimpleChanges, ViewEncapsulation } from "@angular/core";
+import { ChangeDetectorRef, Component, OnChanges, OnInit, SimpleChanges, ViewEncapsulation, input } from "@angular/core";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
 import {
@@ -22,9 +22,9 @@ import { GroupState } from "../../store/index";
   standalone: false
 })
 export class ActivityComponent implements OnInit, OnChanges {
-  @Input() public widget!: Widget;
+  public readonly widget = input.required<Widget>();
 
-  @Input() public groupId?: number;
+  public readonly groupId = input<number>();
 
   public group?: Group;
 
@@ -49,7 +49,7 @@ export class ActivityComponent implements OnInit, OnChanges {
 
   public ngOnChanges(changes: SimpleChanges): void {
     if (changes["groupId"] && changes["groupId"].currentValue) {
-      this.group = this.store.selectSnapshot(GroupState.getGroupById(this.groupId?.toString() ?? ""));
+      this.group = this.store.selectSnapshot(GroupState.getGroupById(this.groupId()?.toString() ?? ""));
     }
   }
 
@@ -77,7 +77,7 @@ export class ActivityComponent implements OnInit, OnChanges {
   }
 
   private getData(): void {
-    if (!this.groupId) {
+    if (!this.groupId()) {
       return;
     }
 
@@ -103,7 +103,7 @@ export class ActivityComponent implements OnInit, OnChanges {
     if (this.group?.isAllGroup) {
       return this.store.selectSnapshot(GroupState.groupsWithoutAll).map((group) => group.id);
     } else {
-      return [this.groupId ?? 0];
+      return [this.groupId() ?? 0];
     }
   }
 

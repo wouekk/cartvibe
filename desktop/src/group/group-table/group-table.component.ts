@@ -1,8 +1,8 @@
-import { AfterViewInit, Component, OnInit, TemplateRef, ViewChild } from "@angular/core";
+import { AfterViewInit, Component, OnInit, TemplateRef, viewChild } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
-import { Select, Store } from "@ngxs/store";
-import { Observable, take, tap } from "rxjs";
+import { Store } from "@ngxs/store";
+import { take, tap } from "rxjs";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { TableComponent } from "src/table/table/table.component";
 import { DEFAULT_DIALOG_CONFIG, DEFAULT_HOST_CLASS } from "../../constants";
@@ -31,20 +31,19 @@ import { GroupTableService } from "./group-table.service";
     standalone: false
 })
 export class GroupTableComponent extends BaseTableComponent<Group> implements OnInit, AfterViewInit {
-  @Select(GroupState.groups) public groups!: Observable<Group[]>;
+  public groups = this.store.selectSignal(GroupState.groups);
 
-  @ViewChild("nameCell") private nameCell!: TemplateRef<any>;
+  private readonly nameCell = viewChild.required<TemplateRef<any>>("nameCell");
 
-  @ViewChild("numberOfMembersCell")
-  private numberOfMembersCell!: TemplateRef<any>;
+  private readonly numberOfMembersCell = viewChild.required<TemplateRef<any>>("numberOfMembersCell");
 
-  @ViewChild("createdAtCell") private createdAtCell!: TemplateRef<any>;
+  private readonly createdAtCell = viewChild.required<TemplateRef<any>>("createdAtCell");
 
-  @ViewChild("updatedAtCell") private updatedAtCell!: TemplateRef<any>;
+  private readonly updatedAtCell = viewChild.required<TemplateRef<any>>("updatedAtCell");
 
-  @ViewChild("actionsCell") private actionsCell!: TemplateRef<any>;
+  private readonly actionsCell = viewChild.required<TemplateRef<any>>("actionsCell");
 
-  @ViewChild(TableComponent) private table!: TableComponent;
+  private readonly table = viewChild.required(TableComponent);
 
   public groupRole = GroupRole;
 
@@ -97,31 +96,31 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
       {
         columnHeader: "Name",
         matColumnDef: "name",
-        template: this.nameCell,
+        template: this.nameCell(),
         sortable: true,
       },
       {
         columnHeader: "Number of Members",
         matColumnDef: "number_of_members",
-        template: this.numberOfMembersCell,
+        template: this.numberOfMembersCell(),
         sortable: false,
       },
       {
         columnHeader: "Created At",
         matColumnDef: "created_at",
-        template: this.createdAtCell,
+        template: this.createdAtCell(),
         sortable: true,
       },
       {
         columnHeader: "Updated At",
         matColumnDef: "updated_at",
-        template: this.updatedAtCell,
+        template: this.updatedAtCell(),
         sortable: true,
       },
       {
         columnHeader: "Actions",
         matColumnDef: "actions",
-        template: this.actionsCell,
+        template: this.actionsCell(),
         sortable: false,
       },
     ];

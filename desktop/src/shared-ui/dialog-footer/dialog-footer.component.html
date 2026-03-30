@@ -1,15 +1,15 @@
 <div class="d-flex justify-content-end align-items-center">
   <app-submit-button
-    [tooltip]="submitButtonTooltip"
+    [tooltip]="submitButtonTooltip()"
     [disabled]="
-      disableWhenProgressBarIsShown ? (showProgressBar | async) ?? false : false
+      disableWhenProgressBarIsShown() ? showProgressBar() ?? false : false
     "
-    [type]="submitButtonType"
+    [type]="submitButtonType()"
     (clicked)="submitClicked.emit()"
   ></app-submit-button>
   <app-cancel-button
     [disabled]="
-      disableWhenProgressBarIsShown ? (showProgressBar | async) ?? false : false
+      disableWhenProgressBarIsShown() ? showProgressBar() ?? false : false
     "
     (clicked)="cancelClicked.emit()"
   ></app-cancel-button>

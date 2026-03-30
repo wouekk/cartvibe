@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, Input, OnInit, TemplateRef, ViewChild} from "@angular/core";
+import {AfterViewInit, Component, OnInit, TemplateRef, input, viewChild} from "@angular/core";
 import {FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {MatDialog} from "@angular/material/dialog";
 import {Sort} from "@angular/material/sort";
@@ -29,15 +29,15 @@ import {buildGroupMemberForm} from "../utils/group-member.utils";
     standalone: false
 })
 export class GroupFormComponent implements OnInit, AfterViewInit {
-  @ViewChild("nameCell") public nameCell!: TemplateRef<any>;
+  public readonly nameCell = viewChild.required<TemplateRef<any>>("nameCell");
 
-  @ViewChild("groupRoleCell") public groupRoleCell!: TemplateRef<any>;
+  public readonly groupRoleCell = viewChild.required<TemplateRef<any>>("groupRoleCell");
 
-  @ViewChild("actionsCell") public actionsCell!: TemplateRef<any>;
+  public readonly actionsCell = viewChild.required<TemplateRef<any>>("actionsCell");
 
-  @ViewChild(TableComponent) public table!: TableComponent;
+  public readonly table = viewChild.required(TableComponent);
 
-  @Input() public canEdit = true;
+  public readonly canEdit = input(true);
 
   public form: FormGroup = new FormGroup({});
 
@@ -111,19 +111,19 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
       {
         columnHeader: "Name",
         matColumnDef: "name",
-        template: this.nameCell,
+        template: this.nameCell(),
         sortable: true,
       },
       {
         columnHeader: "Group Role",
         matColumnDef: "groupRole",
-        template: this.groupRoleCell,
+        template: this.groupRoleCell(),
         sortable: true,
       },
       {
         columnHeader: "Actions",
         matColumnDef: "actions",
-        template: this.actionsCell,
+        template: this.actionsCell(),
         sortable: true,
       },
     ];
@@ -138,7 +138,7 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
     this.dataSource = new MatTableDataSource<GroupMember>(
       this.groupMembers.value ?? []
     );
-    this.dataSource.sort = this.table.sort;
+    this.dataSource.sort = this.table().sort();
   }
 
   public sortName(sortState: Sort): void {

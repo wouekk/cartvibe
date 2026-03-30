@@ -2,7 +2,7 @@
   #uploadInput
   class="upload-input"
   type="file"
-  [multiple]="multiple"
-  [accept]="acceptFileTypes"
+  [multiple]="multiple()"
+  [accept]="acceptFileTypes()"
   (change)="onFileChange($event)"
 />

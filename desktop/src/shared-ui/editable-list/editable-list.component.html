@@ -1,5 +1,5 @@
 <mat-list>
-  @for (row of listData; let i = $index; track row?.[trackByKey]) {
+  @for (row of listData(); let i = $index; track row?.[trackByKey()]) {
     @if ((rowOpenObservable | async) === i && editTemplate) {
       <ng-template
         [ngTemplateOutlet]="editTemplate"
@@ -9,16 +9,16 @@
       <mat-list-item>
         <ng-container
           matListItemTitle
-          [ngTemplateOutlet]="itemTitleTemplate"
+          [ngTemplateOutlet]="itemTitleTemplate()"
           [ngTemplateOutletContext]="{ row: row }"
         ></ng-container>
         <ng-container
           matListItemLine
-          [ngTemplateOutlet]="itemSubtitleTemplate"
+          [ngTemplateOutlet]="itemSubtitleTemplate()"
           [ngTemplateOutletContext]="{ row: row }"
         >
         </ng-container>
-        @if (!readonly) {
+        @if (!readonly()) {
           <div matListItemMeta>
             <app-edit-button
               color="accent"

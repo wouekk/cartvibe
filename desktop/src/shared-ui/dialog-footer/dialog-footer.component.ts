@@ -1,6 +1,5 @@
-import { Component, EventEmitter, Input, Output, TemplateRef, } from "@angular/core";
-import { Select } from "@ngxs/store";
-import { Observable } from "rxjs";
+import { Component, Input, TemplateRef, input, output } from "@angular/core";
+import { Store } from "@ngxs/store";
 import { LayoutState } from "src/store/layout.state";
 
 @Component({
@@ -11,12 +10,13 @@ import { LayoutState } from "src/store/layout.state";
 })
 export class DialogFooterComponent {
   @Input() public additionalButtonsTemplate?: TemplateRef<any>;
-  @Input() public submitButtonTooltip: string = "Save";
-  @Input() public submitButtonType: "button" | "submit" = "submit";
-  @Input() public disableWhenProgressBarIsShown: boolean = false;
-  @Output() public cancelClicked: EventEmitter<void> = new EventEmitter<void>();
-  @Output() public submitClicked: EventEmitter<void> = new EventEmitter<void>();
+  public readonly submitButtonTooltip = input<string>("Save");
+  public readonly submitButtonType = input<"button" | "submit">("submit");
+  public readonly disableWhenProgressBarIsShown = input<boolean>(false);
+  public readonly cancelClicked = output<void>();
+  public readonly submitClicked = output<void>();
 
-  @Select(LayoutState.showProgressBar)
-  public showProgressBar!: Observable<boolean>;
+  public showProgressBar = this.store.selectSignal(LayoutState.showProgressBar);
+
+  constructor(private store: Store) {}
 }

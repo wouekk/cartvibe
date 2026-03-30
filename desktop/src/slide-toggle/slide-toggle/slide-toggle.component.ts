@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 @Component({
     selector: 'app-slide-toggle',
@@ -7,9 +7,9 @@ import { Component, Input } from '@angular/core';
     standalone: false
 })
 export class SlideToggleComponent {
-  @Input() public color: string = '';
+  public readonly color = input<string>('');
 
-  @Input() public checked: boolean = false;
+  public readonly checked = input<boolean>(false);
 
-  @Input() public disabled: boolean = false;
+  public readonly disabled = input<boolean>(false);
 }

@@ -1,8 +1,8 @@
-import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
+import { Component, Input, OnInit, input, output } from "@angular/core";
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators, } from "@angular/forms";
 import { UntilDestroy } from "@ngneat/until-destroy";
-import { Select, Store } from "@ngxs/store";
-import { Observable, take, tap } from "rxjs";
+import { Store } from "@ngxs/store";
+import { take, tap } from "rxjs";
 import { FormMode } from "src/enums/form-mode.enum";
 import { Comment, CommentService } from "../../open-api";
 import { SnackbarService } from "../../services";
@@ -16,12 +16,11 @@ import { AuthState } from "../../store";
     standalone: false
 })
 export class ReceiptCommentsComponent implements OnInit {
-  @Select(AuthState.userId) public loggedInUserId!: Observable<string>;
+  loggedInUserId = this.store.selectSignal(AuthState.userId);
   @Input() public comments: Comment[] = [];
-  @Input() public mode!: FormMode;
-  @Input() public receiptId?: number;
-  @Output() public commentsUpdated: EventEmitter<FormArray> =
-    new EventEmitter<FormArray>();
+  public readonly mode = input.required<FormMode>();
+  public readonly receiptId = input<number>();
+  public readonly commentsUpdated = output<FormArray>();
 
   public formMode = FormMode;
 
@@ -54,7 +53,7 @@ export class ReceiptCommentsComponent implements OnInit {
         comment?.userId ??
         Number.parseInt(this.store.selectSnapshot(AuthState.userId)),
       ],
-      receiptId: [comment?.receiptId ?? this.receiptId],
+      receiptId: [comment?.receiptId ?? this.receiptId()],
     });
   }
 
@@ -63,14 +62,15 @@ export class ReceiptCommentsComponent implements OnInit {
     const newComment = {
       comment: this.newCommentFormControl.value,
       userId: Number.parseInt(this.store.selectSnapshot(AuthState.userId)),
-      receiptId: this.receiptId,
+      receiptId: this.receiptId(),
     } as any;
 
-    if (isValid && this.mode === FormMode.add) {
+    const mode = this.mode();
+    if (isValid && mode === FormMode.add) {
       this.commentsArray.push(this.buildCommentFormGroup(newComment));
       this.newCommentFormControl.reset();
       this.commentsUpdated.emit(this.commentsArray);
-    } else if (isValid && this.mode === FormMode.edit) {
+    } else if (isValid && mode === FormMode.edit) {
       this.commentService
         .addComment(newComment)
         .pipe(
@@ -87,7 +87,7 @@ export class ReceiptCommentsComponent implements OnInit {
   }
 
   public deleteComment(index: number): void {
-    switch (this.mode) {
+    switch (this.mode()) {
       case FormMode.edit:
       case FormMode.view:
         const comment = this.comments[index];

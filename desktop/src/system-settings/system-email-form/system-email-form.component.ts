@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, OnInit, viewChild } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { MatDialog } from "@angular/material/dialog";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -30,7 +30,7 @@ import { TaskTableComponent } from "../../shared-ui/task-table/task-table.compon
   standalone: false
 })
 export class SystemEmailFormComponent implements OnInit {
-  @ViewChild(TaskTableComponent) public taskTableComponent!: TaskTableComponent;
+  public readonly taskTableComponent = viewChild.required(TaskTableComponent);
 
   protected readonly AssociatedEntityType = AssociatedEntityType;
 
@@ -172,7 +172,7 @@ export class SystemEmailFormComponent implements OnInit {
           }
 
           if (this.formConfig.mode !== FormMode.add) {
-            this.taskTableComponent.getTableData();
+            this.taskTableComponent().getTableData();
           }
         })
       )

@@ -1,12 +1,12 @@
-import { AfterViewInit, ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild, ViewEncapsulation, } from "@angular/core";
+import { AfterViewInit, ChangeDetectorRef, Component, computed, OnInit, TemplateRef, ViewEncapsulation, viewChild } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { PageEvent } from "@angular/material/paginator";
 import { Sort } from "@angular/material/sort";
 import { MatTableDataSource } from "@angular/material/table";
 import { ActivatedRoute, Router } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
-import { Select, Store } from "@ngxs/store";
-import { map, Observable, take, tap } from "rxjs";
+import { Store } from "@ngxs/store";
+import { map, take, tap } from "rxjs";
 import { fadeInOut } from "src/animations";
 import { ReceiptFilterService } from "src/services/receipt-filter.service";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
@@ -24,7 +24,6 @@ import {
   GroupsService,
   PagedDataDataInner,
   Receipt,
-  ReceiptPagedRequestCommand,
   ReceiptService,
   ReceiptStatus,
   Tag,
@@ -65,40 +64,44 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     private store: Store,
   ) {}
 
-  @ViewChild("createdAtCell") createdAtCell!: TemplateRef<any>;
+  readonly createdAtCell = viewChild.required<TemplateRef<any>>("createdAtCell");
 
-  @ViewChild("dateCell") dateCell!: TemplateRef<any>;
+  readonly dateCell = viewChild.required<TemplateRef<any>>("dateCell");
 
-  @ViewChild("nameCell") nameCell!: TemplateRef<any>;
+  readonly nameCell = viewChild.required<TemplateRef<any>>("nameCell");
 
-  @ViewChild("paidByCell") paidByCell!: TemplateRef<any>;
+  readonly paidByCell = viewChild.required<TemplateRef<any>>("paidByCell");
 
-  @ViewChild("amountCell") amountCell!: TemplateRef<any>;
+  readonly amountCell = viewChild.required<TemplateRef<any>>("amountCell");
 
-  @ViewChild("categoryCell") categoryCell!: TemplateRef<any>;
+  readonly categoryCell = viewChild.required<TemplateRef<any>>("categoryCell");
 
-  @ViewChild("tagCell") tagCell!: TemplateRef<any>;
+  readonly tagCell = viewChild.required<TemplateRef<any>>("tagCell");
 
-  @ViewChild("statusCell") statusCell!: TemplateRef<any>;
+  readonly statusCell = viewChild.required<TemplateRef<any>>("statusCell");
 
-  @ViewChild("resolvedDateCell") resolvedDateCell!: TemplateRef<any>;
+  readonly resolvedDateCell = viewChild.required<TemplateRef<any>>("resolvedDateCell");
 
-  @ViewChild("actionsCell") actionsCell!: TemplateRef<any>;
+  readonly actionsCell = viewChild.required<TemplateRef<any>>("actionsCell");
 
-  @ViewChild(TableComponent) table!: TableComponent;
+  readonly table = viewChild.required(TableComponent);
 
-  @Select(ReceiptTableState.page) public page!: Observable<number>;
+  public page = this.store.selectSignal(ReceiptTableState.page);
 
-  @Select(ReceiptTableState.pageSize) public pageSize!: Observable<number>;
+  public pageSize = this.store.selectSignal(ReceiptTableState.pageSize);
 
-  @Select(ReceiptTableState.filterData) public filter!: Observable<ReceiptPagedRequestCommand>;
+  public filter = this.store.selectSignal(ReceiptTableState.filterData);
 
-  @Select(ReceiptTableState.columnConfig) public columnConfig!: Observable<ReceiptTableColumnConfig[]>;
+  public columnConfig = this.store.selectSignal(ReceiptTableState.columnConfig);
 
-  @Select(GroupState.selectedGroupId)
-  public selectedGroupId!: Observable<string>;
+  public selectedGroupId = this.store.selectSignal(GroupState.selectedGroupId);
 
-  public numFiltersApplied!: Observable<number | undefined>;
+  private numFiltersAppliedRaw = this.store.selectSignal(ReceiptTableState.numFiltersApplied);
+
+  public numFiltersApplied = computed(() => {
+    const num = this.numFiltersAppliedRaw();
+    return num > 0 ? num : undefined;
+  });
 
   public categories: Category[] = [];
 
@@ -135,17 +138,6 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     this.setCanEdit();
 
     this.setHeaderText();
-    this.numFiltersApplied = this.store
-      .select(ReceiptTableState.numFiltersApplied)
-      .pipe(
-        map((num) => {
-          if (num > 0) {
-            return num;
-          } else {
-            return undefined;
-          }
-        })
-      );
 
     const data = this.activatedRoute.snapshot.data;
     this.categories = data["categories"];
@@ -194,7 +186,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   }
 
   private setSelectedReceiptIdsObservable(): void {
-    this.table?.selection?.changed
+    this.table()?.selection?.changed
       .pipe(
         untilDestroyed(this),
         map((event) => (event.source.selected as Receipt[]).map((r) => r.id)),
@@ -210,55 +202,55 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
       {
         columnHeader: "Added At",
         matColumnDef: "created_at",
-        template: this.createdAtCell,
+        template: this.createdAtCell(),
         sortable: true,
       },
       {
         columnHeader: "Receipt Date",
         matColumnDef: "date",
-        template: this.dateCell,
+        template: this.dateCell(),
         sortable: true,
       },
       {
         columnHeader: "Name",
         matColumnDef: "name",
-        template: this.nameCell,
+        template: this.nameCell(),
         sortable: true,
       },
       {
         columnHeader: "Paid By",
         matColumnDef: "paid_by_user_id",
-        template: this.paidByCell,
+        template: this.paidByCell(),
         sortable: true,
       },
       {
         columnHeader: "Amount",
         matColumnDef: "amount",
-        template: this.amountCell,
+        template: this.amountCell(),
         sortable: true,
       },
       {
         columnHeader: "Categories",
         matColumnDef: "categories",
-        template: this.categoryCell,
+        template: this.categoryCell(),
         sortable: false,
       },
       {
         columnHeader: "Tags",
         matColumnDef: "tags",
-        template: this.tagCell,
+        template: this.tagCell(),
         sortable: false,
       },
       {
         columnHeader: "Status",
         matColumnDef: "status",
-        template: this.statusCell,
+        template: this.statusCell(),
         sortable: true,
       },
       {
         columnHeader: "Resolved Date",
         matColumnDef: "resolved_date",
-        template: this.resolvedDateCell,
+        template: this.resolvedDateCell(),
         sortable: true,
       },
     ] as TableColumn[];
@@ -278,7 +270,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
       columns.push({
         columnHeader: "Actions",
         matColumnDef: "actions",
-        template: this.actionsCell,
+        template: this.actionsCell(),
         sortable: false,
       });
       displayColumns.push("actions");
@@ -464,9 +456,10 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
             }
               | undefined
           ) => {
-            if (this.table.selection.hasValue() && commentForm) {
+            const table = this.table();
+            if (table.selection.hasValue() && commentForm) {
               const receiptIds = (
-                this.table.selection.selected as Receipt[]
+                table.selection.selected as Receipt[]
               ).map((r) => r.id as number);
 
               const bulkResolve: BulkStatusUpdateCommand = {

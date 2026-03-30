@@ -1,4 +1,4 @@
-@let customField = (formGroup.value.customFieldId ?? 0)| customField: customFields;
+@let customField = (formGroup().value.customFieldId ?? 0)| customField: customFields();
 @let label = customField?.name ?? '';
 
 <ng-container
@@ -17,8 +17,8 @@
     type="text"
     [label]="label"
     [isCurrency]="true"
-    [inputFormControl]="formGroup.controls.currencyValue"
-    [readonly]="readonly"
+    [inputFormControl]="formGroup().controls.currencyValue"
+    [readonly]="readonly()"
   ></app-input>
 </ng-template>
 
@@ -26,8 +26,8 @@
   <app-datepicker
     class="w-100"
     [label]="label"
-    [inputFormControl]="formGroup.controls.dateValue"
-    [readonly]="readonly"
+    [inputFormControl]="formGroup().controls.dateValue"
+    [readonly]="readonly()"
   ></app-datepicker>
 </ng-template>
 
@@ -35,8 +35,8 @@
   <app-input
     class="w-100"
     [label]="label"
-    [inputFormControl]="formGroup.controls.stringValue"
-    [readonly]="readonly"
+    [inputFormControl]="formGroup().controls.stringValue"
+    [readonly]="readonly()"
   ></app-input>
 </ng-template>
 
@@ -47,9 +47,9 @@
     optionDisplayKey="value"
     optionValueKey="id"
     [label]="label"
-    [inputFormControl]="formGroup.controls.selectValue"
+    [inputFormControl]="formGroup().controls.selectValue"
     [options]="customField?.options ?? []"
-    [readonly]="readonly"
+    [readonly]="readonly()"
   ></app-select>
 </ng-template>
 
@@ -58,7 +58,7 @@
 >
   <app-checkbox
     [label]="label"
-    [inputFormControl]="formGroup.controls.booleanValue"
-    [readonly]="readonly"
+    [inputFormControl]="formGroup().controls.booleanValue"
+    [readonly]="readonly()"
   ></app-checkbox>
 </ng-template>

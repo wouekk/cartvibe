@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges } from "@angular/core";
+import { Component, OnChanges, SimpleChanges, input } from "@angular/core";
 import { UntilDestroy } from "@ngneat/until-destroy";
 import { take, tap } from "rxjs";
 import { UserService } from "../../open-api";
@@ -14,11 +14,11 @@ import { UserService } from "../../open-api";
 export class SummaryCardComponent implements OnChanges {
   constructor(private userService: UserService) {}
 
-  @Input() public headerText: string = "";
+  public readonly headerText = input<string>("");
 
-  @Input() public groupId: string | number = "";
+  public readonly groupId = input<string | number>("");
 
-  @Input() public receiptIds: number[] = [];
+  public readonly receiptIds = input<number[]>([]);
 
   public usersOweMap: Map<string, string> = new Map();
   public userOwesMap: Map<string, string> = new Map();
@@ -30,19 +30,20 @@ export class SummaryCardComponent implements OnChanges {
   }
 
   private buildOweMap(): void {
-    if (!this.groupId) {
+    const groupId = this.groupId();
+    if (!groupId) {
       return;
     }
 
-    let id: any = Number.parseInt(this.groupId as any) || (this.groupId as any);
-    if (this.receiptIds.length > 0) {
+    let id: any = Number.parseInt(groupId as any) || (groupId as any);
+    if (this.receiptIds().length > 0) {
       id = undefined;
     }
     
     this.userService
       .getAmountOwedForUser(
         id,
-        this.receiptIds
+        this.receiptIds()
       )
       .pipe(
         take(1),

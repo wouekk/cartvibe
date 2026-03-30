@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnChanges, OnInit, SimpleChanges, TemplateRef, ViewChild, } from "@angular/core";
+import { Component, ElementRef, Input, OnChanges, OnInit, SimpleChanges, TemplateRef, input, viewChild } from "@angular/core";
 import { FormArray, FormControl, Validators } from "@angular/forms";
 import { MatAutocompleteSelectedEvent, MatAutocompleteTrigger, } from "@angular/material/autocomplete";
 import { map, Observable, of, startWith } from "rxjs";
@@ -15,33 +15,31 @@ export class AutocomleteComponent
   implements OnInit, OnChanges {
   @Input() public inputId: string = "";
 
-  @Input() public options: any[] = [];
+  public readonly options = input<any[]>([]);
 
   @Input() public optionTemplate!: TemplateRef<any>;
 
   @Input() public optionChipTemplate!: TemplateRef<any>;
 
-  @Input() public optionFilterKey: string = "";
+  public readonly optionFilterKey = input<string>("");
 
   @Input() public optionValueKey: string = "";
 
-  @Input() public optionDisplayKey: string = "";
+  public readonly optionDisplayKey = input<string>("");
 
   @Input() public multiple: boolean = false;
 
-  @Input() public displayWith!: (value: any) => string;
+  public readonly displayWith = input<(value: any) => string>(() => '');
 
-  @Input() public creatable: boolean = false;
+  public readonly creatable = input<boolean>(false);
 
-  @Input() public defaultCreatableObject: any = {};
+  public readonly defaultCreatableObject = input<any>({});
 
-  @Input() public creatableValueKey: string = "";
+  public readonly creatableValueKey = input<string>("");
 
-  @ViewChild(MatAutocompleteTrigger)
-  public matAutocompleteTrigger!: MatAutocompleteTrigger;
+  public readonly matAutocompleteTrigger = viewChild.required(MatAutocompleteTrigger);
 
-  @ViewChild("inputMultiple")
-  public inputMultiple!: ElementRef;
+  public readonly inputMultiple = viewChild.required<ElementRef>("inputMultiple");
 
   public filteredOptions: Observable<any[]> = of([]);
 
@@ -113,11 +111,12 @@ export class AutocomleteComponent
       const selectedValues = (formArray.value as any[]) ?? [];
       // TODO: Restrict the user form adding an already added value
 
-      return this.options
+      return this.options()
         .filter((o) => !selectedValues.includes(o))
         .filter((option) => {
-          if (this.optionFilterKey) {
-            return option[this.optionFilterKey]
+          const optionFilterKey = this.optionFilterKey();
+          if (optionFilterKey) {
+            return option[optionFilterKey]
               .toLowerCase()
               .includes(filterValue);
           } else {
@@ -125,12 +124,12 @@ export class AutocomleteComponent
           }
         });
     } else {
-      if (this.optionFilterKey) {
-        return this.options.filter((option) =>
-          option[this.optionFilterKey].toLowerCase().includes(filterValue)
+      if (this.optionFilterKey()) {
+        return this.options().filter((option) =>
+          option[this.optionFilterKey()].toLowerCase().includes(filterValue)
         );
       } else {
-        return this.options.filter((o) => o.toLowerCase().includes(filterValue));
+        return this.options().filter((o) => o.toLowerCase().includes(filterValue));
       }
     }
   }
@@ -143,8 +142,8 @@ export class AutocomleteComponent
       if (customOptionSelected && !this.optionValueKey) {
         formArray.push(
           new FormControl({
-            ...this.defaultCreatableObject,
-            [this.creatableValueKey]: this.filterFormControl.value,
+            ...this.defaultCreatableObject(),
+            [this.creatableValueKey()]: this.filterFormControl.value,
           })
         );
       } else if (customOptionSelected && this.optionValueKey) {
@@ -167,7 +166,7 @@ export class AutocomleteComponent
       (document.getElementById(this.inputId) as any).value = "";
     }
     this.filterFormControl.setValue("");
-    this.matAutocompleteTrigger.openPanel();
+    this.matAutocompleteTrigger().openPanel();
   }
 
   public removeOption(index: number) {
@@ -175,7 +174,7 @@ export class AutocomleteComponent
       const formArray = this.inputFormControl as any as FormArray;
       formArray.removeAt(index);
       this.filterFormControl.setValue(null);
-      this.inputMultiple.nativeElement.focus();
+      this.inputMultiple().nativeElement.focus();
     }
   }
 

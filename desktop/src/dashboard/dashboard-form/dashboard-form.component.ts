@@ -1,4 +1,4 @@
-import { Component, OnInit, QueryList, ViewChild, ViewChildren, ViewEncapsulation } from "@angular/core";
+import { Component, OnInit, ViewEncapsulation, viewChildren, viewChild } from "@angular/core";
 import { FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { MatDialogRef } from "@angular/material/dialog";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
@@ -23,11 +23,9 @@ import { widgetTypeOptions } from "../constants/widget-options";
     standalone: false
 })
 export class DashboardFormComponent extends BaseFormComponent implements OnInit {
-  @ViewChildren(ReceiptFilterComponent)
-  public receiptFilterComponents!: QueryList<ReceiptFilterComponent>;
+  public readonly receiptFilterComponents = viewChildren(ReceiptFilterComponent);
 
-  @ViewChild(EditableListComponent)
-  public widgetList!: EditableListComponent;
+  public readonly widgetList = viewChild.required(EditableListComponent);
 
   public headerText: string = "";
 
@@ -123,9 +121,9 @@ export class DashboardFormComponent extends BaseFormComponent implements OnInit 
   }
 
   public submit(): void {
-    const canSubmit = this.form.valid && this.widgetList.getCurrentRowOpen() === undefined;
+    const canSubmit = this.form.valid && this.widgetList().getCurrentRowOpen() === undefined;
 
-    if (this.widgetList.getCurrentRowOpen() !== undefined) {
+    if (this.widgetList().getCurrentRowOpen() !== undefined) {
       this.snackbarService.error(
         "Please finish editing the open widget before submitting"
       );
@@ -169,7 +167,7 @@ export class DashboardFormComponent extends BaseFormComponent implements OnInit 
     if (widget["widgetType"] === WidgetType.FilteredReceipts) {
       this.filterSubmitted();
     } else {
-      this.widgetList.closeRow();
+      this.widgetList().closeRow();
     }
   }
 
@@ -183,24 +181,25 @@ export class DashboardFormComponent extends BaseFormComponent implements OnInit 
       widgetType: undefined,
     } as Widget);
     this.widgets.push(formGroup);
-    this.widgetList.openLastRow();
+    this.widgetList().openLastRow();
     this.isAddingWidget = true;
   }
 
   public cancelWidgetEdit(): void {
     if (this.isAddingWidget) {
       this.widgets.removeAt(this.widgets.length - 1);
-      this.widgetList.closeRow();
+      this.widgetList().closeRow();
       this.isAddingWidget = false;
     } else {
-      const widget = this.originalWidgets[this.widgetList.getCurrentRowOpen() as number];
+      const widget = this.originalWidgets[this.widgetList().getCurrentRowOpen() as number];
 
+      const widgetList = this.widgetList();
       if (widget.widgetType === WidgetType.FilteredReceipts) {
-        this.patchFilterConfig(this.widgetList.getCurrentRowOpen() as number);
+        this.patchFilterConfig(widgetList.getCurrentRowOpen() as number);
       } else {
-        this.widgets.at(this.widgetList.getCurrentRowOpen() as number).patchValue(widget);
+        this.widgets.at(widgetList.getCurrentRowOpen() as number).patchValue(widget);
       }
-      this.widgetList.closeRow();
+      widgetList.closeRow();
     }
   }
 
@@ -208,28 +207,29 @@ export class DashboardFormComponent extends BaseFormComponent implements OnInit 
     if (this.isAddingWidget) {
       const widget = this.widgets.at(this.widgets.length - 1) as FormGroup;
       if (widget.valid) {
-        const form = this.receiptFilterComponents.last.parentForm;
+        const form = this.receiptFilterComponents().at(-1)!.parentForm;
         widget.get("configuration")?.patchValue(form.value);
         this.originalWidgets.push(widget.value);
 
-        this.widgetList.closeRow();
+        this.widgetList().closeRow();
         this.isAddingWidget = false;
       }
     } else {
       const widget = this.widgets.at(
-        this.widgetList.getCurrentRowOpen() as number
+        this.widgetList().getCurrentRowOpen() as number
       ) as FormGroup;
 
       if (widget.valid) {
-        const form = this.receiptFilterComponents.first.parentForm;
+        const form = this.receiptFilterComponents().at(0)!.parentForm;
         widget.get("configuration")?.patchValue(form.value);
+        const widgetList = this.widgetList();
         this.originalWidgets.splice(
-          this.widgetList.getCurrentRowOpen() as number,
+          widgetList.getCurrentRowOpen() as number,
           1,
           widget.value
         );
 
-        this.widgetList.closeRow();
+        widgetList.closeRow();
       }
     }
   }

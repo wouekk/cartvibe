@@ -3,7 +3,7 @@
   icon="arrow_back"
   color="accent"
   buttonText="Back"
-  [buttonRouterLink]="buttonRouterLink"
+  [buttonRouterLink]="buttonRouterLink()"
   [disabled]="disabled"
   [tooltip]="tooltip ?? 'Back'"
   (clicked)="clicked.emit()"

@@ -1,12 +1,11 @@
-import {AfterViewInit, Component, OnInit, TemplateRef, ViewChild} from "@angular/core";
+import {AfterViewInit, Component, OnInit, TemplateRef, viewChild} from "@angular/core";
 import {MatDialog} from "@angular/material/dialog";
 import {PageEvent} from "@angular/material/paginator";
 import {Sort} from "@angular/material/sort";
 import {MatTableDataSource} from "@angular/material/table";
 import {ActivatedRoute} from "@angular/router";
-import {Select, Store} from "@ngxs/store";
-import {Observable, take, tap} from "rxjs";
-import {PagedTableInterface} from "../../interfaces/paged-table.interface";
+import {Store} from "@ngxs/store";
+import {take, tap} from "rxjs";
 import {CheckEmailConnectivityCommand, Group, SystemEmail, SystemEmailService, SystemTaskStatus} from "../../open-api";
 import {SnackbarService} from "../../services";
 import {ConfirmationDialogComponent} from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
@@ -21,17 +20,17 @@ import {TableColumn} from "../../table/table-column.interface";
     standalone: false
 })
 export class SystemEmailTableComponent implements OnInit, AfterViewInit {
-  @ViewChild("usernameCell") public usernameCell!: TemplateRef<any>;
+  public readonly usernameCell = viewChild.required<TemplateRef<any>>("usernameCell");
 
-  @ViewChild("hostCell") public hostCell!: TemplateRef<any>;
+  public readonly hostCell = viewChild.required<TemplateRef<any>>("hostCell");
 
-  @ViewChild("createdAtCell") public createdAtCell!: TemplateRef<any>;
+  public readonly createdAtCell = viewChild.required<TemplateRef<any>>("createdAtCell");
 
-  @ViewChild("updatedAtCell") public updatedAtCell!: TemplateRef<any>;
+  public readonly updatedAtCell = viewChild.required<TemplateRef<any>>("updatedAtCell");
 
-  @ViewChild("actionsCell") public actionsCell!: TemplateRef<any>;
+  public readonly actionsCell = viewChild.required<TemplateRef<any>>("actionsCell");
 
-  @Select(SystemEmailTableState.state) public tableState!: Observable<PagedTableInterface>;
+  public tableState = this.store.selectSignal(SystemEmailTableState.state);
 
   public displayedColumns: string[] = [];
 
@@ -73,31 +72,31 @@ export class SystemEmailTableComponent implements OnInit, AfterViewInit {
       {
         columnHeader: "Username",
         matColumnDef: "username",
-        template: this.usernameCell,
+        template: this.usernameCell(),
         sortable: true
       },
       {
         columnHeader: "Host",
         matColumnDef: "host",
-        template: this.hostCell,
+        template: this.hostCell(),
         sortable: true
       },
       {
         columnHeader: "Created At",
         matColumnDef: "created_at",
-        template: this.createdAtCell,
+        template: this.createdAtCell(),
         sortable: true
       },
       {
         columnHeader: "Updated At",
         matColumnDef: "updated_at",
-        template: this.updatedAtCell,
+        template: this.updatedAtCell(),
         sortable: true
       },
       {
         columnHeader: "Actions",
         matColumnDef: "actions",
-        template: this.actionsCell,
+        template: this.actionsCell(),
         sortable: false
       },
 

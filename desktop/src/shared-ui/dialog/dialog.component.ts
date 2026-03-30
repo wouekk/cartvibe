@@ -1,4 +1,4 @@
-import { Component, Input, TemplateRef } from "@angular/core";
+import { Component, Input, TemplateRef, input } from "@angular/core";
 
 @Component({
     selector: "app-dialog",
@@ -7,7 +7,7 @@ import { Component, Input, TemplateRef } from "@angular/core";
     standalone: false
 })
 export class DialogComponent {
-  @Input() public headerText: string = "";
+  public readonly headerText = input<string>("");
 
   @Input() public actionsTemplate?: TemplateRef<any>;
 }

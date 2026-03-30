@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef, ViewChild } from "@angular/core";
+import { Component, OnInit, TemplateRef, viewChild } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { AssociatedEntityType, Prompt, ReceiptProcessingSettings } from "../../open-api";
 import { TABLE_SERVICE_INJECTION_TOKEN } from "../../services/injection-tokens/table-service";
@@ -18,8 +18,8 @@ import { TaskTableComponent } from "../../shared-ui/task-table/task-table.compon
   standalone: false
 })
 export class SystemTaskTableComponent implements OnInit {
-  @ViewChild("expandedRowTemplate") public expandedRowTemplate!: TemplateRef<any>;
-  @ViewChild(TaskTableComponent) public taskTableComponent!: TaskTableComponent;
+  public readonly expandedRowTemplate = viewChild.required<TemplateRef<any>>("expandedRowTemplate");
+  public readonly taskTableComponent = viewChild.required(TaskTableComponent);
 
   public prompts: Prompt[] = [];
   public allReceiptProcessingSettings: ReceiptProcessingSettings[] = [];
@@ -33,6 +33,6 @@ export class SystemTaskTableComponent implements OnInit {
   }
 
   public refresh(): void {
-    this.taskTableComponent.getTableData();
+    this.taskTableComponent().getTableData();
   }
 }

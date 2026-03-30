@@ -1,12 +1,12 @@
-<app-dialog *ngIf="inDialog" [headerText]="headerText">
+<app-dialog *ngIf="inDialog()" [headerText]="headerText">
   <ng-template [ngTemplateOutlet]="formTemplate"></ng-template>
 </app-dialog>
-<ng-container *ngIf="!inDialog">
+<ng-container *ngIf="!inDialog()">
   <div [ngTemplateOutlet]="formTemplate"></div>
 </ng-container>
 
 <ng-template #formTemplate>
-  <ng-container *ngIf="isOpen; else preview">
+  <ng-container *ngIf="isOpen(); else preview">
     <ng-template
       [ngTemplateOutlet]="filterField"
       [ngTemplateOutletContext]="{
@@ -105,7 +105,7 @@
     ></ng-template>
 
     <ng-template
-      [ngTemplateOutlet]="footerTemplate ?? defaultFooter"
+      [ngTemplateOutlet]="footerTemplate() ?? defaultFooter"
     ></ng-template>
   </ng-container>
 </ng-template>
@@ -114,7 +114,7 @@
   <ng-template
     *ngIf="previewTemplate"
     [ngTemplateOutlet]="previewTemplate"
-    [ngTemplateOutletContext]="previewTemplateContext"
+    [ngTemplateOutletContext]="previewTemplateContext()"
   ></ng-template>
 </ng-template>
 

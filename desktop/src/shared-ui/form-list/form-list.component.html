@@ -1,23 +1,23 @@
 <mat-list role="list">
-  <strong class="mb-2">{{ headerText }}</strong>
-  <div class="mb-2" *ngIf="array.length === 0">{{ nothingToDisplayText }}</div>
+  <strong class="mb-2">{{ headerText() }}</strong>
+  <div class="mb-2" *ngIf="array().length === 0">{{ nothingToDisplayText() }}</div>
   <mat-list-item
     class="w-100 h-100"
-    *ngFor="let item of array; let index = index; let last = last"
+    *ngFor="let item of array(); let index = index; let last = last"
     role="listitem"
   >
     <div class="d-flex align-items-center justify-content-center">
       <div class="w-100 mb-2">
         <ng-template
           [ngTemplateOutlet]="
-            editingIndex === index ? itemEditTemplate : itemDisplayTemplate
+            editingIndex === index ? itemEditTemplate() : itemDisplayTemplate()
           "
           [ngTemplateOutletContext]="{
             index: index
           }"
         ></ng-template>
       </div>
-      <div *ngIf="editingIndex !== index && !disabled">
+      <div *ngIf="editingIndex !== index && !disabled()">
         <app-edit-button
           color="accent"
           (clicked)="onItemEditButtonClicked(index)"
@@ -45,8 +45,8 @@
   <div class="w-50">
     <app-button
       color="accent"
-      [buttonText]="addButtonText"
-      [disabled]="editingIndex !== -1 || disabled"
+      [buttonText]="addButtonText()"
+      [disabled]="editingIndex !== -1 || disabled()"
       (clicked)="onAddButtonClicked()"
     ></app-button>
   </div>

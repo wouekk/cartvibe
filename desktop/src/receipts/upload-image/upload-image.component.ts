@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, ViewChild } from "@angular/core";
+import { Component, input, output, viewChild } from "@angular/core";
 import { take, tap } from "rxjs";
 import { FormMode } from "src/enums/form-mode.enum";
 import { ReceiptFileUploadCommand } from "../../interfaces";
@@ -11,33 +11,32 @@ import { ReceiptImageService } from "../../open-api";
     standalone: false
 })
 export class UploadImageComponent {
-  @ViewChild("uploadInput") uploadInput!: any;
+  readonly uploadInput = viewChild.required<any>("uploadInput");
 
-  @Input() public receiptId?: string = "";
+  public readonly receiptId = input<string | undefined>("");
 
-  @Input() public multiple: boolean = true;
+  public readonly multiple = input<boolean>(true);
 
-  @Input() public acceptFileTypes: string[] = [
+  public readonly acceptFileTypes = input<string[]>([
     "image/*",
     "application/pdf",
     "image/heic",
-  ];
+]);
 
-  @Output() public fileLoaded: EventEmitter<ReceiptFileUploadCommand> =
-    new EventEmitter();
+  public readonly fileLoaded = output<ReceiptFileUploadCommand>();
 
   public formMode = FormMode;
   
   constructor(private receiptImageService: ReceiptImageService) {}
 
   public clickInput(): void {
-    this.uploadInput.nativeElement.click();
+    this.uploadInput().nativeElement.click();
   }
 
   public async onFileChange(event: any): Promise<void> {
     const files: File[] = Array.from(event?.target?.files ?? []);
     const acceptedFiles = files.filter((f) =>
-      this.acceptFileTypes.some((t) => new RegExp(t).test(f.type))
+      this.acceptFileTypes().some((t) => new RegExp(t).test(f.type))
     );
 
     for (let i = 0; i < acceptedFiles.length; i++) {
@@ -47,7 +46,7 @@ export class UploadImageComponent {
       reader.onload = () => {
         const command: ReceiptFileUploadCommand = {
           file: f,
-          receiptId: Number(this.receiptId),
+          receiptId: Number(this.receiptId()),
         };
 
         if (f.type === "application/pdf" || f.type === "image/heic") {

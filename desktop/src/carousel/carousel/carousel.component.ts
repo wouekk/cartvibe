@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewEncapsulation, } from "@angular/core";
+import { Component, OnChanges, SimpleChanges, ViewEncapsulation, input, output } from "@angular/core";
 import { UntilDestroy } from "@ngneat/until-destroy";
 import { FormMode } from "src/enums/form-mode.enum";
 import { ReceiptFileUploadCommand } from "../../interfaces";
@@ -13,20 +13,19 @@ import { FileDataView } from "../../open-api";
     standalone: false
 })
 export class CarouselComponent implements OnChanges {
-  @Input() public images: FileDataView[] = [];
+  public readonly images = input<FileDataView[]>([]);
 
-  @Input() public imagePreviews: ReceiptFileUploadCommand[] = [];
+  public readonly imagePreviews = input<ReceiptFileUploadCommand[]>([]);
 
-  @Input() public disabled: boolean = false;
+  public readonly disabled = input<boolean>(false);
 
-  @Input() public mode!: FormMode;
+  public readonly mode = input.required<FormMode>();
 
-  @Input() public hideButtonControls: boolean = false;
+  public readonly hideButtonControls = input<boolean>(false);
 
-  @Input() public initialIndex: number = -1;
+  public readonly initialIndex = input<number>(-1);
 
-  @Output() public removeButtonClicked: EventEmitter<number> =
-    new EventEmitter<number>();
+  public readonly removeButtonClicked = output<number>();
 
   public scale: number = 1;
 
@@ -34,7 +33,7 @@ export class CarouselComponent implements OnChanges {
 
   public ngOnChanges(changes: SimpleChanges): void {
     if (changes["initialIndex"]) {
-      this.currentlyShownImageIndex = this.initialIndex;
+      this.currentlyShownImageIndex = this.initialIndex();
     }
   }
 

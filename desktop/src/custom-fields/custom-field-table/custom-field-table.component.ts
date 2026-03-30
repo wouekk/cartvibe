@@ -1,11 +1,10 @@
-import { AfterViewInit, Component, OnInit, TemplateRef, ViewChild } from "@angular/core";
+import { AfterViewInit, Component, OnInit, TemplateRef, viewChild } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { PageEvent } from "@angular/material/paginator";
 import { Sort } from "@angular/material/sort";
 import { MatTableDataSource } from "@angular/material/table";
-import { Select, Store } from "@ngxs/store";
-import { Observable, of, switchMap, take, tap } from "rxjs";
-import { PagedTableInterface } from "src/interfaces/paged-table.interface";
+import { Store } from "@ngxs/store";
+import { of, switchMap, take, tap } from "rxjs";
 import { CustomField, CustomFieldService, PagedDataDataInner, PagedRequestCommand, UserRole } from "src/open-api";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { CategoryTableState } from "src/store/category-table.state";
@@ -25,18 +24,17 @@ import { CustomFieldFormComponent } from "../custom-field-form/custom-field-form
   standalone: false
 })
 export class CustomFieldTableComponent implements OnInit, AfterViewInit {
-  @ViewChild("nameCell") public nameCell!: TemplateRef<any>;
+  public readonly nameCell = viewChild.required<TemplateRef<any>>("nameCell");
 
-  @ViewChild("typeCell") public typeCell!: TemplateRef<any>;
+  public readonly typeCell = viewChild.required<TemplateRef<any>>("typeCell");
 
-  @ViewChild("descriptionCell") public descriptionCell!: TemplateRef<any>;
+  public readonly descriptionCell = viewChild.required<TemplateRef<any>>("descriptionCell");
 
-  @ViewChild("actionsCell")
-  public actionsCell!: TemplateRef<any>;
+  public readonly actionsCell = viewChild.required<TemplateRef<any>>("actionsCell");
 
-  @ViewChild(TableComponent) public table!: TableComponent;
+  public readonly table = viewChild.required(TableComponent);
 
-  @Select(CategoryTableState.state) public state!: Observable<PagedTableInterface>;
+  public state = this.store.selectSignal(CategoryTableState.state);
   // @ts-ignore
   public dataSource: MatTableDataSource<PagedDataDataInner> =
     new MatTableDataSource<PagedDataDataInner>([]);
@@ -129,25 +127,25 @@ export class CustomFieldTableComponent implements OnInit, AfterViewInit {
       {
         columnHeader: "Name",
         matColumnDef: "name",
-        template: this.nameCell,
+        template: this.nameCell(),
         sortable: true,
       },
       {
         columnHeader: "Type",
         matColumnDef: "type",
-        template: this.typeCell,
+        template: this.typeCell(),
         sortable: true,
       },
       {
         columnHeader: "Description",
         matColumnDef: "description",
-        template: this.descriptionCell,
+        template: this.descriptionCell(),
         sortable: true,
       },
       {
         columnHeader: "Actions",
         matColumnDef: "actions",
-        template: this.actionsCell,
+        template: this.actionsCell(),
         sortable: false,
       }
     ] as TableColumn[];

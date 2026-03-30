@@ -1,9 +1,8 @@
 import {
   Component,
-  EventEmitter,
-  Input,
-  Output,
   TemplateRef,
+  input,
+  output
 } from '@angular/core';
 
 @Component({
@@ -13,35 +12,32 @@ import {
     standalone: false
 })
 export class FormListComponent {
-  @Input() public array: any[] = [];
+  public readonly array = input<any[]>([]);
 
-  @Input() public itemDisplayTemplate!: TemplateRef<any>;
+  public readonly itemDisplayTemplate = input.required<TemplateRef<any>>();
 
-  @Input() public itemEditTemplate!: TemplateRef<any>;
+  public readonly itemEditTemplate = input.required<TemplateRef<any>>();
 
-  @Input() public nothingToDisplayText: string = '';
+  public readonly nothingToDisplayText = input<string>('');
 
-  @Input() public addButtonText: string = '';
+  public readonly addButtonText = input<string>('');
 
-  @Input() public headerText: string = '';
+  public readonly headerText = input<string>('');
 
-  @Input() public disabled: boolean = false;
+  public readonly disabled = input<boolean>(false);
 
-  @Output() public addButtonClicked: EventEmitter<void> = new EventEmitter();
+  public readonly addButtonClicked = output<void>();
 
-  @Output() public itemDoneButtonClicked: EventEmitter<number> =
-    new EventEmitter<number>();
+  public readonly itemDoneButtonClicked = output<number>();
 
-  @Output() public itemCancelButtonClicked: EventEmitter<number> =
-    new EventEmitter<number>();
+  public readonly itemCancelButtonClicked = output<number>();
 
-  @Output() public itemDeleteButtonClicked: EventEmitter<number> =
-    new EventEmitter<number>();
+  public readonly itemDeleteButtonClicked = output<number>();
 
   public editingIndex: number = -1;
 
   public onAddButtonClicked(): void {
-    this.editingIndex = this.array.length;
+    this.editingIndex = this.array().length;
     this.addButtonClicked.emit();
   }
 

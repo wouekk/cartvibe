@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, ViewChild } from "@angular/core";
+import { Component, input, output, viewChild } from "@angular/core";
 import { FormArray, FormGroup } from "@angular/forms";
 import { FormCommand } from "../../form/index";
 import { FormConfig } from "../../interfaces/index";
@@ -13,25 +13,25 @@ import { EditableListComponent } from "../../shared-ui/editable-list/editable-li
 })
 export class UserShortcutComponent {
 
-  @ViewChild(EditableListComponent) public editableListComponent!: EditableListComponent;
+  public readonly editableListComponent = viewChild.required(EditableListComponent);
 
-  @Input() public parentForm!: FormGroup;
+  public readonly parentForm = input.required<FormGroup>();
 
-  @Input() public formConfig!: FormConfig;
+  public readonly formConfig = input.required<FormConfig>();
 
-  @Input() public originalUserShortcuts: UserShortcut[] = [];
+  public readonly originalUserShortcuts = input<UserShortcut[]>([]);
 
-  @Output() public formCommand = new EventEmitter<FormCommand>();
+  public readonly formCommand = output<FormCommand>();
 
-  @Output() public shortcutDoneClicked = new EventEmitter<void>();
+  public readonly shortcutDoneClicked = output<void>();
 
-  @Output() public shortcutCancelClicked = new EventEmitter<void>();
+  public readonly shortcutCancelClicked = output<void>();
 
   public isAddingShortcut = false;
 
 
   public get userShortcuts(): FormArray {
-    return (this.parentForm?.get("userShortcuts") as FormArray || new FormArray([]));
+    return (this.parentForm()?.get("userShortcuts") as FormArray || new FormArray([]));
   }
 
   public removeShortcut(index: number): void {
@@ -43,10 +43,12 @@ export class UserShortcutComponent {
   }
 
   public emitShortcutDoneClicked(): void {
+    // TODO: The 'emit' function requires a mandatory void argument
     this.shortcutDoneClicked.emit();
   }
 
   public emitShortcutCancelClicked(): void {
+    // TODO: The 'emit' function requires a mandatory void argument
     this.shortcutCancelClicked.emit();
   }
 }

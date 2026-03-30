@@ -1,4 +1,4 @@
-import { Component, Input } from "@angular/core";
+import { Component, input } from "@angular/core";
 import { SystemTaskStatus } from "../../open-api";
 
 @Component({
@@ -8,6 +8,6 @@ import { SystemTaskStatus } from "../../open-api";
     standalone: false
 })
 export class StatusIconComponent {
-  @Input() public taskStatus!: SystemTaskStatus;
+  public readonly taskStatus = input.required<SystemTaskStatus>();
   protected readonly SystemTaskStatus = SystemTaskStatus;
 }

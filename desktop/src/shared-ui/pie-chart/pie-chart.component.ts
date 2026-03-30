@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, Input, ViewEncapsulation } from "@angular/core";
+import { Component, ViewEncapsulation, input } from "@angular/core";
 import { ChartConfiguration, ChartData } from "chart.js";
 import { BaseChartDirective } from "ng2-charts";
 
@@ -12,23 +12,23 @@ import { BaseChartDirective } from "ng2-charts";
   encapsulation: ViewEncapsulation.None,
 })
 export class PieChartUiComponent {
-  @Input() public chartData: ChartData<"pie", number[], string> = {
+  public readonly chartData = input<ChartData<"pie", number[], string>>({
     labels: [],
     datasets: [{ data: [] }],
-  };
+});
 
-  @Input() public chartOptions: ChartConfiguration<"pie">["options"] = {
+  public readonly chartOptions = input<ChartConfiguration<"pie">["options"]>({
     responsive: true,
     maintainAspectRatio: false,
-  };
+});
 
-  @Input() public height: string = "300px";
+  public readonly height = input<string>("300px");
 
-  @Input() public isLoading: boolean = false;
+  public readonly isLoading = input<boolean>(false);
 
-  @Input() public hasData: boolean = true;
+  public readonly hasData = input<boolean>(true);
 
-  @Input() public noDataMessage: string = "No data available";
+  public readonly noDataMessage = input<string>("No data available");
 
-  @Input() public loadingMessage: string = "Loading...";
+  public readonly loadingMessage = input<string>("Loading...");
 }

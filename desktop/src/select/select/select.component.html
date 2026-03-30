@@ -4,7 +4,7 @@
     <input
       matInput
       [readonly]="true"
-      [value]="inputFormControl.value | readonlyValue : options : optionDisplayKey : optionValueKey : optionsDisplayArray"
+      [value]="inputFormControl.value | readonlyValue : options() : optionDisplayKey() : optionValueKey : optionsDisplayArray()"
     />
   } @else {
     <mat-select
@@ -12,12 +12,12 @@
       (blur)="inputBlur.emit($event)"
       readonly
     >
-      <mat-option *ngIf="addEmptyOption" [value]="null"></mat-option>
+      <mat-option *ngIf="addEmptyOption()" [value]="null"></mat-option>
       <mat-option
-        *ngFor="let option of options; let i = index"
+        *ngFor="let option of options(); let i = index"
         [value]="optionValueKey ? option[optionValueKey] : option"
       >
-        {{ i | optionDisplay : option : optionDisplayKey : optionsDisplayArray }}
+        {{ i | optionDisplay : option : optionDisplayKey() : optionsDisplayArray() }}
       </mat-option>
     </mat-select>
   }

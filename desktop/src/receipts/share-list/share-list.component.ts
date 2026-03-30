@@ -1,20 +1,18 @@
 import {
   Component,
-  EventEmitter,
   Input,
   OnChanges,
   OnInit,
-  Output,
-  QueryList,
   SimpleChanges,
-  ViewChildren,
   ViewEncapsulation,
+  input,
+  output,
+  viewChildren
 } from "@angular/core";
 import { AbstractControl, FormArray, FormGroup, } from "@angular/forms";
 import { MatExpansionPanel } from "@angular/material/expansion";
 import { ActivatedRoute } from "@angular/router";
-import { Select } from "@ngxs/store";
-import { Observable } from "rxjs";
+import { Store } from "@ngxs/store";
 import { RECEIPT_ITEM_STATUS_OPTIONS } from "src/constants/receipt-status-options";
 import { FormMode } from "src/enums/form-mode.enum";
 import { InputComponent } from "../../input";
@@ -38,31 +36,34 @@ export interface ItemData {
   standalone: false
 })
 export class ShareListComponent implements OnInit, OnChanges {
-  @ViewChildren("userExpansionPanel")
-  public userExpansionPanels!: QueryList<MatExpansionPanel>;
+  public readonly userExpansionPanels = viewChildren<MatExpansionPanel>("userExpansionPanel");
 
-  @ViewChildren("nameField")
-  public nameFields!: QueryList<InputComponent>;
+  public readonly nameFields = viewChildren<InputComponent>("nameField");
 
-  @Select(UserState.users) public users!: Observable<User[]>;
+  users = this.store.selectSignal(UserState.users);
 
-  @Input() public form!: FormGroup;
+  public readonly form = input.required<FormGroup>();
 
   @Input() public originalReceipt?: Receipt;
 
-  @Input() public categories: Category[] = [];
+  public readonly categories = input<Category[]>([]);
 
-  @Input() public tags: Tag[] = [];
+  public readonly tags = input<Tag[]>([]);
 
-  @Input() public selectedGroup: Group | undefined;
+  public readonly selectedGroup = input<Group>();
 
-  @Input() public triggerAddMode: boolean = false;
+  public readonly triggerAddMode = input<boolean>(false);
 
-  @Output() public itemAdded = new EventEmitter<Item>();
+  public readonly itemAdded = output<Item>();
 
-  @Output() public itemRemoved = new EventEmitter<{ item: Item; arrayIndex: number; isLinkedItem?: boolean; linkedItemIndex?: number }>();
+  public readonly itemRemoved = output<{
+    item: Item;
+    arrayIndex: number;
+    isLinkedItem?: boolean;
+    linkedItemIndex?: number;
+}>();
 
-  @Output() public allItemsResolved = new EventEmitter<string>();
+  public readonly allItemsResolved = output<string>();
 
   public newItemFormGroup: FormGroup = new FormGroup({});
 
@@ -79,11 +80,12 @@ export class ShareListComponent implements OnInit, OnChanges {
   public itemStatusOptions = RECEIPT_ITEM_STATUS_OPTIONS;
 
   public get receiptItems(): FormArray {
-    return this.form.get("receiptItems") as FormArray;
+    return this.form().get("receiptItems") as FormArray;
   }
 
   constructor(
-    private activatedRoute: ActivatedRoute
+    private activatedRoute: ActivatedRoute,
+    private store: Store,
   ) {}
 
   public ngOnInit(): void {
@@ -100,9 +102,9 @@ export class ShareListComponent implements OnInit, OnChanges {
 
 
   public setUserItemMap(): void {
-    const receiptItems = this.form.get("receiptItems");
+    const receiptItems = this.form().get("receiptItems");
     if (receiptItems) {
-      const items = this.form.get("receiptItems")?.value as Item[];
+      const items = this.form().get("receiptItems")?.value as Item[];
       const map = new Map<string, ItemData[]>();
 
       if (items?.length > 0) {

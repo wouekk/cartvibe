@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
+import { Component, Input, OnInit, output } from "@angular/core";
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
 import { MatDialogRef } from "@angular/material/dialog";
 import { RadioButtonData } from "src/radio-group/models";
@@ -26,7 +26,10 @@ export class QuickActionsDialogComponent implements OnInit {
 
   @Input() public itemIndex?: number;
 
-  @Output() public itemsToAdd = new EventEmitter<{ items: Item[], itemIndex?: number }>();
+  public readonly itemsToAdd = output<{
+    items: Item[];
+    itemIndex?: number;
+}>();
 
   public localForm: FormGroup = new FormGroup({});
 

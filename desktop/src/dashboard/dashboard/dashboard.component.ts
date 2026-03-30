@@ -1,8 +1,8 @@
 import { Component, OnInit } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
-import { Select, Store } from "@ngxs/store";
-import { Observable, tap } from "rxjs";
+import { Store } from "@ngxs/store";
+import { tap } from "rxjs";
 import { DEFAULT_HOST_CLASS } from "src/constants";
 import { DashboardState } from "src/store/dashboard.state";
 import { Dashboard, WidgetType } from "../../open-api";
@@ -17,8 +17,7 @@ import { GroupState } from "../../store";
     standalone: false
 })
 export class DashboardComponent implements OnInit {
-  @Select(GroupState.selectedGroupId)
-  public selectedGroupId!: Observable<string>;
+  public selectedGroupId = this.store.selectSignal(GroupState.selectedGroupId);
 
   public dashboards: Dashboard[] = [];
 

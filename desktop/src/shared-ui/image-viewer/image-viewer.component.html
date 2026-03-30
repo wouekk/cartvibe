@@ -1,6 +1,6 @@
-@if (imageBase64 || imageFile) {
+@if (imageBase64 || imageFile()) {
   <div
-    [ngStyle]="{ transform: 'scale(' + scale + ')' }"
+    [ngStyle]="{ transform: 'scale(' + scale() + ')' }"
   >
     <img
       cdkDrag

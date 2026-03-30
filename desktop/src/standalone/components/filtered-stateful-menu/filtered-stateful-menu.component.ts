@@ -1,5 +1,5 @@
 import { CdkMenu, CdkMenuTrigger } from "@angular/cdk/menu";
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from "@angular/core";
+import { Component, Input, OnChanges, OnInit, SimpleChanges, input, output } from "@angular/core";
 import { FormControl } from "@angular/forms";
 import { MatCheckbox } from "@angular/material/checkbox";
 import { MatMenuItem } from "@angular/material/menu";
@@ -22,17 +22,17 @@ import { StatefulMenuItem } from "./stateful-menu-item";
   styleUrl: "./filtered-stateful-menu.component.scss",
 })
 export class FilteredStatefulMenuComponent extends BaseButtonComponent implements OnInit, OnChanges {
-  @Input() public items: StatefulMenuItem[] = [];
+  public readonly items = input<StatefulMenuItem[]>([]);
 
-  @Input() public filterFunc = (item: StatefulMenuItem, filter: string) => item.displayValue.toLowerCase().includes(filter?.toLowerCase() ?? "");
+  public readonly filterFunc = input((item: StatefulMenuItem, filter: string) => item.displayValue.toLowerCase().includes(filter?.toLowerCase() ?? ""));
 
-  @Input() public filterLabel = "Filter options";
+  public readonly filterLabel = input("Filter options");
 
   @Input() public headerText = "";
 
-  @Input() public readonly = false;
+  public readonly readonly = input(false);
 
-  @Output() public itemSelected = new EventEmitter<StatefulMenuItem>();
+  public readonly itemSelected = output<StatefulMenuItem>();
 
   public filterFormControl = new FormControl();
 
@@ -47,9 +47,9 @@ export class FilteredStatefulMenuComponent extends BaseButtonComponent implement
       untilDestroyed(this),
       tap((filter) => {
         if (filter) {
-          this.filteredItems = this.filterItems(this.items, filter);
+          this.filteredItems = this.filterItems(this.items(), filter);
         } else {
-          this.filteredItems = Array.from(this.items);
+          this.filteredItems = Array.from(this.items());
         }
       })
     )
@@ -67,7 +67,7 @@ export class FilteredStatefulMenuComponent extends BaseButtonComponent implement
     event.stopImmediatePropagation();
     event.preventDefault();
 
-    if (!this.readonly) {
+    if (!this.readonly()) {
       this.itemSelected.emit(item);
     }
   }
@@ -77,6 +77,6 @@ export class FilteredStatefulMenuComponent extends BaseButtonComponent implement
   }
 
   public filterItems(items: StatefulMenuItem[], filterString: string): StatefulMenuItem[] {
-    return items.filter(item => this.filterFunc(item, filterString));
+    return items.filter(item => this.filterFunc()(item, filterString));
   }
 }

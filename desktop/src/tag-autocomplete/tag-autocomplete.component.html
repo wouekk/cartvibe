@@ -3,13 +3,13 @@
   label="Tags"
   optionFilterKey="name"
   creatableValueKey="name"
-  [inputFormControl]="inputFormControl"
-  [options]="tags"
+  [inputFormControl]="inputFormControl()"
+  [options]="tags()"
   [optionTemplate]="tagOptionTemplate"
   [optionChipTemplate]="tagOptionTemplate"
   [multiple]="true"
   [creatable]="true"
-  [readonly]="readonly"
+  [readonly]="readonly()"
 ></app-autocomlete>
 
 <ng-template #tagOptionTemplate let-option="option"

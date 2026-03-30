@@ -1,5 +1,5 @@
 import { CdkVirtualScrollViewport } from "@angular/cdk/scrolling";
-import { AfterViewInit, Component, EventEmitter, Input, Output, TemplateRef, ViewChild, ViewEncapsulation } from "@angular/core";
+import { AfterViewInit, Component, Input, TemplateRef, ViewEncapsulation, input, output, viewChild } from "@angular/core";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { tap } from "rxjs";
 
@@ -12,11 +12,11 @@ import { tap } from "rxjs";
     standalone: false
 })
 export class DashboardListComponent implements AfterViewInit {
-  @ViewChild(CdkVirtualScrollViewport) public cdkVirtualScrollViewport!: CdkVirtualScrollViewport;
+  public readonly cdkVirtualScrollViewport = viewChild.required(CdkVirtualScrollViewport);
 
-  @Input() public itemHeaderTemplate!: TemplateRef<any>;
+  public readonly itemHeaderTemplate = input.required<TemplateRef<any>>();
 
-  @Input() public itemLineTemplate!: TemplateRef<any>;
+  public readonly itemLineTemplate = input.required<TemplateRef<any>>();
 
   @Input() public itemLineTemplate2!: TemplateRef<any>;
 
@@ -26,24 +26,25 @@ export class DashboardListComponent implements AfterViewInit {
 
   @Input() public items: any[] = [];
 
-  @Input() public noItemFoundText = "";
+  public readonly noItemFoundText = input("");
 
-  @Input() public itemSize = 67;
+  public readonly itemSize = input(67);
 
-  @Input() public buildRouterLinkString: (item: any) => string = (item: any) => "";
+  public readonly buildRouterLinkString = input<(item: any) => string>((item: any) => "");
 
-  @Output() public endOfListReached = new EventEmitter<void>();
+  public readonly endOfListReached = output<void>();
 
   public ngAfterViewInit(): void {
     this.listenForEndOfList();
   }
 
   private listenForEndOfList(): void {
-    this.cdkVirtualScrollViewport.renderedRangeStream
+    this.cdkVirtualScrollViewport().renderedRangeStream
       .pipe(
         untilDestroyed(this),
         tap((range) => {
           if (range.end === this.items.length) {
+            // TODO: The 'emit' function requires a mandatory void argument
             this.endOfListReached.emit();
           }
         })

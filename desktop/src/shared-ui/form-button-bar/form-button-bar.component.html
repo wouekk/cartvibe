@@ -1,5 +1,5 @@
 <div
-  *ngIf="mode && (mode === formMode.edit || mode == formMode.add)"
+  *ngIf="mode() && (mode() === formMode.edit || mode() == formMode.add)"
   class="modern-form-bar"
 >
   <div class="form-bar-backdrop"></div>
@@ -7,8 +7,8 @@
     <div
       class="form-bar-content"
       [ngClass]="{
-        'justify-content-end': justifyContentEnd,
-        'justify-content-between': !justifyContentEnd
+        'justify-content-end': justifyContentEnd(),
+        'justify-content-between': !justifyContentEnd()
       }"
     >
       <ng-content></ng-content>

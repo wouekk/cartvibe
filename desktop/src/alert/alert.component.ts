@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, Input } from "@angular/core";
+import { Component, input } from "@angular/core";
 import { MatIconModule } from "@angular/material/icon";
 
 @Component({
@@ -13,6 +13,6 @@ import { MatIconModule } from "@angular/material/icon";
     styleUrl: "./alert.component.scss"
 })
 export class AlertComponent {
-  @Input() public type: "warning" = "warning";
-  @Input() public message: string = "";
+  public readonly type = input<"warning">("warning");
+  public readonly message = input<string>("");
 }

@@ -1,9 +1,9 @@
 <app-button
-  [matButtonType]="matButtonType"
+  [matButtonType]="matButtonType()"
   [matMenuTriggerFor]="menu"
-  [buttonText]="buttonText"
-  [color]="color"
-  [icon]="buttonIcon"
+  [buttonText]="buttonText()"
+  [color]="color()"
+  [icon]="buttonIcon()"
   tooltip="Start queue"
 ></app-button>
 <mat-menu #menu="matMenu">

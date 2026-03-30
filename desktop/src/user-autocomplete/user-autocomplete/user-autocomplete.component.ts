@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild, } from "@angular/core";
+import { Component, OnChanges, OnInit, SimpleChanges, input, viewChild } from "@angular/core";
 import { FormControl } from "@angular/forms";
 import { Store } from "@ngxs/store";
 import { AutocomleteComponent } from "src/autocomplete/autocomlete/autocomlete.component";
@@ -19,24 +19,23 @@ export class UserAutocompleteComponent implements OnInit, OnChanges {
     private groupMemberUserService: GroupMemberUserService
   ) {}
 
-  @ViewChild(AutocomleteComponent)
-  public autocompleteComponent!: AutocomleteComponent;
+  public readonly autocompleteComponent = viewChild.required(AutocomleteComponent);
 
-  @Input() public inputFormControl!: FormControl;
+  public readonly inputFormControl = input.required<FormControl>();
 
-  @Input() public label = "";
+  public readonly label = input("");
 
-  @Input() public multiple: boolean = false;
+  public readonly multiple = input<boolean>(false);
 
-  @Input() public readonly: boolean = false;
+  public readonly readonly = input<boolean>(false);
 
-  @Input() public usersToOmit: string[] = [];
+  public readonly usersToOmit = input<string[]>([]);
 
-  @Input() public optionValueKey?: string;
+  public readonly optionValueKey = input<string>();
 
-  @Input() public groupId?: string;
+  public readonly groupId = input<string>();
 
-  @Input() public selectGroupMembersOnly: boolean = false;
+  public readonly selectGroupMembersOnly = input<boolean>(false);
 
   public users: User[] = [];
 
@@ -55,12 +54,12 @@ export class UserAutocompleteComponent implements OnInit, OnChanges {
       this.users = this.groupMemberUserService.getUsersInGroup(groupId);
     } else {
       this.users = [];
-      this.autocompleteComponent?.clearFilter();
+      this.autocompleteComponent()?.clearFilter();
     }
   }
 
   public ngOnInit(): void {
-    if (this.users.length === 0 && this.usersToOmit.length === 0) {
+    if (this.users.length === 0 && this.usersToOmit().length === 0) {
       this.users = this.store.selectSnapshot(UserState.users);
     }
   }
@@ -68,7 +67,7 @@ export class UserAutocompleteComponent implements OnInit, OnChanges {
   private filterUsers(): void {
     this.users = this.store
       .selectSnapshot(UserState.users)
-      .filter((u) => !this.usersToOmit.includes(u.id.toString()));
+      .filter((u) => !this.usersToOmit().includes(u.id.toString()));
   }
 
   public displayWith(id?: number): string {

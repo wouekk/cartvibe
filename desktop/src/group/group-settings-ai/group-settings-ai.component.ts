@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, Input, OnInit, input } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
 import { BaseFormComponent } from "../../form";
@@ -14,7 +14,7 @@ import { Group, Prompt } from "../../open-api";
 export class GroupSettingsAiComponent extends BaseFormComponent implements OnInit {
   @Input() public override form: FormGroup = new FormGroup({});
 
-  @Input() public canEdit: boolean = false;
+  public readonly canEdit = input<boolean>(false);
 
   @Input() public override formConfig!: FormConfig;
 
@@ -37,15 +37,16 @@ export class GroupSettingsAiComponent extends BaseFormComponent implements OnIni
   private setPrompts(): void {
     let prompts: Prompt[] = [];
 
-    if (!this.canEdit && this.group.groupSettings?.prompt) {
+    const canEdit = this.canEdit();
+    if (!canEdit && this.group.groupSettings?.prompt) {
       prompts.push(this.group.groupSettings.prompt);
     }
 
-    if (!this.canEdit && this.group.groupSettings?.fallbackPrompt) {
+    if (!canEdit && this.group.groupSettings?.fallbackPrompt) {
       prompts.push(this.group.groupSettings.fallbackPrompt);
     }
 
-    if (this.canEdit) {
+    if (canEdit) {
       prompts = this.activatedRoute.snapshot.data["prompts"];
     }
 

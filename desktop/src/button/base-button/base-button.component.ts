@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from "@angular/core";
+import { Component, Input, input, output } from "@angular/core";
 import { ThemePalette } from "@angular/material/core";
 
 @Component({
@@ -8,33 +8,31 @@ import { ThemePalette } from "@angular/material/core";
   styleUrl: "./base-button.component.scss"
 })
 export class BaseButtonComponent {
-  @Input() public buttonClass: string = "";
+  public readonly buttonClass = input<string>("");
 
-  @Input() public color: string = "primary";
+  public readonly color = input<string>("primary");
 
-  @Input() public buttonText: string = "";
+  public readonly buttonText = input<string>("");
 
-  @Input() public type: "button" | "menu" | "submit" | "reset" = "button";
+  public readonly type = input<"button" | "menu" | "submit" | "reset">("button");
 
-  @Input() public matButtonType: "matRaisedButton" | "iconButton" | "basic" =
-    "matRaisedButton";
+  public readonly matButtonType = input<"matRaisedButton" | "iconButton" | "basic">("matRaisedButton");
 
   @Input() public icon: string = "";
 
   @Input() public customIcon: string = "";
 
-  @Input() public disabled: boolean = false;
+  public readonly disabled = input<boolean>(false);
 
-  @Input() public buttonRouterLink?: string[];
+  public readonly buttonRouterLink = input<string[]>();
 
-  @Input() public buttonQueryParams: any = {};
+  public readonly buttonQueryParams = input<any>({});
 
-  @Input() public tooltip: string = "";
+  public readonly tooltip = input<string>("");
 
-  @Input() public matBadgeContent?: any;
+  public readonly matBadgeContent = input<any>();
 
-  @Input() public matBadgeColor: ThemePalette = "primary";
+  public readonly matBadgeColor = input<ThemePalette>("primary");
 
-  @Output() public clicked: EventEmitter<MouseEvent> =
-    new EventEmitter<MouseEvent>();
+  public readonly clicked = output<MouseEvent>();
 }

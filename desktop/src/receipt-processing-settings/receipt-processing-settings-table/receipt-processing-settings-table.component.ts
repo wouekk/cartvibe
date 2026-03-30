@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, TemplateRef, ViewChild } from "@angular/core";
+import { AfterViewInit, Component, OnInit, TemplateRef, viewChild } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { ActivatedRoute } from "@angular/router";
 import { Store } from "@ngxs/store";
@@ -32,21 +32,21 @@ import { ReceiptProcessingSettingsTableService } from "./receipt-processing-sett
     standalone: false
 })
 export class ReceiptProcessingSettingsTableComponent extends BaseTableComponent<ReceiptProcessingSettings> implements OnInit, AfterViewInit {
-  @ViewChild("nameCell") public nameCell!: TemplateRef<any>;
+  public readonly nameCell = viewChild.required<TemplateRef<any>>("nameCell");
 
-  @ViewChild("descriptionCell") public descriptionCell!: TemplateRef<any>;
+  public readonly descriptionCell = viewChild.required<TemplateRef<any>>("descriptionCell");
 
-  @ViewChild("promptCell") public promptCell!: TemplateRef<any>;
+  public readonly promptCell = viewChild.required<TemplateRef<any>>("promptCell");
 
-  @ViewChild("aiTypeCell") public aiTypeCell!: TemplateRef<any>;
+  public readonly aiTypeCell = viewChild.required<TemplateRef<any>>("aiTypeCell");
 
-  @ViewChild("ocrEngineCell") public ocrEngineCell!: TemplateRef<any>;
+  public readonly ocrEngineCell = viewChild.required<TemplateRef<any>>("ocrEngineCell");
 
-  @ViewChild("createdAtCell") public createdAtCell!: TemplateRef<any>;
+  public readonly createdAtCell = viewChild.required<TemplateRef<any>>("createdAtCell");
 
-  @ViewChild("updatedAtCell") public updatedAtCell!: TemplateRef<any>;
+  public readonly updatedAtCell = viewChild.required<TemplateRef<any>>("updatedAtCell");
 
-  @ViewChild("actionsCell") public actionsCell!: TemplateRef<any>;
+  public readonly actionsCell = viewChild.required<TemplateRef<any>>("actionsCell");
 
   public systemSettings!: SystemSettings;
 
@@ -79,49 +79,49 @@ export class ReceiptProcessingSettingsTableComponent extends BaseTableComponent<
       {
         columnHeader: "Name",
         matColumnDef: "name",
-        template: this.nameCell,
+        template: this.nameCell(),
         sortable: true
       },
       {
         columnHeader: "Description",
         matColumnDef: "description",
-        template: this.descriptionCell,
+        template: this.descriptionCell(),
         sortable: true
       },
       {
         columnHeader: "Prompt",
         matColumnDef: "prompt",
-        template: this.promptCell,
+        template: this.promptCell(),
         sortable: false
       },
       {
         columnHeader: "AI Type",
         matColumnDef: "ai_type",
-        template: this.aiTypeCell,
+        template: this.aiTypeCell(),
         sortable: true
       },
       {
         columnHeader: "OCR Engine",
         matColumnDef: "ocr_engine",
-        template: this.ocrEngineCell,
+        template: this.ocrEngineCell(),
         sortable: true
       },
       {
         columnHeader: "Created At",
         matColumnDef: "created_at",
-        template: this.createdAtCell,
+        template: this.createdAtCell(),
         sortable: true
       },
       {
         columnHeader: "Updated At",
         matColumnDef: "updated_at",
-        template: this.updatedAtCell,
+        template: this.updatedAtCell(),
         sortable: true
       },
       {
         columnHeader: "Actions",
         matColumnDef: "actions",
-        template: this.actionsCell,
+        template: this.actionsCell(),
         sortable: false
       }
     ] as TableColumn[];

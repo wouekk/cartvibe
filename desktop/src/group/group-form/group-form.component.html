@@ -3,7 +3,7 @@
   [form]="form"
   [formTemplate]="formTemplate"
   [bottomSpacing]="true"
-  [canEdit]="canEdit"
+  [canEdit]="canEdit()"
   [editButtonRouterLink]="[editLink]"
   [editButtonQueryParams]="{tab: 'details'}"
   (submitted)="submit()"

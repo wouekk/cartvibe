@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, Input, TemplateRef, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, TemplateRef, input, viewChild} from '@angular/core';
 import {ReceiptProcessingSettings, SystemTask, SystemTaskType} from "../../open-api";
 import {AccordionPanel} from "../../shared-ui/accordion/accordion-panel.interface";
 
@@ -9,11 +9,11 @@ import {AccordionPanel} from "../../shared-ui/accordion/accordion-panel.interfac
     standalone: false
 })
 export class SystemEmailChildSystemTaskComponent implements AfterViewInit {
-  @ViewChild('emailUploadDetails') public emailUploadDetails!: TemplateRef<any>;
+  public readonly emailUploadDetails = viewChild.required<TemplateRef<any>>('emailUploadDetails');
 
-  @Input() public childTasks: SystemTask[] = [];
+  public readonly childTasks = input<SystemTask[]>([]);
 
-  @Input() public allReceiptProcessingSettings: ReceiptProcessingSettings[] = [];
+  public readonly allReceiptProcessingSettings = input<ReceiptProcessingSettings[]>([]);
 
   public accordionPanels: AccordionPanel[] = [];
 
@@ -22,9 +22,9 @@ export class SystemEmailChildSystemTaskComponent implements AfterViewInit {
   }
 
   private initAccordionPanels(): void {
-    this.childTasks.forEach(task => {
+    this.childTasks().forEach(task => {
       if (task.type === SystemTaskType.EmailUpload) {
-        const settings = this.allReceiptProcessingSettings.find(s => s.id === task.associatedEntityId);
+        const settings = this.allReceiptProcessingSettings().find(s => s.id === task.associatedEntityId);
         let description = "";
 
         if (settings) {
@@ -35,7 +35,7 @@ export class SystemEmailChildSystemTaskComponent implements AfterViewInit {
         this.accordionPanels.push({
           title: 'Email Upload Details',
           description: description,
-          content: this.emailUploadDetails,
+          content: this.emailUploadDetails(),
         });
       }
     })

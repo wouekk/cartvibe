@@ -1,6 +1,6 @@
 <app-card cardStyle="dashboard-card">
   <ng-container header>
-    <h3> {{ widget.name }}</h3>
+    <h3> {{ widget().name }}</h3>
   </ng-container>
   <div content>
     <app-dashboard-list
@@ -43,7 +43,7 @@
   <div class="aligned-content ms-2">
     {{ item.startedAt | duration }}
   </div>
-  @if (item.canBeRestarted && !ranActivities[item.id] && (groupId | groupRole: GroupRole.Editor)) {
+  @if (item.canBeRestarted && !ranActivities[item.id] && (groupId() | groupRole: GroupRole.Editor)) {
     <app-button
       class="aligned-content"
       matButtonType="iconButton"

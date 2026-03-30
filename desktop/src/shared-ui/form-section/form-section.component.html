@@ -1,6 +1,6 @@
-<div class="mb-3 form-section-header" [ngClass]="{ 'mx-3': indent }">
+<div class="mb-3 form-section-header" [ngClass]="{ 'mx-3': indent() }">
   <div class="d-flex align-items-center">
-    @if (collapsed) {
+    @if (collapsed()) {
       <button
         type="button"
         class="btn btn-link p-0 me-2 text-decoration-none"
@@ -10,7 +10,7 @@
       </button>
     }
     <div class="d-flex flex-column">
-      <strong> {{ headerText }}</strong>
+      <strong> {{ headerText() }}</strong>
       @if (subtitle) {
         <small>{{ subtitle }}</small>
       }
@@ -26,7 +26,7 @@
   </div>
 </div>
 @if (!isCollapsed) {
-  <div [ngClass]="{ 'mx-3': indent }">
+  <div [ngClass]="{ 'mx-3': indent() }">
     <ng-content></ng-content>
   </div>
 }

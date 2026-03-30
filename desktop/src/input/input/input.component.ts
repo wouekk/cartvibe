@@ -1,6 +1,5 @@
-import { Component, Input, OnChanges, SimpleChanges, ViewChild, } from "@angular/core";
-import { Select, Store } from "@ngxs/store";
-import { Observable } from "rxjs";
+import { Component, Input, OnChanges, SimpleChanges, input, viewChild } from "@angular/core";
+import { Store } from "@ngxs/store";
 import { BaseInputComponent } from "../../base-input";
 import { CurrencySeparator, CurrencySymbolPosition } from "../../open-api/index";
 import { SystemSettingsState } from "../../store/system-settings.state";
@@ -15,23 +14,25 @@ import { InputInterface } from "../input.interface";
 export class InputComponent
   extends BaseInputComponent
   implements InputInterface, OnChanges {
-  @ViewChild("nativeInput") public nativeInput!: { nativeElement: HTMLElement };
+  public readonly nativeInput = viewChild.required<{
+    nativeElement: HTMLElement;
+}>("nativeInput");
 
-  @Select(SystemSettingsState.currencyDisplay) public currencyDisplay!: Observable<string>;
+  public currencyDisplay = this.store.selectSignal(SystemSettingsState.currencyDisplay);
 
-  @Select(SystemSettingsState.currencyDecimalSeparator) public currencyDecimalSeparator!: Observable<"." | ",">;
+  public currencyDecimalSeparator = this.store.selectSignal(SystemSettingsState.currencyDecimalSeparator);
 
-  @Select(SystemSettingsState.currencyThousandthsSeparator) public currencyThousandthsSeparator!: Observable<"." | ",">;
+  public currencyThousandthsSeparator = this.store.selectSignal(SystemSettingsState.currencyThousandthsSeparator);
 
-  @Select(SystemSettingsState.currencySymbolPosition) public currencySymbolPosition!: Observable<string>;
+  public currencySymbolPosition = this.store.selectSignal(SystemSettingsState.currencySymbolPosition);
 
-  @Input() public inputId: string = "";
+  public readonly inputId = input<string>("");
 
   @Input() public type: string = "text";
 
   @Input() public showVisibilityEye = false;
 
-  @Input() public isCurrency: boolean = false;
+  public readonly isCurrency = input<boolean>(false);
 
   @Input() public mask: string = "";
 
@@ -57,7 +58,7 @@ export class InputComponent
   }
 
   private initCurrencyField(): void {
-    if (this.isCurrency) {
+    if (this.isCurrency()) {
       if (this.store.selectSnapshot(SystemSettingsState.currencyHideDecimalPlaces)) {
         this.decimalMarker = CurrencySeparator.Period;
         this.mask = "separator.0";

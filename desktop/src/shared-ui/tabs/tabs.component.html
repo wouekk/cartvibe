@@ -1,7 +1,7 @@
 <nav mat-tab-nav-bar [tabPanel]="tabPanel">
   <a
     mat-tab-link
-    *ngFor="let tab of tabs"
+    *ngFor="let tab of tabs()"
     routerLinkActive="active"
     [active]="tab.name=== activeName"
     [routerLink]="[tab.routerLink ]"

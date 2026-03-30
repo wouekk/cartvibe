@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, Input, OnInit, input } from "@angular/core";
 import { BaseInputComponent } from "../../base-input";
 
 @Component({
@@ -8,15 +8,15 @@ import { BaseInputComponent } from "../../base-input";
     standalone: false
 })
 export class SelectComponent extends BaseInputComponent implements OnInit {
-  @Input() public options: any[] = [];
+  public readonly options = input<any[]>([]);
 
-  @Input() public optionsDisplayArray: any[] = [];
+  public readonly optionsDisplayArray = input<any[]>([]);
 
   @Input() public optionValueKey: string = "";
 
-  @Input() public optionDisplayKey: string = "";
+  public readonly optionDisplayKey = input<string>("");
 
-  @Input() public addEmptyOption: boolean = false;
+  public readonly addEmptyOption = input<boolean>(false);
 
   constructor() {
     super();

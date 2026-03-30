@@ -1,9 +1,9 @@
 import {
   Component,
-  Input,
   OnChanges,
   SimpleChanges,
   ViewEncapsulation,
+  input
 } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { Subscription, startWith, tap } from 'rxjs';
@@ -22,11 +22,11 @@ export class SubmitButtonComponent
   extends FormButtonComponent
   implements OnChanges
 {
-  @Input() public onlyIcon: boolean = true;
+  public readonly onlyIcon = input<boolean>(true);
 
-  @Input() public disableOnLoading: boolean = false;
+  public readonly disableOnLoading = input<boolean>(false);
 
-  @Input() public override type: 'button' | 'submit' = 'submit';
+  public override readonly type = input<'button' | 'submit'>('submit');
 
   public formMode = FormMode;
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, OnInit, viewChild } from "@angular/core";
 import { FormBuilder, Validators } from "@angular/forms";
 import { MatDialogRef } from "@angular/material/dialog";
 import { DomSanitizer, SafeHtml } from "@angular/platform-browser";
@@ -23,8 +23,7 @@ import { SetFeatureConfig } from "../../store";
     standalone: false
 })
 export class ImportFormComponent extends BaseFormComponent implements OnInit {
-  @ViewChild(UploadImageComponent)
-  public uploadImageComponent!: UploadImageComponent;
+  public readonly uploadImageComponent = viewChild.required(UploadImageComponent);
 
   public readonly acceptedFileTypes = [
     "application/json",
@@ -66,7 +65,7 @@ export class ImportFormComponent extends BaseFormComponent implements OnInit {
   }
 
   public openFileUploadDialog(): void {
-    this.uploadImageComponent.clickInput();
+    this.uploadImageComponent().clickInput();
   }
 
   public fileLoaded(fileData: ReceiptFileUploadCommand): void {

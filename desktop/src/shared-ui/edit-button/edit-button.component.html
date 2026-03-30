@@ -4,7 +4,7 @@
   [color]="color"
   [tooltip]="tooltip ? tooltip : 'Edit'"
   [disabled]="disabled"
-  [buttonRouterLink]="buttonRouterLink"
-  [buttonQueryParams]="buttonQueryParams"
+  [buttonRouterLink]="buttonRouterLink()"
+  [buttonQueryParams]="buttonQueryParams()"
   (clicked)="clicked.emit()"
 ></app-button>

@@ -1,4 +1,4 @@
-import { Component, Input } from "@angular/core";
+import { Component, Input, input } from "@angular/core";
 import { FormMode } from "../../enums/form-mode.enum";
 
 @Component({
@@ -10,9 +10,9 @@ import { FormMode } from "../../enums/form-mode.enum";
 export class AuditDetailSectionComponent {
   @Input() data!: any;
 
-  @Input() formMode!: FormMode;
+  readonly formMode = input<FormMode>(FormMode.view);
 
-  @Input() public indent: boolean = true;
+  public readonly indent = input<boolean>(true);
 
   protected readonly FormMode = FormMode;
 }

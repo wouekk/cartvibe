@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, TemplateRef, ViewChild } from "@angular/core";
+import { AfterViewInit, Component, OnInit, TemplateRef, viewChild } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
@@ -32,20 +32,20 @@ import { ApiKeyTableService } from "./api-key-table.service";
   standalone: false
 })
 export class ApiKeyTableComponent extends BaseTableComponent<ApiKeyView> implements OnInit, AfterViewInit {
-  @ViewChild("nameCell") private nameCell!: TemplateRef<any>;
+  private readonly nameCell = viewChild.required<TemplateRef<any>>("nameCell");
 
-  @ViewChild("descriptionCell") private descriptionCell!: TemplateRef<any>;
+  private readonly descriptionCell = viewChild.required<TemplateRef<any>>("descriptionCell");
 
-  @ViewChild("createdByCell") private createdByCell!: TemplateRef<any>;
+  private readonly createdByCell = viewChild.required<TemplateRef<any>>("createdByCell");
 
-  @ViewChild("createdAtCell") private createdAtCell!: TemplateRef<any>;
+  private readonly createdAtCell = viewChild.required<TemplateRef<any>>("createdAtCell");
 
-  @ViewChild("lastUsedAtCell") private lastUsedAtCell!: TemplateRef<any>;
+  private readonly lastUsedAtCell = viewChild.required<TemplateRef<any>>("lastUsedAtCell");
 
 
-  @ViewChild("actionsCell") private actionsCell!: TemplateRef<any>;
+  private readonly actionsCell = viewChild.required<TemplateRef<any>>("actionsCell");
 
-  @ViewChild(TableComponent) private table!: TableComponent;
+  private readonly table = viewChild.required(TableComponent);
 
   public isAdmin = false;
 
@@ -99,37 +99,37 @@ export class ApiKeyTableComponent extends BaseTableComponent<ApiKeyView> impleme
       {
         columnHeader: "Name",
         matColumnDef: "name",
-        template: this.nameCell,
+        template: this.nameCell(),
         sortable: true,
       },
       {
         columnHeader: "Description",
         matColumnDef: "description",
-        template: this.descriptionCell,
+        template: this.descriptionCell(),
         sortable: true,
       },
       {
         columnHeader: "Created By",
         matColumnDef: "created_by",
-        template: this.createdByCell,
+        template: this.createdByCell(),
         sortable: true,
       },
       {
         columnHeader: "Created At",
         matColumnDef: "created_at",
-        template: this.createdAtCell,
+        template: this.createdAtCell(),
         sortable: true,
       },
       {
         columnHeader: "Last Used At",
         matColumnDef: "last_used_at",
-        template: this.lastUsedAtCell,
+        template: this.lastUsedAtCell(),
         sortable: true,
       },
       {
         columnHeader: "Actions",
         matColumnDef: "actions",
-        template: this.actionsCell,
+        template: this.actionsCell(),
         sortable: false,
       },
     ];

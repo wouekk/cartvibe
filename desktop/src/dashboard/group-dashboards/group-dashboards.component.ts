@@ -2,8 +2,8 @@ import { Component, OnInit } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { Router } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
-import { Select, Store } from "@ngxs/store";
-import { Observable, take, tap } from "rxjs";
+import { Store } from "@ngxs/store";
+import { take, tap } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "src/constants";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { DashboardState } from "src/store/dashboard.state";
@@ -29,11 +29,9 @@ export class GroupDashboardsComponent implements OnInit {
     private store: Store
   ) {}
 
-  @Select(GroupState.selectedGroupId)
-  public selectedGroupId!: Observable<string>;
+  public selectedGroupId = this.store.selectSignal(GroupState.selectedGroupId);
 
-  @Select(GroupState.selectedDashboardId)
-  public selectedDashboardId!: Observable<string>;
+  public selectedDashboardId = this.store.selectSignal(GroupState.selectedDashboardId);
 
   public dashboards: Dashboard[] = [];
 

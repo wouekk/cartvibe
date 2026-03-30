@@ -1,6 +1,6 @@
-<ng-container *ngIf="formMode !== FormMode.add">
+<ng-container *ngIf="formMode() !== FormMode.add">
   <app-form-section
-    [indent]="indent"
+    [indent]="indent()"
     headerText="Audit Details"
   >
     <div class="d-flex flex-column mb-3">

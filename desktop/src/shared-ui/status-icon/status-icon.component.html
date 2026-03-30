@@ -1,4 +1,4 @@
-<ng-container [ngSwitch]="taskStatus">
+<ng-container [ngSwitch]="taskStatus()">
   <ng-container *ngSwitchCase="SystemTaskStatus.Succeeded">
     <mat-icon class="success-icon" fontIcon="task_alt"></mat-icon>
   </ng-container>

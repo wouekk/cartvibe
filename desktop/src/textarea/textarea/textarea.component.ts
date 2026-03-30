@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, ViewChild } from "@angular/core";
+import { Component, ElementRef, input, viewChild } from "@angular/core";
 import { MatAutocompleteTrigger } from "@angular/material/autocomplete";
 import { BaseInputComponent } from "../../base-input";
 import { InputInterface } from "../../input";
@@ -12,13 +12,13 @@ import { InputInterface } from "../../input";
 export class TextareaComponent
   extends BaseInputComponent
   implements InputInterface {
-  @ViewChild(MatAutocompleteTrigger) public matAutocompleteTrigger!: MatAutocompleteTrigger;
+  public readonly matAutocompleteTrigger = viewChild.required(MatAutocompleteTrigger);
 
-  @ViewChild("nativeTextarea") public textarea!: ElementRef<HTMLTextAreaElement>;
+  public readonly textarea = viewChild.required<ElementRef<HTMLTextAreaElement>>("nativeTextarea");
 
-  @Input() public options: string[] = [];
+  public readonly options = input<string[]>([]);
 
-  @Input() public trigger: string = "";
+  public readonly trigger = input<string>("");
 
   public filteredOptions: string[] = [];
 
@@ -31,27 +31,27 @@ export class TextareaComponent
     // Calculate insertion index for autocomplete selection
     let insertionIndex = value.slice(this.lastKnownSelection).search(/[\s\n]|$/);
     insertionIndex = insertionIndex === -1 ? value.length : this.lastKnownSelection + insertionIndex;
-    this.matAutocompleteTrigger.closePanel();
-    this.textarea.nativeElement.selectionEnd = insertionIndex + 1;
+    this.matAutocompleteTrigger().closePanel();
+    this.textarea().nativeElement.selectionEnd = insertionIndex + 1;
   }
 
   public onSelectionChange(): void {
-    this.lastKnownSelection = this.textarea.nativeElement.selectionStart;
+    this.lastKnownSelection = this.textarea().nativeElement.selectionStart;
     // Extract word at cursor position for triggering autocomplete
     const currentWordDetails = this.getTriggerWordFromIndex(this.lastKnownSelection - 1);
     if (currentWordDetails.word !== null) {  // Check if a trigger word exists
-      this.matAutocompleteTrigger.openPanel();
+      this.matAutocompleteTrigger().openPanel();
       this.filterOptions(currentWordDetails.word);
     } else {
-      this.matAutocompleteTrigger.closePanel();
+      this.matAutocompleteTrigger().closePanel();
     }
   }
 
   private filterOptions(currentWord: string): void {
     if (currentWord === "") {  // Check if the extracted word is empty, indicating just the trigger character
-      this.filteredOptions = this.options;  // Show all options if only the trigger character is typed
+      this.filteredOptions = this.options();  // Show all options if only the trigger character is typed
     } else {
-      this.filteredOptions = this.options.filter(option =>
+      this.filteredOptions = this.options().filter(option =>
         option.toLowerCase().startsWith(currentWord.toLowerCase())
       );
     }
@@ -60,7 +60,7 @@ export class TextareaComponent
   private getTriggerWordFromIndex(index: number): { word: string | null, triggerIndex: number } {
     const preText = this.inputFormControl.value.substring(0, index + 1);
     // Regex to capture word following the trigger character, allowing for empty follow-up
-    const match = preText.match(new RegExp(`\\${this.trigger}([^${this.validEndCharacters.join("")}]*)$`));
+    const match = preText.match(new RegExp(`\\${this.trigger()}([^${this.validEndCharacters.join("")}]*)$`));
     if (match && match.index !== undefined) {
       return { word: match[1], triggerIndex: match.index };
     }
@@ -68,9 +68,9 @@ export class TextareaComponent
   }
 
   public getOptionValue(option: string): string {
-    const insertionIndex = this.textarea.nativeElement.selectionEnd;
+    const insertionIndex = this.textarea().nativeElement.selectionEnd;
     const value = this.inputFormControl.value;
     const triggerWordDetails = this.getTriggerWordFromIndex(insertionIndex - 1);
-    return value.slice(0, triggerWordDetails.triggerIndex) + this.trigger + option + value.slice(insertionIndex) + " ";
+    return value.slice(0, triggerWordDetails.triggerIndex) + this.trigger() + option + value.slice(insertionIndex) + " ";
   }
 }

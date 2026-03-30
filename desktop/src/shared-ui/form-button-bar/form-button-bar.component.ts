@@ -1,4 +1,4 @@
-import { Component, Input, HostBinding } from "@angular/core";
+import { Component, HostBinding, input } from "@angular/core";
 import { FormMode } from "src/enums/form-mode.enum";
 
 @Component({
@@ -8,15 +8,16 @@ import { FormMode } from "src/enums/form-mode.enum";
     standalone: false
 })
 export class FormButtonBarComponent {
-  @Input() public mode?: FormMode;
+  public readonly mode = input<FormMode>();
 
-  @Input() public justifyContentEnd = true;
+  public readonly justifyContentEnd = input(true);
 
   public formMode = FormMode;
 
   // Automatically add class to component host for CSS targeting
   @HostBinding('class.form-button-bar-active') 
   get isActive(): boolean {
-    return this.mode === FormMode.edit || this.mode === FormMode.add;
+    const mode = this.mode();
+    return mode === FormMode.edit || mode === FormMode.add;
   }
 }

@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, Input } from "@angular/core";
+import { Component, input } from "@angular/core";
 import { PipesModule } from "../../../pipes/index";
 
 @Component({
@@ -9,5 +9,5 @@ import { PipesModule } from "../../../pipes/index";
     styleUrl: "./date-block.component.scss"
 })
 export class DateBlockComponent {
-  @Input() public date!: Date | string;
+  public readonly date = input.required<Date | string>();
 }

@@ -4,6 +4,6 @@
   type="button"
   [tooltip]="tooltip ?? ''"
   [disabled]="disabled"
-  [routerLink]="buttonRouterLink"
+  [routerLink]="buttonRouterLink()"
   (clicked)="clicked.emit($event)"
 ></app-button>
