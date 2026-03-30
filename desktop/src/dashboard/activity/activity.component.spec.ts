@@ -23,7 +23,7 @@ describe("ActivityComponent", () => {
 
     fixture = TestBed.createComponent(ActivityComponent);
     component = fixture.componentInstance;
-    component.widget = { name: "" } as any;
+    fixture.componentRef.setInput('widget', { name: "" } as any);
     fixture.detectChanges();
   });
 

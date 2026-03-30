@@ -17,7 +17,7 @@ describe("CustomFieldComponent", () => {
 
     fixture = TestBed.createComponent(CustomFieldComponent);
     component = fixture.componentInstance;
-    component.formGroup = new FormGroup({}) as any;
+    fixture.componentRef.setInput('formGroup', new FormGroup({}) as any);
     fixture.detectChanges();
   });
 

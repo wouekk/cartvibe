@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { GroupAutocompleteComponent } from './group-autocomplete.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { FormControl } from '@angular/forms';
 import { NgxsModule } from '@ngxs/store';
 
 describe('GroupAutocompleteComponent', () => {
@@ -16,6 +17,7 @@ describe('GroupAutocompleteComponent', () => {
     });
     fixture = TestBed.createComponent(GroupAutocompleteComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('inputFormControl', new FormControl());
     fixture.detectChanges();
   });
 

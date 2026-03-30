@@ -19,7 +19,7 @@ describe('StatusSelectComponent', () => {
     });
     fixture = TestBed.createComponent(StatusSelectComponent);
     component = fixture.componentInstance;
-    component.inputFormControl = new FormControl();
+    fixture.componentRef.setInput('inputFormControl', new FormControl());
     fixture.detectChanges();
   });
 
@@ -28,7 +28,7 @@ describe('StatusSelectComponent', () => {
   });
 
   it('should add blank option', () => {
-    component.addBlankOption = true;
+    fixture.componentRef.setInput('addBlankOption', true);
     component.ngOnChanges({ addBlankOption: { currentValue: true } } as any);
     expect(component.receiptStatusOptions).toEqual([
       {

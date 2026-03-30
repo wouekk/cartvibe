@@ -15,6 +15,8 @@ describe("EditableListComponent", () => {
 
     fixture = TestBed.createComponent(EditableListComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('itemTitleTemplate', {} as any);
+    fixture.componentRef.setInput('itemSubtitleTemplate', {} as any);
     fixture.detectChanges();
   });
 
@@ -45,7 +47,7 @@ describe("EditableListComponent", () => {
   });
 
   it("should open the last row when openLastRow is called", () => {
-    component.listData = [{}, {}, {}];
+    fixture.componentRef.setInput('listData', [{}, {}, {}]);
     component.openLastRow();
     expect(component.getCurrentRowOpen()).toBe(2);
   });
