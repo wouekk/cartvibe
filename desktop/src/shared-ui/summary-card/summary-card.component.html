@@ -8,7 +8,7 @@
     <ng-template
       [ngTemplateOutlet]="owedTemplate"
       [ngTemplateOutletContext]="{
-        map: usersOweMap,
+        map: usersOweMap(),
         headerText: 'Users Owe Me',
         emptyText: 'Nobody owes me!'
       }"
@@ -16,7 +16,7 @@
     <ng-template
       [ngTemplateOutlet]="owedTemplate"
       [ngTemplateOutletContext]="{
-        map: userOwesMap,
+        map: userOwesMap(),
         headerText: 'I Owe',
         emptyText: 'Phew, I don\'t owe anything!'
       }"

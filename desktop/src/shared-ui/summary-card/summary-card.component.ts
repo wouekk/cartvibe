@@ -1,18 +1,22 @@
-import { Component, OnChanges, SimpleChanges, input } from "@angular/core";
-import { UntilDestroy } from "@ngneat/until-destroy";
+import { Component, effect, input, signal, untracked } from "@angular/core";
 import { take, tap } from "rxjs";
 import { UserService } from "../../open-api";
 
 
-@UntilDestroy()
 @Component({
     selector: "app-summary-card",
     templateUrl: "./summary-card.component.html",
     styleUrls: ["./summary-card.component.scss"],
     standalone: false
 })
-export class SummaryCardComponent implements OnChanges {
-  constructor(private userService: UserService) {}
+export class SummaryCardComponent {
+  constructor(private userService: UserService) {
+    effect(() => {
+      const groupId = this.groupId();
+      const receiptIds = this.receiptIds();
+      untracked(() => this.buildOweMap(groupId, receiptIds));
+    });
+  }
 
   public readonly headerText = input<string>("");
 
@@ -20,46 +24,42 @@ export class SummaryCardComponent implements OnChanges {
 
   public readonly receiptIds = input<number[]>([]);
 
-  public usersOweMap: Map<string, string> = new Map();
-  public userOwesMap: Map<string, string> = new Map();
+  public usersOweMap = signal(new Map<string, string>());
+  public userOwesMap = signal(new Map<string, string>());
 
-  public ngOnChanges(changes: SimpleChanges): void {
-    if (changes["groupId"] || changes["receiptIds"]) {
-      this.buildOweMap();
-    }
-  }
-
-  private buildOweMap(): void {
-    const groupId = this.groupId();
+  private buildOweMap(groupId: string | number, receiptIds: number[]): void {
     if (!groupId) {
       return;
     }
 
     let id: any = Number.parseInt(groupId as any) || (groupId as any);
-    if (this.receiptIds().length > 0) {
+    if (receiptIds.length > 0) {
       id = undefined;
     }
-    
+
     this.userService
       .getAmountOwedForUser(
         id,
-        this.receiptIds()
+        receiptIds
       )
       .pipe(
         take(1),
         tap((result) => {
-          this.userOwesMap = new Map();
-          this.usersOweMap = new Map();
+          const newUserOwes = new Map<string, string>();
+          const newUsersOwe = new Map<string, string>();
 
           Object.keys(result).forEach((k) => {
             const key = k.toString();
             if (Number(result[k]) > 0) {
-              this.userOwesMap.set(key, result[k].toString());
+              newUserOwes.set(key, result[k].toString());
             } else {
               const parsed = Number.parseFloat(result[k]);
-              this.usersOweMap.set(key, Math.abs(parsed).toString());
+              newUsersOwe.set(key, Math.abs(parsed).toString());
             }
           });
+
+          this.userOwesMap.set(newUserOwes);
+          this.usersOweMap.set(newUsersOwe);
         })
       )
       .subscribe();
