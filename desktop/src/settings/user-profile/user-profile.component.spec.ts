@@ -34,6 +34,7 @@ describe("UserProfileComponent", () => {
             provide: ActivatedRoute,
             useValue: { snapshot: { data: { formConfig: {} } } },
         },
+        { provide: Router, useValue: { navigate: jest.fn().mockResolvedValue(true) } },
         provideHttpClient(withInterceptorsFromDi()),
     ]
 }).compileComponents();

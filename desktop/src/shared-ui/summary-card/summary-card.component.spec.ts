@@ -10,6 +10,8 @@ import { NgxsModule } from "@ngxs/store";
 import { of } from "rxjs";
 import { ApiModule, UserService } from "../../open-api";
 import { PipesModule } from "../../pipes";
+import { UserState } from "../../store";
+import { SystemSettingsState } from "../../store/system-settings.state";
 import { CardComponent } from "../card/card.component";
 import { SummaryCardComponent } from "./summary-card.component";
 
@@ -23,7 +25,7 @@ describe("SummaryCardComponent", () => {
       imports: [ApiModule,
         MatCardModule,
         MatListModule,
-        NgxsModule.forRoot([]),
+        NgxsModule.forRoot([UserState, SystemSettingsState]),
         PipesModule],
       providers: [
         CurrencyPipe,

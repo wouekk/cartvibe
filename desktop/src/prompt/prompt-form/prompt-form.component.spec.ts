@@ -34,6 +34,7 @@ describe("PromptFormComponent", () => {
                 }
             }
         },
+        { provide: Router, useValue: { navigate: jest.fn().mockResolvedValue(true) } },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
     ]

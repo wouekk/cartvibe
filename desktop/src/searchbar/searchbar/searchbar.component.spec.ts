@@ -27,7 +27,11 @@ describe("SearchbarComponent", () => {
         MatFormFieldModule,
         MatInputModule,
         NoopAnimationsModule],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+    providers: [
+        { provide: Router, useValue: { navigateByUrl: jest.fn().mockResolvedValue(true) } },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
 }).compileComponents();
 
     fixture = TestBed.createComponent(SearchbarComponent);

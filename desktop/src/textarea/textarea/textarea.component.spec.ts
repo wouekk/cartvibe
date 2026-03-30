@@ -42,12 +42,15 @@ describe("TextareaComponent", () => {
     // Mock the matAutocompleteTrigger closePanel
     jest.spyOn(component.matAutocompleteTrigger(), "closePanel").mockImplementation(() => {});
 
-    // Access the viewChild textarea and set selectionEnd
-    const textareaEl = component.textarea();
-    textareaEl.nativeElement.selectionEnd = 6;
+    // Mock the textarea viewChild with a fake nativeElement to track selectionEnd
+    const fakeNativeElement = { selectionEnd: 6 };
+    Object.defineProperty(component, 'textarea', {
+      value: () => ({ nativeElement: fakeNativeElement }),
+      configurable: true,
+    });
 
     component.onOptionSelected();
 
-    expect(textareaEl.nativeElement.selectionEnd).toBe(15);
+    expect(fakeNativeElement.selectionEnd).toBe(15);
   });
 });
