@@ -1,7 +1,7 @@
 import { CurrencyPipe } from "@angular/common";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
-import { ChangeDetectorRef, CUSTOM_ELEMENTS_SCHEMA, QueryList, SimpleChange } from "@angular/core";
+import { CUSTOM_ELEMENTS_SCHEMA, QueryList, SimpleChange } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormArray, FormControl, FormGroup } from "@angular/forms";
 import { MatExpansionPanel } from "@angular/material/expansion";
@@ -162,8 +162,7 @@ describe("ShareListComponent", () => {
         }
       };
 
-      const mockCdr = { detectChanges: jest.fn() } as unknown as ChangeDetectorRef;
-      const newComponent = new ShareListComponent(emptyRouteData as any, mockCdr);
+      const newComponent = new ShareListComponent(emptyRouteData as any);
       newComponent.form = createFormWithItems(mockItems);
 
       newComponent.ngOnInit();

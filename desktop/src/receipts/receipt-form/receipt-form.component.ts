@@ -717,6 +717,7 @@ export class ReceiptFormComponent implements OnInit {
     this.receiptItemsFormArray.push(newFormGroup);
     this.shareListComponent.setUserItemMap();
     this.itemListComponent.setItems();
+    this.cdr.detectChanges();
 
     // Auto-sync amount if enabled
     if (this.syncAmountWithItems) {
@@ -736,9 +737,10 @@ export class ReceiptFormComponent implements OnInit {
       // Remove regular item from main receiptItems array
       this.receiptItemsFormArray.removeAt(data.arrayIndex);
     }
-    
+
     this.shareListComponent.setUserItemMap();
     this.itemListComponent.setItems();
+    this.cdr.detectChanges();
 
     // Auto-sync amount if enabled
     if (this.syncAmountWithItems) {
