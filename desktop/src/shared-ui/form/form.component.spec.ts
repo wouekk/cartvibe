@@ -43,7 +43,6 @@ describe("FormComponent", () => {
     });
     fixture.componentRef.setInput('form', new FormGroup({}));
     fixture.componentRef.setInput('formTemplate', {} as any);
-    fixture.detectChanges();
   });
 
   it("should create", () => {

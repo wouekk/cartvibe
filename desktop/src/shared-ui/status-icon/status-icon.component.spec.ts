@@ -14,6 +14,7 @@ describe('StatusIconComponent', () => {
     
     fixture = TestBed.createComponent(StatusIconComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('taskStatus', 'SUCCEEDED');
     fixture.detectChanges();
   });
 

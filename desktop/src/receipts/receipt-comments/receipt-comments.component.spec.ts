@@ -52,6 +52,7 @@ describe("ReceiptCommentsComponent", () => {
     store = TestBed.inject(Store);
     fixture = TestBed.createComponent(ReceiptCommentsComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('mode', FormMode.view);
     fixture.detectChanges();
   });
 
@@ -84,7 +85,7 @@ describe("ReceiptCommentsComponent", () => {
     component.comments = comments;
 
     component.ngOnInit();
-    component.mode = FormMode.view;
+    fixture.componentRef.setInput('mode', FormMode.view);
     component.deleteComment(0);
 
     expect(spy).toHaveBeenCalledWith(1);
@@ -100,7 +101,7 @@ describe("ReceiptCommentsComponent", () => {
 
   it("should delete comment in add mode", () => {
     component.ngOnInit();
-    component.mode = FormMode.add;
+    fixture.componentRef.setInput('mode', FormMode.add);
     component.commentsArray.push(new FormGroup({}));
 
     expect(component.commentsArray.length).toEqual(1);
@@ -120,9 +121,9 @@ describe("ReceiptCommentsComponent", () => {
       },
     });
 
-    component.mode = FormMode.add;
+    fixture.componentRef.setInput('mode', FormMode.add);
     component.newCommentFormControl.patchValue("new comment");
-    component.receiptId = 1;
+    fixture.componentRef.setInput('receiptId', 1);
     component.addComment();
 
     expect(component.newCommentFormControl.value).toEqual(null);
@@ -155,9 +156,9 @@ describe("ReceiptCommentsComponent", () => {
       },
     });
 
-    component.mode = FormMode.edit;
+    fixture.componentRef.setInput('mode', FormMode.edit);
     component.newCommentFormControl.patchValue("new comment");
-    component.receiptId = 1;
+    fixture.componentRef.setInput('receiptId', 1);
     component.addComment();
 
     expect(component.commentsArray.length).toEqual(1);

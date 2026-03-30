@@ -14,6 +14,7 @@ describe('DateBlockComponent', () => {
     
     fixture = TestBed.createComponent(DateBlockComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('date', new Date());
     fixture.detectChanges();
   });
 

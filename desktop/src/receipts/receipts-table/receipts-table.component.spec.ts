@@ -48,10 +48,12 @@ describe("ReceiptsTableComponent", () => {
 
     fixture = TestBed.createComponent(ReceiptsTableComponent);
     component = fixture.componentInstance;
-    component.table = {
-      selection: {},
-      changed: of(undefined),
-    } as any;
+    Object.defineProperty(component, 'table', {
+      value: () => ({
+        selection: {},
+        changed: of(undefined),
+      }),
+    });
   });
 
   it("should create", () => {
@@ -67,17 +69,19 @@ describe("ReceiptsTableComponent", () => {
         id: 2,
       } as Receipt,
     ];
-    component.table = {
-      selection: {
-        changed: of({
-          source: {
-            selected: selectedReceipts,
-          },
-        }),
-      },
-    } as any;
+    Object.defineProperty(component, 'table', {
+      value: () => ({
+        selection: {
+          changed: of({
+            source: {
+              selected: selectedReceipts,
+            },
+          }),
+        },
+      }),
+    });
     component.ngAfterViewInit();
 
-    expect(component.selectedReceiptIds).toEqual([1, 2]);
+    expect(component.selectedReceiptIds()).toEqual([1, 2]);
   });
 });

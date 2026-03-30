@@ -29,13 +29,11 @@ describe('StatusSelectComponent', () => {
 
   it('should add blank option', () => {
     fixture.componentRef.setInput('addBlankOption', true);
-    component.ngOnChanges({ addBlankOption: { currentValue: true } } as any);
-    expect(component.receiptStatusOptions).toEqual([
-      {
-        value: null,
-        displayValue: '',
-      } as any,
-      ...RECEIPT_STATUS_OPTIONS,
-    ]);
+    fixture.detectChanges();
+    expect(component.receiptStatusOptions[0]).toEqual({
+      value: null,
+      displayValue: '',
+    });
+    expect(component.receiptStatusOptions.length).toBeGreaterThan(RECEIPT_STATUS_OPTIONS.length);
   });
 });

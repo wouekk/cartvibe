@@ -34,17 +34,20 @@ describe("TextareaComponent", () => {
   });
 
   it("should set selection end to where word was inserted", () => {
-    component.textarea = {
-      nativeElement: {
-        selectionEnd: 6,
-      } as any,
-    };
-    component.trigger = "@";
+    fixture.componentRef.setInput('trigger', "@");
     component.inputFormControl = new FormControl("hello @trigger world");
     component.lastKnownSelection = 6;
+    fixture.detectChanges();
+
+    // Mock the matAutocompleteTrigger closePanel
+    jest.spyOn(component.matAutocompleteTrigger(), "closePanel").mockImplementation(() => {});
+
+    // Access the viewChild textarea and set selectionEnd
+    const textareaEl = component.textarea();
+    textareaEl.nativeElement.selectionEnd = 6;
+
     component.onOptionSelected();
 
-
-    expect(component.textarea.nativeElement.selectionEnd).toBe(15);
+    expect(textareaEl.nativeElement.selectionEnd).toBe(15);
   });
 });

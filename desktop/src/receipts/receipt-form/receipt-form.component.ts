@@ -1,4 +1,4 @@
-import { Component, EmbeddedViewRef, HostListener, OnInit, Signal, TemplateRef, signal, viewChild } from "@angular/core";
+import { Component, EmbeddedViewRef, HostListener, Injector, OnInit, Signal, TemplateRef, runInInjectionContext, signal, viewChild } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { MatDialog } from "@angular/material/dialog";
@@ -157,6 +157,7 @@ export class ReceiptFormComponent implements OnInit {
     private receiptQueueService: ReceiptQueueService,
     private receiptService: ReceiptService,
     private router: Router,
+    private injector: Injector,
     private snackbarService: SnackbarService,
     private store: Store,
   ) {}
@@ -281,7 +282,7 @@ export class ReceiptFormComponent implements OnInit {
   }
 
   private setHeaderText(): void {
-    this.formHeaderText = toSignal(
+    this.formHeaderText = runInInjectionContext(this.injector, () => toSignal(
       (this.form.get("name") as AbstractControl).valueChanges.pipe(
         startWith(this.form.get("name")?.value),
         untilDestroyed(this),
@@ -302,7 +303,7 @@ export class ReceiptFormComponent implements OnInit {
           return `${action} ${name} Receipt`;
         })
       )
-    );
+    ));
   }
 
   private setCancelLink(): void {

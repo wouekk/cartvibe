@@ -1,9 +1,12 @@
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { GroupAutocompleteComponent } from './group-autocomplete.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { NgxsModule } from '@ngxs/store';
+import { GroupState } from '../../store';
 
 describe('GroupAutocompleteComponent', () => {
   let component: GroupAutocompleteComponent;
@@ -12,8 +15,12 @@ describe('GroupAutocompleteComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       declarations: [GroupAutocompleteComponent],
-      imports: [NgxsModule.forRoot([])],
+      imports: [NgxsModule.forRoot([GroupState])],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+      ],
     });
     fixture = TestBed.createComponent(GroupAutocompleteComponent);
     component = fixture.componentInstance;

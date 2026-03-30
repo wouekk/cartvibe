@@ -57,7 +57,7 @@ export class FilteredStatefulMenuComponent extends BaseButtonComponent implement
   }
 
   public ngOnChanges(changes: SimpleChanges): void {
-    if (changes["items"].currentValue !== changes["items"].previousValue) {
+    if (changes["items"] && changes["items"].currentValue !== changes["items"].previousValue) {
       this.filteredItems = this.filterItems(changes["items"].currentValue, this.filterFormControl.value);
     }
   }

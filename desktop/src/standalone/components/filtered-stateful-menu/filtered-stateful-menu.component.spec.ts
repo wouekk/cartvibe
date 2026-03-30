@@ -39,7 +39,7 @@ describe("FilteredStatefulMenuComponent", () => {
 
     fixture = TestBed.createComponent(FilteredStatefulMenuComponent);
     component = fixture.componentInstance;
-    component.items = mockItems;
+    fixture.componentRef.setInput('items', mockItems);
     fixture.detectChanges();
   });
 
@@ -63,7 +63,7 @@ describe("FilteredStatefulMenuComponent", () => {
 
   it("should filter items using custom filter function if provided", () => {
     // Custom filter function that only returns items with selected = true
-    component.filterFunc = (item: StatefulMenuItem) => item.selected;
+    fixture.componentRef.setInput('filterFunc', (item: StatefulMenuItem) => item.selected);
     component.filterFormControl.setValue("dummy"); // Value doesn't matter with our custom filter
     fixture.detectChanges();
 
@@ -90,7 +90,7 @@ describe("FilteredStatefulMenuComponent", () => {
 
   it("should not emit itemSelected event when readonly is true", () => {
     jest.spyOn(component.itemSelected, "emit");
-    component.readonly = true;
+    fixture.componentRef.setInput('readonly', true);
     const mockEvent = new MouseEvent("click");
     const mockItem = mockItems[0];
 

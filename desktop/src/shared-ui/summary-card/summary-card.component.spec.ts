@@ -1,3 +1,4 @@
+import { CurrencyPipe } from "@angular/common";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { provideZonelessChangeDetection } from "@angular/core";
@@ -25,6 +26,7 @@ describe("SummaryCardComponent", () => {
         NgxsModule.forRoot([]),
         PipesModule],
       providers: [
+        CurrencyPipe,
         provideZonelessChangeDetection(),
         {
           provide: ActivatedRoute,

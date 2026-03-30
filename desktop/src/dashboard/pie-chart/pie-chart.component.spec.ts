@@ -1,7 +1,7 @@
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA, SimpleChange } from "@angular/core";
-import { ComponentFixture, TestBed, fakeAsync, tick } from "@angular/core/testing";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import { of, throwError } from "rxjs";
 import { ChartGrouping, PieChartData, Widget, WidgetService, WidgetType } from "../../open-api";
@@ -51,8 +51,8 @@ describe("PieChartComponent", () => {
 
     fixture = TestBed.createComponent(PieChartComponent);
     component = fixture.componentInstance;
-    component.widget = mockWidget;
-    component.groupId = 1;
+    fixture.componentRef.setInput('widget', mockWidget);
+    fixture.componentRef.setInput('groupId', 1);
   });
 
   it("should create", () => {
@@ -83,19 +83,17 @@ describe("PieChartComponent", () => {
   });
 
   describe("ngOnInit", () => {
-    it("should call loadData on init", fakeAsync(() => {
+    it("should call loadData on init", () => {
       fixture.detectChanges();
-      tick();
 
       expect(widgetService.getPieChartData).toHaveBeenCalledWith(1, {
         chartGrouping: ChartGrouping.Categories,
         filter: undefined,
       });
-    }));
+    });
 
-    it("should update chart data after loading", fakeAsync(() => {
+    it("should update chart data after loading", () => {
       fixture.detectChanges();
-      tick();
 
       expect(component.isLoading).toBe(false);
       expect(component.hasData).toBe(true);
@@ -105,111 +103,99 @@ describe("PieChartComponent", () => {
         "Category C",
       ]);
       expect(component.pieChartData.datasets[0].data).toEqual([100, 200, 150]);
-    }));
+    });
 
-    it("should not call service if groupId is not set", fakeAsync(() => {
-      component.groupId = undefined;
+    it("should not call service if groupId is not set", () => {
+      fixture.componentRef.setInput('groupId', undefined);
       fixture.detectChanges();
-      tick();
 
       expect(widgetService.getPieChartData).not.toHaveBeenCalled();
       expect(component.isLoading).toBe(false);
-    }));
+    });
 
-    it("should not call service if widget configuration is not set", fakeAsync(() => {
-      component.widget = { ...mockWidget, configuration: undefined };
+    it("should not call service if widget configuration is not set", () => {
+      fixture.componentRef.setInput('widget', { ...mockWidget, configuration: undefined });
       fixture.detectChanges();
-      tick();
 
       expect(widgetService.getPieChartData).not.toHaveBeenCalled();
       expect(component.isLoading).toBe(false);
-    }));
+    });
 
-    it("should not call service if chartGrouping is not set", fakeAsync(() => {
-      component.widget = { ...mockWidget, configuration: {} };
+    it("should not call service if chartGrouping is not set", () => {
+      fixture.componentRef.setInput('widget', { ...mockWidget, configuration: {} });
       fixture.detectChanges();
-      tick();
 
       expect(widgetService.getPieChartData).not.toHaveBeenCalled();
       expect(component.isLoading).toBe(false);
-    }));
+    });
   });
 
   describe("ngOnChanges", () => {
-    it("should reload data when groupId changes", fakeAsync(() => {
+    it("should reload data when groupId changes", () => {
       fixture.detectChanges();
-      tick();
       widgetService.getPieChartData.mockClear();
 
       component.ngOnChanges({
         groupId: new SimpleChange(1, 2, false),
       });
-      tick();
 
       expect(widgetService.getPieChartData).toHaveBeenCalled();
-    }));
+    });
 
-    it("should not reload data on first change", fakeAsync(() => {
+    it("should not reload data on first change", () => {
       fixture.detectChanges();
-      tick();
       widgetService.getPieChartData.mockClear();
 
       component.ngOnChanges({
         groupId: new SimpleChange(undefined, 1, true),
       });
-      tick();
 
       expect(widgetService.getPieChartData).not.toHaveBeenCalled();
-    }));
+    });
 
-    it("should not reload data when other inputs change", fakeAsync(() => {
+    it("should not reload data when other inputs change", () => {
       fixture.detectChanges();
-      tick();
       widgetService.getPieChartData.mockClear();
 
       component.ngOnChanges({
         widget: new SimpleChange(null, mockWidget, false),
       });
-      tick();
 
       expect(widgetService.getPieChartData).not.toHaveBeenCalled();
-    }));
+    });
   });
 
   describe("loadData", () => {
-    it("should pass filter from widget configuration", fakeAsync(() => {
+    it("should pass filter from widget configuration", () => {
       const filterConfig = {
         chartGrouping: ChartGrouping.Tags,
         filter: { status: { value: ["OPEN"], operation: "equals" } },
       };
-      component.widget = { ...mockWidget, configuration: filterConfig };
+      fixture.componentRef.setInput('widget', { ...mockWidget, configuration: filterConfig });
       fixture.detectChanges();
-      tick();
 
       expect(widgetService.getPieChartData).toHaveBeenCalledWith(1, {
         chartGrouping: ChartGrouping.Tags,
         filter: filterConfig.filter,
       });
-    }));
+    });
 
-    it("should handle empty response data", fakeAsync(() => {
+    it("should handle empty response data", () => {
       widgetService.getPieChartData.mockReturnValue(of({ data: [] }));
       fixture.detectChanges();
-      tick();
 
       expect(component.hasData).toBe(false);
       expect(component.isLoading).toBe(false);
-    }));
+    });
 
-    it("should handle null response data", fakeAsync(() => {
+    it("should handle null response data", () => {
       widgetService.getPieChartData.mockReturnValue(of({ data: undefined } as any));
       fixture.detectChanges();
-      tick();
 
       expect(component.hasData).toBe(false);
-    }));
+    });
 
-    it("should handle data points with missing labels", fakeAsync(() => {
+    it("should handle data points with missing labels", () => {
       widgetService.getPieChartData.mockReturnValue(
         of({
           data: [
@@ -219,12 +205,11 @@ describe("PieChartComponent", () => {
         } as any)
       );
       fixture.detectChanges();
-      tick();
 
       expect(component.pieChartData.labels).toEqual(["Unknown", "Category B"]);
-    }));
+    });
 
-    it("should handle data points with missing values", fakeAsync(() => {
+    it("should handle data points with missing values", () => {
       widgetService.getPieChartData.mockReturnValue(
         of({
           data: [
@@ -234,38 +219,35 @@ describe("PieChartComponent", () => {
         } as any)
       );
       fixture.detectChanges();
-      tick();
 
       expect(component.pieChartData.datasets[0].data).toEqual([0, 200]);
-    }));
+    });
   });
 
   describe("updateChartData", () => {
-    it("should preserve backgroundColor when updating data", fakeAsync(() => {
+    it("should preserve backgroundColor when updating data", () => {
       const originalColors = component.pieChartData.datasets[0].backgroundColor;
       fixture.detectChanges();
-      tick();
 
       expect(component.pieChartData.datasets[0].backgroundColor).toEqual(
         originalColors
       );
-    }));
+    });
 
-    it("should handle single data point", fakeAsync(() => {
+    it("should handle single data point", () => {
       widgetService.getPieChartData.mockReturnValue(
         of({
           data: [{ label: "Only One", value: 500 }],
         })
       );
       fixture.detectChanges();
-      tick();
 
       expect(component.pieChartData.labels).toEqual(["Only One"]);
       expect(component.pieChartData.datasets[0].data).toEqual([500]);
       expect(component.hasData).toBe(true);
-    }));
+    });
 
-    it("should handle many data points", fakeAsync(() => {
+    it("should handle many data points", () => {
       const manyDataPoints = Array.from({ length: 20 }, (_, i) => ({
         label: `Category ${i}`,
         value: i * 10,
@@ -274,51 +256,50 @@ describe("PieChartComponent", () => {
         of({ data: manyDataPoints })
       );
       fixture.detectChanges();
-      tick();
 
       expect(component.pieChartData.labels?.length).toBe(20);
       expect(component.pieChartData.datasets[0].data.length).toBe(20);
-    }));
+    });
   });
 
   describe("getChartGroupingLabel", () => {
     it("should return 'Categories' for CATEGORIES grouping", () => {
-      component.widget = {
+      fixture.componentRef.setInput('widget', {
         ...mockWidget,
         configuration: { chartGrouping: ChartGrouping.Categories },
-      };
+      });
       expect(component.getChartGroupingLabel()).toBe("Categories");
     });
 
     it("should return 'Tags' for TAGS grouping", () => {
-      component.widget = {
+      fixture.componentRef.setInput('widget', {
         ...mockWidget,
         configuration: { chartGrouping: ChartGrouping.Tags },
-      };
+      });
       expect(component.getChartGroupingLabel()).toBe("Tags");
     });
 
     it("should return 'Paid By' for PAIDBY grouping", () => {
-      component.widget = {
+      fixture.componentRef.setInput('widget', {
         ...mockWidget,
         configuration: { chartGrouping: ChartGrouping.Paidby },
-      };
+      });
       expect(component.getChartGroupingLabel()).toBe("Paid By");
     });
 
     it("should return 'Unknown' for undefined grouping", () => {
-      component.widget = {
+      fixture.componentRef.setInput('widget', {
         ...mockWidget,
         configuration: {},
-      };
+      });
       expect(component.getChartGroupingLabel()).toBe("Unknown");
     });
 
     it("should return 'Unknown' for null configuration", () => {
-      component.widget = {
+      fixture.componentRef.setInput('widget', {
         ...mockWidget,
         configuration: undefined,
-      };
+      });
       expect(component.getChartGroupingLabel()).toBe("Unknown");
     });
   });
@@ -449,74 +430,68 @@ describe("PieChartComponent", () => {
   });
 
   describe("template rendering", () => {
-    it("should display widget name in header", fakeAsync(() => {
+    it("should display widget name in header", () => {
       fixture.detectChanges();
-      tick();
 
       const header = fixture.debugElement.query(By.css("h3"));
       expect(header.nativeElement.textContent.trim()).toBe("Test Pie Chart");
-    }));
+    });
 
-    it("should display default name when widget name is empty", fakeAsync(() => {
-      component.widget = { ...mockWidget, name: "" };
+    it("should display default name when widget name is empty", () => {
+      fixture.componentRef.setInput('widget', { ...mockWidget, name: "" });
       fixture.detectChanges();
-      tick();
 
       const header = fixture.debugElement.query(By.css("h3"));
       expect(header.nativeElement.textContent.trim()).toBe("Pie Chart");
-    }));
+    });
 
-    it("should display chart grouping badge", fakeAsync(() => {
+    it("should display chart grouping badge", () => {
       fixture.detectChanges();
-      tick();
 
       const badge = fixture.debugElement.query(By.css(".badge"));
       expect(badge.nativeElement.textContent.trim()).toBe("Categories");
-    }));
+    });
 
-    it("should pass correct props to app-pie-chart-ui", fakeAsync(() => {
+    it("should pass correct props to app-pie-chart-ui", () => {
       fixture.detectChanges();
-      tick();
 
       const pieChartUi = fixture.debugElement.query(
         By.css("app-pie-chart-ui")
       );
       expect(pieChartUi).toBeTruthy();
-    }));
+    });
   });
 
   describe("different chart groupings", () => {
-    it("should load data with TAGS grouping", fakeAsync(() => {
-      component.widget = {
+    it("should load data with TAGS grouping", () => {
+      fixture.componentRef.setInput('widget', {
         ...mockWidget,
         configuration: { chartGrouping: ChartGrouping.Tags },
-      };
+      });
       fixture.detectChanges();
-      tick();
 
       expect(widgetService.getPieChartData).toHaveBeenCalledWith(1, {
         chartGrouping: ChartGrouping.Tags,
         filter: undefined,
       });
-    }));
+    });
 
-    it("should load data with PAIDBY grouping", fakeAsync(() => {
-      component.widget = {
+    it("should load data with PAIDBY grouping", () => {
+      fixture.componentRef.setInput('widget', {
         ...mockWidget,
         configuration: { chartGrouping: ChartGrouping.Paidby },
-      };
+      });
       fixture.detectChanges();
-      tick();
 
       expect(widgetService.getPieChartData).toHaveBeenCalledWith(1, {
         chartGrouping: ChartGrouping.Paidby,
         filter: undefined,
       });
-    }));
+    });
   });
 
   describe("edge cases", () => {
-    it("should handle very large values", fakeAsync(() => {
+    it("should handle very large values", () => {
       widgetService.getPieChartData.mockReturnValue(
         of({
           data: [
@@ -526,12 +501,11 @@ describe("PieChartComponent", () => {
         })
       );
       fixture.detectChanges();
-      tick();
 
       expect(component.pieChartData.datasets[0].data).toEqual([999999999, 1]);
-    }));
+    });
 
-    it("should handle decimal values", fakeAsync(() => {
+    it("should handle decimal values", () => {
       widgetService.getPieChartData.mockReturnValue(
         of({
           data: [
@@ -541,12 +515,11 @@ describe("PieChartComponent", () => {
         })
       );
       fixture.detectChanges();
-      tick();
 
       expect(component.pieChartData.datasets[0].data).toEqual([10.55, 20.45]);
-    }));
+    });
 
-    it("should handle zero values", fakeAsync(() => {
+    it("should handle zero values", () => {
       widgetService.getPieChartData.mockReturnValue(
         of({
           data: [
@@ -556,13 +529,12 @@ describe("PieChartComponent", () => {
         })
       );
       fixture.detectChanges();
-      tick();
 
       expect(component.pieChartData.datasets[0].data).toEqual([0, 100]);
       expect(component.hasData).toBe(true);
-    }));
+    });
 
-    it("should handle negative values gracefully", fakeAsync(() => {
+    it("should handle negative values gracefully", () => {
       widgetService.getPieChartData.mockReturnValue(
         of({
           data: [
@@ -572,12 +544,11 @@ describe("PieChartComponent", () => {
         })
       );
       fixture.detectChanges();
-      tick();
 
       expect(component.pieChartData.datasets[0].data).toEqual([-50, 100]);
-    }));
+    });
 
-    it("should handle special characters in labels", fakeAsync(() => {
+    it("should handle special characters in labels", () => {
       widgetService.getPieChartData.mockReturnValue(
         of({
           data: [
@@ -587,15 +558,14 @@ describe("PieChartComponent", () => {
         })
       );
       fixture.detectChanges();
-      tick();
 
       expect(component.pieChartData.labels).toEqual([
         "Category & Special <chars>",
         'With "quotes"',
       ]);
-    }));
+    });
 
-    it("should handle unicode in labels", fakeAsync(() => {
+    it("should handle unicode in labels", () => {
       widgetService.getPieChartData.mockReturnValue(
         of({
           data: [
@@ -605,9 +575,8 @@ describe("PieChartComponent", () => {
         })
       );
       fixture.detectChanges();
-      tick();
 
       expect(component.pieChartData.labels).toEqual(["日本語", "Émojis 🎉"]);
-    }));
+    });
   });
 });

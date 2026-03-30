@@ -1,5 +1,6 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { NgxsModule } from "@ngxs/store";
 import { ButtonModule } from "../../button";
 import { DialogFooterComponent } from "./dialog-footer.component";
 
@@ -10,7 +11,7 @@ describe("DialogFooterComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [DialogFooterComponent],
-      imports: [ButtonModule],
+      imports: [ButtonModule, NgxsModule.forRoot([])],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
 

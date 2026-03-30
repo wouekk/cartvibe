@@ -84,12 +84,15 @@ describe("ReceiptFormComponent", () => {
   it("should patch magic fill values correctly", () => {
     // Mock timezone offset to be EST
     Date.prototype.getTimezoneOffset = () => 240;
-    component.images = [{ id: 1 } as any];
+    component.images.set([{ id: 1 } as any]);
     component.ngOnInit();
     component.mode = FormMode.edit;
-    component.carouselComponent = {
-      currentlyShownImageIndex: 0,
-    } as any;
+    Object.defineProperty(component, 'carouselComponent', {
+      value: () => ({
+        currentlyShownImageIndex: 0,
+      }),
+      configurable: true,
+    });
     component.categories = [
       { id: 1, name: "category" } as any,
       { id: 2, name: "category2" } as any,
@@ -139,12 +142,15 @@ describe("ReceiptFormComponent", () => {
   });
 
   it("should not patch magic fill values if they are the defaults", () => {
-    component.images = [{ id: 1 } as any];
+    component.images.set([{ id: 1 } as any]);
     component.ngOnInit();
     component.mode = FormMode.edit;
-    component.carouselComponent = {
-      currentlyShownImageIndex: 0,
-    } as any;
+    Object.defineProperty(component, 'carouselComponent', {
+      value: () => ({
+        currentlyShownImageIndex: 0,
+      }),
+      configurable: true,
+    });
 
     const originalData = {
       name: "a different name",
@@ -177,12 +183,16 @@ describe("ReceiptFormComponent", () => {
   });
 
   it("should not patch any values when they are all default values and pop error snackbar", () => {
-    component.images = [{ id: 1 } as any];
+    component.images.set([{ id: 1 } as any]);
     component.ngOnInit();
     component.mode = FormMode.edit;
-    component.carouselComponent = {
-      currentlyShownImageIndex: 0,
-    } as any;
+    Object.defineProperty(component, 'carouselComponent', {
+      value: () => ({
+        currentlyShownImageIndex: 0,
+      }),
+      configurable: true,
+    });
+
 
     const originalData = {
       name: "a different name",

@@ -26,7 +26,7 @@ export class StatusSelectComponent implements OnChanges {
         displayValue: "",
       });
     } else {
-      this.receiptStatusOptions = RECEIPT_STATUS_OPTIONS;
+      this.receiptStatusOptions = [...RECEIPT_STATUS_OPTIONS];
     }
   }
 }

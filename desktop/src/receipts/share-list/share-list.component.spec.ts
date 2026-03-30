@@ -108,15 +108,11 @@ describe("ShareListComponent", () => {
     });
 
     // Setup default component state
-    component.form = createFormWithItems(mockItems);
-    component.categories = mockCategories;
-    component.tags = mockTags;
-    component.selectedGroup = mockGroup;
+    fixture.componentRef.setInput('form', createFormWithItems(mockItems));
+    fixture.componentRef.setInput('categories', mockCategories);
+    fixture.componentRef.setInput('tags', mockTags);
+    fixture.componentRef.setInput('selectedGroup', mockGroup);
     component.originalReceipt = mockReceipt;
-
-    // Mock ViewChildren
-    component.userExpansionPanels = new QueryList<MatExpansionPanel>();
-    component.nameFields = new QueryList<InputComponent>();
 
     fixture.detectChanges();
   });
@@ -156,19 +152,17 @@ describe("ShareListComponent", () => {
     });
 
     it("should handle missing route data in ngOnInit", () => {
-      const emptyRouteData = {
-        snapshot: {
-          data: {}
-        }
-      };
+      const activatedRoute = TestBed.inject(ActivatedRoute);
+      const originalData = activatedRoute.snapshot.data;
+      activatedRoute.snapshot.data = {};
 
-      const newComponent = new ShareListComponent(emptyRouteData as any);
-      newComponent.form = createFormWithItems(mockItems);
+      component.ngOnInit();
 
-      newComponent.ngOnInit();
+      expect(component.originalReceipt).toBeUndefined();
+      expect(component.mode).toBeUndefined();
 
-      expect(newComponent.originalReceipt).toBeUndefined();
-      expect(newComponent.mode).toBeUndefined();
+      // Restore route data for subsequent tests
+      activatedRoute.snapshot.data = originalData;
     });
 
     it("should handle ngOnChanges when triggerAddMode changes to true", () => {
@@ -212,7 +206,7 @@ describe("ShareListComponent", () => {
     });
 
     it("should handle form without receiptItems", () => {
-      component.form = new FormGroup({});
+      fixture.componentRef.setInput('form', new FormGroup({}));
 
       const receiptItems = component.receiptItems;
 
@@ -274,7 +268,7 @@ describe("ShareListComponent", () => {
         { id: 1, name: "Item 1", amount: "10.50", chargedToUserId: 1, status: ItemStatus.Open, receiptId: 1 } as Item,
         { id: 2, name: "Item 2", amount: "15.75", chargedToUserId: null, status: ItemStatus.Open, receiptId: 1 } as any as Item,
       ];
-      component.form = createFormWithItems(itemsWithNullUserId);
+      fixture.componentRef.setInput('form', createFormWithItems(itemsWithNullUserId));
 
       component.setUserItemMap();
 
@@ -297,7 +291,7 @@ describe("ShareListComponent", () => {
         { id: 1, name: "Item 1", amount: "10.50", chargedToUserId: 1, status: ItemStatus.Open, receiptId: 1 } as Item,
         { id: 2, name: "Item 2", amount: "15.75", chargedToUserId: undefined, status: ItemStatus.Open, receiptId: 1 } as Item,
       ];
-      component.form = createFormWithItems(itemsWithUndefinedUserId);
+      fixture.componentRef.setInput('form', createFormWithItems(itemsWithUndefinedUserId));
 
       component.setUserItemMap();
 
@@ -316,7 +310,7 @@ describe("ShareListComponent", () => {
     });
 
     it("should handle empty items array", () => {
-      component.form = createFormWithItems([]);
+      fixture.componentRef.setInput('form', createFormWithItems([]));
 
       component.setUserItemMap();
 
@@ -327,7 +321,7 @@ describe("ShareListComponent", () => {
       const itemsWithNumberUserId = [
         { id: 1, name: "Item 1", amount: "10.50", chargedToUserId: 123, status: ItemStatus.Open, receiptId: 1 } as Item,
       ];
-      component.form = createFormWithItems(itemsWithNumberUserId);
+      fixture.componentRef.setInput('form', createFormWithItems(itemsWithNumberUserId));
 
       component.setUserItemMap();
 
@@ -351,7 +345,7 @@ describe("ShareListComponent", () => {
         { id: 2, name: "Item 2", amount: "15.75", chargedToUserId: 1, status: ItemStatus.Open, receiptId: 1 } as Item,
         { id: 3, name: "Item 3", amount: "8.25", chargedToUserId: 1, status: ItemStatus.Resolved, receiptId: 1 } as Item,
       ];
-      component.form = createFormWithItems(multipleItemsSameUser);
+      fixture.componentRef.setInput('form', createFormWithItems(multipleItemsSameUser));
 
       component.setUserItemMap();
 
@@ -360,7 +354,7 @@ describe("ShareListComponent", () => {
     });
 
     it("should handle form without receiptItems control", () => {
-      component.form = new FormGroup({});
+      fixture.componentRef.setInput('form', new FormGroup({}));
 
       // The component doesn't clear the map when no receiptItems control, so we expect it to stay unchanged
       const originalMapSize = component.userItemMap.size;
@@ -371,9 +365,9 @@ describe("ShareListComponent", () => {
 
     it("should handle null items value", () => {
       // Create a form where receiptItems value would be null (empty FormArray gets null value)
-      component.form = new FormGroup({
+      fixture.componentRef.setInput('form', new FormGroup({
         receiptItems: new FormArray([])
-      });
+      }));
 
       // When form is empty, setUserItemMap should handle gracefully
       const originalMapSize = component.userItemMap.size;
@@ -384,9 +378,9 @@ describe("ShareListComponent", () => {
     });
 
     it("should handle undefined items value", () => {
-      component.form = new FormGroup({
+      fixture.componentRef.setInput('form', new FormGroup({
         receiptItems: new FormControl(undefined)
-      });
+      }));
 
       component.setUserItemMap();
 
@@ -602,7 +596,7 @@ describe("ShareListComponent", () => {
         { id: 1, name: "Item 1", amount: "10.50", chargedToUserId: 1, status: ItemStatus.Open, receiptId: 1 } as Item,
         { id: 2, name: "", amount: "0", chargedToUserId: 1, status: ItemStatus.Open, receiptId: 1 } as Item,
       ];
-      component.form = createFormWithItems(multipleItemsUser);
+      fixture.componentRef.setInput('form', createFormWithItems(multipleItemsUser));
       component.setUserItemMap();
 
       const lastItemData = component.userItemMap.get("1")![1];
@@ -636,7 +630,7 @@ describe("ShareListComponent", () => {
         { id: 1, name: "Item 1", amount: "10.50", chargedToUserId: 1, status: ItemStatus.Open, receiptId: 1 } as Item,
         { id: 2, name: "   ", amount: "0", chargedToUserId: 1, status: ItemStatus.Open, receiptId: 1 } as Item,
       ];
-      component.form = createFormWithItems(multipleItemsUser);
+      fixture.componentRef.setInput('form', createFormWithItems(multipleItemsUser));
       component.setUserItemMap();
 
       const lastItemData = component.userItemMap.get("1")![1];
@@ -667,7 +661,7 @@ describe("ShareListComponent", () => {
         { id: 1, name: "Item 1", amount: "10.50", chargedToUserId: 1, status: ItemStatus.Open, receiptId: 1 } as Item,
         { id: 2, name: "", amount: "0", chargedToUserId: 1, status: ItemStatus.Open, receiptId: 1 } as Item,
       ];
-      component.form = createFormWithItems(multipleItemsUser);
+      fixture.componentRef.setInput('form', createFormWithItems(multipleItemsUser));
       component.setUserItemMap();
 
       const lastFormGroup = component.receiptItems.at(1);
@@ -686,7 +680,7 @@ describe("ShareListComponent", () => {
         { id: 1, name: "Item 1", amount: "10.50", chargedToUserId: 1, status: ItemStatus.Open, receiptId: 1 } as Item,
         { id: 2, name: "Valid Item", amount: "0", chargedToUserId: 1, status: ItemStatus.Open, receiptId: 1 } as Item,
       ];
-      component.form = createFormWithItems(multipleItemsUser);
+      fixture.componentRef.setInput('form', createFormWithItems(multipleItemsUser));
       component.setUserItemMap();
 
       const lastFormGroup = component.receiptItems.at(1);
@@ -705,7 +699,7 @@ describe("ShareListComponent", () => {
         { id: 1, name: "Item 1", amount: "10.50", chargedToUserId: 1, status: ItemStatus.Open, receiptId: 1 } as Item,
         { id: 2, name: "", amount: "5.00", chargedToUserId: 1, status: ItemStatus.Open, receiptId: 1 } as Item,
       ];
-      component.form = createFormWithItems(multipleItemsUser);
+      fixture.componentRef.setInput('form', createFormWithItems(multipleItemsUser));
       component.setUserItemMap();
 
       const lastFormGroup = component.receiptItems.at(1);
@@ -723,7 +717,7 @@ describe("ShareListComponent", () => {
       const singleItemUser = [
         { id: 1, name: "", amount: "0", chargedToUserId: 1, status: ItemStatus.Open, receiptId: 1 } as Item,
       ];
-      component.form = createFormWithItems(singleItemUser);
+      fixture.componentRef.setInput('form', createFormWithItems(singleItemUser));
       component.setUserItemMap();
 
       component.checkLastInlineItem("1");
@@ -775,7 +769,7 @@ describe("ShareListComponent", () => {
         { id: 1, name: "Item 1", amount: "10.50", chargedToUserId: 1, status: ItemStatus.Resolved, receiptId: 1 } as Item,
         { id: 2, name: "Item 2", amount: "8.25", chargedToUserId: 1, status: ItemStatus.Resolved, receiptId: 1 } as Item,
       ];
-      component.form = createFormWithItems(resolvedItems);
+      fixture.componentRef.setInput('form', createFormWithItems(resolvedItems));
 
       const result = component.allUserItemsResolved("1");
 
@@ -787,7 +781,7 @@ describe("ShareListComponent", () => {
         { id: 1, name: "Item 1", amount: "10.50", chargedToUserId: 1, status: ItemStatus.Resolved, receiptId: 1 } as Item,
         { id: 2, name: "Item 2", amount: "8.25", chargedToUserId: 1, status: ItemStatus.Open, receiptId: 1 } as Item,
       ];
-      component.form = createFormWithItems(mixedItems);
+      fixture.componentRef.setInput('form', createFormWithItems(mixedItems));
 
       const result = component.allUserItemsResolved("1");
 
@@ -818,7 +812,7 @@ describe("ShareListComponent", () => {
       const itemsWithStringUserId = [
         { id: 1, name: "Item 1", amount: "10.50", chargedToUserId: "123", status: ItemStatus.Open, receiptId: 1 } as any,
       ];
-      component.form = createFormWithItems(itemsWithStringUserId);
+      fixture.componentRef.setInput('form', createFormWithItems(itemsWithStringUserId));
 
       const userItems = (component as any).getItemsForUser("123");
 
@@ -828,24 +822,21 @@ describe("ShareListComponent", () => {
 
   describe("Edge Cases", () => {
     it("should handle missing route data", () => {
-      // Create a new component instance directly and inject null data via activatedRoute
-      const mockActivatedRoute = {
-        snapshot: {
-          data: null
-        }
-      };
-
-      const newComponent = new ShareListComponent(mockActivatedRoute as any);
-      newComponent.form = createFormWithItems(mockItems);
+      const activatedRoute = TestBed.inject(ActivatedRoute);
+      const originalData = activatedRoute.snapshot.data;
+      (activatedRoute.snapshot as any).data = null;
 
       // Component tries to access data["receipt"] which throws when data is null
-      expect(() => newComponent.ngOnInit()).toThrow();
+      expect(() => component.ngOnInit()).toThrow();
+
+      // Restore route data for subsequent tests
+      activatedRoute.snapshot.data = originalData;
     });
 
     it("should handle form without receiptItems", () => {
-      component.form = new FormGroup({
+      fixture.componentRef.setInput('form', new FormGroup({
         otherField: new FormControl("value")
-      });
+      }));
 
       // The component doesn't clear the map when no receiptItems, so we expect it to stay unchanged
       const originalMapSize = component.userItemMap.size;
@@ -859,7 +850,7 @@ describe("ShareListComponent", () => {
         { id: 1, name: "Item 1", amount: "10.50", chargedToUserId: 0, status: ItemStatus.Open, receiptId: 1 } as Item,
         { id: 2, name: "Item 2", amount: "15.75", chargedToUserId: -1, status: ItemStatus.Open, receiptId: 1 } as Item,
       ];
-      component.form = createFormWithItems(itemsWithInvalidUserId);
+      fixture.componentRef.setInput('form', createFormWithItems(itemsWithInvalidUserId));
 
       component.setUserItemMap();
 
@@ -870,10 +861,10 @@ describe("ShareListComponent", () => {
     it("should handle empty user maps", () => {
       component.userItemMap = new Map();
       // Also clear the form controls to match the empty userMap
-      component.form = new FormGroup({
+      fixture.componentRef.setInput('form', new FormGroup({
         receiptItems: new FormArray([]),
         amount: new FormControl("0")
-      });
+      }));
 
       expect(() => component.checkLastInlineItem("1")).not.toThrow();
       expect(() => component.addInlineItemOnBlur("1", 0)).not.toThrow();

@@ -32,12 +32,12 @@ describe("AutocomleteComponent", () => {
   });
 
   it("should filter the options when multiple is false", () => {
-    component.options = [
+    fixture.componentRef.setInput('options', [
       { id: 1, name: "Option 1" },
       { id: 2, name: "Option 2" },
       { id: 3, name: "Option 3" },
-    ];
-    component.optionFilterKey = "name";
+    ]);
+    fixture.componentRef.setInput('optionFilterKey', "name");
 
     component.multiple = false;
     const result = component._filter("Option 1");
@@ -70,12 +70,12 @@ describe("AutocomleteComponent", () => {
   // });
 
   it("should return an empty array when no options match the filter", () => {
-    component.options = [
+    fixture.componentRef.setInput('options', [
       { id: 1, name: "Option 1" },
       { id: 2, name: "Option 2" },
       { id: 3, name: "Option 3" },
-    ];
-    component.optionFilterKey = "name";
+    ]);
+    fixture.componentRef.setInput('optionFilterKey', "name");
 
     component.multiple = false;
     const result = component._filter("Non-existing option");
@@ -174,8 +174,8 @@ describe("AutocomleteComponent", () => {
 
   it("should add a custom option value to the inputFormControl as a FormControl instance in multiple mode with no option value key", () => {
     component.creatableOptionId = "create-option";
-    component.defaultCreatableObject = { name: "Custom Option" };
-    component.creatableValueKey = "name";
+    fixture.componentRef.setInput('defaultCreatableObject', { name: "Custom Option" });
+    fixture.componentRef.setInput('creatableValueKey', "name");
     component.multiple = true;
     component.inputFormControl = new FormArray([
       new FormControl("value 1"),

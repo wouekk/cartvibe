@@ -1,17 +1,20 @@
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
-import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
+import { Component, CUSTOM_ELEMENTS_SCHEMA, input } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { ReactiveFormsModule } from "@angular/forms";
+import { FormArray, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { MatSnackBarModule } from "@angular/material/snack-bar";
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { of } from "rxjs";
+import { FormConfig } from "src/interfaces/form-config.interface";
 import { InputReadonlyPipe } from "src/pipes/input-readonly.pipe";
+import { EditableListComponent } from "src/shared-ui/editable-list/editable-list.component";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
-import { UserPreferences, UserPreferencesService } from "../../open-api";
+import { UserPreferences, UserPreferencesService, UserShortcut } from "../../open-api";
 import { PipesModule } from "../../pipes";
 import { StoreModule } from "../../store/store.module";
+import { UserShortcutComponent } from "../user-shortcut/user-shortcut.component";
 
 import { UserPreferencesComponent } from "./user-preferences.component";
 
@@ -36,12 +39,27 @@ describe("UserPreferencesComponent", () => {
           provide: ActivatedRoute,
           useValue: { snapshot: { data: { formConfig: {} } } },
         },
+        {
+          provide: Router,
+          useValue: { navigate: jest.fn().mockResolvedValue(true) },
+        },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
       ]
     });
     fixture = TestBed.createComponent(UserPreferencesComponent);
     component = fixture.componentInstance;
+    Object.defineProperty(component, 'userShortcutComponent', {
+      value: () => ({
+        editableListComponent: () => ({
+          openLastRow: jest.fn(),
+          closeRow: jest.fn(),
+          getCurrentRowOpen: jest.fn(),
+        }),
+        isAddingShortcut: false,
+      }),
+      configurable: true,
+    });
     fixture.detectChanges();
   });
 
