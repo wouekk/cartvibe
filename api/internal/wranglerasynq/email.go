@@ -203,6 +203,26 @@ func enqueueEmailProcessTasks(metadataList []structs.EmailMetadata) error {
 				}
 			}
 		}
+
+		// Handle body-only emails (no attachments but has body text)
+		if len(metadata.Attachments) == 0 && len(metadata.Body) > 0 {
+			for _, groupSettingsId := range metadata.GroupSettingsIds {
+				payload := EmailProcessTaskPayload{
+					GroupSettingsId: groupSettingsId,
+					Metadata:        metadata,
+				}
+				payloadBytes, err := json.Marshal(payload)
+				if err != nil {
+					return err
+				}
+
+				task := asynq.NewTask(EmailProcess, payloadBytes)
+				_, err = EnqueueTask(task, models.EmailReceiptProcessingQueue)
+				if err != nil {
+					return err
+				}
+			}
+		}
 	}
 
 	return nil
