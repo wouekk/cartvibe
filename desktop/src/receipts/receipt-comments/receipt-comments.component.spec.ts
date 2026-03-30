@@ -61,7 +61,7 @@ describe("ReceiptCommentsComponent", () => {
   });
 
   it("should init each comment correctly", () => {
-    component.comments = comments;
+    fixture.componentRef.setInput('comments', comments);
 
     component.ngOnInit();
     expect(component.commentsArray.value).toEqual([
@@ -82,7 +82,7 @@ describe("ReceiptCommentsComponent", () => {
   it("should delete comment that is a top level comment", () => {
     const spy = jest.spyOn(TestBed.inject(CommentService), "deleteComment");
     spy.mockReturnValue(of(undefined as any));
-    component.comments = comments;
+    fixture.componentRef.setInput('comments', comments);
 
     component.ngOnInit();
     fixture.componentRef.setInput('mode', FormMode.view);
@@ -94,8 +94,8 @@ describe("ReceiptCommentsComponent", () => {
       undefined
     );
     expect(component.commentsArray.value.length).toEqual(1);
-    expect(component.comments.find((c) => c.id === 1)).toEqual(undefined);
-    expect(component.comments.length).toEqual(1);
+    expect(component.internalComments().find((c) => c.id === 1)).toEqual(undefined);
+    expect(component.internalComments().length).toEqual(1);
   });
 
 
@@ -105,12 +105,12 @@ describe("ReceiptCommentsComponent", () => {
     component.commentsArray.push(new FormGroup({}));
 
     expect(component.commentsArray.length).toEqual(1);
-    expect(component.comments.length).toEqual(0);
+    expect(component.internalComments().length).toEqual(0);
 
     component.deleteComment(0);
 
     expect(component.commentsArray.length).toEqual(0);
-    expect(component.comments.length).toEqual(0);
+    expect(component.internalComments().length).toEqual(0);
   });
 
   it("should add comment if form is valid and is in add mode", () => {
@@ -167,8 +167,8 @@ describe("ReceiptCommentsComponent", () => {
       receiptId: 1,
       comment: "new comment",
     });
-    expect(component.comments.length).toEqual(1);
-    expect(component.comments[0]).toEqual({
+    expect(component.internalComments().length).toEqual(1);
+    expect(component.internalComments()[0]).toEqual({
       id: 5,
       userId: 1,
       receiptId: 1,

@@ -169,7 +169,7 @@ export class PromptTableComponent implements OnInit, AfterViewInit {
     dialogRef.componentInstance.headerText = "Delete Prompt";
     dialogRef.componentInstance.dialogContent = `Are you sure you want to delete the prompt: ${prompt.name}?`;
 
-    const index = this.dataSource.data.indexOf(prompt);
+    const index = this.dataSource().data.indexOf(prompt);
 
     dialogRef.afterClosed()
       .pipe(
@@ -189,10 +189,10 @@ export class PromptTableComponent implements OnInit, AfterViewInit {
         take(1),
         tap(() => {
           this.getTableData();
-          const data = Array.from(this.dataSource.data);
+          const data = Array.from(this.dataSource().data);
           data.splice(index, 1);
           this.setDefaultPromptExists();
-          this.dataSource = new MatTableDataSource(data);
+          this.dataSource.set(new MatTableDataSource(data));
           this.snackbarService.success("Prompt deleted successfully");
         })
       )
@@ -200,7 +200,7 @@ export class PromptTableComponent implements OnInit, AfterViewInit {
   }
 
   public duplicatePrompt(id: number): void {
-    const prompt = this.dataSource.data.find((p) => p.id === id);
+    const prompt = this.dataSource().data.find((p) => p.id === id);
     if (!prompt) {
       return;
     }
@@ -243,6 +243,6 @@ export class PromptTableComponent implements OnInit, AfterViewInit {
   }
 
   private setDefaultPromptExists(): void {
-    this.defaultPromptExists = this.dataSource.data.some((p) => p.name === "Default Prompt");
+    this.defaultPromptExists = this.dataSource().data.some((p) => p.name === "Default Prompt");
   }
 }

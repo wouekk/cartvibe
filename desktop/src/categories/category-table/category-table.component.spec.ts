@@ -58,8 +58,8 @@ describe("CategoriesListComponent", () => {
       sortDirection: "desc",
     });
 
-    expect(component.totalCount).toEqual(1);
-    expect(component.dataSource.data).toEqual([{} as any]);
+    expect(component.totalCount()).toEqual(1);
+    expect(component.dataSource().data).toEqual([{} as any]);
   });
 
   it("should attempt to get table data, with new sorted direction and key", () => {

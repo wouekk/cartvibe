@@ -102,7 +102,7 @@ export class ReceiptFormComponent implements OnInit {
 
   public groupRole = GroupRole;
 
-  public selectedGroup: Group | undefined;
+  public selectedGroup = signal<Group | undefined>(undefined);
 
   public editLink = "";
 
@@ -114,7 +114,7 @@ export class ReceiptFormComponent implements OnInit {
 
   public showImages: boolean = true;
 
-  public usersToOmit: string[] = [];
+  public usersToOmit = signal<string[]>([]);
 
   public duplicatedReceiptId = signal("");
 
@@ -391,7 +391,7 @@ export class ReceiptFormComponent implements OnInit {
         const paidBy = this.form.get("paidByUserId");
         const users = this.store.selectSnapshot(UserState.users);
         if (!groupId) {
-          this.usersToOmit = users.map((u) => u.id.toString());
+          this.usersToOmit.set(users.map((u) => u.id.toString()));
           this.paidByAutocomplete()?.autocompleteComponent()?.clearFilter();
         } else {
           const group = this.store.selectSnapshot(
@@ -400,10 +400,10 @@ export class ReceiptFormComponent implements OnInit {
           const groupMembers = group?.groupMembers.map((u) =>
             u.userId.toString()
           );
-          this.selectedGroup = group;
-          this.usersToOmit = users
+          this.selectedGroup.set(group);
+          this.usersToOmit.set(users
             .filter((u) => !groupMembers?.includes(u.id.toString()))
-            .map((u) => u.id.toString());
+            .map((u) => u.id.toString()));
         }
       })
     )

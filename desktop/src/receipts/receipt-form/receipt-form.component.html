@@ -51,7 +51,7 @@
                 ></app-checkbox>
               }
             </div>
-            @if (!this.selectedGroup?.groupReceiptSettings?.hideReceiptCategories) {
+            @if (!this.selectedGroup()?.groupReceiptSettings?.hideReceiptCategories) {
               <app-category-autocomplete
                 class="w-100"
                 [inputFormControl]="form | formGet : 'categories'"
@@ -59,7 +59,7 @@
                 [readonly]="mode | inputReadonly"
               ></app-category-autocomplete>
             }
-            @if (!this.selectedGroup?.groupReceiptSettings?.hideReceiptTags) {
+            @if (!this.selectedGroup()?.groupReceiptSettings?.hideReceiptTags) {
               <app-tag-autocomplete
                 class="w-100"
                 [inputFormControl]="form | formGet : 'tags'"
@@ -83,7 +83,7 @@
               class="w-100"
               label="Paid By"
               [inputFormControl]="form | formGet : 'paidByUserId'"
-              [usersToOmit]="usersToOmit"
+              [usersToOmit]="usersToOmit()"
               [readonly]="mode | inputReadonly"
             ></app-user-autocomplete>
             <app-select
@@ -105,7 +105,7 @@
             }
           </div>
         </app-form-section>
-        @if (!selectedGroup?.groupReceiptSettings?.hideImages) {
+        @if (!selectedGroup()?.groupReceiptSettings?.hideImages) {
           <app-form-section
             class="col h-100"
             headerText="Images"
@@ -157,7 +157,7 @@
           [form]="form"
           [categories]="categories"
           [tags]="tags"
-          [selectedGroup]="selectedGroup"
+          [selectedGroup]="selectedGroup()"
           [triggerAddMode]="triggerItemListAddMode"
           (itemAdded)="onItemAdded($event)"
           (itemRemoved)="onItemRemoved($event)"
@@ -173,14 +173,14 @@
           [form]="form"
           [categories]="categories"
           [tags]="tags"
-          [selectedGroup]="selectedGroup"
+          [selectedGroup]="selectedGroup()"
           [triggerAddMode]="triggerShareListAddMode"
           (itemAdded)="onItemAdded($event)"
           (itemRemoved)="onItemRemoved($event)"
           (allItemsResolved)="onAllItemsResolved($event)"
         ></app-share-list>
       </app-form-section>
-      @if (!this.selectedGroup?.groupReceiptSettings?.hideComments) {
+      @if (!this.selectedGroup()?.groupReceiptSettings?.hideComments) {
         <div class="mt-3">
           <app-form-section
             headerText="Comments"
@@ -262,7 +262,7 @@
     cdkDragHandle
     cdkDragRootElement=".cdk-overlay-pane"
     [originalReceipt]="originalReceipt"
-    [usersToOmit]="usersToOmit"
+    [usersToOmit]="usersToOmit()"
     [amountToSplit]="form.get('amount')?.value || 0"
     (itemsToAdd)="onQuickActionItemsAdded($event)"
   ></app-quick-actions-dialog>

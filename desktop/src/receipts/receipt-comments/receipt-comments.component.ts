@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, input, output } from "@angular/core";
+import { Component, OnInit, input, output, signal } from "@angular/core";
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators, } from "@angular/forms";
 import { UntilDestroy } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
@@ -17,7 +17,8 @@ import { AuthState } from "../../store";
 })
 export class ReceiptCommentsComponent implements OnInit {
   loggedInUserId = this.store.selectSignal(AuthState.userId);
-  @Input() public comments: Comment[] = [];
+  public readonly comments = input<Comment[]>([]);
+  public internalComments = signal<Comment[]>([]);
   public readonly mode = input.required<FormMode>();
   public readonly receiptId = input<number>();
   public readonly commentsUpdated = output<FormArray>();
@@ -37,11 +38,12 @@ export class ReceiptCommentsComponent implements OnInit {
   ) {}
 
   public ngOnInit(): void {
+    this.internalComments.set(this.comments());
     this.initForm();
   }
 
   private initForm(): void {
-    this.comments.forEach((c) => {
+    this.internalComments().forEach((c) => {
       this.commentsArray.push(this.buildCommentFormGroup(c));
     });
   }
@@ -76,7 +78,7 @@ export class ReceiptCommentsComponent implements OnInit {
         .pipe(
           take(1),
           tap((comment: Comment) => {
-            this.comments.push(comment);
+            this.internalComments.update(comments => [...comments, comment]);
             this.commentsArray.push(this.buildCommentFormGroup(newComment));
             this.snackbarService.success("Comment successfully added");
             this.newCommentFormControl.reset();
@@ -90,7 +92,7 @@ export class ReceiptCommentsComponent implements OnInit {
     switch (this.mode()) {
       case FormMode.edit:
       case FormMode.view:
-        const comment = this.comments[index];
+        const comment = this.internalComments()[index];
         let commentIdToDelete = comment.id;
 
         this.commentService
@@ -99,9 +101,9 @@ export class ReceiptCommentsComponent implements OnInit {
             take(1),
             tap(() => {
               this.commentsArray.removeAt(index);
-              this.comments = this.comments.filter(
+              this.internalComments.set(this.internalComments().filter(
                 (c) => c.id !== comment.id
-              );
+              ));
               this.snackbarService.success("Comment successfully deleted");
             })
           )

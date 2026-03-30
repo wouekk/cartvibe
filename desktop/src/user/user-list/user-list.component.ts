@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, TemplateRef, viewChild } from "@angular/core";
+import { AfterViewInit, Component, signal, TemplateRef, viewChild } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { MatTableDataSource } from "@angular/material/table";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
@@ -45,9 +45,7 @@ export class UserListComponent implements AfterViewInit {
 
   public columns: TableColumn[] = [];
 
-  public dataSource: MatTableDataSource<User> = new MatTableDataSource<User>(
-    []
-  );
+  public dataSource = signal(new MatTableDataSource<User>([]));
 
   public hasSelectedUsers: boolean = false;
 
@@ -126,10 +124,11 @@ export class UserListComponent implements AfterViewInit {
       .pipe(
         untilDestroyed(this),
         tap(() => {
-          this.dataSource = new MatTableDataSource<User>(
+          const ds = new MatTableDataSource<User>(
             this.store.selectSnapshot(UserState.users)
           );
-          this.dataSource.sort = this.table().sort();
+          ds.sort = this.table().sort();
+          this.dataSource.set(ds);
         })
       )
       .subscribe();
@@ -157,7 +156,7 @@ export class UserListComponent implements AfterViewInit {
 
     dialogRef.afterClosed().subscribe((refresh) => {
       if (refresh) {
-        this.dataSource.data = this.store.selectSnapshot(UserState.users);
+        this.dataSource.set(new MatTableDataSource<User>(this.store.selectSnapshot(UserState.users)));
       }
     });
   }
@@ -203,9 +202,9 @@ export class UserListComponent implements AfterViewInit {
               tap(() => {
                 this.snackbarService.success("User successfully deleted");
                 this.store.dispatch(new RemoveUser(user.id.toString()));
-                this.dataSource.data = this.store.selectSnapshot(
-                  UserState.users
-                );
+                this.dataSource.set(new MatTableDataSource<User>(
+                  this.store.selectSnapshot(UserState.users)
+                ));
               })
             )
             .subscribe();
@@ -248,7 +247,7 @@ export class UserListComponent implements AfterViewInit {
               this.snackbarService.success(`${usersToDelete.length} user(s) successfully deleted`);
               this.store.dispatch(new RemoveUsers(bulkDeleteCommand.userIds));
               this.table().selection.clear();
-              this.dataSource.data = this.store.selectSnapshot(UserState.users);
+              this.dataSource.set(new MatTableDataSource<User>(this.store.selectSnapshot(UserState.users)));
             })
           )
           .subscribe();

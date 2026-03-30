@@ -92,7 +92,7 @@ describe("SearchbarComponent", () => {
     component.searchFormControl.patchValue("new search");
 
     expect(spy).toHaveBeenCalledWith("new search");
-    expect(component.results).toEqual([
+    expect(component.results()).toEqual([
       {
         id: 1,
         groupId: 1,

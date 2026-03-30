@@ -62,11 +62,11 @@ describe("PieChartComponent", () => {
 
   describe("initialization", () => {
     it("should have default isLoading as true", () => {
-      expect(component.isLoading).toBe(true);
+      expect(component.isLoading()).toBe(true);
     });
 
     it("should have default hasData as false", () => {
-      expect(component.hasData).toBe(false);
+      expect(component.hasData()).toBe(false);
     });
 
     it("should have default empty pieChartData", () => {
@@ -95,8 +95,8 @@ describe("PieChartComponent", () => {
     it("should update chart data after loading", () => {
       fixture.detectChanges();
 
-      expect(component.isLoading).toBe(false);
-      expect(component.hasData).toBe(true);
+      expect(component.isLoading()).toBe(false);
+      expect(component.hasData()).toBe(true);
       expect(component.pieChartData.labels).toEqual([
         "Category A",
         "Category B",
@@ -110,7 +110,7 @@ describe("PieChartComponent", () => {
       fixture.detectChanges();
 
       expect(widgetService.getPieChartData).not.toHaveBeenCalled();
-      expect(component.isLoading).toBe(false);
+      expect(component.isLoading()).toBe(false);
     });
 
     it("should not call service if widget configuration is not set", () => {
@@ -118,7 +118,7 @@ describe("PieChartComponent", () => {
       fixture.detectChanges();
 
       expect(widgetService.getPieChartData).not.toHaveBeenCalled();
-      expect(component.isLoading).toBe(false);
+      expect(component.isLoading()).toBe(false);
     });
 
     it("should not call service if chartGrouping is not set", () => {
@@ -126,7 +126,7 @@ describe("PieChartComponent", () => {
       fixture.detectChanges();
 
       expect(widgetService.getPieChartData).not.toHaveBeenCalled();
-      expect(component.isLoading).toBe(false);
+      expect(component.isLoading()).toBe(false);
     });
   });
 
@@ -184,15 +184,15 @@ describe("PieChartComponent", () => {
       widgetService.getPieChartData.mockReturnValue(of({ data: [] }));
       fixture.detectChanges();
 
-      expect(component.hasData).toBe(false);
-      expect(component.isLoading).toBe(false);
+      expect(component.hasData()).toBe(false);
+      expect(component.isLoading()).toBe(false);
     });
 
     it("should handle null response data", () => {
       widgetService.getPieChartData.mockReturnValue(of({ data: undefined } as any));
       fixture.detectChanges();
 
-      expect(component.hasData).toBe(false);
+      expect(component.hasData()).toBe(false);
     });
 
     it("should handle data points with missing labels", () => {
@@ -244,7 +244,7 @@ describe("PieChartComponent", () => {
 
       expect(component.pieChartData.labels).toEqual(["Only One"]);
       expect(component.pieChartData.datasets[0].data).toEqual([500]);
-      expect(component.hasData).toBe(true);
+      expect(component.hasData()).toBe(true);
     });
 
     it("should handle many data points", () => {
@@ -531,7 +531,7 @@ describe("PieChartComponent", () => {
       fixture.detectChanges();
 
       expect(component.pieChartData.datasets[0].data).toEqual([0, 100]);
-      expect(component.hasData).toBe(true);
+      expect(component.hasData()).toBe(true);
     });
 
     it("should handle negative values gracefully", () => {

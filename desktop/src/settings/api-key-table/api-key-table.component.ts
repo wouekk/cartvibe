@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, TemplateRef, viewChild } from "@angular/core";
+import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
@@ -49,7 +49,7 @@ export class ApiKeyTableComponent extends BaseTableComponent<ApiKeyView> impleme
 
   public isAdmin = false;
 
-  public tableHeaderText = "My API Keys";
+  public tableHeaderText = signal("My API Keys");
 
   private currentUserId = "";
 
@@ -80,9 +80,9 @@ export class ApiKeyTableComponent extends BaseTableComponent<ApiKeyView> impleme
         tap((filter) => {
             this.getTableData();
             if (filter.associatedApiKeys === AssociatedApiKeys.All) {
-              this.tableHeaderText = "All API Keys";
+              this.tableHeaderText.set("All API Keys");
             } else {
-              this.tableHeaderText = "My API Keys";
+              this.tableHeaderText.set("My API Keys");
             }
           }
         )

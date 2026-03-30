@@ -1,5 +1,6 @@
-import { AfterViewInit, Component, OnInit, TemplateRef, viewChild } from "@angular/core";
+import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
+import { MatTableDataSource } from "@angular/material/table";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
@@ -49,7 +50,7 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
 
   public isAdmin = false;
 
-  public tableHeaderText = "My Groups";
+  public tableHeaderText = signal("My Groups");
 
   constructor(
     public override baseTableService: BaseTableService,
@@ -77,9 +78,9 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
         tap((filter) => {
             this.getTableData();
             if (filter.associatedGroup === AssociatedGroup.All) {
-              this.tableHeaderText = "All Groups";
+              this.tableHeaderText.set("All Groups");
             } else {
-              this.tableHeaderText = "My Groups";
+              this.tableHeaderText.set("My Groups");
             }
           }
         )
@@ -134,7 +135,7 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
   }
 
   public deleteGroup(index: number): void {
-    const groups = this.dataSource.data;
+    const groups = this.dataSource().data;
     if (groups.length > 1) {
       const group = groups[index];
       const dialogRef = this.matDialog.open(
@@ -154,9 +155,9 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
               tap(() => {
                 this.snackbarService.success("Group successfully deleted");
                 this.store.dispatch(new RemoveGroup(group.id.toString()));
-                this.dataSource.data = this.store.selectSnapshot(
-                  GroupState.groupsWithoutAll
-                );
+                this.dataSource.set(new MatTableDataSource(
+                  this.store.selectSnapshot(GroupState.groupsWithoutAll)
+                ));
               })
             )
             .subscribe();

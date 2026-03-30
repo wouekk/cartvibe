@@ -44,11 +44,11 @@
       type="text"
       [formControl]="filterFormControl"
       [matAutocomplete]="auto"
-      [readonly]="readonly || singleOptionSelected"
+      [readonly]="readonly || singleOptionSelected()"
       [required]="isRequired"
     />
     <app-button
-      *ngIf="singleOptionSelected && !readonly"
+      *ngIf="singleOptionSelected() && !readonly"
       matButtonType="iconButton"
       icon="close"
       color="secondary"

@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, OnInit, TemplateRef, viewChild} from "@angular/core";
+import {AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild} from "@angular/core";
 import {MatDialog} from "@angular/material/dialog";
 import {PageEvent} from "@angular/material/paginator";
 import {Sort} from "@angular/material/sort";
@@ -36,9 +36,9 @@ export class SystemEmailTableComponent implements OnInit, AfterViewInit {
 
   public columns: TableColumn[] = [];
 
-  public dataSource: MatTableDataSource<SystemEmail> = new MatTableDataSource<SystemEmail>([]);
+  public dataSource = signal(new MatTableDataSource<SystemEmail>([]));
 
-  public totalCount: number = 0;
+  public totalCount = signal(0);
 
   public allGroups: Group[] = [];
 
@@ -120,8 +120,8 @@ export class SystemEmailTableComponent implements OnInit, AfterViewInit {
       .pipe(
         take(1),
         tap((pagedData) => {
-          this.dataSource = new MatTableDataSource(pagedData.data as SystemEmail[]);
-          this.totalCount = pagedData.totalCount;
+          this.dataSource.set(new MatTableDataSource(pagedData.data as SystemEmail[]));
+          this.totalCount.set(pagedData.totalCount);
           this.setRelatedSystemEmailMap(pagedData.data as SystemEmail[]);
         })
       )
@@ -160,7 +160,7 @@ export class SystemEmailTableComponent implements OnInit, AfterViewInit {
     dialogRef.componentInstance.headerText = "Delete System Email";
     dialogRef.componentInstance.dialogContent = `Are you sure you want to delete the email: ${systemEmail.username}?`;
 
-    const index = this.dataSource.data.findIndex((se) => se.id === systemEmail.id);
+    const index = this.dataSource().data.findIndex((se) => se.id === systemEmail.id);
 
     dialogRef.afterClosed()
       .pipe(
@@ -180,9 +180,9 @@ export class SystemEmailTableComponent implements OnInit, AfterViewInit {
         take(1),
         tap(() => {
           this.getTableData();
-          const data = Array.from(this.dataSource.data);
+          const data = Array.from(this.dataSource().data);
           data.splice(index, 1);
-          this.dataSource = new MatTableDataSource(data);
+          this.dataSource.set(new MatTableDataSource(data));
           this.snackbarService.success("System email deleted successfully");
         })
       )

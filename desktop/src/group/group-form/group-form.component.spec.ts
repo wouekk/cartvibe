@@ -97,7 +97,7 @@ describe("GroupFormComponent", () => {
     component.addGroupMemberClicked();
 
     expect(component.groupMembers.value).toEqual([formGroup.value]);
-    expect(component.dataSource.data).toEqual([formGroup.value]);
+    expect(component.dataSource().data).toEqual([formGroup.value]);
   });
 
   it("should update form on edit", () => {
@@ -152,7 +152,7 @@ describe("GroupFormComponent", () => {
     component.editGroupMemberClicked(1);
 
     expect(component.groupMembers.value).toEqual(result);
-    expect(component.dataSource.data).toEqual(result as any);
+    expect(component.dataSource().data).toEqual(result as any);
   });
 
   it("should remove user to group member on remove", () => {
@@ -186,7 +186,7 @@ describe("GroupFormComponent", () => {
     component.removeGroupMember(0);
 
     expect(component.groupMembers.value).toEqual([result]);
-    expect(component.dataSource.data).toEqual([result] as any);
+    expect(component.dataSource().data).toEqual([result] as any);
   });
 
   it("should create group", () => {

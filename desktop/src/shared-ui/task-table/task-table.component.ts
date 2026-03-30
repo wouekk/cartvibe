@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Inject, OnInit, TemplateRef, input, viewChild } from "@angular/core";
+import { AfterViewInit, Component, Inject, OnInit, signal, TemplateRef, input, viewChild } from "@angular/core";
 import { PageEvent } from "@angular/material/paginator";
 import { Sort } from "@angular/material/sort";
 import { MatTableDataSource } from "@angular/material/table";
@@ -37,9 +37,9 @@ export class TaskTableComponent implements OnInit, AfterViewInit {
 
   public columns: TableColumn[] = [];
 
-  public dataSource: MatTableDataSource<SystemTask> = new MatTableDataSource<SystemTask>([]);
+  public dataSource = signal(new MatTableDataSource<SystemTask>([]));
 
-  public totalCount: number = 0;
+  public totalCount = signal(0);
 
   public rowExpandable: (row: SystemTask) => boolean = (systemTask) => (systemTask?.childSystemTasks?.length || 0) > 0;
 
@@ -67,8 +67,8 @@ export class TaskTableComponent implements OnInit, AfterViewInit {
       .pipe(
         take(1),
         tap((pagedData) => {
-          this.dataSource = new MatTableDataSource<SystemTask>((pagedData.data as any[]) as SystemTask[]);
-          this.totalCount = pagedData.totalCount;
+          this.dataSource.set(new MatTableDataSource<SystemTask>((pagedData.data as any[]) as SystemTask[]));
+          this.totalCount.set(pagedData.totalCount);
         })
       )
       .subscribe();

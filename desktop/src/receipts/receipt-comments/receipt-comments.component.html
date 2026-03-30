@@ -36,7 +36,7 @@
       </div>
     </div>
   </app-card>
-} @else if (comments.length === 0 && mode() === formMode.view) {
+} @else if (internalComments().length === 0 && mode() === formMode.view) {
   <div>No comments for this receipt</div>
 }
 
@@ -89,7 +89,7 @@
   <ng-template
     [ngTemplateOutlet]="date"
     [ngTemplateOutletContext]="{
-      comment: comments[commentIndex]
+      comment: internalComments()[commentIndex]
     }"
   ></ng-template>
 </ng-template>

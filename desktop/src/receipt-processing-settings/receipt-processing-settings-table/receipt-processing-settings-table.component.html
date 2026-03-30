@@ -5,11 +5,11 @@
   ></app-add-button>
 </app-table-header>
 <app-table
-  [dataSource]="dataSource"
+  [dataSource]="dataSource()"
   [columns]="columns"
   [displayedColumns]="displayedColumns"
   [pagination]="true"
-  [length]="totalCount"
+  [length]="totalCount()"
   [page]="((baseTableService.page$ | async) || 1) - 1"
   [pageSize]="(baseTableService.pageSize$ | async)|| 10"
   (sorted)="sorted($event)"

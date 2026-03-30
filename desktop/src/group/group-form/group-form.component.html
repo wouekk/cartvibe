@@ -36,7 +36,7 @@
     >
       <app-table
         [columns]="columns"
-        [dataSource]="dataSource"
+        [dataSource]="dataSource()"
         [displayedColumns]="displayedColumns"
         (sorted)="sortName($event)"
       >

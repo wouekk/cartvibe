@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnChanges, OnInit, SimpleChanges, TemplateRef, input, viewChild } from "@angular/core";
+import { Component, ElementRef, Input, OnChanges, OnInit, signal, SimpleChanges, TemplateRef, input, viewChild } from "@angular/core";
 import { FormArray, FormControl, Validators } from "@angular/forms";
 import { MatAutocompleteSelectedEvent, MatAutocompleteTrigger, } from "@angular/material/autocomplete";
 import { map, Observable, of, startWith } from "rxjs";
@@ -51,7 +51,7 @@ export class AutocomleteComponent
 
   public isRequired: boolean = false;
 
-  public singleOptionSelected: boolean = false;
+  public singleOptionSelected = signal(false);
 
   constructor() {
     super();
@@ -93,7 +93,7 @@ export class AutocomleteComponent
       this.inputFormControl.valueChanges
         .pipe(startWith(this.inputFormControl.value))
         .subscribe((v) => {
-          this.singleOptionSelected = !!v;
+          this.singleOptionSelected.set(!!v);
         });
     }
   }
