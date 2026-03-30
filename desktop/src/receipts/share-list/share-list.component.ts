@@ -1,4 +1,5 @@
 import {
+  ChangeDetectorRef,
   Component,
   EventEmitter,
   Input,
@@ -83,7 +84,8 @@ export class ShareListComponent implements OnInit, OnChanges {
   }
 
   constructor(
-    private activatedRoute: ActivatedRoute
+    private activatedRoute: ActivatedRoute,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   public ngOnInit(): void {
@@ -150,6 +152,7 @@ export class ShareListComponent implements OnInit, OnChanges {
         });
       }
       this.userItemMap = map;
+      this.cdr.detectChanges();
     }
   }
 

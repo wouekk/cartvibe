@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostListener, Input, OnChanges, Output, SimpleChanges } from "@angular/core";
+import { ChangeDetectorRef, Component, EventEmitter, HostListener, Input, OnChanges, Output, SimpleChanges } from "@angular/core";
 
 @Component({
     selector: "app-image-viewer",
@@ -22,6 +22,8 @@ export class ImageViewerComponent implements OnChanges {
 
   public imageFileUrl: string = "";
 
+  constructor(private cdr: ChangeDetectorRef) {}
+
   public ngOnChanges(changes: SimpleChanges): void {
     if (changes["imageFile"] && changes["imageFile"].currentValue) {
       this.setImageFileUrl(changes["imageFile"].currentValue);
@@ -32,6 +34,7 @@ export class ImageViewerComponent implements OnChanges {
     const reader = new FileReader();
     reader.onload = (event) => {
       this.imageFileUrl = (event?.target?.result ?? "") as string;
+      this.cdr.detectChanges();
     };
 
     reader.readAsDataURL(file);

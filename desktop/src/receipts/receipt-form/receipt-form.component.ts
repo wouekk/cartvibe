@@ -1,4 +1,4 @@
-import { Component, EmbeddedViewRef, HostListener, OnInit, TemplateRef, ViewChild } from "@angular/core";
+import { ChangeDetectorRef, Component, EmbeddedViewRef, HostListener, OnInit, TemplateRef, ViewChild } from "@angular/core";
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { MatDialog } from "@angular/material/dialog";
 import { MatExpansionPanel } from "@angular/material/expansion";
@@ -163,6 +163,7 @@ export class ReceiptFormComponent implements OnInit {
 
   constructor(
     private activatedRoute: ActivatedRoute,
+    private cdr: ChangeDetectorRef,
     private customFieldTypePipe: CustomFieldTypePipe,
     private formBuilder: FormBuilder,
     private matDialog: MatDialog,
@@ -434,6 +435,7 @@ export class ReceiptFormComponent implements OnInit {
           .pipe(
             tap((data) => {
               this.images = [...this.images, data];
+              this.cdr.detectChanges();
             }),
             finalize(() => (this.imagesLoading = false))
           )
@@ -454,6 +456,7 @@ export class ReceiptFormComponent implements OnInit {
       .subscribe((result: boolean) => {
         if (result) {
           this.shareListComponent.setUserItemMap();
+          this.cdr.detectChanges();
         }
       });
   }
@@ -475,6 +478,7 @@ export class ReceiptFormComponent implements OnInit {
             newImages.splice(index, 1);
             this.images = newImages;
             this.snackbarService.success("Image successfully removed");
+            this.cdr.detectChanges();
           })
         )
         .subscribe();
@@ -501,6 +505,7 @@ export class ReceiptFormComponent implements OnInit {
         take(1),
         tap((magicFilledReceipt) => {
           this.patchMagicValues(magicFilledReceipt);
+          this.cdr.detectChanges();
         }),
         finalize(() => this.store.dispatch(new HideProgressBar()))
       )
@@ -614,6 +619,7 @@ export class ReceiptFormComponent implements OnInit {
             this.successDuplicateSnackbar,
             { duration: 8000 }
           );
+          this.cdr.detectChanges();
         })
       )
       .subscribe();
@@ -635,6 +641,7 @@ export class ReceiptFormComponent implements OnInit {
             tap((data) => {
               this.snackbarService.success("Successfully uploaded image(s)");
               this.images = [...Array.from(this.images), data];
+              this.cdr.detectChanges();
             })
           )
           .subscribe();
@@ -783,6 +790,7 @@ export class ReceiptFormComponent implements OnInit {
     // Refresh component views
     this.shareListComponent?.setUserItemMap();
     this.itemListComponent?.setItems();
+    this.cdr.detectChanges();
 
     // Auto-sync amount if enabled
     if (this.syncAmountWithItems) {
