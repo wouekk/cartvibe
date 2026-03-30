@@ -7,7 +7,7 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Select, Store } from "@ngxs/store";
 import { addHours } from "date-fns";
-import { debounceTime, finalize, forkJoin, iif, map, Observable, of, startWith, switchMap, take, tap } from "rxjs";
+import { debounceTime, catchError, finalize, forkJoin, iif, map, Observable, of, startWith, switchMap, take, tap } from "rxjs";
 import { CarouselComponent } from "src/carousel/carousel/carousel.component";
 import { DEFAULT_DIALOG_CONFIG, DEFAULT_HOST_CLASS } from "src/constants";
 import { RECEIPT_STATUS_OPTIONS } from "src/constants/receipt-status-options";
@@ -431,12 +431,14 @@ export class ReceiptFormComponent implements OnInit {
       this.imagesLoading = true;
       forkJoin(
         this.originalReceipt.imageFiles.map((file) =>
-          this.receiptImageService.getReceiptImageById(file.id)
+          this.receiptImageService.getReceiptImageById(file.id).pipe(
+            catchError(() => of(null))
+          )
         )
       )
         .pipe(
           tap((allImages) => {
-            this.images = allImages;
+            this.images = allImages.filter((img): img is FileDataView => img !== null);
             this.cdr.detectChanges();
           }),
           finalize(() => (this.imagesLoading = false))
