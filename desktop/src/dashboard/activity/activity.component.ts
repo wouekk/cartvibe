@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnChanges, OnInit, SimpleChanges, ViewEncapsulation, input } from "@angular/core";
+import { Component, OnChanges, OnInit, SimpleChanges, ViewEncapsulation, input, signal } from "@angular/core";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
 import {
@@ -32,9 +32,9 @@ export class ActivityComponent implements OnInit, OnChanges {
 
   public pageSize: number = 25;
 
-  public activities: PagedDataDataInner[] = [];
+  public activities = signal<PagedDataDataInner[]>([]);
 
-  public ranActivities: { [key: number]: boolean } = {};
+  public ranActivities = signal<{ [key: number]: boolean }>({});
 
   protected readonly SystemTaskStatus = SystemTaskStatus;
 
@@ -43,7 +43,6 @@ export class ActivityComponent implements OnInit, OnChanges {
   constructor(
     private systemTaskService: SystemTaskService,
     private snackbarService: SnackbarService,
-    private changeDetectorRef: ChangeDetectorRef,
     private store: Store
   ) {}
 
@@ -70,8 +69,7 @@ export class ActivityComponent implements OnInit, OnChanges {
         take(1),
         tap(() => {
           this.snackbarService.success("Activity has been successfully queued.");
-          this.ranActivities[id] = true;
-          this.changeDetectorRef.detectChanges();
+          this.ranActivities.update(prev => ({ ...prev, [id]: true }));
         })
       ).subscribe();
   }
@@ -92,8 +90,7 @@ export class ActivityComponent implements OnInit, OnChanges {
       .pipe(
         take(1),
         tap((response) => {
-          this.activities = [...this.activities, ...response.data];
-          this.changeDetectorRef.detectChanges();
+          this.activities.update(prev => [...prev, ...response.data]);
         })
       )
       .subscribe();

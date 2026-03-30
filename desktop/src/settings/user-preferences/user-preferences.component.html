@@ -51,7 +51,7 @@
       <app-user-shortcut
         [parentForm]="form"
         [formConfig]="formConfig"
-        [originalUserShortcuts]="originalUserShortcuts"
+        [originalUserShortcuts]="originalUserShortcuts()"
         (shortcutDoneClicked)="shortcutDoneClicked()"
         (shortcutCancelClicked)="shortcutCancelClicked()"
         (formCommand)="handleFormCommand($event)"

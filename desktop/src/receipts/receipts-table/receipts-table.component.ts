@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, computed, OnInit, TemplateRef, ViewEncapsulation, viewChild } from "@angular/core";
+import { AfterViewInit, Component, computed, OnInit, signal, TemplateRef, ViewEncapsulation, viewChild } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { PageEvent } from "@angular/material/paginator";
 import { Sort } from "@angular/material/sort";
@@ -52,7 +52,6 @@ import { ColumnConfigurationDialogComponent } from "../column-configuration-dial
 export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   constructor(
     private activatedRoute: ActivatedRoute,
-    private cdr: ChangeDetectorRef,
     private groupPipe: GroupRolePipe,
     private groupsService: GroupsService,
     private matDialog: MatDialog,
@@ -111,16 +110,15 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
   public groupRole = GroupRole;
 
-  public dataSource: MatTableDataSource<PagedDataDataInner> =
-    new MatTableDataSource<PagedDataDataInner>([]);
+  public dataSource = signal(new MatTableDataSource<PagedDataDataInner>([]));
 
-  public displayedColumns: string[] = [];
+  public displayedColumns = signal<string[]>([]);
 
-  public columns: TableColumn[] = [];
+  public columns = signal<TableColumn[]>([]);
 
-  public totalCount: number = 0;
+  public totalCount = signal(0);
 
-  public selectedReceiptIds: number[] = [];
+  public selectedReceiptIds = signal<number[]>([]);
 
   public firstSort: boolean = true;
 
@@ -155,10 +153,9 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
       .pipe(
         take(1),
         tap((pagedData) => {
-          this.dataSource = new MatTableDataSource<PagedDataDataInner>(pagedData.data);
-          this.totalCount = pagedData.totalCount;
+          this.dataSource.set(new MatTableDataSource<PagedDataDataInner>(pagedData.data));
+          this.totalCount.set(pagedData.totalCount);
           this.setColumns();
-          this.cdr.detectChanges();
         })
       )
       .subscribe();
@@ -190,7 +187,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
       .pipe(
         untilDestroyed(this),
         map((event) => (event.source.selected as Receipt[]).map((r) => r.id)),
-        tap((ids) => (this.selectedReceiptIds = ids))
+        tap((ids) => this.selectedReceiptIds.set(ids))
       )
       .subscribe();
   }
@@ -287,8 +284,8 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
       columns[0].defaultSortDirection = "desc";
     }
 
-    this.columns = columns;
-    this.displayedColumns = displayColumns;
+    this.columns.set(columns);
+    this.displayedColumns.set(displayColumns);
   }
 
   public sort(sortState: Sort): void {
@@ -379,9 +376,8 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
       .pipe(
         take(1),
         tap((pagedData) => {
-          this.dataSource.data = pagedData.data;
-          this.totalCount = pagedData.totalCount;
-          this.cdr.detectChanges();
+          this.dataSource().data = pagedData.data;
+          this.totalCount.set(pagedData.totalCount);
         })
       )
       .subscribe();
@@ -404,7 +400,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
               .pipe(
                 take(1),
                 tap(() => {
-                  this.dataSource.data = this.dataSource.data.filter(
+                  this.dataSource().data = this.dataSource().data.filter(
                     (r) => r.id !== row.id
                   );
                   this.snackbarService.success("Receipt successfully deleted");
@@ -472,7 +468,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
                 .pipe(
                   take(1),
                   tap((receipts) => {
-                    let newReceipts = Array.from(this.dataSource.data);
+                    let newReceipts = Array.from(this.dataSource().data);
                     receipts.forEach((r) => {
                       const receiptInTable = newReceipts.find(
                         (nr) => r.id === nr.id
@@ -482,7 +478,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
                         receiptInTable.resolvedDate = r.resolvedDate;
                       }
                     });
-                    this.dataSource.data = newReceipts;
+                    this.dataSource().data = newReceipts;
                   })
                 )
                 .subscribe();
@@ -508,7 +504,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   }
 
   public exportSelectedReceipts(): void {
-    const receiptIds = this.dataSource.data.map(data => data.id);
+    const receiptIds = this.dataSource().data.map(data => data.id);
     this.receiptExportService.exportReceiptsById(receiptIds);
   }
 }

@@ -4,10 +4,10 @@
       <h3>
         {{ widget().name }}
       </h3>
-      @if (receipts.length > 1) {
+      @if (receipts().length > 1) {
         <div>
           <app-queue-start-menu
-            [receipts]="receipts"
+            [receipts]="receipts()"
             matButtonType="iconButton"
             buttonIcon="queue_play_next"
             color="accent"
@@ -24,7 +24,7 @@
   <ng-container content>
     <app-dashboard-list
       noItemFoundText="No receipts found"
-      [items]="receipts"
+      [items]="receipts()"
       [itemSize]="80"
       [itemAvatarTemplate]="itemAvatarTemplate"
       [itemHeaderTemplate]="itemHeaderTemplate"

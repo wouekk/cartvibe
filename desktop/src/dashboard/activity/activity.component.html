@@ -5,7 +5,7 @@
   <div content>
     <app-dashboard-list
       noItemFoundText="No activities found"
-      [items]="activities"
+      [items]="activities()"
       [itemSize]="80"
       [itemAvatarTemplate]="itemAvatarTemplate"
       [itemHeaderTemplate]="itemHeaderTemplate"
@@ -43,7 +43,7 @@
   <div class="aligned-content ms-2">
     {{ item.startedAt | duration }}
   </div>
-  @if (item.canBeRestarted && !ranActivities[item.id] && (groupId() | groupRole: GroupRole.Editor)) {
+  @if (item.canBeRestarted && !ranActivities()[item.id] && (groupId() | groupRole: GroupRole.Editor)) {
     <app-button
       class="aligned-content"
       matButtonType="iconButton"

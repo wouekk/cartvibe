@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, EmbeddedViewRef, HostListener, OnInit, Signal, TemplateRef, viewChild } from "@angular/core";
+import { Component, EmbeddedViewRef, HostListener, OnInit, Signal, TemplateRef, signal, viewChild } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { MatDialog } from "@angular/material/dialog";
@@ -92,9 +92,9 @@ export class ReceiptFormComponent implements OnInit {
 
   public originalReceipt?: Receipt;
 
-  public images: FileDataView[] = [];
+  public images = signal<FileDataView[]>([]);
 
-  public filesToUpload: ReceiptFileUploadCommand[] = [];
+  public filesToUpload = signal<ReceiptFileUploadCommand[]>([]);
 
   public mode: FormMode = FormMode.view;
 
@@ -110,13 +110,13 @@ export class ReceiptFormComponent implements OnInit {
 
   public submitButtonText = "Save";
 
-  public imagesLoading: boolean = false;
+  public imagesLoading = signal(false);
 
   public showImages: boolean = true;
 
   public usersToOmit: string[] = [];
 
-  public duplicatedReceiptId: string = "";
+  public duplicatedReceiptId = signal("");
 
   public duplicatedSnackbarRef!: MatSnackBarRef<EmbeddedViewRef<any>>;
 
@@ -150,7 +150,6 @@ export class ReceiptFormComponent implements OnInit {
 
   constructor(
     private activatedRoute: ActivatedRoute,
-    private cdr: ChangeDetectorRef,
     private customFieldTypePipe: CustomFieldTypePipe,
     private formBuilder: FormBuilder,
     private matDialog: MatDialog,
@@ -415,7 +414,7 @@ export class ReceiptFormComponent implements OnInit {
       this.originalReceipt?.imageFiles &&
       this.originalReceipt?.imageFiles?.length > 0
     ) {
-      this.imagesLoading = true;
+      this.imagesLoading.set(true);
       forkJoin(
         this.originalReceipt.imageFiles.map((file) =>
           this.receiptImageService.getReceiptImageById(file.id).pipe(
@@ -425,10 +424,9 @@ export class ReceiptFormComponent implements OnInit {
       )
         .pipe(
           tap((allImages) => {
-            this.images = allImages.filter((img): img is FileDataView => img !== null);
-            this.cdr.detectChanges();
+            this.images.set(allImages.filter((img): img is FileDataView => img !== null));
           }),
-          finalize(() => (this.imagesLoading = false))
+          finalize(() => this.imagesLoading.set(false))
         )
         .subscribe();
     }
@@ -446,7 +444,6 @@ export class ReceiptFormComponent implements OnInit {
       .subscribe((result: boolean) => {
         if (result) {
           this.shareListComponent().setUserItemMap();
-          this.cdr.detectChanges();
         }
       });
   }
@@ -455,20 +452,19 @@ export class ReceiptFormComponent implements OnInit {
     const index = this.carouselComponent().currentlyShownImageIndex;
 
     if (this.mode === FormMode.add) {
-      const newImages = Array.from(this.filesToUpload);
+      const newImages = Array.from(this.filesToUpload());
       newImages.splice(index, 1);
-      this.filesToUpload = newImages;
+      this.filesToUpload.set(newImages);
     } else {
-      const newImages = Array.from(this.images);
-      const image = this.images[index];
+      const newImages = Array.from(this.images());
+      const image = this.images()[index];
       this.receiptImageService
         .deleteReceiptImageById(image.id)
         .pipe(
           tap(() => {
             newImages.splice(index, 1);
-            this.images = newImages;
+            this.images.set(newImages);
             this.snackbarService.success("Image successfully removed");
-            this.cdr.detectChanges();
           })
         )
         .subscribe();
@@ -482,9 +478,9 @@ export class ReceiptFormComponent implements OnInit {
     let receiptImageId;
 
     if (this.mode === FormMode.add) {
-      file = this.filesToUpload[index].file;
+      file = this.filesToUpload()[index].file;
     } else if (this.mode === FormMode.edit) {
-      const receiptImage = this.images[index];
+      const receiptImage = this.images()[index];
       receiptImageId = receiptImage?.id;
     }
 
@@ -495,7 +491,6 @@ export class ReceiptFormComponent implements OnInit {
         take(1),
         tap((magicFilledReceipt) => {
           this.patchMagicValues(magicFilledReceipt);
-          this.cdr.detectChanges();
         }),
         finalize(() => this.store.dispatch(new HideProgressBar()))
       )
@@ -604,12 +599,11 @@ export class ReceiptFormComponent implements OnInit {
       .pipe(
         take(1),
         tap((r: Receipt) => {
-          this.duplicatedReceiptId = r.id.toString();
+          this.duplicatedReceiptId.set(r.id.toString());
           this.duplicatedSnackbarRef = this.snackbarService.successFromTemplate(
             this.successDuplicateSnackbar(),
             { duration: 8000 }
           );
-          this.cdr.detectChanges();
         })
       )
       .subscribe();
@@ -618,7 +612,7 @@ export class ReceiptFormComponent implements OnInit {
   public imageFileLoaded(command: ReceiptFileUploadCommand): void {
     switch (this.mode) {
       case FormMode.add:
-        this.filesToUpload = [...this.filesToUpload, command];
+        this.filesToUpload.update(files => [...files, command]);
         break;
       case FormMode.edit:
         this.receiptImageService
@@ -630,9 +624,8 @@ export class ReceiptFormComponent implements OnInit {
           .pipe(
             tap((data) => {
               this.snackbarService.success("Successfully uploaded image(s)");
-              this.images = [...Array.from(this.images), data];
-              this.cdr.detectChanges();
-            })
+              this.images.update(imgs => [...imgs, data]);
+              })
           )
           .subscribe();
         break;
@@ -671,7 +664,7 @@ export class ReceiptFormComponent implements OnInit {
 
   // TODO: Add functionality to dashboard
   public downloadImage(): void {
-    const currentImage = this.images[this.carouselComponent().currentlyShownImageIndex];
+    const currentImage = this.images()[this.carouselComponent().currentlyShownImageIndex];
     this.receiptImageService.downloadReceiptImageById(currentImage.id)
       .pipe(
         take(1),
@@ -765,7 +758,6 @@ export class ReceiptFormComponent implements OnInit {
   private refreshComponentsAndSync(): void {
     this.shareListComponent()?.setUserItemMap();
     this.itemListComponent()?.setItems();
-    this.cdr.detectChanges();
 
     // Auto-sync amount if enabled
     if (this.syncAmountWithItems) {
@@ -856,9 +848,9 @@ export class ReceiptFormComponent implements OnInit {
         }),
         switchMap((receipt) =>
           iif(
-            () => this.filesToUpload.length > 0,
+            () => this.filesToUpload().length > 0,
             forkJoin(
-              this.filesToUpload.map((file) => {
+              this.filesToUpload().map((file) => {
                 return this.receiptImageService.uploadReceiptImage(
                   file.file,
                   receipt.id,

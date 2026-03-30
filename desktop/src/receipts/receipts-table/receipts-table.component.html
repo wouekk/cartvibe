@@ -14,7 +14,7 @@
       (afterClosed)="getFilteredReceipts()"
     >
     </app-quick-scan-button>
-    @if (dataSource.data.length > 0) {
+    @if (dataSource().data.length > 0) {
       <app-export-button
         [groupId]="groupId"
         [filter]="filter() ?? undefined"
@@ -61,15 +61,15 @@
       ></app-button>
     </ng-container>
 
-    @if (selectedReceiptIds.length > 1) {
+    @if (selectedReceiptIds().length > 1) {
       <app-queue-start-menu
         buttonText="Start Queue"
         color="accent"
-        [receiptIds]="selectedReceiptIds"
+        [receiptIds]="selectedReceiptIds()"
       ></app-queue-start-menu>
     }
 
-    @if (selectedReceiptIds.length > 0) {
+    @if (selectedReceiptIds().length > 0) {
       <app-button
         matButtonType="iconButton"
         icon="more_vert"
@@ -88,19 +88,19 @@
   </div>
 </app-table-header>
 <app-summary-card
-  *ngIf="selectedReceiptIds.length"
+  *ngIf="selectedReceiptIds().length"
   @fadeInOut
   headerText="Selected Receipt summary"
-  [receiptIds]="selectedReceiptIds"
+  [receiptIds]="selectedReceiptIds()"
   [groupId]="selectedGroupId() ?? ''"
 ></app-summary-card>
 <div class="table-container">
   <app-table
-    [columns]="columns"
-    [displayedColumns]="displayedColumns"
-    [dataSource]="dataSource"
+    [columns]="columns()"
+    [displayedColumns]="displayedColumns()"
+    [dataSource]="dataSource()"
     [pagination]="true"
-    [length]="totalCount"
+    [length]="totalCount()"
     [selectionCheckboxes]="true"
     [page]="$any(page()) - 1"
     [pageSize]="pageSize() ?? 50"
