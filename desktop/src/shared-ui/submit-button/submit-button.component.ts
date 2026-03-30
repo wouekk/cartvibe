@@ -1,12 +1,10 @@
 import {
   Component,
-  OnChanges,
-  SimpleChanges,
   ViewEncapsulation,
+  computed,
   input
 } from '@angular/core';
 import { Store } from '@ngxs/store';
-import { Subscription, startWith, tap } from 'rxjs';
 import { FormMode } from 'src/enums/form-mode.enum';
 import { LayoutState } from 'src/store/layout.state';
 import { FormButtonComponent } from '../form-button/form-button.component';
@@ -18,10 +16,7 @@ import { FormButtonComponent } from '../form-button/form-button.component';
     encapsulation: ViewEncapsulation.None,
     standalone: false
 })
-export class SubmitButtonComponent
-  extends FormButtonComponent
-  implements OnChanges
-{
+export class SubmitButtonComponent extends FormButtonComponent {
   public readonly onlyIcon = input<boolean>(true);
 
   public readonly disableOnLoading = input<boolean>(false);
@@ -30,35 +25,13 @@ export class SubmitButtonComponent
 
   public formMode = FormMode;
 
-  public disabledSubscription!: Subscription;
+  private showProgressBar = this.store.selectSignal(LayoutState.showProgressBar);
 
-  public originalDisabledState: boolean = this.disabled;
+  public effectiveDisabled = computed(() =>
+    this.disableOnLoading() && this.showProgressBar() ? true : this.disabled
+  );
 
   constructor(private store: Store) {
     super();
-  }
-
-  public ngOnChanges(changes: SimpleChanges): void {
-    this.originalDisabledState = this.disabled;
-
-    if (changes['disableOnLoading']?.currentValue || changes['disabled']) {
-      this.disabledSubscription = this.store
-        .select(LayoutState.showProgressBar)
-        .pipe(
-          startWith(this.store.selectSnapshot(LayoutState.showProgressBar)),
-          tap((isShown) => {
-            if (isShown) {
-              this.disabled = true;
-            } else {
-              this.disabled = this.originalDisabledState;
-            }
-          })
-        )
-        .subscribe();
-    } else {
-      if (this.disabledSubscription) {
-        this.disabledSubscription.unsubscribe();
-      }
-    }
   }
 }

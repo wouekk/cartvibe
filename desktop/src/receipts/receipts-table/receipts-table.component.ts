@@ -376,7 +376,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
       .pipe(
         take(1),
         tap((pagedData) => {
-          this.dataSource().data = pagedData.data;
+          this.dataSource.set(new MatTableDataSource(pagedData.data));
           this.totalCount.set(pagedData.totalCount);
         })
       )
@@ -400,9 +400,9 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
               .pipe(
                 take(1),
                 tap(() => {
-                  this.dataSource().data = this.dataSource().data.filter(
+                  this.dataSource.update(ds => new MatTableDataSource(ds.data.filter(
                     (r) => r.id !== row.id
-                  );
+                  )));
                   this.snackbarService.success("Receipt successfully deleted");
                 })
               )
@@ -478,7 +478,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
                         receiptInTable.resolvedDate = r.resolvedDate;
                       }
                     });
-                    this.dataSource().data = newReceipts;
+                    this.dataSource.set(new MatTableDataSource(newReceipts));
                   })
                 )
                 .subscribe();

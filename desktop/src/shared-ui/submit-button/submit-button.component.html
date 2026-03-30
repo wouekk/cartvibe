@@ -7,7 +7,7 @@
   [type]="type() || 'submit'"
   [tooltip]="tooltip ?? 'Save'"
   (clicked)="clicked.emit()"
-  [disabled]="mode() === formMode.view || disabled"
+  [disabled]="mode() === formMode.view || effectiveDisabled()"
 ></app-button>
 
 <app-button
@@ -16,8 +16,8 @@
   matButtonType="matRaisedButton"
   [buttonText]="buttonText() ?? 'Save'"
   [type]="type() || 'submit'"
-  [buttonClass]="disabled ? '' : 'mat-success-full'"
+  [buttonClass]="effectiveDisabled() ? '' : 'mat-success-full'"
   [tooltip]="tooltip ?? 'Save'"
   (clicked)="clicked.emit()"
-  [disabled]="mode() === formMode.view || disabled"
+  [disabled]="mode() === formMode.view || effectiveDisabled()"
 ></app-button>

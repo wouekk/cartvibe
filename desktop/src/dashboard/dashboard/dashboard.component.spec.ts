@@ -85,7 +85,7 @@ describe("DashboardComponent", () => {
       },
     });
     component.ngOnInit();
-    expect(component.dashboards).toEqual(dashboards);
+    expect(component.dashboards()).toEqual(dashboards);
   });
 
   it("should set selected dashboard", () => {
@@ -99,6 +99,6 @@ describe("DashboardComponent", () => {
     });
     component.ngOnInit();
 
-    expect(component.selectedDashboard).toEqual(dashboards[1]);
+    expect(component.selectedDashboard()).toEqual(dashboards[1]);
   });
 });

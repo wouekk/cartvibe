@@ -1,4 +1,4 @@
-import { Component, OnChanges, OnInit, SimpleChanges, ViewEncapsulation, input, signal } from "@angular/core";
+import { Component, OnInit, ViewEncapsulation, computed, input, signal } from "@angular/core";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
 import {
@@ -21,12 +21,15 @@ import { GroupState } from "../../store/index";
   encapsulation: ViewEncapsulation.None,
   standalone: false
 })
-export class ActivityComponent implements OnInit, OnChanges {
+export class ActivityComponent implements OnInit {
   public readonly widget = input.required<Widget>();
 
   public readonly groupId = input<number>();
 
-  public group?: Group;
+  public group = computed(() => {
+    const id = this.groupId();
+    return id ? this.store.selectSnapshot(GroupState.getGroupById(id.toString())) : undefined;
+  });
 
   public page: number = 1;
 
@@ -45,13 +48,6 @@ export class ActivityComponent implements OnInit, OnChanges {
     private snackbarService: SnackbarService,
     private store: Store
   ) {}
-
-  public ngOnChanges(changes: SimpleChanges): void {
-    if (changes["groupId"] && changes["groupId"].currentValue) {
-      this.group = this.store.selectSnapshot(GroupState.getGroupById(this.groupId()?.toString() ?? ""));
-    }
-  }
-
 
   public ngOnInit(): void {
     this.getData();
@@ -97,7 +93,7 @@ export class ActivityComponent implements OnInit, OnChanges {
   }
 
   private getGroupIds(): number[] {
-    if (this.group?.isAllGroup) {
+    if (this.group()?.isAllGroup) {
       return this.store.selectSnapshot(GroupState.groupsWithoutAll).map((group) => group.id);
     } else {
       return [this.groupId() ?? 0];

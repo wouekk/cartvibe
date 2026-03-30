@@ -1,16 +1,14 @@
 import { CdkMenu, CdkMenuTrigger } from "@angular/cdk/menu";
-import { Component, Input, OnChanges, OnInit, SimpleChanges, input, output } from "@angular/core";
+import { Component, Input, computed, input, output } from "@angular/core";
 import { FormControl } from "@angular/forms";
+import { toSignal } from "@angular/core/rxjs-interop";
 import { MatCheckbox } from "@angular/material/checkbox";
 import { MatMenuItem } from "@angular/material/menu";
-import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
-import { tap } from "rxjs";
 import { BaseButtonComponent } from "../../../button/base-button/base-button.component";
 import { ButtonModule } from "../../../button/index";
 import { InputModule } from "../../../input/index";
 import { StatefulMenuItem } from "./stateful-menu-item";
 
-@UntilDestroy()
 @Component({
   selector: "app-filtered-stateful-menu",
   imports: [
@@ -21,7 +19,7 @@ import { StatefulMenuItem } from "./stateful-menu-item";
   templateUrl: "./filtered-stateful-menu.component.html",
   styleUrl: "./filtered-stateful-menu.component.scss",
 })
-export class FilteredStatefulMenuComponent extends BaseButtonComponent implements OnInit, OnChanges {
+export class FilteredStatefulMenuComponent extends BaseButtonComponent {
   public readonly items = input<StatefulMenuItem[]>([]);
 
   public readonly filterFunc = input((item: StatefulMenuItem, filter: string) => item.displayValue.toLowerCase().includes(filter?.toLowerCase() ?? ""));
@@ -34,33 +32,14 @@ export class FilteredStatefulMenuComponent extends BaseButtonComponent implement
 
   public readonly itemSelected = output<StatefulMenuItem>();
 
-  public filterFormControl = new FormControl();
+  public filterFormControl = new FormControl("");
 
-  public filteredItems: StatefulMenuItem[] = [];
+  private filterValue = toSignal(this.filterFormControl.valueChanges, { initialValue: "" });
 
-  public ngOnInit(): void {
-    this.listenToFilterFormChanges();
-  }
-
-  private listenToFilterFormChanges(): void {
-    this.filterFormControl.valueChanges.pipe(
-      untilDestroyed(this),
-      tap((filter) => {
-        if (filter) {
-          this.filteredItems = this.filterItems(this.items(), filter);
-        } else {
-          this.filteredItems = Array.from(this.items());
-        }
-      })
-    )
-      .subscribe();
-  }
-
-  public ngOnChanges(changes: SimpleChanges): void {
-    if (changes["items"] && changes["items"].currentValue !== changes["items"].previousValue) {
-      this.filteredItems = this.filterItems(changes["items"].currentValue, this.filterFormControl.value);
-    }
-  }
+  public filteredItems = computed(() => {
+    const filter = this.filterValue() ?? "";
+    return this.filterItems(this.items(), filter);
+  });
 
   public onItemSelected(item: StatefulMenuItem, event: MouseEvent) {
     event.stopPropagation();
@@ -77,6 +56,9 @@ export class FilteredStatefulMenuComponent extends BaseButtonComponent implement
   }
 
   public filterItems(items: StatefulMenuItem[], filterString: string): StatefulMenuItem[] {
+    if (!filterString) {
+      return Array.from(items);
+    }
     return items.filter(item => this.filterFunc()(item, filterString));
   }
 }

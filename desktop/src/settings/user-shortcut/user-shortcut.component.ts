@@ -43,12 +43,12 @@ export class UserShortcutComponent {
   }
 
   public emitShortcutDoneClicked(): void {
-    // TODO: The 'emit' function requires a mandatory void argument
+
     this.shortcutDoneClicked.emit();
   }
 
   public emitShortcutCancelClicked(): void {
-    // TODO: The 'emit' function requires a mandatory void argument
+
     this.shortcutCancelClicked.emit();
   }
 }

@@ -35,7 +35,7 @@
           No items found
         </div>
       }
-      @for (item of filteredItems; track item.value) {
+      @for (item of filteredItems(); track item.value) {
         <button
           mat-menu-item
           class="w-100 p-2"

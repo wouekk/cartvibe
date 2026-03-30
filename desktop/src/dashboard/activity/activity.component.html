@@ -21,7 +21,7 @@
   <strong>
     {{ item.type | systemTaskType }}
   </strong>
-  @if (group?.isAllGroup) {
+  @if (group()?.isAllGroup) {
     in {{ (item.groupId | group)?.name }}
   }
 </ng-template>

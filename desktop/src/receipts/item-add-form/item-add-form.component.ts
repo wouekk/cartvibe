@@ -154,7 +154,7 @@ export class ItemAddFormComponent implements OnInit, OnDestroy {
   }
 
   public onCancel(): void {
-    // TODO: The 'emit' function requires a mandatory void argument
+
     this.cancelled.emit();
   }
 

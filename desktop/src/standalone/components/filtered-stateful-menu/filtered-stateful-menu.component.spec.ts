@@ -48,8 +48,7 @@ describe("FilteredStatefulMenuComponent", () => {
   });
 
   it("should initialize filteredItems with all items", () => {
-    component.ngOnChanges({ items: { currentValue: mockItems, previousValue: null, firstChange: true, isFirstChange: () => true } });
-    expect(component.filteredItems).toEqual(mockItems);
+    expect(component.filteredItems()).toEqual(mockItems);
   });
 
   it("should filter items based on filter string", () => {
@@ -57,25 +56,24 @@ describe("FilteredStatefulMenuComponent", () => {
     component.filterFormControl.setValue(filterString);
     fixture.detectChanges();
 
-    expect(component.filteredItems.length).toBe(1);
-    expect(component.filteredItems[0].displayValue).toBe("Another Item");
+    expect(component.filteredItems().length).toBe(1);
+    expect(component.filteredItems()[0].displayValue).toBe("Another Item");
   });
 
   it("should filter items using custom filter function if provided", () => {
-    // Custom filter function that only returns items with selected = true
     fixture.componentRef.setInput('filterFunc', (item: StatefulMenuItem) => item.selected);
-    component.filterFormControl.setValue("dummy"); // Value doesn't matter with our custom filter
+    component.filterFormControl.setValue("dummy");
     fixture.detectChanges();
 
-    expect(component.filteredItems.length).toBe(1);
-    expect(component.filteredItems[0].value).toBe("item2");
+    expect(component.filteredItems().length).toBe(1);
+    expect(component.filteredItems()[0].value).toBe("item2");
   });
 
   it("should reset filter when resetFilter is called", () => {
     component.filterFormControl.setValue("some filter");
     component.resetFilter();
     expect(component.filterFormControl.value).toBe("");
-    expect(component.filteredItems.length).toBe(mockItems.length);
+    expect(component.filteredItems().length).toBe(mockItems.length);
   });
 
   it("should handle item selection and emit itemSelected event", () => {
@@ -104,27 +102,19 @@ describe("FilteredStatefulMenuComponent", () => {
       { displayValue: "New Item", value: "new", selected: false }
     ];
 
-    component.ngOnChanges({
-      items: {
-        currentValue: newItems,
-        previousValue: mockItems,
-        firstChange: false,
-        isFirstChange: () => false
-      }
-    });
+    fixture.componentRef.setInput('items', newItems);
+    fixture.detectChanges();
 
-    expect(component.filteredItems).toEqual(newItems);
+    expect(component.filteredItems()).toEqual(newItems);
   });
 
   it("should show all items when filter is cleared", () => {
-    // First apply a filter
     component.filterFormControl.setValue("Another");
     fixture.detectChanges();
-    expect(component.filteredItems.length).toBe(1);
+    expect(component.filteredItems().length).toBe(1);
 
-    // Then clear the filter
     component.filterFormControl.setValue("");
     fixture.detectChanges();
-    expect(component.filteredItems.length).toBe(mockItems.length);
+    expect(component.filteredItems().length).toBe(mockItems.length);
   });
 });

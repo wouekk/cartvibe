@@ -15,7 +15,7 @@
 </div>
 <div class="mb-2">
   <mat-chip-listbox>
-    @for (dashboard of dashboards; track dashboard.id) {
+    @for (dashboard of dashboards(); track dashboard.id) {
       <mat-chip-option
         [selected]="dashboard?.id?.toString() == selectedDashboardId()"
         [selectable]="false"
@@ -30,6 +30,6 @@
 @if (selectedDashboardId()) {
   <router-outlet></router-outlet>
 }
-@if (!selectedDashboardId() && !dashboards?.length) {
+@if (!selectedDashboardId() && !dashboards().length) {
   <p>Click on the + button to add a dashboard to this group.</p>
 }

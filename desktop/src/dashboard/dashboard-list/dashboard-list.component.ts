@@ -44,7 +44,7 @@ export class DashboardListComponent implements AfterViewInit {
         untilDestroyed(this),
         tap((range) => {
           if (range.end === this.items.length) {
-            // TODO: The 'emit' function requires a mandatory void argument
+
             this.endOfListReached.emit();
           }
         })

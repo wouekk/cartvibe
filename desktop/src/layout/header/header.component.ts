@@ -1,4 +1,4 @@
-import { Component, effect, signal } from "@angular/core";
+import { Component, computed, effect, signal, untracked } from "@angular/core";
 import { Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
@@ -24,13 +24,26 @@ export class HeaderComponent {
 
   public userPreferences = this.store.selectSignal(AuthState.userPreferences);
 
-  public receiptHeaderLink = signal<string[]>([""]);
+  public receiptHeaderLink = computed(() => {
+    this.selectedGroupId();
+    return [this.store.selectSnapshot(GroupState.receiptListLink)];
+  });
 
-  public dashboardHeaderLink = signal<string[]>([""]);
+  public dashboardHeaderLink = computed(() => {
+    this.selectedGroupId();
+    return [this.store.selectSnapshot(GroupState.dashboardLink)];
+  });
 
-  public settingsBaseHeaderLink = signal<string[]>([""]);
+  public settingsBaseHeaderLink = computed(() => {
+    this.selectedGroupId();
+    return [this.store.selectSnapshot(GroupState.settingsLinkBase) + "/view"];
+  });
 
-  public groupName = signal("");
+  public groupName = computed(() => {
+    const groupId = this.selectedGroupId();
+    const group = this.store.selectSnapshot(GroupState.getGroupById(groupId));
+    return group?.name as string ?? "";
+  });
 
   public groupRoleEnum = GroupRole;
 
@@ -42,43 +55,25 @@ export class HeaderComponent {
     private router: Router,
     private store: Store
   ) {
-    this.setGroupData();
     this.listenForLoggedInUser();
   }
 
-  private setGroupData(): void {
-    effect(() => {
-      const groupId = this.selectedGroupId();
-      this.receiptHeaderLink.set([
-        this.store.selectSnapshot(GroupState.receiptListLink),
-      ]);
-      this.dashboardHeaderLink.set([
-        this.store.selectSnapshot(GroupState.dashboardLink),
-      ]);
-      this.settingsBaseHeaderLink.set([
-        this.store.selectSnapshot(GroupState.settingsLinkBase) + "/view",
-      ]);
-      const newGroup = this.store.selectSnapshot(
-        GroupState.getGroupById(groupId)
-      );
-      this.groupName.set(newGroup?.name as string);
-    });
-  }
-
   private listenForLoggedInUser(): void {
+    let wasLoggedIn = false;
     effect(() => {
       const loggedIn = this.isLoggedIn();
-      if (loggedIn) {
-        this.notificationsService.getNotificationCount().pipe(
-          take(1),
-          tap((n) => {
-            if (n > 0) {
-              this.notificationCount.set(n);
-            } else {
-              this.notificationCount.set(undefined);
-            }
-          })
-        ).subscribe();
+      if (loggedIn && !wasLoggedIn) {
+        wasLoggedIn = true;
+        untracked(() => {
+          this.notificationsService.getNotificationCount().pipe(
+            take(1),
+            tap((n) => {
+              this.notificationCount.set(n > 0 ? n : undefined);
+            })
+          ).subscribe();
+        });
+      } else if (!loggedIn) {
+        wasLoggedIn = false;
       }
     });
   }
