@@ -429,18 +429,19 @@ export class ReceiptFormComponent implements OnInit {
       this.originalReceipt?.imageFiles?.length > 0
     ) {
       this.imagesLoading = true;
-      this.originalReceipt?.imageFiles.forEach((file) => {
-        this.receiptImageService
-          .getReceiptImageById(file.id)
-          .pipe(
-            tap((data) => {
-              this.images = [...this.images, data];
-              this.cdr.detectChanges();
-            }),
-            finalize(() => (this.imagesLoading = false))
-          )
-          .subscribe();
-      });
+      forkJoin(
+        this.originalReceipt.imageFiles.map((file) =>
+          this.receiptImageService.getReceiptImageById(file.id)
+        )
+      )
+        .pipe(
+          tap((allImages) => {
+            this.images = allImages;
+            this.cdr.detectChanges();
+          }),
+          finalize(() => (this.imagesLoading = false))
+        )
+        .subscribe();
     }
   }
 
@@ -715,37 +716,21 @@ export class ReceiptFormComponent implements OnInit {
   public onItemAdded(item: Item): void {
     const newFormGroup = buildItemForm(item, this.originalReceipt?.id?.toString(), !!item.chargedToUserId, this.syncAmountWithItems);
     this.receiptItemsFormArray.push(newFormGroup);
-    this.shareListComponent.setUserItemMap();
-    this.itemListComponent.setItems();
-    this.cdr.detectChanges();
-
-    // Auto-sync amount if enabled
-    if (this.syncAmountWithItems) {
-      this.updateAmountFromItems();
-    }
+    this.refreshComponentsAndSync();
   }
 
   public onItemRemoved(data: { item: Item; arrayIndex: number; isLinkedItem?: boolean; linkedItemIndex?: number }): void {
     if (data.isLinkedItem && data.linkedItemIndex !== undefined) {
-      // Remove linked item from parent's linkedItems array
       const parentItemFormGroup = this.receiptItemsFormArray.at(data.arrayIndex) as FormGroup;
       const linkedItemsArray = parentItemFormGroup.get("linkedItems") as FormArray;
       if (linkedItemsArray && data.linkedItemIndex < linkedItemsArray.length) {
         linkedItemsArray.removeAt(data.linkedItemIndex);
       }
     } else {
-      // Remove regular item from main receiptItems array
       this.receiptItemsFormArray.removeAt(data.arrayIndex);
     }
 
-    this.shareListComponent.setUserItemMap();
-    this.itemListComponent.setItems();
-    this.cdr.detectChanges();
-
-    // Auto-sync amount if enabled
-    if (this.syncAmountWithItems) {
-      this.updateAmountFromItems();
-    }
+    this.refreshComponentsAndSync();
   }
 
   public onQuickActionItemsAdded(data: { items: Item[], itemIndex?: number }): void {
@@ -789,7 +774,6 @@ export class ReceiptFormComponent implements OnInit {
   }
 
   private refreshComponentsAndSync(): void {
-    // Refresh component views
     this.shareListComponent?.setUserItemMap();
     this.itemListComponent?.setItems();
     this.cdr.detectChanges();
