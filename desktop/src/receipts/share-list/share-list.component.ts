@@ -7,6 +7,7 @@ import {
   ViewEncapsulation,
   input,
   output,
+  signal,
   viewChildren
 } from "@angular/core";
 import { AbstractControl, FormArray, FormGroup, } from "@angular/forms";
@@ -67,7 +68,7 @@ export class ShareListComponent implements OnInit, OnChanges {
 
   public newItemFormGroup: FormGroup = new FormGroup({});
 
-  public userItemMap: Map<string, ItemData[]> = new Map<string, ItemData[]>();
+  public userItemMap = signal(new Map<string, ItemData[]>());
 
   public isAdding: boolean = false;
 
@@ -151,7 +152,7 @@ export class ShareListComponent implements OnInit, OnChanges {
           }
         });
       }
-      this.userItemMap = map;
+      this.userItemMap.set(map);
     }
   }
 
@@ -202,7 +203,7 @@ export class ShareListComponent implements OnInit, OnChanges {
   }
 
   public addInlineItemOnBlur(userId: string, index: number): void {
-    const userItems = this.userItemMap.get(userId);
+    const userItems = this.userItemMap().get(userId);
     if (userItems && userItems.length - 1 === index) {
       const item = userItems.at(index) as ItemData;
       const itemInput = this.receiptItems.at(item?.arrayIndex);
@@ -215,7 +216,7 @@ export class ShareListComponent implements OnInit, OnChanges {
 
   public checkLastInlineItem(userId: string): void {
     if (this.mode !== FormMode.view) {
-      const items = this.userItemMap.get(userId);
+      const items = this.userItemMap().get(userId);
       if (items && items.length > 1) {
         const lastItem = items[items.length - 1];
         const formGroup = this.receiptItems.at(lastItem.arrayIndex);

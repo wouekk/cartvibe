@@ -218,8 +218,8 @@ describe("ShareListComponent", () => {
     it("should correctly group items by user ID", () => {
       component.setUserItemMap();
 
-      expect(component.userItemMap.size).toBe(3);
-      expect(component.userItemMap.get("1")).toEqual([
+      expect(component.userItemMap().size).toBe(3);
+      expect(component.userItemMap().get("1")).toEqual([
         {
           item: expect.objectContaining({
             name: mockItems[0].name,
@@ -239,7 +239,7 @@ describe("ShareListComponent", () => {
           }), arrayIndex: 2
         }
       ]);
-      expect(component.userItemMap.get("2")).toEqual([
+      expect(component.userItemMap().get("2")).toEqual([
         {
           item: expect.objectContaining({
             name: mockItems[1].name,
@@ -250,7 +250,7 @@ describe("ShareListComponent", () => {
           }), arrayIndex: 1
         }
       ]);
-      expect(component.userItemMap.get("3")).toEqual([
+      expect(component.userItemMap().get("3")).toEqual([
         {
           item: expect.objectContaining({
             name: mockItems[3].name,
@@ -272,8 +272,8 @@ describe("ShareListComponent", () => {
 
       component.setUserItemMap();
 
-      expect(component.userItemMap.size).toBe(1);
-      expect(component.userItemMap.get("1")).toEqual([
+      expect(component.userItemMap().size).toBe(1);
+      expect(component.userItemMap().get("1")).toEqual([
         {
           item: expect.objectContaining({
             name: "Item 1",
@@ -295,8 +295,8 @@ describe("ShareListComponent", () => {
 
       component.setUserItemMap();
 
-      expect(component.userItemMap.size).toBe(1);
-      expect(component.userItemMap.get("1")).toEqual([
+      expect(component.userItemMap().size).toBe(1);
+      expect(component.userItemMap().get("1")).toEqual([
         {
           item: expect.objectContaining({
             name: itemsWithUndefinedUserId[0].name,
@@ -314,7 +314,7 @@ describe("ShareListComponent", () => {
 
       component.setUserItemMap();
 
-      expect(component.userItemMap.size).toBe(0);
+      expect(component.userItemMap().size).toBe(0);
     });
 
     it("should convert string user IDs to strings", () => {
@@ -325,8 +325,8 @@ describe("ShareListComponent", () => {
 
       component.setUserItemMap();
 
-      expect(component.userItemMap.has("123")).toBe(true);
-      expect(component.userItemMap.get("123")).toEqual([
+      expect(component.userItemMap().has("123")).toBe(true);
+      expect(component.userItemMap().get("123")).toEqual([
         {
           item: expect.objectContaining({
             name: itemsWithNumberUserId[0].name,
@@ -349,18 +349,18 @@ describe("ShareListComponent", () => {
 
       component.setUserItemMap();
 
-      expect(component.userItemMap.size).toBe(1);
-      expect(component.userItemMap.get("1")?.length).toBe(3);
+      expect(component.userItemMap().size).toBe(1);
+      expect(component.userItemMap().get("1")?.length).toBe(3);
     });
 
     it("should handle form without receiptItems control", () => {
       fixture.componentRef.setInput('form', new FormGroup({}));
 
       // The component doesn't clear the map when no receiptItems control, so we expect it to stay unchanged
-      const originalMapSize = component.userItemMap.size;
+      const originalMapSize = component.userItemMap().size;
       component.setUserItemMap();
 
-      expect(component.userItemMap.size).toBe(originalMapSize);
+      expect(component.userItemMap().size).toBe(originalMapSize);
     });
 
     it("should handle null items value", () => {
@@ -370,11 +370,11 @@ describe("ShareListComponent", () => {
       }));
 
       // When form is empty, setUserItemMap should handle gracefully
-      const originalMapSize = component.userItemMap.size;
+      const originalMapSize = component.userItemMap().size;
       component.setUserItemMap();
 
       // Since the form has an empty receiptItems array, it should create an empty map
-      expect(component.userItemMap.size).toBe(0);
+      expect(component.userItemMap().size).toBe(0);
     });
 
     it("should handle undefined items value", () => {
@@ -384,7 +384,7 @@ describe("ShareListComponent", () => {
 
       component.setUserItemMap();
 
-      expect(component.userItemMap.size).toBe(0);
+      expect(component.userItemMap().size).toBe(0);
     });
   });
 
@@ -537,7 +537,7 @@ describe("ShareListComponent", () => {
       component.mode = FormMode.edit;
       component.setUserItemMap();
 
-      const userItems = component.userItemMap.get("1");
+      const userItems = component.userItemMap().get("1");
       const lastIndex = userItems!.length - 1;
       const lastItem = userItems![lastIndex];
       const formGroup = component.receiptItems.at(lastItem.arrayIndex);
@@ -568,7 +568,7 @@ describe("ShareListComponent", () => {
       component.mode = FormMode.edit;
       component.setUserItemMap();
 
-      const userItems = component.userItemMap.get("1");
+      const userItems = component.userItemMap().get("1");
       const lastIndex = userItems!.length - 1;
       const lastItem = userItems![lastIndex];
       const formGroup = component.receiptItems.at(lastItem.arrayIndex);
@@ -581,7 +581,7 @@ describe("ShareListComponent", () => {
 
     it("should handle undefined user items in addInlineItemOnBlur", () => {
       jest.spyOn(component, "addInlineItem");
-      component.userItemMap = new Map();
+      component.userItemMap.set(new Map());
 
       component.addInlineItemOnBlur("999", 0);
 
@@ -599,7 +599,7 @@ describe("ShareListComponent", () => {
       fixture.componentRef.setInput('form', createFormWithItems(multipleItemsUser));
       component.setUserItemMap();
 
-      const lastItemData = component.userItemMap.get("1")![1];
+      const lastItemData = component.userItemMap().get("1")![1];
       const lastFormGroup = component.receiptItems.at(lastItemData.arrayIndex);
       lastFormGroup.markAsPristine();
 
@@ -633,7 +633,7 @@ describe("ShareListComponent", () => {
       fixture.componentRef.setInput('form', createFormWithItems(multipleItemsUser));
       component.setUserItemMap();
 
-      const lastItemData = component.userItemMap.get("1")![1];
+      const lastItemData = component.userItemMap().get("1")![1];
       const lastFormGroup = component.receiptItems.at(lastItemData.arrayIndex);
       lastFormGroup.patchValue({ name: "   ", amount: 0 });
       lastFormGroup.markAsPristine();
@@ -737,7 +737,7 @@ describe("ShareListComponent", () => {
     it("should handle undefined user items in checkLastInlineItem", () => {
       jest.spyOn(component.itemRemoved, "emit");
       component.mode = FormMode.edit;
-      component.userItemMap = new Map();
+      component.userItemMap.set(new Map());
 
       component.checkLastInlineItem("999");
 
@@ -839,10 +839,10 @@ describe("ShareListComponent", () => {
       }));
 
       // The component doesn't clear the map when no receiptItems, so we expect it to stay unchanged
-      const originalMapSize = component.userItemMap.size;
+      const originalMapSize = component.userItemMap().size;
       component.setUserItemMap();
 
-      expect(component.userItemMap.size).toBe(originalMapSize);
+      expect(component.userItemMap().size).toBe(originalMapSize);
     });
 
     it("should handle invalid user IDs", () => {
@@ -854,12 +854,12 @@ describe("ShareListComponent", () => {
 
       component.setUserItemMap();
 
-      expect(component.userItemMap.has("0")).toBe(true);
-      expect(component.userItemMap.has("-1")).toBe(true);
+      expect(component.userItemMap().has("0")).toBe(true);
+      expect(component.userItemMap().has("-1")).toBe(true);
     });
 
     it("should handle empty user maps", () => {
-      component.userItemMap = new Map();
+      component.userItemMap.set(new Map());
       // Also clear the form controls to match the empty userMap
       fixture.componentRef.setInput('form', new FormGroup({
         receiptItems: new FormArray([]),
@@ -897,7 +897,7 @@ describe("ShareListComponent", () => {
 
     it("should handle concurrent map updates", () => {
       component.setUserItemMap();
-      const originalSize = component.userItemMap.size;
+      const originalSize = component.userItemMap().size;
 
       // Add new item to form
       const newItem = buildItemForm(
@@ -911,8 +911,8 @@ describe("ShareListComponent", () => {
       // Update map again
       component.setUserItemMap();
 
-      expect(component.userItemMap.size).toBe(originalSize + 1);
-      expect(component.userItemMap.has("4")).toBe(true);
+      expect(component.userItemMap().size).toBe(originalSize + 1);
+      expect(component.userItemMap().has("4")).toBe(true);
     });
   });
 });

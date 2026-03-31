@@ -10,6 +10,7 @@ import {
   ViewEncapsulation,
   input,
   output,
+  signal,
   viewChild,
   viewChildren
 } from "@angular/core";
@@ -69,7 +70,7 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy {
 }>();
 
 
-  public items: ItemData[] = [];
+  public items = signal<ItemData[]>([]);
 
   public isAdding: boolean = false;
 
@@ -155,7 +156,7 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy {
           }
         });
       }
-      this.items = itemDataArray;
+      this.items.set(itemDataArray);
     }
   }
 
@@ -237,8 +238,9 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   public addInlineItemOnBlur(index: number): void {
-    if (this.items && this.items.length - 1 === index) {
-      const item = this.items.at(index) as ItemData;
+    const items = this.items();
+    if (items && items.length - 1 === index) {
+      const item = items.at(index) as ItemData;
       const itemInput = this.receiptItems.at(item?.arrayIndex);
       if (itemInput.valid) {
         this.addInlineItem();
@@ -248,8 +250,9 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy {
 
   public checkLastInlineItem(): void {
     if (this.mode !== FormMode.view) {
-      if (this.items && this.items.length > 1) {
-        const lastItem = this.items[this.items.length - 1];
+      const items = this.items();
+      if (items && items.length > 1) {
+        const lastItem = items[items.length - 1];
         const formGroup = this.receiptItems.at(lastItem.arrayIndex);
         const nameValue = formGroup.get("name")?.value;
         const amountValue = formGroup.get("amount")?.value;
@@ -262,11 +265,12 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   public getTotalAmount(): number {
-    if (!this.items || this.items.length === 0) {
+    const items = this.items();
+    if (!items || items.length === 0) {
       return 0;
     }
 
-    return this.items.reduce((total, itemData) => {
+    return items.reduce((total, itemData) => {
       const amount = parseFloat(itemData.item.amount) || 0;
       return total + amount;
     }, 0);

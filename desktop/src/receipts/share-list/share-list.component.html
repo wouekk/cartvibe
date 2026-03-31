@@ -55,22 +55,22 @@
     </app-card>
   }
 
-  @if (userItemMap.size === 0 && mode === formMode.view) {
+  @if (userItemMap().size === 0 && mode === formMode.view) {
     <div>No shares for this receipt</div>
   }
   <mat-expansion-panel
     #userExpansionPanel
-    *ngFor="let key of userItemMap | mapKey; let i = index"
+    *ngFor="let key of userItemMap() | mapKey; let i = index"
     (closed)="checkLastInlineItem(key)"
   >
     @let user = key | user;
     <mat-expansion-panel-header>
       <mat-panel-title>
-        {{ user?.displayName }} ({{ (userItemMap | mapGet : key)?.length || 0 }})
+        {{ user?.displayName }} ({{ (userItemMap() | mapGet : key)?.length || 0 }})
       </mat-panel-title>
       <mat-panel-description>
         <div class="d-flex justify-content-between align-items-center w-100">
-          @let userTotalData = userItemMap | userTotalWithPercentage : key : form();
+          @let userTotalData = userItemMap() | userTotalWithPercentage : key : form();
           <span>
             Total amount owed: {{ userTotalData.total | customCurrency }} 
             ({{ userTotalData.percentage }}% of total)
@@ -98,7 +98,7 @@
       </mat-panel-description>
     </mat-expansion-panel-header>
     <ng-container
-      *ngFor="let itemData of userItemMap | mapGet : key; let i = index"
+      *ngFor="let itemData of userItemMap() | mapGet : key; let i = index"
     >
       <app-card
         cardStyle="mb-2"

@@ -15,17 +15,17 @@
   }
 
   <!-- No Items Message -->
-  @if (items.length === 0 && mode === formMode.view && !isAdding) {
+  @if (items().length === 0 && mode === formMode.view && !isAdding) {
     <div>No items for this receipt</div>
   }
 
   <!-- Items List -->
-  @if (items.length > 0 || isAdding) {
+  @if (items().length > 0 || isAdding) {
     <mat-accordion multi>
       <mat-expansion-panel #itemsExpansionPanel>
         <mat-expansion-panel-header class="sticky-accordion-header">
           <mat-panel-title>
-            Items ({{ items.length }})
+            Items ({{ items().length }})
           </mat-panel-title>
           <mat-panel-description>
             <div class="accordion-header-content">
@@ -43,7 +43,7 @@
           </mat-panel-description>
         </mat-expansion-panel-header>
 
-        <div *ngFor="let itemData of items; let i = index" class="item-row">
+        <div *ngFor="let itemData of items(); let i = index" class="item-row">
           <app-card cardStyle="mb-2">
             <div content class="d-flex flex-column item-form-container">
               <div class="d-flex justify-content-end">
