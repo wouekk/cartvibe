@@ -7,7 +7,7 @@
   [type]="type() || 'submit'"
   [tooltip]="tooltip ?? 'Save'"
   (clicked)="clicked.emit()"
-  [disabled]="mode() === formMode.view || effectiveDisabled()"
+  [disabled]="effectiveDisabled()"
 ></app-button>
 
 <app-button
@@ -19,5 +19,5 @@
   [buttonClass]="effectiveDisabled() ? '' : 'mat-success-full'"
   [tooltip]="tooltip ?? 'Save'"
   (clicked)="clicked.emit()"
-  [disabled]="mode() === formMode.view || effectiveDisabled()"
+  [disabled]="effectiveDisabled()"
 ></app-button>
