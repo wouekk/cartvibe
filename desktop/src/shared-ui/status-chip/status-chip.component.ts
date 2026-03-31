@@ -1,4 +1,4 @@
-import { Component, Input } from "@angular/core";
+import { Component, Input, input } from "@angular/core";
 import { ReceiptStatus } from "../../open-api";
 
 @Component({
@@ -12,7 +12,7 @@ export class StatusChipComponent {
 
   @Input() public customStatus: string = "";
 
-  @Input() public customStatusColor?: "red" | "green" | "gray" | "yellow";
+  public readonly customStatusColor = input<"red" | "green" | "gray" | "yellow">();
 
   public receiptStatus = ReceiptStatus;
 }

@@ -4,7 +4,7 @@
   [formTemplate]="formTemplate"
   [editButtonRouterLink]="['/settings/user-preferences/edit']"
   [editButtonQueryParams]="{tab: 'user-preferences'}"
-  [submitButtonDisabled]="(userShortcutComponent?.editableListComponent?.getCurrentRowOpen() ?? -1) >= 0"
+  [submitButtonDisabled]="(userShortcutComponent()?.editableListComponent()?.getCurrentRowOpen() ?? -1) >= 0"
   (submitted)="submit()"
 ></app-form>
 
@@ -51,7 +51,7 @@
       <app-user-shortcut
         [parentForm]="form"
         [formConfig]="formConfig"
-        [originalUserShortcuts]="originalUserShortcuts"
+        [originalUserShortcuts]="originalUserShortcuts()"
         (shortcutDoneClicked)="shortcutDoneClicked()"
         (shortcutCancelClicked)="shortcutCancelClicked()"
         (formCommand)="handleFormCommand($event)"
@@ -64,7 +64,7 @@
   @if (formConfig.mode === FormMode.edit) {
     <app-add-button
       tooltip="Add shortcut"
-      [disabled]="(userShortcutComponent?.editableListComponent?.getCurrentRowOpen() ?? -1) >= 0"
+      [disabled]="(userShortcutComponent()?.editableListComponent()?.getCurrentRowOpen() ?? -1) >= 0"
       (clicked)="addNewShortcut()"
     ></app-add-button>
   }

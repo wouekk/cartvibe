@@ -1,4 +1,4 @@
-import { Component, Input } from "@angular/core";
+import { Component, input } from "@angular/core";
 import { Group, User } from "../../open-api";
 
 @Component({
@@ -8,6 +8,6 @@ import { Group, User } from "../../open-api";
     standalone: false
 })
 export class AvatarComponent {
-  @Input() public user?: User;
-  @Input() public group?: Group;
+  public readonly user = input<User>();
+  public readonly group = input<Group>();
 }

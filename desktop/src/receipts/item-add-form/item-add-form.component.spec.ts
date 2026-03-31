@@ -45,7 +45,7 @@ describe("ItemAddFormComponent", () => {
   });
 
   it("should initialize form on ngOnInit", () => {
-    component.receiptId = "123";
+    fixture.componentRef.setInput('receiptId', "123");
     component.ngOnInit();
 
     expect(component.newItemFormGroup).toBeDefined();
@@ -163,10 +163,10 @@ describe("ItemAddFormComponent", () => {
   describe("field navigation", () => {
     beforeEach(() => {
       component.ngOnInit();
-      // Mock focus methods
-      jest.spyOn(component as any, "focusAmountField");
-      jest.spyOn(component as any, "focusCategoryField");
-      jest.spyOn(component as any, "focusTagField");
+      // Mock focus methods to prevent actual DOM access
+      jest.spyOn(component as any, "focusAmountField").mockImplementation(() => {});
+      jest.spyOn(component as any, "focusCategoryField").mockImplementation(() => {});
+      jest.spyOn(component as any, "focusTagField").mockImplementation(() => {});
       jest.spyOn(component, "onSubmitAndContinue");
     });
 
@@ -181,11 +181,11 @@ describe("ItemAddFormComponent", () => {
     });
 
     it("should submit directly if categories are hidden", () => {
-      component.selectedGroup = {
+      fixture.componentRef.setInput('selectedGroup', {
         groupReceiptSettings: {
           hideItemCategories: true
         }
-      } as Group;
+      } as Group);
       component.newItemFormGroup.patchValue({ name: "Test", amount: 10 });
 
       const event = new Event("keydown");
@@ -195,11 +195,11 @@ describe("ItemAddFormComponent", () => {
     });
 
     it("should focus category field if categories are shown", () => {
-      component.selectedGroup = {
+      fixture.componentRef.setInput('selectedGroup', {
         groupReceiptSettings: {
           hideItemCategories: false
         }
-      } as Group;
+      } as Group);
 
       const event = new Event("keydown");
       component.onAmountEnter(event);
@@ -209,7 +209,7 @@ describe("ItemAddFormComponent", () => {
   });
 
   it("should handle keyboard events in view mode", () => {
-    component.mode = FormMode.view;
+    fixture.componentRef.setInput('mode', FormMode.view);
     const event = new KeyboardEvent("keydown");
 
     component.handleKeyboardShortcut(event);
@@ -218,7 +218,7 @@ describe("ItemAddFormComponent", () => {
   });
 
   it("should handle keyboard events in edit mode", () => {
-    component.mode = FormMode.edit;
+    fixture.componentRef.setInput('mode', FormMode.edit);
     const event = new KeyboardEvent("keydown");
 
     component.handleKeyboardShortcut(event);

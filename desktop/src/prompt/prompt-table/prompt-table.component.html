@@ -17,13 +17,13 @@
   </app-table-header>
   <div class="table-container">
     <app-table
-      [dataSource]="dataSource"
+      [dataSource]="dataSource()"
       [columns]="columns"
       [displayedColumns]="displayedColumns"
       [pagination]="true"
-      [length]="totalCount"
-      [page]="((tableState | async)?.page || 1) - 1"
-      [pageSize]="(tableState | async)?.pageSize || 10"
+      [length]="totalCount()"
+      [page]="(tableState()?.page || 1) - 1"
+      [pageSize]="tableState()?.pageSize || 10"
       (sorted)="sorted($event)"
       (pageChange)="pageChanged($event)"
     ></app-table>

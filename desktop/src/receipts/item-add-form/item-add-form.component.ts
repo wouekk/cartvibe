@@ -1,14 +1,13 @@
 import {
   Component,
   ElementRef,
-  EventEmitter,
   HostListener,
-  Input,
   OnDestroy,
   OnInit,
-  Output,
-  ViewChild,
   ViewEncapsulation,
+  input,
+  output,
+  viewChild
 } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { Subject, takeUntil } from "rxjs";
@@ -27,31 +26,26 @@ import { KEYBOARD_SHORTCUT_ACTIONS, DISPLAY_SHORTCUTS } from "../../constants/ke
   standalone: false
 })
 export class ItemAddFormComponent implements OnInit, OnDestroy {
-  @ViewChild("addForm")
-  public addForm!: ElementRef;
+  public readonly addForm = viewChild.required<ElementRef>("addForm");
 
-  @ViewChild("nameInput")
-  public nameInput!: InputComponent;
+  public readonly nameInput = viewChild.required<InputComponent>("nameInput");
 
-  @ViewChild("amountInput")
-  public amountInput!: InputComponent;
+  public readonly amountInput = viewChild.required<InputComponent>("amountInput");
 
-  @ViewChild("categoryInput")
-  public categoryInput!: ElementRef;
+  public readonly categoryInput = viewChild.required<ElementRef>("categoryInput");
 
-  @ViewChild("tagInput")
-  public tagInput!: ElementRef;
+  public readonly tagInput = viewChild.required<ElementRef>("tagInput");
 
-  @Input() public categories: Category[] = [];
-  @Input() public tags: Tag[] = [];
-  @Input() public selectedGroup?: Group;
-  @Input() public mode: FormMode = FormMode.add;
-  @Input() public receiptId?: string;
+  public readonly categories = input<Category[]>([]);
+  public readonly tags = input<Tag[]>([]);
+  public readonly selectedGroup = input<Group>();
+  public readonly mode = input<FormMode>(FormMode.add);
+  public readonly receiptId = input<string>();
 
-  @Output() public itemAdded = new EventEmitter<Item>();
-  @Output() public cancelled = new EventEmitter<void>();
-  @Output() public submitAndContinue = new EventEmitter<Item>();
-  @Output() public submitAndFinish = new EventEmitter<Item>();
+  public readonly itemAdded = output<Item>();
+  public readonly cancelled = output<void>();
+  public readonly submitAndContinue = output<Item>();
+  public readonly submitAndFinish = output<Item>();
 
   public formMode = FormMode;
   public newItemFormGroup!: FormGroup;
@@ -81,7 +75,7 @@ export class ItemAddFormComponent implements OnInit, OnDestroy {
   @HostListener("document:keydown", ["$event"])
   public handleKeyboardShortcut(event: KeyboardEvent): void {
     // Only handle shortcuts when this form is active
-    if (this.mode === FormMode.view) {
+    if (this.mode() === FormMode.view) {
       return;
     }
 
@@ -92,7 +86,7 @@ export class ItemAddFormComponent implements OnInit, OnDestroy {
   private initializeForm(): void {
     this.newItemFormGroup = buildItemForm(
       undefined,
-      this.receiptId,
+      this.receiptId(),
       false,
       false
     );
@@ -160,6 +154,7 @@ export class ItemAddFormComponent implements OnInit, OnDestroy {
   }
 
   public onCancel(): void {
+
     this.cancelled.emit();
   }
 
@@ -172,7 +167,7 @@ export class ItemAddFormComponent implements OnInit, OnDestroy {
     event.preventDefault();
     
     // If categories are hidden, submit directly
-    if (this.selectedGroup?.groupReceiptSettings?.hideItemCategories) {
+    if (this.selectedGroup()?.groupReceiptSettings?.hideItemCategories) {
       if (this.newItemFormGroup.valid) {
         this.onSubmitAndContinue();
       }
@@ -185,7 +180,7 @@ export class ItemAddFormComponent implements OnInit, OnDestroy {
   public onCategoryEnter(event: Event): void {
     event.preventDefault();
     
-    if (this.selectedGroup?.groupReceiptSettings?.hideItemTags) {
+    if (this.selectedGroup()?.groupReceiptSettings?.hideItemTags) {
       this.onSubmitAndContinue();
       return;
     }
@@ -199,20 +194,25 @@ export class ItemAddFormComponent implements OnInit, OnDestroy {
   }
 
   private focusNameField(): void {
-    if (this.nameInput?.nativeInput?.nativeElement) {
-      (this.nameInput.nativeInput.nativeElement as HTMLInputElement).focus();
+    const nameInput = this.nameInput();
+    const nativeInput = nameInput?.nativeInput();
+    if (nativeInput?.nativeElement) {
+      (nativeInput.nativeElement as HTMLInputElement).focus();
     }
   }
 
   private focusAmountField(): void {
-    if (this.amountInput?.nativeInput?.nativeElement) {
-      (this.amountInput.nativeInput.nativeElement as HTMLInputElement).focus();
+    const amountInput = this.amountInput();
+    const nativeInput = amountInput?.nativeInput();
+    if (nativeInput?.nativeElement) {
+      (nativeInput.nativeElement as HTMLInputElement).focus();
     }
   }
 
   private focusCategoryField(): void {
-    if (this.categoryInput?.nativeElement) {
-      const input = this.categoryInput.nativeElement.querySelector('input');
+    const categoryInput = this.categoryInput();
+    if (categoryInput?.nativeElement) {
+      const input = categoryInput.nativeElement.querySelector('input');
       if (input) {
         input.focus();
       }
@@ -220,8 +220,9 @@ export class ItemAddFormComponent implements OnInit, OnDestroy {
   }
 
   private focusTagField(): void {
-    if (this.tagInput?.nativeElement) {
-      const input = this.tagInput.nativeElement.querySelector('input');
+    const tagInput = this.tagInput();
+    if (tagInput?.nativeElement) {
+      const input = tagInput.nativeElement.querySelector('input');
       if (input) {
         input.focus();
       }

@@ -46,7 +46,7 @@ describe("GroupReceiptSettingsComponent", () => {
       providers: [
         FormBuilder,
         GroupsService,
-        Router,
+        { provide: Router, useValue: { navigate: jest.fn().mockResolvedValue(true) } },
         Store,
         SnackbarService,
         GroupUtil,

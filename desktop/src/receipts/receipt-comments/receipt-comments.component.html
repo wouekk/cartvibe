@@ -1,4 +1,4 @@
-@if (mode !== formMode.view) {
+@if (mode() !== formMode.view) {
   <div class="mb-2">
     <app-card>
       <strong header class="mb-3">Leave a Comment</strong>
@@ -30,13 +30,13 @@
       <div
         class="d-flex content-margin"
         [ngClass]="{
-          'mb-2': mode === formMode.edit
+          'mb-2': mode() === formMode.edit
         }"
       >
       </div>
     </div>
   </app-card>
-} @else if (comments.length === 0 && mode === formMode.view) {
+} @else if (internalComments().length === 0 && mode() === formMode.view) {
   <div>No comments for this receipt</div>
 }
 
@@ -71,8 +71,8 @@
     </div>
     <ng-container
       *ngIf="
-        commentControl?.value?.userId?.toString() === (loggedInUserId | async)
-         && (mode === formMode.add || mode === formMode.edit)
+        commentControl?.value?.userId?.toString() === loggedInUserId()
+         && (mode() === formMode.add || mode() === formMode.edit)
       "
     >
       <app-delete-button
@@ -89,7 +89,7 @@
   <ng-template
     [ngTemplateOutlet]="date"
     [ngTemplateOutletContext]="{
-      comment: comments[commentIndex]
+      comment: internalComments()[commentIndex]
     }"
   ></ng-template>
 </ng-template>

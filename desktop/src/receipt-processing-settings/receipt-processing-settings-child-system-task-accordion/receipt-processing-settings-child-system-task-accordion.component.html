@@ -6,7 +6,7 @@
     [ngTemplateOutletContext]="{ index: index }"
   ></ng-template>
   <span class="d-flex flex-column w-25">
-    {{ childTasks[index].resultDescription }}
+    {{ childTasks()[index].resultDescription }}
   </span>
 </ng-template>
 
@@ -17,7 +17,7 @@
     [ngTemplateOutletContext]="{ index: index }"
   ></ng-template>
   <span class="d-flex flex-column w-25">
-    {{ childTasks[index].resultDescription }}
+    {{ childTasks()[index].resultDescription }}
   </span>
 </ng-template>
 
@@ -30,7 +30,7 @@
     [ngTemplateOutletContext]="{ index: index }"
   ></ng-template>
   <app-pretty-json
-    [json]="childTasks[index].resultDescription"
+    [json]="childTasks()[index].resultDescription"
   ></app-pretty-json>
 </ng-template>
 
@@ -43,24 +43,24 @@
     [ngTemplateOutletContext]="{ index: index }"
   ></ng-template>
   <app-pretty-json
-    [json]="childTasks[index].resultDescription"
+    [json]="childTasks()[index].resultDescription"
   ></app-pretty-json>
 </ng-template>
 
 <ng-template #statusIcon let-index="index">
   <app-status-icon
     class="status-icon-margin"
-    [taskStatus]="childTasks[index].status || SystemTaskStatus.Failed"
+    [taskStatus]="childTasks()[index].status || SystemTaskStatus.Failed"
   ></app-status-icon>
 </ng-template>
 
 <ng-template #dates let-index="index">
   <div class="d-flex flex-column">
     <div class="d-flex">
-      Started at: {{ childTasks[index].startedAt | date: 'medium' }}
+      Started at: {{ childTasks()[index].startedAt | date: 'medium' }}
     </div>
     <div class="d-flex">
-      Ended at: {{ childTasks[index].endedAt | date: 'medium' }}
+      Ended at: {{ childTasks()[index].endedAt | date: 'medium' }}
     </div>
   </div>
   <br>

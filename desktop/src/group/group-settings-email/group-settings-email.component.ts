@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, QueryList, ViewChildren, } from "@angular/core";
+import { Component, Input, OnInit, input, viewChildren } from "@angular/core";
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators, } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
 import { startWith, tap } from "rxjs";
@@ -19,12 +19,11 @@ export class GroupSettingsEmailComponent
   implements OnInit {
   @Input() public override form: FormGroup = new FormGroup({});
 
-  @Input() public canEdit: boolean = false;
+  public readonly canEdit = input<boolean>(false);
 
   @Input() public override formConfig!: FormConfig;
 
-  @ViewChildren(FormListComponent)
-  public formListComponents!: QueryList<FormListComponent>;
+  public readonly formListComponents = viewChildren(FormListComponent);
 
   public group!: Group;
 
@@ -48,7 +47,7 @@ export class GroupSettingsEmailComponent
   public ngOnInit(): void {
     this.group = this.activatedRoute.snapshot.data["group"];
     this.systemEmails = this.activatedRoute.snapshot.data["systemEmails"];
-    if (!this.canEdit && this.group.groupSettings?.systemEmail?.id) {
+    if (!this.canEdit() && this.group.groupSettings?.systemEmail?.id) {
       this.systemEmails = [this.group.groupSettings.systemEmail];
     }
     this.initForm();
@@ -229,7 +228,7 @@ export class GroupSettingsEmailComponent
 
   public itemDoneButtonClicked(index: number): void {
     if (this.form.valid) {
-      this.formListComponents.get(index)?.resetEditingIndex();
+      this.formListComponents().at(index)?.resetEditingIndex();
     }
   }
 

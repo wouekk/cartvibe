@@ -1,4 +1,5 @@
 import { Component, OnInit } from "@angular/core";
+import { RouterOutlet } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
 import { interval, take, tap } from "rxjs";
@@ -11,7 +12,7 @@ import { AuthState } from "../store";
     selector: "app-root",
     templateUrl: "./app.component.html",
     styleUrls: ["./app.component.scss"],
-    standalone: false
+    imports: [RouterOutlet],
 })
 export class AppComponent implements OnInit {
 

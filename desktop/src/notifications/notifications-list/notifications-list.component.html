@@ -4,12 +4,12 @@
     matButtonType="basic"
     buttonText="Mark all as read"
     (clicked)="deleteAllNotifications()"
-    [disabled]="notifications.length === 0"
+    [disabled]="notifications().length === 0"
   ></app-button>
 </div>
 <hr />
 <div class="d-flex flex-column align-items-center">
-  <div class="w-100" *ngFor="let notification of notifications">
+  <div class="w-100" *ngFor="let notification of notifications()">
     <app-notification
       class="w-100"
       [notification]="notification"
@@ -17,5 +17,5 @@
     ></app-notification>
     <hr />
   </div>
-  <div *ngIf="notifications.length === 0">All caught up!</div>
+  <div *ngIf="notifications().length === 0">All caught up!</div>
 </div>

@@ -1,101 +1,81 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, computed, effect, signal, untracked } from "@angular/core";
 import { Router } from "@angular/router";
-import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
-import { Select, Store } from "@ngxs/store";
-import { filter, Observable, switchMap, take, tap } from "rxjs";
+import { Store } from "@ngxs/store";
+import { take, tap } from "rxjs";
 import { LayoutState } from "src/store/layout.state";
 import { ToggleIsSidebarOpen } from "src/store/layout.state.actions";
-import { AuthService, GroupRole, NotificationsService, User, UserPreferences } from "../../open-api";
+import { AuthService, GroupRole, NotificationsService } from "../../open-api";
 import { AuthState, GroupState } from "../../store";
 
-@UntilDestroy()
 @Component({
     selector: "app-header",
     templateUrl: "./header.component.html",
     styleUrls: ["./header.component.scss"],
     standalone: false
 })
-export class HeaderComponent implements OnInit {
-  @Select(AuthState.isLoggedIn) public isLoggedIn!: Observable<boolean>;
+export class HeaderComponent {
+  public isLoggedIn = this.store.selectSignal(AuthState.isLoggedIn);
 
-  @Select(GroupState.selectedGroupId)
-  public selectedGroupId!: Observable<string>;
+  public selectedGroupId = this.store.selectSignal(GroupState.selectedGroupId);
 
-  @Select(AuthState.loggedInUser) public loggedInUser!: Observable<User>;
+  public loggedInUser = this.store.selectSignal(AuthState.loggedInUser);
 
-  @Select(LayoutState.showProgressBar)
-  public showProgressBar!: Observable<boolean>;
+  public showProgressBar = this.store.selectSignal(LayoutState.showProgressBar);
 
-  @Select(AuthState.userPreferences)
-  public userPreferences!: Observable<UserPreferences>;
+  public userPreferences = this.store.selectSignal(AuthState.userPreferences);
 
-  public receiptHeaderLink: string[] = [""];
+  public receiptHeaderLink = computed(() => {
+    this.selectedGroupId();
+    return [this.store.selectSnapshot(GroupState.receiptListLink)];
+  });
 
-  public dashboardHeaderLink: string[] = [""];
+  public dashboardHeaderLink = computed(() => {
+    this.selectedGroupId();
+    return [this.store.selectSnapshot(GroupState.dashboardLink)];
+  });
 
-  public settingsBaseHeaderLink: string[] = [""];
+  public settingsBaseHeaderLink = computed(() => {
+    this.selectedGroupId();
+    return [this.store.selectSnapshot(GroupState.settingsLinkBase) + "/view"];
+  });
 
-  public groupName = "";
+  public groupName = computed(() => {
+    const groupId = this.selectedGroupId();
+    const group = this.store.selectSnapshot(GroupState.getGroupById(groupId));
+    return group?.name as string ?? "";
+  });
 
   public groupRoleEnum = GroupRole;
 
-  public notificationCount: number | undefined = undefined;
+  public notificationCount = signal<number | undefined>(undefined);
 
   constructor(
     private authService: AuthService,
     private notificationsService: NotificationsService,
     private router: Router,
     private store: Store
-  ) {}
-
-  public ngOnInit(): void {
-    this.setGroupData();
+  ) {
     this.listenForLoggedInUser();
   }
 
-  private setGroupData(): void {
-    this.selectedGroupId
-      .pipe(
-        tap((groupId) => {
-          this.receiptHeaderLink = [
-            this.store.selectSnapshot(GroupState.receiptListLink),
-          ];
-          this.dashboardHeaderLink = [
-            this.store.selectSnapshot(GroupState.dashboardLink),
-          ];
-          this.settingsBaseHeaderLink = [
-            this.store.selectSnapshot(GroupState.settingsLinkBase) + "/view",
-          ];
-          const newGroup = this.store.selectSnapshot(
-            GroupState.getGroupById(groupId)
-          );
-          this.groupName = newGroup?.name as string;
-        })
-      )
-      .subscribe();
-  }
-
   private listenForLoggedInUser(): void {
-    this.isLoggedIn
-      .pipe(
-        untilDestroyed(this),
-        filter((loggedIn) => !!loggedIn),
-        switchMap(() => this.updateNotificationCount())
-      )
-      .subscribe();
-  }
-
-  private updateNotificationCount(): Observable<number> {
-    return this.notificationsService.getNotificationCount().pipe(
-      take(1),
-      tap((n) => {
-        if (n > 0) {
-          this.notificationCount = n;
-        } else {
-          this.notificationCount = undefined;
-        }
-      })
-    );
+    let wasLoggedIn = false;
+    effect(() => {
+      const loggedIn = this.isLoggedIn();
+      if (loggedIn && !wasLoggedIn) {
+        wasLoggedIn = true;
+        untracked(() => {
+          this.notificationsService.getNotificationCount().pipe(
+            take(1),
+            tap((n) => {
+              this.notificationCount.set(n > 0 ? n : undefined);
+            })
+          ).subscribe();
+        });
+      } else if (!loggedIn) {
+        wasLoggedIn = false;
+      }
+    });
   }
 
   public toggleSidebar(): void {

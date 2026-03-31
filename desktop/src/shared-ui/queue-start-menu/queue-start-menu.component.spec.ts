@@ -39,22 +39,22 @@ describe("QueueStartMenuComponent", () => {
   });
 
   it("should init queue with receipt ids", () => {
-    const receiptQueueServiceSpy = jest.spyOn(TestBed.inject(ReceiptQueueService), "initQueueAndNavigate");
+    const receiptQueueServiceSpy = jest.spyOn(TestBed.inject(ReceiptQueueService), "initQueueAndNavigate").mockImplementation(() => {});
 
-    component.receiptIds = [1, 2, 3];
+    fixture.componentRef.setInput('receiptIds', [1, 2, 3]);
     component.initQueue(QueueMode.VIEW);
 
     expect(receiptQueueServiceSpy).toHaveBeenCalledWith(["1", "2", "3"], QueueMode.VIEW);
   });
 
   it("should init queue with receipt ids from receipts", () => {
-    const receiptQueueServiceSpy = jest.spyOn(TestBed.inject(ReceiptQueueService), "initQueueAndNavigate");
+    const receiptQueueServiceSpy = jest.spyOn(TestBed.inject(ReceiptQueueService), "initQueueAndNavigate").mockImplementation(() => {});
 
-    component.receipts = [
+    fixture.componentRef.setInput('receipts', [
       { id: 1 } as any,
       { id: 2 } as any,
       { id: 3 } as any,
-    ];
+    ]);
     component.initQueue(QueueMode.VIEW);
 
     expect(receiptQueueServiceSpy).toHaveBeenCalledWith(["1", "2", "3"], QueueMode.VIEW);

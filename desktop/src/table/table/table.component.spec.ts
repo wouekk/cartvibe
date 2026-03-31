@@ -43,7 +43,7 @@ describe('TableComponent', () => {
         sortable: false,
       },
     ];
-    component.columns = columns;
+    fixture.componentRef.setInput('columns', columns);
     component.ngOnChanges({ columns: {} } as any);
 
     expect(component.defaultSort).toEqual({
@@ -70,7 +70,7 @@ describe('TableComponent', () => {
         sortable: false,
       },
     ];
-    component.columns = columns;
+    fixture.componentRef.setInput('columns', columns);
     component.ngOnChanges({ columns: {} } as any);
 
     expect(component.defaultSort).toEqual({

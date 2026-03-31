@@ -5,6 +5,7 @@ import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { NgxsModule, Store } from "@ngxs/store";
 import { ToggleIsSidebarOpen } from "src/store/layout.state.actions";
 import { ApiModule } from "../../open-api";
+import { StoreModule } from "../../store/store.module";
 import { HeaderComponent } from "./header.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 
@@ -18,7 +19,8 @@ describe("HeaderComponent", () => {
     imports: [ApiModule,
         MatDialogModule,
         MatSnackBarModule,
-        NgxsModule.forRoot([])],
+        StoreModule,
+    ],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 }).compileComponents();
 

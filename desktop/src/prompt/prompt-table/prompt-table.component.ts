@@ -1,12 +1,11 @@
-import { AfterViewInit, Component, OnInit, TemplateRef, ViewChild } from "@angular/core";
+import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { PageEvent } from "@angular/material/paginator";
 import { Sort } from "@angular/material/sort";
 import { MatTableDataSource } from "@angular/material/table";
 import { ActivatedRoute, Router } from "@angular/router";
-import { Select, Store } from "@ngxs/store";
-import { Observable, take, tap } from "rxjs";
-import { PagedTableInterface } from "../../interfaces/paged-table.interface";
+import { Store } from "@ngxs/store";
+import { take, tap } from "rxjs";
 import { Group, Prompt, PromptService, ReceiptProcessingSettings, UpsertPromptCommand } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
@@ -21,25 +20,25 @@ import { TableColumn } from "../../table/table-column.interface";
     standalone: false
 })
 export class PromptTableComponent implements OnInit, AfterViewInit {
-  @Select(PromptTableState.state) public tableState!: Observable<PagedTableInterface>;
+  public tableState = this.store.selectSignal(PromptTableState.state);
 
-  @ViewChild("nameCell") public nameCell!: TemplateRef<any>;
+  public readonly nameCell = viewChild.required<TemplateRef<any>>("nameCell");
 
-  @ViewChild("descriptionCell") public descriptionCell!: TemplateRef<any>;
+  public readonly descriptionCell = viewChild.required<TemplateRef<any>>("descriptionCell");
 
-  @ViewChild("createdAtCell") public createdAtCell!: TemplateRef<any>;
+  public readonly createdAtCell = viewChild.required<TemplateRef<any>>("createdAtCell");
 
-  @ViewChild("updatedAtCell") public updatedAtCell!: TemplateRef<any>;
+  public readonly updatedAtCell = viewChild.required<TemplateRef<any>>("updatedAtCell");
 
-  @ViewChild("actionsCell") public actionsCell!: TemplateRef<any>;
+  public readonly actionsCell = viewChild.required<TemplateRef<any>>("actionsCell");
 
   public columns: TableColumn[] = [];
 
   public displayedColumns: string[] = [];
 
-  public dataSource = new MatTableDataSource<Prompt>([]);
+  public dataSource = signal(new MatTableDataSource<Prompt>([]));
 
-  public totalCount = 0;
+  public totalCount = signal(0);
 
   public receiptProcessingSettings: ReceiptProcessingSettings[] = [];
 
@@ -80,31 +79,31 @@ export class PromptTableComponent implements OnInit, AfterViewInit {
       {
         columnHeader: "Name",
         matColumnDef: "name",
-        template: this.nameCell,
+        template: this.nameCell(),
         sortable: true
       },
       {
         columnHeader: "Description",
         matColumnDef: "description",
-        template: this.descriptionCell,
+        template: this.descriptionCell(),
         sortable: true
       },
       {
         columnHeader: "Created At",
         matColumnDef: "created_at",
-        template: this.createdAtCell,
+        template: this.createdAtCell(),
         sortable: true
       },
       {
         columnHeader: "Updated At",
         matColumnDef: "updated_at",
-        template: this.updatedAtCell,
+        template: this.updatedAtCell(),
         sortable: true
       },
       {
         columnHeader: "Actions",
         matColumnDef: "actions",
-        template: this.actionsCell,
+        template: this.actionsCell(),
         sortable: false
       },
     ] as TableColumn[];
@@ -127,8 +126,8 @@ export class PromptTableComponent implements OnInit, AfterViewInit {
       .pipe(
         take(1),
         tap((pagedData) => {
-          this.dataSource = new MatTableDataSource(pagedData.data as any as Prompt[]);
-          this.totalCount = pagedData.totalCount;
+          this.dataSource.set(new MatTableDataSource(pagedData.data as any as Prompt[]));
+          this.totalCount.set(pagedData.totalCount);
           this.setDefaultPromptExists();
           this.setPromptsWithRelatedData(pagedData.data as any as Prompt[]);
         })
@@ -170,7 +169,7 @@ export class PromptTableComponent implements OnInit, AfterViewInit {
     dialogRef.componentInstance.headerText = "Delete Prompt";
     dialogRef.componentInstance.dialogContent = `Are you sure you want to delete the prompt: ${prompt.name}?`;
 
-    const index = this.dataSource.data.indexOf(prompt);
+    const index = this.dataSource().data.indexOf(prompt);
 
     dialogRef.afterClosed()
       .pipe(
@@ -190,10 +189,10 @@ export class PromptTableComponent implements OnInit, AfterViewInit {
         take(1),
         tap(() => {
           this.getTableData();
-          const data = Array.from(this.dataSource.data);
+          const data = Array.from(this.dataSource().data);
           data.splice(index, 1);
           this.setDefaultPromptExists();
-          this.dataSource = new MatTableDataSource(data);
+          this.dataSource.set(new MatTableDataSource(data));
           this.snackbarService.success("Prompt deleted successfully");
         })
       )
@@ -201,7 +200,7 @@ export class PromptTableComponent implements OnInit, AfterViewInit {
   }
 
   public duplicatePrompt(id: number): void {
-    const prompt = this.dataSource.data.find((p) => p.id === id);
+    const prompt = this.dataSource().data.find((p) => p.id === id);
     if (!prompt) {
       return;
     }
@@ -244,6 +243,6 @@ export class PromptTableComponent implements OnInit, AfterViewInit {
   }
 
   private setDefaultPromptExists(): void {
-    this.defaultPromptExists = this.dataSource.data.some((p) => p.name === "Default Prompt");
+    this.defaultPromptExists = this.dataSource().data.some((p) => p.name === "Default Prompt");
   }
 }

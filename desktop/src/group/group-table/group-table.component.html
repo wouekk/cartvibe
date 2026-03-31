@@ -1,5 +1,5 @@
 <div class="d-flex flex-column">
-  <app-table-header [headerText]="tableHeaderText">
+  <app-table-header [headerText]="tableHeaderText()">
     <div class="d-flex align-items-center">
       <app-add-button
         tooltip="Create Group"
@@ -18,11 +18,11 @@
   </app-table-header>
   <div class="table-container">
     <app-table
-      [dataSource]="dataSource"
+      [dataSource]="dataSource()"
       [columns]="columns"
       [displayedColumns]="displayedColumns"
       [pagination]="true"
-      [length]="totalCount"
+      [length]="totalCount()"
       [page]="((baseTableService.page$ | async) || 1) - 1"
       [pageSize]="(baseTableService.pageSize$ | async) || 10"
       (sorted)="sorted($event)"
@@ -61,7 +61,7 @@
     <app-delete-button
       *ngIf="element.id | groupRole : groupRole.Owner"
       tooltip="Delete Group"
-      [disabled]="(groups | async)?.length === 1"
+      [disabled]="groups()?.length === 1"
       (clicked)="deleteGroup(index)"
     ></app-delete-button>
   </div>

@@ -2,9 +2,9 @@
   <a class="notification" [routerLink]="[link]">
     <div class="w-100">
       <div class="w-100 d-flex flex-column">
-        <strong>{{ notification.title }}</strong>
+        <strong>{{ notification().title }}</strong>
         <div>{{ parsedBody }}</div>
-        <small>{{ notification.createdAt | date }}</small>
+        <small>{{ notification().createdAt | date }}</small>
       </div>
     </div>
   </a>

@@ -15,7 +15,7 @@ describe("ReceiptQueueService", () => {
     });
     service = TestBed.inject(ReceiptQueueService);
     router = TestBed.inject(Router);
-    navigateSpy = jest.spyOn(router, "navigate");
+    navigateSpy = jest.spyOn(router, "navigate").mockResolvedValue(true);
   });
 
   it("should be created", () => {

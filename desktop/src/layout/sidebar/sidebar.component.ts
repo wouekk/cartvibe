@@ -1,14 +1,14 @@
-import { Component, OnInit, ViewEncapsulation } from "@angular/core";
+import { Component, computed, ViewEncapsulation } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { Router } from "@angular/router";
-import { Select, Store } from "@ngxs/store";
-import { map, Observable, switchMap, take } from "rxjs";
+import { Store } from "@ngxs/store";
+import { switchMap, take } from "rxjs";
 import { LayoutState } from "src/store/layout.state";
 import { SetPage } from "src/store/receipt-table.actions";
 import { AboutComponent } from "../../about/about/about.component";
 import { DEFAULT_DIALOG_CONFIG } from "../../constants";
 import { ImportFormComponent } from "../../import/import-form/import-form.component";
-import { AuthService, Group, GroupStatus, User } from "../../open-api";
+import { AuthService, Group, GroupStatus } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { AuthState, GroupState, Logout, SetSelectedGroupId } from "../../store";
 
@@ -19,7 +19,7 @@ import { AuthState, GroupState, Logout, SetSelectedGroupId } from "../../store";
     encapsulation: ViewEncapsulation.None,
     standalone: false
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent {
   constructor(
     private authService: AuthService,
     private matDialog: MatDialog,
@@ -28,25 +28,21 @@ export class SidebarComponent implements OnInit {
     private store: Store,
   ) {}
 
-  @Select(AuthState.loggedInUser) public loggedInUser!: Observable<User>;
+  public loggedInUser = this.store.selectSignal(AuthState.loggedInUser);
 
-  @Select(AuthState.isLoggedIn) public isLoggedIn!: Observable<boolean>;
+  public isLoggedIn = this.store.selectSignal(AuthState.isLoggedIn);
 
-  @Select(LayoutState.isSidebarOpen) public isSidebarOpen!: Observable<boolean>;
+  public isSidebarOpen = this.store.selectSignal(LayoutState.isSidebarOpen);
 
-  @Select(GroupState.selectedGroupId)
-  public selectedGroupId!: Observable<string>;
+  public selectedGroupId = this.store.selectSignal(GroupState.selectedGroupId);
 
-  public groups!: Observable<Group[]>;
+  private allGroups = this.store.selectSignal(GroupState.groups);
+
+  public groups = computed(() =>
+    this.allGroups().filter((g: Group) => g.status !== GroupStatus.Archived)
+  );
 
   public addButtonExpanded: boolean | null = null;
-
-
-  public ngOnInit(): void {
-    this.groups = this.store
-      .select(GroupState.groups)
-      .pipe(map((g) => g.filter((g) => g.status !== GroupStatus.Archived)));
-  }
 
   public groupClicked(groupId: number): void {
     this.store.dispatch(new SetSelectedGroupId(groupId.toString()));

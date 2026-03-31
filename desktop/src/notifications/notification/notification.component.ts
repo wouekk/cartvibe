@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
+import { Component, OnInit, input, output } from "@angular/core";
 import { take, tap } from "rxjs";
 import { ParameterizedDataParser } from "src/utils";
 import { Notification, NotificationsService } from "../../open-api";
@@ -10,10 +10,9 @@ import { Notification, NotificationsService } from "../../open-api";
     standalone: false
 })
 export class NotificationComponent implements OnInit {
-  @Input() public notification!: Notification;
+  public readonly notification = input.required<Notification>();
 
-  @Output() public notificationDeleted: EventEmitter<number> =
-    new EventEmitter<number>(undefined);
+  public readonly notificationDeleted = output<number>();
 
   public link?: string;
 
@@ -30,18 +29,18 @@ export class NotificationComponent implements OnInit {
 
   private parseBody(): void {
     this.parsedBody = this.parameterizedDataParser.parse(
-      this.notification.body
+      this.notification().body
     );
     this.link = this.parameterizedDataParser.link;
   }
 
   public deleteNotification(): void {
     this.notificationsService
-      .deleteNotificationById(this.notification.id)
+      .deleteNotificationById(this.notification().id)
       .pipe(
         take(1),
         tap(() => {
-          this.notificationDeleted.emit(this.notification.id);
+          this.notificationDeleted.emit(this.notification().id);
         })
       )
       .subscribe();

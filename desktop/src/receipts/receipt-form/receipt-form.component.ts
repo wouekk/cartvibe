@@ -1,13 +1,14 @@
-import { ChangeDetectorRef, Component, EmbeddedViewRef, HostListener, OnInit, TemplateRef, ViewChild } from "@angular/core";
+import { Component, EmbeddedViewRef, HostListener, Injector, OnInit, Signal, TemplateRef, runInInjectionContext, signal, viewChild } from "@angular/core";
+import { toSignal } from "@angular/core/rxjs-interop";
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { MatDialog } from "@angular/material/dialog";
 import { MatExpansionPanel } from "@angular/material/expansion";
 import { MatSnackBarRef } from "@angular/material/snack-bar";
 import { ActivatedRoute, Router } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
-import { Select, Store } from "@ngxs/store";
+import { Store } from "@ngxs/store";
 import { addHours } from "date-fns";
-import { debounceTime, catchError, finalize, forkJoin, iif, map, Observable, of, startWith, switchMap, take, tap } from "rxjs";
+import { debounceTime, catchError, finalize, forkJoin, iif, map, of, startWith, switchMap, take, tap } from "rxjs";
 import { CarouselComponent } from "src/carousel/carousel/carousel.component";
 import { DEFAULT_DIALOG_CONFIG, DEFAULT_HOST_CLASS } from "src/constants";
 import { RECEIPT_STATUS_OPTIONS } from "src/constants/receipt-status-options";
@@ -29,7 +30,6 @@ import {
   ReceiptService,
   ReceiptStatus,
   Tag,
-  UserPreferences
 } from "../../open-api";
 import { CustomFieldTypePipe } from "../../pipes/custom-field-type.pipe";
 import { SnackbarService } from "../../services";
@@ -54,44 +54,31 @@ import { buildItemForm } from "../utils/form.utils";
   standalone: false
 })
 export class ReceiptFormComponent implements OnInit {
-  @ViewChild(ShareListComponent)
-  public shareListComponent!: ShareListComponent;
+  public readonly shareListComponent = viewChild.required(ShareListComponent);
 
-  @ViewChild(ItemListComponent)
-  public itemListComponent!: ItemListComponent;
+  public readonly itemListComponent = viewChild.required(ItemListComponent);
 
-  @ViewChild(UploadImageComponent)
-  public uploadImageComponent!: UploadImageComponent;
+  public readonly uploadImageComponent = viewChild.required(UploadImageComponent);
 
-  @ViewChild("paidByAutocomplete")
-  public paidByAutocomplete!: UserAutocompleteComponent;
+  public readonly paidByAutocomplete = viewChild.required<UserAutocompleteComponent>("paidByAutocomplete");
 
-  @ViewChild("successDuplicateSnackbar")
-  public successDuplicateSnackbar!: TemplateRef<any>;
+  public readonly successDuplicateSnackbar = viewChild.required<TemplateRef<any>>("successDuplicateSnackbar");
 
-  @ViewChild("quickActionsDialog")
-  public quickActionsDialog!: TemplateRef<any>;
+  public readonly quickActionsDialog = viewChild.required<TemplateRef<any>>("quickActionsDialog");
 
-  @ViewChild("expandedImageTemplate")
-  public expandedImageTemplate!: TemplateRef<any>;
+  public readonly expandedImageTemplate = viewChild.required<TemplateRef<any>>("expandedImageTemplate");
 
-  @ViewChild(CarouselComponent)
-  public carouselComponent!: CarouselComponent;
+  public readonly carouselComponent = viewChild.required(CarouselComponent);
 
-  @Select(GroupState.groupsWithoutAll)
-  public groups!: Observable<Group[]>;
+  public groups = this.store.selectSignal(GroupState.groupsWithoutAll);
 
-  @Select(GroupState.receiptListLink)
-  public receiptListLink!: Observable<string>;
+  public receiptListLink = this.store.selectSignal(GroupState.receiptListLink);
 
-  @Select(FeatureConfigState.aiPoweredReceipts)
-  public aiPoweredReceipts!: Observable<boolean>;
+  public aiPoweredReceipts = this.store.selectSignal(FeatureConfigState.aiPoweredReceipts);
 
-  @Select(LayoutState.showProgressBar)
-  public showProgressBar!: Observable<boolean>;
+  public showProgressBar = this.store.selectSignal(LayoutState.showProgressBar);
 
-  @Select(AuthState.userPreferences)
-  public userPreferences!: Observable<UserPreferences>;
+  public userPreferences = this.store.selectSignal(AuthState.userPreferences);
 
   protected readonly FormMode = FormMode;
 
@@ -105,9 +92,9 @@ export class ReceiptFormComponent implements OnInit {
 
   public originalReceipt?: Receipt;
 
-  public images: FileDataView[] = [];
+  public images = signal<FileDataView[]>([]);
 
-  public filesToUpload: ReceiptFileUploadCommand[] = [];
+  public filesToUpload = signal<ReceiptFileUploadCommand[]>([]);
 
   public mode: FormMode = FormMode.view;
 
@@ -115,7 +102,7 @@ export class ReceiptFormComponent implements OnInit {
 
   public groupRole = GroupRole;
 
-  public selectedGroup: Group | undefined;
+  public selectedGroup = signal<Group | undefined>(undefined);
 
   public editLink = "";
 
@@ -123,17 +110,17 @@ export class ReceiptFormComponent implements OnInit {
 
   public submitButtonText = "Save";
 
-  public imagesLoading: boolean = false;
+  public imagesLoading = signal(false);
 
   public showImages: boolean = true;
 
-  public usersToOmit: string[] = [];
+  public usersToOmit = signal<string[]>([]);
 
-  public duplicatedReceiptId: string = "";
+  public duplicatedReceiptId = signal("");
 
   public duplicatedSnackbarRef!: MatSnackBarRef<EmbeddedViewRef<any>>;
 
-  public formHeaderText: Observable<string> = of("");
+  public formHeaderText!: Signal<string | undefined>;
 
   public receiptStatusOptions = RECEIPT_STATUS_OPTIONS;
 
@@ -163,7 +150,6 @@ export class ReceiptFormComponent implements OnInit {
 
   constructor(
     private activatedRoute: ActivatedRoute,
-    private cdr: ChangeDetectorRef,
     private customFieldTypePipe: CustomFieldTypePipe,
     private formBuilder: FormBuilder,
     private matDialog: MatDialog,
@@ -171,6 +157,7 @@ export class ReceiptFormComponent implements OnInit {
     private receiptQueueService: ReceiptQueueService,
     private receiptService: ReceiptService,
     private router: Router,
+    private injector: Injector,
     private snackbarService: SnackbarService,
     private store: Store,
   ) {}
@@ -295,28 +282,28 @@ export class ReceiptFormComponent implements OnInit {
   }
 
   private setHeaderText(): void {
-    this.formHeaderText = (
-      this.form.get("name") as AbstractControl
-    ).valueChanges.pipe(
-      startWith(this.form.get("name")?.value),
-      untilDestroyed(this),
-      map((name) => {
-        let action = "";
-        switch (this.mode) {
-          case FormMode.add:
-            action = "Add";
-            break;
-          case FormMode.view:
-            action = "View";
-            break;
-          case FormMode.edit:
-            action = "Edit";
-            break;
-        }
+    this.formHeaderText = runInInjectionContext(this.injector, () => toSignal(
+      (this.form.get("name") as AbstractControl).valueChanges.pipe(
+        startWith(this.form.get("name")?.value),
+        untilDestroyed(this),
+        map((name) => {
+          let action = "";
+          switch (this.mode) {
+            case FormMode.add:
+              action = "Add";
+              break;
+            case FormMode.view:
+              action = "View";
+              break;
+            case FormMode.edit:
+              action = "Edit";
+              break;
+          }
 
-        return `${action} ${name} Receipt`;
-      })
-    );
+          return `${action} ${name} Receipt`;
+        })
+      )
+    ));
   }
 
   private setCancelLink(): void {
@@ -404,8 +391,8 @@ export class ReceiptFormComponent implements OnInit {
         const paidBy = this.form.get("paidByUserId");
         const users = this.store.selectSnapshot(UserState.users);
         if (!groupId) {
-          this.usersToOmit = users.map((u) => u.id.toString());
-          this.paidByAutocomplete?.autocompleteComponent?.clearFilter();
+          this.usersToOmit.set(users.map((u) => u.id.toString()));
+          this.paidByAutocomplete()?.autocompleteComponent()?.clearFilter();
         } else {
           const group = this.store.selectSnapshot(
             GroupState.getGroupById(groupId)
@@ -413,10 +400,10 @@ export class ReceiptFormComponent implements OnInit {
           const groupMembers = group?.groupMembers.map((u) =>
             u.userId.toString()
           );
-          this.selectedGroup = group;
-          this.usersToOmit = users
+          this.selectedGroup.set(group);
+          this.usersToOmit.set(users
             .filter((u) => !groupMembers?.includes(u.id.toString()))
-            .map((u) => u.id.toString());
+            .map((u) => u.id.toString()));
         }
       })
     )
@@ -428,7 +415,7 @@ export class ReceiptFormComponent implements OnInit {
       this.originalReceipt?.imageFiles &&
       this.originalReceipt?.imageFiles?.length > 0
     ) {
-      this.imagesLoading = true;
+      this.imagesLoading.set(true);
       forkJoin(
         this.originalReceipt.imageFiles.map((file) =>
           this.receiptImageService.getReceiptImageById(file.id).pipe(
@@ -438,10 +425,9 @@ export class ReceiptFormComponent implements OnInit {
       )
         .pipe(
           tap((allImages) => {
-            this.images = allImages.filter((img): img is FileDataView => img !== null);
-            this.cdr.detectChanges();
+            this.images.set(allImages.filter((img): img is FileDataView => img !== null));
           }),
-          finalize(() => (this.imagesLoading = false))
+          finalize(() => this.imagesLoading.set(false))
         )
         .subscribe();
     }
@@ -449,7 +435,7 @@ export class ReceiptFormComponent implements OnInit {
 
   public openQuickActionsModal(): void {
     const dialogRef = this.matDialog.open(
-      this.quickActionsDialog,
+      this.quickActionsDialog(),
       DEFAULT_DIALOG_CONFIG
     );
 
@@ -458,30 +444,28 @@ export class ReceiptFormComponent implements OnInit {
       .pipe(take(1))
       .subscribe((result: boolean) => {
         if (result) {
-          this.shareListComponent.setUserItemMap();
-          this.cdr.detectChanges();
+          this.shareListComponent().setUserItemMap();
         }
       });
   }
 
   public removeImage(): void {
-    const index = this.carouselComponent.currentlyShownImageIndex;
+    const index = this.carouselComponent().currentlyShownImageIndex;
 
     if (this.mode === FormMode.add) {
-      const newImages = Array.from(this.filesToUpload);
+      const newImages = Array.from(this.filesToUpload());
       newImages.splice(index, 1);
-      this.filesToUpload = newImages;
+      this.filesToUpload.set(newImages);
     } else {
-      const newImages = Array.from(this.images);
-      const image = this.images[index];
+      const newImages = Array.from(this.images());
+      const image = this.images()[index];
       this.receiptImageService
         .deleteReceiptImageById(image.id)
         .pipe(
           tap(() => {
             newImages.splice(index, 1);
-            this.images = newImages;
+            this.images.set(newImages);
             this.snackbarService.success("Image successfully removed");
-            this.cdr.detectChanges();
           })
         )
         .subscribe();
@@ -489,15 +473,15 @@ export class ReceiptFormComponent implements OnInit {
   }
 
   public magicFill(): void {
-    const index = this.carouselComponent.currentlyShownImageIndex;
+    const index = this.carouselComponent().currentlyShownImageIndex;
 
     let file: Blob | undefined;
     let receiptImageId;
 
     if (this.mode === FormMode.add) {
-      file = this.filesToUpload[index].file;
+      file = this.filesToUpload()[index].file;
     } else if (this.mode === FormMode.edit) {
-      const receiptImage = this.images[index];
+      const receiptImage = this.images()[index];
       receiptImageId = receiptImage?.id;
     }
 
@@ -508,7 +492,6 @@ export class ReceiptFormComponent implements OnInit {
         take(1),
         tap((magicFilledReceipt) => {
           this.patchMagicValues(magicFilledReceipt);
-          this.cdr.detectChanges();
         }),
         finalize(() => this.store.dispatch(new HideProgressBar()))
       )
@@ -603,7 +586,7 @@ export class ReceiptFormComponent implements OnInit {
   }
 
   public uploadImageButtonClicked(): void {
-    this.uploadImageComponent.clickInput();
+    this.uploadImageComponent().clickInput();
   }
 
   public updateComments(commentsArray: FormArray): void {
@@ -617,12 +600,11 @@ export class ReceiptFormComponent implements OnInit {
       .pipe(
         take(1),
         tap((r: Receipt) => {
-          this.duplicatedReceiptId = r.id.toString();
+          this.duplicatedReceiptId.set(r.id.toString());
           this.duplicatedSnackbarRef = this.snackbarService.successFromTemplate(
-            this.successDuplicateSnackbar,
+            this.successDuplicateSnackbar(),
             { duration: 8000 }
           );
-          this.cdr.detectChanges();
         })
       )
       .subscribe();
@@ -631,7 +613,7 @@ export class ReceiptFormComponent implements OnInit {
   public imageFileLoaded(command: ReceiptFileUploadCommand): void {
     switch (this.mode) {
       case FormMode.add:
-        this.filesToUpload = [...this.filesToUpload, command];
+        this.filesToUpload.update(files => [...files, command]);
         break;
       case FormMode.edit:
         this.receiptImageService
@@ -643,9 +625,8 @@ export class ReceiptFormComponent implements OnInit {
           .pipe(
             tap((data) => {
               this.snackbarService.success("Successfully uploaded image(s)");
-              this.images = [...Array.from(this.images), data];
-              this.cdr.detectChanges();
-            })
+              this.images.update(imgs => [...imgs, data]);
+              })
           )
           .subscribe();
         break;
@@ -664,11 +645,11 @@ export class ReceiptFormComponent implements OnInit {
   }
 
   public zoomImageIn(): void {
-    this.carouselComponent.zoomIn();
+    this.carouselComponent().zoomIn();
   }
 
   public zoomImageOut(): void {
-    this.carouselComponent.zoomOut();
+    this.carouselComponent().zoomOut();
   }
 
   public toggleImagePreviewSize(): void {
@@ -676,7 +657,7 @@ export class ReceiptFormComponent implements OnInit {
   }
 
   public expandImage(): void {
-    this.matDialog.open(this.expandedImageTemplate, {
+    this.matDialog.open(this.expandedImageTemplate(), {
       width: "75%",
       height: "100%",
     });
@@ -684,7 +665,7 @@ export class ReceiptFormComponent implements OnInit {
 
   // TODO: Add functionality to dashboard
   public downloadImage(): void {
-    const currentImage = this.images[this.carouselComponent.currentlyShownImageIndex];
+    const currentImage = this.images()[this.carouselComponent().currentlyShownImageIndex];
     this.receiptImageService.downloadReceiptImageById(currentImage.id)
       .pipe(
         take(1),
@@ -776,9 +757,8 @@ export class ReceiptFormComponent implements OnInit {
   }
 
   private refreshComponentsAndSync(): void {
-    this.shareListComponent?.setUserItemMap();
-    this.itemListComponent?.setItems();
-    this.cdr.detectChanges();
+    this.shareListComponent()?.setUserItemMap();
+    this.itemListComponent()?.setItems();
 
     // Auto-sync amount if enabled
     if (this.syncAmountWithItems) {
@@ -841,8 +821,8 @@ export class ReceiptFormComponent implements OnInit {
   }
 
   public submit(): void {
-    if (this.shareListComponent.userExpansionPanels.length > 0) {
-      this.shareListComponent.userExpansionPanels.forEach(
+    if (this.shareListComponent().userExpansionPanels().length > 0) {
+      this.shareListComponent().userExpansionPanels().forEach(
         (p: MatExpansionPanel) => p.close()
       );
     }
@@ -869,9 +849,9 @@ export class ReceiptFormComponent implements OnInit {
         }),
         switchMap((receipt) =>
           iif(
-            () => this.filesToUpload.length > 0,
+            () => this.filesToUpload().length > 0,
             forkJoin(
-              this.filesToUpload.map((file) => {
+              this.filesToUpload().map((file) => {
                 return this.receiptImageService.uploadReceiptImage(
                   file.file,
                   receipt.id,

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
+import { Component, Input, OnInit, input, output } from "@angular/core";
 import { FormControl } from "@angular/forms";
 import { map, Observable, startWith } from "rxjs";
 import { BaseInputInterface } from "../base-input.interface";
@@ -23,11 +23,9 @@ export class BaseInputComponent implements OnInit, BaseInputInterface {
 
   @Input() public hint?: string;
 
-  @Input() public appearance: "fill" | "outline" = "fill";
+  public readonly appearance = input<"fill" | "outline">("fill");
 
-  @Output() public inputBlur: EventEmitter<any> = new EventEmitter<any>(
-    undefined
-  );
+  public readonly inputBlur = output<any>();
 
   public formControlErrors!: Observable<InputErrorMessage[]>;
 

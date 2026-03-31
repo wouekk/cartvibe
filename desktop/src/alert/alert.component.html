@@ -1,13 +1,13 @@
 <div
   class="d-flex flex-column alert-container p-3"
   [ngClass]="{
-  'warning-background': type === 'warning',
+  'warning-background': type() === 'warning',
   }"
 >
-  <ng-container [ngSwitch]="type">
+  <ng-container [ngSwitch]="type()">
     <ng-container *ngSwitchCase="'warning'" [ngTemplateOutlet]="warningHeader"></ng-container>
   </ng-container>
-  {{ message }}
+  {{ message() }}
 </div>
 
 <ng-template

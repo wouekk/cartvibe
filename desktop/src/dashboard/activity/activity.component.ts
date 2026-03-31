@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Input, OnChanges, OnInit, SimpleChanges, ViewEncapsulation } from "@angular/core";
+import { Component, OnInit, ViewEncapsulation, computed, input, signal } from "@angular/core";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
 import {
@@ -21,20 +21,23 @@ import { GroupState } from "../../store/index";
   encapsulation: ViewEncapsulation.None,
   standalone: false
 })
-export class ActivityComponent implements OnInit, OnChanges {
-  @Input() public widget!: Widget;
+export class ActivityComponent implements OnInit {
+  public readonly widget = input.required<Widget>();
 
-  @Input() public groupId?: number;
+  public readonly groupId = input<number>();
 
-  public group?: Group;
+  public group = computed(() => {
+    const id = this.groupId();
+    return id ? this.store.selectSnapshot(GroupState.getGroupById(id.toString())) : undefined;
+  });
 
   public page: number = 1;
 
   public pageSize: number = 25;
 
-  public activities: PagedDataDataInner[] = [];
+  public activities = signal<PagedDataDataInner[]>([]);
 
-  public ranActivities: { [key: number]: boolean } = {};
+  public ranActivities = signal<{ [key: number]: boolean }>({});
 
   protected readonly SystemTaskStatus = SystemTaskStatus;
 
@@ -43,16 +46,8 @@ export class ActivityComponent implements OnInit, OnChanges {
   constructor(
     private systemTaskService: SystemTaskService,
     private snackbarService: SnackbarService,
-    private changeDetectorRef: ChangeDetectorRef,
     private store: Store
   ) {}
-
-  public ngOnChanges(changes: SimpleChanges): void {
-    if (changes["groupId"] && changes["groupId"].currentValue) {
-      this.group = this.store.selectSnapshot(GroupState.getGroupById(this.groupId?.toString() ?? ""));
-    }
-  }
-
 
   public ngOnInit(): void {
     this.getData();
@@ -70,14 +65,13 @@ export class ActivityComponent implements OnInit, OnChanges {
         take(1),
         tap(() => {
           this.snackbarService.success("Activity has been successfully queued.");
-          this.ranActivities[id] = true;
-          this.changeDetectorRef.detectChanges();
+          this.ranActivities.update(prev => ({ ...prev, [id]: true }));
         })
       ).subscribe();
   }
 
   private getData(): void {
-    if (!this.groupId) {
+    if (!this.groupId()) {
       return;
     }
 
@@ -92,18 +86,17 @@ export class ActivityComponent implements OnInit, OnChanges {
       .pipe(
         take(1),
         tap((response) => {
-          this.activities = [...this.activities, ...response.data];
-          this.changeDetectorRef.detectChanges();
+          this.activities.update(prev => [...prev, ...response.data]);
         })
       )
       .subscribe();
   }
 
   private getGroupIds(): number[] {
-    if (this.group?.isAllGroup) {
+    if (this.group()?.isAllGroup) {
       return this.store.selectSnapshot(GroupState.groupsWithoutAll).map((group) => group.id);
     } else {
-      return [this.groupId ?? 0];
+      return [this.groupId() ?? 0];
     }
   }
 

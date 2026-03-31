@@ -1,7 +1,7 @@
 import { animate, state, style, transition, trigger } from "@angular/animations";
 import { LiveAnnouncer } from "@angular/cdk/a11y";
 import { SelectionModel } from "@angular/cdk/collections";
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild, } from "@angular/core";
+import { Component, Input, OnChanges, SimpleChanges, input, output, viewChild } from "@angular/core";
 import { MatPaginator, PageEvent } from "@angular/material/paginator";
 import { MatSort, Sort } from "@angular/material/sort";
 import { MatTableDataSource } from "@angular/material/table";
@@ -21,23 +21,22 @@ import { TableColumn } from "../table-column.interface";
   standalone: false
 })
 export class TableComponent implements OnChanges {
-  @ViewChild(MatSort) public sort!: MatSort;
-  @ViewChild(MatPaginator) public paginator!: MatPaginator;
+  public readonly sort = viewChild.required(MatSort);
+  public readonly paginator = viewChild.required(MatPaginator);
 
-  @Input() public columns: TableColumn[] = [];
-  @Input() public displayedColumns: string[] = [];
-  @Input() public dataSource = new MatTableDataSource<any>([]);
-  @Input() public pagination: boolean = false;
-  @Input() public selectionCheckboxes: boolean = false;
-  @Input() public page: number = 0;
-  @Input() public pageSize: number = 50;
+  public readonly columns = input<TableColumn[]>([]);
+  public readonly displayedColumns = input<string[]>([]);
+  public readonly dataSource = input(new MatTableDataSource<any>([]));
+  public readonly pagination = input<boolean>(false);
+  public readonly selectionCheckboxes = input<boolean>(false);
+  public readonly page = input<number>(0);
+  public readonly pageSize = input<number>(50);
   @Input() public length: number = 0;
-  @Input() public expandedRowTemplate: any;
-  @Input() public rowExpandable: (row: any) => boolean = () => true;
+  public readonly expandedRowTemplate = input<any>();
+  public readonly rowExpandable = input<(row: any) => boolean>(() => true);
 
-  @Output() public sorted: EventEmitter<Sort> = new EventEmitter<Sort>();
-  @Output() public pageChange: EventEmitter<PageEvent> =
-    new EventEmitter<PageEvent>();
+  public readonly sorted = output<Sort>();
+  public readonly pageChange = output<PageEvent>();
 
   public defaultSort?: Sort;
 
@@ -51,13 +50,13 @@ export class TableComponent implements OnChanges {
 
   public ngOnChanges(changes: SimpleChanges): void {
     if (changes["columns"]) {
-      const column = this.columns.find((c) => c.defaultSortDirection);
+      const column = this.columns().find((c) => c.defaultSortDirection);
       if (column) {
         this.defaultSort = {
           active: column.matColumnDef,
           direction: column.defaultSortDirection ?? "desc",
         };
-        this.sort.sort({
+        this.sort().sort({
           id: column.matColumnDef,
           start: column.defaultSortDirection as any,
           disableClear: true,
@@ -77,7 +76,7 @@ export class TableComponent implements OnChanges {
 
   private setRowIndexes(): void {
     const indexes: { [key: number]: number } = {};
-    this.dataSource.data.forEach((row, index) => {
+    this.dataSource().data.forEach((row, index) => {
       indexes[row.id] = index;
     });
 
@@ -86,7 +85,7 @@ export class TableComponent implements OnChanges {
 
   public isAllSelected() {
     const numSelected = this.selection.selected.length;
-    const numRows = this.dataSource.data.length;
+    const numRows = this.dataSource().data.length;
     return numSelected === numRows;
   }
 
@@ -96,7 +95,7 @@ export class TableComponent implements OnChanges {
       return;
     }
 
-    this.selection.select(...this.dataSource.data);
+    this.selection.select(...this.dataSource().data);
   }
 
   /** Announce the change in sort state for assistive technology. */

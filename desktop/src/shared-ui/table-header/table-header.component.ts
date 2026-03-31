@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 @Component({
     selector: 'app-table-header',
@@ -7,5 +7,5 @@ import { Component, Input } from '@angular/core';
     standalone: false
 })
 export class TableHeaderComponent {
-  @Input() public headerText: string = '';
+  public readonly headerText = input<string>('');
 }

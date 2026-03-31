@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, TemplateRef, } from "@angular/core";
+import { Component, Input, OnInit, TemplateRef, input, output } from "@angular/core";
 import { FormControl, FormGroup, } from "@angular/forms";
 import { MatDialogRef } from "@angular/material/dialog";
 import { Store } from "@ngxs/store";
@@ -19,24 +19,23 @@ import { OperationsPipe } from "./operations.pipe";
 export class ReceiptFilterComponent implements OnInit {
   @Input() public headerText: string = "";
 
-  @Input() public footerTemplate?: TemplateRef<any>;
+  public readonly footerTemplate = input<TemplateRef<any>>();
 
-  @Input() public isOpen: boolean = true;
+  public readonly isOpen = input<boolean>(true);
 
   @Input() public previewTemplate?: TemplateRef<any>;
 
-  @Input() public previewTemplateContext?: any;
+  public readonly previewTemplateContext = input<any>();
 
-  @Input() public inDialog: boolean = true;
+  public readonly inDialog = input<boolean>(true);
 
   @Input() public parentForm: FormGroup = new FormGroup({});
 
   @Input() public basePath: string = "";
 
-  @Output() public formCommand: EventEmitter<FormCommand> = new EventEmitter<FormCommand>();
+  public readonly formCommand = output<FormCommand>();
 
-  @Output() public formInitialized: EventEmitter<FormGroup> =
-    new EventEmitter<FormGroup>();
+  public readonly formInitialized = output<FormGroup>();
 
   public receiptStatusOptions = RECEIPT_STATUS_OPTIONS;
 

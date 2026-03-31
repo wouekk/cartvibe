@@ -4,7 +4,7 @@
   [itemTitleTemplate]="itemTitleTemplate"
   [itemSubtitleTemplate]="itemSubtitleTemplate"
   [editTemplate]="editTemplate"
-  [readonly]="formConfig.mode | inputReadonly"
+  [readonly]="formConfig().mode | inputReadonly"
   (deleteButtonClicked)="removeShortcut($event)"
 ></app-editable-list>
 
@@ -32,15 +32,15 @@
       <div class="d-flex flex-column justify-content-center">
         <app-input
           label="Name"
-          [inputFormControl]="parentForm | formGet : 'userShortcuts.' + i + '.name'"
+          [inputFormControl]="parentForm() | formGet : 'userShortcuts.' + i + '.name'"
         ></app-input>
         <app-input
           label="Url"
-          [inputFormControl]="parentForm | formGet : 'userShortcuts.' + i + '.url'"
+          [inputFormControl]="parentForm() | formGet : 'userShortcuts.' + i + '.url'"
         ></app-input>
         <app-icon-autocomplete
           label="Icon"
-          [inputFormControl]="parentForm | formGet : 'userShortcuts.' + i + '.icon'"
+          [inputFormControl]="parentForm() | formGet : 'userShortcuts.' + i + '.icon'"
         ></app-icon-autocomplete>
       </div>
       <app-dialog-footer

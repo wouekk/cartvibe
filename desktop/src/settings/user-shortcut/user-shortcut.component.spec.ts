@@ -20,10 +20,10 @@ describe("UserShortcutComponent", () => {
 
     fixture = TestBed.createComponent(UserShortcutComponent);
     component = fixture.componentInstance;
-    component.parentForm = new FormGroup({
+    fixture.componentRef.setInput('parentForm', new FormGroup({
       userShortcuts: new FormArray([])
-    });
-    component.formConfig = {} as any;
+    }));
+    fixture.componentRef.setInput('formConfig', {} as any);
     fixture.detectChanges();
   });
 

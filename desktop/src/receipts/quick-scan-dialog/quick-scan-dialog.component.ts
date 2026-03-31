@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ViewEncapsulation, } from "@angular/core";
+import { Component, OnInit, ViewEncapsulation, viewChild } from "@angular/core";
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
 import { MatDialogRef } from "@angular/material/dialog";
 import { Store } from "@ngxs/store";
@@ -17,8 +17,7 @@ import { UploadImageComponent } from "../upload-image/upload-image.component";
     standalone: false
 })
 export class QuickScanDialogComponent implements OnInit {
-  @ViewChild(UploadImageComponent)
-  public uploadImageComponent!: UploadImageComponent;
+  public readonly uploadImageComponent = viewChild.required(UploadImageComponent);
 
   public form: FormGroup = new FormGroup({});
 
@@ -72,7 +71,7 @@ export class QuickScanDialogComponent implements OnInit {
 
 
   public openImageUploadComponent(): void {
-    this.uploadImageComponent.clickInput();
+    this.uploadImageComponent().clickInput();
   }
 
   public removeImage(index: number): void {

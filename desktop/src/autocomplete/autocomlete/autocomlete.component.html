@@ -15,7 +15,7 @@
         ></ng-template>
         <div *ngIf="!optionChipTemplate">
           {{
-            option | optionDisplay : options : optionDisplayKey : optionValueKey
+            option | optionDisplay : options() : optionDisplayKey() : optionValueKey
           }}
         </div>
         <button *ngIf="!readonly" matChipRemove>
@@ -44,11 +44,11 @@
       type="text"
       [formControl]="filterFormControl"
       [matAutocomplete]="auto"
-      [readonly]="readonly || singleOptionSelected"
+      [readonly]="readonly || singleOptionSelected()"
       [required]="isRequired"
     />
     <app-button
-      *ngIf="singleOptionSelected && !readonly"
+      *ngIf="singleOptionSelected() && !readonly"
       matButtonType="iconButton"
       icon="close"
       color="secondary"
@@ -57,7 +57,7 @@
   </div>
   <mat-autocomplete
     autoActiveFirstOption
-    [displayWith]="displayWith"
+    [displayWith]="displayWith()"
     (optionSelected)="optionSelected($event)"
     #auto="matAutocomplete"
   >
@@ -75,14 +75,14 @@
       </ng-template>
       <ng-container *ngIf="!optionTemplate">
         {{
-          option | optionDisplay : options : optionDisplayKey : optionValueKey
+          option | optionDisplay : options() : optionDisplayKey() : optionValueKey
         }}
       </ng-container
       >
     </mat-option>
     <ng-container
       *ngIf="
-        creatable &&
+        creatable() &&
         (filteredOptions | async)?.length === 0 &&
         filterFormControl?.value?.length > 0
       "

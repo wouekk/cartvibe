@@ -3,7 +3,7 @@
   [multi]="true"
 >
   <mat-expansion-panel
-    *ngFor="let panel of panels; let i = index;"
+    *ngFor="let panel of panels(); let i = index;"
     hideToggle
   >
     <mat-expansion-panel-header>

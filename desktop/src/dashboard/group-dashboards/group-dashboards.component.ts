@@ -1,9 +1,9 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, signal } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { Router } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
-import { Select, Store } from "@ngxs/store";
-import { Observable, take, tap } from "rxjs";
+import { Store } from "@ngxs/store";
+import { take, tap } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "src/constants";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { DashboardState } from "src/store/dashboard.state";
@@ -29,13 +29,11 @@ export class GroupDashboardsComponent implements OnInit {
     private store: Store
   ) {}
 
-  @Select(GroupState.selectedGroupId)
-  public selectedGroupId!: Observable<string>;
+  public selectedGroupId = this.store.selectSignal(GroupState.selectedGroupId);
 
-  @Select(GroupState.selectedDashboardId)
-  public selectedDashboardId!: Observable<string>;
+  public selectedDashboardId = this.store.selectSignal(GroupState.selectedDashboardId);
 
-  public dashboards: Dashboard[] = [];
+  public dashboards = signal<Dashboard[]>([]);
 
   public ngOnInit(): void {
     this.setDashboards();
@@ -49,9 +47,9 @@ export class GroupDashboardsComponent implements OnInit {
     if (selectedDashboardId) {
       this.navigateToDashboard(+selectedDashboardId);
       return;
-    } else if (this.dashboards.length > 0) {
-      this.setSelectedDashboardId(this.dashboards[0].id);
-      this.navigateToDashboard(this.dashboards[0].id);
+    } else if (this.dashboards().length > 0) {
+      this.setSelectedDashboardId(this.dashboards()[0].id);
+      this.navigateToDashboard(this.dashboards()[0].id);
     }
   }
 
@@ -90,7 +88,7 @@ export class GroupDashboardsComponent implements OnInit {
     );
 
     if (!isCreate) {
-      const dashboard = this.dashboards.find(
+      const dashboard = this.dashboards().find(
         (d) => d.id === +selectedDashboardId
       );
 
@@ -105,7 +103,7 @@ export class GroupDashboardsComponent implements OnInit {
       .pipe(
         untilDestroyed(this),
         tap((dashboard) => {
-          const index = this.dashboards.findIndex(
+          const index = this.dashboards().findIndex(
             (d) => d.id === dashboard?.id
           );
           const groupId = this.store.selectSnapshot(GroupState.selectedGroupId);
@@ -132,7 +130,7 @@ export class GroupDashboardsComponent implements OnInit {
       .pipe(
         take(1),
         tap((dashboards) => {
-          this.dashboards = dashboards;
+          this.dashboards.set(dashboards);
         })
       )
       .subscribe();
@@ -146,7 +144,7 @@ export class GroupDashboardsComponent implements OnInit {
     const dashboardId = this.store.selectSnapshot(
       GroupState.selectedDashboardId
     );
-    const selectedDashboard = this.dashboards.find(
+    const selectedDashboard = this.dashboards().find(
       (d) => d.id.toString() === dashboardId
     );
 

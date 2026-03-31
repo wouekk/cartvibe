@@ -1,4 +1,4 @@
-import { Component, Input } from "@angular/core";
+import { Component, input } from "@angular/core";
 import { AccordionPanel } from "./accordion-panel.interface";
 
 @Component({
@@ -8,5 +8,5 @@ import { AccordionPanel } from "./accordion-panel.interface";
     standalone: false
 })
 export class AccordionComponent {
-  @Input() public panels: AccordionPanel[] = [];
+  public readonly panels = input<AccordionPanel[]>([]);
 }

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from "@angular/core";
+import { AfterViewInit, Component, ElementRef, OnInit, viewChild } from "@angular/core";
 import { FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
@@ -36,11 +36,9 @@ interface QueueData extends FormOption {
   standalone: false
 })
 export class SystemSettingsFormComponent extends BaseFormComponent implements OnInit, AfterViewInit {
-  @ViewChild("fallbackReceiptProcessingSettings")
-  public fallbackReceiptProcessingSettings!: AutocomleteComponent;
+  public readonly fallbackReceiptProcessingSettings = viewChild.required<AutocomleteComponent>("fallbackReceiptProcessingSettings");
 
-  @ViewChild("alert", { static: false, read: ElementRef })
-  public alert!: ElementRef;
+  public readonly alert = viewChild.required("alert", { read: ElementRef });
 
   public originalSystemSettings!: SystemSettings;
 
@@ -120,7 +118,7 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
     setTimeout(() => {
 
       if (this.showRestartTaskServerAlert) {
-        this.alert.nativeElement.scrollIntoView({ behavior: "smooth" });
+        this.alert().nativeElement.scrollIntoView({ behavior: "smooth" });
       }
 
     }, 0);
@@ -174,7 +172,7 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
           this.filteredReceiptProcessingSettings = this.allReceiptProcessingSettings.filter((rps) => rps.id !== value);
 
           if (!value) {
-            this.fallbackReceiptProcessingSettings?.clearFilter();
+            this.fallbackReceiptProcessingSettings()?.clearFilter();
           }
         })
       )

@@ -1,16 +1,15 @@
-import { AfterViewInit, Component, OnInit, TemplateRef, ViewChild, } from "@angular/core";
+import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { PageEvent } from "@angular/material/paginator";
 import { Sort } from "@angular/material/sort";
 import { MatTableDataSource } from "@angular/material/table";
-import { Select, Store } from "@ngxs/store";
-import { Observable, of, switchMap, take, tap } from "rxjs";
+import { Store } from "@ngxs/store";
+import { of, switchMap, take, tap } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "src/constants";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { TagTableState } from "src/store/tag-table.state";
 import { TableColumn } from "src/table/table-column.interface";
 import { TableComponent } from "src/table/table/table.component";
-import { PagedTableInterface } from "../../interfaces/paged-table.interface";
 import { PagedDataDataInner, PagedRequestCommand, TagService, TagView } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { SetOrderBy, SetPage, SetPageSize, SetSortDirection } from "../../store/tag-table.state.actions";
@@ -23,20 +22,17 @@ import { TagFormComponent } from "../tag-form/tag-form.component";
     standalone: false
 })
 export class TagTableComponent implements OnInit, AfterViewInit {
-  @ViewChild("nameCell") public nameCell!: TemplateRef<any>;
+  public readonly nameCell = viewChild.required<TemplateRef<any>>("nameCell");
 
-  @ViewChild("descriptionCell")
-  public descriptionCell!: TemplateRef<any>;
+  public readonly descriptionCell = viewChild.required<TemplateRef<any>>("descriptionCell");
 
-  @ViewChild("numberOfReceiptsCell")
-  public numberOfReceiptsCell!: TemplateRef<any>;
+  public readonly numberOfReceiptsCell = viewChild.required<TemplateRef<any>>("numberOfReceiptsCell");
 
-  @ViewChild("actionsCell")
-  public actionsCell!: TemplateRef<any>;
+  public readonly actionsCell = viewChild.required<TemplateRef<any>>("actionsCell");
 
-  @ViewChild(TableComponent) public table!: TableComponent;
+  public readonly table = viewChild.required(TableComponent);
 
-  @Select(TagTableState.state) public tagTableState!: Observable<PagedTableInterface>;
+  public tagTableState = this.store.selectSignal(TagTableState.state);
 
   constructor(
     private matDialog: MatDialog,
@@ -45,14 +41,13 @@ export class TagTableComponent implements OnInit, AfterViewInit {
     private tagService: TagService
   ) {}
 
-  public dataSource: MatTableDataSource<PagedDataDataInner> =
-    new MatTableDataSource<PagedDataDataInner>([]);
+  public dataSource = signal(new MatTableDataSource<PagedDataDataInner>([]));
 
   public displayedColumns: string[] = [];
 
   public columns: TableColumn[] = [];
 
-  public totalCount: number = 0;
+  public totalCount = signal(0);
 
   public headerText: string = "Tags";
 
@@ -78,8 +73,8 @@ export class TagTableComponent implements OnInit, AfterViewInit {
       .pipe(
         take(1),
         tap((pagedData) => {
-          this.dataSource = new MatTableDataSource<PagedDataDataInner>(pagedData.data);
-          this.totalCount = pagedData.totalCount;
+          this.dataSource.set(new MatTableDataSource<PagedDataDataInner>(pagedData.data));
+          this.totalCount.set(pagedData.totalCount);
         })
       )
       .subscribe();
@@ -110,25 +105,25 @@ export class TagTableComponent implements OnInit, AfterViewInit {
       {
         columnHeader: "Name",
         matColumnDef: "name",
-        template: this.nameCell,
+        template: this.nameCell(),
         sortable: true,
       },
       {
         columnHeader: "Number of Receipts with Tags",
         matColumnDef: "numberOfReceipts",
-        template: this.numberOfReceiptsCell,
+        template: this.numberOfReceiptsCell(),
         sortable: true,
       },
       {
         columnHeader: "Description",
         matColumnDef: "description",
-        template: this.descriptionCell,
+        template: this.descriptionCell(),
         sortable: true,
       },
       {
         columnHeader: "Actions",
         matColumnDef: "actions",
-        template: this.actionsCell,
+        template: this.actionsCell(),
         sortable: false,
       },
     ] as TableColumn[];

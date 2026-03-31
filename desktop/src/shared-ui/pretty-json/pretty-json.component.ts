@@ -1,4 +1,4 @@
-import { Component, Input } from "@angular/core";
+import { Component, input } from "@angular/core";
 
 @Component({
     selector: "app-pretty-json",
@@ -7,7 +7,7 @@ import { Component, Input } from "@angular/core";
     standalone: false
 })
 export class PrettyJsonComponent {
-  @Input() public json?: string = "";
+  public readonly json = input<string | undefined>("");
 
-  @Input() public verticalJson = true;
+  public readonly verticalJson = input(true);
 }

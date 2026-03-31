@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, OnInit, input } from "@angular/core";
 import { Store } from "@ngxs/store";
 import { GroupRole, Receipt } from "../../open-api/index";
 import { GroupRolePipe } from "../../pipes/group-role.pipe";
@@ -12,17 +12,17 @@ import { GroupState } from "../../store/index";
     standalone: false
 })
 export class QueueStartMenuComponent implements OnInit {
-  @Input() public buttonText: string = "";
+  public readonly buttonText = input<string>("");
 
-  @Input() public buttonIcon: string = "";
+  public readonly buttonIcon = input<string>("");
 
-  @Input() public matButtonType: "matRaisedButton" | "iconButton" | "basic" = "matRaisedButton";
+  public readonly matButtonType = input<"matRaisedButton" | "iconButton" | "basic">("matRaisedButton");
 
-  @Input() public color: string = "primary";
+  public readonly color = input<string>("primary");
 
-  @Input() public receiptIds: string[] | number[] = [];
+  public readonly receiptIds = input<string[] | number[]>([]);
 
-  @Input() public receipts: Receipt[] = [];
+  public readonly receipts = input<Receipt[]>([]);
 
   protected readonly QueueMode = QueueMode;
 
@@ -44,10 +44,10 @@ export class QueueStartMenuComponent implements OnInit {
   }
 
   private getReceiptIds(): string[] {
-    if (this.receiptIds.length > 0) {
-      return this.receiptIds.map(id => id.toString());
-    } else if (this.receipts.length > 0) {
-      return this.receipts.map(receipt => receipt.id.toString());
+    if (this.receiptIds().length > 0) {
+      return this.receiptIds().map(id => id.toString());
+    } else if (this.receipts().length > 0) {
+      return this.receipts().map(receipt => receipt.id.toString());
     } else {
       return [];
     }

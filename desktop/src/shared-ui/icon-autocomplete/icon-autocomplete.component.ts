@@ -1,7 +1,6 @@
-import { Component, Input } from "@angular/core";
+import { Component, input } from "@angular/core";
 import { FormControl } from "@angular/forms";
-import { Select, Store } from "@ngxs/store";
-import { Observable } from "rxjs";
+import { Store } from "@ngxs/store";
 import { Icon } from "../../open-api/index";
 import { AuthState } from "../../store/index";
 
@@ -12,11 +11,11 @@ import { AuthState } from "../../store/index";
     standalone: false
 })
 export class IconAutocompleteComponent {
-  @Input() public inputFormControl!: FormControl;
+  public readonly inputFormControl = input.required<FormControl>();
 
-  @Input() public label = "";
+  public readonly label = input("");
 
-  @Select(AuthState.icons) public icons!: Observable<Icon[]>;
+  public icons = this.store.selectSignal(AuthState.icons);
 
   constructor(private store: Store) {}
 

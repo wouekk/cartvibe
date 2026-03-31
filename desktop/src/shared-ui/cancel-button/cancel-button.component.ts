@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { FormMode } from 'src/enums/form-mode.enum';
 
 @Component({
@@ -8,11 +8,11 @@ import { FormMode } from 'src/enums/form-mode.enum';
     standalone: false
 })
 export class CancelButtonComponent {
-  @Input() public mode?: FormMode;
+  public readonly mode = input<FormMode>();
 
-  @Input() public disabled: boolean = false;
+  public readonly disabled = input<boolean>(false);
 
-  @Output() public clicked: EventEmitter<void> = new EventEmitter<void>();
+  public readonly clicked = output<void>();
 
   public formMode = FormMode;
 }

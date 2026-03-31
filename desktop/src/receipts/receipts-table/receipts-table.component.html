@@ -14,10 +14,10 @@
       (afterClosed)="getFilteredReceipts()"
     >
     </app-quick-scan-button>
-    @if (dataSource.data.length > 0) {
+    @if (dataSource().data.length > 0) {
       <app-export-button
         [groupId]="groupId"
-        [filter]="(filter | async) ?? undefined"
+        [filter]="filter() ?? undefined"
       ></app-export-button>
     }
     <app-button
@@ -27,7 +27,7 @@
       tooltip="Filter Receipts"
       color="accent"
       matBadgeColor="accent"
-      [matBadgeContent]="numFiltersApplied | async"
+      [matBadgeContent]="numFiltersApplied()"
       (clicked)="filterButtonClicked()"
     ></app-button>
     <app-button
@@ -39,7 +39,7 @@
       (clicked)="configureColumnsButtonClicked()"
     ></app-button>
     <app-button
-      *ngIf="(numFiltersApplied | async) ?? 0 > 0"
+      *ngIf="(numFiltersApplied() ?? 0) > 0"
       @fadeInOut
       class="me-2"
       icon="restart_alt"
@@ -61,15 +61,15 @@
       ></app-button>
     </ng-container>
 
-    @if (selectedReceiptIds.length > 1) {
+    @if (selectedReceiptIds().length > 1) {
       <app-queue-start-menu
         buttonText="Start Queue"
         color="accent"
-        [receiptIds]="selectedReceiptIds"
+        [receiptIds]="selectedReceiptIds()"
       ></app-queue-start-menu>
     }
 
-    @if (selectedReceiptIds.length > 0) {
+    @if (selectedReceiptIds().length > 0) {
       <app-button
         matButtonType="iconButton"
         icon="more_vert"
@@ -88,22 +88,22 @@
   </div>
 </app-table-header>
 <app-summary-card
-  *ngIf="selectedReceiptIds.length"
+  *ngIf="selectedReceiptIds().length"
   @fadeInOut
   headerText="Selected Receipt summary"
-  [receiptIds]="selectedReceiptIds"
-  [groupId]="(selectedGroupId | async) ?? ''"
+  [receiptIds]="selectedReceiptIds()"
+  [groupId]="selectedGroupId() ?? ''"
 ></app-summary-card>
 <div class="table-container">
   <app-table
-    [columns]="columns"
-    [displayedColumns]="displayedColumns"
-    [dataSource]="dataSource"
+    [columns]="columns()"
+    [displayedColumns]="displayedColumns()"
+    [dataSource]="dataSource()"
     [pagination]="true"
-    [length]="totalCount"
+    [length]="totalCount()"
     [selectionCheckboxes]="true"
-    [page]="$any(page | async) - 1"
-    [pageSize]="(pageSize | async) ?? 50"
+    [page]="$any(page()) - 1"
+    [pageSize]="pageSize() ?? 50"
     (sorted)="sort($event)"
     (pageChange)="updatePageData($event)"
   ></app-table>

@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, Input, OnInit, OnChanges, SimpleChanges } from "@angular/core";
+import { Component, OnInit, OnChanges, SimpleChanges, input, signal } from "@angular/core";
 import { Chart, ChartConfiguration, ChartData } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import { take, tap } from "rxjs";
@@ -17,8 +17,8 @@ Chart.register(ChartDataLabels);
   imports: [CommonModule, SharedUiModule]
 })
 export class PieChartComponent implements OnInit, OnChanges {
-  @Input() public widget!: Widget;
-  @Input() public groupId?: number;
+  public readonly widget = input.required<Widget>();
+  public readonly groupId = input<number>();
 
   public pieChartData: ChartData<"pie", number[], string> = {
     labels: [],
@@ -78,8 +78,8 @@ export class PieChartComponent implements OnInit, OnChanges {
     },
   };
 
-  public isLoading: boolean = true;
-  public hasData: boolean = false;
+  public isLoading = signal(true);
+  public hasData = signal(false);
 
   constructor(private widgetService: WidgetService) {}
 
@@ -94,14 +94,16 @@ export class PieChartComponent implements OnInit, OnChanges {
   }
 
   private loadData(): void {
-    if (!this.groupId || !this.widget?.configuration) {
-      this.isLoading = false;
+    const groupId = this.groupId();
+    const widget = this.widget();
+    if (!groupId || !widget?.configuration) {
+      this.isLoading.set(false);
       return;
     }
 
-    const config = this.widget.configuration as { chartGrouping?: ChartGrouping; filter?: any };
+    const config = widget.configuration as { chartGrouping?: ChartGrouping; filter?: any };
     if (!config.chartGrouping) {
-      this.isLoading = false;
+      this.isLoading.set(false);
       return;
     }
 
@@ -110,14 +112,14 @@ export class PieChartComponent implements OnInit, OnChanges {
       filter: config.filter,
     };
 
-    this.isLoading = true;
+    this.isLoading.set(true);
     this.widgetService
-      .getPieChartData(this.groupId, command)
+      .getPieChartData(groupId, command)
       .pipe(
         take(1),
         tap((response: PieChartData) => {
           this.updateChartData(response);
-          this.isLoading = false;
+          this.isLoading.set(false);
         })
       )
       .subscribe();
@@ -125,11 +127,11 @@ export class PieChartComponent implements OnInit, OnChanges {
 
   private updateChartData(data: PieChartData): void {
     if (!data.data || data.data.length === 0) {
-      this.hasData = false;
+      this.hasData.set(false);
       return;
     }
 
-    this.hasData = true;
+    this.hasData.set(true);
     const labels = data.data.map((point) => point.label || "Unknown");
     const values = data.data.map((point) => point.value || 0);
 
@@ -145,7 +147,7 @@ export class PieChartComponent implements OnInit, OnChanges {
   }
 
   public getChartGroupingLabel(): string {
-    const config = this.widget?.configuration as { chartGrouping?: ChartGrouping };
+    const config = this.widget()?.configuration as { chartGrouping?: ChartGrouping };
     switch (config?.chartGrouping) {
       case ChartGrouping.Categories:
         return "Categories";

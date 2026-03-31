@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, OnInit, viewChild } from "@angular/core";
 import { FormBuilder, Validators } from "@angular/forms";
 import { MatDialog } from "@angular/material/dialog";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -38,7 +38,7 @@ import { ocrEngineOptions } from "../constants/ocr-engine-options";
     standalone: false
 })
 export class ReceiptProcessingSettingsFormComponent extends BaseFormComponent implements OnInit {
-  @ViewChild(TaskTableComponent) public taskTableComponent!: TaskTableComponent;
+  public readonly taskTableComponent = viewChild.required(TaskTableComponent);
 
   public originalReceiptProcessingSettings?: ReceiptProcessingSettings;
 
@@ -294,7 +294,7 @@ export class ReceiptProcessingSettingsFormComponent extends BaseFormComponent im
           }
 
           if (refreshSystemTaskTable) {
-            this.taskTableComponent.getTableData();
+            this.taskTableComponent().getTableData();
           }
         })
       ).subscribe();

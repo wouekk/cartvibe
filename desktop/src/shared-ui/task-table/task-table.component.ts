@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Inject, Input, OnInit, TemplateRef, ViewChild } from "@angular/core";
+import { AfterViewInit, Component, Inject, OnInit, signal, TemplateRef, input, viewChild } from "@angular/core";
 import { PageEvent } from "@angular/material/paginator";
 import { Sort } from "@angular/material/sort";
 import { MatTableDataSource } from "@angular/material/table";
@@ -15,31 +15,31 @@ import { TableColumn } from "../../table/table-column.interface";
   standalone: false
 })
 export class TaskTableComponent implements OnInit, AfterViewInit {
-  @ViewChild("typeCell") public typeCell!: TemplateRef<any>;
+  public readonly typeCell = viewChild.required<TemplateRef<any>>("typeCell");
 
-  @ViewChild("startedAtCell") public startedAtCell!: TemplateRef<any>;
+  public readonly startedAtCell = viewChild.required<TemplateRef<any>>("startedAtCell");
 
-  @ViewChild("endedAtCell") public endedAtCell!: TemplateRef<any>;
+  public readonly endedAtCell = viewChild.required<TemplateRef<any>>("endedAtCell");
 
-  @ViewChild("statusCell") public statusCell!: TemplateRef<any>;
+  public readonly statusCell = viewChild.required<TemplateRef<any>>("statusCell");
 
-  @ViewChild("resultDescriptionCell") public resultDescriptionCell!: TemplateRef<any>;
+  public readonly resultDescriptionCell = viewChild.required<TemplateRef<any>>("resultDescriptionCell");
 
-  @ViewChild("ranByUserIdCell") public ranByUserIdCell!: TemplateRef<any>;
+  public readonly ranByUserIdCell = viewChild.required<TemplateRef<any>>("ranByUserIdCell");
 
-  @Input() public associatedEntityType?: AssociatedEntityType;
+  public readonly associatedEntityType = input<AssociatedEntityType>();
 
-  @Input() public associatedEntityId?: number;
+  public readonly associatedEntityId = input<number>();
 
-  @Input() public expandedRowTemplate?: TemplateRef<any>;
+  public readonly expandedRowTemplate = input<TemplateRef<any>>();
 
   public displayedColumns: string[] = [];
 
   public columns: TableColumn[] = [];
 
-  public dataSource: MatTableDataSource<SystemTask> = new MatTableDataSource<SystemTask>([]);
+  public dataSource = signal(new MatTableDataSource<SystemTask>([]));
 
-  public totalCount: number = 0;
+  public totalCount = signal(0);
 
   public rowExpandable: (row: SystemTask) => boolean = (systemTask) => (systemTask?.childSystemTasks?.length || 0) > 0;
 
@@ -59,16 +59,16 @@ export class TaskTableComponent implements OnInit, AfterViewInit {
       pageSize: pagedCommand.pageSize,
       orderBy: pagedCommand.orderBy,
       sortDirection: pagedCommand.sortDirection,
-      associatedEntityId: this.associatedEntityId,
-      associatedEntityType: this.associatedEntityType
+      associatedEntityId: this.associatedEntityId(),
+      associatedEntityType: this.associatedEntityType()
     };
 
     this.systemTaskService.getPagedSystemTasks(getSystemTaskCommand)
       .pipe(
         take(1),
         tap((pagedData) => {
-          this.dataSource = new MatTableDataSource<SystemTask>((pagedData.data as any[]) as SystemTask[]);
-          this.totalCount = pagedData.totalCount;
+          this.dataSource.set(new MatTableDataSource<SystemTask>((pagedData.data as any[]) as SystemTask[]));
+          this.totalCount.set(pagedData.totalCount);
         })
       )
       .subscribe();
@@ -87,43 +87,43 @@ export class TaskTableComponent implements OnInit, AfterViewInit {
       {
         columnHeader: "Type",
         matColumnDef: "type",
-        template: this.typeCell,
+        template: this.typeCell(),
         sortable: true,
       },
       {
         columnHeader: "Started At",
         matColumnDef: "started_at",
-        template: this.startedAtCell,
+        template: this.startedAtCell(),
         sortable: true,
       },
       {
         columnHeader: "Ended At",
         matColumnDef: "ended_at",
-        template: this.endedAtCell,
+        template: this.endedAtCell(),
         sortable: true,
       },
       {
         columnHeader: "Status",
         matColumnDef: "status",
-        template: this.statusCell,
+        template: this.statusCell(),
         sortable: true,
       },
       {
         columnHeader: "Description",
         matColumnDef: "result_description",
-        template: this.resultDescriptionCell,
+        template: this.resultDescriptionCell(),
         sortable: true,
       },
       {
         columnHeader: "Ran By",
         matColumnDef: "ran_by_user_id",
-        template: this.ranByUserIdCell,
+        template: this.ranByUserIdCell(),
         sortable: true,
       }
     ];
 
     this.displayedColumns = ["started_at", "ended_at", "type", "ran_by_user_id", "result_description", "status"];
-    if (this.expandedRowTemplate) {
+    if (this.expandedRowTemplate()) {
       this.displayedColumns.push("expand");
     }
   }

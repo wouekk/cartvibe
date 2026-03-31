@@ -16,7 +16,7 @@ describe("CategoryAutocompleteComponent", () => {
 
     fixture = TestBed.createComponent(CategoryAutocompleteComponent);
     component = fixture.componentInstance;
-    component.inputFormControl = new FormControl();
+    fixture.componentRef.setInput('inputFormControl', new FormControl());
     fixture.detectChanges();
   });
 

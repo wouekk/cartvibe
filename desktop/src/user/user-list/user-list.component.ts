@@ -1,9 +1,9 @@
-import { AfterViewInit, Component, TemplateRef, ViewChild, } from "@angular/core";
+import { AfterViewInit, Component, signal, TemplateRef, viewChild } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { MatTableDataSource } from "@angular/material/table";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
-import { Select, Store } from "@ngxs/store";
-import { Observable, take, tap } from "rxjs";
+import { Store } from "@ngxs/store";
+import { take, tap } from "rxjs";
 import { DEFAULT_HOST_CLASS } from "src/constants";
 import { DEFAULT_DIALOG_CONFIG } from "src/constants/dialog.constant";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
@@ -25,29 +25,27 @@ import { UserFormComponent } from "../user-form/user-form.component";
     standalone: false
 })
 export class UserListComponent implements AfterViewInit {
-  @Select(AuthState.userId) public userId!: Observable<string>;
+  userId = this.store.selectSignal(AuthState.userId);
 
-  @ViewChild("usernameCell") public usernameCell!: TemplateRef<any>;
+  public readonly usernameCell = viewChild.required<TemplateRef<any>>("usernameCell");
 
-  @ViewChild("displayNameCell") public displaynameCell!: TemplateRef<any>;
+  public readonly displaynameCell = viewChild.required<TemplateRef<any>>("displayNameCell");
 
-  @ViewChild("userRoleCell") public userRoleCell!: TemplateRef<any>;
+  public readonly userRoleCell = viewChild.required<TemplateRef<any>>("userRoleCell");
 
-  @ViewChild("createdAtCell") public createdAtCell!: TemplateRef<any>;
+  public readonly createdAtCell = viewChild.required<TemplateRef<any>>("createdAtCell");
 
-  @ViewChild("updatedAtCell") public updatedAtCell!: TemplateRef<any>;
+  public readonly updatedAtCell = viewChild.required<TemplateRef<any>>("updatedAtCell");
 
-  @ViewChild("actionsCell") public actionsCell!: TemplateRef<any>;
+  public readonly actionsCell = viewChild.required<TemplateRef<any>>("actionsCell");
 
-  @ViewChild(TableComponent) public table!: TableComponent;
+  public readonly table = viewChild.required(TableComponent);
 
   public displayedColumns: string[] = [];
 
   public columns: TableColumn[] = [];
 
-  public dataSource: MatTableDataSource<User> = new MatTableDataSource<User>(
-    []
-  );
+  public dataSource = signal(new MatTableDataSource<User>([]));
 
   public hasSelectedUsers: boolean = false;
 
@@ -73,38 +71,38 @@ export class UserListComponent implements AfterViewInit {
       {
         columnHeader: "Username",
         matColumnDef: "username",
-        template: this.usernameCell,
+        template: this.usernameCell(),
         sortable: true,
       },
 
       {
         columnHeader: "Displayname",
         matColumnDef: "displayName",
-        template: this.displaynameCell,
+        template: this.displaynameCell(),
         sortable: true,
       },
       {
         columnHeader: "Role",
         matColumnDef: "userRole",
-        template: this.userRoleCell,
+        template: this.userRoleCell(),
         sortable: true,
       },
       {
         columnHeader: "Created At",
         matColumnDef: "createdAt",
-        template: this.createdAtCell,
+        template: this.createdAtCell(),
         sortable: true,
       },
       {
         columnHeader: "Updated At",
         matColumnDef: "updatedAt",
-        template: this.updatedAtCell,
+        template: this.updatedAtCell(),
         sortable: true,
       },
       {
         columnHeader: "Actions",
         matColumnDef: "actions",
-        template: this.actionsCell,
+        template: this.actionsCell(),
         sortable: false,
       },
     ];
@@ -126,17 +124,18 @@ export class UserListComponent implements AfterViewInit {
       .pipe(
         untilDestroyed(this),
         tap(() => {
-          this.dataSource = new MatTableDataSource<User>(
+          const ds = new MatTableDataSource<User>(
             this.store.selectSnapshot(UserState.users)
           );
-          this.dataSource.sort = this.table.sort;
+          ds.sort = this.table().sort();
+          this.dataSource.set(ds);
         })
       )
       .subscribe();
   }
 
   private setupSelectionListener(): void {
-    this.table.selection.changed
+    this.table().selection.changed
       .pipe(untilDestroyed(this))
       .subscribe(() => {
         this.updateSelectionState();
@@ -144,7 +143,7 @@ export class UserListComponent implements AfterViewInit {
   }
 
   private updateSelectionState(): void {
-    this.hasSelectedUsers = this.table.selection.selected.length > 0;
+    this.hasSelectedUsers = this.table().selection.selected.length > 0;
   }
 
   public openUserFormDialog(user?: User): void {
@@ -157,7 +156,7 @@ export class UserListComponent implements AfterViewInit {
 
     dialogRef.afterClosed().subscribe((refresh) => {
       if (refresh) {
-        this.dataSource.data = this.store.selectSnapshot(UserState.users);
+        this.dataSource.set(new MatTableDataSource<User>(this.store.selectSnapshot(UserState.users)));
       }
     });
   }
@@ -203,9 +202,9 @@ export class UserListComponent implements AfterViewInit {
               tap(() => {
                 this.snackbarService.success("User successfully deleted");
                 this.store.dispatch(new RemoveUser(user.id.toString()));
-                this.dataSource.data = this.store.selectSnapshot(
-                  UserState.users
-                );
+                this.dataSource.set(new MatTableDataSource<User>(
+                  this.store.selectSnapshot(UserState.users)
+                ));
               })
             )
             .subscribe();
@@ -215,7 +214,7 @@ export class UserListComponent implements AfterViewInit {
   }
 
   public bulkDeleteUsers(): void {
-    const selectedUsers = this.table.selection.selected;
+    const selectedUsers = this.table().selection.selected;
     const currentUserId = this.store.selectSnapshot(AuthState.userId);
     
     const usersToDelete = selectedUsers.filter(user => user.id.toString() !== currentUserId);
@@ -247,8 +246,8 @@ export class UserListComponent implements AfterViewInit {
             tap(() => {
               this.snackbarService.success(`${usersToDelete.length} user(s) successfully deleted`);
               this.store.dispatch(new RemoveUsers(bulkDeleteCommand.userIds));
-              this.table.selection.clear();
-              this.dataSource.data = this.store.selectSnapshot(UserState.users);
+              this.table().selection.clear();
+              this.dataSource.set(new MatTableDataSource<User>(this.store.selectSnapshot(UserState.users)));
             })
           )
           .subscribe();

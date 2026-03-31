@@ -1,4 +1,4 @@
-import { Component } from "@angular/core";
+import { Component, signal } from "@angular/core";
 import { PageEvent } from "@angular/material/paginator";
 import { Sort } from "@angular/material/sort";
 import { MatTableDataSource } from "@angular/material/table";
@@ -18,9 +18,9 @@ export class BaseTableComponent<T> {
 
   public displayedColumns: string[] = [];
 
-  public dataSource = new MatTableDataSource<T>([]);
+  public dataSource = signal(new MatTableDataSource<T>([]));
 
-  public totalCount = 0;
+  public totalCount = signal(0);
 
   constructor(public baseTableService: BaseTableService) {}
 
@@ -39,8 +39,8 @@ export class BaseTableComponent<T> {
       .pipe(
         take(1),
         tap((pagedData) => {
-          this.dataSource = new MatTableDataSource(pagedData.data as T[]) as MatTableDataSource<T>;
-          this.totalCount = pagedData.totalCount;
+          this.dataSource.set(new MatTableDataSource(pagedData.data as T[]) as MatTableDataSource<T>);
+          this.totalCount.set(pagedData.totalCount);
         })
       )
       .subscribe();

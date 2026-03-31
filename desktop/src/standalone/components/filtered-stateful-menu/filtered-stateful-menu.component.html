@@ -1,14 +1,14 @@
 <app-button
-  [buttonClass]="buttonClass"
-  [color]="color"
-  [buttonText]="buttonText"
-  [type]="type"
-  [matButtonType]="matButtonType"
+  [buttonClass]="buttonClass()"
+  [color]="color()"
+  [buttonText]="buttonText()"
+  [type]="type()"
+  [matButtonType]="matButtonType()"
   [icon]="icon"
   [customIcon]="customIcon"
-  [tooltip]="tooltip"
-  [matBadgeContent]="matBadgeContent"
-  [matBadgeColor]="matBadgeColor"
+  [tooltip]="tooltip()"
+  [matBadgeContent]="matBadgeContent()"
+  [matBadgeColor]="matBadgeColor()"
   [cdkMenuTriggerFor]="menu"
   (cdkMenuOpened)="resetFilter()"
 >
@@ -22,7 +22,7 @@
       </h5>
     }
     <app-input
-      [label]="filterLabel"
+      [label]="filterLabel()"
       [inputFormControl]="filterFormControl"
       (click)="$event.stopImmediatePropagation(); $event.stopPropagation();"
     ></app-input>
@@ -35,18 +35,18 @@
           No items found
         </div>
       }
-      @for (item of filteredItems; track item.value) {
+      @for (item of filteredItems(); track item.value) {
         <button
           mat-menu-item
           class="w-100 p-2"
-          [disabled]="readonly"
+          [disabled]="readonly()"
           (click)="onItemSelected(item, $event)"
         >
           <div class="d-flex align-items-center">
             <mat-checkbox
               class="checkbox"
               [checked]="item.selected"
-              [disabled]="readonly"
+              [disabled]="readonly()"
             ></mat-checkbox>
             <div class="d-flex flex-column">
               <strong>

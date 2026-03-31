@@ -16,7 +16,7 @@
   </app-table-header>
   <div class="table-container">
     <app-table
-      [dataSource]="dataSource"
+      [dataSource]="dataSource()"
       [columns]="columns"
       [displayedColumns]="displayedColumns"
       [selectionCheckboxes]="true"
@@ -70,7 +70,7 @@
     >
     </app-button>
     <app-delete-button
-      *ngIf="(userId | async) !== element.id.toString()"
+      *ngIf="userId() !== element.id.toString()"
       (clicked)="deleteUser(index)"
     ></app-delete-button>
   </div>

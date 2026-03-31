@@ -26,7 +26,7 @@ describe("FilteredReceiptsComponent", () => {
     store = TestBed.inject(Store);
     fixture = TestBed.createComponent(FilteredReceiptsComponent);
     component = fixture.componentInstance;
-    component.widget = {} as any;
+    fixture.componentRef.setInput('widget', {} as any);
     fixture.detectChanges();
   });
 
@@ -44,7 +44,7 @@ describe("FilteredReceiptsComponent", () => {
         selectedGroupId: "1",
       },
     });
-    component.groupId = 1;
+    fixture.componentRef.setInput('groupId', 1);
 
     component.ngOnInit();
 
@@ -75,9 +75,9 @@ describe("FilteredReceiptsComponent", () => {
         selectedGroupId: "1",
       },
     });
-    component.groupId = 1;
+    fixture.componentRef.setInput('groupId', 1);
 
-    component.receipts = [{} as any, {} as any, {} as any, {} as any];
+    component.receipts.set([{} as any, {} as any, {} as any, {} as any]);
     component.endOfListReached();
 
     expect(serviceSpy).toHaveBeenCalledWith(
@@ -94,7 +94,7 @@ describe("FilteredReceiptsComponent", () => {
         filter: undefined,
       }
     );
-    expect(component.receipts).toEqual([
+    expect(component.receipts()).toEqual([
       {} as any,
       {} as any,
       {} as any,
@@ -115,11 +115,11 @@ describe("FilteredReceiptsComponent", () => {
       },
     });
 
-    component.receipts = [{} as any, {} as any, {} as any, {} as any];
+    component.receipts.set([{} as any, {} as any, {} as any, {} as any]);
     component.endOfListReached();
 
     expect(serviceSpy).toHaveBeenCalledTimes(0);
-    expect(component.receipts).toEqual([
+    expect(component.receipts()).toEqual([
       {} as any,
       {} as any,
       {} as any,

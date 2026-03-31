@@ -7,7 +7,7 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef, } from "@angular/materi
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { UntilDestroy } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
-import { of, tap } from "rxjs";
+import { of } from "rxjs";
 import { PipesModule } from "src/pipes/pipes.module";
 import { SetReceiptFilter } from "src/store/receipt-table.actions";
 import { defaultReceiptFilter, } from "src/store/receipt-table.state";
@@ -163,9 +163,9 @@ describe("ReceiptFilterComponent", () => {
       },
     });
 
-    component.formCommand.pipe(tap((formCommand) => {
+    component.formCommand.subscribe((formCommand) => {
       applyFormCommand(component.parentForm, formCommand);
-    })).subscribe();
+    });
 
     const noopComponent = TestBed.createComponent(NoopComponent).componentInstance;
 

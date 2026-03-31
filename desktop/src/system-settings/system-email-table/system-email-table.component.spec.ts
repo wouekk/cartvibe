@@ -44,13 +44,13 @@ describe("SystemEmailsComponent", () => {
       componentInstance: {},
       afterClosed: () => of(undefined)
     } as any);
-    component.dataSource = new MatTableDataSource([
+    component.dataSource.set(new MatTableDataSource([
       {
         id: 1,
         username: "test",
       }
-    ] as any[]);
-    component.deleteButtonClicked(component.dataSource.data[0]);
+    ] as any[]));
+    component.deleteButtonClicked(component.dataSource().data[0]);
 
     expect(matDialogSpy).toHaveBeenCalledWith(ConfirmationDialogComponent);
   });

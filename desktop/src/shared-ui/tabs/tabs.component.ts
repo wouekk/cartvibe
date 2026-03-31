@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges, } from "@angular/core";
+import { Component, OnChanges, OnInit, signal, SimpleChanges, input } from "@angular/core";
 import { ActivatedRoute, NavigationEnd, Router } from "@angular/router";
 import { tap } from "rxjs";
 import { TabConfig } from "./tab-config.interface";
@@ -10,9 +10,9 @@ import { TabConfig } from "./tab-config.interface";
     standalone: false
 })
 export class TabsComponent implements OnInit, OnChanges {
-  @Input() public tabs: TabConfig[] = [];
+  public readonly tabs = input<TabConfig[]>([]);
 
-  public activeName: string = "";
+  public activeName = signal("");
 
   constructor(private router: Router, private activatedRoute: ActivatedRoute) {}
 
@@ -29,7 +29,8 @@ export class TabsComponent implements OnInit, OnChanges {
   private setActiveTab(): void {
     const activeTabName = this.activatedRoute.snapshot.queryParams["tab"];
 
-    this.activeName = this.tabs.find(t => t.name === activeTabName)?.name || this.tabs[0].name;
+    const tabs = this.tabs();
+    this.activeName.set(tabs.find(t => t.name === activeTabName)?.name || tabs[0].name);
   }
 
   private listenToRouteChanges(): void {

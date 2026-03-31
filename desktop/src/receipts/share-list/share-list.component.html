@@ -10,7 +10,7 @@
         <app-user-autocomplete
           label="Shared with"
           [inputFormControl]="newItemFormGroup | formGet : 'chargedToUserId'"
-          [groupId]="(form | formGet : 'groupId').value"
+          [groupId]="(form() | formGet : 'groupId').value"
           [readonly]="mode | inputReadonly"
         ></app-user-autocomplete>
         <div class="row g-0 mt-2">
@@ -30,17 +30,17 @@
           >
           </app-input>
 
-          @if (!selectedGroup?.groupReceiptSettings?.hideShareCategories) {
+          @if (!selectedGroup()?.groupReceiptSettings?.hideShareCategories) {
             <app-category-autocomplete
-              [categories]="categories"
+              [categories]="categories()"
               [inputFormControl]="newItemFormGroup | formGet : 'categories'"
               [readonly]="mode | inputReadonly"
             ></app-category-autocomplete>
           }
 
-          @if (!selectedGroup?.groupReceiptSettings?.hideShareTags) {
+          @if (!selectedGroup()?.groupReceiptSettings?.hideShareTags) {
             <app-tag-autocomplete
-              [tags]="tags"
+              [tags]="tags()"
               [inputFormControl]="newItemFormGroup | formGet : 'tags'"
               [readonly]="mode | inputReadonly"
             ></app-tag-autocomplete>
@@ -55,22 +55,22 @@
     </app-card>
   }
 
-  @if (userItemMap.size === 0 && mode === formMode.view) {
+  @if (userItemMap().size === 0 && mode === formMode.view) {
     <div>No shares for this receipt</div>
   }
   <mat-expansion-panel
     #userExpansionPanel
-    *ngFor="let key of userItemMap | mapKey; let i = index"
+    *ngFor="let key of userItemMap() | mapKey; let i = index"
     (closed)="checkLastInlineItem(key)"
   >
     @let user = key | user;
     <mat-expansion-panel-header>
       <mat-panel-title>
-        {{ user?.displayName }} ({{ (userItemMap | mapGet : key)?.length || 0 }})
+        {{ user?.displayName }} ({{ (userItemMap() | mapGet : key)?.length || 0 }})
       </mat-panel-title>
       <mat-panel-description>
         <div class="d-flex justify-content-between align-items-center w-100">
-          @let userTotalData = userItemMap | userTotalWithPercentage : key : form;
+          @let userTotalData = userItemMap() | userTotalWithPercentage : key : form();
           <span>
             Total amount owed: {{ userTotalData.total | customCurrency }} 
             ({{ userTotalData.percentage }}% of total)
@@ -80,7 +80,7 @@
               <app-add-button
                 tooltip="Add Share"
                 [disabled]="mode === formMode.view"
-                (clicked)="addInlineItem(user?.id?.toString() ?? '', $event)"
+                (clicked)="addInlineItem(user?.id?.toString() ?? '')"
               ></app-add-button>
               <app-button
                 matButtonType="iconButton"
@@ -98,7 +98,7 @@
       </mat-panel-description>
     </mat-expansion-panel-header>
     <ng-container
-      *ngFor="let itemData of userItemMap | mapGet : key; let i = index"
+      *ngFor="let itemData of userItemMap() | mapGet : key; let i = index"
     >
       <app-card
         cardStyle="mb-2"
@@ -130,7 +130,7 @@
               #nameField
               label="Name"
               [inputId]="'name-' + i"
-              [inputFormControl]="form | formGet : getFormControlPath(itemData, 'name')"
+              [inputFormControl]="form() | formGet : getFormControlPath(itemData, 'name')"
               [readonly]="mode | inputReadonly"
               (inputBlur)="addInlineItemOnBlur(key, i)"
             >
@@ -139,7 +139,7 @@
               class="col"
               label="Amount"
               [isCurrency]="true"
-              [inputFormControl]="form | formGet : getFormControlPath(itemData, 'amount')"
+              [inputFormControl]="form() | formGet : getFormControlPath(itemData, 'amount')"
               [readonly]="mode | inputReadonly"
               (inputBlur)="addInlineItemOnBlur(key, i)"
             >
@@ -149,24 +149,24 @@
               label="Status"
               optionValueKey="value"
               optionDisplayKey="displayValue"
-              [inputFormControl]="form | formGet : getFormControlPath(itemData, 'status')"
+              [inputFormControl]="form() | formGet : getFormControlPath(itemData, 'status')"
               [readonly]="mode | inputReadonly"
               [options]="itemStatusOptions"
               (inputBlur)="addInlineItemOnBlur(key, i)"
             >
             </app-select>
-            @if (!selectedGroup?.groupReceiptSettings?.hideShareCategories) {
+            @if (!selectedGroup()?.groupReceiptSettings?.hideShareCategories) {
               <app-category-autocomplete
-                [categories]="categories"
-                [inputFormControl]="form | formGet : getFormControlPath(itemData, 'categories')"
+                [categories]="categories()"
+                [inputFormControl]="form() | formGet : getFormControlPath(itemData, 'categories')"
                 [readonly]="mode | inputReadonly"
               ></app-category-autocomplete>
             }
 
-            @if (!selectedGroup?.groupReceiptSettings?.hideShareTags) {
+            @if (!selectedGroup()?.groupReceiptSettings?.hideShareTags) {
               <app-tag-autocomplete
-                [tags]="tags"
-                [inputFormControl]="form | formGet : getFormControlPath(itemData, 'tags')"
+                [tags]="tags()"
+                [inputFormControl]="form() | formGet : getFormControlPath(itemData, 'tags')"
                 [readonly]="mode | inputReadonly"
               ></app-tag-autocomplete>
             }

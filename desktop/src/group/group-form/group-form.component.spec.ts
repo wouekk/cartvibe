@@ -6,8 +6,7 @@ import { MatDialog, MatDialogModule } from "@angular/material/dialog";
 import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatSort } from "@angular/material/sort";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
-import { ActivatedRoute, Router } from "@angular/router";
-import { RouterTestingModule } from "@angular/router/testing";
+import { ActivatedRoute, Router, provideRouter } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { FormMode } from "src/enums/form-mode.enum";
@@ -43,19 +42,19 @@ describe("GroupFormComponent", () => {
         NoopAnimationsModule,
         PipesModule,
         ReactiveFormsModule,
-        RouterTestingModule.withRoutes([]),
         SelectModule,
         SharedUiModule,
         TableModule,
         UserAutocompleteModule],
     providers: [
+        provideRouter([]),
         {
             provide: ActivatedRoute,
             useValue: {
                 snapshot: {
                     data: {
                         group: {},
-                        formConfig: {},
+                        formConfig: { mode: FormMode.add },
                     },
                 },
             },
@@ -67,9 +66,12 @@ describe("GroupFormComponent", () => {
 
     fixture = TestBed.createComponent(GroupFormComponent);
     component = fixture.componentInstance;
-    component.table = {
-      sort: new MatSort(),
-    } as any;
+    Object.defineProperty(component, 'table', {
+      value: () => ({
+        sort: () => new MatSort(),
+      }),
+      configurable: true,
+    });
     // fixture.detectChanges();
   });
 
@@ -95,7 +97,7 @@ describe("GroupFormComponent", () => {
     component.addGroupMemberClicked();
 
     expect(component.groupMembers.value).toEqual([formGroup.value]);
-    expect(component.dataSource.data).toEqual([formGroup.value]);
+    expect(component.dataSource().data).toEqual([formGroup.value]);
   });
 
   it("should update form on edit", () => {
@@ -150,7 +152,7 @@ describe("GroupFormComponent", () => {
     component.editGroupMemberClicked(1);
 
     expect(component.groupMembers.value).toEqual(result);
-    expect(component.dataSource.data).toEqual(result as any);
+    expect(component.dataSource().data).toEqual(result as any);
   });
 
   it("should remove user to group member on remove", () => {
@@ -184,13 +186,13 @@ describe("GroupFormComponent", () => {
     component.removeGroupMember(0);
 
     expect(component.groupMembers.value).toEqual([result]);
-    expect(component.dataSource.data).toEqual([result] as any);
+    expect(component.dataSource().data).toEqual([result] as any);
   });
 
   it("should create group", () => {
     const createSpy = jest.spyOn(TestBed.inject(GroupsService), "createGroup");
     const storeSpy = jest.spyOn(TestBed.inject(Store), "dispatch");
-    const routerSpy = jest.spyOn(TestBed.inject(Router), "navigate");
+    const routerSpy = jest.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
 
     const group: Group = {
       id: 1,
@@ -242,7 +244,7 @@ describe("GroupFormComponent", () => {
   it("should update group", () => {
     const updateSpy = jest.spyOn(TestBed.inject(GroupsService), "updateGroup");
     const storeSpy = jest.spyOn(TestBed.inject(Store), "dispatch");
-    const routerSpy = jest.spyOn(TestBed.inject(Router), "navigate");
+    const routerSpy = jest.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
 
     const group: Group = {
       id: 1,

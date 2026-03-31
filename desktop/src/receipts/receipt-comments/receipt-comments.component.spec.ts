@@ -52,6 +52,7 @@ describe("ReceiptCommentsComponent", () => {
     store = TestBed.inject(Store);
     fixture = TestBed.createComponent(ReceiptCommentsComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('mode', FormMode.view);
     fixture.detectChanges();
   });
 
@@ -60,7 +61,7 @@ describe("ReceiptCommentsComponent", () => {
   });
 
   it("should init each comment correctly", () => {
-    component.comments = comments;
+    fixture.componentRef.setInput('comments', comments);
 
     component.ngOnInit();
     expect(component.commentsArray.value).toEqual([
@@ -81,10 +82,10 @@ describe("ReceiptCommentsComponent", () => {
   it("should delete comment that is a top level comment", () => {
     const spy = jest.spyOn(TestBed.inject(CommentService), "deleteComment");
     spy.mockReturnValue(of(undefined as any));
-    component.comments = comments;
+    fixture.componentRef.setInput('comments', comments);
 
     component.ngOnInit();
-    component.mode = FormMode.view;
+    fixture.componentRef.setInput('mode', FormMode.view);
     component.deleteComment(0);
 
     expect(spy).toHaveBeenCalledWith(1);
@@ -93,23 +94,23 @@ describe("ReceiptCommentsComponent", () => {
       undefined
     );
     expect(component.commentsArray.value.length).toEqual(1);
-    expect(component.comments.find((c) => c.id === 1)).toEqual(undefined);
-    expect(component.comments.length).toEqual(1);
+    expect(component.internalComments().find((c) => c.id === 1)).toEqual(undefined);
+    expect(component.internalComments().length).toEqual(1);
   });
 
 
   it("should delete comment in add mode", () => {
     component.ngOnInit();
-    component.mode = FormMode.add;
+    fixture.componentRef.setInput('mode', FormMode.add);
     component.commentsArray.push(new FormGroup({}));
 
     expect(component.commentsArray.length).toEqual(1);
-    expect(component.comments.length).toEqual(0);
+    expect(component.internalComments().length).toEqual(0);
 
     component.deleteComment(0);
 
     expect(component.commentsArray.length).toEqual(0);
-    expect(component.comments.length).toEqual(0);
+    expect(component.internalComments().length).toEqual(0);
   });
 
   it("should add comment if form is valid and is in add mode", () => {
@@ -120,9 +121,9 @@ describe("ReceiptCommentsComponent", () => {
       },
     });
 
-    component.mode = FormMode.add;
+    fixture.componentRef.setInput('mode', FormMode.add);
     component.newCommentFormControl.patchValue("new comment");
-    component.receiptId = 1;
+    fixture.componentRef.setInput('receiptId', 1);
     component.addComment();
 
     expect(component.newCommentFormControl.value).toEqual(null);
@@ -155,9 +156,9 @@ describe("ReceiptCommentsComponent", () => {
       },
     });
 
-    component.mode = FormMode.edit;
+    fixture.componentRef.setInput('mode', FormMode.edit);
     component.newCommentFormControl.patchValue("new comment");
-    component.receiptId = 1;
+    fixture.componentRef.setInput('receiptId', 1);
     component.addComment();
 
     expect(component.commentsArray.length).toEqual(1);
@@ -166,8 +167,8 @@ describe("ReceiptCommentsComponent", () => {
       receiptId: 1,
       comment: "new comment",
     });
-    expect(component.comments.length).toEqual(1);
-    expect(component.comments[0]).toEqual({
+    expect(component.internalComments().length).toEqual(1);
+    expect(component.internalComments()[0]).toEqual({
       id: 5,
       userId: 1,
       receiptId: 1,

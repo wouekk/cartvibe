@@ -1,5 +1,7 @@
+import { CurrencyPipe } from "@angular/common";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
+import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { MatCardModule } from "@angular/material/card";
 import { MatListModule } from "@angular/material/list";
@@ -7,6 +9,9 @@ import { ActivatedRoute } from "@angular/router";
 import { NgxsModule } from "@ngxs/store";
 import { of } from "rxjs";
 import { ApiModule, UserService } from "../../open-api";
+import { PipesModule } from "../../pipes";
+import { UserState } from "../../store";
+import { SystemSettingsState } from "../../store/system-settings.state";
 import { CardComponent } from "../card/card.component";
 import { SummaryCardComponent } from "./summary-card.component";
 
@@ -20,8 +25,11 @@ describe("SummaryCardComponent", () => {
       imports: [ApiModule,
         MatCardModule,
         MatListModule,
-        NgxsModule.forRoot([])],
+        NgxsModule.forRoot([UserState, SystemSettingsState]),
+        PipesModule],
       providers: [
+        CurrencyPipe,
+        provideZonelessChangeDetection(),
         {
           provide: ActivatedRoute,
           useValue: {
@@ -42,7 +50,7 @@ describe("SummaryCardComponent", () => {
     expect(component).toBeTruthy();
   });
 
-  it("should set user data correctly when there is data", () => {
+  it("should set user data correctly when there is data", async () => {
     const usersService = TestBed.inject(UserService);
     jest.spyOn(usersService, "getAmountOwedForUser").mockReturnValue(
       of({
@@ -51,17 +59,10 @@ describe("SummaryCardComponent", () => {
       } as any)
     );
 
-    component.groupId = "1";
-    component.ngOnChanges({
-      groupId: {
-        currentValue: "1",
-        firstChange: true,
-        isFirstChange: () => true,
-        previousValue: null,
-      },
-    });
+    fixture.componentRef.setInput("groupId", "1");
+    await fixture.whenStable();
 
-    expect(Array.from(component.userOwesMap.entries())).toEqual([["1", "200"]]);
-    expect(Array.from(component.usersOweMap.entries())).toEqual([["2", "500"]]);
+    expect(Array.from(component.userOwesMap().entries())).toEqual([["1", "200"]]);
+    expect(Array.from(component.usersOweMap().entries())).toEqual([["2", "500"]]);
   });
 });

@@ -1,8 +1,8 @@
-import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
+import { Component, OnInit, input, output, signal } from "@angular/core";
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators, } from "@angular/forms";
 import { UntilDestroy } from "@ngneat/until-destroy";
-import { Select, Store } from "@ngxs/store";
-import { Observable, take, tap } from "rxjs";
+import { Store } from "@ngxs/store";
+import { take, tap } from "rxjs";
 import { FormMode } from "src/enums/form-mode.enum";
 import { Comment, CommentService } from "../../open-api";
 import { SnackbarService } from "../../services";
@@ -16,12 +16,12 @@ import { AuthState } from "../../store";
     standalone: false
 })
 export class ReceiptCommentsComponent implements OnInit {
-  @Select(AuthState.userId) public loggedInUserId!: Observable<string>;
-  @Input() public comments: Comment[] = [];
-  @Input() public mode!: FormMode;
-  @Input() public receiptId?: number;
-  @Output() public commentsUpdated: EventEmitter<FormArray> =
-    new EventEmitter<FormArray>();
+  loggedInUserId = this.store.selectSignal(AuthState.userId);
+  public readonly comments = input<Comment[]>([]);
+  public internalComments = signal<Comment[]>([]);
+  public readonly mode = input.required<FormMode>();
+  public readonly receiptId = input<number>();
+  public readonly commentsUpdated = output<FormArray>();
 
   public formMode = FormMode;
 
@@ -38,11 +38,12 @@ export class ReceiptCommentsComponent implements OnInit {
   ) {}
 
   public ngOnInit(): void {
+    this.internalComments.set(this.comments());
     this.initForm();
   }
 
   private initForm(): void {
-    this.comments.forEach((c) => {
+    this.internalComments().forEach((c) => {
       this.commentsArray.push(this.buildCommentFormGroup(c));
     });
   }
@@ -54,7 +55,7 @@ export class ReceiptCommentsComponent implements OnInit {
         comment?.userId ??
         Number.parseInt(this.store.selectSnapshot(AuthState.userId)),
       ],
-      receiptId: [comment?.receiptId ?? this.receiptId],
+      receiptId: [comment?.receiptId ?? this.receiptId()],
     });
   }
 
@@ -63,20 +64,21 @@ export class ReceiptCommentsComponent implements OnInit {
     const newComment = {
       comment: this.newCommentFormControl.value,
       userId: Number.parseInt(this.store.selectSnapshot(AuthState.userId)),
-      receiptId: this.receiptId,
+      receiptId: this.receiptId(),
     } as any;
 
-    if (isValid && this.mode === FormMode.add) {
+    const mode = this.mode();
+    if (isValid && mode === FormMode.add) {
       this.commentsArray.push(this.buildCommentFormGroup(newComment));
       this.newCommentFormControl.reset();
       this.commentsUpdated.emit(this.commentsArray);
-    } else if (isValid && this.mode === FormMode.edit) {
+    } else if (isValid && mode === FormMode.edit) {
       this.commentService
         .addComment(newComment)
         .pipe(
           take(1),
           tap((comment: Comment) => {
-            this.comments.push(comment);
+            this.internalComments.update(comments => [...comments, comment]);
             this.commentsArray.push(this.buildCommentFormGroup(newComment));
             this.snackbarService.success("Comment successfully added");
             this.newCommentFormControl.reset();
@@ -87,10 +89,10 @@ export class ReceiptCommentsComponent implements OnInit {
   }
 
   public deleteComment(index: number): void {
-    switch (this.mode) {
+    switch (this.mode()) {
       case FormMode.edit:
       case FormMode.view:
-        const comment = this.comments[index];
+        const comment = this.internalComments()[index];
         let commentIdToDelete = comment.id;
 
         this.commentService
@@ -99,9 +101,9 @@ export class ReceiptCommentsComponent implements OnInit {
             take(1),
             tap(() => {
               this.commentsArray.removeAt(index);
-              this.comments = this.comments.filter(
+              this.internalComments.set(this.internalComments().filter(
                 (c) => c.id !== comment.id
-              );
+              ));
               this.snackbarService.success("Comment successfully deleted");
             })
           )

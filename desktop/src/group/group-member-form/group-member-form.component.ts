@@ -1,8 +1,7 @@
 import { Component, OnInit } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { MatDialogRef } from "@angular/material/dialog";
-import { Select, Store } from "@ngxs/store";
-import { Observable } from "rxjs";
+import { Store } from "@ngxs/store";
 import { FormOption } from "src/interfaces/form-option.interface";
 import { GroupMember } from "../../open-api";
 import { AuthState } from "../../store";
@@ -16,7 +15,7 @@ import { buildGroupMemberForm } from "../utils/group-member.utils";
     standalone: false
 })
 export class GroupMemberFormComponent implements OnInit {
-  @Select(AuthState.userId) public userId!: Observable<string>;
+  public userId = this.store.selectSignal(AuthState.userId);
 
   public headerText: string = "";
 

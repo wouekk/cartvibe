@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, Input, OnInit, TemplateRef, ViewChild} from "@angular/core";
+import {AfterViewInit, Component, OnInit, signal, TemplateRef, input, viewChild} from "@angular/core";
 import {FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {MatDialog} from "@angular/material/dialog";
 import {Sort} from "@angular/material/sort";
@@ -29,15 +29,15 @@ import {buildGroupMemberForm} from "../utils/group-member.utils";
     standalone: false
 })
 export class GroupFormComponent implements OnInit, AfterViewInit {
-  @ViewChild("nameCell") public nameCell!: TemplateRef<any>;
+  public readonly nameCell = viewChild.required<TemplateRef<any>>("nameCell");
 
-  @ViewChild("groupRoleCell") public groupRoleCell!: TemplateRef<any>;
+  public readonly groupRoleCell = viewChild.required<TemplateRef<any>>("groupRoleCell");
 
-  @ViewChild("actionsCell") public actionsCell!: TemplateRef<any>;
+  public readonly actionsCell = viewChild.required<TemplateRef<any>>("actionsCell");
 
-  @ViewChild(TableComponent) public table!: TableComponent;
+  public readonly table = viewChild.required(TableComponent);
 
-  @Input() public canEdit = true;
+  public readonly canEdit = input(true);
 
   public form: FormGroup = new FormGroup({});
 
@@ -61,8 +61,7 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
 
   public groupStatusOptions = GROUP_STATUS_OPTIONS;
 
-  public dataSource: MatTableDataSource<GroupMember> =
-    new MatTableDataSource<GroupMember>([]);
+  public dataSource = signal(new MatTableDataSource<GroupMember>([]));
 
   constructor(
     private formBuilder: FormBuilder,
@@ -100,7 +99,7 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
       .pipe(
         untilDestroyed(this),
         tap((v) => {
-          this.dataSource.data = Array.from(v);
+          this.dataSource.set(new MatTableDataSource<GroupMember>(Array.from(v)));
         })
       )
       .subscribe();
@@ -111,19 +110,19 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
       {
         columnHeader: "Name",
         matColumnDef: "name",
-        template: this.nameCell,
+        template: this.nameCell(),
         sortable: true,
       },
       {
         columnHeader: "Group Role",
         matColumnDef: "groupRole",
-        template: this.groupRoleCell,
+        template: this.groupRoleCell(),
         sortable: true,
       },
       {
         columnHeader: "Actions",
         matColumnDef: "actions",
-        template: this.actionsCell,
+        template: this.actionsCell(),
         sortable: true,
       },
     ];
@@ -135,26 +134,27 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
   }
 
   private setDataSource(): void {
-    this.dataSource = new MatTableDataSource<GroupMember>(
+    const ds = new MatTableDataSource<GroupMember>(
       this.groupMembers.value ?? []
     );
-    this.dataSource.sort = this.table.sort;
+    ds.sort = this.table().sort();
+    this.dataSource.set(ds);
   }
 
   public sortName(sortState: Sort): void {
     if (sortState.active === "name") {
       if (sortState.direction === "") {
-        this.dataSource.data = this.groupMembers.value;
+        this.dataSource.set(new MatTableDataSource<GroupMember>(this.groupMembers.value));
         return;
       }
 
       const newData = this.sortByDisplayName.sort(
-        this.dataSource.data,
+        this.dataSource().data,
         sortState,
         "userId"
       );
 
-      this.dataSource.data = newData;
+      this.dataSource.set(new MatTableDataSource<GroupMember>(newData));
     }
   }
 

@@ -1,18 +1,18 @@
 import {
   Component,
   ElementRef,
-  EventEmitter,
   HostListener,
   Input,
   OnChanges,
   OnDestroy,
   OnInit,
-  Output,
-  QueryList,
   SimpleChanges,
-  ViewChild,
-  ViewChildren,
   ViewEncapsulation,
+  input,
+  output,
+  signal,
+  viewChild,
+  viewChildren
 } from "@angular/core";
 import { FormArray, FormGroup } from "@angular/forms";
 import { MatDialog } from "@angular/material/dialog";
@@ -40,33 +40,37 @@ export interface ItemData {
   standalone: false
 })
 export class ItemListComponent implements OnInit, OnChanges, OnDestroy {
-  @ViewChild("itemsExpansionPanel")
-  public itemsExpansionPanel!: MatExpansionPanel;
+  public readonly itemsExpansionPanel = viewChild.required<MatExpansionPanel>("itemsExpansionPanel");
 
-  @ViewChildren("nameField")
-  public nameFields!: QueryList<InputComponent>;
+  public readonly nameFields = viewChildren<InputComponent>("nameField");
 
 
-  @Input() public form!: FormGroup;
+  public readonly form = input.required<FormGroup>();
 
   @Input() public originalReceipt?: Receipt;
 
-  @Input() public categories: Category[] = [];
+  public readonly categories = input<Category[]>([]);
 
-  @Input() public tags: Tag[] = [];
+  public readonly tags = input<Tag[]>([]);
 
-  @Input() public selectedGroup: Group | undefined;
+  public readonly selectedGroup = input<Group>();
 
-  @Input() public triggerAddMode: boolean = false;
+  public readonly triggerAddMode = input<boolean>(false);
 
-  @Output() public itemAdded = new EventEmitter<Item>();
+  public readonly itemAdded = output<Item>();
 
-  @Output() public itemRemoved = new EventEmitter<{ item: Item; arrayIndex: number }>();
+  public readonly itemRemoved = output<{
+    item: Item;
+    arrayIndex: number;
+}>();
 
-  @Output() public itemSplit = new EventEmitter<{ items: Item[], itemIndex: number }>();
+  public readonly itemSplit = output<{
+    items: Item[];
+    itemIndex: number;
+}>();
 
 
-  public items: ItemData[] = [];
+  public items = signal<ItemData[]>([]);
 
   public isAdding: boolean = false;
 
@@ -80,7 +84,7 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy {
   private destroy$ = new Subject<void>();
 
   public get receiptItems(): FormArray {
-    return this.form.get("receiptItems") as FormArray;
+    return this.form().get("receiptItems") as FormArray;
   }
 
   constructor(
@@ -136,9 +140,9 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   public setItems(): void {
-    const receiptItems = this.form.get("receiptItems");
+    const receiptItems = this.form().get("receiptItems");
     if (receiptItems) {
-      const items = this.form.get("receiptItems")?.value as Item[];
+      const items = this.form().get("receiptItems")?.value as Item[];
       const itemDataArray: ItemData[] = [];
 
       if (items?.length > 0) {
@@ -152,7 +156,7 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy {
           }
         });
       }
-      this.items = itemDataArray;
+      this.items.set(itemDataArray);
     }
   }
 
@@ -160,8 +164,9 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy {
     this.isAdding = true;
 
     // Auto-expand accordion if collapsed
-    if (this.itemsExpansionPanel && !this.itemsExpansionPanel.expanded) {
-      this.itemsExpansionPanel.open();
+    const itemsExpansionPanel = this.itemsExpansionPanel();
+    if (itemsExpansionPanel && !itemsExpansionPanel.expanded) {
+      itemsExpansionPanel.open();
     }
   }
 
@@ -233,8 +238,9 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   public addInlineItemOnBlur(index: number): void {
-    if (this.items && this.items.length - 1 === index) {
-      const item = this.items.at(index) as ItemData;
+    const items = this.items();
+    if (items && items.length - 1 === index) {
+      const item = items.at(index) as ItemData;
       const itemInput = this.receiptItems.at(item?.arrayIndex);
       if (itemInput.valid) {
         this.addInlineItem();
@@ -244,8 +250,9 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy {
 
   public checkLastInlineItem(): void {
     if (this.mode !== FormMode.view) {
-      if (this.items && this.items.length > 1) {
-        const lastItem = this.items[this.items.length - 1];
+      const items = this.items();
+      if (items && items.length > 1) {
+        const lastItem = items[items.length - 1];
         const formGroup = this.receiptItems.at(lastItem.arrayIndex);
         const nameValue = formGroup.get("name")?.value;
         const amountValue = formGroup.get("amount")?.value;
@@ -258,11 +265,12 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   public getTotalAmount(): number {
-    if (!this.items || this.items.length === 0) {
+    const items = this.items();
+    if (!items || items.length === 0) {
       return 0;
     }
 
-    return this.items.reduce((total, itemData) => {
+    return items.reduce((total, itemData) => {
       const amount = parseFloat(itemData.item.amount) || 0;
       return total + amount;
     }, 0);

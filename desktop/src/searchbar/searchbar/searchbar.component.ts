@@ -1,4 +1,4 @@
-import { Component, ViewEncapsulation } from "@angular/core";
+import { Component, signal, ViewEncapsulation } from "@angular/core";
 import { FormControl } from "@angular/forms";
 import { Router } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
@@ -14,7 +14,7 @@ import { SearchResult, SearchService } from "../../open-api";
     standalone: false
 })
 export class SearchbarComponent {
-  public results: SearchResult[] = [];
+  public results = signal<SearchResult[]>([]);
 
   public searchFormControl = new FormControl("");
 
@@ -34,7 +34,7 @@ export class SearchbarComponent {
             : of([] as SearchResult[])
         ),
         tap((results) => {
-          this.results = results;
+          this.results.set(results);
         })
       )
       .subscribe();

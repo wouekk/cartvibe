@@ -22,7 +22,7 @@ describe("IconAutocompleteComponent", () => {
 
     fixture = TestBed.createComponent(IconAutocompleteComponent);
     component = fixture.componentInstance;
-    component.inputFormControl = new FormControl("");
+    fixture.componentRef.setInput('inputFormControl', new FormControl(""));
     fixture.detectChanges();
   });
 

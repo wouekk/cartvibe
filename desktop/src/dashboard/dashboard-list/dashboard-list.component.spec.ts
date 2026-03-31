@@ -22,6 +22,8 @@ describe("DashboardListComponent", () => {
 
     fixture = TestBed.createComponent(DashboardListComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('itemHeaderTemplate', {} as any);
+    fixture.componentRef.setInput('itemLineTemplate', {} as any);
     fixture.detectChanges();
   });
 
@@ -31,9 +33,9 @@ describe("DashboardListComponent", () => {
 
   it("should initialize with default values", () => {
     expect(component.items).toEqual([]);
-    expect(component.noItemFoundText).toBe("");
-    expect(component.itemSize).toBe(67);
-    expect(component.buildRouterLinkString({} as any)).toEqual("");
+    expect(component.noItemFoundText()).toBe("");
+    expect(component.itemSize()).toBe(67);
+    expect(component.buildRouterLinkString()({} as any)).toEqual("");
   });
 
   it("should emit endOfListReached when reaching end of list", () => {
@@ -42,10 +44,9 @@ describe("DashboardListComponent", () => {
 
     // Mock items array
     component.items = Array(10).fill({});
-    fixture.detectChanges();
 
     // Simulate scroll viewport reaching end
-    component.cdkVirtualScrollViewport.setRenderedRange({
+    component.cdkVirtualScrollViewport().setRenderedRange({
       start: 5,
       end: 10
     });
@@ -57,9 +58,8 @@ describe("DashboardListComponent", () => {
     const emitSpy = jest.spyOn(component.endOfListReached, "emit");
 
     component.items = Array(10).fill({});
-    fixture.detectChanges();
 
-    component.cdkVirtualScrollViewport.setRenderedRange({
+    component.cdkVirtualScrollViewport().setRenderedRange({
       start: 0,
       end: 5
     });
@@ -69,15 +69,15 @@ describe("DashboardListComponent", () => {
 
   it("should properly handle buildRouterLinkString function input", () => {
     const mockLinkFn = (item: any) => `/test/${item.id}`;
-    component.buildRouterLinkString = mockLinkFn;
+    fixture.componentRef.setInput('buildRouterLinkString', mockLinkFn);
 
     const testItem = { id: 123 };
-    expect(component.buildRouterLinkString(testItem)).toBe("/test/123");
+    expect(component.buildRouterLinkString()(testItem)).toBe("/test/123");
   });
 
   it("should clean up subscriptions on destroy", () => {
     const subscription = jest.spyOn(
-      component.cdkVirtualScrollViewport.renderedRangeStream,
+      component.cdkVirtualScrollViewport().renderedRangeStream,
       "subscribe"
     );
 

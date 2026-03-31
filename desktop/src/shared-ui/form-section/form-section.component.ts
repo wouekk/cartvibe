@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, TemplateRef } from "@angular/core";
+import { Component, Input, OnInit, TemplateRef, input } from "@angular/core";
 
 @Component({
     selector: "app-form-section",
@@ -7,20 +7,20 @@ import { Component, Input, OnInit, TemplateRef } from "@angular/core";
     standalone: false
 })
 export class FormSectionComponent implements OnInit {
-  @Input() public headerText: string = "";
+  public readonly headerText = input<string>("");
 
   @Input() public headerButtonsTemplate?: TemplateRef<any>;
 
-  @Input() public indent: boolean = true;
+  public readonly indent = input<boolean>(true);
 
   @Input() public subtitle: string = "";
 
-  @Input() public collapsed: boolean = false;
+  public readonly collapsed = input<boolean>(false);
 
   public isCollapsed: boolean = false;
 
   public ngOnInit(): void {
-    this.isCollapsed = this.collapsed;
+    this.isCollapsed = this.collapsed();
   }
 
   public toggleCollapsed(): void {

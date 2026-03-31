@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { RadioButtonData } from '../models';
 
@@ -9,7 +9,7 @@ import { RadioButtonData } from '../models';
     standalone: false
 })
 export class RadioGroupComponent {
-  @Input() public radioButtonData: RadioButtonData[] = [];
+  public readonly radioButtonData = input<RadioButtonData[]>([]);
 
-  @Input() public inputFormControl: FormControl = new FormControl('');
+  public readonly inputFormControl = input<FormControl>(new FormControl(''));
 }

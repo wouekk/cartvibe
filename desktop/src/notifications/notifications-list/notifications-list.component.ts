@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, signal } from "@angular/core";
 import { take, tap } from "rxjs";
 import { Notification, NotificationsService } from "../../open-api";
 
@@ -9,7 +9,7 @@ import { Notification, NotificationsService } from "../../open-api";
     standalone: false
 })
 export class NotificationsListComponent implements OnInit {
-  public notifications: Notification[] = [];
+  public notifications = signal<Notification[]>([]);
 
   constructor(private notificationsService: NotificationsService) {}
 
@@ -23,7 +23,7 @@ export class NotificationsListComponent implements OnInit {
       .pipe(
         take(1),
         tap((notifications) => {
-          this.notifications = notifications;
+          this.notifications.set(notifications);
         })
       )
       .subscribe();
@@ -35,13 +35,13 @@ export class NotificationsListComponent implements OnInit {
       .pipe(
         take(1),
         tap(() => {
-          this.notifications = [];
+          this.notifications.set([]);
         })
       )
       .subscribe();
   }
 
   public notificationDeleted(id: number): void {
-    this.notifications = this.notifications.filter((n) => n.id !== id);
+    this.notifications.set(this.notifications().filter((n) => n.id !== id));
   }
 }

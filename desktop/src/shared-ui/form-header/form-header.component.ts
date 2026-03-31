@@ -1,5 +1,5 @@
 import { Location } from "@angular/common";
-import { Component, Input, TemplateRef } from "@angular/core";
+import { Component, Input, TemplateRef, input } from "@angular/core";
 
 @Component({
     selector: "app-form-header",
@@ -8,13 +8,13 @@ import { Component, Input, TemplateRef } from "@angular/core";
     standalone: false
 })
 export class FormHeaderComponent {
-  @Input() public headerText: string = "";
+  public readonly headerText = input<string>("");
 
   @Input() public headerButtonsTemplate?: TemplateRef<any>;
 
-  @Input() public bottomSpacing: boolean = false;
+  public readonly bottomSpacing = input<boolean>(false);
 
-  @Input() public displayBackButton: boolean = true;
+  public readonly displayBackButton = input<boolean>(true);
 
   constructor(private location: Location) {}
 

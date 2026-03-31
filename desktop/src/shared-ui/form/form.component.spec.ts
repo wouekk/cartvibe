@@ -37,12 +37,12 @@ describe("FormComponent", () => {
     });
     fixture = TestBed.createComponent(FormComponent);
     component = fixture.componentInstance;
-    component.formConfig = {
+    fixture.componentRef.setInput('formConfig', {
       headerText: "test",
       mode: FormMode.add,
-    };
-    component.form = new FormGroup({});
-    fixture.detectChanges();
+    });
+    fixture.componentRef.setInput('form', new FormGroup({}));
+    fixture.componentRef.setInput('formTemplate', {} as any);
   });
 
   it("should create", () => {

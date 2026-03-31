@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, EventEmitter, HostListener, Input, OnChanges, OnDestroy, Output, SimpleChanges } from "@angular/core";
+import { Component, HostListener, Input, OnChanges, OnDestroy, SimpleChanges, input, output, signal } from "@angular/core";
 
 @Component({
     selector: "app-image-viewer",
@@ -14,17 +14,15 @@ export class ImageViewerComponent implements OnChanges, OnDestroy {
 
   @Input() public imageBase64?: string = "";
 
-  @Input() public imageFile?: File;
+  public readonly imageFile = input<File>();
 
-  @Input() public scale: number = 1;
+  public readonly scale = input<number>(1);
 
-  @Output() public wheel: EventEmitter<WheelEvent> = new EventEmitter<WheelEvent>();
+  public readonly wheel = output<WheelEvent>();
 
-  public imageFileUrl: string = "";
+  public imageFileUrl = signal("");
 
   private activeReader?: FileReader;
-
-  constructor(private cdr: ChangeDetectorRef) {}
 
   public ngOnChanges(changes: SimpleChanges): void {
     if (changes["imageFile"] && changes["imageFile"].currentValue) {
@@ -43,8 +41,7 @@ export class ImageViewerComponent implements OnChanges, OnDestroy {
     this.activeReader = reader;
 
     reader.onload = (event) => {
-      this.imageFileUrl = (event?.target?.result ?? "") as string;
-      this.cdr.detectChanges();
+      this.imageFileUrl.set((event?.target?.result ?? "") as string);
     };
 
     reader.readAsDataURL(file);

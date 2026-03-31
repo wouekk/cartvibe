@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from "@angular/core";
+import { Component, output } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
 import { FormMode } from "src/enums/form-mode.enum";
@@ -19,8 +19,7 @@ export class BaseFormComponent {
 
   public form: FormGroup = new FormGroup({});
 
-  @Output() public formCommand: EventEmitter<FormCommand> =
-    new EventEmitter<FormCommand>();
+  public readonly formCommand = output<FormCommand>();
 
   constructor() {}
 

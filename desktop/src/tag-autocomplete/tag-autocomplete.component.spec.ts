@@ -16,7 +16,7 @@ describe("TagAutocompleteComponent", () => {
 
     fixture = TestBed.createComponent(TagAutocompleteComponent);
     component = fixture.componentInstance;
-    component.inputFormControl = new FormControl();
+    fixture.componentRef.setInput('inputFormControl', new FormControl());
     fixture.detectChanges();
   });
 

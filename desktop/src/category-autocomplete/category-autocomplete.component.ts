@@ -1,4 +1,4 @@
-import { Component, Input } from "@angular/core";
+import { Component, input } from "@angular/core";
 import { FormControl } from "@angular/forms";
 import { AutocompleteModule } from "../autocomplete/autocomplete.module";
 import { Category } from "../open-api/index";
@@ -15,9 +15,9 @@ import { PipesModule } from "../pipes/index";
   styleUrl: "./category-autocomplete.component.scss"
 })
 export class CategoryAutocompleteComponent {
-  @Input() public categories: Category[] = [];
+  public readonly categories = input<Category[]>([]);
 
-  @Input() public inputFormControl!: FormControl;
+  public readonly inputFormControl = input.required<FormControl>();
 
-  @Input() public readonly = false;
+  public readonly readonly = input(false);
 }

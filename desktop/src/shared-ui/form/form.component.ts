@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, TemplateRef, } from "@angular/core";
+import { Component, TemplateRef, input, output } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { FormConfig } from "src/interfaces";
 
@@ -9,21 +9,21 @@ import { FormConfig } from "src/interfaces";
     standalone: false
 })
 export class FormComponent {
-  @Input() public formConfig!: FormConfig;
+  public readonly formConfig = input.required<FormConfig>();
 
-  @Input() public form!: FormGroup;
+  public readonly form = input.required<FormGroup>();
 
-  @Input() public formTemplate!: TemplateRef<any>;
+  public readonly formTemplate = input.required<TemplateRef<any>>();
 
-  @Input() public editButtonRouterLink: string[] = [];
+  public readonly editButtonRouterLink = input<string[]>([]);
 
-  @Input() public editButtonQueryParams: any = {};
+  public readonly editButtonQueryParams = input<any>({});
 
-  @Input() public canEdit = true;
+  public readonly canEdit = input(true);
 
-  @Input() public bottomSpacing = false;
+  public readonly bottomSpacing = input(false);
 
-  @Input() public submitButtonDisabled = false;
+  public readonly submitButtonDisabled = input(false);
 
-  @Output() public submitted: EventEmitter<void> = new EventEmitter<void>();
+  public readonly submitted = output<void>();
 }

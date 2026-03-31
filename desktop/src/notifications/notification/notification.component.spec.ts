@@ -29,14 +29,14 @@ describe("NotificationComponent", () => {
     service = TestBed.inject(NotificationsService);
     fixture = TestBed.createComponent(NotificationComponent);
     component = fixture.componentInstance;
-    component.notification = {
+    fixture.componentRef.setInput('notification', {
       id: 1,
       body: "body",
       userId: 1,
       type: "tring",
       title: "lol",
       createdAt: new Date().toISOString(),
-    };
+    });
     fixture.detectChanges();
   });
 

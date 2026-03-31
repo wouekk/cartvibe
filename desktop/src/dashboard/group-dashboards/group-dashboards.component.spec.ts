@@ -84,7 +84,7 @@ describe("GroupDashboardsComponent", () => {
 
     component.ngOnInit();
 
-    expect(component.dashboards).toEqual(dashboards);
+    expect(component.dashboards()).toEqual(dashboards);
   });
 
   it("should set dashboards with dashboards on seleced group id change", () => {
@@ -117,7 +117,7 @@ describe("GroupDashboardsComponent", () => {
     });
     component.ngOnInit();
 
-    expect(component.dashboards).toEqual(dashboards);
+    expect(component.dashboards()).toEqual(dashboards);
 
     store.reset({
       groups: {
@@ -134,7 +134,7 @@ describe("GroupDashboardsComponent", () => {
       dashboardId: 2,
     });
 
-    expect(component.dashboards).toEqual(newDashboards);
+    expect(component.dashboards()).toEqual(newDashboards);
   });
 
   it("should not navigate to selected dashboard", () => {

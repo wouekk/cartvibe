@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from "@angular/core";
+import { Component, Input, input, output } from "@angular/core";
 import { FormMode } from "src/enums/form-mode.enum";
 
 @Component({
@@ -8,21 +8,21 @@ import { FormMode } from "src/enums/form-mode.enum";
   standalone: false
 })
 export class FormButtonComponent {
-  @Input() public mode!: FormMode;
+  public readonly mode = input<FormMode>(FormMode.view);
 
   @Input() public tooltip?: string;
 
-  @Input() public disabled: boolean = false;
+  public readonly disabled = input<boolean>(false);
 
   @Input() public color: string = "primary";
 
-  @Input() public buttonRouterLink?: string[] = undefined;
+  public readonly buttonRouterLink = input<string[]>();
 
-  @Input() public buttonQueryParams: any = {};
+  public readonly buttonQueryParams = input<any>({});
 
-  @Input() public buttonText?: string;
+  public readonly buttonText = input<string>();
 
-  @Input() public type: "button" | "submit" = "button";
+  public readonly type = input<"button" | "submit">("button");
 
-  @Output() public clicked: EventEmitter<MouseEvent> = new EventEmitter<MouseEvent>();
+  public readonly clicked = output<MouseEvent | void>();
 }

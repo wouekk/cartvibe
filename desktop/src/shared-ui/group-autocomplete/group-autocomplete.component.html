@@ -3,10 +3,10 @@
   label="Group"
   optionFilterKey="name"
   optionValueKey="id"
-  [inputFormControl]="inputFormControl"
-  [options]="(groups | async) ?? []"
+  [inputFormControl]="inputFormControl()"
+  [options]="groups() ?? []"
   [optionTemplate]="groupOptionTemplate"
-  [readonly]="readonly"
+  [readonly]="readonly()"
   [displayWith]="groupDisplayWith.bind(this)"
 ></app-autocomlete>
 

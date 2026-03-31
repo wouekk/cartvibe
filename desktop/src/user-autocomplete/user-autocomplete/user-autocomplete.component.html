@@ -1,27 +1,27 @@
 <app-autocomlete
-  *ngIf="multiple"
+  *ngIf="multiple()"
   optionFilterKey="displayName"
   optionDisplayKey="displayName"
-  [label]="label"
-  [inputFormControl]="inputFormControl"
+  [label]="label()"
+  [inputFormControl]="inputFormControl()"
   [options]="users"
   [optionTemplate]="optionTemplate"
   [multiple]="true"
-  [readonly]="readonly || (selectGroupMembersOnly && !groupId)"
-  [optionValueKey]="optionValueKey ?? ''"
+  [readonly]="readonly() || (selectGroupMembersOnly() && !groupId())"
+  [optionValueKey]="optionValueKey() ?? ''"
 ></app-autocomlete>
 
 <app-autocomlete
-  *ngIf="!multiple"
+  *ngIf="!multiple()"
   optionFilterKey="displayName"
   optionDisplayKey="displayName"
-  [optionValueKey]="optionValueKey ?? 'id'"
-  [label]="label"
-  [inputFormControl]="inputFormControl"
+  [optionValueKey]="optionValueKey() ?? 'id'"
+  [label]="label()"
+  [inputFormControl]="inputFormControl()"
   [options]="users"
   [optionTemplate]="optionTemplate"
   [displayWith]="displayWith.bind(this)"
-  [readonly]="readonly || (selectGroupMembersOnly && !groupId)"
+  [readonly]="readonly() || (selectGroupMembersOnly() && !groupId())"
 ></app-autocomlete>
 
 <ng-template #optionTemplate let-option="option"

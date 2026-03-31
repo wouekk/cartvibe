@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, TemplateRef } from "@angular/core";
+import { Component, Input, TemplateRef, input, output } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
 
 @Component({
@@ -8,21 +8,21 @@ import { BehaviorSubject } from "rxjs";
     standalone: false
 })
 export class EditableListComponent {
-  @Input() public listData: any[] = [];
+  public readonly listData = input<any[]>([]);
 
-  @Input() public itemTitleTemplate!: TemplateRef<any>;
+  public readonly itemTitleTemplate = input.required<TemplateRef<any>>();
 
-  @Input() public itemSubtitleTemplate!: TemplateRef<any>;
+  public readonly itemSubtitleTemplate = input.required<TemplateRef<any>>();
 
-  @Input() public trackByKey: string = "";
+  public readonly trackByKey = input<string>("");
 
   @Input() public editTemplate?: TemplateRef<any>;
 
-  @Input() public readonly: boolean = false;
+  public readonly readonly = input<boolean>(false);
 
-  @Output() public editButtonClicked: EventEmitter<number> = new EventEmitter<number>();
+  public readonly editButtonClicked = output<number>();
 
-  @Output() public deleteButtonClicked: EventEmitter<number> = new EventEmitter<number>();
+  public readonly deleteButtonClicked = output<number>();
 
   private rowOpen: BehaviorSubject<number | undefined> = new BehaviorSubject<
     number | undefined
@@ -45,7 +45,7 @@ export class EditableListComponent {
   }
 
   public openLastRow(): void {
-    this.rowOpen.next(this.listData.length - 1);
+    this.rowOpen.next(this.listData().length - 1);
   }
 
   public closeRow(): void {
