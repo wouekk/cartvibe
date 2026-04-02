@@ -1,8 +1,10 @@
-import { CommonModule } from "@angular/common";
+import { CommonModule, CurrencyPipe } from "@angular/common";
 import { Component, OnInit, OnChanges, SimpleChanges, input, signal } from "@angular/core";
 import { Chart, ChartConfiguration, ChartData } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import { take, tap } from "rxjs";
+import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
+import { PipesModule } from "../../pipes/pipes.module";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { ChartGrouping, PieChartData, PieChartDataCommand, Widget, WidgetService } from "../../open-api";
 
@@ -14,7 +16,8 @@ Chart.register(ChartDataLabels);
   templateUrl: "./pie-chart.component.html",
   styleUrls: ["./pie-chart.component.scss"],
   standalone: true,
-  imports: [CommonModule, SharedUiModule]
+  imports: [CommonModule, SharedUiModule, PipesModule],
+  providers: [CurrencyPipe],
 })
 export class PieChartComponent implements OnInit, OnChanges {
   public readonly widget = input.required<Widget>();
@@ -43,45 +46,51 @@ export class PieChartComponent implements OnInit, OnChanges {
     ],
   };
 
-  public pieChartOptions: ChartConfiguration<"pie">["options"] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: true,
-        position: "bottom",
-      },
-      tooltip: {
-        callbacks: {
-          label: (context) => {
-            const label = context.label || "";
-            const value = context.parsed || 0;
-            const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
-            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : "0";
-            return `${label}: $${value.toFixed(2)} (${percentage}%)`;
-          },
-        },
-      },
-      datalabels: {
-        color: "#fff",
-        font: {
-          weight: "bold",
-          size: 12,
-        },
-        formatter: (value: number, context: any) => {
-          const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
-          const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : "0";
-          // Only show label if percentage is > 5% to avoid cluttering small slices
-          return parseFloat(percentage) > 5 ? `${percentage}%` : "";
-        },
-      },
-    },
-  };
+  public pieChartOptions: ChartConfiguration<"pie">["options"];
 
   public isLoading = signal(true);
   public hasData = signal(false);
 
-  constructor(private widgetService: WidgetService) {}
+  constructor(
+    private widgetService: WidgetService,
+    private customCurrencyPipe: CustomCurrencyPipe,
+  ) {
+    this.pieChartOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: "bottom",
+        },
+        tooltip: {
+          callbacks: {
+            label: (context) => {
+              const label = context.label || "";
+              const value = context.parsed || 0;
+              const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+              const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : "0";
+              const formattedValue = this.customCurrencyPipe.transform(value);
+              return `${label}: ${formattedValue} (${percentage}%)`;
+            },
+          },
+        },
+        datalabels: {
+          color: "#fff",
+          font: {
+            weight: "bold",
+            size: 12,
+          },
+          formatter: (value: number, context: any) => {
+            const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : "0";
+            // Only show label if percentage is > 5% to avoid cluttering small slices
+            return parseFloat(percentage) > 5 ? `${percentage}%` : "";
+          },
+        },
+      },
+    };
+  }
 
   public ngOnInit(): void {
     this.loadData();

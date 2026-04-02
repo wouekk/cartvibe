@@ -1,11 +1,15 @@
+import { CurrencyPipe } from "@angular/common";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA, SimpleChange } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
+import { NgxsModule } from "@ngxs/store";
 import { of, throwError } from "rxjs";
 import { ChartGrouping, PieChartData, Widget, WidgetService, WidgetType } from "../../open-api";
+import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
+import { SystemSettingsState } from "../../store/system-settings.state";
 
 import { PieChartComponent } from "./pie-chart.component";
 
@@ -37,10 +41,12 @@ describe("PieChartComponent", () => {
     };
 
     await TestBed.configureTestingModule({
-      imports: [PieChartComponent, SharedUiModule],
+      imports: [PieChartComponent, SharedUiModule, NgxsModule.forRoot([SystemSettingsState])],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
       providers: [
         { provide: WidgetService, useValue: widgetServiceMock },
+        CurrencyPipe,
+        CustomCurrencyPipe,
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
       ],
