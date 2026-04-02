@@ -129,4 +129,24 @@ describe("NotificationsListComponent", () => {
     ]);
     expect(emitSpy).toHaveBeenCalledWith(1);
   });
+
+  it("should emit undefined when the last notification is deleted", () => {
+    component.notifications.set([
+      {
+        id: 1,
+        body: "Body 1",
+        userId: 10,
+        type: "Type 1",
+        title: "Title 1",
+        createdAt: "2023-07-03",
+      },
+    ]);
+
+    const emitSpy = jest.spyOn(component.notificationCountChanged, "emit");
+
+    component.notificationDeleted(1);
+
+    expect(component.notifications()).toEqual([]);
+    expect(emitSpy).toHaveBeenCalledWith(undefined);
+  });
 });
