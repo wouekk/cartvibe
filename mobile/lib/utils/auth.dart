@@ -49,7 +49,8 @@ Future<void> storeAppData(
     TagModel tagModel,
     SystemSettingsModel systemSettingsModel,
     AppData appData) async {
-  if (appData.jwt!.isNotEmpty && appData.refreshToken!.isNotEmpty) {
+  if ((appData.jwt?.isNotEmpty ?? false) &&
+      (appData.refreshToken?.isNotEmpty ?? false)) {
     await authModel.setTokens(appData.jwt, appData.refreshToken);
   }
 

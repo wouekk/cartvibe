@@ -389,6 +389,71 @@ void main() {
       });
 
       test(
+          'stores all app data fields when jwt and refreshToken are null in response',
+          () async {
+        when(() => mockAuthModel.getJwt()).thenAnswer((_) async => validJwt);
+        when(() => mockAuthModel.getRefreshToken())
+            .thenAnswer((_) async => validJwt);
+        when(() => mockGroupModel.groups).thenReturn([]);
+
+        final mockAppData = MockAppData();
+        when(() => mockAppData.jwt).thenReturn(null);
+        when(() => mockAppData.refreshToken).thenReturn(null);
+        when(() => mockAppData.claims).thenReturn(MockClaims());
+        when(() => mockAppData.featureConfig).thenReturn(MockFeatureConfig());
+        when(() => mockAppData.groups).thenReturn(BuiltList<Group>());
+        when(() => mockAppData.users).thenReturn(BuiltList<UserView>());
+        when(() => mockAppData.userPreferences)
+            .thenReturn(MockUserPreferences());
+        when(() => mockAppData.categories).thenReturn(BuiltList<Category>());
+        when(() => mockAppData.tags).thenReturn(BuiltList<Tag>());
+        when(() => mockAppData.currencyDisplay).thenReturn('');
+        when(() => mockAppData.currencyDecimalSeparator)
+            .thenReturn(CurrencySeparator.period);
+        when(() => mockAppData.currencyThousandthsSeparator)
+            .thenReturn(CurrencySeparator.comma);
+        when(() => mockAppData.currencySymbolPosition)
+            .thenReturn(CurrencySymbolPosition.END);
+        when(() => mockAppData.currencyHideDecimalPlaces).thenReturn(false);
+
+        when(() => mockUserApi.getAppData()).thenAnswer((_) async => Response(
+              data: mockAppData,
+              requestOptions: RequestOptions(path: '/user/appData'),
+              statusCode: 200,
+            ));
+        when(() => mockAuthModel.setTokens(any(), any()))
+            .thenAnswer((_) async {});
+        when(() => mockAuthModel.setClaims(any())).thenReturn(null);
+        when(() => mockAuthModel.setFeatureConfig(any())).thenReturn(null);
+        when(() => mockGroupModel.setGroups(any())).thenReturn(null);
+        when(() => mockUserModel.setUsers(any())).thenReturn(null);
+        when(() => mockUserPreferencesModel.setUserPreferences(any()))
+            .thenReturn(null);
+        when(() => mockCategoryModel.setCategories(any())).thenReturn(null);
+        when(() => mockTagModel.setTags(any())).thenReturn(null);
+        when(() => mockSystemSettingsModel.setCurrencyDisplay(any()))
+            .thenReturn(null);
+        when(() => mockSystemSettingsModel.setCurrencyDecimalSeparator(any()))
+            .thenReturn(null);
+        when(() => mockSystemSettingsModel.setCurrencyThousandSeparator(any()))
+            .thenReturn(null);
+        when(() => mockSystemSettingsModel.setCurrencySymbolPosition(any()))
+            .thenReturn(null);
+        when(() => mockSystemSettingsModel.setCurrencyHideDecimalPlaces(any()))
+            .thenReturn(null);
+
+        final result = await service.refreshTokens();
+
+        expect(result, true);
+        // setTokens should NOT be called when both tokens are null
+        verifyNever(() => mockAuthModel.setTokens(any(), any()));
+        // But all other app data fields should still be stored
+        verify(() => mockAuthModel.setClaims(any())).called(1);
+        verify(() => mockGroupModel.setGroups(any())).called(1);
+        verify(() => mockUserModel.setUsers(any())).called(1);
+      });
+
+      test(
           'returns true when app data loading fails after successful token refresh',
           () async {
         when(() => mockAuthModel.getJwt()).thenAnswer((_) async => expiredJwt);
