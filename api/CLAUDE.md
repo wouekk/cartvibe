@@ -98,6 +98,25 @@ When working with tests in this codebase, follow these critical requirements:
 - Supports HEIC format conversion to standard image formats
 - Python dependencies for additional image processing capabilities
 
+## Testing Requirements
+
+**All new code must have accompanying unit tests.**
+
+Before considering any work complete:
+
+1. Write unit tests for all new functions and endpoints
+2. Follow existing test patterns in the codebase (see `main_test.go` files for setup)
+3. Mock external dependencies (database, services, etc.)
+4. Run the full test suite: `go test -v ./...`
+5. Ensure all tests pass before submitting changes
+
+Tests should cover:
+
+- Happy path scenarios
+- Error handling and edge cases
+- Input validation
+- Authentication/authorization logic
+
 ## API Documentation
 
 - OpenAPI 3.1 specification in `swagger.yml`
