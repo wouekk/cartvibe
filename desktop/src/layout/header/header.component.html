@@ -91,5 +91,5 @@
 </ng-template>
 
 <ng-template #notifications>
-  <app-notifications-list></app-notifications-list>
+  <app-notifications-list (notificationCountChanged)="notificationCount.set($event)"></app-notifications-list>
 </ng-template>
