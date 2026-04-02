@@ -71,6 +71,7 @@ func (repository GroupSettingsRepository) UpdateGroupSettings(groupId string, co
 
 	groupSettings.SystemEmailId = command.SystemEmailId
 	groupSettings.EmailIntegrationEnabled = command.EmailIntegrationEnabled
+	groupSettings.EmailBodyProcessingEnabled = command.EmailBodyProcessingEnabled
 	groupSettings.EmailDefaultReceiptStatus = command.EmailDefaultReceiptStatus
 	groupSettings.EmailDefaultReceiptPaidById = command.EmailDefaultReceiptPaidById
 	groupSettings.SubjectLineRegexes = command.SubjectLineRegexes

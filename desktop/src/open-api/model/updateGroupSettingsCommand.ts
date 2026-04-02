@@ -22,6 +22,10 @@ export interface UpdateGroupSettingsCommand {
      */
     emailIntegrationEnabled?: boolean;
     /**
+     * Whether email body text processing is enabled (opt-in, default false)
+     */
+    emailBodyProcessingEnabled?: boolean;
+    /**
      * Subject line regexes
      */
     subjectLineRegexes: Array<SubjectLineRegex>;

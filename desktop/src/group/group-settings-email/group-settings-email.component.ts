@@ -85,6 +85,10 @@ export class GroupSettingsEmailComponent
               command: "addValidators",
               payload: [Validators.required],
             });
+            this.emitFormCommand({
+              path: "emailBodyProcessingEnabled",
+              command: "enable",
+            });
           } else {
             this.emitFormCommand({
               path: "systemEmailId",
@@ -129,6 +133,15 @@ export class GroupSettingsEmailComponent
                 required: null,
               },
             });
+            this.emitFormCommand({
+              path: "emailBodyProcessingEnabled",
+              command: "patchValue",
+              payload: false,
+            });
+            this.emitFormCommand({
+              path: "emailBodyProcessingEnabled",
+              command: "disable",
+            });
           }
           this.emitFormCommand({
             path: "systemEmailId",
@@ -155,6 +168,12 @@ export class GroupSettingsEmailComponent
       path: "emailIntegrationEnabled",
       command: "patchValue",
       payload: this.group?.groupSettings?.emailIntegrationEnabled,
+    });
+
+    this.emitFormCommand({
+      path: "emailBodyProcessingEnabled",
+      command: "patchValue",
+      payload: this.group?.groupSettings?.emailBodyProcessingEnabled,
     });
 
     const formCommand: FormCommand = {

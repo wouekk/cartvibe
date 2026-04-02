@@ -51,6 +51,7 @@ export class GroupSettingsComponent
     this.form = this.formBuilder.group({
       systemEmailId: "",
       emailIntegrationEnabled: false,
+      emailBodyProcessingEnabled: false,
       subjectLineRegexes: this.formBuilder.array([]),
       emailWhiteList: this.formBuilder.array([]),
       emailDefaultReceiptStatus: "",
