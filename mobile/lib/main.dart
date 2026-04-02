@@ -29,9 +29,9 @@ import 'package:receipt_wrangler_mobile/receipts/screens/receipt_form_screen.dar
 import 'package:receipt_wrangler_mobile/search/nav/search_app_bar.dart';
 import 'package:receipt_wrangler_mobile/search/screens/search_screen.dart';
 import 'package:receipt_wrangler_mobile/search/widgets/searchbar.dart';
+import 'package:receipt_wrangler_mobile/services/token_refresh_service.dart';
 import 'package:receipt_wrangler_mobile/shared/widgets/circular_loading_progress.dart';
 import 'package:receipt_wrangler_mobile/shared/widgets/screen_wrapper.dart';
-import 'package:receipt_wrangler_mobile/utils/auth.dart';
 import 'package:receipt_wrangler_mobile/utils/permissions.dart';
 
 import 'package:receipt_wrangler_mobile/profile/screens/user_profile_screen.dart';
@@ -177,10 +177,15 @@ class ReceiptWrangler extends StatefulWidget {
 
 class _ReceiptWrangler extends State<ReceiptWrangler> {
   late final AppLifecycleListener _lifecycleListener;
+  Timer? _refreshTimer;
+  late Future<bool> _initFuture;
+  bool _initialized = false;
+
   late final authModel = Provider.of<AuthModel>(context, listen: false);
   late final groupModel = Provider.of<GroupModel>(context, listen: false);
   late final userModel = Provider.of<UserModel>(context, listen: false);
-  late final categoryModel = Provider.of<CategoryModel>(context, listen: false);
+  late final categoryModel =
+      Provider.of<CategoryModel>(context, listen: false);
   late final tagModel = Provider.of<TagModel>(context, listen: false);
   late final systemSettingsModel =
       Provider.of<SystemSettingsModel>(context, listen: false);
@@ -199,6 +204,7 @@ class _ReceiptWrangler extends State<ReceiptWrangler> {
 
   @override
   void dispose() {
+    _refreshTimer?.cancel();
     _lifecycleListener.dispose();
 
     super.dispose();
@@ -208,11 +214,28 @@ class _ReceiptWrangler extends State<ReceiptWrangler> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    Timer.periodic(const Duration(minutes: 15), (timer) async {
-      await refreshTokens(authModel, groupModel, userModel,
-          userPreferencesModel, categoryModel, tagModel, systemSettingsModel,
-          force: true);
-    });
+    if (!_initialized) {
+      _initialized = true;
+
+      authModel.initializeAuth();
+
+      TokenRefreshService().initialize(
+        authModel: authModel,
+        groupModel: groupModel,
+        userModel: userModel,
+        userPreferencesModel: userPreferencesModel,
+        categoryModel: categoryModel,
+        tagModel: tagModel,
+        systemSettingsModel: systemSettingsModel,
+      );
+
+      _initFuture = TokenRefreshService().refreshTokens();
+
+      _refreshTimer =
+          Timer.periodic(const Duration(minutes: 15), (timer) async {
+        await TokenRefreshService().refreshTokens();
+      });
+    }
   }
 
   Widget _buildRouter() {
@@ -256,12 +279,8 @@ class _ReceiptWrangler extends State<ReceiptWrangler> {
 
   @override
   Widget build(BuildContext context) {
-    authModel.initializeAuth();
-    var future = refreshTokens(authModel, groupModel, userModel,
-        userPreferencesModel, categoryModel, tagModel, systemSettingsModel);
-
     return FutureBuilder(
-      future: future,
+      future: _initFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           return _buildRouter();
@@ -292,8 +311,7 @@ class _ReceiptWrangler extends State<ReceiptWrangler> {
 
   void _onResumed() async {
     print("resumed");
-    await refreshTokens(authModel, groupModel, userModel, userPreferencesModel,
-        categoryModel, tagModel, systemSettingsModel);
+    await TokenRefreshService().refreshTokens(force: true);
   }
 
   void _onInactive() => print('inactive');
