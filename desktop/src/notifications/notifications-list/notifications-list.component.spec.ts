@@ -52,11 +52,13 @@ describe("NotificationsListComponent", () => {
     jest.spyOn(service, "getNotificationsForuser").mockReturnValue(
       of(mockNotifications as any)
     );
+    const emitSpy = jest.spyOn(component.notificationCountChanged, "emit");
 
     component.ngOnInit();
 
     expect(component.notifications()).toEqual(mockNotifications);
     expect(service.getNotificationsForuser).toHaveBeenCalled();
+    expect(emitSpy).toHaveBeenCalledWith(2);
   });
 
   it("should delete all notifications", () => {
@@ -82,10 +84,13 @@ describe("NotificationsListComponent", () => {
       },
     ]);
 
+    const emitSpy = jest.spyOn(component.notificationCountChanged, "emit");
+
     component.deleteAllNotifications();
 
     expect(component.notifications().length).toEqual(0);
     expect(service.deleteAllNotificationsForUser).toHaveBeenCalled();
+    expect(emitSpy).toHaveBeenCalledWith(undefined);
   });
 
   it("should delete a notification by id", () => {
@@ -108,6 +113,8 @@ describe("NotificationsListComponent", () => {
       },
     ]);
 
+    const emitSpy = jest.spyOn(component.notificationCountChanged, "emit");
+
     component.notificationDeleted(1);
 
     expect(component.notifications()).toEqual([
@@ -120,5 +127,26 @@ describe("NotificationsListComponent", () => {
         createdAt: "2023-07-04",
       },
     ]);
+    expect(emitSpy).toHaveBeenCalledWith(1);
+  });
+
+  it("should emit undefined when the last notification is deleted", () => {
+    component.notifications.set([
+      {
+        id: 1,
+        body: "Body 1",
+        userId: 10,
+        type: "Type 1",
+        title: "Title 1",
+        createdAt: "2023-07-03",
+      },
+    ]);
+
+    const emitSpy = jest.spyOn(component.notificationCountChanged, "emit");
+
+    component.notificationDeleted(1);
+
+    expect(component.notifications()).toEqual([]);
+    expect(emitSpy).toHaveBeenCalledWith(undefined);
   });
 });
