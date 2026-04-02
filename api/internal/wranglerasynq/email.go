@@ -7,6 +7,7 @@ import (
 	"github.com/hibiken/asynq"
 	"os"
 	"os/exec"
+	"path/filepath"
 	config "receipt-wrangler/api/internal/env"
 	"receipt-wrangler/api/internal/logging"
 	"receipt-wrangler/api/internal/models"
@@ -130,7 +131,7 @@ func pollEmailForGroupSettings(groupSettings []models.GroupSettings) error {
 	}
 
 	var out bytes.Buffer
-	cmd := exec.Command("python3", basePath+"/imap-client/client.py")
+	cmd := exec.Command("python3", filepath.Join(basePath, "imap-client", "client.py"))
 	cmd.Stdout = &out
 	cmd.Stdin = bytes.NewReader(bytesArr)
 	cmd.Env = os.Environ()
@@ -230,10 +231,10 @@ func enqueueEmailProcessTasks(metadataList []structs.EmailMetadata) error {
 
 func buildTempEmailFilePath(attachmentFileName string) string {
 	fileRepository := repositories.NewFileRepository(nil)
-	return fileRepository.GetTempDirectoryPath() + "/" + attachmentFileName
+	return filepath.Join(fileRepository.GetTempDirectoryPath(), attachmentFileName)
 }
 
 func buildTempEmailOcrFilePath(attachmentFileName string) string {
 	fileRepository := repositories.NewFileRepository(nil)
-	return fileRepository.GetTempDirectoryPath() + "/" + "image-" + attachmentFileName
+	return filepath.Join(fileRepository.GetTempDirectoryPath(), "image-"+attachmentFileName)
 }
