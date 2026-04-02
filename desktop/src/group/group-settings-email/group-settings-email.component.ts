@@ -157,6 +157,12 @@ export class GroupSettingsEmailComponent
       payload: this.group?.groupSettings?.emailIntegrationEnabled,
     });
 
+    this.emitFormCommand({
+      path: "emailBodyProcessingEnabled",
+      command: "patchValue",
+      payload: this.group?.groupSettings?.emailBodyProcessingEnabled,
+    });
+
     const formCommand: FormCommand = {
       path: "systemEmailId",
       command: "patchValue",

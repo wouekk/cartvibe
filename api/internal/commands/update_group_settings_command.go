@@ -13,6 +13,7 @@ import (
 type UpdateGroupSettingsCommand struct {
 	SystemEmailId               *uint                                `json:"SystemEmailId"`
 	EmailIntegrationEnabled     bool                                 `json:"emailIntegrationEnabled"`
+	EmailBodyProcessingEnabled  bool                                 `json:"emailBodyProcessingEnabled"`
 	SubjectLineRegexes          []models.SubjectLineRegex            `json:"subjectLineRegexes"`
 	EmailWhiteList              []models.GroupSettingsWhiteListEmail `json:"emailWhiteList"`
 	EmailDefaultReceiptStatus   models.ReceiptStatus                 `json:"emailDefaultReceiptStatus"`
@@ -36,6 +37,7 @@ func (command *UpdateGroupSettingsCommand) LoadDataFromRequest(w http.ResponseWr
 	}
 
 	command.EmailIntegrationEnabled = updateGroupSettingsCommand.EmailIntegrationEnabled
+	command.EmailBodyProcessingEnabled = updateGroupSettingsCommand.EmailBodyProcessingEnabled
 	command.SystemEmailId = updateGroupSettingsCommand.SystemEmailId
 	command.SubjectLineRegexes = updateGroupSettingsCommand.SubjectLineRegexes
 	command.EmailWhiteList = updateGroupSettingsCommand.EmailWhiteList

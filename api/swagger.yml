@@ -4005,6 +4005,9 @@ components:
         emailIntegrationEnabled:
           type: boolean
           description: Whether email integration is enabled
+        emailBodyProcessingEnabled:
+          type: boolean
+          description: Whether email body text processing is enabled (opt-in, default false)
         systemEmailId:
           type: integer
           description: System email foreign key
@@ -4106,6 +4109,9 @@ components:
         emailIntegrationEnabled:
           type: boolean
           description: Whether email integration is enabled
+        emailBodyProcessingEnabled:
+          type: boolean
+          description: Whether email body text processing is enabled (opt-in, default false)
         subjectLineRegexes:
           type: array
           description: Subject line regexes

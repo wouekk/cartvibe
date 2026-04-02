@@ -163,6 +163,12 @@ func pollEmailForGroupSettings(groupSettings []models.GroupSettings) error {
 func enqueueEmailProcessTasks(metadataList []structs.EmailMetadata) error {
 	fileRepository := repositories.NewFileRepository(nil)
 
+	// Build a lookup map of group settings to check EmailBodyProcessingEnabled
+	groupSettingsLookup, err := buildGroupSettingsLookup(metadataList)
+	if err != nil {
+		return err
+	}
+
 	for _, metadata := range metadataList {
 
 		for _, attachment := range metadata.Attachments {
@@ -185,11 +191,16 @@ func enqueueEmailProcessTasks(metadataList []structs.EmailMetadata) error {
 			}
 
 			for _, groupSettingsId := range metadata.GroupSettingsIds {
+				taskMetadata := metadata
+				if gs, ok := groupSettingsLookup[groupSettingsId]; ok && !gs.EmailBodyProcessingEnabled {
+					taskMetadata.Body = ""
+				}
+
 				payload := EmailProcessTaskPayload{
 					GroupSettingsId: groupSettingsId,
 					ImageForOcrPath: imageForOcrPath,
 					TempFilePath:    tempFilePath,
-					Metadata:        metadata,
+					Metadata:        taskMetadata,
 					Attachment:      attachment,
 				}
 				payloadBytes, err := json.Marshal(payload)
@@ -208,6 +219,11 @@ func enqueueEmailProcessTasks(metadataList []structs.EmailMetadata) error {
 		// Handle body-only emails (no attachments but has body text)
 		if len(metadata.Attachments) == 0 && len(metadata.Body) > 0 {
 			for _, groupSettingsId := range metadata.GroupSettingsIds {
+				// Skip body-only emails for groups that don't have body processing enabled
+				if gs, ok := groupSettingsLookup[groupSettingsId]; ok && !gs.EmailBodyProcessingEnabled {
+					continue
+				}
+
 				payload := EmailProcessTaskPayload{
 					GroupSettingsId: groupSettingsId,
 					Metadata:        metadata,
@@ -227,6 +243,37 @@ func enqueueEmailProcessTasks(metadataList []structs.EmailMetadata) error {
 	}
 
 	return nil
+}
+
+func buildGroupSettingsLookup(metadataList []structs.EmailMetadata) (map[uint]models.GroupSettings, error) {
+	uniqueIds := make(map[uint]struct{})
+	for _, metadata := range metadataList {
+		for _, id := range metadata.GroupSettingsIds {
+			uniqueIds[id] = struct{}{}
+		}
+	}
+
+	ids := make([]uint, 0, len(uniqueIds))
+	for id := range uniqueIds {
+		ids = append(ids, id)
+	}
+
+	if len(ids) == 0 {
+		return make(map[uint]models.GroupSettings), nil
+	}
+
+	groupSettingsRepository := repositories.NewGroupSettingsRepository(nil)
+	allSettings, err := groupSettingsRepository.GetAllGroupSettings("id IN ?", ids)
+	if err != nil {
+		return nil, err
+	}
+
+	lookup := make(map[uint]models.GroupSettings, len(allSettings))
+	for _, gs := range allSettings {
+		lookup[gs.ID] = gs
+	}
+
+	return lookup, nil
 }
 
 func buildTempEmailFilePath(attachmentFileName string) string {

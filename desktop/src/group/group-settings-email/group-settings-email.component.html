@@ -5,6 +5,13 @@
     [readonly]="formConfig.mode | inputReadonly"
   ></app-checkbox>
 </div>
+<div class="mb-2">
+  <app-checkbox
+    label="Process Email Body Text"
+    [inputFormControl]="form | formGet : 'emailBodyProcessingEnabled'"
+    [readonly]="formConfig.mode | inputReadonly"
+  ></app-checkbox>
+</div>
 <app-autocomlete
   optionFilterKey="username"
   optionDisplayKey="username"

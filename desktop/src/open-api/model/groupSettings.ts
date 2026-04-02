@@ -28,6 +28,10 @@ export interface GroupSettings {
      */
     emailIntegrationEnabled?: boolean;
     /**
+     * Whether email body text processing is enabled (opt-in, default false)
+     */
+    emailBodyProcessingEnabled?: boolean;
+    /**
      * System email foreign key
      */
     systemEmailId?: number;
