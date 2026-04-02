@@ -271,3 +271,23 @@ Angular no longer uses zone.js. Change detection is triggered ONLY by:
 - Add `provideZonelessChangeDetection()` to `TestBed.configureTestingModule` providers.
 - Prefer `await fixture.whenStable()` over `fixture.detectChanges()` for most realistic test behavior.
 - Use `TestBed.flushEffects()` when testing effect-based logic.
+
+## Testing Requirements
+
+**All new code must have accompanying unit tests.**
+
+Before considering any work complete:
+
+1. Write unit tests for all new components, services, and pipes
+2. Use Angular TestBed for component testing
+3. Mock services and HTTP calls appropriately
+4. Run the full test suite: `npm test`
+5. Ensure all tests pass before submitting changes
+
+Tests should cover:
+
+- Component rendering and user interactions
+- Component method inputs and outputs
+- Service method behavior
+- Form validation logic
+- Error handling scenarios

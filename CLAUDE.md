@@ -207,3 +207,61 @@ receipt-wrangler-api/          # Monorepo root
   times. During these iterations, your goals are to verify that your code makes sense, and solves the requested things,
   that your code is sound, secure and consistent with style across the codebase, and that your code is clean, and not a
   hacked together solution.
+
+## Parallel Agent Execution
+
+When a task spans multiple components (e.g., backend `api/` and frontend `desktop/` or `mobile/`), follow these rules:
+
+- **Run backend and frontend agents in parallel** whenever possible. Do not serialize work across components unless
+  there is a hard dependency.
+- **Frontend agents should order their work to defer backend-dependent tasks.** If the frontend needs something from the
+  backend (generated client, models, API endpoints), schedule that work last so independent frontend work happens first.
+- **If the frontend agent is blocked on the backend agent** (e.g., waiting for a generated client, new API models, or
+  endpoint changes), the frontend agent should:
+    1. Continue planning its backend-dependent work (design the component, write the template, stub the types).
+    2. **Wait** for the backend agent to finish before executing backend-dependent code. Do not guess at API shapes or
+       generate placeholder clients.
+    3. Resume execution once the backend deliverables are available.
+- **The backend agent should signal completion clearly** — after finishing its work, the orchestrating agent should
+  trigger any required client regeneration (e.g., `./generate-client.sh desktop ../desktop/src/open-api`) before
+  unblocking the frontend agent.
+- **Mobile (`mobile/`) changes** follow the same pattern: if a backend change requires a mobile update, run the mobile
+  agent in parallel with the desktop agent after the backend agent completes.
+
+### Example Task Ordering
+
+For a feature that adds a new API endpoint and a corresponding UI:
+
+1. **Phase 1 (parallel):**
+    - Backend agent: handler → service → repository → route → tests → swagger update
+    - Frontend agent: independent UI work (layout, styling, routing, non-API components)
+2. **Phase 2 (sequential, after backend completes):**
+    - Regenerate client (`cd api && ./generate-client.sh desktop ../desktop/src/open-api`)
+    - Frontend agent: wire up API calls, integrate generated types, write dependent components
+3. **Phase 3 (parallel):**
+    - Backend agent: any follow-up fixes
+    - Frontend agent: integration tests, final UI polish
+
+## Testing
+
+- After ANY code change, run the full relevant test suite before considering the task complete.
+- When tests fail, fix both the code AND the tests — don't assume tests are correct or code is correct without
+  verifying.
+
+## Workflow Rules
+
+- Always complete implementation AND verify (build + tests pass) before committing. Do not commit code that hasn't been
+  validated.
+- During your planning sessions, explicitly check if your planned code introduces regressions. We want to make sure that
+  we do not break existing code, especially things that may not show themselves through build errors like scss changes,
+  conflicting styles, and so on.
+- During your planning sessions, take a moment to think if there are any edge cases, or possible regressions or any
+  additional things for the user to test before considering the task complete.
+- After implementing any full feature, always commit/push.
+
+## CLAUDE.md Maintenance
+
+- After modifying files in any component, check whether the corresponding `CLAUDE.md` needs updating.
+- Each component has its own documentation: `api/CLAUDE.md`, `desktop/CLAUDE.md`, `mobile/CLAUDE.md`.
+- If a change alters behavior, configuration, architecture, commands, or conventions documented in a `CLAUDE.md` file,
+  update that file to stay accurate before considering the task complete.
