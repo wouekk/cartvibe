@@ -47,6 +47,7 @@ describe("GroupSettingsEmailComponent", () => {
       emailDefaultReceiptStatus: new FormControl(""),
       emailDefaultReceiptPaidById: new FormControl(""),
       emailIntegrationEnabled: new FormControl(false),
+      emailBodyProcessingEnabled: new FormControl(false),
     });
     component.formCommand.subscribe((command) =>
       component.handleFormCommand(command)
@@ -67,6 +68,7 @@ describe("GroupSettingsEmailComponent", () => {
     expect(component.form.value).toEqual({
       systemEmailId: undefined,
       emailIntegrationEnabled: undefined,
+      emailBodyProcessingEnabled: undefined,
       subjectLineRegexes: [],
       emailWhiteList: [],
       emailDefaultReceiptStatus: undefined,
@@ -122,6 +124,7 @@ describe("GroupSettingsEmailComponent", () => {
     expect(component.form.value).toEqual({
       systemEmailId: "test@test.com",
       emailIntegrationEnabled: true,
+      emailBodyProcessingEnabled: undefined,
       subjectLineRegexes: [{ regex: "test" }],
       emailWhiteList: [
         {

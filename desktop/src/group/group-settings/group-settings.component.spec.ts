@@ -57,6 +57,7 @@ describe("GroupSettingsComponent", () => {
     expect(component.form.value).toEqual({
       systemEmailId: "",
       emailIntegrationEnabled: false,
+      emailBodyProcessingEnabled: false,
       subjectLineRegexes: [],
       emailWhiteList: [],
       emailDefaultReceiptStatus: "",
