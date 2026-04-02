@@ -99,7 +99,7 @@ class TokenRefreshService {
     }
 
     if (!isTokenValid(refreshToken)) {
-      _authModel.purgeTokens();
+      await _authModel.purgeTokens();
       return false;
     }
 
@@ -107,7 +107,7 @@ class TokenRefreshService {
       await getAndSetTokens(_authModel);
     } catch (e) {
       print(e);
-      _authModel.purgeTokens();
+      await _authModel.purgeTokens();
       return false;
     }
 

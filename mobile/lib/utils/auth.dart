@@ -26,13 +26,17 @@ Future<void> getAndSetTokens(AuthModel authModel) async {
 bool isTokenValid(String? token) {
   if (token == null || token.isEmpty) {
     return false;
-  } else {
+  }
+
+  try {
     var claims = JWT.decode(token);
     DateTime expiration = DateTime.fromMillisecondsSinceEpoch(
         claims.payload["exp"] * 1000,
         isUtc: false);
 
     return expiration.isAfter(DateTime.now());
+  } catch (_) {
+    return false;
   }
 }
 
@@ -45,11 +49,8 @@ Future<void> storeAppData(
     TagModel tagModel,
     SystemSettingsModel systemSettingsModel,
     AppData appData) async {
-  if (appData.jwt!.isNotEmpty || appData.refreshToken!.isNotEmpty) {
-    await authModel.setTokens(
-      appData.jwt!.isNotEmpty ? appData.jwt : null,
-      appData.refreshToken!.isNotEmpty ? appData.refreshToken : null,
-    );
+  if (appData.jwt!.isNotEmpty && appData.refreshToken!.isNotEmpty) {
+    await authModel.setTokens(appData.jwt, appData.refreshToken);
   }
 
   authModel.setClaims(appData.claims);

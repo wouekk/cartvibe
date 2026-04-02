@@ -128,6 +128,44 @@ void main() {
         verify(() => mockAuthModel.purgeTokens()).called(1);
       });
 
+      test('treats corrupted JWT as invalid and attempts refresh', () async {
+        final newJwt = validJwt;
+        final newRefresh = validJwt;
+
+        when(() => mockAuthModel.getJwt())
+            .thenAnswer((_) async => 'not-a-valid-jwt');
+        when(() => mockAuthModel.getRefreshToken())
+            .thenAnswer((_) async => validJwt);
+        when(() => mockGroupModel.groups).thenReturn([MockGroup()]);
+
+        when(() => mockAuthApi.getNewRefreshToken(
+                logoutCommand: any(named: 'logoutCommand')))
+            .thenAnswer(
+                (_) async => createTokenRefreshResponse(newJwt, newRefresh));
+        when(() => mockAuthModel.setTokens(any(), any()))
+            .thenAnswer((_) async {});
+
+        final result = await service.refreshTokens();
+
+        expect(result, true);
+        verify(() => mockAuthApi.getNewRefreshToken(
+            logoutCommand: any(named: 'logoutCommand'))).called(1);
+      });
+
+      test('purges tokens when both JWT and refresh token are corrupted',
+          () async {
+        when(() => mockAuthModel.getJwt())
+            .thenAnswer((_) async => 'corrupted-jwt');
+        when(() => mockAuthModel.getRefreshToken())
+            .thenAnswer((_) async => 'corrupted-refresh');
+        when(() => mockAuthModel.purgeTokens()).thenAnswer((_) async {});
+
+        final result = await service.refreshTokens();
+
+        expect(result, false);
+        verify(() => mockAuthModel.purgeTokens()).called(1);
+      });
+
       test('purges tokens when JWT is null', () async {
         when(() => mockAuthModel.getJwt()).thenAnswer((_) async => null);
         when(() => mockAuthModel.getRefreshToken())
@@ -324,9 +362,6 @@ void main() {
               statusCode: 200,
             ));
         when(() => mockAuthModel.setTokens(any(), any()))
-            .thenAnswer((_) async {});
-        when(() => mockAuthModel.setJwt(any())).thenAnswer((_) async {});
-        when(() => mockAuthModel.setRefreshToken(any()))
             .thenAnswer((_) async {});
         when(() => mockAuthModel.setClaims(any())).thenReturn(null);
         when(() => mockAuthModel.setFeatureConfig(any())).thenReturn(null);

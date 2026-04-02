@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:receipt_wrangler_mobile/services/token_refresh_service.dart';
 
-import '../models/auth_model.dart';
 import '../utils/currency.dart';
 
 Future<String?> protectedRouteRedirect(
@@ -19,7 +17,6 @@ Future<String?> protectedRouteRedirect(
 
 Future<String?> unprotectedRouteRedirect(
     BuildContext context, String? redirect) async {
-  var authModelProvider = Provider.of<AuthModel>(context, listen: false);
   var tokensValid = await TokenRefreshService().refreshTokens();
   var redirectRoute = redirect ?? "/";
 
@@ -27,7 +24,6 @@ Future<String?> unprotectedRouteRedirect(
     registerCustomCurrency(context);
     return redirectRoute;
   } else {
-    await authModelProvider.purgeTokens();
     return null;
   }
 }
