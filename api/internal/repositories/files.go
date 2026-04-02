@@ -411,11 +411,11 @@ func (repository FileRepository) ZipFiles(filenames []string, fileContents [][]b
 }
 
 func (repository FileRepository) GetTempDirectoryPath() string {
-	return config.GetBasePath() + "/temp"
+	return filepath.Join(config.GetBasePath(), "temp")
 }
 
 func (repository FileRepository) GetTestJpgBytes() ([]byte, error) {
-	path := config.GetBasePath() + "/testing/test.jpg"
+	path := filepath.Join(config.GetBasePath(), "testing", "test.jpg")
 
 	return utils.ReadFile(path)
 }

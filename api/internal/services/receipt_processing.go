@@ -2,6 +2,7 @@ package services
 
 import (
 	"encoding/json"
+	"fmt"
 	"gopkg.in/gographics/imagick.v3/imagick"
 	"gorm.io/gorm"
 	"os"
@@ -85,11 +86,32 @@ func NewReceiptProcessingService(tx *gorm.DB, receiptProcessingSettingsId string
 func (service ReceiptProcessingService) ReadReceiptImage(
 	imagePath string,
 ) (commands.UpsertReceiptCommand, commands.ReceiptProcessingMetadata, error) {
+	return service.readReceipt(imagePath, "")
+}
+
+func (service ReceiptProcessingService) ReadReceiptImageWithEmailBody(
+	imagePath string,
+	emailBody string,
+) (commands.UpsertReceiptCommand, commands.ReceiptProcessingMetadata, error) {
+	return service.readReceipt(imagePath, emailBody)
+}
+
+func (service ReceiptProcessingService) ReadReceiptText(
+	emailBody string,
+) (commands.UpsertReceiptCommand, commands.ReceiptProcessingMetadata, error) {
+	return service.readReceipt("", emailBody)
+}
+
+func (service ReceiptProcessingService) readReceipt(
+	imagePath string,
+	emailBody string,
+) (commands.UpsertReceiptCommand, commands.ReceiptProcessingMetadata, error) {
 	var receipt commands.UpsertReceiptCommand
 	metadata := commands.ReceiptProcessingMetadata{}
 
 	result, err := service.processImage(
 		imagePath,
+		emailBody,
 		service.ReceiptProcessingSettings,
 	)
 	metadata.OcrSystemTaskCommand = result.OcrSystemTaskCommand
@@ -103,6 +125,7 @@ func (service ReceiptProcessingService) ReadReceiptImage(
 		if service.FallbackReceiptProcessingSettings.ID > 0 {
 			fallbackResult, fallbackErr := service.processImage(
 				imagePath,
+				emailBody,
 				service.FallbackReceiptProcessingSettings,
 			)
 			metadata.FallbackReceiptProcessingSettingsIdRan = service.FallbackReceiptProcessingSettings.ID
@@ -129,8 +152,25 @@ func (service ReceiptProcessingService) ReadReceiptImage(
 	return receipt, metadata, err
 }
 
+// FormatEmailContent combines image-extracted text and email body into a formatted string
+// for the AI prompt. This is used when processing emails to give the AI full context.
+func FormatEmailContent(imageData string, hasImage bool, emailBody string) string {
+	imageDataText := imageData
+	if len(imageDataText) == 0 && !hasImage {
+		imageDataText = "No attachments found"
+	}
+
+	emailBodyText := emailBody
+	if len(emailBodyText) == 0 {
+		emailBodyText = "No email body found"
+	}
+
+	return fmt.Sprintf("Image Data:\n%s\n\nEmail Body:\n%s", imageDataText, emailBodyText)
+}
+
 func (service ReceiptProcessingService) processImage(
 	imagePath string,
+	emailBody string,
 	receiptProcessingSettings models.ReceiptProcessingSettings,
 ) (commands.ReceiptProcessingResult, error) {
 	aiMessages := []structs.AiClientMessage{}
@@ -138,46 +178,51 @@ func (service ReceiptProcessingService) processImage(
 	result := commands.ReceiptProcessingResult{}
 	ocrText := ""
 	base64Image := ""
+	hasImage := len(imagePath) > 0
 
-	if receiptProcessingSettings.IsVisionModel {
-		if receiptProcessingSettings.AiType == models.OLLAMA {
-			ollamaImage, err := service.getOllamaBase64Image(imagePath)
+	if hasImage {
+		if receiptProcessingSettings.IsVisionModel {
+			if receiptProcessingSettings.AiType == models.OLLAMA {
+				ollamaImage, err := service.getOllamaBase64Image(imagePath)
+				if err != nil {
+					return result, err
+				}
+
+				base64Image = ollamaImage
+			}
+
+			if receiptProcessingSettings.AiType == models.OPEN_AI_NEW || receiptProcessingSettings.AiType == models.OPEN_AI_CUSTOM {
+				openAiImage, err := service.getOpenAiBase64Image(imagePath)
+				if err != nil {
+					return result, err
+				}
+
+				base64Image = openAiImage
+			}
+
+			if receiptProcessingSettings.AiType == models.GEMINI_NEW {
+				geminiImage, err := service.getGeminiImage(imagePath)
+				if err != nil {
+					return result, err
+				}
+
+				base64Image = geminiImage
+			}
+		} else {
+			ocrService := NewOcrService(service.TX, receiptProcessingSettings)
+			resultText, ocrSystemTaskCommand, err := ocrService.ReadImage(imagePath)
+			result.OcrSystemTaskCommand = ocrSystemTaskCommand
 			if err != nil {
 				return result, err
 			}
 
-			base64Image = ollamaImage
+			ocrText = resultText
 		}
-
-		if receiptProcessingSettings.AiType == models.OPEN_AI_NEW || receiptProcessingSettings.AiType == models.OPEN_AI_CUSTOM {
-			openAiImage, err := service.getOpenAiBase64Image(imagePath)
-			if err != nil {
-				return result, err
-			}
-
-			base64Image = openAiImage
-		}
-
-		if receiptProcessingSettings.AiType == models.GEMINI_NEW {
-			geminiImage, err := service.getGeminiImage(imagePath)
-			if err != nil {
-				return result, err
-			}
-
-			base64Image = geminiImage
-		}
-	} else {
-		ocrService := NewOcrService(service.TX, receiptProcessingSettings)
-		resultText, ocrSystemTaskCommand, err := ocrService.ReadImage(imagePath)
-		result.OcrSystemTaskCommand = ocrSystemTaskCommand
-		if err != nil {
-			return result, err
-		}
-
-		ocrText = resultText
 	}
 
-	prompt, promptSystemTask, err := service.buildPrompt(receiptProcessingSettings, ocrText)
+	promptText := FormatEmailContent(ocrText, hasImage, emailBody)
+
+	prompt, promptSystemTask, err := service.buildPrompt(receiptProcessingSettings, promptText)
 	result.PromptSystemTaskCommand = promptSystemTask
 	if err != nil {
 		return result, err

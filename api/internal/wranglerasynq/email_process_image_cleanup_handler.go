@@ -87,6 +87,11 @@ func buildAttachmentMap(taskInfos []*asynq.TaskInfo) (map[attachmentMapKey][]*as
 
 func cleanupImages(attachmentMap map[attachmentMapKey][]*asynq.TaskInfo) error {
 	for imageForOcrPath, tasksForImage := range attachmentMap {
+		// Skip body-only tasks that have no temp files
+		if len(imageForOcrPath.OriginalFilePath) == 0 && len(imageForOcrPath.ImageForOcrPath) == 0 {
+			continue
+		}
+
 		allTasksCompleted := true
 		for _, task := range tasksForImage {
 			if task.State != asynq.TaskStateCompleted && task.State != asynq.TaskStateArchived {

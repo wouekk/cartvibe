@@ -3,6 +3,8 @@ import email
 import logging
 import os
 import re
+from html.parser import HTMLParser
+from io import StringIO
 from mailbox import Message
 
 from imapclient import IMAPClient
@@ -10,6 +12,27 @@ from imapclient import IMAPClient
 from utils import valid_from_email, valid_subject
 
 base_path = os.environ.get("BASE_PATH", "")
+
+
+class _HTMLTextExtractor(HTMLParser):
+    """Simple HTML parser that extracts visible text content."""
+
+    def __init__(self):
+        super().__init__()
+        self._result = StringIO()
+
+    def handle_data(self, data):
+        self._result.write(data)
+
+    def get_text(self):
+        return self._result.getvalue()
+
+
+def strip_html_tags(html):
+    """Strip HTML tags and return plain text."""
+    extractor = _HTMLTextExtractor()
+    extractor.feed(html)
+    return extractor.get_text()
 
 
 class ImapClient:
@@ -87,17 +110,21 @@ class ImapClient:
 
         formatted_date = self.get_formatted_date(message_data.get("Date"))
 
+        attachments = self._get_attachments(message_data)
+        body = self._get_body_text(message_data)
+
         result = {
             "date": formatted_date,
             "subject": subject,
             "to": to_data["email"],
             "fromName": from_data["name"],
             "fromEmail": from_data["email"],
-            "attachments": self._get_attachments(message_data),
+            "attachments": attachments,
+            "body": body,
             "groupSettingsIds": [],
         }
 
-        if len(result["attachments"]) == 0:
+        if len(attachments) == 0 and not body:
             return {}
 
         logging.info(f"Formatted message data: {result}")
@@ -166,6 +193,42 @@ class ImapClient:
                 result.append(data)
 
         return result
+
+    def _get_body_text(self, message_data: Message):
+        plain_parts = []
+        html_parts = []
+
+        for part in message_data.walk():
+            if part.get_content_maintype() == 'multipart':
+                continue
+
+            content_disposition = str(part.get('Content-Disposition') or '')
+            if 'attachment' in content_disposition:
+                continue
+
+            content_type = part.get_content_type()
+            charset = part.get_content_charset() or 'utf-8'
+
+            if content_type == 'text/plain':
+                payload = part.get_payload(decode=True)
+                if payload:
+                    plain_parts.append(payload.decode(charset, errors='replace'))
+            elif content_type == 'text/html':
+                payload = part.get_payload(decode=True)
+                if payload:
+                    html_parts.append(payload.decode(charset, errors='replace'))
+
+        if plain_parts:
+            text = '\n'.join(plain_parts)
+        elif html_parts:
+            text = '\n'.join(strip_html_tags(html) for html in html_parts)
+        else:
+            return ""
+
+        # Collapse excessive whitespace
+        text = re.sub(r'[ \t]+', ' ', text)
+        text = re.sub(r'\n{3,}', '\n\n', text)
+        return text.strip()
 
     def valid_mime_type(self, mime_type):
         image_mime_types_regex = r"^(image\/(jpeg|png|heic|bmp|webp|tiff)|application\/pdf)$"

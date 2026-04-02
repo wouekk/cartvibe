@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"receipt-wrangler/api/internal/commands"
 	config "receipt-wrangler/api/internal/env"
 	"receipt-wrangler/api/internal/models"
@@ -68,7 +69,7 @@ func (service SystemEmailService) CheckEmailConnectivity(command commands.CheckE
 	}
 
 	basePath := config.GetBasePath()
-	path := basePath + "/imap-client/check_connection.py"
+	path := filepath.Join(basePath, "imap-client", "check_connection.py")
 
 	var out bytes.Buffer
 
@@ -82,7 +83,7 @@ func (service SystemEmailService) CheckEmailConnectivity(command commands.CheckE
 	// Note: We ignore error from cmd.Run to capture the output in the system task, so resulting HTTP status code is always 200
 	err = cmd.Run()
 	if err != nil {
-		imapLogPath := basePath + "/logs/imap-client.log"
+		imapLogPath := filepath.Join(basePath, "logs", "imap-client.log")
 
 		errorLine, err := utils.ReadLastFileLine(imapLogPath)
 		if err != nil {

@@ -7,6 +7,7 @@ import (
 	"github.com/hibiken/asynq"
 	"os"
 	"os/exec"
+	"path/filepath"
 	config "receipt-wrangler/api/internal/env"
 	"receipt-wrangler/api/internal/logging"
 	"receipt-wrangler/api/internal/models"
@@ -130,7 +131,7 @@ func pollEmailForGroupSettings(groupSettings []models.GroupSettings) error {
 	}
 
 	var out bytes.Buffer
-	cmd := exec.Command("python3", basePath+"/imap-client/client.py")
+	cmd := exec.Command("python3", filepath.Join(basePath, "imap-client", "client.py"))
 	cmd.Stdout = &out
 	cmd.Stdin = bytes.NewReader(bytesArr)
 	cmd.Env = os.Environ()
@@ -203,6 +204,26 @@ func enqueueEmailProcessTasks(metadataList []structs.EmailMetadata) error {
 				}
 			}
 		}
+
+		// Handle body-only emails (no attachments but has body text)
+		if len(metadata.Attachments) == 0 && len(metadata.Body) > 0 {
+			for _, groupSettingsId := range metadata.GroupSettingsIds {
+				payload := EmailProcessTaskPayload{
+					GroupSettingsId: groupSettingsId,
+					Metadata:        metadata,
+				}
+				payloadBytes, err := json.Marshal(payload)
+				if err != nil {
+					return err
+				}
+
+				task := asynq.NewTask(EmailProcess, payloadBytes)
+				_, err = EnqueueTask(task, models.EmailReceiptProcessingQueue)
+				if err != nil {
+					return err
+				}
+			}
+		}
 	}
 
 	return nil
@@ -210,10 +231,10 @@ func enqueueEmailProcessTasks(metadataList []structs.EmailMetadata) error {
 
 func buildTempEmailFilePath(attachmentFileName string) string {
 	fileRepository := repositories.NewFileRepository(nil)
-	return fileRepository.GetTempDirectoryPath() + "/" + attachmentFileName
+	return filepath.Join(fileRepository.GetTempDirectoryPath(), attachmentFileName)
 }
 
 func buildTempEmailOcrFilePath(attachmentFileName string) string {
 	fileRepository := repositories.NewFileRepository(nil)
-	return fileRepository.GetTempDirectoryPath() + "/" + "image-" + attachmentFileName
+	return filepath.Join(fileRepository.GetTempDirectoryPath(), "image-"+attachmentFileName)
 }

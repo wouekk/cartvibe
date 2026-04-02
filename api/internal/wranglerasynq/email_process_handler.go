@@ -39,9 +39,14 @@ func HandleEmailProcessTask(context context.Context, task *asynq.Task) error {
 		return HandleError(err)
 	}
 
-	fileBytes, err := utils.ReadFile(payload.TempFilePath)
-	if err != nil {
-		return HandleError(err)
+	isBodyOnly := len(payload.ImageForOcrPath) == 0 && len(payload.Metadata.Body) > 0
+
+	var fileBytes []byte
+	if len(payload.TempFilePath) > 0 {
+		fileBytes, err = utils.ReadFile(payload.TempFilePath)
+		if err != nil {
+			return HandleError(err)
+		}
 	}
 
 	groupSettingsIdString := utils.UintToString(payload.GroupSettingsId)
@@ -55,8 +60,19 @@ func HandleEmailProcessTask(context context.Context, task *asynq.Task) error {
 	}
 
 	groupIdString := utils.UintToString(groupSettingsToUse.GroupId)
+
+	var baseCommand commands.UpsertReceiptCommand
+	var processingMetadata commands.ReceiptProcessingMetadata
+	var processingErr error
+
 	start := time.Now()
-	baseCommand, processingMetadata, processingErr := services.ReadReceiptImageFromFileOnly(payload.ImageForOcrPath, groupIdString)
+	if isBodyOnly {
+		baseCommand, processingMetadata, processingErr = services.ReadReceiptFromTextOnly(payload.Metadata.Body, groupIdString)
+	} else if len(payload.Metadata.Body) > 0 {
+		baseCommand, processingMetadata, processingErr = services.ReadReceiptImageWithEmailBody(payload.ImageForOcrPath, payload.Metadata.Body, groupIdString)
+	} else {
+		baseCommand, processingMetadata, processingErr = services.ReadReceiptImageFromFileOnly(payload.ImageForOcrPath, groupIdString)
+	}
 	end := time.Now()
 
 	metadataBytes, err := json.Marshal(payload.Metadata)
@@ -151,16 +167,18 @@ func HandleEmailProcessTask(context context.Context, task *asynq.Task) error {
 			return HandleError(err)
 		}
 
-		fileData := models.FileData{
-			ReceiptId: createdReceipt.ID,
-			Name:      payload.Attachment.Filename,
-			FileType:  payload.Attachment.FileType,
-			Size:      payload.Attachment.Size,
-		}
+		if !isBodyOnly {
+			fileData := models.FileData{
+				ReceiptId: createdReceipt.ID,
+				Name:      payload.Attachment.Filename,
+				FileType:  payload.Attachment.FileType,
+				Size:      payload.Attachment.Size,
+			}
 
-		_, err = receiptImageRepository.CreateReceiptImage(fileData, fileBytes)
-		if err != nil {
-			return HandleError(err)
+			_, err = receiptImageRepository.CreateReceiptImage(fileData, fileBytes)
+			if err != nil {
+				return HandleError(err)
+			}
 		}
 
 		return nil
