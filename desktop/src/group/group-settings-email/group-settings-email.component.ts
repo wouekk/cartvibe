@@ -85,6 +85,10 @@ export class GroupSettingsEmailComponent
               command: "addValidators",
               payload: [Validators.required],
             });
+            this.emitFormCommand({
+              path: "emailBodyProcessingEnabled",
+              command: "enable",
+            });
           } else {
             this.emitFormCommand({
               path: "systemEmailId",
@@ -128,6 +132,15 @@ export class GroupSettingsEmailComponent
               payload: {
                 required: null,
               },
+            });
+            this.emitFormCommand({
+              path: "emailBodyProcessingEnabled",
+              command: "patchValue",
+              payload: false,
+            });
+            this.emitFormCommand({
+              path: "emailBodyProcessingEnabled",
+              command: "disable",
             });
           }
           this.emitFormCommand({

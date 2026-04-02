@@ -8,6 +8,7 @@
 <div class="mb-2">
   <app-checkbox
     label="Process Email Body Text"
+    helpText="When enabled, email body text will be processed alongside attachments for receipt extraction"
     [inputFormControl]="form | formGet : 'emailBodyProcessingEnabled'"
     [readonly]="formConfig.mode | inputReadonly"
   ></app-checkbox>
