@@ -17,7 +17,7 @@ Chart.register(ChartDataLabels);
   styleUrls: ["./pie-chart.component.scss"],
   standalone: true,
   imports: [CommonModule, SharedUiModule, PipesModule],
-  providers: [CurrencyPipe],
+  providers: [CurrencyPipe, CustomCurrencyPipe],
 })
 export class PieChartComponent implements OnInit, OnChanges {
   public readonly widget = input.required<Widget>();
