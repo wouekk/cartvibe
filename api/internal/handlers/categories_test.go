@@ -281,9 +281,10 @@ func TestShouldGetCategoryNameCountIfAdmin2(t *testing.T) {
 	}
 }
 
-func TestShouldNotGetCategoryNameDueToRole(t *testing.T) {
+func TestShouldGetCategoryNameCountAsUser(t *testing.T) {
 	defer tearDownCategoriesTest()
-	expectedStatus := 403
+	expectedStatus := 200
+	var resultCount uint
 	setupCategoriesTest()
 
 	reader := strings.NewReader(``)
@@ -302,5 +303,15 @@ func TestShouldNotGetCategoryNameDueToRole(t *testing.T) {
 
 	if w.Result().StatusCode != expectedStatus {
 		utils.PrintTestError(t, w.Result().StatusCode, expectedStatus)
+	}
+
+	err := json.Unmarshal(w.Body.Bytes(), &resultCount)
+	if err != nil {
+		utils.PrintTestError(t, err, nil)
+		return
+	}
+
+	if resultCount != 1 {
+		utils.PrintTestError(t, resultCount, 1)
 	}
 }
