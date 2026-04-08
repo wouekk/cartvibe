@@ -192,6 +192,10 @@ func (repository FileRepository) ConvertHeicToJpg(bytes []byte) ([]byte, error) 
 		return nil, err
 	}
 
+	if err := mw.SetCompressionQuality(95); err != nil {
+		return nil, err
+	}
+
 	return mw.GetImageBlob()
 }
 
