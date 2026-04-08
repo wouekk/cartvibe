@@ -152,4 +152,28 @@ describe("UserPreferencesComponent", () => {
       userShortcuts: [],
     } as any);
   });
+
+  describe("when userShortcutComponent is not yet available", () => {
+    beforeEach(() => {
+      Object.defineProperty(component, 'userShortcutComponent', {
+        value: () => undefined,
+        configurable: true,
+      });
+    });
+
+    it("should not throw on addNewShortcut", () => {
+      component.ngOnInit();
+      expect(() => component.addNewShortcut()).not.toThrow();
+    });
+
+    it("should not throw on shortcutDoneClicked", () => {
+      component.ngOnInit();
+      expect(() => component.shortcutDoneClicked()).not.toThrow();
+    });
+
+    it("should not throw on shortcutCancelClicked", () => {
+      component.ngOnInit();
+      expect(() => component.shortcutCancelClicked()).not.toThrow();
+    });
+  });
 });
