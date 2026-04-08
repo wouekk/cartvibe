@@ -17,7 +17,7 @@ import { UserShortcutComponent } from "../user-shortcut/user-shortcut.component"
     standalone: false
 })
 export class UserPreferencesComponent extends BaseFormComponent implements OnInit {
-  public readonly userShortcutComponent = viewChild.required(UserShortcutComponent);
+  public readonly userShortcutComponent = viewChild(UserShortcutComponent);
 
   public formMode = FormMode;
 
@@ -74,6 +74,9 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
   }
 
   public addNewShortcut(): void {
+    const userShortcutComp = this.userShortcutComponent();
+    if (!userShortcutComp) return;
+
     const userShortcuts = this.form.get("userShortcuts") as FormArray;
     const newUserShortcut = this.buildUserShortcut(
       userShortcuts.length
@@ -81,17 +84,19 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
     userShortcuts.push(newUserShortcut);
     this.originalUserShortcuts.update(prev => [...prev, newUserShortcut.value]);
 
-    this.userShortcutComponent().editableListComponent().openLastRow();
-    this.userShortcutComponent().isAddingShortcut = true;
+    userShortcutComp.editableListComponent().openLastRow();
+    userShortcutComp.isAddingShortcut = true;
   }
 
   public shortcutDoneClicked(): void {
+    const userShortcutComp = this.userShortcutComponent();
+    if (!userShortcutComp) return;
+
     if (this.userShortcuts.at(this.userShortcuts.length - 1).valid) {
-      const userShortcutComponent = this.userShortcutComponent();
-      if (userShortcutComponent.isAddingShortcut) {
+      if (userShortcutComp.isAddingShortcut) {
         this.originalUserShortcuts.update(prev => [...prev, this.userShortcuts.at(this.userShortcuts.length - 1).value]);
       } else {
-        const currentOpen = userShortcutComponent.editableListComponent().getCurrentRowOpen();
+        const currentOpen = userShortcutComp.editableListComponent().getCurrentRowOpen();
         if (currentOpen !== undefined && currentOpen >= 0) {
           this.originalUserShortcuts.update(prev => {
             const updated = [...prev];
@@ -101,25 +106,27 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
         }
       }
 
-      userShortcutComponent.isAddingShortcut = false;
-      userShortcutComponent.editableListComponent().closeRow();
+      userShortcutComp.isAddingShortcut = false;
+      userShortcutComp.editableListComponent().closeRow();
     }
   }
 
   public shortcutCancelClicked(): void {
-    const userShortcutComponent = this.userShortcutComponent();
-    if (userShortcutComponent.isAddingShortcut) {
+    const userShortcutComp = this.userShortcutComponent();
+    if (!userShortcutComp) return;
+
+    if (userShortcutComp.isAddingShortcut) {
       this.userShortcuts.removeAt(this.userShortcuts.length - 1);
       this.originalUserShortcuts.update(prev => prev.slice(0, prev.length - 1));
     } else {
-      const currentOpen = userShortcutComponent.editableListComponent().getCurrentRowOpen();
+      const currentOpen = userShortcutComp.editableListComponent().getCurrentRowOpen();
       if (currentOpen !== undefined && currentOpen >= 0) {
         this.userShortcuts.at(currentOpen).patchValue(this.originalUserShortcuts()[currentOpen]);
       }
     }
 
-    userShortcutComponent.isAddingShortcut = false;
-    userShortcutComponent.editableListComponent().closeRow();
+    userShortcutComp.isAddingShortcut = false;
+    userShortcutComp.editableListComponent().closeRow();
   }
 
 
