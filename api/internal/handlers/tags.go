@@ -195,7 +195,7 @@ func GetTagNameCount(w http.ResponseWriter, r *http.Request) {
 		ErrorMessage: "Error getting tag count",
 		Writer:       w,
 		Request:      r,
-		UserRole:     models.ADMIN,
+		UserRole:     models.USER,
 		ResponseType: constants.TextPlain,
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
 			tagRepository := repositories.NewTagsRepository(nil)
