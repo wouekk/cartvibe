@@ -292,7 +292,7 @@ func TestShouldGetCategoryNameCountAsUser(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api", reader)
 
 	ctx := chi.NewRouteContext()
-	ctx.URLParams.Add("categoryName", "totally a category name")
+	ctx.URLParams.Add("categoryName", "test")
 
 	routeContext := context.WithValue(r.Context(), chi.RouteCtxKey, ctx)
 	r = r.WithContext(routeContext)
