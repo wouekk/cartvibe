@@ -1,4 +1,4 @@
-import { Component, OnChanges, OnInit, SimpleChanges, input, viewChild } from "@angular/core";
+import { Component, computed, effect, input, untracked, viewChild } from "@angular/core";
 import { FormControl } from "@angular/forms";
 import { Store } from "@ngxs/store";
 import { AutocomleteComponent } from "src/autocomplete/autocomlete/autocomlete.component";
@@ -13,13 +13,13 @@ import { UserState } from "../../store";
     providers: [GroupMemberUserService],
     standalone: false
 })
-export class UserAutocompleteComponent implements OnInit, OnChanges {
+export class UserAutocompleteComponent {
   constructor(
     private store: Store,
     private groupMemberUserService: GroupMemberUserService
   ) {}
 
-  public readonly autocompleteComponent = viewChild.required(AutocomleteComponent);
+  public readonly autocompleteComponent = viewChild(AutocomleteComponent);
 
   public readonly inputFormControl = input.required<FormControl>();
 
@@ -37,38 +37,34 @@ export class UserAutocompleteComponent implements OnInit, OnChanges {
 
   public readonly selectGroupMembersOnly = input<boolean>(false);
 
-  public users: User[] = [];
+  public readonly users = computed<User[]>(() => {
+    const groupId = this.groupId();
+    const usersToOmit = this.usersToOmit();
 
-  public ngOnChanges(changes: SimpleChanges): void {
-    if (changes["groupId"]) {
-      this.updateValueOnGroupChange(changes["groupId"].currentValue);
-    }
-
-    if (changes["usersToOmit"]) {
-      this.filterUsers();
-    }
-  }
-
-  private updateValueOnGroupChange(groupId?: string): void {
     if (groupId) {
-      this.users = this.groupMemberUserService.getUsersInGroup(groupId);
-    } else {
-      this.users = [];
-      this.autocompleteComponent()?.clearFilter();
+      return this.groupMemberUserService.getUsersInGroup(groupId);
     }
-  }
 
-  public ngOnInit(): void {
-    if (this.users.length === 0 && this.usersToOmit().length === 0) {
-      this.users = this.store.selectSnapshot(UserState.users);
+    const allUsers = this.store.selectSnapshot(UserState.users);
+
+    if (usersToOmit.length > 0) {
+      return allUsers.filter((u) => !usersToOmit.includes(u.id.toString()));
     }
-  }
 
-  private filterUsers(): void {
-    this.users = this.store
-      .selectSnapshot(UserState.users)
-      .filter((u) => !this.usersToOmit().includes(u.id.toString()));
-  }
+    return allUsers;
+  });
+
+  private previousGroupId: string | undefined = undefined;
+
+  private clearFilterEffect = effect(() => {
+    const groupId = this.groupId();
+    const hadGroup = !!this.previousGroupId;
+    this.previousGroupId = groupId;
+
+    if (hadGroup && !groupId) {
+      untracked(() => this.autocompleteComponent()?.clearFilter());
+    }
+  });
 
   public displayWith(id?: number): string {
     if (id) {

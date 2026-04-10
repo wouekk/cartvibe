@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnChanges, OnInit, signal, SimpleChanges, TemplateRef, input, viewChild } from "@angular/core";
+import { Component, effect, ElementRef, Input, OnInit, signal, TemplateRef, input, viewChild } from "@angular/core";
 import { FormArray, FormControl, Validators } from "@angular/forms";
 import { MatAutocompleteSelectedEvent, MatAutocompleteTrigger, } from "@angular/material/autocomplete";
 import { map, Observable, of, startWith } from "rxjs";
@@ -12,7 +12,7 @@ import { BaseInputComponent } from "../../base-input";
 })
 export class AutocomleteComponent
   extends BaseInputComponent
-  implements OnInit, OnChanges {
+  implements OnInit {
   @Input() public inputId: string = "";
 
   public readonly options = input<any[]>([]);
@@ -53,35 +53,27 @@ export class AutocomleteComponent
 
   public singleOptionSelected = signal(false);
 
-  constructor() {
-    super();
-  }
-
-  public ngOnChanges(changes: SimpleChanges): void {
-    if (changes["options"]) {
-      this.filteredOptions = this.filterFormControl.valueChanges.pipe(
-        startWith(this.filterFormControl.value),
-        map((value) => {
-          return this._filter(value);
-        })
-      );
-    }
-
-    if (changes["label"] && !this.inputId) {
-      this.inputId = this.label.replace(/ /g, "_").toLowerCase();
-    }
-  }
-
-  public override ngOnInit(): void {
-    super.ngOnInit();
-    this.isRequired = this.inputFormControl.hasValidator(Validators.required);
-    this.setSingleOptionSelected();
+  private optionsEffect = effect(() => {
+    this.options();
     this.filteredOptions = this.filterFormControl.valueChanges.pipe(
       startWith(this.filterFormControl.value),
       map((value) => {
         return this._filter(value);
       })
     );
+  });
+
+  constructor() {
+    super();
+  }
+
+  public override ngOnInit(): void {
+    super.ngOnInit();
+    if (!this.inputId) {
+      this.inputId = this.label.replace(/ /g, "_").toLowerCase();
+    }
+    this.isRequired = this.inputFormControl.hasValidator(Validators.required);
+    this.setSingleOptionSelected();
 
     if (!this.multiple) {
       this.initSingleAutocomplete();
