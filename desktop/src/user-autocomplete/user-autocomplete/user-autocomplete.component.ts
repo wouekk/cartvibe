@@ -54,9 +54,14 @@ export class UserAutocompleteComponent {
     return allUsers;
   });
 
+  private previousGroupId: string | undefined = undefined;
+
   private clearFilterEffect = effect(() => {
     const groupId = this.groupId();
-    if (!groupId) {
+    const hadGroup = !!this.previousGroupId;
+    this.previousGroupId = groupId;
+
+    if (hadGroup && !groupId) {
       untracked(() => this.autocompleteComponent()?.clearFilter());
     }
   });

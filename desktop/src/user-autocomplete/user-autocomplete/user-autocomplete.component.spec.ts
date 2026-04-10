@@ -31,4 +31,12 @@ describe("UserAutocompleteComponent", () => {
   it("should create", () => {
     expect(component).toBeTruthy();
   });
+
+  it("should not clear inputFormControl value on initial load when groupId is not set", async () => {
+    const control = new FormControl("existing-user-id");
+    fixture.componentRef.setInput('inputFormControl', control);
+    await fixture.whenStable();
+
+    expect(control.value).toBe("existing-user-id");
+  });
 });
