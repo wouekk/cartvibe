@@ -84,7 +84,7 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
     userShortcuts.push(newUserShortcut);
     this.originalUserShortcuts.update(prev => [...prev, newUserShortcut.value]);
 
-    userShortcutComp.editableListComponent().openLastRow();
+    userShortcutComp.editableListComponent().openLastRow(userShortcuts.length - 1);
     userShortcutComp.isAddingShortcut = true;
   }
 

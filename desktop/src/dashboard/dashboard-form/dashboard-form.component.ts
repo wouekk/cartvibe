@@ -181,7 +181,7 @@ export class DashboardFormComponent extends BaseFormComponent implements OnInit 
       widgetType: undefined,
     } as Widget);
     this.widgets.push(formGroup);
-    this.widgetList().openLastRow();
+    this.widgetList().openLastRow(this.widgets.length - 1);
     this.isAddingWidget = true;
   }
 

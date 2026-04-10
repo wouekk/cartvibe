@@ -1,5 +1,4 @@
-import { Component, Input, TemplateRef, input, output } from "@angular/core";
-import { BehaviorSubject } from "rxjs";
+import { Component, Input, signal, TemplateRef, input, output } from "@angular/core";
 
 @Component({
     selector: "app-editable-list",
@@ -24,31 +23,27 @@ export class EditableListComponent {
 
   public readonly deleteButtonClicked = output<number>();
 
-  private rowOpen: BehaviorSubject<number | undefined> = new BehaviorSubject<
-    number | undefined
-  >(undefined);
-
-  public rowOpenObservable = this.rowOpen.asObservable();
+  public readonly rowOpen = signal<number | undefined>(undefined);
 
   public handleEditButtonClicked(index: number): void {
-    this.rowOpen.next(index);
+    this.rowOpen.set(index);
     this.editButtonClicked.emit(index);
   }
 
   public getCurrentRowOpen(): number | undefined {
-    return this.rowOpen.value;
+    return this.rowOpen();
   }
 
   public handleDeleteButtonClicked(index: number): void {
-    this.rowOpen.next(undefined);
+    this.rowOpen.set(undefined);
     this.deleteButtonClicked.emit(index);
   }
 
-  public openLastRow(): void {
-    this.rowOpen.next(this.listData().length - 1);
+  public openLastRow(index?: number): void {
+    this.rowOpen.set(index ?? this.listData().length - 1);
   }
 
   public closeRow(): void {
-    this.rowOpen.next(undefined);
+    this.rowOpen.set(undefined);
   }
 }
