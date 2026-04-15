@@ -64,6 +64,7 @@
                 class="w-100"
                 [inputFormControl]="form | formGet : 'tags'"
                 [tags]="tags"
+                [readonly]="mode | inputReadonly"
               ></app-tag-autocomplete>
             }
             <app-datepicker
