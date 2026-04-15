@@ -8,7 +8,6 @@ export function buildItemForm(item?: Item, receiptId?: string, isShare: boolean 
     receiptId: new FormControl(Number(item?.receiptId ?? receiptId)),
     amount: new FormControl(item?.amount ?? undefined, [
       Validators.required,
-      Validators.min(0),
       itemTotalValidator(isShare, syncAmountWithItems),
     ]),
     isTaxed: new FormControl(item?.IsTaxed ?? false),
@@ -74,7 +73,7 @@ function itemTotalValidator(isShare: boolean, syncAmountWithItems: boolean = fal
       .map((amount: any) => Number.parseFloat(amount) ?? 1);
     const itemsTotal = itemsAmounts.reduce((a, b) => a + b);
 
-    if (itemsTotal > receiptTotal + epsilon) {
+    if (Math.abs(itemsTotal) > Math.abs(receiptTotal) + epsilon) {
       itemControls.forEach((c) => {
         if (c !== control) {
           c.get("amount")?.setErrors({

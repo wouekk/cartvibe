@@ -101,16 +101,17 @@ class PieChartWidget extends StatelessWidget {
   }
 
   List<PieChartSectionData> _buildSections() {
-    final total = data.fold<double>(0, (sum, item) => sum + item.value);
+    final total = data.fold<double>(0, (sum, item) => sum + item.value.abs());
 
     return data.asMap().entries.map((entry) {
       final index = entry.key;
       final item = entry.value;
-      final percentage = total > 0 ? (item.value / total * 100) : 0;
+      final magnitude = item.value.abs();
+      final percentage = total > 0 ? (magnitude / total * 100) : 0;
       final color = defaultColors[index % defaultColors.length];
 
       return PieChartSectionData(
-        value: item.value,
+        value: magnitude,
         title: '${percentage.toStringAsFixed(1)}%',
         color: color,
         radius: 80,

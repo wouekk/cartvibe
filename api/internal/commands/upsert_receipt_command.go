@@ -48,14 +48,6 @@ func (receipt *UpsertReceiptCommand) Validate(tokenUserId uint, isCreate bool) s
 		errors["name"] = "Name is required"
 	}
 
-	if receipt.Amount.IsZero() {
-		errors["amount"] = "Amount is required"
-	}
-
-	if receipt.Amount.LessThanOrEqual(decimal.Zero) {
-		errors["amount"] = "Amount must be greater than zero"
-	}
-
 	if receipt.Date.IsZero() {
 		errors["date"] = "Date is required"
 	}

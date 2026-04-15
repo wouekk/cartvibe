@@ -68,8 +68,8 @@ export class PieChartComponent implements OnInit, OnChanges {
             label: (context) => {
               const label = context.label || "";
               const value = context.parsed || 0;
-              const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
-              const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : "0";
+              const total = context.dataset.data.reduce((a: number, b: number) => a + Math.abs(b), 0);
+              const percentage = total > 0 ? ((Math.abs(value) / total) * 100).toFixed(1) : "0";
               const formattedValue = this.customCurrencyPipe.transform(value);
               return `${label}: ${formattedValue} (${percentage}%)`;
             },
@@ -82,8 +82,8 @@ export class PieChartComponent implements OnInit, OnChanges {
             size: 12,
           },
           formatter: (value: number, context: any) => {
-            const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
-            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : "0";
+            const total = context.dataset.data.reduce((a: number, b: number) => a + Math.abs(b), 0);
+            const percentage = total > 0 ? ((Math.abs(value) / total) * 100).toFixed(1) : "0";
             // Only show label if percentage is > 5% to avoid cluttering small slices
             return parseFloat(percentage) > 5 ? `${percentage}%` : "";
           },

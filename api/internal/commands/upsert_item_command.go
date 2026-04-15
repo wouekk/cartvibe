@@ -22,16 +22,8 @@ func (item *UpsertItemCommand) Validate(receiptAmount decimal.Decimal, isCreate 
 	errors := make(map[string]string)
 	vErr := structs.ValidatorError{}
 
-	if item.Amount.IsZero() {
-		errors["amount"] = "Amount is required"
-	}
-
-	if item.Amount.GreaterThan(receiptAmount) {
+	if item.Amount.Abs().GreaterThan(receiptAmount.Abs()) {
 		errors["amount"] = "Amount cannot be greater than receipt amount"
-	}
-
-	if item.Amount.LessThanOrEqual(decimal.Zero) {
-		errors["amount"] = "Amount must be greater than zero"
 	}
 
 	if len(item.Name) == 0 {

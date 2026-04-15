@@ -328,7 +328,7 @@ export class ReceiptFormComponent implements OnInit {
       name: [this.originalReceipt?.name ?? "", Validators.required],
       amount: [
         this.originalReceipt?.amount ?? "",
-        [Validators.required, Validators.min(1)],
+        [Validators.required],
       ],
       syncAmountWithItems: false,
       categories: this.formBuilder.array(

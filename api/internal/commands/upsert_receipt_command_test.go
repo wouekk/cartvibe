@@ -56,6 +56,28 @@ func TestUpsertReceiptCommand_Validate_ValidInputs(t *testing.T) {
 			},
 			isCreate: true,
 		},
+		"zero amount": {
+			command: UpsertReceiptCommand{
+				Name:         "Test Receipt",
+				Amount:       decimal.Zero,
+				Date:         time.Now(),
+				GroupId:      1,
+				PaidByUserID: 1,
+				Status:       models.ReceiptStatus("OPEN"),
+			},
+			isCreate: true,
+		},
+		"negative amount for refund": {
+			command: UpsertReceiptCommand{
+				Name:         "Store Return",
+				Amount:       decimal.NewFromFloat(-25.50),
+				Date:         time.Now(),
+				GroupId:      1,
+				PaidByUserID: 1,
+				Status:       models.ReceiptStatus("OPEN"),
+			},
+			isCreate: true,
+		},
 	}
 
 	for testName, test := range tests {
@@ -77,14 +99,6 @@ func TestUpsertReceiptCommand_Validate_MissingFields(t *testing.T) {
 		"missing name": {
 			modify:        func(cmd *UpsertReceiptCommand) { cmd.Name = "" },
 			expectedError: "name",
-		},
-		"zero amount": {
-			modify:        func(cmd *UpsertReceiptCommand) { cmd.Amount = decimal.Zero },
-			expectedError: "amount",
-		},
-		"negative amount": {
-			modify:        func(cmd *UpsertReceiptCommand) { cmd.Amount = decimal.NewFromFloat(-1) },
-			expectedError: "amount",
 		},
 		"missing date": {
 			modify:        func(cmd *UpsertReceiptCommand) { cmd.Date = time.Time{} },
@@ -146,8 +160,8 @@ func TestUpsertReceiptCommand_Validate_NestedItemErrors(t *testing.T) {
 
 	vErr := cmd.Validate(1, true)
 
-	if _, exists := vErr.Errors["receiptItems.0.amount"]; !exists {
-		utils.PrintTestError(t, "error should exist for field", "receiptItems.0.amount")
+	if _, exists := vErr.Errors["receiptItems.0.name"]; !exists {
+		utils.PrintTestError(t, "error should exist for field", "receiptItems.0.name")
 	}
 }
 
@@ -167,8 +181,8 @@ func TestUpsertReceiptCommand_Validate_EmptyCommand(t *testing.T) {
 
 	vErr := command.Validate(1, true)
 
-	// name, amount, date, groupId, paidByUserId, status
-	if len(vErr.Errors) < 6 {
-		utils.PrintTestError(t, len(vErr.Errors), "at least 6")
+	// name, date, groupId, paidByUserId, status
+	if len(vErr.Errors) < 5 {
+		utils.PrintTestError(t, len(vErr.Errors), "at least 5")
 	}
 }

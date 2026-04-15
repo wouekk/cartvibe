@@ -48,6 +48,7 @@ class _AmountField extends State<AmountField> {
       numberOfDecimals: systemSettingsModel.currencyHideDecimalPlaces ? 0 : 2,
       currencySymbol: "",
       startWithSeparator: true,
+      enableNegative: true,
       forceCursorToEnd: false);
 
   double getInitialAmount() {
@@ -86,7 +87,7 @@ class _AmountField extends State<AmountField> {
         suffixText: suffix,
         suffixIcon: widget.suffixIcon,
       ),
-      keyboardType: TextInputType.number,
+      keyboardType: const TextInputType.numberWithOptions(signed: true, decimal: true),
       validator: FormBuilderValidators.compose([
         FormBuilderValidators.required(),
       ]),

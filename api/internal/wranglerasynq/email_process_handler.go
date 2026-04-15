@@ -142,6 +142,12 @@ func HandleEmailProcessTask(context context.Context, task *asynq.Task) error {
 
 	command.CreatedByString = "Email Integration"
 
+	vErr := command.Validate(0, true)
+	if len(vErr.Errors) > 0 {
+		errBytes, _ := json.Marshal(vErr.Errors)
+		return HandleError(fmt.Errorf("receipt validation failed: %s", string(errBytes)))
+	}
+
 	err = db.Transaction(func(tx *gorm.DB) error {
 		receiptRepository := repositories.NewReceiptRepository(tx)
 		receiptImageRepository := repositories.NewReceiptImageRepository(tx)

@@ -39,6 +39,30 @@ func TestUpsertItemCommand_Validate_ValidInputs(t *testing.T) {
 			},
 			isCreate: true,
 		},
+		"zero amount": {
+			command: UpsertItemCommand{
+				Amount: decimal.Zero,
+				Name:   "Test Item",
+				Status: models.ITEM_OPEN,
+			},
+			isCreate: true,
+		},
+		"negative amount within receipt magnitude": {
+			command: UpsertItemCommand{
+				Amount: decimal.NewFromFloat(-50.00),
+				Name:   "Test Item",
+				Status: models.ITEM_OPEN,
+			},
+			isCreate: true,
+		},
+		"negative amount equal to receipt magnitude": {
+			command: UpsertItemCommand{
+				Amount: decimal.NewFromFloat(-100.00),
+				Name:   "Test Item",
+				Status: models.ITEM_OPEN,
+			},
+			isCreate: true,
+		},
 	}
 
 	for testName, test := range tests {
@@ -60,25 +84,25 @@ func TestUpsertItemCommand_Validate_InvalidInputs(t *testing.T) {
 		isCreate      bool
 		expectedError string
 	}{
-		"zero amount": {
-			command: UpsertItemCommand{
-				Amount: decimal.Zero,
-				Name:   "Test Item",
-				Status: models.ITEM_OPEN,
-			},
-			isCreate:      true,
-			expectedError: "amount",
-		},
-		"negative amount": {
-			command: UpsertItemCommand{
-				Amount: decimal.NewFromFloat(-5.00),
-				Name:   "Test Item",
-				Status: models.ITEM_OPEN,
-			},
-			isCreate:      true,
-			expectedError: "amount",
-		},
 		"amount exceeds receipt amount": {
+			command: UpsertItemCommand{
+				Amount: decimal.NewFromFloat(150.00),
+				Name:   "Test Item",
+				Status: models.ITEM_OPEN,
+			},
+			isCreate:      true,
+			expectedError: "amount",
+		},
+		"negative amount magnitude exceeds receipt": {
+			command: UpsertItemCommand{
+				Amount: decimal.NewFromFloat(-150.00),
+				Name:   "Test Item",
+				Status: models.ITEM_OPEN,
+			},
+			isCreate:      true,
+			expectedError: "amount",
+		},
+		"positive item on negative receipt exceeds magnitude": {
 			command: UpsertItemCommand{
 				Amount: decimal.NewFromFloat(150.00),
 				Name:   "Test Item",
@@ -138,10 +162,6 @@ func TestUpsertItemCommand_Validate_MultipleErrors(t *testing.T) {
 		utils.PrintTestError(t, len(vErr.Errors), "at least 3")
 	}
 
-	if _, exists := vErr.Errors["amount"]; !exists {
-		utils.PrintTestError(t, "error should exist for field", "amount")
-	}
-
 	if _, exists := vErr.Errors["name"]; !exists {
 		utils.PrintTestError(t, "error should exist for field", "name")
 	}
@@ -152,5 +172,55 @@ func TestUpsertItemCommand_Validate_MultipleErrors(t *testing.T) {
 
 	if _, exists := vErr.Errors["receiptId"]; !exists {
 		utils.PrintTestError(t, "error should exist for field", "receiptId")
+	}
+}
+
+func TestUpsertItemCommand_Validate_NegativeReceiptMagnitudeChecks(t *testing.T) {
+	negativeReceiptAmount := decimal.NewFromFloat(-100.00)
+
+	tests := map[string]struct {
+		amount       decimal.Decimal
+		expectPasses bool
+	}{
+		"negative item within negative receipt magnitude": {
+			amount:       decimal.NewFromFloat(-50.00),
+			expectPasses: true,
+		},
+		"negative item equal to negative receipt magnitude": {
+			amount:       decimal.NewFromFloat(-100.00),
+			expectPasses: true,
+		},
+		"negative item exceeds negative receipt magnitude": {
+			amount:       decimal.NewFromFloat(-150.00),
+			expectPasses: false,
+		},
+		"positive item exceeds negative receipt magnitude": {
+			amount:       decimal.NewFromFloat(150.00),
+			expectPasses: false,
+		},
+		"positive item within negative receipt magnitude": {
+			amount:       decimal.NewFromFloat(50.00),
+			expectPasses: true,
+		},
+	}
+
+	for testName, test := range tests {
+		t.Run(testName, func(t *testing.T) {
+			cmd := UpsertItemCommand{
+				Amount: test.amount,
+				Name:   "Test Item",
+				Status: models.ITEM_OPEN,
+			}
+
+			vErr := cmd.Validate(negativeReceiptAmount, true)
+			_, amountErrExists := vErr.Errors["amount"]
+
+			if test.expectPasses && amountErrExists {
+				utils.PrintTestError(t, "amount should pass magnitude check", test.amount.String())
+			}
+			if !test.expectPasses && !amountErrExists {
+				utils.PrintTestError(t, "amount should fail magnitude check", test.amount.String())
+			}
+		})
 	}
 }
