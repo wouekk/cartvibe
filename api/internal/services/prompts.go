@@ -39,6 +39,7 @@ Find the receipt's name, total cost, and date. Format the found data as:
 If a store name cannot be confidently found, use 'Default store name' as the default name.
 Omit any value if not found with confidence. Assume the date is in the year @currentYear if not provided.
 The amount must be a float or integer.
+If the receipt represents a refund, return, or credit (money returned to the customer rather than charged), the amount and item amounts MUST be negative. Otherwise they are positive.
 
 Please do NOT add any additional information, only valid JSON.
 Please return the json in plaintext ONLY, do not ever return it in a code block or any other format.

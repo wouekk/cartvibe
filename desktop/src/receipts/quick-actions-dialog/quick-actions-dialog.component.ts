@@ -153,7 +153,7 @@ export class QuickActionsDialogComponent implements OnInit {
   }
 
   public addSplits(): void {
-    if (this.amountToSplit < 0 || !this.amountToSplit) {
+    if (this.amountToSplit === null || this.amountToSplit === undefined || Number.isNaN(this.amountToSplit)) {
       this.snackbarService.error("Amount to split does not exist or is invalid!");
       return;
     }

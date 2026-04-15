@@ -504,7 +504,7 @@ describe("QuickActionsDialogComponent", () => {
     });
 
     describe("Edge Cases", () => {
-      it("should handle receipt amount of 0", () => {
+      it("should accept receipt amount of 0", () => {
         component.amountToSplit = 0;
         component.localForm.patchValue({
           quickAction: component.radioValues[2].value,
@@ -515,7 +515,23 @@ describe("QuickActionsDialogComponent", () => {
 
         component.addSplits();
 
-        expect(mockSnackbarService.error).toHaveBeenCalledWith(
+        expect(mockSnackbarService.error).not.toHaveBeenCalledWith(
+          "Amount to split does not exist or is invalid!"
+        );
+      });
+
+      it("should accept a negative receipt amount (refund split)", () => {
+        component.amountToSplit = -100;
+        component.localForm.patchValue({
+          quickAction: component.radioValues[0].value,
+        });
+
+        const users = createTestUsers();
+        setupUsersInForm(users);
+
+        component.addSplits();
+
+        expect(mockSnackbarService.error).not.toHaveBeenCalledWith(
           "Amount to split does not exist or is invalid!"
         );
       });

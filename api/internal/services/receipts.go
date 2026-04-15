@@ -1,6 +1,8 @@
 package services
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/jinzhu/copier"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -167,6 +169,12 @@ func (service ReceiptService) QuickScan(
 	}
 
 	receiptCommand.GroupId = groupId
+
+	vErr := receiptCommand.Validate(token.UserId, true)
+	if len(vErr.Errors) > 0 {
+		errBytes, _ := json.Marshal(vErr.Errors)
+		return models.Receipt{}, fmt.Errorf("receipt validation failed: %s", string(errBytes))
+	}
 
 	err = db.Transaction(func(tx *gorm.DB) error {
 		receiptRepository.SetTransaction(tx)
