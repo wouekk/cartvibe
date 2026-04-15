@@ -78,10 +78,14 @@ Money exchangeCustomToUSD(String? customValue) {
 
 Money exchangeUSDToCustom(String? usdValue) {
   if (usdValue == null || usdValue.isEmpty) {
-    return Money.parse("0", isoCode: customCurrencyISOCode);
+    return Money.fromNum(0, isoCode: customCurrencyISOCode);
   }
 
-  var parsedUSDValue = Money.parse(usdValue, isoCode: "USD");
+  // Money.parse uses the USD pattern (which leads with the currency symbol),
+  // so "-50.00" without a "$" prefix fails. API-stored amounts and form
+  // values are plain decimals (no group separators), so parse the double
+  // directly to support negatives end-to-end.
+  var parsedUSDValue = Money.fromNum(double.parse(usdValue), isoCode: "USD");
 
   ExchangeRate exchangeRate = ExchangeRate.fromNum(1,
       decimalDigits: 2, fromIsoCode: "USD", toIsoCode: customCurrencyISOCode);
