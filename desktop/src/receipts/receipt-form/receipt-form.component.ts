@@ -181,29 +181,34 @@ export class ReceiptFormComponent implements OnInit {
   public form: FormGroup = new FormGroup({});
 
   public ngOnInit(): void {
-    this.categories = this.activatedRoute.snapshot.data["categories"] ?? [];
-    this.tags = this.activatedRoute.snapshot.data["tags"] ?? [];
-    this.customFields = this.activatedRoute.snapshot.data["customFields"] ?? [];
-    this.originalReceipt = this.activatedRoute.snapshot.data["receipt"];
-    this.editLink = `/receipts/${this.originalReceipt?.id}/edit`;
-    this.mode = this.activatedRoute.snapshot.data["mode"];
-    this.customFieldsStatefulMenuItems = this.customFields.map(c => {
-      const selected = this.originalReceipt?.customFields.some(customField => customField.customFieldId === c.id) ?? false;
+    this.activatedRoute.data
+      .pipe(untilDestroyed(this))
+      .subscribe((data) => {
+        this.duplicatedSnackbarRef?.dismiss();
+        this.categories = data["categories"] ?? [];
+        this.tags = data["tags"] ?? [];
+        this.customFields = data["customFields"] ?? [];
+        this.originalReceipt = data["receipt"];
+        this.editLink = `/receipts/${this.originalReceipt?.id}/edit`;
+        this.mode = data["mode"];
+        this.customFieldsStatefulMenuItems = this.customFields.map(c => {
+          const selected = this.originalReceipt?.customFields.some(customField => customField.customFieldId === c.id) ?? false;
 
-      return {
-        value: c.id.toString(),
-        subtitle: this.customFieldTypePipe.transform(c.type),
-        displayValue: c.name,
-        selected: selected
-      };
-    });
-    this.setCancelLink();
-    this.initForm();
-    this.getImageFiles();
-    this.setHeaderText();
-    this.setShowLargeImagePreview();
-    this.setQueueData();
-    document.scrollingElement?.scrollTo(0, 0);
+          return {
+            value: c.id.toString(),
+            subtitle: this.customFieldTypePipe.transform(c.type),
+            displayValue: c.name,
+            selected: selected
+          };
+        });
+        this.setCancelLink();
+        this.initForm();
+        this.getImageFiles();
+        this.setHeaderText();
+        this.setShowLargeImagePreview();
+        this.setQueueData();
+        document.scrollingElement?.scrollTo(0, 0);
+      });
   }
 
   private setQueueData(): void {
