@@ -63,8 +63,6 @@ describe("GroupSettingsEmailComponent", () => {
   it("should init form with empty values", () => {
     component.ngOnInit();
 
-    console.log(component.form.value);
-
     expect(component.form.value).toEqual({
       systemEmailId: undefined,
       emailIntegrationEnabled: undefined,
