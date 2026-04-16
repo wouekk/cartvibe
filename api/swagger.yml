@@ -2833,6 +2833,7 @@ components:
         - "RECEIPT_UPDATED"
         - "PROMPT_GENERATED"
         - "API_KEY_DELETED"
+        - "HTML_TO_PDF"
     AssociatedEntityType:
       type: string
       enum:
