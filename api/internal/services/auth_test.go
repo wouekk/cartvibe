@@ -3,13 +3,18 @@ package services
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"receipt-wrangler/api/internal/commands"
+	"receipt-wrangler/api/internal/constants"
+	config "receipt-wrangler/api/internal/env"
 	"receipt-wrangler/api/internal/models"
 	"receipt-wrangler/api/internal/repositories"
 	"receipt-wrangler/api/internal/structs"
 	"receipt-wrangler/api/internal/utils"
 	"testing"
 
+	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 )
 
@@ -212,5 +217,246 @@ func TestShouldNotLogUserInWithWrongPassword(t *testing.T) {
 
 	if err == nil {
 		utils.PrintTestError(t, err, "login error")
+	}
+}
+
+// BuildTokenCookies — non-dev environment (test env is "test", so this
+// exercises the SameSite=Strict / Secure=false branch).
+func TestBuildTokenCookies_NonDevEnvironment(t *testing.T) {
+	jwt := "jwt-token-value"
+	refreshToken := "refresh-token-value"
+
+	access, refresh := BuildTokenCookies(jwt, refreshToken)
+
+	if access.Name != constants.JwtKey {
+		utils.PrintTestError(t, access.Name, constants.JwtKey)
+	}
+	if access.Value != jwt {
+		utils.PrintTestError(t, access.Value, jwt)
+	}
+	if !access.HttpOnly {
+		utils.PrintTestError(t, access.HttpOnly, true)
+	}
+	if access.Path != "/" {
+		utils.PrintTestError(t, access.Path, "/")
+	}
+	if access.SameSite != http.SameSiteStrictMode {
+		utils.PrintTestError(t, access.SameSite, http.SameSiteStrictMode)
+	}
+	if access.Secure {
+		utils.PrintTestError(t, access.Secure, false)
+	}
+	if access.Expires.IsZero() {
+		utils.PrintTestError(t, "Expires is zero", "non-zero time")
+	}
+
+	if refresh.Name != constants.RefreshTokenKey {
+		utils.PrintTestError(t, refresh.Name, constants.RefreshTokenKey)
+	}
+	if refresh.Value != refreshToken {
+		utils.PrintTestError(t, refresh.Value, refreshToken)
+	}
+	if !refresh.HttpOnly {
+		utils.PrintTestError(t, refresh.HttpOnly, true)
+	}
+	if refresh.Path != "/" {
+		utils.PrintTestError(t, refresh.Path, "/")
+	}
+	if refresh.SameSite != http.SameSiteStrictMode {
+		utils.PrintTestError(t, refresh.SameSite, http.SameSiteStrictMode)
+	}
+	if refresh.Secure {
+		utils.PrintTestError(t, refresh.Secure, false)
+	}
+	if refresh.Expires.IsZero() {
+		utils.PrintTestError(t, "Expires is zero", "non-zero time")
+	}
+}
+
+// BuildTokenCookies dev branch: env=="dev" -> SameSite=None, Secure=true.
+// Skipped because config.env is set once from `-env=test` in SetUpTestEnv and
+// there is no exported hook to override it for a single test.
+// See bug report BUG-2 (testability).
+func TestBuildTokenCookies_DevEnvironment(t *testing.T) {
+	t.Skip("see BUG-2: config.env is package-private and fixed to 'test' for the suite; no hook to override per-test")
+	if config.GetDeployEnv() != "dev" {
+		return
+	}
+	access, refresh := BuildTokenCookies("j", "r")
+	if access.SameSite != http.SameSiteNoneMode {
+		utils.PrintTestError(t, access.SameSite, http.SameSiteNoneMode)
+	}
+	if !access.Secure {
+		utils.PrintTestError(t, access.Secure, true)
+	}
+	if refresh.SameSite != http.SameSiteNoneMode {
+		utils.PrintTestError(t, refresh.SameSite, http.SameSiteNoneMode)
+	}
+	if !refresh.Secure {
+		utils.PrintTestError(t, refresh.Secure, true)
+	}
+}
+
+// PrepareAccessTokenClaims — the current implementation takes a value
+// receiver and therefore cannot mutate the caller's claims. We assert the
+// observed behavior (caller's claims unchanged) and flag the apparent intent
+// as a bug — see BUG-1 in the bug report.
+func TestPrepareAccessTokenClaims_DoesNotMutateCaller(t *testing.T) {
+	claims := structs.Claims{}
+	claims.Issuer = "https://receiptWrangler.io"
+	claims.Audience = []string{"https://receiptWrangler.io"}
+
+	PrepareAccessTokenClaims(claims)
+
+	// Documenting observed behavior: caller's Issuer/Audience are unchanged
+	// because the function receives claims by value.
+	if claims.Issuer != "https://receiptWrangler.io" {
+		utils.PrintTestError(t, claims.Issuer, "https://receiptWrangler.io")
+	}
+	if len(claims.Audience) != 1 || claims.Audience[0] != "https://receiptWrangler.io" {
+		utils.PrintTestError(t, claims.Audience, []string{"https://receiptWrangler.io"})
+	}
+}
+
+// PrepareAccessTokenClaims — skipped test capturing the *intended* behavior:
+// after the call, Issuer should be "" and Audience should be empty. This
+// currently fails because of BUG-1 (value receiver). Kept as a pinned test
+// so the bug is easy to discover.
+func TestPrepareAccessTokenClaims_ClearsIssuerAndAudience(t *testing.T) {
+	t.Skip("see BUG-1: PrepareAccessTokenClaims takes structs.Claims by value; caller mutations are lost")
+
+	claims := structs.Claims{}
+	claims.Issuer = "https://receiptWrangler.io"
+	claims.Audience = []string{"https://receiptWrangler.io"}
+
+	PrepareAccessTokenClaims(claims)
+
+	if claims.Issuer != "" {
+		utils.PrintTestError(t, claims.Issuer, "")
+	}
+	if len(claims.Audience) != 0 {
+		utils.PrintTestError(t, claims.Audience, []string{})
+	}
+}
+
+func TestGetEmptyAccessTokenCookie(t *testing.T) {
+	cookie := GetEmptyAccessTokenCookie()
+
+	if cookie.Name != constants.JwtKey {
+		utils.PrintTestError(t, cookie.Name, constants.JwtKey)
+	}
+	if cookie.Value != "" {
+		utils.PrintTestError(t, cookie.Value, "")
+	}
+	if cookie.Path != "/" {
+		utils.PrintTestError(t, cookie.Path, "/")
+	}
+	if cookie.MaxAge != -1 {
+		utils.PrintTestError(t, cookie.MaxAge, -1)
+	}
+	if cookie.HttpOnly {
+		utils.PrintTestError(t, cookie.HttpOnly, false)
+	}
+}
+
+func TestGetEmptyRefreshTokenCookie(t *testing.T) {
+	cookie := GetEmptyRefreshTokenCookie()
+
+	if cookie.Name != constants.RefreshTokenKey {
+		utils.PrintTestError(t, cookie.Name, constants.RefreshTokenKey)
+	}
+	if cookie.Value != "" {
+		utils.PrintTestError(t, cookie.Value, "")
+	}
+	if cookie.Path != "/" {
+		utils.PrintTestError(t, cookie.Path, "/")
+	}
+	if cookie.MaxAge != -1 {
+		utils.PrintTestError(t, cookie.MaxAge, -1)
+	}
+	if !cookie.HttpOnly {
+		utils.PrintTestError(t, cookie.HttpOnly, true)
+	}
+}
+
+// GetAppData with nil request — no claims to populate.
+func TestGetAppData_PopulatesFields(t *testing.T) {
+	defer repositories.TruncateTestDb()
+
+	userRepository := repositories.NewUserRepository(nil)
+	user, err := userRepository.CreateUser(commands.SignUpCommand{
+		Username:    "appdata-user",
+		Password:    "Password",
+		DisplayName: "AppData User",
+	})
+	if err != nil {
+		utils.PrintTestError(t, err, nil)
+	}
+
+	appData, err := GetAppData(user.ID, nil)
+	if err != nil {
+		utils.PrintTestError(t, err, nil)
+	}
+
+	// CreateUser seeds a "My Receipts" group and an "All" group; both should
+	// appear for the user.
+	if len(appData.Groups) == 0 {
+		utils.PrintTestError(t, "Groups length 0", ">0")
+	}
+	// At least the created user is in the Users list.
+	found := false
+	for _, u := range appData.Users {
+		if u.ID == user.ID {
+			found = true
+			break
+		}
+	}
+	if !found {
+		utils.PrintTestError(t, "user not in appData.Users", "present")
+	}
+	if appData.UserPreferences.UserId != user.ID {
+		utils.PrintTestError(t, appData.UserPreferences.UserId, user.ID)
+	}
+	if appData.Icons == nil {
+		utils.PrintTestError(t, appData.Icons, "non-nil Icons slice")
+	}
+}
+
+// GetAppData with non-nil request that carries ValidatedClaims — Claims
+// should be populated on the AppData.
+func TestGetAppData_WithRequestPopulatesClaims(t *testing.T) {
+	defer repositories.TruncateTestDb()
+
+	userRepository := repositories.NewUserRepository(nil)
+	user, err := userRepository.CreateUser(commands.SignUpCommand{
+		Username:    "claims-user",
+		Password:    "Password",
+		DisplayName: "Claims User",
+	})
+	if err != nil {
+		utils.PrintTestError(t, err, nil)
+	}
+
+	customClaims := &structs.Claims{
+		UserId:      user.ID,
+		Username:    user.Username,
+		Displayname: user.DisplayName,
+		UserRole:    models.ADMIN,
+	}
+	validatedClaims := &validator.ValidatedClaims{CustomClaims: customClaims}
+
+	req := httptest.NewRequest(http.MethodGet, "/api/test", nil)
+	ctx := context.WithValue(req.Context(), jwtmiddleware.ContextKey{}, validatedClaims)
+	req = req.WithContext(ctx)
+
+	appData, err := GetAppData(user.ID, req)
+	if err != nil {
+		utils.PrintTestError(t, err, nil)
+	}
+	if appData.Claims.UserId != user.ID {
+		utils.PrintTestError(t, appData.Claims.UserId, user.ID)
+	}
+	if appData.Claims.Username != user.Username {
+		utils.PrintTestError(t, appData.Claims.Username, user.Username)
 	}
 }

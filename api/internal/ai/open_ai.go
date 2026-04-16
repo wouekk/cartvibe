@@ -2,6 +2,7 @@ package ai
 
 import (
 	"encoding/json"
+	"errors"
 	"receipt-wrangler/api/internal/models"
 	"receipt-wrangler/api/internal/structs"
 	"strings"
@@ -119,6 +120,9 @@ func (openAi OpenAiClient) GetChatCompletion() (structs.ChatCompletionResult, er
 	}
 
 	result.RawResponse = string(responseBytes)
+	if len(resp.Choices) == 0 {
+		return result, errors.New("empty choices from provider")
+	}
 	result.Response = resp.Choices[0].Message.Content
 	return result, nil
 }

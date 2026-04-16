@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"receipt-wrangler/api/internal/commands"
 	"receipt-wrangler/api/internal/logging"
@@ -9,6 +10,8 @@ import (
 	"receipt-wrangler/api/internal/repositories"
 	"receipt-wrangler/api/internal/services"
 	"receipt-wrangler/api/internal/utils"
+
+	"gorm.io/gorm"
 )
 
 func ValidateRefreshToken(next http.Handler) http.Handler {
@@ -59,8 +62,19 @@ func RevokeRefreshToken(next http.Handler) http.Handler {
 		}
 
 		hashTokenString := utils.Sha256Hash([]byte(refreshTokenString.(string)))
-		err = db.Model(&models.RefreshToken{}).Where("token = ?", hashTokenString).Find(&dbToken).Error
+		err = db.Model(&models.RefreshToken{}).Where("token = ?", hashTokenString).First(&dbToken).Error
 		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				emptyAccessTokenCookie := services.GetEmptyAccessTokenCookie()
+				emptyRefreshTokenCookie := services.GetEmptyRefreshTokenCookie()
+
+				http.SetCookie(w, &emptyAccessTokenCookie)
+				http.SetCookie(w, &emptyRefreshTokenCookie)
+
+				utils.WriteCustomErrorResponse(w, errMessage, http.StatusInternalServerError)
+				logging.LogStd(logging.LOG_LEVEL_ERROR, "Refresh token not found")
+				return
+			}
 			utils.WriteCustomErrorResponse(w, errMessage, http.StatusInternalServerError)
 			logging.LogStd(logging.LOG_LEVEL_ERROR, err.Error())
 			return

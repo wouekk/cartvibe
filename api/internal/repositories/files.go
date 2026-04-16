@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"receipt-wrangler/api/internal/constants"
@@ -235,7 +234,8 @@ func (repository FileRepository) ConvertPdfToJpg(bytes []byte) ([]byte, error) {
 
 		// Add the current image to the finalImage wand.
 		if err := finalImage.AddImage(currImage); err != nil {
-			log.Fatal(err) // Handle the error appropriately
+			currImage.Destroy()
+			return nil, err
 		}
 
 		// Destroy the current image object as it's no longer needed.
