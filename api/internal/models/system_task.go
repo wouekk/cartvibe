@@ -59,6 +59,7 @@ const (
 	PROMPT_GENERATED                               SystemTaskType = "PROMPT_GENERATED"
 	RECEIPT_UPDATED                                SystemTaskType = "RECEIPT_UPDATED"
 	API_KEY_DELETED                                SystemTaskType = "API_KEY_DELETED"
+	HTML_TO_PDF                                    SystemTaskType = "HTML_TO_PDF"
 )
 
 func (self *SystemTaskType) Scan(value string) error {
@@ -78,7 +79,8 @@ func (self SystemTaskType) Value() (driver.Value, error) {
 		self != RECEIPT_UPLOADED &&
 		self != PROMPT_GENERATED &&
 		self != RECEIPT_UPDATED &&
-		self != API_KEY_DELETED {
+		self != API_KEY_DELETED &&
+		self != HTML_TO_PDF {
 		return nil, errors.New("invalid SystemTaskType")
 	}
 	return string(self), nil

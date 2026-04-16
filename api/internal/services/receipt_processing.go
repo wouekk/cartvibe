@@ -86,32 +86,46 @@ func NewReceiptProcessingService(tx *gorm.DB, receiptProcessingSettingsId string
 func (service ReceiptProcessingService) ReadReceiptImage(
 	imagePath string,
 ) (commands.UpsertReceiptCommand, commands.ReceiptProcessingMetadata, error) {
-	return service.readReceipt(imagePath, "")
+	return service.readReceipt([]string{imagePath}, "", false)
 }
 
 func (service ReceiptProcessingService) ReadReceiptImageWithEmailBody(
 	imagePath string,
 	emailBody string,
 ) (commands.UpsertReceiptCommand, commands.ReceiptProcessingMetadata, error) {
-	return service.readReceipt(imagePath, emailBody)
+	return service.readReceipt([]string{imagePath}, emailBody, false)
+}
+
+// ReadReceiptImagesWithEmailBody processes one or more receipt images alongside
+// an email body. When bodySentAsImage is true, the body is also represented as
+// one of the images (e.g. a chromedp-rendered PDF page) and the body text is
+// not duplicated into the prompt to avoid sending the same content twice.
+func (service ReceiptProcessingService) ReadReceiptImagesWithEmailBody(
+	imagePaths []string,
+	emailBody string,
+	bodySentAsImage bool,
+) (commands.UpsertReceiptCommand, commands.ReceiptProcessingMetadata, error) {
+	return service.readReceipt(imagePaths, emailBody, bodySentAsImage)
 }
 
 func (service ReceiptProcessingService) ReadReceiptText(
 	emailBody string,
 ) (commands.UpsertReceiptCommand, commands.ReceiptProcessingMetadata, error) {
-	return service.readReceipt("", emailBody)
+	return service.readReceipt(nil, emailBody, false)
 }
 
 func (service ReceiptProcessingService) readReceipt(
-	imagePath string,
+	imagePaths []string,
 	emailBody string,
+	bodySentAsImage bool,
 ) (commands.UpsertReceiptCommand, commands.ReceiptProcessingMetadata, error) {
 	var receipt commands.UpsertReceiptCommand
 	metadata := commands.ReceiptProcessingMetadata{}
 
-	result, err := service.processImage(
-		imagePath,
+	result, err := service.processImages(
+		imagePaths,
 		emailBody,
+		bodySentAsImage,
 		service.ReceiptProcessingSettings,
 	)
 	metadata.OcrSystemTaskCommand = result.OcrSystemTaskCommand
@@ -123,9 +137,10 @@ func (service ReceiptProcessingService) readReceipt(
 		metadata.RawResponse = err.Error()
 
 		if service.FallbackReceiptProcessingSettings.ID > 0 {
-			fallbackResult, fallbackErr := service.processImage(
-				imagePath,
+			fallbackResult, fallbackErr := service.processImages(
+				imagePaths,
 				emailBody,
+				bodySentAsImage,
 				service.FallbackReceiptProcessingSettings,
 			)
 			metadata.FallbackReceiptProcessingSettingsIdRan = service.FallbackReceiptProcessingSettings.ID
@@ -168,59 +183,56 @@ func FormatEmailContent(imageData string, hasImage bool, emailBody string) strin
 	return fmt.Sprintf("Image Data:\n%s\n\nEmail Body:\n%s", imageDataText, emailBodyText)
 }
 
-func (service ReceiptProcessingService) processImage(
-	imagePath string,
+func (service ReceiptProcessingService) processImages(
+	imagePaths []string,
 	emailBody string,
+	bodySentAsImage bool,
 	receiptProcessingSettings models.ReceiptProcessingSettings,
 ) (commands.ReceiptProcessingResult, error) {
 	aiMessages := []structs.AiClientMessage{}
 	receipt := commands.UpsertReceiptCommand{}
 	result := commands.ReceiptProcessingResult{}
 	ocrText := ""
-	base64Image := ""
-	hasImage := len(imagePath) > 0
+	encodedImages := []string{}
+	hasImage := len(imagePaths) > 0
 
 	if hasImage {
 		if receiptProcessingSettings.IsVisionModel {
-			if receiptProcessingSettings.AiType == models.OLLAMA {
-				ollamaImage, err := service.getOllamaBase64Image(imagePath)
+			for _, imagePath := range imagePaths {
+				encoded, err := service.encodeImageForAi(imagePath, receiptProcessingSettings)
 				if err != nil {
 					return result, err
 				}
-
-				base64Image = ollamaImage
-			}
-
-			if receiptProcessingSettings.AiType == models.OPEN_AI_NEW || receiptProcessingSettings.AiType == models.OPEN_AI_CUSTOM || receiptProcessingSettings.AiType == models.OPEN_AI_CUSTOM_NEW {
-				openAiImage, err := service.getOpenAiBase64Image(imagePath)
-				if err != nil {
-					return result, err
-				}
-
-				base64Image = openAiImage
-			}
-
-			if receiptProcessingSettings.AiType == models.GEMINI_NEW {
-				geminiImage, err := service.getGeminiImage(imagePath)
-				if err != nil {
-					return result, err
-				}
-
-				base64Image = geminiImage
+				encodedImages = append(encodedImages, encoded)
 			}
 		} else {
 			ocrService := NewOcrService(service.TX, receiptProcessingSettings)
-			resultText, ocrSystemTaskCommand, err := ocrService.ReadImage(imagePath)
-			result.OcrSystemTaskCommand = ocrSystemTaskCommand
-			if err != nil {
-				return result, err
+			ocrResults := make([]ocrImageResult, 0, len(imagePaths))
+			for _, imagePath := range imagePaths {
+				resultText, ocrSystemTaskCommand, ocrErr := ocrService.ReadImage(imagePath)
+				ocrResults = append(ocrResults, ocrImageResult{
+					Text:    resultText,
+					Command: ocrSystemTaskCommand,
+					Err:     ocrErr,
+				})
+				if ocrErr != nil {
+					break
+				}
 			}
-
-			ocrText = resultText
+			combinedText, combinedCmd, combinedErr := combineOcrResults(ocrResults)
+			result.OcrSystemTaskCommand = combinedCmd
+			if combinedErr != nil {
+				return result, combinedErr
+			}
+			ocrText = combinedText
 		}
 	}
 
-	promptText := FormatEmailContent(ocrText, hasImage, emailBody)
+	promptBody := emailBody
+	if bodySentAsImage {
+		promptBody = ""
+	}
+	promptText := FormatEmailContent(ocrText, hasImage, promptBody)
 
 	prompt, promptSystemTask, err := service.buildPrompt(receiptProcessingSettings, promptText)
 	result.PromptSystemTaskCommand = promptSystemTask
@@ -232,8 +244,8 @@ func (service ReceiptProcessingService) processImage(
 		Role:    "user",
 		Content: prompt,
 	}
-	if len(base64Image) > 0 {
-		message.Images = []string{base64Image}
+	if len(encodedImages) > 0 {
+		message.Images = encodedImages
 	}
 
 	aiMessages = append(aiMessages, message)
@@ -267,6 +279,70 @@ func (service ReceiptProcessingService) cleanResponse(response string) string {
 	response = strings.ReplaceAll(response, "```json", "")
 	response = strings.ReplaceAll(response, "```", "")
 	return response
+}
+
+// ocrImageResult is the per-image outcome from running OCR. Used by
+// combineOcrResults to aggregate multi-image OCR runs into a single text
+// blob and a single system task command.
+type ocrImageResult struct {
+	Text    string
+	Command commands.UpsertSystemTaskCommand
+	Err     error
+}
+
+const ocrImageSeparator = "\n--- Image ---\n"
+
+// combineOcrResults aggregates per-image OCR outcomes into a single text
+// (joined with ocrImageSeparator) and a single UpsertSystemTaskCommand
+// that spans the first start time through the latest end time. The status
+// is FAILED if any individual OCR failed. Returns the first error
+// encountered, if any. The combined command's ResultDescription is
+// overwritten with the joined OCR text whenever any image OCR succeeded so
+// the system-task UI reflects the full output; if every image failed, the
+// original failure description set by OcrService.ReadImage is preserved
+// (texts is empty in that case so there's nothing useful to overwrite
+// with).
+func combineOcrResults(results []ocrImageResult) (string, commands.UpsertSystemTaskCommand, error) {
+	var combined commands.UpsertSystemTaskCommand
+	var firstErr error
+	texts := make([]string, 0, len(results))
+	for index, r := range results {
+		if index == 0 {
+			combined = r.Command
+		} else {
+			combined.EndedAt = r.Command.EndedAt
+			if r.Command.Status == models.SYSTEM_TASK_FAILED {
+				combined.Status = models.SYSTEM_TASK_FAILED
+			}
+		}
+		if r.Err != nil {
+			if firstErr == nil {
+				firstErr = r.Err
+			}
+			continue
+		}
+		texts = append(texts, r.Text)
+	}
+	combinedText := strings.Join(texts, ocrImageSeparator)
+	if len(texts) > 0 {
+		combined.ResultDescription = combinedText
+	}
+	return combinedText, combined, firstErr
+}
+
+func (service ReceiptProcessingService) encodeImageForAi(
+	imagePath string,
+	receiptProcessingSettings models.ReceiptProcessingSettings,
+) (string, error) {
+	switch receiptProcessingSettings.AiType {
+	case models.OLLAMA:
+		return service.getOllamaBase64Image(imagePath)
+	case models.OPEN_AI_NEW, models.OPEN_AI_CUSTOM, models.OPEN_AI_CUSTOM_NEW:
+		return service.getOpenAiBase64Image(imagePath)
+	case models.GEMINI_NEW:
+		return service.getGeminiImage(imagePath)
+	}
+	return "", fmt.Errorf("unsupported AI type for vision encoding: %s", receiptProcessingSettings.AiType)
 }
 
 // TODO: move to new ai client

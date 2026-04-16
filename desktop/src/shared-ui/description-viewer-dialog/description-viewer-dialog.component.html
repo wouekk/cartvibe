@@ -1,0 +1,21 @@
+<app-dialog [headerText]="data.headerText || 'Description'">
+  <div class="d-flex justify-content-end">
+    <app-copy-button
+      [text]="data.description"
+      tooltip="Copy description"
+    ></app-copy-button>
+  </div>
+  <div class="description-viewer-body">
+    <app-pretty-json
+      [json]="data.description"
+      [verticalJson]="true"
+    ></app-pretty-json>
+  </div>
+  <div class="d-flex justify-content-end mt-3">
+    <app-button
+      buttonText="Close"
+      matButtonType="basic"
+      (clicked)="close()"
+    ></app-button>
+  </div>
+</app-dialog>

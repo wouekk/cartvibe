@@ -1,0 +1,8 @@
+<app-button
+  matButtonType="iconButton"
+  type="button"
+  [icon]="isCopied() ? successIcon() : icon()"
+  [tooltip]="isCopied() ? successTooltip() : tooltip()"
+  [disabled]="disabled()"
+  (clicked)="copy()"
+></app-button>

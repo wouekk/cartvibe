@@ -14,6 +14,7 @@ import (
 	"receipt-wrangler/api/internal/repositories"
 	"receipt-wrangler/api/internal/structs"
 	"receipt-wrangler/api/internal/utils"
+	"strings"
 )
 
 func StartEmailPolling() error {
@@ -150,7 +151,12 @@ func pollEmailForGroupSettings(groupSettings []models.GroupSettings) error {
 		return err
 	}
 
-	logging.LogStd(logging.LOG_LEVEL_INFO, "Emails metadata captured: ", result)
+	for _, m := range result {
+		logging.LogStd(logging.LOG_LEVEL_INFO, fmt.Sprintf(
+			"Email metadata captured: subject=%q from=%q attachments=%d bodyLen=%d bodyHtmlLen=%d groups=%v",
+			m.Subject, m.FromEmail, len(m.Attachments), len(m.Body), len(m.BodyHtml), m.GroupSettingsIds,
+		))
+	}
 	err = enqueueEmailProcessTasks(result)
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, err.Error())
@@ -170,7 +176,6 @@ func enqueueEmailProcessTasks(metadataList []structs.EmailMetadata) error {
 	}
 
 	for _, metadata := range metadataList {
-
 		for _, attachment := range metadata.Attachments {
 			tempFilePath := buildTempEmailFilePath(attachment.Filename)
 			imageForOcrPath := buildTempEmailOcrFilePath(attachment.Filename)
@@ -192,8 +197,9 @@ func enqueueEmailProcessTasks(metadataList []structs.EmailMetadata) error {
 
 			for _, groupSettingsId := range metadata.GroupSettingsIds {
 				taskMetadata := metadata
-				if gs, ok := groupSettingsLookup[groupSettingsId]; ok && !gs.EmailBodyProcessingEnabled {
+				if gs, ok := groupSettingsLookup[groupSettingsId]; !ok || !gs.EmailBodyProcessingEnabled {
 					taskMetadata.Body = ""
+					taskMetadata.BodyHtml = ""
 				}
 
 				payload := EmailProcessTaskPayload{
@@ -202,6 +208,7 @@ func enqueueEmailProcessTasks(metadataList []structs.EmailMetadata) error {
 					TempFilePath:    tempFilePath,
 					Metadata:        taskMetadata,
 					Attachment:      attachment,
+					RenderBodyPdf:   shouldRenderEmailBodyPdfForGroup(metadata, groupSettingsId, groupSettingsLookup),
 				}
 				payloadBytes, err := json.Marshal(payload)
 				if err != nil {
@@ -216,17 +223,18 @@ func enqueueEmailProcessTasks(metadataList []structs.EmailMetadata) error {
 			}
 		}
 
-		// Handle body-only emails (no attachments but has body text)
-		if len(metadata.Attachments) == 0 && len(metadata.Body) > 0 {
+		// Handle body-only emails (no attachments but has any body content)
+		if len(metadata.Attachments) == 0 && (len(metadata.Body) > 0 || len(metadata.BodyHtml) > 0) {
 			for _, groupSettingsId := range metadata.GroupSettingsIds {
 				// Skip body-only emails for groups that don't have body processing enabled
-				if gs, ok := groupSettingsLookup[groupSettingsId]; ok && !gs.EmailBodyProcessingEnabled {
+				if gs, ok := groupSettingsLookup[groupSettingsId]; !ok || !gs.EmailBodyProcessingEnabled {
 					continue
 				}
 
 				payload := EmailProcessTaskPayload{
 					GroupSettingsId: groupSettingsId,
 					Metadata:        metadata,
+					RenderBodyPdf:   shouldRenderEmailBodyPdfForGroup(metadata, groupSettingsId, groupSettingsLookup),
 				}
 				payloadBytes, err := json.Marshal(payload)
 				if err != nil {
@@ -243,6 +251,36 @@ func enqueueEmailProcessTasks(metadataList []structs.EmailMetadata) error {
 	}
 
 	return nil
+}
+
+// shouldRenderEmailBodyPdfForGroup returns true when the email has an HTML
+// body with meaningful text content AND the named group has email body
+// processing enabled. Extracted so the gating logic is testable without
+// launching chromium and so a group missing from the lookup defaults to
+// "do not render" (defensive).
+//
+// We also require the stripped-text Body to be non-whitespace: many email
+// clients (Gmail's web composer in particular) auto-wrap every message in
+// a boilerplate HTML shell (<html><body><div style="..."></div></body>),
+// so BodyHtml alone is not a good proxy for "there's a body worth
+// rendering." Rendering those wrappers produces a near-blank PDF that
+// just adds a second, useless image to the LLM call.
+func shouldRenderEmailBodyPdfForGroup(
+	metadata structs.EmailMetadata,
+	groupSettingsId uint,
+	groupSettingsLookup map[uint]models.GroupSettings,
+) bool {
+	if len(metadata.BodyHtml) == 0 {
+		return false
+	}
+	if len(strings.TrimSpace(metadata.Body)) == 0 {
+		return false
+	}
+	gs, ok := groupSettingsLookup[groupSettingsId]
+	if !ok {
+		return false
+	}
+	return gs.EmailBodyProcessingEnabled
 }
 
 func buildGroupSettingsLookup(metadataList []structs.EmailMetadata) (map[uint]models.GroupSettings, error) {

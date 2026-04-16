@@ -77,20 +77,25 @@ class TestGetBodyText(unittest.TestCase):
 
     def test_get_body_text_plain_text(self):
         msg = MIMEText('This is a plain text receipt.', 'plain')
-        result = self.client._get_body_text(msg)
-        self.assertEqual(result, 'This is a plain text receipt.')
+        text, html = self.client._get_body_text(msg)
+        self.assertEqual(text, 'This is a plain text receipt.')
+        self.assertEqual(html, '')
 
     def test_get_body_text_html_only(self):
-        msg = MIMEText('<p>Your order total is <b>$45.00</b></p>', 'html')
-        result = self.client._get_body_text(msg)
-        self.assertEqual(result, 'Your order total is $45.00')
+        html_body = '<p>Your order total is <b>$45.00</b></p>'
+        msg = MIMEText(html_body, 'html')
+        text, html = self.client._get_body_text(msg)
+        self.assertEqual(text, 'Your order total is $45.00')
+        self.assertEqual(html, html_body)
 
-    def test_get_body_text_multipart_prefers_plain(self):
+    def test_get_body_text_multipart_prefers_plain_for_text_keeps_html(self):
+        html_body = '<p>HTML version</p>'
         msg = MIMEMultipart('alternative')
         msg.attach(MIMEText('Plain text version', 'plain'))
-        msg.attach(MIMEText('<p>HTML version</p>', 'html'))
-        result = self.client._get_body_text(msg)
-        self.assertEqual(result, 'Plain text version')
+        msg.attach(MIMEText(html_body, 'html'))
+        text, html = self.client._get_body_text(msg)
+        self.assertEqual(text, 'Plain text version')
+        self.assertEqual(html, html_body)
 
     def test_get_body_text_no_body(self):
         msg = MIMEMultipart()
@@ -99,8 +104,9 @@ class TestGetBodyText(unittest.TestCase):
         encoders.encode_base64(attachment)
         attachment.add_header('Content-Disposition', 'attachment', filename='receipt.jpg')
         msg.attach(attachment)
-        result = self.client._get_body_text(msg)
-        self.assertEqual(result, '')
+        text, html = self.client._get_body_text(msg)
+        self.assertEqual(text, '')
+        self.assertEqual(html, '')
 
     def test_get_body_text_skips_attachments(self):
         msg = MIMEMultipart()
@@ -110,20 +116,24 @@ class TestGetBodyText(unittest.TestCase):
         text_attachment = MIMEText('Attached text content', 'plain')
         text_attachment.add_header('Content-Disposition', 'attachment', filename='notes.txt')
         msg.attach(text_attachment)
-        result = self.client._get_body_text(msg)
-        self.assertEqual(result, 'Receipt body')
+        text, html = self.client._get_body_text(msg)
+        self.assertEqual(text, 'Receipt body')
+        self.assertEqual(html, '')
 
     def test_get_body_text_strips_whitespace(self):
         msg = MIMEText('  Line one  \n\n\n\n  Line two  ', 'plain')
-        result = self.client._get_body_text(msg)
+        text, html = self.client._get_body_text(msg)
         # Spaces collapse to single space, excessive newlines collapse to double
-        self.assertEqual(result, 'Line one \n\n Line two')
+        self.assertEqual(text, 'Line one \n\n Line two')
+        self.assertEqual(html, '')
 
     def test_get_body_text_multipart_html_fallback(self):
+        html_body = '<h1>Receipt</h1><p>Total: $10</p>'
         msg = MIMEMultipart()
-        msg.attach(MIMEText('<h1>Receipt</h1><p>Total: $10</p>', 'html'))
-        result = self.client._get_body_text(msg)
-        self.assertEqual(result, 'ReceiptTotal: $10')
+        msg.attach(MIMEText(html_body, 'html'))
+        text, html = self.client._get_body_text(msg)
+        self.assertEqual(text, 'ReceiptTotal: $10')
+        self.assertEqual(html, html_body)
 
 
 class TestGetFormattedMessageDataWithBody(unittest.TestCase):
@@ -157,7 +167,16 @@ class TestGetFormattedMessageDataWithBody(unittest.TestCase):
         result = self.client._get_formatted_message_data(data)
         self.assertNotEqual(result, {})
         self.assertEqual(result['body'], 'Your order total: $25.00')
+        self.assertEqual(result['bodyHtml'], '')
         self.assertEqual(result['attachments'], [])
+
+    def test_html_body_email_includes_raw_html(self):
+        html_body = '<h1>Order #123</h1><p>Total: $50</p>'
+        data = self._build_email_bytes(body_html=html_body)
+        result = self.client._get_formatted_message_data(data)
+        self.assertNotEqual(result, {})
+        self.assertEqual(result['bodyHtml'], html_body)
+        self.assertEqual(result['body'], 'Order #123Total: $50')
 
     def test_no_body_no_attachments_returns_empty(self):
         data = self._build_email_bytes()
@@ -173,6 +192,7 @@ class TestGetFormattedMessageDataWithBody(unittest.TestCase):
         result = self.client._get_formatted_message_data(data)
         self.assertNotEqual(result, {})
         self.assertEqual(result['body'], 'Order confirmation')
+        self.assertEqual(result['bodyHtml'], '')
         self.assertEqual(len(result['attachments']), 1)
 
 

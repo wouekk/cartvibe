@@ -7,6 +7,7 @@ import (
 	"receipt-wrangler/api/internal/logging"
 	"receipt-wrangler/api/internal/structs"
 	"receipt-wrangler/api/internal/utils"
+	"strconv"
 	"strings"
 )
 
@@ -70,6 +71,55 @@ func CheckRequiredEnvironmentVariables() {
 
 func GetDeployEnv() string {
 	return env
+}
+
+func GetChromiumPath() string {
+	path := os.Getenv(string(constants.ChromiumBinaryPath))
+	if len(path) == 0 {
+		return "/usr/bin/chromium"
+	}
+	return path
+}
+
+// GetChromiumSandboxEnabled reports whether chromium should run with its
+// process sandbox enabled. Defaults to false because the supported docker
+// images run as root and the chromium sandbox refuses to start in that
+// situation. Operators running the API as a non-root user can opt back in
+// by setting CHROMIUM_SANDBOX to a truthy value (1, t, true, etc.). An
+// unparseable value (e.g. yes/on/enabled) is logged at INFO and treated
+// as the default (disabled) so misconfigurations are visible rather than
+// silently ignored.
+func GetChromiumSandboxEnabled() bool {
+	return parseBoolEnv(constants.ChromiumSandbox, false)
+}
+
+// GetChromiumAllowExternalResources reports whether chromium should be
+// allowed to load network resources (remote images, CSS, fonts) referenced
+// from rendered HTML. Defaults to false: secure-by-default, no SSRF /
+// tracking-pixel exposure, no remote-asset latency. Operators who need
+// remote logos or product imagery in rendered receipts can opt in via
+// CHROMIUM_ALLOW_EXTERNAL_RESOURCES=true.
+func GetChromiumAllowExternalResources() bool {
+	return parseBoolEnv(constants.ChromiumAllowExternalResources, false)
+}
+
+// parseBoolEnv reads a boolean env var with a default. Unparseable values
+// are logged at INFO and treated as the default so misconfigurations
+// surface in logs rather than being silently swapped to one side.
+func parseBoolEnv(name constants.EnvironmentVariable, defaultValue bool) bool {
+	raw := os.Getenv(string(name))
+	if raw == "" {
+		return defaultValue
+	}
+	enabled, err := strconv.ParseBool(raw)
+	if err != nil {
+		logging.LogStd(logging.LOG_LEVEL_INFO,
+			string(name)+" has unparseable value (use 1/0/true/false), using default: ",
+			raw,
+		)
+		return defaultValue
+	}
+	return enabled
 }
 
 func SetConfigs() error {

@@ -33,20 +33,31 @@
 </ng-template>
 
 <ng-template let-element="element" #resultDescriptionCell>
-  <ng-container
-    *ngIf="element.type === SystemTaskType.EmailRead"
-  >
-    Captured Metadata:
-  </ng-container>
-  <ng-container
-    *ngIf="element.type === SystemTaskType.EmailUpload || element.type === SystemTaskType.QuickScan"
-  >
-    Receipt data from AI:
-  </ng-container>
-  <app-pretty-json
-    [json]="element.resultDescription"
-    [verticalJson]="false"
-  ></app-pretty-json>
+  <div class="d-flex align-items-center gap-2">
+    <div class="description-preview">
+      <ng-container
+        *ngIf="element.type === SystemTaskType.EmailRead"
+      >
+        Captured Metadata:
+      </ng-container>
+      <ng-container
+        *ngIf="element.type === SystemTaskType.EmailUpload || element.type === SystemTaskType.QuickScan"
+      >
+        Receipt data from AI:
+      </ng-container>
+      <app-pretty-json
+        [json]="element.resultDescription"
+        [verticalJson]="false"
+      ></app-pretty-json>
+    </div>
+    <app-button
+      *ngIf="(element.resultDescription?.length || 0) > descriptionInlineMaxLength"
+      icon="open_in_new"
+      matButtonType="iconButton"
+      tooltip="View full description"
+      (clicked)="openDescriptionDialog(element)"
+    ></app-button>
+  </div>
 </ng-template>
 
 
