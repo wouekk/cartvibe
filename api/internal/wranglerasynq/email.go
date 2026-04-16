@@ -14,6 +14,7 @@ import (
 	"receipt-wrangler/api/internal/repositories"
 	"receipt-wrangler/api/internal/structs"
 	"receipt-wrangler/api/internal/utils"
+	"strings"
 )
 
 func StartEmailPolling() error {
@@ -253,15 +254,26 @@ func enqueueEmailProcessTasks(metadataList []structs.EmailMetadata) error {
 }
 
 // shouldRenderEmailBodyPdfForGroup returns true when the email has an HTML
-// body AND the named group has email body processing enabled. Extracted so
-// the gating logic is testable without launching chromium and so a group
-// missing from the lookup defaults to "do not render" (defensive).
+// body with meaningful text content AND the named group has email body
+// processing enabled. Extracted so the gating logic is testable without
+// launching chromium and so a group missing from the lookup defaults to
+// "do not render" (defensive).
+//
+// We also require the stripped-text Body to be non-whitespace: many email
+// clients (Gmail's web composer in particular) auto-wrap every message in
+// a boilerplate HTML shell (<html><body><div style="..."></div></body>),
+// so BodyHtml alone is not a good proxy for "there's a body worth
+// rendering." Rendering those wrappers produces a near-blank PDF that
+// just adds a second, useless image to the LLM call.
 func shouldRenderEmailBodyPdfForGroup(
 	metadata structs.EmailMetadata,
 	groupSettingsId uint,
 	groupSettingsLookup map[uint]models.GroupSettings,
 ) bool {
 	if len(metadata.BodyHtml) == 0 {
+		return false
+	}
+	if len(strings.TrimSpace(metadata.Body)) == 0 {
 		return false
 	}
 	gs, ok := groupSettingsLookup[groupSettingsId]
