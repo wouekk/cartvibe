@@ -207,26 +207,24 @@ func (service ReceiptProcessingService) processImages(
 			}
 		} else {
 			ocrService := NewOcrService(service.TX, receiptProcessingSettings)
-			ocrTexts := make([]string, 0, len(imagePaths))
-			for index, imagePath := range imagePaths {
-				resultText, ocrSystemTaskCommand, err := ocrService.ReadImage(imagePath)
-				if index == 0 {
-					result.OcrSystemTaskCommand = ocrSystemTaskCommand
-				} else {
-					result.OcrSystemTaskCommand.EndedAt = ocrSystemTaskCommand.EndedAt
-					if ocrSystemTaskCommand.Status == models.SYSTEM_TASK_FAILED {
-						result.OcrSystemTaskCommand.Status = models.SYSTEM_TASK_FAILED
-					}
+			ocrResults := make([]ocrImageResult, 0, len(imagePaths))
+			for _, imagePath := range imagePaths {
+				resultText, ocrSystemTaskCommand, ocrErr := ocrService.ReadImage(imagePath)
+				ocrResults = append(ocrResults, ocrImageResult{
+					Text:    resultText,
+					Command: ocrSystemTaskCommand,
+					Err:     ocrErr,
+				})
+				if ocrErr != nil {
+					break
 				}
-				if err != nil {
-					return result, err
-				}
-				ocrTexts = append(ocrTexts, resultText)
 			}
-			ocrText = strings.Join(ocrTexts, "\n--- Image ---\n")
-			if len(imagePaths) > 1 {
-				result.OcrSystemTaskCommand.ResultDescription = ocrText
+			combinedText, combinedCmd, combinedErr := combineOcrResults(ocrResults)
+			result.OcrSystemTaskCommand = combinedCmd
+			if combinedErr != nil {
+				return result, combinedErr
 			}
+			ocrText = combinedText
 		}
 	}
 
@@ -283,6 +281,55 @@ func (service ReceiptProcessingService) cleanResponse(response string) string {
 	return response
 }
 
+// ocrImageResult is the per-image outcome from running OCR. Used by
+// combineOcrResults to aggregate multi-image OCR runs into a single text
+// blob and a single system task command.
+type ocrImageResult struct {
+	Text    string
+	Command commands.UpsertSystemTaskCommand
+	Err     error
+}
+
+const ocrImageSeparator = "\n--- Image ---\n"
+
+// combineOcrResults aggregates per-image OCR outcomes into a single text
+// (joined with ocrImageSeparator) and a single UpsertSystemTaskCommand
+// that spans the first start time through the latest end time. The status
+// is FAILED if any individual OCR failed. Returns the first error
+// encountered, if any. The combined command's ResultDescription is
+// overwritten with the joined OCR text whenever any image OCR succeeded so
+// the system-task UI reflects the full output; if every image failed, the
+// original failure description set by OcrService.ReadImage is preserved
+// (texts is empty in that case so there's nothing useful to overwrite
+// with).
+func combineOcrResults(results []ocrImageResult) (string, commands.UpsertSystemTaskCommand, error) {
+	var combined commands.UpsertSystemTaskCommand
+	var firstErr error
+	texts := make([]string, 0, len(results))
+	for index, r := range results {
+		if index == 0 {
+			combined = r.Command
+		} else {
+			combined.EndedAt = r.Command.EndedAt
+			if r.Command.Status == models.SYSTEM_TASK_FAILED {
+				combined.Status = models.SYSTEM_TASK_FAILED
+			}
+		}
+		if r.Err != nil {
+			if firstErr == nil {
+				firstErr = r.Err
+			}
+			continue
+		}
+		texts = append(texts, r.Text)
+	}
+	combinedText := strings.Join(texts, ocrImageSeparator)
+	if len(texts) > 0 {
+		combined.ResultDescription = combinedText
+	}
+	return combinedText, combined, firstErr
+}
+
 func (service ReceiptProcessingService) encodeImageForAi(
 	imagePath string,
 	receiptProcessingSettings models.ReceiptProcessingSettings,
@@ -295,7 +342,7 @@ func (service ReceiptProcessingService) encodeImageForAi(
 	case models.GEMINI_NEW:
 		return service.getGeminiImage(imagePath)
 	}
-	return "", nil
+	return "", fmt.Errorf("unsupported AI type for vision encoding: %s", receiptProcessingSettings.AiType)
 }
 
 // TODO: move to new ai client

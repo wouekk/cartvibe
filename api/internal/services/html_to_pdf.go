@@ -3,8 +3,9 @@ package services
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"errors"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/chromedp/cdproto/page"
@@ -15,6 +16,7 @@ import (
 	"receipt-wrangler/api/internal/logging"
 	"receipt-wrangler/api/internal/models"
 	"receipt-wrangler/api/internal/repositories"
+	"receipt-wrangler/api/internal/utils"
 )
 
 const htmlToPdfTimeout = 30 * time.Second
@@ -55,10 +57,17 @@ func (service HtmlToPdfService) Render(html string) ([]byte, commands.UpsertSyst
 
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
 		chromedp.ExecPath(env.GetChromiumPath()),
-		chromedp.NoSandbox,
 		chromedp.Headless,
 		chromedp.DisableGPU,
+		chromedp.Flag("disable-javascript", true),
 	)
+	// Default behavior is --no-sandbox because the supported docker images
+	// run as root, where chromium's sandbox refuses to start. Operators
+	// running the API as a non-root user can opt back into the sandbox via
+	// the CHROMIUM_SANDBOX env var.
+	if !env.GetChromiumSandboxEnabled() {
+		opts = append(opts, chromedp.NoSandbox)
+	}
 
 	allocCtx, cancelAlloc := chromedp.NewExecAllocator(context.Background(), opts...)
 	defer cancelAlloc()
@@ -69,11 +78,22 @@ func (service HtmlToPdfService) Render(html string) ([]byte, commands.UpsertSyst
 	timeoutCtx, cancelTimeout := context.WithTimeout(browserCtx, htmlToPdfTimeout)
 	defer cancelTimeout()
 
-	dataURL := "data:text/html;charset=utf-8;base64," + base64.StdEncoding.EncodeToString([]byte(html))
+	// Stage HTML in a temp file rather than a data: URL — chromium has a
+	// hard cap on data-URL length (a few MB depending on version) that
+	// large receipt emails can exceed silently. file:// has no such cap.
+	htmlPath, cleanup, err := writeTempHtml(html)
+	if err != nil {
+		endTime := time.Now()
+		systemTaskCommand.Status = models.SYSTEM_TASK_FAILED
+		systemTaskCommand.EndedAt = &endTime
+		systemTaskCommand.ResultDescription = err.Error()
+		return nil, systemTaskCommand, err
+	}
+	defer cleanup()
 
 	var pdfBuf []byte
-	err := chromedp.Run(timeoutCtx,
-		chromedp.Navigate(dataURL),
+	err = chromedp.Run(timeoutCtx,
+		chromedp.Navigate("file://"+htmlPath),
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			buf, _, err := page.PrintToPDF().WithPrintBackground(true).Do(ctx)
 			if err != nil {
@@ -105,4 +125,24 @@ func (service HtmlToPdfService) Render(html string) ([]byte, commands.UpsertSyst
 	systemTaskCommand.ResultDescription = "rendered " + elapsed.String()
 	logging.LogStd(logging.LOG_LEVEL_INFO, "HTML to PDF render took: ", elapsed)
 	return pdfBuf, systemTaskCommand, nil
+}
+
+// writeTempHtml writes the HTML body to a uniquely-named temp file and
+// returns its absolute path plus a cleanup function. The cleanup is a no-op
+// if the file is already gone.
+func writeTempHtml(html string) (string, func(), error) {
+	randId, err := utils.GetRandomString(8)
+	if err != nil {
+		return "", func() {}, err
+	}
+	htmlPath := filepath.Join(os.TempDir(), "html-to-pdf-"+randId+".html")
+	if err := utils.WriteFile(htmlPath, []byte(html)); err != nil {
+		return "", func() {}, err
+	}
+	cleanup := func() {
+		if err := os.Remove(htmlPath); err != nil && !os.IsNotExist(err) {
+			logging.LogStd(logging.LOG_LEVEL_ERROR, "failed to remove html temp file: ", err.Error())
+		}
+	}
+	return htmlPath, cleanup, nil
 }

@@ -20,4 +20,5 @@ const (
 	Env           EnvironmentVariable = "ENV"
 
 	ChromiumBinaryPath EnvironmentVariable = "CHROMIUM_BINARY_PATH"
+	ChromiumSandbox    EnvironmentVariable = "CHROMIUM_SANDBOX"
 )

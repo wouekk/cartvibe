@@ -6,74 +6,69 @@ import (
 	"testing"
 )
 
-func TestShouldRenderEmailBodyPdf_NoHtmlBody(t *testing.T) {
+func TestShouldRenderEmailBodyPdfForGroup_NoHtmlBody(t *testing.T) {
 	metadata := structs.EmailMetadata{
-		Body:             "plain text only",
-		BodyHtml:         "",
-		GroupSettingsIds: []uint{1},
+		Body:     "plain text only",
+		BodyHtml: "",
 	}
 	lookup := map[uint]models.GroupSettings{
 		1: {EmailBodyProcessingEnabled: true},
 	}
 
-	if shouldRenderEmailBodyPdf(metadata, lookup) {
+	if shouldRenderEmailBodyPdfForGroup(metadata, 1, lookup) {
 		t.Error("expected false when BodyHtml is empty")
 	}
 }
 
-func TestShouldRenderEmailBodyPdf_HtmlPresentAndGroupEnabled(t *testing.T) {
+func TestShouldRenderEmailBodyPdfForGroup_HtmlPresentAndGroupEnabled(t *testing.T) {
 	metadata := structs.EmailMetadata{
-		BodyHtml:         "<p>order</p>",
-		GroupSettingsIds: []uint{1},
+		BodyHtml: "<p>order</p>",
 	}
 	lookup := map[uint]models.GroupSettings{
 		1: {EmailBodyProcessingEnabled: true},
 	}
 
-	if !shouldRenderEmailBodyPdf(metadata, lookup) {
+	if !shouldRenderEmailBodyPdfForGroup(metadata, 1, lookup) {
 		t.Error("expected true when HTML present and group enabled")
 	}
 }
 
-func TestShouldRenderEmailBodyPdf_HtmlPresentButAllGroupsDisabled(t *testing.T) {
+func TestShouldRenderEmailBodyPdfForGroup_HtmlPresentButGroupDisabled(t *testing.T) {
 	metadata := structs.EmailMetadata{
-		BodyHtml:         "<p>order</p>",
-		GroupSettingsIds: []uint{1, 2},
+		BodyHtml: "<p>order</p>",
 	}
 	lookup := map[uint]models.GroupSettings{
 		1: {EmailBodyProcessingEnabled: false},
-		2: {EmailBodyProcessingEnabled: false},
 	}
 
-	if shouldRenderEmailBodyPdf(metadata, lookup) {
-		t.Error("expected false when all consuming groups have body processing disabled")
+	if shouldRenderEmailBodyPdfForGroup(metadata, 1, lookup) {
+		t.Error("expected false when group has body processing disabled")
 	}
 }
 
-func TestShouldRenderEmailBodyPdf_AnyOneGroupEnabledIsEnough(t *testing.T) {
+func TestShouldRenderEmailBodyPdfForGroup_GroupMissingFromLookup(t *testing.T) {
 	metadata := structs.EmailMetadata{
-		BodyHtml:         "<p>order</p>",
-		GroupSettingsIds: []uint{1, 2, 3},
-	}
-	lookup := map[uint]models.GroupSettings{
-		1: {EmailBodyProcessingEnabled: false},
-		2: {EmailBodyProcessingEnabled: false},
-		3: {EmailBodyProcessingEnabled: true},
-	}
-
-	if !shouldRenderEmailBodyPdf(metadata, lookup) {
-		t.Error("expected true when at least one group has body processing enabled")
-	}
-}
-
-func TestShouldRenderEmailBodyPdf_GroupNotInLookup(t *testing.T) {
-	metadata := structs.EmailMetadata{
-		BodyHtml:         "<p>order</p>",
-		GroupSettingsIds: []uint{99},
+		BodyHtml: "<p>order</p>",
 	}
 	lookup := map[uint]models.GroupSettings{}
 
-	if shouldRenderEmailBodyPdf(metadata, lookup) {
-		t.Error("expected false when no group settings can be resolved")
+	if shouldRenderEmailBodyPdfForGroup(metadata, 99, lookup) {
+		t.Error("expected false when group settings can't be resolved")
+	}
+}
+
+func TestShouldRenderEmailBodyPdfForGroup_OtherGroupEnabledDoesNotImply(t *testing.T) {
+	// A different group having body processing enabled must not enable rendering
+	// for a group that does not.
+	metadata := structs.EmailMetadata{
+		BodyHtml: "<p>order</p>",
+	}
+	lookup := map[uint]models.GroupSettings{
+		1: {EmailBodyProcessingEnabled: true},
+		2: {EmailBodyProcessingEnabled: false},
+	}
+
+	if shouldRenderEmailBodyPdfForGroup(metadata, 2, lookup) {
+		t.Error("expected per-group decision to be independent of other groups")
 	}
 }

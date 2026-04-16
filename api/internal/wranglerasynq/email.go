@@ -12,12 +12,9 @@ import (
 	"receipt-wrangler/api/internal/logging"
 	"receipt-wrangler/api/internal/models"
 	"receipt-wrangler/api/internal/repositories"
-	"receipt-wrangler/api/internal/services"
 	"receipt-wrangler/api/internal/structs"
 	"receipt-wrangler/api/internal/utils"
 )
-
-const emailBodyPdfFilename = "email-body.pdf"
 
 func StartEmailPolling() error {
 	systemSettingsRepository := repositories.NewSystemSettingsRepository(nil)
@@ -153,7 +150,12 @@ func pollEmailForGroupSettings(groupSettings []models.GroupSettings) error {
 		return err
 	}
 
-	logging.LogStd(logging.LOG_LEVEL_INFO, "Emails metadata captured: ", result)
+	for _, m := range result {
+		logging.LogStd(logging.LOG_LEVEL_INFO, fmt.Sprintf(
+			"Email metadata captured: subject=%q from=%q attachments=%d bodyLen=%d bodyHtmlLen=%d groups=%v",
+			m.Subject, m.FromEmail, len(m.Attachments), len(m.Body), len(m.BodyHtml), m.GroupSettingsIds,
+		))
+	}
 	err = enqueueEmailProcessTasks(result)
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, err.Error())
@@ -173,11 +175,6 @@ func enqueueEmailProcessTasks(metadataList []structs.EmailMetadata) error {
 	}
 
 	for _, metadata := range metadataList {
-		bodyPdfPath, bodyImagePath, bodyPdfSize, err := renderEmailBodyPdf(metadata, groupSettingsLookup)
-		if err != nil {
-			return err
-		}
-
 		for _, attachment := range metadata.Attachments {
 			tempFilePath := buildTempEmailFilePath(attachment.Filename)
 			imageForOcrPath := buildTempEmailOcrFilePath(attachment.Filename)
@@ -199,11 +196,9 @@ func enqueueEmailProcessTasks(metadataList []structs.EmailMetadata) error {
 
 			for _, groupSettingsId := range metadata.GroupSettingsIds {
 				taskMetadata := metadata
-				bodyEnabled := true
-				if gs, ok := groupSettingsLookup[groupSettingsId]; ok && !gs.EmailBodyProcessingEnabled {
+				if gs, ok := groupSettingsLookup[groupSettingsId]; !ok || !gs.EmailBodyProcessingEnabled {
 					taskMetadata.Body = ""
 					taskMetadata.BodyHtml = ""
-					bodyEnabled = false
 				}
 
 				payload := EmailProcessTaskPayload{
@@ -212,12 +207,7 @@ func enqueueEmailProcessTasks(metadataList []structs.EmailMetadata) error {
 					TempFilePath:    tempFilePath,
 					Metadata:        taskMetadata,
 					Attachment:      attachment,
-				}
-				if bodyEnabled && len(bodyPdfPath) > 0 {
-					payload.BodyPdfPath = bodyPdfPath
-					payload.BodyImageForOcrPath = bodyImagePath
-					payload.BodyPdfFilename = emailBodyPdfFilename
-					payload.BodyPdfSize = bodyPdfSize
+					RenderBodyPdf:   shouldRenderEmailBodyPdfForGroup(metadata, groupSettingsId, groupSettingsLookup),
 				}
 				payloadBytes, err := json.Marshal(payload)
 				if err != nil {
@@ -232,23 +222,18 @@ func enqueueEmailProcessTasks(metadataList []structs.EmailMetadata) error {
 			}
 		}
 
-		// Handle body-only emails (no attachments but has body text)
-		if len(metadata.Attachments) == 0 && len(metadata.Body) > 0 {
+		// Handle body-only emails (no attachments but has any body content)
+		if len(metadata.Attachments) == 0 && (len(metadata.Body) > 0 || len(metadata.BodyHtml) > 0) {
 			for _, groupSettingsId := range metadata.GroupSettingsIds {
 				// Skip body-only emails for groups that don't have body processing enabled
-				if gs, ok := groupSettingsLookup[groupSettingsId]; ok && !gs.EmailBodyProcessingEnabled {
+				if gs, ok := groupSettingsLookup[groupSettingsId]; !ok || !gs.EmailBodyProcessingEnabled {
 					continue
 				}
 
 				payload := EmailProcessTaskPayload{
 					GroupSettingsId: groupSettingsId,
 					Metadata:        metadata,
-				}
-				if len(bodyPdfPath) > 0 {
-					payload.BodyPdfPath = bodyPdfPath
-					payload.BodyImageForOcrPath = bodyImagePath
-					payload.BodyPdfFilename = emailBodyPdfFilename
-					payload.BodyPdfSize = bodyPdfSize
+					RenderBodyPdf:   shouldRenderEmailBodyPdfForGroup(metadata, groupSettingsId, groupSettingsLookup),
 				}
 				payloadBytes, err := json.Marshal(payload)
 				if err != nil {
@@ -267,65 +252,23 @@ func enqueueEmailProcessTasks(metadataList []structs.EmailMetadata) error {
 	return nil
 }
 
-// shouldRenderEmailBodyPdf returns true when the email has an HTML body and
-// at least one consuming group has email body processing enabled. Extracted
-// so the gating logic is testable without launching chromium.
-func shouldRenderEmailBodyPdf(
+// shouldRenderEmailBodyPdfForGroup returns true when the email has an HTML
+// body AND the named group has email body processing enabled. Extracted so
+// the gating logic is testable without launching chromium and so a group
+// missing from the lookup defaults to "do not render" (defensive).
+func shouldRenderEmailBodyPdfForGroup(
 	metadata structs.EmailMetadata,
+	groupSettingsId uint,
 	groupSettingsLookup map[uint]models.GroupSettings,
 ) bool {
 	if len(metadata.BodyHtml) == 0 {
 		return false
 	}
-	for _, groupSettingsId := range metadata.GroupSettingsIds {
-		if gs, ok := groupSettingsLookup[groupSettingsId]; ok && gs.EmailBodyProcessingEnabled {
-			return true
-		}
+	gs, ok := groupSettingsLookup[groupSettingsId]
+	if !ok {
+		return false
 	}
-	return false
-}
-
-// renderEmailBodyPdf converts an HTML email body into a PDF (and a JPEG for
-// OCR/vision input) via chromedp, reusing the existing PDF-to-JPEG pipeline
-// that PDF email attachments already flow through. Returns empty paths and
-// no error when there is no HTML body or no consuming group has body
-// processing enabled.
-func renderEmailBodyPdf(
-	metadata structs.EmailMetadata,
-	groupSettingsLookup map[uint]models.GroupSettings,
-) (string, string, uint, error) {
-	if !shouldRenderEmailBodyPdf(metadata, groupSettingsLookup) {
-		return "", "", 0, nil
-	}
-
-	htmlToPdfService := services.NewHtmlToPdfService(nil)
-	pdfBytes, _, err := htmlToPdfService.Render(metadata.BodyHtml)
-	if err != nil {
-		return "", "", 0, err
-	}
-
-	id, err := utils.GetRandomString(8)
-	if err != nil {
-		return "", "", 0, err
-	}
-
-	bodyPdfPath := buildTempEmailFilePath("body-" + id + ".pdf")
-	if err := utils.WriteFile(bodyPdfPath, pdfBytes); err != nil {
-		return "", "", 0, err
-	}
-
-	fileRepository := repositories.NewFileRepository(nil)
-	imageBytes, err := fileRepository.GetBytesFromImageBytes(pdfBytes)
-	if err != nil {
-		return "", "", 0, err
-	}
-
-	bodyImagePath := buildTempEmailOcrFilePath("body-" + id + ".pdf")
-	if err := utils.WriteFile(bodyImagePath, imageBytes); err != nil {
-		return "", "", 0, err
-	}
-
-	return bodyPdfPath, bodyImagePath, uint(len(pdfBytes)), nil
+	return gs.EmailBodyProcessingEnabled
 }
 
 func buildGroupSettingsLookup(metadataList []structs.EmailMetadata) (map[uint]models.GroupSettings, error) {

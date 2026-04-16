@@ -6,32 +6,37 @@ import (
 	"fmt"
 	"github.com/hibiken/asynq"
 	"gorm.io/gorm"
+	"os"
+	"path/filepath"
 	"receipt-wrangler/api/internal/commands"
 	"receipt-wrangler/api/internal/constants"
+	"receipt-wrangler/api/internal/logging"
 	"receipt-wrangler/api/internal/models"
 	"receipt-wrangler/api/internal/repositories"
 	"receipt-wrangler/api/internal/services"
 	"receipt-wrangler/api/internal/structs"
 	"receipt-wrangler/api/internal/utils"
+	"strings"
 	"time"
 )
 
+const emailBodyPdfFilenamePrefix = "email-body"
+const emailBodyPdfSubjectSlugMax = 60
+
 type EmailProcessTaskPayload struct {
-	GroupSettingsId     uint
-	ImageForOcrPath     string
-	TempFilePath        string
-	Metadata            structs.EmailMetadata
-	Attachment          structs.Attachment
-	BodyPdfPath         string
-	BodyImageForOcrPath string
-	BodyPdfFilename     string
-	BodyPdfSize         uint
+	GroupSettingsId uint
+	ImageForOcrPath string
+	TempFilePath    string
+	Metadata        structs.EmailMetadata
+	Attachment      structs.Attachment
+	RenderBodyPdf   bool
 }
 
 func HandleEmailProcessTask(context context.Context, task *asynq.Task) error {
 	db := repositories.GetDB()
 	systemTaskService := services.NewSystemTaskService(nil)
 	groupSettingsRepository := repositories.NewGroupSettingsRepository(nil)
+	systemTaskRepository := repositories.NewSystemTaskRepository(nil)
 	var payload EmailProcessTaskPayload
 
 	taskId, err := GetTaskIdFromContext(context)
@@ -45,20 +50,10 @@ func HandleEmailProcessTask(context context.Context, task *asynq.Task) error {
 	}
 
 	hasAttachmentImage := len(payload.ImageForOcrPath) > 0
-	hasBodyImage := len(payload.BodyImageForOcrPath) > 0
-	hasAnyImage := hasAttachmentImage || hasBodyImage
 
 	var fileBytes []byte
 	if len(payload.TempFilePath) > 0 {
 		fileBytes, err = utils.ReadFile(payload.TempFilePath)
-		if err != nil {
-			return HandleError(err)
-		}
-	}
-
-	var bodyPdfBytes []byte
-	if len(payload.BodyPdfPath) > 0 {
-		bodyPdfBytes, err = utils.ReadFile(payload.BodyPdfPath)
 		if err != nil {
 			return HandleError(err)
 		}
@@ -76,6 +71,22 @@ func HandleEmailProcessTask(context context.Context, task *asynq.Task) error {
 
 	groupIdString := utils.UintToString(groupSettingsToUse.GroupId)
 
+	bodyPdfBytes, bodyImagePath, cleanupBodyImage, htmlPdfTaskCmd, renderErr := renderBodyPdfIfRequested(payload)
+	if cleanupBodyImage != nil {
+		defer cleanupBodyImage()
+	}
+
+	// Persist HTML_TO_PDF orphaned (without parent) when render fails, so
+	// the failure is still visible in the system-task UI before we
+	// short-circuit. asynq retries handle re-renders.
+	if renderErr != nil {
+		persistHtmlToPdfSystemTask(systemTaskRepository, htmlPdfTaskCmd, groupSettingsToUse, taskId, nil)
+		return HandleError(renderErr)
+	}
+
+	hasBodyImage := len(bodyImagePath) > 0
+	hasAnyImage := hasAttachmentImage || hasBodyImage
+
 	var baseCommand commands.UpsertReceiptCommand
 	var processingMetadata commands.ReceiptProcessingMetadata
 	var processingErr error
@@ -87,7 +98,7 @@ func HandleEmailProcessTask(context context.Context, task *asynq.Task) error {
 			imagePaths = append(imagePaths, payload.ImageForOcrPath)
 		}
 		if hasBodyImage {
-			imagePaths = append(imagePaths, payload.BodyImageForOcrPath)
+			imagePaths = append(imagePaths, bodyImagePath)
 		}
 		baseCommand, processingMetadata, processingErr = services.ReadReceiptImagesWithEmailBody(
 			imagePaths,
@@ -104,8 +115,6 @@ func HandleEmailProcessTask(context context.Context, task *asynq.Task) error {
 	if err != nil {
 		return HandleError(err)
 	}
-
-	systemTaskRepository := repositories.NewSystemTaskRepository(nil)
 
 	status := models.SYSTEM_TASK_SUCCEEDED
 	if processingErr != nil {
@@ -133,6 +142,11 @@ func HandleEmailProcessTask(context context.Context, task *asynq.Task) error {
 	if err != nil {
 		return HandleError(err)
 	}
+
+	// Persist HTML_TO_PDF chained under EMAIL_READ so the render appears
+	// nested alongside the OCR / prompt / completion tasks for this email
+	// in the system-task UI.
+	persistHtmlToPdfSystemTask(systemTaskRepository, htmlPdfTaskCmd, groupSettingsToUse, taskId, &emailReadSystemTask.ID)
 
 	processingSystemTasks, err := systemTaskService.CreateSystemTasksFromMetadata(
 		processingMetadata,
@@ -212,12 +226,12 @@ func HandleEmailProcessTask(context context.Context, task *asynq.Task) error {
 			}
 		}
 
-		if len(payload.BodyPdfPath) > 0 && len(bodyPdfBytes) > 0 {
+		if len(bodyPdfBytes) > 0 {
 			bodyFileData := models.FileData{
 				ReceiptId: createdReceipt.ID,
-				Name:      payload.BodyPdfFilename,
+				Name:      buildEmailBodyPdfFilename(payload.Metadata),
 				FileType:  constants.ApplicationPdf,
-				Size:      payload.BodyPdfSize,
+				Size:      uint(len(bodyPdfBytes)),
 			}
 
 			_, err = receiptImageRepository.CreateReceiptImage(bodyFileData, bodyPdfBytes)
@@ -230,4 +244,118 @@ func HandleEmailProcessTask(context context.Context, task *asynq.Task) error {
 	})
 
 	return err
+}
+
+// persistHtmlToPdfSystemTask writes an HTML_TO_PDF system task (if one was
+// produced — i.e. render was attempted, indicated by a non-empty Type).
+// parentSystemTaskId, when non-nil, chains the task under that parent
+// (typically the EMAIL_READ task) so it appears nested in the UI.
+// Persistence failures are logged, not propagated, so they don't mask the
+// underlying render result.
+func persistHtmlToPdfSystemTask(
+	systemTaskRepository repositories.SystemTaskRepository,
+	cmd commands.UpsertSystemTaskCommand,
+	groupSettingsToUse models.GroupSettings,
+	taskId string,
+	parentSystemTaskId *uint,
+) {
+	if cmd.Type == "" {
+		return
+	}
+	cmd.AssociatedEntityType = models.SYSTEM_EMAIL
+	cmd.AssociatedEntityId = groupSettingsToUse.SystemEmail.ID
+	cmd.AsynqTaskId = taskId
+	cmd.AssociatedSystemTaskId = parentSystemTaskId
+	if _, err := systemTaskRepository.CreateSystemTask(cmd); err != nil {
+		logging.LogStd(logging.LOG_LEVEL_ERROR, "failed to persist HTML_TO_PDF system task: ", err.Error())
+	}
+}
+
+// buildEmailBodyPdfFilename produces a per-email display name for the body
+// PDF FileData saved on a receipt. Result shape is
+// "email-body-{subject-slug}-{YYYY-MM-DD}.pdf"; pieces are omitted when the
+// corresponding metadata is missing. Subject is slugified to ASCII so the
+// resulting string is safe to use as a filename.
+func buildEmailBodyPdfFilename(metadata structs.EmailMetadata) string {
+	parts := []string{emailBodyPdfFilenamePrefix}
+	if slug := slugifySubject(metadata.Subject); slug != "" {
+		parts = append(parts, slug)
+	}
+	if !metadata.Date.IsZero() {
+		parts = append(parts, metadata.Date.UTC().Format("2006-01-02"))
+	}
+	return strings.Join(parts, "-") + ".pdf"
+}
+
+// slugifySubject converts a free-form email subject into a lowercase
+// ASCII slug suitable for use inside a filename. Non-alphanumerics collapse
+// to single hyphens; leading/trailing hyphens are trimmed; the result is
+// truncated to emailBodyPdfSubjectSlugMax characters.
+func slugifySubject(subject string) string {
+	var b strings.Builder
+	prevHyphen := false
+	for _, r := range strings.ToLower(subject) {
+		switch {
+		case (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9'):
+			b.WriteRune(r)
+			prevHyphen = false
+		default:
+			if !prevHyphen && b.Len() > 0 {
+				b.WriteByte('-')
+				prevHyphen = true
+			}
+		}
+	}
+	slug := strings.TrimRight(b.String(), "-")
+	if len(slug) > emailBodyPdfSubjectSlugMax {
+		slug = strings.TrimRight(slug[:emailBodyPdfSubjectSlugMax], "-")
+	}
+	return slug
+}
+
+// renderBodyPdfIfRequested converts the email's HTML body to a PDF (when
+// requested by the payload) and writes a JPEG version to a per-task temp
+// file for OCR/vision processing. Returns the PDF bytes, the JPEG path, a
+// cleanup function that callers must invoke (typically via defer), and the
+// HTML_TO_PDF system task command (un-persisted) so the caller can chain
+// it under the EMAIL_READ system task once that exists. When no render is
+// requested, the returned command is the zero value (its Type is empty).
+func renderBodyPdfIfRequested(
+	payload EmailProcessTaskPayload,
+) ([]byte, string, func(), commands.UpsertSystemTaskCommand, error) {
+	if !payload.RenderBodyPdf || len(payload.Metadata.BodyHtml) == 0 {
+		return nil, "", nil, commands.UpsertSystemTaskCommand{}, nil
+	}
+
+	htmlToPdfService := services.NewHtmlToPdfService(nil)
+	pdfBytes, htmlPdfTaskCmd, renderErr := htmlToPdfService.Render(payload.Metadata.BodyHtml)
+	if renderErr != nil {
+		return nil, "", nil, htmlPdfTaskCmd, renderErr
+	}
+
+	fileRepository := repositories.NewFileRepository(nil)
+	imageBytes, err := fileRepository.GetBytesFromImageBytes(pdfBytes)
+	if err != nil {
+		return nil, "", nil, htmlPdfTaskCmd, err
+	}
+
+	randId, err := utils.GetRandomString(8)
+	if err != nil {
+		return nil, "", nil, htmlPdfTaskCmd, err
+	}
+	bodyImagePath := filepath.Join(fileRepository.GetTempDirectoryPath(), "image-body-"+randId+".jpg")
+	if err := utils.WriteFile(bodyImagePath, imageBytes); err != nil {
+		return nil, "", nil, htmlPdfTaskCmd, err
+	}
+
+	cleanup := func() {
+		if !utils.FileExists(bodyImagePath) {
+			return
+		}
+		if err := os.Remove(bodyImagePath); err != nil {
+			logging.LogStd(logging.LOG_LEVEL_ERROR, "failed to remove body image temp file: ", err.Error())
+		}
+	}
+
+	return pdfBytes, bodyImagePath, cleanup, htmlPdfTaskCmd, nil
 }

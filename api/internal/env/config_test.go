@@ -205,3 +205,37 @@ func TestShouldParsePortCorrectlyForMysql(t *testing.T) {
 		utils.PrintTestError(t, "Expected 1234", dbConfig.Port)
 	}
 }
+
+func TestGetChromiumSandboxEnabled(t *testing.T) {
+	cases := []struct {
+		name     string
+		envValue string
+		setEnv   bool
+		expected bool
+	}{
+		{"unset defaults to false", "", false, false},
+		{"empty string defaults to false", "", true, false},
+		{"true enables sandbox", "true", true, true},
+		{"1 enables sandbox", "1", true, true},
+		{"TRUE enables sandbox", "TRUE", true, true},
+		{"false keeps default", "false", true, false},
+		{"0 keeps default", "0", true, false},
+		{"unparseable keeps default", "yes-please", true, false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			os.Unsetenv("CHROMIUM_SANDBOX")
+			if tc.setEnv {
+				os.Setenv("CHROMIUM_SANDBOX", tc.envValue)
+				defer os.Unsetenv("CHROMIUM_SANDBOX")
+			}
+
+			got := GetChromiumSandboxEnabled()
+			if got != tc.expected {
+				t.Errorf("GetChromiumSandboxEnabled() with env=%q (set=%v) = %v, want %v",
+					tc.envValue, tc.setEnv, got, tc.expected)
+			}
+		})
+	}
+}

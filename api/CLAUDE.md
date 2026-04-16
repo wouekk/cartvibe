@@ -103,6 +103,10 @@ When working with tests in this codebase, follow these critical requirements:
 - HTML email bodies are rendered to PDF via `chromedp` running headless Chromium
 - The Chromium binary path is read from the `CHROMIUM_BINARY_PATH` env var
   (defaults to `/usr/bin/chromium`); installed by `set-up-dependencies.sh`
+- The Chromium process sandbox is **off by default** because the supported
+  docker images run as root, where chromium's sandbox refuses to start.
+  Operators running the API as a non-root user can opt back in by setting
+  `CHROMIUM_SANDBOX=true`
 - Implementation: `internal/services/html_to_pdf.go` (HtmlToPdfService.Render)
 - The rendered PDF is saved on the receipt as a `FileData` and routed
   through the existing `repositories.ConvertPdfToJpg` pipeline so vision and

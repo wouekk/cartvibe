@@ -7,6 +7,7 @@ import (
 	"receipt-wrangler/api/internal/logging"
 	"receipt-wrangler/api/internal/structs"
 	"receipt-wrangler/api/internal/utils"
+	"strconv"
 	"strings"
 )
 
@@ -78,6 +79,23 @@ func GetChromiumPath() string {
 		return "/usr/bin/chromium"
 	}
 	return path
+}
+
+// GetChromiumSandboxEnabled reports whether chromium should run with its
+// process sandbox enabled. Defaults to false because the supported docker
+// images run as root and the chromium sandbox refuses to start in that
+// situation. Operators running the API as a non-root user can opt back in
+// by setting CHROMIUM_SANDBOX to a truthy value (1, t, true, etc.).
+func GetChromiumSandboxEnabled() bool {
+	raw := os.Getenv(string(constants.ChromiumSandbox))
+	if raw == "" {
+		return false
+	}
+	enabled, err := strconv.ParseBool(raw)
+	if err != nil {
+		return false
+	}
+	return enabled
 }
 
 func SetConfigs() error {
