@@ -119,6 +119,7 @@ jobs:
   create-docker-manifest:
     needs: [build-docker-arm64, build-docker-amd64]
     if: |
+      always() &&
       needs.build-docker-arm64.result == 'success' &&
       needs.build-docker-amd64.result == 'success'
     runs-on: ubuntu-latest
