@@ -7,7 +7,7 @@ import { MatDialogModule } from "@angular/material/dialog";
 import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { ActivatedRoute } from "@angular/router";
-import { of } from "rxjs";
+import { BehaviorSubject, of } from "rxjs";
 import { FormMode } from "src/enums/form-mode.enum";
 import { PipesModule } from "src/pipes/pipes.module";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
@@ -20,8 +20,10 @@ import { ReceiptFormComponent } from "./receipt-form.component";
 describe("ReceiptFormComponent", () => {
   let component: ReceiptFormComponent;
   let fixture: ComponentFixture<ReceiptFormComponent>;
+  let routeDataSubject: BehaviorSubject<any>;
 
   beforeEach(async () => {
+    routeDataSubject = new BehaviorSubject<any>({});
     await TestBed.configureTestingModule({
       declarations: [ReceiptFormComponent],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -41,7 +43,9 @@ describe("ReceiptFormComponent", () => {
           useValue: {
             snapshot: {
               data: {}, queryParams: {}
-            }, params: of({})
+            },
+            data: routeDataSubject,
+            params: of({})
           },
         },
         provideHttpClient(withInterceptorsFromDi()),
@@ -246,14 +250,31 @@ describe("ReceiptFormComponent", () => {
       ids: ["1", "2", "3"],
       queueMode: QueueMode.VIEW,
     };
-    TestBed.inject(ActivatedRoute).snapshot.data = {
+    routeDataSubject.next({
       receipt: { id: 2 } as any,
-    };
-    component.ngOnInit();
+    });
 
     expect(component.queueIndex).toEqual(1);
     expect(component.queueIds).toEqual(["1", "2", "3"]);
     expect(component.queueMode).toEqual(QueueMode.VIEW);
     expect(component.submitButtonText).toEqual("Save & Next");
+  });
+
+  it("rebuilds form state when route data emits a new receipt (duplicate navigation)", () => {
+    routeDataSubject.next({
+      receipt: { id: 1, name: "Original", amount: "10.00", customFields: [] } as any,
+    });
+
+    expect(component.originalReceipt?.id).toEqual(1);
+    expect(component.form.get("name")?.value).toEqual("Original");
+    expect(component.editLink).toEqual("/receipts/1/edit");
+
+    routeDataSubject.next({
+      receipt: { id: 2, name: "Duplicate", amount: "10.00", customFields: [] } as any,
+    });
+
+    expect(component.originalReceipt?.id).toEqual(2);
+    expect(component.form.get("name")?.value).toEqual("Duplicate");
+    expect(component.editLink).toEqual("/receipts/2/edit");
   });
 });

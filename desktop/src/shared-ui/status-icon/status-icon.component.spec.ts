@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatIconModule } from '@angular/material/icon';
 
 import { StatusIconComponent } from './status-icon.component';
 
@@ -8,7 +9,8 @@ describe('StatusIconComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [StatusIconComponent]
+      declarations: [StatusIconComponent],
+      imports: [MatIconModule],
     })
     .compileComponents();
     

@@ -48,7 +48,9 @@ describe("GroupDashboardsComponent", () => {
     });
     store = TestBed.inject(Store);
     store.reset({
+      ...store.snapshot(),
       groups: {
+        ...store.snapshot().groups,
         selectedGroupId: "1",
         groups: [],
       },
@@ -72,7 +74,9 @@ describe("GroupDashboardsComponent", () => {
       },
     ];
     store.reset({
+      ...store.snapshot(),
       groups: {
+        ...store.snapshot().groups,
         selectedGroupId: "1",
       },
       dashboards: {
@@ -106,7 +110,9 @@ describe("GroupDashboardsComponent", () => {
     ];
     const activatedRoute = TestBed.inject(ActivatedRoute);
     store.reset({
+      ...store.snapshot(),
       groups: {
+        ...store.snapshot().groups,
         selectedGroupId: "1",
       },
       dashboards: {
@@ -120,7 +126,9 @@ describe("GroupDashboardsComponent", () => {
     expect(component.dashboards()).toEqual(dashboards);
 
     store.reset({
+      ...store.snapshot(),
       groups: {
+        ...store.snapshot().groups,
         selectedGroupId: "2",
       },
       dashboards: {
@@ -140,7 +148,9 @@ describe("GroupDashboardsComponent", () => {
   it("should not navigate to selected dashboard", () => {
     const routerSpy = jest.spyOn(TestBed.inject(Router), "navigateByUrl");
     store.reset({
+      ...store.snapshot(),
       groups: {
+        ...store.snapshot().groups,
         selectedDashboardId: undefined,
       },
     });

@@ -62,6 +62,7 @@ describe("DashboardComponent", () => {
     store = TestBed.inject(Store);
 
     store.reset({
+      ...store.snapshot(),
       dashboards: {
         dashboards: {
           "1": dashboards,
