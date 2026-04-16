@@ -72,6 +72,14 @@ func GetDeployEnv() string {
 	return env
 }
 
+func GetChromiumPath() string {
+	path := os.Getenv(string(constants.ChromiumBinaryPath))
+	if len(path) == 0 {
+		return "/usr/bin/chromium"
+	}
+	return path
+}
+
 func SetConfigs() error {
 	setEnv()
 	setBasePath()

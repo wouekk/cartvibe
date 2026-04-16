@@ -15,6 +15,7 @@ type EmailMetadata struct {
 	FromName         string       `json:"fromName"`
 	FromEmail        string       `json:"fromEmail"`
 	Body             string       `json:"body"`
+	BodyHtml         string       `json:"bodyHtml"`
 	Attachments      []Attachment `json:"attachments"`
 	GroupSettingsIds []uint       `json:"groupSettingsIds"`
 }

@@ -29,6 +29,9 @@ apt-get install -y -qq libde265-dev libheif-dev
 apt-get install pkg-config -y -qq
 apt-get install -y -qq imagemagick-7.q16 libmagickwand-7.q16-dev
 
+# Install Chromium for HTML-to-PDF rendering of email bodies via chromedp
+apt-get install -y -qq chromium
+
 # Adjust ImageMagick policy to allow for PDF conversion
 POLICY_FILE="/etc/ImageMagick-7/policy.xml"
 if [ -f "$POLICY_FILE" ]; then

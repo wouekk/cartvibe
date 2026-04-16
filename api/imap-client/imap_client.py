@@ -111,7 +111,7 @@ class ImapClient:
         formatted_date = self.get_formatted_date(message_data.get("Date"))
 
         attachments = self._get_attachments(message_data)
-        body = self._get_body_text(message_data)
+        body, body_html = self._get_body_text(message_data)
 
         result = {
             "date": formatted_date,
@@ -121,10 +121,11 @@ class ImapClient:
             "fromEmail": from_data["email"],
             "attachments": attachments,
             "body": body,
+            "bodyHtml": body_html,
             "groupSettingsIds": [],
         }
 
-        if len(attachments) == 0 and not body:
+        if len(attachments) == 0 and not body and not body_html:
             return {}
 
         logging.info(f"Formatted message data: {result}")
@@ -195,6 +196,10 @@ class ImapClient:
         return result
 
     def _get_body_text(self, message_data: Message):
+        """Extract email body. Returns (text, html) tuple where text is the
+        plain/stripped representation used for fallback prompting and html is
+        the raw HTML used downstream for chromedp PDF rendering.
+        """
         plain_parts = []
         html_parts = []
 
@@ -218,17 +223,19 @@ class ImapClient:
                 if payload:
                     html_parts.append(payload.decode(charset, errors='replace'))
 
+        html_body = '\n'.join(html_parts) if html_parts else ""
+
         if plain_parts:
             text = '\n'.join(plain_parts)
         elif html_parts:
             text = '\n'.join(strip_html_tags(html) for html in html_parts)
         else:
-            return ""
+            return "", html_body
 
         # Collapse excessive whitespace
         text = re.sub(r'[ \t]+', ' ', text)
         text = re.sub(r'\n{3,}', '\n\n', text)
-        return text.strip()
+        return text.strip(), html_body
 
     def valid_mime_type(self, mime_type):
         image_mime_types_regex = r"^(image\/(jpeg|png|heic|bmp|webp|tiff)|application\/pdf)$"

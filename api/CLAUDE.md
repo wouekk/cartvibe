@@ -11,7 +11,7 @@ Receipt Wrangler API is a Go-based backend service for a receipt management and 
 ### Building and Running
 - `go build` - Build the application
 - `go run main.go` - Run the application directly
-- `./set-up-dependencies.sh` - Install system dependencies (tesseract, ImageMagick, Python deps)
+- `./set-up-dependencies.sh` - Install system dependencies (tesseract, ImageMagick, Chromium, Python deps)
 
 ### Testing
 - `go test -v ./...` - Run all Go tests with verbose output
@@ -97,6 +97,22 @@ When working with tests in this codebase, follow these critical requirements:
 - ImageMagick integration for image processing and format conversion
 - Supports HEIC format conversion to standard image formats
 - Python dependencies for additional image processing capabilities
+
+## Email HTML to PDF Rendering
+
+- HTML email bodies are rendered to PDF via `chromedp` running headless Chromium
+- The Chromium binary path is read from the `CHROMIUM_BINARY_PATH` env var
+  (defaults to `/usr/bin/chromium`); installed by `set-up-dependencies.sh`
+- Implementation: `internal/services/html_to_pdf.go` (HtmlToPdfService.Render)
+- The rendered PDF is saved on the receipt as a `FileData` and routed
+  through the existing `repositories.ConvertPdfToJpg` pipeline so vision and
+  OCR models receive an image, exactly like a PDF email attachment
+- Gating: only runs when `EmailBodyProcessingEnabled` is true on at least one
+  consuming group (per `shouldRenderEmailBodyPdf` in `wranglerasynq/email.go`)
+- For an email with both an attachment and an HTML body, each per-attachment
+  receipt is augmented with a copy of the body PDF and both images are sent
+  to the LLM together; when the body is sent as an image, its text is dropped
+  from the prompt to avoid duplication
 
 ## Testing Requirements
 

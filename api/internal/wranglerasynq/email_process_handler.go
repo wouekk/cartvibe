@@ -7,6 +7,7 @@ import (
 	"github.com/hibiken/asynq"
 	"gorm.io/gorm"
 	"receipt-wrangler/api/internal/commands"
+	"receipt-wrangler/api/internal/constants"
 	"receipt-wrangler/api/internal/models"
 	"receipt-wrangler/api/internal/repositories"
 	"receipt-wrangler/api/internal/services"
@@ -16,11 +17,15 @@ import (
 )
 
 type EmailProcessTaskPayload struct {
-	GroupSettingsId uint
-	ImageForOcrPath string
-	TempFilePath    string
-	Metadata        structs.EmailMetadata
-	Attachment      structs.Attachment
+	GroupSettingsId     uint
+	ImageForOcrPath     string
+	TempFilePath        string
+	Metadata            structs.EmailMetadata
+	Attachment          structs.Attachment
+	BodyPdfPath         string
+	BodyImageForOcrPath string
+	BodyPdfFilename     string
+	BodyPdfSize         uint
 }
 
 func HandleEmailProcessTask(context context.Context, task *asynq.Task) error {
@@ -39,11 +44,21 @@ func HandleEmailProcessTask(context context.Context, task *asynq.Task) error {
 		return HandleError(err)
 	}
 
-	isBodyOnly := len(payload.ImageForOcrPath) == 0 && len(payload.Metadata.Body) > 0
+	hasAttachmentImage := len(payload.ImageForOcrPath) > 0
+	hasBodyImage := len(payload.BodyImageForOcrPath) > 0
+	hasAnyImage := hasAttachmentImage || hasBodyImage
 
 	var fileBytes []byte
 	if len(payload.TempFilePath) > 0 {
 		fileBytes, err = utils.ReadFile(payload.TempFilePath)
+		if err != nil {
+			return HandleError(err)
+		}
+	}
+
+	var bodyPdfBytes []byte
+	if len(payload.BodyPdfPath) > 0 {
+		bodyPdfBytes, err = utils.ReadFile(payload.BodyPdfPath)
 		if err != nil {
 			return HandleError(err)
 		}
@@ -66,12 +81,22 @@ func HandleEmailProcessTask(context context.Context, task *asynq.Task) error {
 	var processingErr error
 
 	start := time.Now()
-	if isBodyOnly {
-		baseCommand, processingMetadata, processingErr = services.ReadReceiptFromTextOnly(payload.Metadata.Body, groupIdString)
-	} else if len(payload.Metadata.Body) > 0 {
-		baseCommand, processingMetadata, processingErr = services.ReadReceiptImageWithEmailBody(payload.ImageForOcrPath, payload.Metadata.Body, groupIdString)
+	if hasAnyImage {
+		imagePaths := []string{}
+		if hasAttachmentImage {
+			imagePaths = append(imagePaths, payload.ImageForOcrPath)
+		}
+		if hasBodyImage {
+			imagePaths = append(imagePaths, payload.BodyImageForOcrPath)
+		}
+		baseCommand, processingMetadata, processingErr = services.ReadReceiptImagesWithEmailBody(
+			imagePaths,
+			payload.Metadata.Body,
+			hasBodyImage,
+			groupIdString,
+		)
 	} else {
-		baseCommand, processingMetadata, processingErr = services.ReadReceiptImageFromFileOnly(payload.ImageForOcrPath, groupIdString)
+		baseCommand, processingMetadata, processingErr = services.ReadReceiptFromTextOnly(payload.Metadata.Body, groupIdString)
 	}
 	end := time.Now()
 
@@ -173,7 +198,7 @@ func HandleEmailProcessTask(context context.Context, task *asynq.Task) error {
 			return HandleError(err)
 		}
 
-		if !isBodyOnly {
+		if hasAttachmentImage {
 			fileData := models.FileData{
 				ReceiptId: createdReceipt.ID,
 				Name:      payload.Attachment.Filename,
@@ -182,6 +207,20 @@ func HandleEmailProcessTask(context context.Context, task *asynq.Task) error {
 			}
 
 			_, err = receiptImageRepository.CreateReceiptImage(fileData, fileBytes)
+			if err != nil {
+				return HandleError(err)
+			}
+		}
+
+		if len(payload.BodyPdfPath) > 0 && len(bodyPdfBytes) > 0 {
+			bodyFileData := models.FileData{
+				ReceiptId: createdReceipt.ID,
+				Name:      payload.BodyPdfFilename,
+				FileType:  constants.ApplicationPdf,
+				Size:      payload.BodyPdfSize,
+			}
+
+			_, err = receiptImageRepository.CreateReceiptImage(bodyFileData, bodyPdfBytes)
 			if err != nil {
 				return HandleError(err)
 			}
