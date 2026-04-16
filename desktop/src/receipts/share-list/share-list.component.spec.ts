@@ -386,6 +386,126 @@ describe("ShareListComponent", () => {
 
       expect(component.userItemMap().size).toBe(0);
     });
+
+    it("should replace the map each call (no stale entries from prior state)", () => {
+      // First populate with default mock items.
+      component.setUserItemMap();
+      expect(component.userItemMap().size).toBe(3);
+
+      // Swap in a form with just one item, then rebuild — users that no longer
+      // appear in the FormArray must not linger in the map.
+      fixture.componentRef.setInput('form', createFormWithItems([
+        { id: 99, name: "Solo", amount: "1.00", chargedToUserId: 2, status: ItemStatus.Open, receiptId: 1 } as Item,
+      ]));
+      component.setUserItemMap();
+
+      expect(component.userItemMap().size).toBe(1);
+      expect(component.userItemMap().has("1")).toBe(false);
+      expect(component.userItemMap().has("2")).toBe(true);
+      expect(component.userItemMap().has("3")).toBe(false);
+    });
+  });
+
+  describe("Linked Items Handling (setUserItemMap)", () => {
+    it("should expose linkedItems keyed by chargedToUserId with parent reference", () => {
+      const parent = {
+        id: 10, name: "Shared Appetizer", amount: "20.00",
+        chargedToUserId: null, status: ItemStatus.Open, receiptId: 1,
+        linkedItems: [
+          { id: 11, name: "Half A", amount: "10.00", chargedToUserId: 2, status: ItemStatus.Open, receiptId: 1 },
+          { id: 12, name: "Half B", amount: "10.00", chargedToUserId: 3, status: ItemStatus.Open, receiptId: 1 },
+        ],
+      } as any as Item;
+      fixture.componentRef.setInput('form', createFormWithItems([parent]));
+
+      component.setUserItemMap();
+
+      const user2 = component.userItemMap().get("2");
+      expect(user2?.length).toBe(1);
+      expect(user2?.[0].isLinkedItem).toBe(true);
+      expect(user2?.[0].linkedItemIndex).toBe(0);
+      expect(user2?.[0].arrayIndex).toBe(0);
+      expect(user2?.[0].parentItem).toBeDefined();
+      expect(user2?.[0].parentItem?.name).toBe("Shared Appetizer");
+      expect(user2?.[0].item.name).toBe("Half A");
+
+      const user3 = component.userItemMap().get("3");
+      expect(user3?.[0].linkedItemIndex).toBe(1);
+      expect(user3?.[0].item.name).toBe("Half B");
+    });
+
+    it("should include both parent (if chargedToUserId is set) and its linkedItems for same user", () => {
+      const parent = {
+        id: 10, name: "Parent", amount: "20.00",
+        chargedToUserId: 1, status: ItemStatus.Open, receiptId: 1,
+        linkedItems: [
+          { id: 11, name: "Linked Child", amount: "5.00", chargedToUserId: 1, status: ItemStatus.Open, receiptId: 1 },
+        ],
+      } as any as Item;
+      fixture.componentRef.setInput('form', createFormWithItems([parent]));
+
+      component.setUserItemMap();
+
+      const user1 = component.userItemMap().get("1");
+      expect(user1?.length).toBe(2);
+      // Parent comes first, linked child second.
+      expect(user1?.[0].isLinkedItem).toBeUndefined();
+      expect(user1?.[0].item.name).toBe("Parent");
+      expect(user1?.[1].isLinkedItem).toBe(true);
+      expect(user1?.[1].item.name).toBe("Linked Child");
+    });
+
+    it("should skip linkedItems without a chargedToUserId", () => {
+      const parent = {
+        id: 10, name: "Parent", amount: "20.00",
+        chargedToUserId: 1, status: ItemStatus.Open, receiptId: 1,
+        linkedItems: [
+          { id: 11, name: "Orphan", amount: "5.00", chargedToUserId: null, status: ItemStatus.Open, receiptId: 1 },
+          { id: 12, name: "Has Owner", amount: "5.00", chargedToUserId: 2, status: ItemStatus.Open, receiptId: 1 },
+        ],
+      } as any as Item;
+      fixture.componentRef.setInput('form', createFormWithItems([parent]));
+
+      component.setUserItemMap();
+
+      // Orphan linked item should not appear anywhere.
+      expect(component.userItemMap().get("1")?.length).toBe(1); // just the parent
+      expect(component.userItemMap().get("2")?.length).toBe(1); // only "Has Owner"
+    });
+
+    it("should handle items with an empty linkedItems array", () => {
+      const item = {
+        id: 1, name: "No Splits", amount: "5.00",
+        chargedToUserId: 1, status: ItemStatus.Open, receiptId: 1,
+        linkedItems: [],
+      } as any as Item;
+      fixture.componentRef.setInput('form', createFormWithItems([item]));
+
+      expect(() => component.setUserItemMap()).not.toThrow();
+      expect(component.userItemMap().get("1")?.length).toBe(1);
+    });
+
+    it("should preserve parent arrayIndex on linkedItems across multiple items", () => {
+      const items = [
+        { id: 1, name: "First", amount: "5.00", chargedToUserId: 1, status: ItemStatus.Open, receiptId: 1 } as Item,
+        {
+          id: 2, name: "Split Parent", amount: "10.00", chargedToUserId: null,
+          status: ItemStatus.Open, receiptId: 1,
+          linkedItems: [
+            { id: 3, name: "L", amount: "5.00", chargedToUserId: 2, status: ItemStatus.Open, receiptId: 1 },
+          ],
+        } as any as Item,
+      ];
+      fixture.componentRef.setInput('form', createFormWithItems(items));
+
+      component.setUserItemMap();
+
+      const user2 = component.userItemMap().get("2");
+      // arrayIndex points to the parent (index 1 in the FormArray), not to any
+      // flattened position — that's how getFormControlPath reconstructs paths.
+      expect(user2?.[0].arrayIndex).toBe(1);
+      expect(user2?.[0].linkedItemIndex).toBe(0);
+    });
   });
 
   describe("Add Mode Functionality", () => {
@@ -480,6 +600,26 @@ describe("ShareListComponent", () => {
       });
     });
 
+    it("should forward linkedItem metadata through removeItem", () => {
+      jest.spyOn(component.itemRemoved, "emit");
+      const linkedItemData = {
+        item: { id: 99, name: "Linked", amount: "1.00", chargedToUserId: 2 } as Item,
+        arrayIndex: 3,
+        parentItem: { id: 10, name: "Parent" } as Item,
+        isLinkedItem: true,
+        linkedItemIndex: 1,
+      };
+
+      component.removeItem(linkedItemData);
+
+      expect(component.itemRemoved.emit).toHaveBeenCalledWith({
+        item: linkedItemData.item,
+        arrayIndex: 3,
+        isLinkedItem: true,
+        linkedItemIndex: 1,
+      });
+    });
+
     it("should add inline item in edit mode", () => {
       jest.spyOn(component.itemAdded, "emit");
       component.mode = FormMode.edit;
@@ -532,8 +672,24 @@ describe("ShareListComponent", () => {
       expect(component.itemAdded.emit).toHaveBeenCalled();
     });
 
-    it("should add item on blur for last item with valid form", () => {
-      jest.spyOn(component, "addInlineItem");
+    // Simulates the parent ReceiptFormComponent.onItemAdded behavior so the
+    // component under test can observe the resulting FormArray state.
+    function wireParentOnItemAdded(): jest.Mock {
+      const emitSpy = jest.fn();
+      component.itemAdded.subscribe((item: Item) => {
+        emitSpy(item);
+        const newFormGroup = buildItemForm(item, mockReceipt.id?.toString(), true, false);
+        component.receiptItems.push(newFormGroup);
+        component.setUserItemMap();
+      });
+      return emitSpy;
+    }
+
+    it("should not add item on blur when editing an already-populated existing share (status change)", () => {
+      // Regression: changing the status of the last existing share used to
+      // spawn a blank placeholder because addInlineItemOnBlur fired for any
+      // valid last item, not just pending inline placeholders.
+      const emitSpy = wireParentOnItemAdded();
       component.mode = FormMode.edit;
       component.setUserItemMap();
 
@@ -541,16 +697,144 @@ describe("ShareListComponent", () => {
       const lastIndex = userItems!.length - 1;
       const lastItem = userItems![lastIndex];
       const formGroup = component.receiptItems.at(lastItem.arrayIndex);
-      formGroup.patchValue({ name: "Valid Item", amount: "10" });
-
-      // Ensure the form is valid by clearing any validation errors
-      formGroup.get("name")?.setErrors(null);
-      formGroup.get("amount")?.setErrors(null);
-      formGroup.updateValueAndValidity();
+      formGroup.patchValue({ status: ItemStatus.Resolved });
 
       component.addInlineItemOnBlur("1", lastIndex);
 
-      expect(component.addInlineItem).toHaveBeenCalledWith("1");
+      expect(emitSpy).not.toHaveBeenCalled();
+    });
+
+    it("should not add item on blur when editing the name of an existing last share", () => {
+      const emitSpy = wireParentOnItemAdded();
+      component.mode = FormMode.edit;
+      component.setUserItemMap();
+
+      const userItems = component.userItemMap().get("1");
+      const lastIndex = userItems!.length - 1;
+      const formGroup = component.receiptItems.at(userItems![lastIndex].arrayIndex);
+      formGroup.patchValue({ name: "Renamed Item" });
+
+      component.addInlineItemOnBlur("1", lastIndex);
+
+      expect(emitSpy).not.toHaveBeenCalled();
+    });
+
+    it("should not add item on blur when editing the amount of an existing last share", () => {
+      const emitSpy = wireParentOnItemAdded();
+      component.mode = FormMode.edit;
+      component.setUserItemMap();
+
+      const userItems = component.userItemMap().get("1");
+      const lastIndex = userItems!.length - 1;
+      const formGroup = component.receiptItems.at(userItems![lastIndex].arrayIndex);
+      formGroup.patchValue({ amount: "7.25" });
+
+      component.addInlineItemOnBlur("1", lastIndex);
+
+      expect(emitSpy).not.toHaveBeenCalled();
+    });
+
+    it("should chain-add a placeholder after an inline add is filled in and blurred", () => {
+      const emitSpy = wireParentOnItemAdded();
+      component.mode = FormMode.edit;
+      // Raise the receipt total so the added share fits within itemTotalValidator.
+      component.form().get("amount")?.setValue("100.00");
+      component.setUserItemMap();
+
+      // User clicks the inline Add Share (+) for user "2".
+      component.addInlineItem("2");
+      expect(emitSpy).toHaveBeenCalledTimes(1);
+
+      // User fills in the placeholder to make it valid.
+      const userItems = component.userItemMap().get("2");
+      const lastIndex = userItems!.length - 1;
+      const lastItem = userItems![lastIndex];
+      const formGroup = component.receiptItems.at(lastItem.arrayIndex);
+      formGroup.patchValue({
+        name: "Filled Share",
+        amount: "5.00",
+        chargedToUserId: 2,
+        status: ItemStatus.Open,
+      });
+      formGroup.updateValueAndValidity();
+
+      component.addInlineItemOnBlur("2", lastIndex);
+
+      // The fill triggers the next cascading placeholder.
+      expect(emitSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it("should chain through multiple back-to-back inline adds for the same user", () => {
+      const emitSpy = wireParentOnItemAdded();
+      component.mode = FormMode.edit;
+      component.form().get("amount")?.setValue("200.00");
+      component.setUserItemMap();
+
+      // Round 1: click (+), fill, blur → cascade adds placeholder #2.
+      component.addInlineItem("2");
+      let userItems = component.userItemMap().get("2");
+      let currentIndex = userItems!.length - 1;
+      let placeholder = component.receiptItems.at(userItems![currentIndex].arrayIndex);
+      placeholder.patchValue({ name: "A", amount: "5.00", chargedToUserId: 2, status: ItemStatus.Open });
+      placeholder.updateValueAndValidity();
+      component.addInlineItemOnBlur("2", currentIndex);
+      expect(emitSpy).toHaveBeenCalledTimes(2);
+
+      // Round 2: fill that cascaded placeholder, blur → cascade adds placeholder #3.
+      userItems = component.userItemMap().get("2");
+      currentIndex = userItems!.length - 1;
+      placeholder = component.receiptItems.at(userItems![currentIndex].arrayIndex);
+      placeholder.patchValue({ name: "B", amount: "5.00", chargedToUserId: 2, status: ItemStatus.Open });
+      placeholder.updateValueAndValidity();
+      component.addInlineItemOnBlur("2", currentIndex);
+      expect(emitSpy).toHaveBeenCalledTimes(3);
+    });
+
+    it("should keep pending placeholder state scoped per user", () => {
+      // Adding an inline placeholder for user "2" must not cause blurs from
+      // user "1"'s existing last share to cascade.
+      const emitSpy = wireParentOnItemAdded();
+      component.mode = FormMode.edit;
+      component.form().get("amount")?.setValue("100.00");
+      component.setUserItemMap();
+
+      component.addInlineItem("2");
+      expect(emitSpy).toHaveBeenCalledTimes(1);
+
+      // Blur an existing share of user "1" — that share is NOT in the pending
+      // set, so nothing further should emit.
+      const user1Items = component.userItemMap().get("1");
+      const lastUser1 = user1Items!.length - 1;
+      component.addInlineItemOnBlur("1", lastUser1);
+
+      expect(emitSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it("should only chain-add once per placeholder (second blur is a no-op)", () => {
+      const emitSpy = wireParentOnItemAdded();
+      component.mode = FormMode.edit;
+      component.form().get("amount")?.setValue("100.00");
+      component.setUserItemMap();
+
+      component.addInlineItem("2");
+      const userItems = component.userItemMap().get("2");
+      const placeholderIndex = userItems!.length - 1;
+      const placeholder = component.receiptItems.at(userItems![placeholderIndex].arrayIndex);
+      placeholder.patchValue({
+        name: "Filled Share",
+        amount: "5.00",
+        chargedToUserId: 2,
+        status: ItemStatus.Open,
+      });
+      placeholder.updateValueAndValidity();
+
+      component.addInlineItemOnBlur("2", placeholderIndex);
+      expect(emitSpy).toHaveBeenCalledTimes(2); // inline add + cascade
+
+      // A second blur on the (now-filled, no-longer-pending) same control
+      // must not re-trigger the cascade.
+      component.addInlineItemOnBlur("2", placeholderIndex);
+      expect(emitSpy).toHaveBeenCalledTimes(2);
     });
 
     it("should not add item on blur for non-last item", () => {
@@ -563,20 +847,24 @@ describe("ShareListComponent", () => {
       expect(component.addInlineItem).not.toHaveBeenCalled();
     });
 
-    it("should not add item on blur for invalid form", () => {
-      jest.spyOn(component, "addInlineItem");
+    it("should not chain-add on blur when the inline placeholder is still invalid", () => {
+      const emitSpy = wireParentOnItemAdded();
       component.mode = FormMode.edit;
       component.setUserItemMap();
 
-      const userItems = component.userItemMap().get("1");
-      const lastIndex = userItems!.length - 1;
-      const lastItem = userItems![lastIndex];
-      const formGroup = component.receiptItems.at(lastItem.arrayIndex);
-      formGroup.get("name")?.setErrors({ required: true });
+      component.addInlineItem("2");
+      expect(emitSpy).toHaveBeenCalledTimes(1);
 
-      component.addInlineItemOnBlur("1", lastIndex);
+      const userItems = component.userItemMap().get("2");
+      const placeholderIndex = userItems!.length - 1;
+      const placeholder = component.receiptItems.at(userItems![placeholderIndex].arrayIndex);
+      // Leave amount blank → placeholder stays invalid.
+      placeholder.patchValue({ name: "Partial Fill" });
 
-      expect(component.addInlineItem).not.toHaveBeenCalled();
+      component.addInlineItemOnBlur("2", placeholderIndex);
+
+      // Still only the original inline add, no cascade.
+      expect(emitSpy).toHaveBeenCalledTimes(1);
     });
 
     it("should handle undefined user items in addInlineItemOnBlur", () => {
@@ -817,6 +1105,86 @@ describe("ShareListComponent", () => {
       const userItems = (component as any).getItemsForUser("123");
 
       expect(userItems.length).toBe(1);
+    });
+
+    it("should convert a mix of Open and Resolved items to all Resolved", () => {
+      const mixedItems = [
+        { id: 1, name: "I1", amount: "5.00", chargedToUserId: 1, status: ItemStatus.Open, receiptId: 1 } as Item,
+        { id: 2, name: "I2", amount: "5.00", chargedToUserId: 1, status: ItemStatus.Resolved, receiptId: 1 } as Item,
+        { id: 3, name: "I3", amount: "5.00", chargedToUserId: 2, status: ItemStatus.Open, receiptId: 1 } as Item,
+      ];
+      fixture.componentRef.setInput('form', createFormWithItems(mixedItems));
+      jest.spyOn(component.allItemsResolved, "emit");
+      const mockEvent = { stopImmediatePropagation: jest.fn() } as any;
+
+      component.resolveAllItemsClicked(mockEvent, "1");
+
+      // User 1's items are both Resolved; user 2's Open status is untouched.
+      expect(component.receiptItems.at(0).get("status")?.value).toBe(ItemStatus.Resolved);
+      expect(component.receiptItems.at(1).get("status")?.value).toBe(ItemStatus.Resolved);
+      expect(component.receiptItems.at(2).get("status")?.value).toBe(ItemStatus.Open);
+      expect(component.allItemsResolved.emit).toHaveBeenCalledWith("1");
+    });
+
+    it("should still emit allItemsResolved for a user with no matching items", () => {
+      jest.spyOn(component.allItemsResolved, "emit");
+      const mockEvent = { stopImmediatePropagation: jest.fn() } as any;
+
+      expect(() => component.resolveAllItemsClicked(mockEvent, "999")).not.toThrow();
+      expect(component.allItemsResolved.emit).toHaveBeenCalledWith("999");
+    });
+  });
+
+  describe("getFormControlPath", () => {
+    it("should build a path for a regular share", () => {
+      const itemData = { item: mockItems[0], arrayIndex: 2 };
+
+      expect(component.getFormControlPath(itemData, "status"))
+        .toBe("receiptItems.2.status");
+    });
+
+    it("should build a path into linkedItems for a linked share", () => {
+      const itemData = {
+        item: { id: 11, name: "Linked" } as Item,
+        arrayIndex: 4,
+        isLinkedItem: true,
+        linkedItemIndex: 1,
+      };
+
+      expect(component.getFormControlPath(itemData, "amount"))
+        .toBe("receiptItems.4.linkedItems.1.amount");
+    });
+
+    it("should return empty string for missing itemData", () => {
+      expect(component.getFormControlPath(undefined as any, "status")).toBe("");
+    });
+
+    it("should return empty string for missing fieldName", () => {
+      const itemData = { item: mockItems[0], arrayIndex: 0 };
+      expect(component.getFormControlPath(itemData, "")).toBe("");
+    });
+
+    it("should fall back to the regular path when isLinkedItem is true but linkedItemIndex is undefined", () => {
+      // Defensive branch: the component treats partially-populated linked metadata
+      // as a regular share rather than producing an invalid "undefined" path.
+      const itemData = {
+        item: mockItems[0],
+        arrayIndex: 3,
+        isLinkedItem: true,
+        linkedItemIndex: undefined,
+      };
+
+      expect(component.getFormControlPath(itemData, "name"))
+        .toBe("receiptItems.3.name");
+    });
+
+    it("should produce correct paths for every share field in the form", () => {
+      const itemData = { item: mockItems[0], arrayIndex: 0 };
+
+      for (const field of ["name", "amount", "status", "categories", "tags", "chargedToUserId"]) {
+        expect(component.getFormControlPath(itemData, field))
+          .toBe(`receiptItems.0.${field}`);
+      }
     });
   });
 

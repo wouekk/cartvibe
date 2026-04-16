@@ -80,6 +80,11 @@ export class ShareListComponent implements OnInit, OnChanges {
 
   public itemStatusOptions = RECEIPT_ITEM_STATUS_OPTIONS;
 
+  // Tracks FormGroups created via addInlineItem that are still awaiting their
+  // first fill. Membership is what lets blur-driven cascade add distinguish a
+  // fresh placeholder from an already-populated share being edited.
+  private pendingInlinePlaceholders = new WeakSet<AbstractControl>();
+
   public get receiptItems(): FormArray {
     return this.form().get("receiptItems") as FormArray;
   }
@@ -199,19 +204,33 @@ export class ShareListComponent implements OnInit, OnChanges {
         chargedToUserId: Number(userId),
       } as Item;
       this.itemAdded.emit(newItem);
+
+      const receiptItems = this.receiptItems;
+      const addedControl = receiptItems?.at(receiptItems.length - 1);
+      if (addedControl) {
+        this.pendingInlinePlaceholders.add(addedControl);
+      }
     }
   }
 
   public addInlineItemOnBlur(userId: string, index: number): void {
     const userItems = this.userItemMap().get(userId);
-    if (userItems && userItems.length - 1 === index) {
-      const item = userItems.at(index) as ItemData;
-      const itemInput = this.receiptItems.at(item?.arrayIndex);
-      if (itemInput.valid) {
-        const activeElement = document.activeElement as HTMLElement;
-        this.addInlineItem(userId);
-      }
+    if (!userItems || userItems.length - 1 !== index) {
+      return;
     }
+
+    const item = userItems.at(index) as ItemData;
+    const itemInput = this.receiptItems.at(item?.arrayIndex);
+    if (!itemInput || !itemInput.valid) {
+      return;
+    }
+
+    if (!this.pendingInlinePlaceholders.has(itemInput)) {
+      return;
+    }
+
+    this.pendingInlinePlaceholders.delete(itemInput);
+    this.addInlineItem(userId);
   }
 
   public checkLastInlineItem(userId: string): void {
