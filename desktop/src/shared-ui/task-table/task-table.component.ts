@@ -1,12 +1,15 @@
 import { AfterViewInit, Component, Inject, OnInit, signal, TemplateRef, input, viewChild } from "@angular/core";
+import { MatDialog } from "@angular/material/dialog";
 import { PageEvent } from "@angular/material/paginator";
 import { Sort } from "@angular/material/sort";
 import { MatTableDataSource } from "@angular/material/table";
 import { take, tap } from "rxjs";
+import { DEFAULT_DIALOG_CONFIG } from "../../constants/dialog.constant";
 import { AssociatedEntityType, GetSystemTaskCommand, SystemTask, SystemTaskService, SystemTaskType } from "../../open-api";
 import { BaseTableService } from "../../services/base-table.service";
 import { TABLE_SERVICE_INJECTION_TOKEN } from "../../services/injection-tokens/table-service";
 import { TableColumn } from "../../table/table-column.interface";
+import { DescriptionViewerDialogComponent, DescriptionViewerDialogData } from "../description-viewer-dialog/description-viewer-dialog.component";
 
 @Component({
   selector: "app-task-table",
@@ -43,10 +46,26 @@ export class TaskTableComponent implements OnInit, AfterViewInit {
 
   public rowExpandable: (row: SystemTask) => boolean = (systemTask) => (systemTask?.childSystemTasks?.length || 0) > 0;
 
+  // Descriptions shorter than this render inline without a "View More"
+  // button; longer values get truncated and opened in a dialog on demand.
+  public readonly descriptionInlineMaxLength = 120;
+
   constructor(
     @Inject(TABLE_SERVICE_INJECTION_TOKEN) public tableService: BaseTableService,
-    private systemTaskService: SystemTaskService
+    private systemTaskService: SystemTaskService,
+    private dialog: MatDialog,
   ) {}
+
+  public openDescriptionDialog(element: SystemTask): void {
+    const data: DescriptionViewerDialogData = {
+      description: element.resultDescription ?? "",
+      headerText: "Description",
+    };
+    this.dialog.open(DescriptionViewerDialogComponent, {
+      ...DEFAULT_DIALOG_CONFIG,
+      data,
+    });
+  }
 
   public ngOnInit(): void {
     this.getTableData();

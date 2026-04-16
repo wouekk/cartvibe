@@ -31,6 +31,7 @@ import { CancelButtonComponent } from "./cancel-button/cancel-button.component";
 import { CardComponent } from "./card/card.component";
 import { ConfirmationDialogComponent } from "./confirmation-dialog/confirmation-dialog.component";
 import { DeleteButtonComponent } from "./delete-button/delete-button.component";
+import { DescriptionViewerDialogComponent } from "./description-viewer-dialog/description-viewer-dialog.component";
 import { DialogFooterComponent } from "./dialog-footer/dialog-footer.component";
 import { DialogComponent } from "./dialog/dialog.component";
 import { EditButtonComponent } from "./edit-button/edit-button.component";
@@ -70,6 +71,7 @@ import { PieChartUiComponent } from './pie-chart/pie-chart.component';
     CardComponent,
     ConfirmationDialogComponent,
     DeleteButtonComponent,
+    DescriptionViewerDialogComponent,
     DialogComponent,
     DialogFooterComponent,
     EditButtonComponent,
@@ -137,6 +139,7 @@ import { PieChartUiComponent } from './pie-chart/pie-chart.component';
     CardComponent,
     ConfirmationDialogComponent,
     DeleteButtonComponent,
+    DescriptionViewerDialogComponent,
     DialogComponent,
     DialogFooterComponent,
     EditButtonComponent,
