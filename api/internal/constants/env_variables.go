@@ -19,6 +19,7 @@ const (
 	BasePath      EnvironmentVariable = "BASE_PATH"
 	Env           EnvironmentVariable = "ENV"
 
-	ChromiumBinaryPath EnvironmentVariable = "CHROMIUM_BINARY_PATH"
-	ChromiumSandbox    EnvironmentVariable = "CHROMIUM_SANDBOX"
+	ChromiumBinaryPath             EnvironmentVariable = "CHROMIUM_BINARY_PATH"
+	ChromiumSandbox                EnvironmentVariable = "CHROMIUM_SANDBOX"
+	ChromiumAllowExternalResources EnvironmentVariable = "CHROMIUM_ALLOW_EXTERNAL_RESOURCES"
 )

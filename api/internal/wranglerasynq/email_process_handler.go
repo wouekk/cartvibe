@@ -344,10 +344,6 @@ func renderBodyPdfIfRequested(
 		return nil, "", nil, htmlPdfTaskCmd, err
 	}
 	bodyImagePath := filepath.Join(fileRepository.GetTempDirectoryPath(), "image-body-"+randId+".jpg")
-	if err := utils.WriteFile(bodyImagePath, imageBytes); err != nil {
-		return nil, "", nil, htmlPdfTaskCmd, err
-	}
-
 	cleanup := func() {
 		if !utils.FileExists(bodyImagePath) {
 			return
@@ -355,6 +351,12 @@ func renderBodyPdfIfRequested(
 		if err := os.Remove(bodyImagePath); err != nil {
 			logging.LogStd(logging.LOG_LEVEL_ERROR, "failed to remove body image temp file: ", err.Error())
 		}
+	}
+	// Set up cleanup before the write so a partial WriteFile failure also
+	// removes the orphaned bytes.
+	if err := utils.WriteFile(bodyImagePath, imageBytes); err != nil {
+		cleanup()
+		return nil, "", nil, htmlPdfTaskCmd, err
 	}
 
 	return pdfBytes, bodyImagePath, cleanup, htmlPdfTaskCmd, nil

@@ -2,9 +2,20 @@ package env
 
 import (
 	"os"
+	"receipt-wrangler/api/internal/logging"
 	"receipt-wrangler/api/internal/utils"
 	"testing"
 )
+
+func TestMain(m *testing.M) {
+	// Initialize logging once for the package because GetChromiumSandboxEnabled
+	// and GetChromiumAllowExternalResources emit INFO logs on unparseable
+	// values, and logging.LogStd uses package-level loggers that must be set up.
+	if err := logging.InitLog(); err != nil {
+		panic(err)
+	}
+	os.Exit(m.Run())
+}
 
 func tearDownConfigTests() {
 	os.Unsetenv("DB_USER")
@@ -234,6 +245,39 @@ func TestGetChromiumSandboxEnabled(t *testing.T) {
 			got := GetChromiumSandboxEnabled()
 			if got != tc.expected {
 				t.Errorf("GetChromiumSandboxEnabled() with env=%q (set=%v) = %v, want %v",
+					tc.envValue, tc.setEnv, got, tc.expected)
+			}
+		})
+	}
+}
+
+func TestGetChromiumAllowExternalResources(t *testing.T) {
+	cases := []struct {
+		name     string
+		envValue string
+		setEnv   bool
+		expected bool
+	}{
+		{"unset defaults to false (blocked)", "", false, false},
+		{"empty string defaults to false", "", true, false},
+		{"true allows external resources", "true", true, true},
+		{"1 allows external resources", "1", true, true},
+		{"false keeps default (blocked)", "false", true, false},
+		{"0 keeps default (blocked)", "0", true, false},
+		{"unparseable keeps default (blocked)", "on", true, false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			os.Unsetenv("CHROMIUM_ALLOW_EXTERNAL_RESOURCES")
+			if tc.setEnv {
+				os.Setenv("CHROMIUM_ALLOW_EXTERNAL_RESOURCES", tc.envValue)
+				defer os.Unsetenv("CHROMIUM_ALLOW_EXTERNAL_RESOURCES")
+			}
+
+			got := GetChromiumAllowExternalResources()
+			if got != tc.expected {
+				t.Errorf("GetChromiumAllowExternalResources() with env=%q (set=%v) = %v, want %v",
 					tc.envValue, tc.setEnv, got, tc.expected)
 			}
 		})

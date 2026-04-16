@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
 	"gorm.io/gorm"
@@ -18,6 +19,19 @@ import (
 	"receipt-wrangler/api/internal/repositories"
 	"receipt-wrangler/api/internal/utils"
 )
+
+// blockedExternalUrlPatterns matches all common network schemes so chromium
+// refuses to load remote resources referenced from the rendered HTML.
+// file:// (used for our navigation) and data: URIs (inline base64 content
+// commonly embedded in receipt emails) are intentionally not in this list
+// and remain allowed.
+var blockedExternalUrlPatterns = []string{
+	"http://*",
+	"https://*",
+	"ws://*",
+	"wss://*",
+	"ftp://*",
+}
 
 const htmlToPdfTimeout = 30 * time.Second
 
@@ -35,9 +49,10 @@ func NewHtmlToPdfService(tx *gorm.DB) HtmlToPdfService {
 }
 
 // Render converts the given HTML to a PDF using a fresh headless Chromium
-// process. External resources are allowed to load (subject to the overall
-// timeout) so logos and product imagery embedded in receipt emails appear in
-// the rendered output.
+// process. Network resource loads (remote images, CSS, fonts, etc.) are
+// blocked by default for security; inline data: URIs and the file:// page
+// itself remain allowed. Set CHROMIUM_ALLOW_EXTERNAL_RESOURCES=true to
+// permit remote loads if you need logos or product imagery from URLs.
 func (service HtmlToPdfService) Render(html string) ([]byte, commands.UpsertSystemTaskCommand, error) {
 	startTime := time.Now()
 	systemTaskCommand := commands.UpsertSystemTaskCommand{
@@ -92,7 +107,18 @@ func (service HtmlToPdfService) Render(html string) ([]byte, commands.UpsertSyst
 	defer cleanup()
 
 	var pdfBuf []byte
-	err = chromedp.Run(timeoutCtx,
+	actions := []chromedp.Action{}
+	// Default behavior is to block external network resources: receipt
+	// emails contain attacker-controllable URLs and we run chromium with
+	// --no-sandbox, so disallowing network requests removes an SSRF /
+	// tracking-pixel surface. Opt back in via CHROMIUM_ALLOW_EXTERNAL_RESOURCES.
+	if !env.GetChromiumAllowExternalResources() {
+		actions = append(actions,
+			network.Enable(),
+			network.SetBlockedURLs(blockedExternalUrlPatterns),
+		)
+	}
+	actions = append(actions,
 		chromedp.Navigate("file://"+htmlPath),
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			buf, _, err := page.PrintToPDF().WithPrintBackground(true).Do(ctx)
@@ -103,6 +129,7 @@ func (service HtmlToPdfService) Render(html string) ([]byte, commands.UpsertSyst
 			return nil
 		}),
 	)
+	err = chromedp.Run(timeoutCtx, actions...)
 
 	endTime := time.Now()
 	systemTaskCommand.EndedAt = &endTime
@@ -128,21 +155,24 @@ func (service HtmlToPdfService) Render(html string) ([]byte, commands.UpsertSyst
 }
 
 // writeTempHtml writes the HTML body to a uniquely-named temp file and
-// returns its absolute path plus a cleanup function. The cleanup is a no-op
-// if the file is already gone.
+// returns its absolute path plus a cleanup function. The cleanup is set up
+// before the write so a failed/partial WriteFile still removes any
+// orphaned bytes left on disk; on a clean error the caller may safely
+// ignore the returned cleanup since it has already run.
 func writeTempHtml(html string) (string, func(), error) {
 	randId, err := utils.GetRandomString(8)
 	if err != nil {
 		return "", func() {}, err
 	}
 	htmlPath := filepath.Join(os.TempDir(), "html-to-pdf-"+randId+".html")
-	if err := utils.WriteFile(htmlPath, []byte(html)); err != nil {
-		return "", func() {}, err
-	}
 	cleanup := func() {
 		if err := os.Remove(htmlPath); err != nil && !os.IsNotExist(err) {
 			logging.LogStd(logging.LOG_LEVEL_ERROR, "failed to remove html temp file: ", err.Error())
 		}
+	}
+	if err := utils.WriteFile(htmlPath, []byte(html)); err != nil {
+		cleanup()
+		return "", func() {}, err
 	}
 	return htmlPath, cleanup, nil
 }

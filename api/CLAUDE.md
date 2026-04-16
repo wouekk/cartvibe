@@ -107,6 +107,11 @@ When working with tests in this codebase, follow these critical requirements:
   docker images run as root, where chromium's sandbox refuses to start.
   Operators running the API as a non-root user can opt back in by setting
   `CHROMIUM_SANDBOX=true`
+- External network resource loads (remote images, CSS, fonts) are
+  **blocked by default** to remove an SSRF / tracking-pixel surface.
+  Inline `data:` URIs and the file:// page itself remain allowed. To
+  permit remote loads (useful when receipts depend on remote logos or
+  product imagery), set `CHROMIUM_ALLOW_EXTERNAL_RESOURCES=true`
 - Implementation: `internal/services/html_to_pdf.go` (HtmlToPdfService.Render)
 - The rendered PDF is saved on the receipt as a `FileData` and routed
   through the existing `repositories.ConvertPdfToJpg` pipeline so vision and
