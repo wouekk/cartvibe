@@ -9,10 +9,19 @@ import (
 	"receipt-wrangler/api/internal/models"
 	"receipt-wrangler/api/internal/repositories"
 	"receipt-wrangler/api/internal/utils"
+	"runtime"
 	"testing"
 
 	"gopkg.in/gographics/imagick.v3/imagick"
 )
+
+// testApiRoot returns the absolute path of the api/ directory. See the
+// identical helper in repositories/files_test.go for rationale.
+func testApiRoot() string {
+	_, file, _, _ := runtime.Caller(0)
+	// file = .../api/internal/services/receipt_image_test.go
+	return filepath.Clean(filepath.Join(filepath.Dir(file), "..", ".."))
+}
 
 // jpgToPdf converts a JPG blob to a one-page PDF using ImageMagick. Used by
 // the PDF-branch receipt-image test.
@@ -46,7 +55,7 @@ func jpgToPdf(t *testing.T, jpgBytes []byte) []byte {
 // GetReceiptFromReceiptImageId / ReadReceiptImage invocations).
 func seedReceiptImagePipeline(t *testing.T, url string) (models.User, models.Group, models.FileData) {
 	t.Helper()
-	t.Setenv("BASE_PATH", "/app/api")
+	t.Setenv("BASE_PATH", testApiRoot())
 	db := repositories.GetDB()
 
 	user := models.User{Username: "ri-user", Password: "p", DisplayName: "x"}
@@ -109,7 +118,7 @@ func seedReceiptImagePipeline(t *testing.T, url string) (models.User, models.Gro
 		t.Fatalf("BuildFilePath: %v", err)
 	}
 	_ = os.MkdirAll(filepath.Dir(path), 0o755)
-	jpg, err := os.ReadFile(filepath.Join("/app/api/testing", "test.jpg"))
+	jpg, err := os.ReadFile(filepath.Join(testApiRoot(), "testing", "test.jpg"))
 	if err != nil {
 		t.Fatalf("read fixture: %v", err)
 	}
@@ -153,7 +162,7 @@ func TestReadReceiptImage_UnknownId(t *testing.T) {
 // PDF image path → ConvertPdfToJpg runs, temp file written + removed.
 func TestReadReceiptImage_PdfRoutesThroughConversion(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	t.Setenv("BASE_PATH", "/app/api")
+	t.Setenv("BASE_PATH", testApiRoot())
 
 	server, _ := newMockOllamaServerForService(t, http.StatusOK, ollamaReceiptJson("PdfReceipt", "99"))
 	_, _, fileData := seedReceiptImagePipeline(t, server.URL)
@@ -277,7 +286,7 @@ func TestMagicFillFromImage_HappyPath(t *testing.T) {
 	server, _ := newMockOllamaServerForService(t, http.StatusOK, ollamaReceiptJson("Magic", "7"))
 	_, group, _ := seedReceiptImagePipeline(t, server.URL)
 
-	jpg, err := os.ReadFile(filepath.Join("/app/api/testing", "test.jpg"))
+	jpg, err := os.ReadFile(filepath.Join(testApiRoot(), "testing", "test.jpg"))
 	if err != nil {
 		t.Fatalf("read fixture: %v", err)
 	}
