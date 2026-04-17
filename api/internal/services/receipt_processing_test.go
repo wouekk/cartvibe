@@ -322,7 +322,7 @@ func setupImagePathFixture(t *testing.T) string {
 	tmp := t.TempDir()
 	path := filepath.Join(tmp, "img.jpg")
 
-	jpg, err := os.ReadFile(filepath.Join("/app/api/testing", "test.jpg"))
+	jpg, err := os.ReadFile(filepath.Join(testApiRoot(), "testing", "test.jpg"))
 	if err != nil {
 		t.Fatalf("read fixture: %v", err)
 	}

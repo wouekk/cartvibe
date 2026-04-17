@@ -9,17 +9,20 @@ import (
 	"receipt-wrangler/api/internal/constants"
 	"receipt-wrangler/api/internal/models"
 	"receipt-wrangler/api/internal/utils"
+	"runtime"
 	"strings"
 	"testing"
 
 	"gopkg.in/gographics/imagick.v3/imagick"
 )
 
-// testBasePath returns the path that tests should use as BASE_PATH so
-// GetTempDirectoryPath() and GetTestJpgBytes() resolve correctly. The repo
-// layout has the jpg fixture at /app/api/testing/test.jpg.
+// testBasePath returns the absolute path of the api/ directory so tests
+// can locate the shared testing/ fixtures regardless of CWD or where the
+// repo is checked out (dev container vs. CI vs. local clone).
 func testBasePath() string {
-	return "/app/api"
+	_, file, _, _ := runtime.Caller(0)
+	// file = .../api/internal/repositories/files_test.go
+	return filepath.Clean(filepath.Join(filepath.Dir(file), "..", ".."))
 }
 
 // readTestJpgBytes is a local helper so tests don't depend on basePath
