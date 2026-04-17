@@ -18,7 +18,26 @@ services:
       - "9000:22"
     networks:
       - app-net
+    volumes:
+      - app:/app
+      - docs:/docs
+      - go:/go
+      - root:/root
+      - etc:/etc
+      - usr:/usr
+      - var:/var
+      - opt:/opt
 
 networks:
   app-net:
+
+volumes:
+  app:
+  docs:
+  go:
+  root:
+  etc:
+  usr:
+  var:
+  opt:
 
