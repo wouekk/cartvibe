@@ -28,8 +28,14 @@ jobs:
       - name: Install Playwright browsers
         run: npm run e2e:install
         working-directory: ./desktop
+      - name: Warm up demo backend
+        run: |
+          curl -fsSL --max-time 60 "$E2E_BASE_URL" > /dev/null || true
+          curl -fsSL --max-time 60 "$E2E_BASE_URL/api/featureConfig" > /dev/null || true
+        env:
+          E2E_BASE_URL: ${{ secrets.E2E_BASE_URL }}
       - name: Run Playwright tests
-        run: npm run e2e
+        run: npm run e2e:ci
         working-directory: ./desktop
         env:
           E2E_BASE_URL: ${{ secrets.E2E_BASE_URL }}

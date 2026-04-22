@@ -11,6 +11,7 @@
     "test:coverage": "jest --coverage",
     "test:ci": "jest --coverage --ci",
     "e2e": "playwright test",
+    "e2e:ci": "playwright test --fail-on-flaky-tests",
     "e2e:ui": "playwright test --ui",
     "e2e:install": "playwright install --with-deps chromium"
   },
