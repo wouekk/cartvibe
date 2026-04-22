@@ -10,6 +10,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run watch` - Build in watch mode for development
 - `npm test` - Run unit tests with coverage
 - `npm test:ci` - Run tests in CI mode with ChromeHeadless
+- `npm run e2e` - Run Playwright end-to-end tests (see **E2E Testing** below)
+- `npm run e2e:ui` - Run Playwright tests in interactive UI mode
+- `npm run e2e:install` - Install Playwright browser binaries (one-time setup)
 
 ### Build Configuration
 - Production builds go to `dist/receipt-wrangler/`
@@ -271,6 +274,68 @@ Angular no longer uses zone.js. Change detection is triggered ONLY by:
 - Add `provideZonelessChangeDetection()` to `TestBed.configureTestingModule` providers.
 - Prefer `await fixture.whenStable()` over `fixture.detectChanges()` for most realistic test behavior.
 - Use `TestBed.flushEffects()` when testing effect-based logic.
+
+## E2E Testing
+
+End-to-end tests live in `e2e/` and use **Playwright**. They drive the real Angular UI against a real Go API. Config is `playwright.config.ts`.
+
+### Running locally
+
+1. **One-time:** install browsers — `npm run e2e:install`.
+2. **One-time:** sign up the two e2e accounts against your local DB. The **first** signup is auto-promoted to admin, so order matters. With the API running, go to `http://localhost:4200/auth/sign-up` and create:
+   - Admin first: username `e2e-admin`, password `e2e-admin-password`
+   - Then user: username `e2e-user`, password `e2e-user-password`
+3. **Every run:** source the dev env script so the `E2E_*` vars are exported:
+   ```bash
+   cd ../api/dev && source switch-to-sqlite.sh && cd -
+   ```
+   (`switch-to-mariadb.sh` / `switch-to-postgresql.sh` work the same — all three export the same `E2E_*` defaults.)
+4. Start the Go API separately (`cd ../api && go run main.go`). Playwright auto-starts the Angular dev server via its `webServer` config, but it cannot launch the API.
+5. Run the tests: `npm run e2e` (or `npm run e2e:ui` for watch-style debugging).
+
+### CI
+
+In CI the same spec files run against the demo URL. GitHub secrets populate the `E2E_*` vars — point `E2E_BASE_URL` at `https://demo.receiptwrangler.io` and supply the secret credentials. When `E2E_BASE_URL` is remote, the config skips the `webServer` block and does not start a local dev server.
+
+### Best practices (follow these when adding new e2e tests)
+
+**Locators — use user-facing, auto-retrying selectors.**
+- Prefer `page.getByRole('button', { name: 'Login' })`, `page.getByLabel('Password')`, `page.getByPlaceholder(...)`, `page.getByText(...)`.
+- Use `page.getByTestId(...)` only when no accessible role/label exists. The codebase has no `data-testid` convention yet — add one on a component only when role/label truly can't identify the element.
+- Avoid raw CSS/XPath (`page.locator('.btn-primary')`) — brittle to refactors.
+
+**Assertions — rely on web-first expects, never `waitForTimeout`.**
+- Use `await expect(locator).toBeVisible()`, `toHaveText()`, `toHaveURL()`, `toHaveCount()` — they auto-retry until `expect.timeout`.
+- Never `await page.waitForTimeout(ms)` — it's a fixed sleep and flakes.
+- Prefer `await page.waitForURL(/.../)` or `await page.waitForResponse(...)` for navigation/network waits.
+
+**Isolation — each test gets a fresh `BrowserContext`.**
+- No cookies/localStorage/session leak between siblings.
+- Do NOT hand-write state-sharing between tests. If two tests need a logged-in session, use Playwright's `storageState` pattern (see below), not module-level globals.
+
+**Auth — reuse login state, don't re-login in every test.**
+- Current suite is tiny (login IS the test), so each test logs in via the UI. Fine for now.
+- When the suite grows, switch to the **setup project** pattern: a `*.setup.ts` file logs in once and saves `storageState` to `e2e/.auth/<role>.json`; other tests declare `test.use({ storageState: 'e2e/.auth/user.json' })`. Keep `.auth/` git-ignored — it contains session cookies.
+- One storageState file per role (admin, user). Never share one login across roles.
+
+**`webServer` — for processes Playwright can launch.**
+- The config uses `webServer` to start `npm start` when `E2E_BASE_URL` is localhost, and skips it when the URL is remote. `reuseExistingServer: !process.env.CI` lets local devs keep `ng serve` running between runs.
+- Playwright cannot launch the Go API — that's always a separate process.
+
+**Env vars and secrets.**
+- Read via `process.env.E2E_*` — never hardcode credentials.
+- Local defaults come from `api/dev/switch-to-*.sh`. CI values come from GitHub secrets.
+- Never commit `.env` files or `e2e/.auth/` artifacts.
+
+**Parallelism and flake budget.**
+- `fullyParallel: true` is on. Tests must not mutate shared server state in ways that collide (same DB row, same uploaded file, same group membership). When you need mutation, create unique data per test (timestamp/UUID in names) and clean up after.
+- `retries: 2` in CI, `0` locally — a test that only passes with retries is a bug, not a feature. Fix the root cause.
+- `trace: 'on-first-retry'` captures a trace file on the first retry; view with `npx playwright show-trace <file>`. Do not set `trace: 'on'` — too heavy.
+
+**Writing selectors for this app.**
+- Forms use a custom `<app-input>` wrapper over `<mat-form-field>`. `page.getByLabel('Username')` resolves through the `<mat-label>` association.
+- Submit buttons use `<app-button>` rendering `<button>` with visible text — `page.getByRole('button', { name: '...' })` works directly.
+- Error feedback is often a Material snackbar (not inline `<mat-error>`). When asserting errors, locate the snackbar container or its text, not the form.
 
 ## Testing Requirements
 
