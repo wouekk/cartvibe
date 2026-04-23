@@ -9,7 +9,11 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:ci": "jest --coverage --ci"
+    "test:ci": "jest --coverage --ci",
+    "e2e": "playwright test",
+    "e2e:ci": "playwright test --fail-on-flaky-tests",
+    "e2e:ui": "playwright test --ui",
+    "e2e:install": "playwright install --with-deps chromium"
   },
   "private": true,
   "dependencies": {
@@ -50,6 +54,7 @@
     "@angular/compiler-cli": "21.2.1",
     "@angular/localize": "21.2.1",
     "@ngxs/devtools-plugin": "^21.0.0",
+    "@playwright/test": "^1.59.1",
     "@types/jest": "^30.0.0",
     "@types/node": "^20.12.3",
     "jest": "^30.2.0",

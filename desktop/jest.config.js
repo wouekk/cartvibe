@@ -4,7 +4,8 @@ module.exports = {
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/',
     '<rootDir>/dist/',
-    '<rootDir>/src/open-api/'
+    '<rootDir>/src/open-api/',
+    '<rootDir>/e2e/'
   ],
   // Performance optimizations
   maxWorkers: '50%',
