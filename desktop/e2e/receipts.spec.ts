@@ -105,9 +105,9 @@ test.describe('receipts', () => {
     await page.getByRole('option').first().click();
     await shareList.getByLabel('Name').fill(shareName);
     await shareList.getByLabel('Amount').fill('30.00');
-    // Footer submit is type=submit, so this also saves the receipt.
+    // Done is additive only (submitButtonType="button"); save separately.
     await shareList.locator('button:has(mat-icon:has-text("done"))').click();
-    await expect(page).toHaveURL(/\/receipts\/\d+\/view/);
+    await saveReceipt(page);
 
     // Detail view should show the share's total amount owed for the user.
     await expect(page.getByText(/Total amount owed: \$30\.00/)).toBeVisible();
@@ -264,6 +264,25 @@ test.describe('receipts', () => {
       await expect(page).toHaveURL(/\/receipts\/add$/);
       await expect(page.getByText('Amount is required.', { exact: true })).toBeVisible();
       await expect(page.getByText('Name is required.', { exact: true })).toBeHidden();
+    });
+
+    test('adding a share does not auto-submit the receipt form', async ({ page }) => {
+      await openAddReceipt(page);
+      await fillBasics(page, uniqueName('share-no-submit'), '10.00');
+
+      const sharesHeader = page.locator('strong:has-text("Shares")');
+      await sharesHeader.locator('xpath=../..').getByRole('button').first().click();
+
+      const shareList = page.locator('app-share-list');
+      await shareList.getByLabel('Shared with').click();
+      await page.getByRole('option').first().click();
+      await shareList.getByLabel('Name').fill('inline-share');
+      await shareList.getByLabel('Amount').fill('10.00');
+      await shareList.locator('button:has(mat-icon:has-text("done"))').click();
+
+      // Still on the add form — the inline Done must not save the receipt.
+      await expect(page).toHaveURL(/\/receipts\/add$/);
+      await expect(page.getByText(/Total amount owed: \$10/)).toBeVisible();
     });
 
     test('filling a required field clears its error in place', async ({ page }) => {
