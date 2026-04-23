@@ -3,7 +3,7 @@ name: E2E - Playwright
 
 on:
   push:
-    branches: [tech/e2e]
+    branches: [main]
     paths:
       - 'api/**'
       - 'desktop/**'
