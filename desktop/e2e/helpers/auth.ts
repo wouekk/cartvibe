@@ -34,7 +34,7 @@ export async function stubTokenRefresh(page: Page) {
       return;
     }
     const payload = JSON.parse(
-      Buffer.from(jwt.value.split('.')[1], 'base64').toString(),
+      Buffer.from(jwt.value.split('.')[1], 'base64url').toString(),
     );
     await route.fulfill({
       status: 200,

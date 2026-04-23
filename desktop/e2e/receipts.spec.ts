@@ -64,7 +64,9 @@ async function ensureCustomFieldExists(page: Page) {
 
 async function deleteReceiptByName(page: Page, groupId: string, name: string) {
   await page.goto(`/receipts/group/${groupId}`);
-  const row = page.getByRole('row').filter({ hasText: name });
+  // `.first()` defends against orphan rows on the shared demo DB that would
+  // otherwise trip strict-mode on the row.locator(...) click below.
+  const row = page.getByRole('row').filter({ hasText: name }).first();
   await expect(row).toBeVisible();
   // The delete action is the mat-icon "delete" inside the row's action cell.
   await row.locator('button:has(mat-icon:has-text("delete"))').click();
@@ -77,10 +79,27 @@ async function deleteReceiptByName(page: Page, groupId: string, name: string) {
 
 test.describe('receipts', () => {
   let groupId: string;
+  // Tests that persist a receipt set this to the receipt's unique name after
+  // saveReceipt(), and clear it after the explicit deleteReceiptByName(). If a
+  // test fails between save and delete, the afterEach below reaps the orphan
+  // so nothing accumulates on the shared demo.
+  let currentReceiptName: string | null = null;
 
   test.beforeEach(async ({ page }) => {
     await stubTokenRefresh(page);
     groupId = await getGroupId(page);
+  });
+
+  test.afterEach(async ({ page }) => {
+    if (!currentReceiptName) return;
+    const leftover = currentReceiptName;
+    currentReceiptName = null;
+    try {
+      await deleteReceiptByName(page, groupId, leftover);
+    } catch {
+      // Best-effort — the test already failed and we don't want to mask it
+      // with a cleanup error.
+    }
   });
 
   test('create a basic receipt, see it in the list, and delete it', async ({ page }) => {
@@ -88,11 +107,13 @@ test.describe('receipts', () => {
     await openAddReceipt(page);
     await fillBasics(page, name);
     await saveReceipt(page);
+    currentReceiptName = name;
 
     await page.goto(`/receipts/group/${groupId}`);
-    await expect(page.getByRole('row').filter({ hasText: name })).toBeVisible();
+    await expect(page.getByRole('row').filter({ hasText: name }).first()).toBeVisible();
 
     await deleteReceiptByName(page, groupId, name);
+    currentReceiptName = null;
   });
 
   test('create a receipt with a manual share', async ({ page }) => {
@@ -118,14 +139,16 @@ test.describe('receipts', () => {
     // form re-render can detach the outer Save button mid-click.
     await expect(page.getByText(/Total amount owed: \$30\.00/).first()).toBeVisible();
     await saveReceipt(page);
+    currentReceiptName = name;
 
     // Detail view should show the share's total amount owed for the user.
     await expect(page.getByText(/Total amount owed: \$30\.00/)).toBeVisible();
 
     await page.goto(`/receipts/group/${groupId}`);
-    await expect(page.getByRole('row').filter({ hasText: name })).toBeVisible();
+    await expect(page.getByRole('row').filter({ hasText: name }).first()).toBeVisible();
 
     await deleteReceiptByName(page, groupId, name);
+    currentReceiptName = null;
   });
 
   test('create a receipt with a custom field (dynamic)', async ({ page }) => {
@@ -169,11 +192,13 @@ test.describe('receipts', () => {
     expect(filled, 'at least one custom field type should have matched').not.toBeNull();
 
     await saveReceipt(page);
+    currentReceiptName = name;
 
     await page.goto(`/receipts/group/${groupId}`);
-    await expect(page.getByRole('row').filter({ hasText: name })).toBeVisible();
+    await expect(page.getByRole('row').filter({ hasText: name }).first()).toBeVisible();
 
     await deleteReceiptByName(page, groupId, name);
+    currentReceiptName = null;
   });
 
   test('create a receipt with a comment', async ({ page }) => {
@@ -188,15 +213,17 @@ test.describe('receipts', () => {
     await page.getByRole('button', { name: 'Comment', exact: true }).click();
 
     await saveReceipt(page);
+    currentReceiptName = name;
 
     // The saved comment should render inside the comments section on view.
     const comments = page.locator('app-receipt-comments');
     await expect(comments.getByText(commentText)).toBeVisible();
 
     await page.goto(`/receipts/group/${groupId}`);
-    await expect(page.getByRole('row').filter({ hasText: name })).toBeVisible();
+    await expect(page.getByRole('row').filter({ hasText: name }).first()).toBeVisible();
 
     await deleteReceiptByName(page, groupId, name);
+    currentReceiptName = null;
   });
 
   test('create a receipt using Quick Actions (Split Evenly)', async ({ page }) => {
@@ -229,11 +256,13 @@ test.describe('receipts', () => {
     await expect(dialog).toBeHidden();
 
     await saveReceipt(page);
+    currentReceiptName = name;
 
     await page.goto(`/receipts/group/${groupId}`);
-    await expect(page.getByRole('row').filter({ hasText: name })).toBeVisible();
+    await expect(page.getByRole('row').filter({ hasText: name }).first()).toBeVisible();
 
     await deleteReceiptByName(page, groupId, name);
+    currentReceiptName = null;
   });
 
   test.describe('validation', () => {
@@ -329,14 +358,16 @@ test.describe('receipts', () => {
     await expect(page.getByText(/Total: \$10\.00/)).toBeVisible();
 
     await saveReceipt(page);
+    currentReceiptName = name;
 
     // Detail view should still show the item count/total summary.
     await expect(page.getByText(/Items \(1\)/)).toBeVisible();
     await expect(page.getByText(/Total: \$10\.00/)).toBeVisible();
 
     await page.goto(`/receipts/group/${groupId}`);
-    await expect(page.getByRole('row').filter({ hasText: name })).toBeVisible();
+    await expect(page.getByRole('row').filter({ hasText: name }).first()).toBeVisible();
 
     await deleteReceiptByName(page, groupId, name);
+    currentReceiptName = null;
   });
 });
