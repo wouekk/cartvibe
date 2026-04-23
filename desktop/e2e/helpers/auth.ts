@@ -1,4 +1,5 @@
 import { expect, type Page } from '@playwright/test';
+import { Buffer } from 'node:buffer';
 
 export type Role = 'admin' | 'user';
 
@@ -12,6 +13,35 @@ export function creds(role: Role) {
     );
   }
   return { username, password };
+}
+
+/**
+ * The backend's refresh token middleware single-uses refresh tokens, and the
+ * Angular APP_INITIALIZER fires /api/token on every page load. Left
+ * unmocked, that rotates the token out from under storageState-based tests:
+ * test N refreshes and marks the old token used, test N+1 loads the same
+ * storageState file with the now-invalid refresh token and gets bounced to
+ * /auth/login. Intercept the refresh call and synthesize a response from
+ * the existing (still-valid) access token so the app keeps the original
+ * cookies for the whole test.
+ */
+export async function stubTokenRefresh(page: Page) {
+  await page.route('**/api/token/**', async (route) => {
+    const cookies = await page.context().cookies();
+    const jwt = cookies.find((c) => c.name === 'jwt');
+    if (!jwt) {
+      await route.continue();
+      return;
+    }
+    const payload = JSON.parse(
+      Buffer.from(jwt.value.split('.')[1], 'base64').toString(),
+    );
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(payload),
+    });
+  });
 }
 
 export async function loginViaUi(page: Page, role: Role) {

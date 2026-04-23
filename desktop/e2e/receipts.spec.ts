@@ -1,11 +1,14 @@
 import { expect, test, type Page } from '@playwright/test';
-import { loginViaUi } from './helpers/auth';
+import { stubTokenRefresh } from './helpers/auth';
 
 function uniqueName(tag: string) {
   return `e2e-${tag}-${Date.now()}`;
 }
 
 async function getGroupId(page: Page): Promise<string> {
+  // storageState loaded by the project means we're already authed; going to
+  // `/` should redirect to /dashboard/group/<id>.
+  await page.goto('/');
   await page.waitForURL(/\/dashboard\/group\/\d+/);
   const match = page.url().match(/\/dashboard\/group\/(\d+)/);
   return match![1];
@@ -76,7 +79,7 @@ test.describe('receipts', () => {
   let groupId: string;
 
   test.beforeEach(async ({ page }) => {
-    await loginViaUi(page, 'user');
+    await stubTokenRefresh(page);
     groupId = await getGroupId(page);
   });
 

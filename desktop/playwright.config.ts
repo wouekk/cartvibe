@@ -9,16 +9,30 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  // Demo API rate-limits /api/login/. Serialize in CI so per-test UI logins
-  // don't saturate the throttle and strand later tests on /auth/login.
-  workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'html',
   use: {
     baseURL,
     trace: 'on-first-retry',
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    // Logs in once per role and writes the session to e2e/.auth/*.json.
+    {
+      name: 'setup',
+      testMatch: '**/*.setup.ts',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    // All *.spec.ts tests start pre-authenticated as the regular user.
+    // Individual tests can override with test.use({ storageState: ... }).
+    // Inherits the default testMatch ('**/*.@(spec|test).*'), which does not
+    // match *.setup.ts, so setup files aren't double-run here.
+    {
+      name: 'chromium',
+      dependencies: ['setup'],
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'e2e/.auth/user.json',
+      },
+    },
   ],
   webServer: isLocal
     ? {
