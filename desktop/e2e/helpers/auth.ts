@@ -20,5 +20,7 @@ export async function loginViaUi(page: Page, role: Role) {
   await page.getByLabel('Username').fill(username);
   await page.getByLabel('Password').fill(password);
   await page.getByRole('button', { name: 'Login' }).click();
-  await expect(page).toHaveURL(/\/dashboard\/group\/\d+/);
+  // Generous timeout: the CI → demo hop is slower than local, and login can
+  // also be backed off by the API's rate-limiter.
+  await expect(page).toHaveURL(/\/dashboard\/group\/\d+/, { timeout: 15_000 });
 }

@@ -30,7 +30,11 @@ async function fillBasics(page: Page, name: string, amount = '42.00') {
 
 async function saveReceipt(page: Page) {
   // Top-level form Save button (dialog Saves are scoped separately in tests).
-  await page.getByRole('button', { name: 'Save', exact: true }).first().click();
+  // Use force:true — the form can re-render after inline additions (shares),
+  // briefly detaching the Save button during Playwright's stability check.
+  const save = page.getByRole('button', { name: 'Save', exact: true }).first();
+  await save.waitFor({ state: 'visible' });
+  await save.click({ force: true });
   await expect(page).toHaveURL(/\/receipts\/\d+\/view/);
 }
 
@@ -107,6 +111,9 @@ test.describe('receipts', () => {
     await shareList.getByLabel('Amount').fill('30.00');
     // Done is additive only (submitButtonType="button"); save separately.
     await shareList.locator('button:has(mat-icon:has-text("done"))').click();
+    // Wait for the newly-added share to render before saving, otherwise the
+    // form re-render can detach the outer Save button mid-click.
+    await expect(page.getByText(/Total amount owed: \$30\.00/).first()).toBeVisible();
     await saveReceipt(page);
 
     // Detail view should show the share's total amount owed for the user.
