@@ -208,11 +208,14 @@ test.describe('receipts', () => {
     test.skip(optionCount === 0, 'Quick Actions requires a group with more than one member');
 
     await firstOption.click();
+    // Wait for the selected-user chip to settle before submitting — the
+    // autocomplete re-render was causing the submit button to detach/retry.
+    await expect(dialog.locator('mat-chip-row, mat-chip').first()).toBeVisible();
     await page.keyboard.press('Escape');
 
     // Submit the "Split" action via the dialog footer's submit button.
-    // Scoping to app-dialog-footer avoids racing with the autocomplete overlay.
-    await dialog.locator('app-dialog-footer app-submit-button button').first().click();
+    const submit = dialog.locator('app-dialog-footer app-submit-button button').first();
+    await submit.click({ force: true });
     await expect(dialog).toBeHidden();
 
     await saveReceipt(page);
@@ -221,6 +224,58 @@ test.describe('receipts', () => {
     await expect(page.getByRole('row').filter({ hasText: name })).toBeVisible();
 
     await deleteReceiptByName(page, groupId, name);
+  });
+
+  test.describe('validation', () => {
+    async function clickSave(page: Page) {
+      await page.getByRole('button', { name: 'Save', exact: true }).first().click();
+    }
+
+    test('empty form submit shows all required-field errors and does not navigate', async ({ page }) => {
+      await openAddReceipt(page);
+      await clickSave(page);
+
+      await expect(page).toHaveURL(/\/receipts\/add$/);
+      await expect(page.getByText('Name is required.', { exact: true })).toBeVisible();
+      await expect(page.getByText('Amount is required.', { exact: true })).toBeVisible();
+      await expect(page.getByText('Group is required.', { exact: true })).toBeVisible();
+      await expect(page.getByText('Paid By is required.', { exact: true })).toBeVisible();
+    });
+
+    test('missing Name blocks submit and shows the Name error', async ({ page }) => {
+      await openAddReceipt(page);
+      await page.getByLabel('Amount').fill('10.00');
+      await selectFirstOption(page, 'Group');
+      await selectFirstOption(page, 'Paid By');
+      await clickSave(page);
+
+      await expect(page).toHaveURL(/\/receipts\/add$/);
+      await expect(page.getByText('Name is required.', { exact: true })).toBeVisible();
+      await expect(page.getByText('Amount is required.', { exact: true })).toBeHidden();
+    });
+
+    test('missing Amount blocks submit and shows the Amount error', async ({ page }) => {
+      await openAddReceipt(page);
+      await page.getByLabel('Name').fill(uniqueName('val'));
+      await selectFirstOption(page, 'Group');
+      await selectFirstOption(page, 'Paid By');
+      await clickSave(page);
+
+      await expect(page).toHaveURL(/\/receipts\/add$/);
+      await expect(page.getByText('Amount is required.', { exact: true })).toBeVisible();
+      await expect(page.getByText('Name is required.', { exact: true })).toBeHidden();
+    });
+
+    test('filling a required field clears its error in place', async ({ page }) => {
+      await openAddReceipt(page);
+      await clickSave(page);
+      await expect(page.getByText('Name is required.', { exact: true })).toBeVisible();
+
+      await page.getByLabel('Name').fill('Not Empty');
+      await expect(page.getByText('Name is required.', { exact: true })).toBeHidden();
+      // Other errors remain until their fields are filled.
+      await expect(page.getByText('Amount is required.', { exact: true })).toBeVisible();
+    });
   });
 
   test('create a receipt with items', async ({ page }) => {
