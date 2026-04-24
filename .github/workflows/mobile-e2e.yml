@@ -1,0 +1,106 @@
+---
+name: E2E - Mobile (Flutter + Android)
+
+# Experimental advisory workflow. Runs the Flutter integration_test suite on
+# a full Android emulator against the demo backend. Failures do NOT block
+# other pipelines -- the job is `continue-on-error: true`. Triggered on
+# pushes to the debug branch while we iterate on the Android path.
+
+on:
+  push:
+    branches: [tech/mobile-e2e]
+  workflow_dispatch:
+
+concurrency:
+  group: mobile-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mobile-e2e:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      # Nested KVM on GitHub-hosted ubuntu runners needs the /dev/kvm device
+      # to be readable by the runner user. This udev rule makes it so.
+      - name: Enable KVM group perms
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # Pinned to the same version as docker/dev/Dockerfile FLUTTER_VERSION.
+      # Keep in sync when bumping either side.
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.7'
+          channel: stable
+          cache: true
+
+      - name: flutter pub get
+        working-directory: ./mobile
+        run: flutter pub get
+
+      - name: AVD cache
+        uses: actions/cache@v4
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-api-34-google_apis-x86_64
+
+      # First run creates the AVD and boots once so a warm snapshot exists in
+      # the cache. Skipped after a cache hit.
+      - name: Create AVD + warm snapshot
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot-save
+          disable-animations: true
+          script: echo "AVD created"
+
+      - name: Warm up demo backend
+        run: |
+          curl -fsSL --max-time 60 "$E2E_BASE_URL" > /dev/null || true
+          curl -fsSL --max-time 60 "$E2E_BASE_URL/api/featureConfig" > /dev/null || true
+        env:
+          E2E_BASE_URL: ${{ secrets.E2E_BASE_URL }}
+
+      # The Flutter app hits the Go API directly, so the dart-define appends
+      # /api to the secret (which is the frontend root, like Playwright uses).
+      - name: Run Flutter integration tests on Android
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          E2E_BASE_URL: ${{ secrets.E2E_BASE_URL }}
+          E2E_ADMIN_USERNAME: ${{ secrets.E2E_ADMIN_USERNAME }}
+          E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+          E2E_USER_USERNAME: ${{ secrets.E2E_USER_USERNAME }}
+          E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot-save
+          disable-animations: true
+          working-directory: ./mobile
+          script: |
+            flutter test integration_test/ \
+              --dart-define=E2E_BASE_URL="$E2E_BASE_URL/api" \
+              --dart-define=E2E_ADMIN_USERNAME="$E2E_ADMIN_USERNAME" \
+              --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD" \
+              --dart-define=E2E_USER_USERNAME="$E2E_USER_USERNAME" \
+              --dart-define=E2E_USER_PASSWORD="$E2E_USER_PASSWORD"

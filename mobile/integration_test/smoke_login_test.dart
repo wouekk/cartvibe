@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,7 +20,9 @@ Finder _filledButton(String text) =>
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  installLinuxDesktopMocks();
+  if (Platform.isLinux) {
+    installLinuxDesktopMocks();
+  }
 
   testWidgets('admin can log in from a cold boot', (tester) async {
     E2eEnv.assertAdmin();

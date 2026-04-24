@@ -168,7 +168,7 @@ End-to-end tests live in `integration_test/` (sibling of `test/`) and use Flutte
 
 **Stack choice:** `integration_test` SDK package. Not Patrol (we don't need native permission dialogs yet). Not the deprecated `flutter_driver`.
 
-**Supported target today:** Linux desktop only. Android emulator / iOS simulator / CI are deferred — see `mobile/run-e2e.sh` and the "Out of scope" note at the bottom of this section.
+**Supported targets:** Linux desktop locally (`./run-e2e.sh`), and Android emulator in CI (`.github/workflows/mobile-e2e.yml`). The CI workflow is **advisory** (`continue-on-error: true`) and triggers only on pushes to `tech/mobile-e2e` + `workflow_dispatch` while we iterate. iOS simulator, CI-on-main, and PR triggering are still deferred — see the "Out of scope" note at the bottom of this section.
 
 #### Prerequisites
 
@@ -211,11 +211,12 @@ cd mobile && ./run-e2e.sh integration_test/smoke_login_test.dart
 
 - **Bootstrap:** call `app.main()` (imported as `import 'package:receipt_wrangler_mobile/main.dart' as app;`). This uses the real provider tree, router, and auth model — closest to production.
 - **`IntegrationTestWidgetsFlutterBinding.ensureInitialized()`** at the top of `main()` in every spec file. Required — `testWidgets` without it runs as a unit test and fails to reach native channels.
-- **Call `installLinuxDesktopMocks()`** (from `integration_test/helpers/platform_mocks.dart`) right after the binding. It stubs three mobile-only plugins whose method channels are unimplemented on Linux desktop and would otherwise throw `MissingPluginException` during app bootstrap:
+- **Gate `installLinuxDesktopMocks()` on `Platform.isLinux`** (from `integration_test/helpers/platform_mocks.dart`), right after the binding. It stubs three mobile-only plugins whose method channels are unimplemented on Linux desktop and would otherwise throw `MissingPluginException` during app bootstrap:
   - `permission_handler` (channel `flutter.baseflow.com/permissions/methods`) — camera permission request in `lib/utils/permissions.dart`.
   - `gal` (channel `gal`) — image-gallery access in the same helper.
   - `flutter_secure_storage` (channel `plugins.it_nomads.com/flutter_secure_storage`) — backed by an in-memory map; real libsecret would need an unlocked gnome-keyring + dbus session, which is fragile in containers/CI.
-  These mocks are ONLY for the Linux target. When the Android/iOS targets land, gate the call with `if (Platform.isLinux) installLinuxDesktopMocks();` so real plugin implementations run on those platforms.
+
+  On Android/iOS these plugins have real native implementations and must be hit directly, so the `if (Platform.isLinux) { installLinuxDesktopMocks(); }` gate in `smoke_login_test.dart` is the template — copy it into every new spec.
 - **Never use `pumpAndSettle` on the bootstrap frame.** `main.dart` renders a `CircularProgressIndicator` inside a `FutureBuilder` during auth init; the indicator's animation means `pumpAndSettle` never returns. Use `pumpUntilFound` (from `integration_test/helpers/pump.dart`) instead — it polls until a target finder hits, with a timeout.
 - **Locators:**
   - `FormBuilderTextField` has no Key; match by its `name` field:
@@ -246,8 +247,9 @@ cd mobile && ./run-e2e.sh integration_test/smoke_login_test.dart
 
 #### Out of scope (future work)
 
-- GitHub Actions wiring (Linux via xvfb, Android via `reactivecircus/android-emulator-runner`).
-- Android emulator and iOS simulator local targets.
+- iOS simulator (needs a macOS runner; significantly higher cost and complexity).
+- Promoting the CI workflow from `tech/mobile-e2e` to `main` / PR triggers, and from advisory to required.
+- Screenshot / video artifact capture on failure.
 - `storageState`-style auth warmup across a multi-spec suite.
 - Additional specs (receipt CRUD, group management, logout).
 
