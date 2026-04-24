@@ -74,35 +74,44 @@ Uses `flutter_form_builder` for complex forms with validation. Receipt forms sup
 
 ### Flutter SDK Setup (Claude Code Environment)
 
-When working in the Claude Code environment, Flutter may not be pre-installed or may be an outdated version. To install the latest Flutter SDK:
+When working in the Claude Code environment, Flutter may not be pre-installed. To install the latest Flutter SDK on Debian/Ubuntu:
 
 ```bash
-# Download and extract Flutter SDK (Linux)
+# Prereqs. curl/git/pkg-config/xz-utils are usually already present; the rest
+# are required for Linux desktop builds (needed for integration_test runs).
+apt-get update && apt-get install -y --no-install-recommends \
+  unzip zip clang cmake ninja-build libgtk-3-dev
+
+# Download and extract Flutter SDK. Check the current stable version at
+# https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json
+# (the `current_release.stable` field names the hash; find its `version`).
 cd /tmp && rm -rf flutter && \
-curl -sL https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.38.6-stable.tar.xz -o flutter.tar.xz && \
+curl -fL https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.41.7-stable.tar.xz -o flutter.tar.xz && \
 tar xf flutter.tar.xz && rm flutter.tar.xz
 
-# Fix git safe directory warning
+# Fix git "dubious ownership" warning, add to PATH persistently, disable analytics.
 git config --global --add safe.directory /tmp/flutter
-
-# Add Flutter to PATH for the session
+grep -q '/tmp/flutter/bin' /root/.bashrc || echo 'export PATH="/tmp/flutter/bin:$PATH"' >> /root/.bashrc
 export PATH="/tmp/flutter/bin:$PATH"
+flutter config --no-analytics
 
-# Verify installation
+# Verify and enable Linux desktop target (needed for ./run-e2e.sh).
 flutter --version
+flutter config --enable-linux-desktop
+flutter devices  # should list "Linux (desktop)"
 ```
 
-To find the latest stable Flutter version, visit: https://docs.flutter.dev/release/archive
-
-After installing Flutter, you can run standard commands:
+After installing Flutter, standard commands work from `mobile/`:
 ```bash
-cd /home/user/receipt-wrangler/mobile
+cd /app/mobile
 flutter pub get      # Install dependencies
 flutter analyze      # Check for errors (recommended before building)
-flutter build apk    # Build Android APK (requires Android SDK)
+flutter test         # Run unit/widget tests
+./run-e2e.sh         # Run integration tests on Linux desktop (see E2E Testing below)
+flutter build apk    # Build Android APK (requires Android SDK — not installed by default)
 ```
 
-**Note:** The environment may not have Android SDK installed, so `flutter build` commands may fail. However, `flutter analyze` will verify that the code compiles correctly.
+**Note:** The base environment does not include the Android SDK or Chrome, so `flutter build apk` and web targets will not work without additional setup. Linux desktop + `flutter analyze` + `flutter test` + integration_test are fully supported.
 
 ### Regenerating API Client Models
 
@@ -152,6 +161,95 @@ These patterns are followed by the existing tests; new tests should keep to them
 2. `flutter analyze` — must be clean on the new files (the codebase has pre-existing warnings; only check the files you touched).
 3. `flutter test` — must be all green.
 4. If a test surfaces a real production bug (it happens — e.g. `Money.parse` of a leading `-` against the USD pattern), fix the bug as part of the same change rather than skipping the test.
+
+### E2E Testing
+
+End-to-end tests live in `integration_test/` (sibling of `test/`) and use Flutter's first-party **`integration_test`** package. They drive the real app against a running Go API, mirroring the desktop Playwright suite under `desktop/e2e/`.
+
+**Stack choice:** `integration_test` SDK package. Not Patrol (we don't need native permission dialogs yet). Not the deprecated `flutter_driver`.
+
+**Supported target today:** Linux desktop only. Android emulator / iOS simulator / CI are deferred — see `mobile/run-e2e.sh` and the "Out of scope" note at the bottom of this section.
+
+#### Prerequisites
+
+1. **One-time system packages** (in addition to the Linux-desktop build prereqs from the Flutter SDK Setup section above):
+   ```bash
+   apt-get install -y --no-install-recommends libsecret-1-dev xvfb
+   ```
+   `libsecret-1-dev` is needed to *build* the `flutter_secure_storage_linux` plugin (pkg-config fails the CMake step without it). `xvfb` is needed to *run* the Flutter desktop app headlessly — `run-e2e.sh` auto-wraps the test in `xvfb-run` when `$DISPLAY` is empty.
+2. **One-time:** enable Linux desktop and install `integration_test`:
+   ```bash
+   flutter config --enable-linux-desktop
+   cd mobile && flutter pub get
+   ```
+3. **One-time:** seed the two e2e users. **Order matters** — the first sign-up is auto-promoted to admin. Use the desktop sign-up UI at `http://localhost:4200/auth/sign-up`:
+   - Admin first: username `e2e-admin`, password `e2e-admin-password`
+   - Then user: username `e2e-user`, password `e2e-user-password`
+
+   Note: if `enableLocalSignUp` is `false` in the feature config, the signup UI/endpoint both 404. Either flip the setting in system settings, or ask the repo owner to seed the accounts — **do not seed via the API or by writing to the SQLite DB directly** (see the user memory on test data setup).
+4. **Every run:** start the Go API separately (`cd api && go run main.go`). `run-e2e.sh` does not start the API — same pattern as Playwright.
+
+#### Running locally
+
+```bash
+cd mobile && ./run-e2e.sh
+# or a single spec:
+cd mobile && ./run-e2e.sh integration_test/smoke_login_test.dart
+```
+
+`run-e2e.sh` sources `api/dev/switch-to-sqlite.sh` (which exports the `E2E_*` credentials), writes a temp JSON, and invokes `flutter test integration_test/ -d linux --dart-define-from-file=<tmp>`.
+
+#### How env vars reach the tests
+
+`String.fromEnvironment` is a `const` constructor — the **key has to be a literal**, so you cannot build it dynamically per role. `integration_test/helpers/env.dart` declares all five `E2E_*` reads as `static const` fields and exposes `E2eEnv.assertAdmin()` / `assertUser()` to fail fast when vars are unset.
+
+**Never use `Platform.environment`** — it returns an empty map on Android/iOS. `--dart-define` is the only portable mechanism.
+
+**Base URL gotcha:** the desktop suite's `E2E_BASE_URL=http://localhost:4200` points at the Angular dev server, whose proxy forwards `/api` to the Go backend. The mobile app has no proxy — it hits the API directly. `run-e2e.sh` therefore reads `E2E_MOBILE_BASE_URL` (defaults to `http://localhost:8081/api`) and maps it into the `E2E_BASE_URL` dart-define the test sees. Override for remote targets: `E2E_MOBILE_BASE_URL=https://demo.receiptwrangler.io/api ./run-e2e.sh`.
+
+#### Writing tests
+
+- **Bootstrap:** call `app.main()` (imported as `import 'package:receipt_wrangler_mobile/main.dart' as app;`). This uses the real provider tree, router, and auth model — closest to production.
+- **`IntegrationTestWidgetsFlutterBinding.ensureInitialized()`** at the top of `main()` in every spec file. Required — `testWidgets` without it runs as a unit test and fails to reach native channels.
+- **Call `installLinuxDesktopMocks()`** (from `integration_test/helpers/platform_mocks.dart`) right after the binding. It stubs three mobile-only plugins whose method channels are unimplemented on Linux desktop and would otherwise throw `MissingPluginException` during app bootstrap:
+  - `permission_handler` (channel `flutter.baseflow.com/permissions/methods`) — camera permission request in `lib/utils/permissions.dart`.
+  - `gal` (channel `gal`) — image-gallery access in the same helper.
+  - `flutter_secure_storage` (channel `plugins.it_nomads.com/flutter_secure_storage`) — backed by an in-memory map; real libsecret would need an unlocked gnome-keyring + dbus session, which is fragile in containers/CI.
+  These mocks are ONLY for the Linux target. When the Android/iOS targets land, gate the call with `if (Platform.isLinux) installLinuxDesktopMocks();` so real plugin implementations run on those platforms.
+- **Never use `pumpAndSettle` on the bootstrap frame.** `main.dart` renders a `CircularProgressIndicator` inside a `FutureBuilder` during auth init; the indicator's animation means `pumpAndSettle` never returns. Use `pumpUntilFound` (from `integration_test/helpers/pump.dart`) instead — it polls until a target finder hits, with a timeout.
+- **Locators:**
+  - `FormBuilderTextField` has no Key; match by its `name` field:
+    ```dart
+    find.byWidgetPredicate((w) => w is FormBuilderTextField && w.name == 'username')
+    ```
+  - `CupertinoButton.filled` with a `Text` child is `find.widgetWithText(CupertinoButton, 'Log In')`.
+- **Assert navigation by widget presence**, not URL. After login, `pumpUntilFound(find.byType(GroupSelect))` is stronger than reading the go_router state — the widget is present iff the `/groups` shell has mounted.
+- **Each test cold-boots.** There is no Flutter equivalent of Playwright's `storageState`. When the suite grows past a handful of specs, either accept the per-test login cost or introduce a non-UI setup step. Don't hand-write state sharing between tests.
+
+#### Caveats / things that will bite
+
+- **Headless display:** Flutter Linux desktop apps render through GTK and exit immediately without a display. `run-e2e.sh` auto-wraps in `xvfb-run` when `$DISPLAY` is unset. If you see "The log reader stopped unexpectedly, or never started," your display setup isn't working — check `xvfb-run --help` or set `DISPLAY` to a real X server.
+- **`libsecret-1-dev` at build time:** the `flutter_secure_storage_linux` plugin's CMakeLists.txt does a `pkg_check_modules(libsecret-1>=0.18.4)` — if the dev headers aren't installed, the build fails with "The following required packages were not found: libsecret-1". Installed as a prereq above.
+- **`libsecret` at runtime is avoided via mocks.** We don't bring up gnome-keyring + dbus for tests. `installLinuxDesktopMocks()` intercepts the platform channel with an in-memory map. If you ever want to exercise the real storage path (e.g. to reproduce a token-persistence bug), start a dbus session + gnome-keyring-daemon before the test — but don't do that by default; it adds a lot of fragile state.
+- **Go API rate-limiter:** login is rate-limited. Rerunning the same test in tight succession can 429 — give it a few seconds between runs. The desktop suite notes the same issue in `desktop/e2e/helpers/auth.ts`.
+- **DB accumulation:** tests write real rows (sessions, refresh tokens). Fine for a smoke test; when specs start creating receipts/groups/etc., build per-test uniqueness (UUIDs) into the data, mirroring the Playwright conventions.
+- **Never commit credentials or the generated JSON.** `.e2e-env.json` is gitignored as belt-and-suspenders — the script already uses `mktemp`.
+
+#### Reference files
+
+- `integration_test/smoke_login_test.dart` — canonical smoke test.
+- `integration_test/helpers/env.dart` — dart-define consumption + guards.
+- `integration_test/helpers/pump.dart` — `pumpUntilFound` polling helper.
+- `integration_test/helpers/platform_mocks.dart` — Linux-desktop platform-channel stubs for `permission_handler`, `gal`, `flutter_secure_storage`.
+- `run-e2e.sh` — local runner; wraps in `xvfb-run` when headless, sources API env, maps `E2E_MOBILE_BASE_URL`, invokes `flutter test`.
+- `desktop/e2e/helpers/auth.ts` — Playwright counterpart; follow its conventions when adding new flows.
+
+#### Out of scope (future work)
+
+- GitHub Actions wiring (Linux via xvfb, Android via `reactivecircus/android-emulator-runner`).
+- Android emulator and iOS simulator local targets.
+- `storageState`-style auth warmup across a multi-spec suite.
+- Additional specs (receipt CRUD, group management, logout).
 
 ### Build Configuration
 - Android configuration in `android/` directory
