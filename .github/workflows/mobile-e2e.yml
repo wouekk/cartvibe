@@ -97,8 +97,13 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot-save
           disable-animations: true
           working-directory: ./mobile
+          # -d emulator-5554 is required. Without it, `flutter test
+          # integration_test/` tries to run as a VM unit-test pass, detects
+          # the integration_test imports, and fails with "Integration tests
+          # and unit tests cannot be run in a single invocation."
           script: |
             flutter test integration_test/ \
+              -d emulator-5554 \
               --dart-define=E2E_BASE_URL="$E2E_BASE_URL/api" \
               --dart-define=E2E_ADMIN_USERNAME="$E2E_ADMIN_USERNAME" \
               --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD" \
