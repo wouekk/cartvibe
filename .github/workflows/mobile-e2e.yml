@@ -1,10 +1,12 @@
 ---
-name: E2E - Mobile (Flutter + Android)
+name: E2E - Mobile (Android + iOS)
 
-# Experimental advisory workflow. Runs the Flutter integration_test suite on
-# a full Android emulator against the demo backend. Failures do NOT block
-# other pipelines -- the job is `continue-on-error: true`. Triggered on
-# pushes to the debug branch while we iterate on the Android path.
+# Experimental advisory workflow. Runs the Flutter integration_test smoke
+# login test on a full Android emulator AND on an iOS Simulator, in
+# parallel against the demo backend. The two jobs are independent --
+# neither has `needs:` on the other and both are `continue-on-error: true`,
+# so a failure in one does not stop or fail the other. Triggered on pushes
+# to the debug branch while we iterate on the mobile e2e setup.
 
 on:
   push:
@@ -16,7 +18,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  mobile-e2e:
+  android-e2e:
     runs-on: ubuntu-latest
     continue-on-error: true
     timeout-minutes: 45
@@ -125,3 +127,76 @@ jobs:
             --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD"
             --dart-define=E2E_USER_USERNAME="$E2E_USER_USERNAME"
             --dart-define=E2E_USER_PASSWORD="$E2E_USER_PASSWORD"
+
+  ios-e2e:
+    # macos-14 ships Xcode 15.4 + iOS 17.0/17.2/17.4/17.5/18.1/18.2
+    # simulators preinstalled; xcrun simctl is on PATH out of the box.
+    # Free for public repos, so the 10x macOS multiplier doesn't apply.
+    runs-on: macos-14
+    continue-on-error: true
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.7'
+          channel: stable
+          cache: true
+
+      - name: flutter pub get
+        working-directory: ./mobile
+        run: flutter pub get
+
+      # Boot a clean iPhone 15 simulator. The grep regex anchors on
+      # 'iPhone 15 (' so it doesn't match 'iPhone 15 Plus' or
+      # 'iPhone 15 Pro'. The first match across runtimes is fine -- the
+      # smoke test doesn't depend on the iOS version.
+      - name: Boot iOS Simulator
+        id: boot-sim
+        run: |
+          set -euo pipefail
+          UDID=$(xcrun simctl list devices available \
+            | grep -E 'iPhone 15 \(' \
+            | head -n 1 \
+            | grep -oEi '[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}')
+          if [ -z "$UDID" ]; then
+            echo "::error::No iPhone 15 simulator found on this runner"
+            xcrun simctl list devices available
+            exit 1
+          fi
+          echo "Booting iPhone 15 ($UDID)"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+
+      - name: Warm up demo backend
+        run: |
+          curl -fsSL --max-time 60 "$E2E_BASE_URL" > /dev/null || true
+          curl -fsSL --max-time 60 "$E2E_BASE_URL/api/featureConfig" > /dev/null || true
+        env:
+          E2E_BASE_URL: ${{ secrets.E2E_BASE_URL }}
+
+      # Same `flutter drive` shape as Android -- consistent driver +
+      # target. iOS uses real plugin channels (permission_handler, gal,
+      # flutter_secure_storage), no mocks, so the Platform.isLinux gate in
+      # the smoke test does the right thing.
+      - name: Run Flutter integration tests on iOS
+        working-directory: ./mobile
+        env:
+          E2E_BASE_URL: ${{ secrets.E2E_BASE_URL }}
+          E2E_ADMIN_USERNAME: ${{ secrets.E2E_ADMIN_USERNAME }}
+          E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+          E2E_USER_USERNAME: ${{ secrets.E2E_USER_USERNAME }}
+          E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
+          SIM_UDID: ${{ steps.boot-sim.outputs.udid }}
+        run: >-
+          flutter drive
+          --driver=test_driver/integration_test.dart
+          --target=integration_test/smoke_login_test.dart
+          -d "$SIM_UDID"
+          --dart-define=E2E_BASE_URL="$E2E_BASE_URL/api"
+          --dart-define=E2E_ADMIN_USERNAME="$E2E_ADMIN_USERNAME"
+          --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD"
+          --dart-define=E2E_USER_USERNAME="$E2E_USER_USERNAME"
+          --dart-define=E2E_USER_PASSWORD="$E2E_USER_PASSWORD"
