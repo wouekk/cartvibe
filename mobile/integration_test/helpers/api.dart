@@ -72,3 +72,41 @@ Future<Map<String, dynamic>> getReceipt(
   }
   return jsonDecode(res.body) as Map<String, dynamic>;
 }
+
+/// Lists the latest [limit] receipts in [groupId] (newest first by id).
+/// Used for "exactly one receipt with this name" assertions in flows
+/// that need to detect duplicates server-side. Filters client-side --
+/// the server's filter shape is fiddly and we only care about a small
+/// recent window.
+Future<List<Map<String, dynamic>>> listReceiptsForGroup(
+  int groupId, {
+  required String jwt,
+  int limit = 50,
+}) async {
+  final res = await http
+      .post(
+        Uri.parse('${E2eEnv.baseUrl}/receipt/group/$groupId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': 'jwt=$jwt',
+        },
+        body: jsonEncode({
+          'page': 1,
+          'pageSize': limit,
+          // No `orderBy` -- the API rejects "id" with HTTP 500
+          // ("Error getting receipts"), and the default ordering
+          // returns newest first which is what we want anyway.
+          'sortDirection': 'desc',
+        }),
+      )
+      .timeout(const Duration(seconds: 10));
+  if (res.statusCode != 200) {
+    throw StateError(
+      'listReceiptsForGroup($groupId) failed: '
+      'HTTP ${res.statusCode}: ${res.body}',
+    );
+  }
+  final body = jsonDecode(res.body) as Map<String, dynamic>;
+  return ((body['data'] as List?) ?? const [])
+      .cast<Map<String, dynamic>>();
+}

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:receipt_wrangler_mobile/shared/widgets/bottom_submit_button.dart';
 
 import 'api.dart';
+import 'form_actions.dart';
+import 'pump.dart';
 
 /// Reads the current GoRouter URL by grabbing a context from inside the
 /// routed tree (`MaterialApp` itself sits above the GoRouter scope, so
@@ -57,4 +60,38 @@ void scheduleReceiptCleanup(int receiptId) {
     final jwt = await apiLogin();
     await deleteReceipt(receiptId, jwt: jwt);
   });
+}
+
+/// Drives the receipt-add UI from `/groups`: opens the bottom-nav Add
+/// menu, fills the required fields, taps Submit, waits for navigation
+/// to `/receipts/<id>/view`. Returns the new receipt's id.
+///
+/// Used by tests that need a baseline receipt to operate on (Flow #4
+/// edits it, Flow #5 chains two of these). The same field-fill sequence
+/// as Flow #1's smoke happy path -- if Flow #1 is green, this is too.
+///
+/// Pre-conditions: caller is logged in and currently on `/groups`.
+Future<int> addManualReceiptViaUI(
+  WidgetTester tester,
+  String name, {
+  String amount = '12.34',
+}) async {
+  await tester.tap(find.text('Add'));
+  await pumpUntilFound(tester, find.text('Add Manual Receipt'));
+  await tester.tap(find.text('Add Manual Receipt'));
+  await pumpUntilFound(tester, find.text('Name'));
+
+  await tester.enterText(formField('name'), name);
+  await tester.enterText(formField('amount'), amount);
+  await selectDropdown(tester, 'groupId', 'My Receipts');
+  await selectDropdown(tester, 'paidByUserId', 'ee');
+
+  // Drain the dropdown overlay teardown -- the popup-route's overlay
+  // entry can otherwise leave the Scaffold's bottom-sheet area in an
+  // Offstage state and the BottomSubmitButton tap silently misses.
+  await tester.pumpAndSettle(const Duration(seconds: 3));
+
+  await tester.tap(find.byType(BottomSubmitButton));
+  final url = await pumpUntilUrl(tester, RegExp(r'/receipts/\d+/view'));
+  return receiptIdFromUrl(url);
 }
