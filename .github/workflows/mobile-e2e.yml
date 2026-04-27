@@ -112,21 +112,26 @@ jobs:
           # Local Linux desktop runs (mobile/run-e2e.sh) keep using
           # `flutter test integration_test/`, which works fine there.
           #
-          # YAML `>-` (folded, strip trailing newline): every newline below
-          # collapses to a single space before sh sees the script. The
-          # earlier `|` + backslash form caused sh to leave a literal `\`
-          # as a positional arg and flutter drive interpreted it as the
-          # target ("Target file \"\\\" not found.").
-          script: >-
-            flutter drive
-            --driver=test_driver/integration_test.dart
-            --target=integration_test/smoke_login_test.dart
-            -d emulator-5554
-            --dart-define=E2E_BASE_URL="$E2E_BASE_URL/api"
-            --dart-define=E2E_ADMIN_USERNAME="$E2E_ADMIN_USERNAME"
-            --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD"
-            --dart-define=E2E_USER_USERNAME="$E2E_USER_USERNAME"
-            --dart-define=E2E_USER_PASSWORD="$E2E_USER_PASSWORD"
+          # The receipt-add specs require their own process because the
+          # top-level GoRouter in main.dart is a final global -- its
+          # location persists across testWidgets in the same flutter
+          # invocation, so a previous test ending at /receipts/<id>/view
+          # triggers a 403 fetch on the next test's app.main(). Looping
+          # one `flutter drive` per spec gives each its own process.
+          #
+          # YAML `|` + per-command-on-one-line: each flutter drive sits
+          # on a single line so we don't need `\<newline>` continuations
+          # (those left a literal `\` as a positional arg in an earlier
+          # iteration). Long lines are intentional.
+          script: |
+            set +e
+            rc=0
+            for spec in integration_test/smoke_login_test.dart integration_test/receipt_add_test.dart integration_test/receipt_add_share_test.dart; do
+              echo "==> flutter drive $spec"
+              flutter drive --driver=test_driver/integration_test.dart --target=$spec -d emulator-5554 --dart-define=E2E_BASE_URL="$E2E_BASE_URL/api" --dart-define=E2E_ADMIN_USERNAME="$E2E_ADMIN_USERNAME" --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD" --dart-define=E2E_USER_USERNAME="$E2E_USER_USERNAME" --dart-define=E2E_USER_PASSWORD="$E2E_USER_PASSWORD"
+              [ $? -ne 0 ] && rc=1
+            done
+            exit $rc
 
   ios-e2e:
     # macos-14 ships Xcode 15.4 + iOS 17.0/17.2/17.4/17.5/18.1/18.2
@@ -180,7 +185,8 @@ jobs:
       # Same `flutter drive` shape as Android -- consistent driver +
       # target. iOS uses real plugin channels (permission_handler, gal,
       # flutter_secure_storage), no mocks, so the Platform.isLinux gate in
-      # the smoke test does the right thing.
+      # the smoke test does the right thing. One drive per spec for the
+      # same GoRouter-persistence reason as the Android job.
       - name: Run Flutter integration tests on iOS
         working-directory: ./mobile
         env:
@@ -190,13 +196,12 @@ jobs:
           E2E_USER_USERNAME: ${{ secrets.E2E_USER_USERNAME }}
           E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
           SIM_UDID: ${{ steps.boot-sim.outputs.udid }}
-        run: >-
-          flutter drive
-          --driver=test_driver/integration_test.dart
-          --target=integration_test/smoke_login_test.dart
-          -d "$SIM_UDID"
-          --dart-define=E2E_BASE_URL="$E2E_BASE_URL/api"
-          --dart-define=E2E_ADMIN_USERNAME="$E2E_ADMIN_USERNAME"
-          --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD"
-          --dart-define=E2E_USER_USERNAME="$E2E_USER_USERNAME"
-          --dart-define=E2E_USER_PASSWORD="$E2E_USER_PASSWORD"
+        run: |
+          set +e
+          rc=0
+          for spec in integration_test/smoke_login_test.dart integration_test/receipt_add_test.dart integration_test/receipt_add_share_test.dart; do
+            echo "==> flutter drive $spec"
+            flutter drive --driver=test_driver/integration_test.dart --target=$spec -d "$SIM_UDID" --dart-define=E2E_BASE_URL="$E2E_BASE_URL/api" --dart-define=E2E_ADMIN_USERNAME="$E2E_ADMIN_USERNAME" --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD" --dart-define=E2E_USER_USERNAME="$E2E_USER_USERNAME" --dart-define=E2E_USER_PASSWORD="$E2E_USER_PASSWORD"
+            [ $? -ne 0 ] && rc=1
+          done
+          exit $rc

@@ -49,8 +49,6 @@ cat > "$tmp_env" <<EOF
 }
 EOF
 
-target="${*:-integration_test/}"
-
 # Flutter desktop apps need a display. If DISPLAY isn't set and xvfb-run is
 # available, run the test under Xvfb so it works headlessly (containers, CI).
 runner=()
@@ -58,5 +56,33 @@ if [[ -z "${DISPLAY:-}" ]] && command -v xvfb-run >/dev/null 2>&1; then
   runner=(xvfb-run -a)
 fi
 
-# shellcheck disable=SC2086
-"${runner[@]}" flutter test $target -d linux --dart-define-from-file="$tmp_env"
+# Build the list of test files to run.
+#   - User passed specific files/dirs?  Use those verbatim.
+#   - Default (no args)?                Discover *_test.dart and run each
+#                                       in its own `flutter test` invocation.
+# The per-file loop is needed because back-to-back integration_test runs
+# in a single `flutter test integration_test/` invocation fail on Linux
+# desktop with "Error waiting for a debug connection: The log reader
+# stopped unexpectedly" -- the second app launch can't acquire the xvfb
+# display the first one held. Splitting into separate processes lets each
+# fully tear down before the next starts.
+if [[ $# -gt 0 ]]; then
+  targets=("$@")
+else
+  mapfile -t targets < <(find integration_test -maxdepth 2 -name '*_test.dart' | sort)
+fi
+
+if [[ ${#targets[@]} -eq 0 ]]; then
+  echo "No *_test.dart files found under integration_test/" >&2
+  exit 1
+fi
+
+exit_code=0
+for target in "${targets[@]}"; do
+  echo "==> ${runner[*]:-flutter test} $target"
+  if ! "${runner[@]}" flutter test "$target" -d linux \
+       --dart-define-from-file="$tmp_env"; then
+    exit_code=1
+  fi
+done
+exit "$exit_code"
