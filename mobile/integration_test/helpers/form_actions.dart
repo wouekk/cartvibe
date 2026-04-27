@@ -34,7 +34,11 @@ Future<void> selectDropdown(
   await tester.tap(find.byWidgetPredicate(
     (w) => w is FormBuilderDropdown && w.name == name,
   ));
-  await pumpUntilFound(tester, find.text(optionText).last);
+  // Pass the bare text finder, NOT `.last`. _LastFinderMixin.filter does
+  // `yield input.last`, which throws StateError("No element") if the parent
+  // is empty -- which it briefly is on slow targets (Android emulator) while
+  // the dropdown menu is still opening. Wait for any match, then tap .last.
+  await pumpUntilFound(tester, find.text(optionText));
   await tester.tap(find.text(optionText).last);
   // Wait for the menu's exit animation -- bounded so we don't reuse
   // pumpAndSettle (which would hang on the bootstrap loader if it ran
