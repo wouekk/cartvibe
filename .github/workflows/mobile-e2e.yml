@@ -60,6 +60,28 @@ jobs:
             ~/.android/adb*
           key: avd-api-34-google_apis-x86_64
 
+      # The first `flutter build apk` of a fresh runner triggers ~3 min
+      # of cascading SDK installs (NDK 27.0.12077973, SDK Platform 31,
+      # CMake 3.22.1) plus all Gradle dep downloads. None of that lands
+      # under ~/.gradle/caches alone, so we cache the SDK install paths
+      # too. Versions are pinned by mobile/android/app/build.gradle
+      # (NDK) and resolved transitively by AGP (CMake/Platform 31); when
+      # any android/**/*.gradle* or pubspec.lock changes, the key
+      # invalidates and a fresh install repopulates the cache.
+      - name: Gradle + Android SDK cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            mobile/android/.gradle
+            /usr/local/lib/android/sdk/ndk/27.0.12077973
+            /usr/local/lib/android/sdk/cmake/3.22.1
+            /usr/local/lib/android/sdk/platforms/android-31
+          key: linux-android-build-${{ hashFiles('mobile/pubspec.lock', 'mobile/android/**/*.gradle', 'mobile/android/**/*.gradle.kts', 'mobile/android/**/gradle-wrapper.properties') }}
+          restore-keys: |
+            linux-android-build-
+
       # First run creates the AVD and boots once so a warm snapshot exists in
       # the cache. Skipped after a cache hit.
       - name: Create AVD + warm snapshot
@@ -69,6 +91,8 @@ jobs:
           api-level: 34
           target: google_apis
           arch: x86_64
+          cores: 4
+          ram-size: 4096M
           force-avd-creation: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot-save
           disable-animations: true
@@ -95,6 +119,8 @@ jobs:
           api-level: 34
           target: google_apis
           arch: x86_64
+          cores: 4
+          ram-size: 4096M
           force-avd-creation: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot-save
           disable-animations: true
@@ -134,7 +160,7 @@ jobs:
           # doesn't match the real package, so without this the prior
           # spec's dart process keeps owning the vmservice port and the
           # next spec's launch hangs forever waiting to connect.
-          script: rc=0; for spec in integration_test/smoke_login_test.dart integration_test/receipt_add_test.dart integration_test/receipt_add_share_test.dart integration_test/receipt_add_consecutive_test.dart integration_test/receipt_add_double_submit_test.dart integration_test/receipt_add_partial_image_test.dart integration_test/receipt_add_custom_field_test.dart integration_test/receipt_edit_test.dart integration_test/receipt_view_to_groups_navigation_test.dart integration_test/quick_scan_test.dart integration_test/quick_scan_disabled_test.dart; do echo "==> $spec"; adb -s emulator-5554 shell am force-stop io.receiptwrangler || true; adb -s emulator-5554 uninstall io.receiptwrangler || true; flutter drive --driver=test_driver/integration_test.dart --target=$spec -d emulator-5554 --dart-define=E2E_BASE_URL="$E2E_BASE_URL/api" --dart-define=E2E_ADMIN_USERNAME="$E2E_ADMIN_USERNAME" --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD" --dart-define=E2E_USER_USERNAME="$E2E_USER_USERNAME" --dart-define=E2E_USER_PASSWORD="$E2E_USER_PASSWORD" || rc=1; done; exit $rc
+          script: rc=0; for spec in integration_test/smoke_login_test.dart integration_test/receipt_add_test.dart integration_test/receipt_add_share_test.dart integration_test/receipt_add_consecutive_test.dart integration_test/receipt_add_double_submit_test.dart integration_test/receipt_add_partial_image_test.dart integration_test/receipt_add_custom_field_test.dart integration_test/receipt_edit_test.dart integration_test/receipt_view_to_groups_navigation_test.dart integration_test/quick_scan_test.dart integration_test/quick_scan_disabled_test.dart; do echo "==> $spec"; adb -s emulator-5554 shell am force-stop io.receiptwrangler || true; adb -s emulator-5554 uninstall io.receiptwrangler || true; flutter drive --no-pub --driver=test_driver/integration_test.dart --target=$spec -d emulator-5554 --dart-define=E2E_BASE_URL="$E2E_BASE_URL/api" --dart-define=E2E_ADMIN_USERNAME="$E2E_ADMIN_USERNAME" --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD" --dart-define=E2E_USER_USERNAME="$E2E_USER_USERNAME" --dart-define=E2E_USER_PASSWORD="$E2E_USER_PASSWORD" || rc=1; done; exit $rc
 
   ios-e2e:
     # macos-14 ships Xcode 15.4 + iOS 17.0/17.2/17.4/17.5/18.1/18.2
@@ -215,7 +241,7 @@ jobs:
             echo "==> flutter drive $spec"
             xcrun simctl terminate "$SIM_UDID" io.receiptwrangler || true
             xcrun simctl uninstall "$SIM_UDID" io.receiptwrangler || true
-            flutter drive --driver=test_driver/integration_test.dart --target=$spec -d "$SIM_UDID" --dart-define=E2E_BASE_URL="$E2E_BASE_URL/api" --dart-define=E2E_ADMIN_USERNAME="$E2E_ADMIN_USERNAME" --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD" --dart-define=E2E_USER_USERNAME="$E2E_USER_USERNAME" --dart-define=E2E_USER_PASSWORD="$E2E_USER_PASSWORD"
+            flutter drive --no-pub --driver=test_driver/integration_test.dart --target=$spec -d "$SIM_UDID" --dart-define=E2E_BASE_URL="$E2E_BASE_URL/api" --dart-define=E2E_ADMIN_USERNAME="$E2E_ADMIN_USERNAME" --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD" --dart-define=E2E_USER_USERNAME="$E2E_USER_USERNAME" --dart-define=E2E_USER_PASSWORD="$E2E_USER_PASSWORD"
             [ $? -ne 0 ] && rc=1
           done
           exit $rc
