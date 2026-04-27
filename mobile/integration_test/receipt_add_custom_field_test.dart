@@ -6,11 +6,9 @@
 // the available fields; selecting one adds it to the form, and the
 // user fills the value before saving.
 //
-// Test prerequisite (one-time, manual via the desktop UI -- mirrors
-// the e2e-admin/e2e-user seeding pattern):
-//   * Create a TEXT-type custom field named "E2E Notes" on the admin
-//     user's group ("My Receipts" by default).
-// If it's missing, the test fails fast with a clear setup message.
+// The "E2E Notes" TEXT field is auto-provisioned via `ensureCustomField`
+// at test setup -- no manual seeding required. Once the field exists
+// on the backend, subsequent runs reuse it.
 //
 // Own file for the GoRouter-persistence reason (see other test files).
 
@@ -44,19 +42,13 @@ void main() {
     await binding.setSurfaceSize(const Size(1280, 900));
     addTearDown(() => binding.setSurfaceSize(null));
 
-    // Pre-flight: locate the seeded "E2E Notes" custom field.
+    // Auto-provision the "E2E Notes" TEXT field. Idempotent -- reuses
+    // an existing one of the same name, otherwise creates it.
     final jwt = await apiLogin();
-    final fields = await listCustomFields(jwt: jwt);
-    final notesField = fields.firstWhere(
-      (f) => f['name'] == _testFieldName,
-      orElse: () => throw StateError(
-        'Test prerequisite missing: no custom field named "$_testFieldName"\n'
-        'on the admin\'s group. Set up via the desktop UI:\n'
-        '  1. Log in as admin\n'
-        '  2. Navigate to custom fields administration\n'
-        '  3. Create a TEXT-type field named "$_testFieldName"\n'
-        'Then re-run this test.',
-      ),
+    final notesField = await ensureCustomField(
+      jwt: jwt,
+      name: _testFieldName,
+      type: 'TEXT',
     );
     final fieldId = notesField['id'] as int;
 

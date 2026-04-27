@@ -73,10 +73,8 @@ Future<Map<String, dynamic>> getReceipt(
   return jsonDecode(res.body) as Map<String, dynamic>;
 }
 
-/// Lists all custom fields the admin has access to. Used by the
-/// custom-field test to discover the id of the test fixture (a TEXT-type
-/// field named "E2E Notes" that the user pre-seeds via the UI, mirroring
-/// the e2e-admin/e2e-user account-seeding pattern).
+/// Lists all custom fields the admin has access to. Used together with
+/// [ensureCustomField] for tests that need a known-name field present.
 ///
 /// The endpoint is `POST /api/customField/getPagedCustomFields`. The
 /// API rejects `orderBy: "id"` (server-side bug -- HTTP 500 "Error
@@ -109,6 +107,54 @@ Future<List<Map<String, dynamic>>> listCustomFields({
   final body = jsonDecode(res.body) as Map<String, dynamic>;
   return ((body['data'] as List?) ?? const [])
       .cast<Map<String, dynamic>>();
+}
+
+/// Creates a custom field via `POST /api/customField/`. Returns the
+/// created field as parsed JSON. [type] is one of TEXT, DATE, SELECT,
+/// CURRENCY, BOOLEAN.
+Future<Map<String, dynamic>> createCustomField({
+  required String jwt,
+  required String name,
+  required String type,
+  String? description,
+}) async {
+  final res = await http
+      .post(
+        Uri.parse('${E2eEnv.baseUrl}/customField/'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': 'jwt=$jwt',
+        },
+        body: jsonEncode({
+          'name': name,
+          'type': type,
+          if (description != null) 'description': description,
+        }),
+      )
+      .timeout(const Duration(seconds: 10));
+  if (res.statusCode != 200) {
+    throw StateError(
+      'createCustomField($name) failed: HTTP ${res.statusCode}: ${res.body}',
+    );
+  }
+  return jsonDecode(res.body) as Map<String, dynamic>;
+}
+
+/// Idempotent: returns the existing custom field with [name] if one
+/// exists, otherwise creates one with [type]. Lets tests provision their
+/// own fixtures instead of relying on hand-seeded data on the demo
+/// backend. Once created the field persists across runs and subsequent
+/// calls are pure list-and-filter.
+Future<Map<String, dynamic>> ensureCustomField({
+  required String jwt,
+  required String name,
+  required String type,
+}) async {
+  final existing = await listCustomFields(jwt: jwt);
+  for (final f in existing) {
+    if (f['name'] == name) return f;
+  }
+  return createCustomField(jwt: jwt, name: name, type: type);
 }
 
 /// Lists the latest [limit] receipts in [groupId] (newest first by id).
