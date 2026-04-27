@@ -109,13 +109,19 @@ jobs:
           # standard `integrationDriver()` entrypoint.
           # Local Linux desktop runs (mobile/run-e2e.sh) keep using
           # `flutter test integration_test/`, which works fine there.
-          script: |
-            flutter drive \
-              --driver=test_driver/integration_test.dart \
-              --target=integration_test/smoke_login_test.dart \
-              -d emulator-5554 \
-              --dart-define=E2E_BASE_URL="$E2E_BASE_URL/api" \
-              --dart-define=E2E_ADMIN_USERNAME="$E2E_ADMIN_USERNAME" \
-              --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD" \
-              --dart-define=E2E_USER_USERNAME="$E2E_USER_USERNAME" \
-              --dart-define=E2E_USER_PASSWORD="$E2E_USER_PASSWORD"
+          #
+          # YAML `>-` (folded, strip trailing newline): every newline below
+          # collapses to a single space before sh sees the script. The
+          # earlier `|` + backslash form caused sh to leave a literal `\`
+          # as a positional arg and flutter drive interpreted it as the
+          # target ("Target file \"\\\" not found.").
+          script: >-
+            flutter drive
+            --driver=test_driver/integration_test.dart
+            --target=integration_test/smoke_login_test.dart
+            -d emulator-5554
+            --dart-define=E2E_BASE_URL="$E2E_BASE_URL/api"
+            --dart-define=E2E_ADMIN_USERNAME="$E2E_ADMIN_USERNAME"
+            --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD"
+            --dart-define=E2E_USER_USERNAME="$E2E_USER_USERNAME"
+            --dart-define=E2E_USER_PASSWORD="$E2E_USER_PASSWORD"
