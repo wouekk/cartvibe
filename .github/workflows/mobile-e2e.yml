@@ -126,7 +126,7 @@ jobs:
           script: |
             set +e
             rc=0
-            for spec in integration_test/smoke_login_test.dart integration_test/receipt_add_test.dart integration_test/receipt_add_share_test.dart integration_test/receipt_add_consecutive_test.dart integration_test/receipt_add_double_submit_test.dart integration_test/receipt_add_partial_image_test.dart integration_test/receipt_add_custom_field_test.dart integration_test/receipt_edit_test.dart integration_test/receipt_view_to_groups_navigation_test.dart; do
+            for spec in integration_test/smoke_login_test.dart integration_test/receipt_add_test.dart integration_test/receipt_add_share_test.dart integration_test/receipt_add_consecutive_test.dart integration_test/receipt_add_double_submit_test.dart integration_test/receipt_add_partial_image_test.dart integration_test/receipt_add_custom_field_test.dart integration_test/receipt_edit_test.dart integration_test/receipt_view_to_groups_navigation_test.dart integration_test/quick_scan_test.dart; do
               echo "==> flutter drive $spec"
               flutter drive --driver=test_driver/integration_test.dart --target=$spec -d emulator-5554 --dart-define=E2E_BASE_URL="$E2E_BASE_URL/api" --dart-define=E2E_ADMIN_USERNAME="$E2E_ADMIN_USERNAME" --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD" --dart-define=E2E_USER_USERNAME="$E2E_USER_USERNAME" --dart-define=E2E_USER_PASSWORD="$E2E_USER_PASSWORD"
               [ $? -ne 0 ] && rc=1
