@@ -97,19 +97,22 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot-save
           disable-animations: true
           working-directory: ./mobile
-          # Target the spec file directly, not the integration_test/ dir.
-          # When given a directory, Flutter scans every .dart file under it
-          # and classifies each one (integration vs unit) by whether it
-          # imports `package:integration_test`. Our `helpers/*.dart` files
-          # only import `package:flutter_test`, so they're tagged as unit
-          # tests, smoke_login_test.dart is tagged as integration, and the
-          # tooling refuses to run a mixed batch:
+          # Use `flutter drive`, NOT `flutter test`. On the Android emulator
+          # path, `flutter test integration_test/...` repeatedly hit
           #   "Integration tests and unit tests cannot be run in a single
           #    invocation."
-          # `-d emulator-5554` is also required so `flutter test` knows it
-          # has a device target instead of falling back to VM unit-test mode.
+          # even targeting a single file, even though the same command works
+          # locally with `-d linux`. Every working Android-emulator-runner
+          # CI example (Flutter docs, etiennetheodore's guide, etc.) uses
+          # `flutter drive` with an explicit driver + target, so we follow
+          # that pattern. `mobile/test_driver/integration_test.dart` is the
+          # standard `integrationDriver()` entrypoint.
+          # Local Linux desktop runs (mobile/run-e2e.sh) keep using
+          # `flutter test integration_test/`, which works fine there.
           script: |
-            flutter test integration_test/smoke_login_test.dart \
+            flutter drive \
+              --driver=test_driver/integration_test.dart \
+              --target=integration_test/smoke_login_test.dart \
               -d emulator-5554 \
               --dart-define=E2E_BASE_URL="$E2E_BASE_URL/api" \
               --dart-define=E2E_ADMIN_USERNAME="$E2E_ADMIN_USERNAME" \
