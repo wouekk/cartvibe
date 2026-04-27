@@ -25,6 +25,7 @@ import 'helpers/login.dart';
 import 'helpers/platform_mocks.dart';
 import 'helpers/pump.dart';
 import 'helpers/receipt_test_helpers.dart';
+import 'helpers/users.dart';
 
 const _testFieldName = 'E2E Notes';
 
@@ -69,7 +70,7 @@ void main() {
     await tester.enterText(formField('name'), receiptName);
     await tester.enterText(formField('amount'), '12.34');
     await selectDropdown(tester, 'groupId', 'My Receipts');
-    await selectDropdown(tester, 'paidByUserId', 'ee');
+    await selectDropdown(tester, 'paidByUserId', adminDisplayName(tester));
 
     // Drain dropdown overlay teardown before tapping the Add Custom
     // Field button (the modal-bottom-sheet open / close interacts

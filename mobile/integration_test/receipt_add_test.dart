@@ -12,6 +12,7 @@ import 'helpers/login.dart';
 import 'helpers/platform_mocks.dart';
 import 'helpers/pump.dart';
 import 'helpers/receipt_test_helpers.dart';
+import 'helpers/users.dart';
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -50,7 +51,7 @@ void main() {
     await tester.enterText(formField('amount'), '12.34');
     await selectDropdown(tester, 'groupId', 'My Receipts');
     // The admin's displayName from signup is 'ee', not 'e2e-admin'.
-    await selectDropdown(tester, 'paidByUserId', 'ee');
+    await selectDropdown(tester, 'paidByUserId', adminDisplayName(tester));
 
     // Drain the dropdown overlay teardown -- the popup-route's overlay
     // entry can otherwise leave the Scaffold's bottom-sheet area in an
@@ -108,7 +109,7 @@ void main() {
     await tester.enterText(formField('name'), receiptName);
     await tester.enterText(formField('amount'), '12.34');
     await selectDropdown(tester, 'groupId', 'My Receipts');
-    await selectDropdown(tester, 'paidByUserId', 'ee');
+    await selectDropdown(tester, 'paidByUserId', adminDisplayName(tester));
 
     await tester.pumpAndSettle(const Duration(seconds: 3));
     await tester.tap(find.byType(BottomSubmitButton));

@@ -6,6 +6,7 @@ import 'package:receipt_wrangler_mobile/shared/widgets/bottom_submit_button.dart
 import 'api.dart';
 import 'form_actions.dart';
 import 'pump.dart';
+import 'users.dart';
 
 /// Reads the current GoRouter URL by grabbing a context from inside the
 /// routed tree (`MaterialApp` itself sits above the GoRouter scope, so
@@ -84,7 +85,7 @@ Future<int> addManualReceiptViaUI(
   await tester.enterText(formField('name'), name);
   await tester.enterText(formField('amount'), amount);
   await selectDropdown(tester, 'groupId', 'My Receipts');
-  await selectDropdown(tester, 'paidByUserId', 'ee');
+  await selectDropdown(tester, 'paidByUserId', adminDisplayName(tester));
 
   // Drain the dropdown overlay teardown -- the popup-route's overlay
   // entry can otherwise leave the Scaffold's bottom-sheet area in an

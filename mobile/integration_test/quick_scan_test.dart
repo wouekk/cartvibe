@@ -27,6 +27,7 @@ import 'helpers/form_actions.dart';
 import 'helpers/login.dart';
 import 'helpers/platform_mocks.dart';
 import 'helpers/pump.dart';
+import 'helpers/users.dart';
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -74,7 +75,7 @@ void main() {
     // Fill the per-image form. e2e-admin's quickScan user prefs are
     // null, so all three fields need to be set explicitly.
     await selectDropdown(tester, 'groupId', 'My Receipts');
-    await selectDropdown(tester, 'paidByUserId', 'ee');
+    await selectDropdown(tester, 'paidByUserId', adminDisplayName(tester));
     await selectDropdown(tester, 'status', 'Open');
 
     // Drain the dropdown overlay teardown before tapping Submit.
