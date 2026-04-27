@@ -184,6 +184,14 @@ jobs:
       # flutter_secure_storage), no mocks, so the Platform.isLinux gate in
       # the smoke test does the right thing. One drive per spec for the
       # same GoRouter-persistence reason as the Android job.
+      #
+      # `xcrun simctl keychain "$SIM_UDID" reset` runs before each drive:
+      # iOS keychain entries persist across app reinstalls, so without this
+      # the JWT written by spec N leaks into spec N+1, which then boots
+      # half-authenticated (JWT present, but basePath/NSUserDefaults wiped
+      # by the reinstall) and never reaches the Server URL screen.
+      # NSUserDefaults are sandboxed per-install, so they're already wiped
+      # by `flutter drive`'s rebuild; only the keychain needs resetting.
       - name: Run Flutter integration tests on iOS
         working-directory: ./mobile
         env:
@@ -198,6 +206,7 @@ jobs:
           rc=0
           for spec in integration_test/smoke_login_test.dart integration_test/receipt_add_test.dart integration_test/receipt_add_share_test.dart integration_test/quick_scan_disabled_test.dart; do
             echo "==> flutter drive $spec"
+            xcrun simctl keychain "$SIM_UDID" reset
             flutter drive --driver=test_driver/integration_test.dart --target=$spec -d "$SIM_UDID" --dart-define=E2E_BASE_URL="$E2E_BASE_URL/api" --dart-define=E2E_ADMIN_USERNAME="$E2E_ADMIN_USERNAME" --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD" --dart-define=E2E_USER_USERNAME="$E2E_USER_USERNAME" --dart-define=E2E_USER_PASSWORD="$E2E_USER_PASSWORD"
             [ $? -ne 0 ] && rc=1
           done
