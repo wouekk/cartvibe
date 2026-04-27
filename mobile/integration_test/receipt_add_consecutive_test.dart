@@ -12,7 +12,6 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
 import 'package:integration_test/integration_test.dart';
 
 import 'helpers/api.dart';
@@ -45,15 +44,27 @@ void main() {
     final id1 = await addManualReceiptViaUI(tester, name1, amount: '11.11');
     scheduleReceiptCleanup(id1);
 
-    // Navigate back to /groups. The view screen's app bar may not
-    // expose a back button on Linux desktop (depends on the route
-    // shell). Use GoRouter directly via a context inside the routed
-    // tree (Scaffold) -- same pattern as currentUrl().
-    final scaffolds = find.byType(Scaffold).evaluate();
-    expect(scaffolds, isNotEmpty,
-        reason: 'A Scaffold should be rendered after the first save');
-    GoRouter.of(scaffolds.first).go('/groups');
-    await pumpUntilUrl(tester, RegExp(r'^/groups'));
+    // Wait for the view screen's app bar (back arrow) to mount fully
+    // -- it depends on receiptModel having the loaded receipt's
+    // groupId for the back URL.
+    await pumpUntilFound(tester, find.byIcon(Icons.arrow_back));
+    // Two arrow_back icons exist in the view tree (the app bar's
+    // leading button + something in the deeper widget chain). Tap
+    // the first -- in widget order it's the AppBar's leading slot.
+    final backButton = find.byIcon(Icons.arrow_back).first;
+    // Tap the back arrow. ReceiptAppBar's onLeadingArrowPressed calls
+    // receiptModel.resetModel() BEFORE navigating, so the form's
+    // FormBuilderDateTimePicker doesn't try to rebuild with stale
+    // String date values during the navigation transition (which it
+    // does if we GoRouter.go() directly -- a known production bug:
+    // "type 'String' is not a subtype of type 'DateTime?' of 'value'"
+    // from FormBuilderFieldState.setValue when the field's stored
+    // value carries over from receipt 1's save).
+    await tester.tap(backButton);
+    // Lands on /groups/<groupId>/receipts which uses GroupBottomNav.
+    // GroupBottomNav also has an "Add" destination -- the bottom nav
+    // text we want.
+    await pumpUntilUrl(tester, RegExp(r'^/groups/\d+/receipts'));
     await pumpUntilFound(tester, find.text('Add'));
 
     // Add receipt 2.

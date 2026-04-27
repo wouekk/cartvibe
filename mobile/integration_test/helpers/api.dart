@@ -73,6 +73,44 @@ Future<Map<String, dynamic>> getReceipt(
   return jsonDecode(res.body) as Map<String, dynamic>;
 }
 
+/// Lists all custom fields the admin has access to. Used by the
+/// custom-field test to discover the id of the test fixture (a TEXT-type
+/// field named "E2E Notes" that the user pre-seeds via the UI, mirroring
+/// the e2e-admin/e2e-user account-seeding pattern).
+///
+/// The endpoint is `POST /api/customField/getPagedCustomFields`. The
+/// API rejects `orderBy: "id"` (server-side bug -- HTTP 500 "Error
+/// getting custom fields"); `name` and `type` work, so we order by
+/// `name`.
+Future<List<Map<String, dynamic>>> listCustomFields({
+  required String jwt,
+  int limit = 100,
+}) async {
+  final res = await http
+      .post(
+        Uri.parse('${E2eEnv.baseUrl}/customField/getPagedCustomFields'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': 'jwt=$jwt',
+        },
+        body: jsonEncode({
+          'page': 1,
+          'pageSize': limit,
+          'orderBy': 'name',
+          'sortDirection': 'asc',
+        }),
+      )
+      .timeout(const Duration(seconds: 10));
+  if (res.statusCode != 200) {
+    throw StateError(
+      'listCustomFields failed: HTTP ${res.statusCode}: ${res.body}',
+    );
+  }
+  final body = jsonDecode(res.body) as Map<String, dynamic>;
+  return ((body['data'] as List?) ?? const [])
+      .cast<Map<String, dynamic>>();
+}
+
 /// Lists the latest [limit] receipts in [groupId] (newest first by id).
 /// Used for "exactly one receipt with this name" assertions in flows
 /// that need to detect duplicates server-side. Filters client-side --
