@@ -97,12 +97,19 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot-save
           disable-animations: true
           working-directory: ./mobile
-          # -d emulator-5554 is required. Without it, `flutter test
-          # integration_test/` tries to run as a VM unit-test pass, detects
-          # the integration_test imports, and fails with "Integration tests
-          # and unit tests cannot be run in a single invocation."
+          # Target the spec file directly, not the integration_test/ dir.
+          # When given a directory, Flutter scans every .dart file under it
+          # and classifies each one (integration vs unit) by whether it
+          # imports `package:integration_test`. Our `helpers/*.dart` files
+          # only import `package:flutter_test`, so they're tagged as unit
+          # tests, smoke_login_test.dart is tagged as integration, and the
+          # tooling refuses to run a mixed batch:
+          #   "Integration tests and unit tests cannot be run in a single
+          #    invocation."
+          # `-d emulator-5554` is also required so `flutter test` knows it
+          # has a device target instead of falling back to VM unit-test mode.
           script: |
-            flutter test integration_test/ \
+            flutter test integration_test/smoke_login_test.dart \
               -d emulator-5554 \
               --dart-define=E2E_BASE_URL="$E2E_BASE_URL/api" \
               --dart-define=E2E_ADMIN_USERNAME="$E2E_ADMIN_USERNAME" \
