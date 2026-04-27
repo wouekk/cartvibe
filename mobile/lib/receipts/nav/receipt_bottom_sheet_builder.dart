@@ -374,16 +374,25 @@ class ReceiptBottomSheetBuilder {
     if (isEditingBasedOnFullPath(fullPath)) {
       return BottomSubmitButton(
         onPressed: () async {
+          final loadingModel =
+              Provider.of<LoadingModel>(context, listen: false);
+          // Synchronous re-entrancy guard. BottomSubmitButton's
+          // Consumer<LoadingModel> only swaps onPressed to null on
+          // the FRAME AFTER notifyListeners, so a rapid double-tap
+          // can race past the disabled state -- both taps fire
+          // onPressed and we get duplicate POSTs. Reading isLoading
+          // here closes that window: the first tap sets it true
+          // synchronously, the second tap reads true and returns.
+          if (loadingModel.isLoading) {
+            return;
+          }
           if (!receiptModel.receiptFormKey.currentState!.saveAndValidate()) {
             return;
           }
-          // BottomSubmitButton already disables itself + shows a spinner
-          // while LoadingModel.isLoading == true, so toggling the flag is
-          // the entire double-submit guard. The finally always runs --
-          // including when the API throws -- so the button re-enables
-          // for retry.
-          final loadingModel =
-              Provider.of<LoadingModel>(context, listen: false);
+          // The Consumer rebuild + spinner is still useful UX -- it
+          // shows in-flight state to the user. The finally always
+          // runs (even on API throw) so the button re-enables for
+          // retry.
           loadingModel.setIsLoading(true);
           try {
             final receiptToUpdate = buildReceiptUpsertCommand();
