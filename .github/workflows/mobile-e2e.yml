@@ -58,7 +58,7 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-api-34-google_apis-x86_64
+          key: avd-api-34-google_apis-x86_64-pixel_6_pro-v1
 
       # The first `flutter build apk` of a fresh runner triggers ~3 min
       # of cascading SDK installs (NDK 27.0.12077973, SDK Platform 31,
@@ -91,6 +91,16 @@ jobs:
           api-level: 34
           target: google_apis
           arch: x86_64
+          # Without `profile`, avdmanager creates a headless AVD that boots at
+          # 320x640 logical px (density 160) — too narrow for the receipt form,
+          # which overflows by 36 px in that envelope. tester.setSurfaceSize is
+          # observably ignored by IntegrationTestWidgetsFlutterBinding running
+          # via flutter drive on a real device, so we have to fix the device
+          # itself. pixel_6_pro is 411x914 logical (modern phone), well within
+          # the form's needed width with headroom for layout drift.
+          # NOTE: must be identical between this step and the test step below
+          # so they share the cached AVD.
+          profile: pixel_6_pro
           cores: 4
           ram-size: 4096M
           force-avd-creation: false
@@ -119,6 +129,8 @@ jobs:
           api-level: 34
           target: google_apis
           arch: x86_64
+          # Must match the AVD-warm step's profile so the cached AVD applies.
+          profile: pixel_6_pro
           cores: 4
           ram-size: 4096M
           force-avd-creation: false
