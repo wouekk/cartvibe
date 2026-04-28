@@ -77,10 +77,14 @@ void main() {
     // with the same overlay routes the dropdowns used).
     await tester.pumpAndSettle(const Duration(seconds: 3));
 
-    // Open the modal of available fields. The button text is exactly
-    // "Add Custom Field" (mobile/lib/receipts/widgets/receipt_form.dart:248-279).
+    // Open the modal of available fields. The button is a TextButton.icon
+    // (NOT ElevatedButton -- buildAddCustomFieldButton at
+    // mobile/lib/receipts/widgets/receipt_form.dart:274). It's only
+    // rendered when `customFieldModel.customFields` minus already-added
+    // ones is non-empty -- our setUp's `ensureCustomField` makes sure of
+    // that. The TextButton.icon's label is the Text 'Add Custom Field'.
     final addCustomFieldBtn =
-        find.widgetWithText(ElevatedButton, 'Add Custom Field');
+        find.widgetWithText(TextButton, 'Add Custom Field');
     await tester.ensureVisible(addCustomFieldBtn);
     await tester.tap(addCustomFieldBtn);
     await pumpUntilFound(tester, find.text(_testFieldName));

@@ -40,10 +40,18 @@ Future<void> selectDropdown(
   // the dropdown menu is still opening. Wait for any match, then tap .last.
   await pumpUntilFound(tester, find.text(optionText));
   await tester.tap(find.text(optionText).last);
-  // Wait for the menu's exit animation -- bounded so we don't reuse
-  // pumpAndSettle (which would hang on the bootstrap loader if it ran
-  // while the form is rebuilding). 800ms is empirical: shorter values
-  // left the menu mid-animation and adjacent taps hit the menu's
-  // overlay instead of the intended target.
-  await tester.pump(const Duration(milliseconds: 800));
+  // Drain frames in a loop -- a single pump only advances one frame, but
+  // a dropdown selection needs at least three: the tap dispatch +
+  // FormBuilderField.didChange (which fires the user-supplied onChanged),
+  // the setState-triggered rebuild, and the menu's exit animation. A
+  // single pump(800ms) advances time but only renders one frame, leaving
+  // downstream widgets that depend on the user-onChanged setState (e.g.,
+  // receipt_form.dart's `_ReceiptForm.groupId` State field driving the
+  // Add Share button's disabled flag) unfrozen at their pre-selection
+  // values on slower targets. We avoid pumpAndSettle outright because
+  // the receipt form's CircularLoadingProgress can spin indefinitely
+  // when customFieldModel reloads in the background.
+  for (int i = 0; i < 5; i++) {
+    await tester.pump(const Duration(milliseconds: 200));
+  }
 }

@@ -70,6 +70,13 @@ void main() {
     expect(addShareIcon, findsOneWidget,
         reason: 'Exactly one IconButton<Icons.add> on the receipt form '
             '(the Add Share button)');
+    // The form is taller than a Pixel-class screen at this point (Name,
+    // Amount, Date, Group, Paid By, Status, Custom Fields, Categories,
+    // Tags, Shares header...). On Pixel 6 Pro (411x868 logical) the
+    // Shares header lands below the fold; without this scroll the tap
+    // misses on a hit-test region outside the IconButton.
+    await tester.ensureVisible(addShareIcon);
+    await tester.pump();
     await tester.tap(addShareIcon);
     await pumpUntilFound(tester, find.text('Shared With'));
 
