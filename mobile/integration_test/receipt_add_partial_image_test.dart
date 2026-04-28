@@ -72,8 +72,14 @@ void main() {
     await tester.tap(find.text('Add Manual Receipt'));
     await pumpUntilFound(tester, find.text('Name'));
 
-    // Open the Images sub-screen + attach the mocked image.
-    await tester.tap(find.text('Images'));
+    // Open the Images sub-screen + attach the mocked image. Tap the
+    // Tooltip wrapper (mobile/lib/receipts/widgets/receipt_form.dart:411)
+    // instead of the inner Text -- the Text's tap center can miss the
+    // InkWell hit-test region on narrow viewports.
+    final imagesButton = find.byTooltip('View Images');
+    await tester.ensureVisible(imagesButton);
+    await tester.pump();
+    await tester.tap(imagesButton);
     await pumpUntilFound(tester, find.byIcon(Icons.more_vert));
     await tester.tap(find.byIcon(Icons.more_vert));
     await pumpUntilFound(tester, find.text('Upload from Gallery'));

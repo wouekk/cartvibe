@@ -56,8 +56,15 @@ void main() {
     await pumpUntilFound(tester, find.text('Name'));
 
     // Open the Images sub-screen via the "Images" compact action button
-    // in the receipt form's Details header.
-    await tester.tap(find.text('Images'));
+    // in the receipt form's Details header. Target the Tooltip wrapper
+    // (mobile/lib/receipts/widgets/receipt_form.dart:411) by its message
+    // rather than the inner Text -- tapping the Text's geometric center
+    // can miss the InkWell hit-test region on iOS Simulator's narrower
+    // viewport, where the Row's compact-button layout reflows.
+    final imagesButton = find.byTooltip('View Images');
+    await tester.ensureVisible(imagesButton);
+    await tester.pump();
+    await tester.tap(imagesButton);
     await pumpUntilFound(tester, find.byIcon(Icons.more_vert));
 
     // Open the image-screen popup menu and pick "Upload from Gallery".
