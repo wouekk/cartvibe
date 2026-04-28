@@ -74,14 +74,16 @@ void main() {
 
     // Open the Images sub-screen + attach the mocked image. Tap the
     // Tooltip wrapper (mobile/lib/receipts/widgets/receipt_form.dart:411)
-    // instead of the inner Text -- the Text's tap center can miss the
-    // InkWell hit-test region on narrow viewports.
+    // for explicit semantics. Find the popup menu by widget type, not
+    // by icon: PopupMenuButton's default icon is `Icons.adaptive.more`,
+    // which is `Icons.more_vert` on Android and `Icons.more_horiz` on
+    // iOS -- byIcon(more_vert) never matches on iOS.
     final imagesButton = find.byTooltip('View Images');
     await tester.ensureVisible(imagesButton);
     await tester.pump();
     await tester.tap(imagesButton);
-    await pumpUntilFound(tester, find.byIcon(Icons.more_vert));
-    await tester.tap(find.byIcon(Icons.more_vert));
+    await pumpUntilFound(tester, find.byType(PopupMenuButton));
+    await tester.tap(find.byType(PopupMenuButton));
     await pumpUntilFound(tester, find.text('Upload from Gallery'));
     await tester.tap(find.text('Upload from Gallery'));
     await tester.pumpAndSettle(const Duration(seconds: 2));

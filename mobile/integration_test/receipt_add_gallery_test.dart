@@ -58,17 +58,21 @@ void main() {
     // Open the Images sub-screen via the "Images" compact action button
     // in the receipt form's Details header. Target the Tooltip wrapper
     // (mobile/lib/receipts/widgets/receipt_form.dart:411) by its message
-    // rather than the inner Text -- tapping the Text's geometric center
-    // can miss the InkWell hit-test region on iOS Simulator's narrower
-    // viewport, where the Row's compact-button layout reflows.
+    // for explicit semantics (the Text "Images" is just the label inside
+    // the InkWell -- tapping the Tooltip taps the same widget but says
+    // out loud which button we mean).
     final imagesButton = find.byTooltip('View Images');
     await tester.ensureVisible(imagesButton);
     await tester.pump();
     await tester.tap(imagesButton);
-    await pumpUntilFound(tester, find.byIcon(Icons.more_vert));
+    // Find the popup menu by widget type, not by icon. PopupMenuButton's
+    // default icon is `Icons.adaptive.more` (Flutter material/popup_menu.dart),
+    // which is `Icons.more_vert` on Android/desktop and `Icons.more_horiz`
+    // on iOS -- byIcon(more_vert) never matches on iOS.
+    await pumpUntilFound(tester, find.byType(PopupMenuButton));
 
     // Open the image-screen popup menu and pick "Upload from Gallery".
-    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.tap(find.byType(PopupMenuButton));
     await pumpUntilFound(tester, find.text('Upload from Gallery'));
     await tester.tap(find.text('Upload from Gallery'));
     // Mocked openFiles() resolves immediately; the model's
