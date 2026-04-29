@@ -65,6 +65,17 @@ void main() {
     await tester.ensureVisible(imagesButton);
     await tester.pump();
     await tester.tap(imagesButton);
+    // Drain the iOS Cupertino page-transition slide-in (~400ms). Without
+    // this, pumpUntilFound returns the moment the new route mounts, but
+    // the PopupMenuButton is still translated off-screen (x ~= 1836 on a
+    // 1280-wide surface) and tap() derives an offset outside the render
+    // tree -- the tap silently misses and the popup never opens. Same
+    // shape as the dropdown-overlay drain in form_actions.dart:54-56;
+    // finite, deterministic, avoids pumpAndSettle (which would hang on
+    // the new screen's image-fetch StreamBuilder).
+    for (int i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
     // Find the popup menu by widget type, not by icon. PopupMenuButton's
     // default icon is `Icons.adaptive.more` (Flutter material/popup_menu.dart),
     // which is `Icons.more_vert` on Android/desktop and `Icons.more_horiz`

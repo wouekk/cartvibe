@@ -82,6 +82,13 @@ void main() {
     await tester.ensureVisible(imagesButton);
     await tester.pump();
     await tester.tap(imagesButton);
+    // Drain the iOS Cupertino page-transition slide-in (~400ms) before
+    // probing the popup. Without this, pumpUntilFound returns at t=0
+    // when the new route mounts, but the PopupMenuButton is still mid-
+    // slide-in and tap() lands off-screen.
+    for (int i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
     await pumpUntilFound(tester, find.byType(PopupMenuButton));
     await tester.tap(find.byType(PopupMenuButton));
     await pumpUntilFound(tester, find.text('Upload from Gallery'));
