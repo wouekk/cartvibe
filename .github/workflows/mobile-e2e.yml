@@ -239,11 +239,12 @@ jobs:
       # leaked host-side dart isolate hosts -- without it, the previous
       # spec's dart process keeps owning the vmservice port and the
       # next spec's launch silently hangs (a known iOS flake class:
-      # flutter#129246, #136222, #153433). `timeout 600` (10min, well
+      # flutter#129246, #136222, #153433). `gtimeout 600` (10min, well
       # above the longest legitimate spec runtime ~30s) converts a hung
       # spec into a single failed slot the loop walks past instead of
-      # consuming the rest of the job's wall clock. `timeout` resolves
-      # to GNU coreutils on macos-14 runners (preinstalled via Homebrew).
+      # consuming the rest of the job's wall clock. macos-14 runners
+      # ship coreutils via Homebrew, but its BSD-conflicting binaries
+      # are prefixed with `g` -- `gtimeout`, not plain `timeout`.
       # JWT-in-keychain leak across reinstalls is handled in loginAsAdmin
       # (deleteAll on flutter_secure_storage's channel) rather than via
       # `simctl keychain reset`, which can destabilize the simulator.
@@ -265,7 +266,7 @@ jobs:
             xcrun simctl uninstall "$SIM_UDID" io.receiptwrangler || true
             pkill -f dartvm || true
             pkill -f io.receiptwrangler || true
-            timeout 600 flutter drive --no-pub --driver=test_driver/integration_test.dart --target=$spec -d "$SIM_UDID" --dart-define=E2E_BASE_URL="$E2E_BASE_URL/api" --dart-define=E2E_ADMIN_USERNAME="$E2E_ADMIN_USERNAME" --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD" --dart-define=E2E_USER_USERNAME="$E2E_USER_USERNAME" --dart-define=E2E_USER_PASSWORD="$E2E_USER_PASSWORD"
+            gtimeout 600 flutter drive --no-pub --driver=test_driver/integration_test.dart --target=$spec -d "$SIM_UDID" --dart-define=E2E_BASE_URL="$E2E_BASE_URL/api" --dart-define=E2E_ADMIN_USERNAME="$E2E_ADMIN_USERNAME" --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD" --dart-define=E2E_USER_USERNAME="$E2E_USER_USERNAME" --dart-define=E2E_USER_PASSWORD="$E2E_USER_PASSWORD"
             [ $? -ne 0 ] && rc=1
           done
           exit $rc
