@@ -43,7 +43,7 @@ void main() {
       // supports Android/iOS in scan.dart.
       skip: Platform.isLinux,
       (tester) async {
-    installFileSelectorMock();
+    await installFileSelectorMock();
     await binding.setSurfaceSize(const Size(1280, 900));
     addTearDown(() => binding.setSurfaceSize(null));
 

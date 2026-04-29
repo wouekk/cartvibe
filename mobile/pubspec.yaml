@@ -92,6 +92,7 @@ flutter:
     - assets/branding/loading.gif
     - assets/branding/logo-large.svg
     - assets/icons/split.svg
+    - assets/test/sample.png
   fonts:
     - family: Raleway
       fonts:

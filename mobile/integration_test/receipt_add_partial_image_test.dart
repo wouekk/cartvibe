@@ -56,7 +56,7 @@ void main() {
       // "Unsupported platform" for the gallery picker on Linux.
       skip: Platform.isLinux,
       (tester) async {
-    installFileSelectorMock();
+    await installFileSelectorMock();
     await binding.setSurfaceSize(const Size(1280, 900));
     addTearDown(() => binding.setSurfaceSize(null));
 

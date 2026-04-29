@@ -1,13 +1,3 @@
-// Gallery-image flow lives in its own test file because the top-level
-// GoRouter in `mobile/lib/main.dart` is a final global -- its current
-// location persists across testWidgets in the same `flutter drive`
-// invocation. The manual-add test in `receipt_add_test.dart` ends at
-// /receipts/<id>/view; running this test in the same file would boot
-// `app.main()` against that location and 403 on the receipt fetch (the
-// cleanup tearDown removes the receipt before the next test starts).
-// Splitting per file gives this test a fresh process via the per-spec
-// loop in `.github/workflows/mobile-e2e.yml`.
-
 import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
@@ -41,7 +31,7 @@ void main() {
       // test there. Runs on Android emulator + iOS simulator in CI.
       skip: Platform.isLinux,
       (tester) async {
-    installFileSelectorMock();
+    await installFileSelectorMock();
     await binding.setSurfaceSize(const Size(1280, 900));
     addTearDown(() => binding.setSurfaceSize(null));
 

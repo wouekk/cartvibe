@@ -172,7 +172,12 @@ jobs:
           # doesn't match the real package, so without this the prior
           # spec's dart process keeps owning the vmservice port and the
           # next spec's launch hangs forever waiting to connect.
-          script: rc=0; for spec in integration_test/smoke_login_test.dart integration_test/receipt_add_test.dart integration_test/receipt_add_gallery_test.dart integration_test/receipt_add_share_test.dart integration_test/receipt_add_consecutive_test.dart integration_test/receipt_add_double_submit_test.dart integration_test/receipt_add_partial_image_test.dart integration_test/receipt_add_custom_field_test.dart integration_test/receipt_edit_test.dart integration_test/receipt_view_to_groups_navigation_test.dart integration_test/quick_scan_test.dart integration_test/quick_scan_disabled_test.dart; do echo "==> $spec"; adb -s emulator-5554 shell am force-stop io.receiptwrangler || true; adb -s emulator-5554 uninstall io.receiptwrangler || true; flutter drive --no-pub --driver=test_driver/integration_test.dart --target=$spec -d emulator-5554 --dart-define=E2E_BASE_URL="$E2E_BASE_URL/api" --dart-define=E2E_ADMIN_USERNAME="$E2E_ADMIN_USERNAME" --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD" --dart-define=E2E_USER_USERNAME="$E2E_USER_USERNAME" --dart-define=E2E_USER_PASSWORD="$E2E_USER_PASSWORD" || rc=1; done; exit $rc
+          # `pkill -f dartvm` cleans up host-side dart isolate processes
+          # that flutter drive can leak; `timeout 600` (10min, well above
+          # the longest legitimate spec runtime) converts a hung spec into
+          # a single failed slot the loop walks past instead of consuming
+          # the rest of the job's wall clock.
+          script: rc=0; for spec in integration_test/smoke_login_test.dart integration_test/receipt_add_test.dart integration_test/receipt_add_gallery_test.dart integration_test/receipt_add_share_test.dart integration_test/receipt_add_consecutive_test.dart integration_test/receipt_add_double_submit_test.dart integration_test/receipt_add_partial_image_test.dart integration_test/receipt_add_custom_field_test.dart integration_test/receipt_edit_test.dart integration_test/receipt_view_to_groups_navigation_test.dart integration_test/quick_scan_test.dart integration_test/quick_scan_disabled_test.dart; do echo "==> $spec"; adb -s emulator-5554 shell am force-stop io.receiptwrangler || true; adb -s emulator-5554 uninstall io.receiptwrangler || true; pkill -f dartvm || true; timeout 600 flutter drive --no-pub --driver=test_driver/integration_test.dart --target=$spec -d emulator-5554 --dart-define=E2E_BASE_URL="$E2E_BASE_URL/api" --dart-define=E2E_ADMIN_USERNAME="$E2E_ADMIN_USERNAME" --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD" --dart-define=E2E_USER_USERNAME="$E2E_USER_USERNAME" --dart-define=E2E_USER_PASSWORD="$E2E_USER_PASSWORD" || rc=1; done; exit $rc
 
   ios-e2e:
     # macos-14 ships Xcode 15.4 + iOS 17.0/17.2/17.4/17.5/18.1/18.2
@@ -230,13 +235,18 @@ jobs:
       # same GoRouter-persistence reason as the Android job.
       #
       # Between specs: terminate the running app and uninstall it by
-      # bundle id (io.receiptwrangler). Without this, the previous
+      # bundle id (io.receiptwrangler). `pkill -f dartvm` cleans up
+      # leaked host-side dart isolate hosts -- without it, the previous
       # spec's dart process keeps owning the vmservice port and the
-      # next spec's launch silently hangs (same root cause as Android).
-      # JWT-in-keychain leak across reinstalls is handled in
-      # loginAsAdmin (deleteAll on flutter_secure_storage's channel)
-      # rather than via `simctl keychain reset`, which can destabilize
-      # the simulator.
+      # next spec's launch silently hangs (a known iOS flake class:
+      # flutter#129246, #136222, #153433). `timeout 600` (10min, well
+      # above the longest legitimate spec runtime ~30s) converts a hung
+      # spec into a single failed slot the loop walks past instead of
+      # consuming the rest of the job's wall clock. `timeout` resolves
+      # to GNU coreutils on macos-14 runners (preinstalled via Homebrew).
+      # JWT-in-keychain leak across reinstalls is handled in loginAsAdmin
+      # (deleteAll on flutter_secure_storage's channel) rather than via
+      # `simctl keychain reset`, which can destabilize the simulator.
       - name: Run Flutter integration tests on iOS
         working-directory: ./mobile
         env:
@@ -253,7 +263,9 @@ jobs:
             echo "==> flutter drive $spec"
             xcrun simctl terminate "$SIM_UDID" io.receiptwrangler || true
             xcrun simctl uninstall "$SIM_UDID" io.receiptwrangler || true
-            flutter drive --no-pub --driver=test_driver/integration_test.dart --target=$spec -d "$SIM_UDID" --dart-define=E2E_BASE_URL="$E2E_BASE_URL/api" --dart-define=E2E_ADMIN_USERNAME="$E2E_ADMIN_USERNAME" --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD" --dart-define=E2E_USER_USERNAME="$E2E_USER_USERNAME" --dart-define=E2E_USER_PASSWORD="$E2E_USER_PASSWORD"
+            pkill -f dartvm || true
+            pkill -f io.receiptwrangler || true
+            timeout 600 flutter drive --no-pub --driver=test_driver/integration_test.dart --target=$spec -d "$SIM_UDID" --dart-define=E2E_BASE_URL="$E2E_BASE_URL/api" --dart-define=E2E_ADMIN_USERNAME="$E2E_ADMIN_USERNAME" --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD" --dart-define=E2E_USER_USERNAME="$E2E_USER_USERNAME" --dart-define=E2E_USER_PASSWORD="$E2E_USER_PASSWORD"
             [ $? -ne 0 ] && rc=1
           done
           exit $rc

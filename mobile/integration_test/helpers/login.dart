@@ -3,17 +3,17 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
 import 'package:receipt_wrangler_mobile/groups/screens/group_select.dart';
-import 'package:receipt_wrangler_mobile/main.dart' as app;
+import 'package:receipt_wrangler_mobile/main.dart' show buildApp;
+import 'package:receipt_wrangler_mobile/persistence/global_shared_preferences.dart';
 
 import 'env.dart';
 import 'form_actions.dart';
 import 'pump.dart';
 
-/// Cold-boots the app and walks the SetHomeserverUrl + Login screens
-/// using the admin credentials from `--dart-define=E2E_*`. Returns when
-/// `GroupSelect` is on screen (= logged-in landing).
+/// Pumps a fresh app widget tree and walks the SetHomeserverUrl + Login
+/// screens using the admin credentials from `--dart-define=E2E_*`. Returns
+/// when `GroupSelect` is on screen (= logged-in landing).
 ///
 /// Pre-conditions:
 /// - `IntegrationTestWidgetsFlutterBinding.ensureInitialized()` was
@@ -22,38 +22,42 @@ import 'pump.dart';
 ///   `main()` (mobile-only plugins are stubbed there). On Android/iOS
 ///   the call should be skipped via `Platform.isLinux` so real plugin
 ///   channels run.
+///
+/// `buildApp()` returns a fresh widget tree (providers + ReceiptWrangler)
+/// with a per-`State` `late final GoRouter`, so previous tests' router
+/// location and provider state never leak across `testWidgets`.
 Future<void> loginAsAdmin(WidgetTester tester) async {
   E2eEnv.assertAdmin();
 
-  // Wipe persisted secure storage before bootstrap on real-device
-  // targets. iOS keychain entries survive app reinstalls, so without
-  // this the JWT written by a prior `flutter drive` invocation leaks
-  // into this process and short-circuits the login flow. Linux uses
-  // installLinuxDesktopMocks() which already isolates state per test.
+  // Reset persistent state before pumping a fresh app tree.
+  //
+  // flutter_secure_storage (JWT): iOS keychain entries are scoped to the
+  // bundle id and survive `simctl uninstall` -- that's documented Apple
+  // behavior, not a CI quirk. Without this wipe, a JWT written by a
+  // prior `flutter drive` invocation auto-logs the app in and the test
+  // never sees the login screen. Linux uses installLinuxDesktopMocks for
+  // isolation so the channel call is skipped there.
+  //
+  // SharedPreferences (basePath = homeserver URL): wiping it ensures
+  // `loginAsAdmin` always lands on the SetHomeserverUrl screen first,
+  // even when multiple `testWidgets` run inside one `flutter drive`
+  // (now possible since the GoRouter is built per-State -- see
+  // `lib/main.dart:_ReceiptWrangler._router`).
   if (!Platform.isLinux) {
-    const channel =
+    const secureChannel =
         MethodChannel('plugins.it_nomads.com/flutter_secure_storage');
     try {
-      await channel.invokeMethod('deleteAll', <String, dynamic>{
+      await secureChannel.invokeMethod('deleteAll', <String, dynamic>{
         'options': const <String, dynamic>{},
       });
     } catch (_) {
       // Best-effort: empty storage or unwired channel both fall through.
     }
   }
+  await GlobalSharedPreferences.initialize();
+  await GlobalSharedPreferences.instance.remove('basePath');
 
-  app.main();
-
-  // The top-level GoRouter in main.dart is a final global, so its
-  // current location persists across testWidgets in the same process.
-  // After a previous test landed on /receipts/<id>/view, the router
-  // restores there instead of '/' on the next test's app.main().
-  // Explicitly send it back to '/' once a context is available.
-  await pumpUntilFound(tester, find.byType(MaterialApp));
-  for (final el in find.byType(Scaffold).evaluate()) {
-    GoRouter.of(el).go('/');
-    break;
-  }
+  await tester.pumpWidget(buildApp());
 
   await pumpUntilFound(tester, find.text('Server URL'));
 

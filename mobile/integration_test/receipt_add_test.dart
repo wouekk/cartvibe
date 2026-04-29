@@ -12,15 +12,6 @@ import 'helpers/pump.dart';
 import 'helpers/receipt_test_helpers.dart';
 import 'helpers/users.dart';
 
-// The gallery-image flow lives in `receipt_add_gallery_test.dart` because
-// the top-level GoRouter in `mobile/lib/main.dart` is a final global -- its
-// current location persists across testWidgets in the same `flutter drive`
-// invocation. The manual-add test ends at /receipts/<id>/view, so a second
-// test in this file would boot `app.main()` against that location and 403
-// on the receipt fetch (the cleanup tearDown removes the receipt before
-// the next test starts). Splitting per file gives each test a fresh
-// process via the per-spec loop in `.github/workflows/mobile-e2e.yml`.
-
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
