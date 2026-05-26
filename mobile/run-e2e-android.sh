@@ -55,6 +55,7 @@ export PATH="$android_sdk/platform-tools:$android_sdk/emulator:$PATH"
 command -v adb >/dev/null 2>&1 || { echo "adb not under $android_sdk/platform-tools" >&2; exit 1; }
 command -v emulator >/dev/null 2>&1 || { echo "emulator not under $android_sdk/emulator" >&2; exit 1; }
 command -v gtimeout >/dev/null 2>&1 || { echo "gtimeout not found; brew install coreutils" >&2; exit 1; }
+command -v python3 >/dev/null 2>&1 || { echo "python3 not on PATH (needed to safely build the dart-define JSON)" >&2; exit 1; }
 
 # --- credentials -------------------------------------------------------------
 env_script="../api/dev/switch-to-sqlite.sh"
@@ -124,17 +125,25 @@ echo "==> flutter pub get"
 flutter pub get
 
 # --- dart-define payload -----------------------------------------------------
+# Build the JSON via python3 instead of a heredoc so any value containing
+# quotes/backslashes/newlines gets properly escaped. The heredoc form would
+# emit invalid JSON that `flutter --dart-define-from-file` would reject.
 tmp_env="$(mktemp -t run-e2e-android.XXXXXX).json"
 trap 'rm -f "$tmp_env"' EXIT
-cat > "$tmp_env" <<EOF
-{
-  "E2E_BASE_URL": "$mobile_base_url",
-  "E2E_ADMIN_USERNAME": "$E2E_ADMIN_USERNAME",
-  "E2E_ADMIN_PASSWORD": "$E2E_ADMIN_PASSWORD",
-  "E2E_USER_USERNAME": "$E2E_USER_USERNAME",
-  "E2E_USER_PASSWORD": "$E2E_USER_PASSWORD"
-}
-EOF
+python3 - "$tmp_env" "$mobile_base_url" \
+  "$E2E_ADMIN_USERNAME" "$E2E_ADMIN_PASSWORD" \
+  "$E2E_USER_USERNAME"  "$E2E_USER_PASSWORD" <<'PY'
+import json, sys
+out, base, au, ap, uu, up = sys.argv[1:]
+with open(out, "w", encoding="utf-8") as f:
+    json.dump({
+        "E2E_BASE_URL": base,
+        "E2E_ADMIN_USERNAME": au,
+        "E2E_ADMIN_PASSWORD": ap,
+        "E2E_USER_USERNAME": uu,
+        "E2E_USER_PASSWORD": up,
+    }, f)
+PY
 
 # --- target specs ------------------------------------------------------------
 if [[ $# -gt 0 ]]; then

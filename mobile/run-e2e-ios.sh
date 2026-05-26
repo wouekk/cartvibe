@@ -46,6 +46,7 @@ fi
 command -v flutter >/dev/null 2>&1 || { echo "flutter not on PATH" >&2; exit 1; }
 command -v xcrun >/dev/null 2>&1 || { echo "xcrun not on PATH (install Xcode command line tools)" >&2; exit 1; }
 command -v gtimeout >/dev/null 2>&1 || { echo "gtimeout not found; brew install coreutils" >&2; exit 1; }
+command -v python3 >/dev/null 2>&1 || { echo "python3 not on PATH (needed to safely build the dart-define JSON)" >&2; exit 1; }
 
 # --- credentials -------------------------------------------------------------
 env_script="../api/dev/switch-to-sqlite.sh"
@@ -90,7 +91,13 @@ if [[ "$state" != "Booted" ]]; then
   echo "==> Booting simulator $udid"
   xcrun simctl boot "$udid"
 fi
-xcrun simctl bootstatus "$udid" -b >/dev/null
+# `simctl bootstatus -b` blocks until the device is Booted+SpringBoard-ready;
+# on an unhealthy sim it can block indefinitely. Cap it at 5 min (same ceiling
+# as the Android AVD boot wait) and fail fast if it expires.
+if ! gtimeout 300 xcrun simctl bootstatus "$udid" -b >/dev/null; then
+  echo "Simulator $udid failed to reach Booted+SpringBoard-ready within 5 minutes." >&2
+  exit 1
+fi
 
 # `simctl boot` only starts the runtime; the Simulator.app GUI window doesn't
 # appear unless we launch it explicitly. Useful both for visibility while a
@@ -109,17 +116,25 @@ echo "==> flutter pub get"
 flutter pub get
 
 # --- dart-define payload -----------------------------------------------------
+# Build the JSON via python3 instead of a heredoc so any value containing
+# quotes/backslashes/newlines gets properly escaped. The heredoc form would
+# emit invalid JSON that `flutter --dart-define-from-file` would reject.
 tmp_env="$(mktemp -t run-e2e-ios.XXXXXX).json"
 trap 'rm -f "$tmp_env"' EXIT
-cat > "$tmp_env" <<EOF
-{
-  "E2E_BASE_URL": "$mobile_base_url",
-  "E2E_ADMIN_USERNAME": "$E2E_ADMIN_USERNAME",
-  "E2E_ADMIN_PASSWORD": "$E2E_ADMIN_PASSWORD",
-  "E2E_USER_USERNAME": "$E2E_USER_USERNAME",
-  "E2E_USER_PASSWORD": "$E2E_USER_PASSWORD"
-}
-EOF
+python3 - "$tmp_env" "$mobile_base_url" \
+  "$E2E_ADMIN_USERNAME" "$E2E_ADMIN_PASSWORD" \
+  "$E2E_USER_USERNAME"  "$E2E_USER_PASSWORD" <<'PY'
+import json, sys
+out, base, au, ap, uu, up = sys.argv[1:]
+with open(out, "w", encoding="utf-8") as f:
+    json.dump({
+        "E2E_BASE_URL": base,
+        "E2E_ADMIN_USERNAME": au,
+        "E2E_ADMIN_PASSWORD": ap,
+        "E2E_USER_USERNAME": uu,
+        "E2E_USER_PASSWORD": up,
+    }, f)
+PY
 
 # --- target specs ------------------------------------------------------------
 if [[ $# -gt 0 ]]; then

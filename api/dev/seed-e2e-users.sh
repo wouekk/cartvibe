@@ -47,10 +47,14 @@ command -v curl >/dev/null    || { echo "curl not on PATH" >&2; exit 1; }
 command -v python3 >/dev/null || { echo "python3 not on PATH" >&2; exit 1; }
 
 echo "==> logging in as $admin_username at $api_base_url"
+# Build the JSON body via python3 instead of bash string interpolation so a
+# password containing quotes/backslashes/newlines can't corrupt the payload.
+login_body="$(python3 -c 'import json,sys; print(json.dumps({"username":sys.argv[1],"password":sys.argv[2]}))' \
+  "$admin_username" "$admin_password")"
 login_response="$(curl -fsS --max-time 10 -X POST \
   "$api_base_url/login/?tokensInBody=true" \
   -H 'Content-Type: application/json' \
-  -d "{\"username\":\"$admin_username\",\"password\":\"$admin_password\"}" || true)"
+  -d "$login_body" || true)"
 
 if [[ -z "$login_response" ]]; then
   echo "login failed: empty response (API down? wrong base URL?)" >&2
@@ -93,15 +97,18 @@ create_user_if_missing() {
   body="$(python3 -c 'import json,sys; print(json.dumps({"username":sys.argv[1],"password":sys.argv[2],"displayName":sys.argv[3],"userRole":sys.argv[4],"isDummyUser":False}))' \
     "$username" "$password" "$display_name" "$role")"
 
-  local response http_code
-  response="$(curl -sS --max-time 10 -o /tmp/seed-e2e-users-response.$$ -w '%{http_code}' \
+  # Use mktemp instead of /tmp/...$$ -- the PID-based path is predictable and
+  # vulnerable to a symlink race on shared machines.
+  local response http_code response_file
+  response_file="$(mktemp -t seed-e2e-users.XXXXXX)"
+  response="$(curl -sS --max-time 10 -o "$response_file" -w '%{http_code}' \
     -X POST "$api_base_url/user/" \
     -H "Authorization: Bearer $jwt" \
     -H 'Content-Type: application/json' \
     -d "$body")"
   http_code="$response"
-  body="$(cat /tmp/seed-e2e-users-response.$$ 2>/dev/null || true)"
-  rm -f /tmp/seed-e2e-users-response.$$
+  body="$(cat "$response_file" 2>/dev/null || true)"
+  rm -f "$response_file"
 
   if [[ "$http_code" == "200" ]]; then
     printf '==> %-12s (%-5s) ... [created]\n' "$username" "$role"
