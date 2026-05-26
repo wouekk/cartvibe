@@ -128,7 +128,7 @@ flutter pub get
 # Build the JSON via python3 instead of a heredoc so any value containing
 # quotes/backslashes/newlines gets properly escaped. The heredoc form would
 # emit invalid JSON that `flutter --dart-define-from-file` would reject.
-tmp_env="$(mktemp -t run-e2e-android.XXXXXX).json"
+tmp_env="$(mktemp -t run-e2e-android.XXXXXX)"
 trap 'rm -f "$tmp_env"' EXIT
 python3 - "$tmp_env" "$mobile_base_url" \
   "$E2E_ADMIN_USERNAME" "$E2E_ADMIN_PASSWORD" \
