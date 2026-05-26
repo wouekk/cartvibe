@@ -49,13 +49,19 @@ command -v gtimeout >/dev/null 2>&1 || { echo "gtimeout not found; brew install 
 command -v python3 >/dev/null 2>&1 || { echo "python3 not on PATH (needed to safely build the dart-define JSON)" >&2; exit 1; }
 
 # --- credentials -------------------------------------------------------------
-# Source switch-to-sqlite.sh only when no E2E creds are already in the env. The
-# script `export`s defaults unconditionally, so sourcing it in CI -- where the
-# four E2E_* secrets are already populated -- would silently clobber them with
-# the dev defaults. Skipping when E2E_ADMIN_USERNAME is set keeps CI's secret
-# env intact while preserving the local convenience (zero-config smoke run).
+# Source switch-to-sqlite.sh only when none of the four E2E_* creds are already
+# in the env. The script `export`s all four unconditionally, so sourcing it in
+# any context where a caller already populated even one of them (CI, or a
+# partial override locally) would silently clobber that value with the dev
+# default. The trailing `: "${VAR:?...}"` checks below catch the
+# partial-population case with a clear error rather than letting defaults paper
+# over a missing var.
 env_script="../api/dev/switch-to-sqlite.sh"
-if [[ -z "${E2E_ADMIN_USERNAME:-}" && -f "$env_script" ]]; then
+if [[ -z "${E2E_ADMIN_USERNAME:-}" \
+   && -z "${E2E_ADMIN_PASSWORD:-}" \
+   && -z "${E2E_USER_USERNAME:-}" \
+   && -z "${E2E_USER_PASSWORD:-}" \
+   && -f "$env_script" ]]; then
   # shellcheck disable=SC1090
   source "$env_script"
 fi
