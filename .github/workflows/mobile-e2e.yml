@@ -115,12 +115,33 @@ jobs:
         env:
           E2E_BASE_URL: ${{ secrets.E2E_BASE_URL }}
 
-      # The Flutter app hits the Go API directly, so the dart-define appends
-      # /api to the secret (which is the frontend root, like Playwright uses).
+      # Delegate to mobile/run-e2e-android.sh -- same script developers run
+      # locally. It auto-attaches to the emulator-runner-booted emulator-5554,
+      # builds a JSON-safe --dart-define-from-file payload via python3, and
+      # runs one `flutter drive` per spec wrapped in `timeout 600`. Between
+      # specs it force-stops + uninstalls io.receiptwrangler and pkills leaked
+      # dartvm processes (flutter drive's own uninstall targets the wrong
+      # applicationId and leaves the vmservice port owned, hanging the next
+      # spec's launch otherwise).
+      #
+      # The script gates its source of api/dev/switch-to-sqlite.sh on all four
+      # E2E_* creds being unset, so the secrets passed in env: here are NOT
+      # clobbered by the dev defaults.
+      #
+      # android-emulator-runner's `script:` is parsed by src/script-parser.ts,
+      # which splits on \n and runs each line as a separate `sh -c`. The
+      # folded scalar (`>-`) below collapses newlines to spaces, so the
+      # parser still sees one logical line. Inside that line we invoke the
+      # runner script, whose `#!/usr/bin/env bash` shebang gives the per-spec
+      # for-loop a real bash interpreter -- immune to whatever the
+      # script-parser does that killed the previous inline loop with
+      # `exit code null` on the first iteration.
+      #
+      # 12 specs below match the prior inline list -- no scope change.
       - name: Run Flutter integration tests on Android
         uses: reactivecircus/android-emulator-runner@v2
         env:
-          E2E_BASE_URL: ${{ secrets.E2E_BASE_URL }}
+          E2E_MOBILE_BASE_URL: ${{ secrets.E2E_BASE_URL }}/api
           E2E_ADMIN_USERNAME: ${{ secrets.E2E_ADMIN_USERNAME }}
           E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
           E2E_USER_USERNAME: ${{ secrets.E2E_USER_USERNAME }}
@@ -137,47 +158,20 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot-save
           disable-animations: true
           working-directory: ./mobile
-          # Use `flutter drive`, NOT `flutter test`. On the Android emulator
-          # path, `flutter test integration_test/...` repeatedly hit
-          #   "Integration tests and unit tests cannot be run in a single
-          #    invocation."
-          # even targeting a single file, even though the same command works
-          # locally with `-d linux`. Every working Android-emulator-runner
-          # CI example (Flutter docs, etiennetheodore's guide, etc.) uses
-          # `flutter drive` with an explicit driver + target, so we follow
-          # that pattern. `mobile/test_driver/integration_test.dart` is the
-          # standard `integrationDriver()` entrypoint.
-          # Local Linux desktop runs (mobile/run-e2e.sh) keep using
-          # `flutter test integration_test/`, which works fine there.
-          #
-          # The receipt-add specs require their own process because the
-          # top-level GoRouter in main.dart is a final global -- its
-          # location persists across testWidgets in the same flutter
-          # invocation, so a previous test ending at /receipts/<id>/view
-          # triggers a 403 fetch on the next test's app.main(). Looping
-          # one `flutter drive` per spec gives each its own process.
-          #
-          # CRITICAL: android-emulator-runner's `script:` is parsed by
-          # src/script-parser.ts, which splits on \n and runs each line
-          # as a separate `sh -c`. Multi-line shell constructs (for, if,
-          # while, multi-statement blocks) silently break -- a `for ...; do`
-          # on one line and `done` on the next will fail with
-          # "Syntax error: end of file unexpected (expecting done)".
-          # The whole loop, including rc tracking and exit, MUST live on
-          # one logical line. The iOS job is regular `run:` and is not
-          # affected -- it gets one bash invocation for the whole block.
-          # Between specs: force-stop and uninstall by applicationId
-          # (io.receiptwrangler). flutter drive's own cleanup uninstalls
-          # by namespace (com.example.receipt_wrangler_mobile), which
-          # doesn't match the real package, so without this the prior
-          # spec's dart process keeps owning the vmservice port and the
-          # next spec's launch hangs forever waiting to connect.
-          # `pkill -f dartvm` cleans up host-side dart isolate processes
-          # that flutter drive can leak; `timeout 600` (10min, well above
-          # the longest legitimate spec runtime) converts a hung spec into
-          # a single failed slot the loop walks past instead of consuming
-          # the rest of the job's wall clock.
-          script: rc=0; for spec in integration_test/smoke_login_test.dart integration_test/receipt_add_test.dart integration_test/receipt_add_gallery_test.dart integration_test/receipt_add_share_test.dart integration_test/receipt_add_consecutive_test.dart integration_test/receipt_add_double_submit_test.dart integration_test/receipt_add_partial_image_test.dart integration_test/receipt_add_custom_field_test.dart integration_test/receipt_edit_test.dart integration_test/receipt_view_to_groups_navigation_test.dart integration_test/quick_scan_test.dart integration_test/quick_scan_disabled_test.dart; do echo "==> $spec"; adb -s emulator-5554 shell am force-stop io.receiptwrangler || true; adb -s emulator-5554 uninstall io.receiptwrangler || true; pkill -f dartvm || true; timeout 600 flutter drive --no-pub --driver=test_driver/integration_test.dart --target=$spec -d emulator-5554 --dart-define=E2E_BASE_URL="$E2E_BASE_URL/api" --dart-define=E2E_ADMIN_USERNAME="$E2E_ADMIN_USERNAME" --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD" --dart-define=E2E_USER_USERNAME="$E2E_USER_USERNAME" --dart-define=E2E_USER_PASSWORD="$E2E_USER_PASSWORD" || rc=1; done; exit $rc
+          script: >-
+            ./run-e2e-android.sh
+            integration_test/smoke_login_test.dart
+            integration_test/receipt_add_test.dart
+            integration_test/receipt_add_gallery_test.dart
+            integration_test/receipt_add_share_test.dart
+            integration_test/receipt_add_consecutive_test.dart
+            integration_test/receipt_add_double_submit_test.dart
+            integration_test/receipt_add_partial_image_test.dart
+            integration_test/receipt_add_custom_field_test.dart
+            integration_test/receipt_edit_test.dart
+            integration_test/receipt_view_to_groups_navigation_test.dart
+            integration_test/quick_scan_test.dart
+            integration_test/quick_scan_disabled_test.dart
 
   ios-e2e:
     # macos-14 ships Xcode 15.4 + iOS 17.0/17.2/17.4/17.5/18.1/18.2

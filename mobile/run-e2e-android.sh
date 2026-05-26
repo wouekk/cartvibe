@@ -14,7 +14,8 @@
 #   - flutter on PATH (or installed under ~/Documents/flutter/bin, auto-discovered)
 #   - Android SDK at $ANDROID_HOME / $ANDROID_SDK_ROOT / ~/Library/Android/sdk
 #   - At least one AVD created via Android Studio or `avdmanager`
-#   - coreutils on PATH for `gtimeout` (brew install coreutils)
+#   - GNU coreutils on PATH for `timeout`/`gtimeout` (Linux ships GNU `timeout`;
+#     macOS Homebrew coreutils ships the same binary as `gtimeout` to dodge BSD)
 #   - Go API running locally on :8081 (cd api && go run main.go)
 #   - The two e2e users seeded (see mobile/CLAUDE.md "Prerequisites")
 #
@@ -54,12 +55,27 @@ export PATH="$android_sdk/platform-tools:$android_sdk/emulator:$PATH"
 
 command -v adb >/dev/null 2>&1 || { echo "adb not under $android_sdk/platform-tools" >&2; exit 1; }
 command -v emulator >/dev/null 2>&1 || { echo "emulator not under $android_sdk/emulator" >&2; exit 1; }
-command -v gtimeout >/dev/null 2>&1 || { echo "gtimeout not found; brew install coreutils" >&2; exit 1; }
+# GNU coreutils ships the timeout binary as `timeout` on Linux and `gtimeout`
+# on macOS (brew dodges BSD's name conflict). Prefer gtimeout so a local macOS
+# `timeout` from a non-GNU coreutils install doesn't get picked accidentally.
+TIMEOUT_BIN="$(command -v gtimeout || command -v timeout || true)"
+[[ -n "$TIMEOUT_BIN" ]] || { echo "neither gtimeout nor timeout on PATH (install coreutils)" >&2; exit 1; }
 command -v python3 >/dev/null 2>&1 || { echo "python3 not on PATH (needed to safely build the dart-define JSON)" >&2; exit 1; }
 
 # --- credentials -------------------------------------------------------------
+# Source switch-to-sqlite.sh only when none of the four E2E_* creds are already
+# in the env. The script `export`s all four unconditionally, so sourcing it in
+# any context where a caller already populated even one of them (CI, or a
+# partial override locally) would silently clobber that value with the dev
+# default. The trailing `: "${VAR:?...}"` checks below catch the
+# partial-population case with a clear error rather than letting defaults paper
+# over a missing var.
 env_script="../api/dev/switch-to-sqlite.sh"
-if [[ -f "$env_script" ]]; then
+if [[ -z "${E2E_ADMIN_USERNAME:-}" \
+   && -z "${E2E_ADMIN_PASSWORD:-}" \
+   && -z "${E2E_USER_USERNAME:-}" \
+   && -z "${E2E_USER_PASSWORD:-}" \
+   && -f "$env_script" ]]; then
   # shellcheck disable=SC1090
   source "$env_script"
 fi
@@ -176,7 +192,7 @@ for target in "${targets[@]}"; do
   adb -s "$current_serial" shell am force-stop io.receiptwrangler >/dev/null 2>&1 || true
   adb -s "$current_serial" uninstall io.receiptwrangler >/dev/null 2>&1 || true
   pkill -f dartvm >/dev/null 2>&1 || true
-  if ! gtimeout 600 flutter drive \
+  if ! "$TIMEOUT_BIN" 600 flutter drive \
        --no-pub \
        --driver=test_driver/integration_test.dart \
        --target="$target" \
