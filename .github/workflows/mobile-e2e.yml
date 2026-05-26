@@ -199,27 +199,15 @@ jobs:
         working-directory: ./mobile
         run: flutter pub get
 
-      # Boot a clean iPhone 15 simulator. The grep regex anchors on
-      # 'iPhone 15 (' so it doesn't match 'iPhone 15 Plus' or
-      # 'iPhone 15 Pro'. The first match across runtimes is fine -- the
-      # smoke test doesn't depend on the iOS version.
-      - name: Boot iOS Simulator
-        id: boot-sim
-        run: |
-          set -euo pipefail
-          UDID=$(xcrun simctl list devices available \
-            | grep -E 'iPhone 15 \(' \
-            | head -n 1 \
-            | grep -oEi '[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}')
-          if [ -z "$UDID" ]; then
-            echo "::error::No iPhone 15 simulator found on this runner"
-            xcrun simctl list devices available
-            exit 1
-          fi
-          echo "Booting iPhone 15 ($UDID)"
-          xcrun simctl boot "$UDID"
-          xcrun simctl bootstatus "$UDID" -b
-          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+      # gtimeout (used by run-e2e-ios.sh both to cap simctl bootstatus and to
+      # wrap each per-spec flutter drive) lives in GNU coreutils. The current
+      # macos-14-arm64 image does NOT preinstall coreutils -- prior intel
+      # macos-14 images did, which is why an older revision of this workflow
+      # assumed it was on PATH. Install it explicitly so the runner script's
+      # `command -v gtimeout` dep check passes. Install is ~10s; not worth
+      # caching.
+      - name: Install coreutils (gtimeout)
+        run: brew install coreutils
 
       - name: Warm up demo backend
         run: |
@@ -228,45 +216,32 @@ jobs:
         env:
           E2E_BASE_URL: ${{ secrets.E2E_BASE_URL }}
 
-      # Same `flutter drive` shape as Android -- consistent driver +
-      # target. iOS uses real plugin channels (permission_handler, gal,
-      # flutter_secure_storage), no mocks, so the Platform.isLinux gate in
-      # the smoke test does the right thing. One drive per spec for the
-      # same GoRouter-persistence reason as the Android job.
+      # Delegate to mobile/run-e2e-ios.sh -- same script developers run
+      # locally. It resolves the iPhone 15 simulator UDID, boots if not
+      # already booted (with a 5-minute bootstatus cap), builds a JSON-safe
+      # --dart-define-from-file payload via python3, and runs one
+      # `flutter drive` per spec wrapped in `gtimeout 600`. Between specs
+      # it terminates + uninstalls io.receiptwrangler and `pkill`s leaked
+      # dart isolates to dodge the iOS vmservice-hang flake class
+      # (flutter#129246, #136222, #153433).
       #
-      # Between specs: terminate the running app and uninstall it by
-      # bundle id (io.receiptwrangler). `pkill -f dartvm` cleans up
-      # leaked host-side dart isolate hosts -- without it, the previous
-      # spec's dart process keeps owning the vmservice port and the
-      # next spec's launch silently hangs (a known iOS flake class:
-      # flutter#129246, #136222, #153433). `gtimeout 600` (10min, well
-      # above the longest legitimate spec runtime ~30s) converts a hung
-      # spec into a single failed slot the loop walks past instead of
-      # consuming the rest of the job's wall clock. macos-14 runners
-      # ship coreutils via Homebrew, but its BSD-conflicting binaries
-      # are prefixed with `g` -- `gtimeout`, not plain `timeout`.
-      # JWT-in-keychain leak across reinstalls is handled in loginAsAdmin
-      # (deleteAll on flutter_secure_storage's channel) rather than via
-      # `simctl keychain reset`, which can destabilize the simulator.
+      # The script gates its source of api/dev/switch-to-sqlite.sh on
+      # E2E_ADMIN_USERNAME being unset, so the secrets passed in env: here
+      # are NOT clobbered by the dev defaults that file would export.
+      #
+      # The 5 spec paths below match what the previous inline loop ran.
       - name: Run Flutter integration tests on iOS
         working-directory: ./mobile
         env:
-          E2E_BASE_URL: ${{ secrets.E2E_BASE_URL }}
+          E2E_MOBILE_BASE_URL: ${{ secrets.E2E_BASE_URL }}/api
           E2E_ADMIN_USERNAME: ${{ secrets.E2E_ADMIN_USERNAME }}
           E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
           E2E_USER_USERNAME: ${{ secrets.E2E_USER_USERNAME }}
           E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
-          SIM_UDID: ${{ steps.boot-sim.outputs.udid }}
         run: |
-          set +e
-          rc=0
-          for spec in integration_test/smoke_login_test.dart integration_test/receipt_add_test.dart integration_test/receipt_add_gallery_test.dart integration_test/receipt_add_share_test.dart integration_test/quick_scan_disabled_test.dart; do
-            echo "==> flutter drive $spec"
-            xcrun simctl terminate "$SIM_UDID" io.receiptwrangler || true
-            xcrun simctl uninstall "$SIM_UDID" io.receiptwrangler || true
-            pkill -f dartvm || true
-            pkill -f io.receiptwrangler || true
-            gtimeout 600 flutter drive --no-pub --driver=test_driver/integration_test.dart --target=$spec -d "$SIM_UDID" --dart-define=E2E_BASE_URL="$E2E_BASE_URL/api" --dart-define=E2E_ADMIN_USERNAME="$E2E_ADMIN_USERNAME" --dart-define=E2E_ADMIN_PASSWORD="$E2E_ADMIN_PASSWORD" --dart-define=E2E_USER_USERNAME="$E2E_USER_USERNAME" --dart-define=E2E_USER_PASSWORD="$E2E_USER_PASSWORD"
-            [ $? -ne 0 ] && rc=1
-          done
-          exit $rc
+          ./run-e2e-ios.sh \
+            integration_test/smoke_login_test.dart \
+            integration_test/receipt_add_test.dart \
+            integration_test/receipt_add_gallery_test.dart \
+            integration_test/receipt_add_share_test.dart \
+            integration_test/quick_scan_disabled_test.dart
