@@ -20,6 +20,11 @@ import 'env.dart';
 String adminDisplayName(WidgetTester tester) =>
     _displayNameForUsername(tester, E2eEnv.adminUsername);
 
+/// Same shape as [adminDisplayName] but for the e2e-user, so multi-user
+/// flows (group share, cost split) don't have to hard-code a displayName.
+String userDisplayName(WidgetTester tester) =>
+    _displayNameForUsername(tester, E2eEnv.userUsername);
+
 String _displayNameForUsername(WidgetTester tester, String username) {
   final ctx = tester.element(find.byType(Scaffold).first);
   final userModel = Provider.of<UserModel>(ctx, listen: false);
