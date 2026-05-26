@@ -168,36 +168,74 @@ End-to-end tests live in `integration_test/` (sibling of `test/`) and use Flutte
 
 **Stack choice:** `integration_test` SDK package. Not Patrol (we don't need native permission dialogs yet). Not the deprecated `flutter_driver`.
 
-**Supported targets:** Linux desktop locally (`./run-e2e.sh`), and Android emulator in CI (`.github/workflows/mobile-e2e.yml`). The CI workflow is **advisory** (`continue-on-error: true`) and triggers only on pushes to `tech/mobile-e2e` + `workflow_dispatch` while we iterate. iOS simulator, CI-on-main, and PR triggering are still deferred — see the "Out of scope" note at the bottom of this section.
+**Supported targets:**
+- **Local Android emulator** via `./run-e2e-android.sh` (macOS, auto-boots an AVD).
+- **Local iOS Simulator** via `./run-e2e-ios.sh` (macOS, auto-boots a sim).
+- **Local Linux desktop** via `./run-e2e.sh` (containers/CI Linux). Originally the primary target; kept for the dev container's headless flow.
+- **CI Android + iOS** via `.github/workflows/mobile-e2e.yml`, **advisory** (`continue-on-error: true`), triggers on pushes to `tech/mobile-e2e` + `workflow_dispatch` while we iterate.
+
+CI-on-main, PR triggering, and screenshot/video capture are still deferred — see the "Out of scope" note at the bottom of this section.
 
 #### Prerequisites
 
-1. **One-time system packages** (in addition to the Linux-desktop build prereqs from the Flutter SDK Setup section above):
-   ```bash
-   apt-get install -y --no-install-recommends libsecret-1-dev xvfb
-   ```
-   `libsecret-1-dev` is needed to *build* the `flutter_secure_storage_linux` plugin (pkg-config fails the CMake step without it). `xvfb` is needed to *run* the Flutter desktop app headlessly — `run-e2e.sh` auto-wraps the test in `xvfb-run` when `$DISPLAY` is empty.
-2. **One-time:** enable Linux desktop and install `integration_test`:
-   ```bash
-   flutter config --enable-linux-desktop
-   cd mobile && flutter pub get
-   ```
-3. **One-time:** seed the two e2e users. **Order matters** — the first sign-up is auto-promoted to admin. Use the desktop sign-up UI at `http://localhost:4200/auth/sign-up`:
-   - Admin first: username `e2e-admin`, password `e2e-admin-password`
-   - Then user: username `e2e-user`, password `e2e-user-password`
+**Per target:**
 
-   Note: if `enableLocalSignUp` is `false` in the feature config, the signup UI/endpoint both 404. Either flip the setting in system settings, or ask the repo owner to seed the accounts — **do not seed via the API or by writing to the SQLite DB directly** (see the user memory on test data setup).
-4. **Every run:** start the Go API separately (`cd api && go run main.go`). `run-e2e.sh` does not start the API — same pattern as Playwright.
+| Target          | Prereqs                                                                                                              |
+| --------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Android (mac)   | Android SDK (Studio or `cmdline-tools`); at least one AVD; `coreutils` on PATH (`brew install coreutils`, for `gtimeout`). |
+| iOS (mac)       | Xcode + iOS Simulator (`xcrun simctl` on PATH); `coreutils` on PATH. The iOS Simulator runtime matching your installed Xcode is required — see "iOS 26.x runtime gotcha" below. |
+| Linux desktop   | `apt-get install -y --no-install-recommends libsecret-1-dev xvfb` (`libsecret-1-dev` to *build* `flutter_secure_storage_linux`, `xvfb` to *run* headlessly — `run-e2e.sh` auto-wraps in `xvfb-run` when `$DISPLAY` is unset). Plus `flutter config --enable-linux-desktop`. |
+
+**Shared, one-time:**
+
+1. `cd mobile && flutter pub get`
+2. Seed the two e2e users by running `./api/dev/seed-e2e-users.sh` (idempotent — safe to re-run). It logs in as the default `admin/admin` user that `MakeMigrations()` auto-creates on a fresh DB, then calls the admin-protected `POST /user/` to create:
+   - `e2e-admin` with role `ADMIN`
+   - `e2e-user` with role `USER`
+
+   The script uses creds matching `api/dev/switch-to-sqlite.sh` (and the mariadb/postgresql variants), so a later `source` of those scripts gives the runners credentials that line up with what's seeded. Override `ADMIN_USERNAME` / `ADMIN_PASSWORD` if the default admin's password has been changed; override `API_BASE_URL` to seed a non-local backend.
+
+   Why API-seed instead of the UI: `enableLocalSignUp` is `false` locally so the UI signup 404s, and even if enabled, the auto-`admin/admin` already holds the "first user = ADMIN" slot — a subsequent UI signup for `e2e-admin` would land as USER. `POST /user/` requires admin auth but accepts an explicit `userRole`, so it bypasses both gotchas.
+
+**Every run:** start the Go API separately (`cd api && go run main.go`). None of the runners start the API — same pattern as Playwright.
 
 #### Running locally
 
+Three runners, one per target. Each accepts optional spec paths; with no args it iterates every `*_test.dart` under `integration_test/`.
+
 ```bash
+# Android emulator (mac dev primary target):
+cd mobile && ./run-e2e-android.sh
+cd mobile && ./run-e2e-android.sh integration_test/smoke_login_test.dart
+
+# iOS Simulator:
+cd mobile && ./run-e2e-ios.sh
+cd mobile && ./run-e2e-ios.sh integration_test/smoke_login_test.dart
+
+# Linux desktop (containers, CI Linux):
 cd mobile && ./run-e2e.sh
-# or a single spec:
-cd mobile && ./run-e2e.sh integration_test/smoke_login_test.dart
 ```
 
-`run-e2e.sh` sources `api/dev/switch-to-sqlite.sh` (which exports the `E2E_*` credentials), writes a temp JSON, and invokes `flutter test integration_test/ -d linux --dart-define-from-file=<tmp>`.
+All three runners source `api/dev/switch-to-sqlite.sh` for the four `E2E_*` credentials, write a temp dart-define JSON, and invoke flutter against the suite. **What differs:**
+
+| Runner             | Target          | Invocation                       | Default `E2E_BASE_URL`           |
+| ------------------ | --------------- | -------------------------------- | -------------------------------- |
+| `run-e2e-android.sh` | Android emulator | `flutter drive` (one per spec) | `http://10.0.2.2:8081/api` (host loopback alias) |
+| `run-e2e-ios.sh`   | iOS Simulator   | `flutter drive` (one per spec)   | `http://localhost:8081/api`      |
+| `run-e2e.sh`       | Linux desktop   | `flutter test` (one per spec)    | `http://localhost:8081/api`      |
+
+**Mobile-runner-specific env overrides:**
+- `E2E_ANDROID_AVD` — AVD name (default `Pixel_3a_API_34_extension_level_7_arm64-v8a`). Auto-booted with `-no-snapshot-save -no-boot-anim` if no emulator is attached; the script waits for `sys.boot_completed=1` (5 min ceiling).
+- `E2E_IOS_DEVICE` — simulator device name (default `iPhone 15`). Auto-booted via `xcrun simctl boot` + `bootstatus`. The grep anchor (`^ *<name> (`) excludes "iPhone 15 Pro" / "Pro Max" siblings, so set the exact name.
+- `E2E_MOBILE_BASE_URL` — overrides the table defaults. Useful for pointing at a remote backend, e.g. `E2E_MOBILE_BASE_URL=https://demo.receiptwrangler.io/api ./run-e2e-android.sh`.
+
+**Why `flutter drive` on mobile, `flutter test` on Linux:** on the Android/iOS path, `flutter test integration_test/...` repeatedly hit "Integration tests and unit tests cannot be run in a single invocation" even on a single file. Every working android-emulator-runner CI example uses `flutter drive` with an explicit driver + target (`test_driver/integration_test.dart` calls `integrationDriver()`), so we follow that pattern on mobile. Linux desktop works fine with `flutter test`.
+
+**Why one-`flutter drive`-per-spec on mobile:** the top-level `GoRouter` in `lib/main.dart` is a final global — its location persists across `testWidgets` calls within the same flutter process. Spec N+1 inherits spec N's last URL and 403s on bootstrap. Looping one `flutter drive` per spec gives each its own process. Between specs, the mobile scripts force-stop and uninstall by bundle id `io.receiptwrangler` (flutter drive's own cleanup uninstalls by the namespace `com.example.receipt_wrangler_mobile`, which doesn't match the real package), `pkill -f dartvm` to free leaked dart isolate hosts that own the vmservice port, and wrap each spec in `gtimeout 600` so a hung run doesn't eat the whole job.
+
+**Auto-discovery:** the mobile scripts walk a small list of candidate Flutter install dirs (`~/Documents/flutter/bin`, `~/flutter/bin`, `/opt/flutter/bin`, `/usr/local/flutter/bin`) if `flutter` is not on `$PATH`, and resolve the Android SDK from `$ANDROID_HOME` → `$ANDROID_SDK_ROOT` → `~/Library/Android/sdk`. They prepend `platform-tools` and `emulator` to PATH for the run.
+
+**Devices are left running on exit.** The scripts don't shut down the emulator/simulator — reruns reuse the booted device for speed. To force a cold boot next time: `adb emu kill` (Android) or `xcrun simctl shutdown <udid>` (iOS).
 
 #### How env vars reach the tests
 
@@ -235,6 +273,7 @@ cd mobile && ./run-e2e.sh integration_test/smoke_login_test.dart
 - **Go API rate-limiter:** login is rate-limited. Rerunning the same test in tight succession can 429 — give it a few seconds between runs. The desktop suite notes the same issue in `desktop/e2e/helpers/auth.ts`.
 - **DB accumulation:** tests write real rows (sessions, refresh tokens). Fine for a smoke test; when specs start creating receipts/groups/etc., build per-test uniqueness (UUIDs) into the data, mirroring the Playwright conventions.
 - **Never commit credentials or the generated JSON.** `.e2e-env.json` is gitignored as belt-and-suspenders — the script already uses `mktemp`.
+- **iOS 26.x runtime gotcha:** Xcode 26.x ships with only its own SDK (e.g. Xcode 26.5 → iOS 26.5 SDK only). Until that exact-version *simulator runtime* is installed, `xcodebuild -showdestinations` returns **zero** eligible destinations for this project — no sim on any iOS version is buildable, even though older runtimes (17.x / 18.x) show up under `xcrun simctl list runtimes`. Symptom: `run-e2e-ios.sh` reports `Unable to find a destination matching the provided destination specifier: { id:<udid> }` for whatever sim it picks. Fix: `xcodebuild -downloadPlatform iOS` (about 8GB, ~10–15 min). Once installed, the older simulators become buildable too.
 
 #### Reference files
 
@@ -242,12 +281,15 @@ cd mobile && ./run-e2e.sh integration_test/smoke_login_test.dart
 - `integration_test/helpers/env.dart` — dart-define consumption + guards.
 - `integration_test/helpers/pump.dart` — `pumpUntilFound` polling helper.
 - `integration_test/helpers/platform_mocks.dart` — Linux-desktop platform-channel stubs for `permission_handler`, `gal`, `flutter_secure_storage`.
-- `run-e2e.sh` — local runner; wraps in `xvfb-run` when headless, sources API env, maps `E2E_MOBILE_BASE_URL`, invokes `flutter test`.
+- `test_driver/integration_test.dart` — `integrationDriver()` entrypoint that `flutter drive` uses.
+- `run-e2e-android.sh` — Android runner; auto-boots an AVD, runs per-spec `flutter drive` loop with cleanup between specs.
+- `run-e2e-ios.sh` — iOS runner; resolves a simulator UDID by name and boots it, runs per-spec `flutter drive` loop.
+- `run-e2e.sh` — Linux desktop runner; wraps in `xvfb-run` when headless, invokes `flutter test`.
+- `.github/workflows/mobile-e2e.yml` — CI counterpart; same command shapes the local mobile scripts mirror.
 - `desktop/e2e/helpers/auth.ts` — Playwright counterpart; follow its conventions when adding new flows.
 
 #### Out of scope (future work)
 
-- iOS simulator (needs a macOS runner; significantly higher cost and complexity).
 - Promoting the CI workflow from `tech/mobile-e2e` to `main` / PR triggers, and from advisory to required.
 - Screenshot / video artifact capture on failure.
 - `storageState`-style auth warmup across a multi-spec suite.

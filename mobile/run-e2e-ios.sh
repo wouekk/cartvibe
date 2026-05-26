@@ -1,0 +1,166 @@
+#!/usr/bin/env bash
+# Runs the Flutter integration_test suite against a local iOS Simulator.
+#
+# Usage:
+#   cd mobile && ./run-e2e-ios.sh                                     # all tests
+#   cd mobile && ./run-e2e-ios.sh integration_test/smoke_login_test.dart
+#
+# Resolves $E2E_IOS_DEVICE (default: iPhone 15) to a simulator UDID, boots it
+# if necessary, then runs one `flutter drive` per spec. The simulator is left
+# booted on exit -- shut it down (xcrun simctl shutdown <udid>) for a cold
+# boot next time.
+#
+# Requires:
+#   - Xcode + iOS Simulator (xcrun simctl on PATH)
+#   - flutter on PATH (or installed under ~/Documents/flutter/bin, auto-discovered)
+#   - coreutils on PATH for `gtimeout` (brew install coreutils)
+#   - Go API running locally on :8081 (cd api && go run main.go)
+#   - The two e2e users seeded (see mobile/CLAUDE.md "Prerequisites")
+#
+# Env vars (sourced from api/dev/switch-to-sqlite.sh if present):
+#   E2E_ADMIN_USERNAME, E2E_ADMIN_PASSWORD, E2E_USER_USERNAME, E2E_USER_PASSWORD
+#
+# Overrides:
+#   E2E_IOS_DEVICE        Simulator device name (default: "iPhone 15"). Multiple
+#                         sims with the same name across iOS runtimes get
+#                         resolved by the first match in `simctl list` order;
+#                         set E2E_IOS_UDID to skip name lookup entirely.
+#   E2E_IOS_UDID          Exact simulator UDID. Overrides E2E_IOS_DEVICE when set.
+#   E2E_MOBILE_BASE_URL   API base URL the app hits (default: http://localhost:8081/api;
+#                         iOS Simulator shares the host network, so localhost works)
+
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$script_dir"
+
+# --- locate flutter ----------------------------------------------------------
+if ! command -v flutter >/dev/null 2>&1; then
+  for candidate in "$HOME/Documents/flutter/bin" "$HOME/flutter/bin" "/opt/flutter/bin" "/usr/local/flutter/bin"; do
+    if [[ -x "$candidate/flutter" ]]; then
+      export PATH="$candidate:$PATH"
+      break
+    fi
+  done
+fi
+command -v flutter >/dev/null 2>&1 || { echo "flutter not on PATH" >&2; exit 1; }
+command -v xcrun >/dev/null 2>&1 || { echo "xcrun not on PATH (install Xcode command line tools)" >&2; exit 1; }
+command -v gtimeout >/dev/null 2>&1 || { echo "gtimeout not found; brew install coreutils" >&2; exit 1; }
+
+# --- credentials -------------------------------------------------------------
+env_script="../api/dev/switch-to-sqlite.sh"
+if [[ -f "$env_script" ]]; then
+  # shellcheck disable=SC1090
+  source "$env_script"
+fi
+: "${E2E_ADMIN_USERNAME:?set E2E_ADMIN_USERNAME or source api/dev/switch-to-sqlite.sh}"
+: "${E2E_ADMIN_PASSWORD:?set E2E_ADMIN_PASSWORD or source api/dev/switch-to-sqlite.sh}"
+: "${E2E_USER_USERNAME:?set E2E_USER_USERNAME or source api/dev/switch-to-sqlite.sh}"
+: "${E2E_USER_PASSWORD:?set E2E_USER_PASSWORD or source api/dev/switch-to-sqlite.sh}"
+
+mobile_base_url="${E2E_MOBILE_BASE_URL:-http://localhost:8081/api}"
+device_name="${E2E_IOS_DEVICE:-iPhone 15}"
+
+# --- resolve simulator UDID --------------------------------------------------
+# Match "<name> (" so "iPhone 15" doesn't catch "iPhone 15 Pro" -- after the
+# device name the next literal char in the simctl output is the opening paren
+# of the UDID, while sibling models have a model qualifier in between.
+# `simctl list devices available` only lists devices on installed runtimes.
+if [[ -n "${E2E_IOS_UDID:-}" ]]; then
+  udid="$E2E_IOS_UDID"
+  echo "==> Using simulator UDID from E2E_IOS_UDID: $udid"
+else
+  udid="$(xcrun simctl list devices available \
+    | grep -E "^ *${device_name} \(" \
+    | head -n 1 \
+    | grep -oE '[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}')"
+
+  if [[ -z "$udid" ]]; then
+    echo "No simulator named '$device_name' found. Available devices:" >&2
+    xcrun simctl list devices available >&2
+    echo "Set E2E_IOS_DEVICE to one of the names above, or E2E_IOS_UDID to a specific UDID." >&2
+    exit 1
+  fi
+fi
+
+# Boot if not already booted. simctl bootstatus blocks until the device is
+# Booted+SpringBoard-ready, which is what we want before launching the app.
+state="$(xcrun simctl list devices | grep -F "$udid" | grep -oE '\((Booted|Shutdown|Shutting Down)\)' | tr -d '()' | head -n 1)"
+if [[ "$state" != "Booted" ]]; then
+  echo "==> Booting simulator $udid"
+  xcrun simctl boot "$udid"
+fi
+xcrun simctl bootstatus "$udid" -b >/dev/null
+
+# `simctl boot` only starts the runtime; the Simulator.app GUI window doesn't
+# appear unless we launch it explicitly. Useful both for visibility while a
+# test is running and so the user knows the sim is alive.
+open -a Simulator --args -CurrentDeviceUDID "$udid" >/dev/null 2>&1 || true
+
+echo "==> Simulator $udid is booted"
+
+# --- ensure dependencies resolved -------------------------------------------
+# The per-spec `flutter drive` invocations pass --no-pub (faster reruns, matches
+# CI). CI runs `flutter pub get` as a prior step; locally we need to do it
+# ourselves once so .dart_tool/package_config.json has integration_test mapped
+# -- otherwise the first build fails with
+# "Couldn't resolve the package 'integration_test'".
+echo "==> flutter pub get"
+flutter pub get
+
+# --- dart-define payload -----------------------------------------------------
+tmp_env="$(mktemp -t run-e2e-ios.XXXXXX).json"
+trap 'rm -f "$tmp_env"' EXIT
+cat > "$tmp_env" <<EOF
+{
+  "E2E_BASE_URL": "$mobile_base_url",
+  "E2E_ADMIN_USERNAME": "$E2E_ADMIN_USERNAME",
+  "E2E_ADMIN_PASSWORD": "$E2E_ADMIN_PASSWORD",
+  "E2E_USER_USERNAME": "$E2E_USER_USERNAME",
+  "E2E_USER_PASSWORD": "$E2E_USER_PASSWORD"
+}
+EOF
+
+# --- target specs ------------------------------------------------------------
+if [[ $# -gt 0 ]]; then
+  targets=("$@")
+else
+  targets=()
+  while IFS= read -r spec; do targets+=("$spec"); done \
+    < <(find integration_test -maxdepth 2 -name '*_test.dart' | sort)
+fi
+if [[ ${#targets[@]} -eq 0 ]]; then
+  echo "No *_test.dart files found under integration_test/" >&2
+  exit 1
+fi
+
+# --- per-spec drive loop -----------------------------------------------------
+# One `flutter drive` per spec -- same reason as Android: the top-level
+# GoRouter in main.dart persists location across testWidgets within a single
+# flutter process.
+#
+# Between specs: terminate + uninstall by bundle id (io.receiptwrangler) and
+# pkill -f dartvm + io.receiptwrangler. iOS flake class (flutter#129246,
+# #136222, #153433): without these, the previous spec's dart isolate keeps
+# the vmservice port and the next launch silently hangs.
+# gtimeout 600 (10min, well above the ~30s legit spec runtime) walks past a
+# hung spec instead of consuming the rest of the run.
+exit_code=0
+for target in "${targets[@]}"; do
+  echo ""
+  echo "==> $target"
+  xcrun simctl terminate "$udid" io.receiptwrangler >/dev/null 2>&1 || true
+  xcrun simctl uninstall "$udid" io.receiptwrangler >/dev/null 2>&1 || true
+  pkill -f dartvm >/dev/null 2>&1 || true
+  pkill -f io.receiptwrangler >/dev/null 2>&1 || true
+  if ! gtimeout 600 flutter drive \
+       --no-pub \
+       --driver=test_driver/integration_test.dart \
+       --target="$target" \
+       -d "$udid" \
+       --dart-define-from-file="$tmp_env"; then
+    exit_code=1
+  fi
+done
+
+exit "$exit_code"
