@@ -386,7 +386,16 @@ class ReceiptBottomSheetBuilder {
           if (loadingModel.isLoading) {
             return;
           }
-          if (!receiptModel.receiptFormKey.currentState!.saveAndValidate()) {
+          // Defensive null check: the form key reference is now stable
+          // (receipt_form.dart's `formKey` getter reads from the model
+          // every build), but a future regression that detaches the
+          // FormBuilder from the model's current key would surface here
+          // as a null currentState. Short-circuit to a no-op tap rather
+          // than crashing with "Null check operator used on a null value".
+          // Note: local name is `state` to avoid shadowing the outer
+          // `formState` field (WranglerFormState) used inside this closure.
+          final state = receiptModel.receiptFormKey.currentState;
+          if (state == null || !state.saveAndValidate()) {
             return;
           }
           // The Consumer rebuild + spinner is still useful UX -- it

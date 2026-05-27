@@ -29,8 +29,19 @@ class _ReceiptBottomNav extends State<ReceiptBottomNav> {
 
   void updateModifiedReceipt() {
     var formState = getFormStateFromContext(context);
-    receiptModel.receiptFormKey.currentState!.save();
-    var form = {...receiptModel.receiptFormKey.currentState!.value};
+    // Defensive null check: the only current caller already guards on
+    // `currentState != null` (build()'s onDestinationSelected, line 138),
+    // but bare `!` here is the same inconsistency the receipt-submit
+    // handler had at receipt_bottom_sheet_builder.dart:389 -- a future
+    // refactor that calls this from a non-guarded path would crash with
+    // "Null check operator used on a null value". No-op when the form
+    // isn't currently attached to the model's key.
+    final state = receiptModel.receiptFormKey.currentState;
+    if (state == null) {
+      return;
+    }
+    state.save();
+    var form = {...state.value};
     var date = "";
 
     if (formState == WranglerFormState.view) {

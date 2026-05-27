@@ -27,3 +27,28 @@ Future<void> pumpUntilFound(
     'Timed out after ${timeout.inSeconds}s waiting for $finder',
   );
 }
+
+/// Inverse of [pumpUntilFound]: pumps frames until [finder] no longer
+/// matches anything, or [timeout] elapses. Useful for asserting that a
+/// widget disappears after a user action (e.g. swipe-delete on a list
+/// row) where the disappearance is driven by an API round-trip rather
+/// than an immediate setState.
+Future<void> pumpUntilGone(
+  WidgetTester tester,
+  Finder finder, {
+  Duration timeout = const Duration(seconds: 10),
+  Duration step = const Duration(milliseconds: 100),
+}) async {
+  final deadline = DateTime.now().add(timeout);
+  while (DateTime.now().isBefore(deadline)) {
+    await tester.pump(step);
+    try {
+      if (finder.evaluate().isEmpty) return;
+    } catch (_) {
+      return;
+    }
+  }
+  throw StateError(
+    'Timed out after ${timeout.inSeconds}s waiting for $finder to disappear',
+  );
+}
