@@ -165,27 +165,47 @@ fi
 # GoRouter in main.dart persists location across testWidgets within a single
 # flutter process.
 #
-# Between specs: terminate + uninstall by bundle id (io.receiptwrangler) and
-# pkill -f dartvm + io.receiptwrangler. iOS flake class (flutter#129246,
-# #136222, #153433): without these, the previous spec's dart isolate keeps
-# the vmservice port and the next launch silently hangs.
+# Between specs (and between retry attempts): terminate + uninstall by bundle
+# id (io.receiptwrangler) and pkill -f dartvm + io.receiptwrangler. iOS flake
+# class (flutter#129246, #136222, #153433): without these, the previous spec's
+# dart isolate keeps the vmservice port and the next launch silently hangs.
 # gtimeout 600 (10min, well above the ~30s legit spec runtime) walks past a
 # hung spec instead of consuming the rest of the run.
-exit_code=0
-for target in "${targets[@]}"; do
-  echo ""
-  echo "==> $target"
+#
+# One retry on failure: the very first spec on a fresh CI runner pays a
+# cold pod install + ~150s Xcode build, after which flutter drive's log
+# reader can race the debug-server attach and abort with "The log reader
+# failed unexpectedly". Subsequent rebuilds are ~55s and don't hit it.
+# Retrying once catches that flake without slowing the happy path. The
+# first-attempt log stays visible so genuine breakage is still observable.
+prepare_sim() {
   xcrun simctl terminate "$udid" io.receiptwrangler >/dev/null 2>&1 || true
   xcrun simctl uninstall "$udid" io.receiptwrangler >/dev/null 2>&1 || true
   pkill -f dartvm >/dev/null 2>&1 || true
   pkill -f io.receiptwrangler >/dev/null 2>&1 || true
+}
+exit_code=0
+for target in "${targets[@]}"; do
+  echo ""
+  echo "==> $target"
+  prepare_sim
   if ! gtimeout 600 flutter drive \
        --no-pub \
        --driver=test_driver/integration_test.dart \
        --target="$target" \
        -d "$udid" \
        --dart-define-from-file="$tmp_env"; then
-    exit_code=1
+    echo "==> $target failed on attempt 1; retrying once after 5s..." >&2
+    sleep 5
+    prepare_sim
+    if ! gtimeout 600 flutter drive \
+         --no-pub \
+         --driver=test_driver/integration_test.dart \
+         --target="$target" \
+         -d "$udid" \
+         --dart-define-from-file="$tmp_env"; then
+      exit_code=1
+    fi
   fi
 done
 
