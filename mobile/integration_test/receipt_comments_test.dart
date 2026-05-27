@@ -29,13 +29,18 @@ void main() {
     }
   });
 
-  // TODO(unblock-comments): shares the same /view -> popup -> Edit menu
-  // navigation as receipt_status_lifecycle_test, which is currently broken on
-  // a null-check in `receipt_bottom_sheet_builder.dart:389:56` (see that
-  // spec's TODO). The comment input path then adds its own complexity around
-  // the bottom-sheet send button + slidable-row delete. Skipping until the
-  // shared setup is debugged; once status_lifecycle passes, this should be
-  // re-enabled and verified.
+  // TODO(comments-second-submit): with the form-key fix in place, this test
+  // gets past navigation and submits the FIRST comment to the API
+  // successfully. The SECOND `_submitComment(secondComment)` call's send-icon
+  // tap reports a hit-test miss and the POST never fires (API returns 1
+  // comment, expected 2). Suspected layout: after the first comment renders
+  // in the list, the bottom-sheet send button gets nudged below the visible
+  // area on the 1280x900 test surface. The pumpUntilFound that gates on
+  // `IconButton.onPressed != null` still hits because the widget exists; the
+  // miss is on the gesture-pump location. Needs either `ensureVisible(sendButton)`
+  // before the second tap, or a different scroll/keyboard handling. Skipping
+  // until investigated -- the bug this PR is unblocking (the null-check at
+  // receipt_bottom_sheet_builder.dart:389) is no longer the issue here.
   testWidgets('admin can add, view, and delete receipt comments',
       skip: true,
       (tester) async {
@@ -134,11 +139,18 @@ Future<void> _submitComment(WidgetTester tester, String comment) async {
   );
   await pumpUntilFound(tester, commentField);
   await tester.enterText(commentField, comment);
-  // The submit button is disabled-until-non-empty via a BehaviorSubject;
-  // a single pump won't propagate the onChanged -> setState -> rebuild
-  // chain that re-enables the IconButton on slow targets.
-  for (int i = 0; i < 5; i++) {
-    await tester.pump(const Duration(milliseconds: 100));
-  }
-  await tester.tap(find.byIcon(Icons.send));
+  await tester.pumpAndSettle(const Duration(seconds: 1));
+
+  // The submit IconButton is gated on the textBehaviorSubject stream
+  // (receipt_comment_screen.dart:82-85). Until the stream emits the new
+  // value, IconButton.onPressed stays null and the tap is a no-op.
+  // pumpUntil the *enabled* button (onPressed != null) -- not just the
+  // widget's existence -- before tapping.
+  final sendButton = find.byWidgetPredicate((w) =>
+      w is IconButton &&
+      w.icon is Icon &&
+      (w.icon as Icon).icon == Icons.send &&
+      w.onPressed != null);
+  await pumpUntilFound(tester, sendButton);
+  await tester.tap(sendButton);
 }

@@ -7,6 +7,7 @@ import 'package:integration_test/integration_test.dart';
 import 'package:receipt_wrangler_mobile/shared/widgets/bottom_submit_button.dart';
 
 import 'helpers/api.dart';
+import 'helpers/form_actions.dart';
 import 'helpers/login.dart';
 import 'helpers/platform_mocks.dart';
 import 'helpers/pump.dart';
@@ -31,20 +32,7 @@ void main() {
     }
   });
 
-  // TODO(unblock-status-lifecycle): after changing the receipt status via the
-  // FormBuilderDropdown and tapping BottomSubmitButton, the submit handler
-  // crashes with "Null check operator used on a null value" at
-  // `mobile/lib/receipts/nav/receipt_bottom_sheet_builder.dart:389:56`:
-  //     receiptModel.receiptFormKey.currentState!.saveAndValidate()
-  // The receiptFormKey is reset to a new GlobalKey inside ReceiptModel.setReceipt()
-  // (`receipt_model.dart:69`) every time the receipt is loaded -- including the
-  // /view -> /edit transition. The existing `receipt_edit_test` does the same
-  // flow but only modifies a FormBuilderTextField (Name) before submit and
-  // works fine; the failure here appears specific to the dropdown-then-submit
-  // ordering. Pumping `find.text('Name')` and pumpAndSettle(3s) did not unblock.
-  // Skipping the spec until the underlying timing/key bug is understood.
   testWidgets('admin can move a receipt through all status transitions',
-      skip: true,
       (tester) async {
     await binding.setSurfaceSize(const Size(1280, 900));
     addTearDown(() => binding.setSurfaceSize(null));
@@ -105,33 +93,25 @@ Future<void> _changeStatusViaUI(WidgetTester tester, String optionLabel) async {
   await pumpUntilFound(tester, find.text('Edit'));
   await tester.tap(find.text('Edit'));
 
-  // Wait for the edit form to be fully mounted before any submit. The
-  // ReceiptModel.setReceipt() that fires on navigation rebuilds the
-  // receiptFormKey from scratch (receipt_model.dart:69), so the form's
-  // currentState is null for a few frames while the new widget attaches.
-  // saveAndValidate() in the submit handler dereferences currentState!
-  // with a null-check operator -- tapping Submit before that attachment
-  // completes throws "Null check operator used on a null value".
-  // Mirror receipt_edit_test.dart:59 -- wait for the Name field to render
-  // (a stable form element) before driving the form.
+  // Wait for the edit form to mount before driving it. The same
+  // pumpUntilFound(Name) pattern used by receipt_edit_test.dart:59.
   await pumpUntilFound(tester, find.text('Name'));
 
-  // Edit screen renders the same FormBuilder fields as add; the status
-  // dropdown is `FormBuilderDropdown<ReceiptStatus>(name: 'status')`.
+  // The status field sits well below Name on the receipt form; on the
+  // 1280x900 test surface it's off-screen until we scroll it into view.
+  // Without ensureVisible the dropdown tap silently misses and the
+  // option text never renders, so pumpUntilFound inside selectDropdown
+  // times out.
   final statusFinder = find.byWidgetPredicate(
     (w) => w is FormBuilderDropdown && w.name == 'status',
   );
   await pumpUntilFound(tester, statusFinder);
-  await tester.tap(statusFinder);
+  await tester.ensureVisible(statusFinder);
+  await tester.pumpAndSettle();
 
-  // Same .last + frame-drain pattern as selectDropdown() in
-  // helpers/form_actions.dart -- the closed-state child stays in the tree
-  // behind the open menu and the option text appears twice.
-  await pumpUntilFound(tester, find.text(optionLabel));
-  await tester.tap(find.text(optionLabel).last);
-  for (int i = 0; i < 5; i++) {
-    await tester.pump(const Duration(milliseconds: 200));
-  }
+  // Use the proven dropdown helper -- it handles the .last/frame-drain
+  // pattern the closed-state child needs.
+  await selectDropdown(tester, 'status', optionLabel);
 
   await tester.pumpAndSettle(const Duration(seconds: 3));
   await tester.tap(find.byType(BottomSubmitButton));

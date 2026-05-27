@@ -37,12 +37,17 @@ void main() {
     }
   });
 
-  // TODO(unblock-cost-split): shares the same /view -> popup -> Edit menu
-  // navigation as receipt_status_lifecycle_test (currently failing -- see
-  // that spec's TODO referencing the receiptFormKey.currentState! null check
-  // at receipt_bottom_sheet_builder.dart:389:56). Cost-split's submit also
-  // funnels through that handler, so it can't go green until the upstream
-  // bug is fixed.
+  // TODO(cost-split-shellContext): with the form-key fix in place, this test
+  // gets past navigation and the split-action IconButton tap fires
+  // `openQuickActionsBottomSheet` (receipt_form.dart:501), but
+  // `showFullscreenBottomSheet(shellContext as BuildContext, ...)` throws
+  // "Null check operator used on a null value" inside `Element.widget` ->
+  // `debugCheckHasMediaQuery` -> `showModalBottomSheet`. The cached
+  // `shellContext` (receipt_form.dart:53-54) appears to point at a
+  // deactivated Element by the time the user taps split. This is a separate
+  // production bug from the null-check this PR fixes; the bottom sheet never
+  // opens so the test then times out waiting for "Split Evenly". Skipping
+  // both modes until shellContext lifecycle is investigated.
   testWidgets('Split Evenly creates one item per selected user',
       skip: true,
       (tester) async {
@@ -184,6 +189,11 @@ Future<void> _openQuickActionsSheet(WidgetTester tester) async {
     (w) => w is IconButton && w.icon is SvgPicture,
   );
   await pumpUntilFound(tester, splitButton);
+  // The split-action button sits below the Shares row on the form,
+  // off-screen on the 1280x900 test surface. Scroll it into view so
+  // the tap lands -- otherwise the bottom sheet never opens.
+  await tester.ensureVisible(splitButton);
+  await tester.pumpAndSettle();
   await tester.tap(splitButton);
   // The fullscreen bottom sheet header is "Quick Actions"; wait for the
   // ToggleButtons row to render before driving the form.
