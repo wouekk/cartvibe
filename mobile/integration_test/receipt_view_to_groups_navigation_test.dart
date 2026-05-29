@@ -28,9 +28,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:receipt_wrangler_mobile/groups/screens/group_select.dart';
 
 import 'helpers/login.dart';
 import 'helpers/platform_mocks.dart';
+import 'helpers/pump.dart';
 import 'helpers/receipt_test_helpers.dart';
 
 void main() {
@@ -69,7 +71,10 @@ void main() {
     final scaffolds = find.byType(Scaffold).evaluate();
     expect(scaffolds, isNotEmpty);
     GoRouter.of(scaffolds.first).go('/groups');
-    await pumpUntilUrl(tester, RegExp(r'^/groups'));
+    // /groups mounts GroupSelect; that's the destination-mounted marker
+    // per the project convention. The follow-on pump(500ms) keeps the
+    // breathing room the original flow had after the route landed.
+    await pumpUntilFound(tester, find.byType(GroupSelect));
     await tester.pump(const Duration(milliseconds: 500));
 
     // Now drive a SECOND add through the bottom nav (matching the

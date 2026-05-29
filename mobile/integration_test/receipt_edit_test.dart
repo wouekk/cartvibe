@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:receipt_wrangler_mobile/shared/widgets/bottom_submit_button.dart';
+import 'package:receipt_wrangler_mobile/shared/widgets/receipt_edit_popup_menu.dart';
 
 import 'helpers/api.dart';
 import 'helpers/form_actions.dart';
@@ -55,7 +56,8 @@ void main() {
     await tester.tap(find.byType(PopupMenuButton<dynamic>));
     await pumpUntilFound(tester, find.text('Edit'));
     await tester.tap(find.text('Edit'));
-    await pumpUntilUrl(tester, RegExp(r'/receipts/\d+/edit'));
+    // /edit's destination-mounted marker is the form's Name label; the
+    // URL wait was redundant with the widget wait that follows.
     await pumpUntilFound(tester, find.text('Name'));
 
     // Modify the name field. enterText replaces existing content.
@@ -69,7 +71,8 @@ void main() {
     await tester.pumpAndSettle(const Duration(seconds: 2));
 
     await tester.tap(find.byType(BottomSubmitButton));
-    await pumpUntilUrl(tester, RegExp(r'/receipts/\d+/view'));
+    // /view shell has mounted once ReceiptEditPopupMenu renders.
+    await pumpUntilFound(tester, find.byType(ReceiptEditPopupMenu));
 
     // API check: the receipt's name is now the new value.
     final jwt = await apiLogin();

@@ -62,9 +62,9 @@ void main() {
     // value carries over from receipt 1's save).
     await tester.tap(backButton);
     // Lands on /groups/<groupId>/receipts which uses GroupBottomNav.
-    // GroupBottomNav also has an "Add" destination -- the bottom nav
-    // text we want.
-    await pumpUntilUrl(tester, RegExp(r'^/groups/\d+/receipts'));
+    // GroupBottomNav also has an "Add" destination -- waiting on that
+    // text is both the destination-mounted check and the target for
+    // the next addManualReceiptViaUI call.
     await pumpUntilFound(tester, find.text('Add'));
 
     // Add receipt 2.

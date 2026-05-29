@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:receipt_wrangler_mobile/shared/widgets/bottom_submit_button.dart';
+import 'package:receipt_wrangler_mobile/shared/widgets/receipt_edit_popup_menu.dart';
 
 import 'helpers/form_actions.dart';
 import 'helpers/login.dart';
@@ -60,8 +61,10 @@ void main() {
     expect(submitFinder, findsOneWidget,
         reason: 'BottomSubmitButton should be rendered on /receipts/add');
     await tester.tap(submitFinder);
-    final url = await pumpUntilUrl(tester, RegExp(r'/receipts/\d+/view'));
-
-    scheduleReceiptCleanup(receiptIdFromUrl(url));
+    // Assert /view via the ReceiptEditPopupMenu (only mounted on /view
+    // per receipt_app_bar_action_builder.dart:56-67), then read the
+    // id off the URL for cleanup.
+    await pumpUntilFound(tester, find.byType(ReceiptEditPopupMenu));
+    scheduleReceiptCleanup(receiptIdFromUrl(currentUrl(tester)));
   });
 }

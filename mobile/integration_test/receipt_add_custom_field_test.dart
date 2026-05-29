@@ -18,6 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:receipt_wrangler_mobile/shared/widgets/bottom_submit_button.dart';
+import 'package:receipt_wrangler_mobile/shared/widgets/receipt_edit_popup_menu.dart';
 
 import 'helpers/api.dart';
 import 'helpers/form_actions.dart';
@@ -102,8 +103,9 @@ void main() {
     // Save.
     await tester.pumpAndSettle(const Duration(seconds: 3));
     await tester.tap(find.byType(BottomSubmitButton));
-    final url = await pumpUntilUrl(tester, RegExp(r'/receipts/\d+/view'));
-    final receiptId = receiptIdFromUrl(url);
+    // /view shell mounted -> ReceiptEditPopupMenu is in the tree.
+    await pumpUntilFound(tester, find.byType(ReceiptEditPopupMenu));
+    final receiptId = receiptIdFromUrl(currentUrl(tester));
     scheduleReceiptCleanup(receiptId);
 
     // Verify via API: the receipt has a customFieldValue with our id

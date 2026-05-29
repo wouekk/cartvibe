@@ -62,9 +62,11 @@ void main() {
 
     // Back to the list. The back arrow on /view is the TopAppBar's leading
     // IconButton; it triggers `receiptModel.resetModel()` and pushes
-    // /groups/<groupId>/receipts (receipt_app_bar.dart:42-46).
+    // /groups/<groupId>/receipts (receipt_app_bar.dart:42-46). Wait for
+    // the bottom-nav "Add" entry as the destination-mounted marker
+    // (the same target addManualReceiptViaUI taps next).
     await _tapBackArrow(tester);
-    await pumpUntilUrl(tester, RegExp(r'/groups/\d+/receipts'));
+    await pumpUntilFound(tester, find.text('Add'));
 
     // Receipt B: created from the list. The bottom-nav "Add" entry is
     // present on both /groups and /groups/<id>/receipts (group_select_bottom_nav.dart
@@ -83,26 +85,25 @@ void main() {
             '-- that\'d indicate setReceipt didn\'t propagate or some '
             'late-final cached the prior receipt');
 
-    // Back to the list, then switch from B's view back to A.
+    // Back to the list, then switch from B's view back to A. The
+    // widgetWithText finder on ReceiptListItem doubles as the
+    // destination-mounted check -- if it's there, the list shell has
+    // built and the item is hit-testable.
     await _tapBackArrow(tester);
-    await pumpUntilUrl(tester, RegExp(r'/groups/\d+/receipts'));
     await pumpUntilFound(
         tester, find.widgetWithText(ReceiptListItem, nameA));
 
     await tester.tap(find.widgetWithText(ReceiptListItem, nameA));
-    await pumpUntilUrl(tester, RegExp(r'/receipts/\d+/view'));
     await pumpUntilFound(tester, find.text(nameA));
     expect(find.text(nameB).evaluate(), isEmpty,
         reason: 'after navigating list -> A, B\'s name must not linger');
 
     // Final hop: A -> list -> B.
     await _tapBackArrow(tester);
-    await pumpUntilUrl(tester, RegExp(r'/groups/\d+/receipts'));
     await pumpUntilFound(
         tester, find.widgetWithText(ReceiptListItem, nameB));
 
     await tester.tap(find.widgetWithText(ReceiptListItem, nameB));
-    await pumpUntilUrl(tester, RegExp(r'/receipts/\d+/view'));
     await pumpUntilFound(tester, find.text(nameB));
     expect(find.text(nameA).evaluate(), isEmpty,
         reason: 'after the final list -> B switch, A\'s name must not linger');

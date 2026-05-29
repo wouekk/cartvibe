@@ -30,6 +30,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:receipt_wrangler_mobile/shared/widgets/bottom_submit_button.dart';
+import 'package:receipt_wrangler_mobile/shared/widgets/receipt_edit_popup_menu.dart';
 
 import 'helpers/api.dart';
 import 'helpers/dio_failure_injection.dart';
@@ -116,8 +117,9 @@ void main() {
       find.textContaining('one or more images failed to upload'),
       timeout: const Duration(seconds: 15),
     );
-    final url = await pumpUntilUrl(tester, RegExp(r'/receipts/\d+/view'));
-    final receiptId = receiptIdFromUrl(url);
+    // /view shell mounted -> ReceiptEditPopupMenu is in the tree.
+    await pumpUntilFound(tester, find.byType(ReceiptEditPopupMenu));
+    final receiptId = receiptIdFromUrl(currentUrl(tester));
     scheduleReceiptCleanup(receiptId);
 
     // Server-side: the receipt was created, but with no images.

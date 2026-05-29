@@ -172,9 +172,9 @@ End-to-end tests live in `integration_test/` (sibling of `test/`) and use Flutte
 - **Local Android emulator** via `./run-e2e-android.sh` (macOS, auto-boots an AVD).
 - **Local iOS Simulator** via `./run-e2e-ios.sh` (macOS, auto-boots a sim).
 - **Local Linux desktop** via `./run-e2e.sh` (containers/CI Linux). Originally the primary target; kept for the dev container's headless flow.
-- **CI Android + iOS** via `.github/workflows/mobile-e2e.yml`, **advisory** (`continue-on-error: true`), triggers on pushes to `tech/mobile-e2e` + `workflow_dispatch` while we iterate.
+- **CI Android + iOS** via `.github/workflows/mobile-e2e.yml`, currently **advisory** (`continue-on-error: true`). Triggers: `pull_request` against `main`, `push` to `main` (post-merge), `push` to `tech/mobile-e2e` (iteration on the e2e setup itself), and `workflow_dispatch`. Flip the `continue-on-error` flags to make the workflow gating once the two skipped specs (`receipt_comments_test`, `receipt_cost_split_test`) un-skip — they track real product bugs that are separate follow-ups.
 
-CI-on-main, PR triggering, and screenshot/video capture are still deferred — see the "Out of scope" note at the bottom of this section.
+Screenshot/video capture on failure is still deferred — see the "Out of scope" note at the bottom of this section.
 
 #### Prerequisites
 
@@ -290,7 +290,7 @@ All three runners source `api/dev/switch-to-sqlite.sh` for the four `E2E_*` cred
 
 #### Out of scope (future work)
 
-- Promoting the CI workflow from `tech/mobile-e2e` to `main` / PR triggers, and from advisory to required.
+- Flipping the workflow from advisory (`continue-on-error: true`) to required, once `receipt_comments_test` and `receipt_cost_split_test` un-skip.
 - Screenshot / video artifact capture on failure.
 - `storageState`-style auth warmup across a multi-spec suite.
 - Additional specs (receipt CRUD, group management, logout).

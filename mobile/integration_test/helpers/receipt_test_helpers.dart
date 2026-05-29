@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:receipt_wrangler_mobile/shared/widgets/bottom_submit_button.dart';
+import 'package:receipt_wrangler_mobile/shared/widgets/receipt_edit_popup_menu.dart';
 
 import 'api.dart';
 import 'form_actions.dart';
@@ -23,9 +24,15 @@ String currentUrl(WidgetTester tester) {
 }
 
 /// Pumps until the current GoRouter URL matches [pattern], or [timeout]
-/// elapses. Use this -- not `find.text(<receipt name>)` -- to verify
-/// navigation: the add screen's form already shows the typed name, so
-/// the text-finder assertion would pass before the user even hit Save.
+/// elapses.
+///
+/// PREFER `pumpUntilFound(tester, find.byType(SomeDestinationWidget))`
+/// for asserting that a route has actually mounted -- a widget is the
+/// stronger signal that the shell finished building (per `mobile/CLAUDE.md`
+/// "Assert navigation by widget presence, not URL"). Use this URL helper
+/// only when you also need to *extract* something from the URL after
+/// arrival (e.g. the receipt id from `/receipts/<id>/view`); pair it with
+/// a widget-presence wait first so the URL read isn't a race.
 Future<String> pumpUntilUrl(
   WidgetTester tester,
   RegExp pattern, {
@@ -93,6 +100,10 @@ Future<int> addManualReceiptViaUI(
   await tester.pumpAndSettle(const Duration(seconds: 3));
 
   await tester.tap(find.byType(BottomSubmitButton));
-  final url = await pumpUntilUrl(tester, RegExp(r'/receipts/\d+/view'));
-  return receiptIdFromUrl(url);
+  // Assert /view shell has mounted via the ReceiptEditPopupMenu, which
+  // only renders on /view (gated on canEditReceipt -- see
+  // mobile/lib/shared/widgets/receipt_edit_popup_menu.dart:31). Then
+  // extract the id from the URL.
+  await pumpUntilFound(tester, find.byType(ReceiptEditPopupMenu));
+  return receiptIdFromUrl(currentUrl(tester));
 }

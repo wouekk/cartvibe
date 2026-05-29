@@ -36,18 +36,29 @@ fi
 
 mobile_base_url="${E2E_MOBILE_BASE_URL:-http://localhost:8081/api}"
 
+command -v python3 >/dev/null 2>&1 || { echo "python3 not on PATH (needed to safely build the dart-define JSON)" >&2; exit 1; }
+
 tmp_env="$(mktemp --suffix=.json)"
 trap 'rm -f "$tmp_env"' EXIT
 
-cat > "$tmp_env" <<EOF
-{
-  "E2E_BASE_URL": "$mobile_base_url",
-  "E2E_ADMIN_USERNAME": "$E2E_ADMIN_USERNAME",
-  "E2E_ADMIN_PASSWORD": "$E2E_ADMIN_PASSWORD",
-  "E2E_USER_USERNAME": "$E2E_USER_USERNAME",
-  "E2E_USER_PASSWORD": "$E2E_USER_PASSWORD"
-}
-EOF
+# Build the JSON via python3 instead of a heredoc so any value containing
+# quotes/backslashes/newlines gets properly escaped. The heredoc form would
+# emit invalid JSON that `flutter --dart-define-from-file` would reject.
+# Matches the same approach in run-e2e-android.sh and run-e2e-ios.sh.
+python3 - "$tmp_env" "$mobile_base_url" \
+  "$E2E_ADMIN_USERNAME" "$E2E_ADMIN_PASSWORD" \
+  "$E2E_USER_USERNAME"  "$E2E_USER_PASSWORD" <<'PY'
+import json, sys
+out, base, au, ap, uu, up = sys.argv[1:]
+with open(out, "w", encoding="utf-8") as f:
+    json.dump({
+        "E2E_BASE_URL": base,
+        "E2E_ADMIN_USERNAME": au,
+        "E2E_ADMIN_PASSWORD": ap,
+        "E2E_USER_USERNAME": uu,
+        "E2E_USER_PASSWORD": up,
+    }, f)
+PY
 
 # Flutter desktop apps need a display. If DISPLAY isn't set and xvfb-run is
 # available, run the test under Xvfb so it works headlessly (containers, CI).

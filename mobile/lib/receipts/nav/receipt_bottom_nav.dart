@@ -45,7 +45,18 @@ class _ReceiptBottomNav extends State<ReceiptBottomNav> {
     var date = "";
 
     if (formState == WranglerFormState.view) {
-      date = convertDateFormatForForm(form["date"]);
+      // The view-mode date field is registered under "dateDisplay" rather
+      // than "date" (see receipt_form.dart:97-110) so the read-only
+      // String value doesn't collide with the edit-mode DateTime value
+      // FormBuilder would otherwise reuse from its instant-value map.
+      // Fall back to "date" for older snapshots that still set it, and
+      // bail out cleanly if neither is present rather than letting
+      // convertDateFormatForForm crash on null.
+      final rawDate = form["dateDisplay"] ?? form["date"];
+      if (rawDate == null) {
+        return;
+      }
+      date = convertDateFormatForForm(rawDate);
     } else {
       try {
         date = formatDate(zuluDateFormat, form["date"] as DateTime);

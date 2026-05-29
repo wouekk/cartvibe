@@ -70,7 +70,8 @@ void main() {
     await tester.tap(menuButton);
     await pumpUntilFound(tester, find.text('Edit'));
     await tester.tap(find.text('Edit'));
-    await pumpUntilUrl(tester, RegExp(r'/receipts/\d+/edit'));
+    // /edit's destination-mounted marker is the form's Name label.
+    await pumpUntilFound(tester, find.text('Name'));
 
     // The Comments screen is pushed via Navigator (separate from GoRouter)
     // by tapping the "Comments" compact-action button on the edit form

@@ -23,6 +23,14 @@ on:
     branches: [main, tech/mobile-e2e]
   workflow_dispatch:
 
+# Least-privilege GITHUB_TOKEN: this workflow only reads the repo source. It
+# never opens PRs, writes commits, or interacts with packages/releases. Scoping
+# to `contents: read` shrinks the blast radius if a third-party action in the
+# chain is ever compromised. Addresses CodeQL alerts on the default permissions
+# set (codeql/actions-missing-workflow-permissions).
+permissions:
+  contents: read
+
 concurrency:
   group: mobile-e2e-${{ github.ref }}
   cancel-in-progress: true
@@ -34,6 +42,11 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+        with:
+          # No subsequent step needs to push or use the auth token; leaving the
+          # credential helper untouched after checkout avoids any chance of a
+          # later step inheriting write access to the repo.
+          persist-credentials: false
 
       # Nested KVM on GitHub-hosted ubuntu runners needs the /dev/kvm device
       # to be readable by the runner user. This udev rule makes it so.
@@ -192,6 +205,11 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+        with:
+          # No subsequent step needs to push or use the auth token; leaving the
+          # credential helper untouched after checkout avoids any chance of a
+          # later step inheriting write access to the repo.
+          persist-credentials: false
 
       - uses: subosito/flutter-action@v2
         with:

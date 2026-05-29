@@ -5,6 +5,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:receipt_wrangler_mobile/shared/widgets/bottom_submit_button.dart';
+import 'package:receipt_wrangler_mobile/shared/widgets/receipt_edit_popup_menu.dart';
 
 import 'helpers/api.dart';
 import 'helpers/form_actions.dart';
@@ -115,5 +116,7 @@ Future<void> _changeStatusViaUI(WidgetTester tester, String optionLabel) async {
 
   await tester.pumpAndSettle(const Duration(seconds: 3));
   await tester.tap(find.byType(BottomSubmitButton));
-  await pumpUntilUrl(tester, RegExp(r'/receipts/\d+/view'));
+  // /view shell has mounted once ReceiptEditPopupMenu renders -- it
+  // only appears on /view per receipt_app_bar_action_builder.dart:56-67.
+  await pumpUntilFound(tester, find.byType(ReceiptEditPopupMenu));
 }

@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:receipt_wrangler_mobile/shared/widgets/bottom_submit_button.dart';
+import 'package:receipt_wrangler_mobile/shared/widgets/receipt_edit_popup_menu.dart';
 
 import 'helpers/api.dart';
 import 'helpers/login.dart';
@@ -177,7 +178,8 @@ Future<void> _navigateToEdit(WidgetTester tester) async {
   await tester.tap(menuButton);
   await pumpUntilFound(tester, find.text('Edit'));
   await tester.tap(find.text('Edit'));
-  await pumpUntilUrl(tester, RegExp(r'/receipts/\d+/edit'));
+  // /edit's destination-mounted marker is the form's Name label.
+  await pumpUntilFound(tester, find.text('Name'));
 }
 
 /// Locates the split-action IconButton on the edit form. It's the
@@ -226,14 +228,15 @@ Future<void> _selectUsers(
 /// the API.
 Future<void> _tapSplitAndSave(WidgetTester tester) async {
   await tester.tap(find.widgetWithText(BottomSubmitButton, 'Split'));
-  // The bottom sheet pops; wait for the edit URL to be the visible route
-  // again before saving.
-  await pumpUntilUrl(tester, RegExp(r'/receipts/\d+/edit'));
+  // The bottom sheet pops; the edit form's Name field is the
+  // destination-mounted marker for /edit being the visible route again.
+  await pumpUntilFound(tester, find.text('Name'));
 
   // Drain frames so the outer BottomSubmitButton has the new items list
   // committed to the form before we tap save.
   await tester.pumpAndSettle(const Duration(seconds: 2));
 
   await tester.tap(find.byType(BottomSubmitButton));
-  await pumpUntilUrl(tester, RegExp(r'/receipts/\d+/view'));
+  // /view shell mounted -> ReceiptEditPopupMenu is in the tree.
+  await pumpUntilFound(tester, find.byType(ReceiptEditPopupMenu));
 }
