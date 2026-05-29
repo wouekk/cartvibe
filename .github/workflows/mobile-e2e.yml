@@ -1,16 +1,26 @@
 ---
 name: E2E - Mobile (Android + iOS)
 
-# Experimental advisory workflow. Runs the Flutter integration_test smoke
-# login test on a full Android emulator AND on an iOS Simulator, in
-# parallel against the demo backend. The two jobs are independent --
-# neither has `needs:` on the other and both are `continue-on-error: true`,
-# so a failure in one does not stop or fail the other. Triggered on pushes
-# to the debug branch while we iterate on the mobile e2e setup.
+# Runs the Flutter integration_test suite on a full Android emulator AND
+# on an iOS Simulator, in parallel against the demo backend. The two
+# jobs are independent -- neither has `needs:` on the other and both are
+# `continue-on-error: true`, so a failure in one does not stop or fail
+# the other. Still advisory while the iOS suite stabilizes; once the
+# remaining `skip: true` specs are unblocked, flip the
+# continue-on-error flags to make this gating.
+#
+# Triggers:
+#   pull_request to main  -- run during PR review so reviewers can see
+#                            mobile e2e results before merging.
+#   push to main          -- post-merge verification after the PR lands.
+#   push to tech/mobile-e2e -- iteration on the e2e setup itself.
+#   workflow_dispatch     -- manual trigger from the Actions tab.
 
 on:
+  pull_request:
+    branches: [main]
   push:
-    branches: [tech/mobile-e2e]
+    branches: [main, tech/mobile-e2e]
   workflow_dispatch:
 
 concurrency:
