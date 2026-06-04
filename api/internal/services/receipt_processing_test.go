@@ -270,6 +270,66 @@ func TestCleanResponse_NoMarkersPassThrough(t *testing.T) {
 	}
 }
 
+func TestCleanResponse_StripsTrailingCommas(t *testing.T) {
+	service := ReceiptProcessingService{}
+	tests := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{"object", `{"a":1,}`, `{"a":1}`},
+		{"array", `[1,2,3,]`, `[1,2,3]`},
+		{"nested", `{"x":[1,2,],"y":{"z":1,},}`, `{"x":[1,2],"y":{"z":1}}`},
+		{"whitespace before close", "{\"a\":1,\n}", "{\"a\":1\n}"},
+		{"valid json untouched", `{"a":1,"b":2}`, `{"a":1,"b":2}`},
+		{"comma inside string preserved", `{"name":"Beans, baked","amount":1,}`, `{"name":"Beans, baked","amount":1}`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := service.cleanResponse(tt.in)
+			if got != tt.want {
+				t.Errorf("cleanResponse(%q) = %q, want %q", tt.in, got, tt.want)
+			}
+		})
+	}
+}
+
+// TestCleanResponse_TrailingCommaOutputIsParseable guards the actual purpose
+// of the fix: output from gpt-4o with trailing commas must unmarshal cleanly,
+// including a populated items array.
+func TestCleanResponse_TrailingCommaOutputIsParseable(t *testing.T) {
+	service := ReceiptProcessingService{}
+	raw := `{
+  "name": "BILLA",
+  "amount": 2306.86,
+  "items": [
+    { "name": "COTTAGE FIT", "amount": 197.4, },
+    { "name": "Beans, baked", "amount": 51.8, },
+  ],
+  "categories": [],
+  "tags": [],
+}`
+	cleaned := service.cleanResponse(raw)
+
+	var receipt struct {
+		Name   string  `json:"name"`
+		Amount float64 `json:"amount"`
+		Items  []struct {
+			Name   string  `json:"name"`
+			Amount float64 `json:"amount"`
+		} `json:"items"`
+	}
+	if err := json.Unmarshal([]byte(cleaned), &receipt); err != nil {
+		t.Fatalf("expected cleaned response to parse, got error: %v\ncleaned: %s", err, cleaned)
+	}
+	if len(receipt.Items) != 2 {
+		t.Errorf("expected 2 items, got %d", len(receipt.Items))
+	}
+	if receipt.Items[1].Name != "Beans, baked" {
+		t.Errorf("expected comma-containing item name preserved, got %q", receipt.Items[1].Name)
+	}
+}
+
 // ---------- Fixture helpers for the DB/orchestration tests ----------
 
 // seedReceiptProcessingFixtures creates the minimum viable graph to exercise
