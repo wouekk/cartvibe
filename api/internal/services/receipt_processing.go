@@ -11,6 +11,7 @@ import (
 	"receipt-wrangler/api/internal/repositories"
 	"receipt-wrangler/api/internal/structs"
 	"receipt-wrangler/api/internal/utils"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -278,7 +279,27 @@ func (service ReceiptProcessingService) processImages(
 func (service ReceiptProcessingService) cleanResponse(response string) string {
 	response = strings.ReplaceAll(response, "```json", "")
 	response = strings.ReplaceAll(response, "```", "")
+	response = stripTrailingCommas(response)
 	return response
+}
+
+// trailingCommaRegex matches a comma that is followed (ignoring whitespace)
+// by a closing brace or bracket, i.e. an illegal trailing comma in JSON.
+var trailingCommaRegex = regexp.MustCompile(`,(\s*[}\]])`)
+
+// stripTrailingCommas removes trailing commas before } or ] so that output
+// from LLMs that emit them (notably OpenAI gpt-4o) parses under Go's strict
+// encoding/json. Applied repeatedly to handle nested closings such as
+// "},\n  ],\n}". Commas inside string values are not matched because they
+// are not immediately followed by a closing brace/bracket.
+func stripTrailingCommas(s string) string {
+	for {
+		out := trailingCommaRegex.ReplaceAllString(s, "$1")
+		if out == s {
+			return out
+		}
+		s = out
+	}
 }
 
 // ocrImageResult is the per-image outcome from running OCR. Used by
