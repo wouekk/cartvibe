@@ -283,6 +283,14 @@ func TestCleanResponse_StripsTrailingCommas(t *testing.T) {
 		{"whitespace before close", "{\"a\":1,\n}", "{\"a\":1\n}"},
 		{"valid json untouched", `{"a":1,"b":2}`, `{"a":1,"b":2}`},
 		{"comma inside string preserved", `{"name":"Beans, baked","amount":1,}`, `{"name":"Beans, baked","amount":1}`},
+		// String-aware safety: a ",}" or ",]" sequence INSIDE a quoted value must
+		// not be touched; only the genuine trailing comma after the value is removed.
+		{"comma-brace inside string preserved", `{"note":"foo,}","amt":1,}`, `{"note":"foo,}","amt":1}`},
+		{"comma-bracket inside string preserved", `{"note":"foo,]","amt":1,}`, `{"note":"foo,]","amt":1}`},
+		{"escaped quote inside string", `{"note":"he said \"hi,\"","amt":1,}`, `{"note":"he said \"hi,\"","amt":1}`},
+		// cleanResponse chains fence-stripping then comma-stripping; cover the
+		// interaction directly so a regression in ordering is caught here.
+		{"fenced json with trailing comma", "```json\n{\"a\":1,}\n```", "\n{\"a\":1}\n"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -295,14 +303,18 @@ func TestCleanResponse_StripsTrailingCommas(t *testing.T) {
 }
 
 // TestCleanResponse_TrailingCommaOutputIsParseable guards the actual purpose
-// of the fix: output from gpt-4o with trailing commas must unmarshal cleanly,
-// including a populated items array.
+// of the fix: AI output with trailing commas must unmarshal cleanly into the
+// real production type used at the parse site (commands.UpsertReceiptCommand),
+// including a populated items array. Using the production type rather than a
+// hand-picked struct catches drift in the actual integration contract.
 func TestCleanResponse_TrailingCommaOutputIsParseable(t *testing.T) {
 	service := ReceiptProcessingService{}
+	// Note: UpsertReceiptCommand maps items via the "receiptItems" JSON key.
 	raw := `{
   "name": "BILLA",
   "amount": 2306.86,
-  "items": [
+  "date": "2026-06-03T00:00:00Z",
+  "receiptItems": [
     { "name": "COTTAGE FIT", "amount": 197.4, },
     { "name": "Beans, baked", "amount": 51.8, },
   ],
@@ -311,19 +323,15 @@ func TestCleanResponse_TrailingCommaOutputIsParseable(t *testing.T) {
 }`
 	cleaned := service.cleanResponse(raw)
 
-	var receipt struct {
-		Name   string  `json:"name"`
-		Amount float64 `json:"amount"`
-		Items  []struct {
-			Name   string  `json:"name"`
-			Amount float64 `json:"amount"`
-		} `json:"items"`
-	}
+	var receipt commands.UpsertReceiptCommand
 	if err := json.Unmarshal([]byte(cleaned), &receipt); err != nil {
 		t.Fatalf("expected cleaned response to parse, got error: %v\ncleaned: %s", err, cleaned)
 	}
+	if receipt.Name != "BILLA" {
+		t.Errorf("expected name BILLA, got %q", receipt.Name)
+	}
 	if len(receipt.Items) != 2 {
-		t.Errorf("expected 2 items, got %d", len(receipt.Items))
+		t.Fatalf("expected 2 items, got %d", len(receipt.Items))
 	}
 	if receipt.Items[1].Name != "Beans, baked" {
 		t.Errorf("expected comma-containing item name preserved, got %q", receipt.Items[1].Name)

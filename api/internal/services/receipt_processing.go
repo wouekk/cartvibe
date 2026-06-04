@@ -11,7 +11,6 @@ import (
 	"receipt-wrangler/api/internal/repositories"
 	"receipt-wrangler/api/internal/structs"
 	"receipt-wrangler/api/internal/utils"
-	"regexp"
 	"strings"
 	"time"
 )
@@ -283,23 +282,58 @@ func (service ReceiptProcessingService) cleanResponse(response string) string {
 	return response
 }
 
-// trailingCommaRegex matches a comma that is followed (ignoring whitespace)
-// by a closing brace or bracket, i.e. an illegal trailing comma in JSON.
-var trailingCommaRegex = regexp.MustCompile(`,(\s*[}\]])`)
-
 // stripTrailingCommas removes trailing commas before } or ] so that output
 // from LLMs that emit them (notably OpenAI gpt-4o) parses under Go's strict
-// encoding/json. Applied repeatedly to handle nested closings such as
-// "},\n  ],\n}". Commas inside string values are not matched because they
-// are not immediately followed by a closing brace/bracket.
+// encoding/json. It is string-aware: it tracks whether the scan position is
+// inside a JSON string (honoring backslash escapes) and only removes a comma
+// when the comma is outside any string and the next non-whitespace character
+// is a closing brace or bracket. This avoids corrupting values that legitimately
+// contain sequences like ",}" or ",]" inside a quoted string.
 func stripTrailingCommas(s string) string {
-	for {
-		out := trailingCommaRegex.ReplaceAllString(s, "$1")
-		if out == s {
-			return out
+	var b strings.Builder
+	b.Grow(len(s))
+
+	inString := false
+	escaped := false
+
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+
+		if inString {
+			b.WriteByte(c)
+			switch {
+			case escaped:
+				escaped = false
+			case c == '\\':
+				escaped = true
+			case c == '"':
+				inString = false
+			}
+			continue
 		}
-		s = out
+
+		if c == '"' {
+			inString = true
+			b.WriteByte(c)
+			continue
+		}
+
+		if c == ',' {
+			// Look ahead past whitespace for a closing brace/bracket.
+			j := i + 1
+			for j < len(s) && (s[j] == ' ' || s[j] == '\t' || s[j] == '\r' || s[j] == '\n') {
+				j++
+			}
+			if j < len(s) && (s[j] == '}' || s[j] == ']') {
+				// Trailing comma: drop it.
+				continue
+			}
+		}
+
+		b.WriteByte(c)
 	}
+
+	return b.String()
 }
 
 // ocrImageResult is the per-image outcome from running OCR. Used by
