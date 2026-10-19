@@ -1,0 +1,47 @@
+<div class="shopping-list-item" [class.checked]="item().isChecked">
+  <button
+    type="button"
+    class="toggle"
+    data-testid="shopping-list-item-toggle"
+    role="checkbox"
+    [attr.aria-checked]="item().isChecked"
+    [disabled]="!canUpdate()"
+    (click)="toggled.emit(item())"
+  >
+    <mat-icon class="check-icon">
+      {{ item().isChecked ? "check_circle" : "radio_button_unchecked" }}
+    </mat-icon>
+    <span class="text">
+      <span class="name" data-testid="shopping-list-item-name">{{ item().name }}</span>
+      @if (item().quantity) {
+        <span class="quantity">{{ item().quantity }}</span>
+      }
+      @if (item().note) {
+        <span class="note">{{ item().note }}</span>
+      }
+    </span>
+  </button>
+
+  @if (canUpdate()) {
+    <button
+      mat-icon-button
+      type="button"
+      class="menu-button"
+      data-testid="shopping-list-item-menu"
+      aria-label="Item actions"
+      [matMenuTriggerFor]="itemMenu"
+    >
+      <mat-icon>more_vert</mat-icon>
+    </button>
+    <mat-menu #itemMenu="matMenu" xPosition="before">
+      <button mat-menu-item data-testid="shopping-list-item-edit" (click)="editClicked.emit(item())">
+        <mat-icon>edit</mat-icon>
+        <span>Edit</span>
+      </button>
+      <button mat-menu-item data-testid="shopping-list-item-delete" (click)="deleteClicked.emit(item())">
+        <mat-icon>delete</mat-icon>
+        <span>Delete</span>
+      </button>
+    </mat-menu>
+  }
+</div>

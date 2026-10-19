@@ -34,6 +34,19 @@
       >
         <mat-icon>receipt_long</mat-icon>
       </button>
+      @if (shoppingListGroupId(); as shoppingListGroupId) {
+        <button
+          mat-icon-button
+          color="accent"
+          class="nav-button"
+          matTooltip="Shopping Lists"
+          data-testid="header-shopping-lists"
+          routerLinkActive="active-link"
+          [routerLink]="['/shopping-lists/group', shoppingListGroupId]"
+        >
+          <mat-icon>shopping_cart</mat-icon>
+        </button>
+      }
       @for (shortcut of userPreferences()?.userShortcuts ?? []; track shortcut["id"]) {
         <a [href]="shortcut.url">
           <button

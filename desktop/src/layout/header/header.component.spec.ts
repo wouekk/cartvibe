@@ -9,9 +9,9 @@ import { NgbPopoverModule } from "@ng-bootstrap/ng-bootstrap";
 import { of } from "rxjs";
 import { ToggleIsSidebarOpen } from "src/store/layout.state.actions";
 import { DirectivesModule } from "../../directives/directives.module";
-import { ApiModule, NotificationsService } from "../../open-api";
+import { ApiModule, Group, NotificationsService } from "../../open-api";
 import { SetAuthState, SetPermissions } from "../../store/auth.state.actions";
-import { SetSelectedGroupId } from "../../store/group.state.actions";
+import { SetGroups, SetSelectedGroupId } from "../../store/group.state.actions";
 import { StoreModule } from "../../store/store.module";
 import { HeaderComponent } from "./header.component";
 
@@ -127,6 +127,37 @@ describe("HeaderComponent", () => {
     await fixture.whenStable();
 
     expect(dashboardButtonRendered()).toBe(true);
+  });
+
+  describe("shopping lists button", () => {
+    const shoppingListsLink = (): HTMLElement | null =>
+      fixture.nativeElement.querySelector('[data-testid="header-shopping-lists"]');
+
+    beforeEach(() => {
+      logIn();
+      store.dispatch(
+        new SetGroups([
+          { id: 10, name: "All", isAllGroup: true } as Group,
+          { id: 1, name: "Home", isAllGroup: false } as Group,
+        ])
+      );
+      store.dispatch(new SetSelectedGroupId("10"));
+    });
+
+    it("is hidden when no real group's lists are readable, even if the All group's are", async () => {
+      store.dispatch(new SetPermissions([], { 10: ["group.shopping-lists.read"] }));
+      await fixture.whenStable();
+
+      expect(shoppingListsLink()).toBeNull();
+    });
+
+    it("opens a readable real group while the All group is selected", async () => {
+      store.dispatch(new SetPermissions([], { 1: ["group.shopping-lists.read"] }));
+      await fixture.whenStable();
+
+      expect(shoppingListsLink()).not.toBeNull();
+      expect(component.shoppingListGroupId()).toBe(1);
+    });
   });
 
   it("should not fetch the notification count without app.notifications.read", async () => {

@@ -1,0 +1,100 @@
+@if (canUpdate()) {
+  <form class="add-bar" [formGroup]="addForm" (ngSubmit)="addItem()">
+    <div class="add-row">
+      <app-input
+        class="add-name"
+        label="Add an item"
+        data-testid="shopping-list-add-name"
+        [inputFormControl]="addForm | formGet : 'name'"
+      ></app-input>
+      <button
+        mat-icon-button
+        type="button"
+        data-testid="shopping-list-add-details-toggle"
+        [attr.aria-label]="showDetails() ? 'Hide quantity and note' : 'Add quantity or note'"
+        [attr.aria-expanded]="showDetails()"
+        (click)="showDetails.set(!showDetails())"
+      >
+        <mat-icon>{{ showDetails() ? "expand_less" : "tune" }}</mat-icon>
+      </button>
+      <button
+        mat-flat-button
+        color="primary"
+        type="submit"
+        class="add-submit"
+        data-testid="shopping-list-add-submit"
+        [disabled]="adding()"
+      >
+        Add
+      </button>
+    </div>
+    @if (showDetails()) {
+      <div class="add-details">
+        <app-input
+          label="Quantity"
+          data-testid="shopping-list-add-quantity"
+          [inputFormControl]="addForm | formGet : 'quantity'"
+        ></app-input>
+        <app-input
+          label="Note"
+          data-testid="shopping-list-add-note"
+          [inputFormControl]="addForm | formGet : 'note'"
+        ></app-input>
+      </div>
+    }
+  </form>
+}
+
+<div class="items" data-testid="shopping-list-active-items">
+  @for (item of activeItems(); track item.id) {
+    <app-shopping-list-item
+      [item]="item"
+      [canUpdate]="canUpdate()"
+      (toggled)="toggleItem($event)"
+      (editClicked)="editItem($event)"
+      (deleteClicked)="deleteItem($event)"
+    ></app-shopping-list-item>
+  } @empty {
+    <p class="empty" data-testid="shopping-list-empty">Nothing left to buy on this list.</p>
+  }
+</div>
+
+@if (checkedItems().length > 0) {
+  <div class="crossed-off">
+    <div class="crossed-off-header">
+      <button
+        type="button"
+        class="crossed-off-toggle"
+        data-testid="shopping-list-crossed-off-toggle"
+        [attr.aria-expanded]="showCrossedOff()"
+        (click)="showCrossedOff.set(!showCrossedOff())"
+      >
+        <mat-icon>{{ showCrossedOff() ? "expand_less" : "expand_more" }}</mat-icon>
+        Crossed off ({{ checkedItems().length }})
+      </button>
+      @if (canUpdate() && showCrossedOff()) {
+        <button
+          mat-button
+          type="button"
+          data-testid="shopping-list-clear-crossed-off"
+          (click)="clearCrossedOff()"
+        >
+          Clear all
+        </button>
+      }
+    </div>
+    @if (showCrossedOff()) {
+      <div class="items" data-testid="shopping-list-checked-items">
+        @for (item of checkedItems(); track item.id) {
+          <app-shopping-list-item
+            [item]="item"
+            [canUpdate]="canUpdate()"
+            (toggled)="toggleItem($event)"
+            (editClicked)="editItem($event)"
+            (deleteClicked)="deleteItem($event)"
+          ></app-shopping-list-item>
+        }
+      </div>
+    }
+  </div>
+}

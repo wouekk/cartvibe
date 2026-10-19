@@ -35,6 +35,8 @@ concurrency:
 
 jobs:
   android-e2e:
+    # Needs the upstream demo backend's E2E_* secrets; on a fork it can only fail.
+    if: github.repository == 'Receipt-Wrangler/receipt-wrangler'
     runs-on: ubuntu-latest
     continue-on-error: true
     timeout-minutes: 70
@@ -242,6 +244,8 @@ jobs:
     # macos-14 ships Xcode 15.4 + iOS 17.0/17.2/17.4/17.5/18.1/18.2
     # simulators preinstalled; xcrun simctl is on PATH out of the box.
     # Free for public repos, so the 10x macOS multiplier doesn't apply.
+    # Needs the upstream demo backend's E2E_* secrets; on a fork it can only fail.
+    if: github.repository == 'Receipt-Wrangler/receipt-wrangler'
     runs-on: macos-14
     continue-on-error: true
     timeout-minutes: 45

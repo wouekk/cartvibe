@@ -69,6 +69,13 @@ const routes: Routes = [
         canActivate: [AuthGuard],
       },
       {
+        // Group-scoped; access is decided per group by shoppingListGroupGuard inside the module.
+        path: "shopping-lists",
+        loadChildren: () =>
+          import("../shopping-lists/shopping-lists.module").then((m) => m.ShoppingListsModule),
+        canActivate: [AuthGuard],
+      },
+      {
         path: "settings",
         loadChildren: () =>
           import("../settings/settings.module").then((m) => m.SettingsModule),

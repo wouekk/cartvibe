@@ -16,6 +16,8 @@ concurrency:
 
 jobs:
   e2e:
+    # Needs the upstream demo backend's E2E_* secrets; on a fork it can only fail.
+    if: github.repository == 'Receipt-Wrangler/receipt-wrangler'
     runs-on: ubuntu-latest
     # This job and mobile-e2e.yml's android-e2e job drive the SAME backend
     # (secrets.E2E_BASE_URL) and both mutate global System Settings -- e.g. the

@@ -97,6 +97,11 @@ jobs:
       - name: Run tests
         run: npm run test:ci
         working-directory: ./desktop
+      # Jest compiles components JIT, so strict template type-checking only happens in a real
+      # build -- without this a template error would first surface in the Docker image build.
+      - name: Build
+        run: npm run build
+        working-directory: ./desktop
       - name: Generate coverage report
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:

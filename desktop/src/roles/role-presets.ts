@@ -101,6 +101,10 @@ const GROUP_MANAGER_KEYS = [
   "group.activities.rerun",
   "group.view",
   "group.update",
+  "group.shopping-lists.create",
+  "group.shopping-lists.read",
+  "group.shopping-lists.update",
+  "group.shopping-lists.delete",
 ];
 
 const RECEIPT_EDITOR_KEYS = [
@@ -113,6 +117,9 @@ const RECEIPT_EDITOR_KEYS = [
   "group.dashboards.read",
   "group.widgets.read",
   "group.view",
+  // Uses the group's lists (add, check off) without creating or deleting lists.
+  "group.shopping-lists.read",
+  "group.shopping-lists.update",
 ];
 
 const VIEWER_KEYS = [
@@ -121,6 +128,7 @@ const VIEWER_KEYS = [
   "group.widgets.read",
   "group.activities.read",
   "group.view",
+  "group.shopping-lists.read",
 ];
 
 export const APP_PRESETS: RolePreset[] = [

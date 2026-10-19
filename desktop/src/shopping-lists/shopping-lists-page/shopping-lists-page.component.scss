@@ -1,0 +1,35 @@
+@use "../../variables.scss" as variables;
+
+.shopping-lists-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 variables.$spacing-sm variables.$spacing-xl;
+}
+
+.list-bar {
+  display: flex;
+  align-items: center;
+  gap: variables.$spacing-sm;
+  margin-bottom: variables.$spacing-sm;
+}
+
+.list-tabs {
+  flex: 1 1 auto;
+  min-width: 0;
+  // Many lists scroll sideways on a phone instead of wrapping into a tall block.
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.list-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.no-lists {
+  padding: variables.$spacing-xl variables.$spacing-md;
+  color: variables.$basic-gray;
+  text-align: center;
+}
