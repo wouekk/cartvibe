@@ -53,7 +53,7 @@ export class OidcCallbackComponent implements OnInit {
         switchMap((appData) => setAppData(this.store, appData)),
         tap(() =>
           this.router.navigate([
-            this.store.selectSnapshot(GroupState.dashboardLink),
+            this.store.selectSnapshot(GroupState.overviewLink),
           ]),
         ),
         catchError(() => {

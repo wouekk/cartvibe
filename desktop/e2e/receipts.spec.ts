@@ -7,10 +7,10 @@ function uniqueName(tag: string) {
 
 async function getGroupId(page: Page): Promise<string> {
   // storageState loaded by the project means we're already authed; going to
-  // `/` should redirect to /dashboard/group/<id>.
+  // `/` should redirect to /overview/group/<id>.
   await page.goto('/');
-  await page.waitForURL(/\/dashboard\/group\/\d+/);
-  const match = page.url().match(/\/dashboard\/group\/(\d+)/);
+  await page.waitForURL(/\/overview\/group\/\d+/);
+  const match = page.url().match(/\/overview\/group\/(\d+)/);
   return match![1];
 }
 

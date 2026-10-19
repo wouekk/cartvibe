@@ -69,6 +69,12 @@ const routes: Routes = [
         canActivate: [AuthGuard],
       },
       {
+        // The landing page; access is decided per group by overviewReadGuard inside the module.
+        path: "overview",
+        loadChildren: () => import("../overview/overview.module").then((m) => m.OverviewModule),
+        canActivate: [AuthGuard],
+      },
+      {
         // Group-scoped; access is decided per group by shoppingListGroupGuard inside the module.
         path: "shopping-lists",
         loadChildren: () =>

@@ -1,0 +1,97 @@
+import {
+  buildDonutSegments,
+  buildMonthBars,
+  describeChange,
+  formatMonthLabel,
+  monthDayRange,
+  netOwed,
+  previousMonthOf,
+  toMonthKey,
+} from "./overview-chart.utils";
+
+describe("overview chart utils", () => {
+  it("formats months for the API and for people", () => {
+    expect(toMonthKey({ year: 2026, month: 9 })).toBe("2026-10");
+    expect(toMonthKey({ year: 2026, month: 0 })).toBe("2026-01");
+    expect(formatMonthLabel({ year: 2026, month: 9 })).toBe("October 2026");
+  });
+
+  it("spans a month as calendar days, leap years included", () => {
+    expect(monthDayRange({ year: 2026, month: 9 })).toEqual(["2026-10-01", "2026-10-31"]);
+    expect(monthDayRange({ year: 2028, month: 1 })).toEqual(["2028-02-01", "2028-02-29"]);
+    expect(monthDayRange({ year: 2026, month: 1 })).toEqual(["2026-02-01", "2026-02-28"]);
+  });
+
+  it("steps back across a year boundary", () => {
+    expect(previousMonthOf({ year: 2026, month: 0 })).toEqual({ year: 2025, month: 11 });
+    expect(previousMonthOf({ year: 2026, month: 9 })).toEqual({ year: 2026, month: 8 });
+  });
+
+  describe("buildDonutSegments", () => {
+    it("shares the ring by amount and lays slices end to end", () => {
+      const segments = buildDonutSegments([
+        { name: "Groceries", total: "75" },
+        { name: "Dining out", total: "25" },
+      ]);
+
+      expect(segments.map((segment) => [segment.name, segment.share])).toEqual([
+        ["Groceries", "75%"],
+        ["Dining out", "25%"],
+      ]);
+      expect(segments[0].dashOffset).toBeCloseTo(0);
+      expect(segments[1].dashOffset).toBeCloseTo(-(0.75 * 2 * Math.PI * 70));
+    });
+
+    it("folds categories beyond five into Other and drops empty ones", () => {
+      const segments = buildDonutSegments([
+        { name: "A", total: "60" },
+        { name: "B", total: "50" },
+        { name: "C", total: "40" },
+        { name: "D", total: "30" },
+        { name: "E", total: "20" },
+        { name: "F", total: "6" },
+        { name: "G", total: "4" },
+        { name: "Zero", total: "0" },
+      ]);
+
+      expect(segments.map((segment) => segment.name)).toEqual(["A", "B", "C", "D", "E", "Other"]);
+      expect(segments[5].total).toBe(10);
+    });
+
+    it("draws nothing for a month without spending", () => {
+      expect(buildDonutSegments([])).toEqual([]);
+      expect(buildDonutSegments([{ name: "A", total: "0" }])).toEqual([]);
+    });
+  });
+
+  it("scales bars to the tallest month and marks the selected one", () => {
+    const bars = buildMonthBars(
+      [
+        { month: "2026-09", total: "200" },
+        { month: "2026-10", total: "100" },
+        { month: "2026-11", total: "0" },
+      ],
+      "2026-10"
+    );
+
+    expect(bars.map((bar) => [bar.shortName, bar.heightPercent, bar.isSelected])).toEqual([
+      ["Sep", 100, false],
+      ["Oct", 50, true],
+      ["Nov", 0, false],
+    ]);
+  });
+
+  it("describes the month-over-month change, or nothing without a previous month", () => {
+    const september = { year: 2026, month: 8 };
+    expect(describeChange("92", "100", september)).toBe("8% less than September");
+    expect(describeChange("150", "100", september)).toBe("50% more than September");
+    expect(describeChange("100.2", "100", september)).toBe("About the same as September");
+    expect(describeChange("100", "0", september)).toBeUndefined();
+  });
+
+  it("nets the amount-owed map so that positive means others owe the user", () => {
+    expect(netOwed({ 2: "-30.50", 3: "10" })).toBeCloseTo(20.5);
+    expect(netOwed({ 2: "15" })).toBeCloseTo(-15);
+    expect(netOwed({})).toBe(-0);
+  });
+});

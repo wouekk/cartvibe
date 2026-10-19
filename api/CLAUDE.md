@@ -3938,3 +3938,22 @@ rather than the list being recreated per trip. Design: `docs/shopping-list-phase
   the All group, set-vs-toggle, revival, events per mutation, and the stream over real HTTP:
   delivery, 403, lifetime cap, permission revocation), `services/shopping_list_hub_test.go`,
   `repositories/shopping_lists_test.go`, `commands/shopping_list_commands_test.go`.
+
+## Group overview (fork extension)
+
+`GET /api/overview/group/{groupId}?month=yyyy-MM` (`handlers/group_overview.go`,
+`services/group_overview.go`) feeds the desktop's landing page: the month's total and the previous
+month's, receipt and open-receipt counts (OPEN + NEEDS_ATTENTION), spend per category, and the six
+months ending with the chosen one.
+
+- **Same data path as the receipt summary and pie chart:** one `GetPagedReceiptsByGroupId` over the
+  six-month window (All-group fan-out, paid-by visibility, category grants), folded in Go with
+  `shopspring/decimal` — never a SQL `SUM`, which is inexact on SQLite.
+- **A receipt counts toward each of its categories**, exactly as on the pie chart widget, and a
+  hidden category shows as `(Restricted)`; so the categories can add up to more than the total.
+- **Months are read in UTC** — a receipt's `Date` is a calendar day stored as midnight UTC. An
+  omitted `month` is the current month in the **app** time zone. A malformed one is a 400.
+- Every month of the window is seeded, so an empty month is a `"0"`, and `categories`/`months` are
+  always arrays (the Dart client has no null guard).
+- Gated on `group.receipts.read`; a **GET**, so a read-only API key may call it.
+- Tests: `handlers/group_overview_test.go`.

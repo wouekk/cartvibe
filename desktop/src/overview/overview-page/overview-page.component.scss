@@ -1,0 +1,347 @@
+@use "sass:map";
+@use "../../variables.scss" as variables;
+
+$card-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+$label-color: #64748b;
+$body-color: #1e293b;
+$muted-color: #475569;
+$hairline: #eef2f6;
+
+:host {
+  display: block;
+  color: $body-color;
+  font-variant-numeric: tabular-nums;
+}
+
+.overview {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: variables.$spacing-lg;
+}
+
+.overview__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: variables.$spacing-md;
+}
+
+.overview__title {
+  display: flex;
+  align-items: baseline;
+  gap: variables.$spacing-sm;
+
+  h1 {
+    margin: 0;
+  }
+}
+
+.overview__group {
+  color: $muted-color;
+  font-weight: 500;
+}
+
+.overview__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: variables.$spacing-sm;
+}
+
+.overview__tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: variables.$spacing-md;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px;
+  border-radius: variables.$border-radius-xl;
+  background: #fff;
+  box-shadow: $card-shadow;
+  color: inherit;
+  text-decoration: none;
+}
+
+.tile--link {
+  transition: box-shadow 0.15s ease;
+
+  &:hover {
+    box-shadow: variables.$shadow-md;
+  }
+
+  &:focus-visible {
+    outline: 2px solid map.get(variables.$primary-palette, 500);
+    outline-offset: 2px;
+  }
+}
+
+.tile__label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: $label-color;
+}
+
+.tile__value {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.tile__value--positive {
+  color: #15803d;
+}
+
+.tile__hint {
+  font-size: 13px;
+  font-weight: 500;
+  color: $muted-color;
+}
+
+.tile__hint--up {
+  color: #b45309;
+}
+
+.tile__hint--down {
+  color: #15803d;
+}
+
+.overview__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(380px, 100%), 1fr));
+  gap: variables.$spacing-lg;
+}
+
+// Receipts take two thirds and the shopping card one, wrapping on a narrow screen.
+.overview__row--wide {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: variables.$spacing-md;
+  padding: 22px 24px;
+  border-radius: variables.$border-radius-xl;
+  background: #fff;
+  box-shadow: $card-shadow;
+  min-width: 0;
+}
+
+.card--wide {
+  flex: 2 1 560px;
+}
+
+.card--narrow {
+  flex: 1 1 300px;
+}
+
+.card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: variables.$spacing-sm;
+
+  h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+  }
+}
+
+.donut {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: variables.$spacing-lg;
+}
+
+.donut__chart {
+  position: relative;
+  width: 190px;
+  height: 190px;
+  flex: none;
+}
+
+.donut__center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.donut__total {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.donut__caption {
+  font-size: 12px;
+  color: $label-color;
+}
+
+table {
+  border-collapse: collapse;
+  font-size: 14px;
+
+  th {
+    padding: 0 0 8px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: $label-color;
+    text-align: left;
+  }
+
+  td {
+    padding: 10px 0;
+    border-top: 1px solid $hairline;
+  }
+
+  th + th,
+  td + td {
+    padding-left: 12px;
+  }
+}
+
+.donut__legend {
+  flex: 1;
+  min-width: 200px;
+}
+
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 8px;
+  border-radius: 50%;
+}
+
+.numeric {
+  text-align: right !important;
+}
+
+.strong {
+  font-weight: 600;
+}
+
+.muted {
+  color: $muted-color;
+}
+
+.small {
+  font-size: 13px;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.empty {
+  margin: 0;
+  padding: variables.$spacing-lg 0;
+  color: $muted-color;
+  text-align: center;
+}
+
+.bars {
+  flex: 1;
+  min-height: 210px;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 14px;
+  align-items: end;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.bars__column {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.bars__value {
+  font-size: 11px;
+  font-weight: 600;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.bars__bar {
+  width: 100%;
+  max-width: 44px;
+  // The value label sits above, so a 100% bar leaves it room.
+  max-height: calc(100% - 26px);
+  border-radius: 6px 6px 0 0;
+  background: #cbd5e1;
+}
+
+.bars__bar--selected {
+  background: map.get(variables.$primary-palette, 700);
+}
+
+.bars__labels {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 14px;
+  font-size: 13px;
+  color: $muted-color;
+  text-align: center;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.receipts {
+  width: 100%;
+  min-width: 560px;
+}
+
+.list-card {
+  display: flex;
+  align-items: center;
+  gap: variables.$spacing-sm;
+  padding: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: variables.$border-radius-lg;
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    background: #f8fafc;
+  }
+}
+
+.list-card__icon {
+  flex: none;
+  color: map.get(variables.$primary-palette, 700);
+}
+
+.list-card__text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.list-card__count {
+  font-size: 18px;
+  font-weight: 700;
+}

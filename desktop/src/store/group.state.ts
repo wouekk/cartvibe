@@ -116,6 +116,15 @@ export class GroupState {
     return `/dashboard/group/${state.selectedGroupId}`;
   }
 
+  /**
+   * Where the app lands: after signing in, and when switching groups. The guards' fallback redirects
+   * still use dashboardLink.
+   */
+  @Selector()
+  static overviewLink(state: GroupStateInterface): string {
+    return `/overview/group/${state.selectedGroupId}`;
+  }
+
   @Selector()
   static settingsLinkBase(state: GroupStateInterface): string {
     return `/groups/${state.selectedGroupId}/settings`;

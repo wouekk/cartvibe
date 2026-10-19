@@ -122,6 +122,8 @@ export class SidebarComponent {
 
   private readonly dashboardLink = this.store.selectSignal(GroupState.dashboardLink);
 
+  private readonly overviewLink = this.store.selectSignal(GroupState.overviewLink);
+
   private readonly shoppingListGroupId = this.store.selectSignal(ShoppingListState.targetGroupId);
 
   // Reports are reachable with read OR the readAll bypass (the *hasAppPermission
@@ -137,6 +139,10 @@ export class SidebarComponent {
   public readonly mainNavItems = computed(() => {
     const items: { label: string; icon: string; link: (string | number)[]; testId: string }[] = [];
 
+    if (hasAll(this.selectedGroupPermissions(), Permission.GroupReceiptsRead)) {
+      items.push({ label: "Overview", icon: "space_dashboard", link: [this.overviewLink()], testId: "nav-overview" });
+    }
+
     const shoppingListGroupId = this.shoppingListGroupId();
     if (shoppingListGroupId !== undefined) {
       items.push({
@@ -150,7 +156,8 @@ export class SidebarComponent {
     items.push({ label: "Receipts", icon: "receipt_long", link: [this.receiptListLink()], testId: "nav-receipts" });
 
     if (hasAll(this.selectedGroupPermissions(), Permission.GroupDashboardsRead)) {
-      items.push({ label: "Dashboard", icon: "dashboard", link: [this.dashboardLink()], testId: "nav-dashboard" });
+      // The customizable widget dashboards; the Overview above is the fixed landing page.
+      items.push({ label: "Dashboards", icon: "dashboard_customize", link: [this.dashboardLink()], testId: "nav-dashboard" });
     }
 
     if (this.canViewReports()) {
@@ -247,8 +254,7 @@ export class SidebarComponent {
   public groupClicked(groupId: number): void {
     this.store.dispatch(new SetSelectedGroupId(groupId.toString()));
     this.store.dispatch(new SetPage(1));
-    const dashboardLink = this.store.selectSnapshot(GroupState.dashboardLink);
-    this.router.navigate([dashboardLink]);
+    this.router.navigate([this.store.selectSnapshot(GroupState.overviewLink)]);
   }
 
   public closeMobileSidebar(): void {

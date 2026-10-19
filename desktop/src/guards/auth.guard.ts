@@ -29,7 +29,7 @@ export class AuthGuard {
     // if user tries to go to login screens while already logged in
     if (navigatingToAuth && isLoggedIn) {
       this.router.navigate([
-        this.store.selectSnapshot(GroupState.dashboardLink),
+        this.store.selectSnapshot(GroupState.overviewLink),
       ]);
       return false;
     } else if (navigatingToAuth && !isLoggedIn) {

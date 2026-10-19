@@ -1,0 +1,221 @@
+<div class="overview">
+  <div class="overview__header">
+    <div class="overview__title">
+      <h1>Overview</h1>
+      @if (groupName()) {
+        <span class="overview__group">{{ groupName() }}</span>
+      }
+    </div>
+    <div class="overview__actions">
+      <app-month-stepper
+        data-testid="overview-month"
+        [value]="month()"
+        [label]="monthLabel()"
+        [timeZone]="timeZone()"
+        [showAllTime]="false"
+        (monthSelected)="selectMonth($event)"
+      ></app-month-stepper>
+      @if (canAddReceipt()) {
+        <app-add-button
+          buttonText="Add Receipt"
+          tooltip="Add a receipt"
+          data-testid="overview-add-receipt"
+          [buttonRouterLink]="['/receipts/add']"
+        ></app-add-button>
+      }
+    </div>
+  </div>
+
+  <section class="overview__tiles" aria-label="This month at a glance">
+    <div class="tile" data-testid="overview-tile-spent">
+      <span class="tile__label">Spent</span>
+      <span class="tile__value">
+        @if (overview(); as overview) {
+          {{ overview.total | customCurrency }}
+        } @else {
+          –
+        }
+      </span>
+      @if (change(); as change) {
+        <span class="tile__hint" [class.tile__hint--up]="changeIsIncrease()" [class.tile__hint--down]="!changeIsIncrease()">
+          {{ change }}
+        </span>
+      } @else {
+        <span class="tile__hint">{{ monthLabel() }}</span>
+      }
+    </div>
+
+    <a class="tile tile--link" data-testid="overview-tile-receipts" [routerLink]="['/receipts/group', groupId()]">
+      <span class="tile__label">Receipts</span>
+      <span class="tile__value">{{ overview()?.receiptCount ?? "–" }}</span>
+      @if ((overview()?.openReceiptCount ?? 0) > 0) {
+        <span class="tile__hint tile__hint--up">{{ overview()?.openReceiptCount }} still open</span>
+      } @else {
+        <span class="tile__hint">All resolved</span>
+      }
+    </a>
+
+    <div class="tile" data-testid="overview-tile-settle">
+      <span class="tile__label">Settle up</span>
+      @if (netOwed(); as net) {
+        <span class="tile__value" [class.tile__value--positive]="net > 0">
+          {{ (net > 0 ? net : -net) | customCurrency }}
+        </span>
+        <span class="tile__hint">{{ net > 0 ? "Owed to you" : "You owe" }}</span>
+      } @else {
+        <span class="tile__value">{{ 0 | customCurrency }}</span>
+        <span class="tile__hint">All settled</span>
+      }
+    </div>
+
+    @if (shoppingListGroupId(); as listGroupId) {
+      <a class="tile tile--link" data-testid="overview-tile-to-buy" [routerLink]="['/shopping-lists/group', listGroupId]">
+        <span class="tile__label">To buy</span>
+        <span class="tile__value">{{ itemsToBuy() }} {{ itemsToBuy() === 1 ? "item" : "items" }}</span>
+        <span class="tile__hint">on {{ listSummaries().length }} {{ listSummaries().length === 1 ? "list" : "lists" }}</span>
+      </a>
+    }
+  </section>
+
+  <div class="overview__row">
+    <section class="card" aria-labelledby="overview-categories-title">
+      <div class="card__header">
+        <h2 id="overview-categories-title">Spending by category</h2>
+        <a routerLink="/reports">Open reports</a>
+      </div>
+      @if (segments().length > 0) {
+        <div class="donut">
+          <div class="donut__chart">
+            <svg width="190" height="190" viewBox="0 0 190 190" role="img" [attr.aria-label]="'Spending by category, ' + monthLabel()">
+              <circle cx="95" cy="95" [attr.r]="circleRadius" fill="none" stroke="#eef2f6" stroke-width="26"></circle>
+              @for (segment of segments(); track segment.name) {
+                <circle
+                  cx="95"
+                  cy="95"
+                  fill="none"
+                  stroke-width="26"
+                  transform="rotate(-90 95 95)"
+                  [attr.r]="circleRadius"
+                  [attr.stroke]="segment.color"
+                  [attr.stroke-dasharray]="segment.dashArray"
+                  [attr.stroke-dashoffset]="segment.dashOffset"
+                ></circle>
+              }
+            </svg>
+            <div class="donut__center">
+              <span class="donut__total">{{ overview()?.total ?? 0 | customCurrency }}</span>
+              <span class="donut__caption">{{ monthLabel() }}</span>
+            </div>
+          </div>
+          <table class="donut__legend">
+            <thead>
+              <tr>
+                <th scope="col">Category</th>
+                <th scope="col" class="numeric">Spent</th>
+                <th scope="col" class="numeric">Share</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (segment of segments(); track segment.name) {
+                <tr>
+                  <td>
+                    <span class="swatch" [style.background]="segment.color"></span>
+                    {{ segment.name }}
+                  </td>
+                  <td class="numeric strong">{{ segment.total | customCurrency }}</td>
+                  <td class="numeric muted">{{ segment.share }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p class="empty">No spending in {{ monthLabel() }} yet.</p>
+      }
+    </section>
+
+    <section class="card" aria-labelledby="overview-trend-title">
+      <div class="card__header">
+        <h2 id="overview-trend-title">Last 6 months</h2>
+        @if (bars().length > 0) {
+          <span class="muted">Average {{ averageMonth() | customCurrency }}</span>
+        }
+      </div>
+      @if (bars().length > 0) {
+        <div class="bars" role="img" [attr.aria-label]="'Monthly spending for the six months ending ' + monthLabel()">
+          @for (bar of bars(); track bar.key) {
+            <div class="bars__column">
+              <span class="bars__value">{{ bar.total | customCurrency }}</span>
+              <div class="bars__bar" [class.bars__bar--selected]="bar.isSelected" [style.height.%]="bar.heightPercent"></div>
+            </div>
+          }
+        </div>
+        <div class="bars__labels" aria-hidden="true">
+          @for (bar of bars(); track bar.key) {
+            <span>{{ bar.shortName }}</span>
+          }
+        </div>
+      }
+    </section>
+  </div>
+
+  <div class="overview__row overview__row--wide">
+    <section class="card card--wide" aria-labelledby="overview-receipts-title">
+      <div class="card__header">
+        <h2 id="overview-receipts-title">Receipts in {{ monthLabel() }}</h2>
+        <a [routerLink]="['/receipts/group', groupId()]">All receipts</a>
+      </div>
+      @if (recentReceipts().length > 0) {
+        <div class="table-scroll">
+          <table class="receipts" data-testid="overview-recent-receipts">
+            <thead>
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Name</th>
+                <th scope="col">Category</th>
+                <th scope="col">Paid by</th>
+                <th scope="col">Status</th>
+                <th scope="col" class="numeric">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (receipt of recentReceipts(); track receipt.id) {
+                <tr>
+                  <td class="muted nowrap">{{ receipt.date | appDate : "MMM d" : "calendar" }}</td>
+                  <td class="strong"><a [routerLink]="['/receipts', receipt.id, 'view']">{{ receipt.name }}</a></td>
+                  <td>{{ receipt.categories[0]?.name ?? "—" }}</td>
+                  <td class="muted">{{ (receipt.paidByUserId.toString() | user)?.displayName }}</td>
+                  <td><app-status-chip [status]="receipt.status"></app-status-chip></td>
+                  <td class="numeric strong">{{ receipt.amount | customCurrency }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p class="empty">No receipts in {{ monthLabel() }}.</p>
+      }
+    </section>
+
+    @if (shoppingListGroupId(); as listGroupId) {
+      <section class="card card--narrow" aria-labelledby="overview-lists-title">
+        <div class="card__header">
+          <h2 id="overview-lists-title">Shopping lists</h2>
+          <a [routerLink]="['/shopping-lists/group', listGroupId]">Open</a>
+        </div>
+        @for (list of listSummaries(); track list.id) {
+          <a class="list-card" [routerLink]="['/shopping-lists/group', listGroupId]">
+            <mat-icon class="list-card__icon" aria-hidden="true">shopping_cart</mat-icon>
+            <span class="list-card__text">
+              <span class="strong">{{ list.name }}</span>
+              <span class="muted small">{{ list.preview }}</span>
+            </span>
+            <span class="list-card__count">{{ list.count }}</span>
+          </a>
+        } @empty {
+          <p class="empty">No shopping lists yet.</p>
+        }
+      </section>
+    }
+  </div>
+</div>

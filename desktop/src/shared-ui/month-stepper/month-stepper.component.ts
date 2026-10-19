@@ -57,6 +57,9 @@ export class MonthStepperComponent {
    */
   public readonly timeZone = input<string | null | undefined>(undefined);
 
+  /** Off for a caller that always describes exactly one month, where "All time" means nothing. */
+  public readonly showAllTime = input<boolean>(true);
+
   public readonly monthSelected = output<FilterMonth>();
 
   public readonly allTimeSelected = output<void>();
