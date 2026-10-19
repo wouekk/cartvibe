@@ -3887,3 +3887,50 @@ matches is a **failure**, not a pass; a mutant that **does not compile** was nev
 
 - `internal/reporting/{value,bucketkey,row,field,formula,eval,accumulator,model,validate,engine,invariants,golden,property,fuzz,passthrough,adversarial}_test.go`
 - `internal/reporting/receiptsource/receiptsource_test.go`
+
+## Shopping lists (fork extension)
+
+Group-scoped, long-lived shopping lists (OurGroceries style): items are crossed off and re-added
+rather than the list being recreated per trip. Design: `docs/shopping-list-phase-1.md`.
+
+- **Models:** `ShoppingList` (group, name) and `ShoppingListItem` (list, name, quantity, note,
+  `isChecked`, `checkedAt`, `checkedByUserId`). An item carries **no group id** — its group is its
+  list's, resolved through `GetGroupIdForShoppingListItem`, so the two can never disagree. A list's
+  `items` always serializes as `[]`, never `null` (`normalizeShoppingListItems`).
+- **Permissions:** `group.shopping-lists.{read,create,update,delete}`; every item mutation rides on
+  `update`. Legacy Viewer (and so Editor) holds all four **by choice** — household lists are
+  collaborative — and `SeedSystemRoles` reconciles them onto existing installs at boot.
+- **Endpoints** (`/api/shopping-list`, `handlers/shopping_lists.go`):
+  - Id-addressed handlers resolve the list/item's group **before** `HandleRequest`; an unknown or
+    malformed id gets the same 403 + `unauthorizedEntityMessage` as a denial, so a response never
+    reveals whether an id exists. Don't copy `UpdateDashboard`, which 500s on a missing id.
+  - Every `/group/{groupId}` endpoint 400s the synthetic "All" group (`rejectAllGroupShoppingList`).
+  - `PUT /item/{id}/checked` **sets** the state (`isChecked` is required, a pointer, so an empty body
+    is a 400 rather than an un-check); re-sending the current state changes nothing and broadcasts
+    nothing, so two phones tapping one item converge.
+  - `POST /{listId}/item` with the name of a **crossed-off** item on that list (case-insensitive via
+    `LOWER()` on both sides, portable to all three engines) un-checks that item instead of adding a
+    duplicate. An unchecked match is not deduplicated.
+- **Live updates (SSE)** — `GET /group/{groupId}/stream`, `handlers/shopping_list_stream.go`:
+  - `services.ShoppingListHub` is in-process pub/sub (correct for the single-container deployment;
+    several replicas would need Redis pub/sub behind the same surface). `Publish` never blocks: a
+    subscriber whose 32-event buffer is full is **dropped** (its stream ends, the client reconnects
+    and refetches). `Events` is never closed — a publisher racing an unsubscribe would panic — only
+    `Dropped` is.
+  - The service publishes **after** its write returns; handlers construct it without an outer
+    transaction, so that is after commit.
+  - The stream **must** clear its write deadline (`http.NewResponseController(w).SetWriteDeadline`):
+    `main.go`'s `WriteTimeout` of 5 minutes otherwise kills every stream. It must also not let
+    `HandleRequest` write an error body once streaming has started — `HandlerFunction` returns
+    `(0, nil)` and the stream logs its own failures.
+  - A 25s heartbeat keeps nginx's 60s read timeout at bay **and re-checks the permission**; the
+    stream ends after 15 minutes regardless, so a reconnect re-authenticates (bounding an expired
+    token, a revoked key, a role change). Both are package `var`s so tests can shorten them.
+  - `X-Accel-Buffering: no` stops nginx (ours, and a Synology DSM reverse proxy) buffering the
+    stream; `docker/default.conf` also has a dedicated `location` with `proxy_buffering off`.
+- **Group deletion** removes the group's lists and items (`DeleteShoppingListsForGroup`, raw
+  deletes, items first) inside `GroupService.DeleteGroup`'s transaction.
+- **Tests:** `handlers/shopping_lists_test.go` (authorization, the indistinguishable unknown id,
+  the All group, set-vs-toggle, revival, events per mutation, and the stream over real HTTP:
+  delivery, 403, lifetime cap, permission revocation), `services/shopping_list_hub_test.go`,
+  `repositories/shopping_lists_test.go`, `commands/shopping_list_commands_test.go`.
