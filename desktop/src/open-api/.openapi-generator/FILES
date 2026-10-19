@@ -23,6 +23,7 @@ api/receiptProcessingSettings.service.ts
 api/report.service.ts
 api/role.service.ts
 api/search.service.ts
+api/shoppingList.service.ts
 api/systemEmail.service.ts
 api/systemSettings.service.ts
 api/systemTask.service.ts
@@ -133,6 +134,10 @@ model/reportTemplateOption.ts
 model/resetPasswordCommand.ts
 model/role.ts
 model/searchResult.ts
+model/setShoppingListItemCheckedCommand.ts
+model/shoppingList.ts
+model/shoppingListEvent.ts
+model/shoppingListItem.ts
 model/signUpCommand.ts
 model/sortDirection.ts
 model/subjectLineRegex.ts
@@ -166,6 +171,8 @@ model/upsertPromptCommand.ts
 model/upsertReceiptCommand.ts
 model/upsertReceiptProcessingSettingsCommand.ts
 model/upsertRoleCommand.ts
+model/upsertShoppingListCommand.ts
+model/upsertShoppingListItemCommand.ts
 model/upsertSystemEmailCommand.ts
 model/upsertSystemSettingsCommand.ts
 model/upsertTagCommand.ts

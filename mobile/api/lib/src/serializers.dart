@@ -112,6 +112,10 @@ import 'package:openapi/src/model/report_template_option.dart';
 import 'package:openapi/src/model/reset_password_command.dart';
 import 'package:openapi/src/model/role.dart';
 import 'package:openapi/src/model/search_result.dart';
+import 'package:openapi/src/model/set_shopping_list_item_checked_command.dart';
+import 'package:openapi/src/model/shopping_list.dart';
+import 'package:openapi/src/model/shopping_list_event.dart';
+import 'package:openapi/src/model/shopping_list_item.dart';
 import 'package:openapi/src/model/sign_up_command.dart';
 import 'package:openapi/src/model/sort_direction.dart';
 import 'package:openapi/src/model/subject_line_regex.dart';
@@ -145,6 +149,8 @@ import 'package:openapi/src/model/upsert_prompt_command.dart';
 import 'package:openapi/src/model/upsert_receipt_command.dart';
 import 'package:openapi/src/model/upsert_receipt_processing_settings_command.dart';
 import 'package:openapi/src/model/upsert_role_command.dart';
+import 'package:openapi/src/model/upsert_shopping_list_command.dart';
+import 'package:openapi/src/model/upsert_shopping_list_item_command.dart';
 import 'package:openapi/src/model/upsert_system_email_command.dart';
 import 'package:openapi/src/model/upsert_system_settings_command.dart';
 import 'package:openapi/src/model/upsert_tag_command.dart';
@@ -258,6 +264,10 @@ part 'serializers.g.dart';
   ResetPasswordCommand,
   Role,
   SearchResult,
+  SetShoppingListItemCheckedCommand,
+  ShoppingList,
+  ShoppingListEvent,
+  ShoppingListItem,
   SignUpCommand,
   SortDirection,
   SubjectLineRegex,
@@ -291,6 +301,8 @@ part 'serializers.g.dart';
   UpsertReceiptCommand,
   UpsertReceiptProcessingSettingsCommand,
   UpsertRoleCommand,
+  UpsertShoppingListCommand,
+  UpsertShoppingListItemCommand,
   UpsertSystemEmailCommand,
   UpsertSystemSettingsCommand,
   UpsertTagCommand,
@@ -311,6 +323,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(Group)]),
         () => ListBuilder<Group>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(ShoppingList)]),
+        () => ListBuilder<ShoppingList>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(Notification)]),
