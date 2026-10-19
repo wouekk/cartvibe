@@ -11,6 +11,14 @@
 
 export interface UpsertShoppingListItemCommand { 
     name: string;
+    /**
+     * How much to buy, as a decimal string; greater than 0, below 100000, at most 3 decimals
+     */
+    amount?: string;
+    /**
+     * One of the ShoppingListItem units; requires an amount
+     */
+    unit?: string;
     quantity?: string;
     note?: string;
 }

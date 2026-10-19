@@ -20,7 +20,15 @@ export interface ShoppingListItem {
     shoppingListId: number;
     name: string;
     /**
-     * Free-text quantity, e.g. 2 lbs. Empty when not set.
+     * How much to buy, as a decimal string (e.g. \"1.5\"); null when not given
+     */
+    amount?: string;
+    /**
+     * Unit of the amount: one of pcs, kg, g, l, ml, pack, bottle, can, box, bag, jar, bunch, dozen; empty when there is no amount or it is a plain count. A plain string, never an enum, so a unit added later cannot break an older client.
+     */
+    unit: string;
+    /**
+     * The original free-text quantity, kept for items written before amount and unit existed. Superseded by amount and unit; empty when not set.
      */
     quantity: string;
     /**

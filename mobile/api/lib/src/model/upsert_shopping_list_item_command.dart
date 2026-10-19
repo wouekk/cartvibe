@@ -12,12 +12,22 @@ part 'upsert_shopping_list_item_command.g.dart';
 ///
 /// Properties:
 /// * [name] 
+/// * [amount] - How much to buy, as a decimal string; greater than 0, below 100000, at most 3 decimals
+/// * [unit] - One of the ShoppingListItem units; requires an amount
 /// * [quantity] 
 /// * [note] 
 @BuiltValue()
 abstract class UpsertShoppingListItemCommand implements Built<UpsertShoppingListItemCommand, UpsertShoppingListItemCommandBuilder> {
   @BuiltValueField(wireName: r'name')
   String get name;
+
+  /// How much to buy, as a decimal string; greater than 0, below 100000, at most 3 decimals
+  @BuiltValueField(wireName: r'amount')
+  String? get amount;
+
+  /// One of the ShoppingListItem units; requires an amount
+  @BuiltValueField(wireName: r'unit')
+  String? get unit;
 
   @BuiltValueField(wireName: r'quantity')
   String? get quantity;
@@ -53,6 +63,20 @@ class _$UpsertShoppingListItemCommandSerializer implements PrimitiveSerializer<U
       object.name,
       specifiedType: const FullType(String),
     );
+    if (object.amount != null) {
+      yield r'amount';
+      yield serializers.serialize(
+        object.amount,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.unit != null) {
+      yield r'unit';
+      yield serializers.serialize(
+        object.unit,
+        specifiedType: const FullType(String),
+      );
+    }
     if (object.quantity != null) {
       yield r'quantity';
       yield serializers.serialize(
@@ -96,6 +120,20 @@ class _$UpsertShoppingListItemCommandSerializer implements PrimitiveSerializer<U
             specifiedType: const FullType(String),
           ) as String;
           result.name = valueDes;
+          break;
+        case r'amount':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.amount = valueDes;
+          break;
+        case r'unit':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.unit = valueDes;
           break;
         case r'quantity':
           final valueDes = serializers.deserialize(

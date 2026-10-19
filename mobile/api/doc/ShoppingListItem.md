@@ -14,7 +14,9 @@ Name | Type | Description | Notes
 **createdBy** | **int** |  | [optional] 
 **shoppingListId** | **int** | List the item belongs to | 
 **name** | **String** |  | 
-**quantity** | **String** | Free-text quantity, e.g. 2 lbs. Empty when not set. | 
+**amount** | **String** | How much to buy, as a decimal string (e.g. \"1.5\"); null when not given | [optional] 
+**unit** | **String** | Unit of the amount: one of pcs, kg, g, l, ml, pack, bottle, can, box, bag, jar, bunch, dozen; empty when there is no amount or it is a plain count. A plain string, never an enum, so a unit added later cannot break an older client. | 
+**quantity** | **String** | The original free-text quantity, kept for items written before amount and unit existed. Superseded by amount and unit; empty when not set. | 
 **note** | **String** | Empty when not set | 
 **isChecked** | **bool** | Whether the item is crossed off | 
 **checkedAt** | [**DateTime**](DateTime.md) | When the item was crossed off; null while it is on the list | [optional] 

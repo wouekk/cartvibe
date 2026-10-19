@@ -17,7 +17,9 @@ part 'shopping_list_item.g.dart';
 /// * [createdBy] 
 /// * [shoppingListId] - List the item belongs to
 /// * [name] 
-/// * [quantity] - Free-text quantity, e.g. 2 lbs. Empty when not set.
+/// * [amount] - How much to buy, as a decimal string (e.g. \"1.5\"); null when not given
+/// * [unit] - Unit of the amount: one of pcs, kg, g, l, ml, pack, bottle, can, box, bag, jar, bunch, dozen; empty when there is no amount or it is a plain count. A plain string, never an enum, so a unit added later cannot break an older client.
+/// * [quantity] - The original free-text quantity, kept for items written before amount and unit existed. Superseded by amount and unit; empty when not set.
 /// * [note] - Empty when not set
 /// * [isChecked] - Whether the item is crossed off
 /// * [checkedAt] - When the item was crossed off; null while it is on the list
@@ -43,7 +45,15 @@ abstract class ShoppingListItem implements Built<ShoppingListItem, ShoppingListI
   @BuiltValueField(wireName: r'name')
   String get name;
 
-  /// Free-text quantity, e.g. 2 lbs. Empty when not set.
+  /// How much to buy, as a decimal string (e.g. \"1.5\"); null when not given
+  @BuiltValueField(wireName: r'amount')
+  String? get amount;
+
+  /// Unit of the amount: one of pcs, kg, g, l, ml, pack, bottle, can, box, bag, jar, bunch, dozen; empty when there is no amount or it is a plain count. A plain string, never an enum, so a unit added later cannot break an older client.
+  @BuiltValueField(wireName: r'unit')
+  String get unit;
+
+  /// The original free-text quantity, kept for items written before amount and unit existed. Superseded by amount and unit; empty when not set.
   @BuiltValueField(wireName: r'quantity')
   String get quantity;
 
@@ -120,6 +130,18 @@ class _$ShoppingListItemSerializer implements PrimitiveSerializer<ShoppingListIt
     yield r'name';
     yield serializers.serialize(
       object.name,
+      specifiedType: const FullType(String),
+    );
+    if (object.amount != null) {
+      yield r'amount';
+      yield serializers.serialize(
+        object.amount,
+        specifiedType: const FullType(String),
+      );
+    }
+    yield r'unit';
+    yield serializers.serialize(
+      object.unit,
       specifiedType: const FullType(String),
     );
     yield r'quantity';
@@ -215,6 +237,20 @@ class _$ShoppingListItemSerializer implements PrimitiveSerializer<ShoppingListIt
             specifiedType: const FullType(String),
           ) as String;
           result.name = valueDes;
+          break;
+        case r'amount':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.amount = valueDes;
+          break;
+        case r'unit':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.unit = valueDes;
           break;
         case r'quantity':
           final valueDes = serializers.deserialize(
