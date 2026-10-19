@@ -152,6 +152,9 @@ Class | Method | HTTP request | Description
 [*ReceiptProcessingSettingsApi*](doc/ReceiptProcessingSettingsApi.md) | [**getPagedProcessingSettings**](doc/ReceiptProcessingSettingsApi.md#getpagedprocessingsettings) | **POST** /receiptProcessingSettings/getPagedProcessingSettings | Gets paged processing settings
 [*ReceiptProcessingSettingsApi*](doc/ReceiptProcessingSettingsApi.md) | [**getReceiptProcessingSettingsById**](doc/ReceiptProcessingSettingsApi.md#getreceiptprocessingsettingsbyid) | **GET** /receiptProcessingSettings/{id} | Get receipt processing settings by id
 [*ReceiptProcessingSettingsApi*](doc/ReceiptProcessingSettingsApi.md) | [**updateReceiptProcessingSettingsById**](doc/ReceiptProcessingSettingsApi.md#updatereceiptprocessingsettingsbyid) | **PUT** /receiptProcessingSettings/{id} | Update receipt processing settings by id
+[*ReceiptProductApi*](doc/ReceiptProductApi.md) | [**getReceiptProducts**](doc/ReceiptProductApi.md#getreceiptproducts) | **GET** /receipt-product/receipt/{receiptId} | Get a receipt&#39;s products
+[*ReceiptProductApi*](doc/ReceiptProductApi.md) | [**queueGroupReceiptProducts**](doc/ReceiptProductApi.md#queuegroupreceiptproducts) | **POST** /receipt-product/group/{groupId}/backfill | Read the products of a group&#39;s older receipts
+[*ReceiptProductApi*](doc/ReceiptProductApi.md) | [**readReceiptProducts**](doc/ReceiptProductApi.md#readreceiptproducts) | **POST** /receipt-product/receipt/{receiptId}/read | Read a receipt&#39;s products again
 [*ReportApi*](doc/ReportApi.md) | [**createReportTemplate**](doc/ReportApi.md#createreporttemplate) | **POST** /report/template | Save a report template
 [*ReportApi*](doc/ReportApi.md) | [**deleteReportTemplate**](doc/ReportApi.md#deletereporttemplate) | **DELETE** /report/template/{id} | Delete a report template
 [*ReportApi*](doc/ReportApi.md) | [**duplicateReportTemplate**](doc/ReportApi.md#duplicatereporttemplate) | **POST** /report/template/{id}/duplicate | Duplicate a report template
@@ -298,11 +301,14 @@ Class | Method | HTTP request | Description
  - [PieChartDataPoint](doc/PieChartDataPoint.md)
  - [Prompt](doc/Prompt.md)
  - [QueueName](doc/QueueName.md)
+ - [QueuedReceiptsView](doc/QueuedReceiptsView.md)
  - [QuickScanDefaultPaidByType](doc/QuickScanDefaultPaidByType.md)
  - [Receipt](doc/Receipt.md)
  - [ReceiptPagedRequestCommand](doc/ReceiptPagedRequestCommand.md)
  - [ReceiptPagedRequestFilter](doc/ReceiptPagedRequestFilter.md)
  - [ReceiptProcessingSettings](doc/ReceiptProcessingSettings.md)
+ - [ReceiptProduct](doc/ReceiptProduct.md)
+ - [ReceiptProductsView](doc/ReceiptProductsView.md)
  - [ReceiptRequirements](doc/ReceiptRequirements.md)
  - [ReceiptStatus](doc/ReceiptStatus.md)
  - [ReceiptSummary](doc/ReceiptSummary.md)

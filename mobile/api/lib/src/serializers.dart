@@ -91,11 +91,14 @@ import 'package:openapi/src/model/pie_chart_data_command.dart';
 import 'package:openapi/src/model/pie_chart_data_point.dart';
 import 'package:openapi/src/model/prompt.dart';
 import 'package:openapi/src/model/queue_name.dart';
+import 'package:openapi/src/model/queued_receipts_view.dart';
 import 'package:openapi/src/model/quick_scan_default_paid_by_type.dart';
 import 'package:openapi/src/model/receipt.dart';
 import 'package:openapi/src/model/receipt_paged_request_command.dart';
 import 'package:openapi/src/model/receipt_paged_request_filter.dart';
 import 'package:openapi/src/model/receipt_processing_settings.dart';
+import 'package:openapi/src/model/receipt_product.dart';
+import 'package:openapi/src/model/receipt_products_view.dart';
 import 'package:openapi/src/model/receipt_requirements.dart';
 import 'package:openapi/src/model/receipt_status.dart';
 import 'package:openapi/src/model/receipt_summary.dart';
@@ -246,11 +249,14 @@ part 'serializers.g.dart';
   PieChartDataPoint,
   Prompt,
   QueueName,
+  QueuedReceiptsView,
   QuickScanDefaultPaidByType,
   Receipt,
   ReceiptPagedRequestCommand,
   ReceiptPagedRequestFilter,
   ReceiptProcessingSettings,
+  ReceiptProduct,
+  ReceiptProductsView,
   ReceiptRequirements,
   ReceiptStatus,
   ReceiptSummary,

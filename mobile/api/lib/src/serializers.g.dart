@@ -84,11 +84,14 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(PieChartDataPoint.serializer)
       ..add(Prompt.serializer)
       ..add(QueueName.serializer)
+      ..add(QueuedReceiptsView.serializer)
       ..add(QuickScanDefaultPaidByType.serializer)
       ..add(Receipt.serializer)
       ..add(ReceiptPagedRequestCommand.serializer)
       ..add(ReceiptPagedRequestFilter.serializer)
       ..add(ReceiptProcessingSettings.serializer)
+      ..add(ReceiptProduct.serializer)
+      ..add(ReceiptProductsView.serializer)
       ..add(ReceiptRequirements.serializer)
       ..add(ReceiptStatus.serializer)
       ..add(ReceiptSummary.serializer)
@@ -287,6 +290,9 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(PieChartDataPoint)]),
           () => ListBuilder<PieChartDataPoint>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(ReceiptProduct)]),
+          () => ListBuilder<ReceiptProduct>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(ReceiptStatus)]),
           () => ListBuilder<ReceiptStatus>())
