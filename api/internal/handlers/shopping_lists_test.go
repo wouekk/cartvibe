@@ -326,6 +326,61 @@ func TestShoppingListReAddingCrossedOffItemRevivesIt(t *testing.T) {
 	}
 }
 
+func TestShoppingListItemAmountAndUnit(t *testing.T) {
+	defer tearDownShoppingListTest()
+	repositories.CreateTestGroupWithUsers()
+	grantAllGroupPerms(t, 1, 1)
+	list := createShoppingListForTest(t, 1, "1", "Supermarket")
+
+	w, r := shoppingListRequest("POST", `{"name":"Flour","amount":"1.5","unit":"kg"}`, 1, map[string]string{"listId": fmt.Sprint(list.ID)})
+	AddShoppingListItem(w, r)
+	assertStatus(t, w, http.StatusOK)
+	// Decimals travel as strings, like every other amount in the API.
+	if !strings.Contains(w.Body.String(), `"amount":"1.5"`) || !strings.Contains(w.Body.String(), `"unit":"kg"`) {
+		t.Errorf("expected amount and unit in the response, got %s", w.Body.String())
+	}
+	flour := decodeShoppingListResponse[models.ShoppingListItem](t, w)
+
+	// An item without an amount sends null and an empty unit, never a missing key.
+	plain := addShoppingListItemForTest(t, 1, list.ID, `{"name":"Salt"}`)
+	if plain.Amount != nil || plain.Unit != "" {
+		t.Errorf("expected no amount, got %+v", plain)
+	}
+
+	// Editing to clear the amount persists the null.
+	w, r = shoppingListRequest("PUT", `{"name":"Flour"}`, 1, map[string]string{"itemId": fmt.Sprint(flour.ID)})
+	UpdateShoppingListItem(w, r)
+	assertStatus(t, w, http.StatusOK)
+	if !strings.Contains(w.Body.String(), `"amount":null`) {
+		t.Errorf("expected a cleared amount, got %s", w.Body.String())
+	}
+
+	w, r = shoppingListRequest("POST", `{"name":"Sugar","unit":"gallon","amount":"1"}`, 1, map[string]string{"listId": fmt.Sprint(list.ID)})
+	AddShoppingListItem(w, r)
+	assertStatus(t, w, http.StatusBadRequest)
+}
+
+func TestShoppingListRevivingWithAnAmountReplacesTheOldQuantity(t *testing.T) {
+	defer tearDownShoppingListTest()
+	repositories.CreateTestGroupWithUsers()
+	grantAllGroupPerms(t, 1, 1)
+	list := createShoppingListForTest(t, 1, "1", "Supermarket")
+	milk := addShoppingListItemForTest(t, 1, list.ID, `{"name":"Milk","quantity":"a carton"}`)
+	setShoppingListItemCheckedForTest(t, 1, milk.ID, true)
+
+	revived := addShoppingListItemForTest(t, 1, list.ID, `{"name":"Milk","amount":"2","unit":"l"}`)
+	if revived.ID != milk.ID || revived.Amount == nil || revived.Amount.String() != "2" || revived.Unit != "l" || revived.Quantity != "" {
+		t.Errorf("expected the amount to replace the free-text quantity, got %+v", revived)
+	}
+
+	// Reviving without an amount keeps the one it had.
+	setShoppingListItemCheckedForTest(t, 1, milk.ID, true)
+	again := addShoppingListItemForTest(t, 1, list.ID, `{"name":"Milk"}`)
+	if again.Amount == nil || again.Amount.String() != "2" || again.Unit != "l" {
+		t.Errorf("expected the amount to be kept, got %+v", again)
+	}
+}
+
 func TestShoppingListUpdateItemAndList(t *testing.T) {
 	defer tearDownShoppingListTest()
 	repositories.CreateTestGroupWithUsers()

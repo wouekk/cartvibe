@@ -4,6 +4,7 @@ import (
 	"receipt-wrangler/api/internal/models"
 	"time"
 
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
@@ -190,14 +191,29 @@ func (repository ShoppingListRepository) FindCheckedShoppingListItemByName(listI
 	return item, nil
 }
 
-// UpdateShoppingListItemFields writes name, quantity and note, including empty values.
-func (repository ShoppingListRepository) UpdateShoppingListItemFields(itemId uint, name string, quantity string, note string) error {
+// ShoppingListItemFields are the user-editable fields of an item.
+type ShoppingListItemFields struct {
+	Name     string
+	Amount   *decimal.Decimal
+	Unit     string
+	Quantity string
+	Note     string
+}
+
+// UpdateShoppingListItemFields writes every editable field, including empty values and a nil amount.
+func (repository ShoppingListRepository) UpdateShoppingListItemFields(itemId uint, fields ShoppingListItemFields) error {
 	db := repository.GetDB()
 
 	return db.Model(&models.ShoppingListItem{}).
 		Where("id = ?", itemId).
-		Select("name", "quantity", "note").
-		Updates(models.ShoppingListItem{Name: name, Quantity: quantity, Note: note}).Error
+		Select("name", "amount", "unit", "quantity", "note").
+		Updates(models.ShoppingListItem{
+			Name:     fields.Name,
+			Amount:   fields.Amount,
+			Unit:     fields.Unit,
+			Quantity: fields.Quantity,
+			Note:     fields.Note,
+		}).Error
 }
 
 // SetShoppingListItemChecked stamps who crossed an item off and when, or clears both on un-check.

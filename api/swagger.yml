@@ -4565,6 +4565,7 @@ components:
         - id
         - shoppingListId
         - name
+        - unit
         - quantity
         - note
         - isChecked
@@ -4588,9 +4589,21 @@ components:
           description: List the item belongs to
         name:
           type: string
+        amount:
+          type: string
+          nullable: true
+          description: How much to buy, as a decimal string (e.g. "1.5"); null when not given
+        unit:
+          type: string
+          description: >-
+            Unit of the amount: one of pcs, kg, g, l, ml, pack, bottle, can, box, bag, jar, bunch, dozen;
+            empty when there is no amount or it is a plain count. A plain string, never an enum, so a
+            unit added later cannot break an older client.
         quantity:
           type: string
-          description: Free-text quantity, e.g. 2 lbs. Empty when not set.
+          description: >-
+            The original free-text quantity, kept for items written before amount and unit existed.
+            Superseded by amount and unit; empty when not set.
         note:
           type: string
           description: Empty when not set
@@ -4623,6 +4636,13 @@ components:
         name:
           type: string
           maxLength: 200
+        amount:
+          type: string
+          nullable: true
+          description: How much to buy, as a decimal string; greater than 0, below 100000, at most 3 decimals
+        unit:
+          type: string
+          description: One of the ShoppingListItem units; requires an amount
         quantity:
           type: string
           maxLength: 50
