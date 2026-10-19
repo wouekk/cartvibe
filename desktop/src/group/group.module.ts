@@ -28,6 +28,7 @@ import { GroupTableFilterComponent } from "./group-table-filter/group-table-filt
 import { GroupTableEditButtonPipe } from "./group-table/group-table-edit-button.pipe";
 import { GroupTableComponent } from "./group-table/group-table.component";
 import { GroupTabsComponent } from "./group-tabs/group-tabs.component";
+import { ReceiptProductBackfillComponent } from "../standalone/components/receipt-product-backfill/receipt-product-backfill.component";
 
 @NgModule({
   declarations: [
@@ -45,6 +46,7 @@ import { GroupTabsComponent } from "./group-tabs/group-tabs.component";
   ],
   imports: [
     ButtonModule,
+    ReceiptProductBackfillComponent,
     CheckboxModule,
     CommonModule,
     DirectivesModule,

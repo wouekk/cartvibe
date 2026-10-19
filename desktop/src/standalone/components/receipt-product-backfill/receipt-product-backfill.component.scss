@@ -1,0 +1,27 @@
+@use "../../../variables.scss" as variables;
+
+:host {
+  display: block;
+}
+
+.backfill {
+  margin-top: variables.$spacing-md;
+}
+
+.backfill__text {
+  margin: 0 0 variables.$spacing-sm;
+  color: #475569;
+  font-size: 14px;
+}
+
+.backfill__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: variables.$spacing-sm variables.$spacing-md;
+}
+
+.backfill__result {
+  font-size: 14px;
+  color: #475569;
+}

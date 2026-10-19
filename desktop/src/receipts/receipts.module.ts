@@ -50,6 +50,7 @@ import { ReceiptsRoutingModule } from "./receipts-routing.module";
 import { ReceiptsTableComponent } from "./receipts-table/receipts-table.component";
 import { ShareListComponent } from "./share-list/share-list.component";
 import { UploadImageComponent } from "./upload-image/upload-image.component";
+import { ReceiptProductsComponent } from "./receipt-products/receipt-products.component";
 import { UserTotalWithPercentagePipe } from "./user-total-with-percentage.pipe";
 
 @NgModule({
@@ -108,6 +109,7 @@ import { UserTotalWithPercentagePipe } from "./user-total-with-percentage.pipe";
     CheckboxModule,
     MonthStepperComponent,
     ReceiptTotalsComponent,
+    ReceiptProductsComponent,
   ],
   exports: [
     UploadImageComponent

@@ -1,0 +1,77 @@
+@use "../../variables.scss" as variables;
+
+:host {
+  display: block;
+}
+
+.status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: variables.$spacing-xs variables.$spacing-sm;
+  margin: 0 0 variables.$spacing-sm;
+  color: #475569;
+}
+
+.status__icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.status__detail {
+  flex-basis: 100%;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.products {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+
+  th {
+    padding: 0 variables.$spacing-sm variables.$spacing-sm 0;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #64748b;
+    text-align: left;
+  }
+
+  td {
+    padding: variables.$spacing-sm variables.$spacing-sm variables.$spacing-sm 0;
+    border-top: 1px solid #eef2f6;
+    vertical-align: top;
+  }
+}
+
+.product__name {
+  display: block;
+  font-weight: 500;
+}
+
+.product__printed {
+  display: block;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.numeric {
+  text-align: right !important;
+  white-space: nowrap;
+}
+
+.muted {
+  color: #475569;
+}
+
+.read-again {
+  margin-top: variables.$spacing-sm;
+}

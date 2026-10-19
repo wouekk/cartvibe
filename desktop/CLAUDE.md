@@ -2825,6 +2825,20 @@ and on a group switch (`GroupState.overviewLink`). The guards' fallback redirect
 - Guarded by `overviewReadGuard` (`group.receipts.read`), which falls back to the group's
   dashboards.
 
+## Receipt products (fork, Phase 2a)
+
+- **`app-receipt-products`** (`src/receipts/receipt-products/`, standalone) is the receipt page's
+  "Products" section, shown for saved receipts and keyed on the receipt id like the comments. It
+  loads by receipt id, explains the status (a plain string; an unknown one shows no text), checks
+  back every 30 s while a read is `PENDING`/`RUNNING` (at most 20 times), and offers **Read again**
+  for a `DONE`/`FAILED`/`UNAVAILABLE` read with `group.receipts.update`.
+- **`app-receipt-product-backfill`** (`src/standalone/components/`) sits under AI Settings on the
+  group settings page: one button that queues the group's older receipts, gated on
+  `group.receipts.update`.
+- Both provide `CurrencyPipe` / avoid it themselves: `PipesModule` declares `customCurrency` but
+  does not provide the `CurrencyPipe` it delegates to.
+- Backend: `api/CLAUDE.md` → "Receipt products".
+
 ## Navigation sidebar (fork)
 
 `src/layout/sidebar/` is the app's navigation; the header keeps only the sidebar toggle, user
