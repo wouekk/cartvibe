@@ -150,6 +150,14 @@ const (
 	GroupActivitiesRerun = "group.activities.rerun"
 
 	GroupEmailPoll = "group.email.poll"
+
+	// Item mutations (add, edit, check off, remove, clear crossed-off) ride on
+	// update, which keeps the set small; splitting out an items.* key later is
+	// additive.
+	GroupShoppingListsCreate = "group.shopping-lists.create"
+	GroupShoppingListsRead   = "group.shopping-lists.read"
+	GroupShoppingListsUpdate = "group.shopping-lists.update"
+	GroupShoppingListsDelete = "group.shopping-lists.delete"
 )
 
 var registry = []Descriptor{
@@ -276,6 +284,11 @@ var registry = []Descriptor{
 	{GroupActivitiesRerun, "Rerun Activities", "Re-execute a failed or stale activity.", "Activity", ScopeGroup},
 
 	{GroupEmailPoll, "Poll Inbound Email", "Trigger an inbound email poll for the group's inbox.", "Group", ScopeGroup},
+
+	{GroupShoppingListsCreate, "Create Shopping Lists", "Create new shopping lists in the group.", "Shopping Lists", ScopeGroup},
+	{GroupShoppingListsRead, "Read Shopping Lists", "View the group's shopping lists and receive their live updates.", "Shopping Lists", ScopeGroup},
+	{GroupShoppingListsUpdate, "Update Shopping Lists", "Rename shopping lists, and add, edit, check off and remove their items.", "Shopping Lists", ScopeGroup},
+	{GroupShoppingListsDelete, "Delete Shopping Lists", "Delete shopping lists and all of their items.", "Shopping Lists", ScopeGroup},
 }
 
 func All() []Descriptor {

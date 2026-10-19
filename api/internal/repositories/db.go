@@ -173,6 +173,8 @@ func MakeMigrations() error {
 		&models.OidcExchangeCode{},
 		&models.OidcLinkLaunch{},
 		&models.OidcDeleteConfirmation{},
+		&models.ShoppingList{},
+		&models.ShoppingListItem{},
 	)
 
 	return err

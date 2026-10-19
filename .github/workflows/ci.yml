@@ -3,13 +3,18 @@ name: CI - Build and Test
 
 on:
   push:
-    branches: [main]
+    # feature/** runs the test jobs only. Codecov uploads are gated to the
+    # upstream repository and Docker Hub publishing to its main branch, so a
+    # fork or feature branch gets a test signal without the upstream secrets.
+    branches: [main, 'feature/**']
     paths:
       - 'api/**'
       - 'desktop/**'
       - 'mobile/**'
       - 'docker/**'
       - '.github/workflows/**'
+  # Dispatched by regenerate-clients.yml, whose GITHUB_TOKEN push cannot trigger the push event.
+  workflow_dispatch:
 
 concurrency:
   group: docker-build-${{ github.ref }}
@@ -61,6 +66,7 @@ jobs:
         run: go test -coverprofile=coverage.out -covermode=atomic -v ./...
         working-directory: ./api
       - name: Upload Coverage Report to Codecov
+        if: github.repository == 'Receipt-Wrangler/receipt-wrangler'
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -99,6 +105,7 @@ jobs:
           output: both
           badge: true
       - name: Upload coverage to Codecov
+        if: github.repository == 'Receipt-Wrangler/receipt-wrangler'
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -148,6 +155,8 @@ jobs:
     needs: [detect-changes, test-api, test-desktop]
     if: |
       always() &&
+      github.repository == 'Receipt-Wrangler/receipt-wrangler' &&
+      github.ref == 'refs/heads/main' &&
       needs.detect-changes.outputs.docker == 'true' &&
       !contains(needs.*.result, 'failure') &&
       !contains(needs.*.result, 'cancelled')
@@ -180,6 +189,8 @@ jobs:
     needs: [detect-changes, test-api, test-desktop]
     if: |
       always() &&
+      github.repository == 'Receipt-Wrangler/receipt-wrangler' &&
+      github.ref == 'refs/heads/main' &&
       needs.detect-changes.outputs.docker == 'true' &&
       !contains(needs.*.result, 'failure') &&
       !contains(needs.*.result, 'cancelled')

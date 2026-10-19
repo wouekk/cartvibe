@@ -266,6 +266,12 @@ func (service GroupService) DeleteGroup(groupId string, allowAllGroupDelete bool
 			}
 		}
 
+		// Delete shopping lists in group, with their items
+		txErr = repositories.NewShoppingListRepository(tx).DeleteShoppingListsForGroup(uintGroupId)
+		if txErr != nil {
+			return txErr
+		}
+
 		// Delete group members
 		txErr = tx.Where("group_id = ?", groupId).Delete(&models.GroupMember{}).Error
 		if txErr != nil {

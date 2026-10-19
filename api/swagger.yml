@@ -4028,6 +4028,312 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
+  /shopping-list/group/{groupId}:
+    parameters:
+      - in: path
+        name: groupId
+        schema:
+          type: integer
+        required: true
+        description: Id of the group the shopping lists belong to. The "All" group is rejected with 400.
+    get:
+      tags:
+        - ShoppingList
+      summary: Get shopping lists for a group
+      description: This will get every shopping list in a group, each with its items [group.shopping-lists.read]
+      operationId: getShoppingListsForGroup
+      responses:
+        200:
+          description: The group's shopping lists, ordered by name, each with its items ordered by creation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ShoppingList"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+    post:
+      tags:
+        - ShoppingList
+      summary: Create shopping list
+      description: This will create a shopping list in a group [group.shopping-lists.create]
+      operationId: createShoppingList
+      requestBody:
+        description: Shopping list to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertShoppingListCommand"
+      responses:
+        200:
+          description: The created shopping list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShoppingList"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+  /shopping-list/group/{groupId}/stream:
+    parameters:
+      - in: path
+        name: groupId
+        schema:
+          type: integer
+        required: true
+        description: Id of the group to receive shopping list updates for
+    get:
+      tags:
+        - ShoppingList
+      summary: Stream shopping list updates
+      description: >-
+        Server-Sent Events stream of every shopping list mutation in the group [group.shopping-lists.read].
+        Each event is named after its ShoppingListEvent type and its data is a ShoppingListEvent as JSON.
+        A comment heartbeat is sent every 25 seconds, and the server ends the stream after 15 minutes
+        (or when the caller loses access) so that reconnecting re-authenticates. Events missed while
+        disconnected are not replayed; refetch the lists after (re)connecting.
+      operationId: streamShoppingListEvents
+      responses:
+        200:
+          description: An open event stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+  /shopping-list/{listId}:
+    parameters:
+      - in: path
+        name: listId
+        schema:
+          type: integer
+        required: true
+        description: Id of the shopping list to operate on
+    put:
+      tags:
+        - ShoppingList
+      summary: Rename shopping list
+      description: This will rename a shopping list [group.shopping-lists.update]
+      operationId: updateShoppingList
+      requestBody:
+        description: Shopping list to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertShoppingListCommand"
+      responses:
+        200:
+          description: The updated shopping list, with its items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShoppingList"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+    delete:
+      tags:
+        - ShoppingList
+      summary: Delete shopping list
+      description: This will delete a shopping list and all of its items [group.shopping-lists.delete]
+      operationId: deleteShoppingList
+      responses:
+        200:
+          $ref: "#/components/responses/Ok"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+  /shopping-list/{listId}/item:
+    parameters:
+      - in: path
+        name: listId
+        schema:
+          type: integer
+        required: true
+        description: Id of the shopping list to add the item to
+    post:
+      tags:
+        - ShoppingList
+      summary: Add shopping list item
+      description: >-
+        This will add an item to a shopping list [group.shopping-lists.update]. When the name matches a
+        crossed-off item on the same list (ignoring case), that item is un-checked instead of a duplicate
+        being created; a supplied quantity or note replaces the stored one.
+      operationId: addShoppingListItem
+      requestBody:
+        description: Item to add
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertShoppingListItemCommand"
+      responses:
+        200:
+          description: The added (or revived) item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShoppingListItem"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+  /shopping-list/{listId}/clearChecked:
+    parameters:
+      - in: path
+        name: listId
+        schema:
+          type: integer
+        required: true
+        description: Id of the shopping list to clear
+    post:
+      tags:
+        - ShoppingList
+      summary: Clear crossed-off items
+      description: This will delete every crossed-off item on a shopping list [group.shopping-lists.update]
+      operationId: clearCheckedShoppingListItems
+      responses:
+        200:
+          $ref: "#/components/responses/Ok"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+  /shopping-list/item/{itemId}:
+    parameters:
+      - in: path
+        name: itemId
+        schema:
+          type: integer
+        required: true
+        description: Id of the shopping list item to operate on
+    put:
+      tags:
+        - ShoppingList
+      summary: Update shopping list item
+      description: This will update an item's name, quantity and note [group.shopping-lists.update]
+      operationId: updateShoppingListItem
+      requestBody:
+        description: Item to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertShoppingListItemCommand"
+      responses:
+        200:
+          description: The updated item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShoppingListItem"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+    delete:
+      tags:
+        - ShoppingList
+      summary: Delete shopping list item
+      description: This will delete an item from its shopping list [group.shopping-lists.update]
+      operationId: deleteShoppingListItem
+      responses:
+        200:
+          $ref: "#/components/responses/Ok"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+  /shopping-list/item/{itemId}/checked:
+    parameters:
+      - in: path
+        name: itemId
+        schema:
+          type: integer
+        required: true
+        description: Id of the shopping list item to check off or un-check
+    put:
+      tags:
+        - ShoppingList
+      summary: Set whether a shopping list item is crossed off
+      description: >-
+        This will move an item to the given checked state [group.shopping-lists.update]. It sets the state
+        rather than toggling it, so concurrent requests converge; re-sending the current state changes
+        nothing.
+      operationId: setShoppingListItemChecked
+      requestBody:
+        description: Target checked state
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetShoppingListItemCheckedCommand"
+      responses:
+        200:
+          description: The item in its new state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShoppingListItem"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
 components:
   securitySchemes:
     bearerAuth:
@@ -4216,6 +4522,153 @@ components:
         - "group.activities.read"
         - "group.activities.rerun"
         - "group.email.poll"
+        - "group.shopping-lists.create"
+        - "group.shopping-lists.read"
+        - "group.shopping-lists.update"
+        - "group.shopping-lists.delete"
+    ShoppingList:
+      type: object
+      required:
+        - id
+        - groupId
+        - name
+        - items
+      properties:
+        id:
+          type: integer
+          format: uint64
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: integer
+          format: uint64
+          nullable: true
+        groupId:
+          type: integer
+          format: uint64
+          description: Group the list belongs to
+        name:
+          type: string
+          description: List name, e.g. Supermarket
+        items:
+          type: array
+          description: The list's items, ordered by creation. Always an array, never null.
+          items:
+            $ref: "#/components/schemas/ShoppingListItem"
+    ShoppingListItem:
+      type: object
+      required:
+        - id
+        - shoppingListId
+        - name
+        - quantity
+        - note
+        - isChecked
+      properties:
+        id:
+          type: integer
+          format: uint64
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: integer
+          format: uint64
+          nullable: true
+        shoppingListId:
+          type: integer
+          format: uint64
+          description: List the item belongs to
+        name:
+          type: string
+        quantity:
+          type: string
+          description: Free-text quantity, e.g. 2 lbs. Empty when not set.
+        note:
+          type: string
+          description: Empty when not set
+        isChecked:
+          type: boolean
+          description: Whether the item is crossed off
+        checkedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When the item was crossed off; null while it is on the list
+        checkedByUserId:
+          type: integer
+          format: uint64
+          nullable: true
+          description: Who crossed the item off; null while it is on the list
+    UpsertShoppingListCommand:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 100
+    UpsertShoppingListItemCommand:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 200
+        quantity:
+          type: string
+          maxLength: 50
+        note:
+          type: string
+          maxLength: 500
+    SetShoppingListItemCheckedCommand:
+      type: object
+      required:
+        - isChecked
+      properties:
+        isChecked:
+          type: boolean
+          description: The target state. Setting the state an item is already in changes nothing.
+    ShoppingListEvent:
+      type: object
+      description: >-
+        One shopping list mutation, as sent on the group's event stream. It carries the full changed
+        entity, so applying it is an idempotent upsert or remove by id.
+      required:
+        - type
+        - groupId
+        - shoppingListId
+      properties:
+        type:
+          type: string
+          description: >-
+            One of LIST_CREATED, LIST_UPDATED, LIST_DELETED, ITEM_ADDED, ITEM_UPDATED, ITEM_TOGGLED,
+            ITEM_DELETED, CHECKED_CLEARED. Deliberately a plain string rather than an enum, so a client
+            built before a new event type ships can ignore it instead of failing to deserialize.
+        groupId:
+          type: integer
+          format: uint64
+        shoppingListId:
+          type: integer
+          format: uint64
+        list:
+          $ref: "#/components/schemas/ShoppingList"
+        item:
+          $ref: "#/components/schemas/ShoppingListItem"
+        itemIds:
+          type: array
+          description: Ids of the items removed by CHECKED_CLEARED
+          items:
+            type: integer
+            format: uint64
     PermissionScope:
       description: Whether a permission applies app-wide or within a single group.
       type: string
