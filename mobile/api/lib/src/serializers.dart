@@ -54,6 +54,9 @@ import 'package:openapi/src/model/get_system_task_command.dart';
 import 'package:openapi/src/model/group.dart';
 import 'package:openapi/src/model/group_filter.dart';
 import 'package:openapi/src/model/group_member.dart';
+import 'package:openapi/src/model/group_overview.dart';
+import 'package:openapi/src/model/group_overview_category.dart';
+import 'package:openapi/src/model/group_overview_month.dart';
 import 'package:openapi/src/model/group_receipt_settings.dart';
 import 'package:openapi/src/model/group_settings.dart';
 import 'package:openapi/src/model/group_settings_white_list_email.dart';
@@ -206,6 +209,9 @@ part 'serializers.g.dart';
   Group,
   GroupFilter,
   GroupMember,
+  GroupOverview,
+  GroupOverviewCategory,
+  GroupOverviewMonth,
   GroupReceiptSettings,
   GroupSettings,
   GroupSettingsWhiteListEmail,
