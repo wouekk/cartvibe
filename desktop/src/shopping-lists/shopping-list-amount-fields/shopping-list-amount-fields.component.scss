@@ -1,0 +1,17 @@
+@use "../../variables.scss" as variables;
+
+:host {
+  display: block;
+}
+
+.amount-fields {
+  display: flex;
+  gap: variables.$spacing-sm;
+
+  // Both based at 0 so neither field's content decides the split.
+  .amount,
+  .unit {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}

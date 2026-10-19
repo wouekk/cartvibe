@@ -2807,6 +2807,29 @@ renders the **full dataset** (not the capped builder preview) and re-resolves ac
   (`app-select`) whose options come from `ReportService.getReportTemplates` — server-filtered to the
   caller's viewable templates (`reportTemplateOptions`, loaded in `ngOnInit`, `catchError`→empty).
 
+## Navigation sidebar (fork)
+
+`src/layout/sidebar/` is the app's navigation; the header keeps only the sidebar toggle, user
+shortcuts, search and notifications.
+
+- **Order:** group switcher → **New** menu (Add Receipt / Quick Scan / Add Group) → the everyday
+  pages (Shopping Lists, Receipts, Dashboard, Reports) → a collapsible **Manage** section (the
+  `Manage …` admin pages, System Settings, Imports) → the account menu (User Settings, About,
+  Logout). Each entry keeps its own permission gate; the item lists are `mainNavItems` /
+  `manageNavItems` computeds, so a new page is one entry, not new markup.
+- **Desktop vs phone** is decided once, by `ViewportService.isHandset` (Bootstrap's `md`
+  breakpoint), which the header's toggle and the sidebar both read. Desktop: always shown, labeled
+  or collapsed to an icon rail (`LayoutState.isSidebarCollapsed`, persisted). Phone: slides in over
+  the page (`isSidebarOpen`), and closes on every navigation and on load, so a persisted `true`
+  never covers the page.
+- **"New" hides when its menu would be empty** — including Quick Scan without the
+  `aiPoweredReceipts` feature, which the old "+" button got wrong.
+- **Manage starts expanded on one of its own pages** (a `linkedSignal` over the URL), otherwise it
+  stays as the user toggled it.
+- Test ids kept from the old rail: `sidebar-add-fab` (now the New button), `sidebar-add-receipt`,
+  `sidebar-quick-scan`, `sidebar-add-group` (now menu items, so in the overlay once the menu is
+  open), `sidebar-avatar-menu` (the account menu). New: `nav-*` per page, `sidebar-manage-toggle`.
+
 ## Shopping lists (fork extension)
 
 `/shopping-lists/group/:groupId` (`src/shopping-lists/`), mobile-first because it is used in a shop
@@ -2831,6 +2854,12 @@ on a phone. Backend contract: `api/CLAUDE.md` → "Shopping lists".
 - **Only crossing off is optimistic.** It flips immediately and reverts if the request fails; every
   other action waits for the response. The interceptor already toasts 403s and server errors, so the
   component adds its own message only for status 0 (no connection).
+- **Amount + unit.** Items carry `amount` (a decimal string) and `unit` (a plain string from
+  `SHOPPING_LIST_UNITS`, kept in step with the API's `models.ShoppingListUnits`), entered through the
+  shared `app-shopping-list-amount-fields`. The form accepts a comma decimal (a European phone
+  keyboard) and sends a dot. The old free-text `quantity` is still displayed for items written before
+  amounts existed, and an edit without an amount sends it back unchanged rather than erasing it —
+  all three rules live in `shopping-list-item-form.ts`.
 - **Dialog forms submit through `(ngSubmit)` only.** `app-dialog-footer`'s submit button is
   `type="submit"`; binding `(submitClicked)` as well would submit twice.
 - E2e: `e2e/shopping-list.spec.ts` — the add / cross off / revive / clear flow, **two browser

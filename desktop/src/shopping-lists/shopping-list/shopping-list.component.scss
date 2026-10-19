@@ -33,7 +33,7 @@
 
 .add-details {
   display: grid;
-  grid-template-columns: 1fr 2fr;
+  grid-template-columns: 1fr 1fr;
   column-gap: variables.$spacing-sm;
 
   @media (max-width: 480px) {

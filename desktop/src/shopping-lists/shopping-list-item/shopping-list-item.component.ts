@@ -1,5 +1,6 @@
-import { Component, input, output } from "@angular/core";
+import { Component, computed, input, output } from "@angular/core";
 import { ShoppingListItem } from "../../open-api";
+import { formatShoppingListItemAmount } from "../shopping-list-item-form";
 
 /**
  * One row of a shopping list. The whole row is the tap target for crossing an item off (or back
@@ -15,6 +16,9 @@ export class ShoppingListItemComponent {
   public readonly item = input.required<ShoppingListItem>();
 
   public readonly canUpdate = input<boolean>(false);
+
+  /** "1.5 kg"; empty when no amount was given. */
+  public readonly amount = computed(() => formatShoppingListItemAmount(this.item()));
 
   public readonly toggled = output<ShoppingListItem>();
 

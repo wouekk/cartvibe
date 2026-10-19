@@ -1,17 +1,17 @@
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
-import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
+import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { MatDialogModule } from "@angular/material/dialog";
 import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { Store } from "@ngxs/store";
 import { NgbPopoverModule } from "@ng-bootstrap/ng-bootstrap";
 import { of } from "rxjs";
-import { ToggleIsSidebarOpen } from "src/store/layout.state.actions";
+import { ToggleIsSidebarCollapsed, ToggleIsSidebarOpen } from "src/store/layout.state.actions";
+import { ViewportService } from "../../services/viewport.service";
 import { DirectivesModule } from "../../directives/directives.module";
-import { ApiModule, Group, NotificationsService } from "../../open-api";
+import { ApiModule, NotificationsService } from "../../open-api";
 import { SetAuthState, SetPermissions } from "../../store/auth.state.actions";
-import { SetGroups, SetSelectedGroupId } from "../../store/group.state.actions";
 import { StoreModule } from "../../store/store.module";
 import { HeaderComponent } from "./header.component";
 
@@ -20,6 +20,7 @@ describe("HeaderComponent", () => {
   let fixture: ComponentFixture<HeaderComponent>;
   let store: Store;
   let notificationsService: NotificationsService;
+  const isHandset = signal(false);
 
   const logIn = () =>
     store.dispatch(
@@ -38,14 +39,6 @@ describe("HeaderComponent", () => {
   const grantReceiptsSearch = () =>
     store.dispatch(new SetPermissions(["app.receipts.search"], {}));
 
-  const dashboardButtonRendered = (): boolean =>
-    !!fixture.nativeElement.querySelector('button[matTooltip="Dashboard"]');
-
-  const selectGroupOne = () => store.dispatch(new SetSelectedGroupId("1"));
-
-  const grantDashboardsRead = () =>
-    store.dispatch(new SetPermissions([], { 1: ["group.dashboards.read"] }));
-
   beforeEach(async () => {
     // StoreModule persists auth (incl. permissions) to localStorage; clear it so
     // granted permissions don't leak across tests in this file.
@@ -60,7 +53,7 @@ describe("HeaderComponent", () => {
         NgbPopoverModule,
         StoreModule,
     ],
-    providers: [provideZonelessChangeDetection(), provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()],
+    providers: [provideZonelessChangeDetection(), provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting(), { provide: ViewportService, useValue: { isHandset } }],
     schemas: [NO_ERRORS_SCHEMA],
 }).compileComponents();
 
@@ -75,11 +68,20 @@ describe("HeaderComponent", () => {
     expect(component).toBeTruthy();
   });
 
-  it("should toggle sidebar", () => {
-    const store = jest.spyOn(TestBed.inject(Store), "dispatch");
+  it("collapses the desktop sidebar to an icon rail", () => {
+    isHandset.set(false);
+    const dispatch = jest.spyOn(TestBed.inject(Store), "dispatch");
     component.toggleSidebar();
 
-    expect(store).toHaveBeenCalledWith(new ToggleIsSidebarOpen());
+    expect(dispatch).toHaveBeenCalledWith(new ToggleIsSidebarCollapsed());
+  });
+
+  it("opens the phone sidebar over the page", () => {
+    isHandset.set(true);
+    const dispatch = jest.spyOn(TestBed.inject(Store), "dispatch");
+    component.toggleSidebar();
+
+    expect(dispatch).toHaveBeenCalledWith(new ToggleIsSidebarOpen());
   });
 
   it("should hide the notifications bell without app.notifications.read", async () => {
@@ -110,54 +112,6 @@ describe("HeaderComponent", () => {
     await fixture.whenStable();
 
     expect(searchbarRendered()).toBe(true);
-  });
-
-  it("should hide the dashboard button without group.dashboards.read for the selected group", async () => {
-    logIn();
-    selectGroupOne();
-    await fixture.whenStable();
-
-    expect(dashboardButtonRendered()).toBe(false);
-  });
-
-  it("should show the dashboard button with group.dashboards.read for the selected group", async () => {
-    logIn();
-    selectGroupOne();
-    grantDashboardsRead();
-    await fixture.whenStable();
-
-    expect(dashboardButtonRendered()).toBe(true);
-  });
-
-  describe("shopping lists button", () => {
-    const shoppingListsLink = (): HTMLElement | null =>
-      fixture.nativeElement.querySelector('[data-testid="header-shopping-lists"]');
-
-    beforeEach(() => {
-      logIn();
-      store.dispatch(
-        new SetGroups([
-          { id: 10, name: "All", isAllGroup: true } as Group,
-          { id: 1, name: "Home", isAllGroup: false } as Group,
-        ])
-      );
-      store.dispatch(new SetSelectedGroupId("10"));
-    });
-
-    it("is hidden when no real group's lists are readable, even if the All group's are", async () => {
-      store.dispatch(new SetPermissions([], { 10: ["group.shopping-lists.read"] }));
-      await fixture.whenStable();
-
-      expect(shoppingListsLink()).toBeNull();
-    });
-
-    it("opens a readable real group while the All group is selected", async () => {
-      store.dispatch(new SetPermissions([], { 1: ["group.shopping-lists.read"] }));
-      await fixture.whenStable();
-
-      expect(shoppingListsLink()).not.toBeNull();
-      expect(component.shoppingListGroupId()).toBe(1);
-    });
   });
 
   it("should not fetch the notification count without app.notifications.read", async () => {

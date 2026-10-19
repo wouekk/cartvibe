@@ -3,8 +3,8 @@ import { Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
 import { LayoutState } from "src/store/layout.state";
-import { ShoppingListState } from "src/store/shopping-list.state";
-import { ToggleIsSidebarOpen } from "src/store/layout.state.actions";
+import { ToggleIsSidebarCollapsed, ToggleIsSidebarOpen } from "src/store/layout.state.actions";
+import { ViewportService } from "../../services/viewport.service";
 import { AuthService, NotificationsService, Permission } from "../../open-api";
 import { AuthState, GroupState } from "../../store";
 
@@ -19,35 +19,16 @@ export class HeaderComponent {
 
   public selectedGroupId = this.store.selectSignal(GroupState.selectedGroupId);
 
-  public selectedGroupIdNumber = computed(() => Number(this.selectedGroupId()));
-
   public loggedInUser = this.store.selectSignal(AuthState.loggedInUser);
 
   public showProgressBar = this.store.selectSignal(LayoutState.showProgressBar);
 
   public userPreferences = this.store.selectSignal(AuthState.userPreferences);
 
-  public receiptHeaderLink = computed(() => {
-    this.selectedGroupId();
-    return [this.store.selectSnapshot(GroupState.receiptListLink)];
-  });
-
-  public dashboardHeaderLink = computed(() => {
-    this.selectedGroupId();
-    return [this.store.selectSnapshot(GroupState.dashboardLink)];
-  });
-
   public settingsBaseHeaderLink = computed(() => {
     this.selectedGroupId();
     return [this.store.selectSnapshot(GroupState.settingsLinkBase) + "/view"];
   });
-
-  /**
-   * The group the shopping list button opens — the selected group when its lists are readable,
-   * otherwise the first group whose are. Undefined (button hidden) when no group's are; the
-   * synthetic "All" group is never one.
-   */
-  public shoppingListGroupId = this.store.selectSignal(ShoppingListState.targetGroupId);
 
   public groupName = computed(() => {
     const groupId = this.selectedGroupId();
@@ -67,7 +48,8 @@ export class HeaderComponent {
     private authService: AuthService,
     private notificationsService: NotificationsService,
     private router: Router,
-    private store: Store
+    private store: Store,
+    private viewportService: ViewportService
   ) {
     this.listenForLoggedInUser();
   }
@@ -95,7 +77,11 @@ export class HeaderComponent {
     });
   }
 
+  /** On a phone the sidebar slides in over the page; on a desktop it is always shown, and this
+   * switches it between labeled and an icon rail. */
   public toggleSidebar(): void {
-    this.store.dispatch(new ToggleIsSidebarOpen());
+    this.store.dispatch(
+      this.viewportService.isHandset() ? new ToggleIsSidebarOpen() : new ToggleIsSidebarCollapsed()
+    );
   }
 }

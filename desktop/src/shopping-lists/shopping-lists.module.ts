@@ -6,7 +6,9 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatMenuModule } from "@angular/material/menu";
 import { InputModule } from "../input";
 import { PipesModule } from "../pipes/pipes.module";
+import { SelectModule } from "../select/select.module";
 import { SharedUiModule } from "../shared-ui/shared-ui.module";
+import { ShoppingListAmountFieldsComponent } from "./shopping-list-amount-fields/shopping-list-amount-fields.component";
 import { ShoppingListFormDialogComponent } from "./shopping-list-form-dialog/shopping-list-form-dialog.component";
 import { ShoppingListItemFormDialogComponent } from "./shopping-list-item-form-dialog/shopping-list-item-form-dialog.component";
 import { ShoppingListItemComponent } from "./shopping-list-item/shopping-list-item.component";
@@ -16,6 +18,7 @@ import { ShoppingListsRoutingModule } from "./shopping-lists-routing.module";
 
 @NgModule({
   declarations: [
+    ShoppingListAmountFieldsComponent,
     ShoppingListComponent,
     ShoppingListFormDialogComponent,
     ShoppingListItemComponent,
@@ -30,6 +33,7 @@ import { ShoppingListsRoutingModule } from "./shopping-lists-routing.module";
     MatMenuModule,
     PipesModule,
     ReactiveFormsModule,
+    SelectModule,
     SharedUiModule,
     ShoppingListsRoutingModule,
   ],

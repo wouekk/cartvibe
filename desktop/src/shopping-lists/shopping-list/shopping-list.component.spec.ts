@@ -19,6 +19,7 @@ const milk: ShoppingListItem = {
   id: 1,
   shoppingListId: 1,
   name: "Milk",
+  unit: "",
   quantity: "",
   note: "",
   isChecked: false,
@@ -116,10 +117,16 @@ describe("ShoppingListComponent", () => {
     const bread: ShoppingListItem = { ...milk, id: 2, name: "Bread" };
     shoppingListService.addShoppingListItem.mockReturnValue(of(bread));
 
-    component.addForm.patchValue({ name: "  Bread ", quantity: "2", note: "" });
+    component.addForm.patchValue({ name: "  Bread ", amount: "1,5", unit: "kg", note: "" });
     component.addItem();
 
-    expect(shoppingListService.addShoppingListItem).toHaveBeenCalledWith(1, { name: "Bread", quantity: "2", note: "" });
+    expect(shoppingListService.addShoppingListItem).toHaveBeenCalledWith(1, {
+      name: "Bread",
+      amount: "1.5",
+      unit: "kg",
+      quantity: "",
+      note: "",
+    });
     expect(store.selectSnapshot(ShoppingListState.activeItems).map((i) => i.name)).toEqual(["Milk", "Bread"]);
     expect(component.addForm.value.name).toBe("");
   });

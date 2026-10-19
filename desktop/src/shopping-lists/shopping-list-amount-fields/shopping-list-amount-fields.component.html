@@ -1,0 +1,19 @@
+<div class="amount-fields">
+  <app-input
+    class="amount"
+    label="Amount"
+    type="text"
+    data-testid="shopping-list-amount"
+    [additionalErrorMessages]="amountErrors"
+    [inputFormControl]="form() | formGet : 'amount'"
+  ></app-input>
+  <app-select
+    class="unit"
+    label="Unit"
+    optionValueKey="value"
+    optionDisplayKey="displayValue"
+    data-testid="shopping-list-unit"
+    [options]="units"
+    [inputFormControl]="form() | formGet : 'unit'"
+  ></app-select>
+</div>

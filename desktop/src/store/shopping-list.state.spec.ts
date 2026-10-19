@@ -14,6 +14,7 @@ const item = (id: number, overrides: Partial<ShoppingListItem> = {}): ShoppingLi
   id,
   shoppingListId: 1,
   name: `item-${id}`,
+  unit: "",
   quantity: "",
   note: "",
   isChecked: false,
