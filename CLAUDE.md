@@ -56,6 +56,13 @@ The `docker/dev/Dockerfile` includes:
 - Java runtime for OpenAPI generator
 - Flutter SDK at `/opt/flutter` (on `PATH` via `ENV` and `/root/.bashrc`) with Linux desktop enabled and the `mobile/` pub cache warmed, plus `xvfb` + `libsecret-1-dev` so `mobile/run-e2e.sh` works out of the box
 
+### This fork's deployment (pre-built image)
+After CI passes on `main`, `.github/workflows/publish-image.yml` builds `docker/Dockerfile` on GitHub
+and pushes `ghcr.io/wouekk/receipt-wrangler:latest`; the Synology runs the root `docker-compose.yml`
+(`image:`, not `build:`) and only pulls. The Dockerfile installs each stage's dependencies from the
+files that declare them **before** copying source, so code-only builds hit the layer cache — keep it
+that way. See `AGENTS.md` §2.
+
 ### Build Commands
 ```bash
 # Production monolith

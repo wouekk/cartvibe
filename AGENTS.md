@@ -22,7 +22,8 @@ We are extending Receipt Wrangler into a combined **Receipt Manager + Group Shop
 - **Monolith Docker Build:** Production deploys via `docker/Dockerfile` (single container with nginx on port 80 proxying `/api` to Go on port 8081).
 - **Database:** Uses the built-in **SQLite** engine stored in `/app/receipt-wrangler-api/sqlite`.
   - All new GORM models/migrations (`ShoppingList`, `ShoppingListItem`) MUST be 100% compatible with SQLite (`shopspring/decimal` for any numbers, no Postgres-only column types).
-- **GitOps via Dockhand:** Pushing to the tracked branch triggers Dockhand on the Synology NAS to rebuild from `./docker/Dockerfile` with build context `.`. Never add per-component Dockerfiles.
+- **Pre-built image, no build on the NAS:** after CI passes on `main`, `.github/workflows/publish-image.yml` builds `./docker/Dockerfile` (context `.`, amd64) on GitHub and pushes `ghcr.io/wouekk/receipt-wrangler:latest` (plus a `sha-<commit>` tag). The NAS runs `docker-compose.yml` as a plain Dockhand stack with `image:`, not `build:`; deploying = pull + redeploy. Never add per-component Dockerfiles.
+- **Dockerfile layer order is load-bearing:** dependencies are installed from the files that declare them before the source is copied, so code-only builds reuse the cached PyTorch/Chromium/npm/Go layers. Keep per-build values (`VERSION`, `BUILD_DATE`) and source copies below them.
 
 ---
 
