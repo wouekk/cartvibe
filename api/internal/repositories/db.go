@@ -175,6 +175,8 @@ func MakeMigrations() error {
 		&models.OidcDeleteConfirmation{},
 		&models.ShoppingList{},
 		&models.ShoppingListItem{},
+		&models.ReceiptProduct{},
+		&models.ReceiptProductExtraction{},
 	)
 
 	return err

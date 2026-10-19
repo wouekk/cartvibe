@@ -168,6 +168,10 @@ func BuildRootRouter() *chi.Mux {
 	overviewRouter := BuildOverviewRouter()
 	rootRouter.Mount("/api/overview", overviewRouter)
 
+	// Receipt product router (the products the AI read off each receipt)
+	receiptProductRouter := BuildReceiptProductRouter()
+	rootRouter.Mount("/api/receipt-product", receiptProductRouter)
+
 	// MCP server + OAuth 2.1 authorization endpoints. These are mounted at the
 	// server root because the OAuth discovery documents must live at well-known
 	// root paths. Unlike background workers, HTTP routes can only be mounted

@@ -1,6 +1,6 @@
-# Spending Insights — Phase 2 Design (draft for review)
+# Spending Insights — Phase 2 Design
 
-Status: **draft, not approved** (2026-10-20). Builds on Phase 1 (shopping lists) and the existing AI
+Status: **approved** (2026-10-20), with the decisions below. Builds on Phase 1 (shopping lists) and the existing AI
 integration (receipt processing settings, prompts, asynq background tasks).
 
 ## What the user asked for
@@ -108,10 +108,11 @@ on the NAS.
 
 Each step is usable on its own and ships separately.
 
-## Open questions for the user
+## Decisions (answered by the user, 2026-10-20)
 
-1. **Region for seasonality:** "Western Europe" (France), or a specific country?
-2. **Goals:** overall monthly plus per category, or just one of them?
-3. **Which receipts count as "food" for the unhealthy share:** only receipts in a Groceries-type category, or
-   every receipt with food products on it?
-4. **Unplanned spend:** count every unmatched product, or ignore small amounts (e.g. under €1)?
+1. **Seasonality region:** Western Europe.
+2. **Goals:** both kinds are optional. A group can set an overall monthly goal, per-category goals, both,
+   or neither.
+3. **Unhealthy share:** counts **every** receipt with food products on it, whatever its category (crisps
+   bought with fuel at a petrol station count).
+4. **Unplanned spend:** **every** product that is not on the list counts, with no minimum amount.
