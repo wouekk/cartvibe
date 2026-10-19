@@ -33,6 +33,7 @@ import { ReceiptProcessingSettingsTableState } from "../store/receipt-processing
 import { ReceiptProcessingSettingsTaskTableState } from "../store/receipt-processing-settings-task-table.state";
 import { ReceiptTableState } from "../store/receipt-table.state";
 import { ReportTemplateTableState } from "../store/report-template-table.state";
+import { ShoppingListState } from "../store/shopping-list.state";
 import { SystemEmailTableState } from "../store/system-email-table.state";
 import { SystemEmailTaskTableState } from "../store/system-email-task-table.state";
 import { SystemSettingsState } from "../store/system-settings.state";
@@ -59,6 +60,8 @@ const ngxsStates = [
   ReceiptProcessingSettingsTaskTableState,
   ReceiptTableState,
   ReportTemplateTableState,
+  // Not in ngxsStorageKeys: the server is the source of truth.
+  ShoppingListState,
   SystemEmailTableState,
   SystemEmailTaskTableState,
   SystemSettingsState,

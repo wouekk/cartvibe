@@ -3,6 +3,7 @@ import { Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
 import { LayoutState } from "src/store/layout.state";
+import { ShoppingListState } from "src/store/shopping-list.state";
 import { ToggleIsSidebarOpen } from "src/store/layout.state.actions";
 import { AuthService, NotificationsService, Permission } from "../../open-api";
 import { AuthState, GroupState } from "../../store";
@@ -40,6 +41,13 @@ export class HeaderComponent {
     this.selectedGroupId();
     return [this.store.selectSnapshot(GroupState.settingsLinkBase) + "/view"];
   });
+
+  /**
+   * The group the shopping list button opens — the selected group when its lists are readable,
+   * otherwise the first group whose are. Undefined (button hidden) when no group's are; the
+   * synthetic "All" group is never one.
+   */
+  public shoppingListGroupId = this.store.selectSignal(ShoppingListState.targetGroupId);
 
   public groupName = computed(() => {
     const groupId = this.selectedGroupId();

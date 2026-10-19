@@ -1,0 +1,74 @@
+<div class="shopping-lists-page">
+  <app-table-header
+    headerText="Shopping Lists"
+    [subtitle]="groupName() ? 'Shared with everyone in ' + groupName() + '. Changes appear live on every device.' : ''"
+  ></app-table-header>
+
+  <div class="list-bar">
+    @if (listTabs().length > 0) {
+      <div class="list-tabs" data-testid="shopping-list-tabs">
+        <app-filter-bar
+          [tabs]="listTabs()"
+          [value]="selectedTab()"
+          (valueChange)="selectList($event)"
+        ></app-filter-bar>
+      </div>
+    }
+
+    <div class="list-actions">
+      @if (canCreate()) {
+        <app-add-button
+          buttonText="Add List"
+          tooltip="Add a shopping list"
+          data-testid="shopping-list-add"
+          (clicked)="addList()"
+        ></app-add-button>
+      }
+      @if (selectedList(); as list) {
+        @if (canUpdate() || canDelete()) {
+          <button
+            mat-icon-button
+            type="button"
+            data-testid="shopping-list-menu"
+            aria-label="List actions"
+            [matMenuTriggerFor]="listMenu"
+          >
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #listMenu="matMenu" xPosition="before">
+            @if (canUpdate()) {
+              <button mat-menu-item data-testid="shopping-list-rename" (click)="renameList(list)">
+                <mat-icon>edit</mat-icon>
+                <span>Rename list</span>
+              </button>
+            }
+            @if (canDelete()) {
+              <button mat-menu-item data-testid="shopping-list-delete" (click)="deleteList(list)">
+                <mat-icon>delete</mat-icon>
+                <span>Delete list</span>
+              </button>
+            }
+          </mat-menu>
+        }
+      }
+    </div>
+  </div>
+
+  @if (isLoaded()) {
+    @if (selectedList(); as list) {
+      <app-shopping-list
+        [list]="list"
+        [groupId]="groupId()"
+        [canUpdate]="canUpdate()"
+      ></app-shopping-list>
+    } @else {
+      <p class="no-lists" data-testid="shopping-list-none">
+        @if (canCreate()) {
+          No shopping lists yet. Add one for each store you shop at.
+        } @else {
+          No shopping lists yet.
+        }
+      </p>
+    }
+  }
+</div>

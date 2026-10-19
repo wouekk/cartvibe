@@ -1,0 +1,26 @@
+<app-dialog headerText="Edit Item">
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="d-flex flex-column">
+      <app-input
+        label="Name"
+        data-testid="shopping-list-item-edit-name"
+        [inputFormControl]="form | formGet : 'name'"
+      ></app-input>
+      <app-input
+        label="Quantity"
+        data-testid="shopping-list-item-edit-quantity"
+        [inputFormControl]="form | formGet : 'quantity'"
+      ></app-input>
+      <app-input
+        label="Note"
+        data-testid="shopping-list-item-edit-note"
+        [inputFormControl]="form | formGet : 'note'"
+      ></app-input>
+    </div>
+
+    <!-- The footer submit button is type="submit", so ngSubmit alone handles both the click and Enter. -->
+    <app-dialog-footer
+      (cancelClicked)="closeDialog()"
+    ></app-dialog-footer>
+  </form>
+</app-dialog>

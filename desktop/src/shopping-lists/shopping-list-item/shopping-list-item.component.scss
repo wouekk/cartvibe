@@ -1,0 +1,85 @@
+@use "sass:map";
+@use "../../variables.scss" as variables;
+
+:host {
+  display: block;
+}
+
+.shopping-list-item {
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  border-bottom: 1px solid map.get(variables.$accent-palette, 100);
+}
+
+.toggle {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  gap: variables.$spacing-md;
+  padding: variables.$spacing-sm variables.$spacing-sm;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  &:disabled {
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid map.get(variables.$primary-palette, 500);
+    outline-offset: -2px;
+  }
+}
+
+.check-icon {
+  flex: 0 0 auto;
+  color: map.get(variables.$primary-palette, 500);
+}
+
+.text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: variables.$spacing-sm;
+  min-width: 0;
+}
+
+.name {
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.quantity {
+  font-size: 14px;
+  font-weight: 600;
+  color: map.get(variables.$accent-palette, 600);
+}
+
+.note {
+  flex-basis: 100%;
+  font-size: 13px;
+  color: variables.$basic-gray;
+  overflow-wrap: anywhere;
+}
+
+.menu-button {
+  flex: 0 0 auto;
+}
+
+.checked {
+  .name {
+    text-decoration: line-through;
+    color: variables.$basic-gray;
+  }
+
+  .check-icon {
+    color: variables.$basic-gray;
+  }
+}
