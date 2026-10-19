@@ -95,7 +95,8 @@ export class OverviewPageComponent {
             filter: { date: { operation: FilterOperation.Between, value: monthDayRange(month) } },
           })
           .pipe(
-            map((page) => page.data as Receipt[]),
+            // The generated item type is a merge of every paged model, so it needs an explicit narrowing.
+            map((page) => page.data as unknown as Receipt[]),
             catchError(() => of([] as Receipt[]))
           )
       )
