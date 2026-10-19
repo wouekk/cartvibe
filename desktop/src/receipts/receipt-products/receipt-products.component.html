@@ -1,0 +1,63 @@
+@if (view(); as view) {
+  @if (statusText()) {
+    <p class="status" data-testid="receipt-products-status">
+      @if (isInProgress()) {
+        <mat-icon class="status__icon" aria-hidden="true">hourglass_top</mat-icon>
+      }
+      {{ statusText() }}
+      @if (view.lastError && view.status !== "PENDING") {
+        <span class="status__detail">{{ view.lastError }}</span>
+      }
+    </p>
+  }
+
+  @if (view.products.length > 0) {
+    <div class="table-scroll">
+      <table class="products" data-testid="receipt-products-table">
+        <thead>
+          <tr>
+            <th scope="col">Product</th>
+            <th scope="col">Quantity</th>
+            <th scope="col" class="numeric">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (product of view.products; track product.id) {
+            <tr>
+              <td>
+                <span class="product__name">{{ product.displayName || product.name }}</span>
+                @if (product.displayName && product.displayName !== product.name) {
+                  <span class="product__printed">{{ product.name }}</span>
+                }
+              </td>
+              <td class="muted">{{ product.quantity }}</td>
+              <td class="numeric">
+                @if (product.amount) {
+                  {{ product.amount | customCurrency }}
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else if (view.status === "DONE") {
+    <p class="status" data-testid="receipt-products-none">The AI found no products on this receipt.</p>
+  }
+
+  @if (canReadAgain()) {
+    <button
+      mat-stroked-button
+      type="button"
+      class="read-again"
+      data-testid="receipt-products-read-again"
+      [disabled]="requesting()"
+      (click)="readAgain()"
+    >
+      <mat-icon>refresh</mat-icon>
+      Read again
+    </button>
+  }
+} @else if (loadFailed()) {
+  <p class="status">The products could not be loaded.</p>
+}

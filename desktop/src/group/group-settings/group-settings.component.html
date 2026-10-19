@@ -29,5 +29,8 @@
       [formConfig]="formConfig"
       (formCommand)="handleFormCommand($event)"
     ></app-group-settings-ai>
+    @if (group.id) {
+      <app-receipt-product-backfill [groupId]="group.id"></app-receipt-product-backfill>
+    }
   </app-form-section>
 </ng-template>

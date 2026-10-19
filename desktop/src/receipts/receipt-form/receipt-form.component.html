@@ -197,6 +197,20 @@
           (allItemsResolved)="onAllItemsResolved($event)"
         ></app-share-list>
       </app-form-section>
+      @if (originalReceipt?.id && originalReceipt?.groupId) {
+        <app-form-section
+          headerText="Products"
+          [indent]="false"
+        >
+          <!-- Keyed on the receipt id, like the comments below: the queue re-uses this form. -->
+          @for (receipt of [originalReceipt]; track receipt?.id) {
+            <app-receipt-products
+              [receiptId]="receipt!.id"
+              [groupId]="receipt!.groupId"
+            ></app-receipt-products>
+          }
+        </app-form-section>
+      }
       @if (!this.selectedGroup()?.groupReceiptSettings?.hideComments) {
         <div class="mt-3">
           <app-form-section
