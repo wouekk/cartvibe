@@ -4372,6 +4372,94 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
+  /receipt-product/receipt/{receiptId}:
+    parameters:
+      - in: path
+        name: receiptId
+        schema:
+          type: integer
+        required: true
+        description: Id of the receipt
+    get:
+      tags:
+        - ReceiptProduct
+      summary: Get a receipt's products
+      description: This will get the products the AI read off a receipt, and where reading them stands [group.receipts.read]
+      operationId: getReceiptProducts
+      responses:
+        200:
+          description: The receipt's products
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReceiptProductsView"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+  /receipt-product/receipt/{receiptId}/read:
+    parameters:
+      - in: path
+        name: receiptId
+        schema:
+          type: integer
+        required: true
+        description: Id of the receipt
+    post:
+      tags:
+        - ReceiptProduct
+      summary: Read a receipt's products again
+      description: This will queue the receipt to have its products read again by the AI [group.receipts.update]
+      operationId: readReceiptProducts
+      responses:
+        200:
+          description: The receipt's products, now queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReceiptProductsView"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+  /receipt-product/group/{groupId}/backfill:
+    parameters:
+      - in: path
+        name: groupId
+        schema:
+          type: integer
+        required: true
+        description: Id of the group; the All group is rejected
+    post:
+      tags:
+        - ReceiptProduct
+      summary: Read the products of a group's older receipts
+      description: >-
+        This will queue every receipt in the group that has an image but has never had its products read
+        [group.receipts.update]. Receipts are read a few at a time in the background.
+      operationId: queueGroupReceiptProducts
+      responses:
+        200:
+          description: How many receipts were queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QueuedReceiptsView"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
 components:
   securitySchemes:
     bearerAuth:
@@ -4787,6 +4875,77 @@ components:
           description: yyyy-MM
         total:
           type: string
+    ReceiptProduct:
+      type: object
+      required:
+        - id
+        - receiptId
+        - name
+        - displayName
+        - quantity
+        - position
+      properties:
+        id:
+          type: integer
+          format: uint64
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: integer
+          format: uint64
+          nullable: true
+        receiptId:
+          type: integer
+          format: uint64
+        name:
+          type: string
+          description: The product line as printed on the receipt
+        displayName:
+          type: string
+          description: A short plain name for the product; empty when the AI gave none
+        amount:
+          type: string
+          nullable: true
+          description: What the line cost, as a decimal string; null when the receipt shows no price
+        quantity:
+          type: string
+          description: Quantity or weight as printed; empty when not printed
+        position:
+          type: integer
+          description: The line's order on the receipt
+    ReceiptProductsView:
+      type: object
+      required:
+        - status
+        - lastError
+        - products
+      properties:
+        status:
+          type: string
+          description: >-
+            NOT_QUEUED, PENDING, RUNNING, DONE, UNAVAILABLE (the AI could not be reached; retried
+            automatically) or FAILED. A plain string, never an enum, so a new state cannot break an
+            older client.
+        lastError:
+          type: string
+          description: Why the last read did not succeed; empty otherwise
+        products:
+          type: array
+          description: The products in receipt order. Always an array.
+          items:
+            $ref: "#/components/schemas/ReceiptProduct"
+    QueuedReceiptsView:
+      type: object
+      required:
+        - queued
+      properties:
+        queued:
+          type: integer
+          description: How many receipts were queued
     PermissionScope:
       description: Whether a permission applies app-wide or within a single group.
       type: string

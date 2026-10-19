@@ -39,6 +39,14 @@ func StartSystemCleanUpTasks() error {
 	// previous one, so the sweep used to accumulate duplicate crons.
 	tempFileCleanUpTask := asynq.NewTask(TempFileCleanUp, nil)
 	_, err = RegisterTask("@every 1h", tempFileCleanUpTask, cleanUpQueue, 0)
+	if err != nil {
+		return err
+	}
+
+	// Each run reads at most a small batch, so a backfill drips through. A receipt waiting out an AI
+	// outage is skipped until its own retry time, so frequent runs cost one indexed query.
+	receiptProductSweepTask := asynq.NewTask(ReceiptProductSweep, nil)
+	_, err = RegisterTask("@every 5m", receiptProductSweepTask, cleanUpQueue, 0)
 
 	return err
 }

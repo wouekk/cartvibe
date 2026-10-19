@@ -3957,3 +3957,36 @@ months ending with the chosen one.
   always arrays (the Dart client has no null guard).
 - Gated on `group.receipts.read`; a **GET**, so a read-only API key may call it.
 - Tests: `handlers/group_overview_test.go`.
+
+## Receipt products (fork extension, Phase 2a)
+
+The AI reads each receipt's product lines (`models.ReceiptProduct`: name as printed, a plain display
+name, amount, quantity, position). They are **not** `Item`s, which are bill-splitting shares. Design:
+`docs/spending-insights-phase-2.md`.
+
+- **Queueing has one hook:** `ReceiptImageRepository.CreateReceiptImage` — every image (quick scan,
+  email, receipt form, uploads) goes through it — upserts the receipt's
+  `ReceiptProductExtraction` to `PENDING`, inside the caller's transaction. A new image re-queues a
+  read receipt, since products are re-read as a whole set. The backfill
+  (`POST /receipt-product/group/{id}/backfill`) queues a group's receipts that have an image and no
+  row yet; `POST /receipt-product/receipt/{id}/read` re-queues one.
+- **A periodic sweep does the reading** (`system_clean_up:receipt_products`, every 5 minutes, on the
+  system clean-up queue — a new queue would be a new value in the closed `QueueName` enum). It claims
+  rows with a conditional UPDATE and a 30-minute lease (`ClaimDueExtraction`), so overlapping sweeps
+  never read one receipt twice, and a dead sweep's row comes back after the lease. At most 5 receipts
+  per run, so a backfill drips through.
+- **Outage vs bad answer:** no AI configured or a failed call → `UNAVAILABLE`, retried hourly, and
+  **not** counted as an attempt; given up (`FAILED`) after 14 days. An unreadable answer → retried
+  after 10 minutes, `FAILED` after 3. The primary receipt processing settings are tried first, then
+  the fallback; any answer at all (even unreadable) means the AI was reachable.
+- **No system tasks are recorded** for these reads: a new `SystemTaskType` would be another closed
+  enum on payloads released clients deserialize. The extraction row's `status`/`lastError` is the
+  record. Statuses are plain strings on the API.
+- **The prompt is code** (`productExtractionPrompt`) for now; the receipt-level prompt is untouched.
+  Vision models get the images, others the OCR text — the same split as receipt scanning.
+- **The parser is lenient** (`parseProductResponse`): an amount as text ("1,52 €"), a numeric
+  quantity, nameless lines (dropped), over-long text (truncated to the column) — only JSON of the wrong
+  shape is a bad answer.
+- `DeleteReceipt` removes the receipt's products and extraction (they are not associations of
+  `Receipt`, so its delete cannot cascade to them).
+- Tests: `services/receipt_product_extraction_test.go`, `handlers/receipt_products_test.go`.

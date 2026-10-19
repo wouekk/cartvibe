@@ -92,6 +92,14 @@ func (repository ReceiptImageRepository) CreateReceiptImage(fileData models.File
 		return fileData, err
 	}
 
+	// Every receipt image passes through here (quick scan, email, the receipt form, uploads), so this
+	// is the one place a receipt gets queued for its products to be read. Inside the caller's
+	// transaction, so a rolled-back receipt leaves no orphan in the queue.
+	err = NewReceiptProductRepository(repository.TX).MarkReceiptProductsPending(fileData.ReceiptId)
+	if err != nil {
+		return fileData, err
+	}
+
 	return fileData, nil
 }
 

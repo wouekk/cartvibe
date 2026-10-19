@@ -231,6 +231,12 @@ func (service ReceiptService) DeleteReceipt(id string) error {
 			return err
 		}
 
+		// Products are not an association of Receipt, so the delete below cannot reach them.
+		err = repositories.NewReceiptProductRepository(tx).DeleteReceiptProducts(receipt.ID)
+		if err != nil {
+			return err
+		}
+
 		err = tx.Select(clause.Associations).Delete(&receipt).Error
 		if err != nil {
 			return err
