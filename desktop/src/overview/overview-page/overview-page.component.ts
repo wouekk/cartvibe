@@ -72,7 +72,8 @@ export class OverviewPageComponent {
 
   private readonly request = computed(() => ({ groupId: this.groupId(), month: this.month() }));
 
-  public readonly overview = toSignal(
+  /** undefined while loading, null when the request failed. */
+  public readonly overview = toSignal<GroupOverview | null | undefined>(
     toObservable(this.request).pipe(
       switchMap(({ groupId, month }) =>
         this.overviewService.getGroupOverview(groupId, toMonthKey(month)).pipe(
@@ -80,7 +81,7 @@ export class OverviewPageComponent {
         )
       )
     ),
-    { initialValue: undefined as GroupOverview | null | undefined }
+    { initialValue: undefined }
   );
 
   public readonly recentReceipts = toSignal(
