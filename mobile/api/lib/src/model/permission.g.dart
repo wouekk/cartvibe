@@ -195,6 +195,14 @@ const Permission _$groupPeriodActivitiesPeriodRerun =
     const Permission._('groupPeriodActivitiesPeriodRerun');
 const Permission _$groupPeriodEmailPeriodPoll =
     const Permission._('groupPeriodEmailPeriodPoll');
+const Permission _$groupPeriodShoppingListsPeriodCreate =
+    const Permission._('groupPeriodShoppingListsPeriodCreate');
+const Permission _$groupPeriodShoppingListsPeriodRead =
+    const Permission._('groupPeriodShoppingListsPeriodRead');
+const Permission _$groupPeriodShoppingListsPeriodUpdate =
+    const Permission._('groupPeriodShoppingListsPeriodUpdate');
+const Permission _$groupPeriodShoppingListsPeriodDelete =
+    const Permission._('groupPeriodShoppingListsPeriodDelete');
 
 Permission _$valueOf(String name) {
   switch (name) {
@@ -390,6 +398,14 @@ Permission _$valueOf(String name) {
       return _$groupPeriodActivitiesPeriodRerun;
     case 'groupPeriodEmailPeriodPoll':
       return _$groupPeriodEmailPeriodPoll;
+    case 'groupPeriodShoppingListsPeriodCreate':
+      return _$groupPeriodShoppingListsPeriodCreate;
+    case 'groupPeriodShoppingListsPeriodRead':
+      return _$groupPeriodShoppingListsPeriodRead;
+    case 'groupPeriodShoppingListsPeriodUpdate':
+      return _$groupPeriodShoppingListsPeriodUpdate;
+    case 'groupPeriodShoppingListsPeriodDelete':
+      return _$groupPeriodShoppingListsPeriodDelete;
     default:
       throw ArgumentError(name);
   }
@@ -492,6 +508,10 @@ final BuiltSet<Permission> _$values = BuiltSet<Permission>(const <Permission>[
   _$groupPeriodActivitiesPeriodRead,
   _$groupPeriodActivitiesPeriodRerun,
   _$groupPeriodEmailPeriodPoll,
+  _$groupPeriodShoppingListsPeriodCreate,
+  _$groupPeriodShoppingListsPeriodRead,
+  _$groupPeriodShoppingListsPeriodUpdate,
+  _$groupPeriodShoppingListsPeriodDelete,
 ]);
 
 class _$PermissionMeta {
@@ -651,6 +671,14 @@ class _$PermissionMeta {
   Permission get groupPeriodActivitiesPeriodRerun =>
       _$groupPeriodActivitiesPeriodRerun;
   Permission get groupPeriodEmailPeriodPoll => _$groupPeriodEmailPeriodPoll;
+  Permission get groupPeriodShoppingListsPeriodCreate =>
+      _$groupPeriodShoppingListsPeriodCreate;
+  Permission get groupPeriodShoppingListsPeriodRead =>
+      _$groupPeriodShoppingListsPeriodRead;
+  Permission get groupPeriodShoppingListsPeriodUpdate =>
+      _$groupPeriodShoppingListsPeriodUpdate;
+  Permission get groupPeriodShoppingListsPeriodDelete =>
+      _$groupPeriodShoppingListsPeriodDelete;
   Permission valueOf(String name) => _$valueOf(name);
   BuiltSet<Permission> get values => _$values;
 }
@@ -765,6 +793,10 @@ class _$PermissionSerializer implements PrimitiveSerializer<Permission> {
     'groupPeriodActivitiesPeriodRead': 'group.activities.read',
     'groupPeriodActivitiesPeriodRerun': 'group.activities.rerun',
     'groupPeriodEmailPeriodPoll': 'group.email.poll',
+    'groupPeriodShoppingListsPeriodCreate': 'group.shopping-lists.create',
+    'groupPeriodShoppingListsPeriodRead': 'group.shopping-lists.read',
+    'groupPeriodShoppingListsPeriodUpdate': 'group.shopping-lists.update',
+    'groupPeriodShoppingListsPeriodDelete': 'group.shopping-lists.delete',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'app.users.create': 'appPeriodUsersPeriodCreate',
@@ -868,6 +900,10 @@ class _$PermissionSerializer implements PrimitiveSerializer<Permission> {
     'group.activities.read': 'groupPeriodActivitiesPeriodRead',
     'group.activities.rerun': 'groupPeriodActivitiesPeriodRerun',
     'group.email.poll': 'groupPeriodEmailPeriodPoll',
+    'group.shopping-lists.create': 'groupPeriodShoppingListsPeriodCreate',
+    'group.shopping-lists.read': 'groupPeriodShoppingListsPeriodRead',
+    'group.shopping-lists.update': 'groupPeriodShoppingListsPeriodUpdate',
+    'group.shopping-lists.delete': 'groupPeriodShoppingListsPeriodDelete',
   };
 
   @override

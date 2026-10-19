@@ -169,6 +169,16 @@ Class | Method | HTTP request | Description
 [*RoleApi*](doc/RoleApi.md) | [**setDefaultRole**](doc/RoleApi.md#setdefaultrole) | **PUT** /role/{roleId}/default | Set default role
 [*RoleApi*](doc/RoleApi.md) | [**updateRole**](doc/RoleApi.md#updaterole) | **PUT** /role/{roleId} | Update role
 [*SearchApi*](doc/SearchApi.md) | [**receiptSearch**](doc/SearchApi.md#receiptsearch) | **GET** /search/ | Receipt Search
+[*ShoppingListApi*](doc/ShoppingListApi.md) | [**addShoppingListItem**](doc/ShoppingListApi.md#addshoppinglistitem) | **POST** /shopping-list/{listId}/item | Add shopping list item
+[*ShoppingListApi*](doc/ShoppingListApi.md) | [**clearCheckedShoppingListItems**](doc/ShoppingListApi.md#clearcheckedshoppinglistitems) | **POST** /shopping-list/{listId}/clearChecked | Clear crossed-off items
+[*ShoppingListApi*](doc/ShoppingListApi.md) | [**createShoppingList**](doc/ShoppingListApi.md#createshoppinglist) | **POST** /shopping-list/group/{groupId} | Create shopping list
+[*ShoppingListApi*](doc/ShoppingListApi.md) | [**deleteShoppingList**](doc/ShoppingListApi.md#deleteshoppinglist) | **DELETE** /shopping-list/{listId} | Delete shopping list
+[*ShoppingListApi*](doc/ShoppingListApi.md) | [**deleteShoppingListItem**](doc/ShoppingListApi.md#deleteshoppinglistitem) | **DELETE** /shopping-list/item/{itemId} | Delete shopping list item
+[*ShoppingListApi*](doc/ShoppingListApi.md) | [**getShoppingListsForGroup**](doc/ShoppingListApi.md#getshoppinglistsforgroup) | **GET** /shopping-list/group/{groupId} | Get shopping lists for a group
+[*ShoppingListApi*](doc/ShoppingListApi.md) | [**setShoppingListItemChecked**](doc/ShoppingListApi.md#setshoppinglistitemchecked) | **PUT** /shopping-list/item/{itemId}/checked | Set whether a shopping list item is crossed off
+[*ShoppingListApi*](doc/ShoppingListApi.md) | [**streamShoppingListEvents**](doc/ShoppingListApi.md#streamshoppinglistevents) | **GET** /shopping-list/group/{groupId}/stream | Stream shopping list updates
+[*ShoppingListApi*](doc/ShoppingListApi.md) | [**updateShoppingList**](doc/ShoppingListApi.md#updateshoppinglist) | **PUT** /shopping-list/{listId} | Rename shopping list
+[*ShoppingListApi*](doc/ShoppingListApi.md) | [**updateShoppingListItem**](doc/ShoppingListApi.md#updateshoppinglistitem) | **PUT** /shopping-list/item/{itemId} | Update shopping list item
 [*SystemEmailApi*](doc/SystemEmailApi.md) | [**checkSystemEmailConnectivity**](doc/SystemEmailApi.md#checksystememailconnectivity) | **POST** /systemEmail/checkConnectivity | Check system email connectivity
 [*SystemEmailApi*](doc/SystemEmailApi.md) | [**createSystemEmail**](doc/SystemEmailApi.md#createsystememail) | **POST** /systemEmail/ | Create system email
 [*SystemEmailApi*](doc/SystemEmailApi.md) | [**deleteSystemEmailById**](doc/SystemEmailApi.md#deletesystememailbyid) | **DELETE** /systemEmail/{id} | Delete system email by id
@@ -308,6 +318,10 @@ Class | Method | HTTP request | Description
  - [ResetPasswordCommand](doc/ResetPasswordCommand.md)
  - [Role](doc/Role.md)
  - [SearchResult](doc/SearchResult.md)
+ - [SetShoppingListItemCheckedCommand](doc/SetShoppingListItemCheckedCommand.md)
+ - [ShoppingList](doc/ShoppingList.md)
+ - [ShoppingListEvent](doc/ShoppingListEvent.md)
+ - [ShoppingListItem](doc/ShoppingListItem.md)
  - [SignUpCommand](doc/SignUpCommand.md)
  - [SortDirection](doc/SortDirection.md)
  - [SubjectLineRegex](doc/SubjectLineRegex.md)
@@ -341,6 +355,8 @@ Class | Method | HTTP request | Description
  - [UpsertReceiptCommand](doc/UpsertReceiptCommand.md)
  - [UpsertReceiptProcessingSettingsCommand](doc/UpsertReceiptProcessingSettingsCommand.md)
  - [UpsertRoleCommand](doc/UpsertRoleCommand.md)
+ - [UpsertShoppingListCommand](doc/UpsertShoppingListCommand.md)
+ - [UpsertShoppingListItemCommand](doc/UpsertShoppingListItemCommand.md)
  - [UpsertSystemEmailCommand](doc/UpsertSystemEmailCommand.md)
  - [UpsertSystemSettingsCommand](doc/UpsertSystemSettingsCommand.md)
  - [UpsertTagCommand](doc/UpsertTagCommand.md)

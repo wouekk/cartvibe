@@ -120,6 +120,11 @@ doc/Role.md
 doc/RoleApi.md
 doc/SearchApi.md
 doc/SearchResult.md
+doc/SetShoppingListItemCheckedCommand.md
+doc/ShoppingList.md
+doc/ShoppingListApi.md
+doc/ShoppingListEvent.md
+doc/ShoppingListItem.md
 doc/SignUpCommand.md
 doc/SortDirection.md
 doc/SubjectLineRegex.md
@@ -157,6 +162,8 @@ doc/UpsertPromptCommand.md
 doc/UpsertReceiptCommand.md
 doc/UpsertReceiptProcessingSettingsCommand.md
 doc/UpsertRoleCommand.md
+doc/UpsertShoppingListCommand.md
+doc/UpsertShoppingListItemCommand.md
 doc/UpsertSystemEmailCommand.md
 doc/UpsertSystemSettingsCommand.md
 doc/UpsertTagCommand.md
@@ -194,6 +201,7 @@ lib/src/api/receipt_processing_settings_api.dart
 lib/src/api/report_api.dart
 lib/src/api/role_api.dart
 lib/src/api/search_api.dart
+lib/src/api/shopping_list_api.dart
 lib/src/api/system_email_api.dart
 lib/src/api/system_settings_api.dart
 lib/src/api/system_task_api.dart
@@ -307,6 +315,10 @@ lib/src/model/report_template_option.dart
 lib/src/model/reset_password_command.dart
 lib/src/model/role.dart
 lib/src/model/search_result.dart
+lib/src/model/set_shopping_list_item_checked_command.dart
+lib/src/model/shopping_list.dart
+lib/src/model/shopping_list_event.dart
+lib/src/model/shopping_list_item.dart
 lib/src/model/sign_up_command.dart
 lib/src/model/sort_direction.dart
 lib/src/model/subject_line_regex.dart
@@ -340,6 +352,8 @@ lib/src/model/upsert_prompt_command.dart
 lib/src/model/upsert_receipt_command.dart
 lib/src/model/upsert_receipt_processing_settings_command.dart
 lib/src/model/upsert_role_command.dart
+lib/src/model/upsert_shopping_list_command.dart
+lib/src/model/upsert_shopping_list_item_command.dart
 lib/src/model/upsert_system_email_command.dart
 lib/src/model/upsert_system_settings_command.dart
 lib/src/model/upsert_tag_command.dart
@@ -353,4 +367,10 @@ lib/src/model/widget.dart
 lib/src/model/widget_type.dart
 lib/src/serializers.dart
 pubspec.yaml
-test/receipt_requirements_test.dart
+test/set_shopping_list_item_checked_command_test.dart
+test/shopping_list_api_test.dart
+test/shopping_list_event_test.dart
+test/shopping_list_item_test.dart
+test/shopping_list_test.dart
+test/upsert_shopping_list_command_test.dart
+test/upsert_shopping_list_item_command_test.dart

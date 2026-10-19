@@ -299,6 +299,18 @@ class Permission extends EnumClass {
   /// All permission keys the API recognizes.
   @BuiltValueEnumConst(wireName: r'group.email.poll')
   static const Permission groupPeriodEmailPeriodPoll = _$groupPeriodEmailPeriodPoll;
+  /// All permission keys the API recognizes.
+  @BuiltValueEnumConst(wireName: r'group.shopping-lists.create')
+  static const Permission groupPeriodShoppingListsPeriodCreate = _$groupPeriodShoppingListsPeriodCreate;
+  /// All permission keys the API recognizes.
+  @BuiltValueEnumConst(wireName: r'group.shopping-lists.read')
+  static const Permission groupPeriodShoppingListsPeriodRead = _$groupPeriodShoppingListsPeriodRead;
+  /// All permission keys the API recognizes.
+  @BuiltValueEnumConst(wireName: r'group.shopping-lists.update')
+  static const Permission groupPeriodShoppingListsPeriodUpdate = _$groupPeriodShoppingListsPeriodUpdate;
+  /// All permission keys the API recognizes.
+  @BuiltValueEnumConst(wireName: r'group.shopping-lists.delete')
+  static const Permission groupPeriodShoppingListsPeriodDelete = _$groupPeriodShoppingListsPeriodDelete;
 
   static Serializer<Permission> get serializer => _$permissionSerializer;
 

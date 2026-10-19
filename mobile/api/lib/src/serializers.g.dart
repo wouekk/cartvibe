@@ -110,6 +110,10 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(ResetPasswordCommand.serializer)
       ..add(Role.serializer)
       ..add(SearchResult.serializer)
+      ..add(SetShoppingListItemCheckedCommand.serializer)
+      ..add(ShoppingList.serializer)
+      ..add(ShoppingListEvent.serializer)
+      ..add(ShoppingListItem.serializer)
       ..add(SignUpCommand.serializer)
       ..add(SortDirection.serializer)
       ..add(SubjectLineRegex.serializer)
@@ -143,6 +147,8 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(UpsertReceiptCommand.serializer)
       ..add(UpsertReceiptProcessingSettingsCommand.serializer)
       ..add(UpsertRoleCommand.serializer)
+      ..add(UpsertShoppingListCommand.serializer)
+      ..add(UpsertShoppingListItemCommand.serializer)
       ..add(UpsertSystemEmailCommand.serializer)
       ..add(UpsertSystemSettingsCommand.serializer)
       ..add(UpsertTagCommand.serializer)
@@ -288,6 +294,9 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList, const [const FullType(ReceiptSummaryRow)]),
           () => ListBuilder<ReceiptSummaryRow>())
       ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(ShoppingListItem)]),
+          () => ListBuilder<ShoppingListItem>())
+      ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(String)]),
           () => ListBuilder<String>())
       ..addBuilderFactory(
@@ -393,6 +402,9 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Widget)]),
           () => ListBuilder<Widget>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(int)]),
+          () => ListBuilder<int>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(int)]),
           () => ListBuilder<int>())
