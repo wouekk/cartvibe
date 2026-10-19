@@ -248,6 +248,10 @@ func TestLegacyGroupViewerKeys(t *testing.T) {
 		GroupDashboardsDelete,
 		GroupWidgetsRead,
 		GroupActivitiesRead,
+		GroupShoppingListsCreate,
+		GroupShoppingListsRead,
+		GroupShoppingListsUpdate,
+		GroupShoppingListsDelete,
 	}
 
 	got := LegacyGroupViewerKeys()
@@ -354,8 +358,8 @@ func TestLegacyGroupEditorDoesNotMutateViewer(t *testing.T) {
 	_ = LegacyGroupEditorKeys()
 
 	viewer := LegacyGroupViewerKeys()
-	if len(viewer) != 12 {
-		utilPrint(t, len(viewer), 12)
+	if len(viewer) != 16 {
+		utilPrint(t, len(viewer), 16)
 	}
 }
 
