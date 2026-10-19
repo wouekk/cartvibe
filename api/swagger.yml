@@ -4334,6 +4334,44 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
+  /overview/group/{groupId}:
+    parameters:
+      - in: path
+        name: groupId
+        schema:
+          type: integer
+        required: true
+        description: Id of the group to describe; the All group spans every group the caller can read
+      - in: query
+        name: month
+        schema:
+          type: string
+        required: false
+        description: Month to describe, yyyy-MM. Defaults to the current month in the app time zone.
+    get:
+      tags:
+        - Overview
+      summary: Get the group's month at a glance
+      description: >-
+        This will get a month's spend, receipt counts, spending by category and the six-month trend
+        ending with it, over the receipts the caller can see [group.receipts.read]
+      operationId: getGroupOverview
+      responses:
+        200:
+          description: The group overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupOverview"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
 components:
   securitySchemes:
     bearerAuth:
@@ -4689,6 +4727,66 @@ components:
           items:
             type: integer
             format: uint64
+    GroupOverview:
+      type: object
+      required:
+        - month
+        - total
+        - previousTotal
+        - receiptCount
+        - openReceiptCount
+        - categories
+        - months
+      properties:
+        month:
+          type: string
+          description: The month described, yyyy-MM
+        total:
+          type: string
+          description: The month's spend, as a decimal string
+        previousTotal:
+          type: string
+          description: The previous month's spend, as a decimal string
+        receiptCount:
+          type: integer
+          format: int64
+        openReceiptCount:
+          type: integer
+          format: int64
+          description: The month's receipts still needing action (OPEN or NEEDS_ATTENTION)
+        categories:
+          type: array
+          description: >-
+            Spend per category in the month, largest first. A receipt counts toward each of its
+            categories, so these can add up to more than the total. Always an array.
+          items:
+            $ref: "#/components/schemas/GroupOverviewCategory"
+        months:
+          type: array
+          description: The six months ending with month, oldest first; a month without receipts is a zero
+          items:
+            $ref: "#/components/schemas/GroupOverviewMonth"
+    GroupOverviewCategory:
+      type: object
+      required:
+        - name
+        - total
+      properties:
+        name:
+          type: string
+        total:
+          type: string
+    GroupOverviewMonth:
+      type: object
+      required:
+        - month
+        - total
+      properties:
+        month:
+          type: string
+          description: yyyy-MM
+        total:
+          type: string
     PermissionScope:
       description: Whether a permission applies app-wide or within a single group.
       type: string
