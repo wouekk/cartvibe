@@ -9,6 +9,8 @@ import 'package:openapi/api.dart';
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **String** |  | 
+**amount** | **String** | How much to buy, as a decimal string; greater than 0, below 100000, at most 3 decimals | [optional] 
+**unit** | **String** | One of the ShoppingListItem units; requires an amount | [optional] 
 **quantity** | **String** |  | [optional] 
 **note** | **String** |  | [optional] 
 

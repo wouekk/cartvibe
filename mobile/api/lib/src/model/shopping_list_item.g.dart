@@ -20,6 +20,10 @@ class _$ShoppingListItem extends ShoppingListItem {
   @override
   final String name;
   @override
+  final String? amount;
+  @override
+  final String unit;
+  @override
   final String quantity;
   @override
   final String note;
@@ -41,6 +45,8 @@ class _$ShoppingListItem extends ShoppingListItem {
       this.createdBy,
       required this.shoppingListId,
       required this.name,
+      this.amount,
+      required this.unit,
       required this.quantity,
       required this.note,
       required this.isChecked,
@@ -65,6 +71,8 @@ class _$ShoppingListItem extends ShoppingListItem {
         createdBy == other.createdBy &&
         shoppingListId == other.shoppingListId &&
         name == other.name &&
+        amount == other.amount &&
+        unit == other.unit &&
         quantity == other.quantity &&
         note == other.note &&
         isChecked == other.isChecked &&
@@ -81,6 +89,8 @@ class _$ShoppingListItem extends ShoppingListItem {
     _$hash = $jc(_$hash, createdBy.hashCode);
     _$hash = $jc(_$hash, shoppingListId.hashCode);
     _$hash = $jc(_$hash, name.hashCode);
+    _$hash = $jc(_$hash, amount.hashCode);
+    _$hash = $jc(_$hash, unit.hashCode);
     _$hash = $jc(_$hash, quantity.hashCode);
     _$hash = $jc(_$hash, note.hashCode);
     _$hash = $jc(_$hash, isChecked.hashCode);
@@ -99,6 +109,8 @@ class _$ShoppingListItem extends ShoppingListItem {
           ..add('createdBy', createdBy)
           ..add('shoppingListId', shoppingListId)
           ..add('name', name)
+          ..add('amount', amount)
+          ..add('unit', unit)
           ..add('quantity', quantity)
           ..add('note', note)
           ..add('isChecked', isChecked)
@@ -137,6 +149,14 @@ class ShoppingListItemBuilder
   String? get name => _$this._name;
   set name(String? name) => _$this._name = name;
 
+  String? _amount;
+  String? get amount => _$this._amount;
+  set amount(String? amount) => _$this._amount = amount;
+
+  String? _unit;
+  String? get unit => _$this._unit;
+  set unit(String? unit) => _$this._unit = unit;
+
   String? _quantity;
   String? get quantity => _$this._quantity;
   set quantity(String? quantity) => _$this._quantity = quantity;
@@ -171,6 +191,8 @@ class ShoppingListItemBuilder
       _createdBy = $v.createdBy;
       _shoppingListId = $v.shoppingListId;
       _name = $v.name;
+      _amount = $v.amount;
+      _unit = $v.unit;
       _quantity = $v.quantity;
       _note = $v.note;
       _isChecked = $v.isChecked;
@@ -206,6 +228,9 @@ class ShoppingListItemBuilder
               shoppingListId, r'ShoppingListItem', 'shoppingListId'),
           name: BuiltValueNullFieldError.checkNotNull(
               name, r'ShoppingListItem', 'name'),
+          amount: amount,
+          unit: BuiltValueNullFieldError.checkNotNull(
+              unit, r'ShoppingListItem', 'unit'),
           quantity: BuiltValueNullFieldError.checkNotNull(
               quantity, r'ShoppingListItem', 'quantity'),
           note: BuiltValueNullFieldError.checkNotNull(

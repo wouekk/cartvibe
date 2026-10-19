@@ -10,6 +10,10 @@ class _$UpsertShoppingListItemCommand extends UpsertShoppingListItemCommand {
   @override
   final String name;
   @override
+  final String? amount;
+  @override
+  final String? unit;
+  @override
   final String? quantity;
   @override
   final String? note;
@@ -19,7 +23,7 @@ class _$UpsertShoppingListItemCommand extends UpsertShoppingListItemCommand {
       (UpsertShoppingListItemCommandBuilder()..update(updates))._build();
 
   _$UpsertShoppingListItemCommand._(
-      {required this.name, this.quantity, this.note})
+      {required this.name, this.amount, this.unit, this.quantity, this.note})
       : super._();
   @override
   UpsertShoppingListItemCommand rebuild(
@@ -35,6 +39,8 @@ class _$UpsertShoppingListItemCommand extends UpsertShoppingListItemCommand {
     if (identical(other, this)) return true;
     return other is UpsertShoppingListItemCommand &&
         name == other.name &&
+        amount == other.amount &&
+        unit == other.unit &&
         quantity == other.quantity &&
         note == other.note;
   }
@@ -43,6 +49,8 @@ class _$UpsertShoppingListItemCommand extends UpsertShoppingListItemCommand {
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, name.hashCode);
+    _$hash = $jc(_$hash, amount.hashCode);
+    _$hash = $jc(_$hash, unit.hashCode);
     _$hash = $jc(_$hash, quantity.hashCode);
     _$hash = $jc(_$hash, note.hashCode);
     _$hash = $jf(_$hash);
@@ -53,6 +61,8 @@ class _$UpsertShoppingListItemCommand extends UpsertShoppingListItemCommand {
   String toString() {
     return (newBuiltValueToStringHelper(r'UpsertShoppingListItemCommand')
           ..add('name', name)
+          ..add('amount', amount)
+          ..add('unit', unit)
           ..add('quantity', quantity)
           ..add('note', note))
         .toString();
@@ -68,6 +78,14 @@ class UpsertShoppingListItemCommandBuilder
   String? _name;
   String? get name => _$this._name;
   set name(String? name) => _$this._name = name;
+
+  String? _amount;
+  String? get amount => _$this._amount;
+  set amount(String? amount) => _$this._amount = amount;
+
+  String? _unit;
+  String? get unit => _$this._unit;
+  set unit(String? unit) => _$this._unit = unit;
 
   String? _quantity;
   String? get quantity => _$this._quantity;
@@ -85,6 +103,8 @@ class UpsertShoppingListItemCommandBuilder
     final $v = _$v;
     if ($v != null) {
       _name = $v.name;
+      _amount = $v.amount;
+      _unit = $v.unit;
       _quantity = $v.quantity;
       _note = $v.note;
       _$v = null;
@@ -110,6 +130,8 @@ class UpsertShoppingListItemCommandBuilder
         _$UpsertShoppingListItemCommand._(
           name: BuiltValueNullFieldError.checkNotNull(
               name, r'UpsertShoppingListItemCommand', 'name'),
+          amount: amount,
+          unit: unit,
           quantity: quantity,
           note: note,
         );

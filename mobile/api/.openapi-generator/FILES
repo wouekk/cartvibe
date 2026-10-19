@@ -367,10 +367,3 @@ lib/src/model/widget.dart
 lib/src/model/widget_type.dart
 lib/src/serializers.dart
 pubspec.yaml
-test/set_shopping_list_item_checked_command_test.dart
-test/shopping_list_api_test.dart
-test/shopping_list_event_test.dart
-test/shopping_list_item_test.dart
-test/shopping_list_test.dart
-test/upsert_shopping_list_command_test.dart
-test/upsert_shopping_list_item_command_test.dart
