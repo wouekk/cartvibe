@@ -40,4 +40,8 @@ services:
       timeout: 3s
       retries: 5
     volumes:
-      - /volume2/docker/receipt-wrangler/redis:/data
+      # A Docker-managed volume, so there is no NAS folder to create first.
+      - redis-data:/data
+
+volumes:
+  redis-data:
