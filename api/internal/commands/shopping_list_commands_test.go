@@ -86,6 +86,52 @@ func TestUpsertShoppingListItemCommand_LoadDataFromRequestTrimsFields(t *testing
 	}
 }
 
+func TestUpsertShoppingListItemCommand_AmountAndUnit(t *testing.T) {
+	tests := map[string]struct {
+		body          string
+		expectedError string
+	}{
+		"amount and unit":           {body: `{"name":"Flour","amount":"1.5","unit":"kg"}`},
+		"numeric amount":            {body: `{"name":"Flour","amount":2,"unit":"pcs"}`},
+		"amount without unit":       {body: `{"name":"Eggs","amount":"6"}`},
+		"unit is normalized":        {body: `{"name":"Milk","amount":"1","unit":" L "}`},
+		"three decimals":            {body: `{"name":"Saffron","amount":"0.125","unit":"g"}`},
+		"null amount":               {body: `{"name":"Milk","amount":null}`},
+		"zero amount":               {body: `{"name":"Milk","amount":"0","unit":"l"}`, expectedError: "amount"},
+		"negative amount":           {body: `{"name":"Milk","amount":"-1"}`, expectedError: "amount"},
+		"too large amount":          {body: `{"name":"Milk","amount":"100000"}`, expectedError: "amount"},
+		"too many decimals":         {body: `{"name":"Milk","amount":"1.2345"}`, expectedError: "amount"},
+		"unknown unit":              {body: `{"name":"Milk","amount":"1","unit":"gallon"}`, expectedError: "unit"},
+		"unit without an amount":    {body: `{"name":"Milk","unit":"kg"}`, expectedError: "unit"},
+		"legacy free-text quantity": {body: `{"name":"Milk","quantity":"a few"}`},
+	}
+
+	for testName, test := range tests {
+		t.Run(testName, func(t *testing.T) {
+			r := httptest.NewRequest("POST", "/", strings.NewReader(test.body))
+			command := UpsertShoppingListItemCommand{}
+
+			vErr, err := command.LoadDataFromRequestAndValidate(httptest.NewRecorder(), r)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			assertSingleValidationError(t, vErr.Errors, test.expectedError)
+		})
+	}
+}
+
+func TestUpsertShoppingListItemCommand_LowercasesUnit(t *testing.T) {
+	r := httptest.NewRequest("POST", "/", strings.NewReader(`{"name":"Milk","amount":"1","unit":" L "}`))
+	command := UpsertShoppingListItemCommand{}
+
+	if _, err := command.LoadDataFromRequestAndValidate(httptest.NewRecorder(), r); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if command.Unit != "l" {
+		utils.PrintTestError(t, command.Unit, "l")
+	}
+}
+
 func TestSetShoppingListItemCheckedCommand(t *testing.T) {
 	tests := map[string]struct {
 		body          string

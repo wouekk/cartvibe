@@ -98,8 +98,9 @@ func (service ShoppingListService) DeleteShoppingList(groupId uint, listId uint)
 
 // AddShoppingListItem adds an item, or — when the name matches a crossed-off item on the same list —
 // un-checks that item instead of duplicating it. That is how a regular item gets back onto the list.
-// Quantity and note are carried over to the revived item only when supplied. A matching item that
-// is NOT crossed off is left alone: two lines of the same thing are allowed.
+// The revived item keeps its amount and note unless the request supplies new ones (an amount in
+// either form replaces both forms). A matching item that is NOT crossed off is left alone: two lines
+// of the same thing are allowed.
 func (service ShoppingListService) AddShoppingListItem(
 	groupId uint,
 	listId uint,
@@ -118,16 +119,23 @@ func (service ShoppingListService) AddShoppingListItem(
 		}
 
 		if err == nil {
-			quantity := existing.Quantity
-			if len(command.Quantity) > 0 {
-				quantity = command.Quantity
+			fields := repositories.ShoppingListItemFields{
+				Name:     existing.Name,
+				Amount:   existing.Amount,
+				Unit:     existing.Unit,
+				Quantity: existing.Quantity,
+				Note:     existing.Note,
 			}
-			note := existing.Note
+			if command.HasAmount() {
+				fields.Amount = command.Amount
+				fields.Unit = command.Unit
+				fields.Quantity = command.Quantity
+			}
 			if len(command.Note) > 0 {
-				note = command.Note
+				fields.Note = command.Note
 			}
 
-			err = repository.UpdateShoppingListItemFields(existing.ID, existing.Name, quantity, note)
+			err = repository.UpdateShoppingListItemFields(existing.ID, fields)
 			if err != nil {
 				return err
 			}
@@ -146,6 +154,8 @@ func (service ShoppingListService) AddShoppingListItem(
 			BaseModel:      models.BaseModel{CreatedBy: &userId},
 			ShoppingListId: listId,
 			Name:           command.Name,
+			Amount:         command.Amount,
+			Unit:           command.Unit,
 			Quantity:       command.Quantity,
 			Note:           command.Note,
 		})
@@ -172,7 +182,13 @@ func (service ShoppingListService) UpdateShoppingListItem(
 ) (models.ShoppingListItem, error) {
 	repository := repositories.NewShoppingListRepository(service.TX)
 
-	err := repository.UpdateShoppingListItemFields(itemId, command.Name, command.Quantity, command.Note)
+	err := repository.UpdateShoppingListItemFields(itemId, repositories.ShoppingListItemFields{
+		Name:     command.Name,
+		Amount:   command.Amount,
+		Unit:     command.Unit,
+		Quantity: command.Quantity,
+		Note:     command.Note,
+	})
 	if err != nil {
 		return models.ShoppingListItem{}, err
 	}
