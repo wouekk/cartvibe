@@ -1,7 +1,8 @@
 # Shopping List — Phase 1 Design
 
-Status: **design approved for implementation** (2026-10-19). Scope: group-scoped shopping lists,
-items, and live sync over SSE, in `api/` + `desktop/`. `mobile/` gets a client regen only.
+Status: **implemented** on `feature/shopping-list-phase-1` (2026-10-19); Go, Jest and Flutter suites
+green in CI. The Playwright spec has not been run yet. Scope: group-scoped shopping lists, items,
+and live sync over SSE, in `api/` + `desktop/`. `mobile/` gets a client regen only.
 
 ## Decisions already made
 
@@ -131,8 +132,10 @@ which is out of scope.
 
 ```json
 { "type": "ITEM_TOGGLED", "groupId": 3, "shoppingListId": 7,
-  "list": null, "item": { …ShoppingListItem }, "itemIds": [] }
+  "item": { …ShoppingListItem } }
 ```
+
+`list`, `item` and `itemIds` are optional and omitted when they don't apply.
 
 `type` is one of `LIST_CREATED`, `LIST_UPDATED`, `LIST_DELETED`, `ITEM_ADDED`, `ITEM_UPDATED`,
 `ITEM_TOGGLED`, `ITEM_DELETED`, `CHECKED_CLEARED`. It is a **plain string in the spec, not an enum**:
@@ -244,8 +247,10 @@ and SSE events. That keeps "my write" and "someone else's write" on one code pat
   has to feel instant.
 - Without `update`, a member gets a read-only list: no input, and rows aren't tappable.
 
-**Role presets:** check `roles/role-presets.ts`. If any group preset lists keys explicitly instead of
-resolving them dynamically, add the shopping-list keys where they apply.
+**Role presets** (`roles/role-presets.ts`, which lists keys explicitly): Group Manager gets all four
+shopping-list keys, Receipt Editor gets read + update (uses lists, doesn't create or delete them),
+and Viewer gets read. These are only starting points in the role editor; the seeded Legacy Viewer
+role still holds all four.
 
 **Tests:** Jest specs for the state (every event type, idempotent re-apply), the stream service
 (fake `EventSource`: backoff, refetch on reconnect and on visibility), and the components (gating,

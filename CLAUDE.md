@@ -653,6 +653,22 @@ Unchanged: log timestamps, token expiry, `@every` schedules, sort order.
   displays instants in the app zone (see `desktop/CLAUDE.md`). Mobile only carries the regenerated
   client for now; building filters and displaying dates in the app zone is a pending follow-up.
 
+### Shopping Lists (fork extension)
+
+Group-scoped shopping lists with live updates over Server-Sent Events. **Backend + desktop**;
+mobile only regenerates its client (no Flutter UI, per `AGENTS.md`). Design and decisions:
+`docs/shopping-list-phase-1.md`.
+
+- **The backend is the authority and the broadcaster.** Every mutation is published to the group's
+  SSE stream after it commits; the desktop applies those events and its own responses through one
+  idempotent reducer. See `api/CLAUDE.md` and `desktop/CLAUDE.md` → "Shopping lists".
+- **No replay: clients refetch after any disconnect.** The stream ends every 15 minutes so a
+  reconnect re-authenticates.
+- **`ShoppingListEvent.type` is a plain string, never an enum**, and a list's `items` is always
+  `[]` — the two mobile-outage rules, applied up front.
+- **The synthetic "All" group is never a shopping list group** — the API 400s it, the desktop never
+  offers it.
+
 ### State Management Patterns
 - **Backend**: Service layer handles business logic, repositories handle data access
 - **Desktop**: NGXS store with actions/selectors, persistent storage for auth/preferences

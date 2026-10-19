@@ -2807,6 +2807,36 @@ renders the **full dataset** (not the capped builder preview) and re-resolves ac
   (`app-select`) whose options come from `ReportService.getReportTemplates` — server-filtered to the
   caller's viewable templates (`reportTemplateOptions`, loaded in `ngOnInit`, `catchError`→empty).
 
+## Shopping lists (fork extension)
+
+`/shopping-lists/group/:groupId` (`src/shopping-lists/`), mobile-first because it is used in a shop
+on a phone. Backend contract: `api/CLAUDE.md` → "Shopping lists".
+
+- **One reducer for every write.** `ShoppingListState` (`src/store/shopping-list.state.ts`, **not**
+  persisted) applies both SSE events and this tab's own HTTP responses through
+  `ApplyShoppingListEvent` → `applyEvent`, an idempotent upsert/remove by id. Receiving the echo of
+  our own write therefore changes nothing. Events for another group, for a list this tab doesn't
+  have, or of an unknown `type` (a plain string on the contract) are ignored.
+- **`ShoppingListStreamService`** owns the single `EventSource` per tab. The server sends no replay,
+  so it refetches on every **re**connect (the first open follows the page's own load) and whenever
+  the tab becomes visible again — the fallback for a phone that dropped the stream on cellular. The
+  browser reconnects on its own after the server's 15-minute close; the service only schedules its
+  own (1s → 30s backoff) when the browser gives up, i.e. an HTTP error such as a 403. It references
+  `EventSource.CLOSED` as the literal `2` because jsdom has no `EventSource` global; specs inject a
+  fake through `setEventSourceFactory`.
+- **The synthetic "All" group is never a shopping list group.** `ShoppingListState.readableGroups`
+  is built off `GroupState.groupsWithoutAll`, and both the header button and
+  `shoppingListGroupGuard` resolve through `ShoppingListState.targetGroupId` — the selected group
+  if readable, otherwise the first readable one — so the button works while "All" is selected.
+- **Only crossing off is optimistic.** It flips immediately and reverts if the request fails; every
+  other action waits for the response. The interceptor already toasts 403s and server errors, so the
+  component adds its own message only for status 0 (no connection).
+- **Dialog forms submit through `(ngSubmit)` only.** `app-dialog-footer`'s submit button is
+  `type="submit"`; binding `(submitClicked)` as well would submit twice.
+- E2e: `e2e/shopping-list.spec.ts` — the add / cross off / revive / clear flow, **two browser
+  contexts proving live sync without a reload**, and a Viewer's read-only page. Provisions its own
+  group, so it is parallel-safe.
+
 ## Testing Requirements
 
 **All new code must have accompanying unit tests.**
