@@ -182,7 +182,7 @@ export class AuthForm implements OnInit {
         switchMap((appData: AppData) => setAppData(this.store, appData)),
         tap(() =>
           this.router.navigate([
-            this.store.selectSnapshot(GroupState.dashboardLink),
+            this.store.selectSnapshot(GroupState.overviewLink),
           ]),
         ),
         catchError(() => EMPTY), // the HTTP interceptor surfaces the failure toast

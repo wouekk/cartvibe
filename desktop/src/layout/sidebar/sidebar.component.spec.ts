@@ -137,6 +137,26 @@ describe("SidebarComponent", () => {
       expect(queryTestId("nav-shopping-lists").nativeElement.getAttribute("href")).toBe("/shopping-lists/group/5");
     });
 
+    it("leads with the Overview when the selected group's receipts are readable", async () => {
+      selectGroupFive([]);
+      await fixture.whenStable();
+      expect(queryTestId("nav-overview")).toBeFalsy();
+
+      selectGroupFive([Permission.GroupReceiptsRead]);
+      await fixture.whenStable();
+      const links = fixture.debugElement.queryAll(By.css('[data-testid^="nav-"]'));
+      expect(links[0].nativeElement.getAttribute("data-testid")).toBe("nav-overview");
+      expect(links[0].nativeElement.getAttribute("href")).toBe("/overview/group/5");
+    });
+
+    it("lands on the group's overview when switching groups", () => {
+      const navigate = jest.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
+
+      component.groupClicked(5);
+
+      expect(navigate).toHaveBeenCalledWith(["/overview/group/5"]);
+    });
+
     it("offers Reports with either reports read permission", async () => {
       await fixture.whenStable();
       expect(queryTestId("nav-reports")).toBeFalsy();

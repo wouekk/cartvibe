@@ -37,7 +37,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    compile is ~30–60s; ready when the log shows `➜  Local:   http://localhost:4200/`. Verify the proxy:
    `curl localhost:4200/api/featureConfig` → `200`.
 4. **Log in as `admin` / `admin`** (the backend's auto-created default admin). Login lands on
-   `/dashboard/group/<id>` ("All Dashboards", empty on a fresh DB).
+   `/overview/group/<id>` (the Overview, mostly empty on a fresh DB).
 
 **Driving the UI / screenshots with Playwright in the sandbox.** `@playwright/test` is pinned to
 `1.59.1`, which expects Chromium build **1217**, but the sandbox pre-installs build **1194** at
@@ -2807,13 +2807,33 @@ renders the **full dataset** (not the capped builder preview) and re-resolves ac
   (`app-select`) whose options come from `ReportService.getReportTemplates` — server-filtered to the
   caller's viewable templates (`reportTemplateOptions`, loaded in `ngOnInit`, `catchError`→empty).
 
+## Overview page (fork)
+
+`/overview/group/:groupId` (`src/overview/`) is the **landing page**: after login, OIDC sign-in,
+and on a group switch (`GroupState.overviewLink`). The guards' fallback redirects still use
+`dashboardLink`, and the customizable widget dashboards live on as **Dashboards** in the sidebar.
+
+- One month at a time, chosen with the shared `app-month-stepper` (`[showAllTime]="false"`: a
+  single-month page has no "All time"). This month is the **app time zone's**.
+- Data: `GET /api/overview/group/{id}?month=yyyy-MM` (totals, counts, categories, six-month trend;
+  see `api/CLAUDE.md` → "Group overview"), plus the month's newest receipts from the paged receipts
+  endpoint (dates sent as `yyyy-MM-dd` days), settle-up from `getAmountOwedForUser` (positive =
+  the user owes; `netOwed` flips it), and the shopping lists through `ShoppingListState`. Each card
+  loads on its own, so one failing request blanks only that card.
+- The chart maths (ring slices, bars, the month-over-month sentence) are pure functions in
+  `overview-chart.utils.ts`, tested on their own. Slices beyond five fold into "Other".
+- Guarded by `overviewReadGuard` (`group.receipts.read`), which falls back to the group's
+  dashboards.
+
 ## Navigation sidebar (fork)
 
 `src/layout/sidebar/` is the app's navigation; the header keeps only the sidebar toggle, user
 shortcuts, search and notifications.
 
+- **Look:** a dark slate sidebar (its own palette at the top of `sidebar.component.scss`, every text
+  shade checked at ≥4.5:1), from the approved redesign concept.
 - **Order:** group switcher → **New** menu (Add Receipt / Quick Scan / Add Group) → the everyday
-  pages (Shopping Lists, Receipts, Dashboard, Reports) → a collapsible **Manage** section (the
+  pages (Overview, Shopping Lists, Receipts, Dashboards, Reports) → a collapsible **Manage** section (the
   `Manage …` admin pages, System Settings, Imports) → the account menu (User Settings, About,
   Logout). Each entry keeps its own permission gate; the item lists are `mainNavItems` /
   `manageNavItems` computeds, so a new page is one entry, not new markup.

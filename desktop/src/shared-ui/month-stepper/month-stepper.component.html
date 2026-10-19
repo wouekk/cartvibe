@@ -98,14 +98,16 @@
       <button type="button" data-testid="month-stepper-last-month" (click)="pickRelativeMonth(-1)">
         Last month
       </button>
-      <button
-        type="button"
-        class="month-stepper__shortcut--muted"
-        data-testid="month-stepper-all-time"
-        (click)="pickAllTime()"
-      >
-        All time
-      </button>
+      @if (showAllTime()) {
+        <button
+          type="button"
+          class="month-stepper__shortcut--muted"
+          data-testid="month-stepper-all-time"
+          (click)="pickAllTime()"
+        >
+          All time
+        </button>
+      }
     </div>
   </div>
 </ng-template>

@@ -224,7 +224,7 @@ dev libs must be installed by hand.
 2. Frontend (`:4200`) second — `npm install` then `npm start`; it only *proxies* to the backend, so
    the API must already be up.
 3. Log in with the auto-created default admin **`admin` / `admin`**; login lands on
-   `/dashboard/group/<id>`.
+   `/overview/group/<id>`.
 4. To drive the UI / take screenshots, use Playwright against the **pre-installed** Chromium at
    `/opt/pw-browsers/chromium` (do not `playwright install`) — details in `desktop/CLAUDE.md`.
 

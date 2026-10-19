@@ -6,14 +6,14 @@ import { creds, loginViaUi } from './helpers/auth';
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe('authentication', () => {
-  test('admin can log in and reach the dashboard', async ({ page }) => {
+  test('admin can log in and reach the overview', async ({ page }) => {
     await loginViaUi(page, 'admin');
-    await expect(page).toHaveURL(/\/dashboard\/group\/\d+/);
+    await expect(page).toHaveURL(/\/overview\/group\/\d+/);
   });
 
-  test('regular user can log in and reach the dashboard', async ({ page }) => {
+  test('regular user can log in and reach the overview', async ({ page }) => {
     await loginViaUi(page, 'user');
-    await expect(page).toHaveURL(/\/dashboard\/group\/\d+/);
+    await expect(page).toHaveURL(/\/overview\/group\/\d+/);
   });
 
   // The only test covering both halves of the failed-login fix on the wire: the

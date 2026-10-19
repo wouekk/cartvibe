@@ -4,12 +4,21 @@
 $sidebar-width: 248px;
 $sidebar-collapsed-width: 72px;
 
+// The sidebar's own dark palette (slate), matching the redesign concept. Text on $sidebar-bg:
+// $sidebar-text 11:1, $sidebar-muted 6:1, both well above 4.5:1.
+$sidebar-bg: #1c2430;
+$sidebar-raised: #232d3b;
+$sidebar-active: #2b3647;
+$sidebar-border: #334155;
+$sidebar-text: #e2e8f0;
+$sidebar-muted: #94a3b8;
+
 app-sidebar {
   height: 100%;
 
   .drawer-content {
     max-width: 100%;
-    background-color: #f8fafc;
+    background-color: #f1f4f8;
   }
 
   // Opt-in full-height frame: turns the content area into a bounded flex column so
@@ -29,8 +38,9 @@ app-sidebar {
 
   .app-sidebar {
     width: $sidebar-width;
-    background: #fff;
-    border-right: 1px solid rgba(0, 0, 0, 0.08);
+    background: $sidebar-bg;
+    border-right: 0;
+    color: $sidebar-text;
     transition: width 0.2s ease;
 
     &.app-sidebar--collapsed {
@@ -51,6 +61,7 @@ app-sidebar {
     height: 32px;
     font-size: 14px;
     flex: 0 0 auto;
+    box-shadow: none;
   }
 
   .sidebar__group {
@@ -61,15 +72,16 @@ app-sidebar {
     min-height: 52px;
     padding: variables.$spacing-sm;
     margin-bottom: variables.$spacing-sm;
-    border: 1px solid map.get(variables.$accent-palette, 100);
+    border: 1px solid $sidebar-border;
     border-radius: variables.$border-radius-lg;
-    background: transparent;
+    background: $sidebar-raised;
+    color: #ffffff;
     font: inherit;
     text-align: left;
     cursor: pointer;
 
     &:hover {
-      background: map.get(variables.$accent-palette, 100);
+      background: $sidebar-active;
     }
   }
 
@@ -83,8 +95,8 @@ app-sidebar {
   .sidebar__caption {
     font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: variables.$basic-gray;
+    letter-spacing: 0.06em;
+    color: $sidebar-muted;
   }
 
   .sidebar__group-name {
@@ -108,7 +120,7 @@ app-sidebar {
   }
 
   .sidebar__section--manage {
-    border-top: 1px solid map.get(variables.$accent-palette, 100);
+    border-top: 1px solid $sidebar-border;
     padding-top: variables.$spacing-sm;
   }
 
@@ -140,7 +152,7 @@ app-sidebar {
     font: inherit;
     font-size: 14.5px;
     font-weight: 500;
-    color: map.get(variables.$accent-palette, 700);
+    color: $sidebar-text;
     text-align: left;
     text-decoration: none;
     cursor: pointer;
@@ -148,11 +160,12 @@ app-sidebar {
 
     mat-icon {
       flex: 0 0 auto;
-      color: map.get(variables.$accent-palette, 500);
+      color: $sidebar-muted;
     }
 
     &:hover {
-      background: map.get(variables.$accent-palette, 100);
+      background: $sidebar-raised;
+      color: #ffffff;
     }
 
     &:focus-visible {
@@ -162,15 +175,16 @@ app-sidebar {
   }
 
   .sidebar__link--active {
-    background: map.get(variables.$primary-palette, 100);
-    color: map.get(variables.$primary-palette, 700);
+    background: $sidebar-active;
+    color: #ffffff;
+    font-weight: 600;
 
     mat-icon {
-      color: map.get(variables.$primary-palette, 700);
+      color: map.get(variables.$primary-palette, 500);
     }
 
     &:hover {
-      background: map.get(variables.$primary-palette, 100);
+      background: $sidebar-active;
     }
   }
 
@@ -184,7 +198,7 @@ app-sidebar {
 
   .sidebar__chevron {
     margin-left: auto;
-    color: variables.$basic-gray;
+    color: $sidebar-muted;
   }
 
   .sidebar__account {
@@ -201,6 +215,7 @@ app-sidebar {
 
     .sidebar__group {
       border-color: transparent;
+      background: transparent;
     }
 
     .sidebar__new {
