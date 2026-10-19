@@ -6,11 +6,12 @@
         data-testid="shopping-list-item-edit-name"
         [inputFormControl]="form | formGet : 'name'"
       ></app-input>
-      <app-input
-        label="Quantity"
-        data-testid="shopping-list-item-edit-quantity"
-        [inputFormControl]="form | formGet : 'quantity'"
-      ></app-input>
+      <app-shopping-list-amount-fields [form]="form"></app-shopping-list-amount-fields>
+      @if (item.quantity && !(form | formGet : 'amount').value) {
+        <p class="small text-muted mt-0" data-testid="shopping-list-item-legacy-quantity">
+          Currently "{{ item.quantity }}". Entering an amount replaces it.
+        </p>
+      }
       <app-input
         label="Note"
         data-testid="shopping-list-item-edit-note"

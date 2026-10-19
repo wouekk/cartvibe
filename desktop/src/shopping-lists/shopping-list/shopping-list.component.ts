@@ -10,7 +10,11 @@ import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog
 import { ShoppingListEventType, ShoppingListState } from "../../store/shopping-list.state";
 import { ApplyShoppingListEvent } from "../../store/shopping-list.state.actions";
 import { ShoppingListItemFormDialogComponent } from "../shopping-list-item-form-dialog/shopping-list-item-form-dialog.component";
-import { buildShoppingListItemForm, toUpsertShoppingListItemCommand } from "../shopping-list-item-form";
+import {
+  buildShoppingListItemForm,
+  DEFAULT_SHOPPING_LIST_UNIT,
+  toUpsertShoppingListItemCommand,
+} from "../shopping-list-item-form";
 
 const OFFLINE_MESSAGE = "Couldn't reach the server. Check your connection and try again.";
 
@@ -64,7 +68,7 @@ export class ShoppingListComponent {
         next: (item) => {
           // ITEM_ADDED upserts by id, so it also covers a crossed-off item the server revived.
           this.applyItem(ShoppingListEventType.ItemAdded, item);
-          this.addForm.reset({ name: "", quantity: "", note: "" });
+          this.addForm.reset({ name: "", amount: "", unit: DEFAULT_SHOPPING_LIST_UNIT, note: "" });
           this.adding.set(false);
         },
         error: (error: HttpErrorResponse) => {

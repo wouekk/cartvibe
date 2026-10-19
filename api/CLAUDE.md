@@ -3893,7 +3893,7 @@ matches is a **failure**, not a pass; a mutant that **does not compile** was nev
 Group-scoped, long-lived shopping lists (OurGroceries style): items are crossed off and re-added
 rather than the list being recreated per trip. Design: `docs/shopping-list-phase-1.md`.
 
-- **Models:** `ShoppingList` (group, name) and `ShoppingListItem` (list, name, quantity, note,
+- **Models:** `ShoppingList` (group, name) and `ShoppingListItem` (list, name, `amount` + `unit`, legacy free-text `quantity`, note,
   `isChecked`, `checkedAt`, `checkedByUserId`). An item carries **no group id** — its group is its
   list's, resolved through `GetGroupIdForShoppingListItem`, so the two can never disagree. A list's
   `items` always serializes as `[]`, never `null` (`normalizeShoppingListItems`).
@@ -3928,6 +3928,10 @@ rather than the list being recreated per trip. Design: `docs/shopping-list-phase
     token, a revoked key, a role change). Both are package `var`s so tests can shorten them.
   - `X-Accel-Buffering: no` stops nginx (ours, and a Synology DSM reverse proxy) buffering the
     stream; `docker/default.conf` also has a dedicated `location` with `proxy_buffering off`.
+- **Amount + unit:** `amount` is a nullable `decimal(10,3)` (a string on the wire, like every API
+  amount); `unit` is a plain string checked against `models.ShoppingListUnits` and requires an
+  amount. Keep that list in step with desktop's `SHOPPING_LIST_UNITS`. The free-text `quantity` predates
+  them and is kept for old items; reviving an item with an amount in either form replaces both.
 - **Group deletion** removes the group's lists and items (`DeleteShoppingListsForGroup`, raw
   deletes, items first) inside `GroupService.DeleteGroup`'s transaction.
 - **Tests:** `handlers/shopping_lists_test.go` (authorization, the indistinguishable unknown id,

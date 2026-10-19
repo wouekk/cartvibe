@@ -11,7 +11,7 @@
         mat-icon-button
         type="button"
         data-testid="shopping-list-add-details-toggle"
-        [attr.aria-label]="showDetails() ? 'Hide quantity and note' : 'Add quantity or note'"
+        [attr.aria-label]="showDetails() ? 'Hide amount and note' : 'Add an amount or note'"
         [attr.aria-expanded]="showDetails()"
         (click)="showDetails.set(!showDetails())"
       >
@@ -30,11 +30,7 @@
     </div>
     @if (showDetails()) {
       <div class="add-details">
-        <app-input
-          label="Quantity"
-          data-testid="shopping-list-add-quantity"
-          [inputFormControl]="addForm | formGet : 'quantity'"
-        ></app-input>
+        <app-shopping-list-amount-fields [form]="addForm"></app-shopping-list-amount-fields>
         <app-input
           label="Note"
           data-testid="shopping-list-add-note"

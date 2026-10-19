@@ -1,10 +1,11 @@
 import { OverlayContainer } from "@angular/cdk/overlay";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
-import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
+import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection, signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { MatMenuModule, MatMenuTrigger } from "@angular/material/menu";
 import { MatSidenavModule } from "@angular/material/sidenav";
 import { MatSnackBarModule } from "@angular/material/snack-bar";
+import { MatTooltipModule } from "@angular/material/tooltip";
 import { By } from "@angular/platform-browser";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { Router } from "@angular/router";
@@ -12,10 +13,14 @@ import { RouterTestingModule } from "@angular/router/testing";
 import { NgxsModule, Store } from "@ngxs/store";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { LayoutState } from "src/store/layout.state";
+import { CloseSidebar, ToggleIsSidebarOpen } from "src/store/layout.state.actions";
+import { ShoppingListState } from "src/store/shopping-list.state";
 import { DirectivesModule } from "../../directives/directives.module";
-import { ApiModule, Permission } from "../../open-api";
-import { AuthState, FeatureConfigState, GroupState, SetSelectedGroupId } from "../../store";
+import { ApiModule, FeatureConfig, Group, Permission } from "../../open-api";
+import { ViewportService } from "../../services/viewport.service";
+import { AuthState, FeatureConfigState, GroupState, SetFeatureConfig, SetSelectedGroupId } from "../../store";
 import { SetAuthState, SetPermissions } from "../../store/auth.state.actions";
+import { SetGroups } from "../../store/group.state.actions";
 import { SidebarComponent } from "./sidebar.component";
 
 describe("SidebarComponent", () => {
@@ -23,41 +28,54 @@ describe("SidebarComponent", () => {
   let fixture: ComponentFixture<SidebarComponent>;
   let store: Store;
   let overlayContainer: OverlayContainer;
+  const isHandset = signal(false);
 
   const login = () =>
     store.dispatch(
       new SetAuthState({ exp: Math.floor(Date.now() / 1000) + 3600 } as any)
     );
 
-  const openMenu = async () => {
-    await fixture.whenStable();
-    const trigger = fixture.debugElement
-      .query(By.directive(MatMenuTrigger))
-      .injector.get(MatMenuTrigger);
-    trigger.openMenu();
-    await fixture.whenStable();
-  };
-
-  const menuText = (): string =>
-    overlayContainer.getContainerElement().textContent ?? "";
-
   const queryTestId = (id: string) =>
     fixture.debugElement.query(By.css(`[data-testid="${id}"]`));
 
+  const sidebarText = (): string => fixture.nativeElement.textContent ?? "";
+
+  /** Opens the menu whose trigger carries [testId] and returns the overlay's content. */
+  const openMenu = async (testId: string): Promise<HTMLElement> => {
+    await fixture.whenStable();
+    queryTestId(testId).injector.get(MatMenuTrigger).openMenu();
+    await fixture.whenStable();
+    return overlayContainer.getContainerElement();
+  };
+
+  const inMenu = (menu: HTMLElement, testId: string) => menu.querySelector(`[data-testid="${testId}"]`);
+
+  const selectGroupFive = (permissions: string[]) => {
+    store.dispatch(new SetSelectedGroupId("5"));
+    store.dispatch(new SetPermissions([], { 5: permissions }));
+  };
+
   beforeEach(async () => {
+    isHandset.set(false);
+
     await TestBed.configureTestingModule({
     declarations: [SidebarComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [NgxsModule.forRoot([AuthState, LayoutState, GroupState, FeatureConfigState]),
+    imports: [NgxsModule.forRoot([AuthState, LayoutState, GroupState, FeatureConfigState, ShoppingListState]),
         DirectivesModule,
         MatMenuModule,
         MatSnackBarModule,
         MatSidenavModule,
+        MatTooltipModule,
         NoopAnimationsModule,
         RouterTestingModule,
         SharedUiModule,
         ApiModule],
-    providers: [provideZonelessChangeDetection(), provideHttpClient(withInterceptorsFromDi())]
+    providers: [
+      provideZonelessChangeDetection(),
+      provideHttpClient(withInterceptorsFromDi()),
+      { provide: ViewportService, useValue: { isHandset } },
+    ]
 }).compileComponents();
 
     store = TestBed.inject(Store);
@@ -86,135 +104,186 @@ describe("SidebarComponent", () => {
     expect(component.isContentFullHeight()).toBe(true);
   });
 
-  it("hides the admin manage menu items without the matching read permissions", async () => {
-    login();
-    await openMenu();
+  describe("main navigation", () => {
+    beforeEach(() => {
+      login();
+      store.dispatch(
+        new SetGroups([
+          { id: 10, name: "All", isAllGroup: true } as Group,
+          { id: 5, name: "Home", isAllGroup: false } as Group,
+        ])
+      );
+    });
 
-    const text = menuText();
-    expect(text).not.toContain("Manage Categories");
-    expect(text).not.toContain("Manage Tags");
-    expect(text).not.toContain("Manage Groups");
-    expect(text).not.toContain("Manage Custom Fields");
+    it("always offers Receipts, and Dashboard only with the selected group's read permission", async () => {
+      selectGroupFive([]);
+      await fixture.whenStable();
+      expect(queryTestId("nav-receipts")).toBeTruthy();
+      expect(queryTestId("nav-dashboard")).toBeFalsy();
+
+      selectGroupFive([Permission.GroupDashboardsRead]);
+      await fixture.whenStable();
+      expect(queryTestId("nav-dashboard")).toBeTruthy();
+    });
+
+    it("offers Shopping Lists for a readable real group even while the All group is selected", async () => {
+      store.dispatch(new SetSelectedGroupId("10"));
+      store.dispatch(new SetPermissions([], { 10: [Permission.GroupShoppingListsRead] }));
+      await fixture.whenStable();
+      expect(queryTestId("nav-shopping-lists")).toBeFalsy();
+
+      store.dispatch(new SetPermissions([], { 5: [Permission.GroupShoppingListsRead] }));
+      await fixture.whenStable();
+      expect(queryTestId("nav-shopping-lists").nativeElement.getAttribute("href")).toBe("/shopping-lists/group/5");
+    });
+
+    it("offers Reports with either reports read permission", async () => {
+      await fixture.whenStable();
+      expect(queryTestId("nav-reports")).toBeFalsy();
+
+      store.dispatch(new SetPermissions([Permission.AppReportsReadAll], {}));
+      await fixture.whenStable();
+      expect(queryTestId("nav-reports")).toBeTruthy();
+    });
   });
 
-  it("shows the admin manage menu items with the matching read permissions", async () => {
-    login();
-    store.dispatch(
-      new SetPermissions(
-        [
-          "app.categories.read",
-          "app.tags.read",
-          "app.groups.read",
-          "app.custom-fields.read",
-        ],
-        {}
-      )
-    );
-    await openMenu();
+  describe("Manage", () => {
+    it("is absent without any administration permission", async () => {
+      login();
+      await fixture.whenStable();
 
-    const text = menuText();
-    expect(text).toContain("Manage Categories");
-    expect(text).toContain("Manage Tags");
-    expect(text).toContain("Manage Groups");
-    expect(text).toContain("Manage Custom Fields");
+      expect(queryTestId("sidebar-manage-toggle")).toBeFalsy();
+    });
+
+    it("lists only the administration pages the user may read, once expanded", async () => {
+      login();
+      store.dispatch(
+        new SetPermissions(
+          ["app.categories.read", "app.tags.read", "app.groups.read", "app.custom-fields.read"],
+          {}
+        )
+      );
+      await fixture.whenStable();
+      expect(queryTestId("sidebar-manage-items")).toBeFalsy();
+
+      queryTestId("sidebar-manage-toggle").nativeElement.click();
+      await fixture.whenStable();
+
+      const text = sidebarText();
+      expect(text).toContain("Manage Categories");
+      expect(text).toContain("Manage Tags");
+      expect(text).toContain("Manage Groups");
+      expect(text).toContain("Manage Custom Fields");
+      expect(text).not.toContain("Manage Users");
+      expect(text).not.toContain("System Settings");
+    });
+
+    it("starts expanded on one of its own pages", async () => {
+      const router = TestBed.inject(Router);
+      router.resetConfig([{ path: "categories", children: [] }]);
+      login();
+      store.dispatch(new SetPermissions(["app.categories.read"], {}));
+
+      await router.navigateByUrl("/categories");
+      await fixture.whenStable();
+
+      expect(queryTestId("sidebar-manage-items")).toBeTruthy();
+    });
   });
 
-  it("hides User Settings without any settings read permission", async () => {
-    login();
-    await openMenu();
+  describe("account menu", () => {
+    it("hides User Settings without any settings read permission", async () => {
+      login();
+      const menu = await openMenu("sidebar-avatar-menu");
 
-    expect(menuText()).not.toContain("User Settings");
+      expect(menu.textContent).not.toContain("User Settings");
+      expect(menu.textContent).toContain("About");
+      expect(menu.textContent).toContain("Logout");
+    });
+
+    it("shows User Settings with a settings read permission", async () => {
+      login();
+      store.dispatch(new SetPermissions(["app.account.read"], {}));
+      const menu = await openMenu("sidebar-avatar-menu");
+
+      expect(menu.textContent).toContain("User Settings");
+    });
   });
 
-  it("shows User Settings with a settings read permission", async () => {
-    login();
-    store.dispatch(new SetPermissions(["app.account.read"], {}));
-    await openMenu();
+  describe("New menu", () => {
+    it("is hidden when the user holds none of the add permissions", async () => {
+      login();
+      selectGroupFive([]);
+      await fixture.whenStable();
 
-    expect(menuText()).toContain("User Settings");
+      expect(queryTestId("sidebar-add-fab")).toBeFalsy();
+    });
+
+    it("offers Add Receipt with the selected group's create permission", async () => {
+      login();
+      selectGroupFive([Permission.GroupReceiptsCreate]);
+      const menu = await openMenu("sidebar-add-fab");
+
+      expect(inMenu(menu, "sidebar-add-receipt")).toBeTruthy();
+      expect(inMenu(menu, "sidebar-quick-scan")).toBeFalsy();
+      expect(inMenu(menu, "sidebar-add-group")).toBeFalsy();
+    });
+
+    it("offers Quick Scan only with its permission and the AI feature", async () => {
+      login();
+      selectGroupFive([Permission.GroupReceiptsQuickScan]);
+      await fixture.whenStable();
+      // Without the feature the menu would be empty, so there is no button at all.
+      expect(queryTestId("sidebar-add-fab")).toBeFalsy();
+
+      store.dispatch(new SetFeatureConfig({ aiPoweredReceipts: true } as FeatureConfig));
+      const menu = await openMenu("sidebar-add-fab");
+
+      expect(inMenu(menu, "sidebar-quick-scan")).toBeTruthy();
+      expect(inMenu(menu, "sidebar-add-receipt")).toBeFalsy();
+    });
+
+    it("offers Add Group with the app group-create permission", async () => {
+      login();
+      store.dispatch(new SetPermissions([Permission.AppGroupsCreate], {}));
+      const menu = await openMenu("sidebar-add-fab");
+
+      expect(inMenu(menu, "sidebar-add-group")).toBeTruthy();
+    });
   });
 
-  it("gates the Add Receipt FAB on the selected group's create permission", async () => {
+  describe("on a phone", () => {
+    it("is not shown until opened, and closes again on navigation", async () => {
+      isHandset.set(true);
+      const router = TestBed.inject(Router);
+      router.resetConfig([{ path: "receipts", children: [] }]);
+      login();
+      await fixture.whenStable();
+      expect(component.isDrawerOpen()).toBe(false);
+
+      store.dispatch(new ToggleIsSidebarOpen());
+      await fixture.whenStable();
+      expect(component.isDrawerOpen()).toBe(true);
+
+      const dispatch = jest.spyOn(store, "dispatch");
+      await router.navigateByUrl("/receipts");
+      await fixture.whenStable();
+      expect(dispatch).toHaveBeenCalledWith(new CloseSidebar());
+      expect(component.isDrawerOpen()).toBe(false);
+    });
+
+    it("always shows the full labeled sidebar, even if the desktop one was collapsed", () => {
+      isHandset.set(true);
+      expect(component.drawerMode()).toBe("over");
+      expect(component.isCollapsed()).toBe(false);
+    });
+  });
+
+  it("is always shown on a desktop", async () => {
     login();
-    store.dispatch(new SetSelectedGroupId("5"));
-    store.dispatch(new SetPermissions([], { 5: ["group.receipts.create"] }));
     await fixture.whenStable();
 
-    expect(queryTestId("sidebar-add-receipt")).toBeTruthy();
-    // create alone does not reveal Quick Scan.
-    expect(queryTestId("sidebar-quick-scan")).toBeFalsy();
-  });
-
-  it("shows the Quick Scan FAB only with the selected group's quick-scan permission", async () => {
-    login();
-    store.dispatch(new SetSelectedGroupId("5"));
-    store.dispatch(
-      new SetPermissions([], { 5: ["group.receipts.quick-scan"] })
-    );
-    await fixture.whenStable();
-
-    expect(queryTestId("sidebar-quick-scan")).toBeTruthy();
-    expect(queryTestId("sidebar-add-receipt")).toBeFalsy();
-  });
-
-  it("hides both FABs when the selected group grants neither permission", async () => {
-    login();
-    store.dispatch(new SetSelectedGroupId("5"));
-    store.dispatch(new SetPermissions([], { 5: [] }));
-    await fixture.whenStable();
-
-    expect(queryTestId("sidebar-add-receipt")).toBeFalsy();
-    expect(queryTestId("sidebar-quick-scan")).toBeFalsy();
-  });
-
-  it("shows the Add Group FAB with the app group-create permission", async () => {
-    login();
-    store.dispatch(new SetPermissions([Permission.AppGroupsCreate], {}));
-    await fixture.whenStable();
-
-    expect(queryTestId("sidebar-add-group")).toBeTruthy();
-  });
-
-  it("hides the Add Group FAB without the app group-create permission", async () => {
-    login();
-    store.dispatch(new SetPermissions([], {}));
-    await fixture.whenStable();
-
-    expect(queryTestId("sidebar-add-group")).toBeFalsy();
-  });
-
-  it("hides the add FAB when the user holds none of the add permissions", async () => {
-    login();
-    store.dispatch(new SetSelectedGroupId("5"));
-    store.dispatch(new SetPermissions([], { 5: [] }));
-    await fixture.whenStable();
-
-    expect(queryTestId("sidebar-add-fab")).toBeFalsy();
-  });
-
-  it("shows the add FAB with the selected group's receipt-create permission", async () => {
-    login();
-    store.dispatch(new SetSelectedGroupId("5"));
-    store.dispatch(new SetPermissions([], { 5: ["group.receipts.create"] }));
-    await fixture.whenStable();
-
-    expect(queryTestId("sidebar-add-fab")).toBeTruthy();
-  });
-
-  it("shows the add FAB with the selected group's quick-scan permission", async () => {
-    login();
-    store.dispatch(new SetSelectedGroupId("5"));
-    store.dispatch(new SetPermissions([], { 5: ["group.receipts.quick-scan"] }));
-    await fixture.whenStable();
-
-    expect(queryTestId("sidebar-add-fab")).toBeTruthy();
-  });
-
-  it("shows the add FAB with the app group-create permission", async () => {
-    login();
-    store.dispatch(new SetPermissions([Permission.AppGroupsCreate], {}));
-    await fixture.whenStable();
-
-    expect(queryTestId("sidebar-add-fab")).toBeTruthy();
+    expect(component.drawerMode()).toBe("side");
+    expect(component.isDrawerOpen()).toBe(true);
   });
 });

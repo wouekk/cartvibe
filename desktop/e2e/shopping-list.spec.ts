@@ -112,6 +112,23 @@ test.describe('Shopping lists', () => {
       await expect(page.getByText('Bread')).toHaveCount(0);
     });
 
+    test('adds an item with an amount and a unit', async ({ page }) => {
+      await openShoppingLists(page, groupId);
+      await addList(page, uniqueName('amounts'));
+
+      await page.getByTestId('shopping-list-add-details-toggle').click();
+      await page.getByLabel('Add an item').fill('Flour');
+      // A comma decimal, as a European phone keyboard types it.
+      await page.getByLabel('Amount').fill('1,5');
+      await page.getByRole('combobox', { name: 'Unit' }).click();
+      await page.getByRole('option', { name: 'kg', exact: true }).click();
+      await page.getByTestId('shopping-list-add-submit').click();
+
+      await expect(
+        page.getByTestId('shopping-list-active-items').getByTestId('shopping-list-item-amount'),
+      ).toHaveText('1.5 kg');
+    });
+
     test('syncs a change to another open browser without a reload', async ({ page, browser }) => {
       const listName = uniqueName('sync');
       await openShoppingLists(page, groupId);

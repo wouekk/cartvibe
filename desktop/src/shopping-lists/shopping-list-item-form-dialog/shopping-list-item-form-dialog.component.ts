@@ -34,7 +34,7 @@ export class ShoppingListItemFormDialogComponent implements OnInit {
   }
 
   public submit(): void {
-    const command = toUpsertShoppingListItemCommand(this.form);
+    const command = toUpsertShoppingListItemCommand(this.form, this.item.quantity);
     if (this.form.invalid || command.name.length === 0) {
       this.form.markAllAsTouched();
       return;

@@ -13,8 +13,8 @@
     </mat-icon>
     <span class="text">
       <span class="name" data-testid="shopping-list-item-name">{{ item().name }}</span>
-      @if (item().quantity) {
-        <span class="quantity">{{ item().quantity }}</span>
+      @if (amount()) {
+        <span class="quantity" data-testid="shopping-list-item-amount">{{ amount() }}</span>
       }
       @if (item().note) {
         <span class="note">{{ item().note }}</span>

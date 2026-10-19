@@ -1,123 +1,177 @@
 <mat-drawer-container class="h-100">
   @if (isLoggedIn()) {
     <mat-drawer
-      mode="side"
-      [opened]="isSidebarOpen()"
+      class="app-sidebar"
+      [class.app-sidebar--collapsed]="isCollapsed()"
+      [mode]="drawerMode()"
+      [opened]="isDrawerOpen()"
+      (closedStart)="closeMobileSidebar()"
     >
-      <div
-        class="drawer-container d-flex flex-column align-items-center pt-3 ps-3 pe-3"
-      >
-        <app-avatar
-          class="cursor-pointer"
-          data-testid="sidebar-avatar-menu"
-          [user]="loggedInUser() ?? $any({})"
-          [matMenuTriggerFor]="menu"
-        ></app-avatar>
-        @if (canAddAnything()) {
-        <button
-          mat-fab
-          class="add-button mt-2"
-          data-testid="sidebar-add-fab"
-          (click)="toggleAddButtonExpanded()"
-          [ngClass]="{
-            'add-button-rotated mt-4': addButtonExpanded,
-            'mb-2': !addButtonExpanded
-          }"
-        >
-          <mat-icon>add</mat-icon>
-        </button>
-        <div
-          class="add-buttons-container"
-          [ngClass]="{
-            'add-button-container-expanded': this.addButtonExpanded,
-            'add-buttons-close': this.addButtonExpanded === false
-          }"
-        >
-          <!-- <button
-            mat-icon-button
-            routerLinkActive="active-sub-button"
-            matTooltip="Add User"
-            type="button"
-            color="accent"
-          >
-            <mat-icon>person</mat-icon>
-          </button> -->
+      <nav class="sidebar" aria-label="Main navigation">
+        @if (groups().length > 0) {
           <button
-            *hasGroupPermission="{ groupId: selectedGroupIdNumber(), permission: Permission.GroupReceiptsCreate }"
-            data-testid="sidebar-add-receipt"
-            class="mt-4 mb-1 add-sub-button-1"
-            mat-icon-button
-            routerLinkActive="active-sub-button"
-            matTooltip="Add Receipt"
             type="button"
-            color="accent"
-            [routerLink]="['/receipts/add']"
+            class="sidebar__group"
+            data-testid="sidebar-group-switcher"
+            [matMenuTriggerFor]="groupMenu"
           >
-            <mat-icon>article</mat-icon>
+            <app-avatar class="sidebar__avatar" [group]="selectedGroup()"></app-avatar>
+            @if (!isCollapsed()) {
+              <span class="sidebar__group-text">
+                <span class="sidebar__caption">Group</span>
+                <span class="sidebar__group-name">{{ selectedGroup()?.name }}</span>
+              </span>
+              <mat-icon class="sidebar__chevron">unfold_more</mat-icon>
+            }
           </button>
-          <app-quick-scan-button
-            *hasGroupPermission="{ groupId: selectedGroupIdNumber(), permission: Permission.GroupReceiptsQuickScan }"
-            data-testid="sidebar-quick-scan"
-            class="mb-1 add-sub-button-2"
-          ></app-quick-scan-button>
-          <button
-            *hasAppPermission="Permission.AppGroupsCreate"
-            data-testid="sidebar-add-group"
-            class="mb-1 add-sub-button-3"
-            mat-icon-button
-            routerLinkActive="active-sub-button"
-            matTooltip="Add Group"
-            type="button"
-            color="accent"
-            [routerLink]="['/groups/create']"
-          >
-            <mat-icon>group</mat-icon>
-          </button>
-        </div>
+          <mat-menu #groupMenu="matMenu">
+            @for (group of groups(); track group.id) {
+              <button
+                mat-menu-item
+                data-testid="sidebar-group-option"
+                (click)="groupClicked(group.id); closeMobileSidebar()"
+              >
+                <mat-icon>{{ group.id === selectedGroupIdNumber() ? "check" : "" }}</mat-icon>
+                <span>{{ group.name }}</span>
+              </button>
+            }
+          </mat-menu>
         }
-        <hr/>
-        @for (group of groups(); track group.id) {
-          <div class="p-2">
+
+        @if (canAddAnything()) {
+          <button
+            mat-flat-button
+            type="button"
+            class="sidebar__new"
+            data-testid="sidebar-add-fab"
+            [matTooltip]="isCollapsed() ? 'New' : ''"
+            matTooltipPosition="right"
+            [matMenuTriggerFor]="addMenu"
+          >
+            <mat-icon>add</mat-icon>
+            @if (!isCollapsed()) {
+              New
+            }
+          </button>
+          <mat-menu #addMenu="matMenu">
+            <button
+              *hasGroupPermission="{ groupId: selectedGroupIdNumber(), permission: Permission.GroupReceiptsCreate }"
+              mat-menu-item
+              data-testid="sidebar-add-receipt"
+              [routerLink]="['/receipts/add']"
+              (click)="closeMobileSidebar()"
+            >
+              <mat-icon>article</mat-icon>
+              <span>Add Receipt</span>
+            </button>
+            <ng-container *appFeature="'aiPoweredReceipts'">
+              <button
+                *hasGroupPermission="{ groupId: selectedGroupIdNumber(), permission: Permission.GroupReceiptsQuickScan }"
+                mat-menu-item
+                data-testid="sidebar-quick-scan"
+                (click)="openQuickScan(); closeMobileSidebar()"
+              >
+                <mat-icon>document_scanner</mat-icon>
+                <span>Quick Scan</span>
+              </button>
+            </ng-container>
+            <button
+              *hasAppPermission="Permission.AppGroupsCreate"
+              mat-menu-item
+              data-testid="sidebar-add-group"
+              [routerLink]="['/groups/create']"
+              (click)="closeMobileSidebar()"
+            >
+              <mat-icon>group_add</mat-icon>
+              <span>Add Group</span>
+            </button>
+          </mat-menu>
+        }
+
+        <div class="sidebar__section">
+          @for (item of mainNavItems(); track item.testId) {
             <ng-container
-              [ngTemplateOutlet]="groupAvatar"
-              [ngTemplateOutletContext]="{ group: group }"
+              [ngTemplateOutlet]="navLink"
+              [ngTemplateOutletContext]="{ item: item, testId: item.testId }"
             ></ng-container>
+          }
+        </div>
+
+        <div class="sidebar__spacer"></div>
+
+        @if (manageNavItems().length > 0 || canRunImports()) {
+          <div class="sidebar__section sidebar__section--manage">
+            <button
+              type="button"
+              class="sidebar__link"
+              data-testid="sidebar-manage-toggle"
+              [attr.aria-expanded]="isManageOpen()"
+              [matTooltip]="isCollapsed() ? 'Manage' : ''"
+              matTooltipPosition="right"
+              (click)="isManageOpen.set(!isManageOpen())"
+            >
+              <mat-icon>tune</mat-icon>
+              @if (!isCollapsed()) {
+                <span class="sidebar__label">Manage</span>
+                <mat-icon class="sidebar__chevron">{{ isManageOpen() ? "expand_less" : "expand_more" }}</mat-icon>
+              }
+            </button>
+            @if (isManageOpen()) {
+              <div class="sidebar__submenu" data-testid="sidebar-manage-items">
+                @for (item of manageNavItems(); track item.label) {
+                  <ng-container
+                    [ngTemplateOutlet]="navLink"
+                    [ngTemplateOutletContext]="{ item: item }"
+                  ></ng-container>
+                }
+                @if (canRunImports()) {
+                  <button
+                    type="button"
+                    class="sidebar__link"
+                    [matTooltip]="isCollapsed() ? 'Imports' : ''"
+                    matTooltipPosition="right"
+                    (click)="openImportDialog(); closeMobileSidebar()"
+                  >
+                    <mat-icon>upload_file</mat-icon>
+                    @if (!isCollapsed()) {
+                      <span class="sidebar__label">Imports</span>
+                    }
+                  </button>
+                }
+              </div>
+            }
           </div>
         }
-      </div>
 
-      <mat-menu #menu="matMenu">
-        <button *hasAppPermission="Permission.AppUsersRead" [routerLink]="['/users']" mat-menu-item>
-          Manage Users
+        <button
+          type="button"
+          class="sidebar__link sidebar__account"
+          data-testid="sidebar-avatar-menu"
+          [matMenuTriggerFor]="accountMenu"
+        >
+          <app-avatar class="sidebar__avatar" [user]="loggedInUser() ?? $any({})"></app-avatar>
+          @if (!isCollapsed()) {
+            <span class="sidebar__label">{{ loggedInUser()?.displayName }}</span>
+            <mat-icon class="sidebar__chevron">more_vert</mat-icon>
+          }
         </button>
-        <button *hasAppPermission="Permission.AppRolesRead" [routerLink]="['/roles']" mat-menu-item>
-          Manage Roles
-        </button>
-        <button *hasAppPermission="Permission.AppCategoriesRead" [routerLink]="['/categories']" mat-menu-item>
-          Manage Categories
-        </button>
-        <button *hasAppPermission="Permission.AppTagsRead" [routerLink]="['/tags']" mat-menu-item>Manage Tags</button>
-        <button *hasAppPermission="Permission.AppGroupsRead" [routerLink]="['/groups']" mat-menu-item>Manage Groups</button>
-        <button *hasAppPermission="Permission.AppCustomFieldsRead" [routerLink]="['/custom-fields']" mat-menu-item>Manage Custom Fields</button>
-        @if (canViewReports()) {
-          <button [routerLink]="['/reports']" mat-menu-item>Reports</button>
-        }
-        @if (canViewUserSettings()) {
-          <button mat-menu-item [routerLink]="['/settings']">
-            User Settings
+        <mat-menu #accountMenu="matMenu">
+          @if (canViewUserSettings()) {
+            <button mat-menu-item [routerLink]="['/settings']" (click)="closeMobileSidebar()">
+              <mat-icon>manage_accounts</mat-icon>
+              <span>User Settings</span>
+            </button>
+          }
+          <button mat-menu-item (click)="openAboutDialog()">
+            <mat-icon>info</mat-icon>
+            <span>About</span>
           </button>
-        }
-        @if (canViewSystemSettings()) {
-          <button [routerLink]="['/system-settings']" mat-menu-item>
-            System Settings
+          <button mat-menu-item (click)="logout()">
+            <mat-icon>logout</mat-icon>
+            <span>Logout</span>
           </button>
-        }
-        <button *hasAppPermission="Permission.AppImportsRun" mat-menu-item (click)="openImportDialog()">
-          Imports
-        </button>
-        <button mat-menu-item (click)="openAboutDialog()">About</button>
-        <button mat-menu-item (click)="logout()">Logout</button>
-      </mat-menu>
+        </mat-menu>
+      </nav>
     </mat-drawer>
   }
   <mat-drawer-content
@@ -136,18 +190,20 @@
   </mat-drawer-content>
 </mat-drawer-container>
 
-<ng-template #groupAvatar let-group="group">
-  <div class="d-flex align-items-center group-avatar-container">
-    <div
-      [ngClass]="{
-        'active-group': selectedGroupId() === group?.id?.toString()
-      }"
-      class="active-dot"
-    ></div>
-    <app-avatar
-      class="cursor-pointer"
-      [group]="group"
-      (click)="groupClicked(group.id)"
-    ></app-avatar>
-  </div>
+<ng-template #navLink let-item="item" let-testId="testId">
+  <a
+    class="sidebar__link"
+    routerLinkActive="sidebar__link--active"
+    [routerLink]="item.link"
+    [attr.data-testid]="testId"
+    [attr.aria-label]="isCollapsed() ? item.label : null"
+    [matTooltip]="isCollapsed() ? item.label : ''"
+    matTooltipPosition="right"
+    (click)="closeMobileSidebar()"
+  >
+    <mat-icon>{{ item.icon }}</mat-icon>
+    @if (!isCollapsed()) {
+      <span class="sidebar__label">{{ item.label }}</span>
+    }
+  </a>
 </ng-template>
