@@ -1,8 +1,9 @@
+# Synology stack. Paste this into Dockhand (or Container Manager) as a plain compose stack: the NAS
+# only downloads the image GitHub publishes after CI passes on main (.github/workflows/
+# publish-image.yml); nothing is built on the NAS. To update, pull the image and redeploy.
 services:
   receipt-wrangler:
-    build:
-      context: .
-      dockerfile: ./docker/Dockerfile
+    image: ghcr.io/wouekk/receipt-wrangler:latest
     container_name: receipt-wrangler
     restart: unless-stopped
     depends_on:
@@ -12,11 +13,12 @@ services:
       - "8091:80" # Change 8091 if that port is already used on your Synology
     environment:
       - TZ=Europe/Paris
-      # Generate two random 32+ character strings in Dockhand environment variables:
+      # Set both in Dockhand's environment variables. Use letters and digits only: compose reads a
+      # "$" as the start of a variable name and silently drops it (write "$$" for a literal one).
       - SECRET_KEY=${SECRET_KEY}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       # Database: the built-in SQLite engine. The file lives in the sqlite volume below,
-      # so keep DB_FILENAME the same across rebuilds or the app starts with an empty database.
+      # so keep DB_FILENAME the same across updates or the app starts with an empty database.
       - DB_ENGINE=sqlite
       - DB_FILENAME=app.db
       # Background jobs (OCR, email polling, cleanup) queue through Redis. The image does not
