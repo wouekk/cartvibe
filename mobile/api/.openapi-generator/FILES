@@ -94,6 +94,7 @@ doc/PieChartDataPoint.md
 doc/Prompt.md
 doc/PromptApi.md
 doc/QueueName.md
+doc/QueuedReceiptsView.md
 doc/QuickScanDefaultPaidByType.md
 doc/Receipt.md
 doc/ReceiptApi.md
@@ -102,6 +103,9 @@ doc/ReceiptPagedRequestCommand.md
 doc/ReceiptPagedRequestFilter.md
 doc/ReceiptProcessingSettings.md
 doc/ReceiptProcessingSettingsApi.md
+doc/ReceiptProduct.md
+doc/ReceiptProductApi.md
+doc/ReceiptProductsView.md
 doc/ReceiptRequirements.md
 doc/ReceiptStatus.md
 doc/ReceiptSummary.md
@@ -203,6 +207,7 @@ lib/src/api/prompt_api.dart
 lib/src/api/receipt_api.dart
 lib/src/api/receipt_image_api.dart
 lib/src/api/receipt_processing_settings_api.dart
+lib/src/api/receipt_product_api.dart
 lib/src/api/report_api.dart
 lib/src/api/role_api.dart
 lib/src/api/search_api.dart
@@ -299,11 +304,14 @@ lib/src/model/pie_chart_data_command.dart
 lib/src/model/pie_chart_data_point.dart
 lib/src/model/prompt.dart
 lib/src/model/queue_name.dart
+lib/src/model/queued_receipts_view.dart
 lib/src/model/quick_scan_default_paid_by_type.dart
 lib/src/model/receipt.dart
 lib/src/model/receipt_paged_request_command.dart
 lib/src/model/receipt_paged_request_filter.dart
 lib/src/model/receipt_processing_settings.dart
+lib/src/model/receipt_product.dart
+lib/src/model/receipt_products_view.dart
 lib/src/model/receipt_requirements.dart
 lib/src/model/receipt_status.dart
 lib/src/model/receipt_summary.dart
@@ -375,7 +383,7 @@ lib/src/model/widget.dart
 lib/src/model/widget_type.dart
 lib/src/serializers.dart
 pubspec.yaml
-test/group_overview_category_test.dart
-test/group_overview_month_test.dart
-test/group_overview_test.dart
-test/overview_api_test.dart
+test/queued_receipts_view_test.dart
+test/receipt_product_api_test.dart
+test/receipt_product_test.dart
+test/receipt_products_view_test.dart

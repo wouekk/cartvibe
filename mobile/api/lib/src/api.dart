@@ -28,6 +28,7 @@ import 'package:openapi/src/api/prompt_api.dart';
 import 'package:openapi/src/api/receipt_api.dart';
 import 'package:openapi/src/api/receipt_image_api.dart';
 import 'package:openapi/src/api/receipt_processing_settings_api.dart';
+import 'package:openapi/src/api/receipt_product_api.dart';
 import 'package:openapi/src/api/report_api.dart';
 import 'package:openapi/src/api/role_api.dart';
 import 'package:openapi/src/api/search_api.dart';
@@ -206,6 +207,12 @@ class Openapi {
   /// by doing that all interceptors will not be executed
   ReceiptProcessingSettingsApi getReceiptProcessingSettingsApi() {
     return ReceiptProcessingSettingsApi(dio, serializers);
+  }
+
+  /// Get ReceiptProductApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  ReceiptProductApi getReceiptProductApi() {
+    return ReceiptProductApi(dio, serializers);
   }
 
   /// Get ReportApi instance, base route and serializer can be overridden by a given but be careful,
