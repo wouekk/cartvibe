@@ -15,6 +15,7 @@ api/import.service.ts
 api/notifications.service.ts
 api/oidc.service.ts
 api/oidcProvider.service.ts
+api/overview.service.ts
 api/permission.service.ts
 api/prompt.service.ts
 api/receipt.service.ts
@@ -75,6 +76,9 @@ model/getSystemTaskCommand.ts
 model/group.ts
 model/groupFilter.ts
 model/groupMember.ts
+model/groupOverview.ts
+model/groupOverviewCategory.ts
+model/groupOverviewMonth.ts
 model/groupReceiptSettings.ts
 model/groupSettings.ts
 model/groupSettingsWhiteListEmail.ts
