@@ -164,6 +164,10 @@ func BuildRootRouter() *chi.Mux {
 	shoppingListRouter := BuildShoppingListRouter()
 	rootRouter.Mount("/api/shopping-list", shoppingListRouter)
 
+	// Overview router (the landing page's month at a glance)
+	overviewRouter := BuildOverviewRouter()
+	rootRouter.Mount("/api/overview", overviewRouter)
+
 	// MCP server + OAuth 2.1 authorization endpoints. These are mounted at the
 	// server root because the OAuth discovery documents must live at well-known
 	// root paths. Unlike background workers, HTTP routes can only be mounted
