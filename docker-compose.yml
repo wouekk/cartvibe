@@ -1,0 +1,18 @@
+services:
+  receipt-wrangler:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    container_name: receipt-wrangler
+    restart: unless-stopped
+    ports:
+      - "8091:80" # Change 8091 if that port is already used on your Synology
+    environment:
+      - TZ=Europe/Paris
+      # Generate two random 32+ character strings in Dockhand environment variables:
+      - SECRET_KEY=${SECRET_KEY}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    volumes:
+      - /volume2/docker/receipt-wrangler/sqlite:/app/receipt-wrangler-api/sqlite
+      - /volume2/docker/receipt-wrangler/data:/app/receipt-wrangler-api/data
+      - /volume2/docker/receipt-wrangler/logs:/app/receipt-wrangler-api/logs

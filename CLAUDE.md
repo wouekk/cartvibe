@@ -814,3 +814,10 @@ When addressing review feedback from CodeRabbit, human reviewers, or any other s
 - Each component has its own documentation: `api/CLAUDE.md`, `desktop/CLAUDE.md`, `mobile/CLAUDE.md`.
 - If a change alters behavior, configuration, architecture, commands, or conventions documented in a `CLAUDE.md` file,
   update that file to stay accurate before considering the task complete.
+## Custom Fork Extensions & Multi-Agent Workflow
+
+This repository is a custom fork extending Receipt Wrangler with an **OurGroceries-style Shopping List & Grocery Tracker**.
+Always read and follow the instructions and current state in these two files at the start of every session:
+
+@AGENTS.md
+@HANDOFF.md
