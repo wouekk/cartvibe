@@ -16,6 +16,19 @@
     }
 
     <div class="list-actions">
+      @if (canUpdate() && lists().length > 0) {
+        <button
+          mat-stroked-button
+          type="button"
+          class="going-shopping"
+          data-testid="shopping-list-going-shopping"
+          [disabled]="announcing()"
+          (click)="announceGoingShopping()"
+        >
+          <mat-icon>shopping_cart</mat-icon>
+          Going shopping
+        </button>
+      }
       @if (canCreate()) {
         <app-add-button
           buttonText="Add List"

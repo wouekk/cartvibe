@@ -1,10 +1,11 @@
-import { Component, OnDestroy, OnInit, computed, effect, untracked } from "@angular/core";
+import { Component, OnDestroy, OnInit, computed, effect, signal, untracked } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { MatDialog } from "@angular/material/dialog";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { concatMap, filter, from, map, switchMap, take, tap, toArray } from "rxjs";
 import { Permission, ShoppingList, ShoppingListService } from "../../open-api";
+import { SnackbarService } from "../../services";
 import { ShoppingListStreamService } from "../../services/shopping-list-stream.service";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { FilterTab } from "../../shared-ui/filter-bar/filter-tab.interface";
@@ -68,6 +69,8 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
   );
 
   /** Finished lists (everything crossed off), the latest few, shown below the tabs. */
+  public readonly announcing = signal(false);
+
   public readonly pastLists = computed(() => recentPastLists(this.lists()));
 
   public readonly selectedTab = computed(() => this.selectedList()?.id.toString() ?? "");
@@ -78,7 +81,8 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
     private store: Store,
     private matDialog: MatDialog,
     private shoppingListService: ShoppingListService,
-    private shoppingListStreamService: ShoppingListStreamService
+    private shoppingListStreamService: ShoppingListStreamService,
+    private snackbarService: SnackbarService
   ) {
     // Imperative side effect of the route's group changing: load it and move the live stream to it.
     effect(() => {
@@ -172,6 +176,21 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
         )
       )
       .subscribe((created) => this.store.dispatch(new SelectShoppingList(created.id)));
+  }
+
+  /** Tells the rest of the household you are going shopping, so they add what they need (Phase 3 S4). */
+  public announceGoingShopping(): void {
+    this.announcing.set(true);
+    this.shoppingListService
+      .announceGoingShopping(this.groupId())
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.snackbarService.success("The household has been told you are going shopping.");
+          this.announcing.set(false);
+        },
+        error: () => this.announcing.set(false),
+      });
   }
 
   public renameList(list: ShoppingList): void {
