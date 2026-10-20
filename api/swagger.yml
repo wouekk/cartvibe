@@ -6156,10 +6156,10 @@ components:
           description: Category name
         description:
           type: string
+          description: Category description
         skipped:
           type: boolean
           description: The AI is told never to use this category; its products fall back to Uncategorized
-          description: Category description
     CategoryView:
       required:
         - id
