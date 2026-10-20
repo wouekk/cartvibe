@@ -99,3 +99,47 @@
   padding-right: 0 !important;
   white-space: nowrap;
 }
+
+.inline-input {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font: inherit;
+
+  &.numeric {
+    text-align: right;
+  }
+}
+
+.actions {
+  white-space: nowrap;
+}
+
+.add-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 12px;
+
+  &__name {
+    flex: 1 1 200px;
+    width: auto;
+  }
+
+  &__quantity {
+    flex: 0 1 90px;
+    width: auto;
+  }
+
+  &__amount {
+    flex: 0 1 100px;
+    width: auto;
+  }
+}
+
+.form-error {
+  color: #b91c1c;
+}

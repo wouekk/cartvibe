@@ -1,17 +1,20 @@
 import { CommonModule, CurrencyPipe } from "@angular/common";
-import { Component, computed, DestroyRef, effect, inject, input, signal, untracked } from "@angular/core";
+import { Component, computed, DestroyRef, effect, inject, input, signal, untracked, WritableSignal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
+import { MatDialog } from "@angular/material/dialog";
 import { MatMenuModule } from "@angular/material/menu";
 import { Store } from "@ngxs/store";
-import { catchError, EMPTY, Subscription, take, timer } from "rxjs";
-import { Permission, ReceiptProduct, ReceiptProductService, ReceiptProductsView } from "../../open-api";
+import { catchError, EMPTY, filter, Subscription, switchMap, take, timer } from "rxjs";
+import { Permission, ReceiptProduct, ReceiptProductService, ReceiptProductsView, UpsertReceiptProductCommand } from "../../open-api";
+import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { PipesModule } from "../../pipes/pipes.module";
 import { FoodTagsComponent } from "../../standalone/components/food-tags/food-tags.component";
 import { HEALTH_CHOICES } from "../../standalone/components/food-tags/food-tags";
 import { AuthState } from "../../store";
 import { hasAll } from "../../utils/permission.utils";
+import { parseAmountInput } from "./product-amount";
 
 /** While a read is queued or running, the section checks back this often. */
 const REFRESH_INTERVAL_MS = 30_000;
@@ -75,6 +78,127 @@ export class ReceiptProductsComponent {
     return (status === "DONE" || status === "FAILED" || status === "UNAVAILABLE") && this.canUpdate();
   });
 
+
+  /** The product row being edited in place, if any (Phase 3 C5). */
+  public readonly editingId = signal<number | null>(null);
+
+  public readonly draftName = signal("");
+
+  public readonly draftAmount = signal("");
+
+  public readonly draftQuantity = signal("");
+
+  /** The one-line "add a product" row. */
+  public readonly newName = signal("");
+
+  public readonly newAmount = signal("");
+
+  public readonly newQuantity = signal("");
+
+  public readonly formError = signal("");
+
+  public readonly saving = signal(false);
+
+  private readonly matDialog = inject(MatDialog);
+
+  public setValue(target: WritableSignal<string>, event: Event): void {
+    target.set((event.target as HTMLInputElement).value);
+  }
+
+  public startEdit(product: ReceiptProduct): void {
+    this.formError.set("");
+    this.editingId.set(product.id);
+    this.draftName.set(product.displayName || product.name);
+    this.draftAmount.set(product.amount ?? "");
+    this.draftQuantity.set(product.quantity ?? "");
+  }
+
+  public cancelEdit(): void {
+    this.editingId.set(null);
+    this.formError.set("");
+  }
+
+  public saveEdit(product: ReceiptProduct): void {
+    const command = this.buildCommand(this.draftName(), this.draftAmount(), this.draftQuantity());
+    if (!command) {
+      return;
+    }
+
+    this.saving.set(true);
+    this.receiptProductService
+      .updateReceiptProduct(product.id, command)
+      .pipe(take(1))
+      .subscribe({
+        next: (updated) => {
+          this.replaceProducts((products) => products.map((candidate) => (candidate.id === updated.id ? updated : candidate)));
+          this.editingId.set(null);
+          this.saving.set(false);
+        },
+        error: () => this.saving.set(false),
+      });
+  }
+
+  public addProduct(): void {
+    const command = this.buildCommand(this.newName(), this.newAmount(), this.newQuantity());
+    if (!command) {
+      return;
+    }
+
+    this.saving.set(true);
+    this.receiptProductService
+      .addReceiptProduct(this.receiptId(), command)
+      .pipe(take(1))
+      .subscribe({
+        next: (added) => {
+          this.replaceProducts((products) => [...products, added]);
+          this.newName.set("");
+          this.newAmount.set("");
+          this.newQuantity.set("");
+          this.saving.set(false);
+        },
+        error: () => this.saving.set(false),
+      });
+  }
+
+  public remove(product: ReceiptProduct): void {
+    const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
+    dialogRef.componentInstance.headerText = "Remove product";
+    dialogRef.componentInstance.dialogContent = `Remove "${product.displayName || product.name}" from this receipt?`;
+
+    dialogRef
+      .afterClosed()
+      .pipe(
+        take(1),
+        // Truthiness, not === true: a backdrop click or ESC closes with undefined.
+        filter((confirmed) => !!confirmed),
+        switchMap(() => this.receiptProductService.deleteReceiptProduct(product.id))
+      )
+      .subscribe(() => this.replaceProducts((products) => products.filter((candidate) => candidate.id !== product.id)));
+  }
+
+  private buildCommand(name: string, amountText: string, quantity: string): UpsertReceiptProductCommand | undefined {
+    const trimmedName = name.trim();
+    const amount = parseAmountInput(amountText);
+
+    if (trimmedName.length === 0) {
+      this.formError.set("A product needs a name.");
+      return undefined;
+    }
+    if (!amount.ok) {
+      this.formError.set("The amount must be a number with at most two decimals, like 1,99.");
+      return undefined;
+    }
+
+    this.formError.set("");
+    return { name: trimmedName, amount: amount.value ?? null, quantity: quantity.trim() };
+  }
+
+  private replaceProducts(change: (products: ReceiptProduct[]) => ReceiptProduct[]): void {
+    const view = this.view();
+    if (view) {
+      this.view.set({ ...view, products: change(view.products) });
+    }
+  }
   protected readonly healthChoices = HEALTH_CHOICES;
 
   private refreshes = 0;

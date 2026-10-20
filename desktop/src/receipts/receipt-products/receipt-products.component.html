@@ -26,38 +26,109 @@
         </thead>
         <tbody>
           @for (product of view.products; track product.id) {
-            <tr>
-              <td>
-                <span class="product__name">{{ product.displayName || product.name }}</span>
-                @if (product.displayName && product.displayName !== product.name) {
-                  <span class="product__printed">{{ product.name }}</span>
-                }
-                <app-food-tags class="product__tags" [values]="product"></app-food-tags>
-                @if (product.planned === false) {
-                  <span class="product__unplanned" data-testid="receipt-product-unplanned">Not on the list</span>
-                }
-              </td>
-              <td class="muted">{{ product.quantity }}</td>
-              <td class="numeric">
-                @if (product.amount) {
-                  {{ product.amount | customCurrency }}
-                }
-              </td>
-              @if (canUpdate()) {
+            @if (editingId() === product.id) {
+              <tr class="editing" data-testid="receipt-product-edit-row">
+                <td>
+                  <input
+                    class="inline-input"
+                    type="text"
+                    aria-label="Product name"
+                    data-testid="receipt-product-edit-name"
+                    [value]="draftName()"
+                    (input)="setValue(draftName, $event)"
+                    (keydown.enter)="saveEdit(product)"
+                  />
+                </td>
+                <td>
+                  <input
+                    class="inline-input"
+                    type="text"
+                    aria-label="Quantity"
+                    [value]="draftQuantity()"
+                    (input)="setValue(draftQuantity, $event)"
+                    (keydown.enter)="saveEdit(product)"
+                  />
+                </td>
+                <td class="numeric">
+                  <input
+                    class="inline-input numeric"
+                    type="text"
+                    inputmode="decimal"
+                    aria-label="Amount"
+                    data-testid="receipt-product-edit-amount"
+                    [value]="draftAmount()"
+                    (input)="setValue(draftAmount, $event)"
+                    (keydown.enter)="saveEdit(product)"
+                  />
+                </td>
                 <td class="actions">
                   <button
                     mat-icon-button
                     type="button"
-                    data-testid="receipt-product-tags-menu"
-                    [attr.aria-label]="'Correct the tags of ' + (product.displayName || product.name)"
-                    [matMenuTriggerFor]="tagsMenu"
-                    [matMenuTriggerData]="{ product: product }"
+                    data-testid="receipt-product-save"
+                    aria-label="Save"
+                    [disabled]="saving()"
+                    (click)="saveEdit(product)"
                   >
-                    <mat-icon>sell</mat-icon>
+                    <mat-icon>check</mat-icon>
+                  </button>
+                  <button mat-icon-button type="button" aria-label="Cancel" (click)="cancelEdit()">
+                    <mat-icon>close</mat-icon>
                   </button>
                 </td>
-              }
-            </tr>
+              </tr>
+            } @else {
+              <tr>
+                <td>
+                  <span class="product__name">{{ product.displayName || product.name }}</span>
+                  @if (product.displayName && product.displayName !== product.name) {
+                    <span class="product__printed">{{ product.name }}</span>
+                  }
+                  <app-food-tags class="product__tags" [values]="product"></app-food-tags>
+                  @if (product.planned === false) {
+                    <span class="product__unplanned" data-testid="receipt-product-unplanned">Not on the list</span>
+                  }
+                </td>
+                <td class="muted">{{ product.quantity }}</td>
+                <td class="numeric">
+                  @if (product.amount) {
+                    {{ product.amount | customCurrency }}
+                  }
+                </td>
+                @if (canUpdate()) {
+                  <td class="actions">
+                    <button
+                      mat-icon-button
+                      type="button"
+                      data-testid="receipt-product-tags-menu"
+                      [attr.aria-label]="'Correct the tags of ' + (product.displayName || product.name)"
+                      [matMenuTriggerFor]="tagsMenu"
+                      [matMenuTriggerData]="{ product: product }"
+                    >
+                      <mat-icon>sell</mat-icon>
+                    </button>
+                    <button
+                      mat-icon-button
+                      type="button"
+                      data-testid="receipt-product-edit"
+                      [attr.aria-label]="'Edit ' + (product.displayName || product.name)"
+                      (click)="startEdit(product)"
+                    >
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button
+                      mat-icon-button
+                      type="button"
+                      data-testid="receipt-product-delete"
+                      [attr.aria-label]="'Remove ' + (product.displayName || product.name)"
+                      (click)="remove(product)"
+                    >
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </td>
+                }
+              </tr>
+            }
           }
         </tbody>
       </table>
@@ -78,6 +149,50 @@
     </mat-menu>
   } @else if (view.status === "DONE") {
     <p class="status" data-testid="receipt-products-none">The AI found no products on this receipt.</p>
+  }
+
+  @if (canUpdate()) {
+    <form class="add-row" data-testid="receipt-product-add-row" (submit)="$event.preventDefault(); addProduct()">
+      <input
+        class="inline-input add-row__name"
+        type="text"
+        placeholder="Add a product"
+        aria-label="Product name"
+        data-testid="receipt-product-add-name"
+        [value]="newName()"
+        (input)="setValue(newName, $event)"
+      />
+      <input
+        class="inline-input add-row__quantity"
+        type="text"
+        placeholder="Qty"
+        aria-label="Quantity"
+        [value]="newQuantity()"
+        (input)="setValue(newQuantity, $event)"
+      />
+      <input
+        class="inline-input add-row__amount numeric"
+        type="text"
+        inputmode="decimal"
+        placeholder="0,00"
+        aria-label="Amount"
+        data-testid="receipt-product-add-amount"
+        [value]="newAmount()"
+        (input)="setValue(newAmount, $event)"
+      />
+      <button
+        mat-flat-button
+        type="submit"
+        data-testid="receipt-product-add"
+        [disabled]="saving() || newName().trim().length === 0"
+      >
+        <mat-icon>add</mat-icon>
+        Add
+      </button>
+    </form>
+    @if (formError()) {
+      <p class="status form-error" data-testid="receipt-product-form-error">{{ formError() }}</p>
+    }
   }
 
   @if (canReadAgain()) {
