@@ -5,6 +5,14 @@
 Receipt Wrangler, extended for one household into **receipts + shopping lists + spending insights**.
 Used mostly on a phone browser in the shop, and on a desktop for the overview.
 
+**This is a family grocery budget, not expense tracking.** Upstream was built for small businesses:
+shared bills, who paid, who owes whom, approval statuses, configurable AI prompts. Here the users are
+family members, everyone can add things, and nobody splits bills. Hide what a family does not need,
+fill in what it should not have to (paid by = the logged-in user), and keep AI configuration
+admin-only with working defaults. The approved design (`Main.dc.html` / `Phone.dc.html` in
+https://claude.ai/artifact/TAZXoRQ4mmRyoy37CFKRVt) is the target look. The plan is in
+`docs/family-budget-rework.md` (Phase 3).
+
 ### Shipped (Phase 1 and follow-ups)
 - **Shopping lists per group**, several named lists each. Items have a name, an **amount + unit**
   (pcs, kg, g, L, ml, pack, bottle, can, box, bag, jar, bunch, dozen) and a note. Crossing off is
@@ -17,16 +25,21 @@ Used mostly on a phone browser in the shop, and on a desktop for the overview.
 
 ### In progress — Phase 2, spending insights (`docs/spending-insights-phase-2.md`)
 - **2a — receipt products:** the AI reads each receipt's product lines; a backfill reads older
-  receipts. *(backend + desktop written; merging)*
+  receipts. *(shipped)*
 - **2b — health and seasonality:** healthy / medium / unhealthy per product and per shopping list
   item; fruit and vegetables also seasonal or imported (Western Europe); user corrections are
-  remembered.
+  remembered. *(shipped)*
 - **2c — attach a receipt to a list:** the AI matches products to the list; products not on it are
   **unplanned spend** (every one counts). A receipt without a list counts as planned. When the AI is
-  unavailable the photo waits and the read is retried automatically.
+  unavailable the photo waits and the read is retried automatically. *(shipped)*
 - **2d — monthly spending goals:** optional overall and/or per-category goals.
 - **2e — overview tiles:** unplanned spend, unhealthy share (every receipt with food, whatever its
   category), goal progress, a short AI summary.
+
+### Next — Phase 3, family budget rework (`docs/family-budget-rework.md`)
+- Make the app match the approved design and a family's needs: Dashboard landing page, paid by
+  filled in automatically, bill splitting hidden, one-line add on shopping lists, admin-only AI setup
+  with defaults, simple reports for members, an "unhealthy this month" tile instead of settle up.
 
 ### Product rules
 - **Web first.** Build UI in `desktop/`, mobile-responsive (thumb-sized targets). No Flutter screens;
@@ -47,7 +60,8 @@ Used mostly on a phone browser in the shop, and on a desktop for the overview.
   plus `redis:7.4-alpine` (background jobs need it; the image has none), SQLite in
   `/volume2/docker/receipt-wrangler/sqlite` (`DB_FILENAME=app.db`), `SECRET_KEY` and
   `ENCRYPTION_KEY` from Dockhand's variables — **no `$` in them** (compose reads it as a variable).
-  Deploying = pull + redeploy. Back up the `sqlite` folder before a release that changes the schema.
+  Deploying = **pull, then redeploy**: a redeploy alone reuses the cached `:latest`, which is how
+  the first test ran an image several releases old. Hard-refresh the browser afterwards. Back up the `sqlite` folder before a release that changes the schema.
 - **Dockerfile layer order is load-bearing:** dependencies install from the files that declare them
   before the source is copied, so code-only builds reuse the cached PyTorch/Chromium/npm/Go layers.
   Keep per-build values (`VERSION`, `BUILD_DATE`) and source copies below them.

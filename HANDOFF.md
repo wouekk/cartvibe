@@ -2,35 +2,28 @@
 
 ## Status (2026-10-20, Windows PC, Claude Code)
 
-- **`main` / deployed image:** shopping lists with amount + unit, live sync, the Overview landing
-  page, the dark sidebar, plus:
-  - **Phase 2a:** AI reads receipt products (sweep every 5 minutes), backfill button under Group
-    settings → AI Settings, Products section on receipts.
-  - **Phase 2b:** health (Healthy / Medium / Unhealthy) and seasonality (Seasonal / Imported) tags
-    on receipt products and shopping-list items. People can correct a tag; a corrected health rating
-    is remembered per group by product name.
-- **`feature/list-receipts` (Phase 2c):** receipts attached to shopping lists ("shopping trips").
-  Under a list: "Scan receipt" (the photo waits for the AI, up to 14 days) or "Attach existing";
-  each trip shows what was bought that was not on the list, and the receipt's Products table marks
-  those "Not on the list". Backend, regenerated clients and desktop are pushed; waiting on CI, then
-  fast-forward into `main`.
-- **Not verified anywhere:** the Playwright specs (`desktop/e2e/shopping-list.spec.ts`, the landing
-  URL changes in `auth.spec.ts` / `receipts.spec.ts`). They need a live API, e.g. on the MacBook.
-  2c has no e2e: a trip needs a working AI to finish.
-- **New on this PC:** Go is installed. `api/scripts/go-without-cgo.sh vet ./...` type-checks the API
-  and `… test <pkg> -run <name>` runs image-free tests locally (see `CLAUDE.md`).
+- **`main` / published image (`ghcr.io/wouekk/receipt-wrangler:latest`, CI green):** shopping lists
+  with amount + unit and live sync, the Overview landing page, the dark sidebar, and Phase 2a–2c:
+  receipt products, health/seasonality tags, and receipts attached to lists with unplanned spend.
+- **The NAS is behind.** The user's first test ran an old image (light sidebar, "Dashboard" item,
+  commit `9808c4d9`): Dockhand redeployed its cached `:latest` without pulling. Pull, then redeploy,
+  then hard-refresh.
+- **First-test feedback is captured as Phase 3** in `docs/family-budget-rework.md`: the app is a
+  family grocery budget, not expense tracking. Open questions Q1–Q4 there are with the user.
+- **Not verified anywhere:** the Playwright specs (they need a live API). 2c has no e2e.
+- **On this PC:** `api/scripts/go-without-cgo.sh vet ./...` / `… test <pkg>` work locally.
 
 ## Next
 
 ### Claude Code
-1. Merge 2c once CI is green.
-2. Phase 2d (monthly goals, overall and per category), then 2e (overview tiles: unplanned spend,
-   unhealthy share, goals, AI summary) — `docs/spending-insights-phase-2.md`.
+1. Once the user has re-tested on the current image: settle Q1–Q4 in
+   `docs/family-budget-rework.md`, then build Phase 3 in its suggested order (B1, R3, R6, R2 first).
+2. Phase 2d (monthly goals), then 2e — they slot into the reworked dashboard.
 
 ### User
-- Redeploy in Dockhand once the image publishes (back up `sqlite` first: each phase adds tables).
-- Try 2c on a phone: open a list, "Scan receipt" after shopping; a few minutes later the trip shows
-  what was not on the list. Also try "Attach existing" with a receipt you already have.
+- Pull + redeploy in Dockhand (back up `sqlite` first), hard-refresh, then re-check: the landing page,
+  the Manage links (Users, Categories, …), and a shopping list's "Receipts from this list" section.
+- Answer Q1–Q4 in `docs/family-budget-rework.md`.
 
 ### Cline
 - Triage the latest failing CI run, if any: `gh run list --limit 5`, then
