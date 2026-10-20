@@ -410,3 +410,39 @@ table {
   cursor: pointer;
   min-height: 32px;
 }
+
+.overview__date-field {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+
+  input[type="text"] {
+    width: 140px;
+    padding-right: 40px;
+  }
+}
+
+.overview__picker-button {
+  position: absolute;
+  right: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  background: none;
+  color: $muted-color;
+  cursor: pointer;
+}
+
+// The browser's own date picker, opened by the button; never seen or focused itself.
+.overview__native-picker {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}

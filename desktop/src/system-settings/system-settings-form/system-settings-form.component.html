@@ -86,6 +86,17 @@
   <app-form-section
     headerText="Currency"
   >
+    @if (formConfig.mode !== FormMode.edit) {
+      <div class="mb-3">
+        <app-button
+          icon="edit"
+          buttonText="Change currency"
+          matButtonType="matRaisedButton"
+          data-testid="system-settings-currency-edit"
+          [buttonRouterLink]="['/system-settings/settings', 'edit']"
+        ></app-button>
+      </div>
+    }
     <app-select
       label="Currency"
       optionValueKey="value"

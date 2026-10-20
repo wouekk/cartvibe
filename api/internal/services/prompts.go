@@ -28,6 +28,7 @@ const DefaultReceiptPrompt = `
 Find the receipt's name, total cost, and date. Format the found data as:
 {
 	"name": store name,
+	"shopName": the shop brand as printed, like Auchan, Edeka or Rewe (only the brand, "" if unreadable),
 	"amount": amount as a number,
 	"date": date in ISO 18601 format in UTC with ALL time values set as 0,
 	"categories": categories,

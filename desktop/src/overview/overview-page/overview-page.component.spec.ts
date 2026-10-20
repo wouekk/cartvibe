@@ -130,10 +130,39 @@ describe("OverviewPageComponent", () => {
     expect(component.periodLabel()).toBe(`${lastYear}`);
   });
 
+  it("always shows the period in the From and To fields and turns custom when one is typed", async () => {
+    component.selectPeriod("LAST_YEAR");
+    await fixture.whenStable();
+    const lastYear = todayInZone(TestBed.inject(Store).selectSnapshot(SystemSettingsState.timeZone)).getFullYear() - 1;
+    expect(component.fromText()).toBe(`01/01/${lastYear}`);
+    expect(component.toText()).toBe(`31/12/${lastYear}`);
+
+    const input = document.createElement("input");
+    input.value = "15/03/2025";
+    component.typeDay("from", { target: input } as unknown as Event);
+    await fixture.whenStable();
+
+    expect(component.preset()).toBe("CUSTOM");
+    expect(component.fromText()).toBe("15/03/2025");
+    expect(component.toText()).toBe(`31/12/${lastYear}`);
+    expect(overviewService.getGroupOverview).toHaveBeenLastCalledWith(1, undefined, "2025-03-15", `${lastYear}-12-31`);
+  });
+
+  it("takes a day from the calendar picker as DD/MM/YYYY", async () => {
+    const input = document.createElement("input");
+    input.type = "date";
+    input.value = "2026-04-09";
+    component.pickDay("to", { target: input } as unknown as Event);
+    await fixture.whenStable();
+
+    expect(component.toText()).toBe("09/04/2026");
+  });
+
   it("waits for a complete custom range before asking", async () => {
     overviewService.getGroupOverview.mockClear();
     component.selectPeriod("CUSTOM");
     component.customFrom.set("01/10/2026");
+    component.customTo.set("");
     await fixture.whenStable();
 
     expect(overviewService.getGroupOverview).not.toHaveBeenCalled();

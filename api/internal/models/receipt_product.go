@@ -10,6 +10,7 @@ import (
 const (
 	MaxReceiptProductNameLength     = 200
 	MaxReceiptProductQuantityLength = 50
+	MaxReceiptShopNameLength        = 200
 )
 
 // ReceiptProduct is one purchased product line read off a receipt by the AI ("LAIT DEMI-ECR 1L",

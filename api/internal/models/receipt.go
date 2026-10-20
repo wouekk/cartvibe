@@ -8,7 +8,10 @@ import (
 
 type Receipt struct {
 	BaseModel
-	Name         string             `gorm:"not null" json:"name"`
+	Name string `gorm:"not null" json:"name"`
+	// ShopName is the shop printed on the receipt (Auchan, Edeka, Rewe), read by the AI or typed by a
+	// person. Distinct from Name, which people set freely. Empty when unknown.
+	ShopName     string             `gorm:"type:varchar(200);not null;default:''" json:"shopName"`
 	Amount       decimal.Decimal    `gorm:"type:decimal(10,2);not null" json:"amount"`
 	Date         time.Time          `gorm:"not null" json:"date"`
 	ResolvedDate *time.Time         `json:"resolvedDate"`

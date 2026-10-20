@@ -13,6 +13,7 @@ import (
 
 type UpsertReceiptCommand struct {
 	Name            string                          `json:"name"`
+	ShopName        string                          `json:"shopName"`
 	Amount          decimal.Decimal                 `json:"amount"`
 	Date            time.Time                       `json:"date"`
 	GroupId         uint                            `json:"groupId"`
