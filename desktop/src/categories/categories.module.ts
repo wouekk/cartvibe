@@ -1,3 +1,4 @@
+import { CheckboxModule } from "../checkbox/checkbox.module";
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
@@ -15,6 +16,7 @@ import { CategoryTableComponent } from "./category-table/category-table.componen
   declarations: [CategoryTableComponent, CategoryForm],
   imports: [
     CategoriesRoutingModule,
+    CheckboxModule,
     CommonModule,
     DirectivesModule,
     InputModule,

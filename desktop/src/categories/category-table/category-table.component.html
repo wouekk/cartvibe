@@ -1,6 +1,6 @@
 <app-table-header
   [headerText]="headerText"
-  subtitle="Categorize receipts to keep spending organized and reportable."
+  subtitle="The categories the AI sorts receipt products into. New ones appear here by themselves; rename one to change what the AI uses, or switch one off."
 >
   <app-add-button
     *hasAppPermission="Permission.AppCategoriesCreate"
@@ -25,14 +25,22 @@
   ></app-table>
 </div>
 
-<ng-template #nameCell let-element="element">{{ element.name }}</ng-template>
+<ng-template #nameCell let-element="element">
+  {{ element.name }}
+  @if (element.skipped) {
+    <span class="badge text-bg-secondary ms-2" data-testid="category-skipped-badge">AI skips</span>
+  }
+  @if (element.aliases) {
+<span class="text-muted small d-block" style="white-space: pre-line">Formerly: {{ element.aliases }}</span>
+  }
+</ng-template>
 
 <ng-template #descriptionCell let-element="element"
 >{{ element.description }}
 </ng-template>
 
 <ng-template #numberOfReceiptsCell let-element="element"
->{{ element.numberOfReceipts }}
+>{{ element.numberOfProducts }}
 </ng-template>
 
 <ng-template #actionsCell let-element="element" let-index="index">
