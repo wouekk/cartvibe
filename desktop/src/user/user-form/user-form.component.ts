@@ -19,6 +19,7 @@ import {
   User,
   UserService,
 } from "../../open-api";
+import { familyRoleOptions, familyUserRole } from "../../utils/family-roles";
 import { hasAll } from "../../utils/permission.utils";
 import { GrantSelection } from "../../shared-ui/grant-picker/grant-picker.component";
 import {
@@ -66,9 +67,10 @@ export class UserFormComponent implements OnInit {
     effect(() => {
       const roles = this.roles();
       if (!this.user && this.form.get("appRoleId")?.value == null) {
-        const defaultRole = roles.find(
-          (role) => role.scope === PermissionScope.App && role.isDefault
-        );
+        // A new account is a family User (Phase 3 M4), else the configured default.
+        const defaultRole =
+          familyUserRole(roles, PermissionScope.App) ??
+          roles.find((role) => role.scope === PermissionScope.App && role.isDefault);
         if (defaultRole) {
           this.form.get("appRoleId")?.setValue(defaultRole.id);
         }
@@ -88,14 +90,16 @@ export class UserFormComponent implements OnInit {
       .pipe(catchError(() => of([] as Role[]))),
     { initialValue: [] as Role[] }
   );
-  public readonly appRoleOptions = computed<Role[]>(() =>
-    this.roles().filter((role) => role.scope === PermissionScope.App)
-  );
   private readonly selectedAppRoleId = signal<number | null>(null);
+  // Admin and User only (Phase 3 M4), plus an older role the account holds or the form selected.
+  public readonly appRoleOptions = computed<Role[]>(() =>
+    familyRoleOptions(this.roles(), PermissionScope.App, this.user?.appRoleId ?? this.selectedAppRoleId())
+  );
+  // The role itself, not its relabelled option, so the preview shows its real name.
   public readonly selectedRole = computed<Role | null>(
     () =>
-      this.appRoleOptions().find(
-        (role) => role.id === this.selectedAppRoleId()
+      this.roles().find(
+        (role) => role.scope === PermissionScope.App && role.id === this.selectedAppRoleId()
       ) ?? null
   );
 

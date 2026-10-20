@@ -27,7 +27,8 @@ describe("RoleNamePipe", () => {
 
   it("resolves the role name for a matching id and scope", () => {
     const pipe = new RoleNamePipe();
-    expect(pipe.transform(2, roles, PermissionScope.Group)).toEqual("Legacy Owner");
+    // The family Admin role reads as "Admin" (Phase 3 M4).
+    expect(pipe.transform(2, roles, PermissionScope.Group)).toEqual("Admin");
   });
 
   it("returns empty string for an unknown id", () => {
@@ -64,7 +65,7 @@ describe("RoleNamePipe", () => {
       },
     ];
     expect(pipe.transform(1, collidingRoles, PermissionScope.Group)).toEqual("Legacy Viewer");
-    expect(pipe.transform(1, collidingRoles, PermissionScope.App)).toEqual("Legacy Admin");
+    expect(pipe.transform(1, collidingRoles, PermissionScope.App)).toEqual("Admin");
   });
 
   it("returns empty string for a null/undefined id", () => {

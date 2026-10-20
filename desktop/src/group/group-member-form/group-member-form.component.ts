@@ -27,6 +27,7 @@ import {
 } from "../../shared-ui/grant-picker/member-grant-assignment";
 import { AuthState } from "../../store";
 import { buildGroupMemberForm } from "../utils/group-member.utils";
+import { familyRoleOptions, familyUserRole } from "../../utils/family-roles";
 
 @Component({
     selector: "app-group-member-form",
@@ -64,14 +65,16 @@ export class GroupMemberFormComponent implements OnInit {
       ),
     { initialValue: [] as Role[] }
   );
-  public readonly groupRoleOptions = computed<Role[]>(() =>
-    this.roles().filter((role) => role.scope === PermissionScope.Group)
-  );
   private readonly selectedGroupRoleId = signal<number | null>(null);
+  // Admin and User only (Phase 3 M4), plus an older role the member holds or the form selected.
+  public readonly groupRoleOptions = computed<Role[]>(() =>
+    familyRoleOptions(this.roles(), PermissionScope.Group, this.groupMember?.groupRoleId ?? this.selectedGroupRoleId())
+  );
+  // The role itself, not its relabelled option, so the preview shows its real name.
   public readonly selectedRole = computed<Role | null>(
     () =>
-      this.groupRoleOptions().find(
-        (role) => role.id === this.selectedGroupRoleId()
+      this.roles().find(
+        (role) => role.scope === PermissionScope.Group && role.id === this.selectedGroupRoleId()
       ) ?? null
   );
 
@@ -91,9 +94,10 @@ export class GroupMemberFormComponent implements OnInit {
     effect(() => {
       const roles = this.roles();
       if (!this.groupMember && this.form.get("groupRoleId")?.value == null) {
-        const defaultRole = roles.find(
-          (role) => role.scope === PermissionScope.Group && role.isDefault
-        );
+        // A new member is a family User (Phase 3 M4), else the configured default.
+        const defaultRole =
+          familyUserRole(roles, PermissionScope.Group) ??
+          roles.find((role) => role.scope === PermissionScope.Group && role.isDefault);
         if (defaultRole) {
           this.form.get("groupRoleId")?.setValue(defaultRole.id);
         }
@@ -136,7 +140,8 @@ export class GroupMemberFormComponent implements OnInit {
     return buildMemberGrantRow(
       { id: member.groupId, name: '' } as Group,
       member,
-      this.groupRoleOptions(),
+      // Every group role, not just the offered ones: the cap comes from the role the member holds.
+      this.roles().filter((role) => role.scope === PermissionScope.Group),
     );
   });
 

@@ -1,6 +1,7 @@
 import { forkJoin, Observable, of } from "rxjs";
 import { Group, GroupMember, GroupsService, Role } from "../../open-api";
 import { GrantCeiling, GrantSelection } from "./grant-picker.component";
+import { familyRoleName } from "../../utils/family-roles";
 
 /**
  * One editable row of per-member category/tag assignment: the group, the
@@ -89,7 +90,8 @@ export function buildMemberGrantRow(
   return {
     groupId: group.id,
     groupName: group.name,
-    roleName: role?.name ?? "",
+    // "Admin" / "User" for the family roles (Phase 3 M4).
+    roleName: role ? familyRoleName(role) : "",
     ceiling: ceilingForRole(role),
     current: {
       categoryIds: member.categoryGrants ?? [],

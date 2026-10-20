@@ -1,5 +1,6 @@
 import { Pipe, PipeTransform } from "@angular/core";
 import { PermissionScope, Role } from "../open-api";
+import { familyRoleName } from "../utils/family-roles";
 
 @Pipe({
     name: "roleName",
@@ -18,6 +19,8 @@ export class RoleNamePipe implements PipeTransform {
     if (id == null) {
       return "";
     }
-    return roles.find((role) => role.id === id && role.scope === scope)?.name ?? "";
+    // The family roles read as "Admin" and "User" (Phase 3 M4).
+    const role = roles.find((candidate) => candidate.id === id && candidate.scope === scope);
+    return role ? familyRoleName(role) : "";
   }
 }
