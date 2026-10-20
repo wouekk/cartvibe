@@ -146,6 +146,32 @@ describe("QuickScanDialogComponent", () => {
     expect(component.images).toEqual([{} as any]);
   });
 
+  it("makes the scanner the payer and never asks, whatever the group requires (Phase 3 C1)", () => {
+    store.reset({
+      auth: { userId: "5", userPreferences: { quickScanDefaultPaidById: 1 } },
+      groups: {
+        groups: [
+          {
+            id: 8,
+            name: "Household",
+            isAllGroup: false,
+            groupReceiptSettings: { quickScanPaidByEnabled: false, quickScanPaidByRequired: true },
+          },
+        ],
+        selectedGroupId: "",
+        selectedDashboardId: "",
+      },
+    });
+
+    component.fileLoaded({} as any);
+    component.groupIds.at(0).setValue(8);
+
+    expect(component.showPaidBy(0)).toBe(false);
+    // Not cleared for the group's own default: the scanner paid.
+    expect(component.paidByUserIds.at(0).value).toEqual(5);
+    expect(component.paidByUserIds.at(0).valid).toBe(true);
+  });
+
   it("seeds the user's only group when they have no default group preference", () => {
     // The All group ships alongside every real group and is never a quick-scan
     // target, so a single-group user still has two entries in state.

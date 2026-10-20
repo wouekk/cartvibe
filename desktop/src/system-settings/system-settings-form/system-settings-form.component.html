@@ -114,8 +114,16 @@
     ></app-autocomlete>
   </app-form-section>
   <app-form-section
-    headerText="Currency Format"
+    headerText="Currency"
   >
+    <app-select
+      label="Currency"
+      optionValueKey="value"
+      optionDisplayKey="displayValue"
+      data-testid="system-settings-currency"
+      [inputFormControl]="form | formGet:'currency'"
+      [options]="currencies"
+    ></app-select>
     <div class="d-flex flex-column mb-3">
       <strong>Previews</strong>
       <span>{{ 123456789.12 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span>
@@ -123,36 +131,38 @@
       <span>{{ 10000 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span>
       <span>{{ -10000 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span>
     </div>
-    <app-input
-      label="Symbol Display"
-      [readonly]="formConfig.mode | inputReadonly"
-      [inputFormControl]="form | formGet: 'currencyDisplay'"
-    ></app-input>
-    <app-select
-      label="Symbol Position"
-      optionValueKey="value"
-      optionDisplayKey="displayValue"
-      [inputFormControl]="form  | formGet:'currencySymbolPosition'"
-      [options]="symbolPositions"
-    ></app-select>
-    <app-select
-      label="Thousandths Separator"
-      optionValueKey="value"
-      optionDisplayKey="displayValue"
-      [inputFormControl]="form  | formGet:'currencyThousandthsSeparator'"
-      [options]="decimalSeparators"
-    ></app-select>
-    <app-select
-      label="Decimal Separator"
-      optionValueKey="value"
-      optionDisplayKey="displayValue"
-      [inputFormControl]="form  | formGet:'currencyDecimalSeparator'"
-      [options]="decimalSeparators"
-    ></app-select>
-    <app-checkbox
-      label="Hide Decimal Places"
-      [inputFormControl]="form | formGet:'currencyHideDecimalPlaces'"
-    ></app-checkbox>
+    @if (isCustomCurrency()) {
+      <app-input
+        label="Symbol Display"
+        [readonly]="formConfig.mode | inputReadonly"
+        [inputFormControl]="form | formGet: 'currencyDisplay'"
+      ></app-input>
+      <app-select
+        label="Symbol Position"
+        optionValueKey="value"
+        optionDisplayKey="displayValue"
+        [inputFormControl]="form  | formGet:'currencySymbolPosition'"
+        [options]="symbolPositions"
+      ></app-select>
+      <app-select
+        label="Thousandths Separator"
+        optionValueKey="value"
+        optionDisplayKey="displayValue"
+        [inputFormControl]="form  | formGet:'currencyThousandthsSeparator'"
+        [options]="decimalSeparators"
+      ></app-select>
+      <app-select
+        label="Decimal Separator"
+        optionValueKey="value"
+        optionDisplayKey="displayValue"
+        [inputFormControl]="form  | formGet:'currencyDecimalSeparator'"
+        [options]="decimalSeparators"
+      ></app-select>
+      <app-checkbox
+        label="Hide Decimal Places"
+        [inputFormControl]="form | formGet:'currencyHideDecimalPlaces'"
+      ></app-checkbox>
+    }
   </app-form-section>
   <app-form-section
     headerText="Session"

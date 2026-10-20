@@ -1,6 +1,7 @@
 import {
   calendarDayToLocalDate,
   DEFAULT_APP_TIME_ZONE,
+  nameForToday,
   offsetAt,
   timeZoneOptions,
   toCalendarDay,
@@ -11,6 +12,15 @@ import {
 const ymd = (date: Date): [number, number, number] => [date.getFullYear(), date.getMonth(), date.getDate()];
 
 describe("app time zone utilities", () => {
+  describe("nameForToday", () => {
+    it("names the app zone's day, not the browser's", () => {
+      const lateSep30Eastern = new Date("2026-10-01T01:00:00Z");
+
+      expect(nameForToday("Receipt", "America/New_York", lateSep30Eastern)).toBe("Receipt 30 Sep 2026");
+      expect(nameForToday("List", "UTC", lateSep30Eastern)).toBe("List 1 Oct 2026");
+    });
+  });
+
   describe("todayInZone", () => {
     // 9PM Sep 30 in New York is already Oct 1 in UTC: the reported bug.
     const lateSep30Eastern = new Date("2026-10-01T01:00:00Z");

@@ -6,6 +6,8 @@ import { Observable, take, tap } from "rxjs";
 import { ShoppingList, ShoppingListService, UpsertShoppingListCommand } from "../../open-api";
 import { ShoppingListEventType } from "../../store/shopping-list.state";
 import { ApplyShoppingListEvent } from "../../store/shopping-list.state.actions";
+import { SystemSettingsState } from "../../store/system-settings.state";
+import { nameForToday } from "../../utils/app-time-zone";
 
 export const SHOPPING_LIST_NAME_MAX_LENGTH = 100;
 
@@ -36,7 +38,8 @@ export class ShoppingListFormDialogComponent implements OnInit {
   public ngOnInit(): void {
     this.form = this.formBuilder.group({
       name: [
-        this.list?.name ?? "",
+        // A new list is one shopping trip, named after its day (Phase 3 S3); editable.
+        this.list?.name ?? nameForToday("List", this.store.selectSnapshot(SystemSettingsState.timeZone)),
         [Validators.required, Validators.maxLength(SHOPPING_LIST_NAME_MAX_LENGTH)],
       ],
     });

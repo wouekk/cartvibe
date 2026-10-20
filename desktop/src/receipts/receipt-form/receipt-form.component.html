@@ -87,14 +87,16 @@
               [readonly]="mode | inputReadonly"
             >
             </app-group-autocomplete>
-            <app-user-autocomplete
-              #paidByAutocomplete
-              class="w-100"
-              label="Paid By"
-              [inputFormControl]="form | formGet : 'paidByUserId'"
-              [usersToOmit]="usersToOmit()"
-              [readonly]="mode | inputReadonly"
-            ></app-user-autocomplete>
+            @if (showPaidBy()) {
+              <app-user-autocomplete
+                #paidByAutocomplete
+                class="w-100"
+                label="Paid By"
+                [inputFormControl]="form | formGet : 'paidByUserId'"
+                [usersToOmit]="usersToOmit()"
+                [readonly]="mode | inputReadonly"
+              ></app-user-autocomplete>
+            }
             <app-select
               class="w-100"
               label="Status"

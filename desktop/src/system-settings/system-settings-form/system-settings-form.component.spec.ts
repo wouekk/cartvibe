@@ -119,6 +119,8 @@ describe("SystemSettingsFormComponent", () => {
       currencyDecimalSeparator: null,
       currencySymbolPosition: null,
       currencyHideDecimalPlaces: null,
+      // Nothing stored matches a preset, so the raw fields show.
+      currency: "CUSTOM",
       // Unset on the wire (an older server): seeds the server's own default.
       timeZone: "UTC",
       pdfDpi: null,
@@ -147,6 +149,24 @@ describe("SystemSettingsFormComponent", () => {
       tempFileRetentionValue: 30,
       tempFileRetentionUnit: "DAYS",
     });
+  });
+
+  it("fills the currency format from a picked currency, and shows the raw fields only for Custom", () => {
+    component.ngOnInit();
+    expect(component.isCustomCurrency()).toBe(true);
+
+    component.form.get("currency")?.setValue("EUR");
+
+    expect(component.isCustomCurrency()).toBe(false);
+    expect(component.form.getRawValue()).toEqual(
+      expect.objectContaining({
+        currencyDisplay: " €",
+        currencySymbolPosition: CurrencySymbolPosition.End,
+        currencyThousandthsSeparator: CurrencySeparator.Period,
+        currencyDecimalSeparator: CurrencySeparator.Comma,
+        currencyHideDecimalPlaces: false,
+      })
+    );
   });
 
   it("init form with data", () => {
@@ -192,6 +212,7 @@ describe("SystemSettingsFormComponent", () => {
       currencyDecimalSeparator: CurrencySeparator.Period,
       currencySymbolPosition: CurrencySymbolPosition.Start,
       currencyHideDecimalPlaces: true,
+      currency: "CUSTOM",
       timeZone: "America/New_York",
       pdfDpi: 300,
       taskConcurrency: 12,

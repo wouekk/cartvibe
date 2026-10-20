@@ -5,24 +5,30 @@
 - **`main` / published image (`ghcr.io/wouekk/receipt-wrangler:latest`, CI green):** shopping lists
   with amount + unit and live sync, the Overview landing page, the dark sidebar, and Phase 2a–2c:
   receipt products, health/seasonality tags, and receipts attached to lists with unplanned spend.
-- **Deploying means pull, then redeploy.** The first NAS test ran a cached old image (commit
-  `9808c4d9`) because Dockhand redeployed without pulling. The NAS now runs the current image.
-- **First-test feedback is captured as Phase 3** in `docs/family-budget-rework.md`: the app is a
-  family grocery budget, not expense tracking. Decisions are recorded there; the user re-tested on
-  the current image and the landing page and Manage links work.
+- **Phase 3 step 1 (quick wins) is on `feature/phase-3-quick-wins`** (branched from
+  `chore/phase-3-plan`, so the plan merges with it): B1 quiet startup, C1 paid by = you, C2
+  "Receipt {date}", S1 one-line add row with an amount chip, S3 "List {date}", D2 Unhealthy tile
+  (new `unhealthyTotal` on the overview API) instead of Settle up, D3 Add receipt / Quick Scan /
+  New list on the Overview and no sidebar "New" menu, M7 currency picker in System Settings.
+  M7 deliberately leaves the API's new-install default at `$` (see the plan). CI result: see
+  `gh run list --branch feature/phase-3-quick-wins`.
+- **Deploying means pull, then redeploy** in Dockhand, then a hard refresh.
 - **Not verified anywhere:** the Playwright specs (they need a live API). 2c has no e2e.
-- **On this PC:** `api/scripts/go-without-cgo.sh vet ./...` / `… test <pkg>` work locally.
+- **On this PC:** `api/scripts/go-without-cgo.sh vet ./...` / `… test <pkg>` work locally. The
+  services package's PDF/Chromium/image tests and some wranglerasynq temp-path tests fail here only
+  (no Chromium/ImageMagick, Windows path separators); CI is the judge.
 
 ## Next
 
 ### Claude Code
-1. Build Phase 3 from `docs/family-budget-rework.md` in its suggested order (quick wins
-   first: B1, C1, C2, S1, S3, D2, D3, M7), on a `feature/` branch. The plan lives on `chore/phase-3-plan` until merged into `main`.
-2. Its last step is the former 2d (monthly goals) and 2e (dashboard tiles), now G1 and D4 of the
-   same plan.
+1. When step 1's CI is green and the user agrees, fast-forward `main` to
+   `feature/phase-3-quick-wins` (it contains the plan commits too) so it can be tried on the NAS.
+2. Step 2 of `docs/family-budget-rework.md` ("Simplify": C3, C4, C6, A1–A3, M1, M4, M6, W1) on a
+   new `feature/` branch.
 
 ### User
-- Try a shopping list's "Receipts from this list" section (2c) on the phone.
+- After deploying step 1: System Settings → Currency → Euro; try the one-line add on a phone, the
+  Overview's New list / Add receipt, and the Unhealthy tile (needs receipts with read products).
 - Create a family-member test account in Manage Users, to check what a non-admin sees.
 
 ### Cline

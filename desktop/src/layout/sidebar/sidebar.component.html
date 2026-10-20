@@ -38,56 +38,6 @@
           </mat-menu>
         }
 
-        @if (canAddAnything()) {
-          <button
-            mat-flat-button
-            type="button"
-            class="sidebar__new"
-            data-testid="sidebar-add-fab"
-            [matTooltip]="isCollapsed() ? 'New' : ''"
-            matTooltipPosition="right"
-            [matMenuTriggerFor]="addMenu"
-          >
-            <mat-icon>add</mat-icon>
-            @if (!isCollapsed()) {
-              New
-            }
-          </button>
-          <mat-menu #addMenu="matMenu">
-            <button
-              *hasGroupPermission="{ groupId: selectedGroupIdNumber(), permission: Permission.GroupReceiptsCreate }"
-              mat-menu-item
-              data-testid="sidebar-add-receipt"
-              [routerLink]="['/receipts/add']"
-              (click)="closeMobileSidebar()"
-            >
-              <mat-icon>article</mat-icon>
-              <span>Add Receipt</span>
-            </button>
-            <ng-container *appFeature="'aiPoweredReceipts'">
-              <button
-                *hasGroupPermission="{ groupId: selectedGroupIdNumber(), permission: Permission.GroupReceiptsQuickScan }"
-                mat-menu-item
-                data-testid="sidebar-quick-scan"
-                (click)="openQuickScan(); closeMobileSidebar()"
-              >
-                <mat-icon>document_scanner</mat-icon>
-                <span>Quick Scan</span>
-              </button>
-            </ng-container>
-            <button
-              *hasAppPermission="Permission.AppGroupsCreate"
-              mat-menu-item
-              data-testid="sidebar-add-group"
-              [routerLink]="['/groups/create']"
-              (click)="closeMobileSidebar()"
-            >
-              <mat-icon>group_add</mat-icon>
-              <span>Add Group</span>
-            </button>
-          </mat-menu>
-        }
-
         <div class="sidebar__section">
           @for (item of mainNavItems(); track item.testId) {
             <ng-container

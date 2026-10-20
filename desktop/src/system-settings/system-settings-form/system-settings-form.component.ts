@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnInit, viewChild } from "@angular/core";
+import { AfterViewInit, Component, ElementRef, OnInit, signal, viewChild } from "@angular/core";
 import { FormArray, FormBuilder, FormGroup, ValidatorFn, Validators } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
@@ -24,6 +24,7 @@ import { SetCurrencyData, SetCurrencyDisplay, SetTimeZone } from "../../store/sy
 import { DurationUnit, maxForUnit, minForUnit, splitHours, toHours } from "../../utils";
 import { DEFAULT_APP_TIME_ZONE, timeZoneOptions } from "../../utils/app-time-zone";
 import { absoluteUrlValidator, durationValueValidator } from "../../validators";
+import { CURRENCY_PRESETS, CUSTOM_CURRENCY, matchCurrencyPreset } from "./currency-presets";
 
 interface QueueData extends FormOption {
   description: string;
@@ -115,6 +116,13 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
     }
   ];
 
+  public readonly currencies: FormOption[] = [
+    ...CURRENCY_PRESETS.map((preset) => ({ displayValue: preset.label, value: preset.code })),
+    { displayValue: "Custom", value: CUSTOM_CURRENCY },
+  ];
+
+  public readonly isCustomCurrency = signal(false);
+
   public readonly decimalSeparators: FormOption[] = [
     {
       displayValue: ", (Comma)",
@@ -191,6 +199,8 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
       currencyDecimalSeparator: [this.originalSystemSettings.currencyDecimalSeparator, [Validators.required]],
       currencySymbolPosition: [this.originalSystemSettings.currencySymbolPosition, [Validators.required]],
       currencyHideDecimalPlaces: [this.originalSystemSettings.currencyHideDecimalPlaces],
+      // Form-only: a named currency that fills the five fields above (Phase 3 M7).
+      currency: [matchCurrencyPreset(this.originalSystemSettings ?? {})],
       timeZone: [this.originalSystemSettings?.timeZone || DEFAULT_APP_TIME_ZONE, [Validators.required]],
       receiptProcessingSettingsId: [this.originalSystemSettings?.receiptProcessingSettingsId],
       fallbackReceiptProcessingSettingsId: [this.originalSystemSettings?.fallbackReceiptProcessingSettingsId],
@@ -224,6 +234,7 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
       this.form.get("currencyDecimalSeparator")?.disable();
       this.form.get("currencySymbolPosition")?.disable();
       this.form.get("currencyHideDecimalPlaces")?.disable();
+      this.form.get("currency")?.disable();
       this.form.get("timeZone")?.disable();
       this.form.get("mcpEnabled")?.disable();
       this.form.get("mcpPublicUrl")?.disable();
@@ -241,6 +252,7 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
 
     this.listenForReceiptProcessingSettingsChanges();
     this.listenForHideDecimalPlacesChanges();
+    this.listenForCurrencyChanges();
     this.listenForMcpEnabledChanges();
     this.listenForShowLoginQrChanges();
     this.listenForDurationUnitChanges(
@@ -311,6 +323,30 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
 
           if (!value) {
             this.fallbackReceiptProcessingSettings()?.clearFilter();
+          }
+        })
+      )
+      .subscribe();
+  }
+
+  // Picking a currency fills in its format; "Custom" shows the raw fields instead.
+  private listenForCurrencyChanges(): void {
+    this.form.get("currency")?.valueChanges
+      .pipe(
+        startWith(this.form.get("currency")?.value),
+        untilDestroyed(this),
+        tap((code: string) => {
+          this.isCustomCurrency.set(code === CUSTOM_CURRENCY);
+
+          const preset = CURRENCY_PRESETS.find((candidate) => candidate.code === code);
+          if (preset) {
+            this.form.patchValue({
+              currencyDisplay: preset.currencyDisplay,
+              currencySymbolPosition: preset.currencySymbolPosition,
+              currencyThousandthsSeparator: preset.currencyThousandthsSeparator,
+              currencyDecimalSeparator: preset.currencyDecimalSeparator,
+              currencyHideDecimalPlaces: false,
+            });
           }
         })
       )
@@ -418,6 +454,7 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
     delete formValue["mcpRefreshTokenValidForUnit"];
     delete formValue["tempFileRetentionValue"];
     delete formValue["tempFileRetentionUnit"];
+    delete formValue["currency"];
     formValue["emailPollingInterval"] = Number.parseInt(formValue["emailPollingInterval"]);
     formValue["taskConcurrency"] = Number.parseInt(formValue["taskConcurrency"]);
     formValue["pdfDpi"] = Number.parseInt(formValue["pdfDpi"]);

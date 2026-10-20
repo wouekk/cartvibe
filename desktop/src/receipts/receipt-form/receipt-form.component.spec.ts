@@ -113,6 +113,55 @@ describe("ReceiptFormComponent", () => {
     jest.useRealTimers();
   });
 
+  describe("a new receipt (Phase 3 C1/C2)", () => {
+    beforeEach(() => {
+      const store = TestBed.inject(Store);
+      store.reset({ ...store.snapshot(), auth: { ...store.snapshot().auth, userId: "5" } });
+    });
+
+    it("is named after today and paid by the user adding it, without asking", () => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date(Date.UTC(2020, 0, 1, 12)));
+      routeDataSubject.next({ mode: FormMode.add, customFields: [] });
+      jest.useRealTimers();
+
+      expect(component.form.get("name")?.value).toEqual("Receipt 1 Jan 2020");
+      expect(component.form.get("paidByUserId")?.value).toEqual(5);
+      expect(component.showPaidBy()).toBe(false);
+    });
+
+    it("asks for Paid By on a saved receipt without one", () => {
+      routeDataSubject.next({
+        mode: FormMode.edit,
+        customFields: [],
+        receipt: { id: 1, name: "R", amount: "1.00", paidByUserId: 0, customFields: [] } as any,
+      });
+
+      expect(component.form.get("name")?.value).toEqual("R");
+      expect(component.showPaidBy()).toBe(true);
+    });
+
+    it("keeps the hidden payer when magic fill guesses another", () => {
+      routeDataSubject.next({
+        mode: FormMode.edit,
+        customFields: [],
+        receipt: { id: 1, name: "R", amount: "1.00", paidByUserId: 5, customFields: [] } as any,
+      });
+      component.images.set([{ id: 1 } as any]);
+      Object.defineProperty(component, "carouselComponent", {
+        value: () => ({ currentlyShownImageIndex: 0 }),
+        configurable: true,
+      });
+      jest.spyOn(TestBed.inject(ReceiptImageService), "magicFillReceipt")
+        .mockReturnValue(of({ name: "Corner Shop", paidByUserId: 9 } as any));
+
+      component.magicFill();
+
+      expect(component.form.get("name")?.value).toEqual("Corner Shop");
+      expect(component.form.get("paidByUserId")?.value).toEqual(5);
+    });
+  });
+
   it("should patch magic fill values correctly", () => {
     component.images.set([{ id: 1 } as any]);
     component.ngOnInit();

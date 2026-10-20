@@ -203,3 +203,29 @@ func (repository ReceiptProductRepository) DeleteReceiptProducts(receiptId uint)
 
 	return db.Where("receipt_id = ?", receiptId).Delete(&models.ReceiptProductExtraction{}).Error
 }
+
+// receiptIdBatchSize keeps an IN list well under every database's bound-variable limit.
+const receiptIdBatchSize = 500
+
+// GetPricedProductsWithHealth returns the products of the given receipts rated health that have an
+// amount, for the caller to fold in Go (SQLite has no decimal type to SUM exactly).
+func (repository ReceiptProductRepository) GetPricedProductsWithHealth(receiptIds []uint, health string) ([]models.ReceiptProduct, error) {
+	db := repository.GetDB()
+	products := []models.ReceiptProduct{}
+
+	for start := 0; start < len(receiptIds); start += receiptIdBatchSize {
+		end := min(start+receiptIdBatchSize, len(receiptIds))
+
+		batch := []models.ReceiptProduct{}
+		err := db.
+			Select("id", "receipt_id", "amount").
+			Where("receipt_id IN ? AND health = ? AND amount IS NOT NULL", receiptIds[start:end], health).
+			Find(&batch).Error
+		if err != nil {
+			return []models.ReceiptProduct{}, err
+		}
+		products = append(products, batch...)
+	}
+
+	return products, nil
+}

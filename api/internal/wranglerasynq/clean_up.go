@@ -1,6 +1,8 @@
 package wranglerasynq
 
 import (
+	"slices"
+
 	"github.com/hibiken/asynq"
 	"receipt-wrangler/api/internal/logging"
 	"receipt-wrangler/api/internal/models"
@@ -75,8 +77,20 @@ func StartSystemCleanUpTasks() error {
 // The queue itself stays declared in models.QueueName — persisted
 // TaskQueueConfigurations reference it, QueueName.Value() whitelists it, and
 // UpsertSystemSettingsCommand.Validate requires a configuration for every name.
+//
+// An install that never ran the old cron has no such queue, and asynq answers "queue does not
+// exist" for it, so the drain only runs when Redis knows the queue.
 func retireEmailReceiptImageCleanupQueue(inspector *asynq.Inspector) {
 	retiredQueue := string(models.EmailReceiptImageCleanupQueue)
+
+	queues, err := inspector.Queues()
+	if err != nil {
+		logging.LogStd(logging.LOG_LEVEL_INFO, err.Error())
+		return
+	}
+	if !slices.Contains(queues, retiredQueue) {
+		return
+	}
 
 	if _, err := inspector.DeleteAllScheduledTasks(retiredQueue); err != nil {
 		logging.LogStd(logging.LOG_LEVEL_INFO, err.Error())

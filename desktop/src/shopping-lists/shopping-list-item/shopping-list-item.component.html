@@ -13,14 +13,14 @@
     </mat-icon>
     <span class="text">
       <span class="name" data-testid="shopping-list-item-name">{{ item().name }}</span>
-      @if (amount()) {
-        <span class="quantity" data-testid="shopping-list-item-amount">{{ amount() }}</span>
-      }
       <app-food-tags class="tags" [values]="item()"></app-food-tags>
       @if (item().note) {
         <span class="note">{{ item().note }}</span>
       }
     </span>
+    @if (amount()) {
+      <span class="quantity" data-testid="shopping-list-item-amount">{{ amount() }}</span>
+    }
   </button>
 
   @if (canUpdate()) {

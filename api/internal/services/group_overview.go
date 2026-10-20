@@ -56,7 +56,43 @@ func (service GroupOverviewService) GetGroupOverview(userId uint, groupId string
 		return structs.GroupOverview{}, err
 	}
 
-	return foldGroupOverview(receipts, monthStart), nil
+	overview := foldGroupOverview(receipts, monthStart)
+
+	overview.UnhealthyTotal, err = service.sumUnhealthy(receipts, overview.Month)
+	if err != nil {
+		return structs.GroupOverview{}, err
+	}
+
+	return overview, nil
+}
+
+// sumUnhealthy adds up the month's products rated unhealthy, on the receipts the caller can see.
+func (service GroupOverviewService) sumUnhealthy(receipts []models.Receipt, month string) (decimal.Decimal, error) {
+	receiptIds := make([]uint, 0, len(receipts))
+	for _, receipt := range receipts {
+		if receipt.Date.UTC().Format(groupOverviewMonthLayout) == month {
+			receiptIds = append(receiptIds, receipt.ID)
+		}
+	}
+
+	total := decimal.Zero
+	if len(receiptIds) == 0 {
+		return total, nil
+	}
+
+	products, err := repositories.NewReceiptProductRepository(service.TX).
+		GetPricedProductsWithHealth(receiptIds, models.HEALTH_UNHEALTHY)
+	if err != nil {
+		return total, err
+	}
+
+	for _, product := range products {
+		if product.Amount != nil {
+			total = total.Add(*product.Amount)
+		}
+	}
+
+	return total, nil
 }
 
 // resolveOverviewMonth returns midnight UTC on the first day of the month to describe.
@@ -136,9 +172,10 @@ func foldGroupOverview(receipts []models.Receipt, monthStart time.Time) structs.
 	}
 
 	overview := structs.GroupOverview{
-		Month:         month,
-		Total:         decimal.Zero,
-		PreviousTotal: decimal.Zero,
+		Month:          month,
+		Total:          decimal.Zero,
+		PreviousTotal:  decimal.Zero,
+		UnhealthyTotal: decimal.Zero,
 	}
 	categoryTotals := map[string]decimal.Decimal{}
 

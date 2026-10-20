@@ -3955,6 +3955,9 @@ months ending with the chosen one.
   omitted `month` is the current month in the **app** time zone. A malformed one is a 400.
 - Every month of the window is seeded, so an empty month is a `"0"`, and `categories`/`months` are
   always arrays (the Dart client has no null guard).
+- **`unhealthyTotal`** (Phase 3 D2) adds up the month's `ReceiptProduct`s rated `UNHEALTHY` that have
+  an amount, on the receipts the caller can see, whatever the receipt's category; folded in Go from
+  `GetPricedProductsWithHealth` (receipt ids batched by 500).
 - Gated on `group.receipts.read`; a **GET**, so a read-only API key may call it.
 - Tests: `handlers/group_overview_test.go`.
 

@@ -17,11 +17,28 @@
       ></app-month-stepper>
       @if (canAddReceipt()) {
         <app-add-button
-          buttonText="Add Receipt"
+          buttonText="Add receipt"
           tooltip="Add a receipt"
           data-testid="overview-add-receipt"
           [buttonRouterLink]="['/receipts/add']"
         ></app-add-button>
+      }
+      @if (canQuickScan()) {
+        <button mat-stroked-button type="button" data-testid="overview-quick-scan" (click)="openQuickScan()">
+          <mat-icon>document_scanner</mat-icon>
+          Quick Scan
+        </button>
+      }
+      @if (canCreateList()) {
+        <a
+          mat-stroked-button
+          data-testid="overview-new-list"
+          [routerLink]="['/shopping-lists/group', shoppingListGroupId()]"
+          [queryParams]="{ new: 'list' }"
+        >
+          <mat-icon>playlist_add</mat-icon>
+          New list
+        </a>
       }
     </div>
   </div>
@@ -55,16 +72,19 @@
       }
     </a>
 
-    <div class="tile" data-testid="overview-tile-settle">
-      <span class="tile__label">Settle up</span>
-      @if (netOwed(); as net) {
-        <span class="tile__value" [class.tile__value--positive]="net > 0">
-          {{ (net > 0 ? net : -net) | customCurrency }}
+    <div class="tile" data-testid="overview-tile-unhealthy">
+      <span class="tile__label">Unhealthy</span>
+      @if (overview()) {
+        <span class="tile__value" [class.tile__value--warning]="unhealthyTotal() > 0">
+          {{ unhealthyTotal() | customCurrency }}
         </span>
-        <span class="tile__hint">{{ net > 0 ? "Owed to you" : "You owe" }}</span>
+        @if (unhealthyTotal() > 0) {
+          <span class="tile__hint tile__hint--up">{{ unhealthyShare() }}% of {{ monthLabel() }}'s spending</span>
+        } @else {
+          <span class="tile__hint">Nothing unhealthy</span>
+        }
       } @else {
-        <span class="tile__value">{{ 0 | customCurrency }}</span>
-        <span class="tile__hint">All settled</span>
+        <span class="tile__value">–</span>
       }
     </div>
 

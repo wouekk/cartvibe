@@ -12,10 +12,9 @@ import { AboutComponent } from "../../about/about/about.component";
 import { DEFAULT_DIALOG_CONFIG } from "../../constants";
 import { ImportFormComponent } from "../../import/import-form/import-form.component";
 import { AuthService, Group, GroupStatus, Permission } from "../../open-api";
-import { openQuickScanDialog } from "../../receipts/quick-scan-dialog/open-quick-scan-dialog";
 import { SnackbarService } from "../../services";
 import { ViewportService } from "../../services/viewport.service";
-import { AuthState, FeatureConfigState, GroupState, Logout, SetSelectedGroupId } from "../../store";
+import { AuthState, GroupState, Logout, SetSelectedGroupId } from "../../store";
 import { hasAll } from "../../utils/permission.utils";
 
 /**
@@ -167,21 +166,6 @@ export class SidebarComponent {
     return items;
   });
 
-  private readonly hasAiPoweredReceipts = this.store.selectSignal(
-    FeatureConfigState.hasFeature("aiPoweredReceipts")
-  );
-
-  // Mirrors the three "New" menu items' gates (Add Receipt, Quick Scan — which also needs the AI
-  // feature — and Add Group), so the button is shown iff its menu would not be empty.
-  protected readonly canAddAnything = computed(() => {
-    const groupPerms = this.selectedGroupPermissions();
-    return (
-      hasAll(this.appPermissions(), Permission.AppGroupsCreate) ||
-      hasAll(groupPerms, Permission.GroupReceiptsCreate) ||
-      (this.hasAiPoweredReceipts() && hasAll(groupPerms, Permission.GroupReceiptsQuickScan))
-    );
-  });
-
   protected readonly canViewSystemSettings = this.store.selectSignal(
     AuthState.hasAnyAppPermission([
       Permission.AppSystemSettingsRead,
@@ -261,10 +245,6 @@ export class SidebarComponent {
     if (this.isHandset()) {
       this.store.dispatch(new CloseSidebar());
     }
-  }
-
-  public openQuickScan(): void {
-    openQuickScanDialog(this.matDialog).pipe(take(1)).subscribe();
   }
 
   public logout(): void {

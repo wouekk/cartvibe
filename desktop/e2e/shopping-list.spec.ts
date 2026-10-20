@@ -116,7 +116,6 @@ test.describe('Shopping lists', () => {
       await openShoppingLists(page, groupId);
       await addList(page, uniqueName('amounts'));
 
-      await page.getByTestId('shopping-list-add-details-toggle').click();
       await page.getByLabel('Add an item').fill('Flour');
       // A comma decimal, as a European phone keyboard types it.
       await page.getByLabel('Amount').fill('1,5');

@@ -45,7 +45,7 @@ func callGetGroupOverview(userId uint, groupId string, month string) *httptest.R
 }
 
 // seedOverviewReceipt stores a receipt dated on a calendar day (midnight UTC, as the app stores it).
-func seedOverviewReceipt(t *testing.T, day string, amount string, status models.ReceiptStatus, categories ...models.Category) {
+func seedOverviewReceipt(t *testing.T, day string, amount string, status models.ReceiptStatus, categories ...models.Category) models.Receipt {
 	t.Helper()
 
 	date, err := time.Parse(time.DateOnly, day)
@@ -64,6 +64,46 @@ func seedOverviewReceipt(t *testing.T, day string, amount string, status models.
 	}
 	if err := repositories.GetDB().Create(&receipt).Error; err != nil {
 		t.Fatalf("seed receipt: %v", err)
+	}
+	return receipt
+}
+
+// seedOverviewProduct stores a product line on a receipt; an empty amount stores none.
+func seedOverviewProduct(t *testing.T, receiptId uint, health string, amount string) {
+	t.Helper()
+
+	product := models.ReceiptProduct{ReceiptId: receiptId, Name: "product"}
+	product.Health = health
+	if amount != "" {
+		value := decimal.RequireFromString(amount)
+		product.Amount = &value
+	}
+	if err := repositories.GetDB().Create(&product).Error; err != nil {
+		t.Fatalf("seed product: %v", err)
+	}
+}
+
+func TestGroupOverviewSumsTheMonthsUnhealthyProducts(t *testing.T) {
+	defer tearDownGroupOverviewTest()
+	repositories.CreateTestGroupWithUsers()
+	grantAllGroupPerms(t, 1, 1)
+
+	october := seedOverviewReceipt(t, "2026-10-03", "30.00", models.RESOLVED)
+	seedOverviewProduct(t, october.ID, models.HEALTH_UNHEALTHY, "2.49")
+	seedOverviewProduct(t, october.ID, models.HEALTH_UNHEALTHY, "1.30")
+	seedOverviewProduct(t, october.ID, models.HEALTH_UNHEALTHY, "")
+	seedOverviewProduct(t, october.ID, models.HEALTH_HEALTHY, "5.00")
+	seedOverviewProduct(t, october.ID, "", "9.00")
+	// Another month's unhealthy products are not this month's.
+	september := seedOverviewReceipt(t, "2026-09-30", "10.00", models.RESOLVED)
+	seedOverviewProduct(t, september.ID, models.HEALTH_UNHEALTHY, "4.00")
+
+	w := callGetGroupOverview(1, "1", "2026-10")
+	assertStatus(t, w, http.StatusOK)
+	overview := decodeGroupOverview(t, w)
+
+	if overview.UnhealthyTotal.String() != "3.79" {
+		t.Errorf("expected unhealthy 3.79, got %s", overview.UnhealthyTotal)
 	}
 }
 
@@ -155,6 +195,9 @@ func TestGroupOverviewEmptyGroupSendsArraysAndZeros(t *testing.T) {
 	}
 	if raw["total"] != "0" {
 		t.Errorf("expected total \"0\", got %v", raw["total"])
+	}
+	if raw["unhealthyTotal"] != "0" {
+		t.Errorf("expected unhealthyTotal \"0\", got %v", raw["unhealthyTotal"])
 	}
 }
 

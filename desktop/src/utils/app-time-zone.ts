@@ -11,6 +11,8 @@
  * "Today" / "this month" are always the app zone's, never the browser's.
  */
 
+import { format } from "date-fns";
+
 export const DEFAULT_APP_TIME_ZONE = "UTC";
 
 const CALENDAR_DAY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
@@ -73,6 +75,15 @@ export function todayInZone(zone: string, now: Date = new Date()): Date {
     Number(partValue(parts, "month")) - 1,
     Number(partValue(parts, "day")),
   );
+}
+
+/**
+ * The default name of something made today, e.g. `Receipt 20 Oct 2026` or
+ * `List 20 Oct 2026`: the app zone's day, so a family member never has to type
+ * one. The name stays editable.
+ */
+export function nameForToday(prefix: string, zone: string, now: Date = new Date()): string {
+  return `${prefix} ${format(todayInZone(zone, now), "d MMM yyyy")}`;
 }
 
 /**

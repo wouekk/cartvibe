@@ -37,7 +37,7 @@ import { QueueMode, ReceiptQueueService } from "../../services/receipt-queue.ser
 import { StatefulMenuItem } from "../../standalone/components/filtered-stateful-menu/stateful-menu-item";
 import { AuthState, FeatureConfigState, GroupState, UserState } from "../../store";
 import { SystemSettingsState } from "../../store/system-settings.state";
-import { calendarDayToLocalDate, todayInZone, toMidnightUtc } from "../../utils/app-time-zone";
+import { calendarDayToLocalDate, nameForToday, todayInZone, toMidnightUtc } from "../../utils/app-time-zone";
 import { downloadFile } from "../../utils/file";
 import { missingReceiptRequirementsMessage, receiptRequirementsFor } from "../../utils/receipt-requirements";
 import { ItemListComponent } from "../item-list/item-list.component";
@@ -68,7 +68,7 @@ export class ReceiptFormComponent implements OnInit {
 
   public readonly uploadImageComponent = viewChild.required(UploadImageComponent);
 
-  public readonly paidByAutocomplete = viewChild.required<UserAutocompleteComponent>("paidByAutocomplete");
+  public readonly paidByAutocomplete = viewChild<UserAutocompleteComponent>("paidByAutocomplete");
 
   public readonly successDuplicateSnackbar = viewChild.required<TemplateRef<any>>("successDuplicateSnackbar");
 
@@ -143,6 +143,10 @@ export class ReceiptFormComponent implements OnInit {
   public canDuplicate: Signal<boolean> = signal(false);
 
   public selectedGroup = signal<Group | undefined>(undefined);
+
+  // Paid By is only asked when the form opened without one (Phase 3 C1). Decided
+  // once per form, so picking a payer does not make the field vanish under you.
+  public readonly showPaidBy = signal(false);
 
   // The form's current group id (the target group in edit mode too - the server
   // checks an update against the group the receipt is moving into).
@@ -449,8 +453,19 @@ export class ReceiptFormComponent implements OnInit {
     const addTargetGroupId: number | string =
       this.store.selectSnapshot(GroupState.addTargetGroupId) ?? "";
 
+    // A family member never types a name or who paid (Phase 3 C1/C2): a new
+    // receipt is "Receipt {today}" (magic fill replaces it with the store name)
+    // and paid by whoever is adding it. An unknown user id stays blank, so the
+    // Paid By field shows and asks rather than posting 0.
+    const timeZone = this.store.selectSnapshot(SystemSettingsState.timeZone);
+    const currentUserId = Number(this.store.selectSnapshot(AuthState.userId)) || "";
+    const isAdd = this.mode === FormMode.add && !this.originalReceipt;
+
     this.form = this.formBuilder.group({
-      name: [this.originalReceipt?.name ?? "", Validators.required],
+      name: [
+        this.originalReceipt?.name ?? (isAdd ? nameForToday("Receipt", timeZone) : ""),
+        Validators.required,
+      ],
       amount: [
         this.originalReceipt?.amount ?? "",
         [Validators.required],
@@ -465,11 +480,11 @@ export class ReceiptFormComponent implements OnInit {
       // today, not the browser's.
       date: [
         calendarDayToLocalDate(this.originalReceipt?.date) ??
-          todayInZone(this.store.selectSnapshot(SystemSettingsState.timeZone)),
+          todayInZone(timeZone),
         Validators.required,
       ],
       paidByUserId: [
-        this.originalReceipt?.paidByUserId ?? "",
+        this.originalReceipt?.paidByUserId ?? (isAdd ? currentUserId : ""),
         Validators.required,
       ],
       groupId: [
@@ -490,6 +505,8 @@ export class ReceiptFormComponent implements OnInit {
     if (this.mode === FormMode.view) {
       this.form.get("status")?.disable();
     }
+
+    this.showPaidBy.set(!this.form.get("paidByUserId")?.value);
 
     this.setupAmountSyncListener();
     this.listenForGroupChanges();
@@ -806,6 +823,12 @@ export class ReceiptFormComponent implements OnInit {
       status: "",
     } as any;
     Object.keys(keysWithDefaults).forEach((key) => {
+      // A hidden Paid By already holds the user adding the receipt (C1); the AI
+      // cannot know better who paid.
+      if (key === "paidByUserId" && !this.showPaidBy()) {
+        return;
+      }
+
       let value = (magicReceipt as any)[key] as string | Date;
       if (value && value !== keysWithDefaults[key]) {
         switch (key) {

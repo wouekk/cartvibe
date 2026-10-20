@@ -7,37 +7,19 @@
         data-testid="shopping-list-add-name"
         [inputFormControl]="addForm | formGet : 'name'"
       ></app-input>
-      <button
-        mat-icon-button
-        type="button"
-        data-testid="shopping-list-add-details-toggle"
-        [attr.aria-label]="showDetails() ? 'Hide amount and note' : 'Add an amount or note'"
-        [attr.aria-expanded]="showDetails()"
-        (click)="showDetails.set(!showDetails())"
-      >
-        <mat-icon>{{ showDetails() ? "expand_less" : "tune" }}</mat-icon>
-      </button>
+      <app-shopping-list-amount-fields class="add-amount" [form]="addForm"></app-shopping-list-amount-fields>
       <button
         mat-flat-button
         color="primary"
         type="submit"
         class="add-submit"
+        aria-label="Add item"
         data-testid="shopping-list-add-submit"
         [disabled]="adding()"
       >
-        Add
+        <mat-icon>add</mat-icon>
       </button>
     </div>
-    @if (showDetails()) {
-      <div class="add-details">
-        <app-shopping-list-amount-fields [form]="addForm"></app-shopping-list-amount-fields>
-        <app-input
-          label="Note"
-          data-testid="shopping-list-add-note"
-          [inputFormControl]="addForm | formGet : 'note'"
-        ></app-input>
-      </div>
-    }
   </form>
 }
 
