@@ -416,6 +416,42 @@
         display: none !important;
       }
 
+      /* ---------- Polish (colors, radii, shadows and transitions only; no spacing or layout) ---------- */
+      ::selection {
+        background: var(--accent-soft);
+      }
+      .mat-mdc-row,
+      .mat-mdc-header-row {
+        transition: background-color 0.15s ease;
+      }
+      .mat-mdc-row:hover {
+        background-color: var(--accent-soft);
+      }
+      .mat-mdc-header-cell {
+        letter-spacing: 0.04em;
+        font-weight: 600;
+      }
+      .mat-mdc-menu-panel,
+      .mat-mdc-autocomplete-panel,
+      .mat-mdc-select-panel {
+        border-radius: 14px !important;
+        box-shadow: 0 0 0 1px var(--rw-ring), 0 10px 30px rgba(24, 24, 27, 0.12) !important;
+      }
+      .mat-mdc-form-field.mat-focused .mdc-notched-outline {
+        filter: drop-shadow(0 0 3px var(--accent-soft));
+      }
+      .sidebar__link {
+        border-radius: 10px;
+        transition: background-color 0.15s ease, color 0.15s ease;
+      }
+      .mat-mdc-chip {
+        transition: background-color 0.15s ease, box-shadow 0.15s ease;
+      }
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(100, 116, 139, 0.45) transparent;
+      }
+
       @media print {
         html.dark {
           filter: none;
