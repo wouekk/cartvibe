@@ -251,7 +251,7 @@ test.describe('Receipts quick date filter', () => {
 
     await page.getByTestId('receipts-quick-date-field-resolvedDate').click();
 
-    await expect(fieldPicker(page)).toContainText('Resolved Date');
+    await expect(fieldPicker(page)).toContainText('Done on');
     await expect(stepperLabel(page)).toContainText('All time');
     await expect(page.getByTestId('receipt-filter-chip-date')).toBeVisible();
 
@@ -268,7 +268,7 @@ test.describe('Receipts quick date filter', () => {
 
     await page.reload();
 
-    await expect(fieldPicker(page)).toContainText('Resolved Date');
+    await expect(fieldPicker(page)).toContainText('Done on');
     await expect(stepperLabel(page)).toContainText(monthLabel(0));
     await expect(rowLink(page, resolvedReceipt)).toBeVisible();
     await expect(rowLink(page, thisMonthReceipt)).toHaveCount(0);

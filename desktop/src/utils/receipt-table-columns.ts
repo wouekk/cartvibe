@@ -21,7 +21,8 @@ export const RECEIPT_COLUMN_DISPLAY_NAMES: Readonly<Record<string, string>> = {
   categories: "Categories",
   tags: "Tags",
   status: "Status",
-  resolved_date: "Resolved Date",
+  // "Done", in a family's words (Phase 3 C6/W1).
+  resolved_date: "Done on",
   first_comment: "Comment",
 };
 
