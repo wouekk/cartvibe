@@ -206,7 +206,7 @@
                 <span class="bars__value">
                   {{ bar.total | customCurrency }}
                   @if (goalMode() && (bar.overAmount ?? 0) > 0) {
-                    <span class="bars__over-value" data-testid="overview-bar-over">(+{{ bar.overAmount | customCurrency }})</span>
+                    <span class="bars__over-value" data-testid="overview-bar-over">(+{{ (bar.overAmount ?? 0) | customCurrency }})</span>
                   }
                 </span>
               }
