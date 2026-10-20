@@ -4062,3 +4062,22 @@ spending (overspending type 1). `planned = null` (no list, not compared yet, the
   deletes detach their trips first (FK), and remove waiting photos after the commit. Receipt deletion
   removes its trip.
 - Tests: `services/shopping_trips_test.go`, `handlers/shopping_trips_test.go`.
+
+## Family simplifications (fork extension, Phase 3 step 2)
+
+- **Quick scan requires nothing (C3):** `ResolveQuickScanFields` no longer enforces a group's
+  paid-by / status / categories / tags "required" flags (they are still stored). A blank paid-by
+  falls back to the configured default, then the uploader; a blank status to the default, then
+  OPEN. The comment keeps its rules (group config and role requirements).
+- **Built-in prompt (A3):** `buildPrompt` always uses `services.DefaultReceiptPrompt`, with the same
+  `@categories` / `@tags` / `@ocrText` / `@currentYear` variables; stored Prompt rows are kept but
+  not read. Processing settings saved without a prompt id point at the default prompt
+  (`validateWithDefaultPrompt` → `PromptService.EnsureDefaultPrompt`), created only once the rest of
+  the command is valid — a processing setting still needs a prompt row (foreign key).
+- **Family roles (M4):** `SeedSystemRoles` also seeds the app role **User**
+  (`permissions.FamilyUserAppKeys`: account, preferences, notifications, receipt search, the shared
+  categories / tags / custom fields, reports read + generate) and the group role **Member**
+  (`FamilyMemberGroupKeys`: the legacy editor set plus `group.reports.read`). Legacy Admin and
+  Legacy Owner are the Admin. Fixed sets, add-only reconciliation like the legacy roles; names in
+  `repositories/system_role_names.go`, shared with the desktop's `utils/family-roles.ts`.
+- **Overview:** `openReceiptCount` counts DRAFT too (everything "To check").

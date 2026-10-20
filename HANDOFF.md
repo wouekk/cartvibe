@@ -12,6 +12,15 @@
   New list on the Overview and no sidebar "New" menu, M7 currency picker in System Settings.
   M7: EUR as the new-install default is still to do (see the plan). **CI green**
   (run 39410847593; `gh` needs `--repo wouekk/receipt-wrangler`, it defaults to upstream).
+- **Phase 3 step 2 ("Simplify") is on `feature/phase-3-simplify`**, except M6: C3 nothing required in
+  Quick Scan and a sole group picked automatically, C6 "To check / Done", C4 bill splitting hidden,
+  A1–A3 + M1 a Manage → AI page (Gemini or LM Studio, Test connection) with a built-in prompt and
+  a trimmed System Settings, M4 Admin / User roles only (new system roles `User` and `Member`),
+  W1 household wording. CI: see the latest run on the branch.
+- **Stale e2e:** several upstream Playwright specs still exercise paid-by, shares, statuses and
+  required Quick Scan fields that Phase 3 removed (e.g. `receipts.spec.ts`,
+  `quick-scan-dialog-behavior.spec.ts`, `receipt-role-requirements.spec.ts`). They cannot run here
+  and their workflow is gated to upstream; update them when e2e is ever run against the fork.
 - **Deploying means pull, then redeploy** in Dockhand, then a hard refresh.
 - **Not verified anywhere:** the Playwright specs (they need a live API). 2c has no e2e.
 - **On this PC:** `api/scripts/go-without-cgo.sh vet ./...` / `… test <pkg>` work locally. The
@@ -21,15 +30,16 @@
 ## Next
 
 ### Claude Code
-1. Step 1 is merged into `main` (fast-forward, plan commits included); act on the NAS feedback.
-2. M7 follow-up: make EUR the API default for new installs (the user wants it; see the plan).
-3. Step 2 of `docs/family-budget-rework.md` ("Simplify": C3, C4, C6, A1–A3, M1, M4, M6, W1) on a
-   new `feature/` branch.
+1. When step 2's CI is green and the user agrees, fast-forward `main` to `feature/phase-3-simplify`.
+2. M6 (ready-made reports) waits on the user's answer about their shape; then step 3 (F2, S2,
+   S4 + N1, M2, C5, D1). M3, M5 and F1 are in the plan but not in its suggested order.
+3. M7 follow-up: make EUR the API default for new installs (the user wants it; see the plan).
 
 ### User
-- After deploying step 1: System Settings → Currency → Euro; try the one-line add on a phone, the
-  Overview's New list / Add receipt, and the Unhealthy tile (needs receipts with read products).
-- Create a family-member test account in Manage Users, to check what a non-admin sees.
+- After deploying step 2: Manage → AI, choose Gemini or LM Studio, Save, Test connection.
+- Create your wife's account in Manage Users with the role User, and add her to the household group
+  as User; check what she sees.
+- If not done yet: System Settings → Currency → Euro.
 
 ### Cline
 - Triage the latest failing CI run, if any: `gh run list --limit 5`, then

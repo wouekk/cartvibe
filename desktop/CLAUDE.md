@@ -2946,6 +2946,34 @@ on a phone. Backend contract: `api/CLAUDE.md` → "Shopping lists".
   contexts proving live sync without a reload**, and a Viewer's read-only page. Provisions its own
   group, so it is parallel-safe.
 
+## Family simplifications (fork, Phase 3 step 2)
+
+- **Statuses (C6):** `utils/receipt-status.ts`. OPEN / NEEDS_ATTENTION / DRAFT read "To check",
+  RESOLVED / DECLINED "Done" (`app-status-chip`, filter chips). `RECEIPT_STATUS_OPTIONS` is just
+  those two (writing OPEN / RESOLVED); `app-status-select` and the receipt form show an older stored
+  status as the one it reads as. `toStatusWireFilter` widens a status filter where the request is
+  assembled (receipts table, summary, export, pie chart) — **not** in reports, whose saved
+  templates must round-trip. `ALL_RECEIPT_STATUS_OPTIONS` keeps every status for admin config keyed
+  on real statuses (the group receipt summary).
+- **Nothing required in Quick Scan (C3):** `resolveQuickScanFieldConfig` never shows status and
+  requires only the comment; the server falls back to defaults. A sole group is seeded and its
+  picker hidden, in Quick Scan and on the receipt form (`showGroupPicker`).
+- **No bill splitting (C4):** no Shares section or split Quick Actions on the receipt form
+  (`shareListComponent` is an optional viewChild), no Paid By column (dropped from
+  `DEFAULT_RECEIPT_TABLE_COLUMNS`, so saved layouts lose it too), filter or selection
+  who-owes-whom card, no paid-by on the Overview or report receipt lists, no new Group Summary
+  widget. The data stays.
+- **AI page (A1/A2):** `/ai`, standalone `AiSettingsPageComponent`, under Manage for
+  `app.receipt-processing-settings.update`. Gemini or LM Studio (`OPEN_AI_CUSTOM`, base URL ending in
+  `/v1`, `enforceJsonResponseFormat` off); edits the processing settings System Settings points at
+  and links new ones; "Test connection" checks the saved settings by id. System Settings lost the
+  Prompts / Receipt Processing tabs and the processing knobs (routes and values stay).
+- **Roles (M4):** `utils/family-roles.ts` — pickers offer Admin (Legacy Admin / Legacy Owner) and
+  User (the API's `User` / `Member`), plus an older role someone already holds; `roleName` and grant
+  rows show those labels. No "Manage Roles" in the menu (the page stays at `/roles`).
+- **Wording (W1):** Household, not Group, in the switcher and receipts filter; "Done on" for the
+  resolved date.
+
 ## Currency choice (fork, Phase 3 M7)
 
 System Settings → Currency is one picker (`currency-presets.ts`: EUR, PLN, USD, GBP, CHF, Custom)
