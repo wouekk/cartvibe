@@ -155,6 +155,7 @@ Class | Method | HTTP request | Description
 [*ReceiptProductApi*](doc/ReceiptProductApi.md) | [**getReceiptProducts**](doc/ReceiptProductApi.md#getreceiptproducts) | **GET** /receipt-product/receipt/{receiptId} | Get a receipt&#39;s products
 [*ReceiptProductApi*](doc/ReceiptProductApi.md) | [**queueGroupReceiptProducts**](doc/ReceiptProductApi.md#queuegroupreceiptproducts) | **POST** /receipt-product/group/{groupId}/backfill | Read the products of a group&#39;s older receipts
 [*ReceiptProductApi*](doc/ReceiptProductApi.md) | [**readReceiptProducts**](doc/ReceiptProductApi.md#readreceiptproducts) | **POST** /receipt-product/receipt/{receiptId}/read | Read a receipt&#39;s products again
+[*ReceiptProductApi*](doc/ReceiptProductApi.md) | [**setReceiptProductClassification**](doc/ReceiptProductApi.md#setreceiptproductclassification) | **PUT** /receipt-product/product/{productId}/classification | Correct a receipt product&#39;s health and seasonality tags
 [*ReportApi*](doc/ReportApi.md) | [**createReportTemplate**](doc/ReportApi.md#createreporttemplate) | **POST** /report/template | Save a report template
 [*ReportApi*](doc/ReportApi.md) | [**deleteReportTemplate**](doc/ReportApi.md#deletereporttemplate) | **DELETE** /report/template/{id} | Delete a report template
 [*ReportApi*](doc/ReportApi.md) | [**duplicateReportTemplate**](doc/ReportApi.md#duplicatereporttemplate) | **POST** /report/template/{id}/duplicate | Duplicate a report template
@@ -180,6 +181,7 @@ Class | Method | HTTP request | Description
 [*ShoppingListApi*](doc/ShoppingListApi.md) | [**deleteShoppingListItem**](doc/ShoppingListApi.md#deleteshoppinglistitem) | **DELETE** /shopping-list/item/{itemId} | Delete shopping list item
 [*ShoppingListApi*](doc/ShoppingListApi.md) | [**getShoppingListsForGroup**](doc/ShoppingListApi.md#getshoppinglistsforgroup) | **GET** /shopping-list/group/{groupId} | Get shopping lists for a group
 [*ShoppingListApi*](doc/ShoppingListApi.md) | [**setShoppingListItemChecked**](doc/ShoppingListApi.md#setshoppinglistitemchecked) | **PUT** /shopping-list/item/{itemId}/checked | Set whether a shopping list item is crossed off
+[*ShoppingListApi*](doc/ShoppingListApi.md) | [**setShoppingListItemClassification**](doc/ShoppingListApi.md#setshoppinglistitemclassification) | **PUT** /shopping-list/item/{itemId}/classification | Correct a shopping list item&#39;s health and seasonality tags
 [*ShoppingListApi*](doc/ShoppingListApi.md) | [**streamShoppingListEvents**](doc/ShoppingListApi.md#streamshoppinglistevents) | **GET** /shopping-list/group/{groupId}/stream | Stream shopping list updates
 [*ShoppingListApi*](doc/ShoppingListApi.md) | [**updateShoppingList**](doc/ShoppingListApi.md#updateshoppinglist) | **PUT** /shopping-list/{listId} | Rename shopping list
 [*ShoppingListApi*](doc/ShoppingListApi.md) | [**updateShoppingListItem**](doc/ShoppingListApi.md#updateshoppinglistitem) | **PUT** /shopping-list/item/{itemId} | Update shopping list item
@@ -328,6 +330,7 @@ Class | Method | HTTP request | Description
  - [ResetPasswordCommand](doc/ResetPasswordCommand.md)
  - [Role](doc/Role.md)
  - [SearchResult](doc/SearchResult.md)
+ - [SetFoodClassificationCommand](doc/SetFoodClassificationCommand.md)
  - [SetShoppingListItemCheckedCommand](doc/SetShoppingListItemCheckedCommand.md)
  - [ShoppingList](doc/ShoppingList.md)
  - [ShoppingListEvent](doc/ShoppingListEvent.md)

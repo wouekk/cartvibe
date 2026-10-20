@@ -33,6 +33,16 @@ class _$ShoppingListItem extends ShoppingListItem {
   final DateTime? checkedAt;
   @override
   final int? checkedByUserId;
+  @override
+  final String health;
+  @override
+  final String foodGroup;
+  @override
+  final String seasonality;
+  @override
+  final DateTime? classifiedAt;
+  @override
+  final bool classificationOverridden;
 
   factory _$ShoppingListItem(
           [void Function(ShoppingListItemBuilder)? updates]) =>
@@ -51,7 +61,12 @@ class _$ShoppingListItem extends ShoppingListItem {
       required this.note,
       required this.isChecked,
       this.checkedAt,
-      this.checkedByUserId})
+      this.checkedByUserId,
+      required this.health,
+      required this.foodGroup,
+      required this.seasonality,
+      this.classifiedAt,
+      required this.classificationOverridden})
       : super._();
   @override
   ShoppingListItem rebuild(void Function(ShoppingListItemBuilder) updates) =>
@@ -77,7 +92,12 @@ class _$ShoppingListItem extends ShoppingListItem {
         note == other.note &&
         isChecked == other.isChecked &&
         checkedAt == other.checkedAt &&
-        checkedByUserId == other.checkedByUserId;
+        checkedByUserId == other.checkedByUserId &&
+        health == other.health &&
+        foodGroup == other.foodGroup &&
+        seasonality == other.seasonality &&
+        classifiedAt == other.classifiedAt &&
+        classificationOverridden == other.classificationOverridden;
   }
 
   @override
@@ -96,6 +116,11 @@ class _$ShoppingListItem extends ShoppingListItem {
     _$hash = $jc(_$hash, isChecked.hashCode);
     _$hash = $jc(_$hash, checkedAt.hashCode);
     _$hash = $jc(_$hash, checkedByUserId.hashCode);
+    _$hash = $jc(_$hash, health.hashCode);
+    _$hash = $jc(_$hash, foodGroup.hashCode);
+    _$hash = $jc(_$hash, seasonality.hashCode);
+    _$hash = $jc(_$hash, classifiedAt.hashCode);
+    _$hash = $jc(_$hash, classificationOverridden.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -115,7 +140,12 @@ class _$ShoppingListItem extends ShoppingListItem {
           ..add('note', note)
           ..add('isChecked', isChecked)
           ..add('checkedAt', checkedAt)
-          ..add('checkedByUserId', checkedByUserId))
+          ..add('checkedByUserId', checkedByUserId)
+          ..add('health', health)
+          ..add('foodGroup', foodGroup)
+          ..add('seasonality', seasonality)
+          ..add('classifiedAt', classifiedAt)
+          ..add('classificationOverridden', classificationOverridden))
         .toString();
   }
 }
@@ -178,6 +208,28 @@ class ShoppingListItemBuilder
   set checkedByUserId(int? checkedByUserId) =>
       _$this._checkedByUserId = checkedByUserId;
 
+  String? _health;
+  String? get health => _$this._health;
+  set health(String? health) => _$this._health = health;
+
+  String? _foodGroup;
+  String? get foodGroup => _$this._foodGroup;
+  set foodGroup(String? foodGroup) => _$this._foodGroup = foodGroup;
+
+  String? _seasonality;
+  String? get seasonality => _$this._seasonality;
+  set seasonality(String? seasonality) => _$this._seasonality = seasonality;
+
+  DateTime? _classifiedAt;
+  DateTime? get classifiedAt => _$this._classifiedAt;
+  set classifiedAt(DateTime? classifiedAt) =>
+      _$this._classifiedAt = classifiedAt;
+
+  bool? _classificationOverridden;
+  bool? get classificationOverridden => _$this._classificationOverridden;
+  set classificationOverridden(bool? classificationOverridden) =>
+      _$this._classificationOverridden = classificationOverridden;
+
   ShoppingListItemBuilder() {
     ShoppingListItem._defaults(this);
   }
@@ -198,6 +250,11 @@ class ShoppingListItemBuilder
       _isChecked = $v.isChecked;
       _checkedAt = $v.checkedAt;
       _checkedByUserId = $v.checkedByUserId;
+      _health = $v.health;
+      _foodGroup = $v.foodGroup;
+      _seasonality = $v.seasonality;
+      _classifiedAt = $v.classifiedAt;
+      _classificationOverridden = $v.classificationOverridden;
       _$v = null;
     }
     return this;
@@ -239,6 +296,17 @@ class ShoppingListItemBuilder
               isChecked, r'ShoppingListItem', 'isChecked'),
           checkedAt: checkedAt,
           checkedByUserId: checkedByUserId,
+          health: BuiltValueNullFieldError.checkNotNull(
+              health, r'ShoppingListItem', 'health'),
+          foodGroup: BuiltValueNullFieldError.checkNotNull(
+              foodGroup, r'ShoppingListItem', 'foodGroup'),
+          seasonality: BuiltValueNullFieldError.checkNotNull(
+              seasonality, r'ShoppingListItem', 'seasonality'),
+          classifiedAt: classifiedAt,
+          classificationOverridden: BuiltValueNullFieldError.checkNotNull(
+              classificationOverridden,
+              r'ShoppingListItem',
+              'classificationOverridden'),
         );
     replace(_$result);
     return _$result;

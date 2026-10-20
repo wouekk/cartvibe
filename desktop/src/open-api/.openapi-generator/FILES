@@ -142,6 +142,7 @@ model/reportTemplateOption.ts
 model/resetPasswordCommand.ts
 model/role.ts
 model/searchResult.ts
+model/setFoodClassificationCommand.ts
 model/setShoppingListItemCheckedCommand.ts
 model/shoppingList.ts
 model/shoppingListEvent.ts

@@ -128,6 +128,7 @@ doc/Role.md
 doc/RoleApi.md
 doc/SearchApi.md
 doc/SearchResult.md
+doc/SetFoodClassificationCommand.md
 doc/SetShoppingListItemCheckedCommand.md
 doc/ShoppingList.md
 doc/ShoppingListApi.md
@@ -331,6 +332,7 @@ lib/src/model/report_template_option.dart
 lib/src/model/reset_password_command.dart
 lib/src/model/role.dart
 lib/src/model/search_result.dart
+lib/src/model/set_food_classification_command.dart
 lib/src/model/set_shopping_list_item_checked_command.dart
 lib/src/model/shopping_list.dart
 lib/src/model/shopping_list_event.dart
@@ -383,7 +385,4 @@ lib/src/model/widget.dart
 lib/src/model/widget_type.dart
 lib/src/serializers.dart
 pubspec.yaml
-test/queued_receipts_view_test.dart
-test/receipt_product_api_test.dart
-test/receipt_product_test.dart
-test/receipt_products_view_test.dart
+test/set_food_classification_command_test.dart

@@ -35,5 +35,25 @@ export interface ReceiptProduct {
      * The line\'s order on the receipt
      */
     position: number;
+    /**
+     * HEALTHY, MEDIUM, UNHEALTHY, NOT_FOOD, UNKNOWN, or empty while not yet classified. A plain string, never an enum, so a new rating cannot break an older client.
+     */
+    health: string;
+    /**
+     * A short lowercase food group, e.g. \"fresh produce\"; empty while not yet classified
+     */
+    foodGroup: string;
+    /**
+     * For fresh fruit and vegetables, SEASONAL or OUT_OF_SEASON in Western Europe in the month bought; NOT_PRODUCE otherwise; empty while not yet classified. A plain string.
+     */
+    seasonality: string;
+    /**
+     * When the tags were set; null while waiting to be classified
+     */
+    classifiedAt?: string;
+    /**
+     * The tags were corrected by a person
+     */
+    classificationOverridden: boolean;
 }
 

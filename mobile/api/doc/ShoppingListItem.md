@@ -21,6 +21,11 @@ Name | Type | Description | Notes
 **isChecked** | **bool** | Whether the item is crossed off | 
 **checkedAt** | [**DateTime**](DateTime.md) | When the item was crossed off; null while it is on the list | [optional] 
 **checkedByUserId** | **int** | Who crossed the item off; null while it is on the list | [optional] 
+**health** | **String** | HEALTHY, MEDIUM, UNHEALTHY, NOT_FOOD, UNKNOWN, or empty while not yet classified. A plain string, never an enum, so a new rating cannot break an older client. | 
+**foodGroup** | **String** | A short lowercase food group, e.g. \"fresh produce\"; empty while not yet classified | 
+**seasonality** | **String** | For fresh fruit and vegetables, SEASONAL or OUT_OF_SEASON in Western Europe in the month bought; NOT_PRODUCE otherwise; empty while not yet classified. A plain string. | 
+**classifiedAt** | [**DateTime**](DateTime.md) | When the tags were set; null while waiting to be classified | [optional] 
+**classificationOverridden** | **bool** | The tags were corrected by a person | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

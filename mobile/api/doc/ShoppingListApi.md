@@ -16,6 +16,7 @@ Method | HTTP request | Description
 [**deleteShoppingListItem**](ShoppingListApi.md#deleteshoppinglistitem) | **DELETE** /shopping-list/item/{itemId} | Delete shopping list item
 [**getShoppingListsForGroup**](ShoppingListApi.md#getshoppinglistsforgroup) | **GET** /shopping-list/group/{groupId} | Get shopping lists for a group
 [**setShoppingListItemChecked**](ShoppingListApi.md#setshoppinglistitemchecked) | **PUT** /shopping-list/item/{itemId}/checked | Set whether a shopping list item is crossed off
+[**setShoppingListItemClassification**](ShoppingListApi.md#setshoppinglistitemclassification) | **PUT** /shopping-list/item/{itemId}/classification | Correct a shopping list item&#39;s health and seasonality tags
 [**streamShoppingListEvents**](ShoppingListApi.md#streamshoppinglistevents) | **GET** /shopping-list/group/{groupId}/stream | Stream shopping list updates
 [**updateShoppingList**](ShoppingListApi.md#updateshoppinglist) | **PUT** /shopping-list/{listId} | Rename shopping list
 [**updateShoppingListItem**](ShoppingListApi.md#updateshoppinglistitem) | **PUT** /shopping-list/item/{itemId} | Update shopping list item
@@ -337,6 +338,55 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **itemId** | **int**| Id of the shopping list item to check off or un-check | 
  **setShoppingListItemCheckedCommand** | [**SetShoppingListItemCheckedCommand**](SetShoppingListItemCheckedCommand.md)| Target checked state | 
+
+### Return type
+
+[**ShoppingListItem**](ShoppingListItem.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **setShoppingListItemClassification**
+> ShoppingListItem setShoppingListItemClassification(itemId, setFoodClassificationCommand)
+
+Correct a shopping list item's health and seasonality tags
+
+This will set the item's tags and remember the health rating for the group's future products [group.shopping-lists.update]
+
+### Example
+```dart
+import 'package:openapi/api.dart';
+// TODO Configure API key authorization: apiKeyAuth
+//defaultApiClient.getAuthentication<ApiKeyAuth>('apiKeyAuth').apiKey = 'YOUR_API_KEY';
+// uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//defaultApiClient.getAuthentication<ApiKeyAuth>('apiKeyAuth').apiKeyPrefix = 'Bearer';
+
+final api = Openapi().getShoppingListApi();
+final int itemId = 56; // int | Id of the shopping list item
+final SetFoodClassificationCommand setFoodClassificationCommand = ; // SetFoodClassificationCommand | 
+
+try {
+    final response = api.setShoppingListItemClassification(itemId, setFoodClassificationCommand);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling ShoppingListApi->setShoppingListItemClassification: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **itemId** | **int**| Id of the shopping list item | 
+ **setFoodClassificationCommand** | [**SetFoodClassificationCommand**](SetFoodClassificationCommand.md)|  | 
 
 ### Return type
 

@@ -27,6 +27,16 @@ class _$ReceiptProduct extends ReceiptProduct {
   final String quantity;
   @override
   final int position;
+  @override
+  final String health;
+  @override
+  final String foodGroup;
+  @override
+  final String seasonality;
+  @override
+  final DateTime? classifiedAt;
+  @override
+  final bool classificationOverridden;
 
   factory _$ReceiptProduct([void Function(ReceiptProductBuilder)? updates]) =>
       (ReceiptProductBuilder()..update(updates))._build();
@@ -41,7 +51,12 @@ class _$ReceiptProduct extends ReceiptProduct {
       required this.displayName,
       this.amount,
       required this.quantity,
-      required this.position})
+      required this.position,
+      required this.health,
+      required this.foodGroup,
+      required this.seasonality,
+      this.classifiedAt,
+      required this.classificationOverridden})
       : super._();
   @override
   ReceiptProduct rebuild(void Function(ReceiptProductBuilder) updates) =>
@@ -63,7 +78,12 @@ class _$ReceiptProduct extends ReceiptProduct {
         displayName == other.displayName &&
         amount == other.amount &&
         quantity == other.quantity &&
-        position == other.position;
+        position == other.position &&
+        health == other.health &&
+        foodGroup == other.foodGroup &&
+        seasonality == other.seasonality &&
+        classifiedAt == other.classifiedAt &&
+        classificationOverridden == other.classificationOverridden;
   }
 
   @override
@@ -79,6 +99,11 @@ class _$ReceiptProduct extends ReceiptProduct {
     _$hash = $jc(_$hash, amount.hashCode);
     _$hash = $jc(_$hash, quantity.hashCode);
     _$hash = $jc(_$hash, position.hashCode);
+    _$hash = $jc(_$hash, health.hashCode);
+    _$hash = $jc(_$hash, foodGroup.hashCode);
+    _$hash = $jc(_$hash, seasonality.hashCode);
+    _$hash = $jc(_$hash, classifiedAt.hashCode);
+    _$hash = $jc(_$hash, classificationOverridden.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -95,7 +120,12 @@ class _$ReceiptProduct extends ReceiptProduct {
           ..add('displayName', displayName)
           ..add('amount', amount)
           ..add('quantity', quantity)
-          ..add('position', position))
+          ..add('position', position)
+          ..add('health', health)
+          ..add('foodGroup', foodGroup)
+          ..add('seasonality', seasonality)
+          ..add('classifiedAt', classifiedAt)
+          ..add('classificationOverridden', classificationOverridden))
         .toString();
   }
 }
@@ -144,6 +174,28 @@ class ReceiptProductBuilder
   int? get position => _$this._position;
   set position(int? position) => _$this._position = position;
 
+  String? _health;
+  String? get health => _$this._health;
+  set health(String? health) => _$this._health = health;
+
+  String? _foodGroup;
+  String? get foodGroup => _$this._foodGroup;
+  set foodGroup(String? foodGroup) => _$this._foodGroup = foodGroup;
+
+  String? _seasonality;
+  String? get seasonality => _$this._seasonality;
+  set seasonality(String? seasonality) => _$this._seasonality = seasonality;
+
+  DateTime? _classifiedAt;
+  DateTime? get classifiedAt => _$this._classifiedAt;
+  set classifiedAt(DateTime? classifiedAt) =>
+      _$this._classifiedAt = classifiedAt;
+
+  bool? _classificationOverridden;
+  bool? get classificationOverridden => _$this._classificationOverridden;
+  set classificationOverridden(bool? classificationOverridden) =>
+      _$this._classificationOverridden = classificationOverridden;
+
   ReceiptProductBuilder() {
     ReceiptProduct._defaults(this);
   }
@@ -161,6 +213,11 @@ class ReceiptProductBuilder
       _amount = $v.amount;
       _quantity = $v.quantity;
       _position = $v.position;
+      _health = $v.health;
+      _foodGroup = $v.foodGroup;
+      _seasonality = $v.seasonality;
+      _classifiedAt = $v.classifiedAt;
+      _classificationOverridden = $v.classificationOverridden;
       _$v = null;
     }
     return this;
@@ -198,6 +255,17 @@ class ReceiptProductBuilder
               quantity, r'ReceiptProduct', 'quantity'),
           position: BuiltValueNullFieldError.checkNotNull(
               position, r'ReceiptProduct', 'position'),
+          health: BuiltValueNullFieldError.checkNotNull(
+              health, r'ReceiptProduct', 'health'),
+          foodGroup: BuiltValueNullFieldError.checkNotNull(
+              foodGroup, r'ReceiptProduct', 'foodGroup'),
+          seasonality: BuiltValueNullFieldError.checkNotNull(
+              seasonality, r'ReceiptProduct', 'seasonality'),
+          classifiedAt: classifiedAt,
+          classificationOverridden: BuiltValueNullFieldError.checkNotNull(
+              classificationOverridden,
+              r'ReceiptProduct',
+              'classificationOverridden'),
         );
     replace(_$result);
     return _$result;
