@@ -8,7 +8,6 @@ import { Permission, ShoppingList, ShoppingListService } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { ShoppingListStreamService } from "../../services/shopping-list-stream.service";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { FilterTab } from "../../shared-ui/filter-bar/filter-tab.interface";
 import { AuthState, GroupState } from "../../store";
 import { nameForToday } from "../../utils/app-time-zone";
 import { SystemSettingsState } from "../../store/system-settings.state";
@@ -59,21 +58,26 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
 
   public readonly canDelete = computed(() => hasAll(this.permissions(), Permission.GroupShoppingListsDelete));
 
-  /** One tab per list still being shopped, counting what is still to buy (Phase 3 S2). */
-  public readonly listTabs = computed<FilterTab[]>(() =>
-    activeLists(this.lists()).map((list) => ({
-      value: list.id.toString(),
-      label: list.name,
-      count: list.items.filter((item) => !item.isChecked).length,
-    }))
+  /** One card per list still being shopped: its name, what is left to buy and the first few items (Phase 3 S2). */
+  public readonly listCards = computed(() =>
+    activeLists(this.lists()).map((list) => {
+      const toBuy = list.items.filter((item) => !item.isChecked);
+      const names = toBuy.slice(0, 3).map((item) => item.name);
+      const more = toBuy.length - names.length;
+      return {
+        id: list.id,
+        name: list.name,
+        count: toBuy.length,
+        preview: toBuy.length === 0 ? "Nothing added yet" : names.join(", ") + (more > 0 ? `, and ${more} more` : ""),
+      };
+    })
   );
 
-  /** Finished lists (everything crossed off), the latest few, shown below the tabs. */
+
+  /** Finished lists (everything crossed off), the latest few, shown below the cards. */
   public readonly announcing = signal(false);
 
   public readonly pastLists = computed(() => recentPastLists(this.lists()));
-
-  public readonly selectedTab = computed(() => this.selectedList()?.id.toString() ?? "");
 
   constructor(
     private activatedRoute: ActivatedRoute,
