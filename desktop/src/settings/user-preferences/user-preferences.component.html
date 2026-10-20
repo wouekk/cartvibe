@@ -11,8 +11,11 @@
 
 <ng-template #formTemplate>
   <div class="w-100">
+    <!-- Hidden (Phase 3 feedback): a household has no per-user default group, payer or status to choose.
+         The section stays so the form still saves what it always did. -->
     <app-form-section
       *appFeature="'aiPoweredReceipts'"
+      class="d-none"
       headerText="Quick scan defaults"
     >
       <app-group-autocomplete
