@@ -90,6 +90,8 @@ Class | Method | HTTP request | Description
 [*DashboardApi*](doc/DashboardApi.md) | [**deleteDashboard**](doc/DashboardApi.md#deletedashboard) | **DELETE** /dashboard/{dashboardId} | Delete dashboard
 [*DashboardApi*](doc/DashboardApi.md) | [**getDashboardsForUserByGroupId**](doc/DashboardApi.md#getdashboardsforuserbygroupid) | **GET** /dashboard/{groupId} | Get dashboards for a user by group id
 [*DashboardApi*](doc/DashboardApi.md) | [**updateDashboard**](doc/DashboardApi.md#updatedashboard) | **PUT** /dashboard/{dashboardId} | Update dashboard
+[*ExchangeRateApi*](doc/ExchangeRateApi.md) | [**getExchangeRates**](doc/ExchangeRateApi.md#getexchangerates) | **GET** /exchangeRate | Get the exchange rates
+[*ExchangeRateApi*](doc/ExchangeRateApi.md) | [**updateExchangeRates**](doc/ExchangeRateApi.md#updateexchangerates) | **PUT** /exchangeRate | Replace the exchange rates
 [*ExportApi*](doc/ExportApi.md) | [**exportReceiptsById**](doc/ExportApi.md#exportreceiptsbyid) | **POST** /export | Exports receipts
 [*ExportApi*](doc/ExportApi.md) | [**exportReceiptsForGroup**](doc/ExportApi.md#exportreceiptsforgroup) | **POST** /export/{groupId} | Exports receipts
 [*FeatureConfigApi*](doc/FeatureConfigApi.md) | [**getFeatureConfig**](doc/FeatureConfigApi.md#getfeatureconfig) | **GET** /featureConfig | Get feature config
@@ -269,6 +271,8 @@ Class | Method | HTTP request | Description
  - [Dashboard](doc/Dashboard.md)
  - [DeleteAccountCommand](doc/DeleteAccountCommand.md)
  - [EncodedImage](doc/EncodedImage.md)
+ - [ExchangeRate](doc/ExchangeRate.md)
+ - [ExchangeRates](doc/ExchangeRates.md)
  - [ExportFormat](doc/ExportFormat.md)
  - [FeatureConfig](doc/FeatureConfig.md)
  - [FileData](doc/FileData.md)

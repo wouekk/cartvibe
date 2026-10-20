@@ -46,6 +46,8 @@ import 'package:openapi/src/model/custom_field_value.dart';
 import 'package:openapi/src/model/dashboard.dart';
 import 'package:openapi/src/model/delete_account_command.dart';
 import 'package:openapi/src/model/encoded_image.dart';
+import 'package:openapi/src/model/exchange_rate.dart';
+import 'package:openapi/src/model/exchange_rates.dart';
 import 'package:openapi/src/model/export_format.dart';
 import 'package:openapi/src/model/feature_config.dart';
 import 'package:openapi/src/model/file_data.dart';
@@ -212,6 +214,8 @@ part 'serializers.g.dart';
   Dashboard,
   DeleteAccountCommand,
   EncodedImage,
+  ExchangeRate,
+  ExchangeRates,
   ExportFormat,
   FeatureConfig,
   FileData,

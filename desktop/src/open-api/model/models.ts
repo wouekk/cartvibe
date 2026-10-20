@@ -30,6 +30,8 @@ export * from './customFieldValue';
 export * from './dashboard';
 export * from './deleteAccountCommand';
 export * from './encodedImage';
+export * from './exchangeRate';
+export * from './exchangeRates';
 export * from './exportFormat';
 export * from './featureConfig';
 export * from './fileData';

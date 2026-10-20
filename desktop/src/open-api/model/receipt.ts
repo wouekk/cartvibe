@@ -64,6 +64,18 @@ export interface Receipt {
      */
     shopName?: string;
     /**
+     * The amount as printed, when the receipt was in another currency than the main one; amount is then the converted amount
+     */
+    originalAmount?: string;
+    /**
+     * ISO code of the currency the receipt was in; empty when it was in the main currency
+     */
+    originalCurrency?: string;
+    /**
+     * The rate used to convert (main currency per one unit of originalCurrency); null with an originalCurrency means the receipt is waiting for a rate
+     */
+    exchangeRate?: string;
+    /**
      * User paid foreign key
      */
     paidByUserId: number;

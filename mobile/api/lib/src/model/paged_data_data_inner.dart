@@ -53,6 +53,9 @@ part 'paged_data_data_inner.g.dart';
 /// * [imageFiles] - Files associated to receipt
 /// * [name] - The template name (mirrors the saved report's name).
 /// * [shopName] - The shop printed on the receipt (Auchan, Edeka, Rewe), read by the AI or typed by a person. Empty when unknown.
+/// * [originalAmount] - The amount as printed, when the receipt was in another currency than the main one; amount is then the converted amount
+/// * [originalCurrency] - ISO code of the currency the receipt was in; empty when it was in the main currency
+/// * [exchangeRate] - The rate used to convert (main currency per one unit of originalCurrency); null with an originalCurrency means the receipt is waiting for a rate
 /// * [paidByUserId] - User paid foreign key
 /// * [receiptItems] - Items associated to receipt
 /// * [resolvedDate] - Date resolved
