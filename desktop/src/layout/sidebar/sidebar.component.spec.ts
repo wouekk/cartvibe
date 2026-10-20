@@ -113,13 +113,17 @@ describe("SidebarComponent", () => {
       );
     });
 
-    it("always offers Receipts, and Dashboard only with the selected group's read permission", async () => {
+    it("always offers Receipts, and the widget dashboards only to an admin with the group's read permission", async () => {
       selectGroupFive([]);
       await fixture.whenStable();
       expect(queryTestId("nav-receipts")).toBeTruthy();
       expect(queryTestId("nav-dashboard")).toBeFalsy();
 
       selectGroupFive([Permission.GroupDashboardsRead]);
+      await fixture.whenStable();
+      expect(queryTestId("nav-dashboard")).toBeFalsy();
+
+      store.dispatch(new SetPermissions([Permission.AppUsersRead], { 5: [Permission.GroupDashboardsRead] }));
       await fixture.whenStable();
       expect(queryTestId("nav-dashboard")).toBeTruthy();
     });

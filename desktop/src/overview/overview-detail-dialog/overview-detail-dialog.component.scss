@@ -1,0 +1,35 @@
+.muted {
+  color: #475569;
+}
+
+.table-scroll {
+  max-height: 60vh;
+  overflow: auto;
+}
+
+.detail {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+
+  th,
+  td {
+    padding: 8px 6px;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .numeric {
+    text-align: right;
+  }
+
+  .strong {
+    font-weight: 600;
+  }
+
+  .nowrap {
+    white-space: nowrap;
+    margin-left: 6px;
+  }
+}
