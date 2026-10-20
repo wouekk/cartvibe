@@ -6594,6 +6594,11 @@ components:
         name:
           type: string
           description: Receipt name
+        shopName:
+          type: string
+          description: >-
+            The shop printed on the receipt (Auchan, Edeka, Rewe), read by the AI or typed by a person.
+            Empty when unknown.
         paidByUserId:
           type: integer
           description: User paid foreign key
@@ -8172,6 +8177,11 @@ components:
         name:
           type: string
           description: Receipt name
+        shopName:
+          type: string
+          description: >-
+            The shop printed on the receipt (Auchan, Edeka, Rewe), read by the AI or typed by a person.
+            Empty when unknown.
         amount:
           type: string
           description: Receipt total amount

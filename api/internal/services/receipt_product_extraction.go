@@ -23,7 +23,9 @@ import (
 const productExtractionPrompt = `You read shop receipts. List every purchased product line on this receipt.
 
 Return ONLY valid JSON in plain text, never in a code block, exactly in this shape:
-{"products": [{"name": "...", "displayName": "...", "amount": 0.0, "quantity": "..."}]}
+{"shop": "...", "products": [{"name": "...", "displayName": "...", "amount": 0.0, "quantity": "..."}]}
+
+"shop": the name of the shop as printed on the receipt, the brand only, for example "Auchan", "Edeka" or "Rewe" (not the street, branch number or slogan). Use "" if it cannot be read.
 
 For each product line:
 - "name": the line exactly as printed on the receipt.
@@ -109,7 +111,7 @@ func (service ReceiptProductExtractionService) extract(extraction models.Receipt
 		return repository.UpdateExtraction(extraction.ReceiptId, models.PRODUCT_EXTRACTION_FAILED, time.Now(), extraction.Attempts, "The receipt has no image to read")
 	}
 
-	products, aiErr, answerErr := service.readProducts(receipt.GroupId, imagePaths)
+	products, shopName, aiErr, answerErr := service.readProducts(receipt.GroupId, imagePaths)
 	switch {
 	case aiErr != nil:
 		return service.recordOutage(extraction, aiErr)
@@ -122,7 +124,12 @@ func (service ReceiptProductExtractionService) extract(extraction models.Receipt
 		products[i].Position = i
 	}
 
-	return repository.ReplaceProducts(extraction.ReceiptId, products)
+	err = repository.ReplaceProducts(extraction.ReceiptId, products)
+	if err != nil {
+		return err
+	}
+
+	return service.applyReadResult(receipt, shopName)
 }
 
 func (service ReceiptProductExtractionService) recordOutage(extraction models.ReceiptProductExtraction, aiErr error) error {
@@ -187,10 +194,10 @@ func (service ReceiptProductExtractionService) receiptImagePaths(receipt models.
 func (service ReceiptProductExtractionService) readProducts(
 	groupId uint,
 	imagePaths []string,
-) (products []models.ReceiptProduct, aiErr error, answerErr error) {
+) (products []models.ReceiptProduct, shopName string, aiErr error, answerErr error) {
 	processingService, err := NewSystemReceiptProcessingService(service.TX, utils.UintToString(groupId))
 	if err != nil || processingService.ReceiptProcessingSettings.ID == 0 {
-		return nil, errNoAiConfigured, nil
+		return nil, "", errNoAiConfigured, nil
 	}
 
 	candidates := []models.ReceiptProcessingSettings{processingService.ReceiptProcessingSettings}
@@ -206,20 +213,21 @@ func (service ReceiptProductExtractionService) readProducts(
 			continue
 		}
 
-		parsed, parseErr := parseProductResponse(processingService.cleanResponse(response))
+		cleaned := processingService.cleanResponse(response)
+		parsed, parseErr := parseProductResponse(cleaned)
 		if parseErr != nil {
 			answerErr = parseErr
 			continue
 		}
 
-		return parsed, nil, nil
+		return parsed, parseShopName(cleaned), nil, nil
 	}
 
 	// An answer, even an unreadable one, means the AI was reachable: count it as a bad answer.
 	if answerErr != nil {
-		return nil, nil, answerErr
+		return nil, "", nil, answerErr
 	}
-	return nil, aiErr, nil
+	return nil, "", aiErr, nil
 }
 
 // askAi sends the receipt the same way receipt scanning does: the images themselves to a vision
@@ -262,6 +270,7 @@ func (service ReceiptProductExtractionService) askAi(
 }
 
 type productResponse struct {
+	Shop     json.RawMessage `json:"shop"`
 	Products []struct {
 		Name        string          `json:"name"`
 		DisplayName string          `json:"displayName"`
@@ -357,4 +366,42 @@ func truncateRunes(text string, max int) string {
 // RequestReceiptProductRead queues one receipt to be (re-)read, e.g. after its read failed.
 func RequestReceiptProductRead(receiptId uint) error {
 	return repositories.NewReceiptProductRepository(nil).MarkReceiptProductsPending(receiptId)
+}
+
+// parseShopName reads the optional "shop" of the AI's answer; "" when absent or unreadable.
+func parseShopName(cleanedResponse string) string {
+	var response productResponse
+	if err := json.Unmarshal([]byte(cleanedResponse), &response); err != nil {
+		return ""
+	}
+
+	return truncateRunes(strings.TrimSpace(looseString(response.Shop)), models.MaxReceiptShopNameLength)
+}
+
+// applyReadResult is what a finished read does to the receipt itself (Phase 3 feedback): it fills in the
+// shop name when the receipt has none, and a receipt still "To check" becomes Done, since the AI has
+// read it. A person's own shop name is never overwritten, and a receipt already Done or Declined keeps
+// its status.
+func (service ReceiptProductExtractionService) applyReadResult(receipt models.Receipt, shopName string) error {
+	db := service.GetDB()
+
+	if shopName != "" && receipt.ShopName == "" {
+		err := db.Model(&models.Receipt{}).Where("id = ?", receipt.ID).Update("shop_name", shopName).Error
+		if err != nil {
+			return err
+		}
+	}
+
+	if receipt.Status != models.OPEN && receipt.Status != models.NEEDS_ATTENTION && receipt.Status != models.DRAFT {
+		return nil
+	}
+
+	receipt.Status = models.RESOLVED
+	err := db.Model(&models.Receipt{}).Where("id = ?", receipt.ID).Update("status", models.RESOLVED).Error
+	if err != nil {
+		return err
+	}
+
+	// Stamps the resolved date and settles the receipt's items, as every other way of resolving does.
+	return repositories.NewReceiptRepository(service.TX).AfterReceiptUpdated(&receipt)
 }

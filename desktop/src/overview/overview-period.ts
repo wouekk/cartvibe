@@ -157,3 +157,9 @@ export function parseDayMonthYear(text: string): string | undefined {
 
   return toDayKey(date);
 }
+
+/** "2026-10-20" as typed in the range fields: 20/10/2026. */
+export function formatDayMonthYear(day: string): string {
+  const [year, month, date] = day.split("-");
+  return `${date}/${month}/${year}`;
+}
