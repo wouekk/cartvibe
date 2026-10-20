@@ -37,48 +37,8 @@
     </div>
   </div>
 
-  <div class="overview__period" data-testid="overview-period">
-    <div class="overview__period-tabs">
-      <app-filter-bar [tabs]="periodTabs" [value]="preset()" (valueChange)="selectPeriod($event)"></app-filter-bar>
-    </div>
-    <div class="overview__custom" data-testid="overview-custom-range">
-      <label>
-        <span>From</span>
-        <span class="overview__date-field">
-          <input
-            type="text"
-            inputmode="numeric"
-            placeholder="DD/MM/YYYY"
-            maxlength="10"
-            data-testid="overview-custom-from"
-            [value]="fromText()"
-            (input)="typeDay('from', $event)"
-          />
-          <button type="button" class="overview__picker-button" aria-label="Pick the first day" data-testid="overview-pick-from" (click)="fromPicker.showPicker()">
-            <mat-icon>calendar_month</mat-icon>
-          </button>
-          <input #fromPicker type="date" class="overview__native-picker" tabindex="-1" aria-hidden="true" (change)="pickDay('from', $event)" />
-        </span>
-      </label>
-      <label>
-        <span>To</span>
-        <span class="overview__date-field">
-          <input
-            type="text"
-            inputmode="numeric"
-            placeholder="DD/MM/YYYY"
-            maxlength="10"
-            data-testid="overview-custom-to"
-            [value]="toText()"
-            (input)="typeDay('to', $event)"
-          />
-          <button type="button" class="overview__picker-button" aria-label="Pick the last day" data-testid="overview-pick-to" (click)="toPicker.showPicker()">
-            <mat-icon>calendar_month</mat-icon>
-          </button>
-          <input #toPicker type="date" class="overview__native-picker" tabindex="-1" aria-hidden="true" (change)="pickDay('to', $event)" />
-        </span>
-      </label>
-    </div>
+  <div class="overview__period">
+    <app-period-picker (periodChange)="period.set($event)"></app-period-picker>
     <span class="overview__period-label" data-testid="overview-period-label">{{ periodLabel() }}</span>
   </div>
 
@@ -224,7 +184,7 @@
 
     <section class="card" aria-labelledby="overview-trend-title">
       <div class="card__header">
-        <h2 id="overview-trend-title">{{ isDailyTrend() ? "Day by day" : "Month by month" }}</h2>
+        <h2 id="overview-trend-title">{{ isDailyTrend() ? "Spending by day" : "Spending by month" }}</h2>
         @if (bars().length > 0) {
           <span class="muted">Average {{ averageBar() | customCurrency }} {{ isDailyTrend() ? "a day" : "a month" }}</span>
         }
@@ -262,7 +222,7 @@
               <tr>
                 <th scope="col">Date</th>
                 <th scope="col">Name</th>
-                <th scope="col">Shop</th>
+                <th scope="col">Added by</th>
                 <th scope="col">Status</th>
                 <th scope="col" class="numeric">Amount</th>
               </tr>
@@ -271,8 +231,13 @@
               @for (receipt of recentReceipts(); track receipt.id) {
                 <tr>
                   <td class="muted nowrap">{{ receipt.date | appDate : "MMM d" : "calendar" }}</td>
-                  <td class="strong"><a [routerLink]="['/receipts', receipt.id, 'view']">{{ receipt.name }}</a></td>
-                  <td>{{ receipt.shopName || "—" }}</td>
+                  <td class="strong">
+                    <a [routerLink]="['/receipts', receipt.id, 'view']">{{ receipt.name }}</a>
+                    @if (receipt.shopName) {
+                      <span class="muted small shop">{{ receipt.shopName }}</span>
+                    }
+                  </td>
+                  <td>{{ (receipt.paidByUserId | user)?.displayName ?? "—" }}</td>
                   <td><app-status-chip [status]="receipt.status"></app-status-chip></td>
                   <td class="numeric strong">{{ receipt.amount | customCurrency }}</td>
                 </tr>

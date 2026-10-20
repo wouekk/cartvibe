@@ -14,7 +14,6 @@ import {
   SortDirection,
 } from "../../open-api";
 import { openQuickScanDialog } from "../../receipts/quick-scan-dialog/open-quick-scan-dialog";
-import { FilterTab } from "../../shared-ui/filter-bar/filter-tab.interface";
 import { AuthState, FeatureConfigState, GroupState } from "../../store";
 import { ShoppingListState } from "../../store/shopping-list.state";
 import { LoadShoppingLists } from "../../store/shopping-list.state.actions";
@@ -34,7 +33,7 @@ import {
   OverviewDetailDialogData,
   OverviewDetailKind,
 } from "../overview-detail-dialog/overview-detail-dialog.component";
-import { formatDayMonthYear, parseDayMonthYear, PERIOD_CHOICES, PeriodPreset, previousLabel, resolvePeriod } from "../overview-period";
+import { previousLabel, resolvePeriod, ResolvedPeriod } from "../overview-period";
 
 const RECENT_RECEIPT_COUNT = 6;
 
@@ -67,25 +66,12 @@ export class OverviewPageComponent {
 
   public readonly timeZone = this.store.selectSignal(SystemSettingsState.timeZone);
 
-  public readonly periodTabs: FilterTab[] = PERIOD_CHOICES.map((choice) => ({
-    value: choice.value,
-    label: choice.label,
-  }));
-
-  /** The period shown: this month until the user picks another. */
-  public readonly preset = signal<PeriodPreset>("THIS_MONTH");
-
-  /** The custom range's ends as typed, DD/MM/YYYY. */
-  public readonly customFrom = signal("");
-
-  public readonly customTo = signal("");
-
-  /** The days to ask for; undefined while a custom range is incomplete or backwards. */
-  public readonly period = computed(() =>
-    resolvePeriod(this.preset(), todayInZone(this.timeZone()), {
-      from: parseDayMonthYear(this.customFrom()) ?? "",
-      to: parseDayMonthYear(this.customTo()) ?? "",
-    })
+  /**
+   * The days to ask for, set by the period picker; undefined while a custom range is incomplete. It
+   * starts as this month so the first render never shows the "pick a range" prompt.
+   */
+  public readonly period = signal<ResolvedPeriod | undefined>(
+    resolvePeriod("THIS_MONTH", todayInZone(this.store.selectSnapshot(SystemSettingsState.timeZone)))
   );
 
   public readonly periodLabel = computed(() => this.period()?.label ?? "");
@@ -264,52 +250,6 @@ export class OverviewPageComponent {
     });
   }
 
-  public selectPeriod(value: string): void {
-    if (value === "CUSTOM") {
-      this.adoptCustom();
-      return;
-    }
-    this.preset.set(value as PeriodPreset);
-  }
-
-  /** The From and To fields always show the period in view; typing in one makes it a custom range. */
-  public readonly fromText = computed(() =>
-    this.preset() === "CUSTOM" ? this.customFrom() : this.formatEnd(this.period()?.from)
-  );
-
-  public readonly toText = computed(() =>
-    this.preset() === "CUSTOM" ? this.customTo() : this.formatEnd(this.period()?.to)
-  );
-
-  public typeDay(target: "from" | "to", event: Event): void {
-    const text = (event.target as HTMLInputElement).value;
-    this.adoptCustom();
-    (target === "from" ? this.customFrom : this.customTo).set(text);
-  }
-
-  /** The calendar button: the browser's date picker answers with yyyy-MM-dd. */
-  public pickDay(target: "from" | "to", event: Event): void {
-    const day = (event.target as HTMLInputElement).value;
-    if (!day) {
-      return;
-    }
-    this.adoptCustom();
-    (target === "from" ? this.customFrom : this.customTo).set(formatDayMonthYear(day));
-  }
-
-  /** Switches to a custom range that starts as the period on screen, so only one end has to change. */
-  private adoptCustom(): void {
-    if (this.preset() !== "CUSTOM") {
-      const period = this.period();
-      this.customFrom.set(this.formatEnd(period?.from));
-      this.customTo.set(this.formatEnd(period?.to));
-      this.preset.set("CUSTOM");
-    }
-  }
-
-  private formatEnd(day: string | undefined): string {
-    return day ? formatDayMonthYear(day) : "";
-  }
 
   /** Opens the products behind the Unhealthy or Unplanned tile. */
   public openProducts(kind: "UNHEALTHY" | "UNPLANNED"): void {

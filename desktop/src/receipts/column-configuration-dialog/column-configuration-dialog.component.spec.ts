@@ -77,7 +77,7 @@ describe("ColumnConfigurationDialogComponent", () => {
         "date": "Receipt Date",
         "name": "Name",
         "shop_name": "Shop",
-        "paid_by_user_id": "Paid By",
+        "paid_by_user_id": "Added by",
         "amount": "Amount",
         "categories": "Categories",
         "tags": "Tags",

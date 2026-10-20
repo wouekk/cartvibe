@@ -21,10 +21,7 @@ export const PERIOD_CHOICES: PeriodChoice[] = [
   { value: "THIS_MONTH", label: "This month" },
   { value: "LAST_7_DAYS", label: "Last 7 days" },
   { value: "LAST_30_DAYS", label: "Last 30 days" },
-  { value: "LAST_MONTH", label: "Last month" },
   { value: "THIS_YEAR", label: "This year" },
-  { value: "LAST_365_DAYS", label: "Last 365 days" },
-  { value: "LAST_YEAR", label: "Last year" },
   { value: "CUSTOM", label: "Custom" },
 ];
 

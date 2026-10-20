@@ -104,7 +104,7 @@ describe("OverviewPageComponent", () => {
     overviewService.getGroupOverview.mockImplementation((_groupId: number, _month: string, from: string, to: string) =>
       of({ ...overview(from, to), unhealthyTotal: "0", unplannedTotal: "0" })
     );
-    component.selectPeriod("LAST_YEAR");
+    component.period.set({ from: "2025-01-01", to: "2025-12-31", label: "2025" });
     await fixture.whenStable();
 
     expect(text("overview-tile-unhealthy")).toContain("Nothing unhealthy");
@@ -121,54 +121,23 @@ describe("OverviewPageComponent", () => {
     expect(command.filter.date.value).toEqual([from, to]);
   });
 
-  it("refetches for a preset", async () => {
-    component.selectPeriod("LAST_YEAR");
+  it("refetches when the picker chooses another period", async () => {
+    component.period.set({ from: "2025-01-01", to: "2025-12-31", label: "2025" });
     await fixture.whenStable();
 
-    const lastYear = todayInZone(TestBed.inject(Store).selectSnapshot(SystemSettingsState.timeZone)).getFullYear() - 1;
-    expect(overviewService.getGroupOverview).toHaveBeenLastCalledWith(1, undefined, `${lastYear}-01-01`, `${lastYear}-12-31`);
-    expect(component.periodLabel()).toBe(`${lastYear}`);
-  });
-
-  it("always shows the period in the From and To fields and turns custom when one is typed", async () => {
-    component.selectPeriod("LAST_YEAR");
-    await fixture.whenStable();
-    const lastYear = todayInZone(TestBed.inject(Store).selectSnapshot(SystemSettingsState.timeZone)).getFullYear() - 1;
-    expect(component.fromText()).toBe(`01/01/${lastYear}`);
-    expect(component.toText()).toBe(`31/12/${lastYear}`);
-
-    const input = document.createElement("input");
-    input.value = "15/03/2025";
-    component.typeDay("from", { target: input } as unknown as Event);
-    await fixture.whenStable();
-
-    expect(component.preset()).toBe("CUSTOM");
-    expect(component.fromText()).toBe("15/03/2025");
-    expect(component.toText()).toBe(`31/12/${lastYear}`);
-    expect(overviewService.getGroupOverview).toHaveBeenLastCalledWith(1, undefined, "2025-03-15", `${lastYear}-12-31`);
-  });
-
-  it("takes a day from the calendar picker as DD/MM/YYYY", async () => {
-    const input = document.createElement("input");
-    input.type = "date";
-    input.value = "2026-04-09";
-    component.pickDay("to", { target: input } as unknown as Event);
-    await fixture.whenStable();
-
-    expect(component.toText()).toBe("09/04/2026");
+    expect(overviewService.getGroupOverview).toHaveBeenLastCalledWith(1, undefined, "2025-01-01", "2025-12-31");
+    expect(component.periodLabel()).toBe("2025");
   });
 
   it("waits for a complete custom range before asking", async () => {
     overviewService.getGroupOverview.mockClear();
-    component.selectPeriod("CUSTOM");
-    component.customFrom.set("01/10/2026");
-    component.customTo.set("");
+    component.period.set(undefined);
     await fixture.whenStable();
 
     expect(overviewService.getGroupOverview).not.toHaveBeenCalled();
     expect(text("overview-pick-range")).toContain("Type a first and a last day");
 
-    component.customTo.set("10/10/2026");
+    component.period.set({ from: "2026-10-01", to: "2026-10-10", label: "1 Oct 2026 – 10 Oct 2026" });
     await fixture.whenStable();
 
     expect(overviewService.getGroupOverview).toHaveBeenLastCalledWith(1, undefined, "2026-10-01", "2026-10-10");

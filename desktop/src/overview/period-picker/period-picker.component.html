@@ -1,0 +1,43 @@
+<div class="period" data-testid="overview-period">
+  <div class="period__tabs">
+    <app-filter-bar [tabs]="periodTabs" [value]="preset()" (valueChange)="selectPeriod($event)"></app-filter-bar>
+  </div>
+  <div class="period__range" data-testid="overview-custom-range">
+    <label>
+      <span>From</span>
+      <span class="period__date-field">
+        <input
+          type="text"
+          inputmode="numeric"
+          placeholder="DD/MM/YYYY"
+          maxlength="10"
+          data-testid="overview-custom-from"
+          [value]="fromText()"
+          (input)="typeDay('from', $event)"
+        />
+        <button type="button" class="period__picker-button" aria-label="Pick the first day" data-testid="overview-pick-from" (click)="fromPicker.showPicker()">
+          <mat-icon>calendar_month</mat-icon>
+        </button>
+        <input #fromPicker type="date" class="period__native-picker" tabindex="-1" aria-hidden="true" (change)="pickDay('from', $event)" />
+      </span>
+    </label>
+    <label>
+      <span>To</span>
+      <span class="period__date-field">
+        <input
+          type="text"
+          inputmode="numeric"
+          placeholder="DD/MM/YYYY"
+          maxlength="10"
+          data-testid="overview-custom-to"
+          [value]="toText()"
+          (input)="typeDay('to', $event)"
+        />
+        <button type="button" class="period__picker-button" aria-label="Pick the last day" data-testid="overview-pick-to" (click)="toPicker.showPicker()">
+          <mat-icon>calendar_month</mat-icon>
+        </button>
+        <input #toPicker type="date" class="period__native-picker" tabindex="-1" aria-hidden="true" (change)="pickDay('to', $event)" />
+      </span>
+    </label>
+  </div>
+</div>
