@@ -4082,3 +4082,18 @@ spending (overspending type 1). `planned = null` (no list, not compared yet, the
   Legacy Owner are the Admin. Fixed sets, add-only reconciliation like the legacy roles; names in
   `repositories/system_role_names.go`, shared with the desktop's `utils/family-roles.ts`.
 - **Overview:** `openReceiptCount` counts DRAFT too (everything "To check").
+
+## Custom fields in the AI prompt and the app log (fork, Phase 3 step 3)
+
+- **F2 custom fields:** `DefaultReceiptPrompt` has an `@customFields` variable (id, name, type,
+  description, options per field) and asks for `customFields` values. `splitAiCustomFields`
+  (`services/receipt_processing_custom_fields.go`) takes that key out of the answer before the strict
+  unmarshal and reads it leniently: unknown ids, a second value for one field, and values that do not fit
+  the type (a prose date, a made-up option id, a non-number amount) are dropped, never failing the
+  receipt. Dates become midnight UTC. `ApplyDefaultCustomFields` still adds the group's defaults as
+  empty values afterwards and skips fields the AI filled.
+- **M2 Logs:** `GET /systemSettings/logs?level=&limit=` (`handlers/app_log.go`, `services/app_log.go`)
+  returns the newest entries of `logs/app.log`, newest first, as `AppLogEntry{timestamp, level,
+  message}` (level is a plain string). Only the last megabyte is read; continuation lines join the
+  previous entry; a missing file is `[]`. Gated on `app.system-settings.read` (admin only), a GET so a
+  read-only API key may call it.

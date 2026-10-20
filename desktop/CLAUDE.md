@@ -3002,3 +3002,9 @@ Tests should cover:
 - Service method behavior
 - Form validation logic
 - Error handling scenarios
+## Logs tab (fork, Phase 3 M2)
+
+System Settings → **Logs** (`src/system-settings/logs/`, standalone `LogsPageComponent`): the newest 300
+lines of the application log with an All / Errors / Info filter and Refresh. It is the last tab, in both
+`system-settings.component.ts` and `system-settings-landing.guard.ts`, gated on
+`app.system-settings.read`. Backend: `api/CLAUDE.md` → "Custom fields in the AI prompt and the app log".
