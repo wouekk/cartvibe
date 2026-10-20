@@ -85,6 +85,14 @@ app-sidebar {
     }
   }
 
+  .sidebar__group--static {
+    cursor: default;
+
+    &:hover {
+      background: $sidebar-raised;
+    }
+  }
+
   .sidebar__group-text {
     display: flex;
     flex-direction: column;

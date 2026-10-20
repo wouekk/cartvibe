@@ -214,3 +214,27 @@ func (repository SystemSettingsRepository) UpdateSystemSettings(command commands
 
 	return updatedSettings, nil
 }
+
+// SeedEuroForNewInstall gives a brand-new install euros as its currency (Phase 3 M7). It only acts
+// when no settings row exists yet, so an existing install keeps what it has. It is called from InitDB,
+// not from GetSystemSettings, so the test database (which never runs InitDB) keeps the model's `$`.
+func SeedEuroForNewInstall() error {
+	db := GetDB()
+
+	var count int64
+	if err := db.Model(&models.SystemSettings{}).Count(&count).Error; err != nil {
+		return err
+	}
+	if count > 0 {
+		return nil
+	}
+
+	// A symbol after the amount starts with a space because the currency pipe appends it as is.
+	return db.Create(&models.SystemSettings{
+		BaseModel:                    models.BaseModel{ID: 1},
+		CurrencyDisplay:              " €",
+		CurrencySymbolPosition:       models.END,
+		CurrencyThousandthsSeparator: models.DOT,
+		CurrencyDecimalSeparator:     models.COMMA,
+	}).Error
+}

@@ -176,6 +176,13 @@ describe("SidebarComponent", () => {
     it("lists only the administration pages the user may read, once expanded", async () => {
       login();
       store.dispatch(
+        new SetGroups([
+          { id: 10, name: "All", isAllGroup: true } as Group,
+          { id: 5, name: "Home", isAllGroup: false } as Group,
+          { id: 6, name: "Cabin", isAllGroup: false } as Group,
+        ])
+      );
+      store.dispatch(
         new SetPermissions(
           ["app.categories.read", "app.tags.read", "app.groups.read", "app.custom-fields.read"],
           {}
@@ -194,6 +201,25 @@ describe("SidebarComponent", () => {
       expect(text).toContain("Manage Custom Fields");
       expect(text).not.toContain("Manage Users");
       expect(text).not.toContain("System Settings");
+    });
+
+    it("hides Manage Groups and the group switcher while there is only one real group (Phase 3 M5)", async () => {
+      login();
+      store.dispatch(
+        new SetGroups([
+          { id: 10, name: "All", isAllGroup: true } as Group,
+          { id: 5, name: "Household", isAllGroup: false } as Group,
+        ])
+      );
+      store.dispatch(new SetPermissions(["app.categories.read", "app.groups.read"], {}));
+      await fixture.whenStable();
+
+      queryTestId("sidebar-manage-toggle").nativeElement.click();
+      await fixture.whenStable();
+
+      expect(sidebarText()).not.toContain("Manage Groups");
+      expect(queryTestId("sidebar-group-switcher")).toBeFalsy();
+      expect(queryTestId("sidebar-group-static").nativeElement.textContent).toContain("Household");
     });
 
     it("starts expanded on one of its own pages", async () => {

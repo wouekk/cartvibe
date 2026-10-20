@@ -8,7 +8,18 @@
       (closedStart)="closeMobileSidebar()"
     >
       <nav class="sidebar" aria-label="Main navigation">
-        @if (groups().length > 0) {
+        @if (groups().length > 0 && !hasSeveralGroups()) {
+          <div class="sidebar__group sidebar__group--static" data-testid="sidebar-group-static">
+            <app-avatar class="sidebar__avatar" [group]="shownGroup()"></app-avatar>
+            @if (!isCollapsed()) {
+              <span class="sidebar__group-text">
+                <span class="sidebar__caption">Household</span>
+                <span class="sidebar__group-name">{{ shownGroup()?.name }}</span>
+              </span>
+            }
+          </div>
+        }
+        @if (groups().length > 0 && hasSeveralGroups()) {
           <button
             type="button"
             class="sidebar__group"

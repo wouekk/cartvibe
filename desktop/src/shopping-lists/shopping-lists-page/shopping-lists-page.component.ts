@@ -3,12 +3,14 @@ import { toSignal } from "@angular/core/rxjs-interop";
 import { MatDialog } from "@angular/material/dialog";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
-import { filter, map, switchMap, take } from "rxjs";
+import { concatMap, filter, from, map, switchMap, take, tap, toArray } from "rxjs";
 import { Permission, ShoppingList, ShoppingListService } from "../../open-api";
 import { ShoppingListStreamService } from "../../services/shopping-list-stream.service";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { FilterTab } from "../../shared-ui/filter-bar/filter-tab.interface";
 import { AuthState, GroupState } from "../../store";
+import { nameForToday } from "../../utils/app-time-zone";
+import { SystemSettingsState } from "../../store/system-settings.state";
 import { ShoppingListEventType, ShoppingListState } from "../../store/shopping-list.state";
 import {
   ApplyShoppingListEvent,
@@ -120,6 +122,56 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
         filter((list): list is ShoppingList => !!list)
       )
       .subscribe((list) => this.store.dispatch(new SelectShoppingList(list.id)));
+  }
+
+  /**
+   * Starts a new list (named after today) with the open and crossed-off items of this one, all
+   * unchecked: the same shop again, without retyping it (Phase 3 S2).
+   */
+  public copyList(list: ShoppingList): void {
+    const name = nameForToday("List", this.store.selectSnapshot(SystemSettingsState.timeZone));
+
+    this.shoppingListService
+      .createShoppingList(this.groupId(), { name })
+      .pipe(
+        take(1),
+        tap((created) =>
+          this.store.dispatch(
+            new ApplyShoppingListEvent({
+              type: ShoppingListEventType.ListCreated,
+              groupId: created.groupId,
+              shoppingListId: created.id,
+              list: created,
+            })
+          )
+        ),
+        concatMap((created) =>
+          from(list.items).pipe(
+            concatMap((item) =>
+              this.shoppingListService.addShoppingListItem(created.id, {
+                name: item.name,
+                amount: item.amount ?? undefined,
+                unit: item.amount ? item.unit : undefined,
+                quantity: item.amount ? undefined : item.quantity || undefined,
+                note: item.note || undefined,
+              })
+            ),
+            tap((item) =>
+              this.store.dispatch(
+                new ApplyShoppingListEvent({
+                  type: ShoppingListEventType.ItemAdded,
+                  groupId: created.groupId,
+                  shoppingListId: created.id,
+                  item,
+                })
+              )
+            ),
+            toArray(),
+            map(() => created)
+          )
+        )
+      )
+      .subscribe((created) => this.store.dispatch(new SelectShoppingList(created.id)));
   }
 
   public renameList(list: ShoppingList): void {

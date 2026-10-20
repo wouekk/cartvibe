@@ -99,6 +99,18 @@ export class SidebarComponent {
     this.allGroups().filter((g: Group) => g.status !== GroupStatus.Archived)
   );
 
+  /** With only one real group (the Household, Phase 3 M5) there is nothing to switch between or manage. */
+  public readonly hasSeveralGroups = computed(() => this.groups().filter((g: Group) => !g.isAllGroup).length > 1);
+
+  /** What the header names: the chosen group, or the only real one while the "All" group is chosen. */
+  public readonly shownGroup = computed(() => {
+    const selected = this.allGroups().find((group) => group.id === this.selectedGroupIdNumber());
+    if (this.hasSeveralGroups() || (selected && !selected.isAllGroup)) {
+      return selected;
+    }
+    return this.groups().find((g: Group) => !g.isAllGroup) ?? selected;
+  });
+
   public readonly selectedGroup = computed(() =>
     this.allGroups().find((group) => group.id === this.selectedGroupIdNumber())
   );
@@ -198,7 +210,7 @@ export class SidebarComponent {
     if (has(Permission.AppCustomFieldsRead)) {
       items.push({ label: "Manage Custom Fields", icon: "dynamic_form", link: ["/custom-fields"] });
     }
-    if (has(Permission.AppGroupsRead)) {
+    if (has(Permission.AppGroupsRead) && this.hasSeveralGroups()) {
       items.push({ label: "Manage Groups", icon: "groups", link: ["/groups"] });
     }
     if (has(Permission.AppUsersRead)) {
