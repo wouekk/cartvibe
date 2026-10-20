@@ -1,0 +1,68 @@
+<div class="rates" data-testid="exchange-rates">
+  <strong>Exchange rates</strong>
+  <p class="rates__intro">
+    A receipt in another currency is converted to the main currency when it is added, at the rate you type here.
+    A currency without a rate keeps the receipt as read and flags it until you add one. Changing a rate later
+    does not change receipts that were already converted.
+  </p>
+
+  @if (!loaded()) {
+    <p class="rates__muted">Loading…</p>
+  } @else if (!enabled()) {
+    <p class="rates__muted" data-testid="exchange-rates-disabled">
+      Choose a named currency above (Euro, Zloty, Pound, Franc or Dollar) to convert other currencies into it.
+    </p>
+  } @else {
+    @for (row of rows(); track row.code; let index = $index) {
+      <div class="rates__row" [attr.data-testid]="'exchange-rate-' + row.code">
+        <span class="rates__code">1 {{ row.code }} =</span>
+        <input
+          type="text"
+          inputmode="decimal"
+          class="rates__input"
+          placeholder="rate"
+          [attr.aria-label]="'Rate for ' + row.code"
+          [attr.data-testid]="'exchange-rate-input-' + row.code"
+          [disabled]="!canUpdate()"
+          [value]="row.rate"
+          (input)="setRate(index, $event)"
+        />
+        <span class="rates__main">{{ mainCurrency() }}</span>
+        @if (!row.rate) {
+          <span class="rates__missing">no rate yet</span>
+        }
+        @if (canUpdate()) {
+          <button mat-icon-button type="button" [attr.aria-label]="'Remove ' + row.code" (click)="removeCurrency(index)">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </div>
+    }
+
+    @if (canUpdate()) {
+      <div class="rates__add">
+        <input
+          type="text"
+          class="rates__input rates__input--code"
+          maxlength="3"
+          placeholder="Add, e.g. SEK"
+          aria-label="Currency code to add"
+          data-testid="exchange-rate-new-code"
+          [value]="newCode()"
+          (input)="setNewCode($event)"
+          (keydown.enter)="addCurrency(); $event.preventDefault()"
+        />
+        <button mat-stroked-button type="button" data-testid="exchange-rate-add" (click)="addCurrency()">
+          <mat-icon>add</mat-icon>
+          Add currency
+        </button>
+      </div>
+      @if (error()) {
+        <p class="rates__error" data-testid="exchange-rates-error">{{ error() }}</p>
+      }
+      <button mat-raised-button type="button" class="rates__save" data-testid="exchange-rates-save" [disabled]="saving()" (click)="save()">
+        Save rates
+      </button>
+    }
+  }
+</div>

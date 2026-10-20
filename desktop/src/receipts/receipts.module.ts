@@ -32,6 +32,7 @@ import { DirectivesModule } from "../directives";
 import { InputModule } from "../input";
 import { MonthStepperComponent } from "../shared-ui/month-stepper/month-stepper.component";
 import { PeriodPickerComponent } from "../overview/period-picker/period-picker.component";
+import { ReceiptCurrencyNoteComponent } from "./receipt-currency-note/receipt-currency-note.component";
 import { ReceiptTotalsComponent } from "./receipt-totals/receipt-totals.component";
 import { FilteredStatefulMenuComponent } from "../standalone/components/filtered-stateful-menu/filtered-stateful-menu.component";
 import { TagAutocompleteComponent } from "../tag-autocomplete/tag-autocomplete.component";
@@ -110,6 +111,7 @@ import { UserTotalWithPercentagePipe } from "./user-total-with-percentage.pipe";
     CheckboxModule,
     MonthStepperComponent,
     PeriodPickerComponent,
+    ReceiptCurrencyNoteComponent,
     ReceiptTotalsComponent,
     ReceiptProductsComponent,
   ],

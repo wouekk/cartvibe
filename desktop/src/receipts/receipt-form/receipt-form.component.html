@@ -61,6 +61,7 @@
                   [inputFormControl]="form | formGet : 'syncAmountWithItems'"
                 ></app-checkbox>
               }
+            <app-receipt-currency-note class="w-100" [receipt]="originalReceipt"></app-receipt-currency-note>
             </div>
             @if (!this.selectedGroup()?.groupReceiptSettings?.hideReceiptCategories) {
               <app-category-autocomplete

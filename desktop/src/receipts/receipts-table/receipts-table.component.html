@@ -223,6 +223,7 @@
 
 <ng-template #amountCell let-element="element">
   {{ element.amount | customCurrency }}
+  <app-receipt-currency-note [receipt]="element"></app-receipt-currency-note>
 </ng-template>
 
 <ng-template #categoryCell let-element="element">

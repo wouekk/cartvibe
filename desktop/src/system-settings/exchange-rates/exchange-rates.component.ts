@@ -1,0 +1,125 @@
+import { CommonModule } from "@angular/common";
+import { Component, computed, inject, OnInit, signal } from "@angular/core";
+import { MatButtonModule } from "@angular/material/button";
+import { MatIconModule } from "@angular/material/icon";
+import { Store } from "@ngxs/store";
+import { take } from "rxjs";
+import { ExchangeRate, ExchangeRateService, ExchangeRates, Permission } from "../../open-api";
+import { SnackbarService } from "../../services";
+import { AuthState } from "../../store";
+import { parseCurrencyCode, parseRateInput } from "./exchange-rate-input";
+
+/** One row of the editor: a currency and the rate as typed (a string, so a half-typed number survives). */
+interface RateRow {
+  code: string;
+  rate: string;
+}
+
+/**
+ * The household's exchange rates (Phase 3 currencies): "1 CHF = 1,04 EUR". A receipt in one of these
+ * currencies is converted when it is added, at the rate typed here; a currency without a rate keeps the
+ * receipt unconverted and flagged until one is entered. It saves on its own, apart from the settings form.
+ */
+@Component({
+  selector: "app-exchange-rates",
+  templateUrl: "./exchange-rates.component.html",
+  styleUrls: ["./exchange-rates.component.scss"],
+  standalone: true,
+  imports: [CommonModule, MatButtonModule, MatIconModule],
+})
+export class ExchangeRatesComponent implements OnInit {
+  private readonly exchangeRateService = inject(ExchangeRateService);
+  private readonly snackbarService = inject(SnackbarService);
+  private readonly store = inject(Store);
+
+  public readonly mainCurrency = signal("");
+
+  public readonly rows = signal<RateRow[]>([]);
+
+  public readonly newCode = signal("");
+
+  public readonly error = signal("");
+
+  public readonly saving = signal(false);
+
+  public readonly loaded = signal(false);
+
+  public readonly canUpdate = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppSystemSettingsUpdate));
+
+  /** Without a named main currency (a custom symbol) there is nothing to convert into. */
+  public readonly enabled = computed(() => this.mainCurrency() !== "");
+
+  public ngOnInit(): void {
+    this.exchangeRateService
+      .getExchangeRates()
+      .pipe(take(1))
+      .subscribe((view) => {
+        this.show(view);
+        this.loaded.set(true);
+      });
+  }
+
+  public setRate(index: number, event: Event): void {
+    const rate = (event.target as HTMLInputElement).value;
+    this.rows.update((rows) => rows.map((row, i) => (i === index ? { ...row, rate } : row)));
+  }
+
+  public setNewCode(event: Event): void {
+    this.newCode.set((event.target as HTMLInputElement).value);
+  }
+
+  public addCurrency(): void {
+    const code = parseCurrencyCode(this.newCode());
+    if (!code) {
+      this.error.set("A currency code is three letters, like CHF.");
+      return;
+    }
+    if (code === this.mainCurrency()) {
+      this.error.set(`${code} is the main currency and needs no rate.`);
+      return;
+    }
+    if (this.rows().some((row) => row.code === code)) {
+      this.error.set(`${code} is already listed.`);
+      return;
+    }
+
+    this.error.set("");
+    this.rows.update((rows) => [...rows, { code, rate: "" }].sort((a, b) => a.code.localeCompare(b.code)));
+    this.newCode.set("");
+  }
+
+  public removeCurrency(index: number): void {
+    this.rows.update((rows) => rows.filter((_, i) => i !== index));
+  }
+
+  public save(): void {
+    const rates: ExchangeRate[] = [];
+    for (const row of this.rows()) {
+      const parsed = parseRateInput(row.rate);
+      if (!parsed.ok) {
+        this.error.set(`The rate for ${row.code} must be a number above 0, like 1,04.`);
+        return;
+      }
+      rates.push({ code: row.code, rate: parsed.value ?? null });
+    }
+
+    this.error.set("");
+    this.saving.set(true);
+    this.exchangeRateService
+      .updateExchangeRates({ mainCurrency: this.mainCurrency(), rates })
+      .pipe(take(1))
+      .subscribe({
+        next: (view) => {
+          this.show(view);
+          this.snackbarService.success("Exchange rates saved");
+          this.saving.set(false);
+        },
+        error: () => this.saving.set(false),
+      });
+  }
+
+  private show(view: ExchangeRates): void {
+    this.mainCurrency.set(view.mainCurrency ?? "");
+    this.rows.set(view.rates.map((rate) => ({ code: rate.code, rate: rate.rate ?? "" })));
+  }
+}
