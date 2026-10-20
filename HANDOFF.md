@@ -18,7 +18,8 @@
 ### Claude Code
 1. Build Phase 3 from `docs/family-budget-rework.md` in its suggested order (B1, R3, R6, R2
    first), on a `feature/` branch. The plan lives on `chore/phase-3-plan` until merged into `main`.
-2. Phase 2d (monthly goals), then 2e — they slot into the reworked dashboard.
+2. Its last step is the former 2d (monthly goals) and 2e (dashboard tiles), now G1 and D4 of the
+   same plan.
 
 ### User
 - Try a shopping list's "Receipts from this list" section (2c) on the phone.

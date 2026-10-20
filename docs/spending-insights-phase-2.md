@@ -106,6 +106,9 @@ on the NAS.
 4. **2d** Monthly spending goals.
 5. **2e** The new Overview tiles and the AI insights card.
 
+**2d and 2e moved into Phase 3** (`docs/family-budget-rework.md`, G1 and D4) on 2026-10-20: both
+land on the Dashboard that the family budget rework rebuilds. The design above still applies.
+
 Each step is usable on its own and ships separately.
 
 ## Decisions (answered by the user, 2026-10-20)

@@ -78,8 +78,8 @@ These are distilled from incidents and reviews; the linked sections explain them
 | Shopping lists + live sync (SSE), amount + unit | `docs/shopping-list-phase-1.md` | `api/CLAUDE.md`, `desktop/CLAUDE.md` → "Shopping lists" |
 | Overview landing page + 6-month trend | — | `api/CLAUDE.md` → "Group overview", `desktop/CLAUDE.md` → "Overview page" |
 | Labeled dark sidebar | — | `desktop/CLAUDE.md` → "Navigation sidebar" |
-| Spending insights: receipt products (2a), health/seasonality (2b), receipt ↔ list comparison (2c), goals (2d) | `docs/spending-insights-phase-2.md` | `api/CLAUDE.md` → "Receipt products", "Health and seasonality tags", "Shopping trips" |
-| Family budget rework (Phase 3, planned) | `docs/family-budget-rework.md` | — |
+| Spending insights: receipt products (2a), health/seasonality (2b), receipt ↔ list comparison (2c); goals and tiles moved to Phase 3 | `docs/spending-insights-phase-2.md` | `api/CLAUDE.md` → "Receipt products", "Health and seasonality tags", "Shopping trips" |
+| Family budget rework, incl. goals and dashboard tiles (Phase 3, planned) | `docs/family-budget-rework.md` | — |
 | CI-built image, NAS compose | — | `AGENTS.md` §2 |
 
 ## Code changes

@@ -32,9 +32,9 @@ https://claude.ai/artifact/TAZXoRQ4mmRyoy37CFKRVt) is the target look. The plan 
 - **2c — attach a receipt to a list:** the AI matches products to the list; products not on it are
   **unplanned spend** (every one counts). A receipt without a list counts as planned. When the AI is
   unavailable the photo waits and the read is retried automatically. *(shipped)*
-- **2d — monthly spending goals:** optional overall and/or per-category goals.
+- **2d — monthly spending goals:** optional overall and/or per-category goals. *(moved into Phase 3)*
 - **2e — overview tiles:** unplanned spend, unhealthy share (every receipt with food, whatever its
-  category), goal progress, a short AI summary.
+  category), goal progress, a short AI summary. *(moved into Phase 3)*
 
 ### Next — Phase 3, family budget rework (`docs/family-budget-rework.md`)
 - Make the app match the approved design and a family's needs: Dashboard landing page with "Add
