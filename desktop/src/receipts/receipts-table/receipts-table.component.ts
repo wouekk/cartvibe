@@ -8,6 +8,7 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
 import { DONE_STATUSES } from "../../utils/receipt-status";
+import { ResolvedPeriod } from "../../overview/overview-period";
 import { catchError, EMPTY, map, Subject, switchMap, take, tap } from "rxjs";
 import { fadeInOut } from "src/animations";
 import { ReceiptFilterService } from "src/services/receipt-filter.service";
@@ -105,6 +106,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
   readonly nameCell = viewChild.required<TemplateRef<any>>("nameCell");
   readonly shopCell = viewChild.required<TemplateRef<any>>("shopCell");
+  readonly addedByCell = viewChild.required<TemplateRef<any>>("addedByCell");
 
 
   readonly amountCell = viewChild.required<TemplateRef<any>>("amountCell");
@@ -493,6 +495,13 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
         sortable: true,
       },
       {
+        // Who added the receipt (the paid by user, which a family does not distinguish).
+        columnHeader: RECEIPT_COLUMN_DISPLAY_NAMES["paid_by_user_id"],
+        matColumnDef: "paid_by_user_id",
+        template: this.addedByCell(),
+        sortable: true,
+      },
+      {
         columnHeader: "Amount",
         matColumnDef: "amount",
         template: this.amountCell(),
@@ -636,6 +645,21 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
         })
       )
       .subscribe();
+  }
+
+  /**
+   * The period picker's choice becomes the Receipt Date filter, a closed range of calendar days. An
+   * incomplete custom range changes nothing until it is complete.
+   */
+  public periodSelected(period: ResolvedPeriod | undefined): void {
+    if (!period) {
+      return;
+    }
+
+    this.applyFilterField("date", {
+      operation: FilterOperation.Between,
+      value: [dayKeyToLocalDate(period.from), dayKeyToLocalDate(period.to)],
+    } as any);
   }
 
   public monthSelected(month: FilterMonth): void {
@@ -993,4 +1017,10 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     const receiptIds = this.dataSource().data.map(data => data.id);
     this.receiptExportService.exportReceiptsById(receiptIds);
   }
+}
+
+/** "2026-10-20" as the datepicker's local-midnight Date, the form a date filter entry holds. */
+function dayKeyToLocalDate(day: string): Date {
+  const [year, month, date] = day.split("-").map(Number);
+  return new Date(year, month - 1, date);
 }
