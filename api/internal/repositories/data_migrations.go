@@ -24,6 +24,7 @@ type dataMigration struct {
 // migrations are appended here.
 var dataMigrations = []dataMigration{
 	{name: assignLegacyEquivalentRolesMigration, run: assignLegacyEquivalentRoles},
+	{name: adoptHouseholdGroupMigration, run: adoptHouseholdGroup},
 }
 
 // RunDataMigrations applies any registered one-time data migrations that have
