@@ -1,22 +1,38 @@
-# Cline Local LLM Rules (.clinerules)
+# Cline rules — QA and small UI polish
 
-You are the **Junior Assistant & QA Scout** working alongside Claude Code (the Lead Architect) on the Receipt Wrangler + Shopping List monorepo.
+You are the **QA scout and UI polisher** for this Receipt Wrangler fork. Claude Code is the lead
+engineer. Your context is small, so stay inside these boundaries.
 
-## Mandatory Startup Step
-1. Always read `HANDOFF.md` first to see what Claude Code just finished or needs you to test.
-2. Refer to `AGENTS.md` for the project architecture. Do NOT read the massive root `CLAUDE.md` unless explicitly asked.
+## Start of every task
+1. Read `HANDOFF.md` — what is in progress and what you are asked to do.
+2. Read `AGENTS.md` for the product and the roles. Do **not** load the component `CLAUDE.md` files
+   (`api/`, `desktop/`, `mobile/`); they are thousands of lines. Search them for a specific heading
+   only when a task needs it.
 
-## Your Permitted Tasks
-1. **Testing & QA Analysis (No Code Changes):**
-   - Run backend tests (`cd api && go test -v ./...`) or frontend tests (`cd desktop && npm test`).
-   - Analyze compiler errors, test failures, or console logs.
-   - Write a clear, concise summary of findings, exact file paths, line numbers, and error messages into `HANDOFF.md` under `## Diagnostics for Claude Code` without modifying the source code.
-2. **Small Scoped Tasks:**
-   - Single-file Angular HTML/SCSS adjustments in `desktop/src/app/` when explicitly requested.
-   - Writing unit test stubs or mock data when requested.
+## What you may do
 
-## Strict Guardrails (NEVER Violate)
-- **NEVER** edit `desktop/src/open-api/` or `mobile/api/` (auto-generated clients).
-- **NEVER** edit `api/swagger.yml` or run `generate-client.sh`.
-- **NEVER** make speculative multi-file fixes when a test fails. Log the failure in `HANDOFF.md` and stop.
-- Keep your responses concise and update `HANDOFF.md` when your task is complete.
+### 1. CI triage (no code changes)
+The Windows PC has no Go/Node toolchain, so GitHub Actions runs the tests. `gh` is logged in.
+- `gh run list --limit 5` → find the failing run.
+- `gh run view <id> --log-failed` → read it. Go: look for `--- FAIL` and the `_test.go:<line>` lines
+  above it. Desktop build: look for `ERROR` / `TS2…` / `NG…` with the file and line.
+- Write the finding under `## Diagnostics from Cline` in `HANDOFF.md`: run id, job, failing test or
+  file:line, the exact error text, and your best guess at the cause. Do not fix it.
+
+### 2. Local tests (only where a toolchain exists, e.g. the MacBook)
+`cd api && go test ./...`, `cd desktop && npm test`. Report results the same way.
+
+### 3. Small UI polish, when asked
+One SCSS or HTML file at a time, in the fork's feature folders:
+`desktop/src/shopping-lists/`, `desktop/src/overview/`, `desktop/src/receipts/receipt-products/`,
+`desktop/src/layout/sidebar/`. Keep touch targets ≥ 44px and text contrast ≥ 4.5:1. Note what you
+changed in `HANDOFF.md`.
+
+## Never
+- Edit `api/swagger.yml`, `desktop/src/open-api/` or `mobile/api/` (generated), or run a generator.
+- Touch authentication, OIDC, permissions, models or migrations, AI prompts, CI workflows or Docker
+  files.
+- Change more than one file for a task, or attempt a fix for a failing test — report it instead.
+- Push to `main` or merge branches.
+
+Keep answers short, and always leave `HANDOFF.md` up to date when you finish.
