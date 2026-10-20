@@ -358,7 +358,17 @@
           </table>
         </div>
       } @else {
-        <p class="empty">No receipts in {{ periodLabel() }}.</p>
+        <div class="empty-state" data-testid="overview-receipts-empty">
+          <p class="empty">No receipts yet in {{ periodLabel() }}.</p>
+          @if (canAddReceipt()) {
+            <app-add-button
+              buttonText="Add receipt"
+              tooltip="Add a receipt"
+              data-testid="overview-empty-add-receipt"
+              [buttonRouterLink]="['/receipts/add']"
+            ></app-add-button>
+          }
+        </div>
       }
     </section>
 
@@ -368,17 +378,31 @@
           <h2 id="overview-lists-title">Shopping lists</h2>
           <a [routerLink]="['/shopping-lists/group', listGroupId]">Open</a>
         </div>
-        @for (list of listSummaries(); track list.id) {
-          <a class="list-card" [routerLink]="['/shopping-lists/group', listGroupId]">
-            <mat-icon class="list-card__icon" aria-hidden="true">shopping_cart</mat-icon>
-            <span class="list-card__text">
-              <span class="strong">{{ list.name }}</span>
-              <span class="muted small">{{ list.preview }}</span>
-            </span>
-            <span class="list-card__count">{{ list.count }}</span>
-          </a>
-        } @empty {
-          <p class="empty">No shopping lists yet.</p>
+        @if (itemsToBuy() === 0) {
+          <div class="empty-state" data-testid="overview-lists-empty">
+            <p class="empty">There are no items in the shopping lists.</p>
+            @if (canCreateList()) {
+              <app-button
+                icon="playlist_add"
+                buttonText="New list"
+                matButtonType="matRaisedButton"
+                data-testid="overview-empty-new-list"
+                [buttonRouterLink]="newListLink()"
+                [buttonQueryParams]="{ new: 'list' }"
+              ></app-button>
+            }
+          </div>
+        } @else {
+          @for (list of listSummaries(); track list.id) {
+            <a class="list-card" [routerLink]="['/shopping-lists/group', listGroupId]">
+              <mat-icon class="list-card__icon" aria-hidden="true">shopping_cart</mat-icon>
+              <span class="list-card__text">
+                <span class="strong">{{ list.name }}</span>
+                <span class="muted small">{{ list.preview }}</span>
+              </span>
+              <span class="list-card__count">{{ list.count }}</span>
+            </a>
+          }
         }
       </section>
     }

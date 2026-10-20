@@ -1,20 +1,17 @@
 <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#0071e3"/>
-      <stop offset="100%" stop-color="#5856d6"/>
+      <stop offset="0%" stop-color="#0086d4"/>
+      <stop offset="100%" stop-color="#0072b4"/>
     </linearGradient>
     <linearGradient id="h" x1="22" y1="26" x2="44" y2="48" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#ff7b54"/>
       <stop offset="100%" stop-color="#ef4444"/>
     </linearGradient>
   </defs>
-  <rect x="2" y="2" width="56" height="56" rx="14" fill="url(#g)"/>
-  <path d="M22 12 L25.5 14 L29 12 L32.5 14 L36 12 L39.5 14 L43 12 V34 H22 V12 Z" fill="white" fill-opacity="0.88"/>
-  <path d="M11 19 H16.5 L21 41 H44.5 L48 25 H18" stroke="white" stroke-opacity="0.9" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="white" fill-opacity="0.18"/>
-  <circle cx="23.5" cy="48.5" r="3.5" fill="white" fill-opacity="0.9"/>
-  <circle cx="41.5" cy="48.5" r="3.5" fill="white" fill-opacity="0.9"/>
-  <path d="M32.5 44.5 C32.5 44.5 22 37.8 22 30.8 C22 27.5 24.6 25 27.8 25 C29.7 25 31.4 26 32.5 27.5 C33.6 26 35.3 25 37.2 25 C40.4 25 43 27.5 43 30.8 C43 37.8 32.5 44.5 32.5 44.5 Z" fill="url(#h)"/>
-  <path d="M20 34.5 H27.5 L29.8 29.5 L32.8 39 L35.5 31.5 L37.2 34.5 H45" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M55 2 C55 7.5 56.5 9 62 9 C56.5 9 55 10.5 55 16 C55 10.5 53.5 9 48 9 C53.5 9 55 7.5 55 2 Z" fill="white" stroke="#0071e3" stroke-width="1"/>
+  <rect x="2" y="2" width="60" height="60" rx="15" fill="url(#g)"/>
+  <path d="M10 18 H16 L21 42 H46 L50 24 H17.5" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="white" fill-opacity="0.16"/>
+  <circle cx="24.5" cy="50" r="3.8" fill="white"/>
+  <circle cx="42.5" cy="50" r="3.8" fill="white"/>
+  <path d="M33.5 40 C33.5 40 24 34 24 28 C24 25 26.3 23 29 23 C30.8 23 32.5 24 33.5 25.4 C34.5 24 36.2 23 38 23 C40.7 23 43 25 43 28 C43 34 33.5 40 33.5 40 Z" fill="url(#h)"/>
 </svg>

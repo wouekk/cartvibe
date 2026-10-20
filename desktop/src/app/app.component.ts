@@ -6,6 +6,7 @@ import { interval, take, tap } from "rxjs";
 import { HideProgressBar } from "src/store/layout.state.actions";
 import { TokenRefreshService } from "../services";
 import { AuthState } from "../store";
+import { ThemeService } from "../theme/theme.service";
 
 @UntilDestroy()
 @Component({
@@ -18,7 +19,9 @@ export class AppComponent implements OnInit {
 
   constructor(
     private tokenRefreshService: TokenRefreshService,
-    private store: Store
+    private store: Store,
+    // Created here so the stored theme is applied, and follows the system, from the first screen on.
+    private themeService: ThemeService
   ) {}
 
   public ngOnInit(): void {

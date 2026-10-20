@@ -7,10 +7,10 @@ const MONTH_NAMES = [
 ];
 
 /**
- * Category colors, in order. The first is the app's primary; the rest differ in lightness as well
- * as hue, so neighbouring slices stay distinguishable without relying on color alone.
+ * Category colors, in order: fixed, high-contrast hues that never follow the accent theme, so a slice keeps its
+ * meaning (and stays readable) whichever theme is picked. Sky, amber, red, violet, pink, teal.
  */
-export const CATEGORY_COLORS = ["#0086d4", "#f59e0b", "#e2562f", "#7c5cd6", "#0f9d74", "#64748b"];
+export const CATEGORY_COLORS = ["#0ea5e9", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#14b8a6"];
 
 /** Categories beyond this many are folded into "Other", so the ring stays readable. */
 export const MAX_DONUT_SEGMENTS = 5;

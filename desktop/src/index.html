@@ -5,29 +5,47 @@
     <title>CartVibe</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/x-icon" href="favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 
-    <!-- Accent theme, applied before the first paint so the chosen color never flashes. -->
+    <!--
+      The stored look, applied before the first paint so neither the accent nor the dark mode flashes. The
+      Theme tab in User Settings (ThemeService) writes the same two keys and keeps them in step afterwards.
+    -->
     <script>
       (function () {
-        var themes = ["blue", "green", "amber", "indigo"];
-        var stored = "blue";
+        var root = document.documentElement;
+        var accents = ["classic", "emerald", "violet", "brown", "graphite"];
+        var legacy = { blue: "classic", green: "emerald", amber: "classic", indigo: "violet" };
+        var accent = "classic";
+        var mode = "system";
         try {
-          var value = window.localStorage.getItem("rw_accent_theme");
-          if (themes.indexOf(value) > -1) {
-            stored = value;
+          var storedAccent = window.localStorage.getItem("rw_accent_theme");
+          storedAccent = legacy[storedAccent] || storedAccent;
+          if (accents.indexOf(storedAccent) > -1) {
+            accent = storedAccent;
+          }
+          var storedMode = window.localStorage.getItem("rw_theme_mode");
+          if (storedMode === "light" || storedMode === "dark") {
+            mode = storedMode;
           }
         } catch (e) {}
-        document.documentElement.setAttribute("data-accent", stored);
+        var dark =
+          mode === "dark" ||
+          (mode === "system" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        if (dark) {
+          root.classList.add("dark");
+        }
+        root.setAttribute("data-theme", dark ? "dark" : "light");
+        root.setAttribute("data-accent", accent);
       })();
     </script>
 
     <!--
-      Tailwind (CDN) for the small utility layer this skin uses. Two settings keep it from touching the app:
-      Preflight is off, so there is no base reset over the component library, and every utility carries the
-      "tw-" prefix, so Tailwind never generates rules for the classes the app already uses (Bootstrap's mb-3,
-      table, border...). The skin itself is the plain CSS below, so the app looks right even if the CDN is
-      unreachable.
+      Tailwind (CDN) for the small utility layer this skin uses. Preflight is off, so there is no base reset
+      over the component library; every utility carries the "tw-" prefix, so Tailwind never generates rules
+      for the classes the app already uses (Bootstrap's mb-3, table, border...); and dark mode follows the
+      "dark" class on <html>, never the operating system. The skin itself is the plain CSS below, so the app
+      looks right even if the CDN is unreachable.
     -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -35,16 +53,17 @@
         tailwind.config = {
           prefix: "tw-",
           corePlugins: { preflight: false },
-          darkMode: "media",
+          darkMode: "class",
           theme: {
             extend: {
               fontFamily: {
-                sans: ["-apple-system", "BlinkMacSystemFont", '"SF Pro Text"', '"SF Pro Display"', '"Segoe UI"', "Roboto", "sans-serif"],
+                sans: ["-apple-system", "BlinkMacSystemFont", '"Segoe UI"', "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
               },
               colors: {
                 accent: {
                   DEFAULT: "var(--accent-color)",
                   hover: "var(--accent-hover)",
+                  light: "var(--accent-light)",
                   soft: "var(--accent-soft)",
                 },
               },
@@ -55,36 +74,91 @@
     </script>
 
     <style>
-      /* ---------- Accent themes (the picker in the header writes data-accent on <html>) ---------- */
+      /* ---------- Accent themes (the Theme tab in User Settings writes data-accent on <html>) ----------
+         --accent-color / --accent-hover: buttons, active items, links. --accent-soft: tinted backgrounds.
+         --chart-good: the "good" color of the bars, picked to contrast with the accent (bad is always red). */
       :root,
-      :root[data-accent="blue"] {
-        --accent-color: #0071e3;
-        --accent-hover: #0062c4;
-        --accent-soft: rgba(0, 113, 227, 0.12);
+      :root[data-accent="classic"] {
+        --accent-color: #0086d4;
+        --accent-hover: #0072b4;
+        --accent-light: #38bdf8;
+        --accent-soft: rgba(0, 134, 212, 0.12);
+        --chart-good: #10b981;
       }
-      :root[data-accent="green"] {
-        --accent-color: #248a3d;
-        --accent-hover: #1e7534;
-        --accent-soft: rgba(36, 138, 61, 0.12);
+      :root[data-accent="emerald"] {
+        --accent-color: #059669;
+        --accent-hover: #047857;
+        --accent-light: #34d399;
+        --accent-soft: rgba(5, 150, 105, 0.12);
+        --chart-good: #0ea5e9;
       }
-      :root[data-accent="amber"] {
-        --accent-color: #d97706;
-        --accent-hover: #b45f06;
-        --accent-soft: rgba(217, 119, 6, 0.14);
+      :root[data-accent="violet"] {
+        --accent-color: #6f62c8;
+        --accent-hover: #5d51b0;
+        --accent-light: #a99ff0;
+        --accent-soft: rgba(111, 98, 200, 0.14);
+        --chart-good: #14b8a6;
       }
-      :root[data-accent="indigo"] {
-        --accent-color: #5856d6;
-        --accent-hover: #4a48c0;
-        --accent-soft: rgba(88, 86, 214, 0.12);
+      :root[data-accent="brown"] {
+        --accent-color: #8b5e3c;
+        --accent-hover: #734c2f;
+        --accent-light: #c4956f;
+        --accent-soft: rgba(139, 94, 60, 0.14);
+        --chart-good: #14b8a6;
+      }
+      :root[data-accent="graphite"] {
+        --accent-color: #475569;
+        --accent-hover: #334155;
+        --accent-light: #94a3b8;
+        --accent-soft: rgba(71, 85, 105, 0.14);
+        --chart-good: #0ea5e9;
       }
 
       :root {
-        --rw-font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+        --rw-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         --rw-ring: rgba(228, 228, 231, 0.8);
+        --rw-card-bg: rgba(255, 255, 255, 0.82);
         --rw-card-shadow: 0 0 0 1px var(--rw-ring), 0 1px 2px rgba(24, 24, 27, 0.04), 0 4px 14px rgba(24, 24, 27, 0.05);
-        --rw-text-strong: #18181b; /* zinc-900 */
-        --rw-text: #3f3f46; /* zinc-700 */
-        --rw-text-muted: #71717a; /* zinc-500 */
+        --rw-text-strong: #0f172a;
+        --rw-text: #334155;
+        --rw-text-muted: #64748b;
+      }
+
+      /* ---------- Dark mode ----------
+         The page is drawn light and the whole thing is inverted with the hue turned back, which darkens every
+         surface (including the dozens a component paints white on its own) and keeps every hue: a red stays
+         red, an accent stays its accent, only lighter or darker. What must keep its authored colors is
+         inverted a second time: the sidebar, pictures, the QR code, the logo. */
+      html.dark {
+        color-scheme: light;
+        filter: invert(1) hue-rotate(180deg);
+        --rw-ring: rgba(190, 198, 212, 0.9);
+        --rw-card-bg: rgba(232, 237, 244, 0.9);
+        --rw-card-shadow: 0 0 0 1px var(--rw-ring), 0 1px 2px rgba(0, 0, 0, 0.12), 0 4px 14px rgba(0, 0, 0, 0.1);
+      }
+      html.dark body {
+        background-color: #f1f5f9;
+      }
+      html.dark img,
+      html.dark picture,
+      html.dark video,
+      html.dark canvas,
+      html.dark app-sidebar,
+      html.dark app-cartvibe-logo,
+      html.dark app-image-canvas,
+      html.dark .rw-keep-colors {
+        filter: invert(1) hue-rotate(180deg);
+      }
+      /* The wordmark's "Cart" is never white on a light page, and white on a dark one (the logo is drawn in
+         its real colors in dark mode, see above). */
+      .cv-wordmark-cart {
+        color: #0f172a;
+        transition: color 0.2s ease;
+      }
+      html.dark .cv-wordmark-cart,
+      body.dark .cv-wordmark-cart,
+      [data-theme="dark"] .cv-wordmark-cart {
+        color: #f8fafc;
       }
 
       /*
@@ -94,7 +168,7 @@
         pixel to the box and move things.
       */
 
-      /* ---------- Typography ---------- */
+      /* ---------- Typography (the system font) ---------- */
       body,
       .mat-typography,
       .mat-mdc-button,
@@ -113,6 +187,7 @@
       select,
       button {
         font-family: var(--rw-font-sans) !important;
+        -webkit-font-smoothing: antialiased;
       }
       body {
         color: var(--rw-text);
@@ -122,7 +197,7 @@
       h3,
       h4,
       .mat-mdc-dialog-title {
-        font-weight: 600;
+        font-weight: 700;
         letter-spacing: -0.02em;
         color: var(--rw-text-strong);
       }
@@ -134,6 +209,43 @@
       th.mat-mdc-header-cell {
         color: var(--rw-text-muted);
       }
+      /* Numbers: tabular, and crisp. KPI figures, amounts, shares, dates, chart labels and table cells. */
+      .tile__value,
+      .tile__hint,
+      .donut__total,
+      .donut__legend,
+      .donut__legend td,
+      .bars__value,
+      .bars__label,
+      .receipts td,
+      .numeric,
+      .list-card__count,
+      .mat-mdc-cell,
+      .mat-mdc-header-cell,
+      time {
+        font-variant-numeric: tabular-nums;
+      }
+      .tile__value:not(.tile__value--warning):not(.tile__value--over),
+      .donut__total,
+      .donut__legend td,
+      .bars__value,
+      .bars__label,
+      .receipts td,
+      .mat-mdc-cell {
+        color: var(--rw-text-strong);
+      }
+      .tile__value,
+      .donut__total,
+      .bars__value,
+      .bars__label,
+      .donut__legend td.strong {
+        font-weight: 600;
+      }
+      /* Semantic metrics keep their meaning whatever the accent is. */
+      .tile__value--warning,
+      .tile__hint--up {
+        color: #ea580c !important;
+      }
 
       /* ---------- Cards, panels and tables ---------- */
       .card,
@@ -144,7 +256,7 @@
       .table-container {
         border-radius: 16px !important;
         box-shadow: var(--rw-card-shadow) !important;
-        background-color: rgba(255, 255, 255, 0.82) !important;
+        background-color: var(--rw-card-bg) !important;
         -webkit-backdrop-filter: saturate(160%) blur(12px);
         backdrop-filter: saturate(160%) blur(12px);
       }
@@ -193,36 +305,65 @@
       select {
         transition: border-color 0.2s ease, box-shadow 0.2s ease;
       }
+      :focus-visible {
+        outline-color: var(--accent-color);
+      }
 
-      /* ---------- Accent: primary buttons ---------- */
+      /* ---------- Accent: every primary control ---------- */
       .mat-mdc-raised-button.mat-primary:not([disabled]),
-      .mat-mdc-unelevated-button.mat-primary:not([disabled]) {
+      .mat-mdc-unelevated-button.mat-primary:not([disabled]),
+      .mat-mdc-fab.mat-primary:not([disabled]),
+      .mat-mdc-mini-fab.mat-primary:not([disabled]) {
         --mdc-protected-button-container-color: var(--accent-color);
         --mdc-filled-button-container-color: var(--accent-color);
+        --mdc-fab-container-color: var(--accent-color);
+        --mdc-fab-small-container-color: var(--accent-color);
         background-color: var(--accent-color) !important;
+        color: #fff;
       }
       .mat-mdc-raised-button.mat-primary:not([disabled]):hover,
-      .mat-mdc-unelevated-button.mat-primary:not([disabled]):hover {
+      .mat-mdc-unelevated-button.mat-primary:not([disabled]):hover,
+      .mat-mdc-fab.mat-primary:not([disabled]):hover,
+      .mat-mdc-mini-fab.mat-primary:not([disabled]):hover {
         background-color: var(--accent-hover) !important;
       }
+      .mat-mdc-raised-button.mat-primary .mdc-button__label,
+      .mat-mdc-unelevated-button.mat-primary .mdc-button__label,
+      .mat-mdc-raised-button.mat-primary .mat-icon,
+      .mat-mdc-unelevated-button.mat-primary .mat-icon {
+        color: #fff;
+      }
       .mat-mdc-button.mat-primary,
-      .mat-mdc-outlined-button.mat-primary {
+      .mat-mdc-outlined-button.mat-primary,
+      .mat-mdc-icon-button.mat-primary,
+      .mat-icon.mat-primary {
         --mdc-text-button-label-text-color: var(--accent-color);
         --mdc-outlined-button-label-text-color: var(--accent-color);
+        --mdc-icon-button-icon-color: var(--accent-color);
         color: var(--accent-color);
+      }
+      .mat-badge-content:not(.mat-badge-warn):not(.mat-badge-accent) {
+        background-color: var(--accent-color);
       }
 
       /* ---------- Accent: navigation, tabs, links, toggles ---------- */
+      .sidebar__link--active {
+        box-shadow: inset 3px 0 0 var(--accent-color);
+      }
       .sidebar__link--active mat-icon,
       .sidebar__link--active .mat-icon {
-        color: var(--accent-color) !important;
+        color: var(--accent-light) !important;
       }
       .filter-tab.active {
         color: var(--accent-color) !important;
+        box-shadow: 0 0 0 1px var(--accent-soft), 0 1px 2px rgba(24, 24, 27, 0.08);
       }
       .filter-tab.active .pill {
         background: var(--accent-soft) !important;
         color: var(--accent-color) !important;
+      }
+      nav.mat-mdc-tab-nav-bar .mat-mdc-tab-link.mdc-tab--active {
+        box-shadow: 0 0 0 1px var(--accent-soft), 0 1px 2px rgba(24, 24, 27, 0.08);
       }
       nav.mat-mdc-tab-nav-bar .mat-mdc-tab-link.mdc-tab--active .mdc-tab__text-label {
         color: var(--accent-color) !important;
@@ -242,6 +383,9 @@
       .link-button:hover {
         color: var(--accent-hover);
       }
+      .list-card__icon {
+        color: var(--accent-color) !important;
+      }
       .mat-mdc-checkbox.mat-primary,
       .mat-mdc-radio-button.mat-primary,
       .mat-mdc-slide-toggle.mat-primary,
@@ -260,22 +404,41 @@
         --mdc-circular-progress-active-indicator-color: var(--accent-color);
       }
 
-      /* ---------- Accent: charts and highlights ---------- */
-      .bars__bar--selected,
-      .bars__base--selected,
-      .tile__progress-fill:not(.tile__progress-fill--over) {
-        background: var(--accent-color) !important;
+      /* ---------- Charts keep their own colors ----------
+         The donut slices are fixed hues set in code and are never recolored here. The month bars use
+         --chart-good (a color that contrasts with the accent) and the Spent card's bar the same; over the
+         goal is always red. */
+
+      /* ---------- A badge that counts nothing is not shown ---------- */
+      .mat-badge-hidden .mat-badge-content,
+      .mat-badge-content:empty,
+      .mat-badge-content.rw-badge-empty {
+        display: none !important;
       }
-      circle[stroke="#0086d4"] {
-        stroke: var(--accent-color);
-      }
-      .swatch[style*="#0086d4"],
-      .swatch[style*="rgb(0, 134, 212)"] {
-        background: var(--accent-color) !important;
+
+      @media print {
+        html.dark {
+          filter: none;
+        }
       }
     </style>
   </head>
   <body class="mat-typography">
     <app-root></app-root>
+
+    <!-- CSS cannot select by text, so a badge that says "0" gets a class (see the rule above). -->
+    <script>
+      (function () {
+        function mark() {
+          var badges = document.querySelectorAll(".mat-badge-content");
+          for (var i = 0; i < badges.length; i++) {
+            var text = (badges[i].textContent || "").trim();
+            badges[i].classList.toggle("rw-badge-empty", text === "" || text === "0");
+          }
+        }
+        new MutationObserver(mark).observe(document.body, { childList: true, subtree: true, characterData: true });
+        mark();
+      })();
+    </script>
   </body>
 </html>

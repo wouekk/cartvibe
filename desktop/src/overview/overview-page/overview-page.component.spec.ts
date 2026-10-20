@@ -404,4 +404,22 @@ describe("OverviewPageComponent", () => {
   it("hides the shopping card for a user who can read no group's lists", () => {
     expect(fixture.nativeElement.querySelector('[data-testid="overview-tile-to-buy"]')).toBeNull();
   });
+
+  describe("an empty receipts card", () => {
+    it("says there are no receipts yet in the period, with no button for someone who cannot add one", () => {
+      expect(text("overview-receipts-empty")).toContain("No receipts yet in");
+      expect(fixture.nativeElement.querySelector("[data-testid=overview-empty-add-receipt]")).toBeNull();
+    });
+
+    it("offers the same Add receipt button as the top of the page to someone who can add one", async () => {
+      TestBed.inject(Store).dispatch(
+        new SetPermissions([], { 1: [Permission.GroupReceiptsRead, Permission.GroupReceiptsCreate] })
+      );
+      await fixture.whenStable();
+
+      const button = fixture.nativeElement.querySelector("[data-testid=overview-empty-add-receipt]");
+      expect(button).not.toBeNull();
+      expect(button.getAttribute("buttonText")).toBe("Add receipt");
+    });
+  });
 });

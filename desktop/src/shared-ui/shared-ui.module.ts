@@ -69,7 +69,6 @@ import { EditableListComponent } from './editable-list/editable-list.component';
 import { IconAutocompleteComponent } from './icon-autocomplete/icon-autocomplete.component';
 import { PieChartUiComponent } from './pie-chart/pie-chart.component';
 import { LoginQrComponent } from './login-qr/login-qr.component';
-import { AccentPickerComponent } from './accent-picker/accent-picker.component';
 import { CartVibeLogoComponent } from './cartvibe-logo/cartvibe-logo.component';
 import { BadgeComponent } from './badge/badge.component';
 import { ImageCanvasComponent } from './image-canvas/image-canvas.component';
@@ -149,7 +148,6 @@ import { ImageCanvasComponent } from './image-canvas/image-canvas.component';
     UserAutocompleteModule,
     PieChartUiComponent,
     LoginQrComponent,
-    AccentPickerComponent,
     CartVibeLogoComponent,
     BadgeComponent,
     ImageCanvasComponent,
@@ -200,7 +198,6 @@ import { ImageCanvasComponent } from './image-canvas/image-canvas.component';
     IconAutocompleteComponent,
     PieChartUiComponent,
     LoginQrComponent,
-    AccentPickerComponent,
     CartVibeLogoComponent,
     BadgeComponent,
     ImageCanvasComponent,

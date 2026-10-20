@@ -8,6 +8,7 @@ import { Permission } from "../open-api";
 import { ApiKeysComponent } from "./api-keys/api-keys.component";
 import { SettingsComponent } from "./settings/settings.component";
 import { UserPreferencesComponent } from "./user-preferences/user-preferences.component";
+import { ThemeSettingsComponent } from "./theme/theme-settings.component";
 import { UserProfileComponent } from "./user-profile/user-profile.component";
 
 const routes: Routes = [
@@ -68,6 +69,11 @@ const routes: Routes = [
           } as FormConfig,
           appPermissions: [Permission.AppUserPreferencesUpdate],
         },
+      },
+      // Per browser, so no permission: any signed-in user can pick how the app looks.
+      {
+        path: "theme",
+        component: ThemeSettingsComponent,
       },
       {
         path: "api-keys/view",
