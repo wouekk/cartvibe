@@ -3008,3 +3008,10 @@ System Settings → **Logs** (`src/system-settings/logs/`, standalone `LogsPageC
 lines of the application log with an All / Errors / Info filter and Refresh. It is the last tab, in both
 `system-settings.component.ts` and `system-settings-landing.guard.ts`, gated on
 `app.system-settings.read`. Backend: `api/CLAUDE.md` → "Custom fields in the AI prompt and the app log".
+
+## Past shopping lists (fork, Phase 3 S2, first part)
+
+`shopping-list-groups.ts`: a list with items, all crossed off, is **past**. The page's tab bar shows only
+the other lists; a "Past lists" row at the bottom shows the latest three (by `updatedAt`) as chips that
+open the list. Crossing off the last item moves the open list into that row; adding an item brings it
+back. Not done yet: cards instead of tabs, and starting a new list from a past list's items.

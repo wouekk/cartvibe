@@ -33,3 +33,32 @@
   color: variables.$basic-gray;
   text-align: center;
 }
+
+.past-lists {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: variables.$spacing-xs;
+  margin-bottom: variables.$spacing-sm;
+}
+
+.past-label {
+  color: variables.$basic-gray;
+  font-size: 13px;
+}
+
+.past-chip {
+  min-height: 36px;
+  padding: 0 variables.$spacing-sm;
+  border: 1px solid #cbd5e1;
+  border-radius: 18px;
+  background: #fff;
+  color: #475569;
+  font-size: 13px;
+  cursor: pointer;
+
+  &.selected {
+    background: #e2e8f0;
+    color: #0f172a;
+  }
+}

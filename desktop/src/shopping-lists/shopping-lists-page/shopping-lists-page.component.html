@@ -72,4 +72,21 @@
       </p>
     }
   }
+
+  @if (pastLists().length > 0) {
+    <div class="past-lists" data-testid="shopping-list-past">
+      <span class="past-label">Past lists</span>
+      @for (past of pastLists(); track past.id) {
+        <button
+          type="button"
+          class="past-chip"
+          [class.selected]="past.id === selectedList()?.id"
+          [attr.data-testid]="'shopping-list-past-' + past.id"
+          (click)="selectList(past.id.toString())"
+        >
+          {{ past.name }}
+        </button>
+      }
+    </div>
+  }
 </div>
