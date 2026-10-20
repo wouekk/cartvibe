@@ -16,3 +16,7 @@ const (
 	FamilyUserRoleName   = "User"
 	FamilyMemberRoleName = "Member"
 )
+
+// HouseholdGroupName is the one shared group of a family install (Phase 3 M5): the first account's
+// group is called this, and every later account joins it instead of getting a personal group.
+const HouseholdGroupName = "Household"

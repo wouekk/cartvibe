@@ -82,6 +82,10 @@ func (repository UserRepository) CreateUser(userData commands.SignUpCommand) (mo
 			user.AppRoleID = appRoleId
 		}
 
+		var existingUsers int64
+		tx.Model(models.User{}).Count(&existingUsers)
+		isFirstUser := existingUsers == 0
+
 		err = repository.GetDB().Create(&user).Error
 
 		if err != nil {
@@ -100,15 +104,31 @@ func (repository UserRepository) CreateUser(userData commands.SignUpCommand) (mo
 		}
 
 		if !skipDefaultGroup {
-			groupCommand := commands.UpsertGroupCommand{
-				Name:           "My Receipts",
-				IsDefaultGroup: true,
-			}
-
-			_, err := groupRepository.CreateGroup(groupCommand, user.ID)
+			// Phase 3 M5: one shared Household group. A later account joins it; the first account
+			// of an install creates it (named Household); an install that predates it keeps
+			// handing out personal groups.
+			joined, err := repository.joinHouseholdGroup(tx, user.ID)
 			if err != nil {
 				repository.ClearTransaction()
 				return err
+			}
+
+			if !joined {
+				groupName := "My Receipts"
+				if isFirstUser {
+					groupName = HouseholdGroupName
+				}
+
+				groupCommand := commands.UpsertGroupCommand{
+					Name:           groupName,
+					IsDefaultGroup: true,
+				}
+
+				_, err := groupRepository.CreateGroup(groupCommand, user.ID)
+				if err != nil {
+					repository.ClearTransaction()
+					return err
+				}
 			}
 		}
 
@@ -319,4 +339,38 @@ func (repository UserRepository) IsFirstAdminToLogin() (bool, error) {
 	}
 
 	return foundUser.ID == 0, nil
+}
+
+// joinHouseholdGroup adds a new user to the install's Household group as a Member and reports whether
+// it did. It is a no-op (false) when there is no such group, which is every install created before
+// Phase 3 M5: those keep their groups and their new users still get a personal one.
+func (repository UserRepository) joinHouseholdGroup(tx *gorm.DB, userId uint) (bool, error) {
+	var household models.Group
+	err := tx.Where("name = ? AND (is_all_group IS NULL OR is_all_group = ?)", HouseholdGroupName, false).
+		Order("id").Limit(1).Find(&household).Error
+	if err != nil {
+		return false, err
+	}
+	if household.ID == 0 {
+		return false, nil
+	}
+
+	roleRepository := NewRoleRepository(tx)
+	roleId, err := roleRepository.GetGroupRoleIdByName(FamilyMemberRoleName)
+	if err != nil {
+		return false, err
+	}
+	if roleId == nil {
+		roleId, err = roleRepository.GetDefaultGroupRoleId()
+		if err != nil {
+			return false, err
+		}
+	}
+
+	member := models.GroupMember{UserID: userId, GroupID: household.ID, GroupRoleID: roleId}
+	if err := tx.Create(&member).Error; err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
