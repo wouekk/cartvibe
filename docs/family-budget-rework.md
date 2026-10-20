@@ -104,7 +104,6 @@ refresh (`AGENTS.md` §2). Re-tested on the current image: the landing page and 
 - **Q2 — statuses:** a minimal **"To check / Done"** (C6).
 - **Q3 — AI:** Google Gemini and an LM Studio server on the user's PC. Claude dropped (A2).
 - **Q4 — order:** the rework first, then 2d. Not started 2026-10-20.
-
 - **Q5 — receipt processing settings:** folded into the AI page (A1).
 - **Q7 — groups:** one Household group (M5).
 - **Q8 — shopping lists:** one list per trip, past lists below (S2).
