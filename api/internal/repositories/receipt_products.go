@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"strings"
 	"receipt-wrangler/api/internal/commands"
 	"receipt-wrangler/api/internal/models"
 	"time"
@@ -343,7 +344,7 @@ func (repository ReceiptProductRepository) GetPricedUnplannedProducts(receiptIds
 
 // GetProductsForReceiptsByKind returns whole product rows of the given receipts for the Dashboard's
 // tap-through lists: kind UNHEALTHY (rated unhealthy) or UNPLANNED (marked not on the list), priced or not.
-func (repository ReceiptProductRepository) GetProductsForReceiptsByKind(receiptIds []uint, unplanned bool) ([]models.ReceiptProduct, error) {
+func (repository ReceiptProductRepository) GetProductsForReceiptsByKind(receiptIds []uint, kind string, foodGroup string) ([]models.ReceiptProduct, error) {
 	db := repository.GetDB()
 	products := []models.ReceiptProduct{}
 
@@ -351,14 +352,41 @@ func (repository ReceiptProductRepository) GetProductsForReceiptsByKind(receiptI
 		end := min(start+receiptIdBatchSize, len(receiptIds))
 
 		query := db.Where("receipt_id IN ?", receiptIds[start:end])
-		if unplanned {
+		switch kind {
+		case "UNPLANNED":
 			query = query.Where("planned = ?", false)
-		} else {
+		case "FOODGROUP":
+			// An empty group is the Dashboard's "Uncategorized"; otherwise match the name whatever its case.
+			query = query.Where("LOWER(food_group) = ?", strings.ToLower(strings.TrimSpace(foodGroup)))
+		default:
 			query = query.Where("health = ?", models.HEALTH_UNHEALTHY)
 		}
 
 		batch := []models.ReceiptProduct{}
 		if err := query.Find(&batch).Error; err != nil {
+			return []models.ReceiptProduct{}, err
+		}
+		products = append(products, batch...)
+	}
+
+	return products, nil
+}
+
+// GetPricedProductsForReceipts returns the priced products of the given receipts with the columns the
+// Dashboard's category split needs (amount and food group), for the caller to fold in Go.
+func (repository ReceiptProductRepository) GetPricedProductsForReceipts(receiptIds []uint) ([]models.ReceiptProduct, error) {
+	db := repository.GetDB()
+	products := []models.ReceiptProduct{}
+
+	for start := 0; start < len(receiptIds); start += receiptIdBatchSize {
+		end := min(start+receiptIdBatchSize, len(receiptIds))
+
+		batch := []models.ReceiptProduct{}
+		err := db.
+			Select("id", "receipt_id", "amount", "food_group").
+			Where("receipt_id IN ? AND amount IS NOT NULL", receiptIds[start:end]).
+			Find(&batch).Error
+		if err != nil {
 			return []models.ReceiptProduct{}, err
 		}
 		products = append(products, batch...)

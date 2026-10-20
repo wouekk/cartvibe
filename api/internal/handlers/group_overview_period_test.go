@@ -116,3 +116,28 @@ func TestOverviewProductsNeedReceiptReadAccess(t *testing.T) {
 
 	assertStatus(t, callOverviewHandler(GetOverviewProducts, 1, "1", "?kind=UNPLANNED"), http.StatusForbidden)
 }
+
+func TestOverviewProductsCanBeListedByFoodGroup(t *testing.T) {
+	defer tearDownGroupOverviewTest()
+	repositories.CreateTestGroupWithUsers()
+	grantAllGroupPerms(t, 1, 1)
+
+	receipt := seedOverviewReceipt(t, "2026-10-03", "30.00", models.RESOLVED)
+	seedFoodGroupProduct(t, receipt.ID, "Sweets & Snacks", "2.00")
+	seedFoodGroupProduct(t, receipt.ID, "dairy", "1.00")
+	seedFoodGroupProduct(t, receipt.ID, "", "0.50")
+
+	w := callOverviewHandler(GetOverviewProducts, 1, "1", "?kind=FOODGROUP&foodGroup=sweets%20%26%20snacks&month=2026-10")
+	assertStatus(t, w, http.StatusOK)
+	snacks := decodeShoppingListResponse[[]structs.GroupOverviewProduct](t, w)
+	if len(snacks) != 1 || snacks[0].Amount == nil || snacks[0].Amount.String() != "2" {
+		t.Errorf("expected the one snacks product, got %+v", snacks)
+	}
+
+	// An empty group is what the Dashboard calls Uncategorized.
+	w = callOverviewHandler(GetOverviewProducts, 1, "1", "?kind=FOODGROUP&month=2026-10")
+	uncategorized := decodeShoppingListResponse[[]structs.GroupOverviewProduct](t, w)
+	if len(uncategorized) != 1 || uncategorized[0].Amount.String() != "0.5" {
+		t.Errorf("expected the uncategorized product, got %+v", uncategorized)
+	}
+}

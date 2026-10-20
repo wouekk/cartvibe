@@ -67,7 +67,7 @@ func TestResolveOverviewPeriod(t *testing.T) {
 
 func TestTrendIsDailyUnderAMonthAndMonthlyOtherwise(t *testing.T) {
 	week := OverviewPeriod{From: day("2026-10-12"), To: day("2026-10-18")}
-	overview := foldGroupOverview(nil, week, week.Previous())
+	overview := foldGroupOverview(nil, week, week.Previous(), nil)
 	if overview.TrendUnit != TrendUnitDay || len(overview.Trend) != 7 || overview.Trend[0].Month != "2026-10-12" {
 		t.Errorf("a week should be 7 days, got %s %d", overview.TrendUnit, len(overview.Trend))
 	}
@@ -76,19 +76,19 @@ func TestTrendIsDailyUnderAMonthAndMonthlyOtherwise(t *testing.T) {
 	}
 
 	year := OverviewPeriod{From: day("2025-01-01"), To: day("2025-12-31")}
-	overview = foldGroupOverview(nil, year, year.Previous())
+	overview = foldGroupOverview(nil, year, year.Previous(), nil)
 	if overview.TrendUnit != TrendUnitMonth || len(overview.Trend) != 12 || overview.Trend[0].Month != "2025-01" {
 		t.Errorf("a year should be 12 months, got %s %d", overview.TrendUnit, len(overview.Trend))
 	}
 
 	month := OverviewPeriod{From: day("2026-10-01"), To: day("2026-10-31")}
-	overview = foldGroupOverview(nil, month, month.Previous())
+	overview = foldGroupOverview(nil, month, month.Previous(), nil)
 	if len(overview.Trend) != 6 || overview.Trend[5].Month != "2026-10" {
 		t.Errorf("a month should keep the six-month trend, got %d", len(overview.Trend))
 	}
 
 	long := OverviewPeriod{From: day("2020-01-01"), To: day("2025-12-31")}
-	overview = foldGroupOverview(nil, long, long.Previous())
+	overview = foldGroupOverview(nil, long, long.Previous(), nil)
 	if len(overview.Trend) != groupOverviewMaxTrendMonths {
 		t.Errorf("a long range should be capped at %d months, got %d", groupOverviewMaxTrendMonths, len(overview.Trend))
 	}

@@ -7,6 +7,7 @@ import { MatSnackBarRef } from "@angular/material/snack-bar";
 import { ActivatedRoute, Router } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
+import { DONE_STATUSES } from "../../utils/receipt-status";
 import { debounceTime, catchError, finalize, forkJoin, map, of, startWith, take, tap } from "rxjs";
 import { CarouselComponent } from "src/carousel/carousel/carousel.component";
 import { DEFAULT_DIALOG_CONFIG, DEFAULT_HOST_CLASS } from "src/constants";
@@ -143,6 +144,9 @@ export class ReceiptFormComponent implements OnInit {
   public canMagicFill: Signal<boolean> = signal(false);
 
   public canDuplicate: Signal<boolean> = signal(false);
+
+  /** True once the receipt reads as Done; drives the "Mark as done" check on the view screen (Phase 3 2e). */
+  public readonly receiptDone = signal(false);
 
   public selectedGroup = signal<Group | undefined>(undefined);
 
@@ -444,7 +448,28 @@ export class ReceiptFormComponent implements OnInit {
     );
   }
 
+  /** The "V" on the view screen: sets the receipt to Done without opening the edit form. */
+  public markDone(): void {
+    const receiptId = this.originalReceipt?.id;
+    if (!receiptId) {
+      return;
+    }
+
+    this.receiptService
+      .bulkReceiptStatusUpdate({ status: ReceiptStatus.Resolved, receiptIds: [receiptId] })
+      .pipe(take(1))
+      .subscribe(() => {
+        this.form.patchValue({ status: ReceiptStatus.Resolved });
+        if (this.originalReceipt) {
+          this.originalReceipt.status = ReceiptStatus.Resolved;
+        }
+        this.receiptDone.set(true);
+        this.snackbarService.success("Marked as done");
+      });
+  }
+
   private initForm(): void {
+this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""));
     // Reset BEFORE the form is built: initForm() re-runs on every route-data
     // emission and ends by calling listenForGroupChanges(), whose startWith()
     // fires synchronously - so it must already describe the new form. Without
