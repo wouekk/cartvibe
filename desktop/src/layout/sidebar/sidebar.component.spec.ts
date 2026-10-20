@@ -201,13 +201,13 @@ describe("SidebarComponent", () => {
       const text = sidebarText();
       expect(text).toContain("Manage Categories");
       expect(text).toContain("Manage Tags");
-      expect(text).toContain("Manage Groups");
+      expect(text).toContain("Manage Households");
       expect(text).toContain("Manage Custom Fields");
       expect(text).not.toContain("Manage Users");
       expect(text).not.toContain("System Settings");
     });
 
-    it("hides Manage Groups and the group switcher while there is only one real group (Phase 3 M5)", async () => {
+    it("keeps Manage Households but hides the group switcher while there is only one real group (Phase 3 M5)", async () => {
       login();
       store.dispatch(
         new SetGroups([
@@ -221,7 +221,7 @@ describe("SidebarComponent", () => {
       queryTestId("sidebar-manage-toggle").nativeElement.click();
       await fixture.whenStable();
 
-      expect(sidebarText()).not.toContain("Manage Groups");
+      expect(sidebarText()).toContain("Manage Households");
       expect(queryTestId("sidebar-group-switcher")).toBeFalsy();
       expect(queryTestId("sidebar-group-static").nativeElement.textContent).toContain("Household");
     });

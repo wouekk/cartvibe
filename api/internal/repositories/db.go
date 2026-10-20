@@ -2,6 +2,8 @@ package repositories
 
 import (
 	"fmt"
+	"log"
+	"os"
 	config "receipt-wrangler/api/internal/env"
 	"receipt-wrangler/api/internal/logging"
 	"receipt-wrangler/api/internal/models"
@@ -14,6 +16,7 @@ import (
 	"gorm.io/driver/postgres"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var db *gorm.DB
@@ -96,7 +99,7 @@ func openWithRetry(dialector gorm.Dialector, maxAttempts int) (*gorm.DB, error) 
 	var lastErr error
 
 	for attempt := 1; attempt <= maxAttempts; attempt++ {
-		connectedDb, err := gorm.Open(dialector, &gorm.Config{})
+		connectedDb, err := gorm.Open(dialector, &gorm.Config{Logger: quietGormLogger()})
 		if err == nil {
 			return connectedDb, nil
 		}
@@ -272,4 +275,17 @@ func UseTestDbWithoutForeignKeysForTests() (restore func(), err error) {
 			sqlDB.Close()
 		}
 	}, nil
+}
+
+// quietGormLogger is GORM's default logger without the "record not found" lines. The background
+// sweeps ask for the next due row with First(), and an empty queue is the normal answer, not an error;
+// logging each one filled the container log with a SELECT every few minutes. Real errors and slow
+// queries are still logged.
+func quietGormLogger() logger.Interface {
+	return logger.New(log.New(os.Stdout, "\r\n", log.LstdFlags), logger.Config{
+		SlowThreshold:             200 * time.Millisecond,
+		LogLevel:                  logger.Warn,
+		IgnoreRecordNotFoundError: true,
+		Colorful:                  false,
+	})
 }

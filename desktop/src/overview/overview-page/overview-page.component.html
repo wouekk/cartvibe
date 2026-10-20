@@ -16,21 +16,23 @@
         ></app-add-button>
       }
       @if (canQuickScan()) {
-        <button mat-stroked-button type="button" data-testid="overview-quick-scan" (click)="openQuickScan()">
-          <mat-icon>document_scanner</mat-icon>
-          Quick Scan
-        </button>
+        <app-button
+          icon="document_scanner"
+          buttonText="Quick Scan"
+          matButtonType="matRaisedButton"
+          data-testid="overview-quick-scan"
+          (clicked)="openQuickScan()"
+        ></app-button>
       }
       @if (canCreateList()) {
-        <a
-          mat-stroked-button
+        <app-button
+          icon="playlist_add"
+          buttonText="New list"
+          matButtonType="matRaisedButton"
           data-testid="overview-new-list"
-          [routerLink]="['/shopping-lists/group', shoppingListGroupId()]"
-          [queryParams]="{ new: 'list' }"
-        >
-          <mat-icon>playlist_add</mat-icon>
-          New list
-        </a>
+          [buttonRouterLink]="newListLink()"
+          [buttonQueryParams]="{ new: 'list' }"
+        ></app-button>
       }
     </div>
   </div>

@@ -217,6 +217,9 @@ export class OverviewPageComponent {
     );
   });
 
+  /** Where "New list" goes, as the string segments app-button takes. */
+  public readonly newListLink = computed(() => ["/shopping-lists/group", String(this.shoppingListGroupId())]);
+
   private readonly shoppingLists = this.store.selectSignal(ShoppingListState.lists);
 
   private readonly loadedShoppingListGroupId = this.store.selectSignal(ShoppingListState.groupId);

@@ -1,14 +1,14 @@
 <div class="d-flex flex-column">
   <app-table-header
     [headerText]="tableHeaderText()"
-    subtitle="Groups organize receipts and the people who share them."
+    subtitle="Households organize receipts and the people who share them."
   >
     <div class="d-flex align-items-center">
       <app-add-button
         *hasAppPermission="Permission.AppGroupsCreate"
         data-testid="group-create"
-        buttonText="Add Group"
-        tooltip="Add Group"
+        buttonText="Add Household"
+        tooltip="Add Household"
         [buttonRouterLink]="['create']"
       ></app-add-button>
       <ng-container *hasAppPermission="Permission.AppGroupsRead">
@@ -17,7 +17,7 @@
           icon="filter_alt"
           color="accent"
           data-testid="group-filter"
-          tooltip="Filter Groups"
+          tooltip="Filter Households"
           (clicked)="openFilterDialog()"
         ></app-button>
       </ng-container>
@@ -68,7 +68,7 @@
     <app-delete-button
       *hasGroupPermission="{ groupId: element.id, permission: Permission.GroupDelete, orApp: [Permission.AppGroupsDelete] }"
       data-testid="group-delete"
-      tooltip="Delete Group"
+      tooltip="Delete Household"
       [disabled]="deleteDisabled()"
       (clicked)="deleteGroup(index)"
     ></app-delete-button>

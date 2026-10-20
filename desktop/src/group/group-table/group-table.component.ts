@@ -64,7 +64,7 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
     () => !this.canDeleteAnyGroup() && (this.groups()?.length ?? 0) <= 1
   );
 
-  public tableHeaderText = signal("My Groups");
+  public tableHeaderText = signal("My Households");
 
   constructor(
     public override baseTableService: BaseTableService,
@@ -91,9 +91,9 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
         tap((filter) => {
             this.getTableData();
             if (filter.associatedGroup === AssociatedGroup.All) {
-              this.tableHeaderText.set("All Groups");
+              this.tableHeaderText.set("All Households");
             } else {
-              this.tableHeaderText.set("My Groups");
+              this.tableHeaderText.set("My Households");
             }
           }
         )

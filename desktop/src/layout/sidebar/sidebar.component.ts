@@ -214,8 +214,8 @@ export class SidebarComponent {
     if (has(Permission.AppCustomFieldsRead)) {
       items.push({ label: "Manage Custom Fields", icon: "dynamic_form", link: ["/custom-fields"] });
     }
-    if (has(Permission.AppGroupsRead) && this.hasSeveralGroups()) {
-      items.push({ label: "Manage Groups", icon: "groups", link: ["/groups"] });
+    if (has(Permission.AppGroupsRead)) {
+      items.push({ label: "Manage Households", icon: "groups", link: ["/groups"] });
     }
     if (has(Permission.AppUsersRead)) {
       items.push({ label: "Manage Users", icon: "person", link: ["/users"] });
