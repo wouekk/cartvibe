@@ -31,6 +31,8 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(CheckReceiptProcessingSettingsConnectivityCommand.serializer)
       ..add(Claims.serializer)
       ..add(Comment.serializer)
+      ..add(CurrencyRate.serializer)
+      ..add(CurrencyRateTable.serializer)
       ..add(CurrencySeparator.serializer)
       ..add(CurrencySymbolPosition.serializer)
       ..add(CustomField.serializer)
@@ -40,8 +42,6 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(Dashboard.serializer)
       ..add(DeleteAccountCommand.serializer)
       ..add(EncodedImage.serializer)
-      ..add(ExchangeRate.serializer)
-      ..add(ExchangeRates.serializer)
       ..add(ExportFormat.serializer)
       ..add(FeatureConfig.serializer)
       ..add(FileData.serializer)
@@ -195,11 +195,11 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList, const [const FullType(Tag)]),
           () => ListBuilder<Tag>())
       ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(CurrencyRate)]),
+          () => ListBuilder<CurrencyRate>())
+      ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(CustomFieldOption)]),
           () => ListBuilder<CustomFieldOption>())
-      ..addBuilderFactory(
-          const FullType(BuiltList, const [const FullType(ExchangeRate)]),
-          () => ListBuilder<ExchangeRate>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Group)]),
           () => ListBuilder<Group>())

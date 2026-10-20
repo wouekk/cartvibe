@@ -8,7 +8,7 @@ import 'package:built_value/json_object.dart';
 import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 
-import 'package:openapi/src/model/exchange_rates.dart';
+import 'package:openapi/src/model/currency_rate_table.dart';
 import 'package:openapi/src/model/internal_error_response.dart';
 
 class ExchangeRateApi {
@@ -30,9 +30,9 @@ class ExchangeRateApi {
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [ExchangeRates] as data
+  /// Returns a [Future] containing a [Response] with a [CurrencyRateTable] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<ExchangeRates>> getExchangeRates({ 
+  Future<Response<CurrencyRateTable>> getExchangeRates({ 
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -72,14 +72,14 @@ class ExchangeRateApi {
       onReceiveProgress: onReceiveProgress,
     );
 
-    ExchangeRates? _responseData;
+    CurrencyRateTable? _responseData;
 
     try {
       final rawResponse = _response.data;
       _responseData = rawResponse == null ? null : _serializers.deserialize(
         rawResponse,
-        specifiedType: const FullType(ExchangeRates),
-      ) as ExchangeRates;
+        specifiedType: const FullType(CurrencyRateTable),
+      ) as CurrencyRateTable;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -91,7 +91,7 @@ class ExchangeRateApi {
       );
     }
 
-    return Response<ExchangeRates>(
+    return Response<CurrencyRateTable>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -107,7 +107,7 @@ class ExchangeRateApi {
   /// This will replace the rate table. A rate that is now set converts the receipts saved in that currency while it had none; receipts that already carry a rate are not changed [app.system-settings.update]
   ///
   /// Parameters:
-  /// * [exchangeRates] 
+  /// * [currencyRateTable] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -115,10 +115,10 @@ class ExchangeRateApi {
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [ExchangeRates] as data
+  /// Returns a [Future] containing a [Response] with a [CurrencyRateTable] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<ExchangeRates>> updateExchangeRates({ 
-    required ExchangeRates exchangeRates,
+  Future<Response<CurrencyRateTable>> updateExchangeRates({ 
+    required CurrencyRateTable currencyRateTable,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -154,8 +154,8 @@ class ExchangeRateApi {
     dynamic _bodyData;
 
     try {
-      const _type = FullType(ExchangeRates);
-      _bodyData = _serializers.serialize(exchangeRates, specifiedType: _type);
+      const _type = FullType(CurrencyRateTable);
+      _bodyData = _serializers.serialize(currencyRateTable, specifiedType: _type);
 
     } catch(error, stackTrace) {
       throw DioException(
@@ -178,14 +178,14 @@ class ExchangeRateApi {
       onReceiveProgress: onReceiveProgress,
     );
 
-    ExchangeRates? _responseData;
+    CurrencyRateTable? _responseData;
 
     try {
       final rawResponse = _response.data;
       _responseData = rawResponse == null ? null : _serializers.deserialize(
         rawResponse,
-        specifiedType: const FullType(ExchangeRates),
-      ) as ExchangeRates;
+        specifiedType: const FullType(CurrencyRateTable),
+      ) as CurrencyRateTable;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -197,7 +197,7 @@ class ExchangeRateApi {
       );
     }
 
-    return Response<ExchangeRates>(
+    return Response<CurrencyRateTable>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

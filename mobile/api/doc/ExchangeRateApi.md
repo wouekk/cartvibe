@@ -14,7 +14,7 @@ Method | HTTP request | Description
 
 
 # **getExchangeRates**
-> ExchangeRates getExchangeRates()
+> CurrencyRateTable getExchangeRates()
 
 Get the exchange rates
 
@@ -43,7 +43,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**ExchangeRates**](ExchangeRates.md)
+[**CurrencyRateTable**](CurrencyRateTable.md)
 
 ### Authorization
 
@@ -57,7 +57,7 @@ This endpoint does not need any parameter.
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **updateExchangeRates**
-> ExchangeRates updateExchangeRates(exchangeRates)
+> CurrencyRateTable updateExchangeRates(currencyRateTable)
 
 Replace the exchange rates
 
@@ -72,10 +72,10 @@ import 'package:openapi/api.dart';
 //defaultApiClient.getAuthentication<ApiKeyAuth>('apiKeyAuth').apiKeyPrefix = 'Bearer';
 
 final api = Openapi().getExchangeRateApi();
-final ExchangeRates exchangeRates = ; // ExchangeRates | 
+final CurrencyRateTable currencyRateTable = ; // CurrencyRateTable | 
 
 try {
-    final response = api.updateExchangeRates(exchangeRates);
+    final response = api.updateExchangeRates(currencyRateTable);
     print(response);
 } catch on DioException (e) {
     print('Exception when calling ExchangeRateApi->updateExchangeRates: $e\n');
@@ -86,11 +86,11 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **exchangeRates** | [**ExchangeRates**](ExchangeRates.md)|  | 
+ **currencyRateTable** | [**CurrencyRateTable**](CurrencyRateTable.md)|  | 
 
 ### Return type
 
-[**ExchangeRates**](ExchangeRates.md)
+[**CurrencyRateTable**](CurrencyRateTable.md)
 
 ### Authorization
 

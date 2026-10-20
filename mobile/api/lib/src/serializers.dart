@@ -37,6 +37,8 @@ import 'package:openapi/src/model/check_email_connectivity_command.dart';
 import 'package:openapi/src/model/check_receipt_processing_settings_connectivity_command.dart';
 import 'package:openapi/src/model/claims.dart';
 import 'package:openapi/src/model/comment.dart';
+import 'package:openapi/src/model/currency_rate.dart';
+import 'package:openapi/src/model/currency_rate_table.dart';
 import 'package:openapi/src/model/currency_separator.dart';
 import 'package:openapi/src/model/currency_symbol_position.dart';
 import 'package:openapi/src/model/custom_field.dart';
@@ -46,8 +48,6 @@ import 'package:openapi/src/model/custom_field_value.dart';
 import 'package:openapi/src/model/dashboard.dart';
 import 'package:openapi/src/model/delete_account_command.dart';
 import 'package:openapi/src/model/encoded_image.dart';
-import 'package:openapi/src/model/exchange_rate.dart';
-import 'package:openapi/src/model/exchange_rates.dart';
 import 'package:openapi/src/model/export_format.dart';
 import 'package:openapi/src/model/feature_config.dart';
 import 'package:openapi/src/model/file_data.dart';
@@ -205,6 +205,8 @@ part 'serializers.g.dart';
   CheckReceiptProcessingSettingsConnectivityCommand,
   Claims,
   Comment,
+  CurrencyRate,
+  CurrencyRateTable,
   CurrencySeparator,
   CurrencySymbolPosition,
   CustomField,
@@ -214,8 +216,6 @@ part 'serializers.g.dart';
   Dashboard,
   DeleteAccountCommand,
   EncodedImage,
-  ExchangeRate,
-  ExchangeRates,
   ExportFormat,
   FeatureConfig,
   FileData,
