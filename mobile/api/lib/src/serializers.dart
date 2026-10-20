@@ -59,6 +59,7 @@ import 'package:openapi/src/model/group_member.dart';
 import 'package:openapi/src/model/group_overview.dart';
 import 'package:openapi/src/model/group_overview_category.dart';
 import 'package:openapi/src/model/group_overview_month.dart';
+import 'package:openapi/src/model/group_overview_product.dart';
 import 'package:openapi/src/model/group_receipt_settings.dart';
 import 'package:openapi/src/model/group_settings.dart';
 import 'package:openapi/src/model/group_settings_white_list_email.dart';
@@ -224,6 +225,7 @@ part 'serializers.g.dart';
   GroupOverview,
   GroupOverviewCategory,
   GroupOverviewMonth,
+  GroupOverviewProduct,
   GroupReceiptSettings,
   GroupSettings,
   GroupSettingsWhiteListEmail,
@@ -409,6 +411,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(ReportTemplateOption)]),
         () => ListBuilder<ReportTemplateOption>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(GroupOverviewProduct)]),
+        () => ListBuilder<GroupOverviewProduct>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(String)]),

@@ -23,6 +23,26 @@ class _$GroupOverview extends GroupOverview {
   final BuiltList<GroupOverviewCategory> categories;
   @override
   final BuiltList<GroupOverviewMonth> months;
+  @override
+  final String? from;
+  @override
+  final String? to;
+  @override
+  final String? previousFrom;
+  @override
+  final String? previousTo;
+  @override
+  final int? previousReceiptCount;
+  @override
+  final String? previousUnhealthyTotal;
+  @override
+  final String? unplannedTotal;
+  @override
+  final String? previousUnplannedTotal;
+  @override
+  final BuiltList<GroupOverviewMonth>? trend;
+  @override
+  final String? trendUnit;
 
   factory _$GroupOverview([void Function(GroupOverviewBuilder)? updates]) =>
       (GroupOverviewBuilder()..update(updates))._build();
@@ -35,7 +55,17 @@ class _$GroupOverview extends GroupOverview {
       required this.openReceiptCount,
       required this.unhealthyTotal,
       required this.categories,
-      required this.months})
+      required this.months,
+      this.from,
+      this.to,
+      this.previousFrom,
+      this.previousTo,
+      this.previousReceiptCount,
+      this.previousUnhealthyTotal,
+      this.unplannedTotal,
+      this.previousUnplannedTotal,
+      this.trend,
+      this.trendUnit})
       : super._();
   @override
   GroupOverview rebuild(void Function(GroupOverviewBuilder) updates) =>
@@ -55,7 +85,17 @@ class _$GroupOverview extends GroupOverview {
         openReceiptCount == other.openReceiptCount &&
         unhealthyTotal == other.unhealthyTotal &&
         categories == other.categories &&
-        months == other.months;
+        months == other.months &&
+        from == other.from &&
+        to == other.to &&
+        previousFrom == other.previousFrom &&
+        previousTo == other.previousTo &&
+        previousReceiptCount == other.previousReceiptCount &&
+        previousUnhealthyTotal == other.previousUnhealthyTotal &&
+        unplannedTotal == other.unplannedTotal &&
+        previousUnplannedTotal == other.previousUnplannedTotal &&
+        trend == other.trend &&
+        trendUnit == other.trendUnit;
   }
 
   @override
@@ -69,6 +109,16 @@ class _$GroupOverview extends GroupOverview {
     _$hash = $jc(_$hash, unhealthyTotal.hashCode);
     _$hash = $jc(_$hash, categories.hashCode);
     _$hash = $jc(_$hash, months.hashCode);
+    _$hash = $jc(_$hash, from.hashCode);
+    _$hash = $jc(_$hash, to.hashCode);
+    _$hash = $jc(_$hash, previousFrom.hashCode);
+    _$hash = $jc(_$hash, previousTo.hashCode);
+    _$hash = $jc(_$hash, previousReceiptCount.hashCode);
+    _$hash = $jc(_$hash, previousUnhealthyTotal.hashCode);
+    _$hash = $jc(_$hash, unplannedTotal.hashCode);
+    _$hash = $jc(_$hash, previousUnplannedTotal.hashCode);
+    _$hash = $jc(_$hash, trend.hashCode);
+    _$hash = $jc(_$hash, trendUnit.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -83,7 +133,17 @@ class _$GroupOverview extends GroupOverview {
           ..add('openReceiptCount', openReceiptCount)
           ..add('unhealthyTotal', unhealthyTotal)
           ..add('categories', categories)
-          ..add('months', months))
+          ..add('months', months)
+          ..add('from', from)
+          ..add('to', to)
+          ..add('previousFrom', previousFrom)
+          ..add('previousTo', previousTo)
+          ..add('previousReceiptCount', previousReceiptCount)
+          ..add('previousUnhealthyTotal', previousUnhealthyTotal)
+          ..add('unplannedTotal', unplannedTotal)
+          ..add('previousUnplannedTotal', previousUnplannedTotal)
+          ..add('trend', trend)
+          ..add('trendUnit', trendUnit))
         .toString();
   }
 }
@@ -131,6 +191,51 @@ class GroupOverviewBuilder
   set months(ListBuilder<GroupOverviewMonth>? months) =>
       _$this._months = months;
 
+  String? _from;
+  String? get from => _$this._from;
+  set from(String? from) => _$this._from = from;
+
+  String? _to;
+  String? get to => _$this._to;
+  set to(String? to) => _$this._to = to;
+
+  String? _previousFrom;
+  String? get previousFrom => _$this._previousFrom;
+  set previousFrom(String? previousFrom) => _$this._previousFrom = previousFrom;
+
+  String? _previousTo;
+  String? get previousTo => _$this._previousTo;
+  set previousTo(String? previousTo) => _$this._previousTo = previousTo;
+
+  int? _previousReceiptCount;
+  int? get previousReceiptCount => _$this._previousReceiptCount;
+  set previousReceiptCount(int? previousReceiptCount) =>
+      _$this._previousReceiptCount = previousReceiptCount;
+
+  String? _previousUnhealthyTotal;
+  String? get previousUnhealthyTotal => _$this._previousUnhealthyTotal;
+  set previousUnhealthyTotal(String? previousUnhealthyTotal) =>
+      _$this._previousUnhealthyTotal = previousUnhealthyTotal;
+
+  String? _unplannedTotal;
+  String? get unplannedTotal => _$this._unplannedTotal;
+  set unplannedTotal(String? unplannedTotal) =>
+      _$this._unplannedTotal = unplannedTotal;
+
+  String? _previousUnplannedTotal;
+  String? get previousUnplannedTotal => _$this._previousUnplannedTotal;
+  set previousUnplannedTotal(String? previousUnplannedTotal) =>
+      _$this._previousUnplannedTotal = previousUnplannedTotal;
+
+  ListBuilder<GroupOverviewMonth>? _trend;
+  ListBuilder<GroupOverviewMonth> get trend =>
+      _$this._trend ??= ListBuilder<GroupOverviewMonth>();
+  set trend(ListBuilder<GroupOverviewMonth>? trend) => _$this._trend = trend;
+
+  String? _trendUnit;
+  String? get trendUnit => _$this._trendUnit;
+  set trendUnit(String? trendUnit) => _$this._trendUnit = trendUnit;
+
   GroupOverviewBuilder() {
     GroupOverview._defaults(this);
   }
@@ -146,6 +251,16 @@ class GroupOverviewBuilder
       _unhealthyTotal = $v.unhealthyTotal;
       _categories = $v.categories.toBuilder();
       _months = $v.months.toBuilder();
+      _from = $v.from;
+      _to = $v.to;
+      _previousFrom = $v.previousFrom;
+      _previousTo = $v.previousTo;
+      _previousReceiptCount = $v.previousReceiptCount;
+      _previousUnhealthyTotal = $v.previousUnhealthyTotal;
+      _unplannedTotal = $v.unplannedTotal;
+      _previousUnplannedTotal = $v.previousUnplannedTotal;
+      _trend = $v.trend?.toBuilder();
+      _trendUnit = $v.trendUnit;
       _$v = null;
     }
     return this;
@@ -183,6 +298,16 @@ class GroupOverviewBuilder
                 unhealthyTotal, r'GroupOverview', 'unhealthyTotal'),
             categories: categories.build(),
             months: months.build(),
+            from: from,
+            to: to,
+            previousFrom: previousFrom,
+            previousTo: previousTo,
+            previousReceiptCount: previousReceiptCount,
+            previousUnhealthyTotal: previousUnhealthyTotal,
+            unplannedTotal: unplannedTotal,
+            previousUnplannedTotal: previousUnplannedTotal,
+            trend: _trend?.build(),
+            trendUnit: trendUnit,
           );
     } catch (_) {
       late String _$failedField;
@@ -191,6 +316,9 @@ class GroupOverviewBuilder
         categories.build();
         _$failedField = 'months';
         months.build();
+
+        _$failedField = 'trend';
+        _trend?.build();
       } catch (e) {
         throw BuiltValueNestedFieldError(
             r'GroupOverview', _$failedField, e.toString());

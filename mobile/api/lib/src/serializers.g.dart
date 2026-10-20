@@ -53,6 +53,7 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(GroupOverview.serializer)
       ..add(GroupOverviewCategory.serializer)
       ..add(GroupOverviewMonth.serializer)
+      ..add(GroupOverviewProduct.serializer)
       ..add(GroupReceiptSettings.serializer)
       ..add(GroupSettings.serializer)
       ..add(GroupSettingsWhiteListEmail.serializer)
@@ -243,6 +244,9 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(
               BuiltList, const [const FullType(GroupOverviewCategory)]),
           () => ListBuilder<GroupOverviewCategory>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(GroupOverviewMonth)]),
+          () => ListBuilder<GroupOverviewMonth>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(GroupOverviewMonth)]),
           () => ListBuilder<GroupOverviewMonth>())

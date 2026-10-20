@@ -87,6 +87,7 @@ export 'package:openapi/src/model/group_member.dart';
 export 'package:openapi/src/model/group_overview.dart';
 export 'package:openapi/src/model/group_overview_category.dart';
 export 'package:openapi/src/model/group_overview_month.dart';
+export 'package:openapi/src/model/group_overview_product.dart';
 export 'package:openapi/src/model/group_receipt_settings.dart';
 export 'package:openapi/src/model/group_settings.dart';
 export 'package:openapi/src/model/group_settings_white_list_email.dart';

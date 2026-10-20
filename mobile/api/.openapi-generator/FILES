@@ -54,6 +54,7 @@ doc/GroupMember.md
 doc/GroupOverview.md
 doc/GroupOverviewCategory.md
 doc/GroupOverviewMonth.md
+doc/GroupOverviewProduct.md
 doc/GroupReceiptSettings.md
 doc/GroupSettings.md
 doc/GroupSettingsWhiteListEmail.md
@@ -279,6 +280,7 @@ lib/src/model/group_member.dart
 lib/src/model/group_overview.dart
 lib/src/model/group_overview_category.dart
 lib/src/model/group_overview_month.dart
+lib/src/model/group_overview_product.dart
 lib/src/model/group_receipt_settings.dart
 lib/src/model/group_settings.dart
 lib/src/model/group_settings_white_list_email.dart
@@ -397,3 +399,4 @@ lib/src/model/widget.dart
 lib/src/model/widget_type.dart
 lib/src/serializers.dart
 pubspec.yaml
+test/group_overview_product_test.dart

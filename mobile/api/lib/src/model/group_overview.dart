@@ -22,6 +22,16 @@ part 'group_overview.g.dart';
 /// * [unhealthyTotal] - What the month's products rated UNHEALTHY cost, as a decimal string, whatever the receipt's category. Products without a price or not rated yet do not count.
 /// * [categories] - Spend per category in the month, largest first. A receipt counts toward each of its categories, so these can add up to more than the total. Always an array.
 /// * [months] - The six months ending with month, oldest first; a month without receipts is a zero
+/// * [from] - The period's first day, yyyy-MM-dd
+/// * [to] - The period's last day, yyyy-MM-dd
+/// * [previousFrom] - The first day of the period the previous* figures describe
+/// * [previousTo] - The last day of the period the previous* figures describe
+/// * [previousReceiptCount] 
+/// * [previousUnhealthyTotal] - As unhealthyTotal, for the previous period
+/// * [unplannedTotal] - What the period's products marked as not on the shopping list cost, as a decimal string
+/// * [previousUnplannedTotal] - As unplannedTotal, for the previous period
+/// * [trend] - What the chart draws: months for a period of a month or more, days for a shorter one. Each point's month is yyyy-MM or yyyy-MM-dd (see trendUnit).
+/// * [trendUnit] - MONTH or DAY. A plain string, so another unit can follow.
 @BuiltValue()
 abstract class GroupOverview implements Built<GroupOverview, GroupOverviewBuilder> {
   /// The month described, yyyy-MM
@@ -54,6 +64,45 @@ abstract class GroupOverview implements Built<GroupOverview, GroupOverviewBuilde
   /// The six months ending with month, oldest first; a month without receipts is a zero
   @BuiltValueField(wireName: r'months')
   BuiltList<GroupOverviewMonth> get months;
+
+  /// The period's first day, yyyy-MM-dd
+  @BuiltValueField(wireName: r'from')
+  String? get from;
+
+  /// The period's last day, yyyy-MM-dd
+  @BuiltValueField(wireName: r'to')
+  String? get to;
+
+  /// The first day of the period the previous* figures describe
+  @BuiltValueField(wireName: r'previousFrom')
+  String? get previousFrom;
+
+  /// The last day of the period the previous* figures describe
+  @BuiltValueField(wireName: r'previousTo')
+  String? get previousTo;
+
+  @BuiltValueField(wireName: r'previousReceiptCount')
+  int? get previousReceiptCount;
+
+  /// As unhealthyTotal, for the previous period
+  @BuiltValueField(wireName: r'previousUnhealthyTotal')
+  String? get previousUnhealthyTotal;
+
+  /// What the period's products marked as not on the shopping list cost, as a decimal string
+  @BuiltValueField(wireName: r'unplannedTotal')
+  String? get unplannedTotal;
+
+  /// As unplannedTotal, for the previous period
+  @BuiltValueField(wireName: r'previousUnplannedTotal')
+  String? get previousUnplannedTotal;
+
+  /// What the chart draws: months for a period of a month or more, days for a shorter one. Each point's month is yyyy-MM or yyyy-MM-dd (see trendUnit).
+  @BuiltValueField(wireName: r'trend')
+  BuiltList<GroupOverviewMonth>? get trend;
+
+  /// MONTH or DAY. A plain string, so another unit can follow.
+  @BuiltValueField(wireName: r'trendUnit')
+  String? get trendUnit;
 
   GroupOverview._();
 
@@ -118,6 +167,76 @@ class _$GroupOverviewSerializer implements PrimitiveSerializer<GroupOverview> {
       object.months,
       specifiedType: const FullType(BuiltList, [FullType(GroupOverviewMonth)]),
     );
+    if (object.from != null) {
+      yield r'from';
+      yield serializers.serialize(
+        object.from,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.to != null) {
+      yield r'to';
+      yield serializers.serialize(
+        object.to,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.previousFrom != null) {
+      yield r'previousFrom';
+      yield serializers.serialize(
+        object.previousFrom,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.previousTo != null) {
+      yield r'previousTo';
+      yield serializers.serialize(
+        object.previousTo,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.previousReceiptCount != null) {
+      yield r'previousReceiptCount';
+      yield serializers.serialize(
+        object.previousReceiptCount,
+        specifiedType: const FullType(int),
+      );
+    }
+    if (object.previousUnhealthyTotal != null) {
+      yield r'previousUnhealthyTotal';
+      yield serializers.serialize(
+        object.previousUnhealthyTotal,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.unplannedTotal != null) {
+      yield r'unplannedTotal';
+      yield serializers.serialize(
+        object.unplannedTotal,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.previousUnplannedTotal != null) {
+      yield r'previousUnplannedTotal';
+      yield serializers.serialize(
+        object.previousUnplannedTotal,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.trend != null) {
+      yield r'trend';
+      yield serializers.serialize(
+        object.trend,
+        specifiedType: const FullType(BuiltList, [FullType(GroupOverviewMonth)]),
+      );
+    }
+    if (object.trendUnit != null) {
+      yield r'trendUnit';
+      yield serializers.serialize(
+        object.trendUnit,
+        specifiedType: const FullType(String),
+      );
+    }
   }
 
   @override
@@ -196,6 +315,76 @@ class _$GroupOverviewSerializer implements PrimitiveSerializer<GroupOverview> {
             specifiedType: const FullType(BuiltList, [FullType(GroupOverviewMonth)]),
           ) as BuiltList<GroupOverviewMonth>;
           result.months.replace(valueDes);
+          break;
+        case r'from':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.from = valueDes;
+          break;
+        case r'to':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.to = valueDes;
+          break;
+        case r'previousFrom':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.previousFrom = valueDes;
+          break;
+        case r'previousTo':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.previousTo = valueDes;
+          break;
+        case r'previousReceiptCount':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(int),
+          ) as int;
+          result.previousReceiptCount = valueDes;
+          break;
+        case r'previousUnhealthyTotal':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.previousUnhealthyTotal = valueDes;
+          break;
+        case r'unplannedTotal':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.unplannedTotal = valueDes;
+          break;
+        case r'previousUnplannedTotal':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.previousUnplannedTotal = valueDes;
+          break;
+        case r'trend':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(GroupOverviewMonth)]),
+          ) as BuiltList<GroupOverviewMonth>;
+          result.trend.replace(valueDes);
+          break;
+        case r'trendUnit':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.trendUnit = valueDes;
           break;
         default:
           unhandled.add(key);

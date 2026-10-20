@@ -41,5 +41,42 @@ export interface GroupOverview {
      * The six months ending with month, oldest first; a month without receipts is a zero
      */
     months: Array<GroupOverviewMonth>;
+    /**
+     * The period\'s first day, yyyy-MM-dd
+     */
+    from?: string;
+    /**
+     * The period\'s last day, yyyy-MM-dd
+     */
+    to?: string;
+    /**
+     * The first day of the period the previous* figures describe
+     */
+    previousFrom?: string;
+    /**
+     * The last day of the period the previous* figures describe
+     */
+    previousTo?: string;
+    previousReceiptCount?: number;
+    /**
+     * As unhealthyTotal, for the previous period
+     */
+    previousUnhealthyTotal?: string;
+    /**
+     * What the period\'s products marked as not on the shopping list cost, as a decimal string
+     */
+    unplannedTotal?: string;
+    /**
+     * As unplannedTotal, for the previous period
+     */
+    previousUnplannedTotal?: string;
+    /**
+     * What the chart draws: months for a period of a month or more, days for a shorter one. Each point\'s month is yyyy-MM or yyyy-MM-dd (see trendUnit).
+     */
+    trend?: Array<GroupOverviewMonth>;
+    /**
+     * MONTH or DAY. A plain string, so another unit can follow.
+     */
+    trendUnit?: string;
 }
 
