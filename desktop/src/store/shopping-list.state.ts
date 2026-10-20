@@ -31,6 +31,8 @@ export const ShoppingListEventType = {
   ItemToggled: "ITEM_TOGGLED",
   ItemDeleted: "ITEM_DELETED",
   CheckedCleared: "CHECKED_CLEARED",
+  // Carries no entity and changes no list: ShoppingTripsComponent refetches its trips on it.
+  TripsChanged: "TRIPS_CHANGED",
 } as const;
 
 export interface ShoppingListStateInterface {

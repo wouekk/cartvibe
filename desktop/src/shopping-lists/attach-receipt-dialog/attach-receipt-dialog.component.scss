@@ -1,0 +1,49 @@
+@use "../../variables.scss" as variables;
+
+.hint {
+  margin: 0 0 variables.$spacing-sm;
+  color: variables.$basic-gray;
+}
+
+.choices {
+  display: flex;
+  flex-direction: column;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: 52px;
+  padding: variables.$spacing-sm;
+  border: 0;
+  border-bottom: 1px solid #eef2f6;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: #f1f5f9;
+  }
+}
+
+.choice__name {
+  font-weight: 600;
+}
+
+.choice__meta {
+  font-size: 13px;
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: variables.$spacing-sm;
+}

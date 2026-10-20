@@ -61,6 +61,7 @@
         [groupId]="groupId()"
         [canUpdate]="canUpdate()"
       ></app-shopping-list>
+      <app-shopping-trips [listId]="list.id" [groupId]="groupId()"></app-shopping-trips>
     } @else {
       <p class="no-lists" data-testid="shopping-list-none">
         @if (canCreate()) {

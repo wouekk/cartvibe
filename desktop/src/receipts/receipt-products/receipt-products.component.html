@@ -33,6 +33,9 @@
                   <span class="product__printed">{{ product.name }}</span>
                 }
                 <app-food-tags class="product__tags" [values]="product"></app-food-tags>
+                @if (product.planned === false) {
+                  <span class="product__unplanned" data-testid="receipt-product-unplanned">Not on the list</span>
+                }
               </td>
               <td class="muted">{{ product.quantity }}</td>
               <td class="numeric">
