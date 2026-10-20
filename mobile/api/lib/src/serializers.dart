@@ -25,6 +25,7 @@ import 'package:openapi/src/model/app_data.dart';
 import 'package:openapi/src/model/associated_api_keys.dart';
 import 'package:openapi/src/model/associated_entity_type.dart';
 import 'package:openapi/src/model/associated_group.dart';
+import 'package:openapi/src/model/attach_shopping_trip_receipt_command.dart';
 import 'package:openapi/src/model/base_model.dart';
 import 'package:openapi/src/model/bulk_status_update_command.dart';
 import 'package:openapi/src/model/bulk_user_delete_command.dart';
@@ -123,6 +124,9 @@ import 'package:openapi/src/model/set_shopping_list_item_checked_command.dart';
 import 'package:openapi/src/model/shopping_list.dart';
 import 'package:openapi/src/model/shopping_list_event.dart';
 import 'package:openapi/src/model/shopping_list_item.dart';
+import 'package:openapi/src/model/shopping_trip.dart';
+import 'package:openapi/src/model/shopping_trip_receipt.dart';
+import 'package:openapi/src/model/shopping_trip_view.dart';
 import 'package:openapi/src/model/sign_up_command.dart';
 import 'package:openapi/src/model/sort_direction.dart';
 import 'package:openapi/src/model/subject_line_regex.dart';
@@ -184,6 +188,7 @@ part 'serializers.g.dart';
   AssociatedApiKeys,
   AssociatedEntityType,
   AssociatedGroup,
+  AttachShoppingTripReceiptCommand,
   BaseModel,$BaseModel,
   BulkStatusUpdateCommand,
   BulkUserDeleteCommand,
@@ -282,6 +287,9 @@ part 'serializers.g.dart';
   ShoppingList,
   ShoppingListEvent,
   ShoppingListItem,
+  ShoppingTrip,
+  ShoppingTripReceipt,
+  ShoppingTripView,
   SignUpCommand,
   SortDirection,
   SubjectLineRegex,
@@ -341,6 +349,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(ShoppingList)]),
         () => ListBuilder<ShoppingList>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(ShoppingTripView)]),
+        () => ListBuilder<ShoppingTripView>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(Notification)]),

@@ -26,6 +26,8 @@ part 'receipt_product.g.dart';
 /// * [seasonality] - For fresh fruit and vegetables, SEASONAL or OUT_OF_SEASON in Western Europe in the month bought; NOT_PRODUCE otherwise; empty while not yet classified. A plain string.
 /// * [classifiedAt] - When the tags were set; null while waiting to be classified
 /// * [classificationOverridden] - The tags were corrected by a person
+/// * [planned] - Set once the receipt's shopping trip is compared with its list: true when the product was on the list, false when it was not. Null when the receipt is on no list or not compared yet, which counts as planned.
+/// * [matchedShoppingListItemId] - The list item a planned product matched; it may since have left the list
 @BuiltValue()
 abstract class ReceiptProduct implements Built<ReceiptProduct, ReceiptProductBuilder> {
   @BuiltValueField(wireName: r'id')
@@ -82,6 +84,14 @@ abstract class ReceiptProduct implements Built<ReceiptProduct, ReceiptProductBui
   /// The tags were corrected by a person
   @BuiltValueField(wireName: r'classificationOverridden')
   bool get classificationOverridden;
+
+  /// Set once the receipt's shopping trip is compared with its list: true when the product was on the list, false when it was not. Null when the receipt is on no list or not compared yet, which counts as planned.
+  @BuiltValueField(wireName: r'planned')
+  bool? get planned;
+
+  /// The list item a planned product matched; it may since have left the list
+  @BuiltValueField(wireName: r'matchedShoppingListItemId')
+  int? get matchedShoppingListItemId;
 
   ReceiptProduct._();
 
@@ -191,6 +201,20 @@ class _$ReceiptProductSerializer implements PrimitiveSerializer<ReceiptProduct> 
       object.classificationOverridden,
       specifiedType: const FullType(bool),
     );
+    if (object.planned != null) {
+      yield r'planned';
+      yield serializers.serialize(
+        object.planned,
+        specifiedType: const FullType(bool),
+      );
+    }
+    if (object.matchedShoppingListItemId != null) {
+      yield r'matchedShoppingListItemId';
+      yield serializers.serialize(
+        object.matchedShoppingListItemId,
+        specifiedType: const FullType(int),
+      );
+    }
   }
 
   @override
@@ -318,6 +342,20 @@ class _$ReceiptProductSerializer implements PrimitiveSerializer<ReceiptProduct> 
             specifiedType: const FullType(bool),
           ) as bool;
           result.classificationOverridden = valueDes;
+          break;
+        case r'planned':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(bool),
+          ) as bool;
+          result.planned = valueDes;
+          break;
+        case r'matchedShoppingListItemId':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(int),
+          ) as int;
+          result.matchedShoppingListItemId = valueDes;
           break;
         default:
           unhandled.add(key);

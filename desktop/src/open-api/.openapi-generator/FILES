@@ -48,6 +48,7 @@ model/appData.ts
 model/associatedApiKeys.ts
 model/associatedEntityType.ts
 model/associatedGroup.ts
+model/attachShoppingTripReceiptCommand.ts
 model/baseModel.ts
 model/bulkStatusUpdateCommand.ts
 model/bulkUserDeleteCommand.ts
@@ -147,6 +148,9 @@ model/setShoppingListItemCheckedCommand.ts
 model/shoppingList.ts
 model/shoppingListEvent.ts
 model/shoppingListItem.ts
+model/shoppingTrip.ts
+model/shoppingTripReceipt.ts
+model/shoppingTripView.ts
 model/signUpCommand.ts
 model/sortDirection.ts
 model/subjectLineRegex.ts

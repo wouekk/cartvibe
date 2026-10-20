@@ -37,6 +37,10 @@ class _$ReceiptProduct extends ReceiptProduct {
   final DateTime? classifiedAt;
   @override
   final bool classificationOverridden;
+  @override
+  final bool? planned;
+  @override
+  final int? matchedShoppingListItemId;
 
   factory _$ReceiptProduct([void Function(ReceiptProductBuilder)? updates]) =>
       (ReceiptProductBuilder()..update(updates))._build();
@@ -56,7 +60,9 @@ class _$ReceiptProduct extends ReceiptProduct {
       required this.foodGroup,
       required this.seasonality,
       this.classifiedAt,
-      required this.classificationOverridden})
+      required this.classificationOverridden,
+      this.planned,
+      this.matchedShoppingListItemId})
       : super._();
   @override
   ReceiptProduct rebuild(void Function(ReceiptProductBuilder) updates) =>
@@ -83,7 +89,9 @@ class _$ReceiptProduct extends ReceiptProduct {
         foodGroup == other.foodGroup &&
         seasonality == other.seasonality &&
         classifiedAt == other.classifiedAt &&
-        classificationOverridden == other.classificationOverridden;
+        classificationOverridden == other.classificationOverridden &&
+        planned == other.planned &&
+        matchedShoppingListItemId == other.matchedShoppingListItemId;
   }
 
   @override
@@ -104,6 +112,8 @@ class _$ReceiptProduct extends ReceiptProduct {
     _$hash = $jc(_$hash, seasonality.hashCode);
     _$hash = $jc(_$hash, classifiedAt.hashCode);
     _$hash = $jc(_$hash, classificationOverridden.hashCode);
+    _$hash = $jc(_$hash, planned.hashCode);
+    _$hash = $jc(_$hash, matchedShoppingListItemId.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -125,7 +135,9 @@ class _$ReceiptProduct extends ReceiptProduct {
           ..add('foodGroup', foodGroup)
           ..add('seasonality', seasonality)
           ..add('classifiedAt', classifiedAt)
-          ..add('classificationOverridden', classificationOverridden))
+          ..add('classificationOverridden', classificationOverridden)
+          ..add('planned', planned)
+          ..add('matchedShoppingListItemId', matchedShoppingListItemId))
         .toString();
   }
 }
@@ -196,6 +208,15 @@ class ReceiptProductBuilder
   set classificationOverridden(bool? classificationOverridden) =>
       _$this._classificationOverridden = classificationOverridden;
 
+  bool? _planned;
+  bool? get planned => _$this._planned;
+  set planned(bool? planned) => _$this._planned = planned;
+
+  int? _matchedShoppingListItemId;
+  int? get matchedShoppingListItemId => _$this._matchedShoppingListItemId;
+  set matchedShoppingListItemId(int? matchedShoppingListItemId) =>
+      _$this._matchedShoppingListItemId = matchedShoppingListItemId;
+
   ReceiptProductBuilder() {
     ReceiptProduct._defaults(this);
   }
@@ -218,6 +239,8 @@ class ReceiptProductBuilder
       _seasonality = $v.seasonality;
       _classifiedAt = $v.classifiedAt;
       _classificationOverridden = $v.classificationOverridden;
+      _planned = $v.planned;
+      _matchedShoppingListItemId = $v.matchedShoppingListItemId;
       _$v = null;
     }
     return this;
@@ -266,6 +289,8 @@ class ReceiptProductBuilder
               classificationOverridden,
               r'ReceiptProduct',
               'classificationOverridden'),
+          planned: planned,
+          matchedShoppingListItemId: matchedShoppingListItemId,
         );
     replace(_$result);
     return _$result;

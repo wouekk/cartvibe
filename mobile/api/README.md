@@ -175,16 +175,21 @@ Class | Method | HTTP request | Description
 [*RoleApi*](doc/RoleApi.md) | [**updateRole**](doc/RoleApi.md#updaterole) | **PUT** /role/{roleId} | Update role
 [*SearchApi*](doc/SearchApi.md) | [**receiptSearch**](doc/SearchApi.md#receiptsearch) | **GET** /search/ | Receipt Search
 [*ShoppingListApi*](doc/ShoppingListApi.md) | [**addShoppingListItem**](doc/ShoppingListApi.md#addshoppinglistitem) | **POST** /shopping-list/{listId}/item | Add shopping list item
+[*ShoppingListApi*](doc/ShoppingListApi.md) | [**attachShoppingTripReceipt**](doc/ShoppingListApi.md#attachshoppingtripreceipt) | **POST** /shopping-list/{listId}/trip | Attach an existing receipt to a shopping list
 [*ShoppingListApi*](doc/ShoppingListApi.md) | [**clearCheckedShoppingListItems**](doc/ShoppingListApi.md#clearcheckedshoppinglistitems) | **POST** /shopping-list/{listId}/clearChecked | Clear crossed-off items
 [*ShoppingListApi*](doc/ShoppingListApi.md) | [**createShoppingList**](doc/ShoppingListApi.md#createshoppinglist) | **POST** /shopping-list/group/{groupId} | Create shopping list
 [*ShoppingListApi*](doc/ShoppingListApi.md) | [**deleteShoppingList**](doc/ShoppingListApi.md#deleteshoppinglist) | **DELETE** /shopping-list/{listId} | Delete shopping list
 [*ShoppingListApi*](doc/ShoppingListApi.md) | [**deleteShoppingListItem**](doc/ShoppingListApi.md#deleteshoppinglistitem) | **DELETE** /shopping-list/item/{itemId} | Delete shopping list item
+[*ShoppingListApi*](doc/ShoppingListApi.md) | [**detachShoppingTrip**](doc/ShoppingListApi.md#detachshoppingtrip) | **DELETE** /shopping-list/trip/{tripId} | Remove a receipt from its shopping list
 [*ShoppingListApi*](doc/ShoppingListApi.md) | [**getShoppingListsForGroup**](doc/ShoppingListApi.md#getshoppinglistsforgroup) | **GET** /shopping-list/group/{groupId} | Get shopping lists for a group
+[*ShoppingListApi*](doc/ShoppingListApi.md) | [**getShoppingTrips**](doc/ShoppingListApi.md#getshoppingtrips) | **GET** /shopping-list/{listId}/trip | Get a shopping list&#39;s trips
+[*ShoppingListApi*](doc/ShoppingListApi.md) | [**retryShoppingTrip**](doc/ShoppingListApi.md#retryshoppingtrip) | **POST** /shopping-list/trip/{tripId}/retry | Try a failed shopping trip again
 [*ShoppingListApi*](doc/ShoppingListApi.md) | [**setShoppingListItemChecked**](doc/ShoppingListApi.md#setshoppinglistitemchecked) | **PUT** /shopping-list/item/{itemId}/checked | Set whether a shopping list item is crossed off
 [*ShoppingListApi*](doc/ShoppingListApi.md) | [**setShoppingListItemClassification**](doc/ShoppingListApi.md#setshoppinglistitemclassification) | **PUT** /shopping-list/item/{itemId}/classification | Correct a shopping list item&#39;s health and seasonality tags
 [*ShoppingListApi*](doc/ShoppingListApi.md) | [**streamShoppingListEvents**](doc/ShoppingListApi.md#streamshoppinglistevents) | **GET** /shopping-list/group/{groupId}/stream | Stream shopping list updates
 [*ShoppingListApi*](doc/ShoppingListApi.md) | [**updateShoppingList**](doc/ShoppingListApi.md#updateshoppinglist) | **PUT** /shopping-list/{listId} | Rename shopping list
 [*ShoppingListApi*](doc/ShoppingListApi.md) | [**updateShoppingListItem**](doc/ShoppingListApi.md#updateshoppinglistitem) | **PUT** /shopping-list/item/{itemId} | Update shopping list item
+[*ShoppingListApi*](doc/ShoppingListApi.md) | [**uploadShoppingTripPhoto**](doc/ShoppingListApi.md#uploadshoppingtripphoto) | **POST** /shopping-list/{listId}/trip/upload | Start a shopping trip from a receipt photo
 [*SystemEmailApi*](doc/SystemEmailApi.md) | [**checkSystemEmailConnectivity**](doc/SystemEmailApi.md#checksystememailconnectivity) | **POST** /systemEmail/checkConnectivity | Check system email connectivity
 [*SystemEmailApi*](doc/SystemEmailApi.md) | [**createSystemEmail**](doc/SystemEmailApi.md#createsystememail) | **POST** /systemEmail/ | Create system email
 [*SystemEmailApi*](doc/SystemEmailApi.md) | [**deleteSystemEmailById**](doc/SystemEmailApi.md#deletesystememailbyid) | **DELETE** /systemEmail/{id} | Delete system email by id
@@ -237,6 +242,7 @@ Class | Method | HTTP request | Description
  - [AssociatedApiKeys](doc/AssociatedApiKeys.md)
  - [AssociatedEntityType](doc/AssociatedEntityType.md)
  - [AssociatedGroup](doc/AssociatedGroup.md)
+ - [AttachShoppingTripReceiptCommand](doc/AttachShoppingTripReceiptCommand.md)
  - [BaseModel](doc/BaseModel.md)
  - [BulkStatusUpdateCommand](doc/BulkStatusUpdateCommand.md)
  - [BulkUserDeleteCommand](doc/BulkUserDeleteCommand.md)
@@ -335,6 +341,9 @@ Class | Method | HTTP request | Description
  - [ShoppingList](doc/ShoppingList.md)
  - [ShoppingListEvent](doc/ShoppingListEvent.md)
  - [ShoppingListItem](doc/ShoppingListItem.md)
+ - [ShoppingTrip](doc/ShoppingTrip.md)
+ - [ShoppingTripReceipt](doc/ShoppingTripReceipt.md)
+ - [ShoppingTripView](doc/ShoppingTripView.md)
  - [SignUpCommand](doc/SignUpCommand.md)
  - [SortDirection](doc/SortDirection.md)
  - [SubjectLineRegex](doc/SubjectLineRegex.md)

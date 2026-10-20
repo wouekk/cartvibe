@@ -16,7 +16,7 @@ import { ShoppingListItem } from './shoppingListItem';
  */
 export interface ShoppingListEvent { 
     /**
-     * One of LIST_CREATED, LIST_UPDATED, LIST_DELETED, ITEM_ADDED, ITEM_UPDATED, ITEM_TOGGLED, ITEM_DELETED, CHECKED_CLEARED. Deliberately a plain string rather than an enum, so a client built before a new event type ships can ignore it instead of failing to deserialize.
+     * One of LIST_CREATED, LIST_UPDATED, LIST_DELETED, ITEM_ADDED, ITEM_UPDATED, ITEM_TOGGLED, ITEM_DELETED, CHECKED_CLEARED, TRIPS_CHANGED. TRIPS_CHANGED carries no entity: refetch the list\'s trips, which need receipt access the stream does not check. Deliberately a plain string rather than an enum, so a client built before a new event type ships can ignore it instead of failing to deserialize.
      */
     type: string;
     groupId: number;

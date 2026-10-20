@@ -14,7 +14,7 @@ part 'shopping_list_event.g.dart';
 /// One shopping list mutation, as sent on the group's event stream. It carries the full changed entity, so applying it is an idempotent upsert or remove by id.
 ///
 /// Properties:
-/// * [type] - One of LIST_CREATED, LIST_UPDATED, LIST_DELETED, ITEM_ADDED, ITEM_UPDATED, ITEM_TOGGLED, ITEM_DELETED, CHECKED_CLEARED. Deliberately a plain string rather than an enum, so a client built before a new event type ships can ignore it instead of failing to deserialize.
+/// * [type] - One of LIST_CREATED, LIST_UPDATED, LIST_DELETED, ITEM_ADDED, ITEM_UPDATED, ITEM_TOGGLED, ITEM_DELETED, CHECKED_CLEARED, TRIPS_CHANGED. TRIPS_CHANGED carries no entity: refetch the list's trips, which need receipt access the stream does not check. Deliberately a plain string rather than an enum, so a client built before a new event type ships can ignore it instead of failing to deserialize.
 /// * [groupId] 
 /// * [shoppingListId] 
 /// * [list] 
@@ -22,7 +22,7 @@ part 'shopping_list_event.g.dart';
 /// * [itemIds] - Ids of the items removed by CHECKED_CLEARED
 @BuiltValue()
 abstract class ShoppingListEvent implements Built<ShoppingListEvent, ShoppingListEventBuilder> {
-  /// One of LIST_CREATED, LIST_UPDATED, LIST_DELETED, ITEM_ADDED, ITEM_UPDATED, ITEM_TOGGLED, ITEM_DELETED, CHECKED_CLEARED. Deliberately a plain string rather than an enum, so a client built before a new event type ships can ignore it instead of failing to deserialize.
+  /// One of LIST_CREATED, LIST_UPDATED, LIST_DELETED, ITEM_ADDED, ITEM_UPDATED, ITEM_TOGGLED, ITEM_DELETED, CHECKED_CLEARED, TRIPS_CHANGED. TRIPS_CHANGED carries no entity: refetch the list's trips, which need receipt access the stream does not check. Deliberately a plain string rather than an enum, so a client built before a new event type ships can ignore it instead of failing to deserialize.
   @BuiltValueField(wireName: r'type')
   String get type;
 
