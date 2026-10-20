@@ -9,21 +9,22 @@
   commit `9808c4d9`): Dockhand redeployed its cached `:latest` without pulling. Pull, then redeploy,
   then hard-refresh.
 - **First-test feedback is captured as Phase 3** in `docs/family-budget-rework.md`: the app is a
-  family grocery budget, not expense tracking. Open questions Q1–Q4 there are with the user.
+  family grocery budget, not expense tracking. Decisions are recorded there; the user re-tested on
+  the current image and the landing page and Manage links work.
 - **Not verified anywhere:** the Playwright specs (they need a live API). 2c has no e2e.
 - **On this PC:** `api/scripts/go-without-cgo.sh vet ./...` / `… test <pkg>` work locally.
 
 ## Next
 
 ### Claude Code
-1. Once the user has re-tested on the current image: settle Q1–Q4 in
-   `docs/family-budget-rework.md`, then build Phase 3 in its suggested order (B1, R3, R6, R2 first).
+1. Build Phase 3 from `docs/family-budget-rework.md` in its suggested order (B1, R3, R6, R2
+   first), on a `feature/` branch. The plan lives on `chore/phase-3-plan` until merged into `main`.
 2. Phase 2d (monthly goals), then 2e — they slot into the reworked dashboard.
 
 ### User
 - Pull + redeploy in Dockhand (back up `sqlite` first), hard-refresh, then re-check: the landing page,
   the Manage links (Users, Categories, …), and a shopping list's "Receipts from this list" section.
-- Answer Q1–Q4 in `docs/family-budget-rework.md`.
+- Create a family-member test account in Manage Users, to check what a non-admin sees.
 
 ### Cline
 - Triage the latest failing CI run, if any: `gh run list --limit 5`, then
