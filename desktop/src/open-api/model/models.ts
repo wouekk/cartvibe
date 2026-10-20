@@ -43,6 +43,7 @@ export * from './groupMember';
 export * from './groupOverview';
 export * from './groupOverviewCategory';
 export * from './groupOverviewMonth';
+export * from './groupOverviewProduct';
 export * from './groupReceiptSettings';
 export * from './groupSettings';
 export * from './groupSettingsWhiteListEmail';

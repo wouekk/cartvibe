@@ -19,6 +19,8 @@ import { Observable }                                        from 'rxjs';
 // @ts-ignore
 import { GroupOverview } from '../model/groupOverview';
 // @ts-ignore
+import { GroupOverviewProduct } from '../model/groupOverviewProduct';
+// @ts-ignore
 import { InternalErrorResponse } from '../model/internalErrorResponse';
 
 // @ts-ignore
@@ -93,17 +95,19 @@ export class OverviewService {
     }
 
     /**
-     * Get the group\&#39;s month at a glance
+     * Get the group\&#39;s period at a glance
      * This will get a month\&#39;s spend, receipt counts, spending by category and the six-month trend ending with it, over the receipts the caller can see [group.receipts.read]
      * @param groupId Id of the group to describe; the All group spans every group the caller can read
      * @param month Month to describe, yyyy-MM. Defaults to the current month in the app time zone.
+     * @param from First day to describe, yyyy-MM-dd. With to, replaces month; the period before it (the previous calendar months for whole months, otherwise the same number of days) is the comparison.
+     * @param to Last day to describe, yyyy-MM-dd
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getGroupOverview(groupId: number, month?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<GroupOverview>;
-    public getGroupOverview(groupId: number, month?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<GroupOverview>>;
-    public getGroupOverview(groupId: number, month?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<GroupOverview>>;
-    public getGroupOverview(groupId: number, month?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public getGroupOverview(groupId: number, month?: string, from?: string, to?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<GroupOverview>;
+    public getGroupOverview(groupId: number, month?: string, from?: string, to?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<GroupOverview>>;
+    public getGroupOverview(groupId: number, month?: string, from?: string, to?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<GroupOverview>>;
+    public getGroupOverview(groupId: number, month?: string, from?: string, to?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (groupId === null || groupId === undefined) {
             throw new Error('Required parameter groupId was null or undefined when calling getGroupOverview.');
         }
@@ -112,6 +116,14 @@ export class OverviewService {
         if (month !== undefined && month !== null) {
           localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
             <any>month, 'month');
+        }
+        if (from !== undefined && from !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>from, 'from');
+        }
+        if (to !== undefined && to !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>to, 'to');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -165,6 +177,110 @@ export class OverviewService {
 
         let localVarPath = `/overview/group/${this.configuration.encodeParam({name: "groupId", value: groupId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}`;
         return this.httpClient.request<GroupOverview>('get', `${this.configuration.basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                params: localVarQueryParameters,
+                responseType: <any>responseType_,
+                withCredentials: this.configuration.withCredentials,
+                headers: localVarHeaders,
+                observe: observe,
+                transferCache: localVarTransferCache,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * List the products behind a Dashboard tile
+     * This will list the product lines that make up the Unhealthy or Unplanned figure for a period, newest receipt first, over the receipts the caller can see [group.receipts.read]
+     * @param groupId Id of the group; the All group spans every group the caller can read
+     * @param kind UNHEALTHY or UNPLANNED
+     * @param month Month, yyyy-MM. Defaults to the current month in the app time zone.
+     * @param from First day, yyyy-MM-dd. With to, replaces month.
+     * @param to Last day, yyyy-MM-dd
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getOverviewProducts(groupId: number, kind: string, month?: string, from?: string, to?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<GroupOverviewProduct>>;
+    public getOverviewProducts(groupId: number, kind: string, month?: string, from?: string, to?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<GroupOverviewProduct>>>;
+    public getOverviewProducts(groupId: number, kind: string, month?: string, from?: string, to?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<GroupOverviewProduct>>>;
+    public getOverviewProducts(groupId: number, kind: string, month?: string, from?: string, to?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (groupId === null || groupId === undefined) {
+            throw new Error('Required parameter groupId was null or undefined when calling getOverviewProducts.');
+        }
+        if (kind === null || kind === undefined) {
+            throw new Error('Required parameter kind was null or undefined when calling getOverviewProducts.');
+        }
+
+        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        if (kind !== undefined && kind !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>kind, 'kind');
+        }
+        if (month !== undefined && month !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>month, 'month');
+        }
+        if (from !== undefined && from !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>from, 'from');
+        }
+        if (to !== undefined && to !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>to, 'to');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        let localVarCredential: string | undefined;
+        // authentication (apiKeyAuth) required
+        localVarCredential = this.configuration.lookupCredential('apiKeyAuth');
+        if (localVarCredential) {
+            localVarHeaders = localVarHeaders.set('Authorization', localVarCredential);
+        }
+
+        // authentication (bearerAuth) required
+        localVarCredential = this.configuration.lookupCredential('bearerAuth');
+        if (localVarCredential) {
+            localVarHeaders = localVarHeaders.set('Authorization', 'Bearer ' + localVarCredential);
+        }
+
+        let localVarHttpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (localVarHttpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            localVarHttpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        let localVarHttpContext: HttpContext | undefined = options && options.context;
+        if (localVarHttpContext === undefined) {
+            localVarHttpContext = new HttpContext();
+        }
+
+        let localVarTransferCache: boolean | undefined = options && options.transferCache;
+        if (localVarTransferCache === undefined) {
+            localVarTransferCache = true;
+        }
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/overview/group/${this.configuration.encodeParam({name: "groupId", value: groupId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}/products`;
+        return this.httpClient.request<Array<GroupOverviewProduct>>('get', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
                 params: localVarQueryParameters,

@@ -121,7 +121,8 @@ Class | Method | HTTP request | Description
 [*OidcProviderApi*](doc/OidcProviderApi.md) | [**getOidcProviderById**](doc/OidcProviderApi.md#getoidcproviderbyid) | **GET** /oidcProvider/{oidcProviderId} | Get an OIDC provider
 [*OidcProviderApi*](doc/OidcProviderApi.md) | [**getPagedOidcProviders**](doc/OidcProviderApi.md#getpagedoidcproviders) | **POST** /oidcProvider/getPagedOidcProviders | Get paged OIDC providers
 [*OidcProviderApi*](doc/OidcProviderApi.md) | [**updateOidcProvider**](doc/OidcProviderApi.md#updateoidcprovider) | **PUT** /oidcProvider/{oidcProviderId} | Update an OIDC provider
-[*OverviewApi*](doc/OverviewApi.md) | [**getGroupOverview**](doc/OverviewApi.md#getgroupoverview) | **GET** /overview/group/{groupId} | Get the group&#39;s month at a glance
+[*OverviewApi*](doc/OverviewApi.md) | [**getGroupOverview**](doc/OverviewApi.md#getgroupoverview) | **GET** /overview/group/{groupId} | Get the group&#39;s period at a glance
+[*OverviewApi*](doc/OverviewApi.md) | [**getOverviewProducts**](doc/OverviewApi.md#getoverviewproducts) | **GET** /overview/group/{groupId}/products | List the products behind a Dashboard tile
 [*PermissionApi*](doc/PermissionApi.md) | [**getPermissions**](doc/PermissionApi.md#getpermissions) | **GET** /permission | List all permission descriptors
 [*PromptApi*](doc/PromptApi.md) | [**createDefaultPrompt**](doc/PromptApi.md#createdefaultprompt) | **POST** /prompt/createDefaultPrompt | Create default prompt
 [*PromptApi*](doc/PromptApi.md) | [**createPrompt**](doc/PromptApi.md#createprompt) | **POST** /prompt/ | Create prompt
@@ -281,6 +282,7 @@ Class | Method | HTTP request | Description
  - [GroupOverview](doc/GroupOverview.md)
  - [GroupOverviewCategory](doc/GroupOverviewCategory.md)
  - [GroupOverviewMonth](doc/GroupOverviewMonth.md)
+ - [GroupOverviewProduct](doc/GroupOverviewProduct.md)
  - [GroupReceiptSettings](doc/GroupReceiptSettings.md)
  - [GroupSettings](doc/GroupSettings.md)
  - [GroupSettingsWhiteListEmail](doc/GroupSettingsWhiteListEmail.md)
