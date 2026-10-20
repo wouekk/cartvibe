@@ -4173,3 +4173,22 @@ blanks it. The mock AI server in the quick scan tests now drains the request bod
   `categories.skipped` / `aliases` are additive columns; `CategoryView` has `numberOfProducts`.
 - **Time zone:** a one-time migration copies the container's `TZ` into the System Setting when it is still
   the UTC default; a fresh install starts on it.
+
+## Currencies and exchange rates (fork, Phase 3 currencies)
+
+Household-wide main currency (the currency setting; its ISO code is read from the symbol by
+`utils.MainCurrencyCode`, "" for a custom symbol, which disables conversion) plus a **manual rate table**
+(`exchange_rates`: `code`, nullable `rate` = main units per one foreign unit; seeded CHF, PLN, GBP, USD with
+no rates). `GET` / `PUT /exchangeRate` (`app.system-settings.read` / `.update`) read and replace it; the schemas
+are `CurrencyRateTable` / `CurrencyRate` (an `ExchangeRate` schema collides with money2's class in the Dart
+client).
+- **Converted when added, never recomputed later.** A receipt carries `originalAmount`, `originalCurrency`,
+  `exchangeRate` (additive columns); `amount` is always the main-currency amount, so every total is untouched.
+  A currency with no rate leaves `amount` as read and the receipt with `originalCurrency` and no rate
+  (`RateMissing`); saving a rate converts those (`ApplyRatesToWaitingReceipts`) and re-queues their product
+  read. A receipt that already has a rate keeps it.
+- **Recognition:** both AI prompts ask for a `currency` and spell out zł/zl→PLN, £/pounds→GBP, Fr./SFr.→CHF,
+  $→USD, €→EUR; `utils.NormalizeCurrencyCode` also maps those aliases itself, so any spelling works.
+  `ApplyReceiptCurrency` runs after a receipt is read (quick scan, magic fill, email); the product read
+  (`receiptRate`) converts product amounts at the receipt's frozen rate, else the table's, and fills in the
+  original on a receipt that had none.
