@@ -3100,3 +3100,16 @@ it into a blue base and a red top with "(+X)" in its label, and draws a dashed G
   shows it); Reset still appears for any filter. The button is a fixed 36px square so the badge stays on it.
 - E2E specs mentioning the Added At column (`column-configuration.spec.ts`) are stale; update with the other
   Playwright specs.
+
+## Month chart up to a year, and the long-range export (fork)
+
+- The Dashboard month chart is one non-wrapping grid row (`grid-auto-flow: column`); each column holds its value
+  label, bar, baseline and month name (`.bars__plot` + `.bars__label`), so a bar cannot drift from its label. Over six
+  columns it goes `bars--dense` (narrower bars, 10-11px type, empty months' value hidden). It draws at most the
+  latest 12 months (`chartBars`, with a "Showing the latest 12 months" note).
+- A custom range **longer than a year** (`exceedsOneYear`: over 12 calendar months and over 366 days; "Last 365 days"
+  is not) replaces the chart with a prompt, **Download Landscape PDF (1 yr/page)**, **Export CSV** and a Reports link
+  (`overview-export.ts`). Both fetch the overview once per calendar year, in parallel. The PDF is an HTML print view
+  (`@page A4 landscape`, `break-after: page` per year) opened in a window created inside the click (pop-up blockers)
+  and printed; the browser's dialog saves the PDF. The CSV is `Month,Total Spent,Goal,Difference` (spent minus goal,
+  dot decimals). Months at a range's edges are whole months.

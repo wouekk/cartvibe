@@ -256,25 +256,39 @@ table {
   text-align: center;
 }
 
+// One column per bar: value label, bar, baseline and month name live together, so a bar can never drift
+// from its label. The columns stay on a single row whatever their number (a year is 12).
 .bars {
   flex: 1;
   min-height: 210px;
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
   gap: 14px;
-  align-items: end;
-  padding-bottom: 4px;
-  border-bottom: 1px solid #e2e8f0;
+  align-items: stretch;
+}
+
+.bars--dense {
+  gap: 6px;
 }
 
 .bars__column {
-  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+// The bars grow inside the plot; the baseline is its bottom edge, above the month name.
+.bars__plot {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
-  min-width: 0;
+  min-height: 0;
+  padding-bottom: 0;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .bars__value {
@@ -282,6 +296,20 @@ table {
   font-weight: 600;
   color: #334155;
   white-space: nowrap;
+}
+
+// An empty month keeps its place but says little.
+.bars__value--zero {
+  font-weight: 400;
+  color: #94a3b8;
+}
+
+.bars--dense .bars__value {
+  font-size: 10px;
+}
+
+.bars--dense .bars__value--zero {
+  visibility: hidden;
 }
 
 .bars__bar {
@@ -293,17 +321,52 @@ table {
   background: #cbd5e1;
 }
 
+.bars--dense .bars__bar {
+  max-width: 28px;
+}
+
 .bars__bar--selected {
   background: map.get(variables.$primary-palette, 700);
 }
 
-.bars__labels {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 14px;
+.bars__label {
+  height: 22px;
+  padding-top: 4px;
   font-size: 13px;
+  line-height: 18px;
   color: $muted-color;
   text-align: center;
+  white-space: nowrap;
+}
+
+.bars--dense .bars__label {
+  font-size: 11px;
+}
+
+.chart-note {
+  margin: 0 0 4px;
+  font-size: 12px;
+  color: $label-color;
+}
+
+// A range over a year is exported instead of drawn.
+.chart-export {
+  display: flex;
+  flex-direction: column;
+  gap: variables.$spacing-md;
+  padding: variables.$spacing-lg 0;
+
+  p {
+    margin: 0;
+    color: $muted-color;
+  }
+}
+
+.chart-export__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: variables.$spacing-sm;
 }
 
 .table-scroll {
