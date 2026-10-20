@@ -37,14 +37,14 @@ refresh (`AGENTS.md` §2). Re-tested on the current image: the landing page and 
 | # | Change | Notes |
 |---|---|---|
 | D1 | **The design's Dashboard**, ready out of the box: tiles (spent this month, receipts, **unhealthy this month**, to buy), spending by category, last 6 months, recent receipts, shopping lists. Rename "Overview" to **Dashboard**; the upstream widget dashboards become admin-only or go. | desktop `src/overview/`, sidebar |
-| D2 | **"Unhealthy this month" replaces Settle up**: money spent on products tagged unhealthy (2b). | API overview + desktop; overlaps 2e |
+| D2 | **"Unhealthy this month" replaces Settle up**: money spent on products tagged unhealthy (2b), shown as overspending. Settle up goes entirely: the family does not share bills. **Keep the "To buy" tile**: the user likes it, a list grows over a few days and "20 items" says it is time to go shopping. | API overview + desktop; overlaps 2e |
 | D3 | **"Add receipt" and "New list" buttons on the Dashboard.** The sidebar's "+ New" menu goes. | desktop overview, sidebar |
 
 ### Shopping lists
 | # | Change | Notes |
 |---|---|---|
 | S1 | **Add row on one line**: name, amount, unit and the add button side by side (`Phone.dc.html`); no "tune" toggle. Items show their amount as a chip on the right. | desktop `shopping-list` |
-| S2 | **Lists instead of tabs.** The tab bar is clunky. When every item on a list is crossed off, the list moves to **Past lists** at the bottom; the last 2–3 stay visible there. A list is **one shopping trip** (decision Q8); a new list can start from a past list's items. | desktop shopping lists; maybe API (a list's "done" state) |
+| S2 | **Lists instead of tabs.** The tab bar is clunky. When every item on a list is crossed off, the list moves to **Past lists** at the bottom; the last 2–3 stay visible there. A list is **one shopping trip** (decision Q8), but **several lists can be active at once** (e.g. supermarket and pharmacy); the UI shows the active ones as cards, roomy on a phone. A new list can start from a past list's items. | desktop shopping lists; maybe API (a list's "done" state) |
 | S3 | **A new list is named "List {date}"** by default (editable). | desktop |
 | S4 | **"Going shopping" call to action:** a member announces a trip, and the household is notified to add what they need. | API + notifications (N1) |
 
@@ -77,7 +77,7 @@ refresh (`AGENTS.md` §2). Re-tested on the current image: the landing page and 
 | M1 | **System Settings keeps:** general settings, System Email (the user may later read receipts from a mailbox), System Tasks. **Removed:** Prompts (A3), Receipt Processing Settings (folded into the AI page, A1; decision Q5). | desktop system settings |
 | M2 | **New Logs tab** in System Settings: the application log, recent lines with a level filter, admin only. The API already writes logs to the `logs` volume. | API endpoint + desktop tab |
 | M3 | **Users: profiles for the user and his wife.** Keep user management. Keep OIDC providers (Google sign-in may matter if the app is ever offered to others) but out of the everyday menus. | desktop |
-| M4 | **Roles: only Admin and User.** The seeded legacy roles (Legacy Admin/Owner/Editor/Viewer, …) and the role editor go from the UI; one admin role and one member role, with sensible permissions. The permission system underneath stays. See Q6. | API seed roles; desktop roles page |
+| M4 | **Roles: only Admin and User.** The seeded legacy roles (Legacy Admin/Owner/Editor/Viewer, …) and the role editor go from the UI; one admin role and one member role, with sensible permissions. The permission system underneath stays. A **User** does everything with lists and receipts (including deleting receipts) and manages categories, tags and custom fields; only the **Admin** sees the Logs, user management and the AI page (decision Q6). | API seed roles; desktop roles page |
 | M5 | **One Household group** (decision Q7): everyone in it, created and picked automatically; no personal "My Receipts" groups for new users; the group picker and Manage Groups appear only if a second group ever exists. Existing installs keep their groups. | API user/group creation; desktop sidebar |
 | M6 | **Report Builder simplified**: a few ready-made reports like the dashboard (month, category, unplanned, unhealthy) for every member; the builder itself is admin-only and trimmed. | desktop reports |
 
@@ -106,10 +106,10 @@ refresh (`AGENTS.md` §2). Re-tested on the current image: the landing page and 
 - **Q4 — order:** the rework first, then 2d. Not started 2026-10-20.
 - **Q5 — receipt processing settings:** folded into the AI page (A1).
 - **Q7 — groups:** one Household group (M5).
-- **Q8 — shopping lists:** one list per trip, past lists below (S2).
+- **Q8 — shopping lists:** one list per trip, several can be active at once, finished ones go to
+  past lists (S2).
 - **Q9 — receipt items:** Products only, made editable; Items hidden (C5).
 
-## Assumed until the user says otherwise
-
-- **Q6 — what a "User" may do:** everything with lists and receipts, including deleting receipts;
-  no Manage menu.
+- **Q6 — roles:** Admin and User only. A User does everything with lists and receipts (including
+  deleting), and edits categories, tags and custom fields; only the Admin has the Logs, user
+  management and the AI page (M4).
