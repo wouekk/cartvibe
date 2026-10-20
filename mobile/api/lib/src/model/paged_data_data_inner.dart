@@ -52,6 +52,7 @@ part 'paged_data_data_inner.g.dart';
 /// * [id] 
 /// * [imageFiles] - Files associated to receipt
 /// * [name] - The template name (mirrors the saved report's name).
+/// * [shopName] - The shop printed on the receipt (Auchan, Edeka, Rewe), read by the AI or typed by a person. Empty when unknown.
 /// * [paidByUserId] - User paid foreign key
 /// * [receiptItems] - Items associated to receipt
 /// * [resolvedDate] - Date resolved

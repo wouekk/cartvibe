@@ -10,6 +10,8 @@ class _$UpsertReceiptCommand extends UpsertReceiptCommand {
   @override
   final String name;
   @override
+  final String? shopName;
+  @override
   final String amount;
   @override
   final String date;
@@ -36,6 +38,7 @@ class _$UpsertReceiptCommand extends UpsertReceiptCommand {
 
   _$UpsertReceiptCommand._(
       {required this.name,
+      this.shopName,
       required this.amount,
       required this.date,
       required this.groupId,
@@ -61,6 +64,7 @@ class _$UpsertReceiptCommand extends UpsertReceiptCommand {
     if (identical(other, this)) return true;
     return other is UpsertReceiptCommand &&
         name == other.name &&
+        shopName == other.shopName &&
         amount == other.amount &&
         date == other.date &&
         groupId == other.groupId &&
@@ -77,6 +81,7 @@ class _$UpsertReceiptCommand extends UpsertReceiptCommand {
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, name.hashCode);
+    _$hash = $jc(_$hash, shopName.hashCode);
     _$hash = $jc(_$hash, amount.hashCode);
     _$hash = $jc(_$hash, date.hashCode);
     _$hash = $jc(_$hash, groupId.hashCode);
@@ -95,6 +100,7 @@ class _$UpsertReceiptCommand extends UpsertReceiptCommand {
   String toString() {
     return (newBuiltValueToStringHelper(r'UpsertReceiptCommand')
           ..add('name', name)
+          ..add('shopName', shopName)
           ..add('amount', amount)
           ..add('date', date)
           ..add('groupId', groupId)
@@ -116,6 +122,10 @@ class UpsertReceiptCommandBuilder
   String? _name;
   String? get name => _$this._name;
   set name(String? name) => _$this._name = name;
+
+  String? _shopName;
+  String? get shopName => _$this._shopName;
+  set shopName(String? shopName) => _$this._shopName = shopName;
 
   String? _amount;
   String? get amount => _$this._amount;
@@ -174,6 +184,7 @@ class UpsertReceiptCommandBuilder
     final $v = _$v;
     if ($v != null) {
       _name = $v.name;
+      _shopName = $v.shopName;
       _amount = $v.amount;
       _date = $v.date;
       _groupId = $v.groupId;
@@ -209,6 +220,7 @@ class UpsertReceiptCommandBuilder
           _$UpsertReceiptCommand._(
             name: BuiltValueNullFieldError.checkNotNull(
                 name, r'UpsertReceiptCommand', 'name'),
+            shopName: shopName,
             amount: BuiltValueNullFieldError.checkNotNull(
                 amount, r'UpsertReceiptCommand', 'amount'),
             date: BuiltValueNullFieldError.checkNotNull(

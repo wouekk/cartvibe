@@ -32,6 +32,8 @@ class _$Receipt extends Receipt {
   @override
   final String name;
   @override
+  final String? shopName;
+  @override
   final int paidByUserId;
   @override
   final BuiltList<Item> receiptItems;
@@ -62,6 +64,7 @@ class _$Receipt extends Receipt {
       required this.id,
       this.imageFiles,
       required this.name,
+      this.shopName,
       required this.paidByUserId,
       required this.receiptItems,
       this.resolvedDate,
@@ -93,6 +96,7 @@ class _$Receipt extends Receipt {
         id == other.id &&
         imageFiles == other.imageFiles &&
         name == other.name &&
+        shopName == other.shopName &&
         paidByUserId == other.paidByUserId &&
         receiptItems == other.receiptItems &&
         resolvedDate == other.resolvedDate &&
@@ -117,6 +121,7 @@ class _$Receipt extends Receipt {
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, imageFiles.hashCode);
     _$hash = $jc(_$hash, name.hashCode);
+    _$hash = $jc(_$hash, shopName.hashCode);
     _$hash = $jc(_$hash, paidByUserId.hashCode);
     _$hash = $jc(_$hash, receiptItems.hashCode);
     _$hash = $jc(_$hash, resolvedDate.hashCode);
@@ -143,6 +148,7 @@ class _$Receipt extends Receipt {
           ..add('id', id)
           ..add('imageFiles', imageFiles)
           ..add('name', name)
+          ..add('shopName', shopName)
           ..add('paidByUserId', paidByUserId)
           ..add('receiptItems', receiptItems)
           ..add('resolvedDate', resolvedDate)
@@ -212,6 +218,10 @@ class ReceiptBuilder implements Builder<Receipt, ReceiptBuilder> {
   String? get name => _$this._name;
   set name(String? name) => _$this._name = name;
 
+  String? _shopName;
+  String? get shopName => _$this._shopName;
+  set shopName(String? shopName) => _$this._shopName = shopName;
+
   int? _paidByUserId;
   int? get paidByUserId => _$this._paidByUserId;
   set paidByUserId(int? paidByUserId) => _$this._paidByUserId = paidByUserId;
@@ -262,6 +272,7 @@ class ReceiptBuilder implements Builder<Receipt, ReceiptBuilder> {
       _id = $v.id;
       _imageFiles = $v.imageFiles?.toBuilder();
       _name = $v.name;
+      _shopName = $v.shopName;
       _paidByUserId = $v.paidByUserId;
       _receiptItems = $v.receiptItems.toBuilder();
       _resolvedDate = $v.resolvedDate;
@@ -308,6 +319,7 @@ class ReceiptBuilder implements Builder<Receipt, ReceiptBuilder> {
             imageFiles: _imageFiles?.build(),
             name:
                 BuiltValueNullFieldError.checkNotNull(name, r'Receipt', 'name'),
+            shopName: shopName,
             paidByUserId: BuiltValueNullFieldError.checkNotNull(
                 paidByUserId, r'Receipt', 'paidByUserId'),
             receiptItems: receiptItems.build(),

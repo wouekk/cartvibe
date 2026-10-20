@@ -19,6 +19,7 @@ part 'upsert_receipt_command.g.dart';
 ///
 /// Properties:
 /// * [name] - Receipt name
+/// * [shopName] - The shop printed on the receipt (Auchan, Edeka, Rewe), read by the AI or typed by a person. Empty when unknown.
 /// * [amount] - Receipt total amount
 /// * [date] - Receipt date
 /// * [groupId] - Group foreign key
@@ -34,6 +35,10 @@ abstract class UpsertReceiptCommand implements Built<UpsertReceiptCommand, Upser
   /// Receipt name
   @BuiltValueField(wireName: r'name')
   String get name;
+
+  /// The shop printed on the receipt (Auchan, Edeka, Rewe), read by the AI or typed by a person. Empty when unknown.
+  @BuiltValueField(wireName: r'shopName')
+  String? get shopName;
 
   /// Receipt total amount
   @BuiltValueField(wireName: r'amount')
@@ -103,6 +108,13 @@ class _$UpsertReceiptCommandSerializer implements PrimitiveSerializer<UpsertRece
       object.name,
       specifiedType: const FullType(String),
     );
+    if (object.shopName != null) {
+      yield r'shopName';
+      yield serializers.serialize(
+        object.shopName,
+        specifiedType: const FullType(String),
+      );
+    }
     yield r'amount';
     yield serializers.serialize(
       object.amount,
@@ -192,6 +204,13 @@ class _$UpsertReceiptCommandSerializer implements PrimitiveSerializer<UpsertRece
             specifiedType: const FullType(String),
           ) as String;
           result.name = valueDes;
+          break;
+        case r'shopName':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.shopName = valueDes;
           break;
         case r'amount':
           final valueDes = serializers.deserialize(

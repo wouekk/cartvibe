@@ -9,6 +9,7 @@ import 'package:openapi/api.dart';
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **String** | Receipt name | 
+**shopName** | **String** | The shop printed on the receipt (Auchan, Edeka, Rewe), read by the AI or typed by a person. Empty when unknown. | [optional] 
 **amount** | **String** | Receipt total amount | 
 **date** | **String** | Receipt date | 
 **groupId** | **int** | Group foreign key | 
