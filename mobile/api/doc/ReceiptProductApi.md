@@ -9,11 +9,109 @@ All URIs are relative to */api*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
+[**addReceiptProduct**](ReceiptProductApi.md#addreceiptproduct) | **POST** /receipt-product/receipt/{receiptId}/product | Add a product line to a receipt
+[**deleteReceiptProduct**](ReceiptProductApi.md#deletereceiptproduct) | **DELETE** /receipt-product/product/{productId} | Remove a receipt product line
 [**getReceiptProducts**](ReceiptProductApi.md#getreceiptproducts) | **GET** /receipt-product/receipt/{receiptId} | Get a receipt&#39;s products
 [**queueGroupReceiptProducts**](ReceiptProductApi.md#queuegroupreceiptproducts) | **POST** /receipt-product/group/{groupId}/backfill | Read the products of a group&#39;s older receipts
 [**readReceiptProducts**](ReceiptProductApi.md#readreceiptproducts) | **POST** /receipt-product/receipt/{receiptId}/read | Read a receipt&#39;s products again
 [**setReceiptProductClassification**](ReceiptProductApi.md#setreceiptproductclassification) | **PUT** /receipt-product/product/{productId}/classification | Correct a receipt product&#39;s health and seasonality tags
+[**updateReceiptProduct**](ReceiptProductApi.md#updatereceiptproduct) | **PUT** /receipt-product/product/{productId} | Correct a receipt product line
 
+
+# **addReceiptProduct**
+> ReceiptProduct addReceiptProduct(receiptId, upsertReceiptProductCommand)
+
+Add a product line to a receipt
+
+This will add a product line the AI missed, at the end of the receipt's list [group.receipts.update]
+
+### Example
+```dart
+import 'package:openapi/api.dart';
+// TODO Configure API key authorization: apiKeyAuth
+//defaultApiClient.getAuthentication<ApiKeyAuth>('apiKeyAuth').apiKey = 'YOUR_API_KEY';
+// uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//defaultApiClient.getAuthentication<ApiKeyAuth>('apiKeyAuth').apiKeyPrefix = 'Bearer';
+
+final api = Openapi().getReceiptProductApi();
+final int receiptId = 56; // int | Id of the receipt
+final UpsertReceiptProductCommand upsertReceiptProductCommand = ; // UpsertReceiptProductCommand | 
+
+try {
+    final response = api.addReceiptProduct(receiptId, upsertReceiptProductCommand);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling ReceiptProductApi->addReceiptProduct: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **receiptId** | **int**| Id of the receipt | 
+ **upsertReceiptProductCommand** | [**UpsertReceiptProductCommand**](UpsertReceiptProductCommand.md)|  | 
+
+### Return type
+
+[**ReceiptProduct**](ReceiptProduct.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **deleteReceiptProduct**
+> deleteReceiptProduct(productId)
+
+Remove a receipt product line
+
+This will remove one product line from a receipt [group.receipts.update]
+
+### Example
+```dart
+import 'package:openapi/api.dart';
+// TODO Configure API key authorization: apiKeyAuth
+//defaultApiClient.getAuthentication<ApiKeyAuth>('apiKeyAuth').apiKey = 'YOUR_API_KEY';
+// uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//defaultApiClient.getAuthentication<ApiKeyAuth>('apiKeyAuth').apiKeyPrefix = 'Bearer';
+
+final api = Openapi().getReceiptProductApi();
+final int productId = 56; // int | Id of the receipt product
+
+try {
+    api.deleteReceiptProduct(productId);
+} catch on DioException (e) {
+    print('Exception when calling ReceiptProductApi->deleteReceiptProduct: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **productId** | **int**| Id of the receipt product | 
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **getReceiptProducts**
 > ReceiptProductsView getReceiptProducts(receiptId)
@@ -189,6 +287,55 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **productId** | **int**| Id of the receipt product | 
  **setFoodClassificationCommand** | [**SetFoodClassificationCommand**](SetFoodClassificationCommand.md)|  | 
+
+### Return type
+
+[**ReceiptProduct**](ReceiptProduct.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **updateReceiptProduct**
+> ReceiptProduct updateReceiptProduct(productId, upsertReceiptProductCommand)
+
+Correct a receipt product line
+
+This will change the product's name, amount and quantity. A new name clears its health and seasonality tags (unless a person corrected them) so it is classified again [group.receipts.update]
+
+### Example
+```dart
+import 'package:openapi/api.dart';
+// TODO Configure API key authorization: apiKeyAuth
+//defaultApiClient.getAuthentication<ApiKeyAuth>('apiKeyAuth').apiKey = 'YOUR_API_KEY';
+// uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//defaultApiClient.getAuthentication<ApiKeyAuth>('apiKeyAuth').apiKeyPrefix = 'Bearer';
+
+final api = Openapi().getReceiptProductApi();
+final int productId = 56; // int | Id of the receipt product
+final UpsertReceiptProductCommand upsertReceiptProductCommand = ; // UpsertReceiptProductCommand | 
+
+try {
+    final response = api.updateReceiptProduct(productId, upsertReceiptProductCommand);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling ReceiptProductApi->updateReceiptProduct: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **productId** | **int**| Id of the receipt product | 
+ **upsertReceiptProductCommand** | [**UpsertReceiptProductCommand**](UpsertReceiptProductCommand.md)|  | 
 
 ### Return type
 

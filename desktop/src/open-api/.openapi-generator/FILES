@@ -184,6 +184,7 @@ model/upsertOidcProviderCommand.ts
 model/upsertPromptCommand.ts
 model/upsertReceiptCommand.ts
 model/upsertReceiptProcessingSettingsCommand.ts
+model/upsertReceiptProductCommand.ts
 model/upsertRoleCommand.ts
 model/upsertShoppingListCommand.ts
 model/upsertShoppingListItemCommand.ts

@@ -144,6 +144,7 @@ export * from './upsertOidcProviderCommand';
 export * from './upsertPromptCommand';
 export * from './upsertReceiptCommand';
 export * from './upsertReceiptProcessingSettingsCommand';
+export * from './upsertReceiptProductCommand';
 export * from './upsertRoleCommand';
 export * from './upsertShoppingListCommand';
 export * from './upsertShoppingListItemCommand';
