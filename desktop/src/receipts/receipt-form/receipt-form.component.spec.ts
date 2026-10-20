@@ -96,6 +96,7 @@ describe("ReceiptFormComponent", () => {
 
     expect(component.form.value).toEqual({
       name: "",
+      shopName: "",
       amount: "",
       categories: [],
       tags: [],
