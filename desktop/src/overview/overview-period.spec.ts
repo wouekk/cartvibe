@@ -1,4 +1,4 @@
-import { formatDay, previousLabel, resolvePeriod } from "./overview-period";
+import { formatDay, parseDayMonthYear, previousLabel, resolvePeriod } from "./overview-period";
 
 describe("resolvePeriod", () => {
   const today = new Date(2026, 9, 20); // Tuesday 20 Oct 2026
@@ -16,12 +16,10 @@ describe("resolvePeriod", () => {
     });
   });
 
-  it("gives the monday-to-sunday week before the current one", () => {
-    expect(resolvePeriod("LAST_WEEK", today)?.from).toBe("2026-10-12");
-    expect(resolvePeriod("LAST_WEEK", today)?.to).toBe("2026-10-18");
-    // On a Sunday the current week began six days ago, so last week is the one before that.
-    expect(resolvePeriod("LAST_WEEK", new Date(2026, 9, 18))).toMatchObject({ from: "2026-10-05", to: "2026-10-11" });
-    expect(resolvePeriod("LAST_WEEK", new Date(2026, 9, 19))).toMatchObject({ from: "2026-10-12", to: "2026-10-18" });
+  it("gives rolling ranges that end today and include it", () => {
+    expect(resolvePeriod("LAST_7_DAYS", today)).toMatchObject({ from: "2026-10-14", to: "2026-10-20" });
+    expect(resolvePeriod("LAST_30_DAYS", today)).toMatchObject({ from: "2026-09-21", to: "2026-10-20" });
+    expect(resolvePeriod("LAST_365_DAYS", today)).toMatchObject({ from: "2025-10-21", to: "2026-10-20" });
   });
 
   it("gives whole years", () => {
@@ -50,5 +48,18 @@ describe("previousLabel", () => {
 
   it("formats a day", () => {
     expect(formatDay("2026-03-04")).toBe("4 Mar 2026");
+  });
+});
+
+describe("parseDayMonthYear", () => {
+  it("reads DD/MM/YYYY, with or without leading zeros", () => {
+    expect(parseDayMonthYear("20/10/2026")).toBe("2026-10-20");
+    expect(parseDayMonthYear(" 5/3/2026 ")).toBe("2026-03-05");
+  });
+
+  it("refuses anything else, including days that do not exist", () => {
+    for (const bad of ["", "2026-10-20", "20.10.2026", "31/02/2026", "00/10/2026", "20/13/2026", "20/10/26"]) {
+      expect(parseDayMonthYear(bad)).toBeUndefined();
+    }
   });
 });

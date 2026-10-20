@@ -3,33 +3,6 @@
     <p class="muted">Loading…</p>
   } @else if (failed()) {
     <p class="muted" data-testid="overview-detail-failed">This could not be loaded.</p>
-  } @else if (data.kind === "CATEGORY") {
-    @if (receipts().length === 0) {
-      <p class="muted" data-testid="overview-detail-empty">No receipts.</p>
-    } @else {
-      <div class="table-scroll">
-        <table class="detail" data-testid="overview-detail-receipts">
-          <thead>
-            <tr>
-              <th scope="col">Date</th>
-              <th scope="col">Receipt</th>
-              <th scope="col" class="numeric">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (receipt of receipts(); track receipt.id) {
-              <tr>
-                <td class="muted nowrap">{{ receipt.date | appDate : "MMM d" : "calendar" }}</td>
-                <td class="strong">
-                  <a [routerLink]="['/receipts', receipt.id, 'view']" (click)="close()">{{ receipt.name }}</a>
-                </td>
-                <td class="numeric strong">{{ receipt.amount | customCurrency }}</td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    }
   } @else {
     @if (products().length === 0) {
       <p class="muted" data-testid="overview-detail-empty">Nothing here.</p>

@@ -34,15 +34,16 @@ import {
   OverviewDetailDialogData,
   OverviewDetailKind,
 } from "../overview-detail-dialog/overview-detail-dialog.component";
-import { PERIOD_CHOICES, PeriodPreset, previousLabel, resolvePeriod } from "../overview-period";
+import { parseDayMonthYear, PERIOD_CHOICES, PeriodPreset, previousLabel, resolvePeriod } from "../overview-period";
 
 const RECENT_RECEIPT_COUNT = 6;
 
 /** How many item names a shopping list card spells out before "and N more". */
 const LIST_PREVIEW_ITEMS = 3;
 
-/** Segments that are not one real category, so there is no receipt list to open behind them. */
-const NON_CATEGORY_SEGMENTS = ["Other", "Uncategorized", "(Restricted)"];
+/** The Dashboard's names for the folded and the unknown food group. */
+const OTHER_SEGMENT = "Other";
+const UNCATEGORIZED = "Uncategorized";
 
 /**
  * The Dashboard (the landing page): a period at a glance for the selected group, any period from a
@@ -74,14 +75,17 @@ export class OverviewPageComponent {
   /** The period shown: this month until the user picks another. */
   public readonly preset = signal<PeriodPreset>("THIS_MONTH");
 
-  /** The custom range's ends, "yyyy-MM-dd", typed into the two date inputs. */
+  /** The custom range's ends as typed, DD/MM/YYYY. */
   public readonly customFrom = signal("");
 
   public readonly customTo = signal("");
 
   /** The days to ask for; undefined while a custom range is incomplete or backwards. */
   public readonly period = computed(() =>
-    resolvePeriod(this.preset(), todayInZone(this.timeZone()), { from: this.customFrom(), to: this.customTo() })
+    resolvePeriod(this.preset(), todayInZone(this.timeZone()), {
+      from: parseDayMonthYear(this.customFrom()) ?? "",
+      to: parseDayMonthYear(this.customTo()) ?? "",
+    })
   );
 
   public readonly periodLabel = computed(() => this.period()?.label ?? "");
@@ -274,31 +278,24 @@ export class OverviewPageComponent {
     this.openDetail(kind, kind === "UNHEALTHY" ? "Unhealthy products" : "Products not on the list");
   }
 
-  /** Opens the receipts of one category, when the slice is a real category the caller may read. */
+  /** Opens the products of one food group (the category split is by product, Phase 3 3c). */
   public openCategory(segment: DonutSegment): void {
-    const categoryId = this.categoryIdFor(segment.name);
-    if (categoryId !== undefined) {
-      this.openDetail("CATEGORY", segment.name, categoryId);
+    if (!this.isOpenable(segment)) {
+      return;
     }
+    this.openDetail("FOODGROUP", segment.name, segment.name === UNCATEGORIZED ? "" : segment.name);
   }
 
+  /** "Other" folds several groups together, so there is no single list behind it. */
   public isOpenable(segment: DonutSegment): boolean {
-    return this.categoryIdFor(segment.name) !== undefined;
+    return segment.name !== OTHER_SEGMENT;
   }
 
   public openQuickScan(): void {
     openQuickScanDialog(this.matDialog).pipe(take(1)).subscribe();
   }
 
-  private categoryIdFor(name: string): number | undefined {
-    if (NON_CATEGORY_SEGMENTS.includes(name)) {
-      return undefined;
-    }
-
-    return this.store.selectSnapshot(AuthState.groupCategories(this.groupId()))?.find((category) => category.name === name)?.id;
-  }
-
-  private openDetail(kind: OverviewDetailKind, title: string, categoryId?: number): void {
+  private openDetail(kind: OverviewDetailKind, title: string, foodGroup?: string): void {
     const period = this.period();
     if (!period) {
       return;
@@ -310,7 +307,7 @@ export class OverviewPageComponent {
       groupId: this.groupId(),
       from: period.from,
       to: period.to,
-      categoryId,
+      foodGroup,
     };
     this.matDialog.open(OverviewDetailDialogComponent, { ...DEFAULT_DIALOG_CONFIG, data });
   }
