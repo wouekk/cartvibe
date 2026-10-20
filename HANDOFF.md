@@ -10,8 +10,8 @@
   "Receipt {date}", S1 one-line add row with an amount chip, S3 "List {date}", D2 Unhealthy tile
   (new `unhealthyTotal` on the overview API) instead of Settle up, D3 Add receipt / Quick Scan /
   New list on the Overview and no sidebar "New" menu, M7 currency picker in System Settings.
-  M7 deliberately leaves the API's new-install default at `$` (see the plan). CI result: see
-  `gh run list --branch feature/phase-3-quick-wins`.
+  M7 deliberately leaves the API's new-install default at `$` (see the plan). **CI green**
+  (run 39410847593; `gh` needs `--repo wouekk/receipt-wrangler`, it defaults to upstream).
 - **Deploying means pull, then redeploy** in Dockhand, then a hard refresh.
 - **Not verified anywhere:** the Playwright specs (they need a live API). 2c has no e2e.
 - **On this PC:** `api/scripts/go-without-cgo.sh vet ./...` / `… test <pkg>` work locally. The
