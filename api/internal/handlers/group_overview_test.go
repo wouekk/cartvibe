@@ -126,9 +126,12 @@ func TestGroupOverviewFoldsTheMonthAndItsTrend(t *testing.T) {
 	repositories.GetDB().Create(&groceries)
 	repositories.GetDB().Create(&dining)
 
-	seedOverviewReceipt(t, "2026-10-01", "84.20", models.OPEN, groceries)
+	first := seedOverviewReceipt(t, "2026-10-01", "84.20", models.OPEN, groceries)
 	seedOverviewReceipt(t, "2026-10-31", "62.50", models.NEEDS_ATTENTION, dining)
-	seedOverviewReceipt(t, "2026-10-15", "10.00", models.RESOLVED, groceries, dining)
+	seedFoodGroupProduct(t, first.ID, "dairy", "50.00")
+	seedFoodGroupProduct(t, first.ID, "sweets & snacks", "30.00")
+	third := seedOverviewReceipt(t, "2026-10-15", "10.00", models.RESOLVED, groceries, dining)
+	seedFoodGroupProduct(t, third.ID, "dairy", "10.00")
 	seedOverviewReceipt(t, "2026-10-16", "5.05", models.RESOLVED)
 	seedOverviewReceipt(t, "2026-09-30", "100.00", models.RESOLVED, groceries)
 	seedOverviewReceipt(t, "2026-05-01", "1.00", models.RESOLVED)
@@ -147,9 +150,10 @@ func TestGroupOverviewFoldsTheMonthAndItsTrend(t *testing.T) {
 		t.Errorf("expected 4 receipts, 2 open; got %d, %d", overview.ReceiptCount, overview.OpenReceiptCount)
 	}
 
-	// A receipt counts toward each of its categories, as on the pie chart; largest first.
+	// Spend is split by the food group of the products (Phase 3 3c); what the products do not account
+	// for, and receipts without products, are Uncategorized; largest first.
 	expectedCategories := []struct{ name, total string }{
-		{"Groceries", "94.2"}, {"Dining out", "72.5"}, {"Uncategorized", "5.05"},
+		{"Uncategorized", "71.75"}, {"Dairy", "60"}, {"Sweets & Snacks", "30"},
 	}
 	if len(overview.Categories) != len(expectedCategories) {
 		t.Fatalf("expected %d categories, got %+v", len(expectedCategories), overview.Categories)
@@ -235,4 +239,16 @@ func TestGroupOverviewRequiresReceiptsRead(t *testing.T) {
 
 	grantAllGroupPerms(t, 4, 2)
 	assertStatus(t, callGetGroupOverview(4, "1", "2026-10"), http.StatusForbidden)
+}
+
+// seedFoodGroupProduct stores a priced product line with a food group on a receipt.
+func seedFoodGroupProduct(t *testing.T, receiptId uint, foodGroup string, amount string) {
+	t.Helper()
+
+	value := decimal.RequireFromString(amount)
+	product := models.ReceiptProduct{ReceiptId: receiptId, Name: "product", Amount: &value}
+	product.FoodGroup = foodGroup
+	if err := repositories.GetDB().Create(&product).Error; err != nil {
+		t.Fatalf("seed product: %v", err)
+	}
 }

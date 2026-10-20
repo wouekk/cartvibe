@@ -80,15 +80,15 @@ func GetOverviewProducts(w http.ResponseWriter, r *http.Request) {
 			query := r.URL.Query()
 
 			kind := query.Get("kind")
-			if kind != "UNHEALTHY" && kind != "UNPLANNED" {
+			if kind != "UNHEALTHY" && kind != "UNPLANNED" && kind != "FOODGROUP" {
 				structs.WriteValidatorErrorResponse(w, structs.ValidatorError{
-					Errors: map[string]string{"kind": "kind must be UNHEALTHY or UNPLANNED"},
+					Errors: map[string]string{"kind": "kind must be UNHEALTHY, UNPLANNED or FOODGROUP"},
 				}, http.StatusBadRequest)
 				return 0, nil
 			}
 
 			products, err := services.NewGroupOverviewService(nil).GetOverviewProducts(
-				token.UserId, groupId, kind, query.Get("month"), query.Get("from"), query.Get("to"),
+				token.UserId, groupId, kind, query.Get("foodGroup"), query.Get("month"), query.Get("from"), query.Get("to"),
 			)
 			if errors.Is(err, services.ErrInvalidOverviewPeriod) || errors.Is(err, services.ErrInvalidOverviewMonth) {
 				structs.WriteValidatorErrorResponse(w, structs.ValidatorError{

@@ -3,7 +3,9 @@ package services
 import (
 	"errors"
 	"sort"
+	"strings"
 	"time"
+	"unicode"
 
 	"gorm.io/gorm"
 	"receipt-wrangler/api/internal/commands"
@@ -152,7 +154,12 @@ func (service GroupOverviewService) GetGroupOverviewForPeriod(userId uint, group
 		return structs.GroupOverview{}, err
 	}
 
-	overview := foldGroupOverview(receipts, period, previous)
+	periodProducts, err := repositories.NewReceiptProductRepository(service.TX).GetPricedProductsForReceipts(receiptIdsInPeriod(receipts, period))
+	if err != nil {
+		return structs.GroupOverview{}, err
+	}
+
+	overview := foldGroupOverview(receipts, period, previous, groupProductsByReceipt(periodProducts))
 
 	overview.UnhealthyTotal, overview.UnplannedTotal, err = service.sumProductKinds(receipts, period)
 	if err != nil {
@@ -220,7 +227,7 @@ func (service GroupOverviewService) sumProductKinds(receipts []models.Receipt, p
 
 // GetOverviewProducts lists the product lines behind a Dashboard tile for the period: kind
 // "UNHEALTHY" or "UNPLANNED". Only products on receipts the caller can see, newest receipt first.
-func (service GroupOverviewService) GetOverviewProducts(userId uint, groupId string, kind string, month string, from string, to string) ([]structs.GroupOverviewProduct, error) {
+func (service GroupOverviewService) GetOverviewProducts(userId uint, groupId string, kind string, foodGroup string, month string, from string, to string) ([]structs.GroupOverviewProduct, error) {
 	period, err := ResolveOverviewPeriod(month, from, to, time.Now())
 	if err != nil {
 		return nil, err
@@ -237,7 +244,7 @@ func (service GroupOverviewService) GetOverviewProducts(userId uint, groupId str
 	}
 
 	products, err := repositories.NewReceiptProductRepository(service.TX).
-		GetProductsForReceiptsByKind(receiptIdsInPeriod(receipts, period), kind == "UNPLANNED")
+		GetProductsForReceiptsByKind(receiptIdsInPeriod(receipts, period), kind, foodGroup)
 	if err != nil {
 		return nil, err
 	}
@@ -336,7 +343,12 @@ func (service GroupOverviewService) fetchReceipts(
 
 // foldGroupOverview walks the receipts once. Every bucket of the trend is seeded first, so one
 // without receipts renders as a zero bar rather than vanishing.
-func foldGroupOverview(receipts []models.Receipt, period OverviewPeriod, previous OverviewPeriod) structs.GroupOverview {
+func foldGroupOverview(
+	receipts []models.Receipt,
+	period OverviewPeriod,
+	previous OverviewPeriod,
+	productsByReceipt map[uint][]models.ReceiptProduct,
+) structs.GroupOverview {
 	endMonth := time.Date(period.To.Year(), period.To.Month(), 1, 0, 0, 0, 0, time.UTC)
 	trendMonthStart := period.trendMonthStart()
 
@@ -395,13 +407,7 @@ func foldGroupOverview(receipts []models.Receipt, period OverviewPeriod, previou
 			overview.OpenReceiptCount++
 		}
 
-		if len(receipt.Categories) == 0 {
-			categoryTotals["Uncategorized"] = categoryTotals["Uncategorized"].Add(receipt.Amount)
-			continue
-		}
-		for _, category := range receipt.Categories {
-			categoryTotals[category.Name] = categoryTotals[category.Name].Add(receipt.Amount)
-		}
+		addReceiptToFoodGroups(categoryTotals, receipt, productsByReceipt[receipt.ID])
 	}
 
 	overview.Months = make([]structs.GroupOverviewMonth, 0, groupOverviewMonths)
@@ -438,4 +444,50 @@ func foldGroupOverview(receipts []models.Receipt, period OverviewPeriod, previou
 	})
 
 	return overview
+}
+
+const uncategorizedFoodGroup = "Uncategorized"
+
+func groupProductsByReceipt(products []models.ReceiptProduct) map[uint][]models.ReceiptProduct {
+	byReceipt := make(map[uint][]models.ReceiptProduct)
+	for _, product := range products {
+		byReceipt[product.ReceiptId] = append(byReceipt[product.ReceiptId], product)
+	}
+	return byReceipt
+}
+
+// foodGroupLabel is a product's food group as the Dashboard names it: "sweets & snacks" becomes
+// "Sweets & Snacks", and a product with none is "Uncategorized".
+func foodGroupLabel(foodGroup string) string {
+	words := strings.Fields(foodGroup)
+	if len(words) == 0 {
+		return uncategorizedFoodGroup
+	}
+	for i, word := range words {
+		runes := []rune(word)
+		runes[0] = unicode.ToUpper(runes[0])
+		words[i] = string(runes)
+	}
+	return strings.Join(words, " ")
+}
+
+// addReceiptToFoodGroups spreads a receipt's spend over the food groups of its products (Phase 3 3c):
+// each priced product adds its amount to its group, and what the products do not account for, or the
+// whole amount of a receipt without products yet, lands in Uncategorized. Products adding up to more than
+// the receipt (a discount line) leave nothing over rather than going negative.
+func addReceiptToFoodGroups(totals map[string]decimal.Decimal, receipt models.Receipt, products []models.ReceiptProduct) {
+	accounted := decimal.Zero
+	for _, product := range products {
+		if product.Amount == nil {
+			continue
+		}
+		label := foodGroupLabel(product.FoodGroup)
+		totals[label] = totals[label].Add(*product.Amount)
+		accounted = accounted.Add(*product.Amount)
+	}
+
+	rest := receipt.Amount.Sub(accounted)
+	if len(products) == 0 || rest.IsPositive() {
+		totals[uncategorizedFoodGroup] = totals[uncategorizedFoodGroup].Add(rest)
+	}
 }

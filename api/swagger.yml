@@ -4627,7 +4627,13 @@ paths:
         schema:
           type: string
         required: true
-        description: UNHEALTHY or UNPLANNED
+        description: UNHEALTHY, UNPLANNED or FOODGROUP (the products of one food group)
+      - in: query
+        name: foodGroup
+        schema:
+          type: string
+        required: false
+        description: With kind FOODGROUP, the food group's name as the Dashboard shows it; empty for Uncategorized
       - in: query
         name: month
         schema:

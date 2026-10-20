@@ -308,6 +308,26 @@
       color="accent"
       [buttonRouterLink]="['/receipts/' + element.id + '/edit']"
     ></app-edit-button>
+    @if (!isDone(element)) {
+      <app-button
+        *hasGroupPermission="{ groupId: element.groupId, permission: Permission.GroupReceiptsUpdate }"
+        data-testid="receipt-mark-done"
+        matButtonType="iconButton"
+        icon="check"
+        tooltip="Mark as done"
+        color="primary"
+        (clicked)="markDone(element)"
+      ></app-button>
+    }
+    <app-button
+      *hasGroupPermission="{ groupId: element.groupId, permission: Permission.GroupReceiptsUpdate }"
+      data-testid="receipt-read-with-ai"
+      matButtonType="iconButton"
+      icon="auto_awesome"
+      tooltip="Read with AI"
+      color="accent"
+      (clicked)="readWithAi(element)"
+    ></app-button>
     <app-button
       *hasGroupPermission="{ groupId: element.groupId, permission: Permission.GroupReceiptsDuplicate }"
       data-testid="receipt-duplicate"

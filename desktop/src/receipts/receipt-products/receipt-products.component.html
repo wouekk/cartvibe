@@ -17,6 +17,9 @@
         <thead>
           <tr>
             <th scope="col">Product</th>
+            <th scope="col">Original</th>
+            <th scope="col">Category</th>
+            <th scope="col">Health</th>
             <th scope="col">Quantity</th>
             <th scope="col" class="numeric">Amount</th>
             @if (canUpdate()) {
@@ -39,6 +42,9 @@
                     (keydown.enter)="saveEdit(product)"
                   />
                 </td>
+                <td class="muted">{{ product.name }}</td>
+                <td class="muted">{{ product.foodGroup }}</td>
+                <td><app-food-tags class="product__tags" [values]="product"></app-food-tags></td>
                 <td>
                   <input
                     class="inline-input"
@@ -81,14 +87,13 @@
               <tr>
                 <td>
                   <span class="product__name">{{ product.displayName || product.name }}</span>
-                  @if (product.displayName && product.displayName !== product.name) {
-                    <span class="product__printed">{{ product.name }}</span>
-                  }
-                  <app-food-tags class="product__tags" [values]="product"></app-food-tags>
                   @if (product.planned === false) {
                     <span class="product__unplanned" data-testid="receipt-product-unplanned">Not on the list</span>
                   }
                 </td>
+                <td class="muted" data-testid="receipt-product-original">{{ product.name }}</td>
+                <td data-testid="receipt-product-category">{{ product.foodGroup | titlecase }}</td>
+                <td><app-food-tags class="product__tags" [values]="product"></app-food-tags></td>
                 <td class="muted">{{ product.quantity }}</td>
                 <td class="numeric">
                   @if (product.amount) {

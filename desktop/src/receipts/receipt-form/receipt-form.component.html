@@ -319,6 +319,17 @@
     [disabled]="!canEditReceipt()"
     [buttonRouterLink]="[editLink]"
   ></app-button>
+  @if ((mode | inputReadonly) && canEditReceipt() && !receiptDone()) {
+    <app-button
+      class="ms-1"
+      data-testid="receipt-mark-done"
+      color="primary"
+      matButtonType="iconButton"
+      tooltip="Mark as done"
+      icon="check"
+      (clicked)="markDone()"
+    ></app-button>
+  }
   @if (canManageCustomFields()) {
     <app-filtered-stateful-menu
       data-testid="receipt-manage-custom-fields"

@@ -1,5 +1,5 @@
 import { CurrencyPipe, DatePipe } from "@angular/common";
-import { AfterViewInit, Component, computed, OnInit, signal, TemplateRef, ViewEncapsulation, viewChild } from "@angular/core";
+import { AfterViewInit, Component, computed, inject, OnInit, signal, TemplateRef, ViewEncapsulation, viewChild } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { PageEvent } from "@angular/material/paginator";
 import { Sort } from "@angular/material/sort";
@@ -7,6 +7,7 @@ import { MatTableDataSource } from "@angular/material/table";
 import { ActivatedRoute, Router } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
+import { DONE_STATUSES } from "../../utils/receipt-status";
 import { catchError, EMPTY, map, Subject, switchMap, take, tap } from "rxjs";
 import { fadeInOut } from "src/animations";
 import { ReceiptFilterService } from "src/services/receipt-filter.service";
@@ -30,6 +31,7 @@ import {
   Receipt,
   ReceiptPagedRequestFilter,
   ReceiptService,
+  ReceiptProductService,
   ReceiptStatus,
   ReceiptSummary,
   ReceiptSummaryPosition,
@@ -828,6 +830,45 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
         })
       )
       .subscribe();
+  }
+
+  private readonly receiptProductService = inject(ReceiptProductService);
+
+  /** A receipt that reads as "Done" needs no check mark (Phase 3 2e). */
+  public isDone(row: Receipt): boolean {
+    return DONE_STATUSES.includes(row.status);
+  }
+
+  /** The "V" on a row: sets the receipt to Done (RESOLVED) in one tap, without opening it. */
+  public markDone(row: Receipt): void {
+    this.receiptService
+      .bulkReceiptStatusUpdate({ status: ReceiptStatus.Resolved, receiptIds: [row.id] })
+      .pipe(
+        take(1),
+        tap((receipts) => {
+          const newReceipts = Array.from(this.dataSource().data);
+          receipts.forEach((updated) => {
+            const inTable = newReceipts.find((candidate) => candidate.id === updated.id) as any as Receipt;
+            if (inTable) {
+              inTable.status = updated.status;
+              inTable.resolvedDate = updated.resolvedDate;
+            }
+          });
+          this.dataSource.set(new MatTableDataSource(newReceipts));
+          // The change moves the receipt between the summary's status rows.
+          this.summaryRequested.next();
+          this.snackbarService.success("Marked as done");
+        })
+      )
+      .subscribe();
+  }
+
+  /** Forces the AI to read this receipt's products again (Phase 3 2d); it runs in the background. */
+  public readWithAi(row: Receipt): void {
+    this.receiptProductService
+      .readReceiptProducts(row.id)
+      .pipe(take(1))
+      .subscribe(() => this.snackbarService.success("Queued: the AI will read this receipt shortly"));
   }
 
   public duplicateReceipt(row: Receipt): void {
