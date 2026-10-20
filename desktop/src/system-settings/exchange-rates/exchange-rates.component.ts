@@ -4,7 +4,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { Store } from "@ngxs/store";
 import { take } from "rxjs";
-import { ExchangeRate, ExchangeRateService, ExchangeRates, Permission } from "../../open-api";
+import { CurrencyRate, CurrencyRateTable, ExchangeRateService, Permission } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { AuthState } from "../../store";
 import { parseCurrencyCode, parseRateInput } from "./exchange-rate-input";
@@ -93,7 +93,7 @@ export class ExchangeRatesComponent implements OnInit {
   }
 
   public save(): void {
-    const rates: ExchangeRate[] = [];
+    const rates: CurrencyRate[] = [];
     for (const row of this.rows()) {
       const parsed = parseRateInput(row.rate);
       if (!parsed.ok) {
@@ -118,7 +118,7 @@ export class ExchangeRatesComponent implements OnInit {
       });
   }
 
-  private show(view: ExchangeRates): void {
+  private show(view: CurrencyRateTable): void {
     this.mainCurrency.set(view.mainCurrency ?? "");
     this.rows.set(view.rates.map((rate) => ({ code: rate.code, rate: rate.rate ?? "" })));
   }
