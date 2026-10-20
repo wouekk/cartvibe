@@ -230,3 +230,15 @@ func (repository CustomFieldRepository) validateOrderBy(orderBy string) error {
 
 	return nil
 }
+
+// GetAllCustomFields returns every custom field with its options, for the AI prompt (Phase 3 F2).
+func (repository CustomFieldRepository) GetAllCustomFields() ([]models.CustomField, error) {
+	var customFields []models.CustomField
+
+	err := repository.GetDB().Preload("Options").Order("id").Find(&customFields).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return customFields, nil
+}

@@ -31,7 +31,8 @@ Find the receipt's name, total cost, and date. Format the found data as:
 	"amount": amount as a number,
 	"date": date in ISO 18601 format in UTC with ALL time values set as 0,
 	"categories": categories,
-	"tags": tags
+	"tags": tags,
+	"customFields": custom field values
 }
 If a store name cannot be confidently found, use 'Default store name' as the default name.
 Omit any value if not found with confidence. Assume the date is in the year @currentYear if not provided.
@@ -55,6 +56,15 @@ Categories to chose from: @categories
 Follow the same process as described for categories for tags.
 
 Tags to chose from: @tags
+
+Custom fields to fill in, as a list of {id, name, type, description, options}. Return a value for a field only when the receipt clearly shows it; otherwise leave it out. If there are no custom fields, make customFields an empty array. Each value is an object with the field's id as customFieldId and exactly one value, by type:
+TEXT: "stringValue": text
+DATE: "dateValue": the date as yyyy-MM-dd
+SELECT: "selectValue": the id of one of the field's options
+CURRENCY: "currencyValue": amount as a number
+BOOLEAN: "booleanValue": true or false
+
+Custom fields: @customFields
 
 Receipt text: @ocrText
 `

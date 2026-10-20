@@ -272,11 +272,19 @@ func (service ReceiptProcessingService) processImages(
 
 	cleanedResponse := service.cleanResponse(response)
 
+	// Custom field values are read leniently and kept out of the strict unmarshal below (Phase 3 F2).
+	customFields, customFieldsErr := repositories.NewCustomFieldRepository(nil).GetAllCustomFields()
+	if customFieldsErr != nil {
+		return result, customFieldsErr
+	}
+	cleanedResponse, aiCustomFieldValues := splitAiCustomFields(cleanedResponse, customFields)
+
 	err = json.Unmarshal([]byte(cleanedResponse), &receipt)
 	if err != nil {
 		return result, err
 	}
 
+	receipt.CustomFields = aiCustomFieldValues
 	result.Receipt = receipt
 	return result, nil
 }
@@ -496,6 +504,11 @@ func (service ReceiptProcessingService) buildTemplateVariableMap(ocrText string)
 		return result, err
 	}
 
+	customFieldsString, err := service.getCustomFieldsString()
+	if err != nil {
+		return result, err
+	}
+
 	// The year as the app's users see it, not the server process's, so a
 	// receipt scanned just after midnight on Jan 1 in the app zone is dated in
 	// the new year.
@@ -503,6 +516,7 @@ func (service ReceiptProcessingService) buildTemplateVariableMap(ocrText string)
 
 	result[structs.CATEGORIES] = categoriesString
 	result[structs.TAGS] = tagsString
+	result[structs.CUSTOM_FIELDS] = customFieldsString
 	result[structs.OCR_TEXT] = ocrText
 	result[structs.CURRENT_YEAR] = currentYearString
 
