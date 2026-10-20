@@ -144,8 +144,8 @@ test.describe('Receipts table — custom field columns', () => {
 
     expect(trimmed).toContain(tipName);
     expect(trimmed).toContain(statusName);
-    // After the built-ins, and after Resolved Date specifically.
-    expect(trimmed.indexOf(tipName)).toBeGreaterThan(trimmed.indexOf('Resolved Date'));
+    // After the built-ins, and after Done on specifically.
+    expect(trimmed.indexOf(tipName)).toBeGreaterThan(trimmed.indexOf('Done on'));
 
     // Hidden by default: creating a custom field must not widen everyone's table.
     await expect(dialog.getByRole('checkbox', { name: tipName })).not.toBeChecked();
@@ -170,7 +170,7 @@ test.describe('Receipts table — custom field columns', () => {
     const tipRow = rows.filter({ hasText: tipName });
     await expect(tipRow.getByTestId('column-config-custom')).toHaveText('Custom');
     await expect(
-      rows.filter({ hasText: 'Resolved Date' }).getByTestId('column-config-custom')
+      rows.filter({ hasText: 'Done on' }).getByTestId('column-config-custom')
     ).toHaveCount(0);
 
     // The badge must stay out of the checkbox's accessible name, or every

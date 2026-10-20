@@ -507,7 +507,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
         sortable: true,
       },
       {
-        columnHeader: "Resolved Date",
+        columnHeader: "Done on",
         matColumnDef: "resolved_date",
         template: this.resolvedDateCell(),
         sortable: true,

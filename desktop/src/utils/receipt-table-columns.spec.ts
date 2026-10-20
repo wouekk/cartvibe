@@ -40,7 +40,7 @@ describe("receipt-table-columns", () => {
 
   describe("columnDisplayName", () => {
     it("names a built-in column and a custom field", () => {
-      expect(columnDisplayName("resolved_date", [])).toBe("Resolved Date");
+      expect(columnDisplayName("resolved_date", [])).toBe("Done on");
       expect(columnDisplayName("first_comment", [])).toBe("Comment");
       expect(columnDisplayName("custom_7", [customField(7, "Vendor")])).toBe("Vendor");
     });

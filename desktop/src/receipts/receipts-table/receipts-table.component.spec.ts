@@ -408,7 +408,7 @@ describe("ReceiptsTableComponent", () => {
       it("offers exactly the date fields, labelled as the dialog labels them", () => {
         expect(component.dateFilterFields.map((field) => [field.key, field.label])).toEqual([
           ["date", "Receipt Date"],
-          ["resolvedDate", "Resolved Date"],
+          ["resolvedDate", "Done on"],
           ["createdAt", "Added At"],
         ]);
       });
@@ -421,7 +421,7 @@ describe("ReceiptsTableComponent", () => {
         expect(filter.resolvedDate.operation).toEqual(FilterOperation.Between);
         expect(filter.date).toEqual({ operation: null, value: null });
 
-        expect(component.quickDateFieldLabel()).toEqual("Resolved Date");
+        expect(component.quickDateFieldLabel()).toEqual("Done on");
         expect(component.stepperLabel()).toEqual("September 2026");
       });
 

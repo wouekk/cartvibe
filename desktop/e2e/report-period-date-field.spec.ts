@@ -21,7 +21,7 @@ import {
 test.use({ storageState: 'e2e/.auth/admin.json' });
 
 // The same fields, in the same order, as the receipts table's quick date filter.
-const DATE_FIELDS = ['Receipt Date', 'Resolved Date', 'Added At'];
+const DATE_FIELDS = ['Receipt Date', 'Done on', 'Added At'];
 
 function dateFieldSelect(page: Page) {
   return page.getByRole('combobox', { name: 'Date field', exact: true });
@@ -114,7 +114,7 @@ test.describe.serial('Report Builder — period date field', () => {
     await setCustomPeriod(page, '01/01/2023', '12/31/2024');
     await expectReceiptCount(page, 2);
 
-    await pickDateField(page, 'Resolved Date');
+    await pickDateField(page, 'Done on');
     await expectReceiptCount(page, 0);
 
     await pickDateField(page, 'Added At');
@@ -125,10 +125,10 @@ test.describe.serial('Report Builder — period date field', () => {
     await setCustomPeriod(page, '01/01/2025', '12/31/2099');
     await expectReceiptCount(page, 0);
 
-    await pickDateField(page, 'Resolved Date');
+    await pickDateField(page, 'Done on');
     await expectReceiptCount(page, 1);
     // An instant field is read in the app time zone, and the hint names it.
-    await expect(page.getByText(/Resolves to .* on Resolved Date \([^)]+\)/)).toBeVisible();
+    await expect(page.getByText(/Resolves to .* on Done on \([^)]+\)/)).toBeVisible();
 
     await pickDateField(page, 'Added At');
     await expectReceiptCount(page, 2);
@@ -142,7 +142,7 @@ test.describe.serial('Report Builder — period date field', () => {
 
   test('a saved template reopens on its date field', async ({ page }) => {
     const templateName = uniqueName('period-date-field');
-    await pickDateField(page, 'Resolved Date');
+    await pickDateField(page, 'Done on');
     await page.getByLabel('Report name').fill(templateName);
 
     const save = page.getByTestId('report-save-template');
@@ -159,7 +159,7 @@ test.describe.serial('Report Builder — period date field', () => {
     await gotoReports(page);
     await page.getByRole('row').filter({ hasText: templateName }).getByTestId('report-template-name').click();
     await expect(page).toHaveURL(/\/reports\/\d+\/edit$/);
-    await expect(dateFieldSelect(page)).toContainText('Resolved Date');
+    await expect(dateFieldSelect(page)).toContainText('Done on');
   });
 });
 
