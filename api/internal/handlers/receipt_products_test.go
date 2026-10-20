@@ -98,9 +98,10 @@ func TestReadReceiptProductsQueuesARead(t *testing.T) {
 	receipt := seedProductReceipt(t, 1, true)
 	params := map[string]string{"receiptId": fmt.Sprint(receipt.ID)}
 
-	// Reading products needs update, not just read.
-	grantGroupPerms(t, 1, 1, permissions.GroupReceiptsRead)
-	w, r := shoppingListRequest("POST", "", 1, params)
+	// Reading products needs update, not just read. Two members, because grantGroupPerms names its
+	// role after the (user, group) pair and so can grant each pair only once.
+	grantGroupPerms(t, 2, 1, permissions.GroupReceiptsRead)
+	w, r := shoppingListRequest("POST", "", 2, params)
 	ReadReceiptProducts(w, r)
 	assertStatus(t, w, http.StatusForbidden)
 
