@@ -137,7 +137,9 @@ describe("QuickScanDialogComponent", () => {
 
     expect(component.form.value).toEqual({
       paidByUserIds: [1],
-      statuses: [ReceiptStatus.Open],
+      // Status is never asked (Phase 3 C3/C6), so once a group is picked it goes out blank and the
+      // server applies the group's default, then OPEN.
+      statuses: [""],
       groupIds: [1],
       categories: [[]],
       tags: [[]],
@@ -192,7 +194,7 @@ describe("QuickScanDialogComponent", () => {
     expect(component.groupIds.value).toEqual([7]);
   });
 
-  it("prefers the quick-scan default group over the user's only group", () => {
+  it("prefers the user's only group over a quick-scan default group, which could be stale (Phase 3 C3)", () => {
     store.reset({
       auth: { userPreferences: { quickScanDefaultGroupId: 3 } },
       groups: {
@@ -204,7 +206,7 @@ describe("QuickScanDialogComponent", () => {
 
     component.fileLoaded({} as any);
 
-    expect(component.groupIds.value).toEqual([3]);
+    expect(component.groupIds.value).toEqual([7]);
   });
 
   it("leaves the group blank when the user belongs to more than one", () => {

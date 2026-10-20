@@ -4,7 +4,7 @@ import { FormArray, FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { switchMap, take, tap } from "rxjs";
-import { RECEIPT_STATUS_OPTIONS } from "../../constants/receipt-status-options";
+import { ALL_RECEIPT_STATUS_OPTIONS } from "../../constants/receipt-status-options";
 import { FormMode } from "../../enums/form-mode.enum";
 import { BaseFormComponent, setRequired } from "../../form/index";
 import {
@@ -52,9 +52,10 @@ export class GroupReceiptSettingsComponent extends BaseFormComponent implements 
     { value: ReceiptSummaryPosition.Bottom, display: "Below the table" },
   ];
 
-  // Derived from RECEIPT_STATUS_OPTIONS (itself derived from the generated ReceiptStatus enum), so a
-  // status added to swagger reaches this screen on regeneration alone.
-  public readonly receiptStatusOptions = RECEIPT_STATUS_OPTIONS;
+  // Every real status, derived from the generated ReceiptStatus enum so a status added to swagger
+  // reaches this screen on regeneration alone -- not the two a family picks from (Phase 3 C6), since
+  // the summary breaks down by the stored status.
+  public readonly receiptStatusOptions = ALL_RECEIPT_STATUS_OPTIONS;
 
   // Only CURRENCY fields can be totalled - the server 400s anything else, because only a currency
   // value can be summed.

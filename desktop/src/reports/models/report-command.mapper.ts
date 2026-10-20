@@ -1,7 +1,6 @@
 import { format } from "date-fns";
 import { RECEIPT_DATE_FILTER_KEYS, ReceiptDateFilterFieldKey } from "src/constants";
 import { toDateWireFilter } from "../../utils/date-wire-filter";
-import { toStatusWireFilter } from "../../utils/receipt-status";
 import {
   ReceiptPagedRequestFilter,
   ReportColumn,
@@ -261,5 +260,5 @@ export function toReportRequestCommandForSave(value: ReportBuilderValue): Report
  * stored day back into the datepicker's local midnight on load.
  */
 function withWireDates(command: ReportRequestCommand): ReportRequestCommand {
-  return { ...command, filter: toStatusWireFilter(toDateWireFilter(command.filter, RECEIPT_DATE_FILTER_KEYS)) };
+  return { ...command, filter: toDateWireFilter(command.filter, RECEIPT_DATE_FILTER_KEYS) };
 }
