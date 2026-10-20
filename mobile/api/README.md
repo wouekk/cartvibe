@@ -178,6 +178,7 @@ Class | Method | HTTP request | Description
 [*RoleApi*](doc/RoleApi.md) | [**updateRole**](doc/RoleApi.md#updaterole) | **PUT** /role/{roleId} | Update role
 [*SearchApi*](doc/SearchApi.md) | [**receiptSearch**](doc/SearchApi.md#receiptsearch) | **GET** /search/ | Receipt Search
 [*ShoppingListApi*](doc/ShoppingListApi.md) | [**addShoppingListItem**](doc/ShoppingListApi.md#addshoppinglistitem) | **POST** /shopping-list/{listId}/item | Add shopping list item
+[*ShoppingListApi*](doc/ShoppingListApi.md) | [**announceGoingShopping**](doc/ShoppingListApi.md#announcegoingshopping) | **POST** /shopping-list/group/{groupId}/going-shopping | Tell the household you are going shopping
 [*ShoppingListApi*](doc/ShoppingListApi.md) | [**attachShoppingTripReceipt**](doc/ShoppingListApi.md#attachshoppingtripreceipt) | **POST** /shopping-list/{listId}/trip | Attach an existing receipt to a shopping list
 [*ShoppingListApi*](doc/ShoppingListApi.md) | [**clearCheckedShoppingListItems**](doc/ShoppingListApi.md#clearcheckedshoppinglistitems) | **POST** /shopping-list/{listId}/clearChecked | Clear crossed-off items
 [*ShoppingListApi*](doc/ShoppingListApi.md) | [**createShoppingList**](doc/ShoppingListApi.md#createshoppinglist) | **POST** /shopping-list/group/{groupId} | Create shopping list

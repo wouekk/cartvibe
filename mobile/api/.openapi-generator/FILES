@@ -397,4 +397,3 @@ lib/src/model/widget.dart
 lib/src/model/widget_type.dart
 lib/src/serializers.dart
 pubspec.yaml
-test/upsert_receipt_product_command_test.dart

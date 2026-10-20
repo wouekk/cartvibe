@@ -10,6 +10,7 @@ All URIs are relative to */api*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**addShoppingListItem**](ShoppingListApi.md#addshoppinglistitem) | **POST** /shopping-list/{listId}/item | Add shopping list item
+[**announceGoingShopping**](ShoppingListApi.md#announcegoingshopping) | **POST** /shopping-list/group/{groupId}/going-shopping | Tell the household you are going shopping
 [**attachShoppingTripReceipt**](ShoppingListApi.md#attachshoppingtripreceipt) | **POST** /shopping-list/{listId}/trip | Attach an existing receipt to a shopping list
 [**clearCheckedShoppingListItems**](ShoppingListApi.md#clearcheckedshoppinglistitems) | **POST** /shopping-list/{listId}/clearChecked | Clear crossed-off items
 [**createShoppingList**](ShoppingListApi.md#createshoppinglist) | **POST** /shopping-list/group/{groupId} | Create shopping list
@@ -72,6 +73,52 @@ Name | Type | Description  | Notes
 ### HTTP request headers
 
  - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **announceGoingShopping**
+> announceGoingShopping(groupId)
+
+Tell the household you are going shopping
+
+This will notify everyone else in the group to add what they need to the lists. A repeat within 15 minutes is ignored. Not available for the All group [group.shopping-lists.update]
+
+### Example
+```dart
+import 'package:openapi/api.dart';
+// TODO Configure API key authorization: apiKeyAuth
+//defaultApiClient.getAuthentication<ApiKeyAuth>('apiKeyAuth').apiKey = 'YOUR_API_KEY';
+// uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//defaultApiClient.getAuthentication<ApiKeyAuth>('apiKeyAuth').apiKeyPrefix = 'Bearer';
+
+final api = Openapi().getShoppingListApi();
+final int groupId = 56; // int | Id of the group
+
+try {
+    api.announceGoingShopping(groupId);
+} catch on DioException (e) {
+    print('Exception when calling ShoppingListApi->announceGoingShopping: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **groupId** | **int**| Id of the group | 
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
  - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
