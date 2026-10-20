@@ -20,6 +20,7 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(AssociatedApiKeys.serializer)
       ..add(AssociatedEntityType.serializer)
       ..add(AssociatedGroup.serializer)
+      ..add(AttachShoppingTripReceiptCommand.serializer)
       ..add(BulkStatusUpdateCommand.serializer)
       ..add(BulkUserDeleteCommand.serializer)
       ..add(Category.serializer)
@@ -121,6 +122,9 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(ShoppingList.serializer)
       ..add(ShoppingListEvent.serializer)
       ..add(ShoppingListItem.serializer)
+      ..add(ShoppingTrip.serializer)
+      ..add(ShoppingTripReceipt.serializer)
+      ..add(ShoppingTripView.serializer)
       ..add(SignUpCommand.serializer)
       ..add(SortDirection.serializer)
       ..add(SubjectLineRegex.serializer)
@@ -313,6 +317,9 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(ShoppingListItem)]),
           () => ListBuilder<ShoppingListItem>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(String)]),
           () => ListBuilder<String>())

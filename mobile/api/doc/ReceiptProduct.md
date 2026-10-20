@@ -23,6 +23,8 @@ Name | Type | Description | Notes
 **seasonality** | **String** | For fresh fruit and vegetables, SEASONAL or OUT_OF_SEASON in Western Europe in the month bought; NOT_PRODUCE otherwise; empty while not yet classified. A plain string. | 
 **classifiedAt** | [**DateTime**](DateTime.md) | When the tags were set; null while waiting to be classified | [optional] 
 **classificationOverridden** | **bool** | The tags were corrected by a person | 
+**planned** | **bool** | Set once the receipt's shopping trip is compared with its list: true when the product was on the list, false when it was not. Null when the receipt is on no list or not compared yet, which counts as planned. | [optional] 
+**matchedShoppingListItemId** | **int** | The list item a planned product matched; it may since have left the list | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

@@ -13,6 +13,7 @@ doc/AppData.md
 doc/AssociatedApiKeys.md
 doc/AssociatedEntityType.md
 doc/AssociatedGroup.md
+doc/AttachShoppingTripReceiptCommand.md
 doc/AuthApi.md
 doc/BaseModel.md
 doc/BulkStatusUpdateCommand.md
@@ -134,6 +135,9 @@ doc/ShoppingList.md
 doc/ShoppingListApi.md
 doc/ShoppingListEvent.md
 doc/ShoppingListItem.md
+doc/ShoppingTrip.md
+doc/ShoppingTripReceipt.md
+doc/ShoppingTripView.md
 doc/SignUpCommand.md
 doc/SortDirection.md
 doc/SubjectLineRegex.md
@@ -238,6 +242,7 @@ lib/src/model/app_data.dart
 lib/src/model/associated_api_keys.dart
 lib/src/model/associated_entity_type.dart
 lib/src/model/associated_group.dart
+lib/src/model/attach_shopping_trip_receipt_command.dart
 lib/src/model/base_model.dart
 lib/src/model/bulk_status_update_command.dart
 lib/src/model/bulk_user_delete_command.dart
@@ -337,6 +342,9 @@ lib/src/model/set_shopping_list_item_checked_command.dart
 lib/src/model/shopping_list.dart
 lib/src/model/shopping_list_event.dart
 lib/src/model/shopping_list_item.dart
+lib/src/model/shopping_trip.dart
+lib/src/model/shopping_trip_receipt.dart
+lib/src/model/shopping_trip_view.dart
 lib/src/model/sign_up_command.dart
 lib/src/model/sort_direction.dart
 lib/src/model/subject_line_regex.dart
@@ -385,4 +393,7 @@ lib/src/model/widget.dart
 lib/src/model/widget_type.dart
 lib/src/serializers.dart
 pubspec.yaml
-test/set_food_classification_command_test.dart
+test/attach_shopping_trip_receipt_command_test.dart
+test/shopping_trip_receipt_test.dart
+test/shopping_trip_test.dart
+test/shopping_trip_view_test.dart

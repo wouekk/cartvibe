@@ -55,5 +55,13 @@ export interface ReceiptProduct {
      * The tags were corrected by a person
      */
     classificationOverridden: boolean;
+    /**
+     * Set once the receipt\'s shopping trip is compared with its list: true when the product was on the list, false when it was not. Null when the receipt is on no list or not compared yet, which counts as planned.
+     */
+    planned?: boolean;
+    /**
+     * The list item a planned product matched; it may since have left the list
+     */
+    matchedShoppingListItemId?: number;
 }
 
