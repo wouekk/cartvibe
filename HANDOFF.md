@@ -2,6 +2,14 @@
 
 ## Status (2026-10-20, Windows PC, Claude Code)
 
+**Switching from the VS Code extension to the Claude Code desktop app (2026-10-20).** The repo, branch
+and tools are the same; nothing is lost, because all state is in git and these files. To continue:
+open the repo folder `receipt-wrangler` in the app, start a session on `main`, and say "continue with
+step 3". The app reads `CLAUDE.md` -> `AGENTS.md` -> this file by itself. Reminders for a fresh
+session: Go is not on the bash PATH here (`export PATH="$PATH:/c/Program Files/Go/bin"`), `gh` needs
+`--repo wouekk/receipt-wrangler` (it defaults to upstream), and `git` may warn about LF/CRLF (harmless).
+Branch per step: `feature/phase-3-<name>` from `main`, CI green, then fast-forward `main` (the user
+agreed to this flow; still ask before pushing `main` unless they said to proceed).
 - **`main` / published image (`ghcr.io/wouekk/receipt-wrangler:latest`, CI green):** shopping lists
   with amount + unit and live sync, the Overview landing page, the dark sidebar, and Phase 2a–2c:
   receipt products, health/seasonality tags, and receipts attached to lists with unplanned spend.
@@ -17,7 +25,7 @@
   Quick Scan and a sole group picked automatically, C6 "To check / Done", C4 bill splitting hidden,
   A1–A3 + M1 a Manage → AI page (Gemini or LM Studio, Test connection) with a built-in prompt and
   a trimmed System Settings, M4 Admin / User roles only (new system roles `User` and `Member`),
-  W1 household wording. CI: see the latest run on the branch.
+  W1 household wording. **CI green on `main` (commit `3d33dd97`), image published.**
 - **Stale e2e:** several upstream Playwright specs still exercise paid-by, shares, statuses and
   required Quick Scan fields that Phase 3 removed (e.g. `receipts.spec.ts`,
   `quick-scan-dialog-behavior.spec.ts`, `receipt-role-requirements.spec.ts`). They cannot run here
