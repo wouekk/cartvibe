@@ -51,10 +51,6 @@
           <div class="drill__cell-value">{{ receipt.categories | name }}</div>
         </div>
         <div class="drill__cell">
-          <div class="drill__cell-label">Paid by</div>
-          <div class="drill__cell-value">{{ (receipt.paidByUserId?.toString() | user)?.displayName }}</div>
-        </div>
-        <div class="drill__cell">
           <div class="drill__cell-label">Tags</div>
           <div class="drill__cell-value">{{ receipt.tags | name }}</div>
         </div>
@@ -75,7 +71,6 @@
             <th>Receipt</th>
             <th>Date</th>
             <th>Category</th>
-            <th>Paid by</th>
             <th class="drill__num">Amount</th>
             <th>Status</th>
             <th class="drill__chevron-col"></th>
@@ -87,7 +82,6 @@
               <td class="drill__row-name">{{ receipt.name }}</td>
               <td>{{ receipt.date | appDate: "mediumDate" : "calendar" }}</td>
               <td>{{ receipt.categories | name }}</td>
-              <td>{{ (receipt.paidByUserId?.toString() | user)?.displayName }}</td>
               <td class="drill__num">{{ receipt.amount | customCurrency }}</td>
               <td><app-status-chip [status]="receipt.status"></app-status-chip></td>
               <td class="drill__chevron-col">

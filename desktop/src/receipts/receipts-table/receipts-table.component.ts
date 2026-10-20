@@ -103,7 +103,6 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
   readonly nameCell = viewChild.required<TemplateRef<any>>("nameCell");
 
-  readonly paidByCell = viewChild.required<TemplateRef<any>>("paidByCell");
 
   readonly amountCell = viewChild.required<TemplateRef<any>>("amountCell");
 
@@ -481,12 +480,6 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
         columnHeader: "Name",
         matColumnDef: "name",
         template: this.nameCell(),
-        sortable: true,
-      },
-      {
-        columnHeader: "Paid By",
-        matColumnDef: "paid_by_user_id",
-        template: this.paidByCell(),
         sortable: true,
       },
       {

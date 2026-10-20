@@ -59,7 +59,8 @@ import { buildItemForm } from "../utils/form.utils";
   standalone: false
 })
 export class ReceiptFormComponent implements OnInit {
-  public readonly shareListComponent = viewChild.required(ShareListComponent);
+  // Optional: the Shares section is not rendered (Phase 3 C4).
+  public readonly shareListComponent = viewChild(ShareListComponent);
 
   public readonly itemListComponent = viewChild.required(ItemListComponent);
 
@@ -675,7 +676,7 @@ export class ReceiptFormComponent implements OnInit {
       .pipe(take(1))
       .subscribe((result: boolean) => {
         if (result) {
-          this.shareListComponent().setUserItemMap();
+          this.shareListComponent()?.setUserItemMap();
         }
       });
   }
@@ -1376,11 +1377,9 @@ export class ReceiptFormComponent implements OnInit {
   }
 
   public submit(): void {
-    if (this.shareListComponent().userExpansionPanels().length > 0) {
-      this.shareListComponent().userExpansionPanels().forEach(
-        (p: MatExpansionPanel) => p.close()
-      );
-    }
+    this.shareListComponent()?.userExpansionPanels().forEach(
+      (p: MatExpansionPanel) => p.close()
+    );
     if (this.form.invalid) {
       return;
     }

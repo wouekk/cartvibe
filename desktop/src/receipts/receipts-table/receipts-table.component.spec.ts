@@ -124,7 +124,7 @@ describe("ReceiptsTableComponent", () => {
     // resolves for a component this spec never renders.
     const stubCellTemplates = (): void => {
       for (const cell of [
-        "createdAtCell", "dateCell", "nameCell", "paidByCell", "amountCell",
+        "createdAtCell", "dateCell", "nameCell", "amountCell",
         "categoryCell", "tagCell", "statusCell", "resolvedDateCell",
         "firstCommentCell", "customFieldCell", "actionsCell",
       ]) {
