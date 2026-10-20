@@ -5,12 +5,12 @@
 - **`main` / published image (`ghcr.io/wouekk/receipt-wrangler:latest`, CI green):** shopping lists
   with amount + unit and live sync, the Overview landing page, the dark sidebar, and Phase 2a–2c:
   receipt products, health/seasonality tags, and receipts attached to lists with unplanned spend.
-- **Phase 3 step 1 (quick wins) is on `feature/phase-3-quick-wins`** (branched from
+- **Phase 3 step 1 (quick wins) is merged into `main`** from `feature/phase-3-quick-wins` (branched from
   `chore/phase-3-plan`, so the plan merges with it): B1 quiet startup, C1 paid by = you, C2
   "Receipt {date}", S1 one-line add row with an amount chip, S3 "List {date}", D2 Unhealthy tile
   (new `unhealthyTotal` on the overview API) instead of Settle up, D3 Add receipt / Quick Scan /
   New list on the Overview and no sidebar "New" menu, M7 currency picker in System Settings.
-  M7 deliberately leaves the API's new-install default at `$` (see the plan). **CI green**
+  M7: EUR as the new-install default is still to do (see the plan). **CI green**
   (run 39410847593; `gh` needs `--repo wouekk/receipt-wrangler`, it defaults to upstream).
 - **Deploying means pull, then redeploy** in Dockhand, then a hard refresh.
 - **Not verified anywhere:** the Playwright specs (they need a live API). 2c has no e2e.
@@ -21,9 +21,9 @@
 ## Next
 
 ### Claude Code
-1. When step 1's CI is green and the user agrees, fast-forward `main` to
-   `feature/phase-3-quick-wins` (it contains the plan commits too) so it can be tried on the NAS.
-2. Step 2 of `docs/family-budget-rework.md` ("Simplify": C3, C4, C6, A1–A3, M1, M4, M6, W1) on a
+1. Step 1 is merged into `main` (fast-forward, plan commits included); act on the NAS feedback.
+2. M7 follow-up: make EUR the API default for new installs (the user wants it; see the plan).
+3. Step 2 of `docs/family-budget-rework.md` ("Simplify": C3, C4, C6, A1–A3, M1, M4, M6, W1) on a
    new `feature/` branch.
 
 ### User

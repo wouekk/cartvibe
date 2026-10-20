@@ -2953,7 +2953,7 @@ that fills the existing `currencyDisplay` / position / separator fields; "Custom
 fields. The `currency` control is form-only (dropped in `submit()`), and its starting value is the
 preset the stored fields match exactly, else Custom. A symbol after the amount starts with a space
 (`" €"`) because `customCurrency` appends it as is. The API's defaults for a new install stay
-upstream's `$` (the report tests depend on them).
+upstream's `$` for now (the report tests depend on them); EUR is a planned follow-up.
 
 ## Testing Requirements
 
