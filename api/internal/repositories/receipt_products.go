@@ -317,3 +317,52 @@ func (repository ReceiptProductRepository) DeleteProduct(product models.ReceiptP
 		return NewShoppingTripRepository(tx).RequeueTripForReceipt(product.ReceiptId, time.Now())
 	})
 }
+
+// GetPricedUnplannedProducts returns the priced products of the given receipts that were marked as not
+// on the shopping list (planned = false). An unmarked product counts as planned, so it is not here.
+func (repository ReceiptProductRepository) GetPricedUnplannedProducts(receiptIds []uint) ([]models.ReceiptProduct, error) {
+	db := repository.GetDB()
+	products := []models.ReceiptProduct{}
+
+	for start := 0; start < len(receiptIds); start += receiptIdBatchSize {
+		end := min(start+receiptIdBatchSize, len(receiptIds))
+
+		batch := []models.ReceiptProduct{}
+		err := db.
+			Select("id", "receipt_id", "amount").
+			Where("receipt_id IN ? AND planned = ? AND amount IS NOT NULL", receiptIds[start:end], false).
+			Find(&batch).Error
+		if err != nil {
+			return []models.ReceiptProduct{}, err
+		}
+		products = append(products, batch...)
+	}
+
+	return products, nil
+}
+
+// GetProductsForReceiptsByKind returns whole product rows of the given receipts for the Dashboard's
+// tap-through lists: kind UNHEALTHY (rated unhealthy) or UNPLANNED (marked not on the list), priced or not.
+func (repository ReceiptProductRepository) GetProductsForReceiptsByKind(receiptIds []uint, unplanned bool) ([]models.ReceiptProduct, error) {
+	db := repository.GetDB()
+	products := []models.ReceiptProduct{}
+
+	for start := 0; start < len(receiptIds); start += receiptIdBatchSize {
+		end := min(start+receiptIdBatchSize, len(receiptIds))
+
+		query := db.Where("receipt_id IN ?", receiptIds[start:end])
+		if unplanned {
+			query = query.Where("planned = ?", false)
+		} else {
+			query = query.Where("health = ?", models.HEALTH_UNHEALTHY)
+		}
+
+		batch := []models.ReceiptProduct{}
+		if err := query.Find(&batch).Error; err != nil {
+			return []models.ReceiptProduct{}, err
+		}
+		products = append(products, batch...)
+	}
+
+	return products, nil
+}

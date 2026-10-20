@@ -27,9 +27,17 @@ func GetGroupOverview(w http.ResponseWriter, r *http.Request) {
 		ResponseType:     constants.ApplicationJson,
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
 			token := structs.GetClaims(r)
-			month := r.URL.Query().Get("month")
+			query := r.URL.Query()
 
-			overview, err := services.NewGroupOverviewService(nil).GetGroupOverview(token.UserId, groupId, month)
+			overview, err := services.NewGroupOverviewService(nil).GetGroupOverviewForPeriod(
+				token.UserId, groupId, query.Get("month"), query.Get("from"), query.Get("to"),
+			)
+			if errors.Is(err, services.ErrInvalidOverviewPeriod) {
+				structs.WriteValidatorErrorResponse(w, structs.ValidatorError{
+					Errors: map[string]string{"from": err.Error()},
+				}, http.StatusBadRequest)
+				return 0, nil
+			}
 			if errors.Is(err, services.ErrInvalidOverviewMonth) {
 				structs.WriteValidatorErrorResponse(w, structs.ValidatorError{
 					Errors: map[string]string{"month": err.Error()},
@@ -41,6 +49,58 @@ func GetGroupOverview(w http.ResponseWriter, r *http.Request) {
 			}
 
 			bytes, err := utils.MarshalResponseData(overview)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			w.WriteHeader(http.StatusOK)
+			w.Write(bytes)
+
+			return 0, nil
+		},
+	}
+
+	HandleRequest(handler)
+}
+
+// GetOverviewProducts lists the product lines behind the Dashboard's Unhealthy and Unplanned tiles for
+// a period (Phase 3 D1): ?kind=UNHEALTHY|UNPLANNED, then month or from/to as on the overview.
+func GetOverviewProducts(w http.ResponseWriter, r *http.Request) {
+	groupId := chi.URLParam(r, "groupId")
+
+	handler := structs.Handler{
+		ErrorMessage:     "Error getting the overview products",
+		Writer:           w,
+		Request:          r,
+		GroupId:          groupId,
+		GroupPermissions: []string{permissions.GroupReceiptsRead},
+		ResponseType:     constants.ApplicationJson,
+		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
+			token := structs.GetClaims(r)
+			query := r.URL.Query()
+
+			kind := query.Get("kind")
+			if kind != "UNHEALTHY" && kind != "UNPLANNED" {
+				structs.WriteValidatorErrorResponse(w, structs.ValidatorError{
+					Errors: map[string]string{"kind": "kind must be UNHEALTHY or UNPLANNED"},
+				}, http.StatusBadRequest)
+				return 0, nil
+			}
+
+			products, err := services.NewGroupOverviewService(nil).GetOverviewProducts(
+				token.UserId, groupId, kind, query.Get("month"), query.Get("from"), query.Get("to"),
+			)
+			if errors.Is(err, services.ErrInvalidOverviewPeriod) || errors.Is(err, services.ErrInvalidOverviewMonth) {
+				structs.WriteValidatorErrorResponse(w, structs.ValidatorError{
+					Errors: map[string]string{"from": err.Error()},
+				}, http.StatusBadRequest)
+				return 0, nil
+			}
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			bytes, err := utils.MarshalResponseData(products)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}

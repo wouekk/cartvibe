@@ -13,6 +13,7 @@ func BuildOverviewRouter() *chi.Mux {
 	overviewRouter.Use(middleware.UnifiedAuthMiddleware)
 
 	overviewRouter.Get("/group/{groupId}", handlers.GetGroupOverview)
+	overviewRouter.Get("/group/{groupId}/products", handlers.GetOverviewProducts)
 
 	return overviewRouter
 }

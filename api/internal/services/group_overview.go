@@ -15,17 +15,34 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// groupOverviewMonths is how many months the overview's trend covers, ending with the chosen one.
+// groupOverviewMonths is how many months the overview's month list covers, ending with the period's last.
 const groupOverviewMonths = 6
 
+// groupOverviewMaxTrendMonths caps a long range's month trend, so a five-year range stays readable.
+const groupOverviewMaxTrendMonths = 24
+
+// groupOverviewMaxDays is the longest period accepted.
+const groupOverviewMaxDays = 366 * 5
+
+// A period shorter than this many days is drawn by day, a longer one by month.
+const groupOverviewDailyTrendBelowDays = 28
+
 const groupOverviewMonthLayout = "2006-01"
+
+const (
+	TrendUnitMonth = "MONTH"
+	TrendUnitDay   = "DAY"
+)
 
 // ErrInvalidOverviewMonth is returned for a month that is not "yyyy-MM"; the handler maps it to a 400.
 var ErrInvalidOverviewMonth = errors.New("month must be formatted yyyy-MM")
 
-// GroupOverviewService builds the landing page's month at a glance. Like ReceiptSummaryService and
-// PieChartService it loads the receipts through GetPagedReceiptsByGroupId — the only path that
-// applies the "All" group fan-out, paid-by visibility and category/tag grants — and folds them in Go
+// ErrInvalidOverviewPeriod is returned for a from/to that is not a pair of yyyy-MM-dd days in order.
+var ErrInvalidOverviewPeriod = errors.New("from and to must both be yyyy-MM-dd days, from on or before to, at most five years apart")
+
+// GroupOverviewService builds the Dashboard's period at a glance. Like ReceiptSummaryService and
+// PieChartService it loads the receipts through GetPagedReceiptsByGroupId, the only path that
+// applies the "All" group fan-out, paid-by visibility and category/tag grants, and folds them in Go
 // with shopspring/decimal, because SQLite has no decimal type to SUM exactly.
 type GroupOverviewService struct {
 	BaseService
@@ -39,26 +56,109 @@ func NewGroupOverviewService(tx *gorm.DB) GroupOverviewService {
 	return service
 }
 
-// GetGroupOverview describes month ("yyyy-MM"; empty = the current month in the app time zone) for
-// the receipts the caller can see in the group. A receipt's month is the month of its Date, a
-// calendar day stored as midnight UTC, so it is read in UTC.
+// OverviewPeriod is a run of calendar days, inclusive, as midnight UTC (a receipt's Date is a
+// calendar day stored that way).
+type OverviewPeriod struct {
+	From time.Time
+	To   time.Time
+}
+
+func (period OverviewPeriod) days() int {
+	return int(period.To.Sub(period.From).Hours()/24) + 1
+}
+
+// ResolveOverviewPeriod picks the days to describe: an explicit from/to wins; otherwise the month
+// ("yyyy-MM"; empty means the current month in the app time zone).
+func ResolveOverviewPeriod(month string, from string, to string, now time.Time) (OverviewPeriod, error) {
+	if from != "" || to != "" {
+		fromDay, fromErr := time.Parse(time.DateOnly, from)
+		toDay, toErr := time.Parse(time.DateOnly, to)
+		if fromErr != nil || toErr != nil || toDay.Before(fromDay) {
+			return OverviewPeriod{}, ErrInvalidOverviewPeriod
+		}
+
+		period := OverviewPeriod{From: fromDay, To: toDay}
+		if period.days() > groupOverviewMaxDays {
+			return OverviewPeriod{}, ErrInvalidOverviewPeriod
+		}
+
+		return period, nil
+	}
+
+	monthStart, err := resolveOverviewMonth(month, now)
+	if err != nil {
+		return OverviewPeriod{}, err
+	}
+
+	return OverviewPeriod{From: monthStart, To: monthStart.AddDate(0, 1, -1)}, nil
+}
+
+// wholeMonths reports how many calendar months the period is, or 0 when it does not start on a first
+// day and end on a last day.
+func (period OverviewPeriod) wholeMonths() int {
+	if period.From.Day() != 1 || period.To.AddDate(0, 0, 1).Day() != 1 {
+		return 0
+	}
+
+	return (period.To.Year()-period.From.Year())*12 + int(period.To.Month()-period.From.Month()) + 1
+}
+
+// Previous is the period the figures are compared with: the same number of calendar months right
+// before a whole-month period (so a month is compared with the month before, a year with the year
+// before), otherwise the same number of days right before it.
+func (period OverviewPeriod) Previous() OverviewPeriod {
+	if months := period.wholeMonths(); months > 0 {
+		return OverviewPeriod{From: period.From.AddDate(0, -months, 0), To: period.From.AddDate(0, 0, -1)}
+	}
+
+	days := period.days()
+	to := period.From.AddDate(0, 0, -1)
+	return OverviewPeriod{From: to.AddDate(0, 0, -(days - 1)), To: to}
+}
+
+// trendMonthStart is the first month the month trend (and the six-month list) needs receipts from.
+func (period OverviewPeriod) trendMonthStart() time.Time {
+	endMonth := time.Date(period.To.Year(), period.To.Month(), 1, 0, 0, 0, 0, time.UTC)
+	spanned := (period.To.Year()-period.From.Year())*12 + int(period.To.Month()-period.From.Month()) + 1
+
+	count := max(spanned, groupOverviewMonths)
+	count = min(count, groupOverviewMaxTrendMonths)
+
+	return endMonth.AddDate(0, -(count - 1), 0)
+}
+
+func (period OverviewPeriod) containsDay(day string) bool {
+	return day >= period.From.Format(time.DateOnly) && day <= period.To.Format(time.DateOnly)
+}
+
+// GetGroupOverview describes month ("yyyy-MM"; empty means the current month in the app time zone).
 func (service GroupOverviewService) GetGroupOverview(userId uint, groupId string, month string) (structs.GroupOverview, error) {
-	monthStart, err := resolveOverviewMonth(month, time.Now())
+	return service.GetGroupOverviewForPeriod(userId, groupId, month, "", "")
+}
+
+// GetGroupOverviewForPeriod describes from..to (inclusive days) or, without them, the month, for the
+// receipts the caller can see in the group, compared with the period before it. A receipt belongs to
+// the day of its Date, read in UTC.
+func (service GroupOverviewService) GetGroupOverviewForPeriod(userId uint, groupId string, month string, from string, to string) (structs.GroupOverview, error) {
+	period, err := ResolveOverviewPeriod(month, from, to, time.Now())
+	if err != nil {
+		return structs.GroupOverview{}, err
+	}
+	previous := period.Previous()
+
+	windowStart := earliest(previous.From, period.trendMonthStart())
+	receipts, err := service.fetchReceipts(userId, groupId, windowStart, period.To)
 	if err != nil {
 		return structs.GroupOverview{}, err
 	}
 
-	windowStart := monthStart.AddDate(0, -(groupOverviewMonths - 1), 0)
-	monthEnd := monthStart.AddDate(0, 1, -1)
+	overview := foldGroupOverview(receipts, period, previous)
 
-	receipts, err := service.fetchReceipts(userId, groupId, windowStart, monthEnd)
+	overview.UnhealthyTotal, overview.UnplannedTotal, err = service.sumProductKinds(receipts, period)
 	if err != nil {
 		return structs.GroupOverview{}, err
 	}
-
-	overview := foldGroupOverview(receipts, monthStart)
-
-	overview.UnhealthyTotal, err = service.sumUnhealthy(receipts, overview.Month)
+	overview.PreviousUnhealthyTotal, overview.PreviousUnplannedTotal, err = service.sumProductKinds(receipts, previous)
 	if err != nil {
 		return structs.GroupOverview{}, err
 	}
@@ -66,33 +166,110 @@ func (service GroupOverviewService) GetGroupOverview(userId uint, groupId string
 	return overview, nil
 }
 
-// sumUnhealthy adds up the month's products rated unhealthy, on the receipts the caller can see.
-func (service GroupOverviewService) sumUnhealthy(receipts []models.Receipt, month string) (decimal.Decimal, error) {
-	receiptIds := make([]uint, 0, len(receipts))
+func earliest(a time.Time, b time.Time) time.Time {
+	if b.Before(a) {
+		return b
+	}
+	return a
+}
+
+func receiptIdsInPeriod(receipts []models.Receipt, period OverviewPeriod) []uint {
+	ids := make([]uint, 0, len(receipts))
 	for _, receipt := range receipts {
-		if receipt.Date.UTC().Format(groupOverviewMonthLayout) == month {
-			receiptIds = append(receiptIds, receipt.ID)
+		if period.containsDay(receipt.Date.UTC().Format(time.DateOnly)) {
+			ids = append(ids, receipt.ID)
+		}
+	}
+	return ids
+}
+
+// sumProductKinds adds up the period's priced products rated unhealthy, and those marked as not on
+// the shopping list, on the receipts the caller can see.
+func (service GroupOverviewService) sumProductKinds(receipts []models.Receipt, period OverviewPeriod) (decimal.Decimal, decimal.Decimal, error) {
+	unhealthy, unplanned := decimal.Zero, decimal.Zero
+
+	receiptIds := receiptIdsInPeriod(receipts, period)
+	if len(receiptIds) == 0 {
+		return unhealthy, unplanned, nil
+	}
+
+	productRepository := repositories.NewReceiptProductRepository(service.TX)
+
+	unhealthyProducts, err := productRepository.GetPricedProductsWithHealth(receiptIds, models.HEALTH_UNHEALTHY)
+	if err != nil {
+		return unhealthy, unplanned, err
+	}
+	for _, product := range unhealthyProducts {
+		if product.Amount != nil {
+			unhealthy = unhealthy.Add(*product.Amount)
 		}
 	}
 
-	total := decimal.Zero
-	if len(receiptIds) == 0 {
-		return total, nil
+	unplannedProducts, err := productRepository.GetPricedUnplannedProducts(receiptIds)
+	if err != nil {
+		return unhealthy, unplanned, err
+	}
+	for _, product := range unplannedProducts {
+		if product.Amount != nil {
+			unplanned = unplanned.Add(*product.Amount)
+		}
+	}
+
+	return unhealthy, unplanned, nil
+}
+
+// GetOverviewProducts lists the product lines behind a Dashboard tile for the period: kind
+// "UNHEALTHY" or "UNPLANNED". Only products on receipts the caller can see, newest receipt first.
+func (service GroupOverviewService) GetOverviewProducts(userId uint, groupId string, kind string, month string, from string, to string) ([]structs.GroupOverviewProduct, error) {
+	period, err := ResolveOverviewPeriod(month, from, to, time.Now())
+	if err != nil {
+		return nil, err
+	}
+
+	receipts, err := service.fetchReceipts(userId, groupId, period.From, period.To)
+	if err != nil {
+		return nil, err
+	}
+
+	byId := make(map[uint]models.Receipt, len(receipts))
+	for _, receipt := range receipts {
+		byId[receipt.ID] = receipt
 	}
 
 	products, err := repositories.NewReceiptProductRepository(service.TX).
-		GetPricedProductsWithHealth(receiptIds, models.HEALTH_UNHEALTHY)
+		GetProductsForReceiptsByKind(receiptIdsInPeriod(receipts, period), kind == "UNPLANNED")
 	if err != nil {
-		return total, err
+		return nil, err
 	}
 
+	result := make([]structs.GroupOverviewProduct, 0, len(products))
 	for _, product := range products {
-		if product.Amount != nil {
-			total = total.Add(*product.Amount)
+		receipt := byId[product.ReceiptId]
+		name := product.DisplayName
+		if name == "" {
+			name = product.Name
 		}
+		result = append(result, structs.GroupOverviewProduct{
+			Id:          product.ID,
+			ReceiptId:   product.ReceiptId,
+			ReceiptName: receipt.Name,
+			ReceiptDate: receipt.Date.UTC().Format(time.DateOnly),
+			Name:        name,
+			Amount:      product.Amount,
+			Quantity:    product.Quantity,
+			Health:      product.Health,
+			Planned:     product.Planned,
+		})
 	}
 
-	return total, nil
+	sort.SliceStable(result, func(i, j int) bool {
+		if result[i].ReceiptDate != result[j].ReceiptDate {
+			return result[i].ReceiptDate > result[j].ReceiptDate
+		}
+		return result[i].Id < result[j].Id
+	})
+
+	return result, nil
 }
 
 // resolveOverviewMonth returns midnight UTC on the first day of the month to describe.
@@ -148,7 +325,7 @@ func (service GroupOverviewService) fetchReceipts(
 	}
 
 	// Categories the caller may not see become a (Restricted) marker, so their spend shows as its
-	// own slice rather than hiding among uncategorized receipts — as on the pie chart widget.
+	// own slice rather than hiding among uncategorized receipts, as on the pie chart widget.
 	err = permissionService.SubstituteRestrictedCategoriesTags(userId, receipts)
 	if err != nil {
 		return nil, err
@@ -157,40 +334,62 @@ func (service GroupOverviewService) fetchReceipts(
 	return receipts, nil
 }
 
-// foldGroupOverview walks the receipts once. Every month of the window is seeded first, so one
+// foldGroupOverview walks the receipts once. Every bucket of the trend is seeded first, so one
 // without receipts renders as a zero bar rather than vanishing.
-func foldGroupOverview(receipts []models.Receipt, monthStart time.Time) structs.GroupOverview {
-	month := monthStart.Format(groupOverviewMonthLayout)
-	previousMonth := monthStart.AddDate(0, -1, 0).Format(groupOverviewMonthLayout)
+func foldGroupOverview(receipts []models.Receipt, period OverviewPeriod, previous OverviewPeriod) structs.GroupOverview {
+	endMonth := time.Date(period.To.Year(), period.To.Month(), 1, 0, 0, 0, 0, time.UTC)
+	trendMonthStart := period.trendMonthStart()
 
-	monthKeys := make([]string, groupOverviewMonths)
-	monthTotals := make(map[string]decimal.Decimal, groupOverviewMonths)
-	for i := 0; i < groupOverviewMonths; i++ {
-		key := monthStart.AddDate(0, i-(groupOverviewMonths-1), 0).Format(groupOverviewMonthLayout)
-		monthKeys[i] = key
-		monthTotals[key] = decimal.Zero
+	monthTotals := map[string]decimal.Decimal{}
+	for month := trendMonthStart; !month.After(endMonth); month = month.AddDate(0, 1, 0) {
+		monthTotals[month.Format(groupOverviewMonthLayout)] = decimal.Zero
+	}
+
+	daily := period.days() < groupOverviewDailyTrendBelowDays
+	dayTotals := map[string]decimal.Decimal{}
+	if daily {
+		for day := period.From; !day.After(period.To); day = day.AddDate(0, 0, 1) {
+			dayTotals[day.Format(time.DateOnly)] = decimal.Zero
+		}
 	}
 
 	overview := structs.GroupOverview{
-		Month:          month,
-		Total:          decimal.Zero,
-		PreviousTotal:  decimal.Zero,
-		UnhealthyTotal: decimal.Zero,
+		Month:                  period.From.Format(groupOverviewMonthLayout),
+		From:                   period.From.Format(time.DateOnly),
+		To:                     period.To.Format(time.DateOnly),
+		PreviousFrom:           previous.From.Format(time.DateOnly),
+		PreviousTo:             previous.To.Format(time.DateOnly),
+		Total:                  decimal.Zero,
+		PreviousTotal:          decimal.Zero,
+		UnhealthyTotal:         decimal.Zero,
+		PreviousUnhealthyTotal: decimal.Zero,
+		UnplannedTotal:         decimal.Zero,
+		PreviousUnplannedTotal: decimal.Zero,
 	}
 	categoryTotals := map[string]decimal.Decimal{}
 
 	for _, receipt := range receipts {
-		key := receipt.Date.UTC().Format(groupOverviewMonthLayout)
-		if _, inWindow := monthTotals[key]; !inWindow {
-			continue
-		}
-		monthTotals[key] = monthTotals[key].Add(receipt.Amount)
+		day := receipt.Date.UTC().Format(time.DateOnly)
+		monthKey := receipt.Date.UTC().Format(groupOverviewMonthLayout)
 
-		if key != month {
-			continue
+		if total, inTrend := monthTotals[monthKey]; inTrend {
+			monthTotals[monthKey] = total.Add(receipt.Amount)
 		}
 
+		if previous.containsDay(day) {
+			overview.PreviousTotal = overview.PreviousTotal.Add(receipt.Amount)
+			overview.PreviousReceiptCount++
+		}
+
+		if !period.containsDay(day) {
+			continue
+		}
+
+		overview.Total = overview.Total.Add(receipt.Amount)
 		overview.ReceiptCount++
+		if daily {
+			dayTotals[day] = dayTotals[day].Add(receipt.Amount)
+		}
 		// Everything a family reads as "To check" (Phase 3 C6).
 		if receipt.Status == models.OPEN || receipt.Status == models.NEEDS_ATTENTION || receipt.Status == models.DRAFT {
 			overview.OpenReceiptCount++
@@ -205,14 +404,25 @@ func foldGroupOverview(receipts []models.Receipt, monthStart time.Time) structs.
 		}
 	}
 
-	overview.Total = monthTotals[month]
-	if total, ok := monthTotals[previousMonth]; ok {
-		overview.PreviousTotal = total
+	overview.Months = make([]structs.GroupOverviewMonth, 0, groupOverviewMonths)
+	for i := 0; i < groupOverviewMonths; i++ {
+		key := endMonth.AddDate(0, i-(groupOverviewMonths-1), 0).Format(groupOverviewMonthLayout)
+		overview.Months = append(overview.Months, structs.GroupOverviewMonth{Month: key, Total: monthTotals[key]})
 	}
 
-	overview.Months = make([]structs.GroupOverviewMonth, 0, groupOverviewMonths)
-	for _, key := range monthKeys {
-		overview.Months = append(overview.Months, structs.GroupOverviewMonth{Month: key, Total: monthTotals[key]})
+	overview.Trend = make([]structs.GroupOverviewMonth, 0)
+	if daily {
+		overview.TrendUnit = TrendUnitDay
+		for day := period.From; !day.After(period.To); day = day.AddDate(0, 0, 1) {
+			key := day.Format(time.DateOnly)
+			overview.Trend = append(overview.Trend, structs.GroupOverviewMonth{Month: key, Total: dayTotals[key]})
+		}
+	} else {
+		overview.TrendUnit = TrendUnitMonth
+		for month := trendMonthStart; !month.After(endMonth); month = month.AddDate(0, 1, 0) {
+			key := month.Format(groupOverviewMonthLayout)
+			overview.Trend = append(overview.Trend, structs.GroupOverviewMonth{Month: key, Total: monthTotals[key]})
+		}
 	}
 
 	overview.Categories = make([]structs.GroupOverviewCategory, 0, len(categoryTotals))
@@ -229,4 +439,3 @@ func foldGroupOverview(receipts []models.Receipt, monthStart time.Time) structs.
 
 	return overview
 }
-
