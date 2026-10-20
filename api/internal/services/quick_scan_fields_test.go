@@ -50,7 +50,9 @@ func singleFileCommand(paidBy uint, status models.ReceiptStatus, categoryIds []u
 	}
 }
 
-func TestResolveQuickScanFields_RequiredFieldsRejected(t *testing.T) {
+// Phase 3 C3: the group's required flags are no longer enforced; blanks fall back to the uploader
+// and OPEN when the group configures no default.
+func TestResolveQuickScanFields_RequiredFieldsFallBackInsteadOfRejecting(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	seedQuickScanGroup(models.GroupReceiptSettings{
 		QuickScanPaidByEnabled:      true,
@@ -64,15 +66,18 @@ func TestResolveQuickScanFields_RequiredFieldsRejected(t *testing.T) {
 	})
 
 	command := singleFileCommand(0, "", []uint{}, []uint{}, "")
-	_, configErr, err := NewReceiptService(nil).ResolveQuickScanFields(command, 42)
+	resolved, configErr, err := NewReceiptService(nil).ResolveQuickScanFields(command, 42)
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 	}
-
-	for _, key := range []string{"files.0.paidByUserId", "files.0.status", "files.0.categoryIds", "files.0.tagIds"} {
-		if _, ok := configErr.Errors[key]; !ok {
-			utils.PrintTestError(t, configErr.Errors, key)
-		}
+	if len(configErr.Errors) > 0 {
+		utils.PrintTestError(t, configErr.Errors, "no errors")
+	}
+	if resolved[0].PaidByUserId != 42 {
+		utils.PrintTestError(t, resolved[0].PaidByUserId, 42)
+	}
+	if resolved[0].Status != models.OPEN {
+		utils.PrintTestError(t, resolved[0].Status, models.OPEN)
 	}
 }
 

@@ -49,6 +49,9 @@ export class QuickScanDialogComponent implements OnInit {
     maxlength: `Comment must be ${QUICK_SCAN_COMMENT_MAX_LENGTH} characters or fewer.`,
   };
 
+  // The group picker only shows when there is a choice to make.
+  public readonly soleGroupId = this.store.selectSignal(GroupState.soleGroupId);
+
   private readonly commentPermissionByGroup = new Map<number, boolean>();
 
   private readonly destroyRef = inject(DestroyRef);
@@ -118,12 +121,13 @@ export class QuickScanDialogComponent implements OnInit {
     // unknown.
     this.paidByUserIds.push(new FormControl(this.scannerUserId() || (userPreferences?.quickScanDefaultPaidById ?? "")));
     this.statuses.push(new FormControl(userPreferences?.quickScanDefaultStatus ?? ""));
-    // The user's quick-scan default group wins; failing that, a member of exactly
-    // one group has no choice to make, so seed it. configureImages() below then
-    // applies that group's show/require config exactly as a manual pick would.
+    // A member of exactly one group has no choice to make, so it is seeded and its
+    // picker hidden (Phase 3 C3) -- ahead of the quick-scan default group, which
+    // could be stale. configureImages() below then applies that group's
+    // show/require config exactly as a manual pick would.
     this.groupIds.push(new FormControl(
-      userPreferences?.quickScanDefaultGroupId
-        ?? this.store.selectSnapshot(GroupState.soleGroupId)
+      this.store.selectSnapshot(GroupState.soleGroupId)
+        ?? userPreferences?.quickScanDefaultGroupId
         ?? "",
       Validators.required
     ));

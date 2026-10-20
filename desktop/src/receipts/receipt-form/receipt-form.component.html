@@ -80,13 +80,15 @@
               [inputFormControl]="form | formGet : 'date'"
               [readonly]="mode | inputReadonly"
             ></app-datepicker>
-            <app-group-autocomplete
-              class="w-100"
-              data-testid="receipt-group"
-              [inputFormControl]="form | formGet : 'groupId'"
-              [readonly]="mode | inputReadonly"
-            >
-            </app-group-autocomplete>
+            @if (showGroupPicker()) {
+              <app-group-autocomplete
+                class="w-100"
+                data-testid="receipt-group"
+                [inputFormControl]="form | formGet : 'groupId'"
+                [readonly]="mode | inputReadonly"
+              >
+              </app-group-autocomplete>
+            }
             @if (showPaidBy()) {
               <app-user-autocomplete
                 #paidByAutocomplete

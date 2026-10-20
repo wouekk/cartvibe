@@ -92,17 +92,14 @@ test.describe('Single-group users get the Group field pre-filled', () => {
     await page.goto('/receipts/add');
     await expect(page.getByLabel('Name')).toBeVisible();
 
-    // Pre-filled without a pick — and the group-derived Paid By picker is usable
-    // straight away, which is the point of seeding it.
-    await expect(page.getByTestId('receipt-group').getByRole('combobox')).toHaveValue(
-      'My Receipts',
-    );
+    // Nothing to pick (Phase 3 C1/C3): the only group and the payer are filled in and
+    // their pickers hidden.
+    await expect(page.getByTestId('receipt-group')).toHaveCount(0);
+    await expect(page.getByLabel('Paid By')).toHaveCount(0);
 
     const name = uniqueName('single-group-receipt');
     await page.getByLabel('Name').fill(name);
     await page.getByLabel('Amount').fill('12.34');
-    await page.getByLabel('Paid By').click();
-    await page.getByRole('option').first().click();
 
     await page.getByRole('button', { name: 'Save', exact: true }).first().click();
     await expect(page).toHaveURL(/\/receipts\/\d+\/view/);
@@ -127,8 +124,7 @@ test.describe('Single-group users get the Group field pre-filled', () => {
     const dialog = await openQuickScanDialog(page, allGroupId);
     await uploadQuickScanImages(dialog, 1);
 
-    await expect(dialog.getByRole('combobox', { name: 'Group' })).toHaveValue(
-      'My Receipts',
-    );
+    // Seeded, so the picker is hidden (Phase 3 C3); the submit carries the group.
+    await expect(dialog.getByRole('combobox', { name: 'Group' })).toHaveCount(0);
   });
 });

@@ -54,24 +54,22 @@ func (service ReceiptService) ResolveQuickScanFields(command commands.QuickScanC
 		tagIds := command.TagIdsForFile(i)
 		fileKey := fmt.Sprintf("files.%d", i)
 
-		if settings.QuickScanPaidByEnabled && settings.QuickScanPaidByRequired && paidByUserId == 0 {
-			configErr.Errors[fileKey+".paidByUserId"] = "Paid by is required"
-		} else if paidByUserId == 0 {
+		// Phase 3 C3: a family never has to fill a field in. The group's "required" flags for
+		// paid-by, status, categories and tags are kept (and still saved) but no longer enforced; a
+		// blank paid-by or status falls back to the group's default, then to the uploader and OPEN
+		// ("To check"), so a receipt is never left without either.
+		if paidByUserId == 0 {
 			paidByUserId = resolveQuickScanDefaultPaidBy(settings, uploaderUserId)
 		}
+		if paidByUserId == 0 {
+			paidByUserId = uploaderUserId
+		}
 
-		if settings.QuickScanStatusEnabled && settings.QuickScanStatusRequired && len(status) == 0 {
-			configErr.Errors[fileKey+".status"] = "Status is required"
-		} else if len(status) == 0 {
+		if len(status) == 0 {
 			status = settings.QuickScanDefaultStatus
 		}
-
-		if settings.QuickScanCategoriesEnabled && settings.QuickScanCategoriesRequired && len(categoryIds) == 0 {
-			configErr.Errors[fileKey+".categoryIds"] = "At least one category is required"
-		}
-
-		if settings.QuickScanTagsEnabled && settings.QuickScanTagsRequired && len(tagIds) == 0 {
-			configErr.Errors[fileKey+".tagIds"] = "At least one tag is required"
+		if len(status) == 0 {
+			status = models.OPEN
 		}
 
 		// group.comments.create acts as an extra AND on "shown": a caller who can't comment in the
