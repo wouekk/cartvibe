@@ -3249,6 +3249,42 @@ paths:
           $ref: "#/components/responses/Internal"
         403:
           $ref: "#/components/responses/Forbidden"
+  /systemSettings/logs:
+    get:
+      tags:
+        - SystemSettings
+      summary: Get the application log
+      description: The newest entries of the application log, newest first. Admin only.
+      operationId: getAppLog
+      parameters:
+        - name: level
+          in: query
+          required: false
+          description: Only entries of this level (INFO, ERROR or FATAL)
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          description: How many entries to return (default 200, at most 1000)
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        200:
+          description: The log entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AppLogEntry"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        500:
+          $ref: "#/components/responses/Internal"
+        403:
+          $ref: "#/components/responses/Forbidden"
   /import/importConfigJson:
     post:
       tags:
@@ -8009,6 +8045,21 @@ components:
         priority:
           type: integer
           description: Queue priority
+    AppLogEntry:
+      type: object
+      description: One entry of the application log. The level is a plain string on purpose.
+      properties:
+        timestamp:
+          type: string
+          description: Local server time, yyyy/MM/dd HH:mm:ss
+        level:
+          type: string
+        message:
+          type: string
+      required:
+        - timestamp
+        - level
+        - message
     SystemSettings:
       allOf:
         - $ref: "#/components/schemas/BaseModel"
