@@ -1,0 +1,38 @@
+// Subtle by design: a tag sits beside the item's name and must not compete with it. Each tone's
+// text passes 4.5:1 on its own background, and the tones also differ in lightness, so they stay
+// distinguishable without relying on hue alone.
+:host {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.food-tag {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.food-tag--good {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.food-tag--medium {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.food-tag--bad {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.food-tag--neutral {
+  background: #e2e8f0;
+  color: #334155;
+}

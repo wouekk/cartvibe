@@ -39,6 +39,7 @@ describe("ShoppingListComponent", () => {
       getShoppingListsForGroup: jest.fn().mockReturnValue(of([supermarket])),
       setShoppingListItemChecked: jest.fn(),
       addShoppingListItem: jest.fn(),
+      setShoppingListItemClassification: jest.fn(),
     };
     snackbarService = { error: jest.fn() };
 
@@ -110,6 +111,17 @@ describe("ShoppingListComponent", () => {
 
     expect(store.selectSnapshot(ShoppingListState.activeItems).map((i) => i.id)).toEqual([1]);
     expect(snackbarService.error).not.toHaveBeenCalled();
+  });
+
+  it("sends a tag correction and applies the corrected item", async () => {
+    shoppingListService["setShoppingListItemClassification"].mockReturnValue(
+      of({ ...milk, health: "MEDIUM", classificationOverridden: true })
+    );
+
+    component.correctTags({ item: milk, health: "MEDIUM" });
+
+    expect(shoppingListService["setShoppingListItemClassification"]).toHaveBeenCalledWith(1, { health: "MEDIUM" });
+    expect((store.selectSnapshot(ShoppingListState.activeItems)[0] as any).health).toBe("MEDIUM");
   });
 
   it("adds a trimmed item and clears the bar", async () => {

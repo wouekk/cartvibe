@@ -19,6 +19,9 @@
             <th scope="col">Product</th>
             <th scope="col">Quantity</th>
             <th scope="col" class="numeric">Amount</th>
+            @if (canUpdate()) {
+              <th scope="col"><span class="visually-hidden">Correct tags</span></th>
+            }
           </tr>
         </thead>
         <tbody>
@@ -29,6 +32,7 @@
                 @if (product.displayName && product.displayName !== product.name) {
                   <span class="product__printed">{{ product.name }}</span>
                 }
+                <app-food-tags class="product__tags" [values]="product"></app-food-tags>
               </td>
               <td class="muted">{{ product.quantity }}</td>
               <td class="numeric">
@@ -36,11 +40,39 @@
                   {{ product.amount | customCurrency }}
                 }
               </td>
+              @if (canUpdate()) {
+                <td class="actions">
+                  <button
+                    mat-icon-button
+                    type="button"
+                    data-testid="receipt-product-tags-menu"
+                    [attr.aria-label]="'Correct the tags of ' + (product.displayName || product.name)"
+                    [matMenuTriggerFor]="tagsMenu"
+                    [matMenuTriggerData]="{ product: product }"
+                  >
+                    <mat-icon>sell</mat-icon>
+                  </button>
+                </td>
+              }
             </tr>
           }
         </tbody>
       </table>
     </div>
+    <mat-menu #tagsMenu="matMenu">
+      <ng-template matMenuContent let-product="product">
+        @for (choice of healthChoices; track choice.value) {
+          <button
+            mat-menu-item
+            [attr.data-testid]="'receipt-product-health-' + choice.value"
+            (click)="correct(product, choice.value)"
+          >
+            <mat-icon>{{ product.health === choice.value ? "check" : "" }}</mat-icon>
+            <span>{{ choice.label }}</span>
+          </button>
+        }
+      </ng-template>
+    </mat-menu>
   } @else if (view.status === "DONE") {
     <p class="status" data-testid="receipt-products-none">The AI found no products on this receipt.</p>
   }

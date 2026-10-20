@@ -3,10 +3,13 @@ import { Component, computed, DestroyRef, effect, inject, input, signal, untrack
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
+import { MatMenuModule } from "@angular/material/menu";
 import { Store } from "@ngxs/store";
 import { catchError, EMPTY, Subscription, take, timer } from "rxjs";
-import { Permission, ReceiptProductService, ReceiptProductsView } from "../../open-api";
+import { Permission, ReceiptProduct, ReceiptProductService, ReceiptProductsView } from "../../open-api";
 import { PipesModule } from "../../pipes/pipes.module";
+import { FoodTagsComponent } from "../../standalone/components/food-tags/food-tags.component";
+import { HEALTH_CHOICES } from "../../standalone/components/food-tags/food-tags";
 import { AuthState } from "../../store";
 import { hasAll } from "../../utils/permission.utils";
 
@@ -34,7 +37,7 @@ const STATUS_TEXT: { [status: string]: string } = {
   templateUrl: "./receipt-products.component.html",
   styleUrls: ["./receipt-products.component.scss"],
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule, PipesModule],
+  imports: [CommonModule, FoodTagsComponent, MatButtonModule, MatIconModule, MatMenuModule, PipesModule],
   // customCurrency delegates to CurrencyPipe, which PipesModule does not provide.
   providers: [CurrencyPipe],
 })
@@ -61,14 +64,18 @@ export class ReceiptProductsComponent {
 
   private readonly groupPermissions = this.store.selectSignal(AuthState.groupPermissions);
 
-  /** Reading again needs update: it spends AI credits on the group's behalf. */
+  /** Reading again and correcting tags both need update: they change the group's data. */
+  public readonly canUpdate = computed(() =>
+    hasAll(this.groupPermissions()[this.groupId()] ?? [], Permission.GroupReceiptsUpdate)
+  );
+
+  /** Reading again also spends AI credits on the group's behalf. */
   public readonly canReadAgain = computed(() => {
     const status = this.view()?.status;
-    return (
-      (status === "DONE" || status === "FAILED" || status === "UNAVAILABLE") &&
-      hasAll(this.groupPermissions()[this.groupId()] ?? [], Permission.GroupReceiptsUpdate)
-    );
+    return (status === "DONE" || status === "FAILED" || status === "UNAVAILABLE") && this.canUpdate();
   });
+
+  protected readonly healthChoices = HEALTH_CHOICES;
 
   private refreshes = 0;
 
@@ -101,6 +108,22 @@ export class ReceiptProductsComponent {
           this.requesting.set(false);
         },
         error: () => this.requesting.set(false),
+      });
+  }
+
+  /** A person's correction of a product's health; the server remembers it for the group. */
+  public correct(product: ReceiptProduct, health: string): void {
+    this.receiptProductService
+      .setReceiptProductClassification(product.id, { health })
+      .pipe(take(1))
+      .subscribe((updated) => {
+        const view = this.view();
+        if (view) {
+          this.view.set({
+            ...view,
+            products: view.products.map((candidate) => (candidate.id === updated.id ? updated : candidate)),
+          });
+        }
       });
   }
 

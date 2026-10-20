@@ -15,6 +15,7 @@ import { ShoppingListItemComponent } from "./shopping-list-item/shopping-list-it
 import { ShoppingListComponent } from "./shopping-list/shopping-list.component";
 import { ShoppingListsPageComponent } from "./shopping-lists-page/shopping-lists-page.component";
 import { ShoppingListsRoutingModule } from "./shopping-lists-routing.module";
+import { FoodTagsComponent } from "../standalone/components/food-tags/food-tags.component";
 
 @NgModule({
   declarations: [
@@ -27,6 +28,7 @@ import { ShoppingListsRoutingModule } from "./shopping-lists-routing.module";
   ],
   imports: [
     CommonModule,
+    FoodTagsComponent,
     InputModule,
     MatButtonModule,
     MatIconModule,

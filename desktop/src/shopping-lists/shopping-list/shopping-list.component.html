@@ -49,6 +49,7 @@
       (toggled)="toggleItem($event)"
       (editClicked)="editItem($event)"
       (deleteClicked)="deleteItem($event)"
+      (classificationSelected)="correctTags($event)"
     ></app-shopping-list-item>
   } @empty {
     <p class="empty" data-testid="shopping-list-empty">Nothing left to buy on this list.</p>
@@ -88,6 +89,7 @@
             (toggled)="toggleItem($event)"
             (editClicked)="editItem($event)"
             (deleteClicked)="deleteItem($event)"
+            (classificationSelected)="correctTags($event)"
           ></app-shopping-list-item>
         }
       </div>
