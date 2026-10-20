@@ -4578,10 +4578,22 @@ paths:
           type: string
         required: false
         description: Month to describe, yyyy-MM. Defaults to the current month in the app time zone.
+      - in: query
+        name: from
+        schema:
+          type: string
+        required: false
+        description: First day to describe, yyyy-MM-dd. With to, replaces month; the period before it (the previous calendar months for whole months, otherwise the same number of days) is the comparison.
+      - in: query
+        name: to
+        schema:
+          type: string
+        required: false
+        description: Last day to describe, yyyy-MM-dd
     get:
       tags:
         - Overview
-      summary: Get the group's month at a glance
+      summary: Get the group's period at a glance
       description: >-
         This will get a month's spend, receipt counts, spending by category and the six-month trend
         ending with it, over the receipts the caller can see [group.receipts.read]
@@ -4593,6 +4605,64 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GroupOverview"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+  /overview/group/{groupId}/products:
+    parameters:
+      - in: path
+        name: groupId
+        schema:
+          type: integer
+        required: true
+        description: Id of the group; the All group spans every group the caller can read
+      - in: query
+        name: kind
+        schema:
+          type: string
+        required: true
+        description: UNHEALTHY or UNPLANNED
+      - in: query
+        name: month
+        schema:
+          type: string
+        required: false
+        description: Month, yyyy-MM. Defaults to the current month in the app time zone.
+      - in: query
+        name: from
+        schema:
+          type: string
+        required: false
+        description: First day, yyyy-MM-dd. With to, replaces month.
+      - in: query
+        name: to
+        schema:
+          type: string
+        required: false
+        description: Last day, yyyy-MM-dd
+    get:
+      tags:
+        - Overview
+      summary: List the products behind a Dashboard tile
+      description: >-
+        This will list the product lines that make up the Unhealthy or Unplanned figure for a period,
+        newest receipt first, over the receipts the caller can see [group.receipts.read]
+      operationId: getOverviewProducts
+      responses:
+        200:
+          description: The products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupOverviewProduct"
         400:
           $ref: "#/components/responses/BadRequest"
         403:
@@ -5283,6 +5353,41 @@ components:
           description: The six months ending with month, oldest first; a month without receipts is a zero
           items:
             $ref: "#/components/schemas/GroupOverviewMonth"
+        from:
+          type: string
+          description: The period's first day, yyyy-MM-dd
+        to:
+          type: string
+          description: The period's last day, yyyy-MM-dd
+        previousFrom:
+          type: string
+          description: The first day of the period the previous* figures describe
+        previousTo:
+          type: string
+          description: The last day of the period the previous* figures describe
+        previousReceiptCount:
+          type: integer
+          format: int64
+        previousUnhealthyTotal:
+          type: string
+          description: As unhealthyTotal, for the previous period
+        unplannedTotal:
+          type: string
+          description: >-
+            What the period's products marked as not on the shopping list cost, as a decimal string
+        previousUnplannedTotal:
+          type: string
+          description: As unplannedTotal, for the previous period
+        trend:
+          type: array
+          description: >-
+            What the chart draws: months for a period of a month or more, days for a shorter one.
+            Each point's month is yyyy-MM or yyyy-MM-dd (see trendUnit).
+          items:
+            $ref: "#/components/schemas/GroupOverviewMonth"
+        trendUnit:
+          type: string
+          description: MONTH or DAY. A plain string, so another unit can follow.
     GroupOverviewCategory:
       type: object
       required:
@@ -5293,6 +5398,39 @@ components:
           type: string
         total:
           type: string
+    GroupOverviewProduct:
+      type: object
+      description: A product line behind a Dashboard tile, with the receipt it is on
+      required:
+        - id
+        - receiptId
+        - receiptName
+        - receiptDate
+        - name
+        - quantity
+        - health
+      properties:
+        id:
+          type: integer
+        receiptId:
+          type: integer
+        receiptName:
+          type: string
+        receiptDate:
+          type: string
+          description: yyyy-MM-dd
+        name:
+          type: string
+        amount:
+          type: string
+          nullable: true
+        quantity:
+          type: string
+        health:
+          type: string
+        planned:
+          type: boolean
+          nullable: true
     GroupOverviewMonth:
       type: object
       required:
