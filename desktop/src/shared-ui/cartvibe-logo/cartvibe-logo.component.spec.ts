@@ -14,27 +14,32 @@ describe("CartVibeLogoComponent", () => {
     await fixture.whenStable();
   });
 
-  it("shows the icon and the CartVibe wordmark", () => {
-    const element: HTMLElement = fixture.nativeElement;
+  it("is the supplied lockup: the icon and the CartVibe wordmark on a 430 by 120 canvas", () => {
+    const svg: SVGElement = fixture.nativeElement.querySelector("svg");
 
-    expect(element.querySelector("svg")).not.toBeNull();
-    expect(element.querySelector(".cv-wordmark-cart")?.textContent).toBe("Cart");
-    expect(element.querySelector(".logo__vibe")?.textContent).toBe("Vibe");
+    expect(svg.getAttribute("viewBox")).toBe("0 0 430 120");
+    expect(svg.getAttribute("aria-label")).toBe("CartVibe");
+    const tspans = svg.querySelectorAll("tspan");
+    expect(tspans[0].textContent).toBe("Cart");
+    expect(tspans[1].textContent).toBe("Vibe");
+    expect(svg.querySelectorAll("rect").length).toBe(4);
+    expect(svg.querySelectorAll("circle").length).toBe(2);
   });
 
-  it("keeps the brand purple: the icon never follows the accent", () => {
+  it("keeps the supplied palette: purple badge, never the accent", () => {
     const html = fixture.nativeElement.innerHTML as string;
 
-    expect(html).toContain("var(--cv-bg-a)");
+    expect(html).toContain("var(--logo-bg-bl)");
+    expect(html).toContain("var(--logo-text-vibe)");
     expect(html).not.toContain("--accent");
   });
 
-  it("can show the icon alone and at another size", async () => {
-    fixture.componentRef.setInput("showWordmark", false);
-    fixture.componentRef.setInput("iconSize", 48);
+  it("scales by height, keeping the artwork's proportions", async () => {
+    fixture.componentRef.setInput("height", 60);
     await fixture.whenStable();
 
-    expect(fixture.nativeElement.querySelector(".logo__word")).toBeNull();
-    expect(fixture.nativeElement.querySelector("svg").getAttribute("width")).toBe("48");
+    const svg: SVGElement = fixture.nativeElement.querySelector("svg");
+    expect(svg.getAttribute("height")).toBe("60");
+    expect(svg.getAttribute("width")).toBe("215");
   });
 });

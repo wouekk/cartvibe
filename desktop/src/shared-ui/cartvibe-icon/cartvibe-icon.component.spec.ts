@@ -14,21 +14,21 @@ describe("CartVibeIconComponent", () => {
     await fixture.whenStable();
   });
 
-  it("draws the square, three bars, the arrow, the cart and two wheels", () => {
+  it("is the supplied icon: a squircle, three bars, the arrow, the cart and two wheels", () => {
     const svg: SVGElement = fixture.nativeElement.querySelector("svg");
 
-    expect(svg.getAttribute("width")).toBe("40");
-    expect(svg.querySelectorAll("rect[fill='url(#cv-bars)']").length).toBe(3);
+    expect(svg.getAttribute("viewBox")).toBe("0 0 120 120");
+    expect(svg.querySelector("rect[rx='28']")).not.toBeNull();
+    expect(svg.querySelectorAll("g rect").length).toBe(3);
     expect(svg.querySelectorAll("circle").length).toBe(2);
-    expect(svg.querySelector("path[fill='var(--cv-arrow)']")).not.toBeNull();
-    expect(svg.querySelector("path[fill='var(--cv-cart)']")).not.toBeNull();
+    expect(svg.querySelectorAll("path").length).toBe(2);
   });
 
-  it("takes its colors from variables, so the dark drawing can swap them, and never from the accent", () => {
+  it("takes its palette from variables, and never from the accent", () => {
     const html = fixture.nativeElement.innerHTML as string;
 
-    expect(html).toContain("var(--cv-bg-a)");
-    expect(html).toContain("var(--cv-cart)");
+    expect(html).toContain("var(--bg-bl)");
+    expect(html).toContain("var(--cart-fill)");
     expect(html).not.toContain("--accent");
   });
 
@@ -36,6 +36,8 @@ describe("CartVibeIconComponent", () => {
     fixture.componentRef.setInput("size", 96);
     await fixture.whenStable();
 
-    expect(fixture.nativeElement.querySelector("svg").getAttribute("height")).toBe("96");
+    const svg: SVGElement = fixture.nativeElement.querySelector("svg");
+    expect(svg.getAttribute("width")).toBe("96");
+    expect(svg.getAttribute("height")).toBe("96");
   });
 });

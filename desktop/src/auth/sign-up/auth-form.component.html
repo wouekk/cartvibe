@@ -1,6 +1,6 @@
 @if (isLoading()) {
   <div class="loading-container" @fadeInOut>
-    <img src="assets/branding/loading.gif" class="loading-gif">
+    <app-cartvibe-loader class="loading-gif" [size]="80"></app-cartvibe-loader>
     <div class="loading-text">Loading...</div>
   </div>
 } @else {
@@ -8,7 +8,7 @@
     <div class="auth-card">
       <!-- Logo and Welcome -->
       <div class="logo-section">
-        <app-cartvibe-logo class="logo" [iconSize]="56"></app-cartvibe-logo>
+        <app-cartvibe-logo class="logo" [height]="64"></app-cartvibe-logo>
         <h1 class="welcome-text">
           {{ (isSignUp | async) ? 'Join us!' : 'Hey there!' }}
           <span class="wave">👋</span>
