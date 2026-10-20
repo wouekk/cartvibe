@@ -87,6 +87,7 @@ describe("UserPreferencesComponent", () => {
       quickScanDefaultPaidById: "",
       quickScanDefaultGroupId: "",
       quickScanDefaultStatus: "",
+      monthlySpendingGoal: "",
       closeChipSelectOnSelect: false,
       userShortcuts: []
     });
@@ -113,6 +114,7 @@ describe("UserPreferencesComponent", () => {
       quickScanDefaultPaidById: "1",
       quickScanDefaultGroupId: "2",
       quickScanDefaultStatus: "OPEN",
+      monthlySpendingGoal: "",
       closeChipSelectOnSelect: true,
       userShortcuts: [{ name: "Test", url: "test", icon: "icon", trackby: 0 }],
     });
@@ -161,6 +163,7 @@ describe("UserPreferencesComponent", () => {
       quickScanDefaultPaidById: null,
       quickScanDefaultGroupId: null,
       quickScanDefaultStatus: "",
+      monthlySpendingGoal: null,
       closeChipSelectOnSelect: false,
       userShortcuts: [],
     } as any);
