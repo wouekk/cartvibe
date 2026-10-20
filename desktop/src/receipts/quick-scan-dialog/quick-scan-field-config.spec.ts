@@ -72,15 +72,16 @@ describe("resolveQuickScanFieldConfig", () => {
     });
 
     expect(config.showPaidBy).toBe(true);
-    expect(config.requirePaidBy).toBe(true);
-    expect(config.showStatus).toBe(true);
-    expect(config.requireStatus).toBe(true);
+    // Phase 3 C3/C6: nothing is required, and status is never asked.
+    expect(config.requirePaidBy).toBe(false);
+    expect(config.showStatus).toBe(false);
+    expect(config.requireStatus).toBe(false);
     expect(config.showCategories).toBe(false);
     expect(config.showTags).toBe(false);
     expect(config.showComment).toBe(false);
   });
 
-  it("mirrors each required flag when the fields are shown", () => {
+  it("requires only the comment, whatever the group's required flags say (Phase 3 C3)", () => {
     const config = resolveQuickScanFieldConfig(
       settings({
         quickScanPaidByRequired: false,
@@ -97,10 +98,10 @@ describe("resolveQuickScanFieldConfig", () => {
     expect(config).toEqual({
       showPaidBy: true,
       requirePaidBy: false,
-      showStatus: true,
-      requireStatus: true,
+      showStatus: false,
+      requireStatus: false,
       showCategories: true,
-      requireCategories: true,
+      requireCategories: false,
       showTags: true,
       requireTags: false,
       showComment: true,

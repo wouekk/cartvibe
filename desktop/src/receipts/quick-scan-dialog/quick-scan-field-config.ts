@@ -5,7 +5,9 @@ import { GroupReceiptSettings } from "../../open-api";
 // Mirrors the backend's resolveQuickScanFields defaults -- and mobile's
 // resolveQuickScanFieldConfig (mobile/lib/shared/functions/quick_scan_field_config.dart),
 // which this is a line-for-line port of -- so field visibility, the required
-// validators and the submitted payload can't drift from each other.
+// validators and the submitted payload can't drift from each other. Since Phase 3
+// C3 the desktop never shows status or requires anything but the comment; mobile
+// still asks, which the server now accepts either way.
 export interface QuickScanFieldConfig {
   showPaidBy: boolean;
   requirePaidBy: boolean;
@@ -64,7 +66,10 @@ export function resolveQuickScanFieldConfig(
   }
 
   const showPaidBy = settings?.quickScanPaidByEnabled ?? true;
-  const showStatus = settings?.quickScanStatusEnabled ?? true;
+  // Phase 3 C3/C6: a scan starts as "To check", so status is never asked; and none of paid-by,
+  // status, categories or tags is required any more (the server falls back to defaults). Only the
+  // comment keeps its required rules, which a role can also set.
+  const showStatus = false;
   const showCategories = settings?.quickScanCategoriesEnabled ?? false;
   const showTags = settings?.quickScanTagsEnabled ?? false;
   // hideComments hides comments for the whole group, so it hides the quick-scan
@@ -77,13 +82,13 @@ export function resolveQuickScanFieldConfig(
 
   return {
     showPaidBy,
-    requirePaidBy: showPaidBy && (settings?.quickScanPaidByRequired ?? true),
+    requirePaidBy: false,
     showStatus,
-    requireStatus: showStatus && (settings?.quickScanStatusRequired ?? true),
+    requireStatus: false,
     showCategories,
-    requireCategories: showCategories && (settings?.quickScanCategoriesRequired ?? false),
+    requireCategories: false,
     showTags,
-    requireTags: showTags && (settings?.quickScanTagsRequired ?? false),
+    requireTags: false,
     showComment,
     requireComment:
       (showComment && (settings?.quickScanCommentRequired ?? false)) || roleComment,

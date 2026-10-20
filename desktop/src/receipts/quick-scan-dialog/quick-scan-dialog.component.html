@@ -22,9 +22,11 @@
             alt="quick scan image"
             [src]="preview.encodedImage || preview.url ?? ''"
           >
-          <app-group-autocomplete
-            [inputFormControl]="form | formGet : 'groupIds.' + i"
-          ></app-group-autocomplete>
+          @if (soleGroupId() === undefined) {
+            <app-group-autocomplete
+              [inputFormControl]="form | formGet : 'groupIds.' + i"
+            ></app-group-autocomplete>
+          }
           @if (showPaidBy(i)) {
             <app-user-autocomplete
               class="w-100"

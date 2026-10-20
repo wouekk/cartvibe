@@ -152,6 +152,14 @@ export class ReceiptFormComponent implements OnInit {
   // checks an update against the group the receipt is moving into).
   private readonly currentGroupId = signal<number | string | null | undefined>(undefined);
 
+  private readonly soleGroupId = this.store.selectSignal(GroupState.soleGroupId);
+
+  // A member of one group has nothing to pick (Phase 3 C3); the picker still
+  // shows when the receipt is somehow elsewhere, so it can be moved back.
+  public readonly showGroupPicker = computed(
+    () => this.soleGroupId() === undefined || Number(this.currentGroupId()) !== this.soleGroupId()
+  );
+
   private readonly requirementsByGroup = this.store.selectSignal(AuthState.groupReceiptRequirements);
 
   /**

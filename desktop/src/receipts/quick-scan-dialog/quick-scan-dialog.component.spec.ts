@@ -321,7 +321,7 @@ describe("QuickScanDialogComponent", () => {
     expect(component.paidByUserIds.at(0).value).toEqual("");
   });
 
-  it("should drive field visibility and required-ness from the selected group's settings", () => {
+  it("should drive field visibility from the selected group's settings, requiring nothing (Phase 3 C3)", () => {
     const group = {
       id: 2,
       groupReceiptSettings: {
@@ -344,13 +344,14 @@ describe("QuickScanDialogComponent", () => {
     component.groupIds.at(0).setValue(2);
 
     expect(component.showPaidBy(0)).toBe(false);
-    expect(component.showStatus(0)).toBe(true);
+    // A scan starts as "To check", so status is never asked.
+    expect(component.showStatus(0)).toBe(false);
     expect(component.showCategories(0)).toBe(true);
     expect(component.showTags(0)).toBe(false);
 
-    // Required category with no selection is invalid; status is required and empty.
-    expect(component.categories.at(0).valid).toBe(false);
-    expect(component.statuses.at(0).valid).toBe(false);
+    // The group's required flags no longer block a scan; the server falls back to defaults.
+    expect(component.categories.at(0).valid).toBe(true);
+    expect(component.statuses.at(0).valid).toBe(true);
     // Hidden paid-by is not required.
     expect(component.paidByUserIds.at(0).valid).toBe(true);
   });
