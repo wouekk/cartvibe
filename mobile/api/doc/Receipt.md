@@ -21,6 +21,9 @@ Name | Type | Description | Notes
 **imageFiles** | [**BuiltList&lt;FileData&gt;**](FileData.md) | Files associated to receipt | [optional] 
 **name** | **String** | Receipt name | 
 **shopName** | **String** | The shop printed on the receipt (Auchan, Edeka, Rewe), read by the AI or typed by a person. Empty when unknown. | [optional] 
+**originalAmount** | **String** | The amount as printed, when the receipt was in another currency than the main one; amount is then the converted amount | [optional] 
+**originalCurrency** | **String** | ISO code of the currency the receipt was in; empty when it was in the main currency | [optional] 
+**exchangeRate** | **String** | The rate used to convert (main currency per one unit of originalCurrency); null with an originalCurrency means the receipt is waiting for a rate | [optional] 
 **paidByUserId** | **int** | User paid foreign key | 
 **receiptItems** | [**BuiltList&lt;Item&gt;**](Item.md) | Items associated to receipt | 
 **resolvedDate** | **String** | Date resolved | [optional] 

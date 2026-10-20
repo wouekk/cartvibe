@@ -15,6 +15,7 @@ import 'package:openapi/src/api/category_api.dart';
 import 'package:openapi/src/api/comment_api.dart';
 import 'package:openapi/src/api/custom_field_api.dart';
 import 'package:openapi/src/api/dashboard_api.dart';
+import 'package:openapi/src/api/exchange_rate_api.dart';
 import 'package:openapi/src/api/export_api.dart';
 import 'package:openapi/src/api/feature_config_api.dart';
 import 'package:openapi/src/api/groups_api.dart';
@@ -129,6 +130,12 @@ class Openapi {
   /// by doing that all interceptors will not be executed
   DashboardApi getDashboardApi() {
     return DashboardApi(dio, serializers);
+  }
+
+  /// Get ExchangeRateApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  ExchangeRateApi getExchangeRateApi() {
+    return ExchangeRateApi(dio, serializers);
   }
 
   /// Get ExportApi instance, base route and serializer can be overridden by a given but be careful,

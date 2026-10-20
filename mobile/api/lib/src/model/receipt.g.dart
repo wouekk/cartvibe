@@ -34,6 +34,12 @@ class _$Receipt extends Receipt {
   @override
   final String? shopName;
   @override
+  final String? originalAmount;
+  @override
+  final String? originalCurrency;
+  @override
+  final String? exchangeRate;
+  @override
   final int paidByUserId;
   @override
   final BuiltList<Item> receiptItems;
@@ -65,6 +71,9 @@ class _$Receipt extends Receipt {
       this.imageFiles,
       required this.name,
       this.shopName,
+      this.originalAmount,
+      this.originalCurrency,
+      this.exchangeRate,
       required this.paidByUserId,
       required this.receiptItems,
       this.resolvedDate,
@@ -97,6 +106,9 @@ class _$Receipt extends Receipt {
         imageFiles == other.imageFiles &&
         name == other.name &&
         shopName == other.shopName &&
+        originalAmount == other.originalAmount &&
+        originalCurrency == other.originalCurrency &&
+        exchangeRate == other.exchangeRate &&
         paidByUserId == other.paidByUserId &&
         receiptItems == other.receiptItems &&
         resolvedDate == other.resolvedDate &&
@@ -122,6 +134,9 @@ class _$Receipt extends Receipt {
     _$hash = $jc(_$hash, imageFiles.hashCode);
     _$hash = $jc(_$hash, name.hashCode);
     _$hash = $jc(_$hash, shopName.hashCode);
+    _$hash = $jc(_$hash, originalAmount.hashCode);
+    _$hash = $jc(_$hash, originalCurrency.hashCode);
+    _$hash = $jc(_$hash, exchangeRate.hashCode);
     _$hash = $jc(_$hash, paidByUserId.hashCode);
     _$hash = $jc(_$hash, receiptItems.hashCode);
     _$hash = $jc(_$hash, resolvedDate.hashCode);
@@ -149,6 +164,9 @@ class _$Receipt extends Receipt {
           ..add('imageFiles', imageFiles)
           ..add('name', name)
           ..add('shopName', shopName)
+          ..add('originalAmount', originalAmount)
+          ..add('originalCurrency', originalCurrency)
+          ..add('exchangeRate', exchangeRate)
           ..add('paidByUserId', paidByUserId)
           ..add('receiptItems', receiptItems)
           ..add('resolvedDate', resolvedDate)
@@ -222,6 +240,20 @@ class ReceiptBuilder implements Builder<Receipt, ReceiptBuilder> {
   String? get shopName => _$this._shopName;
   set shopName(String? shopName) => _$this._shopName = shopName;
 
+  String? _originalAmount;
+  String? get originalAmount => _$this._originalAmount;
+  set originalAmount(String? originalAmount) =>
+      _$this._originalAmount = originalAmount;
+
+  String? _originalCurrency;
+  String? get originalCurrency => _$this._originalCurrency;
+  set originalCurrency(String? originalCurrency) =>
+      _$this._originalCurrency = originalCurrency;
+
+  String? _exchangeRate;
+  String? get exchangeRate => _$this._exchangeRate;
+  set exchangeRate(String? exchangeRate) => _$this._exchangeRate = exchangeRate;
+
   int? _paidByUserId;
   int? get paidByUserId => _$this._paidByUserId;
   set paidByUserId(int? paidByUserId) => _$this._paidByUserId = paidByUserId;
@@ -273,6 +305,9 @@ class ReceiptBuilder implements Builder<Receipt, ReceiptBuilder> {
       _imageFiles = $v.imageFiles?.toBuilder();
       _name = $v.name;
       _shopName = $v.shopName;
+      _originalAmount = $v.originalAmount;
+      _originalCurrency = $v.originalCurrency;
+      _exchangeRate = $v.exchangeRate;
       _paidByUserId = $v.paidByUserId;
       _receiptItems = $v.receiptItems.toBuilder();
       _resolvedDate = $v.resolvedDate;
@@ -320,6 +355,9 @@ class ReceiptBuilder implements Builder<Receipt, ReceiptBuilder> {
             name:
                 BuiltValueNullFieldError.checkNotNull(name, r'Receipt', 'name'),
             shopName: shopName,
+            originalAmount: originalAmount,
+            originalCurrency: originalCurrency,
+            exchangeRate: exchangeRate,
             paidByUserId: BuiltValueNullFieldError.checkNotNull(
                 paidByUserId, r'Receipt', 'paidByUserId'),
             receiptItems: receiptItems.build(),

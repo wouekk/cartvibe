@@ -40,6 +40,8 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(Dashboard.serializer)
       ..add(DeleteAccountCommand.serializer)
       ..add(EncodedImage.serializer)
+      ..add(ExchangeRate.serializer)
+      ..add(ExchangeRates.serializer)
       ..add(ExportFormat.serializer)
       ..add(FeatureConfig.serializer)
       ..add(FileData.serializer)
@@ -195,6 +197,9 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(CustomFieldOption)]),
           () => ListBuilder<CustomFieldOption>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(ExchangeRate)]),
+          () => ListBuilder<ExchangeRate>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Group)]),
           () => ListBuilder<Group>())

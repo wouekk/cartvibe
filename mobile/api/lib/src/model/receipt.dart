@@ -32,6 +32,9 @@ part 'receipt.g.dart';
 /// * [imageFiles] - Files associated to receipt
 /// * [name] - Receipt name
 /// * [shopName] - The shop printed on the receipt (Auchan, Edeka, Rewe), read by the AI or typed by a person. Empty when unknown.
+/// * [originalAmount] - The amount as printed, when the receipt was in another currency than the main one; amount is then the converted amount
+/// * [originalCurrency] - ISO code of the currency the receipt was in; empty when it was in the main currency
+/// * [exchangeRate] - The rate used to convert (main currency per one unit of originalCurrency); null with an originalCurrency means the receipt is waiting for a rate
 /// * [paidByUserId] - User paid foreign key
 /// * [receiptItems] - Items associated to receipt
 /// * [resolvedDate] - Date resolved
@@ -89,6 +92,18 @@ abstract class Receipt implements Built<Receipt, ReceiptBuilder> {
   /// The shop printed on the receipt (Auchan, Edeka, Rewe), read by the AI or typed by a person. Empty when unknown.
   @BuiltValueField(wireName: r'shopName')
   String? get shopName;
+
+  /// The amount as printed, when the receipt was in another currency than the main one; amount is then the converted amount
+  @BuiltValueField(wireName: r'originalAmount')
+  String? get originalAmount;
+
+  /// ISO code of the currency the receipt was in; empty when it was in the main currency
+  @BuiltValueField(wireName: r'originalCurrency')
+  String? get originalCurrency;
+
+  /// The rate used to convert (main currency per one unit of originalCurrency); null with an originalCurrency means the receipt is waiting for a rate
+  @BuiltValueField(wireName: r'exchangeRate')
+  String? get exchangeRate;
 
   /// User paid foreign key
   @BuiltValueField(wireName: r'paidByUserId')
@@ -212,6 +227,27 @@ class _$ReceiptSerializer implements PrimitiveSerializer<Receipt> {
       yield r'shopName';
       yield serializers.serialize(
         object.shopName,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.originalAmount != null) {
+      yield r'originalAmount';
+      yield serializers.serialize(
+        object.originalAmount,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.originalCurrency != null) {
+      yield r'originalCurrency';
+      yield serializers.serialize(
+        object.originalCurrency,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.exchangeRate != null) {
+      yield r'exchangeRate';
+      yield serializers.serialize(
+        object.exchangeRate,
         specifiedType: const FullType(String),
       );
     }
@@ -369,6 +405,27 @@ class _$ReceiptSerializer implements PrimitiveSerializer<Receipt> {
             specifiedType: const FullType(String),
           ) as String;
           result.shopName = valueDes;
+          break;
+        case r'originalAmount':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.originalAmount = valueDes;
+          break;
+        case r'originalCurrency':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.originalCurrency = valueDes;
+          break;
+        case r'exchangeRate':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.exchangeRate = valueDes;
           break;
         case r'paidByUserId':
           final valueDes = serializers.deserialize(
