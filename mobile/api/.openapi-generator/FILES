@@ -175,6 +175,7 @@ doc/UpsertOidcProviderCommand.md
 doc/UpsertPromptCommand.md
 doc/UpsertReceiptCommand.md
 doc/UpsertReceiptProcessingSettingsCommand.md
+doc/UpsertReceiptProductCommand.md
 doc/UpsertRoleCommand.md
 doc/UpsertShoppingListCommand.md
 doc/UpsertShoppingListItemCommand.md
@@ -379,6 +380,7 @@ lib/src/model/upsert_oidc_provider_command.dart
 lib/src/model/upsert_prompt_command.dart
 lib/src/model/upsert_receipt_command.dart
 lib/src/model/upsert_receipt_processing_settings_command.dart
+lib/src/model/upsert_receipt_product_command.dart
 lib/src/model/upsert_role_command.dart
 lib/src/model/upsert_shopping_list_command.dart
 lib/src/model/upsert_shopping_list_item_command.dart
@@ -395,4 +397,4 @@ lib/src/model/widget.dart
 lib/src/model/widget_type.dart
 lib/src/serializers.dart
 pubspec.yaml
-test/app_log_entry_test.dart
+test/upsert_receipt_product_command_test.dart

@@ -152,10 +152,13 @@ Class | Method | HTTP request | Description
 [*ReceiptProcessingSettingsApi*](doc/ReceiptProcessingSettingsApi.md) | [**getPagedProcessingSettings**](doc/ReceiptProcessingSettingsApi.md#getpagedprocessingsettings) | **POST** /receiptProcessingSettings/getPagedProcessingSettings | Gets paged processing settings
 [*ReceiptProcessingSettingsApi*](doc/ReceiptProcessingSettingsApi.md) | [**getReceiptProcessingSettingsById**](doc/ReceiptProcessingSettingsApi.md#getreceiptprocessingsettingsbyid) | **GET** /receiptProcessingSettings/{id} | Get receipt processing settings by id
 [*ReceiptProcessingSettingsApi*](doc/ReceiptProcessingSettingsApi.md) | [**updateReceiptProcessingSettingsById**](doc/ReceiptProcessingSettingsApi.md#updatereceiptprocessingsettingsbyid) | **PUT** /receiptProcessingSettings/{id} | Update receipt processing settings by id
+[*ReceiptProductApi*](doc/ReceiptProductApi.md) | [**addReceiptProduct**](doc/ReceiptProductApi.md#addreceiptproduct) | **POST** /receipt-product/receipt/{receiptId}/product | Add a product line to a receipt
+[*ReceiptProductApi*](doc/ReceiptProductApi.md) | [**deleteReceiptProduct**](doc/ReceiptProductApi.md#deletereceiptproduct) | **DELETE** /receipt-product/product/{productId} | Remove a receipt product line
 [*ReceiptProductApi*](doc/ReceiptProductApi.md) | [**getReceiptProducts**](doc/ReceiptProductApi.md#getreceiptproducts) | **GET** /receipt-product/receipt/{receiptId} | Get a receipt&#39;s products
 [*ReceiptProductApi*](doc/ReceiptProductApi.md) | [**queueGroupReceiptProducts**](doc/ReceiptProductApi.md#queuegroupreceiptproducts) | **POST** /receipt-product/group/{groupId}/backfill | Read the products of a group&#39;s older receipts
 [*ReceiptProductApi*](doc/ReceiptProductApi.md) | [**readReceiptProducts**](doc/ReceiptProductApi.md#readreceiptproducts) | **POST** /receipt-product/receipt/{receiptId}/read | Read a receipt&#39;s products again
 [*ReceiptProductApi*](doc/ReceiptProductApi.md) | [**setReceiptProductClassification**](doc/ReceiptProductApi.md#setreceiptproductclassification) | **PUT** /receipt-product/product/{productId}/classification | Correct a receipt product&#39;s health and seasonality tags
+[*ReceiptProductApi*](doc/ReceiptProductApi.md) | [**updateReceiptProduct**](doc/ReceiptProductApi.md#updatereceiptproduct) | **PUT** /receipt-product/product/{productId} | Correct a receipt product line
 [*ReportApi*](doc/ReportApi.md) | [**createReportTemplate**](doc/ReportApi.md#createreporttemplate) | **POST** /report/template | Save a report template
 [*ReportApi*](doc/ReportApi.md) | [**deleteReportTemplate**](doc/ReportApi.md#deletereporttemplate) | **DELETE** /report/template/{id} | Delete a report template
 [*ReportApi*](doc/ReportApi.md) | [**duplicateReportTemplate**](doc/ReportApi.md#duplicatereporttemplate) | **POST** /report/template/{id}/duplicate | Duplicate a report template
@@ -378,6 +381,7 @@ Class | Method | HTTP request | Description
  - [UpsertPromptCommand](doc/UpsertPromptCommand.md)
  - [UpsertReceiptCommand](doc/UpsertReceiptCommand.md)
  - [UpsertReceiptProcessingSettingsCommand](doc/UpsertReceiptProcessingSettingsCommand.md)
+ - [UpsertReceiptProductCommand](doc/UpsertReceiptProductCommand.md)
  - [UpsertRoleCommand](doc/UpsertRoleCommand.md)
  - [UpsertShoppingListCommand](doc/UpsertShoppingListCommand.md)
  - [UpsertShoppingListItemCommand](doc/UpsertShoppingListItemCommand.md)

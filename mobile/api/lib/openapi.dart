@@ -188,6 +188,7 @@ export 'package:openapi/src/model/upsert_oidc_provider_command.dart';
 export 'package:openapi/src/model/upsert_prompt_command.dart';
 export 'package:openapi/src/model/upsert_receipt_command.dart';
 export 'package:openapi/src/model/upsert_receipt_processing_settings_command.dart';
+export 'package:openapi/src/model/upsert_receipt_product_command.dart';
 export 'package:openapi/src/model/upsert_role_command.dart';
 export 'package:openapi/src/model/upsert_shopping_list_command.dart';
 export 'package:openapi/src/model/upsert_shopping_list_item_command.dart';

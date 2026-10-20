@@ -160,6 +160,7 @@ import 'package:openapi/src/model/upsert_oidc_provider_command.dart';
 import 'package:openapi/src/model/upsert_prompt_command.dart';
 import 'package:openapi/src/model/upsert_receipt_command.dart';
 import 'package:openapi/src/model/upsert_receipt_processing_settings_command.dart';
+import 'package:openapi/src/model/upsert_receipt_product_command.dart';
 import 'package:openapi/src/model/upsert_role_command.dart';
 import 'package:openapi/src/model/upsert_shopping_list_command.dart';
 import 'package:openapi/src/model/upsert_shopping_list_item_command.dart';
@@ -324,6 +325,7 @@ part 'serializers.g.dart';
   UpsertPromptCommand,
   UpsertReceiptCommand,
   UpsertReceiptProcessingSettingsCommand,
+  UpsertReceiptProductCommand,
   UpsertRoleCommand,
   UpsertShoppingListCommand,
   UpsertShoppingListItemCommand,
