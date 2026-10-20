@@ -39,12 +39,14 @@ agreed to this flow; still ask before pushing `main` unless they said to proceed
 ## Next
 
 ### Claude Code
-1. Act on the NAS feedback for step 2.
-2. Step 3 on `feature/phase-3-new` (pushed, one branch for all of step 3; CI green after M2). **F2 and M2 done** (F2: `@customFields` in the
-   built-in prompt, `splitAiCustomFields` reads values leniently; Go tests pass locally, CI not run yet).
-   Done since: C5, EUR default, M5 desktop, S2 new-list-from-list, S4/N1, D1 (Dashboard). Still to do: S2 cards instead of tabs, M3, F1, stale e2e specs.
-   are in the plan but not in its order.
-3. M7 follow-up: make EUR the API default for new installs (the user wants it; see the plan).
+Phase 3 step 3 is on `main` (F2 custom fields to the AI, M2 Logs tab, M5 Household, C5 editable products,
+S2 cards + past lists + list-from-list, S4/N1 notifications and Going shopping, D1 Dashboard periods and
+tap-through lists, EUR for new installs, shop name, auto-Done after an AI read, Manage Households wording).
+Still open:
+1. M3 / F1 are checks, not builds: Manage Users, Categories, Tags and Custom Fields already list everything
+   for an admin and OIDC providers sit only under System Settings; revisit if the user finds them too complex.
+2. Stale Playwright specs (paid-by, shares, statuses, required Quick Scan fields) need updating when e2e is run.
+3. Admin: delete the empty "My Receipts" groups the household migration left (Manage Households).
 
 ### User
 - After deploying step 2: Manage → AI, choose Gemini or LM Studio, Save, Test connection.
