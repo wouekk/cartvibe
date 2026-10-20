@@ -1,0 +1,58 @@
+.rates {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.rates__intro,
+.rates__muted {
+  margin: 0;
+  color: #475569;
+  font-size: 13px;
+}
+
+.rates__row,
+.rates__add {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.rates__code {
+  min-width: 84px;
+  font-weight: 600;
+}
+
+.rates__input {
+  width: 120px;
+  min-height: 40px;
+  padding: 0 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font: inherit;
+
+  &--code {
+    width: 140px;
+    text-transform: uppercase;
+  }
+}
+
+.rates__main {
+  color: #475569;
+}
+
+.rates__missing {
+  color: #b45309;
+  font-size: 13px;
+}
+
+.rates__error {
+  margin: 0;
+  color: #b91c1c;
+}
+
+.rates__save {
+  align-self: flex-start;
+}

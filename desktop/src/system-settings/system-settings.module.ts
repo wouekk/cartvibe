@@ -18,6 +18,7 @@ import { SelectModule } from "../select/select.module";
 import { SharedUiModule } from "../shared-ui/shared-ui.module";
 import { TableModule } from "../table/table.module";
 import { TaskQueueFormControlPipe } from "./pipes/task-queue-form-control.pipe";
+import { ExchangeRatesComponent } from "./exchange-rates/exchange-rates.component";
 import { SystemEmailChildSystemTaskComponent } from "./system-email-child-system-task/system-email-child-system-task.component";
 import { SystemEmailFormComponent } from "./system-email-form/system-email-form.component";
 import { SystemEmailTableComponent } from "./system-email-table/system-email-table.component";
@@ -63,6 +64,7 @@ import { OidcProviderTableComponent } from "./oidc-provider-table/oidc-provider-
     SelectModule,
     MatHint,
     AlertComponent,
+    ExchangeRatesComponent,
   ]
 })
 export class SystemSettingsModule {
