@@ -501,6 +501,7 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
         this.originalReceipt?.name ?? (isAdd ? nameForToday("Receipt", timeZone) : ""),
         Validators.required,
       ],
+      shopName: [this.originalReceipt?.shopName ?? ""],
       amount: [
         this.originalReceipt?.amount ?? "",
         [Validators.required],

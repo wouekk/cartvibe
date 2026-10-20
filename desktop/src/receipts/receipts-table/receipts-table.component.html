@@ -259,6 +259,10 @@
 >{{ element.date | appDate: "mediumDate" : "calendar" }}
 </ng-template>
 
+<ng-template #shopCell let-element="element">
+  {{ element.shopName || "—" }}
+</ng-template>
+
 <ng-template #nameCell let-element="element">
   <a [routerLink]="['/receipts/' + element.id + '/view']">
     {{ element.name }}

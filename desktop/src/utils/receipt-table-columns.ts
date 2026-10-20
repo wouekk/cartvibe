@@ -16,6 +16,7 @@ export const RECEIPT_COLUMN_DISPLAY_NAMES: Readonly<Record<string, string>> = {
   created_at: "Added At",
   date: "Receipt Date",
   name: "Name",
+  shop_name: "Shop",
   paid_by_user_id: "Paid By",
   amount: "Amount",
   categories: "Categories",

@@ -1293,7 +1293,7 @@ func (repository ReceiptRepository) orderBySubquery(
 }
 
 func (repository ReceiptRepository) isTrustedValue(pagedRequest commands.ReceiptPagedRequestCommand) bool {
-	orderByTrusted := []interface{}{"date", "name", "paid_by_user_id", "amount", "categories", "tags", "status", "resolved_date", "created_at"}
+	orderByTrusted := []interface{}{"date", "name", "shop_name", "paid_by_user_id", "amount", "categories", "tags", "status", "resolved_date", "created_at"}
 	directionTrusted := commands.GetValidSortDirections()
 
 	isOrderByTrusted := utils.Contains(orderByTrusted, pagedRequest.OrderBy)
