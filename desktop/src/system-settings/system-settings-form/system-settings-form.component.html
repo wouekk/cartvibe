@@ -1,10 +1,5 @@
-<app-form-header
-  [headerText]="formConfig.headerText"
-  [headerButtonsTemplate]="headerButtons"
-></app-form-header>
-
-@if (showRestartTaskServerAlert) {
-  <div class="m-2">
+@if (showRestartTaskServerAlert()) {
+  <div class="mb-3">
     <app-alert
       #alert
       class="scroll-snap"
@@ -15,295 +10,311 @@
   </div>
 }
 
-<app-audit-detail-section
-  *ngIf="formConfig.mode != FormMode.add"
-  [data]="originalSystemSettings"
-></app-audit-detail-section>
+<!-- Tasks & Storage: the task monitor sits above the worker settings. The tables live outside the form so
+     none of their buttons can submit it. -->
+@if (section === "tasks" && canReadSystemTasks()) {
+  <section class="settings-card" data-testid="settings-card-system-tasks">
+    <app-system-task-table></app-system-task-table>
+  </section>
+}
+
+<!-- Integrations & Mobile: the system emails come first. -->
+@if (section === "integrations" && canReadSystemEmails()) {
+  <section class="settings-card" data-testid="settings-card-system-emails">
+    <app-system-email-table></app-system-email-table>
+  </section>
+}
+
 <form
   [formGroup]="form"
   (ngSubmit)="submit()"
 >
-  <app-form-section
-    headerText="Details"
-  >
-    <app-checkbox
-      label="Enable Local Signup"
-      [inputFormControl]="form | formGet:'enableLocalSignUp'"
-      [readonly]="formConfig.mode |  inputReadonly"
-    ></app-checkbox>
-    <!-- The receipt-reading knobs (Debug OCR, processing settings and their fallback, PDF DPI) are
-         gone from the form (Phase 3 M1, A3): the AI page under Manage sets the AI, the rest keeps
-         its stored value and the submit still sends it. -->
-  </app-form-section>
-  <app-form-section
-    headerText="Task Server Settings"
-    [headerButtonsTemplate]="taskServerSettingsHeaderButtons"
-  >
-    <app-input
-      label="Task Concurrency"
-      type="number"
-      hint="The max amount of tasks that can be run concurrently. 0 or Negative means max cpu cores available to the process."
-      [inputFormControl]="form | formGet:'taskConcurrency'"
-    ></app-input>
-    <app-input
-      label="Email polling interval (in seconds)"
-      type="number"
-      [inputFormControl]="form | formGet:'emailPollingInterval'"
-      [readonly]="formConfig.mode |  inputReadonly"
-    ></app-input>
-    <app-form-section
-      headerText="Task Queue Configuration"
-    >
-      <ng-container *ngFor="let data of queueData">
-        <ng-template
-          [ngTemplateOutlet]="queueCard"
-          [ngTemplateOutletContext]="{
-        queueData: data,
-        }"
-        ></ng-template>
-      </ng-container>
-    </app-form-section>
-  </app-form-section>
-  <app-form-section
-    headerText="Time Zone"
-  >
-    <p class="text-muted mb-3">
-      Decides which day a moment in time falls on: when a receipt was added or resolved, what
-      "today" and "last month" mean in reports and filters, and how times are shown. A receipt's own
-      Date is a calendar day and never shifts with this setting.
-    </p>
-    <app-autocomlete
-      data-testid="system-settings-time-zone"
-      label="Time zone"
-      hint="An IANA time zone, e.g. America/New_York. Takes effect immediately, no restart required."
-      [inputFormControl]="form | formGet:'timeZone'"
-      [options]="timeZones"
-      [displayWith]="timeZoneDisplayWith"
-      [creatable]="false"
-      [readonly]="formConfig.mode | inputReadonly"
-    ></app-autocomlete>
-  </app-form-section>
-  <app-form-section
-    headerText="Currency"
-  >
-    @if (formConfig.mode !== FormMode.edit) {
-      <div class="mb-3">
+  <!-- General & Currency -->
+  @if (shows("general")) {
+    <section class="settings-card" data-testid="settings-card-currency">
+      <h2 class="settings-card__title">Currency &amp; exchange rates</h2>
+      <app-select
+        label="Currency"
+        optionValueKey="value"
+        optionDisplayKey="displayValue"
+        data-testid="system-settings-currency"
+        [inputFormControl]="form | formGet:'currency'"
+        [options]="currencies"
+      ></app-select>
+      <div class="d-flex flex-column mb-3 currency-preview">
+        <strong>Previews</strong>
+        <span>{{ 123456789.12 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span>
+        <span>{{ 12.99 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span>
+        <span>{{ 10000 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span>
+        <span>{{ -10000 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span>
+      </div>
+      @if (isCustomCurrency()) {
+        <app-input
+          label="Symbol Display"
+          [readonly]="formConfig.mode | inputReadonly"
+          [inputFormControl]="form | formGet: 'currencyDisplay'"
+        ></app-input>
+        <app-select
+          label="Symbol Position"
+          optionValueKey="value"
+          optionDisplayKey="displayValue"
+          [inputFormControl]="form  | formGet:'currencySymbolPosition'"
+          [options]="symbolPositions"
+        ></app-select>
+        <app-select
+          label="Thousandths Separator"
+          optionValueKey="value"
+          optionDisplayKey="displayValue"
+          [inputFormControl]="form  | formGet:'currencyThousandthsSeparator'"
+          [options]="decimalSeparators"
+        ></app-select>
+        <app-select
+          label="Decimal Separator"
+          optionValueKey="value"
+          optionDisplayKey="displayValue"
+          [inputFormControl]="form  | formGet:'currencyDecimalSeparator'"
+          [options]="decimalSeparators"
+        ></app-select>
+        <app-checkbox
+          label="Hide Decimal Places"
+          [inputFormControl]="form | formGet:'currencyHideDecimalPlaces'"
+        ></app-checkbox>
+      }
+      <app-exchange-rates></app-exchange-rates>
+    </section>
+    <section class="settings-card" data-testid="settings-card-regional">
+      <h2 class="settings-card__title">Regional &amp; time zone</h2>
+      <p class="text-muted mb-3">
+        Decides which day a moment in time falls on: when a receipt was added or resolved, what
+        "today" and "last month" mean in reports and filters, and how times are shown. A receipt's own
+        Date is a calendar day and never shifts with this setting.
+      </p>
+      <app-autocomlete
+        data-testid="system-settings-time-zone"
+        label="Time zone"
+        hint="An IANA time zone, e.g. America/New_York. Takes effect immediately, no restart required."
+        [inputFormControl]="form | formGet:'timeZone'"
+        [options]="timeZones"
+        [displayWith]="timeZoneDisplayWith"
+        [creatable]="false"
+        [readonly]="formConfig.mode | inputReadonly"
+      ></app-autocomlete>
+    </section>
+  }
+
+  <!-- Auth & Security -->
+  @if (shows("security")) {
+    <section class="settings-card" data-testid="settings-card-signup-session">
+      <h2 class="settings-card__title">Sign-up &amp; session policy</h2>
+      <app-checkbox
+        class="d-block mb-3"
+        label="Enable Local Sign Up"
+        [inputFormControl]="form | formGet:'enableLocalSignUp'"
+        [readonly]="formConfig.mode |  inputReadonly"
+      ></app-checkbox>
+      <!-- The receipt-reading knobs (Debug OCR, processing settings and their fallback, PDF DPI) are
+           gone from the form (Phase 3 M1, A3): the AI page under Manage sets the AI, the rest keeps
+           its stored value and the submit still sends it. -->
+      <p class="text-muted mb-3">
+        How long a signed-in user can be away before they have to log in again. Sessions renew
+        themselves while the app is in use, so this is an inactivity window rather than a hard limit.
+        Maximum 720 hours (30 days).
+      </p>
+      <div class="d-flex gap-3 mb-3 duration-row">
+        <app-input
+          label="Stay signed in for"
+          type="number"
+          [inputFormControl]="form | formGet:'refreshTokenValidForValue'"
+          [readonly]="formConfig.mode | inputReadonly"
+        ></app-input>
+        <app-select
+          label="Unit"
+          optionValueKey="value"
+          optionDisplayKey="displayValue"
+          [inputFormControl]="form | formGet:'refreshTokenValidForUnit'"
+          [options]="durationUnits"
+        ></app-select>
+      </div>
+      <p class="text-muted mb-3">
+        Marks every cookie as Secure, so browsers only send them over HTTPS. Recommended for any install
+        served over HTTPS. Leave this off if Receipt Wrangler is reached over plain HTTP, such as a LAN or
+        bare IP address: browsers refuse Secure cookies there, so nobody would be able to log in.
+      </p>
+      <app-checkbox
+        class="d-block mb-3"
+        label="Use secure cookies (HTTPS only)"
+        data-testid="system-settings-secure-cookies"
+        [inputFormControl]="form | formGet:'secureCookies'"
+        [readonly]="formConfig.mode | inputReadonly"
+      ></app-checkbox>
+      @if ((form | formGet:'secureCookies').value && !servedOverHttps) {
+        <div
+          class="alert alert-warning mb-3"
+          data-testid="secure-cookies-http-warning"
+        >
+          This page was loaded over HTTP. If you save with secure cookies on, browsers will drop the
+          login cookies on HTTP connections: you will be signed out, and nobody reaching Receipt Wrangler
+          over HTTP will be able to log back in until it is turned off again.
+        </div>
+      }
+      <p class="text-muted mb-3">
+        The externally reachable address of this server. Used to build the redirect
+        URI that each OIDC identity provider must be configured with, so it has to
+        match how users actually reach Receipt Wrangler.
+      </p>
+      <app-input
+        label="Server Public URL"
+        hint="Origin only, e.g. https://receipts.example.com"
+        data-testid="server-public-url"
+        [readonly]="formConfig.mode | inputReadonly"
+        [inputFormControl]="form | formGet:'serverPublicUrl'"
+      ></app-input>
+    </section>
+  }
+
+  <!-- Tasks & Storage -->
+  @if (shows("tasks")) {
+    <section class="settings-card" data-testid="settings-card-worker">
+      <div class="settings-card__head">
+        <h2 class="settings-card__title">Worker &amp; retention</h2>
         <app-button
-          icon="edit"
-          buttonText="Change currency"
-          matButtonType="matRaisedButton"
-          data-testid="system-settings-currency-edit"
-          [buttonRouterLink]="['/system-settings/settings', 'edit']"
+          matButtonType="iconButton"
+          icon="restart_alt"
+          color="accent"
+          tooltip="Restart Task Server"
+          (clicked)="restartTaskServer()"
         ></app-button>
       </div>
-    }
-    <app-select
-      label="Currency"
-      optionValueKey="value"
-      optionDisplayKey="displayValue"
-      data-testid="system-settings-currency"
-      [inputFormControl]="form | formGet:'currency'"
-      [options]="currencies"
-    ></app-select>
-    <div class="d-flex flex-column mb-3">
-      <strong>Previews</strong>
-      <span>{{ 123456789.12 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span>
-      <span>{{ 12.99 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span>
-      <span>{{ 10000 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span>
-      <span>{{ -10000 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span>
-    </div>
-    @if (isCustomCurrency()) {
-      <app-input
-        label="Symbol Display"
-        [readonly]="formConfig.mode | inputReadonly"
-        [inputFormControl]="form | formGet: 'currencyDisplay'"
-      ></app-input>
-      <app-select
-        label="Symbol Position"
-        optionValueKey="value"
-        optionDisplayKey="displayValue"
-        [inputFormControl]="form  | formGet:'currencySymbolPosition'"
-        [options]="symbolPositions"
-      ></app-select>
-      <app-select
-        label="Thousandths Separator"
-        optionValueKey="value"
-        optionDisplayKey="displayValue"
-        [inputFormControl]="form  | formGet:'currencyThousandthsSeparator'"
-        [options]="decimalSeparators"
-      ></app-select>
-      <app-select
-        label="Decimal Separator"
-        optionValueKey="value"
-        optionDisplayKey="displayValue"
-        [inputFormControl]="form  | formGet:'currencyDecimalSeparator'"
-        [options]="decimalSeparators"
-      ></app-select>
+      <div class="settings-grid">
+        <app-input
+          label="Task Concurrency"
+          type="number"
+          hint="The max amount of tasks that can be run concurrently. 0 or negative means all CPU cores available."
+          [inputFormControl]="form | formGet:'taskConcurrency'"
+        ></app-input>
+        <app-input
+          label="Cleanup polling interval (in seconds)"
+          type="number"
+          [inputFormControl]="form | formGet:'emailPollingInterval'"
+          [readonly]="formConfig.mode |  inputReadonly"
+        ></app-input>
+      </div>
+      <p class="text-muted mb-3">
+        A quick scan or email upload that fails keeps its image this long, so you can retry it or
+        download the original. Minimum 24 hours, maximum 8760 hours (1 year).
+      </p>
+      <div class="d-flex gap-3 mb-3 duration-row">
+        <app-input
+          label="Temporary files: keep failed uploads for"
+          type="number"
+          [inputFormControl]="form | formGet:'tempFileRetentionValue'"
+          [readonly]="formConfig.mode | inputReadonly"
+        ></app-input>
+        <app-select
+          label="Unit"
+          optionValueKey="value"
+          optionDisplayKey="displayValue"
+          [inputFormControl]="form | formGet:'tempFileRetentionUnit'"
+          [options]="durationUnits"
+        ></app-select>
+      </div>
+    </section>
+    <section class="settings-card" data-testid="settings-card-queues">
+      <h2 class="settings-card__title">Task queue priorities</h2>
+      <p class="text-muted mb-2">A higher number means a higher priority.</p>
+      <ul class="queue-list">
+        @for (data of visibleQueueData; track data.value) {
+          <li class="queue-row">
+            <div class="queue-row__text">
+              <strong>{{ data.displayValue }}</strong>
+              <small class="text-muted">{{ data.description }}</small>
+            </div>
+            <input
+              type="number"
+              class="queue-row__priority"
+              [attr.aria-label]="data.displayValue + ' priority'"
+              [attr.data-testid]="'queue-priority-' + data.value"
+              [formControl]="$any(form | taskQueueFormControl:data.value:'priority')"
+            />
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
+  <!-- Integrations & Mobile -->
+  @if (shows("integrations")) {
+    <section class="settings-card" data-testid="settings-card-mcp">
+      <h2 class="settings-card__title">MCP server</h2>
+      <p class="text-muted mb-3">
+        Exposes Receipt Wrangler as an OAuth 2.1-protected MCP server so clients such as Claude can be
+        connected as a custom connector and read your data (read-only). Toggling this starts or stops the
+        server live, no restart required.
+      </p>
       <app-checkbox
-        label="Hide Decimal Places"
-        [inputFormControl]="form | formGet:'currencyHideDecimalPlaces'"
+        class="d-block mb-3"
+        label="Enable MCP Server"
+        [inputFormControl]="form | formGet:'mcpEnabled'"
+        [readonly]="formConfig.mode | inputReadonly"
       ></app-checkbox>
-    }
-    <app-exchange-rates></app-exchange-rates>
-  </app-form-section>
-  <app-form-section
-    headerText="Session"
-  >
-    <p class="text-muted mb-3">
-      How long a signed-in user can be away before they have to log in again. Sessions renew
-      themselves while the app is in use, so this is an inactivity window rather than a hard limit —
-      someone who uses Receipt Wrangler regularly is never signed out. Lower it for a tighter
-      security posture, raise it so people stay signed in longer. Maximum 720 hours (30 days).
-    </p>
-    <div class="d-flex gap-3 mb-3 duration-row">
       <app-input
-        label="Stay signed in for"
-        type="number"
-        [inputFormControl]="form | formGet:'refreshTokenValidForValue'"
+        class="d-block mb-3"
+        label="Public URL"
+        hint="Externally reachable origin (scheme + host, no path), e.g. https://receipts.example.com. Used to build the OAuth and connector URLs. Changing it invalidates existing connector tokens."
         [readonly]="formConfig.mode | inputReadonly"
+        [inputFormControl]="form | formGet:'mcpPublicUrl'"
       ></app-input>
-      <app-select
-        label="Unit"
-        optionValueKey="value"
-        optionDisplayKey="displayValue"
-        [inputFormControl]="form | formGet:'refreshTokenValidForUnit'"
-        [options]="durationUnits"
-      ></app-select>
-    </div>
-  </app-form-section>
-  <app-form-section
-    headerText="Cookies"
-  >
-    <p class="text-muted mb-3">
-      Marks every cookie Receipt Wrangler sets as Secure, so browsers only send them over HTTPS.
-      Recommended for any install served over HTTPS. Leave this off if Receipt Wrangler is reached over
-      plain HTTP, such as a LAN or bare IP address: browsers refuse Secure cookies there, so nobody
-      would be able to log in.
-    </p>
-    <app-checkbox
-      class="d-block mb-3"
-      label="Use secure cookies (HTTPS only)"
-      data-testid="system-settings-secure-cookies"
-      [inputFormControl]="form | formGet:'secureCookies'"
-      [readonly]="formConfig.mode | inputReadonly"
-    ></app-checkbox>
-    @if ((form | formGet:'secureCookies').value && !servedOverHttps) {
-      <div
-        class="alert alert-warning mb-3"
-        data-testid="secure-cookies-http-warning"
-      >
-        This page was loaded over HTTP. If you save with secure cookies on, browsers will drop the
-        login cookies on HTTP connections: you will be signed out, and nobody reaching Receipt Wrangler
-        over HTTP will be able to log back in until it is turned off again.
+      <div class="d-flex gap-3 mb-3 duration-row">
+        <app-input
+          label="Connector sign-in lasts"
+          type="number"
+          hint="How long a connected client stays authorized before it has to sign in again. Maximum 720 hours (30 days)."
+          [inputFormControl]="form | formGet:'mcpRefreshTokenValidForValue'"
+          [readonly]="formConfig.mode | inputReadonly"
+        ></app-input>
+        <app-select
+          label="Unit"
+          optionValueKey="value"
+          optionDisplayKey="displayValue"
+          [inputFormControl]="form | formGet:'mcpRefreshTokenValidForUnit'"
+          [options]="durationUnits"
+        ></app-select>
       </div>
-    }
-  </app-form-section>
-  <app-form-section
-    headerText="Server"
-  >
-    <p class="text-muted mb-3">
-      The externally reachable address of this server. Used to build the redirect
-      URI that each OIDC identity provider must be configured with, so it has to
-      match how users actually reach Receipt Wrangler.
-    </p>
-    <app-input
-      label="Server Public URL"
-      hint="Origin only, e.g. https://receipts.example.com"
-      data-testid="server-public-url"
-      [readonly]="formConfig.mode | inputReadonly"
-      [inputFormControl]="form | formGet:'serverPublicUrl'"
-    ></app-input>
-  </app-form-section>
-  <app-form-section
-    headerText="Temporary Files"
-  >
-    <p class="text-muted mb-3">
-      How long an uploaded file is kept once nothing can still act on it. A quick scan or email upload
-      that fails keeps its image for this long, so you can retry it, or preview and download the
-      original to enter the receipt by hand. After that the file is reclaimed and those options
-      disappear. Minimum 24 hours, maximum 8760 hours (1 year).
-    </p>
-    <div class="d-flex gap-3 mb-3 duration-row">
-      <app-input
-        label="Keep failed uploads for"
-        type="number"
-        [inputFormControl]="form | formGet:'tempFileRetentionValue'"
+      @if ((form | formGet:'mcpEnabled').value && (form | formGet:'mcpPublicUrl').value) {
+        <div class="d-flex flex-column mb-3">
+          <strong>Connector URL</strong>
+          <span>{{ (form | formGet:'mcpPublicUrl').value }}/mcp</span>
+        </div>
+      }
+    </section>
+    <section class="settings-card" data-testid="settings-card-mobile">
+      <h2 class="settings-card__title">Mobile app setup</h2>
+      <p class="text-muted mb-3">
+        Shows a QR code on the login page that opens the Receipt Wrangler mobile app and pre-fills the
+        server URL below, so users can connect their phone without typing it. Leave this off to hide the
+        QR code.
+      </p>
+      <app-checkbox
+        class="d-block mb-3"
+        label="Enable Mobile App (show login QR code)"
+        [inputFormControl]="form | formGet:'showLoginQr'"
         [readonly]="formConfig.mode | inputReadonly"
-      ></app-input>
-      <app-select
-        label="Unit"
-        optionValueKey="value"
-        optionDisplayKey="displayValue"
-        [inputFormControl]="form | formGet:'tempFileRetentionUnit'"
-        [options]="durationUnits"
-      ></app-select>
-    </div>
-  </app-form-section>
-  <app-form-section
-    headerText="MCP Server"
-  >
-    <p class="text-muted mb-3">
-      Exposes Receipt Wrangler as an OAuth 2.1-protected MCP server so clients such as Claude can be
-      connected as a custom connector and read your data (read-only). Toggling this starts or stops the
-      server live, no restart required.
-    </p>
-    <app-checkbox
-      class="d-block mb-3"
-      label="Enable MCP Server"
-      [inputFormControl]="form | formGet:'mcpEnabled'"
-      [readonly]="formConfig.mode | inputReadonly"
-    ></app-checkbox>
-    <app-input
-      class="d-block mb-3"
-      label="Public URL"
-      hint="Externally reachable origin (scheme + host, no path), e.g. https://receipts.example.com. Used to build the OAuth and connector URLs. Changing it invalidates existing connector tokens."
-      [readonly]="formConfig.mode | inputReadonly"
-      [inputFormControl]="form | formGet:'mcpPublicUrl'"
-    ></app-input>
-    <div class="d-flex gap-3 mb-3 duration-row">
+      ></app-checkbox>
       <app-input
-        label="Connector sign-in lasts"
-        type="number"
-        hint="How long a connected client stays authorized before it has to sign in again. Kept separate from the app session above so a long user-facing window does not extend third-party access. Maximum 720 hours (30 days)."
-        [inputFormControl]="form | formGet:'mcpRefreshTokenValidForValue'"
+        label="Mobile Server URL"
+        hint="The server/API URL mobile clients connect to, e.g. https://receipts.example.com/api. Encoded into the login QR code."
         [readonly]="formConfig.mode | inputReadonly"
+        [inputFormControl]="form | formGet:'mobileServerUrl'"
       ></app-input>
-      <app-select
-        label="Unit"
-        optionValueKey="value"
-        optionDisplayKey="displayValue"
-        [inputFormControl]="form | formGet:'mcpRefreshTokenValidForUnit'"
-        [options]="durationUnits"
-      ></app-select>
-    </div>
-    @if ((form | formGet:'mcpEnabled').value && (form | formGet:'mcpPublicUrl').value) {
-      <div class="d-flex flex-column mb-3">
-        <strong>Connector URL</strong>
-        <span>{{ (form | formGet:'mcpPublicUrl').value }}/mcp</span>
-      </div>
-    }
-  </app-form-section>
-  <app-form-section
-    headerText="Mobile App Setup"
-  >
-    <p class="text-muted mb-3">
-      Shows a QR code on the login page that opens the Receipt Wrangler mobile app and pre-fills the
-      server URL below, so users can connect their phone without typing it. Leave this off to hide the
-      QR code.
+    </section>
+  }
+
+  @if (originalSystemSettings?.updatedAt) {
+    <p class="settings-updated text-muted" data-testid="settings-updated-at">
+      Updated {{ originalSystemSettings.updatedAt | appDate : "medium" }}
     </p>
-    <app-checkbox
-      class="d-block mb-3"
-      label="Show login QR code"
-      [inputFormControl]="form | formGet:'showLoginQr'"
-      [readonly]="formConfig.mode | inputReadonly"
-    ></app-checkbox>
-    <app-input
-      label="Mobile Server URL"
-      hint="The server/API URL mobile clients connect to, e.g. https://receipts.example.com/api. Encoded into the login QR code."
-      [readonly]="formConfig.mode | inputReadonly"
-      [inputFormControl]="form | formGet:'mobileServerUrl'"
-    ></app-input>
-  </app-form-section>
+  }
+
   <app-form-button-bar
     [mode]="formConfig.mode"
   >
@@ -314,45 +325,9 @@
   </app-form-button-bar>
 </form>
 
-<ng-template #headerButtons>
-  <app-edit-button
-    *ngIf="formConfig.mode != FormMode.edit"
-    color="accent"
-    [buttonRouterLink]="['/system-settings/settings', 'edit']"
-  ></app-edit-button>
-</ng-template>
-
-<ng-template
-  #queueCard
-  let-queueData="queueData"
->
-  <div class="mb-2">
-    <app-card>
-      <ng-container header>
-        {{ queueData.displayValue }}
-      </ng-container>
-      <ng-container content>
-        <small>{{ queueData.description }}</small>
-        <div class="mt-2">
-          <app-input
-            label="Priority"
-            type="number"
-            hint="Higher the value means higher the priority."
-            [readonly]="formConfig.mode |  inputReadonly"
-            [inputFormControl]="form | taskQueueFormControl:queueData.value: 'priority'"
-          ></app-input>
-        </div>
-      </ng-container>
-    </app-card>
-  </div>
-</ng-template>
-
-<ng-template #taskServerSettingsHeaderButtons>
-  <app-button
-    matButtonType="iconButton"
-    icon="restart_alt"
-    color="accent"
-    tooltip="Restart Task Server"
-    (clicked)="restartTaskServer()"
-  ></app-button>
-</ng-template>
+<!-- Auth & Security: the OIDC providers sit below the sign-up card, outside the form. -->
+@if (section === "security" && canReadOidcProviders()) {
+  <section class="settings-card" data-testid="settings-card-oidc">
+    <app-oidc-provider-table></app-oidc-provider-table>
+  </section>
+}

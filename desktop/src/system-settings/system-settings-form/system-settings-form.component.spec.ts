@@ -563,7 +563,9 @@ describe("SystemSettingsFormComponent", () => {
     });
 
     expect(snackbarServiceSpy).toHaveBeenCalled();
-    expect(routerSpy).toHaveBeenCalled();
+    // Always editable now: a save stays on the tab and settles the form.
+    expect(routerSpy).not.toHaveBeenCalled();
+    expect(component.form.pristine).toBe(true);
   });
 
   describe("secure cookies", () => {
@@ -701,6 +703,69 @@ describe("SystemSettingsFormComponent", () => {
       component.submit();
 
       expect(dispatchSpy).not.toHaveBeenCalledWith(new SetTimeZone("America/New_York"));
+    });
+  });
+
+  describe("tabs", () => {
+    const place = (section: string | undefined) => {
+      const activatedRoute = TestBed.inject(ActivatedRoute);
+      activatedRoute.snapshot.data["section"] = section;
+      activatedRoute.snapshot.data["formConfig"] = { mode: FormMode.edit };
+      component.ngOnInit();
+      fixture.detectChanges();
+    };
+
+    const cards = (): string[] =>
+      Array.from(fixture.nativeElement.querySelectorAll("[data-testid^='settings-card-']")).map(
+        (card) => (card as HTMLElement).getAttribute("data-testid")!.replace("settings-card-", "")
+      );
+
+    it("shows every settings card when it is not placed on a tab", () => {
+      place(undefined);
+
+      expect(cards()).toEqual(["currency", "regional", "signup-session", "worker", "queues", "mcp", "mobile"]);
+    });
+
+    it("General & Currency holds the currency (with rates) and the time zone", () => {
+      place("general");
+
+      expect(cards()).toEqual(["currency", "regional"]);
+      expect(fixture.nativeElement.querySelector("app-exchange-rates")).not.toBeNull();
+      expect(fixture.nativeElement.querySelector("[data-testid=system-settings-time-zone]")).not.toBeNull();
+    });
+
+    it("Auth & Security holds sign-up, session, cookies and the server URL in one card", () => {
+      place("security");
+
+      expect(cards()).toEqual(["signup-session"]);
+      expect(fixture.nativeElement.querySelector("[data-testid=system-settings-secure-cookies]")).not.toBeNull();
+      expect(fixture.nativeElement.querySelector("[data-testid=server-public-url]")).not.toBeNull();
+    });
+
+    it("Integrations & Mobile holds the MCP server and the mobile app setup", () => {
+      place("integrations");
+
+      expect(cards()).toEqual(["mcp", "mobile"]);
+    });
+
+    it("Tasks & Storage lists the queues compactly, without the retired one", () => {
+      place("tasks");
+
+      expect(cards()).toEqual(["worker", "queues"]);
+      const rows = fixture.nativeElement.querySelectorAll(".queue-row");
+      expect(rows.length).toBe(4);
+      expect(fixture.nativeElement.querySelector("[data-testid=queue-priority-email_receipt_image_cleanup]")).toBeNull();
+      expect(fixture.nativeElement.querySelector("[data-testid=queue-priority-quick_scan]")).not.toBeNull();
+      // The retired queue is still in the form (this fixture has four stored queues), so the payload keeps it.
+      expect((component.form.get("taskQueueConfigurations") as FormArray).length).toBe(4);
+    });
+
+    it("keeps every setting in the form whatever the tab, so a save sends them all", () => {
+      place("general");
+
+      expect(Object.keys(component.form.controls)).toEqual(
+        expect.arrayContaining(["enableLocalSignUp", "mcpEnabled", "taskConcurrency", "mobileServerUrl", "timeZone"])
+      );
     });
   });
 });

@@ -27,54 +27,19 @@ describe("systemSettingsLandingGuard", () => {
   const run = (): UrlTree =>
     executeGuard({} as any, {} as any) as UrlTree;
 
-  it("redirects to the first readable tab in render order", () => {
+  it("lands on General & Currency for a user who can read the settings", () => {
+    store.dispatch(new SetPermissions([Permission.AppSystemSettingsRead], {}));
+
+    expect(run().toString()).toBe("/system-settings/general");
+  });
+
+  it("redirects to the dashboard when the settings are not readable, whatever else is", () => {
     store.dispatch(
       new SetPermissions(
-        [Permission.AppPromptsRead, Permission.AppSystemTasksRead],
+        [Permission.AppSystemTasksRead, Permission.AppSystemEmailsRead, Permission.AppPromptsRead],
         {}
       )
     );
-
-    // Prompts is no longer a tab (Phase 3 M1).
-    expect(run().toString()).toBe("/system-settings/system-tasks");
-  });
-
-  it("lands on System Settings for a user who can read every tab", () => {
-    store.dispatch(
-      new SetPermissions(
-        [
-          Permission.AppSystemSettingsRead,
-          Permission.AppReceiptProcessingSettingsRead,
-          Permission.AppPromptsRead,
-          Permission.AppSystemEmailsRead,
-          Permission.AppSystemTasksRead,
-        ],
-        {}
-      )
-    );
-
-    expect(run().toString()).toBe("/system-settings/settings/view");
-  });
-
-  it("falls through to a later tab when earlier ones are not readable", () => {
-    store.dispatch(new SetPermissions([Permission.AppSystemTasksRead], {}));
-
-    expect(run().toString()).toBe("/system-settings/system-tasks");
-  });
-
-  it("never lands on the retired Prompts tab", () => {
-    store.dispatch(
-      new SetPermissions(
-        [Permission.AppSystemEmailsRead, Permission.AppPromptsRead],
-        {}
-      )
-    );
-
-    expect(run().toString()).toBe("/system-settings/system-emails");
-  });
-
-  it("redirects to the dashboard when no tab is readable", () => {
-    store.dispatch(new SetPermissions([], {}));
 
     const dashboard = store.selectSnapshot(GroupState.dashboardLink);
     expect(run().toString()).toBe(router.parseUrl(dashboard).toString());

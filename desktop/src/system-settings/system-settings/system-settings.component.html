@@ -1,1 +1,12 @@
-<app-tabs [tabs]="tabs"></app-tabs>
+<div class="settings-shell">
+  <app-filter-bar
+    class="settings-tabs"
+    data-testid="system-settings-tabs"
+    [tabs]="filterTabs"
+    [value]="activeTab()"
+    (valueChange)="select($event)"
+  ></app-filter-bar>
+  <div class="settings-content">
+    <router-outlet></router-outlet>
+  </div>
+</div>

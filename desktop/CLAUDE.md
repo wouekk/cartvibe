@@ -3113,3 +3113,21 @@ it into a blue base and a red top with "(+X)" in its label, and draws a dashed G
   (`@page A4 landscape`, `break-after: page` per year) opened in a window created inside the click (pop-up blockers)
   and printed; the browser's dialog saves the PDF. The CSV is `Month,Total Spent,Goal,Difference` (spent minus goal,
   dot decimals). Months at a range's edges are whole months.
+
+## System Settings tabs (fork)
+
+System Settings is five pill tabs (the `app-filter-bar` look of the Dashboard period picker) over white cards, in a
+1000px column (`system-settings.component`): **General & Currency** (currency + exchange rates, time zone), **Auth &
+Security** (sign-up, session, secure cookies, server URL; the OIDC providers table below), **Integrations & Mobile**
+(system emails table, MCP, mobile app setup), **Tasks & Storage** (the system tasks table, worker + retention,
+compact queue priorities) and **Logs**. The first four are routes (`general`, `security`, `integrations`, `tasks`)
+that all render `SystemSettingsFormComponent`; route data `section` picks its cards (`shows()`), and the embedded
+tables (`app-system-email-table`, `app-oidc-provider-table`, `app-system-task-table`) sit **outside** the `<form>`
+so their buttons cannot submit it. They read the tab route's resolver data, so each tab route carries `allGroups`,
+`prompts` and `allReceiptProcessingSettings` too. The form still holds **every** control whatever the tab, so a
+save always sends the whole payload (the retired email-image-cleanup queue stays in it, only hidden). There is no
+view/edit toggle or audit block: the form is always in edit mode, saves stay on the tab, the restart-task-server
+alert is a signal, and "Updated ..." is a muted footer. The old `settings/view|edit`, `oidc-providers`,
+`system-emails` and `system-tasks` list paths redirect to the tabs; the landing guard goes to `general`.
+Stale e2e: specs that click the old tab names or the pencil (`system-settings-tab-gating.spec.ts`, `login-qr.spec.ts`,
+`session-lifetime.spec.ts`, ...) need updating with the other Playwright specs.
