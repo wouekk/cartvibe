@@ -17,7 +17,8 @@
       [matTooltip]="formConfig.mode === formMode.edit ? usernameTooltip : ''"
     ></app-input>
     <app-input
-      label="Displayname"
+      label="Name"
+      hint="Shown as who added a receipt"
       [inputFormControl]="form | formGet : 'displayName'"
       [readonly]="formConfig.mode | inputReadonly"
     ></app-input>
