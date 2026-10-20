@@ -40,9 +40,9 @@ agreed to this flow; still ask before pushing `main` unless they said to proceed
 
 ### Claude Code
 1. Act on the NAS feedback for step 2.
-2. Step 3 on `feature/phase-3-new` (not pushed). **F2 done** (commit a83dd09b: `@customFields` in the
+2. Step 3 on `feature/phase-3-new` (pushed, one branch for all of step 3; CI green after M2). **F2 and M2 done** (F2: `@customFields` in the
    built-in prompt, `splitAiCustomFields` reads values leniently; Go tests pass locally, CI not run yet).
-   Still to do: S2, S4 + N1, M2, C5, D1 (period picker, tap-through lists, decision Q10), M5. M3 and F1
+   Still to do: S2, S4 + N1, C5, D1 (period picker, tap-through lists, decision Q10), M5. M3 and F1
    are in the plan but not in its order.
 3. M7 follow-up: make EUR the API default for new installs (the user wants it; see the plan).
 
