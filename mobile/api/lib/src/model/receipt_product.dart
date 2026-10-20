@@ -21,6 +21,11 @@ part 'receipt_product.g.dart';
 /// * [amount] - What the line cost, as a decimal string; null when the receipt shows no price
 /// * [quantity] - Quantity or weight as printed; empty when not printed
 /// * [position] - The line's order on the receipt
+/// * [health] - HEALTHY, MEDIUM, UNHEALTHY, NOT_FOOD, UNKNOWN, or empty while not yet classified. A plain string, never an enum, so a new rating cannot break an older client.
+/// * [foodGroup] - A short lowercase food group, e.g. \"fresh produce\"; empty while not yet classified
+/// * [seasonality] - For fresh fruit and vegetables, SEASONAL or OUT_OF_SEASON in Western Europe in the month bought; NOT_PRODUCE otherwise; empty while not yet classified. A plain string.
+/// * [classifiedAt] - When the tags were set; null while waiting to be classified
+/// * [classificationOverridden] - The tags were corrected by a person
 @BuiltValue()
 abstract class ReceiptProduct implements Built<ReceiptProduct, ReceiptProductBuilder> {
   @BuiltValueField(wireName: r'id')
@@ -57,6 +62,26 @@ abstract class ReceiptProduct implements Built<ReceiptProduct, ReceiptProductBui
   /// The line's order on the receipt
   @BuiltValueField(wireName: r'position')
   int get position;
+
+  /// HEALTHY, MEDIUM, UNHEALTHY, NOT_FOOD, UNKNOWN, or empty while not yet classified. A plain string, never an enum, so a new rating cannot break an older client.
+  @BuiltValueField(wireName: r'health')
+  String get health;
+
+  /// A short lowercase food group, e.g. \"fresh produce\"; empty while not yet classified
+  @BuiltValueField(wireName: r'foodGroup')
+  String get foodGroup;
+
+  /// For fresh fruit and vegetables, SEASONAL or OUT_OF_SEASON in Western Europe in the month bought; NOT_PRODUCE otherwise; empty while not yet classified. A plain string.
+  @BuiltValueField(wireName: r'seasonality')
+  String get seasonality;
+
+  /// When the tags were set; null while waiting to be classified
+  @BuiltValueField(wireName: r'classifiedAt')
+  DateTime? get classifiedAt;
+
+  /// The tags were corrected by a person
+  @BuiltValueField(wireName: r'classificationOverridden')
+  bool get classificationOverridden;
 
   ReceiptProduct._();
 
@@ -138,6 +163,33 @@ class _$ReceiptProductSerializer implements PrimitiveSerializer<ReceiptProduct> 
     yield serializers.serialize(
       object.position,
       specifiedType: const FullType(int),
+    );
+    yield r'health';
+    yield serializers.serialize(
+      object.health,
+      specifiedType: const FullType(String),
+    );
+    yield r'foodGroup';
+    yield serializers.serialize(
+      object.foodGroup,
+      specifiedType: const FullType(String),
+    );
+    yield r'seasonality';
+    yield serializers.serialize(
+      object.seasonality,
+      specifiedType: const FullType(String),
+    );
+    if (object.classifiedAt != null) {
+      yield r'classifiedAt';
+      yield serializers.serialize(
+        object.classifiedAt,
+        specifiedType: const FullType(DateTime),
+      );
+    }
+    yield r'classificationOverridden';
+    yield serializers.serialize(
+      object.classificationOverridden,
+      specifiedType: const FullType(bool),
     );
   }
 
@@ -231,6 +283,41 @@ class _$ReceiptProductSerializer implements PrimitiveSerializer<ReceiptProduct> 
             specifiedType: const FullType(int),
           ) as int;
           result.position = valueDes;
+          break;
+        case r'health':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.health = valueDes;
+          break;
+        case r'foodGroup':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.foodGroup = valueDes;
+          break;
+        case r'seasonality':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.seasonality = valueDes;
+          break;
+        case r'classifiedAt':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(DateTime),
+          ) as DateTime;
+          result.classifiedAt = valueDes;
+          break;
+        case r'classificationOverridden':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(bool),
+          ) as bool;
+          result.classificationOverridden = valueDes;
           break;
         default:
           unhandled.add(key);

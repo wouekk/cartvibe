@@ -102,6 +102,7 @@ export * from './reportTemplateOption';
 export * from './resetPasswordCommand';
 export * from './role';
 export * from './searchResult';
+export * from './setFoodClassificationCommand';
 export * from './setShoppingListItemCheckedCommand';
 export * from './shoppingList';
 export * from './shoppingListEvent';

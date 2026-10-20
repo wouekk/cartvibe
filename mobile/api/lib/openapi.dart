@@ -146,6 +146,7 @@ export 'package:openapi/src/model/report_template_option.dart';
 export 'package:openapi/src/model/reset_password_command.dart';
 export 'package:openapi/src/model/role.dart';
 export 'package:openapi/src/model/search_result.dart';
+export 'package:openapi/src/model/set_food_classification_command.dart';
 export 'package:openapi/src/model/set_shopping_list_item_checked_command.dart';
 export 'package:openapi/src/model/shopping_list.dart';
 export 'package:openapi/src/model/shopping_list_event.dart';

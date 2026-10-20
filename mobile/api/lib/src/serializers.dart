@@ -118,6 +118,7 @@ import 'package:openapi/src/model/report_template_option.dart';
 import 'package:openapi/src/model/reset_password_command.dart';
 import 'package:openapi/src/model/role.dart';
 import 'package:openapi/src/model/search_result.dart';
+import 'package:openapi/src/model/set_food_classification_command.dart';
 import 'package:openapi/src/model/set_shopping_list_item_checked_command.dart';
 import 'package:openapi/src/model/shopping_list.dart';
 import 'package:openapi/src/model/shopping_list_event.dart';
@@ -276,6 +277,7 @@ part 'serializers.g.dart';
   ResetPasswordCommand,
   Role,
   SearchResult,
+  SetFoodClassificationCommand,
   SetShoppingListItemCheckedCommand,
   ShoppingList,
   ShoppingListEvent,

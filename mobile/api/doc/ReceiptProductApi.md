@@ -12,6 +12,7 @@ Method | HTTP request | Description
 [**getReceiptProducts**](ReceiptProductApi.md#getreceiptproducts) | **GET** /receipt-product/receipt/{receiptId} | Get a receipt&#39;s products
 [**queueGroupReceiptProducts**](ReceiptProductApi.md#queuegroupreceiptproducts) | **POST** /receipt-product/group/{groupId}/backfill | Read the products of a group&#39;s older receipts
 [**readReceiptProducts**](ReceiptProductApi.md#readreceiptproducts) | **POST** /receipt-product/receipt/{receiptId}/read | Read a receipt&#39;s products again
+[**setReceiptProductClassification**](ReceiptProductApi.md#setreceiptproductclassification) | **PUT** /receipt-product/product/{productId}/classification | Correct a receipt product&#39;s health and seasonality tags
 
 
 # **getReceiptProducts**
@@ -151,6 +152,55 @@ Name | Type | Description  | Notes
 ### HTTP request headers
 
  - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **setReceiptProductClassification**
+> ReceiptProduct setReceiptProductClassification(productId, setFoodClassificationCommand)
+
+Correct a receipt product's health and seasonality tags
+
+This will set the product's tags and remember the health rating for the group's future products [group.receipts.update]
+
+### Example
+```dart
+import 'package:openapi/api.dart';
+// TODO Configure API key authorization: apiKeyAuth
+//defaultApiClient.getAuthentication<ApiKeyAuth>('apiKeyAuth').apiKey = 'YOUR_API_KEY';
+// uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//defaultApiClient.getAuthentication<ApiKeyAuth>('apiKeyAuth').apiKeyPrefix = 'Bearer';
+
+final api = Openapi().getReceiptProductApi();
+final int productId = 56; // int | Id of the receipt product
+final SetFoodClassificationCommand setFoodClassificationCommand = ; // SetFoodClassificationCommand | 
+
+try {
+    final response = api.setReceiptProductClassification(productId, setFoodClassificationCommand);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling ReceiptProductApi->setReceiptProductClassification: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **productId** | **int**| Id of the receipt product | 
+ **setFoodClassificationCommand** | [**SetFoodClassificationCommand**](SetFoodClassificationCommand.md)|  | 
+
+### Return type
+
+[**ReceiptProduct**](ReceiptProduct.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
  - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

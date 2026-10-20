@@ -18,6 +18,11 @@ Name | Type | Description | Notes
 **amount** | **String** | What the line cost, as a decimal string; null when the receipt shows no price | [optional] 
 **quantity** | **String** | Quantity or weight as printed; empty when not printed | 
 **position** | **int** | The line's order on the receipt | 
+**health** | **String** | HEALTHY, MEDIUM, UNHEALTHY, NOT_FOOD, UNKNOWN, or empty while not yet classified. A plain string, never an enum, so a new rating cannot break an older client. | 
+**foodGroup** | **String** | A short lowercase food group, e.g. \"fresh produce\"; empty while not yet classified | 
+**seasonality** | **String** | For fresh fruit and vegetables, SEASONAL or OUT_OF_SEASON in Western Europe in the month bought; NOT_PRODUCE otherwise; empty while not yet classified. A plain string. | 
+**classifiedAt** | [**DateTime**](DateTime.md) | When the tags were set; null while waiting to be classified | [optional] 
+**classificationOverridden** | **bool** | The tags were corrected by a person | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 
