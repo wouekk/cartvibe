@@ -5,9 +5,8 @@
 - **`main` / published image (`ghcr.io/wouekk/receipt-wrangler:latest`, CI green):** shopping lists
   with amount + unit and live sync, the Overview landing page, the dark sidebar, and Phase 2a–2c:
   receipt products, health/seasonality tags, and receipts attached to lists with unplanned spend.
-- **The NAS is behind.** The user's first test ran an old image (light sidebar, "Dashboard" item,
-  commit `9808c4d9`): Dockhand redeployed its cached `:latest` without pulling. Pull, then redeploy,
-  then hard-refresh.
+- **Deploying means pull, then redeploy.** The first NAS test ran a cached old image (commit
+  `9808c4d9`) because Dockhand redeployed without pulling. The NAS now runs the current image.
 - **First-test feedback is captured as Phase 3** in `docs/family-budget-rework.md`: the app is a
   family grocery budget, not expense tracking. Decisions are recorded there; the user re-tested on
   the current image and the landing page and Manage links work.
@@ -22,8 +21,7 @@
 2. Phase 2d (monthly goals), then 2e — they slot into the reworked dashboard.
 
 ### User
-- Pull + redeploy in Dockhand (back up `sqlite` first), hard-refresh, then re-check: the landing page,
-  the Manage links (Users, Categories, …), and a shopping list's "Receipts from this list" section.
+- Try a shopping list's "Receipts from this list" section (2c) on the phone.
 - Create a family-member test account in Manage Users, to check what a non-admin sees.
 
 ### Cline
