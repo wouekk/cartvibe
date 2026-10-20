@@ -8,6 +8,7 @@ import { BehaviorSubject, of } from "rxjs";
 import { GroupOverview, OverviewService, Permission, ReceiptService, ShoppingListService } from "../../open-api";
 import { PipesModule } from "../../pipes/pipes.module";
 import { AuthState } from "../../store/auth.state";
+import { FeatureConfigState } from "../../store/feature-config.state";
 import { SetPermissions } from "../../store/auth.state.actions";
 import { GroupState } from "../../store/group.state";
 import { ShoppingListState } from "../../store/shopping-list.state";
@@ -50,7 +51,7 @@ describe("OverviewPageComponent", () => {
 
     await TestBed.configureTestingModule({
       declarations: [OverviewPageComponent],
-      imports: [NgxsModule.forRoot([AuthState, GroupState, ShoppingListState, SystemSettingsState]), PipesModule, SharedUiModule],
+      imports: [NgxsModule.forRoot([AuthState, FeatureConfigState, GroupState, ShoppingListState, SystemSettingsState]), PipesModule, SharedUiModule],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
