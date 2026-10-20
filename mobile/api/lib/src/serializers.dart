@@ -22,6 +22,7 @@ import 'package:openapi/src/model/api_key_result.dart';
 import 'package:openapi/src/model/api_key_scope.dart';
 import 'package:openapi/src/model/api_key_view.dart';
 import 'package:openapi/src/model/app_data.dart';
+import 'package:openapi/src/model/app_log_entry.dart';
 import 'package:openapi/src/model/associated_api_keys.dart';
 import 'package:openapi/src/model/associated_entity_type.dart';
 import 'package:openapi/src/model/associated_group.dart';
@@ -185,6 +186,7 @@ part 'serializers.g.dart';
   ApiKeyScope,
   ApiKeyView,
   AppData,
+  AppLogEntry,
   AssociatedApiKeys,
   AssociatedEntityType,
   AssociatedGroup,
@@ -397,6 +399,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(int)]),
         () => ListBuilder<int>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AppLogEntry)]),
+        () => ListBuilder<AppLogEntry>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(ReportTemplateOption)]),

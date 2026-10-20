@@ -50,6 +50,7 @@ export 'package:openapi/src/model/api_key_result.dart';
 export 'package:openapi/src/model/api_key_scope.dart';
 export 'package:openapi/src/model/api_key_view.dart';
 export 'package:openapi/src/model/app_data.dart';
+export 'package:openapi/src/model/app_log_entry.dart';
 export 'package:openapi/src/model/associated_api_keys.dart';
 export 'package:openapi/src/model/associated_entity_type.dart';
 export 'package:openapi/src/model/associated_group.dart';

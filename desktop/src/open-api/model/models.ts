@@ -6,6 +6,7 @@ export * from './apiKeyResult';
 export * from './apiKeyScope';
 export * from './apiKeyView';
 export * from './appData';
+export * from './appLogEntry';
 export * from './associatedApiKeys';
 export * from './associatedEntityType';
 export * from './associatedGroup';

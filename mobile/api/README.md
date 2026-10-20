@@ -196,6 +196,7 @@ Class | Method | HTTP request | Description
 [*SystemEmailApi*](doc/SystemEmailApi.md) | [**getPagedSystemEmails**](doc/SystemEmailApi.md#getpagedsystememails) | **POST** /systemEmail/getSystemEmails | Gets paged system emails
 [*SystemEmailApi*](doc/SystemEmailApi.md) | [**getSystemEmailById**](doc/SystemEmailApi.md#getsystememailbyid) | **GET** /systemEmail/{id} | Get system email by id
 [*SystemEmailApi*](doc/SystemEmailApi.md) | [**updateSystemEmailById**](doc/SystemEmailApi.md#updatesystememailbyid) | **PUT** /systemEmail/{id} | Update system email by id
+[*SystemSettingsApi*](doc/SystemSettingsApi.md) | [**getAppLog**](doc/SystemSettingsApi.md#getapplog) | **GET** /systemSettings/logs | Get the application log
 [*SystemSettingsApi*](doc/SystemSettingsApi.md) | [**getSystemSettings**](doc/SystemSettingsApi.md#getsystemsettings) | **GET** /systemSettings | Get system settings
 [*SystemSettingsApi*](doc/SystemSettingsApi.md) | [**restartTaskServer**](doc/SystemSettingsApi.md#restarttaskserver) | **POST** /systemSettings/restartTaskServer | Restart task server
 [*SystemSettingsApi*](doc/SystemSettingsApi.md) | [**updateSystemSettings**](doc/SystemSettingsApi.md#updatesystemsettings) | **PUT** /systemSettings | Update system settings
@@ -239,6 +240,7 @@ Class | Method | HTTP request | Description
  - [ApiKeyScope](doc/ApiKeyScope.md)
  - [ApiKeyView](doc/ApiKeyView.md)
  - [AppData](doc/AppData.md)
+ - [AppLogEntry](doc/AppLogEntry.md)
  - [AssociatedApiKeys](doc/AssociatedApiKeys.md)
  - [AssociatedEntityType](doc/AssociatedEntityType.md)
  - [AssociatedGroup](doc/AssociatedGroup.md)

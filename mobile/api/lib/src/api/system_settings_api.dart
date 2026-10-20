@@ -8,6 +8,9 @@ import 'package:built_value/json_object.dart';
 import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 
+import 'package:built_collection/built_collection.dart';
+import 'package:openapi/src/api_util.dart';
+import 'package:openapi/src/model/app_log_entry.dart';
 import 'package:openapi/src/model/internal_error_response.dart';
 import 'package:openapi/src/model/system_settings.dart';
 import 'package:openapi/src/model/upsert_system_settings_command.dart';
@@ -19,6 +22,100 @@ class SystemSettingsApi {
   final Serializers _serializers;
 
   const SystemSettingsApi(this._dio, this._serializers);
+
+  /// Get the application log
+  /// The newest entries of the application log, newest first. Admin only.
+  ///
+  /// Parameters:
+  /// * [level] - Only entries of this level (INFO, ERROR or FATAL)
+  /// * [limit] - How many entries to return (default 200, at most 1000)
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [BuiltList<AppLogEntry>] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<BuiltList<AppLogEntry>>> getAppLog({ 
+    String? level,
+    int? limit,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/systemSettings/logs';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'apiKeyAuth',
+            'keyName': 'Authorization',
+            'where': 'header',
+          },{
+            'type': 'http',
+            'scheme': 'bearer',
+            'name': 'bearerAuth',
+          },
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      if (level != null) r'level': encodeQueryParameter(_serializers, level, const FullType(String)),
+      if (limit != null) r'limit': encodeQueryParameter(_serializers, limit, const FullType(int)),
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    BuiltList<AppLogEntry>? _responseData;
+
+    try {
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(BuiltList, [FullType(AppLogEntry)]),
+      ) as BuiltList<AppLogEntry>;
+
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<BuiltList<AppLogEntry>>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
 
   /// Get system settings
   /// This will get system settings
