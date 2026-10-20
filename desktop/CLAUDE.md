@@ -3047,3 +3047,9 @@ to RESOLVED) and **Read with AI** (`readReceiptProducts`). The Products table re
 category (the AI's food group), health, quantity, amount. The Dashboard has rolling ranges (Last 7 / 30 /
 365 days, ending today) and a DD/MM/YYYY custom range; its category rows open the products of that food
 group. "Manage Groups" is **Manage Households** and stays visible with one group.
+
+The receipts table has a **Shop** column (`shop_name`, sortable, visible by default), the receipt form a
+Shop field, and the Dashboard's receipts table shows the shop where it showed a category. The Dashboard's
+From / To fields are always visible, show the active period as DD/MM/YYYY and switch to Custom when edited
+(calendar button beside each). System Settings has a "Change currency" button next to the picker, which is
+only editable in edit mode.
