@@ -3163,3 +3163,12 @@ wordmark from the same variables. Skin rules use `!important` where a component'
   `#ea580c`.
 - A count badge with nothing or `0` is hidden (`matBadgeHidden` in `app-button`, plus a CSS/JS safeguard in index.html).
 - The Dashboard's empty receipts and shopping-list cards say so and carry the same buttons as the page's top right.
+
+## CartVibe icon (fork)
+
+`app-cartvibe-icon` draws the brand icon from the supplied traced artwork (`MQL4P01.svg`): the traced cart and arrow
+geometry (cart line thickened, arrow filled), with the bars, wheels and square redrawn cleanly at the same positions.
+It is a **fixed purple**, never the accent, with a light and a dark drawing chosen through `:host-context(html.dark)`
+(`--cv-bg-a/-b`, `--cv-cart`, `--cv-arrow`). It sits inside `app-cartvibe-logo` (header, login), which index.html keeps out
+of the page-wide dark filter; `favicon.svg` is the same drawing in the light colors. The login loading image is still
+`assets/branding/loading.gif` (an animated SVG loader from the supplied `gemini-svg` was built and set aside).

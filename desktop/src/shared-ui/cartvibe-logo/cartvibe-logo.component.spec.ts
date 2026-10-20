@@ -22,11 +22,11 @@ describe("CartVibeLogoComponent", () => {
     expect(element.querySelector(".logo__vibe")?.textContent).toBe("Vibe");
   });
 
-  it("colors the icon gradient from the accent variables, so a new accent recolors it", () => {
-    const stops = fixture.nativeElement.querySelectorAll("#cv-squircle-grad stop");
+  it("keeps the brand purple: the icon never follows the accent", () => {
+    const html = fixture.nativeElement.innerHTML as string;
 
-    expect(stops[0].getAttribute("stop-color")).toContain("var(--accent-color");
-    expect(stops[1].getAttribute("stop-color")).toContain("var(--accent-hover");
+    expect(html).toContain("var(--cv-bg-a)");
+    expect(html).not.toContain("--accent");
   });
 
   it("can show the icon alone and at another size", async () => {
