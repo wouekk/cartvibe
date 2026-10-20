@@ -4076,8 +4076,9 @@ spending (overspending type 1). `planned = null` (no list, not compared yet, the
   the command is valid — a processing setting still needs a prompt row (foreign key).
 - **Family roles (M4):** `SeedSystemRoles` also seeds the app role **User**
   (`permissions.FamilyUserAppKeys`: account, preferences, notifications, receipt search, the shared
-  categories / tags / custom fields, reports read + generate) and the group role **Member**
-  (`FamilyMemberGroupKeys`: the legacy editor set plus `group.reports.read`). Legacy Admin and
+  categories / tags / custom fields) and the group role **Member**
+  (`FamilyMemberGroupKeys`: the legacy editor set). No reports for either: the Dashboard is the
+  family's report (M6). Legacy Admin and
   Legacy Owner are the Admin. Fixed sets, add-only reconciliation like the legacy roles; names in
   `repositories/system_role_names.go`, shared with the desktop's `utils/family-roles.ts`.
 - **Overview:** `openReceiptCount` counts DRAFT too (everything "To check").
