@@ -9,10 +9,60 @@ All URIs are relative to */api*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
+[**getAppLog**](SystemSettingsApi.md#getapplog) | **GET** /systemSettings/logs | Get the application log
 [**getSystemSettings**](SystemSettingsApi.md#getsystemsettings) | **GET** /systemSettings | Get system settings
 [**restartTaskServer**](SystemSettingsApi.md#restarttaskserver) | **POST** /systemSettings/restartTaskServer | Restart task server
 [**updateSystemSettings**](SystemSettingsApi.md#updatesystemsettings) | **PUT** /systemSettings | Update system settings
 
+
+# **getAppLog**
+> BuiltList<AppLogEntry> getAppLog(level, limit)
+
+Get the application log
+
+The newest entries of the application log, newest first. Admin only.
+
+### Example
+```dart
+import 'package:openapi/api.dart';
+// TODO Configure API key authorization: apiKeyAuth
+//defaultApiClient.getAuthentication<ApiKeyAuth>('apiKeyAuth').apiKey = 'YOUR_API_KEY';
+// uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//defaultApiClient.getAuthentication<ApiKeyAuth>('apiKeyAuth').apiKeyPrefix = 'Bearer';
+
+final api = Openapi().getSystemSettingsApi();
+final String level = level_example; // String | Only entries of this level (INFO, ERROR or FATAL)
+final int limit = 56; // int | How many entries to return (default 200, at most 1000)
+
+try {
+    final response = api.getAppLog(level, limit);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling SystemSettingsApi->getAppLog: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **level** | **String**| Only entries of this level (INFO, ERROR or FATAL) | [optional] 
+ **limit** | **int**| How many entries to return (default 200, at most 1000) | [optional] 
+
+### Return type
+
+[**BuiltList&lt;AppLogEntry&gt;**](AppLogEntry.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **getSystemSettings**
 > SystemSettings getSystemSettings()

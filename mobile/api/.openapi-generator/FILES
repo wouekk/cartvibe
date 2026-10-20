@@ -10,6 +10,7 @@ doc/ApiKeyResult.md
 doc/ApiKeyScope.md
 doc/ApiKeyView.md
 doc/AppData.md
+doc/AppLogEntry.md
 doc/AssociatedApiKeys.md
 doc/AssociatedEntityType.md
 doc/AssociatedGroup.md
@@ -239,6 +240,7 @@ lib/src/model/api_key_result.dart
 lib/src/model/api_key_scope.dart
 lib/src/model/api_key_view.dart
 lib/src/model/app_data.dart
+lib/src/model/app_log_entry.dart
 lib/src/model/associated_api_keys.dart
 lib/src/model/associated_entity_type.dart
 lib/src/model/associated_group.dart
@@ -393,3 +395,4 @@ lib/src/model/widget.dart
 lib/src/model/widget_type.dart
 lib/src/serializers.dart
 pubspec.yaml
+test/app_log_entry_test.dart

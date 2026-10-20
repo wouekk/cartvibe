@@ -45,6 +45,7 @@ model/apiKeyResult.ts
 model/apiKeyScope.ts
 model/apiKeyView.ts
 model/appData.ts
+model/appLogEntry.ts
 model/associatedApiKeys.ts
 model/associatedEntityType.ts
 model/associatedGroup.ts
