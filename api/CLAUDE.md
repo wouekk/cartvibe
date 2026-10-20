@@ -4106,3 +4106,13 @@ not skip default groups) joins an existing `Household` as a **Member** (`joinHou
 to the default group role) and gets no personal group. An install without a `Household` group, i.e. every
 install made before this, keeps handing out "My Receipts". The "All" group is still created for everyone.
 The desktop half (hiding the group picker and Manage Groups while only one real group exists) is not done.
+
+## Editable receipt products (fork, Phase 3 C5)
+
+`POST /receipt-product/receipt/{id}/product`, `PUT` / `DELETE /receipt-product/product/{id}`
+(`group.receipts.update`, addressed like the classification correction: unknown id = the same 403).
+A new line goes to the end; a **new name** clears the line's health/seasonality tags (unless a person
+corrected them) and its planned mark so it is classified and compared again; every change re-queues the
+receipt's shopping trip. "Read again" still replaces the whole set, hand edits included.
+**New installs start on euros** (`SeedEuroForNewInstall` in `InitDB`; an existing settings row is never
+touched, and the test DB keeps `$`).
