@@ -133,3 +133,46 @@ export function describeChange(total: string, previousTotal: string, previousMon
 export function previousMonthOf(month: FilterMonth): FilterMonth {
   return month.month === 0 ? { year: month.year - 1, month: 11 } : { year: month.year, month: month.month - 1 };
 }
+
+/**
+ * The trend chart's bars (Phase 3 D1): months for a period of a month or more, days for a shorter
+ * one. A bar is highlighted when it lies inside the period, which for a day trend is all of them.
+ */
+export function buildTrendBars(trend: GroupOverviewMonth[], unit: string, from: string, to: string): MonthBar[] {
+  const totals = trend.map((point) => Number(point.total));
+  const max = Math.max(0, ...totals);
+  const isDay = unit === "DAY";
+
+  return trend.map((point, index) => {
+    const total = totals[index];
+    const monthIndex = Number(point.month.slice(5, 7)) - 1;
+    const shortName = isDay ? String(Number(point.month.slice(8, 10))) : MONTH_NAMES[monthIndex]?.slice(0, 3) ?? point.month;
+    const inPeriod = isDay || (point.month >= from.slice(0, 7) && point.month <= to.slice(0, 7));
+
+    return {
+      key: point.month,
+      shortName,
+      total,
+      heightPercent: max > 0 && total > 0 ? Math.max(2, Math.round((total / max) * 100)) : 0,
+      isSelected: inPeriod,
+    };
+  });
+}
+
+/**
+ * How the period compares with the one before, e.g. "8% less than September". Undefined when there is
+ * nothing to compare against (no spend before).
+ */
+export function describeChangeAgainst(total: string, previousTotal: string, previousName: string): string | undefined {
+  const current = Number(total);
+  const previous = Number(previousTotal);
+  if (!(previous > 0)) {
+    return undefined;
+  }
+
+  const percent = Math.round(((current - previous) / previous) * 100);
+  if (percent === 0) {
+    return `About the same as ${previousName}`;
+  }
+  return percent < 0 ? `${-percent}% less than ${previousName}` : `${percent}% more than ${previousName}`;
+}

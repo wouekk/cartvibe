@@ -1,6 +1,8 @@
 import {
   buildDonutSegments,
   buildMonthBars,
+  buildTrendBars,
+  describeChangeAgainst,
   describeChange,
   formatMonthLabel,
   monthDayRange,
@@ -86,5 +88,49 @@ describe("overview chart utils", () => {
     expect(describeChange("150", "100", september)).toBe("50% more than September");
     expect(describeChange("100.2", "100", september)).toBe("About the same as September");
     expect(describeChange("100", "0", september)).toBeUndefined();
+  });
+});
+
+describe("buildTrendBars", () => {
+  it("highlights the months inside the period and names them by month", () => {
+    const bars = buildTrendBars(
+      [
+        { month: "2026-08", total: "10" },
+        { month: "2026-09", total: "20" },
+        { month: "2026-10", total: "0" },
+      ],
+      "MONTH",
+      "2026-09-01",
+      "2026-10-31"
+    );
+
+    expect(bars.map((bar) => bar.shortName)).toEqual(["Aug", "Sep", "Oct"]);
+    expect(bars.map((bar) => bar.isSelected)).toEqual([false, true, true]);
+    expect(bars[1].heightPercent).toBe(100);
+    expect(bars[2].heightPercent).toBe(0);
+  });
+
+  it("names a day trend by day of month and highlights every day", () => {
+    const bars = buildTrendBars(
+      [
+        { month: "2026-10-12", total: "5" },
+        { month: "2026-10-13", total: "0" },
+      ],
+      "DAY",
+      "2026-10-12",
+      "2026-10-18"
+    );
+
+    expect(bars.map((bar) => bar.shortName)).toEqual(["12", "13"]);
+    expect(bars.every((bar) => bar.isSelected)).toBe(true);
+  });
+});
+
+describe("describeChangeAgainst", () => {
+  it("words the change against any period name", () => {
+    expect(describeChangeAgainst("92", "100", "last week")).toBe("8% less than last week");
+    expect(describeChangeAgainst("150", "100", "2025")).toBe("50% more than 2025");
+    expect(describeChangeAgainst("100", "100", "May")).toBe("About the same as May");
+    expect(describeChangeAgainst("100", "0", "May")).toBeUndefined();
   });
 });

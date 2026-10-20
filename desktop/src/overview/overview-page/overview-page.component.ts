@@ -1,4 +1,4 @@
-import { Component, computed, effect, linkedSignal, untracked } from "@angular/core";
+import { Component, computed, effect, signal, untracked } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { toObservable, toSignal } from "@angular/core/rxjs-interop";
 import { ActivatedRoute } from "@angular/router";
@@ -14,33 +14,43 @@ import {
   SortDirection,
 } from "../../open-api";
 import { openQuickScanDialog } from "../../receipts/quick-scan-dialog/open-quick-scan-dialog";
+import { FilterTab } from "../../shared-ui/filter-bar/filter-tab.interface";
 import { AuthState, FeatureConfigState, GroupState } from "../../store";
 import { ShoppingListState } from "../../store/shopping-list.state";
 import { LoadShoppingLists } from "../../store/shopping-list.state.actions";
 import { SystemSettingsState } from "../../store/system-settings.state";
+import { DEFAULT_DIALOG_CONFIG } from "../../constants/dialog.constant";
 import { todayInZone } from "../../utils/app-time-zone";
 import { hasAll } from "../../utils/permission.utils";
-import { FilterMonth } from "../../utils/receipt-date-filter";
 import {
   buildDonutSegments,
-  buildMonthBars,
-  describeChange,
+  buildTrendBars,
+  describeChangeAgainst,
   DONUT_RADIUS,
-  formatMonthLabel,
-  monthDayRange,
-  previousMonthOf,
-  toMonthKey,
+  DonutSegment,
 } from "../overview-chart.utils";
+import {
+  OverviewDetailDialogComponent,
+  OverviewDetailDialogData,
+  OverviewDetailKind,
+} from "../overview-detail-dialog/overview-detail-dialog.component";
+import { PERIOD_CHOICES, PeriodPreset, previousLabel, resolvePeriod } from "../overview-period";
 
 const RECENT_RECEIPT_COUNT = 6;
 
 /** How many item names a shopping list card spells out before "and N more". */
 const LIST_PREVIEW_ITEMS = 3;
 
+/** Segments that are not one real category, so there is no receipt list to open behind them. */
+const NON_CATEGORY_SEGMENTS = ["Other", "Uncategorized", "(Restricted)"];
+
 /**
- * The landing page: a month at a glance for the selected group — spend and its change, receipts
- * still open, what went on unhealthy food, what is left to buy, spend by category, the six-month trend, and the
- * month's latest receipts. Each card loads independently, so one failing request blanks only itself.
+ * The Dashboard (the landing page): a period at a glance for the selected group, any period from a
+ * week to a custom range (Phase 3 D1, decision Q10). Spend and its change against the period before,
+ * receipts to check, what went on unhealthy food and on things not on the shopping list, what is left
+ * to buy, spend by category, the trend, and the latest receipts. Unhealthy, Unplanned and each
+ * category open the list behind them. Each card loads independently, so one failing request blanks
+ * only itself.
  */
 @Component({
   selector: "app-overview-page",
@@ -56,13 +66,25 @@ export class OverviewPageComponent {
 
   public readonly timeZone = this.store.selectSignal(SystemSettingsState.timeZone);
 
-  /** The month shown: this month in the app time zone, until the user steps away from it. */
-  public readonly month = linkedSignal<FilterMonth>(() => {
-    const today = todayInZone(this.timeZone());
-    return { year: today.getFullYear(), month: today.getMonth() };
-  });
+  public readonly periodTabs: FilterTab[] = PERIOD_CHOICES.map((choice) => ({
+    value: choice.value,
+    label: choice.label,
+  }));
 
-  public readonly monthLabel = computed(() => formatMonthLabel(this.month()));
+  /** The period shown: this month until the user picks another. */
+  public readonly preset = signal<PeriodPreset>("THIS_MONTH");
+
+  /** The custom range's ends, "yyyy-MM-dd", typed into the two date inputs. */
+  public readonly customFrom = signal("");
+
+  public readonly customTo = signal("");
+
+  /** The days to ask for; undefined while a custom range is incomplete or backwards. */
+  public readonly period = computed(() =>
+    resolvePeriod(this.preset(), todayInZone(this.timeZone()), { from: this.customFrom(), to: this.customTo() })
+  );
+
+  public readonly periodLabel = computed(() => this.period()?.label ?? "");
 
   private readonly groups = this.store.selectSignal(GroupState.groups);
 
@@ -70,15 +92,20 @@ export class OverviewPageComponent {
     () => this.groups().find((group) => group.id === this.groupId())?.name ?? ""
   );
 
-  private readonly request = computed(() => ({ groupId: this.groupId(), month: this.month() }));
+  private readonly request = computed(() => {
+    const period = this.period();
+    return period ? { groupId: this.groupId(), from: period.from, to: period.to } : undefined;
+  });
 
-  /** undefined while loading, null when the request failed. */
+  /** undefined while loading (or a custom range is incomplete), null when the request failed. */
   public readonly overview = toSignal<GroupOverview | null | undefined>(
     toObservable(this.request).pipe(
-      switchMap(({ groupId, month }) =>
-        this.overviewService.getGroupOverview(groupId, toMonthKey(month)).pipe(
-          catchError(() => of(null))
-        )
+      switchMap((request) =>
+        request
+          ? this.overviewService
+              .getGroupOverview(request.groupId, undefined, request.from, request.to)
+              .pipe(catchError(() => of(null)))
+          : of(undefined)
       )
     ),
     { initialValue: undefined }
@@ -86,29 +113,28 @@ export class OverviewPageComponent {
 
   public readonly recentReceipts = toSignal(
     toObservable(this.request).pipe(
-      switchMap(({ groupId, month }) =>
-        this.receiptService
-          .getReceiptsForGroup(groupId, {
-            page: 1,
-            pageSize: RECENT_RECEIPT_COUNT,
-            orderBy: "date",
-            sortDirection: SortDirection.Desc,
-            filter: { date: { operation: FilterOperation.Between, value: monthDayRange(month) } },
-          })
-          .pipe(
-            // The generated item type is a merge of every paged model, so it needs an explicit narrowing.
-            map((page) => page.data as unknown as Receipt[]),
-            catchError(() => of([] as Receipt[]))
-          )
+      switchMap((request) =>
+        request
+          ? this.receiptService
+              .getReceiptsForGroup(request.groupId, {
+                page: 1,
+                pageSize: RECENT_RECEIPT_COUNT,
+                orderBy: "date",
+                sortDirection: SortDirection.Desc,
+                filter: { date: { operation: FilterOperation.Between, value: [request.from, request.to] } },
+              })
+              .pipe(
+                // The generated item type is a merge of every paged model, so it needs an explicit narrowing.
+                map((page) => page.data as unknown as Receipt[]),
+                catchError(() => of([] as Receipt[]))
+              )
+          : of([] as Receipt[])
       )
     ),
     { initialValue: [] as Receipt[] }
   );
 
-  /**
-   * The unhealthy tile (Phase 3 D2): what the month's products rated unhealthy cost, and their share
-   * of the month's spend. Any of it is overspending, so the tile warns as soon as it is above zero.
-   */
+  /** Unhealthy tile (Phase 3 D2): what the period's products rated unhealthy cost, and their share. */
   public readonly unhealthyTotal = computed(() => Number(this.overview()?.unhealthyTotal ?? 0));
 
   public readonly unhealthyShare = computed(() => {
@@ -116,29 +142,54 @@ export class OverviewPageComponent {
     return total > 0 ? Math.round((this.unhealthyTotal() / total) * 100) : 0;
   });
 
+  /** Unplanned tile (Phase 3 D1): what was bought that was not on the shopping list. */
+  public readonly unplannedTotal = computed(() => Number(this.overview()?.unplannedTotal ?? 0));
+
   public readonly circleRadius = DONUT_RADIUS;
 
   public readonly segments = computed(() => buildDonutSegments(this.overview()?.categories ?? []));
 
   public readonly bars = computed(() => {
     const overview = this.overview();
-    return overview ? buildMonthBars(overview.months, overview.month) : [];
+    return overview ? buildTrendBars(overview.trend ?? [], overview.trendUnit ?? "MONTH", overview.from, overview.to) : [];
   });
 
-  public readonly averageMonth = computed(() => {
+  public readonly isDailyTrend = computed(() => this.overview()?.trendUnit === "DAY");
+
+  public readonly averageBar = computed(() => {
     const bars = this.bars();
     return bars.length > 0 ? bars.reduce((sum, bar) => sum + bar.total, 0) / bars.length : 0;
   });
 
+  /** What the previous* figures are compared with: "September 2026", "2025", "5 Oct 2026 – 11 Oct 2026". */
+  public readonly previousName = computed(() => {
+    const overview = this.overview();
+    return overview ? previousLabel(overview.previousFrom, overview.previousTo) : "";
+  });
+
   public readonly change = computed(() => {
     const overview = this.overview();
-    return overview ? describeChange(overview.total, overview.previousTotal, previousMonthOf(this.month())) : undefined;
+    return overview ? describeChangeAgainst(overview.total, overview.previousTotal, this.previousName()) : undefined;
   });
 
   /** Spending went up, which the tile shows in the warning color. */
   public readonly changeIsIncrease = computed(() => {
     const overview = this.overview();
     return !!overview && Number(overview.total) > Number(overview.previousTotal);
+  });
+
+  public readonly unhealthyChange = computed(() => {
+    const overview = this.overview();
+    return overview
+      ? describeChangeAgainst(overview.unhealthyTotal, overview.previousUnhealthyTotal ?? "0", this.previousName())
+      : undefined;
+  });
+
+  public readonly unplannedChange = computed(() => {
+    const overview = this.overview();
+    return overview
+      ? describeChangeAgainst(overview.unplannedTotal ?? "0", overview.previousUnplannedTotal ?? "0", this.previousName())
+      : undefined;
   });
 
   private readonly groupPermissions = this.store.selectSignal(AuthState.groupPermissions);
@@ -206,11 +257,58 @@ export class OverviewPageComponent {
     });
   }
 
-  public selectMonth(month: FilterMonth): void {
-    this.month.set(month);
+  public selectPeriod(value: string): void {
+    this.preset.set(value as PeriodPreset);
+  }
+
+  public setCustomDay(target: "from" | "to", event: Event): void {
+    const day = (event.target as HTMLInputElement).value;
+    (target === "from" ? this.customFrom : this.customTo).set(day);
+  }
+
+  /** Opens the products behind the Unhealthy or Unplanned tile. */
+  public openProducts(kind: "UNHEALTHY" | "UNPLANNED"): void {
+    this.openDetail(kind, kind === "UNHEALTHY" ? "Unhealthy products" : "Products not on the list");
+  }
+
+  /** Opens the receipts of one category, when the slice is a real category the caller may read. */
+  public openCategory(segment: DonutSegment): void {
+    const categoryId = this.categoryIdFor(segment.name);
+    if (categoryId !== undefined) {
+      this.openDetail("CATEGORY", segment.name, categoryId);
+    }
+  }
+
+  public isOpenable(segment: DonutSegment): boolean {
+    return this.categoryIdFor(segment.name) !== undefined;
   }
 
   public openQuickScan(): void {
     openQuickScanDialog(this.matDialog).pipe(take(1)).subscribe();
+  }
+
+  private categoryIdFor(name: string): number | undefined {
+    if (NON_CATEGORY_SEGMENTS.includes(name)) {
+      return undefined;
+    }
+
+    return this.store.selectSnapshot(AuthState.groupCategories(this.groupId()))?.find((category) => category.name === name)?.id;
+  }
+
+  private openDetail(kind: OverviewDetailKind, title: string, categoryId?: number): void {
+    const period = this.period();
+    if (!period) {
+      return;
+    }
+
+    const data: OverviewDetailDialogData = {
+      title: `${title}, ${period.label}`,
+      kind,
+      groupId: this.groupId(),
+      from: period.from,
+      to: period.to,
+      categoryId,
+    };
+    this.matDialog.open(OverviewDetailDialogComponent, { ...DEFAULT_DIALOG_CONFIG, data });
   }
 }

@@ -151,7 +151,7 @@ export class SidebarComponent {
     const items: { label: string; icon: string; link: (string | number)[]; testId: string }[] = [];
 
     if (hasAll(this.selectedGroupPermissions(), Permission.GroupReceiptsRead)) {
-      items.push({ label: "Overview", icon: "space_dashboard", link: [this.overviewLink()], testId: "nav-overview" });
+      items.push({ label: "Dashboard", icon: "space_dashboard", link: [this.overviewLink()], testId: "nav-overview" });
     }
 
     const shoppingListGroupId = this.shoppingListGroupId();
@@ -166,9 +166,11 @@ export class SidebarComponent {
 
     items.push({ label: "Receipts", icon: "receipt_long", link: [this.receiptListLink()], testId: "nav-receipts" });
 
-    if (hasAll(this.selectedGroupPermissions(), Permission.GroupDashboardsRead)) {
+    // The upstream widget dashboards are an admin tool now (Phase 3 D1); the Dashboard above is the
+    // family's page.
+    if (this.isAdmin() && hasAll(this.selectedGroupPermissions(), Permission.GroupDashboardsRead)) {
       // The customizable widget dashboards; the Overview above is the fixed landing page.
-      items.push({ label: "Dashboards", icon: "dashboard_customize", link: [this.dashboardLink()], testId: "nav-dashboard" });
+      items.push({ label: "Widget dashboards", icon: "dashboard_customize", link: [this.dashboardLink()], testId: "nav-dashboard" });
     }
 
     if (this.canViewReports()) {
@@ -177,6 +179,8 @@ export class SidebarComponent {
 
     return items;
   });
+
+  protected readonly isAdmin = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppUsersRead));
 
   protected readonly canViewSystemSettings = this.store.selectSignal(
     AuthState.hasAnyAppPermission([

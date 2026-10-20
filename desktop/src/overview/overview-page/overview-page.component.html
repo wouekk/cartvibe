@@ -1,20 +1,12 @@
 <div class="overview">
   <div class="overview__header">
     <div class="overview__title">
-      <h1>Overview</h1>
+      <h1>Dashboard</h1>
       @if (groupName()) {
         <span class="overview__group">{{ groupName() }}</span>
       }
     </div>
     <div class="overview__actions">
-      <app-month-stepper
-        data-testid="overview-month"
-        [value]="month()"
-        [label]="monthLabel()"
-        [timeZone]="timeZone()"
-        [showAllTime]="false"
-        (monthSelected)="selectMonth($event)"
-      ></app-month-stepper>
       @if (canAddReceipt()) {
         <app-add-button
           buttonText="Add receipt"
@@ -43,7 +35,30 @@
     </div>
   </div>
 
-  <section class="overview__tiles" aria-label="This month at a glance">
+  <div class="overview__period" data-testid="overview-period">
+    <div class="overview__period-tabs">
+      <app-filter-bar [tabs]="periodTabs" [value]="preset()" (valueChange)="selectPeriod($event)"></app-filter-bar>
+    </div>
+    @if (preset() === "CUSTOM") {
+      <div class="overview__custom" data-testid="overview-custom-range">
+        <label>
+          <span>From</span>
+          <input type="date" data-testid="overview-custom-from" [value]="customFrom()" (change)="setCustomDay('from', $event)" />
+        </label>
+        <label>
+          <span>To</span>
+          <input type="date" data-testid="overview-custom-to" [value]="customTo()" (change)="setCustomDay('to', $event)" />
+        </label>
+      </div>
+    }
+    <span class="overview__period-label" data-testid="overview-period-label">{{ periodLabel() }}</span>
+  </div>
+
+  @if (!period()) {
+    <p class="empty" data-testid="overview-pick-range">Pick a first and a last day for the custom range.</p>
+  }
+
+  <section class="overview__tiles" aria-label="The period at a glance">
     <div class="tile" data-testid="overview-tile-spent">
       <span class="tile__label">Spent</span>
       <span class="tile__value">
@@ -58,7 +73,7 @@
           {{ change }}
         </span>
       } @else {
-        <span class="tile__hint">{{ monthLabel() }}</span>
+        <span class="tile__hint">{{ periodLabel() }}</span>
       }
     </div>
 
@@ -72,21 +87,40 @@
       }
     </a>
 
-    <div class="tile" data-testid="overview-tile-unhealthy">
+    <button type="button" class="tile tile--link tile--button" data-testid="overview-tile-unhealthy" (click)="openProducts('UNHEALTHY')">
       <span class="tile__label">Unhealthy</span>
       @if (overview()) {
         <span class="tile__value" [class.tile__value--warning]="unhealthyTotal() > 0">
           {{ unhealthyTotal() | customCurrency }}
         </span>
         @if (unhealthyTotal() > 0) {
-          <span class="tile__hint tile__hint--up">{{ unhealthyShare() }}% of {{ monthLabel() }}'s spending</span>
+          <span class="tile__hint tile__hint--up">{{ unhealthyShare() }}% of the spending</span>
         } @else {
           <span class="tile__hint">Nothing unhealthy</span>
+        }
+        @if (unhealthyChange(); as unhealthyChange) {
+          <span class="tile__hint">{{ unhealthyChange }}</span>
         }
       } @else {
         <span class="tile__value">–</span>
       }
-    </div>
+    </button>
+
+    <button type="button" class="tile tile--link tile--button" data-testid="overview-tile-unplanned" (click)="openProducts('UNPLANNED')">
+      <span class="tile__label">Not on the list</span>
+      @if (overview()) {
+        <span class="tile__value" [class.tile__value--warning]="unplannedTotal() > 0">
+          {{ unplannedTotal() | customCurrency }}
+        </span>
+        @if (unplannedChange(); as unplannedChange) {
+          <span class="tile__hint">{{ unplannedChange }}</span>
+        } @else if (unplannedTotal() === 0) {
+          <span class="tile__hint">Everything was planned</span>
+        }
+      } @else {
+        <span class="tile__value">–</span>
+      }
+    </button>
 
     @if (shoppingListGroupId(); as listGroupId) {
       <a class="tile tile--link" data-testid="overview-tile-to-buy" [routerLink]="['/shopping-lists/group', listGroupId]">
@@ -106,7 +140,7 @@
       @if (segments().length > 0) {
         <div class="donut">
           <div class="donut__chart">
-            <svg width="190" height="190" viewBox="0 0 190 190" role="img" [attr.aria-label]="'Spending by category, ' + monthLabel()">
+            <svg width="190" height="190" viewBox="0 0 190 190" role="img" [attr.aria-label]="'Spending by category, ' + periodLabel()">
               <circle cx="95" cy="95" [attr.r]="circleRadius" fill="none" stroke="#eef2f6" stroke-width="26"></circle>
               @for (segment of segments(); track segment.name) {
                 <circle
@@ -124,7 +158,7 @@
             </svg>
             <div class="donut__center">
               <span class="donut__total">{{ overview()?.total ?? 0 | customCurrency }}</span>
-              <span class="donut__caption">{{ monthLabel() }}</span>
+              <span class="donut__caption">{{ periodLabel() }}</span>
             </div>
           </div>
           <table class="donut__legend">
@@ -140,7 +174,13 @@
                 <tr>
                   <td>
                     <span class="swatch" [style.background]="segment.color"></span>
-                    {{ segment.name }}
+                    @if (isOpenable(segment)) {
+                      <button type="button" class="link-button" data-testid="overview-category-open" (click)="openCategory(segment)">
+                        {{ segment.name }}
+                      </button>
+                    } @else {
+                      {{ segment.name }}
+                    }
                   </td>
                   <td class="numeric strong">{{ segment.total | customCurrency }}</td>
                   <td class="numeric muted">{{ segment.share }}</td>
@@ -150,22 +190,24 @@
           </table>
         </div>
       } @else {
-        <p class="empty">No spending in {{ monthLabel() }} yet.</p>
+        <p class="empty">No spending in {{ periodLabel() }} yet.</p>
       }
     </section>
 
     <section class="card" aria-labelledby="overview-trend-title">
       <div class="card__header">
-        <h2 id="overview-trend-title">Last 6 months</h2>
+        <h2 id="overview-trend-title">{{ isDailyTrend() ? "Day by day" : "Month by month" }}</h2>
         @if (bars().length > 0) {
-          <span class="muted">Average {{ averageMonth() | customCurrency }}</span>
+          <span class="muted">Average {{ averageBar() | customCurrency }} {{ isDailyTrend() ? "a day" : "a month" }}</span>
         }
       </div>
       @if (bars().length > 0) {
-        <div class="bars" role="img" [attr.aria-label]="'Monthly spending for the six months ending ' + monthLabel()">
+        <div class="bars" role="img" [attr.aria-label]="(isDailyTrend() ? 'Daily' : 'Monthly') + ' spending, ' + periodLabel()">
           @for (bar of bars(); track bar.key) {
             <div class="bars__column">
-              <span class="bars__value">{{ bar.total | customCurrency }}</span>
+              @if (!isDailyTrend()) {
+                <span class="bars__value">{{ bar.total | customCurrency }}</span>
+              }
               <div class="bars__bar" [class.bars__bar--selected]="bar.isSelected" [style.height.%]="bar.heightPercent"></div>
             </div>
           }
@@ -182,7 +224,7 @@
   <div class="overview__row overview__row--wide">
     <section class="card card--wide" aria-labelledby="overview-receipts-title">
       <div class="card__header">
-        <h2 id="overview-receipts-title">Receipts in {{ monthLabel() }}</h2>
+        <h2 id="overview-receipts-title">Receipts in {{ periodLabel() }}</h2>
         <a [routerLink]="['/receipts/group', groupId()]">All receipts</a>
       </div>
       @if (recentReceipts().length > 0) {
@@ -211,7 +253,7 @@
           </table>
         </div>
       } @else {
-        <p class="empty">No receipts in {{ monthLabel() }}.</p>
+        <p class="empty">No receipts in {{ periodLabel() }}.</p>
       }
     </section>
 

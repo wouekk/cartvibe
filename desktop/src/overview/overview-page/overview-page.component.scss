@@ -346,3 +346,67 @@ table {
   font-size: 18px;
   font-weight: 700;
 }
+
+.overview__period {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: variables.$spacing-sm;
+}
+
+.overview__period-tabs {
+  // Many presets scroll sideways on a phone instead of wrapping into a tall block.
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.overview__custom {
+  display: flex;
+  flex-wrap: wrap;
+  gap: variables.$spacing-sm;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    font-size: 12px;
+    color: $label-color;
+  }
+
+  input {
+    min-height: 40px;
+    padding: 0 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font: inherit;
+    color: $body-color;
+  }
+}
+
+.overview__period-label {
+  margin-left: auto;
+  color: $muted-color;
+  font-size: 14px;
+}
+
+// A tile that is a button (Unhealthy, Not on the list): same look as the link tiles, no button chrome.
+.tile--button {
+  border: 0;
+  font: inherit;
+  text-align: left;
+  width: 100%;
+}
+
+.link-button {
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: #cbd5e1;
+  cursor: pointer;
+  min-height: 32px;
+}
