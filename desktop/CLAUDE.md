@@ -3062,3 +3062,10 @@ table both use it (the table sets the Receipt Date filter). The receipts table c
 (full timestamp), Date, Name, Shop, Added by, Amount, Status, Comment (opt-in); Categories, Tags and Done on
 are gone. Manage Categories shows what the AI sorts products into: a skip checkbox, "Formerly: ..." names and
 a product count. The user preferences' Quick scan defaults are hidden and the profile's field is "Name".
+
+## Exchange rates (fork, Phase 3 currencies)
+
+System Settings → Currency has `app-exchange-rates` (`src/system-settings/exchange-rates/`): "1 CHF = [rate]
+EUR" rows, add/remove a currency, its own Save (rates are typed with a comma or a dot, up to six decimals;
+empty = not entered). `app-receipt-currency-note` shows "45.9 CHF at 1.04" under a converted receipt's amount
+(table and form), or an amber "not converted: add the rate" warning.
