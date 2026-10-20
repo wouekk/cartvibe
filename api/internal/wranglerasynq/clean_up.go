@@ -47,6 +47,14 @@ func StartSystemCleanUpTasks() error {
 	// outage is skipped until its own retry time, so frequent runs cost one indexed query.
 	receiptProductSweepTask := asynq.NewTask(ReceiptProductSweep, nil)
 	_, err = RegisterTask("@every 5m", receiptProductSweepTask, cleanUpQueue, 0)
+	if err != nil {
+		return err
+	}
+
+	// Every 2 minutes, so a shopping list item's tags appear soon after it is added. With nothing
+	// waiting it costs two indexed queries; with no AI configured it makes no call.
+	foodClassificationSweepTask := asynq.NewTask(FoodClassificationSweep, nil)
+	_, err = RegisterTask("@every 2m", foodClassificationSweepTask, cleanUpQueue, 0)
 
 	return err
 }

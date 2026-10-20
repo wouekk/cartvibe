@@ -15,6 +15,7 @@ func BuildReceiptProductRouter() *chi.Mux {
 	receiptProductRouter.Get("/receipt/{receiptId}", handlers.GetReceiptProducts)
 	receiptProductRouter.Post("/receipt/{receiptId}/read", handlers.ReadReceiptProducts)
 	receiptProductRouter.Post("/group/{groupId}/backfill", handlers.QueueGroupReceiptProducts)
+	receiptProductRouter.Put("/product/{productId}/classification", handlers.SetReceiptProductClassification)
 
 	return receiptProductRouter
 }

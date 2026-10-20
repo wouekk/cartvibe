@@ -154,3 +154,43 @@ func TestBackfillRejectsTheAllGroup(t *testing.T) {
 	QueueGroupReceiptProducts(w, r)
 	assertStatus(t, w, http.StatusBadRequest)
 }
+
+func TestSetReceiptProductClassification(t *testing.T) {
+	defer tearDownReceiptProductsTest()
+	repositories.CreateTestGroupWithUsers()
+	receipt := seedProductReceipt(t, 1, true)
+	product := models.ReceiptProduct{ReceiptId: receipt.ID, Name: "CHOC NOIR 70%", DisplayName: "Dark chocolate"}
+	if err := repositories.GetDB().Create(&product).Error; err != nil {
+		t.Fatalf("seed product: %v", err)
+	}
+	params := map[string]string{"productId": fmt.Sprint(product.ID)}
+
+	// Read alone may not correct.
+	grantGroupPerms(t, 2, 1, permissions.GroupReceiptsRead)
+	w, r := shoppingListRequest("PUT", `{"health":"MEDIUM"}`, 2, params)
+	SetReceiptProductClassification(w, r)
+	assertStatus(t, w, http.StatusForbidden)
+
+	grantGroupPerms(t, 1, 1, permissions.GroupReceiptsRead, permissions.GroupReceiptsUpdate)
+	w, r = shoppingListRequest("PUT", `{"health":"tasty"}`, 1, params)
+	SetReceiptProductClassification(w, r)
+	assertStatus(t, w, http.StatusBadRequest)
+
+	w, r = shoppingListRequest("PUT", `{"health":"medium"}`, 1, params)
+	SetReceiptProductClassification(w, r)
+	assertStatus(t, w, http.StatusOK)
+	updated := decodeShoppingListResponse[models.ReceiptProduct](t, w)
+	if updated.Health != models.HEALTH_MEDIUM || !updated.ClassificationOverridden {
+		t.Errorf("expected the correction applied, got %+v", updated.FoodClassification)
+	}
+
+	corrections, _ := repositories.NewFoodClassificationRepository(nil).CorrectionsForGroup(1)
+	if corrections["dark chocolate"] != models.HEALTH_MEDIUM {
+		t.Errorf("expected the display name remembered, got %v", corrections)
+	}
+
+	// An unknown product looks like a denial.
+	w, r = shoppingListRequest("PUT", `{"health":"MEDIUM"}`, 1, map[string]string{"productId": "9999"})
+	SetReceiptProductClassification(w, r)
+	assertStatus(t, w, http.StatusForbidden)
+}

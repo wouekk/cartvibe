@@ -18,6 +18,7 @@ func BuildShoppingListRouter() *chi.Mux {
 
 	shoppingListRouter.Put("/item/{itemId}", handlers.UpdateShoppingListItem)
 	shoppingListRouter.Put("/item/{itemId}/checked", handlers.SetShoppingListItemChecked)
+	shoppingListRouter.Put("/item/{itemId}/classification", handlers.SetShoppingListItemClassification)
 	shoppingListRouter.Delete("/item/{itemId}", handlers.DeleteShoppingListItem)
 
 	shoppingListRouter.Put("/{listId}", handlers.UpdateShoppingList)

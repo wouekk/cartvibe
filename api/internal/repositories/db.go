@@ -177,6 +177,7 @@ func MakeMigrations() error {
 		&models.ShoppingListItem{},
 		&models.ReceiptProduct{},
 		&models.ReceiptProductExtraction{},
+		&models.ProductClassificationOverride{},
 	)
 
 	return err

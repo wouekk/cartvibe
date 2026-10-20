@@ -27,6 +27,8 @@ type ReceiptProduct struct {
 	Quantity string           `gorm:"type:varchar(50);not null;default:''" json:"quantity"`
 	// Position is the line's order on the receipt.
 	Position int `gorm:"not null;default:0" json:"position"`
+	// Health and seasonality tags, filled in by the classification sweep after the products are read.
+	FoodClassification `gorm:"embedded"`
 }
 
 // ReceiptProductExtractionStatus is where a receipt's product reading stands. A plain string on the

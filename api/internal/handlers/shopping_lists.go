@@ -385,3 +385,41 @@ func ClearCheckedShoppingListItems(w http.ResponseWriter, r *http.Request) {
 
 	HandleRequest(handler)
 }
+
+// SetShoppingListItemClassification is a person's correction of an item's health and seasonality
+// tags; it is remembered for the group and sent to the group's open lists.
+func SetShoppingListItemClassification(w http.ResponseWriter, r *http.Request) {
+	itemId, groupId, ok := resolveShoppingListItemGroupId(w, chi.URLParam(r, "itemId"))
+	if !ok {
+		return
+	}
+
+	handler := structs.Handler{
+		ErrorMessage:     "Error correcting the item's tags",
+		Writer:           w,
+		Request:          r,
+		GroupId:          utils.UintToString(groupId),
+		GroupPermissions: []string{permissions.GroupShoppingListsUpdate},
+		ResponseType:     constants.ApplicationJson,
+		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
+			command := commands.SetFoodClassificationCommand{}
+			vErr, err := command.LoadDataFromRequestAndValidate(w, r)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+			if len(vErr.Errors) > 0 {
+				structs.WriteValidatorErrorResponse(w, vErr, http.StatusBadRequest)
+				return 0, nil
+			}
+
+			item, err := services.NewFoodClassificationService(nil).CorrectShoppingListItem(groupId, itemId, command)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			return writeShoppingListResponse(w, item)
+		},
+	}
+
+	HandleRequest(handler)
+}

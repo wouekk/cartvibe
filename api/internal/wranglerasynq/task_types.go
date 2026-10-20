@@ -17,4 +17,7 @@ const (
 	// queue as a periodic sweep: a new queue name would be a new value in the
 	// closed QueueName enum released clients deserialize.
 	ReceiptProductSweep = "system_clean_up:receipt_products"
+	// FoodClassificationSweep tags receipt products and shopping list items with health and
+	// seasonality (see services.FoodClassificationService). Same queue, same reason.
+	FoodClassificationSweep = "system_clean_up:food_classification"
 )

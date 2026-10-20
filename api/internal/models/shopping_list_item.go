@@ -41,4 +41,6 @@ type ShoppingListItem struct {
 	IsChecked       bool             `gorm:"not null;default:false" json:"isChecked"`
 	CheckedAt       *time.Time       `json:"checkedAt"`
 	CheckedByUserId *uint            `json:"checkedByUserId"`
+	// Health and seasonality tags, filled in by the classification sweep shortly after the item is added.
+	FoodClassification `gorm:"embedded"`
 }

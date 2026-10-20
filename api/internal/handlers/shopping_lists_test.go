@@ -692,3 +692,43 @@ func assertShoppingListStreamCloses(t *testing.T, userId uint, afterOpen func())
 		time.Sleep(10 * time.Millisecond)
 	}
 }
+
+func TestSetShoppingListItemClassification(t *testing.T) {
+	defer tearDownShoppingListTest()
+	repositories.CreateTestGroupWithUsers()
+	grantAllGroupPerms(t, 1, 1)
+	list := createShoppingListForTest(t, 1, "1", "Supermarket")
+	item := addShoppingListItemForTest(t, 1, list.ID, `{"name":"Strawberries"}`)
+	params := map[string]string{"itemId": fmt.Sprint(item.ID)}
+
+	hub := services.GetShoppingListHub()
+	subscriber := hub.Subscribe(1)
+	defer hub.Unsubscribe(subscriber)
+
+	w, r := shoppingListRequest("PUT", `{"health":"HEALTHY","seasonality":"OUT_OF_SEASON"}`, 1, params)
+	SetShoppingListItemClassification(w, r)
+	assertStatus(t, w, http.StatusOK)
+	updated := decodeShoppingListResponse[models.ShoppingListItem](t, w)
+	if updated.Health != models.HEALTH_HEALTHY || updated.Seasonality != models.SEASONALITY_OUT_OF_SEASON {
+		t.Errorf("expected the correction applied, got %+v", updated.FoodClassification)
+	}
+
+	select {
+	case event := <-subscriber.Events:
+		if event.Type != models.ShoppingListEventItemUpdated || event.Item == nil || event.Item.Health != models.HEALTH_HEALTHY {
+			t.Errorf("expected an ITEM_UPDATED carrying the tags, got %+v", event)
+		}
+	case <-time.After(time.Second):
+		t.Error("expected the correction to be broadcast")
+	}
+
+	w, r = shoppingListRequest("PUT", `{"health":"HEALTHY","seasonality":"WINTER"}`, 1, params)
+	SetShoppingListItemClassification(w, r)
+	assertStatus(t, w, http.StatusBadRequest)
+
+	// Another group's member cannot correct it.
+	grantAllGroupPerms(t, 4, 2)
+	w, r = shoppingListRequest("PUT", `{"health":"MEDIUM"}`, 4, params)
+	SetShoppingListItemClassification(w, r)
+	assertStatus(t, w, http.StatusForbidden)
+}
