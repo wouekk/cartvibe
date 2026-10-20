@@ -3053,3 +3053,12 @@ Shop field, and the Dashboard's receipts table shows the shop where it showed a 
 From / To fields are always visible, show the active period as DD/MM/YYYY and switch to Custom when edited
 (calendar button beside each). System Settings has a "Change currency" button next to the picker, which is
 only editable in edit mode.
+
+## Period picker and tables (fork, feedback round 3)
+
+`app-period-picker` (`src/overview/period-picker/`) is the one period control: This month, Last 7 days,
+Last 30 days, This year, Custom, plus From / To (DD/MM/YYYY, calendar buttons). The Dashboard and the receipts
+table both use it (the table sets the Receipt Date filter). The receipts table columns are now Added At
+(full timestamp), Date, Name, Shop, Added by, Amount, Status, Comment (opt-in); Categories, Tags and Done on
+are gone. Manage Categories shows what the AI sorts products into: a skip checkbox, "Formerly: ..." names and
+a product count. The user preferences' Quick scan defaults are hidden and the profile's field is "Name".

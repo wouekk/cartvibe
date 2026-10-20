@@ -4157,3 +4157,19 @@ check" (OPEN / NEEDS_ATTENTION / DRAFT) to **RESOLVED** through `AfterReceiptUpd
 receipt keeps its status. Because `UpdateReceipt` skips zero values, an edit that omits `shopName` never
 blanks it. The mock AI server in the quick scan tests now drains the request body (it caused flaky
 "broken pipe" failures).
+
+## One read, synced categories, faster sweeps (fork, Phase 3 feedback round 3)
+
+- **One AI call per receipt:** the product-extraction prompt (`buildProductExtractionPrompt`) now also asks
+  for each product's `health`, `foodGroup` and `seasonality` and for the shop, so a read finishes the
+  classification too (`ClassifiedAt` set, the group's remembered health corrections applied). A product
+  the answer did not classify is left for the classification sweep as before. The sweeps run every 30 s
+  (products), 1 min (classification, trips); they were 5 / 2 / 5 min.
+- **Categories = the AI's product categories** (`services/food_group_categories.go`). `foodGroupResolver`
+  maps what the AI wrote onto Manage Categories: a name or an old alias of a category resolves to it, a
+  switched-off (`skipped`) one resolves to Uncategorized, an unknown one is **added** (Title Case).
+  `PromptBlock` tells the AI the allowed names, "X instead of Y" for renames and the skipped ones. Renaming a
+  category (`CategoryRepository.UpdateCategory`) keeps the old name in `aliases` and moves the products.
+  `categories.skipped` / `aliases` are additive columns; `CategoryView` has `numberOfProducts`.
+- **Time zone:** a one-time migration copies the container's `TZ` into the System Setting when it is still
+  the UTC default; a fresh install starts on it.
