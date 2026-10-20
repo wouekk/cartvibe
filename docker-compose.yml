@@ -1,9 +1,11 @@
 # Synology stack. Paste this into Dockhand (or Container Manager) as a plain compose stack: the NAS
 # only downloads the image GitHub publishes after CI passes on main (.github/workflows/
-# publish-image.yml); nothing is built on the NAS. To update, pull the image and redeploy.
+# publish-image.yml); nothing is built on the NAS. To update, redeploy: pull_policy always fetches the newest image.
 services:
   receipt-wrangler:
     image: ghcr.io/wouekk/receipt-wrangler:latest
+    # Check the registry on every deploy, so a redeploy never reuses a cached older :latest.
+    pull_policy: always
     container_name: receipt-wrangler
     restart: unless-stopped
     depends_on:
