@@ -18,6 +18,8 @@ class _$GroupOverview extends GroupOverview {
   @override
   final int openReceiptCount;
   @override
+  final String unhealthyTotal;
+  @override
   final BuiltList<GroupOverviewCategory> categories;
   @override
   final BuiltList<GroupOverviewMonth> months;
@@ -31,6 +33,7 @@ class _$GroupOverview extends GroupOverview {
       required this.previousTotal,
       required this.receiptCount,
       required this.openReceiptCount,
+      required this.unhealthyTotal,
       required this.categories,
       required this.months})
       : super._();
@@ -50,6 +53,7 @@ class _$GroupOverview extends GroupOverview {
         previousTotal == other.previousTotal &&
         receiptCount == other.receiptCount &&
         openReceiptCount == other.openReceiptCount &&
+        unhealthyTotal == other.unhealthyTotal &&
         categories == other.categories &&
         months == other.months;
   }
@@ -62,6 +66,7 @@ class _$GroupOverview extends GroupOverview {
     _$hash = $jc(_$hash, previousTotal.hashCode);
     _$hash = $jc(_$hash, receiptCount.hashCode);
     _$hash = $jc(_$hash, openReceiptCount.hashCode);
+    _$hash = $jc(_$hash, unhealthyTotal.hashCode);
     _$hash = $jc(_$hash, categories.hashCode);
     _$hash = $jc(_$hash, months.hashCode);
     _$hash = $jf(_$hash);
@@ -76,6 +81,7 @@ class _$GroupOverview extends GroupOverview {
           ..add('previousTotal', previousTotal)
           ..add('receiptCount', receiptCount)
           ..add('openReceiptCount', openReceiptCount)
+          ..add('unhealthyTotal', unhealthyTotal)
           ..add('categories', categories)
           ..add('months', months))
         .toString();
@@ -108,6 +114,11 @@ class GroupOverviewBuilder
   set openReceiptCount(int? openReceiptCount) =>
       _$this._openReceiptCount = openReceiptCount;
 
+  String? _unhealthyTotal;
+  String? get unhealthyTotal => _$this._unhealthyTotal;
+  set unhealthyTotal(String? unhealthyTotal) =>
+      _$this._unhealthyTotal = unhealthyTotal;
+
   ListBuilder<GroupOverviewCategory>? _categories;
   ListBuilder<GroupOverviewCategory> get categories =>
       _$this._categories ??= ListBuilder<GroupOverviewCategory>();
@@ -132,6 +143,7 @@ class GroupOverviewBuilder
       _previousTotal = $v.previousTotal;
       _receiptCount = $v.receiptCount;
       _openReceiptCount = $v.openReceiptCount;
+      _unhealthyTotal = $v.unhealthyTotal;
       _categories = $v.categories.toBuilder();
       _months = $v.months.toBuilder();
       _$v = null;
@@ -167,6 +179,8 @@ class GroupOverviewBuilder
                 receiptCount, r'GroupOverview', 'receiptCount'),
             openReceiptCount: BuiltValueNullFieldError.checkNotNull(
                 openReceiptCount, r'GroupOverview', 'openReceiptCount'),
+            unhealthyTotal: BuiltValueNullFieldError.checkNotNull(
+                unhealthyTotal, r'GroupOverview', 'unhealthyTotal'),
             categories: categories.build(),
             months: months.build(),
           );

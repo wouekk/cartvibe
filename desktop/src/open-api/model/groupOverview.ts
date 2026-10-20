@@ -30,6 +30,10 @@ export interface GroupOverview {
      */
     openReceiptCount: number;
     /**
+     * What the month\'s products rated UNHEALTHY cost, as a decimal string, whatever the receipt\'s category. Products without a price or not rated yet do not count.
+     */
+    unhealthyTotal: string;
+    /**
      * Spend per category in the month, largest first. A receipt counts toward each of its categories, so these can add up to more than the total. Always an array.
      */
     categories: Array<GroupOverviewCategory>;
