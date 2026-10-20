@@ -6133,6 +6133,12 @@ components:
         description:
           type: string
           description: Description of the category
+        skipped:
+          type: boolean
+          description: The AI is told never to use this category; its products fall back to Uncategorized
+        aliases:
+          type: string
+          description: Earlier names of this category, one per line (set by renaming; read only)
         updatedAt:
           type: string
           x-go-name: UpdatedAt
@@ -6150,6 +6156,9 @@ components:
           description: Category name
         description:
           type: string
+        skipped:
+          type: boolean
+          description: The AI is told never to use this category; its products fall back to Uncategorized
           description: Category description
     CategoryView:
       required:
@@ -6172,6 +6181,13 @@ components:
         description:
           type: string
           description: Description of the category
+        skipped:
+          type: boolean
+        aliases:
+          type: string
+        numberOfProducts:
+          type: integer
+          description: Number of receipt products in this category
         updatedAt:
           type: string
         numberOfReceipts:

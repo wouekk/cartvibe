@@ -57,6 +57,7 @@ func CreateCategory(w http.ResponseWriter, r *http.Request) {
 			}
 
 			categoriesRepository := repositories.NewCategoryRepository(nil)
+			category.Aliases = ""
 			createdCategory, err := categoriesRepository.CreateCategory(category)
 			if err != nil {
 				return http.StatusInternalServerError, err

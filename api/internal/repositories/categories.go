@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"fmt"
+	"strings"
 	"gorm.io/gorm"
 	"receipt-wrangler/api/internal/commands"
 	"receipt-wrangler/api/internal/models"
@@ -81,17 +82,22 @@ func (repository CategoryRepository) GetAllPagedCategories(pagedRequestCommand c
 	var categories []models.CategoryView
 	quotedAlias := "\"NumberOfReceipts\""
 
+	if pagedRequestCommand.OrderBy == "numberOfProducts" {
+		pagedRequestCommand.OrderBy = "\"NumberOfProducts\""
+	}
+
 	if pagedRequestCommand.OrderBy == "numberOfReceipts" {
 		pagedRequestCommand.OrderBy = quotedAlias
 	}
 
 	query := repository.Sort(db, pagedRequestCommand.OrderBy, pagedRequestCommand.SortDirection)
 	query = query.Scopes(repository.Paginate(pagedRequestCommand.Page, pagedRequestCommand.PageSize))
-	selectString := fmt.Sprintf("categories.id, categories.name, categories.description,  COUNT(DISTINCT receipt_categories.receipt_id) as %s", quotedAlias)
+	selectString := fmt.Sprintf("categories.id, categories.name, categories.description, categories.skipped, categories.aliases, COUNT(DISTINCT receipt_categories.receipt_id) as %s, COUNT(DISTINCT receipt_products.id) as \"NumberOfProducts\"", quotedAlias)
 	query = query.Table("categories").
 		Select(selectString).
 		Joins("LEFT JOIN receipt_categories ON categories.id = receipt_categories.category_id").
-		Group("categories.id, categories.name")
+		Joins("LEFT JOIN receipt_products ON LOWER(receipt_products.food_group) = LOWER(categories.name)").
+		Group("categories.id, categories.name, categories.description, categories.skipped, categories.aliases")
 
 	err := query.Scan(&categories).Error
 	if err != nil {
@@ -101,16 +107,6 @@ func (repository CategoryRepository) GetAllPagedCategories(pagedRequestCommand c
 	return categories, nil
 }
 
-func (repository CategoryRepository) UpdateCategory(categoryToUpdate models.Category, querySelect string) (models.Category, error) {
-	db := repository.GetDB()
-
-	err := db.Model(models.Category{}).Where("id = ?", categoryToUpdate.ID).Updates(map[string]interface{}{"name": categoryToUpdate.Name, "description": categoryToUpdate.Description}).Error
-	if err != nil {
-		return models.Category{}, err
-	}
-
-	return categoryToUpdate, nil
-}
 
 func (repository CategoryRepository) DeleteCategory(categoryId uint) error {
 	db := repository.GetDB()
@@ -133,4 +129,92 @@ func (repository CategoryRepository) DeleteCategory(categoryId uint) error {
 	}
 
 	return nil
+}
+
+// UpdateCategory saves a category's name, description and skip flag. A rename (Phase 3 feedback) also
+// keeps the old name as an alias, so the AI is told to use the new name instead of it and an answer
+// that still says the old name lands here, and moves the products that carried the old name to the new
+// one, so the Dashboard and the products lists agree at once. Everything is one transaction.
+func (repository CategoryRepository) UpdateCategory(categoryToUpdate models.Category, querySelect string) (models.Category, error) {
+	db := repository.GetDB()
+
+	var current models.Category
+	err := db.First(&current, categoryToUpdate.ID).Error
+	if err != nil {
+		return models.Category{}, err
+	}
+
+	newName := strings.TrimSpace(categoryToUpdate.Name)
+	aliases := current.Aliases
+	renamed := !strings.EqualFold(current.Name, newName)
+	if renamed {
+		aliases = AddCategoryAlias(aliases, current.Name)
+		// A name that was once an alias and is used again is no longer one.
+		aliases = RemoveCategoryAlias(aliases, newName)
+	}
+
+	err = db.Transaction(func(tx *gorm.DB) error {
+		err := tx.Model(models.Category{}).Where("id = ?", categoryToUpdate.ID).Updates(map[string]interface{}{
+			"name":        newName,
+			"description": categoryToUpdate.Description,
+			"skipped":     categoryToUpdate.Skipped,
+			"aliases":     aliases,
+		}).Error
+		if err != nil {
+			return err
+		}
+
+		if renamed {
+			return tx.Model(&models.ReceiptProduct{}).
+				Where("LOWER(food_group) = ?", strings.ToLower(current.Name)).
+				Update("food_group", newName).Error
+		}
+		return nil
+	})
+	if err != nil {
+		return models.Category{}, err
+	}
+
+	categoryToUpdate.Name = newName
+	categoryToUpdate.Aliases = aliases
+	return categoryToUpdate, nil
+}
+
+// CategoryAliases lists a category's old names.
+func CategoryAliases(aliases string) []string {
+	names := []string{}
+	for _, line := range strings.Split(aliases, "\n") {
+		if name := strings.TrimSpace(line); name != "" {
+			names = append(names, name)
+		}
+	}
+	return names
+}
+
+// AddCategoryAlias adds an old name unless it is already there (any case).
+func AddCategoryAlias(aliases string, name string) string {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return aliases
+	}
+	for _, existing := range CategoryAliases(aliases) {
+		if strings.EqualFold(existing, name) {
+			return aliases
+		}
+	}
+	if aliases == "" {
+		return name
+	}
+	return aliases + "\n" + name
+}
+
+// RemoveCategoryAlias drops a name from the list (any case).
+func RemoveCategoryAlias(aliases string, name string) string {
+	kept := []string{}
+	for _, existing := range CategoryAliases(aliases) {
+		if !strings.EqualFold(existing, name) {
+			kept = append(kept, existing)
+		}
+	}
+	return strings.Join(kept, "\n")
 }
