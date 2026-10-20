@@ -37,9 +37,11 @@ https://claude.ai/artifact/TAZXoRQ4mmRyoy37CFKRVt) is the target look. The plan 
   category), goal progress, a short AI summary.
 
 ### Next — Phase 3, family budget rework (`docs/family-budget-rework.md`)
-- Make the app match the approved design and a family's needs: Dashboard landing page, paid by
-  filled in automatically, bill splitting hidden, one-line add on shopping lists, admin-only AI setup
-  with defaults, simple reports for members, an "unhealthy this month" tile instead of settle up.
+- Make the app match the approved design and a family's needs: Dashboard landing page with "Add
+  receipt" / "New list", paid by and names filled in automatically, bill splitting hidden, simpler
+  shopping lists (one-line add, past lists instead of tabs), a simple admin-only AI page (Gemini or
+  LM Studio, test connection), hardcoded prompts fed by categories/tags/custom fields, only Admin
+  and User roles, household notifications, a Logs tab.
 
 ### Product rules
 - **Web first.** Build UI in `desktop/`, mobile-responsive (thumb-sized targets). No Flutter screens;

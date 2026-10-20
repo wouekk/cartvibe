@@ -1,65 +1,126 @@
 # Family Budget Rework — Phase 3 Plan
 
-Status: **approved** (2026-10-20), from the user's first hands-on test on the NAS. Decisions are at
-the end. Nothing here is built yet; it comes **before** 2d.
+Status: **approved in outline** (2026-10-20), from the user's two rounds of feedback after testing
+on the NAS. Decisions so far are at the end, with the questions still open. Nothing here is built
+yet; it comes **before** 2d.
 
 ## Why
 
 Upstream Receipt Wrangler is built for expense tracking: shared bills, who paid, who owes whom, a
 receipt approval workflow, configurable AI prompts. This fork is for **one family's grocery budget**.
-Users are family members, everyone can add things, and nobody splits bills. The app should feel like
-the approved design, not like a business tool with extras.
+Users are family members (the user and his wife), everyone can add things, and nobody splits bills.
+The app should feel like the approved design, not like a business tool with extras.
 
 **The target look is the approved design** (`Main.dc.html` desktop dashboard and `Phone.dc.html`
 shopping list, in the design artifact https://claude.ai/artifact/TAZXoRQ4mmRyoy37CFKRVt). The user
 wants "exactly something like this".
 
+**Principle for every change:** hide what a family does not need rather than deleting it (the data
+and the API stay, so nothing migrates destructively and released clients keep working), fill in what
+nobody should have to type, and keep configuration admin-only with working defaults. A family member
+who is not the admin sees Dashboard, Shopping Lists, Receipts and Reports, and nothing they cannot use.
+
 ## First: what the user actually saw
 
-The first test ran an **old image**. The sidebar in the screenshot is the light one with a
-"Dashboard" item, from commit `9808c4d9`. That is before the Overview landing page and the dark
-sidebar (`99f984fd`), and before 2a–2c. Dockhand had redeployed its cached `:latest` without pulling.
+The first test ran an **old image** (light sidebar, "Dashboard" item, commit `9808c4d9`): Dockhand
+had redeployed its cached `:latest` without pulling. Deploy = **pull, then redeploy**, then a hard
+refresh (`AGENTS.md` §2). Re-tested on the current image: the landing page and the Manage links work.
 
-- Deploy = **pull, then redeploy** (Dockhand's pull action, or `docker compose pull`), then a hard
-  refresh in the browser. Recorded in `AGENTS.md` §2.
-- **Re-tested on the current image (2026-10-20): the landing page and the Manage links work.** B2
-  and B3 were the old image only.
+## Changes by area
 
-## Reported problems
-
-| # | Report | Notes |
+### Fixes
+| # | Change | Notes |
 |---|---|---|
-| B1 | Log noise at startup: `queue "email_receipt_image_cleanup" does not exist` (INFO, twice) | `retireEmailReceiptImageCleanupQueue` in `wranglerasynq/clean_up.go` asks Redis to empty a queue that never existed on a fresh install. Harmless; treat "queue does not exist" as nothing to do. |
-| B2 | Every Manage link except System Settings and Imports does nothing | **Resolved:** old image only; works on the current one. |
-| B3 | Cannot manage users, so no way to create a test account | **Resolved** with B2. The user creates the test account by hand. |
+| B1 | Silence `queue "email_receipt_image_cleanup" does not exist` at startup | `retireEmailReceiptImageCleanupQueue` (`wranglerasynq/clean_up.go`) empties a queue that never existed on a fresh install; treat "does not exist" as nothing to do. |
 
-## Requested changes
-
-| # | Change | Where |
+### Dashboard (landing page)
+| # | Change | Notes |
 |---|---|---|
-| R1 | **Landing page = the design's Dashboard**: tiles (spent this month, receipts, unhealthy spend this month, to buy), spending by category, last 6 months, recent receipts, shopping lists. Ready out of the box, no setup. Rename "Overview" to **Dashboard**. | desktop `src/overview/`, sidebar |
-| R2 | **Replace the Settle up tile with "Unhealthy this month"**: money spent on products tagged unhealthy (from 2b). The family does not share bills. | API overview + desktop; overlaps 2e |
-| R3 | **Paid by is the logged-in user**, filled in automatically and not asked for on any form (receipt form, Quick Scan, trip upload already does it). | desktop forms; group receipt settings defaults |
-| R4 | **Hide bill splitting**: item shares, "who owes whom", settle up, paid-by columns and filters. Kept in the database, not offered in the UI. | desktop receipts, overview |
-| R5 | **Receipt statuses become "To check / Done"** (decision Q2). The five upstream statuses are an approval workflow for shared expenses. Map OPEN, NEEDS_ATTENTION and DRAFT to "To check", RESOLVED to "Done" (DECLINED: hide, or "Done"; decide when building). AI-read receipts start as "To check" so someone looks them over. **Display-only mapping:** the API keeps its `ReceiptStatus` enum unchanged (closed enum, released clients). | desktop receipts, filters, overview tile |
-| R6 | **Shopping list add row on one line**: name, amount, unit and the add button side by side, as in the design (`Phone.dc.html`); no "tune" toggle to reveal amount. Items show the amount as a chip on the right. | desktop `shopping-list` |
-| R7 | **AI works out of the box.** Prompts, OCR engine and processing details stay under the hood with good defaults. The only AI setting is choosing the model (and its key), and only an admin sees it. Providers to offer (decision Q3): **Google Gemini** (native `GEMINI`), **Claude** and **LM Studio**. LM Studio runs on the user's PC and is reachable from the NAS (it also backs their Open WebUI): use the existing OpenAI-compatible type (`OPEN_AI_CUSTOM`, base URL like `http://<pc>:1234/v1`). Claude has no native type, and adding a value to the `AiClientType` enum is ruled out. Go through Anthropic's OpenAI-compatible endpoint (`https://api.anthropic.com/v1/`) with `OPEN_AI_CUSTOM`. Verify that it handles images, or keep Claude to the text-only tasks (classification, comparison). The admin picks one of these three presets plus a key or URL; prompts, OCR and the rest are fixed defaults. | API seed/defaults; desktop System Settings, group AI settings |
-| R8 | **Reports like the dashboard**: a few ready-made, simple reports (month, category, unplanned, unhealthy) for every member. The Report Builder and its customisation are admin-only. | desktop reports, sidebar |
-| R9 | ~~Two seeded accounts~~ **Dropped** (decision Q1): the user creates a family-member test account in Manage Users. Nothing is seeded. | — |
-| R10 | **Family language everywhere**: "Group" is the family/household; members, not users, in the everyday UI; business wording removed. | desktop copy |
+| D1 | **The design's Dashboard**, ready out of the box: tiles (spent this month, receipts, **unhealthy this month**, to buy), spending by category, last 6 months, recent receipts, shopping lists. Rename "Overview" to **Dashboard**; the upstream widget dashboards become admin-only or go. | desktop `src/overview/`, sidebar |
+| D2 | **"Unhealthy this month" replaces Settle up**: money spent on products tagged unhealthy (2b). | API overview + desktop; overlaps 2e |
+| D3 | **"Add receipt" and "New list" buttons on the Dashboard.** The sidebar's "+ New" menu goes. | desktop overview, sidebar |
 
-Also keep in mind for every change: a family member (not admin) should see Dashboard, Shopping Lists,
-Receipts and Reports, and nothing they cannot use.
+### Shopping lists
+| # | Change | Notes |
+|---|---|---|
+| S1 | **Add row on one line**: name, amount, unit and the add button side by side (`Phone.dc.html`); no "tune" toggle. Items show their amount as a chip on the right. | desktop `shopping-list` |
+| S2 | **Lists instead of tabs.** The tab bar is clunky. When every item on a list is crossed off, the list moves to **Past lists** at the bottom; the last 2–3 stay visible there. See Q8 for what a list is. | desktop shopping lists; maybe API (a list's "done" state) |
+| S3 | **A new list is named "List {date}"** by default (editable). | desktop |
+| S4 | **"Going shopping" call to action:** a member announces a trip, and the household is notified to add what they need. | API + notifications (N1) |
+
+### Receipts
+| # | Change | Notes |
+|---|---|---|
+| C1 | **Paid by is the logged-in user**, filled in and not asked for on any form (receipt form, Quick Scan; trip upload already does it). | desktop forms; group receipt settings defaults |
+| C2 | **A new receipt is named "Receipt {date}"** by default (editable); the AI's store name replaces it when it reads one. | desktop receipt form |
+| C3 | **No mandatory fields beyond the basics.** Group-configured required fields (Quick Scan's required category/tag/status, …) stop being required. With one family group, the group is picked automatically. | group receipt settings defaults; desktop |
+| C4 | **Shares are removed from the UI**: item shares, "who owes whom", settle up, paid-by columns and filters. The data stays. | desktop receipts, overview |
+| C5 | **Items need a better entry UI.** The concept is good but adding items one by one is clunky: a quick multi-line entry, like the shopping list's add row. Overlaps the AI's product reading (2a); see Q9. | desktop receipt form |
+| C6 | **Statuses become "To check / Done"** (decision Q2): OPEN, NEEDS_ATTENTION and DRAFT show as "To check", RESOLVED as "Done", DECLINED hidden or "Done" (decide when building). AI-read receipts start as "To check". **Display-only**: the API's `ReceiptStatus` enum is unchanged (closed enum, released clients). | desktop receipts, filters, dashboard tile |
+
+### Categories, tags and custom fields
+| # | Change | Notes |
+|---|---|---|
+| F1 | **Everything the AI fills in is editable and listed.** Manage Categories / Tags / Custom Fields list everything that exists, so a typo or a wrong pick can be corrected in one place. | desktop manage pages (exist; check they are simple enough) |
+| F2 | **Custom fields reach the AI automatically.** Categories and tags already go into the receipt prompt (`@categories`, `@tags`); custom fields do not. Add them (name, type, options) so a new field is filled in by the AI with no prompt editing. | API `services/prompts.go` + receipt processing; new `@customFields` handled in code |
+
+### AI setup
+| # | Change | Notes |
+|---|---|---|
+| A1 | **"AI" moves into the Manage menu, as simple as possible.** Cloud: pick the provider and model, paste the API key. Local: a URL and an optional API key. A **Test connection** button answers OK, or not OK with the reason (the API already has a connectivity check command). Admin only. | desktop new page; reuses receipt processing settings |
+| A2 | **Providers** (decision Q3): **Google Gemini** (native `GEMINI`) and **LM Studio** on the user's PC, reachable from the NAS (it also backs their Open WebUI), through the existing OpenAI-compatible type (`OPEN_AI_CUSTOM`, base URL like `http://<pc>:1234/v1`). **Claude dropped**: it would need a new value in the closed `AiClientType` enum or a workaround, and the user does not need it. | |
+| A3 | **Prompts are hardcoded** and only shaped by categories, tags and custom fields (F2). The Prompts page leaves System Settings; OCR engine and the other processing knobs get fixed defaults. | API defaults; desktop System Settings |
+
+### System settings, users and roles
+| # | Change | Notes |
+|---|---|---|
+| M1 | **System Settings keeps:** general settings, System Email (the user may later read receipts from a mailbox), System Tasks. **Removed:** Prompts (A3), Receipt Processing Settings (moves to the AI page, A1; see Q5). | desktop system settings |
+| M2 | **New Logs tab** in System Settings: the application log, recent lines with a level filter, admin only. The API already writes logs to the `logs` volume. | API endpoint + desktop tab |
+| M3 | **Users: profiles for the user and his wife.** Keep user management. Keep OIDC providers (Google sign-in may matter if the app is ever offered to others) but out of the everyday menus. | desktop |
+| M4 | **Roles: only Admin and User.** The seeded legacy roles (Legacy Admin/Owner/Editor/Viewer, …) and the role editor go from the UI; one admin role and one member role, with sensible permissions. The permission system underneath stays. See Q6. | API seed roles; desktop roles page |
+| M5 | **Groups:** see Q7. | |
+| M6 | **Report Builder simplified**: a few ready-made reports like the dashboard (month, category, unplanned, unhealthy) for every member; the builder itself is admin-only and trimmed. | desktop reports |
+
+### Notifications
+| # | Change | Notes |
+|---|---|---|
+| N1 | **The bell notifies the household** when someone creates a list or adds an item to one, scans a new receipt, or announces a shopping trip (S4). Not for your own actions. Uses the existing notification model; the list events already exist. | API notifications + desktop bell |
+
+### Wording
+| # | Change | Notes |
+|---|---|---|
+| W1 | **Family language**: the group is the family/household; members, not users, in the everyday UI; business wording removed. | desktop copy |
 
 ## Suggested order
 
-1. Quick fixes: B1, R3, R6, R2.
-2. The rework proper: R4, R5, R7, R8, R10, R1 polish to match the design.
-3. Then 2d (goals) and 2e (overview tiles), which slot into the new dashboard.
+1. **Quick wins:** B1, C1, C2, S1, S3, D2, D3.
+2. **Simplify:** C3, C4, C6, A1–A3, M1, M4, M6, W1.
+3. **New:** F2, S2, S4 + N1, M2, C5, D1 polish to match the design.
+4. **Then 2d** (goals) and **2e** (dashboard tiles), which slot into the new Dashboard.
 
 ## Decisions (answered by the user, 2026-10-20)
 
 - **Q1 — test accounts:** none seeded. The user creates the family-member account in Manage Users.
-- **Q2 — statuses:** keep a minimal **"To check / Done"** (R5).
-- **Q3 — AI:** Google Gemini, Claude, and an LM Studio server on the user's PC (R7).
-- **Q4 — order:** the rework first, then 2d. Not started 2026-10-20; next session.
+- **Q2 — statuses:** a minimal **"To check / Done"** (C6).
+- **Q3 — AI:** Google Gemini and an LM Studio server on the user's PC. Claude dropped (A2).
+- **Q4 — order:** the rework first, then 2d. Not started 2026-10-20.
+
+## Still open
+
+- **Q5 — receipt processing settings.** The note read "receipt processing settings just …" and was
+  cut off. Assumption until answered: they fold into the AI page (A1).
+- **Q6 — what a "User" may do.** Proposal: everything with lists and receipts, including deleting
+  receipts; no Manage menu.
+- **Q7 — groups.** A group is a separate budget: its own receipts, lists, categories in use, members.
+  Upstream also gives every user a personal "My Receipts" group, plus the synthetic "All". Use cases
+  for a family: a separate budget for a holiday house, or a parent's household you also shop for.
+  Proposal: one **Household** group for everyone, created automatically and picked automatically;
+  personal groups no longer created; the group picker and Manage Groups shown only when there is more
+  than one group.
+- **Q8 — what a shopping list is.** Today lists are long-lived per store ("Supermarket"), with items
+  crossed off and re-added. S2 + S3 point to lists per trip ("List 21 Oct") that end once all is
+  crossed off. Proposal: lists per trip; a new list can start from a past list's items, so regulars
+  are one tap away.
+- **Q9 — receipt items.** The AI already reads product lines into the receipt's Products section
+  (2a). Are the editable **Items** still needed, or should the Products list become editable and
+  replace them?
