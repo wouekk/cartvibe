@@ -1,3 +1,5 @@
+@use "../../variables.scss" as variables;
+
 .scroll-snap {
   scroll-margin-top: 75px;
 }
@@ -9,15 +11,6 @@
 .duration-row > * {
   flex: 1 1 0;
   min-width: 0;
-}
-
-// White rounded cards, one per group of settings (the Dashboard's card look).
-.settings-card {
-  margin-bottom: 16px;
-  padding: 20px 24px;
-  border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
 }
 
 .settings-card__head {
@@ -79,4 +72,35 @@
 .settings-updated {
   margin: 0 0 24px;
   font-size: 12px;
+}
+
+// The same card as the AI page: white, rounded, soft shadow, fields stacked tightly.
+.settings-card {
+  display: flex;
+  flex-direction: column;
+  gap: variables.$spacing-xs;
+  margin-bottom: variables.$spacing-md;
+  padding: variables.$spacing-lg;
+  background: #fff;
+  border-radius: variables.$border-radius-lg;
+  box-shadow: variables.$shadow-sm;
+  // The tables inside a card keep their width and scroll inside it.
+  overflow-x: auto;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: variables.$spacing-sm;
+  margin-top: variables.$spacing-sm;
+
+  button {
+    min-height: 44px;
+  }
+}
+
+.actions__hint {
+  font-size: 13px;
+  color: #475569;
 }
