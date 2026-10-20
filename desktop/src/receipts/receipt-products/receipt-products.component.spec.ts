@@ -54,6 +54,22 @@ describe("ReceiptProductsComponent", () => {
     expect(table).toContain("LAIT DEMI-ECR 1L");
   });
 
+  it("marks a product that was not on the shopping list, and only that one", async () => {
+    await render(
+      view({
+        products: [
+          { id: 1, receiptId: 7, name: "CHIPS", displayName: "Crisps", quantity: "", position: 0, planned: false },
+          { id: 2, receiptId: 7, name: "LAIT", displayName: "Milk", quantity: "", position: 1, planned: true },
+          { id: 3, receiptId: 7, name: "PAIN", displayName: "Bread", quantity: "", position: 2 },
+        ],
+      })
+    );
+
+    const marks = fixture.nativeElement.querySelectorAll('[data-testid="receipt-product-unplanned"]');
+    expect(marks.length).toBe(1);
+    expect(marks[0].closest("tr").textContent).toContain("Crisps");
+  });
+
   it("explains a receipt whose AI could not be reached", async () => {
     await render(view({ status: "UNAVAILABLE", lastError: "The AI was not available: timeout" }));
 

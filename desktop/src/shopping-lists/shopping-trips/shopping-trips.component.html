@@ -1,0 +1,91 @@
+@if (canSee()) {
+  <section class="trips" data-testid="shopping-trips" aria-labelledby="shopping-trips-title">
+    <div class="trips__header">
+      <h3 id="shopping-trips-title" class="trips__title">Receipts from this list</h3>
+      <div class="trips__actions">
+        @if (canScan()) {
+          <input
+            #photoInput
+            type="file"
+            accept="image/*,application/pdf"
+            hidden
+            data-testid="shopping-trip-photo-input"
+            (change)="scanSelected($event)"
+          />
+          <button
+            mat-stroked-button
+            type="button"
+            data-testid="shopping-trip-scan"
+            [disabled]="uploading()"
+            (click)="photoInput.click()"
+          >
+            <mat-icon>photo_camera</mat-icon>
+            {{ uploading() ? "Uploading…" : "Scan receipt" }}
+          </button>
+        }
+        @if (canUpdate()) {
+          <button mat-button type="button" data-testid="shopping-trip-attach" (click)="attachExisting()">
+            <mat-icon>attach_file</mat-icon>
+            Attach existing
+          </button>
+        }
+      </div>
+    </div>
+
+    @for (row of rows(); track row.trip.id) {
+      <article class="trip trip--{{ row.status.kind }}" data-testid="shopping-trip">
+        <div class="trip__body">
+          <div class="trip__heading">
+            @if (row.trip.receipt; as receipt) {
+              <a class="trip__name" [routerLink]="['/receipts', receipt.id, 'view']">{{ receipt.name }}</a>
+              <span class="trip__meta">
+                {{ receipt.date | appDate : "MMM d" : "calendar" }} · {{ receipt.amount | customCurrency }}
+              </span>
+            } @else {
+              <span class="trip__name">{{ row.trip.waitingForPhoto ? "Receipt photo" : "Receipt" }}</span>
+              <span class="trip__meta">{{ row.trip.createdAt | appDate : "MMM d" }}</span>
+            }
+          </div>
+          <p class="trip__status" data-testid="shopping-trip-status">
+            @if (row.status.kind === "unplanned" && row.trip.unplannedAmount) {
+              <strong class="trip__amount">{{ row.trip.unplannedAmount | customCurrency }}</strong>
+            }
+            {{ row.status.text }}
+          </p>
+        </div>
+
+        @if (canUpdate()) {
+          <button
+            mat-icon-button
+            type="button"
+            data-testid="shopping-trip-menu"
+            aria-label="Receipt actions"
+            [matMenuTriggerFor]="tripMenu"
+            [matMenuTriggerData]="{ trip: row.trip }"
+          >
+            <mat-icon>more_vert</mat-icon>
+          </button>
+        }
+      </article>
+    } @empty {
+      <p class="trips__empty" data-testid="shopping-trips-empty">
+        After shopping, scan the receipt to see what you bought that was not on the list.
+      </p>
+    }
+
+    <mat-menu #tripMenu="matMenu" xPosition="before">
+      <ng-template matMenuContent let-trip="trip">
+        @if (trip.status === "FAILED") {
+          <button mat-menu-item data-testid="shopping-trip-retry" (click)="retry(trip)">
+            <mat-icon>refresh</mat-icon>
+            <span>Try again</span>
+          </button>
+        }
+        <button mat-menu-item data-testid="shopping-trip-remove" (click)="remove(trip)">
+          <mat-icon>link_off</mat-icon>
+          <span>Remove from list</span>
+        </button>
+      </ng-template>
+    </mat-menu>
+  </section>
+}

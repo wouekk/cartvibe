@@ -1,0 +1,29 @@
+<app-dialog headerText="Attach a Receipt">
+  <p class="hint">Pick the receipt from this shopping trip. Its products are compared with the list.</p>
+
+  @if (receipts(); as receipts) {
+    <div class="choices" data-testid="attach-receipt-choices">
+      @for (receipt of receipts; track receipt.id) {
+        <button
+          type="button"
+          class="choice"
+          data-testid="attach-receipt-choice"
+          (click)="pick(receipt)"
+        >
+          <span class="choice__name">{{ receipt.name }}</span>
+          <span class="choice__meta">
+            {{ receipt.date | appDate : "MMM d" : "calendar" }} · {{ receipt.amount | customCurrency }}
+          </span>
+        </button>
+      } @empty {
+        <p class="hint" data-testid="attach-receipt-none">No receipts to attach. Add the receipt first.</p>
+      }
+    </div>
+  } @else {
+    <p class="hint">Loading receipts…</p>
+  }
+
+  <div class="footer">
+    <app-cancel-button (clicked)="close()"></app-cancel-button>
+  </div>
+</app-dialog>

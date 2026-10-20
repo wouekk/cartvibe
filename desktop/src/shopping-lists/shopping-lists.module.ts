@@ -15,16 +15,20 @@ import { ShoppingListItemComponent } from "./shopping-list-item/shopping-list-it
 import { ShoppingListComponent } from "./shopping-list/shopping-list.component";
 import { ShoppingListsPageComponent } from "./shopping-lists-page/shopping-lists-page.component";
 import { ShoppingListsRoutingModule } from "./shopping-lists-routing.module";
+import { ShoppingTripsComponent } from "./shopping-trips/shopping-trips.component";
+import { AttachReceiptDialogComponent } from "./attach-receipt-dialog/attach-receipt-dialog.component";
 import { FoodTagsComponent } from "../standalone/components/food-tags/food-tags.component";
 
 @NgModule({
   declarations: [
+    AttachReceiptDialogComponent,
     ShoppingListAmountFieldsComponent,
     ShoppingListComponent,
     ShoppingListFormDialogComponent,
     ShoppingListItemComponent,
     ShoppingListItemFormDialogComponent,
     ShoppingListsPageComponent,
+    ShoppingTripsComponent,
   ],
   imports: [
     CommonModule,

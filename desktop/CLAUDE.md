@@ -2853,6 +2853,27 @@ and on a group switch (`GroupState.overviewLink`). The guards' fallback redirect
   `ITEM_UPDATED` events through the existing reducer — no polling.
 - Backend: `api/CLAUDE.md` → "Health and seasonality tags".
 
+## Shopping trips: receipts on a list (fork, Phase 2c)
+
+Under the selected list, `app-shopping-trips` (`src/shopping-lists/shopping-trips/`) shows the
+receipts attached to it, and for each one what was bought that was not on the list ("€4.98 not on
+the list: Crisps, Chocolate"). Backend: `api/CLAUDE.md` → "Shopping trips".
+
+- **Two ways to attach.** "Scan receipt" uploads a photo (a hidden file input, without `capture`, so a
+  phone offers both the camera and the gallery). The server keeps it until the AI can read it.
+  "Attach existing" opens `app-attach-receipt-dialog`, which lists the group's 15 newest receipts.
+- **Gates.** The whole section needs `group.shopping-lists.read` **and** `group.receipts.read`; a trip
+  shows its receipt. Attaching, retrying and removing add `group.shopping-lists.update`; scanning adds
+  `group.receipts.quick-scan` on top.
+- **Trips are not in the store.** The component holds them in a signal and refetches on a
+  `TRIPS_CHANGED` event for its list (an `ApplyShoppingListEvent` the reducer ignores) and on every
+  `LoadShoppingLists`, which the stream service dispatches on a reconnect and when the tab becomes
+  visible. Listening to actions, not adding state, keeps the reducer about lists only.
+- **`describeShoppingTrip`** turns a trip's plain-string status into text. A status this build does not
+  know reads as still waiting.
+- **The receipt's Products table marks `planned === false`** with a "Not on the list" chip. `null`
+  (no list, not compared yet) shows nothing, matching the server's "counts as planned".
+
 ## Navigation sidebar (fork)
 
 `src/layout/sidebar/` is the app's navigation; the header keeps only the sidebar toggle, user
