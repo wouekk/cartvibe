@@ -48,22 +48,90 @@
 
   <section class="overview__tiles" aria-label="The period at a glance">
     <div class="tile" data-testid="overview-tile-spent">
-      <span class="tile__label">Spent</span>
-      @if (spentGoal(); as goal) {
-        <span class="tile__goal" data-testid="overview-spent-goal">Goal: {{ goal.goal | customCurrency }}</span>
-      }
-      <span class="tile__value" [class.tile__value--over]="(spentGoal()?.over ?? 0) > 0">
-        @if (overview(); as overview) {
-          {{ overview.total | customCurrency }}
-        } @else {
-          –
+      <div class="tile__head">
+        <span class="tile__label">Spent</span>
+        @if (canEditGoal() && !editingGoal()) {
+          @if (goal() > 0) {
+            <button
+              type="button"
+              class="tile__goal-action tile__goal-action--icon"
+              data-testid="overview-goal-edit"
+              aria-label="Edit the monthly spending goal"
+              title="Edit the monthly spending goal"
+              (click)="startEditingGoal()"
+            >
+              <mat-icon aria-hidden="true">edit</mat-icon>
+            </button>
+          } @else {
+            <button type="button" class="tile__goal-action" data-testid="overview-set-goal" (click)="startEditingGoal()">
+              + Set goal
+            </button>
+          }
         }
-      </span>
+      </div>
+      <div class="tile__amount">
+        <span class="tile__value" [class.tile__value--over]="(spentGoal()?.over ?? 0) > 0">
+          @if (overview(); as overview) {
+            {{ overview.total | customCurrency }}
+          } @else {
+            –
+          }
+        </span>
+        @if (editingGoal()) {
+          <span class="tile__goal-editor">
+            /
+            <input
+              #goalInput
+              type="text"
+              inputmode="decimal"
+              autocomplete="off"
+              class="tile__goal-input"
+              data-testid="overview-goal-input"
+              aria-label="Monthly spending goal"
+              placeholder="0,00"
+              [value]="goalDraft()"
+              (input)="goalDraft.set($any($event.target).value)"
+              (keydown.enter)="saveGoal()"
+              (keydown.escape)="cancelEditingGoal()"
+              (blur)="saveGoal()"
+            />
+          </span>
+        } @else if (spentGoal(); as goal) {
+          @if (canEditGoal()) {
+            <button
+              type="button"
+              class="tile__goal tile__goal--button"
+              data-testid="overview-spent-goal"
+              title="Edit the monthly spending goal"
+              (click)="startEditingGoal()"
+            >
+              / {{ goal.goal | customCurrency }}
+            </button>
+          } @else {
+            <span class="tile__goal" data-testid="overview-spent-goal">/ {{ goal.goal | customCurrency }}</span>
+          }
+        }
+      </div>
       @if (spentGoal(); as goal) {
+        <div
+          class="tile__progress"
+          role="progressbar"
+          aria-label="Spent against the monthly goal"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          [attr.aria-valuenow]="goalProgress()"
+          data-testid="overview-spent-progress"
+        >
+          <div
+            class="tile__progress-fill"
+            [class.tile__progress-fill--over]="goal.over > 0"
+            [style.width.%]="goal.over > 0 ? 100 : goalProgress()"
+          ></div>
+        </div>
         @if (goal.over > 0) {
           <span class="tile__hint tile__hint--over" data-testid="overview-spent-over">+{{ goal.over | customCurrency }} over goal</span>
         } @else {
-          <span class="tile__hint tile__hint--remaining" data-testid="overview-spent-remaining">{{ goal.remaining | customCurrency }} remaining</span>
+          <span class="tile__hint tile__hint--remaining" data-testid="overview-spent-remaining">{{ goal.remaining | customCurrency }} left</span>
         }
       } @else if (change(); as change) {
         <span class="tile__hint" [class.tile__hint--up]="changeIsIncrease()" [class.tile__hint--down]="!changeIsIncrease()">
@@ -195,7 +263,7 @@
       <div class="card__header">
         <h2 id="overview-trend-title">{{ isDailyTrend() ? "Spending by day" : "Spending by month" }}</h2>
         @if (bars().length > 0) {
-          <span class="muted">Average {{ averageBar() | customCurrency }} {{ isDailyTrend() ? "a day" : "a month" }}</span>
+          <span class="muted" data-testid="overview-trend-summary">Average {{ averageBar() | customCurrency }} {{ isDailyTrend() ? "a day" : "a month" }}@if (goalMode()) { · Goal {{ goal() | customCurrency }}}</span>
         }
       </div>
       @if (bars().length > 0) {
@@ -206,7 +274,7 @@
                 <span class="bars__value">
                   {{ bar.total | customCurrency }}
                   @if (goalMode() && (bar.overAmount ?? 0) > 0) {
-                    <span class="bars__over-value" data-testid="overview-bar-over">(+{{ (bar.overAmount ?? 0) | customCurrency }})</span>
+                    <span class="bars__over-value" data-testid="overview-bar-over">+{{ (bar.overAmount ?? 0) | customCurrency }}</span>
                   }
                 </span>
               }
@@ -222,7 +290,7 @@
               }
             </div>
           }
-          @if (goalMode() && goalFraction() > 0) {
+          @if (goalMode() && showGoalLine()) {
             <div class="bars__goal" data-testid="overview-goal-line" [style.bottom]="goalLineBottom()">
               <span>Goal</span>
             </div>
@@ -249,7 +317,7 @@
             <thead>
               <tr>
                 <th scope="col">Date</th>
-                <th scope="col">Name</th>
+                <th scope="col">Shop</th>
                 <th scope="col">Added by</th>
                 <th scope="col">Status</th>
                 <th scope="col" class="numeric">Amount</th>
@@ -260,10 +328,7 @@
                 <tr>
                   <td class="muted nowrap">{{ receipt.date | appDate : "MMM d" : "calendar" }}</td>
                   <td class="strong">
-                    <a [routerLink]="['/receipts', receipt.id, 'view']">{{ receipt.name }}</a>
-                    @if (receipt.shopName) {
-                      <span class="muted small shop">{{ receipt.shopName }}</span>
-                    }
+                    <a [routerLink]="['/receipts', receipt.id, 'view']">{{ receipt.shopName || receipt.name }}</a>
                   </td>
                   <td>{{ ((receipt.paidByUserId + "") | user)?.displayName ?? "—" }}</td>
                   <td><app-status-chip [status]="receipt.status"></app-status-chip></td>

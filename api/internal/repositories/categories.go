@@ -90,6 +90,10 @@ func (repository CategoryRepository) GetAllPagedCategories(pagedRequestCommand c
 		pagedRequestCommand.OrderBy = quotedAlias
 	}
 
+	// The product count joins receipt_products, which has a name column of its own, so a bare "name"
+	// in the ORDER BY is ambiguous ("SQL logic error: ambiguous column name: name").
+	pagedRequestCommand.OrderBy = qualifyColumn("categories", pagedRequestCommand.OrderBy)
+
 	query := repository.Sort(db, pagedRequestCommand.OrderBy, pagedRequestCommand.SortDirection)
 	query = query.Scopes(repository.Paginate(pagedRequestCommand.Page, pagedRequestCommand.PageSize))
 	selectString := fmt.Sprintf("categories.id, categories.name, categories.description, categories.skipped, categories.aliases, COUNT(DISTINCT receipt_categories.receipt_id) as %s, COUNT(DISTINCT receipt_products.id) as \"NumberOfProducts\"", quotedAlias)

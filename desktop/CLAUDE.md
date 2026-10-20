@@ -3078,3 +3078,25 @@ Dashboard's **Spent** card shows "Goal: X" and "X remaining" / "+X over goal" (r
 calendar month is shown (`isWholeCalendarMonth`), and the month chart scales to the goal, splits a month over
 it into a blue base and a red top with "(+X)" in its label, and draws a dashed Goal line
 (`buildTrendBars(..., goal)`, `goalLineFraction`). With no goal both panels render as before.
+
+## Inline goal, one Shop column, rate typing, filter badge (fork, feedback round 4)
+
+- **Spent card:** the goal is set on the card itself. "+ Set goal" (top right) or, with a goal, a pencil or a
+  click on the muted "/ 1 500 €" turns it into a text input (comma or dot; Enter or leaving saves, Escape
+  cancels, empty or 0 removes). It saves with `updateUserPreferences` and sends the **whole** stored
+  preferences back, because that endpoint replaces the object. Gated on `app.user-preferences.update`.
+  Below the amount a 4px bar fills blue up to the goal, all red once over it ("X left" / "+X over goal").
+  The month chart now scales to the **tallest month**, not the goal, and leaves the goal line out when it
+  would sit above the bars; its header reads "Average X a month · Goal Y".
+- **Receipts table:** no Name and no Added At column. The clickable **Shop** column (`shop_name`) shows the shop,
+  else the receipt's name, and sorts that way on the API (`COALESCE(NULLIF(shop_name,''), name)`). Receipt Date is
+  first and the default sort (`DEFAULT_RECEIPT_ORDER_BY = "date"`); a persisted sort on `created_at` resets itself.
+  The Dashboard receipts panel uses the same Shop/Date.
+- **Exchange rates:** `sanitizeRateInput` runs on every keystroke (comma becomes dot, one dot, digits only, a
+  half-typed "0." is kept); leaving the field or Enter settles it ("1." is 1) and Enter no longer submits the
+  surrounding System Settings form. Saved rates show without padded zeros (`formatRate`); an "unsaved" hint shows
+  until Save rates.
+- **Filter badge:** the receipts Filter button does not count the Receipt Date range (the period picker already
+  shows it); Reset still appears for any filter. The button is a fixed 36px square so the badge stays on it.
+- E2E specs mentioning the Added At column (`column-configuration.spec.ts`) are stale; update with the other
+  Playwright specs.

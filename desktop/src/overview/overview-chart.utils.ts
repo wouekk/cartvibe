@@ -38,7 +38,7 @@ export interface MonthBar {
   /** Percent of the tallest month; never 0 for a non-zero month, so it stays visible. */
   heightPercent: number;
   isSelected: boolean;
-  /** Only with a spending goal: this bar's total as a fraction of the chart scale (the tallest of the months and the goal). */
+  /** Only with a spending goal: this bar's total as a fraction of the chart scale (the tallest month). */
   fraction?: number;
   /** Only with a spending goal: the part of the total up to the goal, and the part above it. */
   baseAmount?: number;
@@ -153,7 +153,9 @@ export function buildTrendBars(
   const totals = trend.map((point) => Number(point.total));
   const max = Math.max(0, ...totals);
   const isDay = unit === "DAY";
-  const scaleMax = Math.max(max, goal > 0 ? goal : 0);
+  // The scale follows the tallest month, never the goal: a small month stays a readable bar next to a
+  // goal far above it. The goal line is only drawn when it fits under the tallest bar.
+  const scaleMax = max;
 
   return trend.map((point, index) => {
     const total = totals[index];
@@ -169,8 +171,8 @@ export function buildTrendBars(
       isSelected: inPeriod,
     };
 
-    // With a monthly spending goal the chart is scaled so the goal fits, and a month above it splits into
-    // the part up to the goal and the part over it. Days have no monthly goal.
+    // With a monthly spending goal a month above it splits into the part up to the goal and the part
+    // over it. Days have no monthly goal.
     if (goal > 0 && !isDay) {
       bar.fraction = scaleMax > 0 ? Math.max(0, total) / scaleMax : 0;
       bar.baseAmount = Math.max(0, Math.min(total, goal));
@@ -199,13 +201,17 @@ export function describeChangeAgainst(total: string, previousTotal: string, prev
   return percent < 0 ? `${-percent}% less than ${previousName}` : `${percent}% more than ${previousName}`;
 }
 
-/** Where the goal line sits on a goal-scaled chart, as a fraction of its height (0 when there is no goal). */
+/**
+ * Where the goal line sits on the chart, as a fraction of its height: 0 when there is no goal or nothing
+ * was spent, above 1 when the goal is higher than the tallest month (the line is then left out).
+ */
 export function goalLineFraction(totals: number[], goal: number): number {
-  if (!(goal > 0)) {
+  const tallest = Math.max(0, ...totals);
+  if (!(goal > 0) || !(tallest > 0)) {
     return 0;
   }
 
-  return goal / Math.max(goal, ...totals.map((total) => Math.max(0, total)));
+  return goal / tallest;
 }
 
 /** Parses a typed spending goal: empty clears it, a comma decimal is fine, above 0 with at most 2 decimals. */
@@ -221,4 +227,14 @@ export function parseGoalInput(text: string): { ok: boolean; value?: string } {
   }
 
   return { ok: true, value: normalized };
+}
+
+/** The inline goal editor's version: a zero (0, 0,00) clears the goal too, like an empty field. */
+export function parseInlineGoalInput(text: string): { ok: boolean; value?: string } {
+  const trimmed = (text ?? "").trim();
+  if (/^0+([.,]0*)?$/.test(trimmed)) {
+    return { ok: true };
+  }
+
+  return parseGoalInput(trimmed);
 }

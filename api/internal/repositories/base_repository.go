@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -58,8 +59,10 @@ func (repository BaseRepository) Sort(db *gorm.DB, orderBy string, sortDirection
 		desc = true
 	}
 
+	// A name that arrives already double-quoted is a select alias ("NumberOfReceipts"); GORM would wrap
+	// it in backticks again and SQLite then looks for a column literally named with the quotes.
 	return db.Order(clause.OrderByColumn{
-		Column:  clause.Column{Name: orderBy},
+		Column:  clause.Column{Name: orderBy, Raw: strings.HasPrefix(orderBy, "\"")},
 		Desc:    desc,
 		Reorder: false,
 	})
@@ -253,4 +256,19 @@ func currentMonthBounds(now time.Time, appLocation *time.Location, columnLocatio
 	end := time.Date(today.Year(), today.Month(), today.Day()+1, 0, 0, 0, 0, columnLocation)
 
 	return start.UTC(), end.UTC()
+}
+
+// qualifyColumn prefixes a plain column name with its table so a sort stays unambiguous once the
+// query joins another table. Quoted aliases and names that already carry a table are left alone.
+func qualifyColumn(table string, column string) string {
+	if column == "" || strings.ContainsAny(column, ".\"") {
+		return column
+	}
+
+	switch column {
+	case "id", "name", "description", "skipped", "aliases", "created_at", "updated_at":
+		return table + "." + column
+	}
+
+	return column
 }

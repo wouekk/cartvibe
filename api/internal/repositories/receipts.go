@@ -747,6 +747,11 @@ func (repository ReceiptRepository) GetPagedReceiptsByGroupId(
 		}
 	} else if repository.isTrustedValue(pagedRequest) {
 		orderBy := pagedRequest.OrderBy
+		if orderBy == "shop_name" {
+			// The table's Shop column shows the shop, or the receipt's name when none was read, so
+			// it sorts the same way. Both operands are hardcoded columns.
+			orderBy = "COALESCE(NULLIF(receipts.shop_name, ''), receipts.name)"
+		}
 		query = query.Order(orderBy + " " + string(pagedRequest.SortDirection))
 	} else {
 		return nil, 0, errors.New("untrusted value " + pagedRequest.OrderBy + " " + string(pagedRequest.SortDirection))

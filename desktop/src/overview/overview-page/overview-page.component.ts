@@ -1,9 +1,9 @@
-import { Component, computed, effect, signal, untracked } from "@angular/core";
+import { Component, computed, effect, ElementRef, signal, untracked, viewChild } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { toObservable, toSignal } from "@angular/core/rxjs-interop";
 import { ActivatedRoute } from "@angular/router";
 import { Store } from "@ngxs/store";
-import { catchError, map, of, switchMap, take } from "rxjs";
+import { catchError, map, of, switchMap, take, tap } from "rxjs";
 import {
   FilterOperation,
   GroupOverview,
@@ -12,9 +12,12 @@ import {
   Receipt,
   ReceiptService,
   SortDirection,
+  UserPreferences,
+  UserPreferencesService,
 } from "../../open-api";
 import { openQuickScanDialog } from "../../receipts/quick-scan-dialog/open-quick-scan-dialog";
-import { AuthState, FeatureConfigState, GroupState } from "../../store";
+import { AuthState, FeatureConfigState, GroupState, SetUserPreferences } from "../../store";
+import { SnackbarService } from "../../services";
 import { ShoppingListState } from "../../store/shopping-list.state";
 import { LoadShoppingLists } from "../../store/shopping-list.state.actions";
 import { SystemSettingsState } from "../../store/system-settings.state";
@@ -28,6 +31,7 @@ import {
   DONUT_RADIUS,
   DonutSegment,
   goalLineFraction,
+  parseInlineGoalInput,
 } from "../overview-chart.utils";
 import {
   OverviewDetailDialogComponent,
@@ -113,6 +117,71 @@ export class OverviewPageComponent {
   /** Where the goal line sits above the chart's baseline. */
   public goalLineBottom(): string {
     return `calc(4px + (100% - 30px) * ${this.goalFraction()})`;
+  }
+
+  /** The goal line is left out when the goal is higher than the tallest month: it would not fit the chart. */
+  public readonly showGoalLine = computed(() => this.goalFraction() > 0 && this.goalFraction() <= 1);
+
+  /** How full the Spent card's thin bar is: what was spent against the goal, at most all of it. */
+  public readonly goalProgress = computed(() => {
+    const goal = this.spentGoal();
+    if (!goal) {
+      return 0;
+    }
+
+    const spent = Number(this.overview()?.total ?? 0);
+    return Math.min(100, Math.max(0, (spent / goal.goal) * 100));
+  });
+
+  // The goal can be set straight from the Spent card (no trip to User Settings).
+  public readonly canEditGoal = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppUserPreferencesUpdate));
+  public readonly editingGoal = signal(false);
+  public readonly goalDraft = signal("");
+  private readonly goalInput = viewChild<ElementRef<HTMLInputElement>>("goalInput");
+  private savingGoal = false;
+
+  public startEditingGoal(): void {
+    const goal = this.goal();
+    this.goalDraft.set(goal > 0 ? String(goal).replace(".", ",") : "");
+    this.editingGoal.set(true);
+  }
+
+  public cancelEditingGoal(): void {
+    this.editingGoal.set(false);
+  }
+
+  /** Saves the typed goal (Enter or leaving the field); empty or 0 removes it. */
+  public saveGoal(): void {
+    if (!this.editingGoal() || this.savingGoal) {
+      return;
+    }
+
+    const parsed = parseInlineGoalInput(this.goalDraft());
+    if (!parsed.ok) {
+      this.snackbarService.error("The monthly spending goal must be an amount above 0, like 1500,00.");
+      return;
+    }
+
+    this.editingGoal.set(false);
+    const current = this.userPreferences();
+    if ((parsed.value ?? "") === (current?.monthlySpendingGoal ?? "") || (parsed.value === undefined && !(this.goal() > 0))) {
+      return;
+    }
+
+    // The update replaces the whole preferences object, so everything else is sent back unchanged.
+    const updated = { ...current, monthlySpendingGoal: parsed.value } as UserPreferences;
+    this.savingGoal = true;
+    this.userPreferencesService
+      .updateUserPreferences(updated)
+      .pipe(
+        take(1),
+        tap((saved) => {
+          this.store.dispatch(new SetUserPreferences(saved));
+          this.snackbarService.success(parsed.value ? "Monthly goal saved" : "Monthly goal removed");
+        }),
+        catchError(() => of(undefined))
+      )
+      .subscribe({ complete: () => (this.savingGoal = false) });
   }
 
   private readonly groups = this.store.selectSignal(GroupState.groups);
@@ -286,8 +355,19 @@ export class OverviewPageComponent {
     private overviewService: OverviewService,
     private receiptService: ReceiptService,
     private store: Store,
-    private matDialog: MatDialog
+    private matDialog: MatDialog,
+    private userPreferencesService: UserPreferencesService,
+    private snackbarService: SnackbarService
   ) {
+    // Imperative side effect: a goal editor that just opened takes the keyboard, with its text selected.
+    effect(() => {
+      const input = this.goalInput()?.nativeElement;
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    });
+
     // Imperative side effect: keep the shopping list store on the group the card describes.
     effect(() => {
       const groupId = this.shoppingListGroupId();

@@ -65,7 +65,7 @@ export const defaultReceiptFilter = buildDefaultReceiptFilter();
  * The ordering the table falls back to: the state default, and what a sort on a
  * column that no longer exists is reset to.
  */
-export const DEFAULT_RECEIPT_ORDER_BY = "created_at";
+export const DEFAULT_RECEIPT_ORDER_BY = "date";
 export const DEFAULT_RECEIPT_SORT_DIRECTION: SortDirection = "desc";
 
 // TODO: look into fixing date equals

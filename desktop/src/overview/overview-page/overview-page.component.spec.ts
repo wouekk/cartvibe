@@ -6,7 +6,14 @@ import { MatDialog } from "@angular/material/dialog";
 import { ActivatedRoute, convertToParamMap, provideRouter } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { BehaviorSubject, of } from "rxjs";
-import { GroupOverview, OverviewService, Permission, ReceiptService, ShoppingListService, UserPreferences } from "../../open-api";
+import {
+  GroupOverview,
+  OverviewService,
+  Permission,
+  ReceiptService,
+  ShoppingListService,
+  UserPreferences,
+} from "../../open-api";
 import { PipesModule } from "../../pipes/pipes.module";
 import { AuthState } from "../../store/auth.state";
 import { FeatureConfigState } from "../../store/feature-config.state";
@@ -180,28 +187,43 @@ describe("OverviewPageComponent", () => {
       await fixture.whenStable();
     };
 
+    const allowEditing = async () => {
+      TestBed.inject(Store).dispatch(
+        new SetPermissions([Permission.AppUserPreferencesUpdate], { 1: [Permission.GroupReceiptsRead] })
+      );
+      await fixture.whenStable();
+    };
+
     it("changes nothing without a goal", async () => {
       await setGoal(undefined);
 
       expect(fixture.nativeElement.querySelector("[data-testid=overview-spent-goal]")).toBeNull();
+      expect(fixture.nativeElement.querySelector("[data-testid=overview-spent-progress]")).toBeNull();
       expect(fixture.nativeElement.querySelector("[data-testid=overview-goal-line]")).toBeNull();
       expect(text("overview-tile-spent")).toContain("8% less than");
     });
 
-    it("shows the goal and what is left on this month's Spent card", async () => {
+    it("shows the goal beside the amount, a thin bar and what is left", async () => {
       await setGoal("100");
 
-      expect(text("overview-spent-goal")).toContain("Goal:");
-      expect(text("overview-spent-remaining")).toContain("remaining");
+      expect(text("overview-spent-goal")).toContain("/");
+      expect(text("overview-spent-goal")).toContain("100");
+      expect(text("overview-spent-remaining")).toContain("left");
       expect(fixture.nativeElement.querySelector("[data-testid=overview-spent-over]")).toBeNull();
       expect(component.spentGoal()).toEqual({ goal: 100, over: 0, remaining: 8 });
+      expect(component.goalProgress()).toBe(92);
+      expect(fixture.nativeElement.querySelector("[data-testid=overview-spent-progress] > div").style.width).toBe("92%");
     });
 
-    it("shows how far over the goal a month went", async () => {
+    it("fills the bar red and says how far over the goal a month went", async () => {
       await setGoal("80");
 
       expect(text("overview-spent-over")).toContain("over goal");
       expect(component.spentGoal()).toEqual({ goal: 80, over: 12, remaining: 0 });
+      expect(component.goalProgress()).toBe(100);
+      const fill = fixture.nativeElement.querySelector("[data-testid=overview-spent-progress] > div");
+      expect(fill.classList).toContain("tile__progress-fill--over");
+      expect(fill.style.width).toBe("100%");
     });
 
     it("leaves the Spent card alone outside a whole month", async () => {
@@ -211,6 +233,7 @@ describe("OverviewPageComponent", () => {
 
       expect(component.spentGoal()).toBeUndefined();
       expect(fixture.nativeElement.querySelector("[data-testid=overview-spent-goal]")).toBeNull();
+      expect(fixture.nativeElement.querySelector("[data-testid=overview-spent-progress]")).toBeNull();
     });
 
     it("draws the goal line and splits the bars that are over it", async () => {
@@ -222,6 +245,111 @@ describe("OverviewPageComponent", () => {
       expect(bars[0].overAmount).toBe(5);
       expect(bars[1].overAmount).toBe(0);
       expect(fixture.nativeElement.querySelectorAll("[data-testid=overview-bar-over]").length).toBe(1);
+      expect(text("overview-trend-summary")).toContain("Goal");
+    });
+
+    it("keeps the scale on the tallest month and leaves out a goal line that would not fit", async () => {
+      await setGoal("1500");
+
+      expect(component.bars().every((bar) => (bar.overAmount ?? 0) === 0)).toBe(true);
+      expect(component.bars()[0].fraction).toBe(1);
+      expect(fixture.nativeElement.querySelector("[data-testid=overview-goal-line]")).toBeNull();
+      expect(text("overview-trend-summary")).toContain("Goal");
+    });
+
+    describe("setting it from the card", () => {
+      let userPreferencesService: { updateUserPreferences: jest.Mock };
+
+      beforeEach(() => {
+        userPreferencesService = {
+          updateUserPreferences: jest.fn((preferences: UserPreferences) => of(preferences)),
+        };
+        (component as any).userPreferencesService = userPreferencesService;
+        (component as any).snackbarService = { error: jest.fn(), success: jest.fn() };
+      });
+
+      const type = async (value: string) => {
+        const input = fixture.nativeElement.querySelector("[data-testid=overview-goal-input]") as HTMLInputElement;
+        input.value = value;
+        input.dispatchEvent(new Event("input"));
+        await fixture.whenStable();
+        return input;
+      };
+
+      const click = async (testId: string) => {
+        (fixture.nativeElement.querySelector(`[data-testid=${testId}]`) as HTMLElement).click();
+        await fixture.whenStable();
+      };
+
+      it("offers nothing to someone who cannot update their preferences", async () => {
+        await setGoal(undefined);
+
+        expect(fixture.nativeElement.querySelector("[data-testid=overview-set-goal]")).toBeNull();
+      });
+
+      it("offers + Set goal when there is none, and saves on Enter without losing other preferences", async () => {
+        await allowEditing();
+        TestBed.inject(Store).dispatch(new SetUserPreferences({ closeChipSelectOnSelect: true } as UserPreferences));
+        await fixture.whenStable();
+        await click("overview-set-goal");
+
+        const input = await type("1500,5");
+        input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+        await fixture.whenStable();
+
+        expect(userPreferencesService.updateUserPreferences).toHaveBeenCalledWith({
+          closeChipSelectOnSelect: true,
+          monthlySpendingGoal: "1500.5",
+        });
+        expect(component.goal()).toBe(1500.5);
+        expect(fixture.nativeElement.querySelector("[data-testid=overview-goal-input]")).toBeNull();
+      });
+
+      it("turns the goal into an input on click and removes it when cleared", async () => {
+        await allowEditing();
+        await setGoal("100");
+        await click("overview-spent-goal");
+
+        const input = await type("0");
+        input.dispatchEvent(new Event("blur"));
+        await fixture.whenStable();
+
+        expect(userPreferencesService.updateUserPreferences).toHaveBeenCalledTimes(1);
+        expect(userPreferencesService.updateUserPreferences.mock.calls[0][0].monthlySpendingGoal).toBeUndefined();
+        expect(component.goal()).toBe(0);
+      });
+
+      it("does not save on Escape, nor an unchanged goal", async () => {
+        await allowEditing();
+        await setGoal("100");
+        await click("overview-goal-edit");
+        const input = await type("250");
+        input.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+        input.dispatchEvent(new Event("blur"));
+        await fixture.whenStable();
+
+        expect(userPreferencesService.updateUserPreferences).not.toHaveBeenCalled();
+
+        await click("overview-goal-edit");
+        const same = fixture.nativeElement.querySelector("[data-testid=overview-goal-input]") as HTMLInputElement;
+        same.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+        await fixture.whenStable();
+
+        expect(userPreferencesService.updateUserPreferences).not.toHaveBeenCalled();
+      });
+
+      it("refuses an amount it cannot read", async () => {
+        await allowEditing();
+        await setGoal(undefined);
+        await click("overview-set-goal");
+
+        const input = await type("abc");
+        input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+        await fixture.whenStable();
+
+        expect(userPreferencesService.updateUserPreferences).not.toHaveBeenCalled();
+        expect(component.editingGoal()).toBe(true);
+      });
     });
   });
 

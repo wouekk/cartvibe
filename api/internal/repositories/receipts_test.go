@@ -1862,3 +1862,41 @@ func TestUpdateReceiptSystemTaskSnapshotsAreLoadedToTheSameDepth(t *testing.T) {
 		}
 	}
 }
+
+// The table's Shop column shows the shop, or the receipt's name when none was read, and sorts the same way.
+func TestGetPagedReceiptsSortsByShopFallingBackToTheName(t *testing.T) {
+	defer teardownReceiptTest()
+	setupReceiptTest()
+
+	for _, receipt := range []models.Receipt{
+		{Name: "Zebra receipt", ShopName: "Aldi", GroupId: 1, PaidByUserID: 1},
+		{Name: "Beta receipt", GroupId: 1, PaidByUserID: 1},
+		{Name: "Receipt 20 Oct", ShopName: "Rewe", GroupId: 1, PaidByUserID: 1},
+	} {
+		receipt := receipt
+		GetDB().Create(&receipt)
+	}
+
+	request := pagedRequestAllReceipts()
+	request.OrderBy = "shop_name"
+	request.SortDirection = commands.ASCENDING
+
+	receipts, _, err := NewReceiptRepository(nil).GetPagedReceiptsByGroupId(1, "1", request, nil, nil, nil, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var shown []string
+	for _, receipt := range receipts {
+		if receipt.ShopName != "" {
+			shown = append(shown, receipt.ShopName)
+		} else {
+			shown = append(shown, receipt.Name)
+		}
+	}
+
+	want := []string{"Aldi", "Beta receipt", "Rewe"}
+	if len(shown) != len(want) || shown[0] != want[0] || shown[1] != want[1] || shown[2] != want[2] {
+		t.Errorf("expected %v, got %v", want, shown)
+	}
+}
