@@ -38,6 +38,17 @@
         [addBlankOption]="true"
       ></app-status-select>
     </app-form-section>
+    <app-form-section headerText="Budget">
+      <app-input
+        class="d-block mb-3"
+        data-testid="monthly-spending-goal"
+        type="text"
+        [label]="goalLabel()"
+        hint="Leave empty for no goal. The Dashboard compares each month with it."
+        [inputFormControl]="form | formGet : 'monthlySpendingGoal'"
+        [readonly]="formConfig.mode | inputReadonly"
+      ></app-input>
+    </app-form-section>
     <app-form-section headerText="Selection preferences">
       <app-checkbox
         class="d-block mb-3"

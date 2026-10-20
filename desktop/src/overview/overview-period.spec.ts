@@ -1,4 +1,4 @@
-import { formatDay, parseDayMonthYear, previousLabel, resolvePeriod } from "./overview-period";
+import { formatDay, isWholeCalendarMonth, parseDayMonthYear, previousLabel, resolvePeriod } from "./overview-period";
 
 describe("resolvePeriod", () => {
   const today = new Date(2026, 9, 20); // Tuesday 20 Oct 2026
@@ -61,5 +61,16 @@ describe("parseDayMonthYear", () => {
     for (const bad of ["", "2026-10-20", "20.10.2026", "31/02/2026", "00/10/2026", "20/13/2026", "20/10/26"]) {
       expect(parseDayMonthYear(bad)).toBeUndefined();
     }
+  });
+});
+
+describe("isWholeCalendarMonth", () => {
+  it("is true only for the first to the last day of one month", () => {
+    expect(isWholeCalendarMonth("2026-10-01", "2026-10-31")).toBe(true);
+    expect(isWholeCalendarMonth("2028-02-01", "2028-02-29")).toBe(true);
+    expect(isWholeCalendarMonth("2026-10-01", "2026-10-30")).toBe(false);
+    expect(isWholeCalendarMonth("2026-10-02", "2026-10-31")).toBe(false);
+    expect(isWholeCalendarMonth("2026-01-01", "2026-12-31")).toBe(false);
+    expect(isWholeCalendarMonth(undefined, "2026-10-31")).toBe(false);
   });
 });

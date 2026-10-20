@@ -49,14 +49,23 @@
   <section class="overview__tiles" aria-label="The period at a glance">
     <div class="tile" data-testid="overview-tile-spent">
       <span class="tile__label">Spent</span>
-      <span class="tile__value">
+      @if (spentGoal(); as goal) {
+        <span class="tile__goal" data-testid="overview-spent-goal">Goal: {{ goal.goal | customCurrency }}</span>
+      }
+      <span class="tile__value" [class.tile__value--over]="(spentGoal()?.over ?? 0) > 0">
         @if (overview(); as overview) {
           {{ overview.total | customCurrency }}
         } @else {
           –
         }
       </span>
-      @if (change(); as change) {
+      @if (spentGoal(); as goal) {
+        @if (goal.over > 0) {
+          <span class="tile__hint tile__hint--over" data-testid="overview-spent-over">+{{ goal.over | customCurrency }} over goal</span>
+        } @else {
+          <span class="tile__hint tile__hint--remaining" data-testid="overview-spent-remaining">{{ goal.remaining | customCurrency }} remaining</span>
+        }
+      } @else if (change(); as change) {
         <span class="tile__hint" [class.tile__hint--up]="changeIsIncrease()" [class.tile__hint--down]="!changeIsIncrease()">
           {{ change }}
         </span>
@@ -194,9 +203,28 @@
           @for (bar of bars(); track bar.key) {
             <div class="bars__column">
               @if (!isDailyTrend()) {
-                <span class="bars__value">{{ bar.total | customCurrency }}</span>
+                <span class="bars__value">
+                  {{ bar.total | customCurrency }}
+                  @if (goalMode() && (bar.overAmount ?? 0) > 0) {
+                    <span class="bars__over-value" data-testid="overview-bar-over">(+{{ bar.overAmount | customCurrency }})</span>
+                  }
+                </span>
               }
-              <div class="bars__bar" [class.bars__bar--selected]="bar.isSelected" [style.height.%]="bar.heightPercent"></div>
+              @if (goalMode()) {
+                <div class="bars__bar bars__bar--stack" [style.height]="goalBarHeight(bar.fraction)">
+                  @if ((bar.overAmount ?? 0) > 0) {
+                    <div class="bars__over" [style.flex-grow]="bar.overAmount"></div>
+                  }
+                  <div class="bars__base" [class.bars__base--selected]="bar.isSelected" [style.flex-grow]="bar.baseAmount"></div>
+                </div>
+              } @else {
+                <div class="bars__bar" [class.bars__bar--selected]="bar.isSelected" [style.height.%]="bar.heightPercent"></div>
+              }
+            </div>
+          }
+          @if (goalMode() && goalFraction() > 0) {
+            <div class="bars__goal" data-testid="overview-goal-line" [style.bottom]="goalLineBottom()">
+              <span>Goal</span>
             </div>
           }
         </div>

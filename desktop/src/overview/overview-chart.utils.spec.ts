@@ -3,6 +3,8 @@ import {
   buildMonthBars,
   buildTrendBars,
   describeChangeAgainst,
+  goalLineFraction,
+  parseGoalInput,
   describeChange,
   formatMonthLabel,
   monthDayRange,
@@ -132,5 +134,54 @@ describe("describeChangeAgainst", () => {
     expect(describeChangeAgainst("150", "100", "2025")).toBe("50% more than 2025");
     expect(describeChangeAgainst("100", "100", "May")).toBe("About the same as May");
     expect(describeChangeAgainst("100", "0", "May")).toBeUndefined();
+  });
+});
+
+describe("buildTrendBars with a spending goal", () => {
+  const trend = [
+    { month: "2026-08", total: "100" },
+    { month: "2026-09", total: "500" },
+    { month: "2026-10", total: "528.44" },
+  ];
+
+  it("scales to the goal and splits a month over it", () => {
+    const bars = buildTrendBars(trend, "MONTH", "2026-10-01", "2026-10-31", 500);
+
+    expect(bars[0]).toMatchObject({ baseAmount: 100, overAmount: 0 });
+    expect(bars[1]).toMatchObject({ baseAmount: 500, overAmount: 0 });
+    expect(bars[2].baseAmount).toBe(500);
+    expect(bars[2].overAmount).toBeCloseTo(28.44, 2);
+    expect(bars[2].fraction).toBe(1);
+    expect(bars[0].fraction).toBeCloseTo(100 / 528.44, 5);
+  });
+
+  it("keeps the goal on the chart even when every month is under it", () => {
+    const bars = buildTrendBars([{ month: "2026-10", total: "250" }], "MONTH", "2026-10-01", "2026-10-31", 500);
+
+    expect(bars[0].fraction).toBe(0.5);
+    expect(bars[0].overAmount).toBe(0);
+  });
+
+  it("changes nothing without a goal, or on a day trend", () => {
+    expect(buildTrendBars(trend, "MONTH", "2026-10-01", "2026-10-31")[2].overAmount).toBeUndefined();
+    expect(buildTrendBars([{ month: "2026-10-01", total: "5" }], "DAY", "2026-10-01", "2026-10-07", 500)[0].fraction).toBeUndefined();
+  });
+});
+
+describe("goalLineFraction", () => {
+  it("is the goal's height on the scale, 0 without a goal", () => {
+    expect(goalLineFraction([100, 250], 500)).toBe(1);
+    expect(goalLineFraction([100, 1000], 500)).toBe(0.5);
+    expect(goalLineFraction([100], 0)).toBe(0);
+  });
+});
+
+describe("parseGoalInput", () => {
+  it("clears on empty, accepts a comma, and refuses the rest", () => {
+    expect(parseGoalInput("  ")).toEqual({ ok: true });
+    expect(parseGoalInput("500,50")).toEqual({ ok: true, value: "500.50" });
+    for (const bad of ["abc", "0", "-5", "1.234", "€5"]) {
+      expect(parseGoalInput(bad).ok).toBe(false);
+    }
   });
 });

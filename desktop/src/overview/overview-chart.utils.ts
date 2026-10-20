@@ -38,6 +38,11 @@ export interface MonthBar {
   /** Percent of the tallest month; never 0 for a non-zero month, so it stays visible. */
   heightPercent: number;
   isSelected: boolean;
+  /** Only with a spending goal: this bar's total as a fraction of the chart scale (the tallest of the months and the goal). */
+  fraction?: number;
+  /** Only with a spending goal: the part of the total up to the goal, and the part above it. */
+  baseAmount?: number;
+  overAmount?: number;
 }
 
 /** "yyyy-MM" for the API. */
@@ -138,10 +143,17 @@ export function previousMonthOf(month: FilterMonth): FilterMonth {
  * The trend chart's bars (Phase 3 D1): months for a period of a month or more, days for a shorter
  * one. A bar is highlighted when it lies inside the period, which for a day trend is all of them.
  */
-export function buildTrendBars(trend: GroupOverviewMonth[], unit: string, from: string, to: string): MonthBar[] {
+export function buildTrendBars(
+  trend: GroupOverviewMonth[],
+  unit: string,
+  from: string,
+  to: string,
+  goal = 0
+): MonthBar[] {
   const totals = trend.map((point) => Number(point.total));
   const max = Math.max(0, ...totals);
   const isDay = unit === "DAY";
+  const scaleMax = Math.max(max, goal > 0 ? goal : 0);
 
   return trend.map((point, index) => {
     const total = totals[index];
@@ -149,13 +161,23 @@ export function buildTrendBars(trend: GroupOverviewMonth[], unit: string, from: 
     const shortName = isDay ? String(Number(point.month.slice(8, 10))) : MONTH_NAMES[monthIndex]?.slice(0, 3) ?? point.month;
     const inPeriod = isDay || (point.month >= from.slice(0, 7) && point.month <= to.slice(0, 7));
 
-    return {
+    const bar: MonthBar = {
       key: point.month,
       shortName,
       total,
       heightPercent: max > 0 && total > 0 ? Math.max(2, Math.round((total / max) * 100)) : 0,
       isSelected: inPeriod,
     };
+
+    // With a monthly spending goal the chart is scaled so the goal fits, and a month above it splits into
+    // the part up to the goal and the part over it. Days have no monthly goal.
+    if (goal > 0 && !isDay) {
+      bar.fraction = scaleMax > 0 ? Math.max(0, total) / scaleMax : 0;
+      bar.baseAmount = Math.max(0, Math.min(total, goal));
+      bar.overAmount = Math.max(0, total - goal);
+    }
+
+    return bar;
   });
 }
 
@@ -175,4 +197,28 @@ export function describeChangeAgainst(total: string, previousTotal: string, prev
     return `About the same as ${previousName}`;
   }
   return percent < 0 ? `${-percent}% less than ${previousName}` : `${percent}% more than ${previousName}`;
+}
+
+/** Where the goal line sits on a goal-scaled chart, as a fraction of its height (0 when there is no goal). */
+export function goalLineFraction(totals: number[], goal: number): number {
+  if (!(goal > 0)) {
+    return 0;
+  }
+
+  return goal / Math.max(goal, ...totals.map((total) => Math.max(0, total)));
+}
+
+/** Parses a typed spending goal: empty clears it, a comma decimal is fine, above 0 with at most 2 decimals. */
+export function parseGoalInput(text: string): { ok: boolean; value?: string } {
+  const trimmed = (text ?? "").trim();
+  if (trimmed.length === 0) {
+    return { ok: true };
+  }
+
+  const normalized = trimmed.replace(",", ".");
+  if (!/^\d{1,9}(\.\d{1,2})?$/.test(normalized) || !(Number(normalized) > 0)) {
+    return { ok: false };
+  }
+
+  return { ok: true, value: normalized };
 }
