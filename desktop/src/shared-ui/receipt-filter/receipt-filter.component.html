@@ -23,13 +23,7 @@
       [basePath]="basePath"
     ></app-filter-field>
 
-    <app-filter-field
-      label="Paid by"
-      fieldName="paidBy"
-      type="users"
-      [parentForm]="parentForm"
-      [basePath]="basePath"
-    ></app-filter-field>
+    <!-- No "Paid by" filter (Phase 3 C4). One saved before still shows as a chip to clear. -->
 
     @if (showGroupFilter) {
       <app-filter-field

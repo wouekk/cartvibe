@@ -56,8 +56,6 @@
 
 <ng-template #itemLineTemplate let-item=item>
   <span class="amount-info">{{ item.amount | customCurrency }}</span>
-  <span class="paid-by-info"> paid by <span
-    class="user-name">{{ (item.paidByUserId | user)?.displayName ?? 'Unknown' }}</span></span>
 </ng-template>
 
 <ng-template #itemLineTemplate2 let-item=item>

@@ -189,21 +189,13 @@
 </app-table-header>
 
 <!--
-  The TOP anchor. Above app-summary-card deliberately: that card is the who-owes-whom
-  settlement for a row SELECTION, so it is transient and belongs next to the table it
-  annotates, while these totals describe the whole filter and are the page's headline.
-  Below the header either way -- the header owns the title and the filter controls.
+  The TOP anchor: these totals describe the whole filter and are the page's headline. Below the
+  header -- the header owns the title and the filter controls. (The who-owes-whom card for a row
+  selection is gone, Phase 3 C4: a family does not split bills.)
 -->
 @if (summaryAtTop()) {
   <ng-container *ngTemplateOutlet="receiptTotals"></ng-container>
 }
-<app-summary-card
-  *ngIf="selectedReceiptIds().length"
-  @fadeInOut
-  headerText="Selected Receipt summary"
-  [receiptIds]="selectedReceiptIds()"
-  [groupId]="selectedGroupId() ?? ''"
-></app-summary-card>
 
 @if (filterChips().length > 0) {
   <mat-chip-set class="receipt-filter-chips" aria-label="Applied filters">
@@ -271,10 +263,6 @@
   <a [routerLink]="['/receipts/' + element.id + '/view']">
     {{ element.name }}
   </a>
-</ng-template>
-
-<ng-template #paidByCell let-element="element">
-  {{ (element.paidByUserId | user)?.displayName }}
 </ng-template>
 
 <ng-template #amountCell let-element="element">
