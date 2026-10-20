@@ -3026,3 +3026,6 @@ back. Not done yet: cards instead of tabs, and starting a new list from a past l
   static Household label and there is no "Manage Groups".
 - **Lists (S2):** a list's menu has "Start a new list from this" (`copyList`): creates "List {date}" and
   adds the items unchecked, in order.
+
+The shopping lists page also has a **Going shopping** button (`announceGoingShopping`) that tells the
+household through the bell; it shows for `group.shopping-lists.update` once a list exists.
