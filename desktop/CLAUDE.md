@@ -3015,3 +3015,14 @@ lines of the application log with an All / Errors / Info filter and Refresh. It 
 the other lists; a "Past lists" row at the bottom shows the latest three (by `updatedAt`) as chips that
 open the list. Crossing off the last item moves the open list into that row; adding an item brings it
 back. Not done yet: cards instead of tabs, and starting a new list from a past list's items.
+
+## Editable Products, one group, lists from lists (fork, Phase 3 batch)
+
+- **Products (C5):** `app-receipt-products` edits in place: a row's pencil turns it into inputs (comma
+  prices accepted, `parseAmountInput`), the bin confirms then removes, and a one-line add row sits under
+  the table. The upstream **Items** section is hidden with `d-none`, not removed: `ItemListComponent` is a
+  `viewChild.required` and keeps the form state, so existing items are saved back unchanged.
+- **One group (M5):** `SidebarComponent.hasSeveralGroups` (real groups > 1). With one, the header shows a
+  static Household label and there is no "Manage Groups".
+- **Lists (S2):** a list's menu has "Start a new list from this" (`copyList`): creates "List {date}" and
+  adds the items unchecked, in order.
