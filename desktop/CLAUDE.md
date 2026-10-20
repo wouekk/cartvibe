@@ -3039,3 +3039,11 @@ every request sends `from`/`to`. Tiles compare with the period before (`describe
 `OverviewDetailDialogComponent` (the products behind a tile, or a category's receipts); "Other",
 "Uncategorized" and "(Restricted)" slices are not openable. The trend draws days under a month, months
 otherwise. The old widget dashboards moved behind admin (`app.users.read`) as "Widget dashboards".
+
+## Feedback round (fork)
+
+Row actions on the receipts table and a check on the receipt view: **Mark as done** (`bulkReceiptStatusUpdate`
+to RESOLVED) and **Read with AI** (`readReceiptProducts`). The Products table reads: product, original,
+category (the AI's food group), health, quantity, amount. The Dashboard has rolling ranges (Last 7 / 30 /
+365 days, ending today) and a DD/MM/YYYY custom range; its category rows open the products of that food
+group. "Manage Groups" is **Manage Households** and stays visible with one group.

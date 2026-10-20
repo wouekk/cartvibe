@@ -4136,3 +4136,14 @@ notified the group. Flaky on CI occasionally: `TestQuickScan_MissingItemStatusFa
 `planned = false`), and `trend` + `trendUnit` ("DAY" under 28 days, else "MONTH", capped at 24 months).
 `months` (six months ending with the period) is kept. `GET /overview/group/{id}/products?kind=UNHEALTHY|
 UNPLANNED&from&to` lists the product lines behind a tile, over receipts the caller can see.
+
+## Dashboard categories by product, one-time household migration (fork, Phase 3 feedback round)
+
+- The overview's `categories` are now **food groups of the receipt's products** ("Dairy", "Sweets & Snacks"):
+  each priced product adds its amount to its group; what the products do not account for, and receipts
+  without products yet, are "Uncategorized" (`addReceiptToFoodGroups`). `GET /overview/group/{id}/products`
+  takes `kind=FOODGROUP&foodGroup=<name>` (empty = Uncategorized) for the tap-through.
+- `adoptHouseholdGroup` (data migration, once): with no group named Household, the first account's
+  "My Receipts" is renamed Household and every other account whose own "My Receipts" holds no receipts
+  joins it as Member. Their empty personal groups are left for an admin to delete.
+- GORM no longer logs "record not found" (`quietGormLogger`): empty sweep queues are normal.
