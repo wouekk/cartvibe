@@ -487,7 +487,8 @@ describe("ReceiptFormComponent", () => {
       expect(value.amount).toEqual("100.00");
       expect(value.date).toEqual(new Date(2023, 7, 5));
       expect(value.paidByUserId).toEqual(7);
-      expect(value.status).toEqual(ReceiptStatus.NeedsAttention);
+      // Shown as "To check" (Phase 3 C6).
+      expect(value.status).toEqual(ReceiptStatus.Open);
       expect(syncSingleDisplay).toHaveBeenCalled();
 
       // Categories/tags matched from the pool by id

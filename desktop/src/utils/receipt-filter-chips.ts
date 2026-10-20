@@ -2,7 +2,7 @@ import {
   RECEIPT_FILTER_FIELDS,
   ReceiptFilterFieldKey,
 } from "../constants/receipt-filter-fields.constant";
-import { RECEIPT_STATUS_OPTIONS } from "../constants/receipt-status-options";
+import { receiptStatusLabel } from "./receipt-status";
 import { Category, Group, ReceiptPagedRequestFilter, Tag, User } from "../open-api";
 import { buildFilterChips, FilterChip } from "./filter-chips";
 
@@ -70,7 +70,7 @@ function resolveOptionName(
     case "paidBy":
       return lookups.users.find((user) => String(user.id) === rawId)?.displayName ?? rawId;
     case "status":
-      return RECEIPT_STATUS_OPTIONS.find((option) => option.value === rawId)?.displayValue ?? rawId;
+      return receiptStatusLabel(rawId);
     default:
       return rawId;
   }

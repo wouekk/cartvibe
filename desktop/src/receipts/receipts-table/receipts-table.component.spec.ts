@@ -473,7 +473,7 @@ describe("ReceiptsTableComponent", () => {
       expect(component.filterChips()).toEqual([
         { key: "name", label: "Name contains whole" },
         { key: "categories", label: "Categories contains Groceries" },
-        { key: "status", label: "Status contains Open" },
+        { key: "status", label: "Status contains To check" },
       ]);
     });
 

@@ -38,6 +38,7 @@ import { StatefulMenuItem } from "../../standalone/components/filtered-stateful-
 import { AuthState, FeatureConfigState, GroupState, UserState } from "../../store";
 import { SystemSettingsState } from "../../store/system-settings.state";
 import { calendarDayToLocalDate, nameForToday, todayInZone, toMidnightUtc } from "../../utils/app-time-zone";
+import { familyReceiptStatus } from "../../utils/receipt-status";
 import { downloadFile } from "../../utils/file";
 import { missingReceiptRequirementsMessage, receiptRequirementsFor } from "../../utils/receipt-requirements";
 import { ItemListComponent } from "../item-list/item-list.component";
@@ -499,7 +500,8 @@ export class ReceiptFormComponent implements OnInit {
         this.originalReceipt?.groupId ?? addTargetGroupId,
         Validators.required,
       ],
-      status: this.originalReceipt?.status ?? ReceiptStatus.Open,
+      // Shown as "To check" or "Done" (Phase 3 C6), so any older status reads as one of the two.
+      status: familyReceiptStatus(this.originalReceipt?.status) || ReceiptStatus.Open,
       customFields: this.formBuilder.array(this.originalReceipt?.customFields?.map((customField) => this.buildCustomOptionFormGroup(customField)) ?? []),
       receiptItems: this.formBuilder.array(
         this.originalReceipt?.receiptItems
@@ -1086,7 +1088,9 @@ export class ReceiptFormComponent implements OnInit {
 
   private patchMagicValue(key: string, magicReceipt: Receipt): void {
     this.form.patchValue({
-      [key]: (magicReceipt as any)[key],
+      [key]: key === "status"
+        ? familyReceiptStatus(magicReceipt.status)
+        : (magicReceipt as any)[key],
     });
   }
 

@@ -3,6 +3,7 @@ import { take, tap } from "rxjs";
 import { ExportFormat, ExportService, ReceiptPagedRequestCommand } from "../open-api/index";
 import { RECEIPT_DATE_FILTER_KEYS } from "../constants/receipt-filter-fields.constant";
 import { toDateWireFilter } from "../utils/date-wire-filter";
+import { toStatusWireFilter } from "../utils/receipt-status";
 import { downloadFile } from "../utils/file";
 
 @Injectable({
@@ -22,7 +23,7 @@ export class ReceiptExportService {
       {
         ...filter,
         // The picked calendar day, not a browser-local instant: see toDateWireFilter.
-        filter: toDateWireFilter(filter.filter, RECEIPT_DATE_FILTER_KEYS),
+        filter: toStatusWireFilter(toDateWireFilter(filter.filter, RECEIPT_DATE_FILTER_KEYS)),
         page: 1,
         pageSize: -1,
       }

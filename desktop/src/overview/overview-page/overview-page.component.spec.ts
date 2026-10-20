@@ -78,7 +78,7 @@ describe("OverviewPageComponent", () => {
 
     expect(overviewService.getGroupOverview).toHaveBeenCalledWith(1, key);
     expect(text("overview-tile-receipts")).toContain("3");
-    expect(text("overview-tile-receipts")).toContain("1 still open");
+    expect(text("overview-tile-receipts")).toContain("1 to check");
     expect(text("overview-tile-spent")).toContain("8% less than");
     expect(text("overview-tile-unhealthy")).toContain("25% of");
   });

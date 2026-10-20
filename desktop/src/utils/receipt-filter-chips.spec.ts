@@ -71,7 +71,7 @@ describe("buildReceiptFilterChips", () => {
       "Paid by contains Dana Kim",
       "Group contains Household",
       "Categories contains Groceries, Dining",
-      "Status contains Open",
+      "Status contains To check",
     ]);
   });
 

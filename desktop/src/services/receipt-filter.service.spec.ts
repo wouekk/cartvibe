@@ -58,7 +58,8 @@ describe("ReceiptFilterService", () => {
       service.getReceiptSummaryForGroup("1", 1).subscribe();
 
       const command = spy.mock.calls[0][1] as any;
-      expect(command.filter.status.value).toEqual(["OPEN"]);
+      // "To check" stands for every status still to check (Phase 3 C6).
+      expect(command.filter.status.value).toEqual(["OPEN", "NEEDS_ATTENTION", "DRAFT"]);
       expect(command.filter.status.operation).toBe(FilterOperation.Equals);
     });
 

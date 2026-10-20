@@ -1,6 +1,10 @@
 import { Component, Input, input } from "@angular/core";
-import { ReceiptStatus } from "../../open-api";
+import { DONE_STATUSES, receiptStatusLabel, TO_CHECK_STATUSES } from "../../utils/receipt-status";
 
+/**
+ * A receipt's status as a family reads it (Phase 3 C6): "To check" in yellow, "Done" in green. A
+ * status this build does not know shows as it came, uncoloured.
+ */
 @Component({
     selector: "app-status-chip",
     templateUrl: "./status-chip.component.html",
@@ -14,5 +18,15 @@ export class StatusChipComponent {
 
   public readonly customStatusColor = input<"red" | "green" | "gray" | "yellow">();
 
-  public receiptStatus = ReceiptStatus;
+  public label(): string {
+    return receiptStatusLabel(this.status);
+  }
+
+  public isToCheck(): boolean {
+    return TO_CHECK_STATUSES.includes(this.status);
+  }
+
+  public isDone(): boolean {
+    return DONE_STATUSES.includes(this.status);
+  }
 }

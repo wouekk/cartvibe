@@ -10,7 +10,7 @@ type GroupOverview struct {
 	Total         decimal.Decimal `json:"total"`
 	PreviousTotal decimal.Decimal `json:"previousTotal"`
 	ReceiptCount  int64           `json:"receiptCount"`
-	// OpenReceiptCount counts the month's receipts still needing action (OPEN or NEEDS_ATTENTION).
+	// OpenReceiptCount counts the month's receipts still to check (OPEN, NEEDS_ATTENTION or DRAFT).
 	OpenReceiptCount int64 `json:"openReceiptCount"`
 	// UnhealthyTotal is what the month's products rated unhealthy cost (Phase 2b tags), whatever the
 	// receipt's category. Products without a price, or not rated yet, do not count.
