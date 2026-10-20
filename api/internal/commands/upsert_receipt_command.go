@@ -14,6 +14,12 @@ import (
 type UpsertReceiptCommand struct {
 	Name            string                          `json:"name"`
 	ShopName        string                          `json:"shopName"`
+	// Currency is what the AI read off the receipt (any spelling: "zł", "£", "CHF"); the server turns it
+	// into a code and converts the amount. It is not stored as such.
+	Currency         string           `json:"currency"`
+	OriginalAmount   *decimal.Decimal `json:"originalAmount"`
+	OriginalCurrency string           `json:"originalCurrency"`
+	ExchangeRate     *decimal.Decimal `json:"exchangeRate"`
 	Amount          decimal.Decimal                 `json:"amount"`
 	Date            time.Time                       `json:"date"`
 	GroupId         uint                            `json:"groupId"`

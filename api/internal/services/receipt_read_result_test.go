@@ -28,7 +28,7 @@ func TestAReadFillsTheShopAndMovesAToCheckReceiptToDone(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	receipt := seedExtractionReceipt(t, false)
 
-	if err := NewReceiptProductExtractionService(nil).applyReadResult(receipt, "Auchan"); err != nil {
+	if err := NewReceiptProductExtractionService(nil).applyReadResult(receipt, "Auchan", currencyContext{}, "", nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -47,7 +47,7 @@ func TestAReadNeverOverwritesAPersonsShopOrReopensADoneReceipt(t *testing.T) {
 	receipt.ShopName = "Rewe"
 	receipt.Status = models.DECLINED
 
-	if err := NewReceiptProductExtractionService(nil).applyReadResult(receipt, "Auchan"); err != nil {
+	if err := NewReceiptProductExtractionService(nil).applyReadResult(receipt, "Auchan", currencyContext{}, "", nil); err != nil {
 		t.Fatal(err)
 	}
 

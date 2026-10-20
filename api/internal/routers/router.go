@@ -168,6 +168,9 @@ func BuildRootRouter() *chi.Mux {
 	overviewRouter := BuildOverviewRouter()
 	rootRouter.Mount("/api/overview", overviewRouter)
 
+	exchangeRateRouter := BuildExchangeRateRouter()
+	rootRouter.Mount("/api/exchangeRate", exchangeRateRouter)
+
 	// Receipt product router (the products the AI read off each receipt)
 	receiptProductRouter := BuildReceiptProductRouter()
 	rootRouter.Mount("/api/receipt-product", receiptProductRouter)
