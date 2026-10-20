@@ -133,13 +133,13 @@ describe("OverviewPageComponent", () => {
   it("waits for a complete custom range before asking", async () => {
     overviewService.getGroupOverview.mockClear();
     component.selectPeriod("CUSTOM");
-    component.customFrom.set("2026-10-01");
+    component.customFrom.set("01/10/2026");
     await fixture.whenStable();
 
     expect(overviewService.getGroupOverview).not.toHaveBeenCalled();
-    expect(text("overview-pick-range")).toContain("Pick a first and a last day");
+    expect(text("overview-pick-range")).toContain("Type a first and a last day");
 
-    component.customTo.set("2026-10-10");
+    component.customTo.set("10/10/2026");
     await fixture.whenStable();
 
     expect(overviewService.getGroupOverview).toHaveBeenLastCalledWith(1, undefined, "2026-10-01", "2026-10-10");
@@ -155,7 +155,7 @@ describe("OverviewPageComponent", () => {
     expect(data).toMatchObject({ kind: "UNPLANNED", groupId: 1, from, to });
   });
 
-  it("opens a category's receipts only for a real category", () => {
+  it("does not open the folded Other slice", () => {
     const open = jest.spyOn(TestBed.inject(MatDialog), "open").mockReturnValue({} as never);
     const segment = { name: "Other", total: 1, share: "1%", color: "", dashArray: "", dashOffset: 0 };
 
@@ -163,6 +163,17 @@ describe("OverviewPageComponent", () => {
     component.openCategory(segment);
 
     expect(open).not.toHaveBeenCalled();
+  });
+
+  it("opens the products of a food group, and Uncategorized as the empty group", () => {
+    const open = jest.spyOn(TestBed.inject(MatDialog), "open").mockReturnValue({} as never);
+    const segment = (name: string) => ({ name, total: 1, share: "1%", color: "", dashArray: "", dashOffset: 0 });
+
+    component.openCategory(segment("Dairy"));
+    component.openCategory(segment("Uncategorized"));
+
+    expect(open.mock.calls[0][1]?.data).toMatchObject({ kind: "FOODGROUP", foodGroup: "Dairy" });
+    expect(open.mock.calls[1][1]?.data).toMatchObject({ kind: "FOODGROUP", foodGroup: "" });
   });
 
   it("hides the shopping card for a user who can read no group's lists", () => {

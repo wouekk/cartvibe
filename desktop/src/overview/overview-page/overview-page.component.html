@@ -45,11 +45,11 @@
       <div class="overview__custom" data-testid="overview-custom-range">
         <label>
           <span>From</span>
-          <input type="date" data-testid="overview-custom-from" [value]="customFrom()" (change)="setCustomDay('from', $event)" />
+          <input type="text" inputmode="numeric" placeholder="DD/MM/YYYY" maxlength="10" data-testid="overview-custom-from" [value]="customFrom()" (input)="setCustomDay('from', $event)" />
         </label>
         <label>
           <span>To</span>
-          <input type="date" data-testid="overview-custom-to" [value]="customTo()" (change)="setCustomDay('to', $event)" />
+          <input type="text" inputmode="numeric" placeholder="DD/MM/YYYY" maxlength="10" data-testid="overview-custom-to" [value]="customTo()" (input)="setCustomDay('to', $event)" />
         </label>
       </div>
     }
@@ -57,7 +57,7 @@
   </div>
 
   @if (!period()) {
-    <p class="empty" data-testid="overview-pick-range">Pick a first and a last day for the custom range.</p>
+    <p class="empty" data-testid="overview-pick-range">Type a first and a last day for the custom range, like 01/10/2026.</p>
   }
 
   <section class="overview__tiles" aria-label="The period at a glance">

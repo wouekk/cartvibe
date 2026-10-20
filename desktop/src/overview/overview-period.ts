@@ -2,7 +2,15 @@
  * The Dashboard's period (Phase 3 D1, decision Q10): a preset or a custom range, resolved to the
  * calendar days the API takes. "Today" is the app time zone's, passed in as a local-midnight Date.
  */
-export type PeriodPreset = "THIS_MONTH" | "LAST_WEEK" | "LAST_MONTH" | "THIS_YEAR" | "LAST_YEAR" | "CUSTOM";
+export type PeriodPreset =
+  | "THIS_MONTH"
+  | "LAST_7_DAYS"
+  | "LAST_30_DAYS"
+  | "LAST_MONTH"
+  | "LAST_365_DAYS"
+  | "THIS_YEAR"
+  | "LAST_YEAR"
+  | "CUSTOM";
 
 export interface PeriodChoice {
   value: PeriodPreset;
@@ -11,9 +19,11 @@ export interface PeriodChoice {
 
 export const PERIOD_CHOICES: PeriodChoice[] = [
   { value: "THIS_MONTH", label: "This month" },
-  { value: "LAST_WEEK", label: "Last week" },
+  { value: "LAST_7_DAYS", label: "Last 7 days" },
+  { value: "LAST_30_DAYS", label: "Last 30 days" },
   { value: "LAST_MONTH", label: "Last month" },
   { value: "THIS_YEAR", label: "This year" },
+  { value: "LAST_365_DAYS", label: "Last 365 days" },
   { value: "LAST_YEAR", label: "Last year" },
   { value: "CUSTOM", label: "Custom" },
 ];
@@ -48,15 +58,6 @@ export function formatDay(day: string): string {
   return `${date.getDate()} ${SHORT_MONTHS[date.getMonth()]} ${date.getFullYear()}`;
 }
 
-/** The monday-to-sunday week before the one containing `today`. */
-function lastWeek(today: Date): [Date, Date] {
-  const sinceMonday = (today.getDay() + 6) % 7;
-  const thisMonday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - sinceMonday);
-  return [
-    new Date(thisMonday.getFullYear(), thisMonday.getMonth(), thisMonday.getDate() - 7),
-    new Date(thisMonday.getFullYear(), thisMonday.getMonth(), thisMonday.getDate() - 1),
-  ];
-}
 
 function monthLabel(year: number, month: number): string {
   return `${MONTH_NAMES[month]} ${year}`;
@@ -89,10 +90,12 @@ export function resolvePeriod(
         label: monthLabel(first.getFullYear(), first.getMonth()),
       };
     }
-    case "LAST_WEEK": {
-      const [from, to] = lastWeek(today);
-      return { from: toDayKey(from), to: toDayKey(to), label: `${formatDay(toDayKey(from))} – ${formatDay(toDayKey(to))}` };
-    }
+    case "LAST_7_DAYS":
+      return rollingPeriod(today, 7);
+    case "LAST_30_DAYS":
+      return rollingPeriod(today, 30);
+    case "LAST_365_DAYS":
+      return rollingPeriod(today, 365);
     case "THIS_YEAR":
       return { from: `${year}-01-01`, to: `${year}-12-31`, label: `${year}` };
     case "LAST_YEAR":
@@ -125,4 +128,32 @@ export function previousLabel(previousFrom: string, previousTo: string): string 
   }
 
   return `${formatDay(previousFrom)} – ${formatDay(previousTo)}`;
+}
+
+/** The last `days` days up to and including today, e.g. 7 gives today and the six days before. */
+function rollingPeriod(today: Date, days: number): ResolvedPeriod {
+  const from = toDayKey(new Date(today.getFullYear(), today.getMonth(), today.getDate() - (days - 1)));
+  const to = toDayKey(today);
+  return { from, to, label: `${formatDay(from)} – ${formatDay(to)}` };
+}
+
+/**
+ * Reads a typed day, DD/MM/YYYY (a single digit day or month is fine), as "yyyy-MM-dd". Undefined for
+ * anything else, including a day that does not exist like 31/02/2026.
+ */
+export function parseDayMonthYear(text: string): string | undefined {
+  const match = /^\s*(\d{1,2})\/(\d{1,2})\/(\d{4})\s*$/.exec(text ?? "");
+  if (!match) {
+    return undefined;
+  }
+
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  const year = Number(match[3]);
+  const date = new Date(year, month - 1, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+    return undefined;
+  }
+
+  return toDayKey(date);
 }
