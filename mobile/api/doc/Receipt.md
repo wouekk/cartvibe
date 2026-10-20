@@ -20,6 +20,7 @@ Name | Type | Description | Notes
 **id** | **int** |  | 
 **imageFiles** | [**BuiltList&lt;FileData&gt;**](FileData.md) | Files associated to receipt | [optional] 
 **name** | **String** | Receipt name | 
+**shopName** | **String** | The shop printed on the receipt (Auchan, Edeka, Rewe), read by the AI or typed by a person. Empty when unknown. | [optional] 
 **paidByUserId** | **int** | User paid foreign key | 
 **receiptItems** | [**BuiltList&lt;Item&gt;**](Item.md) | Items associated to receipt | 
 **resolvedDate** | **String** | Date resolved | [optional] 

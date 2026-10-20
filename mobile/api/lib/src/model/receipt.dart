@@ -31,6 +31,7 @@ part 'receipt.g.dart';
 /// * [id] 
 /// * [imageFiles] - Files associated to receipt
 /// * [name] - Receipt name
+/// * [shopName] - The shop printed on the receipt (Auchan, Edeka, Rewe), read by the AI or typed by a person. Empty when unknown.
 /// * [paidByUserId] - User paid foreign key
 /// * [receiptItems] - Items associated to receipt
 /// * [resolvedDate] - Date resolved
@@ -84,6 +85,10 @@ abstract class Receipt implements Built<Receipt, ReceiptBuilder> {
   /// Receipt name
   @BuiltValueField(wireName: r'name')
   String get name;
+
+  /// The shop printed on the receipt (Auchan, Edeka, Rewe), read by the AI or typed by a person. Empty when unknown.
+  @BuiltValueField(wireName: r'shopName')
+  String? get shopName;
 
   /// User paid foreign key
   @BuiltValueField(wireName: r'paidByUserId')
@@ -203,6 +208,13 @@ class _$ReceiptSerializer implements PrimitiveSerializer<Receipt> {
       object.name,
       specifiedType: const FullType(String),
     );
+    if (object.shopName != null) {
+      yield r'shopName';
+      yield serializers.serialize(
+        object.shopName,
+        specifiedType: const FullType(String),
+      );
+    }
     yield r'paidByUserId';
     yield serializers.serialize(
       object.paidByUserId,
@@ -350,6 +362,13 @@ class _$ReceiptSerializer implements PrimitiveSerializer<Receipt> {
             specifiedType: const FullType(String),
           ) as String;
           result.name = valueDes;
+          break;
+        case r'shopName':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.shopName = valueDes;
           break;
         case r'paidByUserId':
           final valueDes = serializers.deserialize(

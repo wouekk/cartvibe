@@ -74,6 +74,10 @@ export interface PagedDataDataInner {
      */
     name: string;
     /**
+     * The shop printed on the receipt (Auchan, Edeka, Rewe), read by the AI or typed by a person. Empty when unknown.
+     */
+    shopName?: string;
+    /**
      * User paid foreign key
      */
     paidByUserId: number;
