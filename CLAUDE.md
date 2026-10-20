@@ -79,6 +79,7 @@ These are distilled from incidents and reviews; the linked sections explain them
 | Overview landing page + 6-month trend | — | `api/CLAUDE.md` → "Group overview", `desktop/CLAUDE.md` → "Overview page" |
 | Labeled dark sidebar | — | `desktop/CLAUDE.md` → "Navigation sidebar" |
 | Spending insights: receipt products (2a), health/seasonality (2b), receipt ↔ list comparison (2c), goals (2d) | `docs/spending-insights-phase-2.md` | `api/CLAUDE.md` → "Receipt products", "Health and seasonality tags", "Shopping trips" |
+| Family budget rework (Phase 3, planned) | `docs/family-budget-rework.md` | — |
 | CI-built image, NAS compose | — | `AGENTS.md` §2 |
 
 ## Code changes
