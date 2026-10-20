@@ -52,6 +52,12 @@ export class SystemSettingsComponent implements OnInit {
         name: "system-tasks",
         readPermission: Permission.AppSystemTasksRead,
       },
+      {
+        label: "Logs",
+        routerLink: "logs",
+        name: "logs",
+        readPermission: Permission.AppSystemSettingsRead,
+      },
     ];
 
     this.tabs = allTabs

@@ -1,0 +1,59 @@
+@use "../../variables.scss" as variables;
+
+:host {
+  display: block;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: variables.$spacing-sm;
+  justify-content: space-between;
+  margin-bottom: variables.$spacing-sm;
+}
+
+.levels {
+  display: flex;
+  gap: variables.$spacing-xs;
+
+  .active {
+    background: #e2e8f0;
+  }
+}
+
+.muted {
+  color: #475569;
+}
+
+.entries {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.entry {
+  display: grid;
+  grid-template-columns: 150px 56px 1fr;
+  gap: variables.$spacing-sm;
+  padding: 6px 0;
+  border-bottom: 1px solid #e2e8f0;
+
+  &.error .level {
+    color: #b91c1c;
+    font-weight: 600;
+  }
+
+  .message {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 640px) {
+  .entry {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
