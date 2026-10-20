@@ -53,8 +53,7 @@ app-auth-form {
     margin-bottom: variables.$spacing-lg;
 
     .logo {
-      width: 100px;
-      height: auto;
+      max-width: 100%;
       margin-bottom: variables.$spacing-md;
       transition: transform 0.3s ease;
 
@@ -222,13 +221,7 @@ app-auth-form {
     background: linear-gradient(135deg, #f8fafc 0%, var(--accent-soft) 55%, #f8fafc 100%);
 
     .loading-gif {
-      width: 60px;
-      height: 60px;
       margin-bottom: variables.$spacing-lg;
-      border-radius: 50%;
-      padding: variables.$spacing-sm;
-      background: white;
-      box-shadow: 0 4px 12px var(--accent-soft);
     }
 
     .loading-text {
@@ -248,7 +241,7 @@ app-auth-form {
 
     .logo-section {
       .logo {
-        width: 80px;
+        max-width: 100%;
       }
 
       .welcome-text {
@@ -268,7 +261,7 @@ app-auth-form {
       margin-bottom: variables.$spacing-lg;
 
       .logo {
-        width: 70px;
+        max-width: 100%;
         margin-bottom: variables.$spacing-md;
       }
 

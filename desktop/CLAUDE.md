@@ -3164,11 +3164,13 @@ wordmark from the same variables. Skin rules use `!important` where a component'
 - A count badge with nothing or `0` is hidden (`matBadgeHidden` in `app-button`, plus a CSS/JS safeguard in index.html).
 - The Dashboard's empty receipts and shopping-list cards say so and carry the same buttons as the page's top right.
 
-## CartVibe icon (fork)
+## CartVibe identity package (fork)
 
-`app-cartvibe-icon` draws the brand icon from the supplied traced artwork (`MQL4P01.svg`): the traced cart and arrow
-geometry (cart line thickened, arrow filled), with the bars, wheels and square redrawn cleanly at the same positions.
-It is a **fixed purple**, never the accent, with a light and a dark drawing chosen through `:host-context(html.dark)`
-(`--cv-bg-a/-b`, `--cv-cart`, `--cv-arrow`). It sits inside `app-cartvibe-logo` (header, login), which index.html keeps out
-of the page-wide dark filter; `favicon.svg` is the same drawing in the light colors. The login loading image is still
-`assets/branding/loading.gif` (an animated SVG loader from the supplied `gemini-svg` was built and set aside).
+Four supplied SVGs are used **as drawn**, as inline components (so the theme can switch their palette):
+`app-cartvibe-logo` = `gemini-svg.svg` (icon + "CartVibe" wordmark, header and login), `app-cartvibe-icon` =
+`cartvibe-logo.svg` (icon alone; the same file is `favicon.svg`), `app-cartvibe-loader` = `cartvibe-loader-badge.svg`
+(default) and `cartvibe-loader-transparent.svg` (`variant="transparent"`), used on the login loading and "Signing you in"
+screens. Geometry, gradients and colors are untouched; the only adaptation is that light/dark switch on the app's `dark`
+class on `<html>` (`:host-context(html.dark)`), not the OS media query, so a chosen Light or Dark is respected. They are
+fixed brand colors (never the accent) and are kept out of the page-wide dark filter in index.html. Do not redraw them:
+change the supplied artwork and copy it in.

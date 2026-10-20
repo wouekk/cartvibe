@@ -6,6 +6,7 @@ import { ButtonModule } from "../button/button.module";
 import { DirectivesModule } from "../directives/directives.module";
 import { InputModule } from "../input/input.module";
 import { PipesModule } from "../pipes/pipes.module";
+import { CartVibeLoaderComponent } from "../shared-ui/cartvibe-loader/cartvibe-loader.component";
 import { CartVibeLogoComponent } from "../shared-ui/cartvibe-logo/cartvibe-logo.component";
 import { LoginQrComponent } from "../shared-ui/login-qr/login-qr.component";
 import { AuthRoutingModule } from "./auth-routing.module";
@@ -24,6 +25,7 @@ import { AuthForm } from "./sign-up/auth-form.component";
     ReactiveFormsModule,
     NgOptimizedImage,
     MatProgressSpinner,
+    CartVibeLoaderComponent,
     CartVibeLogoComponent,
     LoginQrComponent,
   ],

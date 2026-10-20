@@ -145,21 +145,14 @@
       html.dark canvas,
       html.dark app-sidebar,
       html.dark app-cartvibe-logo,
+      html.dark app-cartvibe-icon,
+      html.dark app-cartvibe-loader,
       html.dark app-image-canvas,
       html.dark .rw-keep-colors {
         filter: invert(1) hue-rotate(180deg);
       }
-      /* The wordmark's "Cart" is never white on a light page, and white on a dark one (the logo is drawn in
-         its real colors in dark mode, see above). */
-      .cv-wordmark-cart {
-        color: #0f172a;
-        transition: color 0.2s ease;
-      }
-      html.dark .cv-wordmark-cart,
-      body.dark .cv-wordmark-cart,
-      [data-theme="dark"] .cv-wordmark-cart {
-        color: #f8fafc;
-      }
+      /* The CartVibe logo, icon and loaders carry their own light and dark palettes (switched by the dark class),
+         so they are drawn in their real colors and never inverted. */
 
       /*
         Visual skin only: colors, translucency, fonts, weights, tracking, border colors, radii, shadows and
