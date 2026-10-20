@@ -4125,3 +4125,14 @@ per message, so ten adds ring once) and `POST /shopping-list/group/{id}/going-sh
 never the actor. Best-effort: failures are logged, never fail the write. Receipt uploads already
 notified the group. Flaky on CI occasionally: `TestQuickScan_MissingItemStatusFailsAndPersistsNothing`
 (passed on re-run; unrelated).
+
+## Dashboard period (fork, Phase 3 D1, API)
+
+`GET /overview/group/{id}` takes `from`/`to` (yyyy-MM-dd, both or neither, at most 5 years; they win over
+`month`). The comparison period is the same number of calendar months right before a whole-month range
+(a month vs the month before, a year vs the year before), otherwise the same number of days. New fields
+(all optional on the contract): `from`, `to`, `previousFrom/To`, `previousReceiptCount`,
+`previousUnhealthyTotal`, `unplannedTotal` / `previousUnplannedTotal` (priced products with
+`planned = false`), and `trend` + `trendUnit` ("DAY" under 28 days, else "MONTH", capped at 24 months).
+`months` (six months ending with the period) is kept. `GET /overview/group/{id}/products?kind=UNHEALTHY|
+UNPLANNED&from&to` lists the product lines behind a tile, over receipts the caller can see.
