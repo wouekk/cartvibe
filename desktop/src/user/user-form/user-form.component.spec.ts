@@ -548,7 +548,8 @@ describe("UserFormComponent", () => {
       const rows = freshComponent.grantRows();
       expect(rows.length).toBe(1);
       expect(rows[0].groupName).toBe("Agency");
-      expect(rows[0].roleName).toBe("Legacy Owner");
+      // The family roles read as Admin and User (Phase 3 M4).
+      expect(rows[0].roleName).toBe("Admin");
       expect(rows[0].current.categoryIds).toEqual([5]);
     });
 

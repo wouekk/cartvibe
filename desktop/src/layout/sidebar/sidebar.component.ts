@@ -204,9 +204,8 @@ export class SidebarComponent {
     if (has(Permission.AppUsersRead)) {
       items.push({ label: "Manage Users", icon: "person", link: ["/users"] });
     }
-    if (has(Permission.AppRolesRead)) {
-      items.push({ label: "Manage Roles", icon: "admin_panel_settings", link: ["/roles"] });
-    }
+    // No "Manage Roles" (Phase 3 M4): a household has Admin and User, picked on the user and member
+    // forms. The roles page stays at /roles.
     if (has(Permission.AppReceiptProcessingSettingsUpdate)) {
       items.push({ label: "AI", icon: "smart_toy", link: ["/ai"] });
     }

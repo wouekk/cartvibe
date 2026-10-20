@@ -29,7 +29,7 @@ func findRole(roles []structs.RoleView, name string) (structs.RoleView, bool) {
 	return structs.RoleView{}, false
 }
 
-func TestSeedSystemRolesCreatesFiveRoles(t *testing.T) {
+func TestSeedSystemRolesCreatesSevenRoles(t *testing.T) {
 	defer TruncateTestDb()
 
 	if err := SeedSystemRoles(); err != nil {
@@ -44,12 +44,12 @@ func TestSeedSystemRolesCreatesFiveRoles(t *testing.T) {
 		return
 	}
 
-	if len(roles) != 5 {
-		utils.PrintTestError(t, len(roles), 5)
+	if len(roles) != 7 {
+		utils.PrintTestError(t, len(roles), 7)
 		return
 	}
 
-	expectedNames := []string{"Legacy Admin", "Legacy User", "Legacy Viewer", "Legacy Editor", "Legacy Owner"}
+	expectedNames := []string{"Legacy Admin", "Legacy User", "Legacy Viewer", "Legacy Editor", "Legacy Owner", "User", "Member"}
 	for _, name := range expectedNames {
 		role, ok := findRole(roles, name)
 		if !ok {
@@ -81,8 +81,8 @@ func TestSeedSystemRolesIsIdempotent(t *testing.T) {
 		return
 	}
 
-	if len(roles) != 5 {
-		utils.PrintTestError(t, len(roles), 5)
+	if len(roles) != 7 {
+		utils.PrintTestError(t, len(roles), 7)
 	}
 }
 
@@ -195,8 +195,8 @@ func TestSeedSystemRolesReconcilesExistingRolePermissions(t *testing.T) {
 		return
 	}
 
-	if len(roles) != 5 {
-		utils.PrintTestError(t, len(roles), 5)
+	if len(roles) != 7 {
+		utils.PrintTestError(t, len(roles), 7)
 	}
 
 	role, ok := findRole(roles, "Legacy Admin")
@@ -568,5 +568,58 @@ func TestEnsureDefaultRolesErrorsWhenLegacyRoleMissing(t *testing.T) {
 	// every account created afterward).
 	if err := EnsureDefaultRoles(); err == nil {
 		utils.PrintTestError(t, "no error", "error: legacy role not found")
+	}
+}
+
+// Phase 3 M4: the family roles carry their sets, and a User manages the shared catalogs but never
+// users, roles, system settings or the AI.
+func TestSeedSystemRolesFamilyRoles(t *testing.T) {
+	defer TruncateTestDb()
+
+	if err := SeedSystemRoles(); err != nil {
+		utils.PrintTestError(t, err, nil)
+		return
+	}
+
+	roles, err := NewRoleRepository(nil).GetAllRoles()
+	if err != nil {
+		utils.PrintTestError(t, err, nil)
+		return
+	}
+
+	user, ok := findRole(roles, FamilyUserRoleName)
+	if !ok || user.Scope != permissions.ScopeApp || !user.IsSystem {
+		utils.PrintTestError(t, user, "a system app role named User")
+		return
+	}
+	if !equalKeySet(user.Permissions, permissions.FamilyUserAppKeys()) {
+		utils.PrintTestError(t, user.Permissions, permissions.FamilyUserAppKeys())
+	}
+	for _, adminOnly := range []string{
+		permissions.AppUsersRead,
+		permissions.AppRolesRead,
+		permissions.AppSystemSettingsRead,
+		permissions.AppReceiptProcessingSettingsUpdate,
+		permissions.AppGroupsCreate,
+	} {
+		if slices.Contains(user.Permissions, adminOnly) {
+			utils.PrintTestError(t, adminOnly, "not granted to a family User")
+		}
+	}
+
+	member, ok := findRole(roles, FamilyMemberRoleName)
+	if !ok || member.Scope != permissions.ScopeGroup || !member.IsSystem {
+		utils.PrintTestError(t, member, "a system group role named Member")
+		return
+	}
+	for _, granted := range []string{permissions.GroupReceiptsDelete, permissions.GroupShoppingListsCreate, permissions.GroupReportsRead} {
+		if !slices.Contains(member.Permissions, granted) {
+			utils.PrintTestError(t, granted, "granted to a family Member")
+		}
+	}
+	for _, adminOnly := range []string{permissions.GroupUpdate, permissions.GroupDelete, permissions.GroupMembersCreate} {
+		if slices.Contains(member.Permissions, adminOnly) {
+			utils.PrintTestError(t, adminOnly, "not granted to a family Member")
+		}
 	}
 }

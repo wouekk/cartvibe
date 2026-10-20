@@ -9,10 +9,10 @@ import (
 	"gorm.io/gorm"
 )
 
-// SeedSystemRoles ensures the five immutable, legacy-equivalent system roles
-// exist and carry their full permission sets. The roles reproduce the legacy
+// SeedSystemRoles ensures the immutable system roles exist and carry their full
+// permission sets: the five legacy-equivalent roles, which reproduce the legacy
 // UserRole/GroupRole capabilities exactly so that upgrading installs see no
-// behavior change.
+// behavior change, and the two family roles (Phase 3 M4).
 //
 // It is idempotent and self-reconciling: keyed on the role Name (a uniqueIndex
 // on both AppRole and GroupRoleDefinition), a missing role is created and an
@@ -32,6 +32,7 @@ func SeedSystemRoles() error {
 	}{
 		{LegacyAdminRoleName, "Legacy administrator equivalent: full application access.", permissions.LegacyAppAdminKeys()},
 		{LegacyUserRoleName, "Legacy standard user equivalent.", permissions.LegacyAppUserKeys()},
+		{FamilyUserRoleName, "Household member: lists, receipts, categories, tags, custom fields and reports.", permissions.FamilyUserAppKeys()},
 	}
 	for _, role := range appRoles {
 		if err := seedAppRole(db, role.name, role.description, role.permissions); err != nil {
@@ -47,6 +48,7 @@ func SeedSystemRoles() error {
 		{LegacyViewerRoleName, "Legacy group viewer equivalent.", permissions.LegacyGroupViewerKeys()},
 		{LegacyEditorRoleName, "Legacy group editor equivalent.", permissions.LegacyGroupEditorKeys()},
 		{LegacyOwnerRoleName, "Legacy group owner equivalent: full group access.", permissions.LegacyGroupOwnerKeys()},
+		{FamilyMemberRoleName, "Household member: everything with receipts and shopping lists, but not the group's settings or members.", permissions.FamilyMemberGroupKeys()},
 	}
 	for _, role := range groupRoles {
 		if err := seedGroupRole(db, role.name, role.description, role.permissions); err != nil {
