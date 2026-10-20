@@ -11,6 +11,7 @@ import {
   ReceiptService,
   SortDirection,
 } from "../../open-api";
+import { ButtonModule } from "../../button";
 import { PipesModule } from "../../pipes/pipes.module";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 
@@ -40,7 +41,7 @@ const RECEIPT_LIMIT = 100;
   templateUrl: "./overview-detail-dialog.component.html",
   styleUrls: ["./overview-detail-dialog.component.scss"],
   standalone: true,
-  imports: [CommonModule, PipesModule, RouterLink, SharedUiModule],
+  imports: [ButtonModule, CommonModule, PipesModule, RouterLink, SharedUiModule],
   // customCurrency delegates to CurrencyPipe, which PipesModule does not provide.
   providers: [CurrencyPipe],
 })

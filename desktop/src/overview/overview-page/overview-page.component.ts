@@ -151,7 +151,7 @@ export class OverviewPageComponent {
 
   public readonly bars = computed(() => {
     const overview = this.overview();
-    return overview ? buildTrendBars(overview.trend ?? [], overview.trendUnit ?? "MONTH", overview.from, overview.to) : [];
+    return overview ? buildTrendBars(overview.trend ?? [], overview.trendUnit ?? "MONTH", overview.from ?? "", overview.to ?? "") : [];
   });
 
   public readonly isDailyTrend = computed(() => this.overview()?.trendUnit === "DAY");
@@ -164,7 +164,7 @@ export class OverviewPageComponent {
   /** What the previous* figures are compared with: "September 2026", "2025", "5 Oct 2026 – 11 Oct 2026". */
   public readonly previousName = computed(() => {
     const overview = this.overview();
-    return overview ? previousLabel(overview.previousFrom, overview.previousTo) : "";
+    return overview ? previousLabel(overview.previousFrom ?? "", overview.previousTo ?? "") : "";
   });
 
   public readonly change = computed(() => {
