@@ -2,7 +2,8 @@
 
 Status: **approved** (2026-10-20), from the user's two rounds of feedback after testing
 on the NAS. Decisions are at the end. Nothing here is built
-yet; it comes **before** 2d.
+yet. It also absorbs the rest of Phase 2: **2d (monthly goals) and 2e (dashboard tiles) are part of
+this plan** (G1, D4), since both land on the Dashboard this plan rebuilds.
 
 ## Why
 
@@ -81,6 +82,12 @@ refresh (`AGENTS.md` §2). Re-tested on the current image: the landing page and 
 | M5 | **One Household group** (decision Q7): everyone in it, created and picked automatically; no personal "My Receipts" groups for new users; the group picker and Manage Groups appear only if a second group ever exists. Existing installs keep their groups. | API user/group creation; desktop sidebar |
 | M6 | **Report Builder simplified**: a few ready-made reports like the dashboard (month, category, unplanned, unhealthy) for every member; the builder itself is admin-only and trimmed. | desktop reports |
 
+### Goals and insights (the former 2d and 2e)
+| # | Change | Notes |
+|---|---|---|
+| G1 | **Monthly spending goals** (former 2d, design in `docs/spending-insights-phase-2.md`): optional, overall and/or per category, a monthly amount each. Spending past a goal is overspending (type 2). A **Goals** screen to set them; **a User may set goals** too (budgeting is the point), unless the user decides otherwise. Model `SpendingGoal` (`groupId`, `categoryId` null = whole month, `monthlyAmount`, decimal); totals folded in Go. | API model/endpoints + desktop page |
+| D4 | **The remaining dashboard tiles** (former 2e): unplanned spend this month (from 2c), unhealthy share (D2), goal progress bars (G1), and a short AI summary of the month, generated at most once a day and cached. | API overview + desktop |
+
 ### Notifications
 | # | Change | Notes |
 |---|---|---|
@@ -96,14 +103,18 @@ refresh (`AGENTS.md` §2). Re-tested on the current image: the landing page and 
 1. **Quick wins:** B1, C1, C2, S1, S3, D2, D3.
 2. **Simplify:** C3, C4, C6, A1–A3, M1, M4, M6, W1.
 3. **New:** F2, S2, S4 + N1, M2, C5, D1 polish to match the design.
-4. **Then 2d** (goals) and **2e** (dashboard tiles), which slot into the new Dashboard.
+4. **Goals and insights:** G1, then D4.
+
+Ship each step as its own `feature/` branch and merge it when CI is green, so every step can be
+tried on the NAS before the next one starts.
 
 ## Decisions (answered by the user, 2026-10-20)
 
 - **Q1 — test accounts:** none seeded. The user creates the family-member account in Manage Users.
 - **Q2 — statuses:** a minimal **"To check / Done"** (C6).
 - **Q3 — AI:** Google Gemini and an LM Studio server on the user's PC. Claude dropped (A2).
-- **Q4 — order:** the rework first, then 2d. Not started 2026-10-20.
+- **Q4 — order:** the rework first, then goals and insights, all within Phase 3 (2d/2e merged in).
+  Not started 2026-10-20.
 - **Q5 — receipt processing settings:** folded into the AI page (A1).
 - **Q7 — groups:** one Household group (M5).
 - **Q8 — shopping lists:** one list per trip, several can be active at once, finished ones go to
