@@ -100,7 +100,7 @@ export class ExchangeRatesComponent implements OnInit {
         this.error.set(`The rate for ${row.code} must be a number above 0, like 1,04.`);
         return;
       }
-      rates.push({ code: row.code, rate: parsed.value ?? null });
+      rates.push({ code: row.code, rate: parsed.value });
     }
 
     this.error.set("");
