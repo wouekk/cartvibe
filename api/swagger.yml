@@ -4945,7 +4945,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ExchangeRates"
+                $ref: "#/components/schemas/CurrencyRateTable"
         403:
           $ref: "#/components/responses/Forbidden"
         500:
@@ -4967,14 +4967,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ExchangeRates"
+              $ref: "#/components/schemas/CurrencyRateTable"
       responses:
         200:
           description: The saved rate table
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ExchangeRates"
+                $ref: "#/components/schemas/CurrencyRateTable"
         400:
           $ref: "#/components/responses/BadRequest"
         403:
@@ -6602,7 +6602,7 @@ components:
     NotificationType:
       type: string
       x-go-package: receipt-wrangler/api/internal/models
-    ExchangeRates:
+    CurrencyRateTable:
       type: object
       description: >-
         The household's rate table. A rate is how many units of the main currency one unit of the
@@ -6616,8 +6616,8 @@ components:
         rates:
           type: array
           items:
-            $ref: "#/components/schemas/ExchangeRate"
-    ExchangeRate:
+            $ref: "#/components/schemas/CurrencyRate"
+    CurrencyRate:
       type: object
       required:
         - code
