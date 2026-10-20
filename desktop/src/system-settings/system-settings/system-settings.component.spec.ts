@@ -48,7 +48,7 @@ describe("SystemSettingsComponent", () => {
     expect(component).toBeTruthy();
   });
 
-  it("only shows tabs the user can read", () => {
+  it("only shows tabs the user can read, and never Prompts (Phase 3 M1)", () => {
     store.dispatch(
       new SetPermissions(
         [Permission.AppPromptsRead, Permission.AppSystemTasksRead],
@@ -58,13 +58,10 @@ describe("SystemSettingsComponent", () => {
 
     fixture.detectChanges();
 
-    expect(component.tabs.map((tab) => tab.name)).toEqual([
-      "prompts",
-      "system-tasks",
-    ]);
+    expect(component.tabs.map((tab) => tab.name)).toEqual(["system-tasks"]);
   });
 
-  it("shows all tabs when the user can read everything", () => {
+  it("shows the remaining tabs when the user can read everything", () => {
     store.dispatch(
       new SetPermissions(
         [
@@ -80,6 +77,6 @@ describe("SystemSettingsComponent", () => {
 
     fixture.detectChanges();
 
-    expect(component.tabs).toHaveLength(5);
+    expect(component.tabs.map((tab) => tab.name)).toEqual(["settings", "system-emails", "system-tasks"]);
   });
 });

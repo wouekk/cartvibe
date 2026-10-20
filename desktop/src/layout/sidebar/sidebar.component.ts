@@ -207,6 +207,9 @@ export class SidebarComponent {
     if (has(Permission.AppRolesRead)) {
       items.push({ label: "Manage Roles", icon: "admin_panel_settings", link: ["/roles"] });
     }
+    if (has(Permission.AppReceiptProcessingSettingsUpdate)) {
+      items.push({ label: "AI", icon: "smart_toy", link: ["/ai"] });
+    }
     if (this.canViewSystemSettings()) {
       items.push({ label: "System Settings", icon: "settings", link: ["/system-settings"] });
     }

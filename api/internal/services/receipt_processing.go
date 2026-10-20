@@ -458,20 +458,8 @@ func (service ReceiptProcessingService) buildPrompt(
 		StartedAt:            time.Now(),
 	}
 
-	promptRepository := repositories.NewPromptRepository(service.TX)
-
-	stringPromptId := utils.UintToString(receiptProcessingSettings.PromptId)
-
-	prompt, err := promptRepository.GetPromptById(stringPromptId)
-	if err != nil {
-		systemTaskCommand.Status = models.SYSTEM_TASK_FAILED
-		systemTaskCommand.ResultDescription = err.Error()
-		endedAt := time.Now()
-		systemTaskCommand.EndedAt = &endedAt
-
-		return "", systemTaskCommand, err
-	}
-
+	// Phase 3 A3: the built-in prompt, whatever prompt the settings name. The group's categories and
+	// tags still shape it through the template variables below.
 	templateVariableMap, err := service.buildTemplateVariableMap(ocrText)
 	if err != nil {
 		systemTaskCommand.Status = models.SYSTEM_TASK_FAILED
@@ -483,7 +471,7 @@ func (service ReceiptProcessingService) buildPrompt(
 	}
 
 	regex := utils.GetTriggerRegex()
-	realPrompt := regex.ReplaceAllStringFunc(prompt.Prompt, func(variable string) string {
+	realPrompt := regex.ReplaceAllStringFunc(DefaultReceiptPrompt, func(variable string) string {
 		templateVariable := structs.PromptTemplateVariable(variable)
 		return templateVariableMap[templateVariable]
 	})

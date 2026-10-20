@@ -35,7 +35,8 @@ describe("systemSettingsLandingGuard", () => {
       )
     );
 
-    expect(run().toString()).toBe("/system-settings/prompts");
+    // Prompts is no longer a tab (Phase 3 M1).
+    expect(run().toString()).toBe("/system-settings/system-tasks");
   });
 
   it("lands on System Settings for a user who can read every tab", () => {
@@ -61,7 +62,7 @@ describe("systemSettingsLandingGuard", () => {
     expect(run().toString()).toBe("/system-settings/system-tasks");
   });
 
-  it("prefers an earlier-rendered tab over system-emails", () => {
+  it("never lands on the retired Prompts tab", () => {
     store.dispatch(
       new SetPermissions(
         [Permission.AppSystemEmailsRead, Permission.AppPromptsRead],
@@ -69,7 +70,7 @@ describe("systemSettingsLandingGuard", () => {
       )
     );
 
-    expect(run().toString()).toBe("/system-settings/prompts");
+    expect(run().toString()).toBe("/system-settings/system-emails");
   });
 
   it("redirects to the dashboard when no tab is readable", () => {

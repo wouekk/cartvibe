@@ -40,7 +40,8 @@ interface QueueData extends FormOption {
   standalone: false
 })
 export class SystemSettingsFormComponent extends BaseFormComponent implements OnInit, AfterViewInit {
-  public readonly fallbackReceiptProcessingSettings = viewChild.required<AutocomleteComponent>("fallbackReceiptProcessingSettings");
+  // Optional: the processing pickers are no longer rendered (Phase 3 M1).
+  public readonly fallbackReceiptProcessingSettings = viewChild<AutocomleteComponent>("fallbackReceiptProcessingSettings");
 
   public readonly alert = viewChild.required("alert", { read: ElementRef });
 

@@ -32,18 +32,8 @@ export class SystemSettingsComponent implements OnInit {
         name: "settings",
         readPermission: Permission.AppSystemSettingsRead,
       },
-      {
-        label: "Receipt Processing Settings",
-        routerLink: "receipt-processing-settings",
-        name: "receipt-processing-settings",
-        readPermission: Permission.AppReceiptProcessingSettingsRead,
-      },
-      {
-        label: "Prompts",
-        routerLink: "prompts",
-        name: "prompts",
-        readPermission: Permission.AppPromptsRead,
-      },
+      // No "Receipt Processing Settings" or "Prompts" tab (Phase 3 M1, A3): the AI page under Manage
+      // replaces them and the prompt is built in. Their routes stay, reachable by URL.
       {
         label: "System Emails",
         routerLink: "system-emails",

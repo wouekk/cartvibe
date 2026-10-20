@@ -2,7 +2,6 @@ package services
 
 import (
 	"errors"
-	"fmt"
 	"gorm.io/gorm"
 	"receipt-wrangler/api/internal/commands"
 	"receipt-wrangler/api/internal/constants"
@@ -22,12 +21,10 @@ func NewPromptService(tx *gorm.DB) PromptService {
 	return service
 }
 
-func (service PromptService) CreateDefaultPrompt() (models.Prompt, error) {
-	db := service.GetDB()
-	var defaultPromptCount int64
-	db.Model(models.Prompt{}).Where("name = ?", constants.DefaultPromptName).Count(&defaultPromptCount)
-
-	defaultPrompt := fmt.Sprintf(`
+// DefaultReceiptPrompt is the prompt every receipt read uses (Phase 3 A3: prompts are hardcoded and
+// only shaped by the group's categories and tags through @categories and @tags). Stored Prompt rows
+// are kept, and a processing setting still names one, but buildPrompt no longer reads it.
+const DefaultReceiptPrompt = `
 Find the receipt's name, total cost, and date. Format the found data as:
 {
 	"name": store name,
@@ -60,7 +57,12 @@ Follow the same process as described for categories for tags.
 Tags to chose from: @tags
 
 Receipt text: @ocrText
-`)
+`
+
+func (service PromptService) CreateDefaultPrompt() (models.Prompt, error) {
+	db := service.GetDB()
+	var defaultPromptCount int64
+	db.Model(models.Prompt{}).Where("name = ?", constants.DefaultPromptName).Count(&defaultPromptCount)
 
 	if defaultPromptCount > 0 {
 		return models.Prompt{}, errors.New("default prompt already exists")
@@ -70,8 +72,23 @@ Receipt text: @ocrText
 	command := commands.UpsertPromptCommand{
 		Name:        constants.DefaultPromptName,
 		Description: "Default prompt used for previous versions of Receipt Wrangler.",
-		Prompt:      defaultPrompt,
+		Prompt:      DefaultReceiptPrompt,
 	}
 
 	return promptRepository.CreatePrompt(command)
+}
+
+// EnsureDefaultPrompt returns the stored default prompt, creating it on first use. A processing
+// setting still has to point at a prompt row (a foreign key), though buildPrompt no longer reads it.
+func (service PromptService) EnsureDefaultPrompt() (models.Prompt, error) {
+	var prompt models.Prompt
+	err := service.GetDB().Model(models.Prompt{}).Where("name = ?", constants.DefaultPromptName).Limit(1).Find(&prompt).Error
+	if err != nil {
+		return models.Prompt{}, err
+	}
+	if prompt.ID > 0 {
+		return prompt, nil
+	}
+
+	return service.CreateDefaultPrompt()
 }

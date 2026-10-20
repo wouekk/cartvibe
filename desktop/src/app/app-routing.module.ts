@@ -95,6 +95,16 @@ const routes: Routes = [
         },
       },
       {
+        // The admin's AI page (Phase 3 A1): provider, model, key, test connection.
+        path: "ai",
+        loadComponent: () =>
+          import("../ai-settings/ai-settings-page/ai-settings-page.component").then((m) => m.AiSettingsPageComponent),
+        canActivate: [AuthGuard, appPermissionGuard],
+        data: {
+          appPermissions: [Permission.AppReceiptProcessingSettingsUpdate],
+        },
+      },
+      {
         path: "system-settings",
         loadChildren: () =>
           import("../system-settings/system-settings.module").then((m) => m.SystemSettingsModule),

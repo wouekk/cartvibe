@@ -175,6 +175,23 @@ func TestShouldTestValidAndInvalidCreateReceiptProcessingSettingCommands(t *test
 			},
 			expect: http.StatusOK,
 		},
+		// Phase 3 A3: the AI page sends no prompt; the default one is filled in.
+		"valid settings without a prompt": {
+			input: commands.UpsertReceiptProcessingSettingsCommand{
+				Name:      "No prompt",
+				AiType:    models.GEMINI,
+				OcrEngine: models.TESSERACT,
+				Key:       "key",
+			},
+			expect: http.StatusOK,
+		},
+		"invalid settings without a prompt": {
+			input: commands.UpsertReceiptProcessingSettingsCommand{
+				AiType: models.GEMINI,
+				Key:    "key",
+			},
+			expect: http.StatusBadRequest,
+		},
 		"valid openAi settings": {
 			input: commands.UpsertReceiptProcessingSettingsCommand{
 				Name:        "OpenAi",

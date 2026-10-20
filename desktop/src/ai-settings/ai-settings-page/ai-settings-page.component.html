@@ -1,0 +1,94 @@
+<div class="ai-settings">
+  <h1>AI</h1>
+  <p class="intro">
+    The AI reads receipts and their products, and tags food as healthy or not. Without it everything still
+    works; receipts just wait until it is back.
+  </p>
+
+  @if (loading()) {
+    <p class="muted">Loading…</p>
+  } @else {
+    <form class="card" [formGroup]="form" (ngSubmit)="save()">
+      <app-select
+        label="Provider"
+        optionValueKey="value"
+        optionDisplayKey="displayValue"
+        data-testid="ai-provider"
+        [options]="providers()"
+        [inputFormControl]="form | formGet : 'aiType'"
+      ></app-select>
+
+      @if (!isGemini()) {
+        <app-input
+          label="Server URL"
+          data-testid="ai-url"
+          placeholder="http://192.168.1.20:1234/v1"
+          hint="LM Studio's address as the NAS reaches it, ending in /v1"
+          [inputFormControl]="form | formGet : 'url'"
+        ></app-input>
+      }
+
+      <app-input
+        label="Model"
+        data-testid="ai-model"
+        [hint]="isGemini() ? 'For example gemini-2.5-flash' : 'The model name as LM Studio lists it'"
+        [inputFormControl]="form | formGet : 'model'"
+      ></app-input>
+
+      <app-input
+        type="password"
+        data-testid="ai-key"
+        [label]="isGemini() ? 'API key' : 'API key (optional)'"
+        [hint]="keyHint()"
+        [showVisibilityEye]="true"
+        [inputFormControl]="form | formGet : 'key'"
+      ></app-input>
+
+      @if (isLmStudio()) {
+        <app-checkbox
+          label="The model reads images (a vision model)"
+          data-testid="ai-vision"
+          [inputFormControl]="form | formGet : 'isVisionModel'"
+        ></app-checkbox>
+      }
+
+      <div class="actions">
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          data-testid="ai-save"
+          [disabled]="saving()"
+        >
+          Save
+        </button>
+        <button
+          mat-stroked-button
+          type="button"
+          data-testid="ai-test"
+          [disabled]="!saved() || form.dirty || testing()"
+          (click)="testConnection()"
+        >
+          <mat-icon>wifi_tethering</mat-icon>
+          {{ testing() ? "Testing…" : "Test connection" }}
+        </button>
+      </div>
+      @if (saved() && form.dirty) {
+        <p class="muted small">Save first to test the new settings.</p>
+      }
+
+      @if (connectionResult(); as result) {
+        <p
+          class="result"
+          role="status"
+          data-testid="ai-test-result"
+          [class.result--ok]="result.ok"
+          [class.result--failed]="!result.ok"
+        >
+          <mat-icon aria-hidden="true">{{ result.ok ? "check_circle" : "error" }}</mat-icon>
+          {{ result.message }}
+        </p>
+      }
+    </form>
+  }
+</div>
