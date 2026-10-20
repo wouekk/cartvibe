@@ -4147,3 +4147,13 @@ UNPLANNED&from&to` lists the product lines behind a tile, over receipts the call
   "My Receipts" is renamed Household and every other account whose own "My Receipts" holds no receipts
   joins it as Member. Their empty personal groups are left for an admin to delete.
 - GORM no longer logs "record not found" (`quietGormLogger`): empty sweep queues are normal.
+
+## Shop name and auto-Done (fork, Phase 3 feedback round 2)
+
+`Receipt.ShopName` (`shopName`, additive column) is the shop printed on the receipt (Auchan, Edeka, Rewe),
+distinct from `Name`. The receipt prompt asks for it, and so does the product-extraction prompt: a finished
+read (`applyReadResult`) fills it when blank (never overwriting a typed one) and moves a receipt still "To
+check" (OPEN / NEEDS_ATTENTION / DRAFT) to **RESOLVED** through `AfterReceiptUpdated`. A Declined or Done
+receipt keeps its status. Because `UpdateReceipt` skips zero values, an edit that omits `shopName` never
+blanks it. The mock AI server in the quick scan tests now drains the request body (it caused flaky
+"broken pipe" failures).
