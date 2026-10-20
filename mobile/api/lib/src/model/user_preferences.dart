@@ -25,6 +25,7 @@ part 'user_preferences.g.dart';
 /// * [quickScanDefaultPaidById] - User foreign key
 /// * [quickScanDefaultStatus] - Default quick scan status
 /// * [closeChipSelectOnSelect] - Whether multi-select chip fields close their option list after each selection
+/// * [monthlySpendingGoal] - The most this person wants to spend in a month, as a decimal string; null or 0 means no goal
 /// * [userShortcuts] 
 @BuiltValue()
 abstract class UserPreferences implements BaseModel, Built<UserPreferences, UserPreferencesBuilder> {
@@ -32,6 +33,10 @@ abstract class UserPreferences implements BaseModel, Built<UserPreferences, User
   @BuiltValueField(wireName: r'quickScanDefaultStatus')
   ReceiptStatus? get quickScanDefaultStatus;
   // enum quickScanDefaultStatusEnum {  OPEN,  NEEDS_ATTENTION,  RESOLVED,  DRAFT,  DECLINED,  ,  };
+
+  /// The most this person wants to spend in a month, as a decimal string; null or 0 means no goal
+  @BuiltValueField(wireName: r'monthlySpendingGoal')
+  String? get monthlySpendingGoal;
 
   @BuiltValueField(wireName: r'userShortcuts')
   BuiltList<UserShortcut>? get userShortcuts;
@@ -99,6 +104,13 @@ class _$UserPreferencesSerializer implements PrimitiveSerializer<UserPreferences
       yield serializers.serialize(
         object.createdBy,
         specifiedType: const FullType(int),
+      );
+    }
+    if (object.monthlySpendingGoal != null) {
+      yield r'monthlySpendingGoal';
+      yield serializers.serialize(
+        object.monthlySpendingGoal,
+        specifiedType: const FullType(String),
       );
     }
     if (object.userShortcuts != null) {
@@ -196,6 +208,13 @@ class _$UserPreferencesSerializer implements PrimitiveSerializer<UserPreferences
             specifiedType: const FullType(int),
           ) as int;
           result.createdBy = valueDes;
+          break;
+        case r'monthlySpendingGoal':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.monthlySpendingGoal = valueDes;
           break;
         case r'userShortcuts':
           final valueDes = serializers.deserialize(

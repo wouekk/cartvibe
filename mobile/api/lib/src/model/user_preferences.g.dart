@@ -10,6 +10,8 @@ class _$UserPreferences extends UserPreferences {
   @override
   final ReceiptStatus? quickScanDefaultStatus;
   @override
+  final String? monthlySpendingGoal;
+  @override
   final BuiltList<UserShortcut>? userShortcuts;
   @override
   final bool? closeChipSelectOnSelect;
@@ -35,6 +37,7 @@ class _$UserPreferences extends UserPreferences {
 
   _$UserPreferences._(
       {this.quickScanDefaultStatus,
+      this.monthlySpendingGoal,
       this.userShortcuts,
       this.closeChipSelectOnSelect,
       required this.userId,
@@ -58,6 +61,7 @@ class _$UserPreferences extends UserPreferences {
     if (identical(other, this)) return true;
     return other is UserPreferences &&
         quickScanDefaultStatus == other.quickScanDefaultStatus &&
+        monthlySpendingGoal == other.monthlySpendingGoal &&
         userShortcuts == other.userShortcuts &&
         closeChipSelectOnSelect == other.closeChipSelectOnSelect &&
         userId == other.userId &&
@@ -74,6 +78,7 @@ class _$UserPreferences extends UserPreferences {
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, quickScanDefaultStatus.hashCode);
+    _$hash = $jc(_$hash, monthlySpendingGoal.hashCode);
     _$hash = $jc(_$hash, userShortcuts.hashCode);
     _$hash = $jc(_$hash, closeChipSelectOnSelect.hashCode);
     _$hash = $jc(_$hash, userId.hashCode);
@@ -92,6 +97,7 @@ class _$UserPreferences extends UserPreferences {
   String toString() {
     return (newBuiltValueToStringHelper(r'UserPreferences')
           ..add('quickScanDefaultStatus', quickScanDefaultStatus)
+          ..add('monthlySpendingGoal', monthlySpendingGoal)
           ..add('userShortcuts', userShortcuts)
           ..add('closeChipSelectOnSelect', closeChipSelectOnSelect)
           ..add('userId', userId)
@@ -116,6 +122,11 @@ class UserPreferencesBuilder
   ReceiptStatus? get quickScanDefaultStatus => _$this._quickScanDefaultStatus;
   set quickScanDefaultStatus(covariant ReceiptStatus? quickScanDefaultStatus) =>
       _$this._quickScanDefaultStatus = quickScanDefaultStatus;
+
+  String? _monthlySpendingGoal;
+  String? get monthlySpendingGoal => _$this._monthlySpendingGoal;
+  set monthlySpendingGoal(covariant String? monthlySpendingGoal) =>
+      _$this._monthlySpendingGoal = monthlySpendingGoal;
 
   ListBuilder<UserShortcut>? _userShortcuts;
   ListBuilder<UserShortcut> get userShortcuts =>
@@ -171,6 +182,7 @@ class UserPreferencesBuilder
     final $v = _$v;
     if ($v != null) {
       _quickScanDefaultStatus = $v.quickScanDefaultStatus;
+      _monthlySpendingGoal = $v.monthlySpendingGoal;
       _userShortcuts = $v.userShortcuts?.toBuilder();
       _closeChipSelectOnSelect = $v.closeChipSelectOnSelect;
       _userId = $v.userId;
@@ -205,6 +217,7 @@ class UserPreferencesBuilder
       _$result = _$v ??
           _$UserPreferences._(
             quickScanDefaultStatus: quickScanDefaultStatus,
+            monthlySpendingGoal: monthlySpendingGoal,
             userShortcuts: _userShortcuts?.build(),
             closeChipSelectOnSelect: closeChipSelectOnSelect,
             userId: BuiltValueNullFieldError.checkNotNull(

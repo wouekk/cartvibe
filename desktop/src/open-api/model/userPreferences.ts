@@ -43,6 +43,10 @@ export interface UserPreferences {
      * Whether multi-select chip fields close their option list after each selection
      */
     closeChipSelectOnSelect?: boolean;
+    /**
+     * The most this person wants to spend in a month, as a decimal string; null or 0 means no goal
+     */
+    monthlySpendingGoal?: string;
     userShortcuts?: Array<UserShortcut>;
 }
 export namespace UserPreferences {

@@ -18,6 +18,7 @@ Name | Type | Description | Notes
 **quickScanDefaultPaidById** | **int** | User foreign key | [optional] [default to 0]
 **quickScanDefaultStatus** | [**ReceiptStatus**](ReceiptStatus.md) | Default quick scan status | [optional] [default to 'OPEN']
 **closeChipSelectOnSelect** | **bool** | Whether multi-select chip fields close their option list after each selection | [optional] [default to false]
+**monthlySpendingGoal** | **String** | The most this person wants to spend in a month, as a decimal string; null or 0 means no goal | [optional] 
 **userShortcuts** | [**BuiltList&lt;UserShortcut&gt;**](UserShortcut.md) |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
