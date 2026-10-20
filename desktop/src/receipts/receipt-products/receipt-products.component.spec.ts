@@ -17,7 +17,7 @@ const view = (overrides: Partial<ReceiptProductsView>): ReceiptProductsView => (
 
 describe("ReceiptProductsComponent", () => {
   let fixture: ComponentFixture<ReceiptProductsComponent>;
-  let service: { getReceiptProducts: jest.Mock; readReceiptProducts: jest.Mock };
+  let service: { [method: string]: jest.Mock };
 
   const element = (testId: string): HTMLElement | null =>
     fixture.nativeElement.querySelector(`[data-testid="${testId}"]`);
@@ -32,7 +32,13 @@ describe("ReceiptProductsComponent", () => {
   };
 
   beforeEach(async () => {
-    service = { getReceiptProducts: jest.fn(), readReceiptProducts: jest.fn() };
+    service = {
+      getReceiptProducts: jest.fn(),
+      readReceiptProducts: jest.fn(),
+      addReceiptProduct: jest.fn(),
+      updateReceiptProduct: jest.fn(),
+      deleteReceiptProduct: jest.fn(),
+    };
     await TestBed.configureTestingModule({
       imports: [ReceiptProductsComponent, NgxsModule.forRoot([AuthState, SystemSettingsState])],
       providers: [provideZonelessChangeDetection(), { provide: ReceiptProductService, useValue: service }],
@@ -88,5 +94,68 @@ describe("ReceiptProductsComponent", () => {
 
     expect(service.readReceiptProducts).toHaveBeenCalledWith(7);
     expect(element("receipt-products-status")?.textContent).toContain("Waiting to be read");
+  });
+
+  describe("editing the list (Phase 3 C5)", () => {
+    const milk = { id: 1, receiptId: 7, name: "LAIT", displayName: "Milk", quantity: "1", position: 0, amount: "1.09" };
+
+    const type = async (testId: string, value: string) => {
+      const input = element(testId) as HTMLInputElement;
+      input.value = value;
+      input.dispatchEvent(new Event("input"));
+      await fixture.whenStable();
+    };
+
+    it("shows no editing controls without update permission", async () => {
+      await render(view({ products: [milk] }));
+
+      expect(element("receipt-product-add-row")).toBeNull();
+      expect(element("receipt-product-edit")).toBeNull();
+      expect(element("receipt-product-delete")).toBeNull();
+    });
+
+    it("adds a product with a comma price and appends it to the list", async () => {
+      await render(view({ products: [milk] }), [Permission.GroupReceiptsUpdate]);
+      service.addReceiptProduct.mockReturnValue(
+        of({ id: 2, receiptId: 7, name: "Bread", displayName: "Bread", quantity: "", position: 1, amount: "1.5" })
+      );
+
+      await type("receipt-product-add-name", "Bread");
+      await type("receipt-product-add-amount", "1,5");
+      element("receipt-product-add")!.click();
+      await fixture.whenStable();
+
+      expect(service.addReceiptProduct).toHaveBeenCalledWith(7, { name: "Bread", amount: "1.5", quantity: "" });
+      expect(element("receipt-products-table")?.textContent).toContain("Bread");
+      expect((element("receipt-product-add-name") as HTMLInputElement).value).toBe("");
+    });
+
+    it("refuses a price that is not a number, without calling the API", async () => {
+      await render(view({ products: [milk] }), [Permission.GroupReceiptsUpdate]);
+
+      await type("receipt-product-add-name", "Bread");
+      await type("receipt-product-add-amount", "lots");
+      element("receipt-product-add")!.click();
+      await fixture.whenStable();
+
+      expect(service.addReceiptProduct).not.toHaveBeenCalled();
+      expect(element("receipt-product-form-error")?.textContent).toContain("amount");
+    });
+
+    it("edits a line in place and shows the saved line", async () => {
+      await render(view({ products: [milk] }), [Permission.GroupReceiptsUpdate]);
+      service.updateReceiptProduct.mockReturnValue(of({ ...milk, name: "Oat drink", displayName: "Oat drink", amount: "2.2" }));
+
+      element("receipt-product-edit")!.click();
+      await fixture.whenStable();
+      await type("receipt-product-edit-name", "Oat drink");
+      await type("receipt-product-edit-amount", "2,20");
+      element("receipt-product-save")!.click();
+      await fixture.whenStable();
+
+      expect(service.updateReceiptProduct).toHaveBeenCalledWith(1, { name: "Oat drink", amount: "2.20", quantity: "1" });
+      expect(element("receipt-product-edit-row")).toBeNull();
+      expect(element("receipt-products-table")?.textContent).toContain("Oat drink");
+    });
   });
 });

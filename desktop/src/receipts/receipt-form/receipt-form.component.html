@@ -169,7 +169,10 @@
           </app-form-section>
         }
       </div>
+      <!-- Hidden, not removed (Phase 3 C5): the Products section is the one list of what was bought. The
+           item list keeps its form state, so existing items are saved back unchanged. -->
       <app-form-section
+        class="d-none"
         headerText="Items"
         [indent]="false"
         [headerButtonsTemplate]="itemsSectionHeaderButtons"
