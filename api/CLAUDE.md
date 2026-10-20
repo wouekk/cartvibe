@@ -4193,3 +4193,11 @@ client).
   `ApplyReceiptCurrency` runs after a receipt is read (quick scan, magic fill, email); the product read
   (`receiptRate`) converts product amounts at the receipt's frozen rate, else the table's, and fills in the
   original on a receipt that had none.
+
+## Ambiguous column names (fork)
+
+The Manage Categories list joins `receipt_products` (product count), which also has a `name`, so a bare
+`ORDER BY name` failed with "ambiguous column name: name". `qualifyColumn` (base_repository.go) prefixes the
+sort column with its table for categories and tags, and `BaseRepository.Sort` passes a double-quoted select alias
+(`"NumberOfReceipts"`) through raw, which SQLite otherwise could not find. Qualify every column once a query joins.
+The receipts `shop_name` sort is `COALESCE(NULLIF(receipts.shop_name,''), receipts.name)`.

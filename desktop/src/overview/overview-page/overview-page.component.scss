@@ -385,23 +385,117 @@ table {
 
 
 // The browser's own date picker, opened by the button; never seen or focused itself.
-
-.shop {
-  display: block;
-  font-weight: 400;
+// Monthly spending goal: the Spent card's inline fraction and thin bar, and the split bars.
+// The label row: the SPENT label, with a quiet way to set or change the goal on its right.
+.tile__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: variables.$spacing-sm;
+  min-height: 24px;
 }
 
-// Monthly spending goal (Phase 3): the Spent card's goal label and status, and the split bars.
-.tile {
-  position: relative;
+.tile__goal-action {
+  padding: 2px 8px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: map.get(variables.$primary-palette, 700);
+  cursor: pointer;
+
+  &:hover {
+    background: map.get(variables.$primary-palette, 50);
+  }
+
+  &:focus-visible {
+    outline: 2px solid map.get(variables.$primary-palette, 500);
+    outline-offset: 1px;
+  }
+
+  &--icon {
+    display: inline-flex;
+    padding: 2px;
+    color: $label-color;
+
+    .mat-icon {
+      width: 18px;
+      height: 18px;
+      font-size: 18px;
+    }
+  }
+}
+
+// The spent amount, then " / goal" in smaller, muted type.
+.tile__amount {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 6px;
 }
 
 .tile__goal {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  font-size: 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
   color: $label-color;
+
+  &--button {
+    cursor: pointer;
+    border-radius: 4px;
+
+    &:hover {
+      color: $body-color;
+      text-decoration: underline dotted;
+    }
+
+    &:focus-visible {
+      outline: 2px solid map.get(variables.$primary-palette, 500);
+      outline-offset: 2px;
+    }
+  }
+}
+
+.tile__goal-editor {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 15px;
+  color: $label-color;
+}
+
+.tile__goal-input {
+  width: 6.5em;
+  padding: 2px 6px;
+  border: 1px solid map.get(variables.$primary-palette, 500);
+  border-radius: 6px;
+  font: inherit;
+  font-size: 15px;
+  color: $body-color;
+  background: #fff;
+}
+
+// The thin progress bar under the amount: blue up to the goal, all red once over it.
+.tile__progress {
+  height: 4px;
+  border-radius: 2px;
+  background: $hairline;
+  overflow: hidden;
+}
+
+.tile__progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: map.get(variables.$primary-palette, 500);
+
+  &--over {
+    background: #dc2626;
+  }
 }
 
 .tile__value--over {
@@ -414,7 +508,7 @@ table {
 }
 
 .tile__hint--remaining {
-  color: #15803d;
+  color: $muted-color;
 }
 
 .bars {

@@ -90,6 +90,8 @@ func (repository TagsRepository) GetAllPagedTags(pagedRequestCommand commands.Pa
 		pagedRequestCommand.OrderBy = quotedAlias
 	}
 
+	pagedRequestCommand.OrderBy = qualifyColumn("tags", pagedRequestCommand.OrderBy)
+
 	query := repository.Sort(db, pagedRequestCommand.OrderBy, pagedRequestCommand.SortDirection)
 	query = query.Scopes(repository.Paginate(pagedRequestCommand.Page, pagedRequestCommand.PageSize))
 	selectString := fmt.Sprintf("tags.id, tags.name, tags.description, COUNT(DISTINCT receipt_tags.receipt_id) as %s", quotedAlias)

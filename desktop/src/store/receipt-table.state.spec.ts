@@ -70,7 +70,7 @@ describe("ReceiptTableState", () => {
     expect(result).toEqual({
       page: 1,
       pageSize: 50,
-      orderBy: "created_at",
+      orderBy: "date",
       sortDirection: "desc",
       filter: defaultReceiptFilter,
       quickDateField: "date",

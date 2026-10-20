@@ -100,11 +100,9 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     this.listenForSummaryRequests();
   }
 
-  readonly createdAtCell = viewChild.required<TemplateRef<any>>("createdAtCell");
 
   readonly dateCell = viewChild.required<TemplateRef<any>>("dateCell");
 
-  readonly nameCell = viewChild.required<TemplateRef<any>>("nameCell");
   readonly shopCell = viewChild.required<TemplateRef<any>>("shopCell");
   readonly addedByCell = viewChild.required<TemplateRef<any>>("addedByCell");
 
@@ -272,8 +270,18 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
   private numFiltersAppliedRaw = this.store.selectSignal(ReceiptTableState.numFiltersApplied);
 
+  /**
+   * Every active condition, the date range included: what Reset clears.
+   */
+  public anyFilterApplied = computed(() => this.numFiltersAppliedRaw() > 0);
+
+  /**
+   * The Filter button's badge. The Receipt Date range is already on show in the period picker beside
+   * it, so it is not counted: the badge only speaks for what the filter dialog holds.
+   */
   public numFiltersApplied = computed(() => {
-    const num = this.numFiltersAppliedRaw();
+    const dateActive = isFilterEntryActive((this.receiptFilter() as any)?.date) ? 1 : 0;
+    const num = this.numFiltersAppliedRaw() - dateActive;
     return num > 0 ? num : undefined;
   });
 
@@ -470,25 +478,14 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
     const allColumns = [
       {
-        columnHeader: "Added At",
-        matColumnDef: "created_at",
-        template: this.createdAtCell(),
-        sortable: true,
-      },
-      {
         columnHeader: "Receipt Date",
         matColumnDef: "date",
         template: this.dateCell(),
         sortable: true,
       },
       {
-        columnHeader: "Name",
-        matColumnDef: "name",
-        template: this.nameCell(),
-        sortable: true,
-      },
-      {
-        // The shop printed on the receipt (Auchan, Edeka, Rewe), read by the AI.
+        // The clickable Shop: the shop printed on the receipt (Auchan, Edeka, Rewe), read by the AI, or
+        // the receipt's name when none was read. It sorts the same way (shop_name on the API).
         columnHeader: RECEIPT_COLUMN_DISPLAY_NAMES["shop_name"],
         matColumnDef: "shop_name",
         template: this.shopCell(),

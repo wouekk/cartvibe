@@ -43,6 +43,7 @@ Phase 3 step 3 is on `main` (F2 custom fields to the AI, M2 Logs tab, M5 Househo
 S2 cards + past lists + list-from-list, S4/N1 notifications and Going shopping, D1 Dashboard periods and
 tap-through lists, EUR for new installs, shop name, auto-Done after an AI read, Manage Households wording).
 Still open:
+0. Feedback round 4 (inline goal on the Spent card, one Shop column, rate input typing, SQL ambiguous name, filter badge) is on `feature/phase-3-backlog`; the Added At e2e spec is stale.
 1. M3 / F1 are checks, not builds: Manage Users, Categories, Tags and Custom Fields already list everything
    for an admin and OIDC providers sit only under System Settings; revisit if the user finds them too complex.
 2. Stale Playwright specs (paid-by, shares, statuses, required Quick Scan fields) need updating when e2e is run.

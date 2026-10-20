@@ -7,7 +7,7 @@ import { take } from "rxjs";
 import { CurrencyRate, CurrencyRateTable, ExchangeRateService, Permission } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { AuthState } from "../../store";
-import { parseCurrencyCode, parseRateInput } from "./exchange-rate-input";
+import { formatRate, parseCurrencyCode, parseRateInput, sanitizeRateInput, settleRateInput } from "./exchange-rate-input";
 
 /** One row of the editor: a currency and the rate as typed (a string, so a half-typed number survives). */
 interface RateRow {
@@ -44,6 +44,9 @@ export class ExchangeRatesComponent implements OnInit {
 
   public readonly loaded = signal(false);
 
+  /** Rates were typed, added or removed since they were last loaded or saved. */
+  public readonly dirty = signal(false);
+
   public readonly canUpdate = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppSystemSettingsUpdate));
 
   /** Without a named main currency (a custom symbol) there is nothing to convert into. */
@@ -59,8 +62,33 @@ export class ExchangeRatesComponent implements OnInit {
       });
   }
 
+  /**
+   * Keeps what is typed: a comma becomes a dot straight away and anything else but digits is dropped, but a
+   * half-typed number ("0.", "1.0") stays exactly as it is, so typing is never fought. The row holds the text.
+   */
   public setRate(index: number, event: Event): void {
-    const rate = (event.target as HTMLInputElement).value;
+    const input = event.target as HTMLInputElement;
+    const rate = sanitizeRateInput(input.value);
+    if (rate !== input.value) {
+      input.value = rate;
+    }
+
+    this.updateRate(index, rate);
+    this.dirty.set(true);
+  }
+
+  /** Leaving the field, or Enter, finishes the number ("1." is 1, ".5" is 0.5). Saving stays with the button. */
+  public commitRate(index: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const rate = settleRateInput(input.value);
+    if (rate !== input.value) {
+      input.value = rate;
+    }
+
+    this.updateRate(index, rate);
+  }
+
+  private updateRate(index: number, rate: string): void {
     this.rows.update((rows) => rows.map((row, i) => (i === index ? { ...row, rate } : row)));
   }
 
@@ -85,11 +113,13 @@ export class ExchangeRatesComponent implements OnInit {
 
     this.error.set("");
     this.rows.update((rows) => [...rows, { code, rate: "" }].sort((a, b) => a.code.localeCompare(b.code)));
+    this.dirty.set(true);
     this.newCode.set("");
   }
 
   public removeCurrency(index: number): void {
     this.rows.update((rows) => rows.filter((_, i) => i !== index));
+    this.dirty.set(true);
   }
 
   public save(): void {
@@ -120,6 +150,7 @@ export class ExchangeRatesComponent implements OnInit {
 
   private show(view: CurrencyRateTable): void {
     this.mainCurrency.set(view.mainCurrency ?? "");
-    this.rows.set(view.rates.map((rate) => ({ code: rate.code, rate: rate.rate ?? "" })));
+    this.rows.set(view.rates.map((rate) => ({ code: rate.code, rate: formatRate(rate.rate) })));
+    this.dirty.set(false);
   }
 }

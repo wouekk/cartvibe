@@ -285,7 +285,7 @@ describe("ReceiptsTableComponent", () => {
       (component as any).reconcileColumnConfig();
 
       expect(store.selectSnapshot(ReceiptTableState.filterData).orderBy).toEqual(
-        "created_at"
+        "date"
       );
     });
 
@@ -343,6 +343,21 @@ describe("ReceiptsTableComponent", () => {
     it("reads All time with no date filter", () => {
       expect(component.stepperMonth()).toBeNull();
       expect(component.stepperLabel()).toEqual("All time");
+    });
+
+    it("does not count the date range the period picker already shows in the Filter badge", () => {
+      setFilter({ date: { operation: FilterOperation.Between, value: [new Date(2026, 8, 1), new Date(2026, 8, 30)] } });
+
+      expect(component.numFiltersApplied()).toBeUndefined();
+      expect(component.anyFilterApplied()).toBe(true);
+
+      setFilter({
+        date: { operation: FilterOperation.Between, value: [new Date(2026, 8, 1), new Date(2026, 8, 30)] },
+        status: { operation: FilterOperation.Contains, value: [ReceiptStatus.Open] },
+        createdAt: { operation: FilterOperation.WithinCurrentMonth, value: null },
+      });
+
+      expect(component.numFiltersApplied()).toBe(2);
     });
 
     it("writes the picked month as a BETWEEN over the whole month", () => {

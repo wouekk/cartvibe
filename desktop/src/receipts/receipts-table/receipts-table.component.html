@@ -29,7 +29,7 @@
       (clicked)="filterButtonClicked()"
     ></app-button>
     <app-button
-      *ngIf="(numFiltersApplied() ?? 0) > 0"
+      *ngIf="anyFilterApplied()"
       @fadeInOut
       class="me-2"
       data-testid="receipts-filter-reset"
@@ -202,22 +202,14 @@
   ></app-receipt-totals>
 </ng-template>
 
-<ng-template #createdAtCell let-element="element"
->{{ element.createdAt | appDate : "dd/MM/yyyy HH:mm:ss" }}
-</ng-template>
-
 <ng-template #dateCell let-element="element"
 >{{ element.date | appDate: "mediumDate" : "calendar" }}
 </ng-template>
 
 <ng-template #addedByCell let-element="element">  {{ (element.paidByUserId | user)?.displayName ?? "—" }}</ng-template>
 <ng-template #shopCell let-element="element">
-  {{ element.shopName || "—" }}
-</ng-template>
-
-<ng-template #nameCell let-element="element">
   <a [routerLink]="['/receipts/' + element.id + '/view']">
-    {{ element.name }}
+    {{ element.shopName || element.name }}
   </a>
 </ng-template>
 

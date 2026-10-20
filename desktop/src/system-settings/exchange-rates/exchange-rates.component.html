@@ -26,6 +26,8 @@
           [disabled]="!canUpdate()"
           [value]="row.rate"
           (input)="setRate(index, $event)"
+          (blur)="commitRate(index, $event)"
+          (keydown.enter)="commitRate(index, $event); $event.preventDefault()"
         />
         <span class="rates__main">{{ mainCurrency() }}</span>
         @if (!row.rate) {
@@ -59,6 +61,9 @@
       </div>
       @if (error()) {
         <p class="rates__error" data-testid="exchange-rates-error">{{ error() }}</p>
+      }
+      @if (dirty()) {
+        <p class="rates__unsaved" data-testid="exchange-rates-unsaved">Rates changed: press Save rates to keep them.</p>
       }
       <button mat-raised-button type="button" class="rates__save" data-testid="exchange-rates-save" [disabled]="saving()" (click)="save()">
         Save rates
