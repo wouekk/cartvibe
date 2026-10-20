@@ -172,11 +172,12 @@ pre-installed binary works.
   takes. Known residuals, both accepted:
   - **GO-2026-5932** (`x/crypto/openpgp` unmaintained) — no fix exists and nothing imports it;
     module scan only.
-  - **`github.com/xuri/excelize/v2` v2.11.0** — 15 GHSA advisories (parsing panics / unbounded
-    allocations) whose fixes are only on excelize's untagged master as of 2026-10. Left until a tagged
-    release past 2026-10-03 exists; production only *writes* XLSX (`excelize.NewFile` in
-    `internal/reporting/render/xlsx.go`) and reads files back only in tests. These are GHSA-only, so
-    they show in Dependabot but not in `govulncheck`.
+  - **`github.com/xuri/excelize/v2`** — 15 GHSA advisories (parsing panics / unbounded allocations) whose
+    fixes were only on excelize's untagged master as of 2026-10. **Pinned to the pseudo-version
+    `v2.11.1-0.20261003002531-6258dcebc4e2`** (the newest commit the image scan names as fixed), which
+    clears all of them. Move to the first tagged release after 2026-10-03 when one exists. Production only
+    *writes* XLSX (`excelize.NewFile` in `internal/reporting/render/xlsx.go`) and reads files back only in
+    tests. These are GHSA-only, so they show in Dependabot but not in `govulncheck`.
 
 ## Architecture Overview
 
