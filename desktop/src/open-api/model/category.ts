@@ -24,6 +24,14 @@ export interface Category {
      * Description of the category
      */
     description?: string;
+    /**
+     * The AI is told never to use this category; its products fall back to Uncategorized
+     */
+    skipped?: boolean;
+    /**
+     * Earlier names of this category, one per line (set by renaming; read only)
+     */
+    aliases?: string;
     updatedAt?: string;
 }
 

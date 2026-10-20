@@ -14,6 +14,7 @@ part 'upsert_category_command.g.dart';
 /// * [id] - Category id
 /// * [name] - Category name
 /// * [description] - Category description
+/// * [skipped] - The AI is told never to use this category; its products fall back to Uncategorized
 @BuiltValue()
 abstract class UpsertCategoryCommand implements Built<UpsertCategoryCommand, UpsertCategoryCommandBuilder> {
   /// Category id
@@ -27,6 +28,10 @@ abstract class UpsertCategoryCommand implements Built<UpsertCategoryCommand, Ups
   /// Category description
   @BuiltValueField(wireName: r'description')
   String? get description;
+
+  /// The AI is told never to use this category; its products fall back to Uncategorized
+  @BuiltValueField(wireName: r'skipped')
+  bool? get skipped;
 
   UpsertCategoryCommand._();
 
@@ -68,6 +73,13 @@ class _$UpsertCategoryCommandSerializer implements PrimitiveSerializer<UpsertCat
       yield serializers.serialize(
         object.description,
         specifiedType: const FullType(String),
+      );
+    }
+    if (object.skipped != null) {
+      yield r'skipped';
+      yield serializers.serialize(
+        object.skipped,
+        specifiedType: const FullType(bool),
       );
     }
   }
@@ -113,6 +125,13 @@ class _$UpsertCategoryCommandSerializer implements PrimitiveSerializer<UpsertCat
             specifiedType: const FullType(String),
           ) as String;
           result.description = valueDes;
+          break;
+        case r'skipped':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(bool),
+          ) as bool;
+          result.skipped = valueDes;
           break;
         default:
           unhandled.add(key);

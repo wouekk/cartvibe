@@ -16,6 +16,9 @@ part 'category_view.g.dart';
 /// * [id] 
 /// * [name] - Name of the category
 /// * [description] - Description of the category
+/// * [skipped] 
+/// * [aliases] 
+/// * [numberOfProducts] - Number of receipt products in this category
 /// * [updatedAt] 
 /// * [numberOfReceipts] - Number of receipts associated with this category
 @BuiltValue()
@@ -36,6 +39,16 @@ abstract class CategoryView implements Built<CategoryView, CategoryViewBuilder> 
   /// Description of the category
   @BuiltValueField(wireName: r'description')
   String? get description;
+
+  @BuiltValueField(wireName: r'skipped')
+  bool? get skipped;
+
+  @BuiltValueField(wireName: r'aliases')
+  String? get aliases;
+
+  /// Number of receipt products in this category
+  @BuiltValueField(wireName: r'numberOfProducts')
+  int? get numberOfProducts;
 
   @BuiltValueField(wireName: r'updatedAt')
   String? get updatedAt;
@@ -96,6 +109,27 @@ class _$CategoryViewSerializer implements PrimitiveSerializer<CategoryView> {
       yield serializers.serialize(
         object.description,
         specifiedType: const FullType(String),
+      );
+    }
+    if (object.skipped != null) {
+      yield r'skipped';
+      yield serializers.serialize(
+        object.skipped,
+        specifiedType: const FullType(bool),
+      );
+    }
+    if (object.aliases != null) {
+      yield r'aliases';
+      yield serializers.serialize(
+        object.aliases,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.numberOfProducts != null) {
+      yield r'numberOfProducts';
+      yield serializers.serialize(
+        object.numberOfProducts,
+        specifiedType: const FullType(int),
       );
     }
     if (object.updatedAt != null) {
@@ -167,6 +201,27 @@ class _$CategoryViewSerializer implements PrimitiveSerializer<CategoryView> {
             specifiedType: const FullType(String),
           ) as String;
           result.description = valueDes;
+          break;
+        case r'skipped':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(bool),
+          ) as bool;
+          result.skipped = valueDes;
+          break;
+        case r'aliases':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.aliases = valueDes;
+          break;
+        case r'numberOfProducts':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(int),
+          ) as int;
+          result.numberOfProducts = valueDes;
           break;
         case r'updatedAt':
           final valueDes = serializers.deserialize(

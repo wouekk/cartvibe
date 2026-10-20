@@ -16,6 +16,8 @@ part 'category.g.dart';
 /// * [id] 
 /// * [name] - Name of the category
 /// * [description] - Description of the category
+/// * [skipped] - The AI is told never to use this category; its products fall back to Uncategorized
+/// * [aliases] - Earlier names of this category, one per line (set by renaming; read only)
 /// * [updatedAt] 
 @BuiltValue()
 abstract class Category implements Built<Category, CategoryBuilder> {
@@ -35,6 +37,14 @@ abstract class Category implements Built<Category, CategoryBuilder> {
   /// Description of the category
   @BuiltValueField(wireName: r'description')
   String? get description;
+
+  /// The AI is told never to use this category; its products fall back to Uncategorized
+  @BuiltValueField(wireName: r'skipped')
+  bool? get skipped;
+
+  /// Earlier names of this category, one per line (set by renaming; read only)
+  @BuiltValueField(wireName: r'aliases')
+  String? get aliases;
 
   @BuiltValueField(wireName: r'updatedAt')
   String? get updatedAt;
@@ -94,6 +104,20 @@ class _$CategorySerializer implements PrimitiveSerializer<Category> {
       yield r'description';
       yield serializers.serialize(
         object.description,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.skipped != null) {
+      yield r'skipped';
+      yield serializers.serialize(
+        object.skipped,
+        specifiedType: const FullType(bool),
+      );
+    }
+    if (object.aliases != null) {
+      yield r'aliases';
+      yield serializers.serialize(
+        object.aliases,
         specifiedType: const FullType(String),
       );
     }
@@ -161,6 +185,20 @@ class _$CategorySerializer implements PrimitiveSerializer<Category> {
             specifiedType: const FullType(String),
           ) as String;
           result.description = valueDes;
+          break;
+        case r'skipped':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(bool),
+          ) as bool;
+          result.skipped = valueDes;
+          break;
+        case r'aliases':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.aliases = valueDes;
           break;
         case r'updatedAt':
           final valueDes = serializers.deserialize(

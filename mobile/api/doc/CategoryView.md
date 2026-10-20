@@ -13,6 +13,9 @@ Name | Type | Description | Notes
 **id** | **int** |  | 
 **name** | **String** | Name of the category | 
 **description** | **String** | Description of the category | [optional] 
+**skipped** | **bool** |  | [optional] 
+**aliases** | **String** |  | [optional] 
+**numberOfProducts** | **int** | Number of receipt products in this category | [optional] 
 **updatedAt** | **String** |  | [optional] 
 **numberOfReceipts** | **int** | Number of receipts associated with this category | 
 
