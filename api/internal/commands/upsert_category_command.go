@@ -11,6 +11,7 @@ type UpsertCategoryCommand struct {
 	Id          *uint  `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
+	Skipped     bool   `json:"skipped"`
 }
 
 func (category *UpsertCategoryCommand) LoadDataFromRequest(w http.ResponseWriter, r *http.Request) error {

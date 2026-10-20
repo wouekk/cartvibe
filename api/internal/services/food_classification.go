@@ -127,8 +127,13 @@ func (service FoodClassificationService) classifyBatch(batch classificationBatch
 		return 0, err
 	}
 
+	resolver, err := newFoodGroupResolver(service.TX)
+	if err != nil {
+		return 0, err
+	}
+
 	var answers map[string]repositories.ClassificationResult
-	outcome, _ := askTextAi(service.TX, batch.groupId, buildClassificationPrompt(batch, corrections), "food classification",
+	outcome, _ := askTextAi(service.TX, batch.groupId, buildClassificationPrompt(batch, corrections, resolver.PromptBlock()), "food classification",
 		func(cleaned string) error {
 			parsed, parseErr := parseClassificationResponse(cleaned)
 			answers = parsed
@@ -157,6 +162,7 @@ func (service FoodClassificationService) classifyBatch(batch classificationBatch
 			answer.Health = health
 		}
 
+		answer.FoodGroup = resolver.Resolve(answer.FoodGroup)
 		err = repository.SaveClassification(candidate, answer, now)
 		if err != nil {
 			return classified, err
@@ -262,7 +268,7 @@ func (service FoodClassificationService) saveCorrection(
 	})
 }
 
-func buildClassificationPrompt(batch classificationBatch, corrections map[string]string) string {
+func buildClassificationPrompt(batch classificationBatch, corrections map[string]string, categoryBlock string) string {
 	month := batch.month.Format("January 2006")
 
 	examples := ""
@@ -281,6 +287,10 @@ func buildClassificationPrompt(batch classificationBatch, corrections map[string
 			lines[i] = fmt.Sprintf("- %s: %s", name, corrections[name])
 		}
 		examples = fmt.Sprintf(foodClassificationCorrections, strings.Join(lines, "\n"))
+	}
+
+	if categoryBlock != "" {
+		examples = categoryBlock + "\n" + examples
 	}
 
 	products := make([]map[string]string, len(batch.candidates))

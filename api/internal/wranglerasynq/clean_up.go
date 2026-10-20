@@ -45,26 +45,27 @@ func StartSystemCleanUpTasks() error {
 		return err
 	}
 
+	// Every 30 seconds, so a receipt is read soon after it is added (Phase 3 feedback: it took minutes).
 	// Each run reads at most a small batch, so a backfill drips through. A receipt waiting out an AI
 	// outage is skipped until its own retry time, so frequent runs cost one indexed query.
 	receiptProductSweepTask := asynq.NewTask(ReceiptProductSweep, nil)
-	_, err = RegisterTask("@every 5m", receiptProductSweepTask, cleanUpQueue, 0)
+	_, err = RegisterTask("@every 30s", receiptProductSweepTask, cleanUpQueue, 0)
 	if err != nil {
 		return err
 	}
 
-	// Every 2 minutes, so a shopping list item's tags appear soon after it is added. With nothing
+	// Every minute, so a shopping list item's tags appear soon after it is added. With nothing
 	// waiting it costs two indexed queries; with no AI configured it makes no call.
 	foodClassificationSweepTask := asynq.NewTask(FoodClassificationSweep, nil)
-	_, err = RegisterTask("@every 2m", foodClassificationSweepTask, cleanUpQueue, 0)
+	_, err = RegisterTask("@every 1m", foodClassificationSweepTask, cleanUpQueue, 0)
 	if err != nil {
 		return err
 	}
 
-	// Every 5 minutes, in step with the product reading a trip usually waits on. A trip waiting out an
+	// Every minute, close behind the product reading a trip usually waits on. A trip waiting out an
 	// AI outage is skipped until its own retry time.
 	shoppingTripSweepTask := asynq.NewTask(ShoppingTripSweep, nil)
-	_, err = RegisterTask("@every 5m", shoppingTripSweepTask, cleanUpQueue, 0)
+	_, err = RegisterTask("@every 1m", shoppingTripSweepTask, cleanUpQueue, 0)
 
 	return err
 }

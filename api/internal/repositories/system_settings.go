@@ -232,6 +232,7 @@ func SeedEuroForNewInstall() error {
 	// A symbol after the amount starts with a space because the currency pipe appends it as is.
 	return db.Create(&models.SystemSettings{
 		BaseModel:                    models.BaseModel{ID: 1},
+		TimeZone:                     envTimeZone(),
 		CurrencyDisplay:              " €",
 		CurrencySymbolPosition:       models.END,
 		CurrencyThousandthsSeparator: models.DOT,

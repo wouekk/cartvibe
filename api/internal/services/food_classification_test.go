@@ -67,7 +67,7 @@ func TestClassificationPromptCarriesMonthRegionAndCorrections(t *testing.T) {
 		},
 	}
 
-	prompt := buildClassificationPrompt(batch, map[string]string{"dark chocolate": models.HEALTH_MEDIUM})
+	prompt := buildClassificationPrompt(batch, map[string]string{"dark chocolate": models.HEALTH_MEDIUM}, "")
 	for _, expected := range []string{"December 2026", "Western Europe", `"name":"Strawberries 250 g"`, "dark chocolate: MEDIUM"} {
 		if !strings.Contains(prompt, expected) {
 			t.Errorf("expected the prompt to contain %q", expected)

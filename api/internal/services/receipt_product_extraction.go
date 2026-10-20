@@ -3,6 +3,8 @@ package services
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"sort"
 	"regexp"
 	"strings"
 	"time"
@@ -18,12 +20,13 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// productExtractionPrompt asks for a receipt's product lines. It is code, not a Prompt row, until the
-// classification step adds the prompts users edit; the receipt-level prompt stays untouched.
-const productExtractionPrompt = `You read shop receipts. List every purchased product line on this receipt.
+// productExtractionPromptTemplate asks for a receipt's shop and product lines, with each product's
+// category, health and season in the same answer (Phase 3 feedback: no separate classification wait).
+// The %s slots are the region, the month, the category rules and the household's earlier corrections.
+const productExtractionPromptTemplate = `You read shop receipts. List every purchased product line on this receipt and classify each product for a household in %s. The current month is %s.
 
 Return ONLY valid JSON in plain text, never in a code block, exactly in this shape:
-{"shop": "...", "products": [{"name": "...", "displayName": "...", "amount": 0.0, "quantity": "..."}]}
+{"shop": "...", "products": [{"name": "...", "displayName": "...", "amount": 0.0, "quantity": "...", "health": "...", "foodGroup": "...", "seasonality": "..."}]}
 
 "shop": the name of the shop as printed on the receipt, the brand only, for example "Auchan", "Edeka" or "Rewe" (not the street, branch number or slogan). Use "" if it cannot be read.
 
@@ -32,9 +35,47 @@ For each product line:
 - "displayName": a short, plain English name for the product, for example "Semi-skimmed milk 1 L" for "LAIT DEMI-ECR 1L".
 - "amount": what the line cost in total, as a number, after any discount printed for that line. Omit it if the line shows no price.
 - "quantity": the quantity or weight if printed, for example "2" or "1.25 kg"; otherwise "".
-
+- "health": "HEALTHY", "MEDIUM", "UNHEALTHY", or "NOT_FOOD" for anything that is not food or drink.
+  HEALTHY: fresh fruit and vegetables, legumes, whole grains, plain dairy, eggs, fish, lean meat, nuts, water, plain tea and coffee.
+  MEDIUM: white bread, plain pasta and rice, cheese, butter, fruit juice, processed or red meat, breakfast cereals, sauces.
+  UNHEALTHY: sweets, chocolate, biscuits and pastries, crisps and salty snacks, sugary or energy drinks, alcohol, fast food, ready meals high in fat, sugar or salt, tobacco.
+- "foodGroup": the product's category, a short lowercase name, for example "fresh produce", "dairy", "bakery", "meat", "fish", "drinks", "sweets & snacks", "alcohol", "frozen", "pantry", "household".
+- "seasonality": only for fresh fruit and vegetables: "SEASONAL" if it is in season in %s in %s, or "OUT_OF_SEASON" if in that month it is most likely imported from another continent or frozen. "NOT_PRODUCE" for everything else, including frozen and canned produce.
+%s%s
 Do not list totals, subtotals, taxes, payment lines, change given, loyalty points, bottle deposits or coupons as products.
-If this is not a shop receipt, or it has no product lines, return {"products": []}.`
+If this is not a shop receipt, or it has no product lines, return {"shop": "", "products": []}.`
+
+// buildProductExtractionPrompt fills the template for a receipt bought in the given month.
+func buildProductExtractionPrompt(month time.Time, categoryBlock string, corrections map[string]string) string {
+	monthName := month.Format("January 2006")
+
+	if categoryBlock != "" {
+		categoryBlock += "\n"
+	}
+
+	examples := ""
+	if len(corrections) > 0 {
+		names := make([]string, 0, len(corrections))
+		for name := range corrections {
+			names = append(names, name)
+		}
+		sort.Strings(names)
+		if len(names) > foodClassificationMaxExamples {
+			names = names[:foodClassificationMaxExamples]
+		}
+
+		lines := make([]string, len(names))
+		for i, name := range names {
+			lines[i] = fmt.Sprintf("- %s: %s", name, corrections[name])
+		}
+		examples = fmt.Sprintf(foodClassificationCorrections, strings.Join(lines, "\n"))
+	}
+
+	return fmt.Sprintf(
+		productExtractionPromptTemplate,
+		foodClassificationRegion, monthName, foodClassificationRegion, monthName, categoryBlock, examples,
+	)
+}
 
 const (
 	// How long a receipt waits after the AI could not be reached before it is tried again.
@@ -111,7 +152,21 @@ func (service ReceiptProductExtractionService) extract(extraction models.Receipt
 		return repository.UpdateExtraction(extraction.ReceiptId, models.PRODUCT_EXTRACTION_FAILED, time.Now(), extraction.Attempts, "The receipt has no image to read")
 	}
 
-	products, shopName, aiErr, answerErr := service.readProducts(receipt.GroupId, imagePaths)
+	resolver, err := newFoodGroupResolver(service.TX)
+	if err != nil {
+		return err
+	}
+	corrections, err := repositories.NewFoodClassificationRepository(service.TX).CorrectionsForGroup(receipt.GroupId)
+	if err != nil {
+		return err
+	}
+
+	// The receipt's own month, as a calendar day stored as midnight UTC.
+	boughtOn := receipt.Date.UTC()
+	month := time.Date(boughtOn.Year(), boughtOn.Month(), 1, 0, 0, 0, 0, time.UTC)
+	prompt := buildProductExtractionPrompt(month, resolver.PromptBlock(), corrections)
+
+	products, shopName, aiErr, answerErr := service.readProducts(receipt.GroupId, imagePaths, prompt)
 	switch {
 	case aiErr != nil:
 		return service.recordOutage(extraction, aiErr)
@@ -122,6 +177,17 @@ func (service ReceiptProductExtractionService) extract(extraction models.Receipt
 	for i := range products {
 		products[i].ReceiptId = extraction.ReceiptId
 		products[i].Position = i
+
+		// A product the answer classified is finished: the household's earlier corrections win over
+		// the AI on health, and its category goes through the Manage Categories list.
+		if products[i].Health != "" {
+			if health, corrected := corrections[models.NormalizeProductName(productClassificationName(products[i]))]; corrected {
+				products[i].Health = health
+			}
+			products[i].FoodGroup = resolver.Resolve(products[i].FoodGroup)
+			classifiedAt := time.Now()
+			products[i].ClassifiedAt = &classifiedAt
+		}
 	}
 
 	err = repository.ReplaceProducts(extraction.ReceiptId, products)
@@ -194,6 +260,7 @@ func (service ReceiptProductExtractionService) receiptImagePaths(receipt models.
 func (service ReceiptProductExtractionService) readProducts(
 	groupId uint,
 	imagePaths []string,
+	prompt string,
 ) (products []models.ReceiptProduct, shopName string, aiErr error, answerErr error) {
 	processingService, err := NewSystemReceiptProcessingService(service.TX, utils.UintToString(groupId))
 	if err != nil || processingService.ReceiptProcessingSettings.ID == 0 {
@@ -206,7 +273,7 @@ func (service ReceiptProductExtractionService) readProducts(
 	}
 
 	for _, settings := range candidates {
-		response, callErr := service.askAi(processingService, settings, imagePaths)
+		response, callErr := service.askAi(processingService, settings, imagePaths, prompt)
 		if callErr != nil {
 			aiErr = callErr
 			logging.LogStd(logging.LOG_LEVEL_ERROR, "receipt products: AI call failed: "+callErr.Error())
@@ -236,8 +303,9 @@ func (service ReceiptProductExtractionService) askAi(
 	processingService ReceiptProcessingService,
 	settings models.ReceiptProcessingSettings,
 	imagePaths []string,
+	prompt string,
 ) (string, error) {
-	message := structs.AiClientMessage{Role: "user", Content: productExtractionPrompt}
+	message := structs.AiClientMessage{Role: "user", Content: prompt}
 
 	if settings.IsVisionModel {
 		for _, path := range imagePaths {
@@ -276,6 +344,9 @@ type productResponse struct {
 		DisplayName string          `json:"displayName"`
 		Amount      json.RawMessage `json:"amount"`
 		Quantity    json.RawMessage `json:"quantity"`
+		Health      string          `json:"health"`
+		FoodGroup   string          `json:"foodGroup"`
+		Seasonality string          `json:"seasonality"`
 	} `json:"products"`
 }
 
@@ -299,12 +370,26 @@ func parseProductResponse(cleanedResponse string) ([]models.ReceiptProduct, erro
 			continue
 		}
 
-		products = append(products, models.ReceiptProduct{
+		product := models.ReceiptProduct{
 			Name:        truncateRunes(name, models.MaxReceiptProductNameLength),
 			DisplayName: truncateRunes(strings.TrimSpace(line.DisplayName), models.MaxReceiptProductNameLength),
 			Amount:      parseLooseAmount(line.Amount),
 			Quantity:    truncateRunes(strings.TrimSpace(looseString(line.Quantity)), models.MaxReceiptProductQuantityLength),
-		})
+		}
+
+		// The same answer may classify the product (Phase 3 feedback); without a usable health the
+		// product is left for the classification sweep.
+		if health := strings.ToUpper(strings.TrimSpace(line.Health)); models.IsHealthRating(health) {
+			seasonality := strings.ToUpper(strings.TrimSpace(line.Seasonality))
+			if !models.IsSeasonality(seasonality) {
+				seasonality = models.SEASONALITY_NOT_PRODUCE
+			}
+			product.Health = health
+			product.FoodGroup = truncateRunes(strings.ToLower(strings.TrimSpace(line.FoodGroup)), 50)
+			product.Seasonality = seasonality
+		}
+
+		products = append(products, product)
 	}
 
 	return products, nil
@@ -404,4 +489,12 @@ func (service ReceiptProductExtractionService) applyReadResult(receipt models.Re
 
 	// Stamps the resolved date and settles the receipt's items, as every other way of resolving does.
 	return repositories.NewReceiptRepository(service.TX).AfterReceiptUpdated(&receipt)
+}
+
+// productClassificationName is the name a product's correction is remembered under: its plain name.
+func productClassificationName(product models.ReceiptProduct) string {
+	if product.DisplayName != "" {
+		return product.DisplayName
+	}
+	return product.Name
 }
