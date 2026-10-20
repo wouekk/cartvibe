@@ -66,9 +66,9 @@
       <span class="tile__label">Receipts</span>
       <span class="tile__value">{{ overview()?.receiptCount ?? "–" }}</span>
       @if ((overview()?.openReceiptCount ?? 0) > 0) {
-        <span class="tile__hint tile__hint--up">{{ overview()?.openReceiptCount }} still open</span>
+        <span class="tile__hint tile__hint--up">{{ overview()?.openReceiptCount }} to check</span>
       } @else {
-        <span class="tile__hint">All resolved</span>
+        <span class="tile__hint">All done</span>
       }
     </a>
 

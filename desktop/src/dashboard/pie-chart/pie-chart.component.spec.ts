@@ -182,7 +182,8 @@ describe("PieChartComponent", () => {
 
       expect(widgetService.getPieChartData).toHaveBeenCalledWith(1, {
         chartGrouping: ChartGrouping.Tags,
-        filter: filterConfig.filter,
+        // "To check" goes out as every status it stands for (Phase 3 C6).
+        filter: { status: { value: ["OPEN", "NEEDS_ATTENTION", "DRAFT"], operation: "equals" } },
       });
     });
 

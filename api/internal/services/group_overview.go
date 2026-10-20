@@ -191,7 +191,8 @@ func foldGroupOverview(receipts []models.Receipt, monthStart time.Time) structs.
 		}
 
 		overview.ReceiptCount++
-		if receipt.Status == models.OPEN || receipt.Status == models.NEEDS_ATTENTION {
+		// Everything a family reads as "To check" (Phase 3 C6).
+		if receipt.Status == models.OPEN || receipt.Status == models.NEEDS_ATTENTION || receipt.Status == models.DRAFT {
 			overview.OpenReceiptCount++
 		}
 

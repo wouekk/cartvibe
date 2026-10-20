@@ -32,42 +32,31 @@ describe('StatusChipComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  // The status -> class map is the entire color layer, so it is asserted here rather
-  // than left to the stylesheet. DECLINED owns red; NEEDS_ATTENTION is amber.
-  const statusClassCases: { status: ReceiptStatus; expected: string }[] = [
-    { status: ReceiptStatus.NeedsAttention, expected: 'needs-attention' },
-    { status: ReceiptStatus.Declined, expected: 'declined' },
-    { status: ReceiptStatus.Open, expected: 'open' },
-    { status: ReceiptStatus.Resolved, expected: 'resolved' },
+  // The status -> class map is the entire color layer (Phase 3 C6): every status reads as "To check"
+  // (yellow) or "Done" (green).
+  const statusCases: { status: ReceiptStatus; expected: string; label: string }[] = [
+    { status: ReceiptStatus.Open, expected: 'open', label: 'To check' },
+    { status: ReceiptStatus.NeedsAttention, expected: 'open', label: 'To check' },
+    { status: ReceiptStatus.Draft, expected: 'open', label: 'To check' },
+    { status: ReceiptStatus.Resolved, expected: 'resolved', label: 'Done' },
+    { status: ReceiptStatus.Declined, expected: 'resolved', label: 'Done' },
   ];
 
-  statusClassCases.forEach(({ status, expected }) => {
-    it(`should apply the ${expected} class for ${status}`, async () => {
+  statusCases.forEach(({ status, expected, label }) => {
+    it(`should show ${status} as ${label}`, async () => {
       fixture.componentRef.setInput('status', status);
       await fixture.whenStable();
 
       const classes = chipClasses();
       expect(classes).toContain(expected);
-
-      statusClassCases
-        .map((c) => c.expected)
-        .filter((c) => c !== expected)
-        .forEach((other) => expect(classes).not.toContain(other));
+      expect(classes).not.toContain(expected === 'open' ? 'resolved' : 'open');
+      expect(classes).not.toContain('declined');
+      expect(fixture.nativeElement.textContent.trim()).toBe(label);
     });
   });
 
-  it('should apply no status class for DRAFT', async () => {
-    fixture.componentRef.setInput('status', ReceiptStatus.Draft);
-    await fixture.whenStable();
-
-    const classes = chipClasses();
-    statusClassCases.forEach(({ expected }) =>
-      expect(classes).not.toContain(expected)
-    );
-  });
-
   // The activity list drives the chip with customStatusColor for system-task status.
-  // 'red' must keep meaning red now that NEEDS_ATTENTION is amber.
+  // 'red' keeps meaning red.
   it('should map the red custom status color onto the declined class', async () => {
     fixture.componentRef.setInput('customStatusColor', 'red');
     await fixture.whenStable();
