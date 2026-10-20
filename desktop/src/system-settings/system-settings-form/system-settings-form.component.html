@@ -31,39 +31,9 @@
       [inputFormControl]="form | formGet:'enableLocalSignUp'"
       [readonly]="formConfig.mode |  inputReadonly"
     ></app-checkbox>
-    <app-checkbox
-      label="Debug OCR"
-      [inputFormControl]="form | formGet:'debugOcr'"
-      [readonly]="formConfig.mode |  inputReadonly"
-    ></app-checkbox>
-    <app-autocomlete
-      optionFilterKey="name"
-      optionDisplayKey="name"
-      label="Receipt Processing Settings"
-      optionValueKey="id"
-      [inputFormControl]="form | formGet:'receiptProcessingSettingsId'"
-      [options]="allReceiptProcessingSettings"
-      [displayWith]="displayWith.bind(this)"
-      [readonly]="formConfig.mode |  inputReadonly"
-    ></app-autocomlete>
-    <app-autocomlete
-      #fallbackReceiptProcessingSettings
-      optionFilterKey="name"
-      optionDisplayKey="name"
-      label="Fallback Receipt Processing Settings"
-      optionValueKey="id"
-      [inputFormControl]="form | formGet:'fallbackReceiptProcessingSettingsId'"
-      [options]="filteredReceiptProcessingSettings"
-      [displayWith]="displayWith.bind(this)"
-      [readonly]="(formConfig.mode |  inputReadonly) || !(form | formGet:'receiptProcessingSettingsId').value"
-    ></app-autocomlete>
-    <app-input
-      label="PDF rasterization DPI"
-      type="number"
-      hint="Resolution used when converting PDF receipts to images for OCR/AI. Higher values improve quality but increase processing time and memory. Default 300; allowed range 72-1200."
-      [inputFormControl]="form | formGet:'pdfDpi'"
-      [readonly]="formConfig.mode |  inputReadonly"
-    ></app-input>
+    <!-- The receipt-reading knobs (Debug OCR, processing settings and their fallback, PDF DPI) are
+         gone from the form (Phase 3 M1, A3): the AI page under Manage sets the AI, the rest keeps
+         its stored value and the submit still sends it. -->
   </app-form-section>
   <app-form-section
     headerText="Task Server Settings"

@@ -16,11 +16,6 @@ export const systemSettingsLandingGuard: CanActivateFn = (): UrlTree => {
 
   const tabs: { path: string; permission: Permission }[] = [
     { path: "settings/view", permission: Permission.AppSystemSettingsRead },
-    {
-      path: "receipt-processing-settings",
-      permission: Permission.AppReceiptProcessingSettingsRead,
-    },
-    { path: "prompts", permission: Permission.AppPromptsRead },
     { path: "system-emails", permission: Permission.AppSystemEmailsRead },
     { path: "oidc-providers", permission: Permission.AppOidcProvidersRead },
     { path: "system-tasks", permission: Permission.AppSystemTasksRead },

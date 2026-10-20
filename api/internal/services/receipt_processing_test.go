@@ -468,14 +468,12 @@ func TestNewSystemReceiptProcessingService_NoGroupId(t *testing.T) {
 
 // ---------- buildPrompt ----------
 
-func TestBuildPrompt_InterpolatesVariables(t *testing.T) {
+// Phase 3 A3: every read uses the built-in prompt, whatever prompt the settings name.
+func TestBuildPrompt_UsesTheBuiltInPromptWithItsVariables(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
 	db := repositories.GetDB()
-	prompt := models.Prompt{
-		Name:   "bp",
-		Prompt: "categories=@categories tags=@tags ocr=@ocrText year=@currentYear",
-	}
+	prompt := models.Prompt{Name: "custom", Prompt: "a custom prompt that is no longer read"}
 	if err := db.Create(&prompt).Error; err != nil {
 		t.Fatalf("seed prompt: %v", err)
 	}
@@ -487,29 +485,32 @@ func TestBuildPrompt_InterpolatesVariables(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if !strings.Contains(realPrompt, "ocr=some ocr") {
+	if strings.Contains(realPrompt, "custom prompt") {
+		t.Errorf("expected the built-in prompt, got: %q", realPrompt)
+	}
+	if !strings.Contains(realPrompt, "Receipt text: some ocr") {
 		t.Errorf("expected ocr substituted, got: %q", realPrompt)
 	}
-	if !strings.Contains(realPrompt, "year=") {
-		t.Errorf("expected current-year substitution, got: %q", realPrompt)
+	if strings.Contains(realPrompt, "@currentYear") || strings.Contains(realPrompt, "@categories") {
+		t.Errorf("expected every variable substituted, got: %q", realPrompt)
 	}
 	if cmd.Status != models.SYSTEM_TASK_SUCCEEDED {
 		t.Errorf("expected SUCCEEDED, got: %s", cmd.Status)
 	}
 }
 
-func TestBuildPrompt_InvalidPromptId(t *testing.T) {
+func TestBuildPrompt_NeedsNoStoredPrompt(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
 	service := ReceiptProcessingService{
 		ReceiptProcessingSettings: models.ReceiptProcessingSettings{PromptId: 999999},
 	}
 	_, cmd, err := service.buildPrompt(service.ReceiptProcessingSettings, "")
-	if err == nil {
-		t.Fatal("expected error for missing prompt")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
-	if cmd.Status != models.SYSTEM_TASK_FAILED {
-		t.Errorf("expected FAILED, got: %s", cmd.Status)
+	if cmd.Status != models.SYSTEM_TASK_SUCCEEDED {
+		t.Errorf("expected SUCCEEDED, got: %s", cmd.Status)
 	}
 }
 
