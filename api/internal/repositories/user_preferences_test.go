@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"github.com/shopspring/decimal"
 	"receipt-wrangler/api/internal/models"
 	"receipt-wrangler/api/internal/utils"
 	"testing"
@@ -83,5 +84,34 @@ func TestUpdateUserPreferencesTurnsCloseChipSelectOnSelectBackOff(t *testing.T) 
 	}
 	if read.CloseChipSelectOnSelect {
 		utils.PrintTestError(t, read.CloseChipSelectOnSelect, false)
+	}
+}
+
+func TestUpdateUserPreferencesRoundTripsAndClearsTheMonthlySpendingGoal(t *testing.T) {
+	defer TruncateTestDb()
+	CreateTestUser()
+
+	repository := NewUserPreferencesRepository(nil)
+	if _, err := repository.GetUserPreferencesOrCreate(1); err != nil {
+		t.Fatal(err)
+	}
+
+	goal := decimal.RequireFromString("500.50")
+	updated, err := repository.UpdateUserPreferences(1, models.UserPrefernces{MonthlySpendingGoal: &goal})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if updated.MonthlySpendingGoal == nil || updated.MonthlySpendingGoal.String() != "500.5" {
+		t.Fatalf("expected the goal to be stored, got %v", updated.MonthlySpendingGoal)
+	}
+
+	// Clearing it (no value) must stick: the row is written with Select("*").
+	cleared, err := repository.UpdateUserPreferences(1, models.UserPrefernces{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	read, _ := repository.GetUserPreferencesOrCreate(1)
+	if cleared.MonthlySpendingGoal != nil || read.MonthlySpendingGoal != nil {
+		t.Errorf("a cleared goal should read back as none, got %v", read.MonthlySpendingGoal)
 	}
 }
