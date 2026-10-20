@@ -237,7 +237,7 @@
                       <span class="muted small shop">{{ receipt.shopName }}</span>
                     }
                   </td>
-                  <td>{{ (receipt.paidByUserId | user)?.displayName ?? "—" }}</td>
+                  <td>{{ ((receipt.paidByUserId + "") | user)?.displayName ?? "—" }}</td>
                   <td><app-status-chip [status]="receipt.status"></app-status-chip></td>
                   <td class="numeric strong">{{ receipt.amount | customCurrency }}</td>
                 </tr>
