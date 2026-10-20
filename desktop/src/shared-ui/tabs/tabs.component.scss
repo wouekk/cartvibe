@@ -1,0 +1,58 @@
+@use "../../variables.scss" as variables;
+@use "sass:map";
+
+// The one tab look of the app: the pill bar of the Dashboard's period picker and System Settings
+// (a slate track, the open tab a white pill), instead of Material's underlined tabs.
+:host {
+  display: block;
+}
+
+:host ::ng-deep {
+  nav.mat-mdc-tab-nav-bar {
+    display: inline-flex;
+    max-width: 100%;
+    padding: 4px;
+    border: 0;
+    border-radius: 9px;
+    background: map.get(variables.$accent-palette, 100);
+  }
+
+  nav.mat-mdc-tab-nav-bar .mat-mdc-tab-link-container,
+  nav.mat-mdc-tab-nav-bar .mat-mdc-tab-list {
+    border: 0;
+  }
+
+  nav.mat-mdc-tab-nav-bar .mat-mdc-tab-links {
+    gap: 4px;
+  }
+
+  nav.mat-mdc-tab-nav-bar .mat-mdc-tab-link {
+    min-width: 0;
+    height: 36px;
+    padding: 0 16px;
+    border-radius: 6px;
+    opacity: 1;
+    letter-spacing: normal;
+    transition: all 0.15s ease;
+  }
+
+  nav.mat-mdc-tab-nav-bar .mat-mdc-tab-link .mdc-tab__text-label {
+    color: map.get(variables.$accent-palette, 600);
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: normal;
+  }
+
+  nav.mat-mdc-tab-nav-bar .mat-mdc-tab-link.mdc-tab--active {
+    background: #fff;
+    box-shadow: variables.$shadow-sm;
+  }
+
+  nav.mat-mdc-tab-nav-bar .mat-mdc-tab-link.mdc-tab--active .mdc-tab__text-label {
+    color: map.get(variables.$primary-palette, 700);
+  }
+
+  nav.mat-mdc-tab-nav-bar .mdc-tab-indicator {
+    display: none;
+  }
+}

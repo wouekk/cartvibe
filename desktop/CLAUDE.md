@@ -3131,3 +3131,9 @@ alert is a signal, and "Updated ..." is a muted footer. The old `settings/view|e
 `system-emails` and `system-tasks` list paths redirect to the tabs; the landing guard goes to `general`.
 Stale e2e: specs that click the old tab names or the pencil (`system-settings-tab-gating.spec.ts`, `login-qr.spec.ts`,
 `session-lifetime.spec.ts`, ...) need updating with the other Playwright specs.
+
+The AI page is the baseline for every settings screen (title and intro, a 640-760px centered column, white cards with
+`$border-radius-lg` and `$shadow-sm`, **Save inside the card** as a flat primary button with a hint, never a floating
+bar). System Settings and User Settings follow it; `app-tabs` (User Settings, group tabs) now renders the same pill
+tab look as the Dashboard and System Settings. System Settings' Save sits at the end of each tab's last card
+(`settings-save`), enabled once the form is dirty and valid.

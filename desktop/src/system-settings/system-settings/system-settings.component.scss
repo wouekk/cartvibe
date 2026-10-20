@@ -1,8 +1,24 @@
-// Pill tabs on the left, like the Dashboard's period picker, over a readable column of cards.
+@use "../../variables.scss" as variables;
+
+// The AI page's frame: a title and a line of intro, then a narrow column of cards. The pill tabs
+// (the Dashboard's period picker look) sit between them.
 .settings-shell {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: variables.$spacing-md;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.settings-heading {
+  h1 {
+    margin: 0 0 variables.$spacing-sm;
+  }
+
+  .intro {
+    margin: 0;
+    color: #475569;
+  }
 }
 
 .settings-tabs {
@@ -13,5 +29,4 @@
 
 .settings-content {
   width: 100%;
-  max-width: 1000px;
 }
