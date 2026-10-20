@@ -15,6 +15,9 @@ const (
 	ShoppingListEventItemToggled    ShoppingListEventType = "ITEM_TOGGLED"
 	ShoppingListEventItemDeleted    ShoppingListEventType = "ITEM_DELETED"
 	ShoppingListEventCheckedCleared ShoppingListEventType = "CHECKED_CLEARED"
+	// TRIPS_CHANGED says a list's shopping trips changed. It carries nothing else: a trip shows receipt
+	// details that need receipt permissions the stream does not check, so clients refetch them.
+	ShoppingListEventTripsChanged ShoppingListEventType = "TRIPS_CHANGED"
 )
 
 // ShoppingListEvent carries the full changed entity so a client can apply it without refetching.

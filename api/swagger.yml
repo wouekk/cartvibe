@@ -4241,6 +4241,172 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
+  /shopping-list/{listId}/trip:
+    parameters:
+      - in: path
+        name: listId
+        schema:
+          type: integer
+        required: true
+        description: Id of the shopping list
+    get:
+      tags:
+        - ShoppingList
+      summary: Get a shopping list's trips
+      description: >-
+        This will return the list's most recent trips (receipts attached to it), newest first, with
+        what was bought that was not on the list [group.shopping-lists.read, group.receipts.read]. A
+        receipt hidden from the caller by their paid-by visibility shows no details and no result.
+      operationId: getShoppingTrips
+      responses:
+        200:
+          description: The trips. Always an array.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ShoppingTripView"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+    post:
+      tags:
+        - ShoppingList
+      summary: Attach an existing receipt to a shopping list
+      description: >-
+        This will attach a receipt of the list's group to the list and queue the comparison of its
+        products with what was planned: the open items, plus those crossed off since the day of the
+        receipt or in the last day [group.shopping-lists.update, group.receipts.read]. A receipt is on
+        one list at most.
+      operationId: attachShoppingTripReceipt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AttachShoppingTripReceiptCommand"
+      responses:
+        200:
+          description: The new trip
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShoppingTrip"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+  /shopping-list/{listId}/trip/upload:
+    parameters:
+      - in: path
+        name: listId
+        schema:
+          type: integer
+        required: true
+        description: Id of the shopping list
+    post:
+      tags:
+        - ShoppingList
+      summary: Start a shopping trip from a receipt photo
+      description: >-
+        This will keep the photo and turn it into a receipt the way Quick Scan does, with the group's
+        quick-scan defaults, then compare it with the list. While the AI is unavailable the photo
+        waits, for up to 14 days [group.shopping-lists.update, group.receipts.quick-scan]. Refused when
+        the caller's role requires a comment on receipts.
+      operationId: uploadShoppingTripPhoto
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: A photo or PDF of the receipt
+      responses:
+        200:
+          description: The new trip
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShoppingTrip"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+  /shopping-list/trip/{tripId}:
+    parameters:
+      - in: path
+        name: tripId
+        schema:
+          type: integer
+        required: true
+        description: Id of the shopping trip
+    delete:
+      tags:
+        - ShoppingList
+      summary: Remove a receipt from its shopping list
+      description: >-
+        This will detach the trip; the receipt stays, and its products lose their planned marks
+        [group.shopping-lists.update]
+      operationId: detachShoppingTrip
+      responses:
+        200:
+          $ref: "#/components/responses/Ok"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+  /shopping-list/trip/{tripId}/retry:
+    parameters:
+      - in: path
+        name: tripId
+        schema:
+          type: integer
+        required: true
+        description: Id of the shopping trip
+    post:
+      tags:
+        - ShoppingList
+      summary: Try a failed shopping trip again
+      description: >-
+        This will queue a FAILED trip again, re-reading its receipt's products if that is what failed
+        [group.shopping-lists.update]
+      operationId: retryShoppingTrip
+      responses:
+        200:
+          $ref: "#/components/responses/Ok"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
   /shopping-list/item/{itemId}:
     parameters:
       - in: path
@@ -4898,8 +5064,10 @@ components:
           type: string
           description: >-
             One of LIST_CREATED, LIST_UPDATED, LIST_DELETED, ITEM_ADDED, ITEM_UPDATED, ITEM_TOGGLED,
-            ITEM_DELETED, CHECKED_CLEARED. Deliberately a plain string rather than an enum, so a client
-            built before a new event type ships can ignore it instead of failing to deserialize.
+            ITEM_DELETED, CHECKED_CLEARED, TRIPS_CHANGED. TRIPS_CHANGED carries no entity: refetch the
+            list's trips, which need receipt access the stream does not check. Deliberately a plain
+            string rather than an enum, so a client built before a new event type ships can ignore it
+            instead of failing to deserialize.
         groupId:
           type: integer
           format: uint64
@@ -5043,6 +5211,137 @@ components:
         classificationOverridden:
           type: boolean
           description: The tags were corrected by a person
+        planned:
+          type: boolean
+          nullable: true
+          description: >-
+            Set once the receipt's shopping trip is compared with its list: true when the product was on
+            the list, false when it was not. Null when the receipt is on no list or not compared yet,
+            which counts as planned.
+        matchedShoppingListItemId:
+          type: integer
+          format: uint64
+          nullable: true
+          description: The list item a planned product matched; it may since have left the list
+    ShoppingTrip:
+      type: object
+      description: A receipt attached to a shopping list, or a photo waiting to become one.
+      required:
+        - id
+        - shoppingListId
+        - status
+        - lastError
+      properties:
+        id:
+          type: integer
+          format: uint64
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: integer
+          format: uint64
+          nullable: true
+        createdByString:
+          type: string
+        shoppingListId:
+          type: integer
+          format: uint64
+        receiptId:
+          type: integer
+          format: uint64
+          nullable: true
+          description: Null while an uploaded photo waits to become a receipt
+        status:
+          type: string
+          description: >-
+            PENDING, RUNNING, DONE, UNAVAILABLE (the AI could not be reached; retried automatically) or
+            FAILED. A plain string, never an enum, so a new state cannot break an older client.
+        lastError:
+          type: string
+          description: Why the last step did not succeed; empty otherwise
+    ShoppingTripReceipt:
+      type: object
+      required:
+        - id
+        - name
+        - date
+        - amount
+      properties:
+        id:
+          type: integer
+          format: uint64
+        name:
+          type: string
+        date:
+          type: string
+          format: date-time
+        amount:
+          type: string
+          description: The receipt's total, as a decimal string
+    ShoppingTripView:
+      type: object
+      description: >-
+        A shopping trip as a list shows it. receipt is null while the photo waits, and for a receipt
+        the caller may not see.
+      required:
+        - id
+        - shoppingListId
+        - createdAt
+        - status
+        - lastError
+        - waitingForPhoto
+        - plannedItemCount
+        - productCount
+        - unplannedProducts
+      properties:
+        id:
+          type: integer
+          format: uint64
+        shoppingListId:
+          type: integer
+          format: uint64
+        createdAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          description: The trip's status (see ShoppingTrip.status); a plain string
+        lastError:
+          type: string
+        waitingForPhoto:
+          type: boolean
+          description: True while an uploaded photo has not become a receipt yet
+        receipt:
+          $ref: "#/components/schemas/ShoppingTripReceipt"
+        plannedItemCount:
+          type: integer
+          description: How many list items counted as planned
+        productCount:
+          type: integer
+          description: How many products the receipt has; 0 until the trip is DONE
+        unplannedAmount:
+          type: string
+          nullable: true
+          description: >-
+            What the products not on the list cost, as a decimal string. Null until the trip is DONE,
+            and for a receipt the caller may not see.
+        unplannedProducts:
+          type: array
+          description: Names of the products that were not on the list. Always an array.
+          items:
+            type: string
+    AttachShoppingTripReceiptCommand:
+      type: object
+      required:
+        - receiptId
+      properties:
+        receiptId:
+          type: integer
+          format: uint64
     ReceiptProductsView:
       type: object
       required:

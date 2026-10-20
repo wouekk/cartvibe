@@ -11,11 +11,8 @@ import (
 
 	"gorm.io/gorm"
 	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/logging"
 	"receipt-wrangler/api/internal/models"
 	"receipt-wrangler/api/internal/repositories"
-	"receipt-wrangler/api/internal/structs"
-	"receipt-wrangler/api/internal/utils"
 )
 
 const (
@@ -130,43 +127,16 @@ func (service FoodClassificationService) classifyBatch(batch classificationBatch
 		return 0, err
 	}
 
-	processingService, err := NewSystemReceiptProcessingService(service.TX, utils.UintToString(batch.groupId))
-	if err != nil || processingService.ReceiptProcessingSettings.ID == 0 {
-		// No AI configured: wait quietly, like the product reading does.
-		return 0, nil
-	}
-
-	prompt := buildClassificationPrompt(batch, corrections)
-	candidates := []models.ReceiptProcessingSettings{processingService.ReceiptProcessingSettings}
-	if processingService.FallbackReceiptProcessingSettings.ID > 0 {
-		candidates = append(candidates, processingService.FallbackReceiptProcessingSettings)
-	}
-
 	var answers map[string]repositories.ClassificationResult
-	answered := false
-	for _, settings := range candidates {
-		aiService := AiService{ReceiptProcessingSettings: settings}
-		response, _, callErr := aiService.CreateChatCompletion(structs.AiChatCompletionOptions{
-			Messages:   []structs.AiClientMessage{{Role: "user", Content: prompt}},
-			DecryptKey: true,
+	outcome, _ := askTextAi(service.TX, batch.groupId, buildClassificationPrompt(batch, corrections), "food classification",
+		func(cleaned string) error {
+			parsed, parseErr := parseClassificationResponse(cleaned)
+			answers = parsed
+			return parseErr
 		})
-		if callErr != nil {
-			logging.LogStd(logging.LOG_LEVEL_ERROR, "food classification: AI call failed: "+callErr.Error())
-			continue
-		}
 
-		answered = true
-		parsed, parseErr := parseClassificationResponse(processingService.cleanResponse(response))
-		if parseErr != nil {
-			logging.LogStd(logging.LOG_LEVEL_ERROR, "food classification: unreadable answer: "+parseErr.Error())
-			continue
-		}
-		answers = parsed
-		break
-	}
-
-	if !answered {
-		// An outage: nothing counts against the products; the next sweep tries again.
+	if outcome == textAiNotConfigured || outcome == textAiUnreachable {
+		// No AI, or an outage: nothing counts against the products; the next sweep tries again.
 		return 0, nil
 	}
 

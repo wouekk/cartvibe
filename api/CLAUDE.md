@@ -4018,3 +4018,44 @@ NOT_PRODUCE, judged for **Western Europe** in the month bought), `classifiedAt`,
   refetch. Group deletion removes the group's corrections.
 - Tests: `services/food_classification_test.go`, plus the correction cases in
   `handlers/receipt_products_test.go` and `handlers/shopping_lists_test.go`.
+
+## Shopping trips: receipts attached to lists (fork extension, Phase 2c)
+
+A `models.ShoppingTrip` is a receipt attached to a shopping list, compared with what was planned.
+Products not on the list are marked `planned = false` on `ReceiptProduct`: that is unplanned
+spending (overspending type 1). `planned = null` (no list, not compared yet, the AI never answered)
+**counts as planned**, the user's rule for a receipt with no list.
+
+- **Two ways in.** `POST /shopping-list/{listId}/trip` attaches an existing receipt of the list's
+  group (`group.shopping-lists.update` + `group.receipts.read`, authorized on both the list's group
+  and the receipt, paid-by visibility included). `POST /shopping-list/{listId}/trip/upload` takes a
+  photo (`group.shopping-lists.update` + `group.receipts.quick-scan`). A receipt is on one trip at
+  most (unique index on the nullable `receipt_id`).
+- **The planned snapshot** (`plannedItems`, JSON text) is taken at attach time, since the list keeps
+  changing: the open items plus those crossed off since the start of the receipt's day (app zone) or in
+  the last 24 hours, whichever reaches back further.
+- **An uploaded photo waits for the AI, unlike Quick Scan** (which retries 3 times and archives).
+  It is stored in `data/shopping-trips/` (not `temp/`, which the temp sweep empties) and turned into a
+  receipt by `ReceiptService.QuickScan` with the group's quick-scan defaults (paid by, status), which
+  also deletes the photo once the receipt exists. With no AI configured the trip waits without calling
+  anything. A failed scan backs off 1 h, doubling to 12 h, because each scan that reaches the AI is
+  recorded in the group's activity. A role that requires a comment is refused at upload: no one is
+  there to give one when the scan runs.
+- **One sweep moves trips on** (`system_clean_up:shopping_trips`, every 5 minutes, ≤5 trips,
+  `claimDue` lease shared with the product reading): scan the photo → wait for the receipt's products
+  (queued with `EnsureReceiptProductsQueued`, which never re-reads products already read) → compare.
+  An empty list or a receipt without products needs no AI. The comparison is one text-only call
+  (`askTextAi`, also used by classification). Outages give `UNAVAILABLE`, retried hourly. An answer
+  that leaves out a product is a bad answer, because guessing "unplanned" would overstate the spend:
+  3 of them → `FAILED`. Everything gives up after 14 days from `queuedAt`. `POST /trip/{id}/retry`
+  restarts a `FAILED` trip, re-queuing a failed product read.
+- **Races are settled in the UPDATE:** every sweep write requires the trip still `RUNNING`, so a
+  detach, or a re-read of the products (`ReplaceProducts` sends the trip back to `PENDING`), during a
+  comparison discards its result.
+- **Reading trips** (`GET /shopping-list/{listId}/trip`) needs `group.receipts.read` too: a trip shows
+  the receipt and what was bought. A receipt hidden by paid-by visibility shows no details. SSE sends
+  only `TRIPS_CHANGED` (no payload) for the same reason, and clients refetch.
+- **Detaching** removes the trip and clears its products' marks; the receipt stays. List and group
+  deletes detach their trips first (FK), and remove waiting photos after the commit. Receipt deletion
+  removes its trip.
+- Tests: `services/shopping_trips_test.go`, `handlers/shopping_trips_test.go`.

@@ -55,6 +55,14 @@ func StartSystemCleanUpTasks() error {
 	// waiting it costs two indexed queries; with no AI configured it makes no call.
 	foodClassificationSweepTask := asynq.NewTask(FoodClassificationSweep, nil)
 	_, err = RegisterTask("@every 2m", foodClassificationSweepTask, cleanUpQueue, 0)
+	if err != nil {
+		return err
+	}
+
+	// Every 5 minutes, in step with the product reading a trip usually waits on. A trip waiting out an
+	// AI outage is skipped until its own retry time.
+	shoppingTripSweepTask := asynq.NewTask(ShoppingTripSweep, nil)
+	_, err = RegisterTask("@every 5m", shoppingTripSweepTask, cleanUpQueue, 0)
 
 	return err
 }
