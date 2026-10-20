@@ -2839,6 +2839,20 @@ and on a group switch (`GroupState.overviewLink`). The guards' fallback redirect
   does not provide the `CurrencyPipe` it delegates to.
 - Backend: `api/CLAUDE.md` → "Receipt products".
 
+## Health and seasonality tags (fork, Phase 2b)
+
+- **`app-food-tags`** (`src/standalone/components/food-tags/`) is display-only: subtle chips for
+  health (Healthy / Medium / Unhealthy) and, for produce, Seasonal / Imported. `foodTagsOf` maps the
+  API's plain strings; `NOT_FOOD`, `UNKNOWN`, `""` and any value this build does not know show no
+  chip. Tones differ in lightness as well as hue, and each passes 4.5:1.
+- **Corrections go through menus, never the chips.** A shopping list row's ⋮ menu has "Correct tags"
+  (health, plus seasonality for produce already tagged with a health the API accepts back); the
+  receipt Products table has a per-row tag menu. The chips sit inside the row's big cross-off
+  button, so they must not be interactive themselves.
+- Tags arrive asynchronously (a sweep classifies items within ~2 minutes) and reach open lists as
+  `ITEM_UPDATED` events through the existing reducer — no polling.
+- Backend: `api/CLAUDE.md` → "Health and seasonality tags".
+
 ## Navigation sidebar (fork)
 
 `src/layout/sidebar/` is the app's navigation; the header keeps only the sidebar toggle, user

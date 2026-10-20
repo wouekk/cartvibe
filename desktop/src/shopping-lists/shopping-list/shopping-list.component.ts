@@ -10,6 +10,7 @@ import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog
 import { ShoppingListEventType, ShoppingListState } from "../../store/shopping-list.state";
 import { ApplyShoppingListEvent } from "../../store/shopping-list.state.actions";
 import { ShoppingListItemFormDialogComponent } from "../shopping-list-item-form-dialog/shopping-list-item-form-dialog.component";
+import { ShoppingListItemClassification } from "../shopping-list-item/shopping-list-item.component";
 import {
   buildShoppingListItemForm,
   DEFAULT_SHOPPING_LIST_UNIT,
@@ -131,6 +132,20 @@ export class ShoppingListComponent {
               itemIds,
             })
           ),
+        error: (error: HttpErrorResponse) => this.reportIfOffline(error),
+      });
+  }
+
+  /** A person's correction of an item's tags; the server remembers it for the group's future items. */
+  public correctTags(correction: ShoppingListItemClassification): void {
+    this.shoppingListService
+      .setShoppingListItemClassification(correction.item.id, {
+        health: correction.health,
+        ...(correction.seasonality ? { seasonality: correction.seasonality } : {}),
+      })
+      .pipe(take(1))
+      .subscribe({
+        next: (item) => this.applyItem(ShoppingListEventType.ItemUpdated, item),
         error: (error: HttpErrorResponse) => this.reportIfOffline(error),
       });
   }

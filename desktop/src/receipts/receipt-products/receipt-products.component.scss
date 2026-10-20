@@ -75,3 +75,14 @@
 .read-again {
   margin-top: variables.$spacing-sm;
 }
+
+.product__tags {
+  display: flex;
+  margin-top: 4px;
+}
+
+.actions {
+  width: 1%;
+  padding-right: 0 !important;
+  white-space: nowrap;
+}

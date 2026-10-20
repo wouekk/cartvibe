@@ -16,6 +16,7 @@
       @if (amount()) {
         <span class="quantity" data-testid="shopping-list-item-amount">{{ amount() }}</span>
       }
+      <app-food-tags class="tags" [values]="item()"></app-food-tags>
       @if (item().note) {
         <span class="note">{{ item().note }}</span>
       }
@@ -38,10 +39,38 @@
         <mat-icon>edit</mat-icon>
         <span>Edit</span>
       </button>
+      <button mat-menu-item data-testid="shopping-list-item-tags" [matMenuTriggerFor]="tagsMenu">
+        <mat-icon>sell</mat-icon>
+        <span>Correct tags</span>
+      </button>
       <button mat-menu-item data-testid="shopping-list-item-delete" (click)="deleteClicked.emit(item())">
         <mat-icon>delete</mat-icon>
         <span>Delete</span>
       </button>
+    </mat-menu>
+    <mat-menu #tagsMenu="matMenu">
+      @for (choice of healthChoices; track choice.value) {
+        <button
+          mat-menu-item
+          [attr.data-testid]="'shopping-list-item-health-' + choice.value"
+          (click)="classificationSelected.emit({ item: item(), health: choice.value })"
+        >
+          <mat-icon>{{ item().health === choice.value ? "check" : "" }}</mat-icon>
+          <span>{{ choice.label }}</span>
+        </button>
+      }
+      @if (canCorrectSeasonality()) {
+        @for (choice of seasonalityChoices; track choice.value) {
+          <button
+            mat-menu-item
+            [attr.data-testid]="'shopping-list-item-season-' + choice.value"
+            (click)="classificationSelected.emit({ item: item(), health: item().health, seasonality: choice.value })"
+          >
+            <mat-icon>{{ item().seasonality === choice.value ? "check" : "" }}</mat-icon>
+            <span>{{ choice.label }}</span>
+          </button>
+        }
+      }
     </mat-menu>
   }
 </div>

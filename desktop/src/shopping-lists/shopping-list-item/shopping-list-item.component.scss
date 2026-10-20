@@ -83,3 +83,8 @@
     color: variables.$basic-gray;
   }
 }
+
+// Health and seasonality tags sit on the name's line when there is room, and wrap below it on a phone.
+.tags {
+  align-self: center;
+}
