@@ -262,43 +262,62 @@
     <section class="card" aria-labelledby="overview-trend-title">
       <div class="card__header">
         <h2 id="overview-trend-title">{{ isDailyTrend() ? "Spending by day" : "Spending by month" }}</h2>
-        @if (bars().length > 0) {
+        @if (chartBars().length > 0 && !rangeTooLongForChart()) {
           <span class="muted" data-testid="overview-trend-summary">Average {{ averageBar() | customCurrency }} {{ isDailyTrend() ? "a day" : "a month" }}@if (goalMode()) { · Goal {{ goal() | customCurrency }}}</span>
         }
       </div>
-      @if (bars().length > 0) {
-        <div class="bars" role="img" [attr.aria-label]="(isDailyTrend() ? 'Daily' : 'Monthly') + ' spending, ' + periodLabel()">
-          @for (bar of bars(); track bar.key) {
+      @if (rangeTooLongForChart()) {
+        <div class="chart-export" data-testid="overview-range-export">
+          <p>Ranges over 1 year are best viewed as a report.</p>
+          <div class="chart-export__actions">
+            <button type="button" mat-stroked-button data-testid="overview-export-pdf" [disabled]="exporting()" (click)="exportPdf()">
+              Download Landscape PDF (1 yr/page)
+            </button>
+            <button type="button" mat-stroked-button data-testid="overview-export-csv" [disabled]="exporting()" (click)="exportCsv()">
+              Export CSV
+            </button>
+            <a routerLink="/reports">Open reports</a>
+          </div>
+        </div>
+      } @else if (chartBars().length > 0) {
+        @if (bars().length > chartBars().length) {
+          <p class="chart-note" data-testid="overview-chart-capped">Showing the latest {{ chartBars().length }} months.</p>
+        }
+        <div
+          class="bars"
+          [class.bars--dense]="denseChart()"
+          role="img"
+          [attr.aria-label]="(isDailyTrend() ? 'Daily' : 'Monthly') + ' spending, ' + periodLabel()"
+        >
+          @for (bar of chartBars(); track bar.key) {
             <div class="bars__column">
-              @if (!isDailyTrend()) {
-                <span class="bars__value">
-                  {{ bar.total | customCurrency }}
-                  @if (goalMode() && (bar.overAmount ?? 0) > 0) {
-                    <span class="bars__over-value" data-testid="overview-bar-over">+{{ (bar.overAmount ?? 0) | customCurrency }}</span>
-                  }
-                </span>
-              }
-              @if (goalMode()) {
-                <div class="bars__bar bars__bar--stack" [style.height]="goalBarHeight(bar.fraction)">
-                  @if ((bar.overAmount ?? 0) > 0) {
-                    <div class="bars__over" [style.flex-grow]="bar.overAmount"></div>
-                  }
-                  <div class="bars__base" [class.bars__base--selected]="bar.isSelected" [style.flex-grow]="bar.baseAmount"></div>
-                </div>
-              } @else {
-                <div class="bars__bar" [class.bars__bar--selected]="bar.isSelected" [style.height.%]="bar.heightPercent"></div>
-              }
+              <div class="bars__plot">
+                @if (!isDailyTrend()) {
+                  <span class="bars__value" [class.bars__value--zero]="bar.total === 0">
+                    {{ bar.total | customCurrency }}
+                    @if (goalMode() && (bar.overAmount ?? 0) > 0) {
+                      <span class="bars__over-value" data-testid="overview-bar-over">+{{ (bar.overAmount ?? 0) | customCurrency }}</span>
+                    }
+                  </span>
+                }
+                @if (goalMode()) {
+                  <div class="bars__bar bars__bar--stack" [style.height]="goalBarHeight(bar.fraction)">
+                    @if ((bar.overAmount ?? 0) > 0) {
+                      <div class="bars__over" [style.flex-grow]="bar.overAmount"></div>
+                    }
+                    <div class="bars__base" [class.bars__base--selected]="bar.isSelected" [style.flex-grow]="bar.baseAmount"></div>
+                  </div>
+                } @else {
+                  <div class="bars__bar" [class.bars__bar--selected]="bar.isSelected" [style.height.%]="bar.heightPercent"></div>
+                }
+              </div>
+              <span class="bars__label" aria-hidden="true">{{ bar.shortName }}</span>
             </div>
           }
           @if (goalMode() && showGoalLine()) {
             <div class="bars__goal" data-testid="overview-goal-line" [style.bottom]="goalLineBottom()">
               <span>Goal</span>
             </div>
-          }
-        </div>
-        <div class="bars__labels" aria-hidden="true">
-          @for (bar of bars(); track bar.key) {
-            <span>{{ bar.shortName }}</span>
           }
         </div>
       }

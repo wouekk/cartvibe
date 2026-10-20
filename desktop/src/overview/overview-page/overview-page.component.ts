@@ -1,9 +1,10 @@
+import { CurrencyPipe } from "@angular/common";
 import { Component, computed, effect, ElementRef, signal, untracked, viewChild } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { toObservable, toSignal } from "@angular/core/rxjs-interop";
 import { ActivatedRoute } from "@angular/router";
 import { Store } from "@ngxs/store";
-import { catchError, map, of, switchMap, take, tap } from "rxjs";
+import { catchError, firstValueFrom, map, of, switchMap, take, tap } from "rxjs";
 import {
   FilterOperation,
   GroupOverview,
@@ -24,6 +25,18 @@ import { SystemSettingsState } from "../../store/system-settings.state";
 import { DEFAULT_DIALOG_CONFIG } from "../../constants/dialog.constant";
 import { todayInZone } from "../../utils/app-time-zone";
 import { hasAll } from "../../utils/permission.utils";
+import { downloadFile } from "../../utils/file";
+import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
+import {
+  buildMonthlyCsv,
+  buildPrintHtml,
+  exceedsOneYear,
+  MAX_CHART_MONTHS,
+  monthKeysBetween,
+  shortMonthName,
+  splitIntoYears,
+  PrintYear,
+} from "../overview-export";
 import {
   buildDonutSegments,
   buildTrendBars,
@@ -62,6 +75,8 @@ const UNCATEGORIZED = "Uncategorized";
   templateUrl: "./overview-page.component.html",
   styleUrls: ["./overview-page.component.scss"],
   standalone: false,
+  // The export formats money like the rest of the app; the pipe is declared in PipesModule and needs CurrencyPipe.
+  providers: [CurrencyPipe, CustomCurrencyPipe],
 })
 export class OverviewPageComponent {
   public readonly groupId = toSignal(
@@ -106,7 +121,7 @@ export class OverviewPageComponent {
   public readonly goalMode = computed(() => this.goal() > 0 && this.overview()?.trendUnit === "MONTH");
 
   public readonly goalFraction = computed(() =>
-    this.goalMode() ? goalLineFraction(this.bars().map((bar) => bar.total), this.goal()) : 0
+    this.goalMode() ? goalLineFraction(this.chartBars().map((bar) => bar.total), this.goal()) : 0
   );
 
   /** A goal-scaled bar's height: its share of the chart, under the room the value label takes. */
@@ -116,7 +131,8 @@ export class OverviewPageComponent {
 
   /** Where the goal line sits above the chart's baseline. */
   public goalLineBottom(): string {
-    return `calc(4px + (100% - 30px) * ${this.goalFraction()})`;
+    // 22px is the month name row under the plot; the bars use the plot minus the 26px the value label takes.
+    return `calc(22px + (100% - 48px) * ${this.goalFraction()})`;
   }
 
   /** The goal line is left out when the goal is higher than the tallest month: it would not fit the chart. */
@@ -263,9 +279,119 @@ export class OverviewPageComponent {
   public readonly isDailyTrend = computed(() => this.overview()?.trendUnit === "DAY");
 
   public readonly averageBar = computed(() => {
-    const bars = this.bars();
+    const bars = this.chartBars();
     return bars.length > 0 ? bars.reduce((sum, bar) => sum + bar.total, 0) / bars.length : 0;
   });
+
+  /** Up to a year of months is drawn; a longer custom range is offered as a report instead. */
+  public readonly rangeTooLongForChart = computed(() => {
+    const period = this.period();
+    return !!period && !this.isDailyTrend() && exceedsOneYear(period.from, period.to);
+  });
+
+  /** The bars drawn: at most the latest 12 months. */
+  public readonly chartBars = computed(() => {
+    const bars = this.bars();
+    return !this.isDailyTrend() && bars.length > MAX_CHART_MONTHS ? bars.slice(-MAX_CHART_MONTHS) : bars;
+  });
+
+  /** Seven or more columns get narrower bars and smaller labels so a year fits the card. */
+  public readonly denseChart = computed(() => this.chartBars().length > 6);
+
+  public readonly exporting = signal(false);
+
+  /** Month totals for the whole period, fetched a calendar year at a time. */
+  private async loadYears(): Promise<{ label: string; from: string; to: string; overview: GroupOverview }[]> {
+    const period = this.period();
+    if (!period) {
+      return [];
+    }
+
+    return Promise.all(
+      splitIntoYears(period.from, period.to).map(async (chunk) => ({
+        ...chunk,
+        overview: await firstValueFrom(this.overviewService.getGroupOverview(this.groupId(), undefined, chunk.from, chunk.to)),
+      }))
+    );
+  }
+
+  /** The months of one year chunk, every month listed (empty ones as 0). */
+  private monthTotals(chunk: { from: string; to: string; overview: GroupOverview }): { month: string; total: number }[] {
+    // A chunk under four weeks comes back as days; either way the totals are gathered by "yyyy-MM". Months
+    // at the edge of a range are whole months.
+    const totals = new Map<string, number>();
+    for (const point of chunk.overview.trend ?? []) {
+      const month = point.month.slice(0, 7);
+      totals.set(month, (totals.get(month) ?? 0) + Number(point.total));
+    }
+    return monthKeysBetween(chunk.from, chunk.to).map((month) => ({ month, total: totals.get(month) ?? 0 }));
+  }
+
+  /** "Month, Total Spent, Goal, Difference" for the whole range, straight to a file. */
+  public async exportCsv(): Promise<void> {
+    if (this.exporting()) {
+      return;
+    }
+
+    this.exporting.set(true);
+    try {
+      const years = await this.loadYears();
+      const rows = years.flatMap((year) => this.monthTotals(year));
+      downloadFile(
+        new Blob([buildMonthlyCsv(rows, this.goal())], { type: "text/csv;charset=utf-8" }),
+        `spending-${this.period()?.from}-${this.period()?.to}.csv`
+      );
+    } catch {
+      this.snackbarService.error("The export could not be made. Try again.");
+    } finally {
+      this.exporting.set(false);
+    }
+  }
+
+  /** A print view, one calendar year per landscape page; the browser's print dialog saves it as a PDF. */
+  public async exportPdf(): Promise<void> {
+    if (this.exporting()) {
+      return;
+    }
+
+    // Opened now, in the click, because a window opened after the requests finish is taken for a pop-up.
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      this.snackbarService.error("Allow pop-ups for this site to print the report.");
+      return;
+    }
+    printWindow.document.write("<p style=\"font-family:system-ui\">Preparing the report…</p>");
+
+    this.exporting.set(true);
+    try {
+      const years = await this.loadYears();
+      const printYears: PrintYear[] = years.map((year) => ({
+        label: year.label,
+        total: this.customCurrencyPipe.transform(year.overview.total),
+        months: this.monthTotals(year).map((month) => ({
+          name: shortMonthName(month.month),
+          total: month.total,
+          text: this.customCurrencyPipe.transform(month.total),
+        })),
+        categories: (year.overview.categories ?? []).map((category) => ({
+          name: category.name,
+          total: this.customCurrencyPipe.transform(category.total),
+        })),
+      }));
+
+      const html = buildPrintHtml("Spending by year", this.periodLabel(), printYears);
+      printWindow.document.open();
+      printWindow.document.write(html);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+    } catch {
+      printWindow.close();
+      this.snackbarService.error("The report could not be made. Try again.");
+    } finally {
+      this.exporting.set(false);
+    }
+  }
 
   /** What the previous* figures are compared with: "September 2026", "2025", "5 Oct 2026 – 11 Oct 2026". */
   public readonly previousName = computed(() => {
@@ -357,7 +483,8 @@ export class OverviewPageComponent {
     private store: Store,
     private matDialog: MatDialog,
     private userPreferencesService: UserPreferencesService,
-    private snackbarService: SnackbarService
+    private snackbarService: SnackbarService,
+    private customCurrencyPipe: CustomCurrencyPipe
   ) {
     // Imperative side effect: a goal editor that just opened takes the keyboard, with its text selected.
     effect(() => {

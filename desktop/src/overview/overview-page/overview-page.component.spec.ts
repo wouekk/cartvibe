@@ -353,6 +353,54 @@ describe("OverviewPageComponent", () => {
     });
   });
 
+  describe("a year of months and longer ranges", () => {
+    const monthlyTrend = (count: number) =>
+      Array.from({ length: count }, (_, index) => {
+        const absolute = 2025 * 12 + 9 + index;
+        return { month: `${Math.floor(absolute / 12)}-${String((absolute % 12) + 1).padStart(2, "0")}`, total: index === 3 ? "78.44" : "0" };
+      });
+
+    it("draws twelve months in one row, each bar with its own month name", async () => {
+      overviewService.getGroupOverview.mockImplementation((_g: number, _m: string, from: string, to: string) =>
+        of({ ...overview(from, to), trend: monthlyTrend(12) })
+      );
+      component.period.set({ from: "2026-01-01", to: "2026-12-31", label: "2026" });
+      await fixture.whenStable();
+
+      const columns = fixture.nativeElement.querySelectorAll(".bars > .bars__column");
+      expect(columns.length).toBe(12);
+      columns.forEach((column: HTMLElement) => {
+        expect(column.querySelector(".bars__plot")).not.toBeNull();
+        expect(column.querySelector(".bars__label")?.textContent?.trim().length).toBeGreaterThan(0);
+      });
+      expect(fixture.nativeElement.querySelector(".bars").classList).toContain("bars--dense");
+      expect(fixture.nativeElement.querySelector("[data-testid=overview-chart-capped]")).toBeNull();
+    });
+
+    it("keeps only the latest twelve when a little more comes back", async () => {
+      overviewService.getGroupOverview.mockImplementation((_g: number, _m: string, from: string, to: string) =>
+        of({ ...overview(from, to), trend: monthlyTrend(13) })
+      );
+      component.period.set({ from: "2025-10-21", to: "2026-10-20", label: "year" });
+      await fixture.whenStable();
+
+      expect(component.chartBars().length).toBe(12);
+      expect(fixture.nativeElement.querySelector("[data-testid=overview-chart-capped]")).not.toBeNull();
+      expect(fixture.nativeElement.querySelector("[data-testid=overview-range-export]")).toBeNull();
+    });
+
+    it("offers the PDF and CSV instead of bars for a range over a year", async () => {
+      component.period.set({ from: "2024-01-01", to: "2026-03-01", label: "long" });
+      await fixture.whenStable();
+
+      expect(component.rangeTooLongForChart()).toBe(true);
+      expect(fixture.nativeElement.querySelector(".bars")).toBeNull();
+      expect(text("overview-range-export")).toContain("best viewed as a report");
+      expect(fixture.nativeElement.querySelector("[data-testid=overview-export-pdf]")).not.toBeNull();
+      expect(fixture.nativeElement.querySelector("[data-testid=overview-export-csv]")).not.toBeNull();
+    });
+  });
+
   it("hides the shopping card for a user who can read no group's lists", () => {
     expect(fixture.nativeElement.querySelector('[data-testid="overview-tile-to-buy"]')).toBeNull();
   });
