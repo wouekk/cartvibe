@@ -423,3 +423,39 @@ func SetShoppingListItemClassification(w http.ResponseWriter, r *http.Request) {
 
 	HandleRequest(handler)
 }
+
+// AnnounceGoingShopping tells the rest of the household the caller is going shopping, so they add
+// what they need (Phase 3 S4). Anyone who may update the group's lists can do it.
+func AnnounceGoingShopping(w http.ResponseWriter, r *http.Request) {
+	groupId := chi.URLParam(r, "groupId")
+
+	handler := structs.Handler{
+		ErrorMessage:     "Error announcing the shopping trip",
+		Writer:           w,
+		Request:          r,
+		GroupId:          groupId,
+		GroupPermissions: []string{permissions.GroupShoppingListsUpdate},
+		ResponseType:     constants.ApplicationJson,
+		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
+			uintGroupId, err := utils.StringToUint(groupId)
+			if err != nil {
+				return http.StatusBadRequest, err
+			}
+
+			ok, err := rejectAllGroupShoppingList(w, uintGroupId)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+			if !ok {
+				return 0, nil
+			}
+
+			services.NewShoppingListService(nil).AnnounceGoingShopping(uintGroupId, structs.GetClaims(r).UserId)
+
+			w.WriteHeader(http.StatusOK)
+			return 0, nil
+		},
+	}
+
+	HandleRequest(handler)
+}
