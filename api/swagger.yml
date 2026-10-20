@@ -4932,6 +4932,58 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
+  /exchangeRate:
+    get:
+      tags:
+        - ExchangeRate
+      summary: Get the exchange rates
+      description: This will get the main currency and the household's rate for each foreign currency [app.system-settings.read]
+      operationId: getExchangeRates
+      responses:
+        200:
+          description: The rate table
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExchangeRates"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+    put:
+      tags:
+        - ExchangeRate
+      summary: Replace the exchange rates
+      description: >-
+        This will replace the rate table. A rate that is now set converts the receipts saved in that
+        currency while it had none; receipts that already carry a rate are not changed
+        [app.system-settings.update]
+      operationId: updateExchangeRates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExchangeRates"
+      responses:
+        200:
+          description: The saved rate table
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExchangeRates"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
 components:
   securitySchemes:
     bearerAuth:
@@ -6550,6 +6602,33 @@ components:
     NotificationType:
       type: string
       x-go-package: receipt-wrangler/api/internal/models
+    ExchangeRates:
+      type: object
+      description: >-
+        The household's rate table. A rate is how many units of the main currency one unit of the
+        currency is worth, typed in by hand.
+      required:
+        - rates
+      properties:
+        mainCurrency:
+          type: string
+          description: ISO code of the main currency; empty for a custom currency symbol, which disables conversion
+        rates:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExchangeRate"
+    ExchangeRate:
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          description: Three-letter ISO code, e.g. CHF
+        rate:
+          type: string
+          nullable: true
+          description: Main currency per one unit of code, as a decimal string; null until entered
     Receipt:
       required:
         - amount
@@ -6615,6 +6694,21 @@ components:
           description: >-
             The shop printed on the receipt (Auchan, Edeka, Rewe), read by the AI or typed by a person.
             Empty when unknown.
+        originalAmount:
+          type: string
+          nullable: true
+          description: >-
+            The amount as printed, when the receipt was in another currency than the main one; amount
+            is then the converted amount
+        originalCurrency:
+          type: string
+          description: ISO code of the currency the receipt was in; empty when it was in the main currency
+        exchangeRate:
+          type: string
+          nullable: true
+          description: >-
+            The rate used to convert (main currency per one unit of originalCurrency); null with an
+            originalCurrency means the receipt is waiting for a rate
         paidByUserId:
           type: integer
           description: User paid foreign key

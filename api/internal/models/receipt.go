@@ -12,6 +12,12 @@ type Receipt struct {
 	// ShopName is the shop printed on the receipt (Auchan, Edeka, Rewe), read by the AI or typed by a
 	// person. Distinct from Name, which people set freely. Empty when unknown.
 	ShopName     string             `gorm:"type:varchar(200);not null;default:''" json:"shopName"`
+	// OriginalAmount, OriginalCurrency and ExchangeRate record a receipt that was in another currency
+	// than the main one: Amount is then the converted amount. ExchangeRate is the rate used (main units
+	// per foreign unit); with a currency but no rate the receipt is unconverted and waits for a rate.
+	OriginalAmount   *decimal.Decimal `gorm:"type:decimal(14,2)" json:"originalAmount"`
+	OriginalCurrency string           `gorm:"type:varchar(3);not null;default:''" json:"originalCurrency"`
+	ExchangeRate     *decimal.Decimal `gorm:"type:decimal(18,6)" json:"exchangeRate"`
 	Amount       decimal.Decimal    `gorm:"type:decimal(10,2);not null" json:"amount"`
 	Date         time.Time          `gorm:"not null" json:"date"`
 	ResolvedDate *time.Time         `json:"resolvedDate"`

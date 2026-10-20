@@ -285,6 +285,9 @@ func (service ReceiptProcessingService) processImages(
 	}
 
 	receipt.CustomFields = aiCustomFieldValues
+
+	// A receipt in another currency is converted at the household's own rate (Phase 3 currencies).
+	ApplyReceiptCurrency(&receipt)
 	result.Receipt = receipt
 	return result, nil
 }

@@ -26,9 +26,10 @@ import (
 const productExtractionPromptTemplate = `You read shop receipts. List every purchased product line on this receipt and classify each product for a household in %s. The current month is %s.
 
 Return ONLY valid JSON in plain text, never in a code block, exactly in this shape:
-{"shop": "...", "products": [{"name": "...", "displayName": "...", "amount": 0.0, "quantity": "...", "health": "...", "foodGroup": "...", "seasonality": "..."}]}
+{"shop": "...", "currency": "...", "products": [{"name": "...", "displayName": "...", "amount": 0.0, "quantity": "...", "health": "...", "foodGroup": "...", "seasonality": "..."}]}
 
 "shop": the name of the shop as printed on the receipt, the brand only, for example "Auchan", "Edeka" or "Rewe" (not the street, branch number or slogan). Use "" if it cannot be read.
+"currency": the ISO 4217 code of the currency the receipt is in, for example EUR, PLN, GBP, CHF or USD. A price written with zł, zl or PLN is PLN; with £, GBP or the word pounds is GBP; with CHF, Fr. or SFr. is CHF; with $ is USD; with € is EUR. Use "" if none is printed. Give every amount exactly as printed, in that currency, without converting it.
 
 For each product line:
 - "name": the line exactly as printed on the receipt.
@@ -43,7 +44,7 @@ For each product line:
 - "seasonality": only for fresh fruit and vegetables: "SEASONAL" if it is in season in %s in %s, or "OUT_OF_SEASON" if in that month it is most likely imported from another continent or frozen. "NOT_PRODUCE" for everything else, including frozen and canned produce.
 %s%s
 Do not list totals, subtotals, taxes, payment lines, change given, loyalty points, bottle deposits or coupons as products.
-If this is not a shop receipt, or it has no product lines, return {"shop": "", "products": []}.`
+If this is not a shop receipt, or it has no product lines, return {"shop": "", "currency": "", "products": []}.`
 
 // buildProductExtractionPrompt fills the template for a receipt bought in the given month.
 func buildProductExtractionPrompt(month time.Time, categoryBlock string, corrections map[string]string) string {
@@ -166,12 +167,28 @@ func (service ReceiptProductExtractionService) extract(extraction models.Receipt
 	month := time.Date(boughtOn.Year(), boughtOn.Month(), 1, 0, 0, 0, 0, time.UTC)
 	prompt := buildProductExtractionPrompt(month, resolver.PromptBlock(), corrections)
 
-	products, shopName, aiErr, answerErr := service.readProducts(receipt.GroupId, imagePaths, prompt)
+	products, shopName, currency, aiErr, answerErr := service.readProducts(receipt.GroupId, imagePaths, prompt)
 	switch {
 	case aiErr != nil:
 		return service.recordOutage(extraction, aiErr)
 	case answerErr != nil:
 		return service.recordBadAnswer(extraction, answerErr)
+	}
+
+	// A receipt in another currency has its product amounts converted at the same rate as the receipt
+	// (Phase 3 currencies): the rate it already carries, else the table's. Without a rate they stay as read.
+	currencies, currencyErr := loadCurrencyContext()
+	if currencyErr != nil {
+		return currencyErr
+	}
+	currency, rate := currencies.receiptRate(receipt, currency)
+	if rate != nil {
+		for i := range products {
+			if products[i].Amount != nil {
+				converted := ConvertAmount(*products[i].Amount, *rate)
+				products[i].Amount = &converted
+			}
+		}
 	}
 
 	for i := range products {
@@ -195,7 +212,7 @@ func (service ReceiptProductExtractionService) extract(extraction models.Receipt
 		return err
 	}
 
-	return service.applyReadResult(receipt, shopName)
+	return service.applyReadResult(receipt, shopName, currencies, currency, rate)
 }
 
 func (service ReceiptProductExtractionService) recordOutage(extraction models.ReceiptProductExtraction, aiErr error) error {
@@ -261,10 +278,10 @@ func (service ReceiptProductExtractionService) readProducts(
 	groupId uint,
 	imagePaths []string,
 	prompt string,
-) (products []models.ReceiptProduct, shopName string, aiErr error, answerErr error) {
+) (products []models.ReceiptProduct, shopName string, currency string, aiErr error, answerErr error) {
 	processingService, err := NewSystemReceiptProcessingService(service.TX, utils.UintToString(groupId))
 	if err != nil || processingService.ReceiptProcessingSettings.ID == 0 {
-		return nil, "", errNoAiConfigured, nil
+		return nil, "", "", errNoAiConfigured, nil
 	}
 
 	candidates := []models.ReceiptProcessingSettings{processingService.ReceiptProcessingSettings}
@@ -287,14 +304,14 @@ func (service ReceiptProductExtractionService) readProducts(
 			continue
 		}
 
-		return parsed, parseShopName(cleaned), nil, nil
+		return parsed, parseShopName(cleaned), parseCurrency(cleaned), nil, nil
 	}
 
 	// An answer, even an unreadable one, means the AI was reachable: count it as a bad answer.
 	if answerErr != nil {
-		return nil, "", nil, answerErr
+		return nil, "", "", nil, answerErr
 	}
-	return nil, "", aiErr, nil
+	return nil, "", "", aiErr, nil
 }
 
 // askAi sends the receipt the same way receipt scanning does: the images themselves to a vision
@@ -339,6 +356,7 @@ func (service ReceiptProductExtractionService) askAi(
 
 type productResponse struct {
 	Shop     json.RawMessage `json:"shop"`
+	Currency json.RawMessage `json:"currency"`
 	Products []struct {
 		Name        string          `json:"name"`
 		DisplayName string          `json:"displayName"`
@@ -467,8 +485,39 @@ func parseShopName(cleanedResponse string) string {
 // shop name when the receipt has none, and a receipt still "To check" becomes Done, since the AI has
 // read it. A person's own shop name is never overwritten, and a receipt already Done or Declined keeps
 // its status.
-func (service ReceiptProductExtractionService) applyReadResult(receipt models.Receipt, shopName string) error {
+func (service ReceiptProductExtractionService) applyReadResult(
+	receipt models.Receipt,
+	shopName string,
+	currencies currencyContext,
+	currency string,
+	rate *decimal.Decimal,
+) error {
 	db := service.GetDB()
+
+	// A receipt read in another currency records it, and is converted once a rate is known (Phase 3
+	// currencies). A receipt that already carries its original keeps it, and only gains a rate that was
+	// missing, so a rate edited later never silently changes a converted receipt.
+	if currency != "" && currencies.foreign(currency) {
+		updates := map[string]any{}
+		if receipt.OriginalCurrency == "" {
+			updates["original_amount"] = receipt.Amount
+			updates["original_currency"] = currency
+			if rate != nil {
+				updates["amount"] = ConvertAmount(receipt.Amount, *rate)
+				updates["exchange_rate"] = *rate
+			}
+		} else if receipt.ExchangeRate == nil && rate != nil && receipt.OriginalAmount != nil {
+			updates["amount"] = ConvertAmount(*receipt.OriginalAmount, *rate)
+			updates["exchange_rate"] = *rate
+		}
+
+		if len(updates) > 0 {
+			err := db.Model(&models.Receipt{}).Where("id = ?", receipt.ID).Updates(updates).Error
+			if err != nil {
+				return err
+			}
+		}
+	}
 
 	if shopName != "" && receipt.ShopName == "" {
 		err := db.Model(&models.Receipt{}).Where("id = ?", receipt.ID).Update("shop_name", shopName).Error
@@ -497,4 +546,14 @@ func productClassificationName(product models.ReceiptProduct) string {
 		return product.DisplayName
 	}
 	return product.Name
+}
+
+// parseCurrency reads the optional "currency" of the AI's answer as an ISO code; "" when absent or unknown.
+func parseCurrency(cleanedResponse string) string {
+	var response productResponse
+	if err := json.Unmarshal([]byte(cleanedResponse), &response); err != nil {
+		return ""
+	}
+
+	return NormalizeCurrencyCode(looseString(response.Currency))
 }

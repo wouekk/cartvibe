@@ -181,6 +181,7 @@ func MakeMigrations() error {
 		&models.ShoppingTrip{},
 		&models.ReceiptProduct{},
 		&models.ReceiptProductExtraction{},
+		&models.ExchangeRate{},
 		&models.ProductClassificationOverride{},
 	)
 
@@ -225,6 +226,10 @@ func InitDB() error {
 	// Runs after the bootstrap admin is created so a fresh install's first user
 	// is assigned its legacy-equivalent role by the same one-time migration.
 	if err := SeedEuroForNewInstall(); err != nil {
+		return err
+	}
+
+	if err := SeedDefaultExchangeRates(); err != nil {
 		return err
 	}
 

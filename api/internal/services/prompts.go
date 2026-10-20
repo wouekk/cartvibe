@@ -29,6 +29,7 @@ Find the receipt's name, total cost, and date. Format the found data as:
 {
 	"name": store name,
 	"shopName": the shop brand as printed, like Auchan, Edeka or Rewe (only the brand, "" if unreadable),
+	"currency": the ISO 4217 code of the currency the receipt is in, like EUR, PLN, GBP, CHF or USD,
 	"amount": amount as a number,
 	"date": date in ISO 18601 format in UTC with ALL time values set as 0,
 	"categories": categories,
@@ -38,6 +39,7 @@ Find the receipt's name, total cost, and date. Format the found data as:
 If a store name cannot be confidently found, use 'Default store name' as the default name.
 Omit any value if not found with confidence. Assume the date is in the year @currentYear if not provided.
 The amount must be a float or integer.
+Currency: read the code from the receipt. A price written with zł, zl or PLN is PLN (Polish złoty); with £, GBP or the word pounds is GBP; with CHF, Fr. or SFr. is CHF; with $ is USD; with € is EUR. If no currency is printed, return "". Always give the amount exactly as printed, in that currency, without converting it.
 If the receipt represents a refund, return, or credit (money returned to the customer rather than charged), the amount and item amounts MUST be negative. Otherwise they are positive.
 
 Please do NOT add any additional information, only valid JSON.
