@@ -77,6 +77,6 @@ describe("SystemSettingsComponent", () => {
 
     fixture.detectChanges();
 
-    expect(component.tabs.map((tab) => tab.name)).toEqual(["settings", "system-emails", "system-tasks"]);
+    expect(component.tabs.map((tab) => tab.name)).toEqual(["settings", "system-emails", "system-tasks", "logs"]);
   });
 });
