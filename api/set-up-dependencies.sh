@@ -13,6 +13,9 @@ pip3 install -r ./imap-client/requirements.txt
 pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 # Install easyocr
 pip3 install easyocr
+# Newest build tools last, so nothing above leaves an old setuptools, wheel or jaraco.context behind
+# (the image scan flags the versions pip ships with).
+pip3 install --upgrade setuptools wheel jaraco.context
 # Add lsb-release
 apt-get update -y -qq
 apt-get install apt-utils -y -qq
