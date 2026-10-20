@@ -3029,3 +3029,13 @@ back. Not done yet: cards instead of tabs, and starting a new list from a past l
 
 The shopping lists page also has a **Going shopping** button (`announceGoingShopping`) that tells the
 household through the bell; it shows for `group.shopping-lists.update` once a list exists.
+
+## Dashboard (fork, Phase 3 D1)
+
+The Overview page is now the **Dashboard** (`src/overview/`). A preset bar (This month, Last week, Last
+month, This year, Last year, Custom with two date inputs; `overview-period.ts`) replaces the month stepper;
+every request sends `from`/`to`. Tiles compare with the period before (`describeChangeAgainst`); the new
+**Not on the list** tile is the unplanned spend. Unhealthy, Not on the list and each real category open
+`OverviewDetailDialogComponent` (the products behind a tile, or a category's receipts); "Other",
+"Uncategorized" and "(Restricted)" slices are not openable. The trend draws days under a month, months
+otherwise. The old widget dashboards moved behind admin (`app.users.read`) as "Widget dashboards".

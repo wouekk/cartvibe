@@ -42,7 +42,7 @@ agreed to this flow; still ask before pushing `main` unless they said to proceed
 1. Act on the NAS feedback for step 2.
 2. Step 3 on `feature/phase-3-new` (pushed, one branch for all of step 3; CI green after M2). **F2 and M2 done** (F2: `@customFields` in the
    built-in prompt, `splitAiCustomFields` reads values leniently; Go tests pass locally, CI not run yet).
-   Done since: C5, EUR default for new installs, M5 desktop, S2 "new list from this". Still to do: S2 cards instead of tabs, S4 + N1, D1 (period picker, tap-through lists, decision Q10), M3, F1.
+   Done since: C5, EUR default, M5 desktop, S2 new-list-from-list, S4/N1, D1 (Dashboard). Still to do: S2 cards instead of tabs, M3, F1, stale e2e specs.
    are in the plan but not in its order.
 3. M7 follow-up: make EUR the API default for new installs (the user wants it; see the plan).
 
