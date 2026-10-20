@@ -1,7 +1,7 @@
 # Family Budget Rework — Phase 3 Plan
 
 Status: **approved** (2026-10-20), from the user's two rounds of feedback after testing
-on the NAS. Decisions are at the end. Step 1 (quick wins) is built; the rest is not built
+on the NAS. Decisions are at the end. Steps 1 and 2 (except M6) are built; the rest is not built
 yet. It also absorbs the rest of Phase 2: **2d (monthly goals) and 2e (dashboard tiles) are part of
 this plan** (G1, D4), since both land on the Dashboard this plan rebuilds.
 
@@ -102,7 +102,7 @@ refresh (`AGENTS.md` §2). Re-tested on the current image: the landing page and 
 ## Suggested order
 
 1. **Quick wins:** B1, C1, C2, S1, S3, D2, D3, M7. *(built on `feature/phase-3-quick-wins`)*
-2. **Simplify:** C3, C4, C6, A1–A3, M1, M4, M6, W1.
+2. **Simplify:** C3, C4, C6, A1–A3, M1, M4, M6, W1. *(built on `feature/phase-3-simplify` except M6, which waits on a decision: ready-made reports need product-level data the report engine does not have)*
 3. **New:** F2, S2, S4 + N1, M2, C5, D1 polish to match the design.
 4. **Goals and insights:** G1, then D4.
 
