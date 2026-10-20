@@ -63,7 +63,16 @@ jobs:
         run: go build -v ./...
         working-directory: ./api
       - name: Test
-        run: go test -coverprofile=coverage.out -covermode=atomic -v ./...
+        # Failures are also raised as annotations, so they can be read without access to the log.
+        shell: bash
+        run: |
+          set -o pipefail
+          if ! go test -coverprofile=coverage.out -covermode=atomic -v ./... 2>&1 | tee test.log; then
+            grep -E -- "--- FAIL|_test\.go:[0-9]+:|panic:|cannot use|undefined:|FAIL\s" test.log | head -60 | while IFS= read -r line; do
+              echo "::error::${line}"
+            done
+            exit 1
+          fi
         working-directory: ./api
       - name: Upload Coverage Report to Codecov
         if: github.repository == 'Receipt-Wrangler/receipt-wrangler'
