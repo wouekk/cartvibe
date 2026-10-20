@@ -7571,6 +7571,10 @@ components:
                 Whether multi-select chip fields close their option list after
                 each selection
               default: false
+            monthlySpendingGoal:
+              type: string
+              nullable: true
+              description: The most this person wants to spend in a month, as a decimal string; null or 0 means no goal
             userShortcuts:
               type: array
               items:

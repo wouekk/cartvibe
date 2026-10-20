@@ -71,6 +71,7 @@ func (repository UserPreferncesRepository) UpdateUserPreferences(userId uint, us
 	userPreferencesToUpdate.QuickScanDefaultPaidById = userPreferences.QuickScanDefaultPaidById
 	userPreferencesToUpdate.QuickScanDefaultStatus = userPreferences.QuickScanDefaultStatus
 	userPreferencesToUpdate.CloseChipSelectOnSelect = userPreferences.CloseChipSelectOnSelect
+	userPreferencesToUpdate.MonthlySpendingGoal = userPreferences.MonthlySpendingGoal
 	userPreferencesToUpdate.UserShortcuts = userPreferences.UserShortcuts
 
 	err = db.Transaction(func(tx *gorm.DB) error {

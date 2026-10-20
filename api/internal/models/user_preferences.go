@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"github.com/shopspring/decimal"
 	"net/http"
 	"receipt-wrangler/api/internal/utils"
 )
@@ -16,6 +17,8 @@ type UserPrefernces struct {
 	QuickScanDefaultPaidBy   *User          `json:"-"`
 	QuickScanDefaultStatus   ReceiptStatus  `json:"quickScanDefaultStatus"`
 	CloseChipSelectOnSelect  bool           `json:"closeChipSelectOnSelect"`
+	// MonthlySpendingGoal is the most this person wants to spend in a month; nil or zero means no goal.
+	MonthlySpendingGoal *decimal.Decimal `gorm:"type:decimal(12,2)" json:"monthlySpendingGoal"`
 	UserShortcuts            []UserShortcut `json:"userShortcuts"`
 }
 
