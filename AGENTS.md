@@ -41,7 +41,7 @@ https://claude.ai/artifact/TAZXoRQ4mmRyoy37CFKRVt) is the target look. The plan 
   receipt" / "New list", paid by and names filled in automatically, bill splitting hidden, simpler
   shopping lists (one-line add, past lists instead of tabs), a simple admin-only AI page (Gemini or
   LM Studio, test connection), hardcoded prompts fed by categories/tags/custom fields, only Admin
-  and User roles, household notifications, a Logs tab.
+  and User roles, household notifications, a Logs tab, a simple currency choice.
 
 ### Product rules
 - **Web first.** Build UI in `desktop/`, mobile-responsive (thumb-sized targets). No Flutter screens;
