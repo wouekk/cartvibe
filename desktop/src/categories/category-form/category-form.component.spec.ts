@@ -61,6 +61,7 @@ describe("CategoryForm", () => {
     expect(component.form.value).toEqual({
       name: "test",
       description: "test",
+      skipped: false,
     });
   });
 
@@ -91,6 +92,7 @@ describe("CategoryForm", () => {
         id: 1,
         name: "test",
         description: "test",
+        skipped: false,
       },
     );
   });
@@ -116,6 +118,7 @@ describe("CategoryForm", () => {
     expect(categoryServiceSpy).toHaveBeenCalledWith({
       name: "test",
       description: "test",
+      skipped: false,
     });
   });
 });
