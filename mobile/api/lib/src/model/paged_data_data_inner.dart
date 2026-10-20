@@ -61,6 +61,8 @@ part 'paged_data_data_inner.g.dart';
 /// * [updatedAt] 
 /// * [createdByString] - Created by entity's name
 /// * [description] - Custom Field description
+/// * [skipped] - The AI is told never to use this category; its products fall back to Uncategorized
+/// * [aliases] - Earlier names of this category, one per line (set by renaming; read only)
 /// * [prompt] 
 /// * [groupSettings] 
 /// * [groupReceiptSettings] 

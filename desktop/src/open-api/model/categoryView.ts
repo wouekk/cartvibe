@@ -24,6 +24,12 @@ export interface CategoryView {
      * Description of the category
      */
     description?: string;
+    skipped?: boolean;
+    aliases?: string;
+    /**
+     * Number of receipt products in this category
+     */
+    numberOfProducts?: number;
     updatedAt?: string;
     /**
      * Number of receipts associated with this category

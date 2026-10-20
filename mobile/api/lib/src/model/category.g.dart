@@ -18,6 +18,10 @@ class _$Category extends Category {
   @override
   final String? description;
   @override
+  final bool? skipped;
+  @override
+  final String? aliases;
+  @override
   final String? updatedAt;
 
   factory _$Category([void Function(CategoryBuilder)? updates]) =>
@@ -29,6 +33,8 @@ class _$Category extends Category {
       this.id,
       this.name,
       this.description,
+      this.skipped,
+      this.aliases,
       this.updatedAt})
       : super._();
   @override
@@ -47,6 +53,8 @@ class _$Category extends Category {
         id == other.id &&
         name == other.name &&
         description == other.description &&
+        skipped == other.skipped &&
+        aliases == other.aliases &&
         updatedAt == other.updatedAt;
   }
 
@@ -58,6 +66,8 @@ class _$Category extends Category {
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, name.hashCode);
     _$hash = $jc(_$hash, description.hashCode);
+    _$hash = $jc(_$hash, skipped.hashCode);
+    _$hash = $jc(_$hash, aliases.hashCode);
     _$hash = $jc(_$hash, updatedAt.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
@@ -71,6 +81,8 @@ class _$Category extends Category {
           ..add('id', id)
           ..add('name', name)
           ..add('description', description)
+          ..add('skipped', skipped)
+          ..add('aliases', aliases)
           ..add('updatedAt', updatedAt))
         .toString();
   }
@@ -99,6 +111,14 @@ class CategoryBuilder implements Builder<Category, CategoryBuilder> {
   String? get description => _$this._description;
   set description(String? description) => _$this._description = description;
 
+  bool? _skipped;
+  bool? get skipped => _$this._skipped;
+  set skipped(bool? skipped) => _$this._skipped = skipped;
+
+  String? _aliases;
+  String? get aliases => _$this._aliases;
+  set aliases(String? aliases) => _$this._aliases = aliases;
+
   String? _updatedAt;
   String? get updatedAt => _$this._updatedAt;
   set updatedAt(String? updatedAt) => _$this._updatedAt = updatedAt;
@@ -115,6 +135,8 @@ class CategoryBuilder implements Builder<Category, CategoryBuilder> {
       _id = $v.id;
       _name = $v.name;
       _description = $v.description;
+      _skipped = $v.skipped;
+      _aliases = $v.aliases;
       _updatedAt = $v.updatedAt;
       _$v = null;
     }
@@ -142,6 +164,8 @@ class CategoryBuilder implements Builder<Category, CategoryBuilder> {
           id: id,
           name: name,
           description: description,
+          skipped: skipped,
+          aliases: aliases,
           updatedAt: updatedAt,
         );
     replace(_$result);

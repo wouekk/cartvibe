@@ -29,6 +29,8 @@ Name | Type | Description | Notes
 **updatedAt** | **String** |  | [optional] 
 **createdByString** | **String** | Created by entity's name | [optional] [default to '']
 **description** | **String** | Custom Field description | [optional] 
+**skipped** | **bool** | The AI is told never to use this category; its products fall back to Uncategorized | [optional] 
+**aliases** | **String** | Earlier names of this category, one per line (set by renaming; read only) | [optional] 
 **prompt** | [**Prompt**](Prompt.md) |  | 
 **groupSettings** | [**GroupSettings**](GroupSettings.md) |  | [optional] 
 **groupReceiptSettings** | [**GroupReceiptSettings**](GroupReceiptSettings.md) |  | 

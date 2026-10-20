@@ -103,6 +103,14 @@ export interface PagedDataDataInner {
      * Custom Field description
      */
     description?: string;
+    /**
+     * The AI is told never to use this category; its products fall back to Uncategorized
+     */
+    skipped?: boolean;
+    /**
+     * Earlier names of this category, one per line (set by renaming; read only)
+     */
+    aliases?: string;
     prompt: Prompt;
     groupSettings?: GroupSettings;
     groupReceiptSettings: GroupReceiptSettings;

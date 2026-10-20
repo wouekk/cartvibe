@@ -11,6 +11,7 @@ Name | Type | Description | Notes
 **id** | **int** | Category id | [optional] 
 **name** | **String** | Category name | 
 **description** | **String** | Category description | [optional] 
+**skipped** | **bool** | The AI is told never to use this category; its products fall back to Uncategorized | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

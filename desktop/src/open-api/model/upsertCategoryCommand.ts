@@ -22,5 +22,9 @@ export interface UpsertCategoryCommand {
      * Category description
      */
     description?: string;
+    /**
+     * The AI is told never to use this category; its products fall back to Uncategorized
+     */
+    skipped?: boolean;
 }
 
