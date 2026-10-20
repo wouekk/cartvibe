@@ -19,6 +19,7 @@ part 'group_overview.g.dart';
 /// * [previousTotal] - The previous month's spend, as a decimal string
 /// * [receiptCount] 
 /// * [openReceiptCount] - The month's receipts still needing action (OPEN or NEEDS_ATTENTION)
+/// * [unhealthyTotal] - What the month's products rated UNHEALTHY cost, as a decimal string, whatever the receipt's category. Products without a price or not rated yet do not count.
 /// * [categories] - Spend per category in the month, largest first. A receipt counts toward each of its categories, so these can add up to more than the total. Always an array.
 /// * [months] - The six months ending with month, oldest first; a month without receipts is a zero
 @BuiltValue()
@@ -41,6 +42,10 @@ abstract class GroupOverview implements Built<GroupOverview, GroupOverviewBuilde
   /// The month's receipts still needing action (OPEN or NEEDS_ATTENTION)
   @BuiltValueField(wireName: r'openReceiptCount')
   int get openReceiptCount;
+
+  /// What the month's products rated UNHEALTHY cost, as a decimal string, whatever the receipt's category. Products without a price or not rated yet do not count.
+  @BuiltValueField(wireName: r'unhealthyTotal')
+  String get unhealthyTotal;
 
   /// Spend per category in the month, largest first. A receipt counts toward each of its categories, so these can add up to more than the total. Always an array.
   @BuiltValueField(wireName: r'categories')
@@ -97,6 +102,11 @@ class _$GroupOverviewSerializer implements PrimitiveSerializer<GroupOverview> {
     yield serializers.serialize(
       object.openReceiptCount,
       specifiedType: const FullType(int),
+    );
+    yield r'unhealthyTotal';
+    yield serializers.serialize(
+      object.unhealthyTotal,
+      specifiedType: const FullType(String),
     );
     yield r'categories';
     yield serializers.serialize(
@@ -165,6 +175,13 @@ class _$GroupOverviewSerializer implements PrimitiveSerializer<GroupOverview> {
             specifiedType: const FullType(int),
           ) as int;
           result.openReceiptCount = valueDes;
+          break;
+        case r'unhealthyTotal':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.unhealthyTotal = valueDes;
           break;
         case r'categories':
           final valueDes = serializers.deserialize(

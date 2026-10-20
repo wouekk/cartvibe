@@ -393,7 +393,3 @@ lib/src/model/widget.dart
 lib/src/model/widget_type.dart
 lib/src/serializers.dart
 pubspec.yaml
-test/attach_shopping_trip_receipt_command_test.dart
-test/shopping_trip_receipt_test.dart
-test/shopping_trip_test.dart
-test/shopping_trip_view_test.dart
