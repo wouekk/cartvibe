@@ -1,7 +1,7 @@
 # Family Budget Rework — Phase 3 Plan
 
-Status: **approved in outline** (2026-10-20), from the user's two rounds of feedback after testing
-on the NAS. Decisions so far are at the end, with the questions still open. Nothing here is built
+Status: **approved** (2026-10-20), from the user's two rounds of feedback after testing
+on the NAS. Decisions are at the end. Nothing here is built
 yet; it comes **before** 2d.
 
 ## Why
@@ -44,7 +44,7 @@ refresh (`AGENTS.md` §2). Re-tested on the current image: the landing page and 
 | # | Change | Notes |
 |---|---|---|
 | S1 | **Add row on one line**: name, amount, unit and the add button side by side (`Phone.dc.html`); no "tune" toggle. Items show their amount as a chip on the right. | desktop `shopping-list` |
-| S2 | **Lists instead of tabs.** The tab bar is clunky. When every item on a list is crossed off, the list moves to **Past lists** at the bottom; the last 2–3 stay visible there. See Q8 for what a list is. | desktop shopping lists; maybe API (a list's "done" state) |
+| S2 | **Lists instead of tabs.** The tab bar is clunky. When every item on a list is crossed off, the list moves to **Past lists** at the bottom; the last 2–3 stay visible there. A list is **one shopping trip** (decision Q8); a new list can start from a past list's items. | desktop shopping lists; maybe API (a list's "done" state) |
 | S3 | **A new list is named "List {date}"** by default (editable). | desktop |
 | S4 | **"Going shopping" call to action:** a member announces a trip, and the household is notified to add what they need. | API + notifications (N1) |
 
@@ -55,7 +55,7 @@ refresh (`AGENTS.md` §2). Re-tested on the current image: the landing page and 
 | C2 | **A new receipt is named "Receipt {date}"** by default (editable); the AI's store name replaces it when it reads one. | desktop receipt form |
 | C3 | **No mandatory fields beyond the basics.** Group-configured required fields (Quick Scan's required category/tag/status, …) stop being required. With one family group, the group is picked automatically. | group receipt settings defaults; desktop |
 | C4 | **Shares are removed from the UI**: item shares, "who owes whom", settle up, paid-by columns and filters. The data stays. | desktop receipts, overview |
-| C5 | **Items need a better entry UI.** The concept is good but adding items one by one is clunky: a quick multi-line entry, like the shopping list's add row. Overlaps the AI's product reading (2a); see Q9. | desktop receipt form |
+| C5 | **One list of what was bought: Products, made editable** (decision Q9). The AI fills it (2a); people fix a line or add one with a quick one-line entry like the shopping list's. The upstream Items section is hidden (its data stays). | API product edit endpoints + desktop receipt form |
 | C6 | **Statuses become "To check / Done"** (decision Q2): OPEN, NEEDS_ATTENTION and DRAFT show as "To check", RESOLVED as "Done", DECLINED hidden or "Done" (decide when building). AI-read receipts start as "To check". **Display-only**: the API's `ReceiptStatus` enum is unchanged (closed enum, released clients). | desktop receipts, filters, dashboard tile |
 
 ### Categories, tags and custom fields
@@ -74,11 +74,11 @@ refresh (`AGENTS.md` §2). Re-tested on the current image: the landing page and 
 ### System settings, users and roles
 | # | Change | Notes |
 |---|---|---|
-| M1 | **System Settings keeps:** general settings, System Email (the user may later read receipts from a mailbox), System Tasks. **Removed:** Prompts (A3), Receipt Processing Settings (moves to the AI page, A1; see Q5). | desktop system settings |
+| M1 | **System Settings keeps:** general settings, System Email (the user may later read receipts from a mailbox), System Tasks. **Removed:** Prompts (A3), Receipt Processing Settings (folded into the AI page, A1; decision Q5). | desktop system settings |
 | M2 | **New Logs tab** in System Settings: the application log, recent lines with a level filter, admin only. The API already writes logs to the `logs` volume. | API endpoint + desktop tab |
 | M3 | **Users: profiles for the user and his wife.** Keep user management. Keep OIDC providers (Google sign-in may matter if the app is ever offered to others) but out of the everyday menus. | desktop |
 | M4 | **Roles: only Admin and User.** The seeded legacy roles (Legacy Admin/Owner/Editor/Viewer, …) and the role editor go from the UI; one admin role and one member role, with sensible permissions. The permission system underneath stays. See Q6. | API seed roles; desktop roles page |
-| M5 | **Groups:** see Q7. | |
+| M5 | **One Household group** (decision Q7): everyone in it, created and picked automatically; no personal "My Receipts" groups for new users; the group picker and Manage Groups appear only if a second group ever exists. Existing installs keep their groups. | API user/group creation; desktop sidebar |
 | M6 | **Report Builder simplified**: a few ready-made reports like the dashboard (month, category, unplanned, unhealthy) for every member; the builder itself is admin-only and trimmed. | desktop reports |
 
 ### Notifications
@@ -105,22 +105,12 @@ refresh (`AGENTS.md` §2). Re-tested on the current image: the landing page and 
 - **Q3 — AI:** Google Gemini and an LM Studio server on the user's PC. Claude dropped (A2).
 - **Q4 — order:** the rework first, then 2d. Not started 2026-10-20.
 
-## Still open
+- **Q5 — receipt processing settings:** folded into the AI page (A1).
+- **Q7 — groups:** one Household group (M5).
+- **Q8 — shopping lists:** one list per trip, past lists below (S2).
+- **Q9 — receipt items:** Products only, made editable; Items hidden (C5).
 
-- **Q5 — receipt processing settings.** The note read "receipt processing settings just …" and was
-  cut off. Assumption until answered: they fold into the AI page (A1).
-- **Q6 — what a "User" may do.** Proposal: everything with lists and receipts, including deleting
-  receipts; no Manage menu.
-- **Q7 — groups.** A group is a separate budget: its own receipts, lists, categories in use, members.
-  Upstream also gives every user a personal "My Receipts" group, plus the synthetic "All". Use cases
-  for a family: a separate budget for a holiday house, or a parent's household you also shop for.
-  Proposal: one **Household** group for everyone, created automatically and picked automatically;
-  personal groups no longer created; the group picker and Manage Groups shown only when there is more
-  than one group.
-- **Q8 — what a shopping list is.** Today lists are long-lived per store ("Supermarket"), with items
-  crossed off and re-added. S2 + S3 point to lists per trip ("List 21 Oct") that end once all is
-  crossed off. Proposal: lists per trip; a new list can start from a past list's items, so regulars
-  are one tap away.
-- **Q9 — receipt items.** The AI already reads product lines into the receipt's Products section
-  (2a). Are the editable **Items** still needed, or should the Products list become editable and
-  replace them?
+## Assumed until the user says otherwise
+
+- **Q6 — what a "User" may do:** everything with lists and receipts, including deleting receipts;
+  no Manage menu.
