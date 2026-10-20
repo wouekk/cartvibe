@@ -18,7 +18,7 @@ part 'group_overview.g.dart';
 /// * [total] - The month's spend, as a decimal string
 /// * [previousTotal] - The previous month's spend, as a decimal string
 /// * [receiptCount] 
-/// * [openReceiptCount] - The month's receipts still needing action (OPEN or NEEDS_ATTENTION)
+/// * [openReceiptCount] - The month's receipts still to check (OPEN, NEEDS_ATTENTION or DRAFT)
 /// * [unhealthyTotal] - What the month's products rated UNHEALTHY cost, as a decimal string, whatever the receipt's category. Products without a price or not rated yet do not count.
 /// * [categories] - Spend per category in the month, largest first. A receipt counts toward each of its categories, so these can add up to more than the total. Always an array.
 /// * [months] - The six months ending with month, oldest first; a month without receipts is a zero
@@ -39,7 +39,7 @@ abstract class GroupOverview implements Built<GroupOverview, GroupOverviewBuilde
   @BuiltValueField(wireName: r'receiptCount')
   int get receiptCount;
 
-  /// The month's receipts still needing action (OPEN or NEEDS_ATTENTION)
+  /// The month's receipts still to check (OPEN, NEEDS_ATTENTION or DRAFT)
   @BuiltValueField(wireName: r'openReceiptCount')
   int get openReceiptCount;
 
