@@ -29,3 +29,15 @@ export const GROUP_STATUS_OPTIONS: FormOption[] = Object.keys(GroupStatus).map(
     };
   }
 );
+
+// Every API status, under its own name: for an admin's configuration that is keyed on the real
+// statuses (a group's receipt summary breakdown), not for picking one.
+export const ALL_RECEIPT_STATUS_OPTIONS: FormOption[] = Object.keys(
+  ReceiptStatus
+).filter(k => !!(ReceiptStatus as any)[k]).map((key) => {
+  const value = (ReceiptStatus as any)[key];
+  return {
+    value: value,
+    displayValue: formatStatus(value),
+  };
+});
