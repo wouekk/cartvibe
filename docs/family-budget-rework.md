@@ -1,7 +1,7 @@
 # Family Budget Rework — Phase 3 Plan
 
 Status: **approved** (2026-10-20), from the user's two rounds of feedback after testing
-on the NAS. Decisions are at the end. Steps 1 and 2 (except M6) are built; the rest is not built
+on the NAS. Decisions are at the end. Steps 1 and 2 are built; the rest is not built
 yet. It also absorbs the rest of Phase 2: **2d (monthly goals) and 2e (dashboard tiles) are part of
 this plan** (G1, D4), since both land on the Dashboard this plan rebuilds.
 
@@ -37,7 +37,7 @@ refresh (`AGENTS.md` §2). Re-tested on the current image: the landing page and 
 ### Dashboard (landing page)
 | # | Change | Notes |
 |---|---|---|
-| D1 | **The design's Dashboard**, ready out of the box: tiles (spent this month, receipts, **unhealthy this month**, to buy), spending by category, last 6 months, recent receipts, shopping lists. Rename "Overview" to **Dashboard**; the upstream widget dashboards become admin-only or go. | desktop `src/overview/`, sidebar |
+| D1 | **The design's Dashboard**, ready out of the box: tiles (spent, receipts, **unhealthy**, to buy), spending by category, the trend, recent receipts, shopping lists. Rename "Overview" to **Dashboard**; the upstream widget dashboards become admin-only or go. **Any period, not just a month** (decision Q10): a range picker with presets **This month, Last week, Last month, This year, Last year, Custom** (from–to); every tile, the category split and the product lists follow the range, compared with the period before it; the trend shows months (days for a range under a month). The API takes `from`/`to` days instead of only `month`. It is also the family's report (M6): tapping Unhealthy, Unplanned or a category lists the products or receipts behind it. | desktop `src/overview/`, sidebar |
 | D2 | **"Unhealthy this month" replaces Settle up**: money spent on products tagged unhealthy (2b), shown as overspending. Settle up goes entirely: the family does not share bills. **Keep the "To buy" tile**: the user likes it, a list grows over a few days and "20 items" says it is time to go shopping. | API overview + desktop; overlaps 2e |
 | D3 | **"Add receipt" and "New list" buttons on the Dashboard.** The sidebar's "+ New" menu goes. | desktop overview, sidebar |
 
@@ -80,7 +80,7 @@ refresh (`AGENTS.md` §2). Re-tested on the current image: the landing page and 
 | M3 | **Users: profiles for the user and his wife.** Keep user management. Keep OIDC providers (Google sign-in may matter if the app is ever offered to others) but out of the everyday menus. | desktop |
 | M4 | **Roles: only Admin and User.** The seeded legacy roles (Legacy Admin/Owner/Editor/Viewer, …) and the role editor go from the UI; one admin role and one member role, with sensible permissions. The permission system underneath stays. A **User** does everything with lists and receipts (including deleting receipts) and manages categories, tags and custom fields; only the **Admin** sees the Logs, user management and the AI page (decision Q6). | API seed roles; desktop roles page |
 | M5 | **One Household group** (decision Q7): everyone in it, created and picked automatically; no personal "My Receipts" groups for new users; the group picker and Manage Groups appear only if a second group ever exists. Existing installs keep their groups. | API user/group creation; desktop sidebar |
-| M6 | **Report Builder simplified**: a few ready-made reports like the dashboard (month, category, unplanned, unhealthy) for every member; the builder itself is admin-only and trimmed. | desktop reports |
+| M6 | **Reports: the Dashboard is the family's report** (decision Q10): month, category, unplanned and unhealthy for any period are the Dashboard (D1, D4) with its tap-through lists. The report builder, saved templates and PDF/CSV stay **admin-only** (a User has no report permissions); trimming it can wait. | API family roles (done in step 2); D1/D4 |
 | M7 | **Currency selection**: one admin setting, "Currency", with a short list (EUR, PLN, USD, GBP, CHF, …) that fills in the existing system settings (`currencyDisplay`, separators, symbol position) from a preset, e.g. EUR = "€", decimal comma, symbol after; PLN = "zł". The raw fields stay available under "Custom". Default EUR (Western Europe). Amounts are stored without a currency, so changing it only changes how they are shown. | desktop System Settings. **To do later (user wants it):** EUR as the API default for new installs, set in `SystemSettingsRepository.GetSystemSettings`' first-run row (not column defaults), with the report tests that assume `$ , .` seeding USD explicitly. |
 
 ### Goals and insights (the former 2d and 2e)
@@ -102,7 +102,7 @@ refresh (`AGENTS.md` §2). Re-tested on the current image: the landing page and 
 ## Suggested order
 
 1. **Quick wins:** B1, C1, C2, S1, S3, D2, D3, M7. *(built on `feature/phase-3-quick-wins`)*
-2. **Simplify:** C3, C4, C6, A1–A3, M1, M4, M6, W1. *(built on `feature/phase-3-simplify` except M6, which waits on a decision: ready-made reports need product-level data the report engine does not have)*
+2. **Simplify:** C3, C4, C6, A1–A3, M1, M4, M6, W1. *(built on `feature/phase-3-simplify`; M6 became part of D1/D4, decision Q10)*
 3. **New:** F2, S2, S4 + N1, M2, C5, D1 polish to match the design.
 4. **Goals and insights:** G1, then D4.
 
@@ -121,6 +121,7 @@ tried on the NAS before the next one starts.
 - **Q8 — shopping lists:** one list per trip, several can be active at once, finished ones go to
   past lists (S2).
 - **Q9 — receipt items:** Products only, made editable; Items hidden (C5).
+- **Q10 — reports and periods:** no separate family reports; the Dashboard is the report (M6), for any period chosen with presets or a custom range (D1). The builder stays admin-only.
 
 - **Q6 — roles:** Admin and User only. A User does everything with lists and receipts (including
   deleting), and edits categories, tags and custom fields; only the Admin has the Logs, user

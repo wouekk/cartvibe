@@ -601,6 +601,8 @@ func TestSeedSystemRolesFamilyRoles(t *testing.T) {
 		permissions.AppSystemSettingsRead,
 		permissions.AppReceiptProcessingSettingsUpdate,
 		permissions.AppGroupsCreate,
+		permissions.AppReportsRead,
+		permissions.AppReportsGenerate,
 	} {
 		if slices.Contains(user.Permissions, adminOnly) {
 			utils.PrintTestError(t, adminOnly, "not granted to a family User")
@@ -612,12 +614,12 @@ func TestSeedSystemRolesFamilyRoles(t *testing.T) {
 		utils.PrintTestError(t, member, "a system group role named Member")
 		return
 	}
-	for _, granted := range []string{permissions.GroupReceiptsDelete, permissions.GroupShoppingListsCreate, permissions.GroupReportsRead} {
+	for _, granted := range []string{permissions.GroupReceiptsDelete, permissions.GroupShoppingListsCreate} {
 		if !slices.Contains(member.Permissions, granted) {
 			utils.PrintTestError(t, granted, "granted to a family Member")
 		}
 	}
-	for _, adminOnly := range []string{permissions.GroupUpdate, permissions.GroupDelete, permissions.GroupMembersCreate} {
+	for _, adminOnly := range []string{permissions.GroupUpdate, permissions.GroupDelete, permissions.GroupMembersCreate, permissions.GroupReportsRead} {
 		if slices.Contains(member.Permissions, adminOnly) {
 			utils.PrintTestError(t, adminOnly, "not granted to a family Member")
 		}

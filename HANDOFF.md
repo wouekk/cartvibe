@@ -12,7 +12,8 @@
   New list on the Overview and no sidebar "New" menu, M7 currency picker in System Settings.
   M7: EUR as the new-install default is still to do (see the plan). **CI green**
   (run 39410847593; `gh` needs `--repo wouekk/receipt-wrangler`, it defaults to upstream).
-- **Phase 3 step 2 ("Simplify") is on `feature/phase-3-simplify`**, except M6: C3 nothing required in
+- **Phase 3 step 2 ("Simplify") is merged into `main`** from `feature/phase-3-simplify` (M6 became part of
+  D1/D4, decision Q10; the User role has no report permissions): C3 nothing required in
   Quick Scan and a sole group picked automatically, C6 "To check / Done", C4 bill splitting hidden,
   A1–A3 + M1 a Manage → AI page (Gemini or LM Studio, Test connection) with a built-in prompt and
   a trimmed System Settings, M4 Admin / User roles only (new system roles `User` and `Member`),
@@ -30,9 +31,9 @@
 ## Next
 
 ### Claude Code
-1. When step 2's CI is green and the user agrees, fast-forward `main` to `feature/phase-3-simplify`.
-2. M6 (ready-made reports) waits on the user's answer about their shape; then step 3 (F2, S2,
-   S4 + N1, M2, C5, D1). M3, M5 and F1 are in the plan but not in its suggested order.
+1. Act on the NAS feedback for step 2.
+2. Step 3 (F2, S2, S4 + N1, M2, C5, D1 with the period picker and tap-through lists, decision
+   Q10), plus M5 (one automatic household group). M3 and F1 are in the plan but not in its order.
 3. M7 follow-up: make EUR the API default for new installs (the user wants it; see the plan).
 
 ### User
