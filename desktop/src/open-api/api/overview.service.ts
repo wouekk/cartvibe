@@ -194,17 +194,18 @@ export class OverviewService {
      * List the products behind a Dashboard tile
      * This will list the product lines that make up the Unhealthy or Unplanned figure for a period, newest receipt first, over the receipts the caller can see [group.receipts.read]
      * @param groupId Id of the group; the All group spans every group the caller can read
-     * @param kind UNHEALTHY or UNPLANNED
+     * @param kind UNHEALTHY, UNPLANNED or FOODGROUP (the products of one food group)
+     * @param foodGroup With kind FOODGROUP, the food group\&#39;s name as the Dashboard shows it; empty for Uncategorized
      * @param month Month, yyyy-MM. Defaults to the current month in the app time zone.
      * @param from First day, yyyy-MM-dd. With to, replaces month.
      * @param to Last day, yyyy-MM-dd
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getOverviewProducts(groupId: number, kind: string, month?: string, from?: string, to?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<GroupOverviewProduct>>;
-    public getOverviewProducts(groupId: number, kind: string, month?: string, from?: string, to?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<GroupOverviewProduct>>>;
-    public getOverviewProducts(groupId: number, kind: string, month?: string, from?: string, to?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<GroupOverviewProduct>>>;
-    public getOverviewProducts(groupId: number, kind: string, month?: string, from?: string, to?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public getOverviewProducts(groupId: number, kind: string, foodGroup?: string, month?: string, from?: string, to?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<GroupOverviewProduct>>;
+    public getOverviewProducts(groupId: number, kind: string, foodGroup?: string, month?: string, from?: string, to?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<GroupOverviewProduct>>>;
+    public getOverviewProducts(groupId: number, kind: string, foodGroup?: string, month?: string, from?: string, to?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<GroupOverviewProduct>>>;
+    public getOverviewProducts(groupId: number, kind: string, foodGroup?: string, month?: string, from?: string, to?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (groupId === null || groupId === undefined) {
             throw new Error('Required parameter groupId was null or undefined when calling getOverviewProducts.');
         }
@@ -216,6 +217,10 @@ export class OverviewService {
         if (kind !== undefined && kind !== null) {
           localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
             <any>kind, 'kind');
+        }
+        if (foodGroup !== undefined && foodGroup !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>foodGroup, 'foodGroup');
         }
         if (month !== undefined && month !== null) {
           localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,

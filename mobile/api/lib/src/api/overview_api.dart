@@ -126,7 +126,8 @@ class OverviewApi {
   ///
   /// Parameters:
   /// * [groupId] - Id of the group; the All group spans every group the caller can read
-  /// * [kind] - UNHEALTHY or UNPLANNED
+  /// * [kind] - UNHEALTHY, UNPLANNED or FOODGROUP (the products of one food group)
+  /// * [foodGroup] - With kind FOODGROUP, the food group's name as the Dashboard shows it; empty for Uncategorized
   /// * [month] - Month, yyyy-MM. Defaults to the current month in the app time zone.
   /// * [from] - First day, yyyy-MM-dd. With to, replaces month.
   /// * [to] - Last day, yyyy-MM-dd
@@ -142,6 +143,7 @@ class OverviewApi {
   Future<Response<BuiltList<GroupOverviewProduct>>> getOverviewProducts({ 
     required int groupId,
     required String kind,
+    String? foodGroup,
     String? month,
     String? from,
     String? to,
@@ -178,6 +180,7 @@ class OverviewApi {
 
     final _queryParameters = <String, dynamic>{
       r'kind': encodeQueryParameter(_serializers, kind, const FullType(String)),
+      if (foodGroup != null) r'foodGroup': encodeQueryParameter(_serializers, foodGroup, const FullType(String)),
       if (month != null) r'month': encodeQueryParameter(_serializers, month, const FullType(String)),
       if (from != null) r'from': encodeQueryParameter(_serializers, from, const FullType(String)),
       if (to != null) r'to': encodeQueryParameter(_serializers, to, const FullType(String)),

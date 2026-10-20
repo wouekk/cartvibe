@@ -67,7 +67,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **getOverviewProducts**
-> BuiltList<GroupOverviewProduct> getOverviewProducts(groupId, kind, month, from, to)
+> BuiltList<GroupOverviewProduct> getOverviewProducts(groupId, kind, foodGroup, month, from, to)
 
 List the products behind a Dashboard tile
 
@@ -83,13 +83,14 @@ import 'package:openapi/api.dart';
 
 final api = Openapi().getOverviewApi();
 final int groupId = 56; // int | Id of the group; the All group spans every group the caller can read
-final String kind = kind_example; // String | UNHEALTHY or UNPLANNED
+final String kind = kind_example; // String | UNHEALTHY, UNPLANNED or FOODGROUP (the products of one food group)
+final String foodGroup = foodGroup_example; // String | With kind FOODGROUP, the food group's name as the Dashboard shows it; empty for Uncategorized
 final String month = month_example; // String | Month, yyyy-MM. Defaults to the current month in the app time zone.
 final String from = from_example; // String | First day, yyyy-MM-dd. With to, replaces month.
 final String to = to_example; // String | Last day, yyyy-MM-dd
 
 try {
-    final response = api.getOverviewProducts(groupId, kind, month, from, to);
+    final response = api.getOverviewProducts(groupId, kind, foodGroup, month, from, to);
     print(response);
 } catch on DioException (e) {
     print('Exception when calling OverviewApi->getOverviewProducts: $e\n');
@@ -101,7 +102,8 @@ try {
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **groupId** | **int**| Id of the group; the All group spans every group the caller can read | 
- **kind** | **String**| UNHEALTHY or UNPLANNED | 
+ **kind** | **String**| UNHEALTHY, UNPLANNED or FOODGROUP (the products of one food group) | 
+ **foodGroup** | **String**| With kind FOODGROUP, the food group's name as the Dashboard shows it; empty for Uncategorized | [optional] 
  **month** | **String**| Month, yyyy-MM. Defaults to the current month in the app time zone. | [optional] 
  **from** | **String**| First day, yyyy-MM-dd. With to, replaces month. | [optional] 
  **to** | **String**| Last day, yyyy-MM-dd | [optional] 
