@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Receipt Wrangler</title>
+    <title>CartVibe</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/x-icon" href="favicon.svg" />
@@ -55,7 +55,7 @@
     </script>
 
     <style>
-      /* ---------- Accent themes (the picker writes data-accent on <html>) ---------- */
+      /* ---------- Accent themes (the picker in the header writes data-accent on <html>) ---------- */
       :root,
       :root[data-accent="blue"] {
         --accent-color: #0071e3;
@@ -273,136 +273,9 @@
       .swatch[style*="rgb(0, 134, 212)"] {
         background: var(--accent-color) !important;
       }
-
-      /* ---------- Theme accent picker (a small pill in the bottom corner) ---------- */
-      #rw-accent-picker {
-        position: fixed;
-        right: 12px;
-        bottom: 12px;
-        z-index: 900;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 5px;
-        border-radius: 9999px;
-        border: 1px solid rgba(228, 228, 231, 0.8);
-        background: rgba(255, 255, 255, 0.8);
-        -webkit-backdrop-filter: blur(12px);
-        backdrop-filter: blur(12px);
-        box-shadow: 0 1px 2px rgba(24, 24, 27, 0.06), 0 4px 14px rgba(24, 24, 27, 0.08);
-      }
-      @media (prefers-color-scheme: dark) {
-        #rw-accent-picker {
-          border-color: rgba(39, 39, 42, 0.8);
-          background: rgba(24, 24, 27, 0.8);
-        }
-      }
-      #rw-accent-picker button {
-        width: 18px;
-        height: 18px;
-        padding: 0;
-        border: 2px solid transparent;
-        border-radius: 9999px;
-        cursor: pointer;
-        transition: transform 0.15s ease, box-shadow 0.2s ease;
-      }
-      #rw-accent-picker button:hover {
-        transform: scale(1.12);
-      }
-      #rw-accent-picker button:active {
-        transform: scale(0.95);
-      }
-      #rw-accent-picker button:focus-visible {
-        outline: 2px solid var(--accent-color);
-        outline-offset: 2px;
-      }
-      #rw-accent-picker button[aria-pressed="true"] {
-        box-shadow: 0 0 0 2px #fff, 0 0 0 4px currentColor;
-      }
-      #rw-accent-picker [data-theme="blue"] {
-        background: #0071e3;
-        color: #0071e3;
-      }
-      #rw-accent-picker [data-theme="green"] {
-        background: #248a3d;
-        color: #248a3d;
-      }
-      #rw-accent-picker [data-theme="amber"] {
-        background: #d97706;
-        color: #d97706;
-      }
-      #rw-accent-picker [data-theme="indigo"] {
-        background: #5856d6;
-        color: #5856d6;
-      }
-      /* Collapsed: just the active dot; a click opens the four. */
-      #rw-accent-picker[data-collapsed="true"] button:not([aria-pressed="true"]) {
-        display: none;
-      }
-      @media print {
-        #rw-accent-picker {
-          display: none;
-        }
-      }
     </style>
   </head>
   <body class="mat-typography">
     <app-root></app-root>
-
-    <div
-      id="rw-accent-picker"
-      class="tw-rounded-full tw-border tw-border-zinc-200/80 tw-bg-white/80 tw-shadow-sm tw-backdrop-blur-md dark:tw-border-zinc-800/80 dark:tw-bg-zinc-900/80"
-      role="group"
-      aria-label="Accent color"
-      data-collapsed="true"
-    >
-      <button type="button" data-theme="blue" aria-label="Ocean Blue" title="Ocean Blue" aria-pressed="false"></button>
-      <button type="button" data-theme="green" aria-label="Alpine Green" title="Alpine Green" aria-pressed="false"></button>
-      <button type="button" data-theme="amber" aria-label="Sunset Amber" title="Sunset Amber" aria-pressed="false"></button>
-      <button type="button" data-theme="indigo" aria-label="Royal Indigo" title="Royal Indigo" aria-pressed="false"></button>
-    </div>
-
-    <script>
-      (function () {
-        var picker = document.getElementById("rw-accent-picker");
-        var buttons = picker.querySelectorAll("button");
-        var root = document.documentElement;
-
-        function mark(theme) {
-          for (var i = 0; i < buttons.length; i++) {
-            buttons[i].setAttribute("aria-pressed", buttons[i].getAttribute("data-theme") === theme ? "true" : "false");
-          }
-        }
-
-        mark(root.getAttribute("data-accent") || "blue");
-
-        picker.addEventListener("click", function (event) {
-          var button = event.target.closest("button");
-          if (!button) {
-            return;
-          }
-
-          // Collapsed, a click on the dot only opens the pill; open, a click picks a color and closes it.
-          if (picker.getAttribute("data-collapsed") === "true") {
-            picker.setAttribute("data-collapsed", "false");
-            return;
-          }
-
-          var theme = button.getAttribute("data-theme");
-          root.setAttribute("data-accent", theme);
-          mark(theme);
-          try {
-            window.localStorage.setItem("rw_accent_theme", theme);
-          } catch (e) {}
-          picker.setAttribute("data-collapsed", "true");
-        });
-
-        document.addEventListener("click", function (event) {
-          if (!picker.contains(event.target)) {
-            picker.setAttribute("data-collapsed", "true");
-          }
-        });
-      })();
-    </script>
   </body>
 </html>

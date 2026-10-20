@@ -5,7 +5,7 @@ import { withAdminApi } from './helpers/provisioning';
 // A clean URL (no spaces / reserved chars) so Go's url.QueryEscape and JS's
 // encode/decodeURIComponent agree byte-for-byte on the fragment.
 const SERVER_URL = 'https://e2e-mobile.example.com/api';
-const QR_IMG_NAME = 'Scan to set up the Receipt Wrangler mobile app';
+const QR_IMG_NAME = 'Scan to set up the CartVibe mobile app';
 
 // `showLoginQr` / `mobileServerUrl` are GLOBAL system settings, so these tests
 // mutate shared server state and must run serially. afterAll puts both fields

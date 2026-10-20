@@ -3137,3 +3137,13 @@ The AI page is the baseline for every settings screen (title and intro, a 640-76
 bar). System Settings and User Settings follow it; `app-tabs` (User Settings, group tabs) now renders the same pill
 tab look as the Dashboard and System Settings. System Settings' Save sits at the end of each tab's last card
 (`settings-save`), enabled once the form is dirty and valid.
+
+## CartVibe identity, theme and accent (fork)
+
+The app is **CartVibe** (page title, login, header, favicon). `index.html` holds the Tailwind CDN (Preflight off, every
+utility `tw-` prefixed so it never matches the app's own classes), the `--accent-color/-hover/-soft` variables per
+`data-accent` (blue, green, amber, indigo), the early `rw_accent_theme` read from localStorage, and the plain-CSS visual
+skin (colors, radii, shadow rings, fonts, transitions only: no spacing or layout). `app-accent-picker` (header, between
+search and the bell) sets `data-accent` and saves the choice; `app-cartvibe-logo` (header and login) draws the icon and
+wordmark from the same variables. Skin rules use `!important` where a component's scoped style would otherwise win.
+`:latest` carries it once merged; a manual "Publish image" run from a branch publishes `:preview` only.
