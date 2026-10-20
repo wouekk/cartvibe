@@ -44,8 +44,8 @@ describe("ColumnConfigurationDialogComponent", () => {
     // Initialize mock dialog data
     mockDialogData = {
       currentColumns: [
-        { matColumnDef: "created_at", visible: true, order: 0 },
-        { matColumnDef: "name", visible: true, order: 1 },
+        { matColumnDef: "date", visible: true, order: 0 },
+        { matColumnDef: "shop_name", visible: true, order: 1 },
         { matColumnDef: "amount", visible: false, order: 2 }
       ]
     };
@@ -103,17 +103,17 @@ describe("ColumnConfigurationDialogComponent", () => {
       component.ngOnInit();
 
       expect(component.columns[0]).toEqual({
-        matColumnDef: "created_at",
+        matColumnDef: "date",
         visible: true,
         order: 0,
-        displayName: "Added At",
+        displayName: "Receipt Date",
         isCustom: false
       });
       expect(component.columns[1]).toEqual({
-        matColumnDef: "name",
+        matColumnDef: "shop_name",
         visible: true,
         order: 1,
-        displayName: "Name",
+        displayName: "Shop",
         isCustom: false
       });
       expect(component.columns[2]).toEqual({
@@ -128,14 +128,14 @@ describe("ColumnConfigurationDialogComponent", () => {
     it("should sort columns by order before mapping", () => {
       mockDialogData.currentColumns = [
         { matColumnDef: "amount", visible: true, order: 2 },
-        { matColumnDef: "created_at", visible: true, order: 0 },
-        { matColumnDef: "name", visible: true, order: 1 }
+        { matColumnDef: "date", visible: true, order: 0 },
+        { matColumnDef: "shop_name", visible: true, order: 1 }
       ];
 
       component.ngOnInit();
 
-      expect(component.columns[0].matColumnDef).toBe("created_at");
-      expect(component.columns[1].matColumnDef).toBe("name");
+      expect(component.columns[0].matColumnDef).toBe("date");
+      expect(component.columns[1].matColumnDef).toBe("shop_name");
       expect(component.columns[2].matColumnDef).toBe("amount");
     });
 
@@ -144,14 +144,14 @@ describe("ColumnConfigurationDialogComponent", () => {
       // Sorting it in place threw "TypeError: 0 is read-only"; we must copy first.
       mockDialogData.currentColumns = Object.freeze([
         Object.freeze({ matColumnDef: "amount", visible: true, order: 2 }),
-        Object.freeze({ matColumnDef: "created_at", visible: true, order: 0 }),
-        Object.freeze({ matColumnDef: "name", visible: true, order: 1 })
+        Object.freeze({ matColumnDef: "date", visible: true, order: 0 }),
+        Object.freeze({ matColumnDef: "shop_name", visible: true, order: 1 })
       ]) as ReceiptTableColumnConfig[];
 
       expect(() => component.ngOnInit()).not.toThrow();
       expect(component.columns.slice(0, 3).map(col => col.matColumnDef)).toEqual([
-        "created_at",
-        "name",
+        "date",
+        "shop_name",
         "amount"
       ]);
     });
@@ -453,11 +453,11 @@ describe("ColumnConfigurationDialogComponent", () => {
     it("should preserve displayName mapping when resetting", () => {
       component.resetToDefaults();
 
-      const createdAtColumn = component.columns.find(col => col.matColumnDef === "created_at");
-      expect(createdAtColumn?.displayName).toBe("Added At");
+      const dateColumn = component.columns.find(col => col.matColumnDef === "date");
+      expect(dateColumn?.displayName).toBe("Receipt Date");
 
-      const nameColumn = component.columns.find(col => col.matColumnDef === "name");
-      expect(nameColumn?.displayName).toBe("Name");
+      const shopColumn = component.columns.find(col => col.matColumnDef === "shop_name");
+      expect(shopColumn?.displayName).toBe("Shop");
     });
   });
 
