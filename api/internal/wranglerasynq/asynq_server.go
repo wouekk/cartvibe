@@ -76,6 +76,7 @@ func BuildMux() *asynq.ServeMux {
 	mux.HandleFunc(RefreshTokenCleanUp, HandleRefreshTokenCleanupTask)
 	mux.HandleFunc(OidcSessionCleanUp, HandleOidcCleanupTask)
 	mux.HandleFunc(ReceiptProductSweep, HandleReceiptProductSweepTask)
+	mux.HandleFunc(FoodClassificationSweep, HandleFoodClassificationSweepTask)
 
 	return mux
 }

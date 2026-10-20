@@ -4460,6 +4460,82 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
+  /shopping-list/item/{itemId}/classification:
+    parameters:
+      - in: path
+        name: itemId
+        schema:
+          type: integer
+        required: true
+        description: Id of the shopping list item
+    put:
+      tags:
+        - ShoppingList
+      summary: Correct a shopping list item's health and seasonality tags
+      description: >-
+        This will set the item's tags and remember the health rating for the group's future
+        products [group.shopping-lists.update]
+      operationId: setShoppingListItemClassification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetFoodClassificationCommand"
+      responses:
+        200:
+          description: The item with its corrected tags
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShoppingListItem"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+  /receipt-product/product/{productId}/classification:
+    parameters:
+      - in: path
+        name: productId
+        schema:
+          type: integer
+        required: true
+        description: Id of the receipt product
+    put:
+      tags:
+        - ReceiptProduct
+      summary: Correct a receipt product's health and seasonality tags
+      description: >-
+        This will set the product's tags and remember the health rating for the group's future
+        products [group.receipts.update]
+      operationId: setReceiptProductClassification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetFoodClassificationCommand"
+      responses:
+        200:
+          description: The product with its corrected tags
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReceiptProduct"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
 components:
   securitySchemes:
     bearerAuth:
@@ -4688,6 +4764,10 @@ components:
     ShoppingListItem:
       type: object
       required:
+        - health
+        - foodGroup
+        - seasonality
+        - classificationOverridden
         - id
         - shoppingListId
         - name
@@ -4746,6 +4826,27 @@ components:
           format: uint64
           nullable: true
           description: Who crossed the item off; null while it is on the list
+        health:
+          type: string
+          description: >-
+            HEALTHY, MEDIUM, UNHEALTHY, NOT_FOOD, UNKNOWN, or empty while not yet classified. A plain
+            string, never an enum, so a new rating cannot break an older client.
+        foodGroup:
+          type: string
+          description: A short lowercase food group, e.g. "fresh produce"; empty while not yet classified
+        seasonality:
+          type: string
+          description: >-
+            For fresh fruit and vegetables, SEASONAL or OUT_OF_SEASON in Western Europe in the month
+            bought; NOT_PRODUCE otherwise; empty while not yet classified. A plain string.
+        classifiedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When the tags were set; null while waiting to be classified
+        classificationOverridden:
+          type: boolean
+          description: The tags were corrected by a person
     UpsertShoppingListCommand:
       type: object
       required:
@@ -4878,6 +4979,10 @@ components:
     ReceiptProduct:
       type: object
       required:
+        - health
+        - foodGroup
+        - seasonality
+        - classificationOverridden
         - id
         - receiptId
         - name
@@ -4917,6 +5022,27 @@ components:
         position:
           type: integer
           description: The line's order on the receipt
+        health:
+          type: string
+          description: >-
+            HEALTHY, MEDIUM, UNHEALTHY, NOT_FOOD, UNKNOWN, or empty while not yet classified. A plain
+            string, never an enum, so a new rating cannot break an older client.
+        foodGroup:
+          type: string
+          description: A short lowercase food group, e.g. "fresh produce"; empty while not yet classified
+        seasonality:
+          type: string
+          description: >-
+            For fresh fruit and vegetables, SEASONAL or OUT_OF_SEASON in Western Europe in the month
+            bought; NOT_PRODUCE otherwise; empty while not yet classified. A plain string.
+        classifiedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When the tags were set; null while waiting to be classified
+        classificationOverridden:
+          type: boolean
+          description: The tags were corrected by a person
     ReceiptProductsView:
       type: object
       required:
@@ -4946,6 +5072,17 @@ components:
         queued:
           type: integer
           description: How many receipts were queued
+    SetFoodClassificationCommand:
+      type: object
+      required:
+        - health
+      properties:
+        health:
+          type: string
+          description: HEALTHY, MEDIUM, UNHEALTHY or NOT_FOOD
+        seasonality:
+          type: string
+          description: SEASONAL, OUT_OF_SEASON or NOT_PRODUCE; empty leaves it as it was
     PermissionScope:
       description: Whether a permission applies app-wide or within a single group.
       type: string

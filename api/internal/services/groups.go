@@ -272,6 +272,12 @@ func (service GroupService) DeleteGroup(groupId string, allowAllGroupDelete bool
 			return txErr
 		}
 
+		// Delete the group's remembered product corrections
+		txErr = repositories.NewFoodClassificationRepository(tx).DeleteCorrectionsForGroup(uintGroupId)
+		if txErr != nil {
+			return txErr
+		}
+
 		// Delete group members
 		txErr = tx.Where("group_id = ?", groupId).Delete(&models.GroupMember{}).Error
 		if txErr != nil {

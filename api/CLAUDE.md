@@ -3990,3 +3990,31 @@ name, amount, quantity, position). They are **not** `Item`s, which are bill-spli
 - `DeleteReceipt` removes the receipt's products and extraction (they are not associations of
   `Receipt`, so its delete cannot cascade to them).
 - Tests: `services/receipt_product_extraction_test.go`, `handlers/receipt_products_test.go`.
+
+## Health and seasonality tags (fork extension, Phase 2b)
+
+Receipt products and shopping list items embed `models.FoodClassification`: `health` (HEALTHY /
+MEDIUM / UNHEALTHY / NOT_FOOD / UNKNOWN), `foodGroup`, `seasonality` (SEASONAL / OUT_OF_SEASON /
+NOT_PRODUCE, judged for **Western Europe** in the month bought), `classifiedAt`,
+`classificationOverridden`. All plain strings on the API.
+
+- **Classification is separate from reading the receipt.** A text-only sweep
+  (`system_clean_up:food_classification`, every 2 minutes) takes up to 60 waiting products and 60
+  waiting list items, batches them **per group and purchase month** (a product's receipt month; this
+  month in the app time zone for a list item), and classifies each batch in one AI call. Cheap, and
+  it covers products read before 2b existed.
+- **No AI configured / AI unreachable:** nothing changes and nothing is counted; the next sweep tries
+  again. An answer that leaves a product out counts one attempt for it; after 3 it stays unclassified.
+- **Corrections** (`PUT /shopping-list/item/{id}/classification`, `PUT
+  /receipt-product/product/{id}/classification`) set the tags, mark the row overridden (the sweep
+  never touches it again, guarded in the UPDATE itself) and remember the **health** per group under
+  the normalized name in `ProductClassificationOverride`. Remembered corrections override the AI's
+  answer for that name and are given to the AI as examples. Seasonality is not remembered: it depends
+  on the month, not the product.
+- **Resets:** renaming a list item to a different product clears its tags (and correction); reviving
+  a crossed-off item clears them unless corrected, so seasonality is worked out for the new month.
+  Re-reading a receipt replaces its products, so they are classified afresh.
+- Classified list items are broadcast as `ITEM_UPDATED`, so open lists show the tags without a
+  refetch. Group deletion removes the group's corrections.
+- Tests: `services/food_classification_test.go`, plus the correction cases in
+  `handlers/receipt_products_test.go` and `handlers/shopping_lists_test.go`.

@@ -2,9 +2,12 @@ package handlers
 
 import (
 	"net/http"
+	"receipt-wrangler/api/internal/commands"
 	"receipt-wrangler/api/internal/constants"
+	"receipt-wrangler/api/internal/models"
 	"receipt-wrangler/api/internal/permissions"
 	"receipt-wrangler/api/internal/repositories"
+	"receipt-wrangler/api/internal/services"
 	"receipt-wrangler/api/internal/structs"
 	"receipt-wrangler/api/internal/utils"
 
@@ -126,6 +129,61 @@ func QueueGroupReceiptProducts(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
+			w.WriteHeader(http.StatusOK)
+			w.Write(bytes)
+			return 0, nil
+		},
+	}
+
+	HandleRequest(handler)
+}
+
+// SetReceiptProductClassification is a person's correction of a receipt product's tags. The product
+// is resolved to its receipt before authorizing, so the receipt's paid-by visibility applies and an
+// unknown id gets the same 403 as a denial.
+func SetReceiptProductClassification(w http.ResponseWriter, r *http.Request) {
+	productId, err := utils.StringToUint(chi.URLParam(r, "productId"))
+	var product models.ReceiptProduct
+	if err == nil {
+		err = repositories.GetDB().First(&product, productId).Error
+	}
+	if err != nil {
+		utils.WriteCustomErrorResponse(w, unauthorizedEntityMessage, http.StatusForbidden)
+		return
+	}
+
+	handler := structs.Handler{
+		ErrorMessage:     "Error correcting the product's tags",
+		Writer:           w,
+		Request:          r,
+		ReceiptId:        utils.UintToString(product.ReceiptId),
+		GroupPermissions: []string{permissions.GroupReceiptsUpdate},
+		ResponseType:     constants.ApplicationJson,
+		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
+			command := commands.SetFoodClassificationCommand{}
+			vErr, err := command.LoadDataFromRequestAndValidate(w, r)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+			if len(vErr.Errors) > 0 {
+				structs.WriteValidatorErrorResponse(w, vErr, http.StatusBadRequest)
+				return 0, nil
+			}
+
+			receipt, err := repositories.NewReceiptRepository(nil).GetReceiptById(utils.UintToString(product.ReceiptId))
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			updated, err := services.NewFoodClassificationService(nil).CorrectReceiptProduct(receipt.GroupId, product, command)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			bytes, err := utils.MarshalResponseData(updated)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
 			w.WriteHeader(http.StatusOK)
 			w.Write(bytes)
 			return 0, nil

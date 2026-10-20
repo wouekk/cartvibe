@@ -145,6 +145,15 @@ func (service ShoppingListService) AddShoppingListItem(
 				return err
 			}
 
+			// Back on the list, possibly in another month: its seasonality is worked out again. A
+			// person's own correction is kept.
+			if !existing.ClassificationOverridden {
+				err = repositories.NewFoodClassificationRepository(tx).ResetClassification(repositories.ClassificationKindItem, existing.ID)
+				if err != nil {
+					return err
+				}
+			}
+
 			item, err = repository.GetShoppingListItemById(existing.ID)
 			eventType = models.ShoppingListEventItemToggled
 			return err
@@ -182,7 +191,12 @@ func (service ShoppingListService) UpdateShoppingListItem(
 ) (models.ShoppingListItem, error) {
 	repository := repositories.NewShoppingListRepository(service.TX)
 
-	err := repository.UpdateShoppingListItemFields(itemId, repositories.ShoppingListItemFields{
+	existing, err := repository.GetShoppingListItemById(itemId)
+	if err != nil {
+		return models.ShoppingListItem{}, err
+	}
+
+	err = repository.UpdateShoppingListItemFields(itemId, repositories.ShoppingListItemFields{
 		Name:     command.Name,
 		Amount:   command.Amount,
 		Unit:     command.Unit,
@@ -191,6 +205,14 @@ func (service ShoppingListService) UpdateShoppingListItem(
 	})
 	if err != nil {
 		return models.ShoppingListItem{}, err
+	}
+
+	// A different product now: its tags (and any correction, which was about the old one) no longer apply.
+	if models.NormalizeProductName(existing.Name) != models.NormalizeProductName(command.Name) {
+		err = repositories.NewFoodClassificationRepository(service.TX).ResetClassification(repositories.ClassificationKindItem, itemId)
+		if err != nil {
+			return models.ShoppingListItem{}, err
+		}
 	}
 
 	item, err := repository.GetShoppingListItemById(itemId)
