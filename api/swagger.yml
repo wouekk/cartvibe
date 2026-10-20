@@ -4160,6 +4160,34 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
+  /shopping-list/group/{groupId}/going-shopping:
+    parameters:
+      - in: path
+        name: groupId
+        schema:
+          type: integer
+        required: true
+        description: Id of the group
+    post:
+      tags:
+        - ShoppingList
+      summary: Tell the household you are going shopping
+      description: >-
+        This will notify everyone else in the group to add what they need to the lists. A repeat within
+        15 minutes is ignored. Not available for the All group [group.shopping-lists.update]
+      operationId: announceGoingShopping
+      responses:
+        200:
+          $ref: "#/components/responses/Ok"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
   /shopping-list/{listId}:
     parameters:
       - in: path

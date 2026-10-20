@@ -48,6 +48,7 @@ func (service ShoppingListService) CreateShoppingList(
 		ShoppingListId: list.ID,
 		List:           &list,
 	})
+notifyListCreated(groupId, userId, list.Name)
 
 	return list, nil
 }
@@ -190,6 +191,7 @@ func (service ShoppingListService) AddShoppingListItem(
 		ShoppingListId: listId,
 		Item:           &item,
 	})
+notifyItemAdded(groupId, userId, listId)
 
 	return item, nil
 }
