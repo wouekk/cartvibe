@@ -1,6 +1,20 @@
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect x="19" y="15" width="13" height="2" fill="#FFD600"/>
-<path d="M3.35135 3.24324L9.08108 15.3514L0 29.0811L13.6216 32L17.4054 15.4015V0L3.35135 3.24324Z" fill="#27B1FF"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M14 20C17.3137 20 20 18.2091 20 16C20 13.7909 17.3137 12 14 12C10.6863 12 8 13.7909 8 16C8 18.2091 10.6863 20 14 20ZM13.5 16C15.9853 16 18 15.3284 18 14.5C18 13.6716 15.9853 13 13.5 13C11.0147 13 9 13.6716 9 14.5C9 15.3284 11.0147 16 13.5 16Z" fill="#FFD600"/>
-<path d="M9.08122 15.2432L7.45959 12L17.4055 10.2703V15.2432H9.08122Z" fill="#27B1FF"/>
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0071e3"/>
+      <stop offset="100%" stop-color="#5856d6"/>
+    </linearGradient>
+    <linearGradient id="h" x1="22" y1="26" x2="44" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ff7b54"/>
+      <stop offset="100%" stop-color="#ef4444"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="56" height="56" rx="14" fill="url(#g)"/>
+  <path d="M22 12 L25.5 14 L29 12 L32.5 14 L36 12 L39.5 14 L43 12 V34 H22 V12 Z" fill="white" fill-opacity="0.88"/>
+  <path d="M11 19 H16.5 L21 41 H44.5 L48 25 H18" stroke="white" stroke-opacity="0.9" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="white" fill-opacity="0.18"/>
+  <circle cx="23.5" cy="48.5" r="3.5" fill="white" fill-opacity="0.9"/>
+  <circle cx="41.5" cy="48.5" r="3.5" fill="white" fill-opacity="0.9"/>
+  <path d="M32.5 44.5 C32.5 44.5 22 37.8 22 30.8 C22 27.5 24.6 25 27.8 25 C29.7 25 31.4 26 32.5 27.5 C33.6 26 35.3 25 37.2 25 C40.4 25 43 27.5 43 30.8 C43 37.8 32.5 44.5 32.5 44.5 Z" fill="url(#h)"/>
+  <path d="M20 34.5 H27.5 L29.8 29.5 L32.8 39 L35.5 31.5 L37.2 34.5 H45" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M55 2 C55 7.5 56.5 9 62 9 C56.5 9 55 10.5 55 16 C55 10.5 53.5 9 48 9 C53.5 9 55 7.5 55 2 Z" fill="white" stroke="#0071e3" stroke-width="1"/>
 </svg>

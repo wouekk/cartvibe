@@ -32,6 +32,7 @@
         *hasAppPermission="Permission.AppReceiptsSearch"
         class="receipt-searchbar w-100 me-2"
       ></app-searchbar>
+      <app-accent-picker class="ms-3"></app-accent-picker>
       <app-button
         *hasAppPermission="Permission.AppNotificationsRead"
         class="ms-4"
@@ -46,10 +47,7 @@
         (clicked)="notificationsPopover.open()"
       ></app-button>
 
-      <img
-        class="mx-4"
-        src="assets/branding/logo-large.svg"
-      >
+      <app-cartvibe-logo class="mx-4"></app-cartvibe-logo>
     </div>
   </div>
 }

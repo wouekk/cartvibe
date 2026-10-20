@@ -205,7 +205,7 @@ export function buildOidcLoginUrl(providerName: string): string {
 const OIDC_ERROR_MESSAGES: Record<string, string> = {
   unknown_provider: "That sign-in provider is not available.",
   no_account:
-    "No Receipt Wrangler account is linked to that identity. Sign in and connect it from your profile, or ask an administrator.",
+    "No CartVibe account is linked to that identity. Sign in and connect it from your profile, or ask an administrator.",
   account_exists:
     "An account with that username already exists. Sign in with your password and connect the provider from your profile.",
   already_linked: "That identity is already connected to another account.",

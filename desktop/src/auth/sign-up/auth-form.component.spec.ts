@@ -249,7 +249,7 @@ describe('AuthForm', () => {
     localFixture.detectChanges();
 
     expect(errorSpy).toHaveBeenCalledWith(
-      expect.stringContaining('No Receipt Wrangler account is linked')
+      expect.stringContaining('No CartVibe account is linked')
     );
   });
 

@@ -138,7 +138,7 @@
       </div>
       <p class="text-muted mb-3">
         Marks every cookie as Secure, so browsers only send them over HTTPS. Recommended for any install
-        served over HTTPS. Leave this off if Receipt Wrangler is reached over plain HTTP, such as a LAN or
+        served over HTTPS. Leave this off if CartVibe is reached over plain HTTP, such as a LAN or
         bare IP address: browsers refuse Secure cookies there, so nobody would be able to log in.
       </p>
       <app-checkbox
@@ -154,14 +154,14 @@
           data-testid="secure-cookies-http-warning"
         >
           This page was loaded over HTTP. If you save with secure cookies on, browsers will drop the
-          login cookies on HTTP connections: you will be signed out, and nobody reaching Receipt Wrangler
+          login cookies on HTTP connections: you will be signed out, and nobody reaching CartVibe
           over HTTP will be able to log back in until it is turned off again.
         </div>
       }
       <p class="text-muted mb-3">
         The externally reachable address of this server. Used to build the redirect
         URI that each OIDC identity provider must be configured with, so it has to
-        match how users actually reach Receipt Wrangler.
+        match how users actually reach CartVibe.
       </p>
       <app-input
         label="Server Public URL"
@@ -250,7 +250,7 @@
     <section class="settings-card" data-testid="settings-card-mcp">
       <h2 class="settings-card__title">MCP server</h2>
       <p class="text-muted mb-3">
-        Exposes Receipt Wrangler as an OAuth 2.1-protected MCP server so clients such as Claude can be
+        Exposes CartVibe as an OAuth 2.1-protected MCP server so clients such as Claude can be
         connected as a custom connector and read your data (read-only). Toggling this starts or stops the
         server live, no restart required.
       </p>
@@ -293,7 +293,7 @@
     <section class="settings-card" data-testid="settings-card-mobile">
       <h2 class="settings-card__title">Mobile app setup</h2>
       <p class="text-muted mb-3">
-        Shows a QR code on the login page that opens the Receipt Wrangler mobile app and pre-fills the
+        Shows a QR code on the login page that opens the CartVibe mobile app and pre-fills the
         server URL below, so users can connect their phone without typing it. Leave this off to hide the
         QR code.
       </p>
