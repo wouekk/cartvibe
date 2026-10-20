@@ -48,8 +48,6 @@ describe("SidebarComponent", () => {
     return overlayContainer.getContainerElement();
   };
 
-  const inMenu = (menu: HTMLElement, testId: string) => menu.querySelector(`[data-testid="${testId}"]`);
-
   const selectGroupFive = (permissions: string[]) => {
     store.dispatch(new SetSelectedGroupId("5"));
     store.dispatch(new SetPermissions([], { 5: permissions }));
@@ -230,46 +228,15 @@ describe("SidebarComponent", () => {
     });
   });
 
-  describe("New menu", () => {
-    it("is hidden when the user holds none of the add permissions", async () => {
-      login();
-      selectGroupFive([]);
-      await fixture.whenStable();
+  // Adding lives on the Dashboard now (Phase 3 D3): "Add receipt" and "New list" there.
+  it("has no New menu, whatever the user may add", async () => {
+    login();
+    store.dispatch(new SetFeatureConfig({ aiPoweredReceipts: true } as FeatureConfig));
+    selectGroupFive([Permission.GroupReceiptsCreate, Permission.GroupReceiptsQuickScan]);
+    await fixture.whenStable();
 
-      expect(queryTestId("sidebar-add-fab")).toBeFalsy();
-    });
-
-    it("offers Add Receipt with the selected group's create permission", async () => {
-      login();
-      selectGroupFive([Permission.GroupReceiptsCreate]);
-      const menu = await openMenu("sidebar-add-fab");
-
-      expect(inMenu(menu, "sidebar-add-receipt")).toBeTruthy();
-      expect(inMenu(menu, "sidebar-quick-scan")).toBeFalsy();
-      expect(inMenu(menu, "sidebar-add-group")).toBeFalsy();
-    });
-
-    it("offers Quick Scan only with its permission and the AI feature", async () => {
-      login();
-      selectGroupFive([Permission.GroupReceiptsQuickScan]);
-      await fixture.whenStable();
-      // Without the feature the menu would be empty, so there is no button at all.
-      expect(queryTestId("sidebar-add-fab")).toBeFalsy();
-
-      store.dispatch(new SetFeatureConfig({ aiPoweredReceipts: true } as FeatureConfig));
-      const menu = await openMenu("sidebar-add-fab");
-
-      expect(inMenu(menu, "sidebar-quick-scan")).toBeTruthy();
-      expect(inMenu(menu, "sidebar-add-receipt")).toBeFalsy();
-    });
-
-    it("offers Add Group with the app group-create permission", async () => {
-      login();
-      store.dispatch(new SetPermissions([Permission.AppGroupsCreate], {}));
-      const menu = await openMenu("sidebar-add-fab");
-
-      expect(inMenu(menu, "sidebar-add-group")).toBeTruthy();
-    });
+    expect(queryTestId("sidebar-add-fab")).toBeFalsy();
+    expect(queryTestId("sidebar-quick-scan")).toBeFalsy();
   });
 
   describe("on a phone", () => {

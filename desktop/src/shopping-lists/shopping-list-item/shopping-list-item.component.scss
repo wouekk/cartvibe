@@ -56,10 +56,17 @@
   overflow-wrap: anywhere;
 }
 
+// A chip on the right, where the eye checks "how much" in the shop.
 .quantity {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 4px 10px;
+  border-radius: variables.$border-radius-md;
+  background: map.get(variables.$accent-palette, 100);
   font-size: 14px;
-  font-weight: 600;
-  color: map.get(variables.$accent-palette, 600);
+  font-weight: 700;
+  white-space: nowrap;
+  color: map.get(variables.$accent-palette, 700);
 }
 
 .note {

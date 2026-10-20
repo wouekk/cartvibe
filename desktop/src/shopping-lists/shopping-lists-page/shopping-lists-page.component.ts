@@ -1,7 +1,7 @@
-import { Component, OnDestroy, computed, effect, untracked } from "@angular/core";
+import { Component, OnDestroy, OnInit, computed, effect, untracked } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { MatDialog } from "@angular/material/dialog";
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { filter, map, switchMap, take } from "rxjs";
 import { Permission, ShoppingList, ShoppingListService } from "../../open-api";
@@ -24,7 +24,7 @@ import { ShoppingListFormDialogComponent } from "../shopping-list-form-dialog/sh
   styleUrls: ["./shopping-lists-page.component.scss"],
   standalone: false,
 })
-export class ShoppingListsPageComponent implements OnDestroy {
+export class ShoppingListsPageComponent implements OnInit, OnDestroy {
   public readonly groupId = toSignal(
     this.activatedRoute.paramMap.pipe(map((params) => Number(params.get("groupId")))),
     { requireSync: true }
@@ -68,6 +68,7 @@ export class ShoppingListsPageComponent implements OnDestroy {
 
   constructor(
     private activatedRoute: ActivatedRoute,
+    private router: Router,
     private store: Store,
     private matDialog: MatDialog,
     private shoppingListService: ShoppingListService,
@@ -81,6 +82,19 @@ export class ShoppingListsPageComponent implements OnDestroy {
         this.shoppingListStreamService.connect(groupId);
       });
     });
+  }
+
+  /** The Dashboard's "New list" lands here with `?new=list` and opens the dialog straight away. */
+  public ngOnInit(): void {
+    if (this.activatedRoute.snapshot?.queryParamMap.get("new") !== "list") {
+      return;
+    }
+
+    // Dropped from the URL, so a reload or Back does not open it again.
+    this.router.navigate([], { relativeTo: this.activatedRoute, queryParams: {}, replaceUrl: true });
+    if (this.canCreate()) {
+      this.addList();
+    }
   }
 
   public ngOnDestroy(): void {

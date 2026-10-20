@@ -4,7 +4,6 @@ import {
   describeChange,
   formatMonthLabel,
   monthDayRange,
-  netOwed,
   previousMonthOf,
   toMonthKey,
 } from "./overview-chart.utils";
@@ -87,11 +86,5 @@ describe("overview chart utils", () => {
     expect(describeChange("150", "100", september)).toBe("50% more than September");
     expect(describeChange("100.2", "100", september)).toBe("About the same as September");
     expect(describeChange("100", "0", september)).toBeUndefined();
-  });
-
-  it("nets the amount-owed map so that positive means others owe the user", () => {
-    expect(netOwed({ 2: "-30.50", 3: "10" })).toBeCloseTo(20.5);
-    expect(netOwed({ 2: "15" })).toBeCloseTo(-15);
-    expect(netOwed({})).toBe(-0);
   });
 });

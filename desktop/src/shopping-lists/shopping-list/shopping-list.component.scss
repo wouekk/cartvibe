@@ -25,19 +25,32 @@
   min-width: 0;
 }
 
-.add-submit {
-  // Lines the button up with the outline field's 56px box rather than its error row.
-  margin-top: 6px;
-  height: 44px;
+// Amount and unit stay on the name's line, even on a phone (the approved Phone design).
+.add-amount {
+  flex: 0 0 176px;
+
+  @media (max-width: 400px) {
+    flex-basis: 152px;
+  }
+
+  // Narrow outline fields: less side padding so "1.5" and "bottle" still fit.
+  ::ng-deep .mat-mdc-text-field-wrapper {
+    padding-left: variables.$spacing-sm;
+    padding-right: variables.$spacing-sm;
+  }
 }
 
-.add-details {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  column-gap: variables.$spacing-sm;
+.add-submit {
+  // A square thumb-sized button, lined up with the outline field's 56px box rather than its error row.
+  flex: 0 0 auto;
+  margin-top: 6px;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0;
 
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr;
+  .mat-icon {
+    margin: 0;
   }
 }
 

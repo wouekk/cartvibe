@@ -1,8 +1,9 @@
 import { Component, computed, effect, linkedSignal, untracked } from "@angular/core";
+import { MatDialog } from "@angular/material/dialog";
 import { toObservable, toSignal } from "@angular/core/rxjs-interop";
 import { ActivatedRoute } from "@angular/router";
 import { Store } from "@ngxs/store";
-import { catchError, map, of, switchMap } from "rxjs";
+import { catchError, map, of, switchMap, take } from "rxjs";
 import {
   FilterOperation,
   GroupOverview,
@@ -11,9 +12,9 @@ import {
   Receipt,
   ReceiptService,
   SortDirection,
-  UserService,
 } from "../../open-api";
-import { AuthState, GroupState } from "../../store";
+import { openQuickScanDialog } from "../../receipts/quick-scan-dialog/open-quick-scan-dialog";
+import { AuthState, FeatureConfigState, GroupState } from "../../store";
 import { ShoppingListState } from "../../store/shopping-list.state";
 import { LoadShoppingLists } from "../../store/shopping-list.state.actions";
 import { SystemSettingsState } from "../../store/system-settings.state";
@@ -27,7 +28,6 @@ import {
   DONUT_RADIUS,
   formatMonthLabel,
   monthDayRange,
-  netOwed,
   previousMonthOf,
   toMonthKey,
 } from "../overview-chart.utils";
@@ -39,7 +39,7 @@ const LIST_PREVIEW_ITEMS = 3;
 
 /**
  * The landing page: a month at a glance for the selected group — spend and its change, receipts
- * still open, who owes whom, what is left to buy, spend by category, the six-month trend, and the
+ * still open, what went on unhealthy food, what is left to buy, spend by category, the six-month trend, and the
  * month's latest receipts. Each card loads independently, so one failing request blanks only itself.
  */
 @Component({
@@ -105,18 +105,16 @@ export class OverviewPageComponent {
     { initialValue: [] as Receipt[] }
   );
 
-  /** Positive: others owe the user. Undefined until loaded, or when it could not be. */
-  public readonly netOwed = toSignal(
-    toObservable(this.groupId).pipe(
-      switchMap((groupId) =>
-        this.userService.getAmountOwedForUser(groupId).pipe(
-          map((amountOwed) => netOwed(amountOwed)),
-          catchError(() => of(undefined))
-        )
-      )
-    ),
-    { initialValue: undefined as number | undefined }
-  );
+  /**
+   * The unhealthy tile (Phase 3 D2): what the month's products rated unhealthy cost, and their share
+   * of the month's spend. Any of it is overspending, so the tile warns as soon as it is above zero.
+   */
+  public readonly unhealthyTotal = computed(() => Number(this.overview()?.unhealthyTotal ?? 0));
+
+  public readonly unhealthyShare = computed(() => {
+    const total = Number(this.overview()?.total ?? 0);
+    return total > 0 ? Math.round((this.unhealthyTotal() / total) * 100) : 0;
+  });
 
   public readonly circleRadius = DONUT_RADIUS;
 
@@ -149,8 +147,24 @@ export class OverviewPageComponent {
     hasAll(this.groupPermissions()[this.groupId()] ?? [], Permission.GroupReceiptsCreate)
   );
 
+  private readonly hasAiPoweredReceipts = this.store.selectSignal(FeatureConfigState.hasFeature("aiPoweredReceipts"));
+
+  public readonly canQuickScan = computed(
+    () =>
+      this.hasAiPoweredReceipts() &&
+      hasAll(this.groupPermissions()[this.groupId()] ?? [], Permission.GroupReceiptsQuickScan)
+  );
+
   /** The shopping list group: this group when readable, otherwise the user's first readable one. */
   public readonly shoppingListGroupId = this.store.selectSignal(ShoppingListState.targetGroupId);
+
+  public readonly canCreateList = computed(() => {
+    const listGroupId = this.shoppingListGroupId();
+    return (
+      listGroupId !== undefined &&
+      hasAll(this.groupPermissions()[listGroupId] ?? [], Permission.GroupShoppingListsCreate)
+    );
+  });
 
   private readonly shoppingLists = this.store.selectSignal(ShoppingListState.lists);
 
@@ -181,7 +195,7 @@ export class OverviewPageComponent {
     private overviewService: OverviewService,
     private receiptService: ReceiptService,
     private store: Store,
-    private userService: UserService
+    private matDialog: MatDialog
   ) {
     // Imperative side effect: keep the shopping list store on the group the card describes.
     effect(() => {
@@ -194,5 +208,9 @@ export class OverviewPageComponent {
 
   public selectMonth(month: FilterMonth): void {
     this.month.set(month);
+  }
+
+  public openQuickScan(): void {
+    openQuickScanDialog(this.matDialog).pipe(take(1)).subscribe();
   }
 }

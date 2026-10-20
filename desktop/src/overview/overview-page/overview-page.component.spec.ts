@@ -5,7 +5,7 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ActivatedRoute, convertToParamMap, provideRouter } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { BehaviorSubject, of } from "rxjs";
-import { GroupOverview, OverviewService, Permission, ReceiptService, ShoppingListService, UserService } from "../../open-api";
+import { GroupOverview, OverviewService, Permission, ReceiptService, ShoppingListService } from "../../open-api";
 import { PipesModule } from "../../pipes/pipes.module";
 import { AuthState } from "../../store/auth.state";
 import { SetPermissions } from "../../store/auth.state.actions";
@@ -22,6 +22,7 @@ const overview = (month: string): GroupOverview => ({
   previousTotal: "100",
   receiptCount: 3,
   openReceiptCount: 1,
+  unhealthyTotal: "23",
   categories: [{ name: "Groceries", total: "92" }],
   months: [
     { month: "2026-05", total: "0" },
@@ -38,7 +39,6 @@ describe("OverviewPageComponent", () => {
   let component: OverviewPageComponent;
   let overviewService: { getGroupOverview: jest.Mock };
   let receiptService: { getReceiptsForGroup: jest.Mock };
-  let userService: { getAmountOwedForUser: jest.Mock };
   const params = new BehaviorSubject(convertToParamMap({ groupId: "1" }));
 
   const text = (testId: string): string =>
@@ -47,7 +47,6 @@ describe("OverviewPageComponent", () => {
   beforeEach(async () => {
     overviewService = { getGroupOverview: jest.fn((_groupId: number, month: string) => of(overview(month))) };
     receiptService = { getReceiptsForGroup: jest.fn(() => of({ data: [], totalCount: 0 })) };
-    userService = { getAmountOwedForUser: jest.fn(() => of({ 2: "-20" })) };
 
     await TestBed.configureTestingModule({
       declarations: [OverviewPageComponent],
@@ -60,7 +59,6 @@ describe("OverviewPageComponent", () => {
         { provide: ActivatedRoute, useValue: { paramMap: params } },
         { provide: OverviewService, useValue: overviewService },
         { provide: ReceiptService, useValue: receiptService },
-        { provide: UserService, useValue: userService },
         { provide: ShoppingListService, useValue: { getShoppingListsForGroup: jest.fn(() => of([])) } },
       ],
       schemas: [NO_ERRORS_SCHEMA],
@@ -81,7 +79,17 @@ describe("OverviewPageComponent", () => {
     expect(text("overview-tile-receipts")).toContain("3");
     expect(text("overview-tile-receipts")).toContain("1 still open");
     expect(text("overview-tile-spent")).toContain("8% less than");
-    expect(text("overview-tile-settle")).toContain("Owed to you");
+    expect(text("overview-tile-unhealthy")).toContain("25% of");
+  });
+
+  it("shows no warning in a month without unhealthy products", async () => {
+    overviewService.getGroupOverview.mockImplementation((_groupId: number, month: string) =>
+      of({ ...overview(month), unhealthyTotal: "0" })
+    );
+    component.selectMonth({ year: 2026, month: 0 });
+    await fixture.whenStable();
+
+    expect(text("overview-tile-unhealthy")).toContain("Nothing unhealthy");
   });
 
   it("asks for the month's receipts as calendar days, newest first", () => {

@@ -95,8 +95,9 @@ $hairline: #eef2f6;
   font-weight: 700;
 }
 
-.tile__value--positive {
-  color: #15803d;
+// Unhealthy spend is overspending, in the same warning color as a rise in spending.
+.tile__value--warning {
+  color: #b45309;
 }
 
 .tile__hint {

@@ -5092,6 +5092,7 @@ components:
         - previousTotal
         - receiptCount
         - openReceiptCount
+        - unhealthyTotal
         - categories
         - months
       properties:
@@ -5111,6 +5112,11 @@ components:
           type: integer
           format: int64
           description: The month's receipts still needing action (OPEN or NEEDS_ATTENTION)
+        unhealthyTotal:
+          type: string
+          description: >-
+            What the month's products rated UNHEALTHY cost, as a decimal string, whatever the
+            receipt's category. Products without a price or not rated yet do not count.
         categories:
           type: array
           description: >-

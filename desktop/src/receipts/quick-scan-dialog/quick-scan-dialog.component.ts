@@ -114,7 +114,9 @@ export class QuickScanDialogComponent implements OnInit {
     const userPreferences = this.store.selectSnapshot(AuthState.userPreferences);
 
     // Group is always required; paid-by/status validators are applied per-image by configureImages.
-    this.paidByUserIds.push(new FormControl(userPreferences?.quickScanDefaultPaidById ?? ""));
+    // Paid by is the user scanning (Phase 3 C1); the preference only matters when the user id is
+    // unknown.
+    this.paidByUserIds.push(new FormControl(this.scannerUserId() || (userPreferences?.quickScanDefaultPaidById ?? "")));
     this.statuses.push(new FormControl(userPreferences?.quickScanDefaultStatus ?? ""));
     // The user's quick-scan default group wins; failing that, a member of exactly
     // one group has no choice to make, so seed it. configureImages() below then
@@ -173,8 +175,14 @@ export class QuickScanDialogComponent implements OnInit {
     });
   }
 
+  // Never asked when the scanner is known: they paid (Phase 3 C1). The group's paid-by settings
+  // only apply to the fallback.
   public showPaidBy(index: number): boolean {
-    return this.configForIndex(index).showPaidBy;
+    return !this.scannerUserId() && this.configForIndex(index).showPaidBy;
+  }
+
+  private scannerUserId(): number {
+    return Number(this.store.selectSnapshot(AuthState.userId)) || 0;
   }
 
   public showStatus(index: number): boolean {
@@ -224,12 +232,14 @@ export class QuickScanDialogComponent implements OnInit {
   // Applies the per-image required validators and clears hidden fields so the server backfills their
   // group-configured defaults (a hidden paid-by/status must be sent empty, not with a stale value).
   private configureImages(): void {
+    const paidByIsScanner = !!this.scannerUserId();
+
     for (let i = 0; i < this.images.length; i++) {
       const config = this.configForIndex(i);
 
       // Required is recomputed unconditionally: with no group nothing but Group is required, and a
       // required flag left over from a group the user just cleared has to come off.
-      setRequired(this.form.get("paidByUserIds." + i), config.requirePaidBy);
+      setRequired(this.form.get("paidByUserIds." + i), !paidByIsScanner && config.requirePaidBy);
       setRequired(this.form.get("statuses." + i), config.requireStatus);
       setRequired(this.form.get("categories." + i), config.requireCategories);
       setRequired(this.form.get("tags." + i), config.requireTags);
@@ -245,7 +255,7 @@ export class QuickScanDialogComponent implements OnInit {
         continue;
       }
 
-      if (!config.showPaidBy) {
+      if (!paidByIsScanner && !config.showPaidBy) {
         this.form.get("paidByUserIds." + i)?.setValue("", { emitEvent: false });
       }
       if (!config.showStatus) {

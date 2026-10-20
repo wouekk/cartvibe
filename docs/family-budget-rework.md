@@ -1,7 +1,7 @@
 # Family Budget Rework — Phase 3 Plan
 
 Status: **approved** (2026-10-20), from the user's two rounds of feedback after testing
-on the NAS. Decisions are at the end. Nothing here is built
+on the NAS. Decisions are at the end. Step 1 (quick wins) is built; the rest is not built
 yet. It also absorbs the rest of Phase 2: **2d (monthly goals) and 2e (dashboard tiles) are part of
 this plan** (G1, D4), since both land on the Dashboard this plan rebuilds.
 
@@ -81,7 +81,7 @@ refresh (`AGENTS.md` §2). Re-tested on the current image: the landing page and 
 | M4 | **Roles: only Admin and User.** The seeded legacy roles (Legacy Admin/Owner/Editor/Viewer, …) and the role editor go from the UI; one admin role and one member role, with sensible permissions. The permission system underneath stays. A **User** does everything with lists and receipts (including deleting receipts) and manages categories, tags and custom fields; only the **Admin** sees the Logs, user management and the AI page (decision Q6). | API seed roles; desktop roles page |
 | M5 | **One Household group** (decision Q7): everyone in it, created and picked automatically; no personal "My Receipts" groups for new users; the group picker and Manage Groups appear only if a second group ever exists. Existing installs keep their groups. | API user/group creation; desktop sidebar |
 | M6 | **Report Builder simplified**: a few ready-made reports like the dashboard (month, category, unplanned, unhealthy) for every member; the builder itself is admin-only and trimmed. | desktop reports |
-| M7 | **Currency selection**: one admin setting, "Currency", with a short list (EUR, PLN, USD, GBP, CHF, …) that fills in the existing system settings (`currencyDisplay`, separators, symbol position) from a preset, e.g. EUR = "€", decimal comma, symbol after; PLN = "zł". The raw fields stay available under "Custom". Default EUR (Western Europe). Amounts are stored without a currency, so changing it only changes how they are shown. | desktop System Settings; API default for new installs |
+| M7 | **Currency selection**: one admin setting, "Currency", with a short list (EUR, PLN, USD, GBP, CHF, …) that fills in the existing system settings (`currencyDisplay`, separators, symbol position) from a preset, e.g. EUR = "€", decimal comma, symbol after; PLN = "zł". The raw fields stay available under "Custom". Default EUR (Western Europe). Amounts are stored without a currency, so changing it only changes how they are shown. | desktop System Settings. *Built without the API default:* the NAS install already exists, and upstream's report tests depend on the `$` default; the admin picks EUR once. |
 
 ### Goals and insights (the former 2d and 2e)
 | # | Change | Notes |
@@ -101,7 +101,7 @@ refresh (`AGENTS.md` §2). Re-tested on the current image: the landing page and 
 
 ## Suggested order
 
-1. **Quick wins:** B1, C1, C2, S1, S3, D2, D3, M7.
+1. **Quick wins:** B1, C1, C2, S1, S3, D2, D3, M7. *(built on `feature/phase-3-quick-wins`)*
 2. **Simplify:** C3, C4, C6, A1–A3, M1, M4, M6, W1.
 3. **New:** F2, S2, S4 + N1, M2, C5, D1 polish to match the design.
 4. **Goals and insights:** G1, then D4.

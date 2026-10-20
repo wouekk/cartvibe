@@ -2817,9 +2817,14 @@ and on a group switch (`GroupState.overviewLink`). The guards' fallback redirect
   single-month page has no "All time"). This month is the **app time zone's**.
 - Data: `GET /api/overview/group/{id}?month=yyyy-MM` (totals, counts, categories, six-month trend;
   see `api/CLAUDE.md` → "Group overview"), plus the month's newest receipts from the paged receipts
-  endpoint (dates sent as `yyyy-MM-dd` days), settle-up from `getAmountOwedForUser` (positive =
-  the user owes; `netOwed` flips it), and the shopping lists through `ShoppingListState`. Each card
-  loads on its own, so one failing request blanks only that card.
+  endpoint (dates sent as `yyyy-MM-dd` days), and the shopping lists through `ShoppingListState`.
+  Each card loads on its own, so one failing request blanks only that card.
+- **Tiles (Phase 3 D2):** Spent, Receipts, **Unhealthy** (the overview's `unhealthyTotal` and its
+  share of the month, in the warning color above zero; Settle up is gone, the family does not share
+  bills) and To buy.
+- **Adding lives here (Phase 3 D3):** "Add receipt", "Quick Scan" (with the AI feature) and
+  "New list", which opens `/shopping-lists/group/:id?new=list`; the lists page opens its create
+  dialog for `new=list` and drops the parameter.
 - The chart maths (ring slices, bars, the month-over-month sentence) are pure functions in
   `overview-chart.utils.ts`, tested on their own. Slices beyond five fold into "Other".
 - Guarded by `overviewReadGuard` (`group.receipts.read`), which falls back to the group's
@@ -2881,7 +2886,7 @@ shortcuts, search and notifications.
 
 - **Look:** a dark slate sidebar (its own palette at the top of `sidebar.component.scss`, every text
   shade checked at ≥4.5:1), from the approved redesign concept.
-- **Order:** group switcher → **New** menu (Add Receipt / Quick Scan / Add Group) → the everyday
+- **Order:** group switcher → the everyday
   pages (Overview, Shopping Lists, Receipts, Dashboards, Reports) → a collapsible **Manage** section (the
   `Manage …` admin pages, System Settings, Imports) → the account menu (User Settings, About,
   Logout). Each entry keeps its own permission gate; the item lists are `mainNavItems` /
@@ -2891,13 +2896,11 @@ shortcuts, search and notifications.
   or collapsed to an icon rail (`LayoutState.isSidebarCollapsed`, persisted). Phone: slides in over
   the page (`isSidebarOpen`), and closes on every navigation and on load, so a persisted `true`
   never covers the page.
-- **"New" hides when its menu would be empty** — including Quick Scan without the
-  `aiPoweredReceipts` feature, which the old "+" button got wrong.
+- **No "New" menu (Phase 3 D3).** Adding a receipt, a Quick Scan or a list is on the Overview page;
+  Quick Scan is also in the receipts table's overflow menu, Add Group on Manage Groups.
 - **Manage starts expanded on one of its own pages** (a `linkedSignal` over the URL), otherwise it
   stays as the user toggled it.
-- Test ids kept from the old rail: `sidebar-add-fab` (now the New button), `sidebar-add-receipt`,
-  `sidebar-quick-scan`, `sidebar-add-group` (now menu items, so in the overlay once the menu is
-  open), `sidebar-avatar-menu` (the account menu). New: `nav-*` per page, `sidebar-manage-toggle`.
+- Test ids: `sidebar-avatar-menu` (the account menu), `nav-*` per page, `sidebar-manage-toggle`.
 
 ## Shopping lists (fork extension)
 
@@ -2929,11 +2932,28 @@ on a phone. Backend contract: `api/CLAUDE.md` → "Shopping lists".
   keyboard) and sends a dot. The old free-text `quantity` is still displayed for items written before
   amounts existed, and an edit without an amount sends it back unchanged rather than erasing it —
   all three rules live in `shopping-list-item-form.ts`.
+- **One-line add (Phase 3 S1):** name, amount, unit and a square "+" side by side, also on a phone;
+  a note is added through the item's Edit. The amount shows as a chip at the row's right end.
+- **Default names (Phase 3 S3, C2):** a new list is "List 20 Oct 2026" and a new receipt
+  "Receipt 20 Oct 2026" (`nameForToday`, the app zone's day); both stay editable, and magic fill
+  replaces the receipt's with the store name.
+- **Paid by is the user adding the receipt (Phase 3 C1)**, on the receipt form and in Quick Scan,
+  and not shown. The receipt form shows Paid By only when it opened without one; magic fill leaves
+  a hidden payer alone.
 - **Dialog forms submit through `(ngSubmit)` only.** `app-dialog-footer`'s submit button is
   `type="submit"`; binding `(submitClicked)` as well would submit twice.
 - E2e: `e2e/shopping-list.spec.ts` — the add / cross off / revive / clear flow, **two browser
   contexts proving live sync without a reload**, and a Viewer's read-only page. Provisions its own
   group, so it is parallel-safe.
+
+## Currency choice (fork, Phase 3 M7)
+
+System Settings → Currency is one picker (`currency-presets.ts`: EUR, PLN, USD, GBP, CHF, Custom)
+that fills the existing `currencyDisplay` / position / separator fields; "Custom" shows those raw
+fields. The `currency` control is form-only (dropped in `submit()`), and its starting value is the
+preset the stored fields match exactly, else Custom. A symbol after the amount starts with a space
+(`" €"`) because `customCurrency` appends it as is. The API's defaults for a new install stay
+upstream's `$` (the report tests depend on them).
 
 ## Testing Requirements
 

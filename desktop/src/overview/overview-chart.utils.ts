@@ -133,11 +133,3 @@ export function describeChange(total: string, previousTotal: string, previousMon
 export function previousMonthOf(month: FilterMonth): FilterMonth {
   return month.month === 0 ? { year: month.year - 1, month: 11 } : { year: month.year, month: month.month - 1 };
 }
-
-/**
- * The caller's net position from the amount-owed map: positive means others owe the caller. The map
- * holds, per user, what the caller owes them (negative when they owe the caller).
- */
-export function netOwed(amountOwed: { [userId: string]: string }): number {
-  return -Object.values(amountOwed).reduce((sum, value) => sum + Number(value), 0);
-}

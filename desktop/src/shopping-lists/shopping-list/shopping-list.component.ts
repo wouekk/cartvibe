@@ -37,8 +37,6 @@ export class ShoppingListComponent {
 
   public readonly checkedItems = this.store.selectSignal(ShoppingListState.checkedItems);
 
-  public readonly showDetails = signal(false);
-
   public readonly showCrossedOff = signal(false);
 
   public readonly adding = signal(false);
