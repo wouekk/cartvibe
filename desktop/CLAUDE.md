@@ -3069,3 +3069,12 @@ System Settings → Currency has `app-exchange-rates` (`src/system-settings/exch
 EUR" rows, add/remove a currency, its own Save (rates are typed with a comma or a dot, up to six decimals;
 empty = not entered). `app-receipt-currency-note` shows "45.9 CHF at 1.04" under a converted receipt's amount
 (table and form), or an amber "not converted: add the rate" warning.
+
+## Monthly spending goal (fork)
+
+`UserPreferences.monthlySpendingGoal` (nullable decimal, set under User Settings → Budget; empty clears it;
+the API round trip is pinned in `repositories/user_preferences_test.go`). Computed on the frontend only: the
+Dashboard's **Spent** card shows "Goal: X" and "X remaining" / "+X over goal" (red) while exactly one whole
+calendar month is shown (`isWholeCalendarMonth`), and the month chart scales to the goal, splits a month over
+it into a blue base and a red top with "(+X)" in its label, and draws a dashed Goal line
+(`buildTrendBars(..., goal)`, `goalLineFraction`). With no goal both panels render as before.
