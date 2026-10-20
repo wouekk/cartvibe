@@ -104,6 +104,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   readonly dateCell = viewChild.required<TemplateRef<any>>("dateCell");
 
   readonly nameCell = viewChild.required<TemplateRef<any>>("nameCell");
+  readonly shopCell = viewChild.required<TemplateRef<any>>("shopCell");
 
 
   readonly amountCell = viewChild.required<TemplateRef<any>>("amountCell");
@@ -482,6 +483,13 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
         columnHeader: "Name",
         matColumnDef: "name",
         template: this.nameCell(),
+        sortable: true,
+      },
+      {
+        // The shop printed on the receipt (Auchan, Edeka, Rewe), read by the AI.
+        columnHeader: RECEIPT_COLUMN_DISPLAY_NAMES["shop_name"],
+        matColumnDef: "shop_name",
+        template: this.shopCell(),
         sortable: true,
       },
       {

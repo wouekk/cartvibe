@@ -262,7 +262,7 @@
               <tr>
                 <th scope="col">Date</th>
                 <th scope="col">Name</th>
-                <th scope="col">Category</th>
+                <th scope="col">Shop</th>
                 <th scope="col">Status</th>
                 <th scope="col" class="numeric">Amount</th>
               </tr>
@@ -272,7 +272,7 @@
                 <tr>
                   <td class="muted nowrap">{{ receipt.date | appDate : "MMM d" : "calendar" }}</td>
                   <td class="strong"><a [routerLink]="['/receipts', receipt.id, 'view']">{{ receipt.name }}</a></td>
-                  <td>{{ receipt.categories[0]?.name ?? "—" }}</td>
+                  <td>{{ receipt.shopName || "—" }}</td>
                   <td><app-status-chip [status]="receipt.status"></app-status-chip></td>
                   <td class="numeric strong">{{ receipt.amount | customCurrency }}</td>
                 </tr>

@@ -39,6 +39,13 @@
               [inputFormControl]="form | formGet : 'name'"
               [readonly]="mode | inputReadonly"
             ></app-input>
+            <app-input
+              class="w-100"
+              label="Shop"
+              hint="Read from the receipt by the AI, e.g. Auchan, Edeka, Rewe"
+              [inputFormControl]="form | formGet : 'shopName'"
+              [readonly]="mode | inputReadonly"
+            ></app-input>
             <div class="d-flex align-items-center w-100">
               <app-input
                 class="w-100"
