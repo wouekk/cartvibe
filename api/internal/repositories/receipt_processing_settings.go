@@ -82,6 +82,16 @@ func (repository ReceiptProcessingSettingsRepository) CreateReceiptProcessingSet
 		return models.ReceiptProcessingSettings{}, err
 	}
 
+	// The column carries `default:true`, so GORM replaces a false on insert with the default. A
+	// server that rejects response_format (LM Studio) then fails every call; write the real value.
+	if !command.EnforceJsonResponseFormat {
+		err = db.Model(&settings).Update("enforce_json_response_format", false).Error
+		if err != nil {
+			return models.ReceiptProcessingSettings{}, err
+		}
+		settings.EnforceJsonResponseFormat = false
+	}
+
 	return settings, nil
 }
 
