@@ -221,6 +221,10 @@ func InitDB() error {
 
 	// Runs after the bootstrap admin is created so a fresh install's first user
 	// is assigned its legacy-equivalent role by the same one-time migration.
+	if err := SeedEuroForNewInstall(); err != nil {
+		return err
+	}
+
 	if err := RunDataMigrations(); err != nil {
 		return err
 	}
