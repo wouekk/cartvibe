@@ -16,17 +16,14 @@ import {
   ReceiptProcessingSettingsTableComponent
 } from "../receipt-processing-settings/receipt-processing-settings-table/receipt-processing-settings-table.component";
 import { receiptProcessingSettingsResolver } from "../receipt-processing-settings/receipt-processing-settings.resolver";
-import { OidcProviderTableComponent } from "./oidc-provider-table/oidc-provider-table.component";
 import { allReceiptProcessingSettingsResolver } from "./resolvers/receipt-processing-settings.resolver";
 import { systemEmailResolver } from "./resolvers/system-email.resolver";
 import { systemSettingsResolver } from "./resolvers/system-settings.resolver";
 import { SystemEmailFormComponent } from "./system-email-form/system-email-form.component";
 import { allGroupsResolver } from "./system-email-table/all-groups.resolver";
-import { SystemEmailTableComponent } from "./system-email-table/system-email-table.component";
 import { LogsPageComponent } from "./logs/logs-page.component";
 import { SystemSettingsFormComponent } from "./system-settings-form/system-settings-form.component";
 import { SystemSettingsComponent } from "./system-settings/system-settings.component";
-import { SystemTaskTableComponent } from "./system-task-table/system-task-table.component";
 
 const routes: Routes = [
   {
@@ -39,25 +36,33 @@ const routes: Routes = [
     path: "",
     component: SystemSettingsComponent,
     children: [
-      {
-        path: "oidc-providers",
-        component: OidcProviderTableComponent,
+      // The four settings tabs are the one form showing its own cards (route data `section`). Each carries
+      // every resolver its cards need, because the tables embedded in a tab read the route's data: system
+      // emails want allGroups, system tasks want prompts and the processing settings.
+      ...(["general", "security", "integrations", "tasks"] as const).map((section) => ({
+        path: section,
+        component: SystemSettingsFormComponent,
         canActivate: [appPermissionGuard],
         data: {
-          appPermissions: [Permission.AppOidcProvidersRead],
-        },
-      },
-      {
-        path: "system-emails",
-        component: SystemEmailTableComponent,
-        canActivate: [appPermissionGuard],
-        data: {
-          appPermissions: [Permission.AppSystemEmailsRead],
+          section,
+          formConfig: {
+            mode: FormMode.edit,
+          } as FormConfig,
+          appPermissions: [Permission.AppSystemSettingsRead],
         },
         resolve: {
+          allReceiptProcessingSettings: allReceiptProcessingSettingsResolver,
+          systemSettings: systemSettingsResolver,
           allGroups: allGroupsResolver,
-        }
-      },
+          prompts: promptsResolver,
+        },
+      })),
+      // The old tab addresses keep working for bookmarks and links.
+      { path: "settings/view", redirectTo: "general", pathMatch: "full" },
+      { path: "settings/edit", redirectTo: "general", pathMatch: "full" },
+      { path: "oidc-providers", redirectTo: "security", pathMatch: "full" },
+      { path: "system-emails", redirectTo: "integrations", pathMatch: "full" },
+      { path: "system-tasks", redirectTo: "tasks", pathMatch: "full" },
       {
         path: "prompts",
         component: PromptTableComponent,
@@ -82,56 +87,12 @@ const routes: Routes = [
         }
       },
       {
-        path: "system-tasks",
-        component: SystemTaskTableComponent,
-        canActivate: [appPermissionGuard],
-        data: {
-          appPermissions: [Permission.AppSystemTasksRead],
-        },
-        resolve: {
-          prompts: promptsResolver,
-          allReceiptProcessingSettings: allReceiptProcessingSettingsResolver,
-        }
-      },
-      {
         path: "logs",
         component: LogsPageComponent,
         canActivate: [appPermissionGuard],
         data: {
           appPermissions: [Permission.AppSystemSettingsRead],
         },
-      },
-      {
-        path: "settings/view",
-        component: SystemSettingsFormComponent,
-        canActivate: [appPermissionGuard],
-        data: {
-          formConfig: {
-            mode: FormMode.view,
-            headerText: "View System Settings",
-          } as FormConfig,
-          appPermissions: [Permission.AppSystemSettingsRead],
-        },
-        resolve: {
-          allReceiptProcessingSettings: allReceiptProcessingSettingsResolver,
-          systemSettings: systemSettingsResolver,
-        }
-      },
-      {
-        path: "settings/edit",
-        component: SystemSettingsFormComponent,
-        canActivate: [appPermissionGuard],
-        data: {
-          formConfig: {
-            mode: FormMode.edit,
-            headerText: "Edit System Settings",
-          } as FormConfig,
-          appPermissions: [Permission.AppSystemSettingsUpdate],
-        },
-        resolve: {
-          allReceiptProcessingSettings: allReceiptProcessingSettingsResolver,
-          systemSettings: systemSettingsResolver,
-        }
       },
     ]
   },

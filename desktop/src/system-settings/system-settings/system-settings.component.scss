@@ -1,0 +1,17 @@
+// Pill tabs on the left, like the Dashboard's period picker, over a readable column of cards.
+.settings-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.settings-tabs {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.settings-content {
+  width: 100%;
+  max-width: 1000px;
+}

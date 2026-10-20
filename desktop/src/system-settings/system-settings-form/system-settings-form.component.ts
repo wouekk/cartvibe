@@ -12,6 +12,7 @@ import {
   CurrencySeparator,
   CurrencySymbolPosition,
   FeatureConfigService,
+  Permission,
   QueueName,
   ReceiptProcessingSettings,
   SystemSettings,
@@ -19,7 +20,7 @@ import {
 } from "../../open-api";
 import { InputReadonlyPipe } from "../../pipes/input-readonly.pipe";
 import { SnackbarService } from "../../services";
-import { SetFeatureConfig } from "../../store";
+import { AuthState, SetFeatureConfig } from "../../store";
 import { SetCurrencyData, SetCurrencyDisplay, SetTimeZone } from "../../store/system-settings.state.actions";
 import { DurationUnit, maxForUnit, minForUnit, splitHours, toHours } from "../../utils";
 import { DEFAULT_APP_TIME_ZONE, timeZoneOptions } from "../../utils/app-time-zone";
@@ -51,7 +52,15 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
 
   public filteredReceiptProcessingSettings: ReceiptProcessingSettings[] = [];
 
-  public showRestartTaskServerAlert = false;
+  /** A signal, so the alert appears when a save finishes (zoneless change detection). */
+  public readonly showRestartTaskServerAlert = signal(false);
+
+  /** Which tab's cards this form shows (route data); undefined shows every card. */
+  public section?: "general" | "security" | "integrations" | "tasks";
+
+  public readonly canReadSystemTasks = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppSystemTasksRead));
+  public readonly canReadSystemEmails = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppSystemEmailsRead));
+  public readonly canReadOidcProviders = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppOidcProvidersRead));
 
   public readonly queueData: QueueData[] = [
     {
@@ -80,6 +89,19 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
       description: "Expires refresh tokens and reclaims temporary files"
     }
   ];
+
+  /**
+   * The queues shown for editing. The retired email image clean-up queue stays in the form (the API still wants a
+   * configuration per queue name) but is not offered.
+   */
+  public get visibleQueueData(): QueueData[] {
+    return this.queueData.filter((data) => data.value !== QueueName.EmailReceiptImageCleanup);
+  }
+
+  /** Whether the cards of a tab are shown: all of them when the form is not placed on a tab. */
+  public shows(section: "general" | "security" | "integrations" | "tasks"): boolean {
+    return !this.section || this.section === section;
+  }
 
   // The backend caps a refresh-token lifetime at 720 hours (30 days) and treats
   // 0 as "unset, use the default". Mirrored here so the form rejects what the
@@ -167,14 +189,15 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
     this.setFormConfigFromRoute(this.activatedRoute);
     this.allReceiptProcessingSettings = this.activatedRoute.snapshot.data?.["allReceiptProcessingSettings"];
     this.originalSystemSettings = this.activatedRoute.snapshot.data?.["systemSettings"];
-    this.showRestartTaskServerAlert = this.activatedRoute.snapshot?.queryParams?.["restartTaskServer"] === "true";
+    this.section = this.activatedRoute.snapshot.data?.["section"];
+    this.showRestartTaskServerAlert.set(this.activatedRoute.snapshot?.queryParams?.["restartTaskServer"] === "true");
     this.initForm();
   }
 
   public ngAfterViewInit(): void {
     setTimeout(() => {
 
-      if (this.showRestartTaskServerAlert) {
+      if (this.showRestartTaskServerAlert()) {
         this.alert().nativeElement.scrollIntoView({ behavior: "smooth" });
       }
 
@@ -467,13 +490,14 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
     this.systemSettingsService.updateSystemSettings(formValue)
       .pipe(
         take(1),
-        tap(() => {
+        tap((saved) => {
           this.snackbarService.success("System settings updated successfully");
-          this.router.navigate(["/system-settings/settings/view"], {
-            queryParams: {
-              restartTaskServer: restartTaskServer
-            }
-          });
+          // Stay on the tab: the form is always editable, so a save just settles it.
+          if (saved) {
+            this.originalSystemSettings = { ...this.originalSystemSettings, ...saved };
+          }
+          this.form.markAsPristine();
+          this.showRestartTaskServerAlert.set(restartTaskServer);
         }),
         switchMap(() => this.featureConfigService.getFeatureConfig()),
         tap((featureConfig) => this.store.dispatch(new SetFeatureConfig(featureConfig))),
@@ -496,7 +520,7 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
       take(1),
       tap(() => {
           this.snackbarService.success("Task server restarted successfully");
-          this.showRestartTaskServerAlert = false;
+          this.showRestartTaskServerAlert.set(false);
         },
       )).subscribe();
   }
