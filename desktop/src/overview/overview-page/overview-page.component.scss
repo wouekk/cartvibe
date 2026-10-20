@@ -77,7 +77,7 @@ $hairline: #eef2f6;
   }
 
   &:focus-visible {
-    outline: 2px solid map.get(variables.$primary-palette, 500);
+    outline: 2px solid var(--accent-color, #0086d4);
     outline-offset: 2px;
   }
 }
@@ -97,7 +97,7 @@ $hairline: #eef2f6;
 
 // Unhealthy spend is overspending, in the same warning color as a rise in spending.
 .tile__value--warning {
-  color: #b45309;
+  color: #ea580c;
 }
 
 .tile__hint {
@@ -107,7 +107,7 @@ $hairline: #eef2f6;
 }
 
 .tile__hint--up {
-  color: #b45309;
+  color: #ea580c;
 }
 
 .tile__hint--down {
@@ -326,7 +326,7 @@ table {
 }
 
 .bars__bar--selected {
-  background: map.get(variables.$primary-palette, 700);
+  background: var(--chart-good, #10b981);
 }
 
 .bars__label {
@@ -395,7 +395,7 @@ table {
 
 .list-card__icon {
   flex: none;
-  color: map.get(variables.$primary-palette, 700);
+  color: var(--accent-color, #0086d4);
 }
 
 .list-card__text {
@@ -466,15 +466,15 @@ table {
   font: inherit;
   font-size: 12px;
   font-weight: 600;
-  color: map.get(variables.$primary-palette, 700);
+  color: var(--accent-color, #0086d4);
   cursor: pointer;
 
   &:hover {
-    background: map.get(variables.$primary-palette, 50);
+    background: var(--accent-soft, #ccecff);
   }
 
   &:focus-visible {
-    outline: 2px solid map.get(variables.$primary-palette, 500);
+    outline: 2px solid var(--accent-color, #0086d4);
     outline-offset: 1px;
   }
 
@@ -518,7 +518,7 @@ table {
     }
 
     &:focus-visible {
-      outline: 2px solid map.get(variables.$primary-palette, 500);
+      outline: 2px solid var(--accent-color, #0086d4);
       outline-offset: 2px;
     }
   }
@@ -535,7 +535,7 @@ table {
 .tile__goal-input {
   width: 6.5em;
   padding: 2px 6px;
-  border: 1px solid map.get(variables.$primary-palette, 500);
+  border: 1px solid var(--accent-color, #0086d4);
   border-radius: 6px;
   font: inherit;
   font-size: 15px;
@@ -554,7 +554,7 @@ table {
 .tile__progress-fill {
   height: 100%;
   border-radius: 2px;
-  background: map.get(variables.$primary-palette, 500);
+  background: var(--chart-good, #10b981);
 
   &--over {
     background: #dc2626;
@@ -591,7 +591,7 @@ table {
   background: #cbd5e1;
 
   &--selected {
-    background: map.get(variables.$primary-palette, 700);
+    background: var(--chart-good, #10b981);
   }
 }
 
@@ -617,5 +617,18 @@ table {
     bottom: 1px;
     font-size: 10px;
     color: #64748b;
+  }
+}
+
+// An empty card: the message, then the same button as the top right of the page.
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: variables.$spacing-sm;
+  padding: variables.$spacing-md 0;
+
+  .empty {
+    padding: 0;
   }
 }

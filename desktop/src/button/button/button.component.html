@@ -11,6 +11,7 @@
     [queryParams]="buttonQueryParams()"
     [matBadgeColor]="matBadgeColor()"
     [matBadge]="matBadgeContent()"
+    [matBadgeHidden]="matBadgeHidden()"
     (click)="emitClicked($event)"
   >
     <div class="d-flex align-items-center">
@@ -35,6 +36,7 @@
     [matTooltip]="tooltip()"
     [matBadgeColor]="matBadgeColor()"
     [matBadge]="matBadgeContent()"
+    [matBadgeHidden]="matBadgeHidden()"
     [routerLink]="buttonRouterLink()"
     [queryParams]="buttonQueryParams()"
     (click)="emitClicked($event)"
@@ -63,6 +65,7 @@
     [matTooltip]="tooltip()"
     [matBadgeColor]="matBadgeColor()"
     [matBadge]="matBadgeContent()"
+    [matBadgeHidden]="matBadgeHidden()"
     (click)="emitClicked($event)"
   >
     <mat-icon *ngIf="customIcon" [svgIcon]="customIcon"></mat-icon>

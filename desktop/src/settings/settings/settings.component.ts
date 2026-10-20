@@ -43,6 +43,13 @@ export class SettingsComponent {
         name: "user-preferences",
       });
     }
+    // Always there: the look of the app is per browser and needs no permission.
+    tabs.push({
+      label: "Theme",
+      routerLink: "theme",
+      name: "theme",
+    });
+
 
     if (this.canReadApiKeys()) {
       tabs.push({

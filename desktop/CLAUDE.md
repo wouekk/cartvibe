@@ -3147,3 +3147,19 @@ skin (colors, radii, shadow rings, fonts, transitions only: no spacing or layout
 search and the bell) sets `data-accent` and saves the choice; `app-cartvibe-logo` (header and login) draws the icon and
 wordmark from the same variables. Skin rules use `!important` where a component's scoped style would otherwise win.
 `:latest` carries it once merged; a manual "Publish image" run from a branch publishes `:preview` only.
+
+## Themes: mode, accent, charts (fork, supersedes the header picker)
+
+- **User Settings → Theme** (third tab, no permission: it is per browser) holds `ThemeService` (`src/theme/`): mode
+  System / Light / Dark and five accents (Classic Blue default, Alpine Emerald, Twilight Violet, Walnut Brown, Graphite
+  Gray). Stored in `rw_theme_mode` / `rw_accent_theme`; `index.html` applies them before the first paint and the service
+  keeps `html.dark`, `data-theme` and `data-accent` in step (and follows the OS while on System).
+- **Dark mode is a filter**: `html.dark { filter: invert(1) hue-rotate(180deg) }`, with the sidebar, images, canvases,
+  the logo and `.rw-keep-colors` inverted back. It reaches every component, including the ones that paint their own white.
+  A new thing that must keep its real colors gets `.rw-keep-colors`. New colors are authored for the LIGHT page.
+- **Accent** (`--accent-color/-hover/-light/-soft`) drives primary buttons, active sidebar item, tabs, links, focus
+  rings and list icons. **Charts never follow it**: donut slices are the fixed `CATEGORY_COLORS`; bars and the Spent
+  card's bar use `--chart-good` (a per-theme color that contrasts with the accent) and red over the goal; Unhealthy stays
+  `#ea580c`.
+- A count badge with nothing or `0` is hidden (`matBadgeHidden` in `app-button`, plus a CSS/JS safeguard in index.html).
+- The Dashboard's empty receipts and shopping-list cards say so and carry the same buttons as the page's top right.

@@ -47,18 +47,18 @@ describe('SettingsComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('renders no tabs when the user can read none of them', () => {
+  it('renders only the Theme tab when the user can read none of the others', () => {
     store.dispatch(new SetPermissions([], {}));
     fixture.detectChanges();
 
-    expect(tabNames()).toEqual([]);
+    expect(tabNames()).toEqual(['theme']);
   });
 
   it('gates the User Profile tab on app.account.read', () => {
     store.dispatch(new SetPermissions([Permission.AppAccountRead], {}));
     fixture.detectChanges();
 
-    expect(tabNames()).toEqual(['user-profile']);
+    expect(tabNames()).toEqual(['user-profile', 'theme']);
   });
 
   it('gates the User Preferences tab on app.user-preferences.read', () => {
@@ -67,7 +67,7 @@ describe('SettingsComponent', () => {
     );
     fixture.detectChanges();
 
-    expect(tabNames()).toEqual(['user-preferences']);
+    expect(tabNames()).toEqual(['user-preferences', 'theme']);
   });
 
   it('renders the tabs in order when all read permissions are present', () => {
@@ -86,6 +86,7 @@ describe('SettingsComponent', () => {
     expect(tabNames()).toEqual([
       'user-profile',
       'user-preferences',
+      'theme',
       'api-keys',
     ]);
   });

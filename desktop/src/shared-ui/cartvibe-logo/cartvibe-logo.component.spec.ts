@@ -18,7 +18,7 @@ describe("CartVibeLogoComponent", () => {
     const element: HTMLElement = fixture.nativeElement;
 
     expect(element.querySelector("svg")).not.toBeNull();
-    expect(element.querySelector(".logo__cart")?.textContent).toBe("Cart");
+    expect(element.querySelector(".cv-wordmark-cart")?.textContent).toBe("Cart");
     expect(element.querySelector(".logo__vibe")?.textContent).toBe("Vibe");
   });
 
@@ -31,10 +31,10 @@ describe("CartVibeLogoComponent", () => {
 
   it("can show the icon alone and at another size", async () => {
     fixture.componentRef.setInput("showWordmark", false);
-    fixture.componentRef.setInput("iconSize", 44);
+    fixture.componentRef.setInput("iconSize", 48);
     await fixture.whenStable();
 
     expect(fixture.nativeElement.querySelector(".logo__word")).toBeNull();
-    expect(fixture.nativeElement.querySelector("svg").getAttribute("width")).toBe("44");
+    expect(fixture.nativeElement.querySelector("svg").getAttribute("width")).toBe("48");
   });
 });
