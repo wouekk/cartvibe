@@ -4738,6 +4738,96 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
+  /receipt-product/receipt/{receiptId}/product:
+    parameters:
+      - in: path
+        name: receiptId
+        schema:
+          type: integer
+        required: true
+        description: Id of the receipt
+    post:
+      tags:
+        - ReceiptProduct
+      summary: Add a product line to a receipt
+      description: This will add a product line the AI missed, at the end of the receipt's list [group.receipts.update]
+      operationId: addReceiptProduct
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertReceiptProductCommand"
+      responses:
+        200:
+          description: The added product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReceiptProduct"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+  /receipt-product/product/{productId}:
+    parameters:
+      - in: path
+        name: productId
+        schema:
+          type: integer
+        required: true
+        description: Id of the receipt product
+    put:
+      tags:
+        - ReceiptProduct
+      summary: Correct a receipt product line
+      description: >-
+        This will change the product's name, amount and quantity. A new name clears its health and
+        seasonality tags (unless a person corrected them) so it is classified again [group.receipts.update]
+      operationId: updateReceiptProduct
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertReceiptProductCommand"
+      responses:
+        200:
+          description: The updated product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReceiptProduct"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+    delete:
+      tags:
+        - ReceiptProduct
+      summary: Remove a receipt product line
+      description: This will remove one product line from a receipt [group.receipts.update]
+      operationId: deleteReceiptProduct
+      responses:
+        200:
+          $ref: "#/components/responses/Ok"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
 components:
   securitySchemes:
     bearerAuth:
@@ -5186,6 +5276,23 @@ components:
           description: yyyy-MM
         total:
           type: string
+    UpsertReceiptProductCommand:
+      type: object
+      description: A person's own entry of a receipt product line
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 200
+        amount:
+          type: string
+          nullable: true
+          description: What the line cost, as a decimal string with at most 2 decimals; null for no price
+        quantity:
+          type: string
+          maxLength: 50
+          description: Quantity or weight; may be empty
     ReceiptProduct:
       type: object
       required:

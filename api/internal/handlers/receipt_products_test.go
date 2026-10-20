@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"receipt-wrangler/api/internal/models"
 	"receipt-wrangler/api/internal/permissions"
 	"receipt-wrangler/api/internal/repositories"
@@ -193,4 +194,96 @@ func TestSetReceiptProductClassification(t *testing.T) {
 	w, r = shoppingListRequest("PUT", `{"health":"MEDIUM"}`, 1, map[string]string{"productId": "9999"})
 	SetReceiptProductClassification(w, r)
 	assertStatus(t, w, http.StatusForbidden)
+}
+
+func TestAddUpdateAndDeleteReceiptProduct(t *testing.T) {
+	defer tearDownReceiptProductsTest()
+	repositories.CreateTestGroupWithUsers()
+	grantGroupPerms(t, 1, 1, permissions.GroupReceiptsUpdate)
+	receipt := seedProductReceipt(t, 1, false)
+	receiptParams := map[string]string{"receiptId": fmt.Sprint(receipt.ID)}
+
+	first := models.ReceiptProduct{ReceiptId: receipt.ID, Name: "LAIT", DisplayName: "Milk", Position: 0,
+		FoodClassification: models.FoodClassification{Health: models.HEALTH_HEALTHY}}
+	if err := repositories.GetDB().Create(&first).Error; err != nil {
+		t.Fatal(err)
+	}
+
+	// Add: goes to the end of the list.
+	w, r := shoppingListRequest("POST", `{"name":"Bread","amount":"1.50","quantity":"1"}`, 1, receiptParams)
+	AddReceiptProduct(w, r)
+	assertStatus(t, w, http.StatusOK)
+	added := decodeShoppingListResponse[models.ReceiptProduct](t, w)
+	if added.Name != "Bread" || added.Position != 1 || added.Amount == nil || added.Amount.String() != "1.5" {
+		t.Errorf("unexpected added product: %+v", added)
+	}
+
+	w, r = shoppingListRequest("POST", `{"name":""}`, 1, receiptParams)
+	AddReceiptProduct(w, r)
+	assertStatus(t, w, http.StatusBadRequest)
+
+	// Rename: the tags are dropped so the product is classified again.
+	productParams := map[string]string{"productId": fmt.Sprint(first.ID)}
+	w, r = shoppingListRequest("PUT", `{"name":"Oat drink","amount":"2.20"}`, 1, productParams)
+	UpdateReceiptProduct(w, r)
+	assertStatus(t, w, http.StatusOK)
+	renamed := decodeShoppingListResponse[models.ReceiptProduct](t, w)
+	if renamed.Name != "Oat drink" || renamed.DisplayName != "Oat drink" || renamed.Health != "" || renamed.ClassifiedAt != nil {
+		t.Errorf("a renamed product should be unclassified: %+v", renamed)
+	}
+
+	// Same name, new price: the tags stay.
+	repositories.GetDB().Model(&models.ReceiptProduct{}).Where("id = ?", first.ID).Update("health", models.HEALTH_MEDIUM)
+	w, r = shoppingListRequest("PUT", `{"name":"Oat drink","amount":"2.40"}`, 1, productParams)
+	UpdateReceiptProduct(w, r)
+	assertStatus(t, w, http.StatusOK)
+	repriced := decodeShoppingListResponse[models.ReceiptProduct](t, w)
+	if repriced.Health != models.HEALTH_MEDIUM {
+		t.Errorf("a price change should keep the health tag, got %q", repriced.Health)
+	}
+
+	w, r = shoppingListRequest("DELETE", "", 1, productParams)
+	DeleteReceiptProduct(w, r)
+	assertStatus(t, w, http.StatusOK)
+	var remaining int64
+	repositories.GetDB().Model(&models.ReceiptProduct{}).Where("receipt_id = ?", receipt.ID).Count(&remaining)
+	if remaining != 1 {
+		t.Errorf("expected 1 product left, got %d", remaining)
+	}
+}
+
+func TestReceiptProductEditingNeedsUpdateAccessAndHidesUnknownIds(t *testing.T) {
+	defer tearDownReceiptProductsTest()
+	repositories.CreateTestGroupWithUsers()
+	grantGroupPerms(t, 1, 1, permissions.GroupReceiptsRead)
+	receipt := seedProductReceipt(t, 1, false)
+	product := models.ReceiptProduct{ReceiptId: receipt.ID, Name: "LAIT"}
+	repositories.GetDB().Create(&product)
+
+	for name, call := range map[string]func() *httptest.ResponseRecorder{
+		"add": func() *httptest.ResponseRecorder {
+			w, r := shoppingListRequest("POST", `{"name":"x"}`, 1, map[string]string{"receiptId": fmt.Sprint(receipt.ID)})
+			AddReceiptProduct(w, r)
+			return w
+		},
+		"update": func() *httptest.ResponseRecorder {
+			w, r := shoppingListRequest("PUT", `{"name":"x"}`, 1, map[string]string{"productId": fmt.Sprint(product.ID)})
+			UpdateReceiptProduct(w, r)
+			return w
+		},
+		"delete": func() *httptest.ResponseRecorder {
+			w, r := shoppingListRequest("DELETE", "", 1, map[string]string{"productId": fmt.Sprint(product.ID)})
+			DeleteReceiptProduct(w, r)
+			return w
+		},
+		"unknown id": func() *httptest.ResponseRecorder {
+			w, r := shoppingListRequest("DELETE", "", 1, map[string]string{"productId": "9999"})
+			DeleteReceiptProduct(w, r)
+			return w
+		},
+	} {
+		if code := call().Result().StatusCode; code != http.StatusForbidden {
+			t.Errorf("%s: expected 403 with read access only, got %d", name, code)
+		}
+	}
 }

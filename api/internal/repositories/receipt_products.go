@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"receipt-wrangler/api/internal/commands"
 	"receipt-wrangler/api/internal/models"
 	"time"
 
@@ -228,4 +229,91 @@ func (repository ReceiptProductRepository) GetPricedProductsWithHealth(receiptId
 	}
 
 	return products, nil
+}
+
+// CreateProduct adds a person's own product line at the end of the receipt's list (Phase 3 C5), and
+// sends the receipt's shopping trip to be compared again.
+func (repository ReceiptProductRepository) CreateProduct(receiptId uint, command commands.UpsertReceiptProductCommand) (models.ReceiptProduct, error) {
+	var product models.ReceiptProduct
+
+	err := repository.GetDB().Transaction(func(tx *gorm.DB) error {
+		var last models.ReceiptProduct
+		position := 0
+		found := tx.Where("receipt_id = ?", receiptId).Order("position DESC").Limit(1).Find(&last)
+		if found.Error != nil {
+			return found.Error
+		}
+		if found.RowsAffected > 0 {
+			position = last.Position + 1
+		}
+
+		product = models.ReceiptProduct{
+			ReceiptId:   receiptId,
+			Name:        command.Name,
+			DisplayName: command.Name,
+			Amount:      command.Amount,
+			Quantity:    command.Quantity,
+			Position:    position,
+		}
+		if err := tx.Create(&product).Error; err != nil {
+			return err
+		}
+
+		return NewShoppingTripRepository(tx).RequeueTripForReceipt(receiptId, time.Now())
+	})
+
+	return product, err
+}
+
+// UpdateProduct changes a product line's name, amount and quantity. A new name drops the health and
+// seasonality tags (unless a person corrected them) and the planned mark, so the product is classified
+// and compared again as the product it now is.
+func (repository ReceiptProductRepository) UpdateProduct(product models.ReceiptProduct, command commands.UpsertReceiptProductCommand) (models.ReceiptProduct, error) {
+	renamed := models.NormalizeProductName(product.Name) != models.NormalizeProductName(command.Name) ||
+		product.DisplayName != command.Name
+
+	updates := map[string]any{
+		"name":         command.Name,
+		"display_name": command.Name,
+		"amount":       command.Amount,
+		"quantity":     command.Quantity,
+	}
+	if renamed {
+		updates["planned"] = nil
+		updates["matched_shopping_list_item_id"] = nil
+		if !product.ClassificationOverridden {
+			updates["health"] = ""
+			updates["food_group"] = ""
+			updates["seasonality"] = ""
+			updates["classified_at"] = nil
+			updates["classification_attempts"] = 0
+		}
+	}
+
+	err := repository.GetDB().Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&models.ReceiptProduct{}).Where("id = ?", product.ID).Updates(updates).Error; err != nil {
+			return err
+		}
+
+		return NewShoppingTripRepository(tx).RequeueTripForReceipt(product.ReceiptId, time.Now())
+	})
+	if err != nil {
+		return models.ReceiptProduct{}, err
+	}
+
+	var updated models.ReceiptProduct
+	err = repository.GetDB().First(&updated, product.ID).Error
+
+	return updated, err
+}
+
+// DeleteProduct removes one product line and sends the receipt's trip to be compared again.
+func (repository ReceiptProductRepository) DeleteProduct(product models.ReceiptProduct) error {
+	return repository.GetDB().Transaction(func(tx *gorm.DB) error {
+		if err := tx.Delete(&models.ReceiptProduct{}, product.ID).Error; err != nil {
+			return err
+		}
+
+		return NewShoppingTripRepository(tx).RequeueTripForReceipt(product.ReceiptId, time.Now())
+	})
 }

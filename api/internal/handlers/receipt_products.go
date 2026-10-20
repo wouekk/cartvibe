@@ -192,3 +192,136 @@ func SetReceiptProductClassification(w http.ResponseWriter, r *http.Request) {
 
 	HandleRequest(handler)
 }
+
+// loadReceiptProductOrDeny finds the product a request addresses. An unknown or malformed id answers
+// the same 403 as a denial, so a response never says whether a product exists.
+func loadReceiptProductOrDeny(w http.ResponseWriter, productIdParam string) (models.ReceiptProduct, bool) {
+	var product models.ReceiptProduct
+
+	productId, err := utils.StringToUint(productIdParam)
+	if err == nil {
+		err = repositories.GetDB().First(&product, productId).Error
+	}
+	if err != nil {
+		utils.WriteCustomErrorResponse(w, unauthorizedEntityMessage, http.StatusForbidden)
+		return product, false
+	}
+
+	return product, true
+}
+
+func writeReceiptProduct(w http.ResponseWriter, product models.ReceiptProduct) (int, error) {
+	bytes, err := utils.MarshalResponseData(product)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(bytes)
+	return 0, nil
+}
+
+// AddReceiptProduct adds a product line the AI missed (Phase 3 C5). Addressed by receipt id, so
+// HandleRequest applies the receipt's group permission and paid-by visibility.
+func AddReceiptProduct(w http.ResponseWriter, r *http.Request) {
+	receiptIdParam := chi.URLParam(r, "receiptId")
+
+	handler := structs.Handler{
+		ErrorMessage:     "Error adding the product",
+		Writer:           w,
+		Request:          r,
+		ReceiptId:        receiptIdParam,
+		GroupPermissions: []string{permissions.GroupReceiptsUpdate},
+		ResponseType:     constants.ApplicationJson,
+		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
+			receiptId, err := utils.StringToUint(receiptIdParam)
+			if err != nil {
+				return http.StatusBadRequest, err
+			}
+
+			command := commands.UpsertReceiptProductCommand{}
+			vErr, err := command.LoadDataFromRequestAndValidate(w, r)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+			if len(vErr.Errors) > 0 {
+				structs.WriteValidatorErrorResponse(w, vErr, http.StatusBadRequest)
+				return 0, nil
+			}
+
+			product, err := repositories.NewReceiptProductRepository(nil).CreateProduct(receiptId, command)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			return writeReceiptProduct(w, product)
+		},
+	}
+
+	HandleRequest(handler)
+}
+
+// UpdateReceiptProduct corrects a product line's name, amount or quantity (Phase 3 C5).
+func UpdateReceiptProduct(w http.ResponseWriter, r *http.Request) {
+	product, ok := loadReceiptProductOrDeny(w, chi.URLParam(r, "productId"))
+	if !ok {
+		return
+	}
+
+	handler := structs.Handler{
+		ErrorMessage:     "Error updating the product",
+		Writer:           w,
+		Request:          r,
+		ReceiptId:        utils.UintToString(product.ReceiptId),
+		GroupPermissions: []string{permissions.GroupReceiptsUpdate},
+		ResponseType:     constants.ApplicationJson,
+		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
+			command := commands.UpsertReceiptProductCommand{}
+			vErr, err := command.LoadDataFromRequestAndValidate(w, r)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+			if len(vErr.Errors) > 0 {
+				structs.WriteValidatorErrorResponse(w, vErr, http.StatusBadRequest)
+				return 0, nil
+			}
+
+			updated, err := repositories.NewReceiptProductRepository(nil).UpdateProduct(product, command)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			return writeReceiptProduct(w, updated)
+		},
+	}
+
+	HandleRequest(handler)
+}
+
+// DeleteReceiptProduct removes a product line (Phase 3 C5).
+func DeleteReceiptProduct(w http.ResponseWriter, r *http.Request) {
+	product, ok := loadReceiptProductOrDeny(w, chi.URLParam(r, "productId"))
+	if !ok {
+		return
+	}
+
+	handler := structs.Handler{
+		ErrorMessage:     "Error removing the product",
+		Writer:           w,
+		Request:          r,
+		ReceiptId:        utils.UintToString(product.ReceiptId),
+		GroupPermissions: []string{permissions.GroupReceiptsUpdate},
+		ResponseType:     constants.ApplicationJson,
+		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
+			err := repositories.NewReceiptProductRepository(nil).DeleteProduct(product)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			w.WriteHeader(http.StatusOK)
+			return 0, nil
+		},
+	}
+
+	HandleRequest(handler)
+}
