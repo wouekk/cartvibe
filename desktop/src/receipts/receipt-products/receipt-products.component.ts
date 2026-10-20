@@ -190,7 +190,7 @@ export class ReceiptProductsComponent {
     }
 
     this.formError.set("");
-    return { name: trimmedName, amount: amount.value ?? null, quantity: quantity.trim() };
+    return { name: trimmedName, amount: amount.value, quantity: quantity.trim() };
   }
 
   private replaceProducts(change: (products: ReceiptProduct[]) => ReceiptProduct[]): void {
