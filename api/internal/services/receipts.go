@@ -237,6 +237,12 @@ func (service ReceiptService) DeleteReceipt(id string) error {
 			return err
 		}
 
+		// Neither is its shopping trip.
+		err = repositories.NewShoppingTripRepository(tx).DeleteTripForReceipt(receipt.ID)
+		if err != nil {
+			return err
+		}
+
 		err = tx.Select(clause.Associations).Delete(&receipt).Error
 		if err != nil {
 			return err

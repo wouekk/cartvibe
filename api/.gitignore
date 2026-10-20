@@ -20,3 +20,10 @@ api
 
 # Redis snapshot written when redis-server is run from this directory
 dump.rdb
+
+# Written by running the Go tests locally
+internal/**/test.db
+internal/**/test.db-journal
+internal/**/test.json
+internal/**/logs/
+internal/**/data/shopping-trips/

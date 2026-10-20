@@ -80,12 +80,22 @@ func (service ShoppingListService) UpdateShoppingList(
 }
 
 func (service ShoppingListService) DeleteShoppingList(groupId uint, listId uint) error {
+	var photoPaths []string
 	err := service.GetDB().Transaction(func(tx *gorm.DB) error {
+		// Trips first: they reference the list.
+		var tripErr error
+		photoPaths, tripErr = repositories.NewShoppingTripRepository(tx).DeleteTripsForList(listId)
+		if tripErr != nil {
+			return tripErr
+		}
+
 		return repositories.NewShoppingListRepository(tx).DeleteShoppingList(listId)
 	})
 	if err != nil {
 		return err
 	}
+
+	RemoveTripPhotos(photoPaths)
 
 	publishShoppingListEvent(models.ShoppingListEvent{
 		Type:           models.ShoppingListEventListDeleted,

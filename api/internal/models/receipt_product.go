@@ -29,6 +29,12 @@ type ReceiptProduct struct {
 	Position int `gorm:"not null;default:0" json:"position"`
 	// Health and seasonality tags, filled in by the classification sweep after the products are read.
 	FoodClassification `gorm:"embedded"`
+	// Planned is set once the receipt's shopping trip is compared with its list: true when the product
+	// was on the list, false when it was not. nil when the receipt is on no list, or not compared yet.
+	Planned *bool `json:"planned"`
+	// MatchedShoppingListItemId is the list item a planned product matched. The item may since have
+	// been removed from the list, so it is a plain id, not a foreign key.
+	MatchedShoppingListItemId *uint `json:"matchedShoppingListItemId"`
 }
 
 // ReceiptProductExtractionStatus is where a receipt's product reading stands. A plain string on the

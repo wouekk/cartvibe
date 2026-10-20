@@ -20,4 +20,7 @@ const (
 	// FoodClassificationSweep tags receipt products and shopping list items with health and
 	// seasonality (see services.FoodClassificationService). Same queue, same reason.
 	FoodClassificationSweep = "system_clean_up:food_classification"
+	// ShoppingTripSweep scans photos uploaded from shopping lists and compares receipts with their
+	// lists (see services.ShoppingTripService). Same queue, same reason.
+	ShoppingTripSweep = "system_clean_up:shopping_trips"
 )

@@ -23,8 +23,11 @@ receipt summary, default custom fields, app time zone, …) live in `docs/upstre
 
 ## How we work here
 
-- **The Windows PC has no Go, Node, Java or Docker.** GitHub Actions is the build and test machine:
-  push a branch, read the result. The MacBook may have toolchains; check before assuming.
+- **The Windows PC has Go (in `C:\Program Files\Go\bin`, not on the bash PATH) but no ImageMagick,
+  Tesseract, Node, Java or Docker.** Type-check and run the image-free Go tests locally with
+  `api/scripts/go-without-cgo.sh vet ./...` (or `test …`), which stubs the two cgo bindings. GitHub
+  Actions stays the real build and test machine: push a branch, read the result. The MacBook may have
+  more toolchains; check before assuming.
 - **`gh` is installed and authenticated** (account `wouekk`). Use it for CI: `gh run list`,
   `gh run watch <id> --exit-status`, `gh run view <id> --log-failed`. Never poll the anonymous REST
   API in loops — it allows 60 calls an hour. In this environment `gh` may need the PATH refreshed:
@@ -75,7 +78,7 @@ These are distilled from incidents and reviews; the linked sections explain them
 | Shopping lists + live sync (SSE), amount + unit | `docs/shopping-list-phase-1.md` | `api/CLAUDE.md`, `desktop/CLAUDE.md` → "Shopping lists" |
 | Overview landing page + 6-month trend | — | `api/CLAUDE.md` → "Group overview", `desktop/CLAUDE.md` → "Overview page" |
 | Labeled dark sidebar | — | `desktop/CLAUDE.md` → "Navigation sidebar" |
-| Spending insights: receipt products (2a), health/seasonality (2b), receipt ↔ list comparison (2c), goals (2d) | `docs/spending-insights-phase-2.md` | `api/CLAUDE.md` → "Receipt products" |
+| Spending insights: receipt products (2a), health/seasonality (2b), receipt ↔ list comparison (2c), goals (2d) | `docs/spending-insights-phase-2.md` | `api/CLAUDE.md` → "Receipt products", "Health and seasonality tags", "Shopping trips" |
 | CI-built image, NAS compose | — | `AGENTS.md` §2 |
 
 ## Code changes

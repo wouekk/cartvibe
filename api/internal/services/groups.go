@@ -236,6 +236,7 @@ func (service GroupService) DeleteGroup(groupId string, allowAllGroupDelete bool
 		return err
 	}
 
+	var tripPhotoPaths []string
 	err = db.Transaction(func(tx *gorm.DB) error {
 		receiptService := NewReceiptService(tx)
 
@@ -266,7 +267,12 @@ func (service GroupService) DeleteGroup(groupId string, allowAllGroupDelete bool
 			}
 		}
 
-		// Delete shopping lists in group, with their items
+		// Delete shopping lists in group, with their trips and items. Trips first: they reference the lists.
+		tripPhotoPaths, txErr = repositories.NewShoppingTripRepository(tx).DeleteTripsForGroup(uintGroupId)
+		if txErr != nil {
+			return txErr
+		}
+
 		txErr = repositories.NewShoppingListRepository(tx).DeleteShoppingListsForGroup(uintGroupId)
 		if txErr != nil {
 			return txErr
@@ -353,5 +359,6 @@ func (service GroupService) DeleteGroup(groupId string, allowAllGroupDelete bool
 		return err
 	}
 
+	RemoveTripPhotos(tripPhotoPaths)
 	return nil
 }

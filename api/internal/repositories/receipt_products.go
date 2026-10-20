@@ -9,10 +9,6 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-// claimLease is how long a claimed extraction is hidden from other sweeps. A sweep that dies mid-read
-// leaves the row RUNNING; once the lease runs out the next sweep picks it up again.
-const claimLease = 30 * time.Minute
-
 type ReceiptProductRepository struct {
 	BaseRepository
 }
@@ -44,47 +40,42 @@ func (repository ReceiptProductRepository) MarkReceiptProductsPending(receiptId 
 }
 
 // ClaimDueExtraction hands out one extraction that is due — pending, waiting out an outage, or left
-// RUNNING by a sweep that died — and marks it RUNNING with a lease. The claim is a conditional UPDATE,
-// so two sweeps racing for one row cannot both win. ok is false when nothing is due.
+// RUNNING by a sweep that died — and marks it RUNNING with a lease (see claimDue). ok is false when
+// nothing is due.
 func (repository ReceiptProductRepository) ClaimDueExtraction(now time.Time) (models.ReceiptProductExtraction, bool, error) {
-	db := repository.GetDB()
-	dueStatuses := []models.ReceiptProductExtractionStatus{
-		models.PRODUCT_EXTRACTION_PENDING,
-		models.PRODUCT_EXTRACTION_UNAVAILABLE,
+	extraction, ok, err := claimDue(
+		repository.GetDB(),
+		"receipt_id",
+		func(extraction *models.ReceiptProductExtraction) any { return extraction.ReceiptId },
+		[]models.ReceiptProductExtractionStatus{
+			models.PRODUCT_EXTRACTION_PENDING,
+			models.PRODUCT_EXTRACTION_UNAVAILABLE,
+			models.PRODUCT_EXTRACTION_RUNNING,
+		},
 		models.PRODUCT_EXTRACTION_RUNNING,
+		now,
+	)
+	if ok {
+		extraction.Status = models.PRODUCT_EXTRACTION_RUNNING
 	}
+	return extraction, ok, err
+}
 
-	// A handful of tries: losing a race just means another sweep took that row.
-	for attempt := 0; attempt < 5; attempt++ {
-		var candidate models.ReceiptProductExtraction
-		err := db.
-			Where("status IN ? AND next_attempt_at <= ?", dueStatuses, now).
-			Order("next_attempt_at ASC").
-			Order("receipt_id ASC").
-			Take(&candidate).Error
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return models.ReceiptProductExtraction{}, false, nil
-		}
-		if err != nil {
-			return models.ReceiptProductExtraction{}, false, err
-		}
+// EnsureReceiptProductsQueued queues a receipt that has never been queued, and leaves one that has
+// alone: attaching a receipt to a list must not throw away products already read.
+func (repository ReceiptProductRepository) EnsureReceiptProductsQueued(receiptId uint) error {
+	return repository.GetDB().Clauses(clause.OnConflict{DoNothing: true}).Create(&models.ReceiptProductExtraction{
+		ReceiptId:     receiptId,
+		Status:        models.PRODUCT_EXTRACTION_PENDING,
+		NextAttemptAt: time.Now(),
+	}).Error
+}
 
-		claimed := db.Model(&models.ReceiptProductExtraction{}).
-			Where("receipt_id = ? AND status IN ? AND next_attempt_at <= ?", candidate.ReceiptId, dueStatuses, now).
-			Updates(map[string]any{
-				"status":          models.PRODUCT_EXTRACTION_RUNNING,
-				"next_attempt_at": now.Add(claimLease),
-			})
-		if claimed.Error != nil {
-			return models.ReceiptProductExtraction{}, false, claimed.Error
-		}
-		if claimed.RowsAffected == 1 {
-			candidate.Status = models.PRODUCT_EXTRACTION_RUNNING
-			return candidate, true, nil
-		}
-	}
-
-	return models.ReceiptProductExtraction{}, false, nil
+// GetExtraction returns a receipt's extraction; gorm.ErrRecordNotFound when it was never queued.
+func (repository ReceiptProductRepository) GetExtraction(receiptId uint) (models.ReceiptProductExtraction, error) {
+	var extraction models.ReceiptProductExtraction
+	err := repository.GetDB().Where("receipt_id = ?", receiptId).Take(&extraction).Error
+	return extraction, err
 }
 
 // UpdateExtraction records how a read went.
@@ -123,13 +114,19 @@ func (repository ReceiptProductRepository) ReplaceProducts(receiptId uint, produ
 			}
 		}
 
-		return tx.Model(&models.ReceiptProductExtraction{}).
+		err = tx.Model(&models.ReceiptProductExtraction{}).
 			Where("receipt_id = ?", receiptId).
 			Updates(map[string]any{
 				"status":     models.PRODUCT_EXTRACTION_DONE,
 				"attempts":   0,
 				"last_error": "",
 			}).Error
+		if err != nil {
+			return err
+		}
+
+		// The new products carry no planned/unplanned marks, so the receipt's trip compares again.
+		return NewShoppingTripRepository(tx).RequeueTripForReceipt(receiptId, time.Now())
 	})
 }
 
