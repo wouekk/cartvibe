@@ -4116,3 +4116,12 @@ corrected them) and its planned mark so it is classified and compared again; eve
 receipt's shopping trip. "Read again" still replaces the whole set, hand edits included.
 **New installs start on euros** (`SeedEuroForNewInstall` in `InitDB`; an existing settings row is never
 touched, and the test DB keeps `$`).
+
+## Household notifications and Going shopping (fork, Phase 3 N1 / S4)
+
+`services/shopping_notifications.go`: a new list, items added to a list (at most one bell per 15 minutes
+per message, so ten adds ring once) and `POST /shopping-list/group/{id}/going-shopping`
+(`group.shopping-lists.update`, 400 for the All group, also throttled) notify the **rest** of the group,
+never the actor. Best-effort: failures are logged, never fail the write. Receipt uploads already
+notified the group. Flaky on CI occasionally: `TestQuickScan_MissingItemStatusFailsAndPersistsNothing`
+(passed on re-run; unrelated).
