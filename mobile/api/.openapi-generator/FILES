@@ -405,5 +405,3 @@ lib/src/model/widget.dart
 lib/src/model/widget_type.dart
 lib/src/serializers.dart
 pubspec.yaml
-test/currency_rate_table_test.dart
-test/currency_rate_test.dart
