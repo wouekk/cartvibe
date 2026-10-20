@@ -16,6 +16,7 @@ import {
   SelectShoppingList,
 } from "../../store/shopping-list.state.actions";
 import { hasAll } from "../../utils/permission.utils";
+import { activeLists, recentPastLists } from "../shopping-list-groups";
 import { ShoppingListFormDialogComponent } from "../shopping-list-form-dialog/shopping-list-form-dialog.component";
 
 @Component({
@@ -55,14 +56,17 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
 
   public readonly canDelete = computed(() => hasAll(this.permissions(), Permission.GroupShoppingListsDelete));
 
-  /** One tab per list, counting what is still to buy. */
+  /** One tab per list still being shopped, counting what is still to buy (Phase 3 S2). */
   public readonly listTabs = computed<FilterTab[]>(() =>
-    this.lists().map((list) => ({
+    activeLists(this.lists()).map((list) => ({
       value: list.id.toString(),
       label: list.name,
       count: list.items.filter((item) => !item.isChecked).length,
     }))
   );
+
+  /** Finished lists (everything crossed off), the latest few, shown below the tabs. */
+  public readonly pastLists = computed(() => recentPastLists(this.lists()));
 
   public readonly selectedTab = computed(() => this.selectedList()?.id.toString() ?? "");
 
