@@ -113,8 +113,8 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
         sortable: true,
       },
       {
-        columnHeader: "Number of Receipts with Category",
-        matColumnDef: "numberOfReceipts",
+        columnHeader: "Products",
+        matColumnDef: "numberOfProducts",
         template: this.numberOfReceiptsCell(),
         sortable: true,
       },
@@ -144,7 +144,7 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
     this.displayedColumns = [
       "name",
       "description",
-      "numberOfReceipts",
+      "numberOfProducts",
       "actions",
     ];
   }

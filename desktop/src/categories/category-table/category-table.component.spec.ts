@@ -75,20 +75,20 @@ describe("CategoriesListComponent", () => {
     );
 
     component.sorted({
-      active: "numberOfReceipts",
+      active: "numberOfProducts",
       direction: "asc",
     });
 
     expect(store.selectSnapshot(CategoryTableState.state)).toEqual({
       page: 1,
       pageSize: 50,
-      orderBy: "numberOfReceipts",
+      orderBy: "numberOfProducts",
       sortDirection: "asc",
     });
     expect(serviceSpy).toHaveBeenCalledWith({
       page: 1,
       pageSize: 50,
-      orderBy: "numberOfReceipts",
+      orderBy: "numberOfProducts",
       sortDirection: "asc",
     });
   });
@@ -131,7 +131,7 @@ describe("CategoriesListComponent", () => {
     expect(component.displayedColumns).toEqual([
       "name",
       "description",
-      "numberOfReceipts",
+      "numberOfProducts",
       "actions",
     ]);
   });

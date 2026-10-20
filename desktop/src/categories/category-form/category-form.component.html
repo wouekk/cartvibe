@@ -9,6 +9,16 @@
         label="Description"
         [inputFormControl]="form | formGet : 'description'"
       ></app-input>
+      <app-checkbox
+        label="Never let the AI use this category"
+        data-testid="category-skipped"
+        [inputFormControl]="form | formGet : 'skipped'"
+      ></app-checkbox>
+      <p class="text-muted small mt-2">
+        The AI picks from these categories when it reads a receipt, and adds new ones here by itself. Rename one
+        and the AI is told to use the new name instead of the old; switch one off and it is told to choose
+        another.
+      </p>
     </div>
 
     <app-dialog-footer
