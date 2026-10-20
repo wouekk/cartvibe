@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, viewChild } from "@angular/core";
+import { Component, computed, OnInit, signal, viewChild } from "@angular/core";
 import { FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
@@ -7,6 +7,8 @@ import { FormMode } from "src/enums/form-mode.enum";
 import { BaseFormComponent } from "../../form/index";
 import { Permission, UserPreferencesService, UserShortcut } from "../../open-api";
 import { SnackbarService } from "../../services";
+import { parseGoalInput } from "../../overview/overview-chart.utils";
+import { SystemSettingsState } from "../../store/system-settings.state";
 import { AuthState, SetUserPreferences } from "../../store";
 import { UserShortcutComponent } from "../user-shortcut/user-shortcut.component";
 
@@ -26,6 +28,11 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
   protected readonly canEdit = this.store.selectSignal(
     AuthState.hasAppPermission(Permission.AppUserPreferencesUpdate)
   );
+
+  private readonly currencySymbol = this.store.selectSignal(SystemSettingsState.currencyDisplay);
+
+  /** "Monthly spending goal (€)", with the household's own currency symbol. */
+  public readonly goalLabel = computed(() => `Monthly spending goal (${(this.currencySymbol() ?? "").trim() || "€"})`);
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -57,6 +64,7 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
       quickScanDefaultPaidById: userPreferences?.quickScanDefaultPaidById ?? "",
       quickScanDefaultGroupId: userPreferences?.quickScanDefaultGroupId ?? "",
       quickScanDefaultStatus: userPreferences?.quickScanDefaultStatus ?? "",
+      monthlySpendingGoal: userPreferences?.monthlySpendingGoal ? String(userPreferences.monthlySpendingGoal).replace(".", ",") : "",
       closeChipSelectOnSelect:
         userPreferences?.closeChipSelectOnSelect ?? false,
       userShortcuts: this.formBuilder.array(this.originalUserShortcuts().map((userShortcut, i) => this.buildUserShortcut(i, userShortcut))),
@@ -140,6 +148,14 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
       if (result.quickScanDefaultPaidById === "") {
         result.quickScanDefaultPaidById = null;
       }
+
+      // The spending goal: empty clears it, a comma decimal is fine, anything else is refused.
+      const goal = parseGoalInput(result.monthlySpendingGoal ?? "");
+      if (!goal.ok) {
+        this.snackbarService.error("The monthly spending goal must be an amount above 0, like 500,00.");
+        return;
+      }
+      result.monthlySpendingGoal = goal.value ?? null;
 
       if (result.quickScanDefaultGroupId === "") {
         result.quickScanDefaultGroupId = null;

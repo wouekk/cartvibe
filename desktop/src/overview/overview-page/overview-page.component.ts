@@ -27,13 +27,14 @@ import {
   describeChangeAgainst,
   DONUT_RADIUS,
   DonutSegment,
+  goalLineFraction,
 } from "../overview-chart.utils";
 import {
   OverviewDetailDialogComponent,
   OverviewDetailDialogData,
   OverviewDetailKind,
 } from "../overview-detail-dialog/overview-detail-dialog.component";
-import { previousLabel, resolvePeriod, ResolvedPeriod } from "../overview-period";
+import { isWholeCalendarMonth, previousLabel, resolvePeriod, ResolvedPeriod } from "../overview-period";
 
 const RECENT_RECEIPT_COUNT = 6;
 
@@ -75,6 +76,44 @@ export class OverviewPageComponent {
   );
 
   public readonly periodLabel = computed(() => this.period()?.label ?? "");
+
+  private readonly userPreferences = this.store.selectSignal(AuthState.userPreferences);
+
+  /** The monthly spending goal from the user's settings; 0 when none is set. */
+  public readonly goal = computed(() => {
+    const goal = Number(this.userPreferences()?.monthlySpendingGoal ?? 0);
+    return goal > 0 ? goal : 0;
+  });
+
+  /** The Spent card compares with the goal only while one whole calendar month is shown. */
+  public readonly spentGoal = computed(() => {
+    const goal = this.goal();
+    const overview = this.overview();
+    const period = this.period();
+    if (!(goal > 0) || !overview || !isWholeCalendarMonth(period?.from, period?.to)) {
+      return undefined;
+    }
+
+    const spent = Number(overview.total);
+    return { goal, over: Math.max(0, spent - goal), remaining: Math.max(0, goal - spent) };
+  });
+
+  /** The month chart splits bars at the goal; it needs a goal and a month-by-month trend. */
+  public readonly goalMode = computed(() => this.goal() > 0 && this.overview()?.trendUnit === "MONTH");
+
+  public readonly goalFraction = computed(() =>
+    this.goalMode() ? goalLineFraction(this.bars().map((bar) => bar.total), this.goal()) : 0
+  );
+
+  /** A goal-scaled bar's height: its share of the chart, under the room the value label takes. */
+  public goalBarHeight(fraction: number | undefined): string {
+    return `calc((100% - 26px) * ${fraction ?? 0})`;
+  }
+
+  /** Where the goal line sits above the chart's baseline. */
+  public goalLineBottom(): string {
+    return `calc(4px + (100% - 30px) * ${this.goalFraction()})`;
+  }
 
   private readonly groups = this.store.selectSignal(GroupState.groups);
 
@@ -141,7 +180,15 @@ export class OverviewPageComponent {
 
   public readonly bars = computed(() => {
     const overview = this.overview();
-    return overview ? buildTrendBars(overview.trend ?? [], overview.trendUnit ?? "MONTH", overview.from ?? "", overview.to ?? "") : [];
+    return overview
+      ? buildTrendBars(
+          overview.trend ?? [],
+          overview.trendUnit ?? "MONTH",
+          overview.from ?? "",
+          overview.to ?? "",
+          this.goalMode() ? this.goal() : 0
+        )
+      : [];
   });
 
   public readonly isDailyTrend = computed(() => this.overview()?.trendUnit === "DAY");

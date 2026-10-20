@@ -6,11 +6,11 @@ import { MatDialog } from "@angular/material/dialog";
 import { ActivatedRoute, convertToParamMap, provideRouter } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { BehaviorSubject, of } from "rxjs";
-import { GroupOverview, OverviewService, Permission, ReceiptService, ShoppingListService } from "../../open-api";
+import { GroupOverview, OverviewService, Permission, ReceiptService, ShoppingListService, UserPreferences } from "../../open-api";
 import { PipesModule } from "../../pipes/pipes.module";
 import { AuthState } from "../../store/auth.state";
 import { FeatureConfigState } from "../../store/feature-config.state";
-import { SetPermissions } from "../../store/auth.state.actions";
+import { SetPermissions, SetUserPreferences } from "../../store/auth.state.actions";
 import { GroupState } from "../../store/group.state";
 import { ShoppingListState } from "../../store/shopping-list.state";
 import { SystemSettingsState } from "../../store/system-settings.state";
@@ -172,6 +172,57 @@ describe("OverviewPageComponent", () => {
 
     expect(open.mock.calls[0][1]?.data).toMatchObject({ kind: "FOODGROUP", foodGroup: "Dairy" });
     expect(open.mock.calls[1][1]?.data).toMatchObject({ kind: "FOODGROUP", foodGroup: "" });
+  });
+
+  describe("monthly spending goal", () => {
+    const setGoal = async (goal: string | undefined) => {
+      TestBed.inject(Store).dispatch(new SetUserPreferences({ monthlySpendingGoal: goal } as UserPreferences));
+      await fixture.whenStable();
+    };
+
+    it("changes nothing without a goal", async () => {
+      await setGoal(undefined);
+
+      expect(fixture.nativeElement.querySelector("[data-testid=overview-spent-goal]")).toBeNull();
+      expect(fixture.nativeElement.querySelector("[data-testid=overview-goal-line]")).toBeNull();
+      expect(text("overview-tile-spent")).toContain("8% less than");
+    });
+
+    it("shows the goal and what is left on this month's Spent card", async () => {
+      await setGoal("100");
+
+      expect(text("overview-spent-goal")).toContain("Goal:");
+      expect(text("overview-spent-remaining")).toContain("remaining");
+      expect(fixture.nativeElement.querySelector("[data-testid=overview-spent-over]")).toBeNull();
+      expect(component.spentGoal()).toEqual({ goal: 100, over: 0, remaining: 8 });
+    });
+
+    it("shows how far over the goal a month went", async () => {
+      await setGoal("80");
+
+      expect(text("overview-spent-over")).toContain("over goal");
+      expect(component.spentGoal()).toEqual({ goal: 80, over: 12, remaining: 0 });
+    });
+
+    it("leaves the Spent card alone outside a whole month", async () => {
+      await setGoal("100");
+      component.period.set({ from: "2026-10-12", to: "2026-10-18", label: "week" });
+      await fixture.whenStable();
+
+      expect(component.spentGoal()).toBeUndefined();
+      expect(fixture.nativeElement.querySelector("[data-testid=overview-spent-goal]")).toBeNull();
+    });
+
+    it("draws the goal line and splits the bars that are over it", async () => {
+      await setGoal("95");
+
+      expect(fixture.nativeElement.querySelector("[data-testid=overview-goal-line]")).not.toBeNull();
+      const bars = component.bars();
+      // The trend is September 100 and this month 92, so September is over a goal of 95 and this month is not.
+      expect(bars[0].overAmount).toBe(5);
+      expect(bars[1].overAmount).toBe(0);
+      expect(fixture.nativeElement.querySelectorAll("[data-testid=overview-bar-over]").length).toBe(1);
+    });
   });
 
   it("hides the shopping card for a user who can read no group's lists", () => {

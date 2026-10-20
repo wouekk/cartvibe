@@ -160,3 +160,14 @@ export function formatDayMonthYear(day: string): string {
   const [year, month, date] = day.split("-");
   return `${date}/${month}/${year}`;
 }
+
+/** True when from..to is exactly one calendar month: the first day to the last day of the same month. */
+export function isWholeCalendarMonth(from: string | undefined, to: string | undefined): boolean {
+  if (!from || !to || from.slice(0, 7) !== to.slice(0, 7) || !from.endsWith("-01")) {
+    return false;
+  }
+
+  const [year, month] = from.split("-").map(Number);
+  const lastDay = new Date(year, month, 0).getDate();
+  return to === `${from.slice(0, 7)}-${String(lastDay).padStart(2, "0")}`;
+}
