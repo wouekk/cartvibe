@@ -6,8 +6,403 @@
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/x-icon" href="favicon.svg" />
+
+    <!-- Accent theme, applied before the first paint so the chosen color never flashes. -->
+    <script>
+      (function () {
+        var themes = ["blue", "green", "amber", "indigo"];
+        var stored = "blue";
+        try {
+          var value = window.localStorage.getItem("rw_accent_theme");
+          if (themes.indexOf(value) > -1) {
+            stored = value;
+          }
+        } catch (e) {}
+        document.documentElement.setAttribute("data-accent", stored);
+      })();
+    </script>
+
+    <!--
+      Tailwind (CDN) for the small utility layer this skin uses. Two settings keep it from touching the app:
+      Preflight is off, so there is no base reset over the component library, and every utility carries the
+      "tw-" prefix, so Tailwind never generates rules for the classes the app already uses (Bootstrap's mb-3,
+      table, border...). The skin itself is the plain CSS below, so the app looks right even if the CDN is
+      unreachable.
+    -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      if (window.tailwind) {
+        tailwind.config = {
+          prefix: "tw-",
+          corePlugins: { preflight: false },
+          darkMode: "media",
+          theme: {
+            extend: {
+              fontFamily: {
+                sans: ["-apple-system", "BlinkMacSystemFont", '"SF Pro Text"', '"SF Pro Display"', '"Segoe UI"', "Roboto", "sans-serif"],
+              },
+              colors: {
+                accent: {
+                  DEFAULT: "var(--accent-color)",
+                  hover: "var(--accent-hover)",
+                  soft: "var(--accent-soft)",
+                },
+              },
+            },
+          },
+        };
+      }
+    </script>
+
+    <style>
+      /* ---------- Accent themes (the picker writes data-accent on <html>) ---------- */
+      :root,
+      :root[data-accent="blue"] {
+        --accent-color: #0071e3;
+        --accent-hover: #0062c4;
+        --accent-soft: rgba(0, 113, 227, 0.12);
+      }
+      :root[data-accent="green"] {
+        --accent-color: #248a3d;
+        --accent-hover: #1e7534;
+        --accent-soft: rgba(36, 138, 61, 0.12);
+      }
+      :root[data-accent="amber"] {
+        --accent-color: #d97706;
+        --accent-hover: #b45f06;
+        --accent-soft: rgba(217, 119, 6, 0.14);
+      }
+      :root[data-accent="indigo"] {
+        --accent-color: #5856d6;
+        --accent-hover: #4a48c0;
+        --accent-soft: rgba(88, 86, 214, 0.12);
+      }
+
+      :root {
+        --rw-font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+        --rw-ring: rgba(228, 228, 231, 0.8);
+        --rw-card-shadow: 0 0 0 1px var(--rw-ring), 0 1px 2px rgba(24, 24, 27, 0.04), 0 4px 14px rgba(24, 24, 27, 0.05);
+        --rw-text-strong: #18181b; /* zinc-900 */
+        --rw-text: #3f3f46; /* zinc-700 */
+        --rw-text-muted: #71717a; /* zinc-500 */
+      }
+
+      /*
+        Visual skin only: colors, translucency, fonts, weights, tracking, border colors, radii, shadows and
+        transitions. Nothing below sets a width, height, margin, padding, display, flex/grid or position on an
+        app element. Card outlines are a 1px shadow ring rather than a border, because a border would add a
+        pixel to the box and move things.
+      */
+
+      /* ---------- Typography ---------- */
+      body,
+      .mat-typography,
+      .mat-mdc-button,
+      .mat-mdc-raised-button,
+      .mat-mdc-unelevated-button,
+      .mat-mdc-outlined-button,
+      .mat-mdc-form-field,
+      .mdc-text-field,
+      .mat-mdc-table,
+      .mat-mdc-menu-item,
+      .mat-mdc-option,
+      .mat-mdc-tab-link,
+      .mat-mdc-dialog-container,
+      input,
+      textarea,
+      select,
+      button {
+        font-family: var(--rw-font-sans) !important;
+      }
+      body {
+        color: var(--rw-text);
+      }
+      h1,
+      h2,
+      h3,
+      h4,
+      .mat-mdc-dialog-title {
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        color: var(--rw-text-strong);
+      }
+      .tile__label,
+      .muted,
+      .text-muted,
+      .mat-mdc-form-field-hint,
+      .donut__caption,
+      th.mat-mdc-header-cell {
+        color: var(--rw-text-muted);
+      }
+
+      /* ---------- Cards, panels and tables ---------- */
+      .card,
+      .tile,
+      .settings-card,
+      .rw-card,
+      .mat-mdc-card,
+      .table-container {
+        border-radius: 16px !important;
+        box-shadow: var(--rw-card-shadow) !important;
+        background-color: rgba(255, 255, 255, 0.82) !important;
+        -webkit-backdrop-filter: saturate(160%) blur(12px);
+        backdrop-filter: saturate(160%) blur(12px);
+      }
+      .tile--link:hover {
+        box-shadow: 0 0 0 1px var(--rw-ring), 0 2px 4px rgba(24, 24, 27, 0.05), 0 10px 24px rgba(24, 24, 27, 0.08) !important;
+      }
+      .mat-mdc-dialog-surface {
+        border-radius: 18px !important;
+      }
+      .filter-bar {
+        border-radius: 10px;
+      }
+      .filter-tab {
+        border-radius: 7px;
+      }
+
+      /* ---------- Buttons and inputs ---------- */
+      .mat-mdc-raised-button,
+      .mat-mdc-unelevated-button,
+      .mat-mdc-outlined-button,
+      .mat-mdc-button:not(.mat-mdc-icon-button) {
+        border-radius: 10px !important;
+      }
+      .mat-mdc-button-base {
+        transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease,
+          transform 0.15s ease;
+      }
+      .mat-mdc-button-base:not(:disabled):not([disabled]):active {
+        transform: scale(0.98);
+      }
+      .mat-mdc-outlined-button {
+        border-color: #d4d4d8 !important;
+      }
+      .mat-mdc-form-field {
+        --mdc-outlined-text-field-container-shape: 10px;
+        --mdc-outlined-text-field-outline-color: #d4d4d8;
+        --mdc-outlined-text-field-hover-outline-color: #a1a1aa;
+        --mdc-outlined-text-field-focus-outline-color: var(--accent-color);
+        --mdc-outlined-text-field-focus-label-text-color: var(--accent-color);
+        --mdc-outlined-text-field-caret-color: var(--accent-color);
+        --mdc-filled-text-field-focus-active-indicator-color: var(--accent-color);
+        --mdc-filled-text-field-caret-color: var(--accent-color);
+      }
+      input,
+      textarea,
+      select {
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      /* ---------- Accent: primary buttons ---------- */
+      .mat-mdc-raised-button.mat-primary:not([disabled]),
+      .mat-mdc-unelevated-button.mat-primary:not([disabled]) {
+        --mdc-protected-button-container-color: var(--accent-color);
+        --mdc-filled-button-container-color: var(--accent-color);
+        background-color: var(--accent-color) !important;
+      }
+      .mat-mdc-raised-button.mat-primary:not([disabled]):hover,
+      .mat-mdc-unelevated-button.mat-primary:not([disabled]):hover {
+        background-color: var(--accent-hover) !important;
+      }
+      .mat-mdc-button.mat-primary,
+      .mat-mdc-outlined-button.mat-primary {
+        --mdc-text-button-label-text-color: var(--accent-color);
+        --mdc-outlined-button-label-text-color: var(--accent-color);
+        color: var(--accent-color);
+      }
+
+      /* ---------- Accent: navigation, tabs, links, toggles ---------- */
+      .sidebar__link--active mat-icon,
+      .sidebar__link--active .mat-icon {
+        color: var(--accent-color) !important;
+      }
+      .filter-tab.active {
+        color: var(--accent-color) !important;
+      }
+      .filter-tab.active .pill {
+        background: var(--accent-soft) !important;
+        color: var(--accent-color) !important;
+      }
+      nav.mat-mdc-tab-nav-bar .mat-mdc-tab-link.mdc-tab--active .mdc-tab__text-label {
+        color: var(--accent-color) !important;
+      }
+      .card__header a,
+      .settings-card a,
+      .receipts a,
+      .table-container a:not(.mat-mdc-button-base),
+      .link-button {
+        color: var(--accent-color);
+        transition: color 0.2s ease;
+      }
+      .card__header a:hover,
+      .settings-card a:hover,
+      .receipts a:hover,
+      .table-container a:not(.mat-mdc-button-base):hover,
+      .link-button:hover {
+        color: var(--accent-hover);
+      }
+      .mat-mdc-checkbox.mat-primary,
+      .mat-mdc-radio-button.mat-primary,
+      .mat-mdc-slide-toggle.mat-primary,
+      .mat-mdc-progress-bar.mat-primary,
+      .mat-mdc-progress-spinner.mat-primary {
+        --mdc-checkbox-selected-icon-color: var(--accent-color);
+        --mdc-checkbox-selected-focus-icon-color: var(--accent-color);
+        --mdc-checkbox-selected-hover-icon-color: var(--accent-color);
+        --mdc-checkbox-selected-pressed-icon-color: var(--accent-color);
+        --mdc-radio-selected-icon-color: var(--accent-color);
+        --mdc-radio-selected-focus-icon-color: var(--accent-color);
+        --mdc-radio-selected-hover-icon-color: var(--accent-color);
+        --mdc-switch-selected-handle-color: var(--accent-color);
+        --mdc-switch-selected-track-color: var(--accent-soft);
+        --mdc-linear-progress-active-indicator-color: var(--accent-color);
+        --mdc-circular-progress-active-indicator-color: var(--accent-color);
+      }
+
+      /* ---------- Accent: charts and highlights ---------- */
+      .bars__bar--selected,
+      .bars__base--selected,
+      .tile__progress-fill:not(.tile__progress-fill--over) {
+        background: var(--accent-color) !important;
+      }
+      circle[stroke="#0086d4"] {
+        stroke: var(--accent-color);
+      }
+      .swatch[style*="#0086d4"],
+      .swatch[style*="rgb(0, 134, 212)"] {
+        background: var(--accent-color) !important;
+      }
+
+      /* ---------- Theme accent picker (a small pill in the bottom corner) ---------- */
+      #rw-accent-picker {
+        position: fixed;
+        right: 12px;
+        bottom: 12px;
+        z-index: 900;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px;
+        border-radius: 9999px;
+        border: 1px solid rgba(228, 228, 231, 0.8);
+        background: rgba(255, 255, 255, 0.8);
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 1px 2px rgba(24, 24, 27, 0.06), 0 4px 14px rgba(24, 24, 27, 0.08);
+      }
+      @media (prefers-color-scheme: dark) {
+        #rw-accent-picker {
+          border-color: rgba(39, 39, 42, 0.8);
+          background: rgba(24, 24, 27, 0.8);
+        }
+      }
+      #rw-accent-picker button {
+        width: 18px;
+        height: 18px;
+        padding: 0;
+        border: 2px solid transparent;
+        border-radius: 9999px;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.2s ease;
+      }
+      #rw-accent-picker button:hover {
+        transform: scale(1.12);
+      }
+      #rw-accent-picker button:active {
+        transform: scale(0.95);
+      }
+      #rw-accent-picker button:focus-visible {
+        outline: 2px solid var(--accent-color);
+        outline-offset: 2px;
+      }
+      #rw-accent-picker button[aria-pressed="true"] {
+        box-shadow: 0 0 0 2px #fff, 0 0 0 4px currentColor;
+      }
+      #rw-accent-picker [data-theme="blue"] {
+        background: #0071e3;
+        color: #0071e3;
+      }
+      #rw-accent-picker [data-theme="green"] {
+        background: #248a3d;
+        color: #248a3d;
+      }
+      #rw-accent-picker [data-theme="amber"] {
+        background: #d97706;
+        color: #d97706;
+      }
+      #rw-accent-picker [data-theme="indigo"] {
+        background: #5856d6;
+        color: #5856d6;
+      }
+      /* Collapsed: just the active dot; a click opens the four. */
+      #rw-accent-picker[data-collapsed="true"] button:not([aria-pressed="true"]) {
+        display: none;
+      }
+      @media print {
+        #rw-accent-picker {
+          display: none;
+        }
+      }
+    </style>
   </head>
   <body class="mat-typography">
     <app-root></app-root>
+
+    <div
+      id="rw-accent-picker"
+      class="tw-rounded-full tw-border tw-border-zinc-200/80 tw-bg-white/80 tw-shadow-sm tw-backdrop-blur-md dark:tw-border-zinc-800/80 dark:tw-bg-zinc-900/80"
+      role="group"
+      aria-label="Accent color"
+      data-collapsed="true"
+    >
+      <button type="button" data-theme="blue" aria-label="Ocean Blue" title="Ocean Blue" aria-pressed="false"></button>
+      <button type="button" data-theme="green" aria-label="Alpine Green" title="Alpine Green" aria-pressed="false"></button>
+      <button type="button" data-theme="amber" aria-label="Sunset Amber" title="Sunset Amber" aria-pressed="false"></button>
+      <button type="button" data-theme="indigo" aria-label="Royal Indigo" title="Royal Indigo" aria-pressed="false"></button>
+    </div>
+
+    <script>
+      (function () {
+        var picker = document.getElementById("rw-accent-picker");
+        var buttons = picker.querySelectorAll("button");
+        var root = document.documentElement;
+
+        function mark(theme) {
+          for (var i = 0; i < buttons.length; i++) {
+            buttons[i].setAttribute("aria-pressed", buttons[i].getAttribute("data-theme") === theme ? "true" : "false");
+          }
+        }
+
+        mark(root.getAttribute("data-accent") || "blue");
+
+        picker.addEventListener("click", function (event) {
+          var button = event.target.closest("button");
+          if (!button) {
+            return;
+          }
+
+          // Collapsed, a click on the dot only opens the pill; open, a click picks a color and closes it.
+          if (picker.getAttribute("data-collapsed") === "true") {
+            picker.setAttribute("data-collapsed", "false");
+            return;
+          }
+
+          var theme = button.getAttribute("data-theme");
+          root.setAttribute("data-accent", theme);
+          mark(theme);
+          try {
+            window.localStorage.setItem("rw_accent_theme", theme);
+          } catch (e) {}
+          picker.setAttribute("data-collapsed", "true");
+        });
+
+        document.addEventListener("click", function (event) {
+          if (!picker.contains(event.target)) {
+            picker.setAttribute("data-collapsed", "true");
+          }
+        });
+      })();
+    </script>
   </body>
 </html>
