@@ -481,7 +481,8 @@ func TestDeleteUser_RemovesMemberGrants(t *testing.T) {
 	// assertions below pass without ever exercising the group-wide cleanup this
 	// test exists to pin.
 	firstGroup := getNonAllGroupForUser(t, user.ID)
-	if err := db.Create(&models.GroupMember{UserID: otherUser.ID, GroupID: firstGroup.ID}).Error; err != nil {
+	// otherUser already joined the Household (Phase 3 M5), which is the first user's group.
+	if err := db.Where(models.GroupMember{UserID: otherUser.ID, GroupID: firstGroup.ID}).FirstOrCreate(&models.GroupMember{}).Error; err != nil {
 		t.Fatalf("seed first group co-member: %v", err)
 	}
 

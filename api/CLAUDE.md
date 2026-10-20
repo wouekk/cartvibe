@@ -4097,3 +4097,12 @@ spending (overspending type 1). `planned = null` (no list, not compared yet, the
   message}` (level is a plain string). Only the last megabyte is read; continuation lines join the
   previous entry; a missing file is `[]`. Gated on `app.system-settings.read` (admin only), a GET so a
   read-only API key may call it.
+
+## One Household group (fork, Phase 3 M5, API part)
+
+`UserRepository.CreateUser`: the **first** account of an install gets a group named `Household`
+(`repositories.HouseholdGroupName`) instead of "My Receipts"; every **later** account (whose role does
+not skip default groups) joins an existing `Household` as a **Member** (`joinHouseholdGroup`, falling back
+to the default group role) and gets no personal group. An install without a `Household` group, i.e. every
+install made before this, keeps handing out "My Receipts". The "All" group is still created for everyone.
+The desktop half (hiding the group picker and Manage Groups while only one real group exists) is not done.

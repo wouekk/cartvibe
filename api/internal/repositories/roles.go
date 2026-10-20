@@ -931,3 +931,17 @@ func (repository RoleRepository) GetDefaultGroupRoleId() (*uint, error) {
 
 	return &role.ID, nil
 }
+
+// GetGroupRoleIdByName returns the id of the group role with the given name, or nil when there is none.
+func (repository RoleRepository) GetGroupRoleIdByName(name string) (*uint, error) {
+	var role models.GroupRoleDefinition
+	err := repository.GetDB().Select("id").Where("name = ?", name).First(&role).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &role.ID, nil
+}

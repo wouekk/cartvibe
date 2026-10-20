@@ -27,7 +27,7 @@ func TestShouldCreateAdminUserWithGroup(t *testing.T) {
 	var group models.Group
 	db.Table("groups").Where("id = 1").Preload("GroupMembers").First(&group)
 
-	validateGroup(t, group, 1, 1)
+	validateGroup(t, group, 1, 1, HouseholdGroupName)
 }
 
 func TestShouldCreateNonAdminUserWithGroup(t *testing.T) {
@@ -51,7 +51,7 @@ func TestShouldCreateNonAdminUserWithGroup(t *testing.T) {
 	var group models.Group
 	db.Table("groups").Where("id = 2").Preload("GroupMembers").First(&group)
 
-	validateGroup(t, group, 2, 2)
+	validateGroup(t, group, 2, 2, "My Receipts")
 }
 
 func TestCreateUserAssignsDefaultAppRole(t *testing.T) {
@@ -285,7 +285,8 @@ func TestCreateUserCreatesDefaultGroupForUnflaggedAppRole(t *testing.T) {
 		return
 	}
 
-	// The default app role is unflagged, so the personal group is still created.
+	// The default app role is unflagged, so the account is given a group: it joins the Household the
+	// first account created (Phase 3 M5), where it used to get a personal one.
 	normal, err := userRepository.CreateUser(commands.SignUpCommand{
 		Username: "normal", DisplayName: "n", Password: "a really secure password",
 	})
@@ -296,13 +297,13 @@ func TestCreateUserCreatesDefaultGroupForUnflaggedAppRole(t *testing.T) {
 
 	names := groupNamesForUser(t, normal.ID)
 	if len(names) != 2 {
-		utils.PrintTestError(t, names, []string{"My Receipts", "All"})
+		utils.PrintTestError(t, names, []string{HouseholdGroupName, "All"})
 		return
 	}
 
 	var hasPersonal, hasAll bool
 	for _, name := range names {
-		if name == "My Receipts" {
+		if name == HouseholdGroupName {
 			hasPersonal = true
 		}
 		if name == "All" {
@@ -310,7 +311,7 @@ func TestCreateUserCreatesDefaultGroupForUnflaggedAppRole(t *testing.T) {
 		}
 	}
 	if !hasPersonal || !hasAll {
-		utils.PrintTestError(t, names, []string{"My Receipts", "All"})
+		utils.PrintTestError(t, names, []string{HouseholdGroupName, "All"})
 	}
 }
 
@@ -559,15 +560,15 @@ func uintPtrEqual(a *uint, b *uint) bool {
 	return *a == *b
 }
 
-func validateGroup(t *testing.T, group models.Group, id uint, userId uint) {
+func validateGroup(t *testing.T, group models.Group, id uint, userId uint, name string) {
 	if group.ID != id {
 		utils.PrintTestError(t, group.ID, id)
 	}
 	if group.GroupMembers[0].UserID != userId {
 		utils.PrintTestError(t, group.GroupMembers[0].UserID, userId)
 	}
-	if group.Name != "My Receipts" {
-		utils.PrintTestError(t, group.Name, "My Receipts")
+	if group.Name != name {
+		utils.PrintTestError(t, group.Name, name)
 	}
 
 }
@@ -694,5 +695,73 @@ func TestGetPagedUsers_SortsByAllowedColumns(t *testing.T) {
 		if len(users) != 2 {
 			utils.PrintTestError(t, len(users), 2)
 		}
+	}
+}
+
+func TestSecondUserJoinsHouseholdAsMemberWithoutAPersonalGroup(t *testing.T) {
+	defer TruncateTestDb()
+
+	if err := SeedSystemRoles(); err != nil {
+		utils.PrintTestError(t, err, nil)
+		return
+	}
+	if err := EnsureDefaultRoles(); err != nil {
+		utils.PrintTestError(t, err, nil)
+		return
+	}
+
+	userRepository := NewUserRepository(nil)
+	first, _ := userRepository.CreateUser(commands.SignUpCommand{Username: "first", DisplayName: "f", Password: "a really secure password"})
+	second, err := userRepository.CreateUser(commands.SignUpCommand{Username: "second", DisplayName: "s", Password: "a really secure password"})
+	if err != nil {
+		utils.PrintTestError(t, err, "no error")
+		return
+	}
+
+	if names := groupNamesForUser(t, second.ID); len(names) != 2 || names[0] == "My Receipts" || names[1] == "My Receipts" {
+		utils.PrintTestError(t, names, []string{HouseholdGroupName, "All"})
+	}
+
+	var household models.Group
+	GetDB().Where("name = ?", HouseholdGroupName).First(&household)
+
+	var members []models.GroupMember
+	GetDB().Where("group_id = ?", household.ID).Find(&members)
+	if len(members) != 2 {
+		utils.PrintTestError(t, len(members), 2)
+		return
+	}
+
+	memberRoleId, _ := NewRoleRepository(nil).GetGroupRoleIdByName(FamilyMemberRoleName)
+	for _, member := range members {
+		if member.UserID == second.ID && !uintPtrEqual(member.GroupRoleID, memberRoleId) {
+			utils.PrintTestError(t, member.GroupRoleID, memberRoleId)
+		}
+		if member.UserID == first.ID && uintPtrEqual(member.GroupRoleID, memberRoleId) {
+			utils.PrintTestError(t, "the creator should not be a plain Member", "owner role")
+		}
+	}
+}
+
+func TestInstallWithoutHouseholdKeepsPersonalGroups(t *testing.T) {
+	defer TruncateTestDb()
+
+	CreateTestUser()
+	CreateTestGroup()
+
+	user, err := NewUserRepository(nil).CreateUser(commands.SignUpCommand{Username: "later", DisplayName: "l", Password: "a really secure password"})
+	if err != nil {
+		utils.PrintTestError(t, err, "no error")
+		return
+	}
+
+	hasPersonal := false
+	for _, name := range groupNamesForUser(t, user.ID) {
+		if name == "My Receipts" {
+			hasPersonal = true
+		}
+	}
+	if !hasPersonal {
+		utils.PrintTestError(t, "no personal group", "My Receipts")
 	}
 }
