@@ -17,7 +17,7 @@ import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
 // @ts-ignore
-import { ExchangeRates } from '../model/exchangeRates';
+import { CurrencyRateTable } from '../model/currencyRateTable';
 // @ts-ignore
 import { InternalErrorResponse } from '../model/internalErrorResponse';
 
@@ -98,9 +98,9 @@ export class ExchangeRateService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getExchangeRates(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ExchangeRates>;
-    public getExchangeRates(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ExchangeRates>>;
-    public getExchangeRates(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ExchangeRates>>;
+    public getExchangeRates(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<CurrencyRateTable>;
+    public getExchangeRates(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<CurrencyRateTable>>;
+    public getExchangeRates(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<CurrencyRateTable>>;
     public getExchangeRates(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
 
         let localVarHeaders = this.defaultHeaders;
@@ -153,7 +153,7 @@ export class ExchangeRateService {
         }
 
         let localVarPath = `/exchangeRate`;
-        return this.httpClient.request<ExchangeRates>('get', `${this.configuration.basePath}${localVarPath}`,
+        return this.httpClient.request<CurrencyRateTable>('get', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
                 responseType: <any>responseType_,
@@ -169,16 +169,16 @@ export class ExchangeRateService {
     /**
      * Replace the exchange rates
      * This will replace the rate table. A rate that is now set converts the receipts saved in that currency while it had none; receipts that already carry a rate are not changed [app.system-settings.update]
-     * @param exchangeRates 
+     * @param currencyRateTable 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public updateExchangeRates(exchangeRates: ExchangeRates, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ExchangeRates>;
-    public updateExchangeRates(exchangeRates: ExchangeRates, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ExchangeRates>>;
-    public updateExchangeRates(exchangeRates: ExchangeRates, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ExchangeRates>>;
-    public updateExchangeRates(exchangeRates: ExchangeRates, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
-        if (exchangeRates === null || exchangeRates === undefined) {
-            throw new Error('Required parameter exchangeRates was null or undefined when calling updateExchangeRates.');
+    public updateExchangeRates(currencyRateTable: CurrencyRateTable, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<CurrencyRateTable>;
+    public updateExchangeRates(currencyRateTable: CurrencyRateTable, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<CurrencyRateTable>>;
+    public updateExchangeRates(currencyRateTable: CurrencyRateTable, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<CurrencyRateTable>>;
+    public updateExchangeRates(currencyRateTable: CurrencyRateTable, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (currencyRateTable === null || currencyRateTable === undefined) {
+            throw new Error('Required parameter currencyRateTable was null or undefined when calling updateExchangeRates.');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -240,10 +240,10 @@ export class ExchangeRateService {
         }
 
         let localVarPath = `/exchangeRate`;
-        return this.httpClient.request<ExchangeRates>('put', `${this.configuration.basePath}${localVarPath}`,
+        return this.httpClient.request<CurrencyRateTable>('put', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
-                body: exchangeRates,
+                body: currencyRateTable,
                 responseType: <any>responseType_,
                 withCredentials: this.configuration.withCredentials,
                 headers: localVarHeaders,

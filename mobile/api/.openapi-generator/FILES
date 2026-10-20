@@ -28,6 +28,8 @@ doc/CheckReceiptProcessingSettingsConnectivityCommand.md
 doc/Claims.md
 doc/Comment.md
 doc/CommentApi.md
+doc/CurrencyRate.md
+doc/CurrencyRateTable.md
 doc/CurrencySeparator.md
 doc/CurrencySymbolPosition.md
 doc/CustomField.md
@@ -39,9 +41,7 @@ doc/Dashboard.md
 doc/DashboardApi.md
 doc/DeleteAccountCommand.md
 doc/EncodedImage.md
-doc/ExchangeRate.md
 doc/ExchangeRateApi.md
-doc/ExchangeRates.md
 doc/ExportApi.md
 doc/ExportFormat.md
 doc/FeatureConfig.md
@@ -261,6 +261,8 @@ lib/src/model/check_email_connectivity_command.dart
 lib/src/model/check_receipt_processing_settings_connectivity_command.dart
 lib/src/model/claims.dart
 lib/src/model/comment.dart
+lib/src/model/currency_rate.dart
+lib/src/model/currency_rate_table.dart
 lib/src/model/currency_separator.dart
 lib/src/model/currency_symbol_position.dart
 lib/src/model/custom_field.dart
@@ -271,8 +273,6 @@ lib/src/model/dashboard.dart
 lib/src/model/date.dart
 lib/src/model/delete_account_command.dart
 lib/src/model/encoded_image.dart
-lib/src/model/exchange_rate.dart
-lib/src/model/exchange_rates.dart
 lib/src/model/export_format.dart
 lib/src/model/feature_config.dart
 lib/src/model/file_data.dart
@@ -405,6 +405,5 @@ lib/src/model/widget.dart
 lib/src/model/widget_type.dart
 lib/src/serializers.dart
 pubspec.yaml
-test/exchange_rate_api_test.dart
-test/exchange_rate_test.dart
-test/exchange_rates_test.dart
+test/currency_rate_table_test.dart
+test/currency_rate_test.dart
