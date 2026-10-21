@@ -8,7 +8,6 @@ on:
     paths:
       - 'api/**'
       - 'desktop/**'
-      - 'mobile/**'
       - 'docker/**'
       - '.github/workflows/**'
   # Dispatched by regenerate-clients.yml, whose GITHUB_TOKEN push cannot trigger the push event.
@@ -24,7 +23,6 @@ jobs:
     outputs:
       api: ${{ steps.filter.outputs.api }}
       desktop: ${{ steps.filter.outputs.desktop }}
-      mobile: ${{ steps.filter.outputs.mobile }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -35,8 +33,6 @@ jobs:
               - 'api/**'
             desktop:
               - 'desktop/**'
-            mobile:
-              - 'mobile/**'
 
   test-api:
     needs: detect-changes
@@ -108,41 +104,3 @@ jobs:
           format: markdown
           output: both
           badge: true
-
-  # Flutter unit/widget tests. Fast and hermetic -- no emulator, no backend --
-  # so unlike the advisory mobile-e2e workflow this one is gating.
-  #
-  # `flutter analyze` is deliberately NOT run here: it currently exits 1 on 111
-  # pre-existing issues (0 errors), 78 of which are inside the generated client
-  # under mobile/api/, which the repo forbids hand-editing. Gating on it would
-  # fail the build for reasons unrelated to the change under test. Enabling it
-  # means first excluding api/** in mobile/analysis_options.yaml (empty today)
-  # and clearing the remainder in lib/ + test/.
-  test-mobile:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.mobile == 'true'
-    runs-on: ubuntu-latest
-    # Least-privilege GITHUB_TOKEN: this job only reads the repo source. Mirrors
-    # the same hardening applied to mobile-e2e.yml for the CodeQL
-    # actions-missing-workflow-permissions alert.
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          # Don't leave the token in .git/config for later steps to pick up
-          # (zizmor "artipacked"); nothing here pushes.
-          persist-credentials: false
-      # Pinned to the same version as .github/workflows/mobile-e2e.yml -- keep
-      # the two in sync so unit and e2e runs can't drift onto different SDKs.
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.41.7'
-          channel: stable
-          cache: true
-      - name: Install dependencies
-        run: flutter pub get
-        working-directory: ./mobile
-      - name: Run tests
-        run: flutter test
-        working-directory: ./mobile

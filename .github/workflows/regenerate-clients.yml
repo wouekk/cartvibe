@@ -1,7 +1,6 @@
----
-# Regenerates desktop/src/open-api and mobile/api from api/swagger.yml and commits them back to the
-# branch. It exists for machines without the generator toolchain (Java + Node + Dart): the clients
-# are still produced by api/generate-client.sh, patches included, never edited by hand.
+# Regenerates desktop/src/open-api from api/swagger.yml and commits it back to the branch. It exists
+# for machines without the generator toolchain (Java + Node): the client is still produced by
+# api/generate-client.sh, never edited by hand.
 #
 # A commit pushed with GITHUB_TOKEN does not trigger push workflows, so this dispatches CI itself
 # once the regenerated clients are on the branch.
@@ -33,33 +32,15 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      # Pinned to the same Flutter (and so Dart) as ci.yml: a different Dart resolution can
-      # reformat unrelated .g.dart files.
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.41.7'
-          channel: stable
-          cache: true
       - name: Generate desktop client
         run: ./generate-client.sh desktop ../desktop/src/open-api
         working-directory: ./api
-      - name: Generate mobile client (applies the dart-dio patches)
-        run: ./generate-client.sh mobile ../mobile/api
-        working-directory: ./api
-      - name: Build mobile client serializers
-        run: |
-          dart pub get
-          dart run build_runner build
-        working-directory: ./mobile/api
-      - name: Analyze mobile client (errors only)
-        run: dart analyze --no-fatal-warnings
-        working-directory: ./mobile/api
       - name: Commit regenerated clients
         id: commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add desktop/src/open-api mobile/api
+          git add desktop/src/open-api
           if git diff --cached --quiet; then
             echo "Clients already match swagger.yml"
             echo "changed=false" >> "$GITHUB_OUTPUT"
