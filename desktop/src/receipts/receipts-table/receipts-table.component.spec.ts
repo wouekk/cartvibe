@@ -5,7 +5,7 @@ import { ReactiveFormsModule } from "@angular/forms";
 import { MatChipsModule } from "@angular/material/chips";
 import { AppDialog } from "../../dialog/app-dialog";
 import { MatMenuModule } from "@angular/material/menu";
-import { MatTooltipModule } from "@angular/material/tooltip";
+import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { ActivatedRoute, provideRouter, Router } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of, Subject, throwError } from "rxjs";
@@ -39,7 +39,7 @@ describe("ReceiptsTableComponent", () => {
     imports: [ApiModule,
         NgxsModule.forRoot([ReceiptTableState, AuthState, GroupState, UserState]),
         ReactiveFormsModule,
-        MatTooltipModule,
+        ...HlmTooltipImports,
         MatMenuModule,
         MatChipsModule,
         MonthStepperComponent,
@@ -633,7 +633,7 @@ describe("ReceiptsTableComponent receipt summary", () => {
         ApiModule,
         NgxsModule.forRoot([ReceiptTableState, AuthState, GroupState, UserState]),
         ReactiveFormsModule,
-        MatTooltipModule,
+        ...HlmTooltipImports,
         MatMenuModule,
         MatChipsModule,
         MonthStepperComponent,

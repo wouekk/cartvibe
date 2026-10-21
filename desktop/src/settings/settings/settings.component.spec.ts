@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SettingsComponent } from './settings.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { MatTabsModule } from '@angular/material/tabs';
-import { MatTooltipModule } from '@angular/material/tooltip';
+import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { NgxsModule, Store } from '@ngxs/store';
@@ -23,7 +23,7 @@ describe('SettingsComponent', () => {
       declarations: [SettingsComponent],
       imports: [
         MatTabsModule,
-        MatTooltipModule,
+        ...HlmTooltipImports,
         NgxsModule.forRoot([AuthState]),
         ReactiveFormsModule,
         RouterModule,

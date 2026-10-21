@@ -5,7 +5,7 @@ import { AppIconComponent } from "../shared-ui/icon/icon.component";
 
 import { MatListModule } from "@angular/material/list";
 import { MatTabsModule } from "@angular/material/tabs";
-import { MatTooltipModule } from "@angular/material/tooltip";
+import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { ColorPickerModule } from "src/color-picker/color-picker.module";
 import { PipesModule } from "src/pipes/pipes.module";
 import { SelectModule } from "src/select/select.module";
@@ -51,7 +51,7 @@ import { UserShortcutComponent } from './user-shortcut/user-shortcut.component';
     AppIconComponent,
     MatListModule,
     MatTabsModule,
-    MatTooltipModule,
+    ...HlmTooltipImports,
     PipesModule,
     ReactiveFormsModule,
     SelectModule,

@@ -32,7 +32,7 @@
             type="button"
             data-testid="password-generate"
             aria-label="Generate password"
-            matTooltip="Generate password"
+            hlmTooltip="Generate password"
             [disabled]="inputFormControl.disabled || readonly"
             (click)="generatePassword()"
           >
@@ -47,7 +47,7 @@
             class="visibility-eye-button size-8"
             type="button"
             data-testid="password-visibility-toggle"
-            [matTooltip]="type === 'password' ? 'Show ' + label : 'Hide ' + label"
+            [hlmTooltip]="type === 'password' ? 'Show ' + label : 'Hide ' + label"
             (click)="toggleVisibility()"
           >
             <app-icon [name]="type === 'password' ? 'visibility' : 'visibility_off'"></app-icon>

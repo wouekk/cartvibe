@@ -1,7 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
-import { MatTooltip } from "@angular/material/tooltip";
+import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { RouterLink } from "@angular/router";
 import { AutocompleteModule } from "../autocomplete/autocomplete.module";
 import { ButtonModule } from "../button";
@@ -39,7 +39,7 @@ import {
     UrlLabelPipe,
     UrlHintPipe,
     ButtonModule,
-    MatTooltip,
+    ...HlmTooltipImports,
     CheckboxModule
   ],
   exports: [

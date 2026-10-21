@@ -1,6 +1,6 @@
 import { CommonModule } from "@angular/common";
 import { Component, computed, inject, OnInit, signal } from "@angular/core";
-import { MatButtonModule } from "@angular/material/button";
+import { HlmButton } from "@spartan-ng/helm/button";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { Store } from "@ngxs/store";
 import { take } from "rxjs";
@@ -25,7 +25,7 @@ interface RateRow {
   templateUrl: "./exchange-rates.component.html",
   styleUrls: ["./exchange-rates.component.scss"],
   standalone: true,
-  imports: [CommonModule, MatButtonModule, AppIconComponent],
+  imports: [CommonModule, HlmButton, AppIconComponent],
 })
 export class ExchangeRatesComponent implements OnInit {
   private readonly exchangeRateService = inject(ExchangeRateService);

@@ -13,7 +13,7 @@ import { MatMenuModule } from "@angular/material/menu";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { MatTableModule } from "@angular/material/table";
 import { MatTabsModule } from "@angular/material/tabs";
-import { MatTooltipModule } from "@angular/material/tooltip";
+import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { RouterModule } from "@angular/router";
 import { AutocompleteModule } from "src/autocomplete/autocomplete.module";
 import { DatepickerModule } from "src/datepicker/datepicker.module";
@@ -137,7 +137,7 @@ import { ImageCanvasComponent } from './image-canvas/image-canvas.component';
     MatListModule,
     MatTableModule,
     MatTabsModule,
-    MatTooltipModule,
+    ...HlmTooltipImports,
     PipesModule,
     PipesModule,
     ReactiveFormsModule,

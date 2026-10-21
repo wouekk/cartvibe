@@ -1,10 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ButtonComponent } from './button.component';
-import { MatButtonModule } from '@angular/material/button';
-import { MatTooltipModule } from '@angular/material/tooltip';
+import { HlmButton } from "@spartan-ng/helm/button";
+import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { RouterTestingModule } from '@angular/router/testing';
-import { MatBadgeModule } from '@angular/material/badge';
 
 describe('ButtonComponent', () => {
   let component: ButtonComponent;
@@ -14,9 +13,8 @@ describe('ButtonComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [ButtonComponent],
       imports: [
-        MatBadgeModule,
-        MatButtonModule,
-        MatTooltipModule,
+        HlmButton,
+        ...HlmTooltipImports,
         RouterTestingModule,
       ],
     }).compileComponents();

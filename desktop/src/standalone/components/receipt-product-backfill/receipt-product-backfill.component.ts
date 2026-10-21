@@ -1,5 +1,5 @@
 import { Component, computed, input, signal } from "@angular/core";
-import { MatButtonModule } from "@angular/material/button";
+import { HlmButton } from "@spartan-ng/helm/button";
 import { AppIconComponent } from "../../../shared-ui/icon/icon.component";
 import { Store } from "@ngxs/store";
 import { take } from "rxjs";
@@ -17,7 +17,7 @@ import { hasAll } from "../../../utils/permission.utils";
   templateUrl: "./receipt-product-backfill.component.html",
   styleUrls: ["./receipt-product-backfill.component.scss"],
   standalone: true,
-  imports: [MatButtonModule, AppIconComponent],
+  imports: [HlmButton, AppIconComponent],
 })
 export class ReceiptProductBackfillComponent {
   public readonly groupId = input.required<number>();

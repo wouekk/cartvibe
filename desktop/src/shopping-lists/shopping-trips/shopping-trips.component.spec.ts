@@ -2,7 +2,7 @@ import { provideHttpClient } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { MatButtonModule } from "@angular/material/button";
+import { HlmButton } from "@spartan-ng/helm/button";
 
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { MatMenuModule } from "@angular/material/menu";
@@ -60,7 +60,7 @@ describe("ShoppingTripsComponent", () => {
       declarations: [ShoppingTripsComponent],
       imports: [
         NgxsModule.forRoot([AuthState, ShoppingListState, SystemSettingsState]),
-        MatButtonModule,
+        HlmButton,
         AppIconComponent,
         MatMenuModule,
         PipesModule,

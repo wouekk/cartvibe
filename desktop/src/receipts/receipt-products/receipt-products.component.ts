@@ -2,7 +2,7 @@ import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { CommonModule, CurrencyPipe } from "@angular/common";
 import { Component, computed, DestroyRef, effect, inject, input, signal, untracked, WritableSignal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { MatButtonModule } from "@angular/material/button";
+import { HlmButton } from "@spartan-ng/helm/button";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { AppDialog } from "../../dialog/app-dialog";
 import { MatMenuModule } from "@angular/material/menu";
@@ -41,7 +41,7 @@ const STATUS_TEXT: { [status: string]: string } = {
   templateUrl: "./receipt-products.component.html",
   styleUrls: ["./receipt-products.component.scss"],
   standalone: true,
-  imports: [CommonModule, FoodTagsComponent, MatButtonModule, AppIconComponent, MatMenuModule, ...HlmDropdownMenuImports, PipesModule],
+  imports: [CommonModule, FoodTagsComponent, HlmButton, AppIconComponent, MatMenuModule, ...HlmDropdownMenuImports, PipesModule],
   // customCurrency delegates to CurrencyPipe, which PipesModule does not provide.
   providers: [CurrencyPipe],
 })

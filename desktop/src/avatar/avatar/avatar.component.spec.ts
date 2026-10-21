@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { AvatarComponent } from './avatar.component';
-import { MatTooltipModule } from '@angular/material/tooltip';
+import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 
 describe('AvatarComponent', () => {
   let component: AvatarComponent;
@@ -10,7 +10,7 @@ describe('AvatarComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [AvatarComponent],
-      imports: [MatTooltipModule],
+      imports: [...HlmTooltipImports],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AvatarComponent);

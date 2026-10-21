@@ -69,7 +69,7 @@
                 </td>
                 <td class="actions">
                   <button
-                    mat-icon-button
+                    hlmBtn variant="ghost" size="icon"
                     type="button"
                     data-testid="receipt-product-save"
                     aria-label="Save"
@@ -78,7 +78,7 @@
                   >
                     <app-icon name="check"></app-icon>
                   </button>
-                  <button mat-icon-button type="button" aria-label="Cancel" (click)="cancelEdit()">
+                  <button hlmBtn variant="ghost" size="icon" type="button" aria-label="Cancel" (click)="cancelEdit()">
                     <app-icon name="close"></app-icon>
                   </button>
                 </td>
@@ -103,7 +103,7 @@
                 @if (canUpdate()) {
                   <td class="actions">
                     <button
-                      mat-icon-button
+                      hlmBtn variant="ghost" size="icon"
                       type="button"
                       data-testid="receipt-product-tags-menu"
                       [attr.aria-label]="'Correct the tags of ' + (product.displayName || product.name)"
@@ -113,7 +113,7 @@
                       <app-icon name="sell"></app-icon>
                     </button>
                     <button
-                      mat-icon-button
+                      hlmBtn variant="ghost" size="icon"
                       type="button"
                       data-testid="receipt-product-edit"
                       [attr.aria-label]="'Edit ' + (product.displayName || product.name)"
@@ -122,7 +122,7 @@
                       <app-icon name="edit"></app-icon>
                     </button>
                     <button
-                      mat-icon-button
+                      hlmBtn variant="ghost" size="icon"
                       type="button"
                       data-testid="receipt-product-delete"
                       [attr.aria-label]="'Remove ' + (product.displayName || product.name)"
@@ -186,7 +186,7 @@
         (input)="setValue(newAmount, $event)"
       />
       <button
-        mat-flat-button
+        hlmBtn
         type="submit"
         data-testid="receipt-product-add"
         [disabled]="saving() || newName().trim().length === 0"
@@ -202,7 +202,7 @@
 
   @if (canReadAgain()) {
     <button
-      mat-stroked-button
+      hlmBtn variant="outline"
       type="button"
       class="read-again"
       data-testid="receipt-products-read-again"

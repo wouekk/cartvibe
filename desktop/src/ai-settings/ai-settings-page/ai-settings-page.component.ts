@@ -2,7 +2,7 @@ import { CommonModule } from "@angular/common";
 import { Component, DestroyRef, OnInit, computed, inject, signal } from "@angular/core";
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
-import { MatButtonModule } from "@angular/material/button";
+import { HlmButton } from "@spartan-ng/helm/button";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { Store } from "@ngxs/store";
 import { catchError, finalize, map, Observable, of, startWith, switchMap, take, tap } from "rxjs";
@@ -52,7 +52,7 @@ export interface ConnectionResult {
     CheckboxModule,
     CommonModule,
     InputModule,
-    MatButtonModule,
+    HlmButton,
     AppIconComponent,
     PipesModule,
     ReactiveFormsModule,

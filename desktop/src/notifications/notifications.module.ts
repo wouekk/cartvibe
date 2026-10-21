@@ -1,7 +1,7 @@
 import { AppDatePipe } from "../pipes/app-date.pipe";
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
-import { MatButtonModule } from "@angular/material/button";
+import { HlmButton } from "@spartan-ng/helm/button";
 import { MatListModule } from "@angular/material/list";
 import { RouterModule } from "@angular/router";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
@@ -15,7 +15,7 @@ import { NotificationsListComponent } from "./notifications-list/notifications-l
     AppDatePipe,
     ButtonModule,
     CommonModule,
-    MatButtonModule,
+    HlmButton,
     MatListModule,
     RouterModule,
     SharedUiModule,
