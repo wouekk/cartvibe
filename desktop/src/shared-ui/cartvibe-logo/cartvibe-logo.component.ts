@@ -1,111 +1,58 @@
 import { Component, computed, input } from "@angular/core";
+import { CartVibeIconComponent } from "../cartvibe-icon/cartvibe-icon.component";
 
 /**
- * The CartVibe brand lockup (`gemini-svg.svg` of the identity package), drawn exactly as supplied: the app icon
- * and the "CartVibe" wordmark ("Cart" in the text color, "Vibe" in the lilac), on a 430 by 120 canvas.
- *
- * Light and dark are the package's two palettes. In the file they switch on the operating system's
- * `prefers-color-scheme` or a `.dark` class; inline in the page they switch on the app's own `dark` class on
- * `<html>` (set by the Theme tab, System included), so a chosen Light or Dark is respected. Colors, geometry and
- * type are otherwise untouched; the wordmark is Geist when it is loaded (the app bundles it), then the system font.
- *
- * Keep it out of the page-wide dark filter (the `app-cartvibe-logo` rule in index.html): the dark palette is
- * already the dark one.
+ * The CartVibe lockup: the app icon (dark or light, as supplied) beside a large "CartVibe" wordmark, "Cart" in the
+ * text color and "Vibe" in the brand emerald (#16C976, the banner's). It follows the app's own `dark` class like the
+ * icon does. The wordmark is Geist when it is loaded (the app bundles it), then the system font.
  */
 @Component({
   selector: "app-cartvibe-logo",
   standalone: true,
+  imports: [CartVibeIconComponent],
   template: `
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 430 120"
-      [attr.width]="width()"
-      [attr.height]="height()"
-      class="lockup"
+    <app-cartvibe-icon [size]="height()"></app-cartvibe-icon>
+    <span
+      class="wordmark"
       role="img"
       aria-label="CartVibe"
       data-testid="cartvibe-logo"
+      [style.font-size.px]="fontSize()"
     >
-      <defs>
-        <linearGradient id="logo-badge-grad" x1="10%" y1="90%" x2="90%" y2="10%">
-          <stop offset="0%" stop-color="var(--logo-bg-bl)" />
-          <stop offset="100%" stop-color="var(--logo-bg-tr)" />
-        </linearGradient>
-
-        <linearGradient id="logo-bar-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stop-color="var(--logo-bar-top)" />
-          <stop offset="100%" stop-color="var(--logo-bar-bot)" />
-        </linearGradient>
-
-        <linearGradient id="logo-arrow-grad" x1="0%" y1="100%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="var(--logo-arrow-s)" />
-          <stop offset="100%" stop-color="var(--logo-arrow-e)" />
-        </linearGradient>
-      </defs>
-
-      <!-- App Icon Group -->
-      <g transform="translate(4, 4) scale(0.93)">
-        <rect x="4" y="4" width="112" height="112" rx="28" fill="url(#logo-badge-grad)" />
-
-        <g fill="url(#logo-bar-grad)">
-          <rect x="43.5" y="54.5" width="9.5" height="18.5" rx="0.5" />
-          <rect x="57.5" y="47.5" width="9.5" height="25.5" rx="0.5" />
-          <rect x="71.5" y="39.5" width="9.5" height="33.5" rx="0.5" />
-        </g>
-
-        <path
-          d="M 36.8 48.5 L 54.5 30.8 L 62.5 38.8 L 73.5 27.8 L 68.8 23.1 L 86 19.5 L 82.4 36.7 L 77.7 32 L 62.5 47.2 L 54.5 39.2 L 45.2 48.5 Z"
-          fill="url(#logo-arrow-grad)"
-        />
-
-        <path
-          d="M 19.5 32.5 H 30.5 C 32.5 32.5 34 33.8 34.5 35.8 L 36.1 42 H 40.5 L 34 48.5 H 37.8 L 44 73 H 80.5 L 86.2 49.5 H 83.2 L 84.8 43 H 90.2 C 92.8 43 94.2 44.8 93.5 47.5 L 86.8 76.5 C 86.2 79 84.2 80.5 81.5 80.5 H 42.5 C 39.8 80.5 37.8 79 37.2 76.5 L 27.8 39 H 19.5 A 3.25 3.25 0 0 1 16.25 35.75 A 3.25 3.25 0 0 1 19.5 32.5 Z"
-          fill="var(--logo-cart)"
-        />
-
-        <circle cx="48" cy="91.5" r="7" fill="var(--logo-cart)" />
-        <circle cx="76.5" cy="91.5" r="7" fill="var(--logo-cart)" />
-      </g>
-
-      <!-- CartVibe Typography -->
-      <text x="138" y="81" class="cv-wordmark">
-        <tspan fill="var(--logo-text-cart)">Cart</tspan><tspan fill="var(--logo-text-vibe)">Vibe</tspan>
-      </text>
-    </svg>
+      <span class="cart">Cart</span><span class="vibe">Vibe</span>
+    </span>
   `,
   styles: [
     `
-      /* The palette is the theme's: every theme defines the --brand-* tokens (src/themes), this only maps them. */
       :host {
         display: inline-flex;
-        --logo-bg-bl: var(--brand-badge-from, #09090b);
-        --logo-bg-tr: var(--brand-badge-to, #3f3f46);
-        --logo-cart: var(--brand-cart, #fafafa);
-        --logo-bar-top: var(--brand-bar-top, #34d399);
-        --logo-bar-bot: var(--brand-bar-bottom, #10b981);
-        --logo-arrow-s: var(--brand-arrow-from, #fbbf24);
-        --logo-arrow-e: var(--brand-arrow-to, #f59e0b);
-        --logo-text-cart: var(--brand-wordmark, #09090b);
-        --logo-text-vibe: var(--brand-wordmark-accent, #059669);
-      }
-
-      .lockup {
-        display: block;
+        align-items: center;
+        gap: 0.28em;
         flex-shrink: 0;
+        line-height: 1;
       }
-
-      .cv-wordmark {
+      .wordmark {
         font-family: "Geist Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        font-size: 64px;
-        font-weight: 600;
-        letter-spacing: -1.5px;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+        white-space: nowrap;
+        margin-left: 0.28em;
+      }
+      .cart {
+        color: #202834;
+      }
+      .vibe {
+        color: #16c976;
+      }
+      :host-context(html.dark) .cart {
+        color: #ffffff;
       }
     `,
   ],
 })
 export class CartVibeLogoComponent {
-  /** The lockup's height in px; its width follows the artwork's 430 by 120 proportions. */
+  /** The icon's height in px; the wordmark is sized from it. */
   public readonly height = input(44);
 
-  public readonly width = computed(() => Math.round((this.height() * 430) / 120));
+  public readonly fontSize = computed(() => Math.round(this.height() * 0.82));
 }

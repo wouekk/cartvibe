@@ -1,5 +1,5 @@
-import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideZonelessChangeDetection } from "@angular/core";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { CartVibeSplashComponent } from "./cartvibe-splash.component";
 
 describe("CartVibeSplashComponent", () => {
@@ -11,20 +11,20 @@ describe("CartVibeSplashComponent", () => {
       providers: [provideZonelessChangeDetection()],
     }).compileComponents();
     fixture = TestBed.createComponent(CartVibeSplashComponent);
+    await fixture.whenStable();
   });
 
-  it("shows the loader and the default text", async () => {
-    await fixture.whenStable();
+  it("shows the animated banner and the loading text", () => {
     const el: HTMLElement = fixture.nativeElement;
 
-    expect(el.querySelector("app-cartvibe-loader")).toBeTruthy();
-    expect(el.querySelector(".splash__text")?.textContent).toContain("Loading...");
+    expect(el.querySelector('[data-testid="cartvibe-splash-banner"]')?.getAttribute("src")).toBe("assets/brand/banner-wordmark-loading.svg");
+    expect(el.textContent).toContain("Loading...");
   });
 
   it("shows the text it is given", async () => {
-    fixture.componentRef.setInput("text", "Signing you in...");
+    fixture.componentRef.setInput("text", "Signing you in");
     await fixture.whenStable();
 
-    expect(fixture.nativeElement.querySelector(".splash__text")?.textContent).toContain("Signing you in...");
+    expect(fixture.nativeElement.textContent).toContain("Signing you in");
   });
 });
