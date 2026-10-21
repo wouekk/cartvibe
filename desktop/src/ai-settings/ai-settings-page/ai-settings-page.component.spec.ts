@@ -128,9 +128,10 @@ describe("AiSettingsPageComponent", () => {
   it("explains a failed connection", () => {
     expect(describeConnection(SystemTaskStatus.Failed, "401 Unauthorized")).toEqual({
       ok: false,
-      message: "Not connected: 401 Unauthorized",
+      message: "Not connected: {reason}",
+      params: { reason: "401 Unauthorized" },
     });
-    expect(describeConnection(undefined).message).toBe("Not connected: no answer from the AI");
+    expect(describeConnection(undefined).params).toEqual({ reason: "no answer from the AI" });
   });
 
   describe("for a household member who cannot read System Settings", () => {

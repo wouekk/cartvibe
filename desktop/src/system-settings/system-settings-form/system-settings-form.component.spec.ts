@@ -405,7 +405,7 @@ describe("SystemSettingsFormComponent", () => {
     unit.setValue("HOURS");
     value.setValue(23);
     expect(value.valid).toBe(false);
-    expect(value.errors?.["duration"]).toBe("Must be at least 24.");
+    expect(value.errors?.["duration"]).toEqual({ message: "Must be at least {min}.", min: 24 });
 
     value.setValue(24);
     expect(value.valid).toBe(true);
@@ -458,7 +458,7 @@ describe("SystemSettingsFormComponent", () => {
 
     // The message rides on the error value so BaseInputComponent renders it —
     // Validators.max has no message mapping and would show a blank error.
-    expect(value.errors?.["duration"]).toBe("Must be at most 30.");
+    expect(value.errors?.["duration"]).toEqual({ message: "Must be at most {max}.", max: 30 });
   });
 
   it("caps the mcp connector lifetime independently of the session lifetime", () => {

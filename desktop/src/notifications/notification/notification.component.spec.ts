@@ -13,6 +13,7 @@ import { NotificationComponent } from "./notification.component";
 import { AppDatePipe } from "../../pipes/app-date.pipe";
 import { SystemSettingsState } from "../../store/system-settings.state";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 describe("NotificationComponent", () => {
   let component: NotificationComponent;
@@ -25,6 +26,7 @@ describe("NotificationComponent", () => {
     declarations: [NotificationComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
+        TranslatePipe,
         AppDatePipe,
         NgxsModule.forRoot([GroupState, AuthState, SystemSettingsState]),
         DirectivesModule,

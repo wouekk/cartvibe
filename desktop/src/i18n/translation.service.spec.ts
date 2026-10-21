@@ -92,6 +92,23 @@ describe("TranslationService", () => {
     expect(service.t("Receipt update: Lidl")).toBe("Aktualizacja paragonu: Lidl");
   });
 
+  it("matches a sentence that uses a placeholder twice with a back reference", () => {
+    service.register("pl", { messages: { "{a} is {a}, not {b}": "{a} to {a}, nie {b}" } });
+    service.choose("pl");
+
+    expect(service.t("x is x, not y")).toBe("x to x, nie y");
+    expect(service.t("x is z, not y")).toBe("x is z, not y");
+  });
+
+  it("collects the texts that had no translation in a dev build", () => {
+    service.choose("pl");
+    window.__i18nMissing = undefined;
+
+    service.t("Nobody translated this");
+
+    expect(window.__i18nMissing?.has("Nobody translated this")).toBe(true);
+  });
+
   it("ignores a language the registry does not have", () => {
     service.choose("en");
     service.choose("xx");
