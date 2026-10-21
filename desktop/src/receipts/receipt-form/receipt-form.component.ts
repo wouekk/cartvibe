@@ -50,6 +50,8 @@ import { ShareListComponent } from "../share-list/share-list.component";
 
 import { UploadImageComponent } from "../upload-image/upload-image.component";
 import { buildItemForm } from "../utils/form.utils";
+import { marker } from "../../i18n/marker";
+import { TranslationService } from "../../i18n/translation.service";
 
 @UntilDestroy()
 @Component({
@@ -61,6 +63,8 @@ import { buildItemForm } from "../utils/form.utils";
   standalone: false
 })
 export class ReceiptFormComponent implements OnInit {
+  private readonly translation = inject(TranslationService);
+
   // Optional: the Shares section is not rendered (Phase 3 C4).
   public readonly shareListComponent = viewChild(ShareListComponent);
 
@@ -1171,8 +1175,8 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
   public duplicateReceipt(): void {
     const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
 
-    dialogRef.componentInstance.headerText = "Duplicate Receipt";
-    dialogRef.componentInstance.dialogContent = `Are you sure you would like to duplicate the receipt ${this.originalReceipt?.name}?`;
+    dialogRef.componentInstance.headerText = marker("Duplicate Receipt");
+    dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you would like to duplicate the receipt {name}?", { name: this.originalReceipt?.name });
 
     dialogRef
       .afterClosed()

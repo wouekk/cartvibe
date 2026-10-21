@@ -7,6 +7,7 @@ import { AppDatePipe } from "../../pipes/app-date.pipe";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { AboutState } from "../../store/about.state";
 import { FeatureConfigState } from "../../store/feature-config.state";
+import { marker } from "../../i18n/marker";
 
 interface Link {
   url: string;
@@ -29,11 +30,11 @@ export class AboutComponent {
 
   public links: Link[] = [
     {
-      label: "Source Code",
+      label: marker("Source Code"),
       url: "https://github.com/wouekk/cartvibe"
     },
     {
-      label: "Project page",
+      label: marker("Project page"),
       url: "https://wouekk.github.io/cartvibe/"
     }
   ];

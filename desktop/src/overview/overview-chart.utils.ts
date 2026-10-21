@@ -1,5 +1,6 @@
 import { GroupOverviewCategory, GroupOverviewMonth } from "../open-api";
 import { FilterMonth } from "../utils/receipt-date-filter";
+import { marker } from "../i18n/marker";
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -81,7 +82,7 @@ export function buildDonutSegments(categories: GroupOverviewCategory[]): DonutSe
   const head = parsed.slice(0, MAX_DONUT_SEGMENTS);
   const rest = parsed.slice(MAX_DONUT_SEGMENTS);
   if (rest.length > 0) {
-    head.push({ name: "Other", total: rest.reduce((sum, category) => sum + category.total, 0) });
+    head.push({ name: marker("Other"), total: rest.reduce((sum, category) => sum + category.total, 0) });
   }
 
   const sum = head.reduce((total, category) => total + category.total, 0);

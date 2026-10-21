@@ -1,3 +1,4 @@
+import { marker } from "../i18n/marker";
 /**
  * The Dashboard's period (Phase 3 D1, decision Q10): a preset or a custom range, resolved to the
  * calendar days the API takes. "Today" is the app time zone's, passed in as a local-midnight Date.
@@ -19,9 +20,9 @@ export interface PeriodChoice {
 
 export const PERIOD_CHOICES: PeriodChoice[] = [
   { value: "THIS_MONTH", label: "This month" },
-  { value: "LAST_7_DAYS", label: "Last 7 days" },
-  { value: "LAST_30_DAYS", label: "Last 30 days" },
-  { value: "THIS_YEAR", label: "This year" },
+  { value: "LAST_7_DAYS", label: marker("Last 7 days") },
+  { value: "LAST_30_DAYS", label: marker("Last 30 days") },
+  { value: "THIS_YEAR", label: marker("This year") },
   { value: "CUSTOM", label: "Custom" },
 ];
 

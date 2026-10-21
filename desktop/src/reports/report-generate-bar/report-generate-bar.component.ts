@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from "@angular/core";
+import { marker } from "../../i18n/marker";
 import { FormGroup } from "@angular/forms";
 
 interface FormatChip {
@@ -38,9 +39,9 @@ export class ReportGenerateBarComponent {
   /** The Save button's label, reflecting create-vs-update and the in-flight state. */
   public readonly saveTemplateText = computed<string>(() => {
     if (this.isEditMode()) {
-      return this.saving() ? "Updating…" : "Update Template";
+      return this.saving() ? marker("Updating…") : marker("Update Template");
     }
-    return this.saving() ? "Saving…" : "Save Template";
+    return this.saving() ? marker("Saving…") : marker("Save Template");
   });
 
   public readonly formats: FormatChip[] = [

@@ -57,6 +57,7 @@ import { resolveSummaryConfigGroup, summaryConfigGroups } from "../../utils/rece
 import { openQuickScanDialog } from "../quick-scan-dialog/open-quick-scan-dialog";
 import { BulkStatusUpdateComponent } from "../bulk-resolve-dialog/bulk-status-update-dialog.component";
 import { ColumnConfigurationDialogComponent } from "../column-configuration-dialog/column-configuration-dialog.component";
+import { marker } from "../../i18n/marker";
 
 /**
  * A receipts-table column, carrying the custom field definition when the column
@@ -558,7 +559,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
     if (this.canEdit) {
       columns.push({
-        columnHeader: "Actions",
+        columnHeader: marker("Actions"),
         matColumnDef: "actions",
         template: this.actionsCell(),
         sortable: false,
@@ -828,8 +829,8 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   public deleteReceipt(row: Receipt): void {
     const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
 
-    dialogRef.componentInstance.headerText = "Delete Receipt";
-    dialogRef.componentInstance.dialogContent = `Are you sure you would like to delete the receipt ${row.name}? This action is irreversible.`;
+    dialogRef.componentInstance.headerText = marker("Delete Receipt");
+    dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you would like to delete the receipt {name}? This action is irreversible.", { name: row.name });
 
     dialogRef
       .afterClosed()
@@ -900,8 +901,8 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   public duplicateReceipt(row: Receipt): void {
     const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
 
-    dialogRef.componentInstance.headerText = "Duplicate Receipt";
-    dialogRef.componentInstance.dialogContent = `Are you sure you would like to duplicate the receipt ${row.name}?`;
+    dialogRef.componentInstance.headerText = marker("Duplicate Receipt");
+    dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you would like to duplicate the receipt {name}?", { name: row.name });
 
     dialogRef
       .afterClosed()

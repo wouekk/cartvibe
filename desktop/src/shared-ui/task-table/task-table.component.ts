@@ -14,6 +14,7 @@ import { downloadFile, filenameFromContentDisposition } from "../../utils/file";
 import { DescriptionViewerDialogComponent, DescriptionViewerDialogData } from "../description-viewer-dialog/description-viewer-dialog.component";
 import { ReceiptUpdateDiffDialogComponent, ReceiptUpdateDiffDialogData } from "../receipt-update-diff-dialog/receipt-update-diff-dialog.component";
 import { SourceFileViewerDialogComponent, SourceFileViewerDialogData } from "../source-file-viewer-dialog/source-file-viewer-dialog.component";
+import { marker } from "../../i18n/marker";
 
 interface ReceiptUpdateRow {
   snapshots: ReceiptUpdateSnapshots;
@@ -264,7 +265,7 @@ export class TaskTableComponent implements OnInit, AfterViewInit {
 
     if (this.showSourceFileActions()) {
       this.columns.push({
-        columnHeader: "Source File",
+        columnHeader: marker("Source File"),
         matColumnDef: "source_file",
         template: this.sourceFileCell(),
         sortable: false,

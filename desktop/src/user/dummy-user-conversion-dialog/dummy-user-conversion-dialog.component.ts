@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, Input, OnInit, inject } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
@@ -6,6 +6,7 @@ import { switchMap, take, tap } from "rxjs";
 import { User, UserService } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { UpdateUser } from "../../store";
+import { TranslationService } from "../../i18n/translation.service";
 
 @Component({
     selector: "app-dummy-user-conversion-dialog",
@@ -14,6 +15,8 @@ import { UpdateUser } from "../../store";
     standalone: false
 })
 export class DummyUserConversionDialogComponent implements OnInit {
+  private readonly translation = inject(TranslationService);
+
   @Input() public user!: User;
 
   public form: FormGroup = new FormGroup({});
@@ -45,7 +48,7 @@ export class DummyUserConversionDialogComponent implements OnInit {
           take(1),
           tap(() => {
             this.snackbarService.success(
-              `${this.user.displayName} sucessfully converted to normal user`
+              this.translation.t("{name} sucessfully converted to normal user", { name: this.user.displayName })
             );
           }),
           switchMap(() =>

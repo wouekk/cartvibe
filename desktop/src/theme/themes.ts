@@ -1,3 +1,4 @@
+import { marker } from "../i18n/marker";
 /**
  * The theme registry: the one list the app, the Theme settings and the early script in index.html read.
  *
@@ -18,8 +19,8 @@ export interface ThemeDefinition {
 }
 
 export const THEMES: readonly ThemeDefinition[] = [
-  { key: "light", label: "White", scheme: "light", icon: "light_mode" },
-  { key: "dark", label: "Black", scheme: "dark", icon: "dark_mode" },
+  { key: "light", label: marker("White"), scheme: "light", icon: "light_mode" },
+  { key: "dark", label: marker("Black"), scheme: "dark", icon: "dark_mode" },
 ];
 
 /** What "System" resolves to when the operating system asks for a light or a dark page. */

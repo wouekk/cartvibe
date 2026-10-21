@@ -4,6 +4,7 @@ import { DEFAULT_HOST_CLASS } from "src/constants";
 import { Permission } from "../../open-api";
 import { AuthState } from "../../store";
 import { TabConfig } from "../../shared-ui/tabs/tab-config.interface";
+import { marker } from "../../i18n/marker";
 
 @Component({
     selector: "app-settings",
@@ -29,7 +30,7 @@ export class SettingsComponent {
 
     if (this.canReadProfile()) {
       tabs.push({
-        label: "User Profile",
+        label: marker("User Profile"),
         routerLink: "user-profile/view",
         name: "user-profile",
       });
@@ -37,7 +38,7 @@ export class SettingsComponent {
 
     if (this.canReadPreferences()) {
       tabs.push({
-        label: "User Preferences",
+        label: marker("User Preferences"),
         routerLink: "user-preferences/view",
         name: "user-preferences",
       });

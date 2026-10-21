@@ -12,6 +12,7 @@ import { GroupReceiptSettingsComponent } from "./group-receipt-settings/group-re
 import { GroupTableComponent } from "./group-table/group-table.component";
 import { GroupTabsComponent } from "./group-tabs/group-tabs.component";
 import { groupResolverFn } from "./resolvers/group-resolver.service";
+import { marker } from "../i18n/marker";
 
 const routes: Routes = [
   {
@@ -32,7 +33,7 @@ const routes: Routes = [
       appPermissions: [Permission.AppGroupsCreate],
       formConfig: {
         mode: FormMode.add,
-        headerText: "Create Group",
+        headerText: marker("Create Group"),
       } as FormConfig,
     },
   },
@@ -45,7 +46,7 @@ const routes: Routes = [
     data: {
       formConfig: {
         mode: FormMode.view,
-        headerText: "View Group",
+        headerText: marker("View Group"),
       } as FormConfig,
       groupPermission: Permission.GroupView,
       orAppPermissions: [Permission.AppGroupsRead],
@@ -62,7 +63,7 @@ const routes: Routes = [
         data: {
           formConfig: {
             mode: FormMode.view,
-            headerText: "View Group",
+            headerText: marker("View Group"),
           } as FormConfig,
           entityType: "Details",
           setHeaderText: true,
@@ -99,7 +100,7 @@ const routes: Routes = [
         data: {
           formConfig: {
             mode: FormMode.view,
-            headerText: "View Group Receipt Settings",
+            headerText: marker("View Group Receipt Settings"),
           } as FormConfig,
           groupPermission: Permission.GroupView,
           orAppPermissions: [Permission.AppGroupsRead],
@@ -119,7 +120,7 @@ const routes: Routes = [
         data: {
           formConfig: {
             mode: FormMode.edit,
-            headerText: "Edit Group Receipt Settings",
+            headerText: marker("Edit Group Receipt Settings"),
           } as FormConfig,
           groupPermission: Permission.GroupUpdate,
           entityType: "Receipt Settings",

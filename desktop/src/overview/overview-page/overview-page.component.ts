@@ -63,6 +63,7 @@ import {
 } from "../overview-detail-dialog/overview-detail-dialog.component";
 import { summarizeShoppingLists } from "../overview-lists";
 import { isWholeCalendarMonth, previousLabel, resolvePeriod, ResolvedPeriod } from "../overview-period";
+import { marker } from "../../i18n/marker";
 
 const RECENT_RECEIPT_COUNT = 6;
 
@@ -71,7 +72,7 @@ const LIST_PREVIEW_ITEMS = 3;
 
 /** The Dashboard's names for the folded and the unknown food group. */
 const OTHER_SEGMENT = "Other";
-const UNCATEGORIZED = "Uncategorized";
+const UNCATEGORIZED = marker("Uncategorized");
 
 /**
  * The Dashboard (the landing page): a period at a glance for the selected group, any period from a
@@ -192,7 +193,7 @@ export class OverviewPageComponent {
         take(1),
         tap((saved) => {
           this.store.dispatch(new SetUserPreferences(saved));
-          this.snackbarService.success(this.translation.t(parsed.value ? "Monthly goal saved" : "Monthly goal removed"));
+          this.snackbarService.success(parsed.value ? marker("Monthly goal saved") : marker("Monthly goal removed"));
         }),
         catchError(() => of(undefined))
       )
@@ -457,7 +458,7 @@ export class OverviewPageComponent {
       },
       annotations:
         goalMode && this.showGoalLine()
-          ? { yaxis: [{ y: this.goal(), borderColor: colors.mutedForeground, strokeDashArray: 5, label: { text: "Goal", position: "left", borderColor: "transparent", style: { color: colors.mutedForeground, background: "transparent", fontSize: "10px" } } }] }
+          ? { yaxis: [{ y: this.goal(), borderColor: colors.mutedForeground, strokeDashArray: 5, label: { text: marker("Goal"), position: "left", borderColor: "transparent", style: { color: colors.mutedForeground, background: "transparent", fontSize: "10px" } } }] }
           : {},
     };
   };

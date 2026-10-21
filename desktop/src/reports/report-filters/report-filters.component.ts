@@ -6,6 +6,7 @@ import { RECEIPT_STATUS_OPTIONS } from "src/constants";
 import { AuthState, GroupState, UserState } from "src/store";
 import { OperationsPipe } from "../../shared-ui/receipt-filter/operations.pipe";
 import { Category, FilterOperation, Tag } from "../../open-api";
+import { marker } from "../../i18n/marker";
 
 /**
  * The pinned "report generator" paid-by option id — negative so it never collides
@@ -39,7 +40,7 @@ const FILTER_FIELDS: FilterFieldDef[] = [
   { field: "name", label: "Name", type: "text" },
   { field: "amount", label: "Amount", type: "number", isCurrency: true },
   { field: "date", label: "Date", type: "date" },
-  { field: "paidBy", label: "Paid by", type: "users" },
+  { field: "paidBy", label: marker("Paid by"), type: "users" },
   { field: "categories", label: "Categories", type: "list", optionsKey: "categories", optionValueKey: "id", optionFilterKey: "name", optionDisplayKey: "name" },
   { field: "tags", label: "Tags", type: "list", optionsKey: "tags", optionValueKey: "id", optionFilterKey: "name", optionDisplayKey: "name" },
   { field: "status", label: "Status", type: "list", optionsKey: "status", optionValueKey: "value", optionFilterKey: "value", optionDisplayKey: "displayValue" },

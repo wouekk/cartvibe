@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild } from "@angular/core";
+import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild, inject } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
@@ -15,6 +15,8 @@ import { ApiKeyTableState } from "../../store/api-key-table.state";
 import { ApiKeyFormDialogComponent } from "../api-key-form-dialog/api-key-form-dialog.component";
 import { ApiKeyTableFilterComponent } from "../api-key-table-filter/api-key-table-filter.component";
 import { ApiKeyTableService } from "./api-key-table.service";
+import { marker } from "../../i18n/marker";
+import { TranslationService } from "../../i18n/translation.service";
 
 @UntilDestroy()
 @Component({
@@ -31,6 +33,8 @@ import { ApiKeyTableService } from "./api-key-table.service";
   standalone: false
 })
 export class ApiKeyTableComponent extends BaseTableComponent<ApiKeyView> implements OnInit, AfterViewInit {
+  private readonly translation = inject(TranslationService);
+
   private readonly nameCell = viewChild.required<TemplateRef<any>>("nameCell");
 
   private readonly descriptionCell = viewChild.required<TemplateRef<any>>("descriptionCell");
@@ -55,7 +59,7 @@ export class ApiKeyTableComponent extends BaseTableComponent<ApiKeyView> impleme
     AuthState.hasAppPermission(Permission.AppApiKeysCreate)
   );
 
-  public tableHeaderText = signal("My API Keys");
+  public tableHeaderText = signal(marker("My API Keys"));
 
   private currentUserId = "";
 
@@ -85,9 +89,9 @@ export class ApiKeyTableComponent extends BaseTableComponent<ApiKeyView> impleme
         tap((filter) => {
             this.getTableData();
             if (filter.associatedApiKeys === AssociatedApiKeys.All) {
-              this.tableHeaderText.set("All API Keys");
+              this.tableHeaderText.set(marker("All API Keys"));
             } else {
-              this.tableHeaderText.set("My API Keys");
+              this.tableHeaderText.set(marker("My API Keys"));
             }
           }
         )
@@ -114,25 +118,25 @@ export class ApiKeyTableComponent extends BaseTableComponent<ApiKeyView> impleme
         sortable: true,
       },
       {
-        columnHeader: "Created By",
+        columnHeader: marker("Created By"),
         matColumnDef: "created_by",
         template: this.createdByCell(),
         sortable: true,
       },
       {
-        columnHeader: "Created At",
+        columnHeader: marker("Created At"),
         matColumnDef: "created_at",
         template: this.createdAtCell(),
         sortable: true,
       },
       {
-        columnHeader: "Last Used At",
+        columnHeader: marker("Last Used At"),
         matColumnDef: "last_used_at",
         template: this.lastUsedAtCell(),
         sortable: true,
       },
       {
-        columnHeader: "Actions",
+        columnHeader: marker("Actions"),
         matColumnDef: "actions",
         template: this.actionsCell(),
         sortable: false,
@@ -173,7 +177,7 @@ export class ApiKeyTableComponent extends BaseTableComponent<ApiKeyView> impleme
   public openCreateApiKeyDialog(): void {
     const ref = this.matDialog.open(ApiKeyFormDialogComponent, DEFAULT_DIALOG_CONFIG);
 
-    ref.componentInstance.headerText = "Create API Key";
+    ref.componentInstance.headerText = marker("Create API Key");
 
     ref.afterClosed().subscribe((result) => {
       if (result) {
@@ -186,7 +190,7 @@ export class ApiKeyTableComponent extends BaseTableComponent<ApiKeyView> impleme
     const ref = this.matDialog.open(ApiKeyFormDialogComponent, DEFAULT_DIALOG_CONFIG);
 
     ref.componentInstance.apiKey = apiKeyView;
-    ref.componentInstance.headerText = `Edit ${apiKeyView.name}`;
+    ref.componentInstance.headerText = this.translation.t("Edit {name}", { name: apiKeyView.name });
 
     ref.afterClosed().subscribe((result) => {
       if (result) {
@@ -207,7 +211,7 @@ export class ApiKeyTableComponent extends BaseTableComponent<ApiKeyView> impleme
     );
 
     dialogRef.componentInstance.headerText = "Delete API Key";
-    dialogRef.componentInstance.dialogContent = `Are you sure you would like to delete the API key "${apiKeyView.name}"? This action is irreversible and the API key will no longer be usable.`;
+    dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you would like to delete the API key \"{name}\"? This action is irreversible and the API key will no longer be usable.", { name: apiKeyView.name });
 
     dialogRef.afterClosed().subscribe((confirmed) => {
       if (confirmed && apiKeyView.id) {
@@ -216,7 +220,7 @@ export class ApiKeyTableComponent extends BaseTableComponent<ApiKeyView> impleme
           .pipe(
             take(1),
             tap(() => {
-              this.snackbarService.success(`API key "${apiKeyView.name}" successfully deleted`);
+              this.snackbarService.success(this.translation.t("API key \"{name}\" successfully deleted", { name: apiKeyView.name }));
               this.getTableData();
             })
           )

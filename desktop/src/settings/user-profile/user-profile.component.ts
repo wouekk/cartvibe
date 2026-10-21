@@ -1,4 +1,4 @@
-import {Component, computed, OnInit, signal} from "@angular/core";
+import {Component, computed, OnInit, signal, inject } from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import { AppDialog, AppDialogConfig } from "../../dialog/app-dialog";
 import {ActivatedRoute, Router} from "@angular/router";
@@ -16,6 +16,7 @@ import {
   DeleteAccountDialogData,
   DeleteAccountDialogResult,
 } from "../delete-account-dialog/delete-account-dialog.component";
+import { TranslationService } from "../../i18n/translation.service";
 
 @Component({
     selector: "app-user-profile",
@@ -23,6 +24,8 @@ import {
     standalone: false
 })
 export class UserProfileComponent implements OnInit {
+  private readonly translation = inject(TranslationService);
+
   public form: FormGroup = new FormGroup({});
 
   public user!: User;
@@ -119,9 +122,9 @@ export class UserProfileComponent implements OnInit {
       DEFAULT_DIALOG_CONFIG,
     );
 
-    dialogRef.componentInstance.headerText = `Disconnect ${connection.providerDisplayName}`;
+    dialogRef.componentInstance.headerText = this.translation.t("Disconnect {name}", { name: connection.providerDisplayName });
     dialogRef.componentInstance.dialogContent =
-      `Are you sure you want to disconnect ${connection.providerDisplayName}? You will no longer be able to sign in with it.`;
+      this.translation.t("Are you sure you want to disconnect {name}? You will no longer be able to sign in with it.", { name: connection.providerDisplayName });
 
     dialogRef
       .afterClosed()
@@ -135,7 +138,7 @@ export class UserProfileComponent implements OnInit {
           return this.oidcService.deleteOidcConnection(connection.providerName).pipe(
             tap(() => {
               this.snackbarService.success(
-                `${connection.providerDisplayName} disconnected`
+                this.translation.t("{name} disconnected", { name: connection.providerDisplayName })
               );
               this.loadConnections();
             }),

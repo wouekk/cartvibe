@@ -8,12 +8,13 @@ import { finalize } from "rxjs";
 import { AppLogEntry, SystemSettingsService } from "../../open-api";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { SnackbarService } from "../../services";
+import { marker } from "../../i18n/marker";
 
 /** The level filters on offer; an empty value is "everything". */
 export const LOG_LEVEL_FILTERS = [
   { label: "All", value: "" },
-  { label: "Errors", value: "ERROR" },
-  { label: "Info", value: "INFO" },
+  { label: marker("Errors"), value: "ERROR" },
+  { label: marker("Info"), value: "INFO" },
 ];
 
 /**

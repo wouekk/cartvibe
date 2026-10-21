@@ -1,5 +1,6 @@
 import { Pipe, PipeTransform } from "@angular/core";
 import { SystemTaskType } from "../../open-api";
+import { marker } from "../../i18n/marker";
 
 @Pipe({
   name: "systemTaskType",
@@ -26,7 +27,7 @@ export class SystemTaskTypePipe implements PipeTransform {
       case "OCR_PROCESSING":
         return "OCR Processing";
       case "RECEIPT_UPLOADED":
-        return "Receipt Uploaded";
+        return marker("Receipt Uploaded");
       case "PROMPT_GENERATED":
         return "Prompt Generated";
       case "RECEIPT_UPDATED":

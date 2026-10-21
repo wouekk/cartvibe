@@ -3,6 +3,7 @@ import { Store } from "@ngxs/store";
 import { TabConfig } from "src/shared-ui/tabs/tab-config.interface";
 import { Permission } from "../../open-api";
 import { AuthState, FeatureConfigState } from "../../store";
+import { marker } from "../../i18n/marker";
 
 @Component({
     selector: "app-group-tabs",
@@ -27,7 +28,7 @@ export class GroupTabsComponent {
         name: "details",
       },
       {
-        label: "Group Receipt Settings",
+        label: marker("Group Receipt Settings"),
         routerLink: "receipt-settings/view",
         name: "receipt-settings",
       },
@@ -41,7 +42,7 @@ export class GroupTabsComponent {
     );
     if (hasAiPoweredReceipts && canUpdateSettings) {
       this.tabs.push({
-        label: "Group AI Settings",
+        label: marker("Group AI Settings"),
         routerLink: "settings/view",
         name: "settings",
       });

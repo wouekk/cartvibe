@@ -7,6 +7,7 @@ import { InputModule } from "../../input/input.module";
 import { PipesModule } from "../../pipes/pipes.module";
 import { SelectModule } from "../../select/select.module";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { marker } from "../../i18n/marker";
 
 /**
  * The model field for Google Gemini: a dropdown of the models the API key can use (newest first), fetched from Google
@@ -68,7 +69,7 @@ export class GeminiModelFieldComponent {
     const settingsId = this.settingsId();
     if (this.loading() || (!typedKey && settingsId === undefined)) {
       if (!typedKey && settingsId === undefined) {
-        this.error.set("Paste the API key first.");
+        this.error.set(marker("Paste the API key first."));
       }
       return;
     }
@@ -85,13 +86,13 @@ export class GeminiModelFieldComponent {
         next: (models) => {
           this.models.set(models);
           if (models.length === 0) {
-            this.error.set("Google listed no models for this key.");
+            this.error.set(marker("Google listed no models for this key."));
           }
         },
         error: (response) => {
           this.models.set([]);
           this.error.set(
-            response?.error?.errors?.key ?? response?.error?.errorMsg ?? "The models could not be loaded. Type the name instead."
+            response?.error?.errors?.key ?? response?.error?.errorMsg ?? marker("The models could not be loaded. Type the name instead.")
           );
         },
       });

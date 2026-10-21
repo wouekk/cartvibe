@@ -1,5 +1,6 @@
 import { Component, input, output } from "@angular/core";
 import { FilterTab } from "../filter-bar/filter-tab.interface";
+import { marker } from "../../i18n/marker";
 
 /** The one segmented tab strip (control height 36px, no scrollbar) behind `app-filter-bar` and `app-tabs`. */
 @Component({
@@ -27,6 +28,6 @@ import { FilterTab } from "../filter-bar/filter-tab.interface";
 export class SettingsTabsComponent {
   public readonly tabs = input.required<FilterTab[]>();
   public readonly value = input<string>("");
-  public readonly ariaLabel = input<string>("Sections");
+  public readonly ariaLabel = input<string>(marker("Sections"));
   public readonly valueChange = output<string>();
 }

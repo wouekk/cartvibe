@@ -139,7 +139,7 @@ export class TranslationService {
     return code === ENGLISH.code || code in this.dictionaries();
   }
 
-  public t(text: string, params?: Record<string, string | number>): string {
+  public t(text: string, params?: Record<string, string | number | null | undefined>): string {
     const dictionary = this.dictionary();
     const translated = (dictionary && (translatedValue(dictionary.messages[text]) ?? this.translateInterpolated(dictionary, text))) ?? this.missing(text);
     return params ? translated.replace(/\{(\w+)\}/g, (match, key) => String(params[key] ?? match)) : translated;

@@ -20,6 +20,7 @@ import {AppInitService, SnackbarService} from "../../services";
 import {AddGroup, AuthState, UpdateGroup} from "../../store";
 import {GroupMemberFormComponent} from "../group-member-form/group-member-form.component";
 import {buildGroupMemberForm} from "../utils/group-member.utils";
+import { marker } from "../../i18n/marker";
 
 @UntilDestroy()
 @Component({
@@ -142,13 +143,13 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
         sortable: true,
       },
       {
-        columnHeader: "Group Role",
+        columnHeader: marker("Group Role"),
         matColumnDef: "role",
         template: this.roleCell(),
         sortable: true,
       },
       {
-        columnHeader: "Actions",
+        columnHeader: marker("Actions"),
         matColumnDef: "actions",
         template: this.actionsCell(),
         sortable: true,
@@ -218,7 +219,7 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
     const dialogRef = this.matDialog.open(GroupMemberFormComponent);
 
     dialogRef.componentInstance.currentGroupMembers = this.groupMembers.value;
-    dialogRef.componentInstance.headerText = "Add Group Member";
+    dialogRef.componentInstance.headerText = marker("Add Group Member");
 
     dialogRef
       .afterClosed()
@@ -236,7 +237,7 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
 
     dialogRef.componentInstance.currentGroupMembers = this.groupMembers.value;
     dialogRef.componentInstance.groupMember = groupMember;
-    dialogRef.componentInstance.headerText = "Edit Group Member";
+    dialogRef.componentInstance.headerText = marker("Edit Group Member");
 
     dialogRef
       .afterClosed()
