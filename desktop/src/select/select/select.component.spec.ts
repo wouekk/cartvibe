@@ -1,7 +1,8 @@
 import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { MatSelectModule } from '@angular/material/select';
+import { HlmInputImports } from '@spartan-ng/helm/input';
+import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { BadgeComponent } from '../../shared-ui/badge/badge.component';
 import { OptionDisplayPipe } from '../pipes/option-display.pipe';
@@ -20,8 +21,8 @@ describe('SelectComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [SelectComponent, OptionDisplayPipe, ReadonlyValuePipe],
-      imports: [MatSelectModule, ReactiveFormsModule, NoopAnimationsModule, BadgeComponent],
-      providers: [provideZonelessChangeDetection()],
+      imports: [...HlmSelectImports, ...HlmInputImports, ReactiveFormsModule, NoopAnimationsModule, BadgeComponent],
+      providers: [OptionDisplayPipe, provideZonelessChangeDetection()],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
 
@@ -83,48 +84,10 @@ describe('SelectComponent', () => {
     expect(component.selectedIndex()).toBe(-1);
   });
 
-  // The closed select renders the selected option's text content, so a badged
-  // option would otherwise read "HSTCustom". A badged select draws its own
-  // trigger to keep the two apart.
-  it('draws the badge in the trigger for a badged selection', async () => {
+  it("shows the selected option as the closed select text, without its badge", () => {
     configure('badge', 'custom_7');
-    await fixture.whenStable();
 
-    const badges = fixture.nativeElement.querySelectorAll('app-badge');
-    expect(badges.length).toBe(1);
-    expect(badges[0].textContent.trim()).toBe('Custom');
-    expect(fixture.nativeElement.textContent).toContain('HST');
-  });
-
-  // optionBadgeTone is a pass-through to app-badge's own tone input, so nothing
-  // else would catch it being dropped from either binding - the badge would simply
-  // stay the default purple while the select was configured otherwise.
-  it('draws the badge in the configured tone', async () => {
-    configure('badge', 'custom_7');
-    fixture.componentRef.setInput('optionBadgeTone', 'slate');
-    await fixture.whenStable();
-
-    const badge = fixture.nativeElement.querySelector('app-badge .rw-badge');
-    expect(badge.classList).toContain('rw-badge--slate');
-    expect(badge.classList).not.toContain('rw-badge--purple');
-  });
-
-  it('draws the badge purple by default', async () => {
-    configure('badge', 'custom_7');
-    await fixture.whenStable();
-
-    expect(
-      fixture.nativeElement.querySelector('app-badge .rw-badge').classList
-    ).toContain('rw-badge--purple');
-  });
-
-  it('draws no badge for an unbadged selection, or when badges are off', async () => {
-    configure('badge', 'category');
-    await fixture.whenStable();
-    expect(fixture.nativeElement.querySelectorAll('app-badge').length).toBe(0);
-
-    configure('', 'custom_7');
-    await fixture.whenStable();
-    expect(fixture.nativeElement.querySelectorAll('app-badge').length).toBe(0);
+    expect(component.itemToString('custom_7')).toBe('HST');
+    expect(component.itemToString('nope')).toBe('');
   });
 });

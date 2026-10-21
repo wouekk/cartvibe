@@ -598,10 +598,12 @@ describe("SystemSettingsFormComponent", () => {
       expect(warning()).toBeNull();
 
       component.form.get("secureCookies")!.setValue(true);
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       expect(warning()).not.toBeNull();
 
       component.form.get("secureCookies")!.setValue(false);
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
       expect(warning()).toBeNull();
     });
@@ -712,6 +714,7 @@ describe("SystemSettingsFormComponent", () => {
       activatedRoute.snapshot.data["section"] = section;
       activatedRoute.snapshot.data["formConfig"] = { mode: FormMode.edit };
       component.ngOnInit();
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
     };
 

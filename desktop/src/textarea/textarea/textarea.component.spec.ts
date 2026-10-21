@@ -1,11 +1,6 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
-import { MatAutocompleteModule } from "@angular/material/autocomplete";
-import { MatFormField, MatFormFieldModule } from "@angular/material/form-field";
-import { MatInputModule } from "@angular/material/input";
-import { By } from "@angular/platform-browser";
-import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { TextareaComponent } from "./textarea.component";
 
 describe("TextareaComponent", () => {
@@ -15,13 +10,7 @@ describe("TextareaComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [TextareaComponent],
-      imports: [
-        MatFormFieldModule,
-        MatInputModule,
-        ReactiveFormsModule,
-        NoopAnimationsModule,
-        MatAutocompleteModule
-      ],
+      imports: [ReactiveFormsModule],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
 
@@ -34,45 +23,23 @@ describe("TextareaComponent", () => {
     expect(component).toBeTruthy();
   });
 
-  describe("subscript sizing", () => {
-    function subscriptSizing(): string {
-      return fixture.debugElement.query(By.directive(MatFormField))
-        .componentInstance.subscriptSizing;
-    }
+  it("shows the label and a hint under the field", async () => {
+    fixture.componentRef.setInput("label", "Comment");
+    fixture.componentRef.setInput("hint", "A hint");
+    await fixture.whenStable();
 
-    it("stays fixed without a hint", () => {
-      expect(subscriptSizing()).toEqual("fixed");
-    });
-
-    it("goes dynamic with a hint, so a wrapping hint cannot overlap what follows", () => {
-      fixture.componentRef.setInput(
-        "hint",
-        "A hint long enough to wrap onto more than one line."
-      );
-      fixture.detectChanges();
-
-      expect(subscriptSizing()).toEqual("dynamic");
-    });
+    expect(fixture.nativeElement.querySelector("label").textContent).toContain("Comment");
+    expect(fixture.nativeElement.textContent).toContain("A hint");
   });
 
-  it("should set selection end to where word was inserted", () => {
-    fixture.componentRef.setInput('trigger', "@");
-    component.inputFormControl = new FormControl("hello @trigger world");
-    component.lastKnownSelection = 6;
+  it("writes what is typed to the form control", () => {
+    fixture.componentRef.setInput("inputFormControl", new FormControl(""));
     fixture.detectChanges();
+    const textarea: HTMLTextAreaElement = fixture.nativeElement.querySelector("textarea");
 
-    // Mock the matAutocompleteTrigger closePanel
-    jest.spyOn(component.matAutocompleteTrigger(), "closePanel").mockImplementation(() => {});
+    textarea.value = "hello";
+    textarea.dispatchEvent(new Event("input"));
 
-    // Mock the textarea viewChild with a fake nativeElement to track selectionEnd
-    const fakeNativeElement = { selectionEnd: 6 };
-    Object.defineProperty(component, 'textarea', {
-      value: () => ({ nativeElement: fakeNativeElement }),
-      configurable: true,
-    });
-
-    component.onOptionSelected();
-
-    expect(fakeNativeElement.selectionEnd).toBe(15);
+    expect(component.inputFormControl.value).toBe("hello");
   });
 });

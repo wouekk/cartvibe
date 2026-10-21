@@ -1,11 +1,11 @@
-<div class="flex items-center">
-  <mat-checkbox
-    [ngClass]="{
-      'pointer-events-none': readonly,
-    }"
-    [formControl]="inputFormControl"
-    (keydown)="handleKeydown($event)"
-  >{{ label }}
-  </mat-checkbox>
+<div class="flex items-center gap-1">
+  <label
+    class="flex cursor-pointer items-center gap-2 text-sm leading-none"
+    [class.pointer-events-none]="readonly"
+    [class.opacity-60]="inputFormControl.disabled"
+  >
+    <hlm-checkbox [formControl]="inputFormControl" (keydown)="handleKeydown($event)" />
+    <span>{{ label }}</span>
+  </label>
   <app-help-icon [helpText]="helpText"></app-help-icon>
 </div>

@@ -1,19 +1,17 @@
-<mat-form-field class="w-full">
-  <mat-label>{{ label }}</mat-label>
-  <div class="flex items-center">
+<div class="flex w-full flex-col gap-1.5">
+  @if (label) {
+    <label class="text-sm font-medium leading-none text-foreground">{{ label }}</label>
+  }
+  <div class="flex items-center gap-2">
+    <input hlmInput class="flex-1" [readonly]="readonly" [formControl]="inputFormControl" />
     <input
-      #nativeInput
-      matInput
-      [readonly]="readonly"
-      [formControl]="inputFormControl"
-    />
-    <input
-      class="w-1/4"
+      class="h-9 w-12 cursor-pointer rounded-md border border-input bg-transparent p-1"
       type="color"
+      aria-label="Pick a color"
       [value]="inputFormControl.value"
-      [readOnly]="readonly"
+      [disabled]="readonly"
       (click)="handleClick($event)"
       (change)="colorSelected($event)"
     />
   </div>
-</mat-form-field>
+</div>

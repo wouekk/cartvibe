@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { RadioGroupComponent } from './radio-group.component';
 import { ReactiveFormsModule } from '@angular/forms';
-import { MatRadioModule } from '@angular/material/radio';
+import { HlmRadioGroupImports } from '@spartan-ng/helm/radio-group';
 
 describe('RadioGroupComponent', () => {
   let component: RadioGroupComponent;
@@ -11,7 +11,7 @@ describe('RadioGroupComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [RadioGroupComponent],
-      imports: [MatRadioModule, ReactiveFormsModule],
+      imports: [...HlmRadioGroupImports, ReactiveFormsModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(RadioGroupComponent);

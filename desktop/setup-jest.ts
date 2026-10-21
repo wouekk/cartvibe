@@ -7,3 +7,12 @@ setupZonelessTestEnv();
 // passing test runs. Returning null matches the no-op behavior the charts
 // already tolerate under jsdom.
 HTMLCanvasElement.prototype.getContext = jest.fn(() => null) as any;
+
+// jsdom has no ResizeObserver; spartan's select and popover primitives observe their trigger's size.
+if (typeof (globalThis as any).ResizeObserver === 'undefined') {
+  (globalThis as any).ResizeObserver = class {
+    public observe(): void {}
+    public unobserve(): void {}
+    public disconnect(): void {}
+  };
+}
