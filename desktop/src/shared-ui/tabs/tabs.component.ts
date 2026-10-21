@@ -1,4 +1,4 @@
-import { Component, OnChanges, OnInit, signal, SimpleChanges, input } from "@angular/core";
+import { Component, OnChanges, OnInit, computed, signal, SimpleChanges, input } from "@angular/core";
 import { ActivatedRoute, NavigationEnd, Router } from "@angular/router";
 import { tap } from "rxjs";
 import { TabConfig } from "./tab-config.interface";
@@ -12,6 +12,8 @@ export class TabsComponent implements OnInit, OnChanges {
   public readonly tabs = input<TabConfig[]>([]);
 
   public activeName = signal("");
+
+  public readonly tabItems = computed(() => this.tabs().map((tab) => ({ value: tab.name, label: tab.label })));
 
   constructor(private router: Router, private activatedRoute: ActivatedRoute) {}
 

@@ -3,6 +3,7 @@ import { Component, DestroyRef, OnInit, computed, inject, signal } from "@angula
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { HlmButton } from "@spartan-ng/helm/button";
+import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { Store } from "@ngxs/store";
 import { catchError, finalize, map, Observable, of, startWith, switchMap, take, tap } from "rxjs";
@@ -44,6 +45,7 @@ export type { ConnectionResult } from "../ai-settings-shared";
   standalone: true,
   imports: [
     AiFallbackCardComponent,
+    SharedUiModule,
     CheckboxModule,
     GeminiModelFieldComponent,
     CommonModule,

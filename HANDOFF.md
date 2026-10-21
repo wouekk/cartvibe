@@ -2,6 +2,21 @@
 
 ## Status (2026-10-21, Windows PC, Claude Code desktop app)
 
+**IN PROGRESS (2026-10-21, branch `feature/settings-layout`, cut from `feature/image-hardening`, nothing committed yet):** settings layout
+unification, plan in `C:/Users/Marcin/.claude/plans/pasted-content-id-ff27-perform-a-cheeky-nebula.md` (outside the repo). Decisions by the user: topics inside a
+card are flat hairline rows (no inset box), Save sits in a card footer on the right (status text left).
+- Done (Jest for the touched folders green, `ng build` OK): CSS `rw-card*` / `rw-inset` in `src/tailwind.css`; four primitives in
+  `src/shared-ui/settings/` (`app-settings-page`, `-section`, `-tabs`, `-entity-list`, with specs, declared in `SharedUiModule`);
+  `app-filter-bar` and `app-tabs` render through `app-settings-tabs`; `app-form` has a `settingsCard` input; converted: System Settings
+  (page, form cards, system tasks card, logs), AI page + backup card, User Settings (profile, preferences, theme, API keys, danger zone),
+  the five Manage lists, household detail shell (`group-tabs`).
+- Left: look at screenshots (White/Black, 1440 and 390 px, `C:/Users/Marcin/tools/devstack/shot.cjs`) and fix what looks off (table card inside
+  `rw-card`, exchange-rates section, footers); run the full `npm run test:ci`; docs (`desktop/CLAUDE.md` "settings card standard" and
+  AGENTS.md "Decided direction" still describe the inset `rw-section`); commit, push, wait for CI, then
+  `gh workflow run publish-image.yml --repo wouekk/cartvibe --ref feature/settings-layout` for `:preview`. No merge to `main`.
+- Deviation from the plan: rows stay stacked (no two-column md layout yet); `app-table-header` is unchanged and still used by receipts,
+  reports and shopping lists.
+
 **v0.2.0 is released (2026-10-21):** `feature/redesign` was fast-forwarded into `main` (`033f9ae9`) and tagged `v0.2.0`; CI on `main` and the `:latest` publish were green. It holds the Tailwind + spartan/ui redesign (White/Black themes), Polish translation, shop logos (about 230 chains, `scripts/shop-logos/`, Logo.dev credit in `NOTICE.md`), the AI model dropdown and backup AI card, the 3-try AI cap, HEIC/photo normalization, the settings-card standard (`rw-section`, see `desktop/CLAUDE.md`), shopping-list item suggestions and the upload progress bar. **Not yet seen on the NAS:** pull `:latest` and redeploy, then look at every page in both themes and Polish. Post-release work (shopping-list master-detail `e0e7a61a`, image hardening) lives on other `feature/*` branches and is not in 0.2.0. Still open: Polish for strings built in TypeScript, parked per-user currency work, stale Playwright specs (no live API here).
 **Latest (frontend security sweep, same branch `feature/image-hardening`):** audit found nothing exploitable; hardening applied:
 nginx `Permissions-Policy`, HSTS (only when `X-Forwarded-Proto` is https), dotfile/`.map` 404, headers repeated on the hashed-asset

@@ -22,6 +22,9 @@ export class FormComponent {
 
   public readonly bottomSpacing = input(false);
 
+  /** Draws the form as one settings card (title, Edit action in the head, submit in the footer) instead of a bare form. */
+  public readonly settingsCard = input(false);
+
   public readonly submitButtonDisabled = input(false);
 
   public readonly submitted = output<void>();

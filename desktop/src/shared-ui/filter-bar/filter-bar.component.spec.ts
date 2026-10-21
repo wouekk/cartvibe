@@ -4,6 +4,7 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppIconComponent } from "../icon/icon.component";
 import { HlmTabsImports } from "@spartan-ng/helm/tabs";
 import { FilterBarComponent } from "./filter-bar.component";
+import { SettingsTabsComponent } from "../settings/settings-tabs.component";
 import { FilterTab } from "./filter-tab.interface";
 
 describe("FilterBarComponent", () => {
@@ -18,7 +19,7 @@ describe("FilterBarComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [FilterBarComponent],
+      declarations: [FilterBarComponent, SettingsTabsComponent],
       imports: [AppIconComponent, TranslatePipe, ...HlmTabsImports],
       providers: [provideZonelessChangeDetection()],
     }).compileComponents();

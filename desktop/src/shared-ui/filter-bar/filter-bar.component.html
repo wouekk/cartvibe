@@ -1,15 +1,6 @@
-<hlm-tabs class="max-w-full min-w-0" [tab]="value()" (tabActivated)="select($event)">
-  <hlm-tabs-list class="max-w-full rw-scroll-x" [attr.aria-label]="'Filter' | t">
-    @for (tab of tabs(); track tab.value) {
-      <button class="filter-tab" [hlmTabsTrigger]="tab.value" [class.active]="value() === tab.value">
-        @if (tab.icon) {
-          <app-icon class="size-[17px] text-[17px]" [name]="tab.icon"></app-icon>
-        }
-        {{ tab.label | t }}
-        @if (tab.count !== undefined) {
-          <span class="pill rounded-full bg-secondary px-2 py-px text-[11px] font-semibold text-secondary-foreground">{{ tab.count }}</span>
-        }
-      </button>
-    }
-  </hlm-tabs-list>
-</hlm-tabs>
+<app-settings-tabs
+  ariaLabel="Filter"
+  [tabs]="tabs()"
+  [value]="value()"
+  (valueChange)="select($event)"
+></app-settings-tabs>

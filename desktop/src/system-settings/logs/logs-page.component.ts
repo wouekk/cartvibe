@@ -6,6 +6,7 @@ import { HlmButton } from "@spartan-ng/helm/button";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { finalize } from "rxjs";
 import { AppLogEntry, SystemSettingsService } from "../../open-api";
+import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { SnackbarService } from "../../services";
 
 /** The level filters on offer; an empty value is "everything". */
@@ -21,10 +22,10 @@ export const LOG_LEVEL_FILTERS = [
  */
 @Component({
   selector: "app-logs-page",
-  host: { class: "block rounded-2xl bg-card px-6 py-5 shadow-xs" },
+  host: { class: "block" },
   templateUrl: "./logs-page.component.html",
   standalone: true,
-  imports: [TranslatePipe, PluralPipe, CommonModule, HlmButton, AppIconComponent],
+  imports: [SharedUiModule, TranslatePipe, PluralPipe, CommonModule, HlmButton, AppIconComponent],
 })
 export class LogsPageComponent implements OnInit {
   private readonly systemSettingsService = inject(SystemSettingsService);
@@ -32,6 +33,7 @@ export class LogsPageComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   public readonly levels = LOG_LEVEL_FILTERS;
+  public readonly levelTabs = LOG_LEVEL_FILTERS.map((option) => ({ value: option.value || "all", label: option.label }));
   public readonly entries = signal<AppLogEntry[]>([]);
   public readonly level = signal("");
   public readonly loading = signal(true);

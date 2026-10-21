@@ -71,6 +71,11 @@ import { CartVibeLogoComponent } from './cartvibe-logo/cartvibe-logo.component';
 import { BadgeComponent } from './badge/badge.component';
 import { ImageCanvasComponent } from './image-canvas/image-canvas.component';
 
+import { SettingsPageComponent } from './settings/settings-page.component';
+import { SettingsSectionComponent } from './settings/settings-section.component';
+import { SettingsEntityListComponent } from './settings/settings-entity-list.component';
+import { SettingsTabsComponent } from './settings/settings-tabs.component';
+
 @NgModule({
   declarations: [
     AddButtonComponent,
@@ -117,6 +122,10 @@ import { ImageCanvasComponent } from './image-canvas/image-canvas.component';
     QueueStartMenuComponent,
     EditableListComponent,
     IconAutocompleteComponent,
+    SettingsPageComponent,
+    SettingsSectionComponent,
+    SettingsEntityListComponent,
+    SettingsTabsComponent,
   ],
   imports: [
     ...HlmTabsImports,
@@ -191,6 +200,10 @@ import { ImageCanvasComponent } from './image-canvas/image-canvas.component';
     QueueStartMenuComponent,
     EditableListComponent,
     IconAutocompleteComponent,
+    SettingsPageComponent,
+    SettingsSectionComponent,
+    SettingsEntityListComponent,
+    SettingsTabsComponent,
     PieChartUiComponent,
     CartVibeLogoComponent,
     BadgeComponent,

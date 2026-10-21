@@ -279,6 +279,48 @@ select {
   .rw-section__footer {
     @apply mt-1 flex flex-wrap items-center gap-2 border-t border-border/60 pt-3;
   }
+  /* The settings card: a surface with a hairline, no shadow. Topics inside it are flat rows split by hairlines (an
+     `rw-section` inside `rw-card` loses its own box), the footer holds status text and actions. */
+  .rw-card {
+    @apply flex flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground;
+  }
+  .rw-card__head {
+    @apply flex flex-wrap items-start justify-between gap-3 px-6 pt-5 pb-1;
+  }
+  .rw-card__title {
+    @apply m-0 text-[17px] font-semibold;
+  }
+  .rw-card__desc {
+    @apply m-0 mt-0.5 text-[13px] leading-relaxed text-muted-foreground;
+  }
+  .rw-card__body {
+    @apply flex min-w-0 flex-col;
+  }
+  .rw-card__footer {
+    @apply flex flex-wrap items-center justify-end gap-3 border-t border-border bg-muted/30 px-6 py-3;
+  }
+  .rw-card__status {
+    @apply me-auto text-[13px] text-muted-foreground;
+  }
+  .rw-card--destructive {
+    @apply border-destructive/40;
+  }
+  .rw-card .rw-section {
+    @apply rounded-none border-0 bg-transparent px-6 py-5;
+  }
+  .rw-card__body > * + * {
+    @apply border-t border-border;
+  }
+  .rw-card__head + .rw-card__body > .rw-section:first-child {
+    @apply pt-3;
+  }
+  .rw-card .rw-section__footer {
+    @apply border-t-0 pt-0;
+  }
+  /* A read-only block that keeps the muted step (previews). */
+  .rw-inset {
+    @apply rounded-lg border border-border/70 bg-muted/30 p-4;
+  }
   .rw-list {
     @apply m-0 list-none p-0 tabular-nums [&>li]:flex [&>li]:items-center [&>li]:justify-between [&>li]:gap-3 [&>li]:py-2 [&>li:not(:last-child)]:border-b [&>li:not(:last-child)]:border-border/50;
   }
