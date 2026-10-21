@@ -29,7 +29,7 @@
     <div class="flex flex-col">
       @if (filteredItems.length === 0) {
         <div class="pointer-events-none px-2 py-1.5 text-sm text-muted-foreground">
-          No items found
+          {{ 'No items found' | t }}
         </div>
       }
       @for (item of filteredItems(); track item.value) {

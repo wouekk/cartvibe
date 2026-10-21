@@ -31,7 +31,7 @@
             class="generate-password-button size-8"
             type="button"
             data-testid="password-generate"
-            aria-label="Generate password"
+            [attr.aria-label]="'Generate password' | t"
             hlmTooltip="Generate password"
             [disabled]="inputFormControl.disabled || readonly"
             (click)="generatePassword()"

@@ -7,8 +7,8 @@
       <app-add-button
         *hasAppPermission="Permission.AppGroupsCreate"
         data-testid="group-create"
-        buttonText="Add Household"
-        tooltip="Add Household"
+        [buttonText]="'Add Household' | t"
+        [tooltip]="'Add Household' | t"
         [buttonRouterLink]="['create']"
       ></app-add-button>
     </div>
@@ -52,13 +52,13 @@
       *hasGroupPermission="{ groupId: element.id, permission: Permission.GroupUpdate, orApp: [Permission.AppGroupsUpdateSettings] }"
       data-testid="group-edit"
       color="accent"
-      tooltip="Edit group"
+      [tooltip]="'Edit group' | t"
       [buttonRouterLink]="[element | groupTableEditButton: appPermissions() : groupPermissions()]"
     ></app-edit-button>
     <app-delete-button
       *hasGroupPermission="{ groupId: element.id, permission: Permission.GroupDelete, orApp: [Permission.AppGroupsDelete] }"
       data-testid="group-delete"
-      tooltip="Delete Household"
+      [tooltip]="'Delete Household' | t"
       [disabled]="deleteDisabled()"
       (clicked)="deleteGroup(index)"
     ></app-delete-button>

@@ -1,13 +1,13 @@
 <app-table-header
-  headerText="Custom Fields"
+  [headerText]="'Custom Fields' | t"
   subtitle="Capture extra structured data on receipts with custom fields."
 >
   <app-add-button
     *hasAppPermission="Permission.AppCustomFieldsCreate"
     data-testid="custom-field-add"
-    buttonText="Add Custom Field"
+    [buttonText]="'Add Custom Field' | t"
     (clicked)="openCustomFieldDialog()"
-    tooltip="Add Custom Field"
+    [tooltip]="'Add Custom Field' | t"
   >
   </app-add-button>
 </app-table-header>
@@ -42,14 +42,14 @@
     *hasAppPermission="Permission.AppCustomFieldsUpdate"
     data-testid="custom-field-edit"
     color="accent"
-    tooltip="Edit custom field"
+    [tooltip]="'Edit custom field' | t"
     (clicked)="openCustomFieldDialog(element, FormMode.edit)"
   >
   </app-edit-button>
   <app-delete-button
     *hasAppPermission="Permission.AppCustomFieldsDelete"
     data-testid="custom-field-delete"
-    tooltip="Delete custom field"
+    [tooltip]="'Delete custom field' | t"
     (clicked)="openDeleteConfirmationDialog(element)"
   >
   </app-delete-button>

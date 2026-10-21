@@ -4,7 +4,7 @@
       <div class="flex flex-wrap add-form-fields">
         <app-input
           #nameInput
-          label="Name"
+          [label]="'Name' | t"
           class="flex-1 min-w-0"
           [inputFormControl]="newItemFormGroup | formGet : 'name'"
           (keydown.enter)="onNameEnter($event)"
@@ -13,7 +13,7 @@
         </app-input>
         <app-input
           #amountInput
-          label="Amount"
+          [label]="'Amount' | t"
           class="flex-1 min-w-0"
           type="text"
           [isCurrency]="true"
@@ -72,7 +72,7 @@
       <div class="keyboard-shortcuts-legend">
         <div class="legend-title">
           <span class="legend-icon">⌨️</span>
-          <span>Keyboard Shortcuts</span>
+          <span>{{ 'Keyboard Shortcuts' | t }}</span>
         </div>
         <div class="shortcuts-grid">
           @for (shortcut of displayShortcuts; track shortcut.keys) {

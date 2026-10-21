@@ -1,8 +1,8 @@
 <div class="preview">
   <div class="preview__header">
     <span class="preview__dot"></span>
-    <span class="preview__title">LIVE PREVIEW</span>
-    <span class="preview__subtitle">Rendered from your data</span>
+    <span class="preview__title">{{ 'LIVE PREVIEW' | t }}</span>
+    <span class="preview__subtitle">{{ 'Rendered from your data' | t }}</span>
     <span class="preview__spacer"></span>
     @if (ready() && !error()) {
       <span class="preview__count" (click)="openReceipts()" data-testid="report-receipt-count">
@@ -16,19 +16,19 @@
     @if (!ready()) {
       <div class="preview__placeholder">
         <app-icon name="summarize"></app-icon>
-        Add a group and at least one column to see a preview.
+        {{ 'Add a group and at least one column to see a preview.' | t }}
       </div>
     } @else if (error()) {
       <div class="preview__placeholder preview__placeholder--error">
         <app-icon name="error_outline"></app-icon>
-        Couldn't render the preview.
+        {{ 'Couldn\'t render the preview.' | t }}
       </div>
     } @else {
       <div class="preview__paper">
         <iframe
           #frame
           class="preview__frame"
-          title="Report preview"
+          [title]="'Report preview' | t"
           sandbox="allow-same-origin"
           [style.height.px]="frameHeight()"
           [srcdoc]="safeHtml()"

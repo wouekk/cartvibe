@@ -1,3 +1,4 @@
+import { PluralPipe, TranslatePipe } from "../../i18n/translate.pipe";
 import { CommonModule } from "@angular/common";
 import { Component, Inject, computed, inject } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
@@ -46,7 +47,7 @@ interface PreviewGroup {
 @Component({
   selector: "app-role-preview-dialog",
   standalone: true,
-  imports: [
+  imports: [TranslatePipe, PluralPipe, 
     CommonModule,
     HlmButton,
     AppIconComponent,

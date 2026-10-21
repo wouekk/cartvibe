@@ -1,5 +1,7 @@
+import { PL_MORE } from "./pl-more";
+
 /** Polish texts, keyed by the English text the templates and services use. A missing key shows the English text. */
-export const PL: Record<string, string> = {
+const PL_CORE: Record<string, string> = {
   // Navigation and account
   "Dashboard": "Pulpit",
   "Shopping Lists": "Listy zakupów",
@@ -129,6 +131,11 @@ export const PL: Record<string, string> = {
   "July": "lipiec", "August": "sierpień", "September": "wrzesień", "October": "październik", "November": "listopad", "December": "grudzień",
   "Jan": "sty", "Feb": "lut", "Mar": "mar", "Apr": "kwi", "Jun": "cze", "Jul": "lip", "Aug": "sie", "Sep": "wrz", "Oct": "paź", "Nov": "lis", "Dec": "gru",
 
+  "{count} to check": "{count} do sprawdzenia",
+  "{share}% of the spending": "{share}% wydatków",
+
+  "Uncategorized": "Bez kategorii",
+
   // Shared pieces
   "Add List": "Dodaj listę",
   "New list": "Nowa lista",
@@ -173,9 +180,7 @@ export const PL: Record<string, string> = {
   "View full description": "Zobacz pełny opis",
   "by the previous update": "przez poprzednią zmianę",
   "when it was created": "w chwili utworzenia",
-  "item": "produkt",
-  "items": "produkty",
-  "Added by:": "Dodał(a):",
+    "Added by:": "Dodał(a):",
   "All caught up!": "Wszystko przeczytane!",
   "All time": "Cały czas",
   "Before": "Przed",
@@ -188,4 +193,15 @@ export const PL: Record<string, string> = {
   "and": "i",
   "Rename List": "Zmień nazwę listy",
   "Shopping Lists title": "Listy zakupów",
+};
+
+export const PL: Record<string, string> = { ...PL_CORE, ...PL_MORE };
+
+/** One, 2-4 and 5+ forms, keyed by the English singular. */
+export const PL_PLURALS: Record<string, [string, string, string]> = {
+  item: ["produkt", "produkty", "produktów"],
+  list: ["lista", "listy", "list"],
+  receipt: ["paragon", "paragony", "paragonów"],
+  day: ["dzień", "dni", "dni"],
+  month: ["miesiąc", "miesiące", "miesięcy"],
 };

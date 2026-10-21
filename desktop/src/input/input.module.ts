@@ -1,3 +1,4 @@
+import { PluralPipe, TranslatePipe } from "../i18n/translate.pipe";
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
@@ -10,7 +11,7 @@ import { InputComponent } from "./input/input.component";
 
 @NgModule({
   declarations: [InputComponent],
-  imports: [
+  imports: [TranslatePipe, PluralPipe, 
     CommonModule,
     HlmButton,
     HlmInput,

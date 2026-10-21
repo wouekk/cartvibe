@@ -9,21 +9,21 @@
 ></app-form>
 
 <ng-template #formTemplate>
-  <app-form-section headerText="User Details">
+  <app-form-section [headerText]="'User Details' | t">
     <app-input
-      label="Username"
+      [label]="'Username' | t"
       [inputFormControl]="form | formGet : 'username'"
       [readonly]="true"
       [hlmTooltip]="formConfig.mode === formMode.edit ? usernameTooltip : ''"
     ></app-input>
     <app-input
-      label="Name"
+      [label]="'Name' | t"
       hint="Shown as who added a receipt"
       [inputFormControl]="form | formGet : 'displayName'"
       [readonly]="formConfig.mode | inputReadonly"
     ></app-input>
     <app-color-picker
-      label="Default avatar color"
+      [label]="'Default avatar color' | t"
       [inputFormControl]="form | formGet : 'defaultAvatarColor'"
       [readonly]="formConfig.mode | inputReadonly"
     ></app-color-picker>
@@ -32,13 +32,13 @@
 
 
 <div class="danger-zone" *hasAppPermission="Permission.AppAccountDelete">
-  <strong>Danger Zone</strong>
-  <p>Account deletion is irreversible. This will permanently remove all associated data including receipts, group memberships, and preferences.</p>
+  <strong>{{ 'Danger Zone' | t }}</strong>
+  <p>{{ 'Account deletion is irreversible. This will permanently remove all associated data including receipts, group memberships, and preferences.' | t }}</p>
   <button
     type="button"
     class="inline-flex h-10 items-center justify-center rounded-lg bg-destructive px-4 text-sm font-medium text-white transition-colors hover:bg-destructive/90"
     (click)="deleteAccount()"
   >
-    Delete Account
+    {{ 'Delete Account' | t }}
   </button>
 </div>

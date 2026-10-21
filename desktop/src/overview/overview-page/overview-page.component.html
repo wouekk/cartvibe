@@ -151,7 +151,7 @@
       <span class="text-xs font-medium text-muted-foreground">{{ 'Receipts' | t }}</span>
       <span class="text-3xl font-bold">{{ overview()?.receiptCount ?? "–" }}</span>
       @if ((overview()?.openReceiptCount ?? 0) > 0) {
-        <span class="text-[0.8125rem] font-medium text-muted-foreground text-warning-text">{{ overview()?.openReceiptCount }} to check</span>
+        <span class="text-[0.8125rem] font-medium text-muted-foreground text-warning-text">{{ '{count} to check' | t: { count: overview()?.openReceiptCount ?? 0 } }}</span>
       } @else {
         <span class="text-[0.8125rem] font-medium text-muted-foreground">{{ 'All done' | t }}</span>
       }
@@ -164,7 +164,7 @@
           <app-money [display]="true" [value]="unhealthyTotal()"></app-money>
         </span>
         @if (unhealthyTotal() > 0) {
-          <span class="text-[0.8125rem] font-medium text-muted-foreground text-warning-text">{{ unhealthyShare() }}% of the spending</span>
+          <span class="text-[0.8125rem] font-medium text-muted-foreground text-warning-text">{{ '{share}% of the spending' | t: { share: unhealthyShare() } }}</span>
         } @else {
           <span class="text-[0.8125rem] font-medium text-muted-foreground">{{ 'Nothing unhealthy' | t }}</span>
         }
@@ -195,7 +195,7 @@
     @if (shoppingListGroupId(); as listGroupId) {
       <a class="rw-tile rw-tile-link" data-testid="overview-tile-to-buy" [routerLink]="['/shopping-lists/group', listGroupId]">
         <span class="text-xs font-medium text-muted-foreground">{{ 'To buy' | t }}</span>
-        <span class="text-3xl font-bold">{{ itemsToBuy() }} {{ (itemsToBuy() === 1 ? 'item' : 'items') | t }}</span>
+        <span class="text-3xl font-bold">{{ itemsToBuy() }} <span class="text-lg font-semibold">{{ itemsToBuy() | plural: 'item' : 'items' }}</span></span>
         <span class="text-[0.8125rem] font-medium text-muted-foreground">{{ (listSummaries().length === 1 ? 'on {count} list' : 'on {count} lists') | t: { count: listSummaries().length } }}</span>
       </a>
     }
@@ -223,7 +223,7 @@
                       (checkedChange)="toggleSegment(segment.name)"
                     />
                     <span class="size-2.5 rounded-full" [style.background]="segment.color"></span>
-                    <span>{{ segment.name }}</span>
+                    <span>{{ segment.name | t }}</span>
                   </label>
                 </li>
               }
@@ -255,10 +255,10 @@
                         data-testid="overview-category-open"
                         (click)="openCategory(segment)"
                       >
-                        {{ segment.name }}
+                        {{ segment.name | t }}
                       </button>
                     } @else {
-                      {{ segment.name }}
+                      {{ segment.name | t }}
                     }
                   </td>
                   <td class="text-right font-semibold py-2.5 pl-3 text-right font-medium tabular-nums">{{ segment.total | displayCurrency }}</td>

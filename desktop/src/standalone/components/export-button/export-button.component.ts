@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../../i18n/translate.pipe";
 import { Component, input } from "@angular/core";
 import { ButtonModule } from "../../../button/index";
 import { ReceiptPagedRequestCommand } from "../../../open-api/index";
@@ -5,7 +6,7 @@ import { ReceiptExportService } from "../../../services/receipt-export.service";
 
 @Component({
   selector: "app-export-button",
-  imports: [
+  imports: [TranslatePipe, 
     ButtonModule
   ],
   templateUrl: "./export-button.component.html",

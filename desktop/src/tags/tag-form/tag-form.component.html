@@ -2,11 +2,11 @@
   <form [formGroup]="form">
     <div class="flex flex-col">
       <app-input
-        label="Name"
+        [label]="'Name' | t"
         [inputFormControl]="form | formGet : 'name'"
       ></app-input>
       <app-input
-        label="Description"
+        [label]="'Description' | t"
         [inputFormControl]="form | formGet : 'description'"
       ></app-input>
     </div>

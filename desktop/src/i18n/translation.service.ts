@@ -1,5 +1,5 @@
 import { computed, effect, Injectable, signal } from "@angular/core";
-import { PL } from "./pl";
+import { PL, PL_PLURALS } from "./pl";
 
 export type AppLanguage = "en" | "pl";
 
@@ -53,6 +53,17 @@ export class TranslationService {
   public t(text: string, params?: Record<string, string | number>): string {
     const translated = this.language() === "pl" ? (PL[text] ?? text) : text;
     return params ? translated.replace(/\{(\w+)\}/g, (match, key) => String(params[key] ?? match)) : translated;
+  }
+
+  /** "1 item" / "3 items": the count with the noun in the right form (Polish has three: 1, 2-4, 5+). */
+  public plural(count: number, singular: string, plural: string): string {
+    if (this.language() === "pl" && PL_PLURALS[singular]) {
+      const [one, few, many] = PL_PLURALS[singular];
+      const lastTwo = count % 100;
+      const last = count % 10;
+      return count === 1 ? one : last >= 2 && last <= 4 && !(lastTwo >= 12 && lastTwo <= 14) ? few : many;
+    }
+    return count === 1 ? singular : plural;
   }
 
   /** Translates the English month names inside a period label ("October 2026", "12 Oct – 18 Oct 2026"). */

@@ -5,8 +5,8 @@
   <app-add-button
     *hasAppPermission="Permission.AppTagsCreate"
     data-testid="tag-add"
-    buttonText="Add Tag"
-    tooltip="Add Tag"
+    [buttonText]="'Add Tag' | t"
+    [tooltip]="'Add Tag' | t"
     (clicked)="openAddDialog()"
   >
   </app-add-button>

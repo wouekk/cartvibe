@@ -391,7 +391,7 @@ export class OverviewPageComponent {
       stroke: { show: false },
       grid: { borderColor: colors.border, strokeDashArray: 3, padding: { left: 8, right: 8 }, xaxis: { lines: { show: false } } },
       xaxis: {
-        categories: bars.map((bar) => bar.shortName),
+        categories: bars.map((bar) => this.translation.months(bar.shortName)),
         axisBorder: { color: colors.border },
         axisTicks: { show: false },
         labels: { style: { colors: colors.mutedForeground, fontSize: "12px" } },

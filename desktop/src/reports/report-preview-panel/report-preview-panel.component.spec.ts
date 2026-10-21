@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { Component, NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormArray, FormBuilder, FormControl, FormGroup } from "@angular/forms";
@@ -23,6 +24,7 @@ describe("ReportPreviewPanelComponent", () => {
   beforeEach(async () => {
     dialog = { open: jest.fn() };
     await TestBed.configureTestingModule({
+      imports: [TranslatePipe],
       declarations: [ReportPreviewPanelComponent, NoopComponent],
       providers: [provideZonelessChangeDetection(), FormBuilder, { provide: AppDialog, useValue: dialog }],
       schemas: [NO_ERRORS_SCHEMA],

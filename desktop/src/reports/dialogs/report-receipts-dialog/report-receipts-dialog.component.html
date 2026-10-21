@@ -1,24 +1,24 @@
-<app-dialog headerText="Receipts in this report">
+<app-dialog [headerText]="'Receipts in this report' | t">
   <div class="drill__subtitle">{{ count() }} receipts · {{ periodLabel }}</div>
 
   @if (!loading() && hasError()) {
     <div class="drill__warning" data-testid="report-receipt-error">
       <app-icon name="warning"></app-icon>
-      The receipts couldn't be loaded.
+      {{ 'The receipts couldn\'t be loaded.' | t }}
     </div>
   }
 
   @if (!loading() && !hasError() && truncated()) {
     <div class="drill__warning" data-testid="report-receipt-truncated">
       <app-icon name="info"></app-icon>
-      Showing the newest {{ receipts().length }} of {{ totalCount() }} receipts.
+      {{ 'Showing the newest {count} of {total} receipts.' | t: { count: receipts().length, total: totalCount() } }}
     </div>
   }
 
   @if (loading()) {
     <div class="drill__state">
       <app-icon class="drill__spinner" name="autorenew"></app-icon>
-      Loading receipts…
+      {{ 'Loading receipts…' | t }}
     </div>
   } @else if (selected(); as receipt) {
     <!-- Detail: a simple breakdown of the selected receipt -->
@@ -26,7 +26,7 @@
       class="drill__back"
       matButtonType="basic"
       icon="arrow_back"
-      buttonText="All receipts"
+      [buttonText]="'All receipts' | t"
       (clicked)="backToList()"
       data-testid="report-receipt-back"
     ></app-button>
@@ -43,36 +43,36 @@
 
       <div class="drill__grid">
         <div class="drill__cell">
-          <div class="drill__cell-label">Amount</div>
+          <div class="drill__cell-label">{{ 'Amount' | t }}</div>
           <div class="drill__cell-value drill__num">{{ receipt.amount | customCurrency }}</div>
         </div>
         <div class="drill__cell">
-          <div class="drill__cell-label">Category</div>
+          <div class="drill__cell-label">{{ 'Category' | t }}</div>
           <div class="drill__cell-value">{{ receipt.categories | name }}</div>
         </div>
         <div class="drill__cell">
-          <div class="drill__cell-label">Tags</div>
+          <div class="drill__cell-label">{{ 'Tags' | t }}</div>
           <div class="drill__cell-value">{{ receipt.tags | name }}</div>
         </div>
         <div class="drill__cell">
-          <div class="drill__cell-label">Date</div>
+          <div class="drill__cell-label">{{ 'Date' | t }}</div>
           <div class="drill__cell-value">{{ receipt.date | appDate: "mediumDate" : "calendar" }}</div>
         </div>
       </div>
     </div>
   } @else if (receipts().length === 0) {
-    <div class="drill__state">No receipts match this report.</div>
+    <div class="drill__state">{{ 'No receipts match this report.' | t }}</div>
   } @else {
     <!-- List: every covered receipt, click a row to inspect it -->
     <div class="drill__table-wrap">
       <table class="drill__table">
         <thead>
           <tr>
-            <th>Receipt</th>
-            <th>Date</th>
-            <th>Category</th>
-            <th class="drill__num">Amount</th>
-            <th>Status</th>
+            <th>{{ 'Receipt' | t }}</th>
+            <th>{{ 'Date' | t }}</th>
+            <th>{{ 'Category' | t }}</th>
+            <th class="drill__num">{{ 'Amount' | t }}</th>
+            <th>{{ 'Status' | t }}</th>
             <th class="drill__chevron-col"></th>
           </tr>
         </thead>
@@ -99,11 +99,11 @@
       <app-button
         matButtonType="matRaisedButton"
         icon="open_in_new"
-        buttonText="Open full receipt"
+        [buttonText]="'Open full receipt' | t"
         (clicked)="openFullReceipt(receipt)"
         data-testid="report-receipt-open-full"
       ></app-button>
     }
-    <app-button matButtonType="basic" buttonText="Close" (clicked)="close()"></app-button>
+    <app-button matButtonType="basic" [buttonText]="'Close' | t" (clicked)="close()"></app-button>
   </div>
 </app-dialog>

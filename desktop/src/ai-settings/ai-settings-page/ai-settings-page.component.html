@@ -1,16 +1,15 @@
 <div class="ai-settings">
-  <h1>AI</h1>
+  <h1>{{ 'AI' | t }}</h1>
   <p class="intro">
-    The AI reads receipts and their products, and tags food as healthy or not. Without it everything still
-    works; receipts just wait until it is back.
+    {{ 'The AI reads receipts and their products, and tags food as healthy or not. Without it everything still works; receipts just wait until it is back.' | t }}
   </p>
 
   @if (loading()) {
-    <p class="muted">Loading…</p>
+    <p class="muted">{{ 'Loading…' | t }}</p>
   } @else {
     <form class="card" [formGroup]="form" (ngSubmit)="save()">
       <app-select
-        label="Provider"
+        [label]="'Provider' | t"
         optionValueKey="value"
         optionDisplayKey="displayValue"
         data-testid="ai-provider"
@@ -20,16 +19,16 @@
 
       @if (!isGemini()) {
         <app-input
-          label="Server URL"
+          [label]="'Server URL' | t"
           data-testid="ai-url"
-          placeholder="http://192.168.1.20:1234/v1"
+          [placeholder]="'http://192.168.1.20:1234/v1' | t"
           hint="LM Studio's address as the NAS reaches it, ending in /v1"
           [inputFormControl]="form | formGet : 'url'"
         ></app-input>
       }
 
       <app-input
-        label="Model"
+        [label]="'Model' | t"
         data-testid="ai-model"
         [hint]="isGemini() ? 'For example gemini-2.5-flash' : 'The model name as LM Studio lists it'"
         [inputFormControl]="form | formGet : 'model'"
@@ -46,7 +45,7 @@
 
       @if (isLmStudio()) {
         <app-checkbox
-          label="The model reads images (a vision model)"
+          [label]="'The model reads images (a vision model)' | t"
           data-testid="ai-vision"
           [inputFormControl]="form | formGet : 'isVisionModel'"
         ></app-checkbox>
@@ -60,7 +59,7 @@
           data-testid="ai-save"
           [disabled]="saving()"
         >
-          Save changes
+          {{ 'Save changes' | t }}
         </button>
         <button
           hlmBtn variant="outline"
@@ -70,11 +69,11 @@
           (click)="testConnection()"
         >
           <app-icon name="wifi_tethering"></app-icon>
-          {{ testing() ? "Testing…" : "Test connection" }}
+          {{ (testing() ? 'Testing…' : 'Test connection') | t }}
         </button>
       </div>
       @if (saved() && form.dirty) {
-        <p class="muted text-sm">Save first to test the new settings.</p>
+        <p class="muted text-sm">{{ 'Save first to test the new settings.' | t }}</p>
       }
 
       @if (connectionResult(); as result) {

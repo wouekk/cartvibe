@@ -2,22 +2,20 @@
   <form [formGroup]="form">
     <div class="flex flex-col">
       <app-input
-        label="Name"
+        [label]="'Name' | t"
         [inputFormControl]="form | formGet : 'name'"
       ></app-input>
       <app-input
-        label="Description"
+        [label]="'Description' | t"
         [inputFormControl]="form | formGet : 'description'"
       ></app-input>
       <app-checkbox
-        label="Never let the AI use this category"
+        [label]="'Never let the AI use this category' | t"
         data-testid="category-skipped"
         [inputFormControl]="form | formGet : 'skipped'"
       ></app-checkbox>
       <p class="text-muted-foreground text-sm mt-2">
-        The AI picks from these categories when it reads a receipt, and adds new ones here by itself. Rename one
-        and the AI is told to use the new name instead of the old; switch one off and it is told to choose
-        another.
+        {{ 'The AI picks from these categories when it reads a receipt, and adds new ones here by itself. Rename one and the AI is told to use the new name instead of the old; switch one off and it is told to choose another.' | t }}
       </p>
     </div>
 

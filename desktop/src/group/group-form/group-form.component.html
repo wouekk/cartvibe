@@ -15,28 +15,28 @@
       [data]="originalGroup"
       [formMode]="formConfig.mode"
     ></app-audit-detail-section>
-    <app-form-section headerText="Group Details" [indent]="true">
+    <app-form-section [headerText]="'Group Details' | t" [indent]="true">
       <app-input
-        label="Group Name"
+        [label]="'Group Name' | t"
         [readonly]="formConfig.mode | inputReadonly"
         [inputFormControl]="form | formGet : 'name'"
       ></app-input>
       <app-select
-        label="Status"
+        [label]="'Status' | t"
         optionValueKey="value"
         optionDisplayKey="displayValue"
         [inputFormControl]="form | formGet : 'status'"
         [options]="groupStatusOptions"
       ></app-select>
       <app-checkbox
-        label="Isolate members"
-        helpText="When on, members of this group can't see each other. Members with a role that can see all members remain visible to everyone."
+        [label]="'Isolate members' | t"
+        [helpText]="'When on, members of this group can\'t see each other. Members with a role that can see all members remain visible to everyone.' | t"
         [readonly]="formConfig.mode | inputReadonly"
         [inputFormControl]="form | formGet : 'isolateMembers'"
       ></app-checkbox>
     </app-form-section>
     <app-form-section
-      headerText="Group Members"
+      [headerText]="'Group Members' | t"
       [headerButtonsTemplate]="buttonTemplate"
       [indent]="true"
     >
@@ -58,7 +58,7 @@
     matButtonType="iconButton"
     icon="add"
     color="accent"
-    tooltip="Add User to Group"
+    [tooltip]="'Add User to Group' | t"
     (clicked)="addGroupMemberClicked()"
   ></app-button>
 </ng-template>
@@ -76,13 +76,13 @@
     <app-edit-button
       *ngIf="canUpdateGroupMembers()"
       data-testid="group-member-edit"
-      tooltip="Edit group member"
+      [tooltip]="'Edit group member' | t"
       color="accent"
       (clicked)="editGroupMemberClicked(index)"
     ></app-edit-button>
     <app-delete-button
       *ngIf="canDeleteGroupMembers()"
-      tooltip="Remove group member"
+      [tooltip]="'Remove group member' | t"
       [disabled]="disableDeleteButton"
       (clicked)="removeGroupMember(index)"
     ></app-delete-button>

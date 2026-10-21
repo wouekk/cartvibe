@@ -1,13 +1,13 @@
 <div class="flex flex-col">
   <app-table-header
-    headerText="Users"
+    [headerText]="'Users' | t"
     subtitle="Manage user accounts and the roles assigned to them."
   >
     <div class="flex gap-2">
       <ng-container *hasAppPermission="Permission.AppUsersDelete">
         <app-button
           *ngIf="hasSelectedUsers"
-          buttonText="Delete Selected"
+          [buttonText]="'Delete Selected' | t"
           color="warn"
           icon="delete"
           (clicked)="bulkDeleteUsers()"
@@ -16,8 +16,8 @@
       <app-add-button
         *hasAppPermission="Permission.AppUsersCreate"
         data-testid="user-add"
-        buttonText="Add User"
-        tooltip="Add User"
+        [buttonText]="'Add User' | t"
+        [tooltip]="'Add User' | t"
         (clicked)="openUserFormDialog()"
       ></app-add-button>
     </div>
@@ -65,7 +65,7 @@
       data-testid="user-edit"
       matButtonType="iconButton"
       icon="edit"
-      tooltip="Edit User"
+      [tooltip]="'Edit User' | t"
       color="accent"
       (clicked)="openUserFormDialog(element)"
     ></app-button>
@@ -74,7 +74,7 @@
       data-testid="user-set-password"
       matButtonType="iconButton"
       icon="password"
-      tooltip="Set password"
+      [tooltip]="'Set password' | t"
       color="accent"
       (clicked)="openResetPasswordDialog(element)"
     ></app-button>
@@ -84,7 +84,7 @@
         matButtonType="iconButton"
         icon="person"
         color="accent"
-        tooltip="Convert to normal user"
+        [tooltip]="'Convert to normal user' | t"
         (clicked)="openDummyUserConversionDialog(element)"
       >
       </app-button>

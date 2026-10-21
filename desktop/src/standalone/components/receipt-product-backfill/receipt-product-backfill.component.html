@@ -1,8 +1,7 @@
 @if (canQueue()) {
   <div class="backfill">
     <p class="backfill__text">
-      New receipts have their products read by the AI automatically. Older receipts can be read too;
-      each one uses AI credits once, and they are read a few at a time in the background.
+      {{ 'New receipts have their products read by the AI automatically. Older receipts can be read too; each one uses AI credits once, and they are read a few at a time in the background.' | t }}
     </p>
     <div class="backfill__actions">
       <button
@@ -13,14 +12,14 @@
         (click)="queueOlderReceipts()"
       >
         <app-icon name="auto_awesome"></app-icon>
-        Read products of older receipts
+        {{ 'Read products of older receipts' | t }}
       </button>
       @if (queued() !== undefined) {
         <span class="backfill__result" role="status" data-testid="receipt-product-backfill-result">
           @if (queued() === 0) {
             Nothing to read: every receipt with an image is already read or queued.
           } @else {
-            Queued {{ queued() }} {{ queued() === 1 ? "receipt" : "receipts" }}.
+            Queued {{ queued() }} {{ (queued() === 1 ? 'receipt' : 'receipts') | t }}.
           }
         </span>
       }

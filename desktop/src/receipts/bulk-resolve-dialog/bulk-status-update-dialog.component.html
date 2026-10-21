@@ -1,15 +1,15 @@
-<app-dialog headerText="Bulk Status Update">
+<app-dialog [headerText]="'Bulk Status Update' | t">
   <form [formGroup]="form">
     <app-select
-      label="Status"
+      [label]="'Status' | t"
       [inputFormControl]="form | formGet : 'status'"
       [options]="receiptStatusOptions"
       optionValueKey="value"
       optionDisplayKey="displayValue"
     ></app-select>
     <app-textarea
-      label="Comment"
-      placeholder="Paid via venmo..."
+      [label]="'Comment' | t"
+      [placeholder]="'Paid via venmo...' | t"
       [inputFormControl]="form | formGet : 'comment'"
     ></app-textarea>
     <app-dialog-footer

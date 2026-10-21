@@ -16,7 +16,7 @@
             <button
               type="button"
               class="-mr-0.5 rounded-sm p-0.5 text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
-              aria-label="Remove"
+              [attr.aria-label]="'Remove' | t"
               data-testid="autocomplete-chip-remove"
               (click)="removeOption(i)"
             >
@@ -38,7 +38,7 @@
         <button
           type="button"
           class="-mr-1.5 rounded-sm p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-          aria-label="Clear"
+          [attr.aria-label]="'Clear' | t"
           data-testid="autocomplete-clear"
           (click)="removeSingleOption()"
         >
@@ -59,7 +59,7 @@
     >
       <hlm-autocomplete-input class="w-full" [inputId]="inputId" [showSearch]="false" [placeholder]="placeholder ?? ''" />
       <hlm-autocomplete-content *hlmAutocompletePortal>
-        <hlm-autocomplete-empty>No matches</hlm-autocomplete-empty>
+        <hlm-autocomplete-empty>{{ 'No matches' | t }}</hlm-autocomplete-empty>
         <div hlmAutocompleteList class="max-h-60 overflow-y-auto p-1">
           @for (option of filteredOptions | async; track $index) {
             <hlm-autocomplete-item [value]="optionValueKey ? option[optionValueKey] : option">
@@ -71,7 +71,7 @@
             </hlm-autocomplete-item>
           }
           @if (showCreatable()) {
-            <hlm-autocomplete-item [id]="creatableOptionId" [value]="createSentinel">Add {{ filterFormControl.value }}</hlm-autocomplete-item>
+            <hlm-autocomplete-item [id]="creatableOptionId" [value]="createSentinel">{{ 'Add {value}' | t: { value: filterFormControl.value } }}</hlm-autocomplete-item>
           }
         </div>
       </hlm-autocomplete-content>

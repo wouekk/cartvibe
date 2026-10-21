@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
@@ -29,7 +30,7 @@ describe("SystemTaskTableComponent", () => {
     await TestBed.configureTestingModule({
       declarations: [SystemTaskTableComponent, ButtonComponent],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      imports: [SharedUiModule,
+      imports: [TranslatePipe, SharedUiModule,
         AppIconComponent,
         NgxsModule.forRoot([SystemTaskTableState, UserState]),
         TableModule,

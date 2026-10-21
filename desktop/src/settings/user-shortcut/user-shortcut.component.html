@@ -31,15 +31,15 @@
     <ng-container content>
       <div class="flex flex-col justify-center">
         <app-input
-          label="Name"
+          [label]="'Name' | t"
           [inputFormControl]="parentForm() | formGet : 'userShortcuts.' + i + '.name'"
         ></app-input>
         <app-input
-          label="Url"
+          [label]="'Url' | t"
           [inputFormControl]="parentForm() | formGet : 'userShortcuts.' + i + '.url'"
         ></app-input>
         <app-icon-autocomplete
-          label="Icon"
+          [label]="'Icon' | t"
           [inputFormControl]="parentForm() | formGet : 'userShortcuts.' + i + '.icon'"
         ></app-icon-autocomplete>
       </div>

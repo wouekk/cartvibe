@@ -15,7 +15,7 @@
       {{ selectedOptionValue() }}
     </ng-container>
     <ng-container *ngSwitchCase="CustomFieldType.Boolean">
-      {{ customFieldValue.booleanValue ? "Yes" : "No" }}
+      {{ (customFieldValue.booleanValue ? 'Yes' : 'No') | t }}
     </ng-container>
   </ng-container>
 }

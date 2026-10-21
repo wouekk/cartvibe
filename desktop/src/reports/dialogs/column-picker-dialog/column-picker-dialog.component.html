@@ -7,24 +7,24 @@
         <div class="picker__kind-card" (click)="pickDimension()" data-testid="picker-kind-dimension">
           <span class="picker__kind-icon kind-dimension"><app-icon name="sell"></app-icon></span>
           <div class="picker__kind-text">
-            <div class="picker__kind-title">Dimension</div>
-            <div class="picker__kind-desc">A way to cut the data — a label column like Category</div>
+            <div class="picker__kind-title">{{ 'Dimension' | t }}</div>
+            <div class="picker__kind-desc">{{ 'A way to cut the data — a label column like Category' | t }}</div>
           </div>
           <app-icon class="picker__chevron" name="chevron_right"></app-icon>
         </div>
         <div class="picker__kind-card" (click)="pickAggregate()" data-testid="picker-kind-aggregate">
           <span class="picker__kind-icon kind-aggregate"><app-icon name="functions"></app-icon></span>
           <div class="picker__kind-text">
-            <div class="picker__kind-title">Aggregate</div>
-            <div class="picker__kind-desc">SUM, COUNT, AVG… over a measure. Rolls up children</div>
+            <div class="picker__kind-title">{{ 'Aggregate' | t }}</div>
+            <div class="picker__kind-desc">{{ 'SUM, COUNT, AVG… over a measure. Rolls up children' | t }}</div>
           </div>
           <app-icon class="picker__chevron" name="chevron_right"></app-icon>
         </div>
         <div class="picker__kind-card" (click)="pickFormula()" data-testid="picker-kind-formula">
           <span class="picker__kind-icon kind-formula"><app-icon name="calculate"></app-icon></span>
           <div class="picker__kind-text">
-            <div class="picker__kind-title">Formula</div>
-            <div class="picker__kind-desc">An expression over other columns — recomputed each row</div>
+            <div class="picker__kind-title">{{ 'Formula' | t }}</div>
+            <div class="picker__kind-desc">{{ 'An expression over other columns — recomputed each row' | t }}</div>
           </div>
           <app-icon class="picker__chevron" name="chevron_right"></app-icon>
         </div>
@@ -32,14 +32,14 @@
     }
 
     @case ("dim") {
-      <app-select label="Field" optionValueKey="value" optionDisplayKey="displayValue" optionBadgeKey="badge"
+      <app-select [label]="'Field' | t" optionValueKey="value" optionDisplayKey="displayValue" optionBadgeKey="badge"
         [readonly]="lockField"
         [options]="dimensionOptions" [inputFormControl]="pickerForm | formGet: 'field'"></app-select>
-      <app-input label="Column label" [inputFormControl]="pickerForm | formGet: 'label'"></app-input>
+      <app-input [label]="'Column label' | t" [inputFormControl]="pickerForm | formGet: 'label'"></app-input>
     }
 
     @case ("agg") {
-      <label class="picker__label">Function</label>
+      <label class="picker__label">{{ 'Function' | t }}</label>
       <div class="picker__fns">
         @for (fn of aggregateFunctions; track fn) {
           <button type="button" class="picker__fn" [class.picker__fn--selected]="currentAggFunc === fn"
@@ -47,24 +47,24 @@
         }
       </div>
       @if (aggregateNeedsMeasure) {
-        <app-select label="Measure" optionValueKey="value" optionDisplayKey="displayValue" optionBadgeKey="badge"
+        <app-select [label]="'Measure' | t" optionValueKey="value" optionDisplayKey="displayValue" optionBadgeKey="badge"
           [options]="measureOptions" [inputFormControl]="pickerForm | formGet: 'measure'"></app-select>
       }
-      <app-input label="Column label" [inputFormControl]="pickerForm | formGet: 'label'"></app-input>
+      <app-input [label]="'Column label' | t" [inputFormControl]="pickerForm | formGet: 'label'"></app-input>
     }
 
     @case ("formula") {
-      <app-input label="Column label" [inputFormControl]="pickerForm | formGet: 'label'"></app-input>
+      <app-input [label]="'Column label' | t" [inputFormControl]="pickerForm | formGet: 'label'"></app-input>
 
-      <label class="picker__label">Expression</label>
+      <label class="picker__label">{{ 'Expression' | t }}</label>
       <div class="picker__expr" [class.picker__expr--empty]="!exprValue()">
         <span class="picker__expr-text">{{ exprValue() || "Click a column, then operators, to build the formula" }}</span>
         <span class="picker__expr-actions">
-          <button type="button" class="picker__expr-btn" title="Remove last" [disabled]="!exprValue()"
+          <button type="button" class="picker__expr-btn" [title]="'Remove last' | t" [disabled]="!exprValue()"
             (click)="removeLastToken()" data-testid="picker-formula-backspace">
             <app-icon name="backspace"></app-icon>
           </button>
-          <button type="button" class="picker__expr-btn" title="Clear" [disabled]="!exprValue()"
+          <button type="button" class="picker__expr-btn" [title]="'Clear' | t" [disabled]="!exprValue()"
             (click)="clearExpression()" data-testid="picker-formula-clear">
             <app-icon name="close"></app-icon>
           </button>
@@ -76,7 +76,7 @@
         {{ formulaStatus().message }}
       </div>
       @if (referenceableColumns.length > 0) {
-        <div class="picker__hint">Insert a column</div>
+        <div class="picker__hint">{{ 'Insert a column' | t }}</div>
         <div class="picker__chips">
           @for (column of referenceableColumns; track column.id) {
             <span class="picker__chip" [attr.data-testid]="'picker-col-' + column.name"
@@ -84,7 +84,7 @@
           }
         </div>
       }
-      <div class="picker__hint">Operators</div>
+      <div class="picker__hint">{{ 'Operators' | t }}</div>
       <div class="picker__ops">
         @for (operator of operators; track operator) {
           <span class="picker__op" [attr.data-testid]="'picker-op-' + operator"
@@ -96,13 +96,13 @@
 
   <div class="picker__footer">
     @if (step() !== "kind" && !lockField) {
-      <app-button matButtonType="basic" buttonText="Back" icon="arrow_back" (clicked)="back()"
+      <app-button matButtonType="basic" [buttonText]="'Back' | t" icon="arrow_back" (clicked)="back()"
         data-testid="picker-back"></app-button>
     }
     <span class="picker__footer-spacer"></span>
-    <app-button matButtonType="basic" buttonText="Cancel" (clicked)="cancel()"></app-button>
+    <app-button matButtonType="basic" [buttonText]="'Cancel' | t" (clicked)="cancel()"></app-button>
     @if (step() !== "kind") {
-      <app-button buttonText="Save column" icon="check" [disabled]="!canSave()" (clicked)="save()"
+      <app-button [buttonText]="'Save column' | t" icon="check" [disabled]="!canSave()" (clicked)="save()"
         data-testid="picker-save"></app-button>
     }
   </div>

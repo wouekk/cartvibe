@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ColorPickerComponent } from './color-picker.component';
@@ -12,7 +13,7 @@ describe('ColorPickerComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       declarations: [ColorPickerComponent],
-      imports: [
+      imports: [TranslatePipe, 
         ReactiveFormsModule,
         NoopAnimationsModule,
       ],

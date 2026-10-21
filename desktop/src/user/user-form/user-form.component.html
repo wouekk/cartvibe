@@ -3,18 +3,18 @@
     {{ user ? "Edit " + user.displayName : "Create User" }}
   </h2>
   <form [formGroup]="form" (ngSubmit)="submit()">
-    <app-form-section headerText="User Details">
+    <app-form-section [headerText]="'User Details' | t">
       <app-input
-        label="Username"
+        [label]="'Username' | t"
         [inputFormControl]="form | formGet : 'username'"
       ></app-input>
       <app-input
-        label="Displayname"
+        [label]="'Displayname' | t"
         [inputFormControl]="form | formGet : 'displayName'"
       ></app-input>
       <app-input
         *ngIf="!user"
-        label="Password"
+        [label]="'Password' | t"
         type="password"
         [inputFormControl]="form | formGet : 'password'"
         [showGeneratePassword]="true"
@@ -23,7 +23,7 @@
       <div class="flex items-center">
         <app-select
           class="grow"
-          label="Role"
+          [label]="'Role' | t"
           optionValueKey="id"
           optionDisplayKey="name"
           [inputFormControl]="form | formGet : 'appRoleId'"
@@ -35,23 +35,22 @@
           matButtonType="iconButton"
           icon="visibility"
           color="accent"
-          tooltip="Preview role"
+          [tooltip]="'Preview role' | t"
           [disabled]="!selectedRole()"
           (clicked)="previewRole()"
         ></app-button>
       </div>
       <app-checkbox
-        label="Is Dummy User?"
+        [label]="'Is Dummy User?' | t"
         [helpText]="isDummerUserHelpText"
         [inputFormControl]="form | formGet : 'isDummyUser'"
       ></app-checkbox>
     </app-form-section>
 
     @if (grantRows().length) {
-      <app-form-section headerText="Category &amp; tag access">
+      <app-form-section [headerText]="'Category &amp; tag access' | t">
         <div class="hint hint-inline">
-          Limit this user to specific categories and tags, per group. This narrows
-          within whatever their group role already allows — it can never widen it.
+          {{ 'Limit this user to specific categories and tags, per group. This narrows within whatever their group role already allows — it can never widen it.' | t }}
         </div>
 
         @for (row of grantRows(); track row.groupId) {

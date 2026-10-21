@@ -1,3 +1,4 @@
+import { PluralPipe, TranslatePipe } from "../i18n/translate.pipe";
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
@@ -8,7 +9,7 @@ import { OptionDisplayPipe } from "./autocomlete/option-display.pipe";
 
 @NgModule({
   declarations: [AutocomleteComponent, OptionDisplayPipe],
-  imports: [CommonModule, ReactiveFormsModule, AppIconComponent, ...HlmAutocompleteImports],
+  imports: [TranslatePipe, PluralPipe, CommonModule, ReactiveFormsModule, AppIconComponent, ...HlmAutocompleteImports],
   exports: [AutocomleteComponent],
 })
 export class AutocompleteModule {}

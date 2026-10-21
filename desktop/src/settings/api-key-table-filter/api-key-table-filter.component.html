@@ -1,12 +1,12 @@
 <app-dialog
-  headerText="Filter API Keys"
+  [headerText]="'Filter API Keys' | t"
 >
   <form
     [formGroup]="form"
     (ngSubmit)="submit()"
   >
     <app-select
-      label="API Keys to View"
+      [label]="'API Keys to View' | t"
       optionValueKey="value"
       optionDisplayKey="displayValue"
       [inputFormControl]="form | formGet: 'associatedApiKeys'"

@@ -1,10 +1,10 @@
 @if (mode() === formMode.add || (mode() === formMode.edit && canCreateComments())) {
   <div class="mb-2">
     <app-card>
-      <strong header class="mb-4">Leave a Comment</strong>
+      <strong header class="mb-4">{{ 'Leave a Comment' | t }}</strong>
       <div content class="w-full">
         <app-textarea
-          label="Comment"
+          [label]="'Comment' | t"
           [inputFormControl]="newCommentFormControl"
         ></app-textarea>
         <ng-container
@@ -37,7 +37,7 @@
     </div>
   </app-card>
 } @else if (internalComments().length === 0 && mode() === formMode.view) {
-  <div>No comments for this receipt</div>
+  <div>{{ 'No comments for this receipt' | t }}</div>
 }
 
 <ng-template
@@ -105,6 +105,6 @@
 
 <ng-template #add>
   <div class="flex justify-end">
-    <app-button buttonText="Comment" (clicked)="addComment()"></app-button>
+    <app-button [buttonText]="'Comment' | t" (clicked)="addComment()"></app-button>
   </div>
 </ng-template>

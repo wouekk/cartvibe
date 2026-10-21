@@ -1,3 +1,4 @@
+import { PluralPipe, TranslatePipe } from "../i18n/translate.pipe";
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BaseFormComponent } from './base-form/base-form.component';
@@ -8,7 +9,7 @@ import { BaseFormComponent } from './base-form/base-form.component';
   declarations: [
     BaseFormComponent
   ],
-  imports: [
+  imports: [TranslatePipe, PluralPipe, 
     CommonModule
   ],
   exports: [

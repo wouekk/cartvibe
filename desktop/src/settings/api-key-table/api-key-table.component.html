@@ -7,8 +7,8 @@
       <app-add-button
         *ngIf="canCreate()"
         data-testid="api-key-add"
-        buttonText="Add API Key"
-        tooltip="Add API Key"
+        [buttonText]="'Add API Key' | t"
+        [tooltip]="'Add API Key' | t"
         (clicked)="openCreateApiKeyDialog()"
       ></app-add-button>
       <ng-container *ngIf="canViewAll()">
@@ -17,7 +17,7 @@
           matButtonType="iconButton"
           icon="filter_alt"
           color="accent"
-          tooltip="Filter API Keys"
+          [tooltip]="'Filter API Keys' | t"
           (clicked)="openFilterDialog()"
         ></app-button>
       </ng-container>
@@ -65,13 +65,13 @@
       *ngIf="canEdit(element)"
       data-testid="api-key-edit"
       color="accent"
-      tooltip="Edit API Key"
+      [tooltip]="'Edit API Key' | t"
       (clicked)="openEditDialog(element)"
     ></app-edit-button>
     <app-delete-button
       *ngIf="canDelete(element)"
       data-testid="api-key-delete"
-      tooltip="Delete API Key"
+      [tooltip]="'Delete API Key' | t"
       (clicked)="deleteApiKey(element)"
     ></app-delete-button>
   </div>

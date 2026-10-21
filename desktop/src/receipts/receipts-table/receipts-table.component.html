@@ -7,8 +7,8 @@
       *ngIf="canCreate"
       class="me-2"
       data-testid="receipt-add"
-      buttonText="Add Receipt"
-      tooltip="Add Receipt"
+      [buttonText]="'Add Receipt' | t"
+      [tooltip]="'Add Receipt' | t"
       [buttonRouterLink]="['/receipts/add']"
     ></app-add-button>
 
@@ -22,7 +22,7 @@
       data-testid="receipts-filter"
       icon="filter_alt"
       matButtonType="iconButton"
-      tooltip="Filter Receipts"
+      [tooltip]="'Filter Receipts' | t"
       color="accent"
       matBadgeColor="accent"
       [matBadgeContent]="numFiltersApplied()"
@@ -35,7 +35,7 @@
       data-testid="receipts-filter-reset"
       icon="restart_alt"
       matButtonType="iconButton"
-      tooltip="Reset filter"
+      [tooltip]="'Reset filter' | t"
       color="accent"
       (clicked)="resetFilterButtonClicked()"
     ></app-button>
@@ -43,7 +43,7 @@
     @if (selectedReceiptIds().length > 1) {
       <app-queue-start-menu
         class="me-2"
-        buttonText="Start Queue"
+        [buttonText]="'Start Queue' | t"
         color="accent"
         [receiptIds]="selectedReceiptIds()"
       ></app-queue-start-menu>
@@ -53,7 +53,7 @@
       data-testid="receipts-overflow-menu"
       matButtonType="iconButton"
       icon="more_vert"
-      tooltip="More actions"
+      [tooltip]="'More actions' | t"
       color="accent"
       [hlmDropdownMenuTrigger]="overflowMenu"
     ></app-button>
@@ -76,7 +76,7 @@
           (click)="quickScanClicked()"
         >
           <app-icon name="receipt_long"></app-icon>
-          <span>Quick Scan</span>
+          <span>{{ 'Quick Scan' | t }}</span>
         </button>
       }
 
@@ -87,7 +87,7 @@
           (click)="exportAllReceipts()"
         >
           <app-icon name="download"></app-icon>
-          <span>Export all receipts</span>
+          <span>{{ 'Export all receipts' | t }}</span>
         </button>
       }
 
@@ -97,7 +97,7 @@
         (click)="configureColumnsButtonClicked()"
       >
         <app-icon name="view_column"></app-icon>
-        <span>Configure Columns</span>
+        <span>{{ 'Configure Columns' | t }}</span>
       </button>
 
       <ng-container *ngIf="canPollEmail && group?.groupSettings?.emailIntegrationEnabled">
@@ -108,7 +108,7 @@
           (click)="pollEmail()"
         >
           <app-icon name="mail"></app-icon>
-          <span>Poll email(s)</span>
+          <span>{{ 'Poll email(s)' | t }}</span>
         </button>
       </ng-container>
 
@@ -122,7 +122,7 @@
           (click)="exportSelectedReceipts()"
         >
           <app-icon name="file_upload"></app-icon>
-          <span>Export Selected Receipts</span>
+          <span>{{ 'Export Selected Receipts' | t }}</span>
         </button>
 
         @if (canEdit) {
@@ -132,7 +132,7 @@
             (click)="showStatusUpdateDialog()"
           >
             <app-icon name="fact_check"></app-icon>
-            <span>Bulk Status Update</span>
+            <span>{{ 'Bulk Status Update' | t }}</span>
           </button>
         }
       }
@@ -151,7 +151,7 @@
 }
 
 @if (filterChips().length > 0) {
-  <div class="receipt-filter-chips flex flex-wrap gap-2" role="list" aria-label="Applied filters">
+  <div class="receipt-filter-chips flex flex-wrap gap-2" role="list" [attr.aria-label]="'Applied filters' | t">
     @for (chip of filterChips(); track chip.key) {
       <span
         hlmBadge
@@ -273,7 +273,7 @@
         data-testid="receipt-mark-done"
         matButtonType="iconButton"
         icon="check"
-        tooltip="Mark as done"
+        [tooltip]="'Mark as done' | t"
         color="primary"
         (clicked)="markDone(element)"
       ></app-button>
@@ -283,7 +283,7 @@
       data-testid="receipt-read-with-ai"
       matButtonType="iconButton"
       icon="auto_awesome"
-      tooltip="Read with AI"
+      [tooltip]="'Read with AI' | t"
       color="accent"
       (clicked)="readWithAi(element)"
     ></app-button>
@@ -292,7 +292,7 @@
       data-testid="receipt-duplicate"
       matButtonType="iconButton"
       icon="file_copy"
-      tooltip="Duplicate"
+      [tooltip]="'Duplicate' | t"
       color="accent"
       (clicked)="duplicateReceipt(element)"
     ></app-button>
@@ -302,7 +302,7 @@
       matButtonType="iconButton"
       icon="delete"
       color="warn"
-      tooltip="Delete"
+      [tooltip]="'Delete' | t"
       (clicked)="deleteReceipt(element)"
     ></app-button>
   </div>

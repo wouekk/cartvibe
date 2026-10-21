@@ -16,14 +16,14 @@
       <table class="products" data-testid="receipt-products-table">
         <thead>
           <tr>
-            <th scope="col">Product</th>
-            <th scope="col">Original</th>
-            <th scope="col">Category</th>
-            <th scope="col">Health</th>
-            <th scope="col">Quantity</th>
-            <th scope="col" class="numeric">Amount</th>
+            <th scope="col">{{ 'Product' | t }}</th>
+            <th scope="col">{{ 'Original' | t }}</th>
+            <th scope="col">{{ 'Category' | t }}</th>
+            <th scope="col">{{ 'Health' | t }}</th>
+            <th scope="col">{{ 'Quantity' | t }}</th>
+            <th scope="col" class="numeric">{{ 'Amount' | t }}</th>
             @if (canUpdate()) {
-              <th scope="col"><span class="sr-only">Correct tags</span></th>
+              <th scope="col"><span class="sr-only">{{ 'Correct tags' | t }}</span></th>
             }
           </tr>
         </thead>
@@ -35,7 +35,7 @@
                   <input
                     class="inline-input"
                     type="text"
-                    aria-label="Product name"
+                    [attr.aria-label]="'Product name' | t"
                     data-testid="receipt-product-edit-name"
                     [value]="draftName()"
                     (input)="setValue(draftName, $event)"
@@ -49,7 +49,7 @@
                   <input
                     class="inline-input"
                     type="text"
-                    aria-label="Quantity"
+                    [attr.aria-label]="'Quantity' | t"
                     [value]="draftQuantity()"
                     (input)="setValue(draftQuantity, $event)"
                     (keydown.enter)="saveEdit(product)"
@@ -60,7 +60,7 @@
                     class="inline-input numeric"
                     type="text"
                     inputmode="decimal"
-                    aria-label="Amount"
+                    [attr.aria-label]="'Amount' | t"
                     data-testid="receipt-product-edit-amount"
                     [value]="draftAmount()"
                     (input)="setValue(draftAmount, $event)"
@@ -72,13 +72,13 @@
                     hlmBtn variant="ghost" size="icon"
                     type="button"
                     data-testid="receipt-product-save"
-                    aria-label="Save"
+                    [attr.aria-label]="'Save' | t"
                     [disabled]="saving()"
                     (click)="saveEdit(product)"
                   >
                     <app-icon name="check"></app-icon>
                   </button>
-                  <button hlmBtn variant="ghost" size="icon" type="button" aria-label="Cancel" (click)="cancelEdit()">
+                  <button hlmBtn variant="ghost" size="icon" type="button" [attr.aria-label]="'Cancel' | t" (click)="cancelEdit()">
                     <app-icon name="close"></app-icon>
                   </button>
                 </td>
@@ -88,7 +88,7 @@
                 <td>
                   <span class="product__name">{{ product.displayName || product.name }}</span>
                   @if (product.planned === false) {
-                    <span class="product__unplanned" data-testid="receipt-product-unplanned">Not on the list</span>
+                    <span class="product__unplanned" data-testid="receipt-product-unplanned">{{ 'Not on the list' | t }}</span>
                   }
                 </td>
                 <td class="muted" data-testid="receipt-product-original">{{ product.name }}</td>
@@ -153,7 +153,7 @@
       </div>
 </ng-template>
   } @else if (view.status === "DONE") {
-    <p class="status" data-testid="receipt-products-none">The AI found no products on this receipt.</p>
+    <p class="status" data-testid="receipt-products-none">{{ 'The AI found no products on this receipt.' | t }}</p>
   }
 
   @if (canUpdate()) {
@@ -161,8 +161,8 @@
       <input
         class="inline-input add-row__name"
         type="text"
-        placeholder="Add a product"
-        aria-label="Product name"
+        [placeholder]="'Add a product' | t"
+        [attr.aria-label]="'Product name' | t"
         data-testid="receipt-product-add-name"
         [value]="newName()"
         (input)="setValue(newName, $event)"
@@ -170,8 +170,8 @@
       <input
         class="inline-input add-row__quantity"
         type="text"
-        placeholder="Qty"
-        aria-label="Quantity"
+        [placeholder]="'Qty' | t"
+        [attr.aria-label]="'Quantity' | t"
         [value]="newQuantity()"
         (input)="setValue(newQuantity, $event)"
       />
@@ -180,7 +180,7 @@
         type="text"
         inputmode="decimal"
         placeholder="0,00"
-        aria-label="Amount"
+        [attr.aria-label]="'Amount' | t"
         data-testid="receipt-product-add-amount"
         [value]="newAmount()"
         (input)="setValue(newAmount, $event)"
@@ -192,7 +192,7 @@
         [disabled]="saving() || newName().trim().length === 0"
       >
         <app-icon name="add"></app-icon>
-        Add
+        {{ 'Add' | t }}
       </button>
     </form>
     @if (formError()) {
@@ -210,9 +210,9 @@
       (click)="readAgain()"
     >
       <app-icon name="refresh"></app-icon>
-      Read again
+      {{ 'Read again' | t }}
     </button>
   }
 } @else if (loadFailed()) {
-  <p class="status">The products could not be loaded.</p>
+  <p class="status">{{ 'The products could not be loaded.' | t }}</p>
 }

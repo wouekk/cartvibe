@@ -1,8 +1,8 @@
 <!-- Report details -->
-<app-report-section icon="description" headerText="Report details" subtitle="Name and the groups it covers">
-  <app-input label="Report name" [inputFormControl]="form() | formGet: 'name'"></app-input>
+<app-report-section icon="description" [headerText]="'Report details' | t" subtitle="Name and the groups it covers">
+  <app-input [label]="'Report name' | t" [inputFormControl]="form() | formGet: 'name'"></app-input>
 
-  <label class="report-config__label">Scope</label>
+  <label class="report-config__label">{{ 'Scope' | t }}</label>
   <div class="report-config__chips">
     @for (chip of scopeChips(); track chip.index) {
       <span class="report-config__chip">
@@ -13,15 +13,15 @@
       </span>
     }
     <button type="button" class="report-config__add-pill" (click)="openAddGroups()" data-testid="report-add-group">
-      <app-icon name="add"></app-icon>Add group
+      <app-icon name="add"></app-icon>{{ 'Add group' | t }}
     </button>
   </div>
 </app-report-section>
 
 <!-- Parameters -->
-<app-report-section icon="tune" headerText="Parameters" subtitle="Supplied each time the report runs">
+<app-report-section icon="tune" [headerText]="'Parameters' | t" subtitle="Supplied each time the report runs">
   <app-select
-    label="Period covering"
+    [label]="'Period covering' | t"
     optionValueKey="value"
     optionDisplayKey="displayValue"
     [options]="periodOptions"
@@ -30,13 +30,13 @@
 
   @if (periodPreset === ReportPeriodPreset.Custom) {
     <div class="report-config__row">
-      <app-datepicker class="report-config__grow" label="Start" [inputFormControl]="form() | formGet: 'period.startDate'"></app-datepicker>
-      <app-datepicker class="report-config__grow" label="End" [inputFormControl]="form() | formGet: 'period.endDate'"></app-datepicker>
+      <app-datepicker class="report-config__grow" [label]="'Start' | t" [inputFormControl]="form() | formGet: 'period.startDate'"></app-datepicker>
+      <app-datepicker class="report-config__grow" [label]="'End' | t" [inputFormControl]="form() | formGet: 'period.endDate'"></app-datepicker>
     </div>
   }
 
   <app-select
-    label="Date field"
+    [label]="'Date field' | t"
     optionValueKey="value"
     optionDisplayKey="displayValue"
     [options]="periodDateFieldOptions"
@@ -45,17 +45,17 @@
 
   <div class="report-config__hint">
     <app-icon name="event"></app-icon>
-    Resolves to <strong>{{ periodLabel() }}</strong> on <strong>{{ periodDateFieldLabel() }}</strong>
+    {{ 'Resolves to' | t }} <strong>{{ periodLabel() }}</strong> {{ 'on' | t }} <strong>{{ periodDateFieldLabel() }}</strong>
   </div>
 </app-report-section>
 
 <!-- Filters -->
-<app-report-section icon="filter_alt" headerText="Filters" subtitle="Which receipts go into the report">
+<app-report-section icon="filter_alt" [headerText]="'Filters' | t" subtitle="Which receipts go into the report">
   <app-report-filters [form]="form()"></app-report-filters>
 </app-report-section>
 
 <!-- Grouping -->
-<app-report-section icon="account_tree" headerText="Grouping" subtitle="Outermost first · nests downward">
+<app-report-section icon="account_tree" [headerText]="'Grouping' | t" subtitle="Outermost first · nests downward">
   @for (level of groupByLevels(); track level.index) {
     <div class="report-config__list-row">
       <span class="report-config__pos">{{ level.index + 1 }}</span>
@@ -63,18 +63,18 @@
       @if (level.isCustom) {
         <app-badge [text]="customFieldBadge" data-testid="report-grouping-custom"></app-badge>
       }
-      <app-button matButtonType="iconButton" icon="arrow_upward" tooltip="Move up" [disabled]="level.isFirst"
+      <app-button matButtonType="iconButton" icon="arrow_upward" [tooltip]="'Move up' | t" [disabled]="level.isFirst"
         (clicked)="moveGroupBy(level.index, -1)" data-testid="report-grouping-up"></app-button>
-      <app-button matButtonType="iconButton" icon="arrow_downward" tooltip="Move down" [disabled]="level.isLast"
+      <app-button matButtonType="iconButton" icon="arrow_downward" [tooltip]="'Move down' | t" [disabled]="level.isLast"
         (clicked)="moveGroupBy(level.index, 1)" data-testid="report-grouping-down"></app-button>
-      <app-button matButtonType="iconButton" icon="edit" tooltip="Edit"
+      <app-button matButtonType="iconButton" icon="edit" [tooltip]="'Edit' | t"
         (clicked)="openGroupingLabelPicker(level.index)" data-testid="report-grouping-edit"></app-button>
-      <app-button matButtonType="iconButton" icon="close" color="warn" tooltip="Remove"
+      <app-button matButtonType="iconButton" icon="close" color="warn" [tooltip]="'Remove' | t"
         (clicked)="removeGroupBy(level.index)" data-testid="report-grouping-remove"></app-button>
     </div>
   }
   @if (addableDimensions().length > 0) {
-    <app-select class="report-config__add-select" label="Add grouping level…" [addEmptyOption]="true"
+    <app-select class="report-config__add-select" [label]="'Add grouping level…' | t" [addEmptyOption]="true"
       optionValueKey="value" optionDisplayKey="displayValue" optionBadgeKey="badge"
       [options]="addableDimensionOptions()" [inputFormControl]="addGroupControl"
       data-testid="report-add-grouping"></app-select>
@@ -82,22 +82,22 @@
 </app-report-section>
 
 <!-- Detail -->
-<app-report-section icon="table_rows" headerText="Detail rows" subtitle="What the bottom rows are">
+<app-report-section icon="table_rows" [headerText]="'Detail rows' | t" subtitle="What the bottom rows are">
   <div class="report-config__mode-cards">
     <div class="report-config__mode-card" [class.report-config__mode-card--selected]="detailMode === ReportDetailMode.Records"
       (click)="setDetailMode(ReportDetailMode.Records)" data-testid="report-detail-records">
-      <div class="report-config__mode-title"><app-icon name="receipt"></app-icon>Records</div>
-      <div class="report-config__mode-desc">One row per receipt</div>
+      <div class="report-config__mode-title"><app-icon name="receipt"></app-icon>{{ 'Records' | t }}</div>
+      <div class="report-config__mode-desc">{{ 'One row per receipt' | t }}</div>
     </div>
     <div class="report-config__mode-card" [class.report-config__mode-card--selected]="detailMode === ReportDetailMode.Aggregate"
       (click)="setDetailMode(ReportDetailMode.Aggregate)" data-testid="report-detail-aggregate">
-      <div class="report-config__mode-title"><app-icon name="functions"></app-icon>Aggregate</div>
-      <div class="report-config__mode-desc">One summed row per value</div>
+      <div class="report-config__mode-title"><app-icon name="functions"></app-icon>{{ 'Aggregate' | t }}</div>
+      <div class="report-config__mode-desc">{{ 'One summed row per value' | t }}</div>
     </div>
   </div>
   @if (detailMode === ReportDetailMode.Aggregate) {
     <div class="report-config__row report-config__row--center">
-      <span class="report-config__inline-label">aggregate by</span>
+      <span class="report-config__inline-label">{{ 'aggregate by' | t }}</span>
       <app-select class="report-config__grow"
         optionValueKey="value" optionDisplayKey="displayValue" optionBadgeKey="badge"
         [options]="dimensionOptions()"
@@ -109,13 +109,11 @@
 </app-report-section>
 
 <!-- Columns -->
-<app-report-section icon="view_column" headerText="Columns" subtitle="Dimensions, aggregates & formulas">
+<app-report-section icon="view_column" [headerText]="'Columns' | t" subtitle="Dimensions, aggregates & formulas">
   @if (detailMode === ReportDetailMode.Records) {
     <div class="report-config__note" data-testid="report-columns-records-note">
       <app-icon name="info"></app-icon>
-      Each row is one receipt, so a dimension column shows that receipt's own value — it doesn't have to be
-      something you group by. Aggregates and formulas read a single receipt per row, and still roll up across
-      the subtotal and grand total rows.
+      {{ 'Each row is one receipt, so a dimension column shows that receipt\'s own value — it doesn\'t have to be something you group by. Aggregates and formulas read a single receipt per row, and still roll up across the subtotal and grand total rows.' | t }}
     </div>
   }
   @for (column of columnRows(); track column.id) {
@@ -132,47 +130,47 @@
         <app-badge [text]="customFieldBadge" data-testid="report-column-custom"></app-badge>
       }
       <app-badge [text]="column.kindLabel" [tone]="column.kindTone"></app-badge>
-      <app-button matButtonType="iconButton" icon="arrow_upward" tooltip="Move up" [disabled]="column.isFirst"
+      <app-button matButtonType="iconButton" icon="arrow_upward" [tooltip]="'Move up' | t" [disabled]="column.isFirst"
         (clicked)="moveColumn(column.index, -1)" data-testid="report-column-up"></app-button>
-      <app-button matButtonType="iconButton" icon="arrow_downward" tooltip="Move down" [disabled]="column.isLast"
+      <app-button matButtonType="iconButton" icon="arrow_downward" [tooltip]="'Move down' | t" [disabled]="column.isLast"
         (clicked)="moveColumn(column.index, 1)" data-testid="report-column-down"></app-button>
-      <app-button matButtonType="iconButton" icon="edit" tooltip="Edit"
+      <app-button matButtonType="iconButton" icon="edit" [tooltip]="'Edit' | t"
         (clicked)="openColumnPicker(column.index)" data-testid="report-column-edit"></app-button>
-      <app-button matButtonType="iconButton" icon="close" color="warn" tooltip="Remove"
+      <app-button matButtonType="iconButton" icon="close" color="warn" [tooltip]="'Remove' | t"
         (clicked)="removeColumn(column.index)" data-testid="report-column-remove"></app-button>
     </div>
   }
   <button type="button" class="report-config__add-block" (click)="openColumnPicker()" data-testid="report-add-column">
-    <app-icon name="add"></app-icon>Add column
+    <app-icon name="add"></app-icon>{{ 'Add column' | t }}
   </button>
 </app-report-section>
 
 <!-- Totals -->
-<app-report-section icon="calculate" headerText="Totals" subtitle="Rolled-up rows">
-  <app-checkbox label="Per-group subtotals" [inputFormControl]="form() | formGet: 'subtotals'"></app-checkbox>
-  <app-checkbox label="Grand totals" [inputFormControl]="form() | formGet: 'grandTotals'"></app-checkbox>
+<app-report-section icon="calculate" [headerText]="'Totals' | t" subtitle="Rolled-up rows">
+  <app-checkbox [label]="'Per-group subtotals' | t" [inputFormControl]="form() | formGet: 'subtotals'"></app-checkbox>
+  <app-checkbox [label]="'Grand totals' | t" [inputFormControl]="form() | formGet: 'grandTotals'"></app-checkbox>
 </app-report-section>
 
 <!-- Splitting -->
-<app-report-section icon="call_split" headerText="Splitting" subtitle="Divide a shared receipt instead of counting it in full">
-  <app-checkbox label="Split amounts equally across categories" data-testid="report-split-categories"
+<app-report-section icon="call_split" [headerText]="'Splitting' | t" subtitle="Divide a shared receipt instead of counting it in full">
+  <app-checkbox [label]="'Split amounts equally across categories' | t" data-testid="report-split-categories"
     [inputFormControl]="form() | formGet: 'splitCategoriesEqually'"></app-checkbox>
   @if (splitState().categoryInactive) {
     <div class="report-config__note" data-testid="report-split-categories-inactive">
       <app-icon name="info"></app-icon>
-      No effect until the report groups or aggregates by Category.
+      {{ 'No effect until the report groups or aggregates by Category.' | t }}
     </div>
   }
-  <app-checkbox label="Split amounts equally across tags" data-testid="report-split-tags"
+  <app-checkbox [label]="'Split amounts equally across tags' | t" data-testid="report-split-tags"
     [inputFormControl]="form() | formGet: 'splitTagsEqually'"></app-checkbox>
   @if (splitState().tagInactive) {
     <div class="report-config__note" data-testid="report-split-tags-inactive">
       <app-icon name="info"></app-icon>
-      No effect until the report groups or aggregates by Tag.
+      {{ 'No effect until the report groups or aggregates by Tag.' | t }}
     </div>
   }
   @if (splitState().anyTicked && currencyFields().length > 0) {
-    <app-autocomlete label="Don't split these currency fields" data-testid="report-split-excluded"
+    <app-autocomlete [label]="'Don\'t split these currency fields' | t" data-testid="report-split-excluded"
       optionValueKey="key" optionFilterKey="label" optionDisplayKey="label"
       [options]="currencyFields()" [multiple]="true" [creatable]="false"
       [inputFormControl]="$any(splitExcludedArray)"></app-autocomlete>
@@ -180,13 +178,13 @@
 </app-report-section>
 
 <!-- Document -->
-<app-report-section icon="article" headerText="Document" subtitle="Title, preamble & footer · supports variables">
-  <app-input label="Title" [inputFormControl]="form() | formGet: 'document.title'"></app-input>
-  <app-textarea label="Intro / preamble" [inputFormControl]="form() | formGet: 'document.intro'"></app-textarea>
+<app-report-section icon="article" [headerText]="'Document' | t" subtitle="Title, preamble & footer · supports variables">
+  <app-input [label]="'Title' | t" [inputFormControl]="form() | formGet: 'document.title'"></app-input>
+  <app-textarea [label]="'Intro / preamble' | t" [inputFormControl]="form() | formGet: 'document.intro'"></app-textarea>
   <div class="report-config__var-chips">
     @for (token of documentVariables; track token) {
       <span class="report-config__var-chip" (click)="insertVariable(token)">{{ token }}</span>
     }
   </div>
-  <app-textarea label="Footer / notes" [inputFormControl]="form() | formGet: 'document.footer'"></app-textarea>
+  <app-textarea [label]="'Footer / notes' | t" [inputFormControl]="form() | formGet: 'document.footer'"></app-textarea>
 </app-report-section>

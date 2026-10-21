@@ -1,4 +1,4 @@
-<hlm-radio-group aria-label="Select an option" class="flex flex-col gap-2" [formControl]="inputFormControl()">
+<hlm-radio-group [attr.aria-label]="'Select an option' | t" class="flex flex-col gap-2" [formControl]="inputFormControl()">
   @for (data of radioButtonData(); track data.value) {
     <label class="flex cursor-pointer items-center gap-2 text-sm">
       <hlm-radio [value]="data.value"><hlm-radio-indicator indicator /></hlm-radio>

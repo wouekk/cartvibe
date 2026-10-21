@@ -2,7 +2,7 @@
   class="me-2"
   icon="download"
   matButtonType="iconButton"
-  tooltip="Export all receipts"
+  [tooltip]="'Export all receipts' | t"
   color="accent"
   (clicked)="exportReceipts()"
 ></app-button>

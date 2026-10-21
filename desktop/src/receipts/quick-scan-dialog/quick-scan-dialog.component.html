@@ -1,4 +1,4 @@
-<app-dialog headerText="Quick Scan" [actionsTemplate]="actionsTemplate">
+<app-dialog [headerText]="'Quick Scan' | t" [actionsTemplate]="actionsTemplate">
   <form [formGroup]="form">
     <app-upload-image
       [multiple]="true"
@@ -7,8 +7,8 @@
     <div class="quick-scan-upload" [class.quick-scan-upload--empty]="images.length === 0" data-testid="quick-scan-upload-area">
       @if (images.length === 0) {
         <app-icon class="quick-scan-upload__icon" name="receipt_long"></app-icon>
-        <strong>Add photos of your receipts</strong>
-        <span class="quick-scan-upload__hint">The AI reads them for you.</span>
+        <strong>{{ 'Add photos of your receipts' | t }}</strong>
+        <span class="quick-scan-upload__hint">{{ 'The AI reads them for you.' | t }}</span>
       }
       <app-button
         icon="upload"
@@ -23,7 +23,7 @@
         <div class="flex flex-col justify-center">
           <img
             class="mb-2"
-            alt="quick scan image"
+            [alt]="'quick scan image' | t"
             [src]="preview.encodedImage || preview.url ?? ''"
           >
           @if (soleGroupId() === undefined) {
@@ -34,7 +34,7 @@
           @if (showPaidBy(i)) {
             <app-user-autocomplete
               class="w-full"
-              label="Paid By"
+              [label]="'Paid By' | t"
               [inputFormControl]="form | formGet : 'paidByUserIds.' + i"
               [groupId]="form.get('groupIds.' + i)?.value"
               [selectGroupMembersOnly]="true"
@@ -42,7 +42,7 @@
           }
           @if (showStatus(i)) {
             <app-status-select
-              label="Status"
+              [label]="'Status' | t"
               [inputFormControl]="form | formGet : 'statuses.' + i"
             ></app-status-select>
           }
@@ -62,7 +62,7 @@
           }
           @if (showComment(i)) {
             <app-textarea
-              label="Comment"
+              [label]="'Comment' | t"
               data-testid="quick-scan-comment"
               [inputFormControl]="form | formGet : 'comments.' + i"
               [additionalErrorMessages]="commentErrorMessages"
@@ -88,7 +88,7 @@
       data-testid="quick-scan-nav-left"
       matButtonType="iconButton"
       icon="arrow_back"
-      tooltip="Navigate left"
+      [tooltip]="'Navigate left' | t"
       color="accent"
       (clicked)="navigateImages(-1)"
     >
@@ -98,14 +98,14 @@
       data-testid="quick-scan-nav-right"
       matButtonType="iconButton"
       icon="arrow_forward"
-      tooltip="Navigate right"
+      [tooltip]="'Navigate right' | t"
       color="accent"
       (clicked)="navigateImages(1)"
     >
     </app-button>
     <app-delete-button
       *ngIf="images.length > 0"
-      tooltip="Remove Current Image"
+      [tooltip]="'Remove Current Image' | t"
       (clicked)="removeImage(currentlySelectedIndex)"
     >
     </app-delete-button>

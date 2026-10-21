@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { CommonModule } from "@angular/common";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
@@ -27,7 +28,7 @@ describe("InputComponent", () => {
 
     await TestBed.configureTestingModule({
       declarations: [InputComponent],
-      imports: [
+      imports: [TranslatePipe, 
         CommonModule,
         HlmButton,
         AppIconComponent,

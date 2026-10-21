@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { provideZonelessChangeDetection } from "@angular/core";
@@ -33,7 +34,7 @@ describe("GroupTableComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [GroupTableComponent],
-      imports: [
+      imports: [TranslatePipe, 
         ApiModule,
         ButtonModule,
         DirectivesModule,

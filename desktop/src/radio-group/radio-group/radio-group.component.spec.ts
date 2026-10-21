@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { RadioGroupComponent } from './radio-group.component';
@@ -11,7 +12,7 @@ describe('RadioGroupComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [RadioGroupComponent],
-      imports: [...HlmRadioGroupImports, ReactiveFormsModule],
+      imports: [TranslatePipe, ...HlmRadioGroupImports, ReactiveFormsModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(RadioGroupComponent);

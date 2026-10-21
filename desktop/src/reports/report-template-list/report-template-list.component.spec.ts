@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { CommonModule } from "@angular/common";
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal, WritableSignal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
@@ -97,7 +98,7 @@ describe("ReportTemplateListComponent", () => {
 
     await TestBed.configureTestingModule({
       declarations: [ReportTemplateListComponent],
-      imports: [CommonModule],
+      imports: [TranslatePipe, CommonModule],
       providers: [
         provideZonelessChangeDetection(),
         { provide: ReportRunnerService, useValue: runner },

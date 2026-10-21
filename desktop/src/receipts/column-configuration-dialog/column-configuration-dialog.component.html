@@ -1,7 +1,7 @@
-<app-dialog headerText="Configure Table Columns">
+<app-dialog [headerText]="'Configure Table Columns' | t">
   <div class="column-config-content">
     <p class="description">
-      Select which columns to display and drag to reorder them. At least one column must remain visible.
+      {{ 'Select which columns to display and drag to reorder them. At least one column must remain visible.' | t }}
     </p>
 
     <div class="column-list" cdkDropList (cdkDropListDropped)="drop($event)">
@@ -50,7 +50,7 @@
     matButtonType="iconButton"
     icon="restart_alt"
     color="accent"
-    tooltip="Reset column configuration"
+    [tooltip]="'Reset column configuration' | t"
     (clicked)="resetToDefaults()"
   ></app-button>
 </ng-template>

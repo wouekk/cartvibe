@@ -6,10 +6,10 @@
         {{ scopeLabel() }}
       </span>
       @if (role.isSystem) {
-        <span class="chip system"><app-icon name="verified"></app-icon> System</span>
+        <span class="chip system"><app-icon name="verified"></app-icon> {{ 'System' | t }}</span>
       }
       @if (role.isDefault) {
-        <span class="chip default"><app-icon name="star"></app-icon> Default</span>
+        <span class="chip default"><app-icon name="star"></app-icon> {{ 'Default' | t }}</span>
       }
     </div>
 
@@ -22,7 +22,7 @@
     </div>
 
     @if (groups().length === 0) {
-      <p class="empty">This role grants no permissions.</p>
+      <p class="empty">{{ 'This role grants no permissions.' | t }}</p>
     } @else {
       @for (group of groups(); track group.resourceKey) {
         <div class="group">
@@ -49,7 +49,7 @@
     }
 
     <div class="actions">
-      <button type="button" hlmBtn variant="outline" (click)="close()">Close</button>
+      <button type="button" hlmBtn variant="outline" (click)="close()">{{ 'Close' | t }}</button>
     </div>
   </div>
 </app-dialog>
