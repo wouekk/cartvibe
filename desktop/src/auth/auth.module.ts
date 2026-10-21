@@ -9,13 +9,11 @@ import { PipesModule } from "../pipes/pipes.module";
 import { CartVibeLoaderComponent } from "../shared-ui/cartvibe-loader/cartvibe-loader.component";
 import { CartVibeSplashComponent } from "../shared-ui/cartvibe-splash/cartvibe-splash.component";
 import { CartVibeLogoComponent } from "../shared-ui/cartvibe-logo/cartvibe-logo.component";
-import { LoginQrComponent } from "../shared-ui/login-qr/login-qr.component";
 import { AuthRoutingModule } from "./auth-routing.module";
-import { OidcCallbackComponent } from "./oidc-callback/oidc-callback.component";
 import { AuthForm } from "./sign-up/auth-form.component";
 
 @NgModule({
-  declarations: [AuthForm, OidcCallbackComponent],
+  declarations: [AuthForm],
   imports: [
     AuthRoutingModule,
     ButtonModule,
@@ -29,7 +27,6 @@ import { AuthForm } from "./sign-up/auth-form.component";
     CartVibeLoaderComponent,
     CartVibeSplashComponent,
     CartVibeLogoComponent,
-    LoginQrComponent,
   ],
   exports: [AuthForm],
 })

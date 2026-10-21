@@ -5,16 +5,13 @@ import { appPermissionGuard } from "src/guards/app-permission.guard";
 import { groupPermissionGuard } from "src/guards/group-permission.guard";
 import { FormConfig } from "src/interfaces/form-config.interface";
 import { Permission } from "../open-api";
-import { promptsResolver } from "../prompt/prompts.resolver";
 import { customFieldResolverFn } from "../resolvers/custom-field.resolver";
 import { GroupDetailsComponent } from "./group-details/group-details.component";
 import { GroupFormComponent } from "./group-form/group-form.component";
 import { GroupReceiptSettingsComponent } from "./group-receipt-settings/group-receipt-settings.component";
-import { GroupSettingsComponent } from "./group-settings/group-settings.component";
 import { GroupTableComponent } from "./group-table/group-table.component";
 import { GroupTabsComponent } from "./group-tabs/group-tabs.component";
 import { groupResolverFn } from "./resolvers/group-resolver.service";
-import { systemEmailsResolver } from "./resolvers/system-emails.resolver";
 
 const routes: Routes = [
   {
@@ -130,42 +127,6 @@ const routes: Routes = [
           useRouteGroupId: true,
         },
         canActivate: [groupPermissionGuard],
-      },
-      {
-        path: "settings/view",
-        component: GroupSettingsComponent,
-        resolve: {
-          group: groupResolverFn,
-          systemEmails: systemEmailsResolver,
-          prompts: promptsResolver,
-        },
-        data: {
-          formConfig: {
-            mode: FormMode.view,
-          } as FormConfig,
-          setHeaderText: true,
-          entityType: "Settings",
-          appPermissions: [Permission.AppGroupsUpdateSettings],
-        },
-        canActivate: [appPermissionGuard],
-      },
-      {
-        path: "settings/edit",
-        component: GroupSettingsComponent,
-        resolve: {
-          group: groupResolverFn,
-          systemEmails: systemEmailsResolver,
-          prompts: promptsResolver
-        },
-        data: {
-          formConfig: {
-            mode: FormMode.edit,
-          } as FormConfig,
-          setHeaderText: true,
-          entityType: "Settings",
-          appPermissions: [Permission.AppGroupsUpdateSettings],
-        },
-        canActivate: [appPermissionGuard],
       },
     ],
   },

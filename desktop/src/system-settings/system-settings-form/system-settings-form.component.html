@@ -18,13 +18,6 @@
   </section>
 }
 
-<!-- Integrations & Mobile: the system emails come first. -->
-@if (section === "integrations" && canReadSystemEmails()) {
-  <section class="settings-card" data-testid="settings-card-system-emails">
-    <app-system-email-table></app-system-email-table>
-  </section>
-}
-
 <form
   [formGroup]="form"
   (ngSubmit)="submit()"
@@ -245,73 +238,6 @@
     </section>
   }
 
-  <!-- Integrations & Mobile -->
-  @if (shows("integrations")) {
-    <section class="settings-card" data-testid="settings-card-mcp">
-      <h2 class="settings-card__title">MCP server</h2>
-      <p class="text-muted mb-3">
-        Exposes CartVibe as an OAuth 2.1-protected MCP server so clients such as Claude can be
-        connected as a custom connector and read your data (read-only). Toggling this starts or stops the
-        server live, no restart required.
-      </p>
-      <app-checkbox
-        class="d-block mb-3"
-        label="Enable MCP Server"
-        [inputFormControl]="form | formGet:'mcpEnabled'"
-        [readonly]="formConfig.mode | inputReadonly"
-      ></app-checkbox>
-      <app-input
-        class="d-block mb-3"
-        label="Public URL"
-        hint="Externally reachable origin (scheme + host, no path), e.g. https://receipts.example.com. Used to build the OAuth and connector URLs. Changing it invalidates existing connector tokens."
-        [readonly]="formConfig.mode | inputReadonly"
-        [inputFormControl]="form | formGet:'mcpPublicUrl'"
-      ></app-input>
-      <div class="d-flex gap-3 mb-3 duration-row">
-        <app-input
-          label="Connector sign-in lasts"
-          type="number"
-          hint="How long a connected client stays authorized before it has to sign in again. Maximum 720 hours (30 days)."
-          [inputFormControl]="form | formGet:'mcpRefreshTokenValidForValue'"
-          [readonly]="formConfig.mode | inputReadonly"
-        ></app-input>
-        <app-select
-          label="Unit"
-          optionValueKey="value"
-          optionDisplayKey="displayValue"
-          [inputFormControl]="form | formGet:'mcpRefreshTokenValidForUnit'"
-          [options]="durationUnits"
-        ></app-select>
-      </div>
-      @if ((form | formGet:'mcpEnabled').value && (form | formGet:'mcpPublicUrl').value) {
-        <div class="d-flex flex-column mb-3">
-          <strong>Connector URL</strong>
-          <span>{{ (form | formGet:'mcpPublicUrl').value }}/mcp</span>
-        </div>
-      }
-    </section>
-    <section class="settings-card" data-testid="settings-card-mobile">
-      <h2 class="settings-card__title">Mobile app setup</h2>
-      <p class="text-muted mb-3">
-        Shows a QR code on the login page that opens the CartVibe mobile app and pre-fills the
-        server URL below, so users can connect their phone without typing it. Leave this off to hide the
-        QR code.
-      </p>
-      <app-checkbox
-        class="d-block mb-3"
-        label="Enable Mobile App (show login QR code)"
-        [inputFormControl]="form | formGet:'showLoginQr'"
-        [readonly]="formConfig.mode | inputReadonly"
-      ></app-checkbox>
-      <app-input
-        label="Mobile Server URL"
-        hint="The server/API URL mobile clients connect to, e.g. https://receipts.example.com/api. Encoded into the login QR code."
-        [readonly]="formConfig.mode | inputReadonly"
-        [inputFormControl]="form | formGet:'mobileServerUrl'"
-      ></app-input>
-      <ng-container *ngTemplateOutlet="saveActions"></ng-container>
-    </section>
-  }
 
   @if (originalSystemSettings?.updatedAt) {
     <p class="settings-updated text-muted" data-testid="settings-updated-at">
@@ -320,13 +246,6 @@
   }
 
 </form>
-
-<!-- Auth & Security: the OIDC providers sit below the sign-up card, outside the form. -->
-@if (section === "security" && canReadOidcProviders()) {
-  <section class="settings-card" data-testid="settings-card-oidc">
-    <app-oidc-provider-table></app-oidc-provider-table>
-  </section>
-}
 
 <!-- Save sits at the end of the tab's last card, like the AI page's card, not in a floating bar. -->
 <ng-template #saveActions>

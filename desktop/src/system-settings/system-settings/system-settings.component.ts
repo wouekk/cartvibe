@@ -14,7 +14,7 @@ interface SystemSettingsTab extends TabConfig {
 
 /**
  * The System Settings shell: five pill tabs (the Dashboard's period picker look) over cards. Each tab is a
- * route; General, Auth, Integrations and Tasks are the one settings form showing its own cards (plus the
+ * route; General, Auth and Tasks are the one settings form showing its own cards (plus the
  * tables that belong with them), Logs is the log viewer.
  */
 @Component({
@@ -73,12 +73,6 @@ export class SystemSettingsComponent implements OnInit {
         label: "Auth & Security",
         routerLink: "security",
         name: "security",
-        readPermission: Permission.AppSystemSettingsRead,
-      },
-      {
-        label: "Integrations & Mobile",
-        routerLink: "integrations",
-        name: "integrations",
         readPermission: Permission.AppSystemSettingsRead,
       },
       {

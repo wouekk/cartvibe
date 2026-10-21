@@ -25,7 +25,6 @@ interface Link {
 export class AboutComponent {
   private store = inject(Store);
   public about = this.store.selectSignal(AboutState.about);
-  public loginQrUrl = this.store.selectSignal(FeatureConfigState.loginQrUrl);
 
   public links: Link[] = [
     {

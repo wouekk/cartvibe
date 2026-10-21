@@ -56,11 +56,9 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
   public readonly showRestartTaskServerAlert = signal(false);
 
   /** Which tab's cards this form shows (route data); undefined shows every card. */
-  public section?: "general" | "security" | "integrations" | "tasks";
+  public section?: "general" | "security" | "tasks";
 
   public readonly canReadSystemTasks = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppSystemTasksRead));
-  public readonly canReadSystemEmails = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppSystemEmailsRead));
-  public readonly canReadOidcProviders = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppOidcProvidersRead));
 
   public readonly queueData: QueueData[] = [
     {
@@ -99,7 +97,7 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
   }
 
   /** Whether the cards of a tab are shown: all of them when the form is not placed on a tab. */
-  public shows(section: "general" | "security" | "integrations" | "tasks"): boolean {
+  public shows(section: "general" | "security" | "tasks"): boolean {
     return !this.section || this.section === section;
   }
 

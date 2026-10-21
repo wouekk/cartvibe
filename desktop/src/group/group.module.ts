@@ -21,9 +21,6 @@ import { GrantPickerComponent } from "../shared-ui/grant-picker/grant-picker.com
 import { GroupMemberFormComponent } from "./group-member-form/group-member-form.component";
 import { GroupReceiptSettingsComponent } from "./group-receipt-settings/group-receipt-settings.component";
 import { GroupRoutingModule } from "./group-routing.module";
-import { GroupSettingsAiComponent } from "./group-settings-ai/group-settings-ai.component";
-import { GroupSettingsEmailComponent } from "./group-settings-email/group-settings-email.component";
-import { GroupSettingsComponent } from "./group-settings/group-settings.component";
 import { GroupTableFilterComponent } from "./group-table-filter/group-table-filter.component";
 import { GroupTableEditButtonPipe } from "./group-table/group-table-edit-button.pipe";
 import { GroupTableComponent } from "./group-table/group-table.component";
@@ -35,13 +32,10 @@ import { ReceiptProductBackfillComponent } from "../standalone/components/receip
     GroupTableComponent,
     GroupFormComponent,
     GroupMemberFormComponent,
-    GroupSettingsComponent,
-    GroupSettingsEmailComponent,
     GroupTabsComponent,
     GroupDetailsComponent,
     GroupTableFilterComponent,
     GroupTableEditButtonPipe,
-    GroupSettingsAiComponent,
     GroupReceiptSettingsComponent,
   ],
   imports: [

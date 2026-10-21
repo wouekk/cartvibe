@@ -19,12 +19,10 @@ import { UrlLabelPipe } from "./pipes/url-label.pipe";
 import {
   ReceiptProcessingSettingsChildSystemTaskAccordionComponent
 } from "./receipt-processing-settings-child-system-task-accordion/receipt-processing-settings-child-system-task-accordion.component";
-import { ReceiptProcessingSettingsFormComponent } from "./receipt-processing-settings-form/receipt-processing-settings-form.component";
-import { ReceiptProcessingSettingsTableComponent } from "./receipt-processing-settings-table/receipt-processing-settings-table.component";
 
 
 @NgModule({
-  declarations: [ReceiptProcessingSettingsTableComponent, ReceiptProcessingSettingsFormComponent, ReceiptProcessingSettingsChildSystemTaskAccordionComponent],
+  declarations: [ReceiptProcessingSettingsChildSystemTaskAccordionComponent],
   imports: [
     CommonModule,
     DirectivesModule,
