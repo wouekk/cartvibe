@@ -19,3 +19,7 @@ setup and the git history) is their work, and it is kept here with its history a
 
 The CartVibe name, logo and icon belong to this fork and are not part of the original project. This fork is not
 affiliated with or endorsed by the original authors. Please report problems with this fork here, not to them.
+
+## Third-party assets
+
+Shop logos in `desktop/src/assets/shops/` are provided by [Logo.dev](https://logo.dev) and belong to their respective owners. They are downloaded once by `scripts/shop-logos/download-shop-logos.mjs` (needs a Logo.dev publishable key in `LOGO_DEV_TOKEN`; no key is stored in the repo). Add a shop in `scripts/shop-logos/shops.mjs` and re-run the script.
