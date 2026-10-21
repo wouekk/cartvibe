@@ -3,7 +3,7 @@
 ## Status (2026-10-21, Windows PC, Claude Code desktop app)
 
 **`v0.1.0` is released: `feature/theme-modes` was fast-forwarded into `main` (`f29878ef`) and tagged.** CI on `main`
-was green; `publish-image.yml` pushes `ghcr.io/wouekk/receipt-wrangler:latest`. Our other `feature/*` branches are
+was green; `publish-image.yml` pushes `ghcr.io/wouekk/cartvibe:latest`. Our other `feature/*` branches are
 contained in `main` and can be deleted when convenient.
 
 What 0.1.0 holds (see `CHANGELOG.md`): shopping lists with live sync, the Dashboard, receipt products with health and
@@ -86,8 +86,10 @@ be done by GitHub Actions or on the Mac.
   `NOTICE.md`, `CHANGELOG.md`, `site/` (project page, `pages.yml`) added, README rewritten with credit to Noah Hall.
 - Done: `scripts/remove-upstream-refs.sh` was run by the user; the upstream branches and tags are gone from `origin`.
 
-## Repo rename (2026-10-21)
-The GitHub repository is now **`wouekk/cartvibe`** (was `wouekk/receipt-wrangler`; GitHub redirects the old name). The Docker
-image keeps its name, `ghcr.io/wouekk/receipt-wrangler`, so the NAS stack is unaffected. Renaming the image to `cartvibe`
-is a separate change (workflow, `docker-compose.yml`, the Dockhand stack). The project page is
-`https://wouekk.github.io/cartvibe/`. Use `--repo wouekk/cartvibe` with `gh`.
+## Repo and image rename (2026-10-21)
+The GitHub repository is **`wouekk/cartvibe`** (was `wouekk/receipt-wrangler`; GitHub redirects the old name), the page is
+`https://wouekk.github.io/cartvibe/`, and from v0.1.1 the image is **`ghcr.io/wouekk/cartvibe`** (the old
+`ghcr.io/wouekk/receipt-wrangler` package stays but is no longer updated). Use `--repo wouekk/cartvibe` with `gh`.
+Data paths on the NAS (`/volume2/docker/receipt-wrangler/...`), the service and container names are unchanged on purpose.
+After the first publish the new GHCR package may be **private**: set it to public (GitHub → profile → Packages →
+cartvibe → Package settings → Change visibility) or the NAS cannot pull it.

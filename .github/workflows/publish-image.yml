@@ -1,6 +1,6 @@
 ---
 # Publishes this fork's monolith image to GitHub Container Registry, so the Synology runs a
-# pre-built image (docker-compose.yml: image: ghcr.io/<owner>/receipt-wrangler:latest) instead of
+# pre-built image (docker-compose.yml: image: ghcr.io/<owner>/cartvibe:latest) instead of
 # building from source on the NAS.
 #
 # It runs after CI succeeds on main, so a commit whose tests fail never becomes :latest. The
@@ -37,7 +37,7 @@ jobs:
       - name: Image name and build info
         id: meta
         run: |
-          echo "image=ghcr.io/$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')/receipt-wrangler" >> "$GITHUB_OUTPUT"
+          echo "image=ghcr.io/$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')/cartvibe" >> "$GITHUB_OUTPUT"
           echo "sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
           # A manual run from a branch publishes :preview, never :latest, so trying a branch on the NAS
           # cannot replace what main published.
@@ -67,5 +67,6 @@ jobs:
             VERSION=sha-${{ steps.meta.outputs.sha }}
             BUILD_DATE=${{ steps.meta.outputs.date }}
           # Reuse the dependency layers between builds (see the note at the top of the Dockerfile).
+          labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
