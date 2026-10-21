@@ -405,4 +405,13 @@ export const PL_MORE: Record<string, string> = {
   "All": "Wszystko",
   "Errors": "Błędy",
   "Info": "Informacje",
+
+  // Sign in
+  "Create your account": "Utwórz konto",
+  "Welcome back": "Witaj ponownie",
+  "Join your household on CartVibe": "Dołącz do swojego gospodarstwa w CartVibe",
+  "Sign in to your household": "Zaloguj się do swojego gospodarstwa",
+  "Loading...": "Ładowanie...",
+  "Signing you in": "Logowanie",
+  "Back to Login": "Wróć do logowania",
 };
