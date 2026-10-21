@@ -1,5 +1,4 @@
 import { Component, input, model } from "@angular/core";
-import { navTabsListClass, navTabsTriggerClass } from "../../ui/nav-tabs/nav-tabs-classes";
 import { FilterTab } from "./filter-tab.interface";
 
 /**
@@ -26,9 +25,6 @@ export class FilterBarComponent {
   public readonly tabs = input.required<FilterTab[]>();
   public readonly value = model<string>("");
 
-  public readonly listClass = navTabsListClass;
-
-  public readonly triggerClass = navTabsTriggerClass;
 
   public select(value: string): void {
     this.value.set(value);

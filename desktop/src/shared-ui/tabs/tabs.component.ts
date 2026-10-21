@@ -1,7 +1,6 @@
 import { Component, OnChanges, OnInit, signal, SimpleChanges, input } from "@angular/core";
 import { ActivatedRoute, NavigationEnd, Router } from "@angular/router";
 import { tap } from "rxjs";
-import { navTabsListClass, navTabsTriggerClass } from "../../ui/nav-tabs/nav-tabs-classes";
 import { TabConfig } from "./tab-config.interface";
 
 @Component({
@@ -12,13 +11,17 @@ import { TabConfig } from "./tab-config.interface";
 export class TabsComponent implements OnInit, OnChanges {
   public readonly tabs = input<TabConfig[]>([]);
 
-  public readonly listClass = navTabsListClass;
-
-  public readonly triggerClass = navTabsTriggerClass;
-
   public activeName = signal("");
 
   constructor(private router: Router, private activatedRoute: ActivatedRoute) {}
+
+  /** A tab was picked: navigate to its route, keeping the tab name in the query like the link used to. */
+  public activate(name: string): void {
+    const tab = this.tabs().find((candidate) => candidate.name === name);
+    if (tab) {
+      this.router.navigate([tab.routerLink], { queryParams: { tab: tab.name } });
+    }
+  }
 
   public ngOnChanges(changes: SimpleChanges): void {
     if (changes["tabs"]) {

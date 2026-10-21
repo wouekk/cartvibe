@@ -6,25 +6,25 @@
   align-items: center;
   gap: variables.$spacing-sm;
   font-size: 13px;
-  color: map.get(variables.$accent-palette, 500);
+  color: var(--muted-foreground);
 }
 
 .crumb {
   display: inline-flex;
   align-items: center;
   gap: variables.$spacing-xs;
-  color: map.get(variables.$accent-palette, 500);
+  color: var(--muted-foreground);
   font-weight: 500;
   text-decoration: none;
 
   &.current {
-    color: map.get(variables.$accent-palette, 900);
+    color: var(--foreground);
     font-weight: 600;
   }
 }
 
 a.crumb:hover {
-  color: map.get(variables.$primary-palette, 600);
+  color: var(--foreground);
   text-decoration: none;
 }
 

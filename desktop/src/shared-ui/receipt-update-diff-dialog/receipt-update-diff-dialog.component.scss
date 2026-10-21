@@ -132,5 +132,5 @@ $divider: map.get(variables.$accent-palette, 200);
 }
 
 .receipt-diff__stats-removed {
-  color: map.get(variables.$warn-palette, 700);
+  color: var(--destructive);
 }

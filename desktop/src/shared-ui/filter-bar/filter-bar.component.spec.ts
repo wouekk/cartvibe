@@ -1,6 +1,7 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { MatIconModule } from "@angular/material/icon";
+import { HlmTabsImports } from "@spartan-ng/helm/tabs";
 import { FilterBarComponent } from "./filter-bar.component";
 import { FilterTab } from "./filter-tab.interface";
 
@@ -17,7 +18,7 @@ describe("FilterBarComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [FilterBarComponent],
-      imports: [MatIconModule],
+      imports: [MatIconModule, ...HlmTabsImports],
       providers: [provideZonelessChangeDetection()],
     }).compileComponents();
 

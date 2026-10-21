@@ -31,7 +31,7 @@
   }
 
   &:hover {
-    background-color: map.get(variables.$primary-palette, 50);
+    background-color: var(--accent);
     transform: translateY(-1px);
     box-shadow: variables.$shadow-md;
   }
@@ -44,7 +44,7 @@
   transition: all 0.2s ease-in-out;
   
   &:hover {
-    background-color: map.get(variables.$primary-palette, 50);
+    background-color: var(--accent);
     transform: translateY(-1px);
   }
 }
@@ -60,11 +60,11 @@
 }
 
 .active-link {
-  background-color: map.get(variables.$primary-palette, 100) !important;
+  background-color: var(--accent) !important;
   
   > * {
-    fill: map.get(variables.$primary-palette, 600) !important;
-    color: map.get(variables.$primary-palette, 600) !important;
+    fill: var(--foreground) !important;
+    color: var(--foreground) !important;
   }
 }
 

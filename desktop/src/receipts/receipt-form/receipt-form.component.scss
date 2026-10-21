@@ -76,6 +76,6 @@ app-form-section.rw-images-pane {
 
 // Inline hint for a role-required image/comment the receipt does not have yet.
 .rw-requirement-hint {
-  color: map.get(variables.$warn-palette, 600);
+  color: var(--destructive);
   font-size: 0.875rem;
 }

@@ -54,7 +54,7 @@ app-receipts-table {
     min-width: 0;
     padding: 0 variables.$spacing-xs 0 variables.$spacing-sm;
     border-radius: 1rem;
-    background: map.get(variables.$accent-palette, 100);
+    background: var(--muted);
 
     // A caret, so the label reads as something you can open rather than as a
     // static description. app-button renders one leading icon only, so this
@@ -96,10 +96,10 @@ app-receipts-table {
 .receipts-overflow-menu__label {
   padding: variables.$spacing-sm variables.$spacing-md variables.$spacing-xs;
   margin-top: variables.$spacing-xs;
-  border-top: 1px solid map.get(variables.$accent-palette, 200);
+  border-top: 1px solid var(--border);
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: map.get(variables.$accent-palette, 400);
+  color: var(--muted-foreground);
 }
