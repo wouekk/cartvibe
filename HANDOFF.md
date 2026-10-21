@@ -5,7 +5,7 @@
 **Receipts search + product checker (branch `feature/product-check`, worktree `../product-check`, not merged; plan in `C:/Users/Marcin/.claude/plans/pasted-content-id-f19d-refactor-the-sprightly-moore.md`).**
 - Done: the header search moved into the Receipts toolbar and is now typo/abbreviation tolerant over shop, name, comments and
   product lines (API `ReceiptPagedRequestFilter.search`, `utils/fuzzy_match.go`, `Receipt.searchMatches` shown as a "Matched:" line);
-  the header slot is now a browser-only Open Food Facts **barcode** checker (typed or camera scan, drawer with health score,
+  the Dashboard has a "Scan product" button (next to New list) for a browser-only Open Food Facts **barcode** checker (camera scan, or a typed barcode when there is no camera; drawer with health score,
   Nutri-Score, NOVA, additives, nutrition, 10 recent scans). See `api/CLAUDE.md` "Receipt search" and `desktop/CLAUDE.md` "Receipts
   search and the product checker". Jest 2149/2149, `ng build` OK, Go tests of the touched packages pass; seen locally in both
   themes and at phone width (dev stack, screenshots).
@@ -14,8 +14,8 @@
 - Not verified: the camera scan on a real device (needs HTTPS: Android Chrome and iPhone Safari on the NAS), the CSP report
   console (the Report-Only policy now allows `world.openfoodfacts.org` and `images.openfoodfacts.org`), and Polish wording.
 - `@zxing/browser` 0.1.5 + `@zxing/library` 0.21.3 are pinned on purpose: library 0.22+ needs Node 24 (CI pins 20.19.6).
-- Deleted: the header search bar (`src/searchbar/`) and `e2e/search-bar-visibility.spec.ts`; `legacy-user-visibility.spec.ts` now
-  checks the product checker. e2e cannot run here.
+- Deleted: the header search bar (`src/searchbar/`) and `e2e/search-bar-visibility.spec.ts`; the header slot is empty and the
+  legacy-user e2e check for it is gone. e2e cannot run here.
 - **Merge hazards:** this branch is cut from `main`. Another session has uncommitted translation work in the main checkout
   (`src/i18n` moved to `assets/i18n/*.json`, `pl.messages*.ts` deleted) and a `feature/remove-mobile` branch; this branch adds
   `i18n/languages/pl.messages-product-check.ts` and regenerated `mobile/api/`, so both will conflict. Port the new Polish keys

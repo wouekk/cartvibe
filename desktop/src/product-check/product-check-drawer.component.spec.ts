@@ -1,6 +1,7 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppDialogRef } from "../dialog/app-dialog";
+import * as scanner from "./barcode-scanner.service";
 import { sampleProduct } from "./fixtures";
 import { OpenFoodFactsService } from "./open-food-facts.service";
 import { ProductCheckDrawerComponent } from "./product-check-drawer.component";
@@ -103,6 +104,23 @@ describe("ProductCheckDrawerComponent", () => {
     await render();
 
     expect(element(testId)).not.toBeNull();
+  });
+
+  it("asks for the barcode to be typed only when there is no camera", async () => {
+    // The test browser has no camera, so the field is there; with one it is not.
+    expect(element("product-check-barcode")).not.toBeNull();
+
+    const lookup = jest.spyOn(service, "check").mockImplementation();
+    const box = element("product-check-barcode") as HTMLInputElement;
+    box.value = "3017620422003";
+    box.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+
+    expect(lookup).toHaveBeenCalledWith("3017620422003");
+
+    jest.spyOn(scanner, "canUseCamera").mockReturnValue(true);
+    const withCamera = TestBed.createComponent(ProductCheckDrawerComponent);
+    await withCamera.whenStable();
+    expect(withCamera.nativeElement.querySelector('[data-testid="product-check-barcode"]')).toBeNull();
   });
 
   it("closes from the header button", () => {

@@ -10,7 +10,6 @@ import { OverlayModule } from "@angular/cdk/overlay";
 import { AutocompleteModule } from "src/autocomplete/autocomplete.module";
 import { NotificationsModule } from "src/notifications/notifications.module";
 import { PipesModule } from "src/pipes/pipes.module";
-import { ProductCheckInputComponent } from "src/product-check/product-check-input.component";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { AvatarModule } from "../avatar";
 import { NgIcon } from "@ng-icons/core";
@@ -53,7 +52,6 @@ import { SidebarComponent } from "./sidebar/sidebar.component";
     PipesModule,
     ReactiveFormsModule,
     RouterModule,
-    ProductCheckInputComponent,
     SharedUiModule,
   ],
   exports: [HeaderComponent, AddReceiptIconComponent],

@@ -1,7 +1,9 @@
 /** Polish texts for the product checker in the header and the receipts search (merged into PL). */
 export const PL_PRODUCT_CHECK: Record<string, string> = {
-  "Check a product barcode…": "Sprawdź kod kreskowy produktu…",
+  "Scan product": "Skanuj produkt",
   "Check a product barcode": "Sprawdź kod kreskowy produktu",
+  "Enter a barcode…": "Wpisz kod kreskowy…",
+  "Enter a barcode": "Wpisz kod kreskowy",
   "Check a product": "Sprawdź produkt",
   "Scan a barcode": "Zeskanuj kod kreskowy",
   "Starting the camera…": "Uruchamianie aparatu…",
@@ -42,8 +44,7 @@ export const PL_PRODUCT_CHECK: Record<string, string> = {
   "Flavour enhancer": "Wzmacniacz smaku",
   "Acidity regulator": "Regulator kwasowości",
   "Other": "Inne",
-  "Type a barcode in the top bar, or scan one with the camera.":
-    "Wpisz kod kreskowy na górnym pasku albo zeskanuj go aparatem.",
+  "Enter the barcode printed under the bars.": "Wpisz kod kreskowy z pod kresek.",
   "Matched:": "Pasuje:",
   "Clear search": "Wyczyść wyszukiwanie",
 };

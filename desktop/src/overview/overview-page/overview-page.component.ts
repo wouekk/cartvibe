@@ -23,6 +23,7 @@ import {
   UserPreferences,
   UserPreferencesService,
 } from "../../open-api";
+import { ProductCheckLauncher } from "../../product-check/product-check-launcher.service";
 import { openQuickScanDialog } from "../../receipts/quick-scan-dialog/open-quick-scan-dialog";
 import { AuthState, FeatureConfigState, GroupState, SetUserPreferences } from "../../store";
 import { SnackbarService } from "../../services";
@@ -659,6 +660,7 @@ export class OverviewPageComponent {
     private userPreferencesService: UserPreferencesService,
     private snackbarService: SnackbarService,
     private customCurrencyPipe: CustomCurrencyPipe,
+    private productCheck: ProductCheckLauncher,
     public readonly displayCurrencyService: DisplayCurrencyService,
     public readonly translation: TranslationService
   ) {
@@ -700,6 +702,11 @@ export class OverviewPageComponent {
 
   public openQuickScan(): void {
     openQuickScanDialog(this.matDialog).pipe(take(1)).subscribe();
+  }
+
+  /** Checks a product's barcode on Open Food Facts; see src/product-check. */
+  public scanProduct(): void {
+    this.productCheck.start();
   }
 
   private openDetail(kind: OverviewDetailKind, title: string, foodGroup?: string): void {
