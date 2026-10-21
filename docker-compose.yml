@@ -28,9 +28,9 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     volumes:
-      - /volume2/docker/receipt-wrangler/sqlite:/app/receipt-wrangler-api/sqlite
-      - /volume2/docker/receipt-wrangler/data:/app/receipt-wrangler-api/data
-      - /volume2/docker/receipt-wrangler/logs:/app/receipt-wrangler-api/logs
+      - /volume2/docker/cartvibe/sqlite:/app/receipt-wrangler-api/sqlite
+      - /volume2/docker/cartvibe/data:/app/receipt-wrangler-api/data
+      - /volume2/docker/cartvibe/logs:/app/receipt-wrangler-api/logs
 
   redis:
     image: redis:7.4-alpine

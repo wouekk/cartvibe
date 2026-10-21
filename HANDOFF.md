@@ -90,6 +90,6 @@ be done by GitHub Actions or on the Mac.
 The GitHub repository is **`wouekk/cartvibe`** (was `wouekk/receipt-wrangler`; GitHub redirects the old name), the page is
 `https://wouekk.github.io/cartvibe/`, and from v0.1.1 the image is **`ghcr.io/wouekk/cartvibe`** (the old
 `ghcr.io/wouekk/receipt-wrangler` package stays but is no longer updated). Use `--repo wouekk/cartvibe` with `gh`.
-Data paths on the NAS (`/volume2/docker/receipt-wrangler/...`), the service and container names are unchanged on purpose.
+The compose file now maps the NAS folder `/volume2/docker/cartvibe/...` (rename the existing folder first, or the app starts with an empty database); the paths inside the container (`/app/receipt-wrangler-api/...`) and the service names are unchanged on purpose.
 After the first publish the new GHCR package may be **private**: set it to public (GitHub → profile → Packages →
 cartvibe → Package settings → Change visibility) or the NAS cannot pull it.

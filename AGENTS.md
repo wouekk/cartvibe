@@ -67,7 +67,7 @@ https://claude.ai/artifact/TAZXoRQ4mmRyoy37CFKRVt) is the target look. The plan 
   NAS (point the stack's image at `:preview`) before anything reaches `main`.
 - **The NAS** (Synology, Dockhand) runs the root `docker-compose.yml` as a plain stack: the app image,
   plus `redis:7.4-alpine` (background jobs need it; the image has none), SQLite in
-  `/volume2/docker/receipt-wrangler/sqlite` (`DB_FILENAME=app.db`), `SECRET_KEY` and
+  `/volume2/docker/cartvibe/sqlite` (`DB_FILENAME=app.db`), `SECRET_KEY` and
   `ENCRYPTION_KEY` from Dockhand's variables — **no `$` in them** (compose reads it as a variable).
   Deploying = **pull, then redeploy**: a redeploy alone reuses the cached `:latest`, which is how
   the first test ran an image several releases old. Hard-refresh the browser afterwards. Back up the `sqlite` folder before a release that changes the schema.
