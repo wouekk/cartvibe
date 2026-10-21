@@ -1,33 +1,33 @@
-<div class="preview">
-  <div class="preview__header">
-    <span class="preview__dot"></span>
-    <span class="preview__title">{{ 'LIVE PREVIEW' | t }}</span>
-    <span class="preview__subtitle">{{ 'Rendered from your data' | t }}</span>
-    <span class="preview__spacer"></span>
+<div class="px-[30px] pb-10 pt-[26px]">
+  <div class="mb-4 flex items-center gap-[9px]">
+    <span class="size-[7px] rounded-full bg-success-text shadow-[0_0_0_3px_color-mix(in_oklab,var(--success-text)_18%,transparent)]"></span>
+    <span class="text-xs font-semibold tracking-wide text-muted-foreground">{{ 'LIVE PREVIEW' | t }}</span>
+    <span class="text-[11.5px] text-muted-foreground">{{ 'Rendered from your data' | t }}</span>
+    <span class="flex-1"></span>
     @if (ready() && !error()) {
-      <span class="preview__count" (click)="openReceipts()" data-testid="report-receipt-count">
+      <span class="inline-flex cursor-pointer items-center gap-[5px] rounded-full border border-accent bg-card px-2.5 py-1 text-[11px] font-medium text-primary hover:bg-accent [&_app-icon]:size-3.5 [&_app-icon]:text-sm [&_app-icon]:text-primary" (click)="openReceipts()" data-testid="report-receipt-count">
         <app-icon name="receipt_long"></app-icon>{{ receiptCount() }} receipts
         <app-icon name="chevron_right"></app-icon>
       </span>
     }
   </div>
 
-  <div class="preview__stage">
+  <div class="relative mx-auto max-w-190">
     @if (!ready()) {
-      <div class="preview__placeholder">
+      <div class="flex flex-col items-center gap-2.5 rounded-lg border border-dashed border-border bg-card px-5 py-20 text-center text-[13px] text-muted-foreground [&_app-icon]:size-8 [&_app-icon]:text-[32px]">
         <app-icon name="summarize"></app-icon>
         {{ 'Add a group and at least one column to see a preview.' | t }}
       </div>
     } @else if (error()) {
-      <div class="preview__placeholder preview__placeholder--error">
+      <div class="flex flex-col items-center gap-2.5 rounded-lg border border-dashed border-border bg-card px-5 py-20 text-center text-[13px] text-muted-foreground [&_app-icon]:size-8 [&_app-icon]:text-[32px] !border-destructive/20 !text-destructive">
         <app-icon name="error_outline"></app-icon>
         {{ 'Couldn\'t render the preview.' | t }}
       </div>
     } @else {
-      <div class="preview__paper">
+      <div class="relative overflow-hidden rounded-md border border-border bg-card shadow-lg">
         <iframe
           #frame
-          class="preview__frame"
+          class="block min-h-80 w-full border-0"
           [title]="'Report preview' | t"
           sandbox="allow-same-origin"
           [style.height.px]="frameHeight()"
@@ -35,7 +35,7 @@
           (load)="onFrameLoad(frame)"
         ></iframe>
         @if (loading()) {
-          <div class="preview__loading">
+          <div class="absolute right-3 top-3 text-primary [&_app-icon]:animate-spin">
             <app-icon name="autorenew"></app-icon>
           </div>
         }

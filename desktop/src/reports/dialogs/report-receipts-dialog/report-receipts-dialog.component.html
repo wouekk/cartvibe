@@ -1,29 +1,29 @@
 <app-dialog [headerText]="'Receipts in this report' | t">
-  <div class="drill__subtitle">{{ count() }} receipts · {{ periodLabel }}</div>
+  <div class="-mt-1 mb-3.5 text-xs text-muted-foreground">{{ count() }} receipts · {{ periodLabel }}</div>
 
   @if (!loading() && hasError()) {
-    <div class="drill__warning" data-testid="report-receipt-error">
+    <div class="mb-3 flex items-center gap-2 rounded-lg border border-warning-text/40 bg-warning-text/22 px-2.5 py-2 text-[12.5px] text-warning-text [&_app-icon]:size-[17px] [&_app-icon]:text-[17px] [&_app-icon]:text-warning-text" data-testid="report-receipt-error">
       <app-icon name="warning"></app-icon>
       {{ 'The receipts couldn\'t be loaded.' | t }}
     </div>
   }
 
   @if (!loading() && !hasError() && truncated()) {
-    <div class="drill__warning" data-testid="report-receipt-truncated">
+    <div class="mb-3 flex items-center gap-2 rounded-lg border border-warning-text/40 bg-warning-text/22 px-2.5 py-2 text-[12.5px] text-warning-text [&_app-icon]:size-[17px] [&_app-icon]:text-[17px] [&_app-icon]:text-warning-text" data-testid="report-receipt-truncated">
       <app-icon name="info"></app-icon>
       {{ 'Showing the newest {count} of {total} receipts.' | t: { count: receipts().length, total: totalCount() } }}
     </div>
   }
 
   @if (loading()) {
-    <div class="drill__state">
-      <app-icon class="drill__spinner" name="autorenew"></app-icon>
+    <div class="flex items-center justify-center gap-2 px-3 py-10 text-[13px] text-muted-foreground">
+      <app-icon class="animate-spin text-primary" name="autorenew"></app-icon>
       {{ 'Loading receipts…' | t }}
     </div>
   } @else if (selected(); as receipt) {
     <!-- Detail: a simple breakdown of the selected receipt -->
     <app-button
-      class="drill__back"
+      class="mb-3.5 inline-block"
       matButtonType="basic"
       icon="arrow_back"
       [buttonText]="'All receipts' | t"
@@ -31,61 +31,61 @@
       data-testid="report-receipt-back"
     ></app-button>
 
-    <div class="drill__card">
-      <div class="drill__card-header">
-        <span class="drill__card-icon"><app-icon name="receipt"></app-icon></span>
-        <div class="drill__card-heading">
-          <div class="drill__card-name">{{ receipt.name }}</div>
-          <div class="drill__card-date">{{ receipt.date | appDate: "mediumDate" : "calendar" }}</div>
+    <div class="overflow-hidden rounded-xl border border-border">
+      <div class="flex items-start gap-3.5 border-b border-border bg-muted px-5 py-[18px]">
+        <span class="inline-flex size-11 flex-none items-center justify-center rounded-[11px] border border-border bg-card [&_app-icon]:text-primary"><app-icon name="receipt"></app-icon></span>
+        <div class="min-w-0 flex-1">
+          <div class="text-lg font-bold tracking-tight text-foreground">{{ receipt.name }}</div>
+          <div class="mt-0.5 text-[12.5px] text-muted-foreground">{{ receipt.date | appDate: "mediumDate" : "calendar" }}</div>
         </div>
         <app-status-chip [status]="receipt.status"></app-status-chip>
       </div>
 
-      <div class="drill__grid">
-        <div class="drill__cell">
-          <div class="drill__cell-label">{{ 'Amount' | t }}</div>
-          <div class="drill__cell-value drill__num">{{ receipt.amount | customCurrency }}</div>
+      <div class="grid grid-cols-2 gap-px bg-muted">
+        <div class="bg-card px-5 py-3.5">
+          <div class="mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{{ 'Amount' | t }}</div>
+          <div class="text-[15px] font-semibold text-foreground">{{ receipt.amount | customCurrency }}</div>
         </div>
-        <div class="drill__cell">
-          <div class="drill__cell-label">{{ 'Category' | t }}</div>
-          <div class="drill__cell-value">{{ receipt.categories | name }}</div>
+        <div class="bg-card px-5 py-3.5">
+          <div class="mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{{ 'Category' | t }}</div>
+          <div class="text-[13.5px] text-foreground">{{ receipt.categories | name }}</div>
         </div>
-        <div class="drill__cell">
-          <div class="drill__cell-label">{{ 'Tags' | t }}</div>
-          <div class="drill__cell-value">{{ receipt.tags | name }}</div>
+        <div class="bg-card px-5 py-3.5">
+          <div class="mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{{ 'Tags' | t }}</div>
+          <div class="text-[13.5px] text-foreground">{{ receipt.tags | name }}</div>
         </div>
-        <div class="drill__cell">
-          <div class="drill__cell-label">{{ 'Date' | t }}</div>
-          <div class="drill__cell-value">{{ receipt.date | appDate: "mediumDate" : "calendar" }}</div>
+        <div class="bg-card px-5 py-3.5">
+          <div class="mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{{ 'Date' | t }}</div>
+          <div class="text-[13.5px] text-foreground">{{ receipt.date | appDate: "mediumDate" : "calendar" }}</div>
         </div>
       </div>
     </div>
   } @else if (receipts().length === 0) {
-    <div class="drill__state">{{ 'No receipts match this report.' | t }}</div>
+    <div class="flex items-center justify-center gap-2 px-3 py-10 text-[13px] text-muted-foreground">{{ 'No receipts match this report.' | t }}</div>
   } @else {
     <!-- List: every covered receipt, click a row to inspect it -->
-    <div class="drill__table-wrap">
-      <table class="drill__table">
+    <div class="max-h-[60vh] overflow-auto">
+      <table class="w-full border-collapse text-[13px] [&_td]:whitespace-nowrap [&_td]:border-b [&_td]:border-muted [&_td]:px-2.5 [&_td]:py-[7px] [&_td]:text-foreground [&_th]:sticky [&_th]:top-0 [&_th]:border-b-[1.5px] [&_th]:border-border [&_th]:bg-card [&_th]:px-2.5 [&_th]:py-2 [&_th]:text-left [&_th]:text-[11px] [&_th]:font-bold [&_th]:uppercase [&_th]:tracking-wider [&_th]:text-muted-foreground [&_td.drill-num]:text-right [&_th.drill-num]:text-right">
         <thead>
           <tr>
             <th>{{ 'Receipt' | t }}</th>
             <th>{{ 'Date' | t }}</th>
             <th>{{ 'Category' | t }}</th>
-            <th class="drill__num">{{ 'Amount' | t }}</th>
+            <th class="drill-num tabular-nums">{{ 'Amount' | t }}</th>
             <th>{{ 'Status' | t }}</th>
-            <th class="drill__chevron-col"></th>
+            <th class="w-7 text-right"></th>
           </tr>
         </thead>
         <tbody>
           @for (receipt of receipts(); track receipt.id) {
-            <tr class="drill__row" (click)="viewReceipt(receipt)" data-testid="report-receipt-row">
-              <td class="drill__row-name">{{ receipt.name }}</td>
+            <tr class="cursor-pointer transition-colors duration-100 hover:bg-accent" (click)="viewReceipt(receipt)" data-testid="report-receipt-row">
+              <td class="font-medium text-foreground">{{ receipt.name }}</td>
               <td>{{ receipt.date | appDate: "mediumDate" : "calendar" }}</td>
               <td>{{ receipt.categories | name }}</td>
-              <td class="drill__num">{{ receipt.amount | customCurrency }}</td>
+              <td class="drill-num tabular-nums">{{ receipt.amount | customCurrency }}</td>
               <td><app-status-chip [status]="receipt.status"></app-status-chip></td>
-              <td class="drill__chevron-col">
-                <app-icon class="drill__chevron" name="chevron_right"></app-icon>
+              <td class="w-7 text-right">
+                <app-icon class="size-[18px] align-middle text-lg text-border" name="chevron_right"></app-icon>
               </td>
             </tr>
           }
@@ -94,7 +94,7 @@
     </div>
   }
 
-  <div class="drill__footer">
+  <div class="mt-3.5 flex justify-end gap-2.5">
     @if (selected(); as receipt) {
       <app-button
         matButtonType="matRaisedButton"

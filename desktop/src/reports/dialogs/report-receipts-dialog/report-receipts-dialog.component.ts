@@ -40,7 +40,6 @@ export interface ReportReceiptsDialogData {
 @Component({
   selector: "app-report-receipts-dialog",
   templateUrl: "./report-receipts-dialog.component.html",
-  styleUrls: ["./report-receipts-dialog.component.scss"],
   standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
