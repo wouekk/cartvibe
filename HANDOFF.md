@@ -2,7 +2,7 @@
 
 ## Status (2026-10-21, Windows PC, Claude Code desktop app)
 
-**Flutter removal (branch `feature/remove-mobile-api`, not merged):** `mobile/`, its CI and codegen, the mobile sign-in paths and the login QR are removed in three commits (see CHANGELOG "Unreleased"). Vet clean, Jest for touched areas and `ng build` pass locally; CI has not run. After pushing, pull the regenerated `desktop/src/open-api/` (swagger lost `client`/`codeChallenge` params and the QR fields) and re-run the desktop build. `oidc/flow.go`'s mobile branch is dead code behind a router guard on purpose.
+**Flutter removal (merged into `main` on the user's go as `4fbc839e`):** `mobile/`, its CI and codegen, the mobile sign-in paths (`?client=mobile` is refused at the OIDC router) and the login QR are gone (CHANGELOG "Unreleased"). Left on purpose: `oidc/flow.go`'s mobile branch is dead code behind the router guard, the `OidcExchangeCode` / `OidcLinkLaunch` tables, and the unused `show_login_qr` / `mobile_server_url` columns. Possible later: delete that dead code with its tests. After the `main` merge, pull `:latest` in Dockhand and redeploy.
 
 **Settings layout (2026-10-21, merged into `main` on the user's go; every settings page is wide, Save in the card footer; screenshots checked in both themes, Jest 2090/2090, `ng build` OK). NAS note: the old ENCRYPTION_KEY was lost, so the user wipes the sqlite folder and sets new keys; write them down.** settings layout
 unification, plan in `C:/Users/Marcin/.claude/plans/pasted-content-id-ff27-perform-a-cheeky-nebula.md` (outside the repo). Decisions by the user: topics inside a

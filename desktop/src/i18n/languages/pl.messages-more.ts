@@ -171,7 +171,6 @@ export const PL_MORE: Record<string, string> = {
   "Isolate members": "Izoluj członków",
   "When on, members of this group can't see each other. Members with a role that can see all members remain visible to everyone.": "Po włączeniu członkowie tej grupy nie widzą się nawzajem. Członkowie z rolą widzącą wszystkich pozostają widoczni dla każdego.",
   "Disabled while \"Hide Comments\" is on. Your selection is kept and applies again when Hide Comments is turned off.": "Wyłączone, gdy włączono „Ukryj komentarze”. Twój wybór zostaje zachowany i zadziała ponownie po jego wyłączeniu.",
-  "Requiring a comment blocks quick scan on mobile app versions released before this field was added, until those users update.": "Wymaganie komentarza blokuje szybkie skanowanie w wersjach aplikacji mobilnej wydanych przed dodaniem tego pola, dopóki użytkownicy ich nie zaktualizują.",
   "Your role requires at least one comment on this group's receipts.": "Twoja rola wymaga co najmniej jednego komentarza do paragonów tej grupy.",
   "Your role requires at least one image on this group's receipts.": "Twoja rola wymaga co najmniej jednego obrazu do paragonów tej grupy.",
   "Summary configuration:": "Konfiguracja podsumowania:",

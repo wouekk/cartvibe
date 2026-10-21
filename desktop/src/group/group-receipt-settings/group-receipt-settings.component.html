@@ -247,10 +247,6 @@
         <small class="text-muted-foreground block">
           {{ 'Disabled while "Hide Comments" is on. Your selection is kept and applies again when Hide Comments is turned off.' | t }}
         </small>
-      } @else if (form.get('quickScanCommentRequired')?.value) {
-        <small class="text-muted-foreground block">
-          {{ 'Requiring a comment blocks quick scan on mobile app versions released before this field was added, until those users update.' | t }}
-        </small>
       }
     </div>
   </app-form-section>
