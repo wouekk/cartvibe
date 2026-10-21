@@ -77,6 +77,8 @@ model/featureConfig.ts
 model/fileData.ts
 model/fileDataView.ts
 model/filterOperation.ts
+model/geminiModel.ts
+model/geminiModelsCommand.ts
 model/getNewRefreshToken200Response.ts
 model/getSystemTaskCommand.ts
 model/group.ts

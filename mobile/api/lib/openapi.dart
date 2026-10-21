@@ -82,6 +82,8 @@ export 'package:openapi/src/model/feature_config.dart';
 export 'package:openapi/src/model/file_data.dart';
 export 'package:openapi/src/model/file_data_view.dart';
 export 'package:openapi/src/model/filter_operation.dart';
+export 'package:openapi/src/model/gemini_model.dart';
+export 'package:openapi/src/model/gemini_models_command.dart';
 export 'package:openapi/src/model/get_new_refresh_token200_response.dart';
 export 'package:openapi/src/model/get_system_task_command.dart';
 export 'package:openapi/src/model/group.dart';
