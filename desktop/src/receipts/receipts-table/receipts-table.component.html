@@ -55,22 +55,23 @@
       icon="more_vert"
       tooltip="More actions"
       color="accent"
-      [matMenuTriggerFor]="overflowMenu"
+      [hlmDropdownMenuTrigger]="overflowMenu"
     ></app-button>
 
     <!--
       Every item here is a plain button: MatMenu collects its items with a
-      content query, so a mat-menu-item rendered inside a child component's
+      content query, so a hlmDropdownMenuItem rendered inside a child component's
       template (app-quick-scan-button, app-export-button) would be invisible to
       the menu and skipped by keyboard navigation. The behaviour behind each one
       still lives in a shared place — openQuickScanDialog and
       ReceiptExportService.
     -->
-    <mat-menu #overflowMenu="matMenu">
+    <ng-template #overflowMenu>
+<div hlmDropdownMenu class="w-56">
       @if (canQuickScan) {
         <button
           *appFeature="'aiPoweredReceipts'"
-          mat-menu-item
+          hlmDropdownMenuItem
           data-testid="receipts-quick-scan"
           (click)="quickScanClicked()"
         >
@@ -81,7 +82,7 @@
 
       @if (dataSource().data.length > 0) {
         <button
-          mat-menu-item
+          hlmDropdownMenuItem
           data-testid="receipts-export-all"
           (click)="exportAllReceipts()"
         >
@@ -91,7 +92,7 @@
       }
 
       <button
-        mat-menu-item
+        hlmDropdownMenuItem
         data-testid="configure-columns"
         (click)="configureColumnsButtonClicked()"
       >
@@ -102,7 +103,7 @@
       <ng-container *ngIf="canPollEmail && group?.groupSettings?.emailIntegrationEnabled">
         <button
           *appFeature="'aiPoweredReceipts'"
-          mat-menu-item
+          hlmDropdownMenuItem
           data-testid="receipts-poll-email"
           (click)="pollEmail()"
         >
@@ -116,7 +117,7 @@
           {{ selectedReceiptIds().length }} selected
         </div>
         <button
-          mat-menu-item
+          hlmDropdownMenuItem
           data-testid="receipts-export-selected"
           (click)="exportSelectedReceipts()"
         >
@@ -126,7 +127,7 @@
 
         @if (canEdit) {
           <button
-            mat-menu-item
+            hlmDropdownMenuItem
             data-testid="receipts-bulk-status"
             (click)="showStatusUpdateDialog()"
           >
@@ -135,7 +136,8 @@
           </button>
         }
       }
-    </mat-menu>
+    </div>
+</ng-template>
   </div>
 </app-table-header>
 

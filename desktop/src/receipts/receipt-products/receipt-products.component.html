@@ -107,8 +107,8 @@
                       type="button"
                       data-testid="receipt-product-tags-menu"
                       [attr.aria-label]="'Correct the tags of ' + (product.displayName || product.name)"
-                      [matMenuTriggerFor]="tagsMenu"
-                      [matMenuTriggerData]="{ product: product }"
+                      [hlmDropdownMenuTrigger]="tagsMenu"
+                      [hlmDropdownMenuTriggerData]="{ product: product }"
                     >
                       <mat-icon>sell</mat-icon>
                     </button>
@@ -138,11 +138,11 @@
         </tbody>
       </table>
     </div>
-    <mat-menu #tagsMenu="matMenu">
-      <ng-template matMenuContent let-product="product">
+    <ng-template #tagsMenu let-product="product">
+<div hlmDropdownMenu class="w-56">
         @for (choice of healthChoices; track choice.value) {
           <button
-            mat-menu-item
+            hlmDropdownMenuItem
             [attr.data-testid]="'receipt-product-health-' + choice.value"
             (click)="correct(product, choice.value)"
           >
@@ -150,8 +150,8 @@
             <span>{{ choice.label }}</span>
           </button>
         }
-      </ng-template>
-    </mat-menu>
+      </div>
+</ng-template>
   } @else if (view.status === "DONE") {
     <p class="status" data-testid="receipt-products-none">The AI found no products on this receipt.</p>
   }
