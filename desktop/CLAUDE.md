@@ -3049,9 +3049,11 @@ Every Admin and User settings page uses four shared primitives from `src/shared-
   shows it); Reset filter clears it, and `SetReceiptFilter` (the filter dialog) keeps it. The Shop cell shows a muted
   "Matched: Dark chocolate · 2,49 €, ..." line from `Receipt.searchMatches` (`receipt-search-matches`). See `api/CLAUDE.md`
   "Receipt search" for what matches.
-- **The header slot holds the product checker** (`src/product-check/`, standalone, shown to every signed-in user, no API,
-  no permission). Enter looks up 8/12/13 digits with a valid EAN/UPC check digit as a barcode (anything else answers "enter a
-  barcode" without a request); the camera button scans one. **There is no name search, on purpose:** Open Food Facts answers
+- **The product checker is the Dashboard's "Scan product" button** (`data-testid="overview-scan-product"`, after New list; code in
+  `src/product-check/`, no API, no permission; the header has no search box any more). `ProductCheckLauncher.start()` opens the
+  camera scanner when the browser has one and the drawer with the scanned barcode; without a camera (plain http, no device) it opens
+  the drawer, which then has a field to type the barcode in. A barcode is 8/12/13 digits with a valid EAN/UPC check digit
+  (anything else answers "enter a barcode" without a request). **There is no name search, on purpose:** Open Food Facts answers
   any request a browser marks cross-site (`Sec-Fetch-Site`, or just a `Referer`) to its search endpoints (`cgi/search.pl`,
   `/api/v2/search`) with a 503, and its search service sends no CORS header, while `/api/v2/product/{code}` works. A name search
   would need a server relay, which was rejected: the checker is browser-only, zero backend. Everything opens in the slide-over `ProductCheckDrawerComponent`
@@ -3065,7 +3067,7 @@ Every Admin and User settings page uses four shared primitives from `src/shared-
 - **Scoring** (`health-score.ts`, pure, constants documented): 60% Nutri-Score + 40% NOVA (missing counts as 50), minus 15 per
   high-risk and 5 per moderate additive, clamped to 0-100. `e-additives.ts` is a bundled guide of about 210 codes with a
   category and `safe | moderate | high`; unknown codes show as unknown. It is a general guide, and the drawer says so.
-- **Camera**: the button shows only when `isSecureContext` and `getUserMedia` exist (plain-http LAN installs get typing only).
+- **Camera**: the scanner is used only when `isSecureContext` and `getUserMedia` exist (plain-http LAN installs get the typed field only).
   `BarcodeScannerService` uses the native `BarcodeDetector` and otherwise loads `@zxing/browser` on demand (own chunk). A read
   counts only after the check digit passes. **zxing is pinned to `@zxing/browser` 0.1.5 + `@zxing/library` 0.21.3 on purpose:**
   library 0.22+ declares `node >= 24`, which fails the engines check against CI's Node 20.19.6.

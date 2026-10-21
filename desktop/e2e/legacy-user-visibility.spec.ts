@@ -84,10 +84,6 @@ test.describe('Legacy User visibility', () => {
     ).toHaveCount(0);
   });
 
-  test('header product checker renders', async ({ page }) => {
-    await page.goto('/groups/create');
-    await expect(page.getByTestId('product-check-input')).toBeVisible();
-  });
 });
 
 // Contrast: an admin (Legacy Admin) holds the corresponding permissions and can

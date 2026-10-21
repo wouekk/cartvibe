@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
 import { HlmButton } from "@spartan-ng/helm/button";
+import { HlmInputGroupImports } from "@spartan-ng/helm/input-group";
 import { AppDialogRef } from "../dialog/app-dialog";
 import { TranslatePipe } from "../i18n/translate.pipe";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
+import { canUseCamera } from "./barcode-scanner.service";
 import { AdditiveInfo, describeAdditives } from "./e-additives";
 import { computeHealthScore, HealthTone, healthTone } from "./health-score";
 import { CheckedProduct, NutrientLevel, NutriScore } from "./product-check.models";
@@ -56,7 +58,7 @@ interface NutritionRow {
 @Component({
   selector: "app-product-check-drawer",
   standalone: true,
-  imports: [HlmButton, AppIconComponent, TranslatePipe],
+  imports: [HlmButton, HlmInputGroupImports, AppIconComponent, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: "flex h-full min-h-0 flex-col", "data-testid": "product-check-drawer" },
   template: `
@@ -68,6 +70,24 @@ interface NutritionRow {
     </header>
 
     <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 [&>*]:shrink-0">
+      <!-- Without a camera (plain http, no device) the barcode is typed here. -->
+      @if (!cameraAvailable) {
+        <div hlmInputGroup data-testid="product-check-barcode-box">
+          <input
+            #barcode
+            hlmInputGroupInput
+            type="text"
+            inputmode="numeric"
+            enterkeyhint="search"
+            autocomplete="off"
+            data-testid="product-check-barcode"
+            [placeholder]="'Enter a barcode…' | t"
+            [attr.aria-label]="'Enter a barcode' | t"
+            (keydown.enter)="lookup(barcode.value)"
+          />
+        </div>
+      }
+
       @if (recent().length) {
         <div class="rw-scroll-x -mx-1 flex gap-2 px-1" role="list" [attr.aria-label]="'Recent scans' | t" data-testid="product-check-recent">
           @for (item of recent(); track item.code) {
@@ -208,7 +228,7 @@ interface NutritionRow {
         }
         @default {
           <p class="m-0 text-sm text-muted-foreground" data-testid="product-check-idle">
-            {{ 'Type a barcode in the top bar, or scan one with the camera.' | t }}
+            {{ 'Enter the barcode printed under the bars.' | t }}
           </p>
         }
       }
@@ -249,6 +269,13 @@ export class ProductCheckDrawerComponent {
       { key: "energy", label: "Calories", value: nutrition.energyKcal === null ? "—" : `${Math.round(nutrition.energyKcal)} kcal`, level: null },
     ];
   });
+
+  /** Typing a barcode is the way in when the browser offers no camera. */
+  protected readonly cameraAvailable = canUseCamera();
+
+  protected lookup(value: string): void {
+    this.service.check(value);
+  }
 
   protected show(product: CheckedProduct): void {
     this.service.showProduct(product);
