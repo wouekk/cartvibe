@@ -56,7 +56,7 @@ export interface UserPreferences {
      */
     displayCurrencyRate?: string;
     /**
-     * The interface language this person chose (en or pl); empty follows the browser
+     * The interface language this person chose (a language code such as en or pl); empty follows the browser
      */
     language?: string;
     userShortcuts?: Array<UserShortcut>;
