@@ -25,7 +25,6 @@ interface GroupChoice {
 @Component({
   selector: "app-add-group-dialog",
   templateUrl: "./add-group-dialog.component.html",
-  styleUrls: ["./add-group-dialog.component.scss"],
   standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

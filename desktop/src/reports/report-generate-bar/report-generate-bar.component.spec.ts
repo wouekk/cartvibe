@@ -123,9 +123,9 @@ describe("ReportGenerateBarComponent", () => {
     const el = fixture.nativeElement as HTMLElement;
 
     // The format chips render, reflecting the selected (xlsx) format.
-    expect(el.querySelector('[data-testid="report-format-xlsx"]')!.classList).toContain("gen-bar__chip--on");
-    expect(el.querySelector('[data-testid="report-format-csv"]')!.classList).not.toContain("gen-bar__chip--on");
-    expect(el.querySelector(".gen-bar__summary")!.textContent).toContain("Single XLSX file");
+    expect(el.querySelector('[data-testid="report-format-xlsx"]')!.getAttribute("aria-pressed")).toBe("true");
+    expect(el.querySelector('[data-testid="report-format-csv"]')!.getAttribute("aria-pressed")).toBe("false");
+    expect(el.querySelector("[data-testid=report-format-summary]")!.textContent).toContain("Single XLSX file");
 
     // canGenerate=true → the Generate button is enabled.
     const button = () => el.querySelector('[data-testid="report-generate"] button') as HTMLButtonElement;

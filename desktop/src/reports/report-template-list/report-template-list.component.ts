@@ -42,7 +42,6 @@ import { ReportTemplateTableService } from "./report-template-table.service";
 @Component({
   selector: "app-report-template-list",
   templateUrl: "./report-template-list.component.html",
-  styleUrls: ["./report-template-list.component.scss"],
   host: DEFAULT_HOST_CLASS,
   providers: [{ provide: BaseTableService, useClass: ReportTemplateTableService }],
   standalone: false,

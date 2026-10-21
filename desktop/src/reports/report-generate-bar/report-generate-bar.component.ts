@@ -14,8 +14,8 @@ interface FormatChip {
  */
 @Component({
   selector: "app-report-generate-bar",
+  host: { class: "block flex-none" },
   templateUrl: "./report-generate-bar.component.html",
-  styleUrls: ["./report-generate-bar.component.scss"],
   standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
