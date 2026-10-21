@@ -55,8 +55,8 @@ const FILTER_FIELDS: FilterFieldDef[] = [
  */
 @Component({
   selector: "app-report-filters",
+  host: { class: "block" },
   templateUrl: "./report-filters.component.html",
-  styleUrls: ["./report-filters.component.scss"],
   standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

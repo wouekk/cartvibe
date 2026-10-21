@@ -1,34 +1,34 @@
 @for (def of activeFields(); track def.field) {
-  <div class="report-filter__row">
+  <div class="mb-1 flex items-start gap-2">
     @if (operationValueOf(def.field) === FilterOperation.Between) {
-      <div class="report-filter__between">
-        <app-input *ngIf="def.type === 'text' || def.type === 'number'" class="report-filter__grow"
+      <div class="flex min-w-0 flex-1 items-center gap-1.5">
+        <app-input *ngIf="def.type === 'text' || def.type === 'number'" class="min-w-0 flex-1"
           [isCurrency]="!!def.isCurrency" [label]="'Start ' + def.label"
           [inputFormControl]="filterGroup | formGet: def.field + '.value.0'"></app-input>
-        <app-datepicker *ngIf="def.type === 'date'" class="report-filter__grow"
+        <app-datepicker *ngIf="def.type === 'date'" class="min-w-0 flex-1"
           [label]="'Start ' + def.label"
           [inputFormControl]="filterGroup | formGet: def.field + '.value.0'"></app-datepicker>
-        <span class="report-filter__sep">{{ 'and' | t }}</span>
-        <app-input *ngIf="def.type === 'text' || def.type === 'number'" class="report-filter__grow"
+        <span class="flex-none text-xs text-muted-foreground">{{ 'and' | t }}</span>
+        <app-input *ngIf="def.type === 'text' || def.type === 'number'" class="min-w-0 flex-1"
           [isCurrency]="!!def.isCurrency" [label]="'End ' + def.label"
           [inputFormControl]="filterGroup | formGet: def.field + '.value.1'"></app-input>
-        <app-datepicker *ngIf="def.type === 'date'" class="report-filter__grow"
+        <app-datepicker *ngIf="def.type === 'date'" class="min-w-0 flex-1"
           [label]="'End ' + def.label"
           [inputFormControl]="filterGroup | formGet: def.field + '.value.1'"></app-datepicker>
       </div>
     } @else {
-      <app-input *ngIf="def.type === 'text' || def.type === 'number'" class="report-filter__value"
+      <app-input *ngIf="def.type === 'text' || def.type === 'number'" class="min-w-0 flex-1"
         [isCurrency]="!!def.isCurrency" [label]="def.label"
         [inputFormControl]="filterGroup | formGet: def.field + '.value'"></app-input>
-      <app-datepicker *ngIf="def.type === 'date'" class="report-filter__value"
+      <app-datepicker *ngIf="def.type === 'date'" class="min-w-0 flex-1"
         [label]="def.label"
         [inputFormControl]="filterGroup | formGet: def.field + '.value'"></app-datepicker>
-      <app-autocomlete *ngIf="def.type === 'users'" class="report-filter__value"
+      <app-autocomlete *ngIf="def.type === 'users'" class="min-w-0 flex-1"
         [label]="def.label" [multiple]="true"
         [options]="paidByOptions()"
         optionValueKey="id" optionFilterKey="displayName" optionDisplayKey="displayName"
         [inputFormControl]="filterGroup | formGet: def.field + '.value'"></app-autocomlete>
-      <app-autocomlete *ngIf="def.type === 'list'" class="report-filter__value"
+      <app-autocomlete *ngIf="def.type === 'list'" class="min-w-0 flex-1"
         [label]="def.label" [multiple]="true"
         [options]="optionsFor(def)"
         [optionValueKey]="def.optionValueKey ?? ''"
@@ -37,7 +37,7 @@
         [inputFormControl]="filterGroup | formGet: def.field + '.value'"></app-autocomlete>
     }
 
-    <app-select class="report-filter__op" [label]="'Operation' | t" [addEmptyOption]="true"
+    <app-select class="w-37.5 flex-none" [label]="'Operation' | t" [addEmptyOption]="true"
       [options]="operationOptions(def.type)" [optionsDisplayArray]="operationDisplay(def.type)"
       [inputFormControl]="filterGroup | formGet: def.field + '.operation'"></app-select>
 
@@ -47,7 +47,7 @@
 }
 
 @if (addableFields().length > 0) {
-  <app-select class="report-filter__add" [label]="'Add filter…' | t" [addEmptyOption]="true"
+  <app-select class="mt-1 block" [label]="'Add filter…' | t" [addEmptyOption]="true"
     optionValueKey="field" optionDisplayKey="label"
     [options]="addableFields()" [inputFormControl]="addFilterControl"
     data-testid="report-add-filter"></app-select>

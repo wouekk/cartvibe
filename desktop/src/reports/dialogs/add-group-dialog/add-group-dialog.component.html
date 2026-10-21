@@ -1,19 +1,19 @@
 <app-dialog [headerText]="'Add a group' | t">
-  <div class="add-group__note">
+  <div class="mb-3 flex items-start gap-2 rounded-[9px] border border-border bg-muted px-[11px] py-[9px] text-[11.5px] leading-snug text-muted-foreground [&_app-icon]:mt-px [&_app-icon]:size-[15px] [&_app-icon]:text-[15px] [&_app-icon]:text-primary">
     <app-icon name="info"></app-icon>
     {{ 'Report across the groups you can generate reports for.' | t }}
   </div>
 
   @for (group of groups(); track group.id) {
-    <div class="add-group__row" data-testid="add-group-row">
-      <span class="add-group__avatar" [style.background]="group.color">{{ group.initials }}</span>
-      <div class="add-group__name">{{ group.name }}</div>
+    <div class="mb-2 flex items-center gap-3 rounded-[11px] border border-border px-3 py-2.5" data-testid="add-group-row">
+      <span class="inline-flex size-9 flex-none items-center justify-center rounded-full text-[13px] font-semibold text-card" [style.background]="group.color">{{ group.initials }}</span>
+      <div class="min-w-0 flex-1 text-[13.5px] font-semibold text-foreground">{{ group.name }}</div>
       @if (group.selected) {
-        <button type="button" class="add-group__added" (click)="toggle(group.id)" data-testid="add-group-selected">
+        <button type="button" class="inline-flex h-8 items-center gap-1 rounded-lg border border-transparent bg-transparent px-[13px] text-[12.5px] font-semibold text-success-text [&_app-icon]:size-4 [&_app-icon]:text-base" (click)="toggle(group.id)" data-testid="add-group-selected">
           <app-icon name="check_circle"></app-icon>{{ 'Added' | t }}
         </button>
       } @else {
-        <button type="button" class="add-group__add" (click)="toggle(group.id)" data-testid="add-group-select">
+        <button type="button" class="inline-flex h-8 cursor-pointer items-center gap-1 rounded-lg border border-accent bg-card px-[13px] text-[12.5px] font-semibold text-primary hover:bg-accent [&_app-icon]:size-4 [&_app-icon]:text-base" (click)="toggle(group.id)" data-testid="add-group-select">
           <app-icon name="add"></app-icon>{{ 'Add' | t }}
         </button>
       }
@@ -21,7 +21,7 @@
   }
 
   @if (groups().length === 0) {
-    <div class="add-group__empty">{{ 'You don\'t have report access in any group.' | t }}</div>
+    <div class="px-1 py-3 text-center text-[12.5px] text-muted-foreground">{{ 'You don\'t have report access in any group.' | t }}</div>
   }
 
   <app-dialog-footer submitButtonTooltip="Done" (submitClicked)="submit()" (cancelClicked)="cancel()"></app-dialog-footer>

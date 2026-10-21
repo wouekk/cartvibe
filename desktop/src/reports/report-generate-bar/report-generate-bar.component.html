@@ -1,21 +1,23 @@
-<div class="gen-bar">
-  <span class="gen-bar__label">{{ 'FORMAT' | t }}</span>
-  <div class="gen-bar__chips">
+<div class="flex items-center gap-4.5 border-t border-border bg-card px-6 py-3 shadow-[0_-4px_12px_color-mix(in_oklab,var(--foreground)_4%,transparent)]">
+  <span class="text-xs font-semibold tracking-wide text-muted-foreground">{{ 'FORMAT' | t }}</span>
+  <div class="flex gap-2">
     @for (format of formats; track format.key) {
-      <div class="gen-bar__chip" [class.gen-bar__chip--on]="isSelected(format.key)"
+      <div role="button" tabindex="0" class="inline-flex h-9 cursor-pointer items-center gap-[7px] rounded-lg border-[1.5px] px-3 text-[13px] font-semibold transition-all duration-150 [&_app-icon]:size-[17px] [&_app-icon]:text-[17px]"
+        [ngClass]="isSelected(format.key) ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card text-muted-foreground'"
+        [attr.aria-pressed]="isSelected(format.key)" (keydown.enter)="toggle(format.key)" (keydown.space)="toggle(format.key)"
         (click)="toggle(format.key)" [attr.data-testid]="'report-format-' + format.key">
         <app-icon [name]="format.icon"></app-icon>
         {{ format.label }}
         @if (isSelected(format.key)) {
-          <app-icon class="gen-bar__check" name="check_circle"></app-icon>
+          <app-icon class="!size-[15px] !text-[15px]" name="check_circle"></app-icon>
         }
       </div>
     }
   </div>
-  <span class="gen-bar__summary">{{ formatSummary() }}</span>
-  <span class="gen-bar__spacer"></span>
+  <span data-testid="report-format-summary" class="text-[11.5px] text-muted-foreground">{{ formatSummary() }}</span>
+  <span class="flex-1"></span>
   @if (generating()) {
-    <app-icon class="gen-bar__spinner" name="autorenew"></app-icon>
+    <app-icon class="animate-spin text-primary" name="autorenew"></app-icon>
   }
   @if (saveTemplateAllowed()) {
     <app-button

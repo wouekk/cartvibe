@@ -1,4 +1,4 @@
-<div class="report-templates-page">
+<div class="flex flex-col">
   <app-table-header
     [headerText]="'Reports' | t"
     subtitle="Saved report templates — open one in the builder, generate it, duplicate it, or delete it."
@@ -26,8 +26,8 @@
       (pageChange)="pageChanged($event)"
     ></app-table>
   } @else if (loaded()) {
-    <div class="empty-state">
-      <span class="empty-icon"><app-icon name="summarize"></app-icon></span>
+    <div class="flex flex-col items-center gap-2 rounded-lg border border-border bg-card p-12 text-center shadow-md [&_h2]:m-0 [&_h2]:text-lg [&_p]:mb-2 [&_p]:max-w-105 [&_p]:text-sm [&_p]:text-muted-foreground">
+      <span class="mb-1 inline-flex size-14 items-center justify-center rounded-xl bg-accent text-foreground [&_app-icon]:size-7 [&_app-icon]:text-[28px]"><app-icon name="summarize"></app-icon></span>
       <h2>{{ 'No report templates yet' | t }}</h2>
       <p>{{ 'Build a report and save it as a template to reuse it later.' | t }}</p>
       @if (canEnterBuilder()) {
@@ -44,11 +44,11 @@
 
 <ng-template #nameCell let-element="element">
   <a
-    class="template-name"
+    class="text-sm font-semibold"
     data-testid="report-template-name"
     [routerLink]="['/reports', element.id, 'edit']"
   >{{ element.name }}</a>
-  <div class="sub">
+  <div class="mt-0.5 text-xs text-muted-foreground">
     {{ columnCountFor(element) }} {{ (columnCountFor(element) === 1 ? 'column' : 'columns') | t }}
   </div>
 </ng-template>
@@ -66,9 +66,9 @@
 </ng-template>
 
 <ng-template #formatsCell let-element="element">
-  <div class="format-chips">
+  <div class="flex flex-wrap gap-[5px]">
     @for (format of formatChipsFor(element); track format) {
-      <span class="format-chip">{{ format }}</span>
+      <span class="inline-flex h-[22px] items-center rounded-sm bg-accent px-2 text-[11px] font-bold tracking-wide text-foreground">{{ format }}</span>
     }
   </div>
 </ng-template>
@@ -78,7 +78,7 @@
 </ng-template>
 
 <ng-template #actionsCell let-element="element">
-  <div class="row-actions">
+  <div class="flex justify-end gap-0.5">
     <!--
       Each button is gated on the server-computed allowedActions for this row, which
       already bakes in the base/"*All" report permissions, the per-group ceiling, and
