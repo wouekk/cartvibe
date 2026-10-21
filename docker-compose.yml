@@ -2,11 +2,11 @@
 # only downloads the image GitHub publishes after CI passes on main (.github/workflows/
 # publish-image.yml); nothing is built on the NAS. To update, redeploy: pull_policy always fetches the newest image.
 services:
-  receipt-wrangler:
+  cartvibe:
     image: ghcr.io/wouekk/cartvibe:latest
     # Check the registry on every deploy, so a redeploy never reuses a cached older :latest.
     pull_policy: always
-    container_name: receipt-wrangler
+    container_name: cartvibe
     restart: unless-stopped
     depends_on:
       redis:
@@ -28,13 +28,13 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     volumes:
-      - /volume2/docker/cartvibe/sqlite:/app/receipt-wrangler-api/sqlite
-      - /volume2/docker/cartvibe/data:/app/receipt-wrangler-api/data
-      - /volume2/docker/cartvibe/logs:/app/receipt-wrangler-api/logs
+      - /volume2/docker/cartvibe/sqlite:/app/cartvibe-api/sqlite
+      - /volume2/docker/cartvibe/data:/app/cartvibe-api/data
+      - /volume2/docker/cartvibe/logs:/app/cartvibe-api/logs
 
   redis:
     image: redis:7.4-alpine
-    container_name: receipt-wrangler-redis
+    container_name: cartvibe-redis
     restart: unless-stopped
     # Persist queued jobs across restarts.
     command: ["redis-server", "--appendonly", "yes"]

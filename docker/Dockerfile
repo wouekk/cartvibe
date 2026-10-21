@@ -4,7 +4,7 @@
 # reinstalling them. Keep anything that changes per build (VERSION, BUILD_DATE, source) below them.
 
 FROM node:lts-alpine as node
-WORKDIR /app/receipt-wrangler-desktop
+WORKDIR /app/cartvibe-desktop
 
 RUN npm install -g @angular/cli
 
@@ -25,12 +25,12 @@ ENV PATH="~/.local/bin:${PATH}"
 ENV ENV="prod"
 
 # Set base path
-ENV BASE_PATH="/app/receipt-wrangler-api"
+ENV BASE_PATH="/app/cartvibe-api"
 
 # Set pythonpath
-ENV PYTHONPATH="/app/receipt-wrangler-api/wranglervenv/lib/python3.11/site-packages"
+ENV PYTHONPATH="/app/cartvibe-api/wranglervenv/lib/python3.11/site-packages"
 
-WORKDIR /app/receipt-wrangler-api
+WORKDIR /app/cartvibe-api
 
 # Install tesseract, ImageMagick, Chromium and the Python OCR dependencies. Only the script and the
 # requirements file it reads are copied first, so this (by far the slowest) layer survives code changes.
@@ -67,27 +67,27 @@ ENV VERSION=${VERSION}
 
 # Set up data volume
 RUN mkdir data
-VOLUME /app/receipt-wrangler-api/data
+VOLUME /app/cartvibe-api/data
 
 # Set up temp directory
 RUN mkdir temp
 
 # Set up sqlite volume
-VOLUME /app/receipt-wrangler-api/sqlite
+VOLUME /app/cartvibe-api/sqlite
 
 # Add logs volume
 RUN mkdir logs
-VOLUME /app/receipt-wrangler-api/logs
+VOLUME /app/cartvibe-api/logs
 
 # Setup nginx
-WORKDIR /app/receipt-wrangler-api/docker
+WORKDIR /app/cartvibe-api/docker
 COPY docker/ .
 COPY docker/entrypoint.sh /app
 RUN chmod 777 /app/entrypoint.sh
 COPY docker/default.conf /etc/nginx/conf.d/default.conf
 
 # Copy desktop dist
-COPY --from=node /app/receipt-wrangler-desktop/dist/receipt-wrangler/browser /usr/share/nginx/html
+COPY --from=node /app/cartvibe-desktop/dist/receipt-wrangler/browser /usr/share/nginx/html
 
 # Clean up
 WORKDIR /app

@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Source venv
-source /app/receipt-wrangler-api/wranglervenv/bin/activate
+source /app/cartvibe-api/wranglervenv/bin/activate
 
-cd /app/receipt-wrangler-api
+cd /app/cartvibe-api
 
 # Forward TERM/INT to the children: bash runs as PID 1 here, and PID 1 ignores
 # SIGTERM by default, so `docker stop` previously waited out the full grace
