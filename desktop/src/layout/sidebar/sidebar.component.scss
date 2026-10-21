@@ -64,6 +64,25 @@ app-sidebar {
     box-shadow: none;
   }
 
+  // The container only measures the drawer when it opens, so collapsing or expanding it left the page at the
+  // old margin. The page follows the sidebar's width here instead, and grows into the space.
+  .drawer-content.drawer-content--rail {
+    margin-left: $sidebar-collapsed-width !important;
+  }
+
+  .drawer-content.drawer-content--wide {
+    margin-left: $sidebar-width !important;
+  }
+
+  .drawer-content {
+    transition: margin-left 0.2s ease;
+  }
+
+  // Avatars in the sidebar take the theme's color instead of each person's own.
+  .sidebar__avatar .avatar {
+    background-color: var(--accent-button, #0077bd) !important;
+  }
+
   .sidebar__group {
     display: flex;
     align-items: center;

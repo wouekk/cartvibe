@@ -15,7 +15,7 @@ products, keep shared shopping lists in sync on every phone, and see where the m
 
 - Shopping lists per household with amounts, units and live sync between phones
 - A dashboard: spend, change on the previous period, unhealthy and unplanned spend, a monthly goal and a trend chart
-- The AI reads each receipt's product lines, tags them healthy / medium / unhealthy and seasonal / imported
+- The AI (BYOK, bring your own key) reads each receipt's product lines, tags them healthy / medium / unhealthy and seasonal / imported
 - Attach a receipt to a list to see what was bought that wasn't planned
 - A simple family interface: no bill splitting, "To check / Done" statuses, one household group, Admin and User roles
 - Themes: light, dark and five accents
