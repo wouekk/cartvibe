@@ -5,7 +5,7 @@
 -->
 <div hlmSidebarWrapper class="h-full">
   @if (isLoggedIn()) {
-    <hlm-sidebar collapsible="icon" srOnlySheetTitle="Main navigation" srOnlySheetDescription="Navigate CartVibe">
+    <hlm-sidebar variant="inset" collapsible="icon" srOnlySheetTitle="Main navigation" srOnlySheetDescription="Navigate CartVibe">
       <div hlmSidebarHeader>
         @if (groups().length > 0 && !hasSeveralGroups()) {
           <ul hlmSidebarMenu>
@@ -32,7 +32,8 @@
                 type="button"
                 tooltip="Switch household"
                 data-testid="sidebar-group-switcher"
-                [matMenuTriggerFor]="groupMenu"
+                [hlmDropdownMenuTrigger]="groupMenu"
+                align="start"
               >
                 <app-avatar class="sidebar__avatar" [group]="selectedGroup()"></app-avatar>
                 <span class="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
@@ -41,18 +42,22 @@
                 </span>
                 <mat-icon class="ml-auto group-data-[collapsible=icon]:hidden">unfold_more</mat-icon>
               </button>
-              <mat-menu #groupMenu="matMenu">
-                @for (group of groups(); track group.id) {
-                  <button
-                    mat-menu-item
-                    data-testid="sidebar-group-option"
-                    (click)="groupClicked(group.id); closeMobileSidebar()"
-                  >
-                    <mat-icon>{{ group.id === selectedGroupIdNumber() ? "check" : "" }}</mat-icon>
-                    <span>{{ group.name }}</span>
-                  </button>
-                }
-              </mat-menu>
+              <ng-template #groupMenu>
+                <div hlmDropdownMenu class="w-56">
+                  <div hlmDropdownMenuLabel>Households</div>
+                  @for (group of groups(); track group.id) {
+                    <button
+                      hlmDropdownMenuItem
+                      type="button"
+                      data-testid="sidebar-group-option"
+                      (click)="groupClicked(group.id); closeMobileSidebar()"
+                    >
+                      <mat-icon class="size-4 text-base">{{ group.id === selectedGroupIdNumber() ? "check" : "" }}</mat-icon>
+                      <span>{{ group.name }}</span>
+                    </button>
+                  }
+                </div>
+              </ng-template>
             </li>
           </ul>
         }
@@ -76,39 +81,43 @@
           <div hlmSidebarGroup class="mt-auto">
             <ul hlmSidebarMenu>
               <li hlmSidebarMenuItem>
-                <button
-                  hlmSidebarMenuButton
-                  type="button"
-                  tooltip="Manage"
-                  data-testid="sidebar-manage-toggle"
-                  [attr.aria-expanded]="isManageOpen()"
-                  (click)="isManageOpen.set(!isManageOpen())"
-                >
-                  <mat-icon>tune</mat-icon>
-                  <span>Manage</span>
-                  <mat-icon class="ml-auto group-data-[collapsible=icon]:hidden">{{
-                    isManageOpen() ? "expand_less" : "expand_more"
-                  }}</mat-icon>
-                </button>
-                @if (isManageOpen()) {
-                  <ul hlmSidebarMenuSub data-testid="sidebar-manage-items">
-                    @for (item of manageNavItems(); track item.label) {
-                      <li hlmSidebarMenuSubItem>
-                        <a
-                          hlmSidebarMenuSubButton
-                          routerLinkActive
-                          #manageActive="routerLinkActive"
-                          [isActive]="manageActive.isActive"
-                          [routerLink]="item.link"
-                          (click)="closeMobileSidebar()"
-                        >
-                          <mat-icon>{{ item.icon }}</mat-icon>
-                          <span>{{ item.label }}</span>
-                        </a>
-                      </li>
-                    }
-                  </ul>
-                }
+                <hlm-collapsible [expanded]="isManageOpen()" (expandedChange)="isManageOpen.set($event)">
+                  <button
+                    hlmSidebarMenuButton
+                    hlmCollapsibleTrigger
+                    type="button"
+                    tooltip="Manage"
+                    data-testid="sidebar-manage-toggle"
+                    [attr.aria-expanded]="isManageOpen()"
+                  >
+                    <mat-icon>tune</mat-icon>
+                    <span>Manage</span>
+                    <mat-icon
+                      class="ml-auto transition-transform duration-200 group-data-[collapsible=icon]:hidden"
+                      [class.rotate-180]="isManageOpen()"
+                      >expand_more</mat-icon
+                    >
+                  </button>
+                  <hlm-collapsible-content>
+                    <ul hlmSidebarMenuSub data-testid="sidebar-manage-items">
+                      @for (item of manageNavItems(); track item.label) {
+                        <li hlmSidebarMenuSubItem>
+                          <a
+                            hlmSidebarMenuSubButton
+                            routerLinkActive
+                            #manageActive="routerLinkActive"
+                            [isActive]="manageActive.isActive"
+                            [routerLink]="item.link"
+                            (click)="closeMobileSidebar()"
+                          >
+                            <mat-icon>{{ item.icon }}</mat-icon>
+                            <span>{{ item.label }}</span>
+                          </a>
+                        </li>
+                      }
+                    </ul>
+                  </hlm-collapsible-content>
+                </hlm-collapsible>
               </li>
             </ul>
           </div>
@@ -124,7 +133,9 @@
               type="button"
               tooltip="Account"
               data-testid="sidebar-avatar-menu"
-              [matMenuTriggerFor]="accountMenu"
+              [hlmDropdownMenuTrigger]="accountMenu"
+              side="top"
+              align="start"
             >
               <app-avatar class="sidebar__avatar" [user]="loggedInUser() ?? $any({})"></app-avatar>
               <span class="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
@@ -132,22 +143,25 @@
               </span>
               <mat-icon class="ml-auto group-data-[collapsible=icon]:hidden">more_vert</mat-icon>
             </button>
-            <mat-menu #accountMenu="matMenu">
-              @if (canViewUserSettings()) {
-                <button mat-menu-item [routerLink]="['/settings']" (click)="closeMobileSidebar()">
-                  <mat-icon>manage_accounts</mat-icon>
-                  <span>User Settings</span>
+            <ng-template #accountMenu>
+              <div hlmDropdownMenu class="w-56">
+                @if (canViewUserSettings()) {
+                  <button hlmDropdownMenuItem type="button" [routerLink]="['/settings']" (click)="closeMobileSidebar()">
+                    <mat-icon class="size-4 text-base">manage_accounts</mat-icon>
+                    <span>User Settings</span>
+                  </button>
+                }
+                <button hlmDropdownMenuItem type="button" (click)="openAboutDialog()">
+                  <mat-icon class="size-4 text-base">info</mat-icon>
+                  <span>About</span>
                 </button>
-              }
-              <button mat-menu-item (click)="openAboutDialog()">
-                <mat-icon>info</mat-icon>
-                <span>About</span>
-              </button>
-              <button mat-menu-item (click)="logout()">
-                <mat-icon>logout</mat-icon>
-                <span>Logout</span>
-              </button>
-            </mat-menu>
+                <div hlmDropdownMenuSeparator></div>
+                <button hlmDropdownMenuItem type="button" (click)="logout()">
+                  <mat-icon class="size-4 text-base">logout</mat-icon>
+                  <span>Logout</span>
+                </button>
+              </div>
+            </ng-template>
           </li>
         </ul>
       </div>
