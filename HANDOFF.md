@@ -2,6 +2,7 @@
 
 ## Status (2026-10-21, Windows PC, Claude Code desktop app)
 
+**v0.2.0 is released (2026-10-21):** `feature/redesign` was fast-forwarded into `main` (`033f9ae9`) and tagged `v0.2.0`; CI on `main` and the `:latest` publish were green. It holds the Tailwind + spartan/ui redesign (White/Black themes), Polish translation, shop logos (about 230 chains, `scripts/shop-logos/`, Logo.dev credit in `NOTICE.md`), the AI model dropdown and backup AI card, the 3-try AI cap, HEIC/photo normalization, the settings-card standard (`rw-section`, see `desktop/CLAUDE.md`), shopping-list item suggestions and the upload progress bar. **Not yet seen on the NAS:** pull `:latest` and redeploy, then look at every page in both themes and Polish. Post-release work (shopping-list master-detail `e0e7a61a`, image hardening) lives on other `feature/*` branches and is not in 0.2.0. Still open: Polish for strings built in TypeScript, parked per-user currency work, stale Playwright specs (no live API here).
 **Latest (frontend security sweep, same branch `feature/image-hardening`):** audit found nothing exploitable; hardening applied:
 nginx `Permissions-Policy`, HSTS (only when `X-Forwarded-Proto` is https), dotfile/`.map` 404, headers repeated on the hashed-asset
 location, `/oauth/` with `frame-ancestors 'none'` + `no-store`, and a **Content-Security-Policy in Report-Only mode** on the app
