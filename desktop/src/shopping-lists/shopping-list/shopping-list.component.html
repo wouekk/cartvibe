@@ -1,12 +1,14 @@
 @if (canUpdate()) {
   <form class="add-bar sticky top-0 z-10 bg-background pb-3 pt-1" [formGroup]="addForm" (ngSubmit)="addItem()">
     <div class="flex items-start gap-2">
-      <app-input
+      <app-shopping-item-name-field
         class="add-name min-w-0 flex-1"
         [label]="'Add an item' | t"
-        data-testid="shopping-list-add-name"
-        [inputFormControl]="addForm | formGet : 'name'"
-      ></app-input>
+        testId="shopping-list-add-name"
+        [control]="nameControl"
+        [suggestions]="suggestions()"
+        (picked)="suggestionPicked($event)"
+      ></app-shopping-item-name-field>
       <app-shopping-list-amount-fields class="add-amount w-44 flex-none max-[400px]:w-38" [form]="addForm"></app-shopping-list-amount-fields>
       <button
         hlmBtn
