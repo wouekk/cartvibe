@@ -102,25 +102,16 @@ import { Component, input } from "@angular/core";
   `,
   styles: [
     `
+      /* The palette is the theme's: every theme defines the --brand-* tokens (src/themes), this only maps them. */
       :host {
         display: inline-flex;
-        --bg-bl: #8e78f5;
-        --bg-tr: #a6cafd;
-        --cart-fill: #0b1325;
-        --bar-top: #18c985;
-        --bar-bot: #0c9f67;
-        --arrow-start: #1d6bf3;
-        --arrow-end: #1582ff;
-      }
-
-      :host-context(html.dark) {
-        --bg-bl: #180d3a;
-        --bg-tr: #5733a5;
-        --cart-fill: #e2e8f0;
-        --bar-top: #18c985;
-        --bar-bot: #0c9f67;
-        --arrow-start: #1d6bf3;
-        --arrow-end: #2b88ff;
+        --bg-bl: var(--brand-badge-from, #09090b);
+        --bg-tr: var(--brand-badge-to, #3f3f46);
+        --cart-fill: var(--brand-cart, #fafafa);
+        --bar-top: var(--brand-bar-top, #34d399);
+        --bar-bot: var(--brand-bar-bottom, #10b981);
+        --arrow-start: var(--brand-arrow-from, #fbbf24);
+        --arrow-end: var(--brand-arrow-to, #f59e0b);
       }
 
       .icon {

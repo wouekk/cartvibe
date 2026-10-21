@@ -63,7 +63,7 @@
   width: 80px;
   min-height: 40px;
   padding: 0 8px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--border);
   border-radius: 6px;
   font: inherit;
   text-align: right;
@@ -81,7 +81,7 @@
   gap: variables.$spacing-xs;
   margin-bottom: variables.$spacing-md;
   padding: variables.$spacing-lg;
-  background: #fff;
+  background: var(--card);
   border-radius: variables.$border-radius-lg;
   box-shadow: variables.$shadow-sm;
   // The tables inside a card keep their width and scroll inside it.
@@ -102,5 +102,5 @@
 
 .actions__hint {
   font-size: 13px;
-  color: #475569;
+  color: var(--muted-foreground);
 }

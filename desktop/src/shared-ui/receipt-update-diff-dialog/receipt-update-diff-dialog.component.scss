@@ -43,7 +43,7 @@ $divider: map.get(variables.$accent-palette, 200);
     top: 0;
     z-index: 1;
     padding: 0.5rem;
-    background: white;
+    background: var(--card);
     border-bottom: 1px solid $divider;
     font-family: inherit;
     font-weight: 600;

@@ -22,7 +22,7 @@
   display: flex;
   align-items: center;
   padding: variables.$spacing-md variables.$spacing-lg;
-  background: #fff;
+  background: var(--card);
   border-radius: variables.$border-radius-lg;
   box-shadow: variables.$shadow-sm;
   min-height: 72px;

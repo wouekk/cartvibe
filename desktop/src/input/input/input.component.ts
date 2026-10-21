@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, input, viewChild } from "@angular/core";
+import { Component, Input, OnChanges, SimpleChanges, computed, input, viewChild } from "@angular/core";
 import { Store } from "@ngxs/store";
 import { BaseInputComponent } from "../../base-input";
 import { CurrencySeparator, CurrencySymbolPosition } from "../../open-api/index";
@@ -27,7 +27,14 @@ export class InputComponent
 
   public currencySymbolPosition = this.store.selectSignal(SystemSettingsState.currencySymbolPosition);
 
+  private static nextId = 0;
+
   public readonly inputId = input<string>("");
+
+  private readonly generatedId = `app-input-${InputComponent.nextId++}`;
+
+  /** The id the label points at: the one given, else a unique one, so every label is associated with its field. */
+  public readonly fieldId = computed(() => this.inputId() || this.generatedId);
 
   @Input() public type: string = "text";
 

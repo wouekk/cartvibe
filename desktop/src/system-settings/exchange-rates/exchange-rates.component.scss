@@ -8,7 +8,7 @@
 .rates__intro,
 .rates__muted {
   margin: 0;
-  color: #475569;
+  color: var(--muted-foreground);
   font-size: 13px;
 }
 
@@ -29,7 +29,7 @@
   width: 120px;
   min-height: 40px;
   padding: 0 8px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--border);
   border-radius: 6px;
   font: inherit;
 
@@ -40,7 +40,7 @@
 }
 
 .rates__main {
-  color: #475569;
+  color: var(--muted-foreground);
 }
 
 .rates__missing {

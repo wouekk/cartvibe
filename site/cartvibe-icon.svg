@@ -2,29 +2,29 @@
   <defs>
     <style>
       :root {
-        --bg-bl: #8e78f5;
-        --bg-tr: #a6cafd;
-        --cart-fill: #0b1325;
-        --bar-top: #18c985;
-        --bar-bot: #0c9f67;
-        --arrow-start: #1d6bf3;
-        --arrow-end: #1582ff;
+        --bg-bl: #09090b;
+        --bg-tr: #3f3f46;
+        --cart-fill: #fafafa;
+        --bar-top: #34d399;
+        --bar-bot: #10b981;
+        --arrow-start: #fbbf24;
+        --arrow-end: #f59e0b;
       }
       @media (prefers-color-scheme: dark) {
         :root {
-          --bg-bl: #180d3a;
-          --bg-tr: #5733a5;
-          --cart-fill: #e2e8f0;
-          --bar-top: #18c985;
-          --bar-bot: #0c9f67;
-          --arrow-start: #1d6bf3;
-          --arrow-end: #2b88ff;
+          --bg-bl: #e4e4e7;
+        --bg-tr: #ffffff;
+        --cart-fill: #09090b;
+        --bar-top: #10b981;
+        --bar-bot: #047857;
+        --arrow-start: #f59e0b;
+        --arrow-end: #d97706;
         }
       }
       :root.dark, .dark {
-        --bg-bl: #180d3a;
-        --bg-tr: #5733a5;
-        --cart-fill: #e2e8f0;
+        --bg-bl: #e4e4e7;
+        --bg-tr: #ffffff;
+        --cart-fill: #09090b;
       }
     </style>
 

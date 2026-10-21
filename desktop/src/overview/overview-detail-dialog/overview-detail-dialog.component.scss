@@ -1,5 +1,5 @@
 .muted {
-  color: #475569;
+  color: var(--muted-foreground);
 }
 
 .table-scroll {
@@ -15,7 +15,7 @@
   th,
   td {
     padding: 8px 6px;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--border);
     text-align: left;
     vertical-align: top;
   }

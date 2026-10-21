@@ -1,6 +1,7 @@
 import { Component, inject } from "@angular/core";
 import { MatIconModule } from "@angular/material/icon";
-import { ThemeMode, ThemeService } from "../../theme/theme.service";
+import { SYSTEM_MODE, ThemeMode, ThemeService } from "../../theme/theme.service";
+import { THEMES } from "../../theme/themes";
 
 interface ModeOption {
   mode: ThemeMode;
@@ -9,8 +10,8 @@ interface ModeOption {
 }
 
 /**
- * User Settings → Theme: spartan's light theme, its dark theme, or the system's. Per browser, so it needs no
- * permission and no save: a choice applies at once and is remembered.
+ * User Settings → Theme: "System" plus every theme in the registry (src/theme/themes.ts). Per browser, so it needs no
+ * permission and no save: a choice applies at once and is remembered. A new theme appears here by being registered.
  */
 @Component({
   selector: "app-theme-settings",
@@ -26,7 +27,7 @@ interface ModeOption {
         <h2 id="theme-mode-title" class="mb-1 text-lg font-semibold">Theme</h2>
         <p class="mb-4 text-sm text-muted-foreground">Choose how CartVibe looks on this device.</p>
         <ul class="m-0 flex list-none flex-col gap-1 p-0" role="radiogroup" aria-label="Theme">
-          @for (option of modes; track option.mode) {
+          @for (option of options; track option.mode) {
             <li>
               <button
                 type="button"
@@ -54,9 +55,8 @@ interface ModeOption {
 export class ThemeSettingsComponent {
   protected readonly theme = inject(ThemeService);
 
-  protected readonly modes: ModeOption[] = [
-    { mode: "system", label: "System", icon: "contrast" },
-    { mode: "light", label: "Light", icon: "light_mode" },
-    { mode: "dark", label: "Dark", icon: "dark_mode" },
+  protected readonly options: ModeOption[] = [
+    { mode: SYSTEM_MODE, label: "System", icon: "contrast" },
+    ...THEMES.map((theme) => ({ mode: theme.key, label: theme.label, icon: theme.icon })),
   ];
 }

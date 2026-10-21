@@ -28,7 +28,7 @@
 
   &:hover,
   &:focus-visible {
-    background: #f1f5f9;
+    background: var(--muted);
   }
 }
 
@@ -38,7 +38,7 @@
 
 .choice__meta {
   font-size: 13px;
-  color: #64748b;
+  color: var(--muted-foreground);
   font-variant-numeric: tabular-nums;
 }
 

@@ -24,7 +24,7 @@ app-quick-scan-dialog {
 
   .quick-scan-upload--empty {
     padding: 40px 16px;
-    border: 2px dashed rgba(100, 116, 139, 0.35);
+    border: 2px dashed var(--border);
     border-radius: 16px;
   }
 
@@ -36,7 +36,7 @@ app-quick-scan-dialog {
   }
 
   .quick-scan-upload__hint {
-    color: #64748b;
+    color: var(--muted-foreground);
     font-size: 13px;
   }
 }

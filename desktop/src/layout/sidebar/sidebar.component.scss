@@ -10,8 +10,8 @@ $sidebar-bg: var(--sidebar-bg, #1c2430);
 $sidebar-raised: var(--sidebar-raised, #232d3b);
 $sidebar-active: var(--sidebar-active, #2b3647);
 $sidebar-border: var(--sidebar-border, #334155);
-$sidebar-text: #e2e8f0;
-$sidebar-muted: #94a3b8;
+$sidebar-text: var(--sidebar-foreground);
+$sidebar-muted: color-mix(in oklab, var(--sidebar-foreground) 62%, transparent);
 
 app-sidebar {
   height: 100%;
@@ -94,7 +94,7 @@ app-sidebar {
     border: 1px solid $sidebar-border;
     border-radius: variables.$border-radius-lg;
     background: $sidebar-raised;
-    color: #ffffff;
+    color: var(--sidebar-accent-foreground);
     font: inherit;
     text-align: left;
     cursor: pointer;
@@ -185,7 +185,7 @@ app-sidebar {
 
     &:hover {
       background: $sidebar-raised;
-      color: #ffffff;
+      color: var(--sidebar-accent-foreground);
     }
 
     &:focus-visible {
@@ -196,7 +196,7 @@ app-sidebar {
 
   .sidebar__link--active {
     background: $sidebar-active;
-    color: #ffffff;
+    color: var(--sidebar-accent-foreground);
     font-weight: 600;
 
     mat-icon {

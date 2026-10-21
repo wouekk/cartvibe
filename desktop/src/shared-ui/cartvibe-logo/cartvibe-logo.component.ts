@@ -7,7 +7,7 @@ import { Component, computed, input } from "@angular/core";
  * Light and dark are the package's two palettes. In the file they switch on the operating system's
  * `prefers-color-scheme` or a `.dark` class; inline in the page they switch on the app's own `dark` class on
  * `<html>` (set by the Theme tab, System included), so a chosen Light or Dark is respected. Colors, geometry and
- * type are otherwise untouched; the wordmark is Inter when it is loaded (the app bundles it), then the system font.
+ * type are otherwise untouched; the wordmark is Geist when it is loaded (the app bundles it), then the system font.
  *
  * Keep it out of the page-wide dark filter (the `app-cartvibe-logo` rule in index.html): the dark palette is
  * already the dark one.
@@ -33,13 +33,13 @@ import { Component, computed, input } from "@angular/core";
         </linearGradient>
 
         <linearGradient id="logo-bar-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stop-color="#18c985" />
-          <stop offset="100%" stop-color="#0c9f67" />
+          <stop offset="0%" stop-color="var(--logo-bar-top)" />
+          <stop offset="100%" stop-color="var(--logo-bar-bot)" />
         </linearGradient>
 
         <linearGradient id="logo-arrow-grad" x1="0%" y1="100%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#1d6bf3" />
-          <stop offset="100%" stop-color="#2884ff" />
+          <stop offset="0%" stop-color="var(--logo-arrow-s)" />
+          <stop offset="100%" stop-color="var(--logo-arrow-e)" />
         </linearGradient>
       </defs>
 
@@ -75,21 +75,18 @@ import { Component, computed, input } from "@angular/core";
   `,
   styles: [
     `
+      /* The palette is the theme's: every theme defines the --brand-* tokens (src/themes), this only maps them. */
       :host {
         display: inline-flex;
-        --logo-bg-bl: #8e78f5;
-        --logo-bg-tr: #a6cafd;
-        --logo-cart: #0b1325;
-        --logo-text-cart: #0b1325;
-        --logo-text-vibe: #8e7df6;
-      }
-
-      :host-context(html.dark) {
-        --logo-bg-bl: #180d3a;
-        --logo-bg-tr: #5733a5;
-        --logo-cart: #e2e8f0;
-        --logo-text-cart: #ffffff;
-        --logo-text-vibe: #917ff8;
+        --logo-bg-bl: var(--brand-badge-from, #09090b);
+        --logo-bg-tr: var(--brand-badge-to, #3f3f46);
+        --logo-cart: var(--brand-cart, #fafafa);
+        --logo-bar-top: var(--brand-bar-top, #34d399);
+        --logo-bar-bot: var(--brand-bar-bottom, #10b981);
+        --logo-arrow-s: var(--brand-arrow-from, #fbbf24);
+        --logo-arrow-e: var(--brand-arrow-to, #f59e0b);
+        --logo-text-cart: var(--brand-wordmark, #09090b);
+        --logo-text-vibe: var(--brand-wordmark-accent, #059669);
       }
 
       .lockup {
@@ -98,7 +95,7 @@ import { Component, computed, input } from "@angular/core";
       }
 
       .cv-wordmark {
-        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-family: "Geist Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         font-size: 64px;
         font-weight: 600;
         letter-spacing: -1.5px;

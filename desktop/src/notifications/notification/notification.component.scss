@@ -3,7 +3,7 @@
 
 .notification {
   text-decoration: none !important;
-  color: black !important;
+  color: var(--foreground) !important;
   :hover {
     background-color: rgba(map.get(variables.$accent-palette, 50), 0.1) !important;
     border-radius: 5% !important;

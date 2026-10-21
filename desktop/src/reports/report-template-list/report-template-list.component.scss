@@ -18,7 +18,7 @@ $border: rgba(0, 0, 0, 0.06);
   text-align: center;
   gap: variables.$spacing-sm;
   padding: variables.$spacing-2xl;
-  background: #fff;
+  background: var(--card);
   border: 1px solid $border;
   border-radius: variables.$border-radius-lg;
   box-shadow: variables.$shadow-md;
