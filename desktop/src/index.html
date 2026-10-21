@@ -175,13 +175,18 @@
       html.dark picture,
       html.dark video,
       html.dark canvas,
-      html.dark app-sidebar,
+      html.dark mat-drawer.app-sidebar,
       html.dark app-cartvibe-logo,
       html.dark app-cartvibe-icon,
       html.dark app-cartvibe-loader,
       html.dark app-image-canvas,
       html.dark .rw-keep-colors {
         filter: invert(1) hue-rotate(180deg);
+      }
+      /* A backdrop blur inside an inverted page can paint outside the filter; the surfaces are opaque anyway. */
+      html.dark * {
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
       }
       /* The CartVibe logo, icon and loaders carry their own light and dark palettes (switched by the dark class),
          so they are drawn in their real colors and never inverted. */

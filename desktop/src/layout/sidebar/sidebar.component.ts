@@ -181,14 +181,10 @@ export class SidebarComponent {
 
   protected readonly isAdmin = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppUsersRead));
 
+  // Admin only: a member who can use the AI page also holds the receipt-processing permissions, which
+  // must not open System Settings.
   protected readonly canViewSystemSettings = this.store.selectSignal(
-    AuthState.hasAnyAppPermission([
-      Permission.AppSystemSettingsRead,
-      Permission.AppPromptsRead,
-      Permission.AppReceiptProcessingSettingsRead,
-      Permission.AppSystemEmailsRead,
-      Permission.AppSystemTasksRead,
-    ])
+    AuthState.hasAppPermission(Permission.AppSystemSettingsRead)
   );
 
   protected readonly canViewUserSettings = this.store.selectSignal(

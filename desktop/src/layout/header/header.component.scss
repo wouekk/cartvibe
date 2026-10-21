@@ -50,9 +50,8 @@
 }
 
 .header-container {
-  background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+  background: #ffffff;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  backdrop-filter: blur(8px);
   box-shadow: variables.$shadow-sm;
   padding: variables.$spacing-md variables.$spacing-lg;
   position: sticky;
