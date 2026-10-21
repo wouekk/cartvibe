@@ -702,6 +702,23 @@ func (repository ReceiptRepository) GetPagedReceiptsByGroupId(
 		query = query.Where("group_id = ?", groupId)
 	}
 
+	// Free-text search. The id list only narrows the group scope above, so it can never show a
+	// receipt the paid-by and category/tag rules below would hide; it sits before the count so
+	// totalCount matches the rows returned.
+	searchQuery := utils.NewFuzzyQuery(pagedRequest.Filter.Search)
+	if !searchQuery.Empty() {
+		searchScope := memberGroupIds
+		if !isAllGroup {
+			searchScope = []uint{uintGroupId}
+		}
+
+		matchedIds, searchErr := repository.fuzzySearchReceiptIds(searchScope, searchQuery)
+		if searchErr != nil {
+			return nil, 0, searchErr
+		}
+		query = query.Where("receipts.id IN ?", matchedIds)
+	}
+
 	// Apply role-based "paid by" visibility, AND-ed with the group scope above and
 	// BEFORE the count below so totalCount matches the rows actually returned (a
 	// post-fetch filter would corrupt pagination).

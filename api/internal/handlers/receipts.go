@@ -99,6 +99,23 @@ func GetPagedReceiptsForGroup(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
+			// While a search is active, say which product lines made each receipt match.
+			searchQuery := utils.NewFuzzyQuery(pagedRequest.Filter.Search)
+			if !searchQuery.Empty() {
+				receiptIds := make([]uint, len(receipts))
+				for i := range receipts {
+					receiptIds[i] = receipts[i].ID
+				}
+
+				searchMatches, matchErr := receiptRepository.GetProductSearchMatches(receiptIds, searchQuery)
+				if matchErr != nil {
+					return http.StatusInternalServerError, matchErr
+				}
+				for i := range receipts {
+					receipts[i].SearchMatches = searchMatches[receipts[i].ID]
+				}
+			}
+
 			anyData := make([]any, len(receipts))
 			for i := 0; i < len(receipts); i++ {
 				anyData[i] = receipts[i]
