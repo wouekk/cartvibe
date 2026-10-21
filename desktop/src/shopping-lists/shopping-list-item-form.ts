@@ -67,9 +67,9 @@ export function toUpsertShoppingListItemCommand(
 }
 
 /** "1.5 kg", "6 pcs", "1 L"; an item from before amounts existed shows its free text. */
-export function formatShoppingListItemAmount(item: ShoppingListItem): string {
+export function formatShoppingListItemAmount(item: ShoppingListItem, translate: (text: string) => string = (text) => text): string {
   if (item.amount) {
-    const unit = SHOPPING_LIST_UNITS.find((candidate) => candidate.value === item.unit)?.displayValue ?? item.unit;
+    const unit = translate(SHOPPING_LIST_UNITS.find((candidate) => candidate.value === item.unit)?.displayValue ?? item.unit ?? "");
     return unit ? `${item.amount} ${unit}` : item.amount;
   }
   return item.quantity ?? "";

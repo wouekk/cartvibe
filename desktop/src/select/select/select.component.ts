@@ -2,6 +2,7 @@ import { Component, Input, OnInit, inject, input } from "@angular/core";
 import { OptionDisplayPipe } from "../pipes/option-display.pipe";
 import { BadgeTone } from "src/shared-ui/badge/badge.component";
 import { BaseInputComponent } from "../../base-input";
+import { TranslationService } from "../../i18n/translation.service";
 
 @Component({
     selector: "app-select",
@@ -37,6 +38,8 @@ export class SelectComponent extends BaseInputComponent implements OnInit {
 
   private readonly optionDisplay = inject(OptionDisplayPipe);
 
+  private readonly translation = inject(TranslationService);
+
   constructor() {
     super();
   }
@@ -47,7 +50,8 @@ export class SelectComponent extends BaseInputComponent implements OnInit {
     if (index < 0) {
       return "";
     }
-    return String(this.optionDisplay.transform(index, this.options()[index], this.optionDisplayKey(), this.optionsDisplayArray()) ?? "");
+    // Translated like the open list (`| t` in the template), so the closed select never falls back to English.
+    return this.translation.t(String(this.optionDisplay.transform(index, this.options()[index], this.optionDisplayKey(), this.optionsDisplayArray()) ?? ""));
   };
 
   public override ngOnInit(): void {

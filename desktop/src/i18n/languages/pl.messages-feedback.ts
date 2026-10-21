@@ -146,6 +146,8 @@ export const PL_FEEDBACK: Record<string, string> = {
   "Nothing added yet": "Nic jeszcze nie dodano",
   "No shopping lists yet. Add one for each store you shop at.": "Nie ma jeszcze list zakupów. Dodaj jedną dla każdego sklepu, w którym robisz zakupy.",
   "No shopping lists yet.": "Nie ma jeszcze list zakupów.",
+  "{count} to buy": "Do kupienia: {count}",
+  "{names}, and {count} more": "{names} i jeszcze {count}",
   "pcs": "szt.", "kg": "kg", "g": "g", "L": "l", "ml": "ml", "pack": "opak.", "bottle": "butelka", "can": "puszka",
   "box": "pudełko", "bag": "torba", "jar": "słoik", "bunch": "pęczek", "dozen": "tuzin",
   "Add List": "Dodaj listę",

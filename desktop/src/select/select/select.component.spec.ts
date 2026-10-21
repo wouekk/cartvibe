@@ -8,6 +8,7 @@ import { BadgeComponent } from '../../shared-ui/badge/badge.component';
 import { OptionDisplayPipe } from '../pipes/option-display.pipe';
 import { ReadonlyValuePipe } from '../pipes/readonly-value.pipe';
 import { SelectComponent } from './select.component';
+import { TranslationService } from '../../i18n/translation.service';
 
 describe('SelectComponent', () => {
   let component: SelectComponent;
@@ -89,5 +90,12 @@ describe('SelectComponent', () => {
 
     expect(component.itemToString('custom_7')).toBe('HST');
     expect(component.itemToString('nope')).toBe('');
+  });
+
+  it("translates the closed select text like the open list", () => {
+    configure('badge', 'custom_7');
+    jest.spyOn(TestBed.inject(TranslationService), 't').mockImplementation((text: string) => (text === 'HST' ? 'PST' : text));
+
+    expect(component.itemToString('custom_7')).toBe('PST');
   });
 });

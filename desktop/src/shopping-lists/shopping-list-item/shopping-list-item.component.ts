@@ -1,4 +1,5 @@
-import { Component, computed, input, output } from "@angular/core";
+import { Component, computed, inject, input, output } from "@angular/core";
+import { TranslationService } from "../../i18n/translation.service";
 import { ShoppingListItem } from "../../open-api";
 import { HEALTH_CHOICES, SEASONALITY_CHOICES } from "../../standalone/components/food-tags/food-tags";
 import { formatShoppingListItemAmount } from "../shopping-list-item-form";
@@ -24,8 +25,10 @@ export class ShoppingListItemComponent {
 
   public readonly canUpdate = input<boolean>(false);
 
+  private readonly translation = inject(TranslationService);
+
   /** "1.5 kg"; empty when no amount was given. */
-  public readonly amount = computed(() => formatShoppingListItemAmount(this.item()));
+  public readonly amount = computed(() => formatShoppingListItemAmount(this.item(), (text) => this.translation.t(text)));
 
   /**
    * Seasonality is offered only for produce the AI already tagged, and only with a health rating the

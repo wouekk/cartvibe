@@ -83,6 +83,12 @@ describe("shopping list item form", () => {
       expect(formatShoppingListItemAmount(item({ amount: "2", unit: "crate" }))).toBe("2 crate");
     });
 
+    it("passes the unit's label through the given translation", () => {
+      const translate = (text: string) => (text === "pcs" ? "szt." : text);
+      expect(formatShoppingListItemAmount(item({ amount: "6", unit: "pcs" }), translate)).toBe("6 szt.");
+      expect(formatShoppingListItemAmount(item({ amount: "6", unit: "" }), translate)).toBe("6");
+    });
+
     it("falls back to the old free-text quantity, or nothing", () => {
       expect(formatShoppingListItemAmount(item({ quantity: "a few" }))).toBe("a few");
       expect(formatShoppingListItemAmount(item({}))).toBe("");
