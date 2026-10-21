@@ -1,3 +1,4 @@
+import { HttpResponse } from "@angular/common/http";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { HttpTestingController, provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
@@ -1501,7 +1502,7 @@ describe("ReceiptFormComponent", () => {
       store.dispatch(new SetPermissions([], { 7: [Permission.GroupReceiptsCreate] }, {}));
       const createSpy = jest
         .spyOn(receiptService, "createReceiptWithFiles")
-        .mockReturnValue(of({ id: 5 }) as any);
+        .mockReturnValue(of(new HttpResponse({ body: { id: 5 } })) as any);
       openAddForm();
       fillValidForm();
 
@@ -1509,7 +1510,9 @@ describe("ReceiptFormComponent", () => {
 
       expect(createSpy).toHaveBeenCalledWith(
         expect.objectContaining({ name: "Lunch", groupId: 7 }),
-        []
+        [],
+        "events",
+        true
       );
     });
 

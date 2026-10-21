@@ -6,6 +6,7 @@ import { ReactiveFormsModule } from "@angular/forms";
 import { ExpansionPanelComponent } from "../shared-ui/expansion-panel/expansion-panel.component";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { HlmBadge } from "@spartan-ng/helm/badge";
+import { UploadProgressComponent } from "../shared-ui/upload-progress/upload-progress.component";
 import { ShopMonogramComponent } from "../shared-ui/shop-monogram/shop-monogram.component";
 import { HlmCheckboxImports } from "@spartan-ng/helm/checkbox";
 import { HlmSpinner } from "@spartan-ng/helm/spinner";
@@ -72,6 +73,7 @@ import { UserTotalWithPercentagePipe } from "./user-total-with-percentage.pipe";
     CustomFieldPipe,
   ],
   imports: [
+    UploadProgressComponent,
     AutocompleteModule,
     AvatarModule,
     ButtonModule,

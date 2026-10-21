@@ -73,6 +73,7 @@
     </div>
 
   </form>
+  <app-upload-progress class="mt-3" [stage]="uploadStage()"></app-upload-progress>
   <app-dialog-footer
     submitButtonTooltip="Submit Scans"
     [disableWhenProgressBarIsShown]="true"

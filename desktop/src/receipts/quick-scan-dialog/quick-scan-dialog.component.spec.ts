@@ -1,3 +1,6 @@
+import { Subject } from "rxjs";
+import { HttpEvent, HttpEventType } from "@angular/common/http";
+import { HttpResponse } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed, } from "@angular/core/testing";
@@ -353,6 +356,36 @@ describe("QuickScanDialogComponent", () => {
     expect(component.paidByUserIds.at(0).valid).toBe(true);
   });
 
+  it("shows the upload progress while sending, ignores a second click, and clears it on a failure", () => {
+    const originalCreateObjectURL = URL.createObjectURL;
+    try {
+      URL.createObjectURL = jest.fn().mockReturnValue("blob");
+      store.reset({
+        auth: { groupCategories: {}, groupTags: {} },
+        groups: { groups: [{ id: 2, groupReceiptSettings: { quickScanPaidByEnabled: false, quickScanStatusEnabled: false } }], selectedGroupId: "", selectedDashboardId: "" },
+      });
+      const events = new Subject<HttpEvent<any>>();
+      const receiptService = TestBed.inject(ReceiptService);
+      const serviceSpy = jest.spyOn(receiptService, "quickScanReceipt").mockReturnValue(events as any);
+
+      component.fileLoaded({ file: { name: "a" } } as any);
+      component.groupIds.at(0).setValue(2);
+      component.submitButtonClicked();
+      expect(component.uploadStage()).toEqual({ stage: "uploading", percent: 0 });
+
+      events.next({ type: HttpEventType.UploadProgress, loaded: 40, total: 100 });
+      expect(component.uploadStage()).toEqual({ stage: "uploading", percent: 40 });
+
+      component.submitButtonClicked();
+      expect(serviceSpy).toHaveBeenCalledTimes(1);
+
+      events.error(new Error("offline"));
+      expect(component.uploadStage()).toBeNull();
+    } finally {
+      URL.createObjectURL = originalCreateObjectURL;
+    }
+  });
+
   it("should send category and tag ids per image on submit", () => {
     const originalCreateObjectURL = URL.createObjectURL;
     try {
@@ -382,7 +415,7 @@ describe("QuickScanDialogComponent", () => {
       const receiptService = TestBed.inject(ReceiptService);
       const serviceSpy = jest
         .spyOn(receiptService, "quickScanReceipt")
-        .mockReturnValue(of({} as any));
+        .mockReturnValue(of(new HttpResponse({ body: {} })) as any);
 
       const fileData = { file: { name: "a" } } as any;
       component.fileLoaded(fileData);
@@ -401,7 +434,9 @@ describe("QuickScanDialogComponent", () => {
         [""],
         ["10"],
         ["20"],
-        [""]
+        [""],
+        "events",
+        true
       );
     } finally {
       URL.createObjectURL = originalCreateObjectURL;
@@ -613,7 +648,7 @@ describe("QuickScanDialogComponent", () => {
         const receiptService = TestBed.inject(ReceiptService);
         const serviceSpy = jest
           .spyOn(receiptService, "quickScanReceipt")
-          .mockReturnValue(of({} as any));
+          .mockReturnValue(of(new HttpResponse({ body: {} })) as any);
 
         const fileData = { file: { name: "a" } } as any;
         component.fileLoaded(fileData);
@@ -629,7 +664,9 @@ describe("QuickScanDialogComponent", () => {
           [""],
           [""],
           [""],
-          ["Client dinner"]
+          ["Client dinner"],
+          "events",
+          true
         );
       } finally {
         URL.createObjectURL = originalCreateObjectURL;

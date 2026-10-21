@@ -248,6 +248,7 @@
     </div>
   </div>
 
+  <app-upload-progress class="mt-4" [stage]="uploadStage()"></app-upload-progress>
   <app-form-button-bar
     [mode]="queueIndex >= 0 ? FormMode.edit : mode"
     [justifyContentEnd]="false"
