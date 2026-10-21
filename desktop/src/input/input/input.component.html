@@ -1,6 +1,6 @@
 <div class="flex w-full flex-col gap-1.5">
   @if (label) {
-    <label class="text-sm font-medium leading-none text-foreground" [attr.for]="fieldId()">{{ label }}</label>
+    <label class="text-sm font-medium leading-none text-foreground" [attr.for]="fieldId()">{{ label | t }}</label>
   }
   <div class="relative flex items-center">
     <input
@@ -57,7 +57,7 @@
     }
   </div>
   @if (hint) {
-    <p class="text-xs text-muted-foreground">{{ hint }}</p>
+    <p class="text-xs text-muted-foreground">{{ hint | t }}</p>
   }
   @if (inputFormControl.invalid && (inputFormControl.touched || inputFormControl.dirty)) {
     @for (err of formControlErrors | async; track err.error) {

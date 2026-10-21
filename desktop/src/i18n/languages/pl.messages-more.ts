@@ -112,7 +112,6 @@ export const PL_MORE: Record<string, string> = {
   "Custom Fields": "Pola niestandardowe",
   "Default Custom Fields": "Domyślne pola niestandardowe",
   "Also add them to quick scan and email created receipts": "Dodawaj je także do paragonów z szybkiego skanowania i e-maili",
-
   // Settings, account, preferences
   "Account deletion is irreversible. This will permanently remove all associated data including receipts, group memberships, and preferences.": "Usunięcia konta nie można cofnąć. Wszystkie powiązane dane, w tym paragony, członkostwa w grupach i ustawienia, zostaną trwale usunięte.",
   "Please enter your password to confirm account deletion.": "Wpisz hasło, aby potwierdzić usunięcie konta.",
@@ -182,7 +181,6 @@ export const PL_MORE: Record<string, string> = {
   "Break down by status": "Podziel według statusu",
   "Using the summary configuration from {name}.": "Użyto konfiguracji podsumowania z grupy {name}.",
   "Set Password for {name}": "Ustaw hasło dla {name}",
-
   // System settings
   "Settings": "Ustawienia",
   "System": "System",
@@ -245,7 +243,6 @@ export const PL_MORE: Record<string, string> = {
   "Value": "Wartość",
   "Warning": "Ostrzeżenie",
   "Important:": "Ważne:",
-
   // AI and categories
   "AI skips": "AI pomija",
   "Provider": "Dostawca",
@@ -257,7 +254,6 @@ export const PL_MORE: Record<string, string> = {
   "The AI picks from these categories when it reads a receipt, and adds new ones here by itself. Rename one and the AI is told to use the new name instead of the old; switch one off and it is told to choose another.": "AI wybiera spośród tych kategorii, czytając paragon, i samo dodaje tu nowe. Zmień nazwę, a AI dostanie polecenie używania nowej zamiast starej; wyłącz kategorię, a dostanie polecenie wyboru innej.",
   "Never let the AI use this category": "Nigdy nie pozwalaj AI używać tej kategorii",
   "Health": "Zdrowie",
-
   // Reports
   "Reports": "Raporty",
   "Report Builder": "Kreator raportów",
@@ -333,7 +329,6 @@ export const PL_MORE: Record<string, string> = {
   "Budget": "Budżet",
   "Paid via venmo...": "Zapłacono przez…",
   "Icon": "Ikona",
-
   // Tables and pickers
   "Rows per page": "Wierszy na stronie",
   "First page": "Pierwsza strona",
@@ -370,4 +365,44 @@ export const PL_MORE: Record<string, string> = {
   "on": "włączone",
   "Some settings need attention before you can save. ": "Niektóre ustawienia wymagają poprawy przed zapisem.",
   "Category &amp; tag access": "Dostęp do kategorii i tagów",
+  // Filters
+  "Contains": "Zawiera",
+  "Equals": "Równa się",
+  "Greater than": "Większe niż",
+  "Less than": "Mniejsze niż",
+  "Between": "Pomiędzy",
+  "Within current month": "W bieżącym miesiącu",
+  "Receipt Date": "Data paragonu",
+  "Paid by": "Zapłacił(a)",
+  "Done on": "Zrobiono",
+  // Receipt statuses
+  "To check": "Do sprawdzenia",
+  "Needs Attention": "Wymaga uwagi",
+  "Open": "Otwarte",
+  "Draft": "Wersja robocza",
+  "Resolved": "Rozliczone",
+  "Declined": "Odrzucone",
+  "Succeeded": "Zakończone",
+  "Failed": "Nieudane",
+  "Running": "W toku",
+  "Pending": "Oczekuje",
+  "Healthy": "Zdrowe",
+  "Medium": "Średnie",
+  "Not food": "Nie jedzenie",
+  "Seasonal": "Sezonowe",
+  "Out of season": "Poza sezonem",
+  "Admin": "Administrator",
+  "Household Receipts": "Paragony gospodarstwa",
+  "General & Currency": "Ogólne i waluta",
+  "Auth & Security": "Logowanie i bezpieczeństwo",
+  "Integrations & Mobile": "Integracje i aplikacja mobilna",
+  "Tasks & Storage": "Zadania i przechowywanie",
+  "Logs": "Dzienniki",
+  "User Profile": "Profil użytkownika",
+  "User Preferences": "Preferencje użytkownika",
+  "Theme": "Motyw",
+  "API Keys": "Klucze API",
+  "All": "Wszystko",
+  "Errors": "Błędy",
+  "Info": "Informacje",
 };

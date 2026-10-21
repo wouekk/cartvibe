@@ -1,3 +1,4 @@
+import { PluralPipe, TranslatePipe } from "../i18n/translate.pipe";
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
@@ -7,7 +8,7 @@ import { DatepickerComponent } from "./datepicker/datepicker.component";
 
 @NgModule({
   declarations: [DatepickerComponent],
-  imports: [CommonModule, ReactiveFormsModule, DateInputDirective, ...HlmInputImports],
+  imports: [TranslatePipe, PluralPipe, CommonModule, ReactiveFormsModule, DateInputDirective, ...HlmInputImports],
   exports: [DatepickerComponent],
 })
 export class DatepickerModule {}

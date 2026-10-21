@@ -21,6 +21,8 @@ export interface FilterChipLookups {
   formatDate: (value: unknown) => string;
   formatCurrency: (value: unknown) => string;
   resolveOptionName: (key: string, id: unknown) => string;
+  /** Translates the field and operation words; the English text when omitted. */
+  translate?: (text: string) => string;
 }
 
 const BETWEEN_SEPARATOR = " – ";
@@ -55,7 +57,8 @@ function buildLabel(
   lookups: FilterChipLookups,
 ): string {
   const operation = entry?.operation?.toString() ?? "";
-  const operationLabel = (FILTER_OPERATION_DISPLAY_VALUES[operation] ?? "").toLowerCase();
+  const translate = lookups.translate ?? ((text: string) => text);
+  const operationLabel = translate(FILTER_OPERATION_DISPLAY_VALUES[operation] ?? "").toLowerCase();
 
   // WITHIN_CURRENT_MONTH carries no value, so the label stops at the operation.
   const valueLabel =
@@ -63,7 +66,7 @@ function buildLabel(
       ? ""
       : buildValueLabel(field, entry, operation, lookups);
 
-  return [field.label, operationLabel, valueLabel].filter((part) => !!part).join(" ");
+  return [translate(field.label), operationLabel, valueLabel].filter((part) => !!part).join(" ");
 }
 
 function buildValueLabel(

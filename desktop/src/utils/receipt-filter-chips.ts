@@ -20,6 +20,7 @@ export interface ReceiptFilterChipLookups {
   users: readonly User[];
   formatDate: (value: unknown) => string;
   formatCurrency: (value: unknown) => string;
+  translate?: (text: string) => string;
 }
 
 /**
@@ -43,6 +44,7 @@ export function buildReceiptFilterChips(
     {
       formatDate: lookups.formatDate,
       formatCurrency: lookups.formatCurrency,
+      translate: lookups.translate,
       resolveOptionName: (key, id) => resolveOptionName(key as ReceiptFilterFieldKey, id, lookups),
     },
   );

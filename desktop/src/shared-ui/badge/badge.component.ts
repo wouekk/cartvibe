@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { Component, input } from "@angular/core";
 
 /** The colour a badge is drawn in. See `badge.component.scss` for the pairings. */
@@ -24,6 +25,7 @@ export const CUSTOM_FIELD_BADGE = "Custom";
   templateUrl: "./badge.component.html",
   styleUrl: "./badge.component.scss",
   standalone: true,
+  imports: [TranslatePipe],
 })
 export class BadgeComponent {
   public readonly text = input.required<string>();

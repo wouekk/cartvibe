@@ -1,3 +1,4 @@
+import { TranslationService } from "../../i18n/translation.service";
 import { CurrencyPipe, DatePipe } from "@angular/common";
 import { AfterViewInit, Component, computed, inject, OnInit, signal, TemplateRef, ViewEncapsulation, viewChild } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
@@ -93,6 +94,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     private store: Store,
     private customCurrencyPipe: CustomCurrencyPipe,
     private datePipe: DatePipe,
+    private translation: TranslationService,
   ) {
     this.listenForRefreshRequests();
     this.listenForSummaryRequests();
@@ -260,6 +262,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
         // on the browser's calendar — the same day toDateWireFilter sends.
         formatDate: (value) => this.datePipe.transform(value as string) ?? "",
         formatCurrency: (value) => this.customCurrencyPipe.transform(value as number),
+        translate: (text) => this.translation.t(text),
       }
     );
   });

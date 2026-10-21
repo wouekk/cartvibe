@@ -1,7 +1,5 @@
-import { PL_MORE } from "./pl-more";
-
 /** Polish texts, keyed by the English text the templates and services use. A missing key shows the English text. */
-const PL_CORE: Record<string, string> = {
+export const PL_CORE: Record<string, string> = {
   // Navigation and account
   "Dashboard": "Pulpit",
   "Shopping Lists": "Listy zakupów",
@@ -28,7 +26,6 @@ const PL_CORE: Record<string, string> = {
   "Navigate CartVibe": "Nawigacja po CartVibe",
   "Notifications": "Powiadomienia",
   "Working": "Pracuję",
-
   // Common
   "Add item": "Dodaj produkt",
   "Add an item": "Dodaj produkt",
@@ -57,7 +54,6 @@ const PL_CORE: Record<string, string> = {
   "Export CSV": "Eksportuj CSV",
   "Download Landscape PDF (1 yr/page)": "Pobierz PDF poziomy (1 rok na stronę)",
   "DD/MM/YYYY": "DD/MM/RRRR",
-
   // Dashboard
   "+ Set goal": "+ Ustaw cel",
   "All receipts": "Wszystkie paragony",
@@ -94,7 +90,6 @@ const PL_CORE: Record<string, string> = {
   "Showing the latest {count} months.": "Pokazano ostatnie {count} mies.",
   "Receipts in {period}": "Paragony w okresie {period}",
   "No receipts yet in {period}.": "Brak paragonów w okresie {period}.",
-
   // Shopping lists
   "Added by": "Dodał(a)",
   "After shopping, scan the receipt to see what you bought that was not on the list.": "Po zakupach zeskanuj paragon, aby zobaczyć, co kupiono poza listą.",
@@ -115,7 +110,6 @@ const PL_CORE: Record<string, string> = {
   "There are no items in the shopping lists.": "Na listach zakupów nie ma produktów.",
   "Currently \"{quantity}\". Entering an amount replaces it.": "Obecnie „{quantity}”. Wpisanie ilości ją zastąpi.",
   "Crossed off ({count})": "Skreślone ({count})",
-
   // Periods and messages
   "This month": "Ten miesiąc",
   "Last 7 days": "Ostatnie 7 dni",
@@ -130,12 +124,9 @@ const PL_CORE: Record<string, string> = {
   "January": "styczeń", "February": "luty", "March": "marzec", "April": "kwiecień", "May": "maj", "June": "czerwiec",
   "July": "lipiec", "August": "sierpień", "September": "wrzesień", "October": "październik", "November": "listopad", "December": "grudzień",
   "Jan": "sty", "Feb": "lut", "Mar": "mar", "Apr": "kwi", "Jun": "cze", "Jul": "lip", "Aug": "sie", "Sep": "wrz", "Oct": "paź", "Nov": "lis", "Dec": "gru",
-
   "{count} to check": "{count} do sprawdzenia",
   "{share}% of the spending": "{share}% wydatków",
-
   "Uncategorized": "Bez kategorii",
-
   // Shared pieces
   "Add List": "Dodaj listę",
   "New list": "Nowa lista",
@@ -193,15 +184,4 @@ const PL_CORE: Record<string, string> = {
   "and": "i",
   "Rename List": "Zmień nazwę listy",
   "Shopping Lists title": "Listy zakupów",
-};
-
-export const PL: Record<string, string> = { ...PL_CORE, ...PL_MORE };
-
-/** One, 2-4 and 5+ forms, keyed by the English singular. */
-export const PL_PLURALS: Record<string, [string, string, string]> = {
-  item: ["produkt", "produkty", "produktów"],
-  list: ["lista", "listy", "list"],
-  receipt: ["paragon", "paragony", "paragonów"],
-  day: ["dzień", "dni", "dni"],
-  month: ["miesiąc", "miesiące", "miesięcy"],
 };

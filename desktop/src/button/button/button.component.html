@@ -19,7 +19,7 @@
       @if (icon) {
         <app-icon [name]="icon"></app-icon>
       }
-      <span class="font-medium">{{ buttonText() }}</span>
+      <span class="font-medium">{{ buttonText() | t }}</span>
       @if (!matBadgeHidden()) {
         <span
           hlmBadge
@@ -46,7 +46,7 @@
       @if (icon) {
         <app-icon [name]="icon"></app-icon>
       }
-      <span class="font-medium">{{ buttonText() }}</span>
+      <span class="font-medium">{{ buttonText() | t }}</span>
       @if (!matBadgeHidden()) {
         <span
           hlmBadge

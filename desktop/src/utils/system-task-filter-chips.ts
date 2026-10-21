@@ -13,6 +13,7 @@ export type SystemTaskFilterChip = FilterChip<SystemTaskFilterFieldKey>;
 export interface SystemTaskFilterChipLookups {
   users: readonly User[];
   formatDate: (value: unknown) => string;
+  translate?: (text: string) => string;
 }
 
 /**
@@ -29,6 +30,7 @@ export function buildSystemTaskFilterChips(
     filter as Record<string, unknown> | undefined | null,
     {
       formatDate: lookups.formatDate,
+      translate: lookups.translate,
       // No numeric system task field today; a currency label would be wrong for
       // one anyway, so this stays a plain stringify.
       formatCurrency: (value) => value?.toString() ?? "",

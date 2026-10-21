@@ -1,6 +1,6 @@
 <div class="p-6">
   <div class="flex items-center justify-between">
-    <h2 class="text-lg font-semibold tracking-tight">{{ headerText() }}</h2>
+    <h2 class="text-lg font-semibold tracking-tight">{{ headerText() | t }}</h2>
     <ng-container *ngIf="actionsTemplate">
       <ng-template [ngTemplateOutlet]="actionsTemplate"></ng-template>
     </ng-container>

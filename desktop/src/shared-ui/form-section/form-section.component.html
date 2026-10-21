@@ -10,9 +10,9 @@
       </button>
     }
     <div class="flex flex-col">
-      <strong> {{ headerText() }}</strong>
+      <strong> {{ headerText() | t }}</strong>
       @if (subtitle) {
-        <small>{{ subtitle }}</small>
+        <small>{{ subtitle | t }}</small>
       }
     </div>
 

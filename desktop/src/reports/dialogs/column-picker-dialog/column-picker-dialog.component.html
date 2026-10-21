@@ -1,5 +1,5 @@
 <app-dialog [headerText]="title()">
-  <div class="picker__subtitle">{{ subtitle() }}</div>
+  <div class="picker__subtitle">{{ subtitle() | t }}</div>
 
   @switch (step()) {
     @case ("kind") {

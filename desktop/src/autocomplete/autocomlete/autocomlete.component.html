@@ -1,6 +1,6 @@
 <div class="flex w-full flex-col gap-1.5">
   @if (label) {
-    <label class="text-sm font-medium leading-none text-foreground" [attr.for]="inputId">{{ label }}</label>
+    <label class="text-sm font-medium leading-none text-foreground" [attr.for]="inputId">{{ label | t }}</label>
   }
 
   @if (multiple && selectedItems().length > 0) {
@@ -10,7 +10,7 @@
           @if (optionChipTemplate) {
             <ng-template [ngTemplateOutlet]="optionChipTemplate" [ngTemplateOutletContext]="{ option: option }"></ng-template>
           } @else {
-            <span class="truncate">{{ option | optionDisplay : options() : optionDisplayKey() : optionValueKey }}</span>
+            <span class="truncate">{{ option | optionDisplay : options() : optionDisplayKey() : optionValueKey | t }}</span>
           }
           @if (!readonly) {
             <button
@@ -33,7 +33,7 @@
       class="flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 text-sm shadow-xs dark:bg-input/30"
       [class.opacity-60]="readonly"
     >
-      <span class="truncate">{{ selectedDisplay() }}</span>
+      <span class="truncate">{{ selectedDisplay() | t }}</span>
       @if (!readonly) {
         <button
           type="button"
@@ -66,7 +66,7 @@
               @if (optionTemplate) {
                 <ng-template [ngTemplateOutlet]="optionTemplate" [ngTemplateOutletContext]="{ option: option }"></ng-template>
               } @else {
-                {{ option | optionDisplay : options() : optionDisplayKey() : optionValueKey }}
+                {{ option | optionDisplay : options() : optionDisplayKey() : optionValueKey | t }}
               }
             </hlm-autocomplete-item>
           }
@@ -79,7 +79,7 @@
   }
 
   @if (hint) {
-    <p class="text-xs text-muted-foreground">{{ hint }}</p>
+    <p class="text-xs text-muted-foreground">{{ hint | t }}</p>
   }
   @if (inputFormControl.invalid && (inputFormControl.touched || inputFormControl.dirty)) {
     @for (err of formControlErrors | async; track err.error) {

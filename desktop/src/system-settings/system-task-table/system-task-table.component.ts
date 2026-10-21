@@ -1,3 +1,4 @@
+import { TranslationService } from "../../i18n/translation.service";
 import { DatePipe } from "@angular/common";
 import { Component, OnInit, TemplateRef, computed, viewChild } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
@@ -65,6 +66,7 @@ export class SystemTaskTableComponent implements OnInit {
       // local-midnight Date (or its ISO string once persisted), so it is read
       // on the browser's calendar — the same day toDateWireFilter sends.
       formatDate: (value) => this.datePipe.transform(value as string) ?? "",
+      translate: (text) => this.translation.t(text),
     })
   );
 
@@ -72,7 +74,8 @@ export class SystemTaskTableComponent implements OnInit {
     private activatedRoute: ActivatedRoute,
     private store: Store,
     private matDialog: AppDialog,
-    private datePipe: DatePipe
+    private datePipe: DatePipe,
+    private translation: TranslationService
   ) {}
 
   public ngOnInit(): void {

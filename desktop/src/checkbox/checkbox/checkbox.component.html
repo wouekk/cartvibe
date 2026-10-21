@@ -5,7 +5,7 @@
     [class.opacity-60]="inputFormControl.disabled"
   >
     <hlm-checkbox [formControl]="inputFormControl" (keydown)="handleKeydown($event)" />
-    <span>{{ label }}</span>
+    <span>{{ label | t }}</span>
   </label>
   <app-help-icon [helpText]="helpText"></app-help-icon>
 </div>

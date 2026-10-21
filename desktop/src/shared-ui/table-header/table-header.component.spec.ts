@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { Component, provideZonelessChangeDetection } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
@@ -9,6 +10,7 @@ describe('TableHeaderComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
+      imports: [TranslatePipe],
       declarations: [ TableHeaderComponent ],
       providers: [ provideZonelessChangeDetection() ]
     })
@@ -59,6 +61,7 @@ describe('TableHeaderComponent — projected subtitle', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
+      imports: [TranslatePipe],
       declarations: [TableHeaderComponent, TableHeaderHostComponent],
       providers: [provideZonelessChangeDetection()],
     }).compileComponents();

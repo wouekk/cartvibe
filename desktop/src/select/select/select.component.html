@@ -1,12 +1,12 @@
 <div class="flex w-full flex-col gap-1.5">
   @if (label) {
-    <label class="text-sm font-medium leading-none text-foreground">{{ label }}</label>
+    <label class="text-sm font-medium leading-none text-foreground">{{ label | t }}</label>
   }
   @if (readonly) {
     <input
       hlmInput
       readonly
-      [value]="inputFormControl.value | readonlyValue : options() : optionDisplayKey() : optionValueKey : optionsDisplayArray()"
+      [value]="inputFormControl.value | readonlyValue : options() : optionDisplayKey() : optionValueKey : optionsDisplayArray() | t"
     />
   } @else {
     <hlm-select [formControl]="inputFormControl" [itemToString]="itemToString">
@@ -19,7 +19,7 @@
         }
         @for (option of options(); track $index; let i = $index) {
           <hlm-select-item [value]="optionValueKey ? option[optionValueKey] : option">
-            {{ i | optionDisplay : option : optionDisplayKey() : optionsDisplayArray() }}
+            {{ i | optionDisplay : option : optionDisplayKey() : optionsDisplayArray() | t }}
             @let badge = badgeFor(option);
             @if (badge) {
               <app-badge class="ml-2" [text]="badge" [tone]="optionBadgeTone()"></app-badge>
