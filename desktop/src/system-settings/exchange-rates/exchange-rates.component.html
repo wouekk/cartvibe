@@ -46,7 +46,7 @@
         <p class="m-0 text-sm text-destructive" data-testid="exchange-rates-error">{{ error() }}</p>
       }
       @if (dirty()) {
-        <p class="m-0 text-xs text-warning-text" data-testid="exchange-rates-unsaved">{{ 'Rates changed: press Save rates to keep them.' | t }}</p>
+        <p class="m-0 text-xs text-warning-text" data-testid="exchange-rates-unsaved">{{ 'Rates changed: press Save changes to keep them.' | t }}</p>
       }
       <div class="rw-section__footer">
         <input
@@ -63,9 +63,6 @@
         <button hlmBtn variant="outline" type="button" data-testid="exchange-rate-add" (click)="addCurrency()">
           <app-icon name="add"></app-icon>
           {{ 'Add currency' | t }}
-        </button>
-        <button hlmBtn type="button" class="ml-auto" data-testid="exchange-rates-save" [disabled]="saving()" (click)="save()">
-          {{ 'Save rates' | t }}
         </button>
       </div>
     }

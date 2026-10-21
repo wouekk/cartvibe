@@ -764,4 +764,42 @@ describe("SystemSettingsFormComponent", () => {
       );
     });
   });
+  describe("exchange rates share the Save changes button", () => {
+    const fakeRates = (dirty: boolean) => ({ dirty: () => dirty, save: jest.fn() });
+    let updateSystemSettings: jest.SpyInstance;
+
+    beforeEach(() => {
+      updateSystemSettings = jest
+        .spyOn(TestBed.inject(SystemSettingsService), "updateSystemSettings")
+        .mockReturnValue(of(null as any));
+    });
+
+    it("counts typed rates as unsaved changes", () => {
+      (component as any).exchangeRates = () => fakeRates(true);
+
+      expect(component.hasUnsavedChanges()).toBe(true);
+    });
+
+    it("saves only the rates when nothing else changed", () => {
+      const rates = fakeRates(true);
+      (component as any).exchangeRates = () => rates;
+      component.form.markAsPristine();
+
+      component.submit();
+
+      expect(rates.save).toHaveBeenCalledWith();
+      expect(updateSystemSettings).not.toHaveBeenCalled();
+    });
+
+    it("saves the rates after the settings, re-reading the main currency", () => {
+      const rates = fakeRates(true);
+      (component as any).exchangeRates = () => rates;
+      component.form.markAsDirty();
+
+      component.submit();
+
+      expect(updateSystemSettings).toHaveBeenCalled();
+      expect(rates.save).toHaveBeenCalledWith(true);
+    });
+  });
 });

@@ -287,7 +287,7 @@
   @if (formConfig.mode !== FormMode.view) {
     @if (form.invalid) {
       <span class="rw-card__status" data-testid="settings-invalid">{{ 'Some settings need attention before you can save.' | t }}</span>
-    } @else if (form.dirty) {
+    } @else if (hasUnsavedChanges()) {
       <span class="rw-card__status">{{ 'You have unsaved changes.' | t }}</span>
     }
       <button
@@ -295,7 +295,7 @@
         color="primary"
         type="submit"
         data-testid="settings-save"
-        [disabled]="form.pristine || form.invalid"
+        [disabled]="!hasUnsavedChanges() || form.invalid"
       >
         {{ 'Save changes' | t }}
       </button>

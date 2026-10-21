@@ -19,7 +19,8 @@ interface RateRow {
 /**
  * The household's exchange rates (Phase 3 currencies): "1 CHF = 1,04 EUR". A receipt in one of these
  * currencies is converted when it is added, at the rate typed here; a currency without a rate keeps the
- * receipt unconverted and flagged until one is entered. It saves on its own, apart from the settings form.
+ * receipt unconverted and flagged until one is entered. It has no button of its own: the settings form's "Save changes" calls
+ * `save()` (an API call apart from the settings one).
  */
 @Component({
   selector: "app-exchange-rates",
@@ -122,7 +123,22 @@ export class ExchangeRatesComponent implements OnInit {
     this.dirty.set(true);
   }
 
-  public save(): void {
+  /**
+   * Saves the typed rates. `refreshMainCurrency` first re-reads the main currency, for a save that follows a currency
+   * change in the same form (the settings save has just moved it).
+   */
+  public save(refreshMainCurrency = false): void {
+    if (refreshMainCurrency) {
+      this.exchangeRateService
+        .getExchangeRates()
+        .pipe(take(1))
+        .subscribe((view) => {
+          this.mainCurrency.set(view.mainCurrency ?? "");
+          this.save();
+        });
+      return;
+    }
+
     const rates: CurrencyRate[] = [];
     for (const row of this.rows()) {
       const parsed = parseRateInput(row.rate);
