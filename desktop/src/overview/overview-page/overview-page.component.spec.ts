@@ -50,6 +50,16 @@ const overview = (from: string, to: string): GroupOverview => ({
   trendUnit: "MONTH",
 });
 
+const CHART_COLORS = {
+  foreground: "rgb(0, 0, 0)",
+  mutedForeground: "rgb(100, 100, 100)",
+  border: "rgb(220, 220, 220)",
+  muted: "rgb(240, 240, 240)",
+  card: "rgb(255, 255, 255)",
+  primary: "rgb(10, 10, 10)",
+  destructive: "rgb(220, 38, 38)",
+};
+
 describe("OverviewPageComponent", () => {
   let fixture: ComponentFixture<OverviewPageComponent>;
   let component: OverviewPageComponent;
@@ -367,13 +377,10 @@ describe("OverviewPageComponent", () => {
       component.period.set({ from: "2026-01-01", to: "2026-12-31", label: "2026" });
       await fixture.whenStable();
 
-      const columns = fixture.nativeElement.querySelectorAll(".bars > .bars__column");
-      expect(columns.length).toBe(12);
-      columns.forEach((column: HTMLElement) => {
-        expect(column.querySelector(".bars__plot")).not.toBeNull();
-        expect(column.querySelector(".bars__label")?.textContent?.trim().length).toBeGreaterThan(0);
-      });
-      expect(fixture.nativeElement.querySelector(".bars").classList).toContain("bars--dense");
+      const options = component.barsOptions(CHART_COLORS);
+      expect((options.xaxis as { categories: string[] }).categories.length).toBe(12);
+      expect((options.xaxis as { categories: string[] }).categories.every((name) => name.length > 0)).toBe(true);
+      expect(fixture.nativeElement.querySelector("[data-testid=overview-bars]")).not.toBeNull();
       expect(fixture.nativeElement.querySelector("[data-testid=overview-chart-capped]")).toBeNull();
     });
 

@@ -40,7 +40,8 @@ module.exports = {
   },
   moduleNameMapper: {
     '^src/(.*)$': '<rootDir>/src/$1',
-    '^@spartan-ng/helm/(.*)$': '<rootDir>/src/ui/$1'
+    '^@spartan-ng/helm/(.*)$': '<rootDir>/src/ui/$1',
+    '^apexcharts$': '<rootDir>/src/testing/apexcharts.stub.ts'
   },
   transformIgnorePatterns: [
     'node_modules/(?!.*\\.mjs$|@angular|@ngxs|@spartan-ng|@ng-icons|rxjs|ngx-mask|pretty-print-json|ng2-charts|lodash-es|chart\\.js)'

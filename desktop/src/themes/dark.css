@@ -3,10 +3,13 @@
   <html> for every theme whose scheme is "dark", which is what Tailwind's `dark:` variants (and the spartan
   components) key off. See docs/themes.md.
 */
+.dark,
 [data-theme="dark"] {
   color-scheme: dark;
 
   --background: oklch(0.141 0.005 285.823);
+  --warning: oklch(0.41 0.11 46);
+  --warning-foreground: oklch(0.99 0.02 95);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.21 0.006 285.885);
   --card-foreground: oklch(0.985 0 0);
