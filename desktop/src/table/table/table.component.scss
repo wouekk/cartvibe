@@ -31,7 +31,7 @@ tr.expanded-row:not(.example-expanded-row):hover {
 }
 
 tr.expanded-row:not(.example-expanded-row):active {
-  background: #efefef;
+  background: var(--muted);
 }
 
 .expanded-row td {

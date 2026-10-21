@@ -22,7 +22,7 @@ app-form {
     
     .mat-mdc-text-field-wrapper {
       border-radius: variables.$border-radius-lg !important;
-      background-color: rgba(248, 250, 252, 0.5);
+      background-color: var(--accent);
       border: 1px solid var(--border);
       transition: all 0.2s ease-in-out;
       
@@ -34,14 +34,14 @@ app-form {
     
     &.mat-focused .mat-mdc-text-field-wrapper {
       border-color: rgba(59, 130, 246, 0.5);
-      background-color: rgba(255, 255, 255, 1);
+      background-color: var(--muted);
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
   }
   
   .mat-mdc-select .mat-mdc-select-trigger {
     border-radius: variables.$border-radius-lg !important;
-    background-color: rgba(248, 250, 252, 0.5);
+    background-color: var(--accent);
     border: 1px solid var(--border);
     transition: all 0.2s ease-in-out;
     
@@ -53,7 +53,7 @@ app-form {
   
   .form-actions {
     padding: variables.$spacing-lg;
-    background-color: rgba(248, 250, 252, 0.3);
+    background-color: var(--accent);
     border-top: 1px solid var(--border);
     display: flex;
     gap: variables.$spacing-md;

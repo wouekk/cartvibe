@@ -2,11 +2,11 @@
 
 app-share-list {
   .item-form-container:nth-child(even) {
-    background-color: #efefef;
+    background-color: var(--muted);
   }
 
   .item-form-container:nth-child(odd) {
-    background-color: #f6f6f6;
+    background-color: var(--muted);
   }
 
   .green-check {

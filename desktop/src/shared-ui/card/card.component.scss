@@ -33,6 +33,6 @@ app-card {
   .mat-mdc-card-actions {
     padding: variables.$spacing-md variables.$spacing-lg;
     border-top: 1px solid var(--border);
-    background-color: rgba(248, 250, 252, 0.5);
+    background-color: var(--accent);
   }
 }

@@ -38,13 +38,13 @@
   // not only in the dropdown it was chosen from. 6.43:1.
   &--purple {
     color: #5b3fae;
-    background: #eeeafa;
+    background: var(--secondary);
   }
 
   // The neutral tone, for a classification that carries no warning. 6.22:1.
   &--slate {
     color: var(--muted-foreground);
-    background: #e6e9ec;
+    background: var(--muted);
   }
 
   // Blue and green are DARKER than the report panel's original kind badges, which
@@ -53,11 +53,11 @@
   // These are 5.90:1 and 5.88:1.
   &--blue {
     color: #00609a;
-    background: #e4f3fd;
+    background: var(--accent);
   }
 
   &--green {
     color: #0b6b4c;
-    background: #e6f7f1;
+    background: color-mix(in oklab, oklch(0.7 0.17 160) 18%, transparent);
   }
 }

@@ -54,11 +54,11 @@
 }
 
 .result--ok {
-  background: #dcfce7;
+  background: color-mix(in oklab, oklch(0.7 0.17 160) 18%, transparent);
   color: #166534;
 }
 
 .result--failed {
-  background: #fee2e2;
+  background: color-mix(in oklab, var(--destructive) 15%, transparent);
   color: #991b1b;
 }
