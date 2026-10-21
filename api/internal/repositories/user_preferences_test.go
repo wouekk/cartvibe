@@ -146,7 +146,7 @@ func TestUpdateUserPreferencesStoresTheDisplayCurrencyAndItsRate(t *testing.T) {
 	}
 }
 
-func TestUpdateUserPreferencesStoresOnlyKnownLanguages(t *testing.T) {
+func TestUpdateUserPreferencesStoresWellFormedLanguageCodes(t *testing.T) {
 	defer TruncateTestDb()
 	CreateTestUser()
 
@@ -155,7 +155,7 @@ func TestUpdateUserPreferencesStoresOnlyKnownLanguages(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for language, want := range map[string]string{" PL ": "pl", "en": "en", "de": "", "": ""} {
+	for language, want := range map[string]string{" PL ": "pl", "en": "en", "pt-BR": "pt-br", "de": "de", "english!": "", "x": "", "": ""} {
 		updated, err := repository.UpdateUserPreferences(1, models.UserPrefernces{Language: language})
 		if err != nil {
 			t.Fatal(err)

@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { CommonModule } from '@angular/common';
 import { Component, signal, TemplateRef, viewChild } from '@angular/core';
@@ -35,7 +36,7 @@ describe('TableComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [TableComponent, ColumnContextHostComponent],
-      imports: [CommonModule],
+      imports: [TranslatePipe, CommonModule],
       // The expandedDetail row carries an animation trigger, so rendering the
       // table (rather than only its class) needs an animations provider.
       providers: [provideNoopAnimations()],

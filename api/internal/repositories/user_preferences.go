@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"regexp"
 	"gorm.io/gorm/clause"
 	"receipt-wrangler/api/internal/models"
 	"strings"
@@ -144,10 +145,14 @@ func (repository UserPreferncesRepository) DeleteUserPreferences(userId uint) er
 	return nil
 }
 
-// normalizeLanguage keeps the languages the interface has; anything else means "follow the browser".
+// languageCodePattern is a BCP 47 style code ("en", "pl", "pt-br"). Which codes the interface actually has is the
+// desktop's language registry, so adding a language never needs an API change.
+var languageCodePattern = regexp.MustCompile("^[a-z]{2,3}(-[a-z0-9]{2,8})?$")
+
+// normalizeLanguage lower-cases a well-formed language code; anything else means "follow the browser".
 func normalizeLanguage(language string) string {
 	language = strings.ToLower(strings.TrimSpace(language))
-	if language == "en" || language == "pl" {
+	if languageCodePattern.MatchString(language) {
 		return language
 	}
 	return ""

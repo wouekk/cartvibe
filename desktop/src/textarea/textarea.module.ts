@@ -1,3 +1,4 @@
+import { PluralPipe, TranslatePipe } from "../i18n/translate.pipe";
 import { TextFieldModule } from "@angular/cdk/text-field";
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
@@ -7,7 +8,7 @@ import { TextareaComponent } from "./textarea/textarea.component";
 
 @NgModule({
   declarations: [TextareaComponent],
-  imports: [CommonModule, ReactiveFormsModule, TextFieldModule, ...HlmTextareaImports],
+  imports: [TranslatePipe, PluralPipe, CommonModule, ReactiveFormsModule, TextFieldModule, ...HlmTextareaImports],
   exports: [TextareaComponent],
 })
 export class TextareaModule {}

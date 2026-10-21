@@ -1,5 +1,5 @@
 <div role="list" class="flex flex-col">
-  <strong class="mb-2">{{ headerText() }}</strong>
+  <strong class="mb-2">{{ headerText() | t }}</strong>
   <div class="mb-2" *ngIf="array().length === 0">{{ nothingToDisplayText() }}</div>
   <div
     class="h-full w-full"

@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
@@ -10,7 +11,7 @@ describe("TextareaComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [TextareaComponent],
-      imports: [ReactiveFormsModule],
+      imports: [TranslatePipe, ReactiveFormsModule],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
 

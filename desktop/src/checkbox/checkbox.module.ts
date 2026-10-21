@@ -1,3 +1,4 @@
+import { PluralPipe, TranslatePipe } from "../i18n/translate.pipe";
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -9,7 +10,7 @@ import { SharedUiModule } from 'src/shared-ui/shared-ui.module';
 
 @NgModule({
   declarations: [CheckboxComponent],
-  imports: [
+  imports: [TranslatePipe, PluralPipe, 
     CommonModule,
     ReactiveFormsModule,
     ...HlmCheckboxImports,

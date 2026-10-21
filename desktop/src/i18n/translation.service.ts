@@ -1,17 +1,16 @@
 import { computed, effect, Injectable, signal } from "@angular/core";
-import { PL, PL_PLURALS } from "./pl";
+import { findLanguage, LANGUAGES, LanguageDefinition } from "./languages";
 
-export type AppLanguage = "en" | "pl";
+export type AppLanguage = string;
 
-export const APP_LANGUAGES: { code: AppLanguage; label: string }[] = [
-  { code: "en", label: "English" },
-  { code: "pl", label: "Polski" },
-];
+/** What the language menu lists, straight from the registry. */
+export const APP_LANGUAGES: { code: AppLanguage; label: string }[] = LANGUAGES.map(({ code, label }) => ({ code, label }));
 
 const STORAGE_KEY = "cartvibe.language";
 
+/** The code when the registry has that language, else undefined. */
 export function asLanguage(value: unknown): AppLanguage | undefined {
-  return value === "en" || value === "pl" ? value : undefined;
+  return findLanguage(value)?.code;
 }
 
 function readStored(): AppLanguage | undefined {
@@ -22,16 +21,28 @@ function readStored(): AppLanguage | undefined {
   }
 }
 
+/** The first browser language the registry has ("pl-PL" matches "pl"), else the registry's first language. */
 function browserLanguage(): AppLanguage {
-  const languages = typeof navigator === "undefined" ? [] : (navigator.languages ?? [navigator.language]);
-  return languages.some((language) => language?.toLowerCase().startsWith("pl")) ? "pl" : "en";
+  const preferred = typeof navigator === "undefined" ? [] : (navigator.languages ?? [navigator.language]);
+  for (const tag of preferred) {
+    const lower = (tag ?? "").toLowerCase();
+    const match = findLanguage(lower) ?? findLanguage(lower.split("-")[0]);
+    if (match) {
+      return match.code;
+    }
+  }
+
+  return LANGUAGES[0].code;
 }
 
+const MONTH_NAMES = /\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/g;
+
 /**
- * The interface language. The English text in the templates is the key: `t("Add receipt")` returns the Polish text when
- * the language is Polish and one is known, else the English text itself, so a missing translation is never blank.
+ * The interface language. The English text in the templates is the key: `t("Add receipt")` returns the active language's
+ * text when it has one, else the English text itself, so a missing translation is never blank. Languages are data
+ * (`languages/`); this service knows none of them by name.
  * Order of precedence: the saved preference (set by LanguageSyncService once signed in), then what was chosen on this
- * device, then the browser's language. This service has no dependencies on purpose: every template pipe uses it.
+ * device, then the browser's language. It has no dependencies on purpose: every template pipe uses it.
  */
 @Injectable({ providedIn: "root" })
 export class TranslationService {
@@ -42,6 +53,8 @@ export class TranslationService {
 
   public readonly language = computed<AppLanguage>(() => this.saved() ?? this.chosen() ?? browserLanguage());
 
+  private readonly definition = computed<LanguageDefinition>(() => findLanguage(this.language()) ?? LANGUAGES[0]);
+
   constructor() {
     effect(() => {
       if (typeof document !== "undefined") {
@@ -51,34 +64,38 @@ export class TranslationService {
   }
 
   public t(text: string, params?: Record<string, string | number>): string {
-    const translated = this.language() === "pl" ? (PL[text] ?? text) : text;
+    const translated = this.definition().messages[text] ?? text;
     return params ? translated.replace(/\{(\w+)\}/g, (match, key) => String(params[key] ?? match)) : translated;
   }
 
-  /** "1 item" / "3 items": the count with the noun in the right form (Polish has three: 1, 2-4, 5+). */
+  /** "1 item" / "3 items": the noun for a count, in the language's own plural forms when it has them. */
   public plural(count: number, singular: string, plural: string): string {
-    if (this.language() === "pl" && PL_PLURALS[singular]) {
-      const [one, few, many] = PL_PLURALS[singular];
-      const lastTwo = count % 100;
-      const last = count % 10;
-      return count === 1 ? one : last >= 2 && last <= 4 && !(lastTwo >= 12 && lastTwo <= 14) ? few : many;
+    const { plurals, pluralIndex } = this.definition();
+    const forms = plurals?.[singular];
+    if (forms) {
+      return forms[Math.min(pluralIndex ? pluralIndex(count) : count === 1 ? 0 : 1, forms.length - 1)];
     }
+
     return count === 1 ? singular : plural;
   }
 
   /** Translates the English month names inside a period label ("October 2026", "12 Oct – 18 Oct 2026"). */
   public months(text: string): string {
-    return this.language() === "pl"
-      ? text.replace(/\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/g, (month) => PL[month] ?? month)
-      : text;
+    const messages = this.definition().messages;
+    return text.replace(MONTH_NAMES, (month) => messages[month] ?? month);
   }
 
   /** Switches now and remembers the choice on this device. */
   public choose(language: AppLanguage): void {
-    this.chosen.set(language);
+    const code = asLanguage(language);
+    if (!code) {
+      return;
+    }
+
+    this.chosen.set(code);
     this.saved.set(undefined);
     try {
-      localStorage.setItem(STORAGE_KEY, language);
+      localStorage.setItem(STORAGE_KEY, code);
     } catch {
       // private mode: the saved preference carries it once signed in
     }

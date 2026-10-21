@@ -2977,3 +2977,11 @@ Angular Material, Bootstrap and the Tailwind CDN are gone (`docs/material-remova
   Dashboard uses them (the detail dialog lists real receipts and keeps the household currency, exports too).
 - Phones: no horizontal overflow at 360 px. Flex children that hold text need `min-w-0`; headings use `break-words`; page padding is
   `p-4 sm:p-6`; inputs are 16 px on small screens (no iOS zoom); `dvh` and safe-area insets are in the base layer of `tailwind.css`.
+
+## Translations (`src/i18n/`)
+
+The **English text in a template is the key**: `{{ 'Add receipt' | t }}` (pipe `t`, exported by `PipesModule`; standalone components import `TranslatePipe`), `'{n} items' | t: { n: 3 }` for parameters, `count | plural: 'item' : 'items'` for nouns, and `TranslationService.t()` in TypeScript. A missing translation shows the English text, so nothing is ever blank.
+- **Languages are data.** `languages/<code>.ts` exports a `LanguageDefinition` (`code`, `label` in its own language, `messages`, optional `plurals` + `pluralIndex`, month names go in `messages`); `languages/index.ts` lists them. **To add a language: copy `pl.ts` and its message files, translate, add one line to `LANGUAGES`.** The menu (account menu in the sidebar), the browser-language detection, the preference validation and the specs all follow the registry; the API accepts any well-formed code, so no API change.
+- Precedence: saved preference (`UserPreferences.language`, synced by `LanguageSyncService`) > the choice made on this device (`localStorage`) > the browser language > the first registered language. `TranslationService` has no dependencies on purpose: every pipe uses it.
+- Component inputs that carry text (`label`, `headerText`, `buttonText`, option labels, table headers, filter chips) are translated where the shared component renders them, so callers pass plain English. Dates, money and group/shop names are data and are not translated (month names in period labels go through `months()`).
+- `translation.service.spec.ts` checks every registered language: the same `{placeholders}` as the English key and enough plural forms for its rule. Missing keys are not an error; find them by switching the language in the app.

@@ -18,7 +18,7 @@
   <div class="z-50 max-h-96 min-w-56 overflow-y-auto rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95" cdkMenu>
     @if (headerText) {
       <h5 class="justify-center m-4">
-        {{ headerText }}
+        {{ headerText | t }}
       </h5>
     }
     <app-input

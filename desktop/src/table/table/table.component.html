@@ -25,7 +25,7 @@
                   [attr.data-testid]="'sort-' + column.matColumnDef"
                   (click)="toggleSort(column)"
                 >
-                  {{ column.columnHeader }}
+                  {{ column.columnHeader | t }}
                   <app-icon
                     class="text-[0.8rem]"
                     [class.opacity-0]="sortState().active !== column.matColumnDef"
@@ -34,7 +34,7 @@
                   ></app-icon>
                 </button>
               } @else {
-                {{ column.columnHeader }}
+                {{ column.columnHeader | t }}
               }
             </th>
           }

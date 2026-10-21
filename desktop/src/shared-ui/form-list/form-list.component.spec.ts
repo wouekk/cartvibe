@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { FormListComponent } from './form-list.component';
@@ -9,6 +10,7 @@ describe('FormListComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [TranslatePipe],
       declarations: [FormListComponent],
             schemas: [CUSTOM_ELEMENTS_SCHEMA],
     });
