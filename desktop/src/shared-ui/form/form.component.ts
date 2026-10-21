@@ -25,6 +25,9 @@ export class FormComponent {
   /** Draws the form as one settings card (title, Edit action in the head, submit in the footer) instead of a bare form. */
   public readonly settingsCard = input(false);
 
+  /** Card title in `settingsCard` mode; defaults to the form header text. */
+  public readonly settingsTitle = input<string>("");
+
   public readonly submitButtonDisabled = input(false);
 
   public readonly submitted = output<void>();

@@ -22,8 +22,7 @@ neighbours is not done.
 - **Consistency over novelty:** the same thing looks the same everywhere (one period picker, one section/panel pattern for
   settings cards, one tab strip). Fix a pattern once, globally, instead of per page. Tab strips and scroll containers never
   show stray scrollbars.
-- **Decided direction, being implemented (see `docs/ui-issues.md`):** a shared `rw-section` panel (inset muted surface,
-  hairline border, overline title, optional description, footer actions) for the blocks inside settings cards; a single
+- **Decided direction (see `docs/ui-issues.md`; settings layout in "The settings layout standard" below):** settings pages share `app-settings-page` / `-section` / `-tabs` / `-entity-list` (hairline cards, flat rows, Save in the card footer on the right); a single
   period picker with boxed From/To fields; a shared horizontal-scroll utility with no vertical scrollbar; click-to-focus on
   the donut and its legend instead of checkbox chips; real shop logos (static files, white/black outline per theme).
 - **Before calling UI work done:** build, run Jest, and look at screenshots at desktop and phone widths in White and Black
@@ -3033,5 +3032,10 @@ The **English text in a template is the key**: `{{ 'Add receipt' | t }}` (pipe `
 - **AI page:** `app-gemini-model-field` (model dropdown from `POST /receiptProcessingSettings/geminiModels`, text box fallback, key sent in the body, a saved key is used server-side via the settings id) and `app-ai-fallback-card` (a second Gemini settings row linked as `fallbackReceiptProcessingSettingsId`; switching it off only unlinks; hidden without System Settings access). Shared constants live in `ai-settings-shared.ts`.
 - **Dialog footer:** `app-dialog-footer` / `app-cancel-button` render labelled buttons; the submit one is tinted green (`bg-success-text/15`), cancel red. Specs find them by testid.
 
-### The settings card standard (decided by the user, 2026-10)
-The System Settings **Currency & exchange rates** card is the golden standard for every settings screen: a card with one `h2` title (17px, semibold), and inside it one `rw-section` per topic (overline title, a one-line description, the controls, actions in the card's footer). System Settings, the AI page (main and backup), User Preferences and User Profile all follow it. Use `app-form-section [panel]="true"` in forms built on it, or the `rw-section` markup directly. Do not put loose paragraphs and fields straight into a card. Spacing inside a section comes from its `gap`, not from `mb-*` on controls.
+### The settings layout standard (decided by the user, 2026-10)
+Every Admin and User settings page uses four shared primitives from `src/shared-ui/settings/`, so a new page looks right by default:
+- **`app-settings-page`** (`title`, `description`, `width` = `narrow` max-w-3xl | `wide` max-w-5xl; slots `[settingsActions]` top right, `[settingsTabs]`, default content). Archetype A (configuration: System Settings, AI, User Settings, household detail) is `narrow`; archetype B (entity lists: Categories, Tags, Custom Fields, Households, Users) is `wide`. Same header, same rhythm.
+- **`app-settings-section`** (the card; `title`, `description`, `tone` default | destructive, `testId`; slots `[sectionActions]` and `[sectionFooter]`): classes `rw-card`, `rw-card__head/title/desc/body/footer/status` in `tailwind.css`. Hairline, no shadow. Inside it a topic is a flat `rw-section` row (hairline between rows; `rw-section` keeps its inset box only outside a card). Read-only blocks may use `rw-inset`.
+- **Save sits in the card footer, right-aligned, status text left** (`<div sectionFooter class="rw-card__footer">`); every card that saves has one.
+- **`app-settings-tabs`**: the one segmented strip; `app-filter-bar` and `app-tabs` render through it. **`app-settings-entity-list`**: draws an `app-table` on the card surface (a table inside `rw-card` loses its own border and shadow).
+- `app-form [settingsCard]="true" settingsTitle="..."` draws a form as one card (Edit in the head, submit in the footer). `app-table-header` is still used by receipts, reports and shopping lists, not by settings pages.

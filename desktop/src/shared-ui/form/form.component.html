@@ -1,6 +1,6 @@
 @if (settingsCard()) {
   <form [formGroup]="form()" (ngSubmit)="submitted.emit()">
-    <app-settings-section [title]="formConfig().headerText">
+    <app-settings-section [title]="settingsTitle() || formConfig().headerText">
       @if ((formConfig().mode | inputReadonly) && canEdit()) {
         <div sectionActions class="contents">
           <app-edit-button
