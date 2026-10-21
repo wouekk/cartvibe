@@ -10,11 +10,15 @@ class _$UserPreferences extends UserPreferences {
   @override
   final ReceiptStatus? quickScanDefaultStatus;
   @override
+  final String? displayCurrencyRate;
+  @override
   final String? monthlySpendingGoal;
   @override
   final BuiltList<UserShortcut>? userShortcuts;
   @override
   final bool? closeChipSelectOnSelect;
+  @override
+  final String? displayCurrency;
   @override
   final int userId;
   @override
@@ -37,9 +41,11 @@ class _$UserPreferences extends UserPreferences {
 
   _$UserPreferences._(
       {this.quickScanDefaultStatus,
+      this.displayCurrencyRate,
       this.monthlySpendingGoal,
       this.userShortcuts,
       this.closeChipSelectOnSelect,
+      this.displayCurrency,
       required this.userId,
       this.quickScanDefaultGroupId,
       this.quickScanDefaultPaidById,
@@ -61,9 +67,11 @@ class _$UserPreferences extends UserPreferences {
     if (identical(other, this)) return true;
     return other is UserPreferences &&
         quickScanDefaultStatus == other.quickScanDefaultStatus &&
+        displayCurrencyRate == other.displayCurrencyRate &&
         monthlySpendingGoal == other.monthlySpendingGoal &&
         userShortcuts == other.userShortcuts &&
         closeChipSelectOnSelect == other.closeChipSelectOnSelect &&
+        displayCurrency == other.displayCurrency &&
         userId == other.userId &&
         quickScanDefaultGroupId == other.quickScanDefaultGroupId &&
         quickScanDefaultPaidById == other.quickScanDefaultPaidById &&
@@ -78,9 +86,11 @@ class _$UserPreferences extends UserPreferences {
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, quickScanDefaultStatus.hashCode);
+    _$hash = $jc(_$hash, displayCurrencyRate.hashCode);
     _$hash = $jc(_$hash, monthlySpendingGoal.hashCode);
     _$hash = $jc(_$hash, userShortcuts.hashCode);
     _$hash = $jc(_$hash, closeChipSelectOnSelect.hashCode);
+    _$hash = $jc(_$hash, displayCurrency.hashCode);
     _$hash = $jc(_$hash, userId.hashCode);
     _$hash = $jc(_$hash, quickScanDefaultGroupId.hashCode);
     _$hash = $jc(_$hash, quickScanDefaultPaidById.hashCode);
@@ -97,9 +107,11 @@ class _$UserPreferences extends UserPreferences {
   String toString() {
     return (newBuiltValueToStringHelper(r'UserPreferences')
           ..add('quickScanDefaultStatus', quickScanDefaultStatus)
+          ..add('displayCurrencyRate', displayCurrencyRate)
           ..add('monthlySpendingGoal', monthlySpendingGoal)
           ..add('userShortcuts', userShortcuts)
           ..add('closeChipSelectOnSelect', closeChipSelectOnSelect)
+          ..add('displayCurrency', displayCurrency)
           ..add('userId', userId)
           ..add('quickScanDefaultGroupId', quickScanDefaultGroupId)
           ..add('quickScanDefaultPaidById', quickScanDefaultPaidById)
@@ -123,6 +135,11 @@ class UserPreferencesBuilder
   set quickScanDefaultStatus(covariant ReceiptStatus? quickScanDefaultStatus) =>
       _$this._quickScanDefaultStatus = quickScanDefaultStatus;
 
+  String? _displayCurrencyRate;
+  String? get displayCurrencyRate => _$this._displayCurrencyRate;
+  set displayCurrencyRate(covariant String? displayCurrencyRate) =>
+      _$this._displayCurrencyRate = displayCurrencyRate;
+
   String? _monthlySpendingGoal;
   String? get monthlySpendingGoal => _$this._monthlySpendingGoal;
   set monthlySpendingGoal(covariant String? monthlySpendingGoal) =>
@@ -138,6 +155,11 @@ class UserPreferencesBuilder
   bool? get closeChipSelectOnSelect => _$this._closeChipSelectOnSelect;
   set closeChipSelectOnSelect(covariant bool? closeChipSelectOnSelect) =>
       _$this._closeChipSelectOnSelect = closeChipSelectOnSelect;
+
+  String? _displayCurrency;
+  String? get displayCurrency => _$this._displayCurrency;
+  set displayCurrency(covariant String? displayCurrency) =>
+      _$this._displayCurrency = displayCurrency;
 
   int? _userId;
   int? get userId => _$this._userId;
@@ -182,9 +204,11 @@ class UserPreferencesBuilder
     final $v = _$v;
     if ($v != null) {
       _quickScanDefaultStatus = $v.quickScanDefaultStatus;
+      _displayCurrencyRate = $v.displayCurrencyRate;
       _monthlySpendingGoal = $v.monthlySpendingGoal;
       _userShortcuts = $v.userShortcuts?.toBuilder();
       _closeChipSelectOnSelect = $v.closeChipSelectOnSelect;
+      _displayCurrency = $v.displayCurrency;
       _userId = $v.userId;
       _quickScanDefaultGroupId = $v.quickScanDefaultGroupId;
       _quickScanDefaultPaidById = $v.quickScanDefaultPaidById;
@@ -217,9 +241,11 @@ class UserPreferencesBuilder
       _$result = _$v ??
           _$UserPreferences._(
             quickScanDefaultStatus: quickScanDefaultStatus,
+            displayCurrencyRate: displayCurrencyRate,
             monthlySpendingGoal: monthlySpendingGoal,
             userShortcuts: _userShortcuts?.build(),
             closeChipSelectOnSelect: closeChipSelectOnSelect,
+            displayCurrency: displayCurrency,
             userId: BuiltValueNullFieldError.checkNotNull(
                 userId, r'UserPreferences', 'userId'),
             quickScanDefaultGroupId: quickScanDefaultGroupId,

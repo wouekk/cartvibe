@@ -47,6 +47,14 @@ export interface UserPreferences {
      * The most this person wants to spend in a month, as a decimal string; null or 0 means no goal
      */
     monthlySpendingGoal?: string;
+    /**
+     * The ISO code of the currency this person sees the Dashboard in; empty means the household currency
+     */
+    displayCurrency?: string;
+    /**
+     * How many units of displayCurrency one unit of the household currency is worth, as a decimal string; only the Dashboard converts
+     */
+    displayCurrencyRate?: string;
     userShortcuts?: Array<UserShortcut>;
 }
 export namespace UserPreferences {

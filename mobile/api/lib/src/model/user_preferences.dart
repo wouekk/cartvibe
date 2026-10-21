@@ -26,6 +26,8 @@ part 'user_preferences.g.dart';
 /// * [quickScanDefaultStatus] - Default quick scan status
 /// * [closeChipSelectOnSelect] - Whether multi-select chip fields close their option list after each selection
 /// * [monthlySpendingGoal] - The most this person wants to spend in a month, as a decimal string; null or 0 means no goal
+/// * [displayCurrency] - The ISO code of the currency this person sees the Dashboard in; empty means the household currency
+/// * [displayCurrencyRate] - How many units of displayCurrency one unit of the household currency is worth, as a decimal string; only the Dashboard converts
 /// * [userShortcuts] 
 @BuiltValue()
 abstract class UserPreferences implements BaseModel, Built<UserPreferences, UserPreferencesBuilder> {
@@ -33,6 +35,10 @@ abstract class UserPreferences implements BaseModel, Built<UserPreferences, User
   @BuiltValueField(wireName: r'quickScanDefaultStatus')
   ReceiptStatus? get quickScanDefaultStatus;
   // enum quickScanDefaultStatusEnum {  OPEN,  NEEDS_ATTENTION,  RESOLVED,  DRAFT,  DECLINED,  ,  };
+
+  /// How many units of displayCurrency one unit of the household currency is worth, as a decimal string; only the Dashboard converts
+  @BuiltValueField(wireName: r'displayCurrencyRate')
+  String? get displayCurrencyRate;
 
   /// The most this person wants to spend in a month, as a decimal string; null or 0 means no goal
   @BuiltValueField(wireName: r'monthlySpendingGoal')
@@ -44,6 +50,10 @@ abstract class UserPreferences implements BaseModel, Built<UserPreferences, User
   /// Whether multi-select chip fields close their option list after each selection
   @BuiltValueField(wireName: r'closeChipSelectOnSelect')
   bool? get closeChipSelectOnSelect;
+
+  /// The ISO code of the currency this person sees the Dashboard in; empty means the household currency
+  @BuiltValueField(wireName: r'displayCurrency')
+  String? get displayCurrency;
 
   /// User foreign key
   @BuiltValueField(wireName: r'userId')
@@ -63,10 +73,11 @@ abstract class UserPreferences implements BaseModel, Built<UserPreferences, User
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(UserPreferencesBuilder b) => b
-      ..quickScanDefaultStatus = ReceiptStatus.OPEN
-      ..createdBy = 0
       ..closeChipSelectOnSelect = false
       ..quickScanDefaultGroupId = 0
+      ..quickScanDefaultStatus = ReceiptStatus.OPEN
+      ..createdBy = 0
+      ..displayCurrency = ''
       ..quickScanDefaultPaidById = 0
       ..createdByString = ''
       ..updatedAt = '';
@@ -87,6 +98,25 @@ class _$UserPreferencesSerializer implements PrimitiveSerializer<UserPreferences
     UserPreferences object, {
     FullType specifiedType = FullType.unspecified,
   }) sync* {
+    if (object.closeChipSelectOnSelect != null) {
+      yield r'closeChipSelectOnSelect';
+      yield serializers.serialize(
+        object.closeChipSelectOnSelect,
+        specifiedType: const FullType(bool),
+      );
+    }
+    yield r'userId';
+    yield serializers.serialize(
+      object.userId,
+      specifiedType: const FullType(int),
+    );
+    if (object.quickScanDefaultGroupId != null) {
+      yield r'quickScanDefaultGroupId';
+      yield serializers.serialize(
+        object.quickScanDefaultGroupId,
+        specifiedType: const FullType(int),
+      );
+    }
     yield r'createdAt';
     yield serializers.serialize(
       object.createdAt,
@@ -97,6 +127,13 @@ class _$UserPreferencesSerializer implements PrimitiveSerializer<UserPreferences
       yield serializers.serialize(
         object.quickScanDefaultStatus,
         specifiedType: const FullType(ReceiptStatus),
+      );
+    }
+    if (object.displayCurrencyRate != null) {
+      yield r'displayCurrencyRate';
+      yield serializers.serialize(
+        object.displayCurrencyRate,
+        specifiedType: const FullType(String),
       );
     }
     if (object.createdBy != null) {
@@ -125,23 +162,11 @@ class _$UserPreferencesSerializer implements PrimitiveSerializer<UserPreferences
       object.id,
       specifiedType: const FullType(int),
     );
-    if (object.closeChipSelectOnSelect != null) {
-      yield r'closeChipSelectOnSelect';
+    if (object.displayCurrency != null) {
+      yield r'displayCurrency';
       yield serializers.serialize(
-        object.closeChipSelectOnSelect,
-        specifiedType: const FullType(bool),
-      );
-    }
-    yield r'userId';
-    yield serializers.serialize(
-      object.userId,
-      specifiedType: const FullType(int),
-    );
-    if (object.quickScanDefaultGroupId != null) {
-      yield r'quickScanDefaultGroupId';
-      yield serializers.serialize(
-        object.quickScanDefaultGroupId,
-        specifiedType: const FullType(int),
+        object.displayCurrency,
+        specifiedType: const FullType(String),
       );
     }
     if (object.quickScanDefaultPaidById != null) {
@@ -188,6 +213,27 @@ class _$UserPreferencesSerializer implements PrimitiveSerializer<UserPreferences
       final key = serializedList[i] as String;
       final value = serializedList[i + 1];
       switch (key) {
+        case r'closeChipSelectOnSelect':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(bool),
+          ) as bool;
+          result.closeChipSelectOnSelect = valueDes;
+          break;
+        case r'userId':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(int),
+          ) as int;
+          result.userId = valueDes;
+          break;
+        case r'quickScanDefaultGroupId':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(int),
+          ) as int;
+          result.quickScanDefaultGroupId = valueDes;
+          break;
         case r'createdAt':
           final valueDes = serializers.deserialize(
             value,
@@ -201,6 +247,13 @@ class _$UserPreferencesSerializer implements PrimitiveSerializer<UserPreferences
             specifiedType: const FullType(ReceiptStatus),
           ) as ReceiptStatus;
           result.quickScanDefaultStatus = valueDes;
+          break;
+        case r'displayCurrencyRate':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.displayCurrencyRate = valueDes;
           break;
         case r'createdBy':
           final valueDes = serializers.deserialize(
@@ -230,26 +283,12 @@ class _$UserPreferencesSerializer implements PrimitiveSerializer<UserPreferences
           ) as int;
           result.id = valueDes;
           break;
-        case r'closeChipSelectOnSelect':
+        case r'displayCurrency':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(bool),
-          ) as bool;
-          result.closeChipSelectOnSelect = valueDes;
-          break;
-        case r'userId':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(int),
-          ) as int;
-          result.userId = valueDes;
-          break;
-        case r'quickScanDefaultGroupId':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(int),
-          ) as int;
-          result.quickScanDefaultGroupId = valueDes;
+            specifiedType: const FullType(String),
+          ) as String;
+          result.displayCurrency = valueDes;
           break;
         case r'quickScanDefaultPaidById':
           final valueDes = serializers.deserialize(
