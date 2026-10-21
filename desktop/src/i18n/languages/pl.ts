@@ -4,6 +4,7 @@ import { LanguageDefinition } from "./language";
 import { PL_CORE } from "./pl.messages";
 import { PL_FEEDBACK } from "./pl.messages-feedback";
 import { PL_MORE } from "./pl.messages-more";
+import { PL_PRODUCT_CHECK } from "./pl.messages-product-check";
 
 registerLocaleData(localePl, "pl");
 
@@ -11,7 +12,7 @@ export const POLISH: LanguageDefinition = {
   code: "pl",
   locale: "pl",
   label: "Polski",
-  messages: { ...PL_CORE, ...PL_MORE, ...PL_FEEDBACK },
+  messages: { ...PL_CORE, ...PL_MORE, ...PL_FEEDBACK, ...PL_PRODUCT_CHECK },
   // One, 2-4 and 5+ (11-14 take the last form).
   plurals: {
     item: ["produkt", "produkty", "produktów"],

@@ -4243,3 +4243,28 @@ Dashboard's figures in the browser; stored amounts, exports and every other scre
   the API as uid 10001 `cartvibe` through `setpriv` after handing it `data`, `temp`, `logs` and `sqlite` (only files it does
   not own yet). nginx sends `server_tokens off` and nosniff / frame / referrer headers. `publish-image.yml` rebuilds `main`
   weekly without the cache, always pulls base images, and attaches a grype report to every run.
+
+## Receipt search: typo-tolerant, over product lines (fork, 2026-10)
+
+The receipts table has a search box (desktop toolbar). The phrase rides the receipts filter as `ReceiptPagedRequestFilter.search`
+(a plain string, `omitempty`), so the table, the totals summary, the CSV export and the pie chart all see the same narrowing.
+The old header search (`GET /search`, name `LIKE` only) is kept for MCP and released mobile builds; the desktop no longer calls it.
+
+- **Matcher** (`utils/fuzzy_match.go`, pure): text is lower-cased, accents folded by a table (`ł`, `ø` do not decompose) and
+  split on non-alphanumerics. Every query token (one-letter tokens dropped) must match some token of the **same** text: the
+  text token contains it, is an abbreviation of it (at least 3 letters: "choc" for "chocolate"), or is within an
+  optimal-string-alignment distance of 1 (query length 4-7) or 2 (8+) of it or of its same-length prefix ("choclate").
+  Under 4 letters is exact/substring only, which keeps "pie" away from "pita".
+- **Where it runs**: `GetPagedReceiptsByGroupId` calls `fuzzySearchReceiptIds` (`repositories/receipt_search.go`) with the
+  already-resolved group scope (the group, or the readable member groups for All). It reads the scope's texts with three
+  narrow selects (receipt name and shop; comments; product `name` and `display_name`), matches in Go, and ANDs
+  `receipts.id IN (...)` before the count, so `totalCount` and paging follow. No match is `IN (0)`.
+- **It only narrows.** Paid-by visibility, the All-group read gate and the category/tag rules still apply to the ids it
+  returns, so the search is no new disclosure path. (A comment by an author hidden under member isolation can still make a
+  receipt match; the receipt itself is already visible to the caller, and the comment text is not returned.)
+- **Cost**: one scan of the scope's texts per request, in memory. Fine at household scale (the desktop debounces 300 ms). If
+  it ever hurts, the next step is a normalized-token table or FTS5, not caching.
+- **`Receipt.searchMatches`** (`gorm:"-"`, `omitempty`): the handler fills it for the page's receipts while a search is active
+  (`GetProductSearchMatches`, at most 3 product lines, display name else printed name, with the amount). A receipt that
+  matched on name, shop or comment has none. Absent from every other response.
+- Tests: `utils/fuzzy_match_test.go`, `repositories/receipt_search_test.go`, `handlers/receipt_search_matches_test.go`.

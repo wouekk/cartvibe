@@ -11,6 +11,7 @@ import { ShopMonogramComponent } from "../shared-ui/shop-monogram/shop-monogram.
 import { HlmCheckboxImports } from "@spartan-ng/helm/checkbox";
 import { HlmSpinner } from "@spartan-ng/helm/spinner";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
+import { HlmInputGroupImports } from "@spartan-ng/helm/input-group";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { AutocompleteModule } from "src/autocomplete/autocomplete.module";
 import { AvatarModule } from "src/avatar";
@@ -90,6 +91,7 @@ import { UserTotalWithPercentagePipe } from "./user-total-with-percentage.pipe";
     ExpansionPanelComponent,
     AppIconComponent,
     ...HlmDropdownMenuImports,
+    ...HlmInputGroupImports,
     ...HlmTooltipImports,
     PipesModule,
     RadioGroupModule,

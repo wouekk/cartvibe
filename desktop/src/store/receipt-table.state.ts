@@ -6,7 +6,7 @@ import { ReceiptTableInterface } from "../interfaces";
 import { DEFAULT_RECEIPT_TABLE_COLUMNS, ReceiptTableColumnConfig } from "../interfaces/receipt-table-column-config.interface";
 import { ReceiptPagedRequestFilter } from "../open-api";
 import { isFilterEntryActive } from "../utils/receipt-filter-entry";
-import { ResetReceiptFilter, SetColumnConfig, SetPage, SetPageSize, SetQuickDateField, SetReceiptFilter, SetReceiptFilterData, SetReceiptFilterField, SetSummaryConfigGroupId } from "./receipt-table.actions";
+import { ResetReceiptFilter, SetColumnConfig, SetPage, SetPageSize, SetQuickDateField, SetReceiptFilter, SetReceiptFilterData, SetReceiptFilterField, SetReceiptSearch, SetSummaryConfigGroupId } from "./receipt-table.actions";
 
 /**
  * A pristine filter. This is a factory rather than a shared constant because
@@ -98,6 +98,12 @@ export class ReceiptTableState {
     return state;
   }
 
+  /** The phrase in the toolbar search box. A state hydrated before the box existed has none. */
+  @Selector()
+  static search(state: ReceiptTableInterface): string {
+    return state.filter?.search ?? "";
+  }
+
   @Selector()
   static numFiltersApplied(state: ReceiptTableInterface): number {
     const filter: any = state.filter;
@@ -166,11 +172,23 @@ export class ReceiptTableState {
 
   @Action(SetReceiptFilter)
   setReceiptFilter(
-    { patchState }: StateContext<ReceiptTableInterface>,
+    { getState, patchState }: StateContext<ReceiptTableInterface>,
     payload: SetReceiptFilter
   ) {
+    // The filter dialog knows nothing of the toolbar search box, so its form value must not wipe the phrase.
     patchState({
-      filter: payload.data,
+      filter: { ...payload.data, search: getState().filter?.search },
+    });
+  }
+
+  @Action(SetReceiptSearch)
+  setReceiptSearch(
+    { getState, patchState }: StateContext<ReceiptTableInterface>,
+    payload: SetReceiptSearch
+  ) {
+    patchState({
+      page: 1,
+      filter: { ...getState().filter, search: payload.search },
     });
   }
 

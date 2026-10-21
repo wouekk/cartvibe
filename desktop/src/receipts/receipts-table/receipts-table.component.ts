@@ -1,6 +1,6 @@
 import { TranslationService } from "../../i18n/translation.service";
 import { CurrencyPipe, DatePipe } from "@angular/common";
-import { AfterViewInit, Component, computed, inject, OnInit, signal, TemplateRef, viewChild } from "@angular/core";
+import { AfterViewInit, Component, computed, HostListener, inject, OnInit, signal, TemplateRef, viewChild } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -8,11 +8,11 @@ import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
 import { DONE_STATUSES } from "../../utils/receipt-status";
 import { ResolvedPeriod } from "../../overview/overview-period";
-import { catchError, EMPTY, map, Subject, switchMap, take, tap } from "rxjs";
+import { catchError, debounceTime, distinctUntilChanged, EMPTY, filter as rxFilter, map, Subject, switchMap, take, tap } from "rxjs";
 import { fadeInOut } from "src/animations";
 import { ReceiptFilterService } from "src/services/receipt-filter.service";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { ResetReceiptFilter, SetColumnConfig, SetPage, SetPageSize, SetQuickDateField, SetReceiptFilterData, SetReceiptFilterField, SetSummaryConfigGroupId, } from "src/store/receipt-table.actions";
+import { ResetReceiptFilter, SetColumnConfig, SetPage, SetPageSize, SetQuickDateField, SetReceiptFilterData, SetReceiptFilterField, SetReceiptSearch, SetSummaryConfigGroupId, } from "src/store/receipt-table.actions";
 import { DEFAULT_RECEIPT_ORDER_BY, DEFAULT_RECEIPT_SORT_DIRECTION, ReceiptTableState, } from "src/store/receipt-table.state";
 import { SystemSettingsState } from "src/store/system-settings.state";
 import { TableColumn } from "src/table/table-column.interface";
@@ -96,6 +96,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   ) {
     this.listenForRefreshRequests();
     this.listenForSummaryRequests();
+    this.listenForSearchInput();
   }
 
   readonly dateCell = viewChild.required<TemplateRef<any>>("dateCell");
@@ -126,6 +127,14 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   public pageSize = this.store.selectSignal(ReceiptTableState.pageSize);
 
   public filter = this.store.selectSignal(ReceiptTableState.filterData);
+
+  /** The phrase applied to the table, as the store holds it. */
+  private readonly appliedSearch = this.store.selectSignal(ReceiptTableState.search);
+
+  /** What the search box shows: ahead of the store while the debounce waits. */
+  public readonly searchText = signal(this.store.selectSnapshot(ReceiptTableState.search));
+
+  private readonly searchTyped = new Subject<string>();
 
   public columnConfig = this.store.selectSignal(ReceiptTableState.columnConfig);
 
@@ -270,7 +279,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   /**
    * Every active condition, the date range included: what Reset clears.
    */
-  public anyFilterApplied = computed(() => this.numFiltersAppliedRaw() > 0);
+  public anyFilterApplied = computed(() => this.numFiltersAppliedRaw() > 0 || this.appliedSearch().length > 0);
 
   /**
    * The Filter button's badge. The Receipt Date range is already on show in the period picker beside
@@ -708,7 +717,59 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
   public resetFilterButtonClicked(): void {
     this.store.dispatch(new ResetReceiptFilter());
+    this.searchText.set("");
     this.getFilteredReceipts();
+  }
+
+  public searchInput(value: string): void {
+    this.searchText.set(value);
+    this.searchTyped.next(value);
+  }
+
+  public clearSearch(): void {
+    this.searchText.set("");
+    this.applySearch("");
+  }
+
+  /** Typing waits 300 ms for a pause before asking the server, so a phrase is not searched letter by letter. */
+  private listenForSearchInput(): void {
+    this.searchTyped
+      .pipe(
+        map((value) => value.trim()),
+        debounceTime(300),
+        distinctUntilChanged(),
+        rxFilter((value) => value !== this.appliedSearch()),
+        untilDestroyed(this)
+      )
+      .subscribe((value) => this.applySearch(value));
+  }
+
+  private applySearch(value: string): void {
+    this.store.dispatch(new SetReceiptSearch(value));
+    this.getFilteredReceipts();
+  }
+
+  /** Ctrl K / Cmd K, or / outside a text field, jumps to the search box. */
+  @HostListener("document:keydown", ["$event"])
+  public handleSearchShortcut(event: KeyboardEvent): void {
+    const target = event.target as HTMLElement | null;
+    const typing = !!target && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
+    const commandK = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k";
+    if (commandK || (event.key === "/" && !typing && !event.metaKey && !event.ctrlKey)) {
+      const input = document.querySelector<HTMLInputElement>("[data-testid=receipts-search]");
+      if (input) {
+        event.preventDefault();
+        input.focus();
+        input.select();
+      }
+    }
+  }
+
+  /** The line under a shop that says which products matched the search. */
+  public searchMatchesText(receipt: any): string {
+    return ((receipt?.searchMatches ?? []) as { name: string; amount?: string }[])
+      .map((match) => (match.amount ? `${match.name} · ${this.customCurrencyPipe.transform(match.amount)}` : match.name))
+      .join(", ");
   }
 
   public configureColumnsButtonClicked(): void {

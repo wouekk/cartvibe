@@ -2,7 +2,7 @@ import { TestBed } from "@angular/core/testing";
 import { NgxsModule, Store } from "@ngxs/store";
 import { DEFAULT_RECEIPT_TABLE_COLUMNS, ReceiptTableInterface } from "src/interfaces";
 import { FilterOperation, ReceiptPagedRequestFilter, ReceiptStatus } from "../open-api";
-import { ResetReceiptFilter, SetPage, SetPageSize, SetQuickDateField, SetReceiptFilter, SetReceiptFilterData, SetReceiptFilterField, } from "./receipt-table.actions";
+import { ResetReceiptFilter, SetPage, SetPageSize, SetQuickDateField, SetReceiptFilter, SetReceiptFilterData, SetReceiptFilterField, SetReceiptSearch, } from "./receipt-table.actions";
 import { buildDefaultReceiptFilter, defaultReceiptFilter, ReceiptTableState } from "./receipt-table.state";
 
 describe("ReceiptTableState", () => {
@@ -148,6 +148,43 @@ describe("ReceiptTableState", () => {
 
     const result = store.selectSnapshot(ReceiptTableState.filterData);
     expect(result.filter).toEqual(filledFilter);
+  });
+
+  describe("toolbar search", () => {
+    it("stores the phrase on the filter and returns to page 1", () => {
+      store.dispatch(new SetPage(4));
+
+      store.dispatch(new SetReceiptSearch("choclate"));
+
+      expect(store.selectSnapshot(ReceiptTableState.search)).toBe("choclate");
+      expect(store.selectSnapshot(ReceiptTableState.page)).toBe(1);
+      expect(store.selectSnapshot(ReceiptTableState.filterData).filter.search).toBe("choclate");
+    });
+
+    it("survives the filter dialog replacing the filter", () => {
+      store.dispatch(new SetReceiptSearch("milk"));
+
+      store.dispatch(new SetReceiptFilter(filledFilter));
+
+      expect(store.selectSnapshot(ReceiptTableState.search)).toBe("milk");
+      expect(store.selectSnapshot(ReceiptTableState.filterData).filter.name).toEqual(filledFilter.name);
+    });
+
+    it("is cleared by a filter reset", () => {
+      store.dispatch(new SetReceiptSearch("milk"));
+
+      store.dispatch(new ResetReceiptFilter());
+
+      expect(store.selectSnapshot(ReceiptTableState.search)).toBe("");
+    });
+
+    it("is empty for a state persisted before the box existed, and is not counted as a filter", () => {
+      store.reset({ receiptTable: { filter: undefined } });
+      expect(store.selectSnapshot(ReceiptTableState.search)).toBe("");
+
+      store.reset({ receiptTable: { filter: { ...buildDefaultReceiptFilter(), search: "milk" } } });
+      expect(store.selectSnapshot(ReceiptTableState.numFiltersApplied)).toBe(0);
+    });
   });
 
   it("should reset filter", () => {

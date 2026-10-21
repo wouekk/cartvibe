@@ -11,6 +11,11 @@
   --background: oklch(0.985 0 0); /* zinc-50 canvas */
   --warning-text: #ea580c;
   --success-text: #16a34a;
+  --nutri-a: #038141;
+  --nutri-b: #85bb2f;
+  --nutri-c: #fecb02;
+  --nutri-d: #ee8100;
+  --nutri-e: #e63e11;
   --warning: oklch(0.84 0.16 84);
   --warning-foreground: oklch(0.28 0.07 46);
   --foreground: oklch(0.141 0.005 285.823);

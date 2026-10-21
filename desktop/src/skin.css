@@ -54,7 +54,7 @@ body {
     height: 44px;
     margin: 0;
   }
-  app-header app-searchbar {
+  app-header app-product-check-input {
     min-width: 0;
     flex: 1 1 0;
     margin-right: 0 !important;
@@ -127,8 +127,8 @@ body {
   .receipts-toolbar > * {
     margin-right: 0 !important;
   }
-  app-header app-searchbar .mat-mdc-form-field,
-  app-header app-searchbar .mat-mdc-text-field-wrapper {
+  app-header app-product-check-input .mat-mdc-form-field,
+  app-header app-product-check-input .mat-mdc-text-field-wrapper {
     width: 100%;
     min-width: 0;
   }
