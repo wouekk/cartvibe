@@ -10,8 +10,7 @@ Used mostly on a phone browser in the shop, and on a desktop for the overview.
 shared bills, who paid, who owes whom, approval statuses, configurable AI prompts. Here the users are
 family members, everyone can add things, and nobody splits bills. Hide what a family does not need,
 fill in what it should not have to (paid by = the logged-in user), and keep AI configuration
-admin-only with working defaults. The approved design (`Main.dc.html` / `Phone.dc.html` in
-https://claude.ai/artifact/TAZXoRQ4mmRyoy37CFKRVt) is the target look. The plan is in
+admin-only with working defaults. The visual target is the **high-craft fintech identity** below (it replaced the old approved mock). The plan is in
 `docs/family-budget-rework.md` (Phase 3).
 
 ### Shipped (Phase 1 and follow-ups)
@@ -54,6 +53,35 @@ https://claude.ai/artifact/TAZXoRQ4mmRyoy37CFKRVt) is the target look. The plan 
 - **SQLite on the NAS.** New models must be SQLite-safe and migrations additive.
 - **AI is optional and fallible.** Nothing may block or fail because the AI is missing, slow or out
   of credits: record a status, retry later, degrade to "planned"/"unknown".
+
+---
+
+## Visual identity: high-craft fintech (binding for every UI change)
+
+This **overrides every older design statement** in these files (the approved `Main.dc.html` mock, the "white cards with a
+shadow" settings look, Material/Bootstrap-era patterns). The baseline is a polished, high-craft **fintech** interface built
+on **spartan/ui (helm + brain) and Tailwind 4**, on the design tokens of the two themes (White, Black). It has to be
+preserved in every screen, dialog, empty state and email-like surface, and a change that looks sloppier than its
+neighbours is not done.
+
+- **Stack, no exceptions:** spartan/ui components from `src/ui`, Tailwind utilities on tokens, Lucide icons, ApexCharts on the
+  chart tokens, Geist. No Angular Material, Bootstrap, ad-hoc hex colors, one-off shadows or hand-rolled widgets where a
+  helm part exists. New global CSS goes in a Tailwind layer.
+- **Craft rules:** one spacing scale (4/8px grid) and one radius family; surfaces are separated by a **subtle surface step
+  plus a low-contrast 1px hairline**, not heavy shadows or boxes inside boxes; quiet type hierarchy (small uppercase
+  overlines, tabular figures for money, whole part bold and decimals quiet); one control height per row (toolbars align on
+  one baseline); restrained, purposeful motion (150-200ms, respects `prefers-reduced-motion`); every state designed
+  (hover, focus-visible ring, selected, disabled, loading, empty, error) in **both** themes; dark mode checked for
+  contrast (checkboxes, borders, chips must stay legible on hover and selection).
+- **Consistency over novelty:** the same thing looks the same everywhere (one period picker, one section/panel pattern for
+  settings cards, one tab strip). Fix a pattern once, globally, instead of per page. Tab strips and scroll containers never
+  show stray scrollbars.
+- **Decided direction, being implemented (see `docs/ui-issues.md`):** a shared `rw-section` panel (inset muted surface,
+  hairline border, overline title, optional description, footer actions) for the blocks inside settings cards; a single
+  period picker with boxed From/To fields; a shared horizontal-scroll utility with no vertical scrollbar; click-to-focus on
+  the donut and its legend instead of checkbox chips; real shop logos (static files, white/black outline per theme).
+- **Before calling UI work done:** build, run Jest, and look at screenshots at desktop and phone widths in White and Black
+  (`HANDOFF.md` describes the local stack).
 
 ---
 

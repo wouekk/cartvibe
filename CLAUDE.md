@@ -50,6 +50,8 @@ receipt summary, default custom fields, app time zone, …) live in `docs/upstre
 
 ## Rules that are easy to break
 
+- **The visual identity is high-craft fintech on spartan/ui + Tailwind** (`AGENTS.md` -> "Visual identity", `desktop/CLAUDE.md`). It overrides older design notes and applies to every UI change, in both themes.
+
 These are distilled from incidents and reviews; the linked sections explain them.
 
 - **Swagger changes ship with both regenerated clients**, in the same branch. Never hand-edit
