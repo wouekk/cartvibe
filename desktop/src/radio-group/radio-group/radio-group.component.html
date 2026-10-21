@@ -1,5 +1,8 @@
-<mat-radio-group aria-label="Select an option" [formControl]="inputFormControl()">
-  <mat-radio-button *ngFor="let data of radioButtonData()" [value]="data.value">{{
-    data.displayValue
-  }}</mat-radio-button>
-</mat-radio-group>
+<hlm-radio-group aria-label="Select an option" class="flex flex-col gap-2" [formControl]="inputFormControl()">
+  @for (data of radioButtonData(); track data.value) {
+    <label class="flex cursor-pointer items-center gap-2 text-sm">
+      <hlm-radio [value]="data.value"><hlm-radio-indicator indicator /></hlm-radio>
+      <span>{{ data.displayValue }}</span>
+    </label>
+  }
+</hlm-radio-group>

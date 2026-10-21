@@ -1,50 +1,37 @@
-<mat-form-field class="w-full">
-  <mat-label>{{ label }}</mat-label>
+<div class="flex w-full flex-col gap-1.5">
+  @if (label) {
+    <label class="text-sm font-medium leading-none text-foreground">{{ label }}</label>
+  }
   @if (readonly) {
     <input
-      matInput
-      [readonly]="true"
+      hlmInput
+      readonly
       [value]="inputFormControl.value | readonlyValue : options() : optionDisplayKey() : optionValueKey : optionsDisplayArray()"
     />
   } @else {
-    <mat-select
-      [formControl]="inputFormControl"
-      (blur)="inputBlur.emit($event)"
-      readonly
-    >
-      <!--
-        A badged option's text content would otherwise leak into the closed
-        select, which renders the selected option's textContent, so a badged
-        select draws its own trigger. Without optionBadgeKey the trigger is
-        omitted and mat-select's default is used, unchanged.
-      -->
-      @if (optionBadgeKey()) {
-        <mat-select-trigger>
-          @let selected = selectedIndex();
-          @if (selected >= 0) {
-            {{ selected | optionDisplay : options()[selected] : optionDisplayKey() : optionsDisplayArray() }}
-            @let selectedBadge = badgeFor(options()[selected]);
-            @if (selectedBadge) {
-              <app-badge [text]="selectedBadge" [tone]="optionBadgeTone()"></app-badge>
-            }
-          }
-        </mat-select-trigger>
-      }
-      <mat-option *ngIf="addEmptyOption()" [value]="null"></mat-option>
-      <mat-option
-        *ngFor="let option of options(); let i = index"
-        [value]="optionValueKey ? option[optionValueKey] : option"
-      >
-        {{ i | optionDisplay : option : optionDisplayKey() : optionsDisplayArray() }}
-        @let badge = badgeFor(option);
-        @if (badge) {
-          <app-badge [text]="badge" [tone]="optionBadgeTone()"></app-badge>
+    <hlm-select [formControl]="inputFormControl" [itemToString]="itemToString">
+      <hlm-select-trigger class="w-full" (blur)="inputBlur.emit($event)">
+        <hlm-select-value />
+      </hlm-select-trigger>
+      <hlm-select-content *hlmSelectPortal>
+        @if (addEmptyOption()) {
+          <hlm-select-item [value]="null">&nbsp;</hlm-select-item>
         }
-      </mat-option>
-    </mat-select>
+        @for (option of options(); track $index; let i = $index) {
+          <hlm-select-item [value]="optionValueKey ? option[optionValueKey] : option">
+            {{ i | optionDisplay : option : optionDisplayKey() : optionsDisplayArray() }}
+            @let badge = badgeFor(option);
+            @if (badge) {
+              <app-badge class="ml-2" [text]="badge" [tone]="optionBadgeTone()"></app-badge>
+            }
+          </hlm-select-item>
+        }
+      </hlm-select-content>
+    </hlm-select>
   }
-  <mat-error *ngFor="let err of formControlErrors | async">{{
-      err.message
-    }}
-  </mat-error>
-</mat-form-field>
+  @if (inputFormControl.invalid && (inputFormControl.touched || inputFormControl.dirty)) {
+    @for (err of formControlErrors | async; track err.error) {
+      <p class="text-xs text-destructive" role="alert">{{ err.message }}</p>
+    }
+  }
+</div>

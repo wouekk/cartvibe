@@ -1,35 +1,22 @@
-<!-- See app-input: a wrapping hint overflows Material's fixed subscript. -->
-<mat-form-field
-  class="w-full"
-  [subscriptSizing]="hint ? 'dynamic' : 'fixed'"
->
-  <mat-label>{{ label }}</mat-label>
+<div class="flex w-full flex-col gap-1.5">
+  @if (label) {
+    <label class="text-sm font-medium leading-none text-foreground" for="textarea">{{ label }}</label>
+  }
   <textarea
     #nativeTextarea
+    hlmTextarea
     cdkTextareaAutosize
-    matInput
     id="textarea"
     [placeholder]="placeholder ?? ''"
     [readonly]="readonly"
     [formControl]="inputFormControl"
-    [matAutocomplete]="auto"
-    [matAutocompleteDisabled]="true"
-    (selectionchange)="onSelectionChange()"
   ></textarea>
-  <mat-hint *ngIf="hint">{{ hint }}</mat-hint>
-
-  <mat-autocomplete
-    #auto="matAutocomplete"
-    [hideSingleSelectionIndicator]="true"
-    (optionSelected)="onOptionSelected()"
-  >
-    <mat-option *ngFor="let option of filteredOptions" [value]="getOptionValue(option)">
-      {{ option }}
-    </mat-option>
-  </mat-autocomplete>
-
-  <mat-error *ngFor="let err of formControlErrors | async">{{
-      err.message
-    }}
-  </mat-error>
-</mat-form-field>
+  @if (hint) {
+    <p class="text-xs text-muted-foreground">{{ hint }}</p>
+  }
+  @if (inputFormControl.invalid && (inputFormControl.touched || inputFormControl.dirty)) {
+    @for (err of formControlErrors | async; track err.error) {
+      <p class="text-xs text-destructive" role="alert">{{ err.message }}</p>
+    }
+  }
+</div>

@@ -1,18 +1,19 @@
-<mat-form-field class="w-full" appearance="fill">
-  <mat-label>{{ label }}</mat-label>
+<div class="flex w-full flex-col gap-1.5">
+  @if (label) {
+    <label class="text-sm font-medium leading-none text-foreground" [attr.for]="fieldId()">{{ label }}</label>
+  }
   <input
-    matInput
+    hlmInput
+    appDateInput
+    type="date"
+    class="dark:[color-scheme:dark]"
+    [id]="fieldId()"
     [readonly]="readonly"
     [formControl]="inputFormControl"
-    [matDatepicker]="picker"
   />
-  <mat-datepicker-toggle
-    *ngIf="!readonly"
-    matIconSuffix
-    [for]="picker"
-  ></mat-datepicker-toggle>
-  <mat-datepicker #picker></mat-datepicker>
-  <mat-error *ngFor="let err of formControlErrors | async">{{
-    err.message
-  }}</mat-error>
-</mat-form-field>
+  @if (inputFormControl.invalid && (inputFormControl.touched || inputFormControl.dirty)) {
+    @for (err of formControlErrors | async; track err.error) {
+      <p class="text-xs text-destructive" role="alert">{{ err.message }}</p>
+    }
+  }
+</div>

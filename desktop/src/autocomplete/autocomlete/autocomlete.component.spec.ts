@@ -1,11 +1,10 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, } from "@angular/forms";
-import { MatAutocompleteModule, MatAutocompleteSelectedEvent, } from "@angular/material/autocomplete";
 import { NgxsModule, Store } from "@ngxs/store";
 import { BaseInputComponent } from "../../base-input";
 import { AuthState } from "../../store/auth.state";
-import { AutocomleteComponent } from "./autocomlete.component";
+import { AutocompleteSelection, AutocomleteComponent } from "./autocomlete.component";
 import { OptionDisplayPipe } from "./option-display.pipe";
 
 describe("AutocomleteComponent", () => {
@@ -21,7 +20,6 @@ describe("AutocomleteComponent", () => {
       declarations: [AutocomleteComponent, BaseInputComponent, OptionDisplayPipe],
       imports: [
         NgxsModule.forRoot([AuthState]),
-        MatAutocompleteModule,
         ReactiveFormsModule,
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -116,7 +114,7 @@ describe("AutocomleteComponent", () => {
         id: "selected-option",
         value: "value",
       },
-    } as MatAutocompleteSelectedEvent;
+    } as AutocompleteSelection;
 
     component.optionSelected(event);
 
@@ -131,7 +129,7 @@ describe("AutocomleteComponent", () => {
         id: "selected-option",
         value: { id: "id1", name: "Groceries" },
       },
-    } as MatAutocompleteSelectedEvent;
+    } as AutocompleteSelection;
 
     component.optionSelected(event);
 
@@ -153,7 +151,7 @@ describe("AutocomleteComponent", () => {
         id: "selected-option",
         value: "value 2",
       },
-    } as MatAutocompleteSelectedEvent;
+    } as AutocompleteSelection;
 
     component.optionSelected(event);
 
@@ -181,7 +179,7 @@ describe("AutocomleteComponent", () => {
           name: "Groceries",
         },
       },
-    } as MatAutocompleteSelectedEvent;
+    } as AutocompleteSelection;
 
     component.optionSelected(event);
 
@@ -211,7 +209,7 @@ describe("AutocomleteComponent", () => {
         id: component.creatableOptionId,
         value: "Custom Option",
       },
-    } as MatAutocompleteSelectedEvent;
+    } as AutocompleteSelection;
 
     component.filterFormControl.setValue("new value");
 
@@ -238,7 +236,7 @@ describe("AutocomleteComponent", () => {
         id: component.creatableOptionId,
         value: "Custom Option",
       },
-    } as MatAutocompleteSelectedEvent;
+    } as AutocompleteSelection;
 
     component.filterFormControl.setValue("new value");
 
@@ -253,9 +251,8 @@ describe("AutocomleteComponent", () => {
   // The panel handling runs in a setTimeout, so these are the only cases that
   // flush it - every other optionSelected case stops at the FormArray push.
   //
-  // Both required viewChildren are stubbed rather than rendered: #inputMultiple
-  // sits behind *ngIf="multiple" and the real MatAutocompleteTrigger drives a
-  // CDK overlay, neither of which this branch is about.
+  // The panel and the input element are stubbed: the real autocomplete drives a popover overlay,
+  // which this branch is not about.
   describe("panel behavior after selecting in multiple mode", () => {
     function selectAnOption(): {
       openPanel: jest.Mock;
@@ -268,8 +265,12 @@ describe("AutocomleteComponent", () => {
 
       component.multiple = true;
       component.inputFormControl = new FormArray([]) as any;
-      (component as any).matAutocompleteTrigger = () => ({ openPanel, closePanel });
-      (component as any).inputMultiple = () => ({ nativeElement: { blur } });
+      jest.spyOn(component, "openPanel").mockImplementation(openPanel);
+      jest.spyOn(component, "closePanel").mockImplementation(closePanel);
+      document.body.innerHTML = '<input id="stub-input">';
+      const input = document.getElementById("stub-input") as HTMLInputElement;
+      input.blur = blur;
+      component.inputId = "stub-input";
 
       // jest.useFakeTimers() is describe-scoped and none of the other
       // optionSelected cases flush, so the queue is carrying their timers -
@@ -279,7 +280,7 @@ describe("AutocomleteComponent", () => {
 
       component.optionSelected({
         option: { id: "selected-option", value: "value 1" },
-      } as MatAutocompleteSelectedEvent);
+      } as AutocompleteSelection);
       jest.runAllTimers();
 
       return { openPanel, closePanel, blur };

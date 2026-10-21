@@ -79,3 +79,22 @@ app-icon {
 .app-dialog-panel > .cdk-dialog-container {
   @apply block max-h-[inherit] overflow-y-auto outline-none;
 }
+
+/* Form fields: one rhythm for every app-* control (the old Material fields carried it in their subscript). */
+app-input,
+app-select,
+app-textarea,
+app-datepicker,
+app-autocomlete,
+app-color-picker,
+app-category-autocomplete,
+app-tag-autocomplete,
+app-user-autocomplete,
+app-group-autocomplete {
+  display: block;
+  margin-bottom: 1rem;
+}
+
+app-checkbox label span {
+  white-space: nowrap;
+}

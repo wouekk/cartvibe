@@ -1,4 +1,5 @@
-import { Component, Input, OnInit, input } from "@angular/core";
+import { Component, Input, OnInit, inject, input } from "@angular/core";
+import { OptionDisplayPipe } from "../pipes/option-display.pipe";
 import { BadgeTone } from "src/shared-ui/badge/badge.component";
 import { BaseInputComponent } from "../../base-input";
 
@@ -34,9 +35,20 @@ export class SelectComponent extends BaseInputComponent implements OnInit {
    */
   public readonly optionBadgeTone = input<BadgeTone>("purple");
 
+  private readonly optionDisplay = inject(OptionDisplayPipe);
+
   constructor() {
     super();
   }
+
+  /** The text the closed select shows for the selected value. */
+  public itemToString = (value: unknown): string => {
+    const index = this.options().findIndex((option) => (this.optionValueKey ? option?.[this.optionValueKey] : option) === value);
+    if (index < 0) {
+      return "";
+    }
+    return String(this.optionDisplay.transform(index, this.options()[index], this.optionDisplayKey(), this.optionsDisplayArray()) ?? "");
+  };
 
   public override ngOnInit(): void {
     super.ngOnInit();

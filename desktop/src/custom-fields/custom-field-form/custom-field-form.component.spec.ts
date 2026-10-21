@@ -358,6 +358,7 @@ describe("CustomFieldFormComponent", () => {
         options: []
       } as any;
       component.mode = FormMode.view;
+      fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
 
       expect(
