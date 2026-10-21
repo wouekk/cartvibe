@@ -88,19 +88,24 @@
     </section>
     <section class="mb-4 flex flex-col gap-4 rounded-xl border border-border bg-card p-6 rw-scroll-x" data-testid="settings-card-regional">
       <h2 class="m-0 text-[17px] font-semibold">{{ 'Regional & time zone' | t }}</h2>
-      <p class="text-muted-foreground mb-4">
-        {{ 'Decides which day a moment in time falls on: when a receipt was added or resolved, what "today" and "last month" mean in reports and filters, and how times are shown. A receipt\'s own Date is a calendar day and never shifts with this setting.' | t }}
-      </p>
-      <app-autocomlete
-        data-testid="system-settings-time-zone"
-        [label]="'Time zone' | t"
-        hint="An IANA time zone, e.g. America/New_York. Takes effect immediately, no restart required."
-        [inputFormControl]="form | formGet:'timeZone'"
-        [options]="timeZones"
-        [displayWith]="timeZoneDisplayWith"
-        [creatable]="false"
-        [readonly]="formConfig.mode | inputReadonly"
-      ></app-autocomlete>
+      <div class="rw-section" data-testid="settings-section-time-zone">
+        <div class="rw-section__head">
+          <h3 class="rw-section__title">{{ 'Time zone' | t }}</h3>
+          <p class="rw-section__desc">
+            {{ 'Decides which day a moment in time falls on: when a receipt was added or resolved, what "today" and "last month" mean in reports and filters, and how times are shown. A receipt\'s own Date is a calendar day and never shifts with this setting.' | t }}
+          </p>
+        </div>
+        <app-autocomlete
+          data-testid="system-settings-time-zone"
+          [label]="'Time zone' | t"
+          hint="An IANA time zone, e.g. America/New_York. Takes effect immediately, no restart required."
+          [inputFormControl]="form | formGet:'timeZone'"
+          [options]="timeZones"
+          [displayWith]="timeZoneDisplayWith"
+          [creatable]="false"
+          [readonly]="formConfig.mode | inputReadonly"
+        ></app-autocomlete>
+      </div>
       <ng-container *ngTemplateOutlet="saveActions"></ng-container>
     </section>
   }
@@ -109,61 +114,79 @@
   @if (shows("security")) {
     <section class="mb-4 flex flex-col gap-4 rounded-xl border border-border bg-card p-6 rw-scroll-x" data-testid="settings-card-signup-session">
       <h2 class="m-0 text-[17px] font-semibold">{{ 'Sign-up & session policy' | t }}</h2>
-      <app-checkbox
-        class="block mb-4"
-        [label]="'Enable Local Sign Up' | t"
-        [inputFormControl]="form | formGet:'enableLocalSignUp'"
-        [readonly]="formConfig.mode |  inputReadonly"
-      ></app-checkbox>
+      <div class="rw-section" data-testid="settings-section-sign-up">
+        <div class="rw-section__head">
+          <h3 class="rw-section__title">{{ 'Sign-up' | t }}</h3>
+        </div>
+        <app-checkbox
+          [label]="'Enable Local Sign Up' | t"
+          [inputFormControl]="form | formGet:'enableLocalSignUp'"
+          [readonly]="formConfig.mode |  inputReadonly"
+        ></app-checkbox>
+      </div>
       <!-- The receipt-reading knobs (Debug OCR, processing settings and their fallback, PDF DPI) are
            gone from the form (Phase 3 M1, A3): the AI page under Manage sets the AI, the rest keeps
            its stored value and the submit still sends it. -->
-      <p class="text-muted-foreground mb-4">
-        {{ 'How long a signed-in user can be away before they have to log in again. Sessions renew themselves while the app is in use, so this is an inactivity window rather than a hard limit. Maximum 720 hours (30 days).' | t }}
-      </p>
-      <div data-testid="duration-row" class="flex gap-4 mb-4 [&>*]:min-w-0 [&>*]:flex-[1_1_0]">
-        <app-input
-          [label]="'Stay signed in for' | t"
-          type="number"
-          [inputFormControl]="form | formGet:'refreshTokenValidForValue'"
-          [readonly]="formConfig.mode | inputReadonly"
-        ></app-input>
-        <app-select
-          [label]="'Unit' | t"
-          optionValueKey="value"
-          optionDisplayKey="displayValue"
-          [inputFormControl]="form | formGet:'refreshTokenValidForUnit'"
-          [options]="durationUnits"
-        ></app-select>
-      </div>
-      <p class="text-muted-foreground mb-4">
-        {{ 'Marks every cookie as Secure, so browsers only send them over HTTPS. Recommended for any install served over HTTPS. Leave this off if CartVibe is reached over plain HTTP, such as a LAN or bare IP address: browsers refuse Secure cookies there, so nobody would be able to log in.' | t }}
-      </p>
-      <app-checkbox
-        class="block mb-4"
-        [label]="'Use secure cookies (HTTPS only)' | t"
-        data-testid="system-settings-secure-cookies"
-        [inputFormControl]="form | formGet:'secureCookies'"
-        [readonly]="formConfig.mode | inputReadonly"
-      ></app-checkbox>
-      @if ((form | formGet:'secureCookies').value && !servedOverHttps) {
-        <div
-          class="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
-          data-testid="secure-cookies-http-warning"
-        >
-          {{ 'This page was loaded over HTTP. If you save with secure cookies on, browsers will drop the login cookies on HTTP connections: you will be signed out, and nobody reaching CartVibe over HTTP will be able to log back in until it is turned off again.' | t }}
+      <div class="rw-section" data-testid="settings-section-session">
+        <div class="rw-section__head">
+          <h3 class="rw-section__title">{{ 'Session' | t }}</h3>
+          <p class="rw-section__desc">
+            {{ 'How long a signed-in user can be away before they have to log in again. Sessions renew themselves while the app is in use, so this is an inactivity window rather than a hard limit. Maximum 720 hours (30 days).' | t }}
+          </p>
         </div>
-      }
-      <p class="text-muted-foreground mb-4">
-        {{ 'The externally reachable address of this server. Used to build the redirect URI that each OIDC identity provider must be configured with, so it has to match how users actually reach CartVibe.' | t }}
-      </p>
-      <app-input
-        [label]="'Server Public URL' | t"
-        hint="Origin only, e.g. https://receipts.example.com"
-        data-testid="server-public-url"
-        [readonly]="formConfig.mode | inputReadonly"
-        [inputFormControl]="form | formGet:'serverPublicUrl'"
-      ></app-input>
+        <div data-testid="duration-row" class="flex gap-4 [&>*]:min-w-0 [&>*]:flex-[1_1_0]">
+          <app-input
+            [label]="'Stay signed in for' | t"
+            type="number"
+            [inputFormControl]="form | formGet:'refreshTokenValidForValue'"
+            [readonly]="formConfig.mode | inputReadonly"
+          ></app-input>
+          <app-select
+            [label]="'Unit' | t"
+            optionValueKey="value"
+            optionDisplayKey="displayValue"
+            [inputFormControl]="form | formGet:'refreshTokenValidForUnit'"
+            [options]="durationUnits"
+          ></app-select>
+        </div>
+      </div>
+      <div class="rw-section" data-testid="settings-section-cookies">
+        <div class="rw-section__head">
+          <h3 class="rw-section__title">{{ 'Cookies' | t }}</h3>
+          <p class="rw-section__desc">
+            {{ 'Marks every cookie as Secure, so browsers only send them over HTTPS. Recommended for any install served over HTTPS. Leave this off if CartVibe is reached over plain HTTP, such as a LAN or bare IP address: browsers refuse Secure cookies there, so nobody would be able to log in.' | t }}
+          </p>
+        </div>
+        <app-checkbox
+          [label]="'Use secure cookies (HTTPS only)' | t"
+          data-testid="system-settings-secure-cookies"
+          [inputFormControl]="form | formGet:'secureCookies'"
+          [readonly]="formConfig.mode | inputReadonly"
+        ></app-checkbox>
+        @if ((form | formGet:'secureCookies').value && !servedOverHttps) {
+          <div
+            class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+            data-testid="secure-cookies-http-warning"
+          >
+            {{ 'This page was loaded over HTTP. If you save with secure cookies on, browsers will drop the login cookies on HTTP connections: you will be signed out, and nobody reaching CartVibe over HTTP will be able to log back in until it is turned off again.' | t }}
+          </div>
+        }
+      </div>
+      <div class="rw-section" data-testid="settings-section-server-url">
+        <div class="rw-section__head">
+          <h3 class="rw-section__title">{{ 'Server address' | t }}</h3>
+          <p class="rw-section__desc">
+            {{ 'The externally reachable address of this server. Used to build the redirect URI that each OIDC identity provider must be configured with, so it has to match how users actually reach CartVibe.' | t }}
+          </p>
+        </div>
+        <app-input
+          [label]="'Server Public URL' | t"
+          hint="Origin only, e.g. https://receipts.example.com"
+          data-testid="server-public-url"
+          [readonly]="formConfig.mode | inputReadonly"
+          [inputFormControl]="form | formGet:'serverPublicUrl'"
+        ></app-input>
+      </div>
       <ng-container *ngTemplateOutlet="saveActions"></ng-container>
     </section>
   }
@@ -181,59 +204,74 @@
           (clicked)="restartTaskServer()"
         ></app-button>
       </div>
-      <div class="grid grid-cols-[repeat(auto-fit,minmax(min(280px,100%),1fr))] gap-x-4">
-        <app-input
-          [label]="'Task Concurrency' | t"
-          type="number"
-          hint="The max amount of tasks that can be run concurrently. 0 or negative means all CPU cores available."
-          [inputFormControl]="form | formGet:'taskConcurrency'"
-        ></app-input>
-        <app-input
-          [label]="'Cleanup polling interval (in seconds)' | t"
-          type="number"
-          [inputFormControl]="form | formGet:'emailPollingInterval'"
-          [readonly]="formConfig.mode |  inputReadonly"
-        ></app-input>
+      <div class="rw-section" data-testid="settings-section-worker">
+        <div class="rw-section__head">
+          <h3 class="rw-section__title">{{ 'Worker' | t }}</h3>
+        </div>
+        <div class="grid grid-cols-[repeat(auto-fit,minmax(min(280px,100%),1fr))] gap-x-4">
+          <app-input
+            [label]="'Task Concurrency' | t"
+            type="number"
+            hint="The max amount of tasks that can be run concurrently. 0 or negative means all CPU cores available."
+            [inputFormControl]="form | formGet:'taskConcurrency'"
+          ></app-input>
+          <app-input
+            [label]="'Cleanup polling interval (in seconds)' | t"
+            type="number"
+            [inputFormControl]="form | formGet:'emailPollingInterval'"
+            [readonly]="formConfig.mode |  inputReadonly"
+          ></app-input>
+        </div>
       </div>
-      <p class="text-muted-foreground mb-4">
-        {{ 'A quick scan or email upload that fails keeps its image this long, so you can retry it or download the original. Minimum 24 hours, maximum 8760 hours (1 year).' | t }}
-      </p>
-      <div data-testid="duration-row" class="flex gap-4 mb-4 [&>*]:min-w-0 [&>*]:flex-[1_1_0]">
-        <app-input
-          [label]="'Temporary files: keep failed uploads for' | t"
-          type="number"
-          [inputFormControl]="form | formGet:'tempFileRetentionValue'"
-          [readonly]="formConfig.mode | inputReadonly"
-        ></app-input>
-        <app-select
-          [label]="'Unit' | t"
-          optionValueKey="value"
-          optionDisplayKey="displayValue"
-          [inputFormControl]="form | formGet:'tempFileRetentionUnit'"
-          [options]="durationUnits"
-        ></app-select>
+      <div class="rw-section" data-testid="settings-section-retention">
+        <div class="rw-section__head">
+          <h3 class="rw-section__title">{{ 'Temporary files' | t }}</h3>
+          <p class="rw-section__desc">
+            {{ 'A quick scan or email upload that fails keeps its image this long, so you can retry it or download the original. Minimum 24 hours, maximum 8760 hours (1 year).' | t }}
+          </p>
+        </div>
+        <div data-testid="duration-row" class="flex gap-4 [&>*]:min-w-0 [&>*]:flex-[1_1_0]">
+          <app-input
+            [label]="'Temporary files: keep failed uploads for' | t"
+            type="number"
+            [inputFormControl]="form | formGet:'tempFileRetentionValue'"
+            [readonly]="formConfig.mode | inputReadonly"
+          ></app-input>
+          <app-select
+            [label]="'Unit' | t"
+            optionValueKey="value"
+            optionDisplayKey="displayValue"
+            [inputFormControl]="form | formGet:'tempFileRetentionUnit'"
+            [options]="durationUnits"
+          ></app-select>
+        </div>
       </div>
     </section>
     <section class="mb-4 flex flex-col gap-4 rounded-xl border border-border bg-card p-6 rw-scroll-x" data-testid="settings-card-queues">
       <h2 class="m-0 text-[17px] font-semibold">{{ 'Task queue priorities' | t }}</h2>
-      <p class="text-muted-foreground mb-2">{{ 'A higher number means a higher priority.' | t }}</p>
-      <ul class="m-0 list-none p-0">
-        @for (data of visibleQueueData; track data.value) {
-          <li data-testid="queue-row" class="flex items-center justify-between gap-4 border-t border-border py-2.5">
-            <div class="flex min-w-0 flex-col">
-              <strong>{{ data.displayValue }}</strong>
-              <small class="text-muted-foreground">{{ data.description }}</small>
-            </div>
-            <input
-              type="number"
-              class="min-h-10 w-20 flex-none rounded-md border border-border bg-transparent px-2 text-right [font:inherit]"
-              [attr.aria-label]="data.displayValue + ' priority'"
-              [attr.data-testid]="'queue-priority-' + data.value"
-              [formControl]="$any(form | taskQueueFormControl:data.value:'priority')"
-            />
-          </li>
-        }
-      </ul>
+      <div class="rw-section" data-testid="settings-section-queues">
+        <div class="rw-section__head">
+          <h3 class="rw-section__title">{{ 'Priorities' | t }}</h3>
+          <p class="rw-section__desc">{{ 'A higher number means a higher priority.' | t }}</p>
+        </div>
+        <ul class="rw-list m-0 list-none p-0">
+          @for (data of visibleQueueData; track data.value) {
+            <li data-testid="queue-row" class="flex items-center justify-between gap-4 py-2.5">
+              <div class="flex min-w-0 flex-col">
+                <strong>{{ data.displayValue }}</strong>
+                <small class="text-muted-foreground">{{ data.description }}</small>
+              </div>
+              <input
+                type="number"
+                class="min-h-10 w-20 flex-none rounded-md border border-border bg-transparent px-2 text-right [font:inherit]"
+                [attr.aria-label]="data.displayValue + ' priority'"
+                [attr.data-testid]="'queue-priority-' + data.value"
+                [formControl]="$any(form | taskQueueFormControl:data.value:'priority')"
+              />
+            </li>
+          }
+        </ul>
+      </div>
       <ng-container *ngTemplateOutlet="saveActions"></ng-container>
     </section>
   }

@@ -9,7 +9,7 @@
 ></app-form>
 
 <ng-template #formTemplate>
-  <app-form-section [headerText]="'User Details' | t">
+  <app-form-section [panel]="true" [headerText]="'User Details' | t">
     <app-input
       [label]="'Username' | t"
       [inputFormControl]="form | formGet : 'username'"

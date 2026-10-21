@@ -38,7 +38,7 @@
         [addBlankOption]="true"
       ></app-status-select>
     </app-form-section>
-    <app-form-section [headerText]="'Budget' | t">
+    <app-form-section [panel]="true" [headerText]="'Budget' | t">
       <app-input
         class="block mb-4"
         data-testid="monthly-spending-goal"
@@ -49,7 +49,7 @@
         [readonly]="formConfig.mode | inputReadonly"
       ></app-input>
     </app-form-section>
-    <app-form-section [headerText]="'Dashboard currency' | t">
+    <app-form-section [panel]="true" [headerText]="'Dashboard currency' | t">
       <app-input
         class="block mb-4"
         data-testid="display-currency"
@@ -69,7 +69,7 @@
         [readonly]="formConfig.mode | inputReadonly"
       ></app-input>
     </app-form-section>
-    <app-form-section [headerText]="'Selection preferences' | t">
+    <app-form-section [panel]="true" [headerText]="'Selection preferences' | t">
       <app-checkbox
         class="block mb-4"
         [label]="'Close the option list after each selection?' | t"
@@ -79,6 +79,7 @@
       ></app-checkbox>
     </app-form-section>
     <app-form-section
+      [panel]="true"
       [headerText]="'Shortcuts' | t"
       [headerButtonsTemplate]="shortcutHeaderButtons"
     >
