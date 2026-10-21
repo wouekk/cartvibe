@@ -8,6 +8,9 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+### Fixed
+- A new image now shows on the next page load: the app shell is sent with `Cache-Control: no-cache`, hashed build files are cached for a year
+
 ## [0.1.0] - 2026-10-21
 
 First CartVibe release: everything the fork has added to the original.
