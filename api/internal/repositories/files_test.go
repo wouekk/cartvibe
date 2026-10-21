@@ -5,6 +5,8 @@ import (
 	"bytes"
 	"encoding/base64"
 	"image"
+	"image/color"
+	"image/png"
 	_ "image/jpeg"
 	"io"
 	"os"
@@ -16,6 +18,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gabriel-vasile/mimetype"
 	"gopkg.in/gographics/imagick.v3/imagick"
 )
 
@@ -989,5 +992,74 @@ func setPdfDpiSetting(t *testing.T, dpi int) {
 	settings := models.SystemSettings{PdfDpi: dpi}
 	if err := db.Create(&settings).Error; err != nil {
 		utils.PrintTestError(t, err, nil)
+	}
+}
+
+// writePng returns a PNG of the given size whose left half is transparent and right half opaque dark gray.
+func writePng(t *testing.T, width, height int) []byte {
+	t.Helper()
+	img := image.NewNRGBA(image.Rect(0, 0, width, height))
+	for y := 0; y < height; y++ {
+		for x := width / 2; x < width; x++ {
+			img.Set(x, y, color.NRGBA{R: 40, G: 40, B: 40, A: 255})
+		}
+	}
+	var out bytes.Buffer
+	if err := png.Encode(&out, img); err != nil {
+		t.Fatal(err)
+	}
+	return out.Bytes()
+}
+
+func TestNormalizeImageForVision_OversizedTransparentPngBecomesSmallOpaqueJpeg(t *testing.T) {
+	repository := NewFileRepository(nil)
+
+	normalized, err := repository.NormalizeImageForVision(writePng(t, 3000, 1500))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if mime := mimetype.Detect(normalized).String(); mime != "image/jpeg" {
+		t.Fatalf("expected a jpeg, got %s", mime)
+	}
+	decoded, _, err := image.Decode(bytes.NewReader(normalized))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := decoded.Bounds().Dx(); got != visionImageMaxSide {
+		t.Errorf("the long edge should be %d, got %d", visionImageMaxSide, got)
+	}
+	if got := decoded.Bounds().Dy(); got != visionImageMaxSide/2 {
+		t.Errorf("the proportions should be kept, height %d", got)
+	}
+	// The transparent left half is flattened onto white, not black.
+	r, g, b, _ := decoded.At(10, 10).RGBA()
+	if r>>8 < 240 || g>>8 < 240 || b>>8 < 240 {
+		t.Errorf("transparency should become white, got %d %d %d", r>>8, g>>8, b>>8)
+	}
+}
+
+func TestNormalizeImageForVision_SmallImagesAreNotUpscaled(t *testing.T) {
+	repository := NewFileRepository(nil)
+
+	normalized, err := repository.NormalizeImageForVision(writePng(t, 400, 300))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	decoded, _, err := image.Decode(bytes.NewReader(normalized))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if decoded.Bounds().Dx() != 400 || decoded.Bounds().Dy() != 300 {
+		t.Errorf("a small image should keep its size, got %v", decoded.Bounds())
+	}
+}
+
+func TestNormalizeImageForVision_RejectsBytesThatAreNotAnImage(t *testing.T) {
+	repository := NewFileRepository(nil)
+
+	if _, err := repository.NormalizeImageForVision([]byte("not an image")); err == nil {
+		t.Error("expected an error for bytes that are not an image")
 	}
 }
