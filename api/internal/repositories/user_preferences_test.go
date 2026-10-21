@@ -115,3 +115,33 @@ func TestUpdateUserPreferencesRoundTripsAndClearsTheMonthlySpendingGoal(t *testi
 		t.Errorf("a cleared goal should read back as none, got %v", read.MonthlySpendingGoal)
 	}
 }
+
+func TestUpdateUserPreferencesStoresTheDisplayCurrencyAndItsRate(t *testing.T) {
+	defer TruncateTestDb()
+	CreateTestUser()
+
+	repository := NewUserPreferencesRepository(nil)
+	if _, err := repository.GetUserPreferencesOrCreate(1); err != nil {
+		t.Fatal(err)
+	}
+
+	rate := decimal.RequireFromString("4.25")
+	updated, err := repository.UpdateUserPreferences(1, models.UserPrefernces{DisplayCurrency: " pln ", DisplayCurrencyRate: &rate})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if updated.DisplayCurrency != "PLN" {
+		t.Errorf("the code should be trimmed and upper-cased, got %q", updated.DisplayCurrency)
+	}
+	if updated.DisplayCurrencyRate == nil || updated.DisplayCurrencyRate.String() != "4.25" {
+		t.Errorf("expected the rate to be stored, got %v", updated.DisplayCurrencyRate)
+	}
+
+	cleared, err := repository.UpdateUserPreferences(1, models.UserPrefernces{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cleared.DisplayCurrency != "" || cleared.DisplayCurrencyRate != nil {
+		t.Errorf("clearing should stick, got %q %v", cleared.DisplayCurrency, cleared.DisplayCurrencyRate)
+	}
+}

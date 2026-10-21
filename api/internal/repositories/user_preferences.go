@@ -3,6 +3,7 @@ package repositories
 import (
 	"gorm.io/gorm/clause"
 	"receipt-wrangler/api/internal/models"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -72,6 +73,8 @@ func (repository UserPreferncesRepository) UpdateUserPreferences(userId uint, us
 	userPreferencesToUpdate.QuickScanDefaultStatus = userPreferences.QuickScanDefaultStatus
 	userPreferencesToUpdate.CloseChipSelectOnSelect = userPreferences.CloseChipSelectOnSelect
 	userPreferencesToUpdate.MonthlySpendingGoal = userPreferences.MonthlySpendingGoal
+	userPreferencesToUpdate.DisplayCurrency = strings.ToUpper(strings.TrimSpace(userPreferences.DisplayCurrency))
+	userPreferencesToUpdate.DisplayCurrencyRate = userPreferences.DisplayCurrencyRate
 	userPreferencesToUpdate.UserShortcuts = userPreferences.UserShortcuts
 
 	err = db.Transaction(func(tx *gorm.DB) error {
