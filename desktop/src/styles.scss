@@ -3,6 +3,8 @@
 @use "./variables.scss" as variables;
 @use "@fontsource-variable/geist";
 
+@layer theme, base, components, utilities;
+
 .cursor-pointer {
   cursor: pointer !important;
 }
@@ -42,27 +44,29 @@ hr {
   white-space: normal !important;
 }
 
-// Modern typography improvements
-h1, h2, h3, h4, h5, h6 {
-  margin: 0 !important;
-  font-weight: 600;
-  letter-spacing: -0.025em;
-  color: var(--foreground);
-}
+// Headings are base styles: in the base layer a utility class (text-lg, mb-4) on a heading wins over them.
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    color: var(--foreground);
+  }
 
-h1 {
-  font-size: clamp(1.75rem, 7vw, 2.25rem);
-  line-height: 1.2;
-}
+  h1 {
+    font-size: clamp(1.75rem, 7vw, 2.25rem);
+    line-height: 1.2;
+  }
 
-h2 {
-  font-size: clamp(1.4rem, 5.5vw, 1.875rem);
-  line-height: 1.3;
-}
+  h2 {
+    font-size: clamp(1.4rem, 5.5vw, 1.875rem);
+    line-height: 1.3;
+  }
 
-h3 {
-  font-size: clamp(1.2rem, 4.5vw, 1.5rem);
-  line-height: 1.4;
+  h3 {
+    font-size: clamp(1.2rem, 4.5vw, 1.5rem);
+    line-height: 1.4;
+  }
 }
 
 // Enhanced cards

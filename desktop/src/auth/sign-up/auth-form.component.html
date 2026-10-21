@@ -10,10 +10,10 @@
       <div class="mb-6 text-center">
         <app-cartvibe-logo class="mb-4 inline-block max-w-full transition-transform duration-300 hover:scale-105" [height]="64"></app-cartvibe-logo>
         <h1 class="mb-1 text-2xl font-bold text-foreground max-sm:text-xl">
-          {{ (isSignUp | async) ? 'Create your account' : 'Welcome back' }}
+          {{ ((isSignUp | async) ? 'Create your account' : 'Welcome back') | t }}
         </h1>
         <p class="text-base text-muted-foreground max-sm:text-sm">
-          {{ (isSignUp | async) ? 'Join your household on CartVibe' : 'Sign in to your household' }}
+          {{ ((isSignUp | async) ? 'Join your household on CartVibe' : 'Sign in to your household') | t }}
         </p>
       </div>
 
