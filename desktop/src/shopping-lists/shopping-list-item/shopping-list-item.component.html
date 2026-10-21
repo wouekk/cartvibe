@@ -30,28 +30,31 @@
       class="menu-button"
       data-testid="shopping-list-item-menu"
       aria-label="Item actions"
-      [matMenuTriggerFor]="itemMenu"
+      [hlmDropdownMenuTrigger]="itemMenu" align="end"
     >
       <mat-icon>more_vert</mat-icon>
     </button>
-    <mat-menu #itemMenu="matMenu" xPosition="before">
-      <button mat-menu-item data-testid="shopping-list-item-edit" (click)="editClicked.emit(item())">
+    <ng-template #itemMenu>
+<div hlmDropdownMenu class="w-56">
+      <button hlmDropdownMenuItem data-testid="shopping-list-item-edit" (click)="editClicked.emit(item())">
         <mat-icon>edit</mat-icon>
         <span>Edit</span>
       </button>
-      <button mat-menu-item data-testid="shopping-list-item-tags" [matMenuTriggerFor]="tagsMenu">
+      <button hlmDropdownMenuItem data-testid="shopping-list-item-tags" [hlmDropdownMenuSubTrigger]="tagsMenu">
         <mat-icon>sell</mat-icon>
         <span>Correct tags</span>
       </button>
-      <button mat-menu-item data-testid="shopping-list-item-delete" (click)="deleteClicked.emit(item())">
+      <button hlmDropdownMenuItem data-testid="shopping-list-item-delete" (click)="deleteClicked.emit(item())">
         <mat-icon>delete</mat-icon>
         <span>Delete</span>
       </button>
-    </mat-menu>
-    <mat-menu #tagsMenu="matMenu">
+    </div>
+</ng-template>
+    <ng-template #tagsMenu>
+<div hlmDropdownMenuSub class="w-48">
       @for (choice of healthChoices; track choice.value) {
         <button
-          mat-menu-item
+          hlmDropdownMenuItem
           [attr.data-testid]="'shopping-list-item-health-' + choice.value"
           (click)="classificationSelected.emit({ item: item(), health: choice.value })"
         >
@@ -62,7 +65,7 @@
       @if (canCorrectSeasonality()) {
         @for (choice of seasonalityChoices; track choice.value) {
           <button
-            mat-menu-item
+            hlmDropdownMenuItem
             [attr.data-testid]="'shopping-list-item-season-' + choice.value"
             (click)="classificationSelected.emit({ item: item(), health: item().health, seasonality: choice.value })"
           >
@@ -71,6 +74,7 @@
           </button>
         }
       }
-    </mat-menu>
+    </div>
+</ng-template>
   }
 </div>

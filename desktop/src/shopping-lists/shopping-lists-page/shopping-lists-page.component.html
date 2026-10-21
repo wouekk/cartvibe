@@ -35,30 +35,32 @@
             type="button"
             data-testid="shopping-list-menu"
             aria-label="List actions"
-            [matMenuTriggerFor]="listMenu"
+            [hlmDropdownMenuTrigger]="listMenu" align="end"
           >
             <mat-icon>more_vert</mat-icon>
           </button>
-          <mat-menu #listMenu="matMenu" xPosition="before">
+          <ng-template #listMenu>
+<div hlmDropdownMenu class="w-56">
             @if (canUpdate()) {
-              <button mat-menu-item data-testid="shopping-list-rename" (click)="renameList(list)">
+              <button hlmDropdownMenuItem data-testid="shopping-list-rename" (click)="renameList(list)">
                 <mat-icon>edit</mat-icon>
                 <span>Rename list</span>
               </button>
             }
             @if (canCreate() && canUpdate() && list.items.length > 0) {
-              <button mat-menu-item data-testid="shopping-list-copy" (click)="copyList(list)">
+              <button hlmDropdownMenuItem data-testid="shopping-list-copy" (click)="copyList(list)">
                 <mat-icon>content_copy</mat-icon>
                 <span>Start a new list from this</span>
               </button>
             }
             @if (canDelete()) {
-              <button mat-menu-item data-testid="shopping-list-delete" (click)="deleteList(list)">
+              <button hlmDropdownMenuItem data-testid="shopping-list-delete" (click)="deleteList(list)">
                 <mat-icon>delete</mat-icon>
                 <span>Delete list</span>
               </button>
             }
-          </mat-menu>
+          </div>
+</ng-template>
         }
       }
     </div>

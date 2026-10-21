@@ -60,8 +60,8 @@
             type="button"
             data-testid="shopping-trip-menu"
             aria-label="Receipt actions"
-            [matMenuTriggerFor]="tripMenu"
-            [matMenuTriggerData]="{ trip: row.trip }"
+            [hlmDropdownMenuTrigger]="tripMenu" align="end"
+            [hlmDropdownMenuTriggerData]="{ trip: row.trip }"
           >
             <mat-icon>more_vert</mat-icon>
           </button>
@@ -73,19 +73,19 @@
       </p>
     }
 
-    <mat-menu #tripMenu="matMenu" xPosition="before">
-      <ng-template matMenuContent let-trip="trip">
+    <ng-template #tripMenu let-trip="trip">
+<div hlmDropdownMenu class="w-56">
         @if (trip.status === "FAILED") {
-          <button mat-menu-item data-testid="shopping-trip-retry" (click)="retry(trip)">
+          <button hlmDropdownMenuItem data-testid="shopping-trip-retry" (click)="retry(trip)">
             <mat-icon>refresh</mat-icon>
             <span>Try again</span>
           </button>
         }
-        <button mat-menu-item data-testid="shopping-trip-remove" (click)="remove(trip)">
+        <button hlmDropdownMenuItem data-testid="shopping-trip-remove" (click)="remove(trip)">
           <mat-icon>link_off</mat-icon>
           <span>Remove from list</span>
         </button>
-      </ng-template>
-    </mat-menu>
+      </div>
+</ng-template>
   </section>
 }

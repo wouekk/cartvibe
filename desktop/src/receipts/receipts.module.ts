@@ -9,6 +9,7 @@ import { MatExpansionModule } from "@angular/material/expansion";
 import { MatIconModule } from "@angular/material/icon";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatMenuModule } from "@angular/material/menu";
+import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatTableModule } from "@angular/material/table";
@@ -89,6 +90,7 @@ import { UserTotalWithPercentagePipe } from "./user-total-with-percentage.pipe";
     MatExpansionModule,
     MatIconModule,
     MatMenuModule,
+    ...HlmDropdownMenuImports,
     MatProgressSpinnerModule,
     MatTableModule,
     MatTooltipModule,

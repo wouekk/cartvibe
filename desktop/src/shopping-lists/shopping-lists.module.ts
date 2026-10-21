@@ -4,6 +4,7 @@ import { ReactiveFormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatMenuModule } from "@angular/material/menu";
+import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { InputModule } from "../input";
 import { PipesModule } from "../pipes/pipes.module";
 import { SelectModule } from "../select/select.module";
@@ -37,6 +38,7 @@ import { FoodTagsComponent } from "../standalone/components/food-tags/food-tags.
     MatButtonModule,
     MatIconModule,
     MatMenuModule,
+    ...HlmDropdownMenuImports,
     PipesModule,
     ReactiveFormsModule,
     SelectModule,

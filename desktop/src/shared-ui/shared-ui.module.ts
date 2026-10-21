@@ -10,6 +10,7 @@ import { MatExpansionModule } from "@angular/material/expansion";
 import { MatIconModule } from "@angular/material/icon";
 import { MatListModule } from "@angular/material/list";
 import { MatMenuModule } from "@angular/material/menu";
+import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { MatTableModule } from "@angular/material/table";
 import { MatTabsModule } from "@angular/material/tabs";
 import { MatTooltipModule } from "@angular/material/tooltip";
@@ -145,6 +146,7 @@ import { ImageCanvasComponent } from './image-canvas/image-canvas.component';
     SelectModule,
     SystemTaskTypePipe,
     MatMenuModule,
+    ...HlmDropdownMenuImports,
     TableModule,
     UserAutocompleteModule,
     PieChartUiComponent,
