@@ -43,6 +43,13 @@ describe("TranslationService", () => {
     expect(localStorage.getItem("cartvibe.language")).toBe("en");
   });
 
+  it("translates a message that already has its values in it by matching the {placeholder} keys", () => {
+    service.choose("pl");
+
+    expect(service.t("Delete Milk")).toBe("Usuń Milk");
+    expect(service.t("Receipt update: Lidl")).toBe("Aktualizacja paragonu: Lidl");
+  });
+
   it("ignores a language the registry does not have", () => {
     service.choose("en");
     service.choose("xx");
