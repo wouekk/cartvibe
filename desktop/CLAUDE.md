@@ -2981,6 +2981,10 @@ Mobile-first (used in the shop). Backend contract: `api/CLAUDE.md`.
   separator fields (the `currency` control is form-only). A symbol after the amount starts with a space.
 - **Receipt products backfill** (`app-receipt-product-backfill`, group settings page): one button that queues a group's older
   receipts for the AI to read.
+- **Photos are shrunk before upload** (`utils/downscale-image.ts`): `app-upload-image` (Quick Scan, receipt form) and the
+  shopping trip scan pass each file through `downscaleImageForUpload`, which re-encodes a JPEG/PNG/WebP (and HEIC where the
+  browser decodes it, i.e. Safari) over 1.5 MB as an upright JPEG of at most 3072 px. Anything it cannot improve is returned
+  as picked, so it never blocks an upload; the stored receipt image is the shrunk one.
 
 ## UI stack (the redesign, 2026-10)
 

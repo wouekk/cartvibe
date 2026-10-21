@@ -8,6 +8,20 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+### Changed
+- A Quick Scan reads the receipt and its products in one AI call, so its products, categories and health tags are there
+  as soon as it is saved (they used to wait for a second call up to 30 seconds later).
+- Gemini answers faster: the app uses Google's current SDK and turns the model's thinking down for receipt reading.
+- Large phone photos are shrunk in the browser before upload (Quick Scan, Add receipt, shopping trip scans).
+- Tesseract is the only OCR engine; EasyOCR and PyTorch left the image, which makes it much smaller. OCR images are
+  shrunk before they are filtered.
+
+### Security
+- The API runs as an unprivileged user inside the container; existing data folders are handed over on first start.
+- ImageMagick refuses formats a receipt never is (EXR, SVG, PostScript and others); Debian packages are upgraded at build
+  time, the image is rebuilt weekly, and each build carries a vulnerability report.
+- nginx hides its version and sends nosniff, frame and referrer headers.
+
 ## [0.2.0] - 2026-10-21
 
 ### Changed
