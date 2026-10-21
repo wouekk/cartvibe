@@ -16,6 +16,8 @@ class _$UserPreferences extends UserPreferences {
   @override
   final BuiltList<UserShortcut>? userShortcuts;
   @override
+  final String? language;
+  @override
   final bool? closeChipSelectOnSelect;
   @override
   final String? displayCurrency;
@@ -44,6 +46,7 @@ class _$UserPreferences extends UserPreferences {
       this.displayCurrencyRate,
       this.monthlySpendingGoal,
       this.userShortcuts,
+      this.language,
       this.closeChipSelectOnSelect,
       this.displayCurrency,
       required this.userId,
@@ -70,6 +73,7 @@ class _$UserPreferences extends UserPreferences {
         displayCurrencyRate == other.displayCurrencyRate &&
         monthlySpendingGoal == other.monthlySpendingGoal &&
         userShortcuts == other.userShortcuts &&
+        language == other.language &&
         closeChipSelectOnSelect == other.closeChipSelectOnSelect &&
         displayCurrency == other.displayCurrency &&
         userId == other.userId &&
@@ -89,6 +93,7 @@ class _$UserPreferences extends UserPreferences {
     _$hash = $jc(_$hash, displayCurrencyRate.hashCode);
     _$hash = $jc(_$hash, monthlySpendingGoal.hashCode);
     _$hash = $jc(_$hash, userShortcuts.hashCode);
+    _$hash = $jc(_$hash, language.hashCode);
     _$hash = $jc(_$hash, closeChipSelectOnSelect.hashCode);
     _$hash = $jc(_$hash, displayCurrency.hashCode);
     _$hash = $jc(_$hash, userId.hashCode);
@@ -110,6 +115,7 @@ class _$UserPreferences extends UserPreferences {
           ..add('displayCurrencyRate', displayCurrencyRate)
           ..add('monthlySpendingGoal', monthlySpendingGoal)
           ..add('userShortcuts', userShortcuts)
+          ..add('language', language)
           ..add('closeChipSelectOnSelect', closeChipSelectOnSelect)
           ..add('displayCurrency', displayCurrency)
           ..add('userId', userId)
@@ -150,6 +156,10 @@ class UserPreferencesBuilder
       _$this._userShortcuts ??= ListBuilder<UserShortcut>();
   set userShortcuts(covariant ListBuilder<UserShortcut>? userShortcuts) =>
       _$this._userShortcuts = userShortcuts;
+
+  String? _language;
+  String? get language => _$this._language;
+  set language(covariant String? language) => _$this._language = language;
 
   bool? _closeChipSelectOnSelect;
   bool? get closeChipSelectOnSelect => _$this._closeChipSelectOnSelect;
@@ -207,6 +217,7 @@ class UserPreferencesBuilder
       _displayCurrencyRate = $v.displayCurrencyRate;
       _monthlySpendingGoal = $v.monthlySpendingGoal;
       _userShortcuts = $v.userShortcuts?.toBuilder();
+      _language = $v.language;
       _closeChipSelectOnSelect = $v.closeChipSelectOnSelect;
       _displayCurrency = $v.displayCurrency;
       _userId = $v.userId;
@@ -244,6 +255,7 @@ class UserPreferencesBuilder
             displayCurrencyRate: displayCurrencyRate,
             monthlySpendingGoal: monthlySpendingGoal,
             userShortcuts: _userShortcuts?.build(),
+            language: language,
             closeChipSelectOnSelect: closeChipSelectOnSelect,
             displayCurrency: displayCurrency,
             userId: BuiltValueNullFieldError.checkNotNull(

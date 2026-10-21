@@ -55,6 +55,10 @@ export interface UserPreferences {
      * How many units of displayCurrency one unit of the household currency is worth, as a decimal string; only the Dashboard converts
      */
     displayCurrencyRate?: string;
+    /**
+     * The interface language this person chose (en or pl); empty follows the browser
+     */
+    language?: string;
     userShortcuts?: Array<UserShortcut>;
 }
 export namespace UserPreferences {
