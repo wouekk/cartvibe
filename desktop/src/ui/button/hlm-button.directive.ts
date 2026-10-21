@@ -1,5 +1,6 @@
 import { computed, Directive, input } from "@angular/core";
 import { cva, type VariantProps } from "class-variance-authority";
+import type { ClassValue } from "clsx";
 import { cn } from "../cn";
 
 /**
@@ -7,7 +8,7 @@ import { cn } from "../cn";
  * Colors come from the shadcn tokens in src/skin.css, so `default` follows the chosen accent.
  */
 export const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium cursor-pointer select-none transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 [&_mat-icon]:size-5 [&_mat-icon]:text-[20px] no-underline",
+  "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium cursor-pointer select-none transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 no-underline [&_mat-icon]:size-5 [&_mat-icon]:text-[20px] [&_mat-icon]:leading-5",
   {
     variants: {
       variant: {
@@ -17,6 +18,7 @@ export const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "text-foreground hover:bg-accent hover:text-accent-foreground",
         accentGhost: "text-accent-foreground hover:bg-accent",
+        destructiveGhost: "text-destructive hover:bg-destructive/10",
         link: "text-accent-foreground underline-offset-4 hover:underline",
       },
       size: {
@@ -35,14 +37,14 @@ export type ButtonVariants = VariantProps<typeof buttonVariants>;
 @Directive({
   selector: "button[hlmBtn], a[hlmBtn]",
   standalone: true,
-  host: { "[class]": "classes()" },
+  host: { "[class]": "computedClass()" },
 })
 export class HlmButtonDirective {
   public readonly variant = input<ButtonVariants["variant"]>("default");
   public readonly size = input<ButtonVariants["size"]>("default");
-  public readonly extraClass = input<string>("", { alias: "class" });
+  public readonly userClass = input<ClassValue>("", { alias: "class" });
 
-  protected readonly classes = computed(() =>
-    cn(buttonVariants({ variant: this.variant(), size: this.size() }), this.extraClass())
+  protected readonly computedClass = computed(() =>
+    cn(buttonVariants({ variant: this.variant(), size: this.size() }), this.userClass())
   );
 }

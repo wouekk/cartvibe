@@ -17,13 +17,6 @@ export const authRoutes: Routes = [
     path: 'login',
     component: AuthForm,
   },
-  {
-    // Where the backend lands the browser after a successful OIDC sign-in. It
-    // sits under /auth deliberately: AuthGuard lets an unauthenticated user
-    // through any route whose URL contains "auth", and a first-ever OIDC login
-    // has valid cookies but nothing in the store yet.
-    path: 'callback',
-  },
 ];
 
 @NgModule({
