@@ -3,7 +3,7 @@ import { Component, input } from '@angular/core';
 @Component({
     selector: 'app-table-header',
     templateUrl: './table-header.component.html',
-    styleUrls: ['./table-header.component.scss'],
+    host: { class: 'my-2 mb-6 block' },
     standalone: false
 })
 export class TableHeaderComponent {

@@ -2,19 +2,5 @@
 @use "../../variables.scss" as variables;
 
 app-submit-button {
-  .mat-success-icon {
-    color: var(--success-text);
-  }
 
-  .mat-success-icon:hover {
-    background-color: color-mix(in oklab, var(--success-text) 12%, transparent);
-  }
-
-  .mat-success-icon:active {
-    background-color: color-mix(in oklab, var(--success-text) 20%, transparent);
-  }
-
-  .mat-success-full {
-    background-color: var(--success-text) !important;
-  }
 }

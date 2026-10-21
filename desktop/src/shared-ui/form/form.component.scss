@@ -1,12 +1,6 @@
 @use "../../variables.scss" as variables;
 
 app-form {
-  .mat-mdc-card {
-    border-radius: variables.$border-radius-xl !important;
-    border: 1px solid var(--border);
-    background: var(--card);
-    overflow: hidden;
-  }
   
   .form-section {
     padding: variables.$spacing-lg;
@@ -16,40 +10,7 @@ app-form {
     }
   }
   
-  .mat-mdc-form-field {
-    width: 100%;
-    margin-bottom: variables.$spacing-md;
-    
-    .mat-mdc-text-field-wrapper {
-      border-radius: variables.$border-radius-lg !important;
-      background-color: var(--accent);
-      border: 1px solid var(--border);
-      transition: all 0.2s ease-in-out;
-      
-      &:hover {
-        border-color: var(--border);
-        background-color: var(--card);
-      }
-    }
-    
-    &.mat-focused .mat-mdc-text-field-wrapper {
-      border-color: color-mix(in oklab, var(--primary) 50%, transparent);
-      background-color: var(--muted);
-      box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 10%, transparent);
-    }
-  }
   
-  .mat-mdc-select .mat-mdc-select-trigger {
-    border-radius: variables.$border-radius-lg !important;
-    background-color: var(--accent);
-    border: 1px solid var(--border);
-    transition: all 0.2s ease-in-out;
-    
-    &:hover {
-      border-color: var(--border);
-      background-color: var(--card);
-    }
-  }
   
   .form-actions {
     padding: variables.$spacing-lg;

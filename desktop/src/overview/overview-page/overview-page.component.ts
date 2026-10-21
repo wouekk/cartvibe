@@ -74,7 +74,6 @@ const UNCATEGORIZED = "Uncategorized";
 @Component({
   selector: "app-overview-page",
   templateUrl: "./overview-page.component.html",
-  styleUrls: ["./overview-page.component.scss"],
   standalone: false,
   // The export formats money like the rest of the app; the pipe is declared in PipesModule and needs CurrencyPipe.
   providers: [CurrencyPipe, CustomCurrencyPipe],

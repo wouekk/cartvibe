@@ -1,17 +1,14 @@
 <div
   *ngIf="mode() && (mode() === formMode.edit || mode() == formMode.add)"
-  class="modern-form-bar"
+  class="modern-form-bar mt-4"
 >
-  <div class="form-bar-backdrop"></div>
-  <div class="form-bar-container">
-    <div
-      class="form-bar-content"
-      [ngClass]="{
-        'justify-end': justifyContentEnd(),
-        'justify-between': !justifyContentEnd()
-      }"
-    >
-      <ng-content></ng-content>
-    </div>
+  <div
+    class="form-bar-content flex min-h-18 items-center gap-2 rounded-xl bg-card p-4 shadow-xs ring-1 ring-foreground/10 sm:px-6 [&>*]:my-0"
+    [ngClass]="{
+      'justify-end': justifyContentEnd(),
+      'justify-between': !justifyContentEnd()
+    }"
+  >
+    <ng-content></ng-content>
   </div>
 </div>

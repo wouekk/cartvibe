@@ -1,14 +1,14 @@
 @if (isLoggedIn()) {
   <div
     id="header-container"
-    class="header-container flex justify-between items-center"
+    class="sticky top-0 z-[1000] flex items-center gap-2 border-b border-border bg-background px-3 py-2.5 sm:px-6 sm:py-4"
   >
-    <div class="flex-1 min-w-0 flex items-center">
+    <div class="flex min-w-0 items-center max-md:flex-none md:flex-1">
       <button hlmSidebarTrigger class="mr-1" data-testid="sidebar-toggle"></button>
       @for (shortcut of userPreferences()?.userShortcuts ?? []; track shortcut["id"]) {
-        <a [href]="shortcut.url">
+        <a class="max-md:hidden" [href]="shortcut.url">
           <button
-            hlmBtn variant="ghost" size="icon"
+            hlmBtn variant="ghost" size="icon-lg"
             color="accent"
             class="nav-button"
             routerLinkActive="active-link"
@@ -19,14 +19,14 @@
         </a>
       }
     </div>
-    <div class="flex-none flex items-center justify-end">
+    <div class="flex min-w-0 flex-1 items-center justify-end gap-1 md:flex-none">
       <app-searchbar
         *hasAppPermission="Permission.AppReceiptsSearch"
-        class="receipt-searchbar w-full me-2"
+        class="receipt-searchbar min-w-0 flex-1 md:w-[28rem] md:flex-none"
       ></app-searchbar>
       <span
         *hasAppPermission="Permission.AppNotificationsRead"
-        class="ms-6 inline-flex"
+        class="inline-flex shrink-0 sm:ms-3"
         cdkOverlayOrigin
         #notificationsOrigin="cdkOverlayOrigin"
       >
@@ -45,13 +45,13 @@
           (overlayOutsideClick)="notificationsOpen.set(false)"
           (detach)="notificationsOpen.set(false)"
         >
-          <div class="notifications-panel" data-testid="notifications-panel">
+          <div class="notifications-panel max-h-[70vh] w-96 max-w-[calc(100vw-1rem)] overflow-y-auto rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg animate-in fade-in-0 zoom-in-95" data-testid="notifications-panel">
             <ng-container *ngTemplateOutlet="notifications"></ng-container>
           </div>
         </ng-template>
       </span>
 
-      <app-cartvibe-logo class="mx-6"></app-cartvibe-logo>
+      <app-cartvibe-logo class="mx-2 shrink-0 max-sm:hidden sm:mx-4"></app-cartvibe-logo>
     </div>
   </div>
 }

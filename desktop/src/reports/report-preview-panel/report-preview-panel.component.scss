@@ -54,7 +54,7 @@
       background: var(--accent);
     }
 
-    mat-icon {
+    app-icon {
       font-size: 14px;
       width: 14px;
       height: 14px;
@@ -81,7 +81,7 @@
     border: 1px dashed var(--border);
     border-radius: 8px;
 
-    mat-icon {
+    app-icon {
       font-size: 32px;
       width: 32px;
       height: 32px;
@@ -115,7 +115,7 @@
     right: 12px;
     color: var(--primary);
 
-    mat-icon {
+    app-icon {
       animation: report-spin 1s linear infinite;
     }
   }
