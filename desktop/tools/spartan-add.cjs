@@ -88,3 +88,17 @@ for (const name of all) {
   console.log("added", name);
 }
 fs.rmSync(work, { recursive: true, force: true });
+
+// Local patches, re-applied after every generation. Tailwind 4.3 compiles `data-active:` to the attribute's presence
+// ([data-active]), but the sidebar helm binds the boolean (`data-active="false"` is still present), which made every menu
+// button look active. A false value has to remove the attribute.
+const patches = [
+  ["sidebar/lib/hlm-sidebar-menu-button.ts", "'[attr.data-active]': 'isActive()',", "'[attr.data-active]': 'isActive() ? \"\" : null',"],
+  ["sidebar/lib/hlm-sidebar-menu-sub-button.ts", "'[attr.data-active]': 'isActive()',", "'[attr.data-active]': 'isActive() ? \"\" : null',"],
+];
+for (const [file, from, to] of patches) {
+  const target = path.join(outRoot, file);
+  if (!fs.existsSync(target)) continue;
+  const text = fs.readFileSync(target, "utf8");
+  if (text.includes(from)) fs.writeFileSync(target, text.replace(from, to));
+}
