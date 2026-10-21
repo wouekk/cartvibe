@@ -1,5 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import { ACCENT_STORAGE_KEY, storedAccent, storedMode, THEME_MODE_STORAGE_KEY, ThemeService } from "./theme.service";
+import { storedMode, THEME_MODE_STORAGE_KEY, ThemeService } from "./theme.service";
 
 describe("ThemeService", () => {
   const root = document.documentElement;
@@ -13,17 +13,14 @@ describe("ThemeService", () => {
     window.localStorage.clear();
     root.className = "";
     root.removeAttribute("data-theme");
-    root.removeAttribute("data-accent");
   });
 
   afterEach(() => window.localStorage.clear());
 
-  it("starts on System and the Classic Blue accent", () => {
+  it("starts on System", () => {
     const service = create();
 
     expect(service.mode()).toBe("system");
-    expect(service.accent()).toBe("classic");
-    expect(root.getAttribute("data-accent")).toBe("classic");
   });
 
   it("turns dark on and off for Dark and Light, and remembers the choice", () => {
@@ -40,24 +37,23 @@ describe("ThemeService", () => {
     expect(storedMode()).toBe("light");
   });
 
-  it("applies and remembers an accent", () => {
-    const service = create();
-
-    service.setAccent("brown");
-
-    expect(root.getAttribute("data-accent")).toBe("brown");
-    expect(window.localStorage.getItem(ACCENT_STORAGE_KEY)).toBe("brown");
-    expect(service.accent()).toBe("brown");
-  });
-
-  it("reads what an earlier build stored, and ignores what it does not know", () => {
-    window.localStorage.setItem(ACCENT_STORAGE_KEY, "indigo");
-    expect(storedAccent()).toBe("violet");
-
-    window.localStorage.setItem(ACCENT_STORAGE_KEY, "pink");
-    expect(storedAccent()).toBe("classic");
+  it("reads a stored mode on creation and ignores a stored value it does not know", () => {
+    window.localStorage.setItem(THEME_MODE_STORAGE_KEY, "dark");
+    expect(create().mode()).toBe("dark");
 
     window.localStorage.setItem(THEME_MODE_STORAGE_KEY, "sepia");
-    expect(storedMode()).toBe("system");
+    expect(create().mode()).toBe("system");
+  });
+
+  it("still works when storage is blocked", () => {
+    const service = create();
+    const setItem = jest.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("blocked");
+    });
+
+    expect(() => service.setMode("dark")).not.toThrow();
+    expect(root.classList.contains("dark")).toBe(true);
+
+    setItem.mockRestore();
   });
 });

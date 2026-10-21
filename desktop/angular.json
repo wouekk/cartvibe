@@ -32,6 +32,7 @@
               "src/styles.scss",
               "src/tailwind.css",
               "src/skin.css",
+              "src/legacy-bridge.css",
               "node_modules/pretty-print-json/dist/css/pretty-print-json.css"
             ],
             "scripts": [],

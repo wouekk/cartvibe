@@ -39,10 +39,11 @@ module.exports = {
     }
   },
   moduleNameMapper: {
-    '^src/(.*)$': '<rootDir>/src/$1'
+    '^src/(.*)$': '<rootDir>/src/$1',
+    '^@spartan-ng/helm/(.*)$': '<rootDir>/src/ui/$1'
   },
   transformIgnorePatterns: [
-    'node_modules/(?!.*\\.mjs$|@angular|@ngxs|rxjs|ngx-mask|@ng-bootstrap|ngx-bootstrap|pretty-print-json|ng2-charts|lodash-es|chart\\.js)'
+    'node_modules/(?!.*\\.mjs$|@angular|@ngxs|@spartan-ng|@ng-icons|rxjs|ngx-mask|pretty-print-json|ng2-charts|lodash-es|chart\\.js)'
   ],
   // Additional performance settings
   testEnvironmentOptions: {

@@ -1,14 +1,19 @@
 /*
-  Tailwind CSS v4, built with the app (no CDN, no prefix: Bootstrap is gone, so the class names are free). Layers
-  are declared in order so the component libraries' unlayered styles (Angular Material) still win over the reset.
+  Tailwind CSS v4, built with the app: no CDN, no prefix (Bootstrap is gone), and the spartan/ui (shadcn) helm components
+  in src/ui are plain Tailwind classes. Layers are declared in order so the unlayered styles of Angular Material still
+  win over the reset while it is being phased out.
 
-  The shadcn/ui token architecture lives in src/skin.css (`--background`, `--card`, `--primary`, ...); the @theme block
-  here teaches Tailwind to read those tokens, so `bg-primary` follows the chosen accent and the dark mode.
+  The tokens (--background, --card, --primary, ...) are defined in src/skin.css for the light page and for `.dark`
+  (spartan's zinc palette); the @theme block below teaches Tailwind to read them.
 */
 @layer theme, base, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css" layer(utilities);
+@import "tw-animate-css";
+
+/* Dark mode is the `dark` class on <html> (set by ThemeService), never the operating system's setting alone. */
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
@@ -29,8 +34,22 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
 }

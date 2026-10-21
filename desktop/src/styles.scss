@@ -38,6 +38,22 @@ $my-theme: mat.m2-define-light-theme(
 
 @include mat.all-component-themes($my-theme);
 
+// The dark theme of the Material components that are still in use, switched by the `dark` class on <html>.
+$my-dark-theme: mat.m2-define-dark-theme(
+  (
+    color: (
+      primary: $my-primary,
+      accent: $my-accent,
+      warn: $my-warn,
+    ),
+    typography: $my-typography,
+  )
+);
+
+.dark {
+  @include mat.all-component-colors($my-dark-theme);
+}
+
 .mat-typography {
   font-family: $font-family !important;
 }
