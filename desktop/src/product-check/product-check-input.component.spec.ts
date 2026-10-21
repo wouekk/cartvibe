@@ -48,11 +48,11 @@ describe("ProductCheckInputComponent", () => {
 
   it("checks what was typed on Enter and opens the drawer", async () => {
     await create(false);
-    await type(" nutella ");
+    await type(" 3017620422003 ");
 
     await enter();
 
-    expect(check).toHaveBeenCalledWith("nutella");
+    expect(check).toHaveBeenCalledWith("3017620422003");
     expect(open).toHaveBeenCalledTimes(1);
     expect(open.mock.calls[0][1].panelClass).toBe("product-check-drawer");
   });

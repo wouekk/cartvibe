@@ -1,6 +1,6 @@
-import { HttpBackend, HttpClient } from "@angular/common/http";
+import { HttpBackend, HttpClient, HttpErrorResponse } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
-import { map, Observable } from "rxjs";
+import { catchError, map, Observable, of, throwError } from "rxjs";
 import { CheckedProduct, NutrientLevel, NutriScore, ProductNutrientLevels, ProductNutrition } from "./product-check.models";
 
 export const OPEN_FOOD_FACTS_URL = "https://world.openfoodfacts.org";
@@ -16,8 +16,6 @@ const FIELDS = [
   "nutriments",
   "nutrient_levels",
 ].join(",");
-
-const SEARCH_RESULTS = 10;
 
 /** The parts of an Open Food Facts product this service reads; everything is optional on their side. */
 interface OffProduct {
@@ -38,7 +36,8 @@ interface OffProduct {
  *
  * The HTTP client is built on `HttpBackend`, which skips the app's interceptors: they attach the household's
  * credentials, toast failures and handle sign-in, none of which belongs on a request to a third party. Their API is rate
- * limited (about ten searches a minute), so a text search only ever runs on an explicit Enter, never per keystroke.
+ * limited and blocks cross-site searches by name (a 503 for any request a browser marks cross-site, and no CORS on their
+ * search service), so a browser can only look a product up by its barcode; that is why there is no name search here.
  */
 @Injectable({ providedIn: "root" })
 export class OpenFoodFactsService {
@@ -50,28 +49,10 @@ export class OpenFoodFactsService {
       .get<{ status?: number; product?: OffProduct }>(`${OPEN_FOOD_FACTS_URL}/api/v2/product/${encodeURIComponent(code)}.json`, {
         params: { fields: FIELDS },
       })
-      .pipe(map((response) => (response?.status === 1 && response.product ? toCheckedProduct(response.product, code) : null)));
-  }
-
-  /** The best matches for a product name. */
-  public search(text: string): Observable<CheckedProduct[]> {
-    return this.http
-      .get<{ products?: OffProduct[] }>(`${OPEN_FOOD_FACTS_URL}/cgi/search.pl`, {
-        params: {
-          search_terms: text,
-          search_simple: "1",
-          action: "process",
-          json: "1",
-          page_size: String(SEARCH_RESULTS),
-          fields: FIELDS,
-        },
-      })
       .pipe(
-        map((response) =>
-          (response?.products ?? [])
-            .filter((product) => !!product.code && !!product.product_name)
-            .map((product) => toCheckedProduct(product, product.code as string))
-        )
+        map((response) => (response?.status === 1 && response.product ? toCheckedProduct(response.product, code) : null)),
+        // Open Food Facts answers an unknown barcode with a 404 (and a JSON body saying so): that is "not found", not a failure.
+        catchError((error: unknown) => (error instanceof HttpErrorResponse && error.status === 404 ? of(null) : throwError(() => error)))
       );
   }
 }

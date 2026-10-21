@@ -3050,15 +3050,18 @@ Every Admin and User settings page uses four shared primitives from `src/shared-
   "Matched: Dark chocolate · 2,49 €, ..." line from `Receipt.searchMatches` (`receipt-search-matches`). See `api/CLAUDE.md`
   "Receipt search" for what matches.
 - **The header slot holds the product checker** (`src/product-check/`, standalone, shown to every signed-in user, no API,
-  no permission). Typing a name + Enter searches Open Food Facts; 8/12/13 digits with a valid EAN/UPC check digit are looked up
-  as a barcode; the camera button scans one. Everything opens in the slide-over `ProductCheckDrawerComponent`
+  no permission). Enter looks up 8/12/13 digits with a valid EAN/UPC check digit as a barcode (anything else answers "enter a
+  barcode" without a request); the camera button scans one. **There is no name search, on purpose:** Open Food Facts answers
+  any request a browser marks cross-site (`Sec-Fetch-Site`, or just a `Referer`) to its search endpoints (`cgi/search.pl`,
+  `/api/v2/search`) with a 503, and its search service sends no CORS header, while `/api/v2/product/{code}` works. A name search
+  would need a server relay, which was rejected: the checker is browser-only, zero backend. Everything opens in the slide-over `ProductCheckDrawerComponent`
   (an `AppDialog` with `panelClass: "product-check-drawer"`, docked right, a bottom sheet on a phone; the CSS is in
   `tailwind.css` and needs `!important` because the CDK centres a dialog with inline styles).
 - **Open Food Facts is read from the browser, never stored.** `OpenFoodFactsService` builds its `HttpClient` on `HttpBackend`
-  so the app's interceptors (credentials, error toasts, queue mode) are skipped. Their search API allows about ten requests a
-  minute, so a text search runs only on Enter. `ProductCheckService` drops an answer that arrives after a newer request. The
+  so the app's interceptors (credentials, error toasts, queue mode) are skipped. An unknown barcode is a 404 with a JSON body,
+  which the service maps to "not found". `ProductCheckService` drops an answer that arrives after a newer request. The
   last 10 products are kept as small JSON in `localStorage` (`rw_recent_products`, every access guarded) and shown as pills
-  for flipping between items.
+  for flipping between items without another request.
 - **Scoring** (`health-score.ts`, pure, constants documented): 60% Nutri-Score + 40% NOVA (missing counts as 50), minus 15 per
   high-risk and 5 per moderate additive, clamped to 0-100. `e-additives.ts` is a bundled guide of about 210 codes with a
   category and `safe | moderate | high`; unknown codes show as unknown. It is a general guide, and the drawer says so.

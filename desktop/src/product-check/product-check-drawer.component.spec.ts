@@ -93,24 +93,11 @@ describe("ProductCheckDrawerComponent", () => {
     expect(fixture.nativeElement.querySelectorAll('[data-testid^="product-check-recent-"]').length).toBe(2);
   });
 
-  it("lists search results and opens the one picked, with a way back", async () => {
-    service.results.set([sampleProduct(), sampleProduct({ code: "2", name: "Other spread" })]);
-    service.status.set("results");
-    await render();
-
-    element("product-check-result-2")?.click();
-    await render();
-    expect(text("product-check-name")).toBe("Other spread");
-
-    element("product-check-back")?.click();
-    await render();
-    expect(element("product-check-results")).not.toBeNull();
-  });
-
   it.each([
     ["loading", "product-check-loading"],
     ["notFound", "product-check-not-found"],
     ["error", "product-check-error"],
+    ["needsBarcode", "product-check-needs-barcode"],
   ] as const)("has a designed %s state", async (status, testId) => {
     service.status.set(status);
     await render();

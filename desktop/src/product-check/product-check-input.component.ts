@@ -10,8 +10,8 @@ import { ProductCheckDrawerComponent } from "./product-check-drawer.component";
 import { ProductCheckService } from "./product-check.service";
 
 /**
- * The header's "Check product or barcode" box. Enter checks what was typed (a barcode is looked up, a name is searched
- * for) and the camera button scans one; both end in the same slide-over drawer. Nothing here talks to our API.
+ * The header's "Check a product barcode" box. Enter looks up the barcode that was typed and the camera button scans one;
+ * both end in the same slide-over drawer. Nothing here talks to our API.
  */
 @Component({
   selector: "app-product-check-input",
@@ -21,15 +21,16 @@ import { ProductCheckService } from "./product-check.service";
   host: { class: "block" },
   template: `
     <div hlmInputGroup>
-      <app-icon name="search" class="ps-3 text-muted-foreground"></app-icon>
+      <div hlmInputGroupAddon><app-icon name="search"></app-icon></div>
       <input
         hlmInputGroupInput
         type="search"
+        inputmode="numeric"
         enterkeyhint="search"
         autocomplete="off"
         data-testid="product-check-input"
-        [placeholder]="'Check product or barcode…' | t"
-        [attr.aria-label]="'Check product or barcode' | t"
+        [placeholder]="'Check a product barcode…' | t"
+        [attr.aria-label]="'Check a product barcode' | t"
         [ngModel]="text()"
         (ngModelChange)="text.set($event)"
         (keydown.enter)="submit()"
