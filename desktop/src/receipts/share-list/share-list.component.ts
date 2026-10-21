@@ -12,7 +12,7 @@ import {
   viewChildren
 } from "@angular/core";
 import { AbstractControl, FormArray, FormGroup, } from "@angular/forms";
-import { MatExpansionPanel } from "@angular/material/expansion";
+import { ExpansionPanelComponent } from "../../shared-ui/expansion-panel/expansion-panel.component";
 import { ActivatedRoute } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { RECEIPT_ITEM_STATUS_OPTIONS } from "src/constants/receipt-status-options";
@@ -38,7 +38,7 @@ export interface ItemData {
   standalone: false
 })
 export class ShareListComponent implements OnInit, OnChanges {
-  public readonly userExpansionPanels = viewChildren<MatExpansionPanel>("userExpansionPanel");
+  public readonly userExpansionPanels = viewChildren<ExpansionPanelComponent>("userExpansionPanel");
 
   public readonly nameFields = viewChildren<InputComponent>("nameField");
 

@@ -1,12 +1,8 @@
-<mat-card
-  [ngClass]="cardStyle()"
->
-  <mat-card-header class="w-full">
-    <mat-card-title class="w-full">
-      <ng-content select="[header]"></ng-content>
-    </mat-card-title>
-  </mat-card-header>
-  <mat-card-content>
+<section hlmCard class="gap-4 py-4" [ngClass]="cardStyle()">
+  <header class="w-full px-6 text-base font-semibold leading-none tracking-tight">
+    <ng-content select="[header]"></ng-content>
+  </header>
+  <div class="px-6">
     <ng-content select="[content]"></ng-content>
-  </mat-card-content>
-</mat-card>
+  </div>
+</section>

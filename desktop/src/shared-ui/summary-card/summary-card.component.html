@@ -30,11 +30,11 @@
   let-emptyText="emptyText"
   #owedTemplate
 >
-  <mat-list>
+  <div role="list" class="flex flex-col gap-1">
     <strong>{{ headerText }}</strong>
-    <mat-list-item *ngIf="map.size === 0">{{ emptyText }}</mat-list-item>
-    <mat-list-item *ngFor="let e of map | keyvalue">
+    <div *ngIf="map.size === 0" role="listitem" class="text-sm text-muted-foreground">{{ emptyText }}</div>
+    <div *ngFor="let e of map | keyvalue" role="listitem" class="text-sm tabular-nums">
       {{ ($any(e.key) | user)?.displayName }} - {{ $any(e.value) | customCurrency }}
-    </mat-list-item>
-  </mat-list>
+    </div>
+  </div>
 </ng-template>

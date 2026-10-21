@@ -21,20 +21,23 @@
           aria-labelledby, because the label above is only visually adjacent — nothing associates the
           two, so a screen reader would otherwise announce this as an unnamed listbox.
         -->
-        <mat-chip-listbox
-          aria-labelledby="receipt-totals-config-label"
-          (change)="configGroupSelected.emit($event.value)"
-        >
+        <div class="flex flex-wrap gap-2" role="listbox" aria-labelledby="receipt-totals-config-label">
           @for (group of configGroups(); track group.id) {
-            <mat-chip-option
-              [value]="group.id"
-              [selected]="group.id === selectedConfigGroupId()"
+            <button
+              type="button"
+              role="option"
+              class="rounded-full border border-border px-3 py-1 text-sm transition-colors hover:bg-accent"
+              [class.bg-primary]="group.id === selectedConfigGroupId()"
+              [class.text-primary-foreground]="group.id === selectedConfigGroupId()"
+              [class.border-primary]="group.id === selectedConfigGroupId()"
+              [attr.aria-selected]="group.id === selectedConfigGroupId()"
               [attr.data-testid]="'receipt-totals-config-group-' + group.id"
+              (click)="configGroupSelected.emit(group.id)"
             >
               {{ group.name }}
-            </mat-chip-option>
+            </button>
           }
-        </mat-chip-listbox>
+        </div>
       </div>
     } @else if (soleConfigGroupName()) {
       <p class="receipt-totals__config-note">

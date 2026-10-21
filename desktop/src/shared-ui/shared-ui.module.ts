@@ -3,12 +3,11 @@ import { DragDropModule } from "@angular/cdk/drag-drop";
 import { CommonModule, CurrencyPipe } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
-import { MatCardModule } from "@angular/material/card";
-import { MatChipsModule } from "@angular/material/chips";
+import { HlmBadge } from "@spartan-ng/helm/badge";
+import { HlmCardImports } from "@spartan-ng/helm/card";
 
-import { MatExpansionModule } from "@angular/material/expansion";
+import { ExpansionPanelComponent } from "./expansion-panel/expansion-panel.component";
 import { AppIconComponent } from "./icon/icon.component";
-import { MatListModule } from "@angular/material/list";
 import { MatMenuModule } from "@angular/material/menu";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { MatTabsModule } from "@angular/material/tabs";
@@ -129,11 +128,10 @@ import { ImageCanvasComponent } from './image-canvas/image-canvas.component';
     DirectivesModule,
     DragDropModule,
     InputModule,
-    MatCardModule,
-    MatChipsModule,
-    MatExpansionModule,
+    HlmBadge,
+    ...HlmCardImports,
+    ExpansionPanelComponent,
     AppIconComponent,
-    MatListModule,
     MatTabsModule,
     ...HlmTooltipImports,
     PipesModule,

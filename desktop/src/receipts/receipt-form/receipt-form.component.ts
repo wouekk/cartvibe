@@ -2,7 +2,7 @@ import { Component, ElementRef, EmbeddedViewRef, HostListener, inject, Injector,
 import { toSignal } from "@angular/core/rxjs-interop";
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
-import { MatExpansionPanel } from "@angular/material/expansion";
+import { ExpansionPanelComponent } from "../../shared-ui/expansion-panel/expansion-panel.component";
 import { ToastRef } from "../../toast/toast.service";
 import { ActivatedRoute, Router } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
@@ -1406,7 +1406,7 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
 
   public submit(): void {
     this.shareListComponent()?.userExpansionPanels().forEach(
-      (p: MatExpansionPanel) => p.close()
+      (p: ExpansionPanelComponent) => p.close()
     );
     if (this.form.invalid) {
       // Say why nothing happened: a required box that is empty shakes and is outlined in red (amount first,

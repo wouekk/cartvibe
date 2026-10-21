@@ -1,4 +1,4 @@
-<mat-list>
+<div role="list" class="flex flex-col">
   @for (row of listData(); let i = $index; track row?.[trackByKey()]) {
     @if (rowOpen() === i && editTemplate) {
       <ng-template
@@ -6,20 +6,24 @@
         [ngTemplateOutletContext]="{ i: i }"
       ></ng-template>
     } @else {
-      <mat-list-item>
-        <ng-container
-          matListItemTitle
-          [ngTemplateOutlet]="itemTitleTemplate()"
-          [ngTemplateOutletContext]="{ row: row }"
-        ></ng-container>
-        <ng-container
-          matListItemLine
-          [ngTemplateOutlet]="itemSubtitleTemplate()"
-          [ngTemplateOutletContext]="{ row: row }"
-        >
-        </ng-container>
+      <div role="listitem" class="flex items-center gap-3 border-b border-border py-2 last:border-b-0">
+        <div class="min-w-0 flex-1">
+          <div class="text-sm font-medium">
+            <ng-container
+              [ngTemplateOutlet]="itemTitleTemplate()"
+              [ngTemplateOutletContext]="{ row: row }"
+            ></ng-container>
+          </div>
+          <div class="text-sm text-muted-foreground">
+            <ng-container
+              [ngTemplateOutlet]="itemSubtitleTemplate()"
+              [ngTemplateOutletContext]="{ row: row }"
+            >
+            </ng-container>
+          </div>
+        </div>
         @if (!readonly()) {
-          <div matListItemMeta>
+          <div class="flex items-center">
             <app-edit-button
               color="accent"
               [disabled]="rowOpen() !== undefined"
@@ -32,7 +36,7 @@
             </app-delete-button>
           </div>
         }
-      </mat-list-item>
+      </div>
     }
   }
-</mat-list>
+</div>

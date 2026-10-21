@@ -2,12 +2,11 @@ import { DragDropModule } from "@angular/cdk/drag-drop";
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
-import { MatCardModule } from "@angular/material/card";
 import { MatCheckboxModule } from "@angular/material/checkbox";
 
-import { MatExpansionModule } from "@angular/material/expansion";
+import { ExpansionPanelComponent } from "../shared-ui/expansion-panel/expansion-panel.component";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
-import { MatChipsModule } from "@angular/material/chips";
+import { HlmBadge } from "@spartan-ng/helm/badge";
 import { MatMenuModule } from "@angular/material/menu";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
@@ -82,10 +81,9 @@ import { UserTotalWithPercentagePipe } from "./user-total-with-percentage.pipe";
     DirectivesModule,
     DragDropModule,
     InputModule,
-    MatCardModule,
     MatCheckboxModule,
-    MatChipsModule,
-    MatExpansionModule,
+    HlmBadge,
+    ExpansionPanelComponent,
     AppIconComponent,
     MatMenuModule,
     ...HlmDropdownMenuImports,

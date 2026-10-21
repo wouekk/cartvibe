@@ -1,8 +1,8 @@
-<mat-list role="list">
+<div role="list" class="flex flex-col">
   <strong class="mb-2">{{ headerText() }}</strong>
   <div class="mb-2" *ngIf="array().length === 0">{{ nothingToDisplayText() }}</div>
-  <mat-list-item
-    class="w-full h-full"
+  <div
+    class="h-full w-full"
     *ngFor="let item of array(); let index = index; let last = last"
     role="listitem"
   >
@@ -41,7 +41,7 @@
     <ng-container *ngIf="!last">
       <hr />
     </ng-container>
-  </mat-list-item>
+  </div>
   <div class="w-1/2">
     <app-button
       color="accent"
@@ -50,4 +50,4 @@
       (clicked)="onAddButtonClicked()"
     ></app-button>
   </div>
-</mat-list>
+</div>

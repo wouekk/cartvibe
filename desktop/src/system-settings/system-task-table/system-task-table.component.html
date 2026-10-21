@@ -33,23 +33,28 @@
 </app-table-header>
 
 @if (filterChips().length > 0) {
-  <mat-chip-set class="system-task-filter-chips" aria-label="Applied filters">
+  <div class="system-task-filter-chips flex flex-wrap gap-2" role="list" aria-label="Applied filters">
     @for (chip of filterChips(); track chip.key) {
-      <mat-chip
+      <span
+        hlmBadge
+        variant="secondary"
+        role="listitem"
+        class="h-7 gap-1.5 py-0 pl-3 pr-1.5 text-sm"
         [attr.data-testid]="'system-task-filter-chip-' + chip.key"
-        (removed)="filterChipCleared(chip.key)"
       >
         {{ chip.label }}
         <button
-          matChipRemove
+          type="button"
+          class="rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
           [attr.data-testid]="'system-task-filter-chip-clear-' + chip.key"
           [attr.aria-label]="'Remove ' + chip.label + ' filter'"
+          (click)="filterChipCleared(chip.key)"
         >
           <app-icon name="cancel"></app-icon>
         </button>
-      </mat-chip>
+      </span>
     }
-  </mat-chip-set>
+  </div>
 }
 
 <app-task-table

@@ -1,4 +1,4 @@
-<mat-accordion multi>
+<div class="flex flex-col gap-2">
   @if (isAdding) {
     <app-card
       cardStyle="w-100 mb-2"
@@ -59,17 +59,16 @@
   @if (userItemMap().size === 0 && mode === formMode.view) {
     <div>No shares for this receipt</div>
   }
-  <mat-expansion-panel
+  <app-expansion-panel
     #userExpansionPanel
     *ngFor="let key of userItemMap() | mapKey; let i = index"
     (closed)="checkLastInlineItem(key)"
   >
     @let user = key | user;
-    <mat-expansion-panel-header>
-      <mat-panel-title>
+    <span panelTitle>
         {{ user?.displayName }} ({{ (userItemMap() | mapGet : key)?.length || 0 }})
-      </mat-panel-title>
-      <mat-panel-description>
+      </span>
+      <span panelDescription>
         <div class="flex justify-between items-center w-full">
           @let userTotalData = userItemMap() | userTotalWithPercentage : key : form();
           <span>
@@ -96,8 +95,7 @@
             </div>
           }
         </div>
-      </mat-panel-description>
-    </mat-expansion-panel-header>
+      </span>
     <ng-container
       *ngFor="let itemData of userItemMap() | mapGet : key; let i = index"
     >
@@ -173,5 +171,5 @@
         </div>
       </app-card>
     </ng-container>
-  </mat-expansion-panel>
-</mat-accordion>
+  </app-expansion-panel>
+</div>
