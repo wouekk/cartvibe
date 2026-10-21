@@ -25,12 +25,12 @@ describe("SettingsPageComponent", () => {
     expect(el.textContent).toContain("Group receipts");
   });
 
-  it("is narrow by default and wide on request", async () => {
-    await fixture.whenStable();
-    expect(fixture.nativeElement.className).toContain("max-w-3xl");
-
-    fixture.componentRef.setInput("width", "wide");
+  it("is wide by default and narrow on request", async () => {
     await fixture.whenStable();
     expect(fixture.nativeElement.className).toContain("max-w-5xl");
+
+    fixture.componentRef.setInput("width", "narrow");
+    await fixture.whenStable();
+    expect(fixture.nativeElement.className).toContain("max-w-3xl");
   });
 });
