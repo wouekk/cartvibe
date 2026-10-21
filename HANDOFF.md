@@ -1,6 +1,17 @@
 # HANDOFF.md — Where things stand
 
-## Status (2026-10-21, Windows PC, Claude Code desktop app)
+## Status (2026-10-22, Windows PC, Claude Code desktop app)
+
+**i18n runtime (branch `feature/i18n-runtime`, from `main`; NOT merged, no `:preview` published).** The homegrown engine kept English as the key but its
+dictionaries are now runtime JSON: `desktop/src/assets/i18n/{languages,en,pl}.json`, loaded by `TranslationLoader` (HttpBackend, app initializer), plural forms from
+`Intl.PluralRules`, locale data in `src/i18n/locale-data.ts` with an en-US fallback. **The language is never taken from the browser**: signed out and the login page are
+English; signed in it is `UserPreferences.language` (already in the API, no swagger change); `localStorage` only caches the signed-in account's language and is cleared
+on logout. New: `marker()`, shared validation messages (`{label} must be at least {min}.`, now translated and live-switching), a Language row in User Settings -> Theme
+(applies at once), scripts `npm run i18n:extract | i18n:check | i18n:sync` (Node built-ins only; `i18n:check` runs in the desktop CI job before Jest), `extra-keys.json` for texts
+only data can reveal. Pass 2 wrapped ~150 TypeScript strings, rewrote the template-literal dialogs and toasts as keys with parameters, translated notifications, trip status,
+formula feedback, task types, tooltips and placeholders, and added the user-facing Go error messages to the catalogue. Polish is at 100% (1186 texts). Details: `desktop/CLAUDE.md` -> Translations.
+- **Deviations from the plan:** the Polish dictionary had **939** distinct keys, not 908 (the conversion script asserts 939; the line scan and the evaluated objects agree, 7 duplicates overridden last-wins: Reports, Receipt Date, Done on, Open, Delete API Key, Add List, Records). `--translate` is implemented in `sync.mjs` but was never run. Phase D (NAS overrides) is not done. The English plural nouns `list`, `day`, `month` of the old Polish file were unused and are gone.
+- **Open:** look at every page in Polish on the NAS (`:preview` on request); the AI still answers in one language (the household-wide vs uploader question below is unanswered); Go messages are extracted only from `WriteCustomErrorResponse` and `errors["x"] = "..."` literals (not from `fmt.Sprintf` builders), and a Go-only change does not trigger the desktop CI job, so `i18n:check` sees it on the next desktop change.
 
 **Settings layout (2026-10-21, merged into `main` on the user's go; every settings page is wide, Save in the card footer; screenshots checked in both themes, Jest 2090/2090, `ng build` OK). NAS note: the old ENCRYPTION_KEY was lost, so the user wipes the sqlite folder and sets new keys; write them down.** settings layout
 unification, plan in `C:/Users/Marcin/.claude/plans/pasted-content-id-ff27-perform-a-cheeky-nebula.md` (outside the repo). Decisions by the user: topics inside a
@@ -84,7 +95,7 @@ because Pages was off.
 
 ## Open questions
 
-- **Language (EN / PL):** approach B (a translation library) is decided and waits for the Mac (see the backlog). Still
+- **Language (EN / PL):** done with the existing engine on `feature/i18n-runtime` (see Status). Still
   unanswered: should the AI answer in one household-wide language (recommended) or in the uploader's language?
 - **Per-user display currency (option C):** each person picks a currency and a manual rate; only the Dashboard converts
   its figures in the browser; no API permission changes, two additive preference fields. Parked by the user for later;
@@ -127,7 +138,7 @@ The MacBook may have more toolchains; check (`node -v`, `docker -v`) before assu
 so anything that needs `npm` (installing a package, regenerating `package-lock.json`) or Docker (building the image) has to
 be done by GitHub Actions or on the Mac.
 
-1. **Translation (English / Polish), approach B.** Add a translation library (e.g. `@ngx-translate/core` with its HTTP
+1. **DONE (2026-10-22, `feature/i18n-runtime`, with the existing engine and runtime JSON, no library; see `desktop/CLAUDE.md` -> Translations). Old plan, kept for the record:** Translation (English / Polish), approach B. Add a translation library (e.g. `@ngx-translate/core` with its HTTP
    loader, or `@jsverse/transloco`) to `desktop/package.json`; regenerate `package-lock.json` on Node 20.19.6 and gate with
    `npm ci`, `npm run test:ci`, `npm run build` (see `desktop/CLAUDE.md` -> dependency rules). Then: wave 1 = daily screens,
    wave 2 = admin screens; `UserPreferences.language` (additive API field + swagger + both clients); the AI prompts use the

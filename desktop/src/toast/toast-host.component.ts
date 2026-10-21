@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
 import { NgIcon, provideIcons } from "@ng-icons/core";
 import { lucideCircleAlert, lucideCircleCheck, lucideInfo, lucideX } from "@ng-icons/lucide";
 import { ToastKind, ToastService } from "./toast.service";
+import { TranslatePipe } from "../i18n/translate.pipe";
 
 const ICONS: Record<ToastKind, string> = {
   success: "lucideCircleCheck",
@@ -14,7 +15,7 @@ const ICONS: Record<ToastKind, string> = {
 @Component({
   selector: "app-toast-host",
   standalone: true,
-  imports: [NgIcon, NgTemplateOutlet],
+  imports: [NgIcon, NgTemplateOutlet, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [provideIcons({ lucideCircleAlert, lucideCircleCheck, lucideInfo, lucideX })],
   template: `
@@ -44,7 +45,7 @@ const ICONS: Record<ToastKind, string> = {
           <button
             type="button"
             class="-m-1 shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-            aria-label="Dismiss"
+            [attr.aria-label]="'Dismiss' | t"
             data-testid="toast-dismiss"
             (click)="toasts.dismiss(toast.id)"
           >

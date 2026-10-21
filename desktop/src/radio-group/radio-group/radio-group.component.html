@@ -2,7 +2,7 @@
   @for (data of radioButtonData(); track data.value) {
     <label class="flex cursor-pointer items-center gap-2 text-sm">
       <hlm-radio [value]="data.value"><hlm-radio-indicator indicator /></hlm-radio>
-      <span>{{ data.displayValue }}</span>
+      <span>{{ data.displayValue | t }}</span>
     </label>
   }
 </hlm-radio-group>

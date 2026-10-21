@@ -47,7 +47,7 @@ export class QuickScanDialogComponent implements OnInit {
   // base-input has no built-in message for the maxlength error, so an unmapped one would render an
   // empty mat-error. Held as a field rather than an inline object literal so the binding is stable.
   public readonly commentErrorMessages: { [key: string]: string } = {
-    maxlength: `Comment must be ${QUICK_SCAN_COMMENT_MAX_LENGTH} characters or fewer.`,
+    maxlength: marker("Comment must be {requiredLength} characters or fewer."),
   };
 
   // The group picker only shows when there is a choice to make.
