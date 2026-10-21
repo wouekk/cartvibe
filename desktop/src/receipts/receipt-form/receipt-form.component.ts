@@ -3,7 +3,7 @@ import { toSignal } from "@angular/core/rxjs-interop";
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { MatExpansionPanel } from "@angular/material/expansion";
-import { MatSnackBarRef } from "@angular/material/snack-bar";
+import { ToastRef } from "../../toast/toast.service";
 import { ActivatedRoute, Router } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
@@ -194,7 +194,7 @@ export class ReceiptFormComponent implements OnInit {
 
   public duplicatedReceiptId = signal("");
 
-  public duplicatedSnackbarRef!: MatSnackBarRef<EmbeddedViewRef<any>>;
+  public duplicatedSnackbarRef!: ToastRef;
 
   public formHeaderText!: Signal<string | undefined>;
 

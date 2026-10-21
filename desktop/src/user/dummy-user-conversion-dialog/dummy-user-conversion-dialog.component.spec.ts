@@ -3,7 +3,6 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { MatDialogRef } from "@angular/material/dialog";
-import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { ApiModule, UserService } from "../../open-api";
@@ -23,7 +22,6 @@ describe("DummyUserConversionDialogComponent", () => {
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
       imports: [
         ApiModule,
-        MatSnackBarModule,
         StoreModule,
         PipesModule,
       ],

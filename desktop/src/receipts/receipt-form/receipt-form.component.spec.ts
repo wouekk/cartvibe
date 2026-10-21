@@ -4,7 +4,6 @@ import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { MatDialog, MatDialogModule } from "@angular/material/dialog";
-import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
@@ -35,7 +34,6 @@ describe("ReceiptFormComponent", () => {
       imports: [ApiModule,
         PipesModule,
         MatDialogModule,
-        MatSnackBarModule,
         StoreModule,
         NoopAnimationsModule,
         PipesModule,

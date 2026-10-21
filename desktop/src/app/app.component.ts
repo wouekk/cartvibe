@@ -7,13 +7,14 @@ import { HideProgressBar } from "src/store/layout.state.actions";
 import { TokenRefreshService } from "../services";
 import { AuthState } from "../store";
 import { ThemeService } from "../theme/theme.service";
+import { ToastHostComponent } from "../toast/toast-host.component";
 
 @UntilDestroy()
 @Component({
     selector: "app-root",
     templateUrl: "./app.component.html",
     styleUrls: ["./app.component.scss"],
-    imports: [RouterOutlet],
+    imports: [RouterOutlet, ToastHostComponent],
 })
 export class AppComponent implements OnInit {
 

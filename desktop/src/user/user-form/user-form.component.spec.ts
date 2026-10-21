@@ -3,7 +3,6 @@ import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection } from "@angular
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule, Validators } from "@angular/forms";
 import { MatDialog, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
-import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { NgxsModule, Store } from "@ngxs/store";
 import { Observable, of, throwError } from "rxjs";
 import {
@@ -59,7 +58,6 @@ describe("UserFormComponent", () => {
         ReactiveFormsModule,
         PipesModule,
         MatDialogModule,
-        MatSnackBarModule,
         ApiModule],
     providers: [
         provideZonelessChangeDetection(),

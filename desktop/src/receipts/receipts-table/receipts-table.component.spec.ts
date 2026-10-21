@@ -5,7 +5,6 @@ import { ReactiveFormsModule } from "@angular/forms";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatDialog, MatDialogModule } from "@angular/material/dialog";
 import { MatMenuModule } from "@angular/material/menu";
-import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { ActivatedRoute, provideRouter, Router } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
@@ -40,7 +39,6 @@ describe("ReceiptsTableComponent", () => {
     imports: [ApiModule,
         NgxsModule.forRoot([ReceiptTableState, AuthState, GroupState, UserState]),
         ReactiveFormsModule,
-        MatSnackBarModule,
         MatTooltipModule,
         MatDialogModule,
         MatMenuModule,
@@ -636,7 +634,6 @@ describe("ReceiptsTableComponent receipt summary", () => {
         ApiModule,
         NgxsModule.forRoot([ReceiptTableState, AuthState, GroupState, UserState]),
         ReactiveFormsModule,
-        MatSnackBarModule,
         MatTooltipModule,
         MatDialogModule,
         MatMenuModule,

@@ -3,7 +3,6 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { MatDialogModule } from "@angular/material/dialog";
-import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { Store } from "@ngxs/store";
 import { OverlayModule } from "@angular/cdk/overlay";
 import { of } from "rxjs";
@@ -48,7 +47,6 @@ describe("HeaderComponent", () => {
     imports: [ApiModule,
         DirectivesModule,
         MatDialogModule,
-        MatSnackBarModule,
         OverlayModule,
         StoreModule,
     ],

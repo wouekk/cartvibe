@@ -8,7 +8,6 @@ import { NgIcon } from "@ng-icons/core";
 import { HlmCollapsibleImports } from "@spartan-ng/helm/collapsible";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { MatSidenavModule } from "@angular/material/sidenav";
-import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { By } from "@angular/platform-browser";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
@@ -69,7 +68,6 @@ describe("SidebarComponent", () => {
         NgIcon,
         ...HlmCollapsibleImports,
         ...HlmDropdownMenuImports,
-        MatSnackBarModule,
         MatSidenavModule,
         MatTooltipModule,
         NoopAnimationsModule,

@@ -3,7 +3,6 @@ import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { MatDialogModule, MatDialogRef } from "@angular/material/dialog";
-import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { NgxsModule } from "@ngxs/store";
 import { PipesModule } from "src/pipes/pipes.module";
 import { ApiModule } from "../../open-api";
@@ -21,7 +20,6 @@ describe("ResetPasswordComponent", () => {
     imports: [ApiModule,
         PipesModule,
         MatDialogModule,
-        MatSnackBarModule,
         NgxsModule.forRoot([]),
         PipesModule,
         ReactiveFormsModule],

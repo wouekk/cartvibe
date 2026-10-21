@@ -3,7 +3,6 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { MatCardModule } from "@angular/material/card";
 import { MatDialog, MatDialogModule } from "@angular/material/dialog";
-import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatSort } from "@angular/material/sort";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { ActivatedRoute, Router, provideRouter } from "@angular/router";
@@ -41,7 +40,6 @@ describe("GroupFormComponent", () => {
         InputModule,
         MatCardModule,
         MatDialogModule,
-        MatSnackBarModule,
         NgxsModule.forRoot([AuthState]),
         NoopAnimationsModule,
         PipesModule,

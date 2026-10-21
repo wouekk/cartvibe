@@ -41,7 +41,7 @@ export const httpInterceptor: HttpInterceptorFn = (req, next) => {
       // present. Angular's generic HttpErrorResponse.message ("Http failure
       // response for /api/login/: 500 Internal Server Error") is only a fallback
       // for a 5xx that carries no message at all, so an infra-level failure is
-      // not silent. These must stay mutually exclusive: MatSnackBar.open()
+      // not silent. These must stay mutually exclusive: the toast
       // dismisses whatever is already showing, so toasting both replaced the
       // useful message with the useless one before the user could read it.
       if (!receiptQueueMode) {

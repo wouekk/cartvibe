@@ -78,30 +78,6 @@ body {
   // emax-width: 100%;
 }
 
-.error-snackbar {
-  color: white;
-
-  .mdc-snackbar__surface {
-    background-color: red !important;
-  }
-
-  .mat-mdc-snack-bar-label {
-    color: white !important;
-  }
-}
-
-.success-snackbar {
-  color: white;
-
-  .mdc-snackbar__surface {
-    background-color: green !important;
-  }
-
-  .mat-mdc-snack-bar-label {
-    color: white !important;
-  }
-}
-
 // Global Style Changes
 hr {
   color: variables.$mat-drawer-background-color;
@@ -242,17 +218,6 @@ h3 {
     background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
     border: 1px solid rgba(0, 0, 0, 0.05);
     backdrop-filter: blur(8px);
-  }
-}
-
-// Modern snackbar styling  
-.mat-mdc-snack-bar-container {
-  border-radius: variables.$border-radius-lg !important;
-  box-shadow: variables.$shadow-xl !important;
-  backdrop-filter: blur(8px);
-  
-  .mdc-snackbar__surface {
-    border-radius: variables.$border-radius-lg !important;
   }
 }
 
