@@ -95,7 +95,7 @@ $hairline: var(--border);
 
 // Unhealthy spend is overspending, in the same warning color as a rise in spending.
 .tile__value--warning {
-  color: var(--warning-text, #ea580c);
+  color: var(--warning-text);
 }
 
 .tile__hint {
@@ -105,11 +105,11 @@ $hairline: var(--border);
 }
 
 .tile__hint--up {
-  color: var(--warning-text, #ea580c);
+  color: var(--warning-text);
 }
 
 .tile__hint--down {
-  color: var(--success-text, #16a34a);
+  color: var(--success-text);
 }
 
 .overview__row {
@@ -548,13 +548,13 @@ table {
 }
 
 .pill--up {
-  color: var(--warning-text, #ea580c);
-  border-color: color-mix(in oklab, var(--warning-text, #ea580c) 35%, transparent);
-  background: color-mix(in oklab, var(--warning-text, #ea580c) 10%, transparent);
+  color: var(--warning-text);
+  border-color: color-mix(in oklab, var(--warning-text) 35%, transparent);
+  background: color-mix(in oklab, var(--warning-text) 10%, transparent);
 }
 
 .pill--down {
-  color: var(--success-text, #16a34a);
-  border-color: color-mix(in oklab, var(--success-text, #16a34a) 35%, transparent);
-  background: color-mix(in oklab, var(--success-text, #16a34a) 10%, transparent);
+  color: var(--success-text);
+  border-color: color-mix(in oklab, var(--success-text) 35%, transparent);
+  background: color-mix(in oklab, var(--success-text) 10%, transparent);
 }

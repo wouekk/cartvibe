@@ -4,13 +4,13 @@
   
   .description {
     margin-bottom: 16px;
-    color: rgba(0, 0, 0, 0.6);
+    color: color-mix(in oklab, var(--foreground) 60%, transparent);
     font-size: 14px;
   }
 }
 
 .column-list {
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border);
   border-radius: 4px;
   background: var(--muted);
   padding: 8px;
@@ -27,8 +27,8 @@
     transition: all 0.2s ease;
     
     &:hover {
-      border-color: #e0e0e0;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      border-color: var(--border);
+      box-shadow: 0 2px 4px color-mix(in oklab, var(--foreground) 10%, transparent);
     }
     
     &.disabled {
@@ -37,8 +37,8 @@
     }
     
     &.cdk-drag-preview {
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-      border-color: #2196f3;
+      box-shadow: 0 5px 15px color-mix(in oklab, var(--foreground) 20%, transparent);
+      border-color: var(--primary);
     }
     
     &.cdk-drag-placeholder {
@@ -47,7 +47,7 @@
     
     .drag-handle {
       cursor: grab;
-      color: #666;
+      color: var(--muted-foreground);
       margin-right: 12px;
       display: flex;
       align-items: center;
@@ -79,7 +79,7 @@
   margin-bottom: 16px;
   
   .reset-button {
-    color: #666;
+    color: var(--muted-foreground);
   }
 }
 

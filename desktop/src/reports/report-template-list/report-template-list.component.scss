@@ -3,7 +3,7 @@
 
 $fg-muted: var(--muted-foreground);
 $fg-strong: var(--foreground);
-$border: rgba(0, 0, 0, 0.06);
+$border: color-mix(in oklab, var(--foreground) 6%, transparent);
 
 .report-templates-page {
   display: flex;

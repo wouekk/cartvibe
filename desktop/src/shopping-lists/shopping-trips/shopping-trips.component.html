@@ -1,8 +1,8 @@
 @if (canSee()) {
-  <section class="trips" data-testid="shopping-trips" aria-labelledby="shopping-trips-title">
-    <div class="trips__header">
-      <h3 id="shopping-trips-title" class="trips__title">Receipts from this list</h3>
-      <div class="trips__actions">
+  <section class="trips mt-6" data-testid="shopping-trips" aria-labelledby="shopping-trips-title">
+    <div class="mb-2 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+      <h3 id="shopping-trips-title" class="m-0 text-[0.95rem] font-semibold">Receipts from this list</h3>
+      <div class="flex flex-wrap gap-1 *:min-h-11">
         @if (canScan()) {
           <input
             #photoInput
@@ -24,7 +24,7 @@
           </button>
         }
         @if (canUpdate()) {
-          <button mat-button type="button" data-testid="shopping-trip-attach" (click)="attachExisting()">
+          <button hlmBtn variant="ghost" type="button" data-testid="shopping-trip-attach" (click)="attachExisting()">
             <app-icon name="attach_file"></app-icon>
             Attach existing
           </button>
@@ -33,22 +33,29 @@
     </div>
 
     @for (row of rows(); track row.trip.id) {
-      <article class="trip trip--{{ row.status.kind }}" data-testid="shopping-trip">
-        <div class="trip__body">
-          <div class="trip__heading">
+      <article
+        class="mb-2 flex items-start gap-2 rounded-xl border-l-4 bg-card px-4 py-2 shadow-xs ring-1 ring-foreground/10"
+        [class.border-l-border]="row.status.kind !== 'planned' && row.status.kind !== 'unplanned' && row.status.kind !== 'failed'"
+        [class.border-l-success-text]="row.status.kind === 'planned'"
+        [class.border-l-destructive]="row.status.kind === 'unplanned'"
+        [class.border-l-warning-text]="row.status.kind === 'failed'"
+        data-testid="shopping-trip"
+      >
+        <div class="min-w-0 flex-1">
+          <div class="flex flex-wrap items-baseline gap-x-2">
             @if (row.trip.receipt; as receipt) {
-              <a class="trip__name" [routerLink]="['/receipts', receipt.id, 'view']">{{ receipt.name }}</a>
-              <span class="trip__meta">
+              <a class="font-semibold" [routerLink]="['/receipts', receipt.id, 'view']">{{ receipt.name }}</a>
+              <span class="text-sm tabular-nums text-muted-foreground">
                 {{ receipt.date | appDate : "MMM d" : "calendar" }} · {{ receipt.amount | customCurrency }}
               </span>
             } @else {
-              <span class="trip__name">{{ row.trip.waitingForPhoto ? "Receipt photo" : "Receipt" }}</span>
-              <span class="trip__meta">{{ row.trip.createdAt | appDate : "MMM d" }}</span>
+              <span class="font-semibold">{{ row.trip.waitingForPhoto ? "Receipt photo" : "Receipt" }}</span>
+              <span class="text-sm tabular-nums text-muted-foreground">{{ row.trip.createdAt | appDate : "MMM d" }}</span>
             }
           </div>
-          <p class="trip__status" data-testid="shopping-trip-status">
+          <p class="mt-0.5 text-sm text-muted-foreground" data-testid="shopping-trip-status">
             @if (row.status.kind === "unplanned" && row.trip.unplannedAmount) {
-              <strong class="trip__amount">{{ row.trip.unplannedAmount | customCurrency }}</strong>
+              <strong class="tabular-nums text-destructive">{{ row.trip.unplannedAmount | customCurrency }}</strong>
             }
             {{ row.status.text }}
           </p>
@@ -68,7 +75,7 @@
         }
       </article>
     } @empty {
-      <p class="trips__empty" data-testid="shopping-trips-empty">
+      <p class="m-0 text-muted-foreground" data-testid="shopping-trips-empty">
         After shopping, scan the receipt to see what you bought that was not on the list.
       </p>
     }

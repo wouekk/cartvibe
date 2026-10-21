@@ -3,7 +3,7 @@
   padding: 1rem;
   border: 1px solid var(--bs-danger);
   border-radius: 0.375rem;
-  background-color: rgba(var(--bs-danger-rgb), 0.05);
+  background-color: color-mix(in oklab, var(--destructive) 5%, transparent);
 
   strong {
     color: var(--bs-danger);
@@ -19,7 +19,7 @@
 
   &__row {
     align-items: center;
-    border-bottom: 1px solid var(--mat-sys-outline-variant, #dee2e6);
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
     display: flex;
     gap: 1rem;
     justify-content: space-between;
@@ -35,12 +35,12 @@
   }
 
   &__meta {
-    color: var(--mat-sys-on-surface-variant, #6c757d);
+    color: var(--mat-sys-on-surface-variant);
     font-size: 0.8125rem;
   }
 
   &__locked {
-    color: var(--mat-sys-on-surface-variant, #6c757d);
+    color: var(--mat-sys-on-surface-variant);
     font-size: 0.8125rem;
   }
 }

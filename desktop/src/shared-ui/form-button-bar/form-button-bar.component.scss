@@ -49,12 +49,12 @@
       box-shadow: none !important;
 
       &.mat-primary {
-        background: var(--accent-button, #0077bd);
-        color: #fff;
+        background: var(--accent-button);
+        color: var(--card);
         font-weight: 600;
 
         &:hover {
-          background: var(--accent-button-hover, #00659f);
+          background: var(--accent-button-hover);
         }
       }
     }
@@ -63,7 +63,7 @@
       border-radius: variables.$border-radius-xl !important;
 
       &:hover {
-        background-color: var(--accent-soft, rgba(0, 134, 212, 0.12));
+        background-color: var(--accent-soft, color-mix(in oklab, var(--primary) 12%, transparent));
       }
     }
   }

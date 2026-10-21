@@ -3,18 +3,18 @@
 
 app-submit-button {
   .mat-success-icon {
-    color: map.get(variables.$success-palette, 800);
+    color: var(--success-text);
   }
 
   .mat-success-icon:hover {
-    background-color: map.get(variables.$success-palette, 50);
+    background-color: color-mix(in oklab, var(--success-text) 12%, transparent);
   }
 
   .mat-success-icon:active {
-    background-color: map.get(variables.$success-palette, 100);
+    background-color: color-mix(in oklab, var(--success-text) 20%, transparent);
   }
 
   .mat-success-full {
-    background-color: map.get(variables.$success-palette, 800) !important;
+    background-color: var(--success-text) !important;
   }
 }

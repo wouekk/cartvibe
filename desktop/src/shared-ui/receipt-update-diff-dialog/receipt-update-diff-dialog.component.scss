@@ -5,12 +5,12 @@
 // Tints carry the default dark text. The line tints are the palettes' 50 shade
 // lightened further so a long diff stays readable; the stronger inline mark is
 // the 200 shade, which still gives the dark text well over 4.5:1.
-$removed-line: color.mix(map.get(variables.$warn-palette, 50), white, 45%);
-$removed-mark: map.get(variables.$warn-palette, 200);
-$added-line: map.get(variables.$success-palette, 50);
-$added-mark: map.get(variables.$success-palette, 200);
-$empty-side: map.get(variables.$accent-palette, 100);
-$divider: map.get(variables.$accent-palette, 200);
+$removed-line: color-mix(in oklab, var(--destructive) 8%, transparent);
+$removed-mark: color-mix(in oklab, var(--destructive) 25%, transparent);
+$added-line: color-mix(in oklab, var(--success-text) 12%, transparent);
+$added-mark: color-mix(in oklab, var(--success-text) 30%, transparent);
+$empty-side: var(--muted);
+$divider: var(--border);
 
 // The diff scrolls in its own box rather than in mat-dialog-content, for two
 // reasons: a sticky header pins to its scroll container's padding edge, and
@@ -128,7 +128,7 @@ $divider: map.get(variables.$accent-palette, 200);
 
 .receipt-diff__stats-added {
   margin-right: 0.5rem;
-  color: map.get(variables.$success-palette, 800);
+  color: var(--success-text);
 }
 
 .receipt-diff__stats-removed {

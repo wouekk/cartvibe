@@ -24,7 +24,6 @@ import { ShoppingListFormDialogComponent } from "../shopping-list-form-dialog/sh
 @Component({
   selector: "app-shopping-lists-page",
   templateUrl: "./shopping-lists-page.component.html",
-  styleUrls: ["./shopping-lists-page.component.scss"],
   standalone: false,
 })
 export class ShoppingListsPageComponent implements OnInit, OnDestroy {

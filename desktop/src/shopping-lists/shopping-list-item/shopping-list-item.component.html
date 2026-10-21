@@ -1,23 +1,23 @@
-<div class="shopping-list-item" [class.checked]="item().isChecked">
+<div class="flex min-h-14 items-center border-b border-border last:border-b-0" [class.checked]="item().isChecked">
   <button
     type="button"
-    class="toggle"
+    class="flex min-h-14 min-w-0 flex-1 items-center gap-3 px-2 py-2 text-left outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring disabled:cursor-default"
     data-testid="shopping-list-item-toggle"
     role="checkbox"
     [attr.aria-checked]="item().isChecked"
     [disabled]="!canUpdate()"
     (click)="toggled.emit(item())"
   >
-    <app-icon class="check-icon" [name]="item().isChecked ? 'check_circle' : 'radio_button_unchecked'"></app-icon>
-    <span class="text">
-      <span class="name" data-testid="shopping-list-item-name">{{ item().name }}</span>
-      <app-food-tags class="tags" [values]="item()"></app-food-tags>
+    <app-icon class="shrink-0 text-xl" [class.text-muted-foreground]="item().isChecked" [name]="item().isChecked ? 'check_circle' : 'radio_button_unchecked'"></app-icon>
+    <span class="flex min-w-0 flex-wrap items-baseline gap-x-2">
+      <span class="break-words text-base" [class.line-through]="item().isChecked" [class.text-muted-foreground]="item().isChecked" data-testid="shopping-list-item-name">{{ item().name }}</span>
+      <app-food-tags class="self-center" [values]="item()"></app-food-tags>
       @if (item().note) {
-        <span class="note">{{ item().note }}</span>
+        <span class="basis-full break-words text-sm text-muted-foreground">{{ item().note }}</span>
       }
     </span>
     @if (amount()) {
-      <span class="quantity" data-testid="shopping-list-item-amount">{{ amount() }}</span>
+      <span class="ml-auto shrink-0 whitespace-nowrap rounded-md bg-muted px-2.5 py-1 text-sm font-bold tabular-nums" data-testid="shopping-list-item-amount">{{ amount() }}</span>
     }
   </button>
 
@@ -25,7 +25,7 @@
     <button
       hlmBtn variant="ghost" size="icon"
       type="button"
-      class="menu-button"
+      class="shrink-0"
       data-testid="shopping-list-item-menu"
       aria-label="Item actions"
       [hlmDropdownMenuTrigger]="itemMenu" align="end"

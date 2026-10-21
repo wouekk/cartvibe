@@ -24,7 +24,6 @@ const OFFLINE_MESSAGE = "Couldn't reach the server. Check your connection and tr
 @Component({
   selector: "app-shopping-list",
   templateUrl: "./shopping-list.component.html",
-  styleUrls: ["./shopping-list.component.scss"],
   standalone: false,
 })
 export class ShoppingListComponent {

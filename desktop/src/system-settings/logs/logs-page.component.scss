@@ -6,7 +6,7 @@
   padding: 20px 24px;
   border-radius: 16px;
   background: var(--card);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 1px 2px color-mix(in oklab, var(--foreground) 6%, transparent);
 }
 
 .toolbar {
@@ -46,7 +46,7 @@
   border-bottom: 1px solid var(--border);
 
   &.error .level {
-    color: #b91c1c;
+    color: var(--destructive);
     font-weight: 600;
   }
 

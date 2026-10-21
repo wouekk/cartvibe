@@ -21,8 +21,8 @@
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    background: rgba(39, 177, 255, 0.1);
-    border: 1px solid #a4deff;
+    background: color-mix(in oklab, var(--primary) 10%, transparent);
+    border: 1px solid var(--accent);
     border-radius: 9999px;
     padding: 5px 10px 5px 6px;
     font-size: 12.5px;
@@ -37,7 +37,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    color: var(--card);
     font-size: 10px;
     font-weight: 600;
   }
@@ -50,7 +50,7 @@
     cursor: pointer;
 
     &:hover {
-      color: #d63333;
+      color: var(--destructive);
     }
   }
 
@@ -68,8 +68,8 @@
     font-family: inherit;
 
     &:hover {
-      border-color: #27b1ff;
-      color: #009efa;
+      border-color: var(--primary);
+      color: var(--primary);
     }
 
     mat-icon {
@@ -116,7 +116,7 @@
       font-size: 15px;
       width: 15px;
       height: 15px;
-      color: #009efa;
+      color: var(--primary);
     }
 
     strong {
@@ -146,7 +146,7 @@
       }
 
       .report-config__col-desc {
-        color: #b45309;
+        color: var(--warning-text);
         font-family: inherit;
         white-space: normal;
         overflow: visible;
@@ -201,7 +201,7 @@
     background: var(--card);
 
     &--selected {
-      border-color: #27b1ff;
+      border-color: var(--primary);
       background: var(--accent);
     }
   }
@@ -223,7 +223,7 @@
   }
 
   &__mode-card--selected &__mode-title mat-icon {
-    color: #009efa;
+    color: var(--primary);
   }
 
   &__mode-desc {
@@ -308,8 +308,8 @@
     margin-top: 3px;
 
     &:hover {
-      border-color: #27b1ff;
-      color: #009efa;
+      border-color: var(--primary);
+      color: var(--primary);
       background: var(--accent);
     }
   }
@@ -324,9 +324,9 @@
   &__var-chip {
     font-size: 11px;
     font-family: ui-monospace, Menlo, monospace;
-    color: #0086d4;
-    background: rgba(39, 177, 255, 0.1);
-    border: 1px solid #a4deff;
+    color: var(--primary);
+    background: color-mix(in oklab, var(--primary) 10%, transparent);
+    border: 1px solid var(--accent);
     border-radius: 6px;
     padding: 2px 7px;
     cursor: pointer;
@@ -341,13 +341,13 @@
 // app-badge, which carries its own tones - see KIND_META's `tone`.
 .kind-dimension {
   color: var(--muted-foreground);
-  background: rgba(100, 116, 139, 0.12);
+  background: color-mix(in oklab, var(--foreground) 12%, transparent);
 }
 .kind-aggregate {
-  color: #009efa;
-  background: rgba(39, 177, 255, 0.12);
+  color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 12%, transparent);
 }
 .kind-formula {
-  color: #0f9d6e;
-  background: rgba(16, 185, 129, 0.14);
+  color: var(--success-text);
+  background: color-mix(in oklab, var(--success-text) 14%, transparent);
 }

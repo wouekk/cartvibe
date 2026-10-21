@@ -43,7 +43,7 @@
   padding: variables.$spacing-sm 0;
 
   & + .receipt-totals__row {
-    border-top: 1px solid rgba(128, 128, 128, 0.2);
+    border-top: 1px solid color-mix(in oklab, var(--muted-foreground) 20%, transparent);
   }
 }
 

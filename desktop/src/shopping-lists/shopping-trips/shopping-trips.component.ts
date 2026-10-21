@@ -29,7 +29,7 @@ interface ShoppingTripRow {
 @Component({
   selector: "app-shopping-trips",
   templateUrl: "./shopping-trips.component.html",
-  styleUrls: ["./shopping-trips.component.scss"],
+  host: { class: "block" },
   standalone: false,
   // customCurrency delegates to CurrencyPipe, which PipesModule does not provide.
   providers: [CurrencyPipe],

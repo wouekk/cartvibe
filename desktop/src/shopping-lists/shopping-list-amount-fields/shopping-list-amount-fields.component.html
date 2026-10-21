@@ -1,6 +1,6 @@
-<div class="amount-fields">
+<div class="amount-fields flex gap-2">
   <app-input
-    class="amount"
+    class="amount min-w-0 flex-1"
     label="Amount"
     type="text"
     data-testid="shopping-list-amount"
@@ -8,7 +8,7 @@
     [inputFormControl]="form() | formGet : 'amount'"
   ></app-input>
   <app-select
-    class="unit"
+    class="unit min-w-0 flex-1"
     label="Unit"
     optionValueKey="value"
     optionDisplayKey="displayValue"

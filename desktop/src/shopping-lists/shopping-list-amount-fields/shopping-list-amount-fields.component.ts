@@ -6,7 +6,7 @@ import { SHOPPING_LIST_UNITS } from "../shopping-list-item-form";
 @Component({
   selector: "app-shopping-list-amount-fields",
   templateUrl: "./shopping-list-amount-fields.component.html",
-  styleUrls: ["./shopping-list-amount-fields.component.scss"],
+  host: { class: "block" },
   standalone: false,
 })
 export class ShoppingListAmountFieldsComponent {

@@ -16,7 +16,7 @@
       font-size: 15px;
       width: 15px;
       height: 15px;
-      color: #009efa;
+      color: var(--primary);
       margin-top: 1px;
     }
   }
@@ -39,7 +39,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    color: var(--card);
     font-size: 13px;
     font-weight: 600;
   }
@@ -73,9 +73,9 @@
   }
 
   &__add {
-    border: 1px solid #a4deff;
+    border: 1px solid var(--accent);
     background: var(--card);
-    color: #0086d4;
+    color: var(--primary);
 
     &:hover {
       background: var(--accent);
@@ -85,7 +85,7 @@
   &__added {
     border: 1px solid transparent;
     background: transparent;
-    color: #0f9d6e;
+    color: var(--success-text);
   }
 
   &__empty {
