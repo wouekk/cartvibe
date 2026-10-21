@@ -20,7 +20,6 @@ interface SystemSettingsTab extends TabConfig {
 @Component({
     selector: "app-system-settings",
     templateUrl: "./system-settings.component.html",
-    styleUrl: "./system-settings.component.scss",
     standalone: false
 })
 export class SystemSettingsComponent implements OnInit {

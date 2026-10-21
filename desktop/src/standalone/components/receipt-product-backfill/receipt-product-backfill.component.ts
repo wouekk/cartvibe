@@ -15,8 +15,8 @@ import { hasAll } from "../../../utils/permission.utils";
  */
 @Component({
   selector: "app-receipt-product-backfill",
+  host: { class: "block" },
   templateUrl: "./receipt-product-backfill.component.html",
-  styleUrls: ["./receipt-product-backfill.component.scss"],
   standalone: true,
   imports: [TranslatePipe, PluralPipe, HlmButton, AppIconComponent],
 })

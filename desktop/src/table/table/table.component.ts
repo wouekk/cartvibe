@@ -6,8 +6,8 @@ import { PageEvent, Sort, TableDataSource } from "../table-types";
 
 @Component({
   selector: "app-table",
+  host: { class: "block overflow-hidden rounded-xl border border-border bg-card shadow-md" },
   templateUrl: "./table.component.html",
-  styleUrls: ["./table.component.scss"],
   standalone: false
 })
 export class TableComponent implements OnChanges {

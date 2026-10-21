@@ -36,6 +36,6 @@ describe("food tags", () => {
 
     const chip = fixture.nativeElement.querySelector('[data-testid="food-tag-unhealthy"]');
     expect(chip?.textContent).toBe("Unhealthy");
-    expect(chip?.className).toContain("food-tag--bad");
+    expect(chip?.className).toContain("text-destructive");
   });
 });

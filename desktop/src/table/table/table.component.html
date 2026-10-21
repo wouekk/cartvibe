@@ -43,7 +43,7 @@
     </thead>
     <tbody hlmTBody>
       @for (element of dataSource().data; track $index) {
-        <tr hlmTr class="data-row">
+        <tr hlmTr class="data-row hover:bg-muted">
           @for (id of displayedColumns(); track id) {
             @if (id === "select") {
               @if (selectionCheckboxes()) {
@@ -83,9 +83,9 @@
           }
         </tr>
         @if (expandedRowTemplate() && expandedElement === element) {
-          <tr hlmTr class="expanded-row">
+          <tr hlmTr class="expanded-row [&_td]:border-b-0">
             <td hlmTd [attr.colspan]="displayedColumns().length">
-              <div class="expanded-row-content animate-in fade-in-0 slide-in-from-top-1 duration-200">
+              <div class="overflow-hidden animate-in fade-in-0 slide-in-from-top-1 duration-200">
                 <ng-template
                   [ngTemplateOutlet]="expandedRowTemplate()"
                   [ngTemplateOutletContext]="{ element: element }"

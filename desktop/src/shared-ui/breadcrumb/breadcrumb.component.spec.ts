@@ -33,8 +33,8 @@ describe("BreadcrumbComponent", () => {
     ]);
     await fixture.whenStable();
 
-    const crumbs = fixture.nativeElement.querySelectorAll(".crumb");
-    const separators = fixture.nativeElement.querySelectorAll(".separator");
+    const crumbs = fixture.nativeElement.querySelectorAll("[data-testid=crumb]");
+    const separators = fixture.nativeElement.querySelectorAll("[data-testid=crumb-separator]");
     expect(crumbs.length).toBe(2);
     expect(separators.length).toBe(1);
   });
@@ -46,8 +46,8 @@ describe("BreadcrumbComponent", () => {
     ]);
     await fixture.whenStable();
 
-    const link = fixture.nativeElement.querySelector("a.crumb");
-    const current = fixture.nativeElement.querySelector(".crumb.current");
+    const link = fixture.nativeElement.querySelector("a[data-testid=crumb]");
+    const current = fixture.nativeElement.querySelector("[data-testid=crumb][aria-current=page]");
     expect(link?.textContent.trim()).toContain("Admin");
     expect(current?.getAttribute("aria-current")).toBe("page");
     expect(current?.textContent.trim()).toContain("Roles");
@@ -60,7 +60,7 @@ describe("BreadcrumbComponent", () => {
     ]);
     await fixture.whenStable();
 
-    const links = fixture.nativeElement.querySelectorAll("a.crumb");
+    const links = fixture.nativeElement.querySelectorAll("a[data-testid=crumb]");
     expect(links.length).toBe(1);
     expect(links[0].textContent.trim()).toContain("Admin");
   });

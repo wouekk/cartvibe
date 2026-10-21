@@ -1,26 +1,28 @@
-<nav class="breadcrumb" [attr.aria-label]="'Breadcrumb' | t">
+<nav class="flex items-center gap-2 text-[13px] text-muted-foreground" [attr.aria-label]="'Breadcrumb' | t">
   @for (item of items(); track $index; let last = $last) {
     @if (item.routerLink && !last) {
-      <a class="crumb" [routerLink]="item.routerLink">
+      <a data-testid="crumb" class="inline-flex items-center gap-1 font-medium text-muted-foreground no-underline hover:text-foreground" [routerLink]="item.routerLink">
         @if (item.icon) {
-          <app-icon class="crumb-icon" [name]="item.icon"></app-icon>
+          <app-icon class="size-4 text-base leading-4" [name]="item.icon"></app-icon>
         }
         {{ item.label | t }}
       </a>
     } @else {
       <span
-        class="crumb"
-        [class.current]="last"
+        data-testid="crumb"
+        class="inline-flex items-center gap-1 font-medium text-muted-foreground"
+        [class.!font-semibold]="last"
+        [class.!text-foreground]="last"
         [attr.aria-current]="last ? 'page' : null"
       >
         @if (item.icon) {
-          <app-icon class="crumb-icon" [name]="item.icon"></app-icon>
+          <app-icon class="size-4 text-base leading-4" [name]="item.icon"></app-icon>
         }
         {{ item.label | t }}
       </span>
     }
     @if (!last) {
-      <app-icon class="separator" name="chevron_right"></app-icon>
+      <app-icon data-testid="crumb-separator" class="size-4 text-base leading-4 opacity-60" name="chevron_right"></app-icon>
     }
   }
 </nav>

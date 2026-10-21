@@ -31,8 +31,8 @@ import { familyRoleOptions, familyUserRole } from "../../utils/family-roles";
 
 @Component({
     selector: "app-group-member-form",
+  host: { class: "block max-h-[85vh] overflow-y-auto" },
     templateUrl: "./group-member-form.component.html",
-    styleUrls: ["./group-member-form.component.scss"],
     standalone: false
 })
 export class GroupMemberFormComponent implements OnInit {

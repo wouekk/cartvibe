@@ -33,8 +33,6 @@ export interface ItemData {
 @Component({
   selector: "app-share-list",
   templateUrl: "./share-list.component.html",
-  styleUrls: ["./share-list.component.scss"],
-  encapsulation: ViewEncapsulation.None,
   standalone: false
 })
 export class ShareListComponent implements OnInit, OnChanges {
