@@ -1,32 +1,19 @@
-import { animate, state, style, transition, trigger } from "@angular/animations";
 import { LiveAnnouncer } from "@angular/cdk/a11y";
 import { SelectionModel } from "@angular/cdk/collections";
-import { Component, Input, OnChanges, SimpleChanges, input, output, viewChild } from "@angular/core";
-import { MatPaginator, PageEvent } from "@angular/material/paginator";
-import { MatSort, Sort } from "@angular/material/sort";
-import { MatTableDataSource } from "@angular/material/table";
+import { Component, Input, OnChanges, SimpleChanges, input, output, signal } from "@angular/core";
 import { TableColumn } from "../table-column.interface";
+import { PageEvent, Sort, TableDataSource } from "../table-types";
 
 @Component({
   selector: "app-table",
   templateUrl: "./table.component.html",
   styleUrls: ["./table.component.scss"],
-  animations: [
-    trigger("detailExpand", [
-      state("collapsed,void", style({ height: "0px", minHeight: "0" })),
-      state("expanded", style({ height: "*" })),
-      transition("expanded <=> collapsed", animate("225ms cubic-bezier(0.4, 0.0, 0.2, 1)")),
-    ]),
-  ],
   standalone: false
 })
 export class TableComponent implements OnChanges {
-  public readonly sort = viewChild.required(MatSort);
-  public readonly paginator = viewChild.required(MatPaginator);
-
   public readonly columns = input<TableColumn[]>([]);
   public readonly displayedColumns = input<string[]>([]);
-  public readonly dataSource = input(new MatTableDataSource<any>([]));
+  public readonly dataSource = input(new TableDataSource<any>([]));
   public readonly pagination = input<boolean>(false);
   public readonly selectionCheckboxes = input<boolean>(false);
   public readonly page = input<number>(0);
@@ -39,6 +26,11 @@ export class TableComponent implements OnChanges {
   public readonly pageChange = output<PageEvent>();
 
   public defaultSort?: Sort;
+
+  /** The column the rows are sorted by and which way (the caller does the sorting; the table reports it). */
+  public readonly sortState = signal<Sort>({ active: "", direction: "" });
+
+  public readonly pageSizeOptions = [5, 15, 25, 50, 100];
 
   public selection = new SelectionModel<any>(true, []);
 
@@ -57,11 +49,8 @@ export class TableComponent implements OnChanges {
           active: column.matColumnDef,
           direction: column.defaultSortDirection ?? "desc",
         };
-        this.sort().sort({
-          id: column.matColumnDef,
-          start: column.defaultSortDirection as any,
-          disableClear: true,
-        });
+        this.sortState.set({ ...this.defaultSort });
+        this.sorted.emit({ ...this.defaultSort });
       } else {
         this.defaultSort = {
           active: "",
@@ -133,12 +122,39 @@ export class TableComponent implements OnChanges {
     this.selection.select(...this.dataSource().data);
   }
 
-  /** Announce the change in sort state for assistive technology. */
-  announceSortChange(sortState: Sort) {
-    // This example uses English messages. If your application supports
-    // multiple language, you would internationalize these strings.
-    // Furthermore, you can customize the message to add additional
-    // details about the values being sorted.
+  /** The column definition behind a displayed column id. */
+  public columnFor(id: string): TableColumn | undefined {
+    return this.columns().find((column) => column.matColumnDef === id);
+  }
+
+  public ariaSort(column: TableColumn): string | null {
+    const state = this.sortState();
+    if (!column.sortable || state.active !== column.matColumnDef || !state.direction) {
+      return column.sortable ? "none" : null;
+    }
+
+    return state.direction === "asc" ? "ascending" : "descending";
+  }
+
+  /** A header was clicked: ascending, then descending, then (unless it is the default sort) unsorted. */
+  public toggleSort(column: TableColumn): void {
+    if (!column.sortable) {
+      return;
+    }
+
+    const state = this.sortState();
+    const keepSorted = !!column.defaultSortDirection;
+    let direction: Sort["direction"] = "asc";
+    if (state.active === column.matColumnDef) {
+      direction = state.direction === "asc" ? "desc" : state.direction === "desc" && !keepSorted ? "" : "asc";
+    }
+
+    this.announceSortChange({ active: direction ? column.matColumnDef : "", direction });
+  }
+
+  /** Announce the change in sort state for assistive technology, and tell the owner. */
+  public announceSortChange(sortState: Sort) {
+    this.sortState.set(sortState);
     if (sortState.direction) {
       this._liveAnnouncer.announce(`Sorted ${sortState.direction}ending`);
     } else {
@@ -151,6 +167,31 @@ export class TableComponent implements OnChanges {
   public pageChanged(pageEvent: PageEvent): void {
     this.selection.clear();
     this.pageChange.emit(pageEvent);
+  }
+
+  public lastPage(): number {
+    const total = this.length || this.dataSource().data.length;
+    return Math.max(0, Math.ceil(total / (this.pageSize() || 1)) - 1);
+  }
+
+  /** "1 – 10 of 42", like the paginator it replaced. */
+  public rangeLabel(): string {
+    const total = this.length || this.dataSource().data.length;
+    if (total === 0) {
+      return "0 of 0";
+    }
+
+    const start = this.page() * this.pageSize();
+    return `${start + 1} – ${Math.min(start + this.pageSize(), total)} of ${total}`;
+  }
+
+  public goTo(pageIndex: number): void {
+    const target = Math.min(Math.max(0, pageIndex), this.lastPage());
+    this.pageChanged({ pageIndex: target, previousPageIndex: this.page(), pageSize: this.pageSize(), length: this.length });
+  }
+
+  public pageSizeChanged(value: string | number): void {
+    this.pageChanged({ pageIndex: 0, previousPageIndex: this.page(), pageSize: Number(value), length: this.length });
   }
 
   public expanderClicked(event: MouseEvent, row: any): void {

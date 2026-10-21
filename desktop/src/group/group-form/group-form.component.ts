@@ -2,8 +2,7 @@ import {AfterViewInit, Component, OnInit, Signal, signal, TemplateRef, inject, i
 import {toSignal} from "@angular/core/rxjs-interop";
 import {FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import { AppDialog } from "../../dialog/app-dialog";
-import {Sort} from "@angular/material/sort";
-import {MatTableDataSource} from "@angular/material/table";
+import { Sort, TableDataSource } from "../../table/table-types";
 import {ActivatedRoute, Router} from "@angular/router";
 import {UntilDestroy, untilDestroyed} from "@ngneat/until-destroy";
 import {Store} from "@ngxs/store";
@@ -80,7 +79,7 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
   public canUpdateGroupMembers: Signal<boolean> = signal(true);
   public canDeleteGroupMembers: Signal<boolean> = signal(true);
 
-  public dataSource = signal(new MatTableDataSource<GroupMember>([]));
+  public dataSource = signal(new TableDataSource<GroupMember>([]));
 
   constructor(
     private formBuilder: FormBuilder,
@@ -128,7 +127,7 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
       .pipe(
         untilDestroyed(this),
         tap((v) => {
-          this.dataSource.set(new MatTableDataSource<GroupMember>(Array.from(v)));
+          this.dataSource.set(new TableDataSource<GroupMember>(Array.from(v)));
         })
       )
       .subscribe();
@@ -163,17 +162,16 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
   }
 
   private setDataSource(): void {
-    const ds = new MatTableDataSource<GroupMember>(
+    const ds = new TableDataSource<GroupMember>(
       this.groupMembers.value ?? []
     );
-    ds.sort = this.table().sort();
     this.dataSource.set(ds);
   }
 
   public sortName(sortState: Sort): void {
     if (sortState.active === "name") {
       if (sortState.direction === "") {
-        this.dataSource.set(new MatTableDataSource<GroupMember>(this.groupMembers.value));
+        this.dataSource.set(new TableDataSource<GroupMember>(this.groupMembers.value));
         return;
       }
 
@@ -183,7 +181,7 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
         "userId"
       );
 
-      this.dataSource.set(new MatTableDataSource<GroupMember>(newData));
+      this.dataSource.set(new TableDataSource<GroupMember>(newData));
     }
   }
 

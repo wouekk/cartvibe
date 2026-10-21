@@ -11,7 +11,6 @@ import { AppIconComponent } from "./icon/icon.component";
 import { MatListModule } from "@angular/material/list";
 import { MatMenuModule } from "@angular/material/menu";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
-import { MatTableModule } from "@angular/material/table";
 import { MatTabsModule } from "@angular/material/tabs";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { RouterModule } from "@angular/router";
@@ -135,7 +134,6 @@ import { ImageCanvasComponent } from './image-canvas/image-canvas.component';
     MatExpansionModule,
     AppIconComponent,
     MatListModule,
-    MatTableModule,
     MatTabsModule,
     ...HlmTooltipImports,
     PipesModule,

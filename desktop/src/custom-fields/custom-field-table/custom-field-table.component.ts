@@ -1,8 +1,6 @@
 import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
-import { PageEvent } from "@angular/material/paginator";
-import { Sort } from "@angular/material/sort";
-import { MatTableDataSource } from "@angular/material/table";
+import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
 import { Store } from "@ngxs/store";
 import { of, switchMap, take, tap } from "rxjs";
 import { CustomField, CustomFieldService, PagedDataDataInner, PagedRequestCommand, Permission } from "src/open-api";
@@ -36,7 +34,7 @@ export class CustomFieldTableComponent implements OnInit, AfterViewInit {
 
   public state = this.store.selectSignal(CustomFieldTableState.state);
 
-  public dataSource = signal(new MatTableDataSource<PagedDataDataInner>([]));
+  public dataSource = signal(new TableDataSource<PagedDataDataInner>([]));
 
   public displayedColumns: string[] = [];
 
@@ -136,7 +134,7 @@ export class CustomFieldTableComponent implements OnInit, AfterViewInit {
       .pipe(
         take(1),
         tap((pagedData) => {
-          this.dataSource.set(new MatTableDataSource<PagedDataDataInner>(
+          this.dataSource.set(new TableDataSource<PagedDataDataInner>(
             pagedData.data
           ));
           this.totalCount.set(pagedData.totalCount);

@@ -3,9 +3,7 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppDialog } from "../../dialog/app-dialog";
-import { PageEvent } from "@angular/material/paginator";
-import { Sort } from "@angular/material/sort";
-import { MatTableDataSource } from "@angular/material/table";
+import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
 import { NgxsModule } from "@ngxs/store";
 import { config, of, throwError } from "rxjs";
 import { TableModule } from "src/table/table.module";
@@ -100,7 +98,7 @@ describe("UserListComponent", () => {
 
     // A user other than the (undefined) current user, so the delete guard passes.
     component.dataSource.set(
-      new MatTableDataSource<User>([{ id: 5, username: "victim" } as User])
+      new TableDataSource<User>([{ id: 5, username: "victim" } as User])
     );
 
     jest

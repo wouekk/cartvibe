@@ -1,9 +1,7 @@
 import { CurrencyPipe, DatePipe } from "@angular/common";
 import { AfterViewInit, Component, computed, inject, OnInit, signal, TemplateRef, ViewEncapsulation, viewChild } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
-import { PageEvent } from "@angular/material/paginator";
-import { Sort } from "@angular/material/sort";
-import { MatTableDataSource } from "@angular/material/table";
+import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
 import { ActivatedRoute, Router } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
@@ -294,7 +292,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
   public groupId: string = "0";
 
-  public dataSource = signal(new MatTableDataSource<PagedDataDataInner>([]));
+  public dataSource = signal(new TableDataSource<PagedDataDataInner>([]));
 
   public displayedColumns = signal<string[]>([]);
 
@@ -420,7 +418,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
       .pipe(
         take(1),
         tap((pagedData) => {
-          this.dataSource.set(new MatTableDataSource<PagedDataDataInner>(pagedData.data));
+          this.dataSource.set(new TableDataSource<PagedDataDataInner>(pagedData.data));
           this.totalCount.set(pagedData.totalCount);
           this.setColumns();
         })
@@ -780,7 +778,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
           )
         ),
         tap((pagedData) => {
-          this.dataSource.set(new MatTableDataSource(pagedData.data));
+          this.dataSource.set(new TableDataSource(pagedData.data));
           this.totalCount.set(pagedData.totalCount);
         })
       )
@@ -843,7 +841,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
               .pipe(
                 take(1),
                 tap(() => {
-                  this.dataSource.update(ds => new MatTableDataSource(ds.data.filter(
+                  this.dataSource.update(ds => new TableDataSource(ds.data.filter(
                     (r) => r.id !== row.id
                   )));
                   // The table row is patched out in place rather than refetched, so the
@@ -881,7 +879,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
               inTable.resolvedDate = updated.resolvedDate;
             }
           });
-          this.dataSource.set(new MatTableDataSource(newReceipts));
+          this.dataSource.set(new TableDataSource(newReceipts));
           // The change moves the receipt between the summary's status rows.
           this.summaryRequested.next();
           this.snackbarService.success("Marked as done");
@@ -979,7 +977,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
                         receiptInTable.resolvedDate = r.resolvedDate;
                       }
                     });
-                    this.dataSource.set(new MatTableDataSource(newReceipts));
+                    this.dataSource.set(new TableDataSource(newReceipts));
                     // Same in-place patch, and this one moves receipts between the
                     // summary's status rows — the case that looks like it needs no
                     // refresh and needs it most.

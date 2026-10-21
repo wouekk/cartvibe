@@ -1,9 +1,7 @@
 import { AfterViewInit, Component, computed, Inject, OnInit, signal, TemplateRef, input, viewChild } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
-import { PageEvent } from "@angular/material/paginator";
-import { Sort } from "@angular/material/sort";
-import { MatTableDataSource } from "@angular/material/table";
+import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
 import { catchError, EMPTY, Subject, switchMap, take, tap } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "../../constants/dialog.constant";
 import { AssociatedEntityType, GetSystemTaskCommand, SystemTask, SystemTaskPagedRequestFilter, SystemTaskService, SystemTaskType } from "../../open-api";
@@ -76,7 +74,7 @@ export class TaskTableComponent implements OnInit, AfterViewInit {
 
   public columns: TableColumn[] = [];
 
-  public dataSource = signal(new MatTableDataSource<SystemTask>([]));
+  public dataSource = signal(new TableDataSource<SystemTask>([]));
 
   public totalCount = signal(0);
 
@@ -207,7 +205,7 @@ export class TaskTableComponent implements OnInit, AfterViewInit {
             .pipe(catchError(() => EMPTY));
         }),
         tap((pagedData) => {
-          this.dataSource.set(new MatTableDataSource<SystemTask>((pagedData.data as any[]) as SystemTask[]));
+          this.dataSource.set(new TableDataSource<SystemTask>((pagedData.data as any[]) as SystemTask[]));
           this.totalCount.set(pagedData.totalCount);
         }),
         takeUntilDestroyed(),

@@ -1,4 +1,4 @@
-import { SortDirection } from "@angular/material/sort";
+import { SortDirection } from "../table/table-types";
 
 export class SetPage {
   static readonly type = "[CustomFieldTableComponent] Set Page";

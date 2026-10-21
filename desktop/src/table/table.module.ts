@@ -1,24 +1,24 @@
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
-import { MatCheckboxModule } from "@angular/material/checkbox";
-import { AppIconComponent } from "../shared-ui/icon/icon.component";
-import { MatPaginatorModule } from "@angular/material/paginator";
-import { MatSortModule } from "@angular/material/sort";
-import { MatTableModule } from "@angular/material/table";
+import { HlmButton } from "@spartan-ng/helm/button";
+import { HlmCheckboxImports } from "@spartan-ng/helm/checkbox";
+import { HlmInputImports } from "@spartan-ng/helm/input";
+import { HlmTableImports } from "@spartan-ng/helm/table";
 import { ButtonModule } from "../button";
+import { AppIconComponent } from "../shared-ui/icon/icon.component";
+import { RowExpandablePipe } from "./table/row-expandable.pipe";
 import { TableComponent } from "./table/table.component";
-import { RowExpandablePipe } from './table/row-expandable.pipe';
 
 @NgModule({
   declarations: [TableComponent, RowExpandablePipe],
   imports: [
     CommonModule,
-    MatTableModule,
-    MatSortModule,
-    MatPaginatorModule,
-    MatCheckboxModule,
     AppIconComponent,
     ButtonModule,
+    HlmButton,
+    ...HlmCheckboxImports,
+    ...HlmInputImports,
+    ...HlmTableImports,
   ],
   exports: [TableComponent],
 })

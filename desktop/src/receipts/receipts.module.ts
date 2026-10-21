@@ -12,7 +12,6 @@ import { MatMenuModule } from "@angular/material/menu";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { MatTableModule } from "@angular/material/table";
 import { AutocompleteModule } from "src/autocomplete/autocomplete.module";
 import { AvatarModule } from "src/avatar";
 import { DatepickerModule } from "src/datepicker/datepicker.module";
@@ -91,7 +90,6 @@ import { UserTotalWithPercentagePipe } from "./user-total-with-percentage.pipe";
     MatMenuModule,
     ...HlmDropdownMenuImports,
     MatProgressSpinnerModule,
-    MatTableModule,
     ...HlmTooltipImports,
     PipesModule,
     RadioGroupModule,

@@ -4,7 +4,6 @@ import { ReactiveFormsModule } from "@angular/forms";
 import { MatCardModule } from "@angular/material/card";
 
 import { MatListModule } from "@angular/material/list";
-import { MatTableModule } from "@angular/material/table";
 import { CheckboxModule } from "src/checkbox/checkbox.module";
 import { PipesModule } from "src/pipes/pipes.module";
 import { SelectModule } from "src/select/select.module";
@@ -48,7 +47,6 @@ import { ReceiptProductBackfillComponent } from "../standalone/components/receip
     InputModule,
     MatCardModule,
     MatListModule,
-    MatTableModule,
     PipesModule,
     ReactiveFormsModule,
     SelectModule,

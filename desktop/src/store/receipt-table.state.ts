@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { SortDirection } from "@angular/material/sort";
+import { SortDirection } from "../table/table-types";
 import { Action, Selector, State, StateContext } from "@ngxs/store";
 import { DEFAULT_QUICK_DATE_FIELD, ReceiptDateFilterFieldKey } from "../constants/receipt-filter-fields.constant";
 import { ReceiptTableInterface } from "../interfaces";
