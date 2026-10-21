@@ -19,6 +19,10 @@ import { Observable }                                        from 'rxjs';
 // @ts-ignore
 import { CheckReceiptProcessingSettingsConnectivityCommand } from '../model/checkReceiptProcessingSettingsConnectivityCommand';
 // @ts-ignore
+import { GeminiModel } from '../model/geminiModel';
+// @ts-ignore
+import { GeminiModelsCommand } from '../model/geminiModelsCommand';
+// @ts-ignore
 import { InternalErrorResponse } from '../model/internalErrorResponse';
 // @ts-ignore
 import { PagedData } from '../model/pagedData';
@@ -345,6 +349,94 @@ export class ReceiptProcessingSettingsService {
         return this.httpClient.request<any>('delete', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
+                responseType: <any>responseType_,
+                withCredentials: this.configuration.withCredentials,
+                headers: localVarHeaders,
+                observe: observe,
+                transferCache: localVarTransferCache,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * List the Gemini models an API key can use
+     * Asks Google which content-generating models the key may call, newest first. The key is only forwarded, never stored.
+     * @param geminiModelsCommand 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getGeminiModels(geminiModelsCommand: GeminiModelsCommand, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<GeminiModel>>;
+    public getGeminiModels(geminiModelsCommand: GeminiModelsCommand, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<GeminiModel>>>;
+    public getGeminiModels(geminiModelsCommand: GeminiModelsCommand, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<GeminiModel>>>;
+    public getGeminiModels(geminiModelsCommand: GeminiModelsCommand, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (geminiModelsCommand === null || geminiModelsCommand === undefined) {
+            throw new Error('Required parameter geminiModelsCommand was null or undefined when calling getGeminiModels.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        let localVarCredential: string | undefined;
+        // authentication (apiKeyAuth) required
+        localVarCredential = this.configuration.lookupCredential('apiKeyAuth');
+        if (localVarCredential) {
+            localVarHeaders = localVarHeaders.set('Authorization', localVarCredential);
+        }
+
+        // authentication (bearerAuth) required
+        localVarCredential = this.configuration.lookupCredential('bearerAuth');
+        if (localVarCredential) {
+            localVarHeaders = localVarHeaders.set('Authorization', 'Bearer ' + localVarCredential);
+        }
+
+        let localVarHttpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (localVarHttpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            localVarHttpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        let localVarHttpContext: HttpContext | undefined = options && options.context;
+        if (localVarHttpContext === undefined) {
+            localVarHttpContext = new HttpContext();
+        }
+
+        let localVarTransferCache: boolean | undefined = options && options.transferCache;
+        if (localVarTransferCache === undefined) {
+            localVarTransferCache = true;
+        }
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/receiptProcessingSettings/geminiModels`;
+        return this.httpClient.request<Array<GeminiModel>>('post', `${this.configuration.basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: geminiModelsCommand,
                 responseType: <any>responseType_,
                 withCredentials: this.configuration.withCredentials,
                 headers: localVarHeaders,

@@ -8,8 +8,11 @@ import 'package:built_value/json_object.dart';
 import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 
+import 'package:built_collection/built_collection.dart';
 import 'package:openapi/src/api_util.dart';
 import 'package:openapi/src/model/check_receipt_processing_settings_connectivity_command.dart';
+import 'package:openapi/src/model/gemini_model.dart';
+import 'package:openapi/src/model/gemini_models_command.dart';
 import 'package:openapi/src/model/internal_error_response.dart';
 import 'package:openapi/src/model/paged_data.dart';
 import 'package:openapi/src/model/paged_request_command.dart';
@@ -293,6 +296,112 @@ class ReceiptProcessingSettingsApi {
     );
 
     return _response;
+  }
+
+  /// List the Gemini models an API key can use
+  /// Asks Google which content-generating models the key may call, newest first. The key is only forwarded, never stored.
+  ///
+  /// Parameters:
+  /// * [geminiModelsCommand] 
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [BuiltList<GeminiModel>] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<BuiltList<GeminiModel>>> getGeminiModels({ 
+    required GeminiModelsCommand geminiModelsCommand,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/receiptProcessingSettings/geminiModels';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'apiKeyAuth',
+            'keyName': 'Authorization',
+            'where': 'header',
+          },{
+            'type': 'http',
+            'scheme': 'bearer',
+            'name': 'bearerAuth',
+          },
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      const _type = FullType(GeminiModelsCommand);
+      _bodyData = _serializers.serialize(geminiModelsCommand, specifiedType: _type);
+
+    } catch(error, stackTrace) {
+      throw DioException(
+         requestOptions: _options.compose(
+          _dio.options,
+          _path,
+        ),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    BuiltList<GeminiModel>? _responseData;
+
+    try {
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(BuiltList, [FullType(GeminiModel)]),
+      ) as BuiltList<GeminiModel>;
+
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<BuiltList<GeminiModel>>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
   }
 
   /// Gets paged processing settings

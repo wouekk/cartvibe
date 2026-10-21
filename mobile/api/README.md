@@ -152,6 +152,7 @@ Class | Method | HTTP request | Description
 [*ReceiptProcessingSettingsApi*](doc/ReceiptProcessingSettingsApi.md) | [**checkReceiptProcessingSettingsConnectivity**](doc/ReceiptProcessingSettingsApi.md#checkreceiptprocessingsettingsconnectivity) | **POST** /receiptProcessingSettings/checkConnectivity | Check receipt processing settings connectivity
 [*ReceiptProcessingSettingsApi*](doc/ReceiptProcessingSettingsApi.md) | [**createReceiptProcessingSettings**](doc/ReceiptProcessingSettingsApi.md#createreceiptprocessingsettings) | **POST** /receiptProcessingSettings | Create receipt processing settings
 [*ReceiptProcessingSettingsApi*](doc/ReceiptProcessingSettingsApi.md) | [**deleteReceiptProcessingSettingsById**](doc/ReceiptProcessingSettingsApi.md#deletereceiptprocessingsettingsbyid) | **DELETE** /receiptProcessingSettings/{id} | Delete receipt processing settings by id
+[*ReceiptProcessingSettingsApi*](doc/ReceiptProcessingSettingsApi.md) | [**getGeminiModels**](doc/ReceiptProcessingSettingsApi.md#getgeminimodels) | **POST** /receiptProcessingSettings/geminiModels | List the Gemini models an API key can use
 [*ReceiptProcessingSettingsApi*](doc/ReceiptProcessingSettingsApi.md) | [**getPagedProcessingSettings**](doc/ReceiptProcessingSettingsApi.md#getpagedprocessingsettings) | **POST** /receiptProcessingSettings/getPagedProcessingSettings | Gets paged processing settings
 [*ReceiptProcessingSettingsApi*](doc/ReceiptProcessingSettingsApi.md) | [**getReceiptProcessingSettingsById**](doc/ReceiptProcessingSettingsApi.md#getreceiptprocessingsettingsbyid) | **GET** /receiptProcessingSettings/{id} | Get receipt processing settings by id
 [*ReceiptProcessingSettingsApi*](doc/ReceiptProcessingSettingsApi.md) | [**updateReceiptProcessingSettingsById**](doc/ReceiptProcessingSettingsApi.md#updatereceiptprocessingsettingsbyid) | **PUT** /receiptProcessingSettings/{id} | Update receipt processing settings by id
@@ -278,6 +279,8 @@ Class | Method | HTTP request | Description
  - [FileData](doc/FileData.md)
  - [FileDataView](doc/FileDataView.md)
  - [FilterOperation](doc/FilterOperation.md)
+ - [GeminiModel](doc/GeminiModel.md)
+ - [GeminiModelsCommand](doc/GeminiModelsCommand.md)
  - [GetNewRefreshToken200Response](doc/GetNewRefreshToken200Response.md)
  - [GetSystemTaskCommand](doc/GetSystemTaskCommand.md)
  - [Group](doc/Group.md)

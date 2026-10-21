@@ -12,6 +12,7 @@ Method | HTTP request | Description
 [**checkReceiptProcessingSettingsConnectivity**](ReceiptProcessingSettingsApi.md#checkreceiptprocessingsettingsconnectivity) | **POST** /receiptProcessingSettings/checkConnectivity | Check receipt processing settings connectivity
 [**createReceiptProcessingSettings**](ReceiptProcessingSettingsApi.md#createreceiptprocessingsettings) | **POST** /receiptProcessingSettings | Create receipt processing settings
 [**deleteReceiptProcessingSettingsById**](ReceiptProcessingSettingsApi.md#deletereceiptprocessingsettingsbyid) | **DELETE** /receiptProcessingSettings/{id} | Delete receipt processing settings by id
+[**getGeminiModels**](ReceiptProcessingSettingsApi.md#getgeminimodels) | **POST** /receiptProcessingSettings/geminiModels | List the Gemini models an API key can use
 [**getPagedProcessingSettings**](ReceiptProcessingSettingsApi.md#getpagedprocessingsettings) | **POST** /receiptProcessingSettings/getPagedProcessingSettings | Gets paged processing settings
 [**getReceiptProcessingSettingsById**](ReceiptProcessingSettingsApi.md#getreceiptprocessingsettingsbyid) | **GET** /receiptProcessingSettings/{id} | Get receipt processing settings by id
 [**updateReceiptProcessingSettingsById**](ReceiptProcessingSettingsApi.md#updatereceiptprocessingsettingsbyid) | **PUT** /receiptProcessingSettings/{id} | Update receipt processing settings by id
@@ -151,6 +152,53 @@ void (empty response body)
 ### HTTP request headers
 
  - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getGeminiModels**
+> BuiltList<GeminiModel> getGeminiModels(geminiModelsCommand)
+
+List the Gemini models an API key can use
+
+Asks Google which content-generating models the key may call, newest first. The key is only forwarded, never stored.
+
+### Example
+```dart
+import 'package:openapi/api.dart';
+// TODO Configure API key authorization: apiKeyAuth
+//defaultApiClient.getAuthentication<ApiKeyAuth>('apiKeyAuth').apiKey = 'YOUR_API_KEY';
+// uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//defaultApiClient.getAuthentication<ApiKeyAuth>('apiKeyAuth').apiKeyPrefix = 'Bearer';
+
+final api = Openapi().getReceiptProcessingSettingsApi();
+final GeminiModelsCommand geminiModelsCommand = ; // GeminiModelsCommand | 
+
+try {
+    final response = api.getGeminiModels(geminiModelsCommand);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling ReceiptProcessingSettingsApi->getGeminiModels: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **geminiModelsCommand** | [**GeminiModelsCommand**](GeminiModelsCommand.md)|  | 
+
+### Return type
+
+[**BuiltList&lt;GeminiModel&gt;**](GeminiModel.md)
+
+### Authorization
+
+[apiKeyAuth](../README.md#apiKeyAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
  - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
