@@ -73,9 +73,12 @@
   },
   "overrides": {
     "@babel/core": "^7.29.7",
+    "@modelcontextprotocol/sdk": "^1.32.1",
     "esbuild": "^0.28.1",
+    "hono": "^4.13.13",
     "js-yaml": "^4.1.1",
     "ts-morph": "^28.0.0",
-    "undici": "^7.29.1"
+    "undici": "^7.29.1",
+    "vite": "^7.3.7"
   }
 }
