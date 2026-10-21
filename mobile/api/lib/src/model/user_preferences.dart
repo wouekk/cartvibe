@@ -28,7 +28,7 @@ part 'user_preferences.g.dart';
 /// * [monthlySpendingGoal] - The most this person wants to spend in a month, as a decimal string; null or 0 means no goal
 /// * [displayCurrency] - The ISO code of the currency this person sees the Dashboard in; empty means the household currency
 /// * [displayCurrencyRate] - How many units of displayCurrency one unit of the household currency is worth, as a decimal string; only the Dashboard converts
-/// * [language] - The interface language this person chose (en or pl); empty follows the browser
+/// * [language] - The interface language this person chose (a language code such as en or pl); empty follows the browser
 /// * [userShortcuts] 
 @BuiltValue()
 abstract class UserPreferences implements BaseModel, Built<UserPreferences, UserPreferencesBuilder> {
@@ -48,7 +48,7 @@ abstract class UserPreferences implements BaseModel, Built<UserPreferences, User
   @BuiltValueField(wireName: r'userShortcuts')
   BuiltList<UserShortcut>? get userShortcuts;
 
-  /// The interface language this person chose (en or pl); empty follows the browser
+  /// The interface language this person chose (a language code such as en or pl); empty follows the browser
   @BuiltValueField(wireName: r'language')
   String? get language;
 

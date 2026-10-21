@@ -21,7 +21,7 @@ Name | Type | Description | Notes
 **monthlySpendingGoal** | **String** | The most this person wants to spend in a month, as a decimal string; null or 0 means no goal | [optional] 
 **displayCurrency** | **String** | The ISO code of the currency this person sees the Dashboard in; empty means the household currency | [optional] [default to '']
 **displayCurrencyRate** | **String** | How many units of displayCurrency one unit of the household currency is worth, as a decimal string; only the Dashboard converts | [optional] 
-**language** | **String** | The interface language this person chose (en or pl); empty follows the browser | [optional] [default to '']
+**language** | **String** | The interface language this person chose (a language code such as en or pl); empty follows the browser | [optional] [default to '']
 **userShortcuts** | [**BuiltList&lt;UserShortcut&gt;**](UserShortcut.md) |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
