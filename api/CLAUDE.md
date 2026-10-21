@@ -4211,3 +4211,9 @@ The receipts `shop_name` sort is `COALESCE(NULLIF(receipts.shop_name,''), receip
 - **Starter reports:** `StarterReportTemplates` (Monthly spending by category, Spending by shop, Month by month; year to date,
   the Household group) are created once by `SeedStarterReportTemplates`, recorded in the data-migrations ledger so a deleted one
   stays deleted. Reports gained a `shop` field (shop read from the receipt, else its name).
+
+## Dashboard currency (fork)
+
+`UserPrefernces.DisplayCurrency` (3-letter code, trimmed and upper-cased on save, "" = off) and `DisplayCurrencyRate`
+(`*decimal`, a string on the wire) are additive preference fields. The API only stores them: the desktop converts the
+Dashboard's figures in the browser; stored amounts, exports and every other screen stay in the household currency.

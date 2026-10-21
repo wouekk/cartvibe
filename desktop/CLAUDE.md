@@ -2971,3 +2971,9 @@ Angular Material, Bootstrap and the Tailwind CDN are gone (`docs/material-remova
   `<app-shop-monogram>`; numbers use `tabular-nums`.
 - **Tests under zoneless:** a view is only re-checked when something marks it; a spec that mutates a plain field should call
   `fixture.changeDetectorRef.markForCheck()` before `detectChanges()`. jsdom has no `ResizeObserver` (stubbed in `setup-jest.ts`).
+
+### Dashboard currency and responsive rules
+- `DisplayCurrencyService` / `displayCurrency` pipe / `<app-money [display]="true">` convert by the user's preference rate; only the
+  Dashboard uses them (the detail dialog lists real receipts and keeps the household currency, exports too).
+- Phones: no horizontal overflow at 360 px. Flex children that hold text need `min-w-0`; headings use `break-words`; page padding is
+  `p-4 sm:p-6`; inputs are 16 px on small screens (no iOS zoom); `dvh` and safe-area insets are in the base layer of `tailwind.css`.
