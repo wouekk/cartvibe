@@ -27,6 +27,11 @@ services:
       # include it, so it runs as the second service below.
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      # Optional: the API runs as this user and group, which must be able to write the three folders below. On a
+      # Synology the folder permissions decide, so use the DSM user that owns them (its id: `id <user>` over SSH).
+      # Without them the image's own user is tried, and the API falls back to root if the folders refuse it.
+      # - PUID=1026
+      # - PGID=100
     volumes:
       - /volume2/docker/cartvibe/sqlite:/app/cartvibe-api/sqlite
       - /volume2/docker/cartvibe/data:/app/cartvibe-api/data
