@@ -317,6 +317,10 @@ select {
   .rw-card .rw-section__footer {
     @apply border-t-0 pt-0;
   }
+  /* A table inside a card is part of the card: no second border, radius or shadow of its own. */
+  .rw-card app-table {
+    @apply rounded-none! border-0! shadow-none!;
+  }
   /* A read-only block that keeps the muted step (previews). */
   .rw-inset {
     @apply rounded-lg border border-border/70 bg-muted/30 p-4;

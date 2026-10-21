@@ -76,8 +76,7 @@ neighbours is not done.
 - **Consistency over novelty:** the same thing looks the same everywhere (one period picker, one section/panel pattern for
   settings cards, one tab strip). Fix a pattern once, globally, instead of per page. Tab strips and scroll containers never
   show stray scrollbars.
-- **Decided direction, being implemented (see `docs/ui-issues.md`):** a shared `rw-section` panel (inset muted surface,
-  hairline border, overline title, optional description, footer actions) for the blocks inside settings cards; a single
+- **Decided direction (see `docs/ui-issues.md`; settings layout in `desktop/CLAUDE.md`):** settings pages share `app-settings-page` / `-section` / `-tabs` / `-entity-list` (hairline cards, flat rows, Save in the card footer on the right); a single
   period picker with boxed From/To fields; a shared horizontal-scroll utility with no vertical scrollbar; click-to-focus on
   the donut and its legend instead of checkbox chips; real shop logos (static files, white/black outline per theme).
 - **Before calling UI work done:** build, run Jest, and look at screenshots at desktop and phone widths in White and Black

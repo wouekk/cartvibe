@@ -338,4 +338,8 @@ export const PL_FEEDBACK: Record<string, string> = {
   "Uploading": "Wysyłanie",
   "Uploading {percent}%": "Wysyłanie {percent}%",
   "Saving…": "Zapisywanie…",
+  // Settings pages
+  "Your profile, preferences and appearance on this device.": "Twój profil, preferencje i wygląd na tym urządzeniu.",
+  "Its members, details and receipt settings.": "Jego członkowie, szczegóły i ustawienia paragonów.",
+  "The newest lines of the app log, server-wide. The first place to look when someone reports an error.": "Najnowsze wiersze dziennika aplikacji, dla całego serwera. Pierwsze miejsce do sprawdzenia, gdy ktoś zgłasza błąd.",
 };

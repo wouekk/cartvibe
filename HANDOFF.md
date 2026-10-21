@@ -2,7 +2,7 @@
 
 ## Status (2026-10-21, Windows PC, Claude Code desktop app)
 
-**IN PROGRESS (2026-10-21, branch `feature/settings-layout`, cut from `feature/image-hardening`, nothing committed yet):** settings layout
+**Settings layout (2026-10-21, branch `feature/settings-layout`, cut from `feature/image-hardening`; screenshots checked in both themes, Jest 2087/2087, `ng build` OK, `:preview` published from it when listed below):** settings layout
 unification, plan in `C:/Users/Marcin/.claude/plans/pasted-content-id-ff27-perform-a-cheeky-nebula.md` (outside the repo). Decisions by the user: topics inside a
 card are flat hairline rows (no inset box), Save sits in a card footer on the right (status text left).
 - Done (Jest for the touched folders green, `ng build` OK): CSS `rw-card*` / `rw-inset` in `src/tailwind.css`; four primitives in
@@ -10,7 +10,7 @@ card are flat hairline rows (no inset box), Save sits in a card footer on the ri
   `app-filter-bar` and `app-tabs` render through `app-settings-tabs`; `app-form` has a `settingsCard` input; converted: System Settings
   (page, form cards, system tasks card, logs), AI page + backup card, User Settings (profile, preferences, theme, API keys, danger zone),
   the five Manage lists, household detail shell (`group-tabs`).
-- Left: look at screenshots (White/Black, 1440 and 390 px, `C:/Users/Marcin/tools/devstack/shot.cjs`) and fix what looks off (table card inside
+- (done, kept for the record) look at screenshots (White/Black, 1440 and 390 px, `C:/Users/Marcin/tools/devstack/shot.cjs`) and fix what looks off (table card inside
   `rw-card`, exchange-rates section, footers); run the full `npm run test:ci`; docs (`desktop/CLAUDE.md` "settings card standard" and
   AGENTS.md "Decided direction" still describe the inset `rw-section`); commit, push, wait for CI, then
   `gh workflow run publish-image.yml --repo wouekk/cartvibe --ref feature/settings-layout` for `:preview`. No merge to `main`.
