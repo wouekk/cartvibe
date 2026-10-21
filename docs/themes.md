@@ -31,3 +31,15 @@ That is all: the theme appears in the Theme tab, is remembered per browser, is a
   operating system's `prefers-color-scheme`. Update its two palettes if the identity changes.
 - Test a new theme by opening each main page with `data-theme="<key>"` set (Playwright screenshots in light and dark are
   how the existing ones were checked, see `HANDOFF.md`).
+
+## Compatibility with spartan's theming guide
+
+The token names, the OKLCH values and the `@theme inline` mapping follow https://spartan.ng/documentation/theming, so a theme
+copied from spartan or shadcn/ui works as it is:
+
+- Paste its `:root { ... }` block into `themes/light.css` and its `.dark { ... }` block into `themes/dark.css` (that file already
+  answers to `.dark` as well as `[data-theme="dark"]`). Keep the `--brand-*` tokens, which spartan does not know about.
+- A **custom colour** is the documented three-step: define `--warning` / `--warning-foreground` in every theme, map them in the
+  `@theme inline` block of `src/tailwind.css` (`--color-warning: var(--warning)`), then use `bg-warning text-warning-foreground`.
+  `warning` ships as the worked example.
+- `--radius` lives in `src/skin.css`; the radius scale in `@theme inline` derives from it.

@@ -4,6 +4,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { toObservable, toSignal } from "@angular/core/rxjs-interop";
 import { ActivatedRoute } from "@angular/router";
 import { Store } from "@ngxs/store";
+import type { ApexOptions } from "apexcharts";
 import { catchError, firstValueFrom, map, of, switchMap, take, tap } from "rxjs";
 import {
   FilterOperation,
@@ -27,6 +28,7 @@ import { todayInZone } from "../../utils/app-time-zone";
 import { hasAll } from "../../utils/permission.utils";
 import { downloadFile } from "../../utils/file";
 import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
+import { ChartColors, toRgb } from "../../shared-ui/apex-chart/chart-colors";
 import {
   buildMonthlyCsv,
   buildPrintHtml,
@@ -41,7 +43,6 @@ import {
   buildDonutSegments,
   buildTrendBars,
   describeChangeAgainst,
-  DONUT_RADIUS,
   DonutSegment,
   goalLineFraction,
   parseInlineGoalInput,
@@ -123,17 +124,6 @@ export class OverviewPageComponent {
   public readonly goalFraction = computed(() =>
     this.goalMode() ? goalLineFraction(this.chartBars().map((bar) => bar.total), this.goal()) : 0
   );
-
-  /** A goal-scaled bar's height: its share of the chart, under the room the value label takes. */
-  public goalBarHeight(fraction: number | undefined): string {
-    return `calc((100% - 26px) * ${fraction ?? 0})`;
-  }
-
-  /** Where the goal line sits above the chart's baseline. */
-  public goalLineBottom(): string {
-    // 22px is the month name row under the plot; the bars use the plot minus the 26px the value label takes.
-    return `calc(22px + (100% - 48px) * ${this.goalFraction()})`;
-  }
 
   /** The goal line is left out when the goal is higher than the tallest month: it would not fit the chart. */
   public readonly showGoalLine = computed(() => this.goalFraction() > 0 && this.goalFraction() <= 1);
@@ -259,8 +249,6 @@ export class OverviewPageComponent {
   /** Unplanned tile (Phase 3 D1): what was bought that was not on the shopping list. */
   public readonly unplannedTotal = computed(() => Number(this.overview()?.unplannedTotal ?? 0));
 
-  public readonly circleRadius = DONUT_RADIUS;
-
   public readonly segments = computed(() => buildDonutSegments(this.overview()?.categories ?? []));
 
   public readonly bars = computed(() => {
@@ -299,6 +287,91 @@ export class OverviewPageComponent {
   public readonly denseChart = computed(() => this.chartBars().length > 6);
 
   public readonly exporting = signal(false);
+
+  /** Months over the goal, for the legend under the chart (the red part of a bar). */
+  public readonly overGoalBars = computed(() =>
+    this.goalMode() ? this.chartBars().filter((bar) => (bar.overAmount ?? 0) > 0) : []
+  );
+
+  /** The category donut (ApexCharts on the theme tokens); the total sits in its middle. */
+  public readonly donutOptions = (colors: ChartColors): ApexOptions => {
+    const segments = this.segments();
+    const total = this.customCurrencyPipe.transform(this.overview()?.total ?? 0);
+    return {
+      chart: { type: "donut", height: 200, width: 200, background: "transparent", fontFamily: "inherit", animations: { speed: 500 } },
+      series: segments.map((segment) => segment.total),
+      labels: segments.map((segment) => segment.name),
+      colors: segments.map((segment) => toRgb(segment.color)),
+      stroke: { width: 3, colors: [colors.card] },
+      legend: { show: false },
+      dataLabels: { enabled: false },
+      tooltip: { theme: this.apexTheme(), y: { formatter: (value: number) => this.customCurrencyPipe.transform(value) } },
+      plotOptions: {
+        pie: {
+          expandOnClick: false,
+          donut: {
+            size: "76%",
+            labels: {
+              show: true,
+              name: { show: true, color: colors.mutedForeground, fontSize: "12px", offsetY: 18 },
+              value: { show: true, color: colors.foreground, fontSize: "20px", fontWeight: 600, offsetY: -14, formatter: () => total },
+              total: { show: true, showAlways: true, label: this.periodLabel(), color: colors.mutedForeground, fontSize: "12px", formatter: () => total },
+            },
+          },
+        },
+      },
+    };
+  };
+
+  /** The spending bars: black in the light theme, white in the dark one (the primary token), red above the goal. */
+  public readonly barsOptions = (colors: ChartColors): ApexOptions => {
+    const bars = this.chartBars();
+    const goalMode = this.goalMode();
+    const faded = colors.mutedForeground.startsWith("rgb(") ? colors.mutedForeground.replace("rgb(", "rgba(").replace(")", ", 0.35)") : colors.mutedForeground;
+    const money = (value: number) => this.customCurrencyPipe.transform(value);
+    return {
+      chart: {
+        type: "bar",
+        height: 260,
+        stacked: true,
+        toolbar: { show: false },
+        zoom: { enabled: false },
+        background: "transparent",
+        fontFamily: "inherit",
+        animations: { speed: 500 },
+      },
+      series: goalMode
+        ? [
+            { name: "Spent", data: bars.map((bar) => bar.baseAmount ?? 0) },
+            { name: "Over goal", data: bars.map((bar) => bar.overAmount ?? 0) },
+          ]
+        : [{ name: "Spent", data: bars.map((bar) => bar.total) }],
+      colors: goalMode
+        ? [({ dataPointIndex }: { dataPointIndex: number }) => (bars[dataPointIndex]?.isSelected ? colors.primary : faded), colors.destructive]
+        : [({ dataPointIndex }: { dataPointIndex: number }) => (bars[dataPointIndex]?.isSelected ? colors.primary : faded)],
+      plotOptions: { bar: { borderRadius: 4, borderRadiusApplication: "end", borderRadiusWhenStacked: "last", columnWidth: bars.length > 6 ? "55%" : "38%" } },
+      dataLabels: { enabled: false },
+      stroke: { show: false },
+      grid: { borderColor: colors.border, strokeDashArray: 3, padding: { left: 8, right: 8 }, xaxis: { lines: { show: false } } },
+      xaxis: {
+        categories: bars.map((bar) => bar.shortName),
+        axisBorder: { color: colors.border },
+        axisTicks: { show: false },
+        labels: { style: { colors: colors.mutedForeground, fontSize: "12px" } },
+      },
+      yaxis: { labels: { style: { colors: colors.mutedForeground, fontSize: "11px" }, formatter: (value: number) => money(value) } },
+      legend: { show: false },
+      tooltip: { theme: this.apexTheme(), shared: true, intersect: false, y: { formatter: (value: number) => money(value) } },
+      annotations:
+        goalMode && this.showGoalLine()
+          ? { yaxis: [{ y: this.goal(), borderColor: colors.mutedForeground, strokeDashArray: 5, label: { text: "Goal", position: "left", borderColor: "transparent", style: { color: colors.mutedForeground, background: "transparent", fontSize: "10px" } } }] }
+          : {},
+    };
+  };
+
+  private apexTheme(): "light" | "dark" {
+    return document.documentElement.classList.contains("dark") ? "dark" : "light";
+  }
 
   /** Month totals for the whole period, fetched a calendar year at a time. */
   private async loadYears(): Promise<{ label: string; from: string; to: string; overview: GroupOverview }[]> {
