@@ -52,7 +52,7 @@ export class ShoppingItemNameFieldComponent {
     control.markAsDirty();
   }
 
-  protected onPick(suggestion: ItemSuggestion | null): void {
+  protected onPick(suggestion: ItemSuggestion | null | undefined): void {
     if (!suggestion) {
       return;
     }
