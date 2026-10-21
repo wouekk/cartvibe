@@ -1,7 +1,7 @@
-<app-dialog headerText="Add a group">
+<app-dialog [headerText]="'Add a group' | t">
   <div class="add-group__note">
     <app-icon name="info"></app-icon>
-    Report across the groups you can generate reports for.
+    {{ 'Report across the groups you can generate reports for.' | t }}
   </div>
 
   @for (group of groups(); track group.id) {
@@ -10,18 +10,18 @@
       <div class="add-group__name">{{ group.name }}</div>
       @if (group.selected) {
         <button type="button" class="add-group__added" (click)="toggle(group.id)" data-testid="add-group-selected">
-          <app-icon name="check_circle"></app-icon>Added
+          <app-icon name="check_circle"></app-icon>{{ 'Added' | t }}
         </button>
       } @else {
         <button type="button" class="add-group__add" (click)="toggle(group.id)" data-testid="add-group-select">
-          <app-icon name="add"></app-icon>Add
+          <app-icon name="add"></app-icon>{{ 'Add' | t }}
         </button>
       }
     </div>
   }
 
   @if (groups().length === 0) {
-    <div class="add-group__empty">You don't have report access in any group.</div>
+    <div class="add-group__empty">{{ 'You don\'t have report access in any group.' | t }}</div>
   }
 
   <app-dialog-footer submitButtonTooltip="Done" (submitClicked)="submit()" (cancelClicked)="cancel()"></app-dialog-footer>

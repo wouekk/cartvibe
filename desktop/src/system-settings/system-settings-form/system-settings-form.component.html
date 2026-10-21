@@ -27,7 +27,7 @@
     <section class="settings-card" data-testid="settings-card-currency">
       <h2 class="settings-card__title">Currency &amp; exchange rates</h2>
       <app-select
-        label="Currency"
+        [label]="'Currency' | t"
         optionValueKey="value"
         optionDisplayKey="displayValue"
         data-testid="system-settings-currency"
@@ -35,7 +35,7 @@
         [options]="currencies"
       ></app-select>
       <div class="flex flex-col mb-4 currency-preview">
-        <strong>Previews</strong>
+        <strong>{{ 'Previews' | t }}</strong>
         <span>{{ 123456789.12 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span>
         <span>{{ 12.99 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span>
         <span>{{ 10000 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span>
@@ -43,33 +43,33 @@
       </div>
       @if (isCustomCurrency()) {
         <app-input
-          label="Symbol Display"
+          [label]="'Symbol Display' | t"
           [readonly]="formConfig.mode | inputReadonly"
           [inputFormControl]="form | formGet: 'currencyDisplay'"
         ></app-input>
         <app-select
-          label="Symbol Position"
+          [label]="'Symbol Position' | t"
           optionValueKey="value"
           optionDisplayKey="displayValue"
           [inputFormControl]="form  | formGet:'currencySymbolPosition'"
           [options]="symbolPositions"
         ></app-select>
         <app-select
-          label="Thousandths Separator"
+          [label]="'Thousandths Separator' | t"
           optionValueKey="value"
           optionDisplayKey="displayValue"
           [inputFormControl]="form  | formGet:'currencyThousandthsSeparator'"
           [options]="decimalSeparators"
         ></app-select>
         <app-select
-          label="Decimal Separator"
+          [label]="'Decimal Separator' | t"
           optionValueKey="value"
           optionDisplayKey="displayValue"
           [inputFormControl]="form  | formGet:'currencyDecimalSeparator'"
           [options]="decimalSeparators"
         ></app-select>
         <app-checkbox
-          label="Hide Decimal Places"
+          [label]="'Hide Decimal Places' | t"
           [inputFormControl]="form | formGet:'currencyHideDecimalPlaces'"
         ></app-checkbox>
       }
@@ -78,13 +78,11 @@
     <section class="settings-card" data-testid="settings-card-regional">
       <h2 class="settings-card__title">Regional &amp; time zone</h2>
       <p class="text-muted-foreground mb-4">
-        Decides which day a moment in time falls on: when a receipt was added or resolved, what
-        "today" and "last month" mean in reports and filters, and how times are shown. A receipt's own
-        Date is a calendar day and never shifts with this setting.
+        {{ 'Decides which day a moment in time falls on: when a receipt was added or resolved, what "today" and "last month" mean in reports and filters, and how times are shown. A receipt\'s own Date is a calendar day and never shifts with this setting.' | t }}
       </p>
       <app-autocomlete
         data-testid="system-settings-time-zone"
-        label="Time zone"
+        [label]="'Time zone' | t"
         hint="An IANA time zone, e.g. America/New_York. Takes effect immediately, no restart required."
         [inputFormControl]="form | formGet:'timeZone'"
         [options]="timeZones"
@@ -102,7 +100,7 @@
       <h2 class="settings-card__title">Sign-up &amp; session policy</h2>
       <app-checkbox
         class="block mb-4"
-        label="Enable Local Sign Up"
+        [label]="'Enable Local Sign Up' | t"
         [inputFormControl]="form | formGet:'enableLocalSignUp'"
         [readonly]="formConfig.mode |  inputReadonly"
       ></app-checkbox>
@@ -110,19 +108,17 @@
            gone from the form (Phase 3 M1, A3): the AI page under Manage sets the AI, the rest keeps
            its stored value and the submit still sends it. -->
       <p class="text-muted-foreground mb-4">
-        How long a signed-in user can be away before they have to log in again. Sessions renew
-        themselves while the app is in use, so this is an inactivity window rather than a hard limit.
-        Maximum 720 hours (30 days).
+        {{ 'How long a signed-in user can be away before they have to log in again. Sessions renew themselves while the app is in use, so this is an inactivity window rather than a hard limit. Maximum 720 hours (30 days).' | t }}
       </p>
       <div class="flex gap-4 mb-4 duration-row">
         <app-input
-          label="Stay signed in for"
+          [label]="'Stay signed in for' | t"
           type="number"
           [inputFormControl]="form | formGet:'refreshTokenValidForValue'"
           [readonly]="formConfig.mode | inputReadonly"
         ></app-input>
         <app-select
-          label="Unit"
+          [label]="'Unit' | t"
           optionValueKey="value"
           optionDisplayKey="displayValue"
           [inputFormControl]="form | formGet:'refreshTokenValidForUnit'"
@@ -130,13 +126,11 @@
         ></app-select>
       </div>
       <p class="text-muted-foreground mb-4">
-        Marks every cookie as Secure, so browsers only send them over HTTPS. Recommended for any install
-        served over HTTPS. Leave this off if CartVibe is reached over plain HTTP, such as a LAN or
-        bare IP address: browsers refuse Secure cookies there, so nobody would be able to log in.
+        {{ 'Marks every cookie as Secure, so browsers only send them over HTTPS. Recommended for any install served over HTTPS. Leave this off if CartVibe is reached over plain HTTP, such as a LAN or bare IP address: browsers refuse Secure cookies there, so nobody would be able to log in.' | t }}
       </p>
       <app-checkbox
         class="block mb-4"
-        label="Use secure cookies (HTTPS only)"
+        [label]="'Use secure cookies (HTTPS only)' | t"
         data-testid="system-settings-secure-cookies"
         [inputFormControl]="form | formGet:'secureCookies'"
         [readonly]="formConfig.mode | inputReadonly"
@@ -146,18 +140,14 @@
           class="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
           data-testid="secure-cookies-http-warning"
         >
-          This page was loaded over HTTP. If you save with secure cookies on, browsers will drop the
-          login cookies on HTTP connections: you will be signed out, and nobody reaching CartVibe
-          over HTTP will be able to log back in until it is turned off again.
+          {{ 'This page was loaded over HTTP. If you save with secure cookies on, browsers will drop the login cookies on HTTP connections: you will be signed out, and nobody reaching CartVibe over HTTP will be able to log back in until it is turned off again.' | t }}
         </div>
       }
       <p class="text-muted-foreground mb-4">
-        The externally reachable address of this server. Used to build the redirect
-        URI that each OIDC identity provider must be configured with, so it has to
-        match how users actually reach CartVibe.
+        {{ 'The externally reachable address of this server. Used to build the redirect URI that each OIDC identity provider must be configured with, so it has to match how users actually reach CartVibe.' | t }}
       </p>
       <app-input
-        label="Server Public URL"
+        [label]="'Server Public URL' | t"
         hint="Origin only, e.g. https://receipts.example.com"
         data-testid="server-public-url"
         [readonly]="formConfig.mode | inputReadonly"
@@ -176,37 +166,36 @@
           matButtonType="iconButton"
           icon="restart_alt"
           color="accent"
-          tooltip="Restart Task Server"
+          [tooltip]="'Restart Task Server' | t"
           (clicked)="restartTaskServer()"
         ></app-button>
       </div>
       <div class="settings-grid">
         <app-input
-          label="Task Concurrency"
+          [label]="'Task Concurrency' | t"
           type="number"
           hint="The max amount of tasks that can be run concurrently. 0 or negative means all CPU cores available."
           [inputFormControl]="form | formGet:'taskConcurrency'"
         ></app-input>
         <app-input
-          label="Cleanup polling interval (in seconds)"
+          [label]="'Cleanup polling interval (in seconds)' | t"
           type="number"
           [inputFormControl]="form | formGet:'emailPollingInterval'"
           [readonly]="formConfig.mode |  inputReadonly"
         ></app-input>
       </div>
       <p class="text-muted-foreground mb-4">
-        A quick scan or email upload that fails keeps its image this long, so you can retry it or
-        download the original. Minimum 24 hours, maximum 8760 hours (1 year).
+        {{ 'A quick scan or email upload that fails keeps its image this long, so you can retry it or download the original. Minimum 24 hours, maximum 8760 hours (1 year).' | t }}
       </p>
       <div class="flex gap-4 mb-4 duration-row">
         <app-input
-          label="Temporary files: keep failed uploads for"
+          [label]="'Temporary files: keep failed uploads for' | t"
           type="number"
           [inputFormControl]="form | formGet:'tempFileRetentionValue'"
           [readonly]="formConfig.mode | inputReadonly"
         ></app-input>
         <app-select
-          label="Unit"
+          [label]="'Unit' | t"
           optionValueKey="value"
           optionDisplayKey="displayValue"
           [inputFormControl]="form | formGet:'tempFileRetentionUnit'"
@@ -215,8 +204,8 @@
       </div>
     </section>
     <section class="settings-card" data-testid="settings-card-queues">
-      <h2 class="settings-card__title">Task queue priorities</h2>
-      <p class="text-muted-foreground mb-2">A higher number means a higher priority.</p>
+      <h2 class="settings-card__title">{{ 'Task queue priorities' | t }}</h2>
+      <p class="text-muted-foreground mb-2">{{ 'A higher number means a higher priority.' | t }}</p>
       <ul class="queue-list">
         @for (data of visibleQueueData; track data.value) {
           <li class="queue-row">
@@ -258,12 +247,12 @@
         data-testid="settings-save"
         [disabled]="form.pristine || form.invalid"
       >
-        Save changes
+        {{ 'Save changes' | t }}
       </button>
       @if (form.invalid) {
-        <span class="actions__hint" data-testid="settings-invalid">Some settings need attention before you can save.</span>
+        <span class="actions__hint" data-testid="settings-invalid">{{ 'Some settings need attention before you can save.' | t }}</span>
       } @else if (form.dirty) {
-        <span class="actions__hint">You have unsaved changes.</span>
+        <span class="actions__hint">{{ 'You have unsaved changes.' | t }}</span>
       }
     </div>
   }

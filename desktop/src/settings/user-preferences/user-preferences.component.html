@@ -16,7 +16,7 @@
     <app-form-section
       *appFeature="'aiPoweredReceipts'"
       class="hidden"
-      headerText="Quick scan defaults"
+      [headerText]="'Quick scan defaults' | t"
     >
       <app-group-autocomplete
         label="Default Group"
@@ -25,20 +25,20 @@
       >
       </app-group-autocomplete>
       <app-user-autocomplete
-        label="Default Paid By"
+        [label]="'Default Paid By' | t"
         [inputFormControl]="form | formGet : 'quickScanDefaultPaidById'"
         [groupId]="form.get('quickScanDefaultGroupId')?.value"
         [selectGroupMembersOnly]="true"
         [readonly]="formConfig.mode | inputReadonly"
       ></app-user-autocomplete>
       <app-status-select
-        aria-label="Default Status"
+        [attr.aria-label]="'Default Status' | t"
         [inputFormControl]="form | formGet : 'quickScanDefaultStatus'"
         [readonly]="formConfig.mode | inputReadonly"
         [addBlankOption]="true"
       ></app-status-select>
     </app-form-section>
-    <app-form-section headerText="Budget">
+    <app-form-section [headerText]="'Budget' | t">
       <app-input
         class="block mb-4"
         data-testid="monthly-spending-goal"
@@ -49,12 +49,12 @@
         [readonly]="formConfig.mode | inputReadonly"
       ></app-input>
     </app-form-section>
-    <app-form-section headerText="Dashboard currency">
+    <app-form-section [headerText]="'Dashboard currency' | t">
       <app-input
         class="block mb-4"
         data-testid="display-currency"
         type="text"
-        label="Show the Dashboard in (currency code)"
+        [label]="'Show the Dashboard in (currency code)' | t"
         hint="Three letters, like PLN or USD. Leave empty to see the household currency. Only the Dashboard converts; receipts stay as entered."
         [inputFormControl]="form | formGet : 'displayCurrency'"
         [readonly]="formConfig.mode | inputReadonly"
@@ -69,17 +69,17 @@
         [readonly]="formConfig.mode | inputReadonly"
       ></app-input>
     </app-form-section>
-    <app-form-section headerText="Selection preferences">
+    <app-form-section [headerText]="'Selection preferences' | t">
       <app-checkbox
         class="block mb-4"
-        label="Close the option list after each selection?"
-        helpText="Applies to every multi-select field that shows its choices as chips - categories, tags, users, groups and so on. Leave it off to keep the list open so you can pick several in a row."
+        [label]="'Close the option list after each selection?' | t"
+        [helpText]="'Applies to every multi-select field that shows its choices as chips - categories, tags, users, groups and so on. Leave it off to keep the list open so you can pick several in a row.' | t"
         [inputFormControl]="form | formGet : 'closeChipSelectOnSelect'"
         [readonly]="formConfig.mode | inputReadonly"
       ></app-checkbox>
     </app-form-section>
     <app-form-section
-      headerText="Shortcuts"
+      [headerText]="'Shortcuts' | t"
       [headerButtonsTemplate]="shortcutHeaderButtons"
     >
       <app-user-shortcut
@@ -97,7 +97,7 @@
 <ng-template #shortcutHeaderButtons>
   @if (formConfig.mode === FormMode.edit) {
     <app-add-button
-      tooltip="Add shortcut"
+      [tooltip]="'Add shortcut' | t"
       [disabled]="(userShortcutComponent()?.editableListComponent()?.getCurrentRowOpen() ?? -1) >= 0"
       (clicked)="addNewShortcut()"
     ></app-add-button>

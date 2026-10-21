@@ -9,11 +9,11 @@
       @if (queueIndex > -1) {
         <app-form-section
           class="flex-1 min-w-0"
-          headerText="Queue Details"
+          [headerText]="'Queue Details' | t"
           [indent]="false"
         >
           <div class="mb-2">
-            Receipt {{ queueIndex + 1 }} of {{ queueIds.length }}
+            {{ 'Receipt {n} of {total}' | t: { n: queueIndex + 1, total: queueIds.length } }}
           </div>
         </app-form-section>
       }
@@ -27,7 +27,7 @@
       <div class="flex flex-wrap gap-6">
         <app-form-section
           class="w-full md:flex-1 md:min-w-0"
-          headerText="Details"
+          [headerText]="'Details' | t"
           [indent]="false"
         >
           <div
@@ -35,14 +35,14 @@
           >
             <app-input
               class="w-full"
-              label="Name"
+              [label]="'Name' | t"
               data-testid="receipt-name"
               [inputFormControl]="form | formGet : 'name'"
               [readonly]="mode | inputReadonly"
             ></app-input>
             <app-input
               class="w-full"
-              label="Shop"
+              [label]="'Shop' | t"
               hint="Read from the receipt by the AI, e.g. Auchan, Edeka, Rewe"
               [inputFormControl]="form | formGet : 'shopName'"
               [readonly]="mode | inputReadonly"
@@ -50,7 +50,7 @@
             <div class="flex items-center w-full">
               <app-input
                 class="w-full"
-                label="Amount"
+                [label]="'Amount' | t"
                 data-testid="receipt-amount"
                 type="text"
                 [isCurrency]="true"
@@ -59,7 +59,7 @@
               ></app-input>
               @if (!(mode | inputReadonly)) {
                 <app-checkbox
-                  label="Sync with items"
+                  [label]="'Sync with items' | t"
                   [inputFormControl]="form | formGet : 'syncAmountWithItems'"
                 ></app-checkbox>
               }
@@ -85,7 +85,7 @@
               ></app-tag-autocomplete>
             }
             <app-datepicker
-              label="Date"
+              [label]="'Date' | t"
               class="w-full"
               [inputFormControl]="form | formGet : 'date'"
               [readonly]="mode | inputReadonly"
@@ -103,7 +103,7 @@
               <app-user-autocomplete
                 #paidByAutocomplete
                 class="w-full"
-                label="Paid By"
+                [label]="'Paid By' | t"
                 [inputFormControl]="form | formGet : 'paidByUserId'"
                 [usersToOmit]="usersToOmit()"
                 [readonly]="mode | inputReadonly"
@@ -111,7 +111,7 @@
             }
             <app-select
               class="w-full"
-              label="Status"
+              [label]="'Status' | t"
               optionValueKey="value"
               optionDisplayKey="displayValue"
               [inputFormControl]="form | formGet : 'status'"
@@ -131,7 +131,7 @@
         @if (!selectedGroup()?.groupReceiptSettings?.hideImages) {
           <app-form-section
             class="w-full md:flex-1 md:min-w-0 rw-images-pane"
-            headerText="Images"
+            [headerText]="'Images' | t"
             [headerButtonsTemplate]="imagesSectionHeaderButtons"
             [indent]="false"
           >
@@ -147,7 +147,7 @@
                   class="rw-requirement-hint"
                   data-testid="receipt-image-required-hint"
                 >
-                  Your role requires at least one image on this group's receipts.
+                  {{ 'Your role requires at least one image on this group\'s receipts.' | t }}
                 </div>
               }
               <div
@@ -183,7 +183,7 @@
            item list keeps its form state, so existing items are saved back unchanged. -->
       <app-form-section
         class="hidden"
-        headerText="Items"
+        [headerText]="'Items' | t"
         [indent]="false"
         [headerButtonsTemplate]="itemsSectionHeaderButtons"
       >
@@ -202,7 +202,7 @@
            stay in the form, so saving keeps them. -->
       @if (originalReceipt?.id && originalReceipt?.groupId) {
         <app-form-section
-          headerText="Products"
+          [headerText]="'Products' | t"
           [indent]="false"
         >
           <!-- Keyed on the receipt id, like the comments below: the queue re-uses this form. -->
@@ -217,7 +217,7 @@
       @if (!this.selectedGroup()?.groupReceiptSettings?.hideComments) {
         <div class="mt-4">
           <app-form-section
-            headerText="Comments"
+            [headerText]="'Comments' | t"
             [indent]="false"
           >
             @if (isCommentMissing()) {
@@ -225,7 +225,7 @@
                 class="rw-requirement-hint mb-2"
                 data-testid="receipt-comment-required-hint"
               >
-                Your role requires at least one comment on this group's receipts.
+                {{ 'Your role requires at least one comment on this group\'s receipts.' | t }}
               </div>
             }
             <!-- Keyed on the receipt id: the queue re-uses this form for the next
@@ -258,7 +258,7 @@
           <app-button
             matButtonType="iconButton"
             icon="arrow_back"
-            tooltip="Previous (Right Arrow)"
+            [tooltip]="'Previous (Right Arrow)' | t"
             (clicked)="queuePrevious()"
           ></app-button>
         }
@@ -276,7 +276,7 @@
           <app-button
             matButtonType="iconButton"
             icon="arrow_forward"
-            tooltip="Next (Right Arrow)"
+            [tooltip]="'Next (Right Arrow)' | t"
             (clicked)="queueNext()"
           ></app-button>
         }
@@ -293,11 +293,10 @@
 <ng-template #successDuplicateSnackbar>
   <div class="flex justify-end items-center">
     <span class="me-6">
-      Receipt successfully duplicated. Click navigate to view duplicated
-      receipt.
+      {{ 'Receipt successfully duplicated. Click navigate to view duplicated receipt.' | t }}
     </span>
     <app-button
-      buttonText="Navigate"
+      [buttonText]="'Navigate' | t"
       matButtonType="basic"
       color="secondary"
       [buttonRouterLink]="['/receipts/' + duplicatedReceiptId() + '/view']"
@@ -324,7 +323,7 @@
     class="ms-1"
     color="accent"
     matButtonType="iconButton"
-    tooltip="Edit"
+    [tooltip]="'Edit' | t"
     icon="edit"
     [disabled]="!canEditReceipt()"
     [buttonRouterLink]="[editLink]"
@@ -335,7 +334,7 @@
       data-testid="receipt-mark-done"
       color="primary"
       matButtonType="iconButton"
-      tooltip="Mark as done"
+      [tooltip]="'Mark as done' | t"
       icon="check"
       (clicked)="markDone()"
     ></app-button>
@@ -343,10 +342,10 @@
   @if (canManageCustomFields()) {
     <app-filtered-stateful-menu
       data-testid="receipt-manage-custom-fields"
-      filterLabel="Filter custom fields"
+      [filterLabel]="'Filter custom fields' | t"
       matButtonType="iconButton"
       icon="list_alt"
-      tooltip="Manage custom fields"
+      [tooltip]="'Manage custom fields' | t"
       color="accent"
       [readonly]="mode | inputReadonly"
       [items]="customFieldsStatefulMenuItems"
@@ -360,7 +359,7 @@
     data-testid="receipt-duplicate"
     color="accent"
     matButtonType="iconButton"
-    tooltip="Duplicate"
+    [tooltip]="'Duplicate' | t"
     icon="file_copy"
     [disabled]="!canDuplicate()"
     (clicked)="duplicateReceipt()"
@@ -373,7 +372,7 @@
     type="button"
     matButtonType="iconButton"
     icon="add"
-    tooltip="Add item"
+    [tooltip]="'Add item' | t"
     color="accent"
     (clicked)="initItemListAddMode()"
     [disabled]="!canEditReceipt()"
@@ -387,7 +386,7 @@
     color="accent"
     matButtonType="iconButton"
     icon="photo_library"
-    tooltip="Upload Image(s)"
+    [tooltip]="'Upload Image(s)' | t"
     [disabled]="!canEditReceipt() || (showProgressBar() ?? false)"
     (clicked)="uploadImageButtonClicked()"
   ></app-button>
@@ -398,7 +397,7 @@
         color="accent"
         matButtonType="iconButton"
         icon="download"
-        tooltip="Download Image"
+        [tooltip]="'Download Image' | t"
         [disabled]="(showProgressBar() ?? false)"
         (clicked)="downloadImage()"
       ></app-button>
@@ -415,7 +414,7 @@
     <app-button
       matButtonType="iconButton"
       icon="fullscreen"
-      tooltip="Show Fullscreen Image"
+      [tooltip]="'Show Fullscreen Image' | t"
       color="accent"
       [disabled]="(showProgressBar() ?? false)"
       (clicked)="expandImage()"
@@ -423,7 +422,7 @@
     <app-button
       matButtonType="iconButton"
       icon="zoom_in"
-      tooltip="Zoom In"
+      [tooltip]="'Zoom In' | t"
       color="accent"
       [disabled]="(showProgressBar() ?? false)"
       (clicked)="zoomImageIn()"
@@ -431,7 +430,7 @@
     <app-button
       matButtonType="iconButton"
       icon="zoom_out"
-      tooltip="Zoom Out"
+      [tooltip]="'Zoom Out' | t"
       color="accent"
       [disabled]="(showProgressBar() ?? false)"
       (clicked)="zoomImageOut()"
@@ -445,7 +444,7 @@
     "
     matButtonType="iconButton"
     icon="receipt_long"
-    tooltip="Magic fill"
+    [tooltip]="'Magic fill' | t"
     color="accent"
     [disabled]="!canMagicFill() || (showProgressBar() ?? false)"
     (clicked)="magicFill()"
@@ -471,7 +470,7 @@
       data-testid="receipt-image-fullscreen-close"
       matButtonType="iconButton"
       icon="close"
-      tooltip="Close"
+      [tooltip]="'Close' | t"
       (clicked)="closeExpandedImage()"
     ></app-button>
     <app-carousel

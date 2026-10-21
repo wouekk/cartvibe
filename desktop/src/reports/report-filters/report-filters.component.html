@@ -8,7 +8,7 @@
         <app-datepicker *ngIf="def.type === 'date'" class="report-filter__grow"
           [label]="'Start ' + def.label"
           [inputFormControl]="filterGroup | formGet: def.field + '.value.0'"></app-datepicker>
-        <span class="report-filter__sep">and</span>
+        <span class="report-filter__sep">{{ 'and' | t }}</span>
         <app-input *ngIf="def.type === 'text' || def.type === 'number'" class="report-filter__grow"
           [isCurrency]="!!def.isCurrency" [label]="'End ' + def.label"
           [inputFormControl]="filterGroup | formGet: def.field + '.value.1'"></app-input>
@@ -37,17 +37,17 @@
         [inputFormControl]="filterGroup | formGet: def.field + '.value'"></app-autocomlete>
     }
 
-    <app-select class="report-filter__op" label="Operation" [addEmptyOption]="true"
+    <app-select class="report-filter__op" [label]="'Operation' | t" [addEmptyOption]="true"
       [options]="operationOptions(def.type)" [optionsDisplayArray]="operationDisplay(def.type)"
       [inputFormControl]="filterGroup | formGet: def.field + '.operation'"></app-select>
 
-    <app-button matButtonType="iconButton" icon="close" color="warn" tooltip="Remove filter"
+    <app-button matButtonType="iconButton" icon="close" color="warn" [tooltip]="'Remove filter' | t"
       (clicked)="removeFilter(def.field)" data-testid="report-filter-remove"></app-button>
   </div>
 }
 
 @if (addableFields().length > 0) {
-  <app-select class="report-filter__add" label="Add filter…" [addEmptyOption]="true"
+  <app-select class="report-filter__add" [label]="'Add filter…' | t" [addEmptyOption]="true"
     optionValueKey="field" optionDisplayKey="label"
     [options]="addableFields()" [inputFormControl]="addFilterControl"
     data-testid="report-add-filter"></app-select>

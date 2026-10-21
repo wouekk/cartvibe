@@ -1,5 +1,5 @@
 <div class="gen-bar">
-  <span class="gen-bar__label">FORMAT</span>
+  <span class="gen-bar__label">{{ 'FORMAT' | t }}</span>
   <div class="gen-bar__chips">
     @for (format of formats; track format.key) {
       <div class="gen-bar__chip" [class.gen-bar__chip--on]="isSelected(format.key)"

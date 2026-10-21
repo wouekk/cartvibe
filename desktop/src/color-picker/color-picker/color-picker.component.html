@@ -7,7 +7,7 @@
     <input
       class="h-9 w-12 cursor-pointer rounded-md border border-input bg-transparent p-1"
       type="color"
-      aria-label="Pick a color"
+      [attr.aria-label]="'Pick a color' | t"
       [value]="inputFormControl.value"
       [disabled]="readonly"
       (click)="handleClick($event)"

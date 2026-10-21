@@ -1,3 +1,4 @@
+import { PluralPipe, TranslatePipe } from "../i18n/translate.pipe";
 import { CommonModule } from "@angular/common";
 import { Component, input } from "@angular/core";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
@@ -5,7 +6,7 @@ import { AppIconComponent } from "../shared-ui/icon/icon.component";
 @Component({
     selector: "app-alert",
     standalone: true,
-    imports: [
+    imports: [TranslatePipe, PluralPipe, 
         CommonModule,
         AppIconComponent
     ],

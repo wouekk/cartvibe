@@ -3,23 +3,23 @@
     <form [formGroup]="form">
       <div class="mb-2">
         <app-input
-          label="Name"
-          placeholder="Enter API key name"
+          [label]="'Name' | t"
+          [placeholder]="'Enter API key name' | t"
           [inputFormControl]="form | formGet : 'name'"
         ></app-input>
       </div>
 
       <div class="mb-2">
         <app-input
-          label="Description"
-          placeholder="Enter API key description (optional)"
+          [label]="'Description' | t"
+          [placeholder]="'Enter API key description (optional)' | t"
           [inputFormControl]="form | formGet : 'description'"
         ></app-input>
       </div>
 
       <div *ngIf="false" class="mb-2">
         <app-select
-          label="Scope"
+          [label]="'Scope' | t"
           optionValueKey="value"
           optionDisplayKey="label"
           [inputFormControl]="form | formGet : 'scope'"
@@ -38,18 +38,18 @@
   <div *ngIf="apiKeyResult" class="text-center">
     <div class="mb-6 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
       <app-icon class="me-2" name="warning"></app-icon>
-      <strong>Important:</strong> This API key will only be shown once. Make sure to copy it now!
+      <strong>{{ 'Important:' | t }}</strong> {{ 'This API key will only be shown once. Make sure to copy it now!' | t }}
     </div>
 
     <div class="mb-6">
-      <h4>Your new API key:</h4>
+      <h4>{{ 'Your new API key:' | t }}</h4>
       <div class="flex items-center justify-center gap-2 mt-4">
         <code class="p-2 bg-muted border rounded grow break-words">{{ apiKeyResult.key }}</code>
         <app-button
           matButtonType="iconButton"
           icon="content_copy"
           color="primary"
-          tooltip="Copy to clipboard"
+          [tooltip]="'Copy to clipboard' | t"
           (clicked)="copyToClipboard()"
         ></app-button>
       </div>
@@ -57,7 +57,7 @@
 
     <div class="flex justify-center">
       <app-button
-        buttonText="Close"
+        [buttonText]="'Close' | t"
         color="primary"
         (clicked)="closeDialog()"
       ></app-button>

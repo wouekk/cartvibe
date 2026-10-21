@@ -1,7 +1,7 @@
 <app-dialog headerText="Convert {{ user.displayName }} to a normal user">
   <form (ngSubmit)="submitButtonClicked()">
     <app-input
-      label="Password"
+      [label]="'Password' | t"
       type="password"
       [inputFormControl]="form | formGet : 'password'"
       [showGeneratePassword]="true"

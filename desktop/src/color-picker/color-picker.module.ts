@@ -1,3 +1,4 @@
+import { PluralPipe, TranslatePipe } from "../i18n/translate.pipe";
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
@@ -6,7 +7,7 @@ import { ColorPickerComponent } from "./color-picker/color-picker.component";
 
 @NgModule({
   declarations: [ColorPickerComponent],
-  imports: [CommonModule, ReactiveFormsModule, ...HlmInputImports],
+  imports: [TranslatePipe, PluralPipe, CommonModule, ReactiveFormsModule, ...HlmInputImports],
   exports: [ColorPickerComponent],
 })
 export class ColorPickerModule {}

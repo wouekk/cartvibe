@@ -1,5 +1,5 @@
 <app-table-header
-  headerText="System Tasks"
+  [headerText]="'System Tasks' | t"
   subtitle="Review the background tasks the system has run and their results."
 >
   <div class="flex items-center">
@@ -7,7 +7,7 @@
       data-testid="system-tasks-filter"
       icon="filter_alt"
       matButtonType="iconButton"
-      tooltip="Filter System Tasks"
+      [tooltip]="'Filter System Tasks' | t"
       color="accent"
       matBadgeColor="accent"
       [matBadgeContent]="numFiltersApplied()"
@@ -18,7 +18,7 @@
       data-testid="system-tasks-filter-reset"
       icon="restart_alt"
       matButtonType="iconButton"
-      tooltip="Reset filter"
+      [tooltip]="'Reset filter' | t"
       color="accent"
       (clicked)="resetFilterButtonClicked()"
     ></app-button>
@@ -26,14 +26,14 @@
       matButtonType="iconButton"
       icon="refresh"
       color="accent"
-      tooltip="Refresh System Tasks"
+      [tooltip]="'Refresh System Tasks' | t"
       (clicked)="refresh()"
     ></app-button>
   </div>
 </app-table-header>
 
 @if (filterChips().length > 0) {
-  <div class="system-task-filter-chips flex flex-wrap gap-2" role="list" aria-label="Applied filters">
+  <div class="system-task-filter-chips flex flex-wrap gap-2" role="list" [attr.aria-label]="'Applied filters' | t">
     @for (chip of filterChips(); track chip.key) {
       <span
         hlmBadge

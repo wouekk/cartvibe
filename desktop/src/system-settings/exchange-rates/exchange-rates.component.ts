@@ -1,3 +1,4 @@
+import { PluralPipe, TranslatePipe } from "../../i18n/translate.pipe";
 import { CommonModule } from "@angular/common";
 import { Component, computed, inject, OnInit, signal } from "@angular/core";
 import { HlmButton } from "@spartan-ng/helm/button";
@@ -25,7 +26,7 @@ interface RateRow {
   templateUrl: "./exchange-rates.component.html",
   styleUrls: ["./exchange-rates.component.scss"],
   standalone: true,
-  imports: [CommonModule, HlmButton, AppIconComponent],
+  imports: [TranslatePipe, PluralPipe, CommonModule, HlmButton, AppIconComponent],
 })
 export class ExchangeRatesComponent implements OnInit {
   private readonly exchangeRateService = inject(ExchangeRateService);

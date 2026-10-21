@@ -7,7 +7,7 @@
             @if (selectionCheckboxes()) {
               <th hlmTh class="w-10">
                 <hlm-checkbox
-                  aria-label="Select all"
+                  [attr.aria-label]="'Select all' | t"
                   [checked]="selection.hasValue() && isAllSelected()"
                   [indeterminate]="selection.hasValue() && !isAllSelected()"
                   (checkedChange)="toggleAllRows()"
@@ -15,7 +15,7 @@
               </th>
             }
           } @else if (id === "expand") {
-            <th hlmTh class="w-10" aria-label="row actions"></th>
+            <th hlmTh class="w-10" [attr.aria-label]="'row actions' | t"></th>
           } @else if (columnFor(id); as column) {
             <th hlmTh [attr.aria-sort]="ariaSort(column)">
               @if (column.sortable) {
@@ -49,7 +49,7 @@
               @if (selectionCheckboxes()) {
                 <td hlmTd class="w-10">
                   <hlm-checkbox
-                    aria-label="Select row"
+                    [attr.aria-label]="'Select row' | t"
                     [checked]="selection.isSelected(element)"
                     (click)="$event.stopPropagation()"
                     (checkedChange)="selection.toggle(element)"
@@ -105,7 +105,7 @@
     data-testid="table-pager"
   >
     <label class="flex items-center gap-2">
-      Rows per page
+      {{ 'Rows per page' | t }}
       <select
         hlmInput
         class="h-8 w-[4.5rem] px-2 py-0"
@@ -120,16 +120,16 @@
     </label>
     <span class="tabular-nums" data-testid="table-range">{{ rangeLabel() }}</span>
     <div class="flex items-center gap-1">
-      <button hlmBtn variant="outline" size="icon-sm" type="button" aria-label="First page" data-testid="table-first" [disabled]="page() === 0" (click)="goTo(0)">
+      <button hlmBtn variant="outline" size="icon-sm" type="button" [attr.aria-label]="'First page' | t" data-testid="table-first" [disabled]="page() === 0" (click)="goTo(0)">
         <app-icon name="first_page"></app-icon>
       </button>
-      <button hlmBtn variant="outline" size="icon-sm" type="button" aria-label="Previous page" data-testid="table-previous" [disabled]="page() === 0" (click)="goTo(page() - 1)">
+      <button hlmBtn variant="outline" size="icon-sm" type="button" [attr.aria-label]="'Previous page' | t" data-testid="table-previous" [disabled]="page() === 0" (click)="goTo(page() - 1)">
         <app-icon name="chevron_left"></app-icon>
       </button>
-      <button hlmBtn variant="outline" size="icon-sm" type="button" aria-label="Next page" data-testid="table-next" [disabled]="page() >= lastPage()" (click)="goTo(page() + 1)">
+      <button hlmBtn variant="outline" size="icon-sm" type="button" [attr.aria-label]="'Next page' | t" data-testid="table-next" [disabled]="page() >= lastPage()" (click)="goTo(page() + 1)">
         <app-icon name="chevron_right"></app-icon>
       </button>
-      <button hlmBtn variant="outline" size="icon-sm" type="button" aria-label="Last page" data-testid="table-last" [disabled]="page() >= lastPage()" (click)="goTo(lastPage())">
+      <button hlmBtn variant="outline" size="icon-sm" type="button" [attr.aria-label]="'Last page' | t" data-testid="table-last" [disabled]="page() >= lastPage()" (click)="goTo(lastPage())">
         <app-icon name="last_page"></app-icon>
       </button>
     </div>

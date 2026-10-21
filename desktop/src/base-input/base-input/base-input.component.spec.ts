@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { BaseInputComponent } from './base-input.component';
@@ -8,6 +9,7 @@ describe('BaseInputComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
+      imports: [TranslatePipe],
       declarations: [ BaseInputComponent ]
     })
     .compileComponents();

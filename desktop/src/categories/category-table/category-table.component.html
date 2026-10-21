@@ -5,8 +5,8 @@
   <app-add-button
     *hasAppPermission="Permission.AppCategoriesCreate"
     data-testid="category-add"
-    buttonText="Add Category"
-    tooltip="Add Category"
+    [buttonText]="'Add Category' | t"
+    [tooltip]="'Add Category' | t"
     (clicked)="openAddDialog()"
   >
   </app-add-button>
@@ -28,10 +28,10 @@
 <ng-template #nameCell let-element="element">
   {{ element.name }}
   @if (element.skipped) {
-    <span class="ms-2 inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground" data-testid="category-skipped-badge">AI skips</span>
+    <span class="ms-2 inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground" data-testid="category-skipped-badge">{{ 'AI skips' | t }}</span>
   }
   @if (element.aliases) {
-<span class="text-muted-foreground text-sm block" style="white-space: pre-line">Formerly: {{ element.aliases }}</span>
+<span class="text-muted-foreground text-sm block" style="white-space: pre-line">{{ 'Formerly:' | t }} {{ element.aliases }}</span>
   }
 </ng-template>
 

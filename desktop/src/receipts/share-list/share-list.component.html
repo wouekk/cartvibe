@@ -4,24 +4,24 @@
       cardStyle="w-100 mb-2"
     >
       <ng-container header>
-        Add Share
+        {{ 'Add Share' | t }}
       </ng-container>
       <div content>
         <app-user-autocomplete
-          label="Shared with"
+          [label]="'Shared with' | t"
           [inputFormControl]="newItemFormGroup | formGet : 'chargedToUserId'"
           [groupId]="(form() | formGet : 'groupId').value"
           [readonly]="mode | inputReadonly"
         ></app-user-autocomplete>
         <div class="flex flex-wrap mt-2">
           <app-input
-            label="Name"
+            [label]="'Name' | t"
             class="flex-1 min-w-0"
             [inputFormControl]="newItemFormGroup | formGet : 'name'"
           >
           </app-input>
           <app-input
-            label="Amount"
+            [label]="'Amount' | t"
             class="flex-1 min-w-0"
             type="text"
             [isCurrency]="true"
@@ -57,7 +57,7 @@
   }
 
   @if (userItemMap().size === 0 && mode === formMode.view) {
-    <div>No shares for this receipt</div>
+    <div>{{ 'No shares for this receipt' | t }}</div>
   }
   <app-expansion-panel
     #userExpansionPanel
@@ -72,20 +72,20 @@
         <div class="flex justify-between items-center w-full">
           @let userTotalData = userItemMap() | userTotalWithPercentage : key : form();
           <span>
-            Total amount owed: {{ userTotalData.total | customCurrency }} 
+            {{ 'Total amount owed:' | t }} {{ userTotalData.total | customCurrency }} 
             ({{ userTotalData.percentage }}% of total)
           </span>
           @if (canEdit()) {
             <div>
               <app-add-button
-                tooltip="Add Share"
+                [tooltip]="'Add Share' | t"
                 [disabled]="mode === formMode.view"
                 (clicked)="addInlineItem(user?.id?.toString() ?? '')"
               ></app-add-button>
               <app-button
                 matButtonType="iconButton"
                 icon="check"
-                tooltip="Resolve all user's items"
+                [tooltip]="'Resolve all user\'s items' | t"
                 [disabled]="mode === formMode.view"
                 [ngClass]="{
                 'green-check': allUserItemsResolved(key)
@@ -107,7 +107,7 @@
             <div class="flex items-center mb-2 p-2 bg-muted border-l border-primary">
               <app-icon class="me-2 text-primary" name="link"></app-icon>
               <small class="text-muted-foreground">
-                Split from: <strong>{{ itemData.parentItem.name }}</strong> 
+                {{ 'Split from:' | t }} <strong>{{ itemData.parentItem.name }}</strong> 
                 ({{ itemData.parentItem.amount | customCurrency }})
               </small>
             </div>
@@ -115,7 +115,7 @@
           <div class="flex justify-end">
             @if (!(mode | inputReadonly)) {
               <app-delete-button
-                tooltip="Remove Share"
+                [tooltip]="'Remove Share' | t"
                 [disabled]="!canEdit()"
                 (clicked)="removeItem(itemData)"
               ></app-delete-button>
@@ -125,7 +125,7 @@
             <app-input
               class="flex-1 min-w-0"
               #nameField
-              label="Name"
+              [label]="'Name' | t"
               [inputId]="'name-' + i"
               [inputFormControl]="form() | formGet : getFormControlPath(itemData, 'name')"
               [readonly]="mode | inputReadonly"
@@ -134,7 +134,7 @@
             </app-input>
             <app-input
               class="flex-1 min-w-0"
-              label="Amount"
+              [label]="'Amount' | t"
               [isCurrency]="true"
               [inputFormControl]="form() | formGet : getFormControlPath(itemData, 'amount')"
               [readonly]="mode | inputReadonly"
@@ -143,7 +143,7 @@
             </app-input>
             <app-select
               class="flex-1 min-w-0"
-              label="Status"
+              [label]="'Status' | t"
               optionValueKey="value"
               optionDisplayKey="displayValue"
               [inputFormControl]="form() | formGet : getFormControlPath(itemData, 'status')"

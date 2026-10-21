@@ -23,20 +23,20 @@
           <ng-container *ngIf="isSignUp | async">
             <app-input
               appearance="outline"
-              label="Display Name"
+              [label]="'Display Name' | t"
               [inputFormControl]="form | formGet : 'displayname'"
             ></app-input>
           </ng-container>
 
           <app-input
             appearance="outline"
-            label="Username"
+            [label]="'Username' | t"
             [inputFormControl]="form | formGet : 'username'"
           ></app-input>
 
           <app-input
             appearance="outline"
-            label="Password"
+            [label]="'Password' | t"
             type="password"
             [showVisibilityEye]="true"
             [inputFormControl]="form | formGet : 'password'"

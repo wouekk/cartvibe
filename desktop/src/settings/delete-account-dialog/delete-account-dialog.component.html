@@ -1,12 +1,10 @@
-<app-dialog headerText="Delete Account">
+<app-dialog [headerText]="'Delete Account' | t">
   <p>
-    This action is <strong>permanent</strong> and cannot be undone. All of your
-    data, including receipts, group memberships, and preferences will be deleted.
+    {{ 'This action is' | t }} <strong>{{ 'permanent' | t }}</strong> {{ 'and cannot be undone. All of your data, including receipts, group memberships, and preferences will be deleted.' | t }}
   </p>
   @if (providers.length) {
     <p>
-      Your account has no password of its own. To confirm the deletion, sign in
-      again with one of your connected accounts.
+      {{ 'Your account has no password of its own. To confirm the deletion, sign in again with one of your connected accounts.' | t }}
     </p>
     <div class="flex flex-col gap-2 mb-4">
       @for (provider of providers; track provider.name) {
@@ -24,10 +22,10 @@
       <app-cancel-button (clicked)="cancelButtonClicked()"></app-cancel-button>
     </div>
   } @else {
-    <p>Please enter your password to confirm account deletion.</p>
+    <p>{{ 'Please enter your password to confirm account deletion.' | t }}</p>
     <app-input
       appearance="outline"
-      label="Password"
+      [label]="'Password' | t"
       type="password"
       [showVisibilityEye]="true"
       [inputFormControl]="form | formGet : 'password'"

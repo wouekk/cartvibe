@@ -1,6 +1,6 @@
 <app-dialog [headerText]="headerText">
   <app-filter-field
-    label="Type"
+    [label]="'Type' | t"
     fieldName="type"
     type="list"
     optionFilterKey="displayValue"
@@ -12,7 +12,7 @@
   ></app-filter-field>
 
   <app-filter-field
-    label="Ran By"
+    [label]="'Ran By' | t"
     fieldName="ranBy"
     type="list"
     optionFilterKey="displayName"
@@ -24,14 +24,14 @@
   ></app-filter-field>
 
   <app-filter-field
-    label="Started At"
+    [label]="'Started At' | t"
     fieldName="startedAt"
     type="date"
     [parentForm]="parentForm"
   ></app-filter-field>
 
   <app-filter-field
-    label="Ended At"
+    [label]="'Ended At' | t"
     fieldName="endedAt"
     type="date"
     [parentForm]="parentForm"
@@ -50,7 +50,7 @@
     matButtonType="iconButton"
     icon="restart_alt"
     color="accent"
-    tooltip="Reset filter"
+    [tooltip]="'Reset filter' | t"
     data-testid="system-tasks-filter-dialog-reset"
     (clicked)="resetFilter()"
   ></app-button>

@@ -1,3 +1,4 @@
+import { PluralPipe, TranslatePipe } from "../../i18n/translate.pipe";
 import { CommonModule } from "@angular/common";
 import { Component, DestroyRef, OnInit, inject, signal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
@@ -23,7 +24,7 @@ export const LOG_LEVEL_FILTERS = [
   templateUrl: "./logs-page.component.html",
   styleUrls: ["./logs-page.component.scss"],
   standalone: true,
-  imports: [CommonModule, HlmButton, AppIconComponent],
+  imports: [TranslatePipe, PluralPipe, CommonModule, HlmButton, AppIconComponent],
 })
 export class LogsPageComponent implements OnInit {
   private readonly systemSettingsService = inject(SystemSettingsService);

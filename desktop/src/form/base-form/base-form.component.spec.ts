@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { BaseFormComponent } from './base-form.component';
@@ -8,6 +9,7 @@ describe('BaseFormComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [TranslatePipe],
       declarations: [BaseFormComponent]
     });
     fixture = TestBed.createComponent(BaseFormComponent);

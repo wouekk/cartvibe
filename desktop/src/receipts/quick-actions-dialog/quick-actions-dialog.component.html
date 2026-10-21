@@ -1,4 +1,4 @@
-<app-dialog headerText="Quick Actions">
+<app-dialog [headerText]="'Quick Actions' | t">
   <div class="mb-2">
     <app-radio-group
       [inputFormControl]="localForm | formGet : 'quickAction'"
@@ -8,7 +8,7 @@
 
   <form [formGroup]="localForm">
     <app-user-autocomplete
-      label="Users to Split Between"
+      [label]="'Users to Split Between' | t"
       [inputFormControl]="localForm | formGet : 'usersToSplit'"
       [multiple]="true"
       [usersToOmit]="usersToOmit"
@@ -40,11 +40,11 @@
           </div>
           <div class="flex items-center gap-2">
             <app-checkbox
-              label="Custom"
+              [label]="'Custom' | t"
               [inputFormControl]="localForm | formGet : user.id.toString() + '_customPercentage'"
             ></app-checkbox>
             <app-input
-              label="Custom Percentage"
+              [label]="'Custom Percentage' | t"
               type="text"
               mask="percent.2"
               maskSuffix="%"

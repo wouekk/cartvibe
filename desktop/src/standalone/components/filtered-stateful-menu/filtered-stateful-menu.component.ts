@@ -1,3 +1,4 @@
+import { PluralPipe, TranslatePipe } from "../../../i18n/translate.pipe";
 import { CdkMenu, CdkMenuTrigger } from "@angular/cdk/menu";
 import { Component, Input, computed, input, output } from "@angular/core";
 import { FormControl } from "@angular/forms";
@@ -11,7 +12,7 @@ import { StatefulMenuItem } from "./stateful-menu-item";
 
 @Component({
   selector: "app-filtered-stateful-menu",
-  imports: [
+  imports: [TranslatePipe, PluralPipe, 
     CdkMenuTrigger,
     CdkMenu,
     ButtonModule, InputModule, HlmDropdownMenuItem, HlmCheckbox,

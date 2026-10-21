@@ -4,7 +4,7 @@
       class="report-builder__back"
       matButtonType="iconButton"
       icon="arrow_back"
-      tooltip="Back to Reports"
+      [tooltip]="'Back to Reports' | t"
       data-testid="report-builder-back"
       [buttonRouterLink]="['/reports']"
     ></app-button>
@@ -13,16 +13,16 @@
     </span>
     <div class="report-builder__titles">
       <div class="report-builder__breadcrumb">
-        <a class="report-builder__crumb-link" [routerLink]="['/reports']">Reports</a>
+        <a class="report-builder__crumb-link" [routerLink]="['/reports']">{{ 'Reports' | t }}</a>
         <app-icon name="chevron_right"></app-icon>
         <span>{{ loadedTemplateName ?? "New report" }}</span>
       </div>
-      <div class="report-builder__heading">Report Builder</div>
+      <div class="report-builder__heading">{{ 'Report Builder' | t }}</div>
     </div>
     <span class="report-builder__spacer"></span>
     <span class="report-builder__scope-note">
       <app-icon name="lock"></app-icon>
-      Runs under your group permissions
+      {{ 'Runs under your group permissions' | t }}
     </span>
   </div>
 

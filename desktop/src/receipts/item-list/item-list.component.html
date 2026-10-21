@@ -16,7 +16,7 @@
 
   <!-- No Items Message -->
   @if (items().length === 0 && mode === formMode.view && !isAdding) {
-    <div>No items for this receipt</div>
+    <div>{{ 'No items for this receipt' | t }}</div>
   }
 
   <!-- Items List -->
@@ -24,16 +24,16 @@
     <div class="flex flex-col gap-2">
       <app-expansion-panel #itemsExpansionPanel>
         <span panelTitle>
-            Items ({{ items().length }})
+            {{ 'Items ({count})' | t: { count: items().length } }}
           </span>
           <span panelDescription>
             <div class="accordion-header-content">
               <span class="header-total">
-                Total: {{ getTotalAmount() | customCurrency }}
+                {{ 'Total: {amount}' | t: { amount: (getTotalAmount() | customCurrency) } }}
               </span>
               @if (canEdit()) {
                 <app-add-button
-                  tooltip="Add Item (Ctrl+I)"
+                  [tooltip]="'Add Item (Ctrl+I)' | t"
                   [disabled]="mode === formMode.view"
                   (clicked)="startAddMode()"
                 ></app-add-button>
@@ -49,12 +49,12 @@
                   <app-button
                     matButtonType="iconButton"
                     icon="call_split"
-                    tooltip="Split Item"
+                    [tooltip]="'Split Item' | t"
                     [disabled]="!canEdit()"
                     (clicked)="splitItem(itemData)"
                   ></app-button>
                   <app-delete-button
-                    tooltip="Remove Item"
+                    [tooltip]="'Remove Item' | t"
                     [disabled]="!canEdit()"
                     (clicked)="removeItem(itemData)"
                   ></app-delete-button>
@@ -64,7 +64,7 @@
                 <app-input
                   class="flex-1 min-w-0"
                   #nameField
-                  label="Name"
+                  [label]="'Name' | t"
                   [inputId]="'name-' + i"
                   [inputFormControl]="
                     form() | formGet : 'receiptItems.' + itemData.arrayIndex + '.name'
@@ -75,7 +75,7 @@
                 </app-input>
                 <app-input
                   class="flex-1 min-w-0"
-                  label="Amount"
+                  [label]="'Amount' | t"
                   [isCurrency]="true"
                   [inputFormControl]="
                     form() | formGet : 'receiptItems.' + itemData.arrayIndex + '.amount'

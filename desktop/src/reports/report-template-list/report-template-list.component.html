@@ -1,12 +1,12 @@
 <div class="report-templates-page">
   <app-table-header
-    headerText="Reports"
+    [headerText]="'Reports' | t"
     subtitle="Saved report templates — open one in the builder, generate it, duplicate it, or delete it."
   >
     @if (canEnterBuilder()) {
       <app-add-button
-        buttonText="Add Report"
-        tooltip="Add Report"
+        [buttonText]="'Add Report' | t"
+        [tooltip]="'Add Report' | t"
         data-testid="report-template-add"
         (clicked)="newReport()"
       ></app-add-button>
@@ -28,12 +28,12 @@
   } @else if (loaded()) {
     <div class="empty-state">
       <span class="empty-icon"><app-icon name="summarize"></app-icon></span>
-      <h2>No report templates yet</h2>
-      <p>Build a report and save it as a template to reuse it later.</p>
+      <h2>{{ 'No report templates yet' | t }}</h2>
+      <p>{{ 'Build a report and save it as a template to reuse it later.' | t }}</p>
       @if (canEnterBuilder()) {
         <app-add-button
-          buttonText="Add Report"
-          tooltip="Add Report"
+          [buttonText]="'Add Report' | t"
+          [tooltip]="'Add Report' | t"
           data-testid="report-template-add-empty"
           (clicked)="newReport()"
         ></app-add-button>
@@ -49,7 +49,7 @@
     [routerLink]="['/reports', element.id, 'edit']"
   >{{ element.name }}</a>
   <div class="sub">
-    {{ columnCountFor(element) }} {{ columnCountFor(element) === 1 ? "column" : "columns" }}
+    {{ columnCountFor(element) }} {{ (columnCountFor(element) === 1 ? 'column' : 'columns') | t }}
   </div>
 </ng-template>
 
@@ -90,7 +90,7 @@
         matButtonType="iconButton"
         color="accent"
         icon="play_arrow"
-        tooltip="Generate report"
+        [tooltip]="'Generate report' | t"
         data-testid="report-template-generate"
         [disabled]="generatingId() !== null"
         (clicked)="generate(element)"
@@ -99,7 +99,7 @@
     @if (element.allowedActions?.includes("update")) {
       <app-edit-button
         color="accent"
-        tooltip="Open in builder"
+        [tooltip]="'Open in builder' | t"
         data-testid="report-template-edit"
         [buttonRouterLink]="['/reports', element.id, 'edit']"
       ></app-edit-button>
@@ -109,7 +109,7 @@
         matButtonType="iconButton"
         color="accent"
         icon="content_copy"
-        tooltip="Duplicate"
+        [tooltip]="'Duplicate' | t"
         data-testid="report-template-duplicate"
         [disabled]="duplicatingId() !== null"
         (clicked)="duplicate(element)"
@@ -117,7 +117,7 @@
     }
     @if (element.allowedActions?.includes("delete")) {
       <app-delete-button
-        tooltip="Delete"
+        [tooltip]="'Delete' | t"
         data-testid="report-template-delete"
         (clicked)="delete(element)"
       ></app-delete-button>

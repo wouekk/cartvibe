@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { SettingsComponent } from './settings.component';
@@ -20,7 +21,7 @@ describe('SettingsComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [SettingsComponent],
-      imports: [
+      imports: [TranslatePipe, 
         ...HlmTooltipImports,
         NgxsModule.forRoot([AuthState]),
         ReactiveFormsModule,

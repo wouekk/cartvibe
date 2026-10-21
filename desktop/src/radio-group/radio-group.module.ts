@@ -1,3 +1,4 @@
+import { PluralPipe, TranslatePipe } from "../i18n/translate.pipe";
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RadioGroupComponent } from './radio-group/radio-group.component';
@@ -6,7 +7,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [RadioGroupComponent],
-  imports: [CommonModule, ...HlmRadioGroupImports, ReactiveFormsModule],
+  imports: [TranslatePipe, PluralPipe, CommonModule, ...HlmRadioGroupImports, ReactiveFormsModule],
   exports: [RadioGroupComponent],
 })
 export class RadioGroupModule {}

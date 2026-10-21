@@ -11,7 +11,7 @@
       -->
       <div class="receipt-totals__config">
         <span id="receipt-totals-config-label" class="receipt-totals__config-label">
-          Summary configuration:
+          {{ 'Summary configuration:' | t }}
         </span>
         <!--
           Selection is driven by each option's [selected], not by a [value] on the listbox: the
@@ -60,7 +60,7 @@
           {{ rowLabel(row) }} ({{ receiptCountLabel(row) }}):
         </span>
         <span class="receipt-totals__figure">
-          <span class="receipt-totals__figure-name">Total</span>
+          <span class="receipt-totals__figure-name">{{ 'Total' | t }}</span>
           <span class="receipt-totals__figure-value">{{ row.total | customCurrency }}</span>
         </span>
         @for (customFieldTotal of row.customFieldTotals; track customFieldTotal.customFieldId) {

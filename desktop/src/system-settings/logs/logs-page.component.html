@@ -1,6 +1,6 @@
 <div class="logs">
   <div class="toolbar">
-    <div class="levels" role="group" aria-label="Level">
+    <div class="levels" role="group" [attr.aria-label]="'Level' | t">
       @for (option of levels; track option.value) {
         <button
           hlmBtn variant="outline"
@@ -15,14 +15,14 @@
     </div>
     <button hlmBtn variant="outline" type="button" data-testid="log-refresh" (click)="load()">
       <app-icon name="refresh"></app-icon>
-      Refresh
+      {{ 'Refresh' | t }}
     </button>
   </div>
 
   @if (loading()) {
-    <p class="muted">Loading…</p>
+    <p class="muted">{{ 'Loading…' | t }}</p>
   } @else if (entries().length === 0) {
-    <p class="muted" data-testid="log-empty">Nothing in the log.</p>
+    <p class="muted" data-testid="log-empty">{{ 'Nothing in the log.' | t }}</p>
   } @else {
     <ul class="entries">
       @for (entry of entries(); track $index) {

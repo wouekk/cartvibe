@@ -1,3 +1,4 @@
+import { PluralPipe, TranslatePipe } from "../i18n/translate.pipe";
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { HlmButton } from "@spartan-ng/helm/button";
@@ -11,7 +12,7 @@ import { TableComponent } from "./table/table.component";
 
 @NgModule({
   declarations: [TableComponent, RowExpandablePipe],
-  imports: [
+  imports: [TranslatePipe, PluralPipe, 
     CommonModule,
     AppIconComponent,
     ButtonModule,

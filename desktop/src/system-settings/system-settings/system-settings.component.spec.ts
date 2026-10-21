@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -17,7 +18,7 @@ describe("SystemSettingsComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [SystemSettingsComponent],
-      imports: [SharedUiModule, NgxsModule.forRoot([AuthState])],
+      imports: [TranslatePipe, SharedUiModule, NgxsModule.forRoot([AuthState])],
       providers: [
         provideZonelessChangeDetection(),
         {

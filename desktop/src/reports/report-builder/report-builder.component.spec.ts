@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { Component, NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormArray, FormBuilder, FormControl } from "@angular/forms";
@@ -64,7 +65,7 @@ describe("ReportBuilderComponent", () => {
       declarations: [ReportBuilderComponent, NoopComponent],
       // AuthState feeds the Save/Generate permission gates (saveTemplateAllowed /
       // generateAllowed), which resolve through the hasAnyAppPermission selector.
-      imports: [NgxsModule.forRoot([AuthState])],
+      imports: [TranslatePipe, NgxsModule.forRoot([AuthState])],
       providers: [
         provideZonelessChangeDetection(),
         FormBuilder,

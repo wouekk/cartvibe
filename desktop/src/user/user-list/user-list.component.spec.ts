@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
@@ -21,7 +22,7 @@ describe("UserListComponent", () => {
     await TestBed.configureTestingModule({
     declarations: [UserListComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [ApiModule,
+    imports: [TranslatePipe, ApiModule,
         DirectivesModule,
         NgxsModule.forRoot([AuthState, UserTableState]),
         TableModule],
