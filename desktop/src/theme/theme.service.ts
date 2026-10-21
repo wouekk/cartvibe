@@ -16,7 +16,7 @@ export interface AccentTheme {
 export const ACCENT_THEMES: AccentTheme[] = [
   { key: "classic", label: "Classic Blue", color: "#0086d4" },
   { key: "emerald", label: "Alpine Emerald", color: "#059669" },
-  { key: "violet", label: "Twilight Violet", color: "#6f62c8" },
+  { key: "violet", label: "Twilight Violet", color: "#6457d3" },
   { key: "brown", label: "Walnut Brown", color: "#8b5e3c" },
   { key: "graphite", label: "Graphite Gray", color: "#475569" },
 ];
