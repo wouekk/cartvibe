@@ -28,6 +28,7 @@ part 'user_preferences.g.dart';
 /// * [monthlySpendingGoal] - The most this person wants to spend in a month, as a decimal string; null or 0 means no goal
 /// * [displayCurrency] - The ISO code of the currency this person sees the Dashboard in; empty means the household currency
 /// * [displayCurrencyRate] - How many units of displayCurrency one unit of the household currency is worth, as a decimal string; only the Dashboard converts
+/// * [language] - The interface language this person chose (en or pl); empty follows the browser
 /// * [userShortcuts] 
 @BuiltValue()
 abstract class UserPreferences implements BaseModel, Built<UserPreferences, UserPreferencesBuilder> {
@@ -46,6 +47,10 @@ abstract class UserPreferences implements BaseModel, Built<UserPreferences, User
 
   @BuiltValueField(wireName: r'userShortcuts')
   BuiltList<UserShortcut>? get userShortcuts;
+
+  /// The interface language this person chose (en or pl); empty follows the browser
+  @BuiltValueField(wireName: r'language')
+  String? get language;
 
   /// Whether multi-select chip fields close their option list after each selection
   @BuiltValueField(wireName: r'closeChipSelectOnSelect')
@@ -73,6 +78,7 @@ abstract class UserPreferences implements BaseModel, Built<UserPreferences, User
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(UserPreferencesBuilder b) => b
+      ..language = ''
       ..closeChipSelectOnSelect = false
       ..quickScanDefaultGroupId = 0
       ..quickScanDefaultStatus = ReceiptStatus.OPEN
@@ -98,6 +104,13 @@ class _$UserPreferencesSerializer implements PrimitiveSerializer<UserPreferences
     UserPreferences object, {
     FullType specifiedType = FullType.unspecified,
   }) sync* {
+    if (object.language != null) {
+      yield r'language';
+      yield serializers.serialize(
+        object.language,
+        specifiedType: const FullType(String),
+      );
+    }
     if (object.closeChipSelectOnSelect != null) {
       yield r'closeChipSelectOnSelect';
       yield serializers.serialize(
@@ -213,6 +226,13 @@ class _$UserPreferencesSerializer implements PrimitiveSerializer<UserPreferences
       final key = serializedList[i] as String;
       final value = serializedList[i + 1];
       switch (key) {
+        case r'language':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.language = valueDes;
+          break;
         case r'closeChipSelectOnSelect':
           final valueDes = serializers.deserialize(
             value,
