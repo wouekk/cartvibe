@@ -28,7 +28,7 @@ import (
 func main() {
 	err := logging.InitLog()
 	if err != nil {
-		fmt.Println("Failed to initialize log")
+		fmt.Println("Failed to initialize log:", err)
 		os.Exit(1)
 	}
 
