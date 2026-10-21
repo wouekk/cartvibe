@@ -48,8 +48,7 @@ admin-only with working defaults. The visual target is the **high-craft fintech 
   and User roles, household notifications, a Logs tab, a simple currency choice.
 
 ### Product rules
-- **Web first.** Build UI in `desktop/`, mobile-responsive (thumb-sized targets). No Flutter screens;
-  `mobile/api/` is still regenerated with every API change.
+- **Web first.** Build UI in `desktop/`, mobile-responsive (thumb-sized targets). There is no mobile app; phones use the web app.
 - **SQLite on the NAS.** New models must be SQLite-safe and migrations additive.
 - **AI is optional and fallible.** Nothing may block or fail because the AI is missing, slow or out
   of credits: record a status, retry later, degrade to "planned"/"unknown".

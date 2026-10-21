@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-	"strings"
 )
 
 var errKey = "errorMsg"
@@ -53,7 +52,3 @@ func SetJSONResponseHeaders(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 }
 
-func IsMobileApp(r *http.Request) bool {
-	userAgent := r.UserAgent()
-	return strings.Contains(userAgent, "(dart:io)")
-}
