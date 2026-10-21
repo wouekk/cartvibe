@@ -1,9 +1,10 @@
-import { Component, DestroyRef, OnInit, inject, viewChild } from "@angular/core";
+import { Component, DestroyRef, OnInit, inject, signal, viewChild } from "@angular/core";
+import { UploadStage, withUploadProgress } from "../../utils/upload-progress";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
-import { take, tap } from "rxjs";
+import { finalize, take, tap } from "rxjs";
 import { ReceiptFileUploadCommand } from "../../interfaces";
 import { setRequired } from "../../form";
 import { Category, GroupReceiptSettings, Permission, ReceiptService, ReceiptStatus, Tag } from "../../open-api";
@@ -290,9 +291,17 @@ export class QuickScanDialogComponent implements OnInit {
     this.images.splice(index, 1);
   }
 
+  /** Where the upload stands, for the progress bar above the footer; null while nothing is being sent. */
+  public readonly uploadStage = signal<UploadStage | null>(null);
+
   public submitButtonClicked(): void {
+    if (this.uploadStage() !== null) {
+      return;
+    }
     if (this.form.valid && this.images.length > 0) {
-      this.receiptService
+      this.uploadStage.set({ stage: "uploading", percent: 0 });
+      withUploadProgress(
+        this.receiptService
         .quickScanReceipt(
           this.images.map((i) => i.file),
           this.groupIds.value,
@@ -301,8 +310,12 @@ export class QuickScanDialogComponent implements OnInit {
           this.joinIds(this.categories),
           this.joinIds(this.tags),
           // Already one string per image - no id joining needed, unlike categories/tags.
-          this.comments.value
-        )
+          this.comments.value,
+          "events",
+          true
+        ),
+        (stage) => this.uploadStage.set(stage)
+      )
         .pipe(
           take(1),
           tap(() => {
@@ -310,8 +323,10 @@ export class QuickScanDialogComponent implements OnInit {
             this.snackbarService.success(`Successfully queued ${imageWord} for processing`);
             this.dialogRef.close();
           }),
+          // A refused or failed upload (the interceptor already reports it) leaves the dialog open and the bar away.
+          finalize(() => this.uploadStage.set(null))
         )
-        .subscribe();
+        .subscribe({ error: () => undefined });
     }
     if (this.images.length === 0) {
       this.snackbarService.error("Please select images to upload");

@@ -1,5 +1,6 @@
 import { Component, ElementRef, EmbeddedViewRef, HostListener, inject, Injector, OnInit, Signal, TemplateRef, computed, runInInjectionContext, signal, viewChild } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
+import { UploadStage, withUploadProgress } from "../../utils/upload-progress";
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
 import { ExpansionPanelComponent } from "../../shared-ui/expansion-panel/expansion-panel.component";
@@ -1459,20 +1460,33 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
   // and its queued images, so the server sees the images at create time and the
   // create is atomic - there is no "receipt added but images failed" state.
   private createReceipt(): void {
-    this.receiptService
-      .createReceiptWithFiles(
+    if (this.uploadStage() !== null) {
+      return;
+    }
+
+    this.uploadStage.set({ stage: "uploading", percent: 0 });
+    withUploadProgress(
+      this.receiptService.createReceiptWithFiles(
         this.buildSubmitCommand(),
-        this.filesToUpload().map((file) => file.file)
-      )
+        this.filesToUpload().map((file) => file.file),
+        "events",
+        true
+      ),
+      (stage) => this.uploadStage.set(stage)
+    )
       .pipe(
         take(1),
         tap((r: Receipt) => {
           this.snackbarService.success("Successfully added receipt");
           this.router.navigate([`/receipts/${r.id}/view`]);
-        })
+        }),
+        finalize(() => this.uploadStage.set(null))
       )
-      .subscribe();
+      .subscribe({ error: () => undefined });
   }
+
+  /** Where the receipt upload stands (percent, then saving); null while nothing is being sent. */
+  public readonly uploadStage = signal<UploadStage | null>(null);
 
   private updateReceipt(): void {
     this.receiptService
