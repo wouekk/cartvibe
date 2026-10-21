@@ -29,15 +29,7 @@ app-item-list {
     }
     
     // Override default Material expansion panel header styles
-    .mat-expansion-panel-header-title {
-      font-size: 1.1rem;
-      font-weight: 500;
-      color: var(--foreground);
-    }
     
-    .mat-expansion-panel-header-description {
-      flex: 1;
-    }
     
     // Add blue accent when items are present
     &.has-items {
@@ -70,10 +62,6 @@ app-item-list {
       transform: translateX(4px);
       box-shadow: 0 2px 8px color-mix(in oklab, var(--foreground) 10%, transparent);
     }
-  }
-
-  .mat-expansion-panel-body {
-    padding: 16px;
   }
 
   .item-row .item-form-container {

@@ -1,38 +1,8 @@
 @use "../../variables.scss" as variables;
 
 app-card {
-  .mat-mdc-card-header-text {
-    width: 100%;
-  }
   
-  .mat-mdc-card {
-    border-radius: variables.$border-radius-xl !important;
-    border: 1px solid var(--border);
-    background: var(--card);
-    transition: all 0.3s ease-in-out;
-    overflow: hidden;
-    
-    &:hover {
-      border-color: var(--border);
-      transform: translateY(-2px);
-      box-shadow: variables.$shadow-xl !important;
-    }
-  }
   
-  .mat-mdc-card-header {
-    padding: variables.$spacing-lg;
-    border-bottom: 1px solid var(--border);
-    background-color: var(--card);
-    backdrop-filter: blur(8px);
-  }
   
-  .mat-mdc-card-content {
-    padding: variables.$spacing-lg;
-  }
   
-  .mat-mdc-card-actions {
-    padding: variables.$spacing-md variables.$spacing-lg;
-    border-top: 1px solid var(--border);
-    background-color: var(--accent);
-  }
 }

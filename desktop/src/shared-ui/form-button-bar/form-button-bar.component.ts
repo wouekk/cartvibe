@@ -3,8 +3,7 @@ import { FormMode } from "src/enums/form-mode.enum";
 
 @Component({
     selector: "app-form-button-bar",
-    templateUrl: "./form-button-bar.component.html",
-    styleUrls: ["./form-button-bar.component.scss"],
+    templateUrl: "./form-button-bar.component.html",
     standalone: false
 })
 export class FormButtonBarComponent {

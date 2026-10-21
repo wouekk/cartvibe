@@ -2,9 +2,6 @@
 @use "../../variables.scss" as variables;
 
 app-receipts-table {
-  .filter-button button .mat-badge-content {
-    color: white;
-  }
 
   // The toolbar holds taller things (the period picker's From / To fields with labels above them), so the
   // button keeps its own square and sits centered; the badge is anchored to that square, not to the row.
@@ -24,10 +21,6 @@ app-receipts-table {
       padding: 0;
     }
 
-    .mat-badge-content {
-      top: 2px;
-      right: 2px;
-    }
   }
 
   // The toolbar now carries the month stepper as well, so let it wrap on narrow
@@ -59,7 +52,7 @@ app-receipts-table {
     // A caret, so the label reads as something you can open rather than as a
     // static description. app-button renders one leading icon only, so this
     // trailing one is a pseudo-element on the ligature icon font the app
-    // already loads (styles.scss) rather than a second mat-icon.
+    // already loads (styles.scss) rather than a second app-icon.
     .d-flex::after {
       content: "arrow_drop_down";
       font-family: "Material Icons";

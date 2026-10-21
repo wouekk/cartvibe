@@ -10,30 +10,7 @@ app-share-list {
   }
 
   .green-check {
-    .mat-mdc-icon-button {
-      color: variables.$success-green !important;
-    }
   }
 
   // Match the item-list accordion header styling
-  .mat-expansion-panel-header {
-    .mat-expansion-panel-header-title {
-      font-size: 1.1rem;
-      font-weight: 500;
-      color: var(--foreground);
-    }
-    
-    .mat-expansion-panel-header-description {
-      flex: 1;
-      
-      .d-flex {
-        align-items: center;
-        
-        span {
-          font-size: 0.9rem;
-          color: var(--muted-foreground);
-        }
-      }
-    }
-  }
 }

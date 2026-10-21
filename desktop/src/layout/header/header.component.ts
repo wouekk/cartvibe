@@ -11,7 +11,6 @@ import { AuthState, GroupState } from "../../store";
 @Component({
     selector: "app-header",
     templateUrl: "./header.component.html",
-    styleUrls: ["./header.component.scss"],
     standalone: false
 })
 export class HeaderComponent {

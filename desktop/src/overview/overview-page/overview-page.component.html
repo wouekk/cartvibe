@@ -1,12 +1,12 @@
-<div class="overview">
-  <div class="overview__header">
-    <div class="overview__title">
+<div class="mx-auto flex max-w-[1240px] flex-col gap-6">
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-baseline gap-2">
       <h1>Dashboard</h1>
       @if (groupName()) {
-        <span class="overview__group">{{ groupName() }}</span>
+        <span class="font-medium text-muted-foreground">{{ groupName() }}</span>
       }
     </div>
-    <div class="overview__actions">
+    <div class="flex flex-wrap items-center gap-2">
       @if (canAddReceipt()) {
         <app-add-button
           buttonText="Add receipt"
@@ -37,24 +37,24 @@
     </div>
   </div>
 
-  <div class="overview__period">
+  <div class="flex flex-wrap items-center gap-2">
     <app-period-picker (periodChange)="period.set($event)"></app-period-picker>
-    <span class="overview__period-label" data-testid="overview-period-label">{{ periodLabel() }}</span>
+    <span class="ml-auto text-sm text-muted-foreground" data-testid="overview-period-label">{{ periodLabel() }}</span>
   </div>
 
   @if (!period()) {
-    <p class="empty" data-testid="overview-pick-range">Type a first and a last day for the custom range, like 01/10/2026.</p>
+    <p class="m-0 py-6 text-center text-muted-foreground" data-testid="overview-pick-range">Type a first and a last day for the custom range, like 01/10/2026.</p>
   }
 
-  <section class="overview__tiles" aria-label="The period at a glance">
-    <div class="tile" data-testid="overview-tile-spent">
-      <div class="tile__head">
-        <span class="tile__label">Spent</span>
+  <section class="grid grid-cols-[repeat(auto-fit,minmax(12.5rem,1fr))] gap-4 [&>:nth-child(2)]:[animation-delay:60ms] [&>:nth-child(3)]:[animation-delay:120ms] [&>:nth-child(4)]:[animation-delay:180ms] [&>:nth-child(5)]:[animation-delay:240ms]" aria-label="The period at a glance">
+    <div class="rw-tile" data-testid="overview-tile-spent">
+      <div class="flex min-h-6 items-center justify-between gap-2">
+        <span class="text-xs font-medium text-muted-foreground">Spent</span>
         @if (canEditGoal() && !editingGoal()) {
           @if (goal() > 0) {
             <button
               type="button"
-              class="tile__goal-action tile__goal-action--icon"
+              class="cursor-pointer rounded-full px-2 py-0.5 text-xs font-semibold text-primary transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary inline-flex !p-0.5 !text-muted-foreground"
               data-testid="overview-goal-edit"
               aria-label="Edit the monthly spending goal"
               title="Edit the monthly spending goal"
@@ -63,14 +63,14 @@
               <app-icon name="edit"></app-icon>
             </button>
           } @else {
-            <button type="button" class="tile__goal-action" data-testid="overview-set-goal" (click)="startEditingGoal()">
+            <button type="button" class="cursor-pointer rounded-full px-2 py-0.5 text-xs font-semibold text-primary transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary" data-testid="overview-set-goal" (click)="startEditingGoal()">
               + Set goal
             </button>
           }
         }
       </div>
-      <div class="tile__amount">
-        <span class="tile__value" [class.tile__value--over]="(spentGoal()?.over ?? 0) > 0">
+      <div class="flex flex-wrap items-baseline gap-x-1.5">
+        <span class="text-3xl font-bold" [class.text-destructive]="(spentGoal()?.over ?? 0) > 0">
           @if (overview(); as overview) {
             <app-money [value]="overview.total"></app-money>
           } @else {
@@ -78,14 +78,14 @@
           }
         </span>
         @if (editingGoal()) {
-          <span class="tile__goal-editor">
+          <span class="inline-flex items-baseline gap-1 text-[0.9375rem] text-muted-foreground">
             /
             <input
               #goalInput
               type="text"
               inputmode="decimal"
               autocomplete="off"
-              class="tile__goal-input"
+              class="w-[6.5em] rounded-md border border-primary bg-card px-1.5 py-0.5 text-[0.9375rem] text-foreground"
               data-testid="overview-goal-input"
               aria-label="Monthly spending goal"
               placeholder="0,00"
@@ -100,7 +100,7 @@
           @if (canEditGoal()) {
             <button
               type="button"
-              class="tile__goal tile__goal--button"
+              class="text-[0.9375rem] font-medium text-muted-foreground cursor-pointer rounded-sm hover:text-foreground hover:underline hover:decoration-dotted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               data-testid="overview-spent-goal"
               title="Edit the monthly spending goal"
               (click)="startEditingGoal()"
@@ -108,13 +108,13 @@
               / {{ goal.goal | customCurrency }}
             </button>
           } @else {
-            <span class="tile__goal" data-testid="overview-spent-goal">/ {{ goal.goal | customCurrency }}</span>
+            <span class="text-[0.9375rem] font-medium text-muted-foreground" data-testid="overview-spent-goal">/ {{ goal.goal | customCurrency }}</span>
           }
         }
       </div>
       @if (spentGoal(); as goal) {
         <div
-          class="tile__progress"
+          class="h-1 overflow-hidden rounded-sm bg-border"
           role="progressbar"
           aria-label="Spent against the monthly goal"
           aria-valuemin="0"
@@ -123,85 +123,85 @@
           data-testid="overview-spent-progress"
         >
           <div
-            class="tile__progress-fill"
-            [class.tile__progress-fill--over]="goal.over > 0"
+            class="h-full rounded-sm bg-primary transition-[width] duration-500"
+            [class.tile__progress-fill--over]="goal.over > 0" [class.bg-destructive]="goal.over > 0"
             [style.width.%]="goal.over > 0 ? 100 : goalProgress()"
           ></div>
         </div>
         @if (goal.over > 0) {
-          <span class="tile__hint tile__hint--over" data-testid="overview-spent-over">+{{ goal.over | customCurrency }} over goal</span>
+          <span class="text-[0.8125rem] font-medium text-muted-foreground font-semibold text-destructive" data-testid="overview-spent-over">+{{ goal.over | customCurrency }} over goal</span>
         } @else {
-          <span class="tile__hint tile__hint--remaining" data-testid="overview-spent-remaining">{{ goal.remaining | customCurrency }} left</span>
+          <span class="text-[0.8125rem] font-medium text-muted-foreground " data-testid="overview-spent-remaining">{{ goal.remaining | customCurrency }} left</span>
         }
       } @else if (change(); as change) {
-        <span class="tile__hint" [class.tile__hint--up]="changeIsIncrease()" [class.tile__hint--down]="!changeIsIncrease()">
+        <span class="text-[0.8125rem] font-medium text-muted-foreground" [class.text-warning-text]="changeIsIncrease()" [class.text-success-text]="!changeIsIncrease()">
           {{ change }}
         </span>
       } @else {
-        <span class="tile__hint">{{ periodLabel() }}</span>
+        <span class="text-[0.8125rem] font-medium text-muted-foreground">{{ periodLabel() }}</span>
       }
     </div>
 
-    <a class="tile tile--link" data-testid="overview-tile-receipts" [routerLink]="['/receipts/group', groupId()]">
-      <span class="tile__label">Receipts</span>
-      <span class="tile__value">{{ overview()?.receiptCount ?? "–" }}</span>
+    <a class="rw-tile rw-tile-link" data-testid="overview-tile-receipts" [routerLink]="['/receipts/group', groupId()]">
+      <span class="text-xs font-medium text-muted-foreground">Receipts</span>
+      <span class="text-3xl font-bold">{{ overview()?.receiptCount ?? "–" }}</span>
       @if ((overview()?.openReceiptCount ?? 0) > 0) {
-        <span class="tile__hint tile__hint--up">{{ overview()?.openReceiptCount }} to check</span>
+        <span class="text-[0.8125rem] font-medium text-muted-foreground text-warning-text">{{ overview()?.openReceiptCount }} to check</span>
       } @else {
-        <span class="tile__hint">All done</span>
+        <span class="text-[0.8125rem] font-medium text-muted-foreground">All done</span>
       }
     </a>
 
-    <button type="button" class="tile tile--link tile--button" data-testid="overview-tile-unhealthy" (click)="openProducts('UNHEALTHY')">
-      <span class="tile__label">Unhealthy</span>
+    <button type="button" class="rw-tile rw-tile-link w-full border-0 text-left font-[inherit]" data-testid="overview-tile-unhealthy" (click)="openProducts('UNHEALTHY')">
+      <span class="text-xs font-medium text-muted-foreground">Unhealthy</span>
       @if (overview()) {
-        <span class="tile__value" [class.tile__value--warning]="unhealthyTotal() > 0">
+        <span class="text-3xl font-bold" [class.text-warning-text]="unhealthyTotal() > 0">
           <app-money [value]="unhealthyTotal()"></app-money>
         </span>
         @if (unhealthyTotal() > 0) {
-          <span class="tile__hint tile__hint--up">{{ unhealthyShare() }}% of the spending</span>
+          <span class="text-[0.8125rem] font-medium text-muted-foreground text-warning-text">{{ unhealthyShare() }}% of the spending</span>
         } @else {
-          <span class="tile__hint">Nothing unhealthy</span>
+          <span class="text-[0.8125rem] font-medium text-muted-foreground">Nothing unhealthy</span>
         }
         @if (unhealthyChange(); as unhealthyChange) {
-          <span class="tile__hint">{{ unhealthyChange }}</span>
+          <span class="text-[0.8125rem] font-medium text-muted-foreground">{{ unhealthyChange }}</span>
         }
       } @else {
-        <span class="tile__value">–</span>
+        <span class="text-3xl font-bold">–</span>
       }
     </button>
 
-    <button type="button" class="tile tile--link tile--button" data-testid="overview-tile-unplanned" (click)="openProducts('UNPLANNED')">
-      <span class="tile__label">Not on the list</span>
+    <button type="button" class="rw-tile rw-tile-link w-full border-0 text-left font-[inherit]" data-testid="overview-tile-unplanned" (click)="openProducts('UNPLANNED')">
+      <span class="text-xs font-medium text-muted-foreground">Not on the list</span>
       @if (overview()) {
-        <span class="tile__value" [class.tile__value--warning]="unplannedTotal() > 0">
+        <span class="text-3xl font-bold" [class.text-warning-text]="unplannedTotal() > 0">
           <app-money [value]="unplannedTotal()"></app-money>
         </span>
         @if (unplannedChange(); as unplannedChange) {
-          <span class="tile__hint">{{ unplannedChange }}</span>
+          <span class="text-[0.8125rem] font-medium text-muted-foreground">{{ unplannedChange }}</span>
         } @else if (unplannedTotal() === 0) {
-          <span class="tile__hint">Everything was planned</span>
+          <span class="text-[0.8125rem] font-medium text-muted-foreground">Everything was planned</span>
         }
       } @else {
-        <span class="tile__value">–</span>
+        <span class="text-3xl font-bold">–</span>
       }
     </button>
 
     @if (shoppingListGroupId(); as listGroupId) {
-      <a class="tile tile--link" data-testid="overview-tile-to-buy" [routerLink]="['/shopping-lists/group', listGroupId]">
-        <span class="tile__label">To buy</span>
-        <span class="tile__value">{{ itemsToBuy() }} {{ itemsToBuy() === 1 ? "item" : "items" }}</span>
-        <span class="tile__hint">on {{ listSummaries().length }} {{ listSummaries().length === 1 ? "list" : "lists" }}</span>
+      <a class="rw-tile rw-tile-link" data-testid="overview-tile-to-buy" [routerLink]="['/shopping-lists/group', listGroupId]">
+        <span class="text-xs font-medium text-muted-foreground">To buy</span>
+        <span class="text-3xl font-bold">{{ itemsToBuy() }} {{ itemsToBuy() === 1 ? "item" : "items" }}</span>
+        <span class="text-[0.8125rem] font-medium text-muted-foreground">on {{ listSummaries().length }} {{ listSummaries().length === 1 ? "list" : "lists" }}</span>
       </a>
     }
   </section>
 
-  <div class="overview__row">
-    <section class="card" aria-labelledby="overview-categories-title">
-      <div class="card__header">
+  <div class="grid grid-cols-[repeat(auto-fit,minmax(min(23.75rem,100%),1fr))] gap-6 [&>:nth-child(2)]:[animation-delay:120ms]">
+    <section class="rw-panel" aria-labelledby="overview-categories-title">
+      <div class="rw-panel-header">
         <div>
           <h2 id="overview-categories-title">Spending by category</h2>
-          <p class="card__sub">{{ periodLabel() }}</p>
+          <p class="mt-0.5 text-xs text-muted-foreground">{{ periodLabel() }}</p>
         </div>
       </div>
       @if (segments().length > 0) {
@@ -213,11 +213,11 @@
             [label]="'Spending by category, ' + periodLabel()"
           ></app-apex-chart>
           <table class="donut__legend min-w-52 flex-1 text-sm">
-            <thead>
+            <thead hlmTHead>
               <tr>
-                <th scope="col" class="pb-2 text-left text-xs font-medium text-muted-foreground">Category</th>
-                <th scope="col" class="numeric pb-2 text-right text-xs font-medium text-muted-foreground">Spent</th>
-                <th scope="col" class="numeric pb-2 pl-3 text-right text-xs font-medium text-muted-foreground">Share</th>
+                <th hlmTh scope="col" class="pb-2 text-left text-xs font-medium text-muted-foreground">Category</th>
+                <th hlmTh scope="col" class="text-right pb-2 text-right text-xs font-medium text-muted-foreground">Spent</th>
+                <th hlmTh scope="col" class="text-right pb-2 pl-3 text-right text-xs font-medium text-muted-foreground">Share</th>
               </tr>
             </thead>
             <tbody>
@@ -238,43 +238,43 @@
                       {{ segment.name }}
                     }
                   </td>
-                  <td class="numeric strong py-2.5 pl-3 text-right font-medium tabular-nums">{{ segment.total | customCurrency }}</td>
-                  <td class="numeric muted py-2.5 pl-3 text-right tabular-nums text-muted-foreground">{{ segment.share }}</td>
+                  <td class="text-right font-semibold py-2.5 pl-3 text-right font-medium tabular-nums">{{ segment.total | customCurrency }}</td>
+                  <td class="text-right text-muted-foreground py-2.5 pl-3 text-right tabular-nums text-muted-foreground">{{ segment.share }}</td>
                 </tr>
               }
             </tbody>
           </table>
         </div>
       } @else {
-        <p class="empty">No spending in {{ periodLabel() }} yet.</p>
+        <p class="m-0 py-6 text-center text-muted-foreground">No spending in {{ periodLabel() }} yet.</p>
       }
-      <div class="card__footer">
+      <div class="rw-panel-footer">
         <span>{{ periodLabel() }}</span>
-        <a routerLink="/reports" class="card__link">Open reports <app-icon name="arrow_right_alt"></app-icon></a>
+        <a routerLink="/reports" class="rw-link">Open reports <app-icon name="arrow_right_alt"></app-icon></a>
       </div>
     </section>
 
-    <section class="card" aria-labelledby="overview-trend-title">
-      <div class="card__header">
+    <section class="rw-panel" aria-labelledby="overview-trend-title">
+      <div class="rw-panel-header">
         <h2 id="overview-trend-title">{{ isDailyTrend() ? "Spending by day" : "Spending by month" }}</h2>
         @if (chartBars().length > 0 && !rangeTooLongForChart()) {
-          <span class="muted text-sm" data-testid="overview-trend-summary">Average {{ averageBar() | customCurrency }} {{ isDailyTrend() ? "a day" : "a month" }}@if (goalMode()) { · Goal {{ goal() | customCurrency }}}</span>
+          <span class="text-muted-foreground text-sm" data-testid="overview-trend-summary">Average {{ averageBar() | customCurrency }} {{ isDailyTrend() ? "a day" : "a month" }}@if (goalMode()) { · Goal {{ goal() | customCurrency }}}</span>
         }
       </div>
       @if (!rangeTooLongForChart() && chartBars().length > 0) {
-        <div class="trend-stat">
-          <span class="trend-stat__value">{{ overview()?.total ?? 0 | customCurrency }}</span>
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <span class="text-3xl font-bold tracking-tight">{{ overview()?.total ?? 0 | customCurrency }}</span>
           @if (change(); as change) {
-            <span class="pill" [class.pill--up]="changeIsIncrease()" [class.pill--down]="!changeIsIncrease()">
+            <span class="rw-pill" [class.rw-pill-up]="changeIsIncrease()" [class.rw-pill-down]="!changeIsIncrease()">
               <app-icon [name]="changeIsIncrease() ? 'arrow_upward' : 'arrow_downward'"></app-icon>{{ change }}
             </span>
           }
         </div>
       }
       @if (rangeTooLongForChart()) {
-        <div class="chart-export" data-testid="overview-range-export">
+        <div class="flex flex-col gap-4 py-6" data-testid="overview-range-export">
           <p>Ranges over 1 year are best viewed as a report.</p>
-          <div class="chart-export__actions">
+          <div class="flex flex-wrap items-center gap-2">
             <button type="button" hlmBtn variant="outline" data-testid="overview-export-pdf" [disabled]="exporting()" (click)="exportPdf()">
               Download Landscape PDF (1 yr/page)
             </button>
@@ -286,7 +286,7 @@
         </div>
       } @else if (chartBars().length > 0) {
         @if (bars().length > chartBars().length) {
-          <p class="chart-note" data-testid="overview-chart-capped">Showing the latest {{ chartBars().length }} months.</p>
+          <p class="mb-1 text-xs text-muted-foreground" data-testid="overview-chart-capped">Showing the latest {{ chartBars().length }} months.</p>
         }
         <app-apex-chart
           data-testid="overview-bars"
@@ -310,52 +310,52 @@
           </ul>
         }
       }
-      <div class="card__footer">
+      <div class="rw-panel-footer">
         <span>{{ periodLabel() }}</span>
-        <a routerLink="/reports" class="card__link">Open reports <app-icon name="arrow_right_alt"></app-icon></a>
+        <a routerLink="/reports" class="rw-link">Open reports <app-icon name="arrow_right_alt"></app-icon></a>
       </div>
     </section>
   </div>
 
-  <div class="overview__row overview__row--wide">
-    <section class="card card--wide" aria-labelledby="overview-receipts-title">
-      <div class="card__header">
+  <div class="grid grid-cols-[repeat(auto-fit,minmax(min(23.75rem,100%),1fr))] gap-6 [&>:nth-child(2)]:[animation-delay:120ms] !flex flex-wrap">
+    <section class="rw-panel flex-[2_1_35rem]" aria-labelledby="overview-receipts-title">
+      <div class="rw-panel-header">
         <h2 id="overview-receipts-title">Receipts in {{ periodLabel() }}</h2>
         <a [routerLink]="['/receipts/group', groupId()]">All receipts</a>
       </div>
       @if (recentReceipts().length > 0) {
-        <div class="table-scroll">
-          <table class="receipts" data-testid="overview-recent-receipts">
+        <div class="overflow-x-auto">
+          <table hlmTable class="w-full min-w-[35rem]" data-testid="overview-recent-receipts">
             <thead>
-              <tr>
-                <th scope="col">Date</th>
-                <th scope="col">Shop</th>
-                <th scope="col">Added by</th>
-                <th scope="col">Status</th>
-                <th scope="col" class="numeric">Amount</th>
+              <tr hlmTr>
+                <th hlmTh scope="col">Date</th>
+                <th hlmTh scope="col">Shop</th>
+                <th hlmTh scope="col">Added by</th>
+                <th hlmTh scope="col">Status</th>
+                <th hlmTh scope="col" class="text-right">Amount</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody hlmTBody>
               @for (receipt of recentReceipts(); track receipt.id) {
-                <tr>
-                  <td class="muted nowrap">{{ receipt.date | appDate : "MMM d" : "calendar" }}</td>
-                  <td class="strong">
+                <tr hlmTr>
+                  <td hlmTd class="text-muted-foreground whitespace-nowrap">{{ receipt.date | appDate : "MMM d" : "calendar" }}</td>
+                  <td hlmTd class="font-semibold">
                     <span class="inline-flex items-center gap-2">
                       <app-shop-monogram [name]="receipt.shopName || receipt.name"></app-shop-monogram>
                       <a [routerLink]="['/receipts', receipt.id, 'view']">{{ receipt.shopName || receipt.name }}</a>
                     </span>
                   </td>
-                  <td>{{ ((receipt.paidByUserId + "") | user)?.displayName ?? "—" }}</td>
-                  <td><app-status-chip [status]="receipt.status"></app-status-chip></td>
-                  <td class="numeric strong">{{ receipt.amount | customCurrency }}</td>
+                  <td hlmTd>{{ ((receipt.paidByUserId + "") | user)?.displayName ?? "—" }}</td>
+                  <td hlmTd><app-status-chip [status]="receipt.status"></app-status-chip></td>
+                  <td hlmTd class="text-right font-semibold">{{ receipt.amount | customCurrency }}</td>
                 </tr>
               }
             </tbody>
           </table>
         </div>
       } @else {
-        <div class="empty-state" data-testid="overview-receipts-empty">
-          <p class="empty">No receipts yet in {{ periodLabel() }}.</p>
+        <div class="flex flex-col items-center gap-2 py-4 [&_.empty]:py-0" data-testid="overview-receipts-empty">
+          <p class="m-0 py-6 text-center text-muted-foreground">No receipts yet in {{ periodLabel() }}.</p>
           @if (canAddReceipt()) {
             <app-add-button
               buttonText="Add receipt"
@@ -369,14 +369,14 @@
     </section>
 
     @if (shoppingListGroupId(); as listGroupId) {
-      <section class="card card--narrow" aria-labelledby="overview-lists-title">
-        <div class="card__header">
+      <section class="rw-panel flex-[1_1_18.75rem]" aria-labelledby="overview-lists-title">
+        <div class="rw-panel-header">
           <h2 id="overview-lists-title">Shopping lists</h2>
           <a [routerLink]="['/shopping-lists/group', listGroupId]">Open</a>
         </div>
         @if (itemsToBuy() === 0) {
-          <div class="empty-state" data-testid="overview-lists-empty">
-            <p class="empty">There are no items in the shopping lists.</p>
+          <div class="flex flex-col items-center gap-2 py-4 [&_.empty]:py-0" data-testid="overview-lists-empty">
+            <p class="m-0 py-6 text-center text-muted-foreground">There are no items in the shopping lists.</p>
             @if (canCreateList()) {
               <app-button
                 icon="playlist_add"
@@ -390,13 +390,13 @@
           </div>
         } @else {
           @for (list of listSummaries(); track list.id) {
-            <a class="list-card" [routerLink]="['/shopping-lists/group', listGroupId]">
-              <app-icon class="list-card__icon" name="shopping_cart"></app-icon>
-              <span class="list-card__text">
-                <span class="strong">{{ list.name }}</span>
-                <span class="muted text-sm">{{ list.preview }}</span>
+            <a class="flex items-center gap-2 rounded-lg border border-border p-3.5 text-inherit no-underline transition-colors hover:bg-muted" [routerLink]="['/shopping-lists/group', listGroupId]">
+              <app-icon class="shrink-0 text-primary" name="shopping_cart"></app-icon>
+              <span class="flex min-w-0 flex-1 flex-col">
+                <span class="font-semibold">{{ list.name }}</span>
+                <span class="text-muted-foreground text-sm">{{ list.preview }}</span>
               </span>
-              <span class="list-card__count">{{ list.count }}</span>
+              <span class="text-lg font-bold tabular-nums">{{ list.count }}</span>
             </a>
           }
         }

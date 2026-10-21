@@ -6,6 +6,7 @@ import { ButtonModule } from "../button";
 import { PeriodPickerComponent } from "./period-picker/period-picker.component";
 import { PipesModule } from "../pipes/pipes.module";
 import { MonthStepperComponent } from "../shared-ui/month-stepper/month-stepper.component";
+import { HlmTableImports } from "@spartan-ng/helm/table";
 import { ApexChartComponent } from "../shared-ui/apex-chart/apex-chart.component";
 import { MoneyComponent } from "../shared-ui/money/money.component";
 import { ShopMonogramComponent } from "../shared-ui/shop-monogram/shop-monogram.component";
@@ -15,6 +16,6 @@ import { OverviewRoutingModule } from "./overview-routing.module";
 
 @NgModule({
   declarations: [OverviewPageComponent],
-  imports: [ApexChartComponent, MoneyComponent, ShopMonogramComponent, ButtonModule, CommonModule, HlmButton, AppIconComponent, MonthStepperComponent, PeriodPickerComponent, OverviewRoutingModule, PipesModule, SharedUiModule],
+  imports: [ApexChartComponent, ...HlmTableImports, MoneyComponent, ShopMonogramComponent, ButtonModule, CommonModule, HlmButton, AppIconComponent, MonthStepperComponent, PeriodPickerComponent, OverviewRoutingModule, PipesModule, SharedUiModule],
 })
 export class OverviewModule {}
