@@ -75,6 +75,7 @@ func (repository UserPreferncesRepository) UpdateUserPreferences(userId uint, us
 	userPreferencesToUpdate.MonthlySpendingGoal = userPreferences.MonthlySpendingGoal
 	userPreferencesToUpdate.DisplayCurrency = strings.ToUpper(strings.TrimSpace(userPreferences.DisplayCurrency))
 	userPreferencesToUpdate.DisplayCurrencyRate = userPreferences.DisplayCurrencyRate
+	userPreferencesToUpdate.Language = normalizeLanguage(userPreferences.Language)
 	userPreferencesToUpdate.UserShortcuts = userPreferences.UserShortcuts
 
 	err = db.Transaction(func(tx *gorm.DB) error {
@@ -141,4 +142,13 @@ func (repository UserPreferncesRepository) DeleteUserPreferences(userId uint) er
 	}
 
 	return nil
+}
+
+// normalizeLanguage keeps the languages the interface has; anything else means "follow the browser".
+func normalizeLanguage(language string) string {
+	language = strings.ToLower(strings.TrimSpace(language))
+	if language == "en" || language == "pl" {
+		return language
+	}
+	return ""
 }

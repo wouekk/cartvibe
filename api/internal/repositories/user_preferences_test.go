@@ -145,3 +145,23 @@ func TestUpdateUserPreferencesStoresTheDisplayCurrencyAndItsRate(t *testing.T) {
 		t.Errorf("clearing should stick, got %q %v", cleared.DisplayCurrency, cleared.DisplayCurrencyRate)
 	}
 }
+
+func TestUpdateUserPreferencesStoresOnlyKnownLanguages(t *testing.T) {
+	defer TruncateTestDb()
+	CreateTestUser()
+
+	repository := NewUserPreferencesRepository(nil)
+	if _, err := repository.GetUserPreferencesOrCreate(1); err != nil {
+		t.Fatal(err)
+	}
+
+	for language, want := range map[string]string{" PL ": "pl", "en": "en", "de": "", "": ""} {
+		updated, err := repository.UpdateUserPreferences(1, models.UserPrefernces{Language: language})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if updated.Language != want {
+			t.Errorf("language %q should be stored as %q, got %q", language, want, updated.Language)
+		}
+	}
+}

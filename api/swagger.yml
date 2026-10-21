@@ -7583,6 +7583,10 @@ components:
               type: string
               nullable: true
               description: How many units of displayCurrency one unit of the household currency is worth, as a decimal string; only the Dashboard converts
+            language:
+              type: string
+              default: ""
+              description: The interface language this person chose (en or pl); empty follows the browser
             userShortcuts:
               type: array
               items:

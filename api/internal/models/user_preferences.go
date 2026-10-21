@@ -24,7 +24,10 @@ type UserPrefernces struct {
 	// amounts and every other screen stay in the household currency.
 	DisplayCurrency     string           `gorm:"size:8" json:"displayCurrency"`
 	DisplayCurrencyRate *decimal.Decimal `gorm:"type:decimal(18,6)" json:"displayCurrencyRate"`
-	UserShortcuts       []UserShortcut   `json:"userShortcuts"`
+	// Language is the interface language this person chose ("en", "pl"); "" follows the browser. A plain string so a new
+	// language is never a new value in a closed enum.
+	Language      string         `gorm:"size:8" json:"language"`
+	UserShortcuts []UserShortcut `json:"userShortcuts"`
 }
 
 func (userPreferences *UserPrefernces) LoadDataFromRequest(w http.ResponseWriter, r *http.Request) error {
