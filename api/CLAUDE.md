@@ -26,7 +26,7 @@ the project's Docker images (and `set-up-dependencies.sh`) assume **Debian** (`g
   repos only ship ImageMagick **6** (`libmagickwand-dev` = IM6) and have no IM7 package, so
   `set-up-dependencies.sh`'s `libmagickwand-7.q16-dev` isn't installable and the Go build fails to
   link. **IM7 must be built from source.**
-- `set-up-dependencies.sh` also installs heavy Python (torch, easyocr) used only by the **IMAP email
+- `set-up-dependencies.sh` also installs the Python venv used only by the **IMAP email
   client**, not the Go server. **Skip it** — install just the native libs below.
 
 **Step 1 — Start Redis** (installed but not running by default):
@@ -123,7 +123,7 @@ curl -X POST 'localhost:8081/api/login/?tokensInBody=true' \
   -H 'Content-Type: application/json' -d '{"username":"admin","password":"admin"}'
 ```
 
-**Not needed to boot the server (skip in the sandbox):** the Python/torch/easyocr install, and the
+**Not needed to boot the server (skip in the sandbox):** the Python venv install, and the
 ImageMagick PDF-policy edit in `set-up-dependencies.sh` (it targets `/etc/ImageMagick-7/policy.xml`; a
 source build's policy is at `/usr/local/etc/ImageMagick-7/policy.xml` and doesn't block PDF by
 default). Those only matter for exercising email-OCR / PDF-receipt processing, not for a running API.
@@ -331,17 +331,19 @@ When working with tests in this codebase, follow these critical requirements:
 - Tesseract OCR integration via `otiai10/gosseract`
 - ImageMagick integration for image processing and format conversion
 - Supports HEIC format conversion to standard image formats
-- Python dependencies for additional image processing capabilities
+- Tesseract is the only OCR engine. EasyOCR (with PyTorch and OpenCV) was removed from the image; a
+  processing setting that still names `EASY_OCR` is read with Tesseract (the enum value stays: released
+  clients read it). `prepareImage` shrinks an image to `ocrImageMaxSide` (3000 px) before its filters.
 
 ## Email HTML to PDF Rendering
 
 - HTML email bodies are rendered to PDF via `chromedp` running headless Chromium
 - The Chromium binary path is read from the `CHROMIUM_BINARY_PATH` env var
   (defaults to `/usr/bin/chromium`); installed by `set-up-dependencies.sh`
-- The Chromium process sandbox is **off by default** because the supported
-  docker images run as root, where chromium's sandbox refuses to start.
-  Operators running the API as a non-root user can opt back in by setting
-  `CHROMIUM_SANDBOX=true`
+- The Chromium process sandbox is **off by default**. The fork's image runs the API as the
+  unprivileged `cartvibe` user (`docker/entrypoint.sh`), but Chromium's sandbox also needs user
+  namespaces, which Docker's default seccomp profile (and the NAS kernel) may refuse, so it stays
+  opt-in: set `CHROMIUM_SANDBOX=true` and check an email-body PDF still renders
 - External network resource loads (remote images, CSS, fonts) are
   **blocked by default** to remove an SSRF / tracking-pixel surface. To
   permit remote loads (useful when receipts depend on remote logos or
@@ -2082,7 +2084,7 @@ and the pure `receiptsource` / `render` cases, each with a `mutation-check.sh` e
 there: the **quick-scan upload** (`handlers/receipts.go`, one per file in a
 multi-file scan), the **email attachment and its `image-` OCR copy**
 (`wranglerasynq/email.go`), the **email body image**, short-lived scratch from
-`MagicFillFromImage` / `ReadImageWithEasyOcr` / `ConvertPdfToJpg` (each with a
+`MagicFillFromImage` / `ConvertPdfToJpg` (each with a
 `defer os.Remove`), and the **`DebugOcr` dumps** from `services/ocr.go`
 `writeDebuggingFiles`, which are never removed by the code that writes them.
 
@@ -4222,3 +4224,22 @@ Dashboard's figures in the browser; stored amounts, exports and every other scre
 - **Three tries, then FAILED.** Product extraction and shopping trips count outages as attempts too (not "no AI configured": nothing is called then), and give up after `productExtractionMaxBadAnswers` / `shoppingTripMaxBadAnswers` = 3; "Read with AI" / trip retry reset the counter. Food classification never fails a product on an outage but backs off in memory (`outageBackoff`: 5 min, doubling to 1 h; a success resets). Quick scan keeps its own 3-try rule.
 - **`POST /receiptProcessingSettings/geminiModels`** (`app.receipt-processing-settings.read`): body `{key}` or `{receiptProcessingSettingsId}` (the stored key is decrypted server-side). `ai.ListGeminiModels` calls Google with the key in the `x-goog-api-key` header (never the URL), keeps `generateContent` models, newest version first. A refused key is a 400 with `errors.key`.
 - **Vision images** are normalized by `FileRepository.NormalizeImageForVision` (orientation, flatten alpha onto white, sRGB, long side at most 2048, JPEG 85) in `ReceiptProcessingService.readNormalizedImage`, used by the Ollama/OpenAI/Gemini readers. The stored original is untouched.
+
+## One AI call per quick scan, Gemini SDK, hardened image (fork, 2026-10)
+- **Quick scan reads the products in the same call.** `ReceiptService.QuickScan` asks `magicFillFromImage(..., true)`,
+  which sets `ReceiptProcessingService.IncludeProducts`; `buildPrompt` then inserts `InlineProductPrompt` (the same product
+  rules as the sweep, `productLineRules`) before the receipt text. After the receipt commits,
+  `ReceiptProductExtractionService.ApplyInlineRead` stores the answer's `products` through the sweep's own
+  `applyProducts`. It claims the receipt with `ClaimPendingExtraction` (a conditional UPDATE), so it and the 30 s sweep
+  never both apply; an answer without a `products` key, an unreadable one, or a lost claim leaves the receipt to the sweep.
+  Magic fill (the receipt form) does not ask for products. Seasonality uses the current month (app zone), since the receipt
+  date is not known before the read.
+- **Gemini runs on `google.golang.org/genai`** (the deprecated `generative-ai-go` is gone). `geminiThinkingConfig` turns
+  thinking down per model (2.5 Flash budget 0, 2.5 Pro 128, Gemini 3 level LOW, others untouched); a 400 is retried once
+  without it. The SDK's own retries are off (`Attempts: 1`): our sweeps count every try. One shared `http.Client`.
+  `geminiBaseUrl` points the client at a test server.
+- **Image:** the runtime stage runs `apt-get upgrade`, denies ImageMagick coders receipts never are (EXR, SVG, MVG, MSL,
+  PostScript, XPS, URL and `@` paths; the build converts a PDF and refuses EPS to prove the policy), and the entrypoint runs
+  the API as uid 10001 `cartvibe` through `setpriv` after handing it `data`, `temp`, `logs` and `sqlite` (only files it does
+  not own yet). nginx sends `server_tokens off` and nosniff / frame / referrer headers. `publish-image.yml` rebuilds `main`
+  weekly without the cache, always pulls base images, and attaches a grype report to every run.
