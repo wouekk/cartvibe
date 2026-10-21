@@ -47,7 +47,7 @@
 
   td {
     padding: variables.$spacing-sm variables.$spacing-sm variables.$spacing-sm 0;
-    border-top: 1px solid #eef2f6;
+    border-top: 1px solid var(--border);
     vertical-align: top;
   }
 }
@@ -91,7 +91,7 @@
   font-weight: 600;
   line-height: 16px;
   background: color-mix(in oklab, var(--destructive) 15%, transparent);
-  color: #991b1b;
+  color: var(--destructive);
 }
 
 .actions {
@@ -141,5 +141,5 @@
 }
 
 .form-error {
-  color: #b91c1c;
+  color: var(--destructive);
 }

@@ -1,17 +1,15 @@
-<div class="shopping-lists-page">
+<div class="mx-auto max-w-3xl px-2 pb-8">
   <app-table-header
     headerText="Shopping Lists"
     [subtitle]="groupName() ? 'Shared with everyone in ' + groupName() + '. Changes appear live on every device.' : ''"
   ></app-table-header>
 
-  <div class="list-bar">
-
-    <div class="list-actions">
+  <div class="mb-2 flex items-center gap-2">
+    <div class="ml-auto flex items-center gap-2">
       @if (canUpdate() && lists().length > 0) {
         <button
           hlmBtn variant="outline"
           type="button"
-          class="going-shopping"
           data-testid="shopping-list-going-shopping"
           [disabled]="announcing()"
           (click)="announceGoingShopping()"
@@ -67,21 +65,21 @@
   </div>
 
   @if (isLoaded() && listCards().length > 0) {
-    <div class="list-cards" data-testid="shopping-list-cards">
+    <div class="mb-4 grid grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] gap-2" data-testid="shopping-list-cards">
       @for (card of listCards(); track card.id) {
         <button
           type="button"
-          class="list-card"
-          [class.list-card--selected]="card.id === selectedList()?.id"
+          class="list-card flex min-h-21 flex-col gap-1.5 rounded-xl border-2 border-transparent bg-card px-4 py-3.5 text-left shadow-xs ring-1 ring-foreground/10 transition-all duration-150 hover:ring-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.99]"
+          [class.border-primary]="card.id === selectedList()?.id"
           [attr.aria-pressed]="card.id === selectedList()?.id"
           [attr.data-testid]="'shopping-list-card-' + card.id"
           (click)="selectList(card.id.toString())"
         >
-          <span class="list-card__top">
-            <span class="list-card__name">{{ card.name }}</span>
-            <span class="list-card__count" [class.list-card__count--empty]="card.count === 0">{{ card.count }}</span>
+          <span class="flex items-center justify-between gap-2">
+            <span class="break-words font-semibold">{{ card.name }}</span>
+            <span hlmBadge variant="secondary" class="min-w-7 justify-center font-semibold tabular-nums text-muted-foreground">{{ card.count }}</span>
           </span>
-          <span class="list-card__preview">{{ card.preview }}</span>
+          <span class="text-sm text-muted-foreground">{{ card.preview }}</span>
         </button>
       }
     </div>
@@ -96,7 +94,7 @@
       ></app-shopping-list>
       <app-shopping-trips [listId]="list.id" [groupId]="groupId()"></app-shopping-trips>
     } @else {
-      <p class="no-lists" data-testid="shopping-list-none">
+      <p class="px-4 py-12 text-center text-muted-foreground" data-testid="shopping-list-none">
         @if (canCreate()) {
           No shopping lists yet. Add one for each store you shop at.
         } @else {
@@ -107,13 +105,14 @@
   }
 
   @if (pastLists().length > 0) {
-    <div class="past-lists" data-testid="shopping-list-past">
-      <span class="past-label">Past lists</span>
+    <div class="mb-2 flex flex-wrap items-center gap-1" data-testid="shopping-list-past">
+      <span class="text-sm text-muted-foreground">Past lists</span>
       @for (past of pastLists(); track past.id) {
         <button
           type="button"
-          class="past-chip"
-          [class.selected]="past.id === selectedList()?.id"
+          class="min-h-9 rounded-full border border-border bg-card px-3 text-sm text-muted-foreground transition-colors hover:bg-accent"
+          [class.bg-accent]="past.id === selectedList()?.id"
+          [class.text-foreground]="past.id === selectedList()?.id"
           [attr.data-testid]="'shopping-list-past-' + past.id"
           (click)="selectList(past.id.toString())"
         >

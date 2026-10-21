@@ -1,29 +1,29 @@
 <app-dialog headerText="Attach a Receipt">
-  <p class="hint">Pick the receipt from this shopping trip. Its products are compared with the list.</p>
+  <p class="mb-2 text-muted-foreground">Pick the receipt from this shopping trip. Its products are compared with the list.</p>
 
   @if (receipts(); as receipts) {
-    <div class="choices" data-testid="attach-receipt-choices">
+    <div class="flex max-h-[60vh] flex-col overflow-y-auto" data-testid="attach-receipt-choices">
       @for (receipt of receipts; track receipt.id) {
         <button
           type="button"
-          class="choice"
+          class="flex min-h-13 flex-col items-start gap-0.5 border-b border-border p-2 text-left transition-colors hover:bg-muted focus-visible:bg-muted"
           data-testid="attach-receipt-choice"
           (click)="pick(receipt)"
         >
-          <span class="choice__name">{{ receipt.name }}</span>
-          <span class="choice__meta">
+          <span class="font-semibold">{{ receipt.name }}</span>
+          <span class="text-sm tabular-nums text-muted-foreground">
             {{ receipt.date | appDate : "MMM d" : "calendar" }} · {{ receipt.amount | customCurrency }}
           </span>
         </button>
       } @empty {
-        <p class="hint" data-testid="attach-receipt-none">No receipts to attach. Add the receipt first.</p>
+        <p class="mb-2 text-muted-foreground" data-testid="attach-receipt-none">No receipts to attach. Add the receipt first.</p>
       }
     </div>
   } @else {
-    <p class="hint">Loading receipts…</p>
+    <p class="mb-2 text-muted-foreground">Loading receipts…</p>
   }
 
-  <div class="footer">
+  <div class="mt-2 flex justify-end">
     <app-cancel-button (clicked)="close()"></app-cancel-button>
   </div>
 </app-dialog>

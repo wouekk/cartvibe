@@ -11,8 +11,8 @@ app-item-list {
     top: 0;
     z-index: 100;
     background: var(--card);
-    border-bottom: 1px solid #e0e0e0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 2px 4px color-mix(in oklab, var(--foreground) 10%, transparent);
     transition: all 0.2s ease;
     
     .accordion-header-content {
@@ -24,7 +24,7 @@ app-item-list {
       
       .header-total {
         font-size: 0.9rem;
-        color: #666;
+        color: var(--muted-foreground);
       }
     }
     
@@ -32,7 +32,7 @@ app-item-list {
     .mat-expansion-panel-header-title {
       font-size: 1.1rem;
       font-weight: 500;
-      color: #333;
+      color: var(--foreground);
     }
     
     .mat-expansion-panel-header-description {
@@ -41,7 +41,7 @@ app-item-list {
     
     // Add blue accent when items are present
     &.has-items {
-      border-bottom: 2px solid #1976d2;
+      border-bottom: 2px solid var(--primary);
     }
   }
 
@@ -58,7 +58,7 @@ app-item-list {
     transition: all 0.2s ease;
     
     &:not(:last-child) {
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid var(--border);
       padding-bottom: 8px;
     }
     
@@ -68,7 +68,7 @@ app-item-list {
     
     &:hover {
       transform: translateX(4px);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 8px color-mix(in oklab, var(--foreground) 10%, transparent);
     }
   }
 
@@ -168,7 +168,7 @@ app-item-list {
   position: fixed;
   bottom: 20px;
   right: 20px;
-  background: rgba(0, 0, 0, 0.8);
+  background: color-mix(in oklab, var(--foreground) 80%, transparent);
   color: white;
   padding: 8px 12px;
   border-radius: 4px;

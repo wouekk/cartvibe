@@ -22,14 +22,14 @@
   padding: 0;
   border: 0;
   border-radius: 9999px;
-  background-color: rgba(0, 0, 0, 0.45);
-  color: #fff;
+  background-color: color-mix(in oklab, var(--foreground) 45%, transparent);
+  color: var(--card);
   cursor: pointer;
   transform: translateY(-50%);
   transition: background-color 0.15s ease;
 
   &:hover {
-    background-color: rgba(0, 0, 0, 0.65);
+    background-color: color-mix(in oklab, var(--foreground) 65%, transparent);
   }
 }
 

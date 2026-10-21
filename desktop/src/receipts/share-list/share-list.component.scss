@@ -20,7 +20,7 @@ app-share-list {
     .mat-expansion-panel-header-title {
       font-size: 1.1rem;
       font-weight: 500;
-      color: #333;
+      color: var(--foreground);
     }
     
     .mat-expansion-panel-header-description {
@@ -31,7 +31,7 @@ app-share-list {
         
         span {
           font-size: 0.9rem;
-          color: #666;
+          color: var(--muted-foreground);
         }
       }
     }

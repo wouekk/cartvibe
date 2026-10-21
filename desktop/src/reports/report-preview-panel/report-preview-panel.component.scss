@@ -17,8 +17,8 @@
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: #10b981;
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
+    background: var(--success-text);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--success-text) 18%, transparent);
   }
 
   &__title {
@@ -42,9 +42,9 @@
     align-items: center;
     gap: 5px;
     font-size: 11px;
-    color: #0086d4;
+    color: var(--primary);
     background: var(--card);
-    border: 1px solid #a4deff;
+    border: 1px solid var(--accent);
     border-radius: 9999px;
     padding: 4px 10px;
     cursor: pointer;
@@ -58,7 +58,7 @@
       font-size: 14px;
       width: 14px;
       height: 14px;
-      color: #009efa;
+      color: var(--primary);
     }
   }
 
@@ -88,8 +88,8 @@
     }
 
     &--error {
-      color: #d63333;
-      border-color: #f2bfbf;
+      color: var(--destructive);
+      border-color: color-mix(in oklab, var(--destructive) 20%, transparent);
     }
   }
 
@@ -98,7 +98,7 @@
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 6px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 10px 15px -3px color-mix(in oklab, var(--foreground) 10%, transparent), 0 4px 6px -2px color-mix(in oklab, var(--foreground) 5%, transparent);
     overflow: hidden;
   }
 
@@ -113,7 +113,7 @@
     position: absolute;
     top: 12px;
     right: 12px;
-    color: #009efa;
+    color: var(--primary);
 
     mat-icon {
       animation: report-spin 1s linear infinite;

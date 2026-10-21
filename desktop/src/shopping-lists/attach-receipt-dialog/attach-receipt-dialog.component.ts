@@ -11,7 +11,6 @@ export const ATTACHABLE_RECEIPT_COUNT = 15;
 @Component({
   selector: "app-attach-receipt-dialog",
   templateUrl: "./attach-receipt-dialog.component.html",
-  styleUrls: ["./attach-receipt-dialog.component.scss"],
   standalone: false,
   // customCurrency delegates to CurrencyPipe, which PipesModule does not provide.
   providers: [CurrencyPipe],

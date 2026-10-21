@@ -83,5 +83,5 @@
   border: 1px solid var(--border);
   border-radius: 0.75rem;
   background: var(--card);
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+  box-shadow: 0 10px 30px color-mix(in oklab, var(--foreground) 18%, transparent);
 }

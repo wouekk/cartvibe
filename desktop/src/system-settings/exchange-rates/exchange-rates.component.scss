@@ -44,13 +44,13 @@
 }
 
 .rates__missing {
-  color: #b45309;
+  color: var(--warning-text);
   font-size: 13px;
 }
 
 .rates__error {
   margin: 0;
-  color: #b91c1c;
+  color: var(--destructive);
 }
 
 .rates__save {
@@ -59,6 +59,6 @@
 
 .rates__unsaved {
   margin: 0;
-  color: #b45309;
+  color: var(--warning-text);
   font-size: 13px;
 }

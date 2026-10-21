@@ -2,7 +2,7 @@
 
 app-auth-form {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8fafc 0%, var(--accent-soft) 55%, #f8fafc 100%);
+  background: linear-gradient(135deg, var(--muted) 0%, var(--accent-soft) 55%, var(--muted) 100%);
   position: relative;
   display: flex;
   align-items: center;
@@ -44,7 +44,7 @@ app-auth-form {
       left: 0;
       right: 0;
       height: 4px;
-      background: linear-gradient(90deg, var(--accent-light, #38bdf8) 0%, var(--accent-color, #0086d4) 100%);
+      background: linear-gradient(90deg, var(--accent-light) 0%, var(--accent-color) 100%);
     }
   }
 
@@ -105,7 +105,7 @@ app-auth-form {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
             &:hover {
-              border-color: var(--accent-color, #0086d4);
+              border-color: var(--accent-color);
               background-color: var(--card);
               transform: translateY(-1px);
               box-shadow: 0 4px 12px var(--accent-soft);
@@ -113,7 +113,7 @@ app-auth-form {
           }
 
           &.mat-focused .mat-mdc-text-field-wrapper {
-            border-color: var(--accent-color, #0086d4);
+            border-color: var(--accent-color);
             background-color: var(--card);
             box-shadow: 0 0 0 4px var(--accent-soft);
             transform: translateY(-1px);
@@ -146,13 +146,13 @@ app-auth-form {
           border-radius: variables.$border-radius-xl !important;
           font-weight: 600;
           font-size: 1rem;
-          background: linear-gradient(135deg, var(--accent-button, #0077bd) 0%, var(--accent-button-hover, #00659f) 100%);
+          background: linear-gradient(135deg, var(--accent-button) 0%, var(--accent-button-hover) 100%);
           color: white;
           box-shadow: 0 4px 14px var(--accent-soft);
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
           &:hover {
-            background: linear-gradient(135deg, var(--accent-button-hover, #00659f) 0%, var(--accent-button, #0077bd) 100%);
+            background: linear-gradient(135deg, var(--accent-button-hover) 0%, var(--accent-button) 100%);
             box-shadow: 0 6px 20px var(--accent-soft);
             transform: translateY(-2px);
           }
@@ -175,14 +175,14 @@ app-auth-form {
           border-radius: variables.$border-radius-xl !important;
           font-weight: 500;
           font-size: 0.95rem;
-          background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+          background: linear-gradient(135deg, var(--muted-foreground) 0%, var(--muted-foreground) 100%);
           color: white;
-          box-shadow: 0 2px 8px rgba(100, 116, 139, 0.2);
+          box-shadow: 0 2px 8px color-mix(in oklab, var(--foreground) 20%, transparent);
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
           &:hover {
-            background: linear-gradient(135deg, #475569 0%, #334155 100%);
-            box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3);
+            background: linear-gradient(135deg, var(--muted-foreground) 0%, var(--foreground) 100%);
+            box-shadow: 0 4px 12px color-mix(in oklab, var(--foreground) 30%, transparent);
             transform: translateY(-1px);
           }
         }
@@ -279,14 +279,14 @@ app-auth-form {
     align-items: center;
     gap: 0.75rem;
     margin-bottom: 1rem;
-    color: var(--mat-sys-on-surface-variant, #6c757d);
+    color: var(--mat-sys-on-surface-variant);
     font-size: 0.875rem;
 
     &::before,
     &::after {
       content: "";
       flex: 1;
-      border-top: 1px solid var(--mat-sys-outline-variant, #dee2e6);
+      border-top: 1px solid var(--mat-sys-outline-variant);
     }
   }
 
