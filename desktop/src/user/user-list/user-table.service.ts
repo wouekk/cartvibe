@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { Sort, SortDirection } from "@angular/material/sort";
+import { Sort, SortDirection } from "../../table/table-types";
 import { Store } from "@ngxs/store";
 import { Observable } from "rxjs";
 import { PagedData, PagedRequestCommand, UserService } from "../../open-api";

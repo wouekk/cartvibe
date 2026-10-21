@@ -1,5 +1,5 @@
 import { TemplateRef } from '@angular/core';
-import { SortDirection } from '@angular/material/sort';
+import { SortDirection } from './table-types';
 
 export interface TableColumn {
   columnHeader: string;

@@ -1,4 +1,4 @@
-import { SortDirection } from "@angular/material/sort";
+import { SortDirection } from "../table/table-types";
 import { ReceiptDateFilterFieldKey } from "../constants/receipt-filter-fields.constant";
 import { ReceiptPagedRequestFilter } from "../open-api";
 import { ReceiptTableColumnConfig } from "./receipt-table-column-config.interface";

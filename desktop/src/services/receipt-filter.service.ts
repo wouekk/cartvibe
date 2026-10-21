@@ -1,6 +1,6 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { SortDirection } from "@angular/material/sort";
+import { SortDirection } from "../table/table-types";
 import { Store } from "@ngxs/store";
 import { Observable } from "rxjs";
 import { ReceiptTableState } from "src/store/receipt-table.state";

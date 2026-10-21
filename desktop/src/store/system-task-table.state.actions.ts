@@ -1,4 +1,4 @@
-import { SortDirection } from "@angular/material/sort";
+import { SortDirection } from "../table/table-types";
 import { SystemTaskFilterFieldKey } from "src/constants";
 import { SystemTaskPagedRequestFilter } from "src/open-api";
 

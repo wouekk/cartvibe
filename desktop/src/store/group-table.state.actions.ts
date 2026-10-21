@@ -1,4 +1,4 @@
-import { SortDirection } from "@angular/material/sort";
+import { SortDirection } from "../table/table-types";
 import { GroupFilter } from "../open-api";
 
 export class SetPage {

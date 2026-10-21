@@ -3,7 +3,7 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppDialog } from "../../dialog/app-dialog";
-import { MatTableDataSource } from "@angular/material/table";
+import { TableDataSource } from "../../table/table-types";
 import { By } from "@angular/platform-browser";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { provideRouter } from "@angular/router";
@@ -89,7 +89,7 @@ describe("GroupTableComponent", () => {
     ) => {
       fixture.detectChanges(false);
       component.dataSource.set(
-        new MatTableDataSource([
+        new TableDataSource([
           { id: 5, name: "Abandoned Group", groupMembers: [] } as unknown as Group,
         ])
       );
@@ -160,7 +160,7 @@ describe("GroupTableComponent", () => {
 
       store.dispatch(new SetGroups([{ id: 1 } as Group, { id: 2 } as Group]));
       component.dataSource.set(
-        new MatTableDataSource([{ id: 5, name: "Abandoned Group" } as Group])
+        new TableDataSource([{ id: 5, name: "Abandoned Group" } as Group])
       );
 
       component.deleteGroup(0);
@@ -176,7 +176,7 @@ describe("GroupTableComponent", () => {
       store.dispatch(new SetGroups([{ id: 1 } as Group]));
       store.dispatch(new SetPermissions([], {}));
       component.dataSource.set(
-        new MatTableDataSource([{ id: 1, name: "Only Group" } as Group])
+        new TableDataSource([{ id: 1, name: "Only Group" } as Group])
       );
 
       component.deleteGroup(0);

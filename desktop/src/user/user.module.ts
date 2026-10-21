@@ -2,7 +2,6 @@ import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 
-import { MatTableModule } from "@angular/material/table";
 import { CheckboxModule } from "src/checkbox/checkbox.module";
 import { PipesModule } from "src/pipes/pipes.module";
 import { SelectModule } from "src/select/select.module";
@@ -31,7 +30,6 @@ import { UserRoutingModule } from "./user-routing.module";
     CommonModule,
     DirectivesModule,
     InputModule,
-    MatTableModule,
     PipesModule,
     ReactiveFormsModule,
     SelectModule,

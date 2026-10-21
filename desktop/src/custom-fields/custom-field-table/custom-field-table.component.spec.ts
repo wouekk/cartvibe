@@ -3,7 +3,7 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppDialog } from "../../dialog/app-dialog";
-import { MatTableDataSource } from "@angular/material/table";
+import { TableDataSource } from "../../table/table-types";
 import { By } from "@angular/platform-browser";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { ActivatedRoute } from "@angular/router";
@@ -46,7 +46,7 @@ describe("CustomFieldTableComponent", () => {
     store.dispatch(new SetPermissions(appPermissions, {}));
     fixture.detectChanges(false);
     component.dataSource.set(
-      new MatTableDataSource([customField as unknown as PagedDataDataInner])
+      new TableDataSource([customField as unknown as PagedDataDataInner])
     );
     fixture.detectChanges(false);
     TestBed.flushEffects();

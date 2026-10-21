@@ -9,7 +9,7 @@ import {
 } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
-import { MatTableDataSource } from "@angular/material/table";
+import { TableDataSource } from "../../table/table-types";
 import { Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { EMPTY, catchError, finalize, take, tap } from "rxjs";
@@ -110,7 +110,7 @@ export class ReportTemplateListComponent extends BaseTableComponent<ReportTempla
       .pipe(
         take(1),
         tap((pagedData) => {
-          this.dataSource.set(new MatTableDataSource(pagedData.data as unknown as ReportTemplate[]));
+          this.dataSource.set(new TableDataSource(pagedData.data as unknown as ReportTemplate[]));
           this.totalCount.set(pagedData.totalCount);
           this.loaded.set(true);
         }),
