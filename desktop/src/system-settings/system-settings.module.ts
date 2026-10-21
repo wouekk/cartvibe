@@ -2,7 +2,7 @@ import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 import { HlmButton } from "@spartan-ng/helm/button";
-import { MatChipsModule } from "@angular/material/chips";
+import { HlmBadge } from "@spartan-ng/helm/badge";
 import { MatHint } from "@angular/material/form-field";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { AlertComponent } from "../alert/alert.component";
@@ -48,7 +48,7 @@ import { SystemTaskTableComponent } from "./system-task-table/system-task-table.
     CheckboxModule,
     AutocompleteModule,
     HlmButton,
-    MatChipsModule,
+    HlmBadge,
     AppIconComponent,
     SelectModule,
     MatHint,

@@ -17,7 +17,7 @@ import {
 } from "@angular/core";
 import { FormArray, FormGroup } from "@angular/forms";
 import { AppDialog } from "../../dialog/app-dialog";
-import { MatExpansionPanel } from "@angular/material/expansion";
+import { ExpansionPanelComponent } from "../../shared-ui/expansion-panel/expansion-panel.component";
 import { ActivatedRoute } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { FormMode } from "src/enums/form-mode.enum";
@@ -43,7 +43,7 @@ export interface ItemData {
   standalone: false
 })
 export class ItemListComponent implements OnInit, OnChanges, OnDestroy {
-  public readonly itemsExpansionPanel = viewChild.required<MatExpansionPanel>("itemsExpansionPanel");
+  public readonly itemsExpansionPanel = viewChild.required<ExpansionPanelComponent>("itemsExpansionPanel");
 
   public readonly nameFields = viewChildren<InputComponent>("nameField");
 

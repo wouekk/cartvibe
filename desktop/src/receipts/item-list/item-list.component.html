@@ -21,13 +21,12 @@
 
   <!-- Items List -->
   @if (items().length > 0 || isAdding) {
-    <mat-accordion multi>
-      <mat-expansion-panel #itemsExpansionPanel>
-        <mat-expansion-panel-header class="sticky-accordion-header">
-          <mat-panel-title>
+    <div class="flex flex-col gap-2">
+      <app-expansion-panel #itemsExpansionPanel>
+        <span panelTitle>
             Items ({{ items().length }})
-          </mat-panel-title>
-          <mat-panel-description>
+          </span>
+          <span panelDescription>
             <div class="accordion-header-content">
               <span class="header-total">
                 Total: {{ getTotalAmount() | customCurrency }}
@@ -40,8 +39,7 @@
                 ></app-add-button>
               }
             </div>
-          </mat-panel-description>
-        </mat-expansion-panel-header>
+          </span>
 
         <div *ngFor="let itemData of items(); let i = index" class="item-row">
           <app-card cardStyle="mb-2">
@@ -105,7 +103,7 @@
             </div>
           </app-card>
         </div>
-      </mat-expansion-panel>
-    </mat-accordion>
+      </app-expansion-panel>
+    </div>
   }
 </div>

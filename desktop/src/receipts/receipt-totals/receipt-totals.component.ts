@@ -1,5 +1,4 @@
 import { Component, computed, input, output } from "@angular/core";
-import { MatChipsModule } from "@angular/material/chips";
 import { Group, ReceiptSummary, ReceiptSummaryPosition, ReceiptSummaryRow } from "../../open-api";
 import { PipesModule } from "../../pipes";
 import { formatStatus } from "../../utils";
@@ -22,7 +21,7 @@ import { formatStatus } from "../../utils";
 @Component({
   selector: "app-receipt-totals",
   standalone: true,
-  imports: [MatChipsModule, PipesModule],
+  imports: [PipesModule],
   templateUrl: "./receipt-totals.component.html",
   styleUrl: "./receipt-totals.component.scss",
 })

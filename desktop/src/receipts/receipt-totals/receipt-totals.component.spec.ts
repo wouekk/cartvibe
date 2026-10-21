@@ -163,7 +163,7 @@ describe("ReceiptTotalsComponent", () => {
       fixture.detectChanges();
       await fixture.whenStable();
 
-      expect(fixture.nativeElement.querySelector("mat-chip-listbox")).toBeNull();
+      expect(fixture.nativeElement.querySelector("[role=listbox]")).toBeNull();
       expect(text()).toContain("Using the summary configuration from Alpha");
     });
 
@@ -177,18 +177,16 @@ describe("ReceiptTotalsComponent", () => {
       fixture.detectChanges();
       await fixture.whenStable();
 
-      // The clickable element is the inner button[matchipaction]; mat-chip-option's own host is
-      // role="presentation", so clicking it does nothing.
       const beta: HTMLElement = fixture.nativeElement.querySelector(
-        "[data-testid='receipt-totals-config-group-2'] button[matchipaction]"
+        "[data-testid='receipt-totals-config-group-2']"
       );
       expect(beta).not.toBeNull();
 
-      // The listbox's [value] alone drives selection; there is no per-option [selected].
       const alpha = fixture.nativeElement.querySelector(
         "[data-testid='receipt-totals-config-group-1']"
       );
-      expect(alpha.classList).toContain("mat-mdc-chip-selected");
+      expect(alpha.getAttribute("aria-selected")).toBe("true");
+      expect(beta.getAttribute("aria-selected")).toBe("false");
 
       beta.click();
       fixture.detectChanges();

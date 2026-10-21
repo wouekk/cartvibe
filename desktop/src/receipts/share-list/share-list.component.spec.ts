@@ -4,7 +4,7 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA, QueryList, SimpleChange } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormArray, FormControl, FormGroup } from "@angular/forms";
-import { MatExpansionPanel } from "@angular/material/expansion";
+import { ExpansionPanelComponent } from "../../shared-ui/expansion-panel/expansion-panel.component";
 import { ActivatedRoute } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { FormMode } from "src/enums/form-mode.enum";
