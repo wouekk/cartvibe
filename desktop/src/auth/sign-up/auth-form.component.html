@@ -1,7 +1,6 @@
 @if (isLoading()) {
   <div class="loading-container" @fadeInOut>
-    <app-cartvibe-loader class="loading-gif" [size]="80"></app-cartvibe-loader>
-    <div class="loading-text">Loading...</div>
+    <app-cartvibe-splash text="Loading..."></app-cartvibe-splash>
   </div>
 } @else {
   <div class="auth-container" @fadeIn>

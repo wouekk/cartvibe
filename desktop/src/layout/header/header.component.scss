@@ -50,7 +50,7 @@
 }
 
 .header-container {
-  background: #ffffff;
+  background: color-mix(in srgb, var(--accent-color, #0086d4) 9%, #ffffff);
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow: variables.$shadow-sm;
   padding: variables.$spacing-md variables.$spacing-lg;

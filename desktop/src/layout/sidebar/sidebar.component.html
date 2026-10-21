@@ -124,6 +124,8 @@
   <mat-drawer-content
     class="drawer-content"
     [class.drawer-content--full-height]="isContentFullHeight()"
+    [class.drawer-content--rail]="isLoggedIn() && isCollapsed()"
+    [class.drawer-content--wide]="isLoggedIn() && !isCollapsed() && !isHandset()"
   >
     <app-header class="d-block sticky-top"></app-header>
     <div

@@ -213,22 +213,7 @@ app-auth-form {
   }
 
   .loading-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    background: linear-gradient(135deg, #f8fafc 0%, var(--accent-soft) 55%, #f8fafc 100%);
-
-    .loading-gif {
-      margin-bottom: variables.$spacing-lg;
-    }
-
-    .loading-text {
-      color: #64748b;
-      font-weight: 500;
-      font-size: 1rem;
-    }
+    display: block;
   }
 
   // Responsive design
