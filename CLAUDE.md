@@ -42,7 +42,7 @@ receipt summary, default custom fields, app time zone, …) live in `docs/upstre
   `api/generate-client.sh`, commits them and re-runs CI. **Pull after pushing a swagger change**,
   then build the desktop against the generated names. Manual steps: `docs/upstream-notes.md`.
 - **Deploy:** merge (fast-forward) the green feature branch into `main` → CI → `publish-image.yml`
-  pushes `ghcr.io/wouekk/receipt-wrangler:latest` → on the NAS, pull and redeploy in Dockhand. The
+  pushes `ghcr.io/wouekk/cartvibe:latest` → on the NAS, pull and redeploy in Dockhand. The
   root `docker-compose.yml` is the NAS stack (SQLite + a Redis service). Ask before pushing `main`
   unless the user already agreed to that merge.
 - **The e2e specs (Playwright) are written but cannot run here** — they need a live API. Say so

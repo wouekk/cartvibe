@@ -62,7 +62,7 @@ https://claude.ai/artifact/TAZXoRQ4mmRyoy37CFKRVt) is the target look. The plan 
 - **One monolith image** from `docker/Dockerfile` (nginx :80 → Go :8081). Never add per-component
   Dockerfiles.
 - **Built by GitHub, not the NAS:** after CI passes on `main`, `publish-image.yml` pushes
-  `ghcr.io/wouekk/receipt-wrangler:latest` and `:sha-<commit>` (amd64 — the NAS is a DS+ model).
+  `ghcr.io/wouekk/cartvibe:latest` and `:sha-<commit>` (amd64 — the NAS is a DS+ model).
   A manual run of the workflow from a feature branch publishes `:preview` only, to try a branch on the
   NAS (point the stack's image at `:preview`) before anything reaches `main`.
 - **The NAS** (Synology, Dockhand) runs the root `docker-compose.yml` as a plain stack: the app image,

@@ -22,7 +22,7 @@ products, keep shared shopping lists in sync on every phone, and see where the m
 
 ## Run it
 
-One image, built by GitHub Actions: `ghcr.io/wouekk/receipt-wrangler` (`:latest` from `main`, `:preview` from a branch).
+One image, built by GitHub Actions: `ghcr.io/wouekk/cartvibe` (`:latest` from `main`, `:preview` from a branch).
 The root [docker-compose.yml](docker-compose.yml) is a complete stack (app + Redis + SQLite). Set `SECRET_KEY` and
 `ENCRYPTION_KEY` (no `$` characters), start it, and sign in with the default `admin` / `admin` **and change that
 password immediately**. Redeploy after pulling the new image.

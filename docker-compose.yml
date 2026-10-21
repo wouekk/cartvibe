@@ -3,7 +3,7 @@
 # publish-image.yml); nothing is built on the NAS. To update, redeploy: pull_policy always fetches the newest image.
 services:
   receipt-wrangler:
-    image: ghcr.io/wouekk/receipt-wrangler:latest
+    image: ghcr.io/wouekk/cartvibe:latest
     # Check the registry on every deploy, so a redeploy never reuses a cached older :latest.
     pull_policy: always
     container_name: receipt-wrangler
