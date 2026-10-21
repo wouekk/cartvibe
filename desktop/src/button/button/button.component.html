@@ -20,7 +20,7 @@
       (click)="emitClicked($event)"
     >
       @if (icon) {
-        <mat-icon>{{ icon }}</mat-icon>
+        <app-icon [name]="icon"></app-icon>
       }
       <span class="font-medium">{{ buttonText() }}</span>
     </button>
@@ -42,7 +42,7 @@
       (click)="emitClicked($event)"
     >
       @if (icon) {
-        <mat-icon>{{ icon }}</mat-icon>
+        <app-icon [name]="icon"></app-icon>
       }
       <span class="font-medium">{{ buttonText() }}</span>
     </button>
@@ -64,11 +64,8 @@
       [matBadgeHidden]="matBadgeHidden()"
       (click)="emitClicked($event)"
     >
-      @if (customIcon) {
-        <mat-icon [svgIcon]="customIcon"></mat-icon>
-      }
       @if (icon) {
-        <mat-icon>{{ icon }}</mat-icon>
+        <app-icon [name]="icon"></app-icon>
       }
     </button>
   }

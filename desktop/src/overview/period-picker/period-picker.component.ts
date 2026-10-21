@@ -1,5 +1,5 @@
 import { Component, computed, effect, output, signal } from "@angular/core";
-import { MatIconModule } from "@angular/material/icon";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { Store } from "@ngxs/store";
 import { FilterTab } from "../../shared-ui/filter-bar/filter-tab.interface";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
@@ -24,7 +24,7 @@ import {
   templateUrl: "./period-picker.component.html",
   styleUrls: ["./period-picker.component.scss"],
   standalone: true,
-  imports: [MatIconModule, SharedUiModule],
+  imports: [AppIconComponent, SharedUiModule],
 })
 export class PeriodPickerComponent {
   public readonly periodChange = output<ResolvedPeriod | undefined>();

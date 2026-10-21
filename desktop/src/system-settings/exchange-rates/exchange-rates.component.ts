@@ -1,7 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { Component, computed, inject, OnInit, signal } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
-import { MatIconModule } from "@angular/material/icon";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { Store } from "@ngxs/store";
 import { take } from "rxjs";
 import { CurrencyRate, CurrencyRateTable, ExchangeRateService, Permission } from "../../open-api";
@@ -25,7 +25,7 @@ interface RateRow {
   templateUrl: "./exchange-rates.component.html",
   styleUrls: ["./exchange-rates.component.scss"],
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, MatButtonModule, AppIconComponent],
 })
 export class ExchangeRatesComponent implements OnInit {
   private readonly exchangeRateService = inject(ExchangeRateService);

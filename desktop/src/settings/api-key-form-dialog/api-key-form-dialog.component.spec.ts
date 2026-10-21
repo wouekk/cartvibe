@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
-import { MatIconModule } from '@angular/material/icon';
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { ActivatedRoute } from '@angular/router';
 import { NgxsModule } from '@ngxs/store';
 import { of, throwError } from 'rxjs';
@@ -32,7 +32,7 @@ describe('ApiKeyFormDialogComponent', () => {
       declarations: [ApiKeyFormDialogComponent],
       imports: [
         ReactiveFormsModule,
-        MatIconModule,
+        AppIconComponent,
         SharedUiModule,
         ButtonModule,
         InputModule,

@@ -6,7 +6,7 @@
     ></app-upload-image>
     <div class="quick-scan-upload" [class.quick-scan-upload--empty]="images.length === 0" data-testid="quick-scan-upload-area">
       @if (images.length === 0) {
-        <mat-icon class="quick-scan-upload__icon" aria-hidden="true">receipt_long</mat-icon>
+        <app-icon class="quick-scan-upload__icon" name="receipt_long"></app-icon>
         <strong>Add photos of your receipts</strong>
         <span class="quick-scan-upload__hint">The AI reads them for you.</span>
       }

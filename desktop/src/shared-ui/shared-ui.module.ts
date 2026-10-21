@@ -7,7 +7,7 @@ import { MatCardModule } from "@angular/material/card";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatDialogModule } from "@angular/material/dialog";
 import { MatExpansionModule } from "@angular/material/expansion";
-import { MatIconModule } from "@angular/material/icon";
+import { AppIconComponent } from "./icon/icon.component";
 import { MatListModule } from "@angular/material/list";
 import { MatMenuModule } from "@angular/material/menu";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
@@ -134,7 +134,7 @@ import { ImageCanvasComponent } from './image-canvas/image-canvas.component';
     MatChipsModule,
     MatDialogModule,
     MatExpansionModule,
-    MatIconModule,
+    AppIconComponent,
     MatListModule,
     MatTableModule,
     MatTabsModule,

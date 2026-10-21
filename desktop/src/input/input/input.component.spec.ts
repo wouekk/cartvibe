@@ -4,7 +4,7 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { MatFormField, MatFormFieldModule } from "@angular/material/form-field";
-import { MatIconModule } from "@angular/material/icon";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { MatInputModule } from "@angular/material/input";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { By } from "@angular/platform-browser";
@@ -33,7 +33,7 @@ describe("InputComponent", () => {
         CommonModule,
         MatButtonModule,
         MatFormFieldModule,
-        MatIconModule,
+        AppIconComponent,
         MatInputModule,
         MatTooltipModule,
         NoopAnimationsModule,

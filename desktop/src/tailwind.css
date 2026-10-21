@@ -58,3 +58,11 @@
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
 }
+
+/* An icon is 1.125rem unless a class on it says otherwise (element selector: lowest specificity). */
+app-icon {
+  font-size: 1.125rem;
+  width: 1em;
+  height: 1em;
+  line-height: 1;
+}

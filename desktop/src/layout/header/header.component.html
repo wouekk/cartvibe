@@ -14,7 +14,7 @@
             routerLinkActive="active-link"
             [matTooltip]="shortcut.name"
           >
-            <mat-icon>{{ shortcut.icon }}</mat-icon>
+            <app-icon [name]="shortcut.icon"></app-icon>
           </button>
         </a>
       }

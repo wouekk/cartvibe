@@ -13,7 +13,7 @@ import { ChangeDetectionStrategy, Component, input } from "@angular/core";
     <div class="report-section">
       <div class="report-section__header">
         <span class="report-section__icon">
-          <mat-icon>{{ icon() }}</mat-icon>
+          <app-icon [name]="icon()"></app-icon>
         </span>
         <div class="report-section__heading">
           <div class="report-section__title">{{ headerText() }}</div>
@@ -52,7 +52,7 @@ import { ChangeDetectionStrategy, Component, input } from "@angular/core";
         justify-content: center;
         flex: none;
       }
-      .report-section__icon mat-icon {
+      .report-section__icon app-icon {
         font-size: 18px;
         width: 18px;
         height: 18px;

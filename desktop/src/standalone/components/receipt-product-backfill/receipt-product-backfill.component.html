@@ -12,7 +12,7 @@
         [disabled]="requesting()"
         (click)="queueOlderReceipts()"
       >
-        <mat-icon>auto_awesome</mat-icon>
+        <app-icon name="auto_awesome"></app-icon>
         Read products of older receipts
       </button>
       @if (queued() !== undefined) {

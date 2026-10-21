@@ -1,7 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { MatCheckboxModule } from "@angular/material/checkbox";
-import { MatIcon } from "@angular/material/icon";
+import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { MatPaginatorModule } from "@angular/material/paginator";
 import { MatSortModule } from "@angular/material/sort";
 import { MatTableModule } from "@angular/material/table";
@@ -17,7 +17,7 @@ import { RowExpandablePipe } from './table/row-expandable.pipe';
     MatSortModule,
     MatPaginatorModule,
     MatCheckboxModule,
-    MatIcon,
+    AppIconComponent,
     ButtonModule,
   ],
   exports: [TableComponent],

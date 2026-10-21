@@ -36,7 +36,7 @@
             [disabled]="inputFormControl.disabled || readonly"
             (click)="generatePassword()"
           >
-            <mat-icon>autorenew</mat-icon>
+            <app-icon name="autorenew"></app-icon>
           </button>
         }
         @if (showVisibilityEye) {
@@ -50,7 +50,7 @@
             [matTooltip]="type === 'password' ? 'Show ' + label : 'Hide ' + label"
             (click)="toggleVisibility()"
           >
-            <mat-icon>{{ type === "password" ? "visibility" : "visibility_off" }}</mat-icon>
+            <app-icon [name]="type === 'password' ? 'visibility' : 'visibility_off'"></app-icon>
           </button>
         }
       </div>

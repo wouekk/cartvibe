@@ -5,28 +5,28 @@
     @case ("kind") {
       <div class="picker__kinds">
         <div class="picker__kind-card" (click)="pickDimension()" data-testid="picker-kind-dimension">
-          <span class="picker__kind-icon kind-dimension"><mat-icon>sell</mat-icon></span>
+          <span class="picker__kind-icon kind-dimension"><app-icon name="sell"></app-icon></span>
           <div class="picker__kind-text">
             <div class="picker__kind-title">Dimension</div>
             <div class="picker__kind-desc">A way to cut the data — a label column like Category</div>
           </div>
-          <mat-icon class="picker__chevron">chevron_right</mat-icon>
+          <app-icon class="picker__chevron" name="chevron_right"></app-icon>
         </div>
         <div class="picker__kind-card" (click)="pickAggregate()" data-testid="picker-kind-aggregate">
-          <span class="picker__kind-icon kind-aggregate"><mat-icon>functions</mat-icon></span>
+          <span class="picker__kind-icon kind-aggregate"><app-icon name="functions"></app-icon></span>
           <div class="picker__kind-text">
             <div class="picker__kind-title">Aggregate</div>
             <div class="picker__kind-desc">SUM, COUNT, AVG… over a measure. Rolls up children</div>
           </div>
-          <mat-icon class="picker__chevron">chevron_right</mat-icon>
+          <app-icon class="picker__chevron" name="chevron_right"></app-icon>
         </div>
         <div class="picker__kind-card" (click)="pickFormula()" data-testid="picker-kind-formula">
-          <span class="picker__kind-icon kind-formula"><mat-icon>calculate</mat-icon></span>
+          <span class="picker__kind-icon kind-formula"><app-icon name="calculate"></app-icon></span>
           <div class="picker__kind-text">
             <div class="picker__kind-title">Formula</div>
             <div class="picker__kind-desc">An expression over other columns — recomputed each row</div>
           </div>
-          <mat-icon class="picker__chevron">chevron_right</mat-icon>
+          <app-icon class="picker__chevron" name="chevron_right"></app-icon>
         </div>
       </div>
     }
@@ -62,17 +62,17 @@
         <span class="picker__expr-actions">
           <button type="button" class="picker__expr-btn" title="Remove last" [disabled]="!exprValue()"
             (click)="removeLastToken()" data-testid="picker-formula-backspace">
-            <mat-icon>backspace</mat-icon>
+            <app-icon name="backspace"></app-icon>
           </button>
           <button type="button" class="picker__expr-btn" title="Clear" [disabled]="!exprValue()"
             (click)="clearExpression()" data-testid="picker-formula-clear">
-            <mat-icon>close</mat-icon>
+            <app-icon name="close"></app-icon>
           </button>
         </span>
       </div>
 
       <div class="picker__status" [ngClass]="'picker__status--' + formulaStatus().kind">
-        <mat-icon>{{ formulaStatus().kind === "ok" ? "check_circle" : formulaStatus().kind === "error" ? "error_outline" : "lightbulb" }}</mat-icon>
+        <app-icon [name]="formulaStatus().kind === 'ok' ? 'check_circle' : formulaStatus().kind === 'error' ? 'error_outline' : 'lightbulb'"></app-icon>
         {{ formulaStatus().message }}
       </div>
       @if (referenceableColumns.length > 0) {

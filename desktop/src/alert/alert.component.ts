@@ -1,13 +1,13 @@
 import { CommonModule } from "@angular/common";
 import { Component, input } from "@angular/core";
-import { MatIconModule } from "@angular/material/icon";
+import { AppIconComponent } from "../shared-ui/icon/icon.component";
 
 @Component({
     selector: "app-alert",
     standalone: true,
     imports: [
         CommonModule,
-        MatIconModule
+        AppIconComponent
     ],
     templateUrl: "./alert.component.html",
     styleUrl: "./alert.component.scss"

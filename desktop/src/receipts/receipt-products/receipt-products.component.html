@@ -2,7 +2,7 @@
   @if (statusText()) {
     <p class="status" data-testid="receipt-products-status">
       @if (isInProgress()) {
-        <mat-icon class="status__icon" aria-hidden="true">hourglass_top</mat-icon>
+        <app-icon class="status__icon" name="hourglass_top"></app-icon>
       }
       {{ statusText() }}
       @if (view.lastError && view.status !== "PENDING") {
@@ -76,10 +76,10 @@
                     [disabled]="saving()"
                     (click)="saveEdit(product)"
                   >
-                    <mat-icon>check</mat-icon>
+                    <app-icon name="check"></app-icon>
                   </button>
                   <button mat-icon-button type="button" aria-label="Cancel" (click)="cancelEdit()">
-                    <mat-icon>close</mat-icon>
+                    <app-icon name="close"></app-icon>
                   </button>
                 </td>
               </tr>
@@ -110,7 +110,7 @@
                       [hlmDropdownMenuTrigger]="tagsMenu"
                       [hlmDropdownMenuTriggerData]="{ product: product }"
                     >
-                      <mat-icon>sell</mat-icon>
+                      <app-icon name="sell"></app-icon>
                     </button>
                     <button
                       mat-icon-button
@@ -119,7 +119,7 @@
                       [attr.aria-label]="'Edit ' + (product.displayName || product.name)"
                       (click)="startEdit(product)"
                     >
-                      <mat-icon>edit</mat-icon>
+                      <app-icon name="edit"></app-icon>
                     </button>
                     <button
                       mat-icon-button
@@ -128,7 +128,7 @@
                       [attr.aria-label]="'Remove ' + (product.displayName || product.name)"
                       (click)="remove(product)"
                     >
-                      <mat-icon>delete</mat-icon>
+                      <app-icon name="delete"></app-icon>
                     </button>
                   </td>
                 }
@@ -146,7 +146,7 @@
             [attr.data-testid]="'receipt-product-health-' + choice.value"
             (click)="correct(product, choice.value)"
           >
-            <mat-icon>{{ product.health === choice.value ? "check" : "" }}</mat-icon>
+            <app-icon [name]="product.health === choice.value ? 'check' : ''"></app-icon>
             <span>{{ choice.label }}</span>
           </button>
         }
@@ -191,7 +191,7 @@
         data-testid="receipt-product-add"
         [disabled]="saving() || newName().trim().length === 0"
       >
-        <mat-icon>add</mat-icon>
+        <app-icon name="add"></app-icon>
         Add
       </button>
     </form>
@@ -209,7 +209,7 @@
       [disabled]="requesting()"
       (click)="readAgain()"
     >
-      <mat-icon>refresh</mat-icon>
+      <app-icon name="refresh"></app-icon>
       Read again
     </button>
   }

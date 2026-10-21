@@ -9,19 +9,19 @@
       [buttonRouterLink]="['/reports']"
     ></app-button>
     <span class="report-builder__page-icon">
-      <mat-icon>summarize</mat-icon>
+      <app-icon name="summarize"></app-icon>
     </span>
     <div class="report-builder__titles">
       <div class="report-builder__breadcrumb">
         <a class="report-builder__crumb-link" [routerLink]="['/reports']">Reports</a>
-        <mat-icon>chevron_right</mat-icon>
+        <app-icon name="chevron_right"></app-icon>
         <span>{{ loadedTemplateName ?? "New report" }}</span>
       </div>
       <div class="report-builder__heading">Report Builder</div>
     </div>
     <span class="report-builder__spacer"></span>
     <span class="report-builder__scope-note">
-      <mat-icon>lock</mat-icon>
+      <app-icon name="lock"></app-icon>
       Runs under your group permissions
     </span>
   </div>

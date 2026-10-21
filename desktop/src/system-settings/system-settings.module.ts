@@ -4,7 +4,7 @@ import { ReactiveFormsModule } from "@angular/forms";
 import { MatButton } from "@angular/material/button";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatHint } from "@angular/material/form-field";
-import { MatIconModule } from "@angular/material/icon";
+import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { AlertComponent } from "../alert/alert.component";
 import { AutocompleteModule } from "../autocomplete/autocomplete.module";
 import { ButtonModule } from "../button";
@@ -49,7 +49,7 @@ import { SystemTaskTableComponent } from "./system-task-table/system-task-table.
     AutocompleteModule,
     MatButton,
     MatChipsModule,
-    MatIconModule,
+    AppIconComponent,
     SelectModule,
     MatHint,
     AlertComponent,

@@ -16,7 +16,7 @@
           (input)="typeDay('from', $event)"
         />
         <button type="button" class="period__picker-button" aria-label="Pick the first day" data-testid="overview-pick-from" (click)="fromPicker.showPicker()">
-          <mat-icon>calendar_month</mat-icon>
+          <app-icon name="calendar_month"></app-icon>
         </button>
         <input #fromPicker type="date" class="period__native-picker" tabindex="-1" aria-hidden="true" (change)="pickDay('from', $event)" />
       </span>
@@ -34,7 +34,7 @@
           (input)="typeDay('to', $event)"
         />
         <button type="button" class="period__picker-button" aria-label="Pick the last day" data-testid="overview-pick-to" (click)="toPicker.showPicker()">
-          <mat-icon>calendar_month</mat-icon>
+          <app-icon name="calendar_month"></app-icon>
         </button>
         <input #toPicker type="date" class="period__native-picker" tabindex="-1" aria-hidden="true" (change)="pickDay('to', $event)" />
       </span>

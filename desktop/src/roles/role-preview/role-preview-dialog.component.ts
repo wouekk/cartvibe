@@ -8,7 +8,7 @@ import {
   MatDialogModule,
   MatDialogRef,
 } from "@angular/material/dialog";
-import { MatIconModule } from "@angular/material/icon";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { catchError, of } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "../../constants/dialog.constant";
 import {
@@ -55,7 +55,7 @@ interface PreviewGroup {
     CommonModule,
     MatButtonModule,
     MatDialogModule,
-    MatIconModule,
+    AppIconComponent,
     SharedUiModule,
   ],
   templateUrl: "./role-preview-dialog.component.html",

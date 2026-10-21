@@ -69,7 +69,7 @@
           [disabled]="!saved() || form.dirty || testing()"
           (click)="testConnection()"
         >
-          <mat-icon>wifi_tethering</mat-icon>
+          <app-icon name="wifi_tethering"></app-icon>
           {{ testing() ? "Testing…" : "Test connection" }}
         </button>
       </div>
@@ -85,7 +85,7 @@
           [class.result--ok]="result.ok"
           [class.result--failed]="!result.ok"
         >
-          <mat-icon aria-hidden="true">{{ result.ok ? "check_circle" : "error" }}</mat-icon>
+          <app-icon [name]="result.ok ? 'check_circle' : 'error'"></app-icon>
           {{ result.message }}
         </p>
       }

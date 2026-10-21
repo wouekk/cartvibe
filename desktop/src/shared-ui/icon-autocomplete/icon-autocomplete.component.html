@@ -14,12 +14,9 @@
   let-option="option"
 >
   <div class="flex items-center">
-    <mat-icon
+    <app-icon
       class="me-2"
-      color="accent"
-    >
-      {{ option.value }}
-    </mat-icon>
+     [name]="option.value"></app-icon>
     {{ option.displayValue }}
 
   </div>

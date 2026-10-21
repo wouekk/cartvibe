@@ -6,7 +6,7 @@
         class="me-2 cursor-pointer border-0 bg-transparent p-0 text-primary no-underline"
         (click)="toggleCollapsed()"
       >
-        <mat-icon>{{ isCollapsed ? 'expand_more' : 'expand_less' }}</mat-icon>
+        <app-icon [name]="isCollapsed ? 'expand_more' : 'expand_less'"></app-icon>
       </button>
     }
     <div class="flex flex-col">
