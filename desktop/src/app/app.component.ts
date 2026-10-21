@@ -11,9 +11,8 @@ import { ToastHostComponent } from "../toast/toast-host.component";
 
 @UntilDestroy()
 @Component({
-    selector: "app-root",
+    selector: "app-root", host: { class: "block size-full" },
     templateUrl: "./app.component.html",
-    styleUrls: ["./app.component.scss"],
     imports: [RouterOutlet, ToastHostComponent],
 })
 export class AppComponent implements OnInit {

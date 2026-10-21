@@ -5,7 +5,7 @@
       [tooltip]="'Copy description' | t"
     ></app-copy-button>
   </div>
-  <div class="description-viewer-body">
+  <div class="max-h-[70vh] overflow-auto whitespace-pre-wrap break-words">
     <app-pretty-json
       [json]="data.description"
       [verticalJson]="true"

@@ -44,11 +44,10 @@ let grantPickerInstanceCount = 0;
  * backend rejects out-of-ceiling ids with a 400 regardless).
  */
 @Component({
-  selector: "app-grant-picker",
+  selector: "app-grant-picker", host: { class: "block" },
   standalone: true,
   imports: [CategoryAutocompleteComponent, TagAutocompleteComponent],
   templateUrl: "./grant-picker.component.html",
-  styleUrl: "./grant-picker.component.scss",
 })
 export class GrantPickerComponent {
   public readonly categoryPool = input<Category[]>([]);

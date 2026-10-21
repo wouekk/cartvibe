@@ -11,7 +11,6 @@ import { AppIconComponent } from "../shared-ui/icon/icon.component";
         AppIconComponent
     ],
     templateUrl: "./alert.component.html",
-    styleUrl: "./alert.component.scss"
 })
 export class AlertComponent {
   public readonly type = input<"warning">("warning");

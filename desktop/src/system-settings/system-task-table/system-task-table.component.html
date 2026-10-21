@@ -33,7 +33,7 @@
 </app-table-header>
 
 @if (filterChips().length > 0) {
-  <div class="system-task-filter-chips flex flex-wrap gap-2" role="list" [attr.aria-label]="'Applied filters' | t">
+  <div class="mb-4 block flex flex-wrap gap-2" role="list" [attr.aria-label]="'Applied filters' | t">
     @for (chip of filterChips(); track chip.key) {
       <span
         hlmBadge
