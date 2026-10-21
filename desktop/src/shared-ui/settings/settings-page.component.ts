@@ -2,7 +2,8 @@ import { Component, computed, input } from "@angular/core";
 
 /**
  * The shell every settings page shares: title, description, primary action top right, optional tab strip, content.
- * `narrow` (configuration views) and `wide` (entity lists) differ only in max width.
+ * Every settings page is `wide` (max-w-5xl) so the page does not change width between menus; `narrow` (max-w-3xl) stays
+ * available for a one-off form.
  */
 @Component({
   selector: "app-settings-page",
@@ -34,7 +35,7 @@ import { Component, computed, input } from "@angular/core";
 export class SettingsPageComponent {
   public readonly title = input<string>("");
   public readonly description = input<string>("");
-  public readonly width = input<"narrow" | "wide">("narrow");
+  public readonly width = input<"narrow" | "wide">("wide");
 
   public readonly hostClass = computed(() =>
     this.width() === "wide" ? "mx-auto w-full max-w-5xl" : "mx-auto w-full max-w-3xl",
