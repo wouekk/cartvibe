@@ -206,12 +206,30 @@
       </div>
       @if (segments().length > 0) {
         <div class="donut flex flex-wrap items-center gap-8">
-          <app-apex-chart
-            class="donut__chart size-[200px] flex-none"
-            data-testid="overview-donut"
-            [options]="donutOptions"
-            [label]="'Spending by category, ' + periodLabel()"
-          ></app-apex-chart>
+          <div class="flex w-full flex-col items-center gap-4 sm:w-auto sm:flex-none">
+            <ul class="flex flex-wrap justify-center gap-x-4 gap-y-2" aria-label="Show or hide a category" data-testid="overview-donut-filters">
+              @for (segment of segments(); track segment.name) {
+                <li>
+                  <label class="flex cursor-pointer items-center gap-2 text-sm">
+                    <hlm-checkbox
+                      [attr.data-testid]="'overview-donut-filter-' + segment.name"
+                      [aria-label]="segment.name"
+                      [checked]="!isHidden(segment.name)"
+                      (checkedChange)="toggleSegment(segment.name)"
+                    />
+                    <span class="size-2.5 rounded-full" [style.background]="segment.color"></span>
+                    <span>{{ segment.name }}</span>
+                  </label>
+                </li>
+              }
+            </ul>
+            <app-apex-chart
+              class="donut__chart size-[220px] flex-none"
+              data-testid="overview-donut"
+              [options]="donutOptions"
+              [label]="'Spending by category, ' + periodLabel()"
+            ></app-apex-chart>
+          </div>
           <table class="donut__legend min-w-52 flex-1 text-sm">
             <thead hlmTHead>
               <tr>
@@ -222,7 +240,7 @@
             </thead>
             <tbody>
               @for (segment of segments(); track segment.name) {
-                <tr class="border-t border-border/60">
+                <tr class="border-t border-border/60 transition-opacity" [class.opacity-40]="isHidden(segment.name)">
                   <td class="py-2.5">
                     <span class="swatch mr-2 inline-block size-2.5 rounded-full align-middle" [style.background]="segment.color"></span>
                     @if (isOpenable(segment)) {
