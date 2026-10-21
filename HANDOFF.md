@@ -2,6 +2,8 @@
 
 ## Status (2026-10-21, Windows PC, Claude Code desktop app)
 
+**Latest (UI-issues one-shot run):** all 17 items in `docs/ui-issues.md` are implemented on `feature/redesign` (CI green, `:preview` re-published). Open: issue 4, shop logos, needs the user's logo.dev key and chain list (monogram stays meanwhile); the About credit line to Receipt Wrangler / Noah Hall was kept as the default; look at every changed page on the NAS in both themes and in Polish (period picker, receipts toolbar, System Settings sections, Quick Scan dialog, shopping lists, donut focus, AI page backup card). Polish strings built in TypeScript templates and group-name page titles may still be English.
+
 **The redesign is on `feature/redesign` (not merged, `:preview` image published for the NAS).** Tailwind + spartan/ui replace
 Angular Material and Bootstrap everywhere (`docs/material-removal.md`, `desktop/CLAUDE.md` -> "UI stack"); two themes, White and
 Black, on tokens (`docs/themes.md`). Jest (2002 tests) and `ng build` are green locally and CI was green on the last pushes. Still
