@@ -3,7 +3,14 @@
 Collecting mode: each issue the user reports (with a screenshot) is logged here and nothing is fixed until the user says "go".
 Then the proposals are discussed and a final go is asked for before any change.
 
-## Open
+## Status (2026-10-21, one-shot run)
+
+All 17 issues were implemented in one run and verified once (`ng build`, full Jest 2037 tests, `go vet`, CI). Done: 1-3, 5-9, 11-17 and 10
+(Gemini model dropdown, backup AI card, 3-try cap with outage backoff). **Issue 4 (shop logos) is waiting for the user**: it needs the
+logo.dev key and the list of chains; the letter monogram stays until then. Not exhaustively covered: strings built inside TypeScript
+template literals, group-name page titles, some report builder dialog texts (find them by switching the language in the app).
+
+## Log
 
 1. **Dashboard, Spending by category: legend overflows the panel.** The row of checkbox chips runs past the card edge (clipped at "Drinks", more categories hidden). The user finds the checkmarks overkill: drop them. Instead, clicking a donut slice focuses (highlights) that category, and clicking the color dot of a category in the list does the same (click again to clear). Related code: overview-page (hiddenSegments, toggleSegment, donut filters).
 2. **Dashboard, Spending by month: tooltip label.** Hovering/highlighting a bar shows the short month ("Oct"); it should show the full month name and year ("October 2026"). Related code: overview-page tooltipCard / chart bars (bar.shortName).
@@ -26,4 +33,4 @@ Then the proposals are discussed and a final go is asked for before any change.
 
 ## Fix prompt (drafted once the list is complete)
 
-_Pending._
+_Not needed: the user asked for a single run ("one shot all"), so the log above was the prompt._

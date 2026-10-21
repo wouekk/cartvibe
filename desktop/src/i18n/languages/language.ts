@@ -5,6 +5,8 @@
 export interface LanguageDefinition {
   /** BCP 47 style code, lower case ("en", "pl", "de", "pt-br"). Stored as is in the user's preferences. */
   code: string;
+  /** The locale dates and numbers are formatted with (Angular locale id). Register its data in the language's file. */
+  locale: string;
   /** The language's own name, shown in the language menu ("Polski"). */
   label: string;
   /**

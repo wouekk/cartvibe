@@ -1,8 +1,8 @@
 @if (canSee()) {
-  <section class="trips mt-6" data-testid="shopping-trips" aria-labelledby="shopping-trips-title">
-    <div class="mb-2 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+  <section class="trips mt-10" data-testid="shopping-trips" aria-labelledby="shopping-trips-title">
+    <div class="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
       <h3 id="shopping-trips-title" class="m-0 text-[0.95rem] font-semibold">{{ 'Receipts from this list' | t }}</h3>
-      <div class="flex flex-wrap gap-1 *:min-h-11">
+      <div class="flex flex-wrap items-center gap-2 [&_button]:h-9">
         @if (canScan()) {
           <input
             #photoInput

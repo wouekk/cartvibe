@@ -86,7 +86,7 @@
                       [attr.aria-expanded]="isManageOpen()"
                     >
                       <ng-icon name="lucideSlidersHorizontal" size="16" />
-                      <span>{{ 'Admin Settings' | t }}</span>
+                      <span class="min-w-0 flex-1 truncate">{{ 'Admin Settings' | t }}</span>
                       <ng-icon
                         name="lucideChevronDown"
                         size="16"
@@ -95,7 +95,7 @@
                       />
                     </button>
                     <hlm-collapsible-content>
-                      <ul hlmSidebarMenuSub data-testid="sidebar-manage-items">
+                      <ul hlmSidebarMenuSub class="mt-1" data-testid="sidebar-manage-items">
                         @for (item of manageNavItems(); track item.label) {
                           <li hlmSidebarMenuSubItem>
                             <a

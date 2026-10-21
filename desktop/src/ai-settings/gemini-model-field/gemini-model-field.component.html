@@ -1,0 +1,37 @@
+<div class="flex flex-col gap-2">
+  @if (hasModels()) {
+    <app-select
+      [label]="'Model' | t"
+      optionValueKey="value"
+      optionDisplayKey="displayValue"
+      [attr.data-testid]="testId()"
+      [options]="options()"
+      [inputFormControl]="modelControl()"
+    ></app-select>
+  } @else {
+    <app-input
+      [label]="'Model' | t"
+      [attr.data-testid]="testId()"
+      hint="For example gemini-2.5-flash"
+      [inputFormControl]="modelControl()"
+    ></app-input>
+  }
+
+  <div class="flex flex-wrap items-center gap-2">
+    <button
+      hlmBtn
+      variant="outline"
+      type="button"
+      class="min-h-11"
+      [attr.data-testid]="testId() + '-load'"
+      [disabled]="!canLoad()"
+      (click)="load()"
+    >
+      <app-icon name="refresh"></app-icon>
+      {{ (loading() ? 'Loading…' : hasModels() ? 'Refresh the model list' : 'Get the models from Google') | t }}
+    </button>
+    @if (error(); as message) {
+      <span class="text-sm text-destructive" role="alert" [attr.data-testid]="testId() + '-error'">{{ message | t }}</span>
+    }
+  </div>
+</div>

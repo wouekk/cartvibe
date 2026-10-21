@@ -436,19 +436,23 @@ describe("OverviewPageComponent", () => {
     });
   });
 
-  it("switches a category off the ring and brings it back", async () => {
+  it("focuses a category on the ring, dims the others, and clears again", async () => {
     await fixture.whenStable();
     const first = component.segments()[0];
     expect(first).toBeDefined();
     const count = () => (component.donutOptions(CHART_COLORS).series as number[]).length;
     const all = count();
 
-    component.toggleSegment(first.name);
-    expect(component.isHidden(first.name)).toBe(true);
-    expect(count()).toBe(all - 1);
+    component.toggleFocus(first.name);
+    expect(component.isDimmed(first.name)).toBe(false);
+    expect(component.focusedSegment()).toBe(first.name);
+    expect(count()).toBe(all);
+    const opacity = (component.donutOptions(CHART_COLORS).fill as { opacity: number[] }).opacity;
+    expect(opacity[0]).toBe(1);
+    expect(opacity.slice(1).every((value) => value < 1)).toBe(true);
 
-    component.toggleSegment(first.name);
-    expect(component.isHidden(first.name)).toBe(false);
+    component.toggleFocus(first.name);
+    expect(component.focusedSegment()).toBeNull();
     expect(count()).toBe(all);
   });
 });

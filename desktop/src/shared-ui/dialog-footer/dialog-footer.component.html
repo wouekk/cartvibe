@@ -1,6 +1,19 @@
-<div class="flex justify-end items-center">
+<div class="mt-6 flex flex-wrap items-center justify-end gap-2 border-t border-border pt-4">
+  <ng-container
+    *ngIf="additionalButtonsTemplate"
+    [ngTemplateOutlet]="additionalButtonsTemplate"
+  ></ng-container>
+  <app-cancel-button
+    [disabled]="
+      disableWhenProgressBarIsShown() ? showProgressBar() ?? false : false
+    "
+    (clicked)="cancelClicked.emit()"
+  ></app-cancel-button>
   <app-submit-button
     data-testid="dialog-submit-button"
+    [onlyIcon]="false"
+    [buttonText]="submitButtonTooltip()"
+    buttonClass="bg-success-text/15! text-success-text! ring-1 ring-success-text/30 hover:bg-success-text/25!"
     [tooltip]="submitButtonTooltip()"
     [disabled]="
       disableWhenProgressBarIsShown() ? showProgressBar() ?? false : false
@@ -8,14 +21,4 @@
     [type]="submitButtonType()"
     (clicked)="submitClicked.emit()"
   ></app-submit-button>
-  <app-cancel-button
-    [disabled]="
-      disableWhenProgressBarIsShown() ? showProgressBar() ?? false : false
-    "
-    (clicked)="cancelClicked.emit()"
-  ></app-cancel-button>
-  <ng-container
-    *ngIf="additionalButtonsTemplate"
-    [ngTemplateOutlet]="additionalButtonsTemplate"
-  ></ng-container>
 </div>

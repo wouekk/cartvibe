@@ -6,7 +6,7 @@ export const PL_CORE: Record<string, string> = {
   "Shopping lists": "Listy zakupów",
   "Receipts": "Paragony",
   "Reports": "Raporty",
-  "Admin Settings": "Ustawienia administratora",
+  "Admin Settings": "Administracja",
   "Manage Categories": "Kategorie",
   "Manage Tags": "Tagi",
   "Manage Custom Fields": "Pola niestandardowe",

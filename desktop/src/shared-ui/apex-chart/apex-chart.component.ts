@@ -14,7 +14,7 @@ type ApexChartInstance = ApexCharts;
   selector: "app-apex-chart",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `<div #host class="w-full" role="img" [attr.aria-label]="label()"></div>`,
+  template: `<div #host class="h-full w-full" role="img" [attr.aria-label]="label()"></div>`,
   host: { class: "block" },
 })
 export class ApexChartComponent {

@@ -47,22 +47,22 @@
     class="text-sm font-semibold"
     data-testid="report-template-name"
     [routerLink]="['/reports', element.id, 'edit']"
-  >{{ element.name }}</a>
+  >{{ element.name | t }}</a>
   <div class="mt-0.5 text-xs text-muted-foreground">
     {{ columnCountFor(element) }} {{ (columnCountFor(element) === 1 ? 'column' : 'columns') | t }}
   </div>
 </ng-template>
 
 <ng-template #scopeCell let-element="element">
-  {{ scopeSummary(element) }}
+  {{ scopeSummary(element) | t }}
 </ng-template>
 
 <ng-template #groupingCell let-element="element">
-  {{ groupingSummaryFor(element) }}
+  {{ groupingSummaryFor(element) | t }}
 </ng-template>
 
 <ng-template #detailCell let-element="element">
-  {{ detailSummaryFor(element) }}
+  {{ detailSummaryFor(element) | t }}
 </ng-template>
 
 <ng-template #formatsCell let-element="element">

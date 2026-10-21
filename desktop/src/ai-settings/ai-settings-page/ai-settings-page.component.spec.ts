@@ -26,6 +26,7 @@ describe("AiSettingsPageComponent", () => {
   const setUp = async (systemSettings: object, stored?: object): Promise<void> => {
     processingService = {
       getReceiptProcessingSettingsById: jest.fn(() => of(stored)),
+      getGeminiModels: jest.fn(() => of([])),
       createReceiptProcessingSettings: jest.fn((command) => of({ id: 5, ...command })),
       updateReceiptProcessingSettingsById: jest.fn((id, _updateKey, command) => of({ id, ...command })),
       checkReceiptProcessingSettingsConnectivity: jest.fn(() =>
@@ -137,6 +138,7 @@ describe("AiSettingsPageComponent", () => {
       await setUp({});
       TestBed.resetTestingModule();
       processingService = {
+        getGeminiModels: jest.fn(() => of([])),
         getPagedProcessingSettings: jest.fn(() =>
           of({ data: [{ id: 3, aiType: AiType.Gemini, model: "gemini-2.5-flash", url: "", isVisionModel: true }] })
         ),

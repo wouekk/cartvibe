@@ -21,6 +21,7 @@ export class UploadImageComponent {
     "image/*",
     "application/pdf",
     "image/heic",
+    "image/heif",
 ]);
 
   public readonly fileLoaded = output<ReceiptFileUploadCommand>();
@@ -49,7 +50,7 @@ export class UploadImageComponent {
           receiptId: Number(this.receiptId()),
         };
 
-        if (f.type === "application/pdf" || f.type === "image/heic") {
+        if (f.type === "application/pdf" || f.type === "image/heic" || f.type === "image/heif") {
           this.receiptImageService
             .convertToJpg(f)
             .pipe(

@@ -1,6 +1,8 @@
-<div class="mb-4 flex flex-col gap-2" data-testid="exchange-rates">
-  <strong>{{ 'Exchange rates' | t }}</strong>
-  <p class="m-0 text-[13px] text-muted-foreground">
+<div class="rw-section" data-testid="exchange-rates">
+  <div class="rw-section__head">
+    <h3 class="rw-section__title">{{ 'Exchange rates' | t }}</h3>
+  </div>
+  <p class="rw-section__desc">
     {{ 'A receipt in another currency is converted to the main currency when it is added, at the rate you type here. A currency without a rate keeps the receipt as read and flags it until you add one. Changing a rate later does not change receipts that were already converted.' | t }}
   </p>
 
@@ -12,12 +14,12 @@
     </p>
   } @else {
     @for (row of rows(); track row.code; let index = $index) {
-      <div class="flex flex-wrap items-center gap-2" [attr.data-testid]="'exchange-rate-' + row.code">
-        <span class="min-w-21 font-semibold">1 {{ row.code }} =</span>
+      <div class="grid grid-cols-[5rem_8rem_3rem_1fr_auto] items-center gap-3 max-sm:grid-cols-[4.5rem_7rem_2.5rem_1fr_auto]" [attr.data-testid]="'exchange-rate-' + row.code">
+        <span class="font-semibold tabular-nums">1 {{ row.code }} =</span>
         <input
           type="text"
           inputmode="decimal"
-          class="min-h-10 w-30 rounded-md border border-border bg-transparent px-2 [font:inherit]"
+          class="h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm tabular-nums shadow-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40 disabled:opacity-50"
           [placeholder]="'rate' | t"
           [attr.aria-label]="'Rate for ' + row.code"
           [attr.data-testid]="'exchange-rate-input-' + row.code"
@@ -27,9 +29,9 @@
           (blur)="commitRate(index, $event)"
           (keydown.enter)="commitRate(index, $event); $event.preventDefault()"
         />
-        <span class="text-muted-foreground">{{ mainCurrency() }}</span>
+        <span class="text-sm text-muted-foreground">{{ mainCurrency() }}</span>
         @if (!row.rate) {
-          <span class="text-[13px] text-warning-text">{{ 'no rate yet' | t }}</span>
+          <span class="text-xs font-medium text-warning-text">{{ 'no rate yet' | t }}</span>
         }
         @if (canUpdate()) {
           <button hlmBtn variant="ghost" size="icon" type="button" [attr.aria-label]="'Remove ' + row.code" (click)="removeCurrency(index)">
@@ -40,10 +42,16 @@
     }
 
     @if (canUpdate()) {
-      <div class="flex flex-wrap items-center gap-2">
+      @if (error()) {
+        <p class="m-0 text-sm text-destructive" data-testid="exchange-rates-error">{{ error() }}</p>
+      }
+      @if (dirty()) {
+        <p class="m-0 text-xs text-warning-text" data-testid="exchange-rates-unsaved">{{ 'Rates changed: press Save rates to keep them.' | t }}</p>
+      }
+      <div class="rw-section__footer">
         <input
           type="text"
-          class="min-h-10 !w-35 rounded-md border border-border bg-transparent px-2 uppercase [font:inherit]"
+          class="h-9 w-36 rounded-md border border-border bg-background px-2.5 text-sm uppercase shadow-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40"
           maxlength="3"
           [placeholder]="'Add, e.g. SEK' | t"
           [attr.aria-label]="'Currency code to add' | t"
@@ -56,16 +64,10 @@
           <app-icon name="add"></app-icon>
           {{ 'Add currency' | t }}
         </button>
+        <button hlmBtn type="button" class="ml-auto" data-testid="exchange-rates-save" [disabled]="saving()" (click)="save()">
+          {{ 'Save rates' | t }}
+        </button>
       </div>
-      @if (error()) {
-        <p class="m-0 text-destructive" data-testid="exchange-rates-error">{{ error() }}</p>
-      }
-      @if (dirty()) {
-        <p class="m-0 text-[13px] text-warning-text" data-testid="exchange-rates-unsaved">{{ 'Rates changed: press Save rates to keep them.' | t }}</p>
-      }
-      <button hlmBtn type="button" class="self-start" data-testid="exchange-rates-save" [disabled]="saving()" (click)="save()">
-        {{ 'Save rates' | t }}
-      </button>
     }
   }
 </div>

@@ -252,21 +252,16 @@ export class OverviewPageComponent {
 
   public readonly segments = computed(() => buildDonutSegments(this.overview()?.categories ?? []));
 
-  /** Categories the user switched off above the ring; the ring and its total then cover the rest. */
-  public readonly hiddenSegments = signal<ReadonlySet<string>>(new Set());
+  /** The category the user focused (click a slice or a legend dot); the others dim and the ring's middle shows it. */
+  public readonly focusedSegment = signal<string | null>(null);
 
-  public isHidden(name: string): boolean {
-    return this.hiddenSegments().has(name);
+  public isDimmed(name: string): boolean {
+    const focused = this.focusedSegment();
+    return focused !== null && focused !== name;
   }
 
-  public toggleSegment(name: string): void {
-    this.hiddenSegments.update((hidden) => {
-      const next = new Set(hidden);
-      if (!next.delete(name)) {
-        next.add(name);
-      }
-      return next;
-    });
+  public toggleFocus(name: string): void {
+    this.focusedSegment.update((focused) => (focused === name ? null : name));
   }
 
   public readonly bars = computed(() => {
@@ -311,35 +306,48 @@ export class OverviewPageComponent {
     this.goalMode() ? this.chartBars().filter((bar) => (bar.overAmount ?? 0) > 0) : []
   );
 
-  /** The category donut (ApexCharts on the theme tokens); the total sits in its middle. */
+  /** The category donut (ApexCharts on the theme tokens); the total, or the focused category, sits in its middle. */
   public readonly donutOptions = (colors: ChartColors): ApexOptions => {
-    // Colors follow a category's place in the full list, so switching one off does not recolor the others.
-    const shown = this.segments()
-      .map((segment, index) => ({ segment, index }))
-      .filter(({ segment }) => !this.isHidden(segment.name));
-    const segments = shown.map(({ segment }) => segment);
-    const total = this.displayCurrencyService.format(
-      this.hiddenSegments().size > 0 ? segments.reduce((sum, segment) => sum + segment.total, 0) : this.overview()?.total ?? 0
-    );
+    const segments = this.segments();
+    const focusedName = this.focusedSegment();
+    const focused = segments.find((segment) => segment.name === focusedName);
+    const centerLabel = focused ? this.translation.t(focused.name) : this.periodLabel();
+    const centerValue = this.displayCurrencyService.format(focused ? focused.total : this.overview()?.total ?? 0);
     return {
-      chart: { type: "donut", height: 200, width: 200, background: "transparent", fontFamily: "inherit", animations: { speed: 500 } },
+      chart: {
+        type: "donut",
+        height: 200,
+        width: 200,
+        background: "transparent",
+        fontFamily: "inherit",
+        animations: { speed: 400 },
+        events: {
+          dataPointSelection: (_event: unknown, _chart: unknown, config: { dataPointIndex: number }) => {
+            const segment = this.segments()[config.dataPointIndex];
+            if (segment) {
+              this.toggleFocus(segment.name);
+            }
+          },
+        },
+      },
       series: segments.map((segment) => segment.total),
       labels: segments.map((segment) => segment.name),
-      colors: shown.map(({ index }) => colors.series[index % colors.series.length]),
+      colors: segments.map((_segment, index) => colors.series[index % colors.series.length]),
+      fill: { opacity: segments.map((segment) => (focusedName !== null && segment.name !== focusedName ? 0.22 : 1)) },
       stroke: { width: 3, colors: [colors.card] },
       legend: { show: false },
       dataLabels: { enabled: false },
-      states: { hover: { filter: { type: "darken" } }, active: { filter: { type: "none" } } },
+      states: { hover: { filter: { type: "none" } }, active: { filter: { type: "none" } } },
       tooltip: {
         custom: ({ seriesIndex }: { seriesIndex: number }) => {
-          const entry = shown[seriesIndex];
-          if (!entry) {
+          const segment = segments[seriesIndex];
+          if (!segment) {
             return "";
           }
-          const color = colors.series[entry.index % colors.series.length];
-          return this.tooltipCard(entry.segment.name, [
-            { color, label: this.translation.t("Spent"), value: this.displayCurrencyService.format(entry.segment.total) },
-            { color, label: this.translation.t("Share of total"), value: entry.segment.share },
+          const color = colors.series[seriesIndex % colors.series.length];
+          return this.tooltipCard(this.translation.t(segment.name), [
+            { color, label: this.translation.t("Spent"), value: this.displayCurrencyService.format(segment.total) },
+            { color, label: this.translation.t("Share of total"), value: segment.share },
           ]);
         },
       },
@@ -351,8 +359,8 @@ export class OverviewPageComponent {
             labels: {
               show: true,
               name: { show: true, color: colors.mutedForeground, fontSize: "12px", offsetY: 18 },
-              value: { show: true, color: colors.foreground, fontSize: "20px", fontWeight: 600, offsetY: -14, formatter: () => total },
-              total: { show: true, showAlways: true, label: this.periodLabel(), color: colors.mutedForeground, fontSize: "12px", formatter: () => total },
+              value: { show: true, color: colors.foreground, fontSize: "20px", fontWeight: 600, offsetY: -14, formatter: () => centerValue },
+              total: { show: true, showAlways: true, label: centerLabel, color: colors.mutedForeground, fontSize: "12px", formatter: () => centerValue },
             },
           },
         },
@@ -369,7 +377,7 @@ export class OverviewPageComponent {
     return {
       chart: {
         type: "bar",
-        height: 260,
+        height: "100%",
         stacked: true,
         toolbar: { show: false },
         zoom: { enabled: false },
@@ -410,7 +418,7 @@ export class OverviewPageComponent {
           if (goalMode && (bar.overAmount ?? 0) > 0) {
             rows.push({ color: colors.destructive, label: this.translation.t("Over goal"), value: money(bar.overAmount ?? 0) });
           }
-          return this.tooltipCard(bar.shortName, rows);
+          return this.tooltipCard(this.barHeading(bar.key, bar.shortName), rows);
         },
       },
       annotations:
@@ -421,6 +429,16 @@ export class OverviewPageComponent {
   };
 
   /** The floating tooltip: a small card on the theme tokens, a heading and one row per figure (the Flowbite look). */
+  /** "October 2026" for a month bar, "21 October 2026" for a day bar. */
+  private barHeading(key: string, fallback: string): string {
+    const [year, month, day] = key.split("-").map(Number);
+    if (!year || !month) {
+      return fallback;
+    }
+    const monthName = new Date(year, month - 1, 1).toLocaleString("en", { month: "long" });
+    return this.translation.months(day ? `${day} ${monthName} ${year}` : `${monthName} ${year}`);
+  }
+
   private tooltipCard(heading: string, rows: { color: string; label: string; value: string }[]): string {
     const escape = (text: string) => text.replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char] ?? char);
     const body = rows
