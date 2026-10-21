@@ -35,6 +35,35 @@ function browserLanguage(): AppLanguage {
   return LANGUAGES[0].code;
 }
 
+interface InterpolationPattern {
+  regex: RegExp;
+  translated: string;
+  /** Length of the fixed text: the longer, the more specific the message. */
+  fixed: number;
+}
+
+const patternCache = new WeakMap<LanguageDefinition, InterpolationPattern[]>();
+
+/** The messages with {placeholders} as anchored regular expressions, the most specific first. */
+function interpolationPatterns(definition: LanguageDefinition): InterpolationPattern[] {
+  let patterns = patternCache.get(definition);
+  if (!patterns) {
+    patterns = Object.entries(definition.messages)
+      .filter(([english]) => /\{\w+\}/.test(english))
+      .map(([english, translated]) => {
+        const source = english
+          .split(/(\{\w+\})/)
+          .map((part) => (/^\{\w+\}$/.test(part) ? `(?<${part.slice(1, -1)}>.+?)` : part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
+          .join("");
+        return { regex: new RegExp(`^${source}$`, "s"), translated, fixed: english.replace(/\{\w+\}/g, "").length };
+      })
+      .sort((a, b) => b.fixed - a.fixed);
+    patternCache.set(definition, patterns);
+  }
+
+  return patterns;
+}
+
 const MONTH_NAMES = /\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/g;
 
 /**
@@ -64,8 +93,24 @@ export class TranslationService {
   }
 
   public t(text: string, params?: Record<string, string | number>): string {
-    const translated = this.definition().messages[text] ?? text;
+    const definition = this.definition();
+    const translated = definition.messages[text] ?? this.translateInterpolated(definition, text) ?? text;
     return params ? translated.replace(/\{(\w+)\}/g, (match, key) => String(params[key] ?? match)) : translated;
+  }
+
+  /**
+   * A message built with its values already in it ("Delete Milk", from `Delete ${name}`) has no key of its own, so it is
+   * matched against the messages that carry {placeholders} ("Delete {name}") and the captured values are carried over.
+   */
+  private translateInterpolated(definition: LanguageDefinition, text: string): string | undefined {
+    for (const pattern of interpolationPatterns(definition)) {
+      const match = pattern.regex.exec(text);
+      if (match) {
+        return pattern.translated.replace(/\{(\w+)\}/g, (placeholder, name) => match.groups?.[name] ?? placeholder);
+      }
+    }
+
+    return undefined;
   }
 
   /** "1 item" / "3 items": the noun for a count, in the language's own plural forms when it has them. */
