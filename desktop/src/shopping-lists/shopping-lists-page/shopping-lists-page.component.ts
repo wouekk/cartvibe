@@ -72,8 +72,14 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
     })
   );
 
-  /** Finished lists (everything crossed off), the latest few, shown below the cards. */
+  /** What is left to buy on the open list, for its workspace header. */
+  public readonly toBuyCount = computed(
+    () => this.selectedList()?.items.filter((item) => !item.isChecked).length ?? 0
+  );
+
   public readonly announcing = signal(false);
+
+  /** Finished lists (everything crossed off), the latest few, shown beside the open list. */
 
   public readonly pastLists = computed(() => recentPastLists(this.lists()));
 

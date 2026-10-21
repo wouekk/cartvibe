@@ -1,21 +1,23 @@
 @if (canUpdate()) {
-  <form class="add-bar sticky top-0 z-10 bg-background pb-3 pt-1" [formGroup]="addForm" (ngSubmit)="addItem()">
-    <div class="flex items-start gap-2">
+  <form class="add-bar sticky top-0 z-10 bg-card pb-3 pt-1" [formGroup]="addForm" (ngSubmit)="addItem()">
+    <div class="flex flex-wrap items-start gap-2 sm:flex-nowrap">
       <app-shopping-item-name-field
-        class="add-name min-w-0 flex-1"
+        class="add-name w-full min-w-0 sm:w-auto sm:flex-1"
         [label]="'Add an item' | t"
         testId="shopping-list-add-name"
         [control]="nameControl"
         [suggestions]="suggestions()"
         (picked)="suggestionPicked($event)"
       ></app-shopping-item-name-field>
-      <app-shopping-list-amount-fields class="add-amount w-44 flex-none max-[400px]:w-38" [form]="addForm"></app-shopping-list-amount-fields>
+      <app-shopping-list-amount-fields
+        class="add-amount min-w-0 flex-1 sm:w-48 sm:flex-none [&_.amount]:w-20 [&_.amount]:flex-none [&_input]:tabular-nums"
+        [form]="addForm"
+      ></app-shopping-list-amount-fields>
       <button
         hlmBtn
-        color="primary"
         type="submit"
         size="icon"
-        class="mt-[1.625rem] size-9 flex-none"
+        class="mt-[1.625rem] size-9 flex-none rounded-lg"
         [attr.aria-label]="'Add item' | t"
         data-testid="shopping-list-add-submit"
         [disabled]="adding()"
@@ -26,7 +28,7 @@
   </form>
 }
 
-<div class="overflow-hidden rounded-xl border border-border bg-card" data-testid="shopping-list-active-items">
+<div class="border-t border-border/60" data-testid="shopping-list-active-items">
   @for (item of activeItems(); track item.id) {
     <app-shopping-list-item
       [item]="item"
@@ -37,27 +39,33 @@
       (classificationSelected)="correctTags($event)"
     ></app-shopping-list-item>
   } @empty {
-    <p class="m-0 px-4 py-10 text-center text-sm text-muted-foreground" data-testid="shopping-list-empty">{{ 'Nothing left to buy on this list.' | t }}</p>
+    <div class="flex flex-col items-center gap-2 px-4 py-10 text-center" data-testid="shopping-list-empty">
+      <span class="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground" aria-hidden="true">
+        <app-icon name="shopping_cart"></app-icon>
+      </span>
+      <p class="m-0 text-sm text-muted-foreground">{{ 'Nothing left to buy on this list.' | t }}</p>
+    </div>
   }
 </div>
 
 @if (checkedItems().length > 0) {
-  <div class="mt-8">
-    <div class="mb-3 flex items-center justify-between">
+  <div class="mt-4 border-t border-border/60 pt-4">
+    <div class="flex items-center justify-between gap-2">
       <button
         type="button"
-        class="inline-flex h-9 items-center gap-1 rounded-md px-2 text-sm font-semibold hover:bg-accent"
+        class="inline-flex items-center gap-1 rounded-lg bg-muted/50 px-3 py-1.5 text-xs font-medium text-muted-foreground tabular-nums transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         data-testid="shopping-list-crossed-off-toggle"
         [attr.aria-expanded]="showCrossedOff()"
         (click)="showCrossedOff.set(!showCrossedOff())"
       >
-        <app-icon [name]="showCrossedOff() ? 'expand_less' : 'expand_more'"></app-icon>
+        <app-icon class="text-sm transition-transform duration-150 motion-reduce:transition-none" [class.rotate-180]="showCrossedOff()" name="expand_more"></app-icon>
         {{ 'Crossed off ({count})' | t: { count: checkedItems().length } }}
       </button>
       @if (canUpdate() && showCrossedOff()) {
         <button
-          hlmBtn variant="ghost"
+          hlmBtn variant="ghost" size="sm"
           type="button"
+          class="text-muted-foreground"
           data-testid="shopping-list-clear-crossed-off"
           (click)="clearCrossedOff()"
         >
@@ -66,7 +74,7 @@
       }
     </div>
     @if (showCrossedOff()) {
-      <div class="overflow-hidden rounded-xl border border-border bg-card" data-testid="shopping-list-checked-items">
+      <div class="mt-2" data-testid="shopping-list-checked-items">
         @for (item of checkedItems(); track item.id) {
           <app-shopping-list-item
             [item]="item"

@@ -1,7 +1,7 @@
 @if (canSee()) {
-  <section class="trips mt-10" data-testid="shopping-trips" aria-labelledby="shopping-trips-title">
-    <div class="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-      <h3 id="shopping-trips-title" class="m-0 text-[0.95rem] font-semibold">{{ 'Receipts from this list' | t }}</h3>
+  <section class="trips flex flex-col gap-3" data-testid="shopping-trips" aria-labelledby="shopping-trips-title">
+    <h3 id="shopping-trips-title" class="rw-section__title">{{ 'Receipts from this list' | t }}</h3>
+    @if (canScan() || canUpdate()) {
       <div class="flex flex-wrap items-center gap-2 [&_button]:h-9">
         @if (canScan()) {
           <input
@@ -15,6 +15,7 @@
           <button
             hlmBtn variant="outline"
             type="button"
+            class="flex-1"
             data-testid="shopping-trip-scan"
             [disabled]="uploading()"
             (click)="photoInput.click()"
@@ -24,64 +25,70 @@
           </button>
         }
         @if (canUpdate()) {
-          <button hlmBtn variant="ghost" type="button" data-testid="shopping-trip-attach" (click)="attachExisting()">
+          <button hlmBtn variant="outline" type="button" class="flex-1" data-testid="shopping-trip-attach" (click)="attachExisting()">
             <app-icon name="attach_file"></app-icon>
             {{ 'Attach existing' | t }}
           </button>
         }
       </div>
-    </div>
+    }
 
-    @for (row of rows(); track row.trip.id) {
-      <article
-        class="mb-2 flex items-start gap-2 rounded-xl border-l-4 bg-card px-4 py-2 shadow-xs ring-1 ring-foreground/10"
-        [class.border-l-border]="row.status.kind !== 'planned' && row.status.kind !== 'unplanned' && row.status.kind !== 'failed'"
-        [class.border-l-success-text]="row.status.kind === 'planned'"
-        [class.border-l-destructive]="row.status.kind === 'unplanned'"
-        [class.border-l-warning-text]="row.status.kind === 'failed'"
-        data-testid="shopping-trip"
-      >
-        <div class="min-w-0 flex-1">
-          <div class="flex flex-wrap items-baseline gap-x-2">
-            @if (row.trip.receipt; as receipt) {
-              <a class="font-semibold" [routerLink]="['/receipts', receipt.id, 'view']">{{ receipt.name }}</a>
-              <span class="text-sm tabular-nums text-muted-foreground">
-                {{ receipt.date | appDate : "MMM d" : "calendar" }} · {{ receipt.amount | customCurrency }}
-              </span>
-            } @else {
-              <span class="font-semibold">{{ (row.trip.waitingForPhoto ? 'Receipt photo' : 'Receipt') | t }}</span>
-              <span class="text-sm tabular-nums text-muted-foreground">{{ row.trip.createdAt | appDate : "MMM d" }}</span>
-            }
-          </div>
-          <p class="mt-0.5 text-sm text-muted-foreground" data-testid="shopping-trip-status">
-            @if (row.status.kind === "unplanned" && row.trip.unplannedAmount) {
-              <strong class="tabular-nums text-destructive">{{ row.trip.unplannedAmount | customCurrency }}</strong>
-            }
-            {{ row.status.text }}
-          </p>
-        </div>
+    @if (rows().length > 0) {
+      <div class="border-t border-border/60">
+        @for (row of rows(); track row.trip.id) {
+          <article class="flex items-start gap-3 border-b border-border/40 py-3 last:border-b-0" data-testid="shopping-trip">
+            <span
+              class="mt-1.5 size-2 shrink-0 rounded-full"
+              [class.bg-muted-foreground/40]="row.status.kind !== 'planned' && row.status.kind !== 'unplanned' && row.status.kind !== 'failed'"
+              [class.bg-success-text]="row.status.kind === 'planned'"
+              [class.bg-destructive]="row.status.kind === 'unplanned'"
+              [class.bg-warning-text]="row.status.kind === 'failed'"
+              aria-hidden="true"
+            ></span>
+            <div class="min-w-0 flex-1">
+              <div class="flex flex-wrap items-baseline gap-x-2">
+                @if (row.trip.receipt; as receipt) {
+                  <a class="min-w-0 truncate text-sm font-semibold hover:underline" [routerLink]="['/receipts', receipt.id, 'view']">{{ receipt.name }}</a>
+                  <span class="text-xs tabular-nums text-muted-foreground">
+                    {{ receipt.date | appDate : "MMM d" : "calendar" }} · {{ receipt.amount | customCurrency }}
+                  </span>
+                } @else {
+                  <span class="text-sm font-semibold">{{ (row.trip.waitingForPhoto ? 'Receipt photo' : 'Receipt') | t }}</span>
+                  <span class="text-xs tabular-nums text-muted-foreground">{{ row.trip.createdAt | appDate : "MMM d" }}</span>
+                }
+              </div>
+              <p class="m-0 mt-0.5 text-xs text-muted-foreground" data-testid="shopping-trip-status">
+                @if (row.status.kind === "unplanned" && row.trip.unplannedAmount) {
+                  <strong class="font-semibold tabular-nums text-destructive">{{ row.trip.unplannedAmount | customCurrency }}</strong>
+                }
+                {{ row.status.text }}
+              </p>
+            </div>
 
-        @if (canUpdate()) {
-          <button
-            hlmBtn variant="ghost" size="icon"
-            type="button"
-            data-testid="shopping-trip-menu"
-            [attr.aria-label]="'Receipt actions' | t"
-            [hlmDropdownMenuTrigger]="tripMenu" align="end"
-            [hlmDropdownMenuTriggerData]="{ trip: row.trip }"
-          >
-            <app-icon name="more_vert"></app-icon>
-          </button>
+            @if (canUpdate()) {
+              <button
+                hlmBtn variant="ghost" size="icon"
+                type="button"
+                class="-my-1 size-8 shrink-0"
+                data-testid="shopping-trip-menu"
+                [attr.aria-label]="'Receipt actions' | t"
+                [hlmDropdownMenuTrigger]="tripMenu" align="end"
+                [hlmDropdownMenuTriggerData]="{ trip: row.trip }"
+              >
+                <app-icon name="more_vert"></app-icon>
+              </button>
+            }
+          </article>
         }
-      </article>
-    } @empty {
-      <p class="m-0 text-muted-foreground" data-testid="shopping-trips-empty">
+      </div>
+    } @else {
+      <p class="m-0 text-[13px] leading-relaxed text-muted-foreground" data-testid="shopping-trips-empty">
         {{ 'After shopping, scan the receipt to see what you bought that was not on the list.' | t }}
       </p>
     }
 
     <ng-template #tripMenu let-trip="trip">
-<div hlmDropdownMenu class="w-56">
+      <div hlmDropdownMenu class="w-56">
         @if (trip.status === "FAILED") {
           <button hlmDropdownMenuItem data-testid="shopping-trip-retry" (click)="retry(trip)">
             <app-icon name="refresh"></app-icon>
@@ -93,6 +100,6 @@
           <span>{{ 'Remove from list' | t }}</span>
         </button>
       </div>
-</ng-template>
+    </ng-template>
   </section>
 }

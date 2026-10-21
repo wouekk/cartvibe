@@ -2927,6 +2927,11 @@ Mobile-first (used in the shop). Backend contract: `api/CLAUDE.md`.
 - **Trips** (`app-shopping-trips`): receipts attached to a list and what was bought that was not planned; held in a signal
   and refetched on `TRIPS_CHANGED`. Gates: `group.shopping-lists.read` + `group.receipts.read`.
 - Dialog forms submit through `(ngSubmit)` only (`app-dialog-footer`'s button is `type="submit"`).
+- **Layout (master-detail):** the header row holds "Going shopping" and "Add List"; the open lists are cards in an
+  `rw-scroll-x` row on a phone and a 2/4-column grid from `sm`/`lg`. Below them, the open list is one card (name, "{count}
+  to buy", the list menu, the add box, hairline item rows, the crossed-off pill) with an aside on `lg` (stacked below on
+  smaller screens) holding "Receipts from this list" and "Past lists". The add box keeps its labels; on a phone the name
+  takes its own row. Unit labels are translated (`formatShoppingListItemAmount` takes a translate function).
 
 ## Navigation, forms and settings screens
 

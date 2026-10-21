@@ -1,14 +1,14 @@
-<div class="flex min-h-14 items-center border-b border-border last:border-b-0" [class.checked]="item().isChecked">
+<div class="group flex min-h-14 items-center border-b border-border/40 last:border-b-0" [class.checked]="item().isChecked">
   <button
     type="button"
-    class="flex min-h-14 min-w-0 flex-1 items-center gap-3 px-2 py-2 text-left outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring disabled:cursor-default"
+    class="flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-lg px-1 py-3 text-left outline-none transition-colors duration-150 enabled:hover:bg-muted/40 motion-reduce:transition-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring disabled:cursor-default"
     data-testid="shopping-list-item-toggle"
     role="checkbox"
     [attr.aria-checked]="item().isChecked"
     [disabled]="!canUpdate()"
     (click)="toggled.emit(item())"
   >
-    <app-icon class="shrink-0 text-xl" [class.text-muted-foreground]="item().isChecked" [name]="item().isChecked ? 'check_circle' : 'radio_button_unchecked'"></app-icon>
+    <app-icon class="shrink-0 text-xl text-muted-foreground transition-colors duration-150 group-hover:text-foreground" [name]="item().isChecked ? 'check_circle' : 'radio_button_unchecked'"></app-icon>
     <span class="flex min-w-0 flex-wrap items-baseline gap-x-2">
       <span class="break-words text-base" [class.line-through]="item().isChecked" [class.text-muted-foreground]="item().isChecked" data-testid="shopping-list-item-name">{{ item().name }}</span>
       <app-food-tags class="self-center" [values]="item()"></app-food-tags>
