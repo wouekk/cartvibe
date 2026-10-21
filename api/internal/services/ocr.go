@@ -8,9 +8,7 @@ import (
 	"gorm.io/gorm"
 	"image"
 	"image/jpeg"
-	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"receipt-wrangler/api/internal/commands"
 	"receipt-wrangler/api/internal/logging"
@@ -20,6 +18,9 @@ import (
 	"strings"
 	"time"
 )
+
+// ocrImageMaxSide is the longest edge, in pixels, of an image prepared for Tesseract.
+const ocrImageMaxSide = 3000
 
 type OcrService struct {
 	BaseService
@@ -56,22 +57,13 @@ func (service OcrService) ReadImage(path string) (string, commands.UpsertSystemT
 		return "", systemTaskCommand, err
 	}
 
-	if service.ReceiptProcessingSettings.OcrEngine != nil && *service.ReceiptProcessingSettings.OcrEngine == models.TESSERACT_NEW {
-		text, err = service.ReadImageWithTesseract(imageBytes)
-		if err != nil {
-			systemTaskCommand.Status = models.SYSTEM_TASK_FAILED
-			systemTaskCommand.ResultDescription = err.Error()
-			return "", systemTaskCommand, err
-		}
-	}
-
-	if service.ReceiptProcessingSettings.OcrEngine != nil && *service.ReceiptProcessingSettings.OcrEngine == models.EASY_OCR_NEW {
-		text, err = service.ReadImageWithEasyOcr(imageBytes)
-		if err != nil {
-			systemTaskCommand.Status = models.SYSTEM_TASK_FAILED
-			systemTaskCommand.ResultDescription = err.Error()
-			return "", systemTaskCommand, err
-		}
+	// Tesseract reads every image. EasyOCR is no longer in the image (it brought PyTorch, OpenCV and a bundled ffmpeg,
+	// and started a new Python process per image): a setting that still names it is read with Tesseract.
+	text, err = service.ReadImageWithTesseract(imageBytes)
+	if err != nil {
+		systemTaskCommand.Status = models.SYSTEM_TASK_FAILED
+		systemTaskCommand.ResultDescription = err.Error()
+		return "", systemTaskCommand, err
 	}
 	endTime := time.Now()
 	elapsedTime := endTime.Sub(startTime)
@@ -117,29 +109,6 @@ func (service OcrService) ReadImageWithTesseract(preparedImageBytes []byte) (str
 	if err != nil {
 		return "", err
 	}
-
-	return text, nil
-}
-
-func (service OcrService) ReadImageWithEasyOcr(preparedImageBytes []byte) (string, error) {
-	fileRepository := repositories.NewFileRepository(nil)
-	tempPath, err := fileRepository.WriteTempFile(preparedImageBytes)
-	if err != nil {
-		return "", err
-	}
-	defer os.Remove(tempPath)
-
-	var textBuffer bytes.Buffer
-	var text string
-	cmd := exec.Command("easyocr", "-l", "en", "-f", tempPath, "--detail", "0", "--gpu", "0", "--verbose", "0")
-	cmd.Stdout = &textBuffer
-	cmd.Stderr = io.Discard
-
-	err = cmd.Run()
-	if err != nil {
-		return "", err
-	}
-	text = textBuffer.String()
 
 	return text, nil
 }
@@ -192,9 +161,20 @@ func (service OcrService) writeDebuggingFiles(ocrText string, path string, image
 
 func (service OcrService) prepareImage(path string) ([]byte, error) {
 	mw := imagick.NewMagickWand()
+	defer mw.Destroy()
 	err := mw.ReadImage(path)
 	if err != nil {
 		return nil, err
+	}
+
+	// The filters below cost time per pixel; a 12 MP phone photo is shrunk first. ocrImageMaxSide keeps receipt
+	// print well above the size Tesseract needs.
+	if width, height := mw.GetImageWidth(), mw.GetImageHeight(); max(width, height) > ocrImageMaxSide {
+		scale := float64(ocrImageMaxSide) / float64(max(width, height))
+		err = mw.ResizeImage(max(1, uint(float64(width)*scale+0.5)), max(1, uint(float64(height)*scale+0.5)), imagick.FILTER_LANCZOS)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	err = mw.TrimImage(0)
@@ -230,14 +210,6 @@ func (service OcrService) prepareImage(path string) ([]byte, error) {
 	err = mw.DeskewImage(.40)
 	if err != nil {
 		return nil, err
-	}
-
-	if service.ReceiptProcessingSettings.OcrEngine != nil &&
-		*service.ReceiptProcessingSettings.OcrEngine == models.EASY_OCR_NEW {
-		err = mw.ScaleImage(mw.GetImageWidth()/2, mw.GetImageHeight()/2)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	return mw.GetImageBlob()

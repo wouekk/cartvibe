@@ -1,10 +1,11 @@
 # Three stages: the desktop build (Node), the API build (Go with the compiler, the -dev libraries and the Python venv
-# for OCR), and a slim Debian runtime that receives only what runs: the binary, the API's files, the venv and the
+# for the email client), and a slim Debian runtime that receives only what runs: the binary, the API's files, the venv and the
 # desktop's static files. The Go toolchain, the compilers and the *-dev packages stay behind in the build stages.
 #
 # Layer order matters for build time: each stage installs its dependencies from the few files that declare them
-# BEFORE copying the source, so a code-only change reuses the cached dependency layers (npm packages; PyTorch,
+# BEFORE copying the source, so a code-only change reuses the cached dependency layers (npm packages; Python,
 # ImageMagick, Tesseract; Go modules). Keep anything that changes per build (VERSION, BUILD_DATE, source) below them.
+# The weekly publish run builds without the cache, so the apt layers pick up Debian's security updates.
 
 # ---- Desktop: dependencies, then source
 FROM node:lts-alpine AS node
@@ -22,7 +23,7 @@ FROM golang:1.26-trixie AS api-build
 ENV BASE_PATH="/app/cartvibe-api"
 WORKDIR /app/cartvibe-api
 
-# Tesseract, ImageMagick (with HEIC), Chromium and the Python OCR dependencies. Only the script and the requirements
+# Tesseract, ImageMagick (with HEIC), Chromium and the Python email client. Only the script and the requirements
 # file it reads are copied first, so this (by far the slowest) layer survives code changes.
 COPY api/set-up-dependencies.sh ./
 COPY api/imap-client/requirements.txt ./imap-client/requirements.txt
@@ -47,16 +48,25 @@ ENV PYTHONPATH="/app/cartvibe-api/wranglervenv/lib/python3.13/site-packages"
 # What the API runs at run time: nginx, Tesseract and its English data, ImageMagick with HEIC and PDF support, Chromium
 # (HTML to PDF), Python for the OCR scripts, certificates for HTTPS calls and time zone data for the app time zone.
 # Recommended packages stay on for the ones that bring codec plugins and fonts (ImageMagick, Chromium).
+# The upgrade takes Debian's security fixes released since the base image was built.
 RUN apt-get update \
+    && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends ca-certificates tzdata nginx python3 \
     && apt-get install -y imagemagick-7.q16 libheif1 libde265-0 tesseract-ocr-eng chromium \
     && rm -rf /var/lib/apt/lists/* /etc/nginx/sites-enabled/* /etc/nginx/sites-available/*
 
-# Allow PDF conversion in ImageMagick (the same policy edit the build stage makes).
+# The API runs as this user (entrypoint.sh drops to it); nginx keeps its own www-data workers.
+RUN useradd --system --uid 10001 --user-group --create-home --home-dir /home/cartvibe --shell /usr/sbin/nologin cartvibe
+
+# ImageMagick picks a decoder from a file's content, not its name, so an upload could reach any library it links.
+# Allow PDF conversion, and refuse what receipts never are: EXR, vector and script formats (SVG, MVG, MSL,
+# PostScript, XPS), remote URLs and reading a file named after "@". Photos (JPEG, PNG, WebP, HEIC, TIFF, GIF) and
+# PDF stay; the check below converts a PDF so a policy that breaks it fails the build.
 RUN POLICY_FILE="/etc/ImageMagick-7/policy.xml"; \
-    if [ -f "$POLICY_FILE" ]; then \
-      sed -i 's|<policy domain="coder" rights="none" pattern="PDF" />|<policy domain="coder" rights="read\|write" pattern="PDF" />|g' "$POLICY_FILE"; \
-    fi
+    test -f "$POLICY_FILE" \
+    && sed -i 's|<policy domain="coder" rights="none" pattern="PDF" />|<policy domain="coder" rights="read\|write" pattern="PDF" />|g' "$POLICY_FILE" \
+    && sed -i 's|</policymap>|  <policy domain="coder" rights="none" pattern="{EXR,SVG,SVGZ,MSVG,RSVG,MVG,MSL,PS,PS2,PS3,EPS,EPI,EPSF,EPSI,EPT,XPS,PCL,URL,HTTP,HTTPS,FTP,TEXT,SHOW,WIN,X}" />\n  <policy domain="path" rights="none" pattern="@*" />\n</policymap>|' "$POLICY_FILE" \
+    && grep -q 'pattern="{EXR,' "$POLICY_FILE"
 
 WORKDIR /app/cartvibe-api
 COPY --from=api-build /app/cartvibe-api /app/cartvibe-api
@@ -64,8 +74,12 @@ COPY --from=api-build /app/cartvibe-api /app/cartvibe-api
 # Fail the build, not the NAS, when something the API needs is missing at run time.
 RUN ! ldd ./api | grep "not found" \
     && magick -list format | grep -i heic \
+    && magick -size 40x40 xc:white /tmp/check.pdf && magick /tmp/check.pdf /tmp/check.jpg \
+    && ! magick -size 40x40 xc:white /tmp/check.eps \
+    && rm -f /tmp/check.* \
     && chromium --version \
-    && ./wranglervenv/bin/python -c "import easyocr, imapclient" \
+    && setpriv --version \
+    && ./wranglervenv/bin/python -c "import imapclient" \
     && tesseract --list-langs | grep -q eng
 
 ARG VERSION
@@ -73,8 +87,9 @@ ARG BUILD_DATE
 ENV BUILD_DATE=${BUILD_DATE}
 ENV VERSION=${VERSION}
 
-# Volumes: data, temp files, sqlite, logs
-RUN mkdir -p data temp logs
+# Volumes: data, temp files, sqlite, logs. Owned by the API's user; entrypoint.sh hands over what a mounted
+# folder from an older image (written as root) still holds.
+RUN mkdir -p data temp logs sqlite && chown -R cartvibe:cartvibe data temp logs sqlite
 VOLUME /app/cartvibe-api/data
 VOLUME /app/cartvibe-api/sqlite
 VOLUME /app/cartvibe-api/logs

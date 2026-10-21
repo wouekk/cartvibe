@@ -13,6 +13,10 @@ on:
     types: [completed]
     branches: [main]
   workflow_dispatch:
+  # Weekly rebuild of main without the layer cache, so Debian security updates reach :latest even when no code changed
+  # (the cached apt layers would otherwise keep the packages of the first build for ever).
+  schedule:
+    - cron: "17 3 * * 1"
 
 concurrency:
   group: publish-image
@@ -26,7 +30,7 @@ jobs:
   publish:
     if: |
       github.repository_owner != 'Receipt-Wrangler' &&
-      (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
+      (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -70,3 +74,21 @@ jobs:
           labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # Always fetch the newest base images; the weekly run also rebuilds every layer.
+          pull: true
+          no-cache: ${{ github.event_name == 'schedule' }}
+      # A vulnerability report for what was just published (the run's Artifacts). It never fails the run: most findings
+      # are Debian packages without a fix yet, and the report is read, not gated on.
+      - name: Scan the image
+        uses: anchore/scan-action@v6
+        with:
+          image: ${{ steps.meta.outputs.image }}:sha-${{ steps.meta.outputs.sha }}
+          fail-build: false
+          output-format: table
+          output-file: grype-report.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: grype-report-${{ steps.meta.outputs.tag }}-${{ steps.meta.outputs.sha }}
+          path: grype-report.txt
+          if-no-files-found: ignore
