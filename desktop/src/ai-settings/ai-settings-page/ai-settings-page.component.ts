@@ -45,8 +45,8 @@ export interface ConnectionResult {
  */
 @Component({
   selector: "app-ai-settings-page",
+  host: { class: "block" },
   templateUrl: "./ai-settings-page.component.html",
-  styleUrls: ["./ai-settings-page.component.scss"],
   standalone: true,
   imports: [
     CheckboxModule,

@@ -1,3 +1,4 @@
+import { NgClass } from "@angular/common";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 import { A11yModule } from "@angular/cdk/a11y";
 import { ConnectedPosition, OverlayModule } from "@angular/cdk/overlay";
@@ -36,10 +37,10 @@ const MAX_YEAR_OFFSET = 5;
  */
 @Component({
   selector: "app-month-stepper",
+  host: { class: "inline-block" },
   templateUrl: "./month-stepper.component.html",
-  styleUrls: ["./month-stepper.component.scss"],
   standalone: true,
-  imports: [A11yModule, ButtonModule, OverlayModule, TranslatePipe],
+  imports: [A11yModule, ButtonModule, NgClass, OverlayModule, TranslatePipe],
 })
 export class MonthStepperComponent {
   /** The month currently shown, or null when the caller is showing something else. */

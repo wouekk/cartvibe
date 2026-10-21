@@ -1,6 +1,6 @@
 import { TranslationService } from "../../i18n/translation.service";
 import { CurrencyPipe, DatePipe } from "@angular/common";
-import { AfterViewInit, Component, computed, inject, OnInit, signal, TemplateRef, ViewEncapsulation, viewChild } from "@angular/core";
+import { AfterViewInit, Component, computed, inject, OnInit, signal, TemplateRef, viewChild } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -71,9 +71,7 @@ interface ReceiptTableColumn extends TableColumn {
 @Component({
   selector: "app-receipts-table",
   templateUrl: "./receipts-table.component.html",
-  styleUrls: ["./receipts-table.component.scss"],
   animations: [fadeInOut],
-  encapsulation: ViewEncapsulation.None,
   host: DEFAULT_HOST_CLASS,
   // The chip labels are built in TS rather than the template, so the formatting
   // pipes are injected. CustomCurrencyPipe is declared in PipesModule and needs

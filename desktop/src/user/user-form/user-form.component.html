@@ -1,5 +1,5 @@
 <div class="p-6">
-  <h2 class="header-text">
+  <h2 class="mt-0">
     {{ user ? "Edit " + user.displayName : "Create User" }}
   </h2>
   <form [formGroup]="form" (ngSubmit)="submit()">
@@ -55,13 +55,13 @@
 
         @for (row of grantRows(); track row.groupId) {
           <div
-            class="user-form__grant-group"
+            class="not-first:mt-5"
             [attr.data-testid]="'grant-section-' + row.groupId"
           >
-            <h3 class="user-form__grant-group-name">
+            <h3 class="mb-2 flex items-center gap-2 text-base font-semibold">
               {{ row.groupName }}
               @if (row.roleName) {
-                <span class="user-form__grant-role">{{ row.roleName }}</span>
+                <span class="rounded-full bg-chart-4/12 px-2 py-0.5 text-xs font-medium text-chart-4">{{ row.roleName }}</span>
               }
             </h3>
             <!-- Per group, not per section: what an empty selection means depends on

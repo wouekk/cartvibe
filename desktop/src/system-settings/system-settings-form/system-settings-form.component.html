@@ -2,7 +2,7 @@
   <div class="mb-4">
     <app-alert
       #alert
-      class="scroll-snap"
+      class="scroll-mt-[75px]"
       @fadeInOut
       type="warning"
       message="Please restart the task server for the changes to take effect."
@@ -13,7 +13,7 @@
 <!-- Tasks & Storage: the task monitor sits above the worker settings. The tables live outside the form so
      none of their buttons can submit it. -->
 @if (section === "tasks" && canReadSystemTasks()) {
-  <section class="settings-card" data-testid="settings-card-system-tasks">
+  <section class="mb-4 flex flex-col gap-1 overflow-x-auto rounded-xl bg-card p-6 shadow-sm" data-testid="settings-card-system-tasks">
     <app-system-task-table></app-system-task-table>
   </section>
 }
@@ -24,8 +24,8 @@
 >
   <!-- General & Currency -->
   @if (shows("general")) {
-    <section class="settings-card" data-testid="settings-card-currency">
-      <h2 class="settings-card__title">Currency &amp; exchange rates</h2>
+    <section class="mb-4 flex flex-col gap-1 overflow-x-auto rounded-xl bg-card p-6 shadow-sm" data-testid="settings-card-currency">
+      <h2 class="mb-4 text-[17px] font-semibold">{{ "Currency & exchange rates" | t }}</h2>
       <app-select
         [label]="'Currency' | t"
         optionValueKey="value"
@@ -75,8 +75,8 @@
       }
       <app-exchange-rates></app-exchange-rates>
     </section>
-    <section class="settings-card" data-testid="settings-card-regional">
-      <h2 class="settings-card__title">Regional &amp; time zone</h2>
+    <section class="mb-4 flex flex-col gap-1 overflow-x-auto rounded-xl bg-card p-6 shadow-sm" data-testid="settings-card-regional">
+      <h2 class="mb-4 text-[17px] font-semibold">{{ 'Regional & time zone' | t }}</h2>
       <p class="text-muted-foreground mb-4">
         {{ 'Decides which day a moment in time falls on: when a receipt was added or resolved, what "today" and "last month" mean in reports and filters, and how times are shown. A receipt\'s own Date is a calendar day and never shifts with this setting.' | t }}
       </p>
@@ -96,8 +96,8 @@
 
   <!-- Auth & Security -->
   @if (shows("security")) {
-    <section class="settings-card" data-testid="settings-card-signup-session">
-      <h2 class="settings-card__title">Sign-up &amp; session policy</h2>
+    <section class="mb-4 flex flex-col gap-1 overflow-x-auto rounded-xl bg-card p-6 shadow-sm" data-testid="settings-card-signup-session">
+      <h2 class="mb-4 text-[17px] font-semibold">{{ 'Sign-up & session policy' | t }}</h2>
       <app-checkbox
         class="block mb-4"
         [label]="'Enable Local Sign Up' | t"
@@ -110,7 +110,7 @@
       <p class="text-muted-foreground mb-4">
         {{ 'How long a signed-in user can be away before they have to log in again. Sessions renew themselves while the app is in use, so this is an inactivity window rather than a hard limit. Maximum 720 hours (30 days).' | t }}
       </p>
-      <div class="flex gap-4 mb-4 duration-row">
+      <div data-testid="duration-row" class="flex gap-4 mb-4 [&>*]:min-w-0 [&>*]:flex-[1_1_0]">
         <app-input
           [label]="'Stay signed in for' | t"
           type="number"
@@ -159,9 +159,9 @@
 
   <!-- Tasks & Storage -->
   @if (shows("tasks")) {
-    <section class="settings-card" data-testid="settings-card-worker">
-      <div class="settings-card__head">
-        <h2 class="settings-card__title">Worker &amp; retention</h2>
+    <section class="mb-4 flex flex-col gap-1 overflow-x-auto rounded-xl bg-card p-6 shadow-sm" data-testid="settings-card-worker">
+      <div class="flex items-center justify-between">
+        <h2 class="mb-0 text-[17px] font-semibold">{{ 'Worker & retention' | t }}</h2>
         <app-button
           matButtonType="iconButton"
           icon="restart_alt"
@@ -170,7 +170,7 @@
           (clicked)="restartTaskServer()"
         ></app-button>
       </div>
-      <div class="settings-grid">
+      <div class="grid grid-cols-[repeat(auto-fit,minmax(min(280px,100%),1fr))] gap-x-4">
         <app-input
           [label]="'Task Concurrency' | t"
           type="number"
@@ -187,7 +187,7 @@
       <p class="text-muted-foreground mb-4">
         {{ 'A quick scan or email upload that fails keeps its image this long, so you can retry it or download the original. Minimum 24 hours, maximum 8760 hours (1 year).' | t }}
       </p>
-      <div class="flex gap-4 mb-4 duration-row">
+      <div data-testid="duration-row" class="flex gap-4 mb-4 [&>*]:min-w-0 [&>*]:flex-[1_1_0]">
         <app-input
           [label]="'Temporary files: keep failed uploads for' | t"
           type="number"
@@ -203,19 +203,19 @@
         ></app-select>
       </div>
     </section>
-    <section class="settings-card" data-testid="settings-card-queues">
-      <h2 class="settings-card__title">{{ 'Task queue priorities' | t }}</h2>
+    <section class="mb-4 flex flex-col gap-1 overflow-x-auto rounded-xl bg-card p-6 shadow-sm" data-testid="settings-card-queues">
+      <h2 class="mb-4 text-[17px] font-semibold">{{ 'Task queue priorities' | t }}</h2>
       <p class="text-muted-foreground mb-2">{{ 'A higher number means a higher priority.' | t }}</p>
-      <ul class="queue-list">
+      <ul class="m-0 list-none p-0">
         @for (data of visibleQueueData; track data.value) {
-          <li class="queue-row">
-            <div class="queue-row__text">
+          <li data-testid="queue-row" class="flex items-center justify-between gap-4 border-t border-border py-2.5">
+            <div class="flex min-w-0 flex-col">
               <strong>{{ data.displayValue }}</strong>
               <small class="text-muted-foreground">{{ data.description }}</small>
             </div>
             <input
               type="number"
-              class="queue-row__priority"
+              class="min-h-10 w-20 flex-none rounded-md border border-border bg-transparent px-2 text-right [font:inherit]"
               [attr.aria-label]="data.displayValue + ' priority'"
               [attr.data-testid]="'queue-priority-' + data.value"
               [formControl]="$any(form | taskQueueFormControl:data.value:'priority')"
@@ -229,7 +229,7 @@
 
 
   @if (originalSystemSettings?.updatedAt) {
-    <p class="settings-updated text-muted-foreground" data-testid="settings-updated-at">
+    <p class="mb-6 text-xs text-muted-foreground" data-testid="settings-updated-at">
       Updated {{ originalSystemSettings.updatedAt | appDate : "medium" }}
     </p>
   }
@@ -239,7 +239,7 @@
 <!-- Save sits at the end of the tab's last card, like the AI page's card, not in a floating bar. -->
 <ng-template #saveActions>
   @if (formConfig.mode !== FormMode.view) {
-    <div class="actions">
+    <div class="mt-2 flex flex-wrap items-center gap-2 [&_button]:min-h-11">
       <button
         hlmBtn
         color="primary"
@@ -250,9 +250,9 @@
         {{ 'Save changes' | t }}
       </button>
       @if (form.invalid) {
-        <span class="actions__hint" data-testid="settings-invalid">{{ 'Some settings need attention before you can save.' | t }}</span>
+        <span class="text-[13px] text-muted-foreground" data-testid="settings-invalid">{{ 'Some settings need attention before you can save.' | t }}</span>
       } @else if (form.dirty) {
-        <span class="actions__hint">{{ 'You have unsaved changes.' | t }}</span>
+        <span class="text-[13px] text-muted-foreground">{{ 'You have unsaved changes.' | t }}</span>
       }
     </div>
   }

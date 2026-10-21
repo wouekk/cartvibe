@@ -36,8 +36,8 @@ import { AddUser, AuthState, UpdateUser } from "../../store";
 @UntilDestroy()
 @Component({
     selector: "app-user-form",
+  host: { class: "block max-h-[85vh] overflow-y-auto" },
     templateUrl: "./user-form.component.html",
-    styleUrls: ["./user-form.component.scss"],
     providers: [UserValidators],
     standalone: false
 })

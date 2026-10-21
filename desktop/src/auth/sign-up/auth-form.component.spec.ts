@@ -81,7 +81,7 @@ describe('AuthForm', () => {
     // The spinner is up while the request is in flight.
     expect(component.isLoading()).toBe(true);
     expect(
-      fixture.nativeElement.querySelector('.loading-container')
+      fixture.nativeElement.querySelector('[data-testid=auth-loading]')
     ).toBeTruthy();
 
     httpTesting
@@ -94,7 +94,7 @@ describe('AuthForm', () => {
     await fixture.whenStable();
 
     expect(component.isLoading()).toBe(false);
-    expect(fixture.nativeElement.querySelector('.loading-container')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid=auth-loading]')).toBeNull();
 
     // The form is back in the DOM, still rendering what the user typed.
     const inputs: HTMLInputElement[] = Array.from(

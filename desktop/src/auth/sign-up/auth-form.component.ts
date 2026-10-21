@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from "@angular/common/http";
-import { Component, OnInit, ViewEncapsulation, signal } from "@angular/core";
+import { Component, OnInit, signal } from "@angular/core";
 import { FormBuilder, FormControl, FormGroup, Validators, } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
@@ -14,8 +14,7 @@ import { UserValidators } from "../../validators";
 @Component({
     selector: "app-auth-form",
     templateUrl: "./auth-form.component.html",
-    styleUrls: ["./auth-form.component.scss"],
-    encapsulation: ViewEncapsulation.None,
+    host: { class: "relative flex min-h-dvh items-center justify-center bg-gradient-to-br from-muted via-accent to-muted p-6 max-sm:p-3" },
     providers: [UserValidators],
     animations: [fadeInOut, fadeIn],
     standalone: false

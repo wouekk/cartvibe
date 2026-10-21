@@ -1,17 +1,18 @@
 @if (isLoading()) {
-  <div class="loading-container" @fadeInOut>
+  <div class="block" data-testid="auth-loading" @fadeInOut>
     <app-cartvibe-splash text="Loading..."></app-cartvibe-splash>
   </div>
 } @else {
-  <div class="auth-container" @fadeIn>
-    <div class="auth-card">
+  <div class="relative z-10 w-full max-w-[26rem]" @fadeIn>
+    <div class="relative overflow-hidden rounded-3xl border border-border bg-card p-8 shadow-xl max-sm:p-6">
+      <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-chart-1/60 to-primary"></div>
       <!-- Logo and Welcome -->
-      <div class="logo-section">
-        <app-cartvibe-logo class="logo" [height]="64"></app-cartvibe-logo>
-        <h1 class="welcome-text">
+      <div class="mb-6 text-center">
+        <app-cartvibe-logo class="mb-4 inline-block max-w-full transition-transform duration-300 hover:scale-105" [height]="64"></app-cartvibe-logo>
+        <h1 class="mb-1 text-2xl font-bold text-foreground max-sm:text-xl">
           {{ (isSignUp | async) ? 'Create your account' : 'Welcome back' }}
         </h1>
-        <p class="subtitle">
+        <p class="text-base text-muted-foreground max-sm:text-sm">
           {{ (isSignUp | async) ? 'Join your household on CartVibe' : 'Sign in to your household' }}
         </p>
       </div>
@@ -19,7 +20,7 @@
       <!-- Form -->
       <form [formGroup]="form" (ngSubmit)="submit()">
         <!-- Form Fields -->
-        <div class="form-fields">
+        <div class="mb-2 flex flex-col gap-2">
           <ng-container *ngIf="isSignUp | async">
             <app-input
               appearance="outline"
@@ -44,8 +45,8 @@
         </div>
 
         <!-- Form Actions -->
-        <div class="form-actions">
-          <div class="primary-action w-full">
+        <div class="flex flex-col gap-2">
+          <div class="w-full">
             <app-button
               buttonClass="w-full"
               matButtonType="matRaisedButton"
@@ -54,7 +55,7 @@
             ></app-button>
           </div>
 
-          <div class="secondary-action" *appFeature="'enableLocalSignUp'">
+          <div class="w-full text-center" *appFeature="'enableLocalSignUp'">
             <app-button
               buttonClass="w-full"
               matButtonType="matRaisedButton"

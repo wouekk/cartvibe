@@ -1,4 +1,4 @@
-<div class="month-stepper">
+<div class="inline-flex items-center [&_[data-testid=receipts-month-label]_button]:min-w-42">
   <app-button
     data-testid="receipts-month-prev"
     matButtonType="iconButton"
@@ -46,14 +46,14 @@
   (detach)="closePanel()"
 >
   <div
-    class="month-stepper__panel"
+    class="rounded-lg border border-border bg-popover py-2 text-popover-foreground shadow-lg"
     role="dialog"
     [attr.aria-label]="'Filter by month' | t"
     cdkTrapFocus
     [cdkTrapFocusAutoCapture]="true"
     (keydown.escape)="closePanel()"
   >
-    <div class="month-stepper__year">
+    <div class="flex items-center justify-between px-2 pb-1">
       <app-button
         data-testid="month-stepper-year-prev"
         matButtonType="iconButton"
@@ -63,7 +63,7 @@
         [disabled]="!canPageBack()"
         (clicked)="pageYear(-1)"
       ></app-button>
-      <span class="month-stepper__year-value" data-testid="month-stepper-year">{{ pagedYear() }}</span>
+      <span class="font-semibold" data-testid="month-stepper-year">{{ pagedYear() }}</span>
       <app-button
         data-testid="month-stepper-year-next"
         matButtonType="iconButton"
@@ -75,12 +75,12 @@
       ></app-button>
     </div>
 
-    <div class="month-stepper__months">
+    <div class="grid grid-cols-[repeat(3,4.75rem)] gap-1 px-2">
       @for (short of shortMonthLabels; track $index) {
         <button
           type="button"
-          class="month-stepper__month"
-          [class.month-stepper__month--selected]="isSelected($index)"
+          class="h-9 cursor-pointer rounded-md border text-[0.8125rem] font-medium transition-colors [font:inherit]"
+          [ngClass]="isSelected($index) ? 'border-transparent bg-primary font-semibold text-primary-foreground' : 'border-border bg-transparent text-foreground hover:bg-accent'"
           [attr.data-testid]="'month-stepper-month-' + $index"
           [attr.aria-label]="monthLabel($index) + ' ' + pagedYear()"
           [attr.aria-pressed]="isSelected($index)"
@@ -91,7 +91,7 @@
       }
     </div>
 
-    <div class="month-stepper__shortcuts">
+    <div class="mt-2 flex items-center gap-1 border-t border-border px-2 pt-2 [&>button]:cursor-pointer [&>button]:rounded-sm [&>button]:px-2 [&>button]:py-1 [&>button]:text-xs [&>button]:font-medium [&>button]:hover:bg-accent">
       <button type="button" data-testid="month-stepper-this-month" (click)="pickRelativeMonth(0)">
         {{ 'This month' | t }}
       </button>
@@ -101,7 +101,7 @@
       @if (showAllTime()) {
         <button
           type="button"
-          class="month-stepper__shortcut--muted"
+          class="ml-auto !text-muted-foreground hover:!bg-muted"
           data-testid="month-stepper-all-time"
           (click)="pickAllTime()"
         >
