@@ -21,3 +21,120 @@
   --input: #e2e8f0;
   --ring: var(--accent-color, #0086d4);
 }
+
+/* ---------- Phones (iOS Safari first): nothing wider than the screen, comfortable targets ---------- */
+html {
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  min-height: 100dvh;
+}
+@media (max-width: 767.98px) {
+  /* 16px inputs: Safari zooms the page when a smaller field is focused. */
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* The top bar: menu, search that shrinks, bell, logo; safe area for the notch. */
+  app-header .header-container {
+    padding: 8px 12px;
+    padding-top: max(8px, env(safe-area-inset-top));
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+    gap: 4px;
+  }
+  app-header .header-container > .col {
+    flex: 0 0 auto;
+    width: auto;
+  }
+  app-header .header-container > .col-auto {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  app-header .nav-button,
+  app-header .notifications-bell {
+    width: 44px;
+    height: 44px;
+    margin: 0;
+  }
+  app-header app-searchbar {
+    min-width: 0;
+    flex: 1 1 0;
+    margin-right: 0 !important;
+  }
+  app-header app-cartvibe-logo {
+    margin-left: 4px !important;
+    margin-right: 0 !important;
+    flex: 0 0 auto;
+  }
+  app-header app-cartvibe-logo svg {
+    height: 30px;
+    width: auto;
+  }
+  app-header app-button {
+    margin-left: 0 !important;
+  }
+
+  /* Page headers (title + actions + filters) wrap instead of running off the screen. */
+  app-table-header > div,
+  app-table-header > div > div.d-flex {
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+  }
+  app-table-header h1 {
+    flex: 1 1 100%;
+  }
+
+  /* Tabs and filter bars scroll sideways inside their own box. */
+  .filter-bar,
+  app-tabs nav.mat-mdc-tab-nav-bar {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .filter-bar::-webkit-scrollbar {
+    display: none;
+  }
+  .filter-tab,
+  .mat-mdc-tab-link {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    min-height: 40px;
+  }
+
+  /* Wide tables scroll inside their own container. */
+  .table-container,
+  app-table > div {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .drawer-outlet {
+    min-width: 0;
+  }
+  .mat-drawer-content {
+    overflow-x: hidden;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .receipts-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+  }
+  .receipts-toolbar > * {
+    margin-right: 0 !important;
+  }
+  app-header app-searchbar .mat-mdc-form-field,
+  app-header app-searchbar .mat-mdc-text-field-wrapper {
+    width: 100%;
+    min-width: 0;
+  }
+}
