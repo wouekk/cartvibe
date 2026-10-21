@@ -14,10 +14,9 @@ file covers how *this* fork works.
 |---|---|---|
 | `api/` | Go 1.26, Chi, GORM, Asynq (Redis) | Active development |
 | `desktop/` | Angular 21, NGXS, signals + zoneless, Material + Bootstrap | Active development (the UI we ship) |
-| `mobile/` | Flutter | **No new UI.** Only its generated client is kept in step with the API |
 | `docker/` | One monolith image: nginx :80 → Go :8081 | Built by CI, never on the NAS |
 
-Component guides: `api/CLAUDE.md`, `desktop/CLAUDE.md`, `mobile/CLAUDE.md` (long; the fork's own
+Component guides: `api/CLAUDE.md`, `desktop/CLAUDE.md` (long; the fork's own
 sections are at the **end** of the api and desktop ones). Upstream cross-component write-ups (OIDC,
 receipt summary, default custom fields, app time zone, …) live in `docs/upstream-notes.md`.
 
@@ -35,10 +34,10 @@ receipt summary, default custom fields, app time zone, …) live in `docs/upstre
 - **Branches:** new work on `feature/<name>` from `main`. `main` is what deploys.
 - **CI (`ci.yml`)** runs on `main` and `feature/**`: Go build + tests, desktop Jest **and**
   `ng build` (Jest compiles with isolated modules, so type and template errors only show in the
-  build), Flutter tests. Failures are raised as annotations. Codecov, Docker Hub and the e2e
+  build). Failures are raised as annotations. Codecov, Docker Hub and the e2e
   workflows are gated to the upstream repo (they need its secrets).
 - **Client regeneration is automatic.** Pushing an `api/swagger.yml` change on a `feature/**` branch
-  runs `regenerate-clients.yml`, which regenerates `desktop/src/open-api/` and `mobile/api/` with
+  runs `regenerate-clients.yml`, which regenerates `desktop/src/open-api/` with
   `api/generate-client.sh`, commits them and re-runs CI. **Pull after pushing a swagger change**,
   then build the desktop against the generated names. Manual steps: `docs/upstream-notes.md`.
 - **Deploy:** merge (fast-forward) the green feature branch into `main` → CI → `publish-image.yml`
@@ -54,13 +53,13 @@ receipt summary, default custom fields, app time zone, …) live in `docs/upstre
 
 These are distilled from incidents and reviews; the linked sections explain them.
 
-- **Swagger changes ship with both regenerated clients**, in the same branch. Never hand-edit
-  `desktop/src/open-api/` or `mobile/api/`.
-- **No new value in a closed enum the API returns.** Released mobile builds throw on an unknown
-  enum value and fail the whole payload — this caused two production login outages. New statuses,
-  types and units are **plain strings** on the contract (`ShoppingListEvent.type`, item `unit`,
+- **Swagger changes ship with the regenerated desktop client**, in the same branch. Never hand-edit
+  `desktop/src/open-api/`. (The Flutter app and its client were removed.)
+- **Prefer plain strings over new values in a closed enum the API returns.** The removed mobile app
+  failed whole payloads on an unknown enum value (two production login outages); the habit stays so the
+  contract stays open-ended. New statuses, types and units are **plain strings** on the contract (`ShoppingListEvent.type`, item `unit`,
   product extraction `status`). The same reason rules out new `QueueName` or `SystemTaskType` values.
-- **Lists serialize as `[]`, never `null`**; the Dart client has no null guard.
+- **Lists serialize as `[]`, never `null`** (the desktop iterates them without a guard).
 - **Money is `shopspring/decimal`**, a string on the wire, and totals are folded **in Go**, never a
   SQL `SUM` (SQLite has no decimal type). Everything must work on SQLite.
 - **Authorization is server-side and from the database**, never the JWT: `structs.Handler` with

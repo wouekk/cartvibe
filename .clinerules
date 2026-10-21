@@ -6,7 +6,7 @@ engineer. Your context is small, so stay inside these boundaries.
 ## Start of every task
 1. Read `HANDOFF.md` — what is in progress and what you are asked to do.
 2. Read `AGENTS.md` for the product and the roles. Do **not** load the component `CLAUDE.md` files
-   (`api/`, `desktop/`, `mobile/`); they are thousands of lines. Search them for a specific heading
+   (`api/`, `desktop/`); they are thousands of lines. Search them for a specific heading
    only when a task needs it.
 
 ## What you may do
@@ -29,7 +29,7 @@ One SCSS or HTML file at a time, in the fork's feature folders:
 changed in `HANDOFF.md`.
 
 ## Never
-- Edit `api/swagger.yml`, `desktop/src/open-api/` or `mobile/api/` (generated), or run a generator.
+- Edit `api/swagger.yml` or `desktop/src/open-api/` (generated), or run a generator.
 - Touch authentication, OIDC, permissions, models or migrations, AI prompts, CI workflows or Docker
   files.
 - Change more than one file for a task, or attempt a fix for a failing test — report it instead.

@@ -8,6 +8,13 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+### Removed
+- The Flutter mobile app (`mobile/`), its generated Dart client, its CI job and the dart-dio patches. Phones use the
+  web app.
+- The mobile app's sign-in paths: `?client=mobile` on OIDC is refused, `/oidc/exchange` and `/oidc/link/{name}/launch`
+  are gone, and the `dart:io` user agent no longer changes login, logout or token refresh.
+- The login QR (`showLoginQr`, `mobileServerUrl`, `loginQrUrl`) and the unused `qrcode` packages.
+
 ### Changed
 - A Quick Scan reads the receipt and its products in one AI call, so its products, categories and health tags are there
   as soon as it is saved (they used to wait for a second call up to 30 seconds later).

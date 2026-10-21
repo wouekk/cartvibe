@@ -2,12 +2,9 @@ import { GroupReceiptSettings } from "../../open-api";
 
 // Resolved show/require flags for the five quick-scan fields (paid-by, status,
 // categories, tags, comment), derived from a group's GroupReceiptSettings.
-// Mirrors the backend's resolveQuickScanFields defaults -- and mobile's
-// resolveQuickScanFieldConfig (mobile/lib/shared/functions/quick_scan_field_config.dart),
-// which this is a line-for-line port of -- so field visibility, the required
-// validators and the submitted payload can't drift from each other. Since Phase 3
-// C3 the desktop never shows status or requires anything but the comment; mobile
-// still asks, which the server now accepts either way.
+// Mirrors the backend's resolveQuickScanFields defaults so field visibility, the
+// required validators and the submitted payload can't drift from each other. Since
+// Phase 3 C3 the desktop never shows status or requires anything but the comment.
 export interface QuickScanFieldConfig {
   showPaidBy: boolean;
   requirePaidBy: boolean;

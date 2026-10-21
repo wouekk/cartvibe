@@ -2,7 +2,7 @@
 
 Status: **implemented** on `feature/shopping-list-phase-1` (2026-10-19); Go, Jest and Flutter suites
 green in CI. The Playwright spec has not been run yet. Scope: group-scoped shopping lists, items,
-and live sync over SSE, in `api/` + `desktop/`. `mobile/` gets a client regen only.
+and live sync over SSE, in `api/` + `desktop/`. `mobile/` got a client regen only (the Flutter app has since been removed).
 
 ## Decisions already made
 

@@ -21,10 +21,6 @@ type AiSettings struct {
 type FeatureConfig struct {
 	EnableLocalSignUp bool `json:"enableLocalSignUp"`
 	AiPoweredReceipts bool `json:"aiPoweredReceipts"`
-	// LoginQrUrl is the composed App/Universal Link the desktop login page
-	// encodes as a QR. Empty unless an admin enabled the login QR and set a
-	// mobile server URL. This is the only login-QR value exposed pre-auth.
-	LoginQrUrl string `json:"loginQrUrl"`
 	// OidcProviders lets a login screen render one "Log in with X" button per
 	// enabled identity provider. It carries only the slug and the display name --
 	// never the issuer, the client id, or anything else about the configuration.
