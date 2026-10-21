@@ -8,7 +8,6 @@ import { SnackbarService } from "../../services";
 @Component({
   selector: "app-api-key-form-dialog",
   templateUrl: "./api-key-form-dialog.component.html",
-  styleUrls: ["./api-key-form-dialog.component.scss"],
   standalone: false
 })
 export class ApiKeyFormDialogComponent implements OnInit {

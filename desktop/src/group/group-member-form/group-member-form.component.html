@@ -32,14 +32,14 @@
            app-level bypass — so a roster manager without it must not see editable
            controls that only produce a rejected request. -->
       <div
-        class="group-member-form__grants"
+        class="mt-4"
         data-testid="member-grant-section"
         *hasGroupPermission="{
           groupId: row.groupId,
           permission: Permission.GroupMembersGrantsUpdate
         }"
       >
-        <h3 class="group-member-form__grants-header">Category &amp; tag access</h3>
+        <h3 class="mb-2 text-base font-semibold">Category &amp; tag access</h3>
         <div class="hint hint-inline" data-testid="member-grant-hint">
           Limit this member to specific categories and tags. This narrows within what
           their group role already allows — it can never widen it.

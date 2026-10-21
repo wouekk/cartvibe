@@ -5,7 +5,6 @@ import { FormConfig } from "src/interfaces";
 @Component({
     selector: "app-form",
     templateUrl: "./form.component.html",
-    styleUrls: ["./form.component.scss"],
     standalone: false
 })
 export class FormComponent {

@@ -4,11 +4,11 @@
       [multiple]="true"
       (fileLoaded)="fileLoaded($event)"
     ></app-upload-image>
-    <div class="quick-scan-upload" [class.quick-scan-upload--empty]="images.length === 0" data-testid="quick-scan-upload-area">
+    <div class="flex flex-col items-center gap-2 pb-4 pt-2 text-center" [class]="images.length === 0 ? 'rounded-2xl border-2 border-dashed border-border !px-4 !py-10' : ''" data-testid="quick-scan-upload-area">
       @if (images.length === 0) {
-        <app-icon class="quick-scan-upload__icon" name="receipt_long"></app-icon>
+        <app-icon class="size-10 text-[40px] text-primary" name="receipt_long"></app-icon>
         <strong>{{ 'Add photos of your receipts' | t }}</strong>
-        <span class="quick-scan-upload__hint">{{ 'The AI reads them for you.' | t }}</span>
+        <span class="text-[13px] text-muted-foreground">{{ 'The AI reads them for you.' | t }}</span>
       }
       <app-button
         icon="upload"

@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, ViewEncapsulation, inject, viewChild } from "@angular/core";
+import { Component, DestroyRef, OnInit, inject, viewChild } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
@@ -29,9 +29,8 @@ const commentRequiredValidator = trimmedRequiredValidator();
 
 @Component({
     selector: "app-quick-scan-dialog",
+  host: { class: "block [&_.carousel-control]:hidden [&_.image-preview]:h-50 [&_.image-preview]:w-auto" },
     templateUrl: "./quick-scan-dialog.component.html",
-    styleUrls: ["./quick-scan-dialog.component.scss"],
-    encapsulation: ViewEncapsulation.None,
     standalone: false
 })
 export class QuickScanDialogComponent implements OnInit {

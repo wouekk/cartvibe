@@ -12,7 +12,6 @@ import { AuthState } from "../../store";
 @Component({
     selector: "app-receipt-comments",
     templateUrl: "./receipt-comments.component.html",
-    styleUrls: ["./receipt-comments.component.scss"],
     standalone: false
 })
 export class ReceiptCommentsComponent implements OnInit {

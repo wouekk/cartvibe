@@ -1,16 +1,16 @@
-<div class="settings-shell">
-  <div class="settings-heading">
+<div class="mx-auto flex max-w-190 flex-col gap-4">
+  <div class="[&_h1]:mb-2">
     <h1>{{ 'System Settings' | t }}</h1>
-    <p class="intro">{{ 'Settings for the whole household install. Changes apply to everyone.' | t }}</p>
+    <p class="m-0 text-muted-foreground">{{ 'Settings for the whole household install. Changes apply to everyone.' | t }}</p>
   </div>
   <app-filter-bar
-    class="settings-tabs"
+    class="block max-w-full overflow-x-auto"
     data-testid="system-settings-tabs"
     [tabs]="filterTabs"
     [value]="activeTab()"
     (valueChange)="select($event)"
   ></app-filter-bar>
-  <div class="settings-content">
+  <div class="w-full">
     <router-outlet></router-outlet>
   </div>
 </div>

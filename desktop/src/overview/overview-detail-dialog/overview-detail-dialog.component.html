@@ -1,35 +1,35 @@
 <app-dialog [headerText]="data.title">
   @if (loading()) {
-    <p class="muted">{{ 'Loading…' | t }}</p>
+    <p class="text-muted-foreground">{{ 'Loading…' | t }}</p>
   } @else if (failed()) {
-    <p class="muted" data-testid="overview-detail-failed">{{ 'This could not be loaded.' | t }}</p>
+    <p class="text-muted-foreground" data-testid="overview-detail-failed">{{ 'This could not be loaded.' | t }}</p>
   } @else {
     @if (products().length === 0) {
-      <p class="muted" data-testid="overview-detail-empty">{{ 'Nothing here.' | t }}</p>
+      <p class="text-muted-foreground" data-testid="overview-detail-empty">{{ 'Nothing here.' | t }}</p>
     } @else {
-      <div class="table-scroll">
-        <table class="detail" data-testid="overview-detail-products">
+      <div class="max-h-[60vh] overflow-auto">
+        <table class="w-full border-collapse text-sm [&_td]:border-b [&_td]:border-border [&_td]:px-1.5 [&_td]:py-2 [&_td]:text-left [&_td]:align-top [&_th]:border-b [&_th]:border-border [&_th]:px-1.5 [&_th]:py-2 [&_th]:text-left [&_th]:align-top [&_td.text-right]:text-right [&_th.text-right]:text-right" data-testid="overview-detail-products">
           <thead>
             <tr>
               <th scope="col">{{ 'Product' | t }}</th>
               <th scope="col">{{ 'Receipt' | t }}</th>
-              <th scope="col" class="numeric">{{ 'Amount' | t }}</th>
+              <th scope="col" class="text-right">{{ 'Amount' | t }}</th>
             </tr>
           </thead>
           <tbody>
             @for (product of products(); track product.id) {
               <tr>
-                <td class="strong">
+                <td class="font-semibold">
                   {{ product.name }}
                   @if (product.quantity) {
-                    <span class="muted">{{ product.quantity }}</span>
+                    <span class="text-muted-foreground">{{ product.quantity }}</span>
                   }
                 </td>
                 <td>
                   <a [routerLink]="['/receipts', product.receiptId, 'view']" (click)="close()">{{ product.receiptName }}</a>
-                  <span class="muted nowrap">{{ product.receiptDate | appDate : "MMM d" : "calendar" }}</span>
+                  <span class="ml-1.5 whitespace-nowrap text-muted-foreground">{{ product.receiptDate | appDate : "MMM d" : "calendar" }}</span>
                 </td>
-                <td class="numeric strong">
+                <td class="text-right font-semibold">
                   @if (product.amount) {
                     {{ product.amount | displayCurrency }}
                   }

@@ -30,7 +30,6 @@ export interface OverviewDetailDialogData {
 @Component({
   selector: "app-overview-detail-dialog",
   templateUrl: "./overview-detail-dialog.component.html",
-  styleUrls: ["./overview-detail-dialog.component.scss"],
   standalone: true,
   imports: [ButtonModule, CommonModule, DisplayCurrencyPipe, PipesModule, RouterLink, SharedUiModule],
   // customCurrency delegates to CurrencyPipe, which PipesModule does not provide.
