@@ -8,6 +8,16 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+### Changed
+- The interface is rebuilt on Tailwind CSS and spartan/ui: new sidebar (inset, Lucide icons, an animated Admin Settings section), a
+  White and a Black theme on shared design tokens, Geist font, Flowbite-style Dashboard charts (ApexCharts) that follow the theme,
+  dialogs, menus, tables, form controls and toasts without Angular Material, a search box with a Ctrl/⌘ K shortcut
+- Dashboard cards keep the whole part of an amount bold and quiet the symbol and decimals; receipts show a monogram badge for the shop
+- Manage pages moved under Admin Settings below Reports; the AI page says "Save changes" like System Settings
+
+### Removed
+- Angular Material, Bootstrap and the Material icon font; the Households filter button; the old accent themes
+
 ## [0.1.2] - 2026-10-21
 
 ### Changed

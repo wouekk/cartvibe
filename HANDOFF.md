@@ -2,6 +2,14 @@
 
 ## Status (2026-10-21, Windows PC, Claude Code desktop app)
 
+**The redesign is on `feature/redesign` (not merged, `:preview` image published for the NAS).** Tailwind + spartan/ui replace
+Angular Material and Bootstrap everywhere (`docs/material-removal.md`, `desktop/CLAUDE.md` -> "UI stack"); two themes, White and
+Black, on tokens (`docs/themes.md`). Jest (2002 tests) and `ng build` are green locally and CI was green on the last pushes. Still
+to look at on the NAS: every page in both themes, phone widths (not prioritised), dialogs and the autocomplete pickers. Merge to
+`main` only on the user's go; then tag a release (this is a large UI change, `v0.2.0`). Open: Polish translation (waiting for the
+AI-language answer), per-user display currency, stale Playwright specs (`getByPlaceholder("Search receipts")` was updated).
+
+
 **`v0.1.0` is released: `feature/theme-modes` was fast-forwarded into `main` (`f29878ef`) and tagged.** CI on `main`
 was green; `publish-image.yml` pushes `ghcr.io/wouekk/cartvibe:latest`. Our other `feature/*` branches are
 contained in `main` and can be deleted when convenient.
