@@ -17,9 +17,9 @@
 
 > [!NOTE]
 > **Credits.** CartVibe is a fork of [Receipt Wrangler](https://github.com/Receipt-Wrangler/receipt-wrangler) by
-> [Noah Hall (@Noah231515)](https://github.com/Noah231515) and contributors, licensed under the AGPL-3.0. The original
-> work and its history are kept intact. This fork is a **vibe-coded** personal project: its changes were written with an
-> AI assistant and are maintained by one person for one household. Not affiliated with the original authors.
+> [Noah Hall (@Noah231515)](https://github.com/Noah231515) and contributors, licensed under the AGPL-3.0. 
+> This fork is a **vibe-coded** personal project: its changes were written with an
+> AI assistant and are maintained by me for my household as a hobby project. Not affiliated with the original authors.
 > Details in [NOTICE.md](NOTICE.md).
 
 ## Features
