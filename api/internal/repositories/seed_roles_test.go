@@ -599,7 +599,6 @@ func TestSeedSystemRolesFamilyRoles(t *testing.T) {
 		permissions.AppUsersRead,
 		permissions.AppRolesRead,
 		permissions.AppSystemSettingsRead,
-		permissions.AppReceiptProcessingSettingsUpdate,
 		permissions.AppGroupsCreate,
 		permissions.AppReportsRead,
 		permissions.AppReportsGenerate,
@@ -607,6 +606,16 @@ func TestSeedSystemRolesFamilyRoles(t *testing.T) {
 		if slices.Contains(user.Permissions, adminOnly) {
 			utils.PrintTestError(t, adminOnly, "not granted to a family User")
 		}
+	}
+
+	// Any member sets the AI up (the AI page), but cannot delete its settings.
+	for _, granted := range []string{permissions.AppReceiptProcessingSettingsCreate, permissions.AppReceiptProcessingSettingsUpdate} {
+		if !slices.Contains(user.Permissions, granted) {
+			utils.PrintTestError(t, granted, "granted to a family User")
+		}
+	}
+	if slices.Contains(user.Permissions, permissions.AppReceiptProcessingSettingsDelete) {
+		utils.PrintTestError(t, permissions.AppReceiptProcessingSettingsDelete, "not granted to a family User")
 	}
 
 	member, ok := findRole(roles, FamilyMemberRoleName)

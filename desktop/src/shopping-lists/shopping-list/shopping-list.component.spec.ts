@@ -148,6 +148,9 @@ describe("ShoppingListComponent", () => {
     component.addForm.patchValue({ name: "   " });
     component.addItem();
 
+    // ...and tells the person why: the add box shakes and is outlined in red.
+    expect(fixture.nativeElement.querySelector(".add-name").classList).toContain("rw-shake");
+    expect(fixture.nativeElement.querySelector(".add-name").classList).toContain("rw-field-error");
     expect(shoppingListService.addShoppingListItem).not.toHaveBeenCalled();
   });
 

@@ -131,6 +131,20 @@ describe("ReceiptFormComponent", () => {
       expect(component.showPaidBy()).toBe(false);
     });
 
+    it("shakes and outlines an empty name and amount instead of silently doing nothing", async () => {
+      routeDataSubject.next({ mode: FormMode.add, customFields: [] });
+      fixture.detectChanges();
+      component.form.patchValue({ name: "", amount: "" });
+
+      component.submit();
+
+      for (const field of ["name", "amount"]) {
+        const box = fixture.nativeElement.querySelector(`[data-testid="receipt-${field}"]`);
+        expect(box.classList).toContain("rw-shake");
+        expect(box.classList).toContain("rw-field-error");
+      }
+    });
+
     it("asks for Paid By on a saved receipt without one", () => {
       routeDataSubject.next({
         mode: FormMode.edit,

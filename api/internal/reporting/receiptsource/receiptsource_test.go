@@ -297,6 +297,7 @@ func TestSource_CatalogBuiltins(t *testing.T) {
 	}{
 		{KeyReceiptID, reporting.TypeNumber, false},
 		{KeyName, reporting.TypeString, false},
+		{KeyShop, reporting.TypeString, false},
 		{KeyAmount, reporting.TypeCurrency, false},
 		{KeyDate, reporting.TypeDate, false},
 		{KeyResolvedDate, reporting.TypeDate, false},

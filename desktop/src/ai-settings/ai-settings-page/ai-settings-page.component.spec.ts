@@ -4,7 +4,7 @@ import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { NgxsModule } from "@ngxs/store";
-import { of } from "rxjs";
+import { of, throwError } from "rxjs";
 import {
   AiType,
   FeatureConfigService,
@@ -130,5 +130,43 @@ describe("AiSettingsPageComponent", () => {
       message: "Not connected: 401 Unauthorized",
     });
     expect(describeConnection(undefined).message).toBe("Not connected: no answer from the AI");
+  });
+
+  describe("for a household member who cannot read System Settings", () => {
+    it("opens the first AI settings and saves new ones without touching System Settings", async () => {
+      await setUp({});
+      TestBed.resetTestingModule();
+      processingService = {
+        getPagedProcessingSettings: jest.fn(() =>
+          of({ data: [{ id: 3, aiType: AiType.Gemini, model: "gemini-2.5-flash", url: "", isVisionModel: true }] })
+        ),
+        updateReceiptProcessingSettingsById: jest.fn((id, _updateKey, command) => of({ id, ...command })),
+        checkReceiptProcessingSettingsConnectivity: jest.fn(),
+      };
+      systemSettingsService = {
+        getSystemSettings: jest.fn(() => throwError(() => new Error("403"))),
+        updateSystemSettings: jest.fn(),
+      };
+      await TestBed.configureTestingModule({
+        imports: [AiSettingsPageComponent, NgxsModule.forRoot([FeatureConfigState]), NoopAnimationsModule],
+        providers: [
+          provideZonelessChangeDetection(),
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          { provide: ReceiptProcessingSettingsService, useValue: processingService },
+          { provide: SystemSettingsService, useValue: systemSettingsService },
+          { provide: FeatureConfigService, useValue: { getFeatureConfig: jest.fn(() => of({ aiPoweredReceipts: true })) } },
+          { provide: SnackbarService, useValue: { success: jest.fn(), error: jest.fn() } },
+        ],
+      }).compileComponents();
+      fixture = TestBed.createComponent(AiSettingsPageComponent);
+      component = fixture.componentInstance;
+      await fixture.whenStable();
+
+      expect(processingService["getPagedProcessingSettings"]).toHaveBeenCalled();
+      expect(component.saved()?.id).toBe(3);
+      expect(component.form.controls.model.value).toBe("gemini-2.5-flash");
+      expect(systemSettingsService["updateSystemSettings"]).not.toHaveBeenCalled();
+    });
   });
 });

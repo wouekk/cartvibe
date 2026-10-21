@@ -48,6 +48,7 @@ export const REPORT_BUILTIN_DIMENSIONS: ReportField[] = [
   { key: "status", label: "Status" },
   { key: "group", label: "Group" },
   { key: "name", label: "Name" },
+  { key: "shop", label: "Shop" },
   { key: "date_month", label: "Month" },
   { key: "date_year", label: "Year" },
   { key: "date", label: "Date" },

@@ -1,4 +1,4 @@
-import { Component, EmbeddedViewRef, HostListener, Injector, OnInit, Signal, TemplateRef, computed, runInInjectionContext, signal, viewChild } from "@angular/core";
+import { Component, ElementRef, EmbeddedViewRef, HostListener, inject, Injector, OnInit, Signal, TemplateRef, computed, runInInjectionContext, signal, viewChild } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
@@ -34,6 +34,7 @@ import {
 } from "../../open-api";
 import { CustomFieldTypePipe } from "../../pipes/custom-field-type.pipe";
 import { SnackbarService } from "../../services";
+import { shakeInvalid } from "../../utils/shake";
 import { QueueMode, ReceiptQueueService } from "../../services/receipt-queue.service";
 import { StatefulMenuItem } from "../../standalone/components/filtered-stateful-menu/stateful-menu-item";
 import { AuthState, FeatureConfigState, GroupState, UserState } from "../../store";
@@ -182,6 +183,8 @@ export class ReceiptFormComponent implements OnInit {
   public cancelLink = "";
 
   public submitButtonText = "Save";
+
+  private readonly host = inject(ElementRef<HTMLElement>);
 
   public imagesLoading = signal(false);
 
@@ -1407,6 +1410,14 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
       (p: MatExpansionPanel) => p.close()
     );
     if (this.form.invalid) {
+      // Say why nothing happened: a required box that is empty shakes and is outlined in red (amount first,
+      // so the cursor ends in the name).
+      this.form.markAllAsTouched();
+      for (const field of ["amount", "name"]) {
+        if (this.form.get(field)?.invalid) {
+          shakeInvalid(this.host.nativeElement.querySelector(`[data-testid="receipt-${field}"]`));
+        }
+      }
       return;
     }
 

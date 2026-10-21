@@ -10,3 +10,33 @@ app-quick-scan-dialog {
   }
 }
 
+
+// The upload button sits in the middle of the dialog, where the eye lands, in the Dashboard buttons' style.
+app-quick-scan-dialog {
+  .quick-scan-upload {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0 16px;
+    text-align: center;
+  }
+
+  .quick-scan-upload--empty {
+    padding: 40px 16px;
+    border: 2px dashed rgba(100, 116, 139, 0.35);
+    border-radius: 16px;
+  }
+
+  .quick-scan-upload__icon {
+    width: 40px;
+    height: 40px;
+    font-size: 40px;
+    color: var(--accent-color, #0086d4);
+  }
+
+  .quick-scan-upload__hint {
+    color: #64748b;
+    font-size: 13px;
+  }
+}

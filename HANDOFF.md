@@ -64,3 +64,21 @@ Still open:
 
 ## Diagnostics from Cline
 - *None yet.*
+
+## Mac backlog (things this Windows PC cannot do: no Node, Docker, ImageMagick or Chromium)
+
+The MacBook may have more toolchains; check (`node -v`, `docker -v`) before assuming. Why the PC is limited: it has only Go,
+so anything that needs `npm` (installing a package, regenerating `package-lock.json`) or Docker (building the image) has to
+be done by GitHub Actions or on the Mac.
+
+1. **Translation (English / Polish), approach B.** Add a translation library (e.g. `@ngx-translate/core` with its HTTP
+   loader, or `@jsverse/transloco`) to `desktop/package.json`; regenerate `package-lock.json` on Node 20.19.6 and gate with
+   `npm ci`, `npm run test:ci`, `npm run build` (see `desktop/CLAUDE.md` -> dependency rules). Then: wave 1 = daily screens,
+   wave 2 = admin screens; `UserPreferences.language` (additive API field + swagger + both clients); the AI prompts use the
+   language setting (and fix the `LOWER()` matching on SQLite, which only folds ASCII: compare in Go for Polish).
+2. **Image scan quick wins left over:** `--no-install-recommends` for the apt installs (verify PDF, HEIC and Chromium
+   fonts still work) and a multi-stage slim runtime image (drops curl, -dev packages, ssh, the Go toolchain). Needs a real
+   Docker build and a NAS test; re-scan with `grype` afterwards.
+3. **Playwright e2e specs** (they need a live API): update the stale ones (paid by, shares, statuses, Quick Scan required
+   fields, the Added At column, the old System Settings tabs and pencil, the old logo and page title).
+4. **Run the Jest suite and `ng build` locally** instead of waiting for CI, once Node is there.

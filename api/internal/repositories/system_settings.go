@@ -239,3 +239,23 @@ func SeedEuroForNewInstall() error {
 		CurrencyDecimalSeparator:     models.COMMA,
 	}).Error
 }
+
+// LinkReceiptProcessingSettingsIfNone points System Settings at the given processing settings when none is
+// linked yet, and reports whether it did. It lets a household member who sets up the AI (who cannot edit
+// System Settings) finish the job: the first settings they save become the ones the app reads with.
+func (repository SystemSettingsRepository) LinkReceiptProcessingSettingsIfNone(id uint) (bool, error) {
+	db := repository.GetDB()
+
+	if _, err := repository.GetSystemSettings(); err != nil {
+		return false, err
+	}
+
+	result := db.Model(&models.SystemSettings{}).
+		Where("receipt_processing_settings_id IS NULL").
+		Update("receipt_processing_settings_id", id)
+	if result.Error != nil {
+		return false, result.Error
+	}
+
+	return result.RowsAffected > 0, nil
+}

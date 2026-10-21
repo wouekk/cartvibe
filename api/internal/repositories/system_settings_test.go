@@ -414,3 +414,30 @@ func TestUpdateSystemSettingsReturnsTheTransactionError(t *testing.T) {
 		expected++
 	}
 }
+
+func TestLinkReceiptProcessingSettingsIfNoneOnlyLinksTheFirst(t *testing.T) {
+	defer TruncateTestDb()
+	// The ids are bare numbers, so the foreign key to the processing settings table is switched off.
+	restore, err := UseTestDbWithoutForeignKeysForTests()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer restore()
+
+	repository := NewSystemSettingsRepository(nil)
+
+	linked, err := repository.LinkReceiptProcessingSettingsIfNone(7)
+	if err != nil || !linked {
+		t.Fatalf("expected the first settings to be linked, got %v %v", linked, err)
+	}
+
+	linked, err = repository.LinkReceiptProcessingSettingsIfNone(9)
+	if err != nil || linked {
+		t.Fatalf("expected a second settings not to replace the first, got %v %v", linked, err)
+	}
+
+	stored, _ := repository.GetSystemSettings()
+	if stored.ReceiptProcessingSettingsId == nil || *stored.ReceiptProcessingSettingsId != 7 {
+		t.Errorf("expected settings 7 to stay linked, got %v", stored.ReceiptProcessingSettingsId)
+	}
+}

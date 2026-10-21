@@ -84,6 +84,13 @@
         --accent-light: #38bdf8;
         --accent-soft: rgba(0, 134, 212, 0.12);
         --chart-good: #10b981;
+        --accent-button: #0077bd;
+        --accent-button-hover: #00659f;
+        --shell-bg: #eff6fb;
+        --sidebar-bg: #0d2433;
+        --sidebar-raised: #12303f;
+        --sidebar-active: #1a3f52;
+        --sidebar-border: #28566e;
       }
       :root[data-accent="emerald"] {
         --accent-color: #059669;
@@ -91,6 +98,13 @@
         --accent-light: #34d399;
         --accent-soft: rgba(5, 150, 105, 0.12);
         --chart-good: #0ea5e9;
+        --accent-button: #047857;
+        --accent-button-hover: #065f46;
+        --shell-bg: #eff7f3;
+        --sidebar-bg: #0b2a22;
+        --sidebar-raised: #10372c;
+        --sidebar-active: #17463a;
+        --sidebar-border: #245e4f;
       }
       :root[data-accent="violet"] {
         --accent-color: #6f62c8;
@@ -98,6 +112,13 @@
         --accent-light: #a99ff0;
         --accent-soft: rgba(111, 98, 200, 0.14);
         --chart-good: #14b8a6;
+        --accent-button: #6f62c8;
+        --accent-button-hover: #5d51b0;
+        --shell-bg: #f3f2fb;
+        --sidebar-bg: #1b1838;
+        --sidebar-raised: #231f48;
+        --sidebar-active: #2e2a63;
+        --sidebar-border: #44407f;
       }
       :root[data-accent="brown"] {
         --accent-color: #8b5e3c;
@@ -105,6 +126,13 @@
         --accent-light: #c4956f;
         --accent-soft: rgba(139, 94, 60, 0.14);
         --chart-good: #14b8a6;
+        --accent-button: #8b5e3c;
+        --accent-button-hover: #734c2f;
+        --shell-bg: #f7f3ee;
+        --sidebar-bg: #2a1e16;
+        --sidebar-raised: #35271d;
+        --sidebar-active: #45342a;
+        --sidebar-border: #5d4637;
       }
       :root[data-accent="graphite"] {
         --accent-color: #475569;
@@ -112,6 +140,13 @@
         --accent-light: #94a3b8;
         --accent-soft: rgba(71, 85, 105, 0.14);
         --chart-good: #0ea5e9;
+        --accent-button: #475569;
+        --accent-button-hover: #334155;
+        --shell-bg: #f1f4f8;
+        --sidebar-bg: #1c2430;
+        --sidebar-raised: #232d3b;
+        --sidebar-active: #2b3647;
+        --sidebar-border: #334155;
       }
 
       :root {
@@ -136,9 +171,6 @@
         --rw-card-bg: rgba(232, 237, 244, 0.9);
         --rw-card-shadow: 0 0 0 1px var(--rw-ring), 0 1px 2px rgba(0, 0, 0, 0.12), 0 4px 14px rgba(0, 0, 0, 0.1);
       }
-      html.dark body {
-        background-color: #f1f5f9;
-      }
       html.dark img,
       html.dark picture,
       html.dark video,
@@ -161,6 +193,20 @@
         pixel to the box and move things.
       */
 
+      /* ---------- The shell follows the theme: tinted page, deep-shade sidebar (see --shell-bg, --sidebar-*) ----------
+         White cards stay neutral on the tinted page, which is the contrast that makes them read as surfaces.
+         The tint also covers the strip a hidden sidebar leaves behind, so nothing is left unstyled. */
+      body,
+      .mat-app-background,
+      .mat-drawer-container,
+      .mat-drawer-content,
+      .mat-sidenav-container,
+      .mat-sidenav-content {
+        background-color: var(--shell-bg) !important;
+      }
+      .mat-drawer-container {
+        color: var(--rw-text);
+      }
       /* ---------- Typography (the system font) ---------- */
       body,
       .mat-typography,
@@ -307,18 +353,18 @@
       .mat-mdc-unelevated-button.mat-primary:not([disabled]),
       .mat-mdc-fab.mat-primary:not([disabled]),
       .mat-mdc-mini-fab.mat-primary:not([disabled]) {
-        --mdc-protected-button-container-color: var(--accent-color);
-        --mdc-filled-button-container-color: var(--accent-color);
-        --mdc-fab-container-color: var(--accent-color);
-        --mdc-fab-small-container-color: var(--accent-color);
-        background-color: var(--accent-color) !important;
+        --mdc-protected-button-container-color: var(--accent-button);
+        --mdc-filled-button-container-color: var(--accent-button);
+        --mdc-fab-container-color: var(--accent-button);
+        --mdc-fab-small-container-color: var(--accent-button);
+        background-color: var(--accent-button) !important;
         color: #fff;
       }
       .mat-mdc-raised-button.mat-primary:not([disabled]):hover,
       .mat-mdc-unelevated-button.mat-primary:not([disabled]):hover,
       .mat-mdc-fab.mat-primary:not([disabled]):hover,
       .mat-mdc-mini-fab.mat-primary:not([disabled]):hover {
-        background-color: var(--accent-hover) !important;
+        background-color: var(--accent-button-hover) !important;
       }
       .mat-mdc-raised-button.mat-primary .mdc-button__label,
       .mat-mdc-unelevated-button.mat-primary .mdc-button__label,

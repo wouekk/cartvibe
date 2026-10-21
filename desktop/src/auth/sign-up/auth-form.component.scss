@@ -146,13 +146,13 @@ app-auth-form {
           border-radius: variables.$border-radius-xl !important;
           font-weight: 600;
           font-size: 1rem;
-          background: linear-gradient(135deg, var(--accent-color, #0086d4) 0%, var(--accent-hover, #0072b4) 100%);
+          background: linear-gradient(135deg, var(--accent-button, #0077bd) 0%, var(--accent-button-hover, #00659f) 100%);
           color: white;
           box-shadow: 0 4px 14px var(--accent-soft);
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
           &:hover {
-            background: linear-gradient(135deg, var(--accent-hover, #0072b4) 0%, var(--accent-color, #0086d4) 100%);
+            background: linear-gradient(135deg, var(--accent-button-hover, #00659f) 0%, var(--accent-button, #0077bd) 100%);
             box-shadow: 0 6px 20px var(--accent-soft);
             transform: translateY(-2px);
           }

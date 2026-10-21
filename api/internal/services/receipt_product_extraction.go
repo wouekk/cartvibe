@@ -526,6 +526,19 @@ func (service ReceiptProductExtractionService) applyReadResult(
 		}
 	}
 
+	// A receipt still called "Receipt 20 Oct 2026" takes the shop's name once it is known; a name a person
+	// typed is left alone.
+	shop := receipt.ShopName
+	if shop == "" {
+		shop = shopName
+	}
+	if shop != "" && IsPlaceholderReceiptName(receipt.Name) {
+		err := db.Model(&models.Receipt{}).Where("id = ?", receipt.ID).Update("name", shop).Error
+		if err != nil {
+			return err
+		}
+	}
+
 	if receipt.Status != models.OPEN && receipt.Status != models.NEEDS_ATTENTION && receipt.Status != models.DRAFT {
 		return nil
 	}
