@@ -1,3 +1,4 @@
+import { HlmCheckboxImports } from "@spartan-ng/helm/checkbox";
 import { MoneyComponent } from "../../shared-ui/money/money.component";
 import { ShopMonogramComponent } from "../../shared-ui/shop-monogram/shop-monogram.component";
 import { provideHttpClient } from "@angular/common/http";
@@ -89,7 +90,7 @@ describe("OverviewPageComponent", () => {
 
     await TestBed.configureTestingModule({
       declarations: [OverviewPageComponent],
-      imports: [NgxsModule.forRoot([AuthState, FeatureConfigState, GroupState, ShoppingListState, SystemSettingsState]), PipesModule, SharedUiModule, MoneyComponent, ShopMonogramComponent],
+      imports: [NgxsModule.forRoot([AuthState, FeatureConfigState, GroupState, ShoppingListState, SystemSettingsState]), PipesModule, SharedUiModule, MoneyComponent, ShopMonogramComponent, ...HlmCheckboxImports],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -431,5 +432,21 @@ describe("OverviewPageComponent", () => {
       expect(button).not.toBeNull();
       expect(button.getAttribute("buttonText")).toBe("Add receipt");
     });
+  });
+
+  it("switches a category off the ring and brings it back", async () => {
+    await fixture.whenStable();
+    const first = component.segments()[0];
+    expect(first).toBeDefined();
+    const count = () => (component.donutOptions(CHART_COLORS).series as number[]).length;
+    const all = count();
+
+    component.toggleSegment(first.name);
+    expect(component.isHidden(first.name)).toBe(true);
+    expect(count()).toBe(all - 1);
+
+    component.toggleSegment(first.name);
+    expect(component.isHidden(first.name)).toBe(false);
+    expect(count()).toBe(all);
   });
 });

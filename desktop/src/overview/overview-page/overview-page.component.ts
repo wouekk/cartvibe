@@ -250,6 +250,23 @@ export class OverviewPageComponent {
 
   public readonly segments = computed(() => buildDonutSegments(this.overview()?.categories ?? []));
 
+  /** Categories the user switched off above the ring; the ring and its total then cover the rest. */
+  public readonly hiddenSegments = signal<ReadonlySet<string>>(new Set());
+
+  public isHidden(name: string): boolean {
+    return this.hiddenSegments().has(name);
+  }
+
+  public toggleSegment(name: string): void {
+    this.hiddenSegments.update((hidden) => {
+      const next = new Set(hidden);
+      if (!next.delete(name)) {
+        next.add(name);
+      }
+      return next;
+    });
+  }
+
   public readonly bars = computed(() => {
     const overview = this.overview();
     return overview
@@ -294,26 +311,33 @@ export class OverviewPageComponent {
 
   /** The category donut (ApexCharts on the theme tokens); the total sits in its middle. */
   public readonly donutOptions = (colors: ChartColors): ApexOptions => {
-    const segments = this.segments();
-    const total = this.customCurrencyPipe.transform(this.overview()?.total ?? 0);
+    // Colors follow a category's place in the full list, so switching one off does not recolor the others.
+    const shown = this.segments()
+      .map((segment, index) => ({ segment, index }))
+      .filter(({ segment }) => !this.isHidden(segment.name));
+    const segments = shown.map(({ segment }) => segment);
+    const total = this.customCurrencyPipe.transform(
+      this.hiddenSegments().size > 0 ? segments.reduce((sum, segment) => sum + segment.total, 0) : this.overview()?.total ?? 0
+    );
     return {
       chart: { type: "donut", height: 200, width: 200, background: "transparent", fontFamily: "inherit", animations: { speed: 500 } },
       series: segments.map((segment) => segment.total),
       labels: segments.map((segment) => segment.name),
-      colors: segments.map((_, index) => colors.series[index % colors.series.length]),
+      colors: shown.map(({ index }) => colors.series[index % colors.series.length]),
       stroke: { width: 3, colors: [colors.card] },
       legend: { show: false },
       dataLabels: { enabled: false },
       states: { hover: { filter: { type: "darken" } }, active: { filter: { type: "none" } } },
       tooltip: {
         custom: ({ seriesIndex }: { seriesIndex: number }) => {
-          const segment = segments[seriesIndex];
-          if (!segment) {
+          const entry = shown[seriesIndex];
+          if (!entry) {
             return "";
           }
-          return this.tooltipCard(segment.name, [
-            { color: colors.series[seriesIndex % colors.series.length], label: "Spent", value: this.customCurrencyPipe.transform(segment.total) },
-            { color: colors.series[seriesIndex % colors.series.length], label: "Share", value: segment.share },
+          const color = colors.series[entry.index % colors.series.length];
+          return this.tooltipCard(entry.segment.name, [
+            { color, label: "Spent", value: this.customCurrencyPipe.transform(entry.segment.total) },
+            { color, label: "Share", value: entry.segment.share },
           ]);
         },
       },
