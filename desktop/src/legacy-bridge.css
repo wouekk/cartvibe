@@ -1,0 +1,260 @@
+/*
+  The bridge between the spartan/ui tokens (src/skin.css) and the parts of the app that are still Angular Material or
+  hand-written component styles. Everything here reads the tokens, so light and dark follow them; it shrinks as each
+  component family moves to the helm components in src/ui. Colors only: no spacing or layout.
+*/
+
+html {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+body,
+.mat-app-background,
+.mat-drawer-container,
+.mat-drawer-content,
+.mat-sidenav-container,
+.mat-sidenav-content {
+  background-color: var(--background) !important;
+  color: var(--foreground);
+}
+
+body,
+.mat-typography,
+.mat-mdc-button,
+.mat-mdc-raised-button,
+.mat-mdc-unelevated-button,
+.mat-mdc-outlined-button,
+.mat-mdc-form-field,
+.mdc-text-field,
+.mat-mdc-table,
+.mat-mdc-menu-item,
+.mat-mdc-option,
+.mat-mdc-dialog-container,
+input,
+textarea,
+select,
+button {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .mat-mdc-dialog-title {
+  color: var(--foreground);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.tile__label,
+.muted,
+.text-muted,
+.mat-mdc-form-field-hint,
+.donut__caption {
+  color: var(--muted-foreground);
+}
+
+.tile__value:not(.tile__value--warning):not(.tile__value--over),
+.donut__total,
+.donut__legend td,
+.bars__value,
+.bars__label,
+.receipts td {
+  color: var(--foreground);
+}
+
+.tile__value--warning,
+.tile__hint--up {
+  color: oklch(0.646 0.222 41.116) !important;
+}
+
+/* Cards, panels, dialogs and menus: the shadcn card (border, soft shadow, rounded-xl). */
+.card,
+.tile,
+.settings-card,
+.rw-card,
+.mat-mdc-card,
+.table-container {
+  background-color: var(--card) !important;
+  color: var(--card-foreground);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 4px) !important;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05) !important;
+}
+.mat-mdc-dialog-surface,
+.mat-mdc-menu-panel,
+.mat-mdc-autocomplete-panel,
+.mat-mdc-select-panel,
+.mat-datepicker-content,
+.notifications-panel {
+  background-color: var(--popover) !important;
+  color: var(--popover-foreground) !important;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 2px) !important;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.18) !important;
+}
+.mat-mdc-option,
+.mat-mdc-menu-item,
+.mat-mdc-menu-item .mat-mdc-menu-item-text {
+  color: var(--popover-foreground) !important;
+}
+.mat-mdc-option:hover:not(.mdc-list-item--disabled),
+.mat-mdc-option.mat-mdc-option-active,
+.mat-mdc-menu-item:hover:not([disabled]) {
+  background-color: var(--accent) !important;
+}
+
+/* Material form fields (select, autocomplete, date picker, textarea): outlined in the token colors. */
+.mat-mdc-form-field {
+  --mdc-filled-text-field-container-color: transparent;
+  --mdc-filled-text-field-input-text-color: var(--foreground);
+  --mdc-filled-text-field-label-text-color: var(--muted-foreground);
+  --mdc-filled-text-field-focus-label-text-color: var(--foreground);
+  --mdc-filled-text-field-hover-label-text-color: var(--muted-foreground);
+  --mdc-filled-text-field-active-indicator-color: var(--input);
+  --mdc-filled-text-field-hover-active-indicator-color: var(--ring);
+  --mdc-filled-text-field-focus-active-indicator-color: var(--ring);
+  --mdc-filled-text-field-caret-color: var(--foreground);
+  --mdc-outlined-text-field-input-text-color: var(--foreground);
+  --mdc-outlined-text-field-label-text-color: var(--muted-foreground);
+  --mdc-outlined-text-field-outline-color: var(--input);
+  --mdc-outlined-text-field-hover-outline-color: var(--ring);
+  --mdc-outlined-text-field-focus-outline-color: var(--ring);
+  --mdc-outlined-text-field-caret-color: var(--foreground);
+  --mat-select-enabled-trigger-text-color: var(--foreground);
+  --mat-select-enabled-arrow-color: var(--muted-foreground);
+  --mat-select-placeholder-text-color: var(--muted-foreground);
+  --mat-form-field-error-text-color: var(--destructive);
+}
+.mat-mdc-form-field .mat-mdc-text-field-wrapper.mdc-text-field--filled {
+  background-color: var(--card) !important;
+  border: 1px solid var(--input);
+  border-radius: calc(var(--radius) - 2px);
+}
+.mat-mdc-input-element,
+.mat-mdc-select-value,
+.mat-mdc-select-arrow {
+  color: var(--foreground);
+}
+.mat-mdc-form-field-subscript-wrapper,
+.mat-mdc-form-field-hint {
+  color: var(--muted-foreground);
+}
+
+/* Buttons that are still Angular Material (outside app-button). */
+.mat-mdc-raised-button.mat-primary:not([disabled]),
+.mat-mdc-unelevated-button.mat-primary:not([disabled]),
+.mat-mdc-flat-button.mat-primary:not([disabled]),
+.mat-mdc-raised-button.mat-accent:not([disabled]),
+.mat-mdc-unelevated-button.mat-accent:not([disabled]) {
+  --mdc-protected-button-container-color: var(--primary);
+  --mdc-filled-button-container-color: var(--primary);
+  background-color: var(--primary) !important;
+  background-image: none !important;
+  color: var(--primary-foreground);
+  border-radius: calc(var(--radius) - 2px) !important;
+}
+.mat-mdc-raised-button.mat-primary .mdc-button__label,
+.mat-mdc-unelevated-button.mat-primary .mdc-button__label,
+.mat-mdc-flat-button.mat-primary .mdc-button__label,
+.mat-mdc-raised-button.mat-primary .mat-icon,
+.mat-mdc-unelevated-button.mat-primary .mat-icon {
+  color: var(--primary-foreground);
+}
+.mat-mdc-button.mat-primary,
+.mat-mdc-outlined-button.mat-primary,
+.mat-mdc-icon-button.mat-primary,
+.mat-mdc-button.mat-accent,
+.mat-mdc-icon-button.mat-accent,
+.mat-icon.mat-primary,
+.mat-icon.mat-accent {
+  --mdc-text-button-label-text-color: var(--foreground);
+  --mdc-icon-button-icon-color: var(--foreground);
+  color: var(--foreground);
+}
+.mat-mdc-button:not(.mat-mdc-icon-button):hover,
+.mat-mdc-icon-button:hover {
+  background-color: var(--accent);
+}
+.mat-badge-content:not(.mat-badge-warn):not(.mat-badge-accent) {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* Tables (Angular Material): the shadcn Table look. */
+.mat-mdc-table {
+  --mat-table-background-color: transparent;
+  background: transparent !important;
+}
+.mat-mdc-table .mat-mdc-header-cell {
+  color: var(--muted-foreground) !important;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--border) !important;
+}
+.mat-mdc-table .mat-mdc-row {
+  transition: background-color 0.15s ease;
+}
+.mat-mdc-table .mat-mdc-row:hover {
+  background-color: color-mix(in oklab, var(--muted) 60%, transparent);
+}
+.mat-mdc-table .mat-mdc-cell {
+  color: var(--foreground);
+  font-size: 0.875rem;
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 70%, transparent) !important;
+}
+.mat-mdc-table .mat-mdc-row:last-child .mat-mdc-cell {
+  border-bottom: 0 !important;
+}
+.mat-mdc-paginator,
+.mat-mdc-paginator .mat-mdc-select-value {
+  background: transparent !important;
+  color: var(--muted-foreground);
+}
+
+/* Links in content. */
+.card__header a,
+.settings-card a,
+.receipts a,
+.table-container a:not(.mat-mdc-button-base),
+.link-button {
+  color: var(--foreground);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Checkboxes, radios, switches, progress that are still Angular Material. */
+.mat-mdc-checkbox,
+.mat-mdc-radio-button,
+.mat-mdc-slide-toggle,
+.mat-mdc-progress-bar,
+.mat-mdc-progress-spinner {
+  --mdc-checkbox-selected-icon-color: var(--primary);
+  --mdc-checkbox-selected-focus-icon-color: var(--primary);
+  --mdc-checkbox-selected-hover-icon-color: var(--primary);
+  --mdc-checkbox-selected-pressed-icon-color: var(--primary);
+  --mdc-checkbox-unselected-icon-color: var(--input);
+  --mdc-radio-selected-icon-color: var(--primary);
+  --mdc-radio-selected-focus-icon-color: var(--primary);
+  --mdc-radio-selected-hover-icon-color: var(--primary);
+  --mdc-switch-selected-handle-color: var(--primary);
+  --mdc-switch-selected-track-color: var(--accent);
+  --mdc-linear-progress-active-indicator-color: var(--primary);
+  --mdc-circular-progress-active-indicator-color: var(--primary);
+  --mat-checkbox-label-text-color: var(--foreground);
+  --mat-radio-label-text-color: var(--foreground);
+}
+
+/* A badge that counts nothing is not shown. */
+.mat-badge-hidden .mat-badge-content,
+.mat-badge-content:empty,
+.mat-badge-content.rw-badge-empty {
+  display: none !important;
+}
+
+::selection {
+  background: var(--accent);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--muted-foreground) 45%, transparent) transparent;
+}

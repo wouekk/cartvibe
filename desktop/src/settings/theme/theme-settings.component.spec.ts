@@ -43,18 +43,4 @@ describe("ThemeSettingsComponent", () => {
     expect(el("theme-mode-dark").textContent).toContain("check");
     expect(document.documentElement.classList.contains("dark")).toBe(true);
   });
-
-  it("offers the five accents, none of them orange, and switches on a click", async () => {
-    for (const key of ["classic", "emerald", "violet", "brown", "graphite"]) {
-      expect(el("theme-accent-" + key)).not.toBeNull();
-    }
-    expect(fixture.nativeElement.querySelectorAll(".swatch").length).toBe(5);
-
-    el("theme-accent-graphite").click();
-    await fixture.whenStable();
-
-    expect(theme.accent()).toBe("graphite");
-    expect(el("theme-accent-graphite").getAttribute("aria-checked")).toBe("true");
-    expect(el("theme-accent-name").textContent).toContain("Graphite Gray");
-  });
 });

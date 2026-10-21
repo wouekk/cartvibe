@@ -5,16 +5,16 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { NgxMaskDirective, provideNgxMask } from "ngx-mask";
-import { HlmButtonDirective } from "../ui/button/hlm-button.directive";
-import { HlmInputDirective } from "../ui/input/hlm-input.directive";
+import { HlmButton } from "@spartan-ng/helm/button";
+import { HlmInput } from "@spartan-ng/helm/input";
 import { InputComponent } from "./input/input.component";
 
 @NgModule({
   declarations: [InputComponent],
   imports: [
     CommonModule,
-    HlmButtonDirective,
-    HlmInputDirective,
+    HlmButton,
+    HlmInput,
     MatIconModule,
     // Provides MatSnackBar for the generate-password toast (PasswordGeneratorService).
     MatSnackBarModule,

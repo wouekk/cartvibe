@@ -1,7 +1,7 @@
 import { Component, OnChanges, OnInit, signal, SimpleChanges, input } from "@angular/core";
 import { ActivatedRoute, NavigationEnd, Router } from "@angular/router";
 import { tap } from "rxjs";
-import { tabsListClass, tabsTriggerClass } from "../../ui/tabs/tabs-classes";
+import { navTabsListClass, navTabsTriggerClass } from "../../ui/nav-tabs/nav-tabs-classes";
 import { TabConfig } from "./tab-config.interface";
 
 @Component({
@@ -12,9 +12,9 @@ import { TabConfig } from "./tab-config.interface";
 export class TabsComponent implements OnInit, OnChanges {
   public readonly tabs = input<TabConfig[]>([]);
 
-  public readonly listClass = tabsListClass;
+  public readonly listClass = navTabsListClass;
 
-  public readonly triggerClass = tabsTriggerClass;
+  public readonly triggerClass = navTabsTriggerClass;
 
   public activeName = signal("");
 

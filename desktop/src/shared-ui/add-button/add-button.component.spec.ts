@@ -31,8 +31,8 @@ describe("AddButtonComponent", () => {
     await fixture.whenStable();
 
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector("button")?.classList).toContain("size-10");
-    expect(el.querySelector("button span.font-semibold")).toBeFalsy();
+    expect(el.querySelector("button")?.classList).toContain("size-9");
+    expect(el.querySelector("button span.font-medium")).toBeFalsy();
   });
 
   it("renders a labeled raised button when buttonText is provided", async () => {
@@ -40,8 +40,8 @@ describe("AddButtonComponent", () => {
     await fixture.whenStable();
 
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector("button span.font-semibold")).toBeTruthy();
-    expect(el.querySelector("button")?.classList).not.toContain("size-10");
+    expect(el.querySelector("button span.font-medium")).toBeTruthy();
+    expect(el.querySelector("button")?.classList).not.toContain("size-9");
     expect(el.textContent).toContain("Add Thing");
   });
 });

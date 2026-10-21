@@ -23,7 +23,9 @@
       "ES2022",
       "dom"
     ],
-    "paths": {}
+    "paths": {
+      "@spartan-ng/helm/*": ["./src/ui/*"]
+    }
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

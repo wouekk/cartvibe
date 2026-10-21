@@ -7,7 +7,7 @@
   @case ("basic") {
     <button
       hlmBtn
-      [variant]="color() === 'warn' ? 'destructiveGhost' : 'accentGhost'"
+      [variant]="color() === 'warn' ? 'destructive' : 'ghost'"
       [class]="buttonClass()"
       [type]="type()"
       [disabled]="disabled()"
@@ -22,7 +22,7 @@
       @if (icon) {
         <mat-icon>{{ icon }}</mat-icon>
       }
-      <span class="font-semibold">{{ buttonText() }}</span>
+      <span class="font-medium">{{ buttonText() }}</span>
     </button>
   }
 
@@ -44,7 +44,7 @@
       @if (icon) {
         <mat-icon>{{ icon }}</mat-icon>
       }
-      <span class="font-semibold">{{ buttonText() }}</span>
+      <span class="font-medium">{{ buttonText() }}</span>
     </button>
   }
 
@@ -52,7 +52,7 @@
     <button
       hlmBtn
       size="icon"
-      [variant]="color() === 'warn' ? 'destructiveGhost' : color() === 'accent' || color() === 'primary' ? 'accentGhost' : 'ghost'"
+      [variant]="color() === 'warn' ? 'destructive' : 'ghost'"
       [class]="buttonClass()"
       [type]="type()"
       [disabled]="disabled()"
