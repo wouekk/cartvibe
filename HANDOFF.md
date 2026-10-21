@@ -2,6 +2,19 @@
 
 ## Status (2026-10-21, Windows PC, Claude Code desktop app)
 
+**Latest (image hardening + faster OCR/AI, branch `feature/image-hardening`, cut from `feature/redesign`):** triage of the
+grype report of the old `receipt-wrangler:latest` image, done together with the scan latency work. One AI call per Quick Scan
+(products applied inline, the sweep stays the fallback), Gemini on `google.golang.org/genai` with thinking turned down, photos
+shrunk in the browser before upload, EasyOCR/PyTorch removed (Tesseract only), API runs as uid 10001 via `setpriv`, ImageMagick
+coder deny-list, `apt-get upgrade`, nginx headers, weekly no-cache rebuild + grype report artifact in `publish-image.yml`.
+CI green on `048ca387`. Locally: Go vet clean, the touched Go packages' tests pass (except the known Windows-path wranglerasynq tests), Jest 2079/2079,
+`ng build` OK. The Dockerfile changes are only proven by the "Publish image" run (`:preview`). **To check on the NAS with
+`:preview`:** container starts and the data folders are handed to uid 10001 (watch the first start's logs; DSM may show the
+folders owned by an unknown user), a Quick Scan shows products immediately, a PDF and a HEIC receipt still read, an email
+import with an HTML body still renders its PDF (Chromium as non-root, sandbox still off). Not done: measuring the latency
+before/after (read OCR_PROCESSING / CHAT_COMPLETION durations in the Logs tab), the Chromium sandbox (`CHROMIUM_SANDBOX=true`
+needs a NAS test), `--no-install-recommends` for Chromium/ImageMagick.
+
 **Latest (UI-issues one-shot run):** all 17 items in `docs/ui-issues.md` are implemented on `feature/redesign` (CI green, `:preview` re-published). Open: issue 4, shop logos, needs the user's logo.dev key and chain list (monogram stays meanwhile); the About credit line to Receipt Wrangler / Noah Hall was kept as the default; look at every changed page on the NAS in both themes and in Polish (period picker, receipts toolbar, System Settings sections, Quick Scan dialog, shopping lists, donut focus, AI page backup card). Polish strings built in TypeScript templates and group-name page titles may still be English.
 
 **The redesign is on `feature/redesign` (not merged, `:preview` image published for the NAS).** Tailwind + spartan/ui replace
