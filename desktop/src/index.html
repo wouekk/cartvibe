@@ -40,38 +40,7 @@
       })();
     </script>
 
-    <!--
-      Tailwind (CDN) for the small utility layer this skin uses. Preflight is off, so there is no base reset
-      over the component library; every utility carries the "tw-" prefix, so Tailwind never generates rules
-      for the classes the app already uses (Bootstrap's mb-3, table, border...); and dark mode follows the
-      "dark" class on <html>, never the operating system. The skin itself is the plain CSS below, so the app
-      looks right even if the CDN is unreachable.
-    -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      if (window.tailwind) {
-        tailwind.config = {
-          prefix: "tw-",
-          corePlugins: { preflight: false },
-          darkMode: "class",
-          theme: {
-            extend: {
-              fontFamily: {
-                sans: ["-apple-system", "BlinkMacSystemFont", '"Segoe UI"', "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
-              },
-              colors: {
-                accent: {
-                  DEFAULT: "var(--accent-color)",
-                  hover: "var(--accent-hover)",
-                  light: "var(--accent-light)",
-                  soft: "var(--accent-soft)",
-                },
-              },
-            },
-          },
-        };
-      }
-    </script>
+    <!-- Tailwind CSS is built with the app (src/tailwind.css, prefix "tw-", no Preflight); the shadcn/ui tokens are in src/skin.css. -->
 
     <style>
       /* ---------- Accent themes (the Theme tab in User Settings writes data-accent on <html>) ----------

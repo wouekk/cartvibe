@@ -1,0 +1,36 @@
+/*
+  Tailwind CSS v4, built with the app (no CDN). Only the theme and the utilities are imported, never Preflight: its
+  reset would flatten Angular Material and Bootstrap, which the app still uses. Utilities carry the `tw-` prefix so they
+  can never match an existing class (`tw-flex`, `tw-bg-card`, `tw-rounded-xl`).
+
+  The shadcn/ui token architecture lives in src/skin.css (`--background`, `--card`, `--primary`, ...); this file only
+  teaches Tailwind to read those tokens, so `tw-bg-primary` follows the chosen accent and the dark mode.
+*/
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme) prefix(tw);
+@import "tailwindcss/utilities.css" layer(utilities) prefix(tw);
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}

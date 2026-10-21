@@ -1,0 +1,23 @@
+/* shadcn/ui tokens, derived from the accent variables of index.html. Written for the light page; the dark mode filter
+   (html.dark in index.html) darkens everything that reads them. */
+:root {
+  --radius: 0.75rem;
+  --background: var(--shell-bg, #f4f6f9);
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: var(--accent-button, #0077bd);
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #1e293b;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: var(--accent-soft, rgba(0, 134, 212, 0.12));
+  --accent-foreground: var(--accent-color, #0086d4);
+  --destructive: #dc2626;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: var(--accent-color, #0086d4);
+}
