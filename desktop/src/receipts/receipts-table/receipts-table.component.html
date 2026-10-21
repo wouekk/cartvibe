@@ -2,7 +2,7 @@
   [headerText]="headerText"
   subtitle="Everything the household bought, to check and look back on."
 >
-  <div class="d-flex align-items-center receipts-toolbar">
+  <div class="flex items-center receipts-toolbar">
     <app-add-button
       *ngIf="canCreate"
       class="me-2"
@@ -252,7 +252,7 @@
 </ng-template>
 
 <ng-template #actionsCell let-element="element" let-index="index">
-  <div class="d-flex w-100">
+  <div class="flex w-full">
     <app-edit-button
       color="accent"
       [buttonRouterLink]="['/receipts/' + element.id + '/edit']"

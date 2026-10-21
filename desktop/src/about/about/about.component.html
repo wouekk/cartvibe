@@ -1,11 +1,11 @@
 <app-dialog
   headerText="About"
 >
-  <div class="mb-3">
+  <div class="mb-4">
     <app-form-section
       headerText="Project"
     >
-      <div class="d-flex flex-column m-2">
+      <div class="flex flex-col m-2">
         @for (link of links; track link["url"]) {
           <span>
           {{ link.label }}: <a [href]="link.url" target="_blank">{{ link.url }}</a>
@@ -14,11 +14,11 @@
       </div>
     </app-form-section>
   </div>
-  <div class="mb-3">
+  <div class="mb-4">
     <app-form-section
       headerText="Build"
     >
-      <div class="d-flex flex-column m-2">
+      <div class="flex flex-col m-2">
         <span>Version: {{ about()?.version || 'unknown' }}</span>
         @if (about()?.buildDate !== "unknown") {
           <span>Build Date: {{ (about()?.buildDate | appDate) || 'unknown' }}</span>

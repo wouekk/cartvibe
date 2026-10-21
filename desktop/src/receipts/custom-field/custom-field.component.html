@@ -13,7 +13,7 @@
 
 <ng-template #currency>
   <app-input
-    class="w-100"
+    class="w-full"
     type="text"
     [label]="label"
     [isCurrency]="true"
@@ -24,7 +24,7 @@
 
 <ng-template #date>
   <app-datepicker
-    class="w-100"
+    class="w-full"
     [label]="label"
     [inputFormControl]="formGroup().controls.dateValue"
     [readonly]="readonly()"
@@ -33,7 +33,7 @@
 
 <ng-template #text>
   <app-input
-    class="w-100"
+    class="w-full"
     [label]="label"
     [inputFormControl]="formGroup().controls.stringValue"
     [readonly]="readonly()"
@@ -43,7 +43,7 @@
 <ng-template #select
 >
   <app-select
-    class="w-100"
+    class="w-full"
     optionDisplayKey="value"
     optionValueKey="id"
     [label]="label"

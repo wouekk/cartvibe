@@ -147,7 +147,7 @@ describe("ReceiptUpdateDiffDialogComponent", () => {
       });
 
       expect(notice()?.dataset["beforeState"]).toBe("rebuilt");
-      expect(notice()?.classList).toContain("alert-info");
+      expect(notice()?.classList).toContain("border-sky-300");
       expect(notice()?.textContent).toContain("as saved when it was created");
       expect(notice()?.textContent).toContain("2026");
     });
@@ -167,7 +167,7 @@ describe("ReceiptUpdateDiffDialogComponent", () => {
       await recreate({ before, after, version: 1 });
 
       expect(notice()?.dataset["beforeState"]).toBe("incomplete");
-      expect(notice()?.classList).toContain("alert-warning");
+      expect(notice()?.classList).toContain("border-amber-300");
       expect(notice()?.textContent).toContain("no earlier complete copy");
     });
   });

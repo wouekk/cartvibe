@@ -13,16 +13,16 @@
           [groupId]="(form() | formGet : 'groupId').value"
           [readonly]="mode | inputReadonly"
         ></app-user-autocomplete>
-        <div class="row g-0 mt-2">
+        <div class="flex flex-wrap mt-2">
           <app-input
             label="Name"
-            class="col"
+            class="flex-1 min-w-0"
             [inputFormControl]="newItemFormGroup | formGet : 'name'"
           >
           </app-input>
           <app-input
             label="Amount"
-            class="col"
+            class="flex-1 min-w-0"
             type="text"
             [isCurrency]="true"
             [inputFormControl]="newItemFormGroup | formGet : 'amount'"
@@ -70,7 +70,7 @@
         {{ user?.displayName }} ({{ (userItemMap() | mapGet : key)?.length || 0 }})
       </mat-panel-title>
       <mat-panel-description>
-        <div class="d-flex justify-content-between align-items-center w-100">
+        <div class="flex justify-between items-center w-full">
           @let userTotalData = userItemMap() | userTotalWithPercentage : key : form();
           <span>
             Total amount owed: {{ userTotalData.total | customCurrency }} 
@@ -104,17 +104,17 @@
       <app-card
         cardStyle="mb-2"
       >
-        <div content class="d-flex flex-column item-form-container">
+        <div content class="flex flex-col item-form-container">
           @if (itemData.isLinkedItem && itemData.parentItem) {
-            <div class="d-flex align-items-center mb-2 p-2 bg-light border-start border-primary">
+            <div class="flex items-center mb-2 p-2 bg-muted border-l border-primary">
               <mat-icon class="me-2 text-primary">link</mat-icon>
-              <small class="text-muted">
+              <small class="text-muted-foreground">
                 Split from: <strong>{{ itemData.parentItem.name }}</strong> 
                 ({{ itemData.parentItem.amount | customCurrency }})
               </small>
             </div>
           }
-          <div class="d-flex justify-content-end">
+          <div class="flex justify-end">
             @if (!(mode | inputReadonly)) {
               <app-delete-button
                 tooltip="Remove Share"
@@ -123,9 +123,9 @@
               ></app-delete-button>
             }
           </div>
-          <div class="row g-0">
+          <div class="flex flex-wrap">
             <app-input
-              class="col"
+              class="flex-1 min-w-0"
               #nameField
               label="Name"
               [inputId]="'name-' + i"
@@ -135,7 +135,7 @@
             >
             </app-input>
             <app-input
-              class="col"
+              class="flex-1 min-w-0"
               label="Amount"
               [isCurrency]="true"
               [inputFormControl]="form() | formGet : getFormControlPath(itemData, 'amount')"
@@ -144,7 +144,7 @@
             >
             </app-input>
             <app-select
-              class="col"
+              class="flex-1 min-w-0"
               label="Status"
               optionValueKey="value"
               optionDisplayKey="displayValue"

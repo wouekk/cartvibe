@@ -4,13 +4,13 @@
   [bottomSpacing]="bottomSpacing()"
 ></app-form-header>
 <form [formGroup]="form()" (ngSubmit)="submitted.emit()">
-  <div class="w-100">
+  <div class="w-full">
     <ng-template [ngTemplateOutlet]="formTemplate()"></ng-template>
   </div>
   <app-form-button-bar [mode]="formConfig().mode">
     <app-submit-button
       *ngIf="!(formConfig().mode | inputReadonly)"
-      class="mb-3"
+      class="mb-4"
       [disabled]="submitButtonDisabled()"
       [onlyIcon]="false"
     ></app-submit-button>

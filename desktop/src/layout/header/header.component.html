@@ -1,9 +1,9 @@
 @if (isLoggedIn()) {
   <div
     id="header-container"
-    class="header-container d-flex justify-content-between align-items-center"
+    class="header-container flex justify-between items-center"
   >
-    <div class="col d-flex align-items-center">
+    <div class="flex-1 min-w-0 flex items-center">
       <button
         mat-icon-button
         color="accent"
@@ -27,26 +27,39 @@
         </a>
       }
     </div>
-    <div class="col-auto d-flex align-items-center justify-content-end">
+    <div class="flex-none flex items-center justify-end">
       <app-searchbar
         *hasAppPermission="Permission.AppReceiptsSearch"
-        class="receipt-searchbar w-100 me-2"
+        class="receipt-searchbar w-full me-2"
       ></app-searchbar>
-      <app-button
+      <span
         *hasAppPermission="Permission.AppNotificationsRead"
-        class="ms-4"
-        #notificationsPopover="ngbPopover"
-        matButtonType="iconButton"
-        icon="notifications"
-        triggers="click:clickouside"
-        autoClose="outside"
-        placement="bottom-end"
-        [matBadgeContent]="notificationCount()"
-        [ngbPopover]="notifications"
-        (clicked)="notificationsPopover.open()"
-      ></app-button>
+        class="ms-6 inline-flex"
+        cdkOverlayOrigin
+        #notificationsOrigin="cdkOverlayOrigin"
+      >
+        <app-button
+          matButtonType="iconButton"
+          icon="notifications"
+          tooltip="Notifications"
+          [matBadgeContent]="notificationCount()"
+          (clicked)="notificationsOpen.set(!notificationsOpen())"
+        ></app-button>
+        <ng-template
+          cdkConnectedOverlay
+          [cdkConnectedOverlayOrigin]="notificationsOrigin"
+          [cdkConnectedOverlayOpen]="notificationsOpen()"
+          [cdkConnectedOverlayPositions]="notificationPositions"
+          (overlayOutsideClick)="notificationsOpen.set(false)"
+          (detach)="notificationsOpen.set(false)"
+        >
+          <div class="notifications-panel" data-testid="notifications-panel">
+            <ng-container *ngTemplateOutlet="notifications"></ng-container>
+          </div>
+        </ng-template>
+      </span>
 
-      <app-cartvibe-logo class="mx-4"></app-cartvibe-logo>
+      <app-cartvibe-logo class="mx-6"></app-cartvibe-logo>
     </div>
   </div>
 }

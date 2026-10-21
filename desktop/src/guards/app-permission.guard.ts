@@ -1,14 +1,15 @@
 import { inject } from "@angular/core";
 import { CanActivateFn, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
-import { AuthState, GroupState } from "../store";
+import { AuthState } from "../store";
+import { redirectToLanding } from "./landing-redirect";
 
 /**
  * Allows activation when the user holds ANY of the app-scoped permissions
  * declared on `route.data['appPermissions']`. On deny, redirects to the group
  * dashboard.
  */
-export const appPermissionGuard: CanActivateFn = (route) => {
+export const appPermissionGuard: CanActivateFn = (route, state) => {
   const store: Store = inject(Store);
   const router: Router = inject(Router);
 
@@ -18,6 +19,5 @@ export const appPermissionGuard: CanActivateFn = (route) => {
     return true;
   }
 
-  router.navigate([store.selectSnapshot(GroupState.dashboardLink)]);
-  return false;
+  return redirectToLanding(router, store, state.url);
 };

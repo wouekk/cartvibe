@@ -32,7 +32,6 @@
               "src/styles.scss",
               "src/tailwind.css",
               "src/skin.css",
-              "node_modules/bootstrap-scss/bootstrap.scss",
               "node_modules/pretty-print-json/dist/css/pretty-print-json.css"
             ],
             "scripts": [],

@@ -10,7 +10,7 @@ import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatSidenavModule } from "@angular/material/sidenav";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { RouterModule } from "@angular/router";
-import { NgbPopoverModule } from "@ng-bootstrap/ng-bootstrap";
+import { OverlayModule } from "@angular/cdk/overlay";
 import { AutocompleteModule } from "src/autocomplete/autocomplete.module";
 import { NotificationsModule } from "src/notifications/notifications.module";
 import { PipesModule } from "src/pipes/pipes.module";
@@ -48,7 +48,7 @@ import { SidebarComponent } from "./sidebar/sidebar.component";
     MatProgressBarModule,
     MatSidenavModule,
     MatTooltipModule,
-    NgbPopoverModule,
+    OverlayModule,
     NotificationsModule,
     PipesModule,
     PipesModule,

@@ -72,3 +72,16 @@
   width: 28rem !important;
   max-width: 100%;
 }
+
+// The notification list opens in a CDK overlay (it was a Bootstrap popover).
+.notifications-panel {
+  width: 24rem;
+  max-width: calc(100vw - 16px);
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+}

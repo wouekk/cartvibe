@@ -1,4 +1,4 @@
-<div class="p-4">
+<div class="p-6">
   <h2 class="header-text">
     {{ user ? "Edit " + user.displayName : "Create User" }}
   </h2>
@@ -20,9 +20,9 @@
         [showGeneratePassword]="true"
         [showVisibilityEye]="true"
       ></app-input>
-      <div class="d-flex align-items-center">
+      <div class="flex items-center">
         <app-select
-          class="flex-grow-1"
+          class="grow"
           label="Role"
           optionValueKey="id"
           optionDisplayKey="name"
@@ -83,7 +83,7 @@
       </app-form-section>
     }
 
-    <div class="d-flex justify-content-end align-items-center">
+    <div class="flex justify-end items-center">
       <app-submit-button></app-submit-button>
       <app-cancel-button (clicked)="closeModal()"></app-cancel-button>
     </div>

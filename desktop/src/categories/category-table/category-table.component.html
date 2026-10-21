@@ -28,10 +28,10 @@
 <ng-template #nameCell let-element="element">
   {{ element.name }}
   @if (element.skipped) {
-    <span class="badge text-bg-secondary ms-2" data-testid="category-skipped-badge">AI skips</span>
+    <span class="ms-2 inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground" data-testid="category-skipped-badge">AI skips</span>
   }
   @if (element.aliases) {
-<span class="text-muted small d-block" style="white-space: pre-line">Formerly: {{ element.aliases }}</span>
+<span class="text-muted-foreground text-sm block" style="white-space: pre-line">Formerly: {{ element.aliases }}</span>
   }
 </ng-template>
 

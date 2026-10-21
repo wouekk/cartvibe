@@ -8,10 +8,10 @@
       Your account has no password of its own. To confirm the deletion, sign in
       again with one of your connected accounts.
     </p>
-    <div class="d-flex flex-column gap-2 mb-3">
+    <div class="flex flex-col gap-2 mb-4">
       @for (provider of providers; track provider.name) {
         <app-button
-          buttonClass="w-100"
+          buttonClass="w-full"
           color="warn"
           type="button"
           [attr.data-testid]="'delete-confirm-' + provider.name"
@@ -20,7 +20,7 @@
         ></app-button>
       }
     </div>
-    <div class="d-flex justify-content-end align-items-center">
+    <div class="flex justify-end items-center">
       <app-cancel-button (clicked)="cancelButtonClicked()"></app-cancel-button>
     </div>
   } @else {

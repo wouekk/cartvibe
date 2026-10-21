@@ -7,7 +7,6 @@ import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { ActivatedRoute } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
-import { CarouselModule } from "ngx-bootstrap/carousel";
 import { of } from "rxjs";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { LayoutState } from "src/store/layout.state";
@@ -29,7 +28,6 @@ describe("QuickScanDialogComponent", () => {
     declarations: [QuickScanDialogComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
-        CarouselModule,
         MatDialogModule,
         MatSnackBarModule,
         NgxsModule.forRoot([AuthState, GroupState, LayoutState]),

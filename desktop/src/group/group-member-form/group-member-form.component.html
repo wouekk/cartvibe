@@ -1,6 +1,6 @@
 <app-dialog [headerText]="headerText">
   <form [formGroup]="form" (ngSubmit)="submit()">
-    <div class="d-flex">
+    <div class="flex">
       <app-user-autocomplete
         class="me-2"
         label="User"
@@ -8,7 +8,7 @@
         [usersToOmit]="usersToOmit"
       ></app-user-autocomplete>
       <app-select
-        class="me-1 flex-grow-1"
+        class="me-1 grow"
         label="Role"
         optionValueKey="id"
         optionDisplayKey="name"

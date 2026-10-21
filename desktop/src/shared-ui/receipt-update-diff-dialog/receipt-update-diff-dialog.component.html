@@ -6,12 +6,12 @@
   <div class="receipt-diff-scroll">
     @if (beforeState !== "complete") {
       <div
-        class="alert receipt-diff__notice"
+        class="receipt-diff__notice rounded-lg border px-4 py-3 text-sm"
         role="note"
         data-testid="receipt-diff-version-notice"
         [attr.data-before-state]="beforeState"
-        [class.alert-info]="beforeState === 'rebuilt'"
-        [class.alert-warning]="beforeState === 'incomplete'"
+        [class.border-sky-300]="beforeState === 'rebuilt'" [class.bg-sky-50]="beforeState === 'rebuilt'" [class.text-sky-900]="beforeState === 'rebuilt'"
+        [class.border-amber-300]="beforeState === 'incomplete'" [class.bg-amber-50]="beforeState === 'incomplete'" [class.text-amber-900]="beforeState === 'incomplete'"
       >
         @if (beforeSource) {
           This change was recorded by an older version, whose own copy of the
@@ -79,7 +79,7 @@
       </tbody>
     </table>
   </div>
-  <div class="d-flex justify-content-end mt-3">
+  <div class="flex justify-end mt-4">
     <app-button
       buttonText="Close"
       matButtonType="basic"
@@ -89,7 +89,7 @@
 </app-dialog>
 
 <ng-template #actions>
-  <div class="d-flex align-items-center gap-3">
+  <div class="flex items-center gap-4">
     <span class="receipt-diff__stats" data-testid="receipt-diff-stats">
       <span class="receipt-diff__stats-added">+{{ addedLineCount }}</span>
       <span class="receipt-diff__stats-removed">−{{ removedLineCount }}</span>

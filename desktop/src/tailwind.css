@@ -1,14 +1,14 @@
 /*
-  Tailwind CSS v4, built with the app (no CDN). Only the theme and the utilities are imported, never Preflight: its
-  reset would flatten Angular Material and Bootstrap, which the app still uses. Utilities carry the `tw-` prefix so they
-  can never match an existing class (`tw-flex`, `tw-bg-card`, `tw-rounded-xl`).
+  Tailwind CSS v4, built with the app (no CDN, no prefix: Bootstrap is gone, so the class names are free). Layers
+  are declared in order so the component libraries' unlayered styles (Angular Material) still win over the reset.
 
-  The shadcn/ui token architecture lives in src/skin.css (`--background`, `--card`, `--primary`, ...); this file only
-  teaches Tailwind to read those tokens, so `tw-bg-primary` follows the chosen accent and the dark mode.
+  The shadcn/ui token architecture lives in src/skin.css (`--background`, `--card`, `--primary`, ...); the @theme block
+  here teaches Tailwind to read those tokens, so `bg-primary` follows the chosen accent and the dark mode.
 */
 @layer theme, base, components, utilities;
-@import "tailwindcss/theme.css" layer(theme) prefix(tw);
-@import "tailwindcss/utilities.css" layer(utilities) prefix(tw);
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css" layer(utilities);
 
 @theme inline {
   --color-background: var(--background);

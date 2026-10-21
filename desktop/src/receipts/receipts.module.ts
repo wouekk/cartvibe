@@ -12,7 +12,6 @@ import { MatMenuModule } from "@angular/material/menu";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatTableModule } from "@angular/material/table";
-import { CarouselModule } from "ngx-bootstrap/carousel";
 import { AutocompleteModule } from "src/autocomplete/autocomplete.module";
 import { AvatarModule } from "src/avatar";
 import { DatepickerModule } from "src/datepicker/datepicker.module";
@@ -77,8 +76,6 @@ import { UserTotalWithPercentagePipe } from "./user-total-with-percentage.pipe";
     AutocompleteModule,
     AvatarModule,
     ButtonModule,
-    CarouselModule,
-    CarouselModule,
     CategoryAutocompleteComponent,
     CommonModule,
     DatepickerModule,

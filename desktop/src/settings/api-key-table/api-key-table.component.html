@@ -1,9 +1,9 @@
-<div class="d-flex flex-column">
+<div class="flex flex-col">
   <app-table-header
     [headerText]="tableHeaderText()"
     subtitle="Create and manage API keys for programmatic access."
   >
-    <div class="d-flex align-items-center">
+    <div class="flex items-center">
       <app-add-button
         *ngIf="canCreate()"
         data-testid="api-key-add"
@@ -60,7 +60,7 @@
 
 
 <ng-template #actionsCell let-element="element" let-index="index">
-  <div class="d-flex">
+  <div class="flex">
     <app-edit-button
       *ngIf="canEdit(element)"
       data-testid="api-key-edit"

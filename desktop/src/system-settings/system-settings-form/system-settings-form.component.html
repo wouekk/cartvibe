@@ -1,5 +1,5 @@
 @if (showRestartTaskServerAlert()) {
-  <div class="mb-3">
+  <div class="mb-4">
     <app-alert
       #alert
       class="scroll-snap"
@@ -34,7 +34,7 @@
         [inputFormControl]="form | formGet:'currency'"
         [options]="currencies"
       ></app-select>
-      <div class="d-flex flex-column mb-3 currency-preview">
+      <div class="flex flex-col mb-4 currency-preview">
         <strong>Previews</strong>
         <span>{{ 123456789.12 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span>
         <span>{{ 12.99 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span>
@@ -77,7 +77,7 @@
     </section>
     <section class="settings-card" data-testid="settings-card-regional">
       <h2 class="settings-card__title">Regional &amp; time zone</h2>
-      <p class="text-muted mb-3">
+      <p class="text-muted-foreground mb-4">
         Decides which day a moment in time falls on: when a receipt was added or resolved, what
         "today" and "last month" mean in reports and filters, and how times are shown. A receipt's own
         Date is a calendar day and never shifts with this setting.
@@ -101,7 +101,7 @@
     <section class="settings-card" data-testid="settings-card-signup-session">
       <h2 class="settings-card__title">Sign-up &amp; session policy</h2>
       <app-checkbox
-        class="d-block mb-3"
+        class="block mb-4"
         label="Enable Local Sign Up"
         [inputFormControl]="form | formGet:'enableLocalSignUp'"
         [readonly]="formConfig.mode |  inputReadonly"
@@ -109,12 +109,12 @@
       <!-- The receipt-reading knobs (Debug OCR, processing settings and their fallback, PDF DPI) are
            gone from the form (Phase 3 M1, A3): the AI page under Manage sets the AI, the rest keeps
            its stored value and the submit still sends it. -->
-      <p class="text-muted mb-3">
+      <p class="text-muted-foreground mb-4">
         How long a signed-in user can be away before they have to log in again. Sessions renew
         themselves while the app is in use, so this is an inactivity window rather than a hard limit.
         Maximum 720 hours (30 days).
       </p>
-      <div class="d-flex gap-3 mb-3 duration-row">
+      <div class="flex gap-4 mb-4 duration-row">
         <app-input
           label="Stay signed in for"
           type="number"
@@ -129,13 +129,13 @@
           [options]="durationUnits"
         ></app-select>
       </div>
-      <p class="text-muted mb-3">
+      <p class="text-muted-foreground mb-4">
         Marks every cookie as Secure, so browsers only send them over HTTPS. Recommended for any install
         served over HTTPS. Leave this off if CartVibe is reached over plain HTTP, such as a LAN or
         bare IP address: browsers refuse Secure cookies there, so nobody would be able to log in.
       </p>
       <app-checkbox
-        class="d-block mb-3"
+        class="block mb-4"
         label="Use secure cookies (HTTPS only)"
         data-testid="system-settings-secure-cookies"
         [inputFormControl]="form | formGet:'secureCookies'"
@@ -143,7 +143,7 @@
       ></app-checkbox>
       @if ((form | formGet:'secureCookies').value && !servedOverHttps) {
         <div
-          class="alert alert-warning mb-3"
+          class="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
           data-testid="secure-cookies-http-warning"
         >
           This page was loaded over HTTP. If you save with secure cookies on, browsers will drop the
@@ -151,7 +151,7 @@
           over HTTP will be able to log back in until it is turned off again.
         </div>
       }
-      <p class="text-muted mb-3">
+      <p class="text-muted-foreground mb-4">
         The externally reachable address of this server. Used to build the redirect
         URI that each OIDC identity provider must be configured with, so it has to
         match how users actually reach CartVibe.
@@ -194,11 +194,11 @@
           [readonly]="formConfig.mode |  inputReadonly"
         ></app-input>
       </div>
-      <p class="text-muted mb-3">
+      <p class="text-muted-foreground mb-4">
         A quick scan or email upload that fails keeps its image this long, so you can retry it or
         download the original. Minimum 24 hours, maximum 8760 hours (1 year).
       </p>
-      <div class="d-flex gap-3 mb-3 duration-row">
+      <div class="flex gap-4 mb-4 duration-row">
         <app-input
           label="Temporary files: keep failed uploads for"
           type="number"
@@ -216,13 +216,13 @@
     </section>
     <section class="settings-card" data-testid="settings-card-queues">
       <h2 class="settings-card__title">Task queue priorities</h2>
-      <p class="text-muted mb-2">A higher number means a higher priority.</p>
+      <p class="text-muted-foreground mb-2">A higher number means a higher priority.</p>
       <ul class="queue-list">
         @for (data of visibleQueueData; track data.value) {
           <li class="queue-row">
             <div class="queue-row__text">
               <strong>{{ data.displayValue }}</strong>
-              <small class="text-muted">{{ data.description }}</small>
+              <small class="text-muted-foreground">{{ data.description }}</small>
             </div>
             <input
               type="number"
@@ -240,7 +240,7 @@
 
 
   @if (originalSystemSettings?.updatedAt) {
-    <p class="settings-updated text-muted" data-testid="settings-updated-at">
+    <p class="settings-updated text-muted-foreground" data-testid="settings-updated-at">
       Updated {{ originalSystemSettings.updatedAt | appDate : "medium" }}
     </p>
   }
