@@ -1,4 +1,5 @@
 import { Component, input, model } from "@angular/core";
+import { tabsListClass, tabsTriggerClass } from "../../ui/tabs/tabs-classes";
 import { FilterTab } from "./filter-tab.interface";
 
 /**
@@ -19,12 +20,15 @@ import { FilterTab } from "./filter-tab.interface";
 @Component({
   selector: "app-filter-bar",
   templateUrl: "./filter-bar.component.html",
-  styleUrl: "./filter-bar.component.scss",
   standalone: false,
 })
 export class FilterBarComponent {
   public readonly tabs = input.required<FilterTab[]>();
   public readonly value = model<string>("");
+
+  public readonly listClass = tabsListClass;
+
+  public readonly triggerClass = tabsTriggerClass;
 
   public select(value: string): void {
     this.value.set(value);

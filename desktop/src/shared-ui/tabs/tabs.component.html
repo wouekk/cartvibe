@@ -1,17 +1,16 @@
-<nav mat-tab-nav-bar [tabPanel]="tabPanel">
-  <a
-    mat-tab-link
-    *ngFor="let tab of tabs()"
-    routerLinkActive="active"
-    [active]="tab.name=== activeName()"
-    [routerLink]="[tab.routerLink ]"
-    [queryParams]="{tab: tab.name}"
-  >
-    {{ tab.label }}
-  </a>
+<nav [class]="listClass" role="tablist">
+  @for (tab of tabs(); track tab.name) {
+    <a
+      role="tab"
+      [class]="triggerClass(tab.name === activeName())"
+      [attr.aria-selected]="tab.name === activeName()"
+      [routerLink]="[tab.routerLink]"
+      [queryParams]="{ tab: tab.name }"
+    >
+      {{ tab.label }}
+    </a>
+  }
 </nav>
-<mat-tab-nav-panel #tabPanel>
-  <div class="mt-4">
-    <router-outlet></router-outlet>
-  </div>
-</mat-tab-nav-panel>
+<div class="mt-4">
+  <router-outlet></router-outlet>
+</div>
