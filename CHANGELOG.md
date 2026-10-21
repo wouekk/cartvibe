@@ -8,9 +8,6 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
-### Fixed
-- A new image now shows on the next page load: the app shell is sent with `Cache-Control: no-cache`, hashed build files are cached for a year
-
 ## [0.1.0] - 2026-10-21
 
 First CartVibe release: everything the fork has added to the original.
@@ -21,7 +18,7 @@ First CartVibe release: everything the fork has added to the original.
 - Receipt products read by the AI, health and seasonality tags, receipts attached to lists with unplanned spend
 - Shop name and automatic "Done" after an AI read, household currencies with manual exchange rates
 - Admin AI page (Gemini or LM Studio), starter report templates, Logs tab
-- Themes (light, dark, five accents) and the CartVibe identity
+- Themes (light, dark in dark gray, five accents that also color buttons) and the CartVibe identity, loading screen
 
 ### Changed
 - Family-oriented interface: no bill splitting, "To check / Done", Admin and User roles, one Household group,
@@ -29,3 +26,6 @@ First CartVibe release: everything the fork has added to the original.
 
 ### Removed
 - The upstream end-to-end and release workflows that needed the original project's secrets
+
+### Fixed
+- A new image now shows on the next page load: the app shell is sent with `Cache-Control: no-cache`, hashed build files are cached for a year
