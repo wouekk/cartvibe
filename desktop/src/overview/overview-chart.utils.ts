@@ -245,3 +245,20 @@ export function parseInlineGoalInput(text: string): { ok: boolean; value?: strin
 
   return parseGoalInput(trimmed);
 }
+
+/**
+ * How far to push one donut slice out along the line through the middle of its arc (angles run clockwise from 12
+ * o'clock, like ApexCharts). Returns screen offsets in pixels (x to the right, y down); {0, 0} for a bad index or a
+ * donut with nothing in it.
+ */
+export function donutSliceOffset(values: number[], index: number, distance: number): { x: number; y: number } {
+  const total = values.reduce((sum, value) => sum + Math.max(0, value), 0);
+  if (total <= 0 || index < 0 || index >= values.length) {
+    return { x: 0, y: 0 };
+  }
+
+  const before = values.slice(0, index).reduce((sum, value) => sum + Math.max(0, value), 0);
+  const middle = ((before + Math.max(0, values[index]) / 2) / total) * 2 * Math.PI;
+  const round = (value: number) => Math.round(value * 1000) / 1000;
+  return { x: round(Math.sin(middle) * distance), y: round(-Math.cos(middle) * distance) };
+}
