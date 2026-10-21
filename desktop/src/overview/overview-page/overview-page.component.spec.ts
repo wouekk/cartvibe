@@ -1,4 +1,5 @@
 import { HlmCheckboxImports } from "@spartan-ng/helm/checkbox";
+import { DisplayCurrencyPipe } from "../../pipes/display-currency.pipe";
 import { MoneyComponent } from "../../shared-ui/money/money.component";
 import { ShopMonogramComponent } from "../../shared-ui/shop-monogram/shop-monogram.component";
 import { provideHttpClient } from "@angular/common/http";
@@ -90,7 +91,7 @@ describe("OverviewPageComponent", () => {
 
     await TestBed.configureTestingModule({
       declarations: [OverviewPageComponent],
-      imports: [NgxsModule.forRoot([AuthState, FeatureConfigState, GroupState, ShoppingListState, SystemSettingsState]), PipesModule, SharedUiModule, MoneyComponent, ShopMonogramComponent, ...HlmCheckboxImports],
+      imports: [NgxsModule.forRoot([AuthState, FeatureConfigState, GroupState, ShoppingListState, SystemSettingsState]), PipesModule, SharedUiModule, MoneyComponent, ShopMonogramComponent, DisplayCurrencyPipe, ...HlmCheckboxImports],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),

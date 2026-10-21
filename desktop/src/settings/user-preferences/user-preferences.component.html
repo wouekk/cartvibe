@@ -49,6 +49,26 @@
         [readonly]="formConfig.mode | inputReadonly"
       ></app-input>
     </app-form-section>
+    <app-form-section headerText="Dashboard currency">
+      <app-input
+        class="block mb-4"
+        data-testid="display-currency"
+        type="text"
+        label="Show the Dashboard in (currency code)"
+        hint="Three letters, like PLN or USD. Leave empty to see the household currency. Only the Dashboard converts; receipts stay as entered."
+        [inputFormControl]="form | formGet : 'displayCurrency'"
+        [readonly]="formConfig.mode | inputReadonly"
+      ></app-input>
+      <app-input
+        class="block mb-4"
+        data-testid="display-currency-rate"
+        type="text"
+        [label]="rateLabel()"
+        hint="Your own rate: 4,25 means 1 household unit is 4,25 of your currency."
+        [inputFormControl]="form | formGet : 'displayCurrencyRate'"
+        [readonly]="formConfig.mode | inputReadonly"
+      ></app-input>
+    </app-form-section>
     <app-form-section headerText="Selection preferences">
       <app-checkbox
         class="block mb-4"

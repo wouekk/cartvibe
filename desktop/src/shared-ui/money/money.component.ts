@@ -1,6 +1,7 @@
 import { CurrencyPipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, inject, input } from "@angular/core";
 import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
+import { DisplayCurrencyService } from "../../services/display-currency.service";
 import { splitMoney } from "./split-money";
 
 /**
@@ -18,7 +19,14 @@ import { splitMoney } from "./split-money";
 export class MoneyComponent {
   private readonly currency = inject(CustomCurrencyPipe);
 
+  private readonly displayCurrency = inject(DisplayCurrencyService);
+
   public readonly value = input<number | string | null | undefined>(0);
 
-  protected readonly parts = computed(() => splitMoney(String(this.currency.transform(this.value() ?? 0) ?? "")));
+  /** Show the amount in the currency this person chose for the Dashboard instead of the household currency. */
+  public readonly display = input(false);
+
+  protected readonly parts = computed(() =>
+    splitMoney(this.display() ? this.displayCurrency.format(this.value()) : String(this.currency.transform(this.value() ?? 0) ?? ""))
+  );
 }

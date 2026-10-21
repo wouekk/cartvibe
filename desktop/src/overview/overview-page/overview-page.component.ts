@@ -28,6 +28,7 @@ import { todayInZone } from "../../utils/app-time-zone";
 import { hasAll } from "../../utils/permission.utils";
 import { downloadFile } from "../../utils/file";
 import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
+import { DisplayCurrencyService } from "../../services/display-currency.service";
 import { ChartColors } from "../../shared-ui/apex-chart/chart-colors";
 import {
   buildMonthlyCsv,
@@ -316,7 +317,7 @@ export class OverviewPageComponent {
       .map((segment, index) => ({ segment, index }))
       .filter(({ segment }) => !this.isHidden(segment.name));
     const segments = shown.map(({ segment }) => segment);
-    const total = this.customCurrencyPipe.transform(
+    const total = this.displayCurrencyService.format(
       this.hiddenSegments().size > 0 ? segments.reduce((sum, segment) => sum + segment.total, 0) : this.overview()?.total ?? 0
     );
     return {
@@ -336,7 +337,7 @@ export class OverviewPageComponent {
           }
           const color = colors.series[entry.index % colors.series.length];
           return this.tooltipCard(entry.segment.name, [
-            { color, label: "Spent", value: this.customCurrencyPipe.transform(entry.segment.total) },
+            { color, label: "Spent", value: this.displayCurrencyService.format(entry.segment.total) },
             { color, label: "Share", value: entry.segment.share },
           ]);
         },
@@ -363,7 +364,7 @@ export class OverviewPageComponent {
     const bars = this.chartBars();
     const goalMode = this.goalMode();
     const faded = colors.mutedForeground.startsWith("rgb(") ? colors.mutedForeground.replace("rgb(", "rgba(").replace(")", ", 0.35)") : colors.mutedForeground;
-    const money = (value: number) => this.customCurrencyPipe.transform(value);
+    const money = (value: number) => this.displayCurrencyService.format(value);
     return {
       chart: {
         type: "bar",
@@ -614,7 +615,8 @@ export class OverviewPageComponent {
     private matDialog: AppDialog,
     private userPreferencesService: UserPreferencesService,
     private snackbarService: SnackbarService,
-    private customCurrencyPipe: CustomCurrencyPipe
+    private customCurrencyPipe: CustomCurrencyPipe,
+    public readonly displayCurrencyService: DisplayCurrencyService
   ) {
     // Imperative side effect: a goal editor that just opened takes the keyboard, with its text selected.
     effect(() => {
