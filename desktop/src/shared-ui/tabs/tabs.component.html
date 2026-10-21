@@ -1,5 +1,5 @@
 <hlm-tabs [tab]="activeName()" (tabActivated)="activate($event)">
-  <hlm-tabs-list class="max-w-full overflow-x-auto" aria-label="Sections">
+  <hlm-tabs-list class="max-w-full overflow-x-auto" [attr.aria-label]="'Sections' | t">
     @for (tab of tabs(); track tab.name) {
       <button [hlmTabsTrigger]="tab.name">{{ tab.label }}</button>
     }

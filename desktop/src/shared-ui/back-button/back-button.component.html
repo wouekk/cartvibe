@@ -2,7 +2,7 @@
   matButtonType="matRaisedButton"
   icon="arrow_back"
   color="accent"
-  buttonText="Back"
+  [buttonText]="'Back' | t"
   [buttonRouterLink]="buttonRouterLink()"
   [disabled]="disabled()"
   [tooltip]="tooltip ?? 'Back'"

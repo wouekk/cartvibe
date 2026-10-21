@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { FormHeaderComponent } from './form-header.component';
@@ -9,6 +10,7 @@ describe('FormHeaderComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [TranslatePipe],
       declarations: [FormHeaderComponent],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     });

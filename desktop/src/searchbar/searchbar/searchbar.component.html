@@ -6,9 +6,9 @@
   (searchChange)="searchFormControl.setValue($event)"
   (valueChange)="$event && navigateToResult($event)"
 >
-  <hlm-autocomplete-input class="w-full" placeholder="Search receipts" />
+  <hlm-autocomplete-input class="w-full" [placeholder]="'Search receipts' | t" />
   <hlm-autocomplete-content *hlmAutocompletePortal>
-    <hlm-autocomplete-empty>No receipts found.</hlm-autocomplete-empty>
+    <hlm-autocomplete-empty>{{ 'No receipts found.' | t }}</hlm-autocomplete-empty>
     <div hlmAutocompleteList>
       @for (result of results(); track result.id) {
         <hlm-autocomplete-item [value]="result">{{ result | searchResult }}</hlm-autocomplete-item>

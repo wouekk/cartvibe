@@ -28,6 +28,7 @@ import { todayInZone } from "../../utils/app-time-zone";
 import { hasAll } from "../../utils/permission.utils";
 import { downloadFile } from "../../utils/file";
 import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
+import { TranslationService } from "../../i18n/translation.service";
 import { DisplayCurrencyService } from "../../services/display-currency.service";
 import { ChartColors } from "../../shared-ui/apex-chart/chart-colors";
 import {
@@ -95,7 +96,7 @@ export class OverviewPageComponent {
     resolvePeriod("THIS_MONTH", todayInZone(this.store.selectSnapshot(SystemSettingsState.timeZone)))
   );
 
-  public readonly periodLabel = computed(() => this.period()?.label ?? "");
+  public readonly periodLabel = computed(() => this.translation.months(this.period()?.label ?? ""));
 
   private readonly userPreferences = this.store.selectSignal(AuthState.userPreferences);
 
@@ -164,7 +165,7 @@ export class OverviewPageComponent {
 
     const parsed = parseInlineGoalInput(this.goalDraft());
     if (!parsed.ok) {
-      this.snackbarService.error("The monthly spending goal must be an amount above 0, like 1500,00.");
+      this.snackbarService.error(this.translation.t("The monthly spending goal must be an amount above 0, like 1500,00."));
       return;
     }
 
@@ -183,7 +184,7 @@ export class OverviewPageComponent {
         take(1),
         tap((saved) => {
           this.store.dispatch(new SetUserPreferences(saved));
-          this.snackbarService.success(parsed.value ? "Monthly goal saved" : "Monthly goal removed");
+          this.snackbarService.success(this.translation.t(parsed.value ? "Monthly goal saved" : "Monthly goal removed"));
         }),
         catchError(() => of(undefined))
       )
@@ -337,8 +338,8 @@ export class OverviewPageComponent {
           }
           const color = colors.series[entry.index % colors.series.length];
           return this.tooltipCard(entry.segment.name, [
-            { color, label: "Spent", value: this.displayCurrencyService.format(entry.segment.total) },
-            { color, label: "Share", value: entry.segment.share },
+            { color, label: this.translation.t("Spent"), value: this.displayCurrencyService.format(entry.segment.total) },
+            { color, label: this.translation.t("Share of total"), value: entry.segment.share },
           ]);
         },
       },
@@ -405,9 +406,9 @@ export class OverviewPageComponent {
           if (!bar) {
             return "";
           }
-          const rows = [{ color: colors.primary, label: "Spent", value: money(bar.total) }];
+          const rows = [{ color: colors.primary, label: this.translation.t("Spent"), value: money(bar.total) }];
           if (goalMode && (bar.overAmount ?? 0) > 0) {
-            rows.push({ color: colors.destructive, label: "Over goal", value: money(bar.overAmount ?? 0) });
+            rows.push({ color: colors.destructive, label: this.translation.t("Over goal"), value: money(bar.overAmount ?? 0) });
           }
           return this.tooltipCard(bar.shortName, rows);
         },
@@ -616,7 +617,8 @@ export class OverviewPageComponent {
     private userPreferencesService: UserPreferencesService,
     private snackbarService: SnackbarService,
     private customCurrencyPipe: CustomCurrencyPipe,
-    public readonly displayCurrencyService: DisplayCurrencyService
+    public readonly displayCurrencyService: DisplayCurrencyService,
+    public readonly translation: TranslationService
   ) {
     // Imperative side effect: a goal editor that just opened takes the keyboard, with its text selected.
     effect(() => {

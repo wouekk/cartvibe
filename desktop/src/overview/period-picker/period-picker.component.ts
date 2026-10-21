@@ -2,6 +2,7 @@ import { Component, computed, effect, output, signal } from "@angular/core";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { Store } from "@ngxs/store";
 import { FilterTab } from "../../shared-ui/filter-bar/filter-tab.interface";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { SystemSettingsState } from "../../store/system-settings.state";
 import { todayInZone } from "../../utils/app-time-zone";
@@ -24,7 +25,7 @@ import {
   templateUrl: "./period-picker.component.html",
   host: { class: "block min-w-0 max-w-full" },
   standalone: true,
-  imports: [AppIconComponent, SharedUiModule],
+  imports: [AppIconComponent, SharedUiModule, TranslatePipe],
 })
 export class PeriodPickerComponent {
   public readonly periodChange = output<ResolvedPeriod | undefined>();

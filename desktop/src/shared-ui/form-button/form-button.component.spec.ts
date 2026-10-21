@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { FormButtonComponent } from './form-button.component';
@@ -8,6 +9,7 @@ describe('FormButtonComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
+      imports: [TranslatePipe],
       declarations: [ FormButtonComponent ]
     })
     .compileComponents();

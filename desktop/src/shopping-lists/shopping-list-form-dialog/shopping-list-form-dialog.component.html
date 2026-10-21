@@ -1,7 +1,7 @@
 <app-dialog [headerText]="headerText">
   <form [formGroup]="form" (ngSubmit)="submit()">
     <app-input
-      label="Name"
+      [label]="'Name' | t"
       data-testid="shopping-list-name"
       [inputFormControl]="form | formGet : 'name'"
     ></app-input>

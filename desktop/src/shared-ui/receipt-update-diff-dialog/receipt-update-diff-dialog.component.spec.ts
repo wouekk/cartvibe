@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { CommonModule } from "@angular/common";
 import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
@@ -44,7 +45,7 @@ describe("ReceiptUpdateDiffDialogComponent", () => {
     dialogRef = { close: jest.fn() };
     await TestBed.configureTestingModule({
       declarations: [ReceiptUpdateDiffDialogComponent],
-      imports: [AppDatePipe, CommonModule, NgxsModule.forRoot([SystemSettingsState])],
+      imports: [TranslatePipe, AppDatePipe, CommonModule, NgxsModule.forRoot([SystemSettingsState])],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
       providers: [
         provideZonelessChangeDetection(),

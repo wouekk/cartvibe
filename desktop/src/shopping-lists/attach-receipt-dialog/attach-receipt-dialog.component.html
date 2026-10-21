@@ -1,5 +1,5 @@
-<app-dialog headerText="Attach a Receipt">
-  <p class="mb-2 text-muted-foreground">Pick the receipt from this shopping trip. Its products are compared with the list.</p>
+<app-dialog [headerText]="'Attach a Receipt' | t">
+  <p class="mb-2 text-muted-foreground">{{ 'Pick the receipt from this shopping trip. Its products are compared with the list.' | t }}</p>
 
   @if (receipts(); as receipts) {
     <div class="flex max-h-[60vh] flex-col overflow-y-auto" data-testid="attach-receipt-choices">
@@ -16,11 +16,11 @@
           </span>
         </button>
       } @empty {
-        <p class="mb-2 text-muted-foreground" data-testid="attach-receipt-none">No receipts to attach. Add the receipt first.</p>
+        <p class="mb-2 text-muted-foreground" data-testid="attach-receipt-none">{{ 'No receipts to attach. Add the receipt first.' | t }}</p>
       }
     </div>
   } @else {
-    <p class="mb-2 text-muted-foreground">Loading receipts…</p>
+    <p class="mb-2 text-muted-foreground">{{ 'Loading receipts…' | t }}</p>
   }
 
   <div class="mt-2 flex justify-end">

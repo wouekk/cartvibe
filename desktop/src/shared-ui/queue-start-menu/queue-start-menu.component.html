@@ -4,14 +4,14 @@
   [buttonText]="buttonText()"
   [color]="color()"
   [icon]="buttonIcon()"
-  tooltip="Start queue"
+  [tooltip]="'Start queue' | t"
 ></app-button>
 <ng-template #menu>
 <div hlmDropdownMenu class="w-56">
-  <button hlmDropdownMenuItem (click)="initQueue(QueueMode.VIEW)">View Mode</button>
+  <button hlmDropdownMenuItem (click)="initQueue(QueueMode.VIEW)">{{ 'View Mode' | t }}</button>
 
   @if (canEdit) {
-    <button hlmDropdownMenuItem (click)="initQueue(QueueMode.EDIT)">Edit Mode</button>
+    <button hlmDropdownMenuItem (click)="initQueue(QueueMode.EDIT)">{{ 'Edit Mode' | t }}</button>
   }
 </div>
 </ng-template>

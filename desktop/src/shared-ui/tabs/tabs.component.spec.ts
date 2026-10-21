@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ActivatedRoute } from "@angular/router";
@@ -10,6 +11,7 @@ describe("TabsComponent", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [TranslatePipe],
       declarations: [TabsComponent],
             providers: [{
         provide: ActivatedRoute,

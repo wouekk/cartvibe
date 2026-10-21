@@ -8,7 +8,7 @@
     <div class="flex items-center">
       <app-back-button
         color="accent"
-        tooltip="Back"
+        [tooltip]="'Back' | t"
         (clicked)="navigateBack()"
       ></app-back-button>
     </div>

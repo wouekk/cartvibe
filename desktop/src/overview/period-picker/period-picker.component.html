@@ -4,40 +4,40 @@
   </div>
   <div class="period__range flex flex-wrap gap-2" data-testid="overview-custom-range">
     <label class="flex flex-col gap-1 text-xs text-muted-foreground">
-      <span>From</span>
+      <span>{{ 'From' | t }}</span>
       <span class="period__date-field relative inline-flex items-center">
         <input
           hlmInput
           type="text"
           class="w-36 pr-10"
           inputmode="numeric"
-          placeholder="DD/MM/YYYY"
+          [placeholder]="'DD/MM/YYYY' | t"
           maxlength="10"
           data-testid="overview-custom-from"
           [value]="fromText()"
           (input)="typeDay('from', $event)"
         />
-        <button type="button" class="period__picker-button absolute right-0.5 inline-flex size-9 items-center justify-center text-muted-foreground transition-colors hover:text-foreground" aria-label="Pick the first day" data-testid="overview-pick-from" (click)="fromPicker.showPicker()">
+        <button type="button" class="period__picker-button absolute right-0.5 inline-flex size-9 items-center justify-center text-muted-foreground transition-colors hover:text-foreground" [attr.aria-label]="'Pick the first day' | t" data-testid="overview-pick-from" (click)="fromPicker.showPicker()">
           <app-icon name="calendar_month"></app-icon>
         </button>
         <input #fromPicker type="date" class="period__native-picker pointer-events-none absolute bottom-0 right-0 size-px opacity-0" tabindex="-1" aria-hidden="true" (change)="pickDay('from', $event)" />
       </span>
     </label>
     <label class="flex flex-col gap-1 text-xs text-muted-foreground">
-      <span>To</span>
+      <span>{{ 'To' | t }}</span>
       <span class="period__date-field relative inline-flex items-center">
         <input
           hlmInput
           type="text"
           class="w-36 pr-10"
           inputmode="numeric"
-          placeholder="DD/MM/YYYY"
+          [placeholder]="'DD/MM/YYYY' | t"
           maxlength="10"
           data-testid="overview-custom-to"
           [value]="toText()"
           (input)="typeDay('to', $event)"
         />
-        <button type="button" class="period__picker-button absolute right-0.5 inline-flex size-9 items-center justify-center text-muted-foreground transition-colors hover:text-foreground" aria-label="Pick the last day" data-testid="overview-pick-to" (click)="toPicker.showPicker()">
+        <button type="button" class="period__picker-button absolute right-0.5 inline-flex size-9 items-center justify-center text-muted-foreground transition-colors hover:text-foreground" [attr.aria-label]="'Pick the last day' | t" data-testid="overview-pick-to" (click)="toPicker.showPicker()">
           <app-icon name="calendar_month"></app-icon>
         </button>
         <input #toPicker type="date" class="period__native-picker pointer-events-none absolute bottom-0 right-0 size-px opacity-0" tabindex="-1" aria-hidden="true" (change)="pickDay('to', $event)" />

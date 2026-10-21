@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../i18n/translate.pipe";
 import { HlmTabsImports } from "@spartan-ng/helm/tabs";
 import { DragDropModule } from "@angular/cdk/drag-drop";
 import { CommonModule, CurrencyPipe } from "@angular/common";
@@ -119,6 +120,7 @@ import { ImageCanvasComponent } from './image-canvas/image-canvas.component';
   ],
   imports: [
     ...HlmTabsImports,
+    TranslatePipe,
     AutocompleteModule,
     ButtonModule,
     CommonModule,

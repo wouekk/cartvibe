@@ -47,7 +47,7 @@
         data-testid="receipt-update-diff-open"
         icon="open_in_new"
         matButtonType="iconButton"
-        tooltip="View changes"
+        [tooltip]="'View changes' | t"
         (clicked)="openReceiptUpdateDialog(receiptUpdate.snapshots)"
       ></app-button>
     </div>
@@ -57,12 +57,12 @@
         <ng-container
           *ngIf="element.type === SystemTaskType.EmailRead"
         >
-          Captured Metadata:
+          {{ 'Captured Metadata:' | t }}
         </ng-container>
         <ng-container
           *ngIf="element.type === SystemTaskType.EmailUpload || element.type === SystemTaskType.QuickScan"
         >
-          Receipt data from AI:
+          {{ 'Receipt data from AI:' | t }}
         </ng-container>
         <app-pretty-json
           [json]="element.resultDescription"
@@ -73,7 +73,7 @@
         *ngIf="(element.resultDescription?.length || 0) > descriptionInlineMaxLength"
         icon="open_in_new"
         matButtonType="iconButton"
-        tooltip="View full description"
+        [tooltip]="'View full description' | t"
         (clicked)="openDescriptionDialog(element)"
       ></app-button>
     </div>
@@ -88,14 +88,14 @@
       <app-button
         icon="visibility"
         matButtonType="iconButton"
-        tooltip="Preview source file"
+        [tooltip]="'Preview source file' | t"
         data-testid="system-task-source-file-preview"
         (clicked)="openSourceFileDialog(element)"
       ></app-button>
       <app-button
         icon="download"
         matButtonType="iconButton"
-        tooltip="Download source file"
+        [tooltip]="'Download source file' | t"
         data-testid="system-task-source-file-download"
         (clicked)="downloadSourceFile(element)"
       ></app-button>

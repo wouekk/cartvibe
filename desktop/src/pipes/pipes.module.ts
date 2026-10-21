@@ -11,6 +11,7 @@ import { ImagePipe } from "./image.pipe";
 import { InputReadonlyPipe } from "./input-readonly.pipe";
 import { MapGetPipe } from "./map-get.pipe";
 import { MapKeyPipe } from "./map-key.pipe";
+import { TranslatePipe } from "../i18n/translate.pipe";
 import { NamePipe } from "./name.pipe";
 import { RoleNamePipe } from "./role-name.pipe";
 import { StatusPipe } from "./status.pipe";
@@ -33,8 +34,9 @@ import { UserPipe } from "./user.pipe";
     StatusPipe,
     UserPipe,
   ],
-  imports: [CommonModule, AppDatePipe],
+  imports: [CommonModule, AppDatePipe, TranslatePipe],
   exports: [
+    TranslatePipe,
     AppDatePipe,
     CustomCurrencyPipe,
     CustomFieldTypePipe,

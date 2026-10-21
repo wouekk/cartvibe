@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -15,7 +16,7 @@ describe('GroupAutocompleteComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       declarations: [GroupAutocompleteComponent],
-      imports: [NgxsModule.forRoot([GroupState])],
+      imports: [TranslatePipe, NgxsModule.forRoot([GroupState])],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),

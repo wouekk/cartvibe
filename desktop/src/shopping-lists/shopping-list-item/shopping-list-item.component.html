@@ -27,7 +27,7 @@
       type="button"
       class="shrink-0"
       data-testid="shopping-list-item-menu"
-      aria-label="Item actions"
+      [attr.aria-label]="'Item actions' | t"
       [hlmDropdownMenuTrigger]="itemMenu" align="end"
     >
       <app-icon name="more_vert"></app-icon>
@@ -36,15 +36,15 @@
 <div hlmDropdownMenu class="w-56">
       <button hlmDropdownMenuItem data-testid="shopping-list-item-edit" (click)="editClicked.emit(item())">
         <app-icon name="edit"></app-icon>
-        <span>Edit</span>
+        <span>{{ 'Edit' | t }}</span>
       </button>
       <button hlmDropdownMenuItem data-testid="shopping-list-item-tags" [hlmDropdownMenuSubTrigger]="tagsMenu">
         <app-icon name="sell"></app-icon>
-        <span>Correct tags</span>
+        <span>{{ 'Correct tags' | t }}</span>
       </button>
       <button hlmDropdownMenuItem data-testid="shopping-list-item-delete" (click)="deleteClicked.emit(item())">
         <app-icon name="delete"></app-icon>
-        <span>Delete</span>
+        <span>{{ 'Delete' | t }}</span>
       </button>
     </div>
 </ng-template>

@@ -33,7 +33,7 @@
         <app-button
           matButtonType="iconButton"
           icon="notifications"
-          tooltip="Notifications"
+          [tooltip]="'Notifications' | t"
           [matBadgeContent]="notificationCount()"
           (clicked)="notificationsOpen.set(!notificationsOpen())"
         ></app-button>
@@ -56,7 +56,7 @@
   </div>
 }
 @if (showProgressBar()) {
-  <div class="app-progress-indeterminate" role="progressbar" aria-label="Working"></div>
+  <div class="app-progress-indeterminate" role="progressbar" [attr.aria-label]="'Working' | t"></div>
 }
 
 <ng-template

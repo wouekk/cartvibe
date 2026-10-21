@@ -1,6 +1,6 @@
 <div class="mx-auto max-w-3xl px-2 pb-8">
   <app-table-header
-    headerText="Shopping Lists"
+    [headerText]="'Shopping Lists' | t"
     [subtitle]="groupName() ? 'Shared with everyone in ' + groupName() + '. Changes appear live on every device.' : ''"
   ></app-table-header>
 
@@ -15,13 +15,13 @@
           (click)="announceGoingShopping()"
         >
           <app-icon name="shopping_cart"></app-icon>
-          Going shopping
+          {{ 'Going shopping' | t }}
         </button>
       }
       @if (canCreate()) {
         <app-add-button
-          buttonText="Add List"
-          tooltip="Add a shopping list"
+          [buttonText]="'Add List' | t"
+          [tooltip]="'Add a shopping list' | t"
           data-testid="shopping-list-add"
           (clicked)="addList()"
         ></app-add-button>
@@ -32,7 +32,7 @@
             hlmBtn variant="ghost" size="icon"
             type="button"
             data-testid="shopping-list-menu"
-            aria-label="List actions"
+            [attr.aria-label]="'List actions' | t"
             [hlmDropdownMenuTrigger]="listMenu" align="end"
           >
             <app-icon name="more_vert"></app-icon>
@@ -42,19 +42,19 @@
             @if (canUpdate()) {
               <button hlmDropdownMenuItem data-testid="shopping-list-rename" (click)="renameList(list)">
                 <app-icon name="edit"></app-icon>
-                <span>Rename list</span>
+                <span>{{ 'Rename list' | t }}</span>
               </button>
             }
             @if (canCreate() && canUpdate() && list.items.length > 0) {
               <button hlmDropdownMenuItem data-testid="shopping-list-copy" (click)="copyList(list)">
                 <app-icon name="content_copy"></app-icon>
-                <span>Start a new list from this</span>
+                <span>{{ 'Start a new list from this' | t }}</span>
               </button>
             }
             @if (canDelete()) {
               <button hlmDropdownMenuItem data-testid="shopping-list-delete" (click)="deleteList(list)">
                 <app-icon name="delete"></app-icon>
-                <span>Delete list</span>
+                <span>{{ 'Delete list' | t }}</span>
               </button>
             }
           </div>
@@ -106,7 +106,7 @@
 
   @if (pastLists().length > 0) {
     <div class="mb-2 flex flex-wrap items-center gap-1" data-testid="shopping-list-past">
-      <span class="text-sm text-muted-foreground">Past lists</span>
+      <span class="text-sm text-muted-foreground">{{ 'Past lists' | t }}</span>
       @for (past of pastLists(); track past.id) {
         <button
           type="button"

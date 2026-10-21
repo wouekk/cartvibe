@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
@@ -15,7 +16,7 @@ describe("NotificationsListComponent", () => {
     TestBed.configureTestingModule({
     declarations: [NotificationsListComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [ApiModule],
+    imports: [TranslatePipe, ApiModule],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 });
 

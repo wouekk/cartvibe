@@ -28,7 +28,7 @@
       </div>
       <div *ngIf="editingIndex === index" class="flex ms-2 w-1/4">
         <app-submit-button
-          tooltip="Done"
+          [tooltip]="'Done' | t"
           [onlyIcon]="true"
           [type]="'button'"
           (clicked)="onDoneButtonClicked(index)"

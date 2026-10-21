@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal } from "@angular/core";
@@ -44,7 +45,7 @@ describe("HeaderComponent", () => {
 
     await TestBed.configureTestingModule({
     declarations: [HeaderComponent],
-    imports: [ApiModule,
+    imports: [TranslatePipe, ApiModule,
         DirectivesModule,
         OverlayModule,
         StoreModule,

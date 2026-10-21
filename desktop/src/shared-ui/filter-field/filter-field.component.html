@@ -23,7 +23,7 @@
           </app-datepicker>
         </div>
         <span class="between-separator">
-          and
+          {{ 'and' | t }}
         </span>
         <div class="w-1/2">
           <app-input
@@ -43,7 +43,7 @@
 
       <div class="ms-2 w-1/2">
         <app-select
-          label="Operation"
+          [label]="'Operation' | t"
           [inputFormControl]="parentForm() | formGet : basePath() + fieldName() + '.operation'"
           [options]="type() | operations: false"
           [optionsDisplayArray]="type() | operations: true"
@@ -63,7 +63,7 @@
           </app-datepicker>
         </div>
         <span class="between-separator">
-          and
+          {{ 'and' | t }}
         </span>
         <div class="w-1/2">
           <app-datepicker
@@ -77,7 +77,7 @@
 
       <div class="ms-2 w-1/2">
         <app-select
-          label="Operation"
+          [label]="'Operation' | t"
           [inputFormControl]="parentForm() | formGet : basePath() + fieldName() + '.operation'"
           [options]="type() | operations: false"
           [optionsDisplayArray]="type() | operations: true"
@@ -122,7 +122,7 @@
     </app-autocomlete>
     <app-select
       class="ms-2 w-1/2"
-      label="Operation"
+      [label]="'Operation' | t"
       [inputFormControl]="parentForm() | formGet : basePath() + fieldName() + '.operation'"
       [options]="type() | operations: false"
       [optionsDisplayArray]="type() | operations: true"

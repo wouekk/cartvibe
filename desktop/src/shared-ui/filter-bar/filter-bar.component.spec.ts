@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppIconComponent } from "../icon/icon.component";
@@ -18,7 +19,7 @@ describe("FilterBarComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [FilterBarComponent],
-      imports: [AppIconComponent, ...HlmTabsImports],
+      imports: [AppIconComponent, TranslatePipe, ...HlmTabsImports],
       providers: [provideZonelessChangeDetection()],
     }).compileComponents();
 
