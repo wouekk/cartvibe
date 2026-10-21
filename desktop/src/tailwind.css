@@ -66,3 +66,16 @@ app-icon {
   height: 1em;
   line-height: 1;
 }
+
+/* Dialogs (src/dialog/app-dialog.ts): the popover surface of the theme, over a dimmed, softly blurred page. */
+.app-dialog-backdrop {
+  @apply bg-black/60 backdrop-blur-[2px] animate-in fade-in-0 duration-150;
+}
+
+.app-dialog-panel {
+  @apply overflow-hidden rounded-xl bg-popover text-popover-foreground shadow-2xl ring-1 ring-foreground/10 animate-in fade-in-0 zoom-in-95 duration-150;
+}
+
+.app-dialog-panel > .cdk-dialog-container {
+  @apply block max-h-[inherit] overflow-y-auto outline-none;
+}

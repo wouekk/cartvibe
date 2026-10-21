@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { MatDialogRef } from "@angular/material/dialog";
+import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
 import { ShoppingListItem, ShoppingListService } from "../../open-api";
@@ -23,7 +23,7 @@ export class ShoppingListItemFormDialogComponent implements OnInit {
 
   constructor(
     private formBuilder: FormBuilder,
-    private matDialogRef: MatDialogRef<ShoppingListItemFormDialogComponent, ShoppingListItem>,
+    private matDialogRef: AppDialogRef<ShoppingListItemFormDialogComponent, ShoppingListItem>,
     private shoppingListService: ShoppingListService,
     private store: Store
   ) {}

@@ -1,7 +1,7 @@
 import { Component, ElementRef, EmbeddedViewRef, HostListener, inject, Injector, OnInit, Signal, TemplateRef, computed, runInInjectionContext, signal, viewChild } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { MatDialog, MatDialogRef } from "@angular/material/dialog";
+import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
 import { MatExpansionPanel } from "@angular/material/expansion";
 import { ToastRef } from "../../toast/toast.service";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -46,7 +46,6 @@ import { missingReceiptRequirementsMessage, receiptRequirementsFor } from "../..
 import { ItemListComponent } from "../item-list/item-list.component";
 import { ReceiptCommentsComponent } from "../receipt-comments/receipt-comments.component";
 import { ShareListComponent } from "../share-list/share-list.component";
-
 
 import { UploadImageComponent } from "../upload-image/upload-image.component";
 import { buildItemForm } from "../utils/form.utils";
@@ -200,7 +199,7 @@ export class ReceiptFormComponent implements OnInit {
 
   public receiptStatusOptions = RECEIPT_STATUS_OPTIONS;
 
-  private expandedImageDialog?: MatDialogRef<unknown>;
+  private expandedImageDialog?: AppDialogRef<unknown>;
 
   /** 0 when the carousel is not rendered, i.e. while images are hidden. */
   public get currentImageIndex(): number {
@@ -233,7 +232,7 @@ export class ReceiptFormComponent implements OnInit {
     private activatedRoute: ActivatedRoute,
     private customFieldTypePipe: CustomFieldTypePipe,
     private formBuilder: FormBuilder,
-    private matDialog: MatDialog,
+    private matDialog: AppDialog,
     private receiptImageService: ReceiptImageService,
     private receiptQueueService: ReceiptQueueService,
     private receiptService: ReceiptService,

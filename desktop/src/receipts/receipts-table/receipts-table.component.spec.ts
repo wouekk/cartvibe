@@ -3,7 +3,7 @@ import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection } from "@angular
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { MatChipsModule } from "@angular/material/chips";
-import { MatDialog, MatDialogModule } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { MatMenuModule } from "@angular/material/menu";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { ActivatedRoute, provideRouter, Router } from "@angular/router";
@@ -40,7 +40,6 @@ describe("ReceiptsTableComponent", () => {
         NgxsModule.forRoot([ReceiptTableState, AuthState, GroupState, UserState]),
         ReactiveFormsModule,
         MatTooltipModule,
-        MatDialogModule,
         MatMenuModule,
         MatChipsModule,
         MonthStepperComponent,
@@ -548,7 +547,7 @@ describe("ReceiptsTableComponent", () => {
     let router: Router;
 
     const stubDialog = (confirmed: boolean | undefined) =>
-      jest.spyOn(TestBed.inject(MatDialog), "open").mockReturnValue({
+      jest.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({
         componentInstance: {},
         afterClosed: () => of(confirmed),
       } as any);
@@ -635,7 +634,6 @@ describe("ReceiptsTableComponent receipt summary", () => {
         NgxsModule.forRoot([ReceiptTableState, AuthState, GroupState, UserState]),
         ReactiveFormsModule,
         MatTooltipModule,
-        MatDialogModule,
         MatMenuModule,
         MatChipsModule,
         MonthStepperComponent,

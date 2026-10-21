@@ -3,7 +3,7 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
-import { MatDialogModule, MatDialogRef } from "@angular/material/dialog";
+import { AppDialogRef } from "../../dialog/app-dialog";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { of } from "rxjs";
 import { FormMode } from "../../enums/form-mode.enum";
@@ -19,13 +19,12 @@ describe("CustomFieldFormComponent", () => {
   let fixture: ComponentFixture<CustomFieldFormComponent>;
   let customFieldService: CustomFieldService;
   let snackbarService: SnackbarService;
-  let matDialogRef: MatDialogRef<CustomFieldFormComponent>;
+  let matDialogRef: AppDialogRef<CustomFieldFormComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [CustomFieldFormComponent],
       imports: [
-        MatDialogModule,
         NoopAnimationsModule,
         PipesModule,
         ReactiveFormsModule,
@@ -33,7 +32,7 @@ describe("CustomFieldFormComponent", () => {
       ],
       providers: [
         {
-          provide: MatDialogRef,
+          provide: AppDialogRef,
           useValue: {
             close: jest.fn()
           }
@@ -61,7 +60,7 @@ describe("CustomFieldFormComponent", () => {
     component = fixture.componentInstance;
     customFieldService = TestBed.inject(CustomFieldService);
     snackbarService = TestBed.inject(SnackbarService);
-    matDialogRef = TestBed.inject(MatDialogRef);
+    matDialogRef = TestBed.inject(AppDialogRef);
 
     fixture.detectChanges();
   });

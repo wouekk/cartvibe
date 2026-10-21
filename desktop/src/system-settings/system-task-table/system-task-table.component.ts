@@ -1,6 +1,6 @@
 import { DatePipe } from "@angular/common";
 import { Component, OnInit, TemplateRef, computed, viewChild } from "@angular/core";
-import { MatDialog } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { ActivatedRoute } from "@angular/router";
 import { UntilDestroy } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
@@ -71,7 +71,7 @@ export class SystemTaskTableComponent implements OnInit {
   constructor(
     private activatedRoute: ActivatedRoute,
     private store: Store,
-    private matDialog: MatDialog,
+    private matDialog: AppDialog,
     private datePipe: DatePipe
   ) {}
 

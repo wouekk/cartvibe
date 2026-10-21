@@ -2,7 +2,7 @@ import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http"
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { MatDialogModule } from "@angular/material/dialog";
+
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { provideRouter } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
@@ -30,7 +30,6 @@ describe("ApiKeyTableComponent", () => {
         SharedUiModule,
         NgxsModule.forRoot([AuthState, ApiKeyTableState]),
         TableModule,
-        MatDialogModule,
         NoopAnimationsModule,
       ],
       providers: [

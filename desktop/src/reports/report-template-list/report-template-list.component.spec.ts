@@ -1,7 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal, WritableSignal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { MatDialog } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { of, Subject, throwError } from "rxjs";
@@ -104,7 +104,7 @@ describe("ReportTemplateListComponent", () => {
         { provide: Store, useValue: store },
         { provide: Router, useValue: router },
         { provide: SnackbarService, useValue: snackbar },
-        { provide: MatDialog, useValue: matDialog },
+        { provide: AppDialog, useValue: matDialog },
         // The Grouping/Detail columns name custom fields out of this pool.
         {
           provide: CustomFieldService,

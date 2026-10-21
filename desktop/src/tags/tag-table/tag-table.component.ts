@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild } from "@angular/core";
-import { MatDialog } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent } from "@angular/material/paginator";
 import { Sort } from "@angular/material/sort";
 import { MatTableDataSource } from "@angular/material/table";
@@ -37,7 +37,7 @@ export class TagTableComponent implements OnInit, AfterViewInit {
   protected readonly Permission = Permission;
 
   constructor(
-    private matDialog: MatDialog,
+    private matDialog: AppDialog,
     private snackbarService: SnackbarService,
     private store: Store,
     private tagService: TagService

@@ -1,7 +1,7 @@
 import { Component, DestroyRef, OnInit, computed, effect, inject, signal } from "@angular/core";
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { FormGroup } from "@angular/forms";
-import { MatDialog, MatDialogRef } from "@angular/material/dialog";
+import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { catchError, forkJoin, of, startWith, take, tap } from "rxjs";
 import {
@@ -79,9 +79,9 @@ export class GroupMemberFormComponent implements OnInit {
   );
 
   constructor(
-    private matDialogRef: MatDialogRef<GroupMemberFormComponent>,
+    private matDialogRef: AppDialogRef<GroupMemberFormComponent>,
     private store: Store,
-    private matDialog: MatDialog,
+    private matDialog: AppDialog,
     private destroyRef: DestroyRef,
     private categoryService: CategoryService,
     private tagService: TagService,

@@ -2,7 +2,7 @@ import { provideHttpClient } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { MatDialog } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { ActivatedRoute, convertToParamMap, provideRouter } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { BehaviorSubject, of } from "rxjs";
@@ -161,7 +161,7 @@ describe("OverviewPageComponent", () => {
   });
 
   it("opens the products behind the Unhealthy and Unplanned tiles for the period", () => {
-    const open = jest.spyOn(TestBed.inject(MatDialog), "open").mockReturnValue({} as never);
+    const open = jest.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({} as never);
     const { from, to } = thisMonth();
 
     component.openProducts("UNPLANNED");
@@ -171,7 +171,7 @@ describe("OverviewPageComponent", () => {
   });
 
   it("does not open the folded Other slice", () => {
-    const open = jest.spyOn(TestBed.inject(MatDialog), "open").mockReturnValue({} as never);
+    const open = jest.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({} as never);
     const segment = { name: "Other", total: 1, share: "1%", color: "", dashArray: "", dashOffset: 0 };
 
     expect(component.isOpenable(segment)).toBe(false);
@@ -181,7 +181,7 @@ describe("OverviewPageComponent", () => {
   });
 
   it("opens the products of a food group, and Uncategorized as the empty group", () => {
-    const open = jest.spyOn(TestBed.inject(MatDialog), "open").mockReturnValue({} as never);
+    const open = jest.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({} as never);
     const segment = (name: string) => ({ name, total: 1, share: "1%", color: "", dashArray: "", dashOffset: 0 });
 
     component.openCategory(segment("Dairy"));

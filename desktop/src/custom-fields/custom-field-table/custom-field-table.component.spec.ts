@@ -2,7 +2,7 @@ import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http"
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { MatDialog, MatDialogModule } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { MatTableDataSource } from "@angular/material/table";
 import { By } from "@angular/platform-browser";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
@@ -60,7 +60,6 @@ describe("CustomFieldTableComponent", () => {
         ApiModule,
         ButtonModule,
         DirectivesModule,
-        MatDialogModule,
         NgxsModule.forRoot([AuthState, CustomFieldTableState]),
         NoopAnimationsModule,
         PipesModule,
@@ -130,7 +129,7 @@ describe("CustomFieldTableComponent", () => {
       mode?: FormMode
     ) => {
       const componentInstance: any = {};
-      const matDialog = TestBed.inject(MatDialog);
+      const matDialog = TestBed.inject(AppDialog);
       jest.spyOn(matDialog, "open").mockReturnValue({
         componentInstance,
         afterClosed: () => of(false),

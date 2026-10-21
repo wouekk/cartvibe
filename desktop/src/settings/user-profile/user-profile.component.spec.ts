@@ -2,7 +2,7 @@ import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http"
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
-import { MatDialog, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
+import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
 import { ActivatedRoute, Router } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of, throwError } from "rxjs";
@@ -36,7 +36,6 @@ describe("UserProfileComponent", () => {
     imports: [ApiModule,
         DirectivesModule,
         PipesModule,
-        MatDialogModule,
         NgxsModule.forRoot([AuthState, FeatureConfigState, UserState]),
         PipesModule,
         ReactiveFormsModule],
@@ -153,7 +152,7 @@ describe("UserProfileComponent", () => {
   });
 
   it("should open delete account dialog when deleteAccount is called", () => {
-    const matDialog = TestBed.inject(MatDialog);
+    const matDialog = TestBed.inject(AppDialog);
     const dialogRefMock = {
       afterClosed: () => of(false),
       componentInstance: {},
@@ -172,7 +171,7 @@ describe("UserProfileComponent", () => {
   });
 
   it("should delete account, dispatch logout, and navigate on confirmation", () => {
-    const matDialog = TestBed.inject(MatDialog);
+    const matDialog = TestBed.inject(AppDialog);
     const store = TestBed.inject(Store);
     const router = TestBed.inject(Router);
     const userService = TestBed.inject(UserService);
@@ -195,7 +194,7 @@ describe("UserProfileComponent", () => {
   });
 
   it("should re-open dialog when deleteAccount returns 401", () => {
-    const matDialog = TestBed.inject(MatDialog);
+    const matDialog = TestBed.inject(AppDialog);
     const store = TestBed.inject(Store);
     const userService = TestBed.inject(UserService);
 
@@ -223,7 +222,7 @@ describe("UserProfileComponent", () => {
   });
 
   it("keeps the password dialog for an account whose connections were linked, not provisioned", () => {
-    const matDialog = TestBed.inject(MatDialog);
+    const matDialog = TestBed.inject(AppDialog);
     const userService = TestBed.inject(UserService);
     const store = TestBed.inject(Store);
     component.connections.set([connection({ provisionedUser: false })]);
@@ -243,7 +242,7 @@ describe("UserProfileComponent", () => {
   });
 
   it("offers a passwordless account its providers and navigates to the chosen one", () => {
-    const matDialog = TestBed.inject(MatDialog);
+    const matDialog = TestBed.inject(AppDialog);
     const userService = TestBed.inject(UserService);
     component.connections.set([
       connection({ providerName: "my idp", providerDisplayName: "My IdP" }),
@@ -384,7 +383,7 @@ describe("UserProfileComponent", () => {
   });
 
   it("should not call deleteAccount API when dialog is cancelled", () => {
-    const matDialog = TestBed.inject(MatDialog);
+    const matDialog = TestBed.inject(AppDialog);
     const userService = TestBed.inject(UserService);
 
     const dialogRefMock = {

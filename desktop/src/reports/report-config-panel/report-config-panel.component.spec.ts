@@ -1,7 +1,7 @@
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormArray, FormBuilder, FormGroup } from "@angular/forms";
-import { MatDialog } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { RECEIPT_DATE_FILTER_FIELDS } from "src/constants";
@@ -70,7 +70,7 @@ describe("ReportConfigPanelComponent", () => {
               signal(selector === SystemSettingsState.timeZone ? "America/New_York" : GROUPS),
           },
         },
-        { provide: MatDialog, useValue: dialog },
+        { provide: AppDialog, useValue: dialog },
         { provide: CustomFieldService, useValue: customFieldService },
       ],
       schemas: [NO_ERRORS_SCHEMA],

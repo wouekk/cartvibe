@@ -2,7 +2,7 @@ import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http"
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { MatDialog, MatDialogModule } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent } from "@angular/material/paginator";
 import { Sort } from "@angular/material/sort";
 import { MatTableDataSource } from "@angular/material/table";
@@ -25,7 +25,6 @@ describe("UserListComponent", () => {
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
         DirectivesModule,
-        MatDialogModule,
         NgxsModule.forRoot([AuthState, UserTableState]),
         TableModule],
     providers: [provideZonelessChangeDetection(), provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
@@ -105,7 +104,7 @@ describe("UserListComponent", () => {
     );
 
     jest
-      .spyOn(TestBed.inject(MatDialog), "open")
+      .spyOn(TestBed.inject(AppDialog), "open")
       .mockReturnValue({ afterClosed: () => of(true), componentInstance: {} } as any);
 
     component.deleteUser(0);

@@ -2,7 +2,7 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
-import { MatDialogModule, MatDialogRef, } from "@angular/material/dialog";
+import { AppDialogRef } from "../../dialog/app-dialog";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { of } from "rxjs";
 import { DuplicateValidator } from "src/validators/duplicate-validator";
@@ -20,14 +20,13 @@ describe("CategoryForm", () => {
     declarations: [CategoryForm],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
-        MatDialogModule,
         PipesModule,
         ReactiveFormsModule,
         NoopAnimationsModule],
     providers: [
         DuplicateValidator,
         {
-            provide: MatDialogRef,
+            provide: AppDialogRef,
             useValue: {
                 close: () => { },
             },

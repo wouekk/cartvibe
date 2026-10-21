@@ -2,7 +2,7 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
-import { MatDialogModule, MatDialogRef } from "@angular/material/dialog";
+import { AppDialogRef } from "../../dialog/app-dialog";
 import { NgxsModule } from "@ngxs/store";
 import { PipesModule } from "src/pipes/pipes.module";
 import { ApiModule } from "../../open-api";
@@ -19,11 +19,10 @@ describe("ResetPasswordComponent", () => {
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
         PipesModule,
-        MatDialogModule,
         NgxsModule.forRoot([]),
         PipesModule,
         ReactiveFormsModule],
-    providers: [{ provide: MatDialogRef, useValue: {} }, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+    providers: [{ provide: AppDialogRef, useValue: {} }, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 }).compileComponents();
 
     fixture = TestBed.createComponent(ResetPasswordComponent);

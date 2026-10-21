@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { MatDialogRef } from "@angular/material/dialog";
+import { AppDialogRef } from "../../dialog/app-dialog";
 import { take, tap } from "rxjs";
 import { DuplicateValidator } from "src/validators/duplicate-validator";
 import { TagService, TagView, UpsertTagCommand } from "../../open-api";
@@ -22,7 +22,7 @@ export class TagFormComponent implements OnInit {
 
   constructor(
     private formBuilder: FormBuilder,
-    private matDialogRef: MatDialogRef<TagFormComponent>,
+    private matDialogRef: AppDialogRef<TagFormComponent>,
     private categoryService: TagService,
     private snackService: SnackbarService,
     private duplicateValidator: DuplicateValidator

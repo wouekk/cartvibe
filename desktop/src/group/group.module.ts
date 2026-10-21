@@ -2,7 +2,7 @@ import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 import { MatCardModule } from "@angular/material/card";
-import { MatDialogModule } from "@angular/material/dialog";
+
 import { MatListModule } from "@angular/material/list";
 import { MatTableModule } from "@angular/material/table";
 import { CheckboxModule } from "src/checkbox/checkbox.module";
@@ -47,7 +47,6 @@ import { ReceiptProductBackfillComponent } from "../standalone/components/receip
     GroupRoutingModule,
     InputModule,
     MatCardModule,
-    MatDialogModule,
     MatListModule,
     MatTableModule,
     PipesModule,

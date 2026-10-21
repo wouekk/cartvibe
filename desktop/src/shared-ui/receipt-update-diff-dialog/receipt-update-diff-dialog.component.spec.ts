@@ -1,7 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 import { NgxsModule } from "@ngxs/store";
 import { AppDatePipe } from "../../pipes/app-date.pipe";
 import { SystemSettingsState } from "../../store/system-settings.state";
@@ -48,8 +48,8 @@ describe("ReceiptUpdateDiffDialogComponent", () => {
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
       providers: [
         provideZonelessChangeDetection(),
-        { provide: MatDialogRef, useValue: dialogRef },
-        { provide: MAT_DIALOG_DATA, useValue: { snapshots } satisfies ReceiptUpdateDiffDialogData },
+        { provide: AppDialogRef, useValue: dialogRef },
+        { provide: APP_DIALOG_DATA, useValue: { snapshots } satisfies ReceiptUpdateDiffDialogData },
       ],
     }).compileComponents();
 

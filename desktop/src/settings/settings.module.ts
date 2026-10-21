@@ -2,7 +2,7 @@ import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
-import { MatDialogModule } from "@angular/material/dialog";
+
 import { MatListModule } from "@angular/material/list";
 import { MatTabsModule } from "@angular/material/tabs";
 import { MatTooltipModule } from "@angular/material/tooltip";
@@ -48,7 +48,6 @@ import { UserShortcutComponent } from './user-shortcut/user-shortcut.component';
     CommonModule,
     DirectivesModule,
     InputModule,
-    MatDialogModule,
     AppIconComponent,
     MatListModule,
     MatTabsModule,

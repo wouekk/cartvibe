@@ -1,6 +1,6 @@
 import { CurrencyPipe, DatePipe } from "@angular/common";
 import { AfterViewInit, Component, computed, inject, OnInit, signal, TemplateRef, ViewEncapsulation, viewChild } from "@angular/core";
-import { MatDialog } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent } from "@angular/material/paginator";
 import { Sort } from "@angular/material/sort";
 import { MatTableDataSource } from "@angular/material/table";
@@ -86,7 +86,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   constructor(
     private activatedRoute: ActivatedRoute,
     private groupsService: GroupsService,
-    private matDialog: MatDialog,
+    private matDialog: AppDialog,
     private receiptExportService: ReceiptExportService,
     private receiptFilterService: ReceiptFilterService,
     private receiptService: ReceiptService,
@@ -100,12 +100,10 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     this.listenForSummaryRequests();
   }
 
-
   readonly dateCell = viewChild.required<TemplateRef<any>>("dateCell");
 
   readonly shopCell = viewChild.required<TemplateRef<any>>("shopCell");
   readonly addedByCell = viewChild.required<TemplateRef<any>>("addedByCell");
-
 
   readonly amountCell = viewChild.required<TemplateRef<any>>("amountCell");
 

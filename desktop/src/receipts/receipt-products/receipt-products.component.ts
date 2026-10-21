@@ -4,7 +4,7 @@ import { Component, computed, DestroyRef, effect, inject, input, signal, untrack
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { MatButtonModule } from "@angular/material/button";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
-import { MatDialog } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { MatMenuModule } from "@angular/material/menu";
 import { Store } from "@ngxs/store";
 import { catchError, EMPTY, filter, Subscription, switchMap, take, timer } from "rxjs";
@@ -79,7 +79,6 @@ export class ReceiptProductsComponent {
     return (status === "DONE" || status === "FAILED" || status === "UNAVAILABLE") && this.canUpdate();
   });
 
-
   /** The product row being edited in place, if any (Phase 3 C5). */
   public readonly editingId = signal<number | null>(null);
 
@@ -100,7 +99,7 @@ export class ReceiptProductsComponent {
 
   public readonly saving = signal(false);
 
-  private readonly matDialog = inject(MatDialog);
+  private readonly matDialog = inject(AppDialog);
 
   public setValue(target: WritableSignal<string>, event: Event): void {
     target.set((event.target as HTMLInputElement).value);

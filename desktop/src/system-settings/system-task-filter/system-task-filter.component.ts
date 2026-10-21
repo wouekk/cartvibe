@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, computed, output } from "@angular/core";
 import { FormGroup } from "@angular/forms";
-import { MatDialogRef } from "@angular/material/dialog";
+import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import {
   SYSTEM_RAN_BY_OPTION_DISPLAY_VALUE,
@@ -49,7 +49,7 @@ export class SystemTaskFilterComponent implements OnInit {
 
   constructor(
     private store: Store,
-    private dialogRef: MatDialogRef<SystemTaskFilterComponent>
+    private dialogRef: AppDialogRef<SystemTaskFilterComponent>
   ) {}
 
   public ngOnInit(): void {

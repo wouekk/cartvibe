@@ -1,6 +1,6 @@
 import { Component, OnInit } from "@angular/core";
 import { FormBuilder } from "@angular/forms";
-import { MatDialogRef } from "@angular/material/dialog";
+import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { BaseFormComponent } from "../../form";
 import { GroupTableState } from "../../store/group-table.state";
@@ -15,7 +15,7 @@ import { associatedGroupOptions } from "./associated-group-options";
 })
 export class GroupTableFilterComponent extends BaseFormComponent implements OnInit {
   constructor(
-    private dialogRef: MatDialogRef<GroupTableFilterComponent>,
+    private dialogRef: AppDialogRef<GroupTableFilterComponent>,
     private formBuilder: FormBuilder,
     private store: Store
   ) {

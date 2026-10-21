@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from "@angular/core";
 import { FormGroup } from "@angular/forms";
-import { MatDialog } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { DomSanitizer, SafeHtml } from "@angular/platform-browser";
 import { DEFAULT_DIALOG_CONFIG } from "src/constants/dialog.constant";
 import {
@@ -31,7 +31,7 @@ export class ReportPreviewPanelComponent {
   public readonly ready = input<boolean>(false);
 
   private readonly sanitizer = inject(DomSanitizer);
-  private readonly dialog = inject(MatDialog);
+  private readonly dialog = inject(AppDialog);
 
   public readonly frameHeight = signal<number>(560);
   public readonly safeHtml = computed<SafeHtml>(() =>

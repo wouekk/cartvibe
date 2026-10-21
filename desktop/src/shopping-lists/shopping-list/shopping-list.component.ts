@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from "@angular/common/http";
 import { Component, ElementRef, inject, input, signal } from "@angular/core";
 import { FormBuilder, FormGroup } from "@angular/forms";
-import { MatDialog } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { filter, switchMap, take } from "rxjs";
 import { ShoppingList, ShoppingListItem, ShoppingListService } from "../../open-api";
@@ -50,7 +50,7 @@ export class ShoppingListComponent {
     private store: Store,
     private formBuilder: FormBuilder,
     private shoppingListService: ShoppingListService,
-    private matDialog: MatDialog,
+    private matDialog: AppDialog,
     private snackbarService: SnackbarService
   ) {
     this.addForm = buildShoppingListItemForm(this.formBuilder);

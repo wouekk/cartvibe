@@ -10,7 +10,7 @@ import {
 } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormArray, FormBuilder, FormControl, FormGroup } from "@angular/forms";
-import { MatDialog } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { merge } from "rxjs";
 import { RECEIPT_DATE_FILTER_FIELDS, ReceiptDateFilterFieldKey } from "src/constants";
@@ -119,7 +119,7 @@ export class ReportConfigPanelComponent implements OnInit {
   public readonly form = input.required<FormGroup>();
 
   private readonly catalog = inject(ReportCatalogService);
-  private readonly dialog = inject(MatDialog);
+  private readonly dialog = inject(AppDialog);
   private readonly formBuilder = inject(FormBuilder);
   private readonly store = inject(Store);
   private readonly destroyRef = inject(DestroyRef);

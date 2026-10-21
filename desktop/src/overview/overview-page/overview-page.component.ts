@@ -1,6 +1,6 @@
 import { CurrencyPipe } from "@angular/common";
 import { Component, computed, effect, ElementRef, signal, untracked, viewChild } from "@angular/core";
-import { MatDialog } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { toObservable, toSignal } from "@angular/core/rxjs-interop";
 import { ActivatedRoute } from "@angular/router";
 import { Store } from "@ngxs/store";
@@ -554,7 +554,7 @@ export class OverviewPageComponent {
     private overviewService: OverviewService,
     private receiptService: ReceiptService,
     private store: Store,
-    private matDialog: MatDialog,
+    private matDialog: AppDialog,
     private userPreferencesService: UserPreferencesService,
     private snackbarService: SnackbarService,
     private customCurrencyPipe: CustomCurrencyPipe
@@ -576,7 +576,6 @@ export class OverviewPageComponent {
       }
     });
   }
-
 
   /** Opens the products behind the Unhealthy or Unplanned tile. */
   public openProducts(kind: "UNHEALTHY" | "UNPLANNED"): void {

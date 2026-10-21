@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild } from "@angular/core";
-import { MatDialog } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
@@ -15,7 +15,6 @@ import { ApiKeyTableState } from "../../store/api-key-table.state";
 import { ApiKeyFormDialogComponent } from "../api-key-form-dialog/api-key-form-dialog.component";
 import { ApiKeyTableFilterComponent } from "../api-key-table-filter/api-key-table-filter.component";
 import { ApiKeyTableService } from "./api-key-table.service";
-
 
 @UntilDestroy()
 @Component({
@@ -42,7 +41,6 @@ export class ApiKeyTableComponent extends BaseTableComponent<ApiKeyView> impleme
 
   private readonly lastUsedAtCell = viewChild.required<TemplateRef<any>>("lastUsedAtCell");
 
-
   private readonly actionsCell = viewChild.required<TemplateRef<any>>("actionsCell");
 
   private readonly table = viewChild.required(TableComponent);
@@ -64,7 +62,7 @@ export class ApiKeyTableComponent extends BaseTableComponent<ApiKeyView> impleme
   constructor(
     public override baseTableService: BaseTableService,
     private store: Store,
-    private matDialog: MatDialog,
+    private matDialog: AppDialog,
     private apiKeyService: ApiKeyService,
     private snackbarService: SnackbarService
   ) {

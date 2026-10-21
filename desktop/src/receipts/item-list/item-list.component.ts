@@ -16,7 +16,7 @@ import {
   viewChildren
 } from "@angular/core";
 import { FormArray, FormGroup } from "@angular/forms";
-import { MatDialog } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { MatExpansionPanel } from "@angular/material/expansion";
 import { ActivatedRoute } from "@angular/router";
 import { Store } from "@ngxs/store";
@@ -47,7 +47,6 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy {
 
   public readonly nameFields = viewChildren<InputComponent>("nameField");
 
-
   public readonly form = input.required<FormGroup>();
 
   @Input() public originalReceipt?: Receipt;
@@ -72,7 +71,6 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy {
     itemIndex: number;
 }>();
 
-
   public items = signal<ItemData[]>([]);
 
   public isAdding: boolean = false;
@@ -90,7 +88,6 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy {
    */
   public canEdit: Signal<boolean> = signal(false);
 
-
   private destroy$ = new Subject<void>();
 
   public get receiptItems(): FormArray {
@@ -100,7 +97,7 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy {
   constructor(
     private activatedRoute: ActivatedRoute,
     private keyboardShortcutService: KeyboardShortcutService,
-    private matDialog: MatDialog,
+    private matDialog: AppDialog,
     private store: Store
   ) {}
 

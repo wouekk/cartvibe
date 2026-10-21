@@ -1,7 +1,7 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
-import { MAT_DIALOG_DATA } from "@angular/material/dialog";
+import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 import { of, throwError } from "rxjs";
 import {
   PermissionDescriptor,
@@ -52,8 +52,9 @@ describe("RolePreviewDialogComponent", () => {
       imports: [RolePreviewDialogComponent, NoopAnimationsModule],
       providers: [
         provideZonelessChangeDetection(),
+        { provide: AppDialogRef, useValue: { close: jest.fn() } },
         {
-          provide: MAT_DIALOG_DATA,
+          provide: APP_DIALOG_DATA,
           useValue: { role } as RolePreviewDialogData,
         },
         {

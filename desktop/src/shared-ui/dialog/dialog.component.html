@@ -1,11 +1,11 @@
 <div class="p-6">
   <div class="flex items-center justify-between">
-    <h2>{{ headerText() }}</h2>
+    <h2 class="text-lg font-semibold tracking-tight">{{ headerText() }}</h2>
     <ng-container *ngIf="actionsTemplate">
       <ng-template [ngTemplateOutlet]="actionsTemplate"></ng-template>
     </ng-container>
   </div>
-  <mat-dialog-content>
+  <div class="py-2">
     <ng-content></ng-content>
-  </mat-dialog-content>
+  </div>
 </div>

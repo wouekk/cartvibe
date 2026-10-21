@@ -1,7 +1,7 @@
 import { Component, NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormArray, FormBuilder, FormControl, FormGroup } from "@angular/forms";
-import { MatDialog } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { UntilDestroy } from "@ngneat/until-destroy";
 import { ReportReceiptsDialogComponent } from "../dialogs/report-receipts-dialog/report-receipts-dialog.component";
 import { ReportBuilderValue, toReportRequestCommand } from "../models/report-command.mapper";
@@ -24,7 +24,7 @@ describe("ReportPreviewPanelComponent", () => {
     dialog = { open: jest.fn() };
     await TestBed.configureTestingModule({
       declarations: [ReportPreviewPanelComponent, NoopComponent],
-      providers: [provideZonelessChangeDetection(), FormBuilder, { provide: MatDialog, useValue: dialog }],
+      providers: [provideZonelessChangeDetection(), FormBuilder, { provide: AppDialog, useValue: dialog }],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
 

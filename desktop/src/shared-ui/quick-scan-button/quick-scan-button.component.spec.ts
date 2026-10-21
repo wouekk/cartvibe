@@ -1,7 +1,7 @@
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { MatDialogModule } from "@angular/material/dialog";
+
 import { DirectivesModule } from "../../directives";
 import { PipesModule } from "../../pipes";
 import { StoreModule } from "../../store/store.module";
@@ -15,7 +15,7 @@ describe("QuickScanButtonComponent", () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       declarations: [QuickScanButtonComponent],
-      imports: [MatDialogModule, PipesModule, DirectivesModule, StoreModule],
+      imports: [PipesModule, DirectivesModule, StoreModule],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),

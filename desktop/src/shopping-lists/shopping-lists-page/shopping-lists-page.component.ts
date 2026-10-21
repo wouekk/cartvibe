@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, computed, effect, signal, untracked } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
-import { MatDialog } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { concatMap, filter, from, map, switchMap, take, tap, toArray } from "rxjs";
@@ -73,7 +73,6 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
     })
   );
 
-
   /** Finished lists (everything crossed off), the latest few, shown below the cards. */
   public readonly announcing = signal(false);
 
@@ -83,7 +82,7 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
     private activatedRoute: ActivatedRoute,
     private router: Router,
     private store: Store,
-    private matDialog: MatDialog,
+    private matDialog: AppDialog,
     private shoppingListService: ShoppingListService,
     private shoppingListStreamService: ShoppingListStreamService,
     private snackbarService: SnackbarService

@@ -1,7 +1,7 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
-import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 import { provideRouter } from "@angular/router";
 import {
   DeleteAccountDialogComponent,
@@ -14,7 +14,7 @@ import { CancelButtonComponent } from "src/shared-ui/cancel-button/cancel-button
 describe("DeleteAccountDialogComponent", () => {
   let component: DeleteAccountDialogComponent;
   let fixture: ComponentFixture<DeleteAccountDialogComponent>;
-  let dialogRefSpy: jest.Mocked<MatDialogRef<DeleteAccountDialogComponent>>;
+  let dialogRefSpy: jest.Mocked<AppDialogRef<DeleteAccountDialogComponent>>;
 
   async function setUp(data?: DeleteAccountDialogData): Promise<void> {
     dialogRefSpy = {
@@ -24,12 +24,12 @@ describe("DeleteAccountDialogComponent", () => {
     // app-button carries a routerLink, so the real buttons need a router.
     const providers: any[] = [
       provideRouter([]),
-      { provide: MatDialogRef, useValue: dialogRefSpy },
+      { provide: AppDialogRef, useValue: dialogRefSpy },
     ];
     // Existing callers open the dialog with no data at all, so the token is
     // left unprovided rather than provided as undefined.
     if (data) {
-      providers.push({ provide: MAT_DIALOG_DATA, useValue: data });
+      providers.push({ provide: APP_DIALOG_DATA, useValue: data });
     }
 
     await TestBed.configureTestingModule({

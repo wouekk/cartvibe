@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { MatDialogRef } from "@angular/material/dialog";
+import { AppDialogRef } from "../../dialog/app-dialog";
 import { take, tap } from "rxjs";
 import { ApiKeyResult, ApiKeyScope, ApiKeyService, ApiKeyView, UpsertApiKeyCommand } from "../../open-api";
 import { SnackbarService } from "../../services";
@@ -24,7 +24,7 @@ export class ApiKeyFormDialogComponent implements OnInit {
   ];
 
   constructor(
-    private dialogRef: MatDialogRef<ApiKeyFormDialogComponent>,
+    private dialogRef: AppDialogRef<ApiKeyFormDialogComponent>,
     private formBuilder: FormBuilder,
     private apiKeyService: ApiKeyService,
     private snackbarService: SnackbarService

@@ -2,7 +2,7 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { MatCardModule } from "@angular/material/card";
-import { MatDialog, MatDialogModule } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { MatSort } from "@angular/material/sort";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { ActivatedRoute, Router, provideRouter } from "@angular/router";
@@ -39,7 +39,6 @@ describe("GroupFormComponent", () => {
         PipesModule,
         InputModule,
         MatCardModule,
-        MatDialogModule,
         NgxsModule.forRoot([AuthState]),
         NoopAnimationsModule,
         PipesModule,
@@ -82,7 +81,7 @@ describe("GroupFormComponent", () => {
   });
 
   it("should add user to group member on add", () => {
-    const matDialog = TestBed.inject(MatDialog);
+    const matDialog = TestBed.inject(AppDialog);
     const formGroup = buildGroupMemberForm();
     formGroup.patchValue({
       userId: "2",
@@ -115,7 +114,7 @@ describe("GroupFormComponent", () => {
         groupId: 1,
       },
     ];
-    const matDialog = TestBed.inject(MatDialog);
+    const matDialog = TestBed.inject(AppDialog);
     const formGroup = buildGroupMemberForm();
     formGroup.patchValue({
       userId: 3,

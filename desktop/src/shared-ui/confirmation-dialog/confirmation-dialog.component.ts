@@ -1,5 +1,5 @@
 import { Component, Input, TemplateRef } from '@angular/core';
-import { MatDialogRef } from '@angular/material/dialog';
+import { AppDialogRef } from "../../dialog/app-dialog";
 
 @Component({
     selector: 'app-confirmation-dialog',
@@ -8,7 +8,7 @@ import { MatDialogRef } from '@angular/material/dialog';
     standalone: false
 })
 export class ConfirmationDialogComponent {
-  constructor(private dialogRef: MatDialogRef<ConfirmationDialogComponent>) {}
+  constructor(private dialogRef: AppDialogRef<ConfirmationDialogComponent>) {}
 
   @Input() public headerText: string = '';
 

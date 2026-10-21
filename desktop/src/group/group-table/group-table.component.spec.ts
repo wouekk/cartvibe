@@ -2,7 +2,7 @@ import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http"
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { MatDialog, MatDialogModule } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { MatTableDataSource } from "@angular/material/table";
 import { By } from "@angular/platform-browser";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
@@ -37,7 +37,6 @@ describe("GroupTableComponent", () => {
         ApiModule,
         ButtonModule,
         DirectivesModule,
-        MatDialogModule,
         AppDatePipe,
         NgxsModule.forRoot([AuthState, GroupState, GroupTableState, SystemSettingsState]),
         NoopAnimationsModule,
@@ -156,7 +155,7 @@ describe("GroupTableComponent", () => {
         .spyOn(component, "getTableData")
         .mockImplementation(() => {});
       jest
-        .spyOn(TestBed.inject(MatDialog), "open")
+        .spyOn(TestBed.inject(AppDialog), "open")
         .mockReturnValue({ afterClosed: () => of(true), componentInstance: {} } as any);
 
       store.dispatch(new SetGroups([{ id: 1 } as Group, { id: 2 } as Group]));
@@ -172,7 +171,7 @@ describe("GroupTableComponent", () => {
 
     it("does nothing when deletion is disabled", () => {
       const deleteSpy = jest.spyOn(TestBed.inject(GroupsService), "deleteGroup");
-      const dialogSpy = jest.spyOn(TestBed.inject(MatDialog), "open");
+      const dialogSpy = jest.spyOn(TestBed.inject(AppDialog), "open");
 
       store.dispatch(new SetGroups([{ id: 1 } as Group]));
       store.dispatch(new SetPermissions([], {}));

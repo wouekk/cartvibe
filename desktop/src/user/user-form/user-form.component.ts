@@ -1,7 +1,7 @@
 import { Component, DestroyRef, Input, OnInit, computed, effect, inject, signal } from "@angular/core";
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { FormBuilder, FormControl, FormGroup, Validators, } from "@angular/forms";
-import { MatDialog, MatDialogRef } from "@angular/material/dialog";
+import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
 import { UntilDestroy } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
 import { catchError, defer, iif, of, startWith, switchMap, take, tap, } from "rxjs";
@@ -54,12 +54,12 @@ export class UserFormComponent implements OnInit {
     private tokenRefreshService: TokenRefreshService,
     private userService: UserService,
     private userValidators: UserValidators,
-    private matDialog: MatDialog,
+    private matDialog: AppDialog,
     private destroyRef: DestroyRef,
     private categoryService: CategoryService,
     private tagService: TagService,
     private groupsService: GroupsService,
-    public matDialogRef: MatDialogRef<UserFormComponent>
+    public matDialogRef: AppDialogRef<UserFormComponent>
   ) {
     // Pre-select the configured default app role on the add form once the roles
     // resolve. Syncing a derived value into the reactive form is an imperative

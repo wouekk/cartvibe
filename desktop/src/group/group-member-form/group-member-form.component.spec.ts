@@ -3,7 +3,7 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
-import { MatDialog, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
+import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
 import { NgxsModule, Store } from "@ngxs/store";
 import { NEVER, of, throwError } from "rxjs";
 import {
@@ -90,12 +90,11 @@ describe("GroupMemberFormComponent", () => {
         NgxsModule.forRoot([AuthState]),
         PipesModule,
         ReactiveFormsModule,
-        MatDialogModule,
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
       providers: [
         provideZonelessChangeDetection(),
-        { provide: MatDialogRef, useValue: dialogRefMock },
+        { provide: AppDialogRef, useValue: dialogRefMock },
         { provide: RoleService, useValue: { getRoles: getRolesMock } },
         {
           provide: GroupsService,
@@ -169,7 +168,7 @@ describe("GroupMemberFormComponent", () => {
     await createComponent();
 
     const openSpy = jest
-      .spyOn(TestBed.inject(MatDialog), "open")
+      .spyOn(TestBed.inject(AppDialog), "open")
       .mockReturnValue({ afterClosed: () => of(undefined) } as any);
 
     component.previewRole();
