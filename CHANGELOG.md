@@ -19,8 +19,11 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 - Phone widths: no horizontal overflow, safe-area and dynamic viewport units, 16 px inputs
 - The Docker image is multi-stage on Debian slim with build-time checks for what the API needs at run time; CI no longer carries the upstream Codecov and Docker Hub jobs
 
+- Polish translation (language menu in the account menu; languages are a registry, one file and one line each; toasts and dialogs follow)
+- Most component stylesheets replaced by Tailwind classes; headings are base-layer styles
+
 ### Removed
-- Angular Material, Bootstrap and the Material icon font; the Households filter button; the old accent themes
+- `@popperjs/core` and the last Bootstrap/Material leftovers; Angular Material, Bootstrap and the Material icon font; the Households filter button; the old accent themes
 
 ## [0.1.2] - 2026-10-21
 
