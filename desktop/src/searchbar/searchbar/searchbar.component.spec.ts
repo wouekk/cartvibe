@@ -97,4 +97,37 @@ describe("SearchbarComponent", () => {
       },
     ]);
   });
+
+  describe("the keyboard shortcut", () => {
+    const press = (init: KeyboardEventInit): KeyboardEvent => {
+      const event = new KeyboardEvent("keydown", { cancelable: true, ...init });
+      Object.defineProperty(event, "target", { value: document.body });
+      component.handleShortcut(event);
+      return event;
+    };
+
+    beforeEach(() => {
+      document.body.innerHTML = '<app-searchbar><input id="s"></app-searchbar>';
+    });
+
+    it("focuses the search box on Ctrl K and on /", () => {
+      const input = document.getElementById("s") as HTMLInputElement;
+
+      press({ key: "k", ctrlKey: true });
+      expect(document.activeElement).toBe(input);
+
+      input.blur();
+      press({ key: "/" });
+      expect(document.activeElement).toBe(input);
+    });
+
+    it("leaves / alone while typing in a field", () => {
+      const event = new KeyboardEvent("keydown", { key: "/", cancelable: true });
+      const field = document.createElement("textarea");
+      Object.defineProperty(event, "target", { value: field });
+      component.handleShortcut(event);
+
+      expect(event.defaultPrevented).toBe(false);
+    });
+  });
 });

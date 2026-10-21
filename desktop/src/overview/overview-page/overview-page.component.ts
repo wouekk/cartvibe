@@ -28,7 +28,7 @@ import { todayInZone } from "../../utils/app-time-zone";
 import { hasAll } from "../../utils/permission.utils";
 import { downloadFile } from "../../utils/file";
 import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
-import { ChartColors, toRgb } from "../../shared-ui/apex-chart/chart-colors";
+import { ChartColors } from "../../shared-ui/apex-chart/chart-colors";
 import {
   buildMonthlyCsv,
   buildPrintHtml,
@@ -301,11 +301,23 @@ export class OverviewPageComponent {
       chart: { type: "donut", height: 200, width: 200, background: "transparent", fontFamily: "inherit", animations: { speed: 500 } },
       series: segments.map((segment) => segment.total),
       labels: segments.map((segment) => segment.name),
-      colors: segments.map((segment) => toRgb(segment.color)),
+      colors: segments.map((_, index) => colors.series[index % colors.series.length]),
       stroke: { width: 3, colors: [colors.card] },
       legend: { show: false },
       dataLabels: { enabled: false },
-      tooltip: { theme: this.apexTheme(), y: { formatter: (value: number) => this.customCurrencyPipe.transform(value) } },
+      states: { hover: { filter: { type: "darken" } }, active: { filter: { type: "none" } } },
+      tooltip: {
+        custom: ({ seriesIndex }: { seriesIndex: number }) => {
+          const segment = segments[seriesIndex];
+          if (!segment) {
+            return "";
+          }
+          return this.tooltipCard(segment.name, [
+            { color: colors.series[seriesIndex % colors.series.length], label: "Spent", value: this.customCurrencyPipe.transform(segment.total) },
+            { color: colors.series[seriesIndex % colors.series.length], label: "Share", value: segment.share },
+          ]);
+        },
+      },
       plotOptions: {
         pie: {
           expandOnClick: false,
@@ -361,7 +373,21 @@ export class OverviewPageComponent {
       },
       yaxis: { labels: { style: { colors: colors.mutedForeground, fontSize: "11px" }, formatter: (value: number) => money(value) } },
       legend: { show: false },
-      tooltip: { theme: this.apexTheme(), shared: true, intersect: false, y: { formatter: (value: number) => money(value) } },
+      tooltip: {
+        shared: true,
+        intersect: false,
+        custom: ({ dataPointIndex }: { dataPointIndex: number }) => {
+          const bar = bars[dataPointIndex];
+          if (!bar) {
+            return "";
+          }
+          const rows = [{ color: colors.primary, label: "Spent", value: money(bar.total) }];
+          if (goalMode && (bar.overAmount ?? 0) > 0) {
+            rows.push({ color: colors.destructive, label: "Over goal", value: money(bar.overAmount ?? 0) });
+          }
+          return this.tooltipCard(bar.shortName, rows);
+        },
+      },
       annotations:
         goalMode && this.showGoalLine()
           ? { yaxis: [{ y: this.goal(), borderColor: colors.mutedForeground, strokeDashArray: 5, label: { text: "Goal", position: "left", borderColor: "transparent", style: { color: colors.mutedForeground, background: "transparent", fontSize: "10px" } } }] }
@@ -369,8 +395,16 @@ export class OverviewPageComponent {
     };
   };
 
-  private apexTheme(): "light" | "dark" {
-    return document.documentElement.classList.contains("dark") ? "dark" : "light";
+  /** The floating tooltip: a small card on the theme tokens, a heading and one row per figure (the Flowbite look). */
+  private tooltipCard(heading: string, rows: { color: string; label: string; value: string }[]): string {
+    const escape = (text: string) => text.replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char] ?? char);
+    const body = rows
+      .map(
+        (row) =>
+          `<div class="flex items-center gap-2 px-3 py-1.5"><span class="size-2.5 rounded-full" style="background:${row.color}"></span><span class="text-muted-foreground">${escape(row.label)}</span><span class="ml-auto pl-4 font-semibold tabular-nums">${escape(row.value)}</span></div>`
+      )
+      .join("");
+    return `<div class="min-w-40 overflow-hidden rounded-lg border border-border bg-popover text-sm text-popover-foreground shadow-lg"><div class="border-b border-border bg-muted px-3 py-1.5 font-semibold">${escape(heading)}</div>${body}</div>`;
   }
 
   /** Month totals for the whole period, fetched a calendar year at a time. */

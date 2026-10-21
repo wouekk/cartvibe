@@ -72,7 +72,7 @@
       <div class="tile__amount">
         <span class="tile__value" [class.tile__value--over]="(spentGoal()?.over ?? 0) > 0">
           @if (overview(); as overview) {
-            {{ overview.total | customCurrency }}
+            <app-money [value]="overview.total"></app-money>
           } @else {
             –
           }
@@ -156,7 +156,7 @@
       <span class="tile__label">Unhealthy</span>
       @if (overview()) {
         <span class="tile__value" [class.tile__value--warning]="unhealthyTotal() > 0">
-          {{ unhealthyTotal() | customCurrency }}
+          <app-money [value]="unhealthyTotal()"></app-money>
         </span>
         @if (unhealthyTotal() > 0) {
           <span class="tile__hint tile__hint--up">{{ unhealthyShare() }}% of the spending</span>
@@ -175,7 +175,7 @@
       <span class="tile__label">Not on the list</span>
       @if (overview()) {
         <span class="tile__value" [class.tile__value--warning]="unplannedTotal() > 0">
-          {{ unplannedTotal() | customCurrency }}
+          <app-money [value]="unplannedTotal()"></app-money>
         </span>
         @if (unplannedChange(); as unplannedChange) {
           <span class="tile__hint">{{ unplannedChange }}</span>
@@ -340,7 +340,10 @@
                 <tr>
                   <td class="muted nowrap">{{ receipt.date | appDate : "MMM d" : "calendar" }}</td>
                   <td class="strong">
-                    <a [routerLink]="['/receipts', receipt.id, 'view']">{{ receipt.shopName || receipt.name }}</a>
+                    <span class="inline-flex items-center gap-2">
+                      <app-shop-monogram [name]="receipt.shopName || receipt.name"></app-shop-monogram>
+                      <a [routerLink]="['/receipts', receipt.id, 'view']">{{ receipt.shopName || receipt.name }}</a>
+                    </span>
                   </td>
                   <td>{{ ((receipt.paidByUserId + "") | user)?.displayName ?? "—" }}</td>
                   <td><app-status-chip [status]="receipt.status"></app-status-chip></td>

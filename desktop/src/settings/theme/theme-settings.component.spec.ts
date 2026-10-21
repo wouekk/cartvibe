@@ -27,8 +27,8 @@ describe("ThemeSettingsComponent", () => {
 
   it("lists System, Light and Dark with a check on the active one", () => {
     expect(el("theme-mode-system").textContent).toContain("System");
-    expect(el("theme-mode-light").textContent).toContain("Light");
-    expect(el("theme-mode-dark").textContent).toContain("Dark");
+    expect(el("theme-mode-light").textContent).toContain("White");
+    expect(el("theme-mode-dark").textContent).toContain("Black");
     expect(el("theme-mode-system").getAttribute("aria-checked")).toBe("true");
     expect(el("theme-mode-system").querySelector("app-icon[name=check]")).not.toBeNull();
     expect(el("theme-mode-dark").querySelector("app-icon[name=check]")).toBeNull();

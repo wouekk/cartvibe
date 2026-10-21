@@ -18,8 +18,8 @@ export interface ThemeDefinition {
 }
 
 export const THEMES: readonly ThemeDefinition[] = [
-  { key: "light", label: "Light", scheme: "light", icon: "light_mode" },
-  { key: "dark", label: "Dark", scheme: "dark", icon: "dark_mode" },
+  { key: "light", label: "White", scheme: "light", icon: "light_mode" },
+  { key: "dark", label: "Black", scheme: "dark", icon: "dark_mode" },
 ];
 
 /** What "System" resolves to when the operating system asks for a light or a dark page. */

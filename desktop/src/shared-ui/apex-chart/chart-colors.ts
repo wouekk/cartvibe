@@ -7,9 +7,11 @@ export interface ChartColors {
   card: string;
   primary: string;
   destructive: string;
+  /** --chart-1..5, then the muted tone for "Other": the category palette of the active theme. */
+  series: string[];
 }
 
-const TOKENS: Record<keyof ChartColors, string> = {
+const TOKENS: Record<Exclude<keyof ChartColors, "series">, string> = {
   foreground: "--foreground",
   mutedForeground: "--muted-foreground",
   border: "--border",
@@ -42,9 +44,12 @@ export function toRgb(css: string, fallback = "rgb(128, 128, 128)"): string {
 /** Reads the active theme's tokens from the page, so a chart follows light and dark. */
 export function readChartColors(): ChartColors {
   const style = getComputedStyle(document.documentElement);
-  const colors = {} as ChartColors;
-  for (const key of Object.keys(TOKENS) as (keyof ChartColors)[]) {
+  const colors = { series: [] } as unknown as ChartColors;
+  for (const key of Object.keys(TOKENS) as (keyof typeof TOKENS)[]) {
     colors[key] = toRgb(style.getPropertyValue(TOKENS[key]).trim() || "gray");
   }
+  colors.series = ["--chart-1", "--chart-2", "--chart-3", "--chart-4", "--chart-5", "--muted-foreground"].map((name) =>
+    toRgb(style.getPropertyValue(name).trim() || "gray")
+  );
   return colors;
 }
