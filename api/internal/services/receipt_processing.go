@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 	"os"
 	"receipt-wrangler/api/internal/commands"
+	"receipt-wrangler/api/internal/logging"
 	"receipt-wrangler/api/internal/models"
 	"receipt-wrangler/api/internal/repositories"
 	"receipt-wrangler/api/internal/structs"
@@ -25,6 +26,9 @@ type ReceiptProcessingService struct {
 	// to the AI prompt are restricted to that user's grants so the model cannot
 	// suggest a category/tag the user is not allowed to see.
 	UserId uint
+	// IncludeProducts asks the same AI call for the receipt's product lines too (a quick scan), so the
+	// products need no second call; ReceiptProductExtractionService.ApplyInlineRead stores them.
+	IncludeProducts bool
 }
 
 func NewSystemReceiptProcessingService(tx *gorm.DB, groupId string) (ReceiptProcessingService, error) {
@@ -495,6 +499,17 @@ func (service ReceiptProcessingService) buildPrompt(
 		templateVariable := structs.PromptTemplateVariable(variable)
 		return templateVariableMap[templateVariable]
 	})
+
+	// The products part goes before the receipt text, so the text stays last. Without it the products are
+	// read by the sweep as before, so a failure here never fails the scan.
+	if service.IncludeProducts && service.Group.ID > 0 {
+		productPrompt, productErr := InlineProductPrompt(service.TX, service.Group.ID)
+		if productErr != nil {
+			logging.LogStd(logging.LOG_LEVEL_ERROR, "receipt products: could not build the inline prompt: "+productErr.Error())
+		} else {
+			realPrompt = strings.Replace(realPrompt, "\nReceipt text: ", productPrompt+"\n\nReceipt text: ", 1)
+		}
+	}
 
 	endedAt := time.Now()
 	systemTaskCommand.EndedAt = &endedAt

@@ -63,6 +63,27 @@ func (repository ReceiptProductRepository) ClaimDueExtraction(now time.Time) (mo
 	return extraction, ok, err
 }
 
+// ClaimPendingExtraction claims one receipt's waiting extraction, the way ClaimDueExtraction claims the next
+// due one: a conditional UPDATE, so a sweep running at the same moment cannot read it as well. ok is false when
+// the row is not waiting (already claimed, read, or never queued).
+func (repository ReceiptProductRepository) ClaimPendingExtraction(receiptId uint, now time.Time) (models.ReceiptProductExtraction, bool, error) {
+	claimed := repository.GetDB().Model(&models.ReceiptProductExtraction{}).
+		Where("receipt_id = ? AND status = ?", receiptId, models.PRODUCT_EXTRACTION_PENDING).
+		Updates(map[string]any{
+			"status":          models.PRODUCT_EXTRACTION_RUNNING,
+			"next_attempt_at": now.Add(claimLease),
+		})
+	if claimed.Error != nil || claimed.RowsAffected != 1 {
+		return models.ReceiptProductExtraction{}, false, claimed.Error
+	}
+
+	extraction, err := repository.GetExtraction(receiptId)
+	if err != nil {
+		return models.ReceiptProductExtraction{}, false, err
+	}
+	return extraction, true, nil
+}
+
 // EnsureReceiptProductsQueued queues a receipt that has never been queued, and leaves one that has
 // alone: attaching a receipt to a list must not throw away products already read.
 func (repository ReceiptProductRepository) EnsureReceiptProductsQueued(receiptId uint) error {

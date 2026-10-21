@@ -312,7 +312,7 @@ func (service ReceiptService) QuickScan(params QuickScanParams) (models.Receipt,
 	groupIdString := utils.UintToString(groupId)
 
 	now := time.Now()
-	receiptCommand, receiptProcessingMetadata, magicFillErr := MagicFillFromImage(magicFillCommand, groupIdString, token.UserId)
+	receiptCommand, receiptProcessingMetadata, magicFillErr := magicFillFromImage(magicFillCommand, groupIdString, token.UserId, true)
 	finishedAt := time.Now()
 
 	quickScanSystemTasks, taskErr := systemTaskService.CreateSystemTasksFromMetadata(
@@ -455,6 +455,16 @@ func (service ReceiptService) QuickScan(params QuickScanParams) (models.Receipt,
 	})
 	if err != nil {
 		return models.Receipt{}, err
+	}
+
+	// The answer usually carries the products too: store them now instead of a second AI call from the sweep.
+	// Best-effort: the receipt is saved, and anything not applied here the sweep reads as before.
+	aiAnswer := receiptProcessingMetadata.RawResponse
+	if !receiptProcessingMetadata.DidReceiptProcessingSettingsSucceed {
+		aiAnswer = receiptProcessingMetadata.FallbackRawResponse
+	}
+	if _, inlineErr := NewReceiptProductExtractionService(nil).ApplyInlineRead(createdReceipt.ID, aiAnswer); inlineErr != nil {
+		logging.LogStd(logging.LOG_LEVEL_ERROR, "receipt products: could not apply the quick scan's products: "+inlineErr.Error())
 	}
 
 	os.Remove(params.TempPath)
