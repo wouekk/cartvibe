@@ -49,7 +49,6 @@ password immediately**. To update, pull the new image and redeploy.
 |---|---|
 | `api/` | Go API (Chi, GORM, Asynq) |
 | `desktop/` | Angular web app (the UI that ships, mobile-friendly) |
-| `mobile/` | Flutter client from the original project; only its generated API client is kept up to date |
 | `docker/` | The single image: nginx in front of the API |
 | `docs/` | Design notes |
 | `site/` | The project page |
@@ -64,8 +63,8 @@ Working notes for contributors and AI agents: [CLAUDE.md](CLAUDE.md), [AGENTS.md
 ## Credits
 
 CartVibe stands on [Receipt Wrangler](https://github.com/Receipt-Wrangler/receipt-wrangler), created by
-[Noah Hall (@Noah231515)](https://github.com/Noah231515) and its contributors: the Go API, the Angular app, the mobile
-client, the Docker setup and the git history are theirs, kept intact. Thank you for building it in the open under the
+[Noah Hall (@Noah231515)](https://github.com/Noah231515) and its contributors: the Go API, the Angular app (and the Flutter
+client this fork has since dropped), the Docker setup and the git history are theirs, kept intact. Thank you for building it in the open under the
 AGPL-3.0. If you want the original, general-purpose project, go to [its repository](https://github.com/Receipt-Wrangler/receipt-wrangler).
 See [NOTICE.md](NOTICE.md).
 
