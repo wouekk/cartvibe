@@ -2,7 +2,7 @@
 
 ## Status (2026-10-21, Windows PC, Claude Code desktop app)
 
-**Settings layout (2026-10-21, branch `feature/settings-layout`, cut from `feature/image-hardening`; screenshots checked in both themes, Jest 2087/2087, `ng build` OK, `:preview` published from it when listed below):** settings layout
+**Settings layout (2026-10-21, merged into `main` on the user's go; every settings page is wide, Save in the card footer; screenshots checked in both themes, Jest 2090/2090, `ng build` OK). NAS note: the old ENCRYPTION_KEY was lost, so the user wipes the sqlite folder and sets new keys; write them down.** settings layout
 unification, plan in `C:/Users/Marcin/.claude/plans/pasted-content-id-ff27-perform-a-cheeky-nebula.md` (outside the repo). Decisions by the user: topics inside a
 card are flat hairline rows (no inset box), Save sits in a card footer on the right (status text left).
 - Done (Jest for the touched folders green, `ng build` OK): CSS `rw-card*` / `rw-inset` in `src/tailwind.css`; four primitives in
