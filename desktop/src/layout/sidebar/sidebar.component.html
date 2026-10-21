@@ -178,7 +178,8 @@
     <app-header class="sticky top-0 z-10 block"></app-header>
     <div
       class="drawer-outlet block"
-      [class.p-6]="isLoggedIn() && !isContentFullHeight()"
+      [class.p-4]="isLoggedIn() && !isContentFullHeight()"
+      [class.sm:p-6]="isLoggedIn() && !isContentFullHeight()"
       [class.min-h-0]="isContentFullHeight()"
       [class.flex-1]="isContentFullHeight()"
       [class.overflow-hidden]="isContentFullHeight()"

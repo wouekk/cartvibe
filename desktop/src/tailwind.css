@@ -188,3 +188,44 @@ app-money,
     animation: none;
   }
 }
+
+/* One page on every screen: no zoom jump on rotation, the real viewport height on phones (dvh), and room for notches. */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Wide screens: a little more type, so a 4K monitor is not a sea of small text; a phone keeps 16px for readable inputs. */
+@media (min-width: 1920px) {
+  html {
+    font-size: 17px;
+  }
+}
+
+@media (min-width: 2560px) {
+  html {
+    font-size: 19px;
+  }
+}
+
+input,
+textarea,
+select {
+  /* iOS Safari zooms into inputs under 16px */
+  font-size: max(1rem, 16px);
+}
+
+@media (min-width: 768px) {
+  input,
+  textarea,
+  select {
+    font-size: inherit;
+  }
+}

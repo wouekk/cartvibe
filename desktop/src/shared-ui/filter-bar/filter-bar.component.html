@@ -1,4 +1,4 @@
-<hlm-tabs [tab]="value()" (tabActivated)="select($event)">
+<hlm-tabs class="max-w-full min-w-0" [tab]="value()" (tabActivated)="select($event)">
   <hlm-tabs-list class="max-w-full overflow-x-auto" aria-label="Filter">
     @for (tab of tabs(); track tab.value) {
       <button class="filter-tab" [hlmTabsTrigger]="tab.value" [class.active]="value() === tab.value">

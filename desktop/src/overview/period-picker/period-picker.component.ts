@@ -22,7 +22,7 @@ import {
 @Component({
   selector: "app-period-picker",
   templateUrl: "./period-picker.component.html",
-  styleUrls: ["./period-picker.component.scss"],
+  host: { class: "block min-w-0 max-w-full" },
   standalone: true,
   imports: [AppIconComponent, SharedUiModule],
 })
