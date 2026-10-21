@@ -8,21 +8,26 @@
     <button
       hlmBtn
       [variant]="color() === 'warn' ? 'destructive' : 'ghost'"
-      [class]="buttonClass()"
+      class="relative" [class]="buttonClass()"
       [type]="type()"
       [disabled]="disabled()"
-      [matTooltip]="tooltip()"
+      [hlmTooltip]="tooltip()"
       [routerLink]="buttonRouterLink()"
       [queryParams]="buttonQueryParams()"
-      [matBadgeColor]="matBadgeColor()"
-      [matBadge]="matBadgeContent()"
-      [matBadgeHidden]="matBadgeHidden()"
       (click)="emitClicked($event)"
     >
       @if (icon) {
         <app-icon [name]="icon"></app-icon>
       }
       <span class="font-medium">{{ buttonText() }}</span>
+      @if (!matBadgeHidden()) {
+        <span
+          hlmBadge
+          class="pointer-events-none absolute -right-1.5 -top-1.5 h-4 min-w-4 justify-center px-1 text-[10px] tabular-nums"
+          data-testid="button-badge"
+          >{{ matBadgeContent() }}</span
+        >
+      }
     </button>
   }
 
@@ -30,13 +35,10 @@
     <button
       hlmBtn
       [variant]="color() === 'warn' ? 'destructive' : 'default'"
-      [class]="buttonClass()"
+      class="relative" [class]="buttonClass()"
       [type]="type()"
       [disabled]="disabled()"
-      [matTooltip]="tooltip()"
-      [matBadgeColor]="matBadgeColor()"
-      [matBadge]="matBadgeContent()"
-      [matBadgeHidden]="matBadgeHidden()"
+      [hlmTooltip]="tooltip()"
       [routerLink]="buttonRouterLink()"
       [queryParams]="buttonQueryParams()"
       (click)="emitClicked($event)"
@@ -45,6 +47,14 @@
         <app-icon [name]="icon"></app-icon>
       }
       <span class="font-medium">{{ buttonText() }}</span>
+      @if (!matBadgeHidden()) {
+        <span
+          hlmBadge
+          class="pointer-events-none absolute -right-1.5 -top-1.5 h-4 min-w-4 justify-center px-1 text-[10px] tabular-nums"
+          data-testid="button-badge"
+          >{{ matBadgeContent() }}</span
+        >
+      }
     </button>
   }
 
@@ -53,19 +63,24 @@
       hlmBtn
       size="icon"
       [variant]="color() === 'warn' ? 'destructive' : 'ghost'"
-      [class]="buttonClass()"
+      class="relative" [class]="buttonClass()"
       [type]="type()"
       [disabled]="disabled()"
       [routerLink]="buttonRouterLink()"
       [queryParams]="buttonQueryParams()"
-      [matTooltip]="tooltip()"
-      [matBadgeColor]="matBadgeColor()"
-      [matBadge]="matBadgeContent()"
-      [matBadgeHidden]="matBadgeHidden()"
+      [hlmTooltip]="tooltip()"
       (click)="emitClicked($event)"
     >
       @if (icon) {
         <app-icon [name]="icon"></app-icon>
+      }
+      @if (!matBadgeHidden()) {
+        <span
+          hlmBadge
+          class="pointer-events-none absolute -right-1.5 -top-1.5 h-4 min-w-4 justify-center px-1 text-[10px] tabular-nums"
+          data-testid="button-badge"
+          >{{ matBadgeContent() }}</span
+        >
       }
     </button>
   }

@@ -275,10 +275,10 @@
         <div class="chart-export" data-testid="overview-range-export">
           <p>Ranges over 1 year are best viewed as a report.</p>
           <div class="chart-export__actions">
-            <button type="button" mat-stroked-button data-testid="overview-export-pdf" [disabled]="exporting()" (click)="exportPdf()">
+            <button type="button" hlmBtn variant="outline" data-testid="overview-export-pdf" [disabled]="exporting()" (click)="exportPdf()">
               Download Landscape PDF (1 yr/page)
             </button>
-            <button type="button" mat-stroked-button data-testid="overview-export-csv" [disabled]="exporting()" (click)="exportCsv()">
+            <button type="button" hlmBtn variant="outline" data-testid="overview-export-csv" [disabled]="exporting()" (click)="exportCsv()">
               Export CSV
             </button>
             <a routerLink="/reports">Open reports</a>

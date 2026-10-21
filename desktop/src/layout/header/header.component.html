@@ -8,11 +8,11 @@
       @for (shortcut of userPreferences()?.userShortcuts ?? []; track shortcut["id"]) {
         <a [href]="shortcut.url">
           <button
-            mat-icon-button
+            hlmBtn variant="ghost" size="icon"
             color="accent"
             class="nav-button"
             routerLinkActive="active-link"
-            [matTooltip]="shortcut.name"
+            [hlmTooltip]="shortcut.name"
           >
             <app-icon [name]="shortcut.icon"></app-icon>
           </button>
@@ -66,11 +66,11 @@
   let-tooltip="tooltip"
 >
   <button
-    mat-icon-button
+    hlmBtn variant="ghost" size="icon"
     color="accent"
     class="nav-button"
     [routerLink]="routerLink"
-    [matTooltip]="tooltip"
+    [hlmTooltip]="tooltip"
   >
     <img [src]="srcPath"/>
   </button>

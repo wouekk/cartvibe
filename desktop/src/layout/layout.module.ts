@@ -1,13 +1,13 @@
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
-import { MatButtonModule } from "@angular/material/button";
+import { HlmButton } from "@spartan-ng/helm/button";
 import { MatCardModule } from "@angular/material/card";
 
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { MatMenuModule } from "@angular/material/menu";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
-import { MatTooltipModule } from "@angular/material/tooltip";
+import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { RouterModule } from "@angular/router";
 import { OverlayModule } from "@angular/cdk/overlay";
 import { AutocompleteModule } from "src/autocomplete/autocomplete.module";
@@ -43,7 +43,7 @@ import { SidebarComponent } from "./sidebar/sidebar.component";
     CommonModule,
     DirectivesModule,
     DirectivesModule,
-    MatButtonModule,
+    HlmButton,
     MatCardModule,
     AppIconComponent,
     MatMenuModule,
@@ -52,7 +52,7 @@ import { SidebarComponent } from "./sidebar/sidebar.component";
     ...HlmCollapsibleImports,
     ...HlmDropdownMenuImports,
     ...HlmSidebarImports,
-    MatTooltipModule,
+    ...HlmTooltipImports,
     OverlayModule,
     NotificationsModule,
     PipesModule,

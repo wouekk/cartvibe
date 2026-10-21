@@ -9,7 +9,7 @@
     <div class="list-actions">
       @if (canUpdate() && lists().length > 0) {
         <button
-          mat-stroked-button
+          hlmBtn variant="outline"
           type="button"
           class="going-shopping"
           data-testid="shopping-list-going-shopping"
@@ -31,7 +31,7 @@
       @if (selectedList(); as list) {
         @if (canUpdate() || canDelete()) {
           <button
-            mat-icon-button
+            hlmBtn variant="ghost" size="icon"
             type="button"
             data-testid="shopping-list-menu"
             aria-label="List actions"

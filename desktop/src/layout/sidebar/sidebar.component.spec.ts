@@ -8,7 +8,7 @@ import { NgIcon } from "@ng-icons/core";
 import { HlmCollapsibleImports } from "@spartan-ng/helm/collapsible";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { MatSidenavModule } from "@angular/material/sidenav";
-import { MatTooltipModule } from "@angular/material/tooltip";
+import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { By } from "@angular/platform-browser";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { Router } from "@angular/router";
@@ -69,7 +69,7 @@ describe("SidebarComponent", () => {
         ...HlmCollapsibleImports,
         ...HlmDropdownMenuImports,
         MatSidenavModule,
-        MatTooltipModule,
+        ...HlmTooltipImports,
         NoopAnimationsModule,
         RouterTestingModule,
         SharedUiModule,

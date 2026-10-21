@@ -2,11 +2,11 @@ import { CommonModule } from "@angular/common";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
-import { MatButtonModule } from "@angular/material/button";
+import { HlmButton } from "@spartan-ng/helm/button";
 import { MatFormField, MatFormFieldModule } from "@angular/material/form-field";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { MatInputModule } from "@angular/material/input";
-import { MatTooltipModule } from "@angular/material/tooltip";
+import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { By } from "@angular/platform-browser";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { NgxsModule } from "@ngxs/store";
@@ -31,11 +31,11 @@ describe("InputComponent", () => {
       declarations: [InputComponent],
       imports: [
         CommonModule,
-        MatButtonModule,
+        HlmButton,
         MatFormFieldModule,
         AppIconComponent,
         MatInputModule,
-        MatTooltipModule,
+        ...HlmTooltipImports,
         NoopAnimationsModule,
         ReactiveFormsModule,
         NgxMaskDirective,

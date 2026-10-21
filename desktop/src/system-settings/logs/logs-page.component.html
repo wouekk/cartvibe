@@ -3,7 +3,7 @@
     <div class="levels" role="group" aria-label="Level">
       @for (option of levels; track option.value) {
         <button
-          mat-stroked-button
+          hlmBtn variant="outline"
           type="button"
           [attr.data-testid]="'log-level-' + (option.value || 'all')"
           [class.active]="level() === option.value"
@@ -13,7 +13,7 @@
         </button>
       }
     </div>
-    <button mat-stroked-button type="button" data-testid="log-refresh" (click)="load()">
+    <button hlmBtn variant="outline" type="button" data-testid="log-refresh" (click)="load()">
       <app-icon name="refresh"></app-icon>
       Refresh
     </button>

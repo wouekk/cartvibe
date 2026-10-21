@@ -1,7 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { Component, Inject, computed, inject } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
-import { MatButtonModule } from "@angular/material/button";
+import { HlmButton } from "@spartan-ng/helm/button";
 import { APP_DIALOG_DATA, AppDialog, AppDialogRef } from "../../dialog/app-dialog";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { catchError, of } from "rxjs";
@@ -48,7 +48,7 @@ interface PreviewGroup {
   standalone: true,
   imports: [
     CommonModule,
-    MatButtonModule,
+    HlmButton,
     AppIconComponent,
     SharedUiModule,
   ],

@@ -4,7 +4,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
 import { CheckboxComponent } from './checkbox/checkbox.component';
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
-import { MatTooltipModule } from '@angular/material/tooltip';
+import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { SharedUiModule } from 'src/shared-ui/shared-ui.module';
 
 @NgModule({
@@ -14,7 +14,7 @@ import { SharedUiModule } from 'src/shared-ui/shared-ui.module';
     ReactiveFormsModule,
     ...HlmCheckboxImports,
     AppIconComponent,
-    MatTooltipModule,
+    ...HlmTooltipImports,
     SharedUiModule,
   ],
   exports: [CheckboxComponent],

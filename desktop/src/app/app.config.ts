@@ -9,7 +9,7 @@ import { withNgxsStoragePlugin } from "@ngxs/storage-plugin";
 import { provideStore } from "@ngxs/store";
 import { AppInitService, initAppData } from "src/services";
 import { httpInterceptor } from "../interceptors/http-interceptor";
-import { MatTooltipModule } from "@angular/material/tooltip";
+import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { NgxMaskDirective, NgxMaskPipe } from "ngx-mask";
 import { AppRoutingModule } from "./app-routing.module";
 import { IconModule } from "../icon/icon.module";
@@ -105,7 +105,7 @@ export const appConfig: ApplicationConfig = {
       AppRoutingModule,
       IconModule,
       LayoutModule,
-      MatTooltipModule,
+      ...HlmTooltipImports,
       NgxMaskDirective,
       NgxMaskPipe,
       PipesModule,

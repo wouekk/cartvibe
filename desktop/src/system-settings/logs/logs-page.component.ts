@@ -1,7 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { Component, DestroyRef, OnInit, inject, signal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { MatButtonModule } from "@angular/material/button";
+import { HlmButton } from "@spartan-ng/helm/button";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { finalize } from "rxjs";
 import { AppLogEntry, SystemSettingsService } from "../../open-api";
@@ -23,7 +23,7 @@ export const LOG_LEVEL_FILTERS = [
   templateUrl: "./logs-page.component.html",
   styleUrls: ["./logs-page.component.scss"],
   standalone: true,
-  imports: [CommonModule, MatButtonModule, AppIconComponent],
+  imports: [CommonModule, HlmButton, AppIconComponent],
 })
 export class LogsPageComponent implements OnInit {
   private readonly systemSettingsService = inject(SystemSettingsService);

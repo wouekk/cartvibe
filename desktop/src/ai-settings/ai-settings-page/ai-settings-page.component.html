@@ -54,7 +54,7 @@
 
       <div class="actions">
         <button
-          mat-flat-button
+          hlmBtn
           color="primary"
           type="submit"
           data-testid="ai-save"
@@ -63,7 +63,7 @@
           Save changes
         </button>
         <button
-          mat-stroked-button
+          hlmBtn variant="outline"
           type="button"
           data-testid="ai-test"
           [disabled]="!saved() || form.dirty || testing()"

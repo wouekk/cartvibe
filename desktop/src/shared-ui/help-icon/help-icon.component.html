@@ -1,7 +1,7 @@
 <app-icon
   *ngIf="helpText"
-  class="ms-1"
-  #tooltip="matTooltip"
-  [matTooltip]="helpText"
-  (click)="tooltip.show()"
-   name="help"></app-icon>
+  class="ms-1 cursor-help text-muted-foreground"
+  tabindex="0"
+  [hlmTooltip]="helpText"
+  name="help"
+></app-icon>

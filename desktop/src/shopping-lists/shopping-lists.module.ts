@@ -1,7 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
-import { MatButtonModule } from "@angular/material/button";
+import { HlmButton } from "@spartan-ng/helm/button";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { MatMenuModule } from "@angular/material/menu";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
@@ -35,7 +35,7 @@ import { FoodTagsComponent } from "../standalone/components/food-tags/food-tags.
     CommonModule,
     FoodTagsComponent,
     InputModule,
-    MatButtonModule,
+    HlmButton,
     AppIconComponent,
     MatMenuModule,
     ...HlmDropdownMenuImports,

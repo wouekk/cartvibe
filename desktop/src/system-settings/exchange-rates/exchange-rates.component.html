@@ -34,7 +34,7 @@
           <span class="rates__missing">no rate yet</span>
         }
         @if (canUpdate()) {
-          <button mat-icon-button type="button" [attr.aria-label]="'Remove ' + row.code" (click)="removeCurrency(index)">
+          <button hlmBtn variant="ghost" size="icon" type="button" [attr.aria-label]="'Remove ' + row.code" (click)="removeCurrency(index)">
             <app-icon name="close"></app-icon>
           </button>
         }
@@ -54,7 +54,7 @@
           (input)="setNewCode($event)"
           (keydown.enter)="addCurrency(); $event.preventDefault()"
         />
-        <button mat-stroked-button type="button" data-testid="exchange-rate-add" (click)="addCurrency()">
+        <button hlmBtn variant="outline" type="button" data-testid="exchange-rate-add" (click)="addCurrency()">
           <app-icon name="add"></app-icon>
           Add currency
         </button>
@@ -65,7 +65,7 @@
       @if (dirty()) {
         <p class="rates__unsaved" data-testid="exchange-rates-unsaved">Rates changed: press Save rates to keep them.</p>
       }
-      <button mat-raised-button type="button" class="rates__save" data-testid="exchange-rates-save" [disabled]="saving()" (click)="save()">
+      <button hlmBtn type="button" class="rates__save" data-testid="exchange-rates-save" [disabled]="saving()" (click)="save()">
         Save rates
       </button>
     }

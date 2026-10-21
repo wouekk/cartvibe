@@ -13,7 +13,7 @@
             (change)="scanSelected($event)"
           />
           <button
-            mat-stroked-button
+            hlmBtn variant="outline"
             type="button"
             data-testid="shopping-trip-scan"
             [disabled]="uploading()"
@@ -56,7 +56,7 @@
 
         @if (canUpdate()) {
           <button
-            mat-icon-button
+            hlmBtn variant="ghost" size="icon"
             type="button"
             data-testid="shopping-trip-menu"
             aria-label="Receipt actions"

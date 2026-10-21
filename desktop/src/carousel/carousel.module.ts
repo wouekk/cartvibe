@@ -1,7 +1,7 @@
 import { DragDropModule } from "@angular/cdk/drag-drop";
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
-import { MatButtonModule } from "@angular/material/button";
+import { HlmButton } from "@spartan-ng/helm/button";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { PipesModule } from "src/pipes/pipes.module";
 import { ButtonModule } from "../button";
@@ -14,7 +14,7 @@ import { CarouselComponent } from "./carousel/carousel.component";
     ButtonModule,
     CommonModule,
     DragDropModule,
-    MatButtonModule,
+    HlmButton,
     AppIconComponent,
     PipesModule,
     SharedUiModule,
