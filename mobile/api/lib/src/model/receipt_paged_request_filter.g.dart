@@ -27,6 +27,8 @@ class _$ReceiptPagedRequestFilter extends ReceiptPagedRequestFilter {
   final JsonObject? resolvedDate;
   @override
   final JsonObject? createdAt;
+  @override
+  final String? search;
 
   factory _$ReceiptPagedRequestFilter(
           [void Function(ReceiptPagedRequestFilterBuilder)? updates]) =>
@@ -42,7 +44,8 @@ class _$ReceiptPagedRequestFilter extends ReceiptPagedRequestFilter {
       this.status,
       this.group,
       this.resolvedDate,
-      this.createdAt})
+      this.createdAt,
+      this.search})
       : super._();
   @override
   ReceiptPagedRequestFilter rebuild(
@@ -66,7 +69,8 @@ class _$ReceiptPagedRequestFilter extends ReceiptPagedRequestFilter {
         status == other.status &&
         group == other.group &&
         resolvedDate == other.resolvedDate &&
-        createdAt == other.createdAt;
+        createdAt == other.createdAt &&
+        search == other.search;
   }
 
   @override
@@ -82,6 +86,7 @@ class _$ReceiptPagedRequestFilter extends ReceiptPagedRequestFilter {
     _$hash = $jc(_$hash, group.hashCode);
     _$hash = $jc(_$hash, resolvedDate.hashCode);
     _$hash = $jc(_$hash, createdAt.hashCode);
+    _$hash = $jc(_$hash, search.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -98,7 +103,8 @@ class _$ReceiptPagedRequestFilter extends ReceiptPagedRequestFilter {
           ..add('status', status)
           ..add('group', group)
           ..add('resolvedDate', resolvedDate)
-          ..add('createdAt', createdAt))
+          ..add('createdAt', createdAt)
+          ..add('search', search))
         .toString();
   }
 }
@@ -149,6 +155,10 @@ class ReceiptPagedRequestFilterBuilder
   JsonObject? get createdAt => _$this._createdAt;
   set createdAt(JsonObject? createdAt) => _$this._createdAt = createdAt;
 
+  String? _search;
+  String? get search => _$this._search;
+  set search(String? search) => _$this._search = search;
+
   ReceiptPagedRequestFilterBuilder() {
     ReceiptPagedRequestFilter._defaults(this);
   }
@@ -166,6 +176,7 @@ class ReceiptPagedRequestFilterBuilder
       _group = $v.group;
       _resolvedDate = $v.resolvedDate;
       _createdAt = $v.createdAt;
+      _search = $v.search;
       _$v = null;
     }
     return this;
@@ -197,6 +208,7 @@ class ReceiptPagedRequestFilterBuilder
           group: group,
           resolvedDate: resolvedDate,
           createdAt: createdAt,
+          search: search,
         );
     replace(_$result);
     return _$result;

@@ -4,6 +4,7 @@
 
 // ignore_for_file: unused_element
 import 'package:openapi/src/model/receipt_status.dart';
+import 'package:openapi/src/model/receipt_search_match.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:openapi/src/model/category.dart';
 import 'package:openapi/src/model/custom_field_value.dart';
@@ -27,6 +28,7 @@ part 'receipt.g.dart';
 /// * [createdBy] 
 /// * [date] - Receipt date
 /// * [firstComment] - Text of the receipt's earliest comment the caller may see. Only populated by the paged receipt list (POST /receipt/group/{groupId}); absent when there is no such comment.
+/// * [searchMatches] - The product lines that made the receipt match the list's search phrase. Only populated by the paged receipt list while a search is active; absent otherwise.
 /// * [groupId] - Group foreign key
 /// * [id] 
 /// * [imageFiles] - Files associated to receipt
@@ -73,6 +75,10 @@ abstract class Receipt implements Built<Receipt, ReceiptBuilder> {
   /// Text of the receipt's earliest comment the caller may see. Only populated by the paged receipt list (POST /receipt/group/{groupId}); absent when there is no such comment.
   @BuiltValueField(wireName: r'firstComment')
   String? get firstComment;
+
+  /// The product lines that made the receipt match the list's search phrase. Only populated by the paged receipt list while a search is active; absent otherwise.
+  @BuiltValueField(wireName: r'searchMatches')
+  BuiltList<ReceiptSearchMatch>? get searchMatches;
 
   /// Group foreign key
   @BuiltValueField(wireName: r'groupId')
@@ -199,6 +205,13 @@ class _$ReceiptSerializer implements PrimitiveSerializer<Receipt> {
       yield serializers.serialize(
         object.firstComment,
         specifiedType: const FullType(String),
+      );
+    }
+    if (object.searchMatches != null) {
+      yield r'searchMatches';
+      yield serializers.serialize(
+        object.searchMatches,
+        specifiedType: const FullType(BuiltList, [FullType(ReceiptSearchMatch)]),
       );
     }
     yield r'groupId';
@@ -370,6 +383,13 @@ class _$ReceiptSerializer implements PrimitiveSerializer<Receipt> {
             specifiedType: const FullType(String),
           ) as String;
           result.firstComment = valueDes;
+          break;
+        case r'searchMatches':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(ReceiptSearchMatch)]),
+          ) as BuiltList<ReceiptSearchMatch>;
+          result.searchMatches.replace(valueDes);
           break;
         case r'groupId':
           final valueDes = serializers.deserialize(

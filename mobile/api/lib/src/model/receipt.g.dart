@@ -24,6 +24,8 @@ class _$Receipt extends Receipt {
   @override
   final String? firstComment;
   @override
+  final BuiltList<ReceiptSearchMatch>? searchMatches;
+  @override
   final int groupId;
   @override
   final int id;
@@ -66,6 +68,7 @@ class _$Receipt extends Receipt {
       this.createdBy,
       required this.date,
       this.firstComment,
+      this.searchMatches,
       required this.groupId,
       required this.id,
       this.imageFiles,
@@ -101,6 +104,7 @@ class _$Receipt extends Receipt {
         createdBy == other.createdBy &&
         date == other.date &&
         firstComment == other.firstComment &&
+        searchMatches == other.searchMatches &&
         groupId == other.groupId &&
         id == other.id &&
         imageFiles == other.imageFiles &&
@@ -129,6 +133,7 @@ class _$Receipt extends Receipt {
     _$hash = $jc(_$hash, createdBy.hashCode);
     _$hash = $jc(_$hash, date.hashCode);
     _$hash = $jc(_$hash, firstComment.hashCode);
+    _$hash = $jc(_$hash, searchMatches.hashCode);
     _$hash = $jc(_$hash, groupId.hashCode);
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, imageFiles.hashCode);
@@ -159,6 +164,7 @@ class _$Receipt extends Receipt {
           ..add('createdBy', createdBy)
           ..add('date', date)
           ..add('firstComment', firstComment)
+          ..add('searchMatches', searchMatches)
           ..add('groupId', groupId)
           ..add('id', id)
           ..add('imageFiles', imageFiles)
@@ -217,6 +223,12 @@ class ReceiptBuilder implements Builder<Receipt, ReceiptBuilder> {
   String? _firstComment;
   String? get firstComment => _$this._firstComment;
   set firstComment(String? firstComment) => _$this._firstComment = firstComment;
+
+  ListBuilder<ReceiptSearchMatch>? _searchMatches;
+  ListBuilder<ReceiptSearchMatch> get searchMatches =>
+      _$this._searchMatches ??= ListBuilder<ReceiptSearchMatch>();
+  set searchMatches(ListBuilder<ReceiptSearchMatch>? searchMatches) =>
+      _$this._searchMatches = searchMatches;
 
   int? _groupId;
   int? get groupId => _$this._groupId;
@@ -300,6 +312,7 @@ class ReceiptBuilder implements Builder<Receipt, ReceiptBuilder> {
       _createdBy = $v.createdBy;
       _date = $v.date;
       _firstComment = $v.firstComment;
+      _searchMatches = $v.searchMatches?.toBuilder();
       _groupId = $v.groupId;
       _id = $v.id;
       _imageFiles = $v.imageFiles?.toBuilder();
@@ -348,6 +361,7 @@ class ReceiptBuilder implements Builder<Receipt, ReceiptBuilder> {
             date:
                 BuiltValueNullFieldError.checkNotNull(date, r'Receipt', 'date'),
             firstComment: firstComment,
+            searchMatches: _searchMatches?.build(),
             groupId: BuiltValueNullFieldError.checkNotNull(
                 groupId, r'Receipt', 'groupId'),
             id: BuiltValueNullFieldError.checkNotNull(id, r'Receipt', 'id'),
@@ -377,6 +391,9 @@ class ReceiptBuilder implements Builder<Receipt, ReceiptBuilder> {
         comments.build();
         _$failedField = 'customFields';
         customFields.build();
+
+        _$failedField = 'searchMatches';
+        _searchMatches?.build();
 
         _$failedField = 'imageFiles';
         _imageFiles?.build();

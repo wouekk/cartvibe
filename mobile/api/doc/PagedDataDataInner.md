@@ -16,6 +16,7 @@ Name | Type | Description | Notes
 **createdBy** | **int** |  | [optional] 
 **date** | **String** | Receipt date | 
 **firstComment** | **String** | Text of the receipt's earliest comment the caller may see. Only populated by the paged receipt list (POST /receipt/group/{groupId}); absent when there is no such comment. | [optional] 
+**searchMatches** | [**BuiltList&lt;ReceiptSearchMatch&gt;**](ReceiptSearchMatch.md) | The product lines that made the receipt match the list's search phrase. Only populated by the paged receipt list while a search is active; absent otherwise. | [optional] 
 **groupId** | **int** |  | 
 **id** | **int** |  | 
 **imageFiles** | [**BuiltList&lt;FileData&gt;**](FileData.md) | Files associated to receipt | [optional] 
