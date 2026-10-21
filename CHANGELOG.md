@@ -20,6 +20,7 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 - Polish translation (language menu in the account menu; languages are a registry, one file and one line each; toasts and dialogs follow)
 - Most component stylesheets replaced by Tailwind classes; headings are base-layer styles
 - New brand assets: dark and light icons (the dark one on the White theme, the light one on Black), a larger CartVibe wordmark, the animated banner on the loading screen, and a new README and project page header
+- Real shop logos (about 230 European grocery, discount, drugstore, furniture, DIY, fast food, sports and fuel chains, focused on France, Germany and Poland) in front of receipt shop names, on a white tile with a black ring (White theme) or white ring (Black theme); unknown shops keep a letter badge, white on black in the White theme and black on white in the Black theme. Logos by Logo.dev
 
 - AI page: a model dropdown filled from Google for the Gemini key (refresh button, free text as a fallback) and a backup Gemini AI that takes over when the main one fails; every AI read stops after three tries instead of retrying for days, and a long outage is probed with growing gaps
 - Receipt photos (HEIC, WebP, TIFF, CMYK, huge JPEGs, camera rotation) are converted to an upright, size-limited JPEG before they reach any vision model
