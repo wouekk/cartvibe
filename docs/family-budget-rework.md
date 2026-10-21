@@ -12,7 +12,7 @@ receipt approval workflow, configurable AI prompts. This fork is for **one famil
 Users are family members (the user and his wife), everyone can add things, and nobody splits bills.
 The app should feel like the approved design, not like a business tool with extras.
 
-**The target look is the approved design** (`Main.dc.html` desktop dashboard and `Phone.dc.html`
+**(Superseded: the target look is now the fintech identity in AGENTS.md. The original wording follows.) The target look is the approved design** (`Main.dc.html` desktop dashboard and `Phone.dc.html`
 shopping list, in the design artifact https://claude.ai/artifact/TAZXoRQ4mmRyoy37CFKRVt). The user
 wants "exactly something like this".
 
