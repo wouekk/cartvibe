@@ -13,7 +13,44 @@ import { SnackbarService } from "../../services";
 import { ViewportService } from "../../services/viewport.service";
 import { AuthState, GroupState, Logout, SetSelectedGroupId } from "../../store";
 import { hasAll } from "../../utils/permission.utils";
+import { provideIcons } from "@ng-icons/core";
+import {
+  lucideBot,
+  lucideCheck,
+  lucideChartLine,
+  lucideChevronDown,
+  lucideChevronsUpDown,
+  lucideEllipsisVertical,
+  lucideInfo,
+  lucideLayoutDashboard,
+  lucideLogOut,
+  lucideReceiptText,
+  lucideSettings,
+  lucideShapes,
+  lucideShoppingCart,
+  lucideSlidersHorizontal,
+  lucideTag,
+  lucideTextCursorInput,
+  lucideUser,
+  lucideUserCog,
+  lucideUsers,
+} from "@ng-icons/lucide";
 import { HlmSidebarService } from "@spartan-ng/helm/sidebar";
+
+/** The nav items name Material icons; the sidebar draws the matching Lucide ones, like spartan's own. */
+const LUCIDE_ICONS: Record<string, string> = {
+  space_dashboard: "lucideLayoutDashboard",
+  shopping_cart: "lucideShoppingCart",
+  receipt_long: "lucideReceiptText",
+  insights: "lucideChartLine",
+  category: "lucideShapes",
+  sell: "lucideTag",
+  dynamic_form: "lucideTextCursorInput",
+  groups: "lucideUsers",
+  person: "lucideUser",
+  smart_toy: "lucideBot",
+  settings: "lucideSettings",
+};
 
 /**
  * The app's navigation: everyday pages (shopping lists, receipts, dashboard, reports) up top, the
@@ -26,9 +63,37 @@ import { HlmSidebarService } from "@spartan-ng/helm/sidebar";
     templateUrl: "./sidebar.component.html",
     styleUrls: ["./sidebar.component.scss"],
     encapsulation: ViewEncapsulation.None,
-    standalone: false
+    standalone: false,
+    providers: [
+      provideIcons({
+        lucideBot,
+        lucideCheck,
+        lucideChartLine,
+        lucideChevronDown,
+        lucideChevronsUpDown,
+        lucideEllipsisVertical,
+        lucideInfo,
+        lucideLayoutDashboard,
+        lucideLogOut,
+        lucideReceiptText,
+        lucideSettings,
+        lucideShapes,
+        lucideShoppingCart,
+        lucideSlidersHorizontal,
+        lucideTag,
+        lucideTextCursorInput,
+        lucideUser,
+        lucideUserCog,
+        lucideUsers,
+      }),
+    ],
 })
 export class SidebarComponent {
+  /** The Lucide icon for a nav item's Material icon name. */
+  public lucide(material: string): string {
+    return LUCIDE_ICONS[material] ?? "lucideSettings";
+  }
+
   constructor(
     private authService: AuthService,
     private matDialog: MatDialog,

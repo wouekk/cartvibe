@@ -40,7 +40,7 @@
                   <span class="truncate text-xs text-sidebar-foreground/60">Household</span>
                   <span class="truncate font-medium">{{ selectedGroup()?.name }}</span>
                 </span>
-                <mat-icon class="ml-auto group-data-[collapsible=icon]:hidden">unfold_more</mat-icon>
+                <ng-icon name="lucideChevronsUpDown" size="16" class="ml-auto group-data-[collapsible=icon]:hidden" />
               </button>
               <ng-template #groupMenu>
                 <div hlmDropdownMenu class="w-56">
@@ -52,7 +52,7 @@
                       data-testid="sidebar-group-option"
                       (click)="groupClicked(group.id); closeMobileSidebar()"
                     >
-                      <mat-icon class="size-4 text-base">{{ group.id === selectedGroupIdNumber() ? "check" : "" }}</mat-icon>
+                      <ng-icon name="lucideCheck" size="16" [class.invisible]="group.id !== selectedGroupIdNumber()" />
                       <span>{{ group.name }}</span>
                     </button>
                   }
@@ -74,54 +74,51 @@
                 ></ng-container>
               </li>
             }
+            @if (manageNavItems().length > 0) {
+                <li hlmSidebarMenuItem>
+                  <hlm-collapsible [expanded]="isManageOpen()" (expandedChange)="isManageOpen.set($event)">
+                    <button
+                      hlmSidebarMenuButton
+                      hlmCollapsibleTrigger
+                      type="button"
+                      tooltip="Admin Settings"
+                      data-testid="sidebar-manage-toggle"
+                      [attr.aria-expanded]="isManageOpen()"
+                    >
+                      <ng-icon name="lucideSlidersHorizontal" size="16" />
+                      <span>Admin Settings</span>
+                      <ng-icon
+                        name="lucideChevronDown"
+                        size="16"
+                        class="ml-auto transition-transform duration-200 group-data-[collapsible=icon]:hidden"
+                        [class.rotate-180]="isManageOpen()"
+                      />
+                    </button>
+                    <hlm-collapsible-content>
+                      <ul hlmSidebarMenuSub data-testid="sidebar-manage-items">
+                        @for (item of manageNavItems(); track item.label) {
+                          <li hlmSidebarMenuSubItem>
+                            <a
+                              hlmSidebarMenuSubButton
+                              routerLinkActive
+                              #manageActive="routerLinkActive"
+                              [isActive]="manageActive.isActive"
+                              [routerLink]="item.link"
+                              (click)="closeMobileSidebar()"
+                            >
+                              <ng-icon [name]="lucide(item.icon)" size="16" />
+                              <span>{{ item.label }}</span>
+                            </a>
+                          </li>
+                        }
+                      </ul>
+                    </hlm-collapsible-content>
+                  </hlm-collapsible>
+                </li>
+              }
           </ul>
         </div>
 
-        @if (manageNavItems().length > 0) {
-          <div hlmSidebarGroup class="mt-auto">
-            <ul hlmSidebarMenu>
-              <li hlmSidebarMenuItem>
-                <hlm-collapsible [expanded]="isManageOpen()" (expandedChange)="isManageOpen.set($event)">
-                  <button
-                    hlmSidebarMenuButton
-                    hlmCollapsibleTrigger
-                    type="button"
-                    tooltip="Manage"
-                    data-testid="sidebar-manage-toggle"
-                    [attr.aria-expanded]="isManageOpen()"
-                  >
-                    <mat-icon>tune</mat-icon>
-                    <span>Manage</span>
-                    <mat-icon
-                      class="ml-auto transition-transform duration-200 group-data-[collapsible=icon]:hidden"
-                      [class.rotate-180]="isManageOpen()"
-                      >expand_more</mat-icon
-                    >
-                  </button>
-                  <hlm-collapsible-content>
-                    <ul hlmSidebarMenuSub data-testid="sidebar-manage-items">
-                      @for (item of manageNavItems(); track item.label) {
-                        <li hlmSidebarMenuSubItem>
-                          <a
-                            hlmSidebarMenuSubButton
-                            routerLinkActive
-                            #manageActive="routerLinkActive"
-                            [isActive]="manageActive.isActive"
-                            [routerLink]="item.link"
-                            (click)="closeMobileSidebar()"
-                          >
-                            <mat-icon>{{ item.icon }}</mat-icon>
-                            <span>{{ item.label }}</span>
-                          </a>
-                        </li>
-                      }
-                    </ul>
-                  </hlm-collapsible-content>
-                </hlm-collapsible>
-              </li>
-            </ul>
-          </div>
-        }
       </div>
 
       <div hlmSidebarFooter>
@@ -141,23 +138,23 @@
               <span class="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
                 <span class="truncate font-medium">{{ loggedInUser()?.displayName }}</span>
               </span>
-              <mat-icon class="ml-auto group-data-[collapsible=icon]:hidden">more_vert</mat-icon>
+              <ng-icon name="lucideEllipsisVertical" size="16" class="ml-auto group-data-[collapsible=icon]:hidden" />
             </button>
             <ng-template #accountMenu>
               <div hlmDropdownMenu class="w-56">
                 @if (canViewUserSettings()) {
                   <button hlmDropdownMenuItem type="button" [routerLink]="['/settings']" (click)="closeMobileSidebar()">
-                    <mat-icon class="size-4 text-base">manage_accounts</mat-icon>
+                    <ng-icon name="lucideUserCog" size="16" />
                     <span>User Settings</span>
                   </button>
                 }
                 <button hlmDropdownMenuItem type="button" (click)="openAboutDialog()">
-                  <mat-icon class="size-4 text-base">info</mat-icon>
+                  <ng-icon name="lucideInfo" size="16" />
                   <span>About</span>
                 </button>
                 <div hlmDropdownMenuSeparator></div>
                 <button hlmDropdownMenuItem type="button" (click)="logout()">
-                  <mat-icon class="size-4 text-base">logout</mat-icon>
+                  <ng-icon name="lucideLogOut" size="16" />
                   <span>Logout</span>
                 </button>
               </div>
@@ -202,7 +199,7 @@
     [attr.data-testid]="testId"
     (click)="closeMobileSidebar()"
   >
-    <mat-icon>{{ item.icon }}</mat-icon>
+    <ng-icon [name]="lucide(item.icon)" size="16" />
     <span>{{ item.label }}</span>
   </a>
 </ng-template>
