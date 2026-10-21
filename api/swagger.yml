@@ -7575,6 +7575,14 @@ components:
               type: string
               nullable: true
               description: The most this person wants to spend in a month, as a decimal string; null or 0 means no goal
+            displayCurrency:
+              type: string
+              description: The ISO code of the currency this person sees the Dashboard in; empty means the household currency
+              default: ""
+            displayCurrencyRate:
+              type: string
+              nullable: true
+              description: How many units of displayCurrency one unit of the household currency is worth, as a decimal string; only the Dashboard converts
             userShortcuts:
               type: array
               items:
