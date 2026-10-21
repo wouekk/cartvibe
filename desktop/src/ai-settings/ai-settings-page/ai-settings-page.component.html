@@ -8,6 +8,12 @@
     <p class="text-muted-foreground">{{ 'Loading…' | t }}</p>
   } @else {
     <form class="flex flex-col gap-4 rounded-xl border border-border bg-card p-6" [formGroup]="form" (ngSubmit)="save()">
+      <h2 class="m-0 text-[17px] font-semibold">{{ 'Main AI' | t }}</h2>
+      <div class="rw-section" data-testid="ai-section-main">
+        <div class="rw-section__head">
+          <h3 class="rw-section__title">{{ 'Provider' | t }}</h3>
+          <p class="rw-section__desc">{{ 'Where receipts are read. Google Gemini runs in the cloud; LM Studio runs on a computer at home.' | t }}</p>
+        </div>
       <app-select
         [label]="'Provider' | t"
         optionValueKey="value"
@@ -60,7 +66,9 @@
         ></app-checkbox>
       }
 
-      <div class="mt-2 flex flex-wrap gap-2 [&_button]:min-h-11">
+      </div>
+
+      <div class="flex flex-wrap gap-2 [&_button]:min-h-11">
         <button
           hlmBtn
           color="primary"

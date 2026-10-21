@@ -1,4 +1,4 @@
-<div class="mb-4 form-section-header" [ngClass]="{ 'mx-4': indent() }">
+<div class="form-section-header" [ngClass]="{ 'mx-4': indent() && !panel(), 'mb-4': !panel(), 'rw-section__head': panel() }">
   <div class="flex items-center">
     @if (collapsed()) {
       <button
@@ -10,9 +10,9 @@
       </button>
     }
     <div class="flex flex-col">
-      <strong> {{ headerText() | t }}</strong>
+      <strong [class]="panel() ? 'rw-section__title' : ''"> {{ headerText() | t }}</strong>
       @if (subtitle) {
-        <small>{{ subtitle | t }}</small>
+        <small [class]="panel() ? 'rw-section__desc' : ''">{{ subtitle | t }}</small>
       }
     </div>
 
@@ -26,7 +26,7 @@
   </div>
 </div>
 @if (!isCollapsed) {
-  <div [ngClass]="{ 'mx-4': indent() }">
+  <div [ngClass]="{ 'mx-4': indent() && !panel() }">
     <ng-content></ng-content>
   </div>
 }

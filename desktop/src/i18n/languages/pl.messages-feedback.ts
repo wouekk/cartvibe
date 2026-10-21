@@ -324,4 +324,13 @@ export const PL_FEEDBACK: Record<string, string> = {
   "Transport": "Transport",
   "Bottle Deposit": "Kaucja",
   "(Restricted)": "(Ograniczone)",
+  "Sign-up": "Rejestracja",
+  "Session": "Sesja",
+  "Cookies": "Pliki cookie",
+  "Server address": "Adres serwera",
+  "Worker": "Worker zadań",
+  "Temporary files": "Pliki tymczasowe",
+  "Priorities": "Priorytety",
+  "Main AI": "Główne AI",
+  "Where receipts are read. Google Gemini runs in the cloud; LM Studio runs on a computer at home.": "Gdzie czytane są paragony. Google Gemini działa w chmurze, a LM Studio na komputerze w domu.",
 };
