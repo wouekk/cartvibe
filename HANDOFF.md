@@ -93,3 +93,18 @@ The GitHub repository is **`wouekk/cartvibe`** (was `wouekk/receipt-wrangler`; G
 The compose file now maps the NAS folder `/volume2/docker/cartvibe/...` (rename the existing folder first, or the app starts with an empty database); the paths inside the container (`/app/receipt-wrangler-api/...`) and the service names are unchanged on purpose.
 After the first publish the new GHCR package may be **private**: set it to public (GitHub → profile → Packages →
 cartvibe → Package settings → Change visibility) or the NAS cannot pull it.
+
+## Local stack on the Windows PC (set up 2026-10-21, outside the repo, in `C:\Users\Marcin\tools\`)
+Everything needed to run and look at the app without CI or Docker:
+- **Node 20.19.6 + npm 10.8.2** (CI's versions), unzipped in `tools\node-v20.19.6-win-x64`; not on the PATH, so put
+  `export PATH="/c/Users/Marcin/tools/node-v20.19.6-win-x64:$PATH"` in front. `npm ci`, `npx jest <path>`, `npx ng build`
+  (about 35 s) all work in `desktop/`. A lockfile regenerated here must still be checked against CI's `npm ci`.
+- **API:** `tools\devstack\api.exe`, built with `bash api/scripts/go-without-cgo.sh build -o <path> .` (image and OCR
+  libraries are stubs, so image/PDF/OCR features do not work locally; everything else does). Run it from
+  `tools\devstack\run` with `DB_ENGINE=sqlite DB_FILENAME=dev.db ENCRYPTION_KEY=.. SECRET_KEY=.. REDIS_HOST=127.0.0.1
+  BASE_PATH=C:/Users/Marcin/tools/devstack/run`; it listens on :8081; login `admin` / `admin`.
+- **Redis stand-in:** `tools\devstack\redis\miniredis.exe` (a Go in-memory Redis on :6379; start it first).
+- **Web:** `npm start` in `desktop/` serves :4200 and proxies /api to :8081.
+- **Screenshots:** `tools\devstack\shot.cjs` (Playwright, Chromium installed) logs in and writes PNGs to `tools\devstack\shots`;
+  read them with the Read tool to check light/dark, the sidebar and phone widths (set the viewport) before a preview.
+- Not available: Docker (nginx/image paths can only be tested on the NAS), real Redis, ImageMagick/Tesseract.
