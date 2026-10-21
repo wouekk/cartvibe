@@ -14,32 +14,23 @@ describe("CartVibeLogoComponent", () => {
     await fixture.whenStable();
   });
 
-  it("is the supplied lockup: the icon and the CartVibe wordmark on a 430 by 120 canvas", () => {
-    const svg: SVGElement = fixture.nativeElement.querySelector("svg");
+  it("is the icon beside the CartVibe wordmark", () => {
+    const el: HTMLElement = fixture.nativeElement;
+    const wordmark = el.querySelector('[data-testid="cartvibe-logo"]') as HTMLElement;
 
-    expect(svg.getAttribute("viewBox")).toBe("0 0 430 120");
-    expect(svg.getAttribute("aria-label")).toBe("CartVibe");
-    const tspans = svg.querySelectorAll("tspan");
-    expect(tspans[0].textContent).toBe("Cart");
-    expect(tspans[1].textContent).toBe("Vibe");
-    expect(svg.querySelectorAll("rect").length).toBe(4);
-    expect(svg.querySelectorAll("circle").length).toBe(2);
+    expect(el.querySelector("app-cartvibe-icon")).not.toBeNull();
+    expect(wordmark.getAttribute("aria-label")).toBe("CartVibe");
+    expect(wordmark.querySelector(".cart")?.textContent).toBe("Cart");
+    expect(wordmark.querySelector(".vibe")?.textContent).toBe("Vibe");
   });
 
-  it("keeps the supplied palette: purple badge, never the accent", () => {
-    const html = fixture.nativeElement.innerHTML as string;
-
-    expect(html).toContain("var(--logo-bg-bl)");
-    expect(html).toContain("var(--logo-text-vibe)");
-    expect(html).not.toContain("--accent");
-  });
-
-  it("scales by height, keeping the artwork's proportions", async () => {
+  it("sizes the icon by height and the wordmark from it, large", async () => {
     fixture.componentRef.setInput("height", 60);
     await fixture.whenStable();
 
-    const svg: SVGElement = fixture.nativeElement.querySelector("svg");
-    expect(svg.getAttribute("height")).toBe("60");
-    expect(svg.getAttribute("width")).toBe("215");
+    const icon = fixture.nativeElement.querySelector("svg");
+    const wordmark = fixture.nativeElement.querySelector('[data-testid="cartvibe-logo"]') as HTMLElement;
+    expect(icon.getAttribute("height")).toBe("60");
+    expect(wordmark.style.fontSize).toBe("49px");
   });
 });

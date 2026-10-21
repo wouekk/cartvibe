@@ -7,16 +7,16 @@
 <meta name="description" content="CartVibe: a self-hosted household app for receipts, shopping lists and spending insights. A vibe-coded fork of Receipt Wrangler.">
 <link rel="icon" href="cartvibe-icon.svg" type="image/svg+xml">
 <style>
-  :root { --bg:#f1f4f8; --card:#fff; --text:#1e293b; --muted:#566377; --accent:#0069a8; --accent-soft:rgba(0,105,168,.1); --deep:#0f172a; }
+  :root { --bg:#f1f4f8; --card:#fff; --text:#1e293b; --muted:#566377; --accent:#0a8a54; --accent-soft:rgba(22,201,118,.12); --deep:#0f172a; }
   @media (prefers-color-scheme: dark) {
-    :root { --bg:#0f172a; --card:#1b2638; --text:#e2e8f0; --muted:#9aa8bc; --accent:#6cb6ee; --accent-soft:rgba(108,182,238,.14); --deep:#0b1220; }
+    :root { --bg:#0f172a; --card:#1b2638; --text:#e2e8f0; --muted:#9aa8bc; --accent:#16C976; --accent-soft:rgba(22,201,118,.16); --deep:#0b1220; }
   }
   * { box-sizing: border-box; }
   body { margin:0; background:var(--bg); color:var(--text); font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
   main { max-width: 880px; margin: 0 auto; padding: 0 16px 56px; }
   header { text-align:center; padding: 56px 0 32px; }
-  header img { width: 96px; height: 96px; }
-  h1 { font-size: 2.4rem; margin: 12px 0 4px; letter-spacing: -.02em; }
+  header img { display:block; width:min(100%, 720px); height:auto; margin:0 auto; border-radius:24px; box-shadow:0 18px 40px rgba(15,23,42,.28); }
+  h1 { font-size:1.15rem; font-weight:600; margin: 24px 0 4px; }
   .tag { color: var(--muted); font-size: 1.1rem; margin: 0 auto; max-width: 34rem; }
   .cta { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:24px; }
   .btn { display:inline-block; padding:12px 20px; border-radius:12px; text-decoration:none; font-weight:600; background:var(--accent); color:#fff; min-height:44px; }
@@ -35,8 +35,8 @@
 <body>
 <main>
   <header>
-    <img src="cartvibe-icon.svg" alt="CartVibe icon">
-    <h1>CartVibe</h1>
+    <img src="brand/banner-wordmark.svg" alt="CartVibe: receipt tracking" width="1200" height="360">
+    <h1>A self-hosted household app</h1>
     <p class="tag">Receipts, shopping lists and spending insights for one household. Self-hosted, phone-friendly.</p>
     <div class="cta">
       <a class="btn" href="https://github.com/wouekk/cartvibe">View on GitHub</a>

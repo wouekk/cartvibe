@@ -1,17 +1,16 @@
 import { Component, input } from "@angular/core";
 
 /**
- * The CartVibe app icon (`cartvibe-logo.svg` of the identity package), drawn exactly as supplied: a purple
- * rounded square, three ascending green bars, the blue trend arrow, and the cart with its wheels. A fixed
- * brand mark, never recolored by the accent theme.
+ * The CartVibe app icon, drawn exactly as supplied in `assets/brand/icon-dark.svg` and `icon-light.svg`: a rounded
+ * square, three ascending emerald bars, the blue trend arrow, and the cart with its wheels. A fixed brand mark, never
+ * recolored by the accent theme; the geometry and colors below are the files', untouched.
  *
- * Light and dark are the package's two palettes. In the file they switch on the operating system's
- * `prefers-color-scheme` or a `.dark` class; inline in the page they switch on the app's own `dark` class on
- * `<html>` (set by the Theme tab, System included), so a chosen Light or Dark is respected. Colors and
- * geometry are otherwise untouched.
+ * The two files are the dark and the light version, and the one that contrasts with the page is shown: the dark icon on the
+ * White theme, the light icon on the Black one. They switch on the app's own `dark` class on `<html>` (set by the Theme
+ * tab, System included), so a chosen White or Black is respected.
  *
- * Keep it out of the page-wide dark filter (the `app-cartvibe-icon` rule in index.html): the dark palette is
- * already the dark one.
+ * Keep it out of the page-wide dark filter (the `app-cartvibe-icon` rule in index.html): the dark file is already
+ * the dark one.
  */
 @Component({
   selector: "app-cartvibe-icon",
@@ -19,109 +18,119 @@ import { Component, input } from "@angular/core";
   template: `
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 120 120"
+      viewBox="0 0 512 512"
       [attr.width]="size()"
       [attr.height]="size()"
-      class="icon"
+      class="variant-dark"
       aria-hidden="true"
+      data-testid="cartvibe-icon-dark"
     >
       <defs>
-        <linearGradient id="cv-badge-grad" x1="10%" y1="90%" x2="90%" y2="10%">
-          <stop offset="0%" stop-color="var(--bg-bl)" />
-          <stop offset="100%" stop-color="var(--bg-tr)" />
+        <linearGradient id="cvi-bg-dark" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#252A34" />
+          <stop offset="100%" stop-color="#151920" />
         </linearGradient>
-
-        <linearGradient id="cv-bar-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stop-color="var(--bar-top)" />
-          <stop offset="100%" stop-color="var(--bar-bot)" />
+        <linearGradient id="cvi-bar-dark" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#19E68C" />
+          <stop offset="100%" stop-color="#119966" />
         </linearGradient>
-
-        <linearGradient id="cv-arrow-grad" x1="0%" y1="100%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="var(--arrow-start)" />
-          <stop offset="100%" stop-color="var(--arrow-end)" />
+        <linearGradient id="cvi-arrow-dark" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#0D6EFD" />
+          <stop offset="100%" stop-color="#0099FF" />
         </linearGradient>
       </defs>
-
-      <!-- Squircle Background -->
-      <rect x="4" y="4" width="112" height="112" rx="28" fill="url(#cv-badge-grad)" />
-
-      <!-- 3 Ascending Green Bars (Flush with Cart Floor at y=73) -->
-      <g fill="url(#cv-bar-grad)">
-        <rect x="43.5" y="54.5" width="9.5" height="18.5" rx="0.5" />
-        <rect x="57.5" y="47.5" width="9.5" height="25.5" rx="0.5" />
-        <rect x="71.5" y="39.5" width="9.5" height="33.5" rx="0.5" />
+      <rect width="512" height="512" rx="115" fill="url(#cvi-bg-dark)" stroke="#383F4D" stroke-width="6" />
+      <g fill="url(#cvi-bar-dark)">
+        <rect x="172" y="210" width="38" height="122" rx="4" />
+        <rect x="228" y="168" width="38" height="164" rx="4" />
+        <rect x="284" y="128" width="38" height="204" rx="4" />
       </g>
+      <g stroke="#1C2129" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" fill="none">
+        <path d="M 164 306 L 236 244 L 274 282 L 368 192" />
+      </g>
+      <g stroke="#FFFFFF" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" fill="none">
+        <path d="M 88 144 H 126 L 166 332 H 332 L 352 248" />
+        <path d="M 166 332 C 140 332, 140 368, 166 368 H 322" />
+      </g>
+      <g fill="none" stroke="#FFFFFF" stroke-width="14">
+        <circle cx="188" cy="402" r="16" />
+        <circle cx="300" cy="402" r="16" />
+      </g>
+      <g>
+        <path d="M 164 306 L 236 244 L 274 282 L 368 192" stroke="url(#cvi-arrow-dark)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+        <polygon points="392,168 340,180 378,218" fill="url(#cvi-arrow-dark)" />
+      </g>
+    </svg>
 
-      <!-- Blue Trend Arrow -->
-      <path
-        d="M 36.8 48.5
-           L 54.5 30.8
-           L 62.5 38.8
-           L 73.5 27.8
-           L 68.8 23.1
-           L 86 19.5
-           L 82.4 36.7
-           L 77.7 32
-           L 62.5 47.2
-           L 54.5 39.2
-           L 45.2 48.5 Z"
-        fill="url(#cv-arrow-grad)"
-      />
-
-      <!-- Shopping Cart with 45-Degree Beveled Left Rim Stub -->
-      <path
-        d="M 19.5 32.5
-           H 30.5
-           C 32.5 32.5 34 33.8 34.5 35.8
-           L 36.1 42
-           H 40.5
-           L 34 48.5
-           H 37.8
-           L 44 73
-           H 80.5
-           L 86.2 49.5
-           H 83.2
-           L 84.8 43
-           H 90.2
-           C 92.8 43 94.2 44.8 93.5 47.5
-           L 86.8 76.5
-           C 86.2 79 84.2 80.5 81.5 80.5
-           H 42.5
-           C 39.8 80.5 37.8 79 37.2 76.5
-           L 27.8 39
-           H 19.5
-           A 3.25 3.25 0 0 1 16.25 35.75
-           A 3.25 3.25 0 0 1 19.5 32.5 Z"
-        fill="var(--cart-fill)"
-      />
-
-      <!-- Cart Wheels -->
-      <circle cx="48" cy="91.5" r="7" fill="var(--cart-fill)" />
-      <circle cx="76.5" cy="91.5" r="7" fill="var(--cart-fill)" />
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 512 512"
+      [attr.width]="size()"
+      [attr.height]="size()"
+      class="variant-light"
+      aria-hidden="true"
+      data-testid="cartvibe-icon-light"
+    >
+      <defs>
+        <linearGradient id="cvi-bg-light" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#FFFFFF" />
+          <stop offset="100%" stop-color="#F0F3F7" />
+        </linearGradient>
+        <linearGradient id="cvi-bar-light" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#19E68C" />
+          <stop offset="100%" stop-color="#119966" />
+        </linearGradient>
+        <linearGradient id="cvi-arrow-light" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#0D6EFD" />
+          <stop offset="100%" stop-color="#0099FF" />
+        </linearGradient>
+      </defs>
+      <rect width="512" height="512" rx="115" fill="url(#cvi-bg-light)" stroke="#D0D6DF" stroke-width="6" />
+      <g fill="url(#cvi-bar-light)">
+        <rect x="172" y="210" width="38" height="122" rx="4" />
+        <rect x="228" y="168" width="38" height="164" rx="4" />
+        <rect x="284" y="128" width="38" height="204" rx="4" />
+      </g>
+      <g stroke="#F8FAFC" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" fill="none">
+        <path d="M 164 306 L 236 244 L 274 282 L 368 192" />
+      </g>
+      <g stroke="#202834" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" fill="none">
+        <path d="M 88 144 H 126 L 166 332 H 332 L 352 248" />
+        <path d="M 166 332 C 140 332, 140 368, 166 368 H 322" />
+      </g>
+      <g fill="none" stroke="#202834" stroke-width="14">
+        <circle cx="188" cy="402" r="16" />
+        <circle cx="300" cy="402" r="16" />
+      </g>
+      <g>
+        <path d="M 164 306 L 236 244 L 274 282 L 368 192" stroke="url(#cvi-arrow-light)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+        <polygon points="392,168 340,180 378,218" fill="url(#cvi-arrow-light)" />
+      </g>
     </svg>
   `,
   styles: [
     `
-      /* The palette is the theme's: every theme defines the --brand-* tokens (src/themes), this only maps them. */
       :host {
         display: inline-flex;
-        --bg-bl: var(--brand-badge-from, #09090b);
-        --bg-tr: var(--brand-badge-to, #3f3f46);
-        --cart-fill: var(--brand-cart, #fafafa);
-        --bar-top: var(--brand-bar-top, #34d399);
-        --bar-bot: var(--brand-bar-bottom, #10b981);
-        --arrow-start: var(--brand-arrow-from, #fbbf24);
-        --arrow-end: var(--brand-arrow-to, #f59e0b);
-      }
-
-      .icon {
-        display: block;
         flex-shrink: 0;
+      }
+      svg {
+        display: block;
+      }
+      /* The icon contrasts with its page: the dark icon on the White theme, the light icon on the Black one. */
+      .variant-light {
+        display: none;
+      }
+      :host-context(html.dark) .variant-light {
+        display: block;
+      }
+      :host-context(html.dark) .variant-dark {
+        display: none;
       }
     `,
   ],
 })
 export class CartVibeIconComponent {
-  /** Width and height in px (the artwork is square, 120 by 120). */
+  /** Width and height in px. */
   public readonly size = input(40);
 }

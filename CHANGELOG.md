@@ -19,6 +19,7 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 - The Docker image is multi-stage on Debian slim with build-time checks for what the API needs at run time; CI no longer carries the upstream Codecov and Docker Hub jobs
 - Polish translation (language menu in the account menu; languages are a registry, one file and one line each; toasts and dialogs follow)
 - Most component stylesheets replaced by Tailwind classes; headings are base-layer styles
+- New brand assets: dark and light icons (the dark one on the White theme, the light one on Black), a larger CartVibe wordmark, the animated banner on the loading screen, and a new README and project page header
 
 ### Removed
 - `@popperjs/core` and the last Bootstrap/Material leftovers; Angular Material, Bootstrap and the Material icon font; the Households filter button; the old accent themes
