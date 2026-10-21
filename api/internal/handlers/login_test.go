@@ -319,44 +319,6 @@ func TestLogin_TokensInBodyQuery(t *testing.T) {
 	}
 }
 
-func TestLogin_MobileUserAgent(t *testing.T) {
-	defer teardownLoginTests()
-
-	createAdminUser(t, "mobile-user", "Password")
-
-	w := httptest.NewRecorder()
-	r := loginRequest(commands.LoginCommand{Username: "mobile-user", Password: "Password"}, "", "Dart/3.2 (dart:io)")
-
-	Login(w, r)
-
-	if w.Result().StatusCode != http.StatusOK {
-		utils.PrintTestError(t, w.Result().StatusCode, http.StatusOK)
-	}
-
-	// Mobile path: body carries tokens AND cookies are still set (because
-	// tokensInBody query flag is false).
-	var appData structs.AppData
-	if err := json.NewDecoder(w.Result().Body).Decode(&appData); err != nil {
-		utils.PrintTestError(t, err, nil)
-	}
-	if appData.Jwt == "" {
-		utils.PrintTestError(t, "empty jwt for mobile", "jwt set")
-	}
-	if appData.RefreshToken == "" {
-		utils.PrintTestError(t, "empty refresh token for mobile", "refresh token set")
-	}
-
-	jwtCookieSet := false
-	for _, c := range w.Result().Cookies() {
-		if c.Name == constants.JwtKey {
-			jwtCookieSet = true
-		}
-	}
-	if !jwtCookieSet {
-		utils.PrintTestError(t, "jwt cookie missing for mobile", "jwt cookie present")
-	}
-}
-
 func TestLogin_NonAdminUserSkipsFirstAdminBranch(t *testing.T) {
 	defer teardownLoginTests()
 

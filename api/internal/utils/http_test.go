@@ -101,24 +101,6 @@ func TestSetJSONResponseHeadersShouldSetContentType(t *testing.T) {
 	}
 }
 
-func TestIsMobileAppShouldReturnTrueForDartUserAgent(t *testing.T) {
-	r := httptest.NewRequest(http.MethodGet, "/api", nil)
-	r.Header.Set("User-Agent", "MyApp/1.0 (dart:io)")
-
-	if !IsMobileApp(r) {
-		t.Errorf("Expected IsMobileApp to return true for a dart:io user agent")
-	}
-}
-
-func TestIsMobileAppShouldReturnFalseForBrowserUserAgent(t *testing.T) {
-	r := httptest.NewRequest(http.MethodGet, "/api", nil)
-	r.Header.Set("User-Agent", "Mozilla/5.0")
-
-	if IsMobileApp(r) {
-		t.Errorf("Expected IsMobileApp to return false for a browser user agent")
-	}
-}
-
 // TODO: move test
 // func TestWriteValidatorErrorResponseWritesResponse(t *testing.T) {
 // 	var errBytes = make([]byte, 100)

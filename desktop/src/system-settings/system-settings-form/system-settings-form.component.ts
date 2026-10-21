@@ -243,8 +243,6 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
       // enabled") is enforced where providers are saved so an admin cannot
       // register one that has no redirect URI to publish.
       serverPublicUrl: [this.originalSystemSettings?.serverPublicUrl, [absoluteUrlValidator()]],
-      showLoginQr: [this.originalSystemSettings?.showLoginQr],
-      mobileServerUrl: [this.originalSystemSettings?.mobileServerUrl],
       secureCookies: [this.originalSystemSettings?.secureCookies ?? false],
       // Form-only controls. The API stores hours; the unit is presentation and
       // is folded back into `<name>Hours` in submit().
@@ -268,8 +266,6 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
       this.form.get("mcpEnabled")?.disable();
       this.form.get("mcpPublicUrl")?.disable();
       this.form.get("serverPublicUrl")?.disable();
-      this.form.get("showLoginQr")?.disable();
-      this.form.get("mobileServerUrl")?.disable();
       this.form.get("secureCookies")?.disable();
       this.form.get("refreshTokenValidForValue")?.disable();
       this.form.get("refreshTokenValidForUnit")?.disable();
@@ -283,7 +279,6 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
     this.listenForHideDecimalPlacesChanges();
     this.listenForCurrencyChanges();
     this.listenForMcpEnabledChanges();
-    this.listenForShowLoginQrChanges();
     this.listenForDurationUnitChanges(
       "refreshTokenValidForValue",
       "refreshTokenValidForUnit",
@@ -412,23 +407,6 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
         tap((enabled: boolean) => {
           mcpPublicUrl?.setValidators(this.urlValidators(enabled));
           mcpPublicUrl?.updateValueAndValidity({ emitEvent: false });
-        })
-      )
-      .subscribe();
-  }
-
-  // A mobile server URL is required to show the login QR code, mirroring the
-  // backend validation. The control's validators track the toggle.
-  private listenForShowLoginQrChanges(): void {
-    const mobileServerUrl = this.form.get("mobileServerUrl");
-
-    this.form.get("showLoginQr")?.valueChanges
-      .pipe(
-        startWith(this.form.get("showLoginQr")?.value),
-        untilDestroyed(this),
-        tap((enabled: boolean) => {
-          mobileServerUrl?.setValidators(this.urlValidators(enabled));
-          mobileServerUrl?.updateValueAndValidity({ emitEvent: false });
         })
       )
       .subscribe();
