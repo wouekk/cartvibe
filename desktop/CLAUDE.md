@@ -2985,3 +2985,8 @@ The **English text in a template is the key**: `{{ 'Add receipt' | t }}` (pipe `
 - Precedence: saved preference (`UserPreferences.language`, synced by `LanguageSyncService`) > the choice made on this device (`localStorage`) > the browser language > the first registered language. `TranslationService` has no dependencies on purpose: every pipe uses it.
 - Component inputs that carry text (`label`, `headerText`, `buttonText`, option labels, table headers, filter chips) are translated where the shared component renders them, so callers pass plain English. Dates, money and group/shop names are data and are not translated (month names in period labels go through `months()`).
 - `translation.service.spec.ts` checks every registered language: the same `{placeholders}` as the English key and enough plural forms for its rule. Missing keys are not an error; find them by switching the language in the app.
+
+### Styling rules (after the Tailwind conversion)
+- New and touched components use **Tailwind classes in the template**; a component stylesheet is only for what utilities cannot say (CDK drag classes, the image canvas and carousel, the diff table, the report config panel and column picker, whose classes come from TypeScript). Hosts get their classes from `host: { class: "..." }`, not `:host {}`.
+- **Specs and e2e never select by styling classes**: use `data-testid`, ARIA state (`aria-pressed`, `aria-current`) or text. A utility class is free to change.
+- Global element styles (`h1`-`h6` in `styles.scss`) live in `@layer base`, so a utility on the element wins; unlayered global CSS would beat every utility. Keep new global rules in a layer.
