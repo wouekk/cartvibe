@@ -15,6 +15,10 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 - Dashboard cards keep the whole part of an amount bold and quiet the symbol and decimals; receipts show a monogram badge for the shop
 - Manage pages moved under Admin Settings below Reports; the AI page says "Save changes" like System Settings
 
+- Per-user Dashboard currency (Preferences: a code and a manual rate, converted in the browser, Dashboard only)
+- Phone widths: no horizontal overflow, safe-area and dynamic viewport units, 16 px inputs
+- The Docker image is multi-stage on Debian slim with build-time checks for what the API needs at run time; CI no longer carries the upstream Codecov and Docker Hub jobs
+
 ### Removed
 - Angular Material, Bootstrap and the Material icon font; the Households filter button; the old accent themes
 
