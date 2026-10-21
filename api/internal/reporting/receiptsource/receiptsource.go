@@ -28,6 +28,7 @@ import (
 const (
 	KeyReceiptID    reporting.FieldKey = "receipt_id"
 	KeyName         reporting.FieldKey = "name"
+	KeyShop         reporting.FieldKey = "shop"
 	KeyAmount       reporting.FieldKey = "amount"
 	KeyDate         reporting.FieldKey = "date"
 	KeyResolvedDate reporting.FieldKey = "resolved_date"
@@ -124,6 +125,7 @@ func builtinFields(location *time.Location) []reporting.FieldRef {
 	fields := []reporting.FieldRef{
 		{Key: KeyReceiptID, Label: "Receipt Id", DataType: reporting.TypeNumber},
 		{Key: KeyName, Label: "Name", DataType: reporting.TypeString},
+		{Key: KeyShop, Label: "Shop", DataType: reporting.TypeString},
 		{Key: KeyAmount, Label: "Amount", DataType: reporting.TypeCurrency},
 		{Key: KeyDate, Label: "Date", DataType: reporting.TypeDate, Location: time.UTC},
 		{Key: KeyResolvedDate, Label: "Resolved Date", DataType: reporting.TypeDate, Location: location},
@@ -283,6 +285,8 @@ func (s Source) row(receipt *models.Receipt) reporting.Row {
 	row := reporting.Row{
 		KeyReceiptID: {reporting.Num(decimal.NewFromInt(int64(receipt.ID)))},
 		KeyName:      {reporting.Str(receipt.Name)},
+		// The shop the receipt was read as, else its name: what the receipts table shows in its Shop column.
+		KeyShop:      {reporting.Str(shopOf(receipt))},
 		KeyAmount:    {reporting.Num(receipt.Amount)},
 		KeyDate:      {reporting.DateVal(receipt.Date)},
 		KeyCreatedAt: {reporting.DateVal(receipt.CreatedAt)},
@@ -445,4 +449,12 @@ func tagValues(tags []models.Tag) []reporting.Value {
 		values = append(values, reporting.Str(tag.Name))
 	}
 	return values
+}
+
+// shopOf is the shop a receipt belongs to for reporting: the shop read from it, else its name.
+func shopOf(receipt *models.Receipt) string {
+	if receipt.ShopName != "" {
+		return receipt.ShopName
+	}
+	return receipt.Name
 }

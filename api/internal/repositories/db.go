@@ -236,6 +236,9 @@ func InitDB() error {
 	if err := RunDataMigrations(); err != nil {
 		return err
 	}
+	if err := SeedStarterReportTemplates(); err != nil {
+		return err
+	}
 
 	return nil
 }

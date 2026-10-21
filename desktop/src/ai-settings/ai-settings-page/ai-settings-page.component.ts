@@ -5,7 +5,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { Store } from "@ngxs/store";
-import { finalize, map, Observable, of, startWith, switchMap, take, tap } from "rxjs";
+import { catchError, finalize, map, Observable, of, startWith, switchMap, take, tap } from "rxjs";
 import { CheckboxModule } from "../../checkbox/checkbox.module";
 import { InputModule } from "../../input/input.module";
 import {
@@ -121,13 +121,18 @@ export class AiSettingsPageComponent implements OnInit {
       .getSystemSettings()
       .pipe(
         take(1),
+        // A household member cannot read System Settings (403): the page then works from the processing
+        // settings alone, and the server links the first ones they save.
+        catchError(() => of(undefined)),
         tap((systemSettings) => (this.systemSettings = systemSettings)),
         switchMap((systemSettings) =>
-          systemSettings.receiptProcessingSettingsId
+          systemSettings?.receiptProcessingSettingsId
             ? this.receiptProcessingSettingsService.getReceiptProcessingSettingsById(
                 systemSettings.receiptProcessingSettingsId
               )
-            : of(undefined)
+            : systemSettings
+              ? of(undefined)
+              : this.firstProcessingSettings()
         ),
         finalize(() => this.loading.set(false))
       )
@@ -221,8 +226,27 @@ export class AiSettingsPageComponent implements OnInit {
       .subscribe((result) => this.connectionResult.set(result));
   }
 
+  // The first processing settings there are: what a member who cannot read System Settings edits.
+  private firstProcessingSettings(): Observable<ReceiptProcessingSettings | undefined> {
+    return this.receiptProcessingSettingsService
+      .getPagedProcessingSettings({ page: 1, pageSize: 1, orderBy: "name", sortDirection: "asc" })
+      .pipe(
+        map((response) => (response.data as unknown as ReceiptProcessingSettings[])[0]),
+        catchError(() => of(undefined))
+      );
+  }
+
   // Points System Settings at new settings, then refreshes the AI feature flag the app reads.
   private linkToSystemSettings(created: ReceiptProcessingSettings): Observable<ReceiptProcessingSettings> {
+    // Without access to System Settings the server has already linked the first settings; only the AI flag
+    // the app reads needs refreshing.
+    if (!this.systemSettings) {
+      return this.featureConfigService.getFeatureConfig().pipe(
+        tap((featureConfig) => this.store.dispatch(new SetFeatureConfig(featureConfig))),
+        map(() => created)
+      );
+    }
+
     const command = {
       ...(this.systemSettings ?? {}),
       receiptProcessingSettingsId: created.id,

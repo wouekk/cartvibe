@@ -3174,3 +3174,18 @@ screens. Geometry, gradients and colors are untouched; the only adaptation is th
 class on `<html>` (`:host-context(html.dark)`), not the OS media query, so a chosen Light or Dark is respected. They are
 fixed brand colors (never the accent) and are kept out of the page-wide dark filter in index.html. Do not redraw them:
 change the supplied artwork and copy it in.
+
+## Round 5 (fork): inline Save, shake, themed shell, Quick Scan, AI for everyone
+
+- **Form actions are inline:** `app-form-button-bar` (12 forms) is no longer a floating bar: it is a card row at the end of
+  the form with a flat accent Save, like the AI page. Never reintroduce a fixed bar.
+- **Required fields shake:** `shakeInvalid()` (`utils/shake.ts`, `.rw-shake` / `.rw-field-error` in `styles.scss`) is the one
+  way to tell someone a required box is empty: the shopping list add box, and the receipt form's name and amount.
+- **The shell follows the theme:** each accent defines `--shell-bg` (tinted page), `--sidebar-*` (a deep shade for the sidebar)
+  and `--accent-button` / `-hover` (a filled-button color that keeps 4.5:1 with white text; classic and emerald are darker
+  than their `--accent-color`). Use `--accent-button` for anything filled with white text, `--accent-color` for text and
+  icons. The tinted page also fills the strip a hidden sidebar leaves.
+- **Quick Scan:** the upload button is a centered raised button in the dialog body (the header icon is gone).
+- **Imports** is no longer in the sidebar (the page and API remain). **The AI page is for every member**: the family User role
+  has the receipt-processing permissions; a member who cannot read System Settings gets the first AI settings, and the server
+  links the first ones saved (`LinkReceiptProcessingSettingsIfNone`).

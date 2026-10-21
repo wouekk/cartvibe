@@ -36,6 +36,7 @@
             <app-input
               class="w-100"
               label="Name"
+              data-testid="receipt-name"
               [inputFormControl]="form | formGet : 'name'"
               [readonly]="mode | inputReadonly"
             ></app-input>
@@ -50,6 +51,7 @@
               <app-input
                 class="w-100"
                 label="Amount"
+                data-testid="receipt-amount"
                 type="text"
                 [isCurrency]="true"
                 [inputFormControl]="form | formGet : 'amount'"

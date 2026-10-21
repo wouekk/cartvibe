@@ -57,3 +57,32 @@ func TestAReadNeverOverwritesAPersonsShopOrReopensADoneReceipt(t *testing.T) {
 		t.Errorf("a typed shop and a declined receipt should be left alone, got %q %s", stored.ShopName, stored.Status)
 	}
 }
+
+func TestAReadRenamesAPlaceholderReceiptToTheShopButNeverATypedName(t *testing.T) {
+	defer repositories.TruncateTestDb()
+	service := NewReceiptProductExtractionService(nil)
+
+	placeholder := seedExtractionReceipt(t, false)
+	repositories.GetDB().Model(&models.Receipt{}).Where("id = ?", placeholder.ID).Update("name", "Receipt 20 Oct 2026")
+	placeholder.Name = "Receipt 20 Oct 2026"
+	if err := service.applyReadResult(placeholder, "Auchan", currencyContext{}, "", nil); err != nil {
+		t.Fatal(err)
+	}
+	var renamed models.Receipt
+	repositories.GetDB().First(&renamed, placeholder.ID)
+	if renamed.Name != "Auchan" {
+		t.Errorf("expected the placeholder name to become the shop, got %q", renamed.Name)
+	}
+
+	typed := seedExtractionReceipt(t, false)
+	repositories.GetDB().Model(&models.Receipt{}).Where("id = ?", typed.ID).Update("name", "Birthday party")
+	typed.Name = "Birthday party"
+	if err := service.applyReadResult(typed, "Auchan", currencyContext{}, "", nil); err != nil {
+		t.Fatal(err)
+	}
+	var kept models.Receipt
+	repositories.GetDB().First(&kept, typed.ID)
+	if kept.Name != "Birthday party" {
+		t.Errorf("a typed name should be kept, got %q", kept.Name)
+	}
+}

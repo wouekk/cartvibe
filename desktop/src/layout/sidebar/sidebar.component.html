@@ -60,7 +60,7 @@
 
         <div class="sidebar__spacer"></div>
 
-        @if (manageNavItems().length > 0 || canRunImports()) {
+        @if (manageNavItems().length > 0) {
           <div class="sidebar__section sidebar__section--manage">
             <button
               type="button"
@@ -84,20 +84,6 @@
                     [ngTemplateOutlet]="navLink"
                     [ngTemplateOutletContext]="{ item: item }"
                   ></ng-container>
-                }
-                @if (canRunImports()) {
-                  <button
-                    type="button"
-                    class="sidebar__link"
-                    [matTooltip]="isCollapsed() ? 'Imports' : ''"
-                    matTooltipPosition="right"
-                    (click)="openImportDialog(); closeMobileSidebar()"
-                  >
-                    <mat-icon>upload_file</mat-icon>
-                    @if (!isCollapsed()) {
-                      <span class="sidebar__label">Imports</span>
-                    }
-                  </button>
                 }
               </div>
             }

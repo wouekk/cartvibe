@@ -1,11 +1,12 @@
 import { HttpErrorResponse } from "@angular/common/http";
-import { Component, input, signal } from "@angular/core";
+import { Component, ElementRef, inject, input, signal } from "@angular/core";
 import { FormBuilder, FormGroup } from "@angular/forms";
 import { MatDialog } from "@angular/material/dialog";
 import { Store } from "@ngxs/store";
 import { filter, switchMap, take } from "rxjs";
 import { ShoppingList, ShoppingListItem, ShoppingListService } from "../../open-api";
 import { SnackbarService } from "../../services";
+import { shakeInvalid } from "../../utils/shake";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { ShoppingListEventType, ShoppingListState } from "../../store/shopping-list.state";
 import { ApplyShoppingListEvent } from "../../store/shopping-list.state.actions";
@@ -43,6 +44,8 @@ export class ShoppingListComponent {
 
   public readonly addForm: FormGroup;
 
+  private readonly host = inject(ElementRef<HTMLElement>);
+
   constructor(
     private store: Store,
     private formBuilder: FormBuilder,
@@ -55,6 +58,12 @@ export class ShoppingListComponent {
 
   public addItem(): void {
     const command = toUpsertShoppingListItemCommand(this.addForm);
+    // An item needs a name: an empty add box shakes and lights up instead of doing nothing.
+    if (command.name.length === 0) {
+      shakeInvalid(this.host.nativeElement.querySelector(".add-name"));
+      return;
+    }
+
     if (command.name.length === 0 || this.addForm.invalid || this.adding()) {
       return;
     }

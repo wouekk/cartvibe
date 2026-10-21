@@ -93,6 +93,12 @@ func CreateReceiptProcessingSettings(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
+			// The first AI settings of an install become the ones System Settings points at, so a household
+			// member without System Settings access can set the AI up on their own (the AI page).
+			if _, err := repositories.NewSystemSettingsRepository(nil).LinkReceiptProcessingSettingsIfNone(settings.ID); err != nil {
+				return http.StatusInternalServerError, err
+			}
+
 			responseBytes, err := utils.MarshalResponseData(settings)
 			if err != nil {
 				return http.StatusInternalServerError, err

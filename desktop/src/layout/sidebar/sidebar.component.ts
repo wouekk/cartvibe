@@ -10,7 +10,6 @@ import { SetPage } from "src/store/receipt-table.actions";
 import { ShoppingListState } from "src/store/shopping-list.state";
 import { AboutComponent } from "../../about/about/about.component";
 import { DEFAULT_DIALOG_CONFIG } from "../../constants";
-import { ImportFormComponent } from "../../import/import-form/import-form.component";
 import { AuthService, Group, GroupStatus, Permission } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { ViewportService } from "../../services/viewport.service";
@@ -232,7 +231,6 @@ export class SidebarComponent {
     return items;
   });
 
-  protected readonly canRunImports = computed(() => hasAll(this.appPermissions(), Permission.AppImportsRun));
 
   /**
    * Whether "Manage" is expanded: open while the user is on one of its pages, so the active one is
@@ -274,10 +272,6 @@ export class SidebarComponent {
         switchMap(() => this.router.navigate(["/"])),
       )
       .subscribe();
-  }
-
-  public openImportDialog(): void {
-    this.matDialog.open(ImportFormComponent, DEFAULT_DIALOG_CONFIG);
   }
 
   public openAboutDialog(): void {

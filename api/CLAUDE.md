@@ -4201,3 +4201,13 @@ The Manage Categories list joins `receipt_products` (product count), which also 
 sort column with its table for categories and tags, and `BaseRepository.Sort` passes a double-quoted select alias
 (`"NumberOfReceipts"`) through raw, which SQLite otherwise could not find. Qualify every column once a query joins.
 The receipts `shop_name` sort is `COALESCE(NULLIF(receipts.shop_name,''), receipts.name)`.
+
+## Round 5 (fork): names, AI for members, starter reports
+
+- **Placeholder names:** `IsPlaceholderReceiptName` ("Receipt", "Receipt 20 Oct 2026", ...); a finished product read renames a
+  receipt that still has one to the shop. A typed name is never touched.
+- **AI for every member:** `FamilyUserAppKeys` includes the receipt-processing create/read/update permissions (not delete).
+  `CreateReceiptProcessingSettings` links the first settings to System Settings when none is linked.
+- **Starter reports:** `StarterReportTemplates` (Monthly spending by category, Spending by shop, Month by month; year to date,
+  the Household group) are created once by `SeedStarterReportTemplates`, recorded in the data-migrations ledger so a deleted one
+  stays deleted. Reports gained a `shop` field (shop read from the receipt, else its name).

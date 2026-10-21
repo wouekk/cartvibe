@@ -4,10 +4,19 @@
       [multiple]="true"
       (fileLoaded)="fileLoaded($event)"
     ></app-upload-image>
-    <div
-      *ngIf="images.length === 0"
-    >
-      <strong> Select images to upload</strong>
+    <div class="quick-scan-upload" [class.quick-scan-upload--empty]="images.length === 0" data-testid="quick-scan-upload-area">
+      @if (images.length === 0) {
+        <mat-icon class="quick-scan-upload__icon" aria-hidden="true">receipt_long</mat-icon>
+        <strong>Add photos of your receipts</strong>
+        <span class="quick-scan-upload__hint">The AI reads them for you.</span>
+      }
+      <app-button
+        icon="upload"
+        matButtonType="matRaisedButton"
+        data-testid="quick-scan-upload"
+        [buttonText]="images.length === 0 ? 'Upload photos' : 'Add more photos'"
+        (clicked)="openImageUploadComponent()"
+      ></app-button>
     </div>
     <carousel
       [interval]="0"
@@ -79,13 +88,6 @@
 
 <ng-template #actionsTemplate>
   <div class="d-flex align-items-center">
-    <app-button
-      class="me-2"
-      matButtonType="iconButton"
-      tooltip="Upload Images"
-      icon="upload"
-      (clicked)="openImageUploadComponent()">
-    </app-button>
     <app-button
       *ngIf="images.length > 1"
       data-testid="quick-scan-nav-left"
