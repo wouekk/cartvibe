@@ -4,7 +4,7 @@
     <p class="m-0 text-muted-foreground">{{ 'Settings for the whole household install. Changes apply to everyone.' | t }}</p>
   </div>
   <app-filter-bar
-    class="block max-w-full overflow-x-auto"
+    class="block max-w-full rw-scroll-x"
     data-testid="system-settings-tabs"
     [tabs]="filterTabs"
     [value]="activeTab()"

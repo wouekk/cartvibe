@@ -13,7 +13,7 @@
 <!-- Tasks & Storage: the task monitor sits above the worker settings. The tables live outside the form so
      none of their buttons can submit it. -->
 @if (section === "tasks" && canReadSystemTasks()) {
-  <section class="mb-4 flex flex-col gap-1 overflow-x-auto rounded-xl bg-card p-6 shadow-sm" data-testid="settings-card-system-tasks">
+  <section class="mb-4 flex flex-col gap-4 rounded-xl border border-border bg-card p-6 rw-scroll-x" data-testid="settings-card-system-tasks">
     <app-system-task-table></app-system-task-table>
   </section>
 }
@@ -24,59 +24,70 @@
 >
   <!-- General & Currency -->
   @if (shows("general")) {
-    <section class="mb-4 flex flex-col gap-1 overflow-x-auto rounded-xl bg-card p-6 shadow-sm" data-testid="settings-card-currency">
-      <h2 class="mb-4 text-[17px] font-semibold">{{ "Currency & exchange rates" | t }}</h2>
-      <app-select
-        [label]="'Currency' | t"
-        optionValueKey="value"
-        optionDisplayKey="displayValue"
-        data-testid="system-settings-currency"
-        [inputFormControl]="form | formGet:'currency'"
-        [options]="currencies"
-      ></app-select>
-      <div class="flex flex-col mb-4 currency-preview">
-        <strong>{{ 'Previews' | t }}</strong>
-        <span>{{ 123456789.12 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span>
-        <span>{{ 12.99 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span>
-        <span>{{ 10000 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span>
-        <span>{{ -10000 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span>
+    <section class="mb-4 flex flex-col gap-4 rounded-xl border border-border bg-card p-6 rw-scroll-x" data-testid="settings-card-currency">
+      <h2 class="m-0 text-[17px] font-semibold">{{ "Currency & exchange rates" | t }}</h2>
+      <div class="rw-section" data-testid="settings-section-currency">
+        <div class="rw-section__head">
+          <h3 class="rw-section__title">{{ 'Currency' | t }}</h3>
+          <p class="rw-section__desc">{{ 'The main currency of the household. Receipts in other currencies are converted into it.' | t }}</p>
+        </div>
+        <app-select
+          [label]="'Currency' | t"
+          optionValueKey="value"
+          optionDisplayKey="displayValue"
+          data-testid="system-settings-currency"
+          [inputFormControl]="form | formGet:'currency'"
+          [options]="currencies"
+        ></app-select>
+        @if (isCustomCurrency()) {
+          <app-input
+            [label]="'Symbol Display' | t"
+            [readonly]="formConfig.mode | inputReadonly"
+            [inputFormControl]="form | formGet: 'currencyDisplay'"
+          ></app-input>
+          <app-select
+            [label]="'Symbol Position' | t"
+            optionValueKey="value"
+            optionDisplayKey="displayValue"
+            [inputFormControl]="form  | formGet:'currencySymbolPosition'"
+            [options]="symbolPositions"
+          ></app-select>
+          <app-select
+            [label]="'Thousandths Separator' | t"
+            optionValueKey="value"
+            optionDisplayKey="displayValue"
+            [inputFormControl]="form  | formGet:'currencyThousandthsSeparator'"
+            [options]="decimalSeparators"
+          ></app-select>
+          <app-select
+            [label]="'Decimal Separator' | t"
+            optionValueKey="value"
+            optionDisplayKey="displayValue"
+            [inputFormControl]="form  | formGet:'currencyDecimalSeparator'"
+            [options]="decimalSeparators"
+          ></app-select>
+          <app-checkbox
+            [label]="'Hide Decimal Places' | t"
+            [inputFormControl]="form | formGet:'currencyHideDecimalPlaces'"
+          ></app-checkbox>
+        }
       </div>
-      @if (isCustomCurrency()) {
-        <app-input
-          [label]="'Symbol Display' | t"
-          [readonly]="formConfig.mode | inputReadonly"
-          [inputFormControl]="form | formGet: 'currencyDisplay'"
-        ></app-input>
-        <app-select
-          [label]="'Symbol Position' | t"
-          optionValueKey="value"
-          optionDisplayKey="displayValue"
-          [inputFormControl]="form  | formGet:'currencySymbolPosition'"
-          [options]="symbolPositions"
-        ></app-select>
-        <app-select
-          [label]="'Thousandths Separator' | t"
-          optionValueKey="value"
-          optionDisplayKey="displayValue"
-          [inputFormControl]="form  | formGet:'currencyThousandthsSeparator'"
-          [options]="decimalSeparators"
-        ></app-select>
-        <app-select
-          [label]="'Decimal Separator' | t"
-          optionValueKey="value"
-          optionDisplayKey="displayValue"
-          [inputFormControl]="form  | formGet:'currencyDecimalSeparator'"
-          [options]="decimalSeparators"
-        ></app-select>
-        <app-checkbox
-          [label]="'Hide Decimal Places' | t"
-          [inputFormControl]="form | formGet:'currencyHideDecimalPlaces'"
-        ></app-checkbox>
-      }
+      <div class="rw-section currency-preview" data-testid="settings-section-previews">
+        <div class="rw-section__head">
+          <h3 class="rw-section__title">{{ 'Previews' | t }}</h3>
+          <p class="rw-section__desc">{{ 'How amounts look with these settings.' | t }}</p>
+        </div>
+        <ul class="rw-list text-sm">
+          <li><span class="text-muted-foreground">{{ 'A large amount' | t }}</span><span class="font-medium text-foreground">{{ 123456789.12 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span></li>
+          <li><span class="text-muted-foreground">{{ 'A small amount' | t }}</span><span class="font-medium text-foreground">{{ 12.99 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span></li>
+          <li><span class="text-muted-foreground">{{ 'Ten thousand' | t }}</span><span class="font-medium text-foreground">{{ 10000 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span></li>
+          <li><span class="text-muted-foreground">{{ 'A negative amount' | t }}</span><span class="font-medium text-foreground">{{ -10000 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span></li>
+        </ul>
+      </div>
       <app-exchange-rates></app-exchange-rates>
     </section>
-    <section class="mb-4 flex flex-col gap-1 overflow-x-auto rounded-xl bg-card p-6 shadow-sm" data-testid="settings-card-regional">
-      <h2 class="mb-4 text-[17px] font-semibold">{{ 'Regional & time zone' | t }}</h2>
+    <section class="mb-4 flex flex-col gap-4 rounded-xl border border-border bg-card p-6 rw-scroll-x" data-testid="settings-card-regional">
+      <h2 class="m-0 text-[17px] font-semibold">{{ 'Regional & time zone' | t }}</h2>
       <p class="text-muted-foreground mb-4">
         {{ 'Decides which day a moment in time falls on: when a receipt was added or resolved, what "today" and "last month" mean in reports and filters, and how times are shown. A receipt\'s own Date is a calendar day and never shifts with this setting.' | t }}
       </p>
@@ -96,8 +107,8 @@
 
   <!-- Auth & Security -->
   @if (shows("security")) {
-    <section class="mb-4 flex flex-col gap-1 overflow-x-auto rounded-xl bg-card p-6 shadow-sm" data-testid="settings-card-signup-session">
-      <h2 class="mb-4 text-[17px] font-semibold">{{ 'Sign-up & session policy' | t }}</h2>
+    <section class="mb-4 flex flex-col gap-4 rounded-xl border border-border bg-card p-6 rw-scroll-x" data-testid="settings-card-signup-session">
+      <h2 class="m-0 text-[17px] font-semibold">{{ 'Sign-up & session policy' | t }}</h2>
       <app-checkbox
         class="block mb-4"
         [label]="'Enable Local Sign Up' | t"
@@ -159,9 +170,9 @@
 
   <!-- Tasks & Storage -->
   @if (shows("tasks")) {
-    <section class="mb-4 flex flex-col gap-1 overflow-x-auto rounded-xl bg-card p-6 shadow-sm" data-testid="settings-card-worker">
+    <section class="mb-4 flex flex-col gap-4 rounded-xl border border-border bg-card p-6 rw-scroll-x" data-testid="settings-card-worker">
       <div class="flex items-center justify-between">
-        <h2 class="mb-0 text-[17px] font-semibold">{{ 'Worker & retention' | t }}</h2>
+        <h2 class="m-0 text-[17px] font-semibold">{{ 'Worker & retention' | t }}</h2>
         <app-button
           matButtonType="iconButton"
           icon="restart_alt"
@@ -203,8 +214,8 @@
         ></app-select>
       </div>
     </section>
-    <section class="mb-4 flex flex-col gap-1 overflow-x-auto rounded-xl bg-card p-6 shadow-sm" data-testid="settings-card-queues">
-      <h2 class="mb-4 text-[17px] font-semibold">{{ 'Task queue priorities' | t }}</h2>
+    <section class="mb-4 flex flex-col gap-4 rounded-xl border border-border bg-card p-6 rw-scroll-x" data-testid="settings-card-queues">
+      <h2 class="m-0 text-[17px] font-semibold">{{ 'Task queue priorities' | t }}</h2>
       <p class="text-muted-foreground mb-2">{{ 'A higher number means a higher priority.' | t }}</p>
       <ul class="m-0 list-none p-0">
         @for (data of visibleQueueData; track data.value) {

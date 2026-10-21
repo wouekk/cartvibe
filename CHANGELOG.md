@@ -21,6 +21,12 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 - Most component stylesheets replaced by Tailwind classes; headings are base-layer styles
 - New brand assets: dark and light icons (the dark one on the White theme, the light one on Black), a larger CartVibe wordmark, the animated banner on the loading screen, and a new README and project page header
 
+- AI page: a model dropdown filled from Google for the Gemini key (refresh button, free text as a fallback) and a backup Gemini AI that takes over when the main one fails; every AI read stops after three tries instead of retrying for days, and a long outage is probed with growing gaps
+- Receipt photos (HEIC, WebP, TIFF, CMYK, huge JPEGs, camera rotation) are converted to an upright, size-limited JPEG before they reach any vision model
+- Dashboard: click a donut slice or a legend dot to focus a category; month tooltips name the month and year; the month chart fills its card; one boxed From / To period picker shared with the receipts table
+- Settings cards use shared inset sections; tab strips no longer show a vertical scrollbar; table dividers are hairlines; dialogs have labelled footer buttons (green Save/Scan, red Cancel); the About page lists this project and credits Receipt Wrangler
+- Polish: dates and numbers follow the language, plus a large sweep of leftover strings
+
 ### Removed
 - `@popperjs/core` and the last Bootstrap/Material leftovers; Angular Material, Bootstrap and the Material icon font; the Households filter button; the old accent themes
 

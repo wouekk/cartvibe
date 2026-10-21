@@ -1,6 +1,6 @@
 @if (canUpdate()) {
-  <form class="add-bar sticky top-0 z-10 bg-background pt-2" [formGroup]="addForm" (ngSubmit)="addItem()">
-    <div class="flex items-start gap-1">
+  <form class="add-bar sticky top-0 z-10 bg-background pb-3 pt-1" [formGroup]="addForm" (ngSubmit)="addItem()">
+    <div class="flex items-start gap-2">
       <app-input
         class="add-name min-w-0 flex-1"
         [label]="'Add an item' | t"
@@ -12,8 +12,8 @@
         hlmBtn
         color="primary"
         type="submit"
-        size="icon-lg"
-        class="mt-1 flex-none"
+        size="icon"
+        class="mt-[1.625rem] size-9 flex-none"
         [attr.aria-label]="'Add item' | t"
         data-testid="shopping-list-add-submit"
         [disabled]="adding()"
@@ -24,7 +24,7 @@
   </form>
 }
 
-<div class="overflow-hidden rounded-xl bg-card shadow-xs ring-1 ring-foreground/10" data-testid="shopping-list-active-items">
+<div class="overflow-hidden rounded-xl border border-border bg-card" data-testid="shopping-list-active-items">
   @for (item of activeItems(); track item.id) {
     <app-shopping-list-item
       [item]="item"
@@ -35,16 +35,16 @@
       (classificationSelected)="correctTags($event)"
     ></app-shopping-list-item>
   } @empty {
-    <p class="m-0 px-4 py-6 text-center text-muted-foreground" data-testid="shopping-list-empty">{{ 'Nothing left to buy on this list.' | t }}</p>
+    <p class="m-0 px-4 py-10 text-center text-sm text-muted-foreground" data-testid="shopping-list-empty">{{ 'Nothing left to buy on this list.' | t }}</p>
   }
 </div>
 
 @if (checkedItems().length > 0) {
-  <div class="mt-6">
-    <div class="mb-2 flex items-center justify-between">
+  <div class="mt-8">
+    <div class="mb-3 flex items-center justify-between">
       <button
         type="button"
-        class="inline-flex min-h-11 items-center gap-1 px-2 font-semibold"
+        class="inline-flex h-9 items-center gap-1 rounded-md px-2 text-sm font-semibold hover:bg-accent"
         data-testid="shopping-list-crossed-off-toggle"
         [attr.aria-expanded]="showCrossedOff()"
         (click)="showCrossedOff.set(!showCrossedOff())"
@@ -64,7 +64,7 @@
       }
     </div>
     @if (showCrossedOff()) {
-      <div class="overflow-hidden rounded-xl bg-card shadow-xs ring-1 ring-foreground/10" data-testid="shopping-list-checked-items">
+      <div class="overflow-hidden rounded-xl border border-border bg-card" data-testid="shopping-list-checked-items">
         @for (item of checkedItems(); track item.id) {
           <app-shopping-list-item
             [item]="item"

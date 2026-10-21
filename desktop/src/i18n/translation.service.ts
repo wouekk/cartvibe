@@ -84,6 +84,9 @@ export class TranslationService {
 
   private readonly definition = computed<LanguageDefinition>(() => findLanguage(this.language()) ?? LANGUAGES[0]);
 
+  /** The locale dates are formatted with for the active language. */
+  public readonly locale = computed(() => this.definition().locale);
+
   constructor() {
     effect(() => {
       if (typeof document !== "undefined") {

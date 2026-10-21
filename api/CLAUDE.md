@@ -4217,3 +4217,8 @@ The receipts `shop_name` sort is `COALESCE(NULLIF(receipts.shop_name,''), receip
 `UserPrefernces.DisplayCurrency` (3-letter code, trimmed and upper-cased on save, "" = off) and `DisplayCurrencyRate`
 (`*decimal`, a string on the wire) are additive preference fields. The API only stores them: the desktop converts the
 Dashboard's figures in the browser; stored amounts, exports and every other screen stay in the household currency.
+
+## AI retries, backup model list and image normalization (fork, 2026-10)
+- **Three tries, then FAILED.** Product extraction and shopping trips count outages as attempts too (not "no AI configured": nothing is called then), and give up after `productExtractionMaxBadAnswers` / `shoppingTripMaxBadAnswers` = 3; "Read with AI" / trip retry reset the counter. Food classification never fails a product on an outage but backs off in memory (`outageBackoff`: 5 min, doubling to 1 h; a success resets). Quick scan keeps its own 3-try rule.
+- **`POST /receiptProcessingSettings/geminiModels`** (`app.receipt-processing-settings.read`): body `{key}` or `{receiptProcessingSettingsId}` (the stored key is decrypted server-side). `ai.ListGeminiModels` calls Google with the key in the `x-goog-api-key` header (never the URL), keeps `generateContent` models, newest version first. A refused key is a 400 with `errors.key`.
+- **Vision images** are normalized by `FileRepository.NormalizeImageForVision` (orientation, flatten alpha onto white, sRGB, long side at most 2048, JPEG 85) in `ReceiptProcessingService.readNormalizedImage`, used by the Ollama/OpenAI/Gemini readers. The stored original is untouched.

@@ -1,6 +1,7 @@
 import { LiveAnnouncer } from "@angular/cdk/a11y";
 import { SelectionModel } from "@angular/cdk/collections";
-import { Component, Input, OnChanges, SimpleChanges, input, output, signal } from "@angular/core";
+import { Component, Input, OnChanges, SimpleChanges, inject, input, output, signal } from "@angular/core";
+import { TranslationService } from "../../i18n/translation.service";
 import { TableColumn } from "../table-column.interface";
 import { PageEvent, Sort, TableDataSource } from "../table-types";
 
@@ -38,6 +39,8 @@ export class TableComponent implements OnChanges {
 
   public rowIndexes: { [key: number]: number } = {};
   private rowIndexesByReference = new Map<any, number>();
+
+  private readonly translation = inject(TranslationService);
 
   constructor(private _liveAnnouncer: LiveAnnouncer) {}
 
@@ -178,11 +181,11 @@ export class TableComponent implements OnChanges {
   public rangeLabel(): string {
     const total = this.length || this.dataSource().data.length;
     if (total === 0) {
-      return "0 of 0";
+      return this.translation.t("0 of 0");
     }
 
     const start = this.page() * this.pageSize();
-    return `${start + 1} – ${Math.min(start + this.pageSize(), total)} of ${total}`;
+    return this.translation.t("{from} – {to} of {total}", { from: start + 1, to: Math.min(start + this.pageSize(), total), total });
   }
 
   public goTo(pageIndex: number): void {

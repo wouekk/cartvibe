@@ -1,5 +1,6 @@
 import { formatDate } from "@angular/common";
-import { inject, LOCALE_ID, Pipe, PipeTransform } from "@angular/core";
+import { inject, Pipe, PipeTransform } from "@angular/core";
+import { TranslationService } from "../i18n/translation.service";
 import { Store } from "@ngxs/store";
 import { SystemSettingsState } from "../store/system-settings.state";
 import { calendarDayToLocalDate, offsetAt } from "../utils/app-time-zone";
@@ -70,7 +71,7 @@ export function formatAppDate(
   pure: false,
 })
 export class AppDatePipe implements PipeTransform {
-  private readonly locale = inject(LOCALE_ID);
+  private readonly translation = inject(TranslationService);
 
   private readonly timeZone = inject(Store).selectSignal(SystemSettingsState.timeZone);
 
@@ -85,15 +86,16 @@ export class AppDatePipe implements PipeTransform {
   ): string | null {
     // Read before any early return, so the dependency is tracked on every pass.
     const zone = this.timeZone();
+    const locale = this.translation.locale();
     const valueKey = value instanceof Date ? value.getTime() : value;
-    const key = [valueKey, format, mode, zone];
+    const key = [valueKey, format, mode, zone, locale];
 
     if (this.lastKey && key.every((part, index) => part === this.lastKey![index])) {
       return this.lastResult;
     }
 
     this.lastKey = key;
-    this.lastResult = formatAppDate(value, format, mode, zone, this.locale);
+    this.lastResult = formatAppDate(value, format, mode, zone, locale);
 
     return this.lastResult;
   }

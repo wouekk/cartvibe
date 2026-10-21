@@ -7,7 +7,7 @@
   @if (loading()) {
     <p class="text-muted-foreground">{{ 'Loading…' | t }}</p>
   } @else {
-    <form class="flex flex-col gap-1 rounded-xl bg-card p-6 shadow-sm" [formGroup]="form" (ngSubmit)="save()">
+    <form class="flex flex-col gap-4 rounded-xl border border-border bg-card p-6" [formGroup]="form" (ngSubmit)="save()">
       <app-select
         [label]="'Provider' | t"
         optionValueKey="value"
@@ -28,13 +28,6 @@
       }
 
       <app-input
-        [label]="'Model' | t"
-        data-testid="ai-model"
-        [hint]="isGemini() ? 'For example gemini-2.5-flash' : 'The model name as LM Studio lists it'"
-        [inputFormControl]="form | formGet : 'model'"
-      ></app-input>
-
-      <app-input
         type="password"
         data-testid="ai-key"
         [label]="isGemini() ? 'API key' : 'API key (optional)'"
@@ -42,6 +35,22 @@
         [showVisibilityEye]="true"
         [inputFormControl]="form | formGet : 'key'"
       ></app-input>
+
+      @if (isGemini()) {
+        <app-gemini-model-field
+          testId="ai-model"
+          [modelControl]="form.controls.model"
+          [keyControl]="form.controls.key"
+          [settingsId]="saved()?.aiType === 'GEMINI' ? saved()?.id : undefined"
+        ></app-gemini-model-field>
+      } @else {
+        <app-input
+          [label]="'Model' | t"
+          data-testid="ai-model"
+          hint="The model name as LM Studio lists it"
+          [inputFormControl]="form | formGet : 'model'"
+        ></app-input>
+      }
 
       @if (isLmStudio()) {
         <app-checkbox
@@ -88,5 +97,7 @@
         </p>
       }
     </form>
+
+    <app-ai-fallback-card [primaryId]="saved()?.id"></app-ai-fallback-card>
   }
 </div>

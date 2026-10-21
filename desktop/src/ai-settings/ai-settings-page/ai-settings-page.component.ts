@@ -16,7 +16,6 @@ import {
   ReceiptProcessingSettingsService,
   SystemSettings,
   SystemSettingsService,
-  SystemTaskStatus,
   UpsertReceiptProcessingSettingsCommand,
   UpsertSystemSettingsCommand,
 } from "../../open-api";
@@ -24,17 +23,12 @@ import { PipesModule } from "../../pipes/pipes.module";
 import { SelectModule } from "../../select/select.module";
 import { SnackbarService } from "../../services";
 import { SetFeatureConfig } from "../../store";
+import { AiFallbackCardComponent } from "../ai-fallback-card/ai-fallback-card.component";
+import { GeminiModelFieldComponent } from "../gemini-model-field/gemini-model-field.component";
+import { AI_SETTINGS_NAME, ConnectionResult, DEFAULT_GEMINI_MODEL, describeConnection } from "../ai-settings-shared";
 
-/** What a new household AI setting is called; a processing setting's name must be unique. */
-export const AI_SETTINGS_NAME = "Household AI";
-
-export const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
-
-/** The outcome of "Test connection", as the page shows it. */
-export interface ConnectionResult {
-  ok: boolean;
-  message: string;
-}
+export { AI_SETTINGS_NAME, DEFAULT_GEMINI_MODEL, describeConnection } from "../ai-settings-shared";
+export type { ConnectionResult } from "../ai-settings-shared";
 
 /**
  * The admin's AI page (Phase 3 A1/A2): pick Google Gemini (model + API key) or an LM Studio
@@ -49,7 +43,9 @@ export interface ConnectionResult {
   templateUrl: "./ai-settings-page.component.html",
   standalone: true,
   imports: [
+    AiFallbackCardComponent,
     CheckboxModule,
+    GeminiModelFieldComponent,
     CommonModule,
     InputModule,
     HlmButton,
@@ -270,16 +266,4 @@ export class AiSettingsPageComponent implements OnInit {
     }
     url.updateValueAndValidity({ emitEvent: false });
   }
-}
-
-/** "Connected", or why not, from the connectivity check's system task. */
-export function describeConnection(status: SystemTaskStatus | undefined, resultDescription?: string): ConnectionResult {
-  if (status === SystemTaskStatus.Succeeded) {
-    return { ok: true, message: "Connected. Receipts will be read by this AI." };
-  }
-
-  return {
-    ok: false,
-    message: `Not connected: ${resultDescription?.trim() || "no answer from the AI"}`,
-  };
 }

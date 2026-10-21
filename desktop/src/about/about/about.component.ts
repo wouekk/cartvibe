@@ -29,17 +29,18 @@ export class AboutComponent {
 
   public links: Link[] = [
     {
-      label: "Documentation",
-      url: "https://receiptwrangler.io"
-    },
-    {
       label: "Source Code",
-      url: "https://github.com/Receipt-Wrangler"
+      url: "https://github.com/wouekk/cartvibe"
     },
     {
-      label: "Reddit",
-      url: "https://reddit.com/r/receiptwrangler"
+      label: "Project page",
+      url: "https://wouekk.github.io/cartvibe/"
     }
   ];
+
+  /** The original project, credited as the licence and NOTICE.md require. */
+  public readonly originalProjectUrl = "https://github.com/Receipt-Wrangler/receipt-wrangler";
+
+  public readonly originalAuthorUrl = "https://github.com/Noah231515";
 
 }

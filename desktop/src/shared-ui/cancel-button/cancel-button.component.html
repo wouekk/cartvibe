@@ -1,6 +1,7 @@
 <app-button
   icon="close"
-  matButtonType="iconButton"
+  matButtonType="basic"
+  [buttonText]="'Cancel'"
   [tooltip]="'Cancel' | t"
   color="warn"
   [disabled]="mode() === formMode.view || disabled()"

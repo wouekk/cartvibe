@@ -229,3 +229,69 @@ select {
     font-size: inherit;
   }
 }
+
+/* Shared building blocks of the fintech look (docs/ui-issues.md): in the components layer, so a utility on the element wins. */
+@layer components {
+  /* Horizontal scroll without the vertical scrollbar an overflow-x-auto strip grows from a 1px overflow. */
+  .rw-scroll-x {
+    @apply overflow-x-auto overflow-y-hidden;
+    scrollbar-width: none;
+  }
+  .rw-scroll-x::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* A boxed field with its label inside (From / To): the same height and hairline as the strip beside it. */
+  .rw-field-box {
+    @apply relative inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-muted/40 pr-1 pl-3 text-xs text-muted-foreground shadow-xs transition-[color,box-shadow,border-color] focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/40;
+  }
+  .rw-field-box__label {
+    @apply shrink-0 font-medium;
+  }
+  .rw-field-box__input {
+    height: 100% !important;
+    width: 6rem !important;
+    min-width: 0;
+    border: 0 !important;
+    background: transparent !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+    @apply text-sm text-foreground;
+  }
+  .rw-field-box__button {
+    @apply inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground;
+  }
+
+  /* A section inside a settings card: an inset surface step, a hairline, an overline title and a footer for actions. */
+  .rw-section {
+    @apply flex flex-col gap-3 rounded-xl border border-border/70 bg-muted/30 p-4;
+  }
+  .rw-section__head {
+    @apply flex flex-col gap-0.5;
+  }
+  .rw-section__title {
+    @apply m-0 text-[0.6875rem] font-semibold tracking-[0.08em] text-muted-foreground uppercase;
+  }
+  .rw-section__desc {
+    @apply m-0 text-[13px] leading-relaxed text-muted-foreground;
+  }
+  .rw-section__footer {
+    @apply mt-1 flex flex-wrap items-center gap-2 border-t border-border/60 pt-3;
+  }
+  .rw-list {
+    @apply m-0 list-none p-0 tabular-nums [&>li]:flex [&>li]:items-center [&>li]:justify-between [&>li]:gap-3 [&>li]:py-2 [&>li:not(:last-child)]:border-b [&>li:not(:last-child)]:border-border/50;
+  }
+}
+
+/* Every border is the low-contrast hairline unless a utility says otherwise (Tailwind 4 defaults to currentColor, which
+   draws white row dividers in the dark theme). */
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--border);
+  }
+}
