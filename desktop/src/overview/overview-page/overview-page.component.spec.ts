@@ -1,3 +1,5 @@
+import { MoneyComponent } from "../../shared-ui/money/money.component";
+import { ShopMonogramComponent } from "../../shared-ui/shop-monogram/shop-monogram.component";
 import { provideHttpClient } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
@@ -58,6 +60,7 @@ const CHART_COLORS = {
   card: "rgb(255, 255, 255)",
   primary: "rgb(10, 10, 10)",
   destructive: "rgb(220, 38, 38)",
+  series: ["rgb(1, 1, 1)", "rgb(2, 2, 2)", "rgb(3, 3, 3)", "rgb(4, 4, 4)", "rgb(5, 5, 5)", "rgb(6, 6, 6)"],
 };
 
 describe("OverviewPageComponent", () => {
@@ -86,7 +89,7 @@ describe("OverviewPageComponent", () => {
 
     await TestBed.configureTestingModule({
       declarations: [OverviewPageComponent],
-      imports: [NgxsModule.forRoot([AuthState, FeatureConfigState, GroupState, ShoppingListState, SystemSettingsState]), PipesModule, SharedUiModule],
+      imports: [NgxsModule.forRoot([AuthState, FeatureConfigState, GroupState, ShoppingListState, SystemSettingsState]), PipesModule, SharedUiModule, MoneyComponent, ShopMonogramComponent],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),

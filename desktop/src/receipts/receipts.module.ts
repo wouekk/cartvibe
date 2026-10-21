@@ -6,6 +6,7 @@ import { ReactiveFormsModule } from "@angular/forms";
 import { ExpansionPanelComponent } from "../shared-ui/expansion-panel/expansion-panel.component";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { HlmBadge } from "@spartan-ng/helm/badge";
+import { ShopMonogramComponent } from "../shared-ui/shop-monogram/shop-monogram.component";
 import { HlmCheckboxImports } from "@spartan-ng/helm/checkbox";
 import { HlmSpinner } from "@spartan-ng/helm/spinner";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
@@ -81,6 +82,7 @@ import { UserTotalWithPercentagePipe } from "./user-total-with-percentage.pipe";
     DragDropModule,
     InputModule,
     HlmBadge,
+    ShopMonogramComponent,
     ...HlmCheckboxImports,
     HlmSpinner,
     ExpansionPanelComponent,

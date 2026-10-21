@@ -1,4 +1,4 @@
-import { Component, signal, ViewEncapsulation } from "@angular/core";
+import { Component, HostListener, signal, ViewEncapsulation } from "@angular/core";
 import { FormControl } from "@angular/forms";
 import { Router } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
@@ -18,11 +18,30 @@ export class SearchbarComponent {
 
   public searchFormControl = new FormControl("");
 
+  /** The key hint inside the field: ⌘K on a Mac, Ctrl K elsewhere ("/" works on both). */
+  public readonly shortcutLabel = /Mac|iPhone|iPad/.test(globalThis.navigator?.platform ?? "") ? "⌘K" : "Ctrl K";
+
   public displayWith = (searchResult: SearchResult) => {
     return searchResult?.name;
   };
 
   constructor(private searchService: SearchService, private router: Router) {}
+
+  /** ⌘K / Ctrl K, or "/" outside a text field, jumps to the search box. */
+  @HostListener("document:keydown", ["$event"])
+  public handleShortcut(event: KeyboardEvent): void {
+    const target = event.target as HTMLElement | null;
+    const typing = !!target && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
+    const commandK = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k";
+    if (commandK || (event.key === "/" && !typing && !event.metaKey && !event.ctrlKey)) {
+      const input = document.querySelector<HTMLInputElement>("app-searchbar input");
+      if (input) {
+        event.preventDefault();
+        input.focus();
+        input.select();
+      }
+    }
+  }
 
   public ngOnInit(): void {
     this.searchFormControl.valueChanges

@@ -215,9 +215,12 @@
 
 <ng-template #addedByCell let-element="element">  {{ (element.paidByUserId | user)?.displayName ?? "—" }}</ng-template>
 <ng-template #shopCell let-element="element">
-  <a [routerLink]="['/receipts/' + element.id + '/view']">
-    {{ element.shopName || element.name }}
-  </a>
+  <span class="inline-flex items-center gap-2">
+    <app-shop-monogram [name]="element.shopName || element.name"></app-shop-monogram>
+    <a [routerLink]="['/receipts/' + element.id + '/view']">
+      {{ element.shopName || element.name }}
+    </a>
+  </span>
 </ng-template>
 
 <ng-template #amountCell let-element="element">

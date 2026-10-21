@@ -1,3 +1,4 @@
+<div class="relative w-full">
 <hlm-autocomplete
   class="w-full"
   [search]="searchFormControl.value ?? ''"
@@ -15,3 +16,11 @@
     </div>
   </hlm-autocomplete-content>
 </hlm-autocomplete>
+  @if (!searchFormControl.value) {
+    <kbd
+      class="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 select-none items-center gap-0.5 rounded border border-border bg-muted px-1.5 py-0.5 font-sans text-[10px] font-medium text-muted-foreground sm:inline-flex"
+      data-testid="search-shortcut"
+      aria-hidden="true"
+    >{{ shortcutLabel }}</kbd>
+  }
+</div>
