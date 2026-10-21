@@ -2,6 +2,10 @@ import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ThemeService } from "../../theme/theme.service";
 import { ThemeSettingsComponent } from "./theme-settings.component";
+import { provideHttpClient } from "@angular/common/http";
+import { provideHttpClientTesting } from "@angular/common/http/testing";
+import { NgxsModule } from "@ngxs/store";
+import { AuthState } from "../../store/auth.state";
 
 describe("ThemeSettingsComponent", () => {
   let fixture: ComponentFixture<ThemeSettingsComponent>;
@@ -12,8 +16,8 @@ describe("ThemeSettingsComponent", () => {
   beforeEach(async () => {
     window.localStorage.clear();
     await TestBed.configureTestingModule({
-      imports: [ThemeSettingsComponent],
-      providers: [provideZonelessChangeDetection()],
+      imports: [ThemeSettingsComponent, NgxsModule.forRoot([AuthState])],
+      providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
     theme = TestBed.inject(ThemeService);
     fixture = TestBed.createComponent(ThemeSettingsComponent);
