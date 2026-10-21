@@ -967,6 +967,7 @@
     "The household has been told you are going shopping.": "Domownicy dostali informację, że idziesz na zakupy.",
     "The main currency of the household. Receipts in other currencies are converted into it.": "Główna waluta gospodarstwa. Paragony w innych walutach są na nią przeliczane.",
     "The max amount of tasks that can be run concurrently. 0 or negative means all CPU cores available.": "Maksymalna liczba zadań uruchamianych równocześnie. 0 lub wartość ujemna oznacza wszystkie dostępne rdzenie procesora.",
+    "The mobile OIDC flow is no longer supported": "Logowanie OIDC z aplikacji mobilnej nie jest już obsługiwane",
     "The model name as LM Studio lists it": "Nazwa modelu tak, jak pokazuje ją LM Studio",
     "The model reads images (a vision model)": "Model czyta obrazy (model wizyjny)",
     "The models could not be loaded. Type the name instead.": "Nie udało się wczytać modeli. Wpisz nazwę ręcznie.",
