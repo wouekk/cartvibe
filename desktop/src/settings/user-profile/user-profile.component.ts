@@ -17,6 +17,7 @@ import {
   DeleteAccountDialogResult,
 } from "../delete-account-dialog/delete-account-dialog.component";
 import { TranslationService } from "../../i18n/translation.service";
+import { marker } from "../../i18n/marker";
 
 @Component({
     selector: "app-user-profile",
@@ -35,7 +36,7 @@ export class UserProfileComponent implements OnInit {
   public formMode = FormMode;
 
   public usernameTooltip: string =
-    "Only system admin may change your username.";
+    marker("Only system admin may change your username.");
 
   protected readonly Permission = Permission;
 
@@ -363,10 +364,10 @@ export function buildOidcDeleteConfirmationUrl(providerName: string): string {
  */
 const DELETE_CONFIRMATION_ERROR_MESSAGES: Record<string, string> = {
   identity_mismatch:
-    "You signed in with a different account than the one connected here.",
+    marker("You signed in with a different account than the one connected here."),
   stale_login:
-    "Your provider didn't ask you to sign in again. Sign out of it and try again.",
-  not_linked: "That provider is no longer connected to your account.",
-  forbidden: "Your account can't be deleted this way.",
-  default: "Could not confirm the account deletion. Please try again.",
+    marker("Your provider didn't ask you to sign in again. Sign out of it and try again."),
+  not_linked: marker("That provider is no longer connected to your account."),
+  forbidden: marker("Your account can't be deleted this way."),
+  default: marker("Could not confirm the account deletion. Please try again."),
 };

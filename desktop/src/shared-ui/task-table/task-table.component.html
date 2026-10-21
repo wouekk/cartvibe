@@ -13,7 +13,7 @@
 ></app-table>
 
 <ng-template let-element="element" #typeCell>
-  {{ element.type | systemTaskType }}
+  {{ element.type | systemTaskType | t }}
 </ng-template>
 
 <ng-template let-element="element" #startedAtCell>

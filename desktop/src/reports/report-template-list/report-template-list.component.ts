@@ -32,6 +32,7 @@ import { ReportCatalogService } from "../services/report-catalog.service";
 import { ReportRunnerService } from "../services/report-runner.service";
 import { ReportTemplateTableService } from "./report-template-table.service";
 import { marker } from "../../i18n/marker";
+import { TranslationService } from "../../i18n/translation.service";
 
 /**
  * The Reports landing page: a paged table of saved report templates. Each row
@@ -48,6 +49,8 @@ import { marker } from "../../i18n/marker";
   standalone: false,
 })
 export class ReportTemplateListComponent extends BaseTableComponent<ReportTemplate> implements AfterViewInit {
+  private readonly translation = inject(TranslationService);
+
   private readonly router = inject(Router);
   private readonly store = inject(Store);
   private readonly matDialog = inject(AppDialog);
@@ -162,7 +165,7 @@ export class ReportTemplateListComponent extends BaseTableComponent<ReportTempla
   }
 
   public detailSummaryFor(template: ReportTemplate): string {
-    return detailSummary(template.configuration, (key) => this.customFieldLabel(key));
+    return detailSummary(template.configuration, (key) => this.customFieldLabel(key), (text, params) => this.translation.t(text, params));
   }
 
   /**
@@ -230,7 +233,7 @@ export class ReportTemplateListComponent extends BaseTableComponent<ReportTempla
   public delete(template: ReportTemplate): void {
     const dialogRef = this.matDialog.open(ConfirmationDialogComponent, DEFAULT_DIALOG_CONFIG);
     dialogRef.componentInstance.headerText = marker("Delete Report Template");
-    dialogRef.componentInstance.dialogContent = `Are you sure you want to delete "${template.name}"? This action is irreversible.`;
+    dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you want to delete \"{name}\"? This action is irreversible.", { name: template.name });
 
     dialogRef
       .afterClosed()

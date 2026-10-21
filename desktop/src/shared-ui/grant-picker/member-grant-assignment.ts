@@ -2,6 +2,7 @@ import { forkJoin, Observable, of } from "rxjs";
 import { Group, GroupMember, GroupsService, Role } from "../../open-api";
 import { GrantCeiling, GrantSelection } from "./grant-picker.component";
 import { familyRoleName } from "../../utils/family-roles";
+import { marker } from "../../i18n/marker";
 
 /**
  * One editable row of per-member category/tag assignment: the group, the
@@ -46,16 +47,16 @@ export function emptySelectionHint(row: MemberGrantRow): string {
   const tags = row.requiresIndividualTags;
 
   if (categories && tags) {
-    return "Their role requires an individual assignment, so leaving these empty gives them no categories and no tags.";
+    return marker("Their role requires an individual assignment, so leaving these empty gives them no categories and no tags.");
   }
   if (categories) {
-    return "Their role requires an individual category assignment, so leaving categories empty gives them none. Leaving tags empty gives them every tag the role allows.";
+    return marker("Their role requires an individual category assignment, so leaving categories empty gives them none. Leaving tags empty gives them every tag the role allows.");
   }
   if (tags) {
-    return "Their role requires an individual tag assignment, so leaving tags empty gives them none. Leaving categories empty gives them every category the role allows.";
+    return marker("Their role requires an individual tag assignment, so leaving tags empty gives them none. Leaving categories empty gives them every category the role allows.");
   }
 
-  return "Leave empty to give them everything their role allows.";
+  return marker("Leave empty to give them everything their role allows.");
 }
 
 /**

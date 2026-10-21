@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, input, output, inject } from "@angular/core";
 import { marker } from "../../i18n/marker";
 import { FormGroup } from "@angular/forms";
+import { TranslationService } from "../../i18n/translation.service";
 
 interface FormatChip {
   key: string;
@@ -21,6 +22,8 @@ interface FormatChip {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ReportGenerateBarComponent {
+  private readonly translation = inject(TranslationService);
+
   public readonly form = input.required<FormGroup>();
   public readonly generating = input<boolean>(false);
   public readonly canGenerate = input<boolean>(false);
@@ -62,12 +65,12 @@ export class ReportGenerateBarComponent {
   public formatSummary(): string {
     const selected = this.formats.filter((format) => this.isSelected(format.key)).map((format) => format.label);
     if (selected.length === 0) {
-      return "Pick at least one format";
+      return marker("Pick at least one format");
     }
     if (selected.length > 1) {
-      return selected.join(" + ") + " → zipped";
+      return this.translation.t("{formats} → zipped", { formats: selected.join(" + ") });
     }
-    return "Single " + selected[0] + " file";
+    return this.translation.t("Single {format} file", { format: selected[0] });
   }
 
   public onGenerate(): void {

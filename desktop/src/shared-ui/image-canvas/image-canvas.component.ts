@@ -9,6 +9,7 @@ import {
   input,
   viewChild,
 } from "@angular/core";
+import { marker } from "../../i18n/marker";
 
 /** The corner a resize handle is pinned to. */
 export type ImageCanvasCorner = "nw" | "ne" | "se" | "sw";
@@ -92,7 +93,7 @@ export class ImageCanvasComponent implements AfterViewInit, OnDestroy {
 
   public readonly stageHeight = input<string>("60vh");
 
-  public readonly alt = input<string>("Receipt image");
+  public readonly alt = input<string>(marker("Receipt image"));
 
   protected readonly corners = CORNERS;
 

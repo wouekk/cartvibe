@@ -9,6 +9,7 @@ import { BaseButtonComponent } from "../../../button/base-button/base-button.com
 import { ButtonModule } from "../../../button/index";
 import { InputModule } from "../../../input/index";
 import { StatefulMenuItem } from "./stateful-menu-item";
+import { marker } from "../../../i18n/marker";
 
 @Component({
   selector: "app-filtered-stateful-menu",
@@ -25,7 +26,7 @@ export class FilteredStatefulMenuComponent extends BaseButtonComponent {
 
   public readonly filterFunc = input((item: StatefulMenuItem, filter: string) => item.displayValue.toLowerCase().includes(filter?.toLowerCase() ?? ""));
 
-  public readonly filterLabel = input("Filter options");
+  public readonly filterLabel = input(marker("Filter options"));
 
   @Input() public headerText = "";
 

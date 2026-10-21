@@ -49,6 +49,6 @@ export const HEALTH_CHOICES: { value: string; label: string }[] = [
 
 export const SEASONALITY_CHOICES: { value: string; label: string }[] = [
   { value: "SEASONAL", label: marker("In season") },
-  { value: "OUT_OF_SEASON", label: "Imported / out of season" },
+  { value: "OUT_OF_SEASON", label: marker("Imported / out of season") },
   { value: "NOT_PRODUCE", label: marker("Not fresh produce") },
 ];

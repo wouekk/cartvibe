@@ -105,7 +105,7 @@ export class ReportFiltersComponent implements OnInit {
   // then stores plain user ids like every other paid-by filter — the -1 sentinel too.
   private readonly users = this.store.selectSignal(UserState.users);
   public readonly paidByOptions = computed<PaidByOption[]>(() => [
-    { id: REPORT_GENERATOR_PAID_BY_ID, displayName: "Whoever generates the report" },
+    { id: REPORT_GENERATOR_PAID_BY_ID, displayName: marker("Whoever generates the report") },
     ...this.users().map((user) => ({
       id: user.id,
       displayName: user.displayName?.length ? user.displayName : user.username,

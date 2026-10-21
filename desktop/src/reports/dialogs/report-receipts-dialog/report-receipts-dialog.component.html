@@ -1,5 +1,5 @@
 <app-dialog [headerText]="'Receipts in this report' | t">
-  <div class="-mt-1 mb-3.5 text-xs text-muted-foreground">{{ count() }} receipts · {{ periodLabel }}</div>
+  <div class="-mt-1 mb-3.5 text-xs text-muted-foreground">{{ count() }} {{ count() | plural: 'receipt' : 'receipts' }} · {{ periodLabel }}</div>
 
   @if (!loading() && hasError()) {
     <div class="mb-3 flex items-center gap-2 rounded-lg border border-warning-text/40 bg-warning-text/22 px-2.5 py-2 text-[12.5px] text-warning-text [&_app-icon]:size-[17px] [&_app-icon]:text-[17px] [&_app-icon]:text-warning-text" data-testid="report-receipt-error">

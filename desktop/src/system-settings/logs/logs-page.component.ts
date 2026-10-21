@@ -12,7 +12,7 @@ import { marker } from "../../i18n/marker";
 
 /** The level filters on offer; an empty value is "everything". */
 export const LOG_LEVEL_FILTERS = [
-  { label: "All", value: "" },
+  { label: marker("All"), value: "" },
   { label: marker("Errors"), value: "ERROR" },
   { label: marker("Info"), value: "INFO" },
 ];

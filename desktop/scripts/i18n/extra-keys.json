@@ -1,0 +1,40 @@
+{
+  "_note": "English texts the code cannot reveal by reading it: they come from data, an enum value or the API. They belong in the catalogue so a language can translate them. A group whose name starts with an underscore is ignored.",
+  "Month names (TranslationService.months, used on period labels)": [
+    "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December",
+    "Jan", "Feb", "Mar", "Apr", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+  ],
+  "Status words (formatStatus of an enum value)": [
+    "Open", "Needs Attention", "Resolved", "Draft", "Declined", "Succeeded", "Failed", "Pending", "Running"
+  ],
+  "Categories the AI and the starter data create (names shown from data, translated where they are listed)": [
+    "Alcohol", "Baby", "Baby Products", "Bakery", "Beverages", "Books", "Bottle Deposit", "Bread & Bakery", "Breakfast", "Canned Goods",
+    "Cheese", "Cleaning", "Cleaning Supplies", "Clothing", "Coffee & Tea", "Condiments & Sauces", "Dairy", "Deli", "Drinks", "Eggs",
+    "Electronics", "Fast Food", "Fish", "Fish & Seafood", "Fresh Produce", "Frozen", "Frozen Food", "Fruit & Vegetables", "Fuel",
+    "Furniture", "Garden", "Health & Beauty", "Home & Garden", "Kitchenware", "Lighting", "Meat", "Meat & Poultry", "Non-food",
+    "Pantry", "Personal Care", "Pet Food", "Pet Supplies", "Pharmacy", "Produce", "Restaurant", "Seafood", "Snacks", "Spices",
+    "Stationery", "Sweets", "Sweets & Snacks", "Tobacco", "Toys", "Transport"
+  ],
+  "Texts the API stores: notification titles and bodies (api/internal/repositories/comments.go, receipts.go, services/shopping_notifications.go)": [
+    "Comment Added",
+    "Comment Replied",
+    "Receipt Uploaded",
+    "New shopping list",
+    "Shopping list updated",
+    "Going shopping",
+    "{user} has added a comment to a receipt in group {group}.",
+    "{user} has replied to a thread that you are a part of.",
+    "The receipt: {name} has been uploaded to the group {group}. Check it out!",
+    "{user} started the list {list} in {group}.",
+    "{user} added to the list {list}.",
+    "{user} is going shopping. Add what you need to the lists in {group}."
+  ],
+  "Texts the API stores: starter report templates (api/internal/repositories/starter_report_templates.go)": [
+    "Monthly spending by category",
+    "Spending by shop",
+    "Month by month"
+  ],
+  "Marker the API puts on categories a person may not see (services/grant_filter.go)": [
+    "(Restricted)"
+  ]
+}

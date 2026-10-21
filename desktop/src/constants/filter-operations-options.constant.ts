@@ -27,10 +27,10 @@ export const usersOperationOptions = Object.values(FilterOperation).filter(
  * the same way.
  */
 export const FILTER_OPERATION_DISPLAY_VALUES: { [key: string]: string } = {
-  [FilterOperation.Contains]: "Contains",
-  [FilterOperation.Equals]: "Equals",
+  [FilterOperation.Contains]: marker("Contains"),
+  [FilterOperation.Equals]: marker("Equals"),
   [FilterOperation.GreaterThan]: marker("Greater than"),
   [FilterOperation.LessThan]: marker("Less than"),
-  [FilterOperation.Between]: "Between",
+  [FilterOperation.Between]: marker("Between"),
   [FilterOperation.WithinCurrentMonth]: marker("Within current month"),
 };

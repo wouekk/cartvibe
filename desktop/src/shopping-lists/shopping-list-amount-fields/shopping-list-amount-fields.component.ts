@@ -1,6 +1,7 @@
 import { Component, input } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { SHOPPING_LIST_UNITS } from "../shopping-list-item-form";
+import { marker } from "../../i18n/marker";
 
 /** The amount + unit pair of an item form (see buildShoppingListItemForm), side by side. */
 @Component({
@@ -14,5 +15,5 @@ export class ShoppingListAmountFieldsComponent {
 
   protected readonly units = SHOPPING_LIST_UNITS;
 
-  protected readonly amountErrors = { pattern: "Enter a number above 0, up to 3 decimals" };
+  protected readonly amountErrors = { pattern: marker("Enter a number above 0, up to 3 decimals") };
 }

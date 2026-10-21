@@ -30,9 +30,10 @@ export class NotificationComponent implements OnInit {
   }
 
   private parseBody(): void {
-    this.parsedBody = this.parameterizedDataParser.parse(
-      this.notification().body
-    );
+    // Trimmed because the link token leaves a trailing space, which would keep the text from matching its {placeholder} key.
+    this.parsedBody = this.parameterizedDataParser
+      .parse(this.notification().body)
+      .trim();
     this.link = this.parameterizedDataParser.link;
   }
 

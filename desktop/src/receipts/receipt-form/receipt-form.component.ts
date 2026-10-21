@@ -327,7 +327,7 @@ export class ReceiptFormComponent implements OnInit {
     }
 
     if (this.queueIndex != this.queueIds.length - 1) {
-      this.submitButtonText = "Save & Next";
+      this.submitButtonText = marker("Save & Next");
     }
 
     this.queueMode = this.activatedRoute.snapshot.queryParams["queueMode"];

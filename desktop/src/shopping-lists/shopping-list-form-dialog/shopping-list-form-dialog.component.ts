@@ -8,6 +8,7 @@ import { ShoppingListEventType } from "../../store/shopping-list.state";
 import { ApplyShoppingListEvent } from "../../store/shopping-list.state.actions";
 import { SystemSettingsState } from "../../store/system-settings.state";
 import { nameForToday } from "../../utils/app-time-zone";
+import { marker } from "../../i18n/marker";
 
 export const SHOPPING_LIST_NAME_MAX_LENGTH = 100;
 
@@ -32,7 +33,7 @@ export class ShoppingListFormDialogComponent implements OnInit {
   ) {}
 
   public get headerText(): string {
-    return this.list ? "Rename List" : "Add List";
+    return this.list ? marker("Rename List") : marker("Add List");
   }
 
   public ngOnInit(): void {

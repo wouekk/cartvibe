@@ -61,7 +61,7 @@
                 @if (row.status.kind === "unplanned" && row.trip.unplannedAmount) {
                   <strong class="font-semibold tabular-nums text-destructive">{{ row.trip.unplannedAmount | customCurrency }}</strong>
                 }
-                {{ row.status.text }}
+                {{ row.status.text | t: row.status.params }}
               </p>
             </div>
 

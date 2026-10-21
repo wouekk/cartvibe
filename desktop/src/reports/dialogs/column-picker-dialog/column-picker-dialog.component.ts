@@ -39,23 +39,23 @@ export interface ColumnPickerDialogData {
 type PickerStep = "kind" | "dim" | "agg" | "formula";
 
 const STEP_TITLES: Record<PickerStep, string> = {
-  kind: "Add a column",
-  dim: "Dimension column",
-  agg: "Aggregate column",
-  formula: "Formula column",
+  kind: marker("Add a column"),
+  dim: marker("Dimension column"),
+  agg: marker("Aggregate column"),
+  formula: marker("Formula column"),
 };
 
 const STEP_SUBTITLES: Record<PickerStep, string> = {
-  kind: "What kind of column is this?",
-  dim: "A label you can group / read by",
-  agg: "A number summed across rows",
-  formula: "Computed from other columns",
+  kind: marker("What kind of column is this?"),
+  dim: marker("A label you can group / read by"),
+  agg: marker("A number summed across rows"),
+  formula: marker("Computed from other columns"),
 };
 
 // A locked-field dialog is always on the dimension step, but it is not adding a
 // dimension column — it renames the column a grouping level already produces.
-const LOCKED_TITLE = "Grouping column";
-const LOCKED_SUBTITLE = "The column this grouping level adds to the report";
+const LOCKED_TITLE = marker("Grouping column");
+const LOCKED_SUBTITLE = marker("The column this grouping level adds to the report");
 
 /**
  * The column builder: pick a kind (dimension / aggregate / formula), then configure

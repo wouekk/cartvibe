@@ -151,7 +151,7 @@ export class AiSettingsPageComponent implements OnInit {
 
   /** A stored key is never sent back, so an empty key field keeps it. */
   public readonly keyHint = computed(() =>
-    this.saved() ? "A key is saved. Leave this empty to keep it." : undefined
+    this.saved() ? marker("A key is saved. Leave this empty to keep it.") : undefined
   );
 
   public save(): void {

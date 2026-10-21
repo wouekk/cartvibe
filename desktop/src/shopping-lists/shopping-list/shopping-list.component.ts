@@ -20,6 +20,7 @@ import {
 
 import { buildItemSuggestions, ItemSuggestion } from "../shopping-item-suggestions";
 import { TranslationService } from "../../i18n/translation.service";
+import { marker } from "../../i18n/marker";
 
 const OFFLINE_MESSAGE = "Couldn't reach the server. Check your connection and try again.";
 
@@ -138,7 +139,7 @@ export class ShoppingListComponent {
   }
 
   public deleteItem(item: ShoppingListItem): void {
-    this.confirm("Delete Item", this.translation.t("Delete \"{name}\" from this list?", { name: item.name }))
+    this.confirm(marker("Delete Item"), this.translation.t("Delete \"{name}\" from this list?", { name: item.name }))
       .pipe(switchMap(() => this.shoppingListService.deleteShoppingListItem(item.id)))
       .subscribe({
         next: () => this.applyItem(ShoppingListEventType.ItemDeleted, item),
@@ -148,7 +149,7 @@ export class ShoppingListComponent {
 
   public clearCrossedOff(): void {
     const itemIds = this.checkedItems().map((item) => item.id);
-    this.confirm("Clear Crossed Off", this.translation.t("Remove all {count} crossed-off items from this list?", { count: itemIds.length }))
+    this.confirm(marker("Clear Crossed Off"), this.translation.t("Remove all {count} crossed-off items from this list?", { count: itemIds.length }))
       .pipe(switchMap(() => this.shoppingListService.clearCheckedShoppingListItems(this.list().id)))
       .subscribe({
         next: () =>

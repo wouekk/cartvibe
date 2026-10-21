@@ -20,7 +20,7 @@ export class ApiKeyFormDialogComponent implements OnInit {
   public apiKeyScopes = [
     { value: ApiKeyScope.R, label: marker("Read") },
     { value: ApiKeyScope.W, label: marker("Write") },
-    { value: ApiKeyScope.Rw, label: "Read/Write" }
+    { value: ApiKeyScope.Rw, label: marker("Read/Write") }
   ];
 
   constructor(

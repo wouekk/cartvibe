@@ -7,7 +7,7 @@
     hlmTextarea
     cdkTextareaAutosize
     id="textarea"
-    [placeholder]="placeholder ?? ''"
+    [placeholder]="(placeholder ?? '') | t"
     [readonly]="readonly"
     [formControl]="inputFormControl"
   ></textarea>

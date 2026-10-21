@@ -5,8 +5,9 @@ import { Store } from "@ngxs/store";
 import { catchError, throwError } from "rxjs";
 import { SnackbarService } from "../services";
 import { AuthState } from "../store";
+import { marker } from "../i18n/marker";
 
-const FORBIDDEN_MESSAGE = "You do not have permission to perform this action.";
+const FORBIDDEN_MESSAGE = marker("You do not have permission to perform this action.");
 
 export const httpInterceptor: HttpInterceptorFn = (req, next) => {
   const store = inject(Store);

@@ -73,7 +73,7 @@
 
       <div class="picker__status" [ngClass]="'picker__status--' + formulaStatus().kind">
         <app-icon [name]="formulaStatus().kind === 'ok' ? 'check_circle' : formulaStatus().kind === 'error' ? 'error_outline' : 'lightbulb'"></app-icon>
-        {{ formulaStatus().message }}
+        {{ formulaStatus().message | t: formulaStatus().params }}
       </div>
       @if (referenceableColumns.length > 0) {
         <div class="picker__hint">{{ 'Insert a column' | t }}</div>

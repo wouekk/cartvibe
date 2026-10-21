@@ -1,7 +1,9 @@
-import { Component, computed, input, output } from "@angular/core";
+import { Component, computed, input, output, inject } from "@angular/core";
 import { Group, ReceiptSummary, ReceiptSummaryPosition, ReceiptSummaryRow } from "../../open-api";
 import { PipesModule } from "../../pipes";
 import { formatStatus } from "../../utils";
+import { TranslationService } from "../../i18n/translation.service";
+import { marker } from "../../i18n/marker";
 
 /**
  * The block of totals under the receipts table: a receipt count and amount total
@@ -26,6 +28,8 @@ import { formatStatus } from "../../utils";
   templateUrl: "./receipt-totals.component.html",
 })
 export class ReceiptTotalsComponent {
+  private readonly translation = inject(TranslationService);
+
   public readonly summary = input<ReceiptSummary | undefined>(undefined);
 
   /**
@@ -78,7 +82,7 @@ export class ReceiptTotalsComponent {
 
   public rowLabel(row: ReceiptSummaryRow): string {
     // The overall row carries no status, and its label names the filter rather than a status.
-    return row.status ? `${formatStatus(row.status)} Receipts` : "All Receipts";
+    return row.status ? this.translation.t("{name} Receipts", { name: this.translation.t(formatStatus(row.status)) }) : marker("All Receipts");
   }
 
   public receiptCountLabel(row: ReceiptSummaryRow): string {

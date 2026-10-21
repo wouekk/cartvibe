@@ -204,7 +204,7 @@ export class UserListComponent extends BaseTableComponent<User> implements After
         DEFAULT_DIALOG_CONFIG
       );
 
-      dialogRef.componentInstance.headerText = "Delete User";
+      dialogRef.componentInstance.headerText = marker("Delete User");
       dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you would like to delete the user '{name}'? This will remove the user from the user from groups, the user's receipt items, groups where this user is the only member, and receipts where the user paid. This action is irreversible.", { name: user.username });
 
       dialogRef.afterClosed().subscribe((r) => {
@@ -242,7 +242,7 @@ export class UserListComponent extends BaseTableComponent<User> implements After
     );
 
     const usernames = usersToDelete.map(user => user.username).join(", ");
-    dialogRef.componentInstance.headerText = "Delete Users";
+    dialogRef.componentInstance.headerText = marker("Delete Users");
     dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you would like to delete {count} user(s): {names}? This will remove these users from groups, their receipt items, groups where they are the only member, and receipts where they paid. This action is irreversible.", { count: usersToDelete.length, names: usernames });
 
     dialogRef.afterClosed().subscribe((confirmed) => {

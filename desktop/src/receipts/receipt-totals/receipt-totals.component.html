@@ -42,7 +42,7 @@
       </div>
     } @else if (soleConfigGroupName()) {
       <p class="mb-2 text-sm opacity-70">
-        Using the summary configuration from {{ soleConfigGroupName() }}.
+        {{ 'Using the summary configuration from {name}.' | t: { name: soleConfigGroupName() } }}
       </p>
     }
 
