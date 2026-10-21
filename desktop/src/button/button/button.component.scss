@@ -32,14 +32,14 @@ app-button {
     }
     
     &.mat-primary {
-      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      background: var(--accent-button, #2563eb);
       border: none;
     }
   }
   
   .mat-mdc-icon-button {
     &:hover {
-      background-color: rgba(59, 130, 246, 0.1);
+      background-color: var(--accent-soft, rgba(59, 130, 246, 0.1));
     }
   }
 }
