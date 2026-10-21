@@ -1,66 +1,67 @@
 # HANDOFF.md — Where things stand
 
-## Status (2026-10-20, Windows PC, Claude Code)
+## Status (2026-10-21, Windows PC, Claude Code desktop app)
 
-**Switching from the VS Code extension to the Claude Code desktop app (2026-10-20).** The repo, branch
-and tools are the same; nothing is lost, because all state is in git and these files. To continue:
-open the repo folder `receipt-wrangler` in the app, start a session on `main`, and say "continue with
-step 3". The app reads `CLAUDE.md` -> `AGENTS.md` -> this file by itself. Reminders for a fresh
-session: Go is not on the bash PATH here (`export PATH="$PATH:/c/Program Files/Go/bin"`), `gh` needs
-`--repo wouekk/receipt-wrangler` (it defaults to upstream), and `git` may warn about LF/CRLF (harmless).
-Branch per step: `feature/phase-3-<name>` from `main`, CI green, then fast-forward `main` (the user
-agreed to this flow; still ask before pushing `main` unless they said to proceed).
-- **`main` / published image (`ghcr.io/wouekk/receipt-wrangler:latest`, CI green):** shopping lists
-  with amount + unit and live sync, the Overview landing page, the dark sidebar, and Phase 2a–2c:
-  receipt products, health/seasonality tags, and receipts attached to lists with unplanned spend.
-- **Phase 3 step 1 (quick wins) is merged into `main`** from `feature/phase-3-quick-wins` (branched from
-  `chore/phase-3-plan`, so the plan merges with it): B1 quiet startup, C1 paid by = you, C2
-  "Receipt {date}", S1 one-line add row with an amount chip, S3 "List {date}", D2 Unhealthy tile
-  (new `unhealthyTotal` on the overview API) instead of Settle up, D3 Add receipt / Quick Scan /
-  New list on the Overview and no sidebar "New" menu, M7 currency picker in System Settings.
-  M7: EUR as the new-install default is still to do (see the plan). **CI green**
-  (run 39410847593; `gh` needs `--repo wouekk/receipt-wrangler`, it defaults to upstream).
-- **Phase 3 step 2 ("Simplify") is merged into `main`** from `feature/phase-3-simplify` (M6 became part of
-  D1/D4, decision Q10; the User role has no report permissions): C3 nothing required in
-  Quick Scan and a sole group picked automatically, C6 "To check / Done", C4 bill splitting hidden,
-  A1–A3 + M1 a Manage → AI page (Gemini or LM Studio, Test connection) with a built-in prompt and
-  a trimmed System Settings, M4 Admin / User roles only (new system roles `User` and `Member`),
-  W1 household wording. **CI green on `main` (commit `3d33dd97`), image published.**
-- **Stale e2e:** several upstream Playwright specs still exercise paid-by, shares, statuses and
-  required Quick Scan fields that Phase 3 removed (e.g. `receipts.spec.ts`,
-  `quick-scan-dialog-behavior.spec.ts`, `receipt-role-requirements.spec.ts`). They cannot run here
-  and their workflow is gated to upstream; update them when e2e is ever run against the fork.
-- **Deploying means pull, then redeploy** in Dockhand, then a hard refresh.
-- **Not verified anywhere:** the Playwright specs (they need a live API). 2c has no e2e.
-- **On this PC:** `api/scripts/go-without-cgo.sh vet ./...` / `… test <pkg>` work locally. The
-  services package's PDF/Chromium/image tests and some wranglerasynq temp-path tests fail here only
-  (no Chromium/ImageMagick, Windows path separators); CI is the judge.
+**Branch `feature/theme-modes` is 5 commits ahead of `main` and is NOT merged. The user said to wait for their go
+before merging to `main`.** Its last commit with code is `59349669` ("Round 5"); CI was green and the image was
+published as `ghcr.io/wouekk/receipt-wrangler:preview` (manual "Publish image" run from the branch; `:latest` is
+still the previous `main`). Every other branch of ours (`feature/clean-theme`, `feature/phase-3-backlog`, ...) is
+already contained in it or in `main`; branches under `origin/` that are ahead of `main` belong to the upstream authors.
+
+What the branch adds over `main` (all on the `:preview` image):
+- **Themes:** User Settings → Theme (System / Light / Dark, five accents), applied before first paint; dark mode is a
+  whole-page filter. The accent tints the page, a deep shade for the sidebar and the filled buttons; charts stay fixed.
+- **CartVibe identity** as supplied (logo lockup, icon, favicon, both loaders), on the header, login and loading screens.
+- **Round 5:** Save inside the card (`app-form-button-bar` is an inline card row), empty required fields shake, themed
+  shell and sidebar (no unstyled strip when the sidebar is hidden), centered Quick Scan upload button, the AI page for
+  every member, receipts renamed to the shop the AI read, three starter reports, no "Imports" in the sidebar.
+- System Settings as five pill tabs, Dashboard period picker, goal editor on the Spent card, receipt table cleanup,
+  exchange-rate input fix, ambiguous-column fix (earlier rounds, all on `main` or the branch).
+
+**To release:** the user says "go" -> fast-forward `main` to `feature/theme-modes` (CI runs on `main`), then
+`publish-image.yml` pushes `:latest`; on the NAS pull and redeploy in Dockhand (the stack uses `pull_policy: always`), then
+hard-refresh. Until then the NAS may run `:preview`.
+
+**Instruction files were reviewed and consolidated on 2026-10-21:** `desktop/CLAUDE.md` now ends with one topic-organized
+"Fork guide: CartVibe" (it replaced a chronological log); `api/CLAUDE.md` fork sections were patched where they were
+stale; the root `CLAUDE.md` table points at the new headings; `AGENTS.md` lists what is shipped and the `:preview` tag.
+
+## Open questions
+
+- **"Error retrieving categories" toast on a non-admin account:** probably a role without `app.categories.read`
+  (e.g. Legacy User, which has the group catalogs through AppData instead). Ask the user which role that account has, or
+  for the Logs line (an admin sees the server log in System Settings → Logs).
+- **Language (EN / PL):** approach B (a translation library) is decided and waits for the Mac (see the backlog). Still
+  unanswered: should the AI answer in one household-wide language (recommended) or in the language of whoever uploaded?
+  The user wants a short chat about it before building.
 
 ## Next
 
 ### Claude Code
-Phase 3 step 3 is on `main` (F2 custom fields to the AI, M2 Logs tab, M5 Household, C5 editable products,
-S2 cards + past lists + list-from-list, S4/N1 notifications and Going shopping, D1 Dashboard periods and
-tap-through lists, EUR for new installs, shop name, auto-Done after an AI read, Manage Households wording).
-Still open:
-0. Feedback round 4 (inline goal on the Spent card, one Shop column, rate input typing, SQL ambiguous name, filter badge) is on `feature/phase-3-backlog`; the Added At e2e spec is stale.
-1. M3 / F1 are checks, not builds: Manage Users, Categories, Tags and Custom Fields already list everything
-   for an admin and OIDC providers sit only under System Settings; revisit if the user finds them too complex.
-2. Stale Playwright specs (paid-by, shares, statuses, required Quick Scan fields) need updating when e2e is run.
-3. Admin: delete the empty "My Receipts" groups the household migration left (Manage Households).
+1. Wait for the user's go, then merge `feature/theme-modes` into `main` (see above). Do not merge before.
+2. M3 / F1 are checks, not builds: Manage Users, Categories, Tags and Custom Fields already list everything for an
+   admin and OIDC providers sit only under System Settings; revisit if the user finds them too complex.
+3. Admin chore: delete the empty "My Receipts" groups the household migration left (Manage Households).
+4. Stale Playwright specs: only when e2e is run (they need a live API; none of them ran here).
 
 ### User
-- After deploying step 2: Manage → AI, choose Gemini or LM Studio, Save, Test connection.
-- Create your wife's account in Manage Users with the role User, and add her to the household group
-  as User; check what she sees.
-- If not done yet: System Settings → Currency → Euro.
+- Try the `:preview` image on the NAS and say "go" for the merge, or list what to change.
+- If not done yet: Manage → AI (Gemini or LM Studio, Save, Test connection); System Settings → Currency → Euro; an
+  account for the wife with the role User, added to the household group.
 
 ### Cline
-- Triage the latest failing CI run, if any: `gh run list --limit 5`, then
+- Triage the latest failing CI run, if any: `gh run list --repo wouekk/receipt-wrangler --limit 5`, then
   `gh run view <id> --log-failed`; record findings below.
-- Safe polish targets: SCSS in `desktop/src/shopping-lists/` (including `shopping-trips/` and
-  `attach-receipt-dialog/`), `desktop/src/overview/`, `desktop/src/receipts/receipt-products/`,
-  `desktop/src/standalone/components/food-tags/`, `desktop/src/layout/sidebar/`.
+- Safe polish targets: SCSS in `desktop/src/shopping-lists/` (including `shopping-trips/` and `attach-receipt-dialog/`),
+  `desktop/src/overview/`, `desktop/src/receipts/receipt-products/`, `desktop/src/standalone/components/food-tags/`,
+  `desktop/src/layout/sidebar/`, `desktop/src/theme/`. Remember dark mode is a filter: author colors for the light page.
+
+## Reminders for a fresh session
+- Go is not on the bash PATH here (`export PATH="$PATH:/c/Program Files/Go/bin"`); `api/scripts/go-without-cgo.sh vet ./...`
+  and `... test <pkg>` work locally, but the services package's PDF/Chromium/image tests and some wranglerasynq temp-path
+  tests fail here only (CI is the judge). No Node, Docker, ImageMagick, Tesseract or Python on this PC.
+- `gh` needs `--repo wouekk/receipt-wrangler` (it defaults to upstream). `git` LF/CRLF warnings are harmless.
+- Never name anything "Apple" (themes, branches); the user cannot risk a trademark complaint.
 
 ## Diagnostics from Cline
 - *None yet.*

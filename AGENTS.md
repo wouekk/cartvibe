@@ -2,7 +2,8 @@
 
 ## 1. Product
 
-Receipt Wrangler, extended for one household into **receipts + shopping lists + spending insights**.
+Receipt Wrangler, extended for one household into **receipts + shopping lists + spending insights**
+and branded **CartVibe** in the UI (the repo, image and API keep the Receipt Wrangler names).
 Used mostly on a phone browser in the shop, and on a desktop for the overview.
 
 **This is a family grocery budget, not expense tracking.** Upstream was built for small businesses:
@@ -22,8 +23,12 @@ https://claude.ai/artifact/TAZXoRQ4mmRyoy37CFKRVt) is the target look. The plan 
 - **Overview** landing page: the month's spend and change, open receipts, settle-up, items to buy,
   spend by category, the six-month trend, recent receipts.
 - **Labeled dark sidebar** with the everyday pages first and admin pages under "Manage".
+- **CartVibe identity and themes:** the supplied logo, icon and loaders; User Settings → Theme offers
+  System / Light / Dark and five accents (Classic Blue, Alpine Emerald, Twilight Violet, Walnut Brown,
+  Graphite Gray) that tint the page, the sidebar and the buttons. Charts keep fixed colors.
+- **Starter reports** (three, created once) and an **AI page every member can use**.
 
-### In progress — Phase 2, spending insights (`docs/spending-insights-phase-2.md`)
+### Phase 2, spending insights, all shipped (`docs/spending-insights-phase-2.md`)
 - **2a — receipt products:** the AI reads each receipt's product lines; a backfill reads older
   receipts. *(shipped)*
 - **2b — health and seasonality:** healthy / medium / unhealthy per product and per shopping list
@@ -36,7 +41,7 @@ https://claude.ai/artifact/TAZXoRQ4mmRyoy37CFKRVt) is the target look. The plan 
 - **2e — overview tiles:** unplanned spend, unhealthy share (every receipt with food, whatever its
   category), goal progress, a short AI summary. *(moved into Phase 3)*
 
-### Next — Phase 3, family budget rework (`docs/family-budget-rework.md`)
+### Phase 3, family budget rework, shipped (`docs/family-budget-rework.md`)
 - Make the app match the approved design and a family's needs: Dashboard landing page with "Add
   receipt" / "New list", paid by and names filled in automatically, bill splitting hidden, simpler
   shopping lists (one-line add, past lists instead of tabs), a simple admin-only AI page (Gemini or
@@ -58,6 +63,8 @@ https://claude.ai/artifact/TAZXoRQ4mmRyoy37CFKRVt) is the target look. The plan 
   Dockerfiles.
 - **Built by GitHub, not the NAS:** after CI passes on `main`, `publish-image.yml` pushes
   `ghcr.io/wouekk/receipt-wrangler:latest` and `:sha-<commit>` (amd64 — the NAS is a DS+ model).
+  A manual run of the workflow from a feature branch publishes `:preview` only, to try a branch on the
+  NAS (point the stack's image at `:preview`) before anything reaches `main`.
 - **The NAS** (Synology, Dockhand) runs the root `docker-compose.yml` as a plain stack: the app image,
   plus `redis:7.4-alpine` (background jobs need it; the image has none), SQLite in
   `/volume2/docker/receipt-wrangler/sqlite` (`DB_FILENAME=app.db`), `SECRET_KEY` and

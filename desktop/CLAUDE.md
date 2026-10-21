@@ -2807,182 +2807,6 @@ renders the **full dataset** (not the capped builder preview) and re-resolves ac
   (`app-select`) whose options come from `ReportService.getReportTemplates` — server-filtered to the
   caller's viewable templates (`reportTemplateOptions`, loaded in `ngOnInit`, `catchError`→empty).
 
-## Overview page (fork)
-
-`/overview/group/:groupId` (`src/overview/`) is the **landing page**: after login, OIDC sign-in,
-and on a group switch (`GroupState.overviewLink`). The guards' fallback redirects still use
-`dashboardLink`, and the customizable widget dashboards live on as **Dashboards** in the sidebar.
-
-- One month at a time, chosen with the shared `app-month-stepper` (`[showAllTime]="false"`: a
-  single-month page has no "All time"). This month is the **app time zone's**.
-- Data: `GET /api/overview/group/{id}?month=yyyy-MM` (totals, counts, categories, six-month trend;
-  see `api/CLAUDE.md` → "Group overview"), plus the month's newest receipts from the paged receipts
-  endpoint (dates sent as `yyyy-MM-dd` days), and the shopping lists through `ShoppingListState`.
-  Each card loads on its own, so one failing request blanks only that card.
-- **Tiles (Phase 3 D2):** Spent, Receipts, **Unhealthy** (the overview's `unhealthyTotal` and its
-  share of the month, in the warning color above zero; Settle up is gone, the family does not share
-  bills) and To buy.
-- **Adding lives here (Phase 3 D3):** "Add receipt", "Quick Scan" (with the AI feature) and
-  "New list", which opens `/shopping-lists/group/:id?new=list`; the lists page opens its create
-  dialog for `new=list` and drops the parameter.
-- The chart maths (ring slices, bars, the month-over-month sentence) are pure functions in
-  `overview-chart.utils.ts`, tested on their own. Slices beyond five fold into "Other".
-- Guarded by `overviewReadGuard` (`group.receipts.read`), which falls back to the group's
-  dashboards.
-
-## Receipt products (fork, Phase 2a)
-
-- **`app-receipt-products`** (`src/receipts/receipt-products/`, standalone) is the receipt page's
-  "Products" section, shown for saved receipts and keyed on the receipt id like the comments. It
-  loads by receipt id, explains the status (a plain string; an unknown one shows no text), checks
-  back every 30 s while a read is `PENDING`/`RUNNING` (at most 20 times), and offers **Read again**
-  for a `DONE`/`FAILED`/`UNAVAILABLE` read with `group.receipts.update`.
-- **`app-receipt-product-backfill`** (`src/standalone/components/`) sits under AI Settings on the
-  group settings page: one button that queues the group's older receipts, gated on
-  `group.receipts.update`.
-- Both provide `CurrencyPipe` / avoid it themselves: `PipesModule` declares `customCurrency` but
-  does not provide the `CurrencyPipe` it delegates to.
-- Backend: `api/CLAUDE.md` → "Receipt products".
-
-## Health and seasonality tags (fork, Phase 2b)
-
-- **`app-food-tags`** (`src/standalone/components/food-tags/`) is display-only: subtle chips for
-  health (Healthy / Medium / Unhealthy) and, for produce, Seasonal / Imported. `foodTagsOf` maps the
-  API's plain strings; `NOT_FOOD`, `UNKNOWN`, `""` and any value this build does not know show no
-  chip. Tones differ in lightness as well as hue, and each passes 4.5:1.
-- **Corrections go through menus, never the chips.** A shopping list row's ⋮ menu has "Correct tags"
-  (health, plus seasonality for produce already tagged with a health the API accepts back); the
-  receipt Products table has a per-row tag menu. The chips sit inside the row's big cross-off
-  button, so they must not be interactive themselves.
-- Tags arrive asynchronously (a sweep classifies items within ~2 minutes) and reach open lists as
-  `ITEM_UPDATED` events through the existing reducer — no polling.
-- Backend: `api/CLAUDE.md` → "Health and seasonality tags".
-
-## Shopping trips: receipts on a list (fork, Phase 2c)
-
-Under the selected list, `app-shopping-trips` (`src/shopping-lists/shopping-trips/`) shows the
-receipts attached to it, and for each one what was bought that was not on the list ("€4.98 not on
-the list: Crisps, Chocolate"). Backend: `api/CLAUDE.md` → "Shopping trips".
-
-- **Two ways to attach.** "Scan receipt" uploads a photo (a hidden file input, without `capture`, so a
-  phone offers both the camera and the gallery). The server keeps it until the AI can read it.
-  "Attach existing" opens `app-attach-receipt-dialog`, which lists the group's 15 newest receipts.
-- **Gates.** The whole section needs `group.shopping-lists.read` **and** `group.receipts.read`; a trip
-  shows its receipt. Attaching, retrying and removing add `group.shopping-lists.update`; scanning adds
-  `group.receipts.quick-scan` on top.
-- **Trips are not in the store.** The component holds them in a signal and refetches on a
-  `TRIPS_CHANGED` event for its list (an `ApplyShoppingListEvent` the reducer ignores) and on every
-  `LoadShoppingLists`, which the stream service dispatches on a reconnect and when the tab becomes
-  visible. Listening to actions, not adding state, keeps the reducer about lists only.
-- **`describeShoppingTrip`** turns a trip's plain-string status into text. A status this build does not
-  know reads as still waiting.
-- **The receipt's Products table marks `planned === false`** with a "Not on the list" chip. `null`
-  (no list, not compared yet) shows nothing, matching the server's "counts as planned".
-
-## Navigation sidebar (fork)
-
-`src/layout/sidebar/` is the app's navigation; the header keeps only the sidebar toggle, user
-shortcuts, search and notifications.
-
-- **Look:** a dark slate sidebar (its own palette at the top of `sidebar.component.scss`, every text
-  shade checked at ≥4.5:1), from the approved redesign concept.
-- **Order:** group switcher → the everyday
-  pages (Overview, Shopping Lists, Receipts, Dashboards, Reports) → a collapsible **Manage** section (the
-  `Manage …` admin pages, System Settings, Imports) → the account menu (User Settings, About,
-  Logout). Each entry keeps its own permission gate; the item lists are `mainNavItems` /
-  `manageNavItems` computeds, so a new page is one entry, not new markup.
-- **Desktop vs phone** is decided once, by `ViewportService.isHandset` (Bootstrap's `md`
-  breakpoint), which the header's toggle and the sidebar both read. Desktop: always shown, labeled
-  or collapsed to an icon rail (`LayoutState.isSidebarCollapsed`, persisted). Phone: slides in over
-  the page (`isSidebarOpen`), and closes on every navigation and on load, so a persisted `true`
-  never covers the page.
-- **No "New" menu (Phase 3 D3).** Adding a receipt, a Quick Scan or a list is on the Overview page;
-  Quick Scan is also in the receipts table's overflow menu, Add Group on Manage Groups.
-- **Manage starts expanded on one of its own pages** (a `linkedSignal` over the URL), otherwise it
-  stays as the user toggled it.
-- Test ids: `sidebar-avatar-menu` (the account menu), `nav-*` per page, `sidebar-manage-toggle`.
-
-## Shopping lists (fork extension)
-
-`/shopping-lists/group/:groupId` (`src/shopping-lists/`), mobile-first because it is used in a shop
-on a phone. Backend contract: `api/CLAUDE.md` → "Shopping lists".
-
-- **One reducer for every write.** `ShoppingListState` (`src/store/shopping-list.state.ts`, **not**
-  persisted) applies both SSE events and this tab's own HTTP responses through
-  `ApplyShoppingListEvent` → `applyEvent`, an idempotent upsert/remove by id. Receiving the echo of
-  our own write therefore changes nothing. Events for another group, for a list this tab doesn't
-  have, or of an unknown `type` (a plain string on the contract) are ignored.
-- **`ShoppingListStreamService`** owns the single `EventSource` per tab. The server sends no replay,
-  so it refetches on every **re**connect (the first open follows the page's own load) and whenever
-  the tab becomes visible again — the fallback for a phone that dropped the stream on cellular. The
-  browser reconnects on its own after the server's 15-minute close; the service only schedules its
-  own (1s → 30s backoff) when the browser gives up, i.e. an HTTP error such as a 403. It references
-  `EventSource.CLOSED` as the literal `2` because jsdom has no `EventSource` global; specs inject a
-  fake through `setEventSourceFactory`.
-- **The synthetic "All" group is never a shopping list group.** `ShoppingListState.readableGroups`
-  is built off `GroupState.groupsWithoutAll`, and both the header button and
-  `shoppingListGroupGuard` resolve through `ShoppingListState.targetGroupId` — the selected group
-  if readable, otherwise the first readable one — so the button works while "All" is selected.
-- **Only crossing off is optimistic.** It flips immediately and reverts if the request fails; every
-  other action waits for the response. The interceptor already toasts 403s and server errors, so the
-  component adds its own message only for status 0 (no connection).
-- **Amount + unit.** Items carry `amount` (a decimal string) and `unit` (a plain string from
-  `SHOPPING_LIST_UNITS`, kept in step with the API's `models.ShoppingListUnits`), entered through the
-  shared `app-shopping-list-amount-fields`. The form accepts a comma decimal (a European phone
-  keyboard) and sends a dot. The old free-text `quantity` is still displayed for items written before
-  amounts existed, and an edit without an amount sends it back unchanged rather than erasing it —
-  all three rules live in `shopping-list-item-form.ts`.
-- **One-line add (Phase 3 S1):** name, amount, unit and a square "+" side by side, also on a phone;
-  a note is added through the item's Edit. The amount shows as a chip at the row's right end.
-- **Default names (Phase 3 S3, C2):** a new list is "List 20 Oct 2026" and a new receipt
-  "Receipt 20 Oct 2026" (`nameForToday`, the app zone's day); both stay editable, and magic fill
-  replaces the receipt's with the store name.
-- **Paid by is the user adding the receipt (Phase 3 C1)**, on the receipt form and in Quick Scan,
-  and not shown. The receipt form shows Paid By only when it opened without one; magic fill leaves
-  a hidden payer alone.
-- **Dialog forms submit through `(ngSubmit)` only.** `app-dialog-footer`'s submit button is
-  `type="submit"`; binding `(submitClicked)` as well would submit twice.
-- E2e: `e2e/shopping-list.spec.ts` — the add / cross off / revive / clear flow, **two browser
-  contexts proving live sync without a reload**, and a Viewer's read-only page. Provisions its own
-  group, so it is parallel-safe.
-
-## Family simplifications (fork, Phase 3 step 2)
-
-- **Statuses (C6):** `utils/receipt-status.ts`. OPEN / NEEDS_ATTENTION / DRAFT read "To check",
-  RESOLVED / DECLINED "Done" (`app-status-chip`, filter chips). `RECEIPT_STATUS_OPTIONS` is just
-  those two (writing OPEN / RESOLVED); `app-status-select` and the receipt form show an older stored
-  status as the one it reads as. `toStatusWireFilter` widens a status filter where the request is
-  assembled (receipts table, summary, export, pie chart) — **not** in reports, whose saved
-  templates must round-trip. `ALL_RECEIPT_STATUS_OPTIONS` keeps every status for admin config keyed
-  on real statuses (the group receipt summary).
-- **Nothing required in Quick Scan (C3):** `resolveQuickScanFieldConfig` never shows status and
-  requires only the comment; the server falls back to defaults. A sole group is seeded and its
-  picker hidden, in Quick Scan and on the receipt form (`showGroupPicker`).
-- **No bill splitting (C4):** no Shares section or split Quick Actions on the receipt form
-  (`shareListComponent` is an optional viewChild), no Paid By column (dropped from
-  `DEFAULT_RECEIPT_TABLE_COLUMNS`, so saved layouts lose it too), filter or selection
-  who-owes-whom card, no paid-by on the Overview or report receipt lists, no new Group Summary
-  widget. The data stays.
-- **AI page (A1/A2):** `/ai`, standalone `AiSettingsPageComponent`, under Manage for
-  `app.receipt-processing-settings.update`. Gemini or LM Studio (`OPEN_AI_CUSTOM`, base URL ending in
-  `/v1`, `enforceJsonResponseFormat` off); edits the processing settings System Settings points at
-  and links new ones; "Test connection" checks the saved settings by id. System Settings lost the
-  Prompts / Receipt Processing tabs and the processing knobs (routes and values stay).
-- **Roles (M4):** `utils/family-roles.ts` — pickers offer Admin (Legacy Admin / Legacy Owner) and
-  User (the API's `User` / `Member`), plus an older role someone already holds; `roleName` and grant
-  rows show those labels. No "Manage Roles" in the menu (the page stays at `/roles`).
-- **Wording (W1):** Household, not Group, in the switcher and receipts filter; "Done on" for the
-  resolved date.
-
-## Currency choice (fork, Phase 3 M7)
-
-System Settings → Currency is one picker (`currency-presets.ts`: EUR, PLN, USD, GBP, CHF, Custom)
-that fills the existing `currencyDisplay` / position / separator fields; "Custom" shows those raw
-fields. The `currency` control is form-only (dropped in `submit()`), and its starting value is the
-preset the stored fields match exactly, else Custom. A symbol after the amount starts with a space
-(`" €"`) because `customCurrency` appends it as is. The API's defaults for a new install stay
-upstream's `$` for now (the report tests depend on them); EUR is a planned follow-up.
-
 ## Testing Requirements
 
 **All new code must have accompanying unit tests.**
@@ -3002,190 +2826,132 @@ Tests should cover:
 - Service method behavior
 - Form validation logic
 - Error handling scenarios
-## Logs tab (fork, Phase 3 M2)
 
-System Settings → **Logs** (`src/system-settings/logs/`, standalone `LogsPageComponent`): the newest 300
-lines of the application log with an All / Errors / Info filter and Refresh. It is the last tab, in both
-`system-settings.component.ts` and `system-settings-landing.guard.ts`, gated on
-`app.system-settings.read`. Backend: `api/CLAUDE.md` → "Custom fields in the AI prompt and the app log".
+# Fork guide: CartVibe (household receipts, shopping lists, insights)
 
-## Past shopping lists (fork, Phase 3 S2, first part)
+Everything below describes the app as it is **now**, by topic (it replaced a chronological log). Product context is in
+the root `AGENTS.md`; the matching API notes are at the end of `api/CLAUDE.md`. Generated clients in `src/open-api/` are
+never hand-edited.
 
-`shopping-list-groups.ts`: a list with items, all crossed off, is **past**. The page's tab bar shows only
-the other lists; a "Past lists" row at the bottom shows the latest three (by `updatedAt`) as chips that
-open the list. Crossing off the last item moves the open list into that row; adding an item brings it
-back. Not done yet: cards instead of tabs, and starting a new list from a past list's items.
+## Dashboard (the landing page, `src/overview/`)
 
-## Editable Products, one group, lists from lists (fork, Phase 3 batch)
+- `/overview/group/:groupId`, shown after login and on a group switch (`GroupState.overviewLink`); `overviewReadGuard`
+  (`group.receipts.read`) falls back to the group's widget dashboards, which moved behind admin (`app.users.read`) as
+  "Widget dashboards". Each card loads on its own, so one failing request blanks only that card.
+- **One period control**, `app-period-picker`: This month, Last 7 days, Last 30 days, This year, Custom, plus From / To
+  (DD/MM/YYYY, calendar buttons; editing a date switches to Custom). The receipts table uses the same control (it sets the
+  Receipt Date filter). Every request sends `from` / `to` as `yyyy-MM-dd` days; "today" is the app time zone's
+  (`overview-period.ts`).
+- **Tiles:** Spent (change against the period before, `describeChangeAgainst`), Receipts (+ how many "to check"),
+  Unhealthy, Not on the list (unplanned spend), To buy. Unhealthy, Not on the list and each real category open
+  `OverviewDetailDialogComponent` (the products behind it; "Other", "Uncategorized", "(Restricted)" are not openable).
+  Adding lives here: Add receipt, Quick Scan (AI feature), New list (`/shopping-lists/group/:id?new=list`).
+- **Monthly spending goal** (`UserPreferences.monthlySpendingGoal`, computed on the frontend only): set from the Spent card
+  itself ("+ Set goal", or the pencil / the "/ 1 500 €" text; Enter or leaving saves, Escape cancels, empty or 0 removes; it
+  sends the **whole** stored preferences back because that endpoint replaces the object; gated on
+  `app.user-preferences.update`). While exactly one calendar month is shown a thin bar fills toward the goal ("X left" /
+  "+X over goal"). User Settings → Budget edits the same value.
+- **Month chart** (`overview-chart.utils.ts`, pure and tested): one non-wrapping grid row, each column holding its value
+  label, bar, baseline and month name; over six columns it goes `bars--dense`; at most the latest 12 months (with a note).
+  It scales to the tallest month, never the goal, and leaves the goal line out when it would sit above the bars; months over
+  the goal split into a good color and red. A custom range **longer than a year** (`exceedsOneYear`) replaces the chart with
+  Download Landscape PDF (one year per page) and Export CSV (`overview-export.ts`; one overview request per calendar year;
+  the PDF is a print view opened inside the click; CSV is `Month,Total Spent,Goal,Difference`).
+- **Empty cards:** receipts say "No receipts yet in {period}" and shopping lists "There are no items in the shopping
+  lists", each with the same button as the page's top right.
+- **Charts never follow the accent:** donut slices are the fixed `CATEGORY_COLORS` (sky, amber, red, violet, pink, teal);
+  bars and the Spent bar use `--chart-good`; Unhealthy stays `#ea580c`.
 
-- **Products (C5):** `app-receipt-products` edits in place: a row's pencil turns it into inputs (comma
-  prices accepted, `parseAmountInput`), the bin confirms then removes, and a one-line add row sits under
-  the table. The upstream **Items** section is hidden with `d-none`, not removed: `ItemListComponent` is a
-  `viewChild.required` and keeps the form state, so existing items are saved back unchanged.
-- **One group (M5):** `SidebarComponent.hasSeveralGroups` (real groups > 1). With one, the header shows a
-  static Household label and there is no "Manage Groups".
-- **Lists (S2):** a list's menu has "Start a new list from this" (`copyList`): creates "List {date}" and
-  adds the items unchecked, in order.
+## Receipts
 
-The shopping lists page also has a **Going shopping** button (`announceGoingShopping`) that tells the
-household through the bell; it shows for `group.shopping-lists.update` once a list exists.
+- **Table columns:** Receipt Date (first, the default sort, `DEFAULT_RECEIPT_ORDER_BY = "date"`), Shop, Amount, Status, Added
+  by, Comment (opt-in). **Shop** (`shop_name`) is the clickable column: the shop the AI read, else the receipt's name, and it
+  sorts that way on the API. No Name, Added At, Categories, Tags or Done on column (a saved layout loses them through
+  `mergeCustomFieldColumns`; a persisted sort on a removed column resets). The Dashboard's receipts panel uses the same
+  Date and Shop.
+- **Filter badge:** the Filter button does not count the Receipt Date range (the period picker shows it); Reset appears for
+  any filter. Row actions: **Mark as done** and **Read with AI**.
+- **Statuses** (`utils/receipt-status.ts`): OPEN / NEEDS_ATTENTION / DRAFT read "To check", RESOLVED / DECLINED "Done";
+  `toStatusWireFilter` widens a status filter where requests are assembled (not in reports).
+- **Receipt form:** Paid by is the user adding it (hidden); no bill splitting (no Shares, no Paid By column or filter); the
+  upstream Items section is hidden with `d-none` (not removed: `ItemListComponent` keeps the form state); a new receipt is
+  named "Receipt {date}" and, once the AI has read the shop, takes the shop name (`IsPlaceholderReceiptName` on the API; a
+  typed name is kept). An empty required name or amount **shakes** (see Forms).
+- **Products** (`app-receipt-products`): product, original, category (the AI's food group), health, quantity, amount; rows
+  edit in place (comma prices accepted); "Read again" replaces the whole set; a "Not on the list" chip marks
+  `planned === false`. Health / seasonality chips (`app-food-tags`) are display-only; corrections go through menus.
+- **Currency:** `app-receipt-currency-note` shows "45.9 CHF at 1.04" under a converted amount, or an amber "not converted"
+  warning. The rates editor is `app-exchange-rates` (System Settings → General): comma or dot typing is cleaned per
+  keystroke (`sanitizeRateInput`), Enter settles ("1." is 1) and never submits the surrounding form.
+- **Quick Scan:** nothing is required (`resolveQuickScanFieldConfig`; only the comment keeps its rules), a sole group is
+  seeded and its picker hidden. The **Upload photos** button is a centered raised button in the dialog body ("Add more
+  photos" once there are some).
 
-## Dashboard (fork, Phase 3 D1)
+## Shopping lists (`src/shopping-lists/`)
 
-The Overview page is now the **Dashboard** (`src/overview/`). A preset bar (This month, Last week, Last
-month, This year, Last year, Custom with two date inputs; `overview-period.ts`) replaces the month stepper;
-every request sends `from`/`to`. Tiles compare with the period before (`describeChangeAgainst`); the new
-**Not on the list** tile is the unplanned spend. Unhealthy, Not on the list and each real category open
-`OverviewDetailDialogComponent` (the products behind a tile, or a category's receipts); "Other",
-"Uncategorized" and "(Restricted)" slices are not openable. The trend draws days under a month, months
-otherwise. The old widget dashboards moved behind admin (`app.users.read`) as "Widget dashboards".
+Mobile-first (used in the shop). Backend contract: `api/CLAUDE.md`.
+- **One reducer for every write:** `ShoppingListState` (not persisted) applies SSE events and this tab's own HTTP
+  responses through `ApplyShoppingListEvent` (an idempotent upsert/remove by id), so an echo changes nothing.
+  `ShoppingListStreamService` owns the single `EventSource`, refetches on every **re**connect and when the tab becomes
+  visible. The synthetic "All" group is never a list group (`ShoppingListState.targetGroupId`).
+- **Only crossing off is optimistic.** Items carry `amount` (decimal string) + `unit` (`SHOPPING_LIST_UNITS`, in step with
+  the API); the one-line add is name, amount, unit and "+" (an empty name shakes). A fully crossed-off list is **past** (a
+  "Past lists" row); a list's menu has "Start a new list from this"; "Going shopping" notifies the household.
+- **Trips** (`app-shopping-trips`): receipts attached to a list and what was bought that was not planned; held in a signal
+  and refetched on `TRIPS_CHANGED`. Gates: `group.shopping-lists.read` + `group.receipts.read`.
+- Dialog forms submit through `(ngSubmit)` only (`app-dialog-footer`'s button is `type="submit"`).
 
-## Feedback round (fork)
+## Navigation, forms and settings screens
 
-Row actions on the receipts table and a check on the receipt view: **Mark as done** (`bulkReceiptStatusUpdate`
-to RESOLVED) and **Read with AI** (`readReceiptProducts`). The Products table reads: product, original,
-category (the AI's food group), health, quantity, amount. The Dashboard has rolling ranges (Last 7 / 30 /
-365 days, ending today) and a DD/MM/YYYY custom range; its category rows open the products of that food
-group. "Manage Groups" is **Manage Households** and stays visible with one group.
-
-The receipts table has a **Shop** column (`shop_name`, sortable, visible by default), the receipt form a
-Shop field, and the Dashboard's receipts table shows the shop where it showed a category. The Dashboard's
-From / To fields are always visible, show the active period as DD/MM/YYYY and switch to Custom when edited
-(calendar button beside each). System Settings has a "Change currency" button next to the picker, which is
-only editable in edit mode.
-
-## Period picker and tables (fork, feedback round 3)
-
-`app-period-picker` (`src/overview/period-picker/`) is the one period control: This month, Last 7 days,
-Last 30 days, This year, Custom, plus From / To (DD/MM/YYYY, calendar buttons). The Dashboard and the receipts
-table both use it (the table sets the Receipt Date filter). The receipts table columns are now Added At
-(full timestamp), Date, Name, Shop, Added by, Amount, Status, Comment (opt-in); Categories, Tags and Done on
-are gone. Manage Categories shows what the AI sorts products into: a skip checkbox, "Formerly: ..." names and
-a product count. The user preferences' Quick scan defaults are hidden and the profile's field is "Name".
-
-## Exchange rates (fork, Phase 3 currencies)
-
-System Settings → Currency has `app-exchange-rates` (`src/system-settings/exchange-rates/`): "1 CHF = [rate]
-EUR" rows, add/remove a currency, its own Save (rates are typed with a comma or a dot, up to six decimals;
-empty = not entered). `app-receipt-currency-note` shows "45.9 CHF at 1.04" under a converted receipt's amount
-(table and form), or an amber "not converted: add the rate" warning.
-
-## Monthly spending goal (fork)
-
-`UserPreferences.monthlySpendingGoal` (nullable decimal, set under User Settings → Budget; empty clears it;
-the API round trip is pinned in `repositories/user_preferences_test.go`). Computed on the frontend only: the
-Dashboard's **Spent** card shows "Goal: X" and "X remaining" / "+X over goal" (red) while exactly one whole
-calendar month is shown (`isWholeCalendarMonth`), and the month chart scales to the goal, splits a month over
-it into a blue base and a red top with "(+X)" in its label, and draws a dashed Goal line
-(`buildTrendBars(..., goal)`, `goalLineFraction`). With no goal both panels render as before.
-
-## Inline goal, one Shop column, rate typing, filter badge (fork, feedback round 4)
-
-- **Spent card:** the goal is set on the card itself. "+ Set goal" (top right) or, with a goal, a pencil or a
-  click on the muted "/ 1 500 €" turns it into a text input (comma or dot; Enter or leaving saves, Escape
-  cancels, empty or 0 removes). It saves with `updateUserPreferences` and sends the **whole** stored
-  preferences back, because that endpoint replaces the object. Gated on `app.user-preferences.update`.
-  Below the amount a 4px bar fills blue up to the goal, all red once over it ("X left" / "+X over goal").
-  The month chart now scales to the **tallest month**, not the goal, and leaves the goal line out when it
-  would sit above the bars; its header reads "Average X a month · Goal Y".
-- **Receipts table:** no Name and no Added At column. The clickable **Shop** column (`shop_name`) shows the shop,
-  else the receipt's name, and sorts that way on the API (`COALESCE(NULLIF(shop_name,''), name)`). Receipt Date is
-  first and the default sort (`DEFAULT_RECEIPT_ORDER_BY = "date"`); a persisted sort on `created_at` resets itself.
-  The Dashboard receipts panel uses the same Shop/Date.
-- **Exchange rates:** `sanitizeRateInput` runs on every keystroke (comma becomes dot, one dot, digits only, a
-  half-typed "0." is kept); leaving the field or Enter settles it ("1." is 1) and Enter no longer submits the
-  surrounding System Settings form. Saved rates show without padded zeros (`formatRate`); an "unsaved" hint shows
-  until Save rates.
-- **Filter badge:** the receipts Filter button does not count the Receipt Date range (the period picker already
-  shows it); Reset still appears for any filter. The button is a fixed 36px square so the badge stays on it.
-- E2E specs mentioning the Added At column (`column-configuration.spec.ts`) are stale; update with the other
-  Playwright specs.
-
-## Month chart up to a year, and the long-range export (fork)
-
-- The Dashboard month chart is one non-wrapping grid row (`grid-auto-flow: column`); each column holds its value
-  label, bar, baseline and month name (`.bars__plot` + `.bars__label`), so a bar cannot drift from its label. Over six
-  columns it goes `bars--dense` (narrower bars, 10-11px type, empty months' value hidden). It draws at most the
-  latest 12 months (`chartBars`, with a "Showing the latest 12 months" note).
-- A custom range **longer than a year** (`exceedsOneYear`: over 12 calendar months and over 366 days; "Last 365 days"
-  is not) replaces the chart with a prompt, **Download Landscape PDF (1 yr/page)**, **Export CSV** and a Reports link
-  (`overview-export.ts`). Both fetch the overview once per calendar year, in parallel. The PDF is an HTML print view
-  (`@page A4 landscape`, `break-after: page` per year) opened in a window created inside the click (pop-up blockers)
-  and printed; the browser's dialog saves the PDF. The CSV is `Month,Total Spent,Goal,Difference` (spent minus goal,
-  dot decimals). Months at a range's edges are whole months.
-
-## System Settings tabs (fork)
-
-System Settings is five pill tabs (the `app-filter-bar` look of the Dashboard period picker) over white cards, in a
-1000px column (`system-settings.component`): **General & Currency** (currency + exchange rates, time zone), **Auth &
-Security** (sign-up, session, secure cookies, server URL; the OIDC providers table below), **Integrations & Mobile**
-(system emails table, MCP, mobile app setup), **Tasks & Storage** (the system tasks table, worker + retention,
-compact queue priorities) and **Logs**. The first four are routes (`general`, `security`, `integrations`, `tasks`)
-that all render `SystemSettingsFormComponent`; route data `section` picks its cards (`shows()`), and the embedded
-tables (`app-system-email-table`, `app-oidc-provider-table`, `app-system-task-table`) sit **outside** the `<form>`
-so their buttons cannot submit it. They read the tab route's resolver data, so each tab route carries `allGroups`,
-`prompts` and `allReceiptProcessingSettings` too. The form still holds **every** control whatever the tab, so a
-save always sends the whole payload (the retired email-image-cleanup queue stays in it, only hidden). There is no
-view/edit toggle or audit block: the form is always in edit mode, saves stay on the tab, the restart-task-server
-alert is a signal, and "Updated ..." is a muted footer. The old `settings/view|edit`, `oidc-providers`,
-`system-emails` and `system-tasks` list paths redirect to the tabs; the landing guard goes to `general`.
-Stale e2e: specs that click the old tab names or the pencil (`system-settings-tab-gating.spec.ts`, `login-qr.spec.ts`,
-`session-lifetime.spec.ts`, ...) need updating with the other Playwright specs.
-
-The AI page is the baseline for every settings screen (title and intro, a 640-760px centered column, white cards with
-`$border-radius-lg` and `$shadow-sm`, **Save inside the card** as a flat primary button with a hint, never a floating
-bar). System Settings and User Settings follow it; `app-tabs` (User Settings, group tabs) now renders the same pill
-tab look as the Dashboard and System Settings. System Settings' Save sits at the end of each tab's last card
-(`settings-save`), enabled once the form is dirty and valid.
-
-## CartVibe identity, theme and accent (fork)
-
-The app is **CartVibe** (page title, login, header, favicon). `index.html` holds the Tailwind CDN (Preflight off, every
-utility `tw-` prefixed so it never matches the app's own classes), the `--accent-color/-hover/-soft` variables per
-`data-accent` (blue, green, amber, indigo), the early `rw_accent_theme` read from localStorage, and the plain-CSS visual
-skin (colors, radii, shadow rings, fonts, transitions only: no spacing or layout). `app-accent-picker` (header, between
-search and the bell) sets `data-accent` and saves the choice; `app-cartvibe-logo` (header and login) draws the icon and
-wordmark from the same variables. Skin rules use `!important` where a component's scoped style would otherwise win.
-`:latest` carries it once merged; a manual "Publish image" run from a branch publishes `:preview` only.
-
-## Themes: mode, accent, charts (fork, supersedes the header picker)
-
-- **User Settings → Theme** (third tab, no permission: it is per browser) holds `ThemeService` (`src/theme/`): mode
-  System / Light / Dark and five accents (Classic Blue default, Alpine Emerald, Twilight Violet, Walnut Brown, Graphite
-  Gray). Stored in `rw_theme_mode` / `rw_accent_theme`; `index.html` applies them before the first paint and the service
-  keeps `html.dark`, `data-theme` and `data-accent` in step (and follows the OS while on System).
-- **Dark mode is a filter**: `html.dark { filter: invert(1) hue-rotate(180deg) }`, with the sidebar, images, canvases,
-  the logo and `.rw-keep-colors` inverted back. It reaches every component, including the ones that paint their own white.
-  A new thing that must keep its real colors gets `.rw-keep-colors`. New colors are authored for the LIGHT page.
-- **Accent** (`--accent-color/-hover/-light/-soft`) drives primary buttons, active sidebar item, tabs, links, focus
-  rings and list icons. **Charts never follow it**: donut slices are the fixed `CATEGORY_COLORS`; bars and the Spent
-  card's bar use `--chart-good` (a per-theme color that contrasts with the accent) and red over the goal; Unhealthy stays
-  `#ea580c`.
-- A count badge with nothing or `0` is hidden (`matBadgeHidden` in `app-button`, plus a CSS/JS safeguard in index.html).
-- The Dashboard's empty receipts and shopping-list cards say so and carry the same buttons as the page's top right.
-
-## CartVibe identity package (fork)
-
-Four supplied SVGs are used **as drawn**, as inline components (so the theme can switch their palette):
-`app-cartvibe-logo` = `gemini-svg.svg` (icon + "CartVibe" wordmark, header and login), `app-cartvibe-icon` =
-`cartvibe-logo.svg` (icon alone; the same file is `favicon.svg`), `app-cartvibe-loader` = `cartvibe-loader-badge.svg`
-(default) and `cartvibe-loader-transparent.svg` (`variant="transparent"`), used on the login loading and "Signing you in"
-screens. Geometry, gradients and colors are untouched; the only adaptation is that light/dark switch on the app's `dark`
-class on `<html>` (`:host-context(html.dark)`), not the OS media query, so a chosen Light or Dark is respected. They are
-fixed brand colors (never the accent) and are kept out of the page-wide dark filter in index.html. Do not redraw them:
-change the supplied artwork and copy it in.
-
-## Round 5 (fork): inline Save, shake, themed shell, Quick Scan, AI for everyone
-
-- **Form actions are inline:** `app-form-button-bar` (12 forms) is no longer a floating bar: it is a card row at the end of
-  the form with a flat accent Save, like the AI page. Never reintroduce a fixed bar.
+- **Sidebar** (`src/layout/sidebar/`): group switcher (a static Household label with one group), everyday pages, a
+  collapsible **Manage** section (Manage pages, AI for everyone, System Settings for admins; **no Imports**), the account
+  menu. Desktop shows it labeled or as an icon rail; phone slides it over the page. Item lists are the `mainNavItems` /
+  `manageNavItems` computeds. The page background fills the strip a hidden sidebar leaves.
+- **Forms and settings screens follow the AI page:** a title and intro, a centered 640-760px column, white cards
+  (`$border-radius-lg`, `$shadow-sm`), and **Save inside the card** as a flat accent button. `app-form-button-bar` (12 forms)
+  is therefore an inline card row at the end of the form: **never reintroduce a floating bar**.
 - **Required fields shake:** `shakeInvalid()` (`utils/shake.ts`, `.rw-shake` / `.rw-field-error` in `styles.scss`) is the one
-  way to tell someone a required box is empty: the shopping list add box, and the receipt form's name and amount.
-- **The shell follows the theme:** each accent defines `--shell-bg` (tinted page), `--sidebar-*` (a deep shade for the sidebar)
-  and `--accent-button` / `-hover` (a filled-button color that keeps 4.5:1 with white text; classic and emerald are darker
-  than their `--accent-color`). Use `--accent-button` for anything filled with white text, `--accent-color` for text and
-  icons. The tinted page also fills the strip a hidden sidebar leaves.
-- **Quick Scan:** the upload button is a centered raised button in the dialog body (the header icon is gone).
-- **Imports** is no longer in the sidebar (the page and API remain). **The AI page is for every member**: the family User role
-  has the receipt-processing permissions; a member who cannot read System Settings gets the first AI settings, and the server
-  links the first ones saved (`LinkReceiptProcessingSettingsIfNone`).
+  way to say an empty required box was the problem (shopping list add box; receipt name and amount).
+- **User Settings:** `app-tabs` (also the group tabs) renders the pill tab look: User Profile, User Preferences, **Theme**
+  (no permission), API Keys. **System Settings** is five pill tabs in a 760px column: General & Currency, Auth & Security,
+  Integrations & Mobile, Tasks & Storage, Logs. The first four are routes that all render `SystemSettingsFormComponent`
+  (route data `section` picks the cards via `shows()`); embedded tables (system emails, OIDC providers, system tasks) sit
+  **outside** the `<form>`; the form holds every control whatever the tab, so a save sends the whole payload (the retired
+  email-image-cleanup queue stays in it, hidden). The form is always editable; Save is at the end of the tab's last card.
+  Old paths (`settings/view|edit`, `oidc-providers`, `system-emails`, `system-tasks`) redirect to the tabs.
+- **AI page** (`/ai`, `AiSettingsPageComponent`): Gemini or LM Studio, test connection. **Every member can use it**; one who
+  cannot read System Settings gets the first AI settings, and the server links the first ones saved.
+- **Roles and wording:** pickers offer Admin and User (`utils/family-roles.ts`); "Household", not Group; "Done on".
+  Manage Categories shows what the AI sorts products into (skip checkbox, "Formerly: ..." names, product count).
+- A count badge with nothing or `0` is hidden (`matBadgeHidden` in `app-button`, plus a safeguard in index.html).
+
+## Identity, themes and the shell
+
+- **CartVibe identity package** (four supplied SVGs, used **as drawn**, never redrawn): `app-cartvibe-logo` (lockup, header and
+  login), `app-cartvibe-icon` (icon alone; the same file is `favicon.svg`), `app-cartvibe-loader` (badge, or
+  `variant="transparent"`; the login loading and "Signing you in" screens). Their light and dark palettes switch on the app's
+  `dark` class through `:host-context(html.dark)`, not the OS; they are fixed brand colors (not the accent) and are kept out
+  of the dark filter. To change the artwork, copy the new supplied file in.
+- **User Settings → Theme** (`ThemeService`, `src/theme/`): System / Light / Dark and five accents (Classic Blue default,
+  Alpine Emerald, Twilight Violet, Walnut Brown, Graphite Gray), kept in `rw_theme_mode` / `rw_accent_theme`; `index.html`
+  applies them before the first paint.
+- **Dark mode is a filter** (`html.dark { filter: invert(1) hue-rotate(180deg) }`) with the sidebar, images, canvases, the
+  CartVibe components and `.rw-keep-colors` inverted back, so it reaches every component, including ones that paint their
+  own white. **Author every color for the LIGHT page.** New things that must keep their colors get `.rw-keep-colors`.
+- **Accent variables** (per `data-accent`, in `index.html`): `--accent-color/-hover/-light/-soft` (text, icons, links, focus),
+  `--accent-button/-hover` (filled buttons with white text: keeps 4.5:1; classic and emerald are darker than their accent),
+  `--shell-bg` (tinted page), `--sidebar-bg/-raised/-active/-border` (a deep shade for the sidebar), `--chart-good`.
+- **Tailwind** is the CDN with Preflight off and every utility `tw-` prefixed (it never matches the app's own classes); the
+  skin itself is plain CSS in `index.html` (colors, radii, shadow rings, transitions: no layout). Skin rules use `!important`
+  where a component's scoped style would otherwise win. The font is the system font (Inter is bundled for the wordmark).
+- **Stale e2e:** specs that mention paid by, shares, statuses, required Quick Scan fields, the Added At column, the old
+  System Settings tabs or pencil, the old logo or page title need updating (see `HANDOFF.md`).
+
+## Small pieces worth knowing
+
+- **Logs tab** (`src/system-settings/logs/`): the newest 300 lines of the app log with an All / Errors / Info filter (admin,
+  `app.system-settings.read`). It is the first place to look when a member reports an error toast: the log is server-wide.
+- **Currency picker** (`currency-presets.ts`): EUR, PLN, USD, GBP, CHF or Custom fills the existing display, position and
+  separator fields (the `currency` control is form-only). A symbol after the amount starts with a space.
+- **Receipt products backfill** (`app-receipt-product-backfill`, group settings page): one button that queues a group's older
+  receipts for the AI to read.
