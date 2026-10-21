@@ -83,3 +83,10 @@ be done by GitHub Actions or on the Mac.
 3. **Playwright e2e specs** (they need a live API): update the stale ones (paid by, shares, statuses, Quick Scan required
    fields, the Added At column, the old System Settings tabs and pencil, the old logo and page title).
 4. **Run the Jest suite and `ng build` locally** instead of waiting for CI, once Node is there.
+
+## Upstream clean-up log (2026-10-21)
+- Done: `.idea/` untracked, upstream-only workflows (`e2e`, `mobile-e2e`, `release`) and `tag-version.sh` removed, `LICENSE`,
+  `NOTICE.md`, `CHANGELOG.md`, `site/` (project page, `pages.yml`) added, README rewritten with credit to Noah Hall.
+- Pending (the assistant's shell was refused permission to delete remote refs): run `scripts/remove-upstream-refs.sh` in a
+  terminal. It deletes 53 upstream branches and the 80 upstream tags (v6.x-v7.2.0) from `origin`; ours are kept.
+- After the merge to `main`: tag `v0.1.0`, enable GitHub Pages (source: GitHub Actions) and check the page.

@@ -93,6 +93,11 @@ These are distilled from incidents and reviews; the linked sections explain them
 - Plan for regressions that do not fail a build: styles, persisted state from older versions,
   already-released clients, existing data on the NAS (migrations must be additive).
 - Do not spawn sub-agents unless the user asks; this project is done sequentially in one session.
+- **Credits and licence are not optional:** this is an AGPL-3.0 fork of Receipt Wrangler by Noah Hall (@Noah231515).
+  Never remove `LICENSE`, `NOTICE.md`, the credit in `README.md` or the project page, or rewrite history (it carries the
+  original authors). Versions: SemVer tags `vMAJOR.MINOR.PATCH` on `main`, Conventional Commits, `CHANGELOG.md` updated
+  with each release. Upstream's branches and tags are removed from the GitHub repo by `scripts/remove-upstream-refs.sh`
+  (one-off; the upstream remote is gone); do not re-add them.
 - The brand name "Apple" stays out of names (themes, branches, classes); only the `-apple-system` font keyword is fine.
 - Shell quoting breaks on long text: write files with the Write/Edit tools, not heredocs or `sed` with quotes.
 - **Previewing before `main`:** run the "Publish image" workflow on the feature branch (`gh workflow run publish-image.yml
