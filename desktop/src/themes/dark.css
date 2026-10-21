@@ -10,6 +10,11 @@
   --background: oklch(0.141 0.005 285.823);
   --warning-text: #fb923c;
   --success-text: #4ade80;
+  --nutri-a: #038141;
+  --nutri-b: #85bb2f;
+  --nutri-c: #fecb02;
+  --nutri-d: #ee8100;
+  --nutri-e: #e63e11;
   --warning: oklch(0.41 0.11 46);
   --warning-foreground: oklch(0.99 0.02 95);
   --foreground: oklch(0.985 0 0);

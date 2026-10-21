@@ -536,6 +536,80 @@ describe("ReceiptsTableComponent", () => {
   });
   // Duplicating a receipt creates a real record and navigates away from the
   // list, so a mis-click is easy to miss — the row action confirms first.
+  describe("toolbar search", () => {
+    let refetch: jest.SpyInstance;
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+      refetch = jest
+        .spyOn(TestBed.inject(ReceiptFilterService), "getPagedReceiptsForGroups")
+        .mockReturnValue(of({ data: [], totalCount: 0 } as any));
+    });
+
+    afterEach(() => jest.useRealTimers());
+
+    const storedSearch = () => store.selectSnapshot(ReceiptTableState.search);
+
+    it("waits for a pause in typing, then applies the trimmed phrase once", () => {
+      component.searchInput("c");
+      component.searchInput("choc");
+      component.searchInput("choc ");
+      jest.advanceTimersByTime(299);
+      expect(storedSearch()).toBe("");
+
+      jest.advanceTimersByTime(1);
+
+      expect(storedSearch()).toBe("choc");
+      expect(refetch).toHaveBeenCalledTimes(1);
+      expect(component.searchText()).toBe("choc ");
+    });
+
+    it("does not ask again for a phrase that is already applied", () => {
+      component.searchInput("milk");
+      jest.advanceTimersByTime(300);
+      refetch.mockClear();
+
+      component.searchInput("milk");
+      jest.advanceTimersByTime(300);
+
+      expect(refetch).not.toHaveBeenCalled();
+    });
+
+    it("clears at once, without the debounce", () => {
+      component.searchInput("milk");
+      jest.advanceTimersByTime(300);
+      refetch.mockClear();
+
+      component.clearSearch();
+
+      expect(component.searchText()).toBe("");
+      expect(storedSearch()).toBe("");
+      expect(refetch).toHaveBeenCalledTimes(1);
+    });
+
+    it("offers Reset for a search alone, and reset empties the box", () => {
+      expect(component.anyFilterApplied()).toBe(false);
+      component.searchInput("milk");
+      jest.advanceTimersByTime(300);
+      expect(component.anyFilterApplied()).toBe(true);
+
+      component.resetFilterButtonClicked();
+
+      expect(component.searchText()).toBe("");
+      expect(storedSearch()).toBe("");
+    });
+
+    it("lists the matched product lines with their prices", () => {
+      jest.spyOn((component as any).customCurrencyPipe, "transform").mockImplementation((value: any) => "€" + value);
+      const text = component.searchMatchesText({
+        searchMatches: [{ name: "Dark chocolate", amount: "2.49" }, { name: "Chocolate milk" }],
+      });
+
+      expect(text).toBe("Dark chocolate · €2.49, Chocolate milk");
+      expect(component.searchMatchesText({})).toBe("");
+    });
+  });
+
   describe("duplicate confirmation", () => {
     const row = { id: 4, name: "Lunch" } as Receipt;
 

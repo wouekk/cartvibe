@@ -32,11 +32,8 @@ describe("HeaderComponent", () => {
   const bellRendered = (): boolean =>
     !!fixture.nativeElement.querySelector('app-button[icon="notifications"]');
 
-  const searchbarRendered = (): boolean =>
-    !!fixture.nativeElement.querySelector("app-searchbar");
-
-  const grantReceiptsSearch = () =>
-    store.dispatch(new SetPermissions(["app.receipts.search"], {}));
+  const productCheckRendered = (): boolean =>
+    !!fixture.nativeElement.querySelector("app-product-check-input");
 
   beforeEach(async () => {
     // StoreModule persists auth (incl. permissions) to localStorage; clear it so
@@ -87,19 +84,12 @@ describe("HeaderComponent", () => {
     expect(bellRendered()).toBe(true);
   });
 
-  it("should hide the search bar without app.receipts.search", async () => {
+  it("should show the product checker to every signed-in user, with no permission", async () => {
     logIn();
     await fixture.whenStable();
 
-    expect(searchbarRendered()).toBe(false);
-  });
-
-  it("should show the search bar with app.receipts.search", async () => {
-    logIn();
-    grantReceiptsSearch();
-    await fixture.whenStable();
-
-    expect(searchbarRendered()).toBe(true);
+    expect(productCheckRendered()).toBe(true);
+    expect(fixture.nativeElement.querySelector("app-searchbar")).toBeNull();
   });
 
   it("should not fetch the notification count without app.notifications.read", async () => {

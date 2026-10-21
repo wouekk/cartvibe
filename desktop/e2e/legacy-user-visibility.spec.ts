@@ -84,13 +84,9 @@ test.describe('Legacy User visibility', () => {
     ).toHaveCount(0);
   });
 
-  test('header search bar renders (holds app.receipts.search)', async ({
-    page,
-  }) => {
+  test('header product checker renders', async ({ page }) => {
     await page.goto('/groups/create');
-    // The search bar is now gated on app.receipts.search, which the Legacy User
-    // holds — so the always-visible header search input still renders for them.
-    await expect(page.getByRole('combobox', { name: 'Search receipts' })).toBeVisible();
+    await expect(page.getByTestId('product-check-input')).toBeVisible();
   });
 });
 

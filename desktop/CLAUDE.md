@@ -3039,3 +3039,34 @@ Every Admin and User settings page uses four shared primitives from `src/shared-
 - **Save sits in the card footer, right-aligned, status text left** (`<div sectionFooter class="rw-card__footer">`); every card that saves has one.
 - **`app-settings-tabs`**: the one segmented strip; `app-filter-bar` and `app-tabs` render through it. **`app-settings-entity-list`**: draws an `app-table` on the card surface (a table inside `rw-card` loses its own border and shadow).
 - `app-form [settingsCard]="true" settingsTitle="..."` draws a form as one card (Edit in the head, submit in the footer). `app-table-header` is still used by receipts, reports and shopping lists, not by settings pages.
+
+### Receipts search and the product checker (fork, 2026-10)
+
+- **Receipts search moved from the header into the Receipts toolbar** (`data-testid="receipts-search"`, Ctrl/Cmd K or `/`
+  focuses it). The phrase lives in `ReceiptTableState.filter.search` (persisted with the filter, selector `search` falls back
+  to `""`); `SetReceiptSearch` also returns to page 1. The box debounces 300 ms, then `getFilteredReceipts()` (the existing
+  last-request-wins stream), so the table and the totals follow. It is not a chip and not counted in the Filter badge (the box
+  shows it); Reset filter clears it, and `SetReceiptFilter` (the filter dialog) keeps it. The Shop cell shows a muted
+  "Matched: Dark chocolate · 2,49 €, ..." line from `Receipt.searchMatches` (`receipt-search-matches`). See `api/CLAUDE.md`
+  "Receipt search" for what matches.
+- **The header slot holds the product checker** (`src/product-check/`, standalone, shown to every signed-in user, no API,
+  no permission). Typing a name + Enter searches Open Food Facts; 8/12/13 digits with a valid EAN/UPC check digit are looked up
+  as a barcode; the camera button scans one. Everything opens in the slide-over `ProductCheckDrawerComponent`
+  (an `AppDialog` with `panelClass: "product-check-drawer"`, docked right, a bottom sheet on a phone; the CSS is in
+  `tailwind.css` and needs `!important` because the CDK centres a dialog with inline styles).
+- **Open Food Facts is read from the browser, never stored.** `OpenFoodFactsService` builds its `HttpClient` on `HttpBackend`
+  so the app's interceptors (credentials, error toasts, queue mode) are skipped. Their search API allows about ten requests a
+  minute, so a text search runs only on Enter. `ProductCheckService` drops an answer that arrives after a newer request. The
+  last 10 products are kept as small JSON in `localStorage` (`rw_recent_products`, every access guarded) and shown as pills
+  for flipping between items.
+- **Scoring** (`health-score.ts`, pure, constants documented): 60% Nutri-Score + 40% NOVA (missing counts as 50), minus 15 per
+  high-risk and 5 per moderate additive, clamped to 0-100. `e-additives.ts` is a bundled guide of about 210 codes with a
+  category and `safe | moderate | high`; unknown codes show as unknown. It is a general guide, and the drawer says so.
+- **Camera**: the button shows only when `isSecureContext` and `getUserMedia` exist (plain-http LAN installs get typing only).
+  `BarcodeScannerService` uses the native `BarcodeDetector` and otherwise loads `@zxing/browser` on demand (own chunk). A read
+  counts only after the check digit passes. **zxing is pinned to `@zxing/browser` 0.1.5 + `@zxing/library` 0.21.3 on purpose:**
+  library 0.22+ declares `node >= 24`, which fails the engines check against CI's Node 20.19.6.
+- **Nutri-Score colours are tokens** (`--nutri-a..e` in both theme files, `bg-nutri-a` etc. in Tailwind).
+- **CSP** (`docker/default.conf`, still Report-Only): `connect-src` adds `https://world.openfoodfacts.org`, `img-src` adds
+  `https://images.openfoodfacts.org`. `Permissions-Policy` already allows `camera=(self)`.
+- E2E: `search-bar-visibility.spec.ts` (header search gated on a permission) is deleted; the header no longer has one.
