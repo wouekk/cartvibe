@@ -3942,8 +3942,8 @@ rather than the list being recreated per trip. Design: `docs/shopping-list-phase
 
 ## Group overview (fork extension)
 
-`GET /api/overview/group/{groupId}?month=yyyy-MM` (`handlers/group_overview.go`,
-`services/group_overview.go`) feeds the desktop's landing page: the month's total and the previous
+`GET /api/overview/group/{groupId}` (`handlers/group_overview.go`; a period `from`/`to`, or the older `month=yyyy-MM`; see "Dashboard period" below for the current shape,
+`services/group_overview.go`) feeds the desktop Dashboard: the period's total and the previous
 month's, receipt and open-receipt counts (OPEN + NEEDS_ATTENTION), spend per category, and the six
 months ending with the chosen one.
 
@@ -4076,7 +4076,7 @@ spending (overspending type 1). `planned = null` (no list, not compared yet, the
   (`validateWithDefaultPrompt` → `PromptService.EnsureDefaultPrompt`), created only once the rest of
   the command is valid — a processing setting still needs a prompt row (foreign key).
 - **Family roles (M4):** `SeedSystemRoles` also seeds the app role **User**
-  (`permissions.FamilyUserAppKeys`: account, preferences, notifications, receipt search, the shared
+  (`permissions.FamilyUserAppKeys`: account, preferences, notifications, receipt search, the AI page's receipt-processing create/read/update, the shared
   categories / tags / custom fields) and the group role **Member**
   (`FamilyMemberGroupKeys`: the legacy editor set). No reports for either: the Dashboard is the
   family's report (M6). Legacy Admin and
@@ -4156,7 +4156,7 @@ distinct from `Name`. The receipt prompt asks for it, and so does the product-ex
 read (`applyReadResult`) fills it when blank (never overwriting a typed one) and moves a receipt still "To
 check" (OPEN / NEEDS_ATTENTION / DRAFT) to **RESOLVED** through `AfterReceiptUpdated`. A Declined or Done
 receipt keeps its status. Because `UpdateReceipt` skips zero values, an edit that omits `shopName` never
-blanks it. The mock AI server in the quick scan tests now drains the request body (it caused flaky
+blanks it. A receipt whose name is still a placeholder ("Receipt 20 Oct 2026"; `IsPlaceholderReceiptName`) takes the shop name at the same moment; a typed name is kept. The mock AI server in the quick scan tests now drains the request body (it caused flaky
 "broken pipe" failures).
 
 ## One read, synced categories, faster sweeps (fork, Phase 3 feedback round 3)

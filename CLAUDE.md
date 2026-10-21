@@ -76,10 +76,10 @@ These are distilled from incidents and reviews; the linked sections explain them
 | Feature | Design | Code notes |
 |---|---|---|
 | Shopping lists + live sync (SSE), amount + unit | `docs/shopping-list-phase-1.md` | `api/CLAUDE.md`, `desktop/CLAUDE.md` → "Shopping lists" |
-| Overview landing page + 6-month trend | — | `api/CLAUDE.md` → "Group overview", `desktop/CLAUDE.md` → "Overview page" |
-| Labeled dark sidebar | — | `desktop/CLAUDE.md` → "Navigation sidebar" |
+| Dashboard landing page (period picker, tiles, goal, chart), labeled sidebar, form and settings look | — | `api/CLAUDE.md` → "Group overview", "Dashboard period"; `desktop/CLAUDE.md` → "Fork guide: CartVibe" |
+| CartVibe identity, themes (dark mode + five accents) | — | `desktop/CLAUDE.md` → "Identity, themes and the shell" |
 | Spending insights: receipt products (2a), health/seasonality (2b), receipt ↔ list comparison (2c); goals and tiles moved to Phase 3 | `docs/spending-insights-phase-2.md` | `api/CLAUDE.md` → "Receipt products", "Health and seasonality tags", "Shopping trips" |
-| Family budget rework, incl. goals and dashboard tiles (Phase 3, planned) | `docs/family-budget-rework.md` | — |
+| Family budget rework, incl. goals and dashboard tiles (Phase 3, shipped) | `docs/family-budget-rework.md` | — |
 | CI-built image, NAS compose | — | `AGENTS.md` §2 |
 
 ## Code changes
@@ -93,6 +93,11 @@ These are distilled from incidents and reviews; the linked sections explain them
 - Plan for regressions that do not fail a build: styles, persisted state from older versions,
   already-released clients, existing data on the NAS (migrations must be additive).
 - Do not spawn sub-agents unless the user asks; this project is done sequentially in one session.
+- The brand name "Apple" stays out of names (themes, branches, classes); only the `-apple-system` font keyword is fine.
+- Shell quoting breaks on long text: write files with the Write/Edit tools, not heredocs or `sed` with quotes.
+- **Previewing before `main`:** run the "Publish image" workflow on the feature branch (`gh workflow run publish-image.yml
+  --ref <branch>`); it pushes `:preview` only. `:latest` is published from `main` alone, and merging to `main` waits
+  for the user's go.
 
 ## Keeping these files current
 
