@@ -22,20 +22,15 @@ import { ApiKeyTableState } from "../store/api-key-table.state";
 import { AuthState } from "../store/auth.state";
 import { CategoryTableState } from "../store/category-table.state";
 import { CustomFieldTableState } from "../store/custom-field-table.state";
-import { OidcProviderTableState } from "../store/oidc-provider-table.state";
 import { DashboardState } from "../store/dashboard.state";
 import { FeatureConfigState } from "../store/feature-config.state";
 import { GroupTableState } from "../store/group-table.state";
 import { GroupState } from "../store/group.state";
 import { LayoutState } from "../store/layout.state";
-import { PromptTableState } from "../store/prompt-table.state";
-import { ReceiptProcessingSettingsTableState } from "../store/receipt-processing-settings-table.state";
 import { ReceiptProcessingSettingsTaskTableState } from "../store/receipt-processing-settings-task-table.state";
 import { ReceiptTableState } from "../store/receipt-table.state";
 import { ReportTemplateTableState } from "../store/report-template-table.state";
 import { ShoppingListState } from "../store/shopping-list.state";
-import { SystemEmailTableState } from "../store/system-email-table.state";
-import { SystemEmailTaskTableState } from "../store/system-email-task-table.state";
 import { SystemSettingsState } from "../store/system-settings.state";
 import { SystemTaskTableState } from "../store/system-task-table.state";
 import { TagTableState } from "../store/tag-table.state";
@@ -49,21 +44,16 @@ const ngxsStates = [
   AuthState,
   CategoryTableState,
   CustomFieldTableState,
-  OidcProviderTableState,
   DashboardState,
   FeatureConfigState,
   GroupState,
   GroupTableState,
   LayoutState,
-  PromptTableState,
-  ReceiptProcessingSettingsTableState,
   ReceiptProcessingSettingsTaskTableState,
   ReceiptTableState,
   ReportTemplateTableState,
   // Not in ngxsStorageKeys: the server is the source of truth.
   ShoppingListState,
-  SystemEmailTableState,
-  SystemEmailTaskTableState,
   SystemSettingsState,
   SystemTaskTableState,
   TagTableState,

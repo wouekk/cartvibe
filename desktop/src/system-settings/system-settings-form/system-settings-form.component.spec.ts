@@ -86,10 +86,10 @@ describe("SystemSettingsFormComponent", () => {
       const rows: NodeListOf<HTMLElement> =
         fixture.nativeElement.querySelectorAll(".duration-row");
 
-      // Session and MCP Server. `.duration-row > *` in the component's SCSS is
+      // Session and temporary files. `.duration-row > *` in the component's SCSS is
       // what bases each column at 0; without the class they fall back to
       // flex-basis: auto and the hinted column swallows the row.
-      expect(rows.length).toEqual(3);
+      expect(rows.length).toEqual(2);
       rows.forEach((row) => expect(row.classList).toContain("d-flex"));
     });
 
@@ -723,7 +723,7 @@ describe("SystemSettingsFormComponent", () => {
     it("shows every settings card when it is not placed on a tab", () => {
       place(undefined);
 
-      expect(cards()).toEqual(["currency", "regional", "signup-session", "worker", "queues", "mcp", "mobile"]);
+      expect(cards()).toEqual(["currency", "regional", "signup-session", "worker", "queues"]);
     });
 
     it("General & Currency holds the currency (with rates) and the time zone", () => {
@@ -740,12 +740,6 @@ describe("SystemSettingsFormComponent", () => {
       expect(cards()).toEqual(["signup-session"]);
       expect(fixture.nativeElement.querySelector("[data-testid=system-settings-secure-cookies]")).not.toBeNull();
       expect(fixture.nativeElement.querySelector("[data-testid=server-public-url]")).not.toBeNull();
-    });
-
-    it("Integrations & Mobile holds the MCP server and the mobile app setup", () => {
-      place("integrations");
-
-      expect(cards()).toEqual(["mcp", "mobile"]);
     });
 
     it("Tasks & Storage lists the queues compactly, without the retired one", () => {

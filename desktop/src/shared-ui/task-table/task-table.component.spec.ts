@@ -5,8 +5,8 @@ import { MatDialog } from "@angular/material/dialog";
 import { NgxsModule } from "@ngxs/store";
 import { FilterOperation, SystemTask, SystemTaskPagedRequestFilter, SystemTaskStatus, SystemTaskType } from "../../open-api";
 import { TABLE_SERVICE_INJECTION_TOKEN } from "../../services/injection-tokens/table-service";
-import { SystemEmailTaskTableService } from "../../services/system-email-task-table.service";
-import { SystemEmailTaskTableState } from "../../store/system-email-task-table.state";
+import { SystemTaskTableService } from "../../services/system-task-table.service";
+import { SystemTaskTableState } from "../../store/system-task-table.state";
 
 import { ReceiptUpdateDiffDialogComponent } from "../receipt-update-diff-dialog/receipt-update-diff-dialog.component";
 import { TaskTableComponent } from "./task-table.component";
@@ -21,11 +21,11 @@ describe("TaskTableComponent", () => {
     await TestBed.configureTestingModule({
     declarations: [TaskTableComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [NgxsModule.forRoot([SystemEmailTaskTableState])],
+    imports: [NgxsModule.forRoot([SystemTaskTableState])],
     providers: [
         {
             provide: TABLE_SERVICE_INJECTION_TOKEN,
-            useClass: SystemEmailTaskTableService
+            useClass: SystemTaskTableService
         },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),

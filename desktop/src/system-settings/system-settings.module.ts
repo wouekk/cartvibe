@@ -12,34 +12,24 @@ import { CheckboxModule } from "../checkbox/checkbox.module";
 import { DirectivesModule } from "../directives";
 import { InputModule } from "../input";
 import { PipesModule } from "../pipes";
-import { PromptModule } from "../prompt/prompt.module";
 import { ReceiptProcessingSettingsModule } from "../receipt-processing-settings/receipt-processing-settings.module";
 import { SelectModule } from "../select/select.module";
 import { SharedUiModule } from "../shared-ui/shared-ui.module";
 import { TableModule } from "../table/table.module";
 import { TaskQueueFormControlPipe } from "./pipes/task-queue-form-control.pipe";
 import { ExchangeRatesComponent } from "./exchange-rates/exchange-rates.component";
-import { SystemEmailChildSystemTaskComponent } from "./system-email-child-system-task/system-email-child-system-task.component";
-import { SystemEmailFormComponent } from "./system-email-form/system-email-form.component";
-import { SystemEmailTableComponent } from "./system-email-table/system-email-table.component";
 import { SystemSettingsFormComponent } from "./system-settings-form/system-settings-form.component";
 
 import { SystemSettingsRoutingModule } from "./system-settings-routing.module";
 import { SystemSettingsComponent } from "./system-settings/system-settings.component";
 import { SystemTaskFilterComponent } from "./system-task-filter/system-task-filter.component";
 import { SystemTaskTableComponent } from "./system-task-table/system-task-table.component";
-import { OidcProviderFormComponent } from "./oidc-provider-form/oidc-provider-form.component";
-import { OidcProviderTableComponent } from "./oidc-provider-table/oidc-provider-table.component";
 
 
 @NgModule({
-  declarations: [SystemEmailTableComponent,
-    OidcProviderFormComponent,
-    OidcProviderTableComponent,
+  declarations: [
     SystemSettingsComponent,
-    SystemEmailFormComponent,
     SystemSettingsFormComponent,
-    SystemEmailChildSystemTaskComponent,
     SystemTaskFilterComponent,
     SystemTaskTableComponent,
     TaskQueueFormControlPipe,
@@ -50,7 +40,6 @@ import { OidcProviderTableComponent } from "./oidc-provider-table/oidc-provider-
     DirectivesModule,
     InputModule,
     PipesModule,
-    PromptModule,
     ReactiveFormsModule,
     ReceiptProcessingSettingsModule,
     SharedUiModule,

@@ -68,7 +68,6 @@ import { TaskTableComponent } from "./task-table/task-table.component";
 import { EditableListComponent } from './editable-list/editable-list.component';
 import { IconAutocompleteComponent } from './icon-autocomplete/icon-autocomplete.component';
 import { PieChartUiComponent } from './pie-chart/pie-chart.component';
-import { LoginQrComponent } from './login-qr/login-qr.component';
 import { CartVibeLogoComponent } from './cartvibe-logo/cartvibe-logo.component';
 import { BadgeComponent } from './badge/badge.component';
 import { ImageCanvasComponent } from './image-canvas/image-canvas.component';
@@ -147,7 +146,6 @@ import { ImageCanvasComponent } from './image-canvas/image-canvas.component';
     TableModule,
     UserAutocompleteModule,
     PieChartUiComponent,
-    LoginQrComponent,
     CartVibeLogoComponent,
     BadgeComponent,
     ImageCanvasComponent,
@@ -197,7 +195,6 @@ import { ImageCanvasComponent } from './image-canvas/image-canvas.component';
     EditableListComponent,
     IconAutocompleteComponent,
     PieChartUiComponent,
-    LoginQrComponent,
     CartVibeLogoComponent,
     BadgeComponent,
     ImageCanvasComponent,

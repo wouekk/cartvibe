@@ -5,22 +5,8 @@ import { appPermissionGuard } from "../guards/app-permission.guard";
 import { systemSettingsLandingGuard } from "../guards/system-settings-landing.guard";
 import { FormConfig } from "../interfaces";
 import { Permission } from "../open-api";
-import { PromptFormComponent } from "../prompt/prompt-form/prompt-form.component";
-import { PromptTableComponent } from "../prompt/prompt-table/prompt-table.component";
-import { promptResolver } from "../prompt/prompt.resolver";
-import { promptsResolver } from "../prompt/prompts.resolver";
-import {
-  ReceiptProcessingSettingsFormComponent
-} from "../receipt-processing-settings/receipt-processing-settings-form/receipt-processing-settings-form.component";
-import {
-  ReceiptProcessingSettingsTableComponent
-} from "../receipt-processing-settings/receipt-processing-settings-table/receipt-processing-settings-table.component";
-import { receiptProcessingSettingsResolver } from "../receipt-processing-settings/receipt-processing-settings.resolver";
 import { allReceiptProcessingSettingsResolver } from "./resolvers/receipt-processing-settings.resolver";
-import { systemEmailResolver } from "./resolvers/system-email.resolver";
 import { systemSettingsResolver } from "./resolvers/system-settings.resolver";
-import { SystemEmailFormComponent } from "./system-email-form/system-email-form.component";
-import { allGroupsResolver } from "./system-email-table/all-groups.resolver";
 import { LogsPageComponent } from "./logs/logs-page.component";
 import { SystemSettingsFormComponent } from "./system-settings-form/system-settings-form.component";
 import { SystemSettingsComponent } from "./system-settings/system-settings.component";
@@ -39,7 +25,7 @@ const routes: Routes = [
       // The four settings tabs are the one form showing its own cards (route data `section`). Each carries
       // every resolver its cards need, because the tables embedded in a tab read the route's data: system
       // emails want allGroups, system tasks want prompts and the processing settings.
-      ...(["general", "security", "integrations", "tasks"] as const).map((section) => ({
+      ...(["general", "security", "tasks"] as const).map((section) => ({
         path: section,
         component: SystemSettingsFormComponent,
         canActivate: [appPermissionGuard],
@@ -53,39 +39,13 @@ const routes: Routes = [
         resolve: {
           allReceiptProcessingSettings: allReceiptProcessingSettingsResolver,
           systemSettings: systemSettingsResolver,
-          allGroups: allGroupsResolver,
-          prompts: promptsResolver,
         },
       })),
       // The old tab addresses keep working for bookmarks and links.
       { path: "settings/view", redirectTo: "general", pathMatch: "full" },
       { path: "settings/edit", redirectTo: "general", pathMatch: "full" },
-      { path: "oidc-providers", redirectTo: "security", pathMatch: "full" },
-      { path: "system-emails", redirectTo: "integrations", pathMatch: "full" },
+      { path: "integrations", redirectTo: "general", pathMatch: "full" },
       { path: "system-tasks", redirectTo: "tasks", pathMatch: "full" },
-      {
-        path: "prompts",
-        component: PromptTableComponent,
-        canActivate: [appPermissionGuard],
-        data: {
-          appPermissions: [Permission.AppPromptsRead],
-        },
-        resolve: {
-          allGroups: allGroupsResolver,
-          allReceiptProcessingSettings: allReceiptProcessingSettingsResolver,
-        }
-      },
-      {
-        path: "receipt-processing-settings",
-        component: ReceiptProcessingSettingsTableComponent,
-        canActivate: [appPermissionGuard],
-        data: {
-          appPermissions: [Permission.AppReceiptProcessingSettingsRead],
-        },
-        resolve: {
-          systemSettings: systemSettingsResolver,
-        }
-      },
       {
         path: "logs",
         component: LogsPageComponent,
@@ -95,143 +55,6 @@ const routes: Routes = [
         },
       },
     ]
-  },
-  {
-    path: "prompts/create",
-    component: PromptFormComponent,
-    canActivate: [appPermissionGuard],
-    data: {
-      formConfig: {
-        mode: FormMode.add,
-        headerText: "Create Prompt",
-      } as FormConfig,
-      appPermissions: [Permission.AppPromptsCreate],
-    },
-  },
-  {
-    path: "prompts/:id/view",
-    component: PromptFormComponent,
-    canActivate: [appPermissionGuard],
-    data: {
-      formConfig: {
-        mode: FormMode.view,
-        headerText: "View Prompt",
-      } as FormConfig,
-      setHeaderText: true,
-      appPermissions: [Permission.AppPromptsRead],
-    },
-    resolve: {
-      prompt: promptResolver
-    }
-  },
-  {
-    path: "prompts/:id/edit",
-    component: PromptFormComponent,
-    canActivate: [appPermissionGuard],
-    data: {
-      formConfig: {
-        mode: FormMode.edit,
-        headerText: "Edit Prompt",
-      } as FormConfig,
-      setHeaderText: true,
-      appPermissions: [Permission.AppPromptsUpdate],
-    },
-    resolve: {
-      prompt: promptResolver
-    }
-  },
-  {
-    path: "system-emails/create",
-    component: SystemEmailFormComponent,
-    canActivate: [appPermissionGuard],
-    data: {
-      formConfig: {
-        mode: FormMode.add,
-        headerText: "Create System Email",
-      } as FormConfig,
-      appPermissions: [Permission.AppSystemEmailsCreate],
-    }
-  },
-  {
-    path: "system-emails/:id/view",
-    component: SystemEmailFormComponent,
-    canActivate: [appPermissionGuard],
-    data: {
-      formConfig: {
-        mode: FormMode.view,
-      } as FormConfig,
-      setHeaderText: true,
-      appPermissions: [Permission.AppSystemEmailsRead],
-    },
-    resolve: {
-      systemEmail: systemEmailResolver,
-      prompts: promptsResolver,
-      allReceiptProcessingSettings: allReceiptProcessingSettingsResolver,
-    }
-  },
-  {
-    path: "system-emails/:id/edit",
-    component: SystemEmailFormComponent,
-    canActivate: [appPermissionGuard],
-    data: {
-      formConfig: {
-        mode: FormMode.edit,
-      } as FormConfig,
-      setHeaderText: true,
-      appPermissions: [Permission.AppSystemEmailsUpdate],
-    },
-    resolve: {
-      systemEmail: systemEmailResolver,
-      prompts: promptsResolver,
-      allReceiptProcessingSettings: allReceiptProcessingSettingsResolver,
-    }
-  },
-  {
-    path: "receipt-processing-settings/create",
-    component: ReceiptProcessingSettingsFormComponent,
-    canActivate: [appPermissionGuard],
-    data: {
-      formConfig: {
-        mode: FormMode.add,
-        headerText: "Create Receipt Processing Settings",
-      } as FormConfig,
-      appPermissions: [Permission.AppReceiptProcessingSettingsCreate],
-    },
-    resolve: {
-      prompts: promptsResolver,
-    }
-  },
-  {
-    path: "receipt-processing-settings/:id/view",
-    component: ReceiptProcessingSettingsFormComponent,
-    canActivate: [appPermissionGuard],
-    data: {
-      formConfig: {
-        mode: FormMode.view,
-      } as FormConfig,
-      setHeaderText: true,
-      appPermissions: [Permission.AppReceiptProcessingSettingsRead],
-    },
-    resolve: {
-      prompts: promptsResolver,
-      receiptProcessingSettings: receiptProcessingSettingsResolver,
-    }
-  },
-  {
-    path: "receipt-processing-settings/:id/edit",
-    component: ReceiptProcessingSettingsFormComponent,
-    canActivate: [appPermissionGuard],
-    data: {
-      formConfig: {
-        mode: FormMode.edit,
-      } as FormConfig,
-      setHeaderText: true,
-      appPermissions: [Permission.AppReceiptProcessingSettingsUpdate],
-    },
-    resolve: {
-      prompts: promptsResolver,
-      receiptProcessingSettings: receiptProcessingSettingsResolver,
-    }
   },
 ];
 

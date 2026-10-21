@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { FeatureGuard } from '../guards/feature.guard';
-import { OidcCallbackComponent } from './oidc-callback/oidc-callback.component';
 import { AuthForm } from './sign-up/auth-form.component';
 
 export const authRoutes: Routes = [
@@ -24,7 +23,6 @@ export const authRoutes: Routes = [
     // through any route whose URL contains "auth", and a first-ever OIDC login
     // has valid cookies but nothing in the store yet.
     path: 'callback',
-    component: OidcCallbackComponent,
   },
 ];
 
