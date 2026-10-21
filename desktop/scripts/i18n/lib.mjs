@@ -94,7 +94,8 @@ function literalsBefore(text, index) {
     found.push(unquote(text.slice(start, i + 1)));
     i = start - 1;
     while (i >= 0 && /\s/.test(text[i])) i--;
-    if (text[i] === ":" || text[i] === "?") {
+    // cond ? 'a' : 'b' | t gives 'b' and 'a'; whatever is before the '?' is the condition, not text.
+    if (text[i] === ":" && found.length === 1) {
       i--;
     } else {
       break;
@@ -168,7 +169,9 @@ function templateMessages(source, add, addPlural) {
         if (!isTranslatable(name, value)) continue;
         add(decodeEntities(value), at);
       } else if (name.startsWith("[") && allowed.has(name.slice(1, -1))) {
-        for (const literal of literalsOfExpression(decodeEntities(value))) add(literal, at);
+        for (const literal of literalsOfExpression(decodeEntities(value))) {
+          if (isTranslatable(name.slice(1, -1), literal)) add(literal, at);
+        }
       }
     }
   }
@@ -221,7 +224,9 @@ function goMessages(text, add) {
     while ((match = regex.exec(text))) {
       try {
         const message = JSON.parse(match[1]);
-        if (!/^[a-z][A-Za-z]*\s+(is|must)\b/.test(message)) add(message, match.index);
+        // A field-name message ("name is required") is for API clients; a message that ends in ": " or a space is the
+        // start of a concatenation ("Invalid report configuration: " + err), so it can never be matched whole.
+        if (!/^[a-z][A-Za-z]*\s+(is|must)\b/.test(message) && message === message.trimEnd() && !message.endsWith(":")) add(message, match.index);
       } catch {
         // a Go escape JSON does not know: not a message a person reads
       }

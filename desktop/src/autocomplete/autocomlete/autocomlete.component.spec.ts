@@ -6,6 +6,7 @@ import { BaseInputComponent } from "../../base-input";
 import { AuthState } from "../../store/auth.state";
 import { AutocompleteSelection, AutocomleteComponent } from "./autocomlete.component";
 import { OptionDisplayPipe } from "./option-display.pipe";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 describe("AutocomleteComponent", () => {
   let component: AutocomleteComponent;
@@ -19,6 +20,7 @@ describe("AutocomleteComponent", () => {
       // run over the multiple-mode branch of the template.
       declarations: [AutocomleteComponent, BaseInputComponent, OptionDisplayPipe],
       imports: [
+        TranslatePipe,
         NgxsModule.forRoot([AuthState]),
         ReactiveFormsModule,
       ],

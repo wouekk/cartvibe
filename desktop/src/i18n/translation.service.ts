@@ -46,9 +46,21 @@ function interpolationPatterns(dictionary: Dictionary): InterpolationPattern[] {
     patterns = Object.entries(dictionary.messages)
       .filter(([english, translated]) => /\{\w+\}/.test(english) && translatedValue(translated))
       .map(([english, translated]) => {
+        // A placeholder used twice in one sentence must match the same text again, so the second one is a back reference.
+        const seen = new Set<string>();
         const source = english
           .split(/(\{\w+\})/)
-          .map((part) => (/^\{\w+\}$/.test(part) ? `(?<${part.slice(1, -1)}>.+?)` : part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
+          .map((part) => {
+            if (!/^\{\w+\}$/.test(part)) {
+              return part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            }
+            const name = part.slice(1, -1);
+            if (seen.has(name)) {
+              return `\\k<${name}>`;
+            }
+            seen.add(name);
+            return `(?<${name}>.+?)`;
+          })
           .join("");
         return { regex: new RegExp(`^${source}$`, "s"), translated: translated as string, fixed: english.replace(/\{\w+\}/g, "").length };
       })
