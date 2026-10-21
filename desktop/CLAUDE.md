@@ -2935,7 +2935,7 @@ Mobile-first (used in the shop). Backend contract: `api/CLAUDE.md`.
 - **User Settings → Theme** (`ThemeService`, `src/theme/`): System / Light / Dark and five accents (Classic Blue default,
   Alpine Emerald, Twilight Violet, Walnut Brown, Graphite Gray), kept in `rw_theme_mode` / `rw_accent_theme`; `index.html`
   applies them before the first paint.
-- **Dark mode is a filter** (`html.dark { filter: invert(1) hue-rotate(180deg) contrast(0.8) }`, the contrast lifting black to dark gray; what is counter-filtered uses the exact inverse `contrast(1.25) hue-rotate(180deg) invert(1)`, so keep the two in step) with the sidebar **drawer** (`mat-drawer.app-sidebar`, never the `app-sidebar` host: the header and the page live inside that host, and inverting it back left the whole shell light), images, canvases, the
+- **Dark mode is a filter** (`html.dark { filter: invert(1) hue-rotate(180deg) contrast(0.7) }`, the contrast lifting black to dark gray; what is counter-filtered uses the exact inverse `contrast(1.4286) hue-rotate(180deg) invert(1)`, so keep the two in step) with the sidebar **drawer** (`mat-drawer.app-sidebar`, never the `app-sidebar` host: the header and the page live inside that host, and inverting it back left the whole shell light), images, canvases, the
   CartVibe components and `.rw-keep-colors` inverted back, so it reaches every component, including ones that paint their
   own white. **Author every color for the LIGHT page.** New things that must keep their colors get `.rw-keep-colors`.
 - **Accent variables** (per `data-accent`, in `index.html`): `--accent-color/-hover/-light/-soft` (text, icons, links, focus),
