@@ -3,8 +3,8 @@
 app-base-table {
   .table-container {
     border-radius: variables.$border-radius-xl !important;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+    border: 1px solid var(--border);
+    background: var(--card);
     overflow: hidden;
     box-shadow: variables.$shadow-md;
   }
@@ -15,11 +15,11 @@ app-base-table {
     
     .mat-mdc-header-row {
       background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-      border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+      border-bottom: 2px solid var(--border);
       
       .mat-mdc-header-cell {
         font-weight: 600;
-        color: #1e293b;
+        color: var(--foreground);
         font-size: 0.875rem;
         letter-spacing: 0.025em;
         text-transform: uppercase;
@@ -39,8 +39,8 @@ app-base-table {
       
       .mat-mdc-cell {
         padding: variables.$spacing-lg variables.$spacing-md;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
-        color: #475569;
+        border-bottom: 1px solid var(--border) !important;
+        color: var(--muted-foreground);
         font-size: 0.875rem;
       }
     }
@@ -50,8 +50,8 @@ app-base-table {
   
   .mat-mdc-paginator {
     background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    border-top: 1px solid rgba(0, 0, 0, 0.05);
-    color: #64748b;
+    border-top: 1px solid var(--border);
+    color: var(--muted-foreground);
     
     .mat-mdc-select {
       border-radius: variables.$border-radius-md;

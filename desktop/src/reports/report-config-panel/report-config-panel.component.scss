@@ -6,7 +6,7 @@
   &__label {
     display: block;
     font-size: 12px;
-    color: #64748b;
+    color: var(--muted-foreground);
     font-weight: 500;
     margin: 6px 0;
   }
@@ -26,7 +26,7 @@
     border-radius: 9999px;
     padding: 5px 10px 5px 6px;
     font-size: 12.5px;
-    color: #0f172a;
+    color: var(--foreground);
     font-weight: 500;
   }
 
@@ -46,7 +46,7 @@
     font-size: 15px;
     width: 15px;
     height: 15px;
-    color: #94a3b8;
+    color: var(--muted-foreground);
     cursor: pointer;
 
     &:hover {
@@ -58,12 +58,12 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    background: #fff;
-    border: 1px dashed #cbd5e1;
+    background: var(--card);
+    border: 1px dashed var(--border);
     border-radius: 9999px;
     padding: 5px 11px;
     font-size: 12.5px;
-    color: #64748b;
+    color: var(--muted-foreground);
     cursor: pointer;
     font-family: inherit;
 
@@ -96,7 +96,7 @@
 
   &__inline-label {
     font-size: 12.5px;
-    color: #64748b;
+    color: var(--muted-foreground);
     white-space: nowrap;
   }
 
@@ -106,9 +106,9 @@
     gap: 7px;
     margin-top: 6px;
     font-size: 11.5px;
-    color: #64748b;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    color: var(--muted-foreground);
+    background: var(--muted);
+    border: 1px solid var(--border);
     border-radius: 8px;
     padding: 8px 10px;
 
@@ -120,7 +120,7 @@
     }
 
     strong {
-      color: #334155;
+      color: var(--foreground);
     }
   }
 
@@ -128,8 +128,8 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: var(--muted);
+    border: 1px solid var(--border);
     border-radius: 9px;
     padding: 6px 8px;
     margin-bottom: 7px;
@@ -137,11 +137,11 @@
     // A dimension column that isn't valid for the current aggregate config is
     // kept but greyed out and left out of the report (see report-command.mapper).
     &--disabled {
-      background: #fff;
+      background: var(--card);
       border-style: dashed;
 
       .report-config__col-label {
-        color: #94a3b8;
+        color: var(--muted-foreground);
         text-decoration: line-through;
       }
 
@@ -165,7 +165,7 @@
     flex: none;
     border-radius: 6px;
     background: #e2e8f0;
-    color: #475569;
+    color: var(--muted-foreground);
     font-size: 11px;
     font-weight: 700;
     display: inline-flex;
@@ -177,7 +177,7 @@
     flex: 1;
     min-width: 0;
     font-size: 13px;
-    color: #0f172a;
+    color: var(--foreground);
     font-weight: 500;
   }
 
@@ -193,12 +193,12 @@
 
   &__mode-card {
     flex: 1;
-    border: 2px solid #e2e8f0;
+    border: 2px solid var(--border);
     border-radius: 10px;
     padding: 11px 12px;
     cursor: pointer;
     transition: all 0.15s;
-    background: #fff;
+    background: var(--card);
 
     &--selected {
       border-color: #27b1ff;
@@ -212,13 +212,13 @@
     gap: 7px;
     font-size: 13px;
     font-weight: 600;
-    color: #0f172a;
+    color: var(--foreground);
 
     mat-icon {
       font-size: 18px;
       width: 18px;
       height: 18px;
-      color: #64748b;
+      color: var(--muted-foreground);
     }
   }
 
@@ -228,7 +228,7 @@
 
   &__mode-desc {
     font-size: 11.5px;
-    color: #64748b;
+    color: var(--muted-foreground);
     margin-top: 3px;
   }
 
@@ -237,9 +237,9 @@
     align-items: center;
     gap: 8px;
     font-size: 12px;
-    color: #64748b;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    color: var(--muted-foreground);
+    background: var(--muted);
+    border: 1px solid var(--border);
     border-radius: 8px;
     padding: 10px 12px;
 
@@ -247,7 +247,7 @@
       font-size: 16px;
       width: 16px;
       height: 16px;
-      color: #94a3b8;
+      color: var(--muted-foreground);
     }
   }
 
@@ -274,7 +274,7 @@
 
   &__col-label {
     font-size: 13px;
-    color: #0f172a;
+    color: var(--foreground);
     font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
@@ -283,7 +283,7 @@
 
   &__col-desc {
     font-size: 11px;
-    color: #94a3b8;
+    color: var(--muted-foreground);
     font-family: ui-monospace, Menlo, monospace;
     white-space: nowrap;
     overflow: hidden;
@@ -296,13 +296,13 @@
     align-items: center;
     justify-content: center;
     gap: 7px;
-    background: #fff;
-    border: 1px dashed #cbd5e1;
+    background: var(--card);
+    border: 1px dashed var(--border);
     border-radius: 9px;
     padding: 9px;
     font-size: 13px;
     font-weight: 600;
-    color: #64748b;
+    color: var(--muted-foreground);
     cursor: pointer;
     font-family: inherit;
     margin-top: 3px;
@@ -340,7 +340,7 @@
 // Column kind accents for the row's icon chip. The kind BADGE is the shared
 // app-badge, which carries its own tones - see KIND_META's `tone`.
 .kind-dimension {
-  color: #64748b;
+  color: var(--muted-foreground);
   background: rgba(100, 116, 139, 0.12);
 }
 .kind-aggregate {

@@ -1,5 +1,6 @@
 import { TestBed } from "@angular/core/testing";
-import { storedMode, THEME_MODE_STORAGE_KEY, ThemeService } from "./theme.service";
+import { storedMode, THEME_MODE_STORAGE_KEY, THEME_SCHEME_STORAGE_KEY, ThemeService } from "./theme.service";
+import { findTheme, THEMES } from "./themes";
 
 describe("ThemeService", () => {
   const root = document.documentElement;
@@ -18,31 +19,39 @@ describe("ThemeService", () => {
   afterEach(() => window.localStorage.clear());
 
   it("starts on System", () => {
-    const service = create();
-
-    expect(service.mode()).toBe("system");
+    expect(create().mode()).toBe("system");
   });
 
-  it("turns dark on and off for Dark and Light, and remembers the choice", () => {
+  it("applies a theme by key: the data-theme attribute, the dark class for a dark scheme, and remembers both", () => {
     const service = create();
 
     service.setMode("dark");
-    expect(root.classList.contains("dark")).toBe(true);
     expect(root.getAttribute("data-theme")).toBe("dark");
+    expect(root.classList.contains("dark")).toBe(true);
     expect(window.localStorage.getItem(THEME_MODE_STORAGE_KEY)).toBe("dark");
+    expect(window.localStorage.getItem(THEME_SCHEME_STORAGE_KEY)).toBe("dark");
 
     service.setMode("light");
-    expect(root.classList.contains("dark")).toBe(false);
     expect(root.getAttribute("data-theme")).toBe("light");
+    expect(root.classList.contains("dark")).toBe(false);
+    expect(window.localStorage.getItem(THEME_SCHEME_STORAGE_KEY)).toBe("light");
     expect(storedMode()).toBe("light");
   });
 
-  it("reads a stored mode on creation and ignores a stored value it does not know", () => {
+  it("reads a stored theme on creation and treats an unknown stored value as System", () => {
     window.localStorage.setItem(THEME_MODE_STORAGE_KEY, "dark");
     expect(create().mode()).toBe("dark");
 
     window.localStorage.setItem(THEME_MODE_STORAGE_KEY, "sepia");
     expect(create().mode()).toBe("system");
+  });
+
+  it("refuses a theme that is not registered", () => {
+    const service = create();
+
+    service.setMode("sepia");
+
+    expect(service.mode()).toBe("system");
   });
 
   it("still works when storage is blocked", () => {
@@ -55,5 +64,13 @@ describe("ThemeService", () => {
     expect(root.classList.contains("dark")).toBe(true);
 
     setItem.mockRestore();
+  });
+
+  it("has a registered, unique key for every theme", () => {
+    const keys = THEMES.map((theme) => theme.key);
+
+    expect(new Set(keys).size).toBe(keys.length);
+    expect(findTheme("light")?.scheme).toBe("light");
+    expect(findTheme("dark")?.scheme).toBe("dark");
   });
 });

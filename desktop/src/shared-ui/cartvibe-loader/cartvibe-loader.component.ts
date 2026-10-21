@@ -33,13 +33,13 @@ import { Component, input } from "@angular/core";
           </linearGradient>
 
           <linearGradient id="ldr-bar-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#18c985" />
-            <stop offset="100%" stop-color="#0c9f67" />
+            <stop offset="0%" stop-color="var(--ldr-bar-top)" />
+            <stop offset="100%" stop-color="var(--ldr-bar-bot)" />
           </linearGradient>
 
           <linearGradient id="ldr-arrow-grad" x1="0%" y1="100%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#1d6bf3" />
-            <stop offset="100%" stop-color="#2884ff" />
+            <stop offset="0%" stop-color="var(--ldr-arrow-s)" />
+            <stop offset="100%" stop-color="var(--ldr-arrow-e)" />
           </linearGradient>
 
           <clipPath id="arrow-reveal">
@@ -85,12 +85,12 @@ import { Component, input } from "@angular/core";
       >
         <defs>
           <linearGradient id="t-bar-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#18c985" />
-            <stop offset="100%" stop-color="#0c9f67" />
+            <stop offset="0%" stop-color="var(--ldr-bar-top)" />
+            <stop offset="100%" stop-color="var(--ldr-bar-bot)" />
           </linearGradient>
           <linearGradient id="t-arrow-grad" x1="0%" y1="100%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#1d6bf3" />
-            <stop offset="100%" stop-color="#2884ff" />
+            <stop offset="0%" stop-color="var(--ldr-arrow-s)" />
+            <stop offset="100%" stop-color="var(--ldr-arrow-e)" />
           </linearGradient>
           <clipPath id="t-arrow-reveal">
             <rect class="cv-arrow-clip-t" x="35" y="18" width="55" height="32" />
@@ -121,19 +121,17 @@ import { Component, input } from "@angular/core";
   `,
   styles: [
     `
+      /* The palette is the theme's: every theme defines the --brand-* tokens (src/themes), this only maps them. */
       :host {
         display: inline-flex;
-        --ldr-bg-bl: #8e78f5;
-        --ldr-bg-tr: #a6cafd;
-        --ldr-cart: #0b1325;
-        color: #0b1325;
-      }
-
-      :host-context(html.dark) {
-        --ldr-bg-bl: #180d3a;
-        --ldr-bg-tr: #5733a5;
-        --ldr-cart: #e2e8f0;
-        color: #e2e8f0;
+        --ldr-bg-bl: var(--brand-badge-from, #09090b);
+        --ldr-bg-tr: var(--brand-badge-to, #3f3f46);
+        --ldr-cart: var(--brand-cart, #fafafa);
+        --ldr-bar-top: var(--brand-bar-top, #34d399);
+        --ldr-bar-bot: var(--brand-bar-bottom, #10b981);
+        --ldr-arrow-s: var(--brand-arrow-from, #fbbf24);
+        --ldr-arrow-e: var(--brand-arrow-to, #f59e0b);
+        color: var(--brand-wordmark, #09090b);
       }
 
       .loader {

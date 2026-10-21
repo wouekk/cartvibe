@@ -8,26 +8,30 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 
     <!--
-      The stored mode (light, dark or system), applied before the first paint so the page does not flash. The Theme
-      tab in User Settings (ThemeService) writes the same key and keeps the class in step afterwards.
+      The stored theme, applied before the first paint so the page does not flash. ThemeService (src/theme) writes the
+      same keys and keeps them in step afterwards: rw_theme_mode is "system" or a theme key, rw_theme_scheme the
+      stored theme's scheme ("light" or "dark"), so this needs no copy of the theme list.
     -->
     <script>
       (function () {
         var root = document.documentElement;
-        var mode = "system";
+        var key = "light";
+        var dark = false;
         try {
-          var storedMode = window.localStorage.getItem("rw_theme_mode");
-          if (storedMode === "light" || storedMode === "dark") {
-            mode = storedMode;
+          var mode = window.localStorage.getItem("rw_theme_mode");
+          var systemDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          if (!mode || mode === "system") {
+            dark = systemDark;
+            key = dark ? "dark" : "light";
+          } else {
+            key = mode;
+            dark = window.localStorage.getItem("rw_theme_scheme") === "dark";
           }
         } catch (e) {}
-        var dark =
-          mode === "dark" ||
-          (mode === "system" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
         if (dark) {
           root.classList.add("dark");
         }
-        root.setAttribute("data-theme", dark ? "dark" : "light");
+        root.setAttribute("data-theme", key);
       })();
     </script>
   </head>

@@ -3,8 +3,8 @@
 :host {
   display: block;
   border-radius: variables.$border-radius-xl;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  background-color: #ffffff;
+  border: 1px solid var(--border);
+  background-color: var(--card);
   overflow: hidden;
   box-shadow: variables.$shadow-md;
 }
@@ -15,7 +15,7 @@
     border-bottom: none !important;
     
     .mat-mdc-cell {
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+      border-bottom: 1px solid var(--border) !important;
     }
   }
   
@@ -27,7 +27,7 @@ tr.example-detail-row {
 }
 
 tr.expanded-row:not(.example-expanded-row):hover {
-  background: whitesmoke;
+  background: var(--muted);
 }
 
 tr.expanded-row:not(.example-expanded-row):active {

@@ -4,8 +4,7 @@
 @use "./variables.scss" as variables;
 @use "material-icons/iconfont/filled.css";
 @use "material-icons/iconfont/outlined.css";
-@use "@fontsource/raleway";
-@use "@fontsource/inter";
+@use "@fontsource-variable/geist";
 
 @include mat.elevation-classes();
 @include mat.app-background();
@@ -15,7 +14,7 @@
 }
 
 // Modern font stack with better readability
-$font-family: 'Inter', 'Raleway', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+$font-family: 'Geist Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
 $my-primary: mat.m2-define-palette(variables.$primary-palette);
 $my-accent: mat.m2-define-palette(variables.$accent-palette);

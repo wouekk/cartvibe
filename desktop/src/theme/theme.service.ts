@@ -1,8 +1,15 @@
 import { Injectable, signal } from "@angular/core";
+import { findTheme, SYSTEM_THEME_KEYS, ThemeScheme } from "./themes";
 
-export type ThemeMode = "system" | "light" | "dark";
+/** "system" follows the operating system; anything else is the key of a theme in the registry (themes.ts). */
+export type ThemeMode = string;
+
+export const SYSTEM_MODE = "system";
 
 export const THEME_MODE_STORAGE_KEY = "rw_theme_mode";
+
+/** The scheme of the stored theme, kept beside it so index.html can set the `dark` class before the first paint. */
+export const THEME_SCHEME_STORAGE_KEY = "rw_theme_scheme";
 
 function read(key: string): string | null {
   try {
@@ -20,16 +27,17 @@ function write(key: string, value: string): void {
   }
 }
 
+/** The stored choice: "system", or a registered theme's key. Anything else (a removed theme, junk) is "system". */
 export function storedMode(): ThemeMode {
   const stored = read(THEME_MODE_STORAGE_KEY);
-  return stored === "light" || stored === "dark" ? stored : "system";
+  return stored && findTheme(stored) ? stored : SYSTEM_MODE;
 }
 
 /**
- * The look of the app: spartan's light theme, its dark theme, or the system's. It is per browser (localStorage), needs
- * no backend, and writes what the CSS reads: the `dark` class and `data-theme` on `<html>`. index.html applies the
- * stored choice before the first paint; this service keeps it in step afterwards, including when the system switches
- * while "System" is chosen.
+ * The look of the app. The choice is per browser (localStorage), needs no backend, and writes what the CSS reads:
+ * `data-theme="<key>"` on `<html>` (which selects the theme's tokens in src/themes) and the `dark` class when the
+ * theme is a dark one. index.html applies the stored choice before the first paint; this service keeps it in step
+ * afterwards, including when the system switches while "System" is chosen.
  */
 @Injectable({ providedIn: "root" })
 export class ThemeService {
@@ -44,21 +52,37 @@ export class ThemeService {
   }
 
   public setMode(mode: ThemeMode): void {
-    this.mode.set(mode);
-    write(THEME_MODE_STORAGE_KEY, mode);
+    const next = mode === SYSTEM_MODE || findTheme(mode) ? mode : SYSTEM_MODE;
+    this.mode.set(next);
+    write(THEME_MODE_STORAGE_KEY, next);
     this.apply();
   }
 
-  /** Whether the page is dark right now: chosen, or the system's when "System" is on. */
-  public isDark(): boolean {
+  /** The key of the theme showing right now. */
+  public activeThemeKey(): string {
     const mode = this.mode();
-    return mode === "dark" || (mode === "system" && !!this.query?.matches);
+    if (mode !== SYSTEM_MODE) {
+      return mode;
+    }
+
+    return SYSTEM_THEME_KEYS[this.query?.matches ? "dark" : "light"];
+  }
+
+  /** Whether the page is dark right now. */
+  public isDark(): boolean {
+    return this.scheme() === "dark";
+  }
+
+  private scheme(): ThemeScheme {
+    return findTheme(this.activeThemeKey())?.scheme ?? "light";
   }
 
   private apply(): void {
     const root = document.documentElement;
-    const dark = this.isDark();
-    root.classList.toggle("dark", dark);
-    root.setAttribute("data-theme", dark ? "dark" : "light");
+    const key = this.activeThemeKey();
+    const scheme = this.scheme();
+    root.setAttribute("data-theme", key);
+    root.classList.toggle("dark", scheme === "dark");
+    write(THEME_SCHEME_STORAGE_KEY, scheme);
   }
 }

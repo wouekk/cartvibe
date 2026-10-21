@@ -15,7 +15,7 @@
 
 .intro,
 .muted {
-  color: #475569;
+  color: var(--muted-foreground);
 }
 
 .small {
@@ -27,7 +27,7 @@
   flex-direction: column;
   gap: variables.$spacing-xs;
   padding: variables.$spacing-lg;
-  background: #fff;
+  background: var(--card);
   border-radius: variables.$border-radius-lg;
   box-shadow: variables.$shadow-sm;
 }

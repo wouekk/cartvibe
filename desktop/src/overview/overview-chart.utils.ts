@@ -10,7 +10,14 @@ const MONTH_NAMES = [
  * Category colors, in order: fixed, high-contrast hues that never follow the accent theme, so a slice keeps its
  * meaning (and stays readable) whichever theme is picked. Sky, amber, red, violet, pink, teal.
  */
-export const CATEGORY_COLORS = ["#0ea5e9", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#14b8a6"];
+export const CATEGORY_COLORS = [
+  "oklch(0.62 0.19 259)",
+  "oklch(0.72 0.17 162)",
+  "oklch(0.77 0.16 70)",
+  "oklch(0.64 0.22 303)",
+  "oklch(0.66 0.2 12)",
+  "oklch(0.74 0.12 200)",
+];
 
 /** Categories beyond this many are folded into "Other", so the ring stays readable. */
 export const MAX_DONUT_SEGMENTS = 5;

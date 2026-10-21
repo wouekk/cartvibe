@@ -33,7 +33,7 @@
 
     &.system {
       background: #e2e8f0;
-      color: #475569;
+      color: var(--muted-foreground);
     }
 
     &.default {
@@ -44,22 +44,22 @@
 
   .description {
     margin: 0;
-    color: #475569;
+    color: var(--muted-foreground);
   }
 
   .summary {
     font-weight: 600;
-    color: #334155;
+    color: var(--foreground);
   }
 
   .empty {
     margin: 0;
-    color: #64748b;
+    color: var(--muted-foreground);
     font-style: italic;
   }
 
   .group {
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border);
     border-radius: 0.5rem;
     overflow: hidden;
 
@@ -68,17 +68,17 @@
       align-items: center;
       gap: 0.5rem;
       padding: 0.6rem 0.75rem;
-      background: #f8fafc;
-      border-bottom: 1px solid #e2e8f0;
+      background: var(--muted);
+      border-bottom: 1px solid var(--border);
 
       .group-name {
         font-weight: 600;
-        color: #1e293b;
+        color: var(--foreground);
       }
 
       .group-sub {
         font-size: 0.75rem;
-        color: #94a3b8;
+        color: var(--muted-foreground);
       }
     }
 
@@ -105,17 +105,17 @@
 
       .row-label {
         font-weight: 500;
-        color: #1e293b;
+        color: var(--foreground);
       }
 
       .row-key {
         font-size: 0.75rem;
-        color: #94a3b8;
+        color: var(--muted-foreground);
       }
 
       .row-desc {
         font-size: 0.8rem;
-        color: #64748b;
+        color: var(--muted-foreground);
       }
     }
   }

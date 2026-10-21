@@ -42,11 +42,11 @@
   gap: variables.$spacing-sm;
   padding: variables.$spacing-sm variables.$spacing-md;
   margin-bottom: variables.$spacing-sm;
-  background: #fff;
+  background: var(--card);
   border-radius: variables.$border-radius-lg;
   box-shadow: variables.$shadow-sm;
   // The edge carries the outcome; the text says it too, so colour is never the only signal.
-  border-left: 4px solid #cbd5e1;
+  border-left: 4px solid var(--border);
 }
 
 .trip--planned {
@@ -80,14 +80,14 @@
 
 .trip__meta {
   font-size: 13px;
-  color: #64748b;
+  color: var(--muted-foreground);
   font-variant-numeric: tabular-nums;
 }
 
 .trip__status {
   margin: 2px 0 0;
   font-size: 14px;
-  color: #475569;
+  color: var(--muted-foreground);
 }
 
 .trip__amount {

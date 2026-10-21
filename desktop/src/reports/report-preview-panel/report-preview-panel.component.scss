@@ -24,13 +24,13 @@
   &__title {
     font-size: 12px;
     font-weight: 600;
-    color: #475569;
+    color: var(--muted-foreground);
     letter-spacing: 0.02em;
   }
 
   &__subtitle {
     font-size: 11.5px;
-    color: #94a3b8;
+    color: var(--muted-foreground);
   }
 
   &__spacer {
@@ -43,7 +43,7 @@
     gap: 5px;
     font-size: 11px;
     color: #0086d4;
-    background: #fff;
+    background: var(--card);
     border: 1px solid #a4deff;
     border-radius: 9999px;
     padding: 4px 10px;
@@ -74,11 +74,11 @@
     align-items: center;
     gap: 10px;
     padding: 80px 20px;
-    color: #94a3b8;
+    color: var(--muted-foreground);
     font-size: 13px;
     text-align: center;
-    background: #fff;
-    border: 1px dashed #cbd5e1;
+    background: var(--card);
+    border: 1px dashed var(--border);
     border-radius: 8px;
 
     mat-icon {
@@ -95,8 +95,8 @@
 
   &__paper {
     position: relative;
-    background: #fff;
-    border: 1px solid rgba(0, 0, 0, 0.06);
+    background: var(--card);
+    border: 1px solid var(--border);
     border-radius: 6px;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     overflow: hidden;

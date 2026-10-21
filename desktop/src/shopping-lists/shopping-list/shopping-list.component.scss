@@ -55,7 +55,7 @@
 }
 
 .items {
-  background: #fff;
+  background: var(--card);
   border-radius: variables.$border-radius-lg;
   box-shadow: variables.$shadow-sm;
 }

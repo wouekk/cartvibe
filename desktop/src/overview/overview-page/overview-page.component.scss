@@ -63,7 +63,7 @@ $hairline: #eef2f6;
   gap: 6px;
   padding: 20px;
   border-radius: variables.$border-radius-xl;
-  background: #fff;
+  background: var(--card);
   box-shadow: $card-shadow;
   color: inherit;
   text-decoration: none;
@@ -84,9 +84,7 @@ $hairline: #eef2f6;
 
 .tile__label {
   font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 500;
   color: $label-color;
 }
 
@@ -132,7 +130,7 @@ $hairline: #eef2f6;
   gap: variables.$spacing-md;
   padding: 22px 24px;
   border-radius: variables.$border-radius-xl;
-  background: #fff;
+  background: var(--card);
   box-shadow: $card-shadow;
   min-width: 0;
 }
@@ -158,39 +156,6 @@ $hairline: #eef2f6;
   }
 }
 
-.donut {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: variables.$spacing-lg;
-}
-
-.donut__chart {
-  position: relative;
-  width: 190px;
-  height: 190px;
-  flex: none;
-}
-
-.donut__center {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.donut__total {
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.donut__caption {
-  font-size: 12px;
-  color: $label-color;
-}
-
 table {
   border-collapse: collapse;
   font-size: 14px;
@@ -198,9 +163,7 @@ table {
   th {
     padding: 0 0 8px;
     font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    font-weight: 500;
     color: $label-color;
     text-align: left;
   }
@@ -214,19 +177,6 @@ table {
   td + td {
     padding-left: 12px;
   }
-}
-
-.donut__legend {
-  flex: 1;
-  min-width: 200px;
-}
-
-.swatch {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  margin-right: 8px;
-  border-radius: 50%;
 }
 
 .numeric {
@@ -254,93 +204,6 @@ table {
   padding: variables.$spacing-lg 0;
   color: $muted-color;
   text-align: center;
-}
-
-// One column per bar: value label, bar, baseline and month name live together, so a bar can never drift
-// from its label. The columns stay on a single row whatever their number (a year is 12).
-.bars {
-  flex: 1;
-  min-height: 210px;
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 1fr);
-  gap: 14px;
-  align-items: stretch;
-}
-
-.bars--dense {
-  gap: 6px;
-}
-
-.bars__column {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-// The bars grow inside the plot; the baseline is its bottom edge, above the month name.
-.bars__plot {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  min-height: 0;
-  padding-bottom: 0;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.bars__value {
-  font-size: 11px;
-  font-weight: 600;
-  color: #334155;
-  white-space: nowrap;
-}
-
-// An empty month keeps its place but says little.
-.bars__value--zero {
-  font-weight: 400;
-  color: #94a3b8;
-}
-
-.bars--dense .bars__value {
-  font-size: 10px;
-}
-
-.bars--dense .bars__value--zero {
-  visibility: hidden;
-}
-
-.bars__bar {
-  width: 100%;
-  max-width: 44px;
-  // The value label sits above, so a 100% bar leaves it room.
-  max-height: calc(100% - 26px);
-  border-radius: 6px 6px 0 0;
-  background: #cbd5e1;
-}
-
-.bars--dense .bars__bar {
-  max-width: 28px;
-}
-
-.bars__bar--selected {
-  background: var(--chart-good, #10b981);
-}
-
-.bars__label {
-  height: 22px;
-  padding-top: 4px;
-  font-size: 13px;
-  line-height: 18px;
-  color: $muted-color;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.bars--dense .bars__label {
-  font-size: 11px;
 }
 
 .chart-note {
@@ -383,13 +246,13 @@ table {
   align-items: center;
   gap: variables.$spacing-sm;
   padding: 14px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   border-radius: variables.$border-radius-lg;
   color: inherit;
   text-decoration: none;
 
   &:hover {
-    background: #f8fafc;
+    background: var(--muted);
   }
 }
 
@@ -540,7 +403,7 @@ table {
   font: inherit;
   font-size: 15px;
   color: $body-color;
-  background: #fff;
+  background: var(--card);
 }
 
 // The thin progress bar under the amount: blue up to the goal, all red once over it.
@@ -572,52 +435,6 @@ table {
 
 .tile__hint--remaining {
   color: $muted-color;
-}
-
-.bars {
-  position: relative;
-}
-
-// A bar split at the goal: red for the part over it on top of the usual colors for the rest.
-.bars__bar--stack {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: transparent;
-}
-
-.bars__base {
-  min-height: 0;
-  background: #cbd5e1;
-
-  &--selected {
-    background: var(--chart-good, #10b981);
-  }
-}
-
-.bars__over {
-  min-height: 0;
-  background: #dc2626;
-}
-
-.bars__over-value {
-  color: #dc2626;
-}
-
-.bars__goal {
-  position: absolute;
-  left: 0;
-  right: 0;
-  border-top: 1px dashed #94a3b8;
-  pointer-events: none;
-
-  span {
-    position: absolute;
-    right: 0;
-    bottom: 1px;
-    font-size: 10px;
-    color: #64748b;
-  }
 }
 
 // An empty card: the message, then the same button as the top right of the page.

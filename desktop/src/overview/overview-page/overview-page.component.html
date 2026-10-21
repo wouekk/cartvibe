@@ -203,52 +203,64 @@
         <a routerLink="/reports">Open reports</a>
       </div>
       @if (segments().length > 0) {
-        <div class="donut">
-          <div class="donut__chart">
-            <svg width="190" height="190" viewBox="0 0 190 190" role="img" [attr.aria-label]="'Spending by category, ' + periodLabel()">
-              <circle cx="95" cy="95" [attr.r]="circleRadius" fill="none" stroke="#eef2f6" stroke-width="26"></circle>
+        <div class="donut flex flex-wrap items-center gap-8">
+          <div class="donut__chart group/donut relative size-48 flex-none">
+            <svg
+              viewBox="0 0 190 190"
+              class="size-full overflow-visible animate-in fade-in zoom-in-95 duration-700"
+              role="img"
+              [attr.aria-label]="'Spending by category, ' + periodLabel()"
+            >
+              <circle cx="95" cy="95" [attr.r]="circleRadius" fill="none" class="stroke-muted [stroke-width:18px]"></circle>
               @for (segment of segments(); track segment.name) {
                 <circle
                   cx="95"
                   cy="95"
                   fill="none"
-                  stroke-width="26"
                   transform="rotate(-90 95 95)"
+                  class="cursor-default transition-[stroke-width,opacity] duration-200 [stroke-width:18px] hover:[stroke-width:24px] group-hover/donut:opacity-50 hover:!opacity-100"
                   [attr.r]="circleRadius"
-                  [attr.stroke]="segment.color"
+                  [style.stroke]="segment.color"
                   [attr.stroke-dasharray]="segment.dashArray"
                   [attr.stroke-dashoffset]="segment.dashOffset"
-                ></circle>
+                >
+                  <title>{{ segment.name }}: {{ segment.total | customCurrency }} ({{ segment.share }})</title>
+                </circle>
               }
             </svg>
-            <div class="donut__center">
-              <span class="donut__total">{{ overview()?.total ?? 0 | customCurrency }}</span>
-              <span class="donut__caption">{{ periodLabel() }}</span>
+            <div class="donut__center absolute inset-0 grid place-content-center gap-0.5 text-center">
+              <span class="donut__total text-xl font-semibold tracking-tight tabular-nums">{{ overview()?.total ?? 0 | customCurrency }}</span>
+              <span class="donut__caption text-xs text-muted-foreground">{{ periodLabel() }}</span>
             </div>
           </div>
-          <table class="donut__legend">
+          <table class="donut__legend min-w-52 flex-1 text-sm">
             <thead>
               <tr>
-                <th scope="col">Category</th>
-                <th scope="col" class="numeric">Spent</th>
-                <th scope="col" class="numeric">Share</th>
+                <th scope="col" class="pb-2 text-left text-xs font-medium text-muted-foreground">Category</th>
+                <th scope="col" class="numeric pb-2 text-right text-xs font-medium text-muted-foreground">Spent</th>
+                <th scope="col" class="numeric pb-2 pl-3 text-right text-xs font-medium text-muted-foreground">Share</th>
               </tr>
             </thead>
             <tbody>
               @for (segment of segments(); track segment.name) {
-                <tr>
-                  <td>
-                    <span class="swatch" [style.background]="segment.color"></span>
+                <tr class="border-t border-border/60">
+                  <td class="py-2.5">
+                    <span class="swatch mr-2 inline-block size-2.5 rounded-full align-middle" [style.background]="segment.color"></span>
                     @if (isOpenable(segment)) {
-                      <button type="button" class="link-button" data-testid="overview-category-open" (click)="openCategory(segment)">
+                      <button
+                        type="button"
+                        class="link-button cursor-pointer border-0 bg-transparent p-0 text-left font-medium text-foreground underline-offset-4 hover:underline"
+                        data-testid="overview-category-open"
+                        (click)="openCategory(segment)"
+                      >
                         {{ segment.name }}
                       </button>
                     } @else {
                       {{ segment.name }}
                     }
                   </td>
-                  <td class="numeric strong">{{ segment.total | customCurrency }}</td>
-                  <td class="numeric muted">{{ segment.share }}</td>
+                  <td class="numeric strong py-2.5 pl-3 text-right font-medium tabular-nums">{{ segment.total | customCurrency }}</td>
+                  <td class="numeric muted py-2.5 pl-3 text-right tabular-nums text-muted-foreground">{{ segment.share }}</td>
                 </tr>
               }
             </tbody>
@@ -284,39 +296,62 @@
           <p class="chart-note" data-testid="overview-chart-capped">Showing the latest {{ chartBars().length }} months.</p>
         }
         <div
-          class="bars"
+          class="bars relative grid min-h-52 flex-1 auto-cols-fr grid-flow-col items-stretch"
           [class.bars--dense]="denseChart()"
+          [class]="denseChart() ? 'gap-1.5' : 'gap-3.5'"
           role="img"
           [attr.aria-label]="(isDailyTrend() ? 'Daily' : 'Monthly') + ' spending, ' + periodLabel()"
         >
           @for (bar of chartBars(); track bar.key) {
-            <div class="bars__column">
-              <div class="bars__plot">
+            <div class="bars__column group/bar flex min-w-0 flex-col">
+              <div class="bars__plot flex min-h-0 flex-1 flex-col items-center justify-end gap-2 border-b border-border">
                 @if (!isDailyTrend()) {
-                  <span class="bars__value" [class.bars__value--zero]="bar.total === 0">
+                  <span
+                    class="bars__value whitespace-nowrap text-[11px] font-medium tabular-nums text-foreground"
+                    [class.bars__value--zero]="bar.total === 0"
+                    [class]="bar.total === 0 ? (denseChart() ? 'invisible font-normal text-muted-foreground' : 'font-normal text-muted-foreground') : ''"
+                  >
                     {{ bar.total | customCurrency }}
                     @if (goalMode() && (bar.overAmount ?? 0) > 0) {
-                      <span class="bars__over-value" data-testid="overview-bar-over">+{{ (bar.overAmount ?? 0) | customCurrency }}</span>
+                      <span class="bars__over-value text-destructive" data-testid="overview-bar-over">+{{ (bar.overAmount ?? 0) | customCurrency }}</span>
                     }
                   </span>
                 }
                 @if (goalMode()) {
-                  <div class="bars__bar bars__bar--stack" [style.height]="goalBarHeight(bar.fraction)">
+                  <div
+                    class="bars__bar bars__bar--stack flex w-full max-h-[calc(100%-26px)] flex-col overflow-hidden rounded-t-md transition-[height] duration-700 ease-out starting:h-0"
+                    [class]="denseChart() ? 'max-w-7' : 'max-w-11'"
+                    [style.height]="goalBarHeight(bar.fraction)"
+                  >
                     @if ((bar.overAmount ?? 0) > 0) {
-                      <div class="bars__over" [style.flex-grow]="bar.overAmount"></div>
+                      <div class="bars__over min-h-0 bg-destructive" [style.flex-grow]="bar.overAmount"></div>
                     }
-                    <div class="bars__base" [class.bars__base--selected]="bar.isSelected" [style.flex-grow]="bar.baseAmount"></div>
+                    <div
+                      class="bars__base min-h-0 transition-colors"
+                      [class.bars__base--selected]="bar.isSelected"
+                      [class]="bar.isSelected ? 'bg-chart-2' : 'bg-muted-foreground/25'"
+                      [style.flex-grow]="bar.baseAmount"
+                    ></div>
                   </div>
                 } @else {
-                  <div class="bars__bar" [class.bars__bar--selected]="bar.isSelected" [style.height.%]="bar.heightPercent"></div>
+                  <div
+                    class="bars__bar w-full max-h-[calc(100%-26px)] rounded-t-md transition-[height,background-color] duration-700 ease-out starting:h-0 group-hover/bar:bg-muted-foreground/40"
+                    [class.bars__bar--selected]="bar.isSelected"
+                    [class]="(denseChart() ? 'max-w-7 ' : 'max-w-11 ') + (bar.isSelected ? 'bg-chart-2' : 'bg-muted-foreground/25')"
+                    [style.height.%]="bar.heightPercent"
+                  ></div>
                 }
               </div>
-              <span class="bars__label" aria-hidden="true">{{ bar.shortName }}</span>
+              <span
+                class="bars__label h-6 whitespace-nowrap pt-1 text-center text-muted-foreground"
+                [class]="denseChart() ? 'text-[11px]' : 'text-xs'"
+                aria-hidden="true"
+              >{{ bar.shortName }}</span>
             </div>
           }
           @if (goalMode() && showGoalLine()) {
-            <div class="bars__goal" data-testid="overview-goal-line" [style.bottom]="goalLineBottom()">
-              <span>Goal</span>
+            <div class="bars__goal pointer-events-none absolute inset-x-0 border-t border-dashed border-muted-foreground/60" data-testid="overview-goal-line" [style.bottom]="goalLineBottom()">
+              <span class="absolute bottom-px right-0 text-[10px] text-muted-foreground">Goal</span>
             </div>
           }
         </div>

@@ -50,8 +50,8 @@
 }
 
 .header-container {
-  background: color-mix(in srgb, var(--accent-color, #0086d4) 9%, #ffffff);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--background);
+  border-bottom: 1px solid var(--border);
   box-shadow: variables.$shadow-sm;
   padding: variables.$spacing-md variables.$spacing-lg;
   position: sticky;
@@ -80,8 +80,8 @@
   max-height: 70vh;
   overflow-y: auto;
   padding: 0.75rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   border-radius: 0.75rem;
-  background: #fff;
+  background: var(--card);
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
 }

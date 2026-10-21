@@ -57,7 +57,7 @@ app-item-add-form {
           gap: 8px;
           
           kbd {
-            background: linear-gradient(135deg, #fff 0%, #f1f3f4 100%);
+            background: var(--card);
             color: #1976d2;
             padding: 4px 10px;
             border-radius: 6px;

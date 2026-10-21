@@ -1,7 +1,7 @@
 .picker {
   &__subtitle {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--muted-foreground);
     margin-bottom: 14px;
   }
 
@@ -15,7 +15,7 @@
     display: flex;
     align-items: center;
     gap: 13px;
-    border: 2px solid #e2e8f0;
+    border: 2px solid var(--border);
     border-radius: 11px;
     padding: 13px 14px;
     cursor: pointer;
@@ -23,7 +23,7 @@
 
     &:hover {
       border-color: #94a3b8;
-      background: #f8fafc;
+      background: var(--muted);
     }
   }
 
@@ -45,12 +45,12 @@
   &__kind-title {
     font-size: 14px;
     font-weight: 600;
-    color: #0f172a;
+    color: var(--foreground);
   }
 
   &__kind-desc {
     font-size: 12px;
-    color: #64748b;
+    color: var(--muted-foreground);
   }
 
   &__chevron {
@@ -60,7 +60,7 @@
   &__label {
     display: block;
     font-size: 12px;
-    color: #64748b;
+    color: var(--muted-foreground);
     font-weight: 500;
     margin-bottom: 6px;
   }
@@ -78,9 +78,9 @@
     font-size: 12.5px;
     font-weight: 600;
     cursor: pointer;
-    background: #fff;
-    border: 1.5px solid #e2e8f0;
-    color: #64748b;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    color: var(--muted-foreground);
     font-family: inherit;
 
     &--selected {
@@ -95,10 +95,10 @@
     align-items: flex-start;
     gap: 8px;
     min-height: 40px;
-    border: 2px solid #e2e8f0;
+    border: 2px solid var(--border);
     border-radius: 8px;
     padding: 8px 8px 8px 12px;
-    background: #f8fafc;
+    background: var(--muted);
   }
 
   &__expr-text {
@@ -107,13 +107,13 @@
     align-self: center;
     font-family: ui-monospace, Menlo, monospace;
     font-size: 13.5px;
-    color: #1e293b;
+    color: var(--foreground);
     overflow-wrap: anywhere;
     line-height: 1.4;
   }
 
   &__expr--empty &__expr-text {
-    color: #94a3b8;
+    color: var(--muted-foreground);
     font-family: inherit;
     font-size: 12.5px;
   }
@@ -129,9 +129,9 @@
     height: 28px;
     flex: none;
     border-radius: 7px;
-    border: 1px solid #e2e8f0;
-    background: #fff;
-    color: #64748b;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--muted-foreground);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -144,8 +144,8 @@
     }
 
     &:hover:not(:disabled) {
-      background: #f1f5f9;
-      color: #0f172a;
+      background: var(--muted);
+      color: var(--foreground);
     }
 
     &:disabled {
@@ -168,7 +168,7 @@
     }
 
     &--hint {
-      color: #94a3b8;
+      color: var(--muted-foreground);
     }
     &--ok {
       color: #0f9d6e;
@@ -180,7 +180,7 @@
 
   &__hint {
     font-size: 11px;
-    color: #94a3b8;
+    color: var(--muted-foreground);
     margin-bottom: 6px;
   }
 
@@ -194,9 +194,9 @@
   &__chip {
     font-size: 12px;
     font-family: ui-monospace, Menlo, monospace;
-    color: #334155;
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
+    color: var(--foreground);
+    background: var(--muted);
+    border: 1px solid var(--border);
     border-radius: 7px;
     padding: 4px 9px;
     cursor: pointer;
@@ -217,9 +217,9 @@
   &__op {
     font-size: 14px;
     font-family: ui-monospace, Menlo, monospace;
-    color: #64748b;
-    background: #fff;
-    border: 1px solid #e2e8f0;
+    color: var(--muted-foreground);
+    background: var(--card);
+    border: 1px solid var(--border);
     border-radius: 7px;
     width: 30px;
     height: 28px;
@@ -229,8 +229,8 @@
     cursor: pointer;
 
     &:hover {
-      background: #f1f5f9;
-      color: #0f172a;
+      background: var(--muted);
+      color: var(--foreground);
     }
   }
 
@@ -247,7 +247,7 @@
 }
 
 .kind-dimension {
-  color: #64748b;
+  color: var(--muted-foreground);
   background: rgba(100, 116, 139, 0.12);
 }
 .kind-aggregate {

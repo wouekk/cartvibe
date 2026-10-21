@@ -10,7 +10,7 @@
   align-items: center;
   gap: variables.$spacing-xs variables.$spacing-sm;
   margin: 0 0 variables.$spacing-sm;
-  color: #475569;
+  color: var(--muted-foreground);
 }
 
 .status__icon {
@@ -22,7 +22,7 @@
 .status__detail {
   flex-basis: 100%;
   font-size: 13px;
-  color: #64748b;
+  color: var(--muted-foreground);
 }
 
 .table-scroll {
@@ -41,7 +41,7 @@
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #64748b;
+    color: var(--muted-foreground);
     text-align: left;
   }
 
@@ -60,7 +60,7 @@
 .product__printed {
   display: block;
   font-size: 12px;
-  color: #64748b;
+  color: var(--muted-foreground);
 }
 
 .numeric {
@@ -69,7 +69,7 @@
 }
 
 .muted {
-  color: #475569;
+  color: var(--muted-foreground);
 }
 
 .read-again {
@@ -104,7 +104,7 @@
   width: 100%;
   min-height: 40px;
   padding: 0 8px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--border);
   border-radius: 6px;
   font: inherit;
 
