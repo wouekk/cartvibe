@@ -17,7 +17,9 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
   shrunk before they are filtered.
 
 ### Security
-- The API runs as an unprivileged user inside the container; existing data folders are handed over on first start.
+- The API runs as an unprivileged user inside the container (`PUID` / `PGID` in the stack's variables pick the NAS user
+  that owns the data folders); existing folders are handed over on first start, and when the folders refuse that user the
+  API runs as root as before and logs why.
 - ImageMagick refuses formats a receipt never is (EXR, SVG, PostScript and others); Debian packages are upgraded at build
   time, the image is rebuilt weekly, and each build carries a vulnerability report.
 - nginx hides its version and sends nosniff, frame and referrer headers.
