@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, output } from "@angular/core";
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
-import { MatDialogRef } from "@angular/material/dialog";
+import { AppDialogRef } from "../../dialog/app-dialog";
 import { RadioButtonData } from "src/radio-group/models";
 import { Item, Receipt, User } from "../../open-api";
 import { SnackbarService } from "../../services/index";
@@ -52,7 +52,7 @@ export class QuickActionsDialogComponent implements OnInit {
 
   constructor(
     private formBuilder: FormBuilder,
-    private dialogRef: MatDialogRef<QuickActionsDialogComponent>,
+    private dialogRef: AppDialogRef<QuickActionsDialogComponent>,
     private snackbarService: SnackbarService
   ) {}
 
@@ -327,7 +327,6 @@ export class QuickActionsDialogComponent implements OnInit {
     percentageControl?.updateValueAndValidity();
     percentageControl?.disable();
   }
-
 
   public closeDialog(): void {
     this.dialogRef.close(false);

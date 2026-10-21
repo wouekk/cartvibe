@@ -1,7 +1,7 @@
 import { Component, DestroyRef, OnInit, ViewEncapsulation, inject, viewChild } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
-import { MatDialogRef } from "@angular/material/dialog";
+import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
 import { ReceiptFileUploadCommand } from "../../interfaces";
@@ -57,7 +57,7 @@ export class QuickScanDialogComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   constructor(
-    private dialogRef: MatDialogRef<QuickScanDialogComponent>,
+    private dialogRef: AppDialogRef<QuickScanDialogComponent>,
     private formBuilder: FormBuilder,
     private receiptService: ReceiptService,
     private snackbarService: SnackbarService,

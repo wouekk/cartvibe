@@ -2,7 +2,7 @@ import { CurrencyPipe } from "@angular/common";
 import { HttpErrorResponse } from "@angular/common/http";
 import { Component, computed, effect, input, signal, untracked } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { MatDialog } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { Actions, ofActionDispatched, Store } from "@ngxs/store";
 import { catchError, EMPTY, filter, merge, Observable, switchMap, take } from "rxjs";
 import { Permission, ShoppingListService, ShoppingTripView } from "../../open-api";
@@ -69,7 +69,7 @@ export class ShoppingTripsComponent {
     private store: Store,
     private actions: Actions,
     private shoppingListService: ShoppingListService,
-    private matDialog: MatDialog,
+    private matDialog: AppDialog,
     private snackbarService: SnackbarService
   ) {
     effect(() => {

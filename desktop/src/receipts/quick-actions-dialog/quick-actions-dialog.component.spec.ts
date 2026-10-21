@@ -1,7 +1,7 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, } from "@angular/forms";
-import { MatDialogRef } from "@angular/material/dialog";
+import { AppDialogRef } from "../../dialog/app-dialog";
 import { ActivatedRoute } from "@angular/router";
 import { NgxsModule } from "@ngxs/store";
 import { User } from "../../open-api";
@@ -17,7 +17,6 @@ describe("QuickActionsDialogComponent", () => {
     close: jest.fn(),
   };
 
-
   const mockSnackbarService = {
     error: jest.fn(),
     info: jest.fn(),
@@ -30,7 +29,7 @@ describe("QuickActionsDialogComponent", () => {
       imports: [NgxsModule.forRoot([]), PipesModule, ReactiveFormsModule],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
       providers: [
-        { provide: MatDialogRef, useValue: mockDialogRef },
+        { provide: AppDialogRef, useValue: mockDialogRef },
         { provide: SnackbarService, useValue: mockSnackbarService },
         { provide: ActivatedRoute, useValue: {} },
       ],

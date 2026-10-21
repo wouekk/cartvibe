@@ -1,5 +1,5 @@
 import { Component, Inject } from "@angular/core";
-import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 
 export interface DescriptionViewerDialogData {
   description: string;
@@ -14,8 +14,8 @@ export interface DescriptionViewerDialogData {
 })
 export class DescriptionViewerDialogComponent {
   constructor(
-    public dialogRef: MatDialogRef<DescriptionViewerDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: DescriptionViewerDialogData,
+    public dialogRef: AppDialogRef<DescriptionViewerDialogComponent>,
+    @Inject(APP_DIALOG_DATA) public data: DescriptionViewerDialogData,
   ) {}
 
   public close(): void {

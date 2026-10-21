@@ -1,7 +1,7 @@
 import { Component, Input } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
-import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 
 import { SourceFileViewerDialogComponent } from "./source-file-viewer-dialog.component";
 
@@ -39,8 +39,8 @@ describe("SourceFileViewerDialogComponent", () => {
         ButtonStubComponent,
       ],
       providers: [
-        { provide: MatDialogRef, useValue: dialogRef },
-        { provide: MAT_DIALOG_DATA, useValue: data },
+        { provide: AppDialogRef, useValue: dialogRef },
+        { provide: APP_DIALOG_DATA, useValue: data },
       ],
     }).compileComponents();
 

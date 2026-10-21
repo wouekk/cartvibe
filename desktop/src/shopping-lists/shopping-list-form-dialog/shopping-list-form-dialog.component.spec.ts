@@ -1,7 +1,7 @@
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
-import { MatDialogRef } from "@angular/material/dialog";
+import { AppDialogRef } from "../../dialog/app-dialog";
 import { NgxsModule, Store } from "@ngxs/store";
 import { ShoppingListService } from "../../open-api";
 import { PipesModule } from "../../pipes/pipes.module";
@@ -17,7 +17,7 @@ describe("ShoppingListFormDialogComponent", () => {
       imports: [NgxsModule.forRoot([SystemSettingsState]), PipesModule, ReactiveFormsModule],
       providers: [
         provideZonelessChangeDetection(),
-        { provide: MatDialogRef, useValue: { close: jest.fn() } },
+        { provide: AppDialogRef, useValue: { close: jest.fn() } },
         { provide: ShoppingListService, useValue: {} },
       ],
       schemas: [NO_ERRORS_SCHEMA],

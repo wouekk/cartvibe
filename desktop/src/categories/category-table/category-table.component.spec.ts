@@ -1,7 +1,7 @@
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { MatDialog, MatDialogModule, } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "src/constants";
@@ -22,7 +22,6 @@ describe("CategoriesListComponent", () => {
     declarations: [CategoryTableComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
-        MatDialogModule,
         NgxsModule.forRoot([CategoryTableState])],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 });
@@ -135,7 +134,7 @@ describe("CategoriesListComponent", () => {
   });
 
   it("should open edit dialog and refresh data when after closed with true", () => {
-    const dialogSpy = jest.spyOn(TestBed.inject(MatDialog), "open");
+    const dialogSpy = jest.spyOn(TestBed.inject(AppDialog), "open");
     const serviceSpy = jest.spyOn(
       TestBed.inject(CategoryService),
       "getPagedCategories"
@@ -159,7 +158,7 @@ describe("CategoriesListComponent", () => {
   });
 
   it("should open edit dialog and not refresh data when after closed with false", () => {
-    const dialogSpy = jest.spyOn(TestBed.inject(MatDialog), "open");
+    const dialogSpy = jest.spyOn(TestBed.inject(AppDialog), "open");
     const serviceSpy = jest.spyOn(
       TestBed.inject(CategoryService),
       "getPagedCategories"
@@ -183,7 +182,7 @@ describe("CategoriesListComponent", () => {
   });
 
   it("should open confirmation dialog and refresh data when after closed with true", () => {
-    const dialogSpy = jest.spyOn(TestBed.inject(MatDialog), "open");
+    const dialogSpy = jest.spyOn(TestBed.inject(AppDialog), "open");
     const deleteSpy = jest.spyOn(TestBed.inject(CategoryService), "deleteCategory");
     deleteSpy.mockReturnValue(of(undefined as any));
     const serviceSpy = jest.spyOn(
@@ -209,7 +208,7 @@ describe("CategoriesListComponent", () => {
   });
 
   it("should open confirmation dialog and not refresh data when after closed with false", () => {
-    const dialogSpy = jest.spyOn(TestBed.inject(MatDialog), "open");
+    const dialogSpy = jest.spyOn(TestBed.inject(AppDialog), "open");
     const serviceSpy = jest.spyOn(
       TestBed.inject(CategoryService),
       "getPagedCategories"
@@ -233,7 +232,7 @@ describe("CategoriesListComponent", () => {
   });
 
   it("should open add dialog and refresh data when after closed with true", () => {
-    const dialogSpy = jest.spyOn(TestBed.inject(MatDialog), "open");
+    const dialogSpy = jest.spyOn(TestBed.inject(AppDialog), "open");
     const serviceSpy = jest.spyOn(
       TestBed.inject(CategoryService),
       "getPagedCategories"
@@ -256,7 +255,7 @@ describe("CategoriesListComponent", () => {
   });
 
   it("should open add dialog and not refresh data when after closed with false", () => {
-    const dialogSpy = jest.spyOn(TestBed.inject(MatDialog), "open");
+    const dialogSpy = jest.spyOn(TestBed.inject(AppDialog), "open");
     const serviceSpy = jest.spyOn(
       TestBed.inject(CategoryService),
       "getPagedCategories"

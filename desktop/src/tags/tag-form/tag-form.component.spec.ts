@@ -2,7 +2,7 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
-import { MatDialogModule, MatDialogRef, } from "@angular/material/dialog";
+import { AppDialogRef } from "../../dialog/app-dialog";
 import { of } from "rxjs";
 import { DuplicateValidator } from "src/validators/duplicate-validator";
 import { ApiModule, TagService, TagView } from "../../open-api";
@@ -19,13 +19,12 @@ describe("CategoryForm", () => {
     declarations: [TagFormComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
-        MatDialogModule,
         PipesModule,
         ReactiveFormsModule],
     providers: [
         DuplicateValidator,
         {
-            provide: MatDialogRef,
+            provide: AppDialogRef,
             useValue: {
                 close: () => { },
             },

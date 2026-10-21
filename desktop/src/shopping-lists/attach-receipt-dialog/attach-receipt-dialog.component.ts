@@ -1,6 +1,6 @@
 import { CurrencyPipe } from "@angular/common";
 import { Component, Input, OnInit, signal } from "@angular/core";
-import { MatDialogRef } from "@angular/material/dialog";
+import { AppDialogRef } from "../../dialog/app-dialog";
 import { catchError, map, of, take } from "rxjs";
 import { Receipt, ReceiptService, SortDirection } from "../../open-api";
 
@@ -27,7 +27,7 @@ export class AttachReceiptDialogComponent implements OnInit {
 
   constructor(
     private receiptService: ReceiptService,
-    private matDialogRef: MatDialogRef<AttachReceiptDialogComponent, number>
+    private matDialogRef: AppDialogRef<AttachReceiptDialogComponent, number>
   ) {}
 
   public ngOnInit(): void {

@@ -1,6 +1,6 @@
 import {Component, computed, OnInit, signal} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {MatDialog, MatDialogConfig} from "@angular/material/dialog";
+import { AppDialog, AppDialogConfig } from "../../dialog/app-dialog";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Store} from "@ngxs/store";
 import {catchError, Observable, of, switchMap, take, tap} from "rxjs";
@@ -77,7 +77,7 @@ export class UserProfileComponent implements OnInit {
   constructor(
     private claimsService: ClaimsService,
     private formBuilder: FormBuilder,
-    private matDialog: MatDialog,
+    private matDialog: AppDialog,
     private route: ActivatedRoute,
     private router: Router,
     private snackbarService: SnackbarService,
@@ -318,7 +318,7 @@ export class UserProfileComponent implements OnInit {
    * A passwordless account gets one confirm button per connected provider;
    * every other account gets the password form.
    */
-  private deleteAccountDialogConfig(): MatDialogConfig<DeleteAccountDialogData> {
+  private deleteAccountDialogConfig(): AppDialogConfig<DeleteAccountDialogData> {
     if (!this.isPasswordless()) {
       return DEFAULT_DIALOG_CONFIG;
     }

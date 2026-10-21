@@ -8,7 +8,7 @@ import {
   viewChild,
 } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { MatDialog } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { MatTableDataSource } from "@angular/material/table";
 import { Router } from "@angular/router";
 import { Store } from "@ngxs/store";
@@ -50,7 +50,7 @@ import { ReportTemplateTableService } from "./report-template-table.service";
 export class ReportTemplateListComponent extends BaseTableComponent<ReportTemplate> implements AfterViewInit {
   private readonly router = inject(Router);
   private readonly store = inject(Store);
-  private readonly matDialog = inject(MatDialog);
+  private readonly matDialog = inject(AppDialog);
   private readonly snackbar = inject(SnackbarService);
   private readonly runner = inject(ReportRunnerService);
   private readonly catalog = inject(ReportCatalogService);

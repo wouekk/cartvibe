@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, computed, Inject, OnInit, signal, TemplateRef, input, viewChild } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { MatDialog } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent } from "@angular/material/paginator";
 import { Sort } from "@angular/material/sort";
 import { MatTableDataSource } from "@angular/material/table";
@@ -111,7 +111,7 @@ export class TaskTableComponent implements OnInit, AfterViewInit {
   constructor(
     @Inject(TABLE_SERVICE_INJECTION_TOKEN) public tableService: BaseTableService,
     private systemTaskService: SystemTaskService,
-    private dialog: MatDialog,
+    private dialog: AppDialog,
   ) {
     this.listenForRefreshRequests();
   }

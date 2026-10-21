@@ -1,6 +1,6 @@
 import { CdkDragDrop } from "@angular/cdk/drag-drop";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 import { provideRouter } from "@angular/router";
 import { NgxsModule } from "@ngxs/store";
 import { DEFAULT_RECEIPT_TABLE_COLUMNS, ReceiptTableColumnConfig } from "../../interfaces";
@@ -13,7 +13,7 @@ import { ColumnConfigurationDialogComponent } from "./column-configuration-dialo
 describe("ColumnConfigurationDialogComponent", () => {
   let component: ColumnConfigurationDialogComponent;
   let fixture: ComponentFixture<ColumnConfigurationDialogComponent>;
-  let mockDialogRef: jest.Mocked<MatDialogRef<ColumnConfigurationDialogComponent>>;
+  let mockDialogRef: jest.Mocked<AppDialogRef<ColumnConfigurationDialogComponent>>;
   let mockDialogData: {
     currentColumns?: ReceiptTableColumnConfig[];
     customFields?: CustomField[];
@@ -38,8 +38,8 @@ describe("ColumnConfigurationDialogComponent", () => {
     DEFAULT_RECEIPT_TABLE_COLUMNS.map((column) => ({ ...column }));
 
   beforeEach(async () => {
-    // Create spy for MatDialogRef
-    mockDialogRef = { close: jest.fn() } as unknown as jest.Mocked<MatDialogRef<ColumnConfigurationDialogComponent>>;
+    // Create spy for AppDialogRef
+    mockDialogRef = { close: jest.fn() } as unknown as jest.Mocked<AppDialogRef<ColumnConfigurationDialogComponent>>;
 
     // Initialize mock dialog data
     mockDialogData = {
@@ -54,8 +54,8 @@ describe("ColumnConfigurationDialogComponent", () => {
       declarations: [ColumnConfigurationDialogComponent],
       imports: [SharedUiModule, NgxsModule.forRoot([ReceiptTableState])],
       providers: [
-        { provide: MatDialogRef, useValue: mockDialogRef },
-        { provide: MAT_DIALOG_DATA, useValue: mockDialogData },
+        { provide: AppDialogRef, useValue: mockDialogRef },
+        { provide: APP_DIALOG_DATA, useValue: mockDialogData },
         // The shared dialog shell pulls in router-aware buttons, so rendering the
         // template (rather than only exercising the class) needs a router.
         provideRouter([])

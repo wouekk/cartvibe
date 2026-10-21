@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, OnInit, Signal, signal, TemplateRef, inject, input, viewChild} from "@angular/core";
 import {toSignal} from "@angular/core/rxjs-interop";
 import {FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {MatDialog} from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import {Sort} from "@angular/material/sort";
 import {MatTableDataSource} from "@angular/material/table";
 import {ActivatedRoute, Router} from "@angular/router";
@@ -89,7 +89,7 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
     private router: Router,
     private store: Store,
     private activatedRoute: ActivatedRoute,
-    private matDialog: MatDialog,
+    private matDialog: AppDialog,
     private sortByDisplayName: SortByDisplayName,
     private appInitService: AppInitService
   ) {

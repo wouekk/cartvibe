@@ -2,7 +2,7 @@ import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http"
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { MatDialogRef } from "@angular/material/dialog";
+import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { ApiModule, UserService } from "../../open-api";
@@ -28,7 +28,7 @@ describe("DummyUserConversionDialogComponent", () => {
       providers: [
         SnackbarService,
         {
-          provide: MatDialogRef,
+          provide: AppDialogRef,
           useValue: {
             close: () => { },
           },

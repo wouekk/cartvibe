@@ -1,7 +1,7 @@
 import { HttpTestingController, provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { MatDialog } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { NgxsModule } from "@ngxs/store";
 import { FilterOperation, SystemTask, SystemTaskPagedRequestFilter, SystemTaskStatus, SystemTaskType } from "../../open-api";
 import { TABLE_SERVICE_INJECTION_TOKEN } from "../../services/injection-tokens/table-service";
@@ -188,7 +188,7 @@ describe("TaskTableComponent", () => {
     });
 
     it("opens the diff dialog with the parsed snapshots", () => {
-      const dialog = TestBed.inject(MatDialog);
+      const dialog = TestBed.inject(AppDialog);
       const open = jest.spyOn(dialog, "open").mockReturnValue(undefined as any);
 
       component.openReceiptUpdateDialog({ before, after, version: 2 });

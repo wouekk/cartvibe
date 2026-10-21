@@ -1,6 +1,6 @@
 import { Component, OnInit } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { MatDialogRef } from "@angular/material/dialog";
+import { AppDialogRef } from "../../dialog/app-dialog";
 import { RECEIPT_STATUS_OPTIONS } from "src/constants/receipt-status-options";
 import { ReceiptStatus } from "../../open-api";
 
@@ -17,7 +17,7 @@ export class BulkStatusUpdateComponent implements OnInit {
 
   constructor(
     private formBuilder: FormBuilder,
-    public matDialogRef: MatDialogRef<BulkStatusUpdateComponent>
+    public matDialogRef: AppDialogRef<BulkStatusUpdateComponent>
   ) {}
 
   public ngOnInit(): void {

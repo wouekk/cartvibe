@@ -3,7 +3,7 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
-import { MatDialogModule, MatDialogRef, } from "@angular/material/dialog";
+import { AppDialogRef } from "../../dialog/app-dialog";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { UntilDestroy } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
@@ -81,14 +81,13 @@ describe("ReceiptFilterComponent", () => {
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
       imports: [PipesModule,
         InputModule,
-        MatDialogModule,
         StoreModule,
         NoopAnimationsModule,
         PipesModule,
         ReactiveFormsModule],
       providers: [
         {
-          provide: MatDialogRef,
+          provide: AppDialogRef,
           useValue: {
             close: (value: any) => { },
           },
@@ -168,7 +167,7 @@ describe("ReceiptFilterComponent", () => {
 
   it("should set form in state and close dialog", () => {
     const dialogRefSpy = jest.spyOn(
-      TestBed.inject(MatDialogRef<ReceiptFilterComponent>),
+      TestBed.inject(AppDialogRef<ReceiptFilterComponent>),
       "close"
     );
     const storeRefSpy = jest.spyOn(store, "dispatch").mockReturnValue(of(undefined));
@@ -204,7 +203,7 @@ describe("ReceiptFilterComponent", () => {
 
   it("should close dialog on cancel", () => {
     const dialogRefSpy = jest.spyOn(
-      TestBed.inject(MatDialogRef<ReceiptFilterComponent>),
+      TestBed.inject(AppDialogRef<ReceiptFilterComponent>),
       "close"
     );
     component.cancelButtonClicked();

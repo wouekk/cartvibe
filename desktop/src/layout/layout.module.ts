@@ -3,7 +3,7 @@ import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
-import { MatDialogModule } from "@angular/material/dialog";
+
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { MatMenuModule } from "@angular/material/menu";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
@@ -45,7 +45,6 @@ import { SidebarComponent } from "./sidebar/sidebar.component";
     DirectivesModule,
     MatButtonModule,
     MatCardModule,
-    MatDialogModule,
     AppIconComponent,
     MatMenuModule,
     MatProgressBarModule,

@@ -1,6 +1,6 @@
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { Component, Inject, OnInit } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 import { DEFAULT_RECEIPT_TABLE_COLUMNS, ReceiptTableColumnConfig } from '../../interfaces';
 import { CUSTOM_FIELD_BADGE } from '../../shared-ui/badge/badge.component';
 import { CustomField } from '../../open-api';
@@ -23,8 +23,8 @@ export class ColumnConfigurationDialogComponent implements OnInit {
   protected readonly customFieldBadge = CUSTOM_FIELD_BADGE;
 
   constructor(
-    private dialogRef: MatDialogRef<ColumnConfigurationDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: {
+    private dialogRef: AppDialogRef<ColumnConfigurationDialogComponent>,
+    @Inject(APP_DIALOG_DATA) public data: {
       currentColumns?: ReceiptTableColumnConfig[];
       customFields?: CustomField[];
       // Whether customFields is authoritative. Absent is treated as available, so

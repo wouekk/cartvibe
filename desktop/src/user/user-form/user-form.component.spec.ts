@@ -2,7 +2,7 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule, Validators } from "@angular/forms";
-import { MatDialog, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
+import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
 import { NgxsModule, Store } from "@ngxs/store";
 import { Observable, of, throwError } from "rxjs";
 import {
@@ -57,12 +57,11 @@ describe("UserFormComponent", () => {
     imports: [NgxsModule.forRoot([AuthState, UserState, GroupState]),
         ReactiveFormsModule,
         PipesModule,
-        MatDialogModule,
         ApiModule],
     providers: [
         provideZonelessChangeDetection(),
         {
-            provide: MatDialogRef,
+            provide: AppDialogRef,
             useValue: {
                 close: () => { },
             },
@@ -407,7 +406,7 @@ describe("UserFormComponent", () => {
     const freshComponent = await createWithRoles(of([defaultAppRole]));
 
     const openSpy = jest
-      .spyOn(TestBed.inject(MatDialog), "open")
+      .spyOn(TestBed.inject(AppDialog), "open")
       .mockReturnValue({ afterClosed: () => of(undefined) } as any);
 
     freshComponent.previewRole();

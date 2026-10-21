@@ -2,7 +2,7 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
-import { MatDialogRef } from "@angular/material/dialog";
+import { AppDialogRef } from "../../dialog/app-dialog";
 import { NgxsModule, Store } from "@ngxs/store";
 import { PipesModule } from "../../pipes";
 import { GroupTableState } from "../../store/group-table.state";
@@ -15,7 +15,7 @@ describe("GroupTableFilterComponent", () => {
   let component: GroupTableFilterComponent;
   let fixture: ComponentFixture<GroupTableFilterComponent>;
   let store: Store;
-  let dialogRef: MatDialogRef<GroupTableFilterComponent>;
+  let dialogRef: AppDialogRef<GroupTableFilterComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -23,7 +23,7 @@ describe("GroupTableFilterComponent", () => {
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ReactiveFormsModule, NgxsModule.forRoot([GroupTableState]), PipesModule, ReactiveFormsModule],
     providers: [
-        { provide: MatDialogRef, useValue: { close: jest.fn() } },
+        { provide: AppDialogRef, useValue: { close: jest.fn() } },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
     ]
@@ -33,7 +33,7 @@ describe("GroupTableFilterComponent", () => {
     fixture = TestBed.createComponent(GroupTableFilterComponent);
     component = fixture.componentInstance;
     store = TestBed.inject(Store);
-    dialogRef = TestBed.inject(MatDialogRef);
+    dialogRef = TestBed.inject(AppDialogRef);
   });
 
   it("should create", () => {

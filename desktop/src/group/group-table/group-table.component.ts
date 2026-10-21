@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, computed, OnInit, signal, TemplateRef, viewChild } from "@angular/core";
-import { MatDialog } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
@@ -14,7 +14,6 @@ import { AuthState, GroupState, RemoveGroup } from "../../store";
 import { GroupTableState } from "../../store/group-table.state";
 import { GroupTableFilterComponent } from "../group-table-filter/group-table-filter.component";
 import { GroupTableService } from "./group-table.service";
-
 
 @UntilDestroy()
 @Component({
@@ -71,7 +70,7 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
     private groupsService: GroupsService,
     private store: Store,
     private snackbarService: SnackbarService,
-    private matDialog: MatDialog
+    private matDialog: AppDialog
   ) {
     super(baseTableService);
   }

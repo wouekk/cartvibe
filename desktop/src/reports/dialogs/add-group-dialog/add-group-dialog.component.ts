@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, Inject, computed, inject, signal } from "@angular/core";
-import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { APP_DIALOG_DATA, AppDialogRef } from "../../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { AuthState, GroupState } from "src/store";
 import { Permission } from "../../../open-api";
@@ -31,7 +31,7 @@ interface GroupChoice {
 })
 export class AddGroupDialogComponent {
   private readonly store = inject(Store);
-  private readonly dialogRef = inject<MatDialogRef<AddGroupDialogComponent, string[]>>(MatDialogRef);
+  private readonly dialogRef = inject<AppDialogRef<AddGroupDialogComponent, string[]>>(AppDialogRef);
   private readonly selectedIds = signal<Set<string>>(new Set());
 
   public readonly groups = computed<GroupChoice[]>(() => {
@@ -57,7 +57,7 @@ export class AddGroupDialogComponent {
       });
   });
 
-  constructor(@Inject(MAT_DIALOG_DATA) data: AddGroupDialogData) {
+  constructor(@Inject(APP_DIALOG_DATA) data: AddGroupDialogData) {
     this.selectedIds.set(new Set(data.selectedGroupIds ?? []));
   }
 

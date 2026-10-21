@@ -8,7 +8,7 @@ import {
   signal,
 } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { APP_DIALOG_DATA, AppDialogRef } from "../../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { Receipt, ReportRequestCommand, ReportService } from "../../../open-api";
 import { SystemSettingsState } from "../../../store/system-settings.state";
@@ -46,7 +46,7 @@ export interface ReportReceiptsDialogData {
 })
 export class ReportReceiptsDialogComponent {
   private readonly reportService = inject(ReportService);
-  private readonly dialogRef = inject(MatDialogRef<ReportReceiptsDialogComponent>);
+  private readonly dialogRef = inject(AppDialogRef<ReportReceiptsDialogComponent>);
   private readonly destroyRef = inject(DestroyRef);
   private readonly store = inject(Store);
 
@@ -66,7 +66,7 @@ export class ReportReceiptsDialogComponent {
   // The server returned only the newest receipts, not all of them.
   public readonly truncated = computed(() => this.receipts().length < this.totalCount());
 
-  constructor(@Inject(MAT_DIALOG_DATA) data: ReportReceiptsDialogData) {
+  constructor(@Inject(APP_DIALOG_DATA) data: ReportReceiptsDialogData) {
     const timeZone = this.store.selectSnapshot(SystemSettingsState.timeZone);
     const range = formatPeriodRange(
       resolvePeriodRange(data.period.preset, data.period.startDate, data.period.endDate, timeZone)

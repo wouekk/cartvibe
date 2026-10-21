@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { MatDialogRef } from '@angular/material/dialog';
+import { AppDialogRef } from "../../dialog/app-dialog";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { ActivatedRoute } from '@angular/router';
 import { NgxsModule } from '@ngxs/store';
@@ -19,12 +19,12 @@ import { ApiKeyFormDialogComponent } from './api-key-form-dialog.component';
 describe('ApiKeyFormDialogComponent', () => {
   let component: ApiKeyFormDialogComponent;
   let fixture: ComponentFixture<ApiKeyFormDialogComponent>;
-  let mockDialogRef: jest.Mocked<MatDialogRef<ApiKeyFormDialogComponent>>;
+  let mockDialogRef: jest.Mocked<AppDialogRef<ApiKeyFormDialogComponent>>;
   let mockApiKeyService: jest.Mocked<ApiKeyService>;
   let mockSnackbarService: jest.Mocked<SnackbarService>;
 
   beforeEach(async () => {
-    mockDialogRef = { close: jest.fn() } as unknown as jest.Mocked<MatDialogRef<ApiKeyFormDialogComponent>>;
+    mockDialogRef = { close: jest.fn() } as unknown as jest.Mocked<AppDialogRef<ApiKeyFormDialogComponent>>;
     mockApiKeyService = { createApiKey: jest.fn(), updateApiKey: jest.fn() } as unknown as jest.Mocked<ApiKeyService>;
     mockSnackbarService = { success: jest.fn(), error: jest.fn() } as unknown as jest.Mocked<SnackbarService>;
 
@@ -41,7 +41,7 @@ describe('ApiKeyFormDialogComponent', () => {
         NgxsModule.forRoot([LayoutState])
       ],
       providers: [
-        { provide: MatDialogRef, useValue: mockDialogRef },
+        { provide: AppDialogRef, useValue: mockDialogRef },
         { provide: ApiKeyService, useValue: mockApiKeyService },
         { provide: SnackbarService, useValue: mockSnackbarService },
         { provide: ActivatedRoute, useValue: {} }

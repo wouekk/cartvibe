@@ -1,6 +1,6 @@
 import { Component, OnInit } from "@angular/core";
 import { FormBuilder } from "@angular/forms";
-import { MatDialogRef } from "@angular/material/dialog";
+import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { BaseFormComponent } from "../../form";
 import { FormOption } from "../../interfaces/form-option.interface";
@@ -18,7 +18,7 @@ import { associatedApiKeyOptions } from "./associated-api-key-options";
 })
 export class ApiKeyTableFilterComponent extends BaseFormComponent implements OnInit {
   constructor(
-    private dialogRef: MatDialogRef<ApiKeyTableFilterComponent>,
+    private dialogRef: AppDialogRef<ApiKeyTableFilterComponent>,
     private formBuilder: FormBuilder,
     private store: Store
   ) {

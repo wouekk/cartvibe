@@ -8,7 +8,7 @@ import {
 } from "@angular/core";
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { FormBuilder, FormGroup } from "@angular/forms";
-import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { APP_DIALOG_DATA, AppDialogRef } from "../../../dialog/app-dialog";
 import { startWith } from "rxjs";
 import { ReportColumn } from "../../../open-api";
 import {
@@ -73,7 +73,7 @@ const LOCKED_SUBTITLE = "The column this grouping level adds to the report";
 export class ColumnPickerDialogComponent {
   private readonly formBuilder = inject(FormBuilder);
   private readonly dialogRef =
-    inject<MatDialogRef<ColumnPickerDialogComponent, ReportColumnValue>>(MatDialogRef);
+    inject<AppDialogRef<ColumnPickerDialogComponent, ReportColumnValue>>(AppDialogRef);
 
   public readonly step = signal<PickerStep>("kind");
   public readonly ReportColumnKind = ReportColumn.KindEnum;
@@ -141,7 +141,7 @@ export class ColumnPickerDialogComponent {
     }
   });
 
-  constructor(@Inject(MAT_DIALOG_DATA) data: ColumnPickerDialogData) {
+  constructor(@Inject(APP_DIALOG_DATA) data: ColumnPickerDialogData) {
     this.dimensions = data.dimensions;
     this.measures = data.measures;
     this.dimensionOptions = toFieldOptions(data.dimensions);

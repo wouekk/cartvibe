@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, TemplateRef, input, output } from "@angular/core";
 import { FormGroup, } from "@angular/forms";
-import { MatDialogRef } from "@angular/material/dialog";
+import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
 import { RECEIPT_FILTER_FIELDS, RECEIPT_STATUS_OPTIONS } from "src/constants";
@@ -57,7 +57,7 @@ export class ReceiptFilterComponent implements OnInit {
 
   constructor(
     private store: Store,
-    private dialogRef: MatDialogRef<ReceiptFilterComponent>
+    private dialogRef: AppDialogRef<ReceiptFilterComponent>
   ) {}
 
   public ngOnInit(): void {

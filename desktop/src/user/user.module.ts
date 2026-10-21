@@ -1,7 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
-import { MatDialogModule } from "@angular/material/dialog";
+
 import { MatTableModule } from "@angular/material/table";
 import { CheckboxModule } from "src/checkbox/checkbox.module";
 import { PipesModule } from "src/pipes/pipes.module";
@@ -31,7 +31,6 @@ import { UserRoutingModule } from "./user-routing.module";
     CommonModule,
     DirectivesModule,
     InputModule,
-    MatDialogModule,
     MatTableModule,
     PipesModule,
     ReactiveFormsModule,

@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { MatDialogRef } from "@angular/material/dialog";
+import { AppDialogRef } from "../../dialog/app-dialog";
 import { take, tap } from "rxjs";
 import { User, UserService } from "../../open-api";
 import { SnackbarService } from "../../services";
@@ -18,7 +18,7 @@ export class ResetPasswordComponent implements OnInit {
 
   constructor(
     private formBuilder: FormBuilder,
-    private matDialogRef: MatDialogRef<ResetPasswordComponent>,
+    private matDialogRef: AppDialogRef<ResetPasswordComponent>,
     private snackbarService: SnackbarService,
     private userService: UserService
   ) {}

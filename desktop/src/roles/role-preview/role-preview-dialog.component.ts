@@ -2,12 +2,7 @@ import { CommonModule } from "@angular/common";
 import { Component, Inject, computed, inject } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { MatButtonModule } from "@angular/material/button";
-import {
-  MAT_DIALOG_DATA,
-  MatDialog,
-  MatDialogModule,
-  MatDialogRef,
-} from "@angular/material/dialog";
+import { APP_DIALOG_DATA, AppDialog, AppDialogRef } from "../../dialog/app-dialog";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { catchError, of } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "../../constants/dialog.constant";
@@ -54,7 +49,6 @@ interface PreviewGroup {
   imports: [
     CommonModule,
     MatButtonModule,
-    MatDialogModule,
     AppIconComponent,
     SharedUiModule,
   ],
@@ -121,16 +115,22 @@ export class RolePreviewDialogComponent {
     return [...groups.values()];
   });
 
-  constructor(@Inject(MAT_DIALOG_DATA) data: RolePreviewDialogData) {
+  private readonly dialogRef = inject(AppDialogRef<RolePreviewDialogComponent>);
+
+  constructor(@Inject(APP_DIALOG_DATA) data: RolePreviewDialogData) {
     this.role = data.role;
+  }
+
+  public close(): void {
+    this.dialogRef.close();
   }
 }
 
 /** Opens the shared role-preview dialog for the given role. */
 export function openRolePreviewDialog(
-  dialog: MatDialog,
+  dialog: AppDialog,
   role: Role,
-): MatDialogRef<RolePreviewDialogComponent> {
+): AppDialogRef<RolePreviewDialogComponent> {
   return dialog.open(RolePreviewDialogComponent, {
     ...DEFAULT_DIALOG_CONFIG,
     // Focus the dialog container, not the trailing "Close" button. The preview's

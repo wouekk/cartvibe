@@ -1,5 +1,5 @@
 import { Component, computed, Inject, signal } from "@angular/core";
-import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 import { buildSplitDiff, collapseUnchanged, DiffLine, InlineSegments, inlineChange, SplitDiffRow } from "../../utils/line-diff";
 import { SystemTaskType } from "../../open-api";
 import {
@@ -72,8 +72,8 @@ export class ReceiptUpdateDiffDialogComponent {
   );
 
   constructor(
-    public dialogRef: MatDialogRef<ReceiptUpdateDiffDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) data: ReceiptUpdateDiffDialogData,
+    public dialogRef: AppDialogRef<ReceiptUpdateDiffDialogComponent>,
+    @Inject(APP_DIALOG_DATA) data: ReceiptUpdateDiffDialogData,
   ) {
     const { before, after } = data.snapshots;
     this.beforeState = receiptUpdateBeforeState(data.snapshots);

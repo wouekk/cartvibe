@@ -1,5 +1,5 @@
 import { Component, Inject } from "@angular/core";
-import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 
 export interface SourceFileViewerDialogData {
   /** Base64 data URI of the upload, already converted for display by the API. */
@@ -19,8 +19,8 @@ export interface SourceFileViewerDialogData {
 })
 export class SourceFileViewerDialogComponent {
   constructor(
-    public dialogRef: MatDialogRef<SourceFileViewerDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: SourceFileViewerDialogData,
+    public dialogRef: AppDialogRef<SourceFileViewerDialogComponent>,
+    @Inject(APP_DIALOG_DATA) public data: SourceFileViewerDialogData,
   ) {}
 
   public close(): void {

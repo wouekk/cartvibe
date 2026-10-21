@@ -1,7 +1,7 @@
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormBuilder } from "@angular/forms";
-import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { APP_DIALOG_DATA, AppDialogRef } from "../../../dialog/app-dialog";
 import { PipesModule } from "../../../pipes";
 import { ReportColumn } from "../../../open-api";
 import { ColumnPickerDialogComponent, ColumnPickerDialogData } from "./column-picker-dialog.component";
@@ -18,8 +18,8 @@ function configure(data: ColumnPickerDialogData): {
     providers: [
       provideZonelessChangeDetection(),
       FormBuilder,
-      { provide: MatDialogRef, useValue: { close } },
-      { provide: MAT_DIALOG_DATA, useValue: data },
+      { provide: AppDialogRef, useValue: { close } },
+      { provide: APP_DIALOG_DATA, useValue: data },
     ],
     schemas: [NO_ERRORS_SCHEMA],
   });

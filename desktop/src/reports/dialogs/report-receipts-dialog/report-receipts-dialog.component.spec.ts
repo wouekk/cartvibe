@@ -1,7 +1,7 @@
 import { CurrencyPipe } from "@angular/common";
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { APP_DIALOG_DATA, AppDialogRef } from "../../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { Observable, of, throwError } from "rxjs";
 import {
@@ -57,7 +57,7 @@ function configure(
     providers: [
       provideZonelessChangeDetection(),
       { provide: ReportService, useValue: reportService },
-      { provide: MatDialogRef, useValue: { close: jest.fn() } },
+      { provide: AppDialogRef, useValue: { close: jest.fn() } },
       // The row pipes (user, customCurrency) read the store; nothing here asserts
       // on them. The app time zone is the one value the subtitle reads.
       {
@@ -73,7 +73,7 @@ function configure(
       },
       CurrencyPipe,
       {
-        provide: MAT_DIALOG_DATA,
+        provide: APP_DIALOG_DATA,
         useValue: { command, period: MAY_2026, receiptCount: 5, ...data } as ReportReceiptsDialogData,
       },
     ],

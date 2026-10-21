@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from "@angular/common
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
-import { MatDialog, MatDialogModule } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
@@ -33,7 +33,6 @@ describe("ReceiptFormComponent", () => {
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
       imports: [ApiModule,
         PipesModule,
-        MatDialogModule,
         StoreModule,
         NoopAnimationsModule,
         PipesModule,
@@ -286,7 +285,6 @@ describe("ReceiptFormComponent", () => {
       }),
       configurable: true,
     });
-
 
     const originalData = {
       name: "a different name",
@@ -1302,13 +1300,12 @@ describe("ReceiptFormComponent", () => {
     });
 
     // Without this the dialog offers no way out but Esc and the backdrop.
-    it("closes the fullscreen dialog", async () => {
-      const dialog = TestBed.inject(MatDialog);
+    it("closes the fullscreen dialog", () => {
+      const dialog = TestBed.inject(AppDialog);
       openDialogCarousel();
       expect(dialog.openDialogs.length).toEqual(1);
 
       component.closeExpandedImage();
-      await fixture.whenStable();
 
       expect(dialog.openDialogs.length).toEqual(0);
     });
@@ -1342,7 +1339,7 @@ describe("ReceiptFormComponent", () => {
     let receiptService: ReceiptService;
 
     const stubDialog = (confirmed: boolean | undefined) =>
-      jest.spyOn(TestBed.inject(MatDialog), "open").mockReturnValue({
+      jest.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({
         componentInstance: {},
         afterClosed: () => of(confirmed),
       } as any);

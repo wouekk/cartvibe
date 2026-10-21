@@ -3,7 +3,7 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
-import { MatDialogModule } from "@angular/material/dialog";
+
 import { NgxsModule, Store } from "@ngxs/store";
 import { Subject, of } from "rxjs";
 import { ShoppingList, ShoppingListItem, ShoppingListService } from "../../open-api";
@@ -47,7 +47,6 @@ describe("ShoppingListComponent", () => {
       declarations: [ShoppingListComponent],
       imports: [
         NgxsModule.forRoot([ShoppingListState, AuthState, GroupState]),
-        MatDialogModule,
         PipesModule,
         ReactiveFormsModule,
       ],

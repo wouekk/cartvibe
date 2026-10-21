@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { MatDialogRef } from "@angular/material/dialog";
+import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { switchMap, take, tap } from "rxjs";
 import { User, UserService } from "../../open-api";
@@ -23,7 +23,7 @@ export class DummyUserConversionDialogComponent implements OnInit {
     private snackbarService: SnackbarService,
     private store: Store,
     private userService: UserService,
-    public matDialogRef: MatDialogRef<DummyUserConversionDialogComponent>
+    public matDialogRef: AppDialogRef<DummyUserConversionDialogComponent>
   ) {}
 
   public ngOnInit(): void {

@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, linkedSignal, ViewEncapsulation } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
-import { MatDialog } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { Data, NavigationEnd, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { filter, map, startWith, switchMap, take } from "rxjs";
@@ -96,7 +96,7 @@ export class SidebarComponent {
 
   constructor(
     private authService: AuthService,
-    private matDialog: MatDialog,
+    private matDialog: AppDialog,
     private router: Router,
     private snackbarService: SnackbarService,
     private store: Store,
@@ -182,7 +182,6 @@ export class SidebarComponent {
 
   private readonly receiptListLink = this.store.selectSignal(GroupState.receiptListLink);
 
-
   private readonly overviewLink = this.store.selectSignal(GroupState.overviewLink);
 
   private readonly shoppingListGroupId = this.store.selectSignal(ShoppingListState.targetGroupId);
@@ -215,7 +214,6 @@ export class SidebarComponent {
     }
 
     items.push({ label: "Receipts", icon: "receipt_long", link: [this.receiptListLink()], testId: "nav-receipts" });
-
 
     if (this.canViewReports()) {
       items.push({ label: "Reports", icon: "insights", link: ["/reports"], testId: "nav-reports" });
@@ -271,7 +269,6 @@ export class SidebarComponent {
 
     return items;
   });
-
 
   /**
    * Whether "Manage" is expanded: open while the user is on one of its pages, so the active one is

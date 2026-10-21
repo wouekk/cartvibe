@@ -3,7 +3,7 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
-import { MatDialogModule, MatDialogRef } from "@angular/material/dialog";
+import { AppDialogRef } from "../../dialog/app-dialog";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { UntilDestroy } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
@@ -58,14 +58,13 @@ describe("SystemTaskFilterComponent", () => {
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
       imports: [
         InputModule,
-        MatDialogModule,
         NoopAnimationsModule,
         PipesModule,
         ReactiveFormsModule,
         StoreModule,
       ],
       providers: [
-        { provide: MatDialogRef, useValue: { close: () => {} } },
+        { provide: AppDialogRef, useValue: { close: () => {} } },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
       ],
@@ -122,7 +121,7 @@ describe("SystemTaskFilterComponent", () => {
 
   it("dispatches the filter and closes with true on submit", () => {
     const dispatchSpy = jest.spyOn(store, "dispatch").mockReturnValue(of({}));
-    const closeSpy = jest.spyOn(TestBed.inject(MatDialogRef<SystemTaskFilterComponent>), "close");
+    const closeSpy = jest.spyOn(TestBed.inject(AppDialogRef<SystemTaskFilterComponent>), "close");
 
     component.parentForm = buildSystemTaskFilterForm(filledFilter, noopComponent);
     component.submitButtonClicked();
@@ -132,7 +131,7 @@ describe("SystemTaskFilterComponent", () => {
   });
 
   it("closes with false on cancel", () => {
-    const closeSpy = jest.spyOn(TestBed.inject(MatDialogRef<SystemTaskFilterComponent>), "close");
+    const closeSpy = jest.spyOn(TestBed.inject(AppDialogRef<SystemTaskFilterComponent>), "close");
 
     component.cancelButtonClicked();
 

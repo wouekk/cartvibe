@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, DestroyRef, inject, TemplateRef, viewChild } from "@angular/core";
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
-import { MatDialog } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
 import { DEFAULT_HOST_CLASS } from "src/constants";
@@ -73,7 +73,7 @@ export class UserListComponent extends BaseTableComponent<User> implements After
 
   constructor(
     public override baseTableService: BaseTableService,
-    private matDialog: MatDialog,
+    private matDialog: AppDialog,
     private snackbarService: SnackbarService,
     private store: Store,
     private userService: UserService

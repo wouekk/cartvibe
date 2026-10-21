@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from "@angular/core";
 import { FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { MatDialogRef } from "@angular/material/dialog";
+import { AppDialogRef } from "../../dialog/app-dialog";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Observable, take, tap } from "rxjs";
 import { FormMode } from "../../enums/form-mode.enum";
@@ -52,7 +52,7 @@ export class CustomFieldFormComponent implements OnInit {
   constructor(
     private customFieldService: CustomFieldService,
     private formBuilder: FormBuilder,
-    private matDialogRef: MatDialogRef<CustomFieldFormComponent>,
+    private matDialogRef: AppDialogRef<CustomFieldFormComponent>,
     private snackbarService: SnackbarService,
   ) {}
 

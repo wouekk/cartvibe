@@ -1,6 +1,6 @@
 import { CommonModule, CurrencyPipe } from "@angular/common";
 import { Component, inject, OnInit, signal } from "@angular/core";
-import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 import { RouterLink } from "@angular/router";
 import { catchError, of, take } from "rxjs";
 import { ButtonModule } from "../../button";
@@ -36,9 +36,9 @@ export interface OverviewDetailDialogData {
   providers: [CurrencyPipe],
 })
 export class OverviewDetailDialogComponent implements OnInit {
-  public readonly data = inject<OverviewDetailDialogData>(MAT_DIALOG_DATA);
+  public readonly data = inject<OverviewDetailDialogData>(APP_DIALOG_DATA);
 
-  private readonly dialogRef = inject(MatDialogRef<OverviewDetailDialogComponent>);
+  private readonly dialogRef = inject(AppDialogRef<OverviewDetailDialogComponent>);
 
   private readonly overviewService = inject(OverviewService);
 

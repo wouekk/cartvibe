@@ -1,16 +1,16 @@
-import { MatDialog } from "@angular/material/dialog";
+import { AppDialog } from "../../dialog/app-dialog";
 import { of } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "../../constants";
 import { openQuickScanDialog } from "./open-quick-scan-dialog";
 import { QuickScanDialogComponent } from "./quick-scan-dialog.component";
 
 describe("openQuickScanDialog", () => {
-  // A plain function over MatDialog — no TestBed needed, and a double keeps the
+  // A plain function over AppDialog — no TestBed needed, and a double keeps the
   // real dialog (and its whole component tree) out of the test.
   function dialogDouble(afterClosed = of(undefined)) {
     return {
       open: jest.fn().mockReturnValue({ afterClosed: () => afterClosed }),
-    } as unknown as MatDialog;
+    } as unknown as AppDialog;
   }
 
   it("opens the quick scan dialog with the shared dialog config", () => {

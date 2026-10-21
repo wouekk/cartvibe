@@ -1,6 +1,6 @@
 import { Component, Inject, Optional } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 
 /** An identity provider the account can confirm its deletion with. */
 export interface DeleteAccountDialogProvider {
@@ -35,9 +35,9 @@ export class DeleteAccountDialogComponent {
   public readonly providers: DeleteAccountDialogProvider[];
 
   constructor(
-    private dialogRef: MatDialogRef<DeleteAccountDialogComponent, DeleteAccountDialogResult>,
+    private dialogRef: AppDialogRef<DeleteAccountDialogComponent, DeleteAccountDialogResult>,
     private formBuilder: FormBuilder,
-    @Optional() @Inject(MAT_DIALOG_DATA) data: DeleteAccountDialogData | null,
+    @Optional() @Inject(APP_DIALOG_DATA) data: DeleteAccountDialogData | null,
   ) {
     this.providers = data?.providers ?? [];
     this.form = this.formBuilder.group({

@@ -2,7 +2,7 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed, } from "@angular/core/testing";
 import { FormArray, FormControl, ReactiveFormsModule } from "@angular/forms";
-import { MatDialog, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
+import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { ActivatedRoute } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
@@ -27,7 +27,6 @@ describe("QuickScanDialogComponent", () => {
     declarations: [QuickScanDialogComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
-        MatDialogModule,
         NgxsModule.forRoot([AuthState, GroupState, LayoutState]),
         NoopAnimationsModule,
         PipesModule,
@@ -39,11 +38,11 @@ describe("QuickScanDialogComponent", () => {
             useValue: {},
         },
         {
-            provide: MatDialog,
+            provide: AppDialog,
             useValue: {}
         },
         {
-            provide: MatDialogRef<QuickScanDialogComponent>,
+            provide: AppDialogRef<QuickScanDialogComponent>,
             useValue: {
                 close: () => { },
             },
@@ -86,7 +85,7 @@ describe("QuickScanDialogComponent", () => {
   });
 
   it("should close the dialog", () => {
-    const dialogSpy = jest.spyOn(TestBed.inject(MatDialogRef), "close");
+    const dialogSpy = jest.spyOn(TestBed.inject(AppDialogRef), "close");
 
     component.cancelButtonClicked();
 
