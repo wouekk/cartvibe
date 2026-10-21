@@ -8,6 +8,7 @@ import { BaseFormComponent } from "../../form/index";
 import { Permission, UserPreferencesService, UserShortcut } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { parseGoalInput } from "../../overview/overview-chart.utils";
+import { isCurrencyCode, normalizeCurrencyCode, parseRateInput } from "../../utils/display-currency";
 import { SystemSettingsState } from "../../store/system-settings.state";
 import { AuthState, SetUserPreferences } from "../../store";
 import { UserShortcutComponent } from "../user-shortcut/user-shortcut.component";
@@ -33,6 +34,9 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
 
   /** "Monthly spending goal (€)", with the household's own currency symbol. */
   public readonly goalLabel = computed(() => `Monthly spending goal (${(this.currencySymbol() ?? "").trim() || "€"})`);
+
+  /** "1 € = ... in your currency", named with the household symbol and the code typed so far. */
+  public readonly rateLabel = computed(() => `Rate: 1 ${(this.currencySymbol() ?? "").trim() || "€"} in your currency`);
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -65,6 +69,8 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
       quickScanDefaultGroupId: userPreferences?.quickScanDefaultGroupId ?? "",
       quickScanDefaultStatus: userPreferences?.quickScanDefaultStatus ?? "",
       monthlySpendingGoal: userPreferences?.monthlySpendingGoal ? String(userPreferences.monthlySpendingGoal).replace(".", ",") : "",
+      displayCurrency: userPreferences?.displayCurrency ?? "",
+      displayCurrencyRate: userPreferences?.displayCurrencyRate ? String(userPreferences.displayCurrencyRate).replace(".", ",") : "",
       closeChipSelectOnSelect:
         userPreferences?.closeChipSelectOnSelect ?? false,
       userShortcuts: this.formBuilder.array(this.originalUserShortcuts().map((userShortcut, i) => this.buildUserShortcut(i, userShortcut))),
@@ -156,6 +162,16 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
         return;
       }
       result.monthlySpendingGoal = goal.value ?? null;
+
+      // The Dashboard currency: no code clears both; a code needs a rate above 0.
+      const code = normalizeCurrencyCode(result.displayCurrency);
+      const rate = parseRateInput(result.displayCurrencyRate);
+      if (code && (!isCurrencyCode(code) || !rate.ok || !rate.value)) {
+        this.snackbarService.error("Give the Dashboard currency as three letters, like PLN, and your rate above 0, like 4,25.");
+        return;
+      }
+      result.displayCurrency = code;
+      result.displayCurrencyRate = code ? rate.value : null;
 
       if (result.quickScanDefaultGroupId === "") {
         result.quickScanDefaultGroupId = null;

@@ -40,6 +40,11 @@
   <div class="flex flex-wrap items-center gap-2">
     <app-period-picker (periodChange)="period.set($event)"></app-period-picker>
     <span class="ml-auto text-sm text-muted-foreground" data-testid="overview-period-label">{{ periodLabel() }}</span>
+    @if (displayCurrencyService.conversion(); as conversion) {
+      <span hlmBadge variant="outline" class="text-muted-foreground" data-testid="overview-display-currency" title="Converted in your browser at the rate in your preferences">
+        Shown in {{ conversion.code }}
+      </span>
+    }
   </div>
 
   @if (!period()) {
@@ -72,7 +77,7 @@
       <div class="flex flex-wrap items-baseline gap-x-1.5">
         <span class="text-3xl font-bold" [class.text-destructive]="(spentGoal()?.over ?? 0) > 0">
           @if (overview(); as overview) {
-            <app-money [value]="overview.total"></app-money>
+            <app-money [display]="true" [value]="overview.total"></app-money>
           } @else {
             –
           }
@@ -105,10 +110,10 @@
               title="Edit the monthly spending goal"
               (click)="startEditingGoal()"
             >
-              / {{ goal.goal | customCurrency }}
+              / {{ goal.goal | displayCurrency }}
             </button>
           } @else {
-            <span class="text-[0.9375rem] font-medium text-muted-foreground" data-testid="overview-spent-goal">/ {{ goal.goal | customCurrency }}</span>
+            <span class="text-[0.9375rem] font-medium text-muted-foreground" data-testid="overview-spent-goal">/ {{ goal.goal | displayCurrency }}</span>
           }
         }
       </div>
@@ -129,9 +134,9 @@
           ></div>
         </div>
         @if (goal.over > 0) {
-          <span class="text-[0.8125rem] font-medium text-muted-foreground font-semibold text-destructive" data-testid="overview-spent-over">+{{ goal.over | customCurrency }} over goal</span>
+          <span class="text-[0.8125rem] font-medium text-muted-foreground font-semibold text-destructive" data-testid="overview-spent-over">+{{ goal.over | displayCurrency }} over goal</span>
         } @else {
-          <span class="text-[0.8125rem] font-medium text-muted-foreground " data-testid="overview-spent-remaining">{{ goal.remaining | customCurrency }} left</span>
+          <span class="text-[0.8125rem] font-medium text-muted-foreground " data-testid="overview-spent-remaining">{{ goal.remaining | displayCurrency }} left</span>
         }
       } @else if (change(); as change) {
         <span class="text-[0.8125rem] font-medium text-muted-foreground" [class.text-warning-text]="changeIsIncrease()" [class.text-success-text]="!changeIsIncrease()">
@@ -156,7 +161,7 @@
       <span class="text-xs font-medium text-muted-foreground">Unhealthy</span>
       @if (overview()) {
         <span class="text-3xl font-bold" [class.text-warning-text]="unhealthyTotal() > 0">
-          <app-money [value]="unhealthyTotal()"></app-money>
+          <app-money [display]="true" [value]="unhealthyTotal()"></app-money>
         </span>
         @if (unhealthyTotal() > 0) {
           <span class="text-[0.8125rem] font-medium text-muted-foreground text-warning-text">{{ unhealthyShare() }}% of the spending</span>
@@ -175,7 +180,7 @@
       <span class="text-xs font-medium text-muted-foreground">Not on the list</span>
       @if (overview()) {
         <span class="text-3xl font-bold" [class.text-warning-text]="unplannedTotal() > 0">
-          <app-money [value]="unplannedTotal()"></app-money>
+          <app-money [display]="true" [value]="unplannedTotal()"></app-money>
         </span>
         @if (unplannedChange(); as unplannedChange) {
           <span class="text-[0.8125rem] font-medium text-muted-foreground">{{ unplannedChange }}</span>
@@ -256,7 +261,7 @@
                       {{ segment.name }}
                     }
                   </td>
-                  <td class="text-right font-semibold py-2.5 pl-3 text-right font-medium tabular-nums">{{ segment.total | customCurrency }}</td>
+                  <td class="text-right font-semibold py-2.5 pl-3 text-right font-medium tabular-nums">{{ segment.total | displayCurrency }}</td>
                   <td class="text-right text-muted-foreground py-2.5 pl-3 text-right tabular-nums text-muted-foreground">{{ segment.share }}</td>
                 </tr>
               }
@@ -276,12 +281,12 @@
       <div class="rw-panel-header">
         <h2 id="overview-trend-title">{{ isDailyTrend() ? "Spending by day" : "Spending by month" }}</h2>
         @if (chartBars().length > 0 && !rangeTooLongForChart()) {
-          <span class="text-muted-foreground text-sm" data-testid="overview-trend-summary">Average {{ averageBar() | customCurrency }} {{ isDailyTrend() ? "a day" : "a month" }}@if (goalMode()) { · Goal {{ goal() | customCurrency }}}</span>
+          <span class="text-muted-foreground text-sm" data-testid="overview-trend-summary">Average {{ averageBar() | displayCurrency }} {{ isDailyTrend() ? "a day" : "a month" }}@if (goalMode()) { · Goal {{ goal() | displayCurrency }}}</span>
         }
       </div>
       @if (!rangeTooLongForChart() && chartBars().length > 0) {
         <div class="flex flex-wrap items-center justify-between gap-2">
-          <span class="text-3xl font-bold tracking-tight">{{ overview()?.total ?? 0 | customCurrency }}</span>
+          <span class="text-3xl font-bold tracking-tight">{{ overview()?.total ?? 0 | displayCurrency }}</span>
           @if (change(); as change) {
             <span class="rw-pill" [class.rw-pill-up]="changeIsIncrease()" [class.rw-pill-down]="!changeIsIncrease()">
               <app-icon [name]="changeIsIncrease() ? 'arrow_upward' : 'arrow_downward'"></app-icon>{{ change }}
@@ -316,13 +321,13 @@
             @if (showGoalLine()) {
               <li class="flex items-center gap-1.5" data-testid="overview-goal-line">
                 <span class="inline-block w-4 border-t border-dashed border-muted-foreground"></span>
-                Goal {{ goal() | customCurrency }}
+                Goal {{ goal() | displayCurrency }}
               </li>
             }
             @for (bar of overGoalBars(); track bar.key) {
               <li class="flex items-center gap-1.5" data-testid="overview-bar-over">
                 <span class="inline-block size-2 rounded-full bg-destructive"></span>
-                {{ bar.shortName }} <span class="text-destructive">+{{ (bar.overAmount ?? 0) | customCurrency }}</span>
+                {{ bar.shortName }} <span class="text-destructive">+{{ (bar.overAmount ?? 0) | displayCurrency }}</span>
               </li>
             }
           </ul>
@@ -365,7 +370,7 @@
                   </td>
                   <td hlmTd>{{ ((receipt.paidByUserId + "") | user)?.displayName ?? "—" }}</td>
                   <td hlmTd><app-status-chip [status]="receipt.status"></app-status-chip></td>
-                  <td hlmTd class="text-right font-semibold">{{ receipt.amount | customCurrency }}</td>
+                  <td hlmTd class="text-right font-semibold">{{ receipt.amount | displayCurrency }}</td>
                 </tr>
               }
             </tbody>

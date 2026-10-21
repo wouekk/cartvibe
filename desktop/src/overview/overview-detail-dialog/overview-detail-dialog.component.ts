@@ -1,3 +1,4 @@
+import { DisplayCurrencyPipe } from "../../pipes/display-currency.pipe";
 import { CommonModule, CurrencyPipe } from "@angular/common";
 import { Component, inject, OnInit, signal } from "@angular/core";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
@@ -31,7 +32,7 @@ export interface OverviewDetailDialogData {
   templateUrl: "./overview-detail-dialog.component.html",
   styleUrls: ["./overview-detail-dialog.component.scss"],
   standalone: true,
-  imports: [ButtonModule, CommonModule, PipesModule, RouterLink, SharedUiModule],
+  imports: [ButtonModule, CommonModule, DisplayCurrencyPipe, PipesModule, RouterLink, SharedUiModule],
   // customCurrency delegates to CurrencyPipe, which PipesModule does not provide.
   providers: [CurrencyPipe],
 })
