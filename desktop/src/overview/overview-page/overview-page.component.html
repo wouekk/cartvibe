@@ -60,7 +60,7 @@
               title="Edit the monthly spending goal"
               (click)="startEditingGoal()"
             >
-              <mat-icon aria-hidden="true">edit</mat-icon>
+              <app-icon name="edit"></app-icon>
             </button>
           } @else {
             <button type="button" class="tile__goal-action" data-testid="overview-set-goal" (click)="startEditingGoal()">
@@ -250,7 +250,7 @@
       }
       <div class="card__footer">
         <span>{{ periodLabel() }}</span>
-        <a routerLink="/reports" class="card__link">Open reports <mat-icon aria-hidden="true">arrow_right_alt</mat-icon></a>
+        <a routerLink="/reports" class="card__link">Open reports <app-icon name="arrow_right_alt"></app-icon></a>
       </div>
     </section>
 
@@ -266,7 +266,7 @@
           <span class="trend-stat__value">{{ overview()?.total ?? 0 | customCurrency }}</span>
           @if (change(); as change) {
             <span class="pill" [class.pill--up]="changeIsIncrease()" [class.pill--down]="!changeIsIncrease()">
-              <mat-icon aria-hidden="true">{{ changeIsIncrease() ? "arrow_upward" : "arrow_downward" }}</mat-icon>{{ change }}
+              <app-icon [name]="changeIsIncrease() ? 'arrow_upward' : 'arrow_downward'"></app-icon>{{ change }}
             </span>
           }
         </div>
@@ -312,7 +312,7 @@
       }
       <div class="card__footer">
         <span>{{ periodLabel() }}</span>
-        <a routerLink="/reports" class="card__link">Open reports <mat-icon aria-hidden="true">arrow_right_alt</mat-icon></a>
+        <a routerLink="/reports" class="card__link">Open reports <app-icon name="arrow_right_alt"></app-icon></a>
       </div>
     </section>
   </div>
@@ -388,7 +388,7 @@
         } @else {
           @for (list of listSummaries(); track list.id) {
             <a class="list-card" [routerLink]="['/shopping-lists/group', listGroupId]">
-              <mat-icon class="list-card__icon" aria-hidden="true">shopping_cart</mat-icon>
+              <app-icon class="list-card__icon" name="shopping_cart"></app-icon>
               <span class="list-card__text">
                 <span class="strong">{{ list.name }}</span>
                 <span class="muted text-sm">{{ list.preview }}</span>

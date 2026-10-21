@@ -1,6 +1,6 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { MatIconModule } from "@angular/material/icon";
+import { AppIconComponent } from "../icon/icon.component";
 import { HlmTabsImports } from "@spartan-ng/helm/tabs";
 import { FilterBarComponent } from "./filter-bar.component";
 import { FilterTab } from "./filter-tab.interface";
@@ -18,7 +18,7 @@ describe("FilterBarComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [FilterBarComponent],
-      imports: [MatIconModule, ...HlmTabsImports],
+      imports: [AppIconComponent, ...HlmTabsImports],
       providers: [provideZonelessChangeDetection()],
     }).compileComponents();
 
@@ -81,6 +81,6 @@ describe("FilterBarComponent", () => {
     ] satisfies FilterTab[]);
     await fixture.whenStable();
 
-    expect(fixture.nativeElement.querySelectorAll(".filter-tab mat-icon").length).toBe(1);
+    expect(fixture.nativeElement.querySelectorAll(".filter-tab app-icon").length).toBe(1);
   });
 });

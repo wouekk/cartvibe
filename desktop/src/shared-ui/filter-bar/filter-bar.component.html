@@ -3,7 +3,7 @@
     @for (tab of tabs(); track tab.value) {
       <button class="filter-tab" [hlmTabsTrigger]="tab.value" [class.active]="value() === tab.value">
         @if (tab.icon) {
-          <mat-icon class="size-[17px] text-[17px]">{{ tab.icon }}</mat-icon>
+          <app-icon class="size-[17px] text-[17px]" [name]="tab.icon"></app-icon>
         }
         {{ tab.label }}
         @if (tab.count !== undefined) {

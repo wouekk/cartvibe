@@ -3,7 +3,7 @@
     @if (item.routerLink && !last) {
       <a class="crumb" [routerLink]="item.routerLink">
         @if (item.icon) {
-          <mat-icon class="crumb-icon" aria-hidden="true">{{ item.icon }}</mat-icon>
+          <app-icon class="crumb-icon" [name]="item.icon"></app-icon>
         }
         {{ item.label }}
       </a>
@@ -14,13 +14,13 @@
         [attr.aria-current]="last ? 'page' : null"
       >
         @if (item.icon) {
-          <mat-icon class="crumb-icon" aria-hidden="true">{{ item.icon }}</mat-icon>
+          <app-icon class="crumb-icon" [name]="item.icon"></app-icon>
         }
         {{ item.label }}
       </span>
     }
     @if (!last) {
-      <mat-icon class="separator" aria-hidden="true">chevron_right</mat-icon>
+      <app-icon class="separator" name="chevron_right"></app-icon>
     }
   }
 </nav>

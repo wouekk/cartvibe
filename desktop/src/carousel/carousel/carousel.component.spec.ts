@@ -1,7 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { MatButtonModule } from "@angular/material/button";
-import { MatIconModule } from "@angular/material/icon";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { PipesModule } from "src/pipes/pipes.module";
 import { ButtonModule } from "../../button";
 import { CarouselComponent } from "./carousel.component";
@@ -17,7 +17,7 @@ describe("CarouselComponent", () => {
         CommonModule,
         PipesModule,
         MatButtonModule,
-        MatIconModule,
+        AppIconComponent,
         ButtonModule,
       ],
     }).compileComponents();

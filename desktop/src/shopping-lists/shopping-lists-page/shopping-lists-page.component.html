@@ -16,7 +16,7 @@
           [disabled]="announcing()"
           (click)="announceGoingShopping()"
         >
-          <mat-icon>shopping_cart</mat-icon>
+          <app-icon name="shopping_cart"></app-icon>
           Going shopping
         </button>
       }
@@ -37,25 +37,25 @@
             aria-label="List actions"
             [hlmDropdownMenuTrigger]="listMenu" align="end"
           >
-            <mat-icon>more_vert</mat-icon>
+            <app-icon name="more_vert"></app-icon>
           </button>
           <ng-template #listMenu>
 <div hlmDropdownMenu class="w-56">
             @if (canUpdate()) {
               <button hlmDropdownMenuItem data-testid="shopping-list-rename" (click)="renameList(list)">
-                <mat-icon>edit</mat-icon>
+                <app-icon name="edit"></app-icon>
                 <span>Rename list</span>
               </button>
             }
             @if (canCreate() && canUpdate() && list.items.length > 0) {
               <button hlmDropdownMenuItem data-testid="shopping-list-copy" (click)="copyList(list)">
-                <mat-icon>content_copy</mat-icon>
+                <app-icon name="content_copy"></app-icon>
                 <span>Start a new list from this</span>
               </button>
             }
             @if (canDelete()) {
               <button hlmDropdownMenuItem data-testid="shopping-list-delete" (click)="deleteList(list)">
-                <mat-icon>delete</mat-icon>
+                <app-icon name="delete"></app-icon>
                 <span>Delete list</span>
               </button>
             }

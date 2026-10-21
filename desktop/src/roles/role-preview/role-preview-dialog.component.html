@@ -2,14 +2,14 @@
   <div class="role-preview">
     <div class="meta">
       <span class="chip" [class.group]="isGroup()">
-        <mat-icon>{{ scopeIcon() }}</mat-icon>
+        <app-icon [name]="scopeIcon()"></app-icon>
         {{ scopeLabel() }}
       </span>
       @if (role.isSystem) {
-        <span class="chip system"><mat-icon>verified</mat-icon> System</span>
+        <span class="chip system"><app-icon name="verified"></app-icon> System</span>
       }
       @if (role.isDefault) {
-        <span class="chip default"><mat-icon>star</mat-icon> Default</span>
+        <span class="chip default"><app-icon name="star"></app-icon> Default</span>
       }
     </div>
 
@@ -27,7 +27,7 @@
       @for (group of groups(); track group.resourceKey) {
         <div class="group">
           <div class="group-head">
-            <mat-icon>{{ group.icon }}</mat-icon>
+            <app-icon [name]="group.icon"></app-icon>
             <span class="group-name">{{ group.name }}</span>
             <span class="group-sub">{{ group.resourceKey }}</span>
           </div>

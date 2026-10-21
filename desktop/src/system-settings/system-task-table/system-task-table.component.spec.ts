@@ -3,7 +3,7 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { MatChipsModule } from "@angular/material/chips";
-import { MatIconModule } from "@angular/material/icon";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { ActivatedRoute } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
@@ -32,7 +32,7 @@ describe("SystemTaskTableComponent", () => {
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
       imports: [SharedUiModule,
         MatChipsModule,
-        MatIconModule,
+        AppIconComponent,
         NgxsModule.forRoot([SystemTaskTableState, UserState]),
         TableModule,
         NoopAnimationsModule],

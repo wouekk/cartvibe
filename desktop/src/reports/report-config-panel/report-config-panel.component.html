@@ -8,12 +8,12 @@
       <span class="report-config__chip">
         <span class="report-config__chip-avatar" [style.background]="chip.color">{{ chip.initials }}</span>
         {{ chip.name }}
-        <mat-icon class="report-config__chip-remove" (click)="removeScope(chip.index)"
-          data-testid="report-scope-remove">close</mat-icon>
+        <app-icon class="report-config__chip-remove" (click)="removeScope(chip.index)"
+          data-testid="report-scope-remove" name="close"></app-icon>
       </span>
     }
     <button type="button" class="report-config__add-pill" (click)="openAddGroups()" data-testid="report-add-group">
-      <mat-icon>add</mat-icon>Add group
+      <app-icon name="add"></app-icon>Add group
     </button>
   </div>
 </app-report-section>
@@ -44,7 +44,7 @@
   ></app-select>
 
   <div class="report-config__hint">
-    <mat-icon>event</mat-icon>
+    <app-icon name="event"></app-icon>
     Resolves to <strong>{{ periodLabel() }}</strong> on <strong>{{ periodDateFieldLabel() }}</strong>
   </div>
 </app-report-section>
@@ -86,12 +86,12 @@
   <div class="report-config__mode-cards">
     <div class="report-config__mode-card" [class.report-config__mode-card--selected]="detailMode === ReportDetailMode.Records"
       (click)="setDetailMode(ReportDetailMode.Records)" data-testid="report-detail-records">
-      <div class="report-config__mode-title"><mat-icon>receipt</mat-icon>Records</div>
+      <div class="report-config__mode-title"><app-icon name="receipt"></app-icon>Records</div>
       <div class="report-config__mode-desc">One row per receipt</div>
     </div>
     <div class="report-config__mode-card" [class.report-config__mode-card--selected]="detailMode === ReportDetailMode.Aggregate"
       (click)="setDetailMode(ReportDetailMode.Aggregate)" data-testid="report-detail-aggregate">
-      <div class="report-config__mode-title"><mat-icon>functions</mat-icon>Aggregate</div>
+      <div class="report-config__mode-title"><app-icon name="functions"></app-icon>Aggregate</div>
       <div class="report-config__mode-desc">One summed row per value</div>
     </div>
   </div>
@@ -112,7 +112,7 @@
 <app-report-section icon="view_column" headerText="Columns" subtitle="Dimensions, aggregates & formulas">
   @if (detailMode === ReportDetailMode.Records) {
     <div class="report-config__note" data-testid="report-columns-records-note">
-      <mat-icon>info</mat-icon>
+      <app-icon name="info"></app-icon>
       Each row is one receipt, so a dimension column shows that receipt's own value — it doesn't have to be
       something you group by. Aggregates and formulas read a single receipt per row, and still roll up across
       the subtotal and grand total rows.
@@ -122,7 +122,7 @@
     <div class="report-config__list-row" [class.report-config__list-row--disabled]="column.disabled"
       [attr.data-testid]="column.disabled ? 'report-column-disabled' : 'report-column-row'">
       <span class="report-config__kind" [ngClass]="column.kindClass">
-        <mat-icon>{{ column.kindIcon }}</mat-icon>
+        <app-icon [name]="column.kindIcon"></app-icon>
       </span>
       <div class="report-config__col-text">
         <div class="report-config__col-label">{{ column.label }}</div>
@@ -143,7 +143,7 @@
     </div>
   }
   <button type="button" class="report-config__add-block" (click)="openColumnPicker()" data-testid="report-add-column">
-    <mat-icon>add</mat-icon>Add column
+    <app-icon name="add"></app-icon>Add column
   </button>
 </app-report-section>
 
@@ -159,7 +159,7 @@
     [inputFormControl]="form() | formGet: 'splitCategoriesEqually'"></app-checkbox>
   @if (splitState().categoryInactive) {
     <div class="report-config__note" data-testid="report-split-categories-inactive">
-      <mat-icon>info</mat-icon>
+      <app-icon name="info"></app-icon>
       No effect until the report groups or aggregates by Category.
     </div>
   }
@@ -167,7 +167,7 @@
     [inputFormControl]="form() | formGet: 'splitTagsEqually'"></app-checkbox>
   @if (splitState().tagInactive) {
     <div class="report-config__note" data-testid="report-split-tags-inactive">
-      <mat-icon>info</mat-icon>
+      <app-icon name="info"></app-icon>
       No effect until the report groups or aggregates by Tag.
     </div>
   }

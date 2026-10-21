@@ -19,13 +19,13 @@
             [disabled]="uploading()"
             (click)="photoInput.click()"
           >
-            <mat-icon>photo_camera</mat-icon>
+            <app-icon name="photo_camera"></app-icon>
             {{ uploading() ? "Uploading…" : "Scan receipt" }}
           </button>
         }
         @if (canUpdate()) {
           <button mat-button type="button" data-testid="shopping-trip-attach" (click)="attachExisting()">
-            <mat-icon>attach_file</mat-icon>
+            <app-icon name="attach_file"></app-icon>
             Attach existing
           </button>
         }
@@ -63,7 +63,7 @@
             [hlmDropdownMenuTrigger]="tripMenu" align="end"
             [hlmDropdownMenuTriggerData]="{ trip: row.trip }"
           >
-            <mat-icon>more_vert</mat-icon>
+            <app-icon name="more_vert"></app-icon>
           </button>
         }
       </article>
@@ -77,12 +77,12 @@
 <div hlmDropdownMenu class="w-56">
         @if (trip.status === "FAILED") {
           <button hlmDropdownMenuItem data-testid="shopping-trip-retry" (click)="retry(trip)">
-            <mat-icon>refresh</mat-icon>
+            <app-icon name="refresh"></app-icon>
             <span>Try again</span>
           </button>
         }
         <button hlmDropdownMenuItem data-testid="shopping-trip-remove" (click)="remove(trip)">
-          <mat-icon>link_off</mat-icon>
+          <app-icon name="link_off"></app-icon>
           <span>Remove from list</span>
         </button>
       </div>

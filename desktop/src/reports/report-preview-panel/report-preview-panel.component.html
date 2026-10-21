@@ -6,8 +6,8 @@
     <span class="preview__spacer"></span>
     @if (ready() && !error()) {
       <span class="preview__count" (click)="openReceipts()" data-testid="report-receipt-count">
-        <mat-icon>receipt_long</mat-icon>{{ receiptCount() }} receipts
-        <mat-icon>chevron_right</mat-icon>
+        <app-icon name="receipt_long"></app-icon>{{ receiptCount() }} receipts
+        <app-icon name="chevron_right"></app-icon>
       </span>
     }
   </div>
@@ -15,12 +15,12 @@
   <div class="preview__stage">
     @if (!ready()) {
       <div class="preview__placeholder">
-        <mat-icon>summarize</mat-icon>
+        <app-icon name="summarize"></app-icon>
         Add a group and at least one column to see a preview.
       </div>
     } @else if (error()) {
       <div class="preview__placeholder preview__placeholder--error">
-        <mat-icon>error_outline</mat-icon>
+        <app-icon name="error_outline"></app-icon>
         Couldn't render the preview.
       </div>
     } @else {
@@ -36,7 +36,7 @@
         ></iframe>
         @if (loading()) {
           <div class="preview__loading">
-            <mat-icon>autorenew</mat-icon>
+            <app-icon name="autorenew"></app-icon>
           </div>
         }
       </div>

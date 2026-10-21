@@ -8,9 +8,7 @@
     [disabled]="!canUpdate()"
     (click)="toggled.emit(item())"
   >
-    <mat-icon class="check-icon">
-      {{ item().isChecked ? "check_circle" : "radio_button_unchecked" }}
-    </mat-icon>
+    <app-icon class="check-icon" [name]="item().isChecked ? 'check_circle' : 'radio_button_unchecked'"></app-icon>
     <span class="text">
       <span class="name" data-testid="shopping-list-item-name">{{ item().name }}</span>
       <app-food-tags class="tags" [values]="item()"></app-food-tags>
@@ -32,20 +30,20 @@
       aria-label="Item actions"
       [hlmDropdownMenuTrigger]="itemMenu" align="end"
     >
-      <mat-icon>more_vert</mat-icon>
+      <app-icon name="more_vert"></app-icon>
     </button>
     <ng-template #itemMenu>
 <div hlmDropdownMenu class="w-56">
       <button hlmDropdownMenuItem data-testid="shopping-list-item-edit" (click)="editClicked.emit(item())">
-        <mat-icon>edit</mat-icon>
+        <app-icon name="edit"></app-icon>
         <span>Edit</span>
       </button>
       <button hlmDropdownMenuItem data-testid="shopping-list-item-tags" [hlmDropdownMenuSubTrigger]="tagsMenu">
-        <mat-icon>sell</mat-icon>
+        <app-icon name="sell"></app-icon>
         <span>Correct tags</span>
       </button>
       <button hlmDropdownMenuItem data-testid="shopping-list-item-delete" (click)="deleteClicked.emit(item())">
-        <mat-icon>delete</mat-icon>
+        <app-icon name="delete"></app-icon>
         <span>Delete</span>
       </button>
     </div>
@@ -58,7 +56,7 @@
           [attr.data-testid]="'shopping-list-item-health-' + choice.value"
           (click)="classificationSelected.emit({ item: item(), health: choice.value })"
         >
-          <mat-icon>{{ item().health === choice.value ? "check" : "" }}</mat-icon>
+          <app-icon [name]="item().health === choice.value ? 'check' : ''"></app-icon>
           <span>{{ choice.label }}</span>
         </button>
       }
@@ -69,7 +67,7 @@
             [attr.data-testid]="'shopping-list-item-season-' + choice.value"
             (click)="classificationSelected.emit({ item: item(), health: item().health, seasonality: choice.value })"
           >
-            <mat-icon>{{ item().seasonality === choice.value ? "check" : "" }}</mat-icon>
+            <app-icon [name]="item().seasonality === choice.value ? 'check' : ''"></app-icon>
             <span>{{ choice.label }}</span>
           </button>
         }

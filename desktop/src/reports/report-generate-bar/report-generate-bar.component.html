@@ -4,10 +4,10 @@
     @for (format of formats; track format.key) {
       <div class="gen-bar__chip" [class.gen-bar__chip--on]="isSelected(format.key)"
         (click)="toggle(format.key)" [attr.data-testid]="'report-format-' + format.key">
-        <mat-icon>{{ format.icon }}</mat-icon>
+        <app-icon [name]="format.icon"></app-icon>
         {{ format.label }}
         @if (isSelected(format.key)) {
-          <mat-icon class="gen-bar__check">check_circle</mat-icon>
+          <app-icon class="gen-bar__check" name="check_circle"></app-icon>
         }
       </div>
     }
@@ -15,7 +15,7 @@
   <span class="gen-bar__summary">{{ formatSummary() }}</span>
   <span class="gen-bar__spacer"></span>
   @if (generating()) {
-    <mat-icon class="gen-bar__spinner">autorenew</mat-icon>
+    <app-icon class="gen-bar__spinner" name="autorenew"></app-icon>
   }
   @if (saveTemplateAllowed()) {
     <app-button

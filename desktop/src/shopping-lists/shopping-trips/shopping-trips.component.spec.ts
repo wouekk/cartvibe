@@ -4,7 +4,7 @@ import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { MatButtonModule } from "@angular/material/button";
 import { MatDialogModule } from "@angular/material/dialog";
-import { MatIconModule } from "@angular/material/icon";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { MatMenuModule } from "@angular/material/menu";
 import { provideRouter, RouterLink } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
@@ -62,7 +62,7 @@ describe("ShoppingTripsComponent", () => {
         NgxsModule.forRoot([AuthState, ShoppingListState, SystemSettingsState]),
         MatButtonModule,
         MatDialogModule,
-        MatIconModule,
+        AppIconComponent,
         MatMenuModule,
         PipesModule,
         RouterLink,

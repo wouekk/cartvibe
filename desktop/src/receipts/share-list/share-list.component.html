@@ -107,7 +107,7 @@
         <div content class="flex flex-col item-form-container">
           @if (itemData.isLinkedItem && itemData.parentItem) {
             <div class="flex items-center mb-2 p-2 bg-muted border-l border-primary">
-              <mat-icon class="me-2 text-primary">link</mat-icon>
+              <app-icon class="me-2 text-primary" name="link"></app-icon>
               <small class="text-muted-foreground">
                 Split from: <strong>{{ itemData.parentItem.name }}</strong> 
                 ({{ itemData.parentItem.amount | customCurrency }})

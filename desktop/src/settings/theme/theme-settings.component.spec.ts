@@ -30,8 +30,8 @@ describe("ThemeSettingsComponent", () => {
     expect(el("theme-mode-light").textContent).toContain("Light");
     expect(el("theme-mode-dark").textContent).toContain("Dark");
     expect(el("theme-mode-system").getAttribute("aria-checked")).toBe("true");
-    expect(el("theme-mode-system").textContent).toContain("check");
-    expect(el("theme-mode-dark").textContent).not.toContain("check");
+    expect(el("theme-mode-system").querySelector("app-icon[name=check]")).not.toBeNull();
+    expect(el("theme-mode-dark").querySelector("app-icon[name=check]")).toBeNull();
   });
 
   it("switches the mode when one is picked", async () => {
@@ -40,7 +40,7 @@ describe("ThemeSettingsComponent", () => {
 
     expect(theme.mode()).toBe("dark");
     expect(el("theme-mode-dark").getAttribute("aria-checked")).toBe("true");
-    expect(el("theme-mode-dark").textContent).toContain("check");
+    expect(el("theme-mode-dark").querySelector("app-icon[name=check]")).not.toBeNull();
     expect(document.documentElement.classList.contains("dark")).toBe(true);
   });
 });

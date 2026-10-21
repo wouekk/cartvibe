@@ -3,7 +3,7 @@ import { Component, DestroyRef, OnInit, computed, inject, signal } from "@angula
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
-import { MatIconModule } from "@angular/material/icon";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { Store } from "@ngxs/store";
 import { catchError, finalize, map, Observable, of, startWith, switchMap, take, tap } from "rxjs";
 import { CheckboxModule } from "../../checkbox/checkbox.module";
@@ -53,7 +53,7 @@ export interface ConnectionResult {
     CommonModule,
     InputModule,
     MatButtonModule,
-    MatIconModule,
+    AppIconComponent,
     PipesModule,
     ReactiveFormsModule,
     SelectModule,

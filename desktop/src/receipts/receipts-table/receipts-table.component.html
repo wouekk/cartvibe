@@ -75,7 +75,7 @@
           data-testid="receipts-quick-scan"
           (click)="quickScanClicked()"
         >
-          <mat-icon>receipt_long</mat-icon>
+          <app-icon name="receipt_long"></app-icon>
           <span>Quick Scan</span>
         </button>
       }
@@ -86,7 +86,7 @@
           data-testid="receipts-export-all"
           (click)="exportAllReceipts()"
         >
-          <mat-icon>download</mat-icon>
+          <app-icon name="download"></app-icon>
           <span>Export all receipts</span>
         </button>
       }
@@ -96,7 +96,7 @@
         data-testid="configure-columns"
         (click)="configureColumnsButtonClicked()"
       >
-        <mat-icon>view_column</mat-icon>
+        <app-icon name="view_column"></app-icon>
         <span>Configure Columns</span>
       </button>
 
@@ -107,7 +107,7 @@
           data-testid="receipts-poll-email"
           (click)="pollEmail()"
         >
-          <mat-icon>mail</mat-icon>
+          <app-icon name="mail"></app-icon>
           <span>Poll email(s)</span>
         </button>
       </ng-container>
@@ -121,7 +121,7 @@
           data-testid="receipts-export-selected"
           (click)="exportSelectedReceipts()"
         >
-          <mat-icon>file_upload</mat-icon>
+          <app-icon name="file_upload"></app-icon>
           <span>Export Selected Receipts</span>
         </button>
 
@@ -131,7 +131,7 @@
             data-testid="receipts-bulk-status"
             (click)="showStatusUpdateDialog()"
           >
-            <mat-icon>fact_check</mat-icon>
+            <app-icon name="fact_check"></app-icon>
             <span>Bulk Status Update</span>
           </button>
         }
@@ -163,7 +163,7 @@
           [attr.data-testid]="'receipt-filter-chip-clear-' + chip.key"
           [attr.aria-label]="'Remove ' + chip.label + ' filter'"
         >
-          <mat-icon>cancel</mat-icon>
+          <app-icon name="cancel"></app-icon>
         </button>
       </mat-chip>
     }

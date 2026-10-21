@@ -3,21 +3,21 @@
 
   @if (!loading() && hasError()) {
     <div class="drill__warning" data-testid="report-receipt-error">
-      <mat-icon>warning</mat-icon>
+      <app-icon name="warning"></app-icon>
       The receipts couldn't be loaded.
     </div>
   }
 
   @if (!loading() && !hasError() && truncated()) {
     <div class="drill__warning" data-testid="report-receipt-truncated">
-      <mat-icon>info</mat-icon>
+      <app-icon name="info"></app-icon>
       Showing the newest {{ receipts().length }} of {{ totalCount() }} receipts.
     </div>
   }
 
   @if (loading()) {
     <div class="drill__state">
-      <mat-icon class="drill__spinner">autorenew</mat-icon>
+      <app-icon class="drill__spinner" name="autorenew"></app-icon>
       Loading receipts…
     </div>
   } @else if (selected(); as receipt) {
@@ -33,7 +33,7 @@
 
     <div class="drill__card">
       <div class="drill__card-header">
-        <span class="drill__card-icon"><mat-icon>receipt</mat-icon></span>
+        <span class="drill__card-icon"><app-icon name="receipt"></app-icon></span>
         <div class="drill__card-heading">
           <div class="drill__card-name">{{ receipt.name }}</div>
           <div class="drill__card-date">{{ receipt.date | appDate: "mediumDate" : "calendar" }}</div>
@@ -85,7 +85,7 @@
               <td class="drill__num">{{ receipt.amount | customCurrency }}</td>
               <td><app-status-chip [status]="receipt.status"></app-status-chip></td>
               <td class="drill__chevron-col">
-                <mat-icon class="drill__chevron">chevron_right</mat-icon>
+                <app-icon class="drill__chevron" name="chevron_right"></app-icon>
               </td>
             </tr>
           }

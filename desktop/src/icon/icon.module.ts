@@ -1,11 +1,12 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
+import { MatIconRegistry } from "@angular/material/icon";
+import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { DomSanitizer } from '@angular/platform-browser';
 
 @NgModule({
   declarations: [],
-  imports: [CommonModule, MatIconModule],
+  imports: [CommonModule, AppIconComponent],
 })
 export class IconModule {
   constructor(

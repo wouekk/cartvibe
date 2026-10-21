@@ -2,7 +2,7 @@ import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 import { MatDialogModule } from "@angular/material/dialog";
-import { MatIconModule } from "@angular/material/icon";
+import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { UserAutocompleteModule } from "src/user-autocomplete/user-autocomplete.module";
 import { AutocompleteModule } from "../autocomplete/autocomplete.module";
@@ -49,7 +49,7 @@ import { ReportsRoutingModule } from "./reports-routing.module";
     DirectivesModule,
     InputModule,
     MatDialogModule,
-    MatIconModule,
+    AppIconComponent,
     PipesModule,
     ReactiveFormsModule,
     ReportsRoutingModule,

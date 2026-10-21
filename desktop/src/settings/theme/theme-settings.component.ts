@@ -1,5 +1,5 @@
 import { Component, inject } from "@angular/core";
-import { MatIconModule } from "@angular/material/icon";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { SYSTEM_MODE, ThemeMode, ThemeService } from "../../theme/theme.service";
 import { THEMES } from "../../theme/themes";
 
@@ -16,7 +16,7 @@ interface ModeOption {
 @Component({
   selector: "app-theme-settings",
   standalone: true,
-  imports: [MatIconModule],
+  imports: [AppIconComponent],
   template: `
     <div class="max-w-xl">
       <section
@@ -39,10 +39,10 @@ interface ModeOption {
                 [attr.data-testid]="'theme-mode-' + option.mode"
                 (click)="theme.setMode(option.mode)"
               >
-                <mat-icon aria-hidden="true">{{ option.icon }}</mat-icon>
+                <app-icon [name]="option.icon"></app-icon>
                 <span class="flex-1">{{ option.label }}</span>
                 @if (theme.mode() === option.mode) {
-                  <mat-icon aria-hidden="true">check</mat-icon>
+                  <app-icon name="check"></app-icon>
                 }
               </button>
             </li>

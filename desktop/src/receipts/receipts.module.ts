@@ -6,7 +6,7 @@ import { MatCardModule } from "@angular/material/card";
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import { MatDialogModule } from "@angular/material/dialog";
 import { MatExpansionModule } from "@angular/material/expansion";
-import { MatIconModule } from "@angular/material/icon";
+import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatMenuModule } from "@angular/material/menu";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
@@ -88,7 +88,7 @@ import { UserTotalWithPercentagePipe } from "./user-total-with-percentage.pipe";
     MatChipsModule,
     MatDialogModule,
     MatExpansionModule,
-    MatIconModule,
+    AppIconComponent,
     MatMenuModule,
     ...HlmDropdownMenuImports,
     MatProgressSpinnerModule,

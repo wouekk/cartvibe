@@ -17,7 +17,7 @@
         data-testid="shopping-list-add-submit"
         [disabled]="adding()"
       >
-        <mat-icon>add</mat-icon>
+        <app-icon name="add"></app-icon>
       </button>
     </div>
   </form>
@@ -48,7 +48,7 @@
         [attr.aria-expanded]="showCrossedOff()"
         (click)="showCrossedOff.set(!showCrossedOff())"
       >
-        <mat-icon>{{ showCrossedOff() ? "expand_less" : "expand_more" }}</mat-icon>
+        <app-icon [name]="showCrossedOff() ? 'expand_less' : 'expand_more'"></app-icon>
         Crossed off ({{ checkedItems().length }})
       </button>
       @if (canUpdate() && showCrossedOff()) {

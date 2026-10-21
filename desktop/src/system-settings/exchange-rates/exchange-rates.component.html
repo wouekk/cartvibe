@@ -35,7 +35,7 @@
         }
         @if (canUpdate()) {
           <button mat-icon-button type="button" [attr.aria-label]="'Remove ' + row.code" (click)="removeCurrency(index)">
-            <mat-icon>close</mat-icon>
+            <app-icon name="close"></app-icon>
           </button>
         }
       </div>
@@ -55,7 +55,7 @@
           (keydown.enter)="addCurrency(); $event.preventDefault()"
         />
         <button mat-stroked-button type="button" data-testid="exchange-rate-add" (click)="addCurrency()">
-          <mat-icon>add</mat-icon>
+          <app-icon name="add"></app-icon>
           Add currency
         </button>
       </div>
