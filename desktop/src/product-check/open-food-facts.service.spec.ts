@@ -1,14 +1,18 @@
-import { HttpBackend, HttpRequest, HttpResponse } from "@angular/common/http";
+import { HttpBackend, HttpErrorResponse, HttpRequest, HttpResponse } from "@angular/common/http";
 import { TestBed } from "@angular/core/testing";
-import { Observable, of } from "rxjs";
+import { Observable, of, throwError } from "rxjs";
 import { OpenFoodFactsService, toCheckedProduct } from "./open-food-facts.service";
 
 class FakeBackend {
   public requests: HttpRequest<unknown>[] = [];
   public body: unknown = {};
+  public failWith: number | null = null;
 
   public handle(request: HttpRequest<unknown>): Observable<HttpResponse<unknown>> {
     this.requests.push(request);
+    if (this.failWith) {
+      return throwError(() => new HttpErrorResponse({ status: this.failWith as number, url: request.url, error: this.body }));
+    }
 
     return of(new HttpResponse({ status: 200, body: this.body }));
   }
@@ -57,16 +61,24 @@ describe("OpenFoodFactsService", () => {
     });
   });
 
-  it("searches by name and drops results without a code or a name", (done) => {
-    backend.body = { products: [NUTELLA, { code: "1" }, { product_name: "No code" }] };
+  it("treats the 404 Open Food Facts sends for an unknown barcode as not found", (done) => {
+    backend.failWith = 404;
+    backend.body = { code: "96385074", status: 0, status_verbose: "product not found" };
 
-    service.search("nutella").subscribe((products) => {
-      const request = backend.requests[0];
-      expect(request.url).toBe("https://world.openfoodfacts.org/cgi/search.pl");
-      expect(request.params.get("search_terms")).toBe("nutella");
-      expect(request.params.get("json")).toBe("1");
-      expect(products.map((product) => product.code)).toEqual(["3017620422003"]);
+    service.getByBarcode("96385074").subscribe((product) => {
+      expect(product).toBeNull();
       done();
+    });
+  });
+
+  it("still reports any other HTTP failure as an error", (done) => {
+    backend.failWith = 503;
+
+    service.getByBarcode("3017620422003").subscribe({
+      error: (error) => {
+        expect(error.status).toBe(503);
+        done();
+      },
     });
   });
 

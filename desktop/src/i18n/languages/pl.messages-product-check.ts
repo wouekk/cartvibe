@@ -1,7 +1,7 @@
 /** Polish texts for the product checker in the header and the receipts search (merged into PL). */
 export const PL_PRODUCT_CHECK: Record<string, string> = {
-  "Check product or barcode…": "Sprawdź produkt lub kod kreskowy…",
-  "Check product or barcode": "Sprawdź produkt lub kod kreskowy",
+  "Check a product barcode…": "Sprawdź kod kreskowy produktu…",
+  "Check a product barcode": "Sprawdź kod kreskowy produktu",
   "Check a product": "Sprawdź produkt",
   "Scan a barcode": "Zeskanuj kod kreskowy",
   "Starting the camera…": "Uruchamianie aparatu…",
@@ -13,7 +13,8 @@ export const PL_PRODUCT_CHECK: Record<string, string> = {
   "Not found in Open Food Facts.": "Nie znaleziono w Open Food Facts.",
   "Could not reach Open Food Facts. Check your connection and try again.":
     "Nie udało się połączyć z Open Food Facts. Sprawdź połączenie i spróbuj ponownie.",
-  "Back to results": "Wróć do wyników",
+  "That is not a barcode. Enter the 8, 12 or 13 digits printed under the bars, or scan the code with the camera.":
+    "To nie jest kod kreskowy. Wpisz 8, 12 lub 13 cyfr z pod kreskami albo zeskanuj kod aparatem.",
   "Health score": "Ocena zdrowotna",
   "A general guide from Nutri-Score, NOVA and the additives, not medical advice.":
     "Ogólna wskazówka na podstawie Nutri-Score, NOVA i dodatków, a nie porada medyczna.",
@@ -41,8 +42,8 @@ export const PL_PRODUCT_CHECK: Record<string, string> = {
   "Flavour enhancer": "Wzmacniacz smaku",
   "Acidity regulator": "Regulator kwasowości",
   "Other": "Inne",
-  "Type a product name or a barcode in the top bar, or scan one with the camera.":
-    "Wpisz nazwę produktu lub kod kreskowy na górnym pasku albo zeskanuj go aparatem.",
+  "Type a barcode in the top bar, or scan one with the camera.":
+    "Wpisz kod kreskowy na górnym pasku albo zeskanuj go aparatem.",
   "Matched:": "Pasuje:",
   "Clear search": "Wyczyść wyszukiwanie",
 };

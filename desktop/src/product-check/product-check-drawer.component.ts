@@ -51,7 +51,7 @@ interface NutritionRow {
 /**
  * The slide-over that shows what the product checker found: a verdict (health score, Nutri-Score, NOVA group), the
  * additives with their risk, and the nutrition per 100 g. It reads `ProductCheckService`, which the header input and the
- * barcode scanner feed, so one drawer serves a typed name, a typed barcode and a scan alike.
+ * barcode scanner feed, so one drawer serves a typed barcode and a scan alike.
  */
 @Component({
   selector: "app-product-check-drawer",
@@ -67,7 +67,7 @@ interface NutritionRow {
       </button>
     </header>
 
-    <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
+    <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 [&>*]:shrink-0">
       @if (recent().length) {
         <div class="rw-scroll-x -mx-1 flex gap-2 px-1" role="list" [attr.aria-label]="'Recent scans' | t" data-testid="product-check-recent">
           @for (item of recent(); track item.code) {
@@ -105,36 +105,13 @@ interface NutritionRow {
             {{ 'Could not reach Open Food Facts. Check your connection and try again.' | t }}
           </p>
         }
-        @case ('results') {
-          <ul class="rw-card m-0 list-none p-0" data-testid="product-check-results">
-            @for (result of results(); track result.code) {
-              <li class="border-b border-border last:border-b-0">
-                <button
-                  type="button"
-                  class="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-accent focus-visible:bg-accent focus-visible:outline-none"
-                  [attr.data-testid]="'product-check-result-' + result.code"
-                  (click)="show(result)"
-                >
-                  <span class="min-w-0 flex-1">
-                    <span class="block text-[0.6875rem] font-semibold tracking-[0.08em] text-muted-foreground uppercase">{{ result.brand }}</span>
-                    <span class="block truncate text-sm">{{ result.name }}</span>
-                  </span>
-                  @if (result.nutriScore; as grade) {
-                    <span class="inline-flex size-6 items-center justify-center rounded-md text-xs font-bold uppercase" [class]="nutriClass(grade)">{{ grade }}</span>
-                  }
-                </button>
-              </li>
-            }
-          </ul>
+        @case ('needsBarcode') {
+          <p class="m-0 rounded-xl border border-border p-4 text-sm text-muted-foreground" data-testid="product-check-needs-barcode">
+            {{ 'That is not a barcode. Enter the 8, 12 or 13 digits printed under the bars, or scan the code with the camera.' | t }}
+          </p>
         }
         @case ('product') {
           @if (product(); as current) {
-            @if (results().length) {
-              <button type="button" class="self-start text-xs text-muted-foreground underline-offset-2 hover:underline" data-testid="product-check-back" (click)="back()">
-                {{ 'Back to results' | t }}
-              </button>
-            }
-
             <div class="rw-card" data-testid="product-check-product">
               <div class="rw-card__body">
                 <div class="rw-section">
@@ -231,7 +208,7 @@ interface NutritionRow {
         }
         @default {
           <p class="m-0 text-sm text-muted-foreground" data-testid="product-check-idle">
-            {{ 'Type a product name or a barcode in the top bar, or scan one with the camera.' | t }}
+            {{ 'Type a barcode in the top bar, or scan one with the camera.' | t }}
           </p>
         }
       }
@@ -244,7 +221,6 @@ export class ProductCheckDrawerComponent {
 
   protected readonly status = this.service.status;
   protected readonly product = this.service.product;
-  protected readonly results = this.service.results;
   protected readonly recent = this.service.recentProducts;
 
   protected readonly healthScore = computed(() => {
@@ -276,10 +252,6 @@ export class ProductCheckDrawerComponent {
 
   protected show(product: CheckedProduct): void {
     this.service.showProduct(product);
-  }
-
-  protected back(): void {
-    this.service.backToResults();
   }
 
   protected close(): void {

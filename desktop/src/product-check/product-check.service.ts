@@ -4,11 +4,14 @@ import { OpenFoodFactsService } from "./open-food-facts.service";
 import { CheckedProduct } from "./product-check.models";
 import { RecentProductsService } from "./recent-products.service";
 
-export type ProductCheckStatus = "idle" | "loading" | "product" | "results" | "notFound" | "error";
+export type ProductCheckStatus = "idle" | "loading" | "product" | "notFound" | "needsBarcode" | "error";
 
 /**
  * What the product checker is showing. The header input and the scanner feed it; the drawer reads it. A request that is
- * answered after a newer one was started is ignored, so a slow search can never replace a barcode the person scanned since.
+ * answered after a newer one was started is ignored, so a slow lookup can never replace a product picked since.
+ *
+ * Only barcodes can be checked: Open Food Facts refuses name searches from a browser (see `OpenFoodFactsService`), so
+ * anything else is answered with `needsBarcode` and no request is made.
  */
 @Injectable({ providedIn: "root" })
 export class ProductCheckService {
@@ -20,11 +23,10 @@ export class ProductCheckService {
   public readonly status = signal<ProductCheckStatus>("idle");
   public readonly query = signal("");
   public readonly product = signal<CheckedProduct | null>(null);
-  public readonly results = signal<CheckedProduct[]>([]);
 
   public readonly recentProducts = this.recent.products;
 
-  /** Checks what was typed or scanned: a barcode is looked up, anything else is searched for. */
+  /** Checks what was typed or scanned: a valid barcode is looked up, anything else is turned down. */
   public check(input: string): void {
     const text = input.trim();
     if (!text) {
@@ -33,39 +35,27 @@ export class ProductCheckService {
 
     const request = ++this.latestRequest;
     this.query.set(text);
-    this.status.set("loading");
 
     const barcode = asBarcode(text);
-    if (barcode) {
-      this.openFoodFacts.getByBarcode(barcode).subscribe({
-        next: (product) => this.ifCurrent(request, () => (product ? this.showProduct(product) : this.status.set("notFound"))),
-        error: () => this.ifCurrent(request, () => this.status.set("error")),
-      });
+    if (!barcode) {
+      this.status.set("needsBarcode");
 
       return;
     }
 
-    this.openFoodFacts.search(text).subscribe({
-      next: (products) =>
-        this.ifCurrent(request, () => {
-          this.results.set(products);
-          this.status.set(products.length ? "results" : "notFound");
-        }),
+    this.status.set("loading");
+    this.openFoodFacts.getByBarcode(barcode).subscribe({
+      next: (product) => this.ifCurrent(request, () => (product ? this.showProduct(product) : this.status.set("notFound"))),
       error: () => this.ifCurrent(request, () => this.status.set("error")),
     });
   }
 
-  /** Shows a product (picked from the results, the recent scans or a lookup) and remembers it. */
+  /** Shows a product (a lookup, or one of the recent scans) and remembers it. */
   public showProduct(product: CheckedProduct): void {
     this.latestRequest++;
     this.product.set(product);
     this.status.set("product");
     this.recent.add(product);
-  }
-
-  /** Back from a product to the search results it was picked from. */
-  public backToResults(): void {
-    this.status.set(this.results().length ? "results" : "idle");
   }
 
   private ifCurrent(request: number, action: () => void): void {
