@@ -51,7 +51,7 @@
     font-weight: 500;
 
     &:hover {
-      background: #ccecff;
+      background: var(--accent);
     }
 
     mat-icon {

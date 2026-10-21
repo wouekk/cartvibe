@@ -22,7 +22,7 @@
   gap: variables.$spacing-xs;
 
   .active {
-    background: #e2e8f0;
+    background: var(--accent);
   }
 }
 

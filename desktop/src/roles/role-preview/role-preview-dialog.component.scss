@@ -17,7 +17,7 @@
     border-radius: 999px;
     font-size: 0.8rem;
     font-weight: 600;
-    background: #ccecff;
+    background: var(--accent);
     color: #0086d4;
 
     mat-icon {
@@ -27,17 +27,17 @@
     }
 
     &.group {
-      background: #ede9fe;
+      background: var(--accent);
       color: #6d28d9;
     }
 
     &.system {
-      background: #e2e8f0;
+      background: var(--accent);
       color: var(--muted-foreground);
     }
 
     &.default {
-      background: #fef3c7;
+      background: color-mix(in oklab, oklch(0.8 0.16 85) 22%, transparent);
       color: #b45309;
     }
   }
