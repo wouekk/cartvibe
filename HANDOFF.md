@@ -2,59 +2,56 @@
 
 ## Status (2026-10-21, Windows PC, Claude Code desktop app)
 
-**Branch `feature/theme-modes` is 5 commits ahead of `main` and is NOT merged. The user said to wait for their go
-before merging to `main`.** Its last commit with code is `59349669` ("Round 5"); CI was green and the image was
-published as `ghcr.io/wouekk/receipt-wrangler:preview` (manual "Publish image" run from the branch; `:latest` is
-still the previous `main`). Every other branch of ours (`feature/clean-theme`, `feature/phase-3-backlog`, ...) is
-already contained in it or in `main`; branches under `origin/` that are ahead of `main` belong to the upstream authors.
+**`v0.1.0` is released: `feature/theme-modes` was fast-forwarded into `main` (`f29878ef`) and tagged.** CI on `main`
+was green; `publish-image.yml` pushes `ghcr.io/wouekk/receipt-wrangler:latest`. Our other `feature/*` branches are
+contained in `main` and can be deleted when convenient.
 
-What the branch adds over `main` (all on the `:preview` image):
-- **Themes:** User Settings → Theme (System / Light / Dark, five accents), applied before first paint; dark mode is a
-  whole-page filter. The accent tints the page, a deep shade for the sidebar and the filled buttons; charts stay fixed.
-- **CartVibe identity** as supplied (logo lockup, icon, favicon, both loaders), on the header, login and loading screens.
-- **Round 5:** Save inside the card (`app-form-button-bar` is an inline card row), empty required fields shake, themed
-  shell and sidebar (no unstyled strip when the sidebar is hidden), centered Quick Scan upload button, the AI page for
-  every member, receipts renamed to the shop the AI read, three starter reports, no "Imports" in the sidebar.
-- System Settings as five pill tabs, Dashboard period picker, goal editor on the Spent card, receipt table cleanup,
-  exchange-rate input fix, ambiguous-column fix (earlier rounds, all on `main` or the branch).
+What 0.1.0 holds (see `CHANGELOG.md`): shopping lists with live sync, the Dashboard, receipt products with health and
+seasonality tags, receipts attached to lists, the admin AI page (every member may use it), themes (light, dark in dark
+gray, five accents; filled buttons, the progress bar, the header and the sidebar avatars follow the accent), the CartVibe
+identity and a large animated loading screen, a page that grows into a collapsed sidebar, System Settings in five tabs,
+starter reports. System Settings is admin-only again in the menu.
 
-**To release:** the user says "go" -> fast-forward `main` to `feature/theme-modes` (CI runs on `main`), then
-`publish-image.yml` pushes `:latest`; on the NAS pull and redeploy in Dockhand (the stack uses `pull_policy: always`), then
-hard-refresh. Until then the NAS may run `:preview`.
+Also done today:
+- **Credit and licence:** `LICENSE` (AGPL-3.0), `NOTICE.md` crediting Noah Hall (@Noah231515) and the original project,
+  README and project page (`site/`) say it is a vibe-coded fork. Never remove these (see `CLAUDE.md`).
+- **Upstream clean-up:** upstream-only workflows, `.idea/` and `tag-version.sh` removed; the 53 upstream branches and
+  80 upstream tags were deleted from GitHub with `scripts/remove-upstream-refs.sh`. History is untouched.
+- **Cache:** nginx now sends `Cache-Control: no-cache` for the app shell, hashed build files are cached a year. Untested
+  locally (no Docker here): if the container ever fails to start, look at `docker/default.conf` first.
 
-**Instruction files were reviewed and consolidated on 2026-10-21:** `desktop/CLAUDE.md` now ends with one topic-organized
-"Fork guide: CartVibe" (it replaced a chronological log); `api/CLAUDE.md` fork sections were patched where they were
-stale; the root `CLAUDE.md` table points at the new headings; `AGENTS.md` lists what is shipped and the `:preview` tag.
+**Still to do by the user:** pull `:latest` in Dockhand and redeploy (hard-refresh once, the old page is cached); enable
+GitHub Pages (Settings → Pages → Source: GitHub Actions) and re-run the "Project page" workflow, which failed only
+because Pages was off.
 
 ## Open questions
 
-- **"Error retrieving categories" toast on a non-admin account:** probably a role without `app.categories.read`
-  (e.g. Legacy User, which has the group catalogs through AppData instead). Ask the user which role that account has, or
-  for the Logs line (an admin sees the server log in System Settings → Logs).
 - **Language (EN / PL):** approach B (a translation library) is decided and waits for the Mac (see the backlog). Still
-  unanswered: should the AI answer in one household-wide language (recommended) or in the language of whoever uploaded?
-  The user wants a short chat about it before building.
+  unanswered: should the AI answer in one household-wide language (recommended) or in the uploader's language?
+- **Per-user display currency (option C):** each person picks a currency and a manual rate; only the Dashboard converts
+  its figures in the browser; no API permission changes, two additive preference fields. Parked by the user for later;
+  currencies and exchange rates stay under System Settings for now.
 
 ## Next
 
 ### Claude Code
-1. Wait for the user's go, then merge `feature/theme-modes` into `main` (see above). Do not merge before.
-2. M3 / F1 are checks, not builds: Manage Users, Categories, Tags and Custom Fields already list everything for an
-   admin and OIDC providers sit only under System Settings; revisit if the user finds them too complex.
-3. Admin chore: delete the empty "My Receipts" groups the household migration left (Manage Households).
-4. Stale Playwright specs: only when e2e is run (they need a live API; none of them ran here).
+1. Per-user display currency (when the user asks), Dashboard only first.
+2. M3 / F1 are checks, not builds: revisit only if the user finds Manage pages too complex.
+3. Tidy `ci.yml`: its upstream-only steps (Codecov, Docker Hub, gated to the original repo) are dead.
+4. Stale Playwright specs: only when e2e can run (they need a live API; none ran here).
+5. Cut releases with SemVer tags `vX.Y.Z` on `main` after green CI and a `CHANGELOG.md` entry; a preview for the user
+   goes out with `gh workflow run publish-image.yml --repo wouekk/receipt-wrangler --ref <branch>` (publishes `:preview`).
 
 ### User
-- Try the `:preview` image on the NAS and say "go" for the merge, or list what to change.
-- If not done yet: Manage → AI (Gemini or LM Studio, Save, Test connection); System Settings → Currency → Euro; an
-  account for the wife with the role User, added to the household group.
+- Redeploy `:latest`, enable Pages, answer the language question.
+- If not done yet: Manage → AI (Gemini or LM Studio, Save, Test connection); an account for the wife with the role User.
 
 ### Cline
 - Triage the latest failing CI run, if any: `gh run list --repo wouekk/receipt-wrangler --limit 5`, then
   `gh run view <id> --log-failed`; record findings below.
-- Safe polish targets: SCSS in `desktop/src/shopping-lists/` (including `shopping-trips/` and `attach-receipt-dialog/`),
-  `desktop/src/overview/`, `desktop/src/receipts/receipt-products/`, `desktop/src/standalone/components/food-tags/`,
-  `desktop/src/layout/sidebar/`, `desktop/src/theme/`. Remember dark mode is a filter: author colors for the light page.
+- Safe polish targets: SCSS in `desktop/src/shopping-lists/`, `desktop/src/overview/`, `desktop/src/receipts/receipt-products/`,
+  `desktop/src/standalone/components/food-tags/`, `desktop/src/layout/sidebar/`, `desktop/src/theme/`. Dark mode is a
+  filter: author colors for the light page.
 
 ## Reminders for a fresh session
 - Go is not on the bash PATH here (`export PATH="$PATH:/c/Program Files/Go/bin"`); `api/scripts/go-without-cgo.sh vet ./...`
@@ -87,6 +84,4 @@ be done by GitHub Actions or on the Mac.
 ## Upstream clean-up log (2026-10-21)
 - Done: `.idea/` untracked, upstream-only workflows (`e2e`, `mobile-e2e`, `release`) and `tag-version.sh` removed, `LICENSE`,
   `NOTICE.md`, `CHANGELOG.md`, `site/` (project page, `pages.yml`) added, README rewritten with credit to Noah Hall.
-- Pending (the assistant's shell was refused permission to delete remote refs): run `scripts/remove-upstream-refs.sh` in a
-  terminal. It deletes 53 upstream branches and the 80 upstream tags (v6.x-v7.2.0) from `origin`; ours are kept.
-- After the merge to `main`: tag `v0.1.0`, enable GitHub Pages (source: GitHub Actions) and check the page.
+- Done: `scripts/remove-upstream-refs.sh` was run by the user; the upstream branches and tags are gone from `origin`.
