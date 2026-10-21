@@ -104,7 +104,7 @@ test.describe('Header search bar gating (no app.receipts.search)', () => {
     // Same page the positive test uses (the user holds app.groups.create).
     await page.goto('/groups/create');
     await expect(page.getByLabel('Group Name')).toBeVisible();
-    await expect(page.getByPlaceholder('Search receipts')).toHaveCount(0);
+    await expect(page.getByRole('combobox', { name: 'Search receipts' })).toHaveCount(0);
   });
 });
 
@@ -121,6 +121,6 @@ test.describe('Header search bar contrast (holds app.receipts.search)', () => {
   test('the search bar renders with app.receipts.search', async ({ page }) => {
     await page.goto('/groups/create');
     await expect(page.getByLabel('Group Name')).toBeVisible();
-    await expect(page.getByPlaceholder('Search receipts')).toBeVisible();
+    await expect(page.getByRole('combobox', { name: 'Search receipts' })).toBeVisible();
   });
 });

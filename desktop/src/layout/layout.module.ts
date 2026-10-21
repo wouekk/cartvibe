@@ -16,6 +16,7 @@ import { PipesModule } from "src/pipes/pipes.module";
 import { SearchbarModule } from "src/searchbar/searchbar.module";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { AvatarModule } from "../avatar";
+import { NgIcon } from "@ng-icons/core";
 import { HlmCollapsibleImports } from "@spartan-ng/helm/collapsible";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { HlmSidebarImports } from "@spartan-ng/helm/sidebar";
@@ -48,6 +49,7 @@ import { SidebarComponent } from "./sidebar/sidebar.component";
     MatIconModule,
     MatMenuModule,
     MatProgressBarModule,
+    NgIcon,
     ...HlmCollapsibleImports,
     ...HlmDropdownMenuImports,
     ...HlmSidebarImports,

@@ -90,7 +90,7 @@ test.describe('Legacy User visibility', () => {
     await page.goto('/groups/create');
     // The search bar is now gated on app.receipts.search, which the Legacy User
     // holds — so the always-visible header search input still renders for them.
-    await expect(page.getByPlaceholder('Search receipts')).toBeVisible();
+    await expect(page.getByRole('combobox', { name: 'Search receipts' })).toBeVisible();
   });
 });
 
