@@ -7,12 +7,9 @@ apt-get install python3.13-venv -y
 # Set up venv
 python3 -m venv wranglervenv
 . wranglervenv/bin/activate
-# Install requirements
+# Install requirements (the IMAP client). EasyOCR and PyTorch are no longer installed: Tesseract reads every
+# image, and they brought OpenCV with a bundled ffmpeg and a new Python process per image.
 pip3 install -r ./imap-client/requirements.txt
-# Install pytorch cpu
-pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-# Install easyocr
-pip3 install easyocr
 # Newest build tools last, so nothing above leaves an old setuptools, wheel or jaraco.context behind
 # (the image scan flags the versions pip ships with).
 pip3 install --upgrade setuptools wheel jaraco.context
