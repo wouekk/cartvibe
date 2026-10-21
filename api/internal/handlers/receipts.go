@@ -178,7 +178,7 @@ func GetReceiptsForGroupIds(w http.ResponseWriter, r *http.Request) {
 }
 
 // CreateReceipt is the original JSON create. Deprecated in favour of
-// CreateReceiptWithFiles, it is kept for already-released mobile builds, which
+// CreateReceiptWithFiles, it is kept for API clients that
 // upload images in separate calls after it returns. It enforces the same
 // role-required fields, so a role that requires an image necessarily rejects it —
 // with a message telling the user to update their app.

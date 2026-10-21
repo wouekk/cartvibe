@@ -1,18 +1,14 @@
 package middleware
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"receipt-wrangler/api/internal/commands"
 	"receipt-wrangler/api/internal/constants"
 	"receipt-wrangler/api/internal/models"
 	"receipt-wrangler/api/internal/repositories"
 	"receipt-wrangler/api/internal/services"
 	"receipt-wrangler/api/internal/utils"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -56,33 +52,6 @@ func TestGetRefreshTokenFromRequest_NoCookie(t *testing.T) {
 	_, err := getRefreshTokenFromRequest(r, w)
 	if err == nil {
 		utils.PrintTestError(t, err, "expected cookie-missing error")
-	}
-}
-
-func TestGetRefreshTokenFromRequest_MobileBodyWithToken(t *testing.T) {
-	body, _ := json.Marshal(commands.LogoutCommand{RefreshToken: "body-refresh-token"})
-	r := httptest.NewRequest(http.MethodPost, "/api/refresh", bytes.NewReader(body))
-	r.Header.Set("User-Agent", "Dart/3.2 (dart:io)")
-	w := httptest.NewRecorder()
-
-	token, err := getRefreshTokenFromRequest(r, w)
-	if err != nil {
-		utils.PrintTestError(t, err, nil)
-	}
-	if token != "body-refresh-token" {
-		utils.PrintTestError(t, token, "body-refresh-token")
-	}
-}
-
-func TestGetRefreshTokenFromRequest_MobileEmptyBody(t *testing.T) {
-	r := httptest.NewRequest(http.MethodPost, "/api/refresh", strings.NewReader(""))
-	r.Header.Set("User-Agent", "Dart/3.2 (dart:io)")
-	w := httptest.NewRecorder()
-
-	// Empty body -> json.Unmarshal returns "unexpected end of JSON input".
-	_, err := getRefreshTokenFromRequest(r, w)
-	if err == nil {
-		utils.PrintTestError(t, err, "expected JSON decode error")
 	}
 }
 

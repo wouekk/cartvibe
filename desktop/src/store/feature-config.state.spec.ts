@@ -14,26 +14,6 @@ describe("FeatureConfigState", () => {
     store = TestBed.inject(Store);
   });
 
-  it("defaults loginQrUrl to an empty string", () => {
-    expect(store.selectSnapshot(FeatureConfigState.loginQrUrl)).toBe("");
-  });
-
-  // Guards the SetFeatureConfig patchState block: it lists each field
-  // explicitly, so a new field is silently dropped unless added there.
-  it("patches loginQrUrl from SetFeatureConfig", () => {
-    const config: FeatureConfig = {
-      enableLocalSignUp: false,
-      aiPoweredReceipts: false,
-      loginQrUrl: "https://receiptwrangler.io/app/setup#url=x",
-    };
-
-    store.dispatch(new SetFeatureConfig(config));
-
-    expect(store.selectSnapshot(FeatureConfigState.loginQrUrl)).toBe(
-      "https://receiptwrangler.io/app/setup#url=x"
-    );
-  });
-
   it("defaults oidcProviders to an empty array", () => {
     expect(store.selectSnapshot(FeatureConfigState.oidcProviders)).toEqual([]);
   });
@@ -70,7 +50,6 @@ describe("FeatureConfigState", () => {
       new SetFeatureConfig({
         enableLocalSignUp: true,
         aiPoweredReceipts: true,
-        loginQrUrl: "https://receiptwrangler.io/app/setup#url=x",
       })
     );
 
