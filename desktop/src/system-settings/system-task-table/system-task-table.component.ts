@@ -28,7 +28,6 @@ import { SystemTaskFilterComponent } from "../system-task-filter/system-task-fil
 @Component({
   selector: "app-system-task-table",
   templateUrl: "./system-task-table.component.html",
-  styleUrl: "./system-task-table.component.scss",
   providers: [
     {
       provide: TABLE_SERVICE_INJECTION_TOKEN,

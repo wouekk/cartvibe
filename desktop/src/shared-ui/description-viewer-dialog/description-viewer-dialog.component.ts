@@ -9,7 +9,6 @@ export interface DescriptionViewerDialogData {
 @Component({
   selector: "app-description-viewer-dialog",
   templateUrl: "./description-viewer-dialog.component.html",
-  styleUrl: "./description-viewer-dialog.component.scss",
   standalone: false,
 })
 export class DescriptionViewerDialogComponent {

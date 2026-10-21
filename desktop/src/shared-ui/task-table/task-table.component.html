@@ -36,7 +36,7 @@
   @let receiptUpdate = receiptUpdates().get(element.id);
   @if (receiptUpdate) {
     <div class="flex items-center gap-2">
-      <div class="description-preview" data-testid="receipt-update-summary">
+      <div class="line-clamp-2 max-w-[40ch] break-words" data-testid="receipt-update-summary">
         {{
           receiptUpdate.changedKeys.length
             ? "Changed: " + receiptUpdate.changedKeys.join(", ")
@@ -53,7 +53,7 @@
     </div>
   } @else {
     <div class="flex items-center gap-2">
-      <div class="description-preview">
+      <div class="line-clamp-2 max-w-[40ch] break-words">
         <ng-container
           *ngIf="element.type === SystemTaskType.EmailRead"
         >

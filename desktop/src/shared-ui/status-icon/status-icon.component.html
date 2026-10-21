@@ -1,8 +1,8 @@
 <ng-container [ngSwitch]="taskStatus()">
   <ng-container *ngSwitchCase="SystemTaskStatus.Succeeded">
-    <app-icon class="success-icon" fontIcon="task_alt" name=""></app-icon>
+    <app-icon class="text-success-text" fontIcon="task_alt" name=""></app-icon>
   </ng-container>
   <ng-container *ngSwitchCase="SystemTaskStatus.Failed">
-    <app-icon class="error-icon" fontIcon="error_outline" name=""></app-icon>
+    <app-icon class="text-destructive" fontIcon="error_outline" name=""></app-icon>
   </ng-container>
 </ng-container>

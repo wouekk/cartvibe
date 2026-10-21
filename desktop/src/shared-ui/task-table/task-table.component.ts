@@ -23,7 +23,6 @@ interface ReceiptUpdateRow {
 @Component({
   selector: "app-task-table",
   templateUrl: "./task-table.component.html",
-  styleUrl: "./task-table.component.scss",
   standalone: false
 })
 export class TaskTableComponent implements OnInit, AfterViewInit {
