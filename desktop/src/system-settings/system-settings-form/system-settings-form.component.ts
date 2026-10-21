@@ -25,6 +25,7 @@ import { SetCurrencyData, SetCurrencyDisplay, SetTimeZone } from "../../store/sy
 import { DurationUnit, maxForUnit, minForUnit, splitHours, toHours } from "../../utils";
 import { DEFAULT_APP_TIME_ZONE, timeZoneOptions } from "../../utils/app-time-zone";
 import { absoluteUrlValidator, durationValueValidator } from "../../validators";
+import { ExchangeRatesComponent } from "../exchange-rates/exchange-rates.component";
 import { CURRENCY_PRESETS, CUSTOM_CURRENCY, matchCurrencyPreset } from "./currency-presets";
 
 interface QueueData extends FormOption {
@@ -44,6 +45,13 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
   public readonly fallbackReceiptProcessingSettings = viewChild<AutocomleteComponent>("fallbackReceiptProcessingSettings");
 
   public readonly alert = viewChild.required("alert", { read: ElementRef });
+
+  /** Only on the General tab; its rates save with this form's Save changes. */
+  public readonly exchangeRates = viewChild(ExchangeRatesComponent);
+
+  public hasUnsavedChanges(): boolean {
+    return this.form.dirty || !!this.exchangeRates()?.dirty();
+  }
 
   public originalSystemSettings!: SystemSettings;
 
@@ -454,6 +462,13 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
   }
 
   public submit(): void {
+    const rates = this.exchangeRates();
+    if (this.form.pristine && rates?.dirty()) {
+      // Only the exchange rates changed: there are no settings to send.
+      rates?.save();
+      return;
+    }
+
     const formValue = this.form.getRawValue();
     // Fold the value/unit pairs back into the hours the API stores, then drop
     // the presentation-only controls so they never reach the wire.
@@ -495,6 +510,9 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
           }
           this.form.markAsPristine();
           this.showRestartTaskServerAlert.set(restartTaskServer);
+          if (rates?.dirty()) {
+            rates.save(true);
+          }
         }),
         switchMap(() => this.featureConfigService.getFeatureConfig()),
         tap((featureConfig) => this.store.dispatch(new SetFeatureConfig(featureConfig))),
