@@ -1,7 +1,7 @@
-<div class="d-flex align-items-center">
+<div class="flex items-center">
   <mat-checkbox
     [ngClass]="{
-      'pe-none': readonly,
+      'pointer-events-none': readonly,
     }"
     [formControl]="inputFormControl"
     (keydown)="handleKeydown($event)"

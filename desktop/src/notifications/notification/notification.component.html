@@ -1,7 +1,7 @@
-<div class="d-flex align-items-center">
+<div class="flex items-center">
   <a class="notification" [routerLink]="[link]">
-    <div class="w-100">
-      <div class="w-100 d-flex flex-column">
+    <div class="w-full">
+      <div class="w-full flex flex-col">
         <strong>{{ notification().title }}</strong>
         <div>{{ parsedBody }}</div>
         <small>{{ notification().createdAt | appDate }}</small>

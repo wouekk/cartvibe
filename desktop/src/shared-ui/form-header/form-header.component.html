@@ -1,11 +1,11 @@
 <div
-  class="d-flex flex-column mb-3"
+  class="flex flex-col mb-4"
   [ngClass]="{
-    'mb-3': bottomSpacing()
+    'mb-4': bottomSpacing()
   }"
 >
   @if (displayBackButton()) {
-    <div class="d-flex align-items-center">
+    <div class="flex items-center">
       <app-back-button
         color="accent"
         tooltip="Back"
@@ -13,7 +13,7 @@
       ></app-back-button>
     </div>
   }
-  <div class="d-flex align-items-center">
+  <div class="flex items-center">
     <h2>{{ headerText() }}</h2>
     <ng-container
       *ngIf="headerButtonsTemplate"

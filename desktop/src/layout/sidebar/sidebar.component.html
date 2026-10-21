@@ -1,4 +1,4 @@
-<mat-drawer-container class="h-100">
+<mat-drawer-container class="h-full">
   @if (isLoggedIn()) {
     <mat-drawer
       class="app-sidebar"
@@ -127,12 +127,12 @@
     [class.drawer-content--rail]="isLoggedIn() && isCollapsed()"
     [class.drawer-content--wide]="isLoggedIn() && !isCollapsed() && !isHandset()"
   >
-    <app-header class="d-block sticky-top"></app-header>
+    <app-header class="block sticky top-0 z-10"></app-header>
     <div
       [ngClass]="{
-      'p-4': isLoggedIn() && !isContentFullHeight(),
+      'p-6': isLoggedIn() && !isContentFullHeight(),
       }"
-      class="d-block drawer-outlet"
+      class="block drawer-outlet"
     >
       <router-outlet></router-outlet>
     </div>

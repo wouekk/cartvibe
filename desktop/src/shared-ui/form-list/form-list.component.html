@@ -2,12 +2,12 @@
   <strong class="mb-2">{{ headerText() }}</strong>
   <div class="mb-2" *ngIf="array().length === 0">{{ nothingToDisplayText() }}</div>
   <mat-list-item
-    class="w-100 h-100"
+    class="w-full h-full"
     *ngFor="let item of array(); let index = index; let last = last"
     role="listitem"
   >
-    <div class="d-flex align-items-center justify-content-center">
-      <div class="w-100 mb-2">
+    <div class="flex items-center justify-center">
+      <div class="w-full mb-2">
         <ng-template
           [ngTemplateOutlet]="
             editingIndex === index ? itemEditTemplate() : itemDisplayTemplate()
@@ -26,7 +26,7 @@
           (clicked)="onItemDeleteButtonClicked(index)"
         ></app-delete-button>
       </div>
-      <div *ngIf="editingIndex === index" class="d-flex ms-2 w-25">
+      <div *ngIf="editingIndex === index" class="flex ms-2 w-1/4">
         <app-submit-button
           tooltip="Done"
           [onlyIcon]="true"
@@ -42,7 +42,7 @@
       <hr />
     </ng-container>
   </mat-list-item>
-  <div class="w-50">
+  <div class="w-1/2">
     <app-button
       color="accent"
       [buttonText]="addButtonText()"

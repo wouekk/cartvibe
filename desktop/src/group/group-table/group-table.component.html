@@ -1,9 +1,9 @@
-<div class="d-flex flex-column">
+<div class="flex flex-col">
   <app-table-header
     [headerText]="tableHeaderText()"
     subtitle="Households organize receipts and the people who share them."
   >
-    <div class="d-flex align-items-center">
+    <div class="flex items-center">
       <app-add-button
         *hasAppPermission="Permission.AppGroupsCreate"
         data-testid="group-create"
@@ -57,7 +57,7 @@
 </ng-template>
 
 <ng-template #actionsCell let-element="element" let-index="index">
-  <div class="d-flex">
+  <div class="flex">
     <app-edit-button
       *hasGroupPermission="{ groupId: element.id, permission: Permission.GroupUpdate, orApp: [Permission.AppGroupsUpdateSettings] }"
       data-testid="group-edit"

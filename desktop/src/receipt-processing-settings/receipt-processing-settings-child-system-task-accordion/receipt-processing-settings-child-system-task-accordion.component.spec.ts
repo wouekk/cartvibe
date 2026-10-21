@@ -1,7 +1,6 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ActivatedRoute } from "@angular/router";
-import { AccordionModule } from "ngx-bootstrap/accordion";
 
 import {
   ReceiptProcessingSettingsChildSystemTaskAccordionComponent
@@ -26,7 +25,7 @@ describe("ReceiptProcessingSettingsChildSystemTaskAccordionComponent", () => {
           }
         }
       ],
-      imports: [AccordionModule],
+
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     })
       .compileComponents();

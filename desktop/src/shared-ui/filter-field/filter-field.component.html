@@ -1,8 +1,8 @@
-<div class="d-flex">
+<div class="flex">
   @if ((parentForm() | formGet : basePath() + fieldName() + '.operation').value === FilterOperation.Between) {
-    <div class="d-flex w-100">
-      <div class="d-flex w-50 align-items-center">
-        <div class="w-50">
+    <div class="flex w-full">
+      <div class="flex w-1/2 items-center">
+        <div class="w-1/2">
           <app-input
             *ngIf="type() === 'text' || type() === 'number'"
             [label]="'Start ' + label()"
@@ -25,7 +25,7 @@
         <span class="between-separator">
           and
         </span>
-        <div class="w-50">
+        <div class="w-1/2">
           <app-input
             *ngIf="type() === 'text' || type() === 'number'"
             [label]="'End ' + label()"
@@ -41,7 +41,7 @@
         </div>
       </div>
 
-      <div class="ms-2 w-50">
+      <div class="ms-2 w-1/2">
         <app-select
           label="Operation"
           [inputFormControl]="parentForm() | formGet : basePath() + fieldName() + '.operation'"
@@ -52,9 +52,9 @@
       </div>
     </div>
   } @else if ((parentForm() | formGet : basePath() + fieldName() + '.operation').value === FilterOperation.WithinCurrentMonth) {
-    <div class="d-flex w-100">
-      <div class="d-flex w-50 align-items-center">
-        <div class="w-50">
+    <div class="flex w-full">
+      <div class="flex w-1/2 items-center">
+        <div class="w-1/2">
           <app-datepicker
             *ngIf="type() === 'date'"
             [label]="'Start ' + label()"
@@ -65,7 +65,7 @@
         <span class="between-separator">
           and
         </span>
-        <div class="w-50">
+        <div class="w-1/2">
           <app-datepicker
             *ngIf="type() === 'date'"
             [label]="'End ' + label()"
@@ -75,7 +75,7 @@
         </div>
       </div>
 
-      <div class="ms-2 w-50">
+      <div class="ms-2 w-1/2">
         <app-select
           label="Operation"
           [inputFormControl]="parentForm() | formGet : basePath() + fieldName() + '.operation'"
@@ -88,14 +88,14 @@
   } @else {
     <app-input
       *ngIf="type() === 'text' || type() === 'number'"
-      class="w-50"
+      class="w-1/2"
       [label]="label()"
       [isCurrency]="isCurrency()"
       [inputFormControl]="parentForm() | formGet : basePath() + fieldName() + '.value'"
     ></app-input>
     <app-user-autocomplete
       *ngIf="type() === 'users'"
-      class="w-50"
+      class="w-1/2"
       optionValueKey="id"
       [label]="label()"
       [multiple]="true"
@@ -103,14 +103,14 @@
     ></app-user-autocomplete>
     <app-datepicker
       *ngIf="type() === 'date'"
-      class="w-50"
+      class="w-1/2"
       [label]="label()"
       [inputFormControl]="parentForm() | formGet : basePath() + fieldName() + '.value'"
     >
     </app-datepicker>
     <app-autocomlete
       *ngIf="type() === 'list'"
-      class="w-50"
+      class="w-1/2"
       [multiple]="multiple()"
       [label]="label()"
       [inputFormControl]="parentForm() | formGet : basePath() + fieldName() + '.value'"
@@ -121,7 +121,7 @@
     >
     </app-autocomlete>
     <app-select
-      class="ms-2 w-50"
+      class="ms-2 w-1/2"
       label="Operation"
       [inputFormControl]="parentForm() | formGet : basePath() + fieldName() + '.operation'"
       [options]="type() | operations: false"

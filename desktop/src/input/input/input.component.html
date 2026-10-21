@@ -1,4 +1,4 @@
-<div class="d-flex">
+<div class="flex">
   <!--
     A hinted field sizes its subscript dynamically. Material's default "fixed"
     reserves a single line and positions the hint wrapper absolutely, so a hint
@@ -7,12 +7,12 @@
     when a mat-error appears.
   -->
   <mat-form-field
-    class="w-100"
+    class="w-full"
     [appearance]="appearance()"
     [subscriptSizing]="hint ? 'dynamic' : 'fixed'"
   >
     <mat-label>{{ label }}</mat-label>
-    <div class="d-flex align-items-center">
+    <div class="flex items-center">
       <input
         #nativeInput
         matInput

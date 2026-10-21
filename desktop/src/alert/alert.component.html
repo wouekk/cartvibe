@@ -1,5 +1,5 @@
 <div
-  class="d-flex flex-column alert-container p-3"
+  class="flex flex-col alert-container p-4"
   [ngClass]="{
   'warning-background': type() === 'warning',
   }"
@@ -13,7 +13,7 @@
 <ng-template
   #warningHeader
 >
-  <div class="d-flex align-items-center warning-header mb-1">
+  <div class="flex items-center warning-header mb-1">
     <mat-icon>warning</mat-icon>
     <strong>Warning</strong>
   </div>

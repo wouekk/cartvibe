@@ -14,7 +14,7 @@
     [matBadgeHidden]="matBadgeHidden()"
     (click)="emitClicked($event)"
   >
-    <div class="d-flex align-items-center">
+    <div class="flex items-center">
       <mat-icon *ngIf="icon" class="me-1">
         {{ icon }}
       </mat-icon>
@@ -41,7 +41,7 @@
     [queryParams]="buttonQueryParams()"
     (click)="emitClicked($event)"
   >
-    <div class="d-flex align-items-center">
+    <div class="flex items-center">
       <mat-icon *ngIf="icon" class="me-1">
         {{ icon }}
       </mat-icon>

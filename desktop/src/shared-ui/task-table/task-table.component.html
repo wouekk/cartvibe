@@ -35,7 +35,7 @@
 <ng-template let-element="element" #resultDescriptionCell>
   @let receiptUpdate = receiptUpdates().get(element.id);
   @if (receiptUpdate) {
-    <div class="d-flex align-items-center gap-2">
+    <div class="flex items-center gap-2">
       <div class="description-preview" data-testid="receipt-update-summary">
         {{
           receiptUpdate.changedKeys.length
@@ -52,7 +52,7 @@
       ></app-button>
     </div>
   } @else {
-    <div class="d-flex align-items-center gap-2">
+    <div class="flex items-center gap-2">
       <div class="description-preview">
         <ng-container
           *ngIf="element.type === SystemTaskType.EmailRead"
@@ -84,7 +84,7 @@
 
 <ng-template let-element="element" #sourceFileCell>
   @if (element.hasSourceFile) {
-    <div class="d-flex align-items-center gap-1">
+    <div class="flex items-center gap-1">
       <app-button
         icon="visibility"
         matButtonType="iconButton"

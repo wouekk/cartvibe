@@ -5,7 +5,7 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { MatDialogModule } from "@angular/material/dialog";
 import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { Store } from "@ngxs/store";
-import { NgbPopoverModule } from "@ng-bootstrap/ng-bootstrap";
+import { OverlayModule } from "@angular/cdk/overlay";
 import { of } from "rxjs";
 import { ToggleIsSidebarCollapsed, ToggleIsSidebarOpen } from "src/store/layout.state.actions";
 import { ViewportService } from "../../services/viewport.service";
@@ -50,7 +50,7 @@ describe("HeaderComponent", () => {
         DirectivesModule,
         MatDialogModule,
         MatSnackBarModule,
-        NgbPopoverModule,
+        OverlayModule,
         StoreModule,
     ],
     providers: [provideZonelessChangeDetection(), provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting(), { provide: ViewportService, useValue: { isHandset } }],

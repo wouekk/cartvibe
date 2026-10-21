@@ -2,12 +2,13 @@ import { inject } from "@angular/core";
 import { CanActivateFn, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { AuthState, GroupState } from "../store";
+import { redirectToLanding } from "./landing-redirect";
 
 /**
  * Allows activation when the user holds the group-scoped permission declared on
  * `route.data['groupPermission']` for the resolved group (or one of the
  * optional `route.data['orAppPermissions']` app-scoped fallbacks). On deny,
- * redirects to the group dashboard.
+ * redirects to the landing page (never back onto the route it was denied).
  *
  * Group id resolution: when `route.data['useRouteGroupId']` is set the id comes
  * from the `:id` route param (own or parent); when `route.data['useAddTargetGroupId']`
@@ -15,7 +16,7 @@ import { AuthState, GroupState } from "../store";
  * would be created in, which is not always the one being browsed - see the
  * selector); otherwise from the currently selected group in `GroupState`.
  */
-export const groupPermissionGuard: CanActivateFn = (route) => {
+export const groupPermissionGuard: CanActivateFn = (route, state) => {
   const store: Store = inject(Store);
   const router: Router = inject(Router);
 
@@ -49,6 +50,5 @@ export const groupPermissionGuard: CanActivateFn = (route) => {
     return true;
   }
 
-  router.navigate([store.selectSnapshot(GroupState.dashboardLink)]);
-  return false;
+  return redirectToLanding(router, store, state.url);
 };

@@ -17,7 +17,7 @@
 <ng-template #menu>
   <div class="mat-mdc-menu-panel" cdkMenu>
     @if (headerText) {
-      <h5 class="justify-content-center m-3">
+      <h5 class="justify-center m-4">
         {{ headerText }}
       </h5>
     }
@@ -26,11 +26,11 @@
       [inputFormControl]="filterFormControl"
       (click)="$event.stopImmediatePropagation(); $event.stopPropagation();"
     ></app-input>
-    <div class="d-flex flex-column">
+    <div class="flex flex-col">
       @if (filteredItems.length === 0) {
         <div
           mat-menu-item
-          class="pe-none"
+          class="pointer-events-none"
         >
           No items found
         </div>
@@ -38,17 +38,17 @@
       @for (item of filteredItems(); track item.value) {
         <button
           mat-menu-item
-          class="w-100 p-2"
+          class="w-full p-2"
           [disabled]="readonly()"
           (click)="onItemSelected(item, $event)"
         >
-          <div class="d-flex align-items-center">
+          <div class="flex items-center">
             <mat-checkbox
               class="checkbox"
               [checked]="item.selected"
               [disabled]="readonly()"
             ></mat-checkbox>
-            <div class="d-flex flex-column">
+            <div class="flex flex-col">
               <strong>
                 {{ item.displayValue }}
               </strong>

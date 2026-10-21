@@ -18,14 +18,9 @@
         (clicked)="openImageUploadComponent()"
       ></app-button>
     </div>
-    <carousel
-      [interval]="0"
-      [isAnimated]="true"
-      [showIndicators]="false"
-      [(activeSlide)]="currentlySelectedIndex"
-    >
-      <slide *ngFor="let preview of images; let i = index">
-        <div class="d-flex flex-column justify-content-center">
+    <div class="quick-scan-slides">
+      <div *ngFor="let preview of images; let i = index" [class.hidden]="i !== currentlySelectedIndex">
+        <div class="flex flex-col justify-center">
           <img
             class="mb-2"
             alt="quick scan image"
@@ -38,7 +33,7 @@
           }
           @if (showPaidBy(i)) {
             <app-user-autocomplete
-              class="w-100"
+              class="w-full"
               label="Paid By"
               [inputFormControl]="form | formGet : 'paidByUserIds.' + i"
               [groupId]="form.get('groupIds.' + i)?.value"
@@ -74,8 +69,8 @@
             ></app-textarea>
           }
         </div>
-      </slide>
-    </carousel>
+      </div>
+    </div>
 
   </form>
   <app-dialog-footer
@@ -87,7 +82,7 @@
 </app-dialog>
 
 <ng-template #actionsTemplate>
-  <div class="d-flex align-items-center">
+  <div class="flex items-center">
     <app-button
       *ngIf="images.length > 1"
       data-testid="quick-scan-nav-left"

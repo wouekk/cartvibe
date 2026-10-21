@@ -7,23 +7,23 @@ import { cn } from "../cn";
  * Colors come from the shadcn tokens in src/skin.css, so `default` follows the chosen accent.
  */
 export const buttonVariants = cva(
-  "tw:inline-flex tw:items-center tw:justify-center tw:gap-2 tw:whitespace-nowrap tw:rounded-lg tw:text-sm tw:font-medium tw:cursor-pointer tw:select-none tw:transition-colors tw:outline-none tw:focus-visible:ring-2 tw:focus-visible:ring-ring/50 tw:disabled:pointer-events-none tw:disabled:opacity-50 tw:[&_mat-icon]:size-5 tw:[&_mat-icon]:text-[20px] tw:no-underline",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium cursor-pointer select-none transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 [&_mat-icon]:size-5 [&_mat-icon]:text-[20px] no-underline",
   {
     variants: {
       variant: {
-        default: "tw:bg-primary tw:text-primary-foreground tw:shadow-xs tw:hover:bg-primary/90",
-        destructive: "tw:bg-destructive tw:text-white tw:shadow-xs tw:hover:bg-destructive/90",
-        outline: "tw:border tw:border-input tw:bg-card tw:text-foreground tw:shadow-xs tw:hover:bg-accent tw:hover:text-accent-foreground",
-        secondary: "tw:bg-secondary tw:text-secondary-foreground tw:hover:bg-secondary/80",
-        ghost: "tw:text-foreground tw:hover:bg-accent tw:hover:text-accent-foreground",
-        accentGhost: "tw:text-accent-foreground tw:hover:bg-accent",
-        link: "tw:text-accent-foreground tw:underline-offset-4 tw:hover:underline",
+        default: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+        destructive: "bg-destructive text-white shadow-xs hover:bg-destructive/90",
+        outline: "border border-input bg-card text-foreground shadow-xs hover:bg-accent hover:text-accent-foreground",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "text-foreground hover:bg-accent hover:text-accent-foreground",
+        accentGhost: "text-accent-foreground hover:bg-accent",
+        link: "text-accent-foreground underline-offset-4 hover:underline",
       },
       size: {
-        default: "tw:h-10 tw:px-4 tw:py-2",
-        sm: "tw:h-9 tw:px-3",
-        lg: "tw:h-11 tw:px-6",
-        icon: "tw:size-10",
+        default: "h-10 px-4 py-2",
+        sm: "h-9 px-3",
+        lg: "h-11 px-6",
+        icon: "size-10",
       },
     },
     defaultVariants: { variant: "default", size: "default" },

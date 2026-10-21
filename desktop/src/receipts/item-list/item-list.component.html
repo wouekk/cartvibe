@@ -45,8 +45,8 @@
 
         <div *ngFor="let itemData of items(); let i = index" class="item-row">
           <app-card cardStyle="mb-2">
-            <div content class="d-flex flex-column item-form-container">
-              <div class="d-flex justify-content-end">
+            <div content class="flex flex-col item-form-container">
+              <div class="flex justify-end">
                 @if (!(mode | inputReadonly)) {
                   <app-button
                     matButtonType="iconButton"
@@ -62,9 +62,9 @@
                   ></app-delete-button>
                 }
               </div>
-              <div class="row g-0">
+              <div class="flex flex-wrap">
                 <app-input
-                  class="col"
+                  class="flex-1 min-w-0"
                   #nameField
                   label="Name"
                   [inputId]="'name-' + i"
@@ -76,7 +76,7 @@
                 >
                 </app-input>
                 <app-input
-                  class="col"
+                  class="flex-1 min-w-0"
                   label="Amount"
                   [isCurrency]="true"
                   [inputFormControl]="

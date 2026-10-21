@@ -1,4 +1,4 @@
-import { Component, OnChanges, SimpleChanges, ViewEncapsulation, input, output, viewChildren } from "@angular/core";
+import { Component, OnChanges, SimpleChanges, ViewEncapsulation, computed, input, output, viewChildren } from "@angular/core";
 import { ImageViewerComponent } from "src/shared-ui/image-viewer/image-viewer.component";
 import { UntilDestroy } from "@ngneat/until-destroy";
 import { FormMode } from "src/enums/form-mode.enum";
@@ -31,6 +31,8 @@ export class CarouselComponent implements OnChanges {
   public readonly removeButtonClicked = output<number>();
 
   public currentlyShownImageIndex: number = 0;
+
+  public readonly slideCount = computed(() => this.imagePreviews().length + this.images().length);
 
   private readonly viewers = viewChildren(ImageViewerComponent);
 
@@ -67,5 +69,14 @@ export class CarouselComponent implements OnChanges {
 
   public updateCurrentlyShownImage(index: number): void {
     this.currentlyShownImageIndex = index;
+  }
+
+  public next(): void {
+    this.updateCurrentlyShownImage((this.currentlyShownImageIndex + 1) % this.slideCount());
+  }
+
+  public previous(): void {
+    const count = this.slideCount();
+    this.updateCurrentlyShownImage((this.currentlyShownImageIndex - 1 + count) % count);
   }
 }

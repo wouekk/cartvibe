@@ -1,3 +1,4 @@
+import { ConnectedPosition } from "@angular/cdk/overlay";
 import { Component, computed, effect, signal, untracked } from "@angular/core";
 import { Router } from "@angular/router";
 import { Store } from "@ngxs/store";
@@ -37,6 +38,12 @@ export class HeaderComponent {
   });
 
   public notificationCount = signal<number | undefined>(undefined);
+
+  public readonly notificationsOpen = signal(false);
+
+  public readonly notificationPositions: ConnectedPosition[] = [
+    { originX: "end", originY: "bottom", overlayX: "end", overlayY: "top", offsetY: 8 },
+  ];
 
   protected readonly Permission = Permission;
 

@@ -1,6 +1,6 @@
 <app-dialog headerText="Edit Item">
   <form [formGroup]="form" (ngSubmit)="submit()">
-    <div class="d-flex flex-column">
+    <div class="flex flex-col">
       <app-input
         label="Name"
         data-testid="shopping-list-item-edit-name"
@@ -8,7 +8,7 @@
       ></app-input>
       <app-shopping-list-amount-fields [form]="form"></app-shopping-list-amount-fields>
       @if (item.quantity && !(form | formGet : 'amount').value) {
-        <p class="small text-muted mt-0" data-testid="shopping-list-item-legacy-quantity">
+        <p class="text-sm text-muted-foreground mt-0" data-testid="shopping-list-item-legacy-quantity">
           Currently "{{ item.quantity }}". Entering an amount replaces it.
         </p>
       }

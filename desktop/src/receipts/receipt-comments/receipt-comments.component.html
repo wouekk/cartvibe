@@ -1,8 +1,8 @@
 @if (mode() === formMode.add || (mode() === formMode.edit && canCreateComments())) {
   <div class="mb-2">
     <app-card>
-      <strong header class="mb-3">Leave a Comment</strong>
-      <div content class="w-100">
+      <strong header class="mb-4">Leave a Comment</strong>
+      <div content class="w-full">
         <app-textarea
           label="Comment"
           [inputFormControl]="newCommentFormControl"
@@ -28,7 +28,7 @@
         }"
       ></ng-container>
       <div
-        class="d-flex content-margin"
+        class="flex content-margin"
         [ngClass]="{
           'mb-2': mode() === formMode.edit
         }"
@@ -45,13 +45,13 @@
   let-commentControl="commentControl"
   let-commentIndex="commentIndex"
 >
-  <div class="d-flex justify-content-between align-items-center mb-2">
-    <div class="d-flex align-items-center">
+  <div class="flex justify-between items-center mb-2">
+    <div class="flex items-center">
       <app-avatar
         class="me-2"
         [user]="commentControl?.value?.userId?.toString() ?? '' | user"
       ></app-avatar>
-      <div class="d-flex flex-column">
+      <div class="flex flex-col">
         <div>
           <strong>
             {{
@@ -104,7 +104,7 @@
 </ng-template>
 
 <ng-template #add>
-  <div class="d-flex justify-content-end">
+  <div class="flex justify-end">
     <app-button buttonText="Comment" (clicked)="addComment()"></app-button>
   </div>
 </ng-template>

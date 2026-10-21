@@ -138,3 +138,39 @@ body {
     min-width: 0;
   }
 }
+
+/* ---------- Base typography (what Bootstrap's reboot used to give, in shadcn proportions) ---------- */
+@layer base {
+  html {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.5;
+    color: var(--foreground);
+  }
+  body {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--foreground);
+    background-color: var(--background);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+  }
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.25rem; }
+  h4 { font-size: 1.125rem; }
+  h5, h6 { font-size: 1rem; }
+  p { margin-top: 0; margin-bottom: 1rem; }
+  a { color: var(--accent-foreground); text-decoration: underline; text-underline-offset: 2px; }
+  ul, ol { padding-left: 1.5rem; margin-top: 0; margin-bottom: 1rem; list-style: revert; }
+  b, strong { font-weight: 600; }
+  small { font-size: 0.875em; }
+  table { border-collapse: collapse; }
+  label { display: inline-block; }
+  img, svg, video { vertical-align: middle; }
+  [hidden] { display: none !important; }
+}

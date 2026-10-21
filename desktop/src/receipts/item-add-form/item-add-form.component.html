@@ -1,11 +1,11 @@
 <div class="inline-add-form" #addForm>
   <app-card cardStyle="w-100 mb-2 add-form-card">
     <div content>
-      <div class="row g-0 add-form-fields">
+      <div class="flex flex-wrap add-form-fields">
         <app-input
           #nameInput
           label="Name"
-          class="col"
+          class="flex-1 min-w-0"
           [inputFormControl]="newItemFormGroup | formGet : 'name'"
           (keydown.enter)="onNameEnter($event)"
           (keydown.escape)="onCancel()"
@@ -14,7 +14,7 @@
         <app-input
           #amountInput
           label="Amount"
-          class="col"
+          class="flex-1 min-w-0"
           type="text"
           [isCurrency]="true"
           [inputFormControl]="newItemFormGroup | formGet : 'amount'"
