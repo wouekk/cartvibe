@@ -17,17 +17,11 @@ import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
 // @ts-ignore
-import { AppData } from '../model/appData';
-// @ts-ignore
 import { InternalErrorResponse } from '../model/internalErrorResponse';
 // @ts-ignore
 import { OidcConnectionView } from '../model/oidcConnectionView';
 // @ts-ignore
-import { OidcExchangeCommand } from '../model/oidcExchangeCommand';
-// @ts-ignore
 import { OidcFlowErrorView } from '../model/oidcFlowErrorView';
-// @ts-ignore
-import { OidcLinkStartView } from '../model/oidcLinkStartView';
 
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
@@ -324,24 +318,17 @@ export class OidcService {
 
     /**
      * Confirm deleting the signed-in account by signing in at a linked provider
-     * For an account with no password of its own - one created by signing in with an identity provider. Such an account cannot confirm a self-delete with a password, so it signs in at one of its linked providers again instead, and the callback hands back a single-use confirmationCode for POST /user/deleteAccount. Requires app.account.delete and an interactive session, never an API key. An account with a password of its own is refused; it confirms with that password.  The provider is asked for a fresh sign-in with max_age&#x3D;0. When it returns auth_time, a sign-in older than this flow is refused (stale_login). Signing in as any identity other than the account\&#39;s own at this provider is refused (identity_mismatch).  A browser navigates here and is redirected (302) to the identity provider; the callback returns to the profile page with ?deleteConfirmation&#x3D;{code} or ?deleteError&#x3D;{code}. A native client passes client&#x3D;mobile, gets a launch URL as JSON exactly as for oidcLinkStart, opens it in the external browser, and the callback returns to its private-use scheme with ?deleteConfirmation&#x3D;{code} or ?error&#x3D;{code}.
+     * For an account with no password of its own - one created by signing in with an identity provider. Such an account cannot confirm a self-delete with a password, so it signs in at one of its linked providers again instead, and the callback hands back a single-use confirmationCode for POST /user/deleteAccount. Requires app.account.delete and an interactive session, never an API key. An account with a password of its own is refused; it confirms with that password.  The provider is asked for a fresh sign-in with max_age&#x3D;0. When it returns auth_time, a sign-in older than this flow is refused (stale_login). Signing in as any identity other than the account\&#39;s own at this provider is refused (identity_mismatch).  A browser navigates here and is redirected (302) to the identity provider; the callback returns to the profile page with ?deleteConfirmation&#x3D;{code} or ?deleteError&#x3D;{code}.
      * @param name The slug of a provider linked to the account
-     * @param client Which client is confirming. Mobile receives a launch URL as JSON rather than a redirect. No codeChallenge is needed - the code the callback hands back can only be spent by a signed-in session of the same account.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public oidcDeleteConfirmationStart(name: string, client?: 'desktop' | 'mobile', observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<OidcLinkStartView>;
-    public oidcDeleteConfirmationStart(name: string, client?: 'desktop' | 'mobile', observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<OidcLinkStartView>>;
-    public oidcDeleteConfirmationStart(name: string, client?: 'desktop' | 'mobile', observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<OidcLinkStartView>>;
-    public oidcDeleteConfirmationStart(name: string, client?: 'desktop' | 'mobile', observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public oidcDeleteConfirmationStart(name: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any>;
+    public oidcDeleteConfirmationStart(name: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<any>>;
+    public oidcDeleteConfirmationStart(name: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<any>>;
+    public oidcDeleteConfirmationStart(name: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (name === null || name === undefined) {
             throw new Error('Required parameter name was null or undefined when calling oidcDeleteConfirmationStart.');
-        }
-
-        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
-        if (client !== undefined && client !== null) {
-          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
-            <any>client, 'client');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -388,160 +375,9 @@ export class OidcService {
         }
 
         let localVarPath = `/oidc/connections/${this.configuration.encodeParam({name: "name", value: name, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: undefined})}/delete-confirmation`;
-        return this.httpClient.request<OidcLinkStartView>('get', `${this.configuration.basePath}${localVarPath}`,
-            {
-                context: localVarHttpContext,
-                params: localVarQueryParameters,
-                responseType: <any>responseType_,
-                withCredentials: this.configuration.withCredentials,
-                headers: localVarHeaders,
-                observe: observe,
-                transferCache: localVarTransferCache,
-                reportProgress: reportProgress
-            }
-        );
-    }
-
-    /**
-     * Redeem a mobile sign-in code
-     * Trades the single-use code the app received on its private-use URL scheme for a session. The PKCE verifier is what proves this is the app that started the flow, so an app that intercepted the redirect cannot redeem the code. Returns the same payload as login with tokensInBody, and never sets a cookie.
-     * @param oidcExchangeCommand The code and the app\&#39;s PKCE verifier
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     */
-    public oidcExchange(oidcExchangeCommand: OidcExchangeCommand, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<AppData>;
-    public oidcExchange(oidcExchangeCommand: OidcExchangeCommand, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<AppData>>;
-    public oidcExchange(oidcExchangeCommand: OidcExchangeCommand, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<AppData>>;
-    public oidcExchange(oidcExchangeCommand: OidcExchangeCommand, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
-        if (oidcExchangeCommand === null || oidcExchangeCommand === undefined) {
-            throw new Error('Required parameter oidcExchangeCommand was null or undefined when calling oidcExchange.');
-        }
-
-        let localVarHeaders = this.defaultHeaders;
-
-        let localVarHttpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
-        if (localVarHttpHeaderAcceptSelected === undefined) {
-            // to determine the Accept header
-            const httpHeaderAccepts: string[] = [
-                'application/json'
-            ];
-            localVarHttpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
-        }
-        if (localVarHttpHeaderAcceptSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
-        }
-
-        let localVarHttpContext: HttpContext | undefined = options && options.context;
-        if (localVarHttpContext === undefined) {
-            localVarHttpContext = new HttpContext();
-        }
-
-        let localVarTransferCache: boolean | undefined = options && options.transferCache;
-        if (localVarTransferCache === undefined) {
-            localVarTransferCache = true;
-        }
-
-
-        // to determine the Content-Type header
-        const consumes: string[] = [
-            'application/json'
-        ];
-        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
-        if (httpContentTypeSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
-        }
-
-        let responseType_: 'text' | 'json' | 'blob' = 'json';
-        if (localVarHttpHeaderAcceptSelected) {
-            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
-                responseType_ = 'text';
-            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
-                responseType_ = 'json';
-            } else {
-                responseType_ = 'blob';
-            }
-        }
-
-        let localVarPath = `/oidc/exchange`;
-        return this.httpClient.request<AppData>('post', `${this.configuration.basePath}${localVarPath}`,
-            {
-                context: localVarHttpContext,
-                body: oidcExchangeCommand,
-                responseType: <any>responseType_,
-                withCredentials: this.configuration.withCredentials,
-                headers: localVarHeaders,
-                observe: observe,
-                transferCache: localVarTransferCache,
-                reportProgress: reportProgress
-            }
-        );
-    }
-
-    /**
-     * Open a mobile \&quot;connect account\&quot; flow in the browser
-     * The browser-facing half of a mobile link. A mobile client opens this URL, from oidcLinkStart\&#39;s launchUrl, in the external user agent; it is never called as an API request.  Unauthenticated because it has to be reachable by that browser, which cannot carry a bearer token. The single-use handle in the query is the authorization - oidcLinkStart minted it moments earlier for the caller it had already authenticated and permission-checked. Letting the browser make this request is what allows the flow to be bound to it, which is the defense the callback relies on.
-     * @param name The provider\&#39;s slug
-     * @param h The single-use launch handle from oidcLinkStart
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     */
-    public oidcLinkLaunch(name: string, h: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<any>;
-    public oidcLinkLaunch(name: string, h: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<any>>;
-    public oidcLinkLaunch(name: string, h: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<any>>;
-    public oidcLinkLaunch(name: string, h: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<any> {
-        if (name === null || name === undefined) {
-            throw new Error('Required parameter name was null or undefined when calling oidcLinkLaunch.');
-        }
-        if (h === null || h === undefined) {
-            throw new Error('Required parameter h was null or undefined when calling oidcLinkLaunch.');
-        }
-
-        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
-        if (h !== undefined && h !== null) {
-          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
-            <any>h, 'h');
-        }
-
-        let localVarHeaders = this.defaultHeaders;
-
-        let localVarHttpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
-        if (localVarHttpHeaderAcceptSelected === undefined) {
-            // to determine the Accept header
-            const httpHeaderAccepts: string[] = [
-            ];
-            localVarHttpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
-        }
-        if (localVarHttpHeaderAcceptSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
-        }
-
-        let localVarHttpContext: HttpContext | undefined = options && options.context;
-        if (localVarHttpContext === undefined) {
-            localVarHttpContext = new HttpContext();
-        }
-
-        let localVarTransferCache: boolean | undefined = options && options.transferCache;
-        if (localVarTransferCache === undefined) {
-            localVarTransferCache = true;
-        }
-
-
-        let responseType_: 'text' | 'json' | 'blob' = 'json';
-        if (localVarHttpHeaderAcceptSelected) {
-            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
-                responseType_ = 'text';
-            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
-                responseType_ = 'json';
-            } else {
-                responseType_ = 'blob';
-            }
-        }
-
-        let localVarPath = `/oidc/link/${this.configuration.encodeParam({name: "name", value: name, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: undefined})}/launch`;
         return this.httpClient.request<any>('get', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
-                params: localVarQueryParameters,
                 responseType: <any>responseType_,
                 withCredentials: this.configuration.withCredentials,
                 headers: localVarHeaders,
@@ -554,24 +390,17 @@ export class OidcService {
 
     /**
      * Connect a provider to the signed-in account
-     * Starts the same flow as a login, but the session proves who the caller is, so the callback links the identity directly instead of matching or provisioning. Requires app.account.update, the same permission as disconnecting one.  A browser navigates to this URL and is redirected (302) to the identity provider. A native client passes client&#x3D;mobile and gets a launch URL as JSON instead, because it authenticates with a bearer token and the external user agent it must use cannot carry one. It opens that launch URL in the external browser, which is what actually starts the flow - and what receives the binding cookie the callback checks. The app then waits on its private-use scheme, which the callback returns to with ?linked&#x3D;{name} or ?error&#x3D;{code}.  An API key cannot start a link, whatever its scope - this needs an interactive session. Connecting a provider adds a permanent way to sign in, so a key that could do it would be able to mint a credential wider and longer-lived than itself, and one that outlives revoking it.
+     * Starts the same flow as a login, but the session proves who the caller is, so the callback links the identity directly instead of matching or provisioning. Requires app.account.update, the same permission as disconnecting one.  A browser navigates to this URL and is redirected (302) to the identity provider.  An API key cannot start a link, whatever its scope - this needs an interactive session. Connecting a provider adds a permanent way to sign in, so a key that could do it would be able to mint a credential wider and longer-lived than itself, and one that outlives revoking it.
      * @param name The provider\&#39;s slug
-     * @param client Which client is connecting. Mobile receives a launch URL as JSON rather than a redirect. No codeChallenge is needed here, unlike a mobile login - a link\&#39;s callback hands back only ?linked&#x3D;{name}, which is not a credential, so there is nothing for the app to bind.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public oidcLinkStart(name: string, client?: 'desktop' | 'mobile', observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<OidcLinkStartView>;
-    public oidcLinkStart(name: string, client?: 'desktop' | 'mobile', observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<OidcLinkStartView>>;
-    public oidcLinkStart(name: string, client?: 'desktop' | 'mobile', observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<OidcLinkStartView>>;
-    public oidcLinkStart(name: string, client?: 'desktop' | 'mobile', observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public oidcLinkStart(name: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any>;
+    public oidcLinkStart(name: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<any>>;
+    public oidcLinkStart(name: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<any>>;
+    public oidcLinkStart(name: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (name === null || name === undefined) {
             throw new Error('Required parameter name was null or undefined when calling oidcLinkStart.');
-        }
-
-        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
-        if (client !== undefined && client !== null) {
-          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
-            <any>client, 'client');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -618,10 +447,9 @@ export class OidcService {
         }
 
         let localVarPath = `/oidc/link/${this.configuration.encodeParam({name: "name", value: name, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: undefined})}`;
-        return this.httpClient.request<OidcLinkStartView>('get', `${this.configuration.basePath}${localVarPath}`,
+        return this.httpClient.request<any>('get', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
-                params: localVarQueryParameters,
                 responseType: <any>responseType_,
                 withCredentials: this.configuration.withCredentials,
                 headers: localVarHeaders,
@@ -636,27 +464,15 @@ export class OidcService {
      * Start an OIDC login
      * Redirects the user agent to the configured identity provider. The API acts as the relying party, so the whole exchange (PKCE, state, nonce, code exchange, ID token verification) happens server-side and no client ever handles an identity provider token. Navigate to this URL; do not fetch it.
      * @param name The provider\&#39;s slug
-     * @param client Which client is signing in. Mobile receives a single-use exchange code on the app\&#39;s private-use URL scheme instead of session cookies.
-     * @param codeChallenge The mobile app\&#39;s own PKCE S256 challenge. Required when client is mobile; it binds the resulting exchange code to the app that started the flow.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public oidcLogin(name: string, client?: 'desktop' | 'mobile', codeChallenge?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<any>;
-    public oidcLogin(name: string, client?: 'desktop' | 'mobile', codeChallenge?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<any>>;
-    public oidcLogin(name: string, client?: 'desktop' | 'mobile', codeChallenge?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<any>>;
-    public oidcLogin(name: string, client?: 'desktop' | 'mobile', codeChallenge?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public oidcLogin(name: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<any>;
+    public oidcLogin(name: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<any>>;
+    public oidcLogin(name: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<any>>;
+    public oidcLogin(name: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (name === null || name === undefined) {
             throw new Error('Required parameter name was null or undefined when calling oidcLogin.');
-        }
-
-        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
-        if (client !== undefined && client !== null) {
-          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
-            <any>client, 'client');
-        }
-        if (codeChallenge !== undefined && codeChallenge !== null) {
-          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
-            <any>codeChallenge, 'codeChallenge');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -698,7 +514,6 @@ export class OidcService {
         return this.httpClient.request<any>('get', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
-                params: localVarQueryParameters,
                 responseType: <any>responseType_,
                 withCredentials: this.configuration.withCredentials,
                 headers: localVarHeaders,
