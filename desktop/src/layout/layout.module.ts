@@ -19,7 +19,6 @@ import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { AvatarModule } from "../avatar";
 import { ButtonModule } from "../button";
 import { DirectivesModule } from "../directives/directives.module";
-import { ImportModule } from "../import/import.module";
 import { AddReceiptIconComponent } from "./add-receipt-icon/add-receipt-icon.component";
 import { DashboardIconComponent } from "./dashboard-icon/dashboard-icon.component";
 import { HeaderComponent } from "./header/header.component";
@@ -41,7 +40,6 @@ import { SidebarComponent } from "./sidebar/sidebar.component";
     CommonModule,
     DirectivesModule,
     DirectivesModule,
-    ImportModule,
     MatButtonModule,
     MatCardModule,
     MatDialogModule,
