@@ -35,8 +35,8 @@ import { ReportRunnerService } from "../services/report-runner.service";
 @UntilDestroy()
 @Component({
   selector: "app-report-builder",
+  host: { class: "block h-full min-h-0" },
   templateUrl: "./report-builder.component.html",
-  styleUrls: ["./report-builder.component.scss"],
   standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

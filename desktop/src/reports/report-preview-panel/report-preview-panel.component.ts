@@ -17,8 +17,8 @@ import { ReportBuilderValue, toReportRequestCommand } from "../models/report-com
  */
 @Component({
   selector: "app-report-preview-panel",
+  host: { class: "block h-full" },
   templateUrl: "./report-preview-panel.component.html",
-  styleUrls: ["./report-preview-panel.component.scss"],
   standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

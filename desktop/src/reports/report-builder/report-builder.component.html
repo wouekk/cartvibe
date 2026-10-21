@@ -1,5 +1,5 @@
-<div class="report-builder">
-  <div class="report-builder__page-bar">
+<div class="flex h-full min-h-0 flex-col bg-muted">
+  <div class="flex flex-none items-center gap-3.5 border-b border-border bg-card px-6 py-3.5">
     <app-button
       class="report-builder__back"
       matButtonType="iconButton"
@@ -8,29 +8,29 @@
       data-testid="report-builder-back"
       [buttonRouterLink]="['/reports']"
     ></app-button>
-    <span class="report-builder__page-icon">
+    <span class="inline-flex size-10 items-center justify-center rounded-[11px] bg-primary shadow-[0_4px_14px_color-mix(in_oklab,var(--primary)_30%,transparent)] [&_app-icon]:text-card">
       <app-icon name="summarize"></app-icon>
     </span>
-    <div class="report-builder__titles">
-      <div class="report-builder__breadcrumb">
-        <a class="report-builder__crumb-link" [routerLink]="['/reports']">{{ 'Reports' | t }}</a>
+    <div class="min-w-0">
+      <div class="flex items-center gap-1.5 text-xs text-muted-foreground [&_app-icon]:size-[15px] [&_app-icon]:text-[15px] [&_app-icon]:text-border">
+        <a class="cursor-pointer text-inherit no-underline hover:text-primary hover:underline" [routerLink]="['/reports']">{{ 'Reports' | t }}</a>
         <app-icon name="chevron_right"></app-icon>
         <span>{{ loadedTemplateName ?? "New report" }}</span>
       </div>
-      <div class="report-builder__heading">{{ 'Report Builder' | t }}</div>
+      <div class="text-xl font-semibold leading-tight text-foreground">{{ 'Report Builder' | t }}</div>
     </div>
-    <span class="report-builder__spacer"></span>
-    <span class="report-builder__scope-note">
+    <span class="flex-1"></span>
+    <span class="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-[11px] py-[5px] text-[11.5px] text-muted-foreground [&_app-icon]:size-[15px] [&_app-icon]:text-[15px] [&_app-icon]:text-muted-foreground">
       <app-icon name="lock"></app-icon>
       {{ 'Runs under your group permissions' | t }}
     </span>
   </div>
 
-  <div class="report-builder__split">
-    <div class="report-builder__config">
+  <div class="flex min-h-0 flex-1 max-[900px]:flex-col">
+    <div class="w-[490px] flex-none overflow-y-auto border-r border-border bg-muted px-[18px] pb-7 pt-4 max-[900px]:w-full max-[900px]:border-b max-[900px]:border-r-0">
       <app-report-config-panel [form]="form"></app-report-config-panel>
     </div>
-    <div class="report-builder__preview">
+    <div class="min-w-0 flex-1 overflow-y-auto bg-accent">
       <app-report-preview-panel
         [form]="form"
         [html]="previewHtml()"
