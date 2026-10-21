@@ -1,3 +1,8 @@
+@if (userShortcuts.value.length === 0) {
+  <p class="m-0 text-sm text-muted-foreground" data-testid="shortcuts-empty">
+    {{ ((formConfig().mode | inputReadonly) ? 'No shortcuts yet. Use Edit to add one.' : 'No shortcuts yet. Use + to add one.') | t }}
+  </p>
+}
 <app-editable-list
   trackByKey="trackby"
   [listData]="userShortcuts.value"
