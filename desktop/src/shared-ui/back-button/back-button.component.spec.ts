@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ActivatedRoute } from "@angular/router";
 import { ButtonModule } from "../../button";
@@ -10,7 +11,7 @@ describe("BackButtonComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [BackButtonComponent],
-      imports: [ButtonModule],
+      imports: [TranslatePipe, ButtonModule],
       providers: [
         {
           provide: ActivatedRoute,

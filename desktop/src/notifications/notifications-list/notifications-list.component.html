@@ -1,8 +1,8 @@
 <div class="flex justify-items-end items-center">
-  <strong class="me-4">Notifications</strong>
+  <strong class="me-4">{{ 'Notifications' | t }}</strong>
   <app-button
     matButtonType="basic"
-    buttonText="Mark all as read"
+    [buttonText]="'Mark all as read' | t"
     (clicked)="deleteAllNotifications()"
     [disabled]="notifications().length === 0"
   ></app-button>
@@ -17,5 +17,5 @@
     ></app-notification>
     <hr />
   </div>
-  <div *ngIf="notifications().length === 0">All caught up!</div>
+  <div *ngIf="notifications().length === 0">{{ 'All caught up!' | t }}</div>
 </div>

@@ -8,7 +8,7 @@
 <ng-template #formTemplate>
   <ng-container *ngIf="isOpen(); else preview">
     <app-filter-field
-      label="Receipt Date"
+      [label]="'Receipt Date' | t"
       fieldName="date"
       type="date"
       [parentForm]="parentForm"
@@ -16,7 +16,7 @@
     ></app-filter-field>
 
     <app-filter-field
-      label="Name"
+      [label]="'Name' | t"
       fieldName="name"
       type="text"
       [parentForm]="parentForm"
@@ -27,7 +27,7 @@
 
     @if (showGroupFilter) {
       <app-filter-field
-        label="Household"
+        [label]="'Household' | t"
         fieldName="group"
         type="list"
         optionFilterKey="name"
@@ -41,7 +41,7 @@
     }
 
     <app-filter-field
-      label="Amount"
+      [label]="'Amount' | t"
       fieldName="amount"
       type="number"
       [parentForm]="parentForm"
@@ -50,7 +50,7 @@
     ></app-filter-field>
 
     <app-filter-field
-      label="Categories"
+      [label]="'Categories' | t"
       fieldName="categories"
       type="list"
       optionFilterKey="name"
@@ -63,7 +63,7 @@
     ></app-filter-field>
 
     <app-filter-field
-      label="Tags"
+      [label]="'Tags' | t"
       fieldName="tags"
       type="list"
       optionFilterKey="name"
@@ -76,7 +76,7 @@
     ></app-filter-field>
 
     <app-filter-field
-      label="Status"
+      [label]="'Status' | t"
       fieldName="status"
       type="list"
       optionFilterKey="value"
@@ -89,7 +89,7 @@
     ></app-filter-field>
 
     <app-filter-field
-      label="Done on"
+      [label]="'Done on' | t"
       fieldName="resolvedDate"
       type="date"
       [parentForm]="parentForm"
@@ -97,7 +97,7 @@
     ></app-filter-field>
 
     <app-filter-field
-      label="Added At"
+      [label]="'Added At' | t"
       fieldName="createdAt"
       type="date"
       [parentForm]="parentForm"
@@ -132,7 +132,7 @@
     matButtonType="iconButton"
     icon="restart_alt"
     color="accent"
-    tooltip="Reset filter"
+    [tooltip]="'Reset filter' | t"
     (clicked)="resetFilter()"
   ></app-button>
 </ng-template>

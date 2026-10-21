@@ -2,7 +2,7 @@
   <app-image-viewer [imageBase64]="data.encodedImage"></app-image-viewer>
   <div class="flex justify-end mt-4">
     <app-button
-      buttonText="Close"
+      [buttonText]="'Close' | t"
       matButtonType="basic"
       (clicked)="close()"
     ></app-button>

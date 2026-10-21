@@ -1,7 +1,7 @@
 <div class="amount-fields flex gap-2">
   <app-input
     class="amount min-w-0 flex-1"
-    label="Amount"
+    [label]="'Amount' | t"
     type="text"
     data-testid="shopping-list-amount"
     [additionalErrorMessages]="amountErrors"
@@ -9,7 +9,7 @@
   ></app-input>
   <app-select
     class="unit min-w-0 flex-1"
-    label="Unit"
+    [label]="'Unit' | t"
     optionValueKey="value"
     optionDisplayKey="displayValue"
     data-testid="shopping-list-unit"

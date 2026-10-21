@@ -5,7 +5,7 @@
 -->
 <div hlmSidebarWrapper class="h-full">
   @if (isLoggedIn()) {
-    <hlm-sidebar variant="inset" collapsible="icon" srOnlySheetTitle="Main navigation" srOnlySheetDescription="Navigate CartVibe">
+    <hlm-sidebar variant="inset" collapsible="icon" [srOnlySheetTitle]="'Main navigation' | t" [srOnlySheetDescription]="'Navigate CartVibe' | t">
       <div hlmSidebarHeader>
         @if (groups().length > 0 && !hasSeveralGroups()) {
           <ul hlmSidebarMenu>
@@ -16,7 +16,7 @@
               >
                 <app-avatar class="sidebar__avatar" [group]="shownGroup()"></app-avatar>
                 <span class="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
-                  <span class="truncate text-xs text-sidebar-foreground/60">Household</span>
+                  <span class="truncate text-xs text-sidebar-foreground/60">{{ 'Household' | t }}</span>
                   <span class="truncate font-medium">{{ shownGroup()?.name }}</span>
                 </span>
               </div>
@@ -30,21 +30,21 @@
                 hlmSidebarMenuButton
                 size="lg"
                 type="button"
-                tooltip="Switch household"
+                [tooltip]="'Switch household' | t"
                 data-testid="sidebar-group-switcher"
                 [hlmDropdownMenuTrigger]="groupMenu"
                 align="start"
               >
                 <app-avatar class="sidebar__avatar" [group]="selectedGroup()"></app-avatar>
                 <span class="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
-                  <span class="truncate text-xs text-sidebar-foreground/60">Household</span>
+                  <span class="truncate text-xs text-sidebar-foreground/60">{{ 'Household' | t }}</span>
                   <span class="truncate font-medium">{{ selectedGroup()?.name }}</span>
                 </span>
                 <ng-icon name="lucideChevronsUpDown" size="16" class="ml-auto group-data-[collapsible=icon]:hidden" />
               </button>
               <ng-template #groupMenu>
                 <div hlmDropdownMenu class="w-56">
-                  <div hlmDropdownMenuLabel>Households</div>
+                  <div hlmDropdownMenuLabel>{{ 'Households' | t }}</div>
                   @for (group of groups(); track group.id) {
                     <button
                       hlmDropdownMenuItem
@@ -81,12 +81,12 @@
                       hlmSidebarMenuButton
                       hlmCollapsibleTrigger
                       type="button"
-                      tooltip="Admin Settings"
+                      [tooltip]="'Admin Settings' | t"
                       data-testid="sidebar-manage-toggle"
                       [attr.aria-expanded]="isManageOpen()"
                     >
                       <ng-icon name="lucideSlidersHorizontal" size="16" />
-                      <span>Admin Settings</span>
+                      <span>{{ 'Admin Settings' | t }}</span>
                       <ng-icon
                         name="lucideChevronDown"
                         size="16"
@@ -107,7 +107,7 @@
                               (click)="closeMobileSidebar()"
                             >
                               <ng-icon [name]="lucide(item.icon)" size="16" />
-                              <span>{{ item.label }}</span>
+                              <span>{{ item.label | t }}</span>
                             </a>
                           </li>
                         }
@@ -128,7 +128,7 @@
               hlmSidebarMenuButton
               size="lg"
               type="button"
-              tooltip="Account"
+              [tooltip]="'Account' | t"
               data-testid="sidebar-avatar-menu"
               [hlmDropdownMenuTrigger]="accountMenu"
               side="top"
@@ -145,17 +145,25 @@
                 @if (canViewUserSettings()) {
                   <button hlmDropdownMenuItem type="button" [routerLink]="['/settings']" (click)="closeMobileSidebar()">
                     <ng-icon name="lucideUserCog" size="16" />
-                    <span>User Settings</span>
+                    <span>{{ 'User Settings' | t }}</span>
                   </button>
                 }
                 <button hlmDropdownMenuItem type="button" (click)="openAboutDialog()">
                   <ng-icon name="lucideInfo" size="16" />
-                  <span>About</span>
+                  <span>{{ 'About' | t }}</span>
                 </button>
+                <div hlmDropdownMenuSeparator></div>
+                <div hlmDropdownMenuLabel>{{ 'Language' | t }}</div>
+                @for (option of languages; track option.code) {
+                  <button hlmDropdownMenuItem type="button" data-testid="sidebar-language-option" (click)="languageSync.choose(option.code)">
+                    <ng-icon name="lucideCheck" size="16" [class.invisible]="translation.language() !== option.code" />
+                    <span>{{ option.label }}</span>
+                  </button>
+                }
                 <div hlmDropdownMenuSeparator></div>
                 <button hlmDropdownMenuItem type="button" (click)="logout()">
                   <ng-icon name="lucideLogOut" size="16" />
-                  <span>Logout</span>
+                  <span>{{ 'Logout' | t }}</span>
                 </button>
               </div>
             </ng-template>
@@ -196,11 +204,11 @@
     #linkActive="routerLinkActive"
     [isActive]="linkActive.isActive"
     [routerLink]="item.link"
-    [tooltip]="item.label"
+    [tooltip]="item.label | t"
     [attr.data-testid]="testId"
     (click)="closeMobileSidebar()"
   >
     <ng-icon [name]="lucide(item.icon)" size="16" />
-    <span>{{ item.label }}</span>
+    <span>{{ item.label | t }}</span>
   </a>
 </ng-template>

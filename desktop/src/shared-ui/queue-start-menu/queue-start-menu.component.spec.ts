@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
@@ -14,7 +15,7 @@ describe("QueueStartMenuComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [QueueStartMenuComponent],
-      imports: [
+      imports: [TranslatePipe, 
         StoreModule,
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],

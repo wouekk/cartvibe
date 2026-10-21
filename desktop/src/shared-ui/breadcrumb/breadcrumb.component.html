@@ -1,11 +1,11 @@
-<nav class="breadcrumb" aria-label="Breadcrumb">
+<nav class="breadcrumb" [attr.aria-label]="'Breadcrumb' | t">
   @for (item of items(); track $index; let last = $last) {
     @if (item.routerLink && !last) {
       <a class="crumb" [routerLink]="item.routerLink">
         @if (item.icon) {
           <app-icon class="crumb-icon" [name]="item.icon"></app-icon>
         }
-        {{ item.label }}
+        {{ item.label | t }}
       </a>
     } @else {
       <span
@@ -16,7 +16,7 @@
         @if (item.icon) {
           <app-icon class="crumb-icon" [name]="item.icon"></app-icon>
         }
-        {{ item.label }}
+        {{ item.label | t }}
       </span>
     }
     @if (!last) {

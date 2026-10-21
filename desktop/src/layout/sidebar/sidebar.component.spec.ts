@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { HlmSidebarService } from "@spartan-ng/helm/sidebar";
 import { OverlayContainer } from "@angular/cdk/overlay";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
@@ -60,7 +61,7 @@ describe("SidebarComponent", () => {
     await TestBed.configureTestingModule({
     declarations: [SidebarComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [NgxsModule.forRoot([AuthState, LayoutState, GroupState, FeatureConfigState, ShoppingListState]),
+    imports: [TranslatePipe, NgxsModule.forRoot([AuthState, LayoutState, GroupState, FeatureConfigState, ShoppingListState]),
         DirectivesModule,
         NgIcon,
         ...HlmCollapsibleImports,

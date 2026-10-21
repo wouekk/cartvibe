@@ -2,7 +2,7 @@
   <div class="flex justify-end">
     <app-copy-button
       [text]="data.description"
-      tooltip="Copy description"
+      [tooltip]="'Copy description' | t"
     ></app-copy-button>
   </div>
   <div class="description-viewer-body">
@@ -13,7 +13,7 @@
   </div>
   <div class="flex justify-end mt-4">
     <app-button
-      buttonText="Close"
+      [buttonText]="'Close' | t"
       matButtonType="basic"
       (clicked)="close()"
     ></app-button>

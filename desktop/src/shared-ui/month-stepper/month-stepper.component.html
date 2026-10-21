@@ -4,7 +4,7 @@
     matButtonType="iconButton"
     icon="chevron_left"
     color="accent"
-    tooltip="Previous month"
+    [tooltip]="'Previous month' | t"
     (clicked)="step(-1)"
   ></app-button>
   <app-button
@@ -14,7 +14,7 @@
     matButtonType="basic"
     icon="calendar_month"
     color="accent"
-    tooltip="Filter by month"
+    [tooltip]="'Filter by month' | t"
     aria-haspopup="dialog"
     [attr.aria-expanded]="panelOpen()"
     [buttonText]="label()"
@@ -25,7 +25,7 @@
     matButtonType="iconButton"
     icon="chevron_right"
     color="accent"
-    tooltip="Next month"
+    [tooltip]="'Next month' | t"
     (clicked)="step(1)"
   ></app-button>
 </div>
@@ -48,7 +48,7 @@
   <div
     class="month-stepper__panel"
     role="dialog"
-    aria-label="Filter by month"
+    [attr.aria-label]="'Filter by month' | t"
     cdkTrapFocus
     [cdkTrapFocusAutoCapture]="true"
     (keydown.escape)="closePanel()"
@@ -59,7 +59,7 @@
         matButtonType="iconButton"
         icon="chevron_left"
         color="accent"
-        tooltip="Previous year"
+        [tooltip]="'Previous year' | t"
         [disabled]="!canPageBack()"
         (clicked)="pageYear(-1)"
       ></app-button>
@@ -69,7 +69,7 @@
         matButtonType="iconButton"
         icon="chevron_right"
         color="accent"
-        tooltip="Next year"
+        [tooltip]="'Next year' | t"
         [disabled]="!canPageForward()"
         (clicked)="pageYear(1)"
       ></app-button>
@@ -93,10 +93,10 @@
 
     <div class="month-stepper__shortcuts">
       <button type="button" data-testid="month-stepper-this-month" (click)="pickRelativeMonth(0)">
-        This month
+        {{ 'This month' | t }}
       </button>
       <button type="button" data-testid="month-stepper-last-month" (click)="pickRelativeMonth(-1)">
-        Last month
+        {{ 'Last month' | t }}
       </button>
       @if (showAllTime()) {
         <button
@@ -105,7 +105,7 @@
           data-testid="month-stepper-all-time"
           (click)="pickAllTime()"
         >
-          All time
+          {{ 'All time' | t }}
         </button>
       }
     </div>

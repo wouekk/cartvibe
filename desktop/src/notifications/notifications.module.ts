@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../i18n/translate.pipe";
 import { AppDatePipe } from "../pipes/app-date.pipe";
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
@@ -12,6 +13,7 @@ import { NotificationsListComponent } from "./notifications-list/notifications-l
   declarations: [NotificationsListComponent, NotificationComponent],
   imports: [
     AppDatePipe,
+    TranslatePipe,
     ButtonModule,
     CommonModule,
     HlmButton,

@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppIconComponent } from "../icon/icon.component";
@@ -11,7 +12,7 @@ describe("BreadcrumbComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [BreadcrumbComponent],
-      imports: [AppIconComponent, RouterModule.forRoot([])],
+      imports: [TranslatePipe, AppIconComponent, RouterModule.forRoot([])],
       providers: [provideZonelessChangeDetection()],
     }).compileComponents();
 

@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { NgxsModule } from "@ngxs/store";
 import { BaseTableService } from "../../services/base-table.service";
@@ -11,7 +12,7 @@ describe("BaseTableComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [BaseTableComponent],
-      imports: [NgxsModule.forRoot([])],
+      imports: [TranslatePipe, NgxsModule.forRoot([])],
       providers: [
         {
           provide: BaseTableService,

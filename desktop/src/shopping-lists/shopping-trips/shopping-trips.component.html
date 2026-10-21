@@ -1,7 +1,7 @@
 @if (canSee()) {
   <section class="trips mt-6" data-testid="shopping-trips" aria-labelledby="shopping-trips-title">
     <div class="mb-2 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
-      <h3 id="shopping-trips-title" class="m-0 text-[0.95rem] font-semibold">Receipts from this list</h3>
+      <h3 id="shopping-trips-title" class="m-0 text-[0.95rem] font-semibold">{{ 'Receipts from this list' | t }}</h3>
       <div class="flex flex-wrap gap-1 *:min-h-11">
         @if (canScan()) {
           <input
@@ -20,13 +20,13 @@
             (click)="photoInput.click()"
           >
             <app-icon name="photo_camera"></app-icon>
-            {{ uploading() ? "Uploading…" : "Scan receipt" }}
+            {{ (uploading() ? 'Uploading…' : 'Scan receipt') | t }}
           </button>
         }
         @if (canUpdate()) {
           <button hlmBtn variant="ghost" type="button" data-testid="shopping-trip-attach" (click)="attachExisting()">
             <app-icon name="attach_file"></app-icon>
-            Attach existing
+            {{ 'Attach existing' | t }}
           </button>
         }
       </div>
@@ -49,7 +49,7 @@
                 {{ receipt.date | appDate : "MMM d" : "calendar" }} · {{ receipt.amount | customCurrency }}
               </span>
             } @else {
-              <span class="font-semibold">{{ row.trip.waitingForPhoto ? "Receipt photo" : "Receipt" }}</span>
+              <span class="font-semibold">{{ (row.trip.waitingForPhoto ? 'Receipt photo' : 'Receipt') | t }}</span>
               <span class="text-sm tabular-nums text-muted-foreground">{{ row.trip.createdAt | appDate : "MMM d" }}</span>
             }
           </div>
@@ -66,7 +66,7 @@
             hlmBtn variant="ghost" size="icon"
             type="button"
             data-testid="shopping-trip-menu"
-            aria-label="Receipt actions"
+            [attr.aria-label]="'Receipt actions' | t"
             [hlmDropdownMenuTrigger]="tripMenu" align="end"
             [hlmDropdownMenuTriggerData]="{ trip: row.trip }"
           >
@@ -76,7 +76,7 @@
       </article>
     } @empty {
       <p class="m-0 text-muted-foreground" data-testid="shopping-trips-empty">
-        After shopping, scan the receipt to see what you bought that was not on the list.
+        {{ 'After shopping, scan the receipt to see what you bought that was not on the list.' | t }}
       </p>
     }
 
@@ -85,12 +85,12 @@
         @if (trip.status === "FAILED") {
           <button hlmDropdownMenuItem data-testid="shopping-trip-retry" (click)="retry(trip)">
             <app-icon name="refresh"></app-icon>
-            <span>Try again</span>
+            <span>{{ 'Try again' | t }}</span>
           </button>
         }
         <button hlmDropdownMenuItem data-testid="shopping-trip-remove" (click)="remove(trip)">
           <app-icon name="link_off"></app-icon>
-          <span>Remove from list</span>
+          <span>{{ 'Remove from list' | t }}</span>
         </button>
       </div>
 </ng-template>

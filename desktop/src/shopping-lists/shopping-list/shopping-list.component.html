@@ -3,7 +3,7 @@
     <div class="flex items-start gap-1">
       <app-input
         class="add-name min-w-0 flex-1"
-        label="Add an item"
+        [label]="'Add an item' | t"
         data-testid="shopping-list-add-name"
         [inputFormControl]="addForm | formGet : 'name'"
       ></app-input>
@@ -14,7 +14,7 @@
         type="submit"
         size="icon-lg"
         class="mt-1 flex-none"
-        aria-label="Add item"
+        [attr.aria-label]="'Add item' | t"
         data-testid="shopping-list-add-submit"
         [disabled]="adding()"
       >
@@ -35,7 +35,7 @@
       (classificationSelected)="correctTags($event)"
     ></app-shopping-list-item>
   } @empty {
-    <p class="m-0 px-4 py-6 text-center text-muted-foreground" data-testid="shopping-list-empty">Nothing left to buy on this list.</p>
+    <p class="m-0 px-4 py-6 text-center text-muted-foreground" data-testid="shopping-list-empty">{{ 'Nothing left to buy on this list.' | t }}</p>
   }
 </div>
 
@@ -50,7 +50,7 @@
         (click)="showCrossedOff.set(!showCrossedOff())"
       >
         <app-icon [name]="showCrossedOff() ? 'expand_less' : 'expand_more'"></app-icon>
-        Crossed off ({{ checkedItems().length }})
+        {{ 'Crossed off ({count})' | t: { count: checkedItems().length } }}
       </button>
       @if (canUpdate() && showCrossedOff()) {
         <button
@@ -59,7 +59,7 @@
           data-testid="shopping-list-clear-crossed-off"
           (click)="clearCrossedOff()"
         >
-          Clear all
+          {{ 'Clear all' | t }}
         </button>
       }
     </div>

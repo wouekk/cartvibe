@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { HlmCheckboxImports } from "@spartan-ng/helm/checkbox";
 import { DisplayCurrencyPipe } from "../../pipes/display-currency.pipe";
 import { MoneyComponent } from "../../shared-ui/money/money.component";
@@ -91,7 +92,7 @@ describe("OverviewPageComponent", () => {
 
     await TestBed.configureTestingModule({
       declarations: [OverviewPageComponent],
-      imports: [NgxsModule.forRoot([AuthState, FeatureConfigState, GroupState, ShoppingListState, SystemSettingsState]), PipesModule, SharedUiModule, MoneyComponent, ShopMonogramComponent, DisplayCurrencyPipe, ...HlmCheckboxImports],
+      imports: [TranslatePipe, NgxsModule.forRoot([AuthState, FeatureConfigState, GroupState, ShoppingListState, SystemSettingsState]), PipesModule, SharedUiModule, MoneyComponent, ShopMonogramComponent, DisplayCurrencyPipe, ...HlmCheckboxImports],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -431,7 +432,7 @@ describe("OverviewPageComponent", () => {
 
       const button = fixture.nativeElement.querySelector("[data-testid=overview-empty-add-receipt]");
       expect(button).not.toBeNull();
-      expect(button.getAttribute("buttonText")).toBe("Add receipt");
+      expect(button.textContent).toContain("Add receipt");
     });
   });
 

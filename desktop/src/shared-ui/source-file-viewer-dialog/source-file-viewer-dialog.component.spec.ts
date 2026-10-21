@@ -1,3 +1,4 @@
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { Component, Input } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
@@ -32,6 +33,7 @@ describe("SourceFileViewerDialogComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
+      imports: [TranslatePipe],
       declarations: [
         SourceFileViewerDialogComponent,
         DialogStubComponent,

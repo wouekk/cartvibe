@@ -1,19 +1,19 @@
 <app-dialog [headerText]="data.title">
   @if (loading()) {
-    <p class="muted">Loading…</p>
+    <p class="muted">{{ 'Loading…' | t }}</p>
   } @else if (failed()) {
-    <p class="muted" data-testid="overview-detail-failed">This could not be loaded.</p>
+    <p class="muted" data-testid="overview-detail-failed">{{ 'This could not be loaded.' | t }}</p>
   } @else {
     @if (products().length === 0) {
-      <p class="muted" data-testid="overview-detail-empty">Nothing here.</p>
+      <p class="muted" data-testid="overview-detail-empty">{{ 'Nothing here.' | t }}</p>
     } @else {
       <div class="table-scroll">
         <table class="detail" data-testid="overview-detail-products">
           <thead>
             <tr>
-              <th scope="col">Product</th>
-              <th scope="col">Receipt</th>
-              <th scope="col" class="numeric">Amount</th>
+              <th scope="col">{{ 'Product' | t }}</th>
+              <th scope="col">{{ 'Receipt' | t }}</th>
+              <th scope="col" class="numeric">{{ 'Amount' | t }}</th>
             </tr>
           </thead>
           <tbody>
@@ -42,6 +42,6 @@
     }
   }
   <div class="flex justify-end mt-4">
-    <app-button buttonText="Close" matButtonType="basic" data-testid="overview-detail-close" (clicked)="close()"></app-button>
+    <app-button [buttonText]="'Close' | t" matButtonType="basic" data-testid="overview-detail-close" (clicked)="close()"></app-button>
   </div>
 </app-dialog>
