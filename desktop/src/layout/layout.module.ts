@@ -7,7 +7,6 @@ import { MatDialogModule } from "@angular/material/dialog";
 import { MatIconModule } from "@angular/material/icon";
 import { MatMenuModule } from "@angular/material/menu";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
-import { MatSidenavModule } from "@angular/material/sidenav";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { RouterModule } from "@angular/router";
 import { OverlayModule } from "@angular/cdk/overlay";
@@ -17,6 +16,7 @@ import { PipesModule } from "src/pipes/pipes.module";
 import { SearchbarModule } from "src/searchbar/searchbar.module";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { AvatarModule } from "../avatar";
+import { HlmSidebarImports } from "@spartan-ng/helm/sidebar";
 import { ButtonModule } from "../button";
 import { DirectivesModule } from "../directives/directives.module";
 import { AddReceiptIconComponent } from "./add-receipt-icon/add-receipt-icon.component";
@@ -46,7 +46,7 @@ import { SidebarComponent } from "./sidebar/sidebar.component";
     MatIconModule,
     MatMenuModule,
     MatProgressBarModule,
-    MatSidenavModule,
+    ...HlmSidebarImports,
     MatTooltipModule,
     OverlayModule,
     NotificationsModule,

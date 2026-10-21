@@ -7,7 +7,6 @@ import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { Store } from "@ngxs/store";
 import { OverlayModule } from "@angular/cdk/overlay";
 import { of } from "rxjs";
-import { ToggleIsSidebarCollapsed, ToggleIsSidebarOpen } from "src/store/layout.state.actions";
 import { ViewportService } from "../../services/viewport.service";
 import { DirectivesModule } from "../../directives/directives.module";
 import { ApiModule, NotificationsService } from "../../open-api";
@@ -68,20 +67,11 @@ describe("HeaderComponent", () => {
     expect(component).toBeTruthy();
   });
 
-  it("collapses the desktop sidebar to an icon rail", () => {
-    isHandset.set(false);
-    const dispatch = jest.spyOn(TestBed.inject(Store), "dispatch");
-    component.toggleSidebar();
+  it("has the spartan sidebar trigger for a signed-in user", async () => {
+    logIn();
+    await fixture.whenStable();
 
-    expect(dispatch).toHaveBeenCalledWith(new ToggleIsSidebarCollapsed());
-  });
-
-  it("opens the phone sidebar over the page", () => {
-    isHandset.set(true);
-    const dispatch = jest.spyOn(TestBed.inject(Store), "dispatch");
-    component.toggleSidebar();
-
-    expect(dispatch).toHaveBeenCalledWith(new ToggleIsSidebarOpen());
+    expect(fixture.nativeElement.querySelector("[data-testid=sidebar-toggle]")).not.toBeNull();
   });
 
   it("should hide the notifications bell without app.notifications.read", async () => {

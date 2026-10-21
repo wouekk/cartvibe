@@ -1,158 +1,194 @@
-<mat-drawer-container class="h-full">
+<!--
+  The spartan/ui sidebar (hlm-sidebar): header with the household switcher, content with the everyday pages and the
+  collapsible Manage section, footer with the account menu. It collapses to an icon rail on a desktop and becomes a
+  sheet on a phone; the state lives in HlmSidebarService (a cookie remembers it), toggled by the trigger in the header.
+-->
+<div hlmSidebarWrapper class="h-full">
   @if (isLoggedIn()) {
-    <mat-drawer
-      class="app-sidebar"
-      [class.app-sidebar--collapsed]="isCollapsed()"
-      [mode]="drawerMode()"
-      [opened]="isDrawerOpen()"
-      (closedStart)="closeMobileSidebar()"
-    >
-      <nav class="sidebar" aria-label="Main navigation">
+    <hlm-sidebar collapsible="icon" srOnlySheetTitle="Main navigation" srOnlySheetDescription="Navigate CartVibe">
+      <div hlmSidebarHeader>
         @if (groups().length > 0 && !hasSeveralGroups()) {
-          <div class="sidebar__group sidebar__group--static" data-testid="sidebar-group-static">
-            <app-avatar class="sidebar__avatar" [group]="shownGroup()"></app-avatar>
-            @if (!isCollapsed()) {
-              <span class="sidebar__group-text">
-                <span class="sidebar__caption">Household</span>
-                <span class="sidebar__group-name">{{ shownGroup()?.name }}</span>
-              </span>
-            }
-          </div>
+          <ul hlmSidebarMenu>
+            <li hlmSidebarMenuItem>
+              <div
+                class="flex h-12 items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm"
+                data-testid="sidebar-group-static"
+              >
+                <app-avatar class="sidebar__avatar" [group]="shownGroup()"></app-avatar>
+                <span class="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
+                  <span class="truncate text-xs text-sidebar-foreground/60">Household</span>
+                  <span class="truncate font-medium">{{ shownGroup()?.name }}</span>
+                </span>
+              </div>
+            </li>
+          </ul>
         }
         @if (groups().length > 0 && hasSeveralGroups()) {
-          <button
-            type="button"
-            class="sidebar__group"
-            data-testid="sidebar-group-switcher"
-            [matMenuTriggerFor]="groupMenu"
-          >
-            <app-avatar class="sidebar__avatar" [group]="selectedGroup()"></app-avatar>
-            @if (!isCollapsed()) {
-              <span class="sidebar__group-text">
-                <span class="sidebar__caption">Household</span>
-                <span class="sidebar__group-name">{{ selectedGroup()?.name }}</span>
-              </span>
-              <mat-icon class="sidebar__chevron">unfold_more</mat-icon>
-            }
-          </button>
-          <mat-menu #groupMenu="matMenu">
-            @for (group of groups(); track group.id) {
+          <ul hlmSidebarMenu>
+            <li hlmSidebarMenuItem>
               <button
-                mat-menu-item
-                data-testid="sidebar-group-option"
-                (click)="groupClicked(group.id); closeMobileSidebar()"
+                hlmSidebarMenuButton
+                size="lg"
+                type="button"
+                tooltip="Switch household"
+                data-testid="sidebar-group-switcher"
+                [matMenuTriggerFor]="groupMenu"
               >
-                <mat-icon>{{ group.id === selectedGroupIdNumber() ? "check" : "" }}</mat-icon>
-                <span>{{ group.name }}</span>
+                <app-avatar class="sidebar__avatar" [group]="selectedGroup()"></app-avatar>
+                <span class="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
+                  <span class="truncate text-xs text-sidebar-foreground/60">Household</span>
+                  <span class="truncate font-medium">{{ selectedGroup()?.name }}</span>
+                </span>
+                <mat-icon class="ml-auto group-data-[collapsible=icon]:hidden">unfold_more</mat-icon>
               </button>
-            }
-          </mat-menu>
+              <mat-menu #groupMenu="matMenu">
+                @for (group of groups(); track group.id) {
+                  <button
+                    mat-menu-item
+                    data-testid="sidebar-group-option"
+                    (click)="groupClicked(group.id); closeMobileSidebar()"
+                  >
+                    <mat-icon>{{ group.id === selectedGroupIdNumber() ? "check" : "" }}</mat-icon>
+                    <span>{{ group.name }}</span>
+                  </button>
+                }
+              </mat-menu>
+            </li>
+          </ul>
         }
+      </div>
 
-        <div class="sidebar__section">
-          @for (item of mainNavItems(); track item.testId) {
-            <ng-container
-              [ngTemplateOutlet]="navLink"
-              [ngTemplateOutletContext]="{ item: item, testId: item.testId }"
-            ></ng-container>
-          }
+      <div hlmSidebarContent>
+        <div hlmSidebarGroup>
+          <ul hlmSidebarMenu>
+            @for (item of mainNavItems(); track item.testId) {
+              <li hlmSidebarMenuItem>
+                <ng-container
+                  [ngTemplateOutlet]="navLink"
+                  [ngTemplateOutletContext]="{ item: item, testId: item.testId }"
+                ></ng-container>
+              </li>
+            }
+          </ul>
         </div>
 
-        <div class="sidebar__spacer"></div>
-
         @if (manageNavItems().length > 0) {
-          <div class="sidebar__section sidebar__section--manage">
-            <button
-              type="button"
-              class="sidebar__link"
-              data-testid="sidebar-manage-toggle"
-              [attr.aria-expanded]="isManageOpen()"
-              [matTooltip]="isCollapsed() ? 'Manage' : ''"
-              matTooltipPosition="right"
-              (click)="isManageOpen.set(!isManageOpen())"
-            >
-              <mat-icon>tune</mat-icon>
-              @if (!isCollapsed()) {
-                <span class="sidebar__label">Manage</span>
-                <mat-icon class="sidebar__chevron">{{ isManageOpen() ? "expand_less" : "expand_more" }}</mat-icon>
-              }
-            </button>
-            @if (isManageOpen()) {
-              <div class="sidebar__submenu" data-testid="sidebar-manage-items">
-                @for (item of manageNavItems(); track item.label) {
-                  <ng-container
-                    [ngTemplateOutlet]="navLink"
-                    [ngTemplateOutletContext]="{ item: item }"
-                  ></ng-container>
+          <div hlmSidebarGroup class="mt-auto">
+            <ul hlmSidebarMenu>
+              <li hlmSidebarMenuItem>
+                <button
+                  hlmSidebarMenuButton
+                  type="button"
+                  tooltip="Manage"
+                  data-testid="sidebar-manage-toggle"
+                  [attr.aria-expanded]="isManageOpen()"
+                  (click)="isManageOpen.set(!isManageOpen())"
+                >
+                  <mat-icon>tune</mat-icon>
+                  <span>Manage</span>
+                  <mat-icon class="ml-auto group-data-[collapsible=icon]:hidden">{{
+                    isManageOpen() ? "expand_less" : "expand_more"
+                  }}</mat-icon>
+                </button>
+                @if (isManageOpen()) {
+                  <ul hlmSidebarMenuSub data-testid="sidebar-manage-items">
+                    @for (item of manageNavItems(); track item.label) {
+                      <li hlmSidebarMenuSubItem>
+                        <a
+                          hlmSidebarMenuSubButton
+                          routerLinkActive
+                          #manageActive="routerLinkActive"
+                          [isActive]="manageActive.isActive"
+                          [routerLink]="item.link"
+                          (click)="closeMobileSidebar()"
+                        >
+                          <mat-icon>{{ item.icon }}</mat-icon>
+                          <span>{{ item.label }}</span>
+                        </a>
+                      </li>
+                    }
+                  </ul>
                 }
-              </div>
-            }
+              </li>
+            </ul>
           </div>
         }
+      </div>
 
-        <button
-          type="button"
-          class="sidebar__link sidebar__account"
-          data-testid="sidebar-avatar-menu"
-          [matMenuTriggerFor]="accountMenu"
-        >
-          <app-avatar class="sidebar__avatar" [user]="loggedInUser() ?? $any({})"></app-avatar>
-          @if (!isCollapsed()) {
-            <span class="sidebar__label">{{ loggedInUser()?.displayName }}</span>
-            <mat-icon class="sidebar__chevron">more_vert</mat-icon>
-          }
-        </button>
-        <mat-menu #accountMenu="matMenu">
-          @if (canViewUserSettings()) {
-            <button mat-menu-item [routerLink]="['/settings']" (click)="closeMobileSidebar()">
-              <mat-icon>manage_accounts</mat-icon>
-              <span>User Settings</span>
+      <div hlmSidebarFooter>
+        <ul hlmSidebarMenu>
+          <li hlmSidebarMenuItem>
+            <button
+              hlmSidebarMenuButton
+              size="lg"
+              type="button"
+              tooltip="Account"
+              data-testid="sidebar-avatar-menu"
+              [matMenuTriggerFor]="accountMenu"
+            >
+              <app-avatar class="sidebar__avatar" [user]="loggedInUser() ?? $any({})"></app-avatar>
+              <span class="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
+                <span class="truncate font-medium">{{ loggedInUser()?.displayName }}</span>
+              </span>
+              <mat-icon class="ml-auto group-data-[collapsible=icon]:hidden">more_vert</mat-icon>
             </button>
-          }
-          <button mat-menu-item (click)="openAboutDialog()">
-            <mat-icon>info</mat-icon>
-            <span>About</span>
-          </button>
-          <button mat-menu-item (click)="logout()">
-            <mat-icon>logout</mat-icon>
-            <span>Logout</span>
-          </button>
-        </mat-menu>
-      </nav>
-    </mat-drawer>
+            <mat-menu #accountMenu="matMenu">
+              @if (canViewUserSettings()) {
+                <button mat-menu-item [routerLink]="['/settings']" (click)="closeMobileSidebar()">
+                  <mat-icon>manage_accounts</mat-icon>
+                  <span>User Settings</span>
+                </button>
+              }
+              <button mat-menu-item (click)="openAboutDialog()">
+                <mat-icon>info</mat-icon>
+                <span>About</span>
+              </button>
+              <button mat-menu-item (click)="logout()">
+                <mat-icon>logout</mat-icon>
+                <span>Logout</span>
+              </button>
+            </mat-menu>
+          </li>
+        </ul>
+      </div>
+      <button hlmSidebarRail></button>
+    </hlm-sidebar>
   }
-  <mat-drawer-content
-    class="drawer-content"
+
+  <main
+    hlmSidebarInset
+    class="drawer-content min-w-0"
     [class.drawer-content--full-height]="isContentFullHeight()"
-    [class.drawer-content--rail]="isLoggedIn() && isCollapsed()"
-    [class.drawer-content--wide]="isLoggedIn() && !isCollapsed() && !isHandset()"
+    [class.flex]="isContentFullHeight()"
+    [class.h-svh]="isContentFullHeight()"
+    [class.flex-col]="isContentFullHeight()"
+    [class.overflow-hidden]="isContentFullHeight()"
   >
-    <app-header class="block sticky top-0 z-10"></app-header>
+    <app-header class="sticky top-0 z-10 block"></app-header>
     <div
-      [ngClass]="{
-      'p-6': isLoggedIn() && !isContentFullHeight(),
-      }"
-      class="block drawer-outlet"
+      class="drawer-outlet block"
+      [class.p-6]="isLoggedIn() && !isContentFullHeight()"
+      [class.min-h-0]="isContentFullHeight()"
+      [class.flex-1]="isContentFullHeight()"
+      [class.overflow-hidden]="isContentFullHeight()"
     >
       <router-outlet></router-outlet>
     </div>
-  </mat-drawer-content>
-</mat-drawer-container>
+  </main>
+</div>
 
 <ng-template #navLink let-item="item" let-testId="testId">
   <a
-    class="sidebar__link"
-    routerLinkActive="sidebar__link--active"
+    hlmSidebarMenuButton
+    routerLinkActive
+    #linkActive="routerLinkActive"
+    [isActive]="linkActive.isActive"
     [routerLink]="item.link"
+    [tooltip]="item.label"
     [attr.data-testid]="testId"
-    [attr.aria-label]="isCollapsed() ? item.label : null"
-    [matTooltip]="isCollapsed() ? item.label : ''"
-    matTooltipPosition="right"
     (click)="closeMobileSidebar()"
   >
     <mat-icon>{{ item.icon }}</mat-icon>
-    @if (!isCollapsed()) {
-      <span class="sidebar__label">{{ item.label }}</span>
-    }
+    <span>{{ item.label }}</span>
   </a>
 </ng-template>

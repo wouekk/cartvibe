@@ -1,3 +1,4 @@
+import { HlmSidebarService } from "@spartan-ng/helm/sidebar";
 import { OverlayContainer } from "@angular/cdk/overlay";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection, signal } from "@angular/core";
@@ -13,7 +14,6 @@ import { RouterTestingModule } from "@angular/router/testing";
 import { NgxsModule, Store } from "@ngxs/store";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { LayoutState } from "src/store/layout.state";
-import { CloseSidebar, ToggleIsSidebarOpen } from "src/store/layout.state.actions";
 import { ShoppingListState } from "src/store/shopping-list.state";
 import { DirectivesModule } from "../../directives/directives.module";
 import { ApiModule, FeatureConfig, Group, Permission } from "../../open-api";
@@ -282,38 +282,28 @@ describe("SidebarComponent", () => {
     expect(queryTestId("sidebar-quick-scan")).toBeFalsy();
   });
 
-  describe("on a phone", () => {
-    it("is not shown until opened, and closes again on navigation", async () => {
-      isHandset.set(true);
+  describe("the spartan sidebar", () => {
+    it("closes the phone sheet when the route changes", async () => {
+      login();
+      const service = TestBed.inject(HlmSidebarService);
       const router = TestBed.inject(Router);
       router.resetConfig([{ path: "receipts", children: [] }]);
-      login();
-      await fixture.whenStable();
-      expect(component.isDrawerOpen()).toBe(false);
+      const setOpenMobile = jest.spyOn(service, "setOpenMobile");
 
-      store.dispatch(new ToggleIsSidebarOpen());
-      await fixture.whenStable();
-      expect(component.isDrawerOpen()).toBe(true);
-
-      const dispatch = jest.spyOn(store, "dispatch");
       await router.navigateByUrl("/receipts");
       await fixture.whenStable();
-      expect(dispatch).toHaveBeenCalledWith(new CloseSidebar());
-      expect(component.isDrawerOpen()).toBe(false);
+
+      expect(setOpenMobile).toHaveBeenCalledWith(false);
     });
 
-    it("always shows the full labeled sidebar, even if the desktop one was collapsed", () => {
-      isHandset.set(true);
-      expect(component.drawerMode()).toBe("over");
-      expect(component.isCollapsed()).toBe(false);
+    it("renders the sidebar (collapsible to icons) for a signed-in user and no sidebar for a guest", async () => {
+      await fixture.whenStable();
+      expect(fixture.nativeElement.querySelector("hlm-sidebar")).toBeNull();
+
+      login();
+      await fixture.whenStable();
+      const sidebar = fixture.nativeElement.querySelector("hlm-sidebar");
+      expect(sidebar).not.toBeNull();
     });
-  });
-
-  it("is always shown on a desktop", async () => {
-    login();
-    await fixture.whenStable();
-
-    expect(component.drawerMode()).toBe("side");
-    expect(component.isDrawerOpen()).toBe(true);
   });
 });

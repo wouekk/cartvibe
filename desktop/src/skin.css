@@ -160,14 +160,19 @@ body {
   h4 { font-size: 1.125rem; }
   h5, h6 { font-size: 1rem; }
   p { margin-top: 0; margin-bottom: 1rem; }
-  a { color: var(--accent-foreground); text-decoration: underline; text-underline-offset: 2px; }
-  ul, ol { padding-left: 1.5rem; margin-top: 0; margin-bottom: 1rem; list-style: revert; }
   b, strong { font-weight: 600; }
   small { font-size: 0.875em; }
   table { border-collapse: collapse; }
   label { display: inline-block; }
   img, svg, video { vertical-align: middle; }
   [hidden] { display: none !important; }
+}
+
+.settings-card ul:not([class]),
+.mat-mdc-dialog-content ul:not([class]),
+.mat-mdc-dialog-content ol:not([class]) {
+  padding-left: 1.5rem;
+  list-style: revert;
 }
 
 /* Material icons inside the spartan buttons (the helm sizes ng-icon, which this app does not use). */
@@ -177,4 +182,14 @@ a[hlmBtn] mat-icon {
   height: 1.25rem;
   font-size: 1.25rem;
   line-height: 1.25rem;
+}
+
+/* Material icons inside the spartan sidebar (the helm sizes ng-icon, which this app does not use). */
+[data-slot="sidebar-menu-button"] mat-icon,
+[data-slot="sidebar-menu-sub-button"] mat-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  font-size: 1.125rem;
+  line-height: 1.125rem;
+  flex: none;
 }
