@@ -43,7 +43,7 @@
                   />
                 </td>
                 <td class="text-muted-foreground">{{ product.name }}</td>
-                <td class="text-muted-foreground">{{ product.foodGroup }}</td>
+                <td class="text-muted-foreground">{{ product.foodGroup | t }}</td>
                 <td><app-food-tags class="mt-1 flex" [values]="product"></app-food-tags></td>
                 <td>
                   <input
@@ -92,7 +92,7 @@
                   }
                 </td>
                 <td class="text-muted-foreground" data-testid="receipt-product-original">{{ product.name }}</td>
-                <td data-testid="receipt-product-category">{{ product.foodGroup | titlecase }}</td>
+                <td data-testid="receipt-product-category">{{ product.foodGroup | titlecase | t }}</td>
                 <td><app-food-tags class="mt-1 flex" [values]="product"></app-food-tags></td>
                 <td class="text-muted-foreground">{{ product.quantity }}</td>
                 <td class="!text-right whitespace-nowrap">

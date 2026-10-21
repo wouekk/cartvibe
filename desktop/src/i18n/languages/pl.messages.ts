@@ -151,7 +151,7 @@ export const PL_CORE: Record<string, string> = {
   "Filter": "Filtr",
   "Filter by month": "Filtruj według miesiąca",
   "Group": "Grupa",
-  "Mark all as read": "Oznacz wszystko jako przeczytane",
+  "Mark all as read": "Oznacz jako przeczytane",
   "Next month": "Następny miesiąc",
   "Next year": "Następny rok",
   "Previous month": "Poprzedni miesiąc",

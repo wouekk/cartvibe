@@ -1,5 +1,5 @@
-<div class="flex justify-items-end items-center">
-  <strong class="me-4">{{ 'Notifications' | t }}</strong>
+<div class="flex min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-1 pb-2" data-testid="notifications-header">
+  <strong class="min-w-0 shrink-0">{{ 'Notifications' | t }}</strong>
   <app-button
     matButtonType="basic"
     [buttonText]="'Mark all as read' | t"
@@ -17,5 +17,5 @@
     ></app-notification>
     <hr />
   </div>
-  <div *ngIf="notifications().length === 0">{{ 'All caught up!' | t }}</div>
+  <div class="py-3 text-sm text-muted-foreground" *ngIf="notifications().length === 0">{{ 'All caught up!' | t }}</div>
 </div>

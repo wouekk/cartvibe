@@ -5,6 +5,12 @@ import { toObservable, toSignal } from "@angular/core/rxjs-interop";
 import { ActivatedRoute } from "@angular/router";
 import { Store } from "@ngxs/store";
 import type { ApexOptions } from "apexcharts";
+
+/** The ApexCharts instance handed to chart events; only its container is used here. */
+type ChartContext = { el?: HTMLElement };
+
+/** How far the focused donut slice pops out, in pixels. */
+const DONUT_POP_OUT_PX = 7;
 import { catchError, firstValueFrom, map, of, switchMap, take, tap } from "rxjs";
 import {
   FilterOperation,
@@ -43,6 +49,7 @@ import {
 } from "../overview-export";
 import {
   buildDonutSegments,
+  donutSliceOffset,
   buildTrendBars,
   describeChangeAgainst,
   DonutSegment,
@@ -54,6 +61,7 @@ import {
   OverviewDetailDialogData,
   OverviewDetailKind,
 } from "../overview-detail-dialog/overview-detail-dialog.component";
+import { summarizeShoppingLists } from "../overview-lists";
 import { isWholeCalendarMonth, previousLabel, resolvePeriod, ResolvedPeriod } from "../overview-period";
 
 const RECENT_RECEIPT_COUNT = 6;
@@ -322,6 +330,8 @@ export class OverviewPageComponent {
         fontFamily: "inherit",
         animations: { speed: 400 },
         events: {
+          mounted: (chart: ChartContext) => this.popFocusedSlice(chart),
+          updated: (chart: ChartContext) => this.popFocusedSlice(chart),
           dataPointSelection: (_event: unknown, _chart: unknown, config: { dataPointIndex: number }) => {
             const segment = this.segments()[config.dataPointIndex];
             if (segment) {
@@ -367,6 +377,30 @@ export class OverviewPageComponent {
       },
     };
   };
+
+  /**
+   * Pushes the focused slice out along its middle by a few pixels (it settles back when focus is cleared). Done on the
+   * drawn SVG after every render, since ApexCharts has no option for a programmatic pop-out; the donut is drawn
+   * smaller (customScale) so the slice stays inside the chart box and so inside the panel.
+   */
+  private popFocusedSlice(chart: ChartContext): void {
+    const container: HTMLElement | undefined = chart?.el;
+    if (!container) {
+      return;
+    }
+
+    const segments = this.segments();
+    const focusedIndex = segments.findIndex((segment) => segment.name === this.focusedSegment());
+    const offset = focusedIndex >= 0 ? donutSliceOffset(segments.map((segment) => segment.total), focusedIndex, DONUT_POP_OUT_PX) : { x: 0, y: 0 };
+    const calm = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    container.querySelectorAll<SVGPathElement>("path.apexcharts-pie-area").forEach((path) => {
+      const match = /apexcharts-(?:donut|pie)-slice-(d+)/.exec(path.getAttribute("class") ?? "");
+      const pushed = match !== null && Number(match[1]) === focusedIndex;
+      path.style.transition = calm ? "none" : "transform 180ms ease-out";
+      path.style.transform = pushed ? `translate(${offset.x}px, ${offset.y}px)` : "translate(0, 0)";
+    });
+  }
 
   /** The spending bars: black in the light theme, white in the dark one (the primary token), red above the goal. */
   public readonly barsOptions = (colors: ChartColors): ApexOptions => {
@@ -611,17 +645,7 @@ export class OverviewPageComponent {
       return [];
     }
 
-    return this.shoppingLists().map((list) => {
-      const toBuy = list.items.filter((item) => !item.isChecked);
-      const names = toBuy.slice(0, LIST_PREVIEW_ITEMS).map((item) => item.name);
-      const more = toBuy.length - names.length;
-      return {
-        id: list.id,
-        name: list.name,
-        count: toBuy.length,
-        preview: toBuy.length === 0 ? "Nothing left to buy" : names.join(", ") + (more > 0 ? `, and ${more} more` : ""),
-      };
-    });
+    return summarizeShoppingLists(this.shoppingLists(), LIST_PREVIEW_ITEMS);
   });
 
   public readonly itemsToBuy = computed(() => this.listSummaries().reduce((sum, list) => sum + list.count, 0));

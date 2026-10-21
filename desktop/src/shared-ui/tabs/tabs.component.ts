@@ -19,7 +19,7 @@ export class TabsComponent implements OnInit, OnChanges {
   public activate(name: string): void {
     const tab = this.tabs().find((candidate) => candidate.name === name);
     if (tab) {
-      this.router.navigate([tab.routerLink], { queryParams: { tab: tab.name } });
+      this.router.navigate([tab.routerLink], { relativeTo: this.activatedRoute, queryParams: { tab: tab.name } });
     }
   }
 
