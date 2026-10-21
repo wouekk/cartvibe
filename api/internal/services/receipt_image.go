@@ -105,6 +105,12 @@ func ReadReceiptFromTextOnly(bodyText string, groupId string) (commands.UpsertRe
 }
 
 func MagicFillFromImage(command commands.MagicFillCommand, groupId string, userId uint) (commands.UpsertReceiptCommand, commands.ReceiptProcessingMetadata, error) {
+	return magicFillFromImage(command, groupId, userId, false)
+}
+
+// magicFillFromImage reads an image into a receipt; includeProducts asks the same call for the product lines,
+// which only a caller that saves the receipt (quick scan) can use.
+func magicFillFromImage(command commands.MagicFillCommand, groupId string, userId uint, includeProducts bool) (commands.UpsertReceiptCommand, commands.ReceiptProcessingMetadata, error) {
 	fileRepository := repositories.NewFileRepository(nil)
 	receiptProcessingService, err := NewSystemReceiptProcessingService(nil, groupId)
 	if err != nil {
@@ -113,6 +119,7 @@ func MagicFillFromImage(command commands.MagicFillCommand, groupId string, userI
 	// Restrict the AI prompt's candidate categories/tags to this user's grants
 	// (0 when there is no triggering user, e.g. system processing).
 	receiptProcessingService.UserId = userId
+	receiptProcessingService.IncludeProducts = includeProducts
 
 	bytes, err := fileRepository.GetBytesFromImageBytes(command.ImageData)
 	if err != nil {

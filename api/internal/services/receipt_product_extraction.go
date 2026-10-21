@@ -22,7 +22,7 @@ import (
 
 // productExtractionPromptTemplate asks for a receipt's shop and product lines, with each product's
 // category, health and season in the same answer (Phase 3 feedback: no separate classification wait).
-// The %s slots are the region, the month, the category rules and the household's earlier corrections.
+// The %s slots are the region, the month and the product rules (productLineRulesTemplate).
 const productExtractionPromptTemplate = `You read shop receipts. List every purchased product line on this receipt and classify each product for a household in %s. The current month is %s.
 
 Return ONLY valid JSON in plain text, never in a code block, exactly in this shape:
@@ -31,7 +31,22 @@ Return ONLY valid JSON in plain text, never in a code block, exactly in this sha
 "shop": the name of the shop as printed on the receipt, the brand only, for example "Auchan", "Edeka" or "Rewe" (not the street, branch number or slogan). Use "" if it cannot be read.
 "currency": the ISO 4217 code of the currency the receipt is in, for example EUR, PLN, GBP, CHF or USD. A price written with zł, zl or PLN is PLN; with £, GBP or the word pounds is GBP; with CHF, Fr. or SFr. is CHF; with $ is USD; with € is EUR. Use "" if none is printed. Give every amount exactly as printed, in that currency, without converting it.
 
-For each product line:
+%s
+If this is not a shop receipt, or it has no product lines, return {"shop": "", "currency": "", "products": []}.`
+
+// inlineProductPromptTemplate is added to the receipt prompt of a quick scan, so the one answer carries the
+// products too (ApplyInlineRead). The %s slots are the region, the month and the product rules.
+const inlineProductPromptTemplate = `
+
+Also add a "products" key to the same JSON object: every purchased product line on this receipt, classified for a household in %s. The current month is %s. Its shape:
+"products": [{"name": "...", "displayName": "...", "amount": 0.0, "quantity": "...", "health": "...", "foodGroup": "...", "seasonality": "..."}]
+
+%s
+If this is not a shop receipt, or it has no product lines, use "products": [].`
+
+// productLineRulesTemplate describes one product line. The %s slots are the region, the month, the category
+// rules and the household's earlier corrections.
+const productLineRulesTemplate = `For each product line:
 - "name": the line exactly as printed on the receipt.
 - "displayName": a short, plain English name for the product, for example "Semi-skimmed milk 1 L" for "LAIT DEMI-ECR 1L".
 - "amount": what the line cost in total, as a number, after any discount printed for that line. Omit it if the line shows no price.
@@ -43,13 +58,27 @@ For each product line:
 - "foodGroup": the product's category, a short lowercase name, for example "fresh produce", "dairy", "bakery", "meat", "fish", "drinks", "sweets & snacks", "alcohol", "frozen", "pantry", "household".
 - "seasonality": only for fresh fruit and vegetables: "SEASONAL" if it is in season in %s in %s, or "OUT_OF_SEASON" if in that month it is most likely imported from another continent or frozen. "NOT_PRODUCE" for everything else, including frozen and canned produce.
 %s%s
-Do not list totals, subtotals, taxes, payment lines, change given, loyalty points, bottle deposits or coupons as products.
-If this is not a shop receipt, or it has no product lines, return {"shop": "", "currency": "", "products": []}.`
+Do not list totals, subtotals, taxes, payment lines, change given, loyalty points, bottle deposits or coupons as products.`
 
 // buildProductExtractionPrompt fills the template for a receipt bought in the given month.
 func buildProductExtractionPrompt(month time.Time, categoryBlock string, corrections map[string]string) string {
 	monthName := month.Format("January 2006")
+	return fmt.Sprintf(
+		productExtractionPromptTemplate,
+		foodClassificationRegion, monthName, productLineRules(monthName, categoryBlock, corrections),
+	)
+}
 
+// buildInlineProductPrompt is the part a quick scan adds to its receipt prompt (see inlineProductPromptTemplate).
+func buildInlineProductPrompt(month time.Time, categoryBlock string, corrections map[string]string) string {
+	monthName := month.Format("January 2006")
+	return fmt.Sprintf(
+		inlineProductPromptTemplate,
+		foodClassificationRegion, monthName, productLineRules(monthName, categoryBlock, corrections),
+	)
+}
+
+func productLineRules(monthName string, categoryBlock string, corrections map[string]string) string {
 	if categoryBlock != "" {
 		categoryBlock += "\n"
 	}
@@ -72,10 +101,23 @@ func buildProductExtractionPrompt(month time.Time, categoryBlock string, correct
 		examples = fmt.Sprintf(foodClassificationCorrections, strings.Join(lines, "\n"))
 	}
 
-	return fmt.Sprintf(
-		productExtractionPromptTemplate,
-		foodClassificationRegion, monthName, foodClassificationRegion, monthName, categoryBlock, examples,
-	)
+	return fmt.Sprintf(productLineRulesTemplate, foodClassificationRegion, monthName, categoryBlock, examples)
+}
+
+// InlineProductPrompt is the products part of a quick scan's prompt for one group: its categories and its
+// remembered corrections, for a receipt bought this month (app time zone).
+func InlineProductPrompt(tx *gorm.DB, groupId uint) (string, error) {
+	resolver, err := newFoodGroupResolver(tx)
+	if err != nil {
+		return "", err
+	}
+	corrections, err := repositories.NewFoodClassificationRepository(tx).CorrectionsForGroup(groupId)
+	if err != nil {
+		return "", err
+	}
+	now := time.Now().In(repositories.GetAppLocation())
+	month := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
+	return buildInlineProductPrompt(month, resolver.PromptBlock(), corrections), nil
 }
 
 const (
@@ -175,6 +217,61 @@ func (service ReceiptProductExtractionService) extract(extraction models.Receipt
 		return service.recordBadAnswer(extraction, answerErr)
 	}
 
+	return service.applyProducts(receipt, products, shopName, currency, resolver, corrections)
+}
+
+// ApplyInlineRead applies the products a quick scan's own answer carried, so a scanned receipt needs one AI
+// call instead of two and is finished the moment it is saved. false means nothing was applied (the answer had
+// no products list, or a sweep already took the receipt) and the sweep reads the receipt as before.
+func (service ReceiptProductExtractionService) ApplyInlineRead(receiptId uint, response string) (bool, error) {
+	cleaned := ReceiptProcessingService{}.cleanResponse(response)
+
+	var keys map[string]json.RawMessage
+	if err := json.Unmarshal([]byte(cleaned), &keys); err != nil {
+		return false, nil
+	}
+	if _, hasProducts := keys["products"]; !hasProducts {
+		return false, nil
+	}
+	products, err := parseProductResponse(cleaned)
+	if err != nil {
+		return false, nil
+	}
+
+	repository := repositories.NewReceiptProductRepository(service.TX)
+	_, claimed, err := repository.ClaimPendingExtraction(receiptId, time.Now())
+	if err != nil || !claimed {
+		return false, err
+	}
+
+	receipt, err := repositories.NewReceiptRepository(service.TX).GetReceiptById(utils.UintToString(receiptId))
+	if err != nil {
+		return false, err
+	}
+	resolver, err := newFoodGroupResolver(service.TX)
+	if err != nil {
+		return false, err
+	}
+	corrections, err := repositories.NewFoodClassificationRepository(service.TX).CorrectionsForGroup(receipt.GroupId)
+	if err != nil {
+		return false, err
+	}
+
+	return true, service.applyProducts(receipt, products, parseShopName(cleaned), parseCurrency(cleaned), resolver, corrections)
+}
+
+// applyProducts stores a finished read: amounts converted like the receipt's, corrections and categories
+// applied, then the receipt itself updated (applyReadResult).
+func (service ReceiptProductExtractionService) applyProducts(
+	receipt models.Receipt,
+	products []models.ReceiptProduct,
+	shopName string,
+	currency string,
+	resolver *foodGroupResolver,
+	corrections map[string]string,
+) error {
+	repository := repositories.NewReceiptProductRepository(service.TX)
+
 	// A receipt in another currency has its product amounts converted at the same rate as the receipt
 	// (Phase 3 currencies): the rate it already carries, else the table's. Without a rate they stay as read.
 	currencies, currencyErr := loadCurrencyContext()
@@ -192,7 +289,7 @@ func (service ReceiptProductExtractionService) extract(extraction models.Receipt
 	}
 
 	for i := range products {
-		products[i].ReceiptId = extraction.ReceiptId
+		products[i].ReceiptId = receipt.ID
 		products[i].Position = i
 
 		// A product the answer classified is finished: the household's earlier corrections win over
@@ -207,7 +304,7 @@ func (service ReceiptProductExtractionService) extract(extraction models.Receipt
 		}
 	}
 
-	err = repository.ReplaceProducts(extraction.ReceiptId, products)
+	err := repository.ReplaceProducts(receipt.ID, products)
 	if err != nil {
 		return err
 	}
