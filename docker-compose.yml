@@ -37,7 +37,8 @@ services:
     container_name: cartvibe-redis
     restart: unless-stopped
     # Persist queued jobs across restarts.
-    command: ["redis-server", "--appendonly", "yes"]
+    # tcp-backlog 128 matches the NAS kernel's somaxconn, which silences the "TCP backlog 511" warning; one household never needs more.
+    command: ["redis-server", "--appendonly", "yes", "--tcp-backlog", "128"]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
