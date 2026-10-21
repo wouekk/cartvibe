@@ -1,4 +1,5 @@
 import { PermissionScope } from "../open-api";
+import { marker } from "../i18n/marker";
 
 /**
  * A role applies to exactly one scope. The "Role type" choice drives the
@@ -51,7 +52,7 @@ export const ROLE_TYPES: RoleTypeMeta[] = [
     color: PRIMARY_COLOR,
     tint: PRIMARY_TINT,
     description:
-      "Controls app-wide capabilities — users, settings, prompts, API keys and more.",
+      marker("Controls app-wide capabilities — users, settings, prompts, API keys and more."),
     scope: PermissionScope.App,
   },
   {
@@ -61,7 +62,7 @@ export const ROLE_TYPES: RoleTypeMeta[] = [
     color: GROUP_COLOR,
     tint: GROUP_TINT,
     description:
-      "Controls what a member can do inside a group — receipts, dashboards, activity.",
+      marker("Controls what a member can do inside a group — receipts, dashboards, activity."),
     scope: PermissionScope.Group,
   },
 ];
@@ -135,7 +136,7 @@ export const APP_PRESETS: RolePreset[] = [
   {
     id: "admin",
     name: "Administrator",
-    description: "Everything in the app",
+    description: marker("Everything in the app"),
     icon: "shield_person",
     color: PRIMARY_COLOR,
     tint: PRIMARY_TINT,
@@ -144,7 +145,7 @@ export const APP_PRESETS: RolePreset[] = [
   {
     id: "user-mgr",
     name: "User Manager",
-    description: "Manage users & keys",
+    description: marker("Manage users & keys"),
     icon: "manage_accounts",
     color: PRIMARY_COLOR,
     tint: PRIMARY_TINT,
@@ -154,7 +155,7 @@ export const APP_PRESETS: RolePreset[] = [
   {
     id: "app-viewer",
     name: "Read Only",
-    description: "View settings only",
+    description: marker("View settings only"),
     icon: "visibility",
     color: "#10b981",
     tint: "#d1fae5",
@@ -163,7 +164,7 @@ export const APP_PRESETS: RolePreset[] = [
   {
     id: "custom",
     name: "Custom",
-    description: "Start from scratch",
+    description: marker("Start from scratch"),
     icon: "tune",
     color: "#64748b",
     tint: "#f1f5f9",
@@ -175,7 +176,7 @@ export const GROUP_PRESETS: RolePreset[] = [
   {
     id: "manager",
     name: "Group Manager",
-    description: "Run groups & receipts",
+    description: marker("Run groups & receipts"),
     icon: "workspaces",
     color: GROUP_COLOR,
     tint: GROUP_TINT,
@@ -184,7 +185,7 @@ export const GROUP_PRESETS: RolePreset[] = [
   {
     id: "editor",
     name: "Receipt Editor",
-    description: "Add & edit receipts",
+    description: marker("Add & edit receipts"),
     icon: "edit_note",
     color: "#10b981",
     tint: "#d1fae5",
@@ -193,7 +194,7 @@ export const GROUP_PRESETS: RolePreset[] = [
   {
     id: "viewer",
     name: "Viewer",
-    description: "Read-only access",
+    description: marker("Read-only access"),
     icon: "visibility",
     color: "#64748b",
     tint: "#f1f5f9",
@@ -202,7 +203,7 @@ export const GROUP_PRESETS: RolePreset[] = [
   {
     id: "custom",
     name: "Custom",
-    description: "Start from scratch",
+    description: marker("Start from scratch"),
     icon: "tune",
     color: "#64748b",
     tint: "#f1f5f9",

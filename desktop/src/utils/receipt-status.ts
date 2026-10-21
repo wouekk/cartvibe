@@ -1,4 +1,5 @@
 import { ReceiptStatus } from "../open-api";
+import { marker } from "../i18n/marker";
 
 /**
  * A family sees two receipt statuses (Phase 3 C6): **To check** and **Done**. This is display
@@ -14,7 +15,7 @@ export const TO_CHECK_STATUSES: readonly string[] = [
 
 export const DONE_STATUSES: readonly string[] = [ReceiptStatus.Resolved, ReceiptStatus.Declined];
 
-export const TO_CHECK_LABEL = "To check";
+export const TO_CHECK_LABEL = marker("To check");
 
 export const DONE_LABEL = "Done";
 

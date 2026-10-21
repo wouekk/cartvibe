@@ -27,6 +27,7 @@ import { SetFeatureConfig } from "../../store";
 import { AiFallbackCardComponent } from "../ai-fallback-card/ai-fallback-card.component";
 import { GeminiModelFieldComponent } from "../gemini-model-field/gemini-model-field.component";
 import { AI_SETTINGS_NAME, ConnectionResult, DEFAULT_GEMINI_MODEL, describeConnection } from "../ai-settings-shared";
+import { marker } from "../../i18n/marker";
 
 export { AI_SETTINGS_NAME, DEFAULT_GEMINI_MODEL, describeConnection } from "../ai-settings-shared";
 export type { ConnectionResult } from "../ai-settings-shared";
@@ -100,7 +101,7 @@ export class AiSettingsPageComponent implements OnInit {
   public readonly providers = computed(() => {
     const options = [
       { value: AiType.Gemini, displayValue: "Google Gemini" },
-      { value: AiType.OpenAiCustom, displayValue: "LM Studio (on a computer at home)" },
+      { value: AiType.OpenAiCustom, displayValue: marker("LM Studio (on a computer at home)") },
     ];
     const savedType = this.saved()?.aiType;
     if (savedType && !options.some((option) => option.value === savedType)) {

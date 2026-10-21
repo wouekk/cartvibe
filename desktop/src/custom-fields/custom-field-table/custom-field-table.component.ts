@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild } from "@angular/core";
+import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild, inject } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
 import { Store } from "@ngxs/store";
@@ -14,6 +14,8 @@ import { SetOrderBy, SetPage, SetPageSize, SetSortDirection } from "../../store/
 import { AuthState } from "../../store/index";
 import { TableColumn } from "../../table/table-column.interface";
 import { CustomFieldFormComponent } from "../custom-field-form/custom-field-form.component";
+import { marker } from "../../i18n/marker";
+import { TranslationService } from "../../i18n/translation.service";
 
 @Component({
   selector: "app-custom-field-table",
@@ -22,6 +24,8 @@ import { CustomFieldFormComponent } from "../custom-field-form/custom-field-form
   standalone: false
 })
 export class CustomFieldTableComponent implements OnInit, AfterViewInit {
+  private readonly translation = inject(TranslationService);
+
   public readonly nameCell = viewChild.required<TemplateRef<any>>("nameCell");
 
   public readonly typeCell = viewChild.required<TemplateRef<any>>("typeCell");
@@ -117,7 +121,7 @@ export class CustomFieldTableComponent implements OnInit, AfterViewInit {
       return "Add Custom Field";
     }
 
-    return mode === FormMode.edit ? `Edit ${customField.name}` : "View Custom Field";
+    return mode === FormMode.edit ? this.translation.t("Edit {name}", { name: customField.name }) : marker("View Custom Field");
   }
 
   private initTableData(): void {
@@ -168,7 +172,7 @@ export class CustomFieldTableComponent implements OnInit, AfterViewInit {
         sortable: true,
       },
       {
-        columnHeader: "Actions",
+        columnHeader: marker("Actions"),
         matColumnDef: "actions",
         template: this.actionsCell(),
         sortable: false,
@@ -207,8 +211,8 @@ export class CustomFieldTableComponent implements OnInit, AfterViewInit {
       DEFAULT_DIALOG_CONFIG
     );
 
-    dialogRef.componentInstance.headerText = `Delete ${customField.name}`;
-    dialogRef.componentInstance.dialogContent = `Are you sure you want to delete ${customField.name}? This action is irreversible and will remove this custom field from the receipts it is associated with.`;
+    dialogRef.componentInstance.headerText = this.translation.t("Delete {name}", { name: customField.name });
+    dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you want to delete {name}? This action is irreversible and will remove this custom field from the receipts it is associated with.", { name: customField.name });
 
     dialogRef
       .afterClosed()

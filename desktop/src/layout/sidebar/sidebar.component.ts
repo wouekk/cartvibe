@@ -38,6 +38,7 @@ import {
 import { HlmSidebarService } from "@spartan-ng/helm/sidebar";
 import { LanguageSyncService } from "../../i18n/language-sync.service";
 import { TranslationService } from "../../i18n/translation.service";
+import { marker } from "../../i18n/marker";
 
 /** The nav items name Material icons; the sidebar draws the matching Lucide ones, like spartan's own. */
 const LUCIDE_ICONS: Record<string, string> = {
@@ -252,19 +253,19 @@ export class SidebarComponent {
     const items: { label: string; icon: string; link: string[] }[] = [];
 
     if (has(Permission.AppCategoriesRead)) {
-      items.push({ label: "Manage Categories", icon: "category", link: ["/categories"] });
+      items.push({ label: marker("Manage Categories"), icon: "category", link: ["/categories"] });
     }
     if (has(Permission.AppTagsRead)) {
-      items.push({ label: "Manage Tags", icon: "sell", link: ["/tags"] });
+      items.push({ label: marker("Manage Tags"), icon: "sell", link: ["/tags"] });
     }
     if (has(Permission.AppCustomFieldsRead)) {
-      items.push({ label: "Manage Custom Fields", icon: "dynamic_form", link: ["/custom-fields"] });
+      items.push({ label: marker("Manage Custom Fields"), icon: "dynamic_form", link: ["/custom-fields"] });
     }
     if (has(Permission.AppGroupsRead)) {
-      items.push({ label: "Manage Households", icon: "groups", link: ["/groups"] });
+      items.push({ label: marker("Manage Households"), icon: "groups", link: ["/groups"] });
     }
     if (has(Permission.AppUsersRead)) {
-      items.push({ label: "Manage Users", icon: "person", link: ["/users"] });
+      items.push({ label: marker("Manage Users"), icon: "person", link: ["/users"] });
     }
     // No "Manage Roles" (Phase 3 M4): a household has Admin and User, picked on the user and member
     // forms. The roles page stays at /roles.

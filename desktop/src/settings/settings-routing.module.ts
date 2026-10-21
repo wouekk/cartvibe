@@ -10,6 +10,7 @@ import { SettingsComponent } from "./settings/settings.component";
 import { UserPreferencesComponent } from "./user-preferences/user-preferences.component";
 import { ThemeSettingsComponent } from "./theme/theme-settings.component";
 import { UserProfileComponent } from "./user-profile/user-profile.component";
+import { marker } from "../i18n/marker";
 
 const routes: Routes = [
   {
@@ -29,7 +30,7 @@ const routes: Routes = [
         data: {
           formConfig: {
             mode: FormMode.view,
-            headerText: "View User Profile",
+            headerText: marker("View User Profile"),
           } as FormConfig,
           appPermissions: [Permission.AppAccountRead],
         },
@@ -41,7 +42,7 @@ const routes: Routes = [
         data: {
           formConfig: {
             mode: FormMode.edit,
-            headerText: "Edit User Profile",
+            headerText: marker("Edit User Profile"),
           } as FormConfig,
           appPermissions: [Permission.AppAccountUpdate],
         },
@@ -53,7 +54,7 @@ const routes: Routes = [
         data: {
           formConfig: {
             mode: FormMode.view,
-            headerText: "View User Preferences",
+            headerText: marker("View User Preferences"),
           } as FormConfig,
           appPermissions: [Permission.AppUserPreferencesRead],
         },
@@ -65,7 +66,7 @@ const routes: Routes = [
         data: {
           formConfig: {
             mode: FormMode.edit,
-            headerText: "Edit User Preferences",
+            headerText: marker("Edit User Preferences"),
           } as FormConfig,
           appPermissions: [Permission.AppUserPreferencesUpdate],
         },
@@ -82,7 +83,7 @@ const routes: Routes = [
         data: {
           formConfig: {
             mode: FormMode.view,
-            headerText: "View API Keys",
+            headerText: marker("View API Keys"),
           } as FormConfig,
           appPermissions: [Permission.AppApiKeysRead],
         },
@@ -94,7 +95,7 @@ const routes: Routes = [
         data: {
           formConfig: {
             mode: FormMode.edit,
-            headerText: "Edit API Keys",
+            headerText: marker("Edit API Keys"),
           } as FormConfig,
           appPermissions: [Permission.AppApiKeysRead],
         },

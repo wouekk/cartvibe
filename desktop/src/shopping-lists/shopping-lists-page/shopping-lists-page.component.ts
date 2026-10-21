@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, computed, effect, signal, untracked } from "@angular/core";
+import { Component, OnDestroy, OnInit, computed, effect, signal, untracked, inject } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -20,6 +20,7 @@ import {
 import { hasAll } from "../../utils/permission.utils";
 import { activeLists, recentPastLists } from "../shopping-list-groups";
 import { ShoppingListFormDialogComponent } from "../shopping-list-form-dialog/shopping-list-form-dialog.component";
+import { TranslationService } from "../../i18n/translation.service";
 
 @Component({
   selector: "app-shopping-lists-page",
@@ -27,6 +28,8 @@ import { ShoppingListFormDialogComponent } from "../shopping-list-form-dialog/sh
   standalone: false,
 })
 export class ShoppingListsPageComponent implements OnInit, OnDestroy {
+  private readonly translation = inject(TranslationService);
+
   public readonly groupId = toSignal(
     this.activatedRoute.paramMap.pipe(map((params) => Number(params.get("groupId")))),
     { requireSync: true }
@@ -210,7 +213,7 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
   public deleteList(list: ShoppingList): void {
     const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
     dialogRef.componentInstance.headerText = "Delete List";
-    dialogRef.componentInstance.dialogContent = `Delete "${list.name}" and all of its items?`;
+    dialogRef.componentInstance.dialogContent = this.translation.t("Delete \"{name}\" and all of its items?", { name: list.name });
 
     dialogRef
       .afterClosed()

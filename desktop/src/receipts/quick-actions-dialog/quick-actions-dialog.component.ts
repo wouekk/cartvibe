@@ -1,9 +1,10 @@
-import { Component, Input, OnInit, output } from "@angular/core";
+import { Component, Input, OnInit, output, inject } from "@angular/core";
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { RadioButtonData } from "src/radio-group/models";
 import { Item, Receipt, User } from "../../open-api";
 import { SnackbarService } from "../../services/index";
+import { TranslationService } from "../../i18n/translation.service";
 
 enum QuickActions {
   "SplitEvenly" = "Split Evenly",
@@ -18,6 +19,8 @@ enum QuickActions {
   standalone: false
 })
 export class QuickActionsDialogComponent implements OnInit {
+  private readonly translation = inject(TranslationService);
+
   @Input() public originalReceipt?: Receipt;
 
   @Input() public usersToOmit: string[] = [];
@@ -261,14 +264,14 @@ export class QuickActionsDialogComponent implements OnInit {
 
       // Check if custom percentage is enabled but field is empty
       if (isCustom && percentageControl?.enabled && !percentageControl?.value) {
-        this.snackbarService.error(`Please enter a percentage for ${user.displayName}!`);
+        this.snackbarService.error(this.translation.t("Please enter a percentage for {name}!", { name: user.displayName }));
         return false;
       }
 
       // Only validate enabled controls or controls with values > 0
       if (percentageControl?.enabled || percentage > 0) {
         if (percentage < 0 || percentage > 100) {
-          this.snackbarService.error(`Percentage for ${user.displayName} must be between 0 and 100!`);
+          this.snackbarService.error(this.translation.t("Percentage for {name} must be between 0 and 100!", { name: user.displayName }));
           return false;
         }
       }

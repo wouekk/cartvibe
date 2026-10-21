@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild } from "@angular/core";
+import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild, inject } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
 import { Store } from "@ngxs/store";
@@ -12,6 +12,8 @@ import { PagedDataDataInner, PagedRequestCommand, Permission, TagService, TagVie
 import { SnackbarService } from "../../services";
 import { SetOrderBy, SetPage, SetPageSize, SetSortDirection } from "../../store/tag-table.state.actions";
 import { TagFormComponent } from "../tag-form/tag-form.component";
+import { marker } from "../../i18n/marker";
+import { TranslationService } from "../../i18n/translation.service";
 
 @Component({
     selector: "app-tags-list",
@@ -20,6 +22,8 @@ import { TagFormComponent } from "../tag-form/tag-form.component";
     standalone: false
 })
 export class TagTableComponent implements OnInit, AfterViewInit {
+  private readonly translation = inject(TranslationService);
+
   public readonly nameCell = viewChild.required<TemplateRef<any>>("nameCell");
 
   public readonly descriptionCell = viewChild.required<TemplateRef<any>>("descriptionCell");
@@ -109,7 +113,7 @@ export class TagTableComponent implements OnInit, AfterViewInit {
         sortable: true,
       },
       {
-        columnHeader: "Number of Receipts with Tags",
+        columnHeader: marker("Number of Receipts with Tags"),
         matColumnDef: "numberOfReceipts",
         template: this.numberOfReceiptsCell(),
         sortable: true,
@@ -121,7 +125,7 @@ export class TagTableComponent implements OnInit, AfterViewInit {
         sortable: true,
       },
       {
-        columnHeader: "Actions",
+        columnHeader: marker("Actions"),
         matColumnDef: "actions",
         template: this.actionsCell(),
         sortable: false,
@@ -152,7 +156,7 @@ export class TagTableComponent implements OnInit, AfterViewInit {
     );
 
     dialogRef.componentInstance.tag = tagView as TagView;
-    dialogRef.componentInstance.headerText = `Edit ${tagView.name}`;
+    dialogRef.componentInstance.headerText = this.translation.t("Edit {name}", { name: tagView.name });
 
     dialogRef
       .afterClosed()
@@ -173,7 +177,7 @@ export class TagTableComponent implements OnInit, AfterViewInit {
       DEFAULT_DIALOG_CONFIG
     );
 
-    dialogRef.componentInstance.headerText = `Add tag`;
+    dialogRef.componentInstance.headerText = this.translation.t("Add Tag");
 
     dialogRef
       .afterClosed()
@@ -193,8 +197,8 @@ export class TagTableComponent implements OnInit, AfterViewInit {
       ConfirmationDialogComponent,
       DEFAULT_DIALOG_CONFIG
     );
-    dialogRef.componentInstance.headerText = `Delete ${tagView.name}`;
-    dialogRef.componentInstance.dialogContent = `Are you sure you want to delete ${tagView.name}? This action is irreversiable and will remove this tag from the receipts it is associated with.`;
+    dialogRef.componentInstance.headerText = this.translation.t("Delete {name}", { name: tagView.name });
+    dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you want to delete {name}? This action is irreversible and will remove this tag from the receipts it is associated with.", { name: tagView.name });
     dialogRef
       .afterClosed()
       .pipe(

@@ -31,6 +31,7 @@ import {
 import { ReportCatalogService } from "../services/report-catalog.service";
 import { ReportRunnerService } from "../services/report-runner.service";
 import { ReportTemplateTableService } from "./report-template-table.service";
+import { marker } from "../../i18n/marker";
 
 /**
  * The Reports landing page: a paged table of saved report templates. Each row
@@ -127,9 +128,9 @@ export class ReportTemplateListComponent extends BaseTableComponent<ReportTempla
       { columnHeader: "Name", matColumnDef: "name", template: this.nameCell(), sortable: true },
       { columnHeader: "Scope", matColumnDef: "scope", template: this.scopeCell(), sortable: false },
       { columnHeader: "Grouping", matColumnDef: "grouping", template: this.groupingCell(), sortable: false },
-      { columnHeader: "Detail", matColumnDef: "detail", template: this.detailCell(), sortable: false },
-      { columnHeader: "Formats", matColumnDef: "formats", template: this.formatsCell(), sortable: false },
-      { columnHeader: "Updated", matColumnDef: "updated_at", template: this.updatedCell(), sortable: true },
+      { columnHeader: marker("Detail"), matColumnDef: "detail", template: this.detailCell(), sortable: false },
+      { columnHeader: marker("Formats"), matColumnDef: "formats", template: this.formatsCell(), sortable: false },
+      { columnHeader: marker("Updated"), matColumnDef: "updated_at", template: this.updatedCell(), sortable: true },
       { columnHeader: "", matColumnDef: "actions", template: this.actionsCell(), sortable: false },
     ];
     this.setInitialSortedColumn(
@@ -228,7 +229,7 @@ export class ReportTemplateListComponent extends BaseTableComponent<ReportTempla
 
   public delete(template: ReportTemplate): void {
     const dialogRef = this.matDialog.open(ConfirmationDialogComponent, DEFAULT_DIALOG_CONFIG);
-    dialogRef.componentInstance.headerText = "Delete Report Template";
+    dialogRef.componentInstance.headerText = marker("Delete Report Template");
     dialogRef.componentInstance.dialogContent = `Are you sure you want to delete "${template.name}"? This action is irreversible.`;
 
     dialogRef

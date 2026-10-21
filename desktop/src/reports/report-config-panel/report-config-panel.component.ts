@@ -51,6 +51,7 @@ import {
   ColumnPickerDialogComponent,
   ColumnPickerDialogData,
 } from "../dialogs/column-picker-dialog/column-picker-dialog.component";
+import { marker } from "../../i18n/marker";
 
 interface ScopeChip {
   index: number;
@@ -95,8 +96,8 @@ const KIND_META: Record<
   ReportColumn.KindEnum,
   { label: string; icon: string; cssClass: string; tone: BadgeTone }
 > = {
-  dimension: { label: "Dim", icon: "sell", cssClass: "kind-dimension", tone: "slate" },
-  aggregate: { label: "Agg", icon: "functions", cssClass: "kind-aggregate", tone: "blue" },
+  dimension: { label: marker("Dim"), icon: "sell", cssClass: "kind-dimension", tone: "slate" },
+  aggregate: { label: marker("Agg"), icon: "functions", cssClass: "kind-aggregate", tone: "blue" },
   formula: { label: "Formula", icon: "calculate", cssClass: "kind-formula", tone: "green" },
 };
 

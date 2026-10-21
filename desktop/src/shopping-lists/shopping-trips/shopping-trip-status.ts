@@ -1,4 +1,5 @@
 import { ShoppingTripView } from "../../open-api";
+import { marker } from "../../i18n/marker";
 
 /** Unplanned products named on a trip before the rest are summed up as "and N more". */
 export const MAX_NAMED_UNPLANNED_PRODUCTS = 4;
@@ -23,22 +24,22 @@ export function describeShoppingTrip(trip: ShoppingTripView): ShoppingTripStatus
 
   if (trip.waitingForPhoto) {
     return trip.status === "UNAVAILABLE"
-      ? { kind: "waiting", text: "Photo saved. It will be read as soon as the AI is available." }
-      : { kind: "waiting", text: "Reading the photo…" };
+      ? { kind: "waiting", text: marker("Photo saved. It will be read as soon as the AI is available.") }
+      : { kind: "waiting", text: marker("Reading the photo…") };
   }
 
   if (trip.status === "DONE") {
     if (trip.unplannedProducts.length === 0) {
-      return { kind: "planned", text: "Everything bought was on the list." };
+      return { kind: "planned", text: marker("Everything bought was on the list.") };
     }
     return { kind: "unplanned", text: `not on the list: ${nameUnplannedProducts(trip.unplannedProducts)}` };
   }
 
   if (trip.status === "UNAVAILABLE") {
-    return { kind: "waiting", text: "Waiting for the AI. Counted as planned until then." };
+    return { kind: "waiting", text: marker("Waiting for the AI. Counted as planned until then.") };
   }
 
-  return { kind: "waiting", text: "Comparing with the list…" };
+  return { kind: "waiting", text: marker("Comparing with the list…") };
 }
 
 export function nameUnplannedProducts(names: string[]): string {

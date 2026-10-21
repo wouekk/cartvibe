@@ -20,6 +20,7 @@ import {
 import { ReportColumnValue } from "../../models/report-command.mapper";
 import { deriveColumnName, validateFormulaExpr } from "../../models/report-column.util";
 import { nextReportRowId } from "../../models/report-form.factory";
+import { marker } from "../../../i18n/marker";
 
 export interface ColumnPickerDialogData {
   dimensions: ReportField[];
@@ -324,7 +325,7 @@ export class ColumnPickerDialogComponent {
 
   private suggestAggregateLabel(fn: ReportColumn.AggFuncEnum): string {
     if (fn === ReportColumn.AggFuncEnum.Count) {
-      return "Count";
+      return marker("Count");
     }
     return this.labelForMeasure(this.pickerForm.get("measure")!.value);
   }
