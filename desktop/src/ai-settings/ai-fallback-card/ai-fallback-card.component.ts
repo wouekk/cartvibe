@@ -16,6 +16,7 @@ import {
   UpsertSystemSettingsCommand,
 } from "../../open-api";
 import { PipesModule } from "../../pipes/pipes.module";
+import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { SnackbarService } from "../../services";
 import { GeminiModelFieldComponent } from "../gemini-model-field/gemini-model-field.component";
@@ -35,7 +36,7 @@ export const AI_FALLBACK_SETTINGS_NAME = "Household AI backup";
   host: { class: "block" },
   templateUrl: "./ai-fallback-card.component.html",
   standalone: true,
-  imports: [AppIconComponent, CheckboxModule, GeminiModelFieldComponent, HlmButton, InputModule, PipesModule, ReactiveFormsModule],
+  imports: [SharedUiModule, AppIconComponent, CheckboxModule, GeminiModelFieldComponent, HlmButton, InputModule, PipesModule, ReactiveFormsModule],
 })
 export class AiFallbackCardComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);

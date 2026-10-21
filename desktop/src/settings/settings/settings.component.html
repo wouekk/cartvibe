@@ -1,4 +1,6 @@
-<div class="mx-auto max-w-190 [&_h1]:mb-4">
-  <h1>{{ 'User Settings' | t }}</h1>
-  <app-tabs [tabs]="tabs()"> </app-tabs>
-</div>
+<app-settings-page
+  title="User Settings"
+  description="Your profile, preferences and appearance on this device."
+>
+  <app-tabs settingsTabs [tabs]="tabs()"> </app-tabs>
+</app-settings-page>

@@ -1,29 +1,32 @@
-<app-table-header
-  [headerText]="headerText"
-  subtitle="The categories the AI sorts receipt products into. New ones appear here by themselves; rename one to change what the AI uses, or switch one off."
+<app-settings-page
+  width="wide"
+  [title]="headerText"
+  description="The categories the AI sorts receipt products into. New ones appear here by themselves; rename one to change what the AI uses, or switch one off."
 >
-  <app-add-button
-    *hasAppPermission="Permission.AppCategoriesCreate"
-    data-testid="category-add"
-    [buttonText]="'Add Category' | t"
-    [tooltip]="'Add Category' | t"
-    (clicked)="openAddDialog()"
-  >
-  </app-add-button>
-</app-table-header>
-<div class="table-container">
-  <app-table
-    [columns]="columns"
-    [displayedColumns]="displayedColumns"
-    [dataSource]="dataSource()"
-    [pagination]="true"
-    [length]="totalCount()"
-    [pageSize]="state()?.pageSize ?? 1"
-    [page]="(state()?.page ?? 1) - 1"
-    (sorted)="sorted($event)"
-    (pageChange)="updatePageData($event)"
-  ></app-table>
-</div>
+  <div settingsActions class="contents">
+    <app-add-button
+      *hasAppPermission="Permission.AppCategoriesCreate"
+      data-testid="category-add"
+      [buttonText]="'Add Category' | t"
+      [tooltip]="'Add Category' | t"
+      (clicked)="openAddDialog()"
+    >
+    </app-add-button>
+  </div>
+  <app-settings-entity-list>
+    <app-table
+      [columns]="columns"
+      [displayedColumns]="displayedColumns"
+      [dataSource]="dataSource()"
+      [pagination]="true"
+      [length]="totalCount()"
+      [pageSize]="state()?.pageSize ?? 1"
+      [page]="(state()?.page ?? 1) - 1"
+      (sorted)="sorted($event)"
+      (pageChange)="updatePageData($event)"
+    ></app-table>
+  </app-settings-entity-list>
+</app-settings-page>
 
 <ng-template #nameCell let-element="element">
   {{ element.name }}

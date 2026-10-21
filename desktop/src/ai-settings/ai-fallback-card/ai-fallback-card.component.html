@@ -1,11 +1,11 @@
 @if (visible()) {
   <form
-    class="mt-4 flex flex-col gap-4 rounded-xl border border-border bg-card p-6"
+    class="block"
     [formGroup]="form"
     (ngSubmit)="save()"
     data-testid="ai-fallback-card"
   >
-    <h2 class="m-0 text-[17px] font-semibold">{{ 'Backup AI' | t }}</h2>
+   <app-settings-section title="Backup AI">
     <div class="rw-section" data-testid="ai-section-backup">
       <div class="rw-section__head">
         <h3 class="rw-section__title">{{ 'Google Gemini' | t }}</h3>
@@ -40,14 +40,21 @@
 
     </div>
 
-    @if (primaryId() === undefined) {
-      <p class="text-sm text-muted-foreground">{{ 'Save the main AI first; the backup stands in for it.' | t }}</p>
+    @if (connectionResult(); as result) {
+      <p
+        class="mx-6 mb-4 flex items-start gap-1 break-words rounded-lg px-4 py-2"
+        role="status"
+        data-testid="ai-fallback-test-result"
+        [class]="result.ok ? 'bg-success-text/15 text-success-text' : 'bg-destructive/15 text-destructive'"
+      >
+        <app-icon [name]="result.ok ? 'check_circle' : 'error'"></app-icon>
+        {{ result.message }}
+      </p>
     }
-
-    <div class="flex flex-wrap gap-2 [&_button]:min-h-11">
-      <button hlmBtn color="primary" type="submit" data-testid="ai-fallback-save" [disabled]="!canSave()">
-        {{ 'Save changes' | t }}
-      </button>
+    <div sectionFooter class="rw-card__footer">
+      @if (primaryId() === undefined) {
+        <span class="rw-card__status">{{ 'Save the main AI first; the backup stands in for it.' | t }}</span>
+      }
       <button
         hlmBtn
         variant="outline"
@@ -59,18 +66,10 @@
         <app-icon name="wifi_tethering"></app-icon>
         {{ (testing() ? 'Testing…' : 'Test connection') | t }}
       </button>
+      <button hlmBtn color="primary" type="submit" data-testid="ai-fallback-save" [disabled]="!canSave()">
+        {{ 'Save changes' | t }}
+      </button>
     </div>
-
-    @if (connectionResult(); as result) {
-      <p
-        class="flex items-start gap-1 break-words rounded-lg px-4 py-2"
-        role="status"
-        data-testid="ai-fallback-test-result"
-        [class]="result.ok ? 'bg-success-text/15 text-success-text' : 'bg-destructive/15 text-destructive'"
-      >
-        <app-icon [name]="result.ok ? 'check_circle' : 'error'"></app-icon>
-        {{ result.message }}
-      </p>
-    }
+   </app-settings-section>
   </form>
 }

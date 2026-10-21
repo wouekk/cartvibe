@@ -1,14 +1,9 @@
-<div class="mx-auto max-w-160 [&_h1]:mb-2">
-  <h1>{{ 'AI' | t }}</h1>
-  <p class="text-muted-foreground">
-    {{ 'The AI reads receipts and their products, and tags food as healthy or not. Without it everything still works; receipts just wait until it is back.' | t }}
-  </p>
-
+<app-settings-page title="AI" description="The AI reads receipts and their products, and tags food as healthy or not. Without it everything still works; receipts just wait until it is back.">
   @if (loading()) {
     <p class="text-muted-foreground">{{ 'Loading…' | t }}</p>
   } @else {
-    <form class="flex flex-col gap-4 rounded-xl border border-border bg-card p-6" [formGroup]="form" (ngSubmit)="save()">
-      <h2 class="m-0 text-[17px] font-semibold">{{ 'Main AI' | t }}</h2>
+    <form class="flex flex-col gap-4" [formGroup]="form" (ngSubmit)="save()">
+     <app-settings-section testId="ai-card-main" title="Main AI">
       <div class="rw-section" data-testid="ai-section-main">
         <div class="rw-section__head">
           <h3 class="rw-section__title">{{ 'Provider' | t }}</h3>
@@ -68,16 +63,21 @@
 
       </div>
 
-      <div class="flex flex-wrap gap-2 [&_button]:min-h-11">
-        <button
-          hlmBtn
-          color="primary"
-          type="submit"
-          data-testid="ai-save"
-          [disabled]="saving()"
+      @if (connectionResult(); as result) {
+        <p
+          class="mx-6 mb-4 flex items-start gap-1 break-words rounded-lg px-4 py-2"
+          role="status"
+          data-testid="ai-test-result"
+          [class]="result.ok ? 'bg-success-text/15 text-success-text' : 'bg-destructive/15 text-destructive'"
         >
-          {{ 'Save changes' | t }}
-        </button>
+          <app-icon [name]="result.ok ? 'check_circle' : 'error'"></app-icon>
+          {{ result.message }}
+        </p>
+      }
+      <div sectionFooter class="rw-card__footer">
+        @if (saved() && form.dirty) {
+          <span class="rw-card__status">{{ 'Save first to test the new settings.' | t }}</span>
+        }
         <button
           hlmBtn variant="outline"
           type="button"
@@ -88,24 +88,13 @@
           <app-icon name="wifi_tethering"></app-icon>
           {{ (testing() ? 'Testing…' : 'Test connection') | t }}
         </button>
+        <button hlmBtn color="primary" type="submit" data-testid="ai-save" [disabled]="saving()">
+          {{ 'Save changes' | t }}
+        </button>
       </div>
-      @if (saved() && form.dirty) {
-        <p class="text-sm text-muted-foreground">{{ 'Save first to test the new settings.' | t }}</p>
-      }
-
-      @if (connectionResult(); as result) {
-        <p
-          class="mt-2 flex items-start gap-1 break-words rounded-lg px-4 py-2"
-          role="status"
-          data-testid="ai-test-result"
-          [class]="result.ok ? 'bg-success-text/15 text-success-text' : 'bg-destructive/15 text-destructive'"
-        >
-          <app-icon [name]="result.ok ? 'check_circle' : 'error'"></app-icon>
-          {{ result.message }}
-        </p>
-      }
+     </app-settings-section>
     </form>
 
     <app-ai-fallback-card [primaryId]="saved()?.id"></app-ai-fallback-card>
   }
-</div>
+</app-settings-page>

@@ -1,42 +1,38 @@
-<div class="flex flex-col">
-  <app-table-header
-    [headerText]="tableHeaderText()"
-    subtitle="Create and manage API keys for programmatic access."
-  >
-    <div class="flex items-center">
-      <app-add-button
-        *ngIf="canCreate()"
-        data-testid="api-key-add"
-        [buttonText]="'Add API Key' | t"
-        [tooltip]="'Add API Key' | t"
-        (clicked)="openCreateApiKeyDialog()"
-      ></app-add-button>
-      <ng-container *ngIf="canViewAll()">
-        <app-button
-          data-testid="api-key-filter"
-          matButtonType="iconButton"
-          icon="filter_alt"
-          color="accent"
-          [tooltip]="'Filter API Keys' | t"
-          (clicked)="openFilterDialog()"
-        ></app-button>
-      </ng-container>
-    </div>
-  </app-table-header>
-  <div class="table-container">
-    <app-table
-      [dataSource]="dataSource()"
-      [columns]="columns"
-      [displayedColumns]="displayedColumns"
-      [pagination]="true"
-      [length]="totalCount()"
-      [page]="((baseTableService.page$ | async) || 1) - 1"
-      [pageSize]="(baseTableService.pageSize$ | async) || 10"
-      (sorted)="sorted($event)"
-      (pageChange)="pageChanged($event)"
-    ></app-table>
+<app-settings-section
+  title="API Keys"
+  description="Create and manage API keys for programmatic access."
+>
+  <div sectionActions class="flex items-center">
+    <app-add-button
+      *ngIf="canCreate()"
+      data-testid="api-key-add"
+      [buttonText]="'Add API Key' | t"
+      [tooltip]="'Add API Key' | t"
+      (clicked)="openCreateApiKeyDialog()"
+    ></app-add-button>
+    <ng-container *ngIf="canViewAll()">
+      <app-button
+        data-testid="api-key-filter"
+        matButtonType="iconButton"
+        icon="filter_alt"
+        color="accent"
+        [tooltip]="'Filter API Keys' | t"
+        (clicked)="openFilterDialog()"
+      ></app-button>
+    </ng-container>
   </div>
-</div>
+  <app-table
+    [dataSource]="dataSource()"
+    [columns]="columns"
+    [displayedColumns]="displayedColumns"
+    [pagination]="true"
+    [length]="totalCount()"
+    [page]="((baseTableService.page$ | async) || 1) - 1"
+    [pageSize]="(baseTableService.pageSize$ | async) || 10"
+    (sorted)="sorted($event)"
+    (pageChange)="pageChanged($event)"
+  ></app-table>
+</app-settings-section>
 
 <ng-template #nameCell let-element="element" let-index="index">
   {{ element.name }}

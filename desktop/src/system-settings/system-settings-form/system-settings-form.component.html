@@ -13,19 +13,19 @@
 <!-- Tasks & Storage: the task monitor sits above the worker settings. The tables live outside the form so
      none of their buttons can submit it. -->
 @if (section === "tasks" && canReadSystemTasks()) {
-  <section class="mb-4 flex flex-col gap-4 rounded-xl border border-border bg-card p-6 rw-scroll-x" data-testid="settings-card-system-tasks">
+  <div class="mb-4" data-testid="settings-card-system-tasks">
     <app-system-task-table></app-system-task-table>
-  </section>
+  </div>
 }
 
 <form
+  class="flex flex-col gap-4"
   [formGroup]="form"
   (ngSubmit)="submit()"
 >
   <!-- General & Currency -->
   @if (shows("general")) {
-    <section class="mb-4 flex flex-col gap-4 rounded-xl border border-border bg-card p-6 rw-scroll-x" data-testid="settings-card-currency">
-      <h2 class="m-0 text-[17px] font-semibold">{{ "Currency & exchange rates" | t }}</h2>
+    <app-settings-section testId="settings-card-currency" title="Currency & exchange rates">
       <div class="rw-section" data-testid="settings-section-currency">
         <div class="rw-section__head">
           <h3 class="rw-section__title">{{ 'Currency' | t }}</h3>
@@ -77,7 +77,7 @@
           <h3 class="rw-section__title">{{ 'Previews' | t }}</h3>
           <p class="rw-section__desc">{{ 'How amounts look with these settings.' | t }}</p>
         </div>
-        <ul class="rw-list text-sm">
+        <ul class="rw-list rw-inset text-sm">
           <li><span class="text-muted-foreground">{{ 'A large amount' | t }}</span><span class="font-medium text-foreground">{{ 123456789.12 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span></li>
           <li><span class="text-muted-foreground">{{ 'A small amount' | t }}</span><span class="font-medium text-foreground">{{ 12.99 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span></li>
           <li><span class="text-muted-foreground">{{ 'Ten thousand' | t }}</span><span class="font-medium text-foreground">{{ 10000 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span></li>
@@ -85,9 +85,9 @@
         </ul>
       </div>
       <app-exchange-rates></app-exchange-rates>
-    </section>
-    <section class="mb-4 flex flex-col gap-4 rounded-xl border border-border bg-card p-6 rw-scroll-x" data-testid="settings-card-regional">
-      <h2 class="m-0 text-[17px] font-semibold">{{ 'Regional & time zone' | t }}</h2>
+      <div sectionFooter class="rw-card__footer"><ng-container *ngTemplateOutlet="saveActions"></ng-container></div>
+    </app-settings-section>
+    <app-settings-section testId="settings-card-regional" title="Regional & time zone">
       <div class="rw-section" data-testid="settings-section-time-zone">
         <div class="rw-section__head">
           <h3 class="rw-section__title">{{ 'Time zone' | t }}</h3>
@@ -106,14 +106,13 @@
           [readonly]="formConfig.mode | inputReadonly"
         ></app-autocomlete>
       </div>
-      <ng-container *ngTemplateOutlet="saveActions"></ng-container>
-    </section>
+      <div sectionFooter class="rw-card__footer"><ng-container *ngTemplateOutlet="saveActions"></ng-container></div>
+    </app-settings-section>
   }
 
   <!-- Auth & Security -->
   @if (shows("security")) {
-    <section class="mb-4 flex flex-col gap-4 rounded-xl border border-border bg-card p-6 rw-scroll-x" data-testid="settings-card-signup-session">
-      <h2 class="m-0 text-[17px] font-semibold">{{ 'Sign-up & session policy' | t }}</h2>
+    <app-settings-section testId="settings-card-signup-session" title="Sign-up & session policy">
       <div class="rw-section" data-testid="settings-section-sign-up">
         <div class="rw-section__head">
           <h3 class="rw-section__title">{{ 'Sign-up' | t }}</h3>
@@ -187,23 +186,21 @@
           [inputFormControl]="form | formGet:'serverPublicUrl'"
         ></app-input>
       </div>
-      <ng-container *ngTemplateOutlet="saveActions"></ng-container>
-    </section>
+      <div sectionFooter class="rw-card__footer"><ng-container *ngTemplateOutlet="saveActions"></ng-container></div>
+    </app-settings-section>
   }
 
   <!-- Tasks & Storage -->
   @if (shows("tasks")) {
-    <section class="mb-4 flex flex-col gap-4 rounded-xl border border-border bg-card p-6 rw-scroll-x" data-testid="settings-card-worker">
-      <div class="flex items-center justify-between">
-        <h2 class="m-0 text-[17px] font-semibold">{{ 'Worker & retention' | t }}</h2>
-        <app-button
-          matButtonType="iconButton"
-          icon="restart_alt"
-          color="accent"
-          [tooltip]="'Restart Task Server' | t"
-          (clicked)="restartTaskServer()"
-        ></app-button>
-      </div>
+    <app-settings-section testId="settings-card-worker" title="Worker & retention">
+      <app-button
+        sectionActions
+        matButtonType="iconButton"
+        icon="restart_alt"
+        color="accent"
+        [tooltip]="'Restart Task Server' | t"
+        (clicked)="restartTaskServer()"
+      ></app-button>
       <div class="rw-section" data-testid="settings-section-worker">
         <div class="rw-section__head">
           <h3 class="rw-section__title">{{ 'Worker' | t }}</h3>
@@ -246,9 +243,9 @@
           ></app-select>
         </div>
       </div>
-    </section>
-    <section class="mb-4 flex flex-col gap-4 rounded-xl border border-border bg-card p-6 rw-scroll-x" data-testid="settings-card-queues">
-      <h2 class="m-0 text-[17px] font-semibold">{{ 'Task queue priorities' | t }}</h2>
+      <div sectionFooter class="rw-card__footer"><ng-container *ngTemplateOutlet="saveActions"></ng-container></div>
+    </app-settings-section>
+    <app-settings-section testId="settings-card-queues" title="Task queue priorities">
       <div class="rw-section" data-testid="settings-section-queues">
         <div class="rw-section__head">
           <h3 class="rw-section__title">{{ 'Priorities' | t }}</h3>
@@ -272,13 +269,13 @@
           }
         </ul>
       </div>
-      <ng-container *ngTemplateOutlet="saveActions"></ng-container>
-    </section>
+      <div sectionFooter class="rw-card__footer"><ng-container *ngTemplateOutlet="saveActions"></ng-container></div>
+    </app-settings-section>
   }
 
 
   @if (originalSystemSettings?.updatedAt) {
-    <p class="mb-6 text-xs text-muted-foreground" data-testid="settings-updated-at">
+    <p class="m-0 text-xs text-muted-foreground" data-testid="settings-updated-at">
       Updated {{ originalSystemSettings.updatedAt | appDate : "medium" }}
     </p>
   }
@@ -288,7 +285,11 @@
 <!-- Save sits at the end of the tab's last card, like the AI page's card, not in a floating bar. -->
 <ng-template #saveActions>
   @if (formConfig.mode !== FormMode.view) {
-    <div class="mt-2 flex flex-wrap items-center gap-2 [&_button]:min-h-11">
+    @if (form.invalid) {
+      <span class="rw-card__status" data-testid="settings-invalid">{{ 'Some settings need attention before you can save.' | t }}</span>
+    } @else if (form.dirty) {
+      <span class="rw-card__status">{{ 'You have unsaved changes.' | t }}</span>
+    }
       <button
         hlmBtn
         color="primary"
@@ -298,11 +299,5 @@
       >
         {{ 'Save changes' | t }}
       </button>
-      @if (form.invalid) {
-        <span class="text-[13px] text-muted-foreground" data-testid="settings-invalid">{{ 'Some settings need attention before you can save.' | t }}</span>
-      } @else if (form.dirty) {
-        <span class="text-[13px] text-muted-foreground">{{ 'You have unsaved changes.' | t }}</span>
-      }
-    </div>
   }
 </ng-template>

@@ -5,6 +5,7 @@
   [canEdit]="canEdit()"
   [editButtonRouterLink]="['/settings/user-preferences/edit']"
   [editButtonQueryParams]="{tab: 'user-preferences'}"
+  [settingsCard]="true"
   [submitButtonDisabled]="(userShortcutComponent()?.editableListComponent()?.getCurrentRowOpen() ?? -1) >= 0"
   (submitted)="submit()"
 ></app-form>

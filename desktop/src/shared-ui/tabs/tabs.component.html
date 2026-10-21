@@ -1,10 +1,4 @@
-<hlm-tabs [tab]="activeName()" (tabActivated)="activate($event)">
-  <hlm-tabs-list class="max-w-full rw-scroll-x" [attr.aria-label]="'Sections' | t">
-    @for (tab of tabs(); track tab.name) {
-      <button [hlmTabsTrigger]="tab.name">{{ tab.label }}</button>
-    }
-  </hlm-tabs-list>
-</hlm-tabs>
+<app-settings-tabs [tabs]="tabItems()" [value]="activeName()" (valueChange)="activate($event)"></app-settings-tabs>
 <div class="mt-4">
   <router-outlet></router-outlet>
 </div>

@@ -1,19 +1,18 @@
-<div class="flex flex-col">
-  <app-table-header
-    [headerText]="tableHeaderText()"
-    subtitle="Households organize receipts and the people who share them."
-  >
-    <div class="flex items-center">
-      <app-add-button
-        *hasAppPermission="Permission.AppGroupsCreate"
-        data-testid="group-create"
-        [buttonText]="'Add Household' | t"
-        [tooltip]="'Add Household' | t"
-        [buttonRouterLink]="['create']"
-      ></app-add-button>
-    </div>
-  </app-table-header>
-  <div class="table-container">
+<app-settings-page
+  width="wide"
+  [title]="tableHeaderText()"
+  description="Households organize receipts and the people who share them."
+>
+  <div settingsActions class="contents">
+    <app-add-button
+      *hasAppPermission="Permission.AppGroupsCreate"
+      data-testid="group-create"
+      [buttonText]="'Add Household' | t"
+      [tooltip]="'Add Household' | t"
+      [buttonRouterLink]="['create']"
+    ></app-add-button>
+  </div>
+  <app-settings-entity-list>
     <app-table
       [dataSource]="dataSource()"
       [columns]="columns"
@@ -25,8 +24,8 @@
       (sorted)="sorted($event)"
       (pageChange)="pageChanged($event)"
     ></app-table>
-  </div>
-</div>
+  </app-settings-entity-list>
+</app-settings-page>
 
 <ng-template #nameCell let-element="element" let-index="index">
   <a [routerLink]="['/groups/' + element.id + '/details/view']">

@@ -1,28 +1,51 @@
-<app-form-header
-  [headerText]="formConfig().headerText"
-  [headerButtonsTemplate]="headerButtonsTemplate"
-  [bottomSpacing]="bottomSpacing()"
-></app-form-header>
-<form [formGroup]="form()" (ngSubmit)="submitted.emit()">
-  <div class="w-full">
-    <ng-template [ngTemplateOutlet]="formTemplate()"></ng-template>
-  </div>
-  <app-form-button-bar [mode]="formConfig().mode">
-    <app-submit-button
-      *ngIf="!(formConfig().mode | inputReadonly)"
-      class="mb-4"
-      [disabled]="submitButtonDisabled()"
-      [onlyIcon]="false"
-    ></app-submit-button>
-  </app-form-button-bar>
-</form>
+@if (settingsCard()) {
+  <form [formGroup]="form()" (ngSubmit)="submitted.emit()">
+    <app-settings-section [title]="formConfig().headerText">
+      @if ((formConfig().mode | inputReadonly) && canEdit()) {
+        <div sectionActions class="contents">
+          <app-edit-button
+            color="accent"
+            [buttonRouterLink]="editButtonRouterLink()"
+            [buttonQueryParams]="editButtonQueryParams()"
+          >
+          </app-edit-button>
+        </div>
+      }
+      <ng-template [ngTemplateOutlet]="formTemplate()"></ng-template>
+      @if (!(formConfig().mode | inputReadonly)) {
+        <div sectionFooter class="rw-card__footer" data-testid="form-button-bar">
+          <app-submit-button [disabled]="submitButtonDisabled()" [onlyIcon]="false"></app-submit-button>
+        </div>
+      }
+    </app-settings-section>
+  </form>
+} @else {
+  <app-form-header
+    [headerText]="formConfig().headerText"
+    [headerButtonsTemplate]="headerButtonsTemplate"
+    [bottomSpacing]="bottomSpacing()"
+  ></app-form-header>
+  <form [formGroup]="form()" (ngSubmit)="submitted.emit()">
+    <div class="w-full">
+      <ng-template [ngTemplateOutlet]="formTemplate()"></ng-template>
+    </div>
+    <app-form-button-bar [mode]="formConfig().mode">
+      <app-submit-button
+        *ngIf="!(formConfig().mode | inputReadonly)"
+        class="mb-4"
+        [disabled]="submitButtonDisabled()"
+        [onlyIcon]="false"
+      ></app-submit-button>
+    </app-form-button-bar>
+  </form>
 
-<ng-template #headerButtonsTemplate>
-  <app-edit-button
-    *ngIf="(formConfig().mode | inputReadonly) && canEdit()"
-    color="accent"
-    [buttonRouterLink]="editButtonRouterLink()"
-    [buttonQueryParams]="editButtonQueryParams()"
-  >
-  </app-edit-button>
-</ng-template>
+  <ng-template #headerButtonsTemplate>
+    <app-edit-button
+      *ngIf="(formConfig().mode | inputReadonly) && canEdit()"
+      color="accent"
+      [buttonRouterLink]="editButtonRouterLink()"
+      [buttonQueryParams]="editButtonQueryParams()"
+    >
+    </app-edit-button>
+  </ng-template>
+}

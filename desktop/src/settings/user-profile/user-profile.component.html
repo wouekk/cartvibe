@@ -5,6 +5,7 @@
   [canEdit]="canEdit()"
   [editButtonRouterLink]="['/settings/user-profile/edit']"
   [editButtonQueryParams]="{tab: 'user-profile'}"
+  [settingsCard]="true"
   (submitted)="submit()"
 ></app-form>
 
@@ -31,14 +32,20 @@
 </ng-template>
 
 
-<div data-testid="danger-zone" class="mt-6 rounded-md border border-destructive bg-destructive/5 p-4 [&_p]:mb-4 [&_p]:mt-2 [&_strong]:text-destructive" *hasAppPermission="Permission.AppAccountDelete">
-  <strong>{{ 'Danger Zone' | t }}</strong>
-  <p>{{ 'Account deletion is irreversible. This will permanently remove all associated data including receipts, group memberships, and preferences.' | t }}</p>
-  <button
-    type="button"
-    class="inline-flex h-10 items-center justify-center rounded-lg bg-destructive px-4 text-sm font-medium text-white transition-colors hover:bg-destructive/90"
-    (click)="deleteAccount()"
+<div class="mt-4" data-testid="danger-zone" *hasAppPermission="Permission.AppAccountDelete">
+  <app-settings-section
+    tone="destructive"
+    title="Danger Zone"
+    description="Account deletion is irreversible. This will permanently remove all associated data including receipts, group memberships, and preferences."
   >
-    {{ 'Delete Account' | t }}
-  </button>
+    <div sectionFooter class="rw-card__footer">
+      <button
+        type="button"
+        class="inline-flex h-9 items-center justify-center rounded-lg bg-destructive px-4 text-sm font-medium text-white transition-colors hover:bg-destructive/90"
+        (click)="deleteAccount()"
+      >
+        {{ 'Delete Account' | t }}
+      </button>
+    </div>
+  </app-settings-section>
 </div>

@@ -1,29 +1,32 @@
-<app-table-header
-  [headerText]="headerText"
-  subtitle="Tag receipts to group and filter them however you like."
+<app-settings-page
+  width="wide"
+  [title]="headerText"
+  description="Tag receipts to group and filter them however you like."
 >
-  <app-add-button
-    *hasAppPermission="Permission.AppTagsCreate"
-    data-testid="tag-add"
-    [buttonText]="'Add Tag' | t"
-    [tooltip]="'Add Tag' | t"
-    (clicked)="openAddDialog()"
-  >
-  </app-add-button>
-</app-table-header>
-<div class="table-container">
-  <app-table
-    [columns]="columns"
-    [displayedColumns]="displayedColumns"
-    [dataSource]="dataSource()"
-    [pagination]="true"
-    [page]="(tagTableState()?.page ?? 1) - 1"
-    [pageSize]="tagTableState()?.pageSize ?? 1"
-    [length]="totalCount()"
-    (sorted)="sorted($event)"
-    (pageChange)="updatePageData($event)"
-  ></app-table>
-</div>
+  <div settingsActions class="contents">
+    <app-add-button
+      *hasAppPermission="Permission.AppTagsCreate"
+      data-testid="tag-add"
+      [buttonText]="'Add Tag' | t"
+      [tooltip]="'Add Tag' | t"
+      (clicked)="openAddDialog()"
+    >
+    </app-add-button>
+  </div>
+  <app-settings-entity-list>
+    <app-table
+      [columns]="columns"
+      [displayedColumns]="displayedColumns"
+      [dataSource]="dataSource()"
+      [pagination]="true"
+      [page]="(tagTableState()?.page ?? 1) - 1"
+      [pageSize]="tagTableState()?.pageSize ?? 1"
+      [length]="totalCount()"
+      (sorted)="sorted($event)"
+      (pageChange)="updatePageData($event)"
+    ></app-table>
+  </app-settings-entity-list>
+</app-settings-page>
 
 <ng-template #nameCell let-element="element">{{ element.name }}</ng-template>
 

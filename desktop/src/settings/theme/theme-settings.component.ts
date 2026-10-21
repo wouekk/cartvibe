@@ -1,4 +1,5 @@
 import { Component, inject } from "@angular/core";
+import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { SYSTEM_MODE, ThemeMode, ThemeService } from "../../theme/theme.service";
 import { THEMES } from "../../theme/themes";
@@ -16,17 +17,10 @@ interface ModeOption {
 @Component({
   selector: "app-theme-settings",
   standalone: true,
-  imports: [AppIconComponent],
+  imports: [AppIconComponent, SharedUiModule],
   template: `
-    <div class="max-w-xl">
-      <section
-        class="rounded-xl border bg-card p-6 text-card-foreground shadow-sm"
-        data-testid="theme-mode-card"
-        aria-labelledby="theme-mode-title"
-      >
-        <h2 id="theme-mode-title" class="mb-1 text-lg font-semibold">Theme</h2>
-        <p class="mb-4 text-sm text-muted-foreground">Choose how CartVibe looks on this device.</p>
-        <ul class="m-0 flex list-none flex-col gap-1 p-0" role="radiogroup" aria-label="Theme">
+    <app-settings-section testId="theme-mode-card" title="Theme" description="Choose how CartVibe looks on this device.">
+        <ul class="m-0 flex list-none flex-col gap-1 px-3 py-3" role="radiogroup" aria-label="Theme">
           @for (option of options; track option.mode) {
             <li>
               <button
@@ -48,8 +42,7 @@ interface ModeOption {
             </li>
           }
         </ul>
-      </section>
-    </div>
+    </app-settings-section>
   `,
 })
 export class ThemeSettingsComponent {
