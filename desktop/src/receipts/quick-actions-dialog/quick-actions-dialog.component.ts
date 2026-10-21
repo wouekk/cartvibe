@@ -5,12 +5,20 @@ import { RadioButtonData } from "src/radio-group/models";
 import { Item, Receipt, User } from "../../open-api";
 import { SnackbarService } from "../../services/index";
 import { TranslationService } from "../../i18n/translation.service";
+import { marker } from "../../i18n/marker";
 
 enum QuickActions {
-  "SplitEvenly" = "Split Evenly",
-  "SplitEvenlyWithOptionalParts" = "Split Evenly With Portions",
-  "SplitByPercentage" = "Split by Percentage",
+  "SplitEvenly" = "SplitEvenly",
+  "SplitEvenlyWithOptionalParts" = "SplitEvenlyWithOptionalParts",
+  "SplitByPercentage" = "SplitByPercentage",
 }
+
+/** What each action is called; the radio group translates it. */
+const QUICK_ACTION_LABELS: Record<QuickActions, string> = {
+  [QuickActions.SplitEvenly]: marker("Split Evenly"),
+  [QuickActions.SplitEvenlyWithOptionalParts]: marker("Split Evenly With Portions"),
+  [QuickActions.SplitByPercentage]: marker("Split by Percentage"),
+};
 
 @Component({
   selector: "app-quick-actions-dialog",
@@ -39,7 +47,7 @@ export class QuickActionsDialogComponent implements OnInit {
   public radioValues: RadioButtonData[] = Object.entries(QuickActions).map(
     (entry) => {
       return {
-        displayValue: entry[1],
+        displayValue: QUICK_ACTION_LABELS[entry[1]],
         value: entry[0],
       } as RadioButtonData;
     }
