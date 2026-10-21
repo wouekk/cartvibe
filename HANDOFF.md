@@ -2,6 +2,17 @@
 
 ## Status (2026-10-21, Windows PC, Claude Code desktop app)
 
+**Latest (frontend security sweep, same branch `feature/image-hardening`):** audit found nothing exploitable; hardening applied:
+nginx `Permissions-Policy`, HSTS (only when `X-Forwarded-Proto` is https), dotfile/`.map` 404, headers repeated on the hashed-asset
+location, `/oauth/` with `frame-ancestors 'none'` + `no-store`, and a **Content-Security-Policy in Report-Only mode** on the app
+shell; production build with `sourceMap: false` and `inlineCritical: false`; SVG uploads rejected (`ValidateFileType`);
+`Content-Disposition` of the image download built with `mime.FormatMediaType`. Untested locally: nginx/CSP (no Docker) and `ng build`
+(no Node on PATH) - CI and `:preview` are the judge. `TestValidateFileType_AcceptsPdf` fails on this PC only (stubbed ImageMagick).
+**To do on the NAS with `:preview`:** watch the browser console for CSP reports (Quick Scan dialog, report preview, image viewer,
+both themes), then rename `Content-Security-Policy-Report-Only` to `Content-Security-Policy` in `docker/default.conf`. The CSP hash
+for the inline theme script in `index.html` must be recomputed from the BUILT `dist/index.html` first. Not done: login rate limit
+keys on the proxy address (needs `set_real_ip_from` with the Synology proxy's IP).
+
 **Latest (image hardening + faster OCR/AI, branch `feature/image-hardening`, cut from `feature/redesign`):** triage of the
 grype report of the old `receipt-wrangler:latest` image, done together with the scan latency work. One AI call per Quick Scan
 (products applied inline, the sweep stays the fallback), Gemini on `google.golang.org/genai` with thinking turned down, photos

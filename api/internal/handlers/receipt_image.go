@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"mime"
 	"net/http"
 	"receipt-wrangler/api/internal/commands"
 	"receipt-wrangler/api/internal/constants"
@@ -187,7 +188,7 @@ func DownloadReceiptImage(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			w.Header().Set("Content-Disposition", "attachment; filename="+fileData.Name)
+			w.Header().Set("Content-Disposition", mime.FormatMediaType("attachment", map[string]string{"filename": utils.SanitizeFileName(fileData.Name)}))
 
 			http.ServeFile(w, r, path)
 
