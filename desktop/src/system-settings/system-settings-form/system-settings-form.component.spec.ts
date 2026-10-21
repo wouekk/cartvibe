@@ -84,7 +84,7 @@ describe("SystemSettingsFormComponent", () => {
     // to compile without them, the page just goes back to overlapping itself.
     it("marks both duration rows so the flex-basis rule can reach them", () => {
       const rows: NodeListOf<HTMLElement> =
-        fixture.nativeElement.querySelectorAll(".duration-row");
+        fixture.nativeElement.querySelectorAll("[data-testid=duration-row]");
 
       // Session and temporary files. `.duration-row > *` in the component's SCSS is
       // what bases each column at 0; without the class they fall back to
@@ -749,7 +749,7 @@ describe("SystemSettingsFormComponent", () => {
       place("tasks");
 
       expect(cards()).toEqual(["worker", "queues"]);
-      const rows = fixture.nativeElement.querySelectorAll(".queue-row");
+      const rows = fixture.nativeElement.querySelectorAll("[data-testid=queue-row]");
       expect(rows.length).toBe(4);
       expect(fixture.nativeElement.querySelector("[data-testid=queue-priority-email_receipt_image_cleanup]")).toBeNull();
       expect(fixture.nativeElement.querySelector("[data-testid=queue-priority-quick_scan]")).not.toBeNull();

@@ -2,7 +2,7 @@
   [headerText]="headerText"
   subtitle="Everything the household bought, to check and look back on."
 >
-  <div class="receipts-toolbar flex max-w-full flex-wrap items-center gap-2">
+  <div class="flex max-w-full flex-wrap items-center justify-end gap-x-2 gap-y-1">
     <app-add-button
       *ngIf="canCreate"
       class="me-2"
@@ -18,7 +18,7 @@
 
 
     <app-button
-      class="me-2 filter-button"
+      class="relative me-2 inline-flex size-9 flex-none items-center justify-center self-center [&_button]:size-9 [&_button]:p-0"
       data-testid="receipts-filter"
       icon="filter_alt"
       matButtonType="iconButton"
@@ -113,7 +113,7 @@
       </ng-container>
 
       @if (selectedReceiptIds().length > 0) {
-        <div class="receipts-overflow-menu__label" role="presentation">
+        <div class="mt-1 border-t border-border px-4 pb-1 pt-2 text-[0.6875rem] font-semibold uppercase tracking-wider text-muted-foreground" role="presentation">
           {{ selectedReceiptIds().length }} selected
         </div>
         <button
@@ -151,7 +151,7 @@
 }
 
 @if (filterChips().length > 0) {
-  <div class="receipt-filter-chips flex flex-wrap gap-2" role="list" [attr.aria-label]="'Applied filters' | t">
+  <div class="mb-4 flex flex-wrap gap-2" role="list" [attr.aria-label]="'Applied filters' | t">
     @for (chip of filterChips(); track chip.key) {
       <span
         hlmBadge
@@ -246,7 +246,7 @@
 
 <ng-template #firstCommentCell let-element="element">
   <span
-    class="receipt-first-comment"
+    class="block max-w-80 truncate"
     data-testid="receipt-first-comment"
     [hlmTooltip]="element.firstComment"
   >

@@ -1,19 +1,19 @@
 @if (view(); as view) {
   @if (statusText()) {
-    <p class="status" data-testid="receipt-products-status">
+    <p class="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground" data-testid="receipt-products-status">
       @if (isInProgress()) {
-        <app-icon class="status__icon" name="hourglass_top"></app-icon>
+        <app-icon class="size-[18px]" name="hourglass_top"></app-icon>
       }
       {{ statusText() }}
       @if (view.lastError && view.status !== "PENDING") {
-        <span class="status__detail">{{ view.lastError }}</span>
+        <span class="basis-full text-[13px] text-muted-foreground">{{ view.lastError }}</span>
       }
     </p>
   }
 
   @if (view.products.length > 0) {
-    <div class="table-scroll">
-      <table class="products" data-testid="receipt-products-table">
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse text-sm tabular-nums [&_td]:border-t [&_td]:border-border [&_td]:py-2 [&_td]:pr-2 [&_td]:align-top [&_th]:pb-2 [&_th]:pr-2 [&_th]:text-left [&_th]:text-xs [&_th]:font-semibold [&_th]:uppercase [&_th]:tracking-wider [&_th]:text-muted-foreground" data-testid="receipt-products-table">
         <thead>
           <tr>
             <th scope="col">{{ 'Product' | t }}</th>
@@ -21,7 +21,7 @@
             <th scope="col">{{ 'Category' | t }}</th>
             <th scope="col">{{ 'Health' | t }}</th>
             <th scope="col">{{ 'Quantity' | t }}</th>
-            <th scope="col" class="numeric">{{ 'Amount' | t }}</th>
+            <th scope="col" class="!text-right whitespace-nowrap">{{ 'Amount' | t }}</th>
             @if (canUpdate()) {
               <th scope="col"><span class="sr-only">{{ 'Correct tags' | t }}</span></th>
             }
@@ -30,10 +30,10 @@
         <tbody>
           @for (product of view.products; track product.id) {
             @if (editingId() === product.id) {
-              <tr class="editing" data-testid="receipt-product-edit-row">
+              <tr data-testid="receipt-product-edit-row">
                 <td>
                   <input
-                    class="inline-input"
+                    class="min-h-10 w-full rounded-md border border-border bg-transparent px-2 [font:inherit]"
                     type="text"
                     [attr.aria-label]="'Product name' | t"
                     data-testid="receipt-product-edit-name"
@@ -42,12 +42,12 @@
                     (keydown.enter)="saveEdit(product)"
                   />
                 </td>
-                <td class="muted">{{ product.name }}</td>
-                <td class="muted">{{ product.foodGroup }}</td>
-                <td><app-food-tags class="product__tags" [values]="product"></app-food-tags></td>
+                <td class="text-muted-foreground">{{ product.name }}</td>
+                <td class="text-muted-foreground">{{ product.foodGroup }}</td>
+                <td><app-food-tags class="mt-1 flex" [values]="product"></app-food-tags></td>
                 <td>
                   <input
-                    class="inline-input"
+                    class="min-h-10 w-full rounded-md border border-border bg-transparent px-2 [font:inherit]"
                     type="text"
                     [attr.aria-label]="'Quantity' | t"
                     [value]="draftQuantity()"
@@ -55,9 +55,9 @@
                     (keydown.enter)="saveEdit(product)"
                   />
                 </td>
-                <td class="numeric">
+                <td class="!text-right whitespace-nowrap">
                   <input
-                    class="inline-input numeric"
+                    class="min-h-10 w-full rounded-md border border-border bg-transparent px-2 [font:inherit] text-right"
                     type="text"
                     inputmode="decimal"
                     [attr.aria-label]="'Amount' | t"
@@ -67,7 +67,7 @@
                     (keydown.enter)="saveEdit(product)"
                   />
                 </td>
-                <td class="actions">
+                <td class="w-[1%] whitespace-nowrap !pr-0">
                   <button
                     hlmBtn variant="ghost" size="icon"
                     type="button"
@@ -86,22 +86,22 @@
             } @else {
               <tr>
                 <td>
-                  <span class="product__name">{{ product.displayName || product.name }}</span>
+                  <span class="block font-medium">{{ product.displayName || product.name }}</span>
                   @if (product.planned === false) {
-                    <span class="product__unplanned" data-testid="receipt-product-unplanned">{{ 'Not on the list' | t }}</span>
+                    <span class="mt-1 inline-block rounded-full bg-destructive/15 px-[7px] py-px text-[11px] font-semibold leading-4 text-destructive" data-testid="receipt-product-unplanned">{{ 'Not on the list' | t }}</span>
                   }
                 </td>
-                <td class="muted" data-testid="receipt-product-original">{{ product.name }}</td>
+                <td class="text-muted-foreground" data-testid="receipt-product-original">{{ product.name }}</td>
                 <td data-testid="receipt-product-category">{{ product.foodGroup | titlecase }}</td>
-                <td><app-food-tags class="product__tags" [values]="product"></app-food-tags></td>
-                <td class="muted">{{ product.quantity }}</td>
-                <td class="numeric">
+                <td><app-food-tags class="mt-1 flex" [values]="product"></app-food-tags></td>
+                <td class="text-muted-foreground">{{ product.quantity }}</td>
+                <td class="!text-right whitespace-nowrap">
                   @if (product.amount) {
                     {{ product.amount | customCurrency }}
                   }
                 </td>
                 @if (canUpdate()) {
-                  <td class="actions">
+                  <td class="w-[1%] whitespace-nowrap !pr-0">
                     <button
                       hlmBtn variant="ghost" size="icon"
                       type="button"
@@ -153,13 +153,13 @@
       </div>
 </ng-template>
   } @else if (view.status === "DONE") {
-    <p class="status" data-testid="receipt-products-none">{{ 'The AI found no products on this receipt.' | t }}</p>
+    <p class="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground" data-testid="receipt-products-none">{{ 'The AI found no products on this receipt.' | t }}</p>
   }
 
   @if (canUpdate()) {
-    <form class="add-row" data-testid="receipt-product-add-row" (submit)="$event.preventDefault(); addProduct()">
+    <form class="mt-3 flex flex-wrap items-center gap-2" data-testid="receipt-product-add-row" (submit)="$event.preventDefault(); addProduct()">
       <input
-        class="inline-input add-row__name"
+        class="min-h-10 w-full rounded-md border border-border bg-transparent px-2 [font:inherit] flex-[1_1_200px] !w-auto"
         type="text"
         [placeholder]="'Add a product' | t"
         [attr.aria-label]="'Product name' | t"
@@ -168,7 +168,7 @@
         (input)="setValue(newName, $event)"
       />
       <input
-        class="inline-input add-row__quantity"
+        class="min-h-10 w-full rounded-md border border-border bg-transparent px-2 [font:inherit] flex-[0_1_90px] !w-auto"
         type="text"
         [placeholder]="'Qty' | t"
         [attr.aria-label]="'Quantity' | t"
@@ -176,7 +176,7 @@
         (input)="setValue(newQuantity, $event)"
       />
       <input
-        class="inline-input add-row__amount numeric"
+        class="min-h-10 w-full rounded-md border border-border bg-transparent px-2 [font:inherit] flex-[0_1_100px] !w-auto text-right"
         type="text"
         inputmode="decimal"
         placeholder="0,00"
@@ -196,7 +196,7 @@
       </button>
     </form>
     @if (formError()) {
-      <p class="status form-error" data-testid="receipt-product-form-error">{{ formError() }}</p>
+      <p class="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-destructive" data-testid="receipt-product-form-error">{{ formError() }}</p>
     }
   }
 
@@ -204,7 +204,7 @@
     <button
       hlmBtn variant="outline"
       type="button"
-      class="read-again"
+      class="mt-2"
       data-testid="receipt-products-read-again"
       [disabled]="requesting()"
       (click)="readAgain()"
@@ -214,5 +214,5 @@
     </button>
   }
 } @else if (loadFailed()) {
-  <p class="status">{{ 'The products could not be loaded.' | t }}</p>
+  <p class="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground">{{ 'The products could not be loaded.' | t }}</p>
 }

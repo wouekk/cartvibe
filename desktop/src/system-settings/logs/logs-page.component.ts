@@ -21,8 +21,8 @@ export const LOG_LEVEL_FILTERS = [
  */
 @Component({
   selector: "app-logs-page",
+  host: { class: "block rounded-2xl bg-card px-6 py-5 shadow-xs" },
   templateUrl: "./logs-page.component.html",
-  styleUrls: ["./logs-page.component.scss"],
   standalone: true,
   imports: [TranslatePipe, PluralPipe, CommonModule, HlmButton, AppIconComponent],
 })

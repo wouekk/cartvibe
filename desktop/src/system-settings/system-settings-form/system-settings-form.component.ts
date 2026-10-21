@@ -35,7 +35,6 @@ interface QueueData extends FormOption {
 @Component({
   selector: "app-system-settings-form",
   templateUrl: "./system-settings-form.component.html",
-  styleUrl: "./system-settings-form.component.scss",
   providers: [InputReadonlyPipe],
   animations: [fadeInOut],
   standalone: false

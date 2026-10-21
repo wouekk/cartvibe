@@ -1,12 +1,12 @@
-<div class="logs">
-  <div class="toolbar">
-    <div class="levels" role="group" [attr.aria-label]="'Level' | t">
+<div>
+  <div class="mb-2 flex flex-wrap justify-between gap-2">
+    <div class="flex gap-1" role="group" [attr.aria-label]="'Level' | t">
       @for (option of levels; track option.value) {
         <button
           hlmBtn variant="outline"
           type="button"
           [attr.data-testid]="'log-level-' + (option.value || 'all')"
-          [class.active]="level() === option.value"
+          [class.bg-accent]="level() === option.value"
           (click)="selectLevel(option.value)"
         >
           {{ option.label }}
@@ -20,16 +20,16 @@
   </div>
 
   @if (loading()) {
-    <p class="muted">{{ 'Loading…' | t }}</p>
+    <p class="text-muted-foreground">{{ 'Loading…' | t }}</p>
   } @else if (entries().length === 0) {
-    <p class="muted" data-testid="log-empty">{{ 'Nothing in the log.' | t }}</p>
+    <p class="text-muted-foreground" data-testid="log-empty">{{ 'Nothing in the log.' | t }}</p>
   } @else {
-    <ul class="entries">
+    <ul class="m-0 list-none p-0 font-mono text-[13px]">
       @for (entry of entries(); track $index) {
-        <li class="entry" [class.error]="entry.level === 'ERROR' || entry.level === 'FATAL'">
+        <li class="entry grid grid-cols-1 gap-0.5 border-b border-border py-1.5 sm:grid-cols-[150px_56px_1fr] sm:gap-2 [&.error_.level]:font-semibold [&.error_.level]:text-destructive" [class.error]="entry.level === 'ERROR' || entry.level === 'FATAL'">
           <span class="time">{{ entry.timestamp }}</span>
           <span class="level">{{ entry.level }}</span>
-          <span class="message">{{ entry.message }}</span>
+          <span class="message whitespace-pre-wrap [overflow-wrap:anywhere]">{{ entry.message }}</span>
         </li>
       }
     </ul>

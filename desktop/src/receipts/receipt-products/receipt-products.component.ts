@@ -37,8 +37,8 @@ const STATUS_TEXT: { [status: string]: string } = {
  */
 @Component({
   selector: "app-receipt-products",
+  host: { class: "block" },
   templateUrl: "./receipt-products.component.html",
-  styleUrls: ["./receipt-products.component.scss"],
   standalone: true,
   imports: [CommonModule, FoodTagsComponent, HlmButton, AppIconComponent, ...HlmDropdownMenuImports, PipesModule],
   // customCurrency delegates to CurrencyPipe, which PipesModule does not provide.

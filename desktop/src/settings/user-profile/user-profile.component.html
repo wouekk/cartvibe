@@ -31,7 +31,7 @@
 </ng-template>
 
 
-<div class="danger-zone" *hasAppPermission="Permission.AppAccountDelete">
+<div data-testid="danger-zone" class="mt-6 rounded-md border border-destructive bg-destructive/5 p-4 [&_p]:mb-4 [&_p]:mt-2 [&_strong]:text-destructive" *hasAppPermission="Permission.AppAccountDelete">
   <strong>{{ 'Danger Zone' | t }}</strong>
   <p>{{ 'Account deletion is irreversible. This will permanently remove all associated data including receipts, group memberships, and preferences.' | t }}</p>
   <button

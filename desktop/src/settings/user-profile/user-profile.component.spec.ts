@@ -64,7 +64,7 @@ describe("UserProfileComponent", () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(fixture.nativeElement.querySelector(".danger-zone")).toBeFalsy();
+    expect(fixture.nativeElement.querySelector("[data-testid=danger-zone]")).toBeFalsy();
   });
 
   it("shows the delete-account danger zone with app.account.delete", async () => {
@@ -74,7 +74,7 @@ describe("UserProfileComponent", () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(fixture.nativeElement.querySelector(".danger-zone")).toBeTruthy();
+    expect(fixture.nativeElement.querySelector("[data-testid=danger-zone]")).toBeTruthy();
   });
 
   it("gates the edit button on app.account.update", () => {

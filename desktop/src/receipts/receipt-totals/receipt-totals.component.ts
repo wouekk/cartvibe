@@ -20,10 +20,10 @@ import { formatStatus } from "../../utils";
  */
 @Component({
   selector: "app-receipt-totals",
+  host: { class: "block" },
   standalone: true,
   imports: [PipesModule],
   templateUrl: "./receipt-totals.component.html",
-  styleUrl: "./receipt-totals.component.scss",
 })
 export class ReceiptTotalsComponent {
   public readonly summary = input<ReceiptSummary | undefined>(undefined);

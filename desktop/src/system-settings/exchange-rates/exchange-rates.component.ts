@@ -24,7 +24,6 @@ interface RateRow {
 @Component({
   selector: "app-exchange-rates",
   templateUrl: "./exchange-rates.component.html",
-  styleUrls: ["./exchange-rates.component.scss"],
   standalone: true,
   imports: [TranslatePipe, PluralPipe, CommonModule, HlmButton, AppIconComponent],
 })

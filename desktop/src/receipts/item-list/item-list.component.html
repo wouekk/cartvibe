@@ -1,4 +1,4 @@
-<div class="item-list-container">
+<div class="relative">
 
   <!-- Item Add Form -->
   @if (isAdding) {
@@ -27,8 +27,8 @@
             {{ 'Items ({count})' | t: { count: items().length } }}
           </span>
           <span panelDescription>
-            <div class="accordion-header-content">
-              <span class="header-total">
+            <div class="flex w-full items-center justify-between pr-4 max-md:flex-col max-md:gap-2">
+              <span class="text-sm text-muted-foreground">
                 {{ 'Total: {amount}' | t: { amount: (getTotalAmount() | customCurrency) } }}
               </span>
               @if (canEdit()) {
@@ -41,9 +41,9 @@
             </div>
           </span>
 
-        <div *ngFor="let itemData of items(); let i = index" class="item-row">
+        <div *ngFor="let itemData of items(); let i = index" class="border-border transition-all duration-200 not-last:border-b not-last:pb-2 not-first:pt-2 hover:translate-x-1 hover:shadow-sm">
           <app-card cardStyle="mb-2">
-            <div content class="flex flex-col item-form-container">
+            <div content class="flex flex-col bg-muted">
               <div class="flex justify-end">
                 @if (!(mode | inputReadonly)) {
                   <app-button

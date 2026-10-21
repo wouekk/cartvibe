@@ -4,7 +4,6 @@ import {
   HostListener,
   OnDestroy,
   OnInit,
-  ViewEncapsulation,
   input,
   output,
   viewChild
@@ -21,8 +20,6 @@ import { KEYBOARD_SHORTCUT_ACTIONS, DISPLAY_SHORTCUTS } from "../../constants/ke
 @Component({
   selector: "app-item-add-form",
   templateUrl: "./item-add-form.component.html",
-  styleUrls: ["./item-add-form.component.scss"],
-  encapsulation: ViewEncapsulation.None,
   standalone: false
 })
 export class ItemAddFormComponent implements OnInit, OnDestroy {
