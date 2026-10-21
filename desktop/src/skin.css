@@ -174,3 +174,34 @@ body {
   img, svg, video { vertical-align: middle; }
   [hidden] { display: none !important; }
 }
+
+/* ---------- Tables (shadcn Table look on the Angular Material tables) ---------- */
+.mat-mdc-table {
+  --mat-table-background-color: transparent;
+  background: transparent !important;
+}
+.mat-mdc-table .mat-mdc-header-row {
+  height: 44px;
+}
+.mat-mdc-table .mat-mdc-header-cell {
+  color: var(--muted-foreground) !important;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  border-bottom: 1px solid var(--border) !important;
+}
+.mat-mdc-table .mat-mdc-row {
+  transition: background-color 0.15s ease;
+}
+.mat-mdc-table .mat-mdc-row:hover {
+  background-color: color-mix(in srgb, var(--muted) 60%, transparent);
+}
+.mat-mdc-table .mat-mdc-cell {
+  color: var(--foreground);
+  font-size: 0.875rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent) !important;
+}
+.mat-mdc-table .mat-mdc-row:last-child .mat-mdc-cell {
+  border-bottom: 0 !important;
+}
