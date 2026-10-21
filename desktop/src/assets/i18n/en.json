@@ -967,6 +967,7 @@
     "The household has been told you are going shopping.": "The household has been told you are going shopping.",
     "The main currency of the household. Receipts in other currencies are converted into it.": "The main currency of the household. Receipts in other currencies are converted into it.",
     "The max amount of tasks that can be run concurrently. 0 or negative means all CPU cores available.": "The max amount of tasks that can be run concurrently. 0 or negative means all CPU cores available.",
+    "The mobile OIDC flow is no longer supported": "The mobile OIDC flow is no longer supported",
     "The model name as LM Studio lists it": "The model name as LM Studio lists it",
     "The model reads images (a vision model)": "The model reads images (a vision model)",
     "The models could not be loaded. Type the name instead.": "The models could not be loaded. Type the name instead.",
