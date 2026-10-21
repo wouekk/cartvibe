@@ -8,7 +8,6 @@ import { DONE_STATUSES, receiptStatusLabel, TO_CHECK_STATUSES } from "../../util
 @Component({
     selector: "app-status-chip",
     templateUrl: "./status-chip.component.html",
-    styleUrls: ["./status-chip.component.scss"],
     standalone: false
 })
 export class StatusChipComponent {

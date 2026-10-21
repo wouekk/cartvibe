@@ -1,8 +1,13 @@
-<mat-chip
+<span
+  class="status-pill inline-flex items-center whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-medium"
   [ngClass]="{
     declined: customStatusColor() === 'red',
     open: isToCheck() || customStatusColor() === 'yellow',
-    resolved: isDone() || customStatusColor() === 'green'
+    resolved: isDone() || customStatusColor() === 'green',
+    'border-red-500/20 bg-red-500/15 text-red-700': customStatusColor() === 'red',
+    'border-amber-500/25 bg-amber-500/15 text-amber-700': isToCheck() || customStatusColor() === 'yellow',
+    'border-emerald-500/20 bg-emerald-500/15 text-emerald-700': isDone() || customStatusColor() === 'green',
+    'border-border bg-muted text-muted-foreground': !(isToCheck() || isDone() || customStatusColor())
   }"
 >
   @if (status) {
@@ -12,5 +17,4 @@
   @if (customStatus) {
     {{ customStatus }}
   }
-</mat-chip
->
+</span>

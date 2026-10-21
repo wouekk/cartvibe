@@ -60,25 +60,11 @@ describe("InputComponent", () => {
     expect(component).toBeTruthy();
   });
 
-  describe("subscript sizing", () => {
-    function subscriptSizing(): string {
-      return fixture.debugElement.query(By.directive(MatFormField))
-        .componentInstance.subscriptSizing;
-    }
+  it("shows a hint under the field", async () => {
+    fixture.componentRef.setInput("hint", "A short hint.");
+    await fixture.whenStable();
 
-    it("stays fixed without a hint, so the field does not jump when an error appears", () => {
-      expect(subscriptSizing()).toEqual("fixed");
-    });
-
-    it("goes dynamic with a hint, so a wrapping hint cannot overlap the next field", async () => {
-      fixture.componentRef.setInput(
-        "hint",
-        "A hint long enough to wrap onto more than one line in a narrow column."
-      );
-      await fixture.whenStable();
-
-      expect(subscriptSizing()).toEqual("dynamic");
-    });
+    expect(fixture.nativeElement.textContent).toContain("A short hint.");
   });
 
   describe("generate password button", () => {
@@ -89,7 +75,7 @@ describe("InputComponent", () => {
     }
 
     function iconButtonCount(): number {
-      return fixture.nativeElement.querySelectorAll("button[mat-icon-button]")
+      return fixture.nativeElement.querySelectorAll("button[hlmBtn]")
         .length;
     }
 

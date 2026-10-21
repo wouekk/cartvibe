@@ -12,7 +12,7 @@ describe('StatusChipComponent', () => {
 
   const chipClasses = (): string[] =>
     Array.from(
-      fixture.nativeElement.querySelector('mat-chip')?.classList ?? []
+      fixture.nativeElement.querySelector('.status-pill')?.classList ?? []
     );
 
   beforeEach(async () => {

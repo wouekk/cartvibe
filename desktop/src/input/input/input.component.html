@@ -1,69 +1,67 @@
-<div class="flex">
-  <!--
-    A hinted field sizes its subscript dynamically. Material's default "fixed"
-    reserves a single line and positions the hint wrapper absolutely, so a hint
-    that wraps overflows and paints over whatever follows the field. Fields with
-    no hint keep "fixed", so the error row stays reserved and they do not jump
-    when a mat-error appears.
-  -->
-  <mat-form-field
-    class="w-full"
-    [appearance]="appearance()"
-    [subscriptSizing]="hint ? 'dynamic' : 'fixed'"
-  >
-    <mat-label>{{ label }}</mat-label>
-    <div class="flex items-center">
-      <input
-        #nativeInput
-        matInput
-        [id]="inputId()"
-        [type]="type"
-        [readonly]="readonly"
-        [formControl]="inputFormControl"
-        [prefix]="maskPrefix"
-        [suffix]="maskSuffix"
-        [mask]="mask"
-        [decimalMarker]="decimalMarker"
-        [thousandSeparator]="thousandSeparator"
-        [allowNegativeNumbers]="true"
-        (blur)="inputBlur.emit($event)"
-      />
-    </div>
-    <mat-error *ngFor="let err of formControlErrors | async">{{
-        err.message
-      }}
-    </mat-error>
-    <div matSuffix *ngIf="showVisibilityEye || showGeneratePassword">
-      <button
-        *ngIf="showGeneratePassword"
-        class="generate-password-button"
-        mat-icon-button
-        type="button"
-        data-testid="password-generate"
-        aria-label="Generate password"
-        matTooltip="Generate password"
-        [disabled]="inputFormControl.disabled || readonly"
-        (click)="generatePassword()"
-      >
-        <mat-icon>autorenew</mat-icon>
-      </button>
-      <button
-        *ngIf="showVisibilityEye"
-        class="visibility-eye-button"
-        mat-icon-button
-        type="button"
-        data-testid="password-visibility-toggle"
-        [matTooltip]="type === 'password' ? 'Show ' + label : 'Hide ' + label"
-        (click)="toggleVisibility()"
-      >
-        <mat-icon *ngIf="type === 'password'">visibility</mat-icon>
-        <mat-icon *ngIf="type !== 'password'">visibility_off</mat-icon>
-      </button>
-    </div>
-    @if (hint) {
-      <mat-hint>
-        {{ hint }}
-      </mat-hint>
+<div class="flex w-full flex-col gap-1.5">
+  @if (label) {
+    <label class="text-sm font-medium leading-none text-foreground" [attr.for]="inputId() || null">{{ label }}</label>
+  }
+  <div class="relative flex items-center">
+    <input
+      #nativeInput
+      hlmInput
+      [id]="inputId()"
+      [type]="type"
+      [readonly]="readonly"
+      [placeholder]="placeholder ?? ''"
+      [class.pr-24]="showVisibilityEye && showGeneratePassword"
+      [class.pr-12]="showVisibilityEye !== showGeneratePassword"
+      [formControl]="inputFormControl"
+      [prefix]="maskPrefix"
+      [suffix]="maskSuffix"
+      [mask]="mask"
+      [decimalMarker]="decimalMarker"
+      [thousandSeparator]="thousandSeparator"
+      [allowNegativeNumbers]="true"
+      (blur)="inputBlur.emit($event)"
+    />
+    @if (showVisibilityEye || showGeneratePassword) {
+      <div class="absolute inset-y-0 right-1 flex items-center">
+        @if (showGeneratePassword) {
+          <button
+            hlmBtn
+            variant="ghost"
+            size="icon"
+            class="generate-password-button size-8"
+            type="button"
+            data-testid="password-generate"
+            aria-label="Generate password"
+            matTooltip="Generate password"
+            [disabled]="inputFormControl.disabled || readonly"
+            (click)="generatePassword()"
+          >
+            <mat-icon>autorenew</mat-icon>
+          </button>
+        }
+        @if (showVisibilityEye) {
+          <button
+            hlmBtn
+            variant="ghost"
+            size="icon"
+            class="visibility-eye-button size-8"
+            type="button"
+            data-testid="password-visibility-toggle"
+            [matTooltip]="type === 'password' ? 'Show ' + label : 'Hide ' + label"
+            (click)="toggleVisibility()"
+          >
+            <mat-icon>{{ type === "password" ? "visibility" : "visibility_off" }}</mat-icon>
+          </button>
+        }
+      </div>
     }
-  </mat-form-field>
+  </div>
+  @if (hint) {
+    <p class="text-xs text-muted-foreground">{{ hint }}</p>
+  }
+  @if (inputFormControl.invalid && (inputFormControl.touched || inputFormControl.dirty)) {
+    @for (err of formControlErrors | async; track err.error) {
+      <p class="text-xs text-destructive" role="alert">{{ err.message }}</p>
+    }
+  }
 </div>
