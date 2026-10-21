@@ -43,3 +43,11 @@ copied from spartan or shadcn/ui works as it is:
   `@theme inline` block of `src/tailwind.css` (`--color-warning: var(--warning)`), then use `bg-warning text-warning-foreground`.
   `warning` ships as the worked example.
 - `--radius` lives in `src/skin.css`; the radius scale in `@theme inline` derives from it.
+
+## Adding a preset theme later (blue, emerald, rose, violet, orange)
+
+Two themes are active today, **White** (zinc-50 canvas, white cards, zinc-200 borders, zinc-950 primary) and **Black** (zinc-950
+canvas, zinc-900 cards, zinc-800 borders, white primary). A preset from spartan's or shadcn's theme list is one more token
+block: copy `dark.css` or `light.css` to `themes/<key>.css`, paste the preset's `--primary`, `--ring`, `--chart-1..5` and sidebar
+values over it, import it in `themes/themes.css` and add `{ key, label, scheme, icon }` to `THEMES`. No template changes: the
+components, the charts and the logo read tokens only. The picker lists whatever `THEMES` holds.

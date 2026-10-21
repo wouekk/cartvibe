@@ -1,5 +1,7 @@
 # Dropping Angular Material
 
+**Status: done (2026-10-21).** All waves below shipped on `feature/redesign`; `@angular/material` and `material-icons` are out of `package.json`.
+
 Decision (2026-10-21): the desktop leaves Angular Material for Tailwind + spartan/ui (brain + helm) with Lucide icons.
 Material is replaced in waves; every wave ends with a green `ng build` and Jest run, and is pushed to `feature/redesign`.
 Counts are files that import `@angular/material/*` when the plan was written (201 in all).
