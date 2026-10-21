@@ -3,7 +3,6 @@ package services
 import (
 	"encoding/json"
 	"fmt"
-	"gopkg.in/gographics/imagick.v3/imagick"
 	"gorm.io/gorm"
 	"os"
 	"receipt-wrangler/api/internal/commands"
@@ -419,13 +418,7 @@ func (service ReceiptProcessingService) encodeImageForAi(
 
 // TODO: move to new ai client
 func (service ReceiptProcessingService) getOllamaBase64Image(imagePath string) (string, error) {
-	mw := imagick.NewMagickWand()
-	err := mw.ReadImage(imagePath)
-	if err != nil {
-		return "", err
-	}
-
-	fileBytes, err := mw.GetImageBlob()
+	fileBytes, err := service.readNormalizedImage(imagePath)
 	if err != nil {
 		return "", err
 	}
@@ -433,9 +426,25 @@ func (service ReceiptProcessingService) getOllamaBase64Image(imagePath string) (
 	return utils.Base64Encode(fileBytes), nil
 }
 
+// readNormalizedImage reads an image file and returns it as the upright, opaque, size-limited JPEG every vision model
+// takes (see FileRepository.NormalizeImageForVision), so HEIC and other camera formats reach local models too.
+func (service ReceiptProcessingService) readNormalizedImage(imagePath string) ([]byte, error) {
+	fileBytes, err := os.ReadFile(imagePath)
+	if err != nil {
+		return nil, err
+	}
+
+	normalized, err := repositories.NewFileRepository(service.TX).NormalizeImageForVision(fileBytes)
+	if err != nil {
+		return nil, fmt.Errorf("could not prepare the image for the AI: %w", err)
+	}
+
+	return normalized, nil
+}
+
 func (service ReceiptProcessingService) getOpenAiBase64Image(imagePath string) (string, error) {
 	fileRepository := repositories.NewFileRepository(service.TX)
-	fileBytes, err := os.ReadFile(imagePath)
+	fileBytes, err := service.readNormalizedImage(imagePath)
 	if err != nil {
 		return "", err
 	}
@@ -449,7 +458,7 @@ func (service ReceiptProcessingService) getOpenAiBase64Image(imagePath string) (
 }
 
 func (service ReceiptProcessingService) getGeminiImage(imagePath string) (string, error) {
-	fileBytes, err := os.ReadFile(imagePath)
+	fileBytes, err := service.readNormalizedImage(imagePath)
 	if err != nil {
 		return "", err
 	}

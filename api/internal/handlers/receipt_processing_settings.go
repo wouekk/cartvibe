@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"net/http"
+	"receipt-wrangler/api/internal/ai"
 	"receipt-wrangler/api/internal/commands"
+	config "receipt-wrangler/api/internal/env"
 	"receipt-wrangler/api/internal/constants"
 	"receipt-wrangler/api/internal/models"
 	"receipt-wrangler/api/internal/permissions"
@@ -10,6 +12,7 @@ import (
 	"receipt-wrangler/api/internal/services"
 	"receipt-wrangler/api/internal/structs"
 	"receipt-wrangler/api/internal/utils"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -277,6 +280,64 @@ func CheckReceiptProcessingSettingsConnectivity(w http.ResponseWriter, r *http.R
 			}
 
 			responseBytes, err := utils.MarshalResponseData(systemTask)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			w.WriteHeader(http.StatusOK)
+			w.Write(responseBytes)
+
+			return 0, nil
+		},
+	}
+
+	HandleRequest(handler)
+}
+
+// GetGeminiModels lists the content-generating models a Gemini key can use, so the AI page can offer a dropdown
+// instead of a free-text model name. A key typed on the page is used as sent; otherwise the stored key of the named
+// settings is decrypted. The key is never stored or logged here.
+func GetGeminiModels(w http.ResponseWriter, r *http.Request) {
+	handler := structs.Handler{
+		ErrorMessage:   "Error listing Gemini models",
+		Writer:         w,
+		Request:        r,
+		AppPermissions: []string{permissions.AppReceiptProcessingSettingsRead},
+		ResponseType:   constants.ApplicationJson,
+		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
+			command := commands.GeminiModelsCommand{}
+			if err := command.LoadDataFromRequest(w, r); err != nil {
+				return http.StatusBadRequest, err
+			}
+
+			vErr := command.Validate()
+			if len(vErr.Errors) > 0 {
+				structs.WriteValidatorErrorResponse(w, vErr, http.StatusBadRequest)
+				return 0, nil
+			}
+
+			key := strings.TrimSpace(command.Key)
+			if key == "" {
+				settings, err := repositories.NewReceiptProcessingSettings(nil).
+					GetReceiptProcessingSettingsById(utils.UintToString(command.ReceiptProcessingSettingsId))
+				if err != nil {
+					return http.StatusBadRequest, err
+				}
+				if len(settings.Key) > 0 {
+					key, err = utils.DecryptB64EncodedData(config.GetEncryptionKey(), settings.Key)
+					if err != nil {
+						return http.StatusInternalServerError, err
+					}
+				}
+			}
+
+			models, err := ai.ListGeminiModels(r.Context(), nil, ai.GeminiModelsBaseUrl, key)
+			if err != nil {
+				structs.WriteValidatorErrorResponse(w, structs.ValidatorError{Errors: map[string]string{"key": err.Error()}}, http.StatusBadRequest)
+				return 0, nil
+			}
+
+			responseBytes, err := utils.MarshalResponseData(models)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}

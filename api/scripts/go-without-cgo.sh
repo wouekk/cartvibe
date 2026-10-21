@@ -28,14 +28,29 @@ package imagick
 type MagickWand struct{}
 type ImageType int
 type AlphaChannelType int
+type FilterType int
+type ColorspaceType int
+type PixelWand struct{}
 
 const IMAGE_TYPE_BILEVEL ImageType = 1
+const ALPHA_CHANNEL_REMOVE AlphaChannelType = 1
+const FILTER_LANCZOS FilterType = 1
+const COLORSPACE_SRGB ColorspaceType = 1
+
+func NewPixelWand() *PixelWand       { return &PixelWand{} }
+func (pw *PixelWand) Destroy()         {}
+func (pw *PixelWand) SetColor(c string) bool { return true }
 
 func Initialize()                {}
 func Terminate()                 {}
 func NewMagickWand() *MagickWand { return &MagickWand{} }
 
 func (mw *MagickWand) AddImage(wand *MagickWand) error                      { return nil }
+func (mw *MagickWand) AutoOrientImage() error                              { return nil }
+func (mw *MagickWand) ResizeImage(cols, rows uint, filter FilterType) error { return nil }
+func (mw *MagickWand) SetImageBackgroundColor(pw *PixelWand) error         { return nil }
+func (mw *MagickWand) StripImage() error                                    { return nil }
+func (mw *MagickWand) TransformImageColorspace(cs ColorspaceType) error     { return nil }
 func (mw *MagickWand) AppendImages(topToBottom bool) *MagickWand            { return mw }
 func (mw *MagickWand) BlurImage(radius, sigma float64) error                { return nil }
 func (mw *MagickWand) ContrastImage(sharpen bool) error                     { return nil }

@@ -66,6 +66,10 @@ type classificationBatch struct {
 func (service FoodClassificationService) ProcessPending() (int, error) {
 	repository := repositories.NewFoodClassificationRepository(service.TX)
 
+	if classificationOutages.paused(time.Now()) {
+		return 0, nil
+	}
+
 	products, err := repository.UnclassifiedProducts(foodClassificationSweepSize)
 	if err != nil {
 		return 0, err
@@ -140,10 +144,16 @@ func (service FoodClassificationService) classifyBatch(batch classificationBatch
 			return parseErr
 		})
 
-	if outcome == textAiNotConfigured || outcome == textAiUnreachable {
-		// No AI, or an outage: nothing counts against the products; the next sweep tries again.
+	if outcome == textAiNotConfigured {
+		// No AI: nothing is called, nothing counts against the products.
 		return 0, nil
 	}
+	if outcome == textAiUnreachable {
+		// An outage counts against no product, but the sweep backs off so a long one is not hammered.
+		classificationOutages.recordFailure(time.Now())
+		return 0, nil
+	}
+	classificationOutages.recordSuccess()
 
 	now := time.Now()
 	classified := 0

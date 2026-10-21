@@ -223,11 +223,29 @@ func (service ReceiptProductExtractionService) recordOutage(extraction models.Re
 		return repository.UpdateExtraction(extraction.ReceiptId, models.PRODUCT_EXTRACTION_FAILED, time.Now(), extraction.Attempts, message)
 	}
 
+	// Nothing was called, so nothing is spent: wait for someone to configure the AI.
+	if errors.Is(aiErr, errNoAiConfigured) {
+		return repository.UpdateExtraction(
+			extraction.ReceiptId,
+			models.PRODUCT_EXTRACTION_UNAVAILABLE,
+			time.Now().Add(productExtractionRetryAfterOutage),
+			extraction.Attempts,
+			message,
+		)
+	}
+
+	// A failed call may still cost tokens, so outages count toward the same cap as unreadable answers (the AI
+	// page promises at most three tries). "Read with AI" on a failed receipt starts the count again.
+	attempts := extraction.Attempts + 1
+	if attempts >= productExtractionMaxBadAnswers {
+		return repository.UpdateExtraction(extraction.ReceiptId, models.PRODUCT_EXTRACTION_FAILED, time.Now(), attempts, message)
+	}
+
 	return repository.UpdateExtraction(
 		extraction.ReceiptId,
 		models.PRODUCT_EXTRACTION_UNAVAILABLE,
 		time.Now().Add(productExtractionRetryAfterOutage),
-		extraction.Attempts,
+		attempts,
 		message,
 	)
 }

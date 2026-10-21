@@ -484,7 +484,7 @@ func (service ShoppingTripService) recordScanFailure(trip models.ShoppingTrip, s
 	attempts := trip.Attempts + 1
 	message := truncateRunes("The photo could not be read into a receipt yet: "+scanErr.Error(), 500)
 
-	if time.Since(trip.QueuedAt) > shoppingTripRetryWindow {
+	if time.Since(trip.QueuedAt) > shoppingTripRetryWindow || attempts >= shoppingTripMaxBadAnswers {
 		return repository.UpdateClaimedTrip(trip.ID, models.SHOPPING_TRIP_FAILED, time.Now(), attempts, message)
 	}
 
@@ -507,7 +507,18 @@ func (service ShoppingTripService) recordOutage(trip models.ShoppingTrip, aiErr 
 		return repository.UpdateClaimedTrip(trip.ID, models.SHOPPING_TRIP_FAILED, time.Now(), trip.Attempts, message)
 	}
 
-	return repository.UpdateClaimedTrip(trip.ID, models.SHOPPING_TRIP_UNAVAILABLE, time.Now().Add(shoppingTripRetryAfterOutage), trip.Attempts, message)
+	// Nothing was called, so nothing is spent: wait for someone to configure the AI.
+	if errors.Is(aiErr, errNoAiConfigured) {
+		return repository.UpdateClaimedTrip(trip.ID, models.SHOPPING_TRIP_UNAVAILABLE, time.Now().Add(shoppingTripRetryAfterOutage), trip.Attempts, message)
+	}
+
+	// A failed call may still cost tokens: outages share the cap of three tries with unreadable answers.
+	attempts := trip.Attempts + 1
+	if attempts >= shoppingTripMaxBadAnswers {
+		return repository.UpdateClaimedTrip(trip.ID, models.SHOPPING_TRIP_FAILED, time.Now(), attempts, message)
+	}
+
+	return repository.UpdateClaimedTrip(trip.ID, models.SHOPPING_TRIP_UNAVAILABLE, time.Now().Add(shoppingTripRetryAfterOutage), attempts, message)
 }
 
 // compare matches the receipt's products with what was planned, once the products have been read.

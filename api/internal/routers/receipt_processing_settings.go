@@ -14,6 +14,7 @@ func BuildReceiptProcessingSettingsRouter() *chi.Mux {
 	router.Post("/", handlers.CreateReceiptProcessingSettings)
 	router.Post("/getPagedProcessingSettings", handlers.GetPagedReceiptProcessingSettings)
 	router.Post("/checkConnectivity", handlers.CheckReceiptProcessingSettingsConnectivity)
+	router.Post("/geminiModels", handlers.GetGeminiModels)
 	router.Put("/{id}", handlers.UpdateReceiptProcessingSettingsById)
 	router.Delete("/{id}", handlers.DeleteReceiptProcessingSettingsById)
 

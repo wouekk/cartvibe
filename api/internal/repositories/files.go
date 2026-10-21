@@ -227,6 +227,68 @@ func (repository FileRepository) ConvertHeicToJpg(bytes []byte) ([]byte, error) 
 	return mw.GetImageBlob()
 }
 
+// visionImageMaxSide is the longest edge, in pixels, of an image sent to a vision model. Receipts stay readable well
+// below it, and it keeps the request small enough for local models.
+const (
+	visionImageMaxSide = 2048
+	visionImageQuality = 85
+)
+
+// NormalizeImageForVision turns whatever a camera or a scanner produced into the one thing every vision model takes: a
+// baseline sRGB JPEG, upright, on an opaque white background, no larger than visionImageMaxSide on its long edge.
+// HEIC/HEIF, PNG with transparency, WebP, TIFF, CMYK JPEG and multi-frame files all come out the same. The first frame
+// is used. The stored original is never touched; this runs on the copy that is sent to the model.
+func (repository FileRepository) NormalizeImageForVision(bytes []byte) ([]byte, error) {
+	mw := imagick.NewMagickWand()
+	defer mw.Destroy()
+
+	if err := mw.ReadImageBlob(bytes); err != nil {
+		return nil, err
+	}
+	mw.SetIteratorIndex(0)
+
+	if err := mw.AutoOrientImage(); err != nil {
+		return nil, err
+	}
+
+	// Flatten any transparency onto white: JPEG has no alpha, and a black background hides dark receipt text.
+	background := imagick.NewPixelWand()
+	defer background.Destroy()
+	background.SetColor("white")
+	if err := mw.SetImageBackgroundColor(background); err != nil {
+		return nil, err
+	}
+	if err := mw.SetImageAlphaChannel(imagick.ALPHA_CHANNEL_REMOVE); err != nil {
+		return nil, err
+	}
+
+	if err := mw.TransformImageColorspace(imagick.COLORSPACE_SRGB); err != nil {
+		return nil, err
+	}
+
+	width, height := mw.GetImageWidth(), mw.GetImageHeight()
+	if longest := max(width, height); longest > visionImageMaxSide {
+		scale := float64(visionImageMaxSide) / float64(longest)
+		newWidth := max(1, uint(float64(width)*scale+0.5))
+		newHeight := max(1, uint(float64(height)*scale+0.5))
+		if err := mw.ResizeImage(newWidth, newHeight, imagick.FILTER_LANCZOS); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := mw.StripImage(); err != nil {
+		return nil, err
+	}
+	if err := mw.SetImageFormat("jpeg"); err != nil {
+		return nil, err
+	}
+	if err := mw.SetCompressionQuality(visionImageQuality); err != nil {
+		return nil, err
+	}
+
+	return mw.GetImageBlob()
+}
+
 // pdfRasterizationDpi returns the DPI used to rasterize PDFs into images. It is
 // configured via the PdfDpi system setting; when unset (0) or out of the
 // supported range it falls back to defaultPdfDpi. 300 DPI is a common

@@ -3193,6 +3193,34 @@ paths:
           $ref: "#/components/responses/BadRequest"
         403:
           $ref: "#/components/responses/Forbidden"
+  /receiptProcessingSettings/geminiModels:
+    post:
+      tags:
+        - ReceiptProcessingSettings
+      summary: List the Gemini models an API key can use
+      description: Asks Google which content-generating models the key may call, newest first. The key is only forwarded, never stored.
+      operationId: getGeminiModels
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GeminiModelsCommand"
+      responses:
+        200:
+          description: The models, newest first (never null)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GeminiModel"
+        500:
+          $ref: "#/components/responses/Internal"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
   /systemSettings:
     get:
       tags:
@@ -8460,6 +8488,27 @@ components:
         priority:
           type: integer
           description: Queue priority
+    GeminiModelsCommand:
+      type: object
+      description: Which key to list models for. Send a new key, or the id of saved settings to use its stored key.
+      properties:
+        key:
+          type: string
+          description: A Gemini API key not saved yet
+        receiptProcessingSettingsId:
+          type: integer
+          description: Saved settings whose stored key is used when no key is sent
+    GeminiModel:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The model id to store, for example gemini-2.5-flash
+        displayName:
+          type: string
+      required:
+        - name
+        - displayName
     AppLogEntry:
       type: object
       description: One entry of the application log. The level is a plain string on purpose.
