@@ -207,6 +207,27 @@ describe("SidebarComponent", () => {
       expect(text).not.toContain("System Settings");
     });
 
+    it("shows the AI page but not System Settings to a member holding the receipt-processing permissions", async () => {
+      login();
+      store.dispatch(
+        new SetPermissions(
+          [
+            "app.categories.read",
+            "app.receipt-processing-settings.read",
+            "app.receipt-processing-settings.update",
+          ],
+          {}
+        )
+      );
+      await fixture.whenStable();
+      queryTestId("sidebar-manage-toggle").nativeElement.click();
+      await fixture.whenStable();
+
+      const text = sidebarText();
+      expect(text).toContain("AI");
+      expect(text).not.toContain("System Settings");
+    });
+
     it("keeps Manage Households but hides the group switcher while there is only one real group (Phase 3 M5)", async () => {
       login();
       store.dispatch(
