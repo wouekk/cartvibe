@@ -3,8 +3,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ColorPickerComponent } from './color-picker.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('ColorPickerComponent', () => {
@@ -16,8 +14,6 @@ describe('ColorPickerComponent', () => {
       declarations: [ColorPickerComponent],
       imports: [
         ReactiveFormsModule,
-        MatFormFieldModule,
-        MatInputModule,
         NoopAnimationsModule,
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],

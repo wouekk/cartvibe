@@ -5,7 +5,6 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { AppDialog } from "../../dialog/app-dialog";
-import { MatMenuModule } from "@angular/material/menu";
 import { Store } from "@ngxs/store";
 import { catchError, EMPTY, filter, Subscription, switchMap, take, timer } from "rxjs";
 import { Permission, ReceiptProduct, ReceiptProductService, ReceiptProductsView, UpsertReceiptProductCommand } from "../../open-api";
@@ -41,7 +40,7 @@ const STATUS_TEXT: { [status: string]: string } = {
   templateUrl: "./receipt-products.component.html",
   styleUrls: ["./receipt-products.component.scss"],
   standalone: true,
-  imports: [CommonModule, FoodTagsComponent, HlmButton, AppIconComponent, MatMenuModule, ...HlmDropdownMenuImports, PipesModule],
+  imports: [CommonModule, FoodTagsComponent, HlmButton, AppIconComponent, ...HlmDropdownMenuImports, PipesModule],
   // customCurrency delegates to CurrencyPipe, which PipesModule does not provide.
   providers: [CurrencyPipe],
 })

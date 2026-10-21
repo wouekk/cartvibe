@@ -2,8 +2,8 @@ import { CdkMenu, CdkMenuTrigger } from "@angular/cdk/menu";
 import { Component, Input, computed, input, output } from "@angular/core";
 import { FormControl } from "@angular/forms";
 import { toSignal } from "@angular/core/rxjs-interop";
-import { MatCheckbox } from "@angular/material/checkbox";
-import { MatMenuItem } from "@angular/material/menu";
+import { HlmCheckbox } from "@spartan-ng/helm/checkbox";
+import { HlmDropdownMenuItem } from "@spartan-ng/helm/dropdown-menu";
 import { BaseButtonComponent } from "../../../button/base-button/base-button.component";
 import { ButtonModule } from "../../../button/index";
 import { InputModule } from "../../../input/index";
@@ -14,7 +14,7 @@ import { StatefulMenuItem } from "./stateful-menu-item";
   imports: [
     CdkMenuTrigger,
     CdkMenu,
-    ButtonModule, InputModule, MatMenuItem, MatCheckbox,
+    ButtonModule, InputModule, HlmDropdownMenuItem, HlmCheckbox,
   ],
   templateUrl: "./filtered-stateful-menu.component.html",
   styleUrl: "./filtered-stateful-menu.component.scss",

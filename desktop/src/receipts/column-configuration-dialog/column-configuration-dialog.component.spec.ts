@@ -293,7 +293,7 @@ describe("ColumnConfigurationDialogComponent", () => {
       fixture.detectChanges();
 
       const checkbox = fixture.nativeElement.querySelector(
-        ".column-item:last-child mat-checkbox"
+        ".column-item:last-child label.column-checkbox"
       ) as HTMLElement;
 
       expect(checkbox.textContent?.trim()).toEqual("Vendor");

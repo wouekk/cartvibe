@@ -5,7 +5,6 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { HlmButton } from "@spartan-ng/helm/button";
 
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
-import { MatMenuModule } from "@angular/material/menu";
 import { provideRouter, RouterLink } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
@@ -62,7 +61,6 @@ describe("ShoppingTripsComponent", () => {
         NgxsModule.forRoot([AuthState, ShoppingListState, SystemSettingsState]),
         HlmButton,
         AppIconComponent,
-        MatMenuModule,
         PipesModule,
         RouterLink,
       ],

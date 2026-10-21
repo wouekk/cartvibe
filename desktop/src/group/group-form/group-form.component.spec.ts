@@ -1,7 +1,6 @@
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
-import { MatCardModule } from "@angular/material/card";
 import { AppDialog } from "../../dialog/app-dialog";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { ActivatedRoute, Router, provideRouter } from "@angular/router";
@@ -37,7 +36,6 @@ describe("GroupFormComponent", () => {
         CheckboxModule,
         PipesModule,
         InputModule,
-        MatCardModule,
         NgxsModule.forRoot([AuthState]),
         NoopAnimationsModule,
         PipesModule,

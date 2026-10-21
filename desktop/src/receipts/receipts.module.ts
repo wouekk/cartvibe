@@ -2,15 +2,14 @@ import { DragDropModule } from "@angular/cdk/drag-drop";
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
-import { MatCheckboxModule } from "@angular/material/checkbox";
 
 import { ExpansionPanelComponent } from "../shared-ui/expansion-panel/expansion-panel.component";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { HlmBadge } from "@spartan-ng/helm/badge";
-import { MatMenuModule } from "@angular/material/menu";
+import { HlmCheckboxImports } from "@spartan-ng/helm/checkbox";
+import { HlmSpinner } from "@spartan-ng/helm/spinner";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
-import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { AutocompleteModule } from "src/autocomplete/autocomplete.module";
 import { AvatarModule } from "src/avatar";
 import { DatepickerModule } from "src/datepicker/datepicker.module";
@@ -81,13 +80,12 @@ import { UserTotalWithPercentagePipe } from "./user-total-with-percentage.pipe";
     DirectivesModule,
     DragDropModule,
     InputModule,
-    MatCheckboxModule,
     HlmBadge,
+    ...HlmCheckboxImports,
+    HlmSpinner,
     ExpansionPanelComponent,
     AppIconComponent,
-    MatMenuModule,
     ...HlmDropdownMenuImports,
-    MatProgressSpinnerModule,
     ...HlmTooltipImports,
     PipesModule,
     RadioGroupModule,

@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormArray, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
-import { MatListModule } from "@angular/material/list";
 import { InputModule } from "../../input/index";
 import { PipesModule } from "../../pipes/index";
 import { EditableListComponent } from "../../shared-ui/editable-list/editable-list.component";
@@ -15,7 +14,7 @@ describe("UserShortcutComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [UserShortcutComponent, EditableListComponent, IconAutocompleteComponent],
-      imports: [AppIconComponent, InputModule, PipesModule, MatListModule, ReactiveFormsModule],
+      imports: [AppIconComponent, InputModule, PipesModule, ReactiveFormsModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(UserShortcutComponent);

@@ -1,13 +1,7 @@
 /* Modern, clean Receipt Wrangler styles */
 @use "sass:map";
-@use "@angular/material" as mat;
 @use "./variables.scss" as variables;
-@use "material-icons/iconfont/filled.css";
-@use "material-icons/iconfont/outlined.css";
 @use "@fontsource-variable/geist";
-
-@include mat.elevation-classes();
-@include mat.app-background();
 
 .cursor-pointer {
   cursor: pointer !important;
@@ -15,47 +9,6 @@
 
 // Modern font stack with better readability
 $font-family: 'Geist Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-
-$my-primary: mat.m2-define-palette(variables.$primary-palette);
-$my-accent: mat.m2-define-palette(variables.$accent-palette);
-$my-warn: mat.m2-define-palette(variables.$warn-palette);
-
-$my-typography: mat.m2-define-typography-config(
-  $font-family: $font-family,
-);
-
-$my-theme: mat.m2-define-light-theme(
-    (
-      color: (
-        primary: $my-primary,
-        accent: $my-accent,
-        warn: $my-warn,
-      ),
-      typography: $my-typography,
-    )
-);
-
-@include mat.all-component-themes($my-theme);
-
-// The dark theme of the Material components that are still in use, switched by the `dark` class on <html>.
-$my-dark-theme: mat.m2-define-dark-theme(
-  (
-    color: (
-      primary: $my-primary,
-      accent: $my-accent,
-      warn: $my-warn,
-    ),
-    typography: $my-typography,
-  )
-);
-
-.dark {
-  @include mat.all-component-colors($my-dark-theme);
-}
-
-.mat-typography {
-  font-family: $font-family !important;
-}
 
 html,
 body {
@@ -65,8 +18,8 @@ body {
 
 body {
   margin: 0;
-  background-color: #f8fafc;
-  color: #1e293b;
+  background-color: var(--background);
+  color: var(--foreground);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -80,67 +33,12 @@ body {
 
 // Global Style Changes
 hr {
-  color: variables.$mat-drawer-background-color;
+  color: var(--border);
   width: 100%;
 }
 
 ngb-popover-window {
   box-shadow: variables.$global-shadow;
-}
-
-// Modern Material Design component styling
-.mat-mdc-card {
-  box-shadow: variables.$shadow-md !important;
-  border-radius: variables.$border-radius-lg !important;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  background-color: #ffffff;
-  transition: all 0.2s ease-in-out;
-  
-  &:hover {
-    box-shadow: variables.$shadow-lg !important;
-    transform: translateY(-1px);
-  }
-}
-
-.mat-mdc-raised-button {
-  box-shadow: variables.$shadow-sm !important;
-  border-radius: variables.$border-radius-md !important;
-  font-weight: 500;
-  transition: all 0.2s ease-in-out;
-  
-  &:hover {
-    box-shadow: variables.$shadow-md !important;
-    transform: translateY(-1px);
-  }
-}
-
-.mat-mdc-dialog-container .mdc-dialog__surface {
-  box-shadow: variables.$shadow-xl !important;
-  border-radius: variables.$border-radius-xl !important;
-}
-
-.mat-datepicker-content {
-  box-shadow: variables.$shadow-lg !important;
-  border-radius: variables.$border-radius-lg !important;
-}
-
-.mdc-switch__shadow {
-  box-shadow: variables.$shadow-sm !important;
-}
-
-
-.mat-mdc-fab {
-  box-shadow: variables.$shadow-lg !important;
-  transition: all 0.2s ease-in-out;
-  
-  &:hover {
-    box-shadow: variables.$shadow-xl !important;
-    transform: scale(1.05);
-  }
-}
-
-.mat-mdc-raised-button.mat-primary {
-  color: white !important;
 }
 
 .json-string {
@@ -152,7 +50,7 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0 !important;
   font-weight: 600;
   letter-spacing: -0.025em;
-  color: #0f172a;
+  color: var(--foreground);
 }
 
 h1 {
@@ -168,17 +66,6 @@ h2 {
 h3 {
   font-size: 1.5rem;
   line-height: 1.4;
-}
-
-// Modern form inputs
-.mat-mdc-form-field {
-  .mat-mdc-text-field-wrapper {
-    border-radius: variables.$border-radius-md !important;
-  }
-  
-  .mat-mdc-form-field-focus-overlay {
-    border-radius: variables.$border-radius-md !important;
-  }
 }
 
 // Enhanced cards
@@ -212,46 +99,6 @@ h3 {
   margin-left: variables.$spacing-md;
 }
 
-// Modern dialog styling
-.mat-mdc-dialog-container {
-  .mdc-dialog__surface {
-    background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    backdrop-filter: blur(8px);
-  }
-}
-
-// Modern progress bar
-.mat-mdc-progress-bar {
-  height: 3px !important;
-  
-  .mdc-linear-progress__buffer {
-    background-color: var(--accent-soft, rgba(59, 130, 246, 0.1)) !important;
-  }
-  
-  .mdc-linear-progress__primary-bar {
-    background: linear-gradient(90deg, var(--accent-light, #3b82f6) 0%, var(--accent-color, #2563eb) 100%) !important;
-  }
-}
-
-// Modern tooltips
-.mat-mdc-tooltip {
-  border-radius: variables.$border-radius-md !important;
-  background-color: #1e293b !important;
-  color: white !important;
-  font-size: 0.875rem !important;
-  font-weight: 500 !important;
-  box-shadow: variables.$shadow-lg !important;
-}
-
-// Enhanced focus states
-.mat-mdc-button:focus,
-.mat-mdc-raised-button:focus,
-.mat-mdc-icon-button:focus {
-  outline: 2px solid rgba(59, 130, 246, 0.5) !important;
-  outline-offset: 2px !important;
-}
-
 // Modern scrollbar styling
 ::-webkit-scrollbar {
   width: 8px;
@@ -259,17 +106,17 @@ h3 {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(248, 250, 252, 0.5);
+  background: transparent;
   border-radius: variables.$border-radius-md;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
+  background: var(--border);
   border-radius: variables.$border-radius-md;
   transition: all 0.2s ease-in-out;
   
   &:hover {
-    background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+    background: var(--muted-foreground);
   }
 }
 
@@ -321,23 +168,12 @@ h3 {
   animation: rw-shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
-.rw-field-error {
-  .mat-mdc-text-field-wrapper {
-    border-radius: 10px;
-    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.22);
-    transition: box-shadow 0.2s ease;
-  }
-
-  .mdc-notched-outline__leading,
-  .mdc-notched-outline__notch,
-  .mdc-notched-outline__trailing {
-    border-color: #ef4444 !important;
-    border-width: 2px !important;
-  }
-
-  .mdc-floating-label {
-    color: #ef4444 !important;
-  }
+.rw-field-error input,
+.rw-field-error textarea,
+.rw-field-error [data-slot=input-group] {
+  border-color: var(--destructive) !important;
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--destructive) 25%, transparent);
+  transition: box-shadow 0.2s ease;
 }
 
 @media (prefers-reduced-motion: reduce) {

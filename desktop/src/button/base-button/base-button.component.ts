@@ -1,5 +1,4 @@
 import { Component, computed, Input, input, output } from "@angular/core";
-import { ThemePalette } from "@angular/material/core";
 
 @Component({
   selector: "app-base-button",
@@ -32,7 +31,7 @@ export class BaseButtonComponent {
 
   public readonly matBadgeContent = input<any>();
 
-  public readonly matBadgeColor = input<ThemePalette>("primary");
+  public readonly matBadgeColor = input<"primary" | "accent" | "warn" | undefined>("primary");
 
   /** No badge for an empty count: nothing, an empty string or a zero (a red "0" says nothing). */
   public readonly matBadgeHidden = computed(() => {

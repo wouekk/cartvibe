@@ -4,8 +4,6 @@ import { ReactiveFormsModule } from "@angular/forms";
 import { HlmButton } from "@spartan-ng/helm/button";
 
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
-import { MatMenuModule } from "@angular/material/menu";
-import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { RouterModule } from "@angular/router";
 import { OverlayModule } from "@angular/cdk/overlay";
@@ -44,8 +42,6 @@ import { SidebarComponent } from "./sidebar/sidebar.component";
     DirectivesModule,
     HlmButton,
     AppIconComponent,
-    MatMenuModule,
-    MatProgressBarModule,
     NgIcon,
     ...HlmCollapsibleImports,
     ...HlmDropdownMenuImports,

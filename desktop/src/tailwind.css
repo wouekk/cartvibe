@@ -98,3 +98,31 @@ app-group-autocomplete {
 app-checkbox label span {
   white-space: nowrap;
 }
+
+/* An indeterminate progress bar: a thin track with a bar sweeping across it. */
+.app-progress-indeterminate {
+  position: relative;
+  height: 3px;
+  width: 100%;
+  overflow: hidden;
+  background: color-mix(in oklab, var(--primary) 15%, transparent);
+}
+
+.app-progress-indeterminate::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  border-radius: 999px;
+  background: var(--primary);
+  animation: app-progress-sweep 1.2s ease-in-out infinite;
+}
+
+@keyframes app-progress-sweep {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(260%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-progress-indeterminate::after { animation-duration: 3s; }
+}
