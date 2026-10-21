@@ -3,7 +3,9 @@ import { OverlayContainer } from "@angular/cdk/overlay";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection, signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { MatMenuModule, MatMenuTrigger } from "@angular/material/menu";
+import { MatMenuModule } from "@angular/material/menu";
+import { HlmCollapsibleImports } from "@spartan-ng/helm/collapsible";
+import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { MatSidenavModule } from "@angular/material/sidenav";
 import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatTooltipModule } from "@angular/material/tooltip";
@@ -43,7 +45,8 @@ describe("SidebarComponent", () => {
   /** Opens the menu whose trigger carries [testId] and returns the overlay's content. */
   const openMenu = async (testId: string): Promise<HTMLElement> => {
     await fixture.whenStable();
-    queryTestId(testId).injector.get(MatMenuTrigger).openMenu();
+    queryTestId(testId).nativeElement.click();
+    await fixture.whenStable();
     await fixture.whenStable();
     return overlayContainer.getContainerElement();
   };
@@ -62,6 +65,8 @@ describe("SidebarComponent", () => {
     imports: [NgxsModule.forRoot([AuthState, LayoutState, GroupState, FeatureConfigState, ShoppingListState]),
         DirectivesModule,
         MatMenuModule,
+        ...HlmCollapsibleImports,
+        ...HlmDropdownMenuImports,
         MatSnackBarModule,
         MatSidenavModule,
         MatTooltipModule,
@@ -185,10 +190,12 @@ describe("SidebarComponent", () => {
         )
       );
       await fixture.whenStable();
-      expect(queryTestId("sidebar-manage-items")).toBeFalsy();
+      const items = () => queryTestId("sidebar-manage-items").nativeElement.closest("[data-slot=collapsible-content]");
+      expect(items().getAttribute("data-state")).toBe("closed");
 
       queryTestId("sidebar-manage-toggle").nativeElement.click();
       await fixture.whenStable();
+      expect(items().getAttribute("data-state")).toBe("open");
 
       const text = sidebarText();
       expect(text).toContain("Manage Categories");

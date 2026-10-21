@@ -95,6 +95,10 @@ fs.rmSync(work, { recursive: true, force: true });
 const patches = [
   ["sidebar/lib/hlm-sidebar-menu-button.ts", "'[attr.data-active]': 'isActive()',", "'[attr.data-active]': 'isActive() ? \"\" : null',"],
   ["sidebar/lib/hlm-sidebar-menu-sub-button.ts", "'[attr.data-active]': 'isActive()',", "'[attr.data-active]': 'isActive() ? \"\" : null',"],
+  ["collapsible/lib/hlm-collapsible-content.ts", "classes(() => 'data-[state=closed]:hidden');", "classes(
+			() =>
+				'data-[state=closed]:hidden data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-top-1 data-[state=open]:duration-200',
+		);"],
 ];
 for (const [file, from, to] of patches) {
   const target = path.join(outRoot, file);

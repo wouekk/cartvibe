@@ -199,8 +199,10 @@
   <div class="overview__row">
     <section class="card" aria-labelledby="overview-categories-title">
       <div class="card__header">
-        <h2 id="overview-categories-title">Spending by category</h2>
-        <a routerLink="/reports">Open reports</a>
+        <div>
+          <h2 id="overview-categories-title">Spending by category</h2>
+          <p class="card__sub">{{ periodLabel() }}</p>
+        </div>
       </div>
       @if (segments().length > 0) {
         <div class="donut flex flex-wrap items-center gap-8">
@@ -246,15 +248,29 @@
       } @else {
         <p class="empty">No spending in {{ periodLabel() }} yet.</p>
       }
+      <div class="card__footer">
+        <span>{{ periodLabel() }}</span>
+        <a routerLink="/reports" class="card__link">Open reports <mat-icon aria-hidden="true">arrow_right_alt</mat-icon></a>
+      </div>
     </section>
 
     <section class="card" aria-labelledby="overview-trend-title">
       <div class="card__header">
         <h2 id="overview-trend-title">{{ isDailyTrend() ? "Spending by day" : "Spending by month" }}</h2>
         @if (chartBars().length > 0 && !rangeTooLongForChart()) {
-          <span class="muted" data-testid="overview-trend-summary">Average {{ averageBar() | customCurrency }} {{ isDailyTrend() ? "a day" : "a month" }}@if (goalMode()) { · Goal {{ goal() | customCurrency }}}</span>
+          <span class="muted text-sm" data-testid="overview-trend-summary">Average {{ averageBar() | customCurrency }} {{ isDailyTrend() ? "a day" : "a month" }}@if (goalMode()) { · Goal {{ goal() | customCurrency }}}</span>
         }
       </div>
+      @if (!rangeTooLongForChart() && chartBars().length > 0) {
+        <div class="trend-stat">
+          <span class="trend-stat__value">{{ overview()?.total ?? 0 | customCurrency }}</span>
+          @if (change(); as change) {
+            <span class="pill" [class.pill--up]="changeIsIncrease()" [class.pill--down]="!changeIsIncrease()">
+              <mat-icon aria-hidden="true">{{ changeIsIncrease() ? "arrow_upward" : "arrow_downward" }}</mat-icon>{{ change }}
+            </span>
+          }
+        </div>
+      }
       @if (rangeTooLongForChart()) {
         <div class="chart-export" data-testid="overview-range-export">
           <p>Ranges over 1 year are best viewed as a report.</p>
@@ -294,6 +310,10 @@
           </ul>
         }
       }
+      <div class="card__footer">
+        <span>{{ periodLabel() }}</span>
+        <a routerLink="/reports" class="card__link">Open reports <mat-icon aria-hidden="true">arrow_right_alt</mat-icon></a>
+      </div>
     </section>
   </div>
 
