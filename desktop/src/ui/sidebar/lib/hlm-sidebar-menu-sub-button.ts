@@ -10,7 +10,7 @@ import { injectHlmSidebarConfig } from './hlm-sidebar.token';
 	host: {
 		'data-slot': 'sidebar-menu-sub-button',
 		'data-sidebar': 'menu-sub-button',
-		'[attr.data-active]': 'isActive()',
+		'[attr.data-active]': 'isActive() ? "" : null',
 		'[attr.data-size]': 'size()',
 		'(click)': 'onClick()',
 	},

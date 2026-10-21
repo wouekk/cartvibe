@@ -55,7 +55,7 @@ const sidebarMenuButtonVariants = cva(
 		'data-slot': 'sidebar-menu-button',
 		'data-sidebar': 'menu-button',
 		'[attr.data-size]': 'size()',
-		'[attr.data-active]': 'isActive()',
+		'[attr.data-active]': 'isActive() ? "" : null',
 		'(click)': 'onClick()',
 	},
 })
