@@ -9,11 +9,10 @@
       <div class="logo-section">
         <app-cartvibe-logo class="logo" [height]="64"></app-cartvibe-logo>
         <h1 class="welcome-text">
-          {{ (isSignUp | async) ? 'Join us!' : 'Hey there!' }}
-          <span class="wave">👋</span>
+          {{ (isSignUp | async) ? 'Create your account' : 'Welcome back' }}
         </h1>
         <p class="subtitle">
-          {{ (isSignUp | async) ? 'Create your account to get started' : 'Welcome back, ready to wrangle some receipts?' }}
+          {{ (isSignUp | async) ? 'Join your household on CartVibe' : 'Sign in to your household' }}
         </p>
       </div>
 
