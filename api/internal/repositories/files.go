@@ -182,6 +182,11 @@ func (repository FileRepository) ValidateFileType(bytes []byte) (string, error) 
 	fileType := utils.GetMimeType(bytes).String()
 	acceptedFileTypes := []string{constants.AnyImage, constants.ApplicationPdf}
 
+	// SVG is markup that can carry script; receipts are photos and PDFs.
+	if strings.Contains(fileType, "svg") {
+		return "", errors.New("invalid file type")
+	}
+
 	for _, acceptedFileType := range acceptedFileTypes {
 		matched, _ := regexp.Match(acceptedFileType, []byte(fileType))
 
