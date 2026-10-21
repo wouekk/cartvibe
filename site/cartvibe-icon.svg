@@ -7,8 +7,8 @@
         --cart-fill: #fafafa;
         --bar-top: #34d399;
         --bar-bot: #10b981;
-        --arrow-start: #fbbf24;
-        --arrow-end: #f59e0b;
+        --arrow-start: #60a5fa;
+        --arrow-end: #2563eb;
       }
       @media (prefers-color-scheme: dark) {
         :root {
@@ -17,8 +17,8 @@
         --cart-fill: #09090b;
         --bar-top: #10b981;
         --bar-bot: #047857;
-        --arrow-start: #f59e0b;
-        --arrow-end: #d97706;
+        --arrow-start: #93c5fd;
+        --arrow-end: #3b82f6;
         }
       }
       :root.dark, .dark {

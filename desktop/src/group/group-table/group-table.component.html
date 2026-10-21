@@ -11,16 +11,6 @@
         tooltip="Add Household"
         [buttonRouterLink]="['create']"
       ></app-add-button>
-      <ng-container *hasAppPermission="Permission.AppGroupsRead">
-        <app-button
-          matButtonType="iconButton"
-          icon="filter_alt"
-          color="accent"
-          data-testid="group-filter"
-          tooltip="Filter Households"
-          (clicked)="openFilterDialog()"
-        ></app-button>
-      </ng-container>
     </div>
   </app-table-header>
   <div class="table-container">
