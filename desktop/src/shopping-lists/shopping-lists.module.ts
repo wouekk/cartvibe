@@ -14,6 +14,7 @@ import { ShoppingListFormDialogComponent } from "./shopping-list-form-dialog/sho
 import { ShoppingListItemFormDialogComponent } from "./shopping-list-item-form-dialog/shopping-list-item-form-dialog.component";
 import { ShoppingListItemComponent } from "./shopping-list-item/shopping-list-item.component";
 import { ShoppingListComponent } from "./shopping-list/shopping-list.component";
+import { ShoppingItemNameFieldComponent } from "./shopping-item-name-field/shopping-item-name-field.component";
 import { ShoppingListsPageComponent } from "./shopping-lists-page/shopping-lists-page.component";
 import { ShoppingListsRoutingModule } from "./shopping-lists-routing.module";
 import { ShoppingTripsComponent } from "./shopping-trips/shopping-trips.component";
@@ -32,6 +33,7 @@ import { FoodTagsComponent } from "../standalone/components/food-tags/food-tags.
     ShoppingTripsComponent,
   ],
   imports: [
+    ShoppingItemNameFieldComponent,
     CommonModule,
     FoodTagsComponent,
     InputModule,

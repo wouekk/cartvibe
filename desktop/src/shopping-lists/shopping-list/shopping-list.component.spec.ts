@@ -160,4 +160,25 @@ describe("ShoppingListComponent", () => {
     await setCanUpdate(true);
     expect(fixture.nativeElement.querySelector(".add-bar")).not.toBeNull();
   });
+
+  describe("suggestions from earlier items", () => {
+    it("fills the amount and unit of a picked suggestion, but never over one the user typed", () => {
+      component.nameControl.setValue("Oat milk");
+      component.suggestionPicked({ name: "Oat milk", amount: "2", unit: "l" });
+      expect(component.addForm.value).toEqual(expect.objectContaining({ amount: "2", unit: "l" }));
+
+      component.addForm.patchValue({ amount: "5", unit: "pack" });
+      component.suggestionPicked({ name: "Oat milk", amount: "2", unit: "l" });
+      expect(component.addForm.value).toEqual(expect.objectContaining({ amount: "5", unit: "pack" }));
+    });
+
+    it("leaves the amount alone for a suggestion that had none", () => {
+      component.suggestionPicked({ name: "Salt" });
+      expect(component.addForm.value.amount).toBe("");
+    });
+
+    it("offers names from other lists but not what is already open on this one", () => {
+      expect(component.suggestions().map((suggestion) => suggestion.name)).not.toContain("Milk");
+    });
+  });
 });

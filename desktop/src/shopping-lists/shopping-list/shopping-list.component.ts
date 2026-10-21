@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from "@angular/common/http";
-import { Component, ElementRef, inject, input, signal } from "@angular/core";
-import { FormBuilder, FormGroup } from "@angular/forms";
+import { Component, computed, ElementRef, inject, input, signal } from "@angular/core";
+import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { AppDialog } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { filter, switchMap, take } from "rxjs";
@@ -17,6 +17,8 @@ import {
   DEFAULT_SHOPPING_LIST_UNIT,
   toUpsertShoppingListItemCommand,
 } from "../shopping-list-item-form";
+
+import { buildItemSuggestions, ItemSuggestion } from "../shopping-item-suggestions";
 
 const OFFLINE_MESSAGE = "Couldn't reach the server. Check your connection and try again.";
 
@@ -43,6 +45,15 @@ export class ShoppingListComponent {
 
   public readonly addForm: FormGroup;
 
+  private readonly allLists = this.store.selectSignal(ShoppingListState.lists);
+
+  /** Items the household added before (any list, open or crossed off), offered as the name is typed. */
+  public readonly suggestions = computed(() => buildItemSuggestions(this.allLists(), this.list().id));
+
+  public get nameControl(): FormControl<string | null> {
+    return this.addForm.get("name") as FormControl<string | null>;
+  }
+
   private readonly host = inject(ElementRef<HTMLElement>);
 
   constructor(
@@ -53,6 +64,14 @@ export class ShoppingListComponent {
     private snackbarService: SnackbarService
   ) {
     this.addForm = buildShoppingListItemForm(this.formBuilder);
+  }
+
+  /** A suggestion was picked: its last amount and unit come along, unless the user already typed an amount. */
+  public suggestionPicked(suggestion: ItemSuggestion): void {
+    const amount = this.addForm.get("amount");
+    if (suggestion.amount && !(amount?.value ?? "").toString().trim()) {
+      this.addForm.patchValue({ amount: suggestion.amount, unit: suggestion.unit ?? DEFAULT_SHOPPING_LIST_UNIT });
+    }
   }
 
   public addItem(): void {
