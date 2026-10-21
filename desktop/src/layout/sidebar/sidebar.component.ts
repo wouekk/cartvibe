@@ -37,7 +37,7 @@ import {
 } from "@ng-icons/lucide";
 import { HlmSidebarService } from "@spartan-ng/helm/sidebar";
 import { LanguageSyncService } from "../../i18n/language-sync.service";
-import { APP_LANGUAGES, TranslationService } from "../../i18n/translation.service";
+import { TranslationService } from "../../i18n/translation.service";
 
 /** The nav items name Material icons; the sidebar draws the matching Lucide ones, like spartan's own. */
 const LUCIDE_ICONS: Record<string, string> = {
@@ -117,7 +117,7 @@ export class SidebarComponent {
 
   protected readonly languageSync = inject(LanguageSyncService);
 
-  protected readonly languages = APP_LANGUAGES;
+  protected readonly languages = this.translation.languages;
 
   public loggedInUser = this.store.selectSignal(AuthState.loggedInUser);
 
