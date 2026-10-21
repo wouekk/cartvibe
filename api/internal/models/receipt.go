@@ -37,6 +37,15 @@ type Receipt struct {
 	// PermissionService.LoadFirstVisibleComments). omitempty keeps it off every
 	// other response, where it is never loaded.
 	FirstComment *string `gorm:"-" json:"firstComment,omitempty"`
+	// SearchMatches names the product lines that made the receipt match the list's search phrase,
+	// filled only by the paged receipts list while a search is active.
+	SearchMatches []ReceiptSearchMatch `gorm:"-" json:"searchMatches,omitempty"`
+}
+
+// ReceiptSearchMatch is one product line shown under a receipt to say why a search found it.
+type ReceiptSearchMatch struct {
+	Name   string           `json:"name"`
+	Amount *decimal.Decimal `json:"amount"`
 }
 
 func (r *Receipt) ToString() (string, error) {
