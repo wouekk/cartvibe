@@ -11,7 +11,7 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 ## [0.1.1] - 2026-10-21
 
 ### Changed
-- The Docker image is now `ghcr.io/wouekk/cartvibe` (was `ghcr.io/wouekk/receipt-wrangler`); update the image line in your compose stack
+- The Docker image is now `ghcr.io/wouekk/cartvibe` (was `ghcr.io/wouekk/receipt-wrangler`); update the image line in your compose stack, and rename the NAS data folder to `/volume2/docker/cartvibe` before pointing the stack at it
 
 ## [0.1.0] - 2026-10-21
 
