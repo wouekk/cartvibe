@@ -19,6 +19,7 @@ import {
 } from "../../open-api/index";
 import { SnackbarService } from "../../services/index";
 import { AuthState, UpdateGroup } from "../../store/index";
+import { marker } from "../../i18n/marker";
 
 @Component({
     selector: "app-group-receipt-settings",
@@ -42,14 +43,14 @@ export class GroupReceiptSettingsComponent extends BaseFormComponent implements 
 
   public readonly paidByTypeOptions = [
     { value: QuickScanDefaultPaidByType.Uploader, display: "Uploader" },
-    { value: QuickScanDefaultPaidByType.User, display: "Specific user" },
+    { value: QuickScanDefaultPaidByType.User, display: marker("Specific user") },
   ];
 
   // The empty enum member is deliberately not offered: it exists only so an already-released
   // client tolerates a value added later, and the server normalizes it away on every read.
   public readonly summaryPositionOptions = [
-    { value: ReceiptSummaryPosition.Top, display: "Above the table" },
-    { value: ReceiptSummaryPosition.Bottom, display: "Below the table" },
+    { value: ReceiptSummaryPosition.Top, display: marker("Above the table") },
+    { value: ReceiptSummaryPosition.Bottom, display: marker("Below the table") },
   ];
 
   // Every real status, derived from the generated ReceiptStatus enum so a status added to swagger

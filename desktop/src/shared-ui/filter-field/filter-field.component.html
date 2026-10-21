@@ -5,19 +5,19 @@
         <div class="w-1/2">
           <app-input
             *ngIf="type() === 'text' || type() === 'number'"
-            [label]="'Start ' + label()"
+            [label]="'Start {label}' | t: { label: (label() | t) }"
             [isCurrency]="isCurrency()"
             [inputFormControl]="parentForm() | formGet : basePath() + fieldName() + '.value.0'"
             [additionalErrorMessages]="{
-            'invalidValue': 'Start ' + label() + ' is invalid.'
+            'invalidValue': '{label} is invalid.'
             }"
           ></app-input>
           <app-datepicker
             *ngIf="type() === 'date'"
-            [label]="'Start ' + label()"
+            [label]="'Start {label}' | t: { label: (label() | t) }"
             [inputFormControl]="parentForm() | formGet : basePath() + fieldName() + '.value.0'"
             [additionalErrorMessages]="{
-            'invalidValue': 'Start ' + label() + ' is invalid.'
+            'invalidValue': '{label} is invalid.'
             }"
           >
           </app-datepicker>
@@ -28,13 +28,13 @@
         <div class="w-1/2">
           <app-input
             *ngIf="type() === 'text' || type() === 'number'"
-            [label]="'End ' + label()"
+            [label]="'End {label}' | t: { label: (label() | t) }"
             [isCurrency]="isCurrency()"
             [inputFormControl]="parentForm() | formGet : basePath() + fieldName() + '.value.1'"
           ></app-input>
           <app-datepicker
             *ngIf="type() === 'date'"
-            [label]="'End ' + label()"
+            [label]="'End {label}' | t: { label: (label() | t) }"
             [inputFormControl]="parentForm() | formGet : basePath() + fieldName() + '.value.1'"
           >
           </app-datepicker>
@@ -57,7 +57,7 @@
         <div class="w-1/2">
           <app-datepicker
             *ngIf="type() === 'date'"
-            [label]="'Start ' + label()"
+            [label]="'Start {label}' | t: { label: (label() | t) }"
             [inputFormControl]="startOfMonthFormControl"
           >
           </app-datepicker>
@@ -68,7 +68,7 @@
         <div class="w-1/2">
           <app-datepicker
             *ngIf="type() === 'date'"
-            [label]="'End ' + label()"
+            [label]="'End {label}' | t: { label: (label() | t) }"
             [inputFormControl]="endOfTodayFormControl"
           >
           </app-datepicker>

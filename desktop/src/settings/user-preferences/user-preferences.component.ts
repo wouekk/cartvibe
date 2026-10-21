@@ -1,4 +1,4 @@
-import { Component, computed, OnInit, signal, viewChild } from "@angular/core";
+import { Component, computed, OnInit, signal, viewChild, inject } from "@angular/core";
 import { FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
@@ -12,6 +12,7 @@ import { isCurrencyCode, normalizeCurrencyCode, parseRateInput } from "../../uti
 import { SystemSettingsState } from "../../store/system-settings.state";
 import { AuthState, SetUserPreferences } from "../../store";
 import { UserShortcutComponent } from "../user-shortcut/user-shortcut.component";
+import { TranslationService } from "../../i18n/translation.service";
 
 @Component({
     selector: "app-user-preferences",
@@ -20,6 +21,8 @@ import { UserShortcutComponent } from "../user-shortcut/user-shortcut.component"
     standalone: false
 })
 export class UserPreferencesComponent extends BaseFormComponent implements OnInit {
+  private readonly translation = inject(TranslationService);
+
   public readonly userShortcutComponent = viewChild(UserShortcutComponent);
 
   public formMode = FormMode;
@@ -33,10 +36,10 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
   private readonly currencySymbol = this.store.selectSignal(SystemSettingsState.currencyDisplay);
 
   /** "Monthly spending goal (€)", with the household's own currency symbol. */
-  public readonly goalLabel = computed(() => `Monthly spending goal (${(this.currencySymbol() ?? "").trim() || "€"})`);
+  public readonly goalLabel = computed(() => this.translation.t("Monthly spending goal ({symbol})", { symbol: (this.currencySymbol() ?? "").trim() || "€" }));
 
   /** "1 € = ... in your currency", named with the household symbol and the code typed so far. */
-  public readonly rateLabel = computed(() => `Rate: 1 ${(this.currencySymbol() ?? "").trim() || "€"} in your currency`);
+  public readonly rateLabel = computed(() => this.translation.t("Rate: 1 {symbol} in your currency", { symbol: (this.currencySymbol() ?? "").trim() || "€" }));
 
   constructor(
     private activatedRoute: ActivatedRoute,

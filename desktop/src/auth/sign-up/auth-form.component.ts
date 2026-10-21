@@ -75,8 +75,8 @@ export class AuthForm implements OnInit {
               new FormControl("", Validators.required)
             );
           } else {
-            this.headerText = "Login";
-            this.primaryButtonText = "Login";
+            this.headerText = marker("Login");
+            this.primaryButtonText = marker("Login");
             this.secondaryButtonRouterLink = ["/auth/sign-up"];
             this.secondaryButtonText = marker("Sign Up");
             this.form

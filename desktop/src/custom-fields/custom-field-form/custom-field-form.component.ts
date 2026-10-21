@@ -14,6 +14,7 @@ import {
 } from "../../open-api/index";
 import { SnackbarService } from "../../services/index";
 import { trimmedRequiredValidator } from "../../validators/index";
+import { marker } from "../../i18n/marker";
 
 // Built once and shared by every option control: an option's value is its only
 // label, and an update matches options by id to rename them in place, so a blank
@@ -85,7 +86,7 @@ export class CustomFieldFormComponent implements OnInit {
         : this.customFieldService.createCustomField(command);
 
     const successMessage =
-      this.mode === FormMode.edit ? "Custom field updated" : "Custom field created";
+      this.mode === FormMode.edit ? marker("Custom field updated") : marker("Custom field created");
 
     request$
       .pipe(

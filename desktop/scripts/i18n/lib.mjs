@@ -9,8 +9,15 @@ export const I18N_DIR = join(DESKTOP, "src", "assets", "i18n");
 export const CATALOGUE = join(I18N_DIR, "en.json");
 export const REGISTRY = join(I18N_DIR, "languages.json");
 
-/** Keys that cannot be found by reading the code: month names (used by `months()` on period labels). */
-export const EXTRA_KEYS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December", "Jan", "Feb", "Mar", "Apr", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+/**
+ * Keys that cannot be found by reading the code: month names (used by `months()` on period labels), the names of the
+ * categories the app creates, the words behind enum values, and the texts the API stores (notifications, starter reports).
+ * They live in extra-keys.json, grouped with a note on where each is shown.
+ */
+function readExtraKeys() {
+  const groups = JSON.parse(readFileSync(join(DESKTOP, "scripts", "i18n", "extra-keys.json"), "utf8"));
+  return Object.entries(groups).flatMap(([name, keys]) => (name.startsWith("_") ? [] : keys));
+}
 
 const SKIP_DIRS = new Set(["node_modules", "open-api", "assets", "dist", "e2e", "scripts"]);
 
@@ -106,7 +113,7 @@ function literalsOfExpression(expression) {
   while ((match = regex.exec(text))) {
     const before = text.slice(0, match.index).trimEnd();
     const after = text.slice(match.index + match[0].length).trimStart();
-    const startsHere = before === "" || before.endsWith("?") || before.endsWith(":") || before.endsWith("(");
+    const startsHere = before === "" || /(\?|:|\(|\?\?|\|\|)$/.test(before);
     const endsHere = after === "" || after.startsWith(":") || after.startsWith(")");
     if (startsHere && endsHere) found.push(unquote(match[0]));
   }
@@ -118,16 +125,23 @@ function literalsOfExpression(expression) {
 
 /** Inputs of shared components that translate their text internally, and the tags they are read on. */
 const TEXT_INPUTS = {
-  common: ["label", "headerText", "buttonText", "subtitle", "hint", "placeholder", "tooltip", "ariaLabel", "dialogContent"],
+  common: ["label", "headerText", "buttonText", "subtitle", "hint", "placeholder", "tooltip", "ariaLabel", "dialogContent", "submitButtonTooltip", "submitButtonText", "cancelButtonText"],
   "app-settings-page": ["title", "description"],
   "app-settings-section": ["title", "description"],
   "app-badge": ["text"],
 };
 
+/** A placeholder that is an example address or number ("http://192.168.1.20:1234/v1") is not interface text. */
+function isTranslatable(name, value) {
+  if (!/[A-Za-z]{2}/.test(value)) return false;
+  return !(name === "placeholder" && /^(https?:\/\/|[\w.+-]+@[\w.-]+)/.test(value.trim()));
+}
+
 const TAG = /<([a-zA-Z][\w-]*)\b((?:"[^"]*"|'[^']*'|[^'">])*)>/g;
 const ATTRIBUTE = /([\[(*#]?[\w.:-]+[\])]?)(?:\s*=\s*("[^"]*"|'[^']*'))?/g;
 
-function templateMessages(text, add, addPlural) {
+function templateMessages(source, add, addPlural) {
+  const text = decodeEntities(source);
   const pipe = /(?<!\|)\|\s*t(?![\w-])/g;
   let match;
   while ((match = pipe.exec(text))) {
@@ -151,6 +165,7 @@ function templateMessages(text, add, addPlural) {
       const value = rawValue.slice(1, -1);
       const at = match.index;
       if (allowed.has(name) && !value.includes("{{") && value.trim()) {
+        if (!isTranslatable(name, value)) continue;
         add(decodeEntities(value), at);
       } else if (name.startsWith("[") && allowed.has(name.slice(1, -1))) {
         for (const literal of literalsOfExpression(decodeEntities(value))) add(literal, at);
@@ -205,7 +220,8 @@ function goMessages(text, add) {
     let match;
     while ((match = regex.exec(text))) {
       try {
-        add(JSON.parse(match[1]), match.index);
+        const message = JSON.parse(match[1]);
+        if (!/^[a-z][A-Za-z]*\s+(is|must)\b/.test(message)) add(message, match.index);
       } catch {
         // a Go escape JSON does not know: not a message a person reads
       }
@@ -257,8 +273,8 @@ export function extract() {
     });
   }
 
-  for (const key of EXTRA_KEYS) {
-    if (!messages.has(key)) messages.set(key, "scripts/i18n/lib.mjs (EXTRA_KEYS)");
+  for (const key of readExtraKeys()) {
+    if (!messages.has(key)) messages.set(key, "scripts/i18n/extra-keys.json");
   }
 
   return { messages, plurals, problems };

@@ -20,6 +20,7 @@ import {
   iconForResource,
   resourceKeyOf,
 } from "../role-presets";
+import { marker } from "../../i18n/marker";
 
 export interface RolePreviewDialogData {
   role: Role;
@@ -73,7 +74,7 @@ export class RolePreviewDialogComponent {
   );
 
   public readonly scopeLabel = computed<string>(() =>
-    this.isGroup() ? "Group role" : "Application role",
+    this.isGroup() ? marker("Group role") : marker("Application role"),
   );
 
   public readonly scopeIcon = computed<string>(() =>

@@ -7,8 +7,8 @@ import { marker } from "../i18n/marker";
  * system and every other role stay underneath, just not offered.
  */
 const ADMIN_ROLE_NAME: Record<string, string> = {
-  [PermissionScope.App]: "Legacy Admin",
-  [PermissionScope.Group]: "Legacy Owner",
+  [PermissionScope.App]: marker("Legacy Admin"),
+  [PermissionScope.Group]: marker("Legacy Owner"),
 };
 
 const USER_ROLE_NAME: Record<string, string> = {

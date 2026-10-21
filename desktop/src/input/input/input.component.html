@@ -9,7 +9,7 @@
       [id]="fieldId()"
       [type]="type"
       [readonly]="readonly"
-      [placeholder]="placeholder ?? ''"
+      [placeholder]="(placeholder ?? '') | t"
       [class.pr-24]="showVisibilityEye && showGeneratePassword"
       [class.pr-12]="showVisibilityEye !== showGeneratePassword"
       [formControl]="inputFormControl"
@@ -32,7 +32,7 @@
             type="button"
             data-testid="password-generate"
             [attr.aria-label]="'Generate password' | t"
-            hlmTooltip="Generate password"
+            [hlmTooltip]="'Generate password' | t"
             [disabled]="inputFormControl.disabled || readonly"
             (click)="generatePassword()"
           >
@@ -47,7 +47,7 @@
             class="visibility-eye-button size-8"
             type="button"
             data-testid="password-visibility-toggle"
-            [hlmTooltip]="type === 'password' ? 'Show ' + label : 'Hide ' + label"
+            [hlmTooltip]="(type === 'password' ? 'Show {label}' : 'Hide {label}') | t: { label: label | t }"
             (click)="toggleVisibility()"
           >
             <app-icon [name]="type === 'password' ? 'visibility' : 'visibility_off'"></app-icon>

@@ -48,7 +48,7 @@
         [class]="result.ok ? 'bg-success-text/15 text-success-text' : 'bg-destructive/15 text-destructive'"
       >
         <app-icon [name]="result.ok ? 'check_circle' : 'error'"></app-icon>
-        {{ result.message }}
+        {{ result.message | t: result.params }}
       </p>
     }
     <div sectionFooter class="rw-card__footer">

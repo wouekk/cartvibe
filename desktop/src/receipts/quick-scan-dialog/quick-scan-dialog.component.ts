@@ -14,6 +14,7 @@ import { codePointMaxLengthValidator, trimmedRequiredValidator } from "../../val
 import { UploadImageComponent } from "../upload-image/upload-image.component";
 import { QuickScanFieldConfig, resolveQuickScanFieldConfig } from "./quick-scan-field-config";
 import { receiptRequirementsFor } from "../../utils/receipt-requirements";
+import { marker } from "../../i18n/marker";
 
 // Mirrors the backend's models.MaxCommentLength (the Comment column is varchar(500), which
 // MySQL/Postgres measure in characters) and mobile's FormBuilderTextField maxLength, so an
@@ -319,8 +320,9 @@ export class QuickScanDialogComponent implements OnInit {
         .pipe(
           take(1),
           tap(() => {
-            const imageWord = this.images.length === 1 ? "image" : "images";
-            this.snackbarService.success(`Successfully queued ${imageWord} for processing`);
+            this.snackbarService.success(
+              this.images.length === 1 ? marker("Successfully queued image for processing") : marker("Successfully queued images for processing")
+            );
             this.dialogRef.close();
           }),
           // A refused or failed upload (the interceptor already reports it) leaves the dialog open and the bar away.

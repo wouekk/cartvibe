@@ -57,7 +57,7 @@
       (searchChange)="onSearch($event)"
       (valueChange)="onValue($event)"
     >
-      <hlm-autocomplete-input class="w-full" [inputId]="inputId" [showSearch]="false" [placeholder]="placeholder ?? ''" />
+      <hlm-autocomplete-input class="w-full" [inputId]="inputId" [showSearch]="false" [placeholder]="(placeholder ?? '') | t" />
       <hlm-autocomplete-content *hlmAutocompletePortal>
         <hlm-autocomplete-empty>{{ 'No matches' | t }}</hlm-autocomplete-empty>
         <div hlmAutocompleteList class="max-h-60 overflow-y-auto p-1">

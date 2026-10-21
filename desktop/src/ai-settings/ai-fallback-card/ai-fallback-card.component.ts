@@ -21,6 +21,7 @@ import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { SnackbarService } from "../../services";
 import { GeminiModelFieldComponent } from "../gemini-model-field/gemini-model-field.component";
 import { ConnectionResult, DEFAULT_GEMINI_MODEL, describeConnection } from "../ai-settings-shared";
+import { marker } from "../../i18n/marker";
 
 /** What the backup AI settings are called; a processing setting's name must be unique. */
 export const AI_FALLBACK_SETTINGS_NAME = "Household AI backup";
@@ -70,7 +71,7 @@ export class AiFallbackCardComponent implements OnInit {
 
   public readonly canSave = computed(() => this.primaryId() !== undefined && !this.saving());
 
-  public readonly keyHint = computed(() => (this.saved() ? "A key is saved. Leave this empty to keep it." : undefined));
+  public readonly keyHint = computed(() => (this.saved() ? marker("A key is saved. Leave this empty to keep it.") : undefined));
 
   public ngOnInit(): void {
     this.systemSettingsService

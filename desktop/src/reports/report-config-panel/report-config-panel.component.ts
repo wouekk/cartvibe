@@ -52,6 +52,7 @@ import {
   ColumnPickerDialogData,
 } from "../dialogs/column-picker-dialog/column-picker-dialog.component";
 import { marker } from "../../i18n/marker";
+import { TranslationService } from "../../i18n/translation.service";
 
 interface ScopeChip {
   index: number;
@@ -117,6 +118,8 @@ const KIND_META: Record<
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ReportConfigPanelComponent implements OnInit {
+  private readonly translation = inject(TranslationService);
+
   public readonly form = input.required<FormGroup>();
 
   private readonly catalog = inject(ReportCatalogService);
@@ -213,9 +216,10 @@ export class ReportConfigPanelComponent implements OnInit {
         isLast: index === controls.length - 1,
         disabled,
         disabledReason: disabled
-          ? `"${value.label}" is hidden — you're summarizing by ${this.labelForField(detailBy)}, so a ` +
-            `column can only show ${this.labelForField(detailBy)} or something you're grouping by. ` +
-            `To show ${value.label}, group by it or summarize by it.`
+          ? this.translation.t(
+              "\"{label}\" is hidden — you're summarizing by {field}, so a column can only show {field} or something you're grouping by. To show {label}, group by it or summarize by it.",
+              { label: value.label, field: this.labelForField(detailBy) }
+            )
           : "",
       };
     });

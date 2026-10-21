@@ -47,7 +47,7 @@ export class BaseInputComponent implements OnInit, BaseInputInterface {
           return keys.map((k: string) => {
             const value = errors[k];
             // A custom validator may return its own text as the error value; it is the key.
-            const key = typeof value === "string" ? value : (this.errorMessages[k] ?? "");
+            const key = typeof value === "string" ? value : typeof value?.message === "string" ? value.message : (this.errorMessages[k] ?? "");
             const params = validationParams(value);
 
             return {

@@ -1,6 +1,7 @@
 import { ReportDetail, ReportRequestCommand } from "../../open-api";
 import { REPORT_BUILTIN_DIMENSIONS, REPORT_FORMATS } from "./report-catalog.constants";
 import { marker } from "../../i18n/marker";
+import { englishTranslate, TranslateFn } from "../../i18n/translate-fn";
 
 // Field-key -> label for the built-in dimensions the list renders. Custom-field
 // keys (custom_<id>) are only resolvable against the loaded custom-field pool, so
@@ -53,12 +54,13 @@ export function groupingSummary(
 /** Whether the report aggregates (and by what) or lists individual receipts. */
 export function detailSummary(
   configuration: ReportRequestCommand,
-  resolve?: FieldLabelResolver
+  resolve?: FieldLabelResolver,
+  translate: TranslateFn = englishTranslate
 ): string {
   if (configuration.detail?.mode === ReportDetail.ModeEnum.Aggregate) {
-    return `Aggregate by ${fieldLabel(configuration.detail.by, resolve)}`;
+    return translate(marker("Aggregate by {name}"), { name: fieldLabel(configuration.detail.by, resolve) });
   }
-  return "Record-level";
+  return marker("Record-level");
 }
 
 /** The output formats as uppercase chips, in the fixed csv/xlsx/pdf render order. */

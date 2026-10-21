@@ -25,11 +25,11 @@ const REFRESH_INTERVAL_MS = 30_000;
 const MAX_REFRESHES = 20;
 
 const STATUS_TEXT: { [status: string]: string } = {
-  NOT_QUEUED: "Products are read from the receipt's image. This receipt has none yet.",
-  PENDING: "Waiting to be read by the AI. This usually takes a few minutes.",
-  RUNNING: "The AI is reading this receipt now.",
-  UNAVAILABLE: "The AI could not be reached. It will try again automatically.",
-  FAILED: "The AI could not read the products on this receipt.",
+  NOT_QUEUED: marker("Products are read from the receipt's image. This receipt has none yet."),
+  PENDING: marker("Waiting to be read by the AI. This usually takes a few minutes."),
+  RUNNING: marker("The AI is reading this receipt now."),
+  UNAVAILABLE: marker("The AI could not be reached. It will try again automatically."),
+  FAILED: marker("The AI could not read the products on this receipt."),
 };
 
 /**

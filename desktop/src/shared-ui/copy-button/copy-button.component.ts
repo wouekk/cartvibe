@@ -1,4 +1,5 @@
 import { Component, DestroyRef, inject, input, OnDestroy, output, signal } from "@angular/core";
+import { marker } from "../../i18n/marker";
 
 /**
  * Generic copy-to-clipboard icon button.
@@ -23,7 +24,7 @@ export class CopyButtonComponent implements OnDestroy {
 
   public readonly tooltip = input<string>("Copy");
 
-  public readonly successTooltip = input<string>("Copied!");
+  public readonly successTooltip = input<string>(marker("Copied!"));
 
   public readonly icon = input<string>("content_copy");
 
