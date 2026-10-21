@@ -88,6 +88,6 @@
   background: transparent;
   font: inherit;
   font-weight: 600;
-  color: map.get(variables.$accent-palette, 600);
+  color: var(--foreground);
   cursor: pointer;
 }

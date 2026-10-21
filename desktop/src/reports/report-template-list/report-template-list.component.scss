@@ -1,8 +1,8 @@
 @use "sass:map";
 @use "../../variables.scss" as variables;
 
-$fg-muted: map.get(variables.$accent-palette, 500);
-$fg-strong: map.get(variables.$accent-palette, 900);
+$fg-muted: var(--muted-foreground);
+$fg-strong: var(--foreground);
 $border: rgba(0, 0, 0, 0.06);
 
 .report-templates-page {
@@ -27,8 +27,8 @@ $border: rgba(0, 0, 0, 0.06);
     width: 56px;
     height: 56px;
     border-radius: variables.$border-radius-xl;
-    background: map.get(variables.$primary-palette, 50);
-    color: map.get(variables.$primary-palette, 600);
+    background: var(--accent);
+    color: var(--foreground);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -82,8 +82,8 @@ $border: rgba(0, 0, 0, 0.06);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.03em;
-  background: map.get(variables.$primary-palette, 50);
-  color: map.get(variables.$primary-palette, 800);
+  background: var(--accent);
+  color: var(--foreground);
 }
 
 .row-actions {

@@ -1,16 +1,10 @@
-<nav [class]="listClass" role="tablist">
-  @for (tab of tabs(); track tab.name) {
-    <a
-      role="tab"
-      [class]="triggerClass(tab.name === activeName())"
-      [attr.aria-selected]="tab.name === activeName()"
-      [routerLink]="[tab.routerLink]"
-      [queryParams]="{ tab: tab.name }"
-    >
-      {{ tab.label }}
-    </a>
-  }
-</nav>
+<hlm-tabs [tab]="activeName()" (tabActivated)="activate($event)">
+  <hlm-tabs-list class="max-w-full overflow-x-auto" aria-label="Sections">
+    @for (tab of tabs(); track tab.name) {
+      <button [hlmTabsTrigger]="tab.name">{{ tab.label }}</button>
+    }
+  </hlm-tabs-list>
+</hlm-tabs>
 <div class="mt-4">
   <router-outlet></router-outlet>
 </div>

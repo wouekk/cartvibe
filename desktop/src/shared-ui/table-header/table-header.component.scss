@@ -11,7 +11,7 @@
 }
 
 .table-header__subtitle {
-  color: map.get(variables.$accent-palette, 500);
+  color: var(--muted-foreground);
   font-size: 14px;
   margin: variables.$spacing-xs 0 0;
   max-width: 640px;

@@ -9,7 +9,7 @@
   display: flex;
   align-items: center;
   min-height: 56px;
-  border-bottom: 1px solid map.get(variables.$accent-palette, 100);
+  border-bottom: 1px solid var(--border);
 }
 
 .toggle {
@@ -33,14 +33,14 @@
   }
 
   &:focus-visible {
-    outline: 2px solid map.get(variables.$primary-palette, 500);
+    outline: 2px solid var(--ring);
     outline-offset: -2px;
   }
 }
 
 .check-icon {
   flex: 0 0 auto;
-  color: map.get(variables.$primary-palette, 500);
+  color: var(--foreground);
 }
 
 .text {
@@ -62,11 +62,11 @@
   margin-left: auto;
   padding: 4px 10px;
   border-radius: variables.$border-radius-md;
-  background: map.get(variables.$accent-palette, 100);
+  background: var(--muted);
   font-size: 14px;
   font-weight: 700;
   white-space: nowrap;
-  color: map.get(variables.$accent-palette, 700);
+  color: var(--foreground);
 }
 
 .note {

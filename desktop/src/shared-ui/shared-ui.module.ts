@@ -1,3 +1,4 @@
+import { HlmTabsImports } from "@spartan-ng/helm/tabs";
 import { DragDropModule } from "@angular/cdk/drag-drop";
 import { CommonModule, CurrencyPipe } from "@angular/common";
 import { NgModule } from "@angular/core";
@@ -120,6 +121,7 @@ import { ImageCanvasComponent } from './image-canvas/image-canvas.component';
     IconAutocompleteComponent,
   ],
   imports: [
+    ...HlmTabsImports,
     AutocompleteModule,
     ButtonModule,
     CommonModule,

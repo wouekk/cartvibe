@@ -1,8 +1,8 @@
 @use "sass:map";
 
-$basic-gray: #64748b;
+$basic-gray: var(--muted-foreground);
 
-$mat-drawer-background-color: #fafafa;
+$mat-drawer-background-color: var(--background);
 
 $primary-palette: (
   50: #ccecff,

@@ -6,5 +6,5 @@
 }
 
 .error-icon {
-  color: map.get(variables.$warn-palette, 500);
+  color: var(--destructive);
 }

@@ -329,7 +329,7 @@
                     <div
                       class="bars__base min-h-0 transition-colors"
                       [class.bars__base--selected]="bar.isSelected"
-                      [class]="bar.isSelected ? 'bg-chart-2' : 'bg-muted-foreground/25'"
+                      [class]="bar.isSelected ? 'bg-primary' : 'bg-muted-foreground/25'"
                       [style.flex-grow]="bar.baseAmount"
                     ></div>
                   </div>
@@ -337,7 +337,7 @@
                   <div
                     class="bars__bar w-full max-h-[calc(100%-26px)] rounded-t-md transition-[height,background-color] duration-700 ease-out starting:h-0 group-hover/bar:bg-muted-foreground/40"
                     [class.bars__bar--selected]="bar.isSelected"
-                    [class]="(denseChart() ? 'max-w-7 ' : 'max-w-11 ') + (bar.isSelected ? 'bg-chart-2' : 'bg-muted-foreground/25')"
+                    [class]="(denseChart() ? 'max-w-7 ' : 'max-w-11 ') + (bar.isSelected ? 'bg-primary' : 'bg-muted-foreground/25')"
                     [style.height.%]="bar.heightPercent"
                   ></div>
                 }
