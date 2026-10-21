@@ -6,7 +6,7 @@
 Angular Material and Bootstrap everywhere (`docs/material-removal.md`, `desktop/CLAUDE.md` -> "UI stack"); two themes, White and
 Black, on tokens (`docs/themes.md`). Jest (2002 tests) and `ng build` are green locally and CI was green on the last pushes. Still
 to look at on the NAS: every page in both themes, phone widths (not prioritised), dialogs and the autocomplete pickers. Merge to
-`main` only on the user's go; then tag a release (this is a large UI change, `v0.2.0`). Done since: per-user Dashboard currency, phone-width pass, multi-stage Docker image (green as `:preview`, untested on the NAS), ci.yml tidy, npm audit 0. Open: Polish translation,
+`main` only on the user's go; then tag a release (this is a large UI change, `v0.2.0`). Done since: per-user Dashboard currency, phone-width pass, multi-stage Docker image (green as `:preview`, untested on the NAS), ci.yml tidy, npm audit 0. Polish translation is in (registry, see `desktop/CLAUDE.md` -> Translations; TS-built page titles and dates are still English). Component SCSS is mostly converted (left on purpose: image canvas, carousel, diff table, report config panel and column picker, column configuration, receipt form, badge). `:preview` was republished from `b7f8464f`. Open:
 stale Playwright specs (no e2e users locally: the seed script needs Python or jq), remaining component SCSS, remote branch deletion (`scripts/delete-merged-branches.sh`, run by the user).
 
 
