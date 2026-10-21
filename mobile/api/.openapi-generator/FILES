@@ -115,6 +115,7 @@ doc/ReceiptProduct.md
 doc/ReceiptProductApi.md
 doc/ReceiptProductsView.md
 doc/ReceiptRequirements.md
+doc/ReceiptSearchMatch.md
 doc/ReceiptStatus.md
 doc/ReceiptSummary.md
 doc/ReceiptSummaryCommand.md
@@ -334,6 +335,7 @@ lib/src/model/receipt_processing_settings.dart
 lib/src/model/receipt_product.dart
 lib/src/model/receipt_products_view.dart
 lib/src/model/receipt_requirements.dart
+lib/src/model/receipt_search_match.dart
 lib/src/model/receipt_status.dart
 lib/src/model/receipt_summary.dart
 lib/src/model/receipt_summary_command.dart
@@ -409,5 +411,4 @@ lib/src/model/widget.dart
 lib/src/model/widget_type.dart
 lib/src/serializers.dart
 pubspec.yaml
-test/gemini_model_test.dart
-test/gemini_models_command_test.dart
+test/receipt_search_match_test.dart

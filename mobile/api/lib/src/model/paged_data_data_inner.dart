@@ -27,6 +27,7 @@ import 'package:openapi/src/model/ocr_engine.dart';
 import 'package:openapi/src/model/system_task.dart';
 import 'package:openapi/src/model/ai_type.dart';
 import 'package:openapi/src/model/custom_field_option.dart';
+import 'package:openapi/src/model/receipt_search_match.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:openapi/src/model/category.dart';
 import 'package:openapi/src/model/report_template.dart';
@@ -48,6 +49,7 @@ part 'paged_data_data_inner.g.dart';
 /// * [createdBy] 
 /// * [date] - Receipt date
 /// * [firstComment] - Text of the receipt's earliest comment the caller may see. Only populated by the paged receipt list (POST /receipt/group/{groupId}); absent when there is no such comment.
+/// * [searchMatches] - The product lines that made the receipt match the list's search phrase. Only populated by the paged receipt list while a search is active; absent otherwise.
 /// * [groupId] 
 /// * [id] 
 /// * [imageFiles] - Files associated to receipt

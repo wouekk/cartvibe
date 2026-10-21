@@ -50,5 +50,9 @@ export interface ReceiptPagedRequestFilter {
      * Contains two keys: operation of type FilterOperation and value which can a different type depending on the field.
      */
     createdAt?: object;
+    /**
+     * Free-text, typo-tolerant phrase matched against a receipt\'s name, shop, comments and product lines. Every word of the phrase must match.
+     */
+    search?: string;
 }
 

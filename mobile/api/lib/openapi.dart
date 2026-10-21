@@ -136,6 +136,7 @@ export 'package:openapi/src/model/receipt_processing_settings.dart';
 export 'package:openapi/src/model/receipt_product.dart';
 export 'package:openapi/src/model/receipt_products_view.dart';
 export 'package:openapi/src/model/receipt_requirements.dart';
+export 'package:openapi/src/model/receipt_search_match.dart';
 export 'package:openapi/src/model/receipt_status.dart';
 export 'package:openapi/src/model/receipt_summary.dart';
 export 'package:openapi/src/model/receipt_summary_command.dart';

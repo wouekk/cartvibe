@@ -107,6 +107,7 @@ import 'package:openapi/src/model/receipt_processing_settings.dart';
 import 'package:openapi/src/model/receipt_product.dart';
 import 'package:openapi/src/model/receipt_products_view.dart';
 import 'package:openapi/src/model/receipt_requirements.dart';
+import 'package:openapi/src/model/receipt_search_match.dart';
 import 'package:openapi/src/model/receipt_status.dart';
 import 'package:openapi/src/model/receipt_summary.dart';
 import 'package:openapi/src/model/receipt_summary_command.dart';
@@ -277,6 +278,7 @@ part 'serializers.g.dart';
   ReceiptProduct,
   ReceiptProductsView,
   ReceiptRequirements,
+  ReceiptSearchMatch,
   ReceiptStatus,
   ReceiptSummary,
   ReceiptSummaryCommand,

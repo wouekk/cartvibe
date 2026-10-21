@@ -22,6 +22,7 @@ part 'receipt_paged_request_filter.g.dart';
 /// * [group] - Contains two keys: operation of type FilterOperation and value which can a different type depending on the field.
 /// * [resolvedDate] - Contains two keys: operation of type FilterOperation and value which can a different type depending on the field.
 /// * [createdAt] - Contains two keys: operation of type FilterOperation and value which can a different type depending on the field.
+/// * [search] - Free-text, typo-tolerant phrase matched against a receipt's name, shop, comments and product lines. Every word of the phrase must match.
 @BuiltValue()
 abstract class ReceiptPagedRequestFilter implements Built<ReceiptPagedRequestFilter, ReceiptPagedRequestFilterBuilder> {
   /// Contains two keys: operation of type FilterOperation and value which can a different type depending on the field.
@@ -63,6 +64,10 @@ abstract class ReceiptPagedRequestFilter implements Built<ReceiptPagedRequestFil
   /// Contains two keys: operation of type FilterOperation and value which can a different type depending on the field.
   @BuiltValueField(wireName: r'createdAt')
   JsonObject? get createdAt;
+
+  /// Free-text, typo-tolerant phrase matched against a receipt's name, shop, comments and product lines. Every word of the phrase must match.
+  @BuiltValueField(wireName: r'search')
+  String? get search;
 
   ReceiptPagedRequestFilter._();
 
@@ -157,6 +162,13 @@ class _$ReceiptPagedRequestFilterSerializer implements PrimitiveSerializer<Recei
         specifiedType: const FullType(JsonObject),
       );
     }
+    if (object.search != null) {
+      yield r'search';
+      yield serializers.serialize(
+        object.search,
+        specifiedType: const FullType(String),
+      );
+    }
   }
 
   @override
@@ -249,6 +261,13 @@ class _$ReceiptPagedRequestFilterSerializer implements PrimitiveSerializer<Recei
             specifiedType: const FullType(JsonObject),
           ) as JsonObject;
           result.createdAt = valueDes;
+          break;
+        case r'search':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.search = valueDes;
           break;
         default:
           unhandled.add(key);

@@ -100,6 +100,7 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(ReceiptProduct.serializer)
       ..add(ReceiptProductsView.serializer)
       ..add(ReceiptRequirements.serializer)
+      ..add(ReceiptSearchMatch.serializer)
       ..add(ReceiptStatus.serializer)
       ..add(ReceiptSummary.serializer)
       ..add(ReceiptSummaryCommand.serializer)
@@ -187,6 +188,9 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(CustomFieldValue)]),
           () => ListBuilder<CustomFieldValue>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(ReceiptSearchMatch)]),
+          () => ListBuilder<ReceiptSearchMatch>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(FileData)]),
           () => ListBuilder<FileData>())

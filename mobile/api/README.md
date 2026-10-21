@@ -333,6 +333,7 @@ Class | Method | HTTP request | Description
  - [ReceiptProduct](doc/ReceiptProduct.md)
  - [ReceiptProductsView](doc/ReceiptProductsView.md)
  - [ReceiptRequirements](doc/ReceiptRequirements.md)
+ - [ReceiptSearchMatch](doc/ReceiptSearchMatch.md)
  - [ReceiptStatus](doc/ReceiptStatus.md)
  - [ReceiptSummary](doc/ReceiptSummary.md)
  - [ReceiptSummaryCommand](doc/ReceiptSummaryCommand.md)
