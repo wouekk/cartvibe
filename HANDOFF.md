@@ -40,14 +40,14 @@ because Pages was off.
 3. Tidy `ci.yml`: its upstream-only steps (Codecov, Docker Hub, gated to the original repo) are dead.
 4. Stale Playwright specs: only when e2e can run (they need a live API; none ran here).
 5. Cut releases with SemVer tags `vX.Y.Z` on `main` after green CI and a `CHANGELOG.md` entry; a preview for the user
-   goes out with `gh workflow run publish-image.yml --repo wouekk/receipt-wrangler --ref <branch>` (publishes `:preview`).
+   goes out with `gh workflow run publish-image.yml --repo wouekk/cartvibe --ref <branch>` (publishes `:preview`).
 
 ### User
 - Redeploy `:latest`, enable Pages, answer the language question.
 - If not done yet: Manage → AI (Gemini or LM Studio, Save, Test connection); an account for the wife with the role User.
 
 ### Cline
-- Triage the latest failing CI run, if any: `gh run list --repo wouekk/receipt-wrangler --limit 5`, then
+- Triage the latest failing CI run, if any: `gh run list --repo wouekk/cartvibe --limit 5`, then
   `gh run view <id> --log-failed`; record findings below.
 - Safe polish targets: SCSS in `desktop/src/shopping-lists/`, `desktop/src/overview/`, `desktop/src/receipts/receipt-products/`,
   `desktop/src/standalone/components/food-tags/`, `desktop/src/layout/sidebar/`, `desktop/src/theme/`. Dark mode is a
@@ -57,7 +57,7 @@ because Pages was off.
 - Go is not on the bash PATH here (`export PATH="$PATH:/c/Program Files/Go/bin"`); `api/scripts/go-without-cgo.sh vet ./...`
   and `... test <pkg>` work locally, but the services package's PDF/Chromium/image tests and some wranglerasynq temp-path
   tests fail here only (CI is the judge). No Node, Docker, ImageMagick, Tesseract or Python on this PC.
-- `gh` needs `--repo wouekk/receipt-wrangler` (it defaults to upstream). `git` LF/CRLF warnings are harmless.
+- `gh` needs `--repo wouekk/cartvibe` (it defaults to upstream). `git` LF/CRLF warnings are harmless.
 - Never name anything "Apple" (themes, branches); the user cannot risk a trademark complaint.
 
 ## Diagnostics from Cline
@@ -85,3 +85,9 @@ be done by GitHub Actions or on the Mac.
 - Done: `.idea/` untracked, upstream-only workflows (`e2e`, `mobile-e2e`, `release`) and `tag-version.sh` removed, `LICENSE`,
   `NOTICE.md`, `CHANGELOG.md`, `site/` (project page, `pages.yml`) added, README rewritten with credit to Noah Hall.
 - Done: `scripts/remove-upstream-refs.sh` was run by the user; the upstream branches and tags are gone from `origin`.
+
+## Repo rename (2026-10-21)
+The GitHub repository is now **`wouekk/cartvibe`** (was `wouekk/receipt-wrangler`; GitHub redirects the old name). The Docker
+image keeps its name, `ghcr.io/wouekk/receipt-wrangler`, so the NAS stack is unaffected. Renaming the image to `cartvibe`
+is a separate change (workflow, `docker-compose.yml`, the Dockhand stack). The project page is
+`https://wouekk.github.io/cartvibe/`. Use `--repo wouekk/cartvibe` with `gh`.
