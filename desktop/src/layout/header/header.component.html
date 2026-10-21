@@ -4,15 +4,7 @@
     class="header-container flex justify-between items-center"
   >
     <div class="flex-1 min-w-0 flex items-center">
-      <button
-        mat-icon-button
-        color="accent"
-        class="nav-button"
-        matTooltip="Toggle sidebar"
-        (click)="toggleSidebar()"
-      >
-        <mat-icon>menu</mat-icon>
-      </button>
+      <button hlmSidebarTrigger class="mr-1" data-testid="sidebar-toggle"></button>
       @for (shortcut of userPreferences()?.userShortcuts ?? []; track shortcut["id"]) {
         <a [href]="shortcut.url">
           <button

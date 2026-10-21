@@ -1,11 +1,9 @@
-import { Component, computed, effect, linkedSignal, ViewEncapsulation } from "@angular/core";
+import { Component, computed, effect, inject, linkedSignal, ViewEncapsulation } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { MatDialog } from "@angular/material/dialog";
 import { Data, NavigationEnd, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { filter, map, startWith, switchMap, take } from "rxjs";
-import { LayoutState } from "src/store/layout.state";
-import { CloseSidebar } from "src/store/layout.state.actions";
 import { SetPage } from "src/store/receipt-table.actions";
 import { ShoppingListState } from "src/store/shopping-list.state";
 import { AboutComponent } from "../../about/about/about.component";
@@ -15,6 +13,7 @@ import { SnackbarService } from "../../services";
 import { ViewportService } from "../../services/viewport.service";
 import { AuthState, GroupState, Logout, SetSelectedGroupId } from "../../store";
 import { hasAll } from "../../utils/permission.utils";
+import { HlmSidebarService } from "@spartan-ng/helm/sidebar";
 
 /**
  * The app's navigation: everyday pages (shopping lists, receipts, dashboard, reports) up top, the
@@ -38,32 +37,20 @@ export class SidebarComponent {
     private store: Store,
     private viewportService: ViewportService,
   ) {
-    // A phone's sidebar covers the page, so it must not stay open behind the page it opened, nor
-    // come back open from a persisted session.
+    // A phone's sidebar is a sheet over the page, so it must not stay open behind the page it opened.
     effect(() => {
       this.currentUrl();
-      if (this.isHandset()) {
-        this.store.dispatch(new CloseSidebar());
-      }
+      this.sidebar.setOpenMobile(false);
     });
   }
+
+  private readonly sidebar = inject(HlmSidebarService);
 
   public loggedInUser = this.store.selectSignal(AuthState.loggedInUser);
 
   public isLoggedIn = this.store.selectSignal(AuthState.isLoggedIn);
 
   public readonly isHandset = this.viewportService.isHandset;
-
-  private readonly isMobileSidebarOpen = this.store.selectSignal(LayoutState.isSidebarOpen);
-
-  private readonly isSidebarCollapsedSetting = this.store.selectSignal(LayoutState.isSidebarCollapsed);
-
-  /** A phone always shows the full, labeled sidebar when it is open. */
-  public readonly isCollapsed = computed(() => !this.isHandset() && this.isSidebarCollapsedSetting());
-
-  public readonly drawerMode = computed(() => (this.isHandset() ? "over" : "side"));
-
-  public readonly isDrawerOpen = computed(() => !this.isHandset() || this.isMobileSidebarOpen());
 
   private readonly currentUrl = toSignal(
     this.router.events.pipe(
@@ -247,9 +234,7 @@ export class SidebarComponent {
   }
 
   public closeMobileSidebar(): void {
-    if (this.isHandset()) {
-      this.store.dispatch(new CloseSidebar());
-    }
+    this.sidebar.setOpenMobile(false);
   }
 
   public logout(): void {

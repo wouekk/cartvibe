@@ -4,7 +4,6 @@ import { Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
 import { LayoutState } from "src/store/layout.state";
-import { ToggleIsSidebarCollapsed, ToggleIsSidebarOpen } from "src/store/layout.state.actions";
 import { ViewportService } from "../../services/viewport.service";
 import { AuthService, NotificationsService, Permission } from "../../open-api";
 import { AuthState, GroupState } from "../../store";
@@ -82,13 +81,5 @@ export class HeaderComponent {
         });
       }
     });
-  }
-
-  /** On a phone the sidebar slides in over the page; on a desktop it is always shown, and this
-   * switches it between labeled and an icon rail. */
-  public toggleSidebar(): void {
-    this.store.dispatch(
-      this.viewportService.isHandset() ? new ToggleIsSidebarOpen() : new ToggleIsSidebarCollapsed()
-    );
   }
 }
