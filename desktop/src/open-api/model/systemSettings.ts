@@ -78,14 +78,6 @@ export interface SystemSettings {
      */
     serverPublicUrl?: string;
     /**
-     * Whether to show the mobile-setup QR code on the desktop login page
-     */
-    showLoginQr?: boolean;
-    /**
-     * Server/API URL mobile clients connect to; encoded into the login QR\'s deep link
-     */
-    mobileServerUrl?: string;
-    /**
      * How long a refresh token stays valid, in hours. Refresh tokens rotate on every use, so this is how long a user can be away and still return signed in, not an absolute session cap. 1-720 (30 days); 0 means unset and falls back to the default.
      */
     refreshTokenValidForHours?: number;
