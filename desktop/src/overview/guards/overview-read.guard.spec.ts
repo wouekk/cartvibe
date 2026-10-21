@@ -28,10 +28,10 @@ describe("overviewReadGuard", () => {
     expect(executeGuard(route, {} as any)).toBe(true);
   });
 
-  it("sends anyone else to the group's dashboards", () => {
+  it("sends anyone else to the group's receipts", () => {
     store.dispatch(new SetPermissions([], { 1: [Permission.GroupDashboardsRead] }));
 
     const result = executeGuard(route, {} as any) as UrlTree;
-    expect(TestBed.inject(Router).serializeUrl(result)).toBe("/dashboard/group/1");
+    expect(TestBed.inject(Router).serializeUrl(result)).toBe("/receipts/group/1");
   });
 });

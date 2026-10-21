@@ -9,7 +9,6 @@ import { ApiKeyTableState } from "./api-key-table.state";
 import { AuthState } from "./auth.state";
 import { CategoryTableState } from "./category-table.state";
 import { CustomFieldTableState } from "./custom-field-table.state";
-import { DashboardState } from "./dashboard.state";
 import { FeatureConfigState } from "./feature-config.state";
 import { GroupTableState } from "./group-table.state";
 import { GroupState } from "./group.state";
@@ -32,7 +31,6 @@ import { UserState } from "./user.state";
       AuthState,
       CategoryTableState,
       CustomFieldTableState,
-      DashboardState,
       FeatureConfigState,
       GroupState,
       GroupTableState,

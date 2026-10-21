@@ -6,8 +6,7 @@ import { AuthState } from "../../store";
 
 /**
  * Allows the overview only with group.receipts.read in the route's group — the permission its data
- * needs. On deny it falls back to the group's customizable dashboards, whose own guard redirects
- * further if that is not readable either, instead of letting the page load into a 403.
+ * needs. On deny it falls back to the group's receipts list instead of letting the page load into a 403.
  */
 export const overviewReadGuard: CanActivateFn = (route) => {
   const store = inject(Store);
@@ -18,5 +17,5 @@ export const overviewReadGuard: CanActivateFn = (route) => {
     return true;
   }
 
-  return router.createUrlTree(["/dashboard/group", groupId]);
+  return router.createUrlTree(["/receipts/group", groupId]);
 };
