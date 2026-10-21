@@ -333,4 +333,7 @@ export const PL_FEEDBACK: Record<string, string> = {
   "Priorities": "Priorytety",
   "Main AI": "Główne AI",
   "Where receipts are read. Google Gemini runs in the cloud; LM Studio runs on a computer at home.": "Gdzie czytane są paragony. Google Gemini działa w chmurze, a LM Studio na komputerze w domu.",
+  "Uploading": "Wysyłanie",
+  "Uploading {percent}%": "Wysyłanie {percent}%",
+  "Saving…": "Zapisywanie…",
 };
