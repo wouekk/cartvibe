@@ -22,7 +22,6 @@ import { ApiKeyTableState } from "../store/api-key-table.state";
 import { AuthState } from "../store/auth.state";
 import { CategoryTableState } from "../store/category-table.state";
 import { CustomFieldTableState } from "../store/custom-field-table.state";
-import { DashboardState } from "../store/dashboard.state";
 import { FeatureConfigState } from "../store/feature-config.state";
 import { GroupTableState } from "../store/group-table.state";
 import { GroupState } from "../store/group.state";
@@ -44,7 +43,6 @@ const ngxsStates = [
   AuthState,
   CategoryTableState,
   CustomFieldTableState,
-  DashboardState,
   FeatureConfigState,
   GroupState,
   GroupTableState,

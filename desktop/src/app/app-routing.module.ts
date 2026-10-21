@@ -5,7 +5,6 @@ import { AuthGuard } from "src/guards/auth.guard";
 import { SidebarComponent } from "src/layout/sidebar/sidebar.component";
 import { Permission } from "../open-api";
 
-// set up dashboard
 const routes: Routes = [
   {
     path: "",
@@ -16,14 +15,6 @@ const routes: Routes = [
         loadChildren: () =>
           import("../auth").then(
             (m) => m.AuthModule
-          ),
-        canActivate: [AuthGuard],
-      },
-      {
-        path: "dashboard",
-        loadChildren: () =>
-          import("../dashboard/dashboard.module").then(
-            (m) => m.DashboardModule
           ),
         canActivate: [AuthGuard],
       },
@@ -127,15 +118,6 @@ const routes: Routes = [
         canActivate: [AuthGuard, appPermissionGuard],
         data: {
           appPermissions: [Permission.AppUsersRead],
-        },
-      },
-      {
-        path: "roles",
-        loadChildren: () =>
-          import("../roles/roles.module").then((m) => m.RolesModule),
-        canActivate: [AuthGuard, appPermissionGuard],
-        data: {
-          appPermissions: [Permission.AppRolesRead],
         },
       },
       {

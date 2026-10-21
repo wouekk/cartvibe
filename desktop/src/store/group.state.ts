@@ -113,7 +113,8 @@ export class GroupState {
 
   @Selector()
   static dashboardLink(state: GroupStateInterface): string {
-    return `/dashboard/group/${state.selectedGroupId}`;
+    // The guards' fallback landing. The old widget dashboards redirected here when unreadable.
+    return `/receipts/group/${state.selectedGroupId}`;
   }
 
   /**

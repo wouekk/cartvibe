@@ -130,7 +130,6 @@ export class SidebarComponent {
 
   private readonly receiptListLink = this.store.selectSignal(GroupState.receiptListLink);
 
-  private readonly dashboardLink = this.store.selectSignal(GroupState.dashboardLink);
 
   private readonly overviewLink = this.store.selectSignal(GroupState.overviewLink);
 
@@ -165,12 +164,6 @@ export class SidebarComponent {
 
     items.push({ label: "Receipts", icon: "receipt_long", link: [this.receiptListLink()], testId: "nav-receipts" });
 
-    // The upstream widget dashboards are an admin tool now (Phase 3 D1); the Dashboard above is the
-    // family's page.
-    if (this.isAdmin() && hasAll(this.selectedGroupPermissions(), Permission.GroupDashboardsRead)) {
-      // The customizable widget dashboards; the Overview above is the fixed landing page.
-      items.push({ label: "Widget dashboards", icon: "dashboard_customize", link: [this.dashboardLink()], testId: "nav-dashboard" });
-    }
 
     if (this.canViewReports()) {
       items.push({ label: "Reports", icon: "insights", link: ["/reports"], testId: "nav-reports" });
