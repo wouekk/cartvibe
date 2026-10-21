@@ -3,8 +3,6 @@ import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http"
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { MatCardModule } from "@angular/material/card";
-import { MatListModule } from "@angular/material/list";
 import { ActivatedRoute } from "@angular/router";
 import { NgxsModule } from "@ngxs/store";
 import { of } from "rxjs";
@@ -23,8 +21,6 @@ describe("SummaryCardComponent", () => {
     await TestBed.configureTestingModule({
       declarations: [SummaryCardComponent, CardComponent],
       imports: [ApiModule,
-        MatCardModule,
-        MatListModule,
         NgxsModule.forRoot([UserState, SystemSettingsState]),
         PipesModule],
       providers: [

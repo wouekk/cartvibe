@@ -1,7 +1,6 @@
 import { CommonModule, NgOptimizedImage } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
-import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { ButtonModule } from "../button/button.module";
 import { DirectivesModule } from "../directives/directives.module";
 import { InputModule } from "../input/input.module";
@@ -23,7 +22,6 @@ import { AuthForm } from "./sign-up/auth-form.component";
     PipesModule,
     ReactiveFormsModule,
     NgOptimizedImage,
-    MatProgressSpinner,
     CartVibeLoaderComponent,
     CartVibeSplashComponent,
     CartVibeLogoComponent,

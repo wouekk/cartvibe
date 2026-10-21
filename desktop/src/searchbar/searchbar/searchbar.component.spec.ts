@@ -2,9 +2,6 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
-import { MatAutocompleteModule } from "@angular/material/autocomplete";
-import { MatFormFieldModule } from "@angular/material/form-field";
-import { MatInputModule } from "@angular/material/input";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { Router } from "@angular/router";
 import { of } from "rxjs";
@@ -22,10 +19,7 @@ describe("SearchbarComponent", () => {
     declarations: [SearchbarComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
-        MatAutocompleteModule,
         ReactiveFormsModule,
-        MatFormFieldModule,
-        MatInputModule,
         NoopAnimationsModule],
     providers: [
         { provide: Router, useValue: { navigateByUrl: jest.fn().mockResolvedValue(true) } },

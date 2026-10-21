@@ -2,9 +2,7 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
-import { MatChipsModule } from "@angular/material/chips";
 import { AppDialog } from "../../dialog/app-dialog";
-import { MatMenuModule } from "@angular/material/menu";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { ActivatedRoute, provideRouter, Router } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
@@ -40,8 +38,6 @@ describe("ReceiptsTableComponent", () => {
         NgxsModule.forRoot([ReceiptTableState, AuthState, GroupState, UserState]),
         ReactiveFormsModule,
         ...HlmTooltipImports,
-        MatMenuModule,
-        MatChipsModule,
         MonthStepperComponent,
         PipesModule],
     providers: [
@@ -634,8 +630,6 @@ describe("ReceiptsTableComponent receipt summary", () => {
         NgxsModule.forRoot([ReceiptTableState, AuthState, GroupState, UserState]),
         ReactiveFormsModule,
         ...HlmTooltipImports,
-        MatMenuModule,
-        MatChipsModule,
         MonthStepperComponent,
         PipesModule,
       ],

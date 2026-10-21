@@ -3,9 +3,7 @@ import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import { HlmButton } from "@spartan-ng/helm/button";
-import { MatFormField, MatFormFieldModule } from "@angular/material/form-field";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
-import { MatInputModule } from "@angular/material/input";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { By } from "@angular/platform-browser";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
@@ -32,9 +30,7 @@ describe("InputComponent", () => {
       imports: [
         CommonModule,
         HlmButton,
-        MatFormFieldModule,
         AppIconComponent,
-        MatInputModule,
         ...HlmTooltipImports,
         NoopAnimationsModule,
         ReactiveFormsModule,

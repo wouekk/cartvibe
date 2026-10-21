@@ -2,7 +2,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { SettingsComponent } from './settings.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { MatTabsModule } from '@angular/material/tabs';
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
@@ -22,7 +21,6 @@ describe('SettingsComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [SettingsComponent],
       imports: [
-        MatTabsModule,
         ...HlmTooltipImports,
         NgxsModule.forRoot([AuthState]),
         ReactiveFormsModule,

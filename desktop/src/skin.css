@@ -193,3 +193,25 @@ a[hlmBtn] mat-icon {
   line-height: 1.125rem;
   flex: none;
 }
+
+/* Base typography and colors (this was the head of the old legacy bridge). */
+html {
+  font-family: "Geist Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  color: var(--foreground);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.muted,
+.text-muted {
+  color: var(--muted-foreground);
+}

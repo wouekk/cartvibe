@@ -8,9 +8,7 @@ import { HlmCardImports } from "@spartan-ng/helm/card";
 
 import { ExpansionPanelComponent } from "./expansion-panel/expansion-panel.component";
 import { AppIconComponent } from "./icon/icon.component";
-import { MatMenuModule } from "@angular/material/menu";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
-import { MatTabsModule } from "@angular/material/tabs";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { RouterModule } from "@angular/router";
 import { AutocompleteModule } from "src/autocomplete/autocomplete.module";
@@ -132,7 +130,6 @@ import { ImageCanvasComponent } from './image-canvas/image-canvas.component';
     ...HlmCardImports,
     ExpansionPanelComponent,
     AppIconComponent,
-    MatTabsModule,
     ...HlmTooltipImports,
     PipesModule,
     PipesModule,
@@ -140,7 +137,6 @@ import { ImageCanvasComponent } from './image-canvas/image-canvas.component';
     RouterModule,
     SelectModule,
     SystemTaskTypePipe,
-    MatMenuModule,
     ...HlmDropdownMenuImports,
     TableModule,
     UserAutocompleteModule,

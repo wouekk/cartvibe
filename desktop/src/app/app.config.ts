@@ -12,7 +12,6 @@ import { httpInterceptor } from "../interceptors/http-interceptor";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { NgxMaskDirective, NgxMaskPipe } from "ngx-mask";
 import { AppRoutingModule } from "./app-routing.module";
-import { IconModule } from "../icon/icon.module";
 import { LayoutModule } from "../layout/layout.module";
 import { ApiModule, Configuration } from "../open-api";
 import { PipesModule } from "../pipes";
@@ -103,7 +102,6 @@ export const appConfig: ApplicationConfig = {
     importProvidersFrom(
       ApiModule.forRoot(() => new Configuration({ basePath: undefined })),
       AppRoutingModule,
-      IconModule,
       LayoutModule,
       ...HlmTooltipImports,
       NgxMaskDirective,

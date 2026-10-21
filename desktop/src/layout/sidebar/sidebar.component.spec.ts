@@ -3,11 +3,9 @@ import { OverlayContainer } from "@angular/cdk/overlay";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection, signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { MatMenuModule } from "@angular/material/menu";
 import { NgIcon } from "@ng-icons/core";
 import { HlmCollapsibleImports } from "@spartan-ng/helm/collapsible";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
-import { MatSidenavModule } from "@angular/material/sidenav";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { By } from "@angular/platform-browser";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
@@ -64,11 +62,9 @@ describe("SidebarComponent", () => {
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [NgxsModule.forRoot([AuthState, LayoutState, GroupState, FeatureConfigState, ShoppingListState]),
         DirectivesModule,
-        MatMenuModule,
         NgIcon,
         ...HlmCollapsibleImports,
         ...HlmDropdownMenuImports,
-        MatSidenavModule,
         ...HlmTooltipImports,
         NoopAnimationsModule,
         RouterTestingModule,

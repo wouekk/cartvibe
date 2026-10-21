@@ -15,14 +15,14 @@
           <app-icon name="drag_handle"></app-icon>
         </div>
 
-        <mat-checkbox
-          [checked]="column.visible"
-          [disabled]="!canToggleOff(column)"
-          (change)="toggleColumnVisibility(column)"
-          class="column-checkbox"
-        >
-          {{ column.displayName }}
-        </mat-checkbox>
+        <label class="column-checkbox flex flex-1 cursor-pointer items-center gap-2 text-sm">
+          <hlm-checkbox
+            [checked]="column.visible"
+            [disabled]="!canToggleOff(column)"
+            (checkedChange)="toggleColumnVisibility(column)"
+          />
+          <span>{{ column.displayName }}</span>
+        </label>
 
         <!--
           Outside the checkbox label on purpose: inside it, the badge would join

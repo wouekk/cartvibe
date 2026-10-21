@@ -35,22 +35,8 @@
       })();
     </script>
   </head>
-  <body class="mat-typography">
+  <body>
     <app-root></app-root>
 
-    <!-- CSS cannot select by text, so a badge that says "0" gets a class (see the rule above). -->
-    <script>
-      (function () {
-        function mark() {
-          var badges = document.querySelectorAll(".mat-badge-content");
-          for (var i = 0; i < badges.length; i++) {
-            var text = (badges[i].textContent || "").trim();
-            badges[i].classList.toggle("rw-badge-empty", text === "" || text === "0");
-          }
-        }
-        new MutationObserver(mark).observe(document.body, { childList: true, subtree: true, characterData: true });
-        mark();
-      })();
-    </script>
   </body>
 </html>
