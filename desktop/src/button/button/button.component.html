@@ -1,76 +1,75 @@
-<ng-container [ngSwitch]="matButtonType()">
-  <button
-    mat-button
-    *ngSwitchCase="'basic'"
-    [class]="buttonClass()"
-    [type]="type()"
-    [color]="color()"
-    [disabled]="disabled()"
-    [matTooltip]="tooltip()"
-    [routerLink]="buttonRouterLink()"
-    [queryParams]="buttonQueryParams()"
-    [matBadgeColor]="matBadgeColor()"
-    [matBadge]="matBadgeContent()"
-    [matBadgeHidden]="matBadgeHidden()"
-    (click)="emitClicked($event)"
-  >
-    <div class="flex items-center">
-      <mat-icon *ngIf="icon" class="me-1">
-        {{ icon }}
-      </mat-icon>
-      <span>
-        <strong>
-          {{ buttonText() }}
-        </strong>
-      </span>
-    </div>
-  </button>
+<!--
+  Every app-button is a shadcn/ui button: the hlmBtn directive styles a plain <button>, so the look is Tailwind and the
+  accent tokens. A "primary" or "accent" raised button is the filled one, "warn" the destructive one; text and icon
+  buttons are ghost buttons in the accent (or red for "warn").
+-->
+@switch (matButtonType()) {
+  @case ("basic") {
+    <button
+      hlmBtn
+      [variant]="color() === 'warn' ? 'destructiveGhost' : 'accentGhost'"
+      [class]="buttonClass()"
+      [type]="type()"
+      [disabled]="disabled()"
+      [matTooltip]="tooltip()"
+      [routerLink]="buttonRouterLink()"
+      [queryParams]="buttonQueryParams()"
+      [matBadgeColor]="matBadgeColor()"
+      [matBadge]="matBadgeContent()"
+      [matBadgeHidden]="matBadgeHidden()"
+      (click)="emitClicked($event)"
+    >
+      @if (icon) {
+        <mat-icon>{{ icon }}</mat-icon>
+      }
+      <span class="font-semibold">{{ buttonText() }}</span>
+    </button>
+  }
 
-  <button
-    mat-raised-button
-    *ngSwitchCase="'matRaisedButton'"
-    [class]="buttonClass()"
-    [type]="type()"
-    [color]="color()"
-    [disabled]="disabled()"
-    [matTooltip]="tooltip()"
-    [matBadgeColor]="matBadgeColor()"
-    [matBadge]="matBadgeContent()"
-    [matBadgeHidden]="matBadgeHidden()"
-    [routerLink]="buttonRouterLink()"
-    [queryParams]="buttonQueryParams()"
-    (click)="emitClicked($event)"
-  >
-    <div class="flex items-center">
-      <mat-icon *ngIf="icon" class="me-1">
-        {{ icon }}
-      </mat-icon>
-      <span>
-        <strong>
-          {{ buttonText() }}
-        </strong>
-      </span>
-    </div>
-  </button>
+  @case ("matRaisedButton") {
+    <button
+      hlmBtn
+      [variant]="color() === 'warn' ? 'destructive' : 'default'"
+      [class]="buttonClass()"
+      [type]="type()"
+      [disabled]="disabled()"
+      [matTooltip]="tooltip()"
+      [matBadgeColor]="matBadgeColor()"
+      [matBadge]="matBadgeContent()"
+      [matBadgeHidden]="matBadgeHidden()"
+      [routerLink]="buttonRouterLink()"
+      [queryParams]="buttonQueryParams()"
+      (click)="emitClicked($event)"
+    >
+      @if (icon) {
+        <mat-icon>{{ icon }}</mat-icon>
+      }
+      <span class="font-semibold">{{ buttonText() }}</span>
+    </button>
+  }
 
-  <button
-    mat-icon-button
-    *ngSwitchCase="'iconButton'"
-    [class]="buttonClass()"
-    [type]="type()"
-    [color]="color()"
-    [disabled]="disabled()"
-    [routerLink]="buttonRouterLink()"
-    [queryParams]="buttonQueryParams()"
-    [matTooltip]="tooltip()"
-    [matBadgeColor]="matBadgeColor()"
-    [matBadge]="matBadgeContent()"
-    [matBadgeHidden]="matBadgeHidden()"
-    (click)="emitClicked($event)"
-  >
-    <mat-icon *ngIf="customIcon" [svgIcon]="customIcon"></mat-icon>
-    <mat-icon *ngIf="icon">
-      {{ icon }}
-    </mat-icon>
-  </button>
-</ng-container>
+  @case ("iconButton") {
+    <button
+      hlmBtn
+      size="icon"
+      [variant]="color() === 'warn' ? 'destructiveGhost' : color() === 'accent' || color() === 'primary' ? 'accentGhost' : 'ghost'"
+      [class]="buttonClass()"
+      [type]="type()"
+      [disabled]="disabled()"
+      [routerLink]="buttonRouterLink()"
+      [queryParams]="buttonQueryParams()"
+      [matTooltip]="tooltip()"
+      [matBadgeColor]="matBadgeColor()"
+      [matBadge]="matBadgeContent()"
+      [matBadgeHidden]="matBadgeHidden()"
+      (click)="emitClicked($event)"
+    >
+      @if (customIcon) {
+        <mat-icon [svgIcon]="customIcon"></mat-icon>
+      }
+      @if (icon) {
+        <mat-icon>{{ icon }}</mat-icon>
+      }
+    </button>
+  }
+}

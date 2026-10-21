@@ -1,8 +1,8 @@
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { MatBadgeModule } from "@angular/material/badge";
-import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
+import { HlmButtonDirective } from "../ui/button/hlm-button.directive";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { RouterModule } from "@angular/router";
 import { BaseButtonComponent } from "./base-button/base-button.component";
@@ -13,7 +13,7 @@ import { ButtonComponent } from "./button/button.component";
   imports: [
     CommonModule,
     MatBadgeModule,
-    MatButtonModule,
+    HlmButtonDirective,
     MatIconModule,
     MatTooltipModule,
     RouterModule,
