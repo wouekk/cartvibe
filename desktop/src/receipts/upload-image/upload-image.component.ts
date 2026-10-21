@@ -3,6 +3,7 @@ import { take, tap } from "rxjs";
 import { FormMode } from "src/enums/form-mode.enum";
 import { ReceiptFileUploadCommand } from "../../interfaces";
 import { ReceiptImageService } from "../../open-api";
+import { downscaleImageForUpload } from "../../utils/downscale-image";
 
 @Component({
     selector: "app-upload-image",
@@ -42,7 +43,8 @@ export class UploadImageComponent {
 
     for (let i = 0; i < acceptedFiles.length; i++) {
       const reader = new FileReader();
-      const f = acceptedFiles[i];
+      // A phone photo goes up as a smaller JPEG; anything it cannot shrink stays as picked.
+      const f = await downscaleImageForUpload(acceptedFiles[i]);
 
       reader.onload = () => {
         const command: ReceiptFileUploadCommand = {

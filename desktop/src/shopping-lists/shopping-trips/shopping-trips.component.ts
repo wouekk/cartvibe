@@ -4,13 +4,14 @@ import { Component, computed, effect, input, signal, untracked } from "@angular/
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { Actions, ofActionDispatched, Store } from "@ngxs/store";
-import { catchError, EMPTY, filter, merge, Observable, switchMap, take } from "rxjs";
+import { catchError, EMPTY, filter, from, merge, Observable, switchMap, take } from "rxjs";
 import { Permission, ShoppingListService, ShoppingTripView } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { AuthState } from "../../store";
 import { ShoppingListEventType } from "../../store/shopping-list.state";
 import { ApplyShoppingListEvent, LoadShoppingLists } from "../../store/shopping-list.state.actions";
+import { downscaleImageForUpload } from "../../utils/downscale-image";
 import { hasAll } from "../../utils/permission.utils";
 import { AttachReceiptDialogComponent } from "../attach-receipt-dialog/attach-receipt-dialog.component";
 import { describeShoppingTrip, ShoppingTripStatus } from "./shopping-trip-status";
@@ -108,9 +109,12 @@ export class ShoppingTripsComponent {
     }
 
     this.uploading.set(true);
-    this.shoppingListService
-      .uploadShoppingTripPhoto(this.listId(), file)
-      .pipe(take(1))
+    // A phone photo goes up as a smaller JPEG; anything it cannot shrink stays as picked.
+    from(downscaleImageForUpload(file))
+      .pipe(
+        switchMap((upload) => this.shoppingListService.uploadShoppingTripPhoto(this.listId(), upload)),
+        take(1)
+      )
       .subscribe({
         next: () => {
           this.uploading.set(false);
