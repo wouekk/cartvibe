@@ -1,16 +1,20 @@
 import { Component, OnChanges, OnInit, signal, SimpleChanges, input } from "@angular/core";
 import { ActivatedRoute, NavigationEnd, Router } from "@angular/router";
 import { tap } from "rxjs";
+import { tabsListClass, tabsTriggerClass } from "../../ui/tabs/tabs-classes";
 import { TabConfig } from "./tab-config.interface";
 
 @Component({
     selector: "app-tabs",
     templateUrl: "./tabs.component.html",
-    styleUrls: ["./tabs.component.scss"],
     standalone: false
 })
 export class TabsComponent implements OnInit, OnChanges {
   public readonly tabs = input<TabConfig[]>([]);
+
+  public readonly listClass = tabsListClass;
+
+  public readonly triggerClass = tabsTriggerClass;
 
   public activeName = signal("");
 
