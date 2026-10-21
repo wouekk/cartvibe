@@ -2934,7 +2934,7 @@ Mobile-first (used in the shop). Backend contract: `api/CLAUDE.md`.
   collapsible **Manage** section (Manage pages, AI for everyone, System Settings for admins; **no Imports**), the account
   menu. Desktop shows it labeled or as an icon rail; phone slides it over the page. Item lists are the `mainNavItems` /
   `manageNavItems` computeds. The page background fills the strip a hidden sidebar leaves. The page margin follows the sidebar through `drawer-content--rail` / `--wide` (the drawer container only measures once, so a collapse left the old margin); sidebar avatars take `--accent-button`. The loading and "Signing you in" screens are `app-cartvibe-splash` (large loader, rings, bar).
-- **Forms and settings screens follow the AI page:** a title and intro, a centered 640-760px column, white cards
+- **(Superseded in part by "Visual identity" above: the section/panel pattern replaces flat white shadow cards.) Forms and settings screens follow the AI page:** a title and intro, a centered 640-760px column, white cards
   (`$border-radius-lg`, `$shadow-sm`), and **Save inside the card** as a flat accent button. `app-form-button-bar` (12 forms)
   is therefore an inline card row at the end of the form: **never reintroduce a floating bar**.
 - **Required fields shake:** `shakeInvalid()` (`utils/shake.ts`, `.rw-shake` / `.rw-field-error` in `styles.scss`) is the one
