@@ -1,7 +1,6 @@
 import { HttpClient, provideHttpClient, withInterceptors } from "@angular/common/http";
 import { HttpTestingController, provideHttpClientTesting } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
-import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { ActivatedRoute } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { ApiModule } from "../open-api";
@@ -23,7 +22,7 @@ describe("httpInterceptor", () => {
     activatedRouteStub = { snapshot: { queryParams: {} } };
 
     TestBed.configureTestingModule({
-      imports: [ApiModule, MatSnackBarModule],
+      imports: [ApiModule],
       providers: [
         provideHttpClient(withInterceptors([httpInterceptor])),
         provideHttpClientTesting(),
@@ -118,7 +117,7 @@ describe("httpInterceptor", () => {
   });
 
   // Regression guard for the failed-login double toast. The backend returns a bad
-  // password as a 500 carrying errorMsg, and MatSnackBar shows one bar at a time,
+  // password as a 500 carrying errorMsg, and the toast shows one bar at a time,
   // so a second toast here silently replaces "Invalid credentials." with Angular's
   // generic "Http failure response ... 500" text.
   it("prefers the server errorMsg over the generic message on a 5xx", () => {

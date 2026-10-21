@@ -3,7 +3,6 @@ import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { MatDialog, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
-import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { ActivatedRoute, Router } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of, throwError } from "rxjs";
@@ -38,7 +37,6 @@ describe("UserProfileComponent", () => {
         DirectivesModule,
         PipesModule,
         MatDialogModule,
-        MatSnackBarModule,
         NgxsModule.forRoot([AuthState, FeatureConfigState, UserState]),
         PipesModule,
         ReactiveFormsModule],

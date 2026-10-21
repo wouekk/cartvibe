@@ -4,7 +4,6 @@ import {
 } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute } from '@angular/router';
 import { NgxsModule, Store } from '@ngxs/store';
@@ -34,7 +33,6 @@ describe('AuthForm', () => {
     declarations: [AuthForm, FeatureDirective],
     imports: [ButtonModule,
         InputModule,
-        MatSnackBarModule,
         NgxsModule.forRoot([AuthState, FeatureConfigState]),
         NoopAnimationsModule,
         PipesModule,

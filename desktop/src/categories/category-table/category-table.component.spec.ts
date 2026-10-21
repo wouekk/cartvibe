@@ -2,7 +2,6 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { MatDialog, MatDialogModule, } from "@angular/material/dialog";
-import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "src/constants";
@@ -24,8 +23,7 @@ describe("CategoriesListComponent", () => {
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
         MatDialogModule,
-        NgxsModule.forRoot([CategoryTableState]),
-        MatSnackBarModule],
+        NgxsModule.forRoot([CategoryTableState])],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 });
     fixture = TestBed.createComponent(CategoryTableComponent);

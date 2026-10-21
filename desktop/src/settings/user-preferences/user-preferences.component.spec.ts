@@ -3,7 +3,6 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { Component, CUSTOM_ELEMENTS_SCHEMA, input } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormArray, FormGroup, ReactiveFormsModule } from "@angular/forms";
-import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { of } from "rxjs";
@@ -30,7 +29,6 @@ describe("UserPreferencesComponent", () => {
       imports: [
         ReactiveFormsModule,
         StoreModule,
-        MatSnackBarModule,
         PipesModule,
         SharedUiModule
       ],

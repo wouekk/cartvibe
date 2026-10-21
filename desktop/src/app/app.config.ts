@@ -9,7 +9,6 @@ import { withNgxsStoragePlugin } from "@ngxs/storage-plugin";
 import { provideStore } from "@ngxs/store";
 import { AppInitService, initAppData } from "src/services";
 import { httpInterceptor } from "../interceptors/http-interceptor";
-import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { NgxMaskDirective, NgxMaskPipe } from "ngx-mask";
 import { AppRoutingModule } from "./app-routing.module";
@@ -106,7 +105,6 @@ export const appConfig: ApplicationConfig = {
       AppRoutingModule,
       IconModule,
       LayoutModule,
-      MatSnackBarModule,
       MatTooltipModule,
       NgxMaskDirective,
       NgxMaskPipe,

@@ -2,7 +2,6 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormGroup, ReactiveFormsModule } from "@angular/forms";
-import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { FormMode } from "src/enums/form-mode.enum";
@@ -45,7 +44,6 @@ describe("ReceiptCommentsComponent", () => {
     imports: [ApiModule,
         ReactiveFormsModule,
         NgxsModule.forRoot([AuthState, UserState]),
-        MatSnackBarModule,
         PipesModule],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 }).compileComponents();

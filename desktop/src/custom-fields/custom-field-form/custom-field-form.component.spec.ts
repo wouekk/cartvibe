@@ -4,7 +4,6 @@ import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { MatDialogModule, MatDialogRef } from "@angular/material/dialog";
-import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { of } from "rxjs";
 import { FormMode } from "../../enums/form-mode.enum";
@@ -27,7 +26,6 @@ describe("CustomFieldFormComponent", () => {
       declarations: [CustomFieldFormComponent],
       imports: [
         MatDialogModule,
-        MatSnackBarModule,
         NoopAnimationsModule,
         PipesModule,
         ReactiveFormsModule,

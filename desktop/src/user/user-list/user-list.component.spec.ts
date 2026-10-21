@@ -4,7 +4,6 @@ import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection } from "@angular
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { MatDialog, MatDialogModule } from "@angular/material/dialog";
 import { PageEvent } from "@angular/material/paginator";
-import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { Sort } from "@angular/material/sort";
 import { MatTableDataSource } from "@angular/material/table";
 import { NgxsModule } from "@ngxs/store";
@@ -27,7 +26,6 @@ describe("UserListComponent", () => {
     imports: [ApiModule,
         DirectivesModule,
         MatDialogModule,
-        MatSnackBarModule,
         NgxsModule.forRoot([AuthState, UserTableState]),
         TableModule],
     providers: [provideZonelessChangeDetection(), provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]

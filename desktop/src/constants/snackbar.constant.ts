@@ -1,9 +1,5 @@
-import { MatSnackBarConfig } from '@angular/material/snack-bar';
+import { ToastConfig } from "../toast/toast.service";
 
-export const DEFAULT_SNACKBAR_ACTION: string = 'Ok';
-
-export const DEFAULT_SNACKBAR_CONFIG: MatSnackBarConfig<any> = {
-  horizontalPosition: 'center',
-  verticalPosition: 'top',
+export const DEFAULT_SNACKBAR_CONFIG: ToastConfig = {
   duration: 3000,
 };
