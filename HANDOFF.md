@@ -16,10 +16,10 @@ keys on the proxy address (needs `set_real_ip_from` with the Synology proxy's IP
 **Update (same day): `:preview` from `eac696a2` runs on the NAS and the user checked it.** The first try crash-looped
 ("Failed to initialize log"): DSM folder ACLs refuse the image's uid 10001 whatever chown says. The entrypoint now checks the
 folders as the target user and falls back to root with a log line; `PUID` / `PGID` (Dockhand variables, compose
-`${PUID:-}`) run the API as the DSM user that owns the folders, and that is how the NAS runs now. Next: merge to `main` on the
-user's go (with `feature/redesign`, release v0.2.0). Uncommitted changes from someone else sit in the working tree
-(`docker/default.conf`, `desktop/angular.json`, `api/internal/repositories/files.go`,
-`api/internal/handlers/receipt_image.go`, `files_validate_svg_test.go`); not part of this branch's commits.
+`${PUID:-}`) run the API as the DSM user that owns the folders, and that is how the NAS runs now. The tested image was built
+from `5e34bbc9`; `b6d7cb89` (CSP report-only, security headers, SVG uploads refused; another session) came later and is not in
+it yet, so re-publish `:preview` and look again before merging. Next: merge to `main` on the user's go (with
+`feature/redesign`, release v0.2.0).
 
 **Latest (image hardening + faster OCR/AI, branch `feature/image-hardening`, cut from `feature/redesign`):** triage of the
 grype report of the old `receipt-wrangler:latest` image, done together with the scan latency work. One AI call per Quick Scan
