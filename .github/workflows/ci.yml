@@ -3,9 +3,7 @@ name: CI - Build and Test
 
 on:
   push:
-    # feature/** runs the test jobs only. Codecov uploads are gated to the
-    # upstream repository and Docker Hub publishing to its main branch, so a
-    # fork or feature branch gets a test signal without the upstream secrets.
+    # Tests only: the image is published by publish-image.yml.
     branches: [main, 'feature/**']
     paths:
       - 'api/**'
@@ -17,7 +15,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: docker-build-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -27,7 +25,6 @@ jobs:
       api: ${{ steps.filter.outputs.api }}
       desktop: ${{ steps.filter.outputs.desktop }}
       mobile: ${{ steps.filter.outputs.mobile }}
-      docker: ${{ steps.filter.outputs.docker }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -40,12 +37,6 @@ jobs:
               - 'desktop/**'
             mobile:
               - 'mobile/**'
-            # Deliberately excludes mobile/ -- the Flutter app is not part of
-            # the monolith image, so a mobile-only change must not rebuild it.
-            docker:
-              - 'api/**'
-              - 'desktop/**'
-              - 'docker/**'
 
   test-api:
     needs: detect-changes
@@ -75,15 +66,6 @@ jobs:
             exit 1
           fi
         working-directory: ./api
-      - name: Upload Coverage Report to Codecov
-        if: github.repository == 'Receipt-Wrangler/receipt-wrangler'
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./api/coverage.out
-          flags: api
-          fail_ci_if_error: true
-          verbose: true
       - name: Test imap client
         run: |
           . wranglervenv/bin/activate
@@ -94,8 +76,6 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.desktop == 'true'
     runs-on: ubuntu-latest
-    env:
-      GH_PACKAGE_READ_TOKEN_DESKTOP: ${{ secrets.GH_PACKAGE_READ_TOKEN_DESKTOP }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -128,14 +108,6 @@ jobs:
           format: markdown
           output: both
           badge: true
-      - name: Upload coverage to Codecov
-        if: github.repository == 'Receipt-Wrangler/receipt-wrangler'
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./desktop/coverage/receipt-wrangler-desktop/cobertura-coverage.xml
-          flags: desktop
-          fail_ci_if_error: true
 
   # Flutter unit/widget tests. Fast and hermetic -- no emulator, no backend --
   # so unlike the advisory mobile-e2e workflow this one is gating.
@@ -174,108 +146,3 @@ jobs:
       - name: Run tests
         run: flutter test
         working-directory: ./mobile
-
-  build-docker-arm64:
-    needs: [detect-changes, test-api, test-desktop]
-    if: |
-      always() &&
-      github.repository == 'Receipt-Wrangler/receipt-wrangler' &&
-      github.ref == 'refs/heads/main' &&
-      needs.detect-changes.outputs.docker == 'true' &&
-      !contains(needs.*.result, 'failure') &&
-      !contains(needs.*.result, 'cancelled')
-    runs-on: ubuntu-24.04-arm
-    steps:
-      - uses: actions/checkout@v4
-      - name: Get build date
-        id: date
-        run: echo "date=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2.1.0
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.8.0
-      - name: Build and push ARM64
-        uses: docker/build-push-action@v6.13.0
-        with:
-          context: .
-          platforms: linux/arm64
-          file: ./docker/Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/receipt-wrangler:latest-arm64
-          build-args: |
-            VERSION=latest
-            BUILD_DATE=${{ steps.date.outputs.date }}
-
-  build-docker-amd64:
-    needs: [detect-changes, test-api, test-desktop]
-    if: |
-      always() &&
-      github.repository == 'Receipt-Wrangler/receipt-wrangler' &&
-      github.ref == 'refs/heads/main' &&
-      needs.detect-changes.outputs.docker == 'true' &&
-      !contains(needs.*.result, 'failure') &&
-      !contains(needs.*.result, 'cancelled')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Get build date
-        id: date
-        run: echo "date=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2.1.0
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.8.0
-      - name: Build and push AMD64
-        uses: docker/build-push-action@v6.13.0
-        with:
-          context: .
-          platforms: linux/amd64
-          file: ./docker/Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/receipt-wrangler:latest-amd64
-          build-args: |
-            VERSION=latest
-            BUILD_DATE=${{ steps.date.outputs.date }}
-
-  create-docker-manifest:
-    needs: [build-docker-arm64, build-docker-amd64]
-    if: |
-      always() &&
-      needs.build-docker-arm64.result == 'success' &&
-      needs.build-docker-amd64.result == 'success'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2.1.0
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
-      - name: Create Multi-Arch Manifest
-        uses: int128/docker-manifest-create-action@v2
-        with:
-          tags: ${{ secrets.DOCKER_USERNAME }}/receipt-wrangler:latest
-          sources: |
-            ${{ secrets.DOCKER_USERNAME }}/receipt-wrangler:latest-amd64
-            ${{ secrets.DOCKER_USERNAME }}/receipt-wrangler:latest-arm64
-      - name: Cleanup Architecture-Specific Tags
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
-        run: |
-          TOKEN=$(curl -s -X POST -H "Content-Type: application/json" \
-            -d "{\"username\": \"${DOCKER_USERNAME}\", \"password\": \"${DOCKER_TOKEN}\"}" \
-            https://hub.docker.com/v2/users/login/ | jq -r .token)
-
-          curl -X DELETE \
-            -H "Authorization: Bearer ${TOKEN}" \
-            "https://hub.docker.com/v2/repositories/${DOCKER_USERNAME}/receipt-wrangler/tags/latest-amd64/"
-
-          curl -X DELETE \
-            -H "Authorization: Bearer ${TOKEN}" \
-            "https://hub.docker.com/v2/repositories/${DOCKER_USERNAME}/receipt-wrangler/tags/latest-arm64/"
