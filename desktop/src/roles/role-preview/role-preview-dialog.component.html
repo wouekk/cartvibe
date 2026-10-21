@@ -1,45 +1,45 @@
 <app-dialog [headerText]="role.name">
-  <div class="role-preview">
-    <div class="meta">
-      <span class="chip" [class.group]="isGroup()">
+  <div class="flex flex-col gap-4">
+    <div class="flex flex-wrap gap-2">
+      <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[0.8rem] font-semibold [&_app-icon]:size-4 [&_app-icon]:text-base bg-accent" [class.text-primary]="!isGroup()" [class.text-chart-4]="isGroup()">
         <app-icon [name]="scopeIcon()"></app-icon>
         {{ scopeLabel() }}
       </span>
       @if (role.isSystem) {
-        <span class="chip system"><app-icon name="verified"></app-icon> {{ 'System' | t }}</span>
+        <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[0.8rem] font-semibold [&_app-icon]:size-4 [&_app-icon]:text-base bg-accent text-muted-foreground"><app-icon name="verified"></app-icon> {{ 'System' | t }}</span>
       }
       @if (role.isDefault) {
-        <span class="chip default"><app-icon name="star"></app-icon> {{ 'Default' | t }}</span>
+        <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[0.8rem] font-semibold [&_app-icon]:size-4 [&_app-icon]:text-base bg-warning-text/22 text-warning-text"><app-icon name="star"></app-icon> {{ 'Default' | t }}</span>
       }
     </div>
 
     @if (role.description) {
-      <p class="description">{{ role.description }}</p>
+      <p class="m-0 text-muted-foreground">{{ role.description }}</p>
     }
 
-    <div class="summary">
+    <div class="font-semibold text-foreground">
       {{ permissionCount() }} permission{{ permissionCount() === 1 ? "" : "s" }}
     </div>
 
     @if (groups().length === 0) {
-      <p class="empty">{{ 'This role grants no permissions.' | t }}</p>
+      <p class="m-0 italic text-muted-foreground">{{ 'This role grants no permissions.' | t }}</p>
     } @else {
       @for (group of groups(); track group.resourceKey) {
-        <div class="group">
-          <div class="group-head">
+        <div class="overflow-hidden rounded-lg border border-border">
+          <div class="flex items-center gap-2 border-b border-border bg-muted px-3 py-2.5">
             <app-icon [name]="group.icon"></app-icon>
-            <span class="group-name">{{ group.name }}</span>
-            <span class="group-sub">{{ group.resourceKey }}</span>
+            <span class="font-semibold text-foreground">{{ group.name }}</span>
+            <span class="text-xs text-muted-foreground">{{ group.resourceKey }}</span>
           </div>
-          <div class="rows">
+          <div class="flex flex-col">
             @for (row of group.rows; track row.key) {
               <div class="flex flex-wrap">
-                <div class="row-main">
-                  <span class="row-label">{{ row.label }}</span>
-                  <span class="row-key">{{ row.key }}</span>
+                <div class="flex items-baseline gap-2">
+                  <span class="font-medium text-foreground">{{ row.label }}</span>
+                  <span class="text-xs text-muted-foreground">{{ row.key }}</span>
                 </div>
                 @if (row.description) {
-                  <span class="row-desc">{{ row.description }}</span>
+                  <span class="text-[0.8rem] text-muted-foreground">{{ row.description }}</span>
                 }
               </div>
             }
@@ -48,7 +48,7 @@
       }
     }
 
-    <div class="actions">
+    <div class="flex justify-end">
       <button type="button" hlmBtn variant="outline" (click)="close()">{{ 'Close' | t }}</button>
     </div>
   </div>

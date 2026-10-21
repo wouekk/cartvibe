@@ -54,7 +54,6 @@ interface PreviewGroup {
     SharedUiModule,
   ],
   templateUrl: "./role-preview-dialog.component.html",
-  styleUrls: ["./role-preview-dialog.component.scss"],
 })
 export class RolePreviewDialogComponent {
   public readonly role: Role;
