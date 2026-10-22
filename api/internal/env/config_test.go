@@ -284,3 +284,26 @@ func TestGetChromiumAllowExternalResources(t *testing.T) {
 		})
 	}
 }
+
+func TestFindBasePath(t *testing.T) {
+	tests := []struct {
+		name string
+		cwd  string
+		want string
+	}{
+		{"image folder", "/app/cartvibe-api", "/app/cartvibe-api"},
+		{"image folder, nested cwd", "/app/cartvibe-api/internal/env", "/app/cartvibe-api"},
+		{"pre-rename folder", "/app/receipt-wrangler-api/sub", "/app/receipt-wrangler-api"},
+		{"windows path", `C:\work\cartvibe-api\sub`, "C:/work/cartvibe-api"},
+		{"local api checkout", "/home/me/cartvibe/api", "/home/me/cartvibe/api"},
+		{"unknown folder", "/tmp/elsewhere", ""},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if got := findBasePath(test.cwd); got != test.want {
+				t.Errorf("findBasePath(%q) = %q, want %q", test.cwd, got, test.want)
+			}
+		})
+	}
+}

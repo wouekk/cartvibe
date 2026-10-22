@@ -4,6 +4,7 @@ import (
 
 	"github.com/shopspring/decimal"
 	"receipt-wrangler/api/internal/commands"
+	"receipt-wrangler/api/internal/logging"
 	"receipt-wrangler/api/internal/models"
 	"receipt-wrangler/api/internal/repositories"
 	"receipt-wrangler/api/internal/utils"
@@ -152,7 +153,9 @@ func ApplyRatesToWaitingReceipts() (int, error) {
 		var images int64
 		db.Model(&models.FileData{}).Where("receipt_id = ?", receipt.ID).Count(&images)
 		if images > 0 {
-			_ = productRepository.MarkReceiptProductsPending(receipt.ID)
+			if err := productRepository.MarkReceiptProductsPending(receipt.ID); err != nil {
+				logging.LogStd(logging.LOG_LEVEL_ERROR, "Could not re-queue the products of receipt ", receipt.ID, ": ", err.Error())
+			}
 		}
 		changed++
 	}
