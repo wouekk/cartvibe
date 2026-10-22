@@ -9,8 +9,8 @@ import { GroupOverviewProduct, OverviewService } from "../../open-api";
 import { PipesModule } from "../../pipes/pipes.module";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 
-/** What a Dashboard figure is made of: the unhealthy products, the unplanned ones, or one food group's. */
-export type OverviewDetailKind = "UNHEALTHY" | "UNPLANNED" | "FOODGROUP";
+/** What a Dashboard figure is made of: the unhealthy lines, the unplanned ones, one category's, or one tag's. */
+export type OverviewDetailKind = "UNHEALTHY" | "UNPLANNED" | "FOODGROUP" | "TAG";
 
 export interface OverviewDetailDialogData {
   title: string;
@@ -19,8 +19,12 @@ export interface OverviewDetailDialogData {
   /** The period, "yyyy-MM-dd". */
   from: string;
   to: string;
-  /** For a food group: its name as the Dashboard shows it; empty for Uncategorized. */
+  /** For a category slice: its category; without one, foodGroup names the slice. */
+  categoryId?: number;
+  /** For a category slice without an id: its name as the Dashboard shows it; empty for Uncategorized. */
   foodGroup?: string;
+  /** For a tag tile: its tag. */
+  tagId?: number;
 }
 
 /**
@@ -49,10 +53,13 @@ export class OverviewDetailDialogComponent implements OnInit {
   public readonly products = signal<GroupOverviewProduct[]>([]);
 
   public ngOnInit(): void {
-    const foodGroup = this.data.kind === "FOODGROUP" ? (this.data.foodGroup ?? "") : undefined;
+    const isCategory = this.data.kind === "FOODGROUP";
+    const categoryId = isCategory ? this.data.categoryId : undefined;
+    const foodGroup = isCategory && categoryId === undefined ? (this.data.foodGroup ?? "") : undefined;
+    const tagId = this.data.kind === "TAG" ? this.data.tagId : undefined;
 
     this.overviewService
-      .getOverviewProducts(this.data.groupId, this.data.kind, foodGroup, undefined, this.data.from, this.data.to)
+      .getOverviewProducts(this.data.groupId, this.data.kind, foodGroup, categoryId, tagId, undefined, this.data.from, this.data.to)
       .pipe(
         take(1),
         catchError(() => {

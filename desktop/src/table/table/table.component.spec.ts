@@ -51,6 +51,22 @@ describe('TableComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('shows the empty state instead of the rows and the pager, only once given a text', () => {
+    const empty = () => fixture.nativeElement.querySelector('[data-testid="table-empty"]');
+    fixture.componentRef.setInput('pagination', true);
+    fixture.detectChanges();
+    expect(empty()).toBeNull();
+
+    fixture.componentRef.setInput('emptyText', 'No tags yet.');
+    fixture.detectChanges();
+    expect(empty()?.textContent).toContain('No tags yet.');
+    expect(fixture.nativeElement.querySelector('[data-testid="table-pager"]')).toBeNull();
+
+    fixture.componentRef.setInput('dataSource', new TableDataSource<any>([{ id: 1 }]));
+    fixture.detectChanges();
+    expect(empty()).toBeNull();
+  });
+
   it('should find the first default sort direction and set it', () => {
     const columns: TableColumn[] = [
       {

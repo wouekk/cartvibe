@@ -203,6 +203,20 @@
         <span class="text-[0.8125rem] font-medium text-muted-foreground">{{ (listSummaries().length === 1 ? 'on {count} list' : 'on {count} lists') | t: { count: listSummaries().length } }}</span>
       </a>
     }
+
+    <!-- One tile per tag marked "Show on the Dashboard", laid out like Unhealthy (neutral color: a tag is not a warning). -->
+    @for (tile of tagTiles(); track tile.tagId) {
+      <button type="button" class="rw-tile rw-tile-link w-full border-0 text-left font-[inherit]" [attr.data-testid]="'overview-tile-tag-' + tile.tagId" (click)="openTag(tile)">
+        <span class="truncate text-xs font-medium text-muted-foreground" [attr.title]="tile.name">{{ tile.name }}</span>
+        <span class="text-3xl font-bold">
+          <app-money [display]="true" [value]="tile.total"></app-money>
+        </span>
+        <span class="text-[0.8125rem] font-medium text-muted-foreground">{{ '{share}% of the spending' | t: { share: tile.share } }}</span>
+        @if (tile.change; as change) {
+          <span class="text-[0.8125rem] font-medium text-muted-foreground">{{ change }}</span>
+        }
+      </button>
+    }
   </section>
 
   <div class="grid grid-cols-[repeat(auto-fit,minmax(min(23.75rem,100%),1fr))] gap-6 [&>:nth-child(2)]:[animation-delay:120ms]">

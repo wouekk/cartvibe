@@ -613,6 +613,28 @@ export class OverviewPageComponent {
       : undefined;
   });
 
+  /**
+   * One tile per tag marked "Show on the Dashboard" (Manage Tags), built like the Unhealthy tile: what the
+   * period's product lines carrying the tag cost, their share of the spending, and the change.
+   */
+  public readonly tagTiles = computed(() => {
+    const overview = this.overview();
+    if (!overview) {
+      return [];
+    }
+    const spent = Number(overview.total);
+    return (overview.tags ?? []).map((tag) => {
+      const total = Number(tag.total);
+      return {
+        tagId: tag.tagId,
+        name: tag.name,
+        total,
+        share: spent > 0 ? Math.round((total / spent) * 100) : 0,
+        change: describeChangeAgainst(tag.total, tag.previousTotal, this.previousName(), this.translate),
+      };
+    });
+  });
+
   private readonly groupPermissions = this.store.selectSignal(AuthState.groupPermissions);
 
   public readonly canAddReceipt = computed(() =>
@@ -709,12 +731,20 @@ export class OverviewPageComponent {
     this.openDetail(kind, kind === "UNHEALTHY" ? marker("Unhealthy products") : marker("Products not on the list"));
   }
 
-  /** Opens the products of one food group (the category split is by product, Phase 3 3c). */
+  /** Opens the product lines of one category slice (the split is by line, by category id when there is one). */
   public openCategory(segment: DonutSegment): void {
     if (!this.isOpenable(segment)) {
       return;
     }
-    this.openDetail("FOODGROUP", segment.name, segment.name === UNCATEGORIZED ? "" : segment.name);
+    this.openDetail("FOODGROUP", segment.name, {
+      foodGroup: segment.name === UNCATEGORIZED ? "" : segment.name,
+      ...(segment.categoryId !== undefined ? { categoryId: segment.categoryId } : {}),
+    });
+  }
+
+  /** Opens the product lines behind a tag tile. */
+  public openTag(tile: { tagId: number; name: string }): void {
+    this.openDetail("TAG", tile.name, { tagId: tile.tagId });
   }
 
   /** "Other" folds several groups together, so there is no single list behind it. */
@@ -731,7 +761,11 @@ export class OverviewPageComponent {
     this.productCheck.start();
   }
 
-  private openDetail(kind: OverviewDetailKind, title: string, foodGroup?: string): void {
+  private openDetail(
+    kind: OverviewDetailKind,
+    title: string,
+    filter: Pick<OverviewDetailDialogData, "categoryId" | "foodGroup" | "tagId"> = {}
+  ): void {
     const period = this.period();
     if (!period) {
       return;
@@ -743,7 +777,7 @@ export class OverviewPageComponent {
       groupId: this.groupId(),
       from: period.from,
       to: period.to,
-      foodGroup,
+      ...filter,
     };
     this.matDialog.open(OverviewDetailDialogComponent, { ...DEFAULT_DIALOG_CONFIG, data });
   }
