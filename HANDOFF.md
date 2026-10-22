@@ -1,5 +1,12 @@
 # HANDOFF.md — Where things stand
 
+## v0.6.0 released (2026-10-23) from `main`
+
+Everything since v0.5.0 (the clean-schema rework, the UI sprint, the Settings menu, the welcome, Settled) is `v0.6.0`;
+`CHANGELOG.md` has the summary. The GitHub Release for the older `v0.5.0` tag was missing and is published now too.
+**Deploying 0.6.0 is not in place:** back up and wipe the NAS `sqlite` folder, set new keys, pull `:latest`, redeploy,
+hard-refresh, then set the AI under Settings → AI.
+
 ## Late 2026-10-22 on `feature/ui-sprint` (fast-forwarded into `main` once CI is green, on the user's go)
 
 - **Fresh install on euros:** `InitDB` runs `SeedEuroForNewInstall` first (an empty dollar row used to come first). Test
