@@ -19,6 +19,7 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 - After the header's theme toggle, the donut's center text and slice separators kept the old theme's colors; charts
   are now rebuilt (without replaying their animation) when the theme changes.
 - The focused donut slice never actually popped out (a broken pattern in the slice lookup).
+- Polish: the donut legend's "Share" column reads "Udział" (it said "Udostępnij", as in sharing a link).
 
 ## [0.4.0] - 2026-10-22
 

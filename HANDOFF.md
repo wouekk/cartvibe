@@ -12,7 +12,7 @@ data; covered by the money spec). `ci.yml` does not run on `feat/` pushes: dispa
 **Next on this branch (waits for `feat/item-level-tags-categories` to be merged into `preview`):** the customisation engine
 itself (`DashboardLayout` API resource with an entitlement seam, layout engine, panel grid, `/overview/group/:id/customize`
 with the Mobile / Tablet / PC preview), as in the plan. Merge `preview` into this branch first.
-Noticed, not changed: the donut legend's "Share" column is translated "Udostępnij" (the verb, to share) in `pl.json`; and in
+Fixed after review: the donut legend's "Share" column now reads "Udział" in Polish (was "Udostępnij", the verb). Noticed, not changed: in
 the dev data the donut's category totals add up to more than the period's total (product lines vs receipt amounts).
 
 ## Status (2026-10-22, 07:15): v0.4.0 released from `preview`
