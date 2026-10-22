@@ -111,6 +111,7 @@ export * from './resetPasswordCommand';
 export * from './role';
 export * from './searchResult';
 export * from './setFoodClassificationCommand';
+export * from './setReceiptProductLabelsCommand';
 export * from './setShoppingListItemCheckedCommand';
 export * from './shoppingList';
 export * from './shoppingListEvent';
