@@ -51,7 +51,19 @@
         </ng-template>
       </span>
 
-      <app-cartvibe-logo class="mx-2 shrink-0 max-sm:hidden sm:mx-4"></app-cartvibe-logo>
+      <button
+        hlmBtn variant="ghost" size="icon"
+        type="button"
+        class="shrink-0"
+        data-testid="theme-toggle"
+        [attr.aria-label]="themeToggleLabel() | t"
+        [hlmTooltip]="themeToggleLabel() | t"
+        (click)="toggleTheme()"
+      >
+        <app-icon [name]="isDarkTheme() ? 'light_mode' : 'dark_mode'"></app-icon>
+      </button>
+
+      <app-cartvibe-logo class="mx-2 shrink-0 max-sm:hidden sm:mx-4" [scale]="logoScale()"></app-cartvibe-logo>
     </div>
   </div>
 }
