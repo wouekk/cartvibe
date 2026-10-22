@@ -830,7 +830,6 @@
     "Report template not found": "Nie znaleziono szablonu raportu",
     "Reports": "Raporty",
     "Require": "Wymagaj",
-    "Requiring a comment blocks quick scan on mobile app versions released before this field was added, until those users update.": "Wymaganie komentarza blokuje szybkie skanowanie w wersjach aplikacji mobilnej wydanych przed dodaniem tego pola, dopóki użytkownicy ich nie zaktualizują.",
     "Reset column configuration": "Przywróć domyślne kolumny",
     "Reset filter": "Resetuj filtr",
     "Resolve all user's items": "Rozlicz wszystkie pozycje użytkownika",
@@ -985,8 +984,8 @@
     "Tag successfully deleted": "Tag został usunięty",
     "Tag updated successfully": "Tag został zaktualizowany",
     "Tags": "Tagi",
-    "Tap an item to mark it done.": "Dotknij pozycji, aby oznaczyć ją jako kupioną.",
     "Take a photo of the code": "Zrób zdjęcie kodu",
+    "Tap an item to mark it done.": "Dotknij pozycji, aby oznaczyć ją jako kupioną.",
     "Task Concurrency": "Współbieżność zadań",
     "Task queue priorities": "Priorytety kolejek zadań",
     "Task server restarted successfully": "Serwer zadań został uruchomiony ponownie",
@@ -1299,6 +1298,9 @@
     "Remove Current Image": {
       "value": "Usuń bieżący obraz",
       "closest": "Remove Image"
+    },
+    "Requiring a comment blocks quick scan on mobile app versions released before this field was added, until those users update.": {
+      "value": "Wymaganie komentarza blokuje szybkie skanowanie w wersjach aplikacji mobilnej wydanych przed dodaniem tego pola, dopóki użytkownicy ich nie zaktualizują."
     },
     "Save first to test the new settings.": {
       "value": "Najpierw zapisz, aby przetestować nowe ustawienia."
