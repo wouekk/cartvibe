@@ -22,8 +22,9 @@ func loadCategory(t *testing.T, id uint) models.Category {
 	return category
 }
 
-// createReportReceipt inserts a receipt in a group. Categories must be loaded
-// rows (not bare ids), so the association write does not blank their names.
+// createReportReceipt inserts a 100.00 receipt in a group with one product line
+// per category, sharing the amount equally. Reports read categories off the
+// lines, never the receipt.
 func createReportReceipt(t *testing.T, name string, paidByUserId uint, groupId uint, categories []models.Category) models.Receipt {
 	t.Helper()
 	receipt := models.Receipt{
@@ -33,10 +34,17 @@ func createReportReceipt(t *testing.T, name string, paidByUserId uint, groupId u
 		PaidByUserID: paidByUserId,
 		GroupId:      groupId,
 		Status:       models.OPEN,
-		Categories:   categories,
 	}
 	if err := repositories.GetDB().Create(&receipt).Error; err != nil {
 		t.Fatalf("create receipt %q: %v", name, err)
+	}
+	for _, category := range categories {
+		amount := decimal.NewFromInt(100).DivRound(decimal.NewFromInt(int64(len(categories))), 2)
+		categoryId := category.ID
+		line := models.ReceiptProduct{ReceiptId: receipt.ID, Name: category.Name, Amount: &amount, CategoryId: &categoryId}
+		if err := repositories.GetDB().Create(&line).Error; err != nil {
+			t.Fatalf("create line for %q: %v", name, err)
+		}
 	}
 	return receipt
 }

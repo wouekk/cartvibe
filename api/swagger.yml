@@ -7598,7 +7598,11 @@ components:
           type: array
           items:
             type: string
-          description: Ordered engine field keys to nest the report by
+          description: >-
+            Ordered engine field keys to nest the report by. category, tag,
+            health and planned are read off the receipts' product lines: cutting
+            by one divides each receipt by what its lines cost, and what the
+            lines leave over is the empty bucket.
         groupByLabels:
           type: object
           additionalProperties:
@@ -7619,19 +7623,6 @@ components:
         grandTotals:
           type: boolean
           description: Emit one grand-total row across everything
-        splitCategoriesEqually:
-          type: boolean
-          description: >-
-            Divide each receipt's money equally across its categories instead of
-            attributing the whole amount to every category. Takes effect only
-            when the report groups or aggregates by category. Omitted means
-            false.
-        splitTagsEqually:
-          type: boolean
-          description: >-
-            Divide each receipt's money equally across its tags instead of
-            attributing the whole amount to every tag. Takes effect only when
-            the report groups or aggregates by tag. Omitted means false.
         document:
           $ref: "#/components/schemas/ReportDocument"
         formats:

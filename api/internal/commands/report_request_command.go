@@ -89,14 +89,8 @@ type ReportRequestCommand struct {
 	Columns       []ReportColumn    `json:"columns"`
 	Subtotals     bool              `json:"subtotals"`
 	GrandTotals   bool              `json:"grandTotals"`
-	// SplitCategoriesEqually and SplitTagsEqually divide a receipt's money
-	// equally across its categories / tags instead of attributing the whole of
-	// it to every bucket. Each takes effect only when the report attributes by
-	// that dimension (a grouping level, or the aggregate detail dimension).
-	SplitCategoriesEqually bool           `json:"splitCategoriesEqually,omitempty"`
-	SplitTagsEqually       bool           `json:"splitTagsEqually,omitempty"`
-	Document               ReportDocument `json:"document"`
-	Formats                []string       `json:"formats"`
+	Document      ReportDocument    `json:"document"`
+	Formats       []string          `json:"formats"`
 }
 
 // ReportPeriod is the reporting window. Preset is one of the ReportPeriod*

@@ -483,70 +483,59 @@ add 'footer-ignores-app-zone' 'render/html.go' \
 'model.Meta.GeneratedAt.In(locationOrUTC(model.Meta.Location))' \
 'model.Meta.GeneratedAt.UTC()'
 
-# --- receiptsource: splitting a receipt across its categories / tags ---------
+# --- receiptsource: reading product lines ------------------------------------
 
-# TestAllocateGrid_MarginalsMatchSingleDimensionSplits — restarting the column
-# pointer every row piles the leftover units onto the first tags, so a tag's
-# total stops matching a split across tags alone.
-add 'split-column-pointer-resets-per-row' 'receiptsource/split.go' \
-'	column := 0
-	for row := 0; row < rows; row++ {' \
-'	for row := 0; row < rows; row++ {
-		column := 0'
+# TestRowsWithLines_CutsByCategoryWithTheRestAsNone — what the lines leave over
+# must still be reported, or the grand total is no longer what was spent.
+add 'lines-rest-row-dropped' 'receiptsource/lines.go' \
+'	if len(lines) == 0 || !rest.IsZero() {' \
+'	if len(lines) == 0 {'
 
-# TestAllocateGrid_SingleRow — dropping the leftover units loses cents, so the
-# shares stop adding back up to the receipt.
-add 'split-leftover-units-dropped' 'receiptsource/split.go' \
-'			if extraByColumn[col] {
-				share.Add(share, big.NewInt(1))
-			}' \
-'			_ = extraByColumn[col]'
+# TestRowsWithLines_LinesOverTheReceiptAreScaledDown — lines adding up to more
+# than the receipt must be scaled to it.
+add 'lines-not-scaled-down' 'receiptsource/lines.go' \
+'	if sum.IsZero() || (sum.Sign() == amount.Sign() && sum.Abs().LessThanOrEqual(amount.Abs())) {' \
+'	if true {'
 
-# TestAllocateGrid_SingleRow — a refund must split into negative shares.
-add 'split-sign-dropped' 'receiptsource/split.go' \
-'			if negative {
-				share.Neg(share)
-			}' \
-'			_ = negative'
+# TestAllocateProportionally — the units truncation leaves over must be handed
+# out, or the shares stop adding back up to the receipt.
+add 'lines-leftover-units-dropped' 'receiptsource/lines.go' \
+'	for given := 0; left.Sign() != 0 && given < len(order); given++ {' \
+'	for given := 0; false && given < len(order); given++ {'
 
-# TestAllocateGrid_SingleRow — a value entered with more places than cents keeps
-# them, or 10.555 loses its last digit.
-add 'split-scale-fixed-at-cents' 'receiptsource/split.go' \
-'	if places := -value.Exponent(); places > scale {
+# TestAllocateProportionally — a value entered with more places than cents keeps
+# them.
+add 'lines-scale-fixed-at-cents' 'receiptsource/lines.go' \
+'	if places := -total.Exponent(); places > scale {
 		scale = places
 	}' \
-'	_ = value.Exponent()'
+'	_ = total.Exponent()'
 
-# TestSplit_Categories — the leftover cent follows the category id, not the
-# order the database returned the categories in.
-add 'split-categories-unsorted' 'receiptsource/split.go' \
-'	sort.SliceStable(distinct, func(i, j int) bool {
-		if distinct[i].ID != distinct[j].ID {
-			return distinct[i].ID < distinct[j].ID
-		}
-		return distinct[i].Name < distinct[j].Name
-	})
-	return distinct
-}
+# TestRowsWithLines_TagsFanOut — a line with two tags counts toward both.
+add 'lines-tags-not-fanned-out' 'receiptsource/lines.go' \
+'	for _, tag := range values.tags {
+		tagged := key' \
+'	for _, tag := range values.tags[:1] {
+		tagged := key'
 
-func distinctTags' \
-'	return distinct
-}
+# TestHealthAndPlannedLabels — no planned mark counts as planned.
+add 'lines-nil-planned-is-unplanned' 'receiptsource/lines.go' \
+'	if planned != nil && !*planned {' \
+'	if planned == nil || !*planned {'
 
-func distinctTags'
+# TestRowsWithLines_UncutFieldsLabelOnlyTheirLines — a bucket's other labels come
+# from its own lines, not the whole receipt.
+add 'lines-labels-read-every-line' 'receiptsource/lines.go' \
+'		setLineLabels(row, lines, bucket.lines, dimensions)' \
+'		setLineLabels(row, lines, allLineIndexes(lines), dimensions)'
 
+# TestRowsWithLines_LabelsWithoutCutting — labels are sorted, so a report never
+# depends on the order the lines were read in.
+add 'lines-labels-unsorted' 'receiptsource/lines.go' \
+'	sort.Strings(distinct)
+	return distinct' \
+'	return distinct'
 
-# TestSplit_DoesNotMutateTheInput — an unsplit dimension's list must be copied,
-# or the restricted substitution of one copy rewrites the caller's receipt.
-add 'split-shares-the-tag-slice' 'receiptsource/split.go' \
-'			copied.Tags = append([]models.Tag(nil), tagLists[col]...)' \
-'			copied.Tags = tagLists[col]'
-
-# TestMerge_NeverFoldsDifferentReceipts — two receipts are never one row, however
-# alike they look.
-add 'merge-ignores-origin' 'receiptsource/split.go' \
-'	key.WriteString(strconv.Itoa(origin))' \
-'	key.WriteString(strconv.Itoa(0 * origin))'
 
 
 # ----------------------------------------------------------------------------

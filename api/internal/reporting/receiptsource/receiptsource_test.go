@@ -45,6 +45,8 @@ func TestSource_CatalogBuiltins(t *testing.T) {
 		{KeyGroup, reporting.TypeString, false},
 		{KeyCategory, reporting.TypeString, true},
 		{KeyTag, reporting.TypeString, true},
+		{KeyHealth, reporting.TypeString, true},
+		{KeyPlanned, reporting.TypeString, true},
 	}
 
 	for _, test := range tests {
@@ -244,8 +246,9 @@ func fullReceipt() models.Receipt {
 		Status:       models.RESOLVED,
 		PaidByUser:   models.User{DisplayName: "Dana"},
 		Group:        models.Group{Name: "Household"},
-		Categories:   []models.Category{{Name: "Clothing"}, {Name: "Medical"}},
-		Tags:         []models.Tag{{Name: "Alex"}},
+		// Receipt-level categories and tags are the old schema: reports ignore them.
+		Categories: []models.Category{{Name: "Clothing"}, {Name: "Medical"}},
+		Tags:       []models.Tag{{Name: "Alex"}},
 	}
 }
 
@@ -278,7 +281,6 @@ func TestSource_RowsResolvesEveryField(t *testing.T) {
 		{KeyStatus, "RESOLVED"},
 		{KeyPaidBy, "Dana"},
 		{KeyGroup, "Household"},
-		{KeyTag, "Alex"},
 	}
 	for _, test := range strings {
 		t.Run(string(test.key), func(t *testing.T) {
@@ -306,16 +308,13 @@ func TestSource_RowsResolvesEveryField(t *testing.T) {
 		})
 	}
 
-	// Categories are multi-valued, and keep the order the receipt carried them.
-	t.Run("categories fan out", func(t *testing.T) {
-		values := row.Get(KeyCategory)
-		if len(values) != 2 {
-			t.Fatalf("got %d categories, want 2", len(values))
+	// The receipt's own categories and tags are never read: those come from its lines.
+	t.Run("receipt-level categories and tags are ignored", func(t *testing.T) {
+		if values := row.Get(KeyCategory); len(values) != 0 {
+			t.Errorf("category = %v, want no value", values)
 		}
-		first, _ := values[0].Text()
-		second, _ := values[1].Text()
-		if first != "Clothing" || second != "Medical" {
-			t.Errorf("categories = %v, %v", first, second)
+		if values := row.Get(KeyTag); len(values) != 0 {
+			t.Errorf("tag = %v, want no value", values)
 		}
 	})
 }
@@ -378,28 +377,23 @@ func TestSource_RowsOnNoReceipts(t *testing.T) {
 func TestSource_FeedsTheEngine(t *testing.T) {
 	source := mustNew(t)
 
-	receipt := func(payer, tag, category, amount string) models.Receipt {
-		built := models.Receipt{
-			Amount:     dec(amount),
-			PaidByUser: models.User{DisplayName: payer},
-			Tags:       []models.Tag{{Name: tag}},
-			Categories: []models.Category{{Name: category}},
-		}
-		return built
+	var receipts []models.Receipt
+	var lines [][]Line
+	receipt := func(payer, tag, category, amount string) {
+		receipts = append(receipts, models.Receipt{Amount: dec(amount), PaidByUser: models.User{DisplayName: payer}})
+		lines = append(lines, []Line{{Amount: dec(amount), Category: category, Tags: []string{tag}}})
 	}
 
-	receipts := []models.Receipt{
-		receipt("Dana", "Alex", "Clothing", "30.00"),
-		receipt("Dana", "Alex", "Clothing", "30.00"),
-		receipt("Dana", "Alex", "Clothing", "30.00"),
-		receipt("Dana", "Alex", "Clothing", "30.00"),
-		receipt("Dana", "Alex", "Medical", "50.00"),
-		receipt("Dana", "Alex", "Medical", "30.00"),
-		receipt("Dana", "Sam", "Clothing", "30.00"),
-		receipt("Dana", "Sam", "Clothing", "30.00"),
-		receipt("Dana", "Sam", "Clothing", "30.00"),
-		receipt("Dana", "Sam", "Mileage", "30.00"),
-	}
+	receipt("Dana", "Alex", "Clothing", "30.00")
+	receipt("Dana", "Alex", "Clothing", "30.00")
+	receipt("Dana", "Alex", "Clothing", "30.00")
+	receipt("Dana", "Alex", "Clothing", "30.00")
+	receipt("Dana", "Alex", "Medical", "50.00")
+	receipt("Dana", "Alex", "Medical", "30.00")
+	receipt("Dana", "Sam", "Clothing", "30.00")
+	receipt("Dana", "Sam", "Clothing", "30.00")
+	receipt("Dana", "Sam", "Clothing", "30.00")
+	receipt("Dana", "Sam", "Mileage", "30.00")
 
 	spec := reporting.ReportSpec{
 		GroupBy: []reporting.FieldKey{KeyPaidBy, KeyTag},
@@ -414,7 +408,8 @@ func TestSource_FeedsTheEngine(t *testing.T) {
 		GrandTotals: true,
 	}
 
-	model, err := reporting.Run(spec, source.Catalog(), source.Rows(receipts), reporting.MetaInput{})
+	rows, _ := source.RowsWithLines(receipts, lines, LineDimensions{Category: true, Tag: true})
+	model, err := reporting.Run(spec, source.Catalog(), rows, reporting.MetaInput{})
 	if err != nil {
 		t.Fatalf("Run() error = %v", err)
 	}
@@ -534,14 +529,14 @@ func TestSource_EmptyStatusIsTheEmptyString(t *testing.T) {
 	}
 }
 
-// A receipt carrying the same category twice belongs to that bucket once.
-// receipt_categories cannot express it, but a row built by hand can.
+// Two lines of one category are one bucket holding both lines' cost.
 func TestSource_DuplicateCategoriesAreOneBucket(t *testing.T) {
 	source := mustNew(t)
 
-	receipts := []models.Receipt{{
-		Amount:     dec("10.00"),
-		Categories: []models.Category{{Name: "Clothing"}, {Name: "Clothing"}},
+	receipts := []models.Receipt{{Amount: dec("10.00")}}
+	lines := [][]Line{{
+		{Amount: dec("4.00"), Category: "Clothing"},
+		{Amount: dec("6.00"), Category: "Clothing"},
 	}}
 
 	spec := reporting.ReportSpec{
@@ -550,7 +545,8 @@ func TestSource_DuplicateCategoriesAreOneBucket(t *testing.T) {
 		GrandTotals: true,
 	}
 
-	model, err := reporting.Run(spec, source.Catalog(), source.Rows(receipts), reporting.MetaInput{})
+	rows, _ := source.RowsWithLines(receipts, lines, LineDimensions{Category: true})
+	model, err := reporting.Run(spec, source.Catalog(), rows, reporting.MetaInput{})
 	if err != nil {
 		t.Fatalf("Run() error = %v", err)
 	}

@@ -164,7 +164,7 @@ func (service ReportService) buildModel(
 
 	filter, periodLabel := prepareReportFilter(userId, command, now, location)
 
-	catalog, rows, rowsPerReceipt, err := service.loadRows(userId, command.GroupIds, filter, reportSplitOptions(command), location)
+	catalog, rows, rowsPerReceipt, err := service.loadRows(userId, command.GroupIds, filter, lineDimensionsInUse(command), location)
 	if err != nil {
 		return reportBuild{}, err
 	}
@@ -298,7 +298,7 @@ func (service ReportService) loadRows(
 	userId uint,
 	groupIds []string,
 	filter commands.ReceiptPagedRequestFilter,
-	splitOptions receiptsource.SplitOptions,
+	dimensions receiptsource.LineDimensions,
 	location *time.Location,
 ) (reporting.FieldCatalog, []reporting.Row, []int, error) {
 	dataService := NewReportDataService(service.TX)
@@ -308,7 +308,7 @@ func (service ReportService) loadRows(
 	var rows []reporting.Row
 	var rowsPerReceipt []int
 	for index, groupId := range groupIds {
-		rowSet, err := dataService.RowsWithSplit(userId, groupId, filter, splitOptions)
+		rowSet, err := dataService.RowsWithLines(userId, groupId, filter, dimensions)
 		if err != nil {
 			return reporting.FieldCatalog{}, nil, nil, err
 		}
@@ -322,8 +322,8 @@ func (service ReportService) loadRows(
 }
 
 // capRowsToReceipts keeps the rows of the first limit receipts. It cuts on whole
-// receipts, so a split receipt's shares are never partly in the sample; without
-// a split every receipt is one row and this is a plain row cap. limit <= 0
+// receipts, so a receipt divided by its lines is never partly in the sample;
+// otherwise every receipt is one row and this is a plain row cap. limit <= 0
 // keeps everything.
 //
 // The sample is deliberately the first receipts in loadRows' order — each group
@@ -343,32 +343,17 @@ func capRowsToReceipts(rows []reporting.Row, rowsPerReceipt []int, limit int) []
 	return rows[:end]
 }
 
-// reportSplitOptions decides which of the request's split boxes take effect.
-//
-// A split applies only to a dimension the report attributes by — a grouping
-// level, or the aggregate detail dimension. Anywhere else it would change
-// nothing a reader sees but the number of rows (a records-mode report would list
-// each receipt once per category), so a ticked box on a report that never cuts by
-// that dimension is a no-op.
-func reportSplitOptions(command commands.ReportRequestCommand) receiptsource.SplitOptions {
-	options := receiptsource.SplitOptions{
-		Categories: command.SplitCategoriesEqually && reportAttributesBy(command, receiptsource.KeyCategory),
-		Tags:       command.SplitTagsEqually && reportAttributesBy(command, receiptsource.KeyTag),
+// lineDimensionsInUse says which line fields (category, tag, health, planned)
+// the report cuts by: as a grouping level, or as the dimension an aggregate
+// detail rolls up by. Only those divide a receipt by its lines; a line field used
+// as a plain column just labels the receipt's row, since cutting there would
+// change nothing a reader sees but the number of rows.
+func lineDimensionsInUse(command commands.ReportRequestCommand) receiptsource.LineDimensions {
+	keys := append([]string(nil), command.GroupBy...)
+	if command.Detail.Mode == commands.ReportDetailAggregate {
+		keys = append(keys, command.Detail.By)
 	}
-	if !options.Active() {
-		return options
-	}
-
-	return options
-}
-
-// reportAttributesBy reports whether the report buckets receipts by key: as a
-// grouping level, or as the dimension an aggregate detail rolls up by.
-func reportAttributesBy(command commands.ReportRequestCommand, key reporting.FieldKey) bool {
-	if command.Detail.Mode == commands.ReportDetailAggregate && command.Detail.By == string(key) {
-		return true
-	}
-	return slices.Contains(command.GroupBy, string(key))
+	return receiptsource.LineDimensionsFor(keys)
 }
 
 // renderedFile is one rendered format awaiting download assembly.
