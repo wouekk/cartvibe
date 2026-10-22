@@ -796,11 +796,13 @@ export class OverviewPageComponent {
 
   private readonly hasAiPoweredReceipts = this.store.selectSignal(FeatureConfigState.hasFeature("aiPoweredReceipts"));
 
-  public readonly canQuickScan = computed(
-    () =>
-      this.hasAiPoweredReceipts() &&
-      hasAll(this.groupPermissions()[this.groupId()] ?? [], Permission.GroupReceiptsQuickScan)
-  );
+  /** Whether anyone has set the AI up yet; without it Quick Scan cannot read a receipt. */
+  public readonly aiConfigured = computed(() => this.hasAiPoweredReceipts());
+
+  private readonly canConfigureAi = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppReceiptProcessingSettingsUpdate));
+
+  /** The button shows whenever the member may scan; without the AI it explains what is missing instead of opening the dialog. */
+  public readonly canQuickScan = computed(() => hasAll(this.groupPermissions()[this.groupId()] ?? [], Permission.GroupReceiptsQuickScan));
 
   /** The shopping list group: this group when readable, otherwise the user's first readable one. */
   public readonly shoppingListGroupId = this.store.selectSignal(ShoppingListState.targetGroupId);
@@ -1331,7 +1333,21 @@ export class OverviewPageComponent {
   }
 
   public openQuickScan(): void {
+    if (!this.aiConfigured()) {
+      this.explainMissingAi();
+      return;
+    }
     openQuickScanDialog(this.matDialog).pipe(take(1)).subscribe();
+  }
+
+  /** No AI yet: say so, and take whoever may set it up to the AI page (anyone else is told to ask). */
+  private explainMissingAi(): void {
+    if (this.canConfigureAi()) {
+      this.snackbarService.hint(this.translation.t(marker("Add an AI API key to scan receipts.")));
+      this.router.navigate(["/ai"]);
+    } else {
+      this.snackbarService.hint(this.translation.t(marker("Scanning needs an AI API key. Ask an admin to add one.")));
+    }
   }
 
   /** Checks a product's barcode on Open Food Facts; see src/product-check. */

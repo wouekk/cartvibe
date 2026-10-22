@@ -37,6 +37,7 @@
           <app-button
             icon="document_scanner"
             [buttonText]="'Quick Scan' | t"
+            [tooltip]="aiConfigured() ? '' : ('Needs an AI API key' | t)"
             matButtonType="matRaisedButton"
             data-testid="overview-quick-scan"
             (clicked)="openQuickScan()"
