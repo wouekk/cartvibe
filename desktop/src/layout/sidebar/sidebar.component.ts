@@ -258,9 +258,6 @@ export class SidebarComponent {
     if (has(Permission.AppTagsRead)) {
       items.push({ label: marker("Manage Tags"), icon: "sell", link: ["/tags"] });
     }
-    if (has(Permission.AppCustomFieldsRead)) {
-      items.push({ label: marker("Manage Custom Fields"), icon: "dynamic_form", link: ["/custom-fields"] });
-    }
     if (has(Permission.AppGroupsRead)) {
       items.push({ label: marker("Manage Households"), icon: "groups", link: ["/groups"] });
     }

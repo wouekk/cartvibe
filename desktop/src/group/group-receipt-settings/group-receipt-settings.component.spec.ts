@@ -9,11 +9,9 @@ import { Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { FormMode } from "../../enums/form-mode.enum";
 import {
-  CustomFieldType,
   GroupsService,
   Permission,
   QuickScanDefaultPaidByType,
-  ReceiptSummaryPosition,
 } from "../../open-api";
 import { PipesModule } from "../../pipes/index";
 import { SnackbarService } from "../../services";
@@ -58,42 +56,9 @@ describe("GroupReceiptSettingsComponent", () => {
     }
   };
 
-  const customFieldOne = { id: 1, name: "Cost Centre", type: CustomFieldType.Text } as any;
-
-  const customFieldTwo = { id: 2, name: "PO Number", type: CustomFieldType.Text } as any;
-
-  // The catalog holder's group: two configured defaults (deliberately not in id
-  // order, so seeding is proven to follow the configured order) and the ingest
-  // toggle on.
-  const testGroupWithDefaults = {
-    id: 1,
-    groupReceiptSettings: {
-      ...testGroup.groupReceiptSettings,
-      defaultCustomFieldIds: [2, 1],
-      applyDefaultCustomFieldsOnIngest: true,
-    }
-  };
-
-  // A group with the summary configured: enabled, two statuses broken out, and one CURRENCY field
-  // totalled. The statuses are deliberately not in enum order, to prove the checkbox seeding does
-  // not depend on the order they arrive in.
-  const testGroupWithSummary = {
-    id: 1,
-    groupReceiptSettings: {
-      ...testGroup.groupReceiptSettings,
-      defaultCustomFieldIds: [],
-      applyDefaultCustomFieldsOnIngest: false,
-      receiptSummaryEnabled: true,
-      receiptSummaryStatuses: ["RESOLVED", "OPEN"],
-      receiptSummaryCustomFieldIds: [3],
-    }
-  };
-
-  const currencyCustomField = { id: 3, name: "HST", type: CustomFieldType.Currency } as any;
 
   interface TestBedOptions {
     group?: any;
-    customFields?: any[];
     appPermissions?: string[];
   }
 
@@ -118,8 +83,7 @@ describe("GroupReceiptSettingsComponent", () => {
             snapshot: {
               data: {
                 formConfig: { mode },
-                group: options.group ?? testGroup,
-                customFields: options.customFields ?? []
+                group: options.group ?? testGroup
               }
             }
           }
@@ -138,16 +102,6 @@ describe("GroupReceiptSettingsComponent", () => {
     fixture.detectChanges();
   };
 
-  // Re-configures the bed as an admin who holds app.custom-fields.read, the only
-  // caller for whom the Default Custom Fields section exists at all.
-  const configureWithCustomFieldPermission = async (mode: FormMode = FormMode.edit) => {
-    TestBed.resetTestingModule();
-    await configureTestBed(mode, {
-      group: testGroupWithDefaults,
-      customFields: [customFieldOne, customFieldTwo],
-      appPermissions: [Permission.AppCustomFieldsRead],
-    });
-  };
 
   beforeEach(async () => {
     await configureTestBed();
@@ -164,17 +118,6 @@ describe("GroupReceiptSettingsComponent", () => {
   it("should initialize form with group receipt settings", () => {
     expect(component.form.getRawValue()).toEqual({
       ...testGroup.groupReceiptSettings,
-      // The summary controls exist for every caller - unlike the currency field picker, they need
-      // no catalog permission. The status group is one control per status, all unchecked here.
-      receiptSummaryEnabled: false,
-      receiptSummaryPosition: ReceiptSummaryPosition.Bottom,
-      receiptSummaryStatuses: {
-        OPEN: false,
-        NEEDS_ATTENTION: false,
-        RESOLVED: false,
-        DRAFT: false,
-        DECLINED: false,
-      },
     });
     expect(component.editLink).toBe(`/groups/${testGroup.id}/receipt-settings/edit`);
   });
@@ -194,17 +137,11 @@ describe("GroupReceiptSettingsComponent", () => {
     component.submit();
 
     // The empty paid-by id is coerced to undefined so the nullable id is omitted from the request.
-    // The summary keys ride along: statuses as a flat array (nothing checked here), the position
-    // as its own value, and receiptSummaryCustomFieldIds deliberately ABSENT, because this caller
-    // lacks app.custom-fields.read and an omitted key means "leave unchanged".
     expect(groupsService.updateGroupReceiptSettings).toHaveBeenCalledWith(
       testGroup.id,
       {
         ...testGroup.groupReceiptSettings,
         quickScanDefaultPaidById: undefined,
-        receiptSummaryEnabled: false,
-        receiptSummaryPosition: ReceiptSummaryPosition.Bottom,
-        receiptSummaryStatuses: [],
       }
     );
     expect(store.dispatch).toHaveBeenCalled();
@@ -317,103 +254,6 @@ describe("GroupReceiptSettingsComponent", () => {
     );
   });
 
-  describe("default custom fields", () => {
-    it("should not build either default custom field control without the permission", () => {
-      // The wipe guard: the command reads a missing key as "leave unchanged", so an
-      // admin who cannot see the catalog must submit neither key.
-      expect(component.canManageDefaultCustomFields).toBe(false);
-      expect(component.form.get("defaultCustomFields")).toBeNull();
-      expect(component.form.get("applyDefaultCustomFieldsOnIngest")).toBeNull();
-    });
-
-    it("should omit both default custom field keys from the command without the permission", () => {
-      const groupsService = TestBed.inject(GroupsService);
-      const store = TestBed.inject(Store);
-
-      const updateSpy = jest
-        .spyOn(groupsService, "updateGroupReceiptSettings")
-        .mockReturnValue(of(testGroup.groupReceiptSettings as any));
-      jest.spyOn(store, "dispatch").mockReturnValue(of(undefined));
-
-      component.submit();
-
-      const command = updateSpy.mock.calls[0][1] as any;
-      expect(command).not.toHaveProperty("defaultCustomFieldIds");
-      expect(command).not.toHaveProperty("applyDefaultCustomFieldsOnIngest");
-    });
-
-    it("should seed the picker with the configured catalog objects", async () => {
-      await configureWithCustomFieldPermission();
-
-      const array = component.defaultCustomFieldsFormArray;
-      expect(array.value).toEqual([customFieldTwo, customFieldOne]);
-      // Same instances as the resolved catalog, not copies: app-autocomlete filters
-      // already-selected options by reference equality, so a rebuilt literal would
-      // leave the field in the dropdown and let it be added twice.
-      expect(array.at(0).value).toBe(customFieldTwo);
-      expect(array.at(1).value).toBe(customFieldOne);
-      expect(component.form.get("applyDefaultCustomFieldsOnIngest")?.value).toBe(true);
-    });
-
-    it("should submit the selected default custom fields as ids", async () => {
-      await configureWithCustomFieldPermission();
-
-      const groupsService = TestBed.inject(GroupsService);
-      const store = TestBed.inject(Store);
-
-      const updateSpy = jest
-        .spyOn(groupsService, "updateGroupReceiptSettings")
-        .mockReturnValue(of(testGroupWithDefaults.groupReceiptSettings as any));
-      jest.spyOn(store, "dispatch").mockReturnValue(of(undefined));
-
-      component.submit();
-
-      const command = updateSpy.mock.calls[0][1] as any;
-      expect(command.defaultCustomFieldIds).toEqual([2, 1]);
-      expect(command.applyDefaultCustomFieldsOnIngest).toBe(true);
-      // The FormArray of whole CustomField objects must never ride the payload.
-      expect(command).not.toHaveProperty("defaultCustomFields");
-    });
-
-    it("should submit an empty id array when every default is cleared", async () => {
-      await configureWithCustomFieldPermission();
-
-      const groupsService = TestBed.inject(GroupsService);
-      const store = TestBed.inject(Store);
-
-      const updateSpy = jest
-        .spyOn(groupsService, "updateGroupReceiptSettings")
-        .mockReturnValue(of(testGroupWithDefaults.groupReceiptSettings as any));
-      jest.spyOn(store, "dispatch").mockReturnValue(of(undefined));
-
-      component.defaultCustomFieldsFormArray.clear();
-      component.submit();
-
-      expect((updateSpy.mock.calls[0][1] as any).defaultCustomFieldIds).toEqual([]);
-    });
-
-    it("should mark the picker readonly in view mode", async () => {
-      // form.disable() is not enough: app-autocomlete's readonly is a plain @Input
-      // and is what hides the chips' remove buttons, so a viewer could otherwise
-      // still remove a configured field.
-      await configureWithCustomFieldPermission(FormMode.view);
-
-      const picker = fixture.debugElement.query(
-        By.css("[data-testid='group-default-custom-fields']")
-      );
-      expect(picker).toBeTruthy();
-      expect(picker.properties["readonly"]).toBe(true);
-    });
-
-    it("should not mark the picker readonly in edit mode", async () => {
-      await configureWithCustomFieldPermission();
-
-      const picker = fixture.debugElement.query(
-        By.css("[data-testid='group-default-custom-fields']")
-      );
-      expect(picker.properties["readonly"]).toBe(false);
-    });
-  });
 
   it("should leave the whole form disabled in view mode", async () => {
     // initForm disables the form after subscribing to valueChanges, and that disable emits - so the
@@ -424,134 +264,5 @@ describe("GroupReceiptSettingsComponent", () => {
     expect(component.form.disabled).toBe(true);
     expect(component.form.get("quickScanCommentEnabled")?.disabled).toBe(true);
     expect(component.form.get("quickScanCommentRequired")?.disabled).toBe(true);
-  });
-  describe("the receipt summary section", () => {
-    // The master toggle and the status checkboxes need no catalog permission - gating them would
-    // lock an admin without app.custom-fields.read out of the feature entirely. This is the
-    // deliberate asymmetry with the currency field picker below.
-    it("builds the toggle and status controls without app.custom-fields.read", async () => {
-      TestBed.resetTestingModule();
-      await configureTestBed(FormMode.edit, { group: testGroupWithSummary });
-
-      expect(component.form.get("receiptSummaryEnabled")?.value).toBe(true);
-      expect(component.form.get("receiptSummaryStatuses.RESOLVED")?.value).toBe(true);
-      expect(component.form.get("receiptSummaryStatuses.OPEN")?.value).toBe(true);
-      expect(component.form.get("receiptSummaryStatuses.DRAFT")?.value).toBe(false);
-      // ...but the currency picker does not exist for this caller.
-      expect(component.form.get("receiptSummaryCustomFields")).toBeNull();
-    });
-
-    // The position joins the toggle and the statuses outside the catalog gate, for the same
-    // reason: an admin who can turn the summary on must be able to say where it goes.
-    it("builds and submits the position without app.custom-fields.read", async () => {
-      TestBed.resetTestingModule();
-      await configureTestBed(FormMode.edit, { group: testGroupWithSummary });
-
-      expect(component.form.get("receiptSummaryPosition")?.value).toBe(
-        ReceiptSummaryPosition.Bottom
-      );
-      component.form.get("receiptSummaryPosition")?.setValue(ReceiptSummaryPosition.Top);
-
-      const groupsService = TestBed.inject(GroupsService);
-      jest.spyOn(groupsService, "updateGroupReceiptSettings")
-        .mockReturnValue(of(testGroupWithSummary.groupReceiptSettings as any));
-      jest.spyOn(TestBed.inject(Store), "dispatch").mockReturnValue(of(undefined));
-
-      component.submit();
-
-      const command = (groupsService.updateGroupReceiptSettings as jest.Mock).mock.calls[0][1];
-      expect(command.receiptSummaryPosition).toBe(ReceiptSummaryPosition.Top);
-    });
-
-    // A group whose settings row predates the column reads "" off the wire. The server normalizes
-    // it too, but the select needs a real value or it renders blank with no way to tell which
-    // position is in force.
-    it("falls back to BOTTOM when the group carries no position", async () => {
-      TestBed.resetTestingModule();
-      await configureTestBed(FormMode.edit, {
-        group: {
-          ...testGroupWithSummary,
-          groupReceiptSettings: {
-            ...testGroupWithSummary.groupReceiptSettings,
-            receiptSummaryPosition: "" as unknown as ReceiptSummaryPosition,
-          },
-        } as any,
-      });
-
-      expect(component.form.get("receiptSummaryPosition")?.value).toBe(
-        ReceiptSummaryPosition.Bottom
-      );
-    });
-
-    it("omits receiptSummaryCustomFieldIds without the permission, so a save cannot wipe it", async () => {
-      TestBed.resetTestingModule();
-      await configureTestBed(FormMode.edit, { group: testGroupWithSummary });
-
-      const groupsService = TestBed.inject(GroupsService);
-      jest.spyOn(groupsService, "updateGroupReceiptSettings")
-        .mockReturnValue(of(testGroupWithSummary.groupReceiptSettings as any));
-      jest.spyOn(TestBed.inject(Store), "dispatch").mockReturnValue(of(undefined));
-
-      component.submit();
-
-      const command = (groupsService.updateGroupReceiptSettings as jest.Mock).mock.calls[0][1];
-      expect(command).not.toHaveProperty("receiptSummaryCustomFieldIds");
-      // The keys this caller DOES own are still sent.
-      expect(command.receiptSummaryEnabled).toBe(true);
-      expect(command.receiptSummaryStatuses.sort()).toEqual(["OPEN", "RESOLVED"]);
-    });
-
-    it("seeds and submits the currency field selection for a permission holder", async () => {
-      TestBed.resetTestingModule();
-      await configureTestBed(FormMode.edit, {
-        group: testGroupWithSummary,
-        customFields: [customFieldOne, currencyCustomField],
-        appPermissions: [Permission.AppCustomFieldsRead],
-      });
-
-      expect(component.summaryCustomFieldsFormArray.value).toEqual([currencyCustomField]);
-
-      const groupsService = TestBed.inject(GroupsService);
-      jest.spyOn(groupsService, "updateGroupReceiptSettings")
-        .mockReturnValue(of(testGroupWithSummary.groupReceiptSettings as any));
-      jest.spyOn(TestBed.inject(Store), "dispatch").mockReturnValue(of(undefined));
-
-      component.submit();
-
-      const command = (groupsService.updateGroupReceiptSettings as jest.Mock).mock.calls[0][1];
-      expect(command.receiptSummaryCustomFieldIds).toEqual([3]);
-      // The FormArray holds whole CustomField objects; only ids belong on the command.
-      expect(command).not.toHaveProperty("receiptSummaryCustomFields");
-    });
-
-    // Only CURRENCY fields can be totalled - the server 400s anything else.
-    it("offers only currency fields as options", async () => {
-      TestBed.resetTestingModule();
-      await configureTestBed(FormMode.edit, {
-        group: testGroupWithSummary,
-        customFields: [customFieldOne, customFieldTwo, currencyCustomField],
-        appPermissions: [Permission.AppCustomFieldsRead],
-      });
-
-      expect(component.summaryCurrencyCustomFields).toEqual([currencyCustomField]);
-    });
-
-    it("maps only the checked statuses onto the command", async () => {
-      TestBed.resetTestingModule();
-      await configureTestBed(FormMode.edit, { group: testGroupWithSummary });
-
-      component.form.get("receiptSummaryStatuses.OPEN")?.setValue(false);
-      component.form.get("receiptSummaryStatuses.DECLINED")?.setValue(true);
-
-      const groupsService = TestBed.inject(GroupsService);
-      jest.spyOn(groupsService, "updateGroupReceiptSettings")
-        .mockReturnValue(of(testGroupWithSummary.groupReceiptSettings as any));
-      jest.spyOn(TestBed.inject(Store), "dispatch").mockReturnValue(of(undefined));
-
-      component.submit();
-
-      const command = (groupsService.updateGroupReceiptSettings as jest.Mock).mock.calls[0][1];
-      expect(command.receiptSummaryStatuses.sort()).toEqual(["DECLINED", "RESOLVED"]);
-    });
   });
 });

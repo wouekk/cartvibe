@@ -39,15 +39,6 @@ const routes: Routes = [
         },
       },
       {
-        path: "custom-fields",
-        loadChildren: () =>
-          import("../custom-fields/custom-fields.module").then((m) => m.CustomFieldsModule),
-        canActivate: [AuthGuard, appPermissionGuard],
-        data: {
-          appPermissions: [Permission.AppCustomFieldsRead],
-        },
-      },
-      {
         path: "groups",
         loadChildren: () =>
           import("../group/group.module").then((m) => m.GroupsModule),
