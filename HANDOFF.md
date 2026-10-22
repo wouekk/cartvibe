@@ -1,5 +1,17 @@
 # HANDOFF.md — Where things stand
 
+## Clean-up after 0.6.0 (2026-10-23)
+
+- **GitHub:** only `main` and `preview` remain; 36 merged branches were deleted (every one was fully in `main`). No open PRs;
+  issues are off. Tags and releases v0.1.0 to v0.6.0 are kept. Not checked: GHCR packages (the `gh` token has no
+  `read:packages`); the old `ghcr.io/wouekk/receipt-wrangler` package is no longer updated and can be deleted by hand.
+- **This PC:** the extra worktrees (`product-check`, `receipt-wrangler-i18n`, `receipt-wrangler-rm-mobile`, `rw-dash`,
+  `rw-item-tags`, `rw-preview`) and every local branch but `main` / `preview` are gone; the checkout is on `main`. The old
+  dev servers (4200, 8081, 6379) were stopped. `tools\devstack` keeps `redis\`, `shot.cjs`, a fresh `api.exe` built from
+  `main`, an empty `run\` and two scripts, `api.cmd` and `web.cmd`; `tools\dl` and the stale API builds, logs and one-off
+  scripts are deleted. Older notes below that mention worktrees or branches to delete are history.
+- New work starts on a `feature/<name>` branch from `main`.
+
 ## v0.6.0 released (2026-10-23) from `main`
 
 Everything since v0.5.0 (the clean-schema rework, the UI sprint, the Settings menu, the welcome, Settled) is `v0.6.0`;
@@ -462,9 +474,11 @@ Everything needed to run and look at the app without CI or Docker:
 - **API:** `tools\devstack\api.exe`, built with `bash api/scripts/go-without-cgo.sh build -o <path> .` (image and OCR
   libraries are stubs, so image/PDF/OCR features do not work locally; everything else does). Run it from
   `tools\devstack\run` with `DB_ENGINE=sqlite DB_FILENAME=dev.db ENCRYPTION_KEY=.. SECRET_KEY=.. REDIS_HOST=127.0.0.1
-  BASE_PATH=C:/Users/Marcin/tools/devstack/run`; it listens on :8081; login `admin` / `admin`.
+  BASE_PATH=C:/Users/Marcin/tools/devstack/run`; it listens on :8081; login `admin` / `admin`. `tools\devstack\api.cmd`
+  does exactly that; rebuild `api.exe` after API changes.
 - **Redis stand-in:** `tools\devstack\redis\miniredis.exe` (a Go in-memory Redis on :6379; start it first).
-- **Web:** `npm start` in `desktop/` serves :4200 and proxies /api to :8081.
+- **Web:** `npm start` in `desktop/` serves :4200 and proxies /api to :8081 (`tools\devstack\web.cmd`, the `web` entry in
+  `.claude/launch.json`).
 - **Screenshots:** `tools\devstack\shot.cjs` (Playwright, Chromium installed) logs in and writes PNGs to `tools\devstack\shots`;
   read them with the Read tool to check light/dark, the sidebar and phone widths (set the viewport) before a preview.
 - Not available: Docker (nginx/image paths can only be tested on the NAS), real Redis, ImageMagick/Tesseract.
