@@ -134,7 +134,6 @@
         @for (panel of displayPanels(); track panel.id) {
           <div
             class="relative flex min-w-0 flex-col gap-2"
-            [class.self-start]="isTile(panel.id)"
             [class.z-20]="draggingId() === panel.id"
             [class.opacity-90]="draggingId() === panel.id"
             [class.ring-1]="draggingId() === panel.id"

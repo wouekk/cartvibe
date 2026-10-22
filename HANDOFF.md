@@ -1,11 +1,9 @@
 # HANDOFF.md — Where things stand
 
-## Dashboard customise fixes (2026-10-22, branch `feature/clean-schema`, uncommitted)
+## Dashboard customise fixes (2026-10-22, branch `feature/clean-schema`)
 
-Exact panel widths (no stretch), pointer-driven 2D drag replacing CDK, limit shake + toast, visible resize chip, `2/6` size label.
-Details: `desktop/CLAUDE.md` -> "Panel layout and the customise screen". Local: Jest `src/overview` 120/120, `ng build` OK, `i18n:check` 100% Polish.
-**Not seen in a browser** (drag feel, reflow, shake, both themes, phone width) and no real touch test: look at it on the dev stack before merging.
-The working tree also shows many modified `api/` files (CRLF noise and other changes) that this session did not touch.
+Exact panel widths (no stretch), pointer-driven 2D drag replacing CDK, limit shake + toast, visible resize chip, `2/6` label, menu steps from the current size (it used to read a stale copy). The out-of-box layout now fills its rows (`fillRows`); the donut centre reads "Total" for a long date range; stale NGXS storage keys removed. Details: `desktop/CLAUDE.md` -> "Panel layout and the customise screen".
+Checked on a fresh database booted from this branch (API on 8082 via a `go build -overlay` that changes the port, Redis 6380, web 4202): default layout, customise screen, drag, resize, limits, save + reload, White/Black, 1400 and 390 px. **Quick Scan is hidden until the AI is configured** (`aiPoweredReceipts` is true only when the system settings have a receipt processing settings id): after a DB wipe set it under Manage -> AI. Not seen: a real touch drag, the NAS.
 
 ## Clean-schema rework (2026-10-22, branch `feature/clean-schema`, from `feature/cleanup-audit`; pushed, NOT merged)
 

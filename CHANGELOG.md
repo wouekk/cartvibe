@@ -11,7 +11,7 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 ### Fixed
 - **Dashboard customise screen:** panels keep their exact width (no stretching, so Narrower always shows), drag in any direction
   including diagonally and into empty space, tiles may sit beside charts, a panel at its smallest or largest size shakes and
-  says so, and the resize corner is a visible chip.
+  says so, the resize corner is a visible chip, the starting layout fills its rows, and the donut centre no longer overflows on a long date range.
 
 ### Removed
 - **Custom fields** (definitions, receipt values, group defaults, AI extraction, report fields, permissions) and the **receipt summary** block under the receipts table.

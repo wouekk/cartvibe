@@ -44,6 +44,26 @@ describe("dashboard layout", () => {
     expect(panel(defaultLayout([...ALL, tagPanelId(1)]), "spent").cols).toBe(1);
   });
 
+  it("fills every row of the starting layout, whatever panels are available", () => {
+    const rowTotals = (available: string[]) => {
+      const rows: number[] = [];
+      let used = 0;
+      for (const panel of defaultLayout(available).panels) {
+        if (rows.length === 0 || used + panel.cols > 6) {
+          rows.push(0);
+          used = 0;
+        }
+        used += panel.cols;
+        rows[rows.length - 1] = used;
+      }
+      return rows;
+    };
+    // No shopping list group: four tiles, two charts and the receipts list on its own.
+    expect(rowTotals(["spent", "receipts", "unhealthy", "unplanned", "categories", "trend", "recentReceipts"])).toEqual([6, 6, 6]);
+    expect(rowTotals(ALL)).toEqual([6, 6, 6]);
+    expect(rowTotals([...ALL, tagPanelId(1)])).toEqual([6, 6, 6]);
+  });
+
   it("lets a tile sit between larger panels", () => {
     const panels = resolveLayout(movePanel(defaultLayout(ALL), "wide", "trend", "receipts"), ALL, "wide");
     expect(ids(panels).slice(0, 3)).toEqual(["spent", "trend", "receipts"]);
