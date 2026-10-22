@@ -8,6 +8,17 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+### Added
+- **German, French and Spanish:** the whole interface in Deutsch, Français and Español, next to English and Polish
+  (Settings → Language, or the welcome at the first sign-in).
+- **Reports in your language:** a generated report (the builder preview, PDF, Excel and CSV) reads in the language of the
+  person generating it: field names, statuses, health and planned words, totals, the period line and the footer. The
+  three starter reports' titles and texts are translated too; names you typed stay as written.
+
+### Changed
+- `i18n:extract` also writes the API's report words per language (`api/internal/i18n/locales/`), and CI runs
+  `i18n:check` for API-only changes.
+
 ## [0.6.0] - 2026-10-23
 
 A leaner household app: everything a family did not use is gone, reports read the product lines, the Dashboard can be
