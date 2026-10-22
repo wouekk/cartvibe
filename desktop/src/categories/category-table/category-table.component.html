@@ -24,7 +24,18 @@
       [page]="(state()?.page ?? 1) - 1"
       (sorted)="sorted($event)"
       (pageChange)="updatePageData($event)"
-    ></app-table>
+      emptyIcon="category"
+      [emptyText]="loaded() ? emptyText : ''"
+    >
+      <app-add-button
+        tableEmptyAction
+        *hasAppPermission="Permission.AppCategoriesCreate"
+        data-testid="category-add-empty"
+        [buttonText]="'Add Category' | t"
+        [tooltip]="'Add Category' | t"
+        (clicked)="openAddDialog()"
+      ></app-add-button>
+    </app-table>
   </app-settings-entity-list>
 </app-settings-page>
 

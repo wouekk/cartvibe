@@ -32,7 +32,10 @@ func (ollama OllamaClient) GetChatCompletion() (structs.ChatCompletionResult, er
 		"model":       ollama.ReceiptProcessingSettings.Model,
 		"messages":    ollama.Options.Messages,
 		"temperature": 0,
-		"stream":      false,
+		// Ollama's own /api/chat reads sampling settings only from "options"; the top-level temperature is
+		// for OpenAI-style servers on the same URL.
+		"options": map[string]interface{}{"temperature": 0},
+		"stream":  false,
 	}
 
 	if ollama.ReceiptProcessingSettings.EnforceJsonResponseFormat {

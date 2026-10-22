@@ -18,10 +18,15 @@ var maxReceiptProductAmount = decimal.NewFromInt(100000000)
 
 // UpsertReceiptProductCommand is a person's own entry of a receipt product line (Phase 3 C5): to fix
 // what the AI read, or to add a line it missed. Amount is nil when the line has no price.
+//
+// CategoryId and TagIds are the line's category (nil = Uncategorized) and tags. An update replaces both
+// with what is sent, so the desktop always sends the line's current values.
 type UpsertReceiptProductCommand struct {
-	Name     string           `json:"name"`
-	Amount   *decimal.Decimal `json:"amount"`
-	Quantity string           `json:"quantity"`
+	Name       string           `json:"name"`
+	Amount     *decimal.Decimal `json:"amount"`
+	Quantity   string           `json:"quantity"`
+	CategoryId *uint            `json:"categoryId"`
+	TagIds     []uint           `json:"tagIds"`
 }
 
 func (command *UpsertReceiptProductCommand) LoadDataFromRequest(w http.ResponseWriter, r *http.Request) error {
@@ -37,8 +42,22 @@ func (command *UpsertReceiptProductCommand) LoadDataFromRequest(w http.ResponseW
 
 	command.Name = strings.TrimSpace(command.Name)
 	command.Quantity = strings.TrimSpace(command.Quantity)
+	command.TagIds = uniqueIds(command.TagIds)
 
 	return nil
+}
+
+// uniqueIds drops repeats and keeps the order; never nil.
+func uniqueIds(ids []uint) []uint {
+	seen := make(map[uint]bool, len(ids))
+	unique := make([]uint, 0, len(ids))
+	for _, id := range ids {
+		if !seen[id] {
+			seen[id] = true
+			unique = append(unique, id)
+		}
+	}
+	return unique
 }
 
 func (command UpsertReceiptProductCommand) Validate() structs.ValidatorError {

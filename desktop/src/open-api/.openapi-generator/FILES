@@ -8,6 +8,7 @@ api/category.service.ts
 api/comment.service.ts
 api/customField.service.ts
 api/dashboard.service.ts
+api/dashboardLayout.service.ts
 api/exchangeRate.service.ts
 api/export.service.ts
 api/featureConfig.service.ts
@@ -70,6 +71,7 @@ model/customFieldOption.ts
 model/customFieldType.ts
 model/customFieldValue.ts
 model/dashboard.ts
+model/dashboardLayout.ts
 model/deleteAccountCommand.ts
 model/encodedImage.ts
 model/exportFormat.ts
@@ -88,6 +90,7 @@ model/groupOverview.ts
 model/groupOverviewCategory.ts
 model/groupOverviewMonth.ts
 model/groupOverviewProduct.ts
+model/groupOverviewTag.ts
 model/groupReceiptSettings.ts
 model/groupSettings.ts
 model/groupSettingsWhiteListEmail.ts
@@ -151,6 +154,7 @@ model/resetPasswordCommand.ts
 model/role.ts
 model/searchResult.ts
 model/setFoodClassificationCommand.ts
+model/setReceiptProductLabelsCommand.ts
 model/setShoppingListItemCheckedCommand.ts
 model/shoppingList.ts
 model/shoppingListEvent.ts
@@ -172,6 +176,7 @@ model/tag.ts
 model/tagView.ts
 model/taskQueueConfiguration.ts
 model/tokenPair.ts
+model/updateDashboardLayoutCommand.ts
 model/updateGroupMemberGrantsCommand.ts
 model/updateGroupReceiptSettingsCommand.ts
 model/updateGroupSettingsCommand.ts

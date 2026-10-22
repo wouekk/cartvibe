@@ -17,9 +17,12 @@ import { SharedUiModule } from "../shared-ui/shared-ui.module";
 import { OverviewPageComponent } from "./overview-page/overview-page.component";
 import { OverviewRoutingModule } from "./overview-routing.module";
 import { OverviewShoppingPanelComponent } from "./overview-shopping-panel/overview-shopping-panel.component";
+import { DragDropModule } from "@angular/cdk/drag-drop";
+import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
+import { HlmSwitchImports } from "@spartan-ng/helm/switch";
 
 @NgModule({
   declarations: [OverviewPageComponent],
-  imports: [ApexChartComponent, HlmBadge, DisplayCurrencyPipe, ...HlmCheckboxImports, ...HlmTableImports, MoneyComponent, ShopMonogramComponent, ButtonModule, CommonModule, HlmButton, AppIconComponent, MonthStepperComponent, PeriodPickerComponent, OverviewRoutingModule, PipesModule, SharedUiModule, OverviewShoppingPanelComponent],
+  imports: [ApexChartComponent, HlmBadge, DisplayCurrencyPipe, ...HlmCheckboxImports, ...HlmTableImports, MoneyComponent, ShopMonogramComponent, ButtonModule, CommonModule, HlmButton, AppIconComponent, MonthStepperComponent, PeriodPickerComponent, OverviewRoutingModule, PipesModule, SharedUiModule, OverviewShoppingPanelComponent, DragDropModule, ...HlmDropdownMenuImports, ...HlmSwitchImports],
 })
 export class OverviewModule {}

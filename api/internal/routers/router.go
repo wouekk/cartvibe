@@ -104,6 +104,10 @@ func BuildRootRouter() *chi.Mux {
 	userPreferencesRouter := BuildUserPreferencesRouter()
 	rootRouter.Mount("/api/userPreferences", userPreferencesRouter)
 
+	// Dashboard layout router (the landing page's panel arrangement, per user)
+	dashboardLayoutRouter := BuildDashboardLayoutRouter()
+	rootRouter.Mount("/api/dashboardLayout", dashboardLayoutRouter)
+
 	// Dashboard router
 	dashboardRouter := BuildDashboardRouter()
 	rootRouter.Mount("/api/dashboard", dashboardRouter)

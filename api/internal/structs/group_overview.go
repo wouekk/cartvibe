@@ -29,6 +29,8 @@ type GroupOverview struct {
 	UnplannedTotal         decimal.Decimal         `json:"unplannedTotal"`
 	PreviousUnplannedTotal decimal.Decimal         `json:"previousUnplannedTotal"`
 	Categories             []GroupOverviewCategory `json:"categories"`
+	// Tags are the tiles of the tags marked "show on the Dashboard", by name; always an array.
+	Tags []GroupOverviewTag `json:"tags"`
 	// Months are the six months ending with the period's last month, oldest first; a month without
 	// receipts is a zero.
 	Months []GroupOverviewMonth `json:"months"`
@@ -39,11 +41,22 @@ type GroupOverview struct {
 	TrendUnit string               `json:"trendUnit"`
 }
 
-// GroupOverviewCategory is one category's spend in the period. A receipt counts in full toward each
-// of its categories, as on the pie chart widget, so these can add up to more than the period's total.
+// GroupOverviewCategory is one category's spend in the period: what its product lines cost, plus, under
+// Uncategorized, what a receipt's lines do not account for. CategoryId is nil for Uncategorized, and for a
+// name kept by lines whose category was deleted before categories were stored by id.
 type GroupOverviewCategory struct {
-	Name  string          `json:"name"`
-	Total decimal.Decimal `json:"total"`
+	CategoryId *uint           `json:"categoryId"`
+	Name       string          `json:"name"`
+	Total      decimal.Decimal `json:"total"`
+}
+
+// GroupOverviewTag is one Dashboard tag tile: what the period's priced product lines carrying the tag
+// cost, and the same for the previous period. Its share is Total over the overview's Total.
+type GroupOverviewTag struct {
+	TagId         uint            `json:"tagId"`
+	Name          string          `json:"name"`
+	Total         decimal.Decimal `json:"total"`
+	PreviousTotal decimal.Decimal `json:"previousTotal"`
 }
 
 type GroupOverviewMonth struct {

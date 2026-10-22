@@ -287,6 +287,10 @@ func (service ReceiptProcessingService) processImages(
 		return result, err
 	}
 
+	// Tags are the household's own labels, set by people only; the AI picks categories and health.
+	// A stored custom prompt may still ask for tags, so whatever the answer holds is dropped here.
+	dropAiTags(&receipt)
+
 	receipt.CustomFields = aiCustomFieldValues
 
 	// A receipt in another currency is converted at the household's own rate (Phase 3 currencies).
@@ -552,9 +556,17 @@ func (service ReceiptProcessingService) buildTemplateVariableMap(ocrText string)
 
 func (service ReceiptProcessingService) getCategoriesString() (string, error) {
 	categoryRepository := repositories.NewCategoryRepository(nil)
-	categories, err := categoryRepository.GetAllCategories("id, name, description")
+	allCategories, err := categoryRepository.GetAllCategories("id, name, description, skipped")
 	if err != nil {
 		return "", err
+	}
+
+	// A category switched off for the AI (Manage Categories) is never offered, as on the product lines.
+	categories := make([]models.Category, 0, len(allCategories))
+	for _, category := range allCategories {
+		if !category.Skipped {
+			categories = append(categories, category)
+		}
 	}
 
 	// Restrict the candidate categories to the triggering user's grants (no-op
@@ -567,7 +579,18 @@ func (service ReceiptProcessingService) getCategoriesString() (string, error) {
 		}
 	}
 
-	categoriesBytes, err := json.Marshal(categories)
+	// Only what the AI chooses by: the full rows carried timestamps and flags, many tokens per category.
+	type promptCategory struct {
+		Id          uint   `json:"id"`
+		Name        string `json:"name"`
+		Description string `json:"description,omitempty"`
+	}
+	compact := make([]promptCategory, len(categories))
+	for i, category := range categories {
+		compact[i] = promptCategory{Id: category.ID, Name: category.Name, Description: category.Description}
+	}
+
+	categoriesBytes, err := json.Marshal(compact)
 	if err != nil {
 		return "", err
 	}
@@ -596,4 +619,19 @@ func (service ReceiptProcessingService) getTagsString() (string, error) {
 	}
 
 	return string(tagsBytes), nil
+}
+
+// dropAiTags empties the tags of an AI-read receipt and of its items, linked items included.
+func dropAiTags(receipt *commands.UpsertReceiptCommand) {
+	receipt.Tags = []commands.UpsertTagCommand{}
+	for i := range receipt.Items {
+		dropAiItemTags(&receipt.Items[i])
+	}
+}
+
+func dropAiItemTags(item *commands.UpsertItemCommand) {
+	item.Tags = []commands.UpsertTagCommand{}
+	for i := range item.LinkedItems {
+		dropAiItemTags(&item.LinkedItems[i])
+	}
 }

@@ -2820,8 +2820,31 @@ never hand-edited.
   more on the list"). Ticking an item is the Shopping lists page's own crossing off (`setShoppingListItemChecked` +
   `ApplyShoppingListEvent`), so the item leaves at once; a bottom Undo row (`UNDO_WINDOW_MS` 6 s, at most `MAX_UNDO_ROWS` 3) puts
   it back. The list is pinned while an Undo row is up (another list overtaking it must not swap the list under a thumb), and
-  `latestIntent` keeps a slow response from overwriting a later Undo. Below 768 px (`ViewportService.isHandset`) the page renders
-  the same `ng-template` right under the title row, otherwise beside the receipts. Needs `group.shopping-lists.update` to tick.
+  `latestIntent` keeps a slow response from overwriting a later Undo. Where it sits is the panel layout's business (below): first
+  on a phone by default. Needs `group.shopping-lists.update` to tick.
+- **Panel layout and the customise screen** (`src/overview/dashboard-layout/`):
+  - Every tile and panel is a **panel** with a plain-string id: `spent`, `receipts`, `unhealthy`, `unplanned`, `toBuy`, `tag:<tagId>`,
+    `categories`, `trend`, `recentReceipts`, `shoppingList`. `dashboard-layout.ts` (pure, tested) holds `PANEL_CATALOGUE` (group, label,
+    width limits in the six-column PC grid, the fewest tablet columns, height steps), `defaultLayout`, `parseLayout` (anything unreadable is
+    the default; unknown ids are kept), `completeLayout` (panels the saved layout lacks join it, visible, after their group: a tag an admin
+    just put on the Dashboard appears), `resolveLayout` (visible + available, ordered, with spans), `movePanel`, `resizePanel`, `setVisible`.
+  - **Size classes from the grid's own width** (a ResizeObserver, not the viewport): `compact` < 640 px (one column, the phone order),
+    `regular` < 1024 (four columns, charts and tables take the whole row), `wide` (six). The phone order is `compactOrder` once the user arranged
+    the phone, otherwise the shared order with the shopping list first.
+  - **Rows, not a strict grid:** the grid is `flex-wrap`; a panel's width is its share of a row (`panelFlex`) and the panels of a row that is
+    not full grow in proportion, so there are never holes. Tiles (key figures, tags) and larger panels never share a row (`startsNewBand` puts a
+    break between them; a lone tile beside a chart stretched tall). With tag tiles, Spent defaults to one column so six tiles fill a row.
+    Height step 2 is a `34rem` minimum (content grows past it, never clipped); the receipts panel then lists 12 receipts instead of 6.
+  - **The customise screen is this page** on `/overview/group/:groupId/customize` (route data `customise: true`, same guards), so the preview
+    shows real figures: a toolbar (Mobile / Tablet / PC preview as `app-settings-tabs`, Panels, Reset, Cancel, Save), the panel list above the
+    preview (grouped switches; above, not beside, so the PC preview gets the full width), and per panel a strip with a drag handle (CDK
+    `cdkDropList`, `mixed` orientation), a menu (move earlier/later, wider/narrower, taller/shorter) and hide; a corner handle resizes in the
+    PC view (widths are PC-grid columns, so width controls only work there). Panel content is `inert` while editing. Mobile previews at 375 px
+    and Tablet at 768 px inside a hairline frame. Cancel with changes asks first (`ConfirmationDialogComponent`).
+  - **Saving** (`DashboardLayoutStore`, root): `GET /dashboardLayout` once per session (cleared on `Logout`), `PUT` on Save; a failed load is the
+    default layout. `canCustomise` from the API decides whether the Customize button shows (see `api/CLAUDE.md` "Dashboard layout").
+- **Switches:** the helm switch's `data-checked:` classes are patched to `data-[state=checked]:` (brn-switch sets `data-state`; recorded
+  in `tools/spartan-add.cjs`). The helm checkbox has the same mismatch and was left as it is.
 - **Empty cards:** receipts say "No receipts yet in {period}" and shopping lists "There are no items in the shopping
   lists", each with the same button as the page's top right.
 - **Charts never follow the accent:** donut slices are the fixed `CATEGORY_COLORS` (sky, amber, red, violet, pink, teal);
@@ -3048,3 +3071,21 @@ Every Admin and User settings page uses four shared primitives from `src/shared-
 - **CSP** (`docker/default.conf`, still Report-Only): `connect-src` adds `https://world.openfoodfacts.org`, `img-src` adds
   `https://images.openfoodfacts.org`. `Permissions-Policy` already allows `camera=(self)`.
 - E2E: `search-bar-visibility.spec.ts` (header search gated on a permission) is deleted; the header no longer has one.
+
+### Categories and tags on product lines (fork, 2026-10)
+- **Receipt form:** the receipt-level Categories / Tags fields are gone (the form keeps old values, so saving never drops
+  them); Quick Scan no longer asks for them (`showCategories` / `showTags` return false); the household settings lost the
+  two "Hide Receipt Categories/Tags" switches.
+- **Products table** (`receipts/receipt-products`): each line has a Category picker (spartan dropdown, "Uncategorized" first)
+  and a Tags menu (checkbox items, stays open) next to Quantity and Amount; the add row has both too. Choices come from
+  `AuthState.groupCatalog` (the group's categories and tags from AppData), sorted by name. Picks show at once and are saved
+  in order through `setReceiptProductLabels` (a `concatMap` queue; the server's answer replaces the line only when no later
+  pick is pending; a failure reloads). The menu's context is the line as it was when opened, so handlers look the line up
+  again by id. The edit row's Save sends the line's current category and tags (the update replaces them).
+- **Manage Categories / Tags** refresh AppData after add, edit and delete (`refreshAfterChange`), so the pickers see a new
+  name without a reload. The shared `app-table` has an empty state (`emptyText`, `emptyIcon`, `[tableEmptyAction]`
+  projection; pass the text only once loaded). The category form provides `DuplicateValidator` itself: dialogs are created
+  from the root injector, so a provider in the lazy module was invisible and the Add dialog stayed blank (NG0201).
+- **Dashboard:** one tile per tag with "Show on the Dashboard" (tag form switch, on by default for a new tag), the same
+  layout as Unhealthy in a neutral color: name, amount, "{share}% of the spending", the change; it opens the lines behind it
+  (`kind: "TAG"`). Category slices carry `categoryId` and open by it.

@@ -33,6 +33,8 @@ const DONUT_GAP = 2;
 
 export interface DonutSegment {
   name: string;
+  /** The slice's category; absent for Uncategorized, "Other" and a name kept from a deleted category. */
+  categoryId?: number;
   total: number;
   share: string;
   color: string;
@@ -73,11 +75,11 @@ export function monthDayRange(month: FilterMonth): [string, string] {
 
 /**
  * The ring's slices: the largest categories in order, the rest as "Other". Shares are of the sum of
- * the slices — a receipt counts toward each of its categories, so that sum can exceed the month total.
+ * the slices (the categories of the period's product lines, plus what they leave Uncategorized).
  */
 export function buildDonutSegments(categories: GroupOverviewCategory[]): DonutSegment[] {
-  const parsed = categories
-    .map((category) => ({ name: category.name, total: Number(category.total) }))
+  const parsed: { name: string; categoryId?: number; total: number }[] = categories
+    .map((category) => ({ name: category.name, categoryId: category.categoryId ?? undefined, total: Number(category.total) }))
     .filter((category) => category.total > 0);
 
   const head = parsed.slice(0, MAX_DONUT_SEGMENTS);
@@ -97,6 +99,7 @@ export function buildDonutSegments(categories: GroupOverviewCategory[]): DonutSe
     const gap = head.length > 1 ? DONUT_GAP : 0;
     const segment: DonutSegment = {
       name: category.name,
+      ...(category.categoryId !== undefined ? { categoryId: category.categoryId } : {}),
       total: category.total,
       share: `${Math.round((category.total / sum) * 1000) / 10}%`,
       color: CATEGORY_COLORS[index % CATEGORY_COLORS.length],

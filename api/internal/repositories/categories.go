@@ -100,7 +100,8 @@ func (repository CategoryRepository) GetAllPagedCategories(pagedRequestCommand c
 	query = query.Table("categories").
 		Select(selectString).
 		Joins("LEFT JOIN receipt_categories ON categories.id = receipt_categories.category_id").
-		Joins("LEFT JOIN receipt_products ON LOWER(receipt_products.food_group) = LOWER(categories.name)").
+		// By id: LOWER() folds only ASCII on SQLite, so a name match lost "Ślimaki" and other non-ASCII names.
+		Joins("LEFT JOIN receipt_products ON receipt_products.category_id = categories.id").
 		Group("categories.id, categories.name, categories.description, categories.skipped, categories.aliases")
 
 	err := query.Scan(&categories).Error
@@ -121,6 +122,15 @@ func (repository CategoryRepository) DeleteCategory(categoryId uint) error {
 			return err
 		}
 
+		// Its product lines become Uncategorized (category_id is a plain id, so nothing cascades).
+		err = tx.Model(&models.ReceiptProduct{}).Where("category_id = ?", categoryId).Updates(map[string]any{
+			"category_id": nil,
+			"food_group":  "",
+		}).Error
+		if err != nil {
+			return err
+		}
+
 		err = tx.Where("id = ?", categoryId).Delete(&models.Category{}).Error
 		if err != nil {
 			return err
@@ -137,8 +147,8 @@ func (repository CategoryRepository) DeleteCategory(categoryId uint) error {
 
 // UpdateCategory saves a category's name, description and skip flag. A rename (Phase 3 feedback) also
 // keeps the old name as an alias, so the AI is told to use the new name instead of it and an answer
-// that still says the old name lands here, and moves the products that carried the old name to the new
-// one, so the Dashboard and the products lists agree at once. Everything is one transaction.
+// that still says the old name lands here. Products point at the category by id, so they follow without
+// moving; the name they carry alongside is updated in the same transaction.
 func (repository CategoryRepository) UpdateCategory(categoryToUpdate models.Category, querySelect string) (models.Category, error) {
 	db := repository.GetDB()
 
@@ -168,9 +178,11 @@ func (repository CategoryRepository) UpdateCategory(categoryToUpdate models.Cate
 			return err
 		}
 
-		if renamed {
+		// The products keep their category_id; only the name they carry alongside follows, even a change of
+		// case alone.
+		if newName != current.Name {
 			return tx.Model(&models.ReceiptProduct{}).
-				Where("LOWER(food_group) = ?", strings.ToLower(current.Name)).
+				Where("category_id = ?", categoryToUpdate.ID).
 				Update("food_group", newName).Error
 		}
 		return nil

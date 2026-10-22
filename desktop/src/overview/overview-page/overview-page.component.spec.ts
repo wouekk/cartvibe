@@ -9,10 +9,13 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppDialog } from "../../dialog/app-dialog";
-import { ActivatedRoute, convertToParamMap, provideRouter } from "@angular/router";
+import { ActivatedRoute, convertToParamMap, provideRouter, Router } from "@angular/router";
+import { parseLayout } from "../dashboard-layout/dashboard-layout";
+import { DashboardLayoutStore } from "../dashboard-layout/dashboard-layout.store";
 import { NgxsModule, Store } from "@ngxs/store";
-import { BehaviorSubject, of } from "rxjs";
+import { BehaviorSubject, of, Subject } from "rxjs";
 import {
+  DashboardLayoutService,
   GroupOverview,
   OverviewService,
   Permission,
@@ -27,6 +30,7 @@ import { SetPermissions, SetUserPreferences } from "../../store/auth.state.actio
 import { GroupState } from "../../store/group.state";
 import { ShoppingListState } from "../../store/shopping-list.state";
 import { SystemSettingsState } from "../../store/system-settings.state";
+import { UserState } from "../../store/user.state";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { todayInZone } from "../../utils/app-time-zone";
 import { toDayKey } from "../overview-period";
@@ -73,6 +77,8 @@ describe("OverviewPageComponent", () => {
   let overviewService: { getGroupOverview: jest.Mock };
   let receiptService: { getReceiptsForGroup: jest.Mock };
   const params = new BehaviorSubject(convertToParamMap({ groupId: "1" }));
+  let routeData: BehaviorSubject<Record<string, unknown>>;
+  let dashboardLayoutService: { getDashboardLayout: jest.Mock; updateDashboardLayout: jest.Mock };
 
   const text = (testId: string): string =>
     fixture.nativeElement.querySelector(`[data-testid="${testId}"]`)?.textContent ?? "";
@@ -90,16 +96,22 @@ describe("OverviewPageComponent", () => {
       getGroupOverview: jest.fn((_groupId: number, _month: string, from: string, to: string) => of(overview(from, to))),
     };
     receiptService = { getReceiptsForGroup: jest.fn(() => of({ data: [], totalCount: 0 })) };
+    routeData = new BehaviorSubject<Record<string, unknown>>({});
+    dashboardLayoutService = {
+      getDashboardLayout: jest.fn(() => of({ userId: 1, layout: "", canCustomise: true })),
+      updateDashboardLayout: jest.fn((command: { layout: string }) => of({ userId: 1, layout: command.layout, canCustomise: true })),
+    };
 
     await TestBed.configureTestingModule({
       declarations: [OverviewPageComponent],
-      imports: [TranslatePipe, NgxsModule.forRoot([AuthState, FeatureConfigState, GroupState, ShoppingListState, SystemSettingsState]), PipesModule, SharedUiModule, MoneyComponent, ShopMonogramComponent, DisplayCurrencyPipe, ...HlmCheckboxImports],
+      imports: [TranslatePipe, NgxsModule.forRoot([AuthState, FeatureConfigState, GroupState, ShoppingListState, SystemSettingsState, UserState]), PipesModule, SharedUiModule, MoneyComponent, ShopMonogramComponent, DisplayCurrencyPipe, ...HlmCheckboxImports],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
-        { provide: ActivatedRoute, useValue: { paramMap: params } },
+        { provide: ActivatedRoute, useValue: { paramMap: params, data: routeData, snapshot: { get data() { return routeData.value; } } } },
+        { provide: DashboardLayoutService, useValue: dashboardLayoutService },
         { provide: OverviewService, useValue: overviewService },
         { provide: ReceiptService, useValue: receiptService },
         { provide: ShoppingListService, useValue: { getShoppingListsForGroup: jest.fn(() => of([])) } },
@@ -169,7 +181,7 @@ describe("OverviewPageComponent", () => {
     expect(overviewService.getGroupOverview).not.toHaveBeenCalled();
     expect(text("overview-pick-range")).toContain("Type a first and a last day");
 
-    component.period.set({ from: "2026-10-01", to: "2026-10-10", label: "1 Oct 2026 – 10 Oct 2026" });
+    component.period.set({ from: "2026-10-01", to: "2026-10-10", label: "1 Oct 2026 â 10 Oct 2026" });
     await fixture.whenStable();
 
     expect(overviewService.getGroupOverview).toHaveBeenLastCalledWith(1, undefined, "2026-10-01", "2026-10-10");
@@ -204,6 +216,31 @@ describe("OverviewPageComponent", () => {
 
     expect(open.mock.calls[0][1]?.data).toMatchObject({ kind: "FOODGROUP", foodGroup: "Dairy" });
     expect(open.mock.calls[1][1]?.data).toMatchObject({ kind: "FOODGROUP", foodGroup: "" });
+  });
+
+  it("opens a category slice by its id when it has one", () => {
+    const open = jest.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({} as never);
+
+    component.openCategory({ name: "Nabiał", categoryId: 4, total: 1, share: "1%", color: "", dashArray: "", dashOffset: 0 });
+
+    expect(open.mock.calls[0][1]?.data).toMatchObject({ kind: "FOODGROUP", categoryId: 4 });
+  });
+
+  it("gives each tag shown on the Dashboard a tile like Unhealthy, opening the lines behind it", async () => {
+    overviewService.getGroupOverview.mockImplementation((_groupId: number, _month: string, from: string, to: string) =>
+      of({ ...overview(from, to), tags: [{ tagId: 7, name: "Party", total: "23", previousTotal: "10" }] })
+    );
+    component.period.set({ from: "2025-01-01", to: "2025-12-31", label: "2025" });
+    await fixture.whenStable();
+
+    const tile = text("overview-tile-tag-7");
+    expect(tile).toContain("Party");
+    expect(tile).toContain("23");
+    expect(tile).toContain("25% of");
+
+    const open = jest.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({} as never);
+    (fixture.nativeElement.querySelector('[data-testid="overview-tile-tag-7"]') as HTMLElement).click();
+    expect(open.mock.calls[0][1]?.data).toMatchObject({ kind: "TAG", tagId: 7, from: "2025-01-01", to: "2025-12-31" });
   });
 
   describe("monthly spending goal", () => {
@@ -555,6 +592,160 @@ describe("OverviewPageComponent", () => {
       await fixture.whenStable();
       expect(component.focusedSegment()).toBe("Drinks");
       expect(row("Groceries").getAttribute("data-dimmed")).toBe("true");
+    });
+  });
+
+  describe("panel layout", () => {
+    const panelOrder = (): string[] =>
+      Array.from(fixture.nativeElement.querySelectorAll<HTMLElement>('[data-testid^="dashboard-panel-"][data-span]')).map(
+        (panel) => panel.getAttribute("data-testid")!.replace("dashboard-panel-", "")
+      );
+
+    const save = async (layout: object) => {
+      TestBed.inject(DashboardLayoutStore).layout.set(parseLayout(JSON.stringify(layout)));
+      await fixture.whenStable();
+    };
+
+    it("draws the default panels, KPI tiles first, and links each receipt's date to the receipt", async () => {
+      receiptService.getReceiptsForGroup.mockReturnValue(
+        of({ data: [{ id: 41, date: "2025-01-03", name: "Lidl", shopName: "Lidl", amount: "12", status: "OPEN" }], totalCount: 1 })
+      );
+      component.period.set({ from: "2025-01-01", to: "2025-01-31", label: "January 2025" });
+      await fixture.whenStable();
+
+      expect(panelOrder()).toEqual(["spent", "receipts", "unhealthy", "unplanned", "categories", "trend", "recentReceipts"]);
+      // The router directives are not loaded here (the shop name link has no href either); the date is now a link.
+      const dateLink = fixture.nativeElement.querySelector('[data-testid="overview-receipt-date-link"]') as HTMLAnchorElement;
+      expect(dateLink.tagName).toBe("A");
+      expect(dateLink.textContent).toContain("Jan 3");
+    });
+
+    it("follows the saved order and sizes, and leaves hidden panels out", async () => {
+      await save({
+        version: 1,
+        panels: [
+          { id: "trend", visible: true, cols: 6, rows: 1 },
+          { id: "spent", visible: true, cols: 1, rows: 1 },
+          { id: "unhealthy", visible: false, cols: 1, rows: 1 },
+        ],
+      });
+
+      expect(panelOrder().slice(0, 2)).toEqual(["trend", "spent"]);
+      expect(panelOrder()).not.toContain("unhealthy");
+      // Panels the saved layout does not mention still show, after their group.
+      expect(panelOrder()).toContain("receipts");
+      const trend = fixture.nativeElement.querySelector('[data-testid="dashboard-panel-trend"]') as HTMLElement;
+      expect(trend.getAttribute("data-span")).toBe("6");
+    });
+
+    it("gives a tag shown on the Dashboard its own panel next to the KPI tiles", async () => {
+      overviewService.getGroupOverview.mockImplementation((_groupId: number, _month: string, from: string, to: string) =>
+        of({ ...overview(from, to), tags: [{ tagId: 7, name: "Party", total: "23", previousTotal: "10" }] })
+      );
+      component.period.set({ from: "2025-01-01", to: "2025-12-31", label: "2025" });
+      await fixture.whenStable();
+
+      expect(panelOrder().indexOf("tag:7")).toBe(panelOrder().indexOf("unplanned") + 1);
+      expect(component.panelLabel("tag:7")).toBe("Party");
+    });
+
+    it("lists twelve receipts when the receipts panel is made taller", async () => {
+      await save({ version: 1, panels: [{ id: "recentReceipts", visible: true, cols: 4, rows: 2 }] });
+
+      expect(receiptService.getReceiptsForGroup.mock.calls.at(-1)?.[1]).toMatchObject({ pageSize: 12 });
+    });
+
+    it("stacks every panel in one column on a phone-sized grid", async () => {
+      (component as unknown as { gridWidth: { set(width: number): void } }).gridWidth.set(375);
+      await fixture.whenStable();
+
+      expect(component.sizeClass()).toBe("compact");
+      expect(component.gridColumns()).toBe(1);
+      expect(component.panels().every((panel) => panel.span === 1)).toBe(true);
+    });
+
+    it("shows no Customize button to someone who may not customise", async () => {
+      expect(fixture.nativeElement.querySelector('[data-testid="overview-customise"]')).not.toBeNull();
+
+      TestBed.inject(DashboardLayoutStore).canCustomise.set(false);
+      await fixture.whenStable();
+      expect(fixture.nativeElement.querySelector('[data-testid="overview-customise"]')).toBeNull();
+    });
+
+    describe("the customise screen", () => {
+      beforeEach(async () => {
+        routeData.next({ customise: true });
+        await fixture.whenStable();
+      });
+
+      it("swaps the page actions for the customise toolbar and lists the panels by group", () => {
+        expect(fixture.nativeElement.querySelector('[data-testid="overview-quick-scan"]')).toBeNull();
+        expect(fixture.nativeElement.querySelector('[data-testid="dashboard-customise-toolbar"]')).not.toBeNull();
+        expect(component.libraryGroups().map((group) => group.key)).toEqual(["kpi", "charts", "lists"]);
+        expect(fixture.nativeElement.querySelector('[data-testid="dashboard-library-unhealthy"]')).not.toBeNull();
+      });
+
+      it("hides and moves panels in the draft only, then saves the whole layout and returns", async () => {
+        const navigate = jest.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
+
+        component.setPanelVisible("unhealthy", false);
+        component.shiftPanel("trend", -1);
+        await fixture.whenStable();
+        expect(panelOrder()).not.toContain("unhealthy");
+        expect(panelOrder().indexOf("trend")).toBeLessThan(panelOrder().indexOf("categories"));
+        expect(component.layoutDirty()).toBe(true);
+        expect(TestBed.inject(DashboardLayoutStore).layout()).toBeUndefined();
+
+        (fixture.nativeElement.querySelector('[data-testid="dashboard-customise-save"]') as HTMLButtonElement).click();
+        await fixture.whenStable();
+
+        const sent = JSON.parse(dashboardLayoutService.updateDashboardLayout.mock.calls[0][0].layout);
+        expect(sent.version).toBe(1);
+        expect(sent.panels.find((panel: { id: string }) => panel.id === "unhealthy").visible).toBe(false);
+        expect(navigate).toHaveBeenCalledWith(["/overview/group", "1"]);
+        expect(component.layoutDirty()).toBe(false);
+      });
+
+      it("keeps sizes within limits and only widens in the PC view", async () => {
+        const spent = () => component.panels().find((panel) => panel.id === "spent")!;
+        component.resize("spent", { cols: 9 });
+        expect(spent().cols).toBe(2);
+        expect(component.canWiden(spent())).toBe(false);
+        expect(component.canNarrow(spent())).toBe(true);
+
+        component.setPreviewDevice("tablet");
+        (component as unknown as { gridWidth: { set(width: number): void } }).gridWidth.set(744);
+        await fixture.whenStable();
+        expect(component.previewWidth()).toBe(768);
+        expect(component.canNarrow(spent())).toBe(false);
+      });
+
+      it("asks before leaving with unsaved changes, and leaves at once without any", async () => {
+        const navigate = jest.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
+        const open = jest.spyOn(TestBed.inject(AppDialog), "open");
+
+        component.cancelCustomising();
+        expect(open).not.toHaveBeenCalled();
+        expect(navigate).toHaveBeenCalledTimes(1);
+
+        const afterClosed = new Subject<boolean | undefined>();
+        open.mockReturnValue({ componentInstance: {}, afterClosed: () => afterClosed } as never);
+        component.setPanelVisible("trend", false);
+        component.cancelCustomising();
+        expect(open).toHaveBeenCalledTimes(1);
+        expect(navigate).toHaveBeenCalledTimes(1);
+
+        afterClosed.next(true);
+        expect(navigate).toHaveBeenCalledTimes(2);
+        expect(component.layoutDirty()).toBe(false);
+      });
+
+      it("resets to the default layout", async () => {
+        component.setPanelVisible("trend", false);
+        component.resetLayout();
+        await fixture.whenStable();
+        expect(panelOrder()).toContain("trend");
+      });
     });
   });
 });

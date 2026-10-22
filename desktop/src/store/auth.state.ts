@@ -79,6 +79,15 @@ export class AuthState {
     return state.groupPermissions ?? {};
   }
 
+  /** Every group's categories and tags, for a signal that follows an input group id (see groupCategories). */
+  @Selector()
+  static groupCatalog(state: AuthStateInterface): {
+    categories: { [groupId: number]: Category[] };
+    tags: { [groupId: number]: Tag[] };
+  } {
+    return { categories: state.groupCategories ?? {}, tags: state.groupTags ?? {} };
+  }
+
   static groupCategories(groupId: number) {
     return createSelector([AuthState], (state: AuthStateInterface): Category[] => {
       return state.groupCategories?.[groupId] ?? [];

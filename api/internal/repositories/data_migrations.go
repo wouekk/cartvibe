@@ -26,6 +26,7 @@ var dataMigrations = []dataMigration{
 	{name: assignLegacyEquivalentRolesMigration, run: assignLegacyEquivalentRoles},
 	{name: adoptHouseholdGroupMigration, run: adoptHouseholdGroup},
 	{name: adoptTimeZoneFromEnvMigration, run: adoptTimeZoneFromEnv},
+	{name: itemLevelCategoriesAndTagsMigration, run: itemLevelCategoriesAndTags},
 }
 
 // RunDataMigrations applies any registered one-time data migrations that have

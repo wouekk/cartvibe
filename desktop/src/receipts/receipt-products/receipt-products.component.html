@@ -4,7 +4,7 @@
       @if (isInProgress()) {
         <app-icon class="size-[18px]" name="hourglass_top"></app-icon>
       }
-      {{ statusText() }}
+      {{ statusText() | t }}
       @if (view.lastError && view.status !== "PENDING") {
         <span class="basis-full text-[13px] text-muted-foreground">{{ view.lastError }}</span>
       }
@@ -13,17 +13,18 @@
 
   @if (view.products.length > 0) {
     <div class="overflow-x-auto">
-      <table class="w-full border-collapse text-sm tabular-nums [&_td]:border-t [&_td]:border-border [&_td]:py-2 [&_td]:pr-2 [&_td]:align-top [&_th]:pb-2 [&_th]:pr-2 [&_th]:text-left [&_th]:text-xs [&_th]:font-semibold [&_th]:uppercase [&_th]:tracking-wider [&_th]:text-muted-foreground" data-testid="receipt-products-table">
+      <table class="w-full border-collapse text-sm tabular-nums [&_td]:border-t [&_td]:border-border [&_td]:py-2 [&_td]:pr-2 [&_td]:align-middle [&_th]:pb-2 [&_th]:pr-2 [&_th]:text-left [&_th]:text-xs [&_th]:font-semibold [&_th]:uppercase [&_th]:tracking-wider [&_th]:text-muted-foreground" data-testid="receipt-products-table">
         <thead>
           <tr>
             <th scope="col">{{ 'Product' | t }}</th>
             <th scope="col">{{ 'Original' | t }}</th>
-            <th scope="col">{{ 'Category' | t }}</th>
             <th scope="col">{{ 'Health' | t }}</th>
+            <th scope="col">{{ 'Category' | t }}</th>
+            <th scope="col">{{ 'Tags' | t }}</th>
             <th scope="col">{{ 'Quantity' | t }}</th>
             <th scope="col" class="!text-right whitespace-nowrap">{{ 'Amount' | t }}</th>
             @if (canUpdate()) {
-              <th scope="col"><span class="sr-only">{{ 'Correct tags' | t }}</span></th>
+              <th scope="col"><span class="sr-only">{{ 'Actions' | t }}</span></th>
             }
           </tr>
         </thead>
@@ -43,8 +44,9 @@
                   />
                 </td>
                 <td class="text-muted-foreground">{{ product.name }}</td>
-                <td class="text-muted-foreground">{{ product.foodGroup | t }}</td>
                 <td><app-food-tags class="mt-1 flex" [values]="product"></app-food-tags></td>
+                <td><ng-container [ngTemplateOutlet]="categoryCell" [ngTemplateOutletContext]="{ product: product }"></ng-container></td>
+                <td><ng-container [ngTemplateOutlet]="tagsCell" [ngTemplateOutletContext]="{ product: product }"></ng-container></td>
                 <td>
                   <input
                     class="min-h-10 w-full rounded-md border border-border bg-transparent px-2 [font:inherit]"
@@ -92,8 +94,9 @@
                   }
                 </td>
                 <td class="text-muted-foreground" data-testid="receipt-product-original">{{ product.name }}</td>
-                <td data-testid="receipt-product-category">{{ product.foodGroup | titlecase | t }}</td>
                 <td><app-food-tags class="mt-1 flex" [values]="product"></app-food-tags></td>
+                <td><ng-container [ngTemplateOutlet]="categoryCell" [ngTemplateOutletContext]="{ product: product }"></ng-container></td>
+                <td><ng-container [ngTemplateOutlet]="tagsCell" [ngTemplateOutletContext]="{ product: product }"></ng-container></td>
                 <td class="text-muted-foreground">{{ product.quantity }}</td>
                 <td class="!text-right whitespace-nowrap">
                   @if (product.amount) {
@@ -107,10 +110,10 @@
                       type="button"
                       data-testid="receipt-product-tags-menu"
                       [attr.aria-label]="'Correct the tags of ' + (product.displayName || product.name)"
-                      [hlmDropdownMenuTrigger]="tagsMenu"
+                      [hlmDropdownMenuTrigger]="healthMenu"
                       [hlmDropdownMenuTriggerData]="{ product: product }"
                     >
-                      <app-icon name="sell"></app-icon>
+                      <app-icon name="favorite"></app-icon>
                     </button>
                     <button
                       hlmBtn variant="ghost" size="icon"
@@ -138,8 +141,8 @@
         </tbody>
       </table>
     </div>
-    <ng-template #tagsMenu let-product="product">
-<div hlmDropdownMenu class="w-56">
+    <ng-template #healthMenu let-product="product">
+      <div hlmDropdownMenu class="w-56">
         @for (choice of healthChoices; track choice.value) {
           <button
             hlmDropdownMenuItem
@@ -151,7 +154,7 @@
           </button>
         }
       </div>
-</ng-template>
+    </ng-template>
   } @else if (view.status === "DONE") {
     <p class="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground" data-testid="receipt-products-none">{{ 'The AI found no products on this receipt.' | t }}</p>
   }
@@ -167,6 +170,8 @@
         [value]="newName()"
         (input)="setValue(newName, $event)"
       />
+      <ng-container [ngTemplateOutlet]="categoryPicker" [ngTemplateOutletContext]="{ product: undefined, categoryId: newCategoryId(), label: '' }"></ng-container>
+      <ng-container [ngTemplateOutlet]="tagsPicker" [ngTemplateOutletContext]="{ product: undefined, tagIds: newTagIds() }"></ng-container>
       <input
         class="min-h-10 w-full rounded-md border border-border bg-transparent px-2 [font:inherit] flex-[0_1_90px] !w-auto"
         type="text"
@@ -195,6 +200,13 @@
         {{ 'Add' | t }}
       </button>
     </form>
+    @if (newTagIds().length > 0) {
+      <div class="mt-2 flex flex-wrap gap-1.5" data-testid="receipt-product-add-tags">
+        @for (tagId of newTagIds(); track tagId) {
+          <span class="inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">{{ tagName(tagId) }}</span>
+        }
+      </div>
+    }
     @if (formError()) {
       <p class="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-destructive" data-testid="receipt-product-form-error">{{ formError() }}</p>
     }
@@ -216,3 +228,96 @@
 } @else if (loadFailed()) {
   <p class="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground">{{ 'The products could not be loaded.' | t }}</p>
 }
+
+<!-- A line's one category: a picker for people who may edit, the name otherwise. -->
+<ng-template #categoryCell let-product="product">
+  @if (canUpdate()) {
+    <ng-container
+      [ngTemplateOutlet]="categoryPicker"
+      [ngTemplateOutletContext]="{ product: product, categoryId: product.categoryId ?? null, label: categoryName(product.categoryId, product.foodGroup) }"
+    ></ng-container>
+  } @else if (product.categoryId) {
+    <span data-testid="receipt-product-category">{{ categoryName(product.categoryId, product.foodGroup) }}</span>
+  } @else {
+    <span class="text-muted-foreground" data-testid="receipt-product-category">{{ 'Uncategorized' | t }}</span>
+  }
+</ng-template>
+
+<!-- A line's tags: chips, and for people who may edit, a menu to add or remove them. -->
+<ng-template #tagsCell let-product="product">
+  <div class="flex min-h-8 flex-wrap items-center gap-1.5" data-testid="receipt-product-tags">
+    @for (tag of product.tags ?? []; track tag.id) {
+      <span class="inline-flex max-w-40 items-center truncate rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">{{ tag.name }}</span>
+    }
+    @if (canUpdate()) {
+      <ng-container [ngTemplateOutlet]="tagsPicker" [ngTemplateOutletContext]="{ product: product, tagIds: tagIdsOf(product) }"></ng-container>
+    }
+  </div>
+</ng-template>
+
+<ng-template #categoryPicker let-product="product" let-categoryId="categoryId" let-label="label">
+  <button
+    type="button"
+    class="inline-flex h-8 max-w-48 items-center gap-1.5 rounded-md border border-border bg-transparent px-2.5 text-left text-sm whitespace-nowrap transition-colors duration-150 hover:bg-accent hover:text-accent-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none"
+    data-testid="receipt-product-category-picker"
+    [attr.aria-label]="'Category' | t"
+    [hlmDropdownMenuTrigger]="categoryMenu"
+    [hlmDropdownMenuTriggerData]="{ product: product, categoryId: categoryId }"
+  >
+    @if (categoryId !== null) {
+      <span class="truncate">{{ label || categoryName(categoryId) }}</span>
+    } @else {
+      <span class="truncate text-muted-foreground">{{ (product ? 'Uncategorized' : 'Category') | t }}</span>
+    }
+    <app-icon class="shrink-0 text-[0.9rem] text-muted-foreground" name="unfold_more"></app-icon>
+  </button>
+</ng-template>
+
+<ng-template #tagsPicker let-product="product" let-tagIds="tagIds">
+  <button
+    hlmBtn variant="ghost" size="icon-sm"
+    type="button"
+    data-testid="receipt-product-tags-picker"
+    [attr.aria-label]="'Tags' | t"
+    [hlmDropdownMenuTrigger]="tagMenu"
+    [hlmDropdownMenuTriggerData]="{ product: product, tagIds: tagIds }"
+  >
+    <app-icon name="sell"></app-icon>
+  </button>
+</ng-template>
+
+<ng-template #categoryMenu let-product="product" let-categoryId="categoryId">
+  <div hlmDropdownMenu class="max-h-72 w-56 overflow-y-auto">
+    <button hlmDropdownMenuItem data-testid="receipt-product-category-none" (click)="setCategory(product, null)">
+      <app-icon [name]="categoryId === null ? 'check' : ''"></app-icon>
+      <span class="text-muted-foreground">{{ 'Uncategorized' | t }}</span>
+    </button>
+    @if (categoryChoices().length > 0) {
+      <div hlmDropdownMenuSeparator></div>
+    }
+    @for (category of categoryChoices(); track category.id) {
+      <button hlmDropdownMenuItem [attr.data-testid]="'receipt-product-category-' + category.id" (click)="setCategory(product, category.id!)">
+        <app-icon [name]="categoryId === category.id ? 'check' : ''"></app-icon>
+        <span class="truncate">{{ category.name }}</span>
+      </button>
+    }
+  </div>
+</ng-template>
+
+<ng-template #tagMenu let-product="product" let-tagIds="tagIds">
+  <div hlmDropdownMenu class="max-h-72 w-56 overflow-y-auto">
+    @for (tag of tagChoices(); track tag.id) {
+      <button
+        hlmDropdownMenuCheckbox
+        [attr.data-testid]="'receipt-product-tag-' + tag.id"
+        [checked]="tagIds.includes(tag.id)"
+        (triggered)="toggleTag(product, tag.id!)"
+      >
+        <span class="truncate">{{ tag.name }}</span>
+        <hlm-dropdown-menu-checkbox-indicator />
+      </button>
+    } @empty {
+      <div hlmDropdownMenuLabel class="font-normal text-muted-foreground">{{ 'No tags yet. Add them under Manage, Tags.' | t }}</div>
+    }
+  </div>
+</ng-template>

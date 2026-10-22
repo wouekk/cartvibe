@@ -7,6 +7,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { GroupOverviewTag } from './groupOverviewTag';
 import { GroupOverviewCategory } from './groupOverviewCategory';
 import { GroupOverviewMonth } from './groupOverviewMonth';
 
@@ -34,9 +35,13 @@ export interface GroupOverview {
      */
     unhealthyTotal: string;
     /**
-     * Spend per category in the month, largest first. A receipt counts toward each of its categories, so these can add up to more than the total. Always an array.
+     * Spend per category in the period, largest first: what each category\'s product lines cost, and under Uncategorized what a receipt\'s lines do not account for. Always an array.
      */
     categories: Array<GroupOverviewCategory>;
+    /**
+     * One tile per tag marked showOnDashboard, by name: what the period\'s priced product lines carrying the tag cost. A line with two such tags counts toward both. Always an array.
+     */
+    tags?: Array<GroupOverviewTag>;
     /**
      * The six months ending with month, oldest first; a month without receipts is a zero
      */
