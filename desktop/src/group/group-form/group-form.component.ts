@@ -98,6 +98,14 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
   public ngOnInit(): void {
     this.originalGroup = this.activatedRoute.snapshot.data["group"];
     this.formConfig = this.activatedRoute.snapshot.data["formConfig"];
+    // Always editable for anyone who may update (Save in the card footer), like the other settings pages.
+    if (
+      this.formConfig.mode === FormMode.view &&
+      this.originalGroup &&
+      this.store.selectSnapshot(AuthState.hasGroupPermission(this.originalGroup.id, Permission.GroupUpdate))
+    ) {
+      this.formConfig = { ...this.formConfig, mode: FormMode.edit };
+    }
     if (this.originalGroup) {
       this.editLink = `/groups/${this.originalGroup.id}/details/edit`;
       this.canCreateGroupMembers = this.store.selectSignal(
@@ -306,7 +314,8 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
           this.appInitService.getAppData().pipe(map(() => group))
         ),
         tap((group: Group) => {
-          this.navigateToGroupDetails(group.id);
+          this.originalGroup = group;
+          this.form.markAsPristine();
         })
       )
       .subscribe();

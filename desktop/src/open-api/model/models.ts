@@ -95,6 +95,7 @@ export * from './receiptSummaryCommand';
 export * from './receiptSummaryCustomFieldTotal';
 export * from './receiptSummaryPosition';
 export * from './receiptSummaryRow';
+export * from './renameReceiptCommand';
 export * from './reportColumn';
 export * from './reportDetail';
 export * from './reportDocument';

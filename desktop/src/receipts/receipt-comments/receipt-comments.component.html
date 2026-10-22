@@ -1,110 +1,67 @@
-@if (mode() === formMode.add || (mode() === formMode.edit && canCreateComments())) {
-  <div class="mb-2">
-    <app-card>
-      <strong header class="mb-4">{{ 'Leave a Comment' | t }}</strong>
-      <div content class="w-full">
+<div class="rw-card" data-testid="receipt-comments">
+  <div class="rw-card__head">
+    <h3 class="rw-card__title">{{ 'Comments' | t }}</h3>
+  </div>
+  <div class="rw-card__body">
+    @if (commentsArray.length > 0) {
+      <ul class="m-0 flex list-none flex-col p-0">
+        @for (comment of commentsArray.controls; track comment; let index = $index) {
+          <li
+            class="flex items-start gap-3 border-b border-border py-3 first:pt-0 last:border-b-0 last:pb-0"
+            data-testid="receipt-comment"
+          >
+            <app-avatar
+              [user]="comment.value?.userId?.toString() ?? '' | user"
+            ></app-avatar>
+            <div class="min-w-0 flex-1">
+              <div class="flex flex-wrap items-baseline gap-x-2">
+                <strong class="text-sm">
+                  {{ (comment.value?.userId?.toString() ?? '' | user)?.displayName }}
+                </strong>
+                @if (commentTimestamp(index); as timestamp) {
+                  <span class="text-xs text-muted-foreground">
+                    {{ timestamp | appDate: 'medium' }}
+                  </span>
+                }
+              </div>
+              <p class="m-0 mt-1 whitespace-pre-wrap break-words text-sm">
+                {{ comment.value?.comment }}
+              </p>
+            </div>
+            @if (
+              comment.value?.userId?.toString() === loggedInUserId() &&
+              (mode() === formMode.add || (mode() === formMode.edit && canDeleteComments())) &&
+              !isLastCommentLocked()
+            ) {
+              <app-delete-button
+                data-testid="comment-delete"
+                (clicked)="deleteComment(index)"
+              ></app-delete-button>
+            }
+          </li>
+        }
+      </ul>
+    } @else if (mode() === formMode.view || !canCreateComments()) {
+      <p class="m-0 text-sm text-muted-foreground">
+        {{ 'No comments for this receipt' | t }}
+      </p>
+    }
+
+    @if (mode() === formMode.add || (mode() === formMode.edit && canCreateComments())) {
+      <div class="flex flex-col gap-2">
+        <strong class="text-sm">{{ 'Leave a Comment' | t }}</strong>
         <app-textarea
           [label]="'Comment' | t"
           [inputFormControl]="newCommentFormControl"
         ></app-textarea>
-        <ng-container
-          [ngTemplateOutlet]="add"
-        ></ng-container>
-      </div>
-    </app-card>
-  </div>
-}
-
-@if (commentsArray.length > 0) {
-  <app-card>
-    <div
-      content *ngFor="let comment of commentsArray.controls; let index = index"
-    >
-      <ng-container
-        [ngTemplateOutlet]="commentDisplay"
-        [ngTemplateOutletContext]="{
-          commentControl: comment,
-          commentIndex: index
-        }"
-      ></ng-container>
-      <div
-        class="flex ml-[50px]"
-        [ngClass]="{
-          'mb-2': mode() === formMode.edit
-        }"
-      >
-      </div>
-    </div>
-  </app-card>
-} @else if (internalComments().length === 0 && mode() === formMode.view) {
-  <div>{{ 'No comments for this receipt' | t }}</div>
-}
-
-<ng-template
-  #commentDisplay
-  let-commentControl="commentControl"
-  let-commentIndex="commentIndex"
->
-  <div class="flex justify-between items-center mb-2">
-    <div class="flex items-center">
-      <app-avatar
-        class="me-2"
-        [user]="commentControl?.value?.userId?.toString() ?? '' | user"
-      ></app-avatar>
-      <div class="flex flex-col">
-        <div>
-          <strong>
-            {{
-              (commentControl?.value?.userId?.toString() ?? "" | user)
-                ?.displayName
-            }}
-          </strong>
-          <ng-container
-            [ngTemplateOutlet]="dateWrapper"
-            [ngTemplateOutletContext]="{
-              commentIndex: commentIndex,
-            }"
-          ></ng-container>
+        <div class="flex justify-end">
+          <app-button
+            [buttonText]="'Comment' | t"
+            data-testid="comment-add"
+            (clicked)="addComment()"
+          ></app-button>
         </div>
-        <span>{{ commentControl?.value?.comment }}</span>
       </div>
-    </div>
-    <ng-container
-      *ngIf="
-        commentControl?.value?.userId?.toString() === loggedInUserId()
-         && (mode() === formMode.add || (mode() === formMode.edit && canDeleteComments()))
-         && !isLastCommentLocked()
-      "
-    >
-      <app-delete-button
-        data-testid="comment-delete"
-        (clicked)="deleteComment(commentIndex)"
-      ></app-delete-button>
-    </ng-container>
+    }
   </div>
-</ng-template>
-
-<ng-template
-  #dateWrapper
-  let-commentIndex="commentIndex"
->
-  <ng-template
-    [ngTemplateOutlet]="date"
-    [ngTemplateOutletContext]="{
-      comment: internalComments()[commentIndex]
-    }"
-  ></ng-template>
-</ng-template>
-
-<ng-template #date let-comment="comment">
-  <small *ngIf="comment?.updatedAt">
-    <span> - </span>
-    {{ comment?.updatedAt | appDate : "medium" }}
-  </small>
-</ng-template>
-
-<ng-template #add>
-  <div class="flex justify-end">
-    <app-button [buttonText]="'Comment' | t" (clicked)="addComment()"></app-button>
-  </div>
-</ng-template>
+</div>

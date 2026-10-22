@@ -321,6 +321,13 @@ select {
   .rw-card app-table {
     @apply rounded-none! border-0! shadow-none!;
   }
+  /* The table's first and last cells line up with the card's own 24px padding (title, description, rows). */
+  .rw-card app-table :is(th, td):first-child {
+    @apply ps-6!;
+  }
+  .rw-card app-table :is(th, td):last-child {
+    @apply pe-6!;
+  }
   /* A read-only block that keeps the muted step (previews). */
   .rw-inset {
     @apply rounded-lg border border-border/70 bg-muted/30 p-4;

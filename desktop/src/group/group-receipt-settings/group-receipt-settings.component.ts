@@ -112,14 +112,18 @@ export class GroupReceiptSettingsComponent extends BaseFormComponent implements 
   public ngOnInit(): void {
     this.setFormConfigFromRoute(this.activatedRoute);
     this.setOriginalGroup();
+    this.canEdit = this.store.selectSnapshot(
+      AuthState.hasGroupPermission(this.originalGroup.id, Permission.GroupUpdate)
+    );
+    // Always editable for anyone who may update (Save in the card footer), like the other settings pages.
+    if (this.formConfig.mode === FormMode.view && this.canEdit) {
+      this.formConfig = { ...this.formConfig, mode: FormMode.edit };
+    }
     this.customFields = this.activatedRoute.snapshot.data["customFields"] ?? [];
     this.canManageDefaultCustomFields = this.store.selectSnapshot(
       AuthState.hasAppPermission(Permission.AppCustomFieldsRead)
     );
     this.initForm();
-    this.canEdit = this.store.selectSnapshot(
-      AuthState.hasGroupPermission(this.originalGroup.id, Permission.GroupUpdate)
-    );
   }
 
   private initForm(): void {
@@ -323,14 +327,7 @@ export class GroupReceiptSettingsComponent extends BaseFormComponent implements 
           }),
           tap(() => {
             this.snackbarService.success("Receipt settings updated successfully");
-            this.router.navigate(
-              [`/groups/${this.originalGroup.id}/receipt-settings/view`],
-              {
-                queryParams: {
-                  tab: "receipt-settings"
-                }
-              }
-            );
+            this.form.markAsPristine();
           })
         )
         .subscribe();

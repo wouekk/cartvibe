@@ -32,7 +32,7 @@
         type="password"
         data-testid="ai-key"
         [label]="isGemini() ? 'API key' : 'API key (optional)'"
-        [hint]="keyHint()"
+        [placeholder]="keyPlaceholder()"
         [showVisibilityEye]="true"
         [inputFormControl]="form | formGet : 'key'"
       ></app-input>
@@ -75,14 +75,11 @@
         </p>
       }
       <div sectionFooter class="rw-card__footer">
-        @if (saved() && form.dirty) {
-          <span class="rw-card__status">{{ 'Save first to test the new settings.' | t }}</span>
-        }
         <button
           hlmBtn variant="outline"
           type="button"
           data-testid="ai-test"
-          [disabled]="!saved() || form.dirty || testing()"
+          [disabled]="!canTest() || testing()"
           (click)="testConnection()"
         >
           <app-icon name="wifi_tethering"></app-icon>

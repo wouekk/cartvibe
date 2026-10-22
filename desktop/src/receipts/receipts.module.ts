@@ -10,6 +10,7 @@ import { UploadProgressComponent } from "../shared-ui/upload-progress/upload-pro
 import { ShopMonogramComponent } from "../shared-ui/shop-monogram/shop-monogram.component";
 import { HlmCheckboxImports } from "@spartan-ng/helm/checkbox";
 import { HlmSpinner } from "@spartan-ng/helm/spinner";
+import { HlmAttachmentImports } from "@spartan-ng/helm/attachment";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { AutocompleteModule } from "src/autocomplete/autocomplete.module";
@@ -47,6 +48,7 @@ import { QuickActionsDialogComponent } from "./quick-actions-dialog/quick-action
 import { QuickScanDialogComponent } from "./quick-scan-dialog/quick-scan-dialog.component";
 import { ReceiptCommentsComponent } from "./receipt-comments/receipt-comments.component";
 import { ReceiptFormComponent } from "./receipt-form/receipt-form.component";
+import { RenameReceiptDialogComponent } from "./rename-receipt-dialog/rename-receipt-dialog.component";
 import { ReceiptsRoutingModule } from "./receipts-routing.module";
 import { ReceiptsTableComponent } from "./receipts-table/receipts-table.component";
 import { ShareListComponent } from "./share-list/share-list.component";
@@ -63,6 +65,7 @@ import { UserTotalWithPercentagePipe } from "./user-total-with-percentage.pipe";
     ItemListComponent,
     ShareListComponent,
     QuickActionsDialogComponent,
+    RenameReceiptDialogComponent,
     ReceiptCommentsComponent,
     ReceiptFormComponent,
     ReceiptsTableComponent,
@@ -89,6 +92,7 @@ import { UserTotalWithPercentagePipe } from "./user-total-with-percentage.pipe";
     HlmSpinner,
     ExpansionPanelComponent,
     AppIconComponent,
+    ...HlmAttachmentImports,
     ...HlmDropdownMenuImports,
     ...HlmTooltipImports,
     PipesModule,

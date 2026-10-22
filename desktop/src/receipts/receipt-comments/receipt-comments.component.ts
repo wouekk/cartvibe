@@ -95,6 +95,12 @@ export class ReceiptCommentsComponent implements OnInit {
     });
   }
 
+  // Unsaved add-mode comments have no timestamp, so none is shown for them.
+  public commentTimestamp(index: number): string | undefined {
+    const comment = this.internalComments()[index];
+    return comment?.createdAt || comment?.updatedAt || undefined;
+  }
+
   public addComment(): void {
     const isValid = this.newCommentFormControl.valid && this.newCommentFormControl.value.trim() !== "";
     const newComment = {

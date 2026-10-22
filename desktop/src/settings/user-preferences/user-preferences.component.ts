@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
 import { FormMode } from "src/enums/form-mode.enum";
+import { FormConfig } from "src/interfaces";
 import { BaseFormComponent } from "../../form/index";
 import { Permission, UserPreferencesService, UserShortcut } from "../../open-api";
 import { SnackbarService } from "../../services";
@@ -57,7 +58,7 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
   }
 
   public ngOnInit(): void {
-    this.formConfig = this.activatedRoute.snapshot.data["formConfig"];
+    this.formConfig = this.editableConfig(this.activatedRoute.snapshot.data["formConfig"], this.canEdit());
     this.initForm();
   }
 
@@ -151,6 +152,14 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
   }
 
 
+  /**
+   * User settings are always editable (Save in the card footer, like System Settings): a view route turns into the
+   * edit form for anyone who may update, so there is no pencil to press first.
+   */
+  private editableConfig(config: FormConfig, canEdit: boolean): FormConfig {
+    return config?.mode === FormMode.view && canEdit ? { ...config, mode: FormMode.edit } : config;
+  }
+
   public submit(): void {
     if (this.form.valid) {
       const result = this.form.value;
@@ -189,12 +198,7 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
               "User preferences successfully updated"
             );
             this.store.dispatch(new SetUserPreferences(updatedUserPreferences));
-            this.router.navigate(["/settings/user-preferences/view"],
-              {
-                queryParams: {
-                  tab: "user-preferences",
-                }
-              });
+            this.form.markAsPristine();
           })
         )
         .subscribe();

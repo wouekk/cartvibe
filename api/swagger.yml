@@ -1540,6 +1540,42 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
+  /receipt/{receiptId}/name:
+    parameters:
+      - in: path
+        name: receiptId
+        schema:
+          type: integer
+        required: true
+        description: Id of receipt to rename
+    put:
+      tags:
+        - Receipt
+      summary: Rename receipt
+      description: Changes only the name of a receipt [SYSTEM USER]
+      operationId: renameReceipt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RenameReceiptCommand"
+      responses:
+        200:
+          description: The saved name
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RenameReceiptCommand"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
   /receipt/{receiptId}:
     parameters:
       - in: path
@@ -7361,6 +7397,14 @@ components:
         filename:
           type: string
           description: Name of file
+    RenameReceiptCommand:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 255
     QuickScanCommand:
       required:
         - files

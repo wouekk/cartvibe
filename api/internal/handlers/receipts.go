@@ -960,3 +960,51 @@ func DuplicateReceipt(w http.ResponseWriter, r *http.Request) {
 
 	HandleRequest(handler)
 }
+
+// RenameReceipt changes only a receipt's name, so a rename never saves anything else the receipt form holds.
+// It rides the same gate as an edit (group.receipts.update, paid-by visibility), resolved from the receipt.
+func RenameReceipt(w http.ResponseWriter, r *http.Request) {
+	receiptId := chi.URLParam(r, "id")
+
+	handler := structs.Handler{
+		ErrorMessage:     "Error renaming receipt.",
+		Writer:           w,
+		Request:          r,
+		ReceiptId:        receiptId,
+		GroupPermissions: []string{permissions.GroupReceiptsUpdate},
+		ResponseType:     constants.ApplicationJson,
+		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
+			command := commands.RenameReceiptCommand{}
+			err := command.LoadDataFromRequest(w, r)
+			if err != nil {
+				return http.StatusBadRequest, err
+			}
+
+			vErr := command.Validate()
+			if len(vErr.Errors) > 0 {
+				structs.WriteValidatorErrorResponse(w, vErr, http.StatusBadRequest)
+				return 0, nil
+			}
+
+			err = repositories.GetDB().
+				Model(&models.Receipt{}).
+				Where("id = ?", receiptId).
+				Update("name", command.Name).Error
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			responseBytes, err := json.Marshal(command)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			w.WriteHeader(http.StatusOK)
+			w.Write(responseBytes)
+
+			return 0, nil
+		},
+	}
+
+	HandleRequest(handler)
+}

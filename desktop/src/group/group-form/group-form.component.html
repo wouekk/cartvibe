@@ -1,21 +1,31 @@
-<app-form
-  [formConfig]="formConfig"
-  [form]="form"
-  [formTemplate]="formTemplate"
-  [bottomSpacing]="true"
-  [canEdit]="canEdit()"
-  [editButtonRouterLink]="[editLink]"
-  [editButtonQueryParams]="{tab: 'details'}"
-  (submitted)="submit()"
-></app-form>
+<ng-template #householdForm>
+  <app-form
+    [formConfig]="formConfig"
+    [form]="form"
+    [formTemplate]="formTemplate"
+    [canEdit]="canEdit()"
+    [settingsCard]="true"
+    [settingsTitle]="formConfig.mode === 'add' ? 'Add Household' : 'Household'"
+    [editButtonRouterLink]="[editLink]"
+    [editButtonQueryParams]="{tab: 'details'}"
+    (submitted)="submit()"
+  ></app-form>
+</ng-template>
+
+@if (formConfig.mode === 'add') {
+  <app-settings-page title="Add Household" description="Name it, then add the people who share its receipts.">
+    <ng-container [ngTemplateOutlet]="householdForm"></ng-container>
+  </app-settings-page>
+} @else {
+  <ng-container [ngTemplateOutlet]="householdForm"></ng-container>
+}
 
 <ng-template #formTemplate>
-  <div class="w-full">
     <app-audit-detail-section
       [data]="originalGroup"
       [formMode]="formConfig.mode"
     ></app-audit-detail-section>
-    <app-form-section [headerText]="'Group Details' | t" [indent]="true">
+    <app-form-section [panel]="true" [headerText]="'Group Details' | t" [indent]="true">
       <app-input
         [label]="'Group Name' | t"
         [readonly]="formConfig.mode | inputReadonly"
@@ -36,6 +46,7 @@
       ></app-checkbox>
     </app-form-section>
     <app-form-section
+      [panel]="true"
       [headerText]="'Group Members' | t"
       [headerButtonsTemplate]="buttonTemplate"
       [indent]="true"
@@ -48,7 +59,6 @@
       >
       </app-table>
     </app-form-section>
-  </div>
 </ng-template>
 
 <ng-template #buttonTemplate>
