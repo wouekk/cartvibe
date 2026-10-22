@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppDialogRef } from "../dialog/app-dialog";
 import * as scanner from "./barcode-scanner.service";
 import { sampleProduct } from "./fixtures";
+import { BarcodeImageService } from "./barcode-image.service";
 import { OpenFoodFactsService } from "./open-food-facts.service";
 import { ProductCheckDrawerComponent } from "./product-check-drawer.component";
 import { ProductCheckService } from "./product-check.service";
@@ -11,6 +12,7 @@ describe("ProductCheckDrawerComponent", () => {
   let fixture: ComponentFixture<ProductCheckDrawerComponent>;
   let service: ProductCheckService;
   const close = jest.fn();
+  const decode = jest.fn();
 
   const element = (testId: string): HTMLElement | null => fixture.nativeElement.querySelector(`[data-testid="${testId}"]`);
   const text = (testId: string): string => (element(testId)?.textContent ?? "").replace(/\s+/g, " ").trim();
@@ -29,6 +31,7 @@ describe("ProductCheckDrawerComponent", () => {
         provideZonelessChangeDetection(),
         { provide: AppDialogRef, useValue: { close } },
         { provide: OpenFoodFactsService, useValue: { getByBarcode: jest.fn(), search: jest.fn() } },
+        { provide: BarcodeImageService, useValue: { decode } },
       ],
     }).compileComponents();
 
@@ -36,6 +39,8 @@ describe("ProductCheckDrawerComponent", () => {
     fixture = TestBed.createComponent(ProductCheckDrawerComponent);
     await render();
   });
+
+  afterEach(() => jest.restoreAllMocks());
 
   it("explains what to do before anything was checked", () => {
     expect(element("product-check-idle")).not.toBeNull();
@@ -121,6 +126,55 @@ describe("ProductCheckDrawerComponent", () => {
     const withCamera = TestBed.createComponent(ProductCheckDrawerComponent);
     await withCamera.whenStable();
     expect(withCamera.nativeElement.querySelector('[data-testid="product-check-barcode"]')).toBeNull();
+  });
+
+  describe("without live video (plain http, no device)", () => {
+    const photo = () => new File(["x"], "code.jpg", { type: "image/jpeg" });
+
+    const choose = async (testId: string) => {
+      const input = element(testId) as HTMLInputElement;
+      Object.defineProperty(input, "files", { value: [photo()], configurable: true });
+      input.dispatchEvent(new Event("change"));
+      await fixture.whenStable();
+      await Promise.resolve();
+      await render();
+    };
+
+    it("puts the take-photo and upload-photo labels at the top, and a camera icon in the barcode field", () => {
+      const bar = element("barcode-photo-bar") as HTMLElement;
+      expect(bar).not.toBeNull();
+      expect(bar.querySelector("input[capture=environment]")).not.toBeNull();
+      expect(bar.querySelector("input[type=file]:not([capture])")).not.toBeNull();
+      expect(element("barcode-photo-icon")).not.toBeNull();
+      expect((element("product-check-barcode-box") as HTMLElement).contains(element("barcode-photo-icon"))).toBe(true);
+    });
+
+    it("fills the barcode field and looks the product up when the photo is read", async () => {
+      decode.mockResolvedValue("3017620422003");
+      const lookup = jest.spyOn(service, "check").mockImplementation();
+
+      await choose("barcode-photo-upload");
+
+      expect(lookup).toHaveBeenCalledWith("3017620422003");
+      expect((element("product-check-barcode") as HTMLInputElement).value).toBe("3017620422003");
+    });
+
+    it("shows a clear message when the photo has no barcode", async () => {
+      decode.mockResolvedValue(null);
+
+      await choose("barcode-photo-upload");
+
+      expect(element("product-check-photo-failed")).not.toBeNull();
+      expect(service.status()).toBe("photoFailed");
+    });
+  });
+
+  it("offers no photo labels when live video works", async () => {
+    jest.spyOn(scanner, "canUseCamera").mockReturnValue(true);
+    const withCamera = TestBed.createComponent(ProductCheckDrawerComponent);
+    await withCamera.whenStable();
+
+    expect(withCamera.nativeElement.querySelector('[data-testid="barcode-photo-bar"]')).toBeNull();
   });
 
   it("closes from the header button", () => {

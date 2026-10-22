@@ -4,7 +4,7 @@ import { OpenFoodFactsService } from "./open-food-facts.service";
 import { CheckedProduct } from "./product-check.models";
 import { RecentProductsService } from "./recent-products.service";
 
-export type ProductCheckStatus = "idle" | "loading" | "product" | "notFound" | "needsBarcode" | "error";
+export type ProductCheckStatus = "idle" | "loading" | "product" | "notFound" | "needsBarcode" | "photoFailed" | "error";
 
 /**
  * What the product checker is showing. The header input and the scanner feed it; the drawer reads it. A request that is
@@ -48,6 +48,12 @@ export class ProductCheckService {
       next: (product) => this.ifCurrent(request, () => (product ? this.showProduct(product) : this.status.set("notFound"))),
       error: () => this.ifCurrent(request, () => this.status.set("error")),
     });
+  }
+
+  /** A photo gave no barcode: say so, and let the person try another. */
+  public photoFailed(): void {
+    this.latestRequest++;
+    this.status.set("photoFailed");
   }
 
   /** Shows a product (a lookup, or one of the recent scans) and remembers it. */

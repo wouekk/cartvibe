@@ -70,6 +70,15 @@ describe("ProductCheckService", () => {
     expect(service.product()?.name).toBe("Cola");
   });
 
+  it("reports a photo with no barcode, then recovers on the next lookup", () => {
+    service.photoFailed();
+    expect(service.status()).toBe("photoFailed");
+
+    openFoodFacts.getByBarcode.mockReturnValue(of(sampleProduct()));
+    service.check("3017620422003");
+    expect(service.status()).toBe("product");
+  });
+
   it("does nothing for blank input", () => {
     service.check("   ");
 

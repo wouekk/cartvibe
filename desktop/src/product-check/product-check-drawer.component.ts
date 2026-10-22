@@ -4,6 +4,7 @@ import { HlmInputGroupImports } from "@spartan-ng/helm/input-group";
 import { AppDialogRef } from "../dialog/app-dialog";
 import { TranslatePipe } from "../i18n/translate.pipe";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
+import { BarcodePhotoActionsComponent } from "./barcode-photo-actions.component";
 import { canUseCamera } from "./barcode-scanner.service";
 import { AdditiveInfo, describeAdditives } from "./e-additives";
 import { computeHealthScore, HealthTone, healthTone } from "./health-score";
@@ -58,7 +59,7 @@ interface NutritionRow {
 @Component({
   selector: "app-product-check-drawer",
   standalone: true,
-  imports: [HlmButton, HlmInputGroupImports, AppIconComponent, TranslatePipe],
+  imports: [HlmButton, HlmInputGroupImports, AppIconComponent, BarcodePhotoActionsComponent, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: "flex h-full min-h-0 flex-col", "data-testid": "product-check-drawer" },
   template: `
@@ -70,8 +71,10 @@ interface NutritionRow {
     </header>
 
     <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 [&>*]:shrink-0">
-      <!-- Without a camera (plain http, no device) the barcode is typed here. -->
+      <!-- Without live video (plain http, no device) a photo of the code, or the typed digits, is the way in. The photo
+           buttons are native labels over file inputs so the phone opens its camera from the tap itself. -->
       @if (!cameraAvailable) {
+        <app-barcode-photo-actions variant="bar" (barcodeFound)="useCode($event, barcode)" (notFound)="photoNotFound()"></app-barcode-photo-actions>
         <div hlmInputGroup data-testid="product-check-barcode-box">
           <input
             #barcode
@@ -85,6 +88,9 @@ interface NutritionRow {
             [attr.aria-label]="'Enter a barcode' | t"
             (keydown.enter)="lookup(barcode.value)"
           />
+          <div hlmInputGroupAddon align="inline-end">
+            <app-barcode-photo-actions variant="icon" (barcodeFound)="useCode($event, barcode)" (notFound)="photoNotFound()"></app-barcode-photo-actions>
+          </div>
         </div>
       }
 
@@ -118,6 +124,11 @@ interface NutritionRow {
         @case ('notFound') {
           <p class="m-0 rounded-xl border border-border p-4 text-sm text-muted-foreground" data-testid="product-check-not-found">
             {{ 'Not found in Open Food Facts.' | t }}
+          </p>
+        }
+        @case ('photoFailed') {
+          <p class="m-0 rounded-xl border border-destructive/40 p-4 text-sm text-destructive" role="alert" data-testid="product-check-photo-failed">
+            {{ 'No barcode was found in that photo. Try again with the bars sharp and filling the frame.' | t }}
           </p>
         }
         @case ('error') {
@@ -275,6 +286,16 @@ export class ProductCheckDrawerComponent {
 
   protected lookup(value: string): void {
     this.service.check(value);
+  }
+
+  /** A barcode read from a photo fills the box and is looked up. */
+  protected useCode(code: string, input: HTMLInputElement): void {
+    input.value = code;
+    this.service.check(code);
+  }
+
+  protected photoNotFound(): void {
+    this.service.photoFailed();
   }
 
   protected show(product: CheckedProduct): void {
