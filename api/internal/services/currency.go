@@ -3,11 +3,11 @@ package services
 import (
 
 	"github.com/shopspring/decimal"
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/logging"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/logging"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
+	"cartvibe/api/internal/utils"
 )
 
 // DefaultExchangeCurrencies are listed in the rate table from the start; their rates are typed in.

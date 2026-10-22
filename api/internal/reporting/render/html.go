@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"sort"
 
-	"receipt-wrangler/api/internal/reporting"
+	"cartvibe/api/internal/reporting"
 )
 
 // DocumentChrome is authored presentation copy layered onto the report document

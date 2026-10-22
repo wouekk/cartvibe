@@ -3,8 +3,8 @@ package repositories
 import (
 	"errors"
 	"fmt"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/permissions"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/permissions"
 
 	"gorm.io/gorm"
 )

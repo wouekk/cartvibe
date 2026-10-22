@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
 )
 
 func TestResolveAddsNewCategoriesAndHonoursRenamesAndSkips(t *testing.T) {

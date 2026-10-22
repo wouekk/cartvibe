@@ -4,10 +4,10 @@ import (
 	"errors"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"receipt-wrangler/api/internal/commands"
-	config "receipt-wrangler/api/internal/env"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/commands"
+	config "cartvibe/api/internal/env"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/utils"
 )
 
 type ReceiptProcessingSettingsRepository struct {

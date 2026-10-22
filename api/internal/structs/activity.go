@@ -1,7 +1,7 @@
 package structs
 
 import (
-	"receipt-wrangler/api/internal/models"
+	"cartvibe/api/internal/models"
 	"time"
 )
 

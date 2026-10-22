@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"receipt-wrangler/api/internal/models"
+	"cartvibe/api/internal/models"
 
 	"github.com/shopspring/decimal"
 )

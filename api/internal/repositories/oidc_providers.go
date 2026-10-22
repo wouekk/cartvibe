@@ -2,10 +2,10 @@ package repositories
 
 import (
 	"errors"
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/env"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/env"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/utils"
 	"strings"
 
 	"gorm.io/gorm"

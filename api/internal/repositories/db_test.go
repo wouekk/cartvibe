@@ -1,8 +1,8 @@
 package repositories
 
 import (
-	"receipt-wrangler/api/internal/structs"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
 	"testing"
 )
 
@@ -57,11 +57,11 @@ func TestShouldCreateTheCorrectMariaDbString(t *testing.T) {
 		Password: "password",
 		Host:     "db",
 		Port:     3306,
-		Name:     "receipt_wrangler",
+		Name:     "cartvibe",
 	}
 
 	connectionString := BuildMariaDbConnectionString(dbConfig)
-	expected := "root:password@tcp(db:3306)/receipt_wrangler?charset=utf8mb4&parseTime=True&loc=Local"
+	expected := "root:password@tcp(db:3306)/cartvibe?charset=utf8mb4&parseTime=True&loc=Local"
 
 	if connectionString != expected {
 		utils.PrintTestError(t, connectionString, expected)
@@ -76,11 +76,11 @@ func TestShouldCreateTheCorrectPostgresqlString(t *testing.T) {
 		Password: "password",
 		Host:     "db",
 		Port:     3306,
-		Name:     "receipt_wrangler",
+		Name:     "cartvibe",
 	}
 
 	connectionString := BuildPostgresqlConnectionString(dbConfig)
-	expected := "host=db user=root password=password dbname=receipt_wrangler port=3306 sslmode=disable"
+	expected := "host=db user=root password=password dbname=cartvibe port=3306 sslmode=disable"
 
 	if connectionString != expected {
 		utils.PrintTestError(t, connectionString, expected)

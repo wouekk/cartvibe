@@ -3,7 +3,7 @@ package render
 import (
 	"time"
 
-	"receipt-wrangler/api/internal/reporting"
+	"cartvibe/api/internal/reporting"
 )
 
 // dimensionDateLayout is how a date reads when it names a bucket or fills a

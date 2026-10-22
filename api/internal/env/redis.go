@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/hibiken/asynq"
 	"os"
-	"receipt-wrangler/api/internal/constants"
-	"receipt-wrangler/api/internal/structs"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/constants"
+	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
 )
 
 func GetAsynqRedisClientConnectionOptions() (asynq.RedisClientOpt, error) {

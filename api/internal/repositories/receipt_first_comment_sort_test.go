@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/constants"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/constants"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/utils"
 
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"

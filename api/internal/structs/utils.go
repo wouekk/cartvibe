@@ -3,8 +3,8 @@ package structs
 import (
 	"encoding/json"
 	"net/http"
-	"receipt-wrangler/api/internal/logging"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/logging"
+	"cartvibe/api/internal/utils"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
 	"github.com/auth0/go-jwt-middleware/v2/validator"

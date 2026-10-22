@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"receipt-wrangler/api/internal/structs"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
 )
 
 type PagedGroupRequestCommand struct {

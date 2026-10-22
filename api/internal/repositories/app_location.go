@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
-	"receipt-wrangler/api/internal/logging"
+	"cartvibe/api/internal/logging"
 )
 
 // loadedLocations caches parsed zones by name. It caches the zone DATABASE

@@ -3,7 +3,7 @@ package commands
 import (
 	"testing"
 
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/utils"
 )
 
 func basePagedApiKeyCommand(filter AssociatedApiKeys) PagedApiKeyRequestCommand {

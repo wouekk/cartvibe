@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"receipt-wrangler/api/internal/commands"
-	config "receipt-wrangler/api/internal/env"
-	"receipt-wrangler/api/internal/logging"
-	"receipt-wrangler/api/internal/models"
+	"cartvibe/api/internal/commands"
+	config "cartvibe/api/internal/env"
+	"cartvibe/api/internal/logging"
+	"cartvibe/api/internal/models"
 
 	"gorm.io/gorm"
 )

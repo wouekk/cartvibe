@@ -3,9 +3,9 @@ package commands
 import (
 	"encoding/json"
 	"net/http"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/structs"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
 )
 
 type UpdateGroupReceiptSettingsCommand struct {

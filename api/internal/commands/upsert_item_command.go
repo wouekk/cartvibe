@@ -2,8 +2,8 @@ package commands
 
 import (
 	"github.com/shopspring/decimal"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/structs"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/structs"
 )
 
 type UpsertItemCommand struct {

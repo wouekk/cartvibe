@@ -2,8 +2,8 @@ package repositories
 
 import (
 	"github.com/shopspring/decimal"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/utils"
 	"testing"
 )
 

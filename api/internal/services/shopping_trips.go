@@ -12,11 +12,11 @@ import (
 
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
-	"receipt-wrangler/api/internal/logging"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
-	"receipt-wrangler/api/internal/structs"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/logging"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
+	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
 )
 
 const (

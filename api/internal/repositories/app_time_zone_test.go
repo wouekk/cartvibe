@@ -6,9 +6,9 @@ import (
 
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/utils"
 )
 
 func mustLoadLocation(t *testing.T, name string) *time.Location {

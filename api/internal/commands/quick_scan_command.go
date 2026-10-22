@@ -3,10 +3,10 @@ package commands
 import (
 	"mime/multipart"
 	"net/http"
-	"receipt-wrangler/api/internal/constants"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/structs"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/constants"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
 	"strings"
 )
 

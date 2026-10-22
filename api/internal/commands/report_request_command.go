@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	"receipt-wrangler/api/internal/reporting/receiptsource"
-	"receipt-wrangler/api/internal/structs"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/reporting/receiptsource"
+	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
 )
 
 // Report format identifiers. A request asks for one or more; multiple formats are

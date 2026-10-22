@@ -1,7 +1,7 @@
 package ai
 
 import (
-	"receipt-wrangler/api/internal/structs"
+	"cartvibe/api/internal/structs"
 )
 
 type Client interface {

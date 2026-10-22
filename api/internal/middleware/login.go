@@ -2,9 +2,9 @@ package middleware
 
 import (
 	"net/http"
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/logging"
-	"receipt-wrangler/api/internal/structs"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/logging"
+	"cartvibe/api/internal/structs"
 )
 
 func ValidateLoginData(next http.Handler) http.Handler {

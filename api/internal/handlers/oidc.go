@@ -5,12 +5,12 @@ import (
 	"errors"
 	"net/http"
 
-	"receipt-wrangler/api/internal/constants"
-	"receipt-wrangler/api/internal/oidc"
-	"receipt-wrangler/api/internal/permissions"
-	"receipt-wrangler/api/internal/repositories"
-	"receipt-wrangler/api/internal/services"
-	"receipt-wrangler/api/internal/structs"
+	"cartvibe/api/internal/constants"
+	"cartvibe/api/internal/oidc"
+	"cartvibe/api/internal/permissions"
+	"cartvibe/api/internal/repositories"
+	"cartvibe/api/internal/services"
+	"cartvibe/api/internal/structs"
 
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"

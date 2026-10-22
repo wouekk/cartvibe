@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/hibiken/asynq"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/structs"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/structs"
 )
 
 func TestResolveActivityFlags(t *testing.T) {

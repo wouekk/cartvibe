@@ -2,15 +2,15 @@ package handlers
 
 import (
 	"net/http"
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/constants"
-	config "receipt-wrangler/api/internal/env"
-	"receipt-wrangler/api/internal/permissions"
-	"receipt-wrangler/api/internal/repositories"
-	"receipt-wrangler/api/internal/services"
-	"receipt-wrangler/api/internal/structs"
-	"receipt-wrangler/api/internal/utils"
-	"receipt-wrangler/api/internal/wranglerasynq"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/constants"
+	config "cartvibe/api/internal/env"
+	"cartvibe/api/internal/permissions"
+	"cartvibe/api/internal/repositories"
+	"cartvibe/api/internal/services"
+	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
+	"cartvibe/api/internal/wranglerasynq"
 	"strings"
 )
 

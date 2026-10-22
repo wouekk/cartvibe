@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
 
 	"github.com/shopspring/decimal"
 )

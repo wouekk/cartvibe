@@ -3,7 +3,7 @@ package repositories
 import (
 	"gorm.io/gorm"
 	"os"
-	"receipt-wrangler/api/internal/structs"
+	"cartvibe/api/internal/structs"
 )
 
 type AboutRepository struct {

@@ -3,7 +3,7 @@ package services
 import (
 	"fmt"
 	"os"
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/repositories"
 	"testing"
 )
 

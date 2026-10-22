@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/hibiken/asynq"
-	"receipt-wrangler/api/internal/logging"
+	"cartvibe/api/internal/logging"
 )
 
 func GetTaskIdFromContext(ctx context.Context) (string, error) {

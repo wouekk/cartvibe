@@ -13,9 +13,9 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"receipt-wrangler/api/internal/services"
-	"receipt-wrangler/api/internal/structs"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/services"
+	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
 
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/modelcontextprotocol/go-sdk/auth"

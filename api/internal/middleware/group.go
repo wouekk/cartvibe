@@ -2,12 +2,12 @@ package middleware
 
 import (
 	"net/http"
-	"receipt-wrangler/api/internal/logging"
-	"receipt-wrangler/api/internal/permissions"
-	"receipt-wrangler/api/internal/repositories"
-	"receipt-wrangler/api/internal/services"
-	"receipt-wrangler/api/internal/structs"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/logging"
+	"cartvibe/api/internal/permissions"
+	"cartvibe/api/internal/repositories"
+	"cartvibe/api/internal/services"
+	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
 )
 
 func CanDeleteGroup(next http.Handler) http.Handler {

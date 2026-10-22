@@ -3,7 +3,7 @@ package models
 import (
 	"database/sql/driver"
 	"errors"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/utils"
 	"testing"
 )
 

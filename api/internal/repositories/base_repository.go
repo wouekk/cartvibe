@@ -7,7 +7,7 @@ import (
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"receipt-wrangler/api/internal/commands"
+	"cartvibe/api/internal/commands"
 )
 
 type BaseRepository struct {

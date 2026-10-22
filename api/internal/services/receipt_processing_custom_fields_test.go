@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"receipt-wrangler/api/internal/models"
+	"cartvibe/api/internal/models"
 )
 
 func customFieldFixtures() []models.CustomField {

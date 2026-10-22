@@ -1,8 +1,8 @@
 package wranglerasynq
 
 import (
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/structs"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/structs"
 	"testing"
 )
 

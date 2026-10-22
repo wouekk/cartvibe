@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/repositories"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/repositories"
+	"cartvibe/api/internal/utils"
 	"testing"
 )
 

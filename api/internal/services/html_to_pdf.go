@@ -17,11 +17,11 @@ import (
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
 	"gorm.io/gorm"
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/env"
-	"receipt-wrangler/api/internal/logging"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/env"
+	"cartvibe/api/internal/logging"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
 )
 
 // blockedExternalUrlPatterns matches all common network schemes so chromium

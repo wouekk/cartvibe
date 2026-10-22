@@ -2,8 +2,8 @@ package structs
 
 import (
 	"context"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/utils"
 	"testing"
 
 	"github.com/golang-jwt/jwt/v5"

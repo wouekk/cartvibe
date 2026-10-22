@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/hibiken/asynq"
-	"receipt-wrangler/api/internal/logging"
-	"receipt-wrangler/api/internal/services"
+	"cartvibe/api/internal/logging"
+	"cartvibe/api/internal/services"
 )
 
 // HandleShoppingTripSweepTask moves the shopping trips that are due one step on: scanning an uploaded

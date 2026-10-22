@@ -1,10 +1,10 @@
 package oidc
 
 import (
-	"receipt-wrangler/api/internal/env"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/env"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
+	"cartvibe/api/internal/utils"
 	"time"
 )
 

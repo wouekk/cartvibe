@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/hibiken/asynq"
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/logging"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/logging"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
 )
 
 // The temp/ sweeper reclaims files the ingest pipelines leave behind, without

@@ -1,11 +1,11 @@
 package services
 
 import (
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/reporting"
-	"receipt-wrangler/api/internal/reporting/receiptsource"
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/reporting"
+	"cartvibe/api/internal/reporting/receiptsource"
+	"cartvibe/api/internal/repositories"
 	"slices"
 	"strconv"
 	"testing"

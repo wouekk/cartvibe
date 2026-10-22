@@ -4,12 +4,12 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
-	"receipt-wrangler/api/internal/services"
-	"receipt-wrangler/api/internal/structs"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
+	"cartvibe/api/internal/services"
+	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
 	"strings"
 	"testing"
 	"time"
@@ -313,7 +313,7 @@ func TestUnifiedAuthMiddleware_BothAuthMethods(t *testing.T) {
 	// Create request with both JWT cookie and API key header
 	r := httptest.NewRequest(http.MethodGet, "/api/test", nil)
 	r.AddCookie(&http.Cookie{
-		Name:  "receipt-wrangler-jwt",
+		Name:  "cartvibe-jwt",
 		Value: jwt,
 	})
 	r.Header.Set("Authorization", generatedKey)
@@ -737,7 +737,7 @@ func TestUnifiedAuthMiddleware_DoesNotUpdateLastUsedDate_OnJWT(t *testing.T) {
 	// Create request with JWT cookie (no API key)
 	r := httptest.NewRequest(http.MethodGet, "/api/test", nil)
 	r.AddCookie(&http.Cookie{
-		Name:  "receipt-wrangler-jwt",
+		Name:  "cartvibe-jwt",
 		Value: jwt,
 	})
 	w := httptest.NewRecorder()

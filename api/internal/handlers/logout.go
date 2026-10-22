@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"net/http"
-	"receipt-wrangler/api/internal/structs"
+	"cartvibe/api/internal/structs"
 )
 
 func Logout(w http.ResponseWriter, r *http.Request) {

@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"github.com/hibiken/asynq"
-	config "receipt-wrangler/api/internal/env"
+	config "cartvibe/api/internal/env"
 )
 
 var client *asynq.Client

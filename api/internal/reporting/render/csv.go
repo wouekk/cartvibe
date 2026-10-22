@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"receipt-wrangler/api/internal/reporting"
+	"cartvibe/api/internal/reporting"
 )
 
 // Dimension is one group-by level: the field it cuts on, the header a renderer

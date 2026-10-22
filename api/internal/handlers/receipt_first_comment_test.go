@@ -8,12 +8,12 @@ import (
 	"testing"
 	"time"
 
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/constants"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
-	"receipt-wrangler/api/internal/structs"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/constants"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
+	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
 	"github.com/go-chi/chi/v5"

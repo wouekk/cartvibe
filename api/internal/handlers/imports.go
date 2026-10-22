@@ -2,11 +2,11 @@ package handlers
 
 import (
 	"net/http"
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/constants"
-	"receipt-wrangler/api/internal/permissions"
-	"receipt-wrangler/api/internal/services"
-	"receipt-wrangler/api/internal/structs"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/constants"
+	"cartvibe/api/internal/permissions"
+	"cartvibe/api/internal/services"
+	"cartvibe/api/internal/structs"
 )
 
 func ImportConfigJson(w http.ResponseWriter, r *http.Request) {

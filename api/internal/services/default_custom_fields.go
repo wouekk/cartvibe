@@ -4,9 +4,9 @@ import (
 	"errors"
 
 	"gorm.io/gorm"
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
 )
 
 // ApplyDefaultCustomFields attaches a group's configured default custom fields to a receipt the

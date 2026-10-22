@@ -3,7 +3,7 @@ package structs
 import (
 	"context"
 	"fmt"
-	"receipt-wrangler/api/internal/models"
+	"cartvibe/api/internal/models"
 	"strconv"
 	"strings"
 

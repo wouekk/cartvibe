@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
 )
 
 // promptCustomField is what the AI sees of a custom field (Phase 3 F2): enough to pick the right

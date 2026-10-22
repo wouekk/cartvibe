@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/shopspring/decimal"
 	"net/http"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/utils"
 )
 
 type UserPrefernces struct {

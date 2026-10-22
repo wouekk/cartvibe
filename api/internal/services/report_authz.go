@@ -2,9 +2,9 @@ package services
 
 import (
 	"fmt"
-	"receipt-wrangler/api/internal/permissions"
-	"receipt-wrangler/api/internal/repositories"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/permissions"
+	"cartvibe/api/internal/repositories"
+	"cartvibe/api/internal/utils"
 )
 
 // reportActionPerms maps each scopable report action to its base app permission

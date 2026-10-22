@@ -1,10 +1,10 @@
 package ai
 
 import (
-	config "receipt-wrangler/api/internal/env"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/structs"
-	"receipt-wrangler/api/internal/utils"
+	config "cartvibe/api/internal/env"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
 )
 
 type BaseClient struct {

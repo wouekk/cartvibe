@@ -2,10 +2,10 @@ package services
 
 import (
 	"errors"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/permissions"
-	"receipt-wrangler/api/internal/repositories"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/permissions"
+	"cartvibe/api/internal/repositories"
+	"cartvibe/api/internal/utils"
 	"testing"
 	"time"
 

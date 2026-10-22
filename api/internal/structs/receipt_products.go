@@ -1,6 +1,6 @@
 package structs
 
-import "receipt-wrangler/api/internal/models"
+import "cartvibe/api/internal/models"
 
 // ReceiptProductsView is a receipt's products and where reading them stands.
 type ReceiptProductsView struct {

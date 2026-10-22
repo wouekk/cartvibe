@@ -1,9 +1,9 @@
 package wranglerasynq
 
 import (
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
 	"testing"
 	"time"
 )

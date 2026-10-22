@@ -2,9 +2,9 @@ package repositories
 
 import (
 	"errors"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/permissions"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/permissions"
+	"cartvibe/api/internal/utils"
 	"slices"
 	"sort"
 	"testing"

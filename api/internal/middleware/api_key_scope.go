@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"net/http"
-	"receipt-wrangler/api/internal/models"
+	"cartvibe/api/internal/models"
 	"strings"
 )
 

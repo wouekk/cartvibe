@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
 )
 
 func runExchange(t *testing.T, code string, verifier string) (*httptest.ResponseRecorder, error) {

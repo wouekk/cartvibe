@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"gorm.io/gorm"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
 )
 
 // foodGroupResolver ties the AI's product categories to the Manage Categories list (Phase 3 feedback):

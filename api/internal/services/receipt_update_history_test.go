@@ -3,8 +3,8 @@ package services
 import (
 	"encoding/json"
 	"fmt"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
 	"testing"
 	"time"
 )

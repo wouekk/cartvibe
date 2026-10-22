@@ -2,7 +2,7 @@ package structs
 
 import (
 	"github.com/shopspring/decimal"
-	"receipt-wrangler/api/internal/models"
+	"cartvibe/api/internal/models"
 	"time"
 )
 

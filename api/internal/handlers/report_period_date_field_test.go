@@ -10,11 +10,11 @@ import (
 
 	"github.com/shopspring/decimal"
 
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/permissions"
-	"receipt-wrangler/api/internal/repositories"
-	"receipt-wrangler/api/internal/services"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/permissions"
+	"cartvibe/api/internal/repositories"
+	"cartvibe/api/internal/services"
 )
 
 // seedDatedReportReceipt creates a receipt in group 1 dated in May 2026, resolved

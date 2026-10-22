@@ -3,7 +3,7 @@ package models
 import (
 	"os"
 	"path/filepath"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/utils"
 	"testing"
 
 	"github.com/glebarez/sqlite"

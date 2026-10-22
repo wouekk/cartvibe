@@ -3,9 +3,9 @@ package oauth
 import (
 	"net/http"
 	"net/url"
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/logging"
-	"receipt-wrangler/api/internal/services"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/logging"
+	"cartvibe/api/internal/services"
 )
 
 // AuthorizeForm handles GET /oauth/authorize. It validates the OAuth request,

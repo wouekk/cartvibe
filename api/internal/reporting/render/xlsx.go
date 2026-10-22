@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	"receipt-wrangler/api/internal/reporting"
+	"cartvibe/api/internal/reporting"
 
 	"github.com/xuri/excelize/v2"
 )
