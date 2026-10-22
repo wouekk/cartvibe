@@ -11,12 +11,10 @@
 
 <app-button
   *ngIf="!onlyIcon()"
-  icon="done"
   matButtonType="matRaisedButton"
   [buttonText]="buttonText() ?? 'Save'"
   [type]="type() || 'submit'"
-  
-  [tooltip]="tooltip ?? 'Save'"
+  [tooltip]="tooltip ?? ''"
   (clicked)="clicked.emit()"
   [disabled]="effectiveDisabled()"
 ></app-button>

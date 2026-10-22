@@ -28,7 +28,7 @@
       </div>
     </form>
 
-    <app-dialog-footer
+    <app-dialog-footer [editing]="!!apiKey"
       [submitButtonTooltip]="apiKey ? 'Update API Key' : 'Create API Key'"
       (submitClicked)="submitButtonClicked()"
       (cancelClicked)="cancelButtonClicked()"

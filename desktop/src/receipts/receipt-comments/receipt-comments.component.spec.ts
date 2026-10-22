@@ -356,4 +356,40 @@ describe("ReceiptCommentsComponent", () => {
       updatedAt: "",
     } as any);
   });
+
+  it("posts a comment on a receipt opened in view mode", () => {
+    const spy = jest.spyOn(TestBed.inject(CommentService), "addComment");
+    spy.mockReturnValue(
+      of({ id: 7, userId: 1, receiptId: 3, comment: "seen it", createdAt: "", updatedAt: "" }) as any
+    );
+    store.reset({ auth: { userId: 1 } });
+
+    fixture.componentRef.setInput("mode", FormMode.view);
+    fixture.componentRef.setInput("receiptId", 3);
+    component.newCommentFormControl.patchValue("seen it");
+    component.addComment();
+
+    expect(spy).toHaveBeenCalledWith({ comment: "seen it", userId: 1, receiptId: 3 });
+    expect(component.internalComments().map((comment) => comment.id)).toEqual([7]);
+    expect(component.newCommentFormControl.value).toBeNull();
+  });
+
+  it("shows the composer in view mode only with the comment permission", async () => {
+    const element: HTMLElement = fixture.nativeElement;
+    expect(element.querySelector('[data-testid="receipt-comment-composer"]')).toBeNull();
+
+    store.dispatch(new SetPermissions([], { 0: [Permission.GroupCommentsCreate] }));
+    fixture.changeDetectorRef.markForCheck();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(element.querySelector('[data-testid="receipt-comment-composer"]')).not.toBeNull();
+  });
+
+  it("says so when there are no comments, in every mode", () => {
+    const element: HTMLElement = fixture.nativeElement;
+    expect(element.querySelector('[data-testid="receipt-comments-empty"]')?.textContent).toContain(
+      "No comments for this receipt yet"
+    );
+  });
 });

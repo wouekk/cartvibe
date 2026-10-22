@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, input, output, signal } from "@angular/core";
+import { buttonVariants } from "@spartan-ng/helm/button";
 import { HlmSpinnerImports } from "@spartan-ng/helm/spinner";
 import { TranslatePipe } from "../i18n/translate.pipe";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
@@ -38,12 +39,12 @@ import { BarcodeImageService } from "./barcode-image.service";
     } @else {
       <div class="flex flex-col gap-2" data-testid="barcode-photo-bar">
         <div class="grid grid-cols-2 gap-2">
-          <label class="inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md border border-border bg-card px-3 text-sm font-medium transition-colors hover:bg-accent focus-within:ring-3 focus-within:ring-ring/40" [class.pointer-events-none]="decoding()" [class.opacity-60]="decoding()">
+          <label [class]="photoButtonClass" class="cursor-pointer focus-within:ring-3 focus-within:ring-ring/50" [class.pointer-events-none]="decoding()" [class.opacity-50]="decoding()">
             <input type="file" accept="image/*" capture="environment" class="sr-only" data-testid="barcode-photo-capture" (change)="selected($event)" />
             <app-icon name="photo_camera"></app-icon>
             <span>{{ 'Take a photo of the code' | t }}</span>
           </label>
-          <label class="inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md border border-border bg-card px-3 text-sm font-medium transition-colors hover:bg-accent focus-within:ring-3 focus-within:ring-ring/40" [class.pointer-events-none]="decoding()" [class.opacity-60]="decoding()">
+          <label [class]="photoButtonClass" class="cursor-pointer focus-within:ring-3 focus-within:ring-ring/50" [class.pointer-events-none]="decoding()" [class.opacity-50]="decoding()">
             <input type="file" accept="image/*" class="sr-only" data-testid="barcode-photo-upload" (change)="selected($event)" />
             <app-icon name="image"></app-icon>
             <span>{{ 'Upload a photo' | t }}</span>
@@ -63,6 +64,9 @@ export class BarcodePhotoActionsComponent {
   private readonly decoder = inject(BarcodeImageService);
 
   public readonly variant = input<"bar" | "icon">("bar");
+
+  /** The labels look like the app's primary button; they stay labels for the reason above. */
+  protected readonly photoButtonClass = buttonVariants({ variant: "default" });
 
   /** The barcode read from the photo. */
   public readonly barcodeFound = output<string>();

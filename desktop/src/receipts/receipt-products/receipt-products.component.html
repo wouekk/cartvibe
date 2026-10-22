@@ -80,7 +80,7 @@
                   >
                     <app-icon name="check"></app-icon>
                   </button>
-                  <button hlmBtn variant="ghost" size="icon" type="button" [attr.aria-label]="'Cancel' | t" (click)="cancelEdit()">
+                  <button hlmBtn variant="destructive" size="icon" type="button" [attr.aria-label]="'Cancel' | t" (click)="cancelEdit()">
                     <app-icon name="close"></app-icon>
                   </button>
                 </td>
@@ -214,7 +214,7 @@
 
   @if (canReadAgain()) {
     <button
-      hlmBtn variant="outline"
+      hlmBtn
       type="button"
       class="mt-2"
       data-testid="receipt-products-read-again"

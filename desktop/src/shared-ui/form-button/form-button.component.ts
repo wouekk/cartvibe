@@ -8,7 +8,7 @@ import { FormMode } from "src/enums/form-mode.enum";
   standalone: false
 })
 export class FormButtonComponent {
-  public readonly mode = input<FormMode>(FormMode.view);
+  public readonly mode = input<FormMode | undefined>(FormMode.view);
 
   @Input() public tooltip?: string;
 

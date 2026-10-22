@@ -7,7 +7,7 @@
       [additionalErrorMessages]="nameErrorMessages"
     ></app-input>
 
-    <app-dialog-footer
+    <app-dialog-footer [editing]="true"
       (submitClicked)="submit()"
       (cancelClicked)="cancel()"
     ></app-dialog-footer>

@@ -6,7 +6,7 @@
     <div class="flex items-center gap-2 [&_button]:h-9">
       @if (canUpdate() && lists().length > 0) {
         <button
-          hlmBtn variant="outline"
+          hlmBtn
           type="button"
           data-testid="shopping-list-going-shopping"
           [disabled]="announcing()"

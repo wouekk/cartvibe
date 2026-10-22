@@ -20,7 +20,7 @@
         <button type="button" hlmBtn variant="ghost" data-testid="dashboard-customise-reset" (click)="resetLayout()">
           <app-icon name="restart_alt"></app-icon>{{ 'Reset' | t }}
         </button>
-        <button type="button" hlmBtn variant="outline" data-testid="dashboard-customise-cancel" (click)="cancelCustomising()">{{ 'Cancel' | t }}</button>
+        <button type="button" hlmBtn variant="destructive" data-testid="dashboard-customise-cancel" (click)="cancelCustomising()">{{ 'Cancel' | t }}</button>
         <button type="button" hlmBtn data-testid="dashboard-customise-save" [disabled]="savingLayout() || !layoutDirty()" (click)="saveLayout()">{{ 'Save' | t }}</button>
       </div>
     </div>
@@ -441,10 +441,10 @@
                       <div class="flex flex-col gap-4 py-6" data-testid="overview-range-export">
                         <p>{{ 'Ranges over 1 year are best viewed as a report.' | t }}</p>
                         <div class="flex flex-wrap items-center gap-2">
-                          <button type="button" hlmBtn variant="outline" data-testid="overview-export-pdf" [disabled]="exporting()" (click)="exportPdf()">
+                          <button type="button" hlmBtn data-testid="overview-export-pdf" [disabled]="exporting()" (click)="exportPdf()">
                             {{ 'Download Landscape PDF (1 yr/page)' | t }}
                           </button>
-                          <button type="button" hlmBtn variant="outline" data-testid="overview-export-csv" [disabled]="exporting()" (click)="exportCsv()">
+                          <button type="button" hlmBtn data-testid="overview-export-csv" [disabled]="exporting()" (click)="exportCsv()">
                             {{ 'Export CSV' | t }}
                           </button>
                           <a routerLink="/reports">{{ 'Open reports' | t }}</a>

@@ -20,7 +20,7 @@
     </div>
 
     <!-- The footer submit button is type="submit", so ngSubmit alone handles both the click and Enter. -->
-    <app-dialog-footer
+    <app-dialog-footer [editing]="true"
       (cancelClicked)="closeDialog()"
     ></app-dialog-footer>
   </form>

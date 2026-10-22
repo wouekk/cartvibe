@@ -3,59 +3,64 @@
     <h3 class="cv-card__title">{{ 'Comments' | t }}</h3>
   </div>
   <div class="cv-card__body">
-    @if (commentsArray.length > 0) {
-      <ul class="m-0 flex list-none flex-col p-0">
-        @for (comment of commentsArray.controls; track comment; let index = $index) {
-          <li
-            class="flex items-start gap-3 border-b border-border py-3 first:pt-0 last:border-b-0 last:pb-0"
-            data-testid="receipt-comment"
-          >
-            <app-avatar
-              [user]="comment.value?.userId?.toString() ?? '' | user"
-            ></app-avatar>
-            <div class="min-w-0 flex-1">
-              <div class="flex flex-wrap items-baseline gap-x-2">
-                <strong class="text-sm">
-                  {{ (comment.value?.userId?.toString() ?? '' | user)?.displayName }}
-                </strong>
-                @if (commentTimestamp(index); as timestamp) {
-                  <span class="text-xs text-muted-foreground">
-                    {{ timestamp | appDate: 'medium' }}
-                  </span>
-                }
+    <!-- Rows are cv-sections, so they take the card's own padding and hairlines. -->
+    <div class="cv-section">
+      @if (commentsArray.length > 0) {
+        <ul class="m-0 flex list-none flex-col p-0">
+          @for (comment of commentsArray.controls; track comment; let index = $index) {
+            <li
+              class="flex items-start gap-3 border-b border-border py-3 first:pt-0 last:border-b-0 last:pb-0"
+              data-testid="receipt-comment"
+            >
+              <app-avatar
+                [user]="comment.value?.userId?.toString() ?? '' | user"
+              ></app-avatar>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-baseline gap-x-2">
+                  <strong class="text-sm">
+                    {{ (comment.value?.userId?.toString() ?? '' | user)?.displayName }}
+                  </strong>
+                  @if (commentTimestamp(index); as timestamp) {
+                    <span class="text-xs text-muted-foreground">
+                      {{ timestamp | appDate: 'medium' }}
+                    </span>
+                  }
+                </div>
+                <p class="m-0 mt-1 whitespace-pre-wrap break-words text-sm">
+                  {{ comment.value?.comment }}
+                </p>
               </div>
-              <p class="m-0 mt-1 whitespace-pre-wrap break-words text-sm">
-                {{ comment.value?.comment }}
-              </p>
-            </div>
-            @if (
-              comment.value?.userId?.toString() === loggedInUserId() &&
-              (mode() === formMode.add || (mode() === formMode.edit && canDeleteComments())) &&
-              !isLastCommentLocked()
-            ) {
-              <app-delete-button
-                data-testid="comment-delete"
-                (clicked)="deleteComment(index)"
-              ></app-delete-button>
-            }
-          </li>
-        }
-      </ul>
-    } @else if (mode() === formMode.view || !canCreateComments()) {
-      <p class="m-0 text-sm text-muted-foreground">
-        {{ 'No comments for this receipt' | t }}
-      </p>
-    }
+              @if (
+                comment.value?.userId?.toString() === loggedInUserId() &&
+                (mode() === formMode.add || canDeleteComments()) &&
+                !isLastCommentLocked()
+              ) {
+                <app-delete-button
+                  data-testid="comment-delete"
+                  (clicked)="deleteComment(index)"
+                ></app-delete-button>
+              }
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="m-0 flex items-center gap-2 text-sm text-muted-foreground" data-testid="receipt-comments-empty">
+          <app-icon name="chat_bubble_outline" class="size-4"></app-icon>
+          {{ 'No comments for this receipt yet' | t }}
+        </p>
+      }
+    </div>
 
-    @if (mode() === formMode.add || (mode() === formMode.edit && canCreateComments())) {
-      <div class="flex flex-col gap-2">
-        <strong class="text-sm">{{ 'Leave a Comment' | t }}</strong>
+    @if (canAddComments()) {
+      <div class="cv-section" data-testid="receipt-comment-composer">
         <app-textarea
-          [label]="'Comment' | t"
+          [label]="'Leave a comment' | t"
           [inputFormControl]="newCommentFormControl"
         ></app-textarea>
         <div class="flex justify-end">
           <app-button
+            matButtonType="matRaisedButton"
+            icon="send"
             [buttonText]="'Comment' | t"
             data-testid="comment-add"
             (clicked)="addComment()"

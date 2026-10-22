@@ -605,6 +605,8 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
         take(1),
         tap((magicFilledReceipt) => {
           this.patchMagicValues(magicFilledReceipt);
+          // Patched values are changes to save, so Save stops being dimmed.
+          this.form.markAsDirty();
         }),
         finalize(() => this.store.dispatch(new HideProgressBar()))
       )

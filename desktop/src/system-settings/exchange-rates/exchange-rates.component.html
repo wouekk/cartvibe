@@ -60,7 +60,7 @@
           (input)="setNewCode($event)"
           (keydown.enter)="addCurrency(); $event.preventDefault()"
         />
-        <button hlmBtn variant="outline" type="button" data-testid="exchange-rate-add" (click)="addCurrency()">
+        <button hlmBtn type="button" data-testid="exchange-rate-add" (click)="addCurrency()">
           <app-icon name="add"></app-icon>
           {{ 'Add currency' | t }}
         </button>

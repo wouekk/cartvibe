@@ -6,6 +6,7 @@ import { UntilDestroy } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
 import { catchError, defer, iif, of, startWith, switchMap, take, tap, } from "rxjs";
 import { UserValidators } from "src/validators/user-validators";
+import { FormMode } from "src/enums/form-mode.enum";
 import {
   Category,
   CategoryService,
@@ -43,6 +44,11 @@ import { AddUser, AuthState, UpdateUser } from "../../store";
 })
 export class UserFormComponent implements OnInit {
   @Input() public user?: User;
+
+  /** Editing an existing user dims Save until something changes. */
+  public get submitMode(): FormMode {
+    return this.user ? FormMode.edit : FormMode.add;
+  }
 
   public isDummerUserHelpText: string =
     "A dummy user is a user who cannot log in, but can still act as a receipt payer, or be charged shares. Dummy users can be converted to normal users, but normal users cannot be converted to dummy users.";
@@ -175,6 +181,8 @@ export class UserFormComponent implements OnInit {
 
   public onGrantsChange(groupId: number, selection: GrantSelection): void {
     this.editedGrants.set(groupId, selection);
+    // The grants are not form controls, but they are something to save.
+    this.form.markAsDirty();
   }
 
   private listenToAppRoleChanges(): void {
