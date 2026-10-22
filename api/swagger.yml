@@ -1499,41 +1499,9 @@ paths:
       operationId: quickScanReceipt
       responses:
         200:
-          description: The queued job of each uploaded image, in upload order
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/QuickScanResult"
+          $ref: "#/components/responses/Ok"
         400:
           $ref: "#/components/responses/BadRequest"
-        500:
-          $ref: "#/components/responses/Internal"
-      security:
-        - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
-  /receipt/quickScan/{taskId}:
-    get:
-      tags:
-        - Receipt
-      summary: Quick scan status
-      description:
-        Whether the quick scan queued by quickScanReceipt has created its receipt yet.
-        Only the user who ran the scan may ask. [SYSTEM USER]
-      operationId: getQuickScanStatus
-      parameters:
-        - in: path
-          name: taskId
-          schema:
-            type: string
-          required: true
-          description: A task id returned by quickScanReceipt
-      responses:
-        200:
-          description: How the scan stands
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/QuickScanStatus"
         500:
           $ref: "#/components/responses/Internal"
       security:
@@ -7437,28 +7405,6 @@ components:
         name:
           type: string
           maxLength: 255
-    QuickScanResult:
-      type: object
-      required:
-        - taskIds
-      properties:
-        taskIds:
-          type: array
-          description: The queued job of each uploaded image, in upload order
-          items:
-            type: string
-    QuickScanStatus:
-      type: object
-      required:
-        - status
-        - receiptId
-      properties:
-        status:
-          type: string
-          description: PENDING, DONE or FAILED (a plain string, so new values cannot break clients)
-        receiptId:
-          type: integer
-          description: The created receipt once status is DONE, otherwise 0
     QuickScanCommand:
       required:
         - files

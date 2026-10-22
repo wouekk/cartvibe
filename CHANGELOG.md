@@ -10,10 +10,8 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ### Added
 - Quick Scan closes right after the upload, whatever the number of photos: the scans are read one at a time and the
-  uploader gets a notification for each (ready, with a link to the receipt, or failed after the last retry). `POST /receipt/quickScan` returns the queued task ids and
-  `GET /receipt/quickScan/{taskId}` reports PENDING / DONE (with the receipt id) / FAILED.
-- A Preview / Rename / Remove menu on the receipt form's photo (on the photo itself, so it is in reach after scrolling on a
-  phone); the preview opens full width on a phone. `PUT /receipt/{id}/name` renames a saved receipt without saving the rest
+  uploader gets a notification for each (ready, with a link to the receipt, or failed after the last retry). Photos are
+  added by dropping or choosing them (spartan `attachment`, one row per photo with a thumbnail and a remove button).
   of the form.
 
 ### Removed

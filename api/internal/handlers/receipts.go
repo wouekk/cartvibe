@@ -473,7 +473,6 @@ func QuickScan(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			taskIds := make([]string, 0, len(quickScanCommand.Files))
 			for i := 0; i < len(quickScanCommand.Files); i++ {
 				fileBytes := make([]byte, quickScanCommand.FileHeaders[i].Size)
 
@@ -506,95 +505,13 @@ func QuickScan(w http.ResponseWriter, r *http.Request) {
 
 				task := asynq.NewTask(wranglerasynq.QuickScan, payloadBytes)
 
-				info, err := wranglerasynq.EnqueueTask(task, models.QuickScanQueue)
+				_, err = wranglerasynq.EnqueueTask(task, models.QuickScanQueue)
 				if err != nil {
 					return http.StatusInternalServerError, err
 				}
-				taskIds = append(taskIds, info.ID)
-			}
-
-			responseBytes, err := json.Marshal(QuickScanResult{TaskIds: taskIds})
-			if err != nil {
-				return http.StatusInternalServerError, err
 			}
 
 			w.WriteHeader(http.StatusOK)
-			w.Write(responseBytes)
-
-			return 0, nil
-		},
-	}
-
-	HandleRequest(handler)
-}
-
-// QuickScanResult lists the queued job of each uploaded image, in upload order, so a client that uploaded a
-// single image can follow it to the receipt it creates (GET /receipt/quickScan/{taskId}).
-type QuickScanResult struct {
-	TaskIds []string `json:"taskIds"`
-}
-
-// QuickScanStatusResult says how a queued quick scan stands. Status is a plain string: PENDING, DONE or FAILED.
-type QuickScanStatusResult struct {
-	Status    string `json:"status"`
-	ReceiptId uint   `json:"receiptId"`
-}
-
-const (
-	quickScanStatusPending = "PENDING"
-	quickScanStatusDone    = "DONE"
-	quickScanStatusFailed  = "FAILED"
-)
-
-// resolveQuickScanStatus reads a queued scan's outcome off the system tasks it left behind: the scan's own
-// tasks carry its asynq id, and the first one linked to a receipt means the receipt exists. A failed task
-// without a receipt means this attempt gave up (asynq may still retry, which can turn it into DONE).
-func resolveQuickScanStatus(tasks []models.SystemTask) QuickScanStatusResult {
-	failed := false
-	for _, task := range tasks {
-		if task.ReceiptId != nil && *task.ReceiptId != 0 {
-			return QuickScanStatusResult{Status: quickScanStatusDone, ReceiptId: *task.ReceiptId}
-		}
-		if task.Status == models.SYSTEM_TASK_FAILED {
-			failed = true
-		}
-	}
-
-	if failed {
-		return QuickScanStatusResult{Status: quickScanStatusFailed}
-	}
-
-	return QuickScanStatusResult{Status: quickScanStatusPending}
-}
-
-// GetQuickScanStatus answers whether the scan queued by POST /receipt/quickScan has produced its receipt yet.
-// Only the user who ran the scan may ask, and an unknown id answers PENDING (the job may not have started).
-func GetQuickScanStatus(w http.ResponseWriter, r *http.Request) {
-	taskId := chi.URLParam(r, "taskId")
-
-	handler := structs.Handler{
-		ErrorMessage: "Error getting quick scan status.",
-		Writer:       w,
-		Request:      r,
-		ResponseType: constants.ApplicationJson,
-		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			token := structs.GetClaims(r)
-
-			var tasks []models.SystemTask
-			err := repositories.GetDB().
-				Where("asynq_task_id = ? AND ran_by_user_id = ?", taskId, token.UserId).
-				Find(&tasks).Error
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-
-			responseBytes, err := json.Marshal(resolveQuickScanStatus(tasks))
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-
-			w.WriteHeader(http.StatusOK)
-			w.Write(responseBytes)
 
 			return 0, nil
 		},

@@ -323,6 +323,7 @@
     "Download source file": "Pobierz plik źródłowy",
     "Draft": "Wersja robocza",
     "Drinks": "Napoje",
+    "Drop them here or choose them. The AI reads each photo as its own receipt, one by one.": "Upuść je tutaj lub wybierz. AI odczytuje każde zdjęcie jako osobny paragon, jedno po drugim.",
     "Duplicate": "Duplikuj",
     "Duplicate Receipt": "Duplikuj paragon",
     "Duplicate category grant": "Powtórzone uprawnienie do kategorii",
@@ -578,8 +579,6 @@
     "Name must be {requiredLength} characters or fewer.": "Nazwa może mieć co najwyżej {requiredLength} znaków.",
     "Navigate": "Przejdź",
     "Navigate CartVibe": "Nawigacja po CartVibe",
-    "Navigate left": "Przejdź w lewo",
-    "Navigate right": "Przejdź w prawo",
     "Needs Attention": "Wymaga uwagi",
     "Never let the AI use this category": "Nigdy nie pozwalaj AI używać tej kategorii",
     "New list": "Nowa lista",
@@ -774,7 +773,6 @@
     "Regional & time zone": "Region i strefa czasowa",
     "Remove": "Usuń",
     "Remove \"{name}\" from this receipt?": "Usunąć „{name}” z tego paragonu?",
-    "Remove Current Image": "Usuń bieżący obraz",
     "Remove Image": "Usuń obraz",
     "Remove Item": "Usuń pozycję",
     "Remove Receipt": "Odłącz paragon",
@@ -965,7 +963,6 @@
     "The AI is reading this receipt now.": "Sztuczna inteligencja czyta teraz ten paragon.",
     "The AI picks from these categories when it reads a receipt, and adds new ones here by itself. Rename one and the AI is told to use the new name instead of the old; switch one off and it is told to choose another.": "AI wybiera spośród tych kategorii, czytając paragon, i samo dodaje tu nowe. Zmień nazwę, a AI dostanie polecenie używania nowej zamiast starej; wyłącz kategorię, a dostanie polecenie wyboru innej.",
     "The AI reads receipts and their products, and tags food as healthy or not. Without it everything still works; receipts just wait until it is back.": "AI czyta paragony i ich produkty oraz oznacza żywność jako zdrową lub nie. Bez niego wszystko nadal działa, a paragony po prostu czekają na jego powrót.",
-    "The AI reads them for you.": "AI odczyta je za Ciebie.",
     "The amount must be a number with at most two decimals, like 1,99.": "Kwota musi być liczbą z co najwyżej dwoma miejscami po przecinku, np. 1,99.",
     "The categories the AI sorts receipt products into. New ones appear here by themselves; rename one to change what the AI uses, or switch one off.": "Kategorie, do których AI przypisuje produkty z paragonów. Nowe pojawiają się tu same; zmień nazwę, aby zmienić to, czego używa AI, albo wyłącz kategorię.",
     "The column this grouping level adds to the report": "Kolumna, którą ten poziom grupowania dodaje do raportu",
@@ -1223,6 +1220,14 @@
       "value": "Ustawienia AI grupy",
       "closest": "AI settings saved"
     },
+    "Navigate left": {
+      "value": "Przejdź w lewo",
+      "closest": "Navigate"
+    },
+    "Navigate right": {
+      "value": "Przejdź w prawo",
+      "closest": "Navigate"
+    },
     "Open receipt": {
       "value": "Otwórz paragon",
       "closest": "Open full receipt"
@@ -1233,6 +1238,10 @@
     "Receipt scanned": {
       "value": "Paragon zeskanowany",
       "closest": "Add Receipt"
+    },
+    "Remove Current Image": {
+      "value": "Usuń bieżący obraz",
+      "closest": "Remove Image"
     },
     "Save first to test the new settings.": {
       "value": "Najpierw zapisz, aby przetestować nowe ustawienia."
@@ -1247,6 +1256,9 @@
     "Successfully queued images for processing": {
       "value": "Zdjęcia dodano do kolejki przetwarzania",
       "closest": "Email successfully poll successfully queued"
+    },
+    "The AI reads them for you.": {
+      "value": "AI odczyta je za Ciebie."
     }
   }
 }
