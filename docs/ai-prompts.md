@@ -104,10 +104,10 @@ product is an error (guessing "unplanned" would overstate unplanned spend).
 
 1. Keep the answer keys the parsers read (above), or change the parser in the same commit.
 2. Keep the anchors code relies on: the receipt prompt's `"\nReceipt text: "` (the inline products go before it) and the
-   template variables `@categories`, `@customFields`, `@currentYear`, `@ocrText` (`structs/prompt_template_variable.go`;
-   `@tags` still exists for stored prompts but the default prompt does not use it).
+   template variables `@categories`, `@currentYear`, `@ocrText` (`structs/prompt_template_variable.go`;
+   `@tags` still exists but the default prompt does not use it; the prompt is code, there is no stored-prompt table).
 3. Prefer editing a shared rule block over copying text into one prompt.
-4. Run the tests that pin prompt content and parsing: `services/prompts_test.go`, `food_classification_test.go`,
+4. Run the tests that pin prompt content and parsing: `services/receipt_prompt_test.go`, `food_classification_test.go`,
    `food_group_categories_test.go`, `receipt_product_extraction_test.go`, `receipt_product_inline_read_test.go`,
    `quick_scan_ingest_test.go`, `receipt_processing_grant_test.go`, `ai/gemini_test.go`
    (`api/scripts/go-without-cgo.sh test ./internal/services/ -run '...'` on the Windows PC).
