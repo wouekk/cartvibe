@@ -1,5 +1,9 @@
 # CLAUDE.md
 
+> **The Flutter app was removed.** `?client=mobile` is refused with 400 at the OIDC router, the
+> exchange/link-launch routes, the login QR and the `dart:io` user-agent special-casing are gone. Remarks below
+> about "mobile", "Dart" or "released builds" are history; the OIDC flow code for the mobile branch is dead code.
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
@@ -155,7 +159,6 @@ pre-installed binary works.
 
 ### API Client Generation
 - `./generate-client.sh desktop <output-dir>` - Generate TypeScript Angular client
-- `./generate-client.sh mobile <output-dir>` - Generate Dart Dio client
 
 ### Go Toolchain
 - Requires **Go 1.26.9+** — `api/go.mod` declares `go 1.26.9`. No module forces that patch level
@@ -1533,19 +1536,6 @@ holds the browser result), link launch **2 min**, delete confirmation code **5 m
 an `@every 24h` cron, which is hygiene only — `expires_at` is inside every consume statement's WHERE
 clause.
 
-### Mobile handoff
-
-`GET /oidc/{name}/login?client=mobile&codeChallenge=…` → the callback redirects to
-`io.receiptwrangler://oidc?code=…` carrying a single-use, PKCE-bound code, **never tokens**: a
-private-use scheme is unverifiable on Android, so any installed app can read the redirect; the
-verifier the app kept is what makes an interception useless. `POST /oidc/exchange` then returns the
-full `AppData` with `jwt` + `refreshToken` — byte-identical in shape to `POST /login/?tokensInBody=true`,
-so mobile reuses `storeAppData` unchanged, and **no cookie is ever set** on that route.
-
-The code is **loaded, verified, then burned** (never burned first): otherwise anyone who intercepted
-the redirect could destroy a valid code just by presenting a wrong verifier. Pinned by
-`TestExchangeDoesNotConsumeTheCodeOnAWrongVerifier`.
-
 ### Linking an existing account
 
 `GET /oidc/link/{name}` (authenticated) runs the same flow with `LinkUserId` set, so the callback
@@ -2437,37 +2427,6 @@ non-member — since one pairing passes while another still leaks.
 two rows of the same type sharing one `AsynqTaskId` when a fallback processing
 setting ran, so such a failure already shows two Rerun buttons and now shows two
 button pairs. Deduping would change rerun's existing behaviour.
-
-## Login QR & mobile deep link
-
-The desktop login page can show a self-contained QR that sets up the mobile app. Two System Settings
-drive it (`models.SystemSettings`, edited via the System Settings UI, validated in
-`commands.UpsertSystemSettingsCommand.Validate`):
-
-- `showLoginQr` (bool, default false) — opt-in toggle.
-- `mobileServerUrl` (string) — the server/API URL mobile clients connect to; required (absolute
-  http/https, validated by `isValidAbsoluteUrl` — the former `isValidMcpPublicUrl`, generalized and
-  now shared by both settings) when `showLoginQr` is on. `isValidAbsoluteUrl` also rejects **embedded
-  credentials** (`https://user:token@host`): both settings it guards are published to unauthenticated
-  clients — this one inside the login QR on the public `/featureConfig`, `mcpPublicUrl` in the OAuth
-  discovery metadata — so userinfo would be handed out verbatim. **http stays valid** on purpose:
-  LAN / bare-IP self-hosting is a supported deployment (the mobile Connect screen accepts http too).
-
-`SystemSettingsService.GetFeatureConfig()` derives a single **`FeatureConfig.LoginQrUrl`** from them
-via `BuildLoginQrUrl` (`services/system_settings.go`): the App Link / Universal Link
-`https://receiptwrangler.io/app/setup#url=<percent-encoded mobileServerUrl>` when the toggle is on and
-a URL is set, else `""`. The server URL rides in the **fragment** so it never reaches
-receiptwrangler.io's logs in the app-not-installed web fallback. `loginQrUrl` is the **only** login-QR
-value exposed on the public, unauthenticated `GET /featureConfig` payload — the raw setting and toggle
-stay behind auth. The desktop renders the QR locally from `loginQrUrl` (no new endpoint/handler).
-
-The `receiptwrangler.io/app/setup` host/path is a fixed, project-owned constant that MUST stay in sync
-with the mobile App Link config and the `.well-known/assetlinks.json` / `apple-app-site-association`
-files hosted on **receiptwrangler.io** (served from that domain's own nginx/docs infra — not this
-repo; the same layer also serves a `/app/setup` platform redirect for the app-not-installed fallback).
-See `mobile/CLAUDE.md` → "App Links / Universal Links — server-URL pre-fill (login)". Tests:
-`commands/upsert_system_settings_command_test.go` (validation), `services/system_settings_test.go`
-(`BuildLoginQrUrl` compose/encoding + `GetFeatureConfig` mapping).
 
 ## System task filtering
 
@@ -4268,3 +4227,9 @@ The old header search (`GET /search`, name `LIKE` only) is kept for MCP and rele
   (`GetProductSearchMatches`, at most 3 product lines, display name else printed name, with the amount). A receipt that
   matched on name, shop or comment has none. Absent from every other response.
 - Tests: `utils/fuzzy_match_test.go`, `repositories/receipt_search_test.go`, `handlers/receipt_search_matches_test.go`.
+
+## Quick scan result and rename (fork, 2026-10)
+- `HandleQuickScanTask` runs scans **one at a time** (a package mutex, so several uploaded photos are read in queue order) and
+  notifies the uploader: "Receipt ready" with a link, or "Receipt scan failed" on the **last** retry only (`isFinalAttempt`).
+- `PUT /receipt/{id}/name` (`RenameReceipt`, `group.receipts.update`, paid-by visibility through the receipt gate) changes only
+  `receipts.name` (trimmed, 1-255 characters, 400 otherwise), so a rename never saves other form state.

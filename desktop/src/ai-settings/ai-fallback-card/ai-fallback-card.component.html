@@ -25,7 +25,7 @@
         type="password"
         data-testid="ai-fallback-key"
         [label]="'API key' | t"
-        [hint]="keyHint()"
+        [placeholder]="keyPlaceholder()"
         [showVisibilityEye]="true"
         [inputFormControl]="form | formGet : 'key'"
       ></app-input>
@@ -48,7 +48,7 @@
         [class]="result.ok ? 'bg-success-text/15 text-success-text' : 'bg-destructive/15 text-destructive'"
       >
         <app-icon [name]="result.ok ? 'check_circle' : 'error'"></app-icon>
-        {{ result.message }}
+        {{ result.message | t: result.params }}
       </p>
     }
     <div sectionFooter class="rw-card__footer">
@@ -60,7 +60,7 @@
         variant="outline"
         type="button"
         data-testid="ai-fallback-test"
-        [disabled]="!saved() || form.dirty || testing() || !form.controls.enabled.value"
+        [disabled]="!canTest() || testing()"
         (click)="testConnection()"
       >
         <app-icon name="wifi_tethering"></app-icon>

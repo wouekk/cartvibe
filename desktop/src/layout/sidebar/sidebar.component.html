@@ -154,7 +154,7 @@
                 </button>
                 <div hlmDropdownMenuSeparator></div>
                 <div hlmDropdownMenuLabel>{{ 'Language' | t }}</div>
-                @for (option of languages; track option.code) {
+                @for (option of languages(); track option.code) {
                   <button hlmDropdownMenuItem type="button" data-testid="sidebar-language-option" (click)="languageSync.choose(option.code)">
                     <ng-icon name="lucideCheck" size="16" [class.invisible]="translation.language() !== option.code" />
                     <span>{{ option.label }}</span>

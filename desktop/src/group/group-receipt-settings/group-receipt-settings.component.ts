@@ -19,6 +19,7 @@ import {
 } from "../../open-api/index";
 import { SnackbarService } from "../../services/index";
 import { AuthState, UpdateGroup } from "../../store/index";
+import { marker } from "../../i18n/marker";
 
 @Component({
     selector: "app-group-receipt-settings",
@@ -42,14 +43,14 @@ export class GroupReceiptSettingsComponent extends BaseFormComponent implements 
 
   public readonly paidByTypeOptions = [
     { value: QuickScanDefaultPaidByType.Uploader, display: "Uploader" },
-    { value: QuickScanDefaultPaidByType.User, display: "Specific user" },
+    { value: QuickScanDefaultPaidByType.User, display: marker("Specific user") },
   ];
 
   // The empty enum member is deliberately not offered: it exists only so an already-released
   // client tolerates a value added later, and the server normalizes it away on every read.
   public readonly summaryPositionOptions = [
-    { value: ReceiptSummaryPosition.Top, display: "Above the table" },
-    { value: ReceiptSummaryPosition.Bottom, display: "Below the table" },
+    { value: ReceiptSummaryPosition.Top, display: marker("Above the table") },
+    { value: ReceiptSummaryPosition.Bottom, display: marker("Below the table") },
   ];
 
   // Every real status, derived from the generated ReceiptStatus enum so a status added to swagger
@@ -111,14 +112,18 @@ export class GroupReceiptSettingsComponent extends BaseFormComponent implements 
   public ngOnInit(): void {
     this.setFormConfigFromRoute(this.activatedRoute);
     this.setOriginalGroup();
+    this.canEdit = this.store.selectSnapshot(
+      AuthState.hasGroupPermission(this.originalGroup.id, Permission.GroupUpdate)
+    );
+    // Always editable for anyone who may update (Save in the card footer), like the other settings pages.
+    if (this.formConfig.mode === FormMode.view && this.canEdit) {
+      this.formConfig = { ...this.formConfig, mode: FormMode.edit };
+    }
     this.customFields = this.activatedRoute.snapshot.data["customFields"] ?? [];
     this.canManageDefaultCustomFields = this.store.selectSnapshot(
       AuthState.hasAppPermission(Permission.AppCustomFieldsRead)
     );
     this.initForm();
-    this.canEdit = this.store.selectSnapshot(
-      AuthState.hasGroupPermission(this.originalGroup.id, Permission.GroupUpdate)
-    );
   }
 
   private initForm(): void {
@@ -322,14 +327,7 @@ export class GroupReceiptSettingsComponent extends BaseFormComponent implements 
           }),
           tap(() => {
             this.snackbarService.success("Receipt settings updated successfully");
-            this.router.navigate(
-              [`/groups/${this.originalGroup.id}/receipt-settings/view`],
-              {
-                queryParams: {
-                  tab: "receipt-settings"
-                }
-              }
-            );
+            this.form.markAsPristine();
           })
         )
         .subscribe();

@@ -1,3 +1,4 @@
+import { marker } from "../../../i18n/marker";
 /**
  * Health and seasonality tags as the API sends them: plain strings, never enums, so a value this
  * build does not know simply shows no tag.
@@ -14,14 +15,14 @@ export interface FoodTag {
 }
 
 const HEALTH_TAGS: { [health: string]: FoodTag } = {
-  HEALTHY: { label: "Healthy", tone: "good", testId: "food-tag-healthy" },
-  MEDIUM: { label: "Medium", tone: "medium", testId: "food-tag-medium" },
+  HEALTHY: { label: marker("Healthy"), tone: "good", testId: "food-tag-healthy" },
+  MEDIUM: { label: marker("Medium"), tone: "medium", testId: "food-tag-medium" },
   UNHEALTHY: { label: "Unhealthy", tone: "bad", testId: "food-tag-unhealthy" },
 };
 
 const SEASONALITY_TAGS: { [seasonality: string]: FoodTag } = {
-  SEASONAL: { label: "Seasonal", tone: "good", testId: "food-tag-seasonal" },
-  OUT_OF_SEASON: { label: "Imported", tone: "neutral", testId: "food-tag-imported" },
+  SEASONAL: { label: marker("Seasonal"), tone: "good", testId: "food-tag-seasonal" },
+  OUT_OF_SEASON: { label: marker("Imported"), tone: "neutral", testId: "food-tag-imported" },
 };
 
 /** The tags to show: health first, then seasonality for produce. NOT_FOOD, UNKNOWN and "" show none. */
@@ -40,14 +41,14 @@ export function foodTagsOf(values: FoodTagValues): FoodTag[] {
 
 /** The choices offered when a person corrects the tags. */
 export const HEALTH_CHOICES: { value: string; label: string }[] = [
-  { value: "HEALTHY", label: "Healthy" },
-  { value: "MEDIUM", label: "Medium" },
+  { value: "HEALTHY", label: marker("Healthy") },
+  { value: "MEDIUM", label: marker("Medium") },
   { value: "UNHEALTHY", label: "Unhealthy" },
-  { value: "NOT_FOOD", label: "Not food" },
+  { value: "NOT_FOOD", label: marker("Not food") },
 ];
 
 export const SEASONALITY_CHOICES: { value: string; label: string }[] = [
-  { value: "SEASONAL", label: "In season" },
-  { value: "OUT_OF_SEASON", label: "Imported / out of season" },
-  { value: "NOT_PRODUCE", label: "Not fresh produce" },
+  { value: "SEASONAL", label: marker("In season") },
+  { value: "OUT_OF_SEASON", label: marker("Imported / out of season") },
+  { value: "NOT_PRODUCE", label: marker("Not fresh produce") },
 ];

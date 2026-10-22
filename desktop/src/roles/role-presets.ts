@@ -1,4 +1,5 @@
 import { PermissionScope } from "../open-api";
+import { marker } from "../i18n/marker";
 
 /**
  * A role applies to exactly one scope. The "Role type" choice drives the
@@ -46,22 +47,22 @@ const PRIMARY_COLOR = "#0086d4";
 export const ROLE_TYPES: RoleTypeMeta[] = [
   {
     id: "app",
-    name: "Application role",
+    name: marker("Application role"),
     icon: "apps",
     color: PRIMARY_COLOR,
     tint: PRIMARY_TINT,
     description:
-      "Controls app-wide capabilities — users, settings, prompts, API keys and more.",
+      marker("Controls app-wide capabilities — users, settings, prompts, API keys and more."),
     scope: PermissionScope.App,
   },
   {
     id: "group",
-    name: "Group role",
+    name: marker("Group role"),
     icon: "workspaces",
     color: GROUP_COLOR,
     tint: GROUP_TINT,
     description:
-      "Controls what a member can do inside a group — receipts, dashboards, activity.",
+      marker("Controls what a member can do inside a group — receipts, dashboards, activity."),
     scope: PermissionScope.Group,
   },
 ];
@@ -134,8 +135,8 @@ const VIEWER_KEYS = [
 export const APP_PRESETS: RolePreset[] = [
   {
     id: "admin",
-    name: "Administrator",
-    description: "Everything in the app",
+    name: marker("Administrator"),
+    description: marker("Everything in the app"),
     icon: "shield_person",
     color: PRIMARY_COLOR,
     tint: PRIMARY_TINT,
@@ -143,8 +144,8 @@ export const APP_PRESETS: RolePreset[] = [
   },
   {
     id: "user-mgr",
-    name: "User Manager",
-    description: "Manage users & keys",
+    name: marker("User Manager"),
+    description: marker("Manage users & keys"),
     icon: "manage_accounts",
     color: PRIMARY_COLOR,
     tint: PRIMARY_TINT,
@@ -153,8 +154,8 @@ export const APP_PRESETS: RolePreset[] = [
   },
   {
     id: "app-viewer",
-    name: "Read Only",
-    description: "View settings only",
+    name: marker("Read Only"),
+    description: marker("View settings only"),
     icon: "visibility",
     color: "#10b981",
     tint: "#d1fae5",
@@ -163,7 +164,7 @@ export const APP_PRESETS: RolePreset[] = [
   {
     id: "custom",
     name: "Custom",
-    description: "Start from scratch",
+    description: marker("Start from scratch"),
     icon: "tune",
     color: "#64748b",
     tint: "#f1f5f9",
@@ -174,8 +175,8 @@ export const APP_PRESETS: RolePreset[] = [
 export const GROUP_PRESETS: RolePreset[] = [
   {
     id: "manager",
-    name: "Group Manager",
-    description: "Run groups & receipts",
+    name: marker("Group Manager"),
+    description: marker("Run groups & receipts"),
     icon: "workspaces",
     color: GROUP_COLOR,
     tint: GROUP_TINT,
@@ -183,8 +184,8 @@ export const GROUP_PRESETS: RolePreset[] = [
   },
   {
     id: "editor",
-    name: "Receipt Editor",
-    description: "Add & edit receipts",
+    name: marker("Receipt Editor"),
+    description: marker("Add & edit receipts"),
     icon: "edit_note",
     color: "#10b981",
     tint: "#d1fae5",
@@ -192,8 +193,8 @@ export const GROUP_PRESETS: RolePreset[] = [
   },
   {
     id: "viewer",
-    name: "Viewer",
-    description: "Read-only access",
+    name: marker("Viewer"),
+    description: marker("Read-only access"),
     icon: "visibility",
     color: "#64748b",
     tint: "#f1f5f9",
@@ -202,7 +203,7 @@ export const GROUP_PRESETS: RolePreset[] = [
   {
     id: "custom",
     name: "Custom",
-    description: "Start from scratch",
+    description: marker("Start from scratch"),
     icon: "tune",
     color: "#64748b",
     tint: "#f1f5f9",
@@ -247,12 +248,12 @@ export function iconForResource(resourceKey: string): string {
 }
 
 const RESOURCE_NAME_OVERRIDES: Record<string, string> = {
-  "custom-fields": "Custom Fields",
-  "receipt-processing-settings": "Receipt Processing",
-  "api-keys": "API Keys",
-  "system-settings": "System Settings",
-  "system-emails": "System Emails",
-  "system-tasks": "System Tasks",
+  "custom-fields": marker("Custom Fields"),
+  "receipt-processing-settings": marker("Receipt Processing"),
+  "api-keys": marker("API Keys"),
+  "system-settings": marker("System Settings"),
+  "system-emails": marker("System Emails"),
+  "system-tasks": marker("System Tasks"),
 };
 
 /** Prettifies the last segment of a resource key into a friendly title. */

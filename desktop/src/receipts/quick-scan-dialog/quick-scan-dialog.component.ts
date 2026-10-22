@@ -14,6 +14,7 @@ import { codePointMaxLengthValidator, trimmedRequiredValidator } from "../../val
 import { UploadImageComponent } from "../upload-image/upload-image.component";
 import { QuickScanFieldConfig, resolveQuickScanFieldConfig } from "./quick-scan-field-config";
 import { receiptRequirementsFor } from "../../utils/receipt-requirements";
+import { marker } from "../../i18n/marker";
 
 // Mirrors the backend's models.MaxCommentLength (the Comment column is varchar(500), which
 // MySQL/Postgres measure in characters) and mobile's FormBuilderTextField maxLength, so an
@@ -30,7 +31,7 @@ const commentRequiredValidator = trimmedRequiredValidator();
 
 @Component({
     selector: "app-quick-scan-dialog",
-  host: { class: "block [&_.carousel-control]:hidden [&_.image-preview]:h-50 [&_.image-preview]:w-auto" },
+  host: { class: "block" },
     templateUrl: "./quick-scan-dialog.component.html",
     standalone: false
 })
@@ -41,12 +42,10 @@ export class QuickScanDialogComponent implements OnInit {
 
   public images: ReceiptFileUploadCommand[] = [];
 
-  public currentlySelectedIndex: number = 0;
-
   // base-input has no built-in message for the maxlength error, so an unmapped one would render an
   // empty mat-error. Held as a field rather than an inline object literal so the binding is stable.
   public readonly commentErrorMessages: { [key: string]: string } = {
-    maxlength: `Comment must be ${QUICK_SCAN_COMMENT_MAX_LENGTH} characters or fewer.`,
+    maxlength: marker("Comment must be {requiredLength} characters or fewer."),
   };
 
   // The group picker only shows when there is a choice to make.
@@ -277,6 +276,33 @@ export class QuickScanDialogComponent implements OnInit {
     }
   }
 
+  /** True while a file is dragged over the drop zone, so it can show it will take it. */
+  public readonly dragging = signal(false);
+
+  public onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.dragging.set(true);
+  }
+
+  public onDragLeave(): void {
+    this.dragging.set(false);
+  }
+
+  public onDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.dragging.set(false);
+    void this.uploadImageComponent().processFiles(Array.from(event.dataTransfer?.files ?? []));
+  }
+
+  /** "1.4 MB" style size for the photo's row. */
+  public fileSize(image: ReceiptFileUploadCommand): string {
+    const bytes = image.file?.size ?? 0;
+    if (bytes >= 1024 * 1024) {
+      return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+    }
+    return Math.max(1, Math.round(bytes / 1024)) + " KB";
+  }
+
   public openImageUploadComponent(): void {
     this.uploadImageComponent().clickInput();
   }
@@ -319,8 +345,9 @@ export class QuickScanDialogComponent implements OnInit {
         .pipe(
           take(1),
           tap(() => {
-            const imageWord = this.images.length === 1 ? "image" : "images";
-            this.snackbarService.success(`Successfully queued ${imageWord} for processing`);
+            this.snackbarService.success(
+              marker("Receipts uploaded. You will get a notification once the AI has read them, or if it fails.")
+            );
             this.dialogRef.close();
           }),
           // A refused or failed upload (the interceptor already reports it) leaves the dialog open and the bar away.
@@ -348,18 +375,5 @@ export class QuickScanDialogComponent implements OnInit {
     this.dialogRef.close();
   }
 
-  public navigateImages(delta: number): void {
-    const newValue = this.currentlySelectedIndex + delta;
-    if (newValue === -1) {
-      this.currentlySelectedIndex = this.images.length - 1;
-      return;
-    }
 
-    if (newValue > this.images.length - 1) {
-      this.currentlySelectedIndex = 0;
-      return;
-    }
-
-    this.currentlySelectedIndex = newValue;
-  }
 }

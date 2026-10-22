@@ -20,6 +20,8 @@ import { DummyUserConversionDialogComponent } from "../dummy-user-conversion-dia
 import { ResetPasswordComponent } from "../reset-password/reset-password.component";
 import { UserFormComponent } from "../user-form/user-form.component";
 import { UserTableService } from "./user-table.service";
+import { marker } from "../../i18n/marker";
+import { TranslationService } from "../../i18n/translation.service";
 
 @Component({
     selector: "app-user-list",
@@ -35,6 +37,8 @@ import { UserTableService } from "./user-table.service";
     standalone: false
 })
 export class UserListComponent extends BaseTableComponent<User> implements AfterViewInit {
+  private readonly translation = inject(TranslationService);
+
   protected readonly Permission = Permission;
   protected readonly PermissionScope = PermissionScope;
 
@@ -109,19 +113,19 @@ export class UserListComponent extends BaseTableComponent<User> implements After
         sortable: false,
       },
       {
-        columnHeader: "Created At",
+        columnHeader: marker("Created At"),
         matColumnDef: "created_at",
         template: this.createdAtCell(),
         sortable: true,
       },
       {
-        columnHeader: "Updated At",
+        columnHeader: marker("Updated At"),
         matColumnDef: "updated_at",
         template: this.updatedAtCell(),
         sortable: true,
       },
       {
-        columnHeader: "Actions",
+        columnHeader: marker("Actions"),
         matColumnDef: "actions",
         template: this.actionsCell(),
         sortable: false,
@@ -200,8 +204,8 @@ export class UserListComponent extends BaseTableComponent<User> implements After
         DEFAULT_DIALOG_CONFIG
       );
 
-      dialogRef.componentInstance.headerText = "Delete User";
-      dialogRef.componentInstance.dialogContent = `Are you sure you would like to delete the user '${user.username}'? This will remove the user from the user from groups, the user's receipt items, groups where this user is the only member, and receipts where the user paid. This action is irreversible.`;
+      dialogRef.componentInstance.headerText = marker("Delete User");
+      dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you would like to delete the user '{name}'? This will remove the user from the user from groups, the user's receipt items, groups where this user is the only member, and receipts where the user paid. This action is irreversible.", { name: user.username });
 
       dialogRef.afterClosed().subscribe((r) => {
         if (r) {
@@ -238,8 +242,8 @@ export class UserListComponent extends BaseTableComponent<User> implements After
     );
 
     const usernames = usersToDelete.map(user => user.username).join(", ");
-    dialogRef.componentInstance.headerText = "Delete Users";
-    dialogRef.componentInstance.dialogContent = `Are you sure you would like to delete ${usersToDelete.length} user(s): ${usernames}? This will remove these users from groups, their receipt items, groups where they are the only member, and receipts where they paid. This action is irreversible.`;
+    dialogRef.componentInstance.headerText = marker("Delete Users");
+    dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you would like to delete {count} user(s): {names}? This will remove these users from groups, their receipt items, groups where they are the only member, and receipts where they paid. This action is irreversible.", { count: usersToDelete.length, names: usernames });
 
     dialogRef.afterClosed().subscribe((confirmed) => {
       if (confirmed) {
@@ -252,7 +256,7 @@ export class UserListComponent extends BaseTableComponent<User> implements After
           .pipe(
             take(1),
             tap(() => {
-              this.snackbarService.success(`${usersToDelete.length} user(s) successfully deleted`);
+              this.snackbarService.success(this.translation.t("{count} user(s) successfully deleted", { count: usersToDelete.length }));
               this.store.dispatch(new RemoveUsers(bulkDeleteCommand.userIds));
               this.table().selection.clear();
               this.getTableData();

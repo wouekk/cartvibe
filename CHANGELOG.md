@@ -8,7 +8,31 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+### Added
+- Quick Scan closes right after the upload, whatever the number of photos: the scans are read one at a time and the
+  uploader gets a notification for each (ready, with a link to the receipt, or failed after the last retry). Photos are
+  added by dropping or choosing them (spartan `attachment`, one row per photo with a thumbnail and a remove button).
+
+## [0.3.0] - 2026-10-22
+
+### Added
+- Translations are runtime JSON files (`desktop/src/assets/i18n/`): a language is one line in `languages.json` plus one
+  `<code>.json`, with no code change. A missing translation shows the English text, never a key.
+- Validation messages ("... is required") are translated and follow the language live.
+- A Language row in User Settings → Theme; it applies at once and is saved with the account.
+- `npm run i18n:extract`, `i18n:check` (run in CI) and `i18n:sync` keep `en.json` and every language file in step.
+
+### Removed
+- The Flutter mobile app (`mobile/`), its generated Dart client, its CI job and the dart-dio patches. Phones use the
+  web app.
+- The mobile app's sign-in paths: `?client=mobile` on OIDC is refused, `/oidc/exchange` and `/oidc/link/{name}/launch`
+  are gone, and the `dart:io` user agent no longer changes login, logout or token refresh.
+- The login QR (`showLoginQr`, `mobileServerUrl`, `loginQrUrl`) and the unused `qrcode` packages.
+
 ### Changed
+- The interface is English until you sign in; then the language saved with your account is used on every device. The
+  browser language is no longer consulted.
+- Polish now covers every string in templates, dialogs, toasts and notifications.
 - A Quick Scan reads the receipt and its products in one AI call, so its products, categories and health tags are there
   as soon as it is saved (they used to wait for a second call up to 30 seconds later).
 - Gemini answers faster: the app uses Google's current SDK and turns the model's thinking down for receipt reading.

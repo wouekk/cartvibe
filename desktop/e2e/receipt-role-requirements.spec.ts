@@ -167,7 +167,9 @@ test.describe('Role-required receipt comment and image', () => {
     await expect(page.getByText(commentText)).toBeVisible();
 
     // The only image cannot be removed, and the only comment offers no delete.
-    await expect(page.getByTestId('receipt-image-remove').locator('button')).toBeDisabled();
+    await page.getByTestId('receipt-image-menu').locator('button').click();
+    await expect(page.getByTestId('receipt-image-remove')).toBeDisabled();
+    await page.keyboard.press('Escape');
     await expect(page.getByTestId('comment-delete')).toHaveCount(0);
 
     // The server refuses both deletes too, so an older client cannot bypass it.

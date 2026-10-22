@@ -1,4 +1,5 @@
 import { Component, input } from "@angular/core";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 /**
  * The CartVibe loaders of the identity package, drawn and animated exactly as supplied:
@@ -14,6 +15,7 @@ import { Component, input } from "@angular/core";
 @Component({
   selector: "app-cartvibe-loader",
   standalone: true,
+  imports: [TranslatePipe],
   template: `
     @if (variant() === "badge") {
       <svg
@@ -23,7 +25,7 @@ import { Component, input } from "@angular/core";
         [attr.height]="size()"
         class="loader"
         role="status"
-        aria-label="Loading"
+        [attr.aria-label]="'Loading' | t"
         data-testid="cartvibe-loader"
       >
         <defs>
@@ -80,7 +82,7 @@ import { Component, input } from "@angular/core";
         [attr.height]="size()"
         class="loader loader--transparent"
         role="status"
-        aria-label="Loading"
+        [attr.aria-label]="'Loading' | t"
         data-testid="cartvibe-loader"
       >
         <defs>

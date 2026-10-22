@@ -26,7 +26,8 @@ import { SnackbarService } from "../../services";
 import { SetFeatureConfig } from "../../store";
 import { AiFallbackCardComponent } from "../ai-fallback-card/ai-fallback-card.component";
 import { GeminiModelFieldComponent } from "../gemini-model-field/gemini-model-field.component";
-import { AI_SETTINGS_NAME, ConnectionResult, DEFAULT_GEMINI_MODEL, describeConnection } from "../ai-settings-shared";
+import { AI_SETTINGS_NAME, ConnectionResult, DEFAULT_GEMINI_MODEL, SAVED_KEY_PLACEHOLDER, describeConnection } from "../ai-settings-shared";
+import { marker } from "../../i18n/marker";
 
 export { AI_SETTINGS_NAME, DEFAULT_GEMINI_MODEL, describeConnection } from "../ai-settings-shared";
 export type { ConnectionResult } from "../ai-settings-shared";
@@ -100,7 +101,7 @@ export class AiSettingsPageComponent implements OnInit {
   public readonly providers = computed(() => {
     const options = [
       { value: AiType.Gemini, displayValue: "Google Gemini" },
-      { value: AiType.OpenAiCustom, displayValue: "LM Studio (on a computer at home)" },
+      { value: AiType.OpenAiCustom, displayValue: marker("LM Studio (on a computer at home)") },
     ];
     const savedType = this.saved()?.aiType;
     if (savedType && !options.some((option) => option.value === savedType)) {
@@ -148,10 +149,42 @@ export class AiSettingsPageComponent implements OnInit {
       });
   }
 
-  /** A stored key is never sent back, so an empty key field keeps it. */
-  public readonly keyHint = computed(() =>
-    this.saved() ? "A key is saved. Leave this empty to keep it." : undefined
-  );
+  /** A stored key is never sent back, so a saved key shows as dots and an empty key field keeps it. */
+  public readonly keyPlaceholder = computed(() => (this.saved() ? SAVED_KEY_PLACEHOLDER : ""));
+
+  private readonly formValue = toSignal(this.form.valueChanges.pipe(startWith(this.form.getRawValue())), {
+    initialValue: this.form.getRawValue(),
+  });
+
+  /** Settings can be tested as typed, saved or not: a saved key covers an empty key box, a new one needs its key or URL. */
+  public readonly canTest = computed(() => {
+    const value = this.formValue();
+    if (this.saved()) {
+      return true;
+    }
+    return value.aiType === AiType.Gemini ? !!(value.key ?? "").trim() : !!(value.url ?? "").trim();
+  });
+
+  private buildCommand(): UpsertReceiptProcessingSettingsCommand {
+    const saved = this.saved();
+    const value = this.form.getRawValue();
+    const isGemini = value.aiType === AiType.Gemini;
+    return {
+      name: saved?.name || AI_SETTINGS_NAME,
+      description: saved?.description ?? "",
+      aiType: value.aiType!,
+      model: (value.model ?? "").trim(),
+      // Gemini takes no URL; the API refuses one.
+      url: isGemini ? "" : (value.url ?? "").trim(),
+      key: (value.key ?? "").trim(),
+      isVisionModel: isGemini ? true : !!value.isVisionModel,
+      // LM Studio refuses the JSON-object response format the flag asks for.
+      enforceJsonResponseFormat: isGemini,
+      ocrEngine: saved?.ocrEngine ?? OcrEngine.Tesseract,
+      // 0: the API points it at the default prompt; the prompt itself is built in (A3).
+      promptId: saved?.promptId ?? 0,
+    };
+  }
 
   public save(): void {
     if (this.form.invalid || this.saving()) {
@@ -167,22 +200,7 @@ export class AiSettingsPageComponent implements OnInit {
       return;
     }
 
-    const isGemini = value.aiType === AiType.Gemini;
-    const command: UpsertReceiptProcessingSettingsCommand = {
-      name: saved?.name || AI_SETTINGS_NAME,
-      description: saved?.description ?? "",
-      aiType: value.aiType!,
-      model: (value.model ?? "").trim(),
-      // Gemini takes no URL; the API refuses one.
-      url: isGemini ? "" : (value.url ?? "").trim(),
-      key,
-      isVisionModel: isGemini ? true : !!value.isVisionModel,
-      // LM Studio refuses the JSON-object response format the flag asks for.
-      enforceJsonResponseFormat: isGemini,
-      ocrEngine: saved?.ocrEngine ?? OcrEngine.Tesseract,
-      // 0: the API points it at the default prompt; the prompt itself is built in (A3).
-      promptId: saved?.promptId ?? 0,
-    };
+    const command = this.buildCommand();
 
     this.saving.set(true);
     const request: Observable<ReceiptProcessingSettings> = saved
@@ -205,17 +223,22 @@ export class AiSettingsPageComponent implements OnInit {
       });
   }
 
-  /** Tests what is saved, with the saved key, so the key never has to be typed twice. */
+  /**
+   * Tests the settings as they are on the page, saved or not. A saved key stands in for an empty key box (the API
+   * reads it for this id), so the key never has to be typed twice; an untouched form just tests what is saved.
+   */
   public testConnection(): void {
     const saved = this.saved();
-    if (!saved || this.testing()) {
+    if (!this.canTest() || this.testing()) {
       return;
     }
+
+    const request = saved && !this.form.dirty ? { id: saved.id } : { id: saved?.id, ...this.buildCommand() };
 
     this.testing.set(true);
     this.connectionResult.set(undefined);
     this.receiptProcessingSettingsService
-      .checkReceiptProcessingSettingsConnectivity({ id: saved.id })
+      .checkReceiptProcessingSettingsConnectivity(request)
       .pipe(
         take(1),
         map((task) => describeConnection(task.status, task.resultDescription)),

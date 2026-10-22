@@ -3,6 +3,9 @@ import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { SYSTEM_MODE, ThemeMode, ThemeService } from "../../theme/theme.service";
 import { THEMES } from "../../theme/themes";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { LanguageSettingComponent } from "./language-setting.component";
+import { marker } from "../../i18n/marker";
 
 interface ModeOption {
   mode: ThemeMode;
@@ -17,10 +20,10 @@ interface ModeOption {
 @Component({
   selector: "app-theme-settings",
   standalone: true,
-  imports: [AppIconComponent, SharedUiModule],
+  imports: [AppIconComponent, LanguageSettingComponent, SharedUiModule, TranslatePipe],
   template: `
     <app-settings-section testId="theme-mode-card" title="Theme" description="Choose how CartVibe looks on this device.">
-        <ul class="m-0 flex list-none flex-col gap-1 px-3 py-3" role="radiogroup" aria-label="Theme">
+        <ul class="m-0 flex list-none flex-col gap-1 px-3 py-3" role="radiogroup" [attr.aria-label]="'Theme' | t">
           @for (option of options; track option.mode) {
             <li>
               <button
@@ -34,7 +37,7 @@ interface ModeOption {
                 (click)="theme.setMode(option.mode)"
               >
                 <app-icon [name]="option.icon"></app-icon>
-                <span class="flex-1">{{ option.label }}</span>
+                <span class="flex-1">{{ option.label | t }}</span>
                 @if (theme.mode() === option.mode) {
                   <app-icon name="check"></app-icon>
                 }
@@ -42,6 +45,7 @@ interface ModeOption {
             </li>
           }
         </ul>
+        <app-language-setting></app-language-setting>
     </app-settings-section>
   `,
 })
@@ -49,7 +53,7 @@ export class ThemeSettingsComponent {
   protected readonly theme = inject(ThemeService);
 
   protected readonly options: ModeOption[] = [
-    { mode: SYSTEM_MODE, label: "System", icon: "contrast" },
+    { mode: SYSTEM_MODE, label: marker("System"), icon: "contrast" },
     ...THEMES.map((theme) => ({ mode: theme.key, label: theme.label, icon: theme.icon })),
   ];
 }

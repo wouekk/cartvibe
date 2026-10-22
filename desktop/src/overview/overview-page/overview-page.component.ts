@@ -64,6 +64,7 @@ import {
 } from "../overview-detail-dialog/overview-detail-dialog.component";
 import { summarizeShoppingLists } from "../overview-lists";
 import { isWholeCalendarMonth, previousLabel, resolvePeriod, ResolvedPeriod } from "../overview-period";
+import { marker } from "../../i18n/marker";
 
 const RECENT_RECEIPT_COUNT = 6;
 
@@ -72,7 +73,7 @@ const LIST_PREVIEW_ITEMS = 3;
 
 /** The Dashboard's names for the folded and the unknown food group. */
 const OTHER_SEGMENT = "Other";
-const UNCATEGORIZED = "Uncategorized";
+const UNCATEGORIZED = marker("Uncategorized");
 
 /**
  * The Dashboard (the landing page): a period at a glance for the selected group, any period from a
@@ -193,7 +194,7 @@ export class OverviewPageComponent {
         take(1),
         tap((saved) => {
           this.store.dispatch(new SetUserPreferences(saved));
-          this.snackbarService.success(this.translation.t(parsed.value ? "Monthly goal saved" : "Monthly goal removed"));
+          this.snackbarService.success(parsed.value ? marker("Monthly goal saved") : marker("Monthly goal removed"));
         }),
         catchError(() => of(undefined))
       )
@@ -458,7 +459,7 @@ export class OverviewPageComponent {
       },
       annotations:
         goalMode && this.showGoalLine()
-          ? { yaxis: [{ y: this.goal(), borderColor: colors.mutedForeground, strokeDashArray: 5, label: { text: "Goal", position: "left", borderColor: "transparent", style: { color: colors.mutedForeground, background: "transparent", fontSize: "10px" } } }] }
+          ? { yaxis: [{ y: this.goal(), borderColor: colors.mutedForeground, strokeDashArray: 5, label: { text: marker("Goal"), position: "left", borderColor: "transparent", style: { color: colors.mutedForeground, background: "transparent", fontSize: "10px" } } }] }
           : {},
     };
   };
@@ -564,7 +565,7 @@ export class OverviewPageComponent {
         })),
       }));
 
-      const html = buildPrintHtml("Spending by year", this.periodLabel(), printYears);
+      const html = buildPrintHtml(marker("Spending by year"), this.periodLabel(), printYears);
       printWindow.document.open();
       printWindow.document.write(html);
       printWindow.document.close();
@@ -579,6 +580,8 @@ export class OverviewPageComponent {
   }
 
   /** What the previous* figures are compared with: "September 2026", "2025", "5 Oct 2026 – 11 Oct 2026". */
+  private readonly translate = (text: string, params?: Record<string, string | number | null | undefined>) => this.translation.t(text, params);
+
   public readonly previousName = computed(() => {
     const overview = this.overview();
     return overview ? previousLabel(overview.previousFrom ?? "", overview.previousTo ?? "") : "";
@@ -586,7 +589,7 @@ export class OverviewPageComponent {
 
   public readonly change = computed(() => {
     const overview = this.overview();
-    return overview ? describeChangeAgainst(overview.total, overview.previousTotal, this.previousName()) : undefined;
+    return overview ? describeChangeAgainst(overview.total, overview.previousTotal, this.previousName(), this.translate) : undefined;
   });
 
   /** Spending went up, which the tile shows in the warning color. */
@@ -598,14 +601,14 @@ export class OverviewPageComponent {
   public readonly unhealthyChange = computed(() => {
     const overview = this.overview();
     return overview
-      ? describeChangeAgainst(overview.unhealthyTotal, overview.previousUnhealthyTotal ?? "0", this.previousName())
+      ? describeChangeAgainst(overview.unhealthyTotal, overview.previousUnhealthyTotal ?? "0", this.previousName(), this.translate)
       : undefined;
   });
 
   public readonly unplannedChange = computed(() => {
     const overview = this.overview();
     return overview
-      ? describeChangeAgainst(overview.unplannedTotal ?? "0", overview.previousUnplannedTotal ?? "0", this.previousName())
+      ? describeChangeAgainst(overview.unplannedTotal ?? "0", overview.previousUnplannedTotal ?? "0", this.previousName(), this.translate)
       : undefined;
   });
 
@@ -684,7 +687,7 @@ export class OverviewPageComponent {
 
   /** Opens the products behind the Unhealthy or Unplanned tile. */
   public openProducts(kind: "UNHEALTHY" | "UNPLANNED"): void {
-    this.openDetail(kind, kind === "UNHEALTHY" ? "Unhealthy products" : "Products not on the list");
+    this.openDetail(kind, kind === "UNHEALTHY" ? marker("Unhealthy products") : marker("Products not on the list"));
   }
 
   /** Opens the products of one food group (the category split is by product, Phase 3 3c). */

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild } from "@angular/core";
+import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild, inject } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
 import { Store } from "@ngxs/store";
@@ -12,6 +12,8 @@ import { CategoryService, CategoryView, PagedDataDataInner, PagedRequestCommand,
 import { SnackbarService } from "../../services";
 import { SetOrderBy, SetPage, SetPageSize, SetSortDirection } from "../../store/category-table.state.actions";
 import { CategoryForm } from "../category-form/category-form.component";
+import { marker } from "../../i18n/marker";
+import { TranslationService } from "../../i18n/translation.service";
 
 @Component({
     selector: "app-category-table",
@@ -20,6 +22,8 @@ import { CategoryForm } from "../category-form/category-form.component";
     standalone: false
 })
 export class CategoryTableComponent implements OnInit, AfterViewInit {
+  private readonly translation = inject(TranslationService);
+
   public readonly nameCell = viewChild.required<TemplateRef<any>>("nameCell");
 
   public readonly descriptionCell = viewChild.required<TemplateRef<any>>("descriptionCell");
@@ -123,7 +127,7 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
         sortable: true,
       },
       {
-        columnHeader: "Actions",
+        columnHeader: marker("Actions"),
         matColumnDef: "actions",
         template: this.actionsCell(),
         sortable: false,
@@ -151,7 +155,7 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
     const dialogRef = this.matDialog.open(CategoryForm, DEFAULT_DIALOG_CONFIG);
 
     dialogRef.componentInstance.category = categoryView;
-    dialogRef.componentInstance.headerText = `Edit ${categoryView.name}`;
+    dialogRef.componentInstance.headerText = this.translation.t("Edit {name}", { name: categoryView.name });
 
     dialogRef
       .afterClosed()
@@ -169,7 +173,7 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
   public openAddDialog(): void {
     const dialogRef = this.matDialog.open(CategoryForm, DEFAULT_DIALOG_CONFIG);
 
-    dialogRef.componentInstance.headerText = `Add category`;
+    dialogRef.componentInstance.headerText = this.translation.t("Add Category");
 
     dialogRef
       .afterClosed()
@@ -190,8 +194,8 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
       DEFAULT_DIALOG_CONFIG
     );
 
-    dialogRef.componentInstance.headerText = `Delete ${categoryView.name}`;
-    dialogRef.componentInstance.dialogContent = `Are you sure you want to delete ${categoryView.name}? This action is irreversiable and will remove this category from the receipts it is associated with.`;
+    dialogRef.componentInstance.headerText = this.translation.t("Delete {name}", { name: categoryView.name });
+    dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you want to delete {name}? This action is irreversible and will remove this category from the receipts it is associated with.", { name: categoryView.name });
 
     dialogRef
       .afterClosed()

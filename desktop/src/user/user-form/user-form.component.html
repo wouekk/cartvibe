@@ -67,7 +67,7 @@
             <!-- Per group, not per section: what an empty selection means depends on
                  the role in THAT group. -->
             <div class="hint hint-inline" [attr.data-testid]="'grant-hint-' + row.groupId">
-              {{ emptySelectionHint(row) }}
+              {{ emptySelectionHint(row) | t }}
             </div>
             <app-grant-picker
               [categoryPool]="categoryPool()"

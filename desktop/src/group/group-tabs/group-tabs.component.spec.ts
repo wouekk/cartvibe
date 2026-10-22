@@ -42,7 +42,7 @@ describe("GroupTabsComponent", () => {
     ]);
   });
 
-  it("init tabs with group settings", () => {
+  it("offers no Group AI Settings tab, even with the AI feature and the permission (AI is household-wide)", () => {
     const store = TestBed.inject(Store);
     store.reset({
       ...store.snapshot(),
@@ -65,11 +65,6 @@ describe("GroupTabsComponent", () => {
         label: "Group Receipt Settings",
         routerLink: "receipt-settings/view",
         name: "receipt-settings",
-      },
-      {
-        label: "Group AI Settings",
-        routerLink: "settings/view",
-        name: "settings",
       },
     ]);
   });

@@ -33,6 +33,7 @@ import { SystemTaskTableState } from "../store/system-task-table.state";
 import { TagTableState } from "../store/tag-table.state";
 import { UserTableState } from "../store/user-table.state";
 import { UserState } from "../store/user.state";
+import { LanguageSyncService, TranslationLoader } from "../i18n";
 import { environment } from "src/environments/environment.development";
 
 const ngxsStates = [
@@ -92,6 +93,12 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => {
       const initializerFn = (initAppData)(inject(AppInitService));
       return initializerFn();
+    }),
+    // Languages are runtime JSON. Load the list and the signed-in account's cached language before the first render, so
+    // the page does not flash in English. It never rejects: a failed load leaves the interface in English.
+    provideAppInitializer(async () => {
+      inject(LanguageSyncService);
+      await inject(TranslationLoader).initialize();
     }),
     provideStore(
       ngxsStates,

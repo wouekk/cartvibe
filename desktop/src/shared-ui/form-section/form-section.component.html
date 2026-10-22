@@ -26,7 +26,7 @@
   </div>
 </div>
 @if (!isCollapsed) {
-  <div [ngClass]="{ 'mx-4': indent() && !panel() }">
+  <div [ngClass]="{ 'mx-4': indent() && !panel(), 'flex flex-col gap-3': panel() }">
     <ng-content></ng-content>
   </div>
 }

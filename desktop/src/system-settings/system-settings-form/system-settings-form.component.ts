@@ -27,6 +27,7 @@ import { DEFAULT_APP_TIME_ZONE, timeZoneOptions } from "../../utils/app-time-zon
 import { absoluteUrlValidator, durationValueValidator } from "../../validators";
 import { ExchangeRatesComponent } from "../exchange-rates/exchange-rates.component";
 import { CURRENCY_PRESETS, CUSTOM_CURRENCY, matchCurrencyPreset } from "./currency-presets";
+import { marker } from "../../i18n/marker";
 
 interface QueueData extends FormOption {
   description: string;
@@ -70,28 +71,28 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
   public readonly queueData: QueueData[] = [
     {
       value: QueueName.EmailPolling,
-      displayValue: "Email Polling",
-      description: "Polls system emails for receipts to process"
+      displayValue: marker("Email Polling"),
+      description: marker("Polls system emails for receipts to process")
     },
     {
       value: QueueName.EmailReceiptProcessing,
-      displayValue: "Email Receipt Processing",
-      description: "Processing of captured emails"
+      displayValue: marker("Email Receipt Processing"),
+      description: marker("Processing of captured emails")
     },
     {
       value: QueueName.EmailReceiptImageCleanup,
-      displayValue: "Email Receipt Image Cleanup (retired)",
-      description: "No longer used. Temporary file cleanup moved to System Clean Up."
+      displayValue: marker("Email Receipt Image Cleanup (retired)"),
+      description: marker("No longer used. Temporary file cleanup moved to System Clean Up.")
     },
     {
       value: QueueName.QuickScan,
       displayValue: "Quick Scan",
-      description: "Processes quick scan receipts"
+      description: marker("Processes quick scan receipts")
     },
     {
       value: QueueName.SystemCleanUp,
-      displayValue: "System Clean Up",
-      description: "Expires refresh tokens and reclaims temporary files"
+      displayValue: marker("System Clean Up"),
+      description: marker("Expires refresh tokens and reclaims temporary files")
     }
   ];
 
@@ -124,11 +125,11 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
 
   public readonly durationUnits: FormOption[] = [
     {
-      displayValue: "Hours",
+      displayValue: marker("Hours"),
       value: "HOURS"
     },
     {
-      displayValue: "Days",
+      displayValue: marker("Days"),
       value: "DAYS"
     }
   ];
@@ -243,8 +244,6 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
       // enabled") is enforced where providers are saved so an admin cannot
       // register one that has no redirect URI to publish.
       serverPublicUrl: [this.originalSystemSettings?.serverPublicUrl, [absoluteUrlValidator()]],
-      showLoginQr: [this.originalSystemSettings?.showLoginQr],
-      mobileServerUrl: [this.originalSystemSettings?.mobileServerUrl],
       secureCookies: [this.originalSystemSettings?.secureCookies ?? false],
       // Form-only controls. The API stores hours; the unit is presentation and
       // is folded back into `<name>Hours` in submit().
@@ -268,8 +267,6 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
       this.form.get("mcpEnabled")?.disable();
       this.form.get("mcpPublicUrl")?.disable();
       this.form.get("serverPublicUrl")?.disable();
-      this.form.get("showLoginQr")?.disable();
-      this.form.get("mobileServerUrl")?.disable();
       this.form.get("secureCookies")?.disable();
       this.form.get("refreshTokenValidForValue")?.disable();
       this.form.get("refreshTokenValidForUnit")?.disable();
@@ -283,7 +280,6 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
     this.listenForHideDecimalPlacesChanges();
     this.listenForCurrencyChanges();
     this.listenForMcpEnabledChanges();
-    this.listenForShowLoginQrChanges();
     this.listenForDurationUnitChanges(
       "refreshTokenValidForValue",
       "refreshTokenValidForUnit",
@@ -412,23 +408,6 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
         tap((enabled: boolean) => {
           mcpPublicUrl?.setValidators(this.urlValidators(enabled));
           mcpPublicUrl?.updateValueAndValidity({ emitEvent: false });
-        })
-      )
-      .subscribe();
-  }
-
-  // A mobile server URL is required to show the login QR code, mirroring the
-  // backend validation. The control's validators track the toggle.
-  private listenForShowLoginQrChanges(): void {
-    const mobileServerUrl = this.form.get("mobileServerUrl");
-
-    this.form.get("showLoginQr")?.valueChanges
-      .pipe(
-        startWith(this.form.get("showLoginQr")?.value),
-        untilDestroyed(this),
-        tap((enabled: boolean) => {
-          mobileServerUrl?.setValidators(this.urlValidators(enabled));
-          mobileServerUrl?.updateValueAndValidity({ emitEvent: false });
         })
       )
       .subscribe();

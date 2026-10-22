@@ -24,6 +24,7 @@ import { AuthState } from "../../store";
 import { buildReportForm, buildReportFormFromCommand } from "../models/report-form.factory";
 import { ReportCatalogService } from "../services/report-catalog.service";
 import { ReportRunnerService } from "../services/report-runner.service";
+import { marker } from "../../i18n/marker";
 
 /**
  * The Report Builder screen: owns the report form, drives the debounced live
@@ -186,7 +187,7 @@ export class ReportBuilderComponent {
     const request$ = loaded
       ? this.runner.updateTemplate(loaded.id, command)
       : this.runner.saveTemplate(command);
-    const successMessage = loaded ? "Template updated" : "Template saved";
+    const successMessage = loaded ? marker("Template updated") : marker("Template saved");
     request$
       .pipe(
         take(1),

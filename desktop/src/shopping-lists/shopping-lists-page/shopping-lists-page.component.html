@@ -1,7 +1,7 @@
 <div class="mx-auto max-w-6xl px-2 pb-10">
   <app-table-header
     [headerText]="'Shopping Lists' | t"
-    [subtitle]="groupName() ? 'Shared with everyone in ' + groupName() + '. Changes appear live on every device.' : ''"
+    [subtitle]="groupName() ? ('Shared with everyone in {name}. Changes appear live on every device.' | t: { name: groupName() }) : ''"
   >
     <div class="flex items-center gap-2 [&_button]:h-9">
       @if (canUpdate() && lists().length > 0) {

@@ -49,8 +49,6 @@ type UpsertSystemSettingsCommand struct {
 	TaskQueueConfigurations             []UpsertTaskQueueConfigurationCommand `json:"taskQueueConfigurations"`
 	McpEnabled                          bool                                  `json:"mcpEnabled"`
 	McpPublicUrl                        string                                `json:"mcpPublicUrl"`
-	ShowLoginQr                         bool                                  `json:"showLoginQr"`
-	MobileServerUrl                     string                                `json:"mobileServerUrl"`
 	// Pointers so an omitted key is distinguishable from an explicit zero value.
 	// The repository writes every column (Select("*")), so a plain field would
 	// persist as its zero value and silently reset a configured setting whenever a
@@ -147,13 +145,6 @@ func (command *UpsertSystemSettingsCommand) Validate() structs.ValidatorError {
 		errorMap["mcpPublicUrl"] = "A public URL is required to enable the MCP server"
 	} else if len(trimmedMcpPublicUrl) > 0 && !isValidAbsoluteUrl(trimmedMcpPublicUrl) {
 		errorMap["mcpPublicUrl"] = "MCP public URL must be an absolute origin like https://receipts.example.com"
-	}
-
-	trimmedMobileServerUrl := strings.TrimSpace(command.MobileServerUrl)
-	if command.ShowLoginQr && len(trimmedMobileServerUrl) == 0 {
-		errorMap["mobileServerUrl"] = "A server URL is required to show the login QR code"
-	} else if len(trimmedMobileServerUrl) > 0 && !isValidAbsoluteUrl(trimmedMobileServerUrl) {
-		errorMap["mobileServerUrl"] = "Mobile server URL must be an absolute URL like https://receipts.example.com/api"
 	}
 
 	// A nil pointer means the key was omitted, which leaves the stored value alone

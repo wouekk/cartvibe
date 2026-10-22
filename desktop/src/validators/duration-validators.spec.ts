@@ -15,22 +15,22 @@ describe("durationValueValidator", () => {
   // The API field is a Go int, so a decimal fails json.Unmarshal rather than
   // returning a field-level error.
   it("rejects fractional values", () => {
-    expect(validate(1.5)?.["duration"]).toBe("Must be a whole number.");
-    expect(validate("2.5")?.["duration"]).toBe("Must be a whole number.");
+    expect(validate(1.5)?.["duration"]).toEqual({ message: "Must be a whole number." });
+    expect(validate("2.5")?.["duration"]).toEqual({ message: "Must be a whole number." });
   });
 
   it("rejects values below 1", () => {
-    expect(validate(0)?.["duration"]).toBe("Must be at least 1.");
-    expect(validate(-4)?.["duration"]).toBe("Must be at least 1.");
+    expect(validate(0)?.["duration"]).toEqual({ message: "Must be at least {min}.", min: 1 });
+    expect(validate(-4)?.["duration"]).toEqual({ message: "Must be at least {min}.", min: 1 });
   });
 
   it("rejects values above the max, naming the max in the message", () => {
-    expect(validate(721)?.["duration"]).toBe("Must be at most 720.");
-    expect(validate(31, 30)?.["duration"]).toBe("Must be at most 30.");
+    expect(validate(721)?.["duration"]).toEqual({ message: "Must be at most {max}.", max: 720 });
+    expect(validate(31, 30)?.["duration"]).toEqual({ message: "Must be at most {max}.", max: 30 });
   });
 
   it("rejects non-numeric input", () => {
-    expect(validate("abc")?.["duration"]).toBe("Must be a whole number.");
+    expect(validate("abc")?.["duration"]).toEqual({ message: "Must be a whole number." });
   });
 
   // Emptiness belongs to Validators.required, so this validator stays quiet and

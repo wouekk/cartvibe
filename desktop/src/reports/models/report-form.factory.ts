@@ -6,6 +6,7 @@ import { fromDateWireFilter } from "../../utils/date-wire-filter";
 import { buildReceiptFilterForm } from "../../utils/receipt-filter";
 import { ReportColumnValue } from "./report-command.mapper";
 import { toReportPeriodDateField } from "./report-period.util";
+import { marker } from "../../i18n/marker";
 
 let columnIdCounter = 0;
 
@@ -154,7 +155,7 @@ export function buildReportFormFromCommand(
 /** A sensible starting report so the builder and preview show something on load. */
 const DEFAULT_COLUMNS: Omit<ReportColumnValue, "id">[] = [
   { kind: ReportColumn.KindEnum.Dimension, name: "Category", label: "Category", field: "category" },
-  { kind: ReportColumn.KindEnum.Aggregate, name: "Count", label: "Count", aggFunc: ReportColumn.AggFuncEnum.Count },
+  { kind: ReportColumn.KindEnum.Aggregate, name: "Count", label: marker("Count"), aggFunc: ReportColumn.AggFuncEnum.Count },
   { kind: ReportColumn.KindEnum.Aggregate, name: "Total", label: "Total", aggFunc: ReportColumn.AggFuncEnum.Sum, measure: "amount" },
 ];
 

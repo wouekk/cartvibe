@@ -42,6 +42,11 @@ func (command *CheckReceiptProcessingSettingsCommand) Validate() structs.Validat
 	if !settingsEmpty {
 		settingsErrors := command.UpsertReceiptProcessingSettingsCommand.Validate(false)
 		for k, v := range settingsErrors.Errors {
+			// A connectivity check sends one message and reads no prompt, so the AI page can test settings that
+			// are not saved yet (they have no prompt).
+			if k == "promptId" {
+				continue
+			}
 			vErrs.Errors[k] = v
 		}
 	}

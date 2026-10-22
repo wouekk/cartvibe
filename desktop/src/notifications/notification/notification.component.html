@@ -2,8 +2,8 @@
   <a class="notification" [routerLink]="[link]">
     <div class="w-full">
       <div class="w-full flex flex-col">
-        <strong>{{ notification().title }}</strong>
-        <div>{{ parsedBody }}</div>
+        <strong>{{ notification().title | t }}</strong>
+        <div>{{ parsedBody | t }}</div>
         <small>{{ notification().createdAt | appDate }}</small>
       </div>
     </div>

@@ -89,6 +89,9 @@ describe("overview chart utils", () => {
   it("describes the month-over-month change, or nothing without a previous month", () => {
     const september = { year: 2026, month: 8 };
     expect(describeChange("92", "100", september)).toBe("8% less than September");
+    expect(describeChange("92", "100", september, (text, params) => `${text}|${params?.["percent"]}|${params?.["name"]}`)).toBe(
+      "{percent}% less than {name}|8|September"
+    );
     expect(describeChange("150", "100", september)).toBe("50% more than September");
     expect(describeChange("100.2", "100", september)).toBe("About the same as September");
     expect(describeChange("100", "0", september)).toBeUndefined();

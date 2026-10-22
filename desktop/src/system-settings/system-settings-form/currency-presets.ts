@@ -1,4 +1,5 @@
 import { CurrencySeparator, CurrencySymbolPosition } from "../../open-api";
+import { marker } from "../../i18n/marker";
 
 /**
  * A currency an admin picks by name (Phase 3 M7) instead of setting the symbol, its position and
@@ -21,7 +22,7 @@ export const CUSTOM_CURRENCY = "CUSTOM";
 export const CURRENCY_PRESETS: CurrencyPreset[] = [
   {
     code: "EUR",
-    label: "Euro (12,99 €)",
+    label: marker("Euro (12,99 €)"),
     currencyDisplay: " €",
     currencySymbolPosition: CurrencySymbolPosition.End,
     currencyThousandthsSeparator: CurrencySeparator.Period,
@@ -29,7 +30,7 @@ export const CURRENCY_PRESETS: CurrencyPreset[] = [
   },
   {
     code: "PLN",
-    label: "Polish złoty (12,99 zł)",
+    label: marker("Polish złoty (12,99 zł)"),
     currencyDisplay: " zł",
     currencySymbolPosition: CurrencySymbolPosition.End,
     currencyThousandthsSeparator: CurrencySeparator.Period,
@@ -45,7 +46,7 @@ export const CURRENCY_PRESETS: CurrencyPreset[] = [
   },
   {
     code: "GBP",
-    label: "British pound (£12.99)",
+    label: marker("British pound (£12.99)"),
     currencyDisplay: "£",
     currencySymbolPosition: CurrencySymbolPosition.Start,
     currencyThousandthsSeparator: CurrencySeparator.Comma,
@@ -53,7 +54,7 @@ export const CURRENCY_PRESETS: CurrencyPreset[] = [
   },
   {
     code: "CHF",
-    label: "Swiss franc (CHF 12.99)",
+    label: marker("Swiss franc (CHF 12.99)"),
     currencyDisplay: "CHF ",
     currencySymbolPosition: CurrencySymbolPosition.Start,
     currencyThousandthsSeparator: CurrencySeparator.Comma,

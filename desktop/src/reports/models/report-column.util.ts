@@ -1,3 +1,4 @@
+import { marker } from "../../i18n/marker";
 /**
  * Column helpers shared by the column picker. The engine requires a column's
  * `name` to be a plain identifier (formulas reference it) distinct from every
@@ -43,7 +44,9 @@ export type FormulaStatusKind = "hint" | "error" | "ok";
 export interface FormulaStatus {
   ok: boolean;
   kind: FormulaStatusKind;
+  /** An English message with {placeholders}; show it through the `t` pipe with `params`. */
   message: string;
+  params?: Record<string, string>;
 }
 
 /**
@@ -55,25 +58,25 @@ export interface FormulaStatus {
 export function validateFormulaExpr(expr: string, availableNames: string[]): FormulaStatus {
   const trimmed = (expr ?? "").trim();
   if (!trimmed) {
-    return { ok: false, kind: "hint", message: "Reference columns by name, e.g. Subtotal + Hst" };
+    return { ok: false, kind: "hint", message: marker("Reference columns by name, e.g. Subtotal + Hst") };
   }
 
   const known = new Set(availableNames);
   const identifiers = trimmed.match(IDENTIFIER_TOKEN) ?? [];
   const unknown = identifiers.find((token) => !known.has(token));
   if (unknown) {
-    return { ok: false, kind: "error", message: "Unknown column: " + unknown };
+    return { ok: false, kind: "error", message: marker("Unknown column: {name}"), params: { name: unknown } };
   }
 
   const arithmetic = trimmed.replace(IDENTIFIER_TOKEN, "1");
   if (/[^0-9.+\-*/()\s]/.test(arithmetic)) {
-    return { ok: false, kind: "error", message: "Only arithmetic over columns is allowed" };
+    return { ok: false, kind: "error", message: marker("Only arithmetic over columns is allowed") };
   }
   if (!parenthesesBalanced(arithmetic)) {
-    return { ok: false, kind: "error", message: "Check your parentheses" };
+    return { ok: false, kind: "error", message: marker("Check your parentheses") };
   }
 
-  return { ok: true, kind: "ok", message: "Valid — recomputes from these columns each row" };
+  return { ok: true, kind: "ok", message: marker("Valid — recomputes from these columns each row") };
 }
 
 function parenthesesBalanced(text: string): boolean {

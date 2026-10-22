@@ -30,11 +30,6 @@ type SystemSettings struct {
 	// separate from McpPublicUrl — that value is bound into the MCP token
 	// audience, so repurposing it would invalidate live connector tokens.
 	ServerPublicUrl string `json:"serverPublicUrl"`
-	// ShowLoginQr toggles the self-contained setup QR on the desktop login page.
-	ShowLoginQr bool `json:"showLoginQr" gorm:"default:false"`
-	// MobileServerUrl is the server/API URL mobile clients connect to. It is
-	// encoded (in the login QR's deep link) so scanning it sets up the app.
-	MobileServerUrl string `json:"mobileServerUrl"`
 	// RefreshTokenValidForHours is how long a refresh token stays valid, i.e. how
 	// long a user can be away and still return signed in. Refresh tokens rotate on
 	// every use, so this is an inactivity window rather than an absolute session

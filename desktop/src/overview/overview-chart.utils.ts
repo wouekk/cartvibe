@@ -1,5 +1,7 @@
 import { GroupOverviewCategory, GroupOverviewMonth } from "../open-api";
 import { FilterMonth } from "../utils/receipt-date-filter";
+import { marker } from "../i18n/marker";
+import { englishTranslate, TranslateFn } from "../i18n/translate-fn";
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -81,7 +83,7 @@ export function buildDonutSegments(categories: GroupOverviewCategory[]): DonutSe
   const head = parsed.slice(0, MAX_DONUT_SEGMENTS);
   const rest = parsed.slice(MAX_DONUT_SEGMENTS);
   if (rest.length > 0) {
-    head.push({ name: "Other", total: rest.reduce((sum, category) => sum + category.total, 0) });
+    head.push({ name: marker("Other"), total: rest.reduce((sum, category) => sum + category.total, 0) });
   }
 
   const sum = head.reduce((total, category) => total + category.total, 0);
@@ -127,7 +129,7 @@ export function buildMonthBars(months: GroupOverviewMonth[], selectedKey: string
  * Month-over-month change, e.g. "8% less than September". Undefined when there is nothing to compare
  * against (no spend last month).
  */
-export function describeChange(total: string, previousTotal: string, previousMonth: FilterMonth): string | undefined {
+export function describeChange(total: string, previousTotal: string, previousMonth: FilterMonth, translate: TranslateFn = englishTranslate): string | undefined {
   const current = Number(total);
   const previous = Number(previousTotal);
   if (!(previous > 0)) {
@@ -137,9 +139,11 @@ export function describeChange(total: string, previousTotal: string, previousMon
   const percent = Math.round(((current - previous) / previous) * 100);
   const previousName = MONTH_NAMES[previousMonth.month];
   if (percent === 0) {
-    return `About the same as ${previousName}`;
+    return translate(marker("About the same as {name}"), { name: previousName });
   }
-  return percent < 0 ? `${-percent}% less than ${previousName}` : `${percent}% more than ${previousName}`;
+  return percent < 0
+    ? translate(marker("{percent}% less than {name}"), { percent: -percent, name: previousName })
+    : translate(marker("{percent}% more than {name}"), { percent, name: previousName });
 }
 
 export function previousMonthOf(month: FilterMonth): FilterMonth {
@@ -194,7 +198,7 @@ export function buildTrendBars(
  * How the period compares with the one before, e.g. "8% less than September". Undefined when there is
  * nothing to compare against (no spend before).
  */
-export function describeChangeAgainst(total: string, previousTotal: string, previousName: string): string | undefined {
+export function describeChangeAgainst(total: string, previousTotal: string, previousName: string, translate: TranslateFn = englishTranslate): string | undefined {
   const current = Number(total);
   const previous = Number(previousTotal);
   if (!(previous > 0)) {
@@ -203,9 +207,11 @@ export function describeChangeAgainst(total: string, previousTotal: string, prev
 
   const percent = Math.round(((current - previous) / previous) * 100);
   if (percent === 0) {
-    return `About the same as ${previousName}`;
+    return translate(marker("About the same as {name}"), { name: previousName });
   }
-  return percent < 0 ? `${-percent}% less than ${previousName}` : `${percent}% more than ${previousName}`;
+  return percent < 0
+    ? translate(marker("{percent}% less than {name}"), { percent: -percent, name: previousName })
+    : translate(marker("{percent}% more than {name}"), { percent, name: previousName });
 }
 
 /**

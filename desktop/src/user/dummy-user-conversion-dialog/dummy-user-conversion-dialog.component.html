@@ -1,4 +1,4 @@
-<app-dialog headerText="Convert {{ user.displayName }} to a normal user">
+<app-dialog [headerText]="'Convert {name} to a normal user' | t: { name: user.displayName }">
   <form (ngSubmit)="submitButtonClicked()">
     <app-input
       [label]="'Password' | t"

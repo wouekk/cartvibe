@@ -3,9 +3,12 @@ import { ResolveFn } from "@angular/router";
 import { take, tap } from "rxjs";
 import { ReceiptProcessingSettings, ReceiptProcessingSettingsService } from "../open-api";
 import { setEntityHeaderText } from "../utils";
+import { marker } from "../i18n/marker";
+import { TranslationService } from "../i18n/translation.service";
 
 export const receiptProcessingSettingsResolver: ResolveFn<ReceiptProcessingSettings> = (route, state) => {
   const service = inject(ReceiptProcessingSettingsService);
+  const translation = inject(TranslationService);
 
   return service.getReceiptProcessingSettingsById(route.params["id"])
     .pipe(
@@ -16,7 +19,8 @@ export const receiptProcessingSettingsResolver: ResolveFn<ReceiptProcessingSetti
             receiptProcessingSettings,
             "name",
             route.data["formConfig"],
-            "Receipt Processing Settings"
+            marker("Receipt Processing Settings"),
+            (text, params) => translation.t(text, params)
           );
         }
 

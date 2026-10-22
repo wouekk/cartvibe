@@ -2,7 +2,6 @@ import { Component, Input, OnInit, inject, input } from "@angular/core";
 import { OptionDisplayPipe } from "../pipes/option-display.pipe";
 import { BadgeTone } from "src/shared-ui/badge/badge.component";
 import { BaseInputComponent } from "../../base-input";
-import { TranslationService } from "../../i18n/translation.service";
 
 @Component({
     selector: "app-select",
@@ -37,8 +36,6 @@ export class SelectComponent extends BaseInputComponent implements OnInit {
   public readonly optionBadgeTone = input<BadgeTone>("purple");
 
   private readonly optionDisplay = inject(OptionDisplayPipe);
-
-  private readonly translation = inject(TranslationService);
 
   constructor() {
     super();

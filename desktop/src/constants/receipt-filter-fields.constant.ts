@@ -1,5 +1,6 @@
 import { ReceiptPagedRequestFilter } from "../open-api";
 import { FilterField, FilterFieldType } from "./filter-fields.constant";
+import { marker } from "../i18n/marker";
 
 export type ReceiptFilterFieldKey = keyof ReceiptPagedRequestFilter;
 
@@ -16,7 +17,7 @@ export type ReceiptFilterField = FilterField<ReceiptFilterFieldKey>;
 export const RECEIPT_FILTER_FIELDS: readonly ReceiptFilterField[] = [
   { key: "date", label: "Receipt Date", type: "date" },
   { key: "name", label: "Name", type: "text" },
-  { key: "paidBy", label: "Paid by", type: "users" },
+  { key: "paidBy", label: marker("Paid by"), type: "users" },
   { key: "group", label: "Group", type: "list" },
   { key: "amount", label: "Amount", type: "number" },
   { key: "categories", label: "Categories", type: "list" },

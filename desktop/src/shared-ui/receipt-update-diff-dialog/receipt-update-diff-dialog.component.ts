@@ -1,4 +1,4 @@
-import { Component, computed, Inject, signal } from "@angular/core";
+import { Component, computed, Inject, signal, inject } from "@angular/core";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 import { buildSplitDiff, collapseUnchanged, DiffLine, InlineSegments, inlineChange, SplitDiffRow } from "../../utils/line-diff";
 import { SystemTaskType } from "../../open-api";
@@ -10,6 +10,8 @@ import {
   toJsonLines,
 } from "../../utils/receipt-update-description";
 import { FilterTab } from "../filter-bar/filter-tab.interface";
+import { marker } from "../../i18n/marker";
+import { TranslationService } from "../../i18n/translation.service";
 
 export interface ReceiptUpdateDiffDialogData {
   snapshots: ReceiptUpdateSnapshots;
@@ -40,6 +42,8 @@ export interface ReceiptDiffRow {
   standalone: false,
 })
 export class ReceiptUpdateDiffDialogComponent {
+  private readonly translation = inject(TranslationService);
+
   public readonly headerText: string;
 
   public readonly beforeUpdatedAt?: string;
@@ -86,12 +90,12 @@ export class ReceiptUpdateDiffDialogComponent {
 
     const changedRowCount = splitRows.filter((row) => row.kind !== "equal").length;
     this.tabs = [
-      { value: "all", label: "All lines" },
-      { value: "changes", label: "Changes only", count: changedRowCount },
+      { value: "all", label: marker("All lines") },
+      { value: "changes", label: marker("Changes only"), count: changedRowCount },
     ];
 
     const name = typeof after["name"] === "string" ? after["name"] : "";
-    this.headerText = name ? `Receipt update: ${name}` : "Receipt update";
+    this.headerText = name ? this.translation.t("Receipt update: {name}", { name }) : marker("Receipt update");
     this.beforeUpdatedAt = asString(before["updatedAt"]);
     this.afterUpdatedAt = asString(after["updatedAt"]);
     this.copyText = JSON.stringify({ before, after }, null, 2);

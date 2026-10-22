@@ -11,7 +11,7 @@
       class="relative" [class]="buttonClass()"
       [type]="type()"
       [disabled]="disabled()"
-      [hlmTooltip]="tooltip()"
+      [hlmTooltip]="tooltip() | t"
       [routerLink]="buttonRouterLink()"
       [queryParams]="buttonQueryParams()"
       (click)="emitClicked($event)"
@@ -38,7 +38,7 @@
       class="relative" [class]="buttonClass()"
       [type]="type()"
       [disabled]="disabled()"
-      [hlmTooltip]="tooltip()"
+      [hlmTooltip]="tooltip() | t"
       [routerLink]="buttonRouterLink()"
       [queryParams]="buttonQueryParams()"
       (click)="emitClicked($event)"
@@ -68,7 +68,7 @@
       [disabled]="disabled()"
       [routerLink]="buttonRouterLink()"
       [queryParams]="buttonQueryParams()"
-      [hlmTooltip]="tooltip()"
+      [hlmTooltip]="tooltip() | t"
       (click)="emitClicked($event)"
     >
       @if (icon) {
