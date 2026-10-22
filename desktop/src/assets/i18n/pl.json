@@ -125,6 +125,7 @@
     "Are you sure you would like to delete the user '{name}'? This will remove the user from the user from groups, the user's receipt items, groups where this user is the only member, and receipts where the user paid. This action is irreversible.": "Czy na pewno chcesz usunąć użytkownika „{name}”? Zostanie on usunięty z grup, a także jego pozycje paragonów, grupy, w których jest jedynym członkiem, oraz paragony, które opłacił. Tej operacji nie można cofnąć.",
     "Are you sure you would like to delete {count} user(s): {names}? This will remove these users from groups, their receipt items, groups where they are the only member, and receipts where they paid. This action is irreversible.": "Czy na pewno chcesz usunąć użytkowników ({count}): {names}? Zostaną oni usunięci z grup, a także ich pozycje paragonów, grupy, w których są jedynymi członkami, oraz paragony, które opłacili. Tej operacji nie można cofnąć.",
     "Are you sure you would like to duplicate the receipt {name}?": "Czy na pewno chcesz zduplikować paragon {name}?",
+    "Are you sure you would like to remove this image?": "Czy na pewno chcesz usunąć to zdjęcie?",
     "Attach a Receipt": "Dołącz paragon",
     "Attach existing": "Dołącz istniejący",
     "Audit Details": "Szczegóły zmiany",
@@ -469,6 +470,7 @@
     "How long a signed-in user can be away before they have to log in again. Sessions renew themselves while the app is in use, so this is an inactivity window rather than a hard limit. Maximum 720 hours (30 days).": "Jak długo zalogowany użytkownik może być nieobecny, zanim będzie musiał zalogować się ponownie. Sesje odnawiają się podczas korzystania z aplikacji, więc to okno nieaktywności, a nie twardy limit. Maksymalnie 720 godzin (30 dni).",
     "Icon": "Ikona",
     "If ID is not provided, full credentials must be provided": "Jeśli nie podano identyfikatora, trzeba podać pełne dane logowania",
+    "Image actions": "Akcje zdjęcia",
     "Image successfully removed": "Obraz został usunięty",
     "Images": "Obrazy",
     "Important:": "Ważne:",
@@ -570,8 +572,10 @@
     "Name cannot be changed": "Nazwy nie można zmienić",
     "Name is required": "Nazwa jest wymagana",
     "Name is reserved, pick another": "Ta nazwa jest zarezerwowana, wybierz inną",
+    "Name is too long": "Nazwa jest za długa",
     "Name it, then add the people who share its receipts.": "Nadaj nazwę, a potem dodaj osoby, które dzielą jego paragony.",
     "Name must be lowercase letters, numbers and dashes, and start and end with a letter or number": "Nazwa może zawierać małe litery, cyfry i myślniki oraz musi zaczynać się i kończyć literą lub cyfrą",
+    "Name must be {requiredLength} characters or fewer.": "Nazwa może mieć co najwyżej {requiredLength} znaków.",
     "Navigate": "Przejdź",
     "Navigate CartVibe": "Nawigacja po CartVibe",
     "Navigate left": "Przejdź w lewo",
@@ -685,6 +689,7 @@
     "Poll email(s)": "Sprawdź pocztę",
     "Polls system emails for receipts to process": "Sprawdza e-maile systemowe pod kątem paragonów do przetworzenia",
     "Port is required": "Port jest wymagany",
+    "Preview": "Podgląd",
     "Preview role": "Podgląd roli",
     "Preview source file": "Podgląd pliku źródłowego",
     "Previews": "Podglądy",
@@ -730,6 +735,7 @@
     "Read-only access": "Dostęp tylko do odczytu",
     "Read/Write": "Odczyt i zapis",
     "Reading the photo…": "Odczytywanie zdjęcia…",
+    "Reading your receipt…": "Odczytuję paragon…",
     "Receipt": "Paragon",
     "Receipt Date": "Data paragonu",
     "Receipt Editor": "Edytor paragonów",
@@ -744,7 +750,9 @@
     "Receipt data from AI:": "Dane paragonu z AI:",
     "Receipt image": "Zdjęcie paragonu",
     "Receipt photo": "Zdjęcie paragonu",
+    "Receipt renamed": "Zmieniono nazwę paragonu",
     "Receipt saved. It will be compared with the list shortly.": "Zapisano paragon. Wkrótce zostanie porównany z listą.",
+    "Receipt scanned": "Paragon zeskanowany",
     "Receipt settings updated successfully": "Ustawienia paragonów zostały zaktualizowane",
     "Receipt successfully deleted": "Paragon został usunięty",
     "Receipt successfully duplicated": "Paragon został zduplikowany",
@@ -777,8 +785,10 @@
     "Remove last": "Usuń ostatni",
     "Remove product": "Usuń produkt",
     "Remove this receipt from the list? The receipt itself is kept.": "Odłączyć ten paragon od listy? Sam paragon zostanie zachowany.",
+    "Rename": "Zmień nazwę",
     "Rename List": "Zmień nazwę listy",
     "Rename list": "Zmień nazwę listy",
+    "Rename receipt": "Zmień nazwę paragonu",
     "Rendered from your data": "Wygenerowano z Twoich danych",
     "Report Builder": "Kreator raportów",
     "Report across the groups you can generate reports for.": "Raport obejmuje grupy, dla których możesz generować raporty.",
@@ -851,7 +861,6 @@
     "Shopping lists": "Listy zakupów",
     "Shortcuts": "Skróty",
     "Show": "Pokaż",
-    "Show Fullscreen Image": "Pokaż obraz na pełnym ekranie",
     "Show Images": "Pokaż obrazy",
     "Show a block of totals under this group's receipts table, covering every receipt the current filter matches rather than just the visible page. Everyone in the group sees it.": "Pokaż blok sum pod tabelą paragonów tej grupy, obejmujący wszystkie paragony pasujące do filtra, a nie tylko widoczną stronę. Widzą go wszyscy w grupie.",
     "Show the Dashboard in (currency code)": "Pokaż Pulpit w walucie (kod)",
@@ -1215,6 +1224,9 @@
     },
     "Save first to test the new settings.": {
       "value": "Najpierw zapisz, aby przetestować nowe ustawienia."
+    },
+    "Show Fullscreen Image": {
+      "value": "Pokaż obraz na pełnym ekranie"
     }
   }
 }
