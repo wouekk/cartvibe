@@ -1,15 +1,14 @@
 package handlers
 
 import (
-	"errors"
-	"net/http"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/constants"
-	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/services"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"errors"
+	"net/http"
 )
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -22,17 +21,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			userData := r.Context().Value("user").(commands.LoginCommand)
 			var dbUser models.User
 
-			dbUser, firstAdminToLogin, err := services.LoginUser(userData)
+			dbUser, _, err := services.LoginUser(userData)
 			if err != nil {
 				return http.StatusInternalServerError, err
-			}
-
-			if firstAdminToLogin {
-				promptService := services.NewPromptService(nil)
-				_, err = promptService.CreateDefaultPrompt()
-				if err != nil {
-					logging.LogStd(logging.LOG_LEVEL_INFO, err)
-				}
 			}
 
 			if dbUser.IsDummyUser {

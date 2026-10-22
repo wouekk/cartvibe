@@ -32,7 +32,6 @@ func buildSettingsCommand() commands.UpsertSystemSettingsCommand {
 		CurrencyThousandthsSeparator: models.COMMA,
 		CurrencyDecimalSeparator:     models.DOT,
 		TaskConcurrency:              1,
-		EmailPollingInterval:         60,
 		TaskQueueConfigurations:      queueConfigs,
 	}
 }
@@ -380,8 +379,8 @@ func TestUpdateSystemSettingsReturnsTheTransactionError(t *testing.T) {
 		t.Fatalf("failed to count queue configurations: %v", err)
 	}
 
-	if persistedCount != 4 {
-		t.Errorf("got %d persisted queue configurations, expected the original 4", persistedCount)
+	if persistedCount != int64(len(models.GetQueueNames())-1) {
+		t.Errorf("got %d persisted queue configurations, expected the original %d", persistedCount, len(models.GetQueueNames())-1)
 	}
 
 	// The row count alone would miss the statements this feature actually added:

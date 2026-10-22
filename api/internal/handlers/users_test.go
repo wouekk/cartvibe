@@ -1,17 +1,17 @@
 package handlers
 
 import (
-	"context"
-	"encoding/json"
-	"net/http"
-	"net/http/httptest"
-	"net/url"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/permissions"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"context"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"strconv"
 	"strings"
 	"testing"
@@ -35,8 +35,6 @@ func TestShouldNotAllowUserToDeleteUser(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api", reader)
 	var expectedStatusCode = http.StatusForbidden
 
-	db := repositories.GetDB()
-	db.Create(&models.SystemEmail{})
 
 	chiContext := chi.NewRouteContext()
 	chiContext.URLParams.Add("id", "3")
@@ -65,8 +63,6 @@ func TestShouldNotAllowUserToResetPassword(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api", reader)
 	var expectedStatusCode = http.StatusForbidden
 
-	db := repositories.GetDB()
-	db.Create(&models.SystemEmail{})
 
 	newContext := context.
 		WithValue(
@@ -90,8 +86,6 @@ func TestShouldNotAllowUserToConvertUser(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api", reader)
 	var expectedStatusCode = http.StatusForbidden
 
-	db := repositories.GetDB()
-	db.Create(&models.SystemEmail{})
 
 	newContext := context.
 		WithValue(
@@ -115,8 +109,6 @@ func TestShouldNotAllowUserToCreateUser(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api", reader)
 	var expectedStatusCode = http.StatusForbidden
 
-	db := repositories.GetDB()
-	db.Create(&models.SystemEmail{})
 
 	newContext := context.
 		WithValue(
@@ -140,8 +132,6 @@ func TestShouldNotAllowUserToUpdateUser(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api", reader)
 	var expectedStatusCode = http.StatusForbidden
 
-	db := repositories.GetDB()
-	db.Create(&models.SystemEmail{})
 
 	newContext := context.
 		WithValue(
@@ -175,8 +165,6 @@ func createTestUser(t *testing.T, username string, password string) models.User 
 func TestDeleteAccountShouldFailWithWrongPassword(t *testing.T) {
 	defer tearDownUserTest()
 
-	db := repositories.GetDB()
-	db.Create(&models.SystemEmail{})
 
 	user := createTestUser(t, "testuser", "correctpassword")
 
@@ -203,7 +191,6 @@ func TestDeleteAccountShouldSucceedWithCorrectPassword(t *testing.T) {
 	defer tearDownUserTest()
 
 	db := repositories.GetDB()
-	db.Create(&models.SystemEmail{})
 
 	// Create a second admin so this user is not the only admin
 	adminUser := createTestUser(t, "adminuser", "adminpass")
@@ -240,7 +227,6 @@ func TestDeleteAccountShouldPreventLastAdminDeletion(t *testing.T) {
 	defer tearDownUserTest()
 
 	db := repositories.GetDB()
-	db.Create(&models.SystemEmail{})
 
 	// This user will be the only admin. "Administrator" is defined by the
 	// modern app.users.read permission (see services.DeleteAccount), so grant
@@ -315,7 +301,6 @@ func TestDeleteAccountRequiresAnInteractiveSession(t *testing.T) {
 	defer tearDownUserTest()
 
 	db := repositories.GetDB()
-	db.Create(&models.SystemEmail{})
 
 	// A second admin, so the last-admin guard cannot be what refuses the delete.
 	adminUser := createTestUser(t, "adminuser", "adminpass")
@@ -353,7 +338,6 @@ func TestDeleteAccountWithAConfirmationCode(t *testing.T) {
 	defer tearDownUserTest()
 
 	db := repositories.GetDB()
-	db.Create(&models.SystemEmail{})
 
 	user := createTestUser(t, "oidconly", "a-password-nobody-knows")
 	grantAppPerms(t, user.ID, permissions.AppAccountDelete)

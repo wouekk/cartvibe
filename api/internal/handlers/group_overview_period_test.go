@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	"context"
-	"net/http"
-	"net/http/httptest"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/structs"
+	"context"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"

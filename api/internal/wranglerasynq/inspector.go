@@ -1,8 +1,8 @@
 package wranglerasynq
 
 import (
-	"github.com/hibiken/asynq"
 	config "cartvibe/api/internal/env"
+	"github.com/hibiken/asynq"
 )
 
 func GetAsynqInspector() (*asynq.Inspector, error) {

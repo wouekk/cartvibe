@@ -77,21 +77,6 @@ func main() {
 	logging.LogStd(logging.LOG_LEVEL_INFO, "Initializing Imagick...")
 	imagick.Initialize()
 	defer imagick.Terminate()
-
-	systemSettingsRepository := repositories.NewSystemSettingsRepository(nil)
-	systemSettings, err := systemSettingsRepository.GetSystemSettings()
-	if err != nil {
-		logging.LogStd(logging.LOG_LEVEL_FATAL, err.Error())
-	}
-
-	if systemSettings.EmailPollingInterval > 0 &&
-		systemSettings.ReceiptProcessingSettingsId != nil {
-		err = wranglerasynq.StartEmailPolling()
-		if err != nil {
-			logging.LogStd(logging.LOG_LEVEL_FATAL, err.Error())
-		}
-	}
-
 	pepperService := services.NewPepperService(nil)
 	err = pepperService.InitPepper()
 	if err != nil {

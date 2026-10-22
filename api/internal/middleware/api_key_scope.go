@@ -147,11 +147,9 @@ var readOnlyPostPaths = map[string]bool{
 	"/api/apiKey/paged":                                         true,
 	"/api/category/getPagedCategories":                          true,
 	"/api/group/getPagedGroups":                                 true,
-	"/api/prompt/getPagedPrompts":                               true,
 	"/api/tag/getPagedTags":                                     true,
 	"/api/user/getPagedUsers":                                   true,
 	"/api/receiptProcessingSettings/getPagedProcessingSettings": true,
-	"/api/systemEmail/getSystemEmails":                          true,
 	"/api/systemTask/getPagedSystemTasks":                       true,
 	"/api/systemTask/getPagedActivities":                        true,
 	"/api/report/template/list":                                 true,
@@ -172,9 +170,7 @@ var readOnlyPostPatterns = [][]string{
 	{"api", "export"},                              // POST / on the export router
 	{"api", "export", "*"},                         // by group
 	{"api", "receipt", "group", "*"},               // the paged receipts list
-	{"api", "widget", "pieChart", "*"},             // dashboard pie data
 	{"api", "report", "template", "*", "generate"}, // runs a stored config
-	{"api", "report", "template", "*", "render"},   // ditto, for the dashboard widget
 }
 
 // Deliberately NOT allowlisted, because they look like reads and are not:

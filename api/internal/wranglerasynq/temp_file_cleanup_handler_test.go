@@ -9,10 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hibiken/asynq"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
-	"cartvibe/api/internal/structs"
+	"github.com/hibiken/asynq"
 )
 
 const testRetention = 30 * 24 * time.Hour
@@ -336,53 +335,6 @@ func TestSweepTempDirectory_SwallowsRemovalFailures(t *testing.T) {
 	assertExists(t, second)
 }
 
-func TestListTempFileReferences_MapsBothPayloadShapes(t *testing.T) {
-	quickScanTask := taskInfo(t, "quick-scan-1", asynq.TaskStateArchived, QuickScanTaskPayload{
-		TempPath: "/base/temp/scan.jpg",
-	})
-	emailTask := taskInfo(t, "email-1", asynq.TaskStatePending, EmailProcessTaskPayload{
-		TempFilePath:    "/base/temp/attachment.pdf",
-		ImageForOcrPath: "/base/temp/image-attachment.jpg",
-	})
-
-	references, complete, err := listTempFileReferences([]tempFileTaskLister{
-		staticLister(map[models.QueueName][]*asynq.TaskInfo{
-			models.QuickScanQueue:              {quickScanTask},
-			models.EmailReceiptProcessingQueue: {emailTask},
-		}),
-	})
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !complete {
-		t.Error("expected the reference map to be complete")
-	}
-
-	assertStates(t, references, "/base/temp/scan.jpg", asynq.TaskStateArchived)
-	assertStates(t, references, "/base/temp/attachment.pdf", asynq.TaskStatePending)
-	// An email task owns two files, and both must be protected.
-	assertStates(t, references, "/base/temp/image-attachment.jpg", asynq.TaskStatePending)
-}
-
-func TestListTempFileReferences_BodyOnlyEmailContributesNothing(t *testing.T) {
-	bodyOnly := taskInfo(t, "email-body", asynq.TaskStateCompleted, EmailProcessTaskPayload{})
-
-	references, complete, err := listTempFileReferences([]tempFileTaskLister{
-		staticLister(map[models.QueueName][]*asynq.TaskInfo{
-			models.EmailReceiptProcessingQueue: {bodyOnly},
-		}),
-	})
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !complete {
-		t.Error("a body-only task is not a completeness failure")
-	}
-	if len(references) != 0 {
-		t.Errorf("expected no references, got %v", references)
-	}
-}
-
 // Asynq's inspector pages at 30 by default. A queue holding more than one page
 // would silently truncate, and every unseen task's file would then look
 // unreferenced and be deleted once aged.
@@ -407,31 +359,6 @@ func TestListTempFileReferences_PagesBeyondTheFirstPage(t *testing.T) {
 	if len(references) != total {
 		t.Fatalf("expected %d referenced paths, got %d", total, len(references))
 	}
-}
-
-func TestListTempFileReferences_ToleratesAQueueThatDoesNotExistYet(t *testing.T) {
-	// A queue that has never been used does not exist in Redis. That must not
-	// abort the sweep, and the other queue must still be scanned.
-	lister := func(queue string, opts ...asynq.ListOption) ([]*asynq.TaskInfo, error) {
-		if queue == string(models.QuickScanQueue) {
-			return nil, fmt.Errorf("asynq: %w", asynq.ErrQueueNotFound)
-		}
-
-		return []*asynq.TaskInfo{
-			taskInfo(t, "email-1", asynq.TaskStateArchived, EmailProcessTaskPayload{
-				TempFilePath: "/base/temp/attachment.pdf",
-			}),
-		}, nil
-	}
-
-	references, complete, err := listTempFileReferences([]tempFileTaskLister{lister})
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !complete {
-		t.Error("a never-used queue is not a completeness failure")
-	}
-	assertStates(t, references, "/base/temp/attachment.pdf", asynq.TaskStateArchived)
 }
 
 // Anything other than a missing queue means we cannot trust the map at all, so
@@ -532,8 +459,8 @@ func TestListTempFileReferences_NeverScansTheCleanUpQueue(t *testing.T) {
 	if scanned[string(models.SystemCleanUpQueue)] {
 		t.Error("the clean up queue must not be scanned")
 	}
-	if !scanned[string(models.QuickScanQueue)] || !scanned[string(models.EmailReceiptProcessingQueue)] {
-		t.Error("expected both ingest queues to be scanned")
+	if !scanned[string(models.QuickScanQueue)] {
+		t.Error("expected the quick scan queue to be scanned")
 	}
 }
 
@@ -572,33 +499,6 @@ func TestTempPathsFromQuickScanPayload(t *testing.T) {
 
 	if _, err := tempPathsFromQuickScanPayload([]byte("{not json")); err == nil {
 		t.Error("expected a malformed payload to error")
-	}
-}
-
-func TestTempPathsFromEmailPayload(t *testing.T) {
-	payload, err := json.Marshal(EmailProcessTaskPayload{
-		TempFilePath:    "/base/temp/attachment.pdf",
-		ImageForOcrPath: "/base/temp/image-attachment.jpg",
-		Attachment:      structs.Attachment{Filename: "receipt.pdf"},
-	})
-	if err != nil {
-		t.Fatalf("failed to marshal payload: %v", err)
-	}
-
-	paths, err := tempPathsFromEmailPayload(payload)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(paths) != 2 {
-		t.Fatalf("expected both files, got %v", paths)
-	}
-
-	bodyOnly, err := tempPathsFromEmailPayload(quickScanPayload(t, ""))
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(bodyOnly) != 0 {
-		t.Errorf("expected no paths for a body-only task, got %v", bodyOnly)
 	}
 }
 
@@ -789,5 +689,24 @@ func TestListTempFileReferences_ExhaustedPageCapDropsCompleteness(t *testing.T) 
 	states := references["/base/temp/scan-0.jpg"]
 	if len(states) == 0 || states[0] != asynq.TaskStateArchived {
 		t.Errorf("expected /base/temp/scan-0.jpg to be referenced as archived, got %v", states)
+	}
+}
+
+func TestListTempFileReferences_ToleratesAQueueThatDoesNotExistYet(t *testing.T) {
+	// A queue that has never been used does not exist in Redis. That must not
+	// abort the sweep.
+	lister := func(queue string, opts ...asynq.ListOption) ([]*asynq.TaskInfo, error) {
+		return nil, fmt.Errorf("asynq: %w", asynq.ErrQueueNotFound)
+	}
+
+	references, complete, err := listTempFileReferences([]tempFileTaskLister{lister})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !complete {
+		t.Error("a never-used queue is not a completeness failure")
+	}
+	if len(references) != 0 {
+		t.Errorf("expected no references, got %v", references)
 	}
 }

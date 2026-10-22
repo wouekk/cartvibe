@@ -108,13 +108,7 @@ func BuildRootRouter() *chi.Mux {
 	dashboardLayoutRouter := BuildDashboardLayoutRouter()
 	rootRouter.Mount("/api/dashboardLayout", dashboardLayoutRouter)
 
-	// Dashboard router
-	dashboardRouter := BuildDashboardRouter()
-	rootRouter.Mount("/api/dashboard", dashboardRouter)
 
-	// System email router
-	systemEmailRouter := BuildSystemEmailRouter()
-	rootRouter.Mount("/api/systemEmail", systemEmailRouter)
 
 	// System Task router
 	systemTaskRouter := BuildSystemTaskRouter()
@@ -124,17 +118,11 @@ func BuildRootRouter() *chi.Mux {
 	receiptProcessingSettingsRouter := BuildReceiptProcessingSettingsRouter()
 	rootRouter.Mount("/api/receiptProcessingSettings", receiptProcessingSettingsRouter)
 
-	// Prompt router
-	promptRouter := BuildPromptRouter()
-	rootRouter.Mount("/api/prompt", promptRouter)
 
 	// System Settings router
 	systemSettingsRouter := BuildSystemSettingsRouter()
 	rootRouter.Mount("/api/systemSettings", systemSettingsRouter)
 
-	// Import router
-	importRouter := BuildImportRouter()
-	rootRouter.Mount("/api/import", importRouter)
 
 	// Export router
 	exportRouter := BuildExportRouter()
@@ -144,9 +132,6 @@ func BuildRootRouter() *chi.Mux {
 	apiKeyRouter := BuildApiKeyRouter()
 	rootRouter.Mount("/api/apiKey", apiKeyRouter)
 
-	// Widget router
-	widgetRouter := BuildWidgetRouter()
-	rootRouter.Mount("/api/widget", widgetRouter)
 
 	// Report router
 	reportRouter := BuildReportRouter()

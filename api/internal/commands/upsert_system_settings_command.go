@@ -41,7 +41,6 @@ type UpsertSystemSettingsCommand struct {
 	CurrencySymbolPosition              models.CurrencySymbolPosition         `json:"currencySymbolPosition"`
 	CurrencyHideDecimalPlaces           bool                                  `json:"currencyHideDecimalPlaces"`
 	NumWorkers                          int                                   `json:"numWorkers"`
-	EmailPollingInterval                int                                   `json:"emailPollingInterval"`
 	ReceiptProcessingSettingsId         *uint                                 `json:"receiptProcessingSettingsId"`
 	FallbackReceiptProcessingSettingsId *uint                                 `json:"fallbackReceiptProcessingSettingsId"`
 	TaskConcurrency                     int                                   `json:"taskConcurrency"`
@@ -92,9 +91,6 @@ func (command *UpsertSystemSettingsCommand) Validate() structs.ValidatorError {
 	errorMap := make(map[string]string)
 	vErr.Errors = errorMap
 
-	if command.EmailPollingInterval < 0 {
-		errorMap["emailPollingInterval"] = "Email polling interval must be greater than 0"
-	}
 
 	if command.ReceiptProcessingSettingsId != nil && *command.ReceiptProcessingSettingsId <= 0 {
 		errorMap["receiptProcessingSettingsId"] = "Invalid receipt processing settings ID"

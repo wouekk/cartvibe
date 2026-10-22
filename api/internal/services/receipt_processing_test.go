@@ -349,10 +349,6 @@ func seedReceiptProcessingFixtures(t *testing.T, url string) models.ReceiptProce
 	t.Helper()
 	db := repositories.GetDB()
 
-	prompt := models.Prompt{Name: "p", Prompt: "Receipt: @ocrText"}
-	if err := db.Create(&prompt).Error; err != nil {
-		utils.PrintTestError(t, err, nil)
-	}
 
 	settings := models.ReceiptProcessingSettings{
 		Name:          "test-rps",
@@ -360,7 +356,6 @@ func seedReceiptProcessingFixtures(t *testing.T, url string) models.ReceiptProce
 		Url:           url,
 		Model:         "test-model",
 		IsVisionModel: false,
-		PromptId:      prompt.ID,
 	}
 	if err := db.Create(&settings).Error; err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -429,16 +424,11 @@ func TestNewReceiptProcessingService_WithFallback(t *testing.T) {
 
 	primary := seedReceiptProcessingFixtures(t, "http://primary.invalid")
 	db := repositories.GetDB()
-	fallbackPrompt := models.Prompt{Name: "p-fallback", Prompt: "fallback"}
-	if err := db.Create(&fallbackPrompt).Error; err != nil {
-		t.Fatalf("seed fallback prompt: %v", err)
-	}
 	fallback := models.ReceiptProcessingSettings{
 		Name:     "fallback-rps",
 		AiType:   models.OLLAMA,
 		Url:      "http://fallback.invalid",
 		Model:    "m",
-		PromptId: fallbackPrompt.ID,
 	}
 	if err := db.Create(&fallback).Error; err != nil {
 		t.Fatalf("seed fallback: %v", err)
@@ -472,14 +462,9 @@ func TestNewSystemReceiptProcessingService_NoGroupId(t *testing.T) {
 func TestBuildPrompt_UsesTheBuiltInPromptWithItsVariables(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
-	db := repositories.GetDB()
-	prompt := models.Prompt{Name: "custom", Prompt: "a custom prompt that is no longer read"}
-	if err := db.Create(&prompt).Error; err != nil {
-		t.Fatalf("seed prompt: %v", err)
-	}
 
 	service := ReceiptProcessingService{
-		ReceiptProcessingSettings: models.ReceiptProcessingSettings{PromptId: prompt.ID},
+		ReceiptProcessingSettings: models.ReceiptProcessingSettings{},
 	}
 	realPrompt, cmd, err := service.buildPrompt(service.ReceiptProcessingSettings, "some ocr")
 	if err != nil {
@@ -503,7 +488,7 @@ func TestBuildPrompt_NeedsNoStoredPrompt(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
 	service := ReceiptProcessingService{
-		ReceiptProcessingSettings: models.ReceiptProcessingSettings{PromptId: 999999},
+		ReceiptProcessingSettings: models.ReceiptProcessingSettings{},
 	}
 	_, cmd, err := service.buildPrompt(service.ReceiptProcessingSettings, "")
 	if err != nil {
@@ -633,16 +618,11 @@ func TestReadReceipt_FallbackUsedWhenPrimaryFails(t *testing.T) {
 
 	primary := seedReceiptProcessingFixtures(t, primaryUrl)
 	db := repositories.GetDB()
-	fallbackPrompt := models.Prompt{Name: "fallback-p", Prompt: "fallback prompt"}
-	if err := db.Create(&fallbackPrompt).Error; err != nil {
-		t.Fatalf("seed fallback prompt: %v", err)
-	}
 	fallback := models.ReceiptProcessingSettings{
 		Name:     "fallback-rps",
 		AiType:   models.OLLAMA,
 		Url:      fallbackServer.URL,
 		Model:    "m",
-		PromptId: fallbackPrompt.ID,
 	}
 	if err := db.Create(&fallback).Error; err != nil {
 		t.Fatalf("seed fallback: %v", err)

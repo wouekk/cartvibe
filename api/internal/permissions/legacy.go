@@ -67,7 +67,7 @@ func LegacyAppUserKeys() []string {
 
 // LegacyGroupViewerKeys returns the group-scope permissions a legacy VIEWER
 // group role held. This is the exact legacy match: a viewer could do more than
-// read (comment, manage their own dashboards, magic-fill, poll email).
+// read (comment, magic-fill).
 //
 // The shopping-list permissions post-date the legacy roles and are granted here
 // (and so to Editor) by choice: a household list is collaborative, so every
@@ -75,16 +75,10 @@ func LegacyAppUserKeys() []string {
 func LegacyGroupViewerKeys() []string {
 	return []string{
 		GroupView,
-		GroupEmailPoll,
 		GroupReceiptsRead,
 		GroupReceiptsMagicFill,
 		GroupCommentsCreate,
 		GroupCommentsDelete,
-		GroupDashboardsCreate,
-		GroupDashboardsRead,
-		GroupDashboardsUpdate,
-		GroupDashboardsDelete,
-		GroupWidgetsRead,
 		GroupActivitiesRead,
 		GroupShoppingListsCreate,
 		GroupShoppingListsRead,

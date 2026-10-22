@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"net/http"
 	"cartvibe/api/internal/structs"
+	"net/http"
 )
 
 func Logout(w http.ResponseWriter, r *http.Request) {

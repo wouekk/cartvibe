@@ -318,13 +318,13 @@ func TestGetPagedSystemTasksFiltersByType(t *testing.T) {
 
 	seedSystemTask(db, models.QUICK_SCAN, nil, now, nil)
 	seedSystemTask(db, models.MAGIC_FILL, nil, now, nil)
-	seedSystemTask(db, models.EMAIL_READ, nil, now, nil)
+	seedSystemTask(db, models.HTML_TO_PDF, nil, now, nil)
 
 	repository := NewSystemTaskRepository(nil)
 	results, count, err := repository.GetPagedSystemTasks(systemTaskFilterCommand(commands.SystemTaskPagedRequestFilter{
 		Type: commands.PagedRequestField{
 			Operation: commands.CONTAINS,
-			Value:     []interface{}{string(models.QUICK_SCAN), string(models.EMAIL_READ)},
+			Value:     []interface{}{string(models.QUICK_SCAN), string(models.HTML_TO_PDF)},
 		},
 	}))
 	if err != nil {
@@ -336,7 +336,7 @@ func TestGetPagedSystemTasksFiltersByType(t *testing.T) {
 	}
 
 	for _, result := range results {
-		if result.Type != models.QUICK_SCAN && result.Type != models.EMAIL_READ {
+		if result.Type != models.QUICK_SCAN && result.Type != models.HTML_TO_PDF {
 			t.Errorf("unexpected type %v in results", result.Type)
 		}
 	}
@@ -358,7 +358,7 @@ func TestGetPagedSystemTasksFiltersByRanBy(t *testing.T) {
 	seedSystemTask(db, models.QUICK_SCAN, &bobId, now, nil)
 	// Two system-run tasks: the rows the table labels "System".
 	seedSystemTask(db, models.QUICK_SCAN, nil, now, nil)
-	seedSystemTask(db, models.EMAIL_READ, nil, now, nil)
+	seedSystemTask(db, models.MAGIC_FILL, nil, now, nil)
 
 	tests := map[string]struct {
 		value    []interface{}

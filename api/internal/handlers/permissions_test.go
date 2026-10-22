@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	"context"
-	"encoding/json"
-	"net/http/httptest"
 	"cartvibe/api/internal/permissions"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"context"
+	"encoding/json"
+	"net/http/httptest"
 	"strings"
 	"testing"
 

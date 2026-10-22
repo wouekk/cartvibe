@@ -56,7 +56,6 @@ type DebugConfig struct {
 type Config struct {
 	SecretKey            string          `json:"secretKey"`
 	AiSettings           AiSettings      `json:"aiSettings"`
-	EmailPollingInterval int             `json:"emailPollingInterval"`
 	EmailSettings        []EmailSettings `json:"emailSettings"`
 	Features             FeatureConfig   `json:"features"`
 	Database             DatabaseConfig  `json:"database"`

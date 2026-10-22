@@ -1,11 +1,11 @@
 package wranglerasynq
 
 import (
-	"github.com/hibiken/asynq"
 	config "cartvibe/api/internal/env"
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
+	"github.com/hibiken/asynq"
 )
 
 var server *asynq.Server
@@ -66,13 +66,7 @@ func StartEmbeddedAsynqServer() error {
 func BuildMux() *asynq.ServeMux {
 	mux := asynq.NewServeMux()
 	mux.HandleFunc(QuickScan, HandleQuickScanTask)
-	mux.HandleFunc(EmailPoll, HandleEmailPollTask)
-	mux.HandleFunc(EmailProcess, HandleEmailProcessTask)
 	mux.HandleFunc(TempFileCleanUp, HandleTempFileCleanUpTask)
-	// Retired task type, still routed so tasks enqueued by the previous cron
-	// survive the upgrade rather than failing as unregistered. The sweep is
-	// idempotent, so running it under either name is harmless.
-	mux.HandleFunc(EmailProcessImageCleanUp, HandleTempFileCleanUpTask)
 	mux.HandleFunc(RefreshTokenCleanUp, HandleRefreshTokenCleanupTask)
 	mux.HandleFunc(OidcSessionCleanUp, HandleOidcCleanupTask)
 	mux.HandleFunc(ReceiptProductSweep, HandleReceiptProductSweepTask)

@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hibiken/asynq"
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/services"
+	"github.com/hibiken/asynq"
 )
 
 // HandleFoodClassificationSweepTask tags what is waiting with health and seasonality. An unreachable

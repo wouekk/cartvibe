@@ -15,7 +15,6 @@ func validSystemSettingsCommand() UpsertSystemSettingsCommand {
 		CurrencyThousandthsSeparator: models.COMMA,
 		CurrencyDecimalSeparator:     models.DOT,
 		TaskConcurrency:              1,
-		EmailPollingInterval:         60,
 		TaskQueueConfigurations:      configs,
 	}
 }
@@ -35,13 +34,6 @@ func TestUpsertSystemSettingsCommand_Validate_ValidInputs(t *testing.T) {
 				cmd := validSystemSettingsCommand()
 				cmd.ReceiptProcessingSettingsId = &primaryId
 				cmd.FallbackReceiptProcessingSettingsId = &fallbackId
-				return cmd
-			}(),
-		},
-		"valid with zero email polling interval": {
-			command: func() UpsertSystemSettingsCommand {
-				cmd := validSystemSettingsCommand()
-				cmd.EmailPollingInterval = 0
 				return cmd
 			}(),
 		},
@@ -155,10 +147,6 @@ func TestUpsertSystemSettingsCommand_Validate_InvalidInputs(t *testing.T) {
 		modify        func(cmd *UpsertSystemSettingsCommand)
 		expectedError string
 	}{
-		"negative email polling interval": {
-			modify:        func(cmd *UpsertSystemSettingsCommand) { cmd.EmailPollingInterval = -1 },
-			expectedError: "emailPollingInterval",
-		},
 		"invalid receipt processing settings id": {
 			modify:        func(cmd *UpsertSystemSettingsCommand) { cmd.ReceiptProcessingSettingsId = &zeroId },
 			expectedError: "receiptProcessingSettingsId",
@@ -278,7 +266,6 @@ func TestUpsertSystemSettingsCommand_Validate_InvalidInputs(t *testing.T) {
 
 func TestUpsertSystemSettingsCommand_Validate_MultipleErrors(t *testing.T) {
 	command := UpsertSystemSettingsCommand{
-		EmailPollingInterval: -1,
 		TaskConcurrency:      -1,
 	}
 

@@ -1,11 +1,11 @@
 package repositories
 
 import (
-	"errors"
-	"gorm.io/gorm/clause"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/utils"
+	"errors"
+	"gorm.io/gorm/clause"
 
 	"gorm.io/gorm"
 )
@@ -109,7 +109,6 @@ func (repository GroupRepository) CreateGroup(command commands.UpsertGroupComman
 
 	err := db.Transaction(func(tx *gorm.DB) error {
 		repository.SetTransaction(tx)
-		groupSettingsRepository := NewGroupSettingsRepository(tx)
 		groupReceiptSettingsRepository := NewGroupReceiptSettingsRepository(tx)
 
 		txErr := tx.Model(&groupToCreate).Create(&groupToCreate).Error
@@ -135,16 +134,6 @@ func (repository GroupRepository) CreateGroup(command commands.UpsertGroupComman
 		}
 
 		txErr = tx.Model(&groupMember).Create(&groupMember).Error
-		if txErr != nil {
-			repository.ClearTransaction()
-			return txErr
-		}
-
-		groupSettings := models.GroupSettings{
-			GroupId: groupToCreate.ID,
-		}
-
-		_, txErr = groupSettingsRepository.CreateGroupSettings(groupSettings)
 		if txErr != nil {
 			repository.ClearTransaction()
 			return txErr
@@ -246,7 +235,7 @@ func (repository GroupRepository) UpdateGroup(command commands.UpsertGroupComman
 		return models.Group{}, err
 	}
 
-	returnGroup, err := repository.GetGroupById(groupId, true, true, true)
+	returnGroup, err := repository.GetGroupById(groupId, true, true)
 	if err != nil {
 		return models.Group{}, err
 	}
@@ -256,7 +245,6 @@ func (repository GroupRepository) UpdateGroup(command commands.UpsertGroupComman
 
 func (repository GroupRepository) GetGroupById(id string,
 	preloadGroupMembers bool,
-	createMissingGroupSettings bool,
 	createMissingGroupReceiptSettings bool,
 ) (models.Group, error) {
 	db := repository.GetDB()
@@ -269,29 +257,11 @@ func (repository GroupRepository) GetGroupById(id string,
 
 	// TODO: Fix this repository call to take a preload string instead of a bool
 	query = query.
-		Preload("GroupSettings.SubjectLineRegexes").
-		Preload("GroupSettings.EmailWhiteList").
-		Preload("GroupSettings.SystemEmail").
-		Preload("GroupSettings.Prompt").
-		Preload("GroupSettings.FallbackPrompt").
 		Preload("GroupReceiptSettings")
 
 	err := query.First(&group).Error
 	if err != nil {
 		return models.Group{}, err
-	}
-
-	if group.GroupSettings.ID == 0 && createMissingGroupSettings {
-		groupSettingsRepository := NewGroupSettingsRepository(repository.TX)
-
-		groupSettings := models.GroupSettings{
-			GroupId: group.ID,
-		}
-
-		_, err := groupSettingsRepository.CreateGroupSettings(groupSettings)
-		if err != nil {
-			return models.Group{}, err
-		}
 	}
 
 	groupReceiptSettingsRepository := NewGroupReceiptSettingsRepository(repository.TX)
@@ -302,7 +272,6 @@ func (repository GroupRepository) GetGroupById(id string,
 			return models.Group{}, err
 		}
 	}
-
 
 	return group, nil
 }

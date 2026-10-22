@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	"errors"
-	"net/http"
 	"cartvibe/api/internal/constants"
 	"cartvibe/api/internal/services"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"errors"
+	"net/http"
 )
 
 // searchResultLimit caps how many receipts a REST search returns (unchanged from

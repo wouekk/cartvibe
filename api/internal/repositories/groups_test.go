@@ -222,7 +222,7 @@ func TestCreateGroupPersistsIsolateMembers(t *testing.T) {
 		utils.PrintTestError(t, created.IsolateMembers, true)
 	}
 
-	reloaded, err := groupRepository.GetGroupById(utils.UintToString(created.ID), true, false, false)
+	reloaded, err := groupRepository.GetGroupById(utils.UintToString(created.ID), true, false)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
@@ -254,7 +254,7 @@ func TestUpdateGroupPersistsIsolateMembersToggle(t *testing.T) {
 		utils.PrintTestError(t, err, "Expected no error")
 		return
 	}
-	reloaded, err := groupRepository.GetGroupById(groupId, true, false, false)
+	reloaded, err := groupRepository.GetGroupById(groupId, true, false)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
@@ -271,7 +271,7 @@ func TestUpdateGroupPersistsIsolateMembersToggle(t *testing.T) {
 		utils.PrintTestError(t, err, "Expected no error")
 		return
 	}
-	reloaded, err = groupRepository.GetGroupById(groupId, true, false, false)
+	reloaded, err = groupRepository.GetGroupById(groupId, true, false)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
@@ -286,7 +286,7 @@ func TestShouldGetGroupById(t *testing.T) {
 	CreateTestGroup()
 	setUpGroupTest()
 	groupRepository := setupGroupRepository()
-	testGroup, err := groupRepository.GetGroupById("1", false, true, true)
+	testGroup, err := groupRepository.GetGroupById("1", false, true)
 
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
@@ -304,7 +304,7 @@ func TestShouldGetAGroupWithGroupMembers(t *testing.T) {
 	CreateTestGroupWithUsers()
 	groupRepository := setupGroupRepository()
 
-	testGroup, err := groupRepository.GetGroupById("1", true, true, true)
+	testGroup, err := groupRepository.GetGroupById("1", true, true)
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 	}
@@ -319,7 +319,7 @@ func TestShouldGetAGroupWithGroupMembers(t *testing.T) {
 func TestShouldReturnErrorIfGroupDoesNotExist(t *testing.T) {
 	defer teardownGroupTest()
 	groupRepository := setupGroupRepository()
-	testGroup, err := groupRepository.GetGroupById("2332", false, true, true)
+	testGroup, err := groupRepository.GetGroupById("2332", false, true)
 
 	if err == nil {
 		utils.PrintTestError(t, err, "error")

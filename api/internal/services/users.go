@@ -1,13 +1,13 @@
 package services
 
 import (
-	"errors"
-	"net/http"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/permissions"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/utils"
+	"errors"
+	"net/http"
 
 	"gorm.io/gorm"
 )
@@ -50,7 +50,6 @@ func DeleteUser(userId string) error {
 		var groupIdsToNotDelete []uint
 		notificationsRepository := repositories.NewNotificationRepository(tx)
 		userPreferncesRepository := repositories.NewUserPreferencesRepository(tx)
-		dashboardRepository := repositories.NewDashboardRepository(tx)
 		groupService := NewGroupService(tx)
 		receiptService := NewReceiptService(tx)
 
@@ -179,19 +178,6 @@ func DeleteUser(userId string) error {
 			return txErr
 		}
 
-		// Remove user's dashboards and widgets
-		var dashboards []models.Dashboard
-		txErr = tx.Where("user_id = ?", userId).Find(&dashboards).Error
-		if txErr != nil {
-			return txErr
-		}
-		for _, dashboard := range dashboards {
-			txErr = dashboardRepository.DeleteDashboardById(dashboard.ID)
-			if txErr != nil {
-				return txErr
-			}
-		}
-
 		// Remove groups where the user is the only user
 		groups, txErr := groupService.GetGroupsForUser(userId)
 		if txErr != nil {
@@ -244,12 +230,6 @@ func DeleteUser(userId string) error {
 			return txErr
 		}
 
-		// Remove user from other's group settings
-		txErr = tx.Model(models.GroupSettings{}).Where("email_default_receipt_paid_by_id = ?", userId).Update("email_default_receipt_paid_by_id", nil).Error
-		if txErr != nil {
-			return txErr
-		}
-
 		// Nullify SystemTask.RanByUserId references
 		txErr = tx.Model(&models.SystemTask{}).Where("ran_by_user_id = ?", userId).Update("ran_by_user_id", nil).Error
 		if txErr != nil {
@@ -269,17 +249,10 @@ func DeleteUser(userId string) error {
 			&models.Notification{},
 			&models.UserShortcut{},
 			&models.UserPrefernces{},
-			&models.SubjectLineRegex{},
-			&models.GroupSettingsWhiteListEmail{},
-			&models.GroupSettings{},
-			&models.Dashboard{},
-			&models.Widget{},
 			&models.TaskQueueConfiguration{},
 			&models.SystemSettings{},
-			&models.SystemEmail{},
 			&models.SystemTask{},
 			&models.ReceiptProcessingSettings{},
-			&models.Prompt{},
 			&models.ReportTemplate{},
 			&models.GroupReceiptSettings{},
 			&models.Pepper{},

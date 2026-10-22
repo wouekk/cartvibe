@@ -36,7 +36,7 @@ func FamilyUserAppKeys() []string {
 }
 
 // FamilyMemberGroupKeys is what a family member may do in the household group: everything with
-// receipts (deleting included), shopping lists, comments and dashboards — the legacy editor set.
+// receipts (deleting included), shopping lists, and comments — the legacy editor set.
 // Not reports (see FamilyUserAppKeys), nor the group's settings, members or deletion.
 func FamilyMemberGroupKeys() []string {
 	return LegacyGroupEditorKeys()

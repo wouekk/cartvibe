@@ -1,13 +1,13 @@
 package handlers
 
 import (
-	"errors"
-	"net/http"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/services"
 	"cartvibe/api/internal/structs"
+	"errors"
+	"net/http"
 )
 
 func SignUp(w http.ResponseWriter, r *http.Request) {

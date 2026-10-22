@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"net/http"
 	"cartvibe/api/internal/constants"
 	"cartvibe/api/internal/services"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"net/http"
 )
 
 func GetFeatureConfig(w http.ResponseWriter, r *http.Request) {

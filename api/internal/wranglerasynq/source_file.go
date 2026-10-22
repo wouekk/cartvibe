@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/hibiken/asynq"
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"github.com/hibiken/asynq"
 )
 
 var (
@@ -326,16 +326,6 @@ func taskSourceFilesFromPayload(taskType models.SystemTaskType, payload []byte) 
 
 		return taskSourceFiles{Primary: parsedPayload.TempPath}, nil
 
-	case models.EMAIL_UPLOAD:
-		var parsedPayload EmailProcessTaskPayload
-		if err := json.Unmarshal(payload, &parsedPayload); err != nil {
-			return taskSourceFiles{}, err
-		}
-
-		return taskSourceFiles{
-			Primary: parsedPayload.TempFilePath,
-			Preview: parsedPayload.ImageForOcrPath,
-		}, nil
 	}
 
 	return taskSourceFiles{}, nil
@@ -382,21 +372,13 @@ func ResolveSystemTaskSourceFile(systemTask models.SystemTask) (SystemTaskSource
 		return SystemTaskSourceFile{}, err
 	}
 
-	groupId, err := ResolveActivityGroupId(payload)
-	if err != nil {
-		return SystemTaskSourceFile{}, err
-	}
-
+	groupId := utils.UintToString(payload.GroupId)
 	sourceFile := SystemTaskSourceFile{GroupId: groupId}
 
 	switch systemTask.Type {
 	case models.QUICK_SCAN:
 		sourceFile.Path = payload.TempPath
 		sourceFile.FileName = payload.OriginalFileName
-	case models.EMAIL_UPLOAD:
-		sourceFile.Path = payload.TempFilePath
-		sourceFile.PreviewPath = payload.ImageForOcrPath
-		sourceFile.FileName = payload.Attachment.Filename
 	}
 
 	if len(sourceFile.Path) == 0 {
@@ -408,33 +390,9 @@ func ResolveSystemTaskSourceFile(systemTask models.SystemTask) (SystemTaskSource
 		return SystemTaskSourceFile{}, err
 	}
 
-	if len(sourceFile.PreviewPath) > 0 {
-		if err := fileRepository.AssertWithinTempDirectory(sourceFile.PreviewPath); err != nil {
-			return SystemTaskSourceFile{}, err
-		}
-	}
-
 	if !utils.FileExists(sourceFile.Path) {
 		return SystemTaskSourceFile{}, ErrSourceFileUnavailable
 	}
 
 	return sourceFile, nil
-}
-
-// ResolveActivityGroupId resolves the group an activity belongs to. Quick scan
-// carries the group id directly; email carries the group settings it was polled
-// for, whose group has to be looked up.
-func ResolveActivityGroupId(payload RerunTaskPayload) (string, error) {
-	if payload.GroupSettingsId == 0 {
-		return utils.UintToString(payload.GroupId), nil
-	}
-
-	groupSettingsRepository := repositories.NewGroupSettingsRepository(nil)
-
-	groupSettings, err := groupSettingsRepository.GetGroupSettingsById(utils.UintToString(payload.GroupSettingsId))
-	if err != nil {
-		return "", err
-	}
-
-	return utils.UintToString(groupSettings.GroupId), nil
 }

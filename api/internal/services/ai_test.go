@@ -59,30 +59,17 @@ func ollamaBody(content string) string {
 	return `{"model":"llama3","created_at":"2024-01-01T00:00:00Z","message":{"role":"assistant","content":"` + content + `"},"done":true}`
 }
 
-// seedPromptForAi creates a minimal Prompt row and returns its ID. Required
-// because ReceiptProcessingSettings.PromptId has a FK constraint.
-func seedPromptForAi(t *testing.T) uint {
-	t.Helper()
-	prompt := models.Prompt{Name: "test-prompt", Prompt: "ping"}
-	if err := repositories.GetDB().Create(&prompt).Error; err != nil {
-		utils.PrintTestError(t, err, nil)
-	}
-	return prompt.ID
-}
-
 // seedSettingsForAi inserts a ReceiptProcessingSettings row with the given
 // AiType and URL (pointing at a mock server). Skips encryption: `Key` is
 // stored verbatim; tests pass DecryptKey=false.
 func seedSettingsForAi(t *testing.T, aiType models.AiClientType, url string) models.ReceiptProcessingSettings {
 	t.Helper()
-	promptId := seedPromptForAi(t)
 	settings := models.ReceiptProcessingSettings{
 		Name:     "test-settings-" + string(aiType),
 		AiType:   aiType,
 		Url:      url,
 		Model:    "test-model",
 		Key:      "plain-key",
-		PromptId: promptId,
 	}
 	if err := repositories.GetDB().Create(&settings).Error; err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -290,7 +277,6 @@ func TestCheckConnectivity_NoSettingsId_DoesNotPersist(t *testing.T) {
 			AiType:   models.OLLAMA,
 			Url:      server.URL,
 			Model:    "test-model",
-			PromptId: seedPromptForAi(t),
 		},
 	}
 

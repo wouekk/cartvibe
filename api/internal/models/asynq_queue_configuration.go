@@ -15,27 +15,6 @@ func GetDefaultQuickScanQueueConfiguration() TaskQueueConfiguration {
 	}
 }
 
-func GetDefaultEmailReceiptProcessingQueueConfiguration() TaskQueueConfiguration {
-	return TaskQueueConfiguration{
-		Name:     EmailReceiptProcessingQueue,
-		Priority: 3,
-	}
-}
-
-func GetDefaultEmailPollingQueueConfiguration() TaskQueueConfiguration {
-	return TaskQueueConfiguration{
-		Name:     EmailPollingQueue,
-		Priority: 2,
-	}
-}
-
-func GetDefaultEmailReceiptImageCleanupQueueConfiguration() TaskQueueConfiguration {
-	return TaskQueueConfiguration{
-		Name:     EmailReceiptImageCleanupQueue,
-		Priority: 1,
-	}
-}
-
 func GetDefaultSystemCleanupQueueConfiguration() TaskQueueConfiguration {
 	return TaskQueueConfiguration{
 		Name:     SystemCleanUpQueue,
@@ -46,9 +25,6 @@ func GetDefaultSystemCleanupQueueConfiguration() TaskQueueConfiguration {
 func GetAllDefaultQueueConfigurations() []TaskQueueConfiguration {
 	return []TaskQueueConfiguration{
 		GetDefaultQuickScanQueueConfiguration(),
-		GetDefaultEmailReceiptProcessingQueueConfiguration(),
-		GetDefaultEmailPollingQueueConfiguration(),
-		GetDefaultEmailReceiptImageCleanupQueueConfiguration(),
 		GetDefaultSystemCleanupQueueConfiguration(),
 	}
 }

@@ -1,9 +1,6 @@
 package handlers
 
 import (
-	"errors"
-	"io"
-	"net/http"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/constants"
 	"cartvibe/api/internal/logging"
@@ -12,6 +9,9 @@ import (
 	"cartvibe/api/internal/services"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"errors"
+	"io"
+	"net/http"
 
 	"github.com/go-chi/chi/v5"
 )

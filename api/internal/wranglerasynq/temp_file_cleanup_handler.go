@@ -9,11 +9,11 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/hibiken/asynq"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
+	"github.com/hibiken/asynq"
 )
 
 // The temp/ sweeper reclaims files the ingest pipelines leave behind, without
@@ -80,7 +80,6 @@ type tempFileQueue struct {
 func tempFileQueues() []tempFileQueue {
 	return []tempFileQueue{
 		{name: models.QuickScanQueue, extract: tempPathsFromQuickScanPayload},
-		{name: models.EmailReceiptProcessingQueue, extract: tempPathsFromEmailPayload},
 	}
 }
 
@@ -340,18 +339,6 @@ func tempPathsFromQuickScanPayload(payload []byte) ([]string, error) {
 	}
 
 	return cleanedTempPaths(parsedPayload.TempPath), nil
-}
-
-// tempPathsFromEmailPayload yields both files an email task owns: the original
-// attachment and the converted copy fed to OCR. A body-only task has neither,
-// which is not an error.
-func tempPathsFromEmailPayload(payload []byte) ([]string, error) {
-	var parsedPayload EmailProcessTaskPayload
-	if err := json.Unmarshal(payload, &parsedPayload); err != nil {
-		return nil, err
-	}
-
-	return cleanedTempPaths(parsedPayload.TempFilePath, parsedPayload.ImageForOcrPath), nil
 }
 
 // cleanedTempPaths drops empty entries and normalizes the rest, so a path read

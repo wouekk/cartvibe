@@ -1,11 +1,11 @@
 package handlers
 
 import (
+	"cartvibe/api/internal/repositories"
+	"cartvibe/api/internal/structs"
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"cartvibe/api/internal/repositories"
-	"cartvibe/api/internal/structs"
 	"strings"
 	"testing"
 
