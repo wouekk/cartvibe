@@ -22,7 +22,7 @@
       <div *ngFor="let preview of images; let i = index" [class.hidden]="i !== currentlySelectedIndex">
         <div class="flex flex-col justify-center">
           <img
-            class="mb-2"
+            class="mb-2 max-h-40 w-auto self-center rounded-lg border border-border object-contain"
             [alt]="'quick scan image' | t"
             [src]="preview.encodedImage || preview.url ?? ''"
           >

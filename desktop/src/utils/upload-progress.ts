@@ -1,8 +1,8 @@
 import { HttpEvent, HttpEventType } from "@angular/common/http";
 import { filter, map, Observable, tap } from "rxjs";
 
-/** Where an upload stands: `uploading` has a percent (0-100); `saving` is the wait for the server after the last byte. */
-export type UploadStage = { stage: "uploading"; percent: number } | { stage: "saving" };
+/** Where an upload stands: `uploading` has a percent (0-100); `saving` is the wait for the server after the last byte; `scanning` is the AI reading the receipt once it is queued. */
+export type UploadStage = { stage: "uploading"; percent: number } | { stage: "saving" } | { stage: "scanning" };
 
 /**
  * Turns a request made with `observe: "events", reportProgress: true` back into the plain response body, reporting the

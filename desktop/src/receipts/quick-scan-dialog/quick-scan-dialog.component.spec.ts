@@ -7,7 +7,7 @@ import { ComponentFixture, TestBed, } from "@angular/core/testing";
 import { FormArray, FormControl, ReactiveFormsModule } from "@angular/forms";
 import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
@@ -384,6 +384,78 @@ describe("QuickScanDialogComponent", () => {
     } finally {
       URL.createObjectURL = originalCreateObjectURL;
     }
+  });
+
+  describe("following a single scan to its receipt", () => {
+    const seedGroup = () =>
+      store.reset({
+        auth: { groupCategories: {}, groupTags: {} },
+        layout: { showProgressBar: false },
+        groups: { groups: [{ id: 2, groupReceiptSettings: { quickScanPaidByEnabled: false, quickScanStatusEnabled: false } }], selectedGroupId: "", selectedDashboardId: "" },
+      });
+
+    const submitWith = (images: number, taskIds: string[], status: any) => {
+      seedGroup();
+      const receiptService = TestBed.inject(ReceiptService);
+      jest.spyOn(receiptService, "quickScanReceipt").mockReturnValue(of(new HttpResponse({ body: { taskIds } })) as any);
+      const statusSpy = jest.spyOn(receiptService as any, "getQuickScanStatus").mockReturnValue(of(status));
+      const router = TestBed.inject(Router);
+      const navigateSpy = jest.spyOn(router, "navigate").mockResolvedValue(true);
+      const closeSpy = jest.spyOn(TestBed.inject(AppDialogRef), "close");
+
+      for (let i = 0; i < images; i++) {
+        component.fileLoaded({ file: { name: "a" + i } } as any);
+        component.groupIds.at(i).setValue(2);
+      }
+      component.submitButtonClicked();
+      return { statusSpy, navigateSpy, closeSpy };
+    };
+
+    // The poll starts on a real zero-delay timer, so give it a turn of the event loop.
+    const flush = () => new Promise((resolve) => setTimeout(resolve, 5));
+
+    let originalCreateObjectURL: typeof URL.createObjectURL;
+    beforeEach(() => {
+      originalCreateObjectURL = URL.createObjectURL;
+      URL.createObjectURL = jest.fn().mockReturnValue("blob");
+    });
+    afterEach(() => {
+      URL.createObjectURL = originalCreateObjectURL;
+    });
+
+    it("opens the new receipt as soon as the scan has made it", async () => {
+      const { statusSpy, navigateSpy, closeSpy } = submitWith(1, ["job-1"], { status: "DONE", receiptId: 12 });
+      await flush();
+
+      expect(statusSpy).toHaveBeenCalledWith("job-1");
+      expect(navigateSpy).toHaveBeenCalledWith(["/receipts", 12, "edit"]);
+      expect(closeSpy).toHaveBeenCalled();
+      expect(component.uploadStage()).toBeNull();
+    });
+
+    it("shows that it is reading the receipt while it waits", async () => {
+      submitWith(1, ["job-1"], { status: "PENDING" });
+      await flush();
+
+      expect(component.uploadStage()).toEqual({ stage: "scanning" });
+    });
+
+    it("only queues several photos, without following them", async () => {
+      const { statusSpy, navigateSpy, closeSpy } = submitWith(2, ["job-1", "job-2"], { status: "DONE", receiptId: 12 });
+      await flush();
+
+      expect(statusSpy).not.toHaveBeenCalled();
+      expect(navigateSpy).not.toHaveBeenCalled();
+      expect(closeSpy).toHaveBeenCalled();
+    });
+
+    it("falls back to queued when the scan failed", async () => {
+      const { navigateSpy, closeSpy } = submitWith(1, ["job-1"], { status: "FAILED" });
+      await flush();
+
+      expect(navigateSpy).not.toHaveBeenCalled();
+      expect(closeSpy).toHaveBeenCalled();
+    });
   });
 
   it("should send category and tag ids per image on submit", () => {

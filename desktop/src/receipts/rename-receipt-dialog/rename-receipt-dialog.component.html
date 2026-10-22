@@ -1,0 +1,15 @@
+<app-dialog [headerText]="'Rename receipt' | t">
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <app-input
+      data-testid="receipt-rename-input"
+      [label]="'Name' | t"
+      [inputFormControl]="form | formGet : 'name'"
+      [additionalErrorMessages]="nameErrorMessages"
+    ></app-input>
+
+    <app-dialog-footer
+      (submitClicked)="submit()"
+      (cancelClicked)="cancel()"
+    ></app-dialog-footer>
+  </form>
+</app-dialog>

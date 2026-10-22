@@ -4202,3 +4202,12 @@ Dashboard's figures in the browser; stored amounts, exports and every other scre
   the API as uid 10001 `cartvibe` through `setpriv` after handing it `data`, `temp`, `logs` and `sqlite` (only files it does
   not own yet). nginx sends `server_tokens off` and nosniff / frame / referrer headers. `publish-image.yml` rebuilds `main`
   weekly without the cache, always pulls base images, and attaches a grype report to every run.
+
+## Quick scan result and rename (fork, 2026-10)
+- `POST /receipt/quickScan` answers with `QuickScanResult{taskIds}` (asynq task ids, upload order); the body used to be empty.
+  `GET /receipt/quickScan/{taskId}` (`GetQuickScanStatus`) reads the system tasks carrying that `asynq_task_id` **and the
+  caller's `ran_by_user_id`**: one linked to a receipt is `DONE` (+ `receiptId`), a failed one with no receipt `FAILED`,
+  otherwise `PENDING` (an unknown id, or another user's, is also `PENDING`, so it reveals nothing). Database only, no Redis
+  retention needed. A retried task can turn a `FAILED` into `DONE`. The status is a plain string on the contract.
+- `PUT /receipt/{id}/name` (`RenameReceipt`, `group.receipts.update`, paid-by visibility through the receipt gate) changes only
+  `receipts.name` (trimmed, 1-255 characters, 400 otherwise), so a rename never saves other form state.

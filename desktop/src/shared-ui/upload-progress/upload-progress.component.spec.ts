@@ -39,4 +39,12 @@ describe("UploadProgressComponent", () => {
     expect(fixture.nativeElement.querySelector('[data-testid="upload-progress-fill"]').style.width).toBe("100%");
     expect(fixture.nativeElement.querySelector('[role="progressbar"]').getAttribute("aria-valuenow")).toBeNull();
   });
+
+  it("says it is reading the receipt while the AI scans it", async () => {
+    fixture.componentRef.setInput("stage", { stage: "scanning" });
+    await fixture.whenStable();
+
+    expect(text("upload-progress-label")).toBe("Reading your receipt…");
+    expect(fixture.nativeElement.querySelector('[data-testid="upload-progress-fill"]').style.width).toBe("100%");
+  });
 });

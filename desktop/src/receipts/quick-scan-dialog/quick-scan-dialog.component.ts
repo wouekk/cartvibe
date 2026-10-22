@@ -4,7 +4,9 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
-import { finalize, take, tap } from "rxjs";
+import { finalize, Observable, of, switchMap, take, tap } from "rxjs";
+import { Router } from "@angular/router";
+import { waitForScannedReceipt } from "../../utils/quick-scan-wait";
 import { ReceiptFileUploadCommand } from "../../interfaces";
 import { setRequired } from "../../form";
 import { Category, GroupReceiptSettings, Permission, ReceiptService, ReceiptStatus, Tag } from "../../open-api";
@@ -62,6 +64,7 @@ export class QuickScanDialogComponent implements OnInit {
     private formBuilder: FormBuilder,
     private receiptService: ReceiptService,
     private snackbarService: SnackbarService,
+    private router: Router,
     private store: Store
   ) {}
 
@@ -319,7 +322,16 @@ export class QuickScanDialogComponent implements OnInit {
       )
         .pipe(
           take(1),
-          tap(() => {
+          // One photo: stay on the bar while the AI reads it, then land on the new receipt. Several photos (or a
+          // scan that fails, times out or cannot be followed) are simply queued, as before.
+          switchMap((result: { taskIds?: string[] } | null) => this.followSingleScan(result)),
+          tap((receiptId) => {
+            if (receiptId) {
+              this.snackbarService.success(marker("Receipt scanned"));
+              this.dialogRef.close();
+              this.router.navigate(["/receipts", receiptId, "edit"]);
+              return;
+            }
             this.snackbarService.success(
               this.images.length === 1 ? marker("Successfully queued image for processing") : marker("Successfully queued images for processing")
             );
@@ -336,6 +348,17 @@ export class QuickScanDialogComponent implements OnInit {
     if (this.form.invalid) {
       this.snackbarService.error("Please fill in all required fields. Some images are missing required fields.");
     }
+  }
+
+  /** The receipt id a single queued photo turns into, or null when there is nothing to follow (see submitButtonClicked). */
+  private followSingleScan(result: { taskIds?: string[] } | null): Observable<number | null> {
+    const taskId = result?.taskIds?.length === 1 && this.images.length === 1 ? result.taskIds[0] : undefined;
+    if (!taskId) {
+      return of(null);
+    }
+
+    this.uploadStage.set({ stage: "scanning" });
+    return waitForScannedReceipt(() => this.receiptService.getQuickScanStatus(taskId)).pipe(takeUntilDestroyed(this.destroyRef));
   }
 
   // Serializes each image's selected category/tag objects into a comma-joined id string (one entry

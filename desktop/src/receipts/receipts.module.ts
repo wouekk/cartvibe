@@ -47,6 +47,7 @@ import { QuickActionsDialogComponent } from "./quick-actions-dialog/quick-action
 import { QuickScanDialogComponent } from "./quick-scan-dialog/quick-scan-dialog.component";
 import { ReceiptCommentsComponent } from "./receipt-comments/receipt-comments.component";
 import { ReceiptFormComponent } from "./receipt-form/receipt-form.component";
+import { RenameReceiptDialogComponent } from "./rename-receipt-dialog/rename-receipt-dialog.component";
 import { ReceiptsRoutingModule } from "./receipts-routing.module";
 import { ReceiptsTableComponent } from "./receipts-table/receipts-table.component";
 import { ShareListComponent } from "./share-list/share-list.component";
@@ -63,6 +64,7 @@ import { UserTotalWithPercentagePipe } from "./user-total-with-percentage.pipe";
     ItemListComponent,
     ShareListComponent,
     QuickActionsDialogComponent,
+    RenameReceiptDialogComponent,
     ReceiptCommentsComponent,
     ReceiptFormComponent,
     ReceiptsTableComponent,

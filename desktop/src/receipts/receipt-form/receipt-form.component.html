@@ -165,7 +165,7 @@
                 </button>
               }
               <div
-                class="rw-images-pane__stage"
+                class="rw-images-pane__stage relative"
                 *ngIf="
                 images() &&
                 (images().length > 0 || filesToUpload().length > 0) &&
@@ -188,6 +188,15 @@
                   mode !== formMode.edit || (showProgressBar() ?? false)
                 "
                 ></app-carousel>
+                <app-button
+                  class="absolute right-2 top-2 z-10 rounded-full border border-border bg-background/85 backdrop-blur-sm [&_button]:min-h-11 [&_button]:min-w-11"
+                  data-testid="receipt-image-menu"
+                  matButtonType="iconButton"
+                  icon="more_vert"
+                  color="accent"
+                  [tooltip]="'Image actions' | t"
+                  [hlmDropdownMenuTrigger]="imageMenu"
+                ></app-button>
               </div>
             </div>
           </app-form-section>
@@ -429,14 +438,6 @@
     ></app-button>
     <app-button
       matButtonType="iconButton"
-      icon="fullscreen"
-      [tooltip]="'Show Fullscreen Image' | t"
-      color="accent"
-      [disabled]="(showProgressBar() ?? false)"
-      (clicked)="expandImage()"
-    ></app-button>
-    <app-button
-      matButtonType="iconButton"
       icon="zoom_in"
       [tooltip]="'Zoom In' | t"
       color="accent"
@@ -465,18 +466,46 @@
     [disabled]="!canMagicFill() || (showProgressBar() ?? false)"
     (clicked)="magicFill()"
   ></app-button>
-  <app-button
-    *ngIf="
-      !(mode | inputReadonly) && (images().length > 0 || filesToUpload().length > 0)
-    "
-    data-testid="receipt-image-remove"
-    matButtonType="iconButton"
-    icon="delete"
-    [tooltip]="isLastImageLocked() ? 'An image is required, so the last one cannot be removed' : 'Remove Image'"
-    color="warn"
-    [disabled]="!canEditReceipt() || isLastImageLocked() || (showProgressBar() ?? false)"
-    (clicked)="removeImage()"
-  ></app-button>
+</ng-template>
+
+<!--
+  The one place to preview, rename or remove the receipt's photo. It sits on the image stage itself (not in the
+  section header), so it is under the thumb after scrolling down to the photo on a phone; the stage is a positioned
+  box and the trigger is a 44px target. Every entry is a plain button: the dropdown collects its items with a content
+  query, which a child component's template would hide.
+-->
+<ng-template #imageMenu>
+  <div hlmDropdownMenu class="w-52">
+    <button
+      hlmDropdownMenuItem
+      data-testid="receipt-image-preview"
+      (click)="expandImage()"
+    >
+      <app-icon name="fullscreen"></app-icon>
+      <span>{{ 'Preview' | t }}</span>
+    </button>
+    @if (!(mode | inputReadonly)) {
+      <button
+        hlmDropdownMenuItem
+        data-testid="receipt-image-rename"
+        [disabled]="!canEditReceipt() || (showProgressBar() ?? false)"
+        (click)="renameReceipt()"
+      >
+        <app-icon name="edit"></app-icon>
+        <span>{{ 'Rename' | t }}</span>
+      </button>
+      <button
+        hlmDropdownMenuItem
+        data-testid="receipt-image-remove"
+        [attr.title]="isLastImageLocked() ? ('An image is required, so the last one cannot be removed' | t) : null"
+        [disabled]="!canEditReceipt() || isLastImageLocked() || (showProgressBar() ?? false)"
+        (click)="confirmRemoveImage()"
+      >
+        <app-icon name="delete"></app-icon>
+        <span>{{ 'Remove' | t }}</span>
+      </button>
+    }
+  </div>
 </ng-template>
 
 <ng-template #expandedImageTemplate>
