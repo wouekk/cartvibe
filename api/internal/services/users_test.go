@@ -578,18 +578,6 @@ func TestDeleteUser_RemovesOidcRecords(t *testing.T) {
 			LinkUserId:     &linkUserId,
 			ExpiresAt:      expiresAt,
 		},
-		&models.OidcLinkLaunch{
-			LaunchHash:     "launch-hash",
-			UserId:         user.ID,
-			OidcProviderId: identity.OidcProviderId,
-			ExpiresAt:      expiresAt,
-		},
-		&models.OidcExchangeCode{
-			CodeHash:      "code-hash",
-			UserId:        user.ID,
-			CodeChallenge: "challenge",
-			ExpiresAt:     expiresAt,
-		},
 		&models.OidcDeleteConfirmation{
 			CodeHash:  "delete-confirmation-hash",
 			UserId:    user.ID,
@@ -624,8 +612,6 @@ func TestDeleteUser_RemovesOidcRecords(t *testing.T) {
 
 	assertCount(t, &models.OidcIdentity{}, "user_id = ?", []interface{}{user.ID}, 0, "the deleted user's identities should be gone")
 	assertCount(t, &models.OidcAuthSession{}, "link_user_id = ?", []interface{}{user.ID}, 0, "pending link sessions for the deleted user should be gone")
-	assertCount(t, &models.OidcLinkLaunch{}, "user_id = ?", []interface{}{user.ID}, 0, "link launches for the deleted user should be gone")
-	assertCount(t, &models.OidcExchangeCode{}, "user_id = ?", []interface{}{user.ID}, 0, "exchange codes for the deleted user should be gone")
 	assertCount(t, &models.OidcDeleteConfirmation{}, "user_id = ?", []interface{}{user.ID}, 0, "delete confirmations for the deleted user should be gone")
 	assertCount(t, &models.OidcIdentity{}, "user_id = ?", []interface{}{other.ID}, 1, "another user's identity should survive")
 }

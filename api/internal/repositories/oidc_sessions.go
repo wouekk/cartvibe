@@ -89,83 +89,12 @@ func (repository OidcSessionRepository) GetPendingAuthSessionRouting(stateHash s
 	return sessions[0], nil
 }
 
-func (repository OidcSessionRepository) CreateExchangeCode(code *models.OidcExchangeCode) error {
-	return repository.GetDB().Create(code).Error
-}
-
-// GetExchangeCode loads a live exchange code WITHOUT consuming it, so the caller
-// can verify the PKCE proof first.
-//
-// Load-then-verify-then-burn is deliberate, and copied from the OAuth token
-// endpoint: burning the code before checking the proof would let anyone who
-// intercepted the redirect destroy a valid code out from under the real client
-// just by presenting a wrong verifier.
-func (repository OidcSessionRepository) GetExchangeCode(codeHash string) (models.OidcExchangeCode, error) {
-	db := repository.GetDB()
-	var code models.OidcExchangeCode
-
-	err := db.Model(&models.OidcExchangeCode{}).
-		Where("code_hash = ? AND used = ? AND expires_at > ?", codeHash, false, time.Now()).
-		First(&code).Error
-
-	return code, err
-}
-
-// ConsumeExchangeCode atomically burns a code, mirroring ConsumeAuthSession.
-func (repository OidcSessionRepository) ConsumeExchangeCode(codeHash string) (bool, error) {
-	result := repository.GetDB().
-		Model(&models.OidcExchangeCode{}).
-		Where("code_hash = ? AND used = ? AND expires_at > ?", codeHash, false, time.Now()).
-		Update("used", true)
-	if result.Error != nil {
-		return false, result.Error
-	}
-
-	return result.RowsAffected == 1, nil
-}
-
-func (repository OidcSessionRepository) CreateLinkLaunch(launch *models.OidcLinkLaunch) error {
-	return repository.GetDB().Create(launch).Error
-}
-
-// ConsumeLinkLaunch atomically burns a mobile link launch handle and returns the
-// row it claimed, mirroring ConsumeAuthSession.
-//
-// Unlike the exchange code there is nothing to verify first, so this consumes
-// outright rather than loading and burning separately: the handle IS the proof,
-// and the browser presenting it gets exactly one attempt.
-//
-// Reported as (launch, claimed, error): claimed=false means the handle was
-// unknown, already used, or expired, which are deliberately indistinguishable.
-func (repository OidcSessionRepository) ConsumeLinkLaunch(launchHash string) (models.OidcLinkLaunch, bool, error) {
-	db := repository.GetDB()
-
-	result := db.Model(&models.OidcLinkLaunch{}).
-		Where("launch_hash = ? AND used = ? AND expires_at > ?", launchHash, false, time.Now()).
-		Update("used", true)
-	if result.Error != nil {
-		return models.OidcLinkLaunch{}, false, result.Error
-	}
-
-	if result.RowsAffected != 1 {
-		return models.OidcLinkLaunch{}, false, nil
-	}
-
-	var launch models.OidcLinkLaunch
-	err := db.Model(&models.OidcLinkLaunch{}).Where("launch_hash = ?", launchHash).First(&launch).Error
-	if err != nil {
-		return models.OidcLinkLaunch{}, false, err
-	}
-
-	return launch, true, nil
-}
-
 func (repository OidcSessionRepository) CreateDeleteConfirmation(confirmation *models.OidcDeleteConfirmation) error {
 	return repository.GetDB().Create(confirmation).Error
 }
 
 // ConsumeDeleteConfirmation atomically burns a live delete confirmation code
-// issued to userId, mirroring ConsumeExchangeCode.
+// issued to userId, mirroring ConsumeAuthSession.
 //
 // The account is part of the WHERE clause, not checked afterwards, so a code is
 // worthless to any session but its own account's -- and a mismatch burns
@@ -192,8 +121,6 @@ func (repository OidcSessionRepository) DeleteExpiredOidcSessions() error {
 
 	for _, model := range []interface{}{
 		&models.OidcAuthSession{},
-		&models.OidcExchangeCode{},
-		&models.OidcLinkLaunch{},
 		&models.OidcDeleteConfirmation{},
 	} {
 		err := db.Where("expires_at < ? OR used = ?", now, true).Delete(model).Error

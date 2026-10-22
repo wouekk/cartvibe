@@ -39,10 +39,15 @@ func TestHandleOidcCleanupTaskRemovesOnlySpentRows(t *testing.T) {
 		}
 	}
 
-	liveCode := models.OidcExchangeCode{CodeHash: "live-code", UserId: 1, CodeChallenge: "c", ExpiresAt: time.Now().Add(time.Hour)}
-	expiredCode := models.OidcExchangeCode{CodeHash: "expired-code", UserId: 1, CodeChallenge: "c", ExpiresAt: time.Now().Add(-time.Hour)}
+	owner := models.User{Username: "cleanup-owner", Password: "x"}
+	if err := db.Create(&owner).Error; err != nil {
+		t.Fatalf("failed to seed a user: %v", err)
+	}
 
-	for _, code := range []models.OidcExchangeCode{liveCode, expiredCode} {
+	liveCode := models.OidcDeleteConfirmation{CodeHash: "live-code", UserId: owner.ID, ExpiresAt: time.Now().Add(time.Hour)}
+	expiredCode := models.OidcDeleteConfirmation{CodeHash: "expired-code", UserId: owner.ID, ExpiresAt: time.Now().Add(-time.Hour)}
+
+	for _, code := range []models.OidcDeleteConfirmation{liveCode, expiredCode} {
 		if err := db.Create(&code).Error; err != nil {
 			t.Fatalf("failed to seed a code: %v", err)
 		}
@@ -61,7 +66,7 @@ func TestHandleOidcCleanupTaskRemovesOnlySpentRows(t *testing.T) {
 		t.Errorf("expected only the live session to survive, got %+v", sessions)
 	}
 
-	var codes []models.OidcExchangeCode
+	var codes []models.OidcDeleteConfirmation
 	if err := db.Find(&codes).Error; err != nil {
 		t.Fatalf("failed to list codes: %v", err)
 	}

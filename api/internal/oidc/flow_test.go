@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"cartvibe/api/internal/commands"
-	"cartvibe/api/internal/constants"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
 
@@ -111,17 +110,11 @@ func nonceFromAuthUrl(t *testing.T, recorder *httptest.ResponseRecorder) string 
 	return location.Query().Get("nonce")
 }
 
-// TestCallbackIdpErrorReturnsToTheClientThatStartedTheFlow covers the one
-// callback failure that is not an attack: the user declined consent.
-//
-// Nothing has been consumed at that point, so the handler has no session to read
-// the client type from -- and the identity provider appends only code/state/error
-// to the fixed redirect URI, so there is no ?client= either. Answered as desktop,
-// a mobile flow lands the external browser on the web login page while the app
-// waits on its private-use scheme, which means the ordinary way to back out is
-// also the one that strands you. The pending state is the only thing that can say
-// who is waiting, and reading it consumes nothing.
-func TestCallbackIdpErrorReturnsToTheClientThatStartedTheFlow(t *testing.T) {
+// TestCallbackIdpErrorReturnsToTheLoginPage covers the one callback failure that
+// is not an attack: the user declined consent. Nothing has been consumed at that
+// point, so the pending state is the only thing that can say what the flow was
+// for, and reading it consumes nothing.
+func TestCallbackIdpErrorReturnsToTheLoginPage(t *testing.T) {
 	defer teardownOidcTest()
 	_, provider := setupOidcTest(t, oidcTestOptions{})
 
@@ -130,7 +123,6 @@ func TestCallbackIdpErrorReturnsToTheClientThatStartedTheFlow(t *testing.T) {
 		loginQuery  string
 		wantsPrefix string
 	}{
-		{name: "mobile", loginQuery: "client=mobile&codeChallenge=" + challengeFor("verifier-for-the-mobile-app-1234567890"), wantsPrefix: mobileCallbackScheme},
 		{name: "desktop", loginQuery: "", wantsPrefix: desktopLoginPath},
 	} {
 		t.Run(testCase.name, func(t *testing.T) {
@@ -160,7 +152,7 @@ func TestCallbackIdpErrorReturnsToTheClientThatStartedTheFlow(t *testing.T) {
 }
 
 // TestCallbackIdpErrorWithAnUnknownStateFallsBackToDesktop pins the degradation.
-// pendingClientType chooses between two fixed server-side constants and nothing
+// pendingSession chooses between two fixed server-side constants and nothing
 // else, so a state it cannot resolve must land on the default rather than
 // anywhere a caller could influence.
 func TestCallbackIdpErrorWithAnUnknownStateFallsBackToDesktop(t *testing.T) {
@@ -336,64 +328,6 @@ func TestLoginRejectsUnknownAndDisabledProviders(t *testing.T) {
 	recorder = startLogin(t, provider.Name, "")
 	if code := oidcErrorCode(t, recorder); code != errUnknownProvider {
 		t.Errorf("expected %s for a disabled provider, got %q", errUnknownProvider, code)
-	}
-}
-
-func TestMobileLoginRequiresCodeChallenge(t *testing.T) {
-	defer teardownOidcTest()
-	_, provider := setupOidcTest(t, oidcTestOptions{})
-
-	// Without the app's own PKCE challenge the exchange code would be bearer-only,
-	// and any app that registered the same URL scheme could redeem it.
-	recorder := startLogin(t, provider.Name, "client=mobile")
-
-	if code := oidcErrorCode(t, recorder); code != errInvalidRequest {
-		t.Errorf("expected %s without a code challenge, got %q", errInvalidRequest, code)
-	}
-
-	if !strings.HasPrefix(recorder.Header().Get("Location"), mobileCallbackScheme) {
-		t.Errorf("a mobile error must come back on the app's scheme, got %s", recorder.Header().Get("Location"))
-	}
-}
-
-// TestMobileLoginSetsBindingCookie inverts an assertion that used to read "the
-// mobile leg must not depend on a cookie the external user agent may not carry".
-//
-// That premise was wrong, and it cost the mobile legs their login-CSRF defense.
-// The app hands the LOGIN URL itself to flutter_web_auth_2, so the external
-// browser is what fetches this start -- it takes the Set-Cookie and returns it on
-// the callback exactly as a desktop browser does. Skipping it meant anyone who
-// obtained the authorization URL could complete the flow as themselves and have
-// the victim's app sign into THEIR account.
-func TestMobileLoginSetsBindingCookie(t *testing.T) {
-	defer teardownOidcTest()
-	_, provider := setupOidcTest(t, oidcTestOptions{})
-
-	recorder := startLogin(t, provider.Name, "client=mobile&codeChallenge="+challengeFor("verifier-for-the-mobile-app-1234567890"))
-
-	if findCookie(recorder.Result().Cookies(), bindingCookieName) == nil {
-		t.Error("the mobile login leg must be bound to the browser that started it")
-	}
-}
-
-// TestMobileLoginCallbackRefusesAnUnboundBrowser is the login-side twin of the
-// link regression: a correct state without the binding cookie must not complete.
-func TestMobileLoginCallbackRefusesAnUnboundBrowser(t *testing.T) {
-	defer teardownOidcTest()
-	idp, provider := setupOidcTest(t, oidcTestOptions{allowProvisioning: true})
-
-	recorder := startLogin(t, provider.Name, "client=mobile&codeChallenge="+challengeFor("verifier-for-the-mobile-app-1234567890"))
-
-	state, _ := loginAndExtractFrom(t, recorder)
-	idp.setClaims(claimsFor(idp, "unbound-mobile-subject", nonceFromAuthUrl(t, recorder), "unbound"))
-
-	callback := runCallback(t, provider.Name, url.Values{
-		"code":  {"abc"},
-		"state": {state},
-	}, nil)
-
-	if code := oidcErrorCode(t, callback); code != errInvalidState {
-		t.Errorf("expected %q for an unbound callback, got %q", errInvalidState, code)
 	}
 }
 
@@ -629,66 +563,6 @@ func TestCallbackHappyPathSetsSessionCookies(t *testing.T) {
 	binding := findCookie(result, bindingCookieName)
 	if binding == nil || binding.MaxAge >= 0 {
 		t.Error("expected the binding cookie to be cleared")
-	}
-}
-
-func TestCallbackMobileReturnsCodeNotTokens(t *testing.T) {
-	defer teardownOidcTest()
-	idp, provider := setupOidcTest(t, oidcTestOptions{allowProvisioning: true})
-
-	verifier := "a-mobile-app-pkce-verifier-that-is-long-enough"
-	loginRecorder := startLogin(t, provider.Name, "client=mobile&codeChallenge="+challengeFor(verifier))
-	state, _ := loginAndExtractFrom(t, loginRecorder)
-	idp.setClaims(claimsFor(idp, "subject-mobile", nonceFromAuthUrl(t, loginRecorder), "mobileuser"))
-
-	recorder := runCallback(t, provider.Name, url.Values{"code": {"abc"}, "state": {state}}, loginRecorder.Result().Cookies())
-
-	location := recorder.Header().Get("Location")
-	if !strings.HasPrefix(location, mobileCallbackScheme) {
-		t.Fatalf("expected the app's scheme, got %s", location)
-	}
-
-	parsed, err := url.Parse(location)
-	if err != nil {
-		t.Fatalf("failed to parse the app redirect: %v", err)
-	}
-
-	code := parsed.Query().Get("code")
-	if len(code) == 0 {
-		t.Fatal("no exchange code was delivered to the app")
-	}
-
-	// A private-use scheme is unverifiable on Android, so this URL must never carry
-	// anything that is a credential on its own.
-	//
-	// Asserted against the TOKEN cookies rather than against any cookie at all:
-	// the mobile leg is now bound like every other one, so the callback
-	// legitimately emits the expiry that retires the binding cookie.
-	//
-	// Named through the constants rather than as literals. The refresh cookie is
-	// "refresh_token"; spelled "refreshToken" this half of the assertion passed
-	// whether or not the callback set it, which is the one thing it exists to deny.
-	for _, name := range []string{constants.JwtKey, constants.RefreshTokenKey} {
-		if findCookie(recorder.Result().Cookies(), name) != nil {
-			t.Errorf("the mobile leg must not set the %s cookie", name)
-		}
-	}
-
-	for _, key := range []string{"jwt", "token", "access_token", "refresh_token", "refreshToken"} {
-		if len(parsed.Query().Get(key)) > 0 {
-			t.Errorf("the app redirect must not carry %s", key)
-		}
-	}
-
-	// And the code on the wire must not be what is stored, so a database read
-	// cannot redeem it.
-	var stored models.OidcExchangeCode
-	if err := repositories.GetDB().Last(&stored).Error; err != nil {
-		t.Fatalf("failed to load the exchange code: %v", err)
-	}
-
-	if stored.CodeHash == code {
-		t.Error("the exchange code was stored in plaintext")
 	}
 }
 

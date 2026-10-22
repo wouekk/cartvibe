@@ -2821,7 +2821,7 @@ paths:
 
 
         A browser navigates to this URL and is redirected (302) to the identity
-        provider.
+        provider; a failure redirects back to the profile page with ?oidcError={code}.
 
 
         An API key cannot start a link, whatever its scope - this needs an
@@ -2839,12 +2839,6 @@ paths:
       responses:
         302:
           description: Redirect to the identity provider, for a browser
-        400:
-          $ref: "#/components/responses/OidcFlowError"
-        403:
-          $ref: "#/components/responses/OidcFlowError"
-        404:
-          $ref: "#/components/responses/OidcFlowError"
       security:
         - bearerAuth: [ ]
   /oidc/connections:
@@ -2937,12 +2931,6 @@ paths:
       responses:
         302:
           description: Redirect to the identity provider, for a browser
-        403:
-          $ref: "#/components/responses/OidcFlowError"
-        404:
-          $ref: "#/components/responses/OidcFlowError"
-        500:
-          $ref: "#/components/responses/OidcFlowError"
       security:
         - bearerAuth: [ ]
   /oidcProvider/:
@@ -4257,12 +4245,6 @@ components:
       name: Authorization
       description: API Key in format v1.xxx.xxx.xxx
   responses:
-    OidcFlowError:
-      description: The flow could not be started
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/OidcFlowErrorView"
     Ok:
       description: Request was successfully processed
     BadRequest:
@@ -6453,18 +6435,6 @@ components:
             slug and display name -- never the issuer, client id, or any secret.
           items:
             $ref: "#/components/schemas/OidcProviderSummary"
-    OidcFlowErrorView:
-      type: object
-      description:
-        A failure from a flow start that answers with JSON rather than a redirect. The
-        code comes from the same small fixed vocabulary the redirect form puts in its
-        query string, so one client-side table maps both. An identity provider's own
-        error text is never echoed through.
-      properties:
-        errorCode:
-          type: string
-      required:
-        - errorCode
     OidcProviderSummary:
       required:
         - name
