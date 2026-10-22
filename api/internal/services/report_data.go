@@ -1,15 +1,14 @@
 package services
 
 import (
-	"gorm.io/gorm"
 	"cartvibe/api/internal/commands"
-	"cartvibe/api/internal/constants"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/permissions"
 	"cartvibe/api/internal/reporting"
 	"cartvibe/api/internal/reporting/receiptsource"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/utils"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -48,7 +47,7 @@ func NewReportDataService(tx *gorm.DB) ReportDataService {
 //     marker, so a hidden category still counts toward the totals in its own
 //     bucket rather than vanishing.
 //
-// The returned catalog carries every built-in field plus one per custom field.
+// The returned catalog carries every built-in field.
 func (service ReportDataService) Rows(userId uint, groupId string, filter commands.ReceiptPagedRequestFilter) (reporting.FieldCatalog, []reporting.Row, error) {
 	rowSet, err := service.RowsWithSplit(userId, groupId, filter, receiptsource.SplitOptions{})
 	if err != nil {
@@ -81,34 +80,21 @@ func (service ReportDataService) RowsWithSplit(
 	filter commands.ReceiptPagedRequestFilter,
 	splitOptions receiptsource.SplitOptions,
 ) (ReportRowSet, error) {
-	customFieldRepository := repositories.NewCustomFieldRepository(service.TX)
 	permissionService := NewPermissionService(service.TX)
-
-	// The catalog spans every custom field (a global pool), with their options
-	// loaded so a select value resolves to its text rather than a bare option id.
-	customFields, _, err := customFieldRepository.GetPagedCustomFields(commands.PagedRequestCommand{
-		Page:          -1,
-		PageSize:      -1,
-		OrderBy:       "name",
-		SortDirection: commands.ASCENDING,
-	})
-	if err != nil {
-		return ReportRowSet{}, err
-	}
 
 	location := service.Location
 	if location == nil {
 		location = repositories.NewSystemSettingsRepository(service.TX).AppLocation()
 	}
 
-	source, err := receiptsource.New(customFields, location)
+	source, err := receiptsource.New(location)
 	if err != nil {
 		return ReportRowSet{}, err
 	}
 
 	// The extra preloads are what receiptsource reads beyond the always-loaded
 	// Categories/Tags.
-	receipts, _, err := service.fetchReceipts(userId, groupId, filter, []string{"PaidByUser", "Group", "CustomFields"}, -1)
+	receipts, _, err := service.fetchReceipts(userId, groupId, filter, []string{"PaidByUser", "Group"}, -1)
 	if err != nil {
 		return ReportRowSet{}, err
 	}
@@ -135,7 +121,7 @@ func (service ReportDataService) RowsWithSplit(
 // at most limit of them, newest first, plus the count of every receipt that
 // matched. Sharing fetchReceipts is what keeps the list and the report's count in
 // step. Where the two differ is presentation, and there it follows the receipts
-// list: each custom field value carries its definition, categories/tags the caller
+// list: categories/tags the caller
 // may not see are stripped rather than marked (Restricted), and user references
 // are masked for member visibility.
 func (service ReportDataService) Receipts(
@@ -146,7 +132,7 @@ func (service ReportDataService) Receipts(
 ) ([]models.Receipt, int64, error) {
 	permissionService := NewPermissionService(service.TX)
 
-	receipts, count, err := service.fetchReceipts(userId, groupId, filter, constants.CUSTOM_FIELD_ASSOCIATIONS, limit)
+	receipts, count, err := service.fetchReceipts(userId, groupId, filter, nil, limit)
 	if err != nil {
 		return nil, 0, err
 	}

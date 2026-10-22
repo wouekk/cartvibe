@@ -57,8 +57,8 @@ func (d DataType) IsNumeric() bool {
 // declared, so a template can never sum a status.
 //
 // It bounds measuring only: every field can cut the data, so a dimension is not
-// restricted to RoleDimension fields. Grouping by a currency custom field is as
-// meaningful as grouping by a category, and refusing it would make a custom
+// restricted to RoleDimension fields. Grouping by a currency field is as
+// meaningful as grouping by a category, and refusing it would make a
 // field's type decide whether it is reportable at all.
 type Role uint8
 
@@ -98,9 +98,7 @@ func RoleForDataType(dataType DataType) Role {
 // subtraction rather than as the field an author meant.
 type FieldKey string
 
-// FieldRef describes one field a report may reference. Built-in fields and
-// custom fields are the same abstraction, which is what makes a custom field
-// usable anywhere a built-in is.
+// FieldRef describes one field a report may reference.
 type FieldRef struct {
 	Key      FieldKey
 	Label    string

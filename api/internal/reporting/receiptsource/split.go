@@ -13,7 +13,7 @@ import (
 
 // minimumSplitScale is the fewest decimal places a split share is allocated in.
 // A receipt amount is stored as decimal(10,2), so cents are the natural unit;
-// a currency custom field is stored as text and may carry more places, in which
+// a value stored as text may carry more places, in which
 // case its own scale wins so no precision it was entered with is thrown away.
 const minimumSplitScale = 2
 
@@ -27,10 +27,6 @@ const minimumSplitScale = 2
 type SplitOptions struct {
 	Categories bool
 	Tags       bool
-
-	// Excluded names the currency custom fields that are not divided: every
-	// copy carries the field's whole value, exactly as without a split.
-	Excluded map[uint]struct{}
 }
 
 // Active reports whether the options split anything at all.
@@ -56,8 +52,7 @@ type SplitReceipts struct {
 // value for, keeps its whole list and counts as one. A receipt with nothing to
 // split comes through as a single, unchanged copy.
 //
-// What is divided is the amount and every currency custom field not named in
-// Excluded. Everything else — name, dates, the other custom fields — is the
+// What is divided is the amount. Everything else — name, dates — is the
 // same on every copy, which is what lets a copy still be grouped by them.
 //
 // Shares are whole units of the value's scale (cents for an amount), allocated
@@ -65,8 +60,8 @@ type SplitReceipts struct {
 // in is by category and tag id, never by input order, so the same receipt
 // splits the same way every time.
 //
-// Copies own their category, tag and custom-field slices and their currency
-// values, so the restricted-category substitution that follows can rewrite one
+// Copies own their category and tag slices and their amount
+// value, so the restricted-category substitution that follows can rewrite one
 // copy without reaching another, or the caller's input.
 func (s Source) Split(receipts []models.Receipt, options SplitOptions) SplitReceipts {
 	result := SplitReceipts{
@@ -115,14 +110,6 @@ func (s Source) splitReceipt(receipt *models.Receipt, options SplitOptions) []mo
 
 	amounts := allocateGrid(receipt.Amount, rows, cols)
 
-	// One grid per divided custom field value, by its position on the receipt.
-	customFieldShares := make(map[int][][]decimal.Decimal)
-	for index, customFieldValue := range receipt.CustomFields {
-		if s.isSplitCustomFieldValue(customFieldValue, options) {
-			customFieldShares[index] = allocateGrid(*customFieldValue.CurrencyValue, rows, cols)
-		}
-	}
-
 	copies := make([]models.Receipt, 0, rows*cols)
 	for row := 0; row < rows; row++ {
 		for col := 0; col < cols; col++ {
@@ -131,32 +118,11 @@ func (s Source) splitReceipt(receipt *models.Receipt, options SplitOptions) []mo
 			copied.Categories = append([]models.Category(nil), categoryLists[row]...)
 			copied.Tags = append([]models.Tag(nil), tagLists[col]...)
 
-			copied.CustomFields = append([]models.CustomFieldValue(nil), receipt.CustomFields...)
-			for index, shares := range customFieldShares {
-				share := shares[row][col]
-				copied.CustomFields[index].CurrencyValue = &share
-			}
-
 			copies = append(copies, copied)
 		}
 	}
 
 	return copies
-}
-
-// isSplitCustomFieldValue reports whether a custom field value is one Split
-// divides: a currency field, not excluded, with a value to divide. The type is
-// read from the source's definitions, since the value's own CustomField need not
-// have been preloaded; a field the catalog does not know is left alone.
-func (s Source) isSplitCustomFieldValue(customFieldValue models.CustomFieldValue, options SplitOptions) bool {
-	if customFieldValue.CurrencyValue == nil {
-		return false
-	}
-	if s.types[customFieldValue.CustomFieldId] != models.CURRENCY {
-		return false
-	}
-	_, excluded := options.Excluded[customFieldValue.CustomFieldId]
-	return !excluded
 }
 
 // Merge folds back together the copies of one receipt that became
@@ -187,30 +153,16 @@ func (s Source) Merge(split SplitReceipts) ([]models.Receipt, []int) {
 			continue
 		}
 
-		s.mergeInto(&merged[existing], receipt, split.options)
+		s.mergeInto(&merged[existing], receipt)
 	}
 
 	return merged, perOrigin
 }
 
-// mergeInto adds the divided values of from onto into. Copies of one receipt
-// carry their custom fields in the same order, so a value's position names the
-// same field on both.
-func (s Source) mergeInto(into *models.Receipt, from models.Receipt, options SplitOptions) {
+// mergeInto adds the divided amount of from onto into.
+func (s Source) mergeInto(into *models.Receipt, from models.Receipt) {
 	into.Amount = into.Amount.Add(from.Amount)
 
-	for index, customFieldValue := range into.CustomFields {
-		if index >= len(from.CustomFields) || !s.isSplitCustomFieldValue(customFieldValue, options) {
-			continue
-		}
-		other := from.CustomFields[index].CurrencyValue
-		if other == nil {
-			continue
-		}
-		// A fresh pointer, so no other receipt holding the old one sees the sum.
-		sum := customFieldValue.CurrencyValue.Add(*other)
-		into.CustomFields[index].CurrencyValue = &sum
-	}
 }
 
 func mergeKey(origin int, receipt models.Receipt) string {

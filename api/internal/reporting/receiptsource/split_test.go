@@ -7,7 +7,6 @@ import (
 	"reflect"
 	"strconv"
 	"testing"
-	"time"
 
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/reporting"
@@ -54,17 +53,6 @@ func tagNames(receipt models.Receipt) []string {
 		names[index] = tag.Name
 	}
 	return names
-}
-
-func currencyValue(t *testing.T, receipt models.Receipt, fieldID uint) *decimal.Decimal {
-	t.Helper()
-	for _, value := range receipt.CustomFields {
-		if value.CustomFieldId == fieldID {
-			return value.CurrencyValue
-		}
-	}
-	t.Fatalf("receipt has no value for custom field %d", fieldID)
-	return nil
 }
 
 func sumAmounts(receipts []models.Receipt) decimal.Decimal {
@@ -423,78 +411,6 @@ func TestSplit_UnsavedCategoriesAreDistinguishedByName(t *testing.T) {
 	assertStrings(t, "last copy", categoryNames(split.Receipts[2]), []string{"Zed"})
 }
 
-func TestSplit_CurrencyCustomFields(t *testing.T) {
-	source, err := New(append(testCustomFields(),
-		models.CustomField{BaseModel: models.BaseModel{ID: 6}, Name: "Tip", Type: models.CURRENCY},
-		models.CustomField{BaseModel: models.BaseModel{ID: 7}, Name: "Deposit", Type: models.CURRENCY},
-	), time.UTC)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	note := "kept"
-	receipts := []models.Receipt{{
-		Amount:     dec("100"),
-		Categories: []models.Category{category(1, "Food"), category(2, "Fuel")},
-		CustomFields: []models.CustomFieldValue{
-			{CustomFieldId: hstFieldID, CurrencyValue: decPointer("13")},
-			{CustomFieldId: 6, CurrencyValue: decPointer("10.01")},
-			{CustomFieldId: 7, CurrencyValue: nil},
-			{CustomFieldId: noteFieldID, StringValue: &note},
-			// A currency-looking value on a field the catalog does not know.
-			{CustomFieldId: 99, CurrencyValue: decPointer("40")},
-		},
-	}}
-
-	split := source.Split(receipts, SplitOptions{Categories: true, Excluded: map[uint]struct{}{hstFieldID: {}}})
-	if len(split.Receipts) != 2 {
-		t.Fatalf("copies = %d, want 2", len(split.Receipts))
-	}
-
-	tips := []string{}
-	for _, copied := range split.Receipts {
-		if got := currencyValue(t, copied, hstFieldID); got.StringFixed(2) != "13.00" {
-			t.Errorf("excluded HST = %s, want 13.00 on every copy", got.StringFixed(2))
-		}
-		tips = append(tips, currencyValue(t, copied, 6).StringFixed(2))
-		if got := currencyValue(t, copied, 7); got != nil {
-			t.Errorf("nil Deposit became %s, want nil", got)
-		}
-		if got := currencyValue(t, copied, 99); got.StringFixed(2) != "40.00" {
-			t.Errorf("unknown field = %s, want it untouched at 40.00", got.StringFixed(2))
-		}
-		for _, value := range copied.CustomFields {
-			if value.CustomFieldId == noteFieldID && (value.StringValue == nil || *value.StringValue != "kept") {
-				t.Errorf("text value not carried through")
-			}
-		}
-	}
-	assertStrings(t, "tips", tips, []string{"5.01", "5.00"})
-}
-
-// A receipt may hold two values for one field; each is divided on its own, and
-// the lowest id still wins when the copy becomes a row.
-func TestSplit_DuplicateCustomFieldValuesAreEachSplit(t *testing.T) {
-	source := mustNew(t)
-	receipts := []models.Receipt{{
-		Amount:     dec("100"),
-		Categories: []models.Category{category(1, "Food"), category(2, "Fuel")},
-		CustomFields: []models.CustomFieldValue{
-			{BaseModel: models.BaseModel{ID: 9}, CustomFieldId: hstFieldID, CurrencyValue: decPointer("20")},
-			{BaseModel: models.BaseModel{ID: 4}, CustomFieldId: hstFieldID, CurrencyValue: decPointer("8")},
-		},
-	}}
-
-	split := source.Split(receipts, SplitOptions{Categories: true})
-	rows := source.Rows(split.Receipts)
-	for index, row := range rows {
-		number, _ := row.Measure(CustomFieldKey(hstFieldID)).Decimal()
-		if number.StringFixed(2) != "4.00" {
-			t.Errorf("row %d HST = %s, want the lowest-id value's share, 4.00", index, number.StringFixed(2))
-		}
-	}
-}
-
 func TestSplit_DoesNotMutateTheInput(t *testing.T) {
 	source := mustNew(t)
 
@@ -505,12 +421,10 @@ func TestSplit_DoesNotMutateTheInput(t *testing.T) {
 		{Categories: true},
 		{Tags: true},
 	} {
-		hst := decPointer("13")
 		receipts := []models.Receipt{{
-			Amount:       dec("100"),
-			Categories:   []models.Category{category(2, "Fuel"), category(1, "Food")},
-			Tags:         []models.Tag{tag(2, "Sam"), tag(1, "Alex")},
-			CustomFields: []models.CustomFieldValue{{CustomFieldId: hstFieldID, CurrencyValue: hst}},
+			Amount:     dec("100"),
+			Categories: []models.Category{category(2, "Fuel"), category(1, "Food")},
+			Tags:       []models.Tag{tag(2, "Sam"), tag(1, "Alex")},
 		}}
 
 		split := source.Split(receipts, options)
@@ -519,7 +433,6 @@ func TestSplit_DoesNotMutateTheInput(t *testing.T) {
 		for index := range split.Receipts {
 			split.Receipts[index].Categories[0].Name = "(Restricted)"
 			split.Receipts[index].Tags[0].Name = "(Restricted)"
-			split.Receipts[index].CustomFields[0].CurrencyValue = decPointer("0")
 		}
 
 		if receipts[0].Amount.StringFixed(2) != "100.00" {
@@ -527,33 +440,22 @@ func TestSplit_DoesNotMutateTheInput(t *testing.T) {
 		}
 		assertStrings(t, "input categories", categoryNames(receipts[0]), []string{"Fuel", "Food"})
 		assertStrings(t, "input tags", tagNames(receipts[0]), []string{"Sam", "Alex"})
-		if receipts[0].CustomFields[0].CurrencyValue != hst || hst.StringFixed(2) != "13.00" {
-			t.Errorf("%+v: input HST changed to %s", options, receipts[0].CustomFields[0].CurrencyValue)
-		}
 	}
 }
 
 func TestSplit_CopiesShareNothingMutable(t *testing.T) {
 	source := mustNew(t)
 	receipts := []models.Receipt{{
-		Amount:       dec("100"),
-		Categories:   []models.Category{category(1, "Food"), category(2, "Fuel")},
-		CustomFields: []models.CustomFieldValue{{CustomFieldId: hstFieldID, CurrencyValue: decPointer("13")}},
+		Amount:     dec("100"),
+		Categories: []models.Category{category(1, "Food"), category(2, "Fuel")},
 	}}
 
 	split := source.Split(receipts, SplitOptions{Categories: true})
 	first, second := split.Receipts[0], split.Receipts[1]
 
-	if first.CustomFields[0].CurrencyValue == second.CustomFields[0].CurrencyValue {
-		t.Fatal("two copies share one currency value pointer")
-	}
 	first.Categories[0].Name = "changed"
 	if second.Categories[0].Name == "changed" {
 		t.Error("two copies share one category slice")
-	}
-	first.CustomFields[0].CustomFieldId = 42
-	if second.CustomFields[0].CustomFieldId == 42 {
-		t.Error("two copies share one custom field slice")
 	}
 }
 
@@ -606,23 +508,14 @@ func TestMerge_WithoutCollisionsIsOneRowPerCopy(t *testing.T) {
 }
 
 // Two hidden categories substituted to one (Restricted) marker are one row
-// holding both shares; the excluded value is not summed.
+// holding both shares.
 func TestMerge_FoldsCopiesTheSubstitutionMadeIdentical(t *testing.T) {
-	source, err := New(append(testCustomFields(),
-		models.CustomField{BaseModel: models.BaseModel{ID: 6}, Name: "Tip", Type: models.CURRENCY},
-	), time.UTC)
-	if err != nil {
-		t.Fatal(err)
-	}
+	source := mustNew(t)
 	receipts := []models.Receipt{{
 		Amount:     dec("100"),
 		Categories: []models.Category{category(1, "Visible"), category(2, "Hidden1"), category(3, "Hidden2")},
-		CustomFields: []models.CustomFieldValue{
-			{CustomFieldId: hstFieldID, CurrencyValue: decPointer("13")},
-			{CustomFieldId: 6, CurrencyValue: decPointer("9")},
-		},
 	}}
-	options := SplitOptions{Categories: true, Excluded: map[uint]struct{}{hstFieldID: {}}}
+	options := SplitOptions{Categories: true}
 
 	split := source.Split(receipts, options)
 	for index := range split.Receipts {
@@ -637,38 +530,8 @@ func TestMerge_FoldsCopiesTheSubstitutionMadeIdentical(t *testing.T) {
 	}
 	assertStrings(t, "amounts", amounts(merged), []string{"33.34", "66.66"})
 	assertStrings(t, "restricted categories", categoryNames(merged[1]), []string{"(Restricted)"})
-	if got := currencyValue(t, merged[1], 6).StringFixed(2); got != "6.00" {
-		t.Errorf("merged Tip = %s, want 6.00", got)
-	}
-	if got := currencyValue(t, merged[1], hstFieldID).StringFixed(2); got != "13.00" {
-		t.Errorf("merged excluded HST = %s, want 13.00, not a sum", got)
-	}
 	if !reflect.DeepEqual(perOrigin, []int{2}) {
 		t.Errorf("perOrigin = %v, want [2]", perOrigin)
-	}
-}
-
-// Merging writes a fresh pointer rather than adding into a shared one.
-func TestMerge_DoesNotWriteThroughASharedValue(t *testing.T) {
-	source := mustNew(t)
-	receipts := []models.Receipt{{
-		Amount:       dec("10"),
-		Categories:   []models.Category{category(1, "A"), category(2, "B")},
-		CustomFields: []models.CustomFieldValue{{CustomFieldId: hstFieldID, CurrencyValue: decPointer("2")}},
-	}}
-
-	split := source.Split(receipts, SplitOptions{Categories: true})
-	firstValue := split.Receipts[0].CustomFields[0].CurrencyValue
-	for index := range split.Receipts {
-		split.Receipts[index].Categories = []models.Category{{Name: "(Restricted)"}}
-	}
-	merged, _ := source.Merge(split)
-
-	if got := currencyValue(t, merged[0], hstFieldID).StringFixed(2); got != "2.00" {
-		t.Errorf("merged HST = %s, want 2.00", got)
-	}
-	if firstValue.StringFixed(2) != "1.00" {
-		t.Errorf("the first copy's own value changed to %s", firstValue)
 	}
 }
 
@@ -719,10 +582,9 @@ func TestSplit_FeedsTheEngine(t *testing.T) {
 	source := mustNew(t)
 	receipts := []models.Receipt{
 		{
-			Amount:       dec("100"),
-			PaidByUser:   models.User{DisplayName: "Dana"},
-			Categories:   []models.Category{category(1, "Food"), category(2, "Fuel"), category(3, "Toys")},
-			CustomFields: []models.CustomFieldValue{{CustomFieldId: hstFieldID, CurrencyValue: decPointer("13")}},
+			Amount:     dec("100"),
+			PaidByUser: models.User{DisplayName: "Dana"},
+			Categories: []models.Category{category(1, "Food"), category(2, "Fuel"), category(3, "Toys")},
 		},
 		{
 			Amount:     dec("20"),
@@ -741,7 +603,6 @@ func TestSplit_FeedsTheEngine(t *testing.T) {
 				{Name: "Category", Kind: reporting.ColumnLabel, Field: KeyCategory},
 				{Name: "Count", Kind: reporting.ColumnAggregate, AggSrc: "COUNT()"},
 				{Name: "Total", Kind: reporting.ColumnAggregate, AggSrc: "SUM(amount)"},
-				{Name: "Hst", Kind: reporting.ColumnAggregate, AggSrc: "SUM(custom_1)"},
 			},
 			Subtotals:   true,
 			GrandTotals: true,
@@ -766,15 +627,12 @@ func TestSplit_FeedsTheEngine(t *testing.T) {
 	rows := split.Root.DetailRows
 	got := []string{}
 	for _, row := range rows {
-		got = append(got, cell(row.Cells, "Total")+"/"+cell(row.Cells, "Count")+"/"+cell(row.Cells, "Hst"))
+		got = append(got, cell(row.Cells, "Total")+"/"+cell(row.Cells, "Count"))
 	}
-	// Food 33.34 + 20, Fuel 33.33, Toys 33.33; HST 4.34/4.33/4.33.
-	assertStrings(t, "split buckets", got, []string{"53.34/2.00/4.34", "33.33/1.00/4.33", "33.33/1.00/4.33"})
+	// Food 33.34 + 20, Fuel 33.33, Toys 33.33.
+	assertStrings(t, "split buckets", got, []string{"53.34/2.00", "33.33/1.00", "33.33/1.00"})
 	if total := cell(split.GrandTotals, "Total"); total != "120.00" {
 		t.Errorf("split grand total = %s, want the true 120.00", total)
-	}
-	if hst := cell(split.GrandTotals, "Hst"); hst != "13.00" {
-		t.Errorf("split grand HST = %s, want the true 13.00", hst)
 	}
 
 	// Without the split the same report double counts, as it always has.
@@ -796,7 +654,6 @@ func TestSplitOptions_Active(t *testing.T) {
 		want    bool
 	}{
 		{SplitOptions{}, false},
-		{SplitOptions{Excluded: map[uint]struct{}{1: {}}}, false},
 		{SplitOptions{Categories: true}, true},
 		{SplitOptions{Tags: true}, true},
 		{SplitOptions{Categories: true, Tags: true}, true},

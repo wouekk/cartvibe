@@ -36,11 +36,6 @@ const (
 	AppTagsUpdate = "app.tags.update"
 	AppTagsDelete = "app.tags.delete"
 
-	AppCustomFieldsCreate = "app.custom-fields.create"
-	AppCustomFieldsRead   = "app.custom-fields.read"
-	AppCustomFieldsUpdate = "app.custom-fields.update"
-	AppCustomFieldsDelete = "app.custom-fields.delete"
-
 	AppSystemSettingsRead              = "app.system-settings.read"
 	AppSystemSettingsUpdate            = "app.system-settings.update"
 	AppSystemSettingsRestartTaskServer = "app.system-settings.restart-task-server"
@@ -180,11 +175,6 @@ var registry = []Descriptor{
 	{AppTagsRead, "Read Tags", "List and look up tags.", "Catalog", ScopeApp},
 	{AppTagsUpdate, "Update Tags", "Edit existing tags.", "Catalog", ScopeApp},
 	{AppTagsDelete, "Delete Tags", "Remove tags.", "Catalog", ScopeApp},
-
-	{AppCustomFieldsCreate, "Create Custom Fields", "Create new custom field definitions.", "Catalog", ScopeApp},
-	{AppCustomFieldsRead, "Read Custom Fields", "List and look up custom fields.", "Catalog", ScopeApp},
-	{AppCustomFieldsUpdate, "Update Custom Fields", "Edit an existing custom field's name, description, and select options. The field's type can never be changed.", "Catalog", ScopeApp},
-	{AppCustomFieldsDelete, "Delete Custom Fields", "Remove custom field definitions.", "Catalog", ScopeApp},
 
 	{AppSystemSettingsRead, "Read System Settings", "View system settings.", "System", ScopeApp},
 	{AppSystemSettingsUpdate, "Update System Settings", "Edit system settings.", "System", ScopeApp},

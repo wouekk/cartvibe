@@ -1746,17 +1746,12 @@ func TestAfterReceiptUpdatedSettlesItemsForDeclinedReceipt(t *testing.T) {
 // The RECEIPT_UPDATED system task stores a before/after pair that the desktop
 // renders as a diff, so both sides must be loaded to the same depth. The
 // "before" side used to be loaded one level deep, which made every update look
-// like it added item categories/tags, linked items and custom field
-// definitions, and listed linked items as top-level items.
+// like it added item categories/tags and linked items, and listed linked items as top-level items.
 func TestUpdateReceiptSystemTaskSnapshotsAreLoadedToTheSameDepth(t *testing.T) {
 	defer teardownReceiptTest()
 	setupReceiptTest()
 
 	db := GetDB()
-	customField := models.CustomField{Name: "PO Number", Type: models.TEXT}
-	db.Create(&customField)
-
-	poNumber := "1182"
 	items := []commands.UpsertItemCommand{
 		{
 			Name:            "Main Item",
@@ -1782,9 +1777,6 @@ func TestUpdateReceiptSystemTaskSnapshotsAreLoadedToTheSameDepth(t *testing.T) {
 		Status:       models.OPEN,
 		GroupId:      1,
 		Items:        items,
-		CustomFields: []commands.UpsertCustomFieldValueCommand{
-			{CustomFieldId: customField.ID, StringValue: &poNumber},
-		},
 	}
 
 	repository := NewReceiptRepository(nil)
@@ -1856,9 +1848,6 @@ func TestUpdateReceiptSystemTaskSnapshotsAreLoadedToTheSameDepth(t *testing.T) {
 		}
 		if len(item.LinkedItems) != 1 {
 			t.Errorf("%s: expected the item's linked item to be loaded, got %d", side, len(item.LinkedItems))
-		}
-		if len(receipt.CustomFields) != 1 || receipt.CustomFields[0].CustomField.Name != "PO Number" {
-			t.Errorf("%s: expected the custom field definition to be loaded, got %+v", side, receipt.CustomFields)
 		}
 	}
 }

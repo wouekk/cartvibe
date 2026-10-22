@@ -1,9 +1,9 @@
 package routers
 
 import (
-	"github.com/go-chi/chi/v5"
 	"cartvibe/api/internal/handlers"
 	"cartvibe/api/internal/middleware"
+	"github.com/go-chi/chi/v5"
 )
 
 func BuildReceiptRouter() *chi.Mux {
@@ -14,7 +14,6 @@ func BuildReceiptRouter() *chi.Mux {
 	receiptRouter.Put("/{id}", handlers.UpdateReceipt)
 	receiptRouter.Put("/{id}/name", handlers.RenameReceipt)
 	receiptRouter.Post("/group/{groupId}", handlers.GetPagedReceiptsForGroup)
-	receiptRouter.Post("/group/{groupId}/summary", handlers.GetReceiptSummaryForGroup)
 	receiptRouter.Post("/bulkStatusUpdate", handlers.BulkReceiptStatusUpdate)
 	receiptRouter.Post("/", handlers.CreateReceipt)
 	receiptRouter.Post("/withFiles", handlers.CreateReceiptWithFiles)

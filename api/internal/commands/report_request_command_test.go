@@ -338,16 +338,6 @@ func TestReportRequestCommand_Validate_Rejects(t *testing.T) {
 		{"unknown column kind", func(c *ReportRequestCommand) {
 			c.Columns = []ReportColumn{{Kind: "widget", Name: "X"}}
 		}, "columns"},
-		// An excluded split field is a custom field key and nothing else.
-		{"split excluded built-in field", func(c *ReportRequestCommand) { c.SplitExcludedFields = []string{"amount"} }, "splitExcludedFields"},
-		{"split excluded empty key", func(c *ReportRequestCommand) { c.SplitExcludedFields = []string{""} }, "splitExcludedFields"},
-		{"split excluded bare prefix", func(c *ReportRequestCommand) { c.SplitExcludedFields = []string{"custom_"} }, "splitExcludedFields"},
-		{"split excluded non-numeric id", func(c *ReportRequestCommand) { c.SplitExcludedFields = []string{"custom_abc"} }, "splitExcludedFields"},
-		{"split excluded period key", func(c *ReportRequestCommand) { c.SplitExcludedFields = []string{"custom_7_month"} }, "splitExcludedFields"},
-		{"split excluded one bad among good", func(c *ReportRequestCommand) {
-			c.SplitCategoriesEqually = true
-			c.SplitExcludedFields = []string{"custom_1", "tip"}
-		}, "splitExcludedFields"},
 		{"no formats", func(c *ReportRequestCommand) { c.Formats = nil }, "formats"},
 		{"unsupported format", func(c *ReportRequestCommand) { c.Formats = []string{"json"} }, "formats"},
 	}
@@ -409,14 +399,10 @@ func TestReportRequestCommand_Validate_AcceptsSplitOptions(t *testing.T) {
 	}{
 		{"categories", func(c *ReportRequestCommand) { c.SplitCategoriesEqually = true }},
 		{"tags", func(c *ReportRequestCommand) { c.SplitTagsEqually = true }},
-		{"both with exclusions", func(c *ReportRequestCommand) {
+		{"both", func(c *ReportRequestCommand) {
 			c.SplitCategoriesEqually = true
 			c.SplitTagsEqually = true
-			c.SplitExcludedFields = []string{"custom_1", "custom_42"}
 		}},
-		// A template keeps its exclusions while both boxes are off, so the
-		// builder can untick and re-tick a split without losing them.
-		{"exclusions with both flags off", func(c *ReportRequestCommand) { c.SplitExcludedFields = []string{"custom_7"} }},
 		// Ticked on a report that never cuts by the dimension: a no-op, not an error.
 		{"split on an unattributed dimension", func(c *ReportRequestCommand) {
 			c.GroupBy = []string{"date_month"}
@@ -444,7 +430,7 @@ func TestReportRequestCommand_MarshalOmitsUnsetSplitOptions(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, key := range []string{"splitCategoriesEqually", "splitTagsEqually", "splitExcludedFields"} {
+	for _, key := range []string{"splitCategoriesEqually", "splitTagsEqually"} {
 		if strings.Contains(string(data), `"`+key+`"`) {
 			t.Errorf("unset %s was serialized: %s", key, data)
 		}
@@ -455,13 +441,12 @@ func TestReportRequestCommand_SplitOptionsRoundTrip(t *testing.T) {
 	command := validReportCommand()
 	command.SplitCategoriesEqually = true
 	command.SplitTagsEqually = true
-	command.SplitExcludedFields = []string{"custom_3"}
 
 	data, err := json.Marshal(command)
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, fragment := range []string{`"splitCategoriesEqually":true`, `"splitTagsEqually":true`, `"splitExcludedFields":["custom_3"]`} {
+	for _, fragment := range []string{`"splitCategoriesEqually":true`, `"splitTagsEqually":true`} {
 		if !strings.Contains(string(data), fragment) {
 			t.Errorf("serialized command lacks %s: %s", fragment, data)
 		}
@@ -471,15 +456,14 @@ func TestReportRequestCommand_SplitOptionsRoundTrip(t *testing.T) {
 	if err := json.Unmarshal(data, &decoded); err != nil {
 		t.Fatal(err)
 	}
-	if !decoded.SplitCategoriesEqually || !decoded.SplitTagsEqually ||
-		len(decoded.SplitExcludedFields) != 1 || decoded.SplitExcludedFields[0] != "custom_3" {
+	if !decoded.SplitCategoriesEqually || !decoded.SplitTagsEqually {
 		t.Errorf("round trip lost the split options: %+v", decoded)
 	}
 }
 
 // TestReportSplitOptionsAreOpenOnTheContract pins the swagger shape of the split
 // options. They ride inside ReportTemplate.configuration, which the mobile client
-// deserializes: they must stay optional, and the excluded keys plain strings, so
+// deserializes: they must stay optional, so
 // a released build never fails a template payload on them.
 func TestReportSplitOptionsAreOpenOnTheContract(t *testing.T) {
 	_, thisFile, _, ok := runtime.Caller(0)
@@ -520,16 +504,9 @@ func TestReportSplitOptionsAreOpenOnTheContract(t *testing.T) {
 			t.Errorf("%s must be a boolean property, got %+v (present=%v)", key, property, ok)
 		}
 	}
-	excluded, ok := schema.Properties["splitExcludedFields"]
-	if !ok {
-		t.Fatal("ReportRequestCommand is missing splitExcludedFields")
-	}
-	if excluded.Type != "array" || excluded.Items.Type != "string" || len(excluded.Items.Enum) > 0 || excluded.Items.Ref != "" {
-		t.Errorf("splitExcludedFields must be an array of plain strings, got %+v", excluded)
-	}
 	for _, required := range schema.Required {
 		switch required {
-		case "splitCategoriesEqually", "splitTagsEqually", "splitExcludedFields":
+		case "splitCategoriesEqually", "splitTagsEqually":
 			t.Errorf("%s must stay optional; templates saved before it existed omit it", required)
 		}
 	}

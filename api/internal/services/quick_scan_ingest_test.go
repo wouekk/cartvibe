@@ -84,41 +84,6 @@ func writeQuickScanTempFile(t *testing.T) string {
 	return path
 }
 
-// seededCustomFields carries the ids of the custom fields (one per value type) seeded for a test so
-// the AI-response fixture can reference them.
-type seededCustomFields struct {
-	textId, dateId, selectId, optionId, currencyId, booleanId uint
-}
-
-func seedQuickScanCustomFields(t *testing.T) seededCustomFields {
-	t.Helper()
-	db := repositories.GetDB()
-
-	text := models.CustomField{Name: "Text Field", Type: models.TEXT}
-	date := models.CustomField{Name: "Date Field", Type: models.DATE}
-	selectField := models.CustomField{Name: "Select Field", Type: models.SELECT}
-	currency := models.CustomField{Name: "Currency Field", Type: models.CURRENCY}
-	boolean := models.CustomField{Name: "Boolean Field", Type: models.BOOLEAN}
-	for _, field := range []*models.CustomField{&text, &date, &selectField, &currency, &boolean} {
-		if err := db.Create(field).Error; err != nil {
-			t.Fatalf("seed custom field: %v", err)
-		}
-	}
-
-	option := models.CustomFieldOption{Value: "Option A", CustomFieldId: selectField.ID}
-	if err := db.Create(&option).Error; err != nil {
-		t.Fatalf("seed custom field option: %v", err)
-	}
-
-	return seededCustomFields{
-		textId:     text.ID,
-		dateId:     date.ID,
-		selectId:   selectField.ID,
-		optionId:   option.ID,
-		currencyId: currency.ID,
-		booleanId:  boolean.ID,
-	}
-}
 
 // runQuickScan seeds the receipt-image pipeline + categories (ids 1-3) + tags (ids 1-2), points a
 // mock AI at the JSON built from the seeded user/group, and drives ReceiptService.QuickScan. The
@@ -211,19 +176,9 @@ func findItemByName(items []models.Item, name string) (models.Item, bool) {
 	return models.Item{}, false
 }
 
-func findCustomFieldValue(values []models.CustomFieldValue, customFieldId uint) (models.CustomFieldValue, bool) {
-	for _, value := range values {
-		if value.CustomFieldId == customFieldId {
-			return value, true
-		}
-	}
-	return models.CustomFieldValue{}, false
-}
-
 // fullReceiptAiJSON is a maximal receipt the AI could return: every persistable field populated,
-// including nested linked items, item-level categories/tags, comments, and one custom-field value per
-// type. The %d placeholders are: paidByUserId, item.chargedToUserId, comment.userId, then the five
-// custom-field ids (with the select option id between the select field id and the currency field id).
+// including nested linked items, item-level categories/tags and comments. The %d placeholders are:
+// paidByUserId, item.chargedToUserId, comment.userId.
 const fullReceiptAiJSON = `{
 	"name": "Full Receipt",
 	"amount": 100.00,
@@ -247,22 +202,13 @@ const fullReceiptAiJSON = `{
 		},
 		{"name": "Gadget", "amount": 25.00, "status": "RESOLVED", "isTaxed": false}
 	],
-	"comments": [{"comment": "Looks good", "userId": %d}],
-	"customFields": [
-		{"customFieldId": %d, "stringValue": "hello world"},
-		{"customFieldId": %d, "dateValue": "2024-06-15T00:00:00Z"},
-		{"customFieldId": %d, "selectValue": %d},
-		{"customFieldId": %d, "currencyValue": 12.34},
-		{"customFieldId": %d, "booleanValue": true}
-	]
+	"comments": [{"comment": "Looks good", "userId": %d}]
 }`
 
 // TestQuickScan_PersistsEveryField is the anti-drop centerpiece: a maximal AI response is created
 // through QuickScan and every scalar and nested association is asserted on the read-back receipt.
 func TestQuickScan_PersistsEveryField(t *testing.T) {
 	defer repositories.TruncateTestDb()
-
-	cf := seedQuickScanCustomFields(t)
 
 	created, user, group, err := runQuickScan(
 		t,
@@ -274,7 +220,6 @@ func TestQuickScan_PersistsEveryField(t *testing.T) {
 			return fmt.Sprintf(
 				fullReceiptAiJSON,
 				u.ID, u.ID, u.ID,
-				cf.textId, cf.dateId, cf.selectId, cf.optionId, cf.currencyId, cf.booleanId,
 			)
 		},
 	)
@@ -395,47 +340,6 @@ func TestQuickScan_PersistsEveryField(t *testing.T) {
 	}
 	if receipt.Comments[0].UserId == nil || *receipt.Comments[0].UserId != user.ID {
 		utils.PrintTestError(t, receipt.Comments[0].UserId, user.ID)
-	}
-
-	// Custom-field values: each must land in the right column with the right field id, and nothing
-	// else. Even though Validate ignores custom fields, they must persist unchanged.
-	if len(receipt.CustomFields) != 5 {
-		utils.PrintTestError(t, len(receipt.CustomFields), 5)
-		return
-	}
-
-	if text, ok := findCustomFieldValue(receipt.CustomFields, cf.textId); !ok {
-		utils.PrintTestError(t, receipt.CustomFields, "a value for the text field")
-	} else if text.StringValue == nil || *text.StringValue != "hello world" {
-		utils.PrintTestError(t, text.StringValue, "hello world")
-	} else if text.CustomField.Type != models.TEXT {
-		utils.PrintTestError(t, text.CustomField.Type, models.TEXT)
-	}
-
-	if date, ok := findCustomFieldValue(receipt.CustomFields, cf.dateId); !ok {
-		utils.PrintTestError(t, receipt.CustomFields, "a value for the date field")
-	} else if date.DateValue == nil || date.DateValue.UTC().Format("2006-01-02") != "2024-06-15" {
-		utils.PrintTestError(t, date.DateValue, "2024-06-15")
-	}
-
-	if selectValue, ok := findCustomFieldValue(receipt.CustomFields, cf.selectId); !ok {
-		utils.PrintTestError(t, receipt.CustomFields, "a value for the select field")
-	} else if selectValue.SelectValue == nil || *selectValue.SelectValue != cf.optionId {
-		utils.PrintTestError(t, selectValue.SelectValue, cf.optionId)
-	} else if len(selectValue.CustomField.Options) != 1 {
-		utils.PrintTestError(t, selectValue.CustomField.Options, "one preloaded option")
-	}
-
-	if currency, ok := findCustomFieldValue(receipt.CustomFields, cf.currencyId); !ok {
-		utils.PrintTestError(t, receipt.CustomFields, "a value for the currency field")
-	} else if currency.CurrencyValue == nil || !currency.CurrencyValue.Equal(decimal.RequireFromString("12.34")) {
-		utils.PrintTestError(t, currency.CurrencyValue, "12.34")
-	}
-
-	if boolean, ok := findCustomFieldValue(receipt.CustomFields, cf.booleanId); !ok {
-		utils.PrintTestError(t, receipt.CustomFields, "a value for the boolean field")
-	} else if boolean.BooleanValue == nil || *boolean.BooleanValue != true {
-		utils.PrintTestError(t, boolean.BooleanValue, true)
 	}
 }
 
@@ -637,9 +541,6 @@ func TestQuickScan_MinimalReceiptCreatesNoSpuriousAssociations(t *testing.T) {
 	}
 	if len(receipt.Comments) != 0 {
 		utils.PrintTestError(t, len(receipt.Comments), 0)
-	}
-	if len(receipt.CustomFields) != 0 {
-		utils.PrintTestError(t, len(receipt.CustomFields), 0)
 	}
 }
 
@@ -985,8 +886,6 @@ func quickScanSystemTaskByType(taskType models.SystemTaskType) (models.SystemTas
 func TestMagicFill_ParsesAllReceiptFields(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
-	cf := seedQuickScanCustomFields(t)
-
 	var body string
 	server := newMutableOllamaServer(t, &body)
 	user, group, _ := seedReceiptImagePipeline(t, server.URL)
@@ -994,7 +893,6 @@ func TestMagicFill_ParsesAllReceiptFields(t *testing.T) {
 	receiptJSON := "```json\n" + fmt.Sprintf(
 		fullReceiptAiJSON,
 		user.ID, user.ID, user.ID,
-		cf.textId, cf.dateId, cf.selectId, cf.optionId, cf.currencyId, cf.booleanId,
 	) + "\n```" // code fence exercises cleanResponse
 	body = ollamaReceiptResponse(t, receiptJSON)
 
@@ -1033,9 +931,6 @@ func TestMagicFill_ParsesAllReceiptFields(t *testing.T) {
 	}
 	if len(command.Comments) != 1 {
 		utils.PrintTestError(t, len(command.Comments), 1)
-	}
-	if len(command.CustomFields) != 5 {
-		utils.PrintTestError(t, len(command.CustomFields), 5)
 	}
 
 	// Nested fields on the first item survive the parse.
@@ -1182,130 +1077,3 @@ func TestQuickScan_AppendsUserCommentToAiComment(t *testing.T) {
 	}
 }
 
-// --- Group default custom fields on ingest -----------------------------------
-
-// configureGroupDefaultCustomFields is a runQuickScanWithSetup postSeed hook factory: it creates the
-// group's receipt settings row (seedReceiptImagePipeline does not) and writes the given default
-// custom field set plus the on-ingest toggle. The created field ids are handed back through
-// *createdIds so the assertion can reference them.
-func configureGroupDefaultCustomFields(t *testing.T, applyOnIngest bool, fieldNames []string, createdIds *[]uint) func(*testing.T, models.User, models.Group) {
-	t.Helper()
-
-	return func(t *testing.T, user models.User, group models.Group) {
-		t.Helper()
-		db := repositories.GetDB()
-
-		ids := make([]uint, 0, len(fieldNames))
-		for _, name := range fieldNames {
-			customField := models.CustomField{Name: name, Type: models.TEXT}
-			if err := db.Create(&customField).Error; err != nil {
-				t.Fatalf("seed custom field: %v", err)
-			}
-			ids = append(ids, customField.ID)
-		}
-		*createdIds = ids
-
-		settingsRepository := repositories.NewGroupReceiptSettingsRepository(nil)
-		if _, err := settingsRepository.CreateGroupReceiptSettings(group.ID); err != nil {
-			t.Fatalf("seed group receipt settings: %v", err)
-		}
-
-		command := commands.UpdateGroupReceiptSettingsCommand{
-			QuickScanPaidByEnabled:           true,
-			QuickScanPaidByRequired:          true,
-			QuickScanStatusEnabled:           true,
-			QuickScanStatusRequired:          true,
-			QuickScanDefaultPaidByType:       models.QUICK_SCAN_PAID_BY_UPLOADER,
-			QuickScanDefaultStatus:           models.OPEN,
-			DefaultCustomFieldIds:            &ids,
-			ApplyDefaultCustomFieldsOnIngest: &applyOnIngest,
-		}
-		if _, err := settingsRepository.UpdateGroupReceiptSettings(utils.UintToString(group.ID), command); err != nil {
-			t.Fatalf("configure default custom fields: %v", err)
-		}
-	}
-}
-
-const defaultCustomFieldsReceiptAiJSON = `{"name": "Ingested", "amount": 5.00, "date": "2024-02-02T00:00:00Z", "paidByUserId": %d, "status": "OPEN"}`
-
-// TestQuickScan_AppliesGroupDefaultCustomFieldsWhenEnabled proves an opted-in group gets exactly one
-// EMPTY custom field value per configured default on a server-created receipt.
-func TestQuickScan_AppliesGroupDefaultCustomFieldsWhenEnabled(t *testing.T) {
-	defer repositories.TruncateTestDb()
-
-	var defaultIds []uint
-	created, _, _, err := runQuickScanWithSetup(
-		t,
-		func(u models.User) uint { return u.ID },
-		models.OPEN,
-		nil,
-		nil,
-		"",
-		func(u models.User, g models.Group) string {
-			return fmt.Sprintf(defaultCustomFieldsReceiptAiJSON, u.ID)
-		},
-		configureGroupDefaultCustomFields(t, true, []string{"Cost Centre", "PO Number"}, &defaultIds),
-	)
-	if err != nil {
-		utils.PrintTestError(t, err, "no error")
-		return
-	}
-
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
-	if err != nil {
-		utils.PrintTestError(t, err, "no error")
-		return
-	}
-
-	if len(receipt.CustomFields) != len(defaultIds) {
-		utils.PrintTestError(t, len(receipt.CustomFields), len(defaultIds))
-		return
-	}
-	for _, customFieldId := range defaultIds {
-		value, found := findCustomFieldValue(receipt.CustomFields, customFieldId)
-		if !found {
-			utils.PrintTestError(t, receipt.CustomFields, fmt.Sprintf("a value for custom field %d", customFieldId))
-			continue
-		}
-		// The default is a placeholder the user fills in, so every value column stays empty.
-		if value.StringValue != nil || value.DateValue != nil || value.SelectValue != nil ||
-			value.CurrencyValue != nil || value.BooleanValue != nil {
-			utils.PrintTestError(t, value, "an empty custom field value")
-		}
-	}
-}
-
-// TestQuickScan_SkipsGroupDefaultCustomFieldsWhenDisabled is the backwards-compatibility guard: a
-// group that configured defaults for its receipt FORM but never opted into applying them on ingest
-// must see server-created receipts unchanged.
-func TestQuickScan_SkipsGroupDefaultCustomFieldsWhenDisabled(t *testing.T) {
-	defer repositories.TruncateTestDb()
-
-	var defaultIds []uint
-	created, _, _, err := runQuickScanWithSetup(
-		t,
-		func(u models.User) uint { return u.ID },
-		models.OPEN,
-		nil,
-		nil,
-		"",
-		func(u models.User, g models.Group) string {
-			return fmt.Sprintf(defaultCustomFieldsReceiptAiJSON, u.ID)
-		},
-		configureGroupDefaultCustomFields(t, false, []string{"Cost Centre", "PO Number"}, &defaultIds),
-	)
-	if err != nil {
-		utils.PrintTestError(t, err, "no error")
-		return
-	}
-
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
-	if err != nil {
-		utils.PrintTestError(t, err, "no error")
-		return
-	}
-
-	if len(receipt.CustomFields) != 0 {
-		utils.PrintTestError(t, receipt.CustomFields, "no custom field values")
-	}
-}

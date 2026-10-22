@@ -49,8 +49,6 @@ func LegacyAppUserKeys() []string {
 	return []string{
 		AppCategoriesCreate,
 		AppTagsCreate,
-		AppCustomFieldsCreate,
-		AppCustomFieldsRead,
 		AppGroupsCreate,
 		AppApiKeysCreate,
 		AppApiKeysRead,

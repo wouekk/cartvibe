@@ -72,7 +72,7 @@ func TestUpdateReceipt_MoveToUnauthorizedGroupDenied(t *testing.T) {
 	_, destGroup := seedGroupWithRole(t, "move-dest", fullPerms)
 	addMemberWithRole(t, userId, destGroup, "move-dest-member", []string{permissions.GroupReceiptsRead, permissions.GroupReceiptsUpdate})
 
-	receiptId := seedReceipt(t, sourceGroup, userId, 0)
+	receiptId := seedReceipt(t, sourceGroup, userId)
 
 	w, r := updateReceiptRequest(receiptId, userId, moveBody(destGroup, userId))
 	UpdateReceipt(w, r)
@@ -100,7 +100,7 @@ func TestUpdateReceipt_MoveToAuthorizedGroupAllowed(t *testing.T) {
 	// authorizes the move.
 	addMemberWithRole(t, userId, destGroup, "move2-dest-member", []string{permissions.GroupReceiptsRead, permissions.GroupReceiptsCreate})
 
-	receiptId := seedReceipt(t, sourceGroup, userId, 0)
+	receiptId := seedReceipt(t, sourceGroup, userId)
 
 	w, r := updateReceiptRequest(receiptId, userId, moveBody(destGroup, userId))
 	UpdateReceipt(w, r)
@@ -123,7 +123,7 @@ func TestUpdateReceipt_SameGroupEditUnaffected(t *testing.T) {
 	// also guards against an accidental create-check being run on every update.
 	editPerms := []string{permissions.GroupReceiptsRead, permissions.GroupReceiptsUpdate}
 	userId, groupId := seedGroupWithRole(t, "move3-src", editPerms)
-	receiptId := seedReceipt(t, groupId, userId, 0)
+	receiptId := seedReceipt(t, groupId, userId)
 
 	w, r := updateReceiptRequest(receiptId, userId, moveBody(groupId, userId))
 	UpdateReceipt(w, r)
@@ -152,7 +152,7 @@ func TestUpdateReceipt_MoveToAllGroupRejected(t *testing.T) {
 	}
 	addMemberWithRole(t, userId, allGroup.ID, "move-allgrp-member", fullPerms)
 
-	receiptId := seedReceipt(t, sourceGroup, userId, 0)
+	receiptId := seedReceipt(t, sourceGroup, userId)
 
 	w, r := updateReceiptRequest(receiptId, userId, moveBody(allGroup.ID, userId))
 	UpdateReceipt(w, r)

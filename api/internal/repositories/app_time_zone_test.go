@@ -4,11 +4,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shopspring/decimal"
-	"gorm.io/gorm"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/utils"
+	"github.com/shopspring/decimal"
+	"gorm.io/gorm"
 )
 
 func mustLoadLocation(t *testing.T, name string) *time.Location {
@@ -410,29 +410,20 @@ func TestReceiptFilterAddedAtFollowsTheAppZone(t *testing.T) {
 func TestCreateAndUpdateReceiptStoreCalendarDatesAsMidnightUTC(t *testing.T) {
 	defer TruncateTestDb()
 	setupReceiptTest()
-	db := GetDB()
-
-	dateField := models.CustomField{Name: "Due", Type: models.DATE}
-	if err := db.Create(&dateField).Error; err != nil {
-		t.Fatal(err)
-	}
 
 	newYork := mustLoadLocation(t, "America/New_York")
 	tokyo := mustLoadLocation(t, "Asia/Tokyo")
 	september1 := time.Date(2026, 9, 1, 0, 0, 0, 0, time.UTC)
 	october5 := time.Date(2026, 10, 5, 0, 0, 0, 0, time.UTC)
 
-	command := func(date time.Time, due time.Time) commands.UpsertReceiptCommand {
+	command := func(date time.Time) commands.UpsertReceiptCommand {
 		return commands.UpsertReceiptCommand{
 			Name: "calendar", Amount: decimal.NewFromInt(5), Date: date,
 			PaidByUserID: 1, Status: models.OPEN, GroupId: 1,
-			CustomFields: []commands.UpsertCustomFieldValueCommand{
-				{CustomFieldId: dateField.ID, DateValue: &due},
-			},
 		}
 	}
 
-	assertStored := func(t *testing.T, id uint, wantDate, wantDue time.Time) {
+	assertStored := func(t *testing.T, id uint, wantDate time.Time) {
 		t.Helper()
 		stored, err := NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(id))
 		if err != nil {
@@ -440,10 +431,6 @@ func TestCreateAndUpdateReceiptStoreCalendarDatesAsMidnightUTC(t *testing.T) {
 		}
 		if !stored.Date.Equal(wantDate) {
 			t.Errorf("Date = %v, want %v", stored.Date, wantDate)
-		}
-		if len(stored.CustomFields) != 1 || stored.CustomFields[0].DateValue == nil ||
-			!stored.CustomFields[0].DateValue.Equal(wantDue) {
-			t.Errorf("custom DateValue = %+v, want %v", stored.CustomFields, wantDue)
 		}
 	}
 
@@ -463,17 +450,17 @@ func TestCreateAndUpdateReceiptStoreCalendarDatesAsMidnightUTC(t *testing.T) {
 
 	for name, input := range inputs {
 		t.Run(name, func(t *testing.T) {
-			created, err := NewReceiptRepository(nil).CreateReceipt(command(input, input), 1, false)
+			created, err := NewReceiptRepository(nil).CreateReceipt(command(input), 1, false)
 			if err != nil {
 				t.Fatal(err)
 			}
-			assertStored(t, created.ID, september1, september1)
+			assertStored(t, created.ID, september1)
 
 			updated := time.Date(2026, 10, 5, 0, 0, 0, 0, newYork)
-			if _, err := NewReceiptRepository(nil).UpdateReceipt(utils.UintToString(created.ID), command(updated, updated), 1); err != nil {
+			if _, err := NewReceiptRepository(nil).UpdateReceipt(utils.UintToString(created.ID), command(updated), 1); err != nil {
 				t.Fatal(err)
 			}
-			assertStored(t, created.ID, october5, october5)
+			assertStored(t, created.ID, october5)
 		})
 	}
 }

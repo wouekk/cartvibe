@@ -375,17 +375,6 @@ func TestCreateReceiptWithFiles_DeniedForNonVisiblePaidBy(t *testing.T) {
 	assertForbiddenAndNothingWritten(t, w, fx.groupId)
 }
 
-func TestCreateReceiptWithFiles_DeniedForCustomFieldWithoutAccess(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	userId, groupId := seedRestrictedReceiptCreator(t, nil)
-	cleanUpGroupDir(t, groupId)
-	field := seedCustomField(t)
-
-	body := receiptJsonWith(groupId, userId, fmt.Sprintf(`,"customFields":[{"customFieldId":%d}]`, field.ID))
-	w := createWithFilesRequest(t, userId, body, false, uploadFile{"a.jpg", readHandlerTestJpg(t)})
-	assertForbiddenAndNothingWritten(t, w, groupId)
-}
-
 // Positive control for the 403 cases: the same restricted creator, choosing a
 // category it may see, succeeds — so the denials above are about the selection,
 // not about the fixture.
@@ -610,7 +599,7 @@ func addStoredComment(t *testing.T, receiptId uint, userId uint, text string) mo
 func TestUpdateReceipt_EnforcesRoleRequirementsOnStoredReceipt(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	userId, groupId := seedRequirementGroup(t, "update-required", true, true)
-	receiptId := seedReceipt(t, groupId, userId, 0)
+	receiptId := seedReceipt(t, groupId, userId)
 
 	w, r := updateReceiptRequest(receiptId, userId, receiptJson(groupId, userId, ""))
 	UpdateReceipt(w, r)
@@ -638,7 +627,7 @@ func TestUpdateReceipt_MoveIntoRequiringGroupEnforced(t *testing.T) {
 	setMemberRequirements(t, userId, destGroup, false, true)
 	cleanUpGroupDir(t, destGroup)
 
-	receiptId := seedReceipt(t, sourceGroup, userId, 0)
+	receiptId := seedReceipt(t, sourceGroup, userId)
 
 	w, r := updateReceiptRequest(receiptId, userId, moveBody(destGroup, userId))
 	UpdateReceipt(w, r)
@@ -664,7 +653,7 @@ func TestDeleteComment_LastRequiredCommentRefused(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	defer services.ClearRolePermissionCacheForTests()
 	userId, groupId := seedRequirementGroup(t, "delete-comment", true, false)
-	receiptId := seedReceipt(t, groupId, userId, 0)
+	receiptId := seedReceipt(t, groupId, userId)
 	first := addStoredComment(t, receiptId, userId, "first")
 
 	w, r := deleteCommentRequest(userId, utils.UintToString(first.ID))
@@ -695,7 +684,7 @@ func removeImageRequest(userId uint, imageId uint) (*httptest.ResponseRecorder, 
 func TestRemoveReceiptImage_LastRequiredImageRefused(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	userId, groupId := seedRequirementGroup(t, "delete-image", false, true)
-	receiptId := seedReceipt(t, groupId, userId, 0)
+	receiptId := seedReceipt(t, groupId, userId)
 	first := addStoredImage(t, receiptId, "first.jpg")
 
 	w, r := removeImageRequest(userId, first.ID)

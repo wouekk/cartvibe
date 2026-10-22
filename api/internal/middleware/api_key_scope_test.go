@@ -73,7 +73,6 @@ var everyRoute = []routeCase{
 	// Reads over POST -- the allowlist.
 	{http.MethodPost, "/api/apiKey/paged", classRead},
 	{http.MethodPost, "/api/category/getPagedCategories", classRead},
-	{http.MethodPost, "/api/customField/getPagedCustomFields", classRead},
 	{http.MethodPost, "/api/group/getPagedGroups", classRead},
 	{http.MethodPost, "/api/prompt/getPagedPrompts", classRead},
 	{http.MethodPost, "/api/tag/getPagedTags", classRead},
@@ -90,7 +89,6 @@ var everyRoute = []routeCase{
 	{http.MethodPost, "/api/export/", classRead},
 	{http.MethodPost, "/api/export/7", classRead},
 	{http.MethodPost, "/api/receipt/group/7", classRead},
-	{http.MethodPost, "/api/receipt/group/7/summary", classRead},
 	{http.MethodPost, "/api/widget/pieChart/7", classRead},
 	{http.MethodPost, "/api/report/template/7/generate", classRead},
 	{http.MethodPost, "/api/report/template/7/render", classRead},
@@ -178,7 +176,6 @@ func TestReadOnlyPostPathMatching(t *testing.T) {
 		read bool
 	}{
 		{"/api/receipt/group/7", true},
-		{"/api/receipt/group/7/summary", true},
 		{"/api/receipt/group/7/", true}, // trailing slash
 		{"/api/receipt/group", false},   // one segment short
 		{"/api/receipt/group/", false},  // empty parameter
@@ -326,19 +323,19 @@ func TestMountedRouterPreservesUrlPathForScopeMatching(t *testing.T) {
 		})
 	}
 
-	receiptRouter := chi.NewRouter()
-	receiptRouter.Use(capture)
-	receiptRouter.Post("/group/{groupId}/summary", func(w http.ResponseWriter, r *http.Request) {
+	reportRouter := chi.NewRouter()
+	reportRouter.Use(capture)
+	reportRouter.Post("/template/{id}/generate", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
 	root := chi.NewRouter()
-	root.Mount("/api/receipt", receiptRouter)
+	root.Mount("/api/report", reportRouter)
 
-	request := httptest.NewRequest(http.MethodPost, "/api/receipt/group/7/summary", nil)
+	request := httptest.NewRequest(http.MethodPost, "/api/report/template/7/generate", nil)
 	root.ServeHTTP(httptest.NewRecorder(), request)
 
-	if seen != "/api/receipt/group/7/summary" {
+	if seen != "/api/report/template/7/generate" {
 		t.Fatalf("middleware saw URL.Path %q, want the full mounted path", seen)
 	}
 

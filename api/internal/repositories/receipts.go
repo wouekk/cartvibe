@@ -1,15 +1,14 @@
 package repositories
 
 import (
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/constants"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/utils"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"path/filepath"
-	"cartvibe/api/internal/commands"
-	"cartvibe/api/internal/constants"
-	"cartvibe/api/internal/models"
-	"cartvibe/api/internal/reporting/receiptsource"
-	"cartvibe/api/internal/utils"
 	"time"
 
 	"gorm.io/gorm"
@@ -76,7 +75,7 @@ func (repository ReceiptRepository) BeforeUpdateReceipt(currentReceipt models.Re
 // it to decide how far to trust the "before" snapshot:
 //
 //   - 1 (no "version" key): "before" was loaded one level deep, so it lacks
-//     item categories/tags/linked items and custom field definitions, and it
+//     item categories/tags/linked items, and it
 //     lists linked items as top-level items.
 //   - 2: "before" is loaded with GetFullyLoadedReceiptById, like "after".
 //
@@ -93,9 +92,9 @@ func createFailedUpdateSystemTask(command commands.UpsertSystemTaskCommand, err 
 	repository.CreateSystemTask(command)
 }
 
-// NormalizeReceiptCalendarDates stores a receipt's Date and every DATE custom
-// field value as midnight UTC of the calendar day the client wrote. They are
-// calendar days, not moments: the day must not shift with the app time zone, so
+// NormalizeReceiptCalendarDates stores a receipt's Date as
+// midnight UTC of the calendar day the client wrote. It is
+// a calendar day, not a moment: the day must not shift with the app time zone, so
 // it is pinned to one canonical instant and always read back in UTC.
 //
 // "As written" means the value's own offset is kept when the day is read, never
@@ -107,15 +106,6 @@ func createFailedUpdateSystemTask(command commands.UpsertSystemTaskCommand, err 
 func NormalizeReceiptCalendarDates(receipt *models.Receipt) {
 	receipt.Date = utils.CalendarDayUTC(receipt.Date)
 
-	for index := range receipt.CustomFields {
-		dateValue := receipt.CustomFields[index].DateValue
-		if dateValue == nil {
-			continue
-		}
-
-		normalized := utils.CalendarDayUTC(*dateValue)
-		receipt.CustomFields[index].DateValue = &normalized
-	}
 }
 
 func (repository ReceiptRepository) UpdateReceipt(id string, command commands.UpsertReceiptCommand, userId uint) (models.Receipt, error) {
@@ -201,11 +191,6 @@ func (repository ReceiptRepository) UpdateReceipt(id string, command commands.Up
 		}
 
 		txErr = tx.Model(&currentReceipt).Association("ReceiptItems").Replace(&updatedReceipt.ReceiptItems)
-		if txErr != nil {
-			return txErr
-		}
-
-		txErr = tx.Model(&currentReceipt).Association("CustomFields").Replace(&updatedReceipt.CustomFields)
 		if txErr != nil {
 			return txErr
 		}
@@ -748,12 +733,7 @@ func (repository ReceiptRepository) GetPagedReceiptsByGroupId(
 		return nil, 0, errors.New("untrusted value " + pagedRequest.OrderBy + " " + string(pagedRequest.SortDirection))
 	}
 
-	if customFieldId, isCustomField := receiptsource.ParseCustomFieldKey(pagedRequest.OrderBy); isCustomField {
-		query, err = repository.orderByCustomField(query, customFieldId, pagedRequest.SortDirection)
-		if err != nil {
-			return nil, 0, err
-		}
-	} else if pagedRequest.OrderBy == constants.FIRST_COMMENT_ORDER_BY {
+	if pagedRequest.OrderBy == constants.FIRST_COMMENT_ORDER_BY {
 		groupIds := []uint{uintGroupId}
 		if isAllGroup {
 			groupIds = memberGroupIds
@@ -1107,116 +1087,9 @@ func (repository ReceiptRepository) BuildGormFilterQuery(pagedRequest commands.R
 	return query, nil
 }
 
-// customFieldSortExpressions returns, for a custom field's type, the expression a
-// value row is sorted by and the column that must be non-null for the row to
-// count. They differ only for CURRENCY.
-//
-// CurrencyValue is a *decimal.Decimal with no gorm type tag, and gorm types an
-// untagged driver.Valuer by what Value() returns - a string for decimal - so
-// currency_value is a text column and a bare sort on it is lexicographic
-// ("100" < "20"). CAST(x AS DECIMAL(20,6)) fixes that and is portable: MySQL and
-// Postgres take DECIMAL(p,s) directly, and SQLite gives that type name NUMERIC
-// affinity. Retyping the column would remove the cast, but that is a migration
-// over existing data and belongs in its own change (see api/CLAUDE.md).
-func customFieldSortExpressions(customFieldType models.CustomFieldType) (sortExpression string, notNullColumn string, ok bool) {
-	// Every column is table-qualified: a SELECT joins custom_field_options, which
-	// carries a custom_field_id of its own.
-	switch customFieldType {
-	case models.TEXT:
-		return "custom_field_values.string_value", "custom_field_values.string_value", true
-	case models.DATE:
-		return "custom_field_values.date_value", "custom_field_values.date_value", true
-	case models.BOOLEAN:
-		return "custom_field_values.boolean_value", "custom_field_values.boolean_value", true
-	case models.CURRENCY:
-		return "CAST(custom_field_values.currency_value AS DECIMAL(20,6))", "custom_field_values.currency_value", true
-	case models.SELECT:
-		// A select stores an option id; readers see the option's text.
-		return "custom_field_options.value", "custom_field_values.select_value", true
-	}
-
-	return "", "", false
-}
-
-// defaultReceiptOrder is the ordering a custom-field sort falls back to when the
-// field cannot be sorted on at all.
-//
-// It carries the same receipts.id tiebreaker as the custom-field path, and for
-// the same reason: created_at is not unique - receipts imported or created in one
-// batch share a timestamp - and without a unique last term LIMIT/OFFSET paging
-// repeats and skips rows between pages. BaseRepository.Sort supplies the column
-// and direction; both clauses are column-based, so gorm appends the tiebreaker
-// rather than replacing the clause (unlike the expression form below).
-func (repository ReceiptRepository) defaultReceiptOrder(
-	query *gorm.DB,
-	sortDirection commands.SortDirection,
-) *gorm.DB {
-	return repository.Sort(query, constants.DEFAULT_RECEIPT_ORDER_BY, sortDirection).
-		Order(clause.OrderByColumn{
-			Column: clause.Column{Table: "receipts", Name: "id"},
-			Desc:   true,
-		})
-}
-
-// orderByCustomField orders query by a receipt's value for one custom field.
-//
-// The value is read with a correlated subquery rather than a join: nothing stops
-// a receipt holding several values for one field (custom_field_values carries no
-// unique index on receipt_id + custom_field_id), and a join would multiply the
-// receipt rows, corrupting both the total count and pagination.
-//
-// Which of several values wins matches the reporting engine
-// (receiptsource.addCustomFields): the lowest id among the values that actually
-// resolve, so an empty low-id row cannot hide a real one. That is what the
-// IS NOT NULL clause is for, and why a SELECT joins its options rather than
-// left-joining them - an option id that no longer resolves is skipped, not
-// preferred.
-//
-// A field that no longer exists sorts by the default column instead of erroring:
-// clients persist their sort, and a deleted custom field must not make every
-// subsequent list load fail.
-func (repository ReceiptRepository) orderByCustomField(
-	query *gorm.DB,
-	customFieldId uint,
-	sortDirection commands.SortDirection,
-) (*gorm.DB, error) {
-	customFieldRepository := NewCustomFieldRepository(nil)
-	customFields, err := customFieldRepository.GetCustomFieldsByIds([]uint{customFieldId})
-	if err != nil {
-		return nil, err
-	}
-
-	if len(customFields) == 0 {
-		return repository.defaultReceiptOrder(query, sortDirection), nil
-	}
-
-	sortExpression, notNullColumn, ok := customFieldSortExpressions(customFields[0].Type)
-	if !ok {
-		return repository.defaultReceiptOrder(query, sortDirection), nil
-	}
-
-	valueQuery := repository.GetDB().
-		Model(&models.CustomFieldValue{}).
-		Select(sortExpression).
-		Where("custom_field_values.receipt_id = receipts.id").
-		Where("custom_field_values.custom_field_id = ?", customFieldId).
-		Where(notNullColumn + " IS NOT NULL").
-		Order("custom_field_values.id").
-		Limit(1)
-
-	if customFields[0].Type == models.SELECT {
-		valueQuery = valueQuery.Joins(
-			"JOIN custom_field_options ON custom_field_options.id = custom_field_values.select_value",
-		)
-	}
-
-	return repository.orderBySubquery(query, valueQuery, sortDirection), nil
-}
-
 // orderByFirstComment orders query by the text of each receipt's first comment
-// (firstCommentOrder), read with a correlated subquery for the same reason
-// orderByCustomField uses one: a receipt has many comments, and a join would
-// multiply its rows and corrupt the count and pagination.
+// (firstCommentOrder), read with a correlated subquery: a receipt has many
+// comments, and a join would multiply its rows and corrupt the count and pagination.
 //
 // Only a comment the caller may see is a candidate. Member isolation drops a
 // comment by an author the caller cannot see from every response, so sorting on

@@ -171,8 +171,7 @@ func validateConfig(config EngineConfig) error {
 // Any field may cut the data, including a numeric one: bucket keys are canonical
 // for decimals and compareValues orders them, so grouping by a currency field
 // buckets receipts by value the same way grouping by a category buckets them by
-// name. Only measuring is type-restricted (see compileAggregateColumn), which is
-// what makes a custom field of any kind a usable grouping level.
+// name. Only measuring is type-restricted (see compileAggregateColumn).
 func compileGroupBy(keys []FieldKey, catalog FieldCatalog) ([]FieldRef, error) {
 	seen := make(map[FieldKey]struct{}, len(keys))
 	refs := make([]FieldRef, 0, len(keys))

@@ -760,140 +760,6 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
-  /customField/:
-    post:
-      tags:
-        - CustomField
-      summary: Create custom field
-      description: This will create a custom field
-      operationId: createCustomField
-      requestBody:
-        description: Custom field to create
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpsertCustomFieldCommand"
-      responses:
-        200:
-          description: Created custom field
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CustomField"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        500:
-          $ref: "#/components/responses/Internal"
-      security:
-        - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
-  /customField/{customFieldId}:
-    parameters:
-      - in: path
-        name: customFieldId
-        schema:
-          type: integer
-        required: true
-        description: Custom field Id to get
-    get:
-      tags:
-        - CustomField
-      summary: Get custom field
-      description: This will get a custom field by id
-      operationId: getCustomFieldById
-      responses:
-        200:
-          description: The custom field
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CustomField"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        500:
-          $ref: "#/components/responses/Internal"
-      security:
-        - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
-    put:
-      tags:
-        - CustomField
-      summary: Update custom field
-      description:
-        This will update a custom field's name, description, and select options.
-        The custom field's type is immutable and cannot be changed. Options may be
-        renamed or added, but never removed.
-      operationId: updateCustomField
-      requestBody:
-        description: Custom field data to update
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpsertCustomFieldCommand"
-      responses:
-        200:
-          description: The updated custom field
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CustomField"
-        400:
-          $ref: "#/components/responses/BadRequest"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        404:
-          $ref: "#/components/responses/NotFound"
-        500:
-          $ref: "#/components/responses/Internal"
-      security:
-        - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
-    delete:
-      tags:
-        - CustomField
-      summary: Delete custom field
-      description: This will delete a custom field by id
-      operationId: deleteCustomField
-      responses:
-        200:
-          $ref: "#/components/responses/Ok"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        500:
-          $ref: "#/components/responses/Internal"
-      security:
-        - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
-  /customField/getPagedCustomFields:
-    post:
-      tags:
-        - CustomField
-      summary: Get paged custom fields
-      description: This will return paged custom fields
-      operationId: getPagedCustomFields
-      requestBody:
-        description: Paging and sorting data
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/PagedRequestCommand"
-      responses:
-        200:
-          description: Paged categories
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PagedData"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        500:
-          $ref: "#/components/responses/Internal"
-      security:
-        - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /export/{groupId}:
     post:
       tags:
@@ -1722,48 +1588,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PagedData"
-        500:
-          $ref: "#/components/responses/Internal"
-      security:
-        - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
-  /receipt/group/{groupId}/summary:
-    post:
-      tags:
-        - Receipt
-      summary: Gets the receipt summary for a group
-      description: >-
-        Returns the block of totals rendered under the receipts table: a receipt count
-        and amount total over the WHOLE filtered result set (not the current page),
-        then the same figures per configured status. Which statuses break out and which
-        currency custom fields are totalled come from the group's receipt settings, not
-        from the request. Gated on group.receipts.read, the same permission as the
-        receipts it aggregates. [SYSTEM USER]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ReceiptSummaryCommand"
-      parameters:
-        - in: path
-          name: groupId
-          schema:
-            type: integer
-          required: true
-          description: Summarize the receipts that belong to groupId
-      operationId: getReceiptSummaryForGroup
-      responses:
-        200:
-          description: >-
-            The summary. Note a group with the summary turned off returns a normal 200
-            with enabled=false and zeroed rows, not an error.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ReceiptSummary"
-        403:
-          $ref: "#/components/responses/Forbidden"
         500:
           $ref: "#/components/responses/Internal"
       security:
@@ -5129,10 +4953,6 @@ components:
         - "app.tags.read"
         - "app.tags.update"
         - "app.tags.delete"
-        - "app.custom-fields.create"
-        - "app.custom-fields.read"
-        - "app.custom-fields.update"
-        - "app.custom-fields.delete"
         - "app.system-settings.read"
         - "app.system-settings.update"
         - "app.system-settings.restart-task-server"
@@ -6190,15 +6010,6 @@ components:
       enum:
         - "START"
         - "END"
-    ReceiptSummaryPosition:
-      description: >-
-        Where a group's receipt summary renders relative to its receipts list. A client
-        that meets a value added later must degrade to BOTTOM, which is where the block
-        rendered before the setting existed, rather than failing the whole payload.
-      type: string
-      enum:
-        - "TOP"
-        - "BOTTOM"
     QueueName:
       type: string
       enum:
@@ -6211,14 +6022,6 @@ components:
       type: string
       enum:
         - "CSV"
-    CustomFieldType:
-      type: string
-      enum:
-        - "TEXT"
-        - "DATE"
-        - "SELECT"
-        - "CURRENCY"
-        - "BOOLEAN"
     Activity:
       type: object
       required:
@@ -6747,7 +6550,6 @@ components:
         - name
         - paidByUserId
         - status
-        - customFields
         - categories
         - tags
         - receiptItems
@@ -6768,11 +6570,6 @@ components:
           description: Comments associated to receipt
           items:
             $ref: "#/components/schemas/Comment"
-        customFields:
-          type: array
-          description: Custom fields associated to receipt
-          items:
-            $ref: "#/components/schemas/CustomFieldValue"
         createdAt:
           type: string
         createdBy:
@@ -7217,96 +7014,6 @@ components:
       properties:
         associatedGroup:
           $ref: "#/components/schemas/AssociatedGroup"
-    ReceiptSummaryCommand:
-      type: object
-      properties:
-        filter:
-          $ref: "#/components/schemas/ReceiptPagedRequestFilter"
-        configurationGroupId:
-          type: integer
-          format: uint64
-          nullable: true
-          description: >-
-            The group whose receipt settings shape the breakdown. Exists for the
-            synthetic "All" group, which spans every group the caller belongs to and so
-            has no meaningful settings of its own - the client picks which member
-            group's configuration to apply. OMIT it for a real group, where the group
-            in the path is used. The DATA is always the path group's filtered set; this
-            only chooses the shape of the breakdown. A group the caller cannot read is
-            a 403.
-    ReceiptSummaryCustomFieldTotal:
-      type: object
-      required:
-        - customFieldId
-        - name
-        - total
-      properties:
-        customFieldId:
-          type: integer
-          format: uint64
-        name:
-          type: string
-          description: The custom field's name, so the client needs no second lookup
-        total:
-          type: string
-          description: Sum of this field's currency values across the row's receipts
-    ReceiptSummaryRow:
-      type: object
-      required:
-        - status
-        - receiptCount
-        - total
-        - customFieldTotals
-      properties:
-        status:
-          $ref: "#/components/schemas/ReceiptStatus"
-        receiptCount:
-          type: integer
-          format: int64
-          description: >-
-            How many receipts this row covers. On the overall row this matches the
-            table's own total count for the same filter.
-        total:
-          type: string
-          description: Sum of the receipts' amounts
-        customFieldTotals:
-          type: array
-          description: >-
-            One entry per configured currency custom field, in the configured order.
-            Always present; empty when the group totals only the receipt amount.
-          items:
-            $ref: "#/components/schemas/ReceiptSummaryCustomFieldTotal"
-    ReceiptSummary:
-      type: object
-      required:
-        - enabled
-        - configurationGroupId
-        - position
-        - overall
-        - statuses
-      properties:
-        enabled:
-          type: boolean
-          description: >-
-            Whether the configuration group has the summary turned on. False comes back
-            at a normal 200 with zeroed rows, so a client with stale group settings
-            renders nothing rather than surfacing an error.
-        configurationGroupId:
-          type: integer
-          format: uint64
-          description: The group whose settings produced this breakdown
-        position:
-          $ref: "#/components/schemas/ReceiptSummaryPosition"
-        overall:
-          $ref: "#/components/schemas/ReceiptSummaryRow"
-        statuses:
-          type: array
-          description: >-
-            One row per configured status, in ReceiptStatus declaration order. A
-            configured status matching no receipt is still present, with zeroed
-            figures. Always present; empty when no status is configured.
-          items:
-            $ref: "#/components/schemas/ReceiptSummaryRow"
     ReceiptPagedRequestCommand:
       required:
         - page
@@ -7321,7 +7028,7 @@ components:
           description: Number of records per page
         orderBy:
           type: string
-          description: field to order on - a receipt column, custom_<id> for a custom field, or first_comment for the receipt's first comment
+          description: field to order on - a receipt column, or first_comment for the receipt's first comment
         sortDirection:
           type: string
           $ref: "#/components/schemas/SortDirection"
@@ -7329,7 +7036,7 @@ components:
           $ref: "#/components/schemas/ReceiptPagedRequestFilter"
         fullReceipts:
           type: boolean
-          description: Whether to include all receipt associations (receiptItems, comments, customFields, imageFiles, etc.)
+          description: Whether to include all receipt associations (receiptItems, comments, imageFiles, etc.)
     ReceiptPagedRequestFilter:
       type: object
       properties:
@@ -7430,7 +7137,6 @@ components:
               - $ref: "#/components/schemas/ReceiptProcessingSettings"
               - $ref: "#/components/schemas/SystemEmail"
               - $ref: "#/components/schemas/Activity"
-              - $ref: "#/components/schemas/CustomField"
               - $ref: "#/components/schemas/ReportTemplate"
               - $ref: "#/components/schemas/UserView"
         totalCount:
@@ -7835,48 +7541,6 @@ components:
             quickScanCommentRequired:
               type: boolean
               description: Require the comment field in quick scan
-            defaultCustomFieldIds:
-              type: array
-              description: >-
-                Custom field ids that are pre-added to every receipt created for this
-                group. Always present; an empty array means the group has configured
-                none. Read only here - write via
-                UpdateGroupReceiptSettingsCommand.defaultCustomFieldIds.
-              items:
-                type: integer
-                format: uint64
-            applyDefaultCustomFieldsOnIngest:
-              type: boolean
-              description: >-
-                Also attach the group's default custom fields to receipts the SERVER
-                creates (quick scan, email integration). Off by default.
-            receiptSummaryEnabled:
-              type: boolean
-              description: >-
-                Show the block of totals under this group's receipts table. Off by
-                default, so an existing install is unchanged until an admin opts in.
-            receiptSummaryCustomFieldIds:
-              type: array
-              description: >-
-                CURRENCY custom field ids totalled in the receipt summary, in the order
-                their columns are rendered. Always present; an empty array means the
-                group totals only the receipt amount. Read only here - write via
-                UpdateGroupReceiptSettingsCommand.receiptSummaryCustomFieldIds.
-              items:
-                type: integer
-                format: uint64
-            receiptSummaryStatuses:
-              type: array
-              description: >-
-                Receipt statuses broken out as their own row in the receipt summary, in
-                ReceiptStatus declaration order. A configured status matching no receipt
-                still renders, as a zero row. Always present; an empty array means the
-                summary shows only the overall row. Read only here - write via
-                UpdateGroupReceiptSettingsCommand.receiptSummaryStatuses.
-              items:
-                $ref: "#/components/schemas/ReceiptStatus"
-            receiptSummaryPosition:
-              $ref: "#/components/schemas/ReceiptSummaryPosition"
     UpdateGroupReceiptSettingsCommand:
       type: object
       properties:
@@ -7942,63 +7606,6 @@ components:
         quickScanCommentRequired:
           type: boolean
           description: Require the comment field in quick scan
-        defaultCustomFieldIds:
-          type: array
-          description: >-
-            Custom field ids to pre-add to every receipt created for this group.
-            OMIT the key to leave the configured set unchanged (clients that hide
-            this section, e.g. for a user without app.custom-fields.read, must omit
-            it); send an empty array to clear it. Requires app.custom-fields.read -
-            a caller without it gets a 403.
-          items:
-            type: integer
-            format: uint64
-        applyDefaultCustomFieldsOnIngest:
-          type: boolean
-          description: >-
-            Also attach the group's default custom fields to receipts the SERVER
-            creates (quick scan, email integration). OMIT the key to leave the
-            stored value unchanged.
-        receiptSummaryEnabled:
-          type: boolean
-          description: >-
-            Show the block of totals under this group's receipts table. OMIT the key
-            to leave the stored value unchanged - a client that does not render this
-            section must omit it rather than send false, or it switches the summary
-            off for the whole group.
-        receiptSummaryCustomFieldIds:
-          type: array
-          description: >-
-            CURRENCY custom field ids to total in the receipt summary. OMIT the key to
-            leave the configured set unchanged (clients that hide this control, e.g.
-            for a user without app.custom-fields.read, must omit it); send an empty
-            array to clear it. Requires app.custom-fields.read - a caller without it
-            gets a 403. Every id must be an existing CURRENCY custom field - anything
-            else is a 400, because only a currency value can be summed.
-          items:
-            type: integer
-            format: uint64
-        receiptSummaryStatuses:
-          type: array
-          description: >-
-            Receipt statuses to break out as their own row in the receipt summary. OMIT
-            the key to leave the configured set unchanged; send an empty array to clear
-            it. Unlike the custom field ids this needs NO extra permission - gating it
-            would lock an admin without app.custom-fields.read out of the feature
-            entirely. An unrecognized status is a 400.
-          items:
-            $ref: "#/components/schemas/ReceiptStatus"
-        receiptSummaryPosition:
-          allOf:
-            - $ref: "#/components/schemas/ReceiptSummaryPosition"
-          description: >-
-            Where the receipt summary renders relative to the receipts list. OMIT the key
-            to leave the stored value unchanged - a client that does not render this
-            control must omit it rather than send a zero value, or it moves the block for
-            the whole group. Needs no extra permission, for the same reason the statuses
-            do not. Anything but TOP or BOTTOM is a 400, an empty string included: on this
-            write side an explicit empty would reset a configured position, so omitting the
-            key is the only way to leave it alone.
     GroupSettings:
       type: object
       required:
@@ -8493,11 +8100,6 @@ components:
           description: Comments associated to receipt
           items:
             $ref: "#/components/schemas/UpsertCommentCommand"
-        customFields:
-          type: array
-          description: Custom fields associated to receipt
-          items:
-            $ref: "#/components/schemas/UpsertCustomFieldValueCommand"
     UpsertItemCommand:
       type: object
       required:
@@ -9095,131 +8697,6 @@ components:
         version:
           type: string
           description: Version
-    CustomFieldOption:
-      allOf:
-        - $ref: "#/components/schemas/BaseModel"
-        - type: object
-          required:
-            - customFieldId
-          properties:
-            value:
-              type: string
-              description: Custom Field Option value
-            customFieldId:
-              type: integer
-              description: Custom Field Id
-    UpsertCustomFieldOptionCommand:
-      type: object
-      required:
-        - customFieldId
-      properties:
-        id:
-          type: integer
-          description:
-            Id of an existing option to update. Omit it (or send 0) to add a new
-            option. Options are never removed by an update.
-        value:
-          type: string
-          description: Custom Field Option value
-        customFieldId:
-          type: integer
-          description: Custom Field Id
-    CustomField:
-      allOf:
-        - $ref: "#/components/schemas/BaseModel"
-        - type: object
-          required:
-            - name
-            - type
-          properties:
-            name:
-              type: string
-              description: Custom Field name
-            type:
-              $ref: "#/components/schemas/CustomFieldType"
-            description:
-              type: string
-              description: Custom Field description
-            options:
-              type: array
-              items:
-                $ref: "#/components/schemas/CustomFieldOption"
-    UpsertCustomFieldCommand:
-        type: object
-        required:
-          - name
-          - type
-        properties:
-          name:
-            type: string
-            description: Custom Field name
-          type:
-            $ref: "#/components/schemas/CustomFieldType"
-          description:
-            type: string
-            description: Custom Field description
-          options:
-            type: array
-            items:
-              $ref: "#/components/schemas/UpsertCustomFieldOptionCommand"
-    CustomFieldValue:
-      allOf:
-        - $ref: "#/components/schemas/BaseModel"
-        - type: object
-          required:
-            - receiptId
-            - customFieldId
-          properties:
-            receiptId:
-              type: integer
-              description: Receipt Id
-            customFieldId:
-              type: integer
-              description: Custom Field ID
-            customField:
-              $ref: "#/components/schemas/CustomField"
-            stringValue:
-              type: string
-              description: Custom Field String Value
-            dateValue:
-              type: string
-              description: Custom Field Date Value
-            selectValue:
-              type: integer
-              description: Custom Field Select Value
-            currencyValue:
-              type: string
-              description: Custom Field Currency Value
-            booleanValue:
-              type: boolean
-              description: Custom Field Boolean Value
-    UpsertCustomFieldValueCommand:
-      type: object
-      required:
-        - receiptId
-        - customFieldId
-      properties:
-        receiptId:
-          type: integer
-          description: Receipt Id
-        customFieldId:
-          type: integer
-          description: Custom Field ID
-        stringValue:
-          type: string
-          description: Custom Field String Value
-        dateValue:
-          type: string
-          description: Custom Field Date Value
-        selectValue:
-          type: integer
-          description: Custom Field Select Value
-        currencyValue:
-          type: string
-          description: Custom Field Currency Value
-        booleanValue:
-          type: boolean
-          description: Custom Field Boolean Value
     UpsertApiKeyCommand:
       type: object
       required:
@@ -9397,14 +8874,6 @@ components:
             Divide each receipt's money equally across its tags instead of
             attributing the whole amount to every tag. Takes effect only when
             the report groups or aggregates by tag. Omitted means false.
-        splitExcludedFields:
-          type: array
-          items:
-            type: string
-          description: >-
-            Currency custom field keys (custom_<id>) that a split leaves whole.
-            An entry naming a field that no longer exists or is not a currency
-            field is ignored.
         document:
           $ref: "#/components/schemas/ReportDocument"
         formats:

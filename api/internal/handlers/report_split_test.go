@@ -29,7 +29,6 @@ const splitReportBody = `{
   ],
   "grandTotals": true,
   "splitCategoriesEqually": true,
-  "splitExcludedFields": ["custom_9"],
   "formats": ["csv"]
 }`
 
@@ -89,22 +88,6 @@ func TestPreviewReport_SplitsAcrossCategories(t *testing.T) {
 	}
 }
 
-func TestPreviewReport_RejectsMalformedSplitExcludedField(t *testing.T) {
-	defer tearDownReportTest()
-	repositories.CreateTestGroupWithUsers()
-	grantAppPerms(t, 1, permissions.AppReportsRead)
-	grantGroupPerms(t, 1, 1, permissions.GroupReportsRead)
-
-	body := strings.Replace(splitReportBody, `["custom_9"]`, `["amount"]`, 1)
-	w, r := generateReportRequest(1, body)
-	PreviewReport(w, r)
-
-	assertStatus(t, w, http.StatusBadRequest)
-	if !strings.Contains(w.Body.String(), "splitExcludedFields") {
-		t.Errorf("expected the error under splitExcludedFields, got %s", w.Body.String())
-	}
-}
-
 // A template stores the split options and hands them back unchanged.
 func TestReportTemplate_SplitOptionsRoundTrip(t *testing.T) {
 	defer tearDownReportTest()
@@ -133,8 +116,7 @@ func TestReportTemplate_SplitOptionsRoundTrip(t *testing.T) {
 	if err := json.Unmarshal(fetched.Configuration, &configuration); err != nil {
 		t.Fatalf("decode configuration: %v", err)
 	}
-	if !configuration.SplitCategoriesEqually || configuration.SplitTagsEqually ||
-		len(configuration.SplitExcludedFields) != 1 || configuration.SplitExcludedFields[0] != "custom_9" {
+	if !configuration.SplitCategoriesEqually || configuration.SplitTagsEqually {
 		t.Errorf("split options did not round-trip: %+v", configuration)
 	}
 }
@@ -158,7 +140,7 @@ func TestCreateReportTemplate_StoredConfigOmitsUnsetSplitOptions(t *testing.T) {
 	if err := repositories.GetDB().First(&stored, created.ID).Error; err != nil {
 		t.Fatalf("load stored template: %v", err)
 	}
-	for _, key := range []string{"splitCategoriesEqually", "splitTagsEqually", "splitExcludedFields"} {
+	for _, key := range []string{"splitCategoriesEqually", "splitTagsEqually"} {
 		if strings.Contains(string(stored.Configuration), key) {
 			t.Errorf("stored configuration carries unset %s: %s", key, stored.Configuration)
 		}

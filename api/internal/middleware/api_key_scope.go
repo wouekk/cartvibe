@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"net/http"
 	"cartvibe/api/internal/models"
+	"net/http"
 	"strings"
 )
 
@@ -146,7 +146,6 @@ var readOnlyPostPaths = map[string]bool{
 	// Paged / filtered lists. All of these carry a PagedRequestCommand.
 	"/api/apiKey/paged":                                         true,
 	"/api/category/getPagedCategories":                          true,
-	"/api/customField/getPagedCustomFields":                     true,
 	"/api/group/getPagedGroups":                                 true,
 	"/api/prompt/getPagedPrompts":                               true,
 	"/api/tag/getPagedTags":                                     true,
@@ -173,7 +172,6 @@ var readOnlyPostPatterns = [][]string{
 	{"api", "export"},                              // POST / on the export router
 	{"api", "export", "*"},                         // by group
 	{"api", "receipt", "group", "*"},               // the paged receipts list
-	{"api", "receipt", "group", "*", "summary"},    // the totals under it
 	{"api", "widget", "pieChart", "*"},             // dashboard pie data
 	{"api", "report", "template", "*", "generate"}, // runs a stored config
 	{"api", "report", "template", "*", "render"},   // ditto, for the dashboard widget

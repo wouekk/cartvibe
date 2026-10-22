@@ -32,7 +32,7 @@ func SeedSystemRoles() error {
 	}{
 		{LegacyAdminRoleName, "Legacy administrator equivalent: full application access.", permissions.LegacyAppAdminKeys()},
 		{LegacyUserRoleName, "Legacy standard user equivalent.", permissions.LegacyAppUserKeys()},
-		{FamilyUserRoleName, "Household member: lists, receipts, categories, tags, custom fields and reports.", permissions.FamilyUserAppKeys()},
+		{FamilyUserRoleName, "Household member: lists, receipts, categories, tags and reports.", permissions.FamilyUserAppKeys()},
 	}
 	for _, role := range appRoles {
 		if err := seedAppRole(db, role.name, role.description, role.permissions); err != nil {
