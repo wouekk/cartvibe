@@ -11,13 +11,6 @@ import "cartvibe/api/internal/reporting"
 // deliberately not built on this — it is flat, not faithful, and keeps its own
 // walk.
 
-// totalMarker and grandTotalMarker are the labels a roll-up row shows in its
-// staircase column.
-const (
-	totalMarker      = "Total"
-	grandTotalMarker = "Grand Total"
-)
-
 // rowKind is the kind of data row the walk emits. Emphasis (bold, shading) is
 // uniform per kind — detail rows are plain, subtotal and grand-total rows are
 // emphasized — so a sink derives it from the kind rather than from each cell.
@@ -163,9 +156,10 @@ func (w *faithfulWalker) emitDetail(path []reporting.Value, cells []reporting.Ce
 // roll-up values. kind picks the marker text and tells the sink how to
 // emphasize the row.
 func (w *faithfulWalker) emitTotal(level int, kind rowKind, cells []reporting.Cell) error {
-	label := totalMarker
+	// The marker reads in the language of the person the report is for.
+	label := w.model.Meta.Translator.T("Total")
 	if kind == grandTotalKind {
-		label = grandTotalMarker
+		label = w.model.Meta.Translator.T("Grand Total")
 	}
 
 	row := make([]faithfulCell, w.totalCols)

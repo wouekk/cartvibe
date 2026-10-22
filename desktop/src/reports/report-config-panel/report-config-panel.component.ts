@@ -49,6 +49,7 @@ import {
   ColumnPickerDialogData,
 } from "../dialogs/column-picker-dialog/column-picker-dialog.component";
 import { marker } from "../../i18n/marker";
+import { TranslateFn } from "../../i18n/translate-fn";
 import { TranslationService } from "../../i18n/translation.service";
 
 interface ScopeChip {
@@ -270,7 +271,8 @@ export class ReportConfigPanelComponent implements OnInit {
   public periodDateFieldLabel(): string {
     return reportPeriodDateFieldHint(
       this.form().get("period.dateField")!.value as ReceiptDateFilterFieldKey,
-      this.timeZone()
+      this.timeZone(),
+      this.translate
     );
   }
 
@@ -279,10 +281,12 @@ export class ReportConfigPanelComponent implements OnInit {
     const start = this.form().get("period.startDate")!.value as Date | null;
     const end = this.form().get("period.endDate")!.value as Date | null;
     if (this.periodPreset === ReportPeriod.PresetEnum.Custom && (!start || !end)) {
-      return "a custom range";
+      return this.translation.t(marker("a custom range"));
     }
-    return formatPeriodRange(resolvePeriodRange(this.periodPreset, start, end, this.timeZone()));
+    return formatPeriodRange(resolvePeriodRange(this.periodPreset, start, end, this.timeZone()), this.translate);
   }
+
+  private readonly translate: TranslateFn = (text, params) => this.translation.t(text, params);
 
   // ---- scope -------------------------------------------------------------
 

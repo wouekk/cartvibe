@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 export const DESKTOP = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 export const API = join(DESKTOP, "..", "api", "internal");
+export const API_LOCALES = join(API, "i18n", "locales");
 export const I18N_DIR = join(DESKTOP, "src", "assets", "i18n");
 export const CATALOGUE = join(I18N_DIR, "en.json");
 export const REGISTRY = join(I18N_DIR, "languages.json");
@@ -216,6 +217,22 @@ function scriptMessages(text, add, problem) {
 
 const GO_STRING = String.raw`"(?:[^"\\\n]|\\.)*"`;
 
+/**
+ * The texts the API translates itself (api/internal/i18n): the first argument of a `.T("…")` call and of
+ * `i18n.Mark("…")`. They join the catalogue like every other key, and are also written to the API's own locale files.
+ */
+function goTranslatedMessages(text, add) {
+  const calls = new RegExp(String.raw`(?:\.T|\bi18n\.Mark)\(\s*(${GO_STRING})`, "g");
+  let match;
+  while ((match = calls.exec(text))) {
+    try {
+      add(JSON.parse(match[1]), match.index);
+    } catch {
+      // a Go escape JSON does not know: never a text the API translates
+    }
+  }
+}
+
 function goMessages(text, add) {
   const calls = new RegExp(String.raw`WriteCustomErrorResponse\(\s*[^,()]+,\s*(${GO_STRING})`, "g");
   const maps = new RegExp(String.raw`errors\["\w+"\]\s*=\s*(${GO_STRING})`, "g");
@@ -270,11 +287,18 @@ export function extract() {
     }
   }
 
+  const apiKeys = new Set();
   const goFiles = existsSync(API) ? walk(API, (name) => name.endsWith(".go") && !name.endsWith("_test.go")) : [];
   for (const file of goFiles) {
     const text = readText(file);
-    goMessages(text, (key, index) => {
+    const addGo = (key, index) => {
       if (key.trim() && !messages.has(key)) messages.set(key, `${relative(join(DESKTOP, ".."), file).replace(/\\/g, "/")}:${lineOf(text, index)}`);
+    };
+    goMessages(text, addGo);
+    goTranslatedMessages(text, (key, index) => {
+      if (!key.trim()) return;
+      addGo(key, index);
+      apiKeys.add(key);
     });
   }
 
@@ -282,8 +306,31 @@ export function extract() {
     if (!messages.has(key)) messages.set(key, "scripts/i18n/extra-keys.json");
   }
 
-  return { messages, plurals, problems };
+  return { messages, plurals, problems, apiKeys };
 }
+
+/**
+ * The API's locale files (api/internal/i18n/locales/<code>.json) for an extraction: for every language in the registry
+ * that has a dictionary, its translations of the keys the API translates itself. English has no file (the key is the
+ * text). Returns a Map of code -> file content.
+ */
+export function apiLocalesOf({ apiKeys }) {
+  const locales = new Map();
+  for (const language of readRegistry()) {
+    if (language.code === "en") continue;
+    const file = readLanguageFile(language.code);
+    if (!file) continue;
+    const messages = {};
+    for (const key of [...apiKeys].sort()) {
+      const value = file.messages?.[key];
+      if (typeof value === "string" && value !== "") messages[key] = value;
+    }
+    locales.set(language.code, { messages });
+  }
+  return locales;
+}
+
+export const apiLocalePath = (code) => join(API_LOCALES, `${code}.json`);
 
 /** The en.json content for an extraction. */
 export function catalogueOf({ messages, plurals }) {

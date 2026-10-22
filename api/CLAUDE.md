@@ -3669,3 +3669,32 @@ The email-body helpers are gone too (`ReadReceiptImageWithEmailBody`, `ReadRecei
   export zip is `receipts.csv` only) and the `hideItem*` / `hideShare*` group receipt settings. `ValidateReceiptUserSelection`
   now checks only the payer. Spending lives on `ReceiptProduct` lines. Passages above that talk about items, shares,
   `chargedToUserId`, `ITEM_OPEN` or settlement describe removed code.
+
+## Reports in the reader's language (fork, 2026-10)
+
+A report (builder preview, PDF, XLSX, CSV, a template run by id) reads in the language of **the person generating it**,
+`UserPreferences.language`, whoever wrote the template. No swagger change: `ReportService.readerLanguage` reads the column
+(no preferences row, an empty or unknown code, or a failed read is English; it never creates a row).
+
+- **`internal/i18n`** (pure, embeddable by the engine): `For(code)` gives a `Translator`; `T("…", "name", value, …)`
+  translates a literal key and fills `{name}`; `Data(text)` translates stored copy only when it is exactly a catalogue key
+  (the three starter templates' title, intro, footer and column labels read in German; what a person typed is left
+  alone); `DateTime` is numeric outside English (`23.10.2026, 14:05`, no Polish month genitives); `Mark("…")` marks an
+  English text defined as a value. The zero `Translator` is English.
+- **One place to translate.** The desktop dictionaries (`desktop/src/assets/i18n/<code>.json`) are the source:
+  `npm run i18n:extract` reads every `.T("…")` and `i18n.Mark("…")` literal in `api/internal` into the catalogue and writes
+  `api/internal/i18n/locales/<code>.json`, the subset the API needs, which `//go:embed` picks up. `npm run i18n:check`
+  fails when those files are stale; `ci.yml`'s desktop job also runs for changes under `api/internal`. Never edit the
+  locale files by hand. **A new report word must be a literal inside `T(` or `Mark(`**, or the extractor cannot see it.
+- **Where the words are translated:** `receiptsource.New(location, tr)` (field labels, `{field} (Day|Month|Year)`, the
+  status words, Health and Planned values, so buckets read and sort in the language); `ReportDataService.Translator`
+  (the `(Restricted)` marker on report lines; `grant_filter.go`'s marker for other answers stays English); `buildModel`
+  (preamble keys Period / Groups, `{start} to {end}`, `(None)`, column labels and grouping overrides via `Data`, the
+  `generatedAt` variable, Unknown User); the renderers read `Meta.Translator`, which the engine copies from
+  `MetaInput.Translator` like `Currency` (Row Type / Detail / Subtotal / Grand Total in CSV, Total / Grand Total in the
+  faithful walk, the sheet name, `<html lang>`, the `Report` title fallback and `Generated {at}`). A zero translator
+  renders byte-identical English, so the golden and property tests are untouched. Not translated: month buckets stay ISO
+  (`2026-10`), the download file name, bool `Yes`/`No` (no field is boolean since custom fields went), and the receipts
+  CSV export (a raw machine export by decision).
+- Tests: `internal/i18n/i18n_test.go`, `receiptsource/lines_test.go` (German source), `render/language_test.go`, and
+  `services/report_language_test.go` (a German preview, English without a language, an unknown code).

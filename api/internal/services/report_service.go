@@ -11,6 +11,7 @@ import (
 
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/constants"
+	"cartvibe/api/internal/i18n"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/reporting"
 	"cartvibe/api/internal/reporting/receiptsource"
@@ -161,10 +162,12 @@ func (service ReportService) buildModel(
 	// The app time zone is resolved once per report, so the period, the row
 	// buckets, the labels and the footer cannot disagree about it.
 	location := repositories.ResolveAppLocation(settings.TimeZone)
+	// The report reads in the language of the person generating it, whoever wrote the template.
+	tr := service.readerLanguage(userId)
 
-	filter, periodLabel := prepareReportFilter(userId, command, now, location)
+	filter, periodLabel := prepareReportFilter(userId, command, now, location, tr)
 
-	catalog, rows, rowsPerReceipt, err := service.loadRows(userId, command.GroupIds, filter, lineDimensionsInUse(command), location)
+	catalog, rows, rowsPerReceipt, err := service.loadRows(userId, command.GroupIds, filter, lineDimensionsInUse(command), location, tr)
 	if err != nil {
 		return reportBuild{}, err
 	}
@@ -176,22 +179,28 @@ func (service ReportService) buildModel(
 		return reportBuild{}, err
 	}
 
-	title, chrome := service.resolveDocument(userId, groupNames, periodLabel, now.In(location), command.Name, command.Document)
+	title, chrome := service.resolveDocument(userId, groupNames, periodLabel, now.In(location), command.Name, command.Document, tr)
 
 	spec, err := buildReportSpec(command)
 	if err != nil {
 		return reportBuild{}, &ReportSpecError{Err: err}
 	}
 	spec.Title = title
+	spec.NoneLabel = tr.T("(None)")
+	// A label a starter template stored in English reads in the language; one a person typed stays as typed.
+	for index := range spec.Columns {
+		spec.Columns[index].Label = tr.Data(spec.Columns[index].Label)
+	}
 
 	meta := reporting.MetaInput{
 		GeneratedAt: now,
 		Params: map[string]string{
-			"Period": periodLabel,
-			"Groups": strings.Join(groupNames, ", "),
+			tr.T("Period"): periodLabel,
+			tr.T("Groups"): strings.Join(groupNames, ", "),
 		},
-		Currency: currencyFormat(settings),
-		Location: location,
+		Currency:   currencyFormat(settings),
+		Location:   location,
+		Translator: tr,
 	}
 
 	model, err := reporting.Run(spec, catalog, rows, meta)
@@ -201,7 +210,7 @@ func (service ReportService) buildModel(
 
 	return reportBuild{
 		model:        model,
-		dimensions:   buildDimensions(spec.GroupBy, catalog, command.GroupByLabels),
+		dimensions:   buildDimensions(spec.GroupBy, catalog, command.GroupByLabels, tr),
 		chrome:       chrome,
 		receiptCount: receiptCount,
 	}, nil
@@ -235,10 +244,11 @@ func prepareReportFilter(
 	command commands.ReportRequestCommand,
 	now time.Time,
 	location *time.Location,
+	tr i18n.Translator,
 ) (commands.ReceiptPagedRequestFilter, string) {
 	filter := command.Filter
 	resolveReportGeneratorPaidBy(&filter, userId)
-	periodLabel := applyPeriod(&filter, command.Period, now.In(location))
+	periodLabel := applyPeriod(&filter, command.Period, now.In(location), tr)
 	return filter, periodLabel
 }
 
@@ -258,7 +268,7 @@ func (service ReportService) receipts(
 	command commands.ReportRequestCommand,
 	now time.Time,
 ) (structs.PagedData, error) {
-	filter, _ := prepareReportFilter(userId, command, now, repositories.NewSystemSettingsRepository(service.TX).AppLocation())
+	filter, _ := prepareReportFilter(userId, command, now, repositories.NewSystemSettingsRepository(service.TX).AppLocation(), i18n.English)
 	dataService := NewReportDataService(service.TX)
 
 	// Each group loads only its newest reportReceiptsCap receipts, which is enough:
@@ -300,9 +310,11 @@ func (service ReportService) loadRows(
 	filter commands.ReceiptPagedRequestFilter,
 	dimensions receiptsource.LineDimensions,
 	location *time.Location,
+	tr i18n.Translator,
 ) (reporting.FieldCatalog, []reporting.Row, []int, error) {
 	dataService := NewReportDataService(service.TX)
 	dataService.Location = location
+	dataService.Translator = tr
 
 	var catalog reporting.FieldCatalog
 	var rows []reporting.Row
@@ -452,10 +464,26 @@ func (service ReportService) groupNames(groupIds []string) ([]string, error) {
 	return names, nil
 }
 
-func (service ReportService) userDisplayName(userId uint) string {
+// readerLanguage is the language the person generating a report chose for the app (Settings -> Language). It only
+// reads: no preferences row, an empty or unknown language, or a failed read all give English, never an error.
+func (service ReportService) readerLanguage(userId uint) i18n.Translator {
+	var languages []*string
+	err := service.GetDB().
+		Model(&models.UserPrefernces{}).
+		Where("user_id = ?", userId).
+		Limit(1).
+		Pluck("language", &languages).
+		Error
+	if err != nil || len(languages) == 0 || languages[0] == nil {
+		return i18n.English
+	}
+	return i18n.For(*languages[0])
+}
+
+func (service ReportService) userDisplayName(userId uint, tr i18n.Translator) string {
 	user, err := repositories.NewUserRepository(service.TX).GetUserById(userId)
 	if err != nil {
-		return "Unknown User"
+		return tr.T("Unknown User")
 	}
 	if len(user.DisplayName) > 0 {
 		return user.DisplayName
@@ -554,7 +582,7 @@ func aggregateSource(aggFunc string, measure string) string {
 // money per the report's currency configuration — instead of dumping the engine's
 // raw value. A key the catalog does not know falls back to the key as its own
 // heading and to plain text, which is what an unresolvable dimension can offer.
-func buildDimensions(groupBy []reporting.FieldKey, catalog reporting.FieldCatalog, labels map[string]string) []render.Dimension {
+func buildDimensions(groupBy []reporting.FieldKey, catalog reporting.FieldCatalog, labels map[string]string, tr i18n.Translator) []render.Dimension {
 	dimensions := make([]render.Dimension, len(groupBy))
 	for index, key := range groupBy {
 		dimension := render.Dimension{Key: key, Label: string(key)}
@@ -568,7 +596,7 @@ func buildDimensions(groupBy []reporting.FieldKey, catalog reporting.FieldCatalo
 		// a key naming no grouping level is simply never looked up — a stale
 		// entry must not fail an otherwise valid report.
 		if override := strings.TrimSpace(labels[string(key)]); len(override) > 0 {
-			dimension.Label = override
+			dimension.Label = tr.Data(override)
 		}
 		dimensions[index] = dimension
 	}
@@ -621,7 +649,7 @@ func resolveReportGeneratorPaidBy(filter *commands.ReceiptPagedRequestFilter, us
 // calendar day, Added At and Resolved Date are app-zone instants — and the
 // receipt filter's day builder (BuildDayFilterQuery) is the one place that knows
 // that, so the period, the receipts table and the drill-in cannot disagree.
-func applyPeriod(filter *commands.ReceiptPagedRequestFilter, period commands.ReportPeriod, now time.Time) string {
+func applyPeriod(filter *commands.ReceiptPagedRequestFilter, period commands.ReportPeriod, now time.Time, tr i18n.Translator) string {
 	start, end := resolvePeriodBounds(period, now)
 
 	startDay := start.Format(time.DateOnly)
@@ -636,7 +664,7 @@ func applyPeriod(filter *commands.ReceiptPagedRequestFilter, period commands.Rep
 		Value:     []interface{}{startDay, endDay},
 	}
 
-	return startDay + " to " + endDay
+	return tr.T("{start} to {end}", "start", startDay, "end", endDay)
 }
 
 func resolvePeriodBounds(period commands.ReportPeriod, now time.Time) (time.Time, time.Time) {
@@ -680,21 +708,24 @@ func (service ReportService) resolveDocument(
 	now time.Time,
 	name string,
 	document commands.ReportDocument,
+	tr i18n.Translator,
 ) (string, render.DocumentChrome) {
 	substitutions := map[string]string{
 		"period":           periodLabel,
 		"group.name":       strings.Join(groupNames, ", "),
-		"generatedAt":      now.Format("Jan 2, 2006, 3:04 PM"),
-		"currentUser.name": service.userDisplayName(userId),
+		"generatedAt":      tr.DateTime(now),
+		"currentUser.name": service.userDisplayName(userId, tr),
 	}
 	titleSource := document.Title
 	if strings.TrimSpace(titleSource) == "" {
 		titleSource = name
 	}
-	return substituteVariables(titleSource, substitutions),
+	// Copy a starter template stored in English (title, intro, footer) reads in the language before its
+	// variables are filled in; copy a person wrote is used as written.
+	return substituteVariables(tr.Data(titleSource), substitutions),
 		render.DocumentChrome{
-			Intro:  substituteVariables(document.Intro, substitutions),
-			Footer: substituteVariables(document.Footer, substitutions),
+			Intro:  substituteVariables(tr.Data(document.Intro), substitutions),
+			Footer: substituteVariables(tr.Data(document.Footer), substitutions),
 		}
 }
 

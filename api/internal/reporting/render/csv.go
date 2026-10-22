@@ -37,13 +37,6 @@ type Dimension struct {
 	Location *time.Location
 }
 
-const (
-	rowTypeHeader = "Row Type"
-	detailRow     = "Detail"
-	subtotalRow   = "Subtotal"
-	grandTotalRow = "Grand Total"
-)
-
 // CSV renders a ReportModel as a flat, data-only CSV table: the group-by
 // dimensions become leading columns, each detail leaf is one row, and a leading
 // "Row Type" column marks whether a row is a Detail, a Subtotal, or the Grand
@@ -68,7 +61,7 @@ func CSV(model reporting.ReportModel, groupBy []Dimension) ([]byte, error) {
 	records = appendGroup(records, model, groupBy, model.Root, nil)
 
 	if model.GrandTotals != nil {
-		records = append(records, buildRecord(model, groupBy, grandTotalRow, nil, model.GrandTotals))
+		records = append(records, buildRecord(model, groupBy, model.Meta.Translator.T("Grand Total"), nil, model.GrandTotals))
 	}
 
 	buffer := new(bytes.Buffer)
@@ -84,7 +77,7 @@ func CSV(model reporting.ReportModel, groupBy []Dimension) ([]byte, error) {
 // report column.
 func header(model reporting.ReportModel, groupBy []Dimension) []string {
 	head := make([]string, 0, 1+len(groupBy)+len(model.Columns))
-	head = append(head, rowTypeHeader)
+	head = append(head, SanitizeCSVField(model.Meta.Translator.T("Row Type")))
 	for _, dimension := range groupBy {
 		head = append(head, dimensionHeading(dimension))
 	}
@@ -148,12 +141,12 @@ func appendGroup(records [][]string, model reporting.ReportModel, groupBy []Dime
 		}
 	} else {
 		for _, detail := range node.DetailRows {
-			records = append(records, buildRecord(model, groupBy, detailRow, path, detail.Cells))
+			records = append(records, buildRecord(model, groupBy, model.Meta.Translator.T("Detail"), path, detail.Cells))
 		}
 	}
 
 	if node.Subtotals != nil {
-		records = append(records, buildRecord(model, groupBy, subtotalRow, path, node.Subtotals))
+		records = append(records, buildRecord(model, groupBy, model.Meta.Translator.T("Subtotal"), path, node.Subtotals))
 	}
 	return records
 }

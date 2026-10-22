@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/i18n"
 	"cartvibe/api/internal/models"
 
 	"gorm.io/gorm"
@@ -19,72 +20,72 @@ const starterReportTemplatesMigration = "starter-report-templates-2026-10"
 func StarterReportTemplates(groupId uint) []commands.ReportRequestCommand {
 	groupIds := []string{strconv.FormatUint(uint64(groupId), 10)}
 	period := commands.ReportPeriod{Preset: commands.ReportPeriodYtd}
-	spent := commands.ReportColumn{Kind: commands.ReportColumnAggregate, Name: "Spent", Label: "Spent", AggFunc: "SUM", Measure: "amount"}
-	receipts := commands.ReportColumn{Kind: commands.ReportColumnAggregate, Name: "Receipts", Label: "Receipts", AggFunc: "COUNT"}
-	average := commands.ReportColumn{Kind: commands.ReportColumnAggregate, Name: "Average", Label: "Average receipt", AggFunc: "AVG", Measure: "amount"}
+	spent := commands.ReportColumn{Kind: commands.ReportColumnAggregate, Name: "Spent", Label: i18n.Mark("Spent"), AggFunc: "SUM", Measure: "amount"}
+	receipts := commands.ReportColumn{Kind: commands.ReportColumnAggregate, Name: "Receipts", Label: i18n.Mark("Receipts"), AggFunc: "COUNT"}
+	average := commands.ReportColumn{Kind: commands.ReportColumnAggregate, Name: "Average", Label: i18n.Mark("Average receipt"), AggFunc: "AVG", Measure: "amount"}
 	formats := []string{commands.ReportFormatPdf}
 
 	return []commands.ReportRequestCommand{
 		{
-			Name:     "Monthly spending by category",
+			Name:     i18n.Mark("Monthly spending by category"),
 			GroupIds: groupIds,
 			Period:   period,
 			GroupBy:  []string{"date_month"},
 			GroupByLabels: map[string]string{
-				"date_month": "Month",
+				"date_month": i18n.Mark("Month"),
 			},
 			Detail: commands.ReportDetail{Mode: commands.ReportDetailAggregate, By: "category"},
 			Columns: []commands.ReportColumn{
-				{Kind: commands.ReportColumnDimension, Name: "Category", Label: "Category", Field: "category"},
+				{Kind: commands.ReportColumnDimension, Name: "Category", Label: i18n.Mark("Category"), Field: "category"},
 				spent,
 				receipts,
 			},
 			Subtotals:   true,
 			GrandTotals: true,
 			Document: commands.ReportDocument{
-				Title:  "Monthly spending by category",
-				Intro:  "What the household spent each month, split by category, for {{period}}.",
-				Footer: "Generated {{generatedAt}}",
+				Title:  i18n.Mark("Monthly spending by category"),
+				Intro:  i18n.Mark("What the household spent each month, split by category, for {{period}}."),
+				Footer: i18n.Mark("Generated {{generatedAt}}"),
 			},
 			Formats: formats,
 		},
 		{
-			Name:     "Spending by shop",
+			Name:     i18n.Mark("Spending by shop"),
 			GroupIds: groupIds,
 			Period:   period,
 			GroupBy:  []string{},
 			Detail:   commands.ReportDetail{Mode: commands.ReportDetailAggregate, By: "shop"},
 			Columns: []commands.ReportColumn{
-				{Kind: commands.ReportColumnDimension, Name: "Shop", Label: "Shop", Field: "shop"},
+				{Kind: commands.ReportColumnDimension, Name: "Shop", Label: i18n.Mark("Shop"), Field: "shop"},
 				spent,
 				receipts,
 				average,
 			},
 			GrandTotals: true,
 			Document: commands.ReportDocument{
-				Title:  "Spending by shop",
-				Intro:  "Where the household shops and how much goes to each shop, for {{period}}.",
-				Footer: "Generated {{generatedAt}}",
+				Title:  i18n.Mark("Spending by shop"),
+				Intro:  i18n.Mark("Where the household shops and how much goes to each shop, for {{period}}."),
+				Footer: i18n.Mark("Generated {{generatedAt}}"),
 			},
 			Formats: formats,
 		},
 		{
-			Name:     "Month by month",
+			Name:     i18n.Mark("Month by month"),
 			GroupIds: groupIds,
 			Period:   period,
 			GroupBy:  []string{},
 			Detail:   commands.ReportDetail{Mode: commands.ReportDetailAggregate, By: "date_month"},
 			Columns: []commands.ReportColumn{
-				{Kind: commands.ReportColumnDimension, Name: "Month", Label: "Month", Field: "date_month"},
+				{Kind: commands.ReportColumnDimension, Name: "Month", Label: i18n.Mark("Month"), Field: "date_month"},
 				spent,
 				receipts,
 				average,
 			},
 			GrandTotals: true,
 			Document: commands.ReportDocument{
-				Title:  "Month by month",
-				Intro:  "The year so far: total spent, number of receipts and the average receipt each month, for {{period}}.",
-				Footer: "Generated {{generatedAt}}",
+				Title:  i18n.Mark("Month by month"),
+				Intro:  i18n.Mark("The year so far: total spent, number of receipts and the average receipt each month, for {{period}}."),
+				Footer: i18n.Mark("Generated {{generatedAt}}"),
 			},
 			Formats: formats,
 		},

@@ -28,7 +28,7 @@ func xlsxGrid(t *testing.T, model reporting.ReportModel, groupBy []Dimension) []
 	}
 	defer file.Close()
 
-	rows, err := file.GetRows(xlsxSheet)
+	rows, err := file.GetRows("Report")
 	if err != nil {
 		t.Fatalf("read rows: %v", err)
 	}
@@ -57,7 +57,7 @@ func assertGrid(t *testing.T, got, want [][]string) {
 
 func cellStyle(t *testing.T, file *excelize.File, cell string) *excelize.Style {
 	t.Helper()
-	id, err := file.GetCellStyle(xlsxSheet, cell)
+	id, err := file.GetCellStyle("Report", cell)
 	if err != nil {
 		t.Fatalf("cell style %s: %v", cell, err)
 	}
@@ -413,8 +413,8 @@ func TestXLSX_NativeTypesFormatsAndBold(t *testing.T) {
 	}
 	defer file.Close()
 
-	if name := file.GetSheetName(0); name != xlsxSheet {
-		t.Errorf("sheet name = %q, want %q", name, xlsxSheet)
+	if name := file.GetSheetName(0); name != "Report" {
+		t.Errorf("sheet name = %q, want %q", name, "Report")
 	}
 
 	// D2 is the Total of the first detail row. It is a native number, not text:
@@ -422,11 +422,11 @@ func TestXLSX_NativeTypesFormatsAndBold(t *testing.T) {
 	// currency format applied — a text cell would show the same string for both.
 	// (excelize omits the type attribute for numbers, so GetCellType is not the
 	// tell here.)
-	raw, err := file.GetCellValue(xlsxSheet, "D2", excelize.Options{RawCellValue: true})
+	raw, err := file.GetCellValue("Report", "D2", excelize.Options{RawCellValue: true})
 	if err != nil {
 		t.Fatalf("raw D2: %v", err)
 	}
-	shown, err := file.GetCellValue(xlsxSheet, "D2")
+	shown, err := file.GetCellValue("Report", "D2")
 	if err != nil {
 		t.Fatalf("shown D2: %v", err)
 	}

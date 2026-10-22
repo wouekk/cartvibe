@@ -46,7 +46,7 @@ export function detailSummary(
   translate: TranslateFn = englishTranslate
 ): string {
   if (configuration.detail?.mode === ReportDetail.ModeEnum.Aggregate) {
-    return translate(marker("Aggregate by {name}"), { name: fieldLabel(configuration.detail.by) });
+    return translate(marker("Aggregate by {name}"), { name: translate(fieldLabel(configuration.detail.by)) });
   }
   return marker("Record-level");
 }

@@ -1,6 +1,20 @@
 // npm run i18n:check -> fails when the catalogue is stale or a language file is inconsistent; warns (and prints coverage) about gaps.
-import { existsSync } from "node:fs";
-import { CATALOGUE, catalogueOf, closestKey, extract, languageFilePath, pluralCategories, placeholders, readJson, readRegistry, readText } from "./lib.mjs";
+import { existsSync, readdirSync } from "node:fs";
+import {
+  API_LOCALES,
+  CATALOGUE,
+  apiLocalePath,
+  apiLocalesOf,
+  catalogueOf,
+  closestKey,
+  extract,
+  languageFilePath,
+  pluralCategories,
+  placeholders,
+  readJson,
+  readRegistry,
+  readText,
+} from "./lib.mjs";
 
 const failures = [];
 const warnings = [];
@@ -84,6 +98,20 @@ for (const { code, partial, done, total, missing, missingNouns } of coverage) {
     if (missing.length > 15) console.log(`    ... and ${missing.length - 15} more`);
   }
 }
+// 7. The API's locale files are what a fresh extract gives (a stale one leaves a report in English, or in old wording).
+const apiLocales = apiLocalesOf(extraction);
+for (const [code, file] of apiLocales) {
+  const path = apiLocalePath(code);
+  if (!existsSync(path) || JSON.stringify(readJson(path)) !== JSON.stringify(file)) {
+    fail(`api/internal/i18n/locales/${code}.json is out of date: run npm run i18n:extract and commit it`);
+  }
+}
+for (const name of existsSync(API_LOCALES) ? readdirSync(API_LOCALES) : []) {
+  if (name.endsWith(".json") && !apiLocales.has(name.slice(0, -5))) {
+    fail(`api/internal/i18n/locales/${name} belongs to no language in languages.json: delete it`);
+  }
+}
+
 for (const warning of warnings) console.warn(`warning: ${warning}`);
 
 if (failures.length) {

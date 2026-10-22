@@ -10,7 +10,6 @@ import (
 )
 
 const (
-	xlsxSheet          = "Report"
 	defaultCurrencyFmt = "#,##0.00"
 )
 
@@ -30,14 +29,17 @@ const (
 // dimension keys but not labels), and must match the report's grouping depth —
 // see validateGroupByDepth.
 func XLSX(model reporting.ReportModel, groupBy []Dimension) ([]byte, error) {
+	// The sheet is named in the reader's language, like the report's own words.
+	sheet := model.Meta.Translator.T("Report")
 	file := excelize.NewFile()
 	defer file.Close()
-	if err := file.SetSheetName(file.GetSheetName(0), xlsxSheet); err != nil {
+	if err := file.SetSheetName(file.GetSheetName(0), sheet); err != nil {
 		return nil, err
 	}
 
 	sink := &xlsxSink{
 		file:   file,
+		sheet:  sheet,
 		model:  model,
 		styles: map[string]int{},
 		row:    1,
@@ -58,6 +60,7 @@ func XLSX(model reporting.ReportModel, groupBy []Dimension) ([]byte, error) {
 // format, bold).
 type xlsxSink struct {
 	file  *excelize.File
+	sheet string
 	model reporting.ReportModel
 
 	styles map[string]int
@@ -139,7 +142,7 @@ func (s *xlsxSink) setString(column, row int, text string, bold bool) error {
 	if err != nil {
 		return err
 	}
-	if err := s.file.SetCellValue(xlsxSheet, cell, text); err != nil {
+	if err := s.file.SetCellValue(s.sheet, cell, text); err != nil {
 		return err
 	}
 	return s.applyStyle(cell, "", bold)
@@ -150,7 +153,7 @@ func (s *xlsxSink) setNumber(column, row int, value float64, numberFormat string
 	if err != nil {
 		return err
 	}
-	if err := s.file.SetCellValue(xlsxSheet, cell, value); err != nil {
+	if err := s.file.SetCellValue(s.sheet, cell, value); err != nil {
 		return err
 	}
 	return s.applyStyle(cell, numberFormat, bold)
@@ -161,7 +164,7 @@ func (s *xlsxSink) applyStyle(cell, numberFormat string, bold bool) error {
 	if err != nil || id == 0 {
 		return err
 	}
-	return s.file.SetCellStyle(xlsxSheet, cell, cell, id)
+	return s.file.SetCellStyle(s.sheet, cell, cell, id)
 }
 
 // styleID registers (and caches) a style for a number-format/bold combination.

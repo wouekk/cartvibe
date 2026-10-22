@@ -3,6 +3,8 @@ package reporting
 import (
 	"time"
 
+	"cartvibe/api/internal/i18n"
+
 	"github.com/expr-lang/expr/ast"
 )
 
@@ -39,6 +41,10 @@ type Meta struct {
 	// Location is the zone a renderer prints GeneratedAt in (the app's time
 	// zone), passed through from MetaInput. Nil means UTC.
 	Location *time.Location
+
+	// Translator is the reader's language for the renderers' own words, passed
+	// through from MetaInput. The zero value is English.
+	Translator i18n.Translator
 }
 
 // CurrencyFormat is the app's money-display configuration — a renderer hint the

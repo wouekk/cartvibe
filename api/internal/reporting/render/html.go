@@ -45,7 +45,10 @@ func HTML(model reporting.ReportModel, groupBy []Dimension, chrome DocumentChrom
 		return nil, err
 	}
 
+	tr := model.Meta.Translator
 	document := htmlDocument{
+		Lang:     tr.Lang(),
+		Report:   tr.T("Report"),
 		Title:    model.Meta.Title,
 		Intro:    chrome.Intro,
 		Params:   sortedParams(model.Meta.Params),
@@ -56,7 +59,7 @@ func HTML(model reporting.ReportModel, groupBy []Dimension, chrome DocumentChrom
 	if !model.Meta.GeneratedAt.IsZero() {
 		// Printed in the app's time zone and named by its abbreviation, so the
 		// reader is never left guessing which clock the time was read off.
-		document.GeneratedAt = model.Meta.GeneratedAt.In(locationOrUTC(model.Meta.Location)).Format("2006-01-02 15:04:05 MST")
+		document.Generated = tr.T("Generated {at}", "at", model.Meta.GeneratedAt.In(locationOrUTC(model.Meta.Location)).Format("2006-01-02 15:04:05 MST"))
 	}
 
 	var buffer bytes.Buffer
@@ -69,13 +72,17 @@ func HTML(model reporting.ReportModel, groupBy []Dimension, chrome DocumentChrom
 // htmlDocument is the view model the report template renders. Its strings are
 // interpolated through html/template, which escapes them.
 type htmlDocument struct {
-	Title       string
-	Intro       string
-	Params      []htmlParam
-	Headings    []string
-	Rows        []htmlRow
-	Footer      string
-	GeneratedAt string
+	// Lang and Report (the fallback title) follow the reader's language, as does
+	// Generated, the automatic footer.
+	Lang      string
+	Report    string
+	Title     string
+	Intro     string
+	Params    []htmlParam
+	Headings  []string
+	Rows      []htmlRow
+	Footer    string
+	Generated string
 }
 
 type htmlParam struct {
@@ -170,10 +177,10 @@ var htmlTemplate = template.Must(template.New("report").Parse(reportHTML))
 // automatic generated-at note). All CSS is inline so the document needs no
 // external resources when it is converted to PDF.
 const reportHTML = `<!doctype html>
-<html lang="en">
+<html lang="{{.Lang}}">
 <head>
 <meta charset="utf-8">
-<title>{{if .Title}}{{.Title}}{{else}}Report{{end}}</title>
+<title>{{if .Title}}{{.Title}}{{else}}{{.Report}}{{end}}</title>
 <style>
   body { font-family: Arial, Helvetica, sans-serif; color: #222; margin: 24px; }
   h1 { font-size: 20px; margin: 0 0 12px; }
@@ -203,7 +210,7 @@ const reportHTML = `<!doctype html>
 {{end}}</tbody>
 </table>
 {{if .Footer}}<footer>{{.Footer}}</footer>
-{{else if .GeneratedAt}}<footer>Generated {{.GeneratedAt}}</footer>
+{{else if .Generated}}<footer>{{.Generated}}</footer>
 {{end}}</body>
 </html>
 `

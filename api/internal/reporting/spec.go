@@ -1,6 +1,10 @@
 package reporting
 
-import "time"
+import (
+	"time"
+
+	"cartvibe/api/internal/i18n"
+)
 
 // defaultNoneLabel is what a renderer draws for the bucket holding rows with no
 // value for a dimension.
@@ -139,4 +143,9 @@ type MetaInput struct {
 	// Location is the app's time zone, carried through for the renderers to
 	// print GeneratedAt in. The engine does not read it. Nil means UTC.
 	Location *time.Location
+
+	// Translator is the language of the person the report is for, carried
+	// through for the renderers' own words (Total, Grand Total, Generated ...).
+	// The engine does not read it. The zero value is English.
+	Translator i18n.Translator
 }

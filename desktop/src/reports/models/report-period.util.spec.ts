@@ -75,6 +75,13 @@ describe("formatPeriodRange", () => {
     const range = { start: new Date(2026, 4, 1), end: new Date(2026, 4, 31) };
     expect(formatPeriodRange(range)).toBe("2026-05-01 to 2026-05-31");
   });
+
+  it("joins the bounds in the reader's language, with the key the API prints on the report", () => {
+    const range = { start: new Date(2026, 4, 1), end: new Date(2026, 4, 31) };
+    const german = (text: string, params?: Record<string, unknown>) =>
+      text === "{start} to {end}" ? `${params!["start"]} bis ${params!["end"]}` : text;
+    expect(formatPeriodRange(range, german)).toBe("2026-05-01 bis 2026-05-31");
+  });
 });
 
 describe("toReportPeriodDateField", () => {
@@ -113,5 +120,10 @@ describe("reportPeriodDateFieldHint", () => {
 
   it("names the receipt date alone, since no zone shifts a calendar day", () => {
     expect(reportPeriodDateFieldHint("date", "America/New_York")).toBe("Receipt Date");
+  });
+
+  it("translates the field's label", () => {
+    const translate = (text: string) => (text === "Added At" ? "Hinzugefügt am" : text);
+    expect(reportPeriodDateFieldHint("createdAt", "UTC", translate)).toBe("Hinzugefügt am (UTC)");
   });
 });
