@@ -60,9 +60,6 @@
     <div class="report-config__list-row">
       <span class="report-config__pos">{{ level.index + 1 }}</span>
       <span class="report-config__list-label" data-testid="report-grouping-label">{{ level.label }}</span>
-      @if (level.isCustom) {
-        <app-badge [text]="customFieldBadge" data-testid="report-grouping-custom"></app-badge>
-      }
       <app-button matButtonType="iconButton" icon="arrow_upward" [tooltip]="'Move up' | t" [disabled]="level.isFirst"
         (clicked)="moveGroupBy(level.index, -1)" data-testid="report-grouping-up"></app-button>
       <app-button matButtonType="iconButton" icon="arrow_downward" [tooltip]="'Move down' | t" [disabled]="level.isLast"
@@ -75,7 +72,7 @@
   }
   @if (addableDimensions().length > 0) {
     <app-select class="report-config__add-select" [label]="'Add grouping level…' | t" [addEmptyOption]="true"
-      optionValueKey="value" optionDisplayKey="displayValue" optionBadgeKey="badge"
+      optionValueKey="value" optionDisplayKey="displayValue"
       [options]="addableDimensionOptions()" [inputFormControl]="addGroupControl"
       data-testid="report-add-grouping"></app-select>
   }
@@ -99,7 +96,7 @@
     <div class="report-config__row report-config__row--center">
       <span class="report-config__inline-label">{{ 'aggregate by' | t }}</span>
       <app-select class="report-config__grow"
-        optionValueKey="value" optionDisplayKey="displayValue" optionBadgeKey="badge"
+        optionValueKey="value" optionDisplayKey="displayValue"
         [options]="dimensionOptions()"
         [inputFormControl]="form() | formGet: 'detail.by'"
         data-testid="report-detail-aggregate-by"
@@ -126,9 +123,6 @@
         <div class="report-config__col-label">{{ column.label }}</div>
         <div class="report-config__col-desc">{{ column.disabled ? column.disabledReason : column.description }}</div>
       </div>
-      @if (column.isCustom) {
-        <app-badge [text]="customFieldBadge" data-testid="report-column-custom"></app-badge>
-      }
       <app-badge [text]="column.kindLabel" [tone]="column.kindTone"></app-badge>
       <app-button matButtonType="iconButton" icon="arrow_upward" [tooltip]="'Move up' | t" [disabled]="column.isFirst"
         (clicked)="moveColumn(column.index, -1)" data-testid="report-column-up"></app-button>
@@ -168,12 +162,6 @@
       <app-icon name="info"></app-icon>
       {{ 'No effect until the report groups or aggregates by Tag.' | t }}
     </div>
-  }
-  @if (splitState().anyTicked && currencyFields().length > 0) {
-    <app-autocomlete [label]="'Don\'t split these currency fields' | t" data-testid="report-split-excluded"
-      optionValueKey="key" optionFilterKey="label" optionDisplayKey="label"
-      [options]="currencyFields()" [multiple]="true" [creatable]="false"
-      [inputFormControl]="$any(splitExcludedArray)"></app-autocomlete>
   }
 </app-report-section>
 

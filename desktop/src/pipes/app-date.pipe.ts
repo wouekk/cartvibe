@@ -8,7 +8,7 @@ import { calendarDayToLocalDate, offsetAt } from "../utils/app-time-zone";
 /**
  * - `instant` (the default): a moment in time (`createdAt`, `resolvedDate`,
  *   `startedAt`, …), shown in the app time zone.
- * - `calendar`: a calendar day (a receipt's `date`, a DATE custom field), shown
+ * - `calendar`: a calendar day (a receipt's `date`), shown
  *   as its stored UTC day whatever the zone.
  */
 export type AppDateMode = "instant" | "calendar";

@@ -32,11 +32,8 @@ describe("BadgeComponent", () => {
     expect(render("Custom").textContent?.trim()).toEqual("Custom");
   });
 
-  // Purple marks a custom field, which is what the badge is for nearly everywhere
-  // it appears - hard-coding it per call site is how the two implementations this
-  // replaced ended up different colours.
-  it("defaults to the custom-field tone", () => {
-    expect(render("Custom").classList).toContain("cv-badge--purple");
+  it("defaults to the neutral slate tone", () => {
+    expect(render("Default").classList).toContain("cv-badge--slate");
   });
 
   it("applies an explicit tone", () => {

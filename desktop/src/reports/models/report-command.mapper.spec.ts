@@ -30,7 +30,6 @@ function baseValue(): ReportBuilderValue {
     grandTotals: false,
     splitCategoriesEqually: false,
     splitTagsEqually: false,
-    splitExcludedFields: [],
     document: { title: "", intro: "", footer: "" },
     formats: { csv: false, xlsx: true, pdf: true },
   };
@@ -251,7 +250,6 @@ describe("split options", () => {
     const command = toReportRequestCommand(baseValue());
     expect("splitCategoriesEqually" in command).toBe(false);
     expect("splitTagsEqually" in command).toBe(false);
-    expect("splitExcludedFields" in command).toBe(false);
   });
 
   it("emits each split flag on its own", () => {
@@ -268,18 +266,7 @@ describe("split options", () => {
     expect("splitCategoriesEqually" in tagsCommand).toBe(false);
   });
 
-  it("emits the excluded fields once each, in order", () => {
-    const value = baseValue();
-    value.splitCategoriesEqually = true;
-    value.splitExcludedFields = ["custom_3", "custom_1", "custom_3"];
-    expect(toReportRequestCommand(value).splitExcludedFields).toEqual(["custom_3", "custom_1"]);
-  });
 
-  it("keeps the excluded fields while both boxes are off, so a re-tick restores them", () => {
-    const value = baseValue();
-    value.splitExcludedFields = ["custom_3"];
-    expect(toReportRequestCommandForSave(value).splitExcludedFields).toEqual(["custom_3"]);
-  });
 });
 
 describe("isSplitActive", () => {

@@ -5,7 +5,7 @@
  * Two kinds of date value exist, and they never mix:
  * - **Instants** (`createdAt`, `resolvedDate`, task `startedAt`/`endedAt`, …):
  *   moments in time. "Which day" is answered in the app zone.
- * - **Calendar days** (a receipt's `date`, DATE custom field values): a day with
+ * - **Calendar days** (a receipt's `date`): a day with
  *   no zone, stored as **midnight UTC** of that day. "Which day" is the UTC day.
  *
  * "Today" / "this month" are always the app zone's, never the browser's.
@@ -144,7 +144,7 @@ export function toCalendarDay(value: Date | string): string {
 }
 
 /**
- * A **stored** calendar value (a receipt `date`, a DATE custom field) as the
+ * A **stored** calendar value (a receipt `date`) as the
  * local-midnight `Date` of its day — what a datepicker or a local-zone format
  * needs to show that day. The day is the value's **UTC** day (it is stored as
  * midnight UTC), or the day itself for a bare `yyyy-MM-dd`.
@@ -173,8 +173,8 @@ export function calendarDayToLocalDate(value: Date | string | null | undefined):
 }
 
 /**
- * A picked calendar day as it goes on the wire for a receipt `date` or a DATE
- * custom field: **midnight UTC** of that day, e.g. `2026-09-30T00:00:00.000Z`.
+ * A picked calendar day as it goes on the wire for a receipt `date`:
+ * **midnight UTC** of that day, e.g. `2026-09-30T00:00:00.000Z`.
  *
  * A `Date` is the datepicker's local midnight, so its local day is the one the
  * user picked. A string is a value the form never touched (straight from the

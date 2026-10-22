@@ -22,7 +22,6 @@ import {
 import { SnackbarService } from "../../services";
 import { AuthState } from "../../store";
 import { buildReportForm, buildReportFormFromCommand } from "../models/report-form.factory";
-import { ReportCatalogService } from "../services/report-catalog.service";
 import { ReportRunnerService } from "../services/report-runner.service";
 import { marker } from "../../i18n/marker";
 
@@ -44,7 +43,6 @@ import { marker } from "../../i18n/marker";
 export class ReportBuilderComponent {
   private readonly formBuilder = inject(FormBuilder);
   private readonly runner = inject(ReportRunnerService);
-  private readonly catalogService = inject(ReportCatalogService);
   private readonly snackbar = inject(SnackbarService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
@@ -119,8 +117,6 @@ export class ReportBuilderComponent {
   });
 
   constructor() {
-    this.catalogService.load();
-
     this.form.valueChanges
       .pipe(
         startWith(null),

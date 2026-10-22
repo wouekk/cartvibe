@@ -34,12 +34,6 @@
   border-radius: 5px;
   padding: 2px 6px;
 
-  // Marks a custom field, so one stays identifiable after it has been picked -
-  // not only in the dropdown it was chosen from. 6.43:1.
-  &--purple {
-    color: var(--chart-4);
-    background: var(--secondary);
-  }
 
   // The neutral tone, for a classification that carries no warning. 6.22:1.
   &--slate {

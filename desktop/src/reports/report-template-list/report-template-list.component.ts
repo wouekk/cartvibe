@@ -28,7 +28,6 @@ import {
   groupingSummary,
   scopeNames,
 } from "../models/report-template-summary";
-import { ReportCatalogService } from "../services/report-catalog.service";
 import { ReportRunnerService } from "../services/report-runner.service";
 import { ReportTemplateTableService } from "./report-template-table.service";
 import { marker } from "../../i18n/marker";
@@ -56,7 +55,6 @@ export class ReportTemplateListComponent extends BaseTableComponent<ReportTempla
   private readonly matDialog = inject(AppDialog);
   private readonly snackbar = inject(SnackbarService);
   private readonly runner = inject(ReportRunnerService);
-  private readonly catalog = inject(ReportCatalogService);
   private readonly destroyRef = inject(DestroyRef);
 
   private readonly nameCell = viewChild.required<TemplateRef<any>>("nameCell");
@@ -96,11 +94,6 @@ export class ReportTemplateListComponent extends BaseTableComponent<ReportTempla
   }
 
   public ngAfterViewInit(): void {
-    // A stored config references custom fields by key (custom_<id>), so the pool has
-    // to be loaded for the Grouping/Detail columns to name them rather than print the
-    // raw key. The catalog loads once per session and swallows a 403, so a user
-    // without app.custom-fields.read simply keeps the raw key.
-    this.catalog.load();
     this.setColumns();
     this.getTableData();
   }
@@ -161,23 +154,11 @@ export class ReportTemplateListComponent extends BaseTableComponent<ReportTempla
   }
 
   public groupingSummaryFor(template: ReportTemplate): string {
-    return groupingSummary(template.configuration, (key) => this.customFieldLabel(key));
+    return groupingSummary(template.configuration);
   }
 
   public detailSummaryFor(template: ReportTemplate): string {
-    return detailSummary(template.configuration, (key) => this.customFieldLabel(key), (text, params) => this.translation.t(text, params));
-  }
-
-  /**
-   * A custom field's name for its engine key. Both catalog lists are searched
-   * because a currency custom field is a measure as well as a dimension, and a
-   * stored `detail.by` may name either.
-   */
-  private customFieldLabel(key: string): string | undefined {
-    const field =
-      this.catalog.dimensions().find((candidate) => candidate.key === key) ??
-      this.catalog.measures().find((candidate) => candidate.key === key);
-    return field?.label;
+    return detailSummary(template.configuration, (text, params) => this.translation.t(text, params));
   }
 
   public formatChipsFor(template: ReportTemplate): string[] {

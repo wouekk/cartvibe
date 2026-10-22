@@ -6,7 +6,7 @@ import { ReceiptTableInterface } from "../interfaces";
 import { DEFAULT_RECEIPT_TABLE_COLUMNS, ReceiptTableColumnConfig } from "../interfaces/receipt-table-column-config.interface";
 import { ReceiptPagedRequestFilter } from "../open-api";
 import { isFilterEntryActive } from "../utils/receipt-filter-entry";
-import { ResetReceiptFilter, SetColumnConfig, SetPage, SetPageSize, SetQuickDateField, SetReceiptFilter, SetReceiptFilterData, SetReceiptFilterField, SetReceiptSearch, SetSummaryConfigGroupId } from "./receipt-table.actions";
+import { ResetReceiptFilter, SetColumnConfig, SetPage, SetPageSize, SetQuickDateField, SetReceiptFilter, SetReceiptFilterData, SetReceiptFilterField, SetReceiptSearch } from "./receipt-table.actions";
 
 /**
  * A pristine filter. This is a factory rather than a shared constant because
@@ -129,18 +129,6 @@ export class ReceiptTableState {
     return state.columnConfig || DEFAULT_RECEIPT_TABLE_COLUMNS;
   }
 
-  /**
-   * The persisted summary configuration group, raw. There is deliberately no
-   * fallback here: resolving one needs the user's groups and which of them have
-   * the summary enabled, which this slice does not know. `resolveSummaryConfigGroup`
-   * (`src/utils/receipt-summary.ts`) takes this value and does that, and tolerates
-   * `undefined` — which is what a state hydrated from localStorage before this key
-   * existed reads as.
-   */
-  @Selector()
-  static summaryConfigGroupId(state: ReceiptTableInterface): number | undefined {
-    return state.summaryConfigGroupId;
-  }
 
   @Action(SetPage)
   setPage(
@@ -231,15 +219,6 @@ export class ReceiptTableState {
     });
   }
 
-  @Action(SetSummaryConfigGroupId)
-  setSummaryConfigGroupId(
-    { patchState }: StateContext<ReceiptTableInterface>,
-    payload: SetSummaryConfigGroupId
-  ) {
-    patchState({
-      summaryConfigGroupId: payload.groupId,
-    });
-  }
 
   @Action(SetColumnConfig)
   setColumnConfig(

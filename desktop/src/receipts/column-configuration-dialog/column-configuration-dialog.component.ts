@@ -2,13 +2,10 @@ import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { Component, Inject, OnInit } from '@angular/core';
 import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 import { DEFAULT_RECEIPT_TABLE_COLUMNS, ReceiptTableColumnConfig } from '../../interfaces';
-import { CUSTOM_FIELD_BADGE } from '../../shared-ui/badge/badge.component';
-import { CustomField } from '../../open-api';
-import { columnDisplayName, mergeCustomFieldColumns, parseCustomFieldColumnDef } from '../../utils';
+import { columnDisplayName, reconcileColumns } from '../../utils';
 
 interface ColumnConfigItem extends ReceiptTableColumnConfig {
   displayName: string;
-  isCustom: boolean;
 }
 
 @Component({
@@ -20,16 +17,10 @@ interface ColumnConfigItem extends ReceiptTableColumnConfig {
 export class ColumnConfigurationDialogComponent implements OnInit {
   public columns: ColumnConfigItem[] = [];
 
-  protected readonly customFieldBadge = CUSTOM_FIELD_BADGE;
-
   constructor(
     private dialogRef: AppDialogRef<ColumnConfigurationDialogComponent>,
     @Inject(APP_DIALOG_DATA) public data: {
       currentColumns?: ReceiptTableColumnConfig[];
-      customFields?: CustomField[];
-      // Whether customFields is authoritative. Absent is treated as available, so
-      // a caller that knows nothing about the catalog behaves as before.
-      customFieldsAvailable?: boolean;
     }
   ) {}
 
@@ -37,41 +28,22 @@ export class ColumnConfigurationDialogComponent implements OnInit {
     this.initializeColumns();
   }
 
-  private get customFields(): CustomField[] {
-    return this.data.customFields ?? [];
-  }
-
-  private get customFieldsAvailable(): boolean {
-    return this.data.customFieldsAvailable ?? true;
-  }
-
   private initializeColumns(): void {
     this.setColumns(this.data.currentColumns ?? DEFAULT_RECEIPT_TABLE_COLUMNS);
   }
 
   /**
-   * Reconciles against the custom field catalog before display, so a field
-   * deleted since the configuration was persisted disappears from the list and a
-   * newly created one shows up (unchecked) without the user resetting anything.
+   * Reconciles against the built-in columns before display, so a column that no longer exists
+   * disappears from the list and a new one shows up without the user resetting anything.
    *
-   * `mergeCustomFieldColumns` copies, which matters: the caller hands us the NGXS
-   * snapshot, and that is deep-frozen in dev mode.
-   *
-   * Saving writes this list straight back to the persisted configuration, so the
-   * catalog-availability flag has to reach here too: without it, opening and
-   * saving the dialog would drop the custom field columns that reconciliation
-   * just took care to preserve.
+   * `reconcileColumns` copies, which matters: the caller hands us the NGXS snapshot, and that is
+   * deep-frozen in dev mode.
    */
   private setColumns(columns: ReceiptTableColumnConfig[]): void {
-    this.columns = mergeCustomFieldColumns(
-      columns,
-      this.customFields,
-      this.customFieldsAvailable
-    ).map(
+    this.columns = reconcileColumns(columns).map(
       (col) => ({
         ...col,
-        displayName: columnDisplayName(col.matColumnDef, this.customFields),
-        isCustom: parseCustomFieldColumnDef(col.matColumnDef) !== undefined,
+        displayName: columnDisplayName(col.matColumnDef),
       })
     );
   }
@@ -88,18 +60,14 @@ export class ColumnConfigurationDialogComponent implements OnInit {
     });
   }
 
-  /**
-   * Restores the built-in defaults. Custom fields stay listed — they are only
-   * ever hidden by default, so dropping them here would just make them
-   * reappear on the next open.
-   */
+  /** Restores the built-in defaults. */
   public resetToDefaults(): void {
     this.setColumns(DEFAULT_RECEIPT_TABLE_COLUMNS);
   }
 
   public saveConfiguration(): void {
     const result: ReceiptTableColumnConfig[] = this.columns.map(
-      ({ displayName, isCustom, ...col }) => col
+      ({ displayName, ...col }) => col
     );
     this.dialogRef.close(result);
   }

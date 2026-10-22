@@ -349,21 +349,6 @@ export async function apiGroupNames(api: APIRequestContext): Promise<string[]> {
   return groups.map((group) => group.name);
 }
 
-/**
- * One custom field value on a receipt. Exactly one of the typed columns is
- * populated, chosen by the field's own type — a currency field reads
- * currencyValue, a date field dateValue, and so on (the server stores whatever
- * it is given, so a mismatched column simply resolves to no value in a report).
- */
-export interface ReceiptCustomFieldValue {
-  customFieldId: number;
-  stringValue?: string;
-  dateValue?: string;
-  selectValue?: number;
-  currencyValue?: string;
-  booleanValue?: boolean;
-}
-
 /** Creates a minimal OPEN receipt and returns its id. */
 export async function apiCreateReceipt(
   api: APIRequestContext,
@@ -386,7 +371,6 @@ export async function apiCreateReceipt(
      * miscount.
      */
     amount?: string;
-    customFields?: ReceiptCustomFieldValue[];
     /** Existing categories / tags to attach, as returned by apiCreateCategory / apiCreateTag. */
     categories?: { id: number; name: string }[];
     tags?: { id: number; name: string }[];
@@ -400,7 +384,6 @@ export async function apiCreateReceipt(
       groupId: Number(opts.groupId),
       paidByUserId: opts.paidByUserId,
       status: opts.status ?? 'OPEN',
-      ...(opts.customFields ? { customFields: opts.customFields } : {}),
       ...(opts.categories ? { categories: opts.categories } : {}),
       ...(opts.tags ? { tags: opts.tags } : {}),
     },
@@ -710,66 +693,6 @@ export async function apiDeleteTagById(
   await warnOnFailedDelete(api, `/api/tag/${id}`, `tag ${id}`);
 }
 
-// --- Custom fields -----------------------------------------------------------
-//
-// Like categories and tags the pool is GLOBAL, so mint uniqueName-suffixed fields
-// and delete them in teardown — a leaked one shows up in every other spec's
-// pickers. Deleting a field destroys every value stored against it, so a spec
-// that seeds receipts with values must delete those receipts (or their group)
-// too.
-
-export type CustomFieldType = 'TEXT' | 'DATE' | 'SELECT' | 'CURRENCY' | 'BOOLEAN';
-
-/** Creates a custom field and returns its id + name. */
-export async function apiCreateCustomField(
-  api: APIRequestContext,
-  opts: { name: string; type: CustomFieldType; options?: string[] },
-): Promise<{ id: number; name: string }> {
-  const res = await api.post('/api/customField/', {
-    data: {
-      name: opts.name,
-      type: opts.type,
-      description: '',
-      options: (opts.options ?? []).map((value) => ({ value })),
-    },
-  });
-  if (!res.ok()) {
-    throw new Error(
-      `create custom field failed: HTTP ${res.status()} ${await res.text()}`,
-    );
-  }
-  const customField = (await res.json()) as { id: number; name: string };
-  return { id: customField.id, name: customField.name };
-}
-
-/** Reads one custom field back, so a spec can assert what an edit persisted. */
-export async function apiGetCustomFieldById(
-  api: APIRequestContext,
-  id: number,
-): Promise<{
-  id: number;
-  name: string;
-  type: string;
-  description?: string;
-  options?: { id: number; value: string }[];
-}> {
-  const res = await api.get(`/api/customField/${id}`);
-  if (!res.ok()) {
-    throw new Error(
-      `get custom field failed: HTTP ${res.status()} ${await res.text()}`,
-    );
-  }
-  return res.json();
-}
-
-/** Deletes a custom field. Requires app.custom-fields.delete (admin-only). */
-export async function apiDeleteCustomFieldById(
-  api: APIRequestContext,
-  id: number,
-): Promise<void> {
-  await warnOnFailedDelete(api, `/api/customField/${id}`, `custom field ${id}`);
-}
-
 // --- Group receipt settings ---------------------------------------------------
 
 /**
@@ -784,8 +707,7 @@ export async function apiDeleteCustomFieldById(
  * an empty enum, which is also why paid-by and status stay shown+required here
  * (making either optional would need a configured default).
  *
- * The POINTER command fields — `defaultCustomFieldIds`, the three
- * `receiptSummary*` keys — are deliberately absent: omitting a pointer key means
+ * pointer keys are deliberately absent: omitting a pointer key means
  * "leave unchanged", so a caller that does not set one cannot clobber it.
  *
  * Shared by every settings setter below so the key list exists once. A new
@@ -823,7 +745,6 @@ async function groupReceiptSettingsEcho(
     'quickScanCategoriesEnabled', 'quickScanCategoriesRequired',
     'quickScanTagsEnabled', 'quickScanTagsRequired',
     'quickScanCommentEnabled', 'quickScanCommentRequired',
-    'applyDefaultCustomFieldsOnIngest',
   ]) {
     command[key] = settings[key] ?? false;
   }
@@ -843,63 +764,6 @@ async function putGroupReceiptSettings(
   if (!res.ok()) {
     throw new Error(`${what} failed: HTTP ${res.status()} ${await res.text()}`);
   }
-}
-
-/**
- * Persists [customFieldIds] as [groupId]'s default custom fields, optionally
- * flipping the "apply on ingest" toggle with [applyOnIngest]. Mirrors the mobile
- * suite's `setGroupDefaultCustomFields` fixture.
- *
- * Pass `[]` to clear the group's set.
- */
-export async function apiSetGroupDefaultCustomFields(
-  api: APIRequestContext,
-  groupId: number | string,
-  customFieldIds: number[],
-  applyOnIngest?: boolean,
-): Promise<void> {
-  const what = 'set default custom fields';
-  const command = await groupReceiptSettingsEcho(api, groupId, what);
-  command['defaultCustomFieldIds'] = customFieldIds;
-  if (applyOnIngest !== undefined) {
-    command['applyDefaultCustomFieldsOnIngest'] = applyOnIngest;
-  }
-
-  await putGroupReceiptSettings(api, groupId, command, what);
-}
-
-/**
- * Configures [groupId]'s receipt summary — the block of totals under the receipts
- * table. Lets a spec seed the configuration without driving the settings form.
- *
- * [currencyCustomFieldIds] must reference CURRENCY custom fields; the server 400s
- * anything else, because only a currency value can be summed. Pass `[]` for either
- * set to clear it.
- */
-export async function apiSetGroupSummaryConfig(
-  api: APIRequestContext,
-  groupId: number | string,
-  config: {
-    enabled: boolean;
-    statuses?: string[];
-    currencyCustomFieldIds?: number[];
-    position?: 'TOP' | 'BOTTOM';
-  },
-): Promise<void> {
-  const what = 'set receipt summary config';
-  const command = await groupReceiptSettingsEcho(api, groupId, what);
-  command['receiptSummaryEnabled'] = config.enabled;
-  if (config.statuses !== undefined) {
-    command['receiptSummaryStatuses'] = config.statuses;
-  }
-  if (config.currencyCustomFieldIds !== undefined) {
-    command['receiptSummaryCustomFieldIds'] = config.currencyCustomFieldIds;
-  }
-  if (config.position !== undefined) {
-    command['receiptSummaryPosition'] = config.position;
-  }
-
-  await putGroupReceiptSettings(api, groupId, command, what);
 }
 
 // --- Per-member category/tag grants ------------------------------------------

@@ -165,14 +165,6 @@
   </div>
 </app-table-header>
 
-<!--
-  The TOP anchor: these totals describe the whole filter and are the page's headline. Below the
-  header -- the header owns the title and the filter controls. (The who-owes-whom card for a row
-  selection is gone, Phase 3 C4: a family does not split bills.)
--->
-@if (summaryAtTop()) {
-  <ng-container *ngTemplateOutlet="receiptTotals"></ng-container>
-}
 
 @if (filterChips().length > 0) {
   <div class="mb-4 flex flex-wrap gap-2" role="list" [attr.aria-label]="'Applied filters' | t">
@@ -214,24 +206,6 @@
   ></app-table>
 </div>
 
-@if (!summaryAtTop()) {
-  <ng-container *ngTemplateOutlet="receiptTotals"></ng-container>
-}
-
-<!--
-  ONE set of bindings, rendered at whichever anchor the group configured. Two copies of the
-  element behind separate @ifs would drift, and each would need its own data-testid handling
-  in the e2e suite.
--->
-<ng-template #receiptTotals>
-  <app-receipt-totals
-    [summary]="summary()"
-    [position]="summaryPosition()"
-    [configGroups]="summaryConfigGroupOptions()"
-    [selectedConfigGroupId]="summaryConfigGroupId()"
-    (configGroupSelected)="summaryConfigGroupSelected($event)"
-  ></app-receipt-totals>
-</ng-template>
 
 <ng-template #dateCell let-element="element">
   <a [routerLink]="['/receipts/' + element.id + '/view']" data-testid="receipt-date-link">
@@ -289,12 +263,6 @@
   </span>
 </ng-template>
 
-<ng-template #customFieldCell let-element="element" let-column="column">
-  <app-custom-field-cell
-    [receipt]="element"
-    [customField]="column.customField"
-  ></app-custom-field-cell>
-</ng-template>
 
 <ng-template #actionsCell let-element="element" let-index="index">
   <div class="flex w-full">

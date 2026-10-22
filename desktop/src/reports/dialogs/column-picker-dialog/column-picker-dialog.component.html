@@ -32,7 +32,7 @@
     }
 
     @case ("dim") {
-      <app-select [label]="'Field' | t" optionValueKey="value" optionDisplayKey="displayValue" optionBadgeKey="badge"
+      <app-select [label]="'Field' | t" optionValueKey="value" optionDisplayKey="displayValue"
         [readonly]="lockField"
         [options]="dimensionOptions" [inputFormControl]="pickerForm | formGet: 'field'"></app-select>
       <app-input [label]="'Column label' | t" [inputFormControl]="pickerForm | formGet: 'label'"></app-input>
@@ -47,7 +47,7 @@
         }
       </div>
       @if (aggregateNeedsMeasure) {
-        <app-select [label]="'Measure' | t" optionValueKey="value" optionDisplayKey="displayValue" optionBadgeKey="badge"
+        <app-select [label]="'Measure' | t" optionValueKey="value" optionDisplayKey="displayValue"
           [options]="measureOptions" [inputFormControl]="pickerForm | formGet: 'measure'"></app-select>
       }
       <app-input [label]="'Column label' | t" [inputFormControl]="pickerForm | formGet: 'label'"></app-input>

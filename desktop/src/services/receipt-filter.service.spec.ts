@@ -1,8 +1,7 @@
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
 import { NgxsModule, Store } from "@ngxs/store";
-import { of } from "rxjs";
-import { ApiModule, FilterOperation, ReceiptService, ReceiptSummary } from "../open-api";
+import { ApiModule, FilterOperation, ReceiptService } from "../open-api";
 import { buildDefaultReceiptFilter, ReceiptTableState } from "../store/receipt-table.state";
 import { SetReceiptFilterData } from "../store/receipt-table.actions";
 import { ReceiptFilterService } from "./receipt-filter.service";
@@ -27,89 +26,13 @@ describe("ReceiptFilterService", () => {
     expect(service).toBeTruthy();
   });
 
-  describe("getReceiptSummaryForGroup", () => {
-    /**
-     * The summary's whole promise is that it describes the CURRENT filter. This adapter is the only
-     * place that promise is kept - it reads the filter from the store rather than taking one - so a
-     * regression here would silently report totals for the whole group while the table showed a
-     * filtered page. The component specs mock this method, so nothing else covers it.
-     */
-    function seedStatusFilter(): void {
-      const filter = buildDefaultReceiptFilter();
-      filter.status = { operation: FilterOperation.Equals, value: ["OPEN"] };
-
-      store.dispatch(
-        new SetReceiptFilterData({
-          page: 3,
-          pageSize: 25,
-          orderBy: "name",
-          sortDirection: "asc" as any,
-          filter,
-        } as any)
-      );
-    }
-
-    it("forwards the active filter from the store", () => {
-      const spy = jest
-        .spyOn(receiptService, "getReceiptSummaryForGroup")
-        .mockReturnValue(of({} as ReceiptSummary) as any);
-
-      seedStatusFilter();
-      service.getReceiptSummaryForGroup("1", 1).subscribe();
-
-      const command = spy.mock.calls[0][1] as any;
-      // "To check" stands for every status still to check (Phase 3 C6).
-      expect(command.filter.status.value).toEqual(["OPEN", "NEEDS_ATTENTION", "DRAFT"]);
-      expect(command.filter.status.operation).toBe(FilterOperation.Equals);
-    });
-
-    it("converts the group id to a number", () => {
-      const spy = jest
-        .spyOn(receiptService, "getReceiptSummaryForGroup")
-        .mockReturnValue(of({} as ReceiptSummary) as any);
-
-      service.getReceiptSummaryForGroup("7", 7).subscribe();
-
-      // The caller holds the group id as a route string; the generated client types it numeric, and
-      // a string would serialize into the url as-is rather than failing loudly.
-      expect(spy.mock.calls[0][0]).toBe(7);
-      expect(typeof spy.mock.calls[0][0]).toBe("number");
-    });
-
-    it("preserves a configurationGroupId that differs from the group id", () => {
-      const spy = jest
-        .spyOn(receiptService, "getReceiptSummaryForGroup")
-        .mockReturnValue(of({} as ReceiptSummary) as any);
-
-      // The All-group case: the data spans every group, the configuration comes from one of them.
-      service.getReceiptSummaryForGroup("1", 42).subscribe();
-
-      expect((spy.mock.calls[0][1] as any).configurationGroupId).toBe(42);
-    });
-
-    it("returns the summary from the client untouched", (done) => {
-      const summary = { enabled: true, configurationGroupId: 1 } as ReceiptSummary;
-      jest
-        .spyOn(receiptService, "getReceiptSummaryForGroup")
-        .mockReturnValue(of(summary) as any);
-
-      service.getReceiptSummaryForGroup("1", 1).subscribe((result) => {
-        expect(result).toBe(summary);
-        done();
-      });
-    });
-  });
-
-  it("sends the search phrase with the table and the summary request", () => {
+  it("sends the search phrase with the table request", () => {
     const filter = buildDefaultReceiptFilter();
     filter.search = "choc noir";
     store.dispatch(new SetReceiptFilterData({ page: 1, pageSize: 25, orderBy: "date", sortDirection: "desc", filter } as any));
-    const spy = jest.spyOn(receiptService, "getReceiptSummaryForGroup").mockReturnValue(of({} as ReceiptSummary) as any);
 
     expect((service.buildPagedRequestCommand() as any).filter.search).toBe("choc noir");
 
-    service.getReceiptSummaryForGroup("1", 1).subscribe();
-    expect((spy.mock.calls[0][1] as any).filter.search).toBe("choc noir");
   });
 
   // Date filters go out as the calendar day picked; the server resolves the day
@@ -139,17 +62,6 @@ describe("ReceiptFilterService", () => {
       expect(store.selectSnapshot(ReceiptTableState.filterData).filter.createdAt.value[0]).toEqual(
         new Date(2026, 8, 1)
       );
-    });
-
-    it("sends the same days on the summary request", () => {
-      const spy = jest
-        .spyOn(receiptService, "getReceiptSummaryForGroup")
-        .mockReturnValue(of({} as ReceiptSummary) as any);
-      seedMonthFilter();
-
-      service.getReceiptSummaryForGroup("1", 1).subscribe();
-
-      expect((spy.mock.calls[0][1] as any).filter.createdAt.value).toEqual(["2026-09-01", "2026-09-30"]);
     });
 
     it("converts a widget's own filter too", () => {

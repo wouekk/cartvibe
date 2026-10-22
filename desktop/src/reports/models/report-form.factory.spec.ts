@@ -151,7 +151,6 @@ describe("buildReportFormFromCommand", () => {
       grandTotals: true,
       splitCategoriesEqually: true,
       splitTagsEqually: true,
-      splitExcludedFields: ["custom_4", "custom_9"],
       formats: [ReportRequestCommand.FormatsEnum.Pdf],
     };
 
@@ -170,7 +169,6 @@ describe("buildReportFormFromCommand", () => {
 
     expect(form.get("splitCategoriesEqually")!.value).toBe(false);
     expect(form.get("splitTagsEqually")!.value).toBe(false);
-    expect(readStringArray(form.get("splitExcludedFields") as FormArray)).toEqual([]);
   });
 
   it("parses custom-period date strings back into Date objects", () => {

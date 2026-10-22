@@ -5,7 +5,6 @@ import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 import { provideRouter } from "@angular/router";
 import { NgxsModule } from "@ngxs/store";
 import { DEFAULT_RECEIPT_TABLE_COLUMNS, ReceiptTableColumnConfig } from "../../interfaces";
-import { CustomField, CustomFieldType } from "../../open-api";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { ReceiptTableState } from "../../store/receipt-table.state";
 import { RECEIPT_COLUMN_DISPLAY_NAMES } from "../../utils";
@@ -17,22 +16,8 @@ describe("ColumnConfigurationDialogComponent", () => {
   let mockDialogRef: jest.Mocked<AppDialogRef<ColumnConfigurationDialogComponent>>;
   let mockDialogData: {
     currentColumns?: ReceiptTableColumnConfig[];
-    customFields?: CustomField[];
-    customFieldsAvailable?: boolean;
   };
 
-  const customField = (id: number, name: string): CustomField =>
-    ({ id, name, type: CustomFieldType.Text } as CustomField);
-
-  /**
-   * The rendered row for the custom_7 column, or undefined when it is not listed.
-   * The list renders straight off component.columns, so this is what the user
-   * actually sees rather than what the component holds.
-   */
-  const customFieldRow = (): HTMLElement | undefined =>
-    Array.from(
-      fixture.nativeElement.querySelectorAll(".column-item") as ArrayLike<HTMLElement>
-    ).find((row) => row.textContent?.includes("custom_7"));
 
   /** The configuration a real session persists: every built-in column, in order. */
   const allBuiltInColumns = (): ReceiptTableColumnConfig[] =>
@@ -107,22 +92,19 @@ describe("ColumnConfigurationDialogComponent", () => {
         matColumnDef: "date",
         visible: true,
         order: 0,
-        displayName: "Receipt Date",
-        isCustom: false
+        displayName: "Receipt Date"
       });
       expect(component.columns[1]).toEqual({
         matColumnDef: "shop_name",
         visible: true,
         order: 1,
-        displayName: "Shop",
-        isCustom: false
+        displayName: "Shop"
       });
       expect(component.columns[2]).toEqual({
         matColumnDef: "amount",
         visible: false,
         order: 2,
-        displayName: "Amount",
-        isCustom: false
+        displayName: "Amount"
       });
     });
 
@@ -168,8 +150,8 @@ describe("ColumnConfigurationDialogComponent", () => {
 
     it("drops a persisted column that no longer resolves", () => {
       // A column can outlive its definition: the configuration is persisted per
-      // browser, so a released build that removes a column - or a deleted custom
-      // field - leaves an id behind that mat-table would reject.
+      // browser, so a released build that removes a column
+      // leaves an id behind that mat-table would reject.
       mockDialogData.currentColumns = [
         ...allBuiltInColumns(),
         { matColumnDef: "unknown_column", visible: true, order: 9 }
@@ -182,124 +164,12 @@ describe("ColumnConfigurationDialogComponent", () => {
       ).toBe(false);
     });
 
-    it("lists every custom field after the built-in columns, unchecked", () => {
-      mockDialogData.currentColumns = allBuiltInColumns();
-      mockDialogData.customFields = [customField(7, "Vendor"), customField(2, "Approver")];
 
-      component.ngOnInit();
 
-      // Sorted by name, so the ids are deliberately out of order above.
-      expect(component.columns.slice(DEFAULT_RECEIPT_TABLE_COLUMNS.length)).toEqual([
-        { matColumnDef: "custom_2", visible: false, order: DEFAULT_RECEIPT_TABLE_COLUMNS.length, displayName: "Approver", isCustom: true },
-        { matColumnDef: "custom_7", visible: false, order: DEFAULT_RECEIPT_TABLE_COLUMNS.length + 1, displayName: "Vendor", isCustom: true }
-      ]);
-    });
 
-    it("keeps custom field columns when the catalog is unavailable, and saves them back", () => {
-      // The resolver hands an empty catalog to a user without app.custom-fields.read,
-      // so "no fields" here means "may not look". Saving writes this list straight
-      // back to the browser-wide configuration, which is why the dialog has to know.
-      mockDialogData.currentColumns = [
-        ...allBuiltInColumns(),
-        { matColumnDef: "custom_7", visible: true, order: 9 },
-      ];
-      mockDialogData.customFields = [];
-      mockDialogData.customFieldsAvailable = false;
 
-      component.ngOnInit();
-      fixture.detectChanges();
-      component.saveConfiguration();
-
-      expect(component.columns.map((col) => col.matColumnDef)).toContain("custom_7");
-
-      // It is listed, and listing it is what makes it survivable: saving writes
-      // this.columns straight back, so a row hidden from the dialog would be
-      // dropped by the very next save. With no catalog there is no name to
-      // resolve, so columnDisplayName falls back to the raw column def - the
-      // honest label for a field this user may not read.
-      expect(customFieldRow()?.textContent).toContain("custom_7");
-
-      const saved = mockDialogRef.close.mock.calls[0][0] as ReceiptTableColumnConfig[];
-      expect(saved.map((col) => col.matColumnDef)).toContain("custom_7");
-    });
-
-    it("still drops an unresolvable custom field when the catalog IS available", () => {
-      mockDialogData.currentColumns = [
-        ...allBuiltInColumns(),
-        { matColumnDef: "custom_7", visible: true, order: 9 },
-      ];
-      mockDialogData.customFields = [];
-      mockDialogData.customFieldsAvailable = true;
-
-      component.ngOnInit();
-      fixture.detectChanges();
-
-      expect(component.columns.map((col) => col.matColumnDef)).not.toContain("custom_7");
-      expect(customFieldRow()).toBeUndefined();
-    });
-
-    it("drops a custom field column whose field no longer exists", () => {
-      mockDialogData.currentColumns = [
-        ...allBuiltInColumns(),
-        { matColumnDef: "custom_99", visible: true, order: 9 }
-      ];
-      mockDialogData.customFields = [customField(7, "Vendor")];
-
-      component.ngOnInit();
-
-      expect(component.columns.map(col => col.matColumnDef)).not.toContain("custom_99");
-      expect(component.columns.map(col => col.matColumnDef)).toContain("custom_7");
-    });
-
-    it("keeps a custom field column the user moved above a built-in one", () => {
-      mockDialogData.currentColumns = [
-        { matColumnDef: "custom_7", visible: true, order: 0 },
-        ...allBuiltInColumns().map((column, index) => ({ ...column, order: index + 1 }))
-      ];
-      mockDialogData.customFields = [customField(7, "Vendor")];
-
-      component.ngOnInit();
-
-      expect(component.columns[0]).toEqual({
-        matColumnDef: "custom_7",
-        visible: true,
-        order: 0,
-        displayName: "Vendor",
-        isCustom: true
-      });
-    });
   });
 
-  describe("custom field badge", () => {
-    it("badges a custom field row and no built-in one", () => {
-      mockDialogData.customFields = [customField(7, "Vendor")];
-      component.ngOnInit();
-      fixture.detectChanges();
-
-      const rows = fixture.nativeElement.querySelectorAll(".column-item");
-      const badged = Array.from(rows as ArrayLike<HTMLElement>).filter((row) =>
-        row.querySelector("app-badge")
-      );
-
-      expect(badged.length).toEqual(1);
-      expect(badged[0].textContent).toContain("Vendor");
-      expect(badged[0].querySelector("app-badge")?.textContent?.trim()).toEqual("Custom");
-    });
-
-    // Inside the label the badge would join the checkbox's accessible name, and
-    // every locator picking a column by its field name would stop resolving.
-    it("keeps the badge out of the checkbox label", () => {
-      mockDialogData.customFields = [customField(7, "Vendor")];
-      component.ngOnInit();
-      fixture.detectChanges();
-
-      const checkbox = fixture.nativeElement.querySelector(
-        ".column-item:last-child label.column-checkbox"
-      ) as HTMLElement;
-
-      expect(checkbox.textContent?.trim()).toEqual("Vendor");
-    });
-  });
 
   describe("toggleColumnVisibility", () => {
     beforeEach(() => {
@@ -434,22 +304,6 @@ describe("ColumnConfigurationDialogComponent", () => {
       });
     });
 
-    it("keeps custom fields listed and unchecked after a reset", () => {
-      mockDialogData.customFields = [customField(7, "Vendor")];
-      component.ngOnInit();
-      component.columns.find(col => col.matColumnDef === "custom_7")!.visible = true;
-
-      component.resetToDefaults();
-
-      // Dropping them instead would just make them reappear on the next open.
-      expect(component.columns[component.columns.length - 1]).toEqual({
-        matColumnDef: "custom_7",
-        visible: false,
-        order: DEFAULT_RECEIPT_TABLE_COLUMNS.length,
-        displayName: "Vendor",
-        isCustom: true
-      });
-    });
 
     it("should preserve displayName mapping when resetting", () => {
       component.resetToDefaults();
@@ -490,7 +344,6 @@ describe("ColumnConfigurationDialogComponent", () => {
       const result = mockDialogRef.close.mock.calls[mockDialogRef.close.mock.calls.length - 1][0];
       result.forEach((col: any) => {
         expect(col.displayName).toBeUndefined();
-        expect(col.isCustom).toBeUndefined();
         expect(col.matColumnDef).toBeDefined();
         expect(col.visible).toBeDefined();
         expect(col.order).toBeDefined();

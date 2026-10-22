@@ -8,7 +8,6 @@ import { NgxsModule, Store } from "@ngxs/store";
 import { of, Subject, throwError } from "rxjs";
 import { SnackbarService } from "../../services";
 import {
-  CustomFieldService,
   FilterOperation,
   Permission,
   ReportColumn,
@@ -71,7 +70,6 @@ describe("ReportBuilderComponent", () => {
         FormBuilder,
         { provide: ReportRunnerService, useValue: runner },
         { provide: SnackbarService, useValue: snackbar },
-        { provide: CustomFieldService, useValue: { getPagedCustomFields: jest.fn(() => of({ data: [], totalCount: 0 })) } },
         { provide: ActivatedRoute, useValue: activatedRoute },
       ],
       schemas: [NO_ERRORS_SCHEMA],

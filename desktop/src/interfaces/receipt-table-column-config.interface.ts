@@ -20,8 +20,8 @@ export const DEFAULT_RECEIPT_TABLE_COLUMNS: ReceiptTableColumnConfig[] = [
   { matColumnDef: 'paid_by_user_id', visible: true, order: 4 },
   // No Added At, Name, Categories, Tags or Done on columns: categories and tags live on the products,
   // and Done on only repeated Added At. Leaving them out of the defaults also drops them from a layout
-  // saved before, through mergeCustomFieldColumns.
-  // Opt-in: mergeCustomFieldColumns appends a missing built-in with the visibility
+  // saved before, through reconcileColumns.
+  // Opt-in: reconcileColumns appends a missing built-in with the visibility
   // it has here, so an existing saved layout gains the column unchecked.
   { matColumnDef: 'first_comment', visible: false, order: 5 },
 ];

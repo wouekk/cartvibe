@@ -37,10 +37,10 @@ export type ReceiptUpdateBeforeState = "complete" | "rebuilt" | "incomplete";
 /**
  * Record-keeping fields (the API's BaseModel) the changed-keys summary ignores
  * at every depth. None of them change because the user edited something:
- * saving a receipt deletes and recreates its items and custom field values, so
+ * saving a receipt deletes and recreates its items, so
  * those get new ids and timestamps on every save, and it bumps `updatedAt` on
  * the receipt and on its categories and tags. Counting them would list
- * `receiptItems`, `customFields`, `categories` and `tags` on every row.
+ * `receiptItems`, `categories` and `tags` on every row.
  */
 const SUMMARY_IGNORED_KEYS = new Set(["id", "createdAt", "updatedAt", "createdBy", "createdByString"]);
 
