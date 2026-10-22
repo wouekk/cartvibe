@@ -14,6 +14,12 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
   divides a receipt by what its lines cost; what the lines do not cover is the empty bucket, so totals stay exact.
 
 ### Changed
+- **Settings in the sidebar:** "Admin Settings" is now **Settings** and holds Manage Categories, Manage Tags, AI, User
+  Settings, **Language** and **Theme** (each now a page of its own), then the admin pages. The account menu keeps only
+  About and Logout.
+- **Quick Scan without an AI key** stays visible and asks whether to add one (Add AI API key / Cancel) instead of hiding.
+- **Scan product** opens a centered dialog (take a photo of the code, upload a photo, or type the barcode number, with
+  Cancel) instead of a panel sliding in from the right; the camera icon inside the barcode box is gone.
 - **Report builder** follows the visual identity in both themes: hairline section cards (no more white cards with
   unreadable labels in Black), flat grouping and column rows, the shared tab strip and header, a segmented format
   control, and a phone layout that scrolls as one page. Paid By is called **Added by** in reports.
