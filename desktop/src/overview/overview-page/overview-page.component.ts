@@ -9,8 +9,25 @@ import type { ApexOptions } from "apexcharts";
 /** The ApexCharts instance handed to chart events; only its container is used here. */
 type ChartContext = { el?: HTMLElement };
 
-/** How far the focused donut slice pops out, in pixels. */
-const DONUT_POP_OUT_PX = 7;
+/** How far the active donut slice grows from the ring's center, and how faint the other slices and legend rows go. */
+const DONUT_POP_OUT_SCALE = 1.06;
+const DONUT_DIMMED_OPACITY = 0.45;
+
+/**
+ * The middle of the drawn ring: the center of the box around all its slices (they always close the circle). Undefined
+ * while the ring has no size yet (ApexCharts grows the slices from nothing during its entry animation).
+ */
+function ringCenter(paths: SVGPathElement[]): { x: number; y: number } | undefined {
+  const boxes = paths.filter((path) => typeof path.getBBox === "function").map((path) => path.getBBox());
+  if (boxes.length === 0) {
+    return undefined;
+  }
+  const left = Math.min(...boxes.map((box) => box.x));
+  const top = Math.min(...boxes.map((box) => box.y));
+  const right = Math.max(...boxes.map((box) => box.x + box.width));
+  const bottom = Math.max(...boxes.map((box) => box.y + box.height));
+  return right > left && bottom > top ? { x: (left + right) / 2, y: (top + bottom) / 2 } : undefined;
+}
 import { catchError, firstValueFrom, map, of, switchMap, take, tap } from "rxjs";
 import {
   FilterOperation,
@@ -51,7 +68,6 @@ import {
 } from "../overview-export";
 import {
   buildDonutSegments,
-  donutSliceOffset,
   buildTrendBars,
   describeChangeAgainst,
   DonutSegment,
@@ -263,17 +279,30 @@ export class OverviewPageComponent {
 
   public readonly segments = computed(() => buildDonutSegments(this.overview()?.categories ?? []));
 
-  /** The category the user focused (click a slice or a legend dot); the others dim and the ring's middle shows it. */
+  /** The category the user focused (click a slice or a legend dot); it stays until clicked again. */
   public readonly focusedSegment = signal<string | null>(null);
 
+  /** The category under the pointer (or keyboard focus), on the ring or in the legend. */
+  public readonly hoveredSegment = signal<string | null>(null);
+
+  /** What the ring and the legend emphasise: the hovered category, else the focused one. */
+  public readonly activeSegment = computed(() => this.hoveredSegment() ?? this.focusedSegment());
+
   public isDimmed(name: string): boolean {
-    const focused = this.focusedSegment();
-    return focused !== null && focused !== name;
+    const active = this.activeSegment();
+    return active !== null && active !== name;
   }
 
   public toggleFocus(name: string): void {
     this.focusedSegment.update((focused) => (focused === name ? null : name));
   }
+
+  public hoverSegment(name: string | null): void {
+    this.hoveredSegment.set(name);
+  }
+
+  /** The drawn donut, kept from its chart events so a legend hover can emphasise a slice without a redraw. */
+  private donutElement?: HTMLElement;
 
   public readonly bars = computed(() => {
     const overview = this.overview();
@@ -317,13 +346,13 @@ export class OverviewPageComponent {
     this.goalMode() ? this.chartBars().filter((bar) => (bar.overAmount ?? 0) > 0) : []
   );
 
-  /** The category donut (ApexCharts on the theme tokens); the total, or the focused category, sits in its middle. */
+  /**
+   * The category donut (ApexCharts on the theme tokens); the total, or the focused category, sits in its middle. Hover
+   * is not part of the options: it is applied to the drawn SVG (`applySliceEmphasis`), so it never redraws the chart.
+   */
   public readonly donutOptions = (colors: ChartColors): ApexOptions => {
     const segments = this.segments();
-    const focusedName = this.focusedSegment();
-    const focused = segments.find((segment) => segment.name === focusedName);
-    const centerLabel = focused ? this.translation.t(focused.name) : this.periodLabel();
-    const centerValue = this.displayCurrencyService.format(focused ? focused.total : this.overview()?.total ?? 0);
+    const { label: centerLabel, value: centerValue } = this.centerText(this.focusedSegment());
     return {
       chart: {
         type: "donut",
@@ -333,20 +362,25 @@ export class OverviewPageComponent {
         fontFamily: "inherit",
         animations: { speed: 400 },
         events: {
-          mounted: (chart: ChartContext) => this.popFocusedSlice(chart),
-          updated: (chart: ChartContext) => this.popFocusedSlice(chart),
+          mounted: (chart: ChartContext) => this.keepDonut(chart),
+          updated: (chart: ChartContext) => this.keepDonut(chart),
+          // The slices only have their final shape once the entry animation ends, so the grown slice's origin is set again.
+          animationEnd: (chart: ChartContext) => this.keepDonut(chart),
           dataPointSelection: (_event: unknown, _chart: unknown, config: { dataPointIndex: number }) => {
             const segment = this.segments()[config.dataPointIndex];
             if (segment) {
               this.toggleFocus(segment.name);
             }
           },
+          dataPointMouseEnter: (_event: unknown, _chart: unknown, config: { dataPointIndex: number }) =>
+            this.hoverSegment(this.segments()[config.dataPointIndex]?.name ?? null),
+          dataPointMouseLeave: () => this.hoverSegment(null),
         },
       },
       series: segments.map((segment) => segment.total),
-      labels: segments.map((segment) => segment.name),
+      // ApexCharts writes the hovered slice's label into the middle itself, so the labels are the translated names.
+      labels: segments.map((segment) => this.translation.t(segment.name)),
       colors: segments.map((_segment, index) => colors.series[index % colors.series.length]),
-      fill: { opacity: segments.map((segment) => (focusedName !== null && segment.name !== focusedName ? 0.22 : 1)) },
       stroke: { width: 3, colors: [colors.card] },
       legend: { show: false },
       dataLabels: { enabled: false },
@@ -367,12 +401,14 @@ export class OverviewPageComponent {
       plotOptions: {
         pie: {
           expandOnClick: false,
+          // Room inside the chart box for the active slice to grow (DONUT_POP_OUT_SCALE) without being clipped.
+          customScale: 0.92,
           donut: {
             size: "76%",
             labels: {
               show: true,
               name: { show: true, color: colors.mutedForeground, fontSize: "12px", offsetY: 18 },
-              value: { show: true, color: colors.foreground, fontSize: "20px", fontWeight: 600, offsetY: -14, formatter: () => centerValue },
+              value: { show: true, color: colors.foreground, fontSize: "20px", fontWeight: 600, offsetY: -14, formatter: (value: string) => this.displayCurrencyService.format(Number(value)) },
               total: { show: true, showAlways: true, label: centerLabel, color: colors.mutedForeground, fontSize: "12px", formatter: () => centerValue },
             },
           },
@@ -381,28 +417,60 @@ export class OverviewPageComponent {
     };
   };
 
+  /** The ring's middle: the category's name and total, or the period and its total when none is given. */
+  private centerText(name: string | null): { label: string; value: string } {
+    const segment = this.segments().find((candidate) => candidate.name === name);
+    return {
+      label: segment ? this.translation.t(segment.name) : this.periodLabel(),
+      value: this.displayCurrencyService.format(segment ? segment.total : this.overview()?.total ?? 0),
+    };
+  }
+
+  private keepDonut(chart: ChartContext): void {
+    this.donutElement = chart?.el;    this.applySliceEmphasis();
+  }
+
   /**
-   * Pushes the focused slice out along its middle by a few pixels (it settles back when focus is cleared). Done on the
-   * drawn SVG after every render, since ApexCharts has no option for a programmatic pop-out; the donut is drawn
-   * smaller (customScale) so the slice stays inside the chart box and so inside the panel.
+   * Emphasises the active category on the drawn SVG: its slice grows out from the ring's center, the other slices go
+   * faint, and the middle names it. Done on the SVG (ApexCharts has no option for a programmatic pop-out) after every
+   * render and whenever the active category changes, so hovering the legend or the ring never redraws the chart. The
+   * ring is drawn smaller (customScale) so the grown slice stays inside the chart box.
    */
-  private popFocusedSlice(chart: ChartContext): void {
-    const container: HTMLElement | undefined = chart?.el;
-    if (!container) {
+  private applySliceEmphasis(): void {
+    const container = this.donutElement;
+    if (!container?.isConnected) {
       return;
     }
 
     const segments = this.segments();
-    const focusedIndex = segments.findIndex((segment) => segment.name === this.focusedSegment());
-    const offset = focusedIndex >= 0 ? donutSliceOffset(segments.map((segment) => segment.total), focusedIndex, DONUT_POP_OUT_PX) : { x: 0, y: 0 };
+    const active = this.activeSegment();
+    const activeIndex = segments.findIndex((segment) => segment.name === active);
     const calm = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const paths = Array.from(container.querySelectorAll<SVGPathElement>("path.apexcharts-pie-area"));
+    const center = ringCenter(paths);
+    for (const path of paths) {
+      const match = /apexcharts-(?:donut|pie)-slice-(\d+)/.exec(path.getAttribute("class") ?? "");
+      const index = match ? Number(match[1]) : -1;
+      const grown = activeIndex >= 0 && index === activeIndex;
+      const box = typeof path.getBBox === "function" ? path.getBBox() : undefined;
+      if (center && box) {
+        // fill-box puts the origin in the slice's own box, so the ring's center is given relative to it.
+        path.style.transformBox = "fill-box";
+        path.style.transformOrigin = `${center.x - box.x}px ${center.y - box.y}px`;
+      }
+      path.style.transition = calm ? "none" : "transform 200ms cubic-bezier(0.16, 1, 0.3, 1), opacity 150ms ease";
+      path.style.transform = grown ? `scale(${DONUT_POP_OUT_SCALE})` : "scale(1)";
+      path.style.opacity = activeIndex >= 0 && !grown ? String(DONUT_DIMMED_OPACITY) : "1";
+    }
 
-    container.querySelectorAll<SVGPathElement>("path.apexcharts-pie-area").forEach((path) => {
-      const match = /apexcharts-(?:donut|pie)-slice-(d+)/.exec(path.getAttribute("class") ?? "");
-      const pushed = match !== null && Number(match[1]) === focusedIndex;
-      path.style.transition = calm ? "none" : "transform 180ms ease-out";
-      path.style.transform = pushed ? `translate(${offset.x}px, ${offset.y}px)` : "translate(0, 0)";
-    });
+    // ApexCharts writes the hovered slice into the middle itself; a legend hover and a cleared hover need it here.
+    const text = this.centerText(active);
+    const label = container.querySelector(".apexcharts-datalabel-label");
+    const value = container.querySelector(".apexcharts-datalabel-value");
+    if (label && value) {
+      label.textContent = text.label;
+      value.textContent = text.value;
+    }
   }
 
   /** The spending bars: black in the light theme, white in the dark one (the primary token), red above the goal. */
@@ -693,6 +761,13 @@ export class OverviewPageComponent {
         input.focus();
         input.select();
       }
+    });
+
+    // Imperative side effect: emphasise the active donut slice on the drawn SVG (hover never redraws the chart).
+    effect(() => {
+      this.activeSegment();
+      this.segments();
+      untracked(() => this.applySliceEmphasis());
     });
 
     // Imperative side effect: keep the shopping list store on the group the card describes.
