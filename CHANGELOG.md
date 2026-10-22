@@ -8,6 +8,10 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+### Removed
+- **Custom fields** (definitions, receipt values, group defaults, AI extraction, report fields, permissions) and the **receipt summary** block under the receipts table.
+  **Not an in-place upgrade:** wipe the NAS `sqlite` folder and set new `SECRET_KEY` / `ENCRYPTION_KEY` before deploying; no drop migration was written on purpose.
+
 ### Changed
 - Internal clean-up: the Go module is `cartvibe/api`, the CSS prefix is `cv-`, the Angular project is `cartvibe`, the MCP server and
   OAuth sign-in page say CartVibe, and the upstream release scripts and READMEs are gone. The JWT issuer and the `rw-v1` API key
