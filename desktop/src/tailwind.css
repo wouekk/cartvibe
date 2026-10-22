@@ -305,6 +305,11 @@ select {
   .rw-card--destructive {
     @apply border-destructive/40;
   }
+  /* The action row of a destructive card (Danger Zone) is part of that card: its divider takes the card's own red
+     hairline and it has no grey band, which only belongs to the Save row of a normal card. */
+  .rw-card--destructive .rw-card__footer {
+    @apply border-destructive/40 bg-transparent;
+  }
   .rw-card .rw-section {
     @apply mb-0! rounded-none border-0 bg-transparent px-6 py-5;
   }

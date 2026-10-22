@@ -7,6 +7,12 @@ import { LayoutState } from "src/store/layout.state";
 import { ViewportService } from "../../services/viewport.service";
 import { AuthService, NotificationsService, Permission } from "../../open-api";
 import { AuthState, GroupState } from "../../store";
+import { marker } from "../../i18n/marker";
+import { ThemeService } from "../../theme/theme.service";
+import { SYSTEM_THEME_KEYS } from "../../theme/themes";
+
+/** The logo's scale on a phone: 30% of its full size, so it sits compactly in the top bar. */
+export const HANDSET_LOGO_SCALE = 0.3;
 
 @Component({
     selector: "app-header",
@@ -45,6 +51,19 @@ export class HeaderComponent {
 
   protected readonly Permission = Permission;
 
+  public readonly logoScale = computed(() => (this.viewportService.isHandset() ? HANDSET_LOGO_SCALE : 1));
+
+  /** Whether the page is dark; follows the theme choice, so the toggle's icon flips the moment it is used. */
+  public readonly isDarkTheme = computed(() => {
+    this.theme.mode();
+    return this.theme.isDark();
+  });
+
+  /** The toggle shows (and offers) the theme it would switch to. */
+  public readonly themeToggleLabel = computed(() =>
+    this.isDarkTheme() ? marker("Switch to the White theme") : marker("Switch to the Black theme")
+  );
+
   private readonly canReadNotifications = this.store.selectSignal(
     AuthState.hasAppPermission(Permission.AppNotificationsRead)
   );
@@ -54,9 +73,15 @@ export class HeaderComponent {
     private notificationsService: NotificationsService,
     private router: Router,
     private store: Store,
-    private viewportService: ViewportService
+    private viewportService: ViewportService,
+    private theme: ThemeService
   ) {
     this.listenForLoggedInUser();
+  }
+
+  /** Quick switch between the two page themes; picking one leaves "System" for this browser, like the Theme tab does. */
+  public toggleTheme(): void {
+    this.theme.setMode(this.isDarkTheme() ? SYSTEM_THEME_KEYS.light : SYSTEM_THEME_KEYS.dark);
   }
 
   private listenForLoggedInUser(): void {

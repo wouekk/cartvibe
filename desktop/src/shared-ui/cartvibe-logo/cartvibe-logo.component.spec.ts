@@ -24,6 +24,25 @@ describe("CartVibeLogoComponent", () => {
     expect(wordmark.querySelector(".vibe")?.textContent).toBe("Vibe");
   });
 
+  it("scales the icon and wordmark together with the scale input", async () => {
+    fixture.componentRef.setInput("height", 100);
+    fixture.componentRef.setInput("scale", 0.3);
+    await fixture.whenStable();
+
+    const icon = fixture.nativeElement.querySelector("svg");
+    const wordmark = fixture.nativeElement.querySelector('[data-testid="cartvibe-logo"]') as HTMLElement;
+    expect(icon.getAttribute("height")).toBe("30");
+    expect(wordmark.style.fontSize).toBe("25px");
+  });
+
+  it("never scales the icon below 1px", async () => {
+    fixture.componentRef.setInput("height", 2);
+    fixture.componentRef.setInput("scale", 0.1);
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.iconSize()).toBe(1);
+  });
+
   it("sizes the icon by height and the wordmark from it, large", async () => {
     fixture.componentRef.setInput("height", 60);
     await fixture.whenStable();
