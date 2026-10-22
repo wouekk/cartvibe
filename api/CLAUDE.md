@@ -1,8 +1,8 @@
 # CLAUDE.md
 
-> **The Flutter app was removed.** `?client=mobile` is refused with 400 at the OIDC router, the
-> exchange/link-launch routes, the login QR and the `dart:io` user-agent special-casing are gone. Remarks below
-> about "mobile", "Dart" or "released builds" are history; the OIDC flow code for the mobile branch is dead code.
+> **The Flutter app was removed.** The OIDC flow has no mobile branch any more (no client type, exchange code,
+> link-launch handle or private-scheme redirect), and the login QR and the `dart:io` user-agent special-casing are
+> gone. Remarks below about "mobile", "Dart" or "released builds" are history.
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -596,58 +596,17 @@ will be dropped in a later release.
   `TestCreateUserCreatesDefaultGroupForUnflaggedAppRole`), and `services/roles_test.go`
   (service round-trip + group roles never carrying it).
 
-### Legacy role assignment (one-time data migration)
+### Legacy roles and the data-migration ledger
 
-- A startup data migration back-fills the new role assignments from the legacy role values so
-  existing installs upgrade with **zero behavior change**: each user's `user_role` maps onto the
-  matching `User.AppRoleID` (`ADMIN` → Legacy Admin, `USER` → Legacy User) and each member's
-  `group_role` onto `GroupMember.GroupRoleID` (`OWNER`/`EDITOR`/`VIEWER` → Legacy
-  Owner/Editor/Viewer). Lives in `repositories/data_migrations.go` (`assignLegacyEquivalentRoles`).
-- **Reads the physical columns as plain strings, not enum Go fields.** The legacy enum types were
-  removed, so the migration matches the `user_role`/`group_role` values as plain strings and **guards
-  each back-fill loop with `tx.Migrator().HasColumn(...)`**. For `user_role` (no Go field) the guard
-  is the real safety net — upgrading installs keep the physical column so the back-fill runs, while
-  fresh installs never created it so the guard skips cleanly instead of erroring with "no such
-  column". For `group_role` the guard is now effectively always-true, since `GroupMember.GroupRole`
-  is re-declared on the model (so AutoMigrate always creates the column); the back-fill still no-ops
-  on fresh rows because their value is `""`, which matches no legacy enum. There is deliberately **no
-  drop-column migration**, to preserve this upgrade path.
-- **Tracking:** one-time data migrations are recorded in a `data_migrations` ledger
-  (`models.DataMigration`, keyed by unique `name`) — distinct from GORM schema AutoMigrate. The
-  runner `RunDataMigrations` skips any migration already in the ledger and otherwise runs it **and**
-  writes the ledger row in a single `db.Transaction`, so a failure rolls back and retries next boot.
-  Append new one-time migrations to the `dataMigrations` registry slice.
-- Wired into `InitDB` **after** the bootstrap-admin step (roles must be seeded first, and this order
-  also assigns a fresh install's first admin). `InitDB` is only called from `main.go`, never the
-  test harness, so the migration does not auto-run in tests.
-- Updates are guarded with `... IS NULL`, so a role an admin has already set through the new UI is
-  never overwritten — defense-in-depth on top of the ledger. The migration is one-time over existing
-  rows; per-create assignment for *new* users / group creators is handled by the default-role wiring
-  (see "Default roles" above).
-- Tests: `repositories/data_migrations_test.go` (assignment, idempotency, ledger short-circuit,
-  no-clobber, and the `HasColumn`-guard skip path when the legacy `user_role` column is absent). The
-  tests seed `user_role` via raw `ALTER TABLE ... ADD COLUMN` DDL since AutoMigrate no longer creates
-  it; `group_role` is left to AutoMigrate (it is back on the model) and is never added/dropped by the
-  test helpers — dropping it would leave a field-without-column state that breaks later group_members
-  inserts in the package's test run.
+The seeded **Legacy** roles (Admin, User, Viewer, Editor, Owner) stay as the definitions of the capability sets
+(`permissions/legacy.go`); only their upgrade path is gone. The one-time back-fill from the physical `user_role` /
+`group_role` columns, and the `GroupMember.GroupRole` field that kept an upgraded install's NOT NULL column writable, were
+deleted with the fresh-database release (stage 4 of the clean-schema rework).
 
-### Legacy `group_role` column on upgrade
-
-- On databases upgraded from before the role rework, the obsolete `group_members.group_role` column
-  survives **`NOT NULL` with no default** (AutoMigrate never drops columns). Because v7 stopped
-  writing it, every new `group_members` INSERT violated the constraint (HTTP 500 on creating a group,
-  a user — which auto-creates personal groups — or adding a member). Existing data, logins, reads,
-  and receipt CRUD were unaffected.
-- **Fix:** `GroupMember.GroupRole` is **temporarily re-declared** as a plain, nullable, `json:"-"`
-  string (`internal/models/group_member.go`). Two effects: GORM writes the zero value (`""`) on every
-  INSERT, satisfying any leftover `NOT NULL`; and because the model field is nullable, AutoMigrate
-  relaxes the existing `NOT NULL` column to nullable on upgraded installs (Postgres `ALTER COLUMN …
-  DROP NOT NULL`, MariaDB `MODIFY …`). `json:"-"` keeps it off the API contract, so **no swagger /
-  client regeneration**. Nothing reads the field. Targets PostgreSQL/MariaDB; SQLite is not a goal
-  (it is handled incidentally by GORM's portable migrator). `users.user_role` needs no such treatment
-  — it is already nullable with a default.
-- **Removal plan:** drop this field together with a one-time migration that drops the `group_role`
-  column once all installs have upgraded past this release.
+`data_migrations` (`models.DataMigration`, unique `name`) and the runner `RunDataMigrations` stay, with an **empty**
+registry (`dataMigrations` in `repositories/data_migrations.go`). A new one-time migration is appended there; the runner
+claims its ledger row and runs it in one transaction, so a failure rolls back and retries next boot. Tests swap the registry
+(`withMigrations`). `InitDB` calls the runner after the bootstrap admin is created.
 
 ### Permission checks (`PermissionService`)
 
@@ -1339,7 +1298,7 @@ This is the mirror image of `internal/oauth`, which is an OAuth 2.1 **authorizat
 they share no flow, only two primitives in `internal/utils`.
 
 - **Package**: `internal/oidc/` (`flow.go` login/callback, `provision.go` identity resolution,
-  `exchange.go` the mobile handoff, `store.go` session/code storage, `provider_cache.go`,
+  `store.go` session/code storage, `provider_cache.go`,
   `claims.go`). Provider CRUD follows the usual chain:
   `routers/oidc.go` (both the flow and the CRUD routers) → `handlers/oidc_providers.go` →
   `services/oidc_provider.go` →
@@ -1474,12 +1433,11 @@ from the request — that is the open-redirect hole this design does not have.
 
 ### Storage
 
-State, nonce and the mobile exchange code are stored **hashed** (`utils.Sha256Hash`), like
+State, nonce and the delete-confirmation code are stored **hashed** (`utils.Sha256Hash`), like
 `RefreshToken.Token`: they are bearer secrets we only compare, so a database dump cannot complete a
 pending login. The PKCE **verifier cannot be hashed** — it must be replayed to the IdP verbatim — so
 it is AES-GCM encrypted, as is the provider's client secret (the `SystemEmail.Password` precedent).
-TTLs: auth session **10 min** (must cover an MFA prompt), exchange code **2 min** (the app already
-holds the browser result), link launch **2 min**, delete confirmation code **5 min**. All are swept by
+TTLs: auth session **10 min** (must cover an MFA prompt), delete confirmation code **5 min**. All are swept by
 an `@every 24h` cron, which is hygiene only — `expires_at` is inside every consume statement's WHERE
 clause.
 
@@ -1540,73 +1498,10 @@ it happens to hold today, it *is* serialized, and the inference fails open. `swa
 `apiKeyAuth` from both operations; `GET /oidc/connections` deliberately keeps it, since listing the
 caller's own providers is what a read key is for.
 
-**A mobile link start answers with JSON, not a 302** — `GET /oidc/link/{name}?client=mobile` returns
-`structs.OidcLinkStartView{launchUrl}`. This is not a stylistic split: the app authenticates with a
-**bearer token**, and the external user agent RFC 8252 requires cannot carry one, so a redirect into
-that browser arrives unauthenticated and is refused. The whole flow-start error vocabulary follows it
-(`structs.OidcFlowError{errorCode}`, mapped to 404/400/403/502 by `writeOidcFlowError`), so a failure
-reaches the app in the same shape as a success instead of as an unparseable redirect.
-`resolveClientType` therefore runs **before** the provider lookup — otherwise an unknown-provider
-failure took the desktop branch and the app got HTML.
-
-**That start creates NO session — it hands out a launch handle, and the browser starts the session.**
-This is the one genuinely subtle part of the feature, and it exists because of a real hole. It first
-shipped returning the IdP's **authorization URL** directly, reasoned as "safe, because the caller
-already proved who they are with a bearer token on the start request". That is true of the *start* and
-false of the *callback*, which is a separate unauthenticated browser request — and the callback is
-where the link is written. Identity providers leak the authorization URL by Referer from their own
-login pages, so anyone who obtained it could authenticate as **themselves**, drive the callback, and
-have their identity grafted onto the caller's account.
-
-PKCE cannot fix that, and it is worth knowing why, because it looks like it should. Binding the link
-to the app's own challenge is circular: the challenge would come from the victim's session, so the
-victim's app holds a matching verifier by construction, and on Android the attacker can deep-link
-their result into the victim's waiting `flutter_web_auth_2` (the manifest's `CallbackActivity` is
-`exported` + `BROWSABLE`). **A post-callback artifact cannot retroactively bind an unbound callback.**
-
-So: `LinkStart` creates a single-use `models.OidcLinkLaunch` and returns
-`{serverPublicUrl}/api/oidc/link/{name}/launch?h=…`. The app opens *that*, the external browser
-follows it to `oidc.LinkLaunch` (unauthenticated — the handle is the authorization), and **that**
-request creates the auth session and sets the binding cookie. The handle never reaches the IdP: a 302
-does not make the redirecting URL the next request's Referer.
-
-**Every session is bound, mobile included** (`store.go`, `flow.go`). This too was wrong at first:
-`BindingHash` was skipped for all mobile sessions because "an external user agent may not carry the
-cookie", and the callback's check read `len(session.BindingHash) > 0 && …`, which turned it into a
-no-op for exactly those sessions. The premise was false for **mobile login** — the app hands the login
-URL itself to `flutter_web_auth_2`, so the browser fetches the start and round-trips the cookie fine,
-and the gap was a live session-fixation bug there too. The check is now unconditional and fails closed
-on an empty hash.
-
-**KNOWN RESIDUAL — the launch endpoint can be pointed at someone else's browser.** `LinkLaunch` is
-unauthenticated by necessity, and the handle it consumes names the account to link. So an attacker
-holding a handle *for their own account* can send that URL to a victim: the victim's browser gets the
-binding, the victim authenticates at the identity provider, and their identity is attached to the
-**attacker's** account. The victim's later "Log in with X" then lands in the attacker's account.
-
-It is narrower than what it replaced — it needs active phishing plus an identity-provider login,
-where the previous shape needed only a leaked URL — and it fails outright if either party has already
-linked that provider (`ErrAlreadyLinked` / `ErrIdentityLinkedElsewhere`). The 2-minute single-use TTL
-raises the bar further. It is **not** closed.
-
-Closing it needs the app to prove it ran the flow, and note *which* proof works. A handle-only
-confirmation does not: the attacker holds the handle too. What cuts the attacker out is a secret the
-**callback** mints and hands to the browser that completed the flow — they never receive it. So:
-the callback stops linking inline for mobile, mints a completion code against the launch row, and
-redirects with it; the app redeems it on an authenticated call that checks the caller owns the row
-(and a PKCE challenge carried from the start, so a rogue app on the device that grabs the private-use
-redirect cannot redeem it either). Note this only works **on top of** the launch hop: without the
-binding, the same completion code is redeemable by the victim's own app on the attacker's behalf,
-because the challenge would be the victim's own.
-
-**A mobile link needs no `codeChallenge`**, unlike a mobile login — but for a different reason than
-first documented. The challenge binds the login's one-time exchange code to the app that started the
-flow; a link's callback hands back only `?linked={name}`, which is not a credential, so there is
-nothing to bind. Binding and PKCE defend different things: binding stops an attacker **driving** your
-flow, PKCE stops a rogue app **stealing its result**. `startFlow` requires the challenge only when
-`linkUserId == nil`. The callback returns to `io.receiptwrangler://oidc?linked={name}` (or
-`?error={code}`) — **never** the desktop profile path, which would strand the external browser on a
-page the app never sees.
+**There is only the browser flow.** `LinkStart` and `DeleteConfirmationStart` start the flow directly (a 302 to the identity
+provider, a failure back to the profile page with `?oidcError=` / `?deleteError=`); every session is bound to the user agent by
+the cookie. The mobile variants (JSON launch handles, exchange codes, PKCE-bound private-scheme redirects) were deleted in the
+clean-schema rework.
 
 The static route segments (`link`, `exchange`, `connections`) come first so chi's resolution stays
 unambiguous, and `commands.ReservedOidcProviderNames` rejects them as slugs from the other direction.
@@ -3733,3 +3628,17 @@ Passages above that still mention email uploads, `EmailProcessTaskPayload`, `ema
 `EMAIL_UPLOAD` describe code that no longer exists and are kept only as design history; the live behaviour is the quick scan path.
 Left for a later pass: the email-body helpers in `services/receipt_image.go` / `receipt_processing.go`
 (`ReadReceiptImageWithEmailBody`, `FormatEmailContent`), now used only by tests.
+
+### Stages 4 and 5 (2026-10)
+
+- **Stage 4:** the four one-time data migrations (legacy role assignment, household adoption, time zone from `TZ`, item-level
+  labels) and `GroupMember.GroupRole` are gone (a fresh `SeedEuroForNewInstall` / `envTimeZone()` seed covers new installs);
+  the OIDC flow lost its mobile branch (`OidcExchangeCode`, `OidcLinkLaunch`, `OidcAuthSession.ClientType` /
+  `MobileCodeChallenge`, `oidc/exchange.go`, `LinkLaunch`, `OidcFlowError` / `OidcLinkStartView`, and the router's
+  `rejectMobileClient`). The OIDC security suite (binding, replay, nonce, delete confirmation) passed before and after.
+- **Stage 5:** bill splitting is gone. `models.Item` / `ItemStatus`, `Receipt.ReceiptItems`, `UpsertItemCommand`, the
+  `AfterReceiptUpdated` item cascade, `GET /user/amountOwedForUser` (settle-up), item stripping and masking in the grant
+  filter and `member_masking.go`, the hidden-charge edit guard (`enforceReceiptChargedToPreservation`), the items CSV (the
+  export zip is `receipts.csv` only) and the `hideItem*` / `hideShare*` group receipt settings. `ValidateReceiptUserSelection`
+  now checks only the payer. Spending lives on `ReceiptProduct` lines. Passages above that talk about items, shares,
+  `chargedToUserId`, `ITEM_OPEN` or settlement describe removed code.

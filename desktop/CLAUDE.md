@@ -2730,3 +2730,10 @@ the email task and queue labels. `Permission` lost the matching keys (`app.promp
 `app.groups.update-settings`, `group.dashboards.*`, `group.widgets.read`, `group.email.poll`). The role editor's resource icons and
 presets (`roles/role-presets.ts`) were trimmed to match, and the group list's edit button now only offers `group.update`.
 Passages above that mention these features are design history. See `api/CLAUDE.md` → "Removed from upstream".
+
+### Stage 5 (bill splitting)
+
+The receipt form has no Items or Shares sections, no "Sync with items", no quick actions dialog and no Ctrl+I shortcut; the
+`item-list`, `item-add-form`, `share-list`, `quick-actions-dialog` components, `receipts/utils/form.utils.ts`
+(`buildItemForm`) and the unused `app-summary-card` (settle-up) are deleted. Magic fill no longer carries items. The
+household receipt settings lost the four item/share hide switches. A receipt's lines are the Products section only.

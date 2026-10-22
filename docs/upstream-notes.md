@@ -658,3 +658,6 @@ system email, group email settings and the IMAP client describe features this fo
 Python layer of the image). They stay as upstream history only. What was removed and what to do on upgrade (wipe the NAS
 `sqlite` folder, set new keys) is in `CHANGELOG.md` and in the "Removed from upstream" sections of `api/CLAUDE.md` and
 `desktop/CLAUDE.md`.
+
+Also removed afterwards (stages 4 and 5): bill splitting (items, shares, settle-up), the upgrade-only data migrations and the
+mobile OIDC branch.
