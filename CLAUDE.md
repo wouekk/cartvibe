@@ -24,7 +24,8 @@ receipt summary, default custom fields, app time zone, …) live in `docs/upstre
 
 - **The Windows PC has Go (in `C:\Program Files\Go\bin`, not on the bash PATH) but no ImageMagick,
   Tesseract, Node, Java or Docker.** Type-check and run the image-free Go tests locally with
-  `api/scripts/go-without-cgo.sh vet ./...` (or `test …`), which stubs the two cgo bindings. GitHub
+  `api/scripts/go-without-cgo.sh vet ./...` (or `test …`), which stubs the two cgo bindings; the Chromium PDF tests
+  with `api/scripts/test-pdf.sh` (install once: `api/scripts/install-test-chromium.sh`). GitHub
   Actions stays the real build and test machine: push a branch, read the result. The MacBook may have
   more toolchains; check before assuming.
 - **`gh` is installed and authenticated** (account `wouekk`). Use it for CI: `gh run list`,

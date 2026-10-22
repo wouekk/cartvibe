@@ -7,7 +7,8 @@
 #   ./scripts/go-without-cgo.sh test ./internal/services/ -run Trip
 #
 # Run from api/. Expected local failures: PDF/HEIC/image tests (stubbed ImageMagick), HTML-to-PDF
-# (needs Chrome), and a few temp-sweep tests that assume Unix paths and permissions.
+# (needs Chromium: run ./scripts/test-pdf.sh after ./scripts/install-test-chromium.sh), and a few
+# temp-sweep tests that assume Unix paths and permissions.
 set -euo pipefail
 
 if [ $# -lt 1 ]; then
