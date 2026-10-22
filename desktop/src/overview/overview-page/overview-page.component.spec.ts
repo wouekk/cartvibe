@@ -1,3 +1,4 @@
+import { SnackbarService } from "../../services";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 import { ProductCheckLauncher } from "../../product-check/product-check-launcher.service";
 import { HlmCheckboxImports } from "@spartan-ng/helm/checkbox";
@@ -706,18 +707,40 @@ describe("OverviewPageComponent", () => {
         expect(component.layoutDirty()).toBe(false);
       });
 
-      it("keeps sizes within limits and only widens in the PC view", async () => {
+      it("refuses sizes past the limits with a shake and a hint, and widths outside the PC view", async () => {
+        const hint = jest.spyOn(TestBed.inject(SnackbarService), "hint");
         const spent = () => component.panels().find((panel) => panel.id === "spent")!;
-        component.resize("spent", { cols: 9 });
+        expect(component.resize("spent", { cols: 9 })).toBe(false);
         expect(spent().cols).toBe(2);
-        expect(component.canWiden(spent())).toBe(false);
-        expect(component.canNarrow(spent())).toBe(true);
+        expect(hint).toHaveBeenCalledTimes(1);
+
+        expect(component.resize("spent", { cols: 1 })).toBe(true);
+        expect(spent().cols).toBe(1);
+        expect(component.resize("spent", { cols: 2 })).toBe(true);
+        expect(component.resize("spent", { cols: 1 })).toBe(true);
 
         component.setPreviewDevice("tablet");
         (component as unknown as { gridWidth: { set(width: number): void } }).gridWidth.set(744);
         await fixture.whenStable();
         expect(component.previewWidth()).toBe(768);
-        expect(component.canNarrow(spent())).toBe(false);
+        hint.mockClear();
+        expect(component.resize("spent", { cols: 2 })).toBe(false);
+        expect(hint).toHaveBeenCalledTimes(1);
+      });
+
+      it("steps from the current size, not from the copy the menu was opened with", () => {
+        const spent = () => component.panels().find((panel) => panel.id === "spent")!;
+        component.stepSize("spent", -1, 0);
+        expect(spent().cols).toBe(1);
+        component.stepSize("spent", 1, 0);
+        expect(spent().cols).toBe(2);
+        component.stepSize("spent", -1, 0);
+        expect(spent().cols).toBe(1);
+      });
+
+      it("draws exact widths: panels never stretch to fill a row", () => {
+        const flex = component.panelFlex(component.panels()[0]);
+        expect(flex.startsWith("0 0 calc(")).toBe(true);
       });
 
       it("asks before leaving with unsaved changes, and leaves at once without any", async () => {

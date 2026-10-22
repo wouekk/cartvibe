@@ -204,7 +204,6 @@
     "Colour": "Barwnik",
     "Column label": "Etykieta kolumny",
     "Columns": "Kolumny",
-    "Command cannot be empty.": "Polecenie nie może być puste.",
     "Comment": "Komentarz",
     "Comment Added": "Dodano komentarz",
     "Comment Replied": "Odpowiedź na komentarz",
@@ -468,7 +467,6 @@
     "Hide {name}": "Ukryj: {name}",
     "High risk": "Wysokie ryzyko",
     "Home & Garden": "Dom i ogród",
-    "Host is required": "Host jest wymagany",
     "Hours": "Godziny",
     "Household": "Gospodarstwo",
     "Households": "Gospodarstwa",
@@ -476,7 +474,6 @@
     "How amounts look with these settings.": "Jak wyglądają kwoty przy tych ustawieniach.",
     "How long a signed-in user can be away before they have to log in again. Sessions renew themselves while the app is in use, so this is an inactivity window rather than a hard limit. Maximum 720 hours (30 days).": "Jak długo zalogowany użytkownik może być nieobecny, zanim będzie musiał zalogować się ponownie. Sesje odnawiają się podczas korzystania z aplikacji, więc to okno nieaktywności, a nie twardy limit. Maksymalnie 720 godzin (30 dni).",
     "Icon": "Ikona",
-    "If ID is not provided, full credentials must be provided": "Jeśli nie podano identyfikatora, trzeba podać pełne dane logowania",
     "Image actions": "Akcje zdjęcia",
     "Image successfully removed": "Obraz został usunięty",
     "Images": "Obrazy",
@@ -679,7 +676,6 @@
     "Password": "Hasło",
     "Password generated and copied to clipboard": "Hasło wygenerowano i skopiowano do schowka",
     "Password generated, but copying to the clipboard failed": "Hasło wygenerowano, ale nie udało się skopiować go do schowka",
-    "Password is required": "Hasło jest wymagane",
     "Password successfully set": "Hasło zostało ustawione",
     "Past lists": "Poprzednie listy",
     "Paste the API key first.": "Najpierw wklej klucz API.",
@@ -708,7 +704,6 @@
     "Polish złoty (12,99 zł)": "Polski złoty (12,99 zł)",
     "Poll email(s)": "Sprawdź pocztę",
     "Polls system emails for receipts to process": "Sprawdza e-maile systemowe pod kątem paragonów do przetworzenia",
-    "Port is required": "Port jest wymagany",
     "Preservative": "Konserwant",
     "Preview": "Podgląd",
     "Preview role": "Podgląd roli",
@@ -1114,7 +1109,6 @@
     "User successfully signed up": "Użytkownik został zarejestrowany",
     "User successfully updated": "Użytkownik został zaktualizowany",
     "Username": "Nazwa użytkownika",
-    "Username is required": "Nazwa użytkownika jest wymagana",
     "Users": "Użytkownicy",
     "Users to Split Between": "Osoby, między które podzielić",
     "Valid — recomputes from these columns each row": "Poprawna — w każdym wierszu liczy się z tych kolumn",
@@ -1224,6 +1218,10 @@
     "{label} must be unique.": "Pole „{label}” musi być unikalne.",
     "{names} and {count} more": "{names} i jeszcze {count}",
     "{names}, and {count} more": "{names} i jeszcze {count}",
+    "{name} can't be made any narrower.": "Panel {name} nie może być węższy.",
+    "{name} can't be made any shorter.": "Panel {name} nie może być niższy.",
+    "{name} can't be made any taller.": "Panel {name} nie może być wyższy.",
+    "{name} can't be made any wider.": "Panel {name} nie może być szerszy.",
     "{name} disconnected": "Odłączono: {name}",
     "{name} marked done": "Kupiono: {name}",
     "{name} sucessfully converted to normal user": "Użytkownik {name} został zamieniony w zwykłego użytkownika",
@@ -1256,6 +1254,31 @@
       "many": "paragonów",
       "one": "paragon",
       "other": "paragonu"
+    }
+  },
+  "_orphaned": {
+    "Command cannot be empty.": {
+      "value": "Polecenie nie może być puste.",
+      "closest": "Name cannot be changed"
+    },
+    "Host is required": {
+      "value": "Host jest wymagany",
+      "closest": "Code is required"
+    },
+    "If ID is not provided, full credentials must be provided": {
+      "value": "Jeśli nie podano identyfikatora, trzeba podać pełne dane logowania"
+    },
+    "Password is required": {
+      "value": "Hasło jest wymagane",
+      "closest": "Code is required"
+    },
+    "Port is required": {
+      "value": "Port jest wymagany",
+      "closest": "Code is required"
+    },
+    "Username is required": {
+      "value": "Nazwa użytkownika jest wymagana",
+      "closest": "Code is required"
     }
   }
 }

@@ -11,7 +11,8 @@ import {
   setVisible,
   sizeClassFor,
   spanFor,
-  startsNewBand,
+  dropTargetAt,
+  sizeLimitHit,
   tagPanelId,
 } from "./dashboard-layout";
 
@@ -43,13 +44,43 @@ describe("dashboard layout", () => {
     expect(panel(defaultLayout([...ALL, tagPanelId(1)]), "spent").cols).toBe(1);
   });
 
-  it("starts a new row where tiles and larger panels meet", () => {
+  it("lets a tile sit between larger panels", () => {
     const panels = resolveLayout(movePanel(defaultLayout(ALL), "wide", "trend", "receipts"), ALL, "wide");
-    const breaks = panels.map((_panel, index) => startsNewBand(panels, index));
-    // spent | trend | receipts, unhealthy, ... | categories
     expect(ids(panels).slice(0, 3)).toEqual(["spent", "trend", "receipts"]);
-    expect(breaks.slice(0, 3)).toEqual([false, true, true]);
-    expect(breaks[ids(panels).indexOf("categories")]).toBe(true);
+  });
+
+  describe("dropTargetAt", () => {
+    const rects = [
+      { id: "a", left: 0, top: 0, width: 100, height: 100 },
+      { id: "b", left: 116, top: 0, width: 100, height: 100 },
+      { id: "c", left: 0, top: 116, width: 216, height: 100 },
+    ];
+
+    it("picks the panel under the pointer, in any direction", () => {
+      expect(dropTargetAt(rects, { x: 150, y: 50 }, "a")).toBe("b");
+      expect(dropTargetAt(rects, { x: 50, y: 150 }, "a")).toBe("c");
+      expect(dropTargetAt(rects, { x: 50, y: 50 }, "b")).toBe("a");
+    });
+
+    it("resolves empty space and the far corner to the nearest panel", () => {
+      expect(dropTargetAt(rects, { x: 400, y: 20 }, "a")).toBe("b");
+      expect(dropTargetAt(rects, { x: 400, y: 400 }, "a")).toBe("c");
+    });
+
+    it("never targets the dragged panel itself, and has no target when it is alone", () => {
+      expect(dropTargetAt(rects, { x: 50, y: 50 }, "a")).not.toBe("a");
+      expect(dropTargetAt([rects[0]], { x: 50, y: 50 }, "a")).toBeUndefined();
+    });
+  });
+
+  describe("sizeLimitHit", () => {
+    it("reports which limit a size runs into", () => {
+      expect(sizeLimitHit("spent", { cols: 0 })).toEqual({ limit: "min-cols", value: 1 });
+      expect(sizeLimitHit("spent", { cols: 3 })).toEqual({ limit: "max-cols", value: 2 });
+      expect(sizeLimitHit("spent", { rows: 2 })).toEqual({ limit: "max-rows", value: 1 });
+      expect(sizeLimitHit("categories", { rows: 0 })).toEqual({ limit: "min-rows", value: 1 });
+      expect(sizeLimitHit("categories", { cols: 4, rows: 2 })).toBeUndefined();
+    });
   });
 
   it("puts the shopping list first on a phone until the user arranges the phone", () => {

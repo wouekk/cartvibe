@@ -2493,9 +2493,14 @@ never hand-edited.
   - **Size classes from the grid's own width** (a ResizeObserver, not the viewport): `compact` < 640 px (one column, the phone order),
     `regular` < 1024 (four columns, charts and tables take the whole row), `wide` (six). The phone order is `compactOrder` once the user arranged
     the phone, otherwise the shared order with the shopping list first.
-  - **Rows, not a strict grid:** the grid is `flex-wrap`; a panel's width is its share of a row (`panelFlex`) and the panels of a row that is
-    not full grow in proportion, so there are never holes. Tiles (key figures, tags) and larger panels never share a row (`startsNewBand` puts a
-    break between them; a lone tile beside a chart stretched tall). With tag tiles, Spent defaults to one column so six tiles fill a row.
+  - **Rows, not a strict grid:** the grid is `flex-wrap`; a panel's width is **exactly** its share of a row (`panelFlex`, `0 0 calc(...)`, no
+    grow), so a row may end with empty space and the size set in the editor is the size drawn. Tiles may sit beside charts (they use
+    `self-start` so they do not stretch to a taller neighbour). With tag tiles, Spent defaults to one column so six tiles fill a row.
+  - **Dragging** is pointer-driven on the handle (`startDrag`, no CDK drag-drop): the panel follows the pointer, the others reflow live to
+    the order `dropTargetAt` (nearest panel to the pointer, any direction) gives, drop commits with `movePanel`, Escape cancels, the
+    scroll container auto-scrolls near its edges. Move earlier/later in the menu is the keyboard path.
+  - **Limits:** `resize()` refuses a size past `sizeLimitHit` with `shakeElement` and a short `SnackbarService.hint`; widths outside the PC view
+    say so the same way. The corner resize handle is a chip with the `resize_corner` icon; the strip shows the width as `2/6`.
     Height step 2 is a `34rem` minimum (content grows past it, never clipped); the receipts panel then lists 12 receipts instead of 6.
   - **The customise screen is this page** on `/overview/group/:groupId/customize` (route data `customise: true`, same guards), so the preview
     shows real figures: a toolbar (Mobile / Tablet / PC preview as `app-settings-tabs`, Panels, Reset, Cancel, Save), the panel list above the

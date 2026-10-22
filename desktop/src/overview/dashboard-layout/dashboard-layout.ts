@@ -155,9 +155,58 @@ export function isTilePanel(id: string): boolean {
   return group === "kpi" || group === "tags";
 }
 
-/** Whether a panel starts a new row: tiles and the larger panels never share one (a lone tile would stretch tall). */
-export function startsNewBand(panels: ResolvedPanel[], index: number): boolean {
-  return index > 0 && isTilePanel(panels[index].id) !== isTilePanel(panels[index - 1].id);
+export interface PanelRect {
+  id: string;
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * The panel whose place a dragged panel takes when dropped at `point` (any direction, diagonals included): the nearest
+ * other panel, by the distance from the point to its box (zero inside it, the box centre breaks ties). Empty space at the
+ * end of a row or below the last row resolves to the closest panel, so a drop is never refused.
+ */
+export function dropTargetAt(rects: PanelRect[], point: { x: number; y: number }, draggedId: string): string | undefined {
+  let best: { id: string; edge: number; centre: number } | undefined;
+  for (const rect of rects) {
+    if (rect.id === draggedId) {
+      continue;
+    }
+    const dx = Math.max(rect.left - point.x, 0, point.x - (rect.left + rect.width));
+    const dy = Math.max(rect.top - point.y, 0, point.y - (rect.top + rect.height));
+    const edge = Math.hypot(dx, dy);
+    const centre = Math.hypot(point.x - (rect.left + rect.width / 2), point.y - (rect.top + rect.height / 2));
+    if (!best || edge < best.edge || (edge === best.edge && centre < best.centre)) {
+      best = { id: rect.id, edge, centre };
+    }
+  }
+  return best?.id;
+}
+
+/** Which limit stopped a requested size change, if any. */
+export type SizeLimit = "min-cols" | "max-cols" | "min-rows" | "max-rows";
+
+/** The limit a requested size runs into (the first one hit), or undefined when it fits the panel's limits. */
+export function sizeLimitHit(id: string, size: { cols?: number; rows?: number }): { limit: SizeLimit; value: number } | undefined {
+  const definition = panelDefinition(id);
+  if (!definition) {
+    return undefined;
+  }
+  if (size.cols !== undefined && size.cols < definition.minCols) {
+    return { limit: "min-cols", value: definition.minCols };
+  }
+  if (size.cols !== undefined && size.cols > definition.maxCols) {
+    return { limit: "max-cols", value: definition.maxCols };
+  }
+  if (size.rows !== undefined && size.rows < 1) {
+    return { limit: "min-rows", value: 1 };
+  }
+  if (size.rows !== undefined && size.rows > definition.maxRows) {
+    return { limit: "max-rows", value: definition.maxRows };
+  }
+  return undefined;
 }
 
 /** Reads a saved layout; anything unreadable (bad JSON, another version, a wrong shape) is no layout. */

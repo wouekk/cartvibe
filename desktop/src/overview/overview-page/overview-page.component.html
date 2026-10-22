@@ -127,34 +127,34 @@
       <section
         #panelGrid
         class="flex flex-wrap gap-4"
-        cdkDropList
-        cdkDropListOrientation="mixed"
-        [cdkDropListDisabled]="!customising()"
-        (cdkDropListDropped)="dropPanel($event)"
         [attr.aria-label]="'The period at a glance' | t"
         [attr.data-size-class]="sizeClass()"
         data-testid="dashboard-grid"
       >
-        @for (panel of panels(); track panel.id; let index = $index) {
-          @if (startsNewBand(index)) {
-            <div class="h-0 basis-full" aria-hidden="true"></div>
-          }
+        @for (panel of displayPanels(); track panel.id) {
           <div
             class="relative flex min-w-0 flex-col gap-2"
+            [class.self-start]="isTile(panel.id)"
+            [class.z-20]="draggingId() === panel.id"
+            [class.opacity-90]="draggingId() === panel.id"
+            [class.ring-1]="draggingId() === panel.id"
+            [class.ring-border]="draggingId() === panel.id"
+            [class.rounded-xl]="draggingId() === panel.id"
             [style.flex]="panelFlex(panel)"
             [style.min-height]="panelMinHeight(panel)"
-            cdkDrag
-            [cdkDragData]="panel.id"
-            [cdkDragDisabled]="!customising()"
             [attr.data-testid]="'dashboard-panel-' + panel.id"
+            [attr.data-panel-id]="panel.id"
             [attr.data-span]="panel.span"
           >
             @if (customising()) {
               <div class="flex h-9 min-w-0 items-center gap-1 rounded-lg border border-border bg-muted/60 pr-1 pl-1.5 text-xs">
-                <button type="button" cdkDragHandle class="inline-flex size-7 shrink-0 cursor-grab items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring active:cursor-grabbing" [attr.aria-label]="'Move {name}' | t: { name: panelLabel(panel.id) }">
+                <button type="button" class="inline-flex size-7 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring active:cursor-grabbing" [attr.data-testid]="'dashboard-panel-drag-' + panel.id" [attr.aria-label]="'Move {name}' | t: { name: panelLabel(panel.id) }" (pointerdown)="startDrag($event, panel)">
                   <app-icon name="drag_handle"></app-icon>
                 </button>
                 <span class="min-w-0 flex-1 truncate font-medium" [attr.title]="panelLabel(panel.id)">{{ panelLabel(panel.id) }}</span>
+                @if (sizeClass() === 'wide' && panel.span > 1) {
+                  <span class="shrink-0 pr-1 text-muted-foreground tabular-nums" [attr.data-testid]="'dashboard-panel-size-' + panel.id">{{ sizeLabel(panel) }}</span>
+                }
                 <button
                   type="button"
                   hlmBtn variant="ghost" size="icon-sm"
@@ -554,11 +554,13 @@
             @if (customising() && sizeClass() === 'wide') {
               <!-- Drag to resize in the PC view: snaps to grid columns and height steps, within the panel's limits. -->
               <span
-                class="absolute right-1 bottom-1 z-10 size-4 cursor-se-resize touch-none rounded-sm border-r-2 border-b-2 border-muted-foreground/60 transition-colors duration-150 hover:border-foreground"
+                class="absolute right-1.5 bottom-1.5 z-10 inline-flex size-7 cursor-se-resize touch-none items-center justify-center rounded-md border border-border bg-card text-muted-foreground transition-colors duration-150 before:absolute before:-inset-2 before:content-[''] hover:bg-accent hover:text-foreground"
                 aria-hidden="true"
                 [attr.data-testid]="'dashboard-panel-resize-' + panel.id"
                 (pointerdown)="startResize($event, panel)"
-              ></span>
+              >
+                <app-icon name="resize_corner"></app-icon>
+              </span>
             }
           </div>
         }
@@ -579,15 +581,15 @@
       <app-icon name="arrow_forward"></app-icon><span>{{ 'Move later' | t }}</span>
     </button>
     <div hlmDropdownMenuSeparator></div>
-    <button hlmDropdownMenuItem type="button" data-testid="dashboard-panel-wider" [disabled]="!canWiden(panel)" (click)="resize(panel.id, { cols: panel.cols + 1 })">
+    <button hlmDropdownMenuItem type="button" data-testid="dashboard-panel-wider" (click)="stepSize(panel.id, 1, 0)">
       <app-icon name="add"></app-icon><span>{{ 'Wider' | t }}</span>
     </button>
-    <button hlmDropdownMenuItem type="button" data-testid="dashboard-panel-narrower" [disabled]="!canNarrow(panel)" (click)="resize(panel.id, { cols: panel.cols - 1 })">
+    <button hlmDropdownMenuItem type="button" data-testid="dashboard-panel-narrower" (click)="stepSize(panel.id, -1, 0)">
       <app-icon name="remove"></app-icon><span>{{ 'Narrower' | t }}</span>
     </button>
     @if (canChangeHeight(panel)) {
-      <button hlmDropdownMenuItem type="button" data-testid="dashboard-panel-height" (click)="resize(panel.id, { rows: panel.rows === 1 ? 2 : 1 })">
-        <app-icon name="unfold_more"></app-icon><span>{{ (panel.rows === 1 ? 'Taller' : 'Shorter') | t }}</span>
+      <button hlmDropdownMenuItem type="button" data-testid="dashboard-panel-height" (click)="toggleHeight(panel.id)">
+        <app-icon name="unfold_more"></app-icon><span>{{ (rowsOf(panel.id) === 1 ? 'Taller' : 'Shorter') | t }}</span>
       </button>
     }
   </div>

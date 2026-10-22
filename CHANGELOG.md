@@ -8,6 +8,11 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+### Fixed
+- **Dashboard customise screen:** panels keep their exact width (no stretching, so Narrower always shows), drag in any direction
+  including diagonally and into empty space, tiles may sit beside charts, a panel at its smallest or largest size shakes and
+  says so, and the resize corner is a visible chip.
+
 ### Removed
 - **Custom fields** (definitions, receipt values, group defaults, AI extraction, report fields, permissions) and the **receipt summary** block under the receipts table.
   **Not an in-place upgrade:** wipe the NAS `sqlite` folder and set new `SECRET_KEY` / `ENCRYPTION_KEY` before deploying; no drop migration was written on purpose.
