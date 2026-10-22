@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Runs the API's HTML-to-PDF tests (report PDFs, the file:// and SSRF guards) against the Chromium that
-# install-test-chromium.sh put in $PLAYWRIGHT_BROWSERS_PATH (default ~/tools/ms-playwright). Run from api/.
+# install-test-chromium.sh put in $PLAYWRIGHT_BROWSERS_PATH (default ~/tools/ms-playwright). Runs from any folder.
+# From PowerShell use Git Bash, not `bash` (that is WSL, which has neither this Go nor this Node):
+#   & "C:\Program Files\Git\bin\bash.exe" api/scripts/test-pdf.sh
 #
 #   ./scripts/test-pdf.sh                    # the PDF tests
 #   ./scripts/test-pdf.sh -run Render_Basic  # extra `go test` flags are passed on
@@ -11,6 +13,8 @@
 set -euo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"
+# The go command needs api/ as its working directory, wherever the script was started from.
+cd "$here/.."
 browsers="${PLAYWRIGHT_BROWSERS_PATH:-$HOME/tools/ms-playwright}"
 
 if [ -z "${CHROMIUM_BINARY_PATH:-}" ]; then

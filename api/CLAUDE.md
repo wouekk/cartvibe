@@ -146,7 +146,9 @@ pre-installed binary works.
 
 **The PDF tests on the Windows PC (or the Mac):** `./scripts/install-test-chromium.sh` once (Playwright's
 Chromium headless shell from the repo's pinned `@playwright/test`, after `npm ci` in `desktop/`), then
-`./scripts/test-pdf.sh` for the HTML-to-PDF, guard and report-PDF tests (extra `go test` flags pass through).
+`./scripts/test-pdf.sh` for the HTML-to-PDF, guard and report-PDF tests (extra `go test` flags pass through). Both run from
+any folder. From PowerShell call Git Bash by path, because `bash` there is WSL (no Go, no Node):
+`& "C:Program FilesGitinash.exe" api/scripts/test-pdf.sh`.
 - The browser goes to `~/tools/ms-playwright` (`PLAYWRIGHT_BROWSERS_PATH`), **not** Playwright's usual
   `AppData\Local\ms-playwright`: the Claude desktop app runs in a Windows package sandbox that redirects
   AppData, and a Chromium started from the redirected copy fails with "side-by-side configuration is
