@@ -10,9 +10,9 @@ describe("BarcodePhotoActionsComponent", () => {
   let missed: number;
   let release: (code: string | null) => void;
 
-  const create = async (variant: "bar" | "icon") => {
+  const create = async (liveCamera = false) => {
     fixture = TestBed.createComponent(BarcodePhotoActionsComponent);
-    fixture.componentRef.setInput("variant", variant);
+    fixture.componentRef.setInput("liveCamera", liveCamera);
     fixture.componentInstance.barcodeFound.subscribe((code) => found.push(code));
     fixture.componentInstance.notFound.subscribe(() => missed++);
     await fixture.whenStable();
@@ -38,7 +38,7 @@ describe("BarcodePhotoActionsComponent", () => {
   });
 
   it("offers the phone camera and the gallery as native labels around file inputs", async () => {
-    await create("bar");
+    await create();
 
     const capture = input("barcode-photo-capture");
     const upload = input("barcode-photo-upload");
@@ -51,16 +51,22 @@ describe("BarcodePhotoActionsComponent", () => {
     expect(upload.closest("label")).not.toBeNull();
   });
 
-  it("is a single camera label in the icon variant", async () => {
-    await create("icon");
+  it("with live video, Take a photo is a button that asks the host for the scanner; Upload stays a label", async () => {
+    await create(true);
+    let asked = 0;
+    fixture.componentInstance.takePhoto.subscribe(() => asked++);
 
-    expect(input("barcode-photo-capture").getAttribute("capture")).toBe("environment");
-    expect(input("barcode-photo-upload")).toBeNull();
-    expect(input("barcode-photo-capture").closest("label")).not.toBeNull();
+    expect(input("barcode-photo-capture")).toBeNull();
+    const live = input("barcode-photo-live");
+    expect(live.tagName).toBe("BUTTON");
+    expect(input("barcode-photo-upload").closest("label")).not.toBeNull();
+
+    live.click();
+    expect(asked).toBe(1);
   });
 
   it("decodes the chosen photo, shows progress, then emits the barcode", async () => {
-    await create("bar");
+    await create();
 
     await pick("barcode-photo-capture");
     expect(decode).toHaveBeenCalledTimes(1);
@@ -77,7 +83,7 @@ describe("BarcodePhotoActionsComponent", () => {
   });
 
   it("says so when the photo has no barcode, and can be tried again", async () => {
-    await create("bar");
+    await create();
     await pick("barcode-photo-upload");
 
     release(null);
@@ -93,7 +99,7 @@ describe("BarcodePhotoActionsComponent", () => {
   });
 
   it("ignores a change that carries no file", async () => {
-    await create("bar");
+    await create();
 
     await pick("barcode-photo-capture", []);
 

@@ -1,7 +1,6 @@
-import { Component, output } from "@angular/core";
-import { AppDialog } from "../../dialog/app-dialog";
+import { Component, inject, output } from "@angular/core";
 import { take, tap } from "rxjs";
-import { openQuickScanDialog } from "../../receipts/quick-scan-dialog/open-quick-scan-dialog";
+import { QuickScanLauncher } from "../../receipts/quick-scan-dialog/quick-scan-launcher.service";
 
 @Component({
     selector: "app-quick-scan-button",
@@ -12,10 +11,12 @@ import { openQuickScanDialog } from "../../receipts/quick-scan-dialog/open-quick
 export class QuickScanButtonComponent {
   public readonly afterClosed = output<void>();
 
-  constructor(private matDialog: AppDialog) {}
+  private readonly quickScanLauncher = inject(QuickScanLauncher);
 
+  /** Shown with or without an AI key: the launcher asks for one when it is missing. */
   public showQuickScanDialog(): void {
-    openQuickScanDialog(this.matDialog)
+    this.quickScanLauncher
+      .open()
       .pipe(
         take(1),
         tap(() => {

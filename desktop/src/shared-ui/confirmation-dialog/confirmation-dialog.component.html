@@ -3,7 +3,7 @@
     {{ dialogContent | t }}
   </span>
   <app-dialog-footer
-    submitButtonTooltip="Confirm"
+    [submitButtonTooltip]="confirmText"
     (submitClicked)="submitButtonClicked()"
     (cancelClicked)="cancelButtonClicked()"
   ></app-dialog-footer>

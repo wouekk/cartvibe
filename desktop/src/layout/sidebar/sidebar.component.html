@@ -1,6 +1,7 @@
 <!--
   The spartan/ui sidebar (hlm-sidebar): header with the household switcher, content with the everyday pages and the
-  collapsible Manage section, footer with the account menu. It collapses to an icon rail on a desktop and becomes a
+  collapsible Settings section (catalogues, AI, the person's own settings, admin pages), footer with the account menu
+  (About, Logout). It collapses to an icon rail on a desktop and becomes a
   sheet on a phone; the state lives in HlmSidebarService (a cookie remembers it), toggled by the trigger in the header.
 -->
 <div hlmSidebarWrapper class="h-full">
@@ -81,12 +82,12 @@
                       hlmSidebarMenuButton
                       hlmCollapsibleTrigger
                       type="button"
-                      [tooltip]="'Admin Settings' | t"
+                      [tooltip]="'Settings' | t"
                       data-testid="sidebar-manage-toggle"
                       [attr.aria-expanded]="isManageOpen()"
                     >
                       <ng-icon name="lucideSlidersHorizontal" size="16" />
-                      <span class="min-w-0 flex-1 truncate">{{ 'Admin Settings' | t }}</span>
+                      <span class="min-w-0 flex-1 truncate">{{ 'Settings' | t }}</span>
                       <ng-icon
                         name="lucideChevronDown"
                         size="16"
@@ -104,6 +105,7 @@
                               #manageActive="routerLinkActive"
                               [isActive]="manageActive.isActive"
                               [routerLink]="item.link"
+                              [attr.data-testid]="item.testId"
                               (click)="closeMobileSidebar()"
                             >
                               <ng-icon [name]="lucide(item.icon)" size="16" />
@@ -142,26 +144,12 @@
             </button>
             <ng-template #accountMenu>
               <div hlmDropdownMenu class="w-56">
-                @if (canViewUserSettings()) {
-                  <button hlmDropdownMenuItem type="button" [routerLink]="['/settings']" (click)="closeMobileSidebar()">
-                    <ng-icon name="lucideUserCog" size="16" />
-                    <span>{{ 'User Settings' | t }}</span>
-                  </button>
-                }
-                <button hlmDropdownMenuItem type="button" (click)="openAboutDialog()">
+                <button hlmDropdownMenuItem type="button" data-testid="sidebar-about" (click)="openAboutDialog()">
                   <ng-icon name="lucideInfo" size="16" />
                   <span>{{ 'About' | t }}</span>
                 </button>
                 <div hlmDropdownMenuSeparator></div>
-                <div hlmDropdownMenuLabel>{{ 'Language' | t }}</div>
-                @for (option of languages(); track option.code) {
-                  <button hlmDropdownMenuItem type="button" data-testid="sidebar-language-option" (click)="languageSync.choose(option.code)">
-                    <ng-icon name="lucideCheck" size="16" [class.invisible]="translation.language() !== option.code" />
-                    <span>{{ option.label }}</span>
-                  </button>
-                }
-                <div hlmDropdownMenuSeparator></div>
-                <button hlmDropdownMenuItem type="button" (click)="logout()">
+                <button hlmDropdownMenuItem type="button" data-testid="sidebar-logout" (click)="logout()">
                   <ng-icon name="lucideLogOut" size="16" />
                   <span>{{ 'Logout' | t }}</span>
                 </button>

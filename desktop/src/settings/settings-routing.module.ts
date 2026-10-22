@@ -8,7 +8,6 @@ import { Permission } from "../open-api";
 import { ApiKeysComponent } from "./api-keys/api-keys.component";
 import { SettingsComponent } from "./settings/settings.component";
 import { UserPreferencesComponent } from "./user-preferences/user-preferences.component";
-import { ThemeSettingsComponent } from "./theme/theme-settings.component";
 import { UserProfileComponent } from "./user-profile/user-profile.component";
 import { marker } from "../i18n/marker";
 
@@ -71,10 +70,10 @@ const routes: Routes = [
           appPermissions: [Permission.AppUserPreferencesUpdate],
         },
       },
-      // Per browser, so no permission: any signed-in user can pick how the app looks.
+      // Theme moved to its own page in the sidebar's Settings section; old links still land there.
       {
         path: "theme",
-        component: ThemeSettingsComponent,
+        redirectTo: "/theme",
       },
       {
         path: "api-keys/view",

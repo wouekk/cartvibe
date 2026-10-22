@@ -163,12 +163,69 @@ describe("SidebarComponent", () => {
     });
   });
 
-  describe("Manage", () => {
-    it("is absent without any administration permission", async () => {
+  describe("Settings", () => {
+    const itemIds = (): string[] =>
+      Array.from(queryTestId("sidebar-manage-items").nativeElement.querySelectorAll("[data-testid]") as NodeListOf<HTMLElement>).map(
+        (element) => element.getAttribute("data-testid") as string
+      );
+
+    it("is labelled Settings and offers Language and Theme without any permission", async () => {
       login();
       await fixture.whenStable();
 
-      expect(queryTestId("sidebar-manage-toggle")).toBeFalsy();
+      expect(queryTestId("sidebar-manage-toggle").nativeElement.textContent).toContain("Settings");
+      expect(queryTestId("sidebar-manage-toggle").nativeElement.textContent).not.toContain("Admin");
+      expect(itemIds()).toEqual(["nav-language", "nav-theme"]);
+    });
+
+    it("gives a family User their catalogues, the AI, User Settings, Language and Theme, in that order", async () => {
+      login();
+      store.dispatch(
+        new SetPermissions(
+          [
+            "app.account.read",
+            "app.user-preferences.read",
+            "app.categories.read",
+            "app.tags.read",
+            "app.receipt-processing-settings.update",
+          ],
+          {}
+        )
+      );
+      await fixture.whenStable();
+
+      expect(itemIds()).toEqual(["nav-categories", "nav-tags", "nav-ai", "nav-user-settings", "nav-language", "nav-theme"]);
+    });
+
+    it("adds the admin pages after the ones every member has", async () => {
+      login();
+      store.dispatch(
+        new SetPermissions(
+          [
+            "app.account.read",
+            "app.categories.read",
+            "app.tags.read",
+            "app.receipt-processing-settings.update",
+            "app.groups.read",
+            "app.users.read",
+            "app.system-settings.read",
+          ],
+          {}
+        )
+      );
+      await fixture.whenStable();
+
+      expect(itemIds()).toEqual([
+        "nav-categories",
+        "nav-tags",
+        "nav-ai",
+        "nav-user-settings",
+        "nav-language",
+        "nav-theme",
+        "nav-households",
+        "nav-users",
+        "nav-system-settings",
+      ]);
     });
 
     it("lists only the administration pages the user may read, once expanded", async () => {
@@ -256,21 +313,17 @@ describe("SidebarComponent", () => {
   });
 
   describe("account menu", () => {
-    it("hides User Settings without any settings read permission", async () => {
-      login();
-      const menu = await openMenu("sidebar-avatar-menu");
-
-      expect(menu.textContent).not.toContain("User Settings");
-      expect(menu.textContent).toContain("About");
-      expect(menu.textContent).toContain("Logout");
-    });
-
-    it("shows User Settings with a settings read permission", async () => {
+    it("holds only About and Logout: settings and language moved under Settings", async () => {
       login();
       store.dispatch(new SetPermissions(["app.account.read"], {}));
       const menu = await openMenu("sidebar-avatar-menu");
 
-      expect(menu.textContent).toContain("User Settings");
+      expect(menu.textContent).toContain("About");
+      expect(menu.textContent).toContain("Logout");
+      expect(menu.textContent).not.toContain("User Settings");
+      expect(menu.textContent).not.toContain("Language");
+      expect(menu.querySelector("[data-testid=sidebar-about]")).not.toBeNull();
+      expect(menu.querySelector("[data-testid=sidebar-logout]")).not.toBeNull();
     });
   });
 

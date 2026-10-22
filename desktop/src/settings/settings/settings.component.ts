@@ -43,14 +43,7 @@ export class SettingsComponent {
         name: "user-preferences",
       });
     }
-    // Always there: the look of the app is per browser and needs no permission.
-    tabs.push({
-      label: "Theme",
-      routerLink: "theme",
-      name: "theme",
-    });
-
-
+    // Theme and Language have their own pages under Settings in the sidebar.
     if (this.canReadApiKeys()) {
       tabs.push({
         label: "API Keys",

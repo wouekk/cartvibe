@@ -681,10 +681,10 @@ gated by `appPermissionGuard` requiring `app.roles.read` (see **Permission-based
     and `groupPermissionGuard` (`data: { groupPermission, orAppPermissions?, useRouteGroupId? }`).
     `receiptGuardGuard` is unchanged (server-checked per-receipt access); `system-settings-landing.guard`
     redirects `/system-settings` to the first tab the user can read, and `settings-landing.guard`
-    does the same for `/settings` (the avatar-menu "User Settings" link → first readable of
+    does the same for `/settings` (the sidebar Settings → "User Settings" link → first readable of
     User Profile `app.account.read` / User Preferences `app.user-preferences.read` / API Keys
     `app.api-keys.read`). The `/settings` shell and each tab route are `appPermissionGuard`-gated on
-    those reads, the in-page tabs render conditionally on the same, and the avatar-menu button is
+    those reads, the in-page tabs render conditionally on the same, and the sidebar link is
     gated by a `hasAnyAppPermission` signal.
   - **Retired** with this migration: `RoleGuard`, `GroupRoleGuard`, the `*appRole` `RoleDirective`, the
     `groupRole` `GroupRolePipe`, and `GroupUtil.hasGroupAccess`. The group-member legacy-enum bridge
@@ -2517,6 +2517,13 @@ never hand-edited.
 - **Quick Scan:** nothing is required (`resolveQuickScanFieldConfig`; only the comment keeps its rules), a sole group is
   seeded and its picker hidden. The **Upload photos** button is a centered raised button in the dialog body ("Add more
   photos" once there are some).
+- **Quick Scan without an AI key asks instead of hiding.** Every entry (Dashboard button, receipts `⋮` menu,
+  `app-quick-scan-button`) goes through `QuickScanLauncher.open()` (`src/receipts/quick-scan-dialog/`) and stays visible
+  without AI. With `aiPoweredReceipts` it opens the scan dialog (and emits its `afterClosed`); without it a member holding
+  `app.receipt-processing-settings.update` gets the shared `ConfirmationDialogComponent` ("AI API key needed", confirm
+  **Add AI API key** via its new `confirmText` input, red Cancel) that goes to `/ai` on yes; anyone else gets the "Ask an
+  admin" hint. The AI page refreshes the feature config after a save, so Quick Scan works right away. Magic fill stays hidden
+  without AI.
 - **Quick Scan closes right after the upload** (one photo or many): "Receipts uploaded. You will get a notification once the AI has read them, or if it fails." The API notifies the uploader per scan (`quick_scan_handler.go`, with a link to the receipt), so there is no waiting and no redirect. Photos are added by dropping or choosing them and listed as spartan `attachment` rows (thumbnail, name, size, remove) with their per-photo fields underneath; there is no carousel. `UploadImageComponent.processFiles` is the one entry for picked and dropped files.
 - **Image menu on the receipt form** (`receipt-image-menu`, a `hlmDropdownMenuTrigger` laid over the image stage, 44 px
   target, so it stays in reach after scrolling on a phone): Preview (`expandImage`, full width under 768 px), Rename
@@ -2546,8 +2553,13 @@ Mobile-first (used in the shop). Backend contract: `api/CLAUDE.md`.
 ## Navigation, forms and settings screens
 
 - **Sidebar** (`src/layout/sidebar/`): group switcher (a static Household label with one group), everyday pages, a
-  collapsible **Manage** section (Manage pages, AI for everyone, System Settings for admins; **no Imports**), the account
-  menu. Desktop shows it labeled or as an icon rail; phone slides it over the page. Item lists are the `mainNavItems` /
+  collapsible **Settings** section (was "Admin Settings"; **no Imports**), the account menu (only About and Logout).
+  Settings lists, each behind its own permission: Manage Categories, Manage Tags, AI, User Settings (`/settings`: Profile,
+  Preferences, API Keys), Language (`/language`), Theme (`/theme`), then the admin pages Manage Households, Manage Users,
+  System Settings. A family User holds the first four's permissions, so they see everything up to Theme. Language and Theme
+  need no permission and are top-level routes (`LanguagePageComponent`, `ThemePageComponent` in `src/settings/theme/`), so
+  the User Settings link is not highlighted on them; `/settings/theme` redirects to `/theme`. Each entry carries a
+  `nav-*` test id. Desktop shows it labeled or as an icon rail; phone slides it over the page. Item lists are the `mainNavItems` /
   `manageNavItems` computeds. The page background fills the strip a hidden sidebar leaves. The page margin follows the sidebar through `drawer-content--rail` / `--wide` (the drawer container only measures once, so a collapse left the old margin); sidebar avatars take `--accent-button`. The loading and "Signing you in" screens are `app-cartvibe-splash` (large loader, rings, bar).
 - **(Superseded in part by "Visual identity" above: the section/panel pattern replaces flat white shadow cards.) Forms and settings screens follow the AI page:** a title and intro, a centered 640-760px column, white cards
   (`$border-radius-lg`, `$shadow-sm`), and **Save inside the card** as a flat accent button. `app-form-button-bar` (12 forms)
@@ -2573,7 +2585,7 @@ Mobile-first (used in the shop). Backend contract: `api/CLAUDE.md`.
   `variant="transparent"`; the login loading and "Signing you in" screens). Their light and dark palettes switch on the app's
   `dark` class through `:host-context(html.dark)`, not the OS; they are fixed brand colors (not the accent) and are kept out
   of the dark filter. To change the artwork, copy the new supplied file in.
-- **User Settings → Theme** (`ThemeService`, `src/theme/`): System, White and Black (the registry is `src/theme/themes.ts`), kept in
+- **Settings → Theme** (`/theme`, `ThemeService`, `src/theme/`): System, White and Black (the registry is `src/theme/themes.ts`), kept in
   `rw_theme_mode`; `index.html` applies it before the first paint. A theme is a token block in `src/themes/<key>.css`
   (`docs/themes.md`); the `dark` class on `<html>` follows the theme's scheme.
 - **Header chrome:** a theme toggle button (`data-testid="theme-toggle"`) sits next to the bell and switches between the White and
@@ -2635,7 +2647,7 @@ Angular Material, Bootstrap and the Tailwind CDN are gone (`docs/material-remova
 The **English text is the key**: `{{ 'Add receipt' | t }}` (pipe `t`, exported by `PipesModule`; standalone components import `TranslatePipe`), `'{n} items' | t: { n: 3 }` for parameters, `count | plural: 'item' : 'items'` for nouns, `TranslationService.t()` in TypeScript. A missing translation shows the English text (never a key path), and `null` or `""` in a dictionary counts as missing.
 - **Languages are runtime JSON** in `src/assets/i18n/`: `languages.json` is the registry (`code`, `label` in the language's own name, Angular `locale`; no flags), `<code>.json` is one dictionary (`{ messages, plurals }`), `en.json` is the **generated catalogue** (never fetched at runtime). `TranslationLoader` fetches them through `HttpBackend` (no interceptors, no error toast) and an app initializer loads the registry and the cached language before the first render. A dictionary that fails to load leaves the interface in English. nginx serves the folder with `no-cache` + ETag, so an edited file is picked up on the next load; a new language still ships in the image.
 - **Adding a language, no component code:** add a line to `languages.json`, run `npm run i18n:sync -- --lang xx` (creates `xx.json` with every key `null`), translate, and add its Angular locale data to `src/i18n/locale-data.ts` if it is not there (en, pl, de, fr, es, it, nl, pt, cs, sk, uk are; any other language formats dates in en-US instead of blanking them).
-- **The language is never taken from the browser.** Signed out (including the login page) is English; signed in it is `UserPreferences.language` (synced by `LanguageSyncService`, which loads the dictionary first and then switches, so the interface changes once). `localStorage` (`cartvibe.language`) only caches the signed-in account's language to avoid an English flash on reload and is cleared when the preferences go away (logout). The choice is made in User Settings → Theme → Language (applies at once, no Save) or in the sidebar account menu; both save it with the account, so it follows the person to every device.
+- **The language is never taken from the browser.** Signed out (including the login page) is English; signed in it is `UserPreferences.language` (synced by `LanguageSyncService`, which loads the dictionary first and then switches, so the interface changes once). `localStorage` (`cartvibe.language`) only caches the signed-in account's language to avoid an English flash on reload and is cleared when the preferences go away (logout). The choice is made on Settings → Language (`/language`, applies at once, no Save); it is saved with the account, so it follows the person to every device.
 - **Plurals** follow `Intl.PluralRules` (CLDR `one/few/many/other`): `plurals` in a dictionary lists exactly the language's categories per noun; lookup is category, then `other`, then the English singular/plural.
 - **Strings defined in TypeScript** (column headers, option labels, presets, toasts, error texts) are wrapped in `marker("Created At")` (`src/i18n/marker.ts`, an identity function) where they are defined and translated where they are shown (`| t`, or a component that translates its `label`, `headerText`, `buttonText`, `tooltip` ... input). A text with values is a key with `{placeholders}` and parameters (`this.translation.t("Delete {name}", { name })`), **never a template literal or concatenation** (`i18n:check` fails on that). Pure helpers with no injector take an optional `TranslateFn` (`src/i18n/translate-fn.ts`) and call `translate(marker("{percent}% less than {name}"), { ... })`; results that carry a message for a template return `message` + `params` and the template renders `message | t: params`.
 - **Validation messages** (`validation-messages.ts`): `required`, `email`, `min`, `max`, `minlength`, `maxlength`, `pattern`, `duplicate` map to keys such as `{label} must be at least {min}.`. `BaseInputComponent` emits `{ error, key, params, message }` and the five input templates render `errorText(err)`, which translates the label first and reads the language signal (so messages switch language at once). A custom validator may return a string (the key) or `{ message: "…{min}…", min }`; `additionalErrorMessages` overrides per field.
@@ -2677,15 +2689,16 @@ Every Admin and User settings page uses four shared primitives from `src/shared-
   "Matched: Dark chocolate · 2,49 €, ..." line from `Receipt.searchMatches` (`receipt-search-matches`). See `api/CLAUDE.md`
   "Receipt search" for what matches.
 - **The product checker is the Dashboard's "Scan product" button** (`data-testid="overview-scan-product"`, after New list; code in
-  `src/product-check/`, no API, no permission; the header has no search box any more). `ProductCheckLauncher.start()` opens the
-  camera scanner when the browser has one and the drawer with the scanned barcode; without a camera (plain http, no device) it opens
-  the drawer, which then has a field to type the barcode in. A barcode is 8/12/13 digits with a valid EAN/UPC check digit
+  `src/product-check/`, no API, no permission; the header has no search box any more). `ProductCheckLauncher.start()` opens one
+  centered dialog (`ProductCheckDialogComponent`, 32rem, like every other action; it used to be a right-hand drawer) with three
+  ways in at the top: **Take a photo of the code**, **Upload a photo**, and **Enter a barcode number** (Enter or Check), the
+  results below and a red **Cancel** in the footer. With live video "Take a photo" opens `BarcodeScannerDialogComponent` on top
+  and the read barcode fills the box; without it, it is the native capture label. There is no camera icon inside the barcode
+  box any more (the photo buttons cover it). A barcode is 8/12/13 digits with a valid EAN/UPC check digit
   (anything else answers "enter a barcode" without a request). **There is no name search, on purpose:** Open Food Facts answers
   any request a browser marks cross-site (`Sec-Fetch-Site`, or just a `Referer`) to its search endpoints (`cgi/search.pl`,
   `/api/v2/search`) with a 503, and its search service sends no CORS header, while `/api/v2/product/{code}` works. A name search
-  would need a server relay, which was rejected: the checker is browser-only, zero backend. Everything opens in the slide-over `ProductCheckDrawerComponent`
-  (an `AppDialog` with `panelClass: "product-check-drawer"`, docked right, a bottom sheet on a phone; the CSS is in
-  `tailwind.css` and needs `!important` because the CDK centres a dialog with inline styles).
+  would need a server relay, which was rejected: the checker is browser-only, zero backend.
 - **Open Food Facts is read from the browser, never stored.** `OpenFoodFactsService` builds its `HttpClient` on `HttpBackend`
   so the app's interceptors (credentials, error toasts, queue mode) are skipped. An unknown barcode is a 404 with a JSON body,
   which the service maps to "not found". `ProductCheckService` drops an answer that arrives after a newer request. The
@@ -2693,11 +2706,12 @@ Every Admin and User settings page uses four shared primitives from `src/shared-
   for flipping between items without another request.
 - **Scoring** (`health-score.ts`, pure, constants documented): 60% Nutri-Score + 40% NOVA (missing counts as 50), minus 15 per
   high-risk and 5 per moderate additive, clamped to 0-100. `e-additives.ts` is a bundled guide of about 210 codes with a
-  category and `safe | moderate | high`; unknown codes show as unknown. It is a general guide, and the drawer says so.
+  category and `safe | moderate | high`; unknown codes show as unknown. It is a general guide, and the dialog says so.
 - **Photo fallback (plain http, no device, or a refused camera).** The live scanner needs `isSecureContext` and `getUserMedia`
-  (`canUseCamera()`, a synchronous check). Without them the drawer shows `app-barcode-photo-actions`: **"Take a photo of the
-  code"** (`<input type="file" accept="image/*" capture="environment">`, opens the phone's camera app) and **"Upload a photo"**
-  (no `capture`, the gallery or a file on a PC), plus a camera icon inside the barcode field. They are native `<label>`s around
+  (`canUseCamera()`, a synchronous check). `app-barcode-photo-actions` is always the dialog's top row: with `[liveCamera]`
+  its "Take a photo" is a button emitting `takePhoto`; without, it is **"Take a photo of the
+  code"** (`<input type="file" accept="image/*" capture="environment">`, opens the phone's camera app). **"Upload a photo"**
+  (no `capture`, the gallery or a file on a PC) is always a label. The file ones are native `<label>`s around
   hidden inputs, never a button calling `input.click()`: iOS Safari and Android Chrome ignore a file-input click made after an
   `await`, so it must stay a tap on the control itself. The scanner dialog shows the same pair when the camera is refused or
   fails. `BarcodeImageService.decode(file)` shrinks the photo to 1280 px on its long side (`fitWithin`, a 12-48 MP photo chokes

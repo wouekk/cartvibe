@@ -86,6 +86,17 @@ const routes: Routes = [
           appPermissions: [Permission.AppReceiptProcessingSettingsUpdate],
         },
       },
+      // Per browser (theme) or per account (language), so any signed-in user may open them.
+      {
+        path: "theme",
+        loadComponent: () => import("../settings/theme/theme-page.component").then((m) => m.ThemePageComponent),
+        canActivate: [AuthGuard],
+      },
+      {
+        path: "language",
+        loadComponent: () => import("../settings/theme/language-page.component").then((m) => m.LanguagePageComponent),
+        canActivate: [AuthGuard],
+      },
       {
         path: "system-settings",
         loadChildren: () =>

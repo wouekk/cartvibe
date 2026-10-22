@@ -87,14 +87,13 @@
       content query, so a hlmDropdownMenuItem rendered inside a child component's
       template (app-quick-scan-button, app-export-button) would be invisible to
       the menu and skipped by keyboard navigation. The behaviour behind each one
-      still lives in a shared place — openQuickScanDialog and
-      ReceiptExportService.
+      still lives in a shared place — QuickScanLauncher (which asks for an AI
+      key when there is none) and ReceiptExportService.
     -->
     <ng-template #overflowMenu>
 <div hlmDropdownMenu class="w-56">
       @if (canQuickScan) {
         <button
-          *appFeature="'aiPoweredReceipts'"
           hlmDropdownMenuItem
           data-testid="receipts-quick-scan"
           (click)="quickScanClicked()"

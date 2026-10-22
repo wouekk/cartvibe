@@ -30,4 +30,15 @@ describe('ConfirmationDialogComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('labels the confirm button "Confirm" unless the caller names the action', () => {
+    const footer = () => fixture.nativeElement.querySelector('app-dialog-footer');
+    expect(footer().submitButtonTooltip).toBe('Confirm');
+
+    component.confirmText = 'Add AI API key';
+    fixture.changeDetectorRef.markForCheck();
+    fixture.detectChanges();
+
+    expect(footer().submitButtonTooltip).toBe('Add AI API key');
+  });
 });

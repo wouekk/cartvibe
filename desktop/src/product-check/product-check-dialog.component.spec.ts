@@ -1,18 +1,21 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { AppDialogRef } from "../dialog/app-dialog";
+import { of } from "rxjs";
+import { AppDialog, AppDialogRef } from "../dialog/app-dialog";
+import { BarcodeScannerDialogComponent } from "./barcode-scanner-dialog.component";
 import * as scanner from "./barcode-scanner.service";
 import { sampleProduct } from "./fixtures";
 import { BarcodeImageService } from "./barcode-image.service";
 import { OpenFoodFactsService } from "./open-food-facts.service";
-import { ProductCheckDrawerComponent } from "./product-check-drawer.component";
+import { ProductCheckDialogComponent } from "./product-check-dialog.component";
 import { ProductCheckService } from "./product-check.service";
 
-describe("ProductCheckDrawerComponent", () => {
-  let fixture: ComponentFixture<ProductCheckDrawerComponent>;
+describe("ProductCheckDialogComponent", () => {
+  let fixture: ComponentFixture<ProductCheckDialogComponent>;
   let service: ProductCheckService;
   const close = jest.fn();
   const decode = jest.fn();
+  const openDialog = jest.fn();
 
   const element = (testId: string): HTMLElement | null => fixture.nativeElement.querySelector(`[data-testid="${testId}"]`);
   const text = (testId: string): string => (element(testId)?.textContent ?? "").replace(/\s+/g, " ").trim();
@@ -26,17 +29,18 @@ describe("ProductCheckDrawerComponent", () => {
     localStorage.clear();
     close.mockClear();
     await TestBed.configureTestingModule({
-      imports: [ProductCheckDrawerComponent],
+      imports: [ProductCheckDialogComponent],
       providers: [
         provideZonelessChangeDetection(),
         { provide: AppDialogRef, useValue: { close } },
+        { provide: AppDialog, useValue: { open: openDialog } },
         { provide: OpenFoodFactsService, useValue: { getByBarcode: jest.fn(), search: jest.fn() } },
         { provide: BarcodeImageService, useValue: { decode } },
       ],
     }).compileComponents();
 
     service = TestBed.inject(ProductCheckService);
-    fixture = TestBed.createComponent(ProductCheckDrawerComponent);
+    fixture = TestBed.createComponent(ProductCheckDialogComponent);
     await render();
   });
 
@@ -111,21 +115,54 @@ describe("ProductCheckDrawerComponent", () => {
     expect(element(testId)).not.toBeNull();
   });
 
-  it("asks for the barcode to be typed only when there is no camera", async () => {
-    // The test browser has no camera, so the field is there; with one it is not.
-    expect(element("product-check-barcode")).not.toBeNull();
-
+  it("always offers the typed barcode number, looked up on Enter or with Check", async () => {
     const lookup = jest.spyOn(service, "check").mockImplementation();
     const box = element("product-check-barcode") as HTMLInputElement;
     box.value = "3017620422003";
     box.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+    element("product-check-lookup")?.click();
 
+    expect(lookup).toHaveBeenCalledTimes(2);
     expect(lookup).toHaveBeenCalledWith("3017620422003");
 
     jest.spyOn(scanner, "canUseCamera").mockReturnValue(true);
-    const withCamera = TestBed.createComponent(ProductCheckDrawerComponent);
+    const withCamera = TestBed.createComponent(ProductCheckDialogComponent);
     await withCamera.whenStable();
-    expect(withCamera.nativeElement.querySelector('[data-testid="product-check-barcode"]')).toBeNull();
+    expect(withCamera.nativeElement.querySelector('[data-testid="product-check-barcode"]')).not.toBeNull();
+  });
+
+  it("has no camera icon inside the barcode box: Take a photo above covers it", () => {
+    const box = element("product-check-barcode-box") as HTMLElement;
+
+    expect(box.querySelector("input[type=file]")).toBeNull();
+    expect(box.querySelector("app-barcode-photo-actions")).toBeNull();
+  });
+
+  describe("with live video", () => {
+    let withCamera: ComponentFixture<ProductCheckDialogComponent>;
+
+    beforeEach(async () => {
+      jest.spyOn(scanner, "canUseCamera").mockReturnValue(true);
+      withCamera = TestBed.createComponent(ProductCheckDialogComponent);
+      await withCamera.whenStable();
+    });
+
+    it("makes Take a photo open the live scanner, and keeps Upload a photo", () => {
+      expect(withCamera.nativeElement.querySelector('[data-testid="barcode-photo-live"]')).not.toBeNull();
+      expect(withCamera.nativeElement.querySelector('[data-testid="barcode-photo-capture"]')).toBeNull();
+      expect(withCamera.nativeElement.querySelector('[data-testid="barcode-photo-upload"]')).not.toBeNull();
+    });
+
+    it("looks up the barcode the scanner read and shows it in the box", async () => {
+      openDialog.mockReturnValue({ afterClosed: () => of("3017620422003") });
+      const lookup = jest.spyOn(service, "check").mockImplementation();
+
+      withCamera.nativeElement.querySelector('[data-testid="barcode-photo-live"]').click();
+
+      expect(openDialog).toHaveBeenCalledWith(BarcodeScannerDialogComponent, expect.anything());
+      expect(lookup).toHaveBeenCalledWith("3017620422003");
+      expect(withCamera.nativeElement.querySelector('[data-testid="product-check-barcode"]').value).toBe("3017620422003");
+    });
   });
 
   describe("without live video (plain http, no device)", () => {
@@ -140,13 +177,11 @@ describe("ProductCheckDrawerComponent", () => {
       await render();
     };
 
-    it("puts the take-photo and upload-photo labels at the top, and a camera icon in the barcode field", () => {
+    it("puts the take-photo and upload-photo labels at the top", () => {
       const bar = element("barcode-photo-bar") as HTMLElement;
       expect(bar).not.toBeNull();
       expect(bar.querySelector("input[capture=environment]")).not.toBeNull();
       expect(bar.querySelector("input[type=file]:not([capture])")).not.toBeNull();
-      expect(element("barcode-photo-icon")).not.toBeNull();
-      expect((element("product-check-barcode-box") as HTMLElement).contains(element("barcode-photo-icon"))).toBe(true);
     });
 
     it("fills the barcode field and looks the product up when the photo is read", async () => {
@@ -169,16 +204,18 @@ describe("ProductCheckDrawerComponent", () => {
     });
   });
 
-  it("offers no photo labels when live video works", async () => {
-    jest.spyOn(scanner, "canUseCamera").mockReturnValue(true);
-    const withCamera = TestBed.createComponent(ProductCheckDrawerComponent);
-    await withCamera.whenStable();
-
-    expect(withCamera.nativeElement.querySelector('[data-testid="barcode-photo-bar"]')).toBeNull();
-  });
-
   it("closes from the header button", () => {
     element("product-check-close")?.click();
+
+    expect(close).toHaveBeenCalled();
+  });
+
+  it("closes from a red Cancel in the footer", () => {
+    const cancel = element("product-check-cancel") as HTMLElement;
+    expect(cancel.textContent).toContain("Cancel");
+    expect(cancel.getAttribute("data-variant") ?? cancel.className).toContain("destructive");
+
+    cancel.click();
 
     expect(close).toHaveBeenCalled();
   });

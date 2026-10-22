@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { HlmInputGroupImports } from "@spartan-ng/helm/input-group";
-import { AppDialogRef } from "../dialog/app-dialog";
+import { AppDialog, AppDialogRef } from "../dialog/app-dialog";
 import { marker } from "../i18n/marker";
 import { TranslatePipe } from "../i18n/translate.pipe";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { BarcodePhotoActionsComponent } from "./barcode-photo-actions.component";
+import { BarcodeScannerDialogComponent } from "./barcode-scanner-dialog.component";
 import { canUseCamera } from "./barcode-scanner.service";
 import { AdditiveInfo, describeAdditives } from "./e-additives";
 import { computeHealthScore, HealthTone, healthTone } from "./health-score";
@@ -53,47 +54,57 @@ interface NutritionRow {
 }
 
 /**
- * The slide-over that shows what the product checker found: a verdict (health score, Nutri-Score, NOVA group), the
- * additives with their risk, and the nutrition per 100 g. It reads `ProductCheckService`, which the header input and the
- * barcode scanner feed, so one drawer serves a typed barcode and a scan alike.
+ * The product checker, a centered dialog like every other action: take a photo of the code, upload one, or type the
+ * barcode number, then read the verdict (health score, Nutri-Score, NOVA group), the additives with their risk and the
+ * nutrition per 100 g below. It reads `ProductCheckService`, so a photo, a live scan and a typed number land the same way.
  */
 @Component({
-  selector: "app-product-check-drawer",
+  selector: "app-product-check-dialog",
   standalone: true,
   imports: [HlmButton, HlmInputGroupImports, AppIconComponent, BarcodePhotoActionsComponent, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: "flex h-full min-h-0 flex-col", "data-testid": "product-check-drawer" },
+  host: { class: "flex max-h-[calc(100dvh-2rem)] min-h-0 flex-col", "data-testid": "product-check-dialog" },
   template: `
-    <header class="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
-      <h2 class="m-0 text-sm font-semibold">{{ 'Check a product' | t }}</h2>
+    <header class="flex items-center justify-between gap-2 border-b border-border px-5 py-3">
+      <h2 class="m-0 text-base font-semibold">{{ 'Check a product' | t }}</h2>
       <button hlmBtn variant="ghost" size="icon" type="button" data-testid="product-check-close" [attr.aria-label]="'Close' | t" (click)="close()">
         <app-icon name="close"></app-icon>
       </button>
     </header>
 
-    <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 [&>*]:shrink-0">
-      <!-- Without live video (plain http, no device) a photo of the code, or the typed digits, is the way in. The photo
-           buttons are native labels over file inputs so the phone opens its camera from the tap itself. -->
-      @if (!cameraAvailable) {
-        <app-barcode-photo-actions variant="bar" (barcodeFound)="useCode($event, barcode)" (notFound)="photoNotFound()"></app-barcode-photo-actions>
-        <div hlmInputGroup data-testid="product-check-barcode-box">
-          <input
-            #barcode
-            hlmInputGroupInput
-            type="text"
-            inputmode="numeric"
-            enterkeyhint="search"
-            autocomplete="off"
-            data-testid="product-check-barcode"
-            [placeholder]="'Enter a barcode…' | t"
-            [attr.aria-label]="'Enter a barcode' | t"
-            (keydown.enter)="lookup(barcode.value)"
-          />
-          <div hlmInputGroupAddon align="inline-end">
-            <app-barcode-photo-actions variant="icon" (barcodeFound)="useCode($event, barcode)" (notFound)="photoNotFound()"></app-barcode-photo-actions>
+    <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-5 [&>*]:shrink-0">
+      <!-- With live video "Take a photo" opens the scanner; without it (plain http, no device) the phone's camera app,
+           through a native label over a file input so the tap itself opens it. -->
+      <app-barcode-photo-actions
+        [liveCamera]="cameraAvailable"
+        (takePhoto)="scan(barcode)"
+        (barcodeFound)="useCode($event, barcode)"
+        (notFound)="photoNotFound()"
+      ></app-barcode-photo-actions>
+
+      <div class="flex flex-col gap-1.5">
+        <label for="product-check-barcode" class="text-sm font-medium">{{ 'Enter a barcode number' | t }}</label>
+        <div class="flex items-center gap-2">
+          <div hlmInputGroup class="min-w-0 flex-1" data-testid="product-check-barcode-box">
+            <input
+              #barcode
+              id="product-check-barcode"
+              hlmInputGroupInput
+              type="text"
+              inputmode="numeric"
+              enterkeyhint="search"
+              autocomplete="off"
+              data-testid="product-check-barcode"
+              [placeholder]="'8, 12 or 13 digits' | t"
+              (keydown.enter)="lookup(barcode.value)"
+            />
           </div>
+          <button hlmBtn type="button" data-testid="product-check-lookup" (click)="lookup(barcode.value)">
+            <app-icon name="search"></app-icon>
+            <span>{{ 'Check' | t }}</span>
+          </button>
         </div>
-      }
+      </div>
 
       @if (recent().length) {
         <div class="cv-scroll-x -mx-1 flex gap-2 px-1" role="list" [attr.aria-label]="'Recent scans' | t" data-testid="product-check-recent">
@@ -240,16 +251,21 @@ interface NutritionRow {
         }
         @default {
           <p class="m-0 text-sm text-muted-foreground" data-testid="product-check-idle">
-            {{ 'Enter the barcode printed under the bars.' | t }}
+            {{ 'Take a photo of the barcode, upload one, or type the digits printed under the bars.' | t }}
           </p>
         }
       }
     </div>
+
+    <footer class="flex justify-end border-t border-border px-5 py-3">
+      <button hlmBtn variant="destructive" type="button" data-testid="product-check-cancel" (click)="close()">{{ 'Cancel' | t }}</button>
+    </footer>
   `,
 })
-export class ProductCheckDrawerComponent {
+export class ProductCheckDialogComponent {
   private readonly service = inject(ProductCheckService);
   private readonly dialogRef = inject(AppDialogRef);
+  private readonly dialog = inject(AppDialog);
 
   protected readonly status = this.service.status;
   protected readonly product = this.service.product;
@@ -282,11 +298,26 @@ export class ProductCheckDrawerComponent {
     ];
   });
 
-  /** Typing a barcode is the way in when the browser offers no camera. */
+  /** Whether "Take a photo" can open the live scanner (a secure context with a camera API). */
   protected readonly cameraAvailable = canUseCamera();
 
   protected lookup(value: string): void {
     this.service.check(value);
+  }
+
+  /** The live scanner, on top of this dialog; the barcode it reads fills the box and is looked up. */
+  protected scan(input: HTMLInputElement): void {
+    this.dialog
+      .open<BarcodeScannerDialogComponent, unknown, string>(BarcodeScannerDialogComponent, {
+        width: "28rem",
+        autoFocus: "dialog",
+      })
+      .afterClosed()
+      .subscribe((code) => {
+        if (code) {
+          this.useCode(code, input);
+        }
+      });
   }
 
   /** A barcode read from a photo fills the box and is looked up. */

@@ -1,70 +1,41 @@
 import { TestBed } from "@angular/core/testing";
 import { of } from "rxjs";
 import { AppDialog } from "../dialog/app-dialog";
-import * as scanner from "./barcode-scanner.service";
+import { ProductCheckDialogComponent } from "./product-check-dialog.component";
 import { ProductCheckLauncher } from "./product-check-launcher.service";
-import { ProductCheckService } from "./product-check.service";
 
 describe("ProductCheckLauncher", () => {
-  let check: jest.Mock;
   let open: jest.Mock;
   let launcher: ProductCheckLauncher;
 
-  const create = (camera: boolean) => {
-    jest.spyOn(scanner, "canUseCamera").mockReturnValue(camera);
-    launcher = TestBed.inject(ProductCheckLauncher);
-  };
-
   beforeEach(() => {
-    check = jest.fn();
     open = jest.fn().mockReturnValue({ afterClosed: () => of(undefined) });
-    TestBed.configureTestingModule({
-      providers: [
-        { provide: ProductCheckService, useValue: { check } },
-        { provide: AppDialog, useValue: { open } },
-      ],
-    });
+    TestBed.configureTestingModule({ providers: [{ provide: AppDialog, useValue: { open } }] });
+    launcher = TestBed.inject(ProductCheckLauncher);
   });
 
-  afterEach(() => jest.restoreAllMocks());
-
-  it("opens the scanner first when there is a camera, then the drawer with the barcode it read", () => {
-    create(true);
-    open.mockReturnValueOnce({ afterClosed: () => of("3017620422003") });
-
-    launcher.start();
-
-    expect(check).toHaveBeenCalledWith("3017620422003");
-    expect(open).toHaveBeenCalledTimes(2);
-    expect(open.mock.calls[1][1].panelClass).toBe("product-check-drawer");
-  });
-
-  it("opens only the drawer, for typing a barcode, when there is no camera", () => {
-    create(false);
-
+  it("opens one centered dialog, camera or not (no drawer panel)", () => {
     launcher.start();
 
     expect(open).toHaveBeenCalledTimes(1);
-    expect(open.mock.calls[0][1].panelClass).toBe("product-check-drawer");
-    expect(check).not.toHaveBeenCalled();
+    expect(open.mock.calls[0][0]).toBe(ProductCheckDialogComponent);
+    expect(open.mock.calls[0][1].panelClass).toBeUndefined();
+    expect(open.mock.calls[0][1].width).toBe("32rem");
   });
 
-  it("checks and opens nothing when the scanner is dismissed", () => {
-    create(true);
-
-    launcher.start();
-
-    expect(check).not.toHaveBeenCalled();
-    expect(open).toHaveBeenCalledTimes(1);
-  });
-
-  it("does not stack a second drawer on the first", () => {
-    create(false);
+  it("does not stack a second dialog on the first", () => {
     open.mockReturnValue({ afterClosed: () => ({ subscribe: () => undefined }) });
 
-    launcher.openDrawer();
-    launcher.openDrawer();
+    launcher.start();
+    launcher.start();
 
     expect(open).toHaveBeenCalledTimes(1);
+  });
+
+  it("opens again once the first is closed", () => {
+    launcher.start();
+    launcher.start();
+
+    expect(open).toHaveBeenCalledTimes(2);
   });
 });

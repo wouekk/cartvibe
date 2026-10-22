@@ -1,5 +1,5 @@
 import { CurrencyPipe } from "@angular/common";
-import { Component, computed, effect, ElementRef, linkedSignal, signal, untracked, viewChild } from "@angular/core";
+import { Component, computed, effect, ElementRef, inject, linkedSignal, signal, untracked, viewChild } from "@angular/core";
 import { shakeElement } from "../../utils/shake";
 import { AppDialog } from "../../dialog/app-dialog";
 import { toObservable, toSignal } from "@angular/core/rxjs-interop";
@@ -45,7 +45,7 @@ import {
   UserPreferencesService,
 } from "../../open-api";
 import { ProductCheckLauncher } from "../../product-check/product-check-launcher.service";
-import { openQuickScanDialog } from "../../receipts/quick-scan-dialog/open-quick-scan-dialog";
+import { QuickScanLauncher } from "../../receipts/quick-scan-dialog/quick-scan-launcher.service";
 import { AuthState, FeatureConfigState, GroupState, SetUserPreferences } from "../../store";
 import { SnackbarService } from "../../services";
 import { ShoppingListState } from "../../store/shopping-list.state";
@@ -805,9 +805,9 @@ export class OverviewPageComponent {
   /** Whether anyone has set the AI up yet; without it Quick Scan cannot read a receipt. */
   public readonly aiConfigured = computed(() => this.hasAiPoweredReceipts());
 
-  private readonly canConfigureAi = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppReceiptProcessingSettingsUpdate));
+  private readonly quickScanLauncher = inject(QuickScanLauncher);
 
-  /** The button shows whenever the member may scan; without the AI it explains what is missing instead of opening the dialog. */
+  /** The button shows whenever the member may scan; without the AI it asks for a key instead of opening the dialog. */
   public readonly canQuickScan = computed(() => hasAll(this.groupPermissions()[this.groupId()] ?? [], Permission.GroupReceiptsQuickScan));
 
   /** The shopping list group: this group when readable, otherwise the user's first readable one. */
@@ -1437,22 +1437,9 @@ export class OverviewPageComponent {
     return segment.name !== OTHER_SEGMENT;
   }
 
+  /** Without an AI key the launcher asks whether to add one instead of opening the scan dialog. */
   public openQuickScan(): void {
-    if (!this.aiConfigured()) {
-      this.explainMissingAi();
-      return;
-    }
-    openQuickScanDialog(this.matDialog).pipe(take(1)).subscribe();
-  }
-
-  /** No AI yet: say so, and take whoever may set it up to the AI page (anyone else is told to ask). */
-  private explainMissingAi(): void {
-    if (this.canConfigureAi()) {
-      this.snackbarService.hint(this.translation.t(marker("Add an AI API key to scan receipts.")));
-      this.router.navigate(["/ai"]);
-    } else {
-      this.snackbarService.hint(this.translation.t(marker("Scanning needs an AI API key. Ask an admin to add one.")));
-    }
+    this.quickScanLauncher.open().pipe(take(1)).subscribe();
   }
 
   /** Checks a product's barcode on Open Food Facts; see src/product-check. */
