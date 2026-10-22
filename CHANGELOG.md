@@ -9,6 +9,12 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 ## [Unreleased]
 
 ### Added
+- Customizable Dashboard: a Customize button opens the Dashboard in edit mode, where you switch panels on or off (key
+  figures, tag tiles, charts, receipts, shopping list), drag or move them, make them wider, narrower or taller within
+  limits that keep charts and tables whole, and preview the result at phone, tablet and PC width before saving. The
+  layout is saved with your account (new `GET/PUT /dashboardLayout`), so it follows you to every device; a phone keeps
+  its own order, with the shopping list first until you arrange it.
+- The date of a receipt on the Dashboard opens the receipt, like the shop name.
 - Dashboard donut: hovering or clicking a slice, or hovering a row of the category list beside it, grows that slice out
   from the ring, fades the other slices and rows, and shows the category in the middle of the ring. Hovering never
   redraws the chart, and reduced motion turns the animation off.
@@ -20,6 +26,7 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
   are now rebuilt (without replaying their animation) when the theme changes.
 - The focused donut slice never actually popped out (a broken pattern in the slice lookup).
 - Polish: the donut legend's "Share" column reads "Udział" (it said "Udostępnij", as in sharing a link).
+- On/off switches showed as off even when on (the spartan switch styles looked for an attribute the switch never sets).
 
 ## [0.4.0] - 2026-10-22
 
