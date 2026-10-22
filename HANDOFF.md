@@ -11,6 +11,8 @@
   `main`, an empty `run\` and two scripts, `api.cmd` and `web.cmd`; `tools\dl` and the stale API builds, logs and one-off
   scripts are deleted. Older notes below that mention worktrees or branches to delete are history.
 - New work starts on a `feature/<name>` branch from `main`.
+- README Features were reworded in plain language by the user's request (Product lookup, no first-start row); `main` and
+  `preview` are identical (802fe4bc and later docs commits).
 
 ## v0.6.0 released (2026-10-23) from `main`
 
