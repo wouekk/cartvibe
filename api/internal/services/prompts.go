@@ -22,8 +22,9 @@ func NewPromptService(tx *gorm.DB) PromptService {
 }
 
 // DefaultReceiptPrompt is the prompt every receipt read uses (Phase 3 A3: prompts are hardcoded and
-// only shaped by the group's categories and tags through @categories and @tags). Stored Prompt rows
-// are kept, and a processing setting still names one, but buildPrompt no longer reads it.
+// only shaped by the group's categories through @categories). Stored Prompt rows are kept, and a
+// processing setting still names one, but buildPrompt no longer reads it. It asks for no tags: tags are
+// the household's own labels, set by people (the AI's answer is stripped of any, see dropAiTags).
 const DefaultReceiptPrompt = `
 Find the receipt's name, total cost, and date. Format the found data as:
 {
@@ -33,7 +34,6 @@ Find the receipt's name, total cost, and date. Format the found data as:
 	"amount": amount as a number,
 	"date": date in ISO 18601 format in UTC with ALL time values set as 0,
 	"categories": categories,
-	"tags": tags,
 	"customFields": custom field values
 }
 If a store name cannot be confidently found, use 'Default store name' as the default name.
@@ -52,13 +52,8 @@ Choose up to 2 categories from the given list based on the receipt's items and s
 
 Emphasize the relationship between the category and the receipt, and use the description of the category to fine tune the results. Do not return categories that have an empty name or do not exist.
 If there are no categories to chose from, then please make categories an empty array.
-Likewise, if there are not tags to choose from, then make tags an empty array.
 
 Categories to chose from: @categories
-
-Follow the same process as described for categories for tags.
-
-Tags to chose from: @tags
 
 Custom fields to fill in, as a list of {id, name, type, description, options}. Return a value for a field only when the receipt clearly shows it; otherwise leave it out. If there are no custom fields, make customFields an empty array. Each value is an object with the field's id as customFieldId and exactly one value, by type:
 TEXT: "stringValue": text
