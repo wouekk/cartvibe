@@ -1,4 +1,4 @@
-<form class="mb-6" [formGroup]="form" (ngSubmit)="submit()">
+<form class="mx-auto mb-6 w-full max-w-5xl" [formGroup]="form" (ngSubmit)="submit()">
   <app-form-header
     [headerText]="formHeaderText() ?? ''"
     [headerButtonsTemplate]="formHeaderButtons"
@@ -9,6 +9,7 @@
       @if (queueIndex > -1) {
         <app-form-section
           class="flex-1 min-w-0"
+          [panel]="true"
           [headerText]="'Queue Details' | t"
           [indent]="false"
         >
@@ -24,30 +25,29 @@
           [indent]="false"
         ></app-audit-detail-section>
       </ng-container>
-      <div class="flex flex-wrap gap-6">
+      <div class="flex flex-wrap gap-4">
         <app-form-section
           class="w-full md:flex-1 md:min-w-0"
+          [panel]="true"
           [headerText]="'Details' | t"
           [indent]="false"
         >
-          <div
-            class="flex flex-col justify-center items-center"
-          >
+          <div class="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
             <app-input
-              class="w-full"
+              class="w-full sm:col-span-2"
               [label]="'Name' | t"
               data-testid="receipt-name"
               [inputFormControl]="form | formGet : 'name'"
               [readonly]="mode | inputReadonly"
             ></app-input>
             <app-input
-              class="w-full"
+              class="w-full sm:col-span-2"
               [label]="'Shop' | t"
               hint="Read from the receipt by the AI, e.g. Auchan, Edeka, Rewe"
               [inputFormControl]="form | formGet : 'shopName'"
               [readonly]="mode | inputReadonly"
             ></app-input>
-            <div class="flex items-center w-full">
+            <div class="w-full">
               <app-input
                 class="w-full"
                 [label]="'Amount' | t"
@@ -59,15 +59,22 @@
               ></app-input>
               @if (!(mode | inputReadonly)) {
                 <app-checkbox
+                  class="mb-2 mt-1 block"
                   [label]="'Sync with items' | t"
                   [inputFormControl]="form | formGet : 'syncAmountWithItems'"
                 ></app-checkbox>
               }
             <app-receipt-currency-note class="w-full" [receipt]="originalReceipt"></app-receipt-currency-note>
             </div>
+            <app-datepicker
+              [label]="'Date' | t"
+              class="w-full"
+              [inputFormControl]="form | formGet : 'date'"
+              [readonly]="mode | inputReadonly"
+            ></app-datepicker>
             @if (!this.selectedGroup()?.groupReceiptSettings?.hideReceiptCategories) {
               <app-category-autocomplete
-                class="w-full"
+                class="w-full sm:col-span-2"
                 data-testid="receipt-categories"
                 [inputFormControl]="form | formGet : 'categories'"
                 [categories]="categories"
@@ -77,22 +84,16 @@
             }
             @if (!this.selectedGroup()?.groupReceiptSettings?.hideReceiptTags) {
               <app-tag-autocomplete
-                class="w-full"
+                class="w-full sm:col-span-2"
                 [inputFormControl]="form | formGet : 'tags'"
                 [tags]="tags"
                 [creatable]="canCreateTags()"
                 [readonly]="mode | inputReadonly"
               ></app-tag-autocomplete>
             }
-            <app-datepicker
-              [label]="'Date' | t"
-              class="w-full"
-              [inputFormControl]="form | formGet : 'date'"
-              [readonly]="mode | inputReadonly"
-            ></app-datepicker>
             @if (showGroupPicker()) {
               <app-group-autocomplete
-                class="w-full"
+                class="w-full sm:col-span-2"
                 data-testid="receipt-group"
                 [inputFormControl]="form | formGet : 'groupId'"
                 [readonly]="mode | inputReadonly"
@@ -102,7 +103,7 @@
             @if (showPaidBy()) {
               <app-user-autocomplete
                 #paidByAutocomplete
-                class="w-full"
+                class="w-full sm:col-span-2"
                 [label]="'Paid By' | t"
                 [inputFormControl]="form | formGet : 'paidByUserId'"
                 [usersToOmit]="usersToOmit()"
@@ -110,7 +111,7 @@
               ></app-user-autocomplete>
             }
             <app-select
-              class="w-full"
+              class="w-full sm:col-span-2"
               [label]="'Status' | t"
               optionValueKey="value"
               optionDisplayKey="displayValue"
@@ -120,7 +121,7 @@
             ></app-select>
             @for (customField of customFieldsFormArray.controls; track customField.value["customFieldId"]) {
               <app-custom-field
-                class="w-full"
+                class="w-full sm:col-span-2"
                 [formGroup]="$any(customField)"
                 [customFields]="customFields"
                 [readonly]="mode | inputReadonly"
@@ -131,6 +132,7 @@
         @if (!selectedGroup()?.groupReceiptSettings?.hideImages) {
           <app-form-section
             class="w-full md:flex-1 md:min-w-0 rw-images-pane"
+            [panel]="true"
             [headerText]="'Images' | t"
             [headerButtonsTemplate]="imagesSectionHeaderButtons"
             [indent]="false"
@@ -150,8 +152,20 @@
                   {{ 'Your role requires at least one image on this group\'s receipts.' | t }}
                 </div>
               }
+              @if (!(images().length > 0 || filesToUpload().length > 0) && !(mode | inputReadonly)) {
+                <button
+                  type="button"
+                  class="flex min-h-56 flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-transparent text-sm text-muted-foreground transition-colors outline-none hover:bg-accent/40 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+                  data-testid="receipt-image-empty-upload"
+                  [disabled]="!canEditReceipt()"
+                  (click)="uploadImageButtonClicked()"
+                >
+                  <app-icon name="photo_library"></app-icon>
+                  {{ 'Add receipt photos' | t }}
+                </button>
+              }
               <div
-                class="rw-images-pane__stage"
+                class="rw-images-pane__stage relative"
                 *ngIf="
                 images() &&
                 (images().length > 0 || filesToUpload().length > 0) &&
@@ -174,6 +188,15 @@
                   mode !== formMode.edit || (showProgressBar() ?? false)
                 "
                 ></app-carousel>
+                <app-button
+                  class="absolute right-2 top-2 z-10 rounded-full border border-border bg-background/85 backdrop-blur-sm [&_button]:min-h-11 [&_button]:min-w-11"
+                  data-testid="receipt-image-menu"
+                  matButtonType="iconButton"
+                  icon="more_vert"
+                  color="accent"
+                  [tooltip]="'Image actions' | t"
+                  [hlmDropdownMenuTrigger]="imageMenu"
+                ></app-button>
               </div>
             </div>
           </app-form-section>
@@ -202,6 +225,7 @@
            stay in the form, so saving keeps them. -->
       @if (originalReceipt?.id && originalReceipt?.groupId) {
         <app-form-section
+          [panel]="true"
           [headerText]="'Products' | t"
           [indent]="false"
         >
@@ -213,37 +237,6 @@
             ></app-receipt-products>
           }
         </app-form-section>
-      }
-      @if (!this.selectedGroup()?.groupReceiptSettings?.hideComments) {
-        <div class="mt-4">
-          <app-form-section
-            [headerText]="'Comments' | t"
-            [indent]="false"
-          >
-            @if (isCommentMissing()) {
-              <div
-                class="rw-requirement-hint mb-2"
-                data-testid="receipt-comment-required-hint"
-              >
-                {{ 'Your role requires at least one comment on this group\'s receipts.' | t }}
-              </div>
-            }
-            <!-- Keyed on the receipt id: the queue re-uses this form for the next
-                 receipt, and the comments child only reads its inputs on init, so
-                 without a fresh instance it would keep the previous receipt's
-                 comments (and the required-comment check would count them). -->
-            @for (receipt of [originalReceipt]; track receipt?.id) {
-              <app-receipt-comments
-                [receiptId]="receipt?.id"
-                [groupId]="receipt?.groupId"
-                [comments]="receipt?.comments ?? []"
-                [mode]="mode"
-                [preventDeletingLastComment]="isCommentDeletionLimited()"
-                (commentsUpdated)="updateComments($event)"
-              ></app-receipt-comments>
-            }
-          </app-form-section>
-        </div>
       }
     </div>
   </div>
@@ -286,6 +279,35 @@
     </div>
   </app-form-button-bar>
 </form>
+
+<!-- Below the Save bar and outside the form: a comment is committed with its own Comment button,
+     never by saving the receipt. -->
+@if (!this.selectedGroup()?.groupReceiptSettings?.hideComments) {
+  <section class="mx-auto mb-6 w-full max-w-5xl">
+    @if (isCommentMissing()) {
+      <div
+        class="rw-requirement-hint mb-2"
+        data-testid="receipt-comment-required-hint"
+      >
+        {{ 'Your role requires at least one comment on this group\'s receipts.' | t }}
+      </div>
+    }
+    <!-- Keyed on the receipt id: the queue re-uses this form for the next
+         receipt, and the comments child only reads its inputs on init, so
+         without a fresh instance it would keep the previous receipt's
+         comments (and the required-comment check would count them). -->
+    @for (receipt of [originalReceipt]; track receipt?.id) {
+      <app-receipt-comments
+        [receiptId]="receipt?.id"
+        [groupId]="receipt?.groupId"
+        [comments]="receipt?.comments ?? []"
+        [mode]="mode"
+        [preventDeletingLastComment]="isCommentDeletionLimited()"
+        (commentsUpdated)="updateComments($event)"
+      ></app-receipt-comments>
+    }
+  </section>
+}
 
 <ng-template #groupOptionTemplate let-option="option"
 >{{ option.name }}
@@ -414,14 +436,6 @@
     ></app-button>
     <app-button
       matButtonType="iconButton"
-      icon="fullscreen"
-      [tooltip]="'Show Fullscreen Image' | t"
-      color="accent"
-      [disabled]="(showProgressBar() ?? false)"
-      (clicked)="expandImage()"
-    ></app-button>
-    <app-button
-      matButtonType="iconButton"
       icon="zoom_in"
       [tooltip]="'Zoom In' | t"
       color="accent"
@@ -450,18 +464,46 @@
     [disabled]="!canMagicFill() || (showProgressBar() ?? false)"
     (clicked)="magicFill()"
   ></app-button>
-  <app-button
-    *ngIf="
-      !(mode | inputReadonly) && (images().length > 0 || filesToUpload().length > 0)
-    "
-    data-testid="receipt-image-remove"
-    matButtonType="iconButton"
-    icon="delete"
-    [tooltip]="isLastImageLocked() ? 'An image is required, so the last one cannot be removed' : 'Remove Image'"
-    color="warn"
-    [disabled]="!canEditReceipt() || isLastImageLocked() || (showProgressBar() ?? false)"
-    (clicked)="removeImage()"
-  ></app-button>
+</ng-template>
+
+<!--
+  The one place to preview, rename or remove the receipt's photo. It sits on the image stage itself (not in the
+  section header), so it is under the thumb after scrolling down to the photo on a phone; the stage is a positioned
+  box and the trigger is a 44px target. Every entry is a plain button: the dropdown collects its items with a content
+  query, which a child component's template would hide.
+-->
+<ng-template #imageMenu>
+  <div hlmDropdownMenu class="w-52">
+    <button
+      hlmDropdownMenuItem
+      data-testid="receipt-image-preview"
+      (click)="expandImage()"
+    >
+      <app-icon name="fullscreen"></app-icon>
+      <span>{{ 'Preview' | t }}</span>
+    </button>
+    @if (!(mode | inputReadonly)) {
+      <button
+        hlmDropdownMenuItem
+        data-testid="receipt-image-rename"
+        [disabled]="!canEditReceipt() || (showProgressBar() ?? false)"
+        (click)="renameReceipt()"
+      >
+        <app-icon name="edit"></app-icon>
+        <span>{{ 'Rename' | t }}</span>
+      </button>
+      <button
+        hlmDropdownMenuItem
+        data-testid="receipt-image-remove"
+        [attr.title]="isLastImageLocked() ? ('An image is required, so the last one cannot be removed' | t) : null"
+        [disabled]="!canEditReceipt() || isLastImageLocked() || (showProgressBar() ?? false)"
+        (click)="confirmRemoveImage()"
+      >
+        <app-icon name="delete"></app-icon>
+        <span>{{ 'Remove' | t }}</span>
+      </button>
+    }
+  </div>
 </ng-template>
 
 <ng-template #expandedImageTemplate>

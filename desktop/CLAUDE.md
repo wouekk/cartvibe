@@ -2844,6 +2844,12 @@ never hand-edited.
 - **Quick Scan:** nothing is required (`resolveQuickScanFieldConfig`; only the comment keeps its rules), a sole group is
   seeded and its picker hidden. The **Upload photos** button is a centered raised button in the dialog body ("Add more
   photos" once there are some).
+- **Quick Scan closes right after the upload** (one photo or many): "Receipts uploaded. You will get a notification once the AI has read them, or if it fails." The API notifies the uploader per scan (`quick_scan_handler.go`, with a link to the receipt), so there is no waiting and no redirect. Photos are added by dropping or choosing them and listed as spartan `attachment` rows (thumbnail, name, size, remove) with their per-photo fields underneath; there is no carousel. `UploadImageComponent.processFiles` is the one entry for picked and dropped files.
+- **Image menu on the receipt form** (`receipt-image-menu`, a `hlmDropdownMenuTrigger` laid over the image stage, 44 px
+  target, so it stays in reach after scrolling on a phone): Preview (`expandImage`, full width under 768 px), Rename
+  (`RenameReceiptDialogComponent`; a saved receipt goes to `renameReceipt`, a new one just takes the name in the form) and
+  Remove (`confirmRemoveImage`, with a confirmation). It replaced the header's fullscreen and delete icon buttons; the other
+  header buttons (upload, download, hide, zoom, magic fill) stay. Menu entries are plain buttons, like the receipts table's.
 
 ## Shopping lists (`src/shopping-lists/`)
 
@@ -2977,3 +2983,6 @@ Every Admin and User settings page uses four shared primitives from `src/shared-
 - **Save sits in the card footer, right-aligned, status text left** (`<div sectionFooter class="rw-card__footer">`); every card that saves has one.
 - **`app-settings-tabs`**: the one segmented strip; `app-filter-bar` and `app-tabs` render through it. **`app-settings-entity-list`**: draws an `app-table` on the card surface (a table inside `rw-card` loses its own border and shadow).
 - `app-form [settingsCard]="true" settingsTitle="..."` draws a form as one card (Edit in the head, submit in the footer). `app-table-header` is still used by receipts, reports and shopping lists, not by settings pages.
+- **Settings forms are always editable** (no view/edit pencil): User Profile, User Preferences, Household details and Household receipt settings turn their `/view` route into the edit form for anyone who may update (`editableConfig` / the group components' `ngOnInit`), Save sits in the footer (disabled while pristine) and settles the form instead of navigating. Sections inside use `app-form-section [panel]="true"` (flat rows; its content gets a `gap-3`). The household has no "Group AI Settings" tab any more (AI is household-wide).
+- **AI page:** a saved key shows as dots (`SAVED_KEY_PLACEHOLDER` in the key box, never the key), and **Test connection works on the form as typed**, saved or not: an untouched form tests `{ id }`, a changed one sends the whole command and the API falls back to the stored key for an empty key box (`CheckReceiptProcessingSettingsConnectivity`; a connectivity check ignores the missing prompt id).
+- **Page headers:** `app-form-header` (used by `app-form` and the receipt form) is the settings page header too: a quiet Back link, a 24px title, the header buttons on the right. The receipt form's panels are two columns on desktop (Details with amount | date side by side, Images with an empty-state upload button), comments are one card, Save in the footer bar.

@@ -8,7 +8,6 @@
     "0 of 0": "0 z 0",
     "A configuration group may only be specified for the all group": "Grupę konfiguracji można podać tylko dla grupy „Wszystkie”",
     "A higher number means a higher priority.": "Wyższa liczba oznacza wyższy priorytet.",
-    "A key is saved. Leave this empty to keep it.": "Klucz jest zapisany. Zostaw to pole puste, aby go zachować.",
     "A label you can group / read by": "Etykieta, według której można grupować lub czytać",
     "A large amount": "Duża kwota",
     "A negative amount": "Kwota ujemna",
@@ -73,6 +72,7 @@
     "Add option": "Dodaj opcję",
     "Add photos of your receipts": "Dodaj zdjęcia paragonów",
     "Add receipt": "Dodaj paragon",
+    "Add receipt photos": "Dodaj zdjęcia paragonu",
     "Add shortcut": "Dodaj skrót",
     "Add {value}": "Dodaj {value}",
     "Add, e.g. SEK": "Dodaj, np. SEK",
@@ -125,6 +125,7 @@
     "Are you sure you would like to delete the user '{name}'? This will remove the user from the user from groups, the user's receipt items, groups where this user is the only member, and receipts where the user paid. This action is irreversible.": "Czy na pewno chcesz usunąć użytkownika „{name}”? Zostanie on usunięty z grup, a także jego pozycje paragonów, grupy, w których jest jedynym członkiem, oraz paragony, które opłacił. Tej operacji nie można cofnąć.",
     "Are you sure you would like to delete {count} user(s): {names}? This will remove these users from groups, their receipt items, groups where they are the only member, and receipts where they paid. This action is irreversible.": "Czy na pewno chcesz usunąć użytkowników ({count}): {names}? Zostaną oni usunięci z grup, a także ich pozycje paragonów, grupy, w których są jedynymi członkami, oraz paragony, które opłacili. Tej operacji nie można cofnąć.",
     "Are you sure you would like to duplicate the receipt {name}?": "Czy na pewno chcesz zduplikować paragon {name}?",
+    "Are you sure you would like to remove this image?": "Czy na pewno chcesz usunąć to zdjęcie?",
     "Attach a Receipt": "Dołącz paragon",
     "Attach existing": "Dołącz istniejący",
     "Audit Details": "Szczegóły zmiany",
@@ -322,6 +323,7 @@
     "Download source file": "Pobierz plik źródłowy",
     "Draft": "Wersja robocza",
     "Drinks": "Napoje",
+    "Drop them here or choose them. The AI reads each photo as its own receipt, one by one.": "Upuść je tutaj lub wybierz. AI odczytuje każde zdjęcie jako osobny paragon, jedno po drugim.",
     "Duplicate": "Duplikuj",
     "Duplicate Receipt": "Duplikuj paragon",
     "Duplicate category grant": "Powtórzone uprawnienie do kategorii",
@@ -342,6 +344,7 @@
     "Edit custom field": "Edytuj pole niestandardowe",
     "Edit group": "Edytuj grupę",
     "Edit group member": "Edytuj członka grupy",
+    "Edit receipt": "Edytuj paragon",
     "Edit the monthly spending goal": "Edytuj miesięczny cel wydatków",
     "Edit {name}": "Edytuj {name}",
     "Edit {name} {type}": "Edytuj {name} ({type})",
@@ -429,7 +432,6 @@
     "Grand totals": "Suma końcowa",
     "Greater than": "Większe niż",
     "Group": "Grupa",
-    "Group AI Settings": "Ustawienia AI grupy",
     "Group Details": "Dane grupy",
     "Group ID is required to validate group permissions": "Do sprawdzenia uprawnień grupy potrzebny jest jej identyfikator",
     "Group Id is required": "Identyfikator grupy jest wymagany",
@@ -469,6 +471,7 @@
     "How long a signed-in user can be away before they have to log in again. Sessions renew themselves while the app is in use, so this is an inactivity window rather than a hard limit. Maximum 720 hours (30 days).": "Jak długo zalogowany użytkownik może być nieobecny, zanim będzie musiał zalogować się ponownie. Sesje odnawiają się podczas korzystania z aplikacji, więc to okno nieaktywności, a nie twardy limit. Maksymalnie 720 godzin (30 dni).",
     "Icon": "Ikona",
     "If ID is not provided, full credentials must be provided": "Jeśli nie podano identyfikatora, trzeba podać pełne dane logowania",
+    "Image actions": "Akcje zdjęcia",
     "Image successfully removed": "Obraz został usunięty",
     "Images": "Obrazy",
     "Important:": "Ważne:",
@@ -570,11 +573,12 @@
     "Name cannot be changed": "Nazwy nie można zmienić",
     "Name is required": "Nazwa jest wymagana",
     "Name is reserved, pick another": "Ta nazwa jest zarezerwowana, wybierz inną",
+    "Name is too long": "Nazwa jest za długa",
+    "Name it, then add the people who share its receipts.": "Nadaj nazwę, a potem dodaj osoby, które dzielą jego paragony.",
     "Name must be lowercase letters, numbers and dashes, and start and end with a letter or number": "Nazwa może zawierać małe litery, cyfry i myślniki oraz musi zaczynać się i kończyć literą lub cyfrą",
+    "Name must be {requiredLength} characters or fewer.": "Nazwa może mieć co najwyżej {requiredLength} znaków.",
     "Navigate": "Przejdź",
     "Navigate CartVibe": "Nawigacja po CartVibe",
-    "Navigate left": "Przejdź w lewo",
-    "Navigate right": "Przejdź w prawo",
     "Needs Attention": "Wymaga uwagi",
     "Never let the AI use this category": "Nigdy nie pozwalaj AI używać tej kategorii",
     "New list": "Nowa lista",
@@ -684,6 +688,7 @@
     "Poll email(s)": "Sprawdź pocztę",
     "Polls system emails for receipts to process": "Sprawdza e-maile systemowe pod kątem paragonów do przetworzenia",
     "Port is required": "Port jest wymagany",
+    "Preview": "Podgląd",
     "Preview role": "Podgląd roli",
     "Preview source file": "Podgląd pliku źródłowego",
     "Previews": "Podglądy",
@@ -743,7 +748,10 @@
     "Receipt data from AI:": "Dane paragonu z AI:",
     "Receipt image": "Zdjęcie paragonu",
     "Receipt photo": "Zdjęcie paragonu",
+    "Receipt ready": "Paragon gotowy",
+    "Receipt renamed": "Zmieniono nazwę paragonu",
     "Receipt saved. It will be compared with the list shortly.": "Zapisano paragon. Wkrótce zostanie porównany z listą.",
+    "Receipt scan failed": "Skanowanie paragonu nie powiodło się",
     "Receipt settings updated successfully": "Ustawienia paragonów zostały zaktualizowane",
     "Receipt successfully deleted": "Paragon został usunięty",
     "Receipt successfully duplicated": "Paragon został zduplikowany",
@@ -755,6 +763,7 @@
     "Receipts from this list": "Paragony z tej listy",
     "Receipts in this report": "Paragony w tym raporcie",
     "Receipts in {period}": "Paragony w okresie {period}",
+    "Receipts uploaded. You will get a notification once the AI has read them, or if it fails.": "Paragony wysłane. Dostaniesz powiadomienie, gdy AI je odczyta lub gdy się nie uda.",
     "Record-level": "Na poziomie paragonów",
     "Records": "Rekordy",
     "Reference columns by name, e.g. Subtotal + Hst": "Odwołuj się do kolumn po nazwie, np. Suma częściowa + Podatek",
@@ -764,7 +773,6 @@
     "Regional & time zone": "Region i strefa czasowa",
     "Remove": "Usuń",
     "Remove \"{name}\" from this receipt?": "Usunąć „{name}” z tego paragonu?",
-    "Remove Current Image": "Usuń bieżący obraz",
     "Remove Image": "Usuń obraz",
     "Remove Item": "Usuń pozycję",
     "Remove Receipt": "Odłącz paragon",
@@ -776,8 +784,10 @@
     "Remove last": "Usuń ostatni",
     "Remove product": "Usuń produkt",
     "Remove this receipt from the list? The receipt itself is kept.": "Odłączyć ten paragon od listy? Sam paragon zostanie zachowany.",
+    "Rename": "Zmień nazwę",
     "Rename List": "Zmień nazwę listy",
     "Rename list": "Zmień nazwę listy",
+    "Rename receipt": "Zmień nazwę paragonu",
     "Rendered from your data": "Wygenerowano z Twoich danych",
     "Report Builder": "Kreator raportów",
     "Report across the groups you can generate reports for.": "Raport obejmuje grupy, dla których możesz generować raporty.",
@@ -813,7 +823,6 @@
     "Save changes": "Zapisz zmiany",
     "Save column": "Zapisz kolumnę",
     "Save column configuration": "Zapisz konfigurację kolumn",
-    "Save first to test the new settings.": "Najpierw zapisz, aby przetestować nowe ustawienia.",
     "Save the main AI first; the backup stands in for it.": "Najpierw zapisz główne AI; zapasowe zastępuje właśnie je.",
     "Saved report templates — open one in the builder, generate it, duplicate it, or delete it.": "Zapisane szablony raportów — otwórz w kreatorze, wygeneruj, zduplikuj lub usuń.",
     "Saving…": "Zapisywanie…",
@@ -851,7 +860,6 @@
     "Shopping lists": "Listy zakupów",
     "Shortcuts": "Skróty",
     "Show": "Pokaż",
-    "Show Fullscreen Image": "Pokaż obraz na pełnym ekranie",
     "Show Images": "Pokaż obrazy",
     "Show a block of totals under this group's receipts table, covering every receipt the current filter matches rather than just the visible page. Everyone in the group sees it.": "Pokaż blok sum pod tabelą paragonów tej grupy, obejmujący wszystkie paragony pasujące do filtra, a nie tylko widoczną stronę. Widzą go wszyscy w grupie.",
     "Show the Dashboard in (currency code)": "Pokaż Pulpit w walucie (kod)",
@@ -909,8 +917,6 @@
     "Succeeded": "Zakończone",
     "Successfully added receipt": "Paragon został dodany",
     "Successfully logged in": "Zalogowano",
-    "Successfully queued image for processing": "Zdjęcie dodano do kolejki przetwarzania",
-    "Successfully queued images for processing": "Zdjęcia dodano do kolejki przetwarzania",
     "Successfully updated receipt": "Paragon został zaktualizowany",
     "Successfully updated receipt. Congratulations! You have reached the end of the queue.": "Paragon został zaktualizowany. Gratulacje! To koniec kolejki.",
     "Successfully uploaded image(s)": "Obrazy zostały wysłane",
@@ -952,11 +958,11 @@
     "That provider is no longer connected to your account.": "Ten dostawca nie jest już połączony z Twoim kontem.",
     "The AI could not be reached. It will try again automatically.": "Nie udało się połączyć ze sztuczną inteligencją. Spróbuje ponownie automatycznie.",
     "The AI could not read the products on this receipt.": "Sztuczna inteligencja nie mogła odczytać produktów z tego paragonu.",
+    "The AI could not read {name}. Check the activity and add the receipt by hand.": "AI nie mogło odczytać {name}. Sprawdź aktywność i dodaj paragon ręcznie.",
     "The AI found no products on this receipt.": "AI nie znalazło produktów na tym paragonie.",
     "The AI is reading this receipt now.": "Sztuczna inteligencja czyta teraz ten paragon.",
     "The AI picks from these categories when it reads a receipt, and adds new ones here by itself. Rename one and the AI is told to use the new name instead of the old; switch one off and it is told to choose another.": "AI wybiera spośród tych kategorii, czytając paragon, i samo dodaje tu nowe. Zmień nazwę, a AI dostanie polecenie używania nowej zamiast starej; wyłącz kategorię, a dostanie polecenie wyboru innej.",
     "The AI reads receipts and their products, and tags food as healthy or not. Without it everything still works; receipts just wait until it is back.": "AI czyta paragony i ich produkty oraz oznacza żywność jako zdrową lub nie. Bez niego wszystko nadal działa, a paragony po prostu czekają na jego powrót.",
-    "The AI reads them for you.": "AI odczyta je za Ciebie.",
     "The amount must be a number with at most two decimals, like 1,99.": "Kwota musi być liczbą z co najwyżej dwoma miejscami po przecinku, np. 1,99.",
     "The categories the AI sorts receipt products into. New ones appear here by themselves; rename one to change what the AI uses, or switch one off.": "Kategorie, do których AI przypisuje produkty z paragonów. Nowe pojawiają się tu same; zmień nazwę, aby zmienić to, czego używa AI, albo wyłącz kategorię.",
     "The column this grouping level adds to the report": "Kolumna, którą ten poziom grupowania dodaje do raportu",
@@ -978,6 +984,7 @@
     "The products could not be loaded.": "Nie udało się wczytać produktów.",
     "The rate for {code} must be a number above 0, like 1,04.": "Kurs dla {code} musi być liczbą większą od 0, np. 1,04.",
     "The receipt could not be compared with the list.": "Nie udało się porównać paragonu z listą.",
+    "The receipt: {name} has been read by the AI. Check it out!": "Paragon: {name} został odczytany przez AI. Sprawdź go!",
     "The receipt: {name} has been uploaded to the group {group}. Check it out!": "Paragon „{name}” został dodany do grupy {group}. Sprawdź go!",
     "The receipts couldn't be loaded.": "Nie udało się wczytać paragonów.",
     "The report could not be made. Try again.": "Nie udało się wykonać raportu. Spróbuj ponownie.",
@@ -1203,6 +1210,55 @@
       "many": "paragonów",
       "one": "paragon",
       "other": "paragonu"
+    }
+  },
+  "_orphaned": {
+    "A key is saved. Leave this empty to keep it.": {
+      "value": "Klucz jest zapisany. Zostaw to pole puste, aby go zachować."
+    },
+    "Group AI Settings": {
+      "value": "Ustawienia AI grupy",
+      "closest": "AI settings saved"
+    },
+    "Navigate left": {
+      "value": "Przejdź w lewo",
+      "closest": "Navigate"
+    },
+    "Navigate right": {
+      "value": "Przejdź w prawo",
+      "closest": "Navigate"
+    },
+    "Open receipt": {
+      "value": "Otwórz paragon",
+      "closest": "Open full receipt"
+    },
+    "Reading your receipt…": {
+      "value": "Odczytuję paragon…"
+    },
+    "Receipt scanned": {
+      "value": "Paragon zeskanowany",
+      "closest": "Add Receipt"
+    },
+    "Remove Current Image": {
+      "value": "Usuń bieżący obraz",
+      "closest": "Remove Image"
+    },
+    "Save first to test the new settings.": {
+      "value": "Najpierw zapisz, aby przetestować nowe ustawienia."
+    },
+    "Show Fullscreen Image": {
+      "value": "Pokaż obraz na pełnym ekranie"
+    },
+    "Successfully queued image for processing": {
+      "value": "Zdjęcie dodano do kolejki przetwarzania",
+      "closest": "Email successfully poll successfully queued"
+    },
+    "Successfully queued images for processing": {
+      "value": "Zdjęcia dodano do kolejki przetwarzania",
+      "closest": "Email successfully poll successfully queued"
+    },
+    "The AI reads them for you.": {
+      "value": "AI odczyta je za Ciebie."
     }
   }
 }

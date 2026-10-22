@@ -93,7 +93,7 @@ export class UserProfileComponent implements OnInit {
 
   public ngOnInit(): void {
     this.user = this.store.selectSnapshot(AuthState.loggedInUser);
-    this.formConfig = this.route?.snapshot?.data?.["formConfig"];
+    this.formConfig = this.editableConfig(this.route?.snapshot?.data?.["formConfig"], this.canEdit());
     this.initForm();
     this.loadConnections();
     this.reportLinkOutcome();
@@ -252,6 +252,14 @@ export class UserProfileComponent implements OnInit {
     }
   }
 
+  /**
+   * User settings are always editable (Save in the card footer, like System Settings): a view route turns into the
+   * edit form for anyone who may update, so there is no pencil to press first.
+   */
+  private editableConfig(config: FormConfig, canEdit: boolean): FormConfig {
+    return config?.mode === FormMode.view && canEdit ? { ...config, mode: FormMode.edit } : config;
+  }
+
   public submit(): void {
     if (this.form.valid) {
       this.userService
@@ -270,12 +278,7 @@ export class UserProfileComponent implements OnInit {
           }),
           tap(() => {
             this.snackbarService.success("User profile successfully updated");
-            this.router.navigate(["/settings/user-profile/view"],
-              {
-                queryParams: {
-                  tab: "user-profile",
-                }
-              });
+            this.form.markAsPristine();
           })
         )
         .subscribe();

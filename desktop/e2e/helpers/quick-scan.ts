@@ -126,7 +126,7 @@ export async function uploadQuickScanImages(dialog: Locator, count = 1): Promise
   await dialog
     .locator('app-upload-image input[type="file"]')
     .setInputFiles(Array.from({ length: count }, () => RECEIPT_PNG));
-  await expect(dialog.locator('slide')).toHaveCount(count);
+  await expect(dialog.getByTestId('quick-scan-attachment')).toHaveCount(count);
 }
 
 /**
