@@ -17,48 +17,6 @@ import (
 	"cartvibe/api/internal/utils"
 )
 
-func TestFormatEmailContent_BothPresent(t *testing.T) {
-	result := FormatEmailContent("OCR extracted text", true, "Email body content")
-	expected := "Image Data:\nOCR extracted text\n\nEmail Body:\nEmail body content"
-	if result != expected {
-		t.Errorf("Expected:\n%s\n\nGot:\n%s", expected, result)
-	}
-}
-
-func TestFormatEmailContent_ImageDataOnly(t *testing.T) {
-	result := FormatEmailContent("OCR extracted text", true, "")
-	expected := "Image Data:\nOCR extracted text\n\nEmail Body:\nNo email body found"
-	if result != expected {
-		t.Errorf("Expected:\n%s\n\nGot:\n%s", expected, result)
-	}
-}
-
-func TestFormatEmailContent_EmailBodyOnly(t *testing.T) {
-	result := FormatEmailContent("", false, "Receipt from Amazon: $45.00")
-	expected := "Image Data:\nNo attachments found\n\nEmail Body:\nReceipt from Amazon: $45.00"
-	if result != expected {
-		t.Errorf("Expected:\n%s\n\nGot:\n%s", expected, result)
-	}
-}
-
-func TestFormatEmailContent_NeitherPresent(t *testing.T) {
-	result := FormatEmailContent("", false, "")
-	expected := "Image Data:\nNo attachments found\n\nEmail Body:\nNo email body found"
-	if result != expected {
-		t.Errorf("Expected:\n%s\n\nGot:\n%s", expected, result)
-	}
-}
-
-func TestFormatEmailContent_HasImageButEmptyOcrText(t *testing.T) {
-	// When hasImage is true but ocrText is empty (e.g., vision model path),
-	// we should NOT show "No attachments found" since there IS an image.
-	result := FormatEmailContent("", true, "Some body")
-	expected := "Image Data:\n\n\nEmail Body:\nSome body"
-	if result != expected {
-		t.Errorf("Expected:\n%s\n\nGot:\n%s", expected, result)
-	}
-}
-
 func TestCombineOcrResults_Empty(t *testing.T) {
 	text, cmd, err := combineOcrResults(nil)
 	if err != nil {
@@ -517,7 +475,7 @@ func TestGetOpenAiBase64Image_ReadFileError(t *testing.T) {
 
 // ---------- Full orchestration: text-only happy path ----------
 
-func TestReadReceiptText_HappyPath(t *testing.T) {
+func TestReadReceipt_TextOnlyHappyPath(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
 	server, _ := newMockOllamaServerForService(t, http.StatusOK, ollamaReceiptJson("Coffee Shop", "5.25"))
@@ -528,9 +486,9 @@ func TestReadReceiptText_HappyPath(t *testing.T) {
 		t.Fatalf("constructor: %v", err)
 	}
 
-	receipt, metadata, err := service.ReadReceiptText("email body goes here")
+	receipt, metadata, err := service.readReceipt(nil)
 	if err != nil {
-		t.Fatalf("ReadReceiptText: %v", err)
+		t.Fatalf("readReceipt: %v", err)
 	}
 	if receipt.Name != "Coffee Shop" {
 		t.Errorf("expected name 'Coffee Shop', got: %q", receipt.Name)
@@ -540,34 +498,6 @@ func TestReadReceiptText_HappyPath(t *testing.T) {
 	}
 	if metadata.ReceiptProcessingSettingsIdRan != settings.ID {
 		t.Errorf("expected settings id %d, got %d", settings.ID, metadata.ReceiptProcessingSettingsIdRan)
-	}
-}
-
-func TestReadReceiptImagesWithEmailBody_HappyPath_Vision(t *testing.T) {
-	defer repositories.TruncateTestDb()
-
-	server, _ := newMockOllamaServerForService(t, http.StatusOK, ollamaReceiptJson("Grocery", "42"))
-	settings := seedReceiptProcessingFixtures(t, server.URL)
-	// Switch to a vision model so we skip the OCR path and base64-encode images.
-	repositories.GetDB().Model(&models.ReceiptProcessingSettings{}).Where("id = ?", settings.ID).Update("is_vision_model", true)
-
-	service, err := NewReceiptProcessingService(nil, utils.UintToString(settings.ID), "")
-	if err != nil {
-		t.Fatalf("constructor: %v", err)
-	}
-	// Reload settings with the updated IsVisionModel flag so processImages sees it.
-	repositories.GetDB().Where("id = ?", settings.ID).First(&service.ReceiptProcessingSettings)
-
-	imgPath := setupImagePathFixture(t)
-	receipt, metadata, err := service.ReadReceiptImagesWithEmailBody([]string{imgPath}, "body", false)
-	if err != nil {
-		t.Fatalf("ReadReceiptImagesWithEmailBody: %v", err)
-	}
-	if receipt.Name != "Grocery" {
-		t.Errorf("expected name 'Grocery', got: %q", receipt.Name)
-	}
-	if !metadata.DidReceiptProcessingSettingsSucceed {
-		t.Error("expected DidReceiptProcessingSettingsSucceed=true")
 	}
 }
 
@@ -597,9 +527,9 @@ func TestReadReceipt_FallbackUsedWhenPrimaryFails(t *testing.T) {
 		t.Fatalf("constructor: %v", err)
 	}
 
-	receipt, metadata, err := service.ReadReceiptText("body")
+	receipt, metadata, err := service.readReceipt(nil)
 	if err != nil {
-		t.Fatalf("ReadReceiptText: %v", err)
+		t.Fatalf("readReceipt: %v", err)
 	}
 	if receipt.Name != "From Fallback" {
 		t.Errorf("expected 'From Fallback', got: %q", receipt.Name)
@@ -615,8 +545,7 @@ func TestReadReceipt_FallbackUsedWhenPrimaryFails(t *testing.T) {
 	}
 }
 
-// ReadReceiptImage and ReadReceiptImageWithEmailBody are thin one-line
-// wrappers around readReceipt; cover them so the wrappers aren't 0%.
+// ReadReceiptImage is a thin one-line wrapper around readReceipt; cover it so the wrapper isn't 0%.
 func TestReadReceiptImage_SingleImageWrapper(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
@@ -640,29 +569,6 @@ func TestReadReceiptImage_SingleImageWrapper(t *testing.T) {
 	}
 }
 
-func TestReadReceiptImageWithEmailBody_Wrapper(t *testing.T) {
-	defer repositories.TruncateTestDb()
-
-	server, _ := newMockOllamaServerForService(t, http.StatusOK, ollamaReceiptJson("WrapperBody", "2"))
-	settings := seedReceiptProcessingFixtures(t, server.URL)
-	repositories.GetDB().Model(&models.ReceiptProcessingSettings{}).Where("id = ?", settings.ID).Update("is_vision_model", true)
-
-	service, err := NewReceiptProcessingService(nil, utils.UintToString(settings.ID), "")
-	if err != nil {
-		t.Fatalf("constructor: %v", err)
-	}
-	repositories.GetDB().Where("id = ?", settings.ID).First(&service.ReceiptProcessingSettings)
-
-	imgPath := setupImagePathFixture(t)
-	receipt, _, err := service.ReadReceiptImageWithEmailBody(imgPath, "email body")
-	if err != nil {
-		t.Fatalf("ReadReceiptImageWithEmailBody: %v", err)
-	}
-	if receipt.Name != "WrapperBody" {
-		t.Errorf("expected 'WrapperBody', got %q", receipt.Name)
-	}
-}
-
 func TestReadReceipt_AiReturnsInvalidJson(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
@@ -675,7 +581,7 @@ func TestReadReceipt_AiReturnsInvalidJson(t *testing.T) {
 		t.Fatalf("constructor: %v", err)
 	}
 
-	_, metadata, err := service.ReadReceiptText("body")
+	_, metadata, err := service.readReceipt(nil)
 	if err == nil {
 		t.Fatal("expected JSON unmarshal error")
 	}

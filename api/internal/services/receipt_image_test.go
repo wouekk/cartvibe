@@ -212,63 +212,6 @@ func TestReadReceiptImageFromFileOnly(t *testing.T) {
 	}
 }
 
-func TestReadReceiptImageWithEmailBody(t *testing.T) {
-	defer repositories.TruncateTestDb()
-
-	server, _ := newMockOllamaServerForService(t, http.StatusOK, ollamaReceiptJson("WithBody", "4"))
-	_, group, _ := seedReceiptImagePipeline(t, server.URL)
-	imgPath := setupImagePathFixture(t)
-
-	receipt, _, err := ReadReceiptImageWithEmailBody(imgPath, "email body", utils.UintToString(group.ID))
-	if err != nil {
-		t.Fatalf("ReadReceiptImageWithEmailBody: %v", err)
-	}
-	if receipt.Name != "WithBody" {
-		t.Errorf("expected 'WithBody', got %q", receipt.Name)
-	}
-}
-
-func TestReadReceiptImagesWithEmailBody_Multi(t *testing.T) {
-	defer repositories.TruncateTestDb()
-
-	server, _ := newMockOllamaServerForService(t, http.StatusOK, ollamaReceiptJson("MultiBody", "5"))
-	_, group, _ := seedReceiptImagePipeline(t, server.URL)
-	imgPath := setupImagePathFixture(t)
-
-	receipt, _, err := ReadReceiptImagesWithEmailBody([]string{imgPath, imgPath}, "body", true, utils.UintToString(group.ID))
-	if err != nil {
-		t.Fatalf("ReadReceiptImagesWithEmailBody: %v", err)
-	}
-	if receipt.Name != "MultiBody" {
-		t.Errorf("expected 'MultiBody', got %q", receipt.Name)
-	}
-}
-
-func TestReadReceiptFromTextOnly(t *testing.T) {
-	defer repositories.TruncateTestDb()
-
-	server, _ := newMockOllamaServerForService(t, http.StatusOK, ollamaReceiptJson("TextOnly", "6"))
-	_, group, _ := seedReceiptImagePipeline(t, server.URL)
-
-	receipt, _, err := ReadReceiptFromTextOnly("the full email body", utils.UintToString(group.ID))
-	if err != nil {
-		t.Fatalf("ReadReceiptFromTextOnly: %v", err)
-	}
-	if receipt.Name != "TextOnly" {
-		t.Errorf("expected 'TextOnly', got %q", receipt.Name)
-	}
-}
-
-func TestReadReceiptFromTextOnly_MissingSettings(t *testing.T) {
-	defer repositories.TruncateTestDb()
-
-	// No seeds → NewSystemReceiptProcessingService returns an error.
-	_, _, err := ReadReceiptFromTextOnly("body", "")
-	if err == nil {
-		t.Fatal("expected error when system settings missing")
-	}
-}
-
 // ---------- MagicFillFromImage ----------
 
 func TestMagicFillFromImage_HappyPath(t *testing.T) {

@@ -26,9 +26,9 @@ so nothing is migrated: the release needs a **wiped NAS `sqlite` folder and new 
 - **Not seen:** the Docker image build (only `publish-image.yml` proves it; the Python layers and the entrypoint's venv line are gone), a fresh
   database boot of the API from this branch, and any screenshot of the changed System Settings tab (Worker card lost the polling field; the
   Queues card has two rows).
-- **Left for later:** the email-body helpers in `services/receipt_image.go` / `receipt_processing.go` (`ReadReceiptImageWithEmailBody`,
-  `FormatEmailContent`, the `emailBody` argument of `readReceipt`), now used only by tests; stale prose about email in `api/CLAUDE.md`
-  (marked as history in its "Removed from upstream" section).
+- **Email-body helpers removed** (`ReadReceiptImageWithEmailBody`, `FormatEmailContent`, the `emailBody` argument of `readReceipt`): the
+  receipt prompt's `@ocrText` is the OCR text alone now (no "Image Data / Email Body" wrapper); not measured against a real model.
+  Left: stale prose about email in `api/CLAUDE.md` (marked as history in its "Removed from upstream" section).
 - **Stages 4 and 5 done (2026-10-22):** upgrade-only data migrations, `GroupMember.GroupRole` and the whole mobile OIDC leg
   (exchange codes, link launch handles, `ClientType`, JSON flow errors) are gone; the OIDC suite passed before and after. Bill
   splitting is gone end to end: `models.Item`, `Receipt.ReceiptItems`, the item cascade, `GET /user/amountOwedForUser`,
