@@ -27,7 +27,7 @@ func ValidateRefreshToken(next http.Handler) http.Handler {
 			return
 		}
 
-		refreshToken, err := tokenValidator.ValidateToken(context.TODO(), refreshTokenString)
+		refreshToken, err := tokenValidator.ValidateToken(r.Context(), refreshTokenString)
 		if err != nil {
 			utils.WriteCustomErrorResponse(w, errMessage, http.StatusInternalServerError)
 			logging.LogStd(logging.LOG_LEVEL_ERROR, err.Error())

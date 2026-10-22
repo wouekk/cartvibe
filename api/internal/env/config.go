@@ -137,16 +137,33 @@ func setEnv() {
 	os.Setenv(string(constants.Env), env)
 }
 
+// basePathDirNames are the directory names that mark the API root when BASE_PATH
+// is not set: the image's folder, and the pre-rename one older installs still use.
+var basePathDirNames = []string{"cartvibe-api", "receipt-wrangler-api"}
+
 func setBasePath() {
 	cwd, _ := os.Getwd()
-	result := ""
-	paths := strings.Split(cwd, "/")
+	basePath = findBasePath(cwd)
+}
 
-	for i := 0; i < len(paths); i++ {
-		result += "/" + paths[i]
-		if paths[i] == "receipt-wrangler-api" {
-			basePath = result
-			return
+// findBasePath returns the part of cwd up to and including the first directory
+// named like the API root, or cwd itself when it is a plain `api` folder (a local
+// checkout). It accepts both slash styles, so it also works on Windows.
+func findBasePath(cwd string) string {
+	slashed := strings.ReplaceAll(cwd, "\\", "/")
+	parts := strings.Split(slashed, "/")
+
+	for i, part := range parts {
+		for _, name := range basePathDirNames {
+			if part == name {
+				return strings.Join(parts[:i+1], "/")
+			}
 		}
 	}
+
+	if parts[len(parts)-1] == "api" {
+		return slashed
+	}
+
+	return ""
 }
