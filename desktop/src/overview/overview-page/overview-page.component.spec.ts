@@ -455,14 +455,106 @@ describe("OverviewPageComponent", () => {
 
     component.toggleFocus(first.name);
     expect(component.isDimmed(first.name)).toBe(false);
+    expect(component.isDimmed("Someone else")).toBe(true);
     expect(component.focusedSegment()).toBe(first.name);
     expect(count()).toBe(all);
-    const opacity = (component.donutOptions(CHART_COLORS).fill as { opacity: number[] }).opacity;
-    expect(opacity[0]).toBe(1);
-    expect(opacity.slice(1).every((value) => value < 1)).toBe(true);
 
     component.toggleFocus(first.name);
     expect(component.focusedSegment()).toBeNull();
+    expect(component.isDimmed("Someone else")).toBe(false);
     expect(count()).toBe(all);
+  });
+
+  describe("donut and legend in step", () => {
+    const twoCategories = (from: string, to: string): GroupOverview => ({
+      ...overview(from, to),
+      categories: [
+        { name: "Groceries", total: "60" },
+        { name: "Drinks", total: "32" },
+      ],
+    });
+
+    beforeEach(async () => {
+      overviewService.getGroupOverview.mockImplementation((_groupId: number, _month: string, from: string, to: string) =>
+        of(twoCategories(from, to))
+      );
+      component.period.set({ from: "2025-01-01", to: "2025-01-31", label: "January 2025" });
+      await fixture.whenStable();
+    });
+
+    const row = (name: string): HTMLElement => fixture.nativeElement.querySelector(`[data-testid="overview-donut-row-${name}"]`);
+
+    /** A drawn ring the way ApexCharts leaves it: one path per slice and the two texts in the middle. */
+    const drawRing = (): HTMLElement => {
+      const element = document.createElement("div");
+      element.innerHTML =
+        '<svg><path class="apexcharts-pie-area apexcharts-donut-slice-0"></path><path class="apexcharts-pie-area apexcharts-donut-slice-1"></path>' +
+        '<text class="apexcharts-datalabel-label"></text><text class="apexcharts-datalabel-value"></text></svg>';
+      document.body.appendChild(element);
+      const events = component.donutOptions(CHART_COLORS).chart?.events as { mounted: (chart: { el: HTMLElement }) => void };
+      events.mounted({ el: element });
+      return element;
+    };
+
+    it("dims the other legend rows while one is hovered, and clears on leave", async () => {
+      row("Drinks").dispatchEvent(new Event("mouseenter"));
+      await fixture.whenStable();
+
+      expect(component.activeSegment()).toBe("Drinks");
+      expect(row("Groceries").getAttribute("data-dimmed")).toBe("true");
+      expect(row("Drinks").getAttribute("data-dimmed")).toBe("false");
+
+      row("Drinks").dispatchEvent(new Event("mouseleave"));
+      await fixture.whenStable();
+      expect(component.activeSegment()).toBeNull();
+      expect(row("Groceries").getAttribute("data-dimmed")).toBe("false");
+    });
+
+    it("grows the hovered row's slice, fades the others and names it in the middle, without a redraw", async () => {
+      const ring = drawRing();
+      const centerOf = () => {
+        const options = component.donutOptions(CHART_COLORS);
+        return { total: options.plotOptions?.pie?.donut?.labels?.total?.label, fill: options.fill, series: options.series };
+      };
+      const before = centerOf();
+
+      row("Drinks").dispatchEvent(new Event("mouseenter"));
+      await fixture.whenStable();
+
+      const [groceries, drinks] = Array.from(ring.querySelectorAll<SVGPathElement>("path"));
+      expect(drinks.style.transform).toBe("scale(1.06)");
+      expect(drinks.style.opacity).toBe("1");
+      expect(groceries.style.transform).toBe("scale(1)");
+      expect(groceries.style.opacity).toBe("0.45");
+      expect(ring.querySelector(".apexcharts-datalabel-label")?.textContent).toBe("Drinks");
+      expect(ring.querySelector(".apexcharts-datalabel-value")?.textContent).toContain("32");
+      // Hover is not an input of the chart options (they come out the same), so the chart is not redrawn.
+      expect(centerOf()).toEqual(before);
+
+      row("Drinks").dispatchEvent(new Event("mouseleave"));
+      await fixture.whenStable();
+      expect(drinks.style.transform).toBe("scale(1)");
+      expect(groceries.style.opacity).toBe("1");
+      expect(ring.querySelector(".apexcharts-datalabel-label")?.textContent).toBe("January 2025");
+      ring.remove();
+    });
+
+    it("dims the legend when a slice is hovered on the ring, and a click still focuses it", async () => {
+      const events = component.donutOptions(CHART_COLORS).chart?.events as {
+        dataPointMouseEnter: (event: unknown, chart: unknown, config: { dataPointIndex: number }) => void;
+        dataPointMouseLeave: () => void;
+        dataPointSelection: (event: unknown, chart: unknown, config: { dataPointIndex: number }) => void;
+      };
+
+      events.dataPointMouseEnter(undefined, undefined, { dataPointIndex: 0 });
+      await fixture.whenStable();
+      expect(row("Drinks").getAttribute("data-dimmed")).toBe("true");
+
+      events.dataPointMouseLeave();
+      events.dataPointSelection(undefined, undefined, { dataPointIndex: 1 });
+      await fixture.whenStable();
+      expect(component.focusedSegment()).toBe("Drinks");
+      expect(row("Groceries").getAttribute("data-dimmed")).toBe("true");
+    });
   });
 });
