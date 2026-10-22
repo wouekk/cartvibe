@@ -178,6 +178,19 @@ app-checkbox label span {
   box-shadow: none !important;
 }
 
+/* The donut's center text: ApexCharts writes its colors as SVG attributes and does not repaint them on an options
+   update, so after the header's theme toggle they kept the old theme's color. Token colors in CSS beat the attribute
+   and follow the theme at once. */
+@layer components {
+  .apexcharts-datalabel-label {
+    fill: var(--muted-foreground);
+  }
+
+  .apexcharts-datalabel-value {
+    fill: var(--foreground);
+  }
+}
+
 /* Digits line up in tables, cards and charts. */
 table,
 .tile,

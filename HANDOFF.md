@@ -1,5 +1,20 @@
 # HANDOFF.md — Where things stand
 
+## Dashboard fixes + donut interaction (2026-10-22, branch `feat/dashboard-customisation-engine`, from `preview`; NOT merged, waits for UAT)
+
+Part 1 of the Dashboard Customisation Engine plan (`C:/Users/Marcin/.claude/plans/ultrathink-pasted-content-id-5438-vectorized-flame.md`,
+outside the repo). Done: the visual identity priority rule (`AGENTS.md`, pointer in `CLAUDE.md`: a deviation means pause and
+ask); `app-money` decimals follow a tinted amount; charts rebuild on a theme change (donut center text and strokes were left
+in the old theme by the header toggle); donut slice pop-out (scale 1.06) with two-way legend sync and 0.45 dimming (details
+in `desktop/CLAUDE.md` -> "Dashboard donut"). Local: Jest 303 suites / 2235 tests, `ng build` OK, i18n:check OK; seen on
+the dev stack (port 4201) in White and Black at 1400 and 390 px. Not seen: the Spent tile over a goal (no goal in the dev
+data; covered by the money spec). `ci.yml` does not run on `feat/` pushes: dispatch it by hand.
+**Next on this branch (waits for `feat/item-level-tags-categories` to be merged into `preview`):** the customisation engine
+itself (`DashboardLayout` API resource with an entitlement seam, layout engine, panel grid, `/overview/group/:id/customize`
+with the Mobile / Tablet / PC preview), as in the plan. Merge `preview` into this branch first.
+Noticed, not changed: the donut legend's "Share" column is translated "Udostępnij" (the verb, to share) in `pl.json`; and in
+the dev data the donut's category totals add up to more than the period's total (product lines vs receipt amounts).
+
 ## Status (2026-10-22, 07:15): v0.4.0 released from `preview`
 
 **`preview` was the integration branch and is now `main` (fast-forward), tagged `v0.4.0`** on the user's go. It holds main

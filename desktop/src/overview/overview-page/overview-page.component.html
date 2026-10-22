@@ -233,7 +233,16 @@
             </thead>
             <tbody>
               @for (segment of segments(); track segment.name) {
-                <tr class="border-t border-border/60 transition-opacity" [class.opacity-40]="isDimmed(segment.name)">
+                <tr
+                  class="border-t border-border/60 transition-opacity duration-150 ease-[ease] motion-reduce:transition-none"
+                  [class.opacity-45]="isDimmed(segment.name)"
+                  [attr.data-testid]="'overview-donut-row-' + segment.name"
+                  [attr.data-dimmed]="isDimmed(segment.name)"
+                  (mouseenter)="hoverSegment(segment.name)"
+                  (mouseleave)="hoverSegment(null)"
+                  (focusin)="hoverSegment(segment.name)"
+                  (focusout)="hoverSegment(null)"
+                >
                   <td class="py-2.5">
                     <button
                       type="button"

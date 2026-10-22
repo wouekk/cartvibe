@@ -8,6 +8,18 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+### Added
+- Dashboard donut: hovering or clicking a slice, or hovering a row of the category list beside it, grows that slice out
+  from the ring, fades the other slices and rows, and shows the category in the middle of the ring. Hovering never
+  redraws the chart, and reduced motion turns the animation off.
+
+### Fixed
+- The decimals and currency symbol of a red or amber amount (Spent over the goal, Unhealthy) now take the amount's color
+  instead of staying grey.
+- After the header's theme toggle, the donut's center text and slice separators kept the old theme's colors; charts
+  are now rebuilt (without replaying their animation) when the theme changes.
+- The focused donut slice never actually popped out (a broken pattern in the slice lookup).
+
 ## [0.4.0] - 2026-10-22
 
 ### Added
