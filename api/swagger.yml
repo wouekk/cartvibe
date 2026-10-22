@@ -4788,6 +4788,45 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
+  /receipt-product/product/{productId}/labels:
+    parameters:
+      - in: path
+        name: productId
+        schema:
+          type: integer
+        required: true
+        description: Id of the receipt product
+    put:
+      tags:
+        - ReceiptProduct
+      summary: Set a receipt product line's category and tags
+      description: >-
+        This will set the line's one category and its tags, and nothing else: the line is not renamed
+        or classified again. A category other than the current one counts as chosen by a person from
+        then on [group.receipts.update]
+      operationId: setReceiptProductLabels
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetReceiptProductLabelsCommand"
+      responses:
+        200:
+          description: The product with its category and tags
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReceiptProduct"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
   /receipt-product/receipt/{receiptId}/product:
     parameters:
       - in: path
@@ -5504,6 +5543,21 @@ components:
         tagIds:
           type: array
           description: The line's tags; an update replaces them. Repeats are ignored.
+          items:
+            type: integer
+    SetReceiptProductLabelsCommand:
+      type: object
+      description: A product line's category and tags, set together
+      required:
+        - tagIds
+      properties:
+        categoryId:
+          type: integer
+          nullable: true
+          description: The line's one category; null for Uncategorized
+        tagIds:
+          type: array
+          description: The line's tags, replacing the ones it had. Repeats are ignored.
           items:
             type: integer
     ReceiptProduct:

@@ -234,3 +234,47 @@ func TestGroupOverviewTagTilesAreAnArrayWhenNoneAreShown(t *testing.T) {
 		t.Errorf("tags must serialize as [], got %s", w.Body.String())
 	}
 }
+
+func TestSettingLabelsNeverRenamesTheLine(t *testing.T) {
+	defer tearDownReceiptProductsTest()
+	repositories.CreateTestGroupWithUsers()
+	grantGroupPerms(t, 1, 1, permissions.GroupReceiptsUpdate)
+	receipt := seedProductReceipt(t, 1, false)
+	dairy, _, party, kids := seedLabels(t)
+
+	// Read by the AI: printed "LAIT", shown "Milk", rated healthy, on the list.
+	planned := true
+	product := models.ReceiptProduct{ReceiptId: receipt.ID, Name: "LAIT", DisplayName: "Milk", Planned: &planned}
+	product.Health = models.HEALTH_HEALTHY
+	repositories.GetDB().Create(&product)
+	params := map[string]string{"productId": fmt.Sprint(product.ID)}
+
+	body := fmt.Sprintf(`{"categoryId":%d,"tagIds":[%d,%d]}`, dairy.ID, kids.ID, party.ID)
+	w, r := shoppingListRequest("PUT", body, 1, params)
+	SetReceiptProductLabels(w, r)
+	assertStatus(t, w, http.StatusOK)
+	labelled := decodeShoppingListResponse[models.ReceiptProduct](t, w)
+	if labelled.Name != "LAIT" || labelled.DisplayName != "Milk" || labelled.Health != models.HEALTH_HEALTHY || labelled.Planned == nil {
+		t.Errorf("labels must not rename or reclassify the line: %+v", labelled)
+	}
+	if labelled.CategoryId == nil || *labelled.CategoryId != dairy.ID || !labelled.CategoryOverridden || len(labelled.Tags) != 2 {
+		t.Errorf("expected the dairy category and two tags: %+v", labelled)
+	}
+
+	w, r = shoppingListRequest("PUT", `{"tagIds":[9999]}`, 1, params)
+	SetReceiptProductLabels(w, r)
+	assertStatus(t, w, http.StatusBadRequest)
+
+	// Read access is not enough, and an unknown id answers the same 403.
+	repositories.TruncateTestDb()
+	repositories.CreateTestGroupWithUsers()
+	grantGroupPerms(t, 1, 1, permissions.GroupReceiptsRead)
+	receipt = seedProductReceipt(t, 1, false)
+	product = models.ReceiptProduct{ReceiptId: receipt.ID, Name: "LAIT"}
+	repositories.GetDB().Create(&product)
+	for _, id := range []string{fmt.Sprint(product.ID), "9999"} {
+		w, r = shoppingListRequest("PUT", `{"tagIds":[]}`, 1, map[string]string{"productId": id})
+		SetReceiptProductLabels(w, r)
+		assertStatus(t, w, http.StatusForbidden)
+	}
+}
