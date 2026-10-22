@@ -181,8 +181,6 @@ export class AiSettingsPageComponent implements OnInit {
       // LM Studio refuses the JSON-object response format the flag asks for.
       enforceJsonResponseFormat: isGemini,
       ocrEngine: saved?.ocrEngine ?? OcrEngine.Tesseract,
-      // 0: the API points it at the default prompt; the prompt itself is built in (A3).
-      promptId: saved?.promptId ?? 0,
     };
   }
 

@@ -36,7 +36,6 @@ const PDF_FIXTURE = 'e2e/fixtures/receipt.pdf';
 test.describe.serial('Failed activity source file', () => {
   let groupId: number;
   let processingSettingsId: number;
-  let promptId: number;
   let originalProcessingSettingsId: unknown;
   let activityId: number;
   let adminUserId: number;
@@ -58,7 +57,6 @@ test.describe.serial('Failed activity source file', () => {
       const name = uniqueName('failed-scan');
       const created = await apiCreateUnreachableProcessingSettings(api, name);
       processingSettingsId = created.id;
-      promptId = created.promptId;
 
       await apiPatchSystemSettings(api, {
         receiptProcessingSettingsId: processingSettingsId,
@@ -103,7 +101,7 @@ test.describe.serial('Failed activity source file', () => {
           await apiDeleteGroupById(api, String(pdfGroupId));
         }
         if (processingSettingsId) {
-          await apiDeleteProcessingSettings(api, processingSettingsId, promptId);
+          await apiDeleteProcessingSettings(api, processingSettingsId);
         }
       });
     } catch (error) {

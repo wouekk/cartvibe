@@ -15,14 +15,13 @@ import { injectQuickScanAppData } from './helpers/quick-scan';
 
 // The AI-powered receipt features are permission-gated in the UI:
 //   - Quick Scan  -> group.receipts.quick-scan (sidebar + receipts-table header),
-//   - Poll Email  -> group.email.poll (receipts-table header),
 //   - Magic Fill  -> group.receipts.magic-fill (receipt form image toolbar).
 // A "Viewer" group role holds none of these, so an admin context provisions a
 // Viewer group with e2e-user + a seeded receipt and asserts (as e2e-user) that
-// none of the three controls render.
+// none of the controls render.
 //
-// IMPORTANT CONFOUND: all three controls ALSO sit behind the `aiPoweredReceipts`
-// feature flag (`*appFeature="'aiPoweredReceipts'"` for Quick Scan/Poll Email,
+// IMPORTANT CONFOUND: both controls ALSO sit behind the `aiPoweredReceipts`
+// feature flag (`*appFeature="'aiPoweredReceipts'"` for Quick Scan,
 // and `aiPoweredReceipts()` for Magic Fill). That flag is server-config
 // (FeatureConfig) and is `false` in the dev/CI API, so the negative tests below
 // hold regardless of the flag — a permission-denied member sees no control.
@@ -31,10 +30,10 @@ import { injectQuickScanAppData } from './helpers/quick-scan';
 // config, the last test injects `aiPoweredReceipts: true` client-side (the same
 // AppData interception the quick-scan-dialog spec uses). With the flag held on,
 // the button then hinges purely on the permission — a Legacy Editor member sees
-// it, the Viewer does not. (Poll Email / Magic Fill positives are still deferred;
-// they need extra server state — email integration / a magic-fill-capable role.)
+// it, the Viewer does not. (The Magic Fill positive is still deferred;
+// it needs extra server state — a magic-fill-capable role.)
 
-test.describe('Receipt feature gating (quick-scan / poll-email / magic-fill)', () => {
+test.describe('Receipt feature gating (quick-scan / magic-fill)', () => {
   test.describe.configure({ mode: 'serial' });
 
   let adminContext: BrowserContext;
@@ -54,7 +53,7 @@ test.describe('Receipt feature gating (quick-scan / poll-email / magic-fill)', (
     await stubTokenRefresh(adminPage);
 
     // Viewer: holds group.receipts.read (so the list/form load) but none of
-    // quick-scan / magic-fill / email.poll.
+    // quick-scan / magic-fill.
     await createRole(adminPage, {
       name: roleName,
       type: 'Group role',
@@ -115,15 +114,6 @@ test.describe('Receipt feature gating (quick-scan / poll-email / magic-fill)', (
     await expect(page.getByTestId('configure-columns')).toBeVisible();
     // Quick Scan (group.receipts.quick-scan, also feature-flagged) is absent.
     await expect(page.getByTestId('receipts-quick-scan')).toHaveCount(0);
-  });
-
-  test('the receipts overflow menu shows no Poll Email entry', async ({ page }) => {
-    await page.goto(`/receipts/group/${groupId}`);
-    await openReceiptsOverflowMenu(page);
-    await expect(page.getByTestId('configure-columns')).toBeVisible();
-    // Poll Email (group.email.poll, also feature-flagged + needs email
-    // integration enabled) is absent.
-    await expect(page.getByTestId('receipts-poll-email')).toHaveCount(0);
   });
 
   test('the receipt form shows no Magic Fill button', async ({ page }) => {

@@ -43,16 +43,16 @@ describe("SystemSettingsComponent", () => {
 
   it("should create", () => {
     store.dispatch(
-      new SetPermissions([Permission.AppSystemEmailsRead], {})
+      new SetPermissions([Permission.AppSystemTasksRead], {})
     );
     fixture.detectChanges();
     expect(component).toBeTruthy();
   });
 
-  it("shows no tab to a user who cannot read the settings, and never Prompts (Phase 3 M1)", () => {
+  it("shows no tab to a user who cannot read the settings, and never the AI page (Phase 3 M1)", () => {
     store.dispatch(
       new SetPermissions(
-        [Permission.AppPromptsRead, Permission.AppSystemTasksRead],
+        [Permission.AppReceiptProcessingSettingsRead, Permission.AppSystemTasksRead],
         {}
       )
     );

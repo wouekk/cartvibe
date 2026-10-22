@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Source venv
-source /app/cartvibe-api/wranglervenv/bin/activate
-
 cd /app/cartvibe-api
 
 # The API runs unprivileged (the image's cartvibe user, or PUID/PGID when set), so a flaw in a library it feeds

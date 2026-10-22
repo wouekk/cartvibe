@@ -82,7 +82,7 @@ function intersect(wanted: readonly string[], available: readonly string[]): Set
   return new Set(wanted.filter((k) => availableSet.has(k)));
 }
 
-const USER_MANAGER_RESOURCES = new Set(["app.users", "app.api-keys", "app.system-emails"]);
+const USER_MANAGER_RESOURCES = new Set(["app.users", "app.api-keys"]);
 
 const GROUP_MANAGER_KEYS = [
   "group.receipts.create",
@@ -93,11 +93,6 @@ const GROUP_MANAGER_KEYS = [
   "group.receipts.magic-fill",
   "group.comments.create",
   "group.comments.delete",
-  "group.dashboards.create",
-  "group.dashboards.read",
-  "group.dashboards.update",
-  "group.dashboards.delete",
-  "group.widgets.read",
   "group.activities.read",
   "group.activities.rerun",
   "group.view",
@@ -115,8 +110,6 @@ const RECEIPT_EDITOR_KEYS = [
   "group.receipts.duplicate",
   "group.receipts.magic-fill",
   "group.comments.create",
-  "group.dashboards.read",
-  "group.widgets.read",
   "group.view",
   // Uses the group's lists (add, check off) without creating or deleting lists.
   "group.shopping-lists.read",
@@ -125,8 +118,6 @@ const RECEIPT_EDITOR_KEYS = [
 
 const VIEWER_KEYS = [
   "group.receipts.read",
-  "group.dashboards.read",
-  "group.widgets.read",
   "group.activities.read",
   "group.view",
   "group.shopping-lists.read",
@@ -226,20 +217,14 @@ const RESOURCE_ICONS: Record<string, string> = {
   "app.groups": "group",
   "app.categories": "sell",
   "app.tags": "label",
-  "app.prompts": "auto_awesome",
   "app.receipt-processing-settings": "document_scanner",
   "app.system-settings": "settings",
-  "app.system-emails": "mail",
   "app.system-tasks": "task_alt",
-  "app.imports": "file_upload",
   "app.api-keys": "key",
   group: "workspaces",
   "group.receipts": "receipt_long",
   "group.comments": "chat_bubble",
-  "group.dashboards": "dashboard",
-  "group.widgets": "widgets",
   "group.activities": "history",
-  "group.email": "alternate_email",
 };
 
 export function iconForResource(resourceKey: string): string {

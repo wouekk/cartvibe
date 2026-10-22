@@ -50,7 +50,7 @@ describe("GroupTabsComponent", () => {
         aiPoweredReceipts: true,
       },
       auth: {
-        appPermissions: [Permission.AppGroupsUpdateSettings],
+        appPermissions: [Permission.AppGroupsRead],
       },
     });
     component.ngOnInit();

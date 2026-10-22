@@ -140,7 +140,6 @@ export class AiFallbackCardComponent implements OnInit {
       isVisionModel: true,
       enforceJsonResponseFormat: true,
       ocrEngine: saved?.ocrEngine ?? OcrEngine.Tesseract,
-      promptId: saved?.promptId ?? 0,
     };
 
     this.saving.set(true);
@@ -184,7 +183,6 @@ export class AiFallbackCardComponent implements OnInit {
             isVisionModel: true,
             enforceJsonResponseFormat: true,
             ocrEngine: saved?.ocrEngine ?? OcrEngine.Tesseract,
-            promptId: saved?.promptId ?? 0,
           };
 
     this.testing.set(true);

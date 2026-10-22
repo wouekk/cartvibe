@@ -37,19 +37,9 @@ export class ReportRunnerService {
   }
 
   /**
-   * Renders a saved template by id as full-dataset HTML for the dashboard report
-   * widget. The server loads the stored configuration, re-resolves the caller's
-   * access, and returns restricted-notice HTML (with empty allowedActions) when the
-   * caller may no longer view it — so the widget always has HTML to render.
-   */
-  public renderTemplate(id: number): Observable<ReportPreviewResponse> {
-    return this.reportService.renderReportTemplate(id);
-  }
-
-  /**
    * Downloads a saved template by id: resolves the template (for the download
-   * filename) then runs it through the enforcing generate endpoint. Reused by the
-   * report widget's download button; the server 403s if the caller cannot generate.
+   * filename) then runs it through the enforcing generate endpoint; the server
+   * 403s if the caller cannot generate.
    */
   public downloadTemplateById(id: number): Observable<Blob> {
     return this.getTemplate(id).pipe(

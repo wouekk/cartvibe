@@ -14,14 +14,8 @@ export class SystemTaskTypePipe implements PipeTransform {
         return marker("Magic Fill");
       case "QUICK_SCAN":
         return marker("Quick Scan");
-      case "SYSTEM_EMAIL_CONNECTIVITY_CHECK":
-        return marker("System Email Connectivity Check");
       case "RECEIPT_PROCESSING_SETTINGS_CONNECTIVITY_CHECK":
         return marker("Receipt Processing Settings Connectivity Check");
-      case "EMAIL_READ":
-        return marker("Email Read");
-      case "EMAIL_UPLOAD":
-        return marker("Email Upload");
       case "CHAT_COMPLETION":
         return marker("Chat Completion");
       case "OCR_PROCESSING":

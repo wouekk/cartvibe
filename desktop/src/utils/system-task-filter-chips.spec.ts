@@ -30,10 +30,10 @@ describe("buildSystemTaskFilterChips", () => {
 
   it("names task types by their display value", () => {
     const chips = build({
-      type: { operation: FilterOperation.Contains, value: ["QUICK_SCAN", "EMAIL_READ"] },
+      type: { operation: FilterOperation.Contains, value: ["QUICK_SCAN", "HTML_TO_PDF"] },
     });
 
-    expect(chips).toEqual([{ key: "type", label: "Type contains Quick Scan, Email Read" }]);
+    expect(chips).toEqual([{ key: "type", label: "Type contains Quick Scan, HTML to PDF" }]);
   });
 
   it("names the System sentinel and resolves real users", () => {

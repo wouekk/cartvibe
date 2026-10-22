@@ -163,7 +163,6 @@
     "Canned Goods": "Konserwy",
     "Cannot delete API key: ID is missing": "Nie można usunąć klucza API: brak identyfikatora",
     "Cannot delete current user or no valid users selected": "Nie można usunąć bieżącego użytkownika lub nie wybrano prawidłowych użytkowników",
-    "Captured Metadata:": "Zebrane metadane:",
     "CartVibe is a fork of": "CartVibe jest forkiem projektu",
     "Categories": "Kategorie",
     "Category": "Kategoria",
@@ -187,7 +186,6 @@
     "Choose which fields appear in quick scan and which are required. Paid by and status always resolve to a value, so set a default for when they are optional.": "Wybierz, które pola pojawiają się w szybkim skanowaniu i które są wymagane. Płatnik i status zawsze mają wartość, więc ustaw domyślną na wypadek, gdy są opcjonalne.",
     "Cleaning": "Środki czystości",
     "Cleaning Supplies": "Środki czystości",
-    "Cleanup polling interval (in seconds)": "Interwał sprzątania (w sekundach)",
     "Clear": "Wyczyść",
     "Clear Crossed Off": "Wyczyść skreślone",
     "Clear all": "Wyczyść wszystko",
@@ -348,12 +346,6 @@
     "Edit {name} {type}": "Edytuj {name} ({type})",
     "Eggs": "Jaja",
     "Electronics": "Elektronika",
-    "Email Polling": "Sprawdzanie poczty",
-    "Email Read": "Odczyt poczty",
-    "Email Receipt Image Cleanup (retired)": "Sprzątanie obrazów paragonów z e-maili (wycofane)",
-    "Email Receipt Processing": "Przetwarzanie paragonów z e-maili",
-    "Email Upload": "Wczytanie z poczty",
-    "Email successfully poll successfully queued": "Sprawdzanie poczty zostało dodane do kolejki",
     "Emulsifier / thickener": "Emulgator / zagęstnik",
     "Enable Local Sign Up": "Włącz lokalną rejestrację",
     "End": "Koniec",
@@ -612,7 +604,6 @@
     "No grouping": "Bez grupowania",
     "No items for this receipt": "Brak pozycji w tym paragonie",
     "No items found": "Nie znaleziono pozycji",
-    "No longer used. Temporary file cleanup moved to System Clean Up.": "Nieużywane. Sprzątanie plików tymczasowych przeniesiono do sprzątania systemowego.",
     "No matches": "Brak dopasowań",
     "No receipts match this report.": "Żaden paragon nie pasuje do tego raportu.",
     "No receipts to attach. Add the receipt first.": "Brak paragonów do dołączenia. Najpierw dodaj paragon.",
@@ -650,7 +641,7 @@
     "One row per receipt": "Jeden wiersz na paragon",
     "One summed row per value": "Jeden zsumowany wiersz na wartość",
     "Only a failed activity can be rerun.": "Ponowić można tylko nieudaną czynność.",
-    "Only a quick scan or email upload activity can be rerun.": "Ponowić można tylko czynność szybkiego skanowania lub wczytania z poczty.",
+    "Only a quick scan activity can be rerun.": "Można ponowić tylko aktywność szybkiego skanu.",
     "Only arithmetic over columns is allowed": "Dozwolone są tylko działania arytmetyczne na kolumnach",
     "Only system admin may change your username.": "Tylko administrator systemu może zmienić Twoją nazwę użytkownika.",
     "Open": "Otwarte",
@@ -702,8 +693,6 @@
     "Please select images to upload": "Wybierz obrazy do wysłania",
     "Point the camera at the barcode.": "Skieruj aparat na kod kreskowy.",
     "Polish złoty (12,99 zł)": "Polski złoty (12,99 zł)",
-    "Poll email(s)": "Sprawdź pocztę",
-    "Polls system emails for receipts to process": "Sprawdza e-maile systemowe pod kątem paragonów do przetworzenia",
     "Preservative": "Konserwant",
     "Preview": "Podgląd",
     "Preview role": "Podgląd roli",
@@ -717,7 +706,6 @@
     "Previous year": "Poprzedni rok",
     "Priorities": "Priorytety",
     "Processes quick scan receipts": "Przetwarza paragony z szybkiego skanowania",
-    "Processing of captured emails": "Przetwarzanie pobranych e-maili",
     "Produce": "Owoce i warzywa",
     "Product": "Produkt",
     "Product name": "Nazwa produktu",
@@ -727,7 +715,7 @@
     "Project": "Projekt",
     "Project page": "Strona projektu",
     "Prompt Generated": "Wygenerowano polecenie",
-    "Prompt Used: {name}": "Użyte polecenie: {name}",
+    "Prompt Used": "Użyty prompt",
     "Protein": "Białko",
     "Provider": "Dostawca",
     "Qty": "Ilość",
@@ -963,7 +951,6 @@
     "Sync with items": "Synchronizuj z pozycjami",
     "System": "System",
     "System Clean Up": "Sprzątanie systemowe",
-    "System Email Connectivity Check": "Test połączenia poczty systemowej",
     "System Emails": "Poczta systemowa",
     "System Settings": "Ustawienia systemu",
     "System Tasks": "Zadania systemowe",
@@ -1254,31 +1241,6 @@
       "many": "paragonów",
       "one": "paragon",
       "other": "paragonu"
-    }
-  },
-  "_orphaned": {
-    "Command cannot be empty.": {
-      "value": "Polecenie nie może być puste.",
-      "closest": "Name cannot be changed"
-    },
-    "Host is required": {
-      "value": "Host jest wymagany",
-      "closest": "Code is required"
-    },
-    "If ID is not provided, full credentials must be provided": {
-      "value": "Jeśli nie podano identyfikatora, trzeba podać pełne dane logowania"
-    },
-    "Password is required": {
-      "value": "Hasło jest wymagane",
-      "closest": "Code is required"
-    },
-    "Port is required": {
-      "value": "Port jest wymagany",
-      "closest": "Code is required"
-    },
-    "Username is required": {
-      "value": "Nazwa użytkownika jest wymagana",
-      "closest": "Code is required"
     }
   }
 }

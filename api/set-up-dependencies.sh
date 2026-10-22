@@ -1,18 +1,6 @@
 # Install build essential
 apt-get install -y build-essential
-# Install pip
 apt-get update
-apt-get install python3-pip -y
-apt-get install python3.13-venv -y
-# Set up venv
-python3 -m venv wranglervenv
-. wranglervenv/bin/activate
-# Install requirements (the IMAP client). EasyOCR and PyTorch are no longer installed: Tesseract reads every
-# image, and they brought OpenCV with a bundled ffmpeg and a new Python process per image.
-pip3 install -r ./imap-client/requirements.txt
-# Newest build tools last, so nothing above leaves an old setuptools, wheel or jaraco.context behind
-# (the image scan flags the versions pip ships with).
-pip3 install --upgrade setuptools wheel jaraco.context
 # Add lsb-release
 apt-get update -y -qq
 apt-get install apt-utils -y -qq
@@ -29,7 +17,7 @@ apt-get install -y -qq libde265-dev libheif-dev
 apt-get install pkg-config -y -qq
 apt-get install -y -qq imagemagick-7.q16 libmagickwand-7.q16-dev
 
-# Install Chromium for HTML-to-PDF rendering of email bodies via chromedp
+# Install Chromium for HTML-to-PDF rendering of reports via chromedp
 apt-get install -y -qq chromium
 
 # Adjust ImageMagick policy to allow for PDF conversion

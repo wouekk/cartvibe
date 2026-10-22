@@ -8,7 +8,7 @@ import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "../../constants/dialog.constant";
 import { SystemTaskFilterFieldKey } from "../../constants";
-import { AssociatedEntityType, Prompt, ReceiptProcessingSettings, SystemTaskPagedRequestFilter } from "../../open-api";
+import { AssociatedEntityType, ReceiptProcessingSettings, SystemTaskPagedRequestFilter } from "../../open-api";
 import { TABLE_SERVICE_INJECTION_TOKEN } from "../../services/injection-tokens/table-service";
 import { SystemTaskTableService } from "../../services/system-task-table.service";
 import { TaskTableComponent } from "../../shared-ui/task-table/task-table.component";
@@ -41,7 +41,6 @@ export class SystemTaskTableComponent implements OnInit {
   public readonly expandedRowTemplate = viewChild.required<TemplateRef<any>>("expandedRowTemplate");
   public readonly taskTableComponent = viewChild.required(TaskTableComponent);
 
-  public prompts: Prompt[] = [];
   public allReceiptProcessingSettings: ReceiptProcessingSettings[] = [];
   protected readonly AssociatedEntityType = AssociatedEntityType;
 
@@ -78,7 +77,6 @@ export class SystemTaskTableComponent implements OnInit {
   ) {}
 
   public ngOnInit(): void {
-    this.prompts = this.activatedRoute.snapshot.data["prompts"] || [];
     this.allReceiptProcessingSettings = this.activatedRoute.snapshot.data["allReceiptProcessingSettings"] || [];
   }
 

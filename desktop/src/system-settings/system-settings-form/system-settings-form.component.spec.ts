@@ -51,9 +51,6 @@ describe("SystemSettingsFormComponent", () => {
                         allReceiptProcessingSettings: [],
                         systemSettings: {
                             taskQueueConfigurations: [
-                                { name: "email_polling", priority: 1 },
-                                { name: "email_receipt_processing", priority: 1 },
-                                { name: "email_receipt_image_cleanup", priority: 1 },
                                 { name: "quick_scan", priority: 1 }
                             ]
                         },
@@ -111,7 +108,6 @@ describe("SystemSettingsFormComponent", () => {
       enableLocalSignUp: null,
       debugOcr: null,
       currencyDisplay: null,
-      emailPollingInterval: null,
       receiptProcessingSettingsId: null,
       fallbackReceiptProcessingSettingsId: null,
       currencyThousandthsSeparator: null,
@@ -125,9 +121,6 @@ describe("SystemSettingsFormComponent", () => {
       pdfDpi: null,
       taskConcurrency: null,
       taskQueueConfigurations: [
-        { name: "email_polling", priority: 1 },
-        { name: "email_receipt_processing", priority: 1 },
-        { name: "email_receipt_image_cleanup", priority: 1 },
         { name: "quick_scan", priority: 1 }
       ],
       mcpEnabled: null,
@@ -172,7 +165,6 @@ describe("SystemSettingsFormComponent", () => {
       enableLocalSignUp: true,
       debugOcr: true,
       currencyDisplay: "USD",
-      emailPollingInterval: 5,
       receiptProcessingSettingsId: 1,
       fallbackReceiptProcessingSettingsId: 2,
       currencyThousandthsSeparator: CurrencySeparator.Comma,
@@ -200,7 +192,6 @@ describe("SystemSettingsFormComponent", () => {
       enableLocalSignUp: true,
       debugOcr: true,
       currencyDisplay: "USD",
-      emailPollingInterval: 5,
       receiptProcessingSettingsId: 1,
       fallbackReceiptProcessingSettingsId: 2,
       currencyThousandthsSeparator: CurrencySeparator.Comma,
@@ -426,7 +417,6 @@ describe("SystemSettingsFormComponent", () => {
       enableLocalSignUp: true,
       debugOcr: true,
       currencyDisplay: "USD",
-      emailPollingInterval: "5",
       receiptProcessingSettingsId: 1,
       fallbackReceiptProcessingSettingsId: 2,
       currencyThousandthsSeparator: CurrencySeparator.Comma,
@@ -461,7 +451,6 @@ describe("SystemSettingsFormComponent", () => {
       enableLocalSignUp: true,
       debugOcr: true,
       currencyDisplay: "USD",
-      emailPollingInterval: 5,
       receiptProcessingSettingsId: 1,
       fallbackReceiptProcessingSettingsId: 2,
       currencyThousandthsSeparator: CurrencySeparator.Comma,
@@ -472,9 +461,6 @@ describe("SystemSettingsFormComponent", () => {
       pdfDpi: 300,
       taskConcurrency: 12,
       taskQueueConfigurations: [
-        { name: 'email_polling', priority: 1 },
-        { name: 'email_receipt_processing', priority: 1 },
-        { name: 'email_receipt_image_cleanup', priority: 1 },
         { name: 'quick_scan', priority: 1 }
       ],
       mcpEnabled: true,
@@ -671,16 +657,14 @@ describe("SystemSettingsFormComponent", () => {
       expect(fixture.nativeElement.querySelector("[data-testid=server-public-url]")).not.toBeNull();
     });
 
-    it("Tasks & Storage lists the queues compactly, without the retired one", () => {
+    it("Tasks & Storage lists the queues compactly", () => {
       place("tasks");
 
       expect(cards()).toEqual(["worker", "queues"]);
       const rows = fixture.nativeElement.querySelectorAll("[data-testid=queue-row]");
-      expect(rows.length).toBe(4);
-      expect(fixture.nativeElement.querySelector("[data-testid=queue-priority-email_receipt_image_cleanup]")).toBeNull();
+      expect(rows.length).toBe(2);
       expect(fixture.nativeElement.querySelector("[data-testid=queue-priority-quick_scan]")).not.toBeNull();
-      // The retired queue is still in the form (this fixture has four stored queues), so the payload keeps it.
-      expect((component.form.get("taskQueueConfigurations") as FormArray).length).toBe(4);
+      expect((component.form.get("taskQueueConfigurations") as FormArray).length).toBe(1);
     });
 
     it("keeps every setting in the form whatever the tab, so a save sends them all", () => {

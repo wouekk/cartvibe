@@ -29,7 +29,7 @@ describe("overviewReadGuard", () => {
   });
 
   it("sends anyone else to the group's receipts", () => {
-    store.dispatch(new SetPermissions([], { 1: [Permission.GroupDashboardsRead] }));
+    store.dispatch(new SetPermissions([], { 1: [Permission.GroupCommentsCreate] }));
 
     const result = executeGuard(route, {} as any) as UrlTree;
     expect(TestBed.inject(Router).serializeUrl(result)).toBe("/receipts/group/1");

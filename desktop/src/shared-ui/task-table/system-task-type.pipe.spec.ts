@@ -13,10 +13,7 @@ describe("SystemTaskTypePipe", () => {
     const cases: Array<[SystemTaskType, string]> = [
       ["MAGIC_FILL", "Magic Fill"],
       ["QUICK_SCAN", "Quick Scan"],
-      ["SYSTEM_EMAIL_CONNECTIVITY_CHECK", "System Email Connectivity Check"],
       ["RECEIPT_PROCESSING_SETTINGS_CONNECTIVITY_CHECK", "Receipt Processing Settings Connectivity Check"],
-      ["EMAIL_READ", "Email Read"],
-      ["EMAIL_UPLOAD", "Email Upload"],
       ["CHAT_COMPLETION", "Chat Completion"],
       ["OCR_PROCESSING", "OCR Processing"],
       ["RECEIPT_UPLOADED", "Receipt Uploaded"],

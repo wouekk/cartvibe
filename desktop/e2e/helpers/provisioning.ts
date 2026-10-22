@@ -28,8 +28,8 @@ export interface CreateRoleOptions {
   enableCategories?: string[];
   /**
    * Individual permissions to switch OFF after applying the preset. Identify the
-   * accordion by its resource key (key minus last segment, e.g. 'group.dashboards')
-   * and the row by its label (e.g. 'Read Dashboards').
+   * accordion by its resource key (key minus last segment, e.g. 'group.comments')
+   * and the row by its label (e.g. 'Read Comments').
    */
   disablePermissions?: { panelKey: string; label: string }[];
   /**
@@ -890,21 +890,7 @@ export async function apiDeleteRoleByName(
 export async function apiCreateUnreachableProcessingSettings(
   api: APIRequestContext,
   name: string,
-): Promise<{ id: number; promptId: number }> {
-  const promptRes = await api.post('/api/prompt/', {
-    data: {
-      name,
-      description: 'e2e: forces a failed quick scan',
-      prompt: 'Extract the receipt. @categories @tags',
-    },
-  });
-  if (!promptRes.ok()) {
-    throw new Error(
-      `create prompt failed: HTTP ${promptRes.status()} ${await promptRes.text()}`,
-    );
-  }
-  const prompt = (await promptRes.json()) as { id: number };
-
+): Promise<{ id: number }> {
   const res = await api.post('/api/receiptProcessingSettings/', {
     data: {
       name,
@@ -915,7 +901,6 @@ export async function apiCreateUnreachableProcessingSettings(
       key: 'e2e',
       model: 'e2e',
       isVisionModel: true,
-      promptId: prompt.id,
     },
   });
   if (!res.ok()) {
@@ -925,7 +910,7 @@ export async function apiCreateUnreachableProcessingSettings(
   }
   const settings = (await res.json()) as { id: number };
 
-  return { id: settings.id, promptId: prompt.id };
+  return { id: settings.id };
 }
 
 /**
@@ -1061,14 +1046,12 @@ export async function apiWaitForFailedQuickScan(
   throw new Error(`no failed quick scan with a source file appeared for group ${groupId}`);
 }
 
-/** Deletes a receipt-processing configuration and its prompt. */
+/** Deletes a receipt-processing configuration. */
 export async function apiDeleteProcessingSettings(
   api: APIRequestContext,
   settingsId: number,
-  promptId: number,
 ): Promise<void> {
   await api.delete(`/api/receiptProcessingSettings/${settingsId}`);
-  await api.delete(`/api/prompt/${promptId}`);
 }
 
 /**

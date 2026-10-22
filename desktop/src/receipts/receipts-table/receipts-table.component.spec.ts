@@ -78,7 +78,6 @@ describe("ReceiptsTableComponent", () => {
         5: [
           Permission.GroupReceiptsCreate,
           Permission.GroupReceiptsQuickScan,
-          Permission.GroupEmailPoll,
         ],
       })
     );
@@ -88,7 +87,6 @@ describe("ReceiptsTableComponent", () => {
 
     expect(component.canCreate).toEqual(true);
     expect(component.canQuickScan).toEqual(true);
-    expect(component.canPollEmail).toEqual(true);
     // None of those imply update, which gates Edit / Bulk Status Update.
     expect(component.canEdit).toEqual(false);
   });
@@ -104,7 +102,6 @@ describe("ReceiptsTableComponent", () => {
     expect(component.canEdit).toEqual(true);
     expect(component.canCreate).toEqual(false);
     expect(component.canQuickScan).toEqual(false);
-    expect(component.canPollEmail).toEqual(false);
   });
 
   describe("columns", () => {

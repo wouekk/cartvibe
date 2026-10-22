@@ -48,7 +48,7 @@
 <ng-template #actionsCell let-element="element" let-index="index">
   <div class="flex">
     <app-edit-button
-      *hasGroupPermission="{ groupId: element.id, permission: Permission.GroupUpdate, orApp: [Permission.AppGroupsUpdateSettings] }"
+      *hasGroupPermission="{ groupId: element.id, permission: Permission.GroupUpdate }"
       data-testid="group-edit"
       color="accent"
       [tooltip]="'Edit group' | t"
