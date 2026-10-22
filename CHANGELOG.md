@@ -25,6 +25,13 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 - Permissions that went with them: `app.prompts.*`, `app.system-emails.*`, `app.imports.run`, `app.groups.update-settings`,
   `group.dashboards.*`, `group.widgets.read`, `group.email.poll`. The Queues list in System Settings shows Quick Scan and System Clean Up only.
 
+- **Bill splitting:** receipt items, shares, quick split actions, "Sync with items" and the settle-up endpoint, plus the item and
+  share hide switches in the household receipt settings. A receipt's lines are its products. The receipts export is a zip with
+  `receipts.csv` only.
+- **Upgrade-only code and the mobile sign-in leg:** the one-time data migrations and the leftover `group_role` column field, and
+  the OIDC code for the removed phone app (exchange codes, link launch handles). Browser sign-in, linking and the delete
+  confirmation are unchanged.
+
 ### Changed
 - Internal clean-up: the Go module is `cartvibe/api`, the CSS prefix is `cv-`, the Angular project is `cartvibe`, the MCP server and
   OAuth sign-in page say CartVibe, and the upstream release scripts and READMEs are gone. The JWT issuer and the `rw-v1` API key

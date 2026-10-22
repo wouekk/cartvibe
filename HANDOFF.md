@@ -29,8 +29,18 @@ so nothing is migrated: the release needs a **wiped NAS `sqlite` folder and new 
 - **Left for later:** the email-body helpers in `services/receipt_image.go` / `receipt_processing.go` (`ReadReceiptImageWithEmailBody`,
   `FormatEmailContent`, the `emailBody` argument of `readReceipt`), now used only by tests; stale prose about email in `api/CLAUDE.md`
   (marked as history in its "Removed from upstream" section).
-- **Stages 4 and 5 of the plan are NOT done:** upgrade-only data migrations, the legacy `group_role`/`user_role` columns and the dead mobile OIDC
-  branch (own commit, OIDC tests before and after), then bill splitting (Items, shares, settlement; riskiest, grep gate first). Say go to continue.
+- **Stages 4 and 5 done (2026-10-22):** upgrade-only data migrations, `GroupMember.GroupRole` and the whole mobile OIDC leg
+  (exchange codes, link launch handles, `ClientType`, JSON flow errors) are gone; the OIDC suite passed before and after. Bill
+  splitting is gone end to end: `models.Item`, `Receipt.ReceiptItems`, the item cascade, `GET /user/amountOwedForUser`,
+  item grant stripping/masking, the hidden-charge guard, the items CSV, the `hideItem*`/`hideShare*` settings, and in the
+  desktop the Items/Shares sections, quick actions, "Sync with items", the unused summary card and their specs. Grep gate: only
+  receipts, exports, grant filter, masking and the settle-up endpoint read items (no tile, report field or product code did).
+  Go: vet clean, only the Windows-only baseline fails; Jest 289 suites / 1973 tests, `ng build` OK, `i18n:check` 100% Polish.
+  Some tests were deleted with their feature (settlement matrix, linked-items, hidden-charge); two were rewritten without items
+  (`TestBuildReceiptCsvPrintsInstantsInTheAppZone`, `TestMemberIsolation_ValidateReceiptUserSelection`).
+- **Not seen:** a fresh database boot, the receipt form in a browser after losing the hidden Items section, an OIDC login against
+  a real provider, the Docker image. The plan is complete; what is left is the user's look and the release (wipe the NAS
+  `sqlite` folder, new keys).
 - Local run: the dev stack needs a fresh database (delete `tools\devstack\run\dev.db`); an old one was not tested.
 
 
