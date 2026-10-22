@@ -77,33 +77,6 @@ func ReadReceiptImageFromFileOnly(path string, groupId string) (commands.UpsertR
 	return receiptProcessingService.ReadReceiptImage(path)
 }
 
-func ReadReceiptImageWithEmailBody(path string, emailBody string, groupId string) (commands.UpsertReceiptCommand, commands.ReceiptProcessingMetadata, error) {
-	receiptProcessingService, err := NewSystemReceiptProcessingService(nil, groupId)
-	if err != nil {
-		return commands.UpsertReceiptCommand{}, commands.ReceiptProcessingMetadata{}, err
-	}
-
-	return receiptProcessingService.ReadReceiptImageWithEmailBody(path, emailBody)
-}
-
-func ReadReceiptImagesWithEmailBody(paths []string, emailBody string, bodySentAsImage bool, groupId string) (commands.UpsertReceiptCommand, commands.ReceiptProcessingMetadata, error) {
-	receiptProcessingService, err := NewSystemReceiptProcessingService(nil, groupId)
-	if err != nil {
-		return commands.UpsertReceiptCommand{}, commands.ReceiptProcessingMetadata{}, err
-	}
-
-	return receiptProcessingService.ReadReceiptImagesWithEmailBody(paths, emailBody, bodySentAsImage)
-}
-
-func ReadReceiptFromTextOnly(bodyText string, groupId string) (commands.UpsertReceiptCommand, commands.ReceiptProcessingMetadata, error) {
-	receiptProcessingService, err := NewSystemReceiptProcessingService(nil, groupId)
-	if err != nil {
-		return commands.UpsertReceiptCommand{}, commands.ReceiptProcessingMetadata{}, err
-	}
-
-	return receiptProcessingService.ReadReceiptText(bodyText)
-}
-
 func MagicFillFromImage(command commands.MagicFillCommand, groupId string, userId uint) (commands.UpsertReceiptCommand, commands.ReceiptProcessingMetadata, error) {
 	return magicFillFromImage(command, groupId, userId, false)
 }

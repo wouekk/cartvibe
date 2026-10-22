@@ -3626,8 +3626,9 @@ migrations**. What is gone from the API, the models and `swagger.yml`:
 
 Passages above that still mention email uploads, `EmailProcessTaskPayload`, `email_process_handler.go`, group settings or
 `EMAIL_UPLOAD` describe code that no longer exists and are kept only as design history; the live behaviour is the quick scan path.
-Left for a later pass: the email-body helpers in `services/receipt_image.go` / `receipt_processing.go`
-(`ReadReceiptImageWithEmailBody`, `FormatEmailContent`), now used only by tests.
+The email-body helpers are gone too (`ReadReceiptImageWithEmailBody`, `ReadReceiptImagesWithEmailBody`, `ReadReceiptFromTextOnly`,
+`FormatEmailContent`, the `emailBody` / `bodySentAsImage` arguments): `@ocrText` is now the OCR text alone, with no
+"Image Data / Email Body" wrapper around it.
 
 ### Stages 4 and 5 (2026-10)
 

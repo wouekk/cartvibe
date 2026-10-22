@@ -86,46 +86,17 @@ func NewReceiptProcessingService(tx *gorm.DB, receiptProcessingSettingsId string
 func (service ReceiptProcessingService) ReadReceiptImage(
 	imagePath string,
 ) (commands.UpsertReceiptCommand, commands.ReceiptProcessingMetadata, error) {
-	return service.readReceipt([]string{imagePath}, "", false)
-}
-
-func (service ReceiptProcessingService) ReadReceiptImageWithEmailBody(
-	imagePath string,
-	emailBody string,
-) (commands.UpsertReceiptCommand, commands.ReceiptProcessingMetadata, error) {
-	return service.readReceipt([]string{imagePath}, emailBody, false)
-}
-
-// ReadReceiptImagesWithEmailBody processes one or more receipt images alongside
-// an email body. When bodySentAsImage is true, the body is also represented as
-// one of the images (e.g. a chromedp-rendered PDF page) and the body text is
-// not duplicated into the prompt to avoid sending the same content twice.
-func (service ReceiptProcessingService) ReadReceiptImagesWithEmailBody(
-	imagePaths []string,
-	emailBody string,
-	bodySentAsImage bool,
-) (commands.UpsertReceiptCommand, commands.ReceiptProcessingMetadata, error) {
-	return service.readReceipt(imagePaths, emailBody, bodySentAsImage)
-}
-
-func (service ReceiptProcessingService) ReadReceiptText(
-	emailBody string,
-) (commands.UpsertReceiptCommand, commands.ReceiptProcessingMetadata, error) {
-	return service.readReceipt(nil, emailBody, false)
+	return service.readReceipt([]string{imagePath})
 }
 
 func (service ReceiptProcessingService) readReceipt(
 	imagePaths []string,
-	emailBody string,
-	bodySentAsImage bool,
 ) (commands.UpsertReceiptCommand, commands.ReceiptProcessingMetadata, error) {
 	var receipt commands.UpsertReceiptCommand
 	metadata := commands.ReceiptProcessingMetadata{}
 
 	result, err := service.processImages(
 		imagePaths,
-		emailBody,
-		bodySentAsImage,
 		service.ReceiptProcessingSettings,
 	)
 	metadata.OcrSystemTaskCommand = result.OcrSystemTaskCommand
@@ -139,8 +110,6 @@ func (service ReceiptProcessingService) readReceipt(
 		if service.FallbackReceiptProcessingSettings.ID > 0 {
 			fallbackResult, fallbackErr := service.processImages(
 				imagePaths,
-				emailBody,
-				bodySentAsImage,
 				service.FallbackReceiptProcessingSettings,
 			)
 			metadata.FallbackReceiptProcessingSettingsIdRan = service.FallbackReceiptProcessingSettings.ID
@@ -167,26 +136,8 @@ func (service ReceiptProcessingService) readReceipt(
 	return receipt, metadata, err
 }
 
-// FormatEmailContent combines image-extracted text and email body into a formatted string
-// for the AI prompt. This is used when processing emails to give the AI full context.
-func FormatEmailContent(imageData string, hasImage bool, emailBody string) string {
-	imageDataText := imageData
-	if len(imageDataText) == 0 && !hasImage {
-		imageDataText = "No attachments found"
-	}
-
-	emailBodyText := emailBody
-	if len(emailBodyText) == 0 {
-		emailBodyText = "No email body found"
-	}
-
-	return fmt.Sprintf("Image Data:\n%s\n\nEmail Body:\n%s", imageDataText, emailBodyText)
-}
-
 func (service ReceiptProcessingService) processImages(
 	imagePaths []string,
-	emailBody string,
-	bodySentAsImage bool,
 	receiptProcessingSettings models.ReceiptProcessingSettings,
 ) (commands.ReceiptProcessingResult, error) {
 	aiMessages := []structs.AiClientMessage{}
@@ -228,13 +179,7 @@ func (service ReceiptProcessingService) processImages(
 		}
 	}
 
-	promptBody := emailBody
-	if bodySentAsImage {
-		promptBody = ""
-	}
-	promptText := FormatEmailContent(ocrText, hasImage, promptBody)
-
-	prompt, promptSystemTask, err := service.buildPrompt(receiptProcessingSettings, promptText)
+	prompt, promptSystemTask, err := service.buildPrompt(receiptProcessingSettings, ocrText)
 	result.PromptSystemTaskCommand = promptSystemTask
 	if err != nil {
 		return result, err
