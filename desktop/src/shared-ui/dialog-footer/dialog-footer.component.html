@@ -11,10 +11,8 @@
   ></app-cancel-button>
   <app-submit-button
     data-testid="dialog-submit-button"
-    [onlyIcon]="false"
+    [mode]="submitMode()"
     [buttonText]="submitButtonTooltip()"
-    buttonClass="bg-success-text/15! text-success-text! ring-1 ring-success-text/30 hover:bg-success-text/25!"
-    [tooltip]="submitButtonTooltip()"
     [disabled]="
       disableWhenProgressBarIsShown() ? showProgressBar() ?? false : false
     "

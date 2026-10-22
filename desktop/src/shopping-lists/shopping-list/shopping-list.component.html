@@ -13,17 +13,22 @@
         class="add-amount min-w-0 flex-1 sm:w-48 sm:flex-none [&_.amount]:w-20 [&_.amount]:flex-none [&_input]:tabular-nums"
         [form]="addForm"
       ></app-shopping-list-amount-fields>
-      <button
-        hlmBtn
-        type="submit"
-        size="icon"
-        class="mt-[1.625rem] size-9 flex-none rounded-lg"
-        [attr.aria-label]="'Add item' | t"
-        data-testid="shopping-list-add-submit"
-        [disabled]="adding()"
-      >
-        <app-icon name="add"></app-icon>
-      </button>
+      <!-- The same label row as the fields beside it (text-sm, leading-none, gap-1.5), left blank, so the button
+           sits on the inputs' line whatever the label height is. -->
+      <div class="flex flex-none flex-col gap-1.5">
+        <span class="text-sm leading-none" aria-hidden="true">&nbsp;</span>
+        <button
+          hlmBtn
+          type="submit"
+          size="icon"
+          class="size-9"
+          [attr.aria-label]="'Add item' | t"
+          data-testid="shopping-list-add-submit"
+          [disabled]="adding()"
+        >
+          <app-icon name="add"></app-icon>
+        </button>
+      </div>
     </div>
   </form>
 }

@@ -9,7 +9,7 @@
       [value]="level() || 'all'"
       (valueChange)="selectLevel($event === 'all' ? '' : $event)"
     ></app-filter-bar>
-    <button hlmBtn variant="outline" type="button" data-testid="log-refresh" (click)="load()">
+    <button hlmBtn type="button" data-testid="log-refresh" (click)="load()">
       <app-icon name="refresh"></app-icon>
       {{ 'Refresh' | t }}
     </button>

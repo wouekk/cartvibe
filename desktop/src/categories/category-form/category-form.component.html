@@ -19,7 +19,7 @@
       </p>
     </div>
 
-    <app-dialog-footer
+    <app-dialog-footer [editing]="!!category"
       (submitClicked)="submit()"
       (cancelClicked)="closeDialog()"
     ></app-dialog-footer>

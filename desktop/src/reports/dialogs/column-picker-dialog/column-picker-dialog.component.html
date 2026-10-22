@@ -100,7 +100,7 @@
         data-testid="picker-back"></app-button>
     }
     <span class="picker__footer-spacer"></span>
-    <app-button matButtonType="basic" [buttonText]="'Cancel' | t" (clicked)="cancel()"></app-button>
+    <app-cancel-button data-testid="picker-cancel" (clicked)="cancel()"></app-cancel-button>
     @if (step() !== "kind") {
       <app-button [buttonText]="'Save column' | t" icon="check" [disabled]="!canSave()" (clicked)="save()"
         data-testid="picker-save"></app-button>

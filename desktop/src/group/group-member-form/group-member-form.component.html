@@ -56,6 +56,6 @@
       </div>
     }
 
-    <app-dialog-footer (cancelClicked)="closeModal()"></app-dialog-footer>
+    <app-dialog-footer [editing]="!!groupMember" (cancelClicked)="closeModal()"></app-dialog-footer>
   </form>
 </app-dialog>

@@ -95,6 +95,12 @@ export class ReceiptCommentsComponent implements OnInit {
     });
   }
 
+  // Anyone may write while adding a receipt (the comments ride the create); on a
+  // saved receipt, in edit or view mode, it takes the comment permission.
+  public canAddComments(): boolean {
+    return this.mode() === FormMode.add || this.canCreateComments();
+  }
+
   // Unsaved add-mode comments have no timestamp, so none is shown for them.
   public commentTimestamp(index: number): string | undefined {
     const comment = this.internalComments()[index];
@@ -115,7 +121,8 @@ export class ReceiptCommentsComponent implements OnInit {
       this.syncCommentCount();
       this.newCommentFormControl.reset();
       this.commentsUpdated.emit(this.commentsArray);
-    } else if (isValid && mode === FormMode.edit) {
+    } else if (isValid) {
+      // A saved receipt, in edit or view mode: the comment is its own resource, posted now.
       this.commentService
         .addComment(newComment)
         .pipe(

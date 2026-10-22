@@ -82,9 +82,9 @@
       </app-form-section>
     }
 
-    <div class="flex justify-end items-center">
-      <app-submit-button></app-submit-button>
+    <div class="flex items-center justify-end gap-2">
       <app-cancel-button (clicked)="closeModal()"></app-cancel-button>
+      <app-submit-button [mode]="submitMode"></app-submit-button>
     </div>
   </form>
 </div>
