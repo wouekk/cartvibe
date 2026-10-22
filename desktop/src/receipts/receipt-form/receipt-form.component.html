@@ -238,37 +238,6 @@
           }
         </app-form-section>
       }
-      @if (!this.selectedGroup()?.groupReceiptSettings?.hideComments) {
-        <div>
-          <app-form-section
-            [headerText]="'Comments' | t"
-            [indent]="false"
-          >
-            @if (isCommentMissing()) {
-              <div
-                class="rw-requirement-hint mb-2"
-                data-testid="receipt-comment-required-hint"
-              >
-                {{ 'Your role requires at least one comment on this group\'s receipts.' | t }}
-              </div>
-            }
-            <!-- Keyed on the receipt id: the queue re-uses this form for the next
-                 receipt, and the comments child only reads its inputs on init, so
-                 without a fresh instance it would keep the previous receipt's
-                 comments (and the required-comment check would count them). -->
-            @for (receipt of [originalReceipt]; track receipt?.id) {
-              <app-receipt-comments
-                [receiptId]="receipt?.id"
-                [groupId]="receipt?.groupId"
-                [comments]="receipt?.comments ?? []"
-                [mode]="mode"
-                [preventDeletingLastComment]="isCommentDeletionLimited()"
-                (commentsUpdated)="updateComments($event)"
-              ></app-receipt-comments>
-            }
-          </app-form-section>
-        </div>
-      }
     </div>
   </div>
 
@@ -310,6 +279,35 @@
     </div>
   </app-form-button-bar>
 </form>
+
+<!-- Below the Save bar and outside the form: a comment is committed with its own Comment button,
+     never by saving the receipt. -->
+@if (!this.selectedGroup()?.groupReceiptSettings?.hideComments) {
+  <section class="mx-auto mb-6 w-full max-w-5xl">
+    @if (isCommentMissing()) {
+      <div
+        class="rw-requirement-hint mb-2"
+        data-testid="receipt-comment-required-hint"
+      >
+        {{ 'Your role requires at least one comment on this group\'s receipts.' | t }}
+      </div>
+    }
+    <!-- Keyed on the receipt id: the queue re-uses this form for the next
+         receipt, and the comments child only reads its inputs on init, so
+         without a fresh instance it would keep the previous receipt's
+         comments (and the required-comment check would count them). -->
+    @for (receipt of [originalReceipt]; track receipt?.id) {
+      <app-receipt-comments
+        [receiptId]="receipt?.id"
+        [groupId]="receipt?.groupId"
+        [comments]="receipt?.comments ?? []"
+        [mode]="mode"
+        [preventDeletingLastComment]="isCommentDeletionLimited()"
+        (commentsUpdated)="updateComments($event)"
+      ></app-receipt-comments>
+    }
+  </section>
+}
 
 <ng-template #groupOptionTemplate let-option="option"
 >{{ option.name }}
