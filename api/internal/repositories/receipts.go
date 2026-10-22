@@ -190,41 +190,6 @@ func (repository ReceiptRepository) UpdateReceipt(id string, command commands.Up
 			return txErr
 		}
 
-		txErr = tx.Model(&currentReceipt).Association("ReceiptItems").Replace(&updatedReceipt.ReceiptItems)
-		if txErr != nil {
-			return txErr
-		}
-
-		for _, item := range updatedReceipt.ReceiptItems {
-			txErr = tx.Model(&item).Association("Categories").Replace(&item.Categories)
-			if txErr != nil {
-				return txErr
-			}
-
-			txErr = tx.Model(&item).Association("Tags").Replace(&item.Tags)
-			if txErr != nil {
-				return txErr
-			}
-
-			txErr = tx.Model(&item).Association("LinkedItems").Replace(&item.LinkedItems)
-			if txErr != nil {
-				return txErr
-			}
-
-			// Update categories and tags for linked items
-			for _, linkedItem := range item.LinkedItems {
-				txErr = tx.Model(&linkedItem).Association("Categories").Replace(&linkedItem.Categories)
-				if txErr != nil {
-					return txErr
-				}
-
-				txErr = tx.Model(&linkedItem).Association("Tags").Replace(&linkedItem.Tags)
-				if txErr != nil {
-					return txErr
-				}
-			}
-		}
-
 		err = repository.AfterReceiptUpdated(&updatedReceipt)
 		if err != nil {
 			return err
@@ -272,100 +237,20 @@ func (repository ReceiptRepository) UpdateReceipt(id string, command commands.Up
 	return fullyLoadedReceipt, nil
 }
 
-// TODO: Delete categories/tags here associated with items before deleting the items mkay
+// AfterReceiptUpdated keeps resolved_date in step with the status: RESOLVED stamps it, any other status clears it.
+// DECLINED is deliberately not a resolution, and reports expose that column.
 func (repository ReceiptRepository) AfterReceiptUpdated(updatedReceipt *models.Receipt) error {
 	db := repository.GetDB()
 
-	// TODO: Move this  to a scheduled job
-	// Clean up junction tables for orphaned items
-	orphanedItemsSubquery := db.Table("items").Select("id").Where("receipt_id IS NULL")
-
-	// Clean up item_linked_items junction table - remove associations where either side is orphaned
-	err := db.Table("item_linked_items").Where("item_id IN (?) OR linked_item_id IN (?)",
-		orphanedItemsSubquery,
-		orphanedItemsSubquery,
-	).Delete(&struct{}{}).Error
-	if err != nil {
-		return err
-	}
-
-	// Clean up item_categories junction table
-	err = db.Table("item_categories").Where("item_id IN (?)",
-		orphanedItemsSubquery,
-	).Delete(&struct{}{}).Error
-	if err != nil {
-		return err
-	}
-
-	// Clean up item_tags junction table
-	err = db.Table("item_tags").Where("item_id IN (?)",
-		orphanedItemsSubquery,
-	).Delete(&struct{}{}).Error
-	if err != nil {
-		return err
-	}
-
-	// TODO: Move this  to a scheduled job
-	// Delete the orphaned items themselves
-	err = db.Where("receipt_id IS NULL").Delete(&models.Item{}).Error
-	if err != nil {
-		return err
-	}
-
+	var err error
 	if updatedReceipt.ID > 0 && updatedReceipt.Status == models.RESOLVED && updatedReceipt.ResolvedDate == nil {
 		now := time.Now().UTC()
 		err = db.Table("receipts").Where("id = ?", updatedReceipt.ID).Update("resolved_date", now).Error
 	} else if updatedReceipt.ID > 0 && updatedReceipt.Status != models.RESOLVED && updatedReceipt.ResolvedDate != nil {
 		err = db.Table("receipts").Where("id = ?", updatedReceipt.ID).Update("resolved_date", nil).Error
 	}
-	if err != nil {
-		return err
-	}
 
-	// RESOLVED and DECLINED are both terminal: the receipt is done being argued about, so its
-	// items are settled and stop counting toward what members owe each other. Only RESOLVED
-	// stamps resolved_date above — a decline is not a resolution, and reports expose that column.
-	if (updatedReceipt.Status == models.RESOLVED || updatedReceipt.Status == models.DECLINED) && updatedReceipt.ID > 0 {
-		err := repository.UpdateItemsToStatus(updatedReceipt, models.ITEM_RESOLVED)
-		if err != nil {
-			return err
-		}
-	}
-
-	if updatedReceipt.Status == models.DRAFT && updatedReceipt.ID > 0 {
-		err := repository.UpdateItemsToStatus(updatedReceipt, models.ITEM_DRAFT)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (repository ReceiptRepository) UpdateItemsToStatus(receipt *models.Receipt, status models.ItemStatus) error {
-	db := repository.GetDB()
-	var items []models.Item
-	var itemIdsToUpdate []uint
-
-	err := db.Table("items").Where("receipt_id = ?", receipt.ID).Find(&items).Error
-	if err != nil {
-		return err
-	}
-
-	for _, item := range items {
-		if item.Status != status {
-			itemIdsToUpdate = append(itemIdsToUpdate, item.ID)
-		}
-	}
-
-	if len(itemIdsToUpdate) > 0 {
-		err := db.Table("items").Where("id IN ?", itemIdsToUpdate).UpdateColumn("status", status).Error
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return err
 }
 
 func (repository ReceiptRepository) CreateReceipt(
@@ -393,83 +278,13 @@ func (repository ReceiptRepository) CreateReceipt(
 		RanByUserId:          &createdByUserID,
 	}
 
-	// Extract linked items before creating receipt
-	type LinkedItemData struct {
-		ParentItemIndex int
-		LinkedItem      models.Item
-	}
-	var linkedItemsData []LinkedItemData
-
-	for i := range receipt.ReceiptItems {
-		if len(receipt.ReceiptItems[i].LinkedItems) > 0 {
-			for _, linkedItem := range receipt.ReceiptItems[i].LinkedItems {
-				linkedItemsData = append(linkedItemsData, LinkedItemData{
-					ParentItemIndex: i,
-					LinkedItem:      linkedItem,
-				})
-			}
-			// Clear linked items from the receipt item for initial creation
-			receipt.ReceiptItems[i].LinkedItems = []models.Item{}
-		}
-	}
-
 	err = db.Transaction(func(tx *gorm.DB) error {
 		repository.SetTransaction(tx)
 		notificationRepository.SetTransaction(tx)
 
-		// First nested transaction: Create receipt without linked items
-		err := tx.Transaction(func(tx2 *gorm.DB) error {
-			err := tx2.Model(models.Receipt{}).Select("*").Create(&receipt).Error
-			if err != nil {
-				return err
-			}
-			return nil
-		})
+		err := tx.Model(models.Receipt{}).Select("*").Create(&receipt).Error
 		if err != nil {
 			return err
-		}
-
-		// Second nested transaction: Handle linked items
-		if len(linkedItemsData) > 0 {
-			err = tx.Transaction(func(tx3 *gorm.DB) error {
-				for _, linkedData := range linkedItemsData {
-					// Set the receipt ID for the linked item
-					linkedData.LinkedItem.ReceiptId = receipt.ID
-
-					// Create the linked item
-					err := tx3.Model(models.Item{}).Create(&linkedData.LinkedItem).Error
-					if err != nil {
-						return err
-					}
-
-					// Handle linked item's categories
-					if len(linkedData.LinkedItem.Categories) > 0 {
-						err = tx3.Model(&linkedData.LinkedItem).Association("Categories").Replace(&linkedData.LinkedItem.Categories)
-						if err != nil {
-							return err
-						}
-					}
-
-					// Handle linked item's tags
-					if len(linkedData.LinkedItem.Tags) > 0 {
-						err = tx3.Model(&linkedData.LinkedItem).Association("Tags").Replace(&linkedData.LinkedItem.Tags)
-						if err != nil {
-							return err
-						}
-					}
-
-					// Update the parent item's LinkedItems association
-					parentItem := &receipt.ReceiptItems[linkedData.ParentItemIndex]
-					err = tx3.Model(parentItem).Association("LinkedItems").Append(&linkedData.LinkedItem)
-					if err != nil {
-						return err
-					}
-				}
-				return nil
-			})
-			if err != nil {
-				return err
-			}
 		}
 
 		var userIdsToOmit []interface{} = make([]interface{}, 1)
@@ -1236,30 +1051,6 @@ func (repository ReceiptRepository) GetReceiptForAuthorization(id string) (model
 	return receipt, nil
 }
 
-func (repository ReceiptRepository) FilterLinkedItemsFromReceiptItems(receipt *models.Receipt) {
-	if len(receipt.ReceiptItems) == 0 {
-		return
-	}
-
-	// Collect all linked item IDs
-	linkedItemIds := make(map[uint]bool)
-	for _, item := range receipt.ReceiptItems {
-		for _, linkedItem := range item.LinkedItems {
-			linkedItemIds[linkedItem.ID] = true
-		}
-	}
-
-	// Filter out linked items from ReceiptItems
-	var filteredItems []models.Item
-	for _, item := range receipt.ReceiptItems {
-		if !linkedItemIds[item.ID] {
-			filteredItems = append(filteredItems, item)
-		}
-	}
-
-	receipt.ReceiptItems = filteredItems
-}
-
 func (repository ReceiptRepository) GetFullyLoadedReceiptById(id string) (models.Receipt, error) {
 	db := repository.GetDB()
 	var receipt models.Receipt
@@ -1274,8 +1065,6 @@ func (repository ReceiptRepository) GetFullyLoadedReceiptById(id string) (models
 	if err != nil {
 		return models.Receipt{}, err
 	}
-
-	repository.FilterLinkedItemsFromReceiptItems(&receipt)
 
 	return receipt, nil
 }
@@ -1328,27 +1117,14 @@ func (repository ReceiptRepository) SearchReceiptsByGroupIds(groupIds []uint, na
 func (repository ReceiptRepository) GetReceiptsByIds(ids []string, associations []string) ([]models.Receipt, error) {
 	query := repository.GetDB().Model(models.Receipt{}).Where("id IN ?", ids)
 
-	hasLinkedItems := false
-	if associations != nil {
-		for _, association := range associations {
-			query = query.Preload(association)
-			if association == "ReceiptItems.LinkedItems" {
-				hasLinkedItems = true
-			}
-		}
+	for _, association := range associations {
+		query = query.Preload(association)
 	}
 
 	var receipts []models.Receipt
 	err := query.Find(&receipts).Error
 	if err != nil {
 		return nil, err
-	}
-
-	// Filter linked items if they were loaded
-	if hasLinkedItems {
-		for i := range receipts {
-			repository.FilterLinkedItemsFromReceiptItems(&receipts[i])
-		}
 	}
 
 	return receipts, nil

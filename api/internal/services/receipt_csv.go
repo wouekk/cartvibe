@@ -29,8 +29,6 @@ func NewReceiptCsvService() ReceiptCsvService {
 func (service *ReceiptCsvService) BuildReceiptCsv(receipts []models.Receipt) (structs.ReceiptCsvResult, error) {
 	csvResult := structs.ReceiptCsvResult{}
 
-	items := make([]models.Item, 0)
-
 	headers := []string{
 		"Id",
 		"Added At",
@@ -56,9 +54,6 @@ func (service *ReceiptCsvService) BuildReceiptCsv(receipts []models.Receipt) (st
 			resolvedDateString = receipt.ResolvedDate.In(location).Format(dateFormat)
 		}
 
-		for _, item := range receipt.ReceiptItems {
-			items = append(items, item)
-		}
 		newRow := []string{
 			utils.UintToString(receipt.ID),
 			receipt.CreatedAt.In(location).Format(dateFormat),
@@ -80,53 +75,7 @@ func (service *ReceiptCsvService) BuildReceiptCsv(receipts []models.Receipt) (st
 	}
 	csvResult.ReceiptCsvBytes = buffer.Bytes()
 
-	csvResult.ReceiptItemCsvBytes, err = service.BuildItemCsv(items)
-	if err != nil {
-		return structs.ReceiptCsvResult{}, err
-	}
-
 	return csvResult, nil
-}
-
-func (service *ReceiptCsvService) BuildItemCsv(items []models.Item) ([]byte, error) {
-	headers := []string{
-		"Id",
-		"Receipt Id",
-		"Receipt Name",
-		"Receipt Date",
-		"Name",
-		"Charged to User",
-		"Amount",
-		"Status",
-		"Categories",
-		"Tags",
-	}
-	rowData := make([][]string, 0, len(items))
-	dateFormat := "2006-01-02"
-
-	for _, item := range items {
-		newRow := []string{
-			utils.UintToString(item.ID),
-			utils.UintToString(item.ReceiptId),
-			render.SanitizeCSVField(item.Receipt.Name),
-			item.Receipt.Date.UTC().Format(dateFormat),
-			render.SanitizeCSVField(item.Name),
-			render.SanitizeCSVField(item.ChargedToUser.DisplayName),
-			item.Amount.String(),
-			string(item.Status),
-			render.SanitizeCSVField(service.BuildCategoryString(item.Categories)),
-			render.SanitizeCSVField(service.BuildTagString(item.Tags)),
-		}
-		rowData = append(rowData, newRow)
-	}
-
-	csvService := NewCsvService()
-	buffer, err := csvService.BuildCsv(headers, rowData)
-	if err != nil {
-		return nil, err
-	}
-
-	return buffer.Bytes(), nil
 }
 
 func (service *ReceiptCsvService) BuildCategoryString(categories []models.Category) string {
@@ -155,8 +104,8 @@ func (service *ReceiptCsvService) GetZippedCsvFiles(receipts []models.Receipt) (
 
 	fileRepository := repositories.NewFileRepository(nil)
 	zip, err := fileRepository.ZipFiles(
-		[]string{"receipts.csv", "items.csv"},
-		[][]byte{csvResult.ReceiptCsvBytes, csvResult.ReceiptItemCsvBytes},
+		[]string{"receipts.csv"},
+		[][]byte{csvResult.ReceiptCsvBytes},
 	)
 	if err != nil {
 		return nil, err

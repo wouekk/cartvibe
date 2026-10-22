@@ -224,39 +224,6 @@ func TestValidateCategoryTagSelection(t *testing.T) {
 	}
 }
 
-func TestFilterReceiptStripsItemCategories(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
-	clearRolePermissionCacheAll()
-
-	cat1 := makeCategory(t, "Groceries")
-	cat2 := makeCategory(t, "Utilities")
-	userId, groupId, _ := seedMemberWithGroupRoleGrants(t, "u-item-strip", []uint{cat1}, nil)
-
-	receipts := []models.Receipt{{
-		GroupId: groupId,
-		ReceiptItems: []models.Item{{
-			Categories: []models.Category{categoryWithId(cat1), categoryWithId(cat2)},
-			LinkedItems: []models.Item{{
-				Categories: []models.Category{categoryWithId(cat1), categoryWithId(cat2)},
-			}},
-		}},
-	}}
-
-	service := NewPermissionService(nil)
-	if err := service.FilterReceiptCategoriesTags(userId, receipts); err != nil {
-		t.Fatalf("FilterReceiptCategoriesTags: %v", err)
-	}
-
-	item := receipts[0].ReceiptItems[0]
-	if len(item.Categories) != 1 || item.Categories[0].ID != cat1 {
-		t.Errorf("expected item categories stripped to cat1, got %v", item.Categories)
-	}
-	if len(item.LinkedItems[0].Categories) != 1 || item.LinkedItems[0].Categories[0].ID != cat1 {
-		t.Errorf("expected linked-item categories stripped to cat1, got %v", item.LinkedItems[0].Categories)
-	}
-}
-
 func TestMergeHiddenReceiptCategoriesTags(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	clearGroupRoleGrantCacheAll()

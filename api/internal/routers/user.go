@@ -20,7 +20,6 @@ func BuildUserRouter() *chi.Mux {
 	userRouter.With(middleware.UnifiedAuthMiddleware, middleware.SetResetPasswordData).Post("/{id}/convertDummyUserToNormalUser", handlers.ConvertDummyUserToNormalUser)
 	userRouter.With(middleware.UnifiedAuthMiddleware).Delete("/{id}", handlers.DeleteUser)
 	userRouter.With(middleware.UnifiedAuthMiddleware).Delete("/bulk", handlers.BulkDeleteUsers)
-	userRouter.With(middleware.UnifiedAuthMiddleware).Get("/amountOwedForUser", handlers.GetAmountOwedForUser)
 	userRouter.With(middleware.UnifiedAuthMiddleware).Get("/getUserClaims", handlers.GetClaimsForLoggedInUser)
 	userRouter.With(middleware.UnifiedAuthMiddleware).Get("/appData", handlers.GetAppData)
 	userRouter.With(middleware.UnifiedAuthMiddleware, middleware.SetGeneralBodyData("deleteAccountCommand", commands.DeleteAccountCommand{})).Post("/deleteAccount", handlers.DeleteAccount)

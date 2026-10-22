@@ -110,33 +110,15 @@ func TestMemberIsolationCreateDeniedForNonVisiblePaidBy(t *testing.T) {
 	}
 }
 
-func TestMemberIsolationCreateDeniedForNonVisibleChargedTo(t *testing.T) {
-	defer repositories.TruncateTestDb()
-
-	fx := seedIsolatedReceiptGroupHandler(t, true)
-
-	// Payer is A (visible), but an item charges the non-visible member B.
-	body := fmt.Sprintf(
-		`{"name":"R","amount":"5","date":"2024-01-01T00:00:00Z","groupId":%d,"paidByUserId":%d,"status":"OPEN","receiptItems":[{"name":"I","amount":"5","status":"OPEN","chargedToUserId":%d}]}`,
-		fx.groupId, fx.memberAId, fx.memberBId,
-	)
-	w, r := createReceiptRequest(fx.memberAId, body)
-	CreateReceipt(w, r)
-
-	if w.Result().StatusCode != 403 {
-		utils.PrintTestError(t, w.Result().StatusCode, 403)
-	}
-}
-
 func TestMemberIsolationCreateAllowedForVisibleUsers(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
 	fx := seedIsolatedReceiptGroupHandler(t, true)
 
-	// Payer and charged-to are both A (self, always visible).
+	// The payer is A (self, always visible).
 	body := fmt.Sprintf(
-		`{"name":"R","amount":"5","date":"2024-01-01T00:00:00Z","groupId":%d,"paidByUserId":%d,"status":"OPEN","receiptItems":[{"name":"I","amount":"5","status":"OPEN","chargedToUserId":%d}]}`,
-		fx.groupId, fx.memberAId, fx.memberAId,
+		`{"name":"R","amount":"5","date":"2024-01-01T00:00:00Z","groupId":%d,"paidByUserId":%d,"status":"OPEN"}`,
+		fx.groupId, fx.memberAId,
 	)
 	w, r := createReceiptRequest(fx.memberAId, body)
 	CreateReceipt(w, r)

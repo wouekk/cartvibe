@@ -127,7 +127,6 @@ func MakeMigrations() error {
 		&models.AppRolePermission{},
 		&models.User{},
 		&models.Receipt{},
-		&models.Item{},
 		&models.FileData{},
 		&models.Tag{},
 		&models.Category{},

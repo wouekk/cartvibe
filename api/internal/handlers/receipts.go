@@ -652,17 +652,6 @@ func UpdateReceipt(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			// An isolated member may not silently drop a stored charge to a member
-			// they cannot see — the wholesale item replace would corrupt the split.
-			allowed, denyMessage, err = enforceReceiptChargedToPreservation(token.UserId, currentReceipt)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-			if !allowed {
-				utils.WriteCustomErrorResponse(w, denyMessage, http.StatusForbidden)
-				return 0, nil
-			}
-
 			// In edit mode images and comments are added and removed through their
 			// own endpoints (which refuse to remove the last required one), so the
 			// update is judged on what the receipt already STORES, against the group

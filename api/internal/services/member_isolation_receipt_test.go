@@ -235,76 +235,6 @@ func TestMemberIsolation_Mask_CreatedByUnchangedForVisible(t *testing.T) {
 	}
 }
 
-func TestMemberIsolation_Mask_ItemChargedToNonVisibleMasked(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	resetIsolationCaches()
-
-	fx := seedIsolatedReceiptGroup(t)
-	service := NewPermissionService(nil)
-
-	bId := fx.memberBId
-	aId := fx.memberAId
-	chargedUser := models.User{Username: "charged-b"}
-	chargedUser.ID = bId
-
-	receipt := models.Receipt{
-		GroupId:      fx.groupId,
-		PaidByUserID: aId,
-		ReceiptItems: []models.Item{
-			{
-				ChargedToUserId: &bId,
-				ChargedToUser:   chargedUser,
-				LinkedItems:     []models.Item{{ChargedToUserId: &bId}},
-			},
-			{ChargedToUserId: &aId}, // charged to self — stays visible
-		},
-	}
-
-	if err := service.MaskReceiptForMemberVisibility(aId, &receipt); err != nil {
-		t.Fatalf("mask: %v", err)
-	}
-
-	if receipt.ReceiptItems[0].ChargedToUserId != nil {
-		t.Errorf("expected item charged to non-visible B masked, got %v", *receipt.ReceiptItems[0].ChargedToUserId)
-	}
-	if receipt.ReceiptItems[0].ChargedToUser.ID != 0 {
-		t.Errorf("expected preloaded ChargedToUser nulled, got id %d", receipt.ReceiptItems[0].ChargedToUser.ID)
-	}
-	if receipt.ReceiptItems[0].LinkedItems[0].ChargedToUserId != nil {
-		t.Errorf("expected linked item charged to B masked, got %v", *receipt.ReceiptItems[0].LinkedItems[0].ChargedToUserId)
-	}
-	if receipt.ReceiptItems[1].ChargedToUserId == nil || *receipt.ReceiptItems[1].ChargedToUserId != aId {
-		t.Errorf("expected item charged to self (visible) preserved, got %v", receipt.ReceiptItems[1].ChargedToUserId)
-	}
-}
-
-func TestMemberIsolation_Mask_NoopForUnrestrictedViewer(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	resetIsolationCaches()
-
-	fx := seedIsolatedReceiptGroup(t)
-	service := NewPermissionService(nil)
-
-	bId := fx.memberBId
-	receipt := models.Receipt{
-		BaseModel:    models.BaseModel{CreatedBy: &bId, CreatedByString: "Member B"},
-		GroupId:      fx.groupId,
-		PaidByUserID: fx.memberBId,
-		ReceiptItems: []models.Item{{ChargedToUserId: &bId}},
-	}
-
-	// The supervisor is unrestricted, so nothing is masked.
-	if err := service.MaskReceiptForMemberVisibility(fx.supervisorId, &receipt); err != nil {
-		t.Fatalf("mask: %v", err)
-	}
-	if receipt.CreatedBy == nil || *receipt.CreatedBy != bId {
-		t.Errorf("expected createdBy unchanged for unrestricted viewer")
-	}
-	if receipt.ReceiptItems[0].ChargedToUserId == nil || *receipt.ReceiptItems[0].ChargedToUserId != bId {
-		t.Errorf("expected chargedTo unchanged for unrestricted viewer")
-	}
-}
-
 // --- Piece 3: comment author drop (surface D) ---
 
 func TestMemberIsolation_DropCommentAuthoredByNonVisible(t *testing.T) {
@@ -364,6 +294,8 @@ func TestMemberIsolation_DropComment_NoopForUnrestrictedViewer(t *testing.T) {
 
 // --- Piece 4: write-side guard (task 8) ---
 
+// --- Backward compatibility (non-isolated / unrestricted viewers) ---
+
 func TestMemberIsolation_ValidateReceiptUserSelection(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	resetIsolationCaches()
@@ -375,19 +307,17 @@ func TestMemberIsolation_ValidateReceiptUserSelection(t *testing.T) {
 		name        string
 		viewer      uint
 		paidBy      uint
-		chargedTo   []uint
 		expectAllow bool
 	}{
-		{"A pays with non-visible B", fx.memberAId, fx.memberBId, nil, false},
-		{"A charges item to non-visible B", fx.memberAId, fx.memberAId, []uint{fx.memberBId}, false},
-		{"A pays self and charges self", fx.memberAId, fx.memberAId, []uint{fx.memberAId}, true},
-		{"A pays visible supervisor", fx.memberAId, fx.supervisorId, nil, true},
-		{"supervisor is unrestricted", fx.supervisorId, fx.memberBId, []uint{fx.memberAId}, true},
+		{"A pays with non-visible B", fx.memberAId, fx.memberBId, false},
+		{"A pays self", fx.memberAId, fx.memberAId, true},
+		{"A pays visible supervisor", fx.memberAId, fx.supervisorId, true},
+		{"supervisor is unrestricted", fx.supervisorId, fx.memberBId, true},
 	}
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			allowed, err := service.ValidateReceiptUserSelection(c.viewer, fx.groupId, c.paidBy, c.chargedTo)
+			allowed, err := service.ValidateReceiptUserSelection(c.viewer, fx.groupId, c.paidBy)
 			if err != nil {
 				t.Fatalf("ValidateReceiptUserSelection: %v", err)
 			}
@@ -395,76 +325,5 @@ func TestMemberIsolation_ValidateReceiptUserSelection(t *testing.T) {
 				t.Errorf("allowed = %v, want %v", allowed, c.expectAllow)
 			}
 		})
-	}
-}
-
-// --- Backward compatibility (non-isolated / unrestricted viewers) ---
-
-func TestMemberIsolation_BackwardCompat_NonIsolatedMemberUnaffected(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	resetIsolationCaches()
-
-	db := repositories.GetDB()
-	roleRepository := repositories.NewRoleRepository(nil)
-
-	group := models.Group{Name: "non-iso-group", IsolateMembers: false}
-	if err := db.Create(&group).Error; err != nil {
-		t.Fatalf("seed group: %v", err)
-	}
-	role, err := roleRepository.CreateGroupRole(
-		"Plain Member", "", []string{permissions.GroupReceiptsRead}, nil, nil, nil, false, false,
-	)
-	if err != nil {
-		t.Fatalf("seed role: %v", err)
-	}
-	viewer := makeUser(t, "non-iso-viewer")
-	peer := makeUser(t, "non-iso-peer")
-	seedIsoMember(t, group.ID, viewer, &role.ID)
-	seedIsoMember(t, group.ID, peer, &role.ID)
-
-	service := NewPermissionService(nil)
-
-	// Paid-by: a receipt paid by a peer is still visible (no filtering).
-	receipts := []models.Receipt{
-		{GroupId: group.ID, PaidByUserID: peer},
-		{GroupId: group.ID, PaidByUserID: viewer},
-	}
-	filtered, err := service.FilterReceiptsByPaidBy(viewer, receipts)
-	if err != nil {
-		t.Fatalf("FilterReceiptsByPaidBy: %v", err)
-	}
-	if len(filtered) != 2 {
-		t.Errorf("expected non-isolated member to see all receipts, got %d", len(filtered))
-	}
-
-	// Masking: a peer's created-by / charged-to references are untouched.
-	peerId := peer
-	receipt := models.Receipt{
-		BaseModel:    models.BaseModel{CreatedBy: &peerId, CreatedByString: "Peer"},
-		GroupId:      group.ID,
-		PaidByUserID: viewer,
-		ReceiptItems: []models.Item{{ChargedToUserId: &peerId}},
-		Comments:     []models.Comment{{Comment: "peer comment", UserId: &peerId}},
-	}
-	if err := service.MaskReceiptForMemberVisibility(viewer, &receipt); err != nil {
-		t.Fatalf("mask: %v", err)
-	}
-	if receipt.CreatedBy == nil || *receipt.CreatedBy != peerId {
-		t.Errorf("expected createdBy untouched for non-isolated viewer")
-	}
-	if receipt.ReceiptItems[0].ChargedToUserId == nil {
-		t.Errorf("expected chargedTo untouched for non-isolated viewer")
-	}
-	if len(receipt.Comments) != 1 {
-		t.Errorf("expected peer comment kept for non-isolated viewer")
-	}
-
-	// Write guard: the viewer may reference the peer.
-	allowed, err := service.ValidateReceiptUserSelection(viewer, group.ID, peer, []uint{peer})
-	if err != nil {
-		t.Fatalf("ValidateReceiptUserSelection: %v", err)
-	}
-	if !allowed {
-		t.Errorf("expected non-isolated viewer to freely reference a peer")
 	}
 }
