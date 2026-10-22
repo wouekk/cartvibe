@@ -96,7 +96,7 @@ interface NutritionRow {
       }
 
       @if (recent().length) {
-        <div class="rw-scroll-x -mx-1 flex gap-2 px-1" role="list" [attr.aria-label]="'Recent scans' | t" data-testid="product-check-recent">
+        <div class="cv-scroll-x -mx-1 flex gap-2 px-1" role="list" [attr.aria-label]="'Recent scans' | t" data-testid="product-check-recent">
           @for (item of recent(); track item.code) {
             <button
               type="button"
@@ -144,9 +144,9 @@ interface NutritionRow {
         }
         @case ('product') {
           @if (product(); as current) {
-            <div class="rw-card" data-testid="product-check-product">
-              <div class="rw-card__body">
-                <div class="rw-section">
+            <div class="cv-card" data-testid="product-check-product">
+              <div class="cv-card__body">
+                <div class="cv-section">
                   <div class="flex items-start gap-3">
                     @if (current.imageUrl) {
                       <img [src]="current.imageUrl" alt="" loading="lazy" referrerpolicy="no-referrer" class="size-16 shrink-0 rounded-lg border border-border bg-muted object-contain" />
@@ -189,12 +189,12 @@ interface NutritionRow {
                   <p class="m-0 text-xs text-muted-foreground">{{ 'A general guide from Nutri-Score, NOVA and the additives, not medical advice.' | t }}</p>
                 </div>
 
-                <div class="rw-section">
-                  <div class="rw-section__head">
-                    <h3 class="rw-section__title">{{ 'Additives' | t }}</h3>
+                <div class="cv-section">
+                  <div class="cv-section__head">
+                    <h3 class="cv-section__title">{{ 'Additives' | t }}</h3>
                   </div>
                   @if (additives().length) {
-                    <ul class="rw-list" data-testid="product-check-additives">
+                    <ul class="cv-list" data-testid="product-check-additives">
                       @for (additive of additives(); track additive.code) {
                         <li [attr.data-testid]="'product-check-additive-' + additive.code">
                           <span class="min-w-0 text-sm">
@@ -212,12 +212,12 @@ interface NutritionRow {
                   }
                 </div>
 
-                <div class="rw-section">
-                  <div class="rw-section__head">
-                    <h3 class="rw-section__title">{{ 'Nutrition per 100 g' | t }}</h3>
+                <div class="cv-section">
+                  <div class="cv-section__head">
+                    <h3 class="cv-section__title">{{ 'Nutrition per 100 g' | t }}</h3>
                   </div>
-                  <div class="rw-inset">
-                    <ul class="rw-list" data-testid="product-check-nutrition">
+                  <div class="cv-inset">
+                    <ul class="cv-list" data-testid="product-check-nutrition">
                       @for (row of nutrition(); track row.key) {
                         <li [attr.data-testid]="'product-check-nutrient-' + row.key">
                           <span class="inline-flex items-center gap-2 text-sm">

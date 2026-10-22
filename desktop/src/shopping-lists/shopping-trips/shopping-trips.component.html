@@ -1,6 +1,6 @@
 @if (canSee()) {
   <section class="trips flex flex-col gap-3" data-testid="shopping-trips" aria-labelledby="shopping-trips-title">
-    <h3 id="shopping-trips-title" class="rw-section__title">{{ 'Receipts from this list' | t }}</h3>
+    <h3 id="shopping-trips-title" class="cv-section__title">{{ 'Receipts from this list' | t }}</h3>
     @if (canScan() || canUpdate()) {
       <div class="flex flex-wrap items-center gap-2 [&_button]:h-9">
         @if (canScan()) {

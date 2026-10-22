@@ -13,7 +13,7 @@
       }
       <ng-template [ngTemplateOutlet]="formTemplate()"></ng-template>
       @if (!(formConfig().mode | inputReadonly)) {
-        <div sectionFooter class="rw-card__footer" data-testid="form-button-bar">
+        <div sectionFooter class="cv-card__footer" data-testid="form-button-bar">
           <app-submit-button [disabled]="submitButtonDisabled()" [onlyIcon]="false"></app-submit-button>
         </div>
       }

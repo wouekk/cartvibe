@@ -11,6 +11,6 @@ describe("SettingsEntityListComponent", () => {
     const fixture = TestBed.createComponent(SettingsEntityListComponent);
     await fixture.whenStable();
 
-    expect(fixture.nativeElement.querySelector(".rw-card")).not.toBeNull();
+    expect(fixture.nativeElement.querySelector(".cv-card")).not.toBeNull();
   });
 });

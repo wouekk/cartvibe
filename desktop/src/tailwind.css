@@ -188,45 +188,45 @@ app-money,
 }
 
 /* Cards and tiles (Dashboard and elsewhere): the shadcn card, rising in one after the other. */
-.rw-tile {
+.cv-tile {
   @apply flex flex-col gap-1.5 rounded-xl bg-card p-5 text-card-foreground no-underline shadow-xs ring-1 ring-foreground/10 animate-in fade-in-0 slide-in-from-bottom-2 duration-500 fill-mode-both;
 }
 
-.rw-tile-link {
+.cv-tile-link {
   @apply transition-shadow duration-150 hover:shadow-md hover:ring-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary;
 }
 
-.rw-panel {
+.cv-panel {
   @apply flex min-w-0 flex-col gap-4 rounded-xl bg-card px-6 py-5 text-card-foreground shadow-xs ring-1 ring-foreground/10 animate-in fade-in-0 slide-in-from-bottom-2 duration-500 fill-mode-both;
 }
 
-.rw-panel-header {
+.cv-panel-header {
   @apply flex items-center justify-between gap-2 [&_h2]:m-0 [&_h2]:text-base [&_h2]:font-bold;
 }
 
-.rw-panel-footer {
+.cv-panel-footer {
   @apply mt-auto flex items-center justify-between gap-2 border-t border-border pt-4 text-sm text-muted-foreground;
 }
 
-.rw-link {
+.cv-link {
   @apply inline-flex items-center gap-1 font-medium text-primary no-underline [&_app-icon]:text-[1.125rem] [&_app-icon]:transition-transform hover:[&_app-icon]:translate-x-0.5;
 }
 
-.rw-pill {
+.cv-pill {
   @apply inline-flex items-center gap-1 rounded-full border border-border py-0.5 pr-2.5 pl-1.5 text-xs font-medium text-muted-foreground [&_app-icon]:text-sm;
 }
 
-.rw-pill-up {
+.cv-pill-up {
   @apply border-warning-text/35 bg-warning-text/10 text-warning-text;
 }
 
-.rw-pill-down {
+.cv-pill-down {
   @apply border-success-text/35 bg-success-text/10 text-success-text;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rw-tile,
-  .rw-panel {
+  .cv-tile,
+  .cv-panel {
     animation: none;
   }
 }
@@ -275,22 +275,22 @@ select {
 /* Shared building blocks of the fintech look (docs/ui-issues.md): in the components layer, so a utility on the element wins. */
 @layer components {
   /* Horizontal scroll without the vertical scrollbar an overflow-x-auto strip grows from a 1px overflow. */
-  .rw-scroll-x {
+  .cv-scroll-x {
     @apply overflow-x-auto overflow-y-hidden;
     scrollbar-width: none;
   }
-  .rw-scroll-x::-webkit-scrollbar {
+  .cv-scroll-x::-webkit-scrollbar {
     display: none;
   }
 
   /* A boxed field with its label inside (From / To): the same height and hairline as the strip beside it. */
-  .rw-field-box {
+  .cv-field-box {
     @apply relative inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-muted/40 pr-1 pl-3 text-xs text-muted-foreground shadow-xs transition-[color,box-shadow,border-color] focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/40;
   }
-  .rw-field-box__label {
+  .cv-field-box__label {
     @apply shrink-0 font-medium;
   }
-  .rw-field-box__input {
+  .cv-field-box__input {
     height: 100% !important;
     width: 6rem !important;
     min-width: 0;
@@ -301,85 +301,85 @@ select {
     outline: none !important;
     @apply text-sm text-foreground;
   }
-  .rw-field-box__button {
+  .cv-field-box__button {
     @apply inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground;
   }
 
   /* A section inside a settings card: an inset surface step, a hairline, an overline title and a footer for actions. */
-  .rw-section {
+  .cv-section {
     @apply flex flex-col gap-3 rounded-xl border border-border/70 bg-muted/30 p-4;
   }
-  .rw-section__head {
+  .cv-section__head {
     @apply flex flex-col gap-0.5;
   }
-  .rw-section__title {
+  .cv-section__title {
     @apply m-0 text-[0.6875rem] font-semibold tracking-[0.08em] text-muted-foreground uppercase;
   }
-  .rw-section__desc {
+  .cv-section__desc {
     @apply m-0 text-[13px] leading-relaxed text-muted-foreground;
   }
-  .rw-section__footer {
+  .cv-section__footer {
     @apply mt-1 flex flex-wrap items-center gap-2 border-t border-border/60 pt-3;
   }
   /* The settings card: a surface with a hairline, no shadow. Topics inside it are flat rows split by hairlines (an
-     `rw-section` inside `rw-card` loses its own box), the footer holds status text and actions. */
-  .rw-card {
+     `cv-section` inside `cv-card` loses its own box), the footer holds status text and actions. */
+  .cv-card {
     @apply flex flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground;
   }
-  .rw-card__head {
+  .cv-card__head {
     @apply flex flex-wrap items-start justify-between gap-3 px-6 pt-5 pb-1;
   }
-  .rw-card__title {
+  .cv-card__title {
     @apply m-0 text-[17px] font-semibold;
   }
-  .rw-card__desc {
+  .cv-card__desc {
     @apply m-0 mt-0.5 text-[13px] leading-relaxed text-muted-foreground;
   }
-  .rw-card__body {
+  .cv-card__body {
     @apply flex min-w-0 flex-col;
   }
-  .rw-card__footer {
+  .cv-card__footer {
     @apply flex flex-wrap items-center justify-end gap-3 border-t border-border bg-muted/30 px-6 py-3;
   }
-  .rw-card__status {
+  .cv-card__status {
     @apply me-auto text-[13px] text-muted-foreground;
   }
-  .rw-card--destructive {
+  .cv-card--destructive {
     @apply border-destructive/40;
   }
   /* The action row of a destructive card (Danger Zone) is part of that card: its divider takes the card's own red
      hairline and it has no grey band, which only belongs to the Save row of a normal card. */
-  .rw-card--destructive .rw-card__footer {
+  .cv-card--destructive .cv-card__footer {
     @apply border-destructive/40 bg-transparent;
   }
-  .rw-card .rw-section {
+  .cv-card .cv-section {
     @apply mb-0! rounded-none border-0 bg-transparent px-6 py-5;
   }
-  .rw-card .rw-card__body > * + * {
+  .cv-card .cv-card__body > * + * {
     @apply border-t border-border;
   }
-  .rw-card__head + .rw-card__body > .rw-section:first-child {
+  .cv-card__head + .cv-card__body > .cv-section:first-child {
     @apply pt-3;
   }
-  .rw-card .rw-section__footer {
+  .cv-card .cv-section__footer {
     @apply border-t-0 pt-0;
   }
   /* A table inside a card is part of the card: no second border, radius or shadow of its own. */
-  .rw-card app-table {
+  .cv-card app-table {
     @apply rounded-none! border-0! shadow-none!;
   }
   /* The table's first and last cells line up with the card's own 24px padding (title, description, rows). */
-  .rw-card app-table :is(th, td):first-child {
+  .cv-card app-table :is(th, td):first-child {
     @apply ps-6!;
   }
-  .rw-card app-table :is(th, td):last-child {
+  .cv-card app-table :is(th, td):last-child {
     @apply pe-6!;
   }
   /* A read-only block that keeps the muted step (previews). */
-  .rw-inset {
+  .cv-inset {
     @apply rounded-lg border border-border/70 bg-muted/30 p-4;
   }
-  .rw-list {
+  .cv-list {
     @apply m-0 list-none p-0 tabular-nums [&>li]:flex [&>li]:items-center [&>li]:justify-between [&>li]:gap-3 [&>li]:py-2 [&>li:not(:last-child)]:border-b [&>li:not(:last-child)]:border-border/50;
   }
 }

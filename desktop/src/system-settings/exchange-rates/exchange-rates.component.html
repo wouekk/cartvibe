@@ -1,8 +1,8 @@
-<div class="rw-section" data-testid="exchange-rates">
-  <div class="rw-section__head">
-    <h3 class="rw-section__title">{{ 'Exchange rates' | t }}</h3>
+<div class="cv-section" data-testid="exchange-rates">
+  <div class="cv-section__head">
+    <h3 class="cv-section__title">{{ 'Exchange rates' | t }}</h3>
   </div>
-  <p class="rw-section__desc">
+  <p class="cv-section__desc">
     {{ 'A receipt in another currency is converted to the main currency when it is added, at the rate you type here. A currency without a rate keeps the receipt as read and flags it until you add one. Changing a rate later does not change receipts that were already converted.' | t }}
   </p>
 
@@ -48,7 +48,7 @@
       @if (dirty()) {
         <p class="m-0 text-xs text-warning-text" data-testid="exchange-rates-unsaved">{{ 'Rates changed: press Save changes to keep them.' | t }}</p>
       }
-      <div class="rw-section__footer">
+      <div class="cv-section__footer">
         <input
           type="text"
           class="h-9 w-36 rounded-md border border-border bg-background px-2.5 text-sm uppercase shadow-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40"

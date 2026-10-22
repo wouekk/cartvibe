@@ -119,7 +119,7 @@ describe("ImageCanvasComponent", () => {
   });
 
   it("positions the handle frame over the image", () => {
-    const frame = host.querySelector(".rw-image-canvas__frame") as HTMLElement;
+    const frame = host.querySelector(".cv-image-canvas__frame") as HTMLElement;
 
     expect(frame.style.width).toEqual(`${NATURAL_WIDTH * FIT_SCALE}px`);
     expect(frame.style.height).toEqual(`${NATURAL_HEIGHT * FIT_SCALE}px`);
@@ -219,7 +219,7 @@ describe("ImageCanvasComponent", () => {
     await drag(handle("se"), [0, 0], [600, 10]);
 
     const after = viewport();
-    const frame = host.querySelector(".rw-image-canvas__frame") as HTMLElement;
+    const frame = host.querySelector(".cv-image-canvas__frame") as HTMLElement;
     const ratio = Number.parseFloat(frame.style.width) / Number.parseFloat(frame.style.height);
 
     expect(after.scale).not.toEqual(before.scale);

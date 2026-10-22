@@ -144,7 +144,7 @@ hr {
 }
 
 // A required field left empty (see utils/shake.ts): one clean shake and a red outline for a moment.
-@keyframes rw-shake {
+@keyframes cv-shake {
   10%,
   90% {
     transform: translateX(-1px);
@@ -164,20 +164,20 @@ hr {
   }
 }
 
-.rw-shake {
-  animation: rw-shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+.cv-shake {
+  animation: cv-shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
-.rw-field-error input,
-.rw-field-error textarea,
-.rw-field-error [data-slot=input-group] {
+.cv-field-error input,
+.cv-field-error textarea,
+.cv-field-error [data-slot=input-group] {
   border-color: var(--destructive) !important;
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--destructive) 25%, transparent);
   transition: box-shadow 0.2s ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rw-shake {
+  .cv-shake {
     animation: none;
   }
 }

@@ -30,7 +30,7 @@
   @if (isLoaded() && listCards().length > 0) {
     <!-- A swipeable row on a phone, a tidy grid from sm up. -->
     <div
-      class="rw-scroll-x -mx-2 mt-5 mb-6 flex snap-x gap-3 px-2 pb-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4"
+      class="cv-scroll-x -mx-2 mt-5 mb-6 flex snap-x gap-3 px-2 pb-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4"
       data-testid="shopping-list-cards"
     >
       @for (card of listCards(); track card.id) {
@@ -134,7 +134,7 @@
 
 <ng-template #pastListsPanel>
   <section class="rounded-xl border border-border/70 bg-card p-4 text-card-foreground" data-testid="shopping-list-past" aria-labelledby="shopping-list-past-title">
-    <h3 id="shopping-list-past-title" class="rw-section__title mb-2">{{ 'Past lists' | t }}</h3>
+    <h3 id="shopping-list-past-title" class="cv-section__title mb-2">{{ 'Past lists' | t }}</h3>
     <ul class="m-0 flex list-none flex-col gap-0.5 p-0">
       @for (past of pastLists(); track past.id) {
         <li>

@@ -3,7 +3,7 @@
 // white color. A component rule only overrides what it declares, so the rest
 // would leak - measured as a ~44% height change - and the app genuinely uses
 // Bootstrap's badge elsewhere (dashboard/pie-chart), so it cannot just be
-// dropped. `rw-` matches the existing `.rw-chip` / `.rw-card` convention.
+// dropped. `cv-` matches the existing `.cv-chip` / `.cv-card` convention.
 //
 // The badge is 9.5px/700, which is "small text" under WCAG, so every tone needs
 // 4.5:1 against the surface it is drawn on. Each is measured below.
@@ -22,7 +22,7 @@
   flex: none;
 }
 
-.rw-badge {
+.cv-badge {
   display: inline-block;
   vertical-align: middle;
   font-size: 9.5px;

@@ -1,6 +1,6 @@
-<div class="rw-carousel" data-testid="carousel">
+<div class="cv-carousel" data-testid="carousel">
   @for (preview of imagePreviews(); track $index; let i = $index) {
-    <div class="rw-carousel__slide" [class.rw-carousel__slide--hidden]="i !== currentlyShownImageIndex">
+    <div class="cv-carousel__slide" [class.cv-carousel__slide--hidden]="i !== currentlyShownImageIndex">
       <ng-template
         [ngTemplateOutlet]="buttonControls"
         [ngTemplateOutletContext]="{
@@ -23,7 +23,7 @@
   }
 
   @for (image of images(); track $index; let i = $index) {
-    <div class="rw-carousel__slide" [class.rw-carousel__slide--hidden]="imagePreviews().length + i !== currentlyShownImageIndex">
+    <div class="cv-carousel__slide" [class.cv-carousel__slide--hidden]="imagePreviews().length + i !== currentlyShownImageIndex">
       <ng-template
         [ngTemplateOutlet]="buttonControls"
         [ngTemplateOutletContext]="{
@@ -42,7 +42,7 @@
   @if (slideCount() > 1) {
     <button
       type="button"
-      class="rw-carousel__arrow rw-carousel__arrow--prev"
+      class="cv-carousel__arrow cv-carousel__arrow--prev"
       [attr.aria-label]="'Previous image' | t"
       data-testid="carousel-prev"
       (click)="previous()"
@@ -51,7 +51,7 @@
     </button>
     <button
       type="button"
-      class="rw-carousel__arrow rw-carousel__arrow--next"
+      class="cv-carousel__arrow cv-carousel__arrow--next"
       [attr.aria-label]="'Next image' | t"
       data-testid="carousel-next"
       (click)="next()"

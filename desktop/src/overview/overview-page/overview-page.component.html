@@ -56,7 +56,7 @@
   }
 
   <section class="grid grid-cols-[repeat(auto-fit,minmax(12.5rem,1fr))] gap-4 [&>:nth-child(2)]:[animation-delay:60ms] [&>:nth-child(3)]:[animation-delay:120ms] [&>:nth-child(4)]:[animation-delay:180ms] [&>:nth-child(5)]:[animation-delay:240ms]" [attr.aria-label]="'The period at a glance' | t">
-    <div class="rw-tile" data-testid="overview-tile-spent">
+    <div class="cv-tile" data-testid="overview-tile-spent">
       <div class="flex min-h-6 items-center justify-between gap-2">
         <span class="text-xs font-medium text-muted-foreground">{{ 'Spent' | t }}</span>
         @if (canEditGoal() && !editingGoal()) {
@@ -151,7 +151,7 @@
       }
     </div>
 
-    <a class="rw-tile rw-tile-link" data-testid="overview-tile-receipts" [routerLink]="['/receipts/group', groupId()]">
+    <a class="cv-tile cv-tile-link" data-testid="overview-tile-receipts" [routerLink]="['/receipts/group', groupId()]">
       <span class="text-xs font-medium text-muted-foreground">{{ 'Receipts' | t }}</span>
       <span class="text-3xl font-bold">{{ overview()?.receiptCount ?? "–" }}</span>
       @if ((overview()?.openReceiptCount ?? 0) > 0) {
@@ -161,7 +161,7 @@
       }
     </a>
 
-    <button type="button" class="rw-tile rw-tile-link w-full border-0 text-left font-[inherit]" data-testid="overview-tile-unhealthy" (click)="openProducts('UNHEALTHY')">
+    <button type="button" class="cv-tile cv-tile-link w-full border-0 text-left font-[inherit]" data-testid="overview-tile-unhealthy" (click)="openProducts('UNHEALTHY')">
       <span class="text-xs font-medium text-muted-foreground">{{ 'Unhealthy' | t }}</span>
       @if (overview()) {
         <span class="text-3xl font-bold" [class.text-warning-text]="unhealthyTotal() > 0">
@@ -180,7 +180,7 @@
       }
     </button>
 
-    <button type="button" class="rw-tile rw-tile-link w-full border-0 text-left font-[inherit]" data-testid="overview-tile-unplanned" (click)="openProducts('UNPLANNED')">
+    <button type="button" class="cv-tile cv-tile-link w-full border-0 text-left font-[inherit]" data-testid="overview-tile-unplanned" (click)="openProducts('UNPLANNED')">
       <span class="text-xs font-medium text-muted-foreground">{{ 'Not on the list' | t }}</span>
       @if (overview()) {
         <span class="text-3xl font-bold" [class.text-warning-text]="unplannedTotal() > 0">
@@ -197,7 +197,7 @@
     </button>
 
     @if (shoppingListGroupId(); as listGroupId) {
-      <a class="rw-tile rw-tile-link" data-testid="overview-tile-to-buy" [routerLink]="['/shopping-lists/group', listGroupId]">
+      <a class="cv-tile cv-tile-link" data-testid="overview-tile-to-buy" [routerLink]="['/shopping-lists/group', listGroupId]">
         <span class="text-xs font-medium text-muted-foreground">{{ 'To buy' | t }}</span>
         <span class="text-3xl font-bold">{{ itemsToBuy() }} <span class="text-lg font-semibold">{{ itemsToBuy() | plural: 'item' : 'items' }}</span></span>
         <span class="text-[0.8125rem] font-medium text-muted-foreground">{{ (listSummaries().length === 1 ? 'on {count} list' : 'on {count} lists') | t: { count: listSummaries().length } }}</span>
@@ -206,8 +206,8 @@
   </section>
 
   <div class="grid grid-cols-[repeat(auto-fit,minmax(min(23.75rem,100%),1fr))] gap-6 [&>:nth-child(2)]:[animation-delay:120ms]">
-    <section class="rw-panel" aria-labelledby="overview-categories-title">
-      <div class="rw-panel-header">
+    <section class="cv-panel" aria-labelledby="overview-categories-title">
+      <div class="cv-panel-header">
         <div>
           <h2 id="overview-categories-title">{{ 'Spending by category' | t }}</h2>
           <p class="mt-0.5 text-xs text-muted-foreground">{{ periodLabel() }}</p>
@@ -268,14 +268,14 @@
       } @else {
         <p class="m-0 py-6 text-center text-muted-foreground">{{ 'No spending in {period} yet.' | t: { period: periodLabel() } }}</p>
       }
-      <div class="rw-panel-footer">
+      <div class="cv-panel-footer">
         <span>{{ periodLabel() }}</span>
-        <a routerLink="/reports" class="rw-link">{{ 'Open reports' | t }} <app-icon name="arrow_right_alt"></app-icon></a>
+        <a routerLink="/reports" class="cv-link">{{ 'Open reports' | t }} <app-icon name="arrow_right_alt"></app-icon></a>
       </div>
     </section>
 
-    <section class="rw-panel" aria-labelledby="overview-trend-title">
-      <div class="rw-panel-header">
+    <section class="cv-panel" aria-labelledby="overview-trend-title">
+      <div class="cv-panel-header">
         <h2 id="overview-trend-title">{{ (isDailyTrend() ? 'Spending by day' : 'Spending by month') | t }}</h2>
         @if (chartBars().length > 0 && !rangeTooLongForChart()) {
           <span class="text-muted-foreground text-sm" data-testid="overview-trend-summary">{{ (isDailyTrend() ? 'Average {amount} a day' : 'Average {amount} a month') | t: { amount: (averageBar() | displayCurrency) } }}@if (goalMode()) { · {{ 'Goal {amount}' | t: { amount: (goal() | displayCurrency) } }}}</span>
@@ -285,7 +285,7 @@
         <div class="flex flex-wrap items-center justify-between gap-2">
           <span class="text-3xl font-bold tracking-tight">{{ overview()?.total ?? 0 | displayCurrency }}</span>
           @if (change(); as change) {
-            <span class="rw-pill" [class.rw-pill-up]="changeIsIncrease()" [class.rw-pill-down]="!changeIsIncrease()">
+            <span class="cv-pill" [class.cv-pill-up]="changeIsIncrease()" [class.cv-pill-down]="!changeIsIncrease()">
               <app-icon [name]="changeIsIncrease() ? 'arrow_upward' : 'arrow_downward'"></app-icon>{{ change }}
             </span>
           }
@@ -333,16 +333,16 @@
           </ul>
         }
       }
-      <div class="rw-panel-footer">
+      <div class="cv-panel-footer">
         <span>{{ periodLabel() }}</span>
-        <a routerLink="/reports" class="rw-link">{{ 'Open reports' | t }} <app-icon name="arrow_right_alt"></app-icon></a>
+        <a routerLink="/reports" class="cv-link">{{ 'Open reports' | t }} <app-icon name="arrow_right_alt"></app-icon></a>
       </div>
     </section>
   </div>
 
   <div class="grid grid-cols-[repeat(auto-fit,minmax(min(23.75rem,100%),1fr))] gap-6 [&>:nth-child(2)]:[animation-delay:120ms] !flex flex-wrap">
-    <section class="rw-panel flex-[2_1_35rem]" aria-labelledby="overview-receipts-title">
-      <div class="rw-panel-header">
+    <section class="cv-panel flex-[2_1_35rem]" aria-labelledby="overview-receipts-title">
+      <div class="cv-panel-header">
         <h2 id="overview-receipts-title">{{ 'Receipts in {period}' | t: { period: periodLabel() } }}</h2>
         <a [routerLink]="['/receipts/group', groupId()]">{{ 'All receipts' | t }}</a>
       </div>

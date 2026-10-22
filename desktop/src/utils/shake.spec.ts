@@ -16,14 +16,14 @@ describe("shakeInvalid", () => {
 
     shakeInvalid(host);
 
-    expect(host.classList.contains("rw-shake")).toBe(true);
-    expect(host.classList.contains("rw-field-error")).toBe(true);
+    expect(host.classList.contains("cv-shake")).toBe(true);
+    expect(host.classList.contains("cv-field-error")).toBe(true);
     expect(document.activeElement).toBe(host.querySelector("input"));
 
     jest.advanceTimersByTime(1700);
 
-    expect(host.classList.contains("rw-shake")).toBe(false);
-    expect(host.classList.contains("rw-field-error")).toBe(false);
+    expect(host.classList.contains("cv-shake")).toBe(false);
+    expect(host.classList.contains("cv-field-error")).toBe(false);
   });
 
   it("can shake again straight away, and does nothing for a missing element", () => {
@@ -31,7 +31,7 @@ describe("shakeInvalid", () => {
 
     shakeInvalid(host);
     shakeInvalid(host);
-    expect(host.classList.contains("rw-shake")).toBe(true);
+    expect(host.classList.contains("cv-shake")).toBe(true);
 
     expect(() => shakeInvalid(null)).not.toThrow();
     expect(() => shakeInvalid(undefined)).not.toThrow();

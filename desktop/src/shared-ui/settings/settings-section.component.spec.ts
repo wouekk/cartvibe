@@ -21,18 +21,18 @@ describe("SettingsSectionComponent", () => {
     await fixture.whenStable();
 
     const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector(".rw-card__title")?.textContent).toContain("Session");
-    expect(el.querySelector(".rw-card__desc")?.textContent).toContain("How long");
+    expect(el.querySelector(".cv-card__title")?.textContent).toContain("Session");
+    expect(el.querySelector(".cv-card__desc")?.textContent).toContain("How long");
   });
 
   it("omits the head without a title", async () => {
     await fixture.whenStable();
-    expect(fixture.nativeElement.querySelector(".rw-card__head")).toBeNull();
+    expect(fixture.nativeElement.querySelector(".cv-card__head")).toBeNull();
   });
 
   it("marks the destructive tone", async () => {
     fixture.componentRef.setInput("tone", "destructive");
     await fixture.whenStable();
-    expect(fixture.nativeElement.querySelector(".rw-card--destructive")).not.toBeNull();
+    expect(fixture.nativeElement.querySelector(".cv-card--destructive")).not.toBeNull();
   });
 });

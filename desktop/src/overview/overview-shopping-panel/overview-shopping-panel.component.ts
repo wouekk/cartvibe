@@ -46,7 +46,7 @@ export interface PendingUndo {
   standalone: true,
   imports: [AppIconComponent, ButtonModule, HlmButton, RouterLink, TranslatePipe],
   templateUrl: "./overview-shopping-panel.component.html",
-  host: { class: "rw-panel", "aria-labelledby": "overview-lists-title" },
+  host: { class: "cv-panel", "aria-labelledby": "overview-lists-title" },
 })
 export class OverviewShoppingPanelComponent {
   /** The open lists of the group the panel describes. */

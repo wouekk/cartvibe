@@ -14,10 +14,10 @@ import { AppIconComponent } from "../../shared-ui/icon/icon.component";
   standalone: true,
   imports: [AppIconComponent, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: "rw-section", "data-testid": "language-row" },
+  host: { class: "cv-section", "data-testid": "language-row" },
   template: `
-    <div class="rw-section__head">
-      <h3 class="rw-section__title">{{ 'Language' | t }}</h3>
+    <div class="cv-section__head">
+      <h3 class="cv-section__title">{{ 'Language' | t }}</h3>
     </div>
     <ul class="m-0 -mx-3 flex list-none flex-col gap-1 p-0" role="radiogroup" [attr.aria-label]="'Language' | t">
       @for (option of translation.languages(); track option.code) {

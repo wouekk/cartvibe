@@ -15,11 +15,11 @@
   cursor: grab;
 }
 
-:host(.rw-image-canvas--pan) {
+:host(.cv-image-canvas--pan) {
   cursor: grabbing;
 }
 
-.rw-image-canvas__image {
+.cv-image-canvas__image {
   position: absolute;
   top: 0;
   left: 0;
@@ -30,7 +30,7 @@
   transform-origin: 0 0;
 }
 
-.rw-image-canvas__frame {
+.cv-image-canvas__frame {
   position: absolute;
   top: 0;
   left: 0;
@@ -41,7 +41,7 @@
   box-shadow: 0 0 0 1px color-mix(in oklab, var(--foreground) 25%, transparent);
 }
 
-.rw-image-canvas__handle {
+.cv-image-canvas__handle {
   position: absolute;
   width: 12px;
   height: 12px;
@@ -54,7 +54,7 @@
 
 // A 12px target is small, and precision is the whole point of a resize handle,
 // so each one grabs from an invisible 24px box around itself.
-.rw-image-canvas__handle::before {
+.cv-image-canvas__handle::before {
   content: "";
   position: absolute;
   inset: -6px;
@@ -64,27 +64,27 @@
 // The stage clips with overflow: hidden, and clipped pixels are not hit-testable
 // — so a centred handle loses half its target the moment the image meets a stage
 // edge, which at the fit scale is always true of two of the four.
-.rw-image-canvas__handle[data-corner="nw"] {
+.cv-image-canvas__handle[data-corner="nw"] {
   left: 0;
   top: 0;
   cursor: nwse-resize;
 }
 
-.rw-image-canvas__handle[data-corner="ne"] {
+.cv-image-canvas__handle[data-corner="ne"] {
   left: 100%;
   top: 0;
   margin-left: -12px;
   cursor: nesw-resize;
 }
 
-.rw-image-canvas__handle[data-corner="se"] {
+.cv-image-canvas__handle[data-corner="se"] {
   left: 100%;
   top: 100%;
   margin: -12px 0 0 -12px;
   cursor: nwse-resize;
 }
 
-.rw-image-canvas__handle[data-corner="sw"] {
+.cv-image-canvas__handle[data-corner="sw"] {
   left: 0;
   top: 100%;
   margin-top: -12px;

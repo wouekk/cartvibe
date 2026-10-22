@@ -6,7 +6,7 @@ import { Component } from "@angular/core";
   standalone: false,
   host: { class: "block min-w-0" },
   template: `
-    <div class="rw-card rw-entity-list" data-testid="settings-entity-list">
+    <div class="cv-card cv-entity-list" data-testid="settings-entity-list">
       <ng-content select="[listToolbar]"></ng-content>
       <ng-content></ng-content>
     </div>
