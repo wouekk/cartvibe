@@ -1,5 +1,10 @@
 # HANDOFF.md — Where things stand
 
+## Status at close (2026-10-22): `feature/clean-schema` is done, pushed and published as `:preview`
+
+HEAD `d7359980`, Publish image run 39837705915 green. The branch holds the whole clean-schema rework plus this session's Dashboard work (customise fixes, free placement, one page width, Quick Scan hint without an AI key). **Not merged into `preview` or `main`: waits for the user's go.** Before deploying `:preview` on the NAS: wipe the `sqlite` folder, set new keys, pull `:preview`, redeploy, hard-refresh, then set the AI under Admin Settings -> AI.
+Open for the user: the report builder stays full-bleed (not capped at the page width); the other Quick Scan entries (Receipts page, receipt form) are still hidden while the AI is unset; a real touch drag and the NAS were never tried.
+
 ## Free placement and one page width (2026-10-22, branch `feature/clean-schema`)
 
 Panels now sit in a grid with optional saved cells (`x`, `y`) so they can go in any column or row, empty columns allowed; every page (settings, receipts, shopping lists, receipt form, Dashboard) shares `--page-max` = 1240px, full width with 16/24px gutters below it (checked: all 13 routes measure 1240 at 2000px, 720 at 768, 358 at 390, no horizontal overflow). The report builder stays full-bleed. Checked in a browser on a fresh database: drag into the empty last column, drag below the last row, tablet/phone reorder, widen blocked by a neighbour. Not seen: a real touch drag. Old saved layouts have no cells and flow as before.
