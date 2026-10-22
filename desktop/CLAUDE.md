@@ -2830,7 +2830,7 @@ never hand-edited.
 ## Receipts
 
 - **Table columns:** Receipt Date (first, the default sort, `DEFAULT_RECEIPT_ORDER_BY = "date"`), Shop, Amount, Status, Added
-  by, Comment (opt-in). **Shop** (`shop_name`) is the clickable column: the shop the AI read, else the receipt's name, and it
+  by, Comment (opt-in). **Receipt Date and Shop** are both links to the receipt; **Shop** (`shop_name`): the shop the AI read, else the receipt's name, and it
   sorts that way on the API. No Name, Added At, Categories, Tags or Done on column (a saved layout loses them through
   `mergeCustomFieldColumns`; a persisted sort on a removed column resets). The Dashboard's receipts panel uses the same
   Date and Shop.
@@ -2912,7 +2912,7 @@ Mobile-first (used in the shop). Backend contract: `api/CLAUDE.md`.
   `rw_theme_mode`; `index.html` applies it before the first paint. A theme is a token block in `src/themes/<key>.css`
   (`docs/themes.md`); the `dark` class on `<html>` follows the theme's scheme.
 - **Header chrome:** a theme toggle button (`data-testid="theme-toggle"`) sits next to the bell and switches between the White and
-  Black themes (`ThemeService.setMode`; it leaves System mode). The "Vibe" wordmark is `#708090`. `app-cartvibe-logo` takes a
+  Black themes (`ThemeService.setMode`; it leaves System mode). The "Vibe" wordmark is the brand emerald `#16C976`. `app-cartvibe-logo` takes a
   `scale` (default 1); the header passes `HANDSET_LOGO_SCALE` (0.3) on a handset.
 - **Colors are tokens** (`--background`, `--card`, `--primary`, `--muted-foreground`, `--border`, `--chart-1..5`, `--sidebar-*`,
   `--brand-*`), read by Tailwind utilities and the helm components. Never write a hex color in a component. Charts read the

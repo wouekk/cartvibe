@@ -1,11 +1,4 @@
-@use "sass:map";
-@use "../../variables.scss" as variables;
-
 .notification {
   text-decoration: none !important;
   color: var(--foreground) !important;
-  :hover {
-    background-color: color-mix(in oklab, var(--muted) 10%, transparent) !important;
-    border-radius: 5% !important;
-  }
 }
