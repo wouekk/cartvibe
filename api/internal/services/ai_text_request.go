@@ -2,10 +2,10 @@ package services
 
 import (
 	"gorm.io/gorm"
-	"receipt-wrangler/api/internal/logging"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/structs"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/logging"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
 )
 
 // textAiOutcome is how asking the group's AI a text-only question went.

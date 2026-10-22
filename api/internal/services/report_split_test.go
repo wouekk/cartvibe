@@ -8,13 +8,13 @@ import (
 
 	"github.com/shopspring/decimal"
 
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/permissions"
-	"receipt-wrangler/api/internal/reporting"
-	"receipt-wrangler/api/internal/reporting/receiptsource"
-	"receipt-wrangler/api/internal/repositories"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/permissions"
+	"cartvibe/api/internal/reporting"
+	"cartvibe/api/internal/reporting/receiptsource"
+	"cartvibe/api/internal/repositories"
+	"cartvibe/api/internal/utils"
 )
 
 // createSplitReceipt inserts a receipt with the given amount, categories, tags

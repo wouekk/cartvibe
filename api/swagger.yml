@@ -6260,7 +6260,7 @@ components:
 
           x-go-name: UpdatedAt
       description: File data for images on a receipt
-      x-go-package: receipt-wrangler/api/internal/models
+      x-go-package: cartvibe/api/internal/models
     Group:
       required:
         - name
@@ -6483,7 +6483,7 @@ components:
         updatedAt:
           type: string
       description: Itemized item on a receipt
-      x-go-package: receipt-wrangler/api/internal/models
+      x-go-package: cartvibe/api/internal/models
     Notification:
       required:
         - title
@@ -6528,10 +6528,10 @@ components:
           format: uint64
           x-go-name: UserId
       description: Notification
-      x-go-package: receipt-wrangler/api/internal/models
+      x-go-package: cartvibe/api/internal/models
     NotificationType:
       type: string
-      x-go-package: receipt-wrangler/api/internal/models
+      x-go-package: cartvibe/api/internal/models
     CurrencyRateTable:
       type: object
       description: >-
@@ -6846,7 +6846,7 @@ components:
         lastLoginDate:
           type: string
       description: User in the system
-      x-go-package: receipt-wrangler/api/internal/models
+      x-go-package: cartvibe/api/internal/models
     UserView:
       required:
         - username
@@ -6883,7 +6883,7 @@ components:
           nullable: true
           description: Id of the modern app role assigned to the user
       description: User in the system
-      x-go-package: receipt-wrangler/api/internal/models
+      x-go-package: cartvibe/api/internal/models
     UpdateProfileCommand:
       required:
         - displayName

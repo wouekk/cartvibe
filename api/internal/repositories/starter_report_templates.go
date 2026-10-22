@@ -4,8 +4,8 @@ import (
 	"strconv"
 	"time"
 
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/models"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/models"
 
 	"gorm.io/gorm"
 )

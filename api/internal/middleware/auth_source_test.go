@@ -5,9 +5,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/services"
-	"receipt-wrangler/api/internal/structs"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/services"
+	"cartvibe/api/internal/structs"
 )
 
 // captureAuthSource runs a request through the middleware and reports the

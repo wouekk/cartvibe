@@ -1,6 +1,6 @@
 package structs
 
-import "receipt-wrangler/api/internal/permissions"
+import "cartvibe/api/internal/permissions"
 
 type RoleView struct {
 	Id            uint              `json:"id"`

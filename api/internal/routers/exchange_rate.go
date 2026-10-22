@@ -1,8 +1,8 @@
 package routers
 
 import (
-	"receipt-wrangler/api/internal/handlers"
-	"receipt-wrangler/api/internal/middleware"
+	"cartvibe/api/internal/handlers"
+	"cartvibe/api/internal/middleware"
 
 	"github.com/go-chi/chi/v5"
 )

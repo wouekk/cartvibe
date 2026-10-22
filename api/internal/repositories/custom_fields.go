@@ -3,8 +3,8 @@ package repositories
 import (
 	"errors"
 	"gorm.io/gorm"
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/models"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/models"
 )
 
 type CustomFieldRepository struct {

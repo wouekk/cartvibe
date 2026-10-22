@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"maps"
-	"receipt-wrangler/api/internal/models"
+	"cartvibe/api/internal/models"
 	"slices"
 
 	"gorm.io/gorm"

@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/utils"
 )
 
 func SetBodyData(next http.Handler) http.Handler {

@@ -3,7 +3,7 @@ package repositories
 import (
 	"testing"
 
-	"receipt-wrangler/api/internal/models"
+	"cartvibe/api/internal/models"
 )
 
 func TestStarterReportTemplatesAreValid(t *testing.T) {

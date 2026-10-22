@@ -8,12 +8,12 @@ import (
 	"testing"
 	"time"
 
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/env"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
-	"receipt-wrangler/api/internal/services"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/env"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
+	"cartvibe/api/internal/services"
+	"cartvibe/api/internal/utils"
 
 	"github.com/go-chi/chi/v5"
 )

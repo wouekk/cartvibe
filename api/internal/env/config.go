@@ -3,10 +3,10 @@ package env
 import (
 	"flag"
 	"os"
-	"receipt-wrangler/api/internal/constants"
-	"receipt-wrangler/api/internal/logging"
-	"receipt-wrangler/api/internal/structs"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/constants"
+	"cartvibe/api/internal/logging"
+	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
 	"strconv"
 	"strings"
 )

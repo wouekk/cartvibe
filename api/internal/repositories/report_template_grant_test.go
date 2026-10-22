@@ -3,10 +3,10 @@ package repositories
 import (
 	"encoding/json"
 	"fmt"
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/permissions"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/permissions"
+	"cartvibe/api/internal/utils"
 	"slices"
 	"testing"
 )

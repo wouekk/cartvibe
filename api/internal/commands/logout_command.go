@@ -3,7 +3,7 @@ package commands
 import (
 	"encoding/json"
 	"net/http"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/utils"
 )
 
 type LogoutCommand struct {

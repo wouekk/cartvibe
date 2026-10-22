@@ -3,7 +3,7 @@ package wranglerasynq
 import (
 	miniredis2 "github.com/alicebob/miniredis/v2"
 	"os"
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/repositories"
 	"testing"
 )
 

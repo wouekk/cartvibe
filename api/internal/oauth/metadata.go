@@ -2,7 +2,7 @@ package oauth
 
 import (
 	"net/http"
-	"receipt-wrangler/api/internal/services"
+	"cartvibe/api/internal/services"
 )
 
 // issuer returns the OAuth issuer / public origin (no trailing slash), read

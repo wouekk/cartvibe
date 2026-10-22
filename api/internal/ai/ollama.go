@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"receipt-wrangler/api/internal/constants"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/structs"
+	"cartvibe/api/internal/constants"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/structs"
 )
 
 type OllamaClient struct {

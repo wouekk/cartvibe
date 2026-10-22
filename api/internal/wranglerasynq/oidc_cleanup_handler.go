@@ -2,7 +2,7 @@ package wranglerasynq
 
 import (
 	"context"
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/repositories"
 
 	"github.com/hibiken/asynq"
 )

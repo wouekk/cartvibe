@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
-	"receipt-wrangler/api/internal/logging"
+	"cartvibe/api/internal/logging"
 )
 
 // registrationRequest is the subset of the RFC 7591 Dynamic Client

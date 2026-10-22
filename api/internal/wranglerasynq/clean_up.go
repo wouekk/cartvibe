@@ -4,8 +4,8 @@ import (
 	"slices"
 
 	"github.com/hibiken/asynq"
-	"receipt-wrangler/api/internal/logging"
-	"receipt-wrangler/api/internal/models"
+	"cartvibe/api/internal/logging"
+	"cartvibe/api/internal/models"
 )
 
 func StartSystemCleanUpTasks() error {

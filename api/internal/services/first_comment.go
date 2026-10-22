@@ -1,8 +1,8 @@
 package services
 
 import (
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
 )
 
 // This file backs the receipts table's Comment column: the text of each receipt's

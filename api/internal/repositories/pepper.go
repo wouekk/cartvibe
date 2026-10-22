@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"gorm.io/gorm"
-	"receipt-wrangler/api/internal/models"
+	"cartvibe/api/internal/models"
 )
 
 type PepperRepository struct {

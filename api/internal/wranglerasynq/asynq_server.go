@@ -2,10 +2,10 @@ package wranglerasynq
 
 import (
 	"github.com/hibiken/asynq"
-	config "receipt-wrangler/api/internal/env"
-	"receipt-wrangler/api/internal/logging"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
+	config "cartvibe/api/internal/env"
+	"cartvibe/api/internal/logging"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
 )
 
 var server *asynq.Server

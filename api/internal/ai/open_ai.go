@@ -3,8 +3,8 @@ package ai
 import (
 	"encoding/json"
 	"errors"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/structs"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/structs"
 
 	"github.com/sashabaranov/go-openai"
 	"golang.org/x/net/context"

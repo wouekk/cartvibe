@@ -3,9 +3,9 @@ package mcp
 import (
 	"fmt"
 	"os"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
-	"receipt-wrangler/api/internal/structs"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
+	"cartvibe/api/internal/structs"
 	"testing"
 
 	"github.com/modelcontextprotocol/go-sdk/auth"

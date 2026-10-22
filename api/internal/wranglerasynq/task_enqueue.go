@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/hibiken/asynq"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
 )
 
 // completedTaskRetention keeps a successfully-processed email task in Redis long

@@ -2,7 +2,7 @@ package models
 
 import (
 	"net/http/httptest"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/utils"
 	"strings"
 	"testing"
 )

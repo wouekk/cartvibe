@@ -2,8 +2,8 @@ package wranglerasynq
 
 import (
 	"github.com/hibiken/asynq"
-	config "receipt-wrangler/api/internal/env"
-	"receipt-wrangler/api/internal/logging"
+	config "cartvibe/api/internal/env"
+	"cartvibe/api/internal/logging"
 )
 
 var scheduler *asynq.Scheduler

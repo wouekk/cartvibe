@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/permissions"
-	"receipt-wrangler/api/internal/services"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/permissions"
+	"cartvibe/api/internal/services"
 )
 
 // enforceReceiptGrantSelection checks a receipt upsert command against the

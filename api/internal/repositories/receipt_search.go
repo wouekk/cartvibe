@@ -1,8 +1,8 @@
 package repositories
 
 import (
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/utils"
 )
 
 // maxSearchMatchesPerReceipt caps the product lines shown under one receipt of a search.

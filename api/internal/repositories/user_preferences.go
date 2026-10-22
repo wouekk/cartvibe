@@ -3,7 +3,7 @@ package repositories
 import (
 	"regexp"
 	"gorm.io/gorm/clause"
-	"receipt-wrangler/api/internal/models"
+	"cartvibe/api/internal/models"
 	"strings"
 
 	"gorm.io/gorm"

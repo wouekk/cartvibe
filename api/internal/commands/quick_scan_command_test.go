@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"mime/multipart"
 	"net/http/httptest"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/utils"
 	"strings"
 	"testing"
 )

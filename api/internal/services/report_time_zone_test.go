@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/reporting/render"
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/reporting/render"
+	"cartvibe/api/internal/repositories"
 )
 
 func setAppTimeZone(t *testing.T, name string) {

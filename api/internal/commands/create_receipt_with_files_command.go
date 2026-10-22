@@ -7,7 +7,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
-	"receipt-wrangler/api/internal/constants"
+	"cartvibe/api/internal/constants"
 )
 
 // ReceiptFileUpload is one image uploaded alongside a receipt create.

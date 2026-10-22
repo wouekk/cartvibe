@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"receipt-wrangler/api/internal/permissions"
-	"receipt-wrangler/api/internal/structs"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/permissions"
+	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
 )
 
 type UpsertRoleCommand struct {

@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/constants"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/permissions"
-	"receipt-wrangler/api/internal/reporting"
-	"receipt-wrangler/api/internal/reporting/render"
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/constants"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/permissions"
+	"cartvibe/api/internal/reporting"
+	"cartvibe/api/internal/reporting/render"
+	"cartvibe/api/internal/repositories"
 )
 
 // --- pure helpers ---------------------------------------------------------

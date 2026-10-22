@@ -3357,7 +3357,7 @@ table. The section below is the rules digest; the README is where the diagrams a
 **The purity rule is enforceable and must stay true:**
 
 ```bash
-go list -deps receipt-wrangler/api/internal/reporting | grep -E 'gorm|repositories|internal/models'
+go list -deps cartvibe/api/internal/reporting | grep -E 'gorm|repositories|internal/models'
 # must print nothing
 ```
 

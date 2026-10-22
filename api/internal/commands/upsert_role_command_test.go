@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"receipt-wrangler/api/internal/permissions"
+	"cartvibe/api/internal/permissions"
 	"testing"
 )
 

@@ -2,8 +2,8 @@ package env
 
 import (
 	"os"
-	"receipt-wrangler/api/internal/logging"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/logging"
+	"cartvibe/api/internal/utils"
 	"testing"
 )
 

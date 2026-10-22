@@ -1,4 +1,4 @@
-module receipt-wrangler/api
+module cartvibe/api
 
 go 1.26.9
 

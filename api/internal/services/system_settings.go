@@ -2,8 +2,8 @@ package services
 
 import (
 	"gorm.io/gorm"
-	"receipt-wrangler/api/internal/repositories"
-	"receipt-wrangler/api/internal/structs"
+	"cartvibe/api/internal/repositories"
+	"cartvibe/api/internal/structs"
 )
 
 type SystemSettingsService struct {

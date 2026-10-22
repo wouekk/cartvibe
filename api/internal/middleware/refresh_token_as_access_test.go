@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	config "receipt-wrangler/api/internal/env"
-	"receipt-wrangler/api/internal/services"
-	"receipt-wrangler/api/internal/structs"
-	"receipt-wrangler/api/internal/utils"
+	config "cartvibe/api/internal/env"
+	"cartvibe/api/internal/services"
+	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
 
 	"github.com/golang-jwt/jwt/v5"
 )

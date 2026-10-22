@@ -2,7 +2,7 @@ package wranglerasynq
 
 import (
 	"github.com/hibiken/asynq"
-	config "receipt-wrangler/api/internal/env"
+	config "cartvibe/api/internal/env"
 )
 
 func GetAsynqInspector() (*asynq.Inspector, error) {

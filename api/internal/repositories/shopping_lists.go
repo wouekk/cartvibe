@@ -1,7 +1,7 @@
 package repositories
 
 import (
-	"receipt-wrangler/api/internal/models"
+	"cartvibe/api/internal/models"
 	"time"
 
 	"github.com/shopspring/decimal"

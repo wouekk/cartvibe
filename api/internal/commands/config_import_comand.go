@@ -7,8 +7,8 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
-	"receipt-wrangler/api/internal/constants"
-	"receipt-wrangler/api/internal/structs"
+	"cartvibe/api/internal/constants"
+	"cartvibe/api/internal/structs"
 )
 
 type ConfigImportCommand struct {

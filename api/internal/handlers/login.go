@@ -3,13 +3,13 @@ package handlers
 import (
 	"errors"
 	"net/http"
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/constants"
-	"receipt-wrangler/api/internal/logging"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/services"
-	"receipt-wrangler/api/internal/structs"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/constants"
+	"cartvibe/api/internal/logging"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/services"
+	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
 )
 
 func Login(w http.ResponseWriter, r *http.Request) {

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/hibiken/asynq"
-	"receipt-wrangler/api/internal/models"
+	"cartvibe/api/internal/models"
 )
 
 // asynq.Option exposes Type() and Value(), so which queues retain can be pinned

@@ -2,10 +2,10 @@ package services
 
 import (
 	"mime/multipart"
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
+	"cartvibe/api/internal/utils"
 	"testing"
 )
 

@@ -1,7 +1,7 @@
 package services
 
 import (
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/utils"
 	"testing"
 )
 

@@ -5,7 +5,7 @@ import (
 
 	"github.com/shopspring/decimal"
 
-	"receipt-wrangler/api/internal/reporting"
+	"cartvibe/api/internal/reporting"
 )
 
 // formatCurrency renders a decimal as a money string per the app's currency

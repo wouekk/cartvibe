@@ -1,7 +1,7 @@
 package services
 
 import (
-	"receipt-wrangler/api/internal/models"
+	"cartvibe/api/internal/models"
 )
 
 // This file holds member-isolation enforcement on a receipt PAYLOAD, as opposed to

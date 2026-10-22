@@ -13,7 +13,7 @@ HTTP delivery all *call* it; none of them are part of it.
 The purity claim is mechanically checkable, not aspirational:
 
 ```bash
-go list -deps receipt-wrangler/api/internal/reporting | grep -E 'gorm|repositories|internal/models'
+go list -deps cartvibe/api/internal/reporting | grep -E 'gorm|repositories|internal/models'
 # prints nothing
 ```
 

@@ -2,13 +2,13 @@ package routers
 
 import (
 	"net/http"
-	"receipt-wrangler/api/internal/corspolicy"
-	config "receipt-wrangler/api/internal/env"
-	"receipt-wrangler/api/internal/logging"
-	"receipt-wrangler/api/internal/mcp"
-	"receipt-wrangler/api/internal/middleware"
-	"receipt-wrangler/api/internal/oauth"
-	"receipt-wrangler/api/internal/services"
+	"cartvibe/api/internal/corspolicy"
+	config "cartvibe/api/internal/env"
+	"cartvibe/api/internal/logging"
+	"cartvibe/api/internal/mcp"
+	"cartvibe/api/internal/middleware"
+	"cartvibe/api/internal/oauth"
+	"cartvibe/api/internal/services"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
 	"github.com/go-chi/chi/v5"

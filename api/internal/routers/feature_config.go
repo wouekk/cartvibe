@@ -1,7 +1,7 @@
 package routers
 
 import (
-	"receipt-wrangler/api/internal/handlers"
+	"cartvibe/api/internal/handlers"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
 	"github.com/go-chi/chi/v5"

@@ -3,8 +3,8 @@ package repositories
 import (
 	"testing"
 
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/models"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/models"
 )
 
 func oidcProviderCommand(name string, enabled bool) commands.UpsertOidcProviderCommand {

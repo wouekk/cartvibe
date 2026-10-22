@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/repositories"
 )
 
 func seedOidcProvider(t *testing.T, name string, enabled bool) {

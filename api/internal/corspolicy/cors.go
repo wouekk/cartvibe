@@ -1,7 +1,7 @@
 package corspolicy
 
 import (
-	config "receipt-wrangler/api/internal/env"
+	config "cartvibe/api/internal/env"
 
 	"github.com/rs/cors"
 )

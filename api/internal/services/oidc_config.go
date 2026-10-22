@@ -2,8 +2,8 @@ package services
 
 import (
 	"net/url"
-	"receipt-wrangler/api/internal/logging"
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/logging"
+	"cartvibe/api/internal/repositories"
 	"strings"
 )
 

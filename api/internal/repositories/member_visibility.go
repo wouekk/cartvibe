@@ -1,7 +1,7 @@
 package repositories
 
 import (
-	"receipt-wrangler/api/internal/models"
+	"cartvibe/api/internal/models"
 )
 
 // ViewerGroupRow describes one of a viewer's group memberships for member-isolation

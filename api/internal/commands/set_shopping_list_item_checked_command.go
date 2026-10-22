@@ -3,8 +3,8 @@ package commands
 import (
 	"encoding/json"
 	"net/http"
-	"receipt-wrangler/api/internal/structs"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
 )
 
 // SetShoppingListItemCheckedCommand carries the TARGET checked state rather than a toggle, so two

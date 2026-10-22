@@ -1,8 +1,8 @@
 package services
 
 import (
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
 )
 
 // This file holds the row-level "paid by" visibility enforcement: which receipts

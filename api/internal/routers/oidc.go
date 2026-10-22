@@ -3,10 +3,10 @@ package routers
 import (
 	"net/http"
 
-	"receipt-wrangler/api/internal/handlers"
-	"receipt-wrangler/api/internal/middleware"
-	"receipt-wrangler/api/internal/oidc"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/handlers"
+	"cartvibe/api/internal/middleware"
+	"cartvibe/api/internal/oidc"
+	"cartvibe/api/internal/utils"
 
 	"github.com/go-chi/chi/v5"
 )

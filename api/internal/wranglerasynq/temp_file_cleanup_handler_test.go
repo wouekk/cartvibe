@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/hibiken/asynq"
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/structs"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/structs"
 )
 
 const testRetention = 30 * 24 * time.Hour

@@ -3,8 +3,8 @@ package commands
 import (
 	"encoding/json"
 	"net/http"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/utils"
 )
 
 type BulkStatusUpdateCommand struct {

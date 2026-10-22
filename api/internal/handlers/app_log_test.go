@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"receipt-wrangler/api/internal/repositories"
-	"receipt-wrangler/api/internal/structs"
+	"cartvibe/api/internal/repositories"
+	"cartvibe/api/internal/structs"
 	"strings"
 	"testing"
 

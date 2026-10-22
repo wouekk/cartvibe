@@ -2,7 +2,7 @@ package services
 
 import (
 	"encoding/json"
-	"receipt-wrangler/api/internal/models"
+	"cartvibe/api/internal/models"
 	"sort"
 	"time"
 )

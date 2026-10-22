@@ -3,8 +3,8 @@ package services
 import (
 	"errors"
 	"fmt"
-	"receipt-wrangler/api/internal/commands"
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/repositories"
 
 	"gorm.io/gorm"
 )

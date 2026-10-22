@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"receipt-wrangler/api/internal/reporting"
+	"cartvibe/api/internal/reporting"
 )
 
 func loadLocation(t *testing.T, name string) *time.Location {

@@ -3,10 +3,10 @@ package handlers
 import (
 	"errors"
 	"net/http"
-	"receipt-wrangler/api/internal/constants"
-	"receipt-wrangler/api/internal/services"
-	"receipt-wrangler/api/internal/structs"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/constants"
+	"cartvibe/api/internal/services"
+	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
 )
 
 // searchResultLimit caps how many receipts a REST search returns (unchanged from

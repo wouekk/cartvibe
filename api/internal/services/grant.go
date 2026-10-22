@@ -2,8 +2,8 @@ package services
 
 import (
 	"errors"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
 
 	"gorm.io/gorm"
 )

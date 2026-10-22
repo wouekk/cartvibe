@@ -8,7 +8,7 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/xuri/excelize/v2"
 
-	"receipt-wrangler/api/internal/reporting"
+	"cartvibe/api/internal/reporting"
 )
 
 // usd/eur are the two representative configurations: the US default (symbol

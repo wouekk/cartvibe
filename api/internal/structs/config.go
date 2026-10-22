@@ -1,6 +1,6 @@
 package structs
 
-import "receipt-wrangler/api/internal/models"
+import "cartvibe/api/internal/models"
 
 type EmailSettings struct {
 	Host     string

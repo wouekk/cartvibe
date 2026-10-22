@@ -2,9 +2,9 @@ package oauth
 
 import (
 	"encoding/json"
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
+	"cartvibe/api/internal/utils"
 	"time"
 )
 

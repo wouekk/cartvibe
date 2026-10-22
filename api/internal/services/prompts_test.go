@@ -1,7 +1,7 @@
 package services
 
 import (
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/repositories"
 	"strings"
 	"testing"
 )

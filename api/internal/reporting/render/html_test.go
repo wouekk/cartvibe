@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"receipt-wrangler/api/internal/reporting"
+	"cartvibe/api/internal/reporting"
 
 	"golang.org/x/net/html"
 )

@@ -3,7 +3,7 @@ package services
 import (
 	"sync"
 
-	"receipt-wrangler/api/internal/permissions"
+	"cartvibe/api/internal/permissions"
 )
 
 // rolePermissionCacheEntry keys the cache by scope + role id. App and group role

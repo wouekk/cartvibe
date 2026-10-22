@@ -17,8 +17,8 @@ import (
 	"strings"
 	"time"
 
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/reporting"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/reporting"
 
 	"github.com/shopspring/decimal"
 )

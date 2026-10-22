@@ -2,7 +2,7 @@ package wranglerasynq
 
 import (
 	"errors"
-	"receipt-wrangler/api/internal/models"
+	"cartvibe/api/internal/models"
 )
 
 func SystemTaskToQueueName(taskType models.SystemTaskType) (string, error) {

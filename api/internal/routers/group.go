@@ -2,8 +2,8 @@ package routers
 
 import (
 	"github.com/go-chi/chi/v5"
-	"receipt-wrangler/api/internal/handlers"
-	"receipt-wrangler/api/internal/middleware"
+	"cartvibe/api/internal/handlers"
+	"cartvibe/api/internal/middleware"
 )
 
 func BuildGroupRouter() *chi.Mux {

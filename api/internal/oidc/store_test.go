@@ -4,8 +4,8 @@ import (
 	"sync"
 	"testing"
 
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
 )
 
 // TestConsumeAuthSessionIsAtomic is the guard on the callback's very first step.

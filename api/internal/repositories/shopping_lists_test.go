@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"errors"
-	"receipt-wrangler/api/internal/models"
+	"cartvibe/api/internal/models"
 	"testing"
 
 	"gorm.io/gorm"

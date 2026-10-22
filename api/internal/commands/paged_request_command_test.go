@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/utils"
 	"reflect"
 	"strings"
 	"testing"

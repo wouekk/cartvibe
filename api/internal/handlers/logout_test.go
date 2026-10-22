@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 	"net/http/httptest"
-	"receipt-wrangler/api/internal/constants"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/constants"
+	"cartvibe/api/internal/utils"
 	"testing"
 )
 

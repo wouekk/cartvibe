@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/hibiken/asynq"
-	"receipt-wrangler/api/internal/logging"
-	"receipt-wrangler/api/internal/services"
+	"cartvibe/api/internal/logging"
+	"cartvibe/api/internal/services"
 )
 
 // HandleFoodClassificationSweepTask tags what is waiting with health and seasonality. An unreachable

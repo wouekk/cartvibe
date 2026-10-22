@@ -4,8 +4,8 @@ import (
 	"sync"
 	"testing"
 
-	"receipt-wrangler/api/internal/models"
-	"receipt-wrangler/api/internal/repositories"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
 )
 
 func TestGetProviderCachesDiscovery(t *testing.T) {

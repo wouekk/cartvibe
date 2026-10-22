@@ -2,7 +2,7 @@ package commands
 
 import (
 	"encoding/json"
-	"receipt-wrangler/api/internal/models"
+	"cartvibe/api/internal/models"
 )
 
 type UpsertWidgetCommand struct {

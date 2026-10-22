@@ -1,6 +1,6 @@
 package render
 
-import "receipt-wrangler/api/internal/reporting"
+import "cartvibe/api/internal/reporting"
 
 // The faithful renderers — XLSX and the HTML/PDF document — lay a report out the
 // way it looks on screen: the group-by dimensions are leading columns with each

@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"net/http"
-	"receipt-wrangler/api/internal/constants"
-	"receipt-wrangler/api/internal/permissions"
-	"receipt-wrangler/api/internal/structs"
-	"receipt-wrangler/api/internal/utils"
+	"cartvibe/api/internal/constants"
+	"cartvibe/api/internal/permissions"
+	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
 )
 
 func GetPermissions(w http.ResponseWriter, r *http.Request) {
