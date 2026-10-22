@@ -144,6 +144,18 @@ CHROMIUM_BINARY_PATH=/opt/pw-browsers/chromium go test -count=1 ./...
 Do **not** run `playwright install` to get `/usr/bin/chromium` — the download is blocked, and the
 pre-installed binary works.
 
+**The PDF tests on the Windows PC (or the Mac):** `./scripts/install-test-chromium.sh` once (Playwright's
+Chromium headless shell from the repo's pinned `@playwright/test`, after `npm ci` in `desktop/`), then
+`./scripts/test-pdf.sh` for the HTML-to-PDF, guard and report-PDF tests (extra `go test` flags pass through).
+- The browser goes to `~/tools/ms-playwright` (`PLAYWRIGHT_BROWSERS_PATH`), **not** Playwright's usual
+  `AppData\Local\ms-playwright`: the Claude desktop app runs in a Windows package sandbox that redirects
+  AppData, and a Chromium started from the redirected copy fails with "side-by-side configuration is
+  incorrect" (and its sandbox cannot read its own exe).
+- With Ghostscript installed (`winget install ArtifexSoftware.GhostScript`), the script shims `gswin64c.exe`
+  as `gs`, so the `file://` and SSRF guard tests also check the PDF's text; without it those checks skip.
+- The ImageMagick PDF tests (rasterizing, file type sniffing, AI image encoding) still need the real cgo
+  binding, so they stay CI-only on this PC.
+
 ### Testing
 - `go test -v ./...` - Run all Go tests with verbose output
 - `go test -coverprofile=coverage.out -covermode=atomic -v ./...` - Run tests with coverage

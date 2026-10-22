@@ -371,6 +371,9 @@ because Pages was off.
 - Go is not on the bash PATH here (`export PATH="$PATH:/c/Program Files/Go/bin"`); `api/scripts/go-without-cgo.sh vet ./...`
   and `... test <pkg>` work locally, but the services package's PDF/Chromium/image tests and some wranglerasynq temp-path
   tests fail here only (CI is the judge). No Node, Docker, ImageMagick, Tesseract or Python on this PC.
+- **PDF tests run locally now:** `api/scripts/install-test-chromium.sh` (once), then `api/scripts/test-pdf.sh` (Chromium in
+  `~/tools/ms-playwright`; installed 2026-10-22, the 4 HTML-to-PDF/report-PDF tests pass). Ghostscript is not installed, so the
+  guard tests skip their PDF-text checks. The ImageMagick PDF tests stay CI-only.
 - `gh` needs `--repo wouekk/cartvibe` (it defaults to upstream). `git` LF/CRLF warnings are harmless.
 - Never name anything "Apple" (themes, branches); the user cannot risk a trademark complaint.
 
