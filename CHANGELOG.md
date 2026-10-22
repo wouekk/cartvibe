@@ -8,77 +8,71 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-23
+
+A leaner household app: everything a family did not use is gone, reports read the product lines, the Dashboard can be
+arranged freely, and the screens share one look.
+
+> **Upgrade: not in place.** Custom fields, bill splitting, the email integration and the upgrade-only migrations were
+> removed without drop migrations. Back up, then wipe the NAS `sqlite` folder, set new `SECRET_KEY` / `ENCRYPTION_KEY`,
+> pull `:latest`, redeploy, hard-refresh, and set the AI up again under Settings → AI.
+
 ### Added
-- **Reports read product lines:** Category and Tag come from the receipt's product lines (they had been read from the
-  receipt, which the app no longer edits), and **Health** and **Planned / Unplanned** are new fields. Cutting by one
-  divides a receipt by what its lines cost; what the lines do not cover is the empty bucket, so totals stay exact.
 - **Welcome at the first sign-in:** a new account picks its language and theme, and an admin the household currency
   (EUR, PLN, USD, GBP, CHF), in one dialog. Existing accounts are not asked.
+- **Reports read product lines:** Category and Tag come from the receipt's product lines, and **Health** and
+  **Planned / Unplanned** are new fields. Cutting by one divides a receipt by what its lines cost; what the lines do not
+  cover is the empty bucket, so totals stay exact.
+- **Free Dashboard layout:** panels can sit in any column and row (empty columns allowed), drag in any direction, keep
+  their exact width, and shake with a short note at their smallest or largest size; the resize corner is a visible chip.
 
 ### Changed
-- **"Done" is now "Settled"** ("Rozliczone" in Polish) for a finished receipt, with "Settled on" and "Mark as settled";
-  reports print "To check" / "Settled" instead of the raw status.
-- **Dashboard category legend:** the share sits in front of the name ("21.5% Meat & Fish") and the Share column is gone,
-  leaving more room for the category.
-- **Shopping lists:** one action per section. "Going shopping" (with a bell, since it notifies the household) sits in
-  the list's header, the receipt actions are one "Add receipt" menu beside "Receipts from this list", and the page
-  header keeps only "Add List".
 - **Settings in the sidebar:** "Admin Settings" is now **Settings** and holds Manage Categories, Manage Tags, AI, User
-  Settings, **Language** and **Theme** (each now a page of its own), then the admin pages. The account menu keeps only
-  About and Logout.
-- **Quick Scan without an AI key** stays visible and asks whether to add one (Add AI API key / Cancel) instead of hiding.
-- **Scan product** opens a centered dialog (take a photo of the code, upload a photo, or type the barcode number, with
-  Cancel) instead of a panel sliding in from the right; the camera icon inside the barcode box is gone.
-- **Report builder** follows the visual identity in both themes: hairline section cards (no more white cards with
-  unreadable labels in Black), flat grouping and column rows, the shared tab strip and header, a segmented format
-  control, and a phone layout that scrolls as one page. Paid By is called **Added by** in reports.
-- **One button style:** every action is the filled accent button and is dimmed when inactive (Going shopping, Scan
-  receipt, Attach existing, Test connection, exports, the product checker's photo buttons, dialog submits); every
-  Cancel is red; Save is always labelled and stays dimmed while an edit form has nothing to save.
+  Settings, **Language** and **Theme** (each a page of its own), then the admin pages. The account menu keeps only About
+  and Logout.
+- **"Done" is now "Settled"** ("Rozliczone" in Polish), with "Settled on" and "Mark as settled"; reports print
+  "To check" / "Settled" instead of the raw status. Paid By is called **Added by** in reports.
+- **Quick Scan without an AI key** stays visible and asks whether to add one (Add AI API key / Cancel).
+- **Scan product** opens a centered dialog: take a photo of the code, upload a photo, or type the barcode number.
+- **Shopping lists:** one action per section. "Going shopping" (with a bell, it notifies the household) sits in the
+  list's header, the receipt actions are one "Add receipt" menu, and the page header keeps only "Add List".
+- **Dashboard category legend:** the share sits in front of the name ("21.5% Meat & Fish") and the Share column is gone.
+- **One look everywhere:** one button style (filled accent, dimmed when inactive, every Cancel red, Save dimmed until
+  something changes), the report builder on the shared cards, tabs and header (and a phone layout), and one content width
+  (1240 px) for every page.
+- **README** with screenshots of a demo household; Quick start first, credits in the note at the top.
+- **Under the hood:** the Go module is `cartvibe/api`, the CSS prefix is `cv-`, the Angular project, MCP server and OAuth
+  sign-in page say CartVibe; Go minor/patch updates, asynq 0.26, MCP go-sdk 1.8, jest-preset-angular 17. The JWT issuer and
+  the `rw-v1` API key prefix are unchanged, so nobody is signed out and no key stops working.
 
 ### Fixed
-- **A fresh install started on dollars:** it now starts on euros, as intended.
+- **A fresh install started on dollars;** it now starts on euros.
 - **Tab strips** (the period picker, settings tabs, Records / Aggregate) never showed which tab was selected.
-- **Dashboard category legend:** amounts no longer break onto two lines ("111,89 / €") and a long category name wraps
-  beside its colour dot instead of below it.
-- **Edit user** showed a bare check mark instead of Save.
-- **Shopping list:** the + button sits on the same line as the add box.
-- **Receipt comments:** the card text lines up with its title, says when there are no comments, shows a new first
-  comment at once, and a comment can be added to a receipt opened for viewing.
-- **Dashboard customise screen:** panels keep their exact width (no stretching, so Narrower always shows), drag in any direction
-  including diagonally and into empty space, tiles may sit beside charts, a panel at its smallest or largest size shakes and
-  says so, panels can be placed in any column and row (empty columns allowed), every page shares one content width (1240px, full width below it), the resize corner is a visible chip, the starting layout fills its rows, and the donut centre no longer overflows on a long date range.
+- **Dashboard:** legend amounts no longer break onto two lines, long category names wrap beside their dot, the donut
+  centre fits a long date range, and the starting layout fills its rows.
+- **Receipt comments:** aligned with the card title, an empty state, a new first comment shows at once, and a comment can
+  be added to a receipt opened for viewing.
+- **Edit user** showed a bare check mark instead of Save; the shopping list's + button sits on the add box's line.
+- Base path detection when `BASE_PATH` is not set (Windows paths and the `cartvibe-api` folder); the refresh-token check
+  uses the request context; a swallowed re-queue error is logged; the autocomplete no longer leaks a watcher; pending OIDC
+  sign-ins no longer read a removed column.
 
 ### Removed
-- **Report splitting options** (split equally across categories / tags, excluded currency fields): reports divide
-  receipts by their product lines instead. Saved templates carrying them still open.
-
-- **Custom fields** (definitions, receipt values, group defaults, AI extraction, report fields, permissions) and the **receipt summary** block under the receipts table.
-  **Not an in-place upgrade:** wipe the NAS `sqlite` folder and set new `SECRET_KEY` / `ENCRYPTION_KEY` before deploying; no drop migration was written on purpose.
-
-- **Old dashboards and widgets** (the per-group widget dashboards, the pie chart widget, the report dashboard widget), **stored prompts**
-  (the receipt prompt is built in), **configuration import**, and the report-template render endpoint. The Dashboard landing page and its
-  customise screen are unchanged.
-- **The email integration:** system emails, group email settings (polling, whitelists, subject rules), the "Poll email(s)" action, email
-  polling and processing queues and tasks, and the Python IMAP client. The image no longer carries Python; Chromium stays for report PDFs.
+- **Custom fields** and the **receipt summary** under the receipts table.
+- **Bill splitting:** receipt items, shares, quick split actions, "Sync with items", settle-up, and the item and share hide
+  switches. A receipt's lines are its products; the receipts export is a zip with `receipts.csv` only.
+- **Old dashboards and widgets**, **stored prompts** (the receipt prompt is built in), **configuration import**, and the
+  report-template render endpoint.
+- **The email integration:** system emails, group email settings, "Poll email(s)", the email queues and tasks, and the
+  Python IMAP client (the image no longer carries Python; Chromium stays for report PDFs).
+- **Report splitting options:** reports divide receipts by their product lines instead; saved templates still open.
+- **Upgrade-only code and the mobile sign-in leg** (one-time migrations, the `group_role` field, exchange codes and link
+  launch handles). Browser sign-in, linking and the delete confirmation are unchanged.
 - Permissions that went with them: `app.prompts.*`, `app.system-emails.*`, `app.imports.run`, `app.groups.update-settings`,
-  `group.dashboards.*`, `group.widgets.read`, `group.email.poll`. The Queues list in System Settings shows Quick Scan and System Clean Up only.
+  `group.dashboards.*`, `group.widgets.read`, `group.email.poll`.
 
-- **Bill splitting:** receipt items, shares, quick split actions, "Sync with items" and the settle-up endpoint, plus the item and
-  share hide switches in the household receipt settings. A receipt's lines are its products. The receipts export is a zip with
-  `receipts.csv` only.
-- **Upgrade-only code and the mobile sign-in leg:** the one-time data migrations and the leftover `group_role` column field, and
-  the OIDC code for the removed phone app (exchange codes, link launch handles). Browser sign-in, linking and the delete
-  confirmation are unchanged.
-
-### Changed
-- Internal clean-up: the Go module is `cartvibe/api`, the CSS prefix is `cv-`, the Angular project is `cartvibe`, the MCP server and
-  OAuth sign-in page say CartVibe, and the upstream release scripts and READMEs are gone. The JWT issuer and the `rw-v1` API key
-  prefix are unchanged so nobody is signed out and no key stops working.
-- Dependencies: Go minor/patch updates, asynq 0.26, MCP go-sdk 1.8, jest-preset-angular 17.
-
-### Fixed
-- Base path detection when `BASE_PATH` is not set (Windows paths and the `cartvibe-api` folder); the refresh-token check uses the request context.
+### For developers
+- `api/scripts/install-test-chromium.sh` and `api/scripts/test-pdf.sh` run the PDF tests on Windows or a Mac.
 
 ## [0.5.0] - 2026-10-22
 
