@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/c
 import { HlmButton } from "@spartan-ng/helm/button";
 import { HlmInputGroupImports } from "@spartan-ng/helm/input-group";
 import { AppDialogRef } from "../dialog/app-dialog";
+import { marker } from "../i18n/marker";
 import { TranslatePipe } from "../i18n/translate.pipe";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { BarcodePhotoActionsComponent } from "./barcode-photo-actions.component";
@@ -107,7 +108,7 @@ interface NutritionRow {
               (click)="show(item)"
             >
               <span class="size-2 shrink-0 rounded-full" [class]="dotClass(item)"></span>
-              <span class="truncate">{{ item.name }}</span>
+              <span class="truncate">{{ item.name | t }}</span>
               <span class="shrink-0 font-semibold tabular-nums">{{ score(item) }}</span>
             </button>
           }
@@ -158,7 +159,7 @@ interface NutritionRow {
                       @if (current.brand) {
                         <div class="text-[0.6875rem] font-semibold tracking-[0.08em] text-muted-foreground uppercase">{{ current.brand }}</div>
                       }
-                      <div class="text-base font-semibold break-words" data-testid="product-check-name">{{ current.name }}</div>
+                      <div class="text-base font-semibold break-words" data-testid="product-check-name">{{ current.name | t }}</div>
                       <div class="text-xs text-muted-foreground tabular-nums">{{ current.code }}</div>
                     </div>
                   </div>
@@ -272,12 +273,12 @@ export class ProductCheckDrawerComponent {
     const { nutrition, levels } = product;
 
     return [
-      { key: "sugars", label: "Sugars", value: grams(nutrition.sugars), level: levels.sugars },
-      { key: "saturatedFat", label: "Saturated fat", value: grams(nutrition.saturatedFat), level: levels.saturatedFat },
-      { key: "salt", label: "Salt", value: grams(nutrition.salt), level: levels.salt },
-      { key: "fiber", label: "Fibre", value: grams(nutrition.fiber), level: null },
-      { key: "proteins", label: "Protein", value: grams(nutrition.proteins), level: null },
-      { key: "energy", label: "Calories", value: nutrition.energyKcal === null ? "—" : `${Math.round(nutrition.energyKcal)} kcal`, level: null },
+      { key: "sugars", label: marker("Sugars"), value: grams(nutrition.sugars), level: levels.sugars },
+      { key: "saturatedFat", label: marker("Saturated fat"), value: grams(nutrition.saturatedFat), level: levels.saturatedFat },
+      { key: "salt", label: marker("Salt"), value: grams(nutrition.salt), level: levels.salt },
+      { key: "fiber", label: marker("Fibre"), value: grams(nutrition.fiber), level: null },
+      { key: "proteins", label: marker("Protein"), value: grams(nutrition.proteins), level: null },
+      { key: "energy", label: marker("Calories"), value: nutrition.energyKcal === null ? "—" : `${Math.round(nutrition.energyKcal)} kcal`, level: null },
     ];
   });
 
@@ -331,7 +332,7 @@ export class ProductCheckDrawerComponent {
   }
 
   protected riskLabel(additive: AdditiveInfo): string {
-    return additive.risk ? { high: "High risk", moderate: "Moderate", safe: "Safe" }[additive.risk] : "Unknown";
+    return additive.risk ? { high: marker("High risk"), moderate: marker("Moderate"), safe: marker("Safe") }[additive.risk] : marker("Unknown");
   }
 
   protected levelDot(level: NutrientLevel): string {
