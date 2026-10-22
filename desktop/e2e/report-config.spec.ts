@@ -28,7 +28,7 @@ test.describe('Report Builder — configuration', () => {
   test('adds and removes grouping levels', async ({ page }) => {
     const removes = page.getByTestId('report-grouping-remove');
 
-    await addGroupingLevel(page, 'Paid By');
+    await addGroupingLevel(page, 'Added by');
     await expect(removes).toHaveCount(1);
     await addGroupingLevel(page, 'Tag');
     await expect(removes).toHaveCount(2);
@@ -40,13 +40,13 @@ test.describe('Report Builder — configuration', () => {
   test('reorders grouping levels', async ({ page }) => {
     const labels = page.getByTestId('report-grouping-label');
 
-    await addGroupingLevel(page, 'Paid By');
+    await addGroupingLevel(page, 'Added by');
     await addGroupingLevel(page, 'Tag');
-    await expect(labels).toHaveText(['Paid By', 'Tag']);
+    await expect(labels).toHaveText(['Added by', 'Tag']);
 
     // Moving the first level down swaps the order.
     await page.getByTestId('report-grouping-down').first().click();
-    await expect(labels).toHaveText(['Tag', 'Paid By']);
+    await expect(labels).toHaveText(['Tag', 'Added by']);
   });
 
   test('the columns section stays configurable in both detail modes', async ({ page }) => {
@@ -67,11 +67,11 @@ test.describe('Report Builder — configuration', () => {
 
     // A record row reads the field off the receipt, so a dimension column over a
     // field that is neither grouped nor summarized by is valid here. The picker
-    // presets the first dimension (Paid By); nothing groups by it.
+    // presets the first dimension (Added by); nothing groups by it.
     await page.getByTestId('report-add-column').click();
     await page.getByTestId('picker-kind-dimension').click();
     await page.getByTestId('picker-save').click();
-    await expect(page.getByTestId('report-column-row').filter({ hasText: 'Paid By' })).toBeVisible();
+    await expect(page.getByTestId('report-column-row').filter({ hasText: 'Added by' })).toBeVisible();
     await expect(page.getByTestId('report-column-disabled')).toHaveCount(0);
 
     // Back in Aggregate mode that same column can no longer be resolved, so it
@@ -79,7 +79,7 @@ test.describe('Report Builder — configuration', () => {
     await page.getByTestId('report-detail-aggregate').click();
     await expect(page.getByTestId('report-add-column')).toBeVisible();
     await expect(note).toHaveCount(0);
-    await expect(page.getByTestId('report-column-disabled').filter({ hasText: 'Paid By' })).toBeVisible();
+    await expect(page.getByTestId('report-column-disabled').filter({ hasText: 'Added by' })).toBeVisible();
   });
 
   test('the custom period range reveals date pickers', async ({ page }) => {

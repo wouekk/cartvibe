@@ -1,6 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
+import { HlmButtonImports } from "@spartan-ng/helm/button";
 
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
@@ -41,6 +42,7 @@ import { ReportsRoutingModule } from "./reports-routing.module";
     ReportTemplateListComponent,
   ],
   imports: [
+    ...HlmButtonImports,
     AutocompleteModule,
     ButtonModule,
     CheckboxModule,

@@ -68,10 +68,10 @@ test.describe('Report Builder — grouping column headings', () => {
   test('renames the column a grouping level adds to the report', async ({ page }) => {
     const heading = uniqueName('Payer');
 
-    await addGroupingLevel(page, 'Paid By');
+    await addGroupingLevel(page, 'Added by');
     // The grouping level's column is rendered by the backend, headed by the field
     // catalog's own label until it is overridden.
-    await expect(preview(page)).toHaveAttribute('srcdoc', asCell('Paid By'), { timeout: 20_000 });
+    await expect(preview(page)).toHaveAttribute('srcdoc', asCell('Added by'), { timeout: 20_000 });
 
     await openGroupingRename(page);
 
@@ -83,9 +83,9 @@ test.describe('Report Builder — grouping column headings', () => {
     // behind it has a "Date field" select.
     const field = page.getByRole('dialog').getByLabel('Field');
     await expect(field).toHaveJSProperty('readOnly', true);
-    await expect(field).toHaveValue('Paid By');
+    await expect(field).toHaveValue('Added by');
     // The label is seeded with the heading the column currently carries.
-    await expect(page.getByLabel('Column label')).toHaveValue('Paid By');
+    await expect(page.getByLabel('Column label')).toHaveValue('Added by');
 
     await saveRename(page, heading);
 
@@ -93,12 +93,12 @@ test.describe('Report Builder — grouping column headings', () => {
     await expect(page.getByTestId('report-grouping-label')).toHaveText(heading);
     // ...and so does the rendered report, in place of the catalog label.
     await expect(preview(page)).toHaveAttribute('srcdoc', asCell(heading), { timeout: 20_000 });
-    expect(await preview(page).getAttribute('srcdoc')).not.toMatch(asCell('Paid By'));
+    expect(await preview(page).getAttribute('srcdoc')).not.toMatch(asCell('Added by'));
   });
 
   test('resets to the field label when the default is retyped', async ({ page }) => {
-    await addGroupingLevel(page, 'Paid By');
-    await expect(preview(page)).toHaveAttribute('srcdoc', asCell('Paid By'), { timeout: 20_000 });
+    await addGroupingLevel(page, 'Added by');
+    await expect(preview(page)).toHaveAttribute('srcdoc', asCell('Added by'), { timeout: 20_000 });
 
     const heading = uniqueName('Payer');
     await openGroupingRename(page);
@@ -109,10 +109,10 @@ test.describe('Report Builder — grouping column headings', () => {
     // Retyping the field's own label is how a user resets: no override is stored, so
     // the report goes back to the catalog heading.
     await openGroupingRename(page);
-    await saveRename(page, 'Paid By');
+    await saveRename(page, 'Added by');
 
-    await expect(page.getByTestId('report-grouping-label')).toHaveText('Paid By');
-    await expect(preview(page)).toHaveAttribute('srcdoc', asCell('Paid By'), { timeout: 20_000 });
+    await expect(page.getByTestId('report-grouping-label')).toHaveText('Added by');
+    await expect(preview(page)).toHaveAttribute('srcdoc', asCell('Added by'), { timeout: 20_000 });
     expect(await preview(page).getAttribute('srcdoc')).not.toMatch(asCell(heading));
   });
 
@@ -120,7 +120,7 @@ test.describe('Report Builder — grouping column headings', () => {
     const heading = uniqueName('Payer');
     const templateName = uniqueName('grouping-heading');
 
-    await addGroupingLevel(page, 'Paid By');
+    await addGroupingLevel(page, 'Added by');
     await openGroupingRename(page);
     await saveRename(page, heading);
 
@@ -142,7 +142,7 @@ test.describe('Report Builder — grouping column headings', () => {
     await gotoReports(page);
     const row = page.getByRole('row').filter({ hasText: templateName });
     await expect(row).toContainText(heading);
-    await expect(row).not.toContainText('Paid By');
+    await expect(row).not.toContainText('Added by');
 
     // Reopening rehydrates the override, so it is not lost on the next edit.
     await row.getByTestId('report-template-name').click();

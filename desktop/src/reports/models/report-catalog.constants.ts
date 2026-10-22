@@ -38,9 +38,11 @@ export function toFieldOptions(fields: ReportField[]): ReportFieldOption[] {
  * returns 400 on an unknown one, so this list is a UX affordance, not the gate.
  */
 export const REPORT_BUILTIN_DIMENSIONS: ReportField[] = [
-  { key: "paid_by", label: "Paid By" },
+  { key: "paid_by", label: "Added by" },
   { key: "category", label: "Category" },
   { key: "tag", label: marker("Tag") },
+  { key: "health", label: marker("Health") },
+  { key: "planned", label: marker("Planned / Unplanned") },
   { key: "status", label: "Status" },
   { key: "group", label: "Group" },
   { key: "name", label: "Name" },

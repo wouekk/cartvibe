@@ -43,8 +43,6 @@ export function buildReportForm(formBuilder: FormBuilder, thisContext: any): For
     ),
     subtotals: formBuilder.control(true),
     grandTotals: formBuilder.control(true),
-    splitCategoriesEqually: formBuilder.control(false),
-    splitTagsEqually: formBuilder.control(false),
     document: formBuilder.group({
       title: formBuilder.control(""),
       intro: formBuilder.control("Period Covering: {{period}}"),
@@ -133,8 +131,6 @@ export function buildReportFormFromCommand(
     ),
     subtotals: formBuilder.control(command.subtotals ?? true),
     grandTotals: formBuilder.control(command.grandTotals ?? true),
-    splitCategoriesEqually: formBuilder.control(command.splitCategoriesEqually ?? false),
-    splitTagsEqually: formBuilder.control(command.splitTagsEqually ?? false),
     document: formBuilder.group({
       title: formBuilder.control(command.document?.title ?? ""),
       intro: formBuilder.control(command.document?.intro ?? ""),

@@ -40,7 +40,7 @@ const FILTER_FIELDS: FilterFieldDef[] = [
   { field: "name", label: "Name", type: "text" },
   { field: "amount", label: "Amount", type: "number", isCurrency: true },
   { field: "date", label: "Date", type: "date" },
-  { field: "paidBy", label: marker("Paid by"), type: "users" },
+  { field: "paidBy", label: marker("Added by"), type: "users" },
   { field: "categories", label: "Categories", type: "list", optionsKey: "categories", optionValueKey: "id", optionFilterKey: "name", optionDisplayKey: "name" },
   { field: "tags", label: "Tags", type: "list", optionsKey: "tags", optionValueKey: "id", optionFilterKey: "name", optionDisplayKey: "name" },
   { field: "status", label: "Status", type: "list", optionsKey: "status", optionValueKey: "value", optionFilterKey: "value", optionDisplayKey: "displayValue" },

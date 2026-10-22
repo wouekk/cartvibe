@@ -1,36 +1,32 @@
-<div class="flex h-full min-h-0 flex-col bg-muted">
-  <div class="flex flex-none items-center gap-3.5 border-b border-border bg-card px-6 py-3.5">
+<div class="flex h-full min-h-0 flex-col bg-background">
+  <header class="flex flex-none flex-wrap items-center gap-x-3 gap-y-2 border-b border-border px-4 py-3 sm:px-6">
     <app-button
-      class="report-builder__back"
       matButtonType="iconButton"
       icon="arrow_back"
       [tooltip]="'Back to Reports' | t"
       data-testid="report-builder-back"
       [buttonRouterLink]="['/reports']"
     ></app-button>
-    <span class="inline-flex size-10 items-center justify-center rounded-[11px] bg-primary shadow-[0_4px_14px_color-mix(in_oklab,var(--primary)_30%,transparent)] [&_app-icon]:text-card">
-      <app-icon name="summarize"></app-icon>
-    </span>
-    <div class="min-w-0">
-      <div class="flex items-center gap-1.5 text-xs text-muted-foreground [&_app-icon]:size-[15px] [&_app-icon]:text-[15px] [&_app-icon]:text-border">
-        <a class="cursor-pointer text-inherit no-underline hover:text-primary hover:underline" [routerLink]="['/reports']">{{ 'Reports' | t }}</a>
+    <div class="min-w-0 flex-1">
+      <nav class="flex min-w-0 items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground [&_app-icon]:size-3 [&_app-icon]:flex-none" [attr.aria-label]="'Breadcrumb' | t">
+        <a class="text-inherit no-underline transition-colors duration-150 hover:text-foreground" [routerLink]="['/reports']">{{ 'Reports' | t }}</a>
         <app-icon name="chevron_right"></app-icon>
-        <span>{{ loadedTemplateName ?? "New report" }}</span>
-      </div>
-      <div class="text-xl font-semibold leading-tight text-foreground">{{ 'Report Builder' | t }}</div>
+        <span class="truncate">{{ loadedTemplateName ?? ('New report' | t) }}</span>
+      </nav>
+      <h1 class="m-0 truncate text-2xl font-semibold leading-tight text-foreground">{{ 'Report Builder' | t }}</h1>
     </div>
-    <span class="flex-1"></span>
-    <span class="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-[11px] py-[5px] text-[11.5px] text-muted-foreground [&_app-icon]:size-[15px] [&_app-icon]:text-[15px] [&_app-icon]:text-muted-foreground">
+    <span class="inline-flex items-center gap-1.5 text-xs text-muted-foreground [&_app-icon]:size-3.5">
       <app-icon name="lock"></app-icon>
       {{ 'Runs under your group permissions' | t }}
     </span>
-  </div>
+  </header>
 
-  <div class="flex min-h-0 flex-1 max-[900px]:flex-col">
-    <div class="w-[490px] flex-none overflow-y-auto border-r border-border bg-muted px-[18px] pb-7 pt-4 max-[900px]:w-full max-[900px]:border-b max-[900px]:border-r-0">
+  <!-- Two panes scrolling on their own; stacked below 900px, where the page scrolls as one. -->
+  <div class="flex min-h-0 flex-1 max-[900px]:flex-col max-[900px]:overflow-y-auto">
+    <div class="w-[30rem] flex-none overflow-y-auto border-r border-border p-4 max-[900px]:w-full max-[900px]:flex-none max-[900px]:overflow-visible max-[900px]:border-b max-[900px]:border-r-0">
       <app-report-config-panel [form]="form"></app-report-config-panel>
     </div>
-    <div class="min-w-0 flex-1 overflow-y-auto bg-accent">
+    <div class="min-w-0 flex-1 overflow-y-auto bg-muted/40 max-[900px]:flex-none max-[900px]:overflow-visible">
       <app-report-preview-panel
         [form]="form"
         [html]="previewHtml()"

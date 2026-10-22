@@ -36,9 +36,6 @@ function buildForm(formBuilder: FormBuilder): FormGroup {
       endDate: formBuilder.control<Date | null>(null),
       dateField: formBuilder.control<string>("date"),
     }),
-    splitCategoriesEqually: formBuilder.control(false),
-    splitTagsEqually: formBuilder.control(false),
-    splitExcludedFields: formBuilder.array([]),
     document: formBuilder.group({ intro: formBuilder.control("") }),
   });
 }
@@ -136,7 +133,7 @@ describe("ReportConfigPanelComponent", () => {
   it("adds, reorders, and removes grouping levels and narrows addableDimensions", () => {
     component.addGroupBy("paid_by");
     component.addGroupBy("tag");
-    expect(component.groupByLevels().map((level) => level.label)).toEqual(["Paid By", "Tag"]);
+    expect(component.groupByLevels().map((level) => level.label)).toEqual(["Added by", "Tag"]);
 
     const addable = component.addableDimensions().map((field) => field.key);
     expect(addable).toContain("category");
@@ -144,10 +141,10 @@ describe("ReportConfigPanelComponent", () => {
     expect(addable).not.toContain("tag");
 
     component.moveGroupBy(0, 1);
-    expect(component.groupByLevels().map((level) => level.label)).toEqual(["Tag", "Paid By"]);
+    expect(component.groupByLevels().map((level) => level.label)).toEqual(["Tag", "Added by"]);
 
     component.removeGroupBy(0);
-    expect(component.groupByLevels().map((level) => level.label)).toEqual(["Paid By"]);
+    expect(component.groupByLevels().map((level) => level.label)).toEqual(["Added by"]);
   });
 
   it("addGroupBy ignores an empty key", () => {
@@ -176,7 +173,7 @@ describe("ReportConfigPanelComponent", () => {
       expect.objectContaining({
         kind: ReportColumn.KindEnum.Dimension,
         field: "paid_by",
-        label: "Paid By",
+        label: "Added by",
       })
     );
     expect(data.column.id).toBeTruthy();
@@ -208,12 +205,12 @@ describe("ReportConfigPanelComponent", () => {
     // stored, so the report falls back to the field's own heading.
     dialog.open.mockReturnValue({
       afterClosed: () =>
-        of({ id: "x", kind: ReportColumn.KindEnum.Dimension, name: "paid_by", label: "Paid By", field: "paid_by" }),
+        of({ id: "x", kind: ReportColumn.KindEnum.Dimension, name: "paid_by", label: "Added by", field: "paid_by" }),
     });
     component.openGroupingLabelPicker(0);
 
     expect(groupByArray().at(0).get("label")!.value).toBe("");
-    expect(component.groupByLevels().map((level) => level.label)).toEqual(["Paid By"]);
+    expect(component.groupByLevels().map((level) => level.label)).toEqual(["Added by"]);
   });
 
   it("is a no-op when the picker is cancelled", () => {
@@ -236,7 +233,7 @@ describe("ReportConfigPanelComponent", () => {
 
     component.moveGroupBy(1, -1);
 
-    expect(component.groupByLevels().map((level) => level.label)).toEqual(["Label", "Paid By"]);
+    expect(component.groupByLevels().map((level) => level.label)).toEqual(["Label", "Added by"]);
   });
 
   it("drops the heading with the level it belongs to", () => {
@@ -252,50 +249,7 @@ describe("ReportConfigPanelComponent", () => {
     component.addGroupBy("paid_by");
 
     expect(groupByArray().at(0).get("label")!.value).toBe("");
-    expect(component.groupByLevels().map((level) => level.label)).toEqual(["Paid By"]);
-  });
-
-  // ---- splitting ---------------------------------------------------------
-
-
-  it("reports nothing ticked by default", () => {
-    expect(component.splitState()).toEqual({
-      anyTicked: false,
-      categoryInactive: false,
-      tagInactive: false,
-    });
-  });
-
-  it("treats a category split as applied when the report aggregates by category", () => {
-    form.get("splitCategoriesEqually")!.setValue(true);
-    expect(component.splitState()).toEqual({
-      anyTicked: true,
-      categoryInactive: false,
-      tagInactive: false,
-    });
-  });
-
-  it("flags a tag split until the report groups by tag", () => {
-    form.get("splitTagsEqually")!.setValue(true);
-    expect(component.splitState().tagInactive).toBe(true);
-
-    component.addGroupBy("tag");
-    expect(component.splitState().tagInactive).toBe(false);
-
-    component.removeGroupBy(0);
-    expect(component.splitState().tagInactive).toBe(true);
-  });
-
-  it("re-evaluates the category split when the aggregate dimension or mode changes", () => {
-    form.get("splitCategoriesEqually")!.setValue(true);
-    expect(component.splitState().categoryInactive).toBe(false);
-
-    form.get("detail.by")!.setValue("tag");
-    expect(component.splitState().categoryInactive).toBe(true);
-
-    form.get("detail.by")!.setValue("category");
-    component.setDetailMode(ReportDetail.ModeEnum.Records);
-    expect(component.splitState().categoryInactive).toBe(true);
+    expect(component.groupByLevels().map((level) => level.label)).toEqual(["Added by"]);
   });
 
   // ---- detail mode -------------------------------------------------------

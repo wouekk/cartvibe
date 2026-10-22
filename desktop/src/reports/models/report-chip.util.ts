@@ -4,8 +4,8 @@
  * palette and initials stay in sync across both.
  */
 
-/** Rotating avatar background palette, indexed by chip position modulo its length. */
-export const CHIP_COLORS = ["#f5a3b7", "#f7b267", "#4db6ac", "#b39ddb", "#27b1ff", "#f6c453"];
+/** Rotating avatar backgrounds, indexed by chip position modulo its length: the chart tokens, so both themes fit. */
+export const CHIP_COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"];
 
 /** The 1-2 character avatar initials for a group name (falls back to "?"). */
 export function groupInitials(name: string | undefined): string {

@@ -10,4 +10,6 @@ export interface FilterTab {
   icon?: string;
   /** Optional count rendered as a pill; hidden when undefined. */
   count?: number;
+  /** Optional data-testid for the tab's button. */
+  testId?: string;
 }
