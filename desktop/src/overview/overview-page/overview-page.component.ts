@@ -67,6 +67,12 @@ import {
   defaultLayout,
   GRID_COLUMNS,
   movePanel,
+  applyDrop,
+  DropCell,
+  pinPlacements,
+  placePanels,
+  resolveDrop,
+  roomToTheRight,
   PanelGroup,
   panelDefinition,
   panelKind,
@@ -926,20 +932,34 @@ export class OverviewPageComponent {
   }
 
   /**
-   * A panel's width is exactly its share of a row (span of the grid's columns, less its part of the gaps). Panels never
-   * stretch, so the size set in the editor is the size drawn and a row may end with empty space.
+   * A panel sits in a cell of the grid: its start column and row, and exactly its width in columns. Panels never stretch,
+   * so the size set in the editor is the size drawn, and a row may have empty columns.
    */
-  public panelFlex(panel: ResolvedPanel): string {
-    const columns = this.gridColumns();
-    return `0 0 calc(${panel.span} / ${columns} * 100% - ${(PANEL_GAP_PX * (columns - panel.span)) / columns}px)`;
+  public gridColumn(panel: ResolvedPanel): string {
+    return `${panel.x + 1} / span ${panel.span}`;
   }
 
-  /** The panels in the order drawn: while one is dragged, the order it would have if dropped now. */
+  public gridRow(panel: ResolvedPanel): number {
+    return panel.row + 1;
+  }
+
+  /**
+   * The panels as drawn. While one is dragged on a phone or tablet, the others reflow live to the order it would have if
+   * dropped now; in the PC view they stay where they are and a dashed outline shows the cell it would take.
+   */
   public readonly displayPanels = computed(() => {
     const order = this.dragOrder();
     const panels = this.panels();
-    return order ? order.map((id) => panels.find((panel) => panel.id === id) as ResolvedPanel).filter(Boolean) : panels;
+    if (!order) {
+      return panels;
+    }
+    const ordered = order.map((id) => panels.find((panel) => panel.id === id) as ResolvedPanel).filter(Boolean);
+    const placed = placePanels(ordered, this.gridColumns(), false);
+    return ordered.map((panel, index) => ({ ...panel, x: placed[index].x, row: placed[index].row }));
   });
+
+  /** The cell a dragged panel would take in the PC view. */
+  public readonly dropPreview = signal<(DropCell & { span: number }) | undefined>(undefined);
 
   /** "2/6": the width a panel has, so a change is always visible. */
   public sizeLabel(panel: ResolvedPanel): string {
@@ -967,13 +987,41 @@ export class OverviewPageComponent {
       this.snackbarService.hint(this.translation.t(marker("Widths are set in the PC view.")));
       return false;
     }
-    const hit = sizeLimitHit(id, size);
+    const hit = sizeLimitHit(id, size) ?? this.noRoomToWiden(id, size.cols);
     if (hit) {
       this.notifyLimit(id, hit.limit);
       return false;
     }
-    this.editLayout((layout) => resizePanel(layout, id, size));
+    this.commitSize(id, size);
     return true;
+  }
+
+  /** In the PC view a panel may only grow up to the next panel in its row, or the grid's edge. */
+  private noRoomToWiden(id: string, cols: number | undefined): { limit: SizeLimit; value: number } | undefined {
+    if (cols === undefined || this.sizeClass() !== "wide") {
+      return undefined;
+    }
+    const room = roomToTheRight(this.panels(), id);
+    return cols > room ? { limit: "max-cols", value: room } : undefined;
+  }
+
+  /** Writes a size that fits (limits and room already respected), keeping every other panel where it is. */
+  private commitSize(id: string, size: { cols?: number; rows?: number }): void {
+    const placements = this.panels();
+    this.editLayout((layout) => resizePanel(this.sizeClass() === "wide" ? pinPlacements(layout, placements) : layout, id, size));
+  }
+
+  /** A requested size cut back to what the panel's limits and the room beside it allow. */
+  private clampSize(id: string, size: { cols: number; rows: number }): { cols: number; rows: number } {
+    const definition = panelDefinition(id);
+    if (!definition) {
+      return size;
+    }
+    const maxCols = this.sizeClass() === "wide" ? Math.min(definition.maxCols, roomToTheRight(this.panels(), id)) : definition.maxCols;
+    return {
+      cols: Math.min(maxCols, Math.max(definition.minCols, size.cols)),
+      rows: Math.min(definition.maxRows, Math.max(1, size.rows)),
+    };
   }
 
   /**
@@ -1026,6 +1074,22 @@ export class OverviewPageComponent {
     }
   }
 
+  /** The PC view's Move left / right / up / down: one cell that way, else the nearest free spot, else it says there is no room. */
+  public nudgePanel(id: string, dx: number, dy: number): void {
+    const placements = this.panels();
+    const own = placements.find((place) => place.id === id);
+    if (!own) {
+      return;
+    }
+    const cell = resolveDrop(placements, id, own.span, own.row + dy, own.x + dx);
+    if (!cell.newRow && cell.x === own.x && cell.row === own.row) {
+      shakeElement(this.panelElement(id));
+      this.snackbarService.hint(this.translation.t(marker("There is no room to move {name} that way."), { name: this.panelLabel(id) }));
+      return;
+    }
+    this.editLayout((layout) => applyDrop(pinPlacements(layout, placements), placements, id, cell));
+  }
+
   // ---- Dragging a panel (any direction, diagonals included) -----------------------------------------------------
 
   /** The shown panels' order while one is being dragged; undefined otherwise. */
@@ -1059,8 +1123,9 @@ export class OverviewPageComponent {
     let pointer = { x: event.clientX, y: event.clientY };
     let frame = 0;
 
+    const wide = this.sizeClass() === "wide";
     this.draggingId.set(panel.id);
-    this.dragOrder.set(original);
+    this.dragOrder.set(wide ? undefined : original);
 
     const place = () => {
       // The panel's own slot is where it would sit untransformed, so the drag follows the pointer across reflows.
@@ -1070,6 +1135,12 @@ export class OverviewPageComponent {
       translateX = pointer.x - grabX - slotLeft;
       translateY = pointer.y - grabY - slotTop;
       element.style.transform = `translate(${translateX}px, ${translateY}px)`;
+
+      if (wide) {
+        // The PC view: the others stay put and a dashed outline shows the cell the panel would take.
+        this.dropPreview.set(this.cellUnderPanel(panel, pointer.x - grabX, pointer.y));
+        return;
+      }
 
       const insideOwnSlot = pointer.x >= slotLeft && pointer.x <= slotLeft + rect.width && pointer.y >= slotTop && pointer.y <= slotTop + rect.height;
       if (insideOwnSlot) {
@@ -1119,9 +1190,14 @@ export class OverviewPageComponent {
       element.style.transform = "";
 
       const order = this.dragOrder();
+      const preview = this.dropPreview();
       this.dragOrder.set(undefined);
+      this.dropPreview.set(undefined);
       this.draggingId.set(undefined);
-      if (commit && order) {
+      if (commit && wide && preview) {
+        const placements = this.panels();
+        this.editLayout((layout) => applyDrop(pinPlacements(layout, placements), placements, panel.id, preview));
+      } else if (commit && order) {
         const index = order.indexOf(panel.id);
         const target = original[index];
         if (target && target !== panel.id) {
@@ -1143,6 +1219,43 @@ export class OverviewPageComponent {
     window.addEventListener("keydown", key);
     frame = requestAnimationFrame(autoScroll);
     place();
+  }
+
+  /**
+   * The grid cell a panel dragged in the PC view would land in: its left edge picks the column, the pointer picks the row
+   * (below the last row opens a new one), and a taken cell moves to the nearest free spot (see `resolveDrop`).
+   */
+  private cellUnderPanel(panel: ResolvedPanel, leftEdge: number, pointerY: number): DropCell & { span: number } {
+    const grid = this.panelGrid()?.nativeElement;
+    const placements = this.panels();
+    if (!grid) {
+      return { x: panel.x, row: panel.row, newRow: false, span: panel.span };
+    }
+    const box = grid.getBoundingClientRect();
+    const columnWidth = (box.width + PANEL_GAP_PX) / this.gridColumns();
+    const x = Math.round((leftEdge - box.left) / columnWidth);
+
+    const bands = new Map<number, { top: number; bottom: number }>();
+    for (const place of placements) {
+      // The dragged panel is skipped: it is under the pointer, so its own box would put the pointer in every row it passes.
+      const rect = place.id === panel.id ? undefined : this.panelElement(place.id)?.getBoundingClientRect();
+      if (rect) {
+        const band = bands.get(place.row);
+        bands.set(place.row, { top: Math.min(band?.top ?? rect.top, rect.top), bottom: Math.max(band?.bottom ?? rect.bottom, rect.bottom) });
+      }
+    }
+    const sorted = [...bands.entries()].sort((a, b) => a[0] - b[0]);
+    let row = sorted.length;
+    if (sorted.length > 0 && pointerY < sorted[0][1].top) {
+      row = 0;
+    }
+    for (const [rank, band] of sorted) {
+      if (pointerY <= band.bottom + PANEL_GAP_PX / 2) {
+        row = rank;
+        break;
+      }
+    }
+    return { ...resolveDrop(placements, panel.id, panel.span, row, x, this.gridColumns()), span: panel.span };
   }
 
   /**
@@ -1168,22 +1281,14 @@ export class OverviewPageComponent {
       const cols = panel.cols + Math.round((moveEvent.clientX - startX) / columnWidth);
       const dy = moveEvent.clientY - startY;
       const rows = dy > RESIZE_ROW_STEP_PX ? panel.rows + 1 : dy < -RESIZE_ROW_STEP_PX ? panel.rows - 1 : panel.rows;
-      const hit = sizeLimitHit(panel.id, { cols, rows });
+      const hit = sizeLimitHit(panel.id, { cols, rows }) ?? this.noRoomToWiden(panel.id, cols);
       if (hit) {
         if (!atLimit) {
           atLimit = true;
           this.notifyLimit(panel.id, hit.limit);
         }
         // Keep what still fits: a diagonal drag past the width limit can still change the height.
-        const definition = panelDefinition(panel.id);
-        if (definition) {
-          this.editLayout((layout) =>
-            resizePanel(layout, panel.id, {
-              cols: Math.min(definition.maxCols, Math.max(definition.minCols, cols)),
-              rows: Math.min(definition.maxRows, Math.max(1, rows)),
-            })
-          );
-        }
+        this.commitSize(panel.id, this.clampSize(panel.id, { cols, rows }));
         return;
       }
       atLimit = false;

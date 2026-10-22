@@ -92,6 +92,9 @@ export interface PanelLayout {
   /** Width in the wide grid's columns. */
   cols: number;
   rows: number;
+  /** Where the panel sits in the wide grid (0-based column and row), once it has been placed by hand. Unplaced panels flow. */
+  x?: number;
+  y?: number;
 }
 
 export interface DashboardLayout {
@@ -111,6 +114,9 @@ export interface ResolvedPanel {
   /** Width and height as saved (wide-grid columns, height step). */
   cols: number;
   rows: number;
+  /** Where it is drawn in the current size class's grid: 0-based start column and row. */
+  x: number;
+  row: number;
 }
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, Math.round(value)));
@@ -271,12 +277,15 @@ export function parseLayout(text: string | null | undefined): DashboardLayout | 
     const definition = panelDefinition(panel.id);
     const cols = Number(panel.cols);
     const rows = Number(panel.rows);
+    const x = Number(panel.x);
+    const y = Number(panel.y);
     panels.push({
       id: panel.id,
       visible: panel.visible !== false,
       // A panel this version does not know keeps its numbers as they are.
       cols: definition ? clamp(Number.isFinite(cols) ? cols : definition.defaultCols, definition.minCols, definition.maxCols) : cols,
       rows: definition ? clamp(Number.isFinite(rows) ? rows : 1, 1, definition.maxRows) : rows,
+      ...(panel.x !== undefined && panel.y !== undefined && Number.isInteger(x) && Number.isInteger(y) && x >= 0 && y >= 0 ? { x, y } : {}),
     });
   }
 
@@ -335,14 +344,161 @@ export function spanFor(panel: PanelLayout, sizeClass: SizeClass): number {
   return clamp(panel.cols, definition.minRegularCols, GRID_COLUMNS.regular);
 }
 
-/** What the Dashboard draws: the visible, available panels in the size class's order with their spans. */
+/** A panel's place in a grid: start column and row, both 0-based. */
+export interface Placement {
+  id: string;
+  x: number;
+  row: number;
+  span: number;
+}
+
+/**
+ * Places panels in a grid of `columns` columns, in order. A panel with a saved cell (`x`, `y`, wide grid only) takes it when the
+ * cells are free; every other panel, and one whose cell is taken, goes to the first free spot after the previous one. Rows
+ * are numbered without gaps, so an empty row leaves no space.
+ */
+export function placePanels(
+  panels: { id: string; span: number; x?: number; y?: number }[],
+  columns: number,
+  usePlaces: boolean
+): Placement[] {
+  const taken = new Map<number, boolean[]>();
+  const rowCells = (row: number) => {
+    if (!taken.has(row)) {
+      taken.set(row, new Array(columns).fill(false));
+    }
+    return taken.get(row) as boolean[];
+  };
+  const isFree = (row: number, x: number, span: number) => {
+    const cells = rowCells(row);
+    return x >= 0 && x + span <= columns && cells.slice(x, x + span).every((cell) => !cell);
+  };
+
+  let cursorRow = 0;
+  let cursorX = 0;
+  const raw: { id: string; x: number; y: number; span: number }[] = [];
+  for (const panel of panels) {
+    const span = Math.min(panel.span, columns);
+    let spot: { x: number; y: number } | undefined;
+    if (usePlaces && panel.x !== undefined && panel.y !== undefined && isFree(panel.y, panel.x, span)) {
+      spot = { x: panel.x, y: panel.y };
+    }
+    for (let row = cursorRow; !spot; row++) {
+      for (let x = row === cursorRow ? cursorX : 0; x + span <= columns; x++) {
+        if (isFree(row, x, span)) {
+          spot = { x, y: row };
+          break;
+        }
+      }
+    }
+    rowCells(spot.y).fill(true, spot.x, spot.x + span);
+    raw.push({ id: panel.id, x: spot.x, y: spot.y, span });
+    if (spot.y > cursorRow || (spot.y === cursorRow && spot.x + span > cursorX)) {
+      cursorRow = spot.y;
+      cursorX = spot.x + span;
+    }
+  }
+
+  const rowRank = new Map([...new Set(raw.map((item) => item.y))].sort((a, b) => a - b).map((y, rank) => [y, rank]));
+  return raw.map((item) => ({ id: item.id, x: item.x, row: rowRank.get(item.y) as number, span: item.span }));
+}
+
+/** What the Dashboard draws: the visible, available panels in the size class's order with their spans and places. */
 export function resolveLayout(saved: DashboardLayout | undefined, available: string[], sizeClass: SizeClass): ResolvedPanel[] {
   const layout = completeLayout(saved, available);
   const order = sizeClass === "compact" ? compactOrder(layout) : layout.panels.map((panel) => panel.id);
-  return order
+  const shown = order
     .map((id) => layout.panels.find((panel) => panel.id === id) as PanelLayout)
-    .filter((panel) => panel.visible && available.includes(panel.id) && !!panelDefinition(panel.id))
-    .map((panel) => ({ id: panel.id, kind: panelKind(panel.id), span: spanFor(panel, sizeClass), cols: panel.cols, rows: panel.rows }));
+    .filter((panel) => panel.visible && available.includes(panel.id) && !!panelDefinition(panel.id));
+  const placed = placePanels(
+    shown.map((panel) => ({ id: panel.id, span: spanFor(panel, sizeClass), x: panel.x, y: panel.y })),
+    GRID_COLUMNS[sizeClass],
+    sizeClass === "wide"
+  );
+  return shown.map((panel, index) => ({
+    id: panel.id,
+    kind: panelKind(panel.id),
+    span: placed[index].span,
+    cols: panel.cols,
+    rows: panel.rows,
+    x: placed[index].x,
+    row: placed[index].row,
+  }));
+}
+
+/** Saves where every shown panel is now, so editing one panel never makes the others move. */
+export function pinPlacements(layout: DashboardLayout, placements: Placement[]): DashboardLayout {
+  const byId = new Map(placements.map((place) => [place.id, place]));
+  return {
+    ...layout,
+    panels: layout.panels.map((panel) => {
+      const place = byId.get(panel.id);
+      return place ? { ...panel, x: place.x, y: place.row } : panel;
+    }),
+  };
+}
+
+export interface DropCell {
+  x: number;
+  row: number;
+  /** The drop opens a new row at `row` (the rows from there move down) instead of using a free spot in it. */
+  newRow: boolean;
+}
+
+/**
+ * Where a panel dropped near cell (`row`, `x`) of the wide grid ends up: that spot when it is free, else the nearest free
+ * spot in the row, else a new row below it. Below the last row it opens a new last row.
+ */
+export function resolveDrop(placements: Placement[], id: string, span: number, row: number, x: number, columns = GRID_COLUMNS.wide): DropCell {
+  const others = placements.filter((place) => place.id !== id);
+  const rows = Math.max(-1, ...others.map((place) => place.row)) + 1;
+  const start = Math.min(Math.max(x, 0), columns - span);
+  if (row >= rows) {
+    return { x: start, row: rows, newRow: false };
+  }
+  const free = (candidate: number) =>
+    candidate >= 0 &&
+    candidate + span <= columns &&
+    others.every((place) => place.row !== row || candidate + span <= place.x || candidate >= place.x + place.span);
+  for (let offset = 0; offset < columns; offset++) {
+    for (const candidate of offset === 0 ? [start] : [start - offset, start + offset]) {
+      if (free(candidate)) {
+        return { x: candidate, row: Math.max(row, 0), newRow: false };
+      }
+    }
+  }
+  return { x: start, row: Math.max(row, 0) + 1, newRow: true };
+}
+
+/** Moves a panel to a cell of the wide grid (see `resolveDrop`); every panel is pinned where it is, and the order follows the grid. */
+export function applyDrop(layout: DashboardLayout, placements: Placement[], id: string, cell: DropCell): DashboardLayout {
+  const place = new Map(placements.map((item) => [item.id, { x: item.x, y: item.row }]));
+  if (cell.newRow) {
+    for (const [other, spot] of place) {
+      if (other !== id && spot.y >= cell.row) {
+        place.set(other, { x: spot.x, y: spot.y + 1 });
+      }
+    }
+  }
+  place.set(id, { x: cell.x, y: cell.row });
+
+  const gridOrder = [...place.entries()].sort((a, b) => a[1].y - b[1].y || a[1].x - b[1].x).map(([panelId]) => panelId);
+  const placed = gridOrder.map((panelId) => {
+    const panel = layout.panels.find((candidate) => candidate.id === panelId) as PanelLayout;
+    const spot = place.get(panelId) as { x: number; y: number };
+    return { ...panel, x: spot.x, y: spot.y };
+  });
+  return { ...layout, panels: [...placed, ...layout.panels.filter((panel) => !place.has(panel.id))] };
+}
+
+/** The widest a panel may be where it stands: up to the next panel in its row, or the grid's edge. */
+export function roomToTheRight(placements: Placement[], id: string, columns = GRID_COLUMNS.wide): number {
+  const own = placements.find((place) => place.id === id);
+  if (!own) {
+    return 0;
+  }
+  const next = placements.filter((place) => place.id !== id && place.row === own.row && place.x >= own.x + own.span).map((place) => place.x);
+  return Math.min(columns, ...next) - own.x;
 }
 
 /** Shows or hides a panel; a panel switched on that the layout lacks joins it next to its group. */

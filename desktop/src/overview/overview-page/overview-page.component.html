@@ -1,4 +1,4 @@
-<div class="mx-auto flex max-w-[1240px] flex-col gap-6">
+<div class="flex flex-col gap-6">
   @if (customising()) {
     <div class="flex flex-wrap items-center justify-between gap-4">
       <div class="flex min-w-0 flex-col gap-0.5">
@@ -127,7 +127,8 @@
       <!-- Rows of panels: a panel's size is its share of a row, and the panels of a row stretch to fill it (no holes). -->
       <section
         #panelGrid
-        class="flex flex-wrap gap-4"
+        class="grid gap-4"
+        [style.grid-template-columns]="'repeat(' + gridColumns() + ', minmax(0, 1fr))'"
         [attr.aria-label]="'The period at a glance' | t"
         [attr.data-size-class]="sizeClass()"
         data-testid="dashboard-grid"
@@ -140,7 +141,8 @@
             [class.ring-1]="draggingId() === panel.id"
             [class.ring-border]="draggingId() === panel.id"
             [class.rounded-xl]="draggingId() === panel.id"
-            [style.flex]="panelFlex(panel)"
+            [style.grid-column]="gridColumn(panel)"
+            [style.grid-row]="gridRow(panel)"
             [style.min-height]="panelMinHeight(panel)"
             [attr.data-testid]="'dashboard-panel-' + panel.id"
             [attr.data-panel-id]="panel.id"
@@ -564,6 +566,16 @@
             }
           </div>
         }
+        @if (dropPreview(); as preview) {
+          <div
+            class="pointer-events-none rounded-xl border-2 border-dashed border-primary/60 bg-primary/5"
+            [style.grid-column]="(preview.x + 1) + ' / span ' + preview.span"
+            [style.grid-row]="preview.row + 1"
+            [style.min-height.px]="72"
+            aria-hidden="true"
+            data-testid="dashboard-drop-preview"
+          ></div>
+        }
       </section>
       @if (customising() && panels().length === 0) {
         <p class="m-0 py-10 text-center text-muted-foreground" data-testid="dashboard-customise-empty">{{ 'Every panel is hidden. Switch some on in the panel list.' | t }}</p>
@@ -574,12 +586,27 @@
 
 <ng-template #panelMenu let-panel="panel">
   <div hlmDropdownMenu class="w-52">
-    <button hlmDropdownMenuItem type="button" data-testid="dashboard-panel-earlier" [disabled]="isFirstPanel(panel.id)" (click)="shiftPanel(panel.id, -1)">
-      <app-icon name="arrow_back"></app-icon><span>{{ 'Move earlier' | t }}</span>
-    </button>
-    <button hlmDropdownMenuItem type="button" data-testid="dashboard-panel-later" [disabled]="isLastPanel(panel.id)" (click)="shiftPanel(panel.id, 1)">
-      <app-icon name="arrow_forward"></app-icon><span>{{ 'Move later' | t }}</span>
-    </button>
+    @if (sizeClass() === 'wide') {
+      <button hlmDropdownMenuItem type="button" data-testid="dashboard-panel-left" (click)="nudgePanel(panel.id, -1, 0)">
+        <app-icon name="arrow_back"></app-icon><span>{{ 'Move left' | t }}</span>
+      </button>
+      <button hlmDropdownMenuItem type="button" data-testid="dashboard-panel-right" (click)="nudgePanel(panel.id, 1, 0)">
+        <app-icon name="arrow_forward"></app-icon><span>{{ 'Move right' | t }}</span>
+      </button>
+      <button hlmDropdownMenuItem type="button" data-testid="dashboard-panel-up" (click)="nudgePanel(panel.id, 0, -1)">
+        <app-icon name="arrow_upward"></app-icon><span>{{ 'Move up' | t }}</span>
+      </button>
+      <button hlmDropdownMenuItem type="button" data-testid="dashboard-panel-down" (click)="nudgePanel(panel.id, 0, 1)">
+        <app-icon name="arrow_downward"></app-icon><span>{{ 'Move down' | t }}</span>
+      </button>
+    } @else {
+      <button hlmDropdownMenuItem type="button" data-testid="dashboard-panel-earlier" [disabled]="isFirstPanel(panel.id)" (click)="shiftPanel(panel.id, -1)">
+        <app-icon name="arrow_back"></app-icon><span>{{ 'Move earlier' | t }}</span>
+      </button>
+      <button hlmDropdownMenuItem type="button" data-testid="dashboard-panel-later" [disabled]="isLastPanel(panel.id)" (click)="shiftPanel(panel.id, 1)">
+        <app-icon name="arrow_forward"></app-icon><span>{{ 'Move later' | t }}</span>
+      </button>
+    }
     <div hlmDropdownMenuSeparator></div>
     <button hlmDropdownMenuItem type="button" data-testid="dashboard-panel-wider" (click)="stepSize(panel.id, 1, 0)">
       <app-icon name="add"></app-icon><span>{{ 'Wider' | t }}</span>

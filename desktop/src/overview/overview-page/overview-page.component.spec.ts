@@ -789,9 +789,32 @@ describe("OverviewPageComponent", () => {
         expect(spent().cols).toBe(1);
       });
 
-      it("draws exact widths: panels never stretch to fill a row", () => {
-        const flex = component.panelFlex(component.panels()[0]);
-        expect(flex.startsWith("0 0 calc(")).toBe(true);
+      it("draws every panel in its own grid cell, exactly as wide as it is set", () => {
+        const first = component.panels()[0];
+        expect(component.gridColumn(first)).toBe(`${first.x + 1} / span ${first.span}`);
+        expect(component.gridRow(first)).toBe(first.row + 1);
+      });
+
+      it("moves a panel into empty columns and keeps the others where they were", async () => {
+        component.setPanelVisible("trend", false);
+        await fixture.whenStable();
+        const before = Object.fromEntries(component.panels().map((panel) => [panel.id, [panel.x, panel.row]]));
+        component.nudgePanel("categories", 1, 0);
+        await fixture.whenStable();
+        const after = Object.fromEntries(component.panels().map((panel) => [panel.id, [panel.x, panel.row]]));
+
+        expect(before["categories"]).toEqual([0, 1]);
+        expect(after["categories"]).toEqual([1, 1]);
+        for (const id of Object.keys(before).filter((key) => key !== "categories")) {
+          expect(after[id]).toEqual(before[id]);
+        }
+      });
+
+      it("cannot widen a panel into its neighbour, and says so", () => {
+        const hint = jest.spyOn(TestBed.inject(SnackbarService), "hint");
+        // Spent (2 columns) has Receipts right beside it.
+        expect(component.resize("spent", { cols: 3 })).toBe(false);
+        expect(hint).toHaveBeenCalled();
       });
 
       it("asks before leaving with unsaved changes, and leaves at once without any", async () => {

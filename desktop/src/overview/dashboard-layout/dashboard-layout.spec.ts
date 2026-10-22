@@ -11,7 +11,11 @@ import {
   setVisible,
   sizeClassFor,
   spanFor,
+  applyDrop,
   dropTargetAt,
+  placePanels,
+  resolveDrop,
+  roomToTheRight,
   sizeLimitHit,
   tagPanelId,
 } from "./dashboard-layout";
@@ -91,6 +95,77 @@ describe("dashboard layout", () => {
       expect(dropTargetAt(rects, { x: 50, y: 50 }, "a")).not.toBe("a");
       expect(dropTargetAt([rects[0]], { x: 50, y: 50 }, "a")).toBeUndefined();
     });
+  });
+
+  describe("placePanels", () => {
+    const item = (id: string, span: number, x?: number, y?: number) => ({ id, span, x, y });
+
+    it("flows unplaced panels row by row", () => {
+      expect(placePanels([item("a", 4), item("b", 2), item("c", 3)], 6, true)).toEqual([
+        { id: "a", x: 0, row: 0, span: 4 },
+        { id: "b", x: 4, row: 0, span: 2 },
+        { id: "c", x: 0, row: 1, span: 3 },
+      ]);
+    });
+
+    it("keeps a placed panel in its cell, leaving empty columns before it", () => {
+      expect(placePanels([item("a", 2, 0, 0), item("b", 2, 4, 0)], 6, true).map((place) => place.x)).toEqual([0, 4]);
+    });
+
+    it("sends a panel whose cell is taken to the next free spot, and numbers the rows without gaps", () => {
+      const placed = placePanels([item("a", 3, 0, 0), item("b", 3, 1, 0), item("c", 2, 0, 5)], 6, true);
+      expect(placed[1]).toMatchObject({ x: 3, row: 0 });
+      expect(placed[2]).toMatchObject({ x: 0, row: 1 });
+    });
+
+    it("ignores saved cells outside the wide grid", () => {
+      expect(placePanels([item("a", 1, 3, 0), item("b", 1, 5, 0)], 4, false).map((place) => place.x)).toEqual([0, 1]);
+    });
+  });
+
+  describe("moving to a cell", () => {
+    const grid = [
+      { id: "a", x: 0, row: 0, span: 2 },
+      { id: "b", x: 2, row: 0, span: 2 },
+      { id: "c", x: 0, row: 1, span: 4 },
+    ];
+
+    it("takes a free cell, including the empty last column", () => {
+      expect(resolveDrop(grid, "a", 2, 0, 5)).toEqual({ x: 4, row: 0, newRow: false });
+    });
+
+    it("uses the nearest free spot in the row when the cell is taken", () => {
+      expect(resolveDrop(grid, "c", 4, 0, 1)).toMatchObject({ newRow: true });
+      expect(resolveDrop(grid, "b", 2, 0, 0)).toEqual({ x: 2, row: 0, newRow: false });
+      expect(resolveDrop(grid, "a", 2, 0, 2)).toEqual({ x: 0, row: 0, newRow: false });
+      expect(resolveDrop(grid, "a", 2, 0, 5)).toEqual({ x: 4, row: 0, newRow: false });
+    });
+
+    it("opens a new last row below the grid", () => {
+      expect(resolveDrop(grid, "a", 2, 9, 0)).toEqual({ x: 0, row: 2, newRow: false });
+    });
+
+    it("applies the drop: every panel is pinned, rows below move down for a new row, and the order follows the grid", () => {
+      const layout = defaultLayout(["spent", "receipts", "categories"]);
+      const placements = resolveLayout(layout, ["spent", "receipts", "categories"], "wide");
+      const moved = applyDrop(layout, placements, "spent", { x: 5, row: 0, newRow: false });
+      const spent = moved.panels.find((panel) => panel.id === "spent")!;
+      expect([spent.x, spent.y]).toEqual([5, 0]);
+      expect(moved.panels.every((panel) => panel.x !== undefined && panel.y !== undefined)).toBe(true);
+    });
+
+    it("shows how far a panel may grow before the next one in its row", () => {
+      expect(roomToTheRight(grid, "a")).toBe(2);
+      expect(roomToTheRight(grid, "b")).toBe(4);
+      expect(roomToTheRight(grid, "c")).toBe(6);
+    });
+  });
+
+  it("keeps a placed cell through parse and serialize, and drops a broken one", () => {
+    const text = JSON.stringify({ version: 1, panels: [{ id: "spent", visible: true, cols: 1, rows: 1, x: 3, y: 1 }, { id: "receipts", visible: true, cols: 1, rows: 1, x: -2, y: "no" }] });
+    const layout = parseLayout(text)!;
+    expect(layout.panels[0]).toMatchObject({ x: 3, y: 1 });
+    expect(layout.panels[1].x).toBeUndefined();
   });
 
   describe("sizeLimitHit", () => {
