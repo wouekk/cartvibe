@@ -24,7 +24,7 @@ neighbours is not done.
 - **Consistency over novelty:** the same thing looks the same everywhere (one period picker, one section/panel pattern for
   settings cards, one tab strip). Fix a pattern once, globally, instead of per page. Tab strips and scroll containers never
   show stray scrollbars.
-- **Decided direction (see `docs/ui-issues.md`; settings layout in "The settings layout standard" below):** settings pages share `app-settings-page` / `-section` / `-tabs` / `-entity-list` (hairline cards, flat rows, Save in the card footer on the right); a single
+- **Decided direction (see `docs/ui-issues.md`; settings layout in "The settings layout standard" below):** settings pages share `app-settings-page` / `-section` / `-tabs` / `-entity-list` (hairline cards, flat rows, Save in the card footer on the right); one button library (primary filled accent, the same dimmed when inactive, every Cancel red; "Action buttons" below); a single
   period picker with boxed From/To fields; a shared horizontal-scroll utility with no vertical scrollbar; click-to-focus on
   the donut and its legend instead of checkbox chips; real shop logos (static files, white/black outline per theme).
 - **Before calling UI work done:** build, run Jest, and look at screenshots at desktop and phone widths in White and Black
@@ -348,6 +348,14 @@ the user explicitly confirms the divergence**. Examples of standards to follow:
   `<form (ngSubmit)="...">` ending in a standalone `<app-form-button-bar [mode]="...">` containing an
   `<app-submit-button>` (see `src/receipts/receipt-form/` for the bespoke-layout precedent). Do NOT
   place Save/Cancel buttons in the page header.
+- **Action buttons (one library, 2026-10):** a labelled action is the **primary** button (`app-button` `matRaisedButton`,
+  `hlmBtn` default variant: the filled accent) and its **inactive** state is the same button dimmed (`disabled`, the
+  helm `data-disabled:opacity-50`). Every **Cancel is red** (`app-cancel-button`, or `hlmBtn variant="destructive"`).
+  Outline and ghost stay for toggles, menus, pagers and icon-only row actions; real deletes stay destructive. The Save
+  is `app-submit-button`: labelled "Save" by default (`onlyIcon` is opt-in), and with `[mode]="FormMode.edit"` (or
+  `app-dialog-footer [editing]="true"`) it is dimmed while its enclosing form is pristine, read from `form.events`.
+  Add forms are never dimmed this way (a prefilled add dialog must still submit). State that is not a form control
+  (the user form's grants, Magic Fill) marks the form dirty so Save lights up.
 - **Form fields:** `app-input`, `app-textarea`, `app-select`, `app-checkbox`, grouped with
   `app-form-section`; bind via the `formGet` pipe.
 - **Field hints:** `app-input` and `app-textarea` bind
@@ -2333,27 +2341,18 @@ endpoint); the builder's own ad-hoc generate still gates on `app.reports.generat
   action. **Save-as-new is retired** — the list's Duplicate row action covers copying. The template's
   name is the report's own name (no separate dialog), enabled under the same validity as Generate plus a
   non-empty name (`canSaveTemplate`). See `api/CLAUDE.md` → "Report templates".
-- **Splitting** (`report-config-panel`, a section after Totals): two `app-checkbox`es,
-  "Split amounts equally across categories" / "…across tags", bound to `splitCategoriesEqually` /
-  `splitTagsEqually`, plus a "Don't split these currency fields" `app-autocomlete`
-  (`optionValueKey="key"`, over `ReportCatalogService.currencyCustomFields`, which `measures()` now
-  reuses) shown only while a box is ticked and a currency field exists. See `api/CLAUDE.md` →
-  "Splitting a receipt equally across categories / tags" for what the server does with them.
-  - **A ticked box that does nothing says so.** `isSplitActive` (`report-command.mapper.ts`) is the
-    client twin of the server's `reportSplitOptions`: a split applies only when the report groups by
-    that dimension or aggregates by it. `splitState()` drives a note
-    (`report-split-categories-inactive` / `report-split-tags-inactive`) otherwise; the split
-    controls' `valueChanges` join the `revision` merge so it re-derives.
-  - **The mapper emits each flag only when true and the exclusions only when non-empty**, so an
-    untouched report still maps to a command byte-identical to the one it always did. Exclusions are kept
-    while both boxes are off, so un-ticking and re-ticking does not lose them, and they are
-    **deduplicated** there: with `optionValueKey` set, `app-autocomlete`'s reference-equality filter
-    never hides an already-picked option, so the same field can be picked twice.
-  - **E2E:** `e2e/report-split-equally.spec.ts` (serial, own seeded group, categories, tags and a
-    currency field) — the split figures in the real preview, the inactive note clearing once the
-    report groups by tag, the picked exclusion riding the preview request, and a template
-    round-tripping the flags. The exclusion input is driven with `fill`, not `click`: the empty
-    field's floating label intercepts the click.
+- **Line fields, no splitting (2026-10).** Category, Tag, **Health** and **Planned / Unplanned** are read off the receipts'
+  product lines on the server (see `api/CLAUDE.md` → "Reports read product lines"); cutting by one divides a receipt by what
+  its lines cost. The old "Splitting" section, `isSplitActive`, `splitState` and the three split fields are gone, and the
+  e2e `report-split-equally.spec.ts` with them. `paid_by` reads **Added by** (catalog and filter). The receipts drill-in
+  shows the shop instead of the receipt-level category and tags.
+- **The look:** the page bar is the shared header (quiet back link, small uppercase breadcrumb, 24px title, the lock note
+  as muted text that wraps under the title on a phone); config sections are `app-report-section` cards; grouping and
+  column rows are flat hairline rows; Records / Aggregate is `app-settings-tabs` (its tabs keep the
+  `report-detail-records` / `-aggregate` test ids through `FilterTab.testId`); scope chips use the chart tokens
+  (`CHIP_COLORS`); the preview pane is a `bg-muted/40` surface with the shared empty and error states; the generate bar's
+  formats are one segmented toggle (`aria-pressed`). No component stylesheet: `report-config-panel.component.scss` was
+  deleted and the column kinds are token utilities in `KIND_META`. Below 900px the panes stack and scroll as one page.
 - **Generate gating**: the generate bar's Generate button is
   `*hasAppPermission="Permission.AppReportsGenerate"`-gated (preview is not — it stays group-scoped),
   matching the endpoint, which now ANDs `app.reports.generate` with the per-group `group.reports.read`.
@@ -2381,8 +2380,8 @@ endpoint); the builder's own ad-hoc generate still gates on `app.reports.generat
   constructor's preview subscription attaches) means the loaded config previews exactly once. The builder's
   page-bar gains a back-to-list button + a breadcrumb showing the loaded template name.
 - **Other divergences from the design** (intentional): the **progress bar + Cancel** are gone
-  (generation is synchronous → in-flight spinner, then download); the section-card look is a small local
-  `app-report-section` shell so the pattern isn't repeated.
+  (generation is synchronous → in-flight spinner, then download); the section card is `app-report-section`, a `cv-card` shell
+  (quiet icon tile, title, description, a `[sectionActions]` slot for the compact `app-add-button`), so the pattern isn't repeated.
 - Structural lists (scope, grouping, columns) mutate the `FormArray` and bump a `revision` signal so the
   `@for`s re-render under zoneless CD (dialog-driven changes run outside a template event). Multi-select
   filter controls (categories/tags/paid-by) are `FormArray`s, per the `app-autocomlete` `.push()` contract.
@@ -2654,7 +2653,7 @@ The **English text is the key**: `{{ 'Add receipt' | t }}` (pipe `t`, exported b
 - **`cv-section` / `cv-field-box` / `cv-scroll-x` / `cv-list`** (`src/tailwind.css`, components layer): the inset panel for blocks inside a settings card, the boxed From/To field, the horizontal scroller with no vertical scrollbar (every pill strip uses it), and a hairline list. Use them instead of new one-off classes. All borders default to `--border` in the base layer.
 - **Dashboard donut:** click a slice or a legend dot to focus a category (`focusedSegment`, `toggleFocus`); there are no checkbox chips. Hovering a slice (ApexCharts `dataPointMouseEnter/Leave`) or a legend row (`mouseenter`/`focusin`) sets `hoveredSegment`; `activeSegment` = hovered ?? focused. `applySliceEmphasis` works on the drawn SVG (never through the options, so hover does not redraw): the active slice scales 1.06 from the ring's center (`transform-box: fill-box`, origin from the slices' boxes, 200 ms `cubic-bezier(0.16, 1, 0.3, 1)`), the others go to 0.45 opacity (150 ms), and the middle names the category. It runs again on `animationEnd`, since the slices have no size during the entry animation; `customScale: 0.92` leaves room for the grown slice. Legend rows dim with `opacity-45`. Bars use `height: 100%` inside a `min-h-[260px] flex-1` wrapper so the chart fills its card.
 - **AI page:** `app-gemini-model-field` (model dropdown from `POST /receiptProcessingSettings/geminiModels`, text box fallback, key sent in the body, a saved key is used server-side via the settings id) and `app-ai-fallback-card` (a second Gemini settings row linked as `fallbackReceiptProcessingSettingsId`; switching it off only unlinks; hidden without System Settings access). Shared constants live in `ai-settings-shared.ts`.
-- **Dialog footer:** `app-dialog-footer` / `app-cancel-button` render labelled buttons; the submit one is tinted green (`bg-success-text/15`), cancel red. Specs find them by testid.
+- **Dialog footer:** `app-dialog-footer` / `app-cancel-button` render labelled buttons: the submit one is the primary (filled accent) Save, cancel is red. `[editing]="true"` on the footer dims Save while the form is unchanged (see "Action buttons"). Specs find them by testid.
 
 ### The settings layout standard (decided by the user, 2026-10)
 Every Admin and User settings page uses four shared primitives from `src/shared-ui/settings/`, so a new page looks right by default:

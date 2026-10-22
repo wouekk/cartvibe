@@ -2702,12 +2702,15 @@ go list -deps cartvibe/api/internal/reporting | grep -E 'gorm|repositories|inter
 non-receipt widget adds a *sibling* of it; the engine core never changes.
 
 ```go
-source, err := receiptsource.New(customFields, appLocation) // needs CustomField.Options loaded
-model, err := reporting.Run(spec, source.Catalog(), source.Rows(receipts), meta)
+source, err := receiptsource.New(appLocation)
+rows, rowsPerReceipt := source.RowsWithLines(receipts, lines, dimensions) // lines parallel to receipts
+model, err := reporting.Run(spec, source.Catalog(), rows, meta)
 ```
 
-**Caller must preload** `PaidByUser`, `Group`, `Categories`, `Tags`, `CustomFields`. An unloaded
-association resolves to no value, which surfaces as a `(None)` bucket — not an error.
+**Caller must preload** `PaidByUser` and `Group`. An unloaded association resolves to no value,
+which surfaces as a `(None)` bucket — not an error. Category, Tag, Health and Planned come from the
+receipt's **product lines** (`receiptsource.Line`, built by `ReportDataService`), never from the
+receipt's own `Categories`/`Tags`, which are the old schema; see "Reports read product lines" below.
 
 **Date period grouping — derived string fields.** `date`, `resolved_date` and `created_at` are
 `TypeDate`, so grouping by one buckets on the exact instant (one group per receipt). To group by
@@ -3018,56 +3021,51 @@ receipt data any report can reach; so the ad-hoc `POST /report/generate` (no tem
 applies) and a `duplicate`'s resulting copy (which starts matrix-unrestricted) are intentionally not bound by
 the per-template matrix and never widen data access beyond those hard controls, which every generation re-resolves.
 
-**Splitting a receipt equally across categories / tags.** `ReportRequestCommand` carries
-`splitCategoriesEqually`, `splitTagsEqually` and `splitExcludedFields` (all `omitempty`, so
-`CurrentReportConfigurationVersion` stays `1` and an untouched template stores none of them). With a
-box ticked, a receipt's money is divided equally across its distinct categories / tags instead of
-counting in full in each — the default fan-out in the table below is untouched.
-- **It is a receipt transformation, not an engine change.** `receiptsource.Source.Split`
-  (`reporting/receiptsource/split.go`) turns a receipt with N categories and M tags into N×M shallow
-  copies, one category and one tag each, every split money value divided across them. A dimension
-  that is not split, or that holds at most one value, keeps its whole list.
-- **What is divided:** the amount and every CURRENCY custom field not named in
-  `splitExcludedFields` (keys `custom_<id>`; anything else is a 400 under that key; a stale id is
-  ignored, like `GroupByLabels`). A nil value stays nil; non-currency fields ride along unchanged.
-- **Cents are spread, never lost.** `allocateGrid` works in whole units of the value's scale (at
-  least cents; a TEXT-stored currency value may carry more) with `big.Int`, never `Div` — so 100 over
-  three is 33.34/33.33/33.33 and the shares sum back exactly. It allocates the whole N×M grid **in
-  one pass**: splitting by category and then each share by tag skews the tag totals (0.04 over three
-  categories × two tags would give one tag 0.03 and the other 0.01). In one pass every row sums to a
-  categories-only split and every column to a tags-only split. Leftover units go by ascending
-  category/tag id, so the same receipt always splits the same way. Negatives split by magnitude.
-- **It runs BEFORE the restricted substitution** (`ReportDataService.RowsWithSplit`: fetch → split →
-  `SubstituteRestrictedCategoriesTags` → `Source.Merge` → rows). So a receipt is divided by its
-  **true** category count: a visible category's share is the same for every viewer, and
-  `(Restricted)` receives exactly the hidden shares. `Merge` then folds copies of one receipt that
-  substitution made identical (two hidden categories → two `(Restricted)` copies), keeping one row per
-  receipt per bucket. Copies are tracked by their **position in the input**, not their id — unsaved
-  receipts all carry id 0.
-- **It only applies where the report cuts by the dimension** (`reportSplitOptions`): a grouping
-  level, or the aggregate `detail.by`. Anywhere else a ticked box is a no-op (it would only change the
-  row count). A currency custom field the report groups or aggregates by is never split — dividing
-  it would move receipts between its own buckets.
-- **Rows outnumber receipts now**, so `RowsWithSplit` returns `RowsPerReceipt`: `receiptCount` is
-  its length, and the preview cap (`capRowsToReceipts`) cuts on whole receipts, never part-way
-  through one's shares. `Rows` is unchanged — a wrapper with no split.
-- Consequences worth knowing: COUNT stays one per receipt per bucket; AVG/MIN/MAX see the shares; a
-  records-mode category label shows the copy's one category; the receipts drill-in still lists full
-  amounts; the pie chart is untouched.
-- **Tests:** `receiptsource/split_test.go` (allocation incl. a seeded property test of the grid's
-  marginals, Split, Merge, isolation, determinism, and through the engine — `mutation-check.sh`
-  carries nine split mutations), `services/report_split_test.go` (the true-count restricted case, the
-  merge, exclusions, `reportSplitOptions`, the cap, Generate and the dashboard render),
-  `handlers/report_split_test.go` (preview, the 400, template round trip, generate-from-template and
-  render), and the command/contract tests in `commands/report_request_command_test.go`.
+**Reports read product lines (2026-10, branch `feature/ui-sprint`).** Category, Tag, **Health** and
+**Planned** are read off a receipt's priced product lines (`ReceiptProduct`: `category_id` with the
+category's current name, `receipt_product_tags`, `health`, `planned`), never off the receipt's own
+`Categories`/`Tags`, which the app stopped editing when they moved onto lines. The equal-split options
+(`splitCategoriesEqually`, `splitTagsEqually`, `splitExcludedFields`) only patched the receipt-level
+fan-out and are **gone** from the command and swagger; a stored template carrying them still decodes
+(unknown keys are ignored).
+- **Where it lives:** `receiptsource/lines.go`. `ReportDataService.RowsWithLines` loads the lines with
+  `ReceiptProductRepository.GetReportLinesForReceipts` (batched by 500, tags preloaded) and turns them
+  into `receiptsource.Line` values, so `receiptsource` reads no database.
+- **Cutting by a line field** (a grouping level or the aggregate `detail.by`; `lineDimensionsInUse`)
+  turns a receipt into one row per distinct key of the line fields in use, each carrying what those
+  lines cost. A line with two tags counts toward **both** (as the Dashboard's tag tiles do). What the
+  lines do not cover (the whole amount, for a receipt without lines) is one more row with those
+  fields empty, which the engine shows as `(None)`. Without a line dimension a receipt stays one row
+  and the line fields are **labels**: the distinct, sorted values of its lines.
+- **Lines that add up to more than the receipt** (or point the other way: a discount printed as a
+  total) are scaled to the receipt by `allocateProportionally`: exact rationals, truncation, then the
+  leftover units to the largest remainders (ties to the earlier line), so a receipt's rows add back up
+  to its amount to the cent. Otherwise a line's share is exactly what it cost.
+- **Labels:** Health `HEALTHY|MEDIUM|UNHEALTHY|NOT_FOOD` → Healthy / Medium / Unhealthy / Not food;
+  `UNKNOWN` or empty is none. Planned `false` → Unplanned; `true` or `nil` → Planned (no list counts as
+  planned). `paid_by` is labelled **Added by** (the key is unchanged, so templates keep working).
+- **Grants per line:** a line category or tag outside the caller's visible set reads `(Restricted)`
+  (admin bypass as everywhere), so the division never depends on the viewer and `(Restricted)`
+  receives exactly the hidden lines.
+- **Rows outnumber receipts**, so `RowsWithLines` returns `RowsPerReceipt`: `receiptCount` is its
+  length and the preview cap (`capRowsToReceipts`) cuts on whole receipts. **`COUNT()` counts rows**:
+  one per receipt per bucket, so a grand total's COUNT over a category cut counts a receipt once per
+  bucket it falls in.
+- The receipts drill-in (`ReportDataService.Receipts`) lists whole receipts and no longer touches the
+  receipt-level categories/tags.
+- **Tests:** `receiptsource/lines_test.go` (allocation, rest row, scaling, tag fan-out, labels,
+  through the engine; `mutation-check.sh` carries eight line mutations), `services/report_lines_test.go`
+  (real lines from the database, current category names, restricted categories and tags, Health and
+  Planned grouping, the cap, multi-group CSV), `handlers/report_lines_test.go` (preview reads lines,
+  not the receipt; a template with the retired keys still generates), and
+  `commands/report_request_command_test.go` (the retired keys decode and are not written back).
 
-**`(Restricted)` vs `(None)`.** Aggregation uses `PermissionService.SubstituteRestrictedCategoriesTags`
-(not the strip variant): a category/tag the caller may not see is replaced with a single `(Restricted)`
-marker, so the receipt still counts toward the totals in its own bucket instead of vanishing. `(None)`
-stays reserved for a receipt that genuinely carries no category/tag. The **pie chart** (`pie_chart.go`)
-substitutes the same way, so a restricted viewer sees a `(Restricted)` slice rather than hidden spend
-folding into `Uncategorized`/`Untagged`. (The CSV export handlers still strip — export is a per-receipt
-listing, not an aggregation.)
+**`(Restricted)` vs `(None)`.** A category/tag the caller may not see reads as a single `(Restricted)`
+marker rather than vanishing, so its spend still counts in its own bucket. For reports that happens
+per product line (above); the **pie chart** (`pie_chart.go`) and the Dashboard overview still apply
+`PermissionService.SubstituteRestrictedCategoriesTags` to receipt-level data. `(None)` stays reserved
+for spend that genuinely carries no category/tag. (The CSV export handlers strip instead — export is a
+per-receipt listing, not an aggregation.)
 
 ### Semantics that are easy to get wrong
 
@@ -3081,7 +3079,7 @@ listing, not an aggregation.)
 | Nulls | Skipped by `SUM`/`MIN`/`MAX` and excluded from `AVG`'s divisor. Any null operand makes an arithmetic result null. |
 | Division by zero | `Null` cell, **never a panic** — `shopspring` panics on a zero divisor, so `evalBinary` guards `IsZero()` first. |
 | Division precision | `DivRound(x, spec.Config.DivisionScale)`. **Never read or write `decimal.DivisionPrecision`** (a mutable process-wide global). |
-| Multi-value fan-out | A receipt with two tags is attributed to **both** buckets in full, so it double-counts, and that double count propagates to the grand total. Intended — matches `services/pie_chart.go`. Two multi-value levels produce a cross product. But only **distinct** values fan out: a receipt tagged `"Alex"` twice is attributed once. The opt-in split (below the table) is done **before** the engine, by splitting receipts, so this rule never changes. |
+| Multi-value fan-out | A receipt with two tags is attributed to **both** buckets in full, so it double-counts, and that double count propagates to the grand total. Intended — matches `services/pie_chart.go`. Two multi-value levels produce a cross product. But only **distinct** values fan out: a receipt tagged `"Alex"` twice is attributed once. Receipt reports avoid it for the line fields by cutting **before** the engine (`receiptsource.RowsWithLines`, above the table), so this rule never changes. |
 | Multi-valued measures | Refused (`ErrMeasureIsMultiValued`). Summing a field that resolves to several values would silently read the first and drop the rest. A `Multi` field is still a fine dimension and a fine display label. Note `Multi` is a **producer's declaration**, never checked against the rows: a catalog that lies loses values in `Row.Measure`. |
 | Bucket keys | Two values share a bucket key **exactly when `compareValues` finds them equal**. Numbers key on `decimal.String()` (canonical, lossless); dates key on `Unix()` seconds + `Nanosecond()` and **never `UnixNano()`**, which is undefined outside 1678–2262 — a zero `time.Time` and a date in 585 share one. A coarser key merges buckets *and* makes the surviving bucket's value depend on input order. |
 | Bucket **values** | A bucket keeps `Value.canonical()`, not whichever member arrived first. Agreeing with `compareValues` is only half the job: dates compare by instant, so one instant in two zones merges, and `Value.Time()` would otherwise hand a renderer an arbitrary one of them (`2026-05-01T00:00:00Z` vs `2026-04-30T19:00:00-05:00` format as different **calendar days**). **Date buckets are emitted in UTC** — that is bucket *identity* and must not change. The zone a day is *named* in is presentation: a producer declares it per field (`FieldRef.Location`, carried to `ColumnDescriptor.Location` / `render.Dimension.Location`) and the renderer applies it. Calendar-period grouping in a zone is done by the producer (`receiptsource`'s `_day`/`_month`/`_year` strings), never by the engine. |

@@ -5,7 +5,8 @@
   <div class="cv-card__body">
     <!-- Rows are cv-sections, so they take the card's own padding and hairlines. -->
     <div class="cv-section">
-      @if (commentsArray.length > 0) {
+      <!-- commentCount() is the signal mirror of the FormArray, so adding the first comment re-renders the list. -->
+      @if (commentCount() > 0) {
         <ul class="m-0 flex list-none flex-col p-0">
           @for (comment of commentsArray.controls; track comment; let index = $index) {
             <li

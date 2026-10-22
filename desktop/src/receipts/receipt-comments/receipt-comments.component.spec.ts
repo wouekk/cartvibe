@@ -374,6 +374,26 @@ describe("ReceiptCommentsComponent", () => {
     expect(component.newCommentFormControl.value).toBeNull();
   });
 
+  it("renders the first comment as soon as it is posted", async () => {
+    jest.spyOn(TestBed.inject(CommentService), "addComment").mockReturnValue(
+      of({ id: 8, userId: 1, receiptId: 3, comment: "first", createdAt: "", updatedAt: "" }) as any
+    );
+    // Keep the user slice: the rendered row resolves its author through it.
+    const snapshot = store.snapshot();
+    store.reset({ ...snapshot, auth: { ...snapshot.auth, userId: "1" } });
+    fixture.componentRef.setInput("receiptId", 3);
+    await fixture.whenStable();
+    const element: HTMLElement = fixture.nativeElement;
+    expect(element.querySelectorAll('[data-testid="receipt-comment"]').length).toBe(0);
+
+    component.newCommentFormControl.patchValue("first");
+    component.addComment();
+    await fixture.whenStable();
+
+    expect(element.querySelectorAll('[data-testid="receipt-comment"]').length).toBe(1);
+    expect(element.querySelector('[data-testid="receipt-comments-empty"]')).toBeNull();
+  });
+
   it("shows the composer in view mode only with the comment permission", async () => {
     const element: HTMLElement = fixture.nativeElement;
     expect(element.querySelector('[data-testid="receipt-comment-composer"]')).toBeNull();
