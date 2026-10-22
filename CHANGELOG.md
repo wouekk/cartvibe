@@ -9,8 +9,9 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 ## [Unreleased]
 
 ### Added
-- Quick Scan of a single photo now waits for the AI ("Reading your receipt…" in the upload bar) and opens the new
-  receipt's edit screen; several photos are still just queued. `POST /receipt/quickScan` returns the queued task ids and
+- Quick Scan of a single photo now waits for the AI ("Reading your receipt…" in the upload bar) and then offers an
+  "Open receipt" button (it never navigates by itself); several photos are queued, read one at a time, and the uploader gets
+  a notification for each (ready, with a link, or failed after the last retry). `POST /receipt/quickScan` returns the queued task ids and
   `GET /receipt/quickScan/{taskId}` reports PENDING / DONE (with the receipt id) / FAILED.
 - A Preview / Rename / Remove menu on the receipt form's photo (on the photo itself, so it is in reach after scrolling on a
   phone); the preview opens full width on a phone. `PUT /receipt/{id}/name` renames a saved receipt without saving the rest

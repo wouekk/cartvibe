@@ -423,14 +423,20 @@ describe("QuickScanDialogComponent", () => {
       URL.createObjectURL = originalCreateObjectURL;
     });
 
-    it("opens the new receipt as soon as the scan has made it", async () => {
+    it("stays open with a button to the new receipt once the scan has made it, without navigating by itself", async () => {
       const { statusSpy, navigateSpy, closeSpy } = submitWith(1, ["job-1"], { status: "DONE", receiptId: 12 });
       await flush();
 
       expect(statusSpy).toHaveBeenCalledWith("job-1");
-      expect(navigateSpy).toHaveBeenCalledWith(["/receipts", 12, "edit"]);
-      expect(closeSpy).toHaveBeenCalled();
+      expect(component.scannedReceiptId()).toBe(12);
+      expect(navigateSpy).not.toHaveBeenCalled();
+      expect(closeSpy).not.toHaveBeenCalled();
       expect(component.uploadStage()).toBeNull();
+
+      component.openScannedReceipt();
+
+      expect(closeSpy).toHaveBeenCalled();
+      expect(navigateSpy).toHaveBeenCalledWith(["/receipts", 12, "edit"]);
     });
 
     it("shows that it is reading the receipt while it waits", async () => {
