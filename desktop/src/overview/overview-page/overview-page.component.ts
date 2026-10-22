@@ -14,6 +14,9 @@ type ChartContext = { el?: HTMLElement };
 const DONUT_POP_OUT_SCALE = 1.06;
 const DONUT_DIMMED_OPACITY = 0.45;
 
+/** The longest text the middle of the donut shows on one line. */
+const DONUT_CENTER_LABEL_MAX = 16;
+
 /**
  * The middle of the drawn ring: the center of the box around all its slices (they always close the circle). Undefined
  * while the ring has no size yet (ApexCharts grows the slices from nothing during its entry animation).
@@ -63,7 +66,6 @@ import {
   DashboardLayout,
   defaultLayout,
   GRID_COLUMNS,
-  isTilePanel,
   movePanel,
   PanelGroup,
   panelDefinition,
@@ -482,7 +484,7 @@ export class OverviewPageComponent {
             size: "76%",
             labels: {
               show: true,
-              name: { show: true, color: colors.mutedForeground, fontSize: "12px", offsetY: 18 },
+              name: { show: true, color: colors.mutedForeground, fontSize: "12px", offsetY: 22 },
               value: { show: true, color: colors.foreground, fontSize: "20px", fontWeight: 600, offsetY: -14, formatter: (value: string) => this.displayCurrencyService.format(Number(value)) },
               total: { show: true, showAlways: true, label: centerLabel, color: colors.mutedForeground, fontSize: "12px", formatter: () => centerValue },
             },
@@ -496,9 +498,17 @@ export class OverviewPageComponent {
   private centerText(name: string | null): { label: string; value: string } {
     const segment = this.segments().find((candidate) => candidate.name === name);
     return {
-      label: segment ? this.translation.t(segment.name) : this.periodLabel(),
+      label: this.fitCenterLabel(segment ? this.translation.t(segment.name) : this.periodLabel()),
       value: this.displayCurrencyService.format(segment ? segment.total : this.overview()?.total ?? 0),
     };
+  }
+
+  /** The ring's middle is about 130 px wide: a long date range reads "Total", a long category name is cut. */
+  private fitCenterLabel(text: string): string {
+    if (text.length <= DONUT_CENTER_LABEL_MAX) {
+      return text;
+    }
+    return text.includes(" – ") ? this.translation.t(marker("Total")) : `${text.slice(0, DONUT_CENTER_LABEL_MAX - 1)}…`;
   }
 
   private keepDonut(chart: ChartContext): void {
@@ -928,11 +938,6 @@ export class OverviewPageComponent {
     const panels = this.panels();
     return order ? order.map((id) => panels.find((panel) => panel.id === id) as ResolvedPanel).filter(Boolean) : panels;
   });
-
-  /** Small tiles keep their own height beside a taller chart instead of stretching to it. */
-  public isTile(id: string): boolean {
-    return isTilePanel(id);
-  }
 
   /** "2/6": the width a panel has, so a change is always visible. */
   public sizeLabel(panel: ResolvedPanel): string {

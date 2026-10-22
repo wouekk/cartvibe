@@ -2460,8 +2460,9 @@ never hand-edited.
     `regular` < 1024 (four columns, charts and tables take the whole row), `wide` (six). The phone order is `compactOrder` once the user arranged
     the phone, otherwise the shared order with the shopping list first.
   - **Rows, not a strict grid:** the grid is `flex-wrap`; a panel's width is **exactly** its share of a row (`panelFlex`, `0 0 calc(...)`, no
-    grow), so a row may end with empty space and the size set in the editor is the size drawn. Tiles may sit beside charts (they use
-    `self-start` so they do not stretch to a taller neighbour). With tag tiles, Spent defaults to one column so six tiles fill a row.
+    grow), so a row may end with empty space and the size set in the editor is the size drawn. Tiles may sit beside charts. Because widths are
+    exact, `defaultLayout` fills its own rows: tiles start one column wide and `fillRows` widens the panels of each row (Spent first) up to
+    their limits, so the out-of-the-box Dashboard has no gaps whatever panels are available.
   - **Dragging** is pointer-driven on the handle (`startDrag`, no CDK drag-drop): the panel follows the pointer, the others reflow live to
     the order `dropTargetAt` (nearest panel to the pointer, any direction) gives, drop commits with `movePanel`, Escape cancels, the
     scroll container auto-scrolls near its edges. Move earlier/later in the menu is the keyboard path.

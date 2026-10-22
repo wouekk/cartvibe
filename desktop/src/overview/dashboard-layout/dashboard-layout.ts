@@ -141,12 +141,45 @@ export function defaultLayout(available: string[]): DashboardLayout {
   for (const id of available.filter((candidate) => panelKind(candidate) === "tag")) {
     panels = insertByGroup(panels, defaultPanel(id) as PanelLayout);
   }
-  // Spent is two columns wide while it has room; with more tiles it gives the column back so a row of six fits.
-  const tiles = panels.filter((panel) => isTilePanel(panel.id)).length;
-  if (tiles > GRID_COLUMNS.wide - 1) {
-    panels = panels.map((panel) => (panel.id === "spent" ? { ...panel, cols: 1 } : panel));
+  // Panels keep their exact widths, so the starting layout has to fill its rows itself: tiles start one column wide
+  // and the room a row has left goes to its panels (Spent first) up to their limits.
+  panels = panels.map((panel) => (isTilePanel(panel.id) ? { ...panel, cols: 1 } : panel));
+  return { version: DASHBOARD_LAYOUT_VERSION, panels: fillRows(panels) };
+}
+
+/**
+ * Packs panels into rows of the wide grid the way the Dashboard draws them (in order, a panel that does not fit starts a
+ * new row) and widens the panels of each row, one column at a time, until the row is full or nothing can grow further.
+ */
+export function fillRows(panels: PanelLayout[]): PanelLayout[] {
+  const widths = panels.map((panel) => panel.cols);
+  const rows: number[][] = [];
+  let used = 0;
+  panels.forEach((panel, index) => {
+    if (rows.length === 0 || used + widths[index] > GRID_COLUMNS.wide) {
+      rows.push([]);
+      used = 0;
+    }
+    rows[rows.length - 1].push(index);
+    used += widths[index];
+  });
+
+  for (const row of rows) {
+    let room = GRID_COLUMNS.wide - row.reduce((sum, index) => sum + widths[index], 0);
+    let grew = true;
+    while (room > 0 && grew) {
+      grew = false;
+      for (const index of row) {
+        const max = panelDefinition(panels[index].id)?.maxCols ?? widths[index];
+        if (room > 0 && widths[index] < max) {
+          widths[index] += 1;
+          room -= 1;
+          grew = true;
+        }
+      }
+    }
   }
-  return { version: DASHBOARD_LAYOUT_VERSION, panels };
+  return panels.map((panel, index) => ({ ...panel, cols: widths[index] }));
 }
 
 /** Key figures and tag tiles: small tiles, which keep to their own rows apart from charts and lists. */
