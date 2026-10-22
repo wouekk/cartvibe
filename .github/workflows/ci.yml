@@ -104,7 +104,7 @@ jobs:
       - name: Generate coverage report
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
-          filename: desktop/coverage/receipt-wrangler-desktop/cobertura-coverage.xml
+          filename: desktop/coverage/cartvibe-desktop/cobertura-coverage.xml
           format: markdown
           output: both
           badge: true

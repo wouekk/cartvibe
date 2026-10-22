@@ -25,7 +25,7 @@ var loginTemplate = template.Must(template.New("login").Parse(`<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sign in to Receipt Wrangler</title>
+<title>Sign in to CartVibe</title>
 <style>
   body { font-family: system-ui, -apple-system, sans-serif; background: #f5f5f5; margin: 0; display: flex; min-height: 100vh; align-items: center; justify-content: center; }
   .card { background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.15); width: 320px; }
@@ -39,7 +39,7 @@ var loginTemplate = template.Must(template.New("login").Parse(`<!DOCTYPE html>
 </head>
 <body>
   <form class="card" method="post" action="/oauth/authorize">
-    <h1>Sign in to Receipt Wrangler</h1>
+    <h1>Sign in to CartVibe</h1>
     <p class="sub">{{if .ClientName}}<strong>{{.ClientName}}</strong> is requesting access to your receipts.{{else}}An application is requesting access to your receipts.{{end}}</p>
     {{if .ErrorMessage}}<div class="error">{{.ErrorMessage}}</div>{{end}}
     <label for="username">Username</label>

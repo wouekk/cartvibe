@@ -43,7 +43,7 @@ neighbours is not done.
 - `npm run e2e:install` - Install Playwright browser binaries (one-time setup)
 
 ### Build Configuration
-- Production builds go to `dist/receipt-wrangler/`
+- Production builds go to `dist/cartvibe/`
 - Development server uses proxy configuration in `proxy.conf.json` to route API calls to backend
 - Angular CLI configuration in `angular.json`
 

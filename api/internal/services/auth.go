@@ -23,7 +23,7 @@ func customClaims() validator.CustomClaims {
 	return &structs.Claims{}
 }
 
-// jwtIssuer is the issuer stamped on, and required of, every Receipt Wrangler
+// jwtIssuer is the issuer stamped on, and required of, every CartVibe
 // JWT regardless of audience.
 const jwtIssuer = "https://receiptWrangler.io"
 

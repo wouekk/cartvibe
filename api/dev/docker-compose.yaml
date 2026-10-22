@@ -1,6 +1,6 @@
 # This docker compose will run the development container with redis in the same docker network together.
 # The dev container must be built locally.
-# Navigate to the root directory of the app and run `docker build -f docker/dev/Dockerfile -t receipt-wrangler-dev .`
+# Navigate to the root directory of the app and run `docker build -f docker/dev/Dockerfile -t cartvibe-dev .`
 # Then this docker compose will spin up a development environment
 services:
   redis:
@@ -11,8 +11,8 @@ services:
     networks:
       - app-net
 
-  receipt-wrangler-dev:
-    image: receipt-wrangler-dev:latest
+  cartvibe-dev:
+    image: cartvibe-dev:latest
     restart: always
     ports:
       - "9000:22"
@@ -20,7 +20,6 @@ services:
       - app-net
     volumes:
       - app:/app
-      - docs:/docs
       - go:/go
       - root:/root
       - etc:/etc
@@ -33,7 +32,6 @@ networks:
 
 volumes:
   app:
-  docs:
   go:
   root:
   etc:

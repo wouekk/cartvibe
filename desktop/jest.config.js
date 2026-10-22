@@ -28,7 +28,7 @@ module.exports = {
     '!src/open-api/**',
     '!src/environments/**'
   ],
-  coverageDirectory: 'coverage/receipt-wrangler-desktop',
+  coverageDirectory: 'coverage/cartvibe-desktop',
   coverageReporters: ['html', 'lcov', 'cobertura', 'text-summary'],
   coverageThreshold: {
     global: {

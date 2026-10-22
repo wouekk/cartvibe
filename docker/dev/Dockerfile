@@ -28,15 +28,6 @@ RUN npm install -g @openapitools/openapi-generator-cli
 RUN npm install
 RUN npm run build
 
-# Set up docs
-WORKDIR /docs
-
-# Clone docs source
-RUN git clone https://github.com/Receipt-Wrangler/receipt-wrangler-doc.git
-WORKDIR /docs/receipt-wrangler-doc
-
-RUN npm install
-
 # Setup API
 WORKDIR /app/api
 

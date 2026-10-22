@@ -1,4 +1,4 @@
-// Package classification Receipt Wrangler API.
+// Package classification CartVibe API.
 //
 // Terms Of Service:
 //

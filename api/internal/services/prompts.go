@@ -84,7 +84,7 @@ func (service PromptService) CreateDefaultPrompt() (models.Prompt, error) {
 	promptRepository := repositories.NewPromptRepository(service.TX)
 	command := commands.UpsertPromptCommand{
 		Name:        constants.DefaultPromptName,
-		Description: "Default prompt used for previous versions of Receipt Wrangler.",
+		Description: "Default prompt used for earlier versions of the app.",
 		Prompt:      DefaultReceiptPrompt,
 	}
 

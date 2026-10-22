@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Receipt Wrangler API.
+  title: CartVibe API.
   termsOfService:
     there are no TOS at this moment, use at your own risk we take no
     responsibility
