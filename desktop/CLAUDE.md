@@ -2497,12 +2497,12 @@ never hand-edited.
 
 - **Table columns:** Receipt Date (first, the default sort, `DEFAULT_RECEIPT_ORDER_BY = "date"`), Shop, Amount, Status, Added
   by, Comment (opt-in). **Receipt Date and Shop** are both links to the receipt; **Shop** (`shop_name`): the shop the AI read, else the receipt's name, and it
-  sorts that way on the API. No Name, Added At, Categories, Tags or Done on column (a saved layout loses them through
+  sorts that way on the API. No Name, Added At, Categories, Tags or Settled on column (a saved layout loses them through
   `mergeCustomFieldColumns`; a persisted sort on a removed column resets). The Dashboard's receipts panel uses the same
   Date and Shop.
 - **Filter badge:** the Filter button does not count the Receipt Date range (the period picker shows it); Reset appears for
   any filter. Row actions: **Mark as done** and **Read with AI**.
-- **Statuses** (`utils/receipt-status.ts`): OPEN / NEEDS_ATTENTION / DRAFT read "To check", RESOLVED / DECLINED "Done";
+- **Statuses** (`utils/receipt-status.ts`): OPEN / NEEDS_ATTENTION / DRAFT read "To check", RESOLVED / DECLINED "Settled" (Polish "Rozliczone"; it read "Done" until 2026-10, and reports print the same two words);
   `toStatusWireFilter` widens a status filter where requests are assembled (not in reports).
 - **Receipt form:** Paid by is the user adding it (hidden); no bill splitting (no Shares, no Paid By column or filter); the
   upstream Items section is hidden with `d-none` (not removed: `ItemListComponent` keeps the form state); a new receipt is
@@ -2544,10 +2544,14 @@ Mobile-first (used in the shop). Backend contract: `api/CLAUDE.md`.
 - **Trips** (`app-shopping-trips`): receipts attached to a list and what was bought that was not planned; held in a signal
   and refetched on `TRIPS_CHANGED`. Gates: `group.shopping-lists.read` + `group.receipts.read`.
 - Dialog forms submit through `(ngSubmit)` only (`app-dialog-footer`'s button is `type="submit"`).
-- **Layout (master-detail):** the header row holds "Going shopping" and "Add List"; the open lists are cards in an
-  `cv-scroll-x` row on a phone and a 2/4-column grid from `sm`/`lg`. Below them, the open list is one card (name, "{count}
-  to buy", the list menu, the add box, hairline item rows, the crossed-off pill) with an aside on `lg` (stacked below on
-  smaller screens) holding "Receipts from this list" and "Past lists". The add box keeps its labels; on a phone the name
+- **Layout (master-detail), one action per section (2026-10):** the page header holds only "Add List"; the open lists
+  are cards in an `cv-scroll-x` row on a phone and a 2/4-column grid from `sm`/`lg`. Below them, the open list is one card
+  (name, "{count} to buy", then **"Going shopping"** with a bell icon, `notifications_active`, since it notifies the
+  household, icon-only below `sm`, and the list menu; then the add box, hairline item rows, the crossed-off pill) with an
+  aside on `lg` (stacked below on smaller screens) holding "Receipts from this list" and "Past lists". The receipts panel
+  has one **"Add receipt ▾"** beside its title (a menu: Scan receipt, Attach existing; just "Attach existing" without
+  Quick Scan, since scanning also needs the list update permission). The hidden photo input sits in the same `@if` as
+  the menu, so the menu's `photoInput.click()` can reach the template reference. The add box keeps its labels; on a phone the name
   takes its own row. Unit labels are translated (`formatShoppingListItemAmount` takes a translate function).
 
 ## Navigation, forms and settings screens
@@ -2574,7 +2578,7 @@ Mobile-first (used in the shop). Backend contract: `api/CLAUDE.md`.
   Old paths (`settings/view|edit`, `oidc-providers`, `system-tasks`) redirect to the tabs.
 - **AI page** (`/ai`, `AiSettingsPageComponent`): Gemini or LM Studio, test connection. **Every member can use it**; one who
   cannot read System Settings gets the first AI settings, and the server links the first ones saved.
-- **Roles and wording:** pickers offer Admin and User (`utils/family-roles.ts`); "Household", not Group; "Done on".
+- **Roles and wording:** pickers offer Admin and User (`utils/family-roles.ts`); "Household", not Group; "Settled on".
   Manage Categories shows what the AI sorts products into (skip checkbox, "Formerly: ..." names, product count).
 - A count badge with nothing or `0` is hidden (`matBadgeHidden` in `app-button`, plus a safeguard in index.html).
 
@@ -2663,6 +2667,19 @@ The **English text is the key**: `{{ 'Add receipt' | t }}` (pipe `t`, exported b
 
 ### Shared pieces added in the UI-issues run (2026-10)
 - **`cv-section` / `cv-field-box` / `cv-scroll-x` / `cv-list`** (`src/tailwind.css`, components layer): the inset panel for blocks inside a settings card, the boxed From/To field, the horizontal scroller with no vertical scrollbar (every pill strip uses it), and a hairline list. Use them instead of new one-off classes. All borders default to `--border` in the base layer.
+- **Donut legend (2026-10):** two columns, Category and Spent; each name cell is dot, share ("21.5%", muted, a fixed
+  `w-12`), name, in one flex row so a long name wraps beside its dot; the amount never wraps (`whitespace-nowrap`).
+- **Tab strips show their selected tab:** helm's tabs trigger styled `data-active:`, but `brn-tabs-trigger` sets
+  `data-state="active"`, so no strip (period picker, settings tabs, Records / Aggregate) marked its selection. Patched
+  to `data-[state=active]:` and recorded in `tools/spartan-add.cjs`, like the switch.
+- **First sign-in welcome** (`src/onboarding/`): `OnboardingService` (started with `LanguageSyncService` in
+  `app.config.ts`) opens `WelcomeDialogComponent` once per account while `UserPreferences.onboardingPending` is on (new
+  accounts, see `api/CLAUDE.md`); `disableClose`, one "Get started". Language (`app-settings-tabs` over the registry),
+  Theme (System / White / Black, applied at once, per device) and, for a holder of `app.system-settings.update`, the
+  household currency (EUR, PLN, USD, GBP, CHF from `CURRENCY_PRESETS`). The language switches at once but is saved only
+  with the final preferences PUT (`onboardingPending: false`), not through `LanguageSyncService.choose`, so two PUTs
+  cannot race the flag back on. A changed currency is a GET + PUT of the whole system settings (the endpoint takes the
+  whole body) and `SetCurrencyDisplay` / `SetCurrencyData`. A failed save leaves the dialog open.
 - **Dashboard donut:** click a slice or a legend dot to focus a category (`focusedSegment`, `toggleFocus`); there are no checkbox chips. Hovering a slice (ApexCharts `dataPointMouseEnter/Leave`) or a legend row (`mouseenter`/`focusin`) sets `hoveredSegment`; `activeSegment` = hovered ?? focused. `applySliceEmphasis` works on the drawn SVG (never through the options, so hover does not redraw): the active slice scales 1.06 from the ring's center (`transform-box: fill-box`, origin from the slices' boxes, 200 ms `cubic-bezier(0.16, 1, 0.3, 1)`), the others go to 0.45 opacity (150 ms), and the middle names the category. It runs again on `animationEnd`, since the slices have no size during the entry animation; `customScale: 0.92` leaves room for the grown slice. Legend rows dim with `opacity-45`. Bars use `height: 100%` inside a `min-h-[260px] flex-1` wrapper so the chart fills its card.
 - **AI page:** `app-gemini-model-field` (model dropdown from `POST /receiptProcessingSettings/geminiModels`, text box fallback, key sent in the body, a saved key is used server-side via the settings id) and `app-ai-fallback-card` (a second Gemini settings row linked as `fallbackReceiptProcessingSettingsId`; switching it off only unlinks; hidden without System Settings access). Shared constants live in `ai-settings-shared.ts`.
 - **Dialog footer:** `app-dialog-footer` / `app-cancel-button` render labelled buttons: the submit one is the primary (filled accent) Save, cancel is red. `[editing]="true"` on the footer dims Save while the form is unchanged (see "Action buttons"). Specs find them by testid.

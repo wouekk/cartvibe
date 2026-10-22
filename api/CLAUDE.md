@@ -2432,6 +2432,20 @@ Current fields: the three quick-scan defaults, `userShortcuts`, and `closeChipSe
 desktop-only behavior flag for the multi-select chip pickers - see `desktop/CLAUDE.md` -> "The chip
 picker's close-on-select preference"; mobile carries the generated field but never reads it).
 
+**`onboardingPending`** (2026-10, `not null; default:false`): the desktop's first sign-in welcome (language, theme,
+household currency) shows while it is on. `UserRepository.CreateUser` creates the preferences with it **on**; the
+column default is off, so accounts from before it existed, and preferences made on demand by
+`GetUserPreferencesOrCreate`, never see the welcome. The update copies it like every other field, and the desktop sends
+`false` on "Get started". Tests: `repositories/user_preferences_test.go` → `TestOnboardingPendingIsOnForNewAccountsAndTurnsOff`.
+
+**A fresh install starts on euros.** `InitDB` calls `SeedEuroForNewInstall` first. It used to create an empty (dollar)
+settings row at its top, so the seed, which only acts on an empty table, never did anything. Pinned by
+`TestInitDBStartsAFreshInstallOnEurosInTheEnvTimeZone`, which runs the whole `InitDB` on an empty table.
+
+**Reports speak the app's status words:** `receiptsource.statusLabel` turns OPEN / NEEDS_ATTENTION / DRAFT into
+"To check" and RESOLVED / DECLINED into "Settled" (an unknown status stays as is), and the resolved date is labelled
+"Settled on". The CSV export keeps the raw values.
+
 ## Quick Scan Field Configuration
 
 Group admins configure the quick-scan workflow per group on `GroupReceiptSettings` (gated by the

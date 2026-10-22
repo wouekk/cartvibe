@@ -97,8 +97,11 @@ describe("ShoppingTripsComponent", () => {
     expect(element("shopping-trip-scan")).toBeNull();
     expect(element("shopping-trip-attach")).not.toBeNull();
 
+    // With both, one "Add receipt" beside the title opens Scan / Attach (the photo input stays on the page).
     await render([...LIST_PERMISSIONS, Permission.GroupReceiptsRead, Permission.GroupReceiptsQuickScan]);
-    expect(element("shopping-trip-scan")).not.toBeNull();
+    expect(element("shopping-trip-add")).not.toBeNull();
+    expect(element("shopping-trip-photo-input")).not.toBeNull();
+    expect(element("shopping-trip-add")?.textContent).toContain("Add receipt");
   });
 
   it("uploads the chosen photo and refetches", async () => {

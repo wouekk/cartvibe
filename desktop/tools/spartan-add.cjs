@@ -101,6 +101,9 @@ const patches = [
   // `data-checked:` classes never applied and a switch that was on looked off.
   ["switch/lib/hlm-switch.ts", /data-(un)?checked:/g, (_match, un) => `data-[state=${un ? "unchecked" : "checked"}]:`],
   ["switch/lib/hlm-switch-thumb.ts", /data-(un)?checked:/g, (_match, un) => `data-[state=${un ? "unchecked" : "checked"}]:`],
+  // brn-tabs-trigger marks the selected tab as data-state="active", never a data-active attribute, so no tab strip
+  // (period picker, settings tabs, Records / Aggregate, the welcome's choices) showed which tab was selected.
+  ["tabs/lib/hlm-tabs-trigger.ts", /data-active:/g, () => "data-[state=active]:"],
 ];
 for (const [file, from, to] of patches) {
   const target = path.join(outRoot, file);

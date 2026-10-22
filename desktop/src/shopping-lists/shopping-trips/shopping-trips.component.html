@@ -1,37 +1,52 @@
 @if (canSee()) {
   <section class="trips flex flex-col gap-3" data-testid="shopping-trips" aria-labelledby="shopping-trips-title">
-    <h3 id="shopping-trips-title" class="cv-section__title">{{ 'Receipts from this list' | t }}</h3>
-    @if (canScan() || canUpdate()) {
-      <div class="flex flex-wrap items-center gap-2 [&_button]:h-9">
-        @if (canScan()) {
-          <input
-            #photoInput
-            type="file"
-            accept="image/*,application/pdf"
-            hidden
-            data-testid="shopping-trip-photo-input"
-            (change)="scanSelected($event)"
-          />
-          <button
-            hlmBtn
-            type="button"
-            class="flex-1"
-            data-testid="shopping-trip-scan"
-            [disabled]="uploading()"
-            (click)="photoInput.click()"
-          >
-            <app-icon name="photo_camera"></app-icon>
-            {{ (uploading() ? 'Uploading…' : 'Scan receipt') | t }}
-          </button>
-        }
-        @if (canUpdate()) {
-          <button hlmBtn type="button" class="flex-1" data-testid="shopping-trip-attach" (click)="attachExisting()">
-            <app-icon name="attach_file"></app-icon>
-            {{ 'Attach existing' | t }}
-          </button>
-        }
-      </div>
-    }
+    <!-- One action beside the title: "Add receipt" opens Scan / Attach, or is just Attach without Quick Scan
+         (scanning needs the list update permission too, so there is no scan-only case). -->
+    <div class="flex min-h-8 items-center justify-between gap-2">
+      <h3 id="shopping-trips-title" class="cv-section__title">{{ 'Receipts from this list' | t }}</h3>
+      @if (canScan()) {
+        <!-- The input lives in the same block as the menu that clicks it, so the menu can reach #photoInput. -->
+        <input
+          #photoInput
+          type="file"
+          accept="image/*,application/pdf"
+          hidden
+          data-testid="shopping-trip-photo-input"
+          (change)="scanSelected($event)"
+        />
+        <button
+          hlmBtn
+          size="sm"
+          type="button"
+          class="shrink-0"
+          data-testid="shopping-trip-add"
+          [disabled]="uploading()"
+          [hlmDropdownMenuTrigger]="addReceiptMenu"
+          align="end"
+        >
+          <app-icon name="add"></app-icon>
+          {{ (uploading() ? 'Uploading…' : 'Add receipt') | t }}
+          <app-icon name="expand_more"></app-icon>
+        </button>
+        <ng-template #addReceiptMenu>
+          <div hlmDropdownMenu class="w-56">
+            <button hlmDropdownMenuItem data-testid="shopping-trip-scan" (click)="photoInput.click()">
+              <app-icon name="photo_camera"></app-icon>
+              <span>{{ 'Scan receipt' | t }}</span>
+            </button>
+            <button hlmDropdownMenuItem data-testid="shopping-trip-attach" (click)="attachExisting()">
+              <app-icon name="attach_file"></app-icon>
+              <span>{{ 'Attach existing' | t }}</span>
+            </button>
+          </div>
+        </ng-template>
+      } @else if (canUpdate()) {
+        <button hlmBtn size="sm" type="button" class="shrink-0" data-testid="shopping-trip-attach" (click)="attachExisting()">
+          <app-icon name="attach_file"></app-icon>
+          {{ 'Attach existing' | t }}
+        </button>
+      }
+    </div>
 
     @if (rows().length > 0) {
       <div class="border-t border-border/60">

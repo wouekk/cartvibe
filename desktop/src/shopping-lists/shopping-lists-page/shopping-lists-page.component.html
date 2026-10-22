@@ -3,19 +3,8 @@
     [headerText]="'Shopping Lists' | t"
     [subtitle]="groupName() ? ('Shared with everyone in {name}. Changes appear live on every device.' | t: { name: groupName() }) : ''"
   >
+    <!-- The page's one action. Going shopping sits with the list, receipts with their panel. -->
     <div class="flex items-center gap-2 [&_button]:h-9">
-      @if (canUpdate() && lists().length > 0) {
-        <button
-          hlmBtn
-          type="button"
-          data-testid="shopping-list-going-shopping"
-          [disabled]="announcing()"
-          (click)="announceGoingShopping()"
-        >
-          <app-icon name="shopping_cart"></app-icon>
-          {{ 'Going shopping' | t }}
-        </button>
-      }
       @if (canCreate()) {
         <app-add-button
           [buttonText]="'Add List' | t"
@@ -61,6 +50,21 @@
               <h2 class="m-0 truncate text-base font-semibold tracking-tight">{{ list.name }}</h2>
               <p class="m-0 text-xs text-muted-foreground tabular-nums">{{ '{count} to buy' | t: { count: toBuyCount() } }}</p>
             </div>
+            @if (canUpdate()) {
+              <!-- Tells the rest of the household (a notification), hence the bell. -->
+              <button
+                hlmBtn
+                type="button"
+                class="h-9 shrink-0"
+                data-testid="shopping-list-going-shopping"
+                [disabled]="announcing()"
+                [attr.title]="'Let the household know you are going shopping' | t"
+                (click)="announceGoingShopping()"
+              >
+                <app-icon name="notifications_active"></app-icon>
+                <span class="max-sm:sr-only">{{ 'Going shopping' | t }}</span>
+              </button>
+            }
             @if (canUpdate() || canDelete()) {
               <button
                 hlmBtn variant="ghost" size="icon"
