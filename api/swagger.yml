@@ -2575,6 +2575,58 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
+  /dashboardLayout:
+    get:
+      tags:
+        - DashboardLayout
+      summary: Get the dashboard layout
+      description:
+        Returns the logged in user's Dashboard layout; an empty layout means the default [SYSTEM USER]
+      operationId: getDashboardLayout
+      responses:
+        200:
+          description: The user's dashboard layout
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardLayout"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+    put:
+      tags:
+        - DashboardLayout
+      summary: Save the dashboard layout
+      description:
+        Saves the logged in user's Dashboard layout, replacing the previous one [SYSTEM USER]
+      operationId: updateDashboardLayout
+      requestBody:
+        description: The layout to save
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDashboardLayoutCommand"
+      responses:
+        200:
+          description: The saved dashboard layout
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardLayout"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
   /systemEmail/:
     post:
       tags:
@@ -7609,6 +7661,34 @@ components:
             type: string
             maxLength: 500
             description: Comment for the file at the same index (empty for none)
+    DashboardLayout:
+      allOf:
+        - $ref: "#/components/schemas/BaseModel"
+        - type: object
+          required:
+            - userId
+            - layout
+            - canCustomise
+          properties:
+            userId:
+              type: integer
+              description: User foreign key
+            layout:
+              type: string
+              description:
+                The layout as a JSON document owned by the clients, `{"version":1,"panels":[{"id","visible","cols","rows"}],"compactOrder":[...]}`;
+                panel ids are plain strings. Empty means the default layout.
+            canCustomise:
+              type: boolean
+              description: Whether this person may save a layout (computed, not stored)
+    UpdateDashboardLayoutCommand:
+      type: object
+      required:
+        - layout
+      properties:
+        layout:
+          type: string
+          description: The layout JSON document (an object with a numeric version, at most 16 KB)
     UserPreferences:
       allOf:
         - $ref: "#/components/schemas/BaseModel"
