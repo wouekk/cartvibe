@@ -3067,7 +3067,18 @@ Every Admin and User settings page uses four shared primitives from `src/shared-
 - **Scoring** (`health-score.ts`, pure, constants documented): 60% Nutri-Score + 40% NOVA (missing counts as 50), minus 15 per
   high-risk and 5 per moderate additive, clamped to 0-100. `e-additives.ts` is a bundled guide of about 210 codes with a
   category and `safe | moderate | high`; unknown codes show as unknown. It is a general guide, and the drawer says so.
-- **Camera**: the scanner is used only when `isSecureContext` and `getUserMedia` exist (plain-http LAN installs get the typed field only).
+- **Photo fallback (plain http, no device, or a refused camera).** The live scanner needs `isSecureContext` and `getUserMedia`
+  (`canUseCamera()`, a synchronous check). Without them the drawer shows `app-barcode-photo-actions`: **"Take a photo of the
+  code"** (`<input type="file" accept="image/*" capture="environment">`, opens the phone's camera app) and **"Upload a photo"**
+  (no `capture`, the gallery or a file on a PC), plus a camera icon inside the barcode field. They are native `<label>`s around
+  hidden inputs, never a button calling `input.click()`: iOS Safari and Android Chrome ignore a file-input click made after an
+  `await`, so it must stay a tap on the control itself. The scanner dialog shows the same pair when the camera is refused or
+  fails. `BarcodeImageService.decode(file)` shrinks the photo to 1280 px on its long side (`fitWithin`, a 12-48 MP photo chokes
+  decoders), draws it on an offscreen canvas and tries the native `BarcodeDetector`, then zxing with `TRY_HARDER` and the
+  EAN/UPC formats; a read counts only after the check digit passes. A photo with no code gives `ProductCheckService`'s
+  `photoFailed` state (a clear message; the labels stay usable to retry). Verified by feeding a generated 12 MP EAN-13 photo to
+  the file input with `isSecureContext` forced false; the real phone camera app is not testable here.
+- **Camera**: the live scanner is used only when `canUseCamera()`.
   `BarcodeScannerService` uses the native `BarcodeDetector` and otherwise loads `@zxing/browser` on demand (own chunk). A read
   counts only after the check digit passes. **zxing is pinned to `@zxing/browser` 0.1.5 + `@zxing/library` 0.21.3 on purpose:**
   library 0.22+ declares `node >= 24`, which fails the engines check against CI's Node 20.19.6.

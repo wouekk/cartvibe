@@ -1,6 +1,11 @@
 /** Polish texts for the product checker in the header and the receipts search (merged into PL). */
 export const PL_PRODUCT_CHECK: Record<string, string> = {
   "Scan product": "Skanuj produkt",
+  "Take a photo of the code": "Zrób zdjęcie kodu",
+  "Upload a photo": "Wgraj zdjęcie",
+  "Reading the barcode…": "Odczytywanie kodu…",
+  "No barcode was found in that photo. Try again with the bars sharp and filling the frame.":
+    "Nie znaleziono kodu kreskowego na zdjęciu. Spróbuj ponownie: kreski powinny być ostre i wypełniać kadr.",
   "Check a product barcode": "Sprawdź kod kreskowy produktu",
   "Enter a barcode…": "Wpisz kod kreskowy…",
   "Enter a barcode": "Wpisz kod kreskowy",

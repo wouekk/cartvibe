@@ -9,6 +9,9 @@
   Nutri-Score, NOVA, additives, nutrition, 10 recent scans). See `api/CLAUDE.md` "Receipt search" and `desktop/CLAUDE.md` "Receipts
   search and the product checker". Jest 2149/2149, `ng build` OK, Go tests of the touched packages pass; seen locally in both
   themes and at phone width (dev stack, screenshots).
+- **Plain-http fallback (2026-10-22):** without `isSecureContext`/`getUserMedia` the drawer offers "Zrób zdjęcie kodu" (native camera app via `capture`)
+  and "Wgraj zdjęcie" (gallery) as `<label>`s over file inputs; the photo is shrunk to 1280 px and decoded with zxing (TRY_HARDER). Checked with a
+  generated 12 MP photo on the dev stack; **try it on the NAS over http from a real phone** (iPhone Safari and Android Chrome).
 - **Decision, by the user: no name search in the checker.** Open Food Facts answers cross-site browser requests to its search
   endpoints with a 503 and its search service has no CORS, so only barcodes work from a browser (a server relay was rejected).
 - Not verified: the camera scan on a real device (needs HTTPS: Android Chrome and iPhone Safari on the NAS), the CSP report

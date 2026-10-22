@@ -3,6 +3,7 @@ import { HlmButton } from "@spartan-ng/helm/button";
 import { AppDialogRef } from "../dialog/app-dialog";
 import { TranslatePipe } from "../i18n/translate.pipe";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
+import { BarcodePhotoActionsComponent } from "./barcode-photo-actions.component";
 import { BarcodeScannerService, canUseCamera, ScanHandle } from "./barcode-scanner.service";
 
 export type ScannerState = "starting" | "scanning" | "denied" | "unavailable";
@@ -14,7 +15,7 @@ export type ScannerState = "starting" | "scanning" | "denied" | "unavailable";
 @Component({
   selector: "app-barcode-scanner-dialog",
   standalone: true,
-  imports: [HlmButton, AppIconComponent, TranslatePipe],
+  imports: [HlmButton, AppIconComponent, BarcodePhotoActionsComponent, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex flex-col gap-3 p-4" data-testid="barcode-scanner">
@@ -50,6 +51,15 @@ export type ScannerState = "starting" | "scanning" | "denied" | "unavailable";
           </p>
         }
       }
+
+      @if (state() === 'denied' || state() === 'unavailable') {
+        <app-barcode-photo-actions variant="bar" (barcodeFound)="found($event)" (notFound)="photoFailed.set(true)"></app-barcode-photo-actions>
+        @if (photoFailed()) {
+          <p class="m-0 text-sm text-destructive" role="alert" data-testid="barcode-scanner-photo-failed">
+            {{ 'No barcode was found in that photo. Try again with the bars sharp and filling the frame.' | t }}
+          </p>
+        }
+      }
     </div>
   `,
 })
@@ -60,6 +70,7 @@ export class BarcodeScannerDialogComponent implements AfterViewInit, OnDestroy {
   private readonly video = viewChild.required<ElementRef<HTMLVideoElement>>("video");
 
   public readonly state = signal<ScannerState>("starting");
+  public readonly photoFailed = signal(false);
 
   private stream: MediaStream | null = null;
   private handle: ScanHandle | null = null;
@@ -103,7 +114,7 @@ export class BarcodeScannerDialogComponent implements AfterViewInit, OnDestroy {
     this.dialogRef.close();
   }
 
-  private found(code: string): void {
+  protected found(code: string): void {
     if (this.done) {
       return;
     }
