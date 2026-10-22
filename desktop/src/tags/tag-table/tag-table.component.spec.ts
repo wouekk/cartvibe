@@ -79,20 +79,20 @@ describe("TagsListComponent", () => {
     );
 
     component.sorted({
-      active: "numberOfReceipts",
+      active: "numberOfProducts",
       direction: "asc",
     });
 
     expect(store.selectSnapshot(TagTableState.state)).toEqual({
       page: 1,
       pageSize: 50,
-      orderBy: "numberOfReceipts",
+      orderBy: "numberOfProducts",
       sortDirection: "asc",
     });
     expect(tagService.getPagedTags).toHaveBeenCalledWith({
       page: 1,
       pageSize: 50,
-      orderBy: "numberOfReceipts",
+      orderBy: "numberOfProducts",
       sortDirection: "asc",
     });
   });
@@ -131,7 +131,7 @@ describe("TagsListComponent", () => {
     expect(component.displayedColumns).toEqual([
       "name",
       "description",
-      "numberOfReceipts",
+      "numberOfProducts",
       "actions",
     ]);
   });

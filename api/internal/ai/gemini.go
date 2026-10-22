@@ -72,7 +72,10 @@ func (gemini GeminiClient) GetChatCompletion() (structs.ChatCompletionResult, er
 	}
 	contents := []*genai.Content{genai.NewContentFromParts(parts, genai.RoleUser)}
 
-	config := &genai.GenerateContentConfig{ThinkingConfig: geminiThinkingConfig(gemini.ReceiptProcessingSettings.Model)}
+	config := &genai.GenerateContentConfig{
+		ThinkingConfig: geminiThinkingConfig(gemini.ReceiptProcessingSettings.Model),
+		Temperature:    geminiTemperature(gemini.ReceiptProcessingSettings.Model),
+	}
 	if gemini.ReceiptProcessingSettings.EnforceJsonResponseFormat {
 		config.ResponseMIMEType = "application/json"
 	}
@@ -115,4 +118,14 @@ func geminiThinkingConfig(model string) *genai.ThinkingConfig {
 		return &genai.ThinkingConfig{ThinkingLevel: genai.ThinkingLevelLow}
 	}
 	return nil
+}
+
+// geminiTemperature reads receipts deterministically (0, as the OpenAI client does), except on Gemini 3,
+// whose guidance is to keep its default of 1: lower values can make it loop or answer worse.
+func geminiTemperature(model string) *float32 {
+	name := strings.ToLower(strings.TrimPrefix(strings.TrimSpace(model), "models/"))
+	if strings.HasPrefix(name, "gemini-3") {
+		return nil
+	}
+	return genai.Ptr[float32](0)
 }

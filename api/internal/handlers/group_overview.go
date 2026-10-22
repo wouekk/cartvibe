@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"receipt-wrangler/api/internal/constants"
 	"receipt-wrangler/api/internal/permissions"
+	"receipt-wrangler/api/internal/repositories"
 	"receipt-wrangler/api/internal/services"
 	"receipt-wrangler/api/internal/structs"
 	"receipt-wrangler/api/internal/utils"
@@ -63,8 +64,9 @@ func GetGroupOverview(w http.ResponseWriter, r *http.Request) {
 	HandleRequest(handler)
 }
 
-// GetOverviewProducts lists the product lines behind the Dashboard's Unhealthy and Unplanned tiles for
-// a period (Phase 3 D1): ?kind=UNHEALTHY|UNPLANNED, then month or from/to as on the overview.
+// GetOverviewProducts lists the product lines behind a Dashboard tile or category slice for a period
+// (Phase 3 D1): ?kind=UNHEALTHY|UNPLANNED|FOODGROUP|TAG (FOODGROUP with categoryId or foodGroup, TAG with
+// tagId), then month or from/to as on the overview.
 func GetOverviewProducts(w http.ResponseWriter, r *http.Request) {
 	groupId := chi.URLParam(r, "groupId")
 
@@ -79,16 +81,34 @@ func GetOverviewProducts(w http.ResponseWriter, r *http.Request) {
 			token := structs.GetClaims(r)
 			query := r.URL.Query()
 
-			kind := query.Get("kind")
-			if kind != "UNHEALTHY" && kind != "UNPLANNED" && kind != "FOODGROUP" {
-				structs.WriteValidatorErrorResponse(w, structs.ValidatorError{
-					Errors: map[string]string{"kind": "kind must be UNHEALTHY, UNPLANNED or FOODGROUP"},
-				}, http.StatusBadRequest)
+			filter := repositories.ProductKindFilter{Kind: query.Get("kind"), FoodGroup: query.Get("foodGroup")}
+			vErr := structs.ValidatorError{Errors: map[string]string{}}
+			if filter.Kind != "UNHEALTHY" && filter.Kind != "UNPLANNED" && filter.Kind != "FOODGROUP" && filter.Kind != "TAG" {
+				vErr.Errors["kind"] = "kind must be UNHEALTHY, UNPLANNED, FOODGROUP or TAG"
+			}
+			if raw := query.Get("categoryId"); raw != "" {
+				categoryId, err := utils.StringToUint(raw)
+				if err != nil {
+					vErr.Errors["categoryId"] = "categoryId must be a number"
+				}
+				filter.CategoryId = &categoryId
+			}
+			if raw := query.Get("tagId"); raw != "" {
+				tagId, err := utils.StringToUint(raw)
+				if err != nil {
+					vErr.Errors["tagId"] = "tagId must be a number"
+				}
+				filter.TagId = &tagId
+			} else if filter.Kind == "TAG" {
+				vErr.Errors["tagId"] = "tagId is required for kind TAG"
+			}
+			if len(vErr.Errors) > 0 {
+				structs.WriteValidatorErrorResponse(w, vErr, http.StatusBadRequest)
 				return 0, nil
 			}
 
 			products, err := services.NewGroupOverviewService(nil).GetOverviewProducts(
-				token.UserId, groupId, kind, query.Get("foodGroup"), query.Get("month"), query.Get("from"), query.Get("to"),
+				token.UserId, groupId, filter, query.Get("month"), query.Get("from"), query.Get("to"),
 			)
 			if errors.Is(err, services.ErrInvalidOverviewPeriod) || errors.Is(err, services.ErrInvalidOverviewMonth) {
 				structs.WriteValidatorErrorResponse(w, structs.ValidatorError{

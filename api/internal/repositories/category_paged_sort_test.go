@@ -13,10 +13,12 @@ func TestPagedCategoriesSortByNameAfterTheProductJoin(t *testing.T) {
 
 	CreateTestGroupWithUsers()
 	GetDB().Create(&models.Category{Name: "Snacks"})
-	GetDB().Create(&models.Category{Name: "Dairy"})
+	dairy := models.Category{Name: "Dairy"}
+	GetDB().Create(&dairy)
 	receipt := models.Receipt{Name: "r", GroupId: 1, PaidByUserID: 1}
 	GetDB().Create(&receipt)
-	product := models.ReceiptProduct{ReceiptId: receipt.ID, Name: "LAIT"}
+	// Products are counted by category id (item-level categories).
+	product := models.ReceiptProduct{ReceiptId: receipt.ID, Name: "LAIT", CategoryId: &dairy.ID}
 	product.FoodGroup = "Dairy"
 	GetDB().Create(&product)
 

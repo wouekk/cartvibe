@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -36,6 +37,16 @@ type ReceiptProduct struct {
 	// MatchedShoppingListItemId is the list item a planned product matched. The item may since have
 	// been removed from the list, so it is a plain id, not a foreign key.
 	MatchedShoppingListItemId *uint `json:"matchedShoppingListItemId"`
+	// CategoryId is the line's one category from Manage Categories; nil is Uncategorized. FoodGroup (in
+	// FoodClassification) keeps the category's name alongside, for the AI paths that speak in names. A plain
+	// id, not a foreign key, so adding the column never rebuilds the table on SQLite; deleting a category
+	// clears it.
+	CategoryId *uint `gorm:"index:idx_receipt_product_category_id" json:"categoryId"`
+	// Tags label the line itself, any number of them (they used to describe the whole receipt).
+	Tags []Tag `gorm:"many2many:receipt_product_tags" json:"tags"`
+	// CategoryOverridden is set when a person chose the category; the classification sweep and a rename
+	// leave it alone from then on.
+	CategoryOverridden bool `gorm:"not null;default:false" json:"categoryOverridden"`
 }
 
 // ReceiptProductExtractionStatus is where a receipt's product reading stands. A plain string on the
@@ -66,4 +77,13 @@ type ReceiptProductExtraction struct {
 	LastError string    `gorm:"type:varchar(500);not null;default:''" json:"lastError"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// MarshalJSON keeps tags an array on every response, loaded or not: the desktop iterates it unguarded.
+func (product ReceiptProduct) MarshalJSON() ([]byte, error) {
+	type plainReceiptProduct ReceiptProduct
+	if product.Tags == nil {
+		product.Tags = []Tag{}
+	}
+	return json.Marshal(plainReceiptProduct(product))
 }

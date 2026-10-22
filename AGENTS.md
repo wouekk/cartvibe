@@ -52,6 +52,8 @@ admin-only with working defaults. The visual target is the **high-craft fintech 
 - **SQLite on the NAS.** New models must be SQLite-safe and migrations additive.
 - **AI is optional and fallible.** Nothing may block or fail because the AI is missing, slow or out
   of credits: record a status, retry later, degrade to "planned"/"unknown".
+- **The AI assigns categories and health, never tags** (tags are the household's own labels), and never a category
+  switched off under Manage Categories. Prompts are code, kept short; read `docs/ai-prompts.md` before changing one.
 
 ---
 

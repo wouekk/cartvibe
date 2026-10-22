@@ -11,6 +11,8 @@ type UpsertTagCommand struct {
 	Id          *uint  `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
+	// ShowOnDashboard: nil leaves an existing tag as it is, and a new one off.
+	ShowOnDashboard *bool `json:"showOnDashboard"`
 }
 
 func (tag *UpsertTagCommand) LoadDataFromRequest(w http.ResponseWriter, r *http.Request) error {

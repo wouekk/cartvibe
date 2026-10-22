@@ -24,22 +24,18 @@ const (
 	foodClassificationRegion = "Western Europe"
 )
 
-const foodClassificationPrompt = `You classify shop products for a household in %s. The current month is %s.
-
-For each product return:
-- "health": "HEALTHY", "MEDIUM", "UNHEALTHY", or "NOT_FOOD" for anything that is not food or drink.
-  HEALTHY: fresh fruit and vegetables, legumes, whole grains, plain dairy, eggs, fish, lean meat, nuts, water, plain tea and coffee.
-  MEDIUM: white bread, plain pasta and rice, cheese, butter, fruit juice, processed or red meat, breakfast cereals, sauces.
-  UNHEALTHY: sweets, chocolate, biscuits and pastries, crisps and salty snacks, sugary or energy drinks, alcohol, fast food, ready meals high in fat, sugar or salt, tobacco.
-- "foodGroup": a short lowercase group, for example "fresh produce", "dairy", "bakery", "meat", "fish", "drinks", "sweets & snacks", "alcohol", "frozen", "pantry", "household".
-- "seasonality": only for fresh fruit and vegetables: "SEASONAL" if it is in season in %s in %s, or "OUT_OF_SEASON" if in that month it is most likely imported from another continent or frozen. "NOT_PRODUCE" for everything else, including frozen and canned produce.
+// foodClassificationPrompt shares its rules with the product read (healthRules, foodGroupRule, the seasonality
+// rule). The %s slots are the region, the month, the food group rule, the seasonality rule, the category
+// block with the corrections, and the products.
+const foodClassificationPrompt = `Classify these shop products for a household in %s; the current month is %s.
+For each product:
+- "health": ` + healthRules + `
+- "foodGroup": %s
+- "seasonality": %s
 %s
-Return ONLY valid JSON in plain text, never in a code block, exactly in this shape:
-{"products": [{"id": "1", "health": "...", "foodGroup": "...", "seasonality": "..."}]}
-Return one entry for every product below, with the same id.
-
-Products:
-%s`
+Reply with minified JSON only, no code block, one entry per product with its id:
+{"products":[{"id":"1","health":"...","foodGroup":"...","seasonality":"..."}]}
+Products: %s`
 
 const foodClassificationCorrections = `
 This household has corrected these before; follow their view for these and similar products:
@@ -172,7 +168,7 @@ func (service FoodClassificationService) classifyBatch(batch classificationBatch
 			answer.Health = health
 		}
 
-		answer.FoodGroup = resolver.Resolve(answer.FoodGroup)
+		answer.FoodGroup, answer.CategoryId = resolver.ResolveCategory(answer.FoodGroup)
 		err = repository.SaveClassification(candidate, answer, now)
 		if err != nil {
 			return classified, err
@@ -281,24 +277,8 @@ func (service FoodClassificationService) saveCorrection(
 func buildClassificationPrompt(batch classificationBatch, corrections map[string]string, categoryBlock string) string {
 	month := batch.month.Format("January 2006")
 
-	examples := ""
-	if len(corrections) > 0 {
-		names := make([]string, 0, len(corrections))
-		for name := range corrections {
-			names = append(names, name)
-		}
-		sort.Strings(names)
-		if len(names) > foodClassificationMaxExamples {
-			names = names[:foodClassificationMaxExamples]
-		}
-
-		lines := make([]string, len(names))
-		for i, name := range names {
-			lines[i] = fmt.Sprintf("- %s: %s", name, corrections[name])
-		}
-		examples = fmt.Sprintf(foodClassificationCorrections, strings.Join(lines, "\n"))
-	}
-
+	foodGroup := foodGroupRule(categoryBlock)
+	examples := correctionExamples(corrections)
 	if categoryBlock != "" {
 		examples = categoryBlock + "\n" + examples
 	}
@@ -311,7 +291,8 @@ func buildClassificationPrompt(batch classificationBatch, corrections map[string
 
 	return fmt.Sprintf(
 		foodClassificationPrompt,
-		foodClassificationRegion, month, foodClassificationRegion, month, examples, string(productJson),
+		foodClassificationRegion, month, foodGroup, fmt.Sprintf(seasonalityRuleTemplate, foodClassificationRegion, month),
+		examples, string(productJson),
 	)
 }
 

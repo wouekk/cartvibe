@@ -169,7 +169,7 @@ describe("OverviewPageComponent", () => {
     expect(overviewService.getGroupOverview).not.toHaveBeenCalled();
     expect(text("overview-pick-range")).toContain("Type a first and a last day");
 
-    component.period.set({ from: "2026-10-01", to: "2026-10-10", label: "1 Oct 2026 – 10 Oct 2026" });
+    component.period.set({ from: "2026-10-01", to: "2026-10-10", label: "1 Oct 2026 â 10 Oct 2026" });
     await fixture.whenStable();
 
     expect(overviewService.getGroupOverview).toHaveBeenLastCalledWith(1, undefined, "2026-10-01", "2026-10-10");
@@ -204,6 +204,31 @@ describe("OverviewPageComponent", () => {
 
     expect(open.mock.calls[0][1]?.data).toMatchObject({ kind: "FOODGROUP", foodGroup: "Dairy" });
     expect(open.mock.calls[1][1]?.data).toMatchObject({ kind: "FOODGROUP", foodGroup: "" });
+  });
+
+  it("opens a category slice by its id when it has one", () => {
+    const open = jest.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({} as never);
+
+    component.openCategory({ name: "Nabiał", categoryId: 4, total: 1, share: "1%", color: "", dashArray: "", dashOffset: 0 });
+
+    expect(open.mock.calls[0][1]?.data).toMatchObject({ kind: "FOODGROUP", categoryId: 4 });
+  });
+
+  it("gives each tag shown on the Dashboard a tile like Unhealthy, opening the lines behind it", async () => {
+    overviewService.getGroupOverview.mockImplementation((_groupId: number, _month: string, from: string, to: string) =>
+      of({ ...overview(from, to), tags: [{ tagId: 7, name: "Party", total: "23", previousTotal: "10" }] })
+    );
+    component.period.set({ from: "2025-01-01", to: "2025-12-31", label: "2025" });
+    await fixture.whenStable();
+
+    const tile = text("overview-tile-tag-7");
+    expect(tile).toContain("Party");
+    expect(tile).toContain("23");
+    expect(tile).toContain("25% of");
+
+    const open = jest.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({} as never);
+    (fixture.nativeElement.querySelector('[data-testid="overview-tile-tag-7"]') as HTMLElement).click();
+    expect(open.mock.calls[0][1]?.data).toMatchObject({ kind: "TAG", tagId: 7, from: "2025-01-01", to: "2025-12-31" });
   });
 
   describe("monthly spending goal", () => {
