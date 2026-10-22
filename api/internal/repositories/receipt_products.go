@@ -294,26 +294,69 @@ func carryOverProductLabels(previous []models.ReceiptProduct, products []models.
 	}
 }
 
-// productLabels resolves a command's category and tags: the category's name (stored alongside its id)
-// and the tag rows to link. The handler has already checked that the ids exist.
-func productLabels(tx *gorm.DB, command commands.UpsertReceiptProductCommand) (string, []models.Tag, error) {
+// productLabels resolves a category and tags: the category's name (stored alongside its id) and the tag
+// rows to link. The handler has already checked that the ids exist.
+func productLabels(tx *gorm.DB, categoryId *uint, tagIds []uint) (string, []models.Tag, error) {
 	categoryName := ""
-	if command.CategoryId != nil {
+	if categoryId != nil {
 		var category models.Category
-		if err := tx.Select("id", "name").First(&category, *command.CategoryId).Error; err != nil {
+		if err := tx.Select("id", "name").First(&category, *categoryId).Error; err != nil {
 			return "", nil, err
 		}
 		categoryName = category.Name
 	}
 
 	tags := []models.Tag{}
-	if len(command.TagIds) > 0 {
-		if err := tx.Where("id IN ?", command.TagIds).Find(&tags).Error; err != nil {
+	if len(tagIds) > 0 {
+		if err := tx.Where("id IN ?", tagIds).Find(&tags).Error; err != nil {
 			return "", nil, err
 		}
 	}
 
 	return categoryName, tags, nil
+}
+
+// replaceProductTags links the line to exactly these tags.
+func replaceProductTags(tx *gorm.DB, productId uint, tags []models.Tag) error {
+	if err := deleteProductTags(tx, tx.Model(&models.ReceiptProduct{}).Select("id").Where("id = ?", productId)); err != nil {
+		return err
+	}
+	if len(tags) == 0 {
+		return nil
+	}
+
+	links := make([]map[string]any, len(tags))
+	for i, tag := range tags {
+		links[i] = map[string]any{"receipt_product_id": productId, "tag_id": tag.ID}
+	}
+	return tx.Table("receipt_product_tags").Create(links).Error
+}
+
+// SetProductLabels sets a line's category and tags, and nothing else: no rename, no new comparison with
+// the shopping list. A category different from the line's current one is a person's choice from then on.
+func (repository ReceiptProductRepository) SetProductLabels(product models.ReceiptProduct, categoryId *uint, tagIds []uint) (models.ReceiptProduct, error) {
+	err := repository.GetDB().Transaction(func(tx *gorm.DB) error {
+		categoryName, tags, err := productLabels(tx, categoryId, tagIds)
+		if err != nil {
+			return err
+		}
+
+		err = tx.Model(&models.ReceiptProduct{}).Where("id = ?", product.ID).Updates(map[string]any{
+			"category_id":         categoryId,
+			"food_group":          categoryName,
+			"category_overridden": product.CategoryOverridden || !sameId(product.CategoryId, categoryId),
+		}).Error
+		if err != nil {
+			return err
+		}
+
+		return replaceProductTags(tx, product.ID, tags)
+	})
+	if err != nil {
+		return models.ReceiptProduct{}, err
+	}
+
+	return getProductWithTags(repository.GetDB(), product.ID)
 }
 
 // getProductWithTags reloads one product with its tags, for a response.
@@ -365,7 +408,7 @@ func (repository ReceiptProductRepository) CreateProduct(receiptId uint, command
 			position = last.Position + 1
 		}
 
-		categoryName, tags, err := productLabels(tx, command)
+		categoryName, tags, err := productLabels(tx, command.CategoryId, command.TagIds)
 		if err != nil {
 			return err
 		}
@@ -429,7 +472,7 @@ func (repository ReceiptProductRepository) UpdateProduct(product models.ReceiptP
 	}
 
 	err := repository.GetDB().Transaction(func(tx *gorm.DB) error {
-		categoryName, tags, err := productLabels(tx, command)
+		categoryName, tags, err := productLabels(tx, command.CategoryId, command.TagIds)
 		if err != nil {
 			return err
 		}
@@ -442,18 +485,8 @@ func (repository ReceiptProductRepository) UpdateProduct(product models.ReceiptP
 			return err
 		}
 
-		// Replace the line's tags with the ones sent.
-		if err := deleteProductTags(tx, tx.Model(&models.ReceiptProduct{}).Select("id").Where("id = ?", product.ID)); err != nil {
+		if err := replaceProductTags(tx, product.ID, tags); err != nil {
 			return err
-		}
-		if len(tags) > 0 {
-			links := make([]map[string]any, len(tags))
-			for i, tag := range tags {
-				links[i] = map[string]any{"receipt_product_id": product.ID, "tag_id": tag.ID}
-			}
-			if err := tx.Table("receipt_product_tags").Create(links).Error; err != nil {
-				return err
-			}
 		}
 
 		return NewShoppingTripRepository(tx).RequeueTripForReceipt(product.ReceiptId, time.Now())
