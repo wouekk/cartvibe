@@ -81,6 +81,8 @@ These are distilled from incidents and reviews; the linked sections explain them
 | CartVibe identity, themes (dark mode + five accents) | — | `desktop/CLAUDE.md` → "Identity, themes and the shell" |
 | Spending insights: receipt products (2a), health/seasonality (2b), receipt ↔ list comparison (2c); goals and tiles moved to Phase 3 | `docs/spending-insights-phase-2.md` | `api/CLAUDE.md` → "Receipt products", "Health and seasonality tags", "Shopping trips" |
 | Family budget rework, incl. goals and dashboard tiles (Phase 3, shipped) | `docs/family-budget-rework.md` | — |
+| Categories and tags on product lines, tag tiles on the Dashboard | — | `api/CLAUDE.md`, `desktop/CLAUDE.md` → "Categories and tags on product lines" |
+| AI prompts (what is asked, answer shapes, the no-tags rule, how to change one) | `docs/ai-prompts.md` | `api/CLAUDE.md` → "AI: no tags, leaner prompts" |
 | CI-built image, NAS compose | — | `AGENTS.md` §2 |
 
 ## Code changes
