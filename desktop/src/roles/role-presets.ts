@@ -226,7 +226,6 @@ const RESOURCE_ICONS: Record<string, string> = {
   "app.groups": "group",
   "app.categories": "sell",
   "app.tags": "label",
-  "app.custom-fields": "data_object",
   "app.prompts": "auto_awesome",
   "app.receipt-processing-settings": "document_scanner",
   "app.system-settings": "settings",
@@ -248,7 +247,6 @@ export function iconForResource(resourceKey: string): string {
 }
 
 const RESOURCE_NAME_OVERRIDES: Record<string, string> = {
-  "custom-fields": marker("Custom Fields"),
   "receipt-processing-settings": marker("Receipt Processing"),
   "api-keys": marker("API Keys"),
   "system-settings": marker("System Settings"),

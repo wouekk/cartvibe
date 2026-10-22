@@ -5,7 +5,6 @@ import { appPermissionGuard } from "src/guards/app-permission.guard";
 import { groupPermissionGuard } from "src/guards/group-permission.guard";
 import { FormConfig } from "src/interfaces/form-config.interface";
 import { Permission } from "../open-api";
-import { customFieldResolverFn } from "../resolvers/custom-field.resolver";
 import { GroupDetailsComponent } from "./group-details/group-details.component";
 import { GroupFormComponent } from "./group-form/group-form.component";
 import { GroupReceiptSettingsComponent } from "./group-receipt-settings/group-receipt-settings.component";
@@ -95,7 +94,6 @@ const routes: Routes = [
         component: GroupReceiptSettingsComponent,
         resolve: {
           group: groupResolverFn,
-          customFields: customFieldResolverFn,
         },
         data: {
           formConfig: {
@@ -115,7 +113,6 @@ const routes: Routes = [
         component: GroupReceiptSettingsComponent,
         resolve: {
           group: groupResolverFn,
-          customFields: customFieldResolverFn,
         },
         data: {
           formConfig: {

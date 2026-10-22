@@ -2,7 +2,6 @@ import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { AppDatePipe } from "./app-date.pipe";
 import { CustomCurrencyPipe } from "./custom-currency.pipe";
-import { CustomFieldTypePipe } from "./custom-field-type.pipe";
 import { DurationPipe } from "./duration.pipe";
 import { FormArrayLastPipe } from "./form-array-last.pipe";
 import { FormGetPipe } from "./form-get.pipe";
@@ -20,7 +19,6 @@ import { UserPipe } from "./user.pipe";
 @NgModule({
   declarations: [
     CustomCurrencyPipe,
-    CustomFieldTypePipe,
     DurationPipe,
     FormArrayLastPipe,
     FormGetPipe,
@@ -40,7 +38,6 @@ import { UserPipe } from "./user.pipe";
     PluralPipe,
     AppDatePipe,
     CustomCurrencyPipe,
-    CustomFieldTypePipe,
     DurationPipe,
     FormArrayLastPipe,
     FormGetPipe,

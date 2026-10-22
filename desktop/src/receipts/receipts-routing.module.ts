@@ -5,7 +5,6 @@ import { groupPermissionGuard } from "src/guards/group-permission.guard";
 import { GroupGuard } from "src/guards/group.guard";
 import { receiptGuardGuard } from "src/guards/receipt-guard.guard";
 import { Permission } from "../open-api";
-import { customFieldResolverFn } from "../resolvers/custom-field.resolver";
 import { receiptResolverFn } from "../resolvers/receipt.resolver";
 import { ReceiptFormComponent } from "./receipt-form/receipt-form.component";
 import { ReceiptsTableComponent } from "./receipts-table/receipts-table.component";
@@ -15,11 +14,6 @@ const routes: Routes = [
     path: "group/:groupId",
     component: ReceiptsTableComponent,
     canActivate: [GroupGuard],
-    resolve: {
-      // Powers the per-custom-field columns. Resolves to [] without
-      // app.custom-fields.read, which is what gates the feature.
-      customFields: customFieldResolverFn,
-    },
     data: {
       groupGuardBasePath: `/receipts/group`,
     },
@@ -27,9 +21,6 @@ const routes: Routes = [
   {
     path: "add",
     component: ReceiptFormComponent,
-    resolve: {
-      customFields: customFieldResolverFn,
-    },
     data: {
       mode: FormMode.add,
       groupPermission: Permission.GroupReceiptsCreate,
@@ -46,7 +37,6 @@ const routes: Routes = [
     component: ReceiptFormComponent,
     resolve: {
       receipt: receiptResolverFn,
-      customFields: customFieldResolverFn,
     },
     data: {
       mode: FormMode.view,
@@ -59,7 +49,6 @@ const routes: Routes = [
     component: ReceiptFormComponent,
     resolve: {
       receipt: receiptResolverFn,
-      customFields: customFieldResolverFn,
     },
     data: {
       mode: FormMode.edit,
