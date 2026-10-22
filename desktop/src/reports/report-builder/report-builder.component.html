@@ -11,7 +11,7 @@
       <nav class="flex min-w-0 items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground [&_app-icon]:size-3 [&_app-icon]:flex-none" [attr.aria-label]="'Breadcrumb' | t">
         <a class="text-inherit no-underline transition-colors duration-150 hover:text-foreground" [routerLink]="['/reports']">{{ 'Reports' | t }}</a>
         <app-icon name="chevron_right"></app-icon>
-        <span class="truncate">{{ loadedTemplateName ?? ('New report' | t) }}</span>
+        <span class="truncate">{{ loadedTemplateName() ?? ('New report' | t) }}</span>
       </nav>
       <h1 class="m-0 truncate text-2xl font-semibold leading-tight text-foreground">{{ 'Report Builder' | t }}</h1>
     </div>
