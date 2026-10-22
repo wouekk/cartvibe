@@ -105,7 +105,7 @@
     "All time": "Cały czas",
     "Allow pop-ups for this site to print the report.": "Zezwól tej stronie na wyskakujące okna, aby wydrukować raport.",
     "Also add them to quick scan and email created receipts": "Dodawaj je także do paragonów z szybkiego skanowania i e-maili",
-    "Amount": "Ilość",
+    "Amount": "Kwota",
     "Amount cannot be greater than receipt amount": "Kwota nie może być większa niż kwota paragonu",
     "Amount to split does not exist or is invalid!": "Kwota do podziału nie istnieje lub jest nieprawidłowa!",
     "An IANA time zone, e.g. America/New_York. Takes effect immediately, no restart required.": "Strefa czasowa IANA, np. Europe/Warsaw. Działa od razu, bez ponownego uruchamiania.",
@@ -475,8 +475,6 @@
     "Hide Images": "Ukryj obrazy",
     "Hide Item Categories": "Ukryj kategorie pozycji",
     "Hide Item Tags": "Ukryj tagi pozycji",
-    "Hide Receipt Categories": "Ukryj kategorie paragonów",
-    "Hide Receipt Tags": "Ukryj tagi paragonów",
     "Hide Share Categories": "Ukryj kategorie udziałów",
     "Hide Share Tags": "Ukryj tagi udziałów",
     "Hide {label}": "Ukryj: {label}",
@@ -616,6 +614,7 @@
     "No additives listed.": "Brak dodatków na liście.",
     "No barcode was found in that photo. Try again with the bars sharp and filling the frame.": "Nie znaleziono kodu kreskowego na zdjęciu. Spróbuj ponownie: kreski powinny być ostre i wypełniać kadr.",
     "No camera could be started. Type the barcode instead.": "Nie udało się uruchomić aparatu. Wpisz kod ręcznie.",
+    "No categories yet. The AI adds them as it reads receipts, or add your own.": "Brak kategorii. AI dodaje je, czytając paragony, możesz też dodać własne.",
     "No comments for this receipt": "Brak komentarzy do tego paragonu",
     "No data available": "Brak danych",
     "No effect until the report groups or aggregates by Category.": "Bez efektu, dopóki raport nie grupuje ani nie agreguje według kategorii.",
@@ -635,6 +634,8 @@
     "No shortcuts yet. Use + to add one.": "Brak skrótów. Użyj +, aby dodać.",
     "No shortcuts yet. Use Edit to add one.": "Brak skrótów. Użyj Edytuj, aby dodać.",
     "No spending in {period} yet.": "Brak wydatków w okresie {period}.",
+    "No tags yet. Add one, then tag products on your receipts.": "Brak tagów. Dodaj tag, a potem oznaczaj nim produkty z paragonów.",
+    "No tags yet. Add them under Manage, Tags.": "Brak tagów. Dodaj je w Administracja, Tagi.",
     "Non-food": "Artykuły nieżywnościowe",
     "Not connected: {reason}": "Brak połączenia: {reason}",
     "Not food": "Nie jedzenie",
@@ -651,11 +652,11 @@
     "Nov": "lis",
     "November": "listopad",
     "Number of Members": "Liczba członków",
-    "Number of Receipts with Tags": "Liczba paragonów z tagami",
     "Nutrition per 100 g": "Wartości odżywcze na 100 g",
     "OCR Processing": "Rozpoznawanie tekstu (OCR)",
     "Oct": "paź",
     "October": "październik",
+    "On the Dashboard": "Na Pulpicie",
     "One or more options do not belong to this custom field": "Co najmniej jedna opcja nie należy do tego pola niestandardowego",
     "One row per receipt": "Jeden wiersz na paragon",
     "One summed row per value": "Jeden zsumowany wiersz na wartość",
@@ -830,7 +831,6 @@
     "Report template not found": "Nie znaleziono szablonu raportu",
     "Reports": "Raporty",
     "Require": "Wymagaj",
-    "Requiring a comment blocks quick scan on mobile app versions released before this field was added, until those users update.": "Wymaganie komentarza blokuje szybkie skanowanie w wersjach aplikacji mobilnej wydanych przed dodaniem tego pola, dopóki użytkownicy ich nie zaktualizują.",
     "Reset column configuration": "Przywróć domyślne kolumny",
     "Reset filter": "Resetuj filtr",
     "Resolve all user's items": "Rozlicz wszystkie pozycje użytkownika",
@@ -899,6 +899,7 @@
     "Show": "Pokaż",
     "Show Images": "Pokaż obrazy",
     "Show a block of totals under this group's receipts table, covering every receipt the current filter matches rather than just the visible page. Everyone in the group sees it.": "Pokaż blok sum pod tabelą paragonów tej grupy, obejmujący wszystkie paragony pasujące do filtra, a nie tylko widoczną stronę. Widzą go wszyscy w grupie.",
+    "Show on the Dashboard": "Pokaż na Pulpicie",
     "Show the Dashboard in (currency code)": "Pokaż Pulpit w walucie (kod)",
     "Show the receipt summary": "Pokaż podsumowanie paragonów",
     "Show {label}": "Pokaż: {label}",
@@ -981,12 +982,13 @@
     "System settings updated successfully": "Ustawienia systemu zostały zaktualizowane",
     "Tag": "Tag",
     "Tag created successfully": "Tag został dodany",
-    "Tag receipts to group and filter them however you like.": "Oznaczaj paragony tagami, aby grupować i filtrować je jak chcesz.",
+    "Tag products on your receipts, and the Dashboard shows what the tagged products cost in the chosen period and their share of the spending.": "Oznaczaj tagami produkty z paragonów, a Pulpit pokaże, ile kosztowały oznaczone produkty w wybranym okresie i jaka to część wydatków.",
     "Tag successfully deleted": "Tag został usunięty",
+    "Tag the products on your receipts however you like. A tag can have its own Dashboard tile.": "Oznaczaj tagami produkty z paragonów tak, jak chcesz. Tag może mieć własny kafelek na Pulpicie.",
     "Tag updated successfully": "Tag został zaktualizowany",
     "Tags": "Tagi",
-    "Tap an item to mark it done.": "Dotknij pozycji, aby oznaczyć ją jako kupioną.",
     "Take a photo of the code": "Zrób zdjęcie kodu",
+    "Tap an item to mark it done.": "Dotknij pozycji, aby oznaczyć ją jako kupioną.",
     "Task Concurrency": "Współbieżność zadań",
     "Task queue priorities": "Priorytety kolejek zadań",
     "Task server restarted successfully": "Serwer zadań został uruchomiony ponownie",
@@ -1277,6 +1279,14 @@
       "value": "Ustawienia AI grupy",
       "closest": "AI settings saved"
     },
+    "Hide Receipt Categories": {
+      "value": "Ukryj kategorie paragonów",
+      "closest": "Hide Item Categories"
+    },
+    "Hide Receipt Tags": {
+      "value": "Ukryj tagi paragonów",
+      "closest": "Hide Item Tags"
+    },
     "Navigate left": {
       "value": "Przejdź w lewo",
       "closest": "Navigate"
@@ -1284,6 +1294,10 @@
     "Navigate right": {
       "value": "Przejdź w prawo",
       "closest": "Navigate"
+    },
+    "Number of Receipts with Tags": {
+      "value": "Liczba paragonów z tagami",
+      "closest": "Add photos of your receipts"
     },
     "Open receipt": {
       "value": "Otwórz paragon",
@@ -1300,6 +1314,9 @@
       "value": "Usuń bieżący obraz",
       "closest": "Remove Image"
     },
+    "Requiring a comment blocks quick scan on mobile app versions released before this field was added, until those users update.": {
+      "value": "Wymaganie komentarza blokuje szybkie skanowanie w wersjach aplikacji mobilnej wydanych przed dodaniem tego pola, dopóki użytkownicy ich nie zaktualizują."
+    },
     "Save first to test the new settings.": {
       "value": "Najpierw zapisz, aby przetestować nowe ustawienia."
     },
@@ -1313,6 +1330,10 @@
     "Successfully queued images for processing": {
       "value": "Zdjęcia dodano do kolejki przetwarzania",
       "closest": "Email successfully poll successfully queued"
+    },
+    "Tag receipts to group and filter them however you like.": {
+      "value": "Oznaczaj paragony tagami, aby grupować i filtrować je jak chcesz.",
+      "closest": "Also add them to quick scan and email created receipts"
     },
     "The AI reads them for you.": {
       "value": "AI odczyta je za Ciebie."

@@ -39,6 +39,8 @@ export class TagFormComponent implements OnInit {
     this.form = this.formBuilder.group({
       name: [name, Validators.required, nameValidator],
       description: [this.tag?.description ?? ""],
+      // A new tag gets its own Dashboard tile unless switched off; an existing one keeps its setting.
+      showOnDashboard: [this.tag ? (this.tag.showOnDashboard ?? false) : true],
     });
   }
 
@@ -47,6 +49,7 @@ export class TagFormComponent implements OnInit {
       const command: UpsertTagCommand = {
         name: this.form.value.name,
         description: this.form.value.description,
+        showOnDashboard: this.form.value.showOnDashboard,
       };
       this.categoryService
         .updateTag (this.tag.id as number, command)

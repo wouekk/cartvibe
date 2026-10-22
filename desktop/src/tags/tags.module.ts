@@ -1,3 +1,4 @@
+import { CheckboxModule } from "../checkbox/checkbox.module";
 import { CommonModule } from "@angular/common";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { NgModule } from "@angular/core";
@@ -11,7 +12,8 @@ import { TagFormComponent } from "./tag-form/tag-form.component";
 import { TagTableComponent } from "./tag-table/tag-table.component";
 import { TagsRoutingModule } from "./tags-routing.module";
 
-@NgModule({ declarations: [TagTableComponent, TagFormComponent], imports: [CommonModule,
+@NgModule({ declarations: [TagTableComponent, TagFormComponent], imports: [CheckboxModule,
+        CommonModule,
         DirectivesModule,
         InputModule,
         PipesModule,

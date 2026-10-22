@@ -346,7 +346,8 @@ describe("QuickScanDialogComponent", () => {
     expect(component.showPaidBy(0)).toBe(false);
     // A scan starts as "To check", so status is never asked.
     expect(component.showStatus(0)).toBe(false);
-    expect(component.showCategories(0)).toBe(true);
+    // Categories and tags belong to the product lines now, so a scan never asks for them.
+    expect(component.showCategories(0)).toBe(false);
     expect(component.showTags(0)).toBe(false);
 
     // The group's required flags no longer block a scan; the server falls back to defaults.
