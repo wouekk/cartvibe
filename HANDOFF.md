@@ -2,6 +2,8 @@
 
 ## Status (2026-10-22, Windows PC, Claude Code desktop app)
 
+**UI chrome + shopping panel (branch `feat/ui-chrome-and-shopping`, cut from the base branch; NOT merged, waiting for UAT).** Wordmark "Vibe" `#708090`, brand icon at 30% on a handset, header theme toggle next to the bell, Add receipt removed from the Dashboard's top bar, Danger Zone footer fixed (`.rw-card--destructive .rw-card__footer`), and the Dashboard shopping panel (`app-overview-shopping-panel`: most-active list, tap to tick, Undo row, first on a phone). Polish at 100% (1194). **Written in a cloud sandbox where `npm ci` crashed repeatedly ("Exit handler never called"): Jest, `ng build` and screenshots have NOT been run.** `ci.yml` only triggers on `main` and `feature/**`, so this `feat/` branch gets no CI: run `npm run test:ci`, `npm run build` and look at both themes at 390 px and 1440 px before merging. Assumptions to confirm: the logo is still hidden below 640 px (`max-sm:hidden`, unchanged); the panel shows at most 8 items; Undo lasts 6 s.
+
 **i18n runtime (branch `feature/i18n-runtime`, from `main`; NOT merged, no `:preview` published).** The homegrown engine kept English as the key but its
 dictionaries are now runtime JSON: `desktop/src/assets/i18n/{languages,en,pl}.json`, loaded by `TranslationLoader` (HttpBackend, app initializer), plural forms from
 `Intl.PluralRules`, locale data in `src/i18n/locale-data.ts` with an en-US fallback. **The language is never taken from the browser**: signed out and the login page are

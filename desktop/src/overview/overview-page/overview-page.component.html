@@ -7,14 +7,6 @@
       }
     </div>
     <div class="flex flex-wrap items-center gap-2">
-      @if (canAddReceipt()) {
-        <app-add-button
-          [buttonText]="'Add receipt' | t"
-          [tooltip]="'Add a receipt' | t"
-          data-testid="overview-add-receipt"
-          [buttonRouterLink]="['/receipts/add']"
-        ></app-add-button>
-      }
       @if (canQuickScan()) {
         <app-button
           icon="document_scanner"
@@ -36,6 +28,10 @@
       }
     </div>
   </div>
+
+  @if (isHandset()) {
+    <ng-container *ngTemplateOutlet="shoppingPanel; context: { $implicit: '' }"></ng-container>
+  }
 
   <div class="flex flex-wrap items-center gap-2">
     <app-period-picker (periodChange)="period.set($event)"></app-period-picker>
@@ -387,39 +383,24 @@
       }
     </section>
 
-    @if (shoppingListGroupId(); as listGroupId) {
-      <section class="rw-panel flex-[1_1_18.75rem]" aria-labelledby="overview-lists-title">
-        <div class="rw-panel-header">
-          <h2 id="overview-lists-title">{{ 'Shopping lists' | t }}</h2>
-          <a [routerLink]="['/shopping-lists/group', listGroupId]">{{ 'Open' | t }}</a>
-        </div>
-        @if (itemsToBuy() === 0) {
-          <div class="flex flex-col items-center gap-2 py-4 [&_.empty]:py-0" data-testid="overview-lists-empty">
-            <p class="m-0 py-6 text-center text-muted-foreground">{{ 'There are no items in the shopping lists.' | t }}</p>
-            @if (canCreateList()) {
-              <app-button
-                icon="playlist_add"
-                [buttonText]="'New list' | t"
-                matButtonType="matRaisedButton"
-                data-testid="overview-empty-new-list"
-                [buttonRouterLink]="newListLink()"
-                [buttonQueryParams]="{ new: 'list' }"
-              ></app-button>
-            }
-          </div>
-        } @else {
-          @for (list of listSummaries(); track list.id) {
-            <a class="flex items-center gap-2 rounded-lg border border-border p-3.5 text-inherit no-underline transition-colors hover:bg-muted" [routerLink]="['/shopping-lists/group', listGroupId]">
-              <app-icon class="shrink-0 text-primary" name="shopping_cart"></app-icon>
-              <span class="flex min-w-0 flex-1 flex-col">
-                <span class="font-semibold">{{ list.name }}</span>
-                <span class="text-muted-foreground text-sm">{{ list.preview }}</span>
-              </span>
-              <span class="text-lg font-bold tabular-nums">{{ list.count }}</span>
-            </a>
-          }
-        }
-      </section>
+    @if (!isHandset()) {
+      <ng-container *ngTemplateOutlet="shoppingPanel; context: { $implicit: 'flex-[1_1_18.75rem]' }"></ng-container>
     }
   </div>
 </div>
+
+<!-- The shopping panel: first thing on a phone (below the title row), beside the receipts on larger screens. -->
+<ng-template #shoppingPanel let-layoutClass>
+  @if (shoppingListGroupId(); as listGroupId) {
+    <section
+      app-overview-shopping-panel
+      data-testid="overview-shopping-panel"
+      [class]="layoutClass"
+      [lists]="openLists()"
+      [groupId]="listGroupId"
+      [canUpdate]="canUpdateLists()"
+      [canCreateList]="canCreateList()"
+      [newListLink]="newListLink()"
+    ></section>
+  }
+</ng-template>
