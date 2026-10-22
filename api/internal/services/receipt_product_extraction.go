@@ -20,45 +20,68 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// The prompts are kept short (input tokens) and ask for minified JSON that leaves out empty optional keys
+// (output tokens, which set most of a read's latency). The parsers default what is left out: no quantity
+// is "", no seasonality is NOT_PRODUCE.
+
 // productExtractionPromptTemplate asks for a receipt's shop and product lines, with each product's
 // category, health and season in the same answer (Phase 3 feedback: no separate classification wait).
 // The %s slots are the region, the month and the product rules (productLineRulesTemplate).
-const productExtractionPromptTemplate = `You read shop receipts. List every purchased product line on this receipt and classify each product for a household in %s. The current month is %s.
-
-Return ONLY valid JSON in plain text, never in a code block, exactly in this shape:
-{"shop": "...", "currency": "...", "products": [{"name": "...", "displayName": "...", "amount": 0.0, "quantity": "...", "health": "...", "foodGroup": "...", "seasonality": "..."}]}
-
-"shop": the name of the shop as printed on the receipt, the brand only, for example "Auchan", "Edeka" or "Rewe" (not the street, branch number or slogan). Use "" if it cannot be read.
-"currency": the ISO 4217 code of the currency the receipt is in, for example EUR, PLN, GBP, CHF or USD. A price written with zł, zl or PLN is PLN; with £, GBP or the word pounds is GBP; with CHF, Fr. or SFr. is CHF; with $ is USD; with € is EUR. Use "" if none is printed. Give every amount exactly as printed, in that currency, without converting it.
-
+const productExtractionPromptTemplate = `List every purchased product line on this shop receipt and classify each for a household in %s; the current month is %s.
+Reply with minified JSON only, no code block:
+{"shop":"...","currency":"...","products":[{"name":"...","displayName":"...","amount":0.0,"quantity":"...","health":"...","foodGroup":"...","seasonality":"..."}]}
+- "shop": the brand only (Auchan, Edeka, Rewe), not street or branch; "" if unreadable.
+- "currency": ` + currencyRule + `
 %s
-If this is not a shop receipt, or it has no product lines, return {"shop": "", "currency": "", "products": []}.`
+Not a shop receipt, or no product lines: {"shop":"","currency":"","products":[]}.`
 
 // inlineProductPromptTemplate is added to the receipt prompt of a quick scan, so the one answer carries the
 // products too (ApplyInlineRead). The %s slots are the region, the month and the product rules.
 const inlineProductPromptTemplate = `
 
-Also add a "products" key to the same JSON object: every purchased product line on this receipt, classified for a household in %s. The current month is %s. Its shape:
-"products": [{"name": "...", "displayName": "...", "amount": 0.0, "quantity": "...", "health": "...", "foodGroup": "...", "seasonality": "..."}]
-
+Also add a "products" key to the same JSON object: every purchased product line, classified for a household in %s; the current month is %s.
+"products":[{"name":"...","displayName":"...","amount":0.0,"quantity":"...","health":"...","foodGroup":"...","seasonality":"..."}]
 %s
-If this is not a shop receipt, or it has no product lines, use "products": [].`
+Not a shop receipt, or no product lines: "products":[].`
 
-// productLineRulesTemplate describes one product line. The %s slots are the region, the month, the category
-// rules and the household's earlier corrections.
-const productLineRulesTemplate = `For each product line:
-- "name": the line exactly as printed on the receipt.
-- "displayName": a short, plain English name for the product, for example "Semi-skimmed milk 1 L" for "LAIT DEMI-ECR 1L".
-- "amount": what the line cost in total, as a number, after any discount printed for that line. Omit it if the line shows no price.
-- "quantity": the quantity or weight if printed, for example "2" or "1.25 kg"; otherwise "".
-- "health": "HEALTHY", "MEDIUM", "UNHEALTHY", or "NOT_FOOD" for anything that is not food or drink.
+// currencyRule is how both receipt prompts read the currency.
+const currencyRule = `ISO 4217 code as printed: zł/zl/PLN=PLN, £/pounds=GBP, CHF/Fr./SFr.=CHF, $=USD, €=EUR; "" if none. Give every amount exactly as printed, never converted.`
+
+// healthRules is the one definition of the health ratings, for the product read and the classification sweep.
+const healthRules = `HEALTHY, MEDIUM, UNHEALTHY, or NOT_FOOD (not food or drink).
   HEALTHY: fresh fruit and vegetables, legumes, whole grains, plain dairy, eggs, fish, lean meat, nuts, water, plain tea and coffee.
   MEDIUM: white bread, plain pasta and rice, cheese, butter, fruit juice, processed or red meat, breakfast cereals, sauces.
-  UNHEALTHY: sweets, chocolate, biscuits and pastries, crisps and salty snacks, sugary or energy drinks, alcohol, fast food, ready meals high in fat, sugar or salt, tobacco.
-- "foodGroup": the product's category, a short lowercase name, for example "fresh produce", "dairy", "bakery", "meat", "fish", "drinks", "sweets & snacks", "alcohol", "frozen", "pantry", "household".
-- "seasonality": only for fresh fruit and vegetables: "SEASONAL" if it is in season in %s in %s, or "OUT_OF_SEASON" if in that month it is most likely imported from another continent or frozen. "NOT_PRODUCE" for everything else, including frozen and canned produce.
+  UNHEALTHY: sweets, chocolate, biscuits and pastries, crisps and salty snacks, sugary or energy drinks, alcohol, fast food, ready meals high in fat, sugar or salt, tobacco.`
+
+// seasonalityRuleTemplate: the %s slots are the region and the month.
+const seasonalityRuleTemplate = `only for fresh fruit and vegetables: SEASONAL if in season in %s in %s, OUT_OF_SEASON if then most likely imported from another continent; leave it out for everything else (also frozen and canned).`
+
+// foodGroupExamples names example categories only for a household without a category list: with one, English
+// examples would tempt the AI to answer outside it, and every unknown name becomes a new category.
+const foodGroupExamples = `a short lowercase category, e.g. "fresh produce", "dairy", "bakery", "meat", "fish", "drinks", "sweets & snacks", "alcohol", "frozen", "pantry", "household".`
+
+const foodGroupFromList = `the category, from the list below.`
+
+// foodGroupRule picks the "foodGroup" line for a category block (see foodGroupResolver.PromptBlock).
+func foodGroupRule(categoryBlock string) string {
+	if categoryBlock == "" {
+		return foodGroupExamples
+	}
+	return foodGroupFromList
+}
+
+// productLineRulesTemplate describes one product line. The %s slots are the food group rule, the seasonality
+// rule, the category rules and the household's earlier corrections.
+const productLineRulesTemplate = `For each product line:
+- "name": the line exactly as printed.
+- "displayName": a short plain English name, e.g. "Semi-skimmed milk 1 L" for "LAIT DEMI-ECR 1L".
+- "amount": the line's total as a number, after its own printed discount; leave it out if the line has no price.
+- "quantity": the quantity or weight if printed ("2", "1.25 kg"); leave it out otherwise.
+- "health": ` + healthRules + `
+- "foodGroup": %s
+- "seasonality": %s
 %s%s
-Do not list totals, subtotals, taxes, payment lines, change given, loyalty points, bottle deposits or coupons as products.`
+Skip totals, subtotals, taxes, payments, change, loyalty points, bottle deposits and coupons.`
 
 // buildProductExtractionPrompt fills the template for a receipt bought in the given month.
 func buildProductExtractionPrompt(month time.Time, categoryBlock string, corrections map[string]string) string {
@@ -79,29 +102,37 @@ func buildInlineProductPrompt(month time.Time, categoryBlock string, corrections
 }
 
 func productLineRules(monthName string, categoryBlock string, corrections map[string]string) string {
+	foodGroup := foodGroupRule(categoryBlock)
 	if categoryBlock != "" {
 		categoryBlock += "\n"
 	}
 
-	examples := ""
-	if len(corrections) > 0 {
-		names := make([]string, 0, len(corrections))
-		for name := range corrections {
-			names = append(names, name)
-		}
-		sort.Strings(names)
-		if len(names) > foodClassificationMaxExamples {
-			names = names[:foodClassificationMaxExamples]
-		}
+	return fmt.Sprintf(
+		productLineRulesTemplate,
+		foodGroup, fmt.Sprintf(seasonalityRuleTemplate, foodClassificationRegion, monthName), categoryBlock, correctionExamples(corrections),
+	)
+}
 
-		lines := make([]string, len(names))
-		for i, name := range names {
-			lines[i] = fmt.Sprintf("- %s: %s", name, corrections[name])
-		}
-		examples = fmt.Sprintf(foodClassificationCorrections, strings.Join(lines, "\n"))
+// correctionExamples lists the household's remembered health corrections for a prompt; "" without any.
+func correctionExamples(corrections map[string]string) string {
+	if len(corrections) == 0 {
+		return ""
 	}
 
-	return fmt.Sprintf(productLineRulesTemplate, foodClassificationRegion, monthName, categoryBlock, examples)
+	names := make([]string, 0, len(corrections))
+	for name := range corrections {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	if len(names) > foodClassificationMaxExamples {
+		names = names[:foodClassificationMaxExamples]
+	}
+
+	lines := make([]string, len(names))
+	for i, name := range names {
+		lines[i] = fmt.Sprintf("- %s: %s", name, corrections[name])
+	}
+	return fmt.Sprintf(foodClassificationCorrections, strings.Join(lines, "\n"))
 }
 
 // InlineProductPrompt is the products part of a quick scan's prompt for one group: its categories and its

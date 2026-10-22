@@ -97,10 +97,10 @@ func TestInlineProductPromptSharesTheProductRules(t *testing.T) {
 	if !strings.Contains(inline, rules) || !strings.Contains(standalone, rules) {
 		t.Fatalf("both prompts must carry the same product rules")
 	}
-	if !strings.Contains(inline, `"products"`) || strings.Contains(inline, `"shop": "..."`) {
+	if !strings.Contains(inline, `"products"`) || strings.Contains(inline, `"shop":"..."`) {
 		t.Errorf("the inline part asks for products only (the receipt prompt already asks for the shop): %s", inline)
 	}
-	if !strings.Contains(standalone, `Return ONLY valid JSON`) {
+	if !strings.Contains(standalone, `Reply with minified JSON only`) || !strings.Contains(standalone, `{"shop":"..."`) {
 		t.Errorf("the sweep's prompt must keep its own answer shape")
 	}
 }
