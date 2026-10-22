@@ -138,7 +138,8 @@ func (repository UserRepository) CreateUser(userData commands.SignUpCommand) (mo
 			return err
 		}
 
-		userPreferences := models.UserPrefernces{UserId: user.ID}
+		// A new account is greeted once at its first sign-in (language, theme, currency).
+		userPreferences := models.UserPrefernces{UserId: user.ID, OnboardingPending: true}
 		_, err = userPreferencesRepository.CreateUserPreferences(userPreferences)
 		if err != nil {
 			return err

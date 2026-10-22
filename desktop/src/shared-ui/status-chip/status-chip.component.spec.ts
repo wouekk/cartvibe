@@ -32,13 +32,13 @@ describe('StatusChipComponent', () => {
   });
 
   // The status -> class map is the entire color layer (Phase 3 C6): every status reads as "To check"
-  // (yellow) or "Done" (green).
+  // (yellow) or "Settled" (green).
   const statusCases: { status: ReceiptStatus; expected: string; label: string }[] = [
     { status: ReceiptStatus.Open, expected: 'open', label: 'To check' },
     { status: ReceiptStatus.NeedsAttention, expected: 'open', label: 'To check' },
     { status: ReceiptStatus.Draft, expected: 'open', label: 'To check' },
-    { status: ReceiptStatus.Resolved, expected: 'resolved', label: 'Done' },
-    { status: ReceiptStatus.Declined, expected: 'resolved', label: 'Done' },
+    { status: ReceiptStatus.Resolved, expected: 'resolved', label: 'Settled' },
+    { status: ReceiptStatus.Declined, expected: 'resolved', label: 'Settled' },
   ];
 
   statusCases.forEach(({ status, expected, label }) => {

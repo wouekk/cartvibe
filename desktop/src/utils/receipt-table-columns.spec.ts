@@ -15,7 +15,7 @@ function builtIns() {
 describe("receipt-table-columns", () => {
   describe("columnDisplayName", () => {
     it("names a built-in column", () => {
-      expect(columnDisplayName("resolved_date")).toBe("Done on");
+      expect(columnDisplayName("resolved_date")).toBe("Settled on");
       expect(columnDisplayName("first_comment")).toBe("Comment");
     });
 

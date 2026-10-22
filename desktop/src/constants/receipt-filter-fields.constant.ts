@@ -23,7 +23,7 @@ export const RECEIPT_FILTER_FIELDS: readonly ReceiptFilterField[] = [
   { key: "categories", label: "Categories", type: "list" },
   { key: "tags", label: "Tags", type: "list" },
   { key: "status", label: "Status", type: "list" },
-  { key: "resolvedDate", label: "Done on", type: "date" },
+  { key: "resolvedDate", label: marker("Settled on"), type: "date" },
   { key: "createdAt", label: "Added At", type: "date" },
 ];
 

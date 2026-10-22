@@ -1,10 +1,10 @@
 package models
 
 import (
+	"cartvibe/api/internal/utils"
 	"encoding/json"
 	"github.com/shopspring/decimal"
 	"net/http"
-	"cartvibe/api/internal/utils"
 )
 
 type UserPrefernces struct {
@@ -26,8 +26,11 @@ type UserPrefernces struct {
 	DisplayCurrencyRate *decimal.Decimal `gorm:"type:decimal(18,6)" json:"displayCurrencyRate"`
 	// Language is the interface language this person chose ("en", "pl", ...; any code the desktop knows); "" follows the browser. A plain string so a new
 	// language is never a new value in a closed enum.
-	Language      string         `gorm:"size:8" json:"language"`
-	UserShortcuts []UserShortcut `json:"userShortcuts"`
+	Language string `gorm:"size:8" json:"language"`
+	// OnboardingPending is true until the person has been through the first sign-in welcome (language, theme and, for
+	// an admin, the household currency). New accounts start with it on; accounts from before it existed never see it.
+	OnboardingPending bool           `gorm:"not null;default:false" json:"onboardingPending"`
+	UserShortcuts     []UserShortcut `json:"userShortcuts"`
 }
 
 func (userPreferences *UserPrefernces) LoadDataFromRequest(w http.ResponseWriter, r *http.Request) error {

@@ -333,7 +333,7 @@ describe("ReportConfigPanelComponent", () => {
     );
     expect(component.periodDateFieldOptions.map((option) => option.displayValue)).toEqual([
       "Receipt Date",
-      "Done on",
+      "Settled on",
       "Added At",
     ]);
   });

@@ -278,7 +278,7 @@ func TestSource_RowsResolvesEveryField(t *testing.T) {
 		want string
 	}{
 		{KeyName, "Staples"},
-		{KeyStatus, "RESOLVED"},
+		{KeyStatus, "Settled"},
 		{KeyPaidBy, "Dana"},
 		{KeyGroup, "Household"},
 	}
@@ -510,6 +510,26 @@ func TestSource_ZeroValueAmountSums(t *testing.T) {
 	number, isNumber := total.Decimal()
 	if !isNumber || !number.Equal(dec("5.00")) {
 		t.Errorf("grand total = %v, want 5.00", total)
+	}
+}
+
+// Reports use the app's two status words, so a status cut reads "To check" / "Settled" instead
+// of the API's enum values.
+func TestSource_StatusReadsAsTheAppShowsIt(t *testing.T) {
+	cases := map[models.ReceiptStatus]string{
+		models.OPEN:            "To check",
+		models.NEEDS_ATTENTION: "To check",
+		models.DRAFT:           "To check",
+		models.RESOLVED:        "Settled",
+		models.DECLINED:        "Settled",
+		"SOMETHING_NEW":        "SOMETHING_NEW",
+	}
+	for status, want := range cases {
+		row := mustNew(t).Rows([]models.Receipt{{Name: "R", Status: status}})[0]
+		text, _ := row.Measure(KeyStatus).Text()
+		if text != want {
+			t.Errorf("%s reads %q, want %q", status, text, want)
+		}
 	}
 }
 

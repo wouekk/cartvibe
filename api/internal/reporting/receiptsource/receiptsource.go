@@ -73,7 +73,7 @@ func builtinFields(location *time.Location) []reporting.FieldRef {
 		{Key: KeyShop, Label: "Shop", DataType: reporting.TypeString},
 		{Key: KeyAmount, Label: "Amount", DataType: reporting.TypeCurrency},
 		{Key: KeyDate, Label: "Date", DataType: reporting.TypeDate, Location: time.UTC},
-		{Key: KeyResolvedDate, Label: "Resolved Date", DataType: reporting.TypeDate, Location: location},
+		{Key: KeyResolvedDate, Label: "Settled on", DataType: reporting.TypeDate, Location: location},
 		{Key: KeyCreatedAt, Label: "Added At", DataType: reporting.TypeDate, Location: location},
 		{Key: KeyStatus, Label: "Status", DataType: reporting.TypeString},
 		// The key stays paid_by so saved templates keep working; the family app calls it Added by.
@@ -85,7 +85,7 @@ func builtinFields(location *time.Location) []reporting.FieldRef {
 		{Key: KeyPlanned, Label: "Planned", DataType: reporting.TypeString, Multi: true},
 	}
 	fields = append(fields, dateFieldRefs(KeyDateDay, KeyDateMonth, KeyDateYear, "Date")...)
-	fields = append(fields, dateFieldRefs(KeyResolvedDateDay, KeyResolvedDateMonth, KeyResolvedDateYear, "Resolved Date")...)
+	fields = append(fields, dateFieldRefs(KeyResolvedDateDay, KeyResolvedDateMonth, KeyResolvedDateYear, "Settled on")...)
 	fields = append(fields, dateFieldRefs(KeyCreatedAtDay, KeyCreatedAtMonth, KeyCreatedAtYear, "Added At")...)
 	return fields
 }
@@ -158,7 +158,7 @@ func (s Source) row(receipt *models.Receipt) reporting.Row {
 		KeyAmount:    {reporting.Num(receipt.Amount)},
 		KeyDate:      {reporting.DateVal(receipt.Date)},
 		KeyCreatedAt: {reporting.DateVal(receipt.CreatedAt)},
-		KeyStatus:    {reporting.Str(string(receipt.Status))},
+		KeyStatus:    {reporting.Str(statusLabel(receipt.Status))},
 	}
 
 	setDateParts(row, KeyDateDay, KeyDateMonth, KeyDateYear, receipt.Date, time.UTC)
@@ -199,6 +199,20 @@ func userDisplayName(user models.User) string {
 		return user.DisplayName
 	}
 	return user.Username
+}
+
+// statusLabel is a status as a family reads it, the same two words the app shows: OPEN,
+// NEEDS_ATTENTION and DRAFT are "To check", RESOLVED and DECLINED "Settled". An empty or unknown
+// status stays as it is, so nothing is hidden.
+func statusLabel(status models.ReceiptStatus) string {
+	switch status {
+	case models.OPEN, models.NEEDS_ATTENTION, models.DRAFT:
+		return "To check"
+	case models.RESOLVED, models.DECLINED:
+		return "Settled"
+	default:
+		return string(status)
+	}
 }
 
 // shopOf is the shop a receipt belongs to for reporting: the shop read from it, else its name.

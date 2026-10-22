@@ -2,12 +2,12 @@ import { ReceiptStatus } from "../open-api";
 import { familyReceiptStatus, receiptStatusLabel, toStatusWireFilter } from "./receipt-status";
 
 describe("family receipt statuses (Phase 3 C6)", () => {
-  it("labels every status as To check or Done", () => {
+  it("labels every status as To check or Settled", () => {
     expect(receiptStatusLabel(ReceiptStatus.Open)).toBe("To check");
     expect(receiptStatusLabel(ReceiptStatus.NeedsAttention)).toBe("To check");
     expect(receiptStatusLabel(ReceiptStatus.Draft)).toBe("To check");
-    expect(receiptStatusLabel(ReceiptStatus.Resolved)).toBe("Done");
-    expect(receiptStatusLabel(ReceiptStatus.Declined)).toBe("Done");
+    expect(receiptStatusLabel(ReceiptStatus.Resolved)).toBe("Settled");
+    expect(receiptStatusLabel(ReceiptStatus.Declined)).toBe("Settled");
     expect(receiptStatusLabel("SOMETHING_NEW")).toBe("SOMETHING_NEW");
     expect(receiptStatusLabel(undefined)).toBe("");
   });

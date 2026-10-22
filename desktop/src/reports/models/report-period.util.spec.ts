@@ -99,7 +99,7 @@ describe("reportPeriodDateFieldLabel", () => {
   it("reads each label from the receipts filter's own field table", () => {
     expect(RECEIPT_DATE_FILTER_FIELDS.map((field) => reportPeriodDateFieldLabel(field.key))).toEqual([
       "Receipt Date",
-      "Done on",
+      "Settled on",
       "Added At",
     ]);
   });
@@ -108,7 +108,7 @@ describe("reportPeriodDateFieldLabel", () => {
 describe("reportPeriodDateFieldHint", () => {
   it("names the zone an instant field is read in", () => {
     expect(reportPeriodDateFieldHint("createdAt", "America/New_York")).toBe("Added At (America/New_York)");
-    expect(reportPeriodDateFieldHint("resolvedDate", "UTC")).toBe("Done on (UTC)");
+    expect(reportPeriodDateFieldHint("resolvedDate", "UTC")).toBe("Settled on (UTC)");
   });
 
   it("names the receipt date alone, since no zone shifts a calendar day", () => {
