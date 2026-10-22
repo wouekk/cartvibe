@@ -313,8 +313,9 @@ func TestQuickScan_PersistsEveryField(t *testing.T) {
 	if len(receipt.Categories) != 2 || !hasCategoryId(receipt.Categories, 1) || !hasCategoryId(receipt.Categories, 2) {
 		utils.PrintTestError(t, receipt.Categories, "categories 1 and 2")
 	}
-	if len(receipt.Tags) != 1 || !hasTagId(receipt.Tags, 1) {
-		utils.PrintTestError(t, receipt.Tags, "tag 1")
+	// Tags are people's own labels: the AI answer offers some, none are kept.
+	if len(receipt.Tags) != 0 {
+		utils.PrintTestError(t, receipt.Tags, "no tags from the AI")
 	}
 
 	// Items (linked items are filtered out of the top level, so 2 parents remain).
@@ -343,8 +344,8 @@ func TestQuickScan_PersistsEveryField(t *testing.T) {
 	if len(widget.Categories) != 1 || !hasCategoryId(widget.Categories, 1) {
 		utils.PrintTestError(t, widget.Categories, "item category 1")
 	}
-	if len(widget.Tags) != 1 || !hasTagId(widget.Tags, 1) {
-		utils.PrintTestError(t, widget.Tags, "item tag 1")
+	if len(widget.Tags) != 0 {
+		utils.PrintTestError(t, widget.Tags, "no item tags from the AI")
 	}
 
 	// Linked item under Widget, with its own categories/tags.
@@ -362,8 +363,8 @@ func TestQuickScan_PersistsEveryField(t *testing.T) {
 	if len(sub.Categories) != 1 || !hasCategoryId(sub.Categories, 2) {
 		utils.PrintTestError(t, sub.Categories, "linked item category 2")
 	}
-	if len(sub.Tags) != 1 || !hasTagId(sub.Tags, 2) {
-		utils.PrintTestError(t, sub.Tags, "linked item tag 2")
+	if len(sub.Tags) != 0 {
+		utils.PrintTestError(t, sub.Tags, "no linked item tags from the AI")
 	}
 
 	gadget, ok := findItemByName(receipt.ReceiptItems, "Gadget")
@@ -548,8 +549,9 @@ func TestQuickScan_MergesUserCategoryAndTagPicksWithAi(t *testing.T) {
 		!hasCategoryId(receipt.Categories, 3) {
 		utils.PrintTestError(t, receipt.Categories, "categories 1,2,3 unioned")
 	}
-	if len(receipt.Tags) != 2 || !hasTagId(receipt.Tags, 1) || !hasTagId(receipt.Tags, 2) {
-		utils.PrintTestError(t, receipt.Tags, "tags 1,2 unioned")
+	// The person's tag is kept; the AI's is dropped (tags are people's own labels).
+	if len(receipt.Tags) != 1 || !hasTagId(receipt.Tags, 2) {
+		utils.PrintTestError(t, receipt.Tags, "only the person's tag 2")
 	}
 }
 
@@ -737,12 +739,9 @@ func TestQuickScan_ResolvesIdOnlyAiCategory(t *testing.T) {
 	if receipt.Categories[0].Name != "test" {
 		utils.PrintTestError(t, receipt.Categories[0].Name, "test")
 	}
-	if len(receipt.Tags) != 1 || !hasTagId(receipt.Tags, 1) {
-		utils.PrintTestError(t, receipt.Tags, "tag 1 resolved")
-		return
-	}
-	if receipt.Tags[0].Name != "tag-a" {
-		utils.PrintTestError(t, receipt.Tags[0].Name, "tag-a")
+	// The AI's tag is dropped: tags are people's own labels.
+	if len(receipt.Tags) != 0 {
+		utils.PrintTestError(t, receipt.Tags, "no tags from the AI")
 	}
 }
 
@@ -1024,8 +1023,9 @@ func TestMagicFill_ParsesAllReceiptFields(t *testing.T) {
 	if len(command.Categories) != 2 {
 		utils.PrintTestError(t, len(command.Categories), 2)
 	}
-	if len(command.Tags) != 1 {
-		utils.PrintTestError(t, len(command.Tags), 1)
+	// The AI's tags are dropped: tags are people's own labels.
+	if len(command.Tags) != 0 {
+		utils.PrintTestError(t, len(command.Tags), 0)
 	}
 	if len(command.Items) != 2 {
 		utils.PrintTestError(t, len(command.Items), 2)
