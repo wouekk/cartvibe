@@ -3,12 +3,8 @@ import { CartVibeIconComponent } from "../cartvibe-icon/cartvibe-icon.component"
 
 /**
  * The CartVibe lockup: the app icon (dark or light, as supplied) beside a large "CartVibe" wordmark, "Cart" in the
- * text color and "Vibe" in Slate Gray (#708090). It follows the app's own `dark` class like the icon does. The
+ * text color and "Vibe" in the brand emerald (#16C976, the banner's). It follows the app's own `dark` class like the icon does. The
  * wordmark is Geist when it is loaded (the app bundles it), then the system font.
- *
- * Why Slate Gray and not Spanish Gray (#999999): the same gray has to read on both pages, and Slate balances them
- * (4.1:1 on White, 5.2:1 on Black) where Spanish Gray is faint on White (2.9:1) and strong on Black (7.4:1).
- * The wordmark is 800-weight display text, so both clear the 3:1 bar for large text.
  *
  * `scale` shrinks the whole lockup (icon and wordmark together); the header passes 0.3 on a phone so it fits the
  * compact top bar.
@@ -49,7 +45,7 @@ import { CartVibeIconComponent } from "../cartvibe-icon/cartvibe-icon.component"
         color: #202834;
       }
       .vibe {
-        color: #708090;
+        color: #16c976;
       }
       :host-context(html.dark) .cart {
         color: #ffffff;

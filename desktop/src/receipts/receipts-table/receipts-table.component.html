@@ -233,8 +233,10 @@
   ></app-receipt-totals>
 </ng-template>
 
-<ng-template #dateCell let-element="element"
->{{ element.date | appDate: "mediumDate" : "calendar" }}
+<ng-template #dateCell let-element="element">
+  <a [routerLink]="['/receipts/' + element.id + '/view']" data-testid="receipt-date-link">
+    {{ element.date | appDate: "mediumDate" : "calendar" }}
+  </a>
 </ng-template>
 
 <ng-template #addedByCell let-element="element">  {{ (element.paidByUserId | user)?.displayName ?? "—" }}</ng-template>
