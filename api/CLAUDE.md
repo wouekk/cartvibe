@@ -4267,6 +4267,7 @@ decided by them), but the desktop no longer edits them.
 - Tests: `handlers/item_labels_test.go`, `repositories/item_labels_migration_test.go`, the category tests.
 
 ## AI: no tags, leaner prompts (fork, 2026-10, same branch)
+The full reference (every call, answer shapes, failure handling, how to change a prompt) is `docs/ai-prompts.md`.
 - **The AI never assigns tags** (they are the household's own labels): `DefaultReceiptPrompt` no longer asks for them, and
   `dropAiTags` empties the tags of the answer (receipt, items, linked items), so a stored custom prompt cannot bring them back.
   It still assigns categories (receipt-level and, per line, `foodGroup` → `category_id`) and health. A category switched off
