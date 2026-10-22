@@ -8,7 +8,8 @@
 # The browser goes to $PLAYWRIGHT_BROWSERS_PATH, default ~/tools/ms-playwright, NOT Playwright's usual
 # AppData\Local\ms-playwright: the Claude desktop app runs in a Windows package sandbox that redirects AppData,
 # and a Chromium started from the redirected copy fails ("side-by-side configuration is incorrect").
-# Run from api/.
+# Runs from any folder. From PowerShell use Git Bash, not `bash` (that is WSL):
+#   & "C:\Program Files\Git\bin\bash.exe" api/scripts/install-test-chromium.sh
 set -euo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"
