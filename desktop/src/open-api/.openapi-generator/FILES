@@ -88,6 +88,7 @@ model/groupOverview.ts
 model/groupOverviewCategory.ts
 model/groupOverviewMonth.ts
 model/groupOverviewProduct.ts
+model/groupOverviewTag.ts
 model/groupReceiptSettings.ts
 model/groupSettings.ts
 model/groupSettingsWhiteListEmail.ts

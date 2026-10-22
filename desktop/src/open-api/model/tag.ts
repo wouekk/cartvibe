@@ -10,7 +10,7 @@
 
 
 /**
- * Tag to relate receipts to
+ * Tag to relate receipt product lines (older data, receipts) to
  */
 export interface Tag { 
     createdAt?: string;
@@ -24,6 +24,10 @@ export interface Tag {
      * Tag description
      */
     description?: string;
+    /**
+     * The tag has its own Dashboard tile
+     */
+    showOnDashboard?: boolean;
     updatedAt?: string;
 }
 

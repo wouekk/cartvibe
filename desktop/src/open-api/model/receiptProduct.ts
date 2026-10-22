@@ -7,6 +7,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { Tag } from './tag';
 
 
 export interface ReceiptProduct { 
@@ -63,5 +64,17 @@ export interface ReceiptProduct {
      * The list item a planned product matched; it may since have left the list
      */
     matchedShoppingListItemId?: number;
+    /**
+     * The line\'s one category (Manage Categories); null for Uncategorized
+     */
+    categoryId?: number;
+    /**
+     * A person chose the category; the AI no longer changes it
+     */
+    categoryOverridden: boolean;
+    /**
+     * The line\'s tags, by name. Always an array.
+     */
+    tags: Array<Tag>;
 }
 

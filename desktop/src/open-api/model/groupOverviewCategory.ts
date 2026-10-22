@@ -10,6 +10,10 @@
 
 
 export interface GroupOverviewCategory { 
+    /**
+     * The category; null for Uncategorized, and for a name kept by lines whose category was deleted before categories were stored by id
+     */
+    categoryId?: number;
     name: string;
     total: string;
 }

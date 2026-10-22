@@ -10,7 +10,7 @@
 
 
 /**
- * Tag to relate receipts to
+ * Tag to relate receipt product lines to
  */
 export interface UpsertTagCommand { 
     /**
@@ -25,5 +25,9 @@ export interface UpsertTagCommand {
      * Tag description
      */
     description?: string;
+    /**
+     * Give the tag its own Dashboard tile. Omitted keeps an existing tag as it is, a new one off.
+     */
+    showOnDashboard?: boolean;
 }
 
