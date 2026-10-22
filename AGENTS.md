@@ -2,8 +2,8 @@
 
 ## 1. Product
 
-Receipt Wrangler, extended for one household into **receipts + shopping lists + spending insights**
-and branded **CartVibe** in the UI (the repo, image and API keep the Receipt Wrangler names).
+CartVibe: a fork of Receipt Wrangler (see `NOTICE.md`), extended for one household into **receipts + shopping lists + spending insights**
+and branded CartVibe in the UI, the repo, the image and the API.
 Used mostly on a phone browser in the shop, and on a desktop for the overview.
 
 **This is a family grocery budget, not expense tracking.** Upstream was built for small businesses:

@@ -1,27 +1,13 @@
-[![Build](https://github.com/Noah231515/receipt-wrangler-desktop/actions/workflows/docker-image.yml/badge.svg)](https://github.com/Noah231515/receipt-wrangler-desktop/actions/workflows/docker-image.yml)
-[![codecov](https://codecov.io/gh/Receipt-Wrangler/receipt-wrangler-desktop/graph/badge.svg?token=TCTGKLHIW1)](https://codecov.io/gh/Receipt-Wrangler/receipt-wrangler-desktop)
+# CartVibe Desktop
 
-# Receipt Wrangler Desktop
+The Angular web app of CartVibe (used on phones and desktops). It is a fork of
+[Receipt Wrangler](https://github.com/Receipt-Wrangler/receipt-wrangler) by Noah Hall (see `../NOTICE.md`).
 
-The Receipt Wrangler Desktop provides the web interface for Receipt Wrangler, a free and open-source receipt management and splitting application.
+- Angular 21, NGXS, signals + zoneless, spartan/ui + Tailwind
+- Dashboard, receipts with quick scan, shopping lists, spending insights
 
-## Overview
-
-The desktop interface offers an intuitive way to interact with Receipt Wrangler's features including:
-- Customizable dashboards
-- Quick receipt scanning and processing
-- Viewing/Editing receipts one after another, in a queue
-- Receipt sharing and splitting
-- Receipt image viewing/downloading
-
-## Getting Started
-
-Visit our [official documentation](https://receiptwrangler.io) for comprehensive setup and configuration instructions.
-
-## Development
-
-For development guidelines, configuration details, and component documentation, please refer to our [developer documentation](https://receiptwrangler.io/docs/category/development). Contributions welcome!
+Developer guide: [`CLAUDE.md`](CLAUDE.md). Project overview and deployment: [`../README.md`](../README.md).
 
 ## License
 
-This project is licensed under the AGPL-3.0 license - see the LICENSE file for details.
+AGPL-3.0, see [`../LICENSE`](../LICENSE).

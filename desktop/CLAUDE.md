@@ -123,7 +123,7 @@ and run `npx playwright test`; leaving `E2E_BASE_URL` at `http://localhost:4200`
 ## Code Architecture
 
 ### Application Structure
-Receipt Wrangler Desktop is an Angular 19 application with modular architecture using:
+CartVibe Desktop is an Angular 21 application with modular architecture using:
 
 - **State Management**: NGXS store with persistent storage for application state
 - **API Layer**: Auto-generated OpenAPI client in `src/open-api/` (do not manually edit these files)
@@ -1541,7 +1541,7 @@ End-to-end tests live in `e2e/` and use **Playwright**. They drive the real Angu
 
 ### CI
 
-In CI the same spec files run against the demo URL. GitHub secrets populate the `E2E_*` vars — point `E2E_BASE_URL` at `https://demo.receiptwrangler.io` and supply the secret credentials. When `E2E_BASE_URL` is remote, the config skips the `webServer` block and does not start a local dev server.
+The e2e specs do not run in this fork's CI (they need a live API). To run them against a remote deployment, set `E2E_BASE_URL` to it and supply the `E2E_*` credentials. When `E2E_BASE_URL` is remote, the config skips the `webServer` block and does not start a local dev server.
 
 The mobile e2e suite that used to share this backend was removed.
 

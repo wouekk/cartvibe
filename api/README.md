@@ -1,23 +1,13 @@
-[![Build](https://github.com/Noah231515/receipt-wrangler-api/actions/workflows/docker-image.yml/badge.svg)](https://github.com/Noah231515/receipt-wrangler-api/actions/workflows/docker-image.yml) [![codecov](https://codecov.io/gh/Receipt-Wrangler/receipt-wrangler-api/graph/badge.svg?token=EUQMLBEKPK)](https://codecov.io/gh/Receipt-Wrangler/receipt-wrangler-api)
-# Receipt Wrangler API
+# CartVibe API
 
-## Overview
+Go backend of CartVibe: receipts, shopping lists and spending insights for one household. It is a fork of
+[Receipt Wrangler](https://github.com/Receipt-Wrangler/receipt-wrangler) by Noah Hall (see `../NOTICE.md`).
 
-Receipt Wrangler helps users manage and split receipts with features including:
-- OCR-powered receipt scanning and processing
-- AI-assisted receipt data extraction
-- Email integration for automated receipt processing
-- Multi-user support with flexible group management
-- Receipt splitting and sharing capabilities
+- Go 1.26, Chi, GORM (SQLite on the NAS), Asynq (Redis)
+- OCR, AI-assisted extraction, email import, groups and permissions, shopping lists with live sync
 
-## Getting Started
-
-Visit our [official documentation](https://receiptwrangler.io) for comprehensive setup and configuration instructions.
-
-## Development
-
-For development guidelines, configuration details, and API documentation, please refer to our [developer documentation](https://receiptwrangler.io/docs/category/development). Contributions welcome!
+Developer guide: [`CLAUDE.md`](CLAUDE.md). Project overview and deployment: [`../README.md`](../README.md).
 
 ## License
 
-This project is licensed under the AGPL-3.0 license - see the LICENSE file for details.
+AGPL-3.0, see [`../LICENSE`](../LICENSE).
