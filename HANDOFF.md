@@ -11,7 +11,7 @@ go-oidc 3.21, decimal 1.6, genai 1.75, gorm 1.31.2, x/crypto, ...), asynq 0.26.0
 a swallowed re-queue error is logged; the autocomplete's single-select watcher unsubscribes on destroy; CSS prefix `rw-` is
 `cv-` (class names only); the Go module is `cartvibe/api`. Local: `go vet` clean, Go test failures identical to the Windows-only
 baseline (21 PDF/ImageMagick/temp-path failures), Jest 2232/2232, `ng build` OK, `i18n:check` OK.
-**Pushing `api/swagger.yml` triggers `regenerate-clients.yml`: pull after the push.** Not seen in a browser (CSS rename): look at
+The swagger title change was pushed and the clients regenerated (`17b3fba5`, only comment lines differ); CI is green on that commit. Not seen in a browser (CSS rename): look at
 both themes once before merging. The dev server on port 4201 that an earlier session left running in this checkout was stopped
 (it held a file `npm ci` needed); restart it with `npm start -- --port 4201` if wanted.
 
@@ -28,7 +28,7 @@ both themes once before merging. The dev server on port 4201 that an earlier ses
   it needs a dual-accept migration. The API key prefix `rw-v1` kept (existing keys).
 - **Mobile dead code** (`oidc/flow.go` mobile branch, `io.receiptwrangler://oidc`, `OidcExchangeCode` / `OidcLinkLaunch` code) not removed:
   security-sensitive, wants its own reviewed change. `wranglerasynq` and `wranglervenv` names kept.
-- **asynq 0.26 is proven only by CI**: the inspector tests that exercise it fail on this Windows PC for path reasons.
+- **asynq 0.26** is proven by CI (run 39738494334 on `17b3fba5`, green: test-api and test-desktop); locally the inspector tests fail on Windows for path reasons.
 - Audit items I checked and found to be intentional, not bugs: the ignored rename error in `models/group.go`, the ignored CDP errors in
   `html_to_pdf.go` (both documented), the loopback server (closed by its caller). `quick-actions-dialog` valueChanges are on controls
   the dialog owns, so no leak.
