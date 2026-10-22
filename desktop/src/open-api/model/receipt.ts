@@ -7,7 +7,6 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { CustomFieldValue } from './customFieldValue';
 import { Comment } from './comment';
 import { Item } from './item';
 import { Category } from './category';
@@ -33,10 +32,6 @@ export interface Receipt {
      * Comments associated to receipt
      */
     comments: Array<Comment>;
-    /**
-     * Custom fields associated to receipt
-     */
-    customFields: Array<CustomFieldValue>;
     createdAt?: string;
     createdBy?: number;
     /**

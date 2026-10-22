@@ -8,7 +8,6 @@
  * Do not edit the class manually.
  */
 import { ReceiptStatus } from './receiptStatus';
-import { ReceiptSummaryPosition } from './receiptSummaryPosition';
 import { QuickScanDefaultPaidByType } from './quickScanDefaultPaidByType';
 
 
@@ -103,27 +102,6 @@ export interface GroupReceiptSettings {
      * Require the comment field in quick scan
      */
     quickScanCommentRequired?: boolean;
-    /**
-     * Custom field ids that are pre-added to every receipt created for this group. Always present; an empty array means the group has configured none. Read only here - write via UpdateGroupReceiptSettingsCommand.defaultCustomFieldIds.
-     */
-    defaultCustomFieldIds?: Array<number>;
-    /**
-     * Also attach the group\'s default custom fields to receipts the SERVER creates (quick scan, email integration). Off by default.
-     */
-    applyDefaultCustomFieldsOnIngest?: boolean;
-    /**
-     * Show the block of totals under this group\'s receipts table. Off by default, so an existing install is unchanged until an admin opts in.
-     */
-    receiptSummaryEnabled?: boolean;
-    /**
-     * CURRENCY custom field ids totalled in the receipt summary, in the order their columns are rendered. Always present; an empty array means the group totals only the receipt amount. Read only here - write via UpdateGroupReceiptSettingsCommand.receiptSummaryCustomFieldIds.
-     */
-    receiptSummaryCustomFieldIds?: Array<number>;
-    /**
-     * Receipt statuses broken out as their own row in the receipt summary, in ReceiptStatus declaration order. A configured status matching no receipt still renders, as a zero row. Always present; an empty array means the summary shows only the overall row. Read only here - write via UpdateGroupReceiptSettingsCommand.receiptSummaryStatuses.
-     */
-    receiptSummaryStatuses?: Array<ReceiptStatus>;
-    receiptSummaryPosition?: ReceiptSummaryPosition;
 }
 export namespace GroupReceiptSettings {
 }

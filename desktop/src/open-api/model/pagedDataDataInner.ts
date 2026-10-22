@@ -7,13 +7,13 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { CustomFieldValue } from './customFieldValue';
 import { Group } from './group';
 import { GroupMember } from './groupMember';
 import { Category } from './category';
 import { ReceiptSearchMatch } from './receiptSearchMatch';
 import { ReportRequestCommand } from './reportRequestCommand';
 import { ReportTemplate } from './reportTemplate';
+import { SystemTaskType } from './systemTaskType';
 import { Activity } from './activity';
 import { UserView } from './userView';
 import { ReceiptProcessingSettings } from './receiptProcessingSettings';
@@ -21,16 +21,13 @@ import { Item } from './item';
 import { GroupReceiptSettings } from './groupReceiptSettings';
 import { SystemTaskStatus } from './systemTaskStatus';
 import { OcrEngine } from './ocrEngine';
-import { CustomFieldOption } from './customFieldOption';
 import { SystemTask } from './systemTask';
 import { GroupSettings } from './groupSettings';
 import { TagView } from './tagView';
 import { FileData } from './fileData';
 import { Comment } from './comment';
 import { Receipt } from './receipt';
-import { CustomFieldType } from './customFieldType';
 import { AiType } from './aiType';
-import { CustomField } from './customField';
 import { AssociatedEntityType } from './associatedEntityType';
 import { Prompt } from './prompt';
 import { SystemEmail } from './systemEmail';
@@ -50,10 +47,6 @@ export interface PagedDataDataInner {
      * Comments associated to receipt
      */
     comments: Array<Comment>;
-    /**
-     * Custom fields associated to receipt
-     */
-    customFields: Array<CustomFieldValue>;
     createdAt: string;
     createdBy?: number;
     /**
@@ -117,7 +110,7 @@ export interface PagedDataDataInner {
      */
     createdByString?: string;
     /**
-     * Custom Field description
+     * Description of the settings
      */
     description?: string;
     /**
@@ -159,7 +152,7 @@ export interface PagedDataDataInner {
      * Number of receipts associated with this tag
      */
     numberOfReceipts: number;
-    type: CustomFieldType;
+    type: SystemTaskType;
     startedAt: string;
     endedAt: string;
     associatedEntityId?: number;
@@ -220,7 +213,6 @@ export interface PagedDataDataInner {
      */
     useStartTLS?: boolean;
     canBeRestarted?: boolean;
-    options?: Array<CustomFieldOption>;
     configuration: ReportRequestCommand;
     /**
      * Schema version the stored configuration was written under.
