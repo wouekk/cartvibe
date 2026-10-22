@@ -7,6 +7,7 @@
   [editButtonQueryParams]="{tab: 'user-profile'}"
   [settingsCard]="true"
   settingsTitle="User Profile"
+  [submitButtonDisabled]="form.pristine"
   (submitted)="submit()"
 ></app-form>
 

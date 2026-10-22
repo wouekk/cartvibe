@@ -397,20 +397,15 @@ export class ReceiptFormComponent implements OnInit {
         startWith(this.form.get("name")?.value),
         untilDestroyed(this),
         map((name) => {
-          let action = "";
+          // The page title is the action, or the receipt's own name when it is only being looked at.
           switch (this.mode) {
             case FormMode.add:
-              action = "Add";
-              break;
-            case FormMode.view:
-              action = "View";
-              break;
+              return marker("Add receipt");
             case FormMode.edit:
-              action = "Edit";
-              break;
+              return marker("Edit receipt");
+            default:
+              return (name ?? "").toString().trim() || marker("Receipt");
           }
-
-          return `${action} ${name} Receipt`;
         })
       )
     ));

@@ -26,3 +26,6 @@ export function describeConnection(status: SystemTaskStatus | undefined, resultD
     params: { reason: resultDescription?.trim() || "no answer from the AI" },
   };
 }
+
+/** What a saved key shows in the key box: dots, the way a typed one looks. The key itself is never sent back. */
+export const SAVED_KEY_PLACEHOLDER = "••••••••••••••••••••••••";
