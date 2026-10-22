@@ -1,6 +1,32 @@
 # HANDOFF.md — Where things stand
 
-**`preview` is the integration branch (2026-10-22, 06:45):** every pushed branch is merged into `origin/preview`: main v0.3.0, i18n reconcile, receipt UX and upload, settings polish, UI chrome and shopping (both remote copies), the Product Health Checker with its receipt search (`feature/product-check` via `feature/product-check-i18n`, translated), mobile cleanup. Conflicts were CHANGELOG/HANDOFF/i18n JSON only; the mobile hint key was dropped from the catalogue. Local: i18n:check OK, Go vet clean, Jest 2232/2232, `ng build` OK. `:preview` is published from this branch. Merging `preview` into `main` waits for the user's UAT.
+## Status (2026-10-22, 07:15): v0.4.0 released from `preview`
+
+**`preview` was the integration branch and is now `main` (fast-forward), tagged `v0.4.0`** on the user's go. It holds main
+v0.3.0 plus: i18n reconcile, receipt UX and upload (incl. the comments card below Save), settings polish, UI chrome and
+shopping (both remote copies), the Product Health Checker with the typo-tolerant receipt search (`feature/product-check`
+via `feature/product-check-i18n`, translated), mobile cleanup. Local before the release: i18n:check OK, Go vet clean, Jest
+2232/2232, `ng build` OK; CI on `preview` green. **Not seen on the NAS:** pull `:latest`, redeploy, hard-refresh.
+**Left out on purpose (still running, the user excluded them):** `feat/item-level-tags-categories` (session "Item-level
+tags and categories", worktree `rw-item-tags`, uncommitted edits) and "Dashboard customisation engine" (no branch pushed
+yet). Rebase or merge them on the new `main` when they finish.
+**Rule from now on:** agents merge into `preview` and publish `:preview` only from `preview` (the publish workflow cancels
+any running publish, so a feature-branch publish clobbers the shared tag).
+**Branches merged and safe to delete:** `feature/product-check`, `feature/product-check-i18n`, `feature/i18n-reconcile`,
+`feat/receipt-ux-and-upload`, `feature/settings-polish`, `feat/ui-chrome-and-shopping`, `-2`, `feature/ui-chrome-and-shopping`,
+`feature/mobile-cleanup`; local `feature/remove-mobile` holds only a duplicate of `e7893d44`.
+
+### Backlog left by the agents (all their code is merged)
+- **Product Health Checker:** try the photo fallback for the barcode scanner on a real phone over `http://`.
+- **Receipt comments layout:** the comments card below Save has not been seen in a browser; e2e for comments cannot run here.
+- **UI chrome and shopping:** confirm with the user: the logo stays hidden below 640 px, the panel shows at most 8 items,
+  Undo lasts 6 s; never seen in a browser.
+- **i18n audit:** about 160 TypeScript strings have no catalogue entry; the checked ones are not user-facing (comments,
+  141 E-number names in `e-additives.ts`, dev errors, the default "Untitled Report"). Build warning NG8107 in
+  `AboutComponent` (`?.` where `.` would do), harmless.
+- **Receipt UX:** commit `74beb4b5` is labelled "settings polish" but also carries the comments-card edits (content fine).
+- **Leftover worktrees:** `product-check`, `receipt-wrangler-i18n`, `receipt-wrangler-rm-mobile`, `rw-preview` are merged and
+  can be removed (`git worktree remove`); keep `rw-item-tags`.
 
 **UI chrome and shopping (branch `feat/ui-chrome-and-shopping`, from `feat/receipt-ux-and-upload`; NOT merged, waits for UAT):** the earlier phone session had already built this on `origin/feat/ui-chrome-and-shopping` (commits `8a7f7192`, `0680ba06`, on top of `feature/i18n-runtime`); those two were cherry-picked here (CHANGELOG conflict resolved) and the panel spec was fixed (fake timers hung `whenStable`). Covers: Vibe wordmark `#708090`, mobile logo at 30%, header theme toggle, Add receipt gone from the Dashboard bar, Danger Zone footer, shopping panel (largest list, bullets, instant done + 6 s Undo, first on phones). Local: i18n:check OK, Jest 2150/2150, `ng build` OK; not seen in a browser. **Pushed as `origin/feat/ui-chrome-and-shopping-2`** (the old remote `feat/ui-chrome-and-shopping` has the phone session's history and was left alone); the user decides which one wins.
 ## i18n reconciliation (2026-10-22, branch `feature/i18n-reconcile`, from `main` v0.3.0 + `feat/receipt-ux-and-upload`; pushed, NOT merged, no `:preview`)

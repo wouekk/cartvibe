@@ -8,7 +8,16 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-22
+
 ### Added
+- Product Health Checker: the Dashboard's "Scan product" button scans a barcode with the camera (or a photo of it over
+  plain http, or a typed EAN/UPC) and shows the product's Open Food Facts health details in a side panel (a bottom sheet
+  on a phone). It runs in the browser only; nothing is stored.
+- Receipts search in the Receipts toolbar (Ctrl/⌘ K or `/`): typo-tolerant, over receipt names, shop, comments and
+  product lines; matching products are shown under the shop name, and the totals and exports follow the search.
+- The receipt form's photo has a Preview / Rename / Remove menu (new `PUT /receipt/{id}/name`); comments sit in their own
+  card below the save bar and are committed with the Comment button.
 - Quick Scan closes right after the upload, whatever the number of photos: the scans are read one at a time and the
   uploader gets a notification for each (ready, with a link to the receipt, or failed after the last retry). Photos are
   added by dropping or choosing them (spartan `attachment`, one row per photo with a thumbnail and a remove button).
@@ -21,6 +30,17 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 - The "Vibe" half of the CartVibe wordmark is Slate Gray `#708090` (readable on both the White and Black themes).
 - On a phone the brand icon in the header is scaled to 30% of its size (`app-cartvibe-logo` has a `scale` input).
 - The Dashboard's top action bar no longer has Add receipt (it stays on the Receipts page and in the empty receipts card).
+- The header has no search box any more (search lives in the Receipts toolbar).
+- User Settings and the household pages are always editable, with Save in the card footer; the household details and
+  receipt settings are settings cards, and the unused "Group AI Settings" tab is gone.
+- AI settings: a saved key shows as dots, and Test connection works on the unsaved form.
+- Add receipt has a new header, panels and a two-column details layout.
+- `i18n:check` fails when a language misses a translation (unless the language is marked `"partial"`), and toasts sent
+  through the snack service are extracted too; `npm run i18n:import` merges an old TypeScript dictionary. Polish is at
+  100%.
+
+### Removed
+- The household receipt settings' note about old mobile app versions.
 
 ### Fixed
 - The Danger Zone card's footer no longer inherits the default card footer's border and background.
