@@ -55,15 +55,8 @@
                 type="text"
                 [isCurrency]="true"
                 [inputFormControl]="form | formGet : 'amount'"
-                [readonly]="(mode | inputReadonly) || syncAmountWithItems"
+                [readonly]="mode | inputReadonly"
               ></app-input>
-              @if (!(mode | inputReadonly)) {
-                <app-checkbox
-                  class="mb-2 mt-1 block"
-                  [label]="'Sync with items' | t"
-                  [inputFormControl]="form | formGet : 'syncAmountWithItems'"
-                ></app-checkbox>
-              }
             <app-receipt-currency-note class="w-full" [receipt]="originalReceipt"></app-receipt-currency-note>
             </div>
             <app-datepicker
@@ -178,27 +171,6 @@
           </app-form-section>
         }
       </div>
-      <!-- Hidden, not removed (Phase 3 C5): the Products section is the one list of what was bought. The
-           item list keeps its form state, so existing items are saved back unchanged. -->
-      <app-form-section
-        class="hidden"
-        [headerText]="'Items' | t"
-        [indent]="false"
-        [headerButtonsTemplate]="itemsSectionHeaderButtons"
-      >
-        <app-item-list
-          [form]="form"
-          [categories]="categories"
-          [tags]="tags"
-          [selectedGroup]="selectedGroup()"
-          [triggerAddMode]="triggerItemListAddMode"
-          (itemAdded)="onItemAdded($event)"
-          (itemRemoved)="onItemRemoved($event)"
-          (itemSplit)="onItemSplit($event)"
-        ></app-item-list>
-      </app-form-section>
-      <!-- No Shares section (Phase 3 C4): a family does not split bills. Shares already on a receipt
-           stay in the form, so saving keeps them. -->
       @if (originalReceipt?.id && originalReceipt?.groupId) {
         <app-form-section
           [panel]="true"
@@ -304,18 +276,6 @@
   </div>
 </ng-template>
 
-<ng-template #quickActionsDialog>
-  <app-quick-actions-dialog
-    cdkDrag
-    cdkDragHandle
-    cdkDragRootElement=".cdk-overlay-pane"
-    [originalReceipt]="originalReceipt"
-    [usersToOmit]="usersToOmit()"
-    [amountToSplit]="form.get('amount')?.value || 0"
-    (itemsToAdd)="onQuickActionItemsAdded($event)"
-  ></app-quick-actions-dialog>
-</ng-template>
-
 <ng-template #formHeaderButtons>
   <app-button
     *ngIf="mode | inputReadonly"
@@ -348,19 +308,6 @@
     icon="file_copy"
     [disabled]="!canDuplicate()"
     (clicked)="duplicateReceipt()"
-  ></app-button>
-</ng-template>
-
-<ng-template #itemsSectionHeaderButtons>
-  <app-button
-    *ngIf="!(mode | inputReadonly)"
-    type="button"
-    matButtonType="iconButton"
-    icon="add"
-    [tooltip]="'Add item' | t"
-    color="accent"
-    (clicked)="initItemListAddMode()"
-    [disabled]="!canEditReceipt()"
   ></app-button>
 </ng-template>
 

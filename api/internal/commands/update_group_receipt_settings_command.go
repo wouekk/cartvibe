@@ -12,11 +12,7 @@ type UpdateGroupReceiptSettingsCommand struct {
 	HideImages            bool `json:"hideImages"`
 	HideReceiptCategories bool `json:"hideReceiptCategories"`
 	HideReceiptTags       bool `json:"hideReceiptTags"`
-	HideItemCategories    bool `json:"hideItemCategories"`
-	HideItemTags          bool `json:"hideItemTags"`
 	HideComments          bool `json:"hideComments"`
-	HideShareCategories   bool `json:"hideShareCategories"`
-	HideShareTags         bool `json:"hideShareTags"`
 
 	QuickScanPaidByEnabled     bool                              `json:"quickScanPaidByEnabled"`
 	QuickScanPaidByRequired    bool                              `json:"quickScanPaidByRequired"`

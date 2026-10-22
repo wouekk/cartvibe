@@ -3,13 +3,12 @@ import { toSignal } from "@angular/core/rxjs-interop";
 import { UploadStage, withUploadProgress } from "../../utils/upload-progress";
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
-import { ExpansionPanelComponent } from "../../shared-ui/expansion-panel/expansion-panel.component";
 import { ToastRef } from "../../toast/toast.service";
 import { ActivatedRoute, Router } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
 import { DONE_STATUSES } from "../../utils/receipt-status";
-import { debounceTime, catchError, finalize, forkJoin, map, of, startWith, take, tap } from "rxjs";
+import { catchError, finalize, forkJoin, map, of, startWith, take, tap } from "rxjs";
 import { CarouselComponent } from "src/carousel/carousel/carousel.component";
 import { DEFAULT_DIALOG_CONFIG, DEFAULT_HOST_CLASS } from "src/constants";
 import { RECEIPT_STATUS_OPTIONS } from "src/constants/receipt-status-options";
@@ -23,7 +22,6 @@ import {
   Category,
   FileDataView,
   Group,
-  Item,
   Permission,
   Receipt,
   ReceiptImageService,
@@ -41,12 +39,9 @@ import { calendarDayToLocalDate, nameForToday, todayInZone, toMidnightUtc } from
 import { familyReceiptStatus } from "../../utils/receipt-status";
 import { downloadFile } from "../../utils/file";
 import { missingReceiptRequirementsMessage, receiptRequirementsFor } from "../../utils/receipt-requirements";
-import { ItemListComponent } from "../item-list/item-list.component";
 import { ReceiptCommentsComponent } from "../receipt-comments/receipt-comments.component";
-import { ShareListComponent } from "../share-list/share-list.component";
 
 import { UploadImageComponent } from "../upload-image/upload-image.component";
-import { buildItemForm } from "../utils/form.utils";
 import { marker } from "../../i18n/marker";
 import { RenameReceiptDialogComponent } from "../rename-receipt-dialog/rename-receipt-dialog.component";
 import { TranslationService } from "../../i18n/translation.service";
@@ -63,11 +58,6 @@ import { TranslationService } from "../../i18n/translation.service";
 export class ReceiptFormComponent implements OnInit {
   private readonly translation = inject(TranslationService);
 
-  // Optional: the Shares section is not rendered (Phase 3 C4).
-  public readonly shareListComponent = viewChild(ShareListComponent);
-
-  public readonly itemListComponent = viewChild.required(ItemListComponent);
-
   // Optional: the comments child only renders when the group doesn't hide
   // comments (see the @if in the template), so this query may be empty.
   public readonly receiptCommentsComponent = viewChild(ReceiptCommentsComponent);
@@ -77,8 +67,6 @@ export class ReceiptFormComponent implements OnInit {
   public readonly paidByAutocomplete = viewChild<UserAutocompleteComponent>("paidByAutocomplete");
 
   public readonly successDuplicateSnackbar = viewChild.required<TemplateRef<any>>("successDuplicateSnackbar");
-
-  public readonly quickActionsDialog = viewChild.required<TemplateRef<any>>("quickActionsDialog");
 
   public readonly expandedImageTemplate = viewChild.required<TemplateRef<any>>("expandedImageTemplate");
 
@@ -201,19 +189,6 @@ export class ReceiptFormComponent implements OnInit {
 
   public queueMode: QueueMode | undefined;
 
-  public triggerItemListAddMode: boolean = false;
-
-  public triggerShareListAddMode: boolean = false;
-
-  public get syncAmountWithItems(): boolean {
-    return this.form.get("syncAmountWithItems")?.value ?? false;
-  };
-
-
-  public get receiptItemsFormArray(): FormArray {
-    return this.form.get("receiptItems") as FormArray;
-  }
-
   constructor(
     private activatedRoute: ActivatedRoute,
     private formBuilder: FormBuilder,
@@ -234,12 +209,6 @@ export class ReceiptFormComponent implements OnInit {
       this.queueNext();
     } else if (event.key === "ArrowLeft" && isBodyActive && this.queueIds.length > 0) {
       this.queuePrevious();
-    }
-
-    // Global Ctrl+I shortcut for adding items
-    if (event.ctrlKey && event.key === "i" && !this.isAnyInputFocused()) {
-      event.preventDefault();
-      this.initItemListAddMode();
     }
   }
 
@@ -276,64 +245,6 @@ export class ReceiptFormComponent implements OnInit {
     }
 
     this.queueMode = this.activatedRoute.snapshot.queryParams["queueMode"];
-  }
-
-  public toggleAmountSync(sync: boolean): void {
-    if (sync) {
-      // Clear any existing itemLargerThanTotal errors first
-      this.clearItemValidationErrors();
-      // Then update the amount
-      this.updateAmountFromItems();
-      // Trigger revalidation
-      this.revalidateItems();
-    }
-  }
-
-  private clearItemValidationErrors(): void {
-    this.receiptItemsFormArray.controls.forEach((itemControl) => {
-      const amountControl = itemControl.get("amount");
-      if (amountControl?.errors && amountControl.hasError("itemLargerThanTotal")) {
-        const newErrors = { ...amountControl.errors };
-        delete newErrors["itemLargerThanTotal"];
-        const hasOtherErrors = Object.keys(newErrors).length > 0;
-        amountControl.setErrors(hasOtherErrors ? newErrors : null);
-      }
-    });
-  }
-
-  private revalidateItems(): void {
-    this.receiptItemsFormArray.controls.forEach((itemControl) => {
-      const amountControl = itemControl.get("amount");
-      amountControl?.updateValueAndValidity();
-    });
-  }
-
-  private updateAmountFromItems(): void {
-    const total = this.calculateItemsTotal();
-    this.form.get("amount")?.setValue(total.toFixed(2), { emitEvent: false });
-  }
-
-  private calculateItemsTotal(): number {
-    const items = this.form.get("receiptItems")?.value || [];
-    return items.reduce((sum: number, item: any) => {
-      // Only include items where chargedToUserId is undefined (general items, not shares)
-      if (!item?.chargedToUserId) {
-        return sum + (parseFloat(item.amount) || 0);
-      }
-      return sum;
-    }, 0);
-  }
-
-  private setupAmountSyncListener(): void {
-    // Listen to receiptItems changes
-    this.form.get("receiptItems")?.valueChanges.pipe(
-      untilDestroyed(this),
-      debounceTime(100)
-    ).subscribe(() => {
-      if (this.syncAmountWithItems) {
-        this.updateAmountFromItems();
-      }
-    });
   }
 
   private setHeaderText(): void {
@@ -448,7 +359,6 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
         this.originalReceipt?.amount ?? "",
         [Validators.required],
       ],
-      syncAmountWithItems: false,
       categories: this.formBuilder.array(
         this.originalReceipt?.categories ?? []
       ),
@@ -471,13 +381,6 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
       ],
       // Shown as "To check" or "Done" (Phase 3 C6), so any older status reads as one of the two.
       status: familyReceiptStatus(this.originalReceipt?.status) || ReceiptStatus.Open,
-      receiptItems: this.formBuilder.array(
-        this.originalReceipt?.receiptItems
-          ? this.originalReceipt.receiptItems.map((item) =>
-            buildItemForm(item, this.originalReceipt?.id?.toString(), !!item.chargedToUserId, false)
-          )
-          : []
-      )
     });
 
     if (this.mode === FormMode.view) {
@@ -486,9 +389,7 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
 
     this.showPaidBy.set(!this.form.get("paidByUserId")?.value);
 
-    this.setupAmountSyncListener();
     this.listenForGroupChanges();
-    this.listenForSyncWithItemsChanges();
   }
 
   // Source the category/tag pickers from the selected group's AppData catalog
@@ -502,11 +403,6 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
     }
     this.categories = this.store.selectSnapshot(AuthState.groupCategories(numericGroupId));
     this.tags = this.store.selectSnapshot(AuthState.groupTags(numericGroupId));
-  }
-
-  private listenForSyncWithItemsChanges(): void {
-    this.form
-      .get("syncAmountWithItems")?.valueChanges.pipe(untilDestroyed(this), tap((sync) => this.toggleAmountSync(sync))).subscribe();
   }
 
   private listenForGroupChanges(): void {
@@ -562,22 +458,6 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
         )
         .subscribe();
     }
-  }
-
-  public openQuickActionsModal(): void {
-    const dialogRef = this.matDialog.open(
-      this.quickActionsDialog(),
-      DEFAULT_DIALOG_CONFIG
-    );
-
-    dialogRef
-      .afterClosed()
-      .pipe(take(1))
-      .subscribe((result: boolean) => {
-        if (result) {
-          this.shareListComponent()?.setUserItemMap();
-        }
-      });
   }
 
   /**
@@ -758,9 +638,6 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
     ) {
       filledKeys.push("tags");
     }
-    if (this.patchMagicItems(magicReceipt)) {
-      filledKeys.push("receiptItems");
-    }
     if (this.patchMagicComments(magicReceipt)) {
       filledKeys.push("comments");
     }
@@ -810,29 +687,6 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
     });
   }
 
-  // Appends magic-filled items (and shares — items with a chargedToUserId) onto
-  // the receiptItems array using the same builder the form uses elsewhere, which
-  // also nests linkedItems and per-item categories/tags. Returns whether any were
-  // added.
-  private patchMagicItems(magicReceipt: Receipt): boolean {
-    const items = magicReceipt.receiptItems ?? [];
-    if (items.length === 0) {
-      return false;
-    }
-
-    items.forEach((item) => {
-      const itemForm = buildItemForm(
-        item,
-        this.originalReceipt?.id?.toString(),
-        !!item.chargedToUserId,
-        this.syncAmountWithItems
-      );
-      this.receiptItemsFormArray.push(itemForm);
-    });
-    this.refreshComponentsAndSync();
-    return true;
-  }
-
   // Hands magic-filled comments to the comments child, which owns them and is
   // mode-aware (add mode collects them for the create submit; edit mode POSTs
   // each as an individual resource). Returns whether the child handled them.
@@ -859,7 +713,6 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
     // existing scalar keys map to themselves.
     const labels: { [key: string]: string } = {
       paidByUserId: "paid by",
-      receiptItems: "items",
     };
     const filledLabels = filledKeys.map((key) => labels[key] ?? key);
     const successString = `Magic fill successfully filled ${filledLabels.join(
@@ -1028,101 +881,6 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
       .subscribe();
   }
 
-  public initItemListAddMode(): void {
-    this.triggerItemListAddMode = true;
-    // Reset the trigger after a short delay to allow for re-triggering
-    setTimeout(() => this.triggerItemListAddMode = false, 100);
-  }
-
-  private isAnyInputFocused(): boolean {
-    const activeElement = document.activeElement;
-    return (activeElement?.tagName === "INPUT") ||
-      (activeElement?.tagName === "TEXTAREA") ||
-      (activeElement?.tagName === "SELECT") ||
-      (activeElement?.hasAttribute("contenteditable") || false);
-  }
-
-  public initShareListAddMode(): void {
-    this.triggerShareListAddMode = true;
-    // Reset the trigger after a short delay to allow for re-triggering
-    setTimeout(() => this.triggerShareListAddMode = false, 100);
-  }
-
-  public onItemAdded(item: Item): void {
-    const newFormGroup = buildItemForm(item, this.originalReceipt?.id?.toString(), !!item.chargedToUserId, this.syncAmountWithItems);
-    this.receiptItemsFormArray.push(newFormGroup);
-    this.refreshComponentsAndSync();
-  }
-
-  public onItemRemoved(data: { item: Item; arrayIndex: number; isLinkedItem?: boolean; linkedItemIndex?: number }): void {
-    if (data.isLinkedItem && data.linkedItemIndex !== undefined) {
-      const parentItemFormGroup = this.receiptItemsFormArray.at(data.arrayIndex) as FormGroup;
-      const linkedItemsArray = parentItemFormGroup.get("linkedItems") as FormArray;
-      if (linkedItemsArray && data.linkedItemIndex < linkedItemsArray.length) {
-        linkedItemsArray.removeAt(data.linkedItemIndex);
-      }
-    } else {
-      this.receiptItemsFormArray.removeAt(data.arrayIndex);
-    }
-
-    this.refreshComponentsAndSync();
-  }
-
-  public onQuickActionItemsAdded(data: { items: Item[], itemIndex?: number }): void {
-    const { items, itemIndex } = data;
-
-    if (itemIndex !== undefined) {
-      this.addLinkedItems(items, itemIndex);
-    } else {
-      // Adding items as regular receipt items
-      items.forEach(item => {
-        const newFormGroup = buildItemForm(item, this.originalReceipt?.id?.toString(), true, this.syncAmountWithItems);
-        this.receiptItemsFormArray.push(newFormGroup);
-      });
-    }
-
-    this.refreshComponentsAndSync();
-  }
-
-  public onItemSplit(data: { items: Item[], itemIndex: number }): void {
-    const { items, itemIndex } = data;
-    this.addLinkedItems(items, itemIndex);
-    this.refreshComponentsAndSync();
-  }
-
-  private addLinkedItems(items: Item[], itemIndex: number): void {
-    // Adding items as linkedItems to an existing item
-    const targetItemFormGroup = this.receiptItemsFormArray.at(itemIndex) as FormGroup;
-    let linkedItemsArray = targetItemFormGroup.get("linkedItems") as FormArray;
-
-    if (!linkedItemsArray) {
-      // Create linkedItems FormArray if it doesn't exist
-      linkedItemsArray = this.formBuilder.array([]);
-      targetItemFormGroup.addControl("linkedItems", linkedItemsArray);
-    }
-
-    // Add each item to the linkedItems array
-    items.forEach(item => {
-      const newFormGroup = buildItemForm(item, this.originalReceipt?.id?.toString(), true, this.syncAmountWithItems);
-      linkedItemsArray.push(newFormGroup);
-    });
-  }
-
-  private refreshComponentsAndSync(): void {
-    this.shareListComponent()?.setUserItemMap();
-    this.itemListComponent()?.setItems();
-
-    // Auto-sync amount if enabled
-    if (this.syncAmountWithItems) {
-      this.updateAmountFromItems();
-    }
-  }
-
-  public onAllItemsResolved(userId: string): void {
-    // The actual item status updates are handled by the child component
-    // We don't need to do anything here as the form will reflect the changes
-  }
-
   public queueNext(): void {
     if (this.queueIndex < this.queueIds.length - 1) {
       this.receiptQueueService.queueNext(this.queueIndex, this.queueIds, this.queueMode ?? QueueMode.VIEW,);
@@ -1136,9 +894,6 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
   }
 
   public submit(): void {
-    this.shareListComponent()?.userExpansionPanels().forEach(
-      (p: ExpansionPanelComponent) => p.close()
-    );
     if (this.form.invalid) {
       // Say why nothing happened: a required box that is empty shakes and is outlined in red (amount first,
       // so the cursor ends in the name).

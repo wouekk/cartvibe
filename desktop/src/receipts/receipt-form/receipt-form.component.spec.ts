@@ -89,8 +89,6 @@ describe("ReceiptFormComponent", () => {
       // the old sentinel left a group-less form valid.
       groupId: "",
       status: ReceiptStatus.Open,
-      receiptItems: [],
-      syncAmountWithItems: false,
     });
     jest.useRealTimers();
   });
@@ -359,20 +357,6 @@ describe("ReceiptFormComponent", () => {
       });
     }
 
-    function stubItemAndShareLists(): { setItems: jest.Mock; setUserItemMap: jest.Mock } {
-      const setItems = jest.fn();
-      const setUserItemMap = jest.fn();
-      Object.defineProperty(component, "itemListComponent", {
-        value: () => ({ setItems }),
-        configurable: true,
-      });
-      Object.defineProperty(component, "shareListComponent", {
-        value: () => ({ setUserItemMap }),
-        configurable: true,
-      });
-      return { setItems, setUserItemMap };
-    }
-
     function stubCommentsComponent(): { addMagicFilledComments: jest.Mock } {
       const addMagicFilledComments = jest.fn();
       Object.defineProperty(component, "receiptCommentsComponent", {
@@ -412,7 +396,6 @@ describe("ReceiptFormComponent", () => {
       component.mode = FormMode.edit;
 
       stubCarousel();
-      const { setItems, setUserItemMap } = stubItemAndShareLists();
       const { addMagicFilledComments } = stubCommentsComponent();
       const { syncSingleDisplay } = stubPaidByAutocomplete();
 
@@ -433,24 +416,6 @@ describe("ReceiptFormComponent", () => {
         status: ReceiptStatus.NeedsAttention,
         categories: [{ id: 1 }],
         tags: [{ id: 2 }],
-        receiptItems: [
-          {
-            name: "Regular Item",
-            amount: "40.00",
-            status: "OPEN",
-            categories: [{ id: 5, name: "item cat" }],
-            tags: [{ id: 6, name: "item tag" }],
-          },
-          {
-            name: "Shared Item",
-            amount: "20.00",
-            status: "OPEN",
-            chargedToUserId: 7,
-            linkedItems: [
-              { name: "Linked", amount: "10.00", status: "OPEN", chargedToUserId: 7 },
-            ],
-          },
-        ],
         comments: [{ comment: "auto comment", userId: 7 }],
       } as any;
 
@@ -474,66 +439,14 @@ describe("ReceiptFormComponent", () => {
       expect(value.categories).toEqual([component.categories[0]]);
       expect(value.tags).toEqual([component.tags[1]]);
 
-      // Items (regular + share + linked + per-item cats/tags + taxed)
-      expect(value.receiptItems.length).toEqual(2);
-      const regular = value.receiptItems[0];
-      expect(regular.name).toEqual("Regular Item");
-      expect(regular.amount).toEqual("40.00");
-      expect(regular.status).toEqual("OPEN");
-      expect(regular.chargedToUserId).toBeFalsy();
-      expect(regular.categories).toEqual([{ id: 5, name: "item cat" }]);
-      expect(regular.tags).toEqual([{ id: 6, name: "item tag" }]);
-      expect(regular.linkedItems).toEqual([]);
-
-      const shared = value.receiptItems[1];
-      expect(shared.name).toEqual("Shared Item");
-      expect(shared.chargedToUserId).toEqual(7);
-      expect(shared.linkedItems.length).toEqual(1);
-      expect(shared.linkedItems[0].name).toEqual("Linked");
-      expect(shared.linkedItems[0].chargedToUserId).toEqual(7);
-
-      expect(setItems).toHaveBeenCalled();
-      expect(setUserItemMap).toHaveBeenCalled();
-
       // Comments handed to the (mode-aware) comments child
       expect(addMagicFilledComments).toHaveBeenCalledWith(magicReceipt.comments);
 
       // Snackbar lists every filled field with reader-friendly labels
       expect(successSpy).toHaveBeenCalledWith(
-        "Magic fill successfully filled name, amount, date, paid by, status, categories, tags, items, comments from selected image!",
+        "Magic fill successfully filled name, amount, date, paid by, status, categories, tags, comments from selected image!",
         { duration: 10000 }
       );
-    });
-
-    it("treats items with a chargedToUserId as shares and excludes them from the item total", () => {
-      component.images.set([{ id: 1 } as any]);
-      component.ngOnInit();
-      component.mode = FormMode.edit;
-      stubCarousel();
-      stubItemAndShareLists();
-
-      const magicReceipt = {
-        name: "Items",
-        amount: "100.00",
-        date: "2023-08-05T00:00:00.000Z",
-        receiptItems: [
-          { name: "Regular", amount: "40.00", status: "OPEN" },
-          { name: "Share", amount: "20.00", status: "OPEN", chargedToUserId: 9 },
-        ],
-      } as any;
-
-      mockMagicFill(magicReceipt);
-      spySuccess();
-
-      component.magicFill();
-
-      // Only the non-share item counts toward the receipt item total
-      expect((component as any).calculateItemsTotal()).toEqual(40);
-      // The share carries a required chargedToUserId validator; the regular item does not
-      const shareControl = component.receiptItemsFormArray.at(1).get("chargedToUserId");
-      const regularControl = component.receiptItemsFormArray.at(0).get("chargedToUserId");
-      expect(shareControl?.hasValidator(Validators.required)).toBe(true);
-      expect(regularControl?.hasValidator(Validators.required)).toBe(false);
     });
 
     it("fills nothing and shows an error when the response is all defaults/empty", () => {
@@ -558,7 +471,6 @@ describe("ReceiptFormComponent", () => {
         status: "",
         categories: [],
         tags: [],
-        receiptItems: [],
         comments: [],
       } as any;
 
@@ -572,7 +484,6 @@ describe("ReceiptFormComponent", () => {
       expect(value.amount).toEqual("482.32");
       expect(value.paidByUserId).toEqual(3);
       expect(value.status).toEqual(ReceiptStatus.Open);
-      expect(value.receiptItems).toEqual([]);
       expect(errorSpy).toHaveBeenCalledWith(
         "Could not find any values to fill! Try reuploading a clearer image."
       );
@@ -583,32 +494,24 @@ describe("ReceiptFormComponent", () => {
       component.ngOnInit();
       component.mode = FormMode.edit;
       stubCarousel();
-      stubItemAndShareLists();
 
       component.form.patchValue({ name: "untouched", amount: "5.00" });
 
-      const magicReceipt = {
-        receiptItems: [{ name: "Only Item", amount: "3.00", status: "OPEN" }],
-      } as any;
-
-      mockMagicFill(magicReceipt);
+      mockMagicFill({ name: "Only Name" } as any);
       const successSpy = spySuccess();
 
       component.magicFill();
 
       const value = component.form.getRawValue();
-      expect(value.name).toEqual("untouched");
+      expect(value.name).toEqual("Only Name");
       expect(value.amount).toEqual("5.00");
-      expect(value.receiptItems.length).toEqual(1);
       expect(successSpy).toHaveBeenCalledWith(
-        "Magic fill successfully filled items from selected image!",
+        "Magic fill successfully filled name from selected image!",
         { duration: 10000 }
       );
     });
 
-
-
-    it("appends magic-filled items and categories onto existing ones", () => {
+    it("appends magic-filled categories onto existing ones", () => {
       component.images.set([{ id: 1 } as any]);
       routeDataSubject.next({
         mode: FormMode.edit,
@@ -617,35 +520,23 @@ describe("ReceiptFormComponent", () => {
           name: "R",
           amount: "100.00",
           categories: [{ id: 1, name: "existing cat" }],
-          receiptItems: [{ name: "Existing Item", amount: "10.00", status: "OPEN" }],
         } as any,
       });
       component.mode = FormMode.edit;
       stubCarousel();
-      stubItemAndShareLists();
       component.categories = [
         { id: 1, name: "existing cat" } as any,
         { id: 2, name: "new cat" } as any,
       ];
 
-      const magicReceipt = {
-        categories: [{ id: 2 }],
-        receiptItems: [{ name: "New Item", amount: "15.00", status: "OPEN" }],
-      } as any;
-
-      mockMagicFill(magicReceipt);
+      mockMagicFill({ categories: [{ id: 2 }] } as any);
       spySuccess();
 
       component.magicFill();
 
-      const value = component.form.getRawValue();
-      expect(value.categories).toEqual([
+      expect(component.form.getRawValue().categories).toEqual([
         { id: 1, name: "existing cat" },
         { id: 2, name: "new cat" },
-      ]);
-      expect(value.receiptItems.map((i: any) => i.name)).toEqual([
-        "Existing Item",
-        "New Item",
       ]);
     });
 
@@ -681,28 +572,22 @@ describe("ReceiptFormComponent", () => {
       );
     });
 
-    it("round-trips negative refund amounts on the receipt and items", () => {
+    it("round-trips negative refund amounts on the receipt", () => {
       component.images.set([{ id: 1 } as any]);
       component.ngOnInit();
       component.mode = FormMode.edit;
       stubCarousel();
-      stubItemAndShareLists();
 
-      const magicReceipt = {
+      mockMagicFill({
         name: "Refund",
         amount: "-50.00",
         date: "2023-08-05T00:00:00.000Z",
-        receiptItems: [{ name: "Refunded", amount: "-50.00", status: "OPEN" }],
-      } as any;
-
-      mockMagicFill(magicReceipt);
+      } as any);
       spySuccess();
 
       component.magicFill();
 
-      const value = component.form.getRawValue();
-      expect(value.amount).toEqual("-50.00");
-      expect(value.receiptItems[0].amount).toEqual("-50.00");
+      expect(component.form.getRawValue().amount).toEqual("-50.00");
     });
 
     it("skips paid-by when the backend returns the unset sentinel (0)", () => {

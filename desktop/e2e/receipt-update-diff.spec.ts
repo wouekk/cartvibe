@@ -24,9 +24,8 @@ import {
 // in parallel can push this one off page 1. The row itself is still the real
 // server's.
 //
-// The receipt carries an item on both sides of the update under test. The
-// server deletes and recreates items on every save, so the item comes back with
-// a new id and timestamps; the summary must still list only what was edited.
+// The summary must list only what was edited, not the record-keeping fields
+// (ids and timestamps) that change on every save.
 
 test.use({ storageState: 'e2e/.auth/admin.json' });
 
@@ -59,23 +58,14 @@ test.describe('Receipt update diff', () => {
             groupId,
             paidByUserId,
             status: 'OPEN',
-            receiptItems: [
-              {
-                receiptId,
-                name: 'Pizza',
-                amount: '10.00',
-                chargedToUserId: paidByUserId,
-                status: 'OPEN',
-              },
-            ],
           },
         });
         expect(res.ok()).toBe(true);
       };
 
-      // Adds the item; this spec does not look at that update's row.
+      // A first update; this spec does not look at that update's row.
       await update(oldName, '10.00');
-      // The update under test: same item, new name and amount.
+      // The update under test: new name and amount.
       await update(newName, '12.50');
 
       const tasks = await apiPagedSystemTasks(api, {
@@ -116,7 +106,7 @@ test.describe('Receipt update diff', () => {
     await page.goto('/system-settings/system-tasks');
   };
 
-  test('the row summarizes only what was edited, not the recreated item', async ({ page }) => {
+  test('the row summarizes only what was edited', async ({ page }) => {
     await gotoOwnTask(page);
 
     await expect(page.getByTestId('receipt-update-summary')).toHaveText('Changed: name, amount');

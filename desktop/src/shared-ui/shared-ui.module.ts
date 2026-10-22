@@ -58,7 +58,6 @@ import { StatusChipComponent } from "./status-chip/status-chip.component";
 import { StatusIconComponent } from "./status-icon/status-icon.component";
 import { StatusSelectComponent } from "./status-select/status-select.component";
 import { SubmitButtonComponent } from "./submit-button/submit-button.component";
-import { SummaryCardComponent } from "./summary-card/summary-card.component";
 import { TableHeaderComponent } from "./table-header/table-header.component";
 import { TabsComponent } from "./tabs/tabs.component";
 import { PrettyJsonPipe } from "./task-table/pretty-json.pipe";
@@ -106,7 +105,6 @@ import { SettingsTabsComponent } from './settings/settings-tabs.component';
     StatusChipComponent,
     StatusSelectComponent,
     SubmitButtonComponent,
-    SummaryCardComponent,
     TableHeaderComponent,
     TabsComponent,
     QuickScanButtonComponent,
@@ -185,7 +183,6 @@ import { SettingsTabsComponent } from './settings/settings-tabs.component';
     StatusChipComponent,
     StatusSelectComponent,
     SubmitButtonComponent,
-    SummaryCardComponent,
     TableHeaderComponent,
     TabsComponent,
     AuditDetailSectionComponent,
