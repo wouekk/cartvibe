@@ -286,7 +286,7 @@ test.describe('Quick scan dialog behavior', () => {
 
     // Image 0 -> group A: status shown+required, paid-by hidden. Fill its status
     // so only image 1 is left missing a required field.
-    const slide0 = dialog.locator('slide').nth(0);
+    const slide0 = dialog.getByTestId('quick-scan-attachment').nth(0);
     await selectImageGroup(page, slide0, groupA.name);
     await expect(slide0.getByRole('combobox', { name: 'Status' })).toBeVisible();
     await expect(slide0.getByRole('combobox', { name: 'Paid By' })).toHaveCount(0);
@@ -294,8 +294,7 @@ test.describe('Quick scan dialog behavior', () => {
     await page.getByRole('option', { name: 'Open', exact: true }).click();
 
     // Image 1 -> group B: paid-by shown+required, status hidden. Leave paid-by empty.
-    await dialog.getByTestId('quick-scan-nav-right').getByRole('button').click();
-    const slide1 = dialog.locator('slide').nth(1);
+    const slide1 = dialog.getByTestId('quick-scan-attachment').nth(1);
     await expect(slide1.getByRole('combobox', { name: 'Group' })).toBeVisible();
     await selectImageGroup(page, slide1, groupB.name);
     await expect(slide1.getByRole('combobox', { name: 'Paid By' })).toBeVisible();

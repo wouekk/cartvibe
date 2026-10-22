@@ -1,7 +1,8 @@
 import { Component, computed, inject, input, OnInit, signal } from "@angular/core";
+import { toSignal } from "@angular/core/rxjs-interop";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { HlmButton } from "@spartan-ng/helm/button";
-import { catchError, finalize, map, Observable, of, switchMap, take, tap } from "rxjs";
+import { catchError, finalize, map, Observable, of, startWith, switchMap, take, tap } from "rxjs";
 import { CheckboxModule } from "../../checkbox/checkbox.module";
 import { InputModule } from "../../input/input.module";
 import {
@@ -20,8 +21,7 @@ import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { SnackbarService } from "../../services";
 import { GeminiModelFieldComponent } from "../gemini-model-field/gemini-model-field.component";
-import { ConnectionResult, DEFAULT_GEMINI_MODEL, describeConnection } from "../ai-settings-shared";
-import { marker } from "../../i18n/marker";
+import { ConnectionResult, DEFAULT_GEMINI_MODEL, SAVED_KEY_PLACEHOLDER, describeConnection } from "../ai-settings-shared";
 
 /** What the backup AI settings are called; a processing setting's name must be unique. */
 export const AI_FALLBACK_SETTINGS_NAME = "Household AI backup";
@@ -71,7 +71,17 @@ export class AiFallbackCardComponent implements OnInit {
 
   public readonly canSave = computed(() => this.primaryId() !== undefined && !this.saving());
 
-  public readonly keyHint = computed(() => (this.saved() ? marker("A key is saved. Leave this empty to keep it.") : undefined));
+  public readonly keyPlaceholder = computed(() => (this.saved() ? SAVED_KEY_PLACEHOLDER : ""));
+
+  private readonly formValue = toSignal(this.form.valueChanges.pipe(startWith(this.form.getRawValue())), {
+    initialValue: this.form.getRawValue(),
+  });
+
+  /** The backup can be tested as typed: a saved key covers an empty key box, a new one needs its key. */
+  public readonly canTest = computed(() => {
+    const value = this.formValue();
+    return !!value.enabled && (!!this.saved() || !!(value.key ?? "").trim());
+  });
 
   public ngOnInit(): void {
     this.systemSettingsService
@@ -155,14 +165,32 @@ export class AiFallbackCardComponent implements OnInit {
 
   public testConnection(): void {
     const saved = this.saved();
-    if (!saved || this.testing()) {
+    if (!this.canTest() || this.testing()) {
       return;
     }
+
+    const value = this.form.getRawValue();
+    const request =
+      saved && !this.form.dirty
+        ? { id: saved.id }
+        : {
+            id: saved?.id,
+            name: saved?.name || AI_FALLBACK_SETTINGS_NAME,
+            description: saved?.description ?? "",
+            aiType: AiType.Gemini,
+            model: (value.model ?? "").trim(),
+            url: "",
+            key: (value.key ?? "").trim(),
+            isVisionModel: true,
+            enforceJsonResponseFormat: true,
+            ocrEngine: saved?.ocrEngine ?? OcrEngine.Tesseract,
+            promptId: saved?.promptId ?? 0,
+          };
 
     this.testing.set(true);
     this.connectionResult.set(undefined);
     this.receiptProcessingSettingsService
-      .checkReceiptProcessingSettingsConnectivity({ id: saved.id })
+      .checkReceiptProcessingSettingsConnectivity(request)
       .pipe(
         take(1),
         map((task) => describeConnection(task.status as SystemTaskStatus | undefined, task.resultDescription)),

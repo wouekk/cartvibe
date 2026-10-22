@@ -1,5 +1,6 @@
 <ng-container *ngIf="formMode() !== FormMode.add">
   <app-form-section
+    [panel]="true"
     [indent]="indent()"
     [headerText]="'Audit Details' | t"
   >

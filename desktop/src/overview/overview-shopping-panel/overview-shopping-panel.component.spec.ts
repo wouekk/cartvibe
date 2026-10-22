@@ -71,7 +71,6 @@ describe("OverviewShoppingPanelComponent", () => {
     fixture = TestBed.createComponent(OverviewShoppingPanelComponent);
     fixture.componentRef.setInput("groupId", 1);
     fixture.componentRef.setInput("canUpdate", true);
-    jest.useFakeTimers();
   });
 
   afterEach(() => {
@@ -125,9 +124,11 @@ describe("OverviewShoppingPanelComponent", () => {
   it("drops the Undo row after its window, leaving the item done", async () => {
     await render([list(1, "Weekly", [item(1, 1, "milk"), item(2, 1, "bread")])]);
 
+    // Fake timers only around the click: the zoneless scheduler needs real ones for whenStable().
+    jest.useFakeTimers();
     rows()[0].click();
-    await fixture.whenStable();
     jest.advanceTimersByTime(UNDO_WINDOW_MS + 1);
+    jest.useRealTimers();
     await fixture.whenStable();
 
     expect(undoRows().length).toBe(0);

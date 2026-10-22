@@ -136,6 +136,7 @@ model/receiptSummaryCommand.ts
 model/receiptSummaryCustomFieldTotal.ts
 model/receiptSummaryPosition.ts
 model/receiptSummaryRow.ts
+model/renameReceiptCommand.ts
 model/reportColumn.ts
 model/reportDetail.ts
 model/reportDocument.ts
