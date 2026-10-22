@@ -8,7 +8,6 @@
  * Do not edit the class manually.
  */
 import { ReceiptStatus } from './receiptStatus';
-import { ReceiptSummaryPosition } from './receiptSummaryPosition';
 import { QuickScanDefaultPaidByType } from './quickScanDefaultPaidByType';
 
 
@@ -91,30 +90,6 @@ export interface UpdateGroupReceiptSettingsCommand {
      * Require the comment field in quick scan
      */
     quickScanCommentRequired?: boolean;
-    /**
-     * Custom field ids to pre-add to every receipt created for this group. OMIT the key to leave the configured set unchanged (clients that hide this section, e.g. for a user without app.custom-fields.read, must omit it); send an empty array to clear it. Requires app.custom-fields.read - a caller without it gets a 403.
-     */
-    defaultCustomFieldIds?: Array<number>;
-    /**
-     * Also attach the group\'s default custom fields to receipts the SERVER creates (quick scan, email integration). OMIT the key to leave the stored value unchanged.
-     */
-    applyDefaultCustomFieldsOnIngest?: boolean;
-    /**
-     * Show the block of totals under this group\'s receipts table. OMIT the key to leave the stored value unchanged - a client that does not render this section must omit it rather than send false, or it switches the summary off for the whole group.
-     */
-    receiptSummaryEnabled?: boolean;
-    /**
-     * CURRENCY custom field ids to total in the receipt summary. OMIT the key to leave the configured set unchanged (clients that hide this control, e.g. for a user without app.custom-fields.read, must omit it); send an empty array to clear it. Requires app.custom-fields.read - a caller without it gets a 403. Every id must be an existing CURRENCY custom field - anything else is a 400, because only a currency value can be summed.
-     */
-    receiptSummaryCustomFieldIds?: Array<number>;
-    /**
-     * Receipt statuses to break out as their own row in the receipt summary. OMIT the key to leave the configured set unchanged; send an empty array to clear it. Unlike the custom field ids this needs NO extra permission - gating it would lock an admin without app.custom-fields.read out of the feature entirely. An unrecognized status is a 400.
-     */
-    receiptSummaryStatuses?: Array<ReceiptStatus>;
-    /**
-     * Where the receipt summary renders relative to the receipts list. OMIT the key to leave the stored value unchanged - a client that does not render this control must omit it rather than send a zero value, or it moves the block for the whole group. Needs no extra permission, for the same reason the statuses do not. Anything but TOP or BOTTOM is a 400, an empty string included: on this write side an explicit empty would reset a configured position, so omitting the key is the only way to leave it alone.
-     */
-    receiptSummaryPosition?: ReceiptSummaryPosition;
 }
 export namespace UpdateGroupReceiptSettingsCommand {
 }

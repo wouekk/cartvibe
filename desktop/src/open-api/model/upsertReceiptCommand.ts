@@ -8,7 +8,6 @@
  * Do not edit the class manually.
  */
 import { UpsertCategoryCommand } from './upsertCategoryCommand';
-import { UpsertCustomFieldValueCommand } from './upsertCustomFieldValueCommand';
 import { UpsertItemCommand } from './upsertItemCommand';
 import { UpsertCommentCommand } from './upsertCommentCommand';
 import { ReceiptStatus } from './receiptStatus';
@@ -57,10 +56,6 @@ export interface UpsertReceiptCommand {
      * Comments associated to receipt
      */
     comments?: Array<UpsertCommentCommand>;
-    /**
-     * Custom fields associated to receipt
-     */
-    customFields?: Array<UpsertCustomFieldValueCommand>;
 }
 export namespace UpsertReceiptCommand {
 }

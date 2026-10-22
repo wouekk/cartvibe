@@ -21,13 +21,13 @@ export interface ReceiptPagedRequestCommand {
      */
     pageSize: number;
     /**
-     * field to order on - a receipt column, custom_<id> for a custom field, or first_comment for the receipt\'s first comment
+     * field to order on - a receipt column, or first_comment for the receipt\'s first comment
      */
     orderBy?: string;
     sortDirection?: SortDirection;
     filter?: ReceiptPagedRequestFilter;
     /**
-     * Whether to include all receipt associations (receiptItems, comments, customFields, imageFiles, etc.)
+     * Whether to include all receipt associations (receiptItems, comments, imageFiles, etc.)
      */
     fullReceipts?: boolean;
 }
