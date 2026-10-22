@@ -182,7 +182,7 @@ describe("SidebarComponent", () => {
       );
       store.dispatch(
         new SetPermissions(
-          ["app.categories.read", "app.tags.read", "app.groups.read", "app.custom-fields.read"],
+          ["app.categories.read", "app.tags.read", "app.groups.read"],
           {}
         )
       );
@@ -198,7 +198,6 @@ describe("SidebarComponent", () => {
       expect(text).toContain("Manage Categories");
       expect(text).toContain("Manage Tags");
       expect(text).toContain("Manage Households");
-      expect(text).toContain("Manage Custom Fields");
       expect(text).not.toContain("Manage Users");
       expect(text).not.toContain("System Settings");
     });

@@ -3,29 +3,19 @@ import { REPORT_BUILTIN_DIMENSIONS, REPORT_FORMATS } from "./report-catalog.cons
 import { marker } from "../../i18n/marker";
 import { englishTranslate, TranslateFn } from "../../i18n/translate-fn";
 
-// Field-key -> label for the built-in dimensions the list renders. Custom-field
-// keys (custom_<id>) are only resolvable against the loaded custom-field pool, so
-// callers that have it pass a resolver.
+// Field-key -> label for the built-in dimensions the list renders.
 const DIMENSION_LABELS = new Map(REPORT_BUILTIN_DIMENSIONS.map((d) => [d.key, d.label]));
 
-/**
- * Resolves a field key the built-in map doesn't cover — a custom field's
- * `custom_<id>`. Returning undefined means "I don't know it", which falls back to
- * the raw key.
- */
-export type FieldLabelResolver = (key: string) => string | undefined;
 
 /**
- * The human label for an engine field key: a built-in's name, else whatever the
- * caller's resolver knows, else the raw key. The raw-key fallback is what a
- * caller without the custom-field pool (no resolver, or no permission to read it)
- * gets, so a row still renders something rather than nothing.
+ * The human label for an engine field key: a built-in's name, else the raw key, so a row
+ * still renders something rather than nothing.
  */
-export function fieldLabel(key: string | undefined, resolve?: FieldLabelResolver): string {
+export function fieldLabel(key: string | undefined): string {
   if (!key) {
     return "";
   }
-  return DIMENSION_LABELS.get(key) ?? resolve?.(key) ?? key;
+  return DIMENSION_LABELS.get(key) ?? key;
 }
 
 /** How many columns the stored report defines. */
@@ -40,25 +30,23 @@ export function columnCount(configuration: ReportRequestCommand): number {
  */
 export function groupingSummary(
   configuration: ReportRequestCommand,
-  resolve?: FieldLabelResolver
 ): string {
   const groupBy = configuration.groupBy ?? [];
   if (groupBy.length === 0) {
     return marker("No grouping");
   }
   return groupBy
-    .map((key) => (configuration.groupByLabels?.[key] ?? "").trim() || fieldLabel(key, resolve))
+    .map((key) => (configuration.groupByLabels?.[key] ?? "").trim() || fieldLabel(key))
     .join(", ");
 }
 
 /** Whether the report aggregates (and by what) or lists individual receipts. */
 export function detailSummary(
   configuration: ReportRequestCommand,
-  resolve?: FieldLabelResolver,
   translate: TranslateFn = englishTranslate
 ): string {
   if (configuration.detail?.mode === ReportDetail.ModeEnum.Aggregate) {
-    return translate(marker("Aggregate by {name}"), { name: fieldLabel(configuration.detail.by, resolve) });
+    return translate(marker("Aggregate by {name}"), { name: fieldLabel(configuration.detail.by) });
   }
   return marker("Record-level");
 }

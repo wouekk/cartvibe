@@ -14,7 +14,7 @@ import { PipesModule } from "src/pipes/pipes.module";
 import { RenameReceiptDialogComponent } from "../rename-receipt-dialog/rename-receipt-dialog.component";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
-import { ApiModule, CustomFieldType, Permission, ReceiptImageService, ReceiptService, ReceiptStatus } from "../../open-api";
+import { ApiModule, Permission, ReceiptImageService, ReceiptService, ReceiptStatus } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { QueueMode } from "../../services/receipt-queue.service";
 import { StatefulMenuItem } from "../../standalone/components/filtered-stateful-menu/stateful-menu-item";
@@ -67,23 +67,6 @@ describe("ReceiptFormComponent", () => {
     expect(component).toBeTruthy();
   });
 
-  it("falls back to the receipt's embedded custom field definitions when the catalog is empty", () => {
-    const definition = { id: 7, name: "Project", type: 0 } as any;
-    routeDataSubject.next({
-      mode: FormMode.edit,
-      customFields: [],
-      receipt: {
-        id: 1,
-        name: "R",
-        amount: "1.00",
-        customFields: [{ customFieldId: 7, customField: definition }],
-      } as any,
-    });
-
-    component.ngOnInit();
-
-    expect(component.customFields).toEqual([definition]);
-  });
 
   it("should init form correctly when there is no initial data", () => {
     jest.useFakeTimers();
@@ -106,7 +89,6 @@ describe("ReceiptFormComponent", () => {
       // the old sentinel left a group-less form valid.
       groupId: "",
       status: ReceiptStatus.Open,
-      customFields: [],
       receiptItems: [],
       syncAmountWithItems: false,
     });
@@ -122,7 +104,7 @@ describe("ReceiptFormComponent", () => {
     it("is named after today and paid by the user adding it, without asking", () => {
       jest.useFakeTimers();
       jest.setSystemTime(new Date(Date.UTC(2020, 0, 1, 12)));
-      routeDataSubject.next({ mode: FormMode.add, customFields: [] });
+      routeDataSubject.next({ mode: FormMode.add });
       jest.useRealTimers();
 
       expect(component.form.get("name")?.value).toEqual("Receipt 1 Jan 2020");
@@ -131,7 +113,7 @@ describe("ReceiptFormComponent", () => {
     });
 
     it("shakes and outlines an empty name and amount instead of silently doing nothing", async () => {
-      routeDataSubject.next({ mode: FormMode.add, customFields: [] });
+      routeDataSubject.next({ mode: FormMode.add });
       fixture.detectChanges();
       component.form.patchValue({ name: "", amount: "" });
 
@@ -147,8 +129,7 @@ describe("ReceiptFormComponent", () => {
     it("asks for Paid By on a saved receipt without one", () => {
       routeDataSubject.next({
         mode: FormMode.edit,
-        customFields: [],
-        receipt: { id: 1, name: "R", amount: "1.00", paidByUserId: 0, customFields: [] } as any,
+        receipt: { id: 1, name: "R", amount: "1.00", paidByUserId: 0 } as any,
       });
 
       expect(component.form.get("name")?.value).toEqual("R");
@@ -158,8 +139,7 @@ describe("ReceiptFormComponent", () => {
     it("keeps the hidden payer when magic fill guesses another", () => {
       routeDataSubject.next({
         mode: FormMode.edit,
-        customFields: [],
-        receipt: { id: 1, name: "R", amount: "1.00", paidByUserId: 5, customFields: [] } as any,
+        receipt: { id: 1, name: "R", amount: "1.00", paidByUserId: 5 } as any,
       });
       component.images.set([{ id: 1 } as any]);
       Object.defineProperty(component, "carouselComponent", {
@@ -352,7 +332,7 @@ describe("ReceiptFormComponent", () => {
 
   it("rebuilds form state when route data emits a new receipt (duplicate navigation)", () => {
     routeDataSubject.next({
-      receipt: { id: 1, name: "Original", amount: "10.00", customFields: [] } as any,
+      receipt: { id: 1, name: "Original", amount: "10.00" } as any,
     });
 
     expect(component.originalReceipt?.id).toEqual(1);
@@ -360,7 +340,7 @@ describe("ReceiptFormComponent", () => {
     expect(component.editLink).toEqual("/receipts/1/edit");
 
     routeDataSubject.next({
-      receipt: { id: 2, name: "Duplicate", amount: "10.00", customFields: [] } as any,
+      receipt: { id: 2, name: "Duplicate", amount: "10.00" } as any,
     });
 
     expect(component.originalReceipt?.id).toEqual(2);
@@ -425,17 +405,10 @@ describe("ReceiptFormComponent", () => {
       return jest.spyOn(TestBed.inject(SnackbarService), "error").mockReturnValue(undefined);
     }
 
-    const customFieldDefs = [
-      { id: 1, name: "Text Field", type: CustomFieldType.Text },
-      { id: 2, name: "Date Field", type: CustomFieldType.Date },
-      { id: 3, name: "Select Field", type: CustomFieldType.Select },
-      { id: 4, name: "Currency Field", type: CustomFieldType.Currency },
-      { id: 5, name: "Boolean Field", type: CustomFieldType.Boolean },
-    ] as any[];
 
     it("ingests every field of a full magic-filled receipt", () => {
       component.images.set([{ id: 1 } as any]);
-      routeDataSubject.next({ mode: FormMode.edit, customFields: customFieldDefs });
+      routeDataSubject.next({ mode: FormMode.edit });
       component.mode = FormMode.edit;
 
       stubCarousel();
@@ -477,13 +450,6 @@ describe("ReceiptFormComponent", () => {
               { name: "Linked", amount: "10.00", status: "OPEN", chargedToUserId: 7 },
             ],
           },
-        ],
-        customFields: [
-          { customFieldId: 1, stringValue: "hello" },
-          { customFieldId: 2, dateValue: "2023-08-05T00:00:00.000Z" },
-          { customFieldId: 3, selectValue: 42 },
-          { customFieldId: 4, currencyValue: "9.99" },
-          { customFieldId: 5, booleanValue: true },
         ],
         comments: [{ comment: "auto comment", userId: 7 }],
       } as any;
@@ -529,28 +495,12 @@ describe("ReceiptFormComponent", () => {
       expect(setItems).toHaveBeenCalled();
       expect(setUserItemMap).toHaveBeenCalled();
 
-      // Custom fields land in the type-specific column
-      expect(value.customFields.length).toEqual(5);
-      const byId = (id: number) => value.customFields.find((c: any) => c.customFieldId === id);
-      expect(byId(1).stringValue).toEqual("hello");
-      expect(byId(2).dateValue).toEqual(new Date(2023, 7, 5));
-      expect(byId(3).selectValue).toEqual(42);
-      expect(byId(4).currencyValue).toEqual("9.99");
-      expect(byId(5).booleanValue).toEqual(true);
-      // Manage-fields menu entries flip to selected
-      customFieldDefs.forEach((def) => {
-        const menuItem = component.customFieldsStatefulMenuItems.find(
-          (m) => m.value === def.id.toString()
-        );
-        expect(menuItem?.selected).toBe(true);
-      });
-
       // Comments handed to the (mode-aware) comments child
       expect(addMagicFilledComments).toHaveBeenCalledWith(magicReceipt.comments);
 
       // Snackbar lists every filled field with reader-friendly labels
       expect(successSpy).toHaveBeenCalledWith(
-        "Magic fill successfully filled name, amount, date, paid by, status, categories, tags, items, custom fields, comments from selected image!",
+        "Magic fill successfully filled name, amount, date, paid by, status, categories, tags, items, comments from selected image!",
         { duration: 10000 }
       );
     });
@@ -609,7 +559,6 @@ describe("ReceiptFormComponent", () => {
         categories: [],
         tags: [],
         receiptItems: [],
-        customFields: [],
         comments: [],
       } as any;
 
@@ -624,7 +573,6 @@ describe("ReceiptFormComponent", () => {
       expect(value.paidByUserId).toEqual(3);
       expect(value.status).toEqual(ReceiptStatus.Open);
       expect(value.receiptItems).toEqual([]);
-      expect(value.customFields).toEqual([]);
       expect(errorSpy).toHaveBeenCalledWith(
         "Could not find any values to fill! Try reuploading a clearer image."
       );
@@ -658,75 +606,18 @@ describe("ReceiptFormComponent", () => {
       );
     });
 
-    it("skips custom field values whose field is not in the catalog pool", () => {
-      component.images.set([{ id: 1 } as any]);
-      routeDataSubject.next({ mode: FormMode.edit, customFields: [customFieldDefs[0]] });
-      component.mode = FormMode.edit;
-      stubCarousel();
 
-      const magicReceipt = {
-        name: "CF",
-        amount: "1.00",
-        date: "2023-08-05T00:00:00.000Z",
-        customFields: [{ customFieldId: 999, stringValue: "orphan" }],
-      } as any;
-
-      mockMagicFill(magicReceipt);
-      const successSpy = spySuccess();
-
-      component.magicFill();
-
-      expect(component.customFieldsFormArray.length).toEqual(0);
-      // "custom fields" is absent from the snackbar since nothing was ingested
-      expect(successSpy).toHaveBeenCalledWith(
-        "Magic fill successfully filled name, amount, date from selected image!",
-        { duration: 10000 }
-      );
-    });
-
-    it("does not duplicate a custom field the receipt already carries a value for", () => {
-      component.images.set([{ id: 1 } as any]);
-      routeDataSubject.next({
-        mode: FormMode.edit,
-        customFields: [customFieldDefs[0]],
-        receipt: {
-          id: 5,
-          name: "R",
-          amount: "1.00",
-          customFields: [{ customFieldId: 1, stringValue: "existing" }],
-        } as any,
-      });
-      component.mode = FormMode.edit;
-      stubCarousel();
-
-      const magicReceipt = {
-        name: "CF",
-        amount: "1.00",
-        date: "2023-08-05T00:00:00.000Z",
-        customFields: [{ customFieldId: 1, stringValue: "new value" }],
-      } as any;
-
-      mockMagicFill(magicReceipt);
-      spySuccess();
-
-      component.magicFill();
-
-      expect(component.customFieldsFormArray.length).toEqual(1);
-      expect(component.customFieldsFormArray.at(0).value.stringValue).toEqual("existing");
-    });
 
     it("appends magic-filled items and categories onto existing ones", () => {
       component.images.set([{ id: 1 } as any]);
       routeDataSubject.next({
         mode: FormMode.edit,
-        customFields: [],
         receipt: {
           id: 5,
           name: "R",
           amount: "100.00",
           categories: [{ id: 1, name: "existing cat" }],
           receiptItems: [{ name: "Existing Item", amount: "10.00", status: "OPEN" }],
-          customFields: [],
         } as any,
       });
       component.mode = FormMode.edit;
@@ -762,13 +653,11 @@ describe("ReceiptFormComponent", () => {
       component.images.set([{ id: 1 } as any]);
       routeDataSubject.next({
         mode: FormMode.edit,
-        customFields: [],
         receipt: {
           id: 5,
           name: "R",
           amount: "100.00",
           categories: [{ id: 1, name: "existing cat" }],
-          customFields: [],
         } as any,
       });
       component.mode = FormMode.edit;
@@ -848,308 +737,6 @@ describe("ReceiptFormComponent", () => {
 
   // The group's configured default custom fields, applied to the receipt form as
   // a "smart swap" when the group is chosen or changed.
-  describe("group default custom fields", () => {
-    let store: Store;
-
-    const catalog = [
-      { id: 1, name: "Cost Centre", type: CustomFieldType.Text },
-      { id: 2, name: "PO Number", type: CustomFieldType.Text },
-      { id: 3, name: "Reimbursable", type: CustomFieldType.Boolean },
-    ] as any[];
-
-    const groupWithDefaults = (id: number, defaultCustomFieldIds: number[]): any => ({
-      id,
-      name: `Group ${id}`,
-      isAllGroup: false,
-      groupMembers: [],
-      groupReceiptSettings: { defaultCustomFieldIds },
-    });
-
-    const attachedIds = (): number[] =>
-      component.customFieldsFormArray.value.map((value: any) => value.customFieldId);
-
-    const menuItemFor = (customFieldId: number): StatefulMenuItem =>
-      component.customFieldsStatefulMenuItems.find(
-        (item) => item.value === customFieldId.toString()
-      ) as StatefulMenuItem;
-
-    const openAddForm = (selectedGroupId: string, customFields: any[] = catalog): void => {
-      store.dispatch(new SetSelectedGroupId(selectedGroupId));
-      routeDataSubject.next({ mode: FormMode.add, customFields });
-    };
-
-    const savedReceipt = (groupId: number, customFields: any[] = []): any => ({
-      id: 9,
-      name: "R",
-      amount: "1.00",
-      groupId,
-      customFields,
-    });
-
-    const openSavedForm = (
-      mode: FormMode,
-      receipt: any,
-      customFields: any[] = catalog
-    ): void => {
-      routeDataSubject.next({ mode, customFields, receipt });
-    };
-
-    beforeEach(() => {
-      store = TestBed.inject(Store);
-      store.dispatch(new SetPermissions([Permission.AppCustomFieldsRead], {}));
-      store.dispatch(
-        new SetGroups([
-          groupWithDefaults(1, [1]),
-          groupWithDefaults(2, [2]),
-          groupWithDefaults(3, []),
-          groupWithDefaults(4, [3]),
-        ])
-      );
-    });
-
-    it("seeds the selected group's defaults on an add form", () => {
-      openAddForm("1");
-
-      expect(attachedIds()).toEqual([1]);
-      expect(menuItemFor(1).selected).toBe(true);
-    });
-
-    it("swaps an untouched default out for the new group's on a group change", () => {
-      openAddForm("1");
-
-      component.form.get("groupId")!.setValue(2);
-
-      expect(attachedIds()).toEqual([2]);
-      expect(menuItemFor(1).selected).toBe(false);
-      expect(menuItemFor(2).selected).toBe(true);
-    });
-
-    it("keeps a default the user typed into when the group changes", () => {
-      openAddForm("1");
-      component.customFieldsFormArray.at(0).get("stringValue")!.setValue("R&D");
-
-      component.form.get("groupId")!.setValue(2);
-
-      expect(attachedIds()).toEqual([1, 2]);
-      expect(component.customFieldsFormArray.at(0).value.stringValue).toEqual("R&D");
-      expect(menuItemFor(1).selected).toBe(true);
-    });
-
-    it("keeps a manually added custom field when the group changes", () => {
-      // Group 3 configures no defaults, so field 2 can only be there because the
-      // user added it.
-      openAddForm("3");
-      component.customFieldChanged(menuItemFor(2));
-      expect(attachedIds()).toEqual([2]);
-
-      component.form.get("groupId")!.setValue(1);
-
-      expect(attachedIds()).toEqual([2, 1]);
-    });
-
-    it("keeps a default the user toggled off and back on across a later group change", () => {
-      openAddForm("1");
-
-      component.customFieldChanged(menuItemFor(1));
-      expect(attachedIds()).toEqual([]);
-      component.customFieldChanged(menuItemFor(1));
-      expect(attachedIds()).toEqual([1]);
-
-      component.form.get("groupId")!.setValue(2);
-
-      // Empty, but user-owned since they re-added it by hand - never swapped out.
-      expect(attachedIds()).toEqual([1, 2]);
-    });
-
-    it("treats a boolean default left false as empty and swaps it out", () => {
-      openAddForm("4");
-
-      expect(attachedIds()).toEqual([3]);
-      expect(component.customFieldsFormArray.at(0).value.booleanValue).toBe(false);
-
-      component.form.get("groupId")!.setValue(2);
-
-      expect(attachedIds()).toEqual([2]);
-    });
-
-    // A group's defaults are meant to read as its built-in receipt fields, so a
-    // saved receipt that predates the configuration picks them up too.
-    it("applies the group's missing defaults to an edit-mode receipt on load", () => {
-      openSavedForm(FormMode.edit, savedReceipt(1));
-
-      expect(attachedIds()).toEqual([1]);
-      expect(menuItemFor(1).selected).toBe(true);
-    });
-
-    it("applies the group's missing defaults in view mode", () => {
-      openSavedForm(FormMode.view, savedReceipt(1));
-
-      expect(attachedIds()).toEqual([1]);
-      expect(menuItemFor(1).selected).toBe(true);
-    });
-
-    it("keeps the receipt's own custom fields alongside the ones it adds", () => {
-      // Field 2 is the receipt's own; group 1 defaults to field 1.
-      openSavedForm(
-        FormMode.edit,
-        savedReceipt(1, [{ customFieldId: 2, stringValue: "PO-1" }])
-      );
-
-      expect(attachedIds()).toEqual([2, 1]);
-      expect(component.customFieldsFormArray.at(0).value.stringValue).toEqual("PO-1");
-    });
-
-    it("does not duplicate a default the receipt already carries", () => {
-      openSavedForm(
-        FormMode.edit,
-        savedReceipt(1, [{ customFieldId: 1, stringValue: "R&D" }])
-      );
-
-      expect(attachedIds()).toEqual([1]);
-      expect(component.customFieldsFormArray.at(0).value.stringValue).toEqual("R&D");
-    });
-
-    it("hands a load-applied default to the swap, so a group change drops it while empty", () => {
-      openSavedForm(FormMode.edit, savedReceipt(1));
-      expect(attachedIds()).toEqual([1]);
-
-      component.form.get("groupId")!.setValue(2);
-
-      expect(attachedIds()).toEqual([2]);
-    });
-
-    it("applies the new group's defaults on an active group change in edit mode", () => {
-      // Group 3 configures none, so nothing is applied until the group changes.
-      openSavedForm(FormMode.edit, savedReceipt(3));
-      expect(attachedIds()).toEqual([]);
-
-      component.form.get("groupId")!.setValue(2);
-
-      expect(attachedIds()).toEqual([2]);
-    });
-
-    it("never applies defaults without app.custom-fields.read", () => {
-      store.dispatch(new SetPermissions([], {}));
-
-      openAddForm("1");
-      expect(attachedIds()).toEqual([]);
-
-      component.form.get("groupId")!.setValue(2);
-      expect(attachedIds()).toEqual([]);
-
-      // Including on a saved receipt: the backend's
-      // enforceReceiptCustomFieldSelection would 403 the save if the attached id
-      // set changed for such a caller.
-      openSavedForm(FormMode.edit, savedReceipt(1));
-      expect(attachedIds()).toEqual([]);
-    });
-
-    it("skips a default id that is missing from the loaded catalog", () => {
-      // Group 1 defaults to field 1, which is not in this (restricted) catalog.
-      openAddForm("2", [catalog[1]]);
-      expect(attachedIds()).toEqual([2]);
-
-      component.form.get("groupId")!.setValue(1);
-
-      expect(attachedIds()).toEqual([]);
-    });
-
-    it("is a no-op when the group is cleared", () => {
-      openAddForm("1");
-
-      component.form.get("groupId")!.setValue("");
-
-      expect(attachedIds()).toEqual([1]);
-      expect(menuItemFor(1).selected).toBe(true);
-    });
-
-    it("resets the auto-applied set when route data re-emits", () => {
-      openAddForm("1");
-      expect(attachedIds()).toEqual([1]);
-
-      // A fresh navigation rebuilds the form: field 1 is now the SAVED receipt's
-      // own value, so a stale auto-applied set would wrongly swap it out below.
-      routeDataSubject.next({
-        mode: FormMode.edit,
-        customFields: catalog,
-        receipt: {
-          id: 9,
-          name: "R",
-          amount: "1.00",
-          groupId: 1,
-          customFields: [{ customFieldId: 1 }],
-        } as any,
-      });
-      expect(attachedIds()).toEqual([1]);
-
-      component.form.get("groupId")!.setValue(2);
-
-      expect(attachedIds()).toEqual([1, 2]);
-    });
-
-    // Magic fill and group defaults interact: the default has already put an EMPTY
-    // control on the form, so a plain "skip what's present" would drop the magic
-    // value for exactly the fields a group pre-adds.
-    describe("magic fill interaction", () => {
-      const magicFillWith = (customFields: any[]): void => {
-        // magicFill() reads the carousel viewChild for the current image index and,
-        // in add mode, the file at that index off filesToUpload.
-        Object.defineProperty(component, "carouselComponent", {
-          value: () => ({ currentlyShownImageIndex: 0 }),
-          configurable: true,
-        });
-        component.filesToUpload.set([{ file: new Blob() } as any]);
-        jest
-          .spyOn(TestBed.inject(ReceiptImageService), "magicFillReceipt")
-          .mockReturnValue(of({ customFields } as any));
-        jest
-          .spyOn(TestBed.inject(SnackbarService), "success")
-          .mockReturnValue(undefined);
-        component.magicFill();
-      };
-
-      it("fills a blank auto-applied default instead of discarding the value", () => {
-        openAddForm("1");
-        expect(attachedIds()).toEqual([1]);
-
-        magicFillWith([{ customFieldId: 1, stringValue: "R&D" }]);
-
-        expect(attachedIds()).toEqual([1]);
-        expect(component.customFieldsFormArray.at(0).value.stringValue).toEqual("R&D");
-        expect(menuItemFor(1).selected).toBe(true);
-      });
-
-      it("does not overwrite a default the user already typed into", () => {
-        openAddForm("1");
-        component.customFieldsFormArray.at(0).get("stringValue")!.setValue("mine");
-
-        magicFillWith([{ customFieldId: 1, stringValue: "R&D" }]);
-
-        expect(component.customFieldsFormArray.at(0).value.stringValue).toEqual("mine");
-      });
-
-      // Filling it makes it the user's data, so the swap must stop managing it.
-      it("keeps a magic-filled default when the group then changes", () => {
-        openAddForm("1");
-        magicFillWith([{ customFieldId: 1, stringValue: "R&D" }]);
-
-        component.form.get("groupId")!.setValue(2);
-
-        expect(attachedIds()).toEqual([1, 2]);
-        expect(component.customFieldsFormArray.at(0).value.stringValue).toEqual("R&D");
-      });
-
-      it("still appends a magic value for a field not already on the form", () => {
-        openAddForm("3");
-        expect(attachedIds()).toEqual([]);
-
-        magicFillWith([{ customFieldId: 2, stringValue: "PO-1" }]);
-
-        expect(attachedIds()).toEqual([2]);
-        expect(component.customFieldsFormArray.at(0).value.stringValue).toEqual("PO-1");
-      });
-    });
-  });
   describe("group seeding on the add form", () => {
     let store: Store;
 
@@ -1162,7 +749,7 @@ describe("ReceiptFormComponent", () => {
 
     const openAddForm = (selectedGroupId: string): void => {
       store.dispatch(new SetSelectedGroupId(selectedGroupId));
-      routeDataSubject.next({ mode: FormMode.add, customFields: [] });
+      routeDataSubject.next({ mode: FormMode.add });
     };
 
     beforeEach(() => {
@@ -1254,7 +841,6 @@ describe("ReceiptFormComponent", () => {
 
       routeDataSubject.next({
         mode: FormMode.edit,
-        customFields: [],
         receipt: { id: 1, name: "R", amount: "1.00", groupId: 9 } as any,
       });
 
@@ -1542,11 +1128,11 @@ describe("ReceiptFormComponent", () => {
 
     const openAddForm = (): void => {
       store.dispatch(new SetSelectedGroupId("7"));
-      routeDataSubject.next({ mode: FormMode.add, customFields: [] });
+      routeDataSubject.next({ mode: FormMode.add });
     };
 
     const openEditForm = (receipt: any): void => {
-      routeDataSubject.next({ mode: FormMode.edit, customFields: [], receipt });
+      routeDataSubject.next({ mode: FormMode.edit, receipt });
     };
 
     it("creates with exactly one request carrying the files and comments", () => {
@@ -1690,7 +1276,6 @@ describe("ReceiptFormComponent", () => {
     it("requires nothing in view mode", () => {
       routeDataSubject.next({
         mode: FormMode.view,
-        customFields: [],
         receipt: { id: 3, name: "R", amount: "1.00", groupId: 7 },
       });
 
@@ -1728,46 +1313,28 @@ describe("ReceiptFormComponent", () => {
       paidByUserId: 1,
       groupId: 7,
       date: "2026-09-30T00:00:00Z",
-      customFields: [{ customFieldId: 2, dateValue: "2026-10-01T00:00:00Z" }],
     };
 
     it("shows a stored midnight-UTC date as that calendar day in the picker", () => {
-      routeDataSubject.next({ mode: FormMode.edit, customFields: [], receipt: editReceipt });
+      routeDataSubject.next({ mode: FormMode.edit, receipt: editReceipt });
 
       const value = component.form.getRawValue();
       expect(value.date).toEqual(new Date(2026, 8, 30));
-      expect(value.customFields[0].dateValue).toEqual(new Date(2026, 9, 1));
     });
 
     it("sends the picked days as midnight UTC, leaving the form's Dates alone", () => {
       const updateSpy = jest
         .spyOn(receiptService, "updateReceipt")
         .mockReturnValue(of({}) as any);
-      routeDataSubject.next({ mode: FormMode.edit, customFields: [], receipt: editReceipt });
+      routeDataSubject.next({ mode: FormMode.edit, receipt: editReceipt });
       component.form.patchValue({ date: new Date(2026, 8, 15) });
 
       component.submit();
 
       const [, sent] = updateSpy.mock.calls[0] as any[];
       expect(sent.date).toBe("2026-09-15T00:00:00.000Z");
-      expect(sent.customFields[0].dateValue).toBe("2026-10-01T00:00:00.000Z");
       expect(component.form.getRawValue().date).toEqual(new Date(2026, 8, 15));
     });
 
-    it("leaves an empty custom date empty", () => {
-      const updateSpy = jest
-        .spyOn(receiptService, "updateReceipt")
-        .mockReturnValue(of({}) as any);
-      routeDataSubject.next({
-        mode: FormMode.edit,
-        customFields: [],
-        receipt: { ...editReceipt, customFields: [{ customFieldId: 2 }] },
-      });
-
-      component.submit();
-
-      const [, sent] = updateSpy.mock.calls[0] as any[];
-      expect(sent.customFields[0].dateValue).toBeNull();
-    });
   });
 });

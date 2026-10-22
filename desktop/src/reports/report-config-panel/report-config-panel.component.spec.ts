@@ -6,14 +6,11 @@ import { Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { RECEIPT_DATE_FILTER_FIELDS } from "src/constants";
 import {
-  CustomFieldService,
-  CustomFieldType,
   ReportColumn,
   ReportDetail,
   ReportPeriod,
 } from "../../open-api";
 import { buildColumnGroup } from "../models/report-form.factory";
-import { ReportCatalogService } from "../services/report-catalog.service";
 import { ReportConfigPanelComponent } from "./report-config-panel.component";
 import { SystemSettingsState } from "src/store/system-settings.state";
 
@@ -52,11 +49,9 @@ describe("ReportConfigPanelComponent", () => {
   let form: FormGroup;
   let formBuilder: FormBuilder;
   let dialog: { open: jest.Mock };
-  let customFieldService: { getPagedCustomFields: jest.Mock };
 
   beforeEach(async () => {
     dialog = { open: jest.fn() };
-    customFieldService = { getPagedCustomFields: jest.fn(() => of({ data: [], totalCount: 0 })) };
 
     await TestBed.configureTestingModule({
       declarations: [ReportConfigPanelComponent],
@@ -71,7 +66,6 @@ describe("ReportConfigPanelComponent", () => {
           },
         },
         { provide: AppDialog, useValue: dialog },
-        { provide: CustomFieldService, useValue: customFieldService },
       ],
       schemas: [NO_ERRORS_SCHEMA],
     })
@@ -261,94 +255,8 @@ describe("ReportConfigPanelComponent", () => {
     expect(component.groupByLevels().map((level) => level.label)).toEqual(["Paid By"]);
   });
 
-  // ---- custom fields ------------------------------------------------------
-
-  /** Loads a custom-field pool into the catalog the component is already bound to. */
-  function loadCustomFields(): void {
-    customFieldService.getPagedCustomFields.mockReturnValue(
-      of({
-        data: [
-          { id: 7, name: "HST", type: CustomFieldType.Currency },
-          { id: 8, name: "Vendor", type: CustomFieldType.Text },
-        ],
-        totalCount: 2,
-      })
-    );
-    TestBed.inject(ReportCatalogService).load();
-  }
-
-  // A currency custom field is a measure, but measuring is the only thing its type
-  // restricts — it is groupable too.
-  it("offers a currency custom field as a grouping level and as a measure", () => {
-    loadCustomFields();
-
-    expect(component.addableDimensions().map((field) => field.key)).toContain("custom_7");
-    expect(component.measures().map((field) => field.key)).toContain("custom_7");
-
-    component.addGroupBy("custom_7");
-    expect(component.groupByLevels().map((level) => level.label)).toEqual(["HST"]);
-  });
-
-  it("flags grouping levels and columns that read a custom field", () => {
-    loadCustomFields();
-
-    component.addGroupBy("custom_8");
-    component.addGroupBy("paid_by");
-    expect(component.groupByLevels().map((level) => level.isCustom)).toEqual([true, false]);
-
-    columnsArray().push(
-      buildColumnGroup(formBuilder, {
-        kind: ReportColumn.KindEnum.Dimension,
-        name: "Vendor",
-        label: "Vendor",
-        field: "custom_8",
-      })
-    );
-    columnsArray().push(
-      buildColumnGroup(formBuilder, {
-        kind: ReportColumn.KindEnum.Aggregate,
-        name: "Hst",
-        label: "HST",
-        aggFunc: ReportColumn.AggFuncEnum.Sum,
-        measure: "custom_7",
-      })
-    );
-    columnsArray().push(
-      buildColumnGroup(formBuilder, {
-        kind: ReportColumn.KindEnum.Aggregate,
-        name: "Total",
-        label: "Total",
-        aggFunc: ReportColumn.AggFuncEnum.Sum,
-        measure: "amount",
-      })
-    );
-    form.get("detail.by")!.setValue("custom_8");
-
-    const byLabel = new Map(component.columnRows().map((row) => [row.label, row.isCustom]));
-    expect(byLabel.get("Vendor")).toBe(true);
-    expect(byLabel.get("HST")).toBe(true);
-    expect(byLabel.get("Total")).toBe(false);
-  });
-
-  it("badges custom fields in the dropdown options", () => {
-    loadCustomFields();
-
-    const options = new Map(
-      component.addableDimensionOptions().map((option) => [option.value, option.badge])
-    );
-    expect(options.get("custom_7")).toBe("Custom");
-    expect(options.get("category")).toBe("");
-    expect(
-      component.dimensionOptions().find((option) => option.value === "custom_8")?.badge
-    ).toBe("Custom");
-  });
-
   // ---- splitting ---------------------------------------------------------
 
-  it("offers only the currency custom fields as fields a split can leave whole", () => {
-    loadCustomFields();
-    expect(component.currencyFields().map((field) => field.key)).toEqual(["custom_7"]);
-  });
 
   it("reports nothing ticked by default", () => {
     expect(component.splitState()).toEqual({

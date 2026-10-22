@@ -6,7 +6,6 @@
     "+ Set goal": "+ Ustaw cel",
     "+{amount} over goal": "+{amount} ponad cel",
     "0 of 0": "0 z 0",
-    "A configuration group may only be specified for the all group": "Grupę konfiguracji można podać tylko dla grupy „Wszystkie”",
     "A general guide from Nutri-Score, NOVA and the additives, not medical advice.": "Ogólna wskazówka na podstawie Nutri-Score, NOVA i dodatków, a nie porada medyczna.",
     "A higher number means a higher priority.": "Wyższa liczba oznacza wyższy priorytet.",
     "A label you can group / read by": "Etykieta, według której można grupować lub czytać",
@@ -33,7 +32,6 @@
     "API key updated successfully": "Klucz API został zaktualizowany",
     "About": "O aplikacji",
     "About the same as {name}": "Mniej więcej tyle samo co w okresie: {name}",
-    "Above the table": "Nad tabelą",
     "Account": "Konto",
     "Account connected": "Konto zostało połączone",
     "Account deletion is irreversible. This will permanently remove all associated data including receipts, group memberships, and preferences.": "Usunięcia konta nie można cofnąć. Wszystkie powiązane dane, w tym paragony, członkostwa w grupach i ustawienia, zostaną trwale usunięte.",
@@ -44,7 +42,6 @@
     "Add & edit receipts": "Dodawanie i edycja paragonów",
     "Add API Key": "Dodaj klucz API",
     "Add Category": "Dodaj kategorię",
-    "Add Custom Field": "Dodaj pole niestandardowe",
     "Add Group Member": "Dodaj członka grupy",
     "Add Household": "Dodaj gospodarstwo",
     "Add Item": "Dodaj pozycję",
@@ -71,7 +68,6 @@
     "Add grouping level…": "Dodaj poziom grupowania…",
     "Add item": "Dodaj produkt",
     "Add more photos": "Dodaj więcej zdjęć",
-    "Add option": "Dodaj opcję",
     "Add photos of your receipts": "Dodaj zdjęcia paragonów",
     "Add receipt": "Dodaj paragon",
     "Add receipt photos": "Dodaj zdjęcia paragonu",
@@ -97,14 +93,12 @@
     "All API Keys": "Wszystkie klucze API",
     "All Groups": "Wszystkie grupy",
     "All Households": "Wszystkie gospodarstwa",
-    "All Receipts": "Wszystkie paragony",
     "All caught up!": "Wszystko przeczytane!",
     "All done": "Wszystko gotowe",
     "All lines": "Wszystkie wiersze",
     "All receipts": "Wszystkie paragony",
     "All time": "Cały czas",
     "Allow pop-ups for this site to print the report.": "Zezwól tej stronie na wyskakujące okna, aby wydrukować raport.",
-    "Also add them to quick scan and email created receipts": "Dodawaj je także do paragonów z szybkiego skanowania i e-maili",
     "Amount": "Kwota",
     "Amount cannot be greater than receipt amount": "Kwota nie może być większa niż kwota paragonu",
     "Amount to split does not exist or is invalid!": "Kwota do podziału nie istnieje lub jest nieprawidłowa!",
@@ -121,7 +115,6 @@
     "Are you sure you want to delete \"{name}\"? This action is irreversible.": "Czy na pewno chcesz usunąć „{name}”? Tej operacji nie można cofnąć.",
     "Are you sure you want to delete the group '{name}'? All receipts will be deleted as a result.": "Czy na pewno chcesz usunąć grupę „{name}”? Wszystkie jej paragony zostaną usunięte.",
     "Are you sure you want to delete {name}? This action is irreversible and will remove this category from the receipts it is associated with.": "Czy na pewno chcesz usunąć {name}? Tej operacji nie można cofnąć, a kategoria zostanie usunięta ze wszystkich powiązanych paragonów.",
-    "Are you sure you want to delete {name}? This action is irreversible and will remove this custom field from the receipts it is associated with.": "Czy na pewno chcesz usunąć {name}? Tej operacji nie można cofnąć, a pole zostanie usunięte ze wszystkich powiązanych paragonów.",
     "Are you sure you want to delete {name}? This action is irreversible and will remove this tag from the receipts it is associated with.": "Czy na pewno chcesz usunąć {name}? Tej operacji nie można cofnąć, a tag zostanie usunięty ze wszystkich powiązanych paragonów.",
     "Are you sure you want to disconnect {name}? You will no longer be able to sign in with it.": "Czy na pewno chcesz rozłączyć {name}? Nie będzie można już logować się za jego pomocą.",
     "Are you sure you would like to delete the API key \"{name}\"? This action is irreversible and the API key will no longer be usable.": "Czy na pewno chcesz usunąć klucz API „{name}”? Tej operacji nie można cofnąć, a klucz przestanie działać.",
@@ -150,7 +143,6 @@
     "Bakery": "Pieczywo",
     "Base Url": "Podstawowy adres URL",
     "Before": "Przed",
-    "Below the table": "Pod tabelą",
     "Between": "Pomiędzy",
     "Beverages": "Napoje",
     "Black": "Czarny",
@@ -158,7 +150,6 @@
     "Bottle Deposit": "Kaucja",
     "Bread & Bakery": "Pieczywo",
     "Breadcrumb": "Ścieżka",
-    "Break down by status": "Podziel według statusu",
     "Breakfast": "Śniadanie",
     "British pound (£12.99)": "Funt brytyjski (£12.99)",
     "Budget": "Budżet",
@@ -172,7 +163,6 @@
     "Canned Goods": "Konserwy",
     "Cannot delete API key: ID is missing": "Nie można usunąć klucza API: brak identyfikatora",
     "Cannot delete current user or no valid users selected": "Nie można usunąć bieżącego użytkownika lub nie wybrano prawidłowych użytkowników",
-    "Capture extra structured data on receipts with custom fields.": "Zapisuj dodatkowe dane na paragonach za pomocą pól niestandardowych.",
     "Captured Metadata:": "Zebrane metadane:",
     "CartVibe is a fork of": "CartVibe jest forkiem projektu",
     "Categories": "Kategorie",
@@ -263,15 +253,10 @@
     "Crossed off ({count})": "Skreślone ({count})",
     "Currency": "Waluta",
     "Currency & exchange rates": "Waluta i kursy wymiany",
-    "Currency Fields to Total": "Pola walutowe do zsumowania",
     "Currency code to add": "Kod waluty do dodania",
     "Currently \"{quantity}\". Entering an amount replaces it.": "Obecnie „{quantity}”. Wpisanie ilości ją zastąpi.",
     "Custom": "Własny",
-    "Custom Fields": "Pola niestandardowe",
     "Custom Percentage": "Własny procent",
-    "Custom field created": "Pole niestandardowe zostało utworzone",
-    "Custom field successfully deleted": "Pole niestandardowe zostało usunięte",
-    "Custom field updated": "Pole niestandardowe zostało zaktualizowane",
     "Custom range…": "Własny zakres…",
     "Customize": "Dostosuj",
     "Customize the dashboard": "Dostosuj pulpit",
@@ -292,7 +277,6 @@
     "Decimal Separator": "Separator dziesiętny",
     "Declined": "Odrzucone",
     "Default": "Domyślne",
-    "Default Custom Fields": "Domyślne pola niestandardowe",
     "Default Group": "Domyślna grupa",
     "Default Paid By": "Domyślny płatnik",
     "Default Paid By User": "Domyślny użytkownik płacący",
@@ -312,7 +296,6 @@
     "Delete Selected": "Usuń zaznaczone",
     "Delete User": "Usuń użytkownika",
     "Delete Users": "Usuń użytkowników",
-    "Delete custom field": "Usuń pole niestandardowe",
     "Delete list": "Usuń listę",
     "Delete {name}": "Usuń {name}",
     "Deli": "Wędliny",
@@ -333,7 +316,6 @@
     "Displayname": "Nazwa wyświetlana",
     "Divide a shared receipt instead of counting it in full": "Dziel wspólny paragon zamiast liczyć go w całości",
     "Document": "Dokument",
-    "Don't split these currency fields": "Nie dziel tych pól walutowych",
     "Done": "Gotowe",
     "Done on": "Zrobiono",
     "Download Image": "Pobierz obraz",
@@ -359,7 +341,6 @@
     "Edit User": "Edytuj użytkownika",
     "Edit User Preferences": "Edytuj preferencje użytkownika",
     "Edit User Profile": "Edytuj profil użytkownika",
-    "Edit custom field": "Edytuj pole niestandardowe",
     "Edit group": "Edytuj grupę",
     "Edit group member": "Edytuj członka grupy",
     "Edit receipt": "Edytuj paragon",
@@ -420,7 +401,6 @@
     "Filter Receipts": "Filtruj paragony",
     "Filter System Tasks": "Filtruj zadania systemowe",
     "Filter by month": "Filtruj według miesiąca",
-    "Filter custom fields": "Filtruj pola niestandardowe",
     "Filter options": "Opcje filtrowania",
     "Filters": "Filtry",
     "First page": "Pierwsza strona",
@@ -560,11 +540,9 @@
     "Main navigation": "Menu główne",
     "Malformed report request": "Nieprawidłowe żądanie raportu",
     "Manage Categories": "Kategorie",
-    "Manage Custom Fields": "Pola niestandardowe",
     "Manage Households": "Gospodarstwa domowe",
     "Manage Tags": "Tagi",
     "Manage Users": "Użytkownicy",
-    "Manage custom fields": "Zarządzaj polami niestandardowymi",
     "Manage user accounts and the roles assigned to them.": "Zarządzaj kontami użytkowników i przypisanymi im rolami.",
     "Manage users & keys": "Zarządzanie użytkownikami i kluczami",
     "Mar": "mar",
@@ -626,7 +604,6 @@
     "Next month": "Następny miesiąc",
     "Next page": "Następna strona",
     "Next year": "Następny rok",
-    "No": "Nie",
     "No additives listed.": "Brak dodatków na liście.",
     "No barcode was found in that photo. Try again with the bars sharp and filling the frame.": "Nie znaleziono kodu kreskowego na zdjęciu. Spróbuj ponownie: kreski powinny być ostre i wypełniać kadr.",
     "No camera could be started. Type the barcode instead.": "Nie udało się uruchomić aparatu. Wpisz kod ręcznie.",
@@ -673,7 +650,6 @@
     "Oct": "paź",
     "October": "październik",
     "On the Dashboard": "Na Pulpicie",
-    "One or more options do not belong to this custom field": "Co najmniej jedna opcja nie należy do tego pola niestandardowego",
     "One row per receipt": "Jeden wiersz na paragon",
     "One summed row per value": "Jeden zsumowany wiersz na wartość",
     "Only a failed activity can be rerun.": "Ponowić można tylko nieudaną czynność.",
@@ -686,9 +662,6 @@
     "Open reports": "Otwórz raporty",
     "Operation": "Operacja",
     "Operators": "Operatory",
-    "Option values are required": "Wartości opcji są wymagane",
-    "Options": "Opcje",
-    "Options are required": "Opcje są wymagane",
     "Origin only, e.g. https://receipts.example.com": "Tylko adres główny, np. https://paragony.example.com",
     "Original": "Oryginał",
     "Other": "Inne",
@@ -794,7 +767,6 @@
     "Receipt Processing Settings": "Ustawienia przetwarzania paragonów",
     "Receipt Processing Settings Connectivity Check": "Test połączenia ustawień przetwarzania paragonów",
     "Receipt Settings": "Ustawienia paragonów",
-    "Receipt Summary": "Podsumowanie paragonów",
     "Receipt Uploaded": "Dodano paragon",
     "Receipt actions": "Akcje paragonu",
     "Receipt data from AI:": "Dane paragonu z AI:",
@@ -922,10 +894,8 @@
     "Shorter": "Niższy",
     "Show": "Pokaż",
     "Show Images": "Pokaż obrazy",
-    "Show a block of totals under this group's receipts table, covering every receipt the current filter matches rather than just the visible page. Everyone in the group sees it.": "Pokaż blok sum pod tabelą paragonów tej grupy, obejmujący wszystkie paragony pasujące do filtra, a nie tylko widoczną stronę. Widzą go wszyscy w grupie.",
     "Show on the Dashboard": "Pokaż na Pulpicie",
     "Show the Dashboard in (currency code)": "Pokaż Pulpit w walucie (kod)",
-    "Show the receipt summary": "Pokaż podsumowanie paragonów",
     "Show {label}": "Pokaż: {label}",
     "Show, hide, move and resize panels, and check them on each screen size before you save.": "Pokazuj, ukrywaj, przesuwaj i zmieniaj rozmiar paneli, a przed zapisaniem sprawdź je na każdym rozmiarze ekranu.",
     "Showing the latest {count} months.": "Pokazano ostatnie {count} mies.",
@@ -985,8 +955,6 @@
     "Successfully updated receipt. Congratulations! You have reached the end of the queue.": "Paragon został zaktualizowany. Gratulacje! To koniec kolejki.",
     "Successfully uploaded image(s)": "Obrazy zostały wysłane",
     "Sugars": "Cukry",
-    "Summary configuration:": "Konfiguracja podsumowania:",
-    "Summary position": "Położenie podsumowania",
     "Supplied each time the report runs": "Podawane przy każdym uruchomieniu raportu",
     "Sweetener": "Słodzik",
     "Sweets": "Słodycze",
@@ -1072,7 +1040,6 @@
     "Their role requires an individual tag assignment, so leaving tags empty gives them none. Leaving categories empty gives them every category the role allows.": "Ich rola wymaga indywidualnego przypisania tagów, więc puste tagi oznaczają brak tagów. Puste kategorie dają wszystkie kategorie dozwolone przez rolę.",
     "Theme": "Motyw",
     "There are no items in the shopping lists.": "Na listach zakupów nie ma produktów.",
-    "These custom fields are pre-added to receipts created for this group, so members don't have to remember them. They only apply for members who can manage custom fields; for everyone else receipts are created without them.": "Te pola niestandardowe są dodawane z góry do paragonów tworzonych dla tej grupy, aby członkowie nie musieli o nich pamiętać. Dotyczy to tylko członków, którzy mogą zarządzać polami niestandardowymi; dla pozostałych paragony powstają bez nich.",
     "This API key will only be shown once. Make sure to copy it now!": "Ten klucz API zostanie pokazany tylko raz. Skopiuj go teraz!",
     "This action is": "Ta operacja jest",
     "This activity type has no source file.": "Ten rodzaj czynności nie ma pliku źródłowego.",
@@ -1090,7 +1057,6 @@
     "To buy": "Do kupienia",
     "To check": "Do sprawdzenia",
     "Tobacco": "Tytoń",
-    "Total": "Razem",
     "Total amount owed:": "Do rozliczenia łącznie:",
     "Total percentage cannot exceed 100!": "Łączny procent nie może przekraczać 100!",
     "Total percentage must be greater than 0!": "Łączny procent musi być większy niż 0!",
@@ -1101,8 +1067,6 @@
     "Try again": "Spróbuj ponownie",
     "Type": "Typ",
     "Type a first and a last day for the custom range, like 01/10/2026.": "Wpisz pierwszy i ostatni dzień zakresu, np. 01/10/2026.",
-    "Type cannot be changed": "Typu nie można zmienić",
-    "Type is required": "Typ jest wymagany",
     "Unauthorized": "Brak autoryzacji",
     "Uncategorized": "Bez kategorii",
     "Undo": "Cofnij",
@@ -1153,12 +1117,9 @@
     "Username is required": "Nazwa użytkownika jest wymagana",
     "Users": "Użytkownicy",
     "Users to Split Between": "Osoby, między które podzielić",
-    "Using the summary configuration from {name}.": "Użyto konfiguracji podsumowania z grupy {name}.",
     "Valid — recomputes from these columns each row": "Poprawna — w każdym wierszu liczy się z tych kolumn",
-    "Value": "Wartość",
     "Version:": "Wersja:",
     "View API Keys": "Zobacz klucze API",
-    "View Custom Field": "Pokaż pole niestandardowe",
     "View Group": "Zobacz grupę",
     "View Group Receipt Settings": "Zobacz ustawienia paragonów grupy",
     "View Mode": "Tryb podglądu",
@@ -1190,9 +1151,6 @@
     "Write": "Zapis",
     "Year": "Rok",
     "Year to date": "Od początku roku",
-    "Yes": "Tak",
-    "You do not have access to the requested configuration group": "Nie masz dostępu do żądanej grupy konfiguracji",
-    "You do not have permission to configure custom fields": "Nie masz uprawnień do konfigurowania pól niestandardowych",
     "You do not have permission to perform this action.": "Nie masz uprawnień do wykonania tej czynności.",
     "You don't have report access in any group.": "Nie masz dostępu do raportów w żadnej grupie.",
     "You have unsaved changes.": "Masz niezapisane zmiany.",
@@ -1266,7 +1224,6 @@
     "{label} must be unique.": "Pole „{label}” musi być unikalne.",
     "{names} and {count} more": "{names} i jeszcze {count}",
     "{names}, and {count} more": "{names} i jeszcze {count}",
-    "{name} Receipts": "Paragony: {name}",
     "{name} disconnected": "Odłączono: {name}",
     "{name} marked done": "Kupiono: {name}",
     "{name} sucessfully converted to normal user": "Użytkownik {name} został zamieniony w zwykłego użytkownika",
@@ -1299,74 +1256,6 @@
       "many": "paragonów",
       "one": "paragon",
       "other": "paragonu"
-    }
-  },
-  "_orphaned": {
-    "A key is saved. Leave this empty to keep it.": {
-      "value": "Klucz jest zapisany. Zostaw to pole puste, aby go zachować."
-    },
-    "Group AI Settings": {
-      "value": "Ustawienia AI grupy",
-      "closest": "AI settings saved"
-    },
-    "Hide Receipt Categories": {
-      "value": "Ukryj kategorie paragonów",
-      "closest": "Hide Item Categories"
-    },
-    "Hide Receipt Tags": {
-      "value": "Ukryj tagi paragonów",
-      "closest": "Hide Item Tags"
-    },
-    "Navigate left": {
-      "value": "Przejdź w lewo",
-      "closest": "Navigate"
-    },
-    "Navigate right": {
-      "value": "Przejdź w prawo",
-      "closest": "Navigate"
-    },
-    "Number of Receipts with Tags": {
-      "value": "Liczba paragonów z tagami",
-      "closest": "Add photos of your receipts"
-    },
-    "Open receipt": {
-      "value": "Otwórz paragon",
-      "closest": "Open full receipt"
-    },
-    "Reading your receipt…": {
-      "value": "Odczytuję paragon…"
-    },
-    "Receipt scanned": {
-      "value": "Paragon zeskanowany",
-      "closest": "Add Receipt"
-    },
-    "Remove Current Image": {
-      "value": "Usuń bieżący obraz",
-      "closest": "Remove Image"
-    },
-    "Requiring a comment blocks quick scan on mobile app versions released before this field was added, until those users update.": {
-      "value": "Wymaganie komentarza blokuje szybkie skanowanie w wersjach aplikacji mobilnej wydanych przed dodaniem tego pola, dopóki użytkownicy ich nie zaktualizują."
-    },
-    "Save first to test the new settings.": {
-      "value": "Najpierw zapisz, aby przetestować nowe ustawienia."
-    },
-    "Show Fullscreen Image": {
-      "value": "Pokaż obraz na pełnym ekranie"
-    },
-    "Successfully queued image for processing": {
-      "value": "Zdjęcie dodano do kolejki przetwarzania",
-      "closest": "Email successfully poll successfully queued"
-    },
-    "Successfully queued images for processing": {
-      "value": "Zdjęcia dodano do kolejki przetwarzania",
-      "closest": "Email successfully poll successfully queued"
-    },
-    "Tag receipts to group and filter them however you like.": {
-      "value": "Oznaczaj paragony tagami, aby grupować i filtrować je jak chcesz.",
-      "closest": "Also add them to quick scan and email created receipts"
-    },
-    "The AI reads them for you.": {
-      "value": "AI odczyta je za Ciebie."
     }
   }
 }

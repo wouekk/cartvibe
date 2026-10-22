@@ -17,9 +17,11 @@ import { RECEIPT_DATE_FILTER_FIELDS, ReceiptDateFilterFieldKey } from "src/const
 import { DEFAULT_DIALOG_CONFIG } from "src/constants/dialog.constant";
 import { GroupState } from "src/store";
 import { SystemSettingsState } from "src/store/system-settings.state";
-import { BadgeTone, CUSTOM_FIELD_BADGE } from "src/shared-ui/badge/badge.component";
+import { BadgeTone } from "src/shared-ui/badge/badge.component";
 import { ReportColumn, ReportDetail, ReportPeriod } from "../../open-api";
 import {
+  REPORT_BUILTIN_DIMENSIONS,
+  REPORT_BUILTIN_MEASURES,
   REPORT_DOCUMENT_VARIABLES,
   REPORT_PERIOD_PRESETS,
   ReportField,
@@ -42,7 +44,6 @@ import {
   reportPeriodDateFieldHint,
   resolvePeriodRange,
 } from "../models/report-period.util";
-import { ReportCatalogService } from "../services/report-catalog.service";
 import {
   AddGroupDialogComponent,
   AddGroupDialogData,
@@ -64,7 +65,6 @@ interface ScopeChip {
 interface GroupByLevel {
   index: number;
   label: string;
-  isCustom: boolean;
   isFirst: boolean;
   isLast: boolean;
 }
@@ -78,7 +78,6 @@ interface ColumnRow {
   kindIcon: string;
   kindClass: string;
   kindTone: BadgeTone;
-  isCustom: boolean;
   isFirst: boolean;
   isLast: boolean;
   disabled: boolean;
@@ -122,7 +121,6 @@ export class ReportConfigPanelComponent implements OnInit {
 
   public readonly form = input.required<FormGroup>();
 
-  private readonly catalog = inject(ReportCatalogService);
   private readonly dialog = inject(AppDialog);
   private readonly formBuilder = inject(FormBuilder);
   private readonly store = inject(Store);
@@ -134,9 +132,8 @@ export class ReportConfigPanelComponent implements OnInit {
   private readonly timeZone = this.store.selectSignal(SystemSettingsState.timeZone);
   private readonly revision = signal(0);
 
-  public readonly dimensions = this.catalog.dimensions;
-  public readonly measures = this.catalog.measures;
-  public readonly currencyFields = this.catalog.currencyCustomFields;
+  public readonly dimensions = signal<ReportField[]>(REPORT_BUILTIN_DIMENSIONS).asReadonly();
+  public readonly measures = signal<ReportField[]>(REPORT_BUILTIN_MEASURES).asReadonly();
 
   public readonly periodOptions = REPORT_PERIOD_PRESETS.map((preset) => ({
     value: preset.id,
@@ -148,7 +145,6 @@ export class ReportConfigPanelComponent implements OnInit {
     displayValue: field.label,
   }));
   public readonly documentVariables = REPORT_DOCUMENT_VARIABLES;
-  public readonly customFieldBadge = CUSTOM_FIELD_BADGE;
   public readonly ReportPeriodPreset = ReportPeriod.PresetEnum;
   public readonly ReportDetailMode = ReportDetail.ModeEnum;
 
@@ -180,7 +176,6 @@ export class ReportConfigPanelComponent implements OnInit {
       // A level renders as a leading column in the report, so it shows the
       // heading that column will carry: the user's override when set.
       label: this.headingForLevel(index),
-      isCustom: this.isCustomField(this.fieldForLevel(index)),
       isFirst: index === 0,
       isLast: index === controls.length - 1,
     }));
@@ -211,7 +206,6 @@ export class ReportConfigPanelComponent implements OnInit {
         kindIcon: meta.icon,
         kindClass: meta.cssClass,
         kindTone: meta.tone,
-        isCustom: this.columnReadsACustomField(value),
         isFirst: index === 0,
         isLast: index === controls.length - 1,
         disabled,
@@ -278,10 +272,6 @@ export class ReportConfigPanelComponent implements OnInit {
 
   public get columnsArray(): FormArray {
     return this.form().get("columns") as FormArray;
-  }
-
-  public get splitExcludedArray(): FormArray {
-    return this.form().get("splitExcludedFields") as FormArray;
   }
 
   public get filterGroup(): FormGroup {
@@ -478,30 +468,6 @@ export class ReportConfigPanelComponent implements OnInit {
   private headingForLevel(index: number): string {
     const override = ((this.groupByArray.at(index).get("label")!.value as string) ?? "").trim();
     return override || this.labelForField(this.fieldForLevel(index));
-  }
-
-  /**
-   * Whether a field key names a custom field. Resolved through the catalog rather
-   * than by matching the key's shape, so a user who cannot read the custom-field
-   * pool (the catalog swallows that 403) sees no badge instead of a badge on a
-   * field the builder cannot even name.
-   */
-  private isCustomField(key: string): boolean {
-    const field =
-      this.dimensions().find((candidate) => candidate.key === key) ??
-      this.measures().find((candidate) => candidate.key === key);
-    return field?.isCustom === true;
-  }
-
-  /** A column is custom when the field it reads is — a dimension's or an aggregate's measure. */
-  private columnReadsACustomField(column: ReportColumnValue): boolean {
-    if (column.kind === ReportColumn.KindEnum.Dimension) {
-      return this.isCustomField(column.field ?? "");
-    }
-    if (column.kind === ReportColumn.KindEnum.Aggregate) {
-      return this.isCustomField(column.measure ?? "");
-    }
-    return false;
   }
 
   private describeColumn(column: ReportColumnValue): string {

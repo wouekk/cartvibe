@@ -65,26 +65,6 @@ async function saveReceipt(page: Page) {
   await expect(page).toHaveURL(/\/receipts\/\d+\/view/);
 }
 
-async function ensureCustomFieldExists(page: Page) {
-  await page.goto('/custom-fields');
-  // Header renders an "add" icon button (no accessible name) next to the H1.
-  const existingRows = await page.locator('tbody tr').count();
-  if (existingRows > 0) {
-    return;
-  }
-  // Click the add button in the table header.
-  await page.locator('app-table-header').getByRole('button').first().click();
-  const dialog = page.getByRole('dialog');
-  await expect(dialog).toBeVisible();
-  await dialog.getByLabel('Name').fill('e2e-field');
-  await dialog.getByLabel('Description').fill('Created by e2e suite');
-  // Pick the first type (Text) — required field, no default.
-  await dialog.getByLabel('Type').click();
-  await page.getByRole('option').first().click();
-  await dialog.locator('button:has(mat-icon:has-text("done"))').click();
-  await expect(dialog).toBeHidden();
-  await expect(page.locator('tbody tr')).not.toHaveCount(0);
-}
 
 async function deleteReceiptByName(page: Page, groupId: string, name: string) {
   await page.goto(`/receipts/group/${groupId}`);
@@ -175,57 +155,6 @@ test.describe('receipts', () => {
     currentReceiptName = null;
   });
 
-  test('create a receipt with a custom field (dynamic)', async ({ page }) => {
-    const name = uniqueName('custom');
-    await ensureCustomFieldExists(page);
-    await openAddReceipt(page);
-    await fillBasics(page, name);
-
-    // Attach the first available custom field to this receipt via the
-    // "Manage custom fields" menu near the form title.
-    // .locator('button'): the cdkMenuTrigger also puts role="button" on the <app-button> host, so
-    // getByRole('button') here matches two elements and fails Playwright's strict mode.
-    await page.getByTestId('receipt-manage-custom-fields').locator('button').click();
-    // Menu renders a disabled "No items found" div when filteredItems is empty;
-    // skip that and click the first real (non-pe-none) menuitem.
-    await page.locator('[role="menuitem"]:not(.pe-none)').first().click();
-    await page.keyboard.press('Escape');
-
-    // There is one custom field but we don't know its type. Probe supported
-    // control shapes in priority order and fill the first one we find.
-    const firstField = page.locator('app-custom-field').first();
-    await expect(firstField).toBeVisible();
-    const filled = await (async () => {
-      const boolean = firstField.locator('input[type="checkbox"]');
-      if (await boolean.count()) {
-        await boolean.first().check();
-        return 'boolean';
-      }
-      const select = firstField.locator('mat-select');
-      if (await select.count()) {
-        await select.first().click();
-        await page.getByRole('option').first().click();
-        return 'select';
-      }
-      const text = firstField.locator('input[matinput]');
-      if (await text.count()) {
-        // Currency / text / date inputs all accept a numeric string.
-        await text.first().fill('42');
-        return 'text';
-      }
-      return null;
-    })();
-    expect(filled, 'at least one custom field type should have matched').not.toBeNull();
-
-    await saveReceipt(page);
-    currentReceiptName = name;
-
-    await page.goto(`/receipts/group/${groupId}`);
-    await expect(page.getByRole('row').filter({ hasText: name }).first()).toBeVisible();
-
-    await deleteReceiptByName(page, groupId, name);
-    currentReceiptName = null;
-  });
 
   test('create a receipt with a comment', async ({ page }) => {
     const name = uniqueName('receipt');

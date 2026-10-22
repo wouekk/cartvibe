@@ -7,7 +7,7 @@ import { ReceiptTableState } from "src/store/receipt-table.state";
 import { RECEIPT_DATE_FILTER_KEYS } from "../constants/receipt-filter-fields.constant";
 import { toDateWireFilter } from "../utils/date-wire-filter";
 import { toStatusWireFilter } from "../utils/receipt-status";
-import { PagedData, ReceiptPagedRequestCommand, ReceiptService, ReceiptSummary } from "../open-api";
+import { PagedData, ReceiptPagedRequestCommand, ReceiptService } from "../open-api";
 
 @Injectable({
   providedIn: "root",
@@ -18,30 +18,6 @@ export class ReceiptFilterService {
     private httpClient: HttpClient,
     private receiptService: ReceiptService,
   ) {}
-
-  /**
-   * The receipt summary for a group under the filter currently in state.
-   *
-   * It reuses `buildPagedRequestCommand` so the summary and the table can never
-   * disagree about what is filtered — page, pageSize, orderBy and sortDirection
-   * ride along and the server ignores them, because the summary covers the whole
-   * result set rather than a page.
-   *
-   * `configurationGroupId` says whose settings shape the breakdown. It only
-   * differs from `groupId` on the synthetic "All" group; the server authorizes it
-   * either way.
-   */
-  public getReceiptSummaryForGroup(
-    groupId: string,
-    configurationGroupId: number
-  ): Observable<ReceiptSummary> {
-    const { filter } = this.buildPagedRequestCommand();
-
-    return this.receiptService.getReceiptSummaryForGroup(Number(groupId), {
-      filter,
-      configurationGroupId,
-    });
-  }
 
   public getPagedReceiptsForGroups(
     groupId: string,

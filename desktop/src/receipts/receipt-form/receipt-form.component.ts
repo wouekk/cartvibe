@@ -21,8 +21,6 @@ import { UserAutocompleteComponent } from "src/user-autocomplete/user-autocomple
 import { ReceiptFileUploadCommand } from "../../interfaces";
 import {
   Category,
-  CustomField,
-  CustomFieldValue,
   FileDataView,
   Group,
   Item,
@@ -33,7 +31,6 @@ import {
   ReceiptStatus,
   Tag,
 } from "../../open-api";
-import { CustomFieldTypePipe } from "../../pipes/custom-field-type.pipe";
 import { SnackbarService } from "../../services";
 import { shakeInvalid } from "../../utils/shake";
 import { QueueMode, ReceiptQueueService } from "../../services/receipt-queue.service";
@@ -59,7 +56,7 @@ import { TranslationService } from "../../i18n/translation.service";
   selector: "app-receipt-form",
   templateUrl: "./receipt-form.component.html",
   styleUrls: ["./receipt-form.component.scss"],
-  providers: [CustomFieldTypePipe],
+
   host: DEFAULT_HOST_CLASS,
   standalone: false
 })
@@ -112,20 +109,6 @@ export class ReceiptFormComponent implements OnInit {
     AuthState.hasAppPermission(Permission.AppTagsCreate)
   );
 
-  // Adding/removing custom fields on a receipt needs the catalog (app.custom-fields.read);
-  // editing an existing custom field's value is a receipt edit and stays allowed.
-  public canManageCustomFields = this.store.selectSignal(
-    AuthState.hasAppPermission(Permission.AppCustomFieldsRead)
-  );
-
-  public customFields: CustomField[] = [];
-
-  public customFieldsStatefulMenuItems: StatefulMenuItem[] = [];
-
-  // Custom fields this form added on its own from the selected group's defaults.
-  // Only these are candidates for removal when the group changes - anything the
-  // user added, or typed into, is theirs and is left alone.
-  private autoAppliedCustomFieldIds = new Set<number>();
 
   public originalReceipt?: Receipt;
 
@@ -226,9 +209,6 @@ export class ReceiptFormComponent implements OnInit {
     return this.form.get("syncAmountWithItems")?.value ?? false;
   };
 
-  public get customFieldsFormArray(): FormArray {
-    return this.form.get("customFields") as FormArray;
-  }
 
   public get receiptItemsFormArray(): FormArray {
     return this.form.get("receiptItems") as FormArray;
@@ -236,7 +216,6 @@ export class ReceiptFormComponent implements OnInit {
 
   constructor(
     private activatedRoute: ActivatedRoute,
-    private customFieldTypePipe: CustomFieldTypePipe,
     private formBuilder: FormBuilder,
     private matDialog: AppDialog,
     private receiptImageService: ReceiptImageService,
@@ -274,22 +253,8 @@ export class ReceiptFormComponent implements OnInit {
         // categories/tags are sourced per-group from AppData (see
         // setCategoryTagPoolsForGroup), driven by the group-change listener.
         this.originalReceipt = data["receipt"];
-        // The resolver returns the full catalog only for users who can read it;
-        // otherwise fall back to the definitions embedded on the receipt's own
-        // custom field values so they still render.
-        this.customFields = this.buildCustomFieldPool(data["customFields"] ?? [], this.originalReceipt);
         this.editLink = `/receipts/${this.originalReceipt?.id}/edit`;
         this.mode = data["mode"];
-        this.customFieldsStatefulMenuItems = this.customFields.map(c => {
-          const selected = this.originalReceipt?.customFields.some(customField => customField.customFieldId === c.id) ?? false;
-
-          return {
-            value: c.id.toString(),
-            subtitle: this.customFieldTypePipe.transform(c.type),
-            displayValue: c.name,
-            selected: selected
-          };
-        });
         this.setCancelLink();
         this.initForm();
         this.setReceiptPermissions();
@@ -298,27 +263,6 @@ export class ReceiptFormComponent implements OnInit {
         this.setQueueData();
         document.scrollingElement?.scrollTo(0, 0);
       });
-  }
-
-  // Builds the custom field definition pool used to render values and the manage
-  // menu: the resolver catalog (full, for users who can read it) plus any
-  // definitions embedded on the receipt's own custom field values (so a user
-  // without catalog access can still render the fields already on the receipt),
-  // deduped by id.
-  private buildCustomFieldPool(resolverFields: CustomField[], receipt?: Receipt): CustomField[] {
-    const byId = new Map<number, CustomField>();
-    for (const field of resolverFields) {
-      if (field?.id != null) {
-        byId.set(field.id, field);
-      }
-    }
-    for (const value of receipt?.customFields ?? []) {
-      const definition = value.customField;
-      if (definition?.id != null && !byId.has(definition.id)) {
-        byId.set(definition.id, definition);
-      }
-    }
-    return Array.from(byId.values());
   }
 
   private setQueueData(): void {
@@ -473,11 +417,6 @@ export class ReceiptFormComponent implements OnInit {
 
   private initForm(): void {
 this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""));
-    // Reset BEFORE the form is built: initForm() re-runs on every route-data
-    // emission and ends by calling listenForGroupChanges(), whose startWith()
-    // fires synchronously - so it must already describe the new form. Without
-    // this, a stale auto set could strip a saved receipt's own fields.
-    this.autoAppliedCustomFieldIds.clear();
 
     // The group being browsed, or -- when that is not a receipt target (the "All"
     // group, nothing selected, or a stale persisted id) -- the user's only group.
@@ -532,7 +471,6 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
       ],
       // Shown as "To check" or "Done" (Phase 3 C6), so any older status reads as one of the two.
       status: familyReceiptStatus(this.originalReceipt?.status) || ReceiptStatus.Open,
-      customFields: this.formBuilder.array(this.originalReceipt?.customFields?.map((customField) => this.buildCustomOptionFormGroup(customField)) ?? []),
       receiptItems: this.formBuilder.array(
         this.originalReceipt?.receiptItems
           ? this.originalReceipt.receiptItems.map((item) =>
@@ -571,19 +509,6 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
       .get("syncAmountWithItems")?.valueChanges.pipe(untilDestroyed(this), tap((sync) => this.toggleAmountSync(sync))).subscribe();
   }
 
-  private buildCustomOptionFormGroup(value: CustomFieldValue): FormGroup {
-    return this.formBuilder.group({
-      receiptId: this.originalReceipt?.id ?? 0,
-      customFieldId: value.customFieldId,
-      stringValue: value?.stringValue ?? null,
-      // Same calendar-day handling as the receipt's own date.
-      dateValue: calendarDayToLocalDate(value?.dateValue),
-      selectValue: value?.selectValue ?? null,
-      currencyValue: value?.currencyValue ?? null,
-      booleanValue: value?.booleanValue ?? false,
-    });
-  }
-
   private listenForGroupChanges(): void {
     this.form
       .get("groupId")
@@ -611,64 +536,9 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
             .map((u) => u.id.toString()));
         }
 
-        // Inside this tap, after the selectedGroup signal write: under zoneless
-        // CD that write is what schedules the render, and a FormArray mutation
-        // on its own has no change-detection trigger.
-        this.applyGroupDefaultCustomFields(groupId);
       })
     )
       .subscribe();
-  }
-
-  // Applies the selected group's configured default custom fields to the form -
-  // a "smart swap": a default this form added and the user never filled in is
-  // dropped when the new group doesn't want it, anything with a value (or that
-  // the user added themselves) stays, and the new group's missing defaults are
-  // appended.
-  //
-  // Runs on load in EVERY mode (via listenForGroupChanges' startWith) and on
-  // every group change. A group's defaults are meant to read as that group's
-  // built-in receipt fields, so a saved receipt that predates the configuration
-  // shows them too - blank and read-only in view mode, and attached as empty
-  // values once an edit is saved. On load the removal pass is inert:
-  // autoAppliedCustomFieldIds is cleared at the top of initForm().
-  private applyGroupDefaultCustomFields(groupId: number | string | null | undefined): void {
-    // Never without the catalog permission - such a user's save would 403 on the
-    // backend's custom field selection check.
-    if (!groupId || !this.canManageCustomFields()) {
-      return;
-    }
-
-    const group = this.store.selectSnapshot(GroupState.getGroupById(groupId.toString()));
-    const defaultIds = group?.groupReceiptSettings?.defaultCustomFieldIds ?? [];
-    const targetIds = new Set(defaultIds);
-
-    for (const autoAppliedId of Array.from(this.autoAppliedCustomFieldIds)) {
-      if (targetIds.has(autoAppliedId)) {
-        continue;
-      }
-
-      const index = this.findCustomFieldControlIndex(autoAppliedId);
-      const control = index >= 0 ? this.customFieldsFormArray.at(index) : undefined;
-      if (control && this.isCustomFieldControlEmpty(control)) {
-        this.removeCustomFieldControl(autoAppliedId);
-        this.markCustomFieldMenuItemDeselected(autoAppliedId);
-      }
-      // Dropped from the auto set either way: a field the user filled in is now
-      // their data and must survive every later group change.
-      this.autoAppliedCustomFieldIds.delete(autoAppliedId);
-    }
-
-    for (const defaultId of targetIds) {
-      // Skips a field missing from the loaded catalog, and one the form already
-      // carries (user-added, or kept from the group switched away from).
-      if (!this.addCustomFieldControl(defaultId)) {
-        continue;
-      }
-
-      this.markCustomFieldMenuItemSelected(defaultId);
-      this.autoAppliedCustomFieldIds.add(defaultId);
-    }
   }
 
   private getImageFiles(): void {
@@ -891,9 +761,6 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
     if (this.patchMagicItems(magicReceipt)) {
       filledKeys.push("receiptItems");
     }
-    if (this.patchMagicCustomFields(magicReceipt)) {
-      filledKeys.push("customFields");
-    }
     if (this.patchMagicComments(magicReceipt)) {
       filledKeys.push("comments");
     }
@@ -966,169 +833,6 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
     return true;
   }
 
-  // Appends magic-filled custom field values. The magic-fill response carries no
-  // field definition, so a value is only ingested when its field is in the loaded
-  // catalog pool (otherwise it can't be rendered or edited); a field the receipt
-  // already has a value for is skipped to avoid duplicates. Returns whether any
-  // were added.
-  //
-  // A control the group's defaults auto-added is a special case: it is already on
-  // the form but still EMPTY, so plain "skip what's present" would silently drop
-  // the magic value for exactly the fields a group pre-adds. Those get filled in
-  // place instead. Anything the user typed into, or added by hand, is left alone.
-  private patchMagicCustomFields(magicReceipt: Receipt): boolean {
-    const values = magicReceipt.customFields ?? [];
-    if (values.length === 0) {
-      return false;
-    }
-
-    let filledAny = false;
-    values.forEach((value) => {
-      if (this.fillEmptyAutoAppliedCustomField(value)) {
-        filledAny = true;
-        return;
-      }
-
-      if (!this.addCustomFieldControl(value.customFieldId, value)) {
-        return;
-      }
-
-      this.markCustomFieldMenuItemSelected(value.customFieldId);
-      filledAny = true;
-    });
-    return filledAny;
-  }
-
-  // Fills a still-empty, auto-applied custom field control with [value], returning
-  // whether it did. The control is REPLACED rather than patched so it goes through
-  // buildCustomOptionFormGroup's `?? null` / `?? false` normalization, like every
-  // other creation path - patchValue with a partially populated CustomFieldValue
-  // would write undefined into the value columns it doesn't carry.
-  //
-  // Filling it makes it the user's data, so it leaves autoAppliedCustomFieldIds and
-  // a later group switch will no longer drop it.
-  private fillEmptyAutoAppliedCustomField(value: CustomFieldValue): boolean {
-    if (!this.autoAppliedCustomFieldIds.has(value.customFieldId)) {
-      return false;
-    }
-
-    const index = this.findCustomFieldControlIndex(value.customFieldId);
-    if (index < 0) {
-      return false;
-    }
-
-    const control = this.customFieldsFormArray.at(index);
-    if (!this.isCustomFieldControlEmpty(control)) {
-      return false;
-    }
-
-    this.customFieldsFormArray.setControl(
-      index,
-      this.buildCustomOptionFormGroup(value)
-    );
-    this.autoAppliedCustomFieldIds.delete(value.customFieldId);
-    this.markCustomFieldMenuItemSelected(value.customFieldId);
-    return true;
-  }
-
-  // Appends a control for [customFieldId] to the custom fields form array,
-  // returning whether one was added. A field missing from the loaded catalog
-  // (this.customFields) can't be rendered or edited, and a field the form
-  // already carries would render twice, so both are skipped. [value] seeds the
-  // control (magic fill supplies one); omit it for an empty field.
-  private addCustomFieldControl(
-    customFieldId: number,
-    value?: CustomFieldValue
-  ): boolean {
-    const definition = this.customFields.find(
-      (field) => field.id === customFieldId
-    );
-    if (!definition) {
-      return false;
-    }
-
-    const alreadyPresent = this.customFieldsFormArray.controls.some(
-      (control) => control.value?.["customFieldId"] === customFieldId
-    );
-    if (alreadyPresent) {
-      return false;
-    }
-
-    this.customFieldsFormArray.push(
-      this.buildCustomOptionFormGroup(
-        value ?? ({ customFieldId } as CustomFieldValue)
-      )
-    );
-    return true;
-  }
-
-  // Removes [customFieldId]'s control, if the form carries one. The index guard
-  // is load-bearing: FormArray.removeAt(-1) splices off the LAST control, so an
-  // unguarded findIndex would drop an unrelated field.
-  private removeCustomFieldControl(customFieldId: number): void {
-    const index = this.findCustomFieldControlIndex(customFieldId);
-    if (index >= 0) {
-      this.customFieldsFormArray.removeAt(index);
-    }
-  }
-
-  // Index of [customFieldId]'s control in the custom fields form array, or -1.
-  private findCustomFieldControlIndex(customFieldId: number): number {
-    return this.customFieldsFormArray.controls.findIndex(
-      (control) =>
-        control.value?.["customFieldId"]?.toString() === customFieldId.toString()
-    );
-  }
-
-  // Whether a custom field control holds nothing the user typed. Every typed
-  // column must be null-or-empty AND booleanValue falsy — buildCustomOptionFormGroup
-  // seeds booleanValue to false, so a naive "every value is null" check would call
-  // every control non-empty. A BOOLEAN deliberately left false counts as empty.
-  private isCustomFieldControlEmpty(group: AbstractControl): boolean {
-    const value = group.value ?? {};
-    const isBlank = (columnValue: unknown): boolean =>
-      columnValue === null || columnValue === undefined || columnValue === "";
-
-    return (
-      isBlank(value["stringValue"]) &&
-      isBlank(value["dateValue"]) &&
-      isBlank(value["selectValue"]) &&
-      isBlank(value["currencyValue"]) &&
-      !value["booleanValue"]
-    );
-  }
-
-  // Flips the manage-fields menu entry to selected so the newly added custom
-  // field renders.
-  private markCustomFieldMenuItemSelected(customFieldId: number): void {
-    this.setCustomFieldMenuItemSelection(customFieldId, true);
-  }
-
-  // Clears the manage-fields menu entry for a custom field the form no longer
-  // carries, so the menu keeps matching the rendered fields.
-  private markCustomFieldMenuItemDeselected(customFieldId: number): void {
-    this.setCustomFieldMenuItemSelection(customFieldId, false);
-  }
-
-  // Immutable array replace - required under zoneless CD, mirroring
-  // customFieldChanged.
-  private setCustomFieldMenuItemSelection(
-    customFieldId: number,
-    selected: boolean
-  ): void {
-    const menuValue = customFieldId.toString();
-    const index = this.customFieldsStatefulMenuItems.findIndex(
-      (item) => item.value === menuValue
-    );
-    if (index === -1) {
-      return;
-    }
-
-    const updated = Array.from(this.customFieldsStatefulMenuItems);
-    updated[index] = { ...updated[index], selected: selected };
-    this.customFieldsStatefulMenuItems = updated;
-  }
-
   // Hands magic-filled comments to the comments child, which owns them and is
   // mode-aware (add mode collects them for the create submit; edit mode POSTs
   // each as an individual resource). Returns whether the child handled them.
@@ -1156,7 +860,6 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
     const labels: { [key: string]: string } = {
       paidByUserId: "paid by",
       receiptItems: "items",
-      customFields: "custom fields",
     };
     const filledLabels = filledKeys.map((key) => labels[key] ?? key);
     const successString = `Magic fill successfully filled ${filledLabels.join(
@@ -1432,32 +1135,6 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
     }
   }
 
-  public customFieldChanged(item: StatefulMenuItem): void {
-    const newCustomFields = Array.from(this.customFieldsStatefulMenuItems);
-    const selectedItemIndex = this.customFieldsStatefulMenuItems.findIndex(customField => customField.value === item.value);
-
-    newCustomFields[selectedItemIndex] = {
-      ...item,
-      selected: !item.selected
-    };
-
-    this.customFieldsStatefulMenuItems = newCustomFields;
-
-    const customFieldId = Number(item.value);
-    // Either direction hands the field to the user: a group default they toggled
-    // off - or off and back on - must never be swapped out by a later group
-    // change.
-    this.autoAppliedCustomFieldIds.delete(customFieldId);
-
-    // Custom field was just selected
-    if (this.customFieldsStatefulMenuItems[selectedItemIndex].selected) {
-      this.addCustomFieldControl(customFieldId);
-    } else {
-      // Custom field was just removed
-      this.removeCustomFieldControl(customFieldId);
-    }
-  }
-
   public submit(): void {
     this.shareListComponent()?.userExpansionPanels().forEach(
       (p: ExpansionPanelComponent) => p.close()
@@ -1490,8 +1167,8 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
     }
   }
 
-  // The form value as it goes on the wire. The receipt's date and every DATE
-  // custom field are calendar days, sent as midnight UTC of the day picked
+  // The form value as it goes on the wire. The receipt's date is
+  // a calendar day, sent as midnight UTC of the day picked
   // ("2026-09-30T00:00:00.000Z") rather than the datepicker's local midnight,
   // which is a different UTC day east of Greenwich. Converted on a copy, never
   // in the form, so the datepickers keep their local Dates.
@@ -1501,11 +1178,6 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
     return {
       ...value,
       date: value.date ? toMidnightUtc(value.date) : value.date,
-      customFields: (value.customFields ?? []).map((customField: CustomFieldValue) =>
-        customField.dateValue
-          ? { ...customField, dateValue: toMidnightUtc(customField.dateValue as Date | string) }
-          : customField
-      ),
     };
   }
 

@@ -13,17 +13,15 @@ import { SetColumnConfig, SetReceiptFilterData } from "src/store/receipt-table.a
 import { ReceiptTableState } from "src/store/receipt-table.state";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { MonthStepperComponent } from "../../shared-ui/month-stepper/month-stepper.component";
-import { ApiModule, CustomField, CustomFieldType, FilterOperation, Group, Permission, Receipt, ReceiptService, ReceiptStatus, ReceiptSummary, ReceiptSummaryPosition } from "../../open-api";
+import { ApiModule, FilterOperation, Group, Permission, Receipt, ReceiptService, ReceiptStatus } from "../../open-api";
 import { ReceiptFilterService } from "../../services/receipt-filter.service";
 import { AuthState, GroupState, UserState } from "../../store";
 import { SetPermissions } from "../../store/auth.state.actions";
 import { SetGroups } from "../../store/group.state.actions";
-import { SetQuickDateField, SetReceiptFilter, SetSummaryConfigGroupId } from "../../store/receipt-table.actions";
+import { SetQuickDateField, SetReceiptFilter } from "../../store/receipt-table.actions";
 import { ReceiptsTableComponent } from "./receipts-table.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 
-const customField_ = (id: number): CustomField =>
-  ({ id, name: "Vendor", type: CustomFieldType.Text } as CustomField);
 
 describe("ReceiptsTableComponent", () => {
   let component: ReceiptsTableComponent;
@@ -109,9 +107,7 @@ describe("ReceiptsTableComponent", () => {
     expect(component.canPollEmail).toEqual(false);
   });
 
-  describe("custom field columns", () => {
-    const customField = (id: number, name: string): CustomField =>
-      ({ id, name, type: CustomFieldType.Text } as CustomField);
+  describe("columns", () => {
 
     // setColumns reads the cell templates through viewChild.required, which never
     // resolves for a component this spec never renders.
@@ -119,7 +115,7 @@ describe("ReceiptsTableComponent", () => {
       for (const cell of [
         "createdAtCell", "dateCell", "nameCell", "amountCell",
         "categoryCell", "tagCell", "statusCell", "resolvedDateCell",
-        "firstCommentCell", "customFieldCell", "actionsCell",
+        "firstCommentCell", "actionsCell",
       ]) {
         Object.defineProperty(component, cell, { value: () => ({}) });
       }
@@ -129,26 +125,8 @@ describe("ReceiptsTableComponent", () => {
       stubCellTemplates();
     });
 
-    it("builds a sortable column per custom field", () => {
-      component.customFields.set([customField(7, "Vendor")]);
-      store.dispatch(
-        new SetColumnConfig([
-          ...DEFAULT_RECEIPT_TABLE_COLUMNS,
-          { matColumnDef: "custom_7", visible: true, order: 9 },
-        ])
-      );
-
-      (component as any).setColumns();
-
-      const column = component
-        .columns()
-        .find((col) => col.matColumnDef === "custom_7");
-      expect(column?.columnHeader).toEqual("Vendor");
-      expect(column?.sortable).toEqual(true);
-    });
 
     it("offers a sortable Comment column, hidden until it is switched on", () => {
-      component.customFields.set([]);
       store.dispatch(new SetColumnConfig(DEFAULT_RECEIPT_TABLE_COLUMNS));
 
       (component as any).setColumns();
@@ -176,9 +154,8 @@ describe("ReceiptsTableComponent", () => {
     });
 
     // mat-table throws on a displayed id it has no definition for, and a config
-    // naming a since-deleted custom field is ordinary rather than exotic.
+    // naming a since-removed column is ordinary rather than exotic.
     it("never displays a column it could not resolve", () => {
-      component.customFields.set([]);
       store.dispatch(
         new SetColumnConfig([
           ...DEFAULT_RECEIPT_TABLE_COLUMNS,
@@ -201,8 +178,7 @@ describe("ReceiptsTableComponent", () => {
   });
 
   describe("reconcileColumnConfig", () => {
-    it("drops a persisted column whose custom field no longer exists", () => {
-      component.customFields.set([]);
+    it("drops a persisted column that no longer exists", () => {
       store.dispatch(
         new SetColumnConfig([
           ...DEFAULT_RECEIPT_TABLE_COLUMNS,
@@ -219,57 +195,11 @@ describe("ReceiptsTableComponent", () => {
       ).not.toContain("custom_99");
     });
 
-    // A user without app.custom-fields.read resolves an EMPTY catalog, which is not
-    // the same as "no custom fields exist". The configuration is persisted per
-    // browser and shared across accounts, so dropping against it would destroy an
-    // administrator's saved layout the moment a colleague opens the page here.
-    it("keeps a persisted custom field column when the catalog is unavailable", () => {
-      component.customFields.set([]);
-      component.customFieldsAvailable.set(false);
-      store.dispatch(
-        new SetColumnConfig([
-          ...DEFAULT_RECEIPT_TABLE_COLUMNS,
-          { matColumnDef: "custom_99", visible: true, order: 9 },
-        ])
-      );
-
-      (component as any).reconcileColumnConfig();
-
-      expect(
-        store
-          .selectSnapshot(ReceiptTableState.columnConfig)
-          .map((col) => col.matColumnDef)
-      ).toContain("custom_99");
-    });
-
-    // Follows from the column surviving: the sort is reset off the reconciled
-    // columns, so preserving one without the other would still discard the sort.
-    it("keeps a sort on a custom field when the catalog is unavailable", () => {
-      component.customFields.set([]);
-      component.customFieldsAvailable.set(false);
-      store.dispatch(
-        new SetColumnConfig([
-          ...DEFAULT_RECEIPT_TABLE_COLUMNS,
-          { matColumnDef: "custom_99", visible: true, order: 9 },
-        ])
-      );
-      const filterData = store.selectSnapshot(ReceiptTableState.filterData);
-      store.dispatch(
-        new SetReceiptFilterData({ ...filterData, orderBy: "custom_99", sortDirection: "asc" })
-      );
-
-      (component as any).reconcileColumnConfig();
-
-      expect(store.selectSnapshot(ReceiptTableState.filterData).orderBy).toEqual(
-        "custom_99"
-      );
-    });
 
     // The sort is persisted per browser and shared across accounts, so the table
     // can start up asking the API to order by a column that no longer exists -
     // which the API rejects outright, failing the very first load.
-    it("resets a sort on a custom field that no longer exists", () => {
-      component.customFields.set([]);
+    it("resets a sort on a column that no longer exists", () => {
       const filterData = store.selectSnapshot(ReceiptTableState.filterData);
       store.dispatch(
         new SetReceiptFilterData({ ...filterData, orderBy: "custom_99", sortDirection: "asc" })
@@ -282,18 +212,15 @@ describe("ReceiptsTableComponent", () => {
       );
     });
 
-    it("keeps a sort on a custom field that still exists", () => {
-      component.customFields.set([customField_(7)]);
+    it("keeps a sort on a column that still exists", () => {
       const filterData = store.selectSnapshot(ReceiptTableState.filterData);
       store.dispatch(
-        new SetReceiptFilterData({ ...filterData, orderBy: "custom_7", sortDirection: "asc" })
+        new SetReceiptFilterData({ ...filterData, orderBy: "amount", sortDirection: "asc" })
       );
 
       (component as any).reconcileColumnConfig();
 
-      expect(store.selectSnapshot(ReceiptTableState.filterData).orderBy).toEqual(
-        "custom_7"
-      );
+      expect(store.selectSnapshot(ReceiptTableState.filterData).orderBy).toEqual("amount");
     });
   });
 
@@ -666,230 +593,3 @@ describe("ReceiptsTableComponent", () => {
  * paging and sorting change neither the filter nor the figures, so re-requesting an unpaged
  * aggregate for them would be the most expensive no-op in the app.
  */
-describe("ReceiptsTableComponent receipt summary", () => {
-  let component: ReceiptsTableComponent;
-  let fixture: ComponentFixture<ReceiptsTableComponent>;
-  let store: Store;
-  let receiptFilterService: ReceiptFilterService;
-  let summaryCalls: { groupId: string; configurationGroupId: number }[];
-
-  function summaryGroup(id: number, name: string, enabled: boolean, isAllGroup = false): Group {
-    return {
-      id,
-      name,
-      isAllGroup,
-      groupReceiptSettings: { receiptSummaryEnabled: enabled },
-    } as Group;
-  }
-
-  const summaryResponse: ReceiptSummary = {
-    enabled: true,
-    configurationGroupId: 1,
-    position: ReceiptSummaryPosition.Bottom,
-    overall: {
-      status: "" as ReceiptStatus,
-      receiptCount: 2,
-      total: "20.00",
-      customFieldTotals: [],
-    },
-    statuses: [],
-  } as ReceiptSummary;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      declarations: [ReceiptsTableComponent],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      imports: [
-        ApiModule,
-        NgxsModule.forRoot([ReceiptTableState, AuthState, GroupState, UserState]),
-        ReactiveFormsModule,
-        ...HlmTooltipImports,
-        MonthStepperComponent,
-        PipesModule,
-      ],
-      providers: [
-        {
-          provide: ActivatedRoute,
-          useValue: { snapshot: { data: { categories: [], tags: [] } } },
-        },
-        provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting(),
-        provideZonelessChangeDetection(),
-        provideRouter([]),
-      ],
-    }).compileComponents();
-
-    store = TestBed.inject(Store);
-    receiptFilterService = TestBed.inject(ReceiptFilterService);
-
-    summaryCalls = [];
-    jest
-      .spyOn(receiptFilterService, "getReceiptSummaryForGroup")
-      .mockImplementation((groupId: string, configurationGroupId: number) => {
-        summaryCalls.push({ groupId, configurationGroupId });
-        return of(summaryResponse);
-      });
-    jest
-      .spyOn(receiptFilterService, "getPagedReceiptsForGroups")
-      .mockReturnValue(of({ data: [], totalCount: 0 } as any));
-
-    fixture = TestBed.createComponent(ReceiptsTableComponent);
-    component = fixture.componentInstance;
-    Object.defineProperty(component, "table", {
-      value: () => ({ selection: {}, changed: of(undefined) }),
-    });
-  });
-
-  it("requests the summary on a filter change but not on a page or sort change", async () => {
-    store.dispatch(new SetGroups([summaryGroup(1, "Alpha", true)]));
-    component.groupId = "1";
-
-    component.getFilteredReceipts();
-    expect(summaryCalls.length).toEqual(1);
-
-    (component as any).getFilteredReceiptsPage();
-    expect(summaryCalls.length).toEqual(1);
-
-    component.updatePageData({ pageIndex: 2, pageSize: 50, length: 100 } as any);
-    expect(summaryCalls.length).toEqual(1);
-
-    // And a genuine filter change asks again.
-    component.getFilteredReceipts();
-    expect(summaryCalls.length).toEqual(2);
-  });
-
-  it("stores the summary it receives", () => {
-    store.dispatch(new SetGroups([summaryGroup(1, "Alpha", true)]));
-    component.groupId = "1";
-
-    component.getFilteredReceipts();
-
-    expect(component.summary()).toEqual(summaryResponse);
-  });
-
-  // The guard lives inside the switchMap, so an install that has not opted in pays no request.
-  it("issues no request when no configured group resolves", () => {
-    store.dispatch(new SetGroups([summaryGroup(1, "Alpha", false, true)]));
-    component.groupId = "1";
-
-    component.getFilteredReceipts();
-
-    expect(summaryCalls.length).toEqual(0);
-    expect(component.summary()).toBeUndefined();
-  });
-
-  // Same contract as the table's stream: an error must not complete the outer subscription, or
-  // every later refresh dies silently.
-  it("survives a failed summary request and refreshes again after", () => {
-    store.dispatch(new SetGroups([summaryGroup(1, "Alpha", true)]));
-    component.groupId = "1";
-
-    jest
-      .spyOn(receiptFilterService, "getReceiptSummaryForGroup")
-      .mockReturnValueOnce(throwError(() => new Error("boom")))
-      .mockReturnValue(of(summaryResponse));
-
-    component.getFilteredReceipts();
-    expect(component.summary()).toBeUndefined();
-
-    component.getFilteredReceipts();
-    expect(component.summary()).toEqual(summaryResponse);
-  });
-
-  describe("on the All group", () => {
-    beforeEach(() => {
-      store.dispatch(
-        new SetGroups([
-          summaryGroup(99, "All", false, true),
-          summaryGroup(2, "Bravo", true),
-          summaryGroup(1, "Alpha", true),
-          summaryGroup(3, "Charlie", false),
-        ])
-      );
-      component.groupId = "99";
-    });
-
-    it("offers every enabled group alphabetically and defaults to the first", () => {
-      expect(component.summaryConfigGroupOptions().map((g) => g.name)).toEqual(["Alpha", "Bravo"]);
-      expect(component.summaryConfigGroupId()).toEqual(1);
-    });
-
-    it("honours a persisted pick and sends it as the configuration group", () => {
-      store.dispatch(new SetSummaryConfigGroupId(2));
-
-      component.getFilteredReceipts();
-
-      expect(summaryCalls).toEqual([{ groupId: "99", configurationGroupId: 2 }]);
-    });
-
-    // A persisted group that has since disabled its summary, or that the user has left.
-    it("falls back when the persisted pick is stale", () => {
-      store.dispatch(new SetSummaryConfigGroupId(3));
-
-      expect(component.summaryConfigGroupId()).toEqual(1);
-    });
-
-    it("re-requests only the summary when the chip changes", () => {
-      component.summaryConfigGroupSelected(2);
-
-      expect(summaryCalls).toEqual([{ groupId: "99", configurationGroupId: 2 }]);
-    });
-  });
-
-  /**
-   * Placement is derived from the RESPONSE, never from the cached GroupState settings: the cache
-   * is stale the moment an admin changes the configuration, which is the same reason `enabled`
-   * rides on the response.
-   *
-   * This asserts the derivation only. The template's two anchors are proved as DOCUMENT ORDER in
-   * e2e/receipt-summary.spec.ts, because this spec never renders the template — every test here
-   * drives the component class, and app-table resolves to a custom element under
-   * CUSTOM_ELEMENTS_SCHEMA, so the viewChild.required in ngAfterViewInit cannot resolve.
-   */
-  describe("placement", () => {
-    it("reads the position off the summary response", () => {
-      component.summary.set({ ...summaryResponse, position: ReceiptSummaryPosition.Top });
-
-      expect(component.summaryPosition()).toBe(ReceiptSummaryPosition.Top);
-      expect(component.summaryAtTop()).toBe(true);
-    });
-
-    it("stays at the bottom for a BOTTOM response", () => {
-      component.summary.set({ ...summaryResponse, position: ReceiptSummaryPosition.Bottom });
-
-      expect(component.summaryAtTop()).toBe(false);
-    });
-
-    // Before the first response there is nothing to render anyway, but the default must be the
-    // historical placement so a group that never configured it is unchanged.
-    it("defaults to the bottom with no summary yet", () => {
-      component.summary.set(undefined);
-
-      expect(component.summaryPosition()).toBe(ReceiptSummaryPosition.Bottom);
-      expect(component.summaryAtTop()).toBe(false);
-    });
-
-    // The enum carries TOP and BOTTOM only, so a value outside it is off-contract by
-    // definition -- an older client meeting a position added later, or a partially migrated
-    // install sending an empty string. Either way the block must fall back to where it always
-    // rendered rather than vanish, which is why summaryPosition() defaults rather than gating.
-    it("treats an off-contract position as the bottom", () => {
-      component.summary.set({
-        ...summaryResponse,
-        position: "" as unknown as ReceiptSummaryPosition,
-      });
-
-      expect(component.summaryAtTop()).toBe(false);
-    });
-  });
-
-  it("offers no configuration chips on a real group", () => {
-    store.dispatch(
-      new SetGroups([summaryGroup(1, "Alpha", true), summaryGroup(2, "Bravo", true)])
-    );
-    component.groupId = "1";
-
-    expect(component.summaryConfigGroupOptions()).toEqual([]);
-    expect(component.summaryConfigGroupId()).toEqual(1);
-  });
-});

@@ -2,12 +2,10 @@ import { expect, Page, test } from '@playwright/test';
 import { creds, stubTokenRefresh } from './helpers/auth';
 import {
   apiCreateCategory,
-  apiCreateCustomField,
   apiCreateGroup,
   apiCreateReceipt,
   apiCreateTag,
   apiDeleteCategoryById,
-  apiDeleteCustomFieldById,
   apiDeleteGroupById,
   apiDeleteReportTemplateById,
   apiDeleteTagById,
@@ -64,12 +62,10 @@ test.describe('Report Builder — split amounts equally', () => {
   const toysName = uniqueName('Toys');
   const alexName = uniqueName('Alex');
   const samName = uniqueName('Sam');
-  const tipName = uniqueName('Tip');
 
   let groupId: number;
   let categoryIds: number[] = [];
   let tagIds: number[] = [];
-  let tipId: number;
   let templateId: number | undefined;
 
   test.beforeAll(async () => {
@@ -86,7 +82,6 @@ test.describe('Report Builder — split amounts equally', () => {
       const sam = await apiCreateTag(api, samName);
       tagIds = [alex.id, sam.id];
 
-      tipId = (await apiCreateCustomField(api, { name: tipName, type: 'CURRENCY' })).id;
 
       await apiCreateReceipt(api, {
         groupId,
@@ -95,7 +90,6 @@ test.describe('Report Builder — split amounts equally', () => {
         amount: '100.00',
         categories: [food, fuel, toys],
         tags: [alex, sam],
-        customFields: [{ customFieldId: tipId, currencyValue: '10.00' }],
       });
       await apiCreateReceipt(api, {
         groupId,
@@ -123,9 +117,6 @@ test.describe('Report Builder — split amounts equally', () => {
         }
         for (const id of tagIds) {
           await apiDeleteTagById(api, id);
-        }
-        if (tipId) {
-          await apiDeleteCustomFieldById(api, tipId);
         }
       });
     } catch {
@@ -204,30 +195,6 @@ test.describe('Report Builder — split amounts equally', () => {
     expect(await preview(page).getAttribute('srcdoc')).not.toMatch(money('300', '00'));
   });
 
-  test('offers the currency fields to leave whole, and sends the pick', async ({ page }) => {
-    await openBuilderOnSeededData(page);
-
-    // Nothing to exclude until a split is ticked.
-    await expect(page.getByTestId('report-split-excluded')).toHaveCount(0);
-    await Promise.all([waitForPreview(page), splitCategories(page).check()]);
-
-    const excluded = page.getByTestId('report-split-excluded');
-    await expect(excluded).toBeVisible();
-
-    const [request] = await Promise.all([
-      waitForPreview(page).then((response) => response.request()),
-      (async () => {
-        // fill, not click: the empty field's floating label sits over the input
-        // and intercepts a click. Typing opens the panel just the same.
-        await excluded.getByRole('combobox').fill(tipName);
-        await page.getByRole('option', { name: tipName, exact: true }).click();
-      })(),
-    ]);
-    expect(request.postDataJSON()).toMatchObject({
-      splitCategoriesEqually: true,
-      splitExcludedFields: [`custom_${tipId}`],
-    });
-  });
 
   test('saves the split options into a template and reopens them', async ({ page }) => {
     await openBuilderOnSeededData(page);

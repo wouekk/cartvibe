@@ -54,8 +54,6 @@ export interface ReportBuilderValue {
   grandTotals: boolean;
   splitCategoriesEqually: boolean;
   splitTagsEqually: boolean;
-  // Currency custom field keys (custom_<id>) a split leaves whole.
-  splitExcludedFields: string[];
   document: { title: string; intro: string; footer: string };
   formats: Record<ReportRequestFormat, boolean>;
 }
@@ -198,10 +196,6 @@ function mapReportCommand(value: ReportBuilderValue, columns: ReportColumnValue[
   }
   if (value.splitTagsEqually) {
     command.splitTagsEqually = true;
-  }
-  const splitExcludedFields = [...new Set(value.splitExcludedFields ?? [])];
-  if (splitExcludedFields.length > 0) {
-    command.splitExcludedFields = splitExcludedFields;
   }
 
   const { title, intro, footer } = value.document;

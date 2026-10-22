@@ -20,10 +20,6 @@
         @for (option of options(); track $index; let i = $index) {
           <hlm-select-item [value]="optionValueKey ? option[optionValueKey] : option">
             {{ i | optionDisplay : option : optionDisplayKey() : optionsDisplayArray() | t }}
-            @let badge = badgeFor(option);
-            @if (badge) {
-              <app-badge class="ml-2" [text]="badge" [tone]="optionBadgeTone()"></app-badge>
-            }
           </hlm-select-item>
         }
       </hlm-select-content>

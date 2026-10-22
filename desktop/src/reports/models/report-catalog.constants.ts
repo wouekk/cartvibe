@@ -1,36 +1,31 @@
-import { CUSTOM_FIELD_BADGE } from "src/shared-ui/badge/badge.component";
 import { ReportColumn, ReportPeriod } from "../../open-api";
 import { marker } from "../../i18n/marker";
 
 /**
  * A selectable engine field: `key` is the reporting engine's field key (what the
  * backend `receiptsource` catalog exposes), `label` is what the builder shows.
- * Custom fields are added at runtime keyed `custom_<id>` (see ReportCatalogService)
- * and carry `isCustom`, which is what puts the "Custom" badge on them.
+ *
  */
 export interface ReportField {
   key: string;
   label: string;
-  isCustom?: boolean;
 }
 
 /** An app-select option built from a field: value/display plus an optional badge. */
 export interface ReportFieldOption {
   value: string;
   displayValue: string;
-  badge: string;
 }
 
 /**
  * Maps fields onto the option shape every field dropdown binds to, so the
  * grouping picker, the aggregate-by picker and the column picker's field/measure
- * pickers cannot drift in how they present a custom field.
+ * pickers cannot drift in how they present a field.
  */
 export function toFieldOptions(fields: ReportField[]): ReportFieldOption[] {
   return fields.map((field) => ({
     value: field.key,
     displayValue: field.label,
-    badge: field.isCustom ? CUSTOM_FIELD_BADGE : "",
   }));
 }
 

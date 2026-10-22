@@ -1,15 +1,7 @@
-import { CustomField } from "../open-api";
 import {
   DEFAULT_RECEIPT_TABLE_COLUMNS,
   ReceiptTableColumnConfig,
 } from "../interfaces/receipt-table-column-config.interface";
-
-/**
- * Prefix a custom field column is identified by, shared with the backend's
- * `receiptsource.CustomFieldKey`. The same string is the column's `matColumnDef`
- * and the `orderBy` the API is asked to sort on, so both ends must agree.
- */
-const CUSTOM_FIELD_COLUMN_PREFIX = "custom_";
 
 /** The header shown for each built-in column, in the table and in the dialog. */
 export const RECEIPT_COLUMN_DISPLAY_NAMES: Readonly<Record<string, string>> = {
@@ -27,93 +19,33 @@ export const RECEIPT_COLUMN_DISPLAY_NAMES: Readonly<Record<string, string>> = {
   first_comment: "Comment",
 };
 
-export function customFieldColumnDef(customFieldId: number): string {
-  return `${CUSTOM_FIELD_COLUMN_PREFIX}${customFieldId}`;
+export function columnDisplayName(matColumnDef: string): string {
+  return RECEIPT_COLUMN_DISPLAY_NAMES[matColumnDef] ?? matColumnDef;
 }
 
 /**
- * The custom field id a column refers to, or undefined when the column is not a
- * custom field one. Deliberately strict — digits only — so it matches the id the
- * backend will parse out of the same string.
+ * Reconciles a persisted column configuration with the columns that exist right
+ * now.
+ *
+ * The configuration lives in localStorage, so it outlives the columns it was
+ * written against. Anything that is no longer a built-in column is dropped
+ * (leaving it in place would make the table ask the API to sort on a column that
+ * no longer exists), and a built-in column the saved layout lacks is appended
+ * with the visibility it has in the defaults, so an upgrade never silently
+ * widens anyone's table.
+ *
+ * Order is otherwise preserved exactly as persisted.
  */
-export function parseCustomFieldColumnDef(
-  matColumnDef: string
-): number | undefined {
-  if (!matColumnDef.startsWith(CUSTOM_FIELD_COLUMN_PREFIX)) {
-    return undefined;
-  }
-
-  const digits = matColumnDef.slice(CUSTOM_FIELD_COLUMN_PREFIX.length);
-  if (!/^\d+$/.test(digits)) {
-    return undefined;
-  }
-
-  return Number(digits);
-}
-
-export function columnDisplayName(
-  matColumnDef: string,
-  customFields: CustomField[]
-): string {
-  const builtInName = RECEIPT_COLUMN_DISPLAY_NAMES[matColumnDef];
-  if (builtInName) {
-    return builtInName;
-  }
-
-  const customFieldId = parseCustomFieldColumnDef(matColumnDef);
-  const customField = customFields.find((field) => field.id === customFieldId);
-
-  return customField?.name ?? matColumnDef;
-}
-
-/**
- * Reconciles a persisted column configuration with the custom fields that exist
- * right now.
- *
- * The configuration lives in localStorage, so it outlives the catalog it was
- * written against — a custom field can be deleted, a new one added, and the
- * whole slice is shared by every account using the same browser. Anything that
- * no longer resolves is dropped (leaving it in place would make the table ask
- * the API to sort on a column that no longer exists), and anything new is
- * appended **hidden**, so creating a custom field never silently widens
- * everyone's table.
- *
- * Order is otherwise preserved exactly as persisted, including a custom field
- * the user dragged above a built-in column.
- *
- * `catalogAvailable` says whether `customFields` is authoritative. It is not when
- * the caller lacks `app.custom-fields.read`, where the resolver yields an empty
- * catalog that means "you may not look", not "there are none" — and dropping
- * against it would delete every custom field column the configuration holds. The
- * `receiptTable` slice is persisted per browser and NOT namespaced per account
- * (see `ngxsStorageKeys`), so that discards an administrator's saved layout the
- * moment a colleague without the permission opens the page on the same machine.
- * When it is false the persisted `custom_*` entries are kept untouched; built-ins
- * are still healed and order re-derived, which need no catalog.
- *
- * Deliberately required rather than defaulted, so a new call site has to decide
- * which kind of empty it is holding.
- */
-export function mergeCustomFieldColumns(
-  persisted: ReceiptTableColumnConfig[],
-  customFields: CustomField[],
-  catalogAvailable: boolean
+export function reconcileColumns(
+  persisted: ReceiptTableColumnConfig[]
 ): ReceiptTableColumnConfig[] {
-  const knownCustomFieldIds = new Set(customFields.map((field) => field.id));
   const builtInColumnDefs = DEFAULT_RECEIPT_TABLE_COLUMNS.map(
     (column) => column.matColumnDef
   );
 
   const kept = [...persisted]
     .sort((a, b) => a.order - b.order)
-    .filter((column) => {
-      const customFieldId = parseCustomFieldColumnDef(column.matColumnDef);
-      if (customFieldId === undefined) {
-        return builtInColumnDefs.includes(column.matColumnDef);
-      }
-
-      return catalogAvailable ? knownCustomFieldIds.has(customFieldId) : true;
-    });
+    .filter((column) => builtInColumnDefs.includes(column.matColumnDef));
 
   const present = new Set(kept.map((column) => column.matColumnDef));
 
@@ -121,19 +53,9 @@ export function mergeCustomFieldColumns(
     (column) => !present.has(column.matColumnDef)
   );
 
-  const missingCustomFields = [...customFields]
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .filter((field) => !present.has(customFieldColumnDef(field.id)))
-    .map((field) => ({
-      matColumnDef: customFieldColumnDef(field.id),
-      visible: false,
-    }));
-
-  return [...kept, ...missingBuiltIns, ...missingCustomFields].map(
-    (column, index) => ({
-      matColumnDef: column.matColumnDef,
-      visible: column.visible,
-      order: index,
-    })
-  );
+  return [...kept, ...missingBuiltIns].map((column, index) => ({
+    matColumnDef: column.matColumnDef,
+    visible: column.visible,
+    order: index,
+  }));
 }
