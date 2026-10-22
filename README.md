@@ -84,7 +84,7 @@ password immediately**. To update, pull the new image and redeploy.
     </td>
     <td width="50%" valign="top">
       <img src="docs/screenshots/welcome-pl-dark.png" alt="The same welcome in Polish on the dark theme" />
-      <p align="center"><sub><b>Polski i ciemny motyw</b>: the whole app in Polish or English, light or dark</sub></p>
+      <p align="center"><sub><b>Multilingual, with light and dark themes</b></sub></p>
     </td>
   </tr>
 </table>
