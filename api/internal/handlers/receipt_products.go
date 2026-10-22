@@ -244,6 +244,9 @@ func AddReceiptProduct(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
+			if err := checkProductLabels(command, &vErr); err != nil {
+				return http.StatusInternalServerError, err
+			}
 			if len(vErr.Errors) > 0 {
 				structs.WriteValidatorErrorResponse(w, vErr, http.StatusBadRequest)
 				return 0, nil
@@ -261,7 +264,32 @@ func AddReceiptProduct(w http.ResponseWriter, r *http.Request) {
 	HandleRequest(handler)
 }
 
-// UpdateReceiptProduct corrects a product line's name, amount or quantity (Phase 3 C5).
+// checkProductLabels adds a validation error for a category or tag id that does not exist.
+func checkProductLabels(command commands.UpsertReceiptProductCommand, vErr *structs.ValidatorError) error {
+	if command.CategoryId != nil {
+		count, err := repositories.NewCategoryRepository(nil).CountByIds([]uint{*command.CategoryId})
+		if err != nil {
+			return err
+		}
+		if count != 1 {
+			vErr.Errors["categoryId"] = "Category not found"
+		}
+	}
+
+	if len(command.TagIds) > 0 {
+		count, err := repositories.NewTagsRepository(nil).CountByIds(command.TagIds)
+		if err != nil {
+			return err
+		}
+		if count != int64(len(command.TagIds)) {
+			vErr.Errors["tagIds"] = "Tag not found"
+		}
+	}
+
+	return nil
+}
+
+// UpdateReceiptProduct corrects a product line's name, amount, quantity, category or tags (Phase 3 C5).
 func UpdateReceiptProduct(w http.ResponseWriter, r *http.Request) {
 	product, ok := loadReceiptProductOrDeny(w, chi.URLParam(r, "productId"))
 	if !ok {
@@ -279,6 +307,9 @@ func UpdateReceiptProduct(w http.ResponseWriter, r *http.Request) {
 			command := commands.UpsertReceiptProductCommand{}
 			vErr, err := command.LoadDataFromRequestAndValidate(w, r)
 			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+			if err := checkProductLabels(command, &vErr); err != nil {
 				return http.StatusInternalServerError, err
 			}
 			if len(vErr.Errors) > 0 {

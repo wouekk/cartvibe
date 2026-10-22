@@ -41,6 +41,8 @@ type ClassificationResult struct {
 	Health      string
 	FoodGroup   string
 	Seasonality string
+	// CategoryId is FoodGroup's category, for receipt products (list items keep only the name).
+	CategoryId *uint `json:"-"`
 }
 
 type FoodClassificationRepository struct {
@@ -141,15 +143,34 @@ func classificationTable(kind string) string {
 
 // SaveClassification records the sweep's answer. It never overwrites a person's correction: the
 // classification_overridden guard covers one made while the AI was answering.
+//
+// A receipt product's category is kept apart: it is written with its id, and only while no person has
+// chosen the line's category.
 func (repository FoodClassificationRepository) SaveClassification(candidate ClassificationCandidate, result ClassificationResult, now time.Time) error {
-	return repository.GetDB().Table(classificationTable(candidate.Kind)).
-		Where("id = ? AND classification_overridden = false", candidate.Id).
-		Updates(map[string]any{
-			"health":        result.Health,
-			"food_group":    result.FoodGroup,
-			"seasonality":   result.Seasonality,
-			"classified_at": now,
-		}).Error
+	updates := map[string]any{
+		"health":        result.Health,
+		"seasonality":   result.Seasonality,
+		"classified_at": now,
+	}
+	if candidate.Kind == ClassificationKindItem {
+		updates["food_group"] = result.FoodGroup
+	}
+
+	return repository.GetDB().Transaction(func(tx *gorm.DB) error {
+		err := tx.Table(classificationTable(candidate.Kind)).
+			Where("id = ? AND classification_overridden = false", candidate.Id).
+			Updates(updates).Error
+		if err != nil || candidate.Kind == ClassificationKindItem {
+			return err
+		}
+
+		return tx.Table("receipt_products").
+			Where("id = ? AND classification_overridden = false AND category_overridden = false", candidate.Id).
+			Updates(map[string]any{
+				"food_group":  result.FoodGroup,
+				"category_id": result.CategoryId,
+			}).Error
+	})
 }
 
 // CountUnusableAnswer adds one to a candidate's attempts after the AI answered with something that

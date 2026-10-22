@@ -1028,7 +1028,10 @@ func (repository ReceiptRepository) BuildGormFilterQuery(pagedRequest commands.R
 		categories := pagedRequest.Filter.Categories.Value.([]interface{})
 		if len(categories) > 0 {
 			if pagedRequest.Filter.Categories.Operation == commands.CONTAINS {
-				query = query.Where("id IN (?)", db.Table("receipt_categories").Select("receipt_id").Where("category_id IN ?", categories))
+				// A receipt's own categories (older data) or those of its product lines.
+				query = query.Where(db.
+					Where("id IN (?)", db.Table("receipt_categories").Select("receipt_id").Where("category_id IN ?", categories)).
+					Or("id IN (?)", db.Table("receipt_products").Select("receipt_id").Where("category_id IN ?", categories)))
 			}
 		}
 
@@ -1039,7 +1042,12 @@ func (repository ReceiptRepository) BuildGormFilterQuery(pagedRequest commands.R
 		tags := pagedRequest.Filter.Tags.Value.([]interface{})
 		if len(tags) > 0 {
 			if pagedRequest.Filter.Tags.Operation == commands.CONTAINS {
-				query = query.Where("id IN (?)", db.Table("receipt_tags").Select("receipt_id").Where("tag_id IN ?", tags))
+				// A receipt's own tags (older data) or those of its product lines.
+				query = query.Where(db.
+					Where("id IN (?)", db.Table("receipt_tags").Select("receipt_id").Where("tag_id IN ?", tags)).
+					Or("id IN (?)", db.Table("receipt_products").Select("receipt_products.receipt_id").
+						Joins("JOIN receipt_product_tags ON receipt_product_tags.receipt_product_id = receipt_products.id").
+						Where("receipt_product_tags.tag_id IN ?", tags)))
 			}
 		}
 	}
