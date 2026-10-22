@@ -178,7 +178,7 @@ function templateMessages(source, add, addPlural) {
   TAG.lastIndex = 0;
 }
 
-const SNACKBAR = /[sS]nackbar\w*\s*\.\s*(?:success|error|info)\s*\(\s*/g;
+const SNACKBAR = /[sS]nack\w*\s*\.\s*(?:success|error|info)\s*\(\s*/g;
 const TRANSLATE_CALL = /(?<![\w$])t\s*\(\s*/g;
 const MARKER_CALL = /(?<![\w$])marker\s*\(\s*/g;
 
