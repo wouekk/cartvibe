@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, computed, OnInit, signal, TemplateRef, viewChild } from "@angular/core";
+import { AfterViewInit, Component, computed, OnInit, signal, TemplateRef, viewChild, inject } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
@@ -14,6 +14,8 @@ import { AuthState, GroupState, RemoveGroup } from "../../store";
 import { GroupTableState } from "../../store/group-table.state";
 import { GroupTableFilterComponent } from "../group-table-filter/group-table-filter.component";
 import { GroupTableService } from "./group-table.service";
+import { marker } from "../../i18n/marker";
+import { TranslationService } from "../../i18n/translation.service";
 
 @UntilDestroy()
 @Component({
@@ -30,6 +32,8 @@ import { GroupTableService } from "./group-table.service";
     standalone: false
 })
 export class GroupTableComponent extends BaseTableComponent<Group> implements OnInit, AfterViewInit {
+  private readonly translation = inject(TranslationService);
+
   public groups = this.store.selectSignal(GroupState.groups);
 
   private readonly nameCell = viewChild.required<TemplateRef<any>>("nameCell");
@@ -63,7 +67,7 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
     () => !this.canDeleteAnyGroup() && (this.groups()?.length ?? 0) <= 1
   );
 
-  public tableHeaderText = signal("My Households");
+  public tableHeaderText = signal(marker("My Households"));
 
   constructor(
     public override baseTableService: BaseTableService,
@@ -90,9 +94,9 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
         tap((filter) => {
             this.getTableData();
             if (filter.associatedGroup === AssociatedGroup.All) {
-              this.tableHeaderText.set("All Households");
+              this.tableHeaderText.set(marker("All Households"));
             } else {
-              this.tableHeaderText.set("My Households");
+              this.tableHeaderText.set(marker("My Households"));
             }
           }
         )
@@ -113,25 +117,25 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
         sortable: true,
       },
       {
-        columnHeader: "Number of Members",
+        columnHeader: marker("Number of Members"),
         matColumnDef: "number_of_members",
         template: this.numberOfMembersCell(),
         sortable: false,
       },
       {
-        columnHeader: "Created At",
+        columnHeader: marker("Created At"),
         matColumnDef: "created_at",
         template: this.createdAtCell(),
         sortable: true,
       },
       {
-        columnHeader: "Updated At",
+        columnHeader: marker("Updated At"),
         matColumnDef: "updated_at",
         template: this.updatedAtCell(),
         sortable: true,
       },
       {
-        columnHeader: "Actions",
+        columnHeader: marker("Actions"),
         matColumnDef: "actions",
         template: this.actionsCell(),
         sortable: false,
@@ -154,8 +158,8 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
         DEFAULT_DIALOG_CONFIG
       );
 
-      dialogRef.componentInstance.headerText = "Delete Group";
-      dialogRef.componentInstance.dialogContent = `Are you sure you would like to the group '${group.name}'? All receipts will be deleted as a result.`;
+      dialogRef.componentInstance.headerText = marker("Delete Group");
+      dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you want to delete the group '{name}'? All receipts will be deleted as a result.", { name: group.name });
 
       dialogRef.afterClosed().subscribe((r) => {
         if (r) {

@@ -1,4 +1,4 @@
-import {Component, computed, OnInit, signal} from "@angular/core";
+import {Component, computed, OnInit, signal, inject } from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import { AppDialog, AppDialogConfig } from "../../dialog/app-dialog";
 import {ActivatedRoute, Router} from "@angular/router";
@@ -16,6 +16,8 @@ import {
   DeleteAccountDialogData,
   DeleteAccountDialogResult,
 } from "../delete-account-dialog/delete-account-dialog.component";
+import { TranslationService } from "../../i18n/translation.service";
+import { marker } from "../../i18n/marker";
 
 @Component({
     selector: "app-user-profile",
@@ -23,6 +25,8 @@ import {
     standalone: false
 })
 export class UserProfileComponent implements OnInit {
+  private readonly translation = inject(TranslationService);
+
   public form: FormGroup = new FormGroup({});
 
   public user!: User;
@@ -32,7 +36,7 @@ export class UserProfileComponent implements OnInit {
   public formMode = FormMode;
 
   public usernameTooltip: string =
-    "Only system admin may change your username.";
+    marker("Only system admin may change your username.");
 
   protected readonly Permission = Permission;
 
@@ -89,7 +93,7 @@ export class UserProfileComponent implements OnInit {
 
   public ngOnInit(): void {
     this.user = this.store.selectSnapshot(AuthState.loggedInUser);
-    this.formConfig = this.route?.snapshot?.data?.["formConfig"];
+    this.formConfig = this.editableConfig(this.route?.snapshot?.data?.["formConfig"], this.canEdit());
     this.initForm();
     this.loadConnections();
     this.reportLinkOutcome();
@@ -119,9 +123,9 @@ export class UserProfileComponent implements OnInit {
       DEFAULT_DIALOG_CONFIG,
     );
 
-    dialogRef.componentInstance.headerText = `Disconnect ${connection.providerDisplayName}`;
+    dialogRef.componentInstance.headerText = this.translation.t("Disconnect {name}", { name: connection.providerDisplayName });
     dialogRef.componentInstance.dialogContent =
-      `Are you sure you want to disconnect ${connection.providerDisplayName}? You will no longer be able to sign in with it.`;
+      this.translation.t("Are you sure you want to disconnect {name}? You will no longer be able to sign in with it.", { name: connection.providerDisplayName });
 
     dialogRef
       .afterClosed()
@@ -135,7 +139,7 @@ export class UserProfileComponent implements OnInit {
           return this.oidcService.deleteOidcConnection(connection.providerName).pipe(
             tap(() => {
               this.snackbarService.success(
-                `${connection.providerDisplayName} disconnected`
+                this.translation.t("{name} disconnected", { name: connection.providerDisplayName })
               );
               this.loadConnections();
             }),
@@ -248,6 +252,14 @@ export class UserProfileComponent implements OnInit {
     }
   }
 
+  /**
+   * User settings are always editable (Save in the card footer, like System Settings): a view route turns into the
+   * edit form for anyone who may update, so there is no pencil to press first.
+   */
+  private editableConfig(config: FormConfig, canEdit: boolean): FormConfig {
+    return config?.mode === FormMode.view && canEdit ? { ...config, mode: FormMode.edit } : config;
+  }
+
   public submit(): void {
     if (this.form.valid) {
       this.userService
@@ -266,12 +278,7 @@ export class UserProfileComponent implements OnInit {
           }),
           tap(() => {
             this.snackbarService.success("User profile successfully updated");
-            this.router.navigate(["/settings/user-profile/view"],
-              {
-                queryParams: {
-                  tab: "user-profile",
-                }
-              });
+            this.form.markAsPristine();
           })
         )
         .subscribe();
@@ -360,10 +367,10 @@ export function buildOidcDeleteConfirmationUrl(providerName: string): string {
  */
 const DELETE_CONFIRMATION_ERROR_MESSAGES: Record<string, string> = {
   identity_mismatch:
-    "You signed in with a different account than the one connected here.",
+    marker("You signed in with a different account than the one connected here."),
   stale_login:
-    "Your provider didn't ask you to sign in again. Sign out of it and try again.",
-  not_linked: "That provider is no longer connected to your account.",
-  forbidden: "Your account can't be deleted this way.",
-  default: "Could not confirm the account deletion. Please try again.",
+    marker("Your provider didn't ask you to sign in again. Sign out of it and try again."),
+  not_linked: marker("That provider is no longer connected to your account."),
+  forbidden: marker("Your account can't be deleted this way."),
+  default: marker("Could not confirm the account deletion. Please try again."),
 };

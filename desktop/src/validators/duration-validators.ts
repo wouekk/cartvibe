@@ -1,4 +1,5 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from "@angular/forms";
+import { marker } from "../i18n/marker";
 
 /**
  * Bounds a duration setting edited as a number + unit pair: a whole number, at
@@ -32,19 +33,19 @@ export function durationValueValidator(max: number, min: number = 1): ValidatorF
 
     const value = Number(raw);
     if (!Number.isFinite(value)) {
-      return { duration: "Must be a whole number." };
+      return { duration: { message: marker("Must be a whole number.") } };
     }
 
     if (!Number.isInteger(value)) {
-      return { duration: "Must be a whole number." };
+      return { duration: { message: marker("Must be a whole number.") } };
     }
 
     if (value < min) {
-      return { duration: `Must be at least ${min}.` };
+      return { duration: { message: marker("Must be at least {min}."), min } };
     }
 
     if (value > max) {
-      return { duration: `Must be at most ${max}.` };
+      return { duration: { message: marker("Must be at most {max}."), max } };
     }
 
     return null;

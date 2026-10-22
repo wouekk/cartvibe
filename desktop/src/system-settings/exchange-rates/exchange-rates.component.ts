@@ -9,6 +9,7 @@ import { CurrencyRate, CurrencyRateTable, ExchangeRateService, Permission } from
 import { SnackbarService } from "../../services";
 import { AuthState } from "../../store";
 import { formatRate, parseCurrencyCode, parseRateInput, sanitizeRateInput, settleRateInput } from "./exchange-rate-input";
+import { TranslationService } from "../../i18n/translation.service";
 
 /** One row of the editor: a currency and the rate as typed (a string, so a half-typed number survives). */
 interface RateRow {
@@ -29,6 +30,8 @@ interface RateRow {
   imports: [TranslatePipe, PluralPipe, CommonModule, HlmButton, AppIconComponent],
 })
 export class ExchangeRatesComponent implements OnInit {
+  private readonly translation = inject(TranslationService);
+
   private readonly exchangeRateService = inject(ExchangeRateService);
   private readonly snackbarService = inject(SnackbarService);
   private readonly store = inject(Store);
@@ -143,7 +146,7 @@ export class ExchangeRatesComponent implements OnInit {
     for (const row of this.rows()) {
       const parsed = parseRateInput(row.rate);
       if (!parsed.ok) {
-        this.error.set(`The rate for ${row.code} must be a number above 0, like 1,04.`);
+        this.error.set(this.translation.t("The rate for {code} must be a number above 0, like 1,04.", { code: row.code }));
         return;
       }
       rates.push({ code: row.code, rate: parsed.value });

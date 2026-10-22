@@ -7,6 +7,7 @@
   [editButtonQueryParams]="{tab: 'user-profile'}"
   [settingsCard]="true"
   settingsTitle="User Profile"
+  [submitButtonDisabled]="form.pristine"
   (submitted)="submit()"
 ></app-form>
 
@@ -16,7 +17,7 @@
       [label]="'Username' | t"
       [inputFormControl]="form | formGet : 'username'"
       [readonly]="true"
-      [hlmTooltip]="formConfig.mode === formMode.edit ? usernameTooltip : ''"
+      [hlmTooltip]="formConfig.mode === formMode.edit ? (usernameTooltip | t) : ''"
     ></app-input>
     <app-input
       [label]="'Name' | t"

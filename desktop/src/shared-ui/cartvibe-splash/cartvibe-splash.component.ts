@@ -1,5 +1,6 @@
 import { Component, input } from "@angular/core";
 import { TranslatePipe } from "../../i18n/translate.pipe";
+import { marker } from "../../i18n/marker";
 
 /**
  * The full-screen loading and "signing you in" page: the animated CartVibe banner (`assets/brand/banner-wordmark-loading.svg`),
@@ -50,5 +51,5 @@ import { TranslatePipe } from "../../i18n/translate.pipe";
   ],
 })
 export class CartVibeSplashComponent {
-  public readonly text = input("Loading...");
+  public readonly text = input(marker("Loading..."));
 }

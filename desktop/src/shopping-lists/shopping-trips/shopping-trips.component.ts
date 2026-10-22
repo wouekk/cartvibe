@@ -1,6 +1,6 @@
 import { CurrencyPipe } from "@angular/common";
 import { HttpErrorResponse } from "@angular/common/http";
-import { Component, computed, effect, input, signal, untracked } from "@angular/core";
+import { Component, computed, effect, input, signal, untracked, inject } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { Actions, ofActionDispatched, Store } from "@ngxs/store";
@@ -15,6 +15,8 @@ import { downscaleImageForUpload } from "../../utils/downscale-image";
 import { hasAll } from "../../utils/permission.utils";
 import { AttachReceiptDialogComponent } from "../attach-receipt-dialog/attach-receipt-dialog.component";
 import { describeShoppingTrip, ShoppingTripStatus } from "./shopping-trip-status";
+import { marker } from "../../i18n/marker";
+import { TranslationService } from "../../i18n/translation.service";
 
 interface ShoppingTripRow {
   trip: ShoppingTripView;
@@ -36,6 +38,8 @@ interface ShoppingTripRow {
   providers: [CurrencyPipe],
 })
 export class ShoppingTripsComponent {
+  private readonly translation = inject(TranslationService);
+
   public readonly listId = input.required<number>();
 
   public readonly groupId = input.required<number>();
@@ -61,7 +65,7 @@ export class ShoppingTripsComponent {
   public readonly trips = signal<ShoppingTripView[]>([]);
 
   public readonly rows = computed<ShoppingTripRow[]>(() =>
-    this.trips().map((trip) => ({ trip, status: describeShoppingTrip(trip) }))
+    this.trips().map((trip) => ({ trip, status: describeShoppingTrip(trip, (text, params) => this.translation.t(text, params)) }))
   );
 
   public readonly uploading = signal(false);
@@ -161,7 +165,7 @@ export class ShoppingTripsComponent {
   }
 
   public remove(trip: ShoppingTripView): void {
-    this.confirm("Remove Receipt", "Remove this receipt from the list? The receipt itself is kept.")
+    this.confirm(marker("Remove Receipt"), marker("Remove this receipt from the list? The receipt itself is kept."))
       .pipe(switchMap(() => this.shoppingListService.detachShoppingTrip(trip.id)))
       .subscribe({
         next: () => this.trips.set(this.trips().filter((candidate) => candidate.id !== trip.id)),

@@ -55,7 +55,7 @@
         @for (row of displayRows(); track $index) {
           @if (row.kind === "collapsed") {
             <tr class="receipt-diff__collapsed" data-testid="receipt-diff-collapsed">
-              <td colspan="4">⋯ {{ row.count }} unchanged lines</td>
+              <td colspan="4">{{ '⋯ {count} unchanged lines' | t: { count: row.count } }}</td>
             </tr>
           } @else {
             <tr

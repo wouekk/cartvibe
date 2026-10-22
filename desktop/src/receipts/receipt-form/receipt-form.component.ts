@@ -50,6 +50,9 @@ import { ShareListComponent } from "../share-list/share-list.component";
 
 import { UploadImageComponent } from "../upload-image/upload-image.component";
 import { buildItemForm } from "../utils/form.utils";
+import { marker } from "../../i18n/marker";
+import { RenameReceiptDialogComponent } from "../rename-receipt-dialog/rename-receipt-dialog.component";
+import { TranslationService } from "../../i18n/translation.service";
 
 @UntilDestroy()
 @Component({
@@ -61,6 +64,8 @@ import { buildItemForm } from "../utils/form.utils";
   standalone: false
 })
 export class ReceiptFormComponent implements OnInit {
+  private readonly translation = inject(TranslationService);
+
   // Optional: the Shares section is not rendered (Phase 3 C4).
   public readonly shareListComponent = viewChild(ShareListComponent);
 
@@ -323,7 +328,7 @@ export class ReceiptFormComponent implements OnInit {
     }
 
     if (this.queueIndex != this.queueIds.length - 1) {
-      this.submitButtonText = "Save & Next";
+      this.submitButtonText = marker("Save & Next");
     }
 
     this.queueMode = this.activatedRoute.snapshot.queryParams["queueMode"];
@@ -393,20 +398,15 @@ export class ReceiptFormComponent implements OnInit {
         startWith(this.form.get("name")?.value),
         untilDestroyed(this),
         map((name) => {
-          let action = "";
+          // The page title is the action, or the receipt's own name when it is only being looked at.
           switch (this.mode) {
             case FormMode.add:
-              action = "Add";
-              break;
-            case FormMode.view:
-              action = "View";
-              break;
+              return marker("Add receipt");
             case FormMode.edit:
-              action = "Edit";
-              break;
+              return marker("Edit receipt");
+            default:
+              return (name ?? "").toString().trim() || marker("Receipt");
           }
-
-          return `${action} ${name} Receipt`;
         })
       )
     ));
@@ -782,6 +782,57 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
         )
         .subscribe();
     }
+  }
+
+  /** Remove from the image menu: asks first, since a stored image is deleted on the spot. */
+  public confirmRemoveImage(): void {
+    const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
+
+    dialogRef.componentInstance.headerText = marker("Remove Image");
+    dialogRef.componentInstance.dialogContent = marker("Are you sure you would like to remove this image?");
+
+    dialogRef
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.removeImage();
+        }
+      });
+  }
+
+  /** Rename from the image menu: a new receipt just takes the name, a saved one is renamed on the server at once. */
+  public renameReceipt(): void {
+    const dialogRef = this.matDialog.open(RenameReceiptDialogComponent, DEFAULT_DIALOG_CONFIG);
+    dialogRef.componentInstance.name = String(this.form.get("name")?.value ?? "");
+
+    dialogRef
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((newName?: string) => {
+        if (newName) {
+          this.applyRename(newName);
+        }
+      });
+  }
+
+  private applyRename(name: string): void {
+    const receiptId = this.originalReceipt?.id;
+    if (this.mode === FormMode.add || !receiptId) {
+      this.form.get("name")?.setValue(name);
+      return;
+    }
+
+    this.receiptService
+      .renameReceipt(receiptId, { name })
+      .pipe(take(1))
+      .subscribe((saved) => {
+        this.form.get("name")?.setValue(saved.name);
+        if (this.originalReceipt) {
+          this.originalReceipt.name = saved.name;
+        }
+        this.snackbarService.success(marker("Receipt renamed"));
+      });
   }
 
   public magicFill(): void {
@@ -1171,8 +1222,8 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
   public duplicateReceipt(): void {
     const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
 
-    dialogRef.componentInstance.headerText = "Duplicate Receipt";
-    dialogRef.componentInstance.dialogContent = `Are you sure you would like to duplicate the receipt ${this.originalReceipt?.name}?`;
+    dialogRef.componentInstance.headerText = marker("Duplicate Receipt");
+    dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you would like to duplicate the receipt {name}?", { name: this.originalReceipt?.name });
 
     dialogRef
       .afterClosed()
@@ -1246,7 +1297,9 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
     // flush-vertical path, giving the pane the full viewport height the canvas
     // stage then fills. Setting one silently re-centres the dialog.
     this.expandedImageDialog = this.matDialog.open(this.expandedImageTemplate(), {
-      width: "75%",
+      // Full width on a phone, where 75% would leave an unusable sliver around the photo.
+      width: window.innerWidth < 768 ? "100%" : "75%",
+      maxWidth: "100vw",
       height: "100%",
       // The close button is the only tabbable control, so the default
       // "first-tabbable" focus opens the viewer with a focus ring drawn around

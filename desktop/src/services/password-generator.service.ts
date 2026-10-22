@@ -1,12 +1,13 @@
 import { Injectable } from "@angular/core";
 import { generateSecurePassword } from "../utils/password.utils";
 import { SnackbarService } from "./snackbar.service";
+import { marker } from "../i18n/marker";
 
 export const PASSWORD_COPIED_MESSAGE =
-  "Password generated and copied to clipboard";
+  marker("Password generated and copied to clipboard");
 
 export const PASSWORD_COPY_FAILED_MESSAGE =
-  "Password generated, but copying to the clipboard failed";
+  marker("Password generated, but copying to the clipboard failed");
 
 /**
  * Generates a password and copies it to the clipboard, toasting the outcome.

@@ -6,7 +6,7 @@
     <span class="flex-1"></span>
     @if (ready() && !error()) {
       <span class="inline-flex cursor-pointer items-center gap-[5px] rounded-full border border-accent bg-card px-2.5 py-1 text-[11px] font-medium text-primary hover:bg-accent [&_app-icon]:size-3.5 [&_app-icon]:text-sm [&_app-icon]:text-primary" (click)="openReceipts()" data-testid="report-receipt-count">
-        <app-icon name="receipt_long"></app-icon>{{ receiptCount() }} receipts
+        <app-icon name="receipt_long"></app-icon>{{ receiptCount() }} {{ receiptCount() | plural: 'receipt' : 'receipts' }}
         <app-icon name="chevron_right"></app-icon>
       </span>
     }

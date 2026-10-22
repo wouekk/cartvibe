@@ -46,7 +46,8 @@ describe("validateFormulaExpr", () => {
     const status = validateFormulaExpr("Subtotal + Gst", columns);
     expect(status.ok).toBe(false);
     expect(status.kind).toBe("error");
-    expect(status.message).toContain("Gst");
+    expect(status.message).toBe("Unknown column: {name}");
+    expect(status.params).toEqual({ name: "Gst" });
   });
 
   it("rejects unbalanced parentheses", () => {

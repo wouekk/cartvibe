@@ -1,5 +1,6 @@
 import { CUSTOM_FIELD_BADGE } from "src/shared-ui/badge/badge.component";
 import { ReportColumn, ReportPeriod } from "../../open-api";
+import { marker } from "../../i18n/marker";
 
 /**
  * A selectable engine field: `key` is the reporting engine's field key (what the
@@ -44,15 +45,15 @@ export function toFieldOptions(fields: ReportField[]): ReportFieldOption[] {
 export const REPORT_BUILTIN_DIMENSIONS: ReportField[] = [
   { key: "paid_by", label: "Paid By" },
   { key: "category", label: "Category" },
-  { key: "tag", label: "Tag" },
+  { key: "tag", label: marker("Tag") },
   { key: "status", label: "Status" },
   { key: "group", label: "Group" },
   { key: "name", label: "Name" },
   { key: "shop", label: "Shop" },
-  { key: "date_month", label: "Month" },
-  { key: "date_year", label: "Year" },
+  { key: "date_month", label: marker("Month") },
+  { key: "date_year", label: marker("Year") },
   { key: "date", label: "Date" },
-  { key: "resolved_date", label: "Resolved Date" },
+  { key: "resolved_date", label: marker("Resolved Date") },
   { key: "created_at", label: "Added At" },
 ];
 
@@ -87,10 +88,10 @@ export interface ReportPeriodPreset {
 export const REPORT_PERIOD_PRESETS: ReportPeriodPreset[] = [
   { id: ReportPeriod.PresetEnum.ThisMonth, label: "This month" },
   { id: ReportPeriod.PresetEnum.LastMonth, label: "Last month" },
-  { id: ReportPeriod.PresetEnum.Mtd, label: "Month to date" },
-  { id: ReportPeriod.PresetEnum.Qtd, label: "Quarter to date" },
-  { id: ReportPeriod.PresetEnum.Ytd, label: "Year to date" },
-  { id: ReportPeriod.PresetEnum.Custom, label: "Custom range…" },
+  { id: ReportPeriod.PresetEnum.Mtd, label: marker("Month to date") },
+  { id: ReportPeriod.PresetEnum.Qtd, label: marker("Quarter to date") },
+  { id: ReportPeriod.PresetEnum.Ytd, label: marker("Year to date") },
+  { id: ReportPeriod.PresetEnum.Custom, label: marker("Custom range…") },
 ];
 
 /**

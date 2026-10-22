@@ -276,7 +276,7 @@
 
   @if (originalSystemSettings?.updatedAt) {
     <p class="m-0 text-xs text-muted-foreground" data-testid="settings-updated-at">
-      Updated {{ originalSystemSettings.updatedAt | appDate : "medium" }}
+      {{ 'Updated {date}' | t: { date: (originalSystemSettings.updatedAt | appDate : "medium") } }}
     </p>
   }
 

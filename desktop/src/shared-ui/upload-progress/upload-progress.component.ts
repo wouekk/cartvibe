@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input } from "@angular/core";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 import { UploadStage } from "../../utils/upload-progress";
+import { marker } from "../../i18n/marker";
 
 /**
  * A quiet upload bar: a hairline track with a fill in the primary token, so it is black on the White theme and white on
@@ -45,5 +46,5 @@ export class UploadProgressComponent {
 
   protected readonly width = computed(() => this.percent());
 
-  protected readonly label = computed(() => (this.stage()?.stage === "saving" ? "Saving…" : "Uploading {percent}%"));
+  protected readonly label = computed(() => (this.stage()?.stage === "saving" ? marker("Saving…") : marker("Uploading {percent}%")));
 }

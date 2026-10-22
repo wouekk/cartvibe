@@ -1,4 +1,5 @@
 import { ReceiptRequirements } from "../open-api";
+import { marker } from "../i18n/marker";
 
 /**
  * Resolves the caller's role-required receipt fields for one group from
@@ -27,9 +28,10 @@ export function missingReceiptRequirementsMessage(
   missingComment: boolean,
   missingImage: boolean
 ): string {
-  const missing = [
-    missingImage ? "an image" : "",
-    missingComment ? "a comment" : "",
-  ].filter(Boolean);
-  return `Your role requires ${missing.join(" and ")} on this group's receipts.`;
+  if (missingImage && missingComment) {
+    return marker("Your role requires an image and a comment on this group's receipts.");
+  }
+  return missingImage
+    ? marker("Your role requires an image on this group's receipts.")
+    : marker("Your role requires a comment on this group's receipts.");
 }

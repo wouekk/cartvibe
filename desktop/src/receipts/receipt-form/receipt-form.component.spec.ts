@@ -11,6 +11,7 @@ import { Store } from "@ngxs/store";
 import { BehaviorSubject, of } from "rxjs";
 import { FormMode } from "src/enums/form-mode.enum";
 import { PipesModule } from "src/pipes/pipes.module";
+import { RenameReceiptDialogComponent } from "../rename-receipt-dialog/rename-receipt-dialog.component";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { ApiModule, CustomFieldType, Permission, ReceiptImageService, ReceiptService, ReceiptStatus } from "../../open-api";
@@ -1336,6 +1337,87 @@ describe("ReceiptFormComponent", () => {
   });
 
   // The receipt page's Duplicate creates a real record, so it confirms first.
+  // The image menu (Preview / Rename / Remove) replaced the lone fullscreen and delete icon buttons.
+  describe("image menu actions", () => {
+    let receiptService: ReceiptService;
+
+    const stubDialog = (result: unknown) =>
+      jest.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({
+        componentInstance: {},
+        afterClosed: () => of(result),
+      } as any);
+
+    beforeEach(() => {
+      receiptService = TestBed.inject(ReceiptService);
+    });
+
+    it("renames a saved receipt on the server and updates the form and the loaded receipt", () => {
+      component.mode = FormMode.edit;
+      component.originalReceipt = { id: 4, name: "Lunch" } as any;
+      component.form.get("name")?.setValue("Lunch");
+      const rename = jest.spyOn(receiptService, "renameReceipt").mockReturnValue(of({ name: "Weekly shop" }) as any);
+      const open = stubDialog("Weekly shop");
+
+      component.renameReceipt();
+
+      expect(open).toHaveBeenCalledWith(RenameReceiptDialogComponent, expect.anything());
+      expect(rename).toHaveBeenCalledWith(4, { name: "Weekly shop" });
+      expect(component.form.get("name")?.value).toEqual("Weekly shop");
+      expect(component.originalReceipt?.name).toEqual("Weekly shop");
+    });
+
+    it("only fills in the name on a receipt that is not saved yet", () => {
+      component.mode = FormMode.add;
+      component.originalReceipt = undefined;
+      const rename = jest.spyOn(receiptService, "renameReceipt");
+      stubDialog("Corner shop");
+
+      component.renameReceipt();
+
+      expect(rename).not.toHaveBeenCalled();
+      expect(component.form.get("name")?.value).toEqual("Corner shop");
+    });
+
+    it("keeps the name when the rename is cancelled", () => {
+      component.mode = FormMode.edit;
+      component.originalReceipt = { id: 4, name: "Lunch" } as any;
+      component.form.get("name")?.setValue("Lunch");
+      const rename = jest.spyOn(receiptService, "renameReceipt");
+      stubDialog(undefined);
+
+      component.renameReceipt();
+
+      expect(rename).not.toHaveBeenCalled();
+      expect(component.form.get("name")?.value).toEqual("Lunch");
+    });
+
+    it("removes the image only once the confirmation is accepted", () => {
+      const remove = jest.spyOn(component, "removeImage").mockImplementation(() => {});
+
+      stubDialog(false);
+      component.confirmRemoveImage();
+      expect(remove).not.toHaveBeenCalled();
+
+      const open = stubDialog(true);
+      component.confirmRemoveImage();
+      expect(open).toHaveBeenCalledWith(ConfirmationDialogComponent);
+      expect(remove).toHaveBeenCalledTimes(1);
+    });
+
+    it("opens the preview full width on a phone", () => {
+      const open = jest.spyOn(TestBed.inject(AppDialog), "open");
+      const original = window.innerWidth;
+      try {
+        Object.defineProperty(window, "innerWidth", { value: 390, configurable: true });
+        component.expandImage();
+        expect(open.mock.calls.at(-1)?.[1]).toEqual(expect.objectContaining({ width: "100%", maxWidth: "100vw" }));
+      } finally {
+        Object.defineProperty(window, "innerWidth", { value: original, configurable: true });
+        component.closeExpandedImage();
+      }
+    });
+  });
+
   describe("duplicate confirmation", () => {
     let receiptService: ReceiptService;
 

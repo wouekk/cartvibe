@@ -2,7 +2,8 @@
 
 The original Receipt Wrangler maintainer's cross-component write-ups and processes, moved here verbatim
 on 2026-10-20 so the root `CLAUDE.md` can stay short and fork-first. Still accurate for the upstream
-features they describe; read the relevant section before changing one of those features.
+features they describe; read the relevant section before changing one of those features. References to
+`mobile/` and the Dart client are historical: the Flutter app was removed from this fork.
 
 ## API Client Regeneration
 
@@ -11,11 +12,10 @@ When the API swagger.yml changes, regenerate clients:
 ```bash
 # From api/ directory
 ./generate-client.sh desktop ../desktop/src/open-api
-./generate-client.sh mobile ../mobile/api
 ./generate-client.sh mcp <output-path>
 ```
 
-**IMPORTANT**: Never manually edit generated client code in `desktop/src/open-api/` or `mobile/api/`. Changes will be overwritten.
+**IMPORTANT**: Never manually edit generated client code in `desktop/src/open-api/`. Changes will be overwritten.
 
 **Drift runs the other way too — the spec can fall behind the server.** `swagger.yml`'s `QueueName`
 enum listed four of the Go side's five names (`system_clean_up` was missing) while
@@ -33,22 +33,8 @@ backfill on the *stored* side too, not just the spec. Both halves now live in
 `repositories/system_settings.go`; see `api/CLAUDE.md` → "Temporary file retention & cleanup" →
 "Upgrade path".
 
-**Regenerate `mobile/api/` in the SAME change as any `swagger.yml` edit** — not "later". It is easy
-to update the backend and desktop and forget mobile, because nothing fails: the Go tests pass, the
-desktop compiles, and the drift is invisible until a released Android build hits the new payload.
-That has caused **two production login outages** (2026-07-24, 2026-08-06). The Dart client is the
-strict one — a value added to any closed enum on a response model fails the *whole* payload's
-deserialization on every already-released binary. See `mobile/CLAUDE.md` → "Permission-based UI
-gating" for the mechanism and the guard tests.
-
-To check for drift at any time, compare *when* each was last touched — commit timestamps, since two
-short hashes tell you nothing about ordering:
-
-```bash
-swagger=$(git log -1 --format=%ct -- api/swagger.yml)
-client=$(git log -1 --format=%ct -- mobile/api)
-[ "$swagger" -le "$client" ] && echo "mobile/api is current" || echo "mobile/api is STALE — regenerate"
-```
+> The Flutter client (`mobile/`, its generated Dart client and the dart-dio patches) was removed; the
+> notes about regenerating it, the pinned Flutter/Dart SDK and `flutter analyze` went with it.
 
 **Generator on macOS:** `generate-client.sh` shells out to `npx @openapitools/openapi-generator-cli`,
 which fails with `EACCES` when the global npm prefix is root-owned. Run the pinned jar directly
@@ -58,46 +44,9 @@ instead (version is in `api/openapitools.json`), which produces identical output
 curl -fL -o /tmp/openapi-generator-cli-7.10.0.jar \
   https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/7.10.0/openapi-generator-cli-7.10.0.jar
 cd api
-java -jar /tmp/openapi-generator-cli-7.10.0.jar generate -i swagger.yml -g dart-dio -o ../mobile/api
 java -jar /tmp/openapi-generator-cli-7.10.0.jar generate -i swagger.yml -g typescript-angular -o ../desktop/src/open-api
-cd ../mobile/api && flutter pub get && dart run build_runner build
 ```
 
-`generate-client.sh` re-applies the four documented dart-dio patches itself, as the last step of a
-`mobile` regen (`api/patches/apply-dart-dio-patches.sh`); it **fails the regen** rather than
-returning an unpatched client if one no longer applies. Invoking the jar directly, as above, skips
-that step — run the patch script by hand afterwards. Either way run `flutter analyze` **and
-`flutter test`**: two of the four compile fine when missing (see `mobile/CLAUDE.md` → "Known
-dart-dio regressions").
-
-**Mobile regen without Flutter (e.g. the Claude Code web sandbox):** `mobile/api/pubspec.yaml` has
-**no Flutter dependency**, so the standalone **Dart SDK** is enough to finish the regen — Flutter is
-only needed for the app itself. Point `DART_SDK` at the copy inside an existing Flutter install, or
-at a standalone SDK unpacked from the dart-archive, and confirm the version before generating
-anything:
-
-```bash
-DART_SDK=/opt/flutter/bin/cache/dart-sdk   # Flutter's own Dart; or an unpacked dart-archive SDK
-export PATH="$DART_SDK/bin:$PATH"
-dart --version                             # confirm before regenerating (verified with 3.12.2)
-cd mobile/api && dart pub get && dart run build_runner build && dart analyze
-```
-
-**Use the Dart SDK that ships inside the pinned Flutter** (`3.41.7` — `.github/workflows/ci.yml`,
-`docker/dev/Dockerfile` `FLUTTER_VERSION`); a mismatched SDK is the main thing that widens the diff.
-Under Dart 3.12.2 `dart run build_runner build` reproduced the committed `.g.dart` files exactly, so
-the diff stayed limited to the actual swagger change — but that is **not** guaranteed across
-versions: the package declares `build_runner: any` and its `pubspec.lock` is gitignored, so a
-different resolution can reformat unrelated files. The pin can't be added to
-`mobile/api/pubspec.yaml` either — that file is generator output (see `.openapi-generator/FILES`) and
-is overwritten on the next regen. So **always read the diff and revert churn unrelated to the swagger
-change**.
-
-`dart analyze` substitutes for `flutter analyze` here (it reports the same errors) and stays scoped to
-`mobile/api` — judge a regen by the **error** count, which must be **0**. The warnings are
-pre-existing generator noise: ~78 in `mobile/api` of 111 across `mobile/`, the split recorded in
-`.github/workflows/ci.yml` where the analyzer is deliberately not gated. Keep those two numbers in
-sync with that comment.
 
 
 ## Running in the Claude Code Web/Cloud Sandbox

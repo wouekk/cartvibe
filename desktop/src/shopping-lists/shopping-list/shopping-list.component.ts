@@ -19,6 +19,8 @@ import {
 } from "../shopping-list-item-form";
 
 import { buildItemSuggestions, ItemSuggestion } from "../shopping-item-suggestions";
+import { TranslationService } from "../../i18n/translation.service";
+import { marker } from "../../i18n/marker";
 
 const OFFLINE_MESSAGE = "Couldn't reach the server. Check your connection and try again.";
 
@@ -29,6 +31,8 @@ const OFFLINE_MESSAGE = "Couldn't reach the server. Check your connection and tr
   standalone: false,
 })
 export class ShoppingListComponent {
+  private readonly translation = inject(TranslationService);
+
   public readonly list = input.required<ShoppingList>();
 
   public readonly groupId = input.required<number>();
@@ -135,7 +139,7 @@ export class ShoppingListComponent {
   }
 
   public deleteItem(item: ShoppingListItem): void {
-    this.confirm("Delete Item", `Delete "${item.name}" from this list?`)
+    this.confirm(marker("Delete Item"), this.translation.t("Delete \"{name}\" from this list?", { name: item.name }))
       .pipe(switchMap(() => this.shoppingListService.deleteShoppingListItem(item.id)))
       .subscribe({
         next: () => this.applyItem(ShoppingListEventType.ItemDeleted, item),
@@ -145,7 +149,7 @@ export class ShoppingListComponent {
 
   public clearCrossedOff(): void {
     const itemIds = this.checkedItems().map((item) => item.id);
-    this.confirm("Clear Crossed Off", `Remove all ${itemIds.length} crossed-off items from this list?`)
+    this.confirm(marker("Clear Crossed Off"), this.translation.t("Remove all {count} crossed-off items from this list?", { count: itemIds.length }))
       .pipe(switchMap(() => this.shoppingListService.clearCheckedShoppingListItems(this.list().id)))
       .subscribe({
         next: () =>

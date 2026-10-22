@@ -22,7 +22,8 @@ describe("describeShoppingTrip", () => {
       trip({ status: "DONE", productCount: 5, unplannedAmount: "4.98", unplannedProducts: ["Crisps", "Chocolate"] })
     );
     expect(status.kind).toBe("unplanned");
-    expect(status.text).toBe("not on the list: Crisps, Chocolate");
+    expect(status.text).toBe("not on the list: {names}");
+    expect(status.params).toEqual({ names: "Crisps, Chocolate" });
   });
 
   it("says when everything was planned", () => {

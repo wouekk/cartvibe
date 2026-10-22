@@ -11,46 +11,10 @@ import (
 	"receipt-wrangler/api/internal/repositories"
 	"receipt-wrangler/api/internal/services"
 	"receipt-wrangler/api/internal/structs"
-	"receipt-wrangler/api/internal/utils"
 
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
 )
-
-// OidcExchange redeems the mobile handoff code. Unauthenticated: the code plus
-// its PKCE proof is the authentication.
-func OidcExchange(w http.ResponseWriter, r *http.Request) {
-	handler := structs.Handler{
-		ErrorMessage: "Error completing sign in",
-		Writer:       w,
-		Request:      r,
-		ResponseType: constants.ApplicationJson,
-		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			appData, err := oidc.Exchange(w, r)
-			if err != nil {
-				// Every rejection reason is deliberately indistinguishable, so a caller
-				// cannot probe which codes exist.
-				if errors.Is(err, oidc.ErrInvalidExchange) {
-					return http.StatusBadRequest, err
-				}
-
-				return http.StatusInternalServerError, err
-			}
-
-			bytes, err := utils.MarshalResponseData(appData)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-
-			w.WriteHeader(http.StatusOK)
-			w.Write(bytes)
-
-			return 0, nil
-		},
-	}
-
-	HandleRequest(handler)
-}
 
 // GetOidcConnections lists the calling user's linked providers.
 func GetOidcConnections(w http.ResponseWriter, r *http.Request) {

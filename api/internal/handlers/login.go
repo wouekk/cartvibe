@@ -52,7 +52,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 			tokensInBodyOnly := r.URL.Query().Get("tokensInBody") == "true"
 
-			if utils.IsMobileApp(r) || tokensInBodyOnly {
+			if tokensInBodyOnly {
 				appData.Jwt = jwt
 				appData.RefreshToken = refreshToken
 			}

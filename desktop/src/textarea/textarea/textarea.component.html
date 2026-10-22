@@ -7,7 +7,7 @@
     hlmTextarea
     cdkTextareaAutosize
     id="textarea"
-    [placeholder]="placeholder ?? ''"
+    [placeholder]="(placeholder ?? '') | t"
     [readonly]="readonly"
     [formControl]="inputFormControl"
   ></textarea>
@@ -16,7 +16,7 @@
   }
   @if (inputFormControl.invalid && (inputFormControl.touched || inputFormControl.dirty)) {
     @for (err of formControlErrors | async; track err.error) {
-      <p class="text-xs text-destructive" role="alert">{{ err.message }}</p>
+      <p class="text-xs text-destructive" role="alert">{{ errorText(err) }}</p>
     }
   }
 </div>

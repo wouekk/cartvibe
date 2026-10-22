@@ -4,6 +4,7 @@ import { AppDialogRef } from "../../dialog/app-dialog";
 import { take, tap } from "rxjs";
 import { ApiKeyResult, ApiKeyScope, ApiKeyService, ApiKeyView, UpsertApiKeyCommand } from "../../open-api";
 import { SnackbarService } from "../../services";
+import { marker } from "../../i18n/marker";
 
 @Component({
   selector: "app-api-key-form-dialog",
@@ -17,9 +18,9 @@ export class ApiKeyFormDialogComponent implements OnInit {
   public form!: FormGroup;
   public apiKeyResult?: ApiKeyResult;
   public apiKeyScopes = [
-    { value: ApiKeyScope.R, label: "Read" },
-    { value: ApiKeyScope.W, label: "Write" },
-    { value: ApiKeyScope.Rw, label: "Read/Write" }
+    { value: ApiKeyScope.R, label: marker("Read") },
+    { value: ApiKeyScope.W, label: marker("Write") },
+    { value: ApiKeyScope.Rw, label: marker("Read/Write") }
   ];
 
   constructor(

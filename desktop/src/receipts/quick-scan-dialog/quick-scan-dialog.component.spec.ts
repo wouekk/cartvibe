@@ -386,6 +386,56 @@ describe("QuickScanDialogComponent", () => {
     }
   });
 
+  describe("photo rows and drop zone", () => {
+    it("lists each photo as its own attachment row and removes only that one", () => {
+      const originalCreateObjectURL = URL.createObjectURL;
+      try {
+        URL.createObjectURL = jest.fn().mockReturnValue("blob");
+        component.fileLoaded({ file: { name: "a.jpg", size: 2048 } } as any);
+        component.fileLoaded({ file: { name: "b.jpg", size: 3 * 1024 * 1024 } } as any);
+        fixture.changeDetectorRef.markForCheck();
+        fixture.detectChanges();
+
+        const rows = fixture.nativeElement.querySelectorAll('[data-testid="quick-scan-attachment"]');
+        expect(rows.length).toBe(2);
+        expect(rows[0].textContent).toContain("a.jpg");
+        expect(rows[0].textContent).toContain("2 KB");
+        expect(rows[1].textContent).toContain("3.0 MB");
+
+        component.removeImage(0);
+        fixture.changeDetectorRef.markForCheck();
+        fixture.detectChanges();
+
+        const left = fixture.nativeElement.querySelectorAll('[data-testid="quick-scan-attachment"]');
+        expect(left.length).toBe(1);
+        expect(left[0].textContent).toContain("b.jpg");
+        expect(component.groupIds.length).toBe(1);
+      } finally {
+        URL.createObjectURL = originalCreateObjectURL;
+      }
+    });
+
+    it("hands dropped files to the uploader and shows the drop state while dragging", () => {
+      // The uploader is not declared in this spec, so its required view query has no value: stand one in.
+      const processFiles = jest.fn().mockResolvedValue(undefined);
+      (component as any).uploadImageComponent = () => ({ processFiles });
+      const file = new File(["x"], "dropped.jpg", { type: "image/jpeg" });
+      const preventDefault = jest.fn();
+
+      component.onDragOver({ preventDefault } as any);
+      expect(component.dragging()).toBe(true);
+      component.onDragLeave();
+      expect(component.dragging()).toBe(false);
+
+      component.onDragOver({ preventDefault } as any);
+      component.onDrop({ preventDefault, dataTransfer: { files: [file] } } as any);
+
+      expect(preventDefault).toHaveBeenCalled();
+      expect(component.dragging()).toBe(false);
+      expect(processFiles).toHaveBeenCalledWith([file]);
+    });
+  });
+
   it("should send category and tag ids per image on submit", () => {
     const originalCreateObjectURL = URL.createObjectURL;
     try {

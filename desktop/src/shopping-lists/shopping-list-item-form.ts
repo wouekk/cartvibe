@@ -1,5 +1,6 @@
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { ShoppingListItem, UpsertShoppingListItemCommand } from "../open-api";
+import { marker } from "../i18n/marker";
 
 // Match the API's column limits, so an over-long value is caught here rather than as a 400.
 export const SHOPPING_LIST_ITEM_NAME_MAX_LENGTH = 200;
@@ -10,19 +11,19 @@ export const SHOPPING_LIST_ITEM_NOTE_MAX_LENGTH = 500;
  * is a plain string on the contract, so a unit the API adds later still displays, as its raw value.
  */
 export const SHOPPING_LIST_UNITS: { value: string; displayValue: string }[] = [
-  { value: "pcs", displayValue: "pcs" },
-  { value: "kg", displayValue: "kg" },
-  { value: "g", displayValue: "g" },
-  { value: "l", displayValue: "L" },
-  { value: "ml", displayValue: "ml" },
-  { value: "pack", displayValue: "pack" },
-  { value: "bottle", displayValue: "bottle" },
-  { value: "can", displayValue: "can" },
-  { value: "box", displayValue: "box" },
-  { value: "bag", displayValue: "bag" },
-  { value: "jar", displayValue: "jar" },
-  { value: "bunch", displayValue: "bunch" },
-  { value: "dozen", displayValue: "dozen" },
+  { value: "pcs", displayValue: marker("pcs") },
+  { value: "kg", displayValue: marker("kg") },
+  { value: "g", displayValue: marker("g") },
+  { value: "l", displayValue: marker("L") },
+  { value: "ml", displayValue: marker("ml") },
+  { value: "pack", displayValue: marker("pack") },
+  { value: "bottle", displayValue: marker("bottle") },
+  { value: "can", displayValue: marker("can") },
+  { value: "box", displayValue: marker("box") },
+  { value: "bag", displayValue: marker("bag") },
+  { value: "jar", displayValue: marker("jar") },
+  { value: "bunch", displayValue: marker("bunch") },
+  { value: "dozen", displayValue: marker("dozen") },
 ];
 
 export const DEFAULT_SHOPPING_LIST_UNIT = "pcs";

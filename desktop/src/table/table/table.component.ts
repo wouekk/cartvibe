@@ -4,6 +4,7 @@ import { Component, Input, OnChanges, SimpleChanges, inject, input, output, sign
 import { TranslationService } from "../../i18n/translation.service";
 import { TableColumn } from "../table-column.interface";
 import { PageEvent, Sort, TableDataSource } from "../table-types";
+import { marker } from "../../i18n/marker";
 
 @Component({
   selector: "app-table",
@@ -159,9 +160,9 @@ export class TableComponent implements OnChanges {
   public announceSortChange(sortState: Sort) {
     this.sortState.set(sortState);
     if (sortState.direction) {
-      this._liveAnnouncer.announce(`Sorted ${sortState.direction}ending`);
+      this._liveAnnouncer.announce(this.translation.t(sortState.direction === "asc" ? marker("Sorted ascending") : marker("Sorted descending")));
     } else {
-      this._liveAnnouncer.announce("Sorting cleared");
+      this._liveAnnouncer.announce(this.translation.t(marker("Sorting cleared")));
     }
 
     this.sorted.emit(sortState);

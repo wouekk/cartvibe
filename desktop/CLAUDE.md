@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+> **The Flutter app was removed.** Remarks below about "mobile" or the Dart client are history.
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Visual identity: high-craft fintech (binding for every UI change)
@@ -1087,70 +1089,10 @@ fields & single-call create" for the contract.
   `/receiptImage` upload, edit refusing the last image/comment (UI and server 400), and quick scan
   requiring the comment (UI, plus the server's 400 without one).
 
-## Login QR (mobile app setup)
+## Login QR (removed)
 
-A QR that deep-links users into the mobile app to set it up. It renders in **two** places — the login
-page (`src/auth/sign-up/auth-form.component.*`, shared by login + sign-up) and the **About dialog**
-(`src/about/about/about.component.*`), so a user who is already signed in can reach it without logging
-out. Both consume the shared standalone **`app-login-qr`** (`src/shared-ui/login-qr/`), which owns the
-whole generation path; do not re-implement it at a third call site.
-
-It is **self-contained** — generated locally with the `qrcode` package (no external QR service), from
-the derived `featureConfig.loginQrUrl` string the backend composes (see `api/CLAUDE.md` → "Login QR &
-mobile deep link"). The component reads `FeatureConfigState.loginQrUrl` via `store.selectSignal`,
-regenerates a `data:` URL in an `effect()` (the `qrDataUrl` signal), and its template renders
-**nothing** unless that signal is set (`@if (qrDataUrl())`), so the QR appears only when an admin
-enabled it and neither call site carries generation-state logic. Generation is async, so the effect
-takes an `onCleanup` cancellation flag — a URL change leaves the previous `QRCode.toDataURL` in flight,
-and without the guard a late-resolving stale QR could overwrite the current one. Its two inputs are
-presentation only: an optional `headerText` (renders the divider row; the login page passes
-"Set up the mobile app", About omits it) and a `caption` with the default scan-instruction text. The
-`.login-qr*` styles live in the component (encapsulated), **not** in the login page's
-`ViewEncapsulation.None` stylesheet.
-
-Availability differs per call site but needs no extra plumbing: the login page is pre-auth and gets
-`loginQrUrl` from `GET /featureConfig`, while About rides on the authenticated `GET /appData`
-(`setAppData` already dispatches `SetFeatureConfig`). About is the one call site that also gates on the
-**setting** — `@if (loginQrUrl())` around its "Mobile App" `app-form-section` — because an
-`app-form-section` would otherwise render an empty header when the feature is off. No permission gate:
-`loginQrUrl` is a public, pre-auth value. `FeatureConfigState` gained a `loginQrUrl` default (`""`), a
-selector, and — the load-bearing bit — the field in the `SetFeatureConfig` `patchState` block (that
-block lists each field explicitly, so a new field is silently dropped unless added there; guarded by
-`feature-config.state.spec.ts`).
-
-Admins configure it on the System Settings form (`src/system-settings/system-settings-form/`): a
-"Mobile App Setup" `app-form-section` with a **Show login QR code** `app-checkbox` (`showLoginQr`) and
-a **Mobile Server URL** `app-input` (`mobileServerUrl`), the URL conditionally required when the toggle
-is on (`listenForShowLoginQrChanges`, mirroring the MCP section's pattern). Saving refetches the
-feature config, so the login QR updates without a reload.
-
-Both URL settings — `mobileServerUrl` and `mcpPublicUrl` — also carry the shared
-**`absoluteUrlValidator()`** (`src/validators/url-validators.ts`), a port of the backend's
-`isValidAbsoluteUrl`: absolute http(s), non-empty host, no embedded credentials, and whitespace-only
-treated as invalid (the backend trims before its own emptiness check, so spaces would otherwise
-satisfy `Validators.required` and still be rejected server-side). It applies with the toggle **off**
-too, because the backend validates any non-empty URL regardless of the toggle.
-
-It also requires a **literal `http://` / `https://` prefix** before parsing, because `new URL()` is
-more lenient than Go's `url.Parse`: it normalizes authority-less forms (`https:host/api`,
-`https:/host/api`, and backslash variants) into a valid URL, while `url.Parse` leaves `Host` empty
-and the server rejects them — so without the prefix check the form would green-light a value that
-400s. The test is **case-insensitive** on purpose (`url.Parse` lowercases the scheme, so
-`HTTPS://host` is valid server-side); pinned by the "rejects url forms that the backend rejects" spec
-case. Both listener methods
-build their list through the shared `urlValidators(required)` helper — `setValidators` replaces the
-whole list, so the format check must be re-supplied on every toggle rather than declared in `initForm`.
-
-**E2E:** `e2e/login-qr.spec.ts` (serial, admin `storageState` + a fresh unauthenticated context for the
-login page) drives the whole flow — admin enables the toggle + URL in System Settings and it persists,
-the QR `<img>` then renders on `/auth/login` with the `featureConfig.loginQrUrl` decoding back to the
-configured server URL, the **About dialog** shows the same QR in an admin session (sidebar avatar →
-About; the avatar carries `data-testid="sidebar-avatar-menu"` for this), and disabling hides it. It
-reverts `showLoginQr` via the admin API in `afterAll` (the setting is global). Component-level specs
-live alongside the code: `login-qr.component.spec.ts` (the generation unit cases — empty, generated,
-divider-only-with-`headerText`, turned back off, and the stale-generation guard),
-`feature-config.state.spec.ts`, `auth-form.component.spec.ts` and `about.component.spec.ts` (each
-pinning that its page wires the shared component up), and `system-settings-form.component.spec.ts`.
+The login QR and its `showLoginQr` / `mobileServerUrl` settings went away with the Flutter app.
+The shared `absoluteUrlValidator()` (`src/validators/url-validators.ts`) still guards `mcpPublicUrl`.
 
 ## OIDC sign-in (external identity providers)
 
@@ -1601,17 +1543,7 @@ End-to-end tests live in `e2e/` and use **Playwright**. They drive the real Angu
 
 In CI the same spec files run against the demo URL. GitHub secrets populate the `E2E_*` vars — point `E2E_BASE_URL` at `https://demo.receiptwrangler.io` and supply the secret credentials. When `E2E_BASE_URL` is remote, the config skips the `webServer` block and does not start a local dev server.
 
-**The mobile suite shares that backend.** `.github/workflows/mobile-e2e.yml`'s `android-e2e` job reads
-the same `secrets.E2E_BASE_URL`, and both suites mutate **global** System Settings (the login-QR
-toggle, the AI-powered-receipts flag). Their workflow-level concurrency groups differ, so the desktop
-`e2e` job and the mobile `android-e2e` job additionally share a **job-level** concurrency group
-(`e2e-shared-backend`, `cancel-in-progress: false`) that queues one behind the other. The group name
-is deliberately **ref-independent** — the backend is a single shared resource, and `mobile-e2e.yml`
-also fires on `tech/mobile-e2e` / `workflow_dispatch` while `e2e.yml` fires only on `main`, so a
-`${{ github.ref }}`-scoped group would put them in different buckets and let both run at once. Keep
-the two groups byte-identical. Any new spec that mutates a global setting relies on that lock — don't
-remove it, and prefer client-side interception (below) over server mutation whenever the assertion
-allows it.
+The mobile e2e suite that used to share this backend was removed.
 
 ### Best practices (follow these when adding new e2e tests)
 
@@ -2912,6 +2844,12 @@ never hand-edited.
 - **Quick Scan:** nothing is required (`resolveQuickScanFieldConfig`; only the comment keeps its rules), a sole group is
   seeded and its picker hidden. The **Upload photos** button is a centered raised button in the dialog body ("Add more
   photos" once there are some).
+- **Quick Scan closes right after the upload** (one photo or many): "Receipts uploaded. You will get a notification once the AI has read them, or if it fails." The API notifies the uploader per scan (`quick_scan_handler.go`, with a link to the receipt), so there is no waiting and no redirect. Photos are added by dropping or choosing them and listed as spartan `attachment` rows (thumbnail, name, size, remove) with their per-photo fields underneath; there is no carousel. `UploadImageComponent.processFiles` is the one entry for picked and dropped files.
+- **Image menu on the receipt form** (`receipt-image-menu`, a `hlmDropdownMenuTrigger` laid over the image stage, 44 px
+  target, so it stays in reach after scrolling on a phone): Preview (`expandImage`, full width under 768 px), Rename
+  (`RenameReceiptDialogComponent`; a saved receipt goes to `renameReceipt`, a new one just takes the name in the form) and
+  Remove (`confirmRemoveImage`, with a confirmation). It replaced the header's fullscreen and delete icon buttons; the other
+  header buttons (upload, download, hide, zoom, magic fill) stay. Menu entries are plain buttons, like the receipts table's.
 
 ## Shopping lists (`src/shopping-lists/`)
 
@@ -3013,13 +2951,19 @@ Angular Material, Bootstrap and the Tailwind CDN are gone (`docs/material-remova
 - Phones: no horizontal overflow at 360 px. Flex children that hold text need `min-w-0`; headings use `break-words`; page padding is
   `p-4 sm:p-6`; inputs are 16 px on small screens (no iOS zoom); `dvh` and safe-area insets are in the base layer of `tailwind.css`.
 
-## Translations (`src/i18n/`)
+## Translations (`src/i18n/`, `src/assets/i18n/`, `scripts/i18n/`)
 
-The **English text in a template is the key**: `{{ 'Add receipt' | t }}` (pipe `t`, exported by `PipesModule`; standalone components import `TranslatePipe`), `'{n} items' | t: { n: 3 }` for parameters, `count | plural: 'item' : 'items'` for nouns, and `TranslationService.t()` in TypeScript. A missing translation shows the English text, so nothing is ever blank.
-- **Languages are data.** `languages/<code>.ts` exports a `LanguageDefinition` (`code`, `label` in its own language, `messages`, optional `plurals` + `pluralIndex`, month names go in `messages`); `languages/index.ts` lists them. **To add a language: copy `pl.ts` and its message files, translate, add one line to `LANGUAGES`.** The menu (account menu in the sidebar), the browser-language detection, the preference validation and the specs all follow the registry; the API accepts any well-formed code, so no API change.
-- Precedence: saved preference (`UserPreferences.language`, synced by `LanguageSyncService`) > the choice made on this device (`localStorage`) > the browser language > the first registered language. `TranslationService` has no dependencies on purpose: every pipe uses it.
-- Component inputs that carry text (`label`, `headerText`, `buttonText`, option labels, table headers, filter chips) are translated where the shared component renders them, so callers pass plain English. Dates, money and group/shop names are data and are not translated (month names in period labels go through `months()`).
-- `translation.service.spec.ts` checks every registered language: the same `{placeholders}` as the English key and enough plural forms for its rule. Missing keys are not an error; find them by switching the language in the app.
+The **English text is the key**: `{{ 'Add receipt' | t }}` (pipe `t`, exported by `PipesModule`; standalone components import `TranslatePipe`), `'{n} items' | t: { n: 3 }` for parameters, `count | plural: 'item' : 'items'` for nouns, `TranslationService.t()` in TypeScript. A missing translation shows the English text (never a key path), and `null` or `""` in a dictionary counts as missing.
+- **Languages are runtime JSON** in `src/assets/i18n/`: `languages.json` is the registry (`code`, `label` in the language's own name, Angular `locale`; no flags), `<code>.json` is one dictionary (`{ messages, plurals }`), `en.json` is the **generated catalogue** (never fetched at runtime). `TranslationLoader` fetches them through `HttpBackend` (no interceptors, no error toast) and an app initializer loads the registry and the cached language before the first render. A dictionary that fails to load leaves the interface in English. nginx serves the folder with `no-cache` + ETag, so an edited file is picked up on the next load; a new language still ships in the image.
+- **Adding a language, no component code:** add a line to `languages.json`, run `npm run i18n:sync -- --lang xx` (creates `xx.json` with every key `null`), translate, and add its Angular locale data to `src/i18n/locale-data.ts` if it is not there (en, pl, de, fr, es, it, nl, pt, cs, sk, uk are; any other language formats dates in en-US instead of blanking them).
+- **The language is never taken from the browser.** Signed out (including the login page) is English; signed in it is `UserPreferences.language` (synced by `LanguageSyncService`, which loads the dictionary first and then switches, so the interface changes once). `localStorage` (`cartvibe.language`) only caches the signed-in account's language to avoid an English flash on reload and is cleared when the preferences go away (logout). The choice is made in User Settings → Theme → Language (applies at once, no Save) or in the sidebar account menu; both save it with the account, so it follows the person to every device.
+- **Plurals** follow `Intl.PluralRules` (CLDR `one/few/many/other`): `plurals` in a dictionary lists exactly the language's categories per noun; lookup is category, then `other`, then the English singular/plural.
+- **Strings defined in TypeScript** (column headers, option labels, presets, toasts, error texts) are wrapped in `marker("Created At")` (`src/i18n/marker.ts`, an identity function) where they are defined and translated where they are shown (`| t`, or a component that translates its `label`, `headerText`, `buttonText`, `tooltip` ... input). A text with values is a key with `{placeholders}` and parameters (`this.translation.t("Delete {name}", { name })`), **never a template literal or concatenation** (`i18n:check` fails on that). Pure helpers with no injector take an optional `TranslateFn` (`src/i18n/translate-fn.ts`) and call `translate(marker("{percent}% less than {name}"), { ... })`; results that carry a message for a template return `message` + `params` and the template renders `message | t: params`.
+- **Validation messages** (`validation-messages.ts`): `required`, `email`, `min`, `max`, `minlength`, `maxlength`, `pattern`, `duplicate` map to keys such as `{label} must be at least {min}.`. `BaseInputComponent` emits `{ error, key, params, message }` and the five input templates render `errorText(err)`, which translates the label first and reads the language signal (so messages switch language at once). A custom validator may return a string (the key) or `{ message: "…{min}…", min }`; `additionalErrorMessages` overrides per field.
+- **Backend messages stay English** (no Go i18n): `i18n:extract` reads the `WriteCustomErrorResponse` message literals and `errors["x"] = "…"` in `api/internal` (skipping field-name technical messages like "name is required" and partial prefixes), `SnackbarService` translates them. Notification titles and bodies are stored in English with parameter tokens; the notification component translates the title and the **parsed** body (a `{user} has added a comment…` key matched by the interpolation patterns). Texts only data can reveal (month names, category names, enum words, the API's notification and starter-report texts) are listed in `scripts/i18n/extra-keys.json`.
+- **Tooling, Node built-ins only** (`desktop/scripts/i18n/`): `npm run i18n:extract` rebuilds `en.json` from templates (`'…' | t`, `plural`, text inputs of `app-*` components, `app-settings-*` title/description), TypeScript (`t(`, snackbar, `marker(`) and Go; `npm run i18n:check` (CI, desktop job, before Jest) **fails** on a stale `en.json`, a language key that is not in the catalogue (prints the closest current key), placeholder or plural-category mismatch, a language in `languages.json` without a file, a template literal passed to `t`/a snackbar, and **warns** with per-language coverage; `npm run i18n:sync -- --lang xx` adds missing keys as `null`, keeps translations, moves orphans to `_orphaned`. `--translate` fills only `null` keys through Gemini (`GEMINI_API_KEY`, developer machine only, English UI strings only, results listed in `_review`); it is never run in CI and was not run when the system was built.
+- **When you add a screen:** write the English text through `t`/`marker`, run `npm run i18n:extract`, then `npm run i18n:sync -- --lang pl` and fill the `null`s in `pl.json` (coverage must stay 100% for Polish, the check only warns for other gaps). Dates, money and household/shop names are data and not translated (month names in period labels go through `months()`); the `appDate` pipe formats with `TranslationService.locale()`. Dev builds collect untranslated texts in `window.__i18nMissing`.
+- Specs read the real JSON through `src/i18n/i18n-test-utils.ts` (`registerRealLanguages`) and run in English by default, so text assertions keep working; `translation.service.spec.ts` also checks every language's placeholders and plural categories.
 
 ### Styling rules (after the Tailwind conversion)
 - New and touched components use **Tailwind classes in the template**; a component stylesheet is only for what utilities cannot say (CDK drag classes, the image canvas and carousel, the diff table, the report config panel and column picker, whose classes come from TypeScript). Hosts get their classes from `host: { class: "..." }`, not `:host {}`.
@@ -3039,6 +2983,10 @@ Every Admin and User settings page uses four shared primitives from `src/shared-
 - **Save sits in the card footer, right-aligned, status text left** (`<div sectionFooter class="rw-card__footer">`); every card that saves has one.
 - **`app-settings-tabs`**: the one segmented strip; `app-filter-bar` and `app-tabs` render through it. **`app-settings-entity-list`**: draws an `app-table` on the card surface (a table inside `rw-card` loses its own border and shadow).
 - `app-form [settingsCard]="true" settingsTitle="..."` draws a form as one card (Edit in the head, submit in the footer). `app-table-header` is still used by receipts, reports and shopping lists, not by settings pages.
+- **Settings forms are always editable** (no view/edit pencil): User Profile, User Preferences, Household details and Household receipt settings turn their `/view` route into the edit form for anyone who may update (`editableConfig` / the group components' `ngOnInit`), Save sits in the footer (disabled while pristine) and settles the form instead of navigating. Sections inside use `app-form-section [panel]="true"` (flat rows; its content gets a `gap-3`). The household has no "Group AI Settings" tab any more (AI is household-wide).
+- **AI page:** a saved key shows as dots (`SAVED_KEY_PLACEHOLDER` in the key box, never the key), and **Test connection works on the form as typed**, saved or not: an untouched form tests `{ id }`, a changed one sends the whole command and the API falls back to the stored key for an empty key box (`CheckReceiptProcessingSettingsConnectivity`; a connectivity check ignores the missing prompt id).
+- **Page headers:** `app-form-header` (used by `app-form` and the receipt form) is the settings page header too: a quiet Back link, a 24px title, the header buttons on the right. The receipt form's panels are two columns on desktop (Details with amount | date side by side, Images with an empty-state upload button), comments are one card, Save in the footer bar.
+
 
 ### Receipts search and the product checker (fork, 2026-10)
 

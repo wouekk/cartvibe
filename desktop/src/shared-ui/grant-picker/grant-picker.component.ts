@@ -1,9 +1,11 @@
-import { Component, computed, effect, input, output } from "@angular/core";
+import { Component, computed, effect, input, output, inject } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormArray, FormControl } from "@angular/forms";
 import { CategoryAutocompleteComponent } from "../../category-autocomplete/category-autocomplete.component";
 import { Category, Tag } from "../../open-api";
 import { TagAutocompleteComponent } from "../../tag-autocomplete/tag-autocomplete.component";
+import { TranslationService } from "../../i18n/translation.service";
+import { marker } from "../../i18n/marker";
 
 /**
  * The ids a picker is allowed to offer, and the name of whatever imposes the
@@ -50,6 +52,8 @@ let grantPickerInstanceCount = 0;
   templateUrl: "./grant-picker.component.html",
 })
 export class GrantPickerComponent {
+  private readonly translation = inject(TranslationService);
+
   public readonly categoryPool = input<Category[]>([]);
   public readonly tagPool = input<Tag[]>([]);
 
@@ -168,7 +172,8 @@ export class GrantPickerComponent {
     if (!ceiling || available.length === pool.length) {
       return "";
     }
-    return `Limited to the ${available.length} ${resource} allowed by ${ceiling.label}.`;
+    const key = resource === "categories" ? marker("Limited to the {count} categories allowed by {name}.") : marker("Limited to the {count} tags allowed by {name}.");
+    return this.translation.t(key, { count: available.length, name: ceiling.label });
   }
 
   private setGrantArray<T>(array: FormArray, values: T[]): void {

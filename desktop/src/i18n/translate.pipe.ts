@@ -16,7 +16,7 @@ export class PluralPipe implements PipeTransform {
 export class TranslatePipe implements PipeTransform {
   private readonly translation = inject(TranslationService);
 
-  public transform(text: string | null | undefined, params?: Record<string, string | number>): string {
+  public transform(text: string | null | undefined, params?: Record<string, string | number | null | undefined>): string {
     return text ? this.translation.t(text, params) : "";
   }
 }

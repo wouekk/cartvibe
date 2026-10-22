@@ -10,6 +10,7 @@ import { setAppData } from "src/utils";
 import { fadeIn, fadeInOut } from "../../animations";
 import { GroupState } from "../../store";
 import { UserValidators } from "../../validators";
+import { marker } from "../../i18n/marker";
 
 @Component({
     selector: "app-auth-form",
@@ -62,10 +63,10 @@ export class AuthForm implements OnInit {
       .pipe(
         tap((isSignUp) => {
           if (isSignUp) {
-            this.headerText = "Sign Up";
-            this.primaryButtonText = "Sign Up";
+            this.headerText = marker("Sign Up");
+            this.primaryButtonText = marker("Sign Up");
             this.secondaryButtonRouterLink = ["/auth/login"];
-            this.secondaryButtonText = "Back to Login";
+            this.secondaryButtonText = marker("Back to Login");
             this.form
               .get("username")
               ?.addAsyncValidators(this.userValidators.uniqueUsername(0, ""));
@@ -74,10 +75,10 @@ export class AuthForm implements OnInit {
               new FormControl("", Validators.required)
             );
           } else {
-            this.headerText = "Login";
-            this.primaryButtonText = "Login";
+            this.headerText = marker("Login");
+            this.primaryButtonText = marker("Login");
             this.secondaryButtonRouterLink = ["/auth/sign-up"];
-            this.secondaryButtonText = "Sign Up";
+            this.secondaryButtonText = marker("Sign Up");
             this.form
               .get("username")
               ?.removeAsyncValidators(

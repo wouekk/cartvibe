@@ -144,7 +144,7 @@
         @if (goal.over > 0) {
           <span class="text-[0.8125rem] font-medium text-muted-foreground font-semibold text-destructive" data-testid="overview-spent-over">{{ '+{amount} over goal' | t: { amount: (goal.over | displayCurrency) } }}</span>
         } @else {
-          <span class="text-[0.8125rem] font-medium text-muted-foreground " data-testid="overview-spent-remaining">{{ goal.remaining | displayCurrency }} left</span>
+          <span class="text-[0.8125rem] font-medium text-muted-foreground " data-testid="overview-spent-remaining">{{ '{amount} left' | t: { amount: (goal.remaining | displayCurrency) } }}</span>
         }
       } @else if (change(); as change) {
         <span class="text-[0.8125rem] font-medium text-muted-foreground" [class.text-warning-text]="changeIsIncrease()" [class.text-success-text]="!changeIsIncrease()">
@@ -224,7 +224,7 @@
               class="donut__chart size-[220px] flex-none"
               data-testid="overview-donut"
               [options]="donutOptions"
-              [label]="'Spending by category, ' + periodLabel()"
+              [label]="'Spending by category, {period}' | t: { period: periodLabel() }"
             ></app-apex-chart>
           </div>
           <table class="donut__legend min-w-52 flex-1 text-sm">
@@ -317,7 +317,7 @@
             class="h-full"
             data-testid="overview-bars"
             [options]="barsOptions"
-            [label]="(isDailyTrend() ? 'Daily' : 'Monthly') + ' spending, ' + periodLabel()"
+            [label]="(isDailyTrend() ? 'Daily spending, {period}' : 'Monthly spending, {period}') | t: { period: periodLabel() }"
           ></app-apex-chart>
         </div>
         @if (goalMode() && (showGoalLine() || overGoalBars().length > 0)) {

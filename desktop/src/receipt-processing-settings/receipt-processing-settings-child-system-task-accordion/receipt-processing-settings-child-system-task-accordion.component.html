@@ -57,10 +57,10 @@
 <ng-template #dates let-index="index">
   <div class="flex flex-col">
     <div class="flex">
-      Started at: {{ childTasks()[index].startedAt | appDate: 'medium' }}
+      {{ 'Started at: {date}' | t: { date: (childTasks()[index].startedAt | appDate: 'medium') } }}
     </div>
     <div class="flex">
-      Ended at: {{ childTasks()[index].endedAt | appDate: 'medium' }}
+      {{ 'Ended at: {date}' | t: { date: (childTasks()[index].endedAt | appDate: 'medium') } }}
     </div>
   </div>
   <br>

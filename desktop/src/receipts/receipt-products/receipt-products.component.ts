@@ -15,6 +15,8 @@ import { HEALTH_CHOICES } from "../../standalone/components/food-tags/food-tags"
 import { AuthState } from "../../store";
 import { hasAll } from "../../utils/permission.utils";
 import { parseAmountInput } from "./product-amount";
+import { marker } from "../../i18n/marker";
+import { TranslationService } from "../../i18n/translation.service";
 
 /** While a read is queued or running, the section checks back this often. */
 const REFRESH_INTERVAL_MS = 30_000;
@@ -23,11 +25,11 @@ const REFRESH_INTERVAL_MS = 30_000;
 const MAX_REFRESHES = 20;
 
 const STATUS_TEXT: { [status: string]: string } = {
-  NOT_QUEUED: "Products are read from the receipt's image. This receipt has none yet.",
-  PENDING: "Waiting to be read by the AI. This usually takes a few minutes.",
-  RUNNING: "The AI is reading this receipt now.",
-  UNAVAILABLE: "The AI could not be reached. It will try again automatically.",
-  FAILED: "The AI could not read the products on this receipt.",
+  NOT_QUEUED: marker("Products are read from the receipt's image. This receipt has none yet."),
+  PENDING: marker("Waiting to be read by the AI. This usually takes a few minutes."),
+  RUNNING: marker("The AI is reading this receipt now."),
+  UNAVAILABLE: marker("The AI could not be reached. It will try again automatically."),
+  FAILED: marker("The AI could not read the products on this receipt."),
 };
 
 /**
@@ -45,6 +47,8 @@ const STATUS_TEXT: { [status: string]: string } = {
   providers: [CurrencyPipe],
 })
 export class ReceiptProductsComponent {
+  private readonly translation = inject(TranslationService);
+
   public readonly receiptId = input.required<number>();
 
   public readonly groupId = input.required<number>();
@@ -161,8 +165,8 @@ export class ReceiptProductsComponent {
 
   public remove(product: ReceiptProduct): void {
     const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
-    dialogRef.componentInstance.headerText = "Remove product";
-    dialogRef.componentInstance.dialogContent = `Remove "${product.displayName || product.name}" from this receipt?`;
+    dialogRef.componentInstance.headerText = marker("Remove product");
+    dialogRef.componentInstance.dialogContent = this.translation.t("Remove \"{name}\" from this receipt?", { name: product.displayName || product.name });
 
     dialogRef
       .afterClosed()
@@ -184,7 +188,7 @@ export class ReceiptProductsComponent {
       return undefined;
     }
     if (!amount.ok) {
-      this.formError.set("The amount must be a number with at most two decimals, like 1,99.");
+      this.formError.set(marker("The amount must be a number with at most two decimals, like 1,99."));
       return undefined;
     }
 

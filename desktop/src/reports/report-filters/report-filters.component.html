@@ -3,17 +3,17 @@
     @if (operationValueOf(def.field) === FilterOperation.Between) {
       <div class="flex min-w-0 flex-1 items-center gap-1.5">
         <app-input *ngIf="def.type === 'text' || def.type === 'number'" class="min-w-0 flex-1"
-          [isCurrency]="!!def.isCurrency" [label]="'Start ' + def.label"
+          [isCurrency]="!!def.isCurrency" [label]="'Start {label}' | t: { label: (def.label | t) }"
           [inputFormControl]="filterGroup | formGet: def.field + '.value.0'"></app-input>
         <app-datepicker *ngIf="def.type === 'date'" class="min-w-0 flex-1"
-          [label]="'Start ' + def.label"
+          [label]="'Start {label}' | t: { label: (def.label | t) }"
           [inputFormControl]="filterGroup | formGet: def.field + '.value.0'"></app-datepicker>
         <span class="flex-none text-xs text-muted-foreground">{{ 'and' | t }}</span>
         <app-input *ngIf="def.type === 'text' || def.type === 'number'" class="min-w-0 flex-1"
-          [isCurrency]="!!def.isCurrency" [label]="'End ' + def.label"
+          [isCurrency]="!!def.isCurrency" [label]="'End {label}' | t: { label: (def.label | t) }"
           [inputFormControl]="filterGroup | formGet: def.field + '.value.1'"></app-input>
         <app-datepicker *ngIf="def.type === 'date'" class="min-w-0 flex-1"
-          [label]="'End ' + def.label"
+          [label]="'End {label}' | t: { label: (def.label | t) }"
           [inputFormControl]="filterGroup | formGet: def.field + '.value.1'"></app-datepicker>
       </div>
     } @else {

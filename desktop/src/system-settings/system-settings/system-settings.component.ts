@@ -7,6 +7,7 @@ import { Permission } from "../../open-api";
 import { FilterTab } from "../../shared-ui/filter-bar/filter-tab.interface";
 import { TabConfig } from "../../shared-ui/tabs/tab-config.interface";
 import { AuthState } from "../../store";
+import { marker } from "../../i18n/marker";
 
 interface SystemSettingsTab extends TabConfig {
   readPermission: Permission;
@@ -63,19 +64,19 @@ export class SystemSettingsComponent implements OnInit {
     // them (system emails, OIDC providers, tasks) are shown only to who may read them.
     const allTabs: SystemSettingsTab[] = [
       {
-        label: "General & Currency",
+        label: marker("General & Currency"),
         routerLink: "general",
         name: "general",
         readPermission: Permission.AppSystemSettingsRead,
       },
       {
-        label: "Auth & Security",
+        label: marker("Auth & Security"),
         routerLink: "security",
         name: "security",
         readPermission: Permission.AppSystemSettingsRead,
       },
       {
-        label: "Tasks & Storage",
+        label: marker("Tasks & Storage"),
         routerLink: "tasks",
         name: "tasks",
         readPermission: Permission.AppSystemSettingsRead,

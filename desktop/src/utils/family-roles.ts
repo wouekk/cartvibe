@@ -1,4 +1,5 @@
 import { PermissionScope, Role } from "../open-api";
+import { marker } from "../i18n/marker";
 
 /**
  * The two roles a household sees (Phase 3 M4): **Admin** and **User**. They are the seeded system
@@ -6,8 +7,8 @@ import { PermissionScope, Role } from "../open-api";
  * system and every other role stay underneath, just not offered.
  */
 const ADMIN_ROLE_NAME: Record<string, string> = {
-  [PermissionScope.App]: "Legacy Admin",
-  [PermissionScope.Group]: "Legacy Owner",
+  [PermissionScope.App]: marker("Legacy Admin"),
+  [PermissionScope.Group]: marker("Legacy Owner"),
 };
 
 const USER_ROLE_NAME: Record<string, string> = {
@@ -15,7 +16,7 @@ const USER_ROLE_NAME: Record<string, string> = {
   [PermissionScope.Group]: "Member",
 };
 
-export const FAMILY_ADMIN_LABEL = "Admin";
+export const FAMILY_ADMIN_LABEL = marker("Admin");
 
 export const FAMILY_USER_LABEL = "User";
 

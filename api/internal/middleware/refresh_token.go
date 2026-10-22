@@ -3,7 +3,6 @@ package middleware
 import (
 	"context"
 	"net/http"
-	"receipt-wrangler/api/internal/commands"
 	"receipt-wrangler/api/internal/logging"
 	"receipt-wrangler/api/internal/models"
 	"receipt-wrangler/api/internal/repositories"
@@ -104,20 +103,10 @@ func RevokeRefreshToken(next http.Handler) http.Handler {
 }
 
 func getRefreshTokenFromRequest(r *http.Request, w http.ResponseWriter) (string, error) {
-	if utils.IsMobileApp(r) {
-		var command commands.LogoutCommand
-		err := command.LoadDataFromRequest(w, r)
-		if err != nil {
-			return "", err
-		}
-
-		return command.RefreshToken, nil
-	} else {
-		cookie, err := r.Cookie("refresh_token")
-		if err != nil {
-			return "", err
-		}
-
-		return cookie.Value, nil
+	cookie, err := r.Cookie("refresh_token")
+	if err != nil {
+		return "", err
 	}
+
+	return cookie.Value, nil
 }

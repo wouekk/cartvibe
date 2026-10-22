@@ -73,7 +73,7 @@
           @let userTotalData = userItemMap() | userTotalWithPercentage : key : form();
           <span>
             {{ 'Total amount owed:' | t }} {{ userTotalData.total | customCurrency }} 
-            ({{ userTotalData.percentage }}% of total)
+            {{ '({percentage}% of total)' | t: { percentage: userTotalData.percentage } }}
           </span>
           @if (canEdit()) {
             <div>
