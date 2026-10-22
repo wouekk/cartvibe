@@ -209,10 +209,8 @@ describe("GroupReceiptSettingsComponent", () => {
     );
     expect(store.dispatch).toHaveBeenCalled();
     expect(snackbarService.success).toHaveBeenCalledWith("Receipt settings updated successfully");
-    expect(router.navigate).toHaveBeenCalledWith(
-      [`/groups/${testGroup.id}/receipt-settings/view`],
-      { queryParams: { tab: "receipt-settings" } }
-    );
+    // Always editable: saving settles the form instead of navigating to a view page.
+    expect(component.form.pristine).toBe(true);
   });
 
   it("should require a paid-by default when paid by is optional", () => {

@@ -2,7 +2,8 @@
   [formConfig]="formConfig"
   [form]="form"
   [formTemplate]="formTemplate"
-  [bottomSpacing]="true"
+  [settingsCard]="true"
+  settingsTitle="Receipt Settings"
   [canEdit]="canEdit"
   [editButtonRouterLink]="[editLink]"
   [editButtonQueryParams]="{tab: 'receipt-settings'}"
@@ -16,8 +17,10 @@
     [data]="originalGroup"
   ></app-audit-detail-section>
   <app-form-section
+    [panel]="true"
     [headerText]="'Settings' | t"
   >
+    <div class="grid gap-3 sm:grid-cols-2">
     <app-checkbox
       [label]="'Hide Images' | t"
       [inputFormControl]="form | formGet: 'hideImages'"
@@ -50,10 +53,12 @@
       [label]="'Hide Comments' | t"
       [inputFormControl]="form | formGet: 'hideComments'"
     ></app-checkbox>
+    </div>
   </app-form-section>
 
   @if (canManageDefaultCustomFields) {
     <app-form-section
+      [panel]="true"
       [headerText]="'Default Custom Fields' | t"
       subtitle="These custom fields are pre-added to receipts created for this group, so members don't have to remember them. They only apply for members who can manage custom fields; for everyone else receipts are created without them."
     >
@@ -78,6 +83,7 @@
   }
 
   <app-form-section
+    [panel]="true"
     [headerText]="'Receipt Summary' | t"
     subtitle="Show a block of totals under this group's receipts table, covering every receipt the current filter matches rather than just the visible page. Everyone in the group sees it."
   >
@@ -102,9 +108,9 @@
       [inputFormControl]="form | formGet: 'receiptSummaryPosition'"
     ></app-select>
 
-    <div class="mb-4">
-      <strong>{{ 'Break down by status' | t }}</strong>
-      <div class="summary-statuses flex flex-wrap gap-6">
+    <div class="flex flex-col gap-2 border-b border-border/60 pb-4 last:border-b-0 last:pb-0">
+      <strong class="text-sm">{{ 'Break down by status' | t }}</strong>
+      <div class="summary-statuses flex flex-wrap gap-x-6 gap-y-2">
         @for (option of receiptStatusOptions; track option.value) {
           <!--
             A status with no matching receipts still renders, as a zero row, so the block keeps its
@@ -137,12 +143,13 @@
   </app-form-section>
 
   <app-form-section
+    [panel]="true"
     [headerText]="'Quick Scan' | t"
     subtitle="Choose which fields appear in quick scan and which are required. Paid by and status always resolve to a value, so set a default for when they are optional."
   >
-    <div class="mb-4">
-      <strong>{{ 'Paid By' | t }}</strong>
-      <div class="flex flex-wrap gap-6">
+    <div class="flex flex-col gap-2 border-b border-border/60 pb-4 last:border-b-0 last:pb-0">
+      <strong class="text-sm">{{ 'Paid By' | t }}</strong>
+      <div class="flex flex-wrap gap-x-6 gap-y-2">
         <app-checkbox
           [label]="'Show' | t"
           data-testid="quick-scan-paidby-show"
@@ -174,9 +181,9 @@
       }
     </div>
 
-    <div class="mb-4">
-      <strong>{{ 'Status' | t }}</strong>
-      <div class="flex flex-wrap gap-6">
+    <div class="flex flex-col gap-2 border-b border-border/60 pb-4 last:border-b-0 last:pb-0">
+      <strong class="text-sm">{{ 'Status' | t }}</strong>
+      <div class="flex flex-wrap gap-x-6 gap-y-2">
         <app-checkbox
           [label]="'Show' | t"
           data-testid="quick-scan-status-show"
@@ -197,9 +204,9 @@
       }
     </div>
 
-    <div class="mb-4">
-      <strong>{{ 'Categories' | t }}</strong>
-      <div class="flex flex-wrap gap-6">
+    <div class="flex flex-col gap-2 border-b border-border/60 pb-4 last:border-b-0 last:pb-0">
+      <strong class="text-sm">{{ 'Categories' | t }}</strong>
+      <div class="flex flex-wrap gap-x-6 gap-y-2">
         <app-checkbox
           [label]="'Show' | t"
           data-testid="quick-scan-categories-show"
@@ -213,9 +220,9 @@
       </div>
     </div>
 
-    <div class="mb-4">
-      <strong>{{ 'Tags' | t }}</strong>
-      <div class="flex flex-wrap gap-6">
+    <div class="flex flex-col gap-2 border-b border-border/60 pb-4 last:border-b-0 last:pb-0">
+      <strong class="text-sm">{{ 'Tags' | t }}</strong>
+      <div class="flex flex-wrap gap-x-6 gap-y-2">
         <app-checkbox
           [label]="'Show' | t"
           data-testid="quick-scan-tags-show"
@@ -229,9 +236,9 @@
       </div>
     </div>
 
-    <div class="mb-4">
-      <strong>{{ 'Comment' | t }}</strong>
-      <div class="flex flex-wrap gap-6">
+    <div class="flex flex-col gap-2 border-b border-border/60 pb-4 last:border-b-0 last:pb-0">
+      <strong class="text-sm">{{ 'Comment' | t }}</strong>
+      <div class="flex flex-wrap gap-x-6 gap-y-2">
         <app-checkbox
           [label]="'Show' | t"
           data-testid="quick-scan-comment-show"

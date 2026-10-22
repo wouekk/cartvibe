@@ -2,6 +2,8 @@
 
 ## Status (2026-10-22, Windows PC, Claude Code desktop app)
 
+**Settings polish (branch `feature/settings-polish`, from `main`; CI and `:preview` listed below when done):** System Tasks table padding; User Settings and the household pages are always editable with Save in the card footer; the household pages (details, receipt settings) are settings cards and the dead "Group AI Settings" tab is gone; AI: a saved key shows as dots and Test connection works on the unsaved form (small Go change in `handlers/receipt_processing_settings.go` and `commands/check_receipt_processing_settings_connectivity_command.go`, no swagger change); Add receipt reworked (header, panels, two-column details, empty-photo button, "Add receipt" title). i18n extract/check/sync done (pl 100%). Jest 2117/2117, `ng build` OK. Not seen on the NAS. Merge to `main` waits for the user's go. Other sessions' work (`feature/i18n-runtime`, `feature/remove-mobile`) is not part of this branch.
+
 **i18n runtime (branch `feature/i18n-runtime`, from `main`; NOT merged, no `:preview` published).** The homegrown engine kept English as the key but its
 dictionaries are now runtime JSON: `desktop/src/assets/i18n/{languages,en,pl}.json`, loaded by `TranslationLoader` (HttpBackend, app initializer), plural forms from
 `Intl.PluralRules`, locale data in `src/i18n/locale-data.ts` with an en-US fallback. **The language is never taken from the browser**: signed out and the login page are

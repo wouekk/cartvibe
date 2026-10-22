@@ -1,23 +1,22 @@
-<div
-  class="flex flex-col mb-4"
-  [ngClass]="{
-    'mb-4': bottomSpacing()
-  }"
->
+<div class="mb-6 flex flex-col gap-2" [class.mb-4]="!bottomSpacing()">
   @if (displayBackButton()) {
-    <div class="flex items-center">
-      <app-back-button
-        color="accent"
-        [tooltip]="'Back' | t"
-        (clicked)="navigateBack()"
-      ></app-back-button>
-    </div>
+    <button
+      type="button"
+      class="-ms-2 inline-flex h-8 w-fit cursor-pointer items-center gap-1.5 rounded-md border-0 bg-transparent px-2 text-sm font-medium text-muted-foreground transition-colors outline-none hover:bg-accent hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+      data-testid="form-back"
+      (click)="navigateBack()"
+    >
+      <app-icon name="arrow_back"></app-icon>
+      {{ 'Back' | t }}
+    </button>
   }
-  <div class="flex items-center">
-    <h2>{{ headerText() | t }}</h2>
-    <ng-container
-      *ngIf="headerButtonsTemplate"
-      [ngTemplateOutlet]="headerButtonsTemplate"
-    ></ng-container>
+  <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+    <h1 class="min-w-0 text-2xl break-words">{{ headerText() | t }}</h1>
+    <div class="flex flex-wrap items-center gap-1">
+      <ng-container
+        *ngIf="headerButtonsTemplate"
+        [ngTemplateOutlet]="headerButtonsTemplate"
+      ></ng-container>
+    </div>
   </div>
 </div>

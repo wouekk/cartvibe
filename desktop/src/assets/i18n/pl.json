@@ -8,7 +8,6 @@
     "0 of 0": "0 z 0",
     "A configuration group may only be specified for the all group": "Grupę konfiguracji można podać tylko dla grupy „Wszystkie”",
     "A higher number means a higher priority.": "Wyższa liczba oznacza wyższy priorytet.",
-    "A key is saved. Leave this empty to keep it.": "Klucz jest zapisany. Zostaw to pole puste, aby go zachować.",
     "A label you can group / read by": "Etykieta, według której można grupować lub czytać",
     "A large amount": "Duża kwota",
     "A negative amount": "Kwota ujemna",
@@ -73,6 +72,7 @@
     "Add option": "Dodaj opcję",
     "Add photos of your receipts": "Dodaj zdjęcia paragonów",
     "Add receipt": "Dodaj paragon",
+    "Add receipt photos": "Dodaj zdjęcia paragonu",
     "Add shortcut": "Dodaj skrót",
     "Add {value}": "Dodaj {value}",
     "Add, e.g. SEK": "Dodaj, np. SEK",
@@ -342,6 +342,7 @@
     "Edit custom field": "Edytuj pole niestandardowe",
     "Edit group": "Edytuj grupę",
     "Edit group member": "Edytuj członka grupy",
+    "Edit receipt": "Edytuj paragon",
     "Edit the monthly spending goal": "Edytuj miesięczny cel wydatków",
     "Edit {name}": "Edytuj {name}",
     "Edit {name} {type}": "Edytuj {name} ({type})",
@@ -429,7 +430,6 @@
     "Grand totals": "Suma końcowa",
     "Greater than": "Większe niż",
     "Group": "Grupa",
-    "Group AI Settings": "Ustawienia AI grupy",
     "Group Details": "Dane grupy",
     "Group ID is required to validate group permissions": "Do sprawdzenia uprawnień grupy potrzebny jest jej identyfikator",
     "Group Id is required": "Identyfikator grupy jest wymagany",
@@ -570,6 +570,7 @@
     "Name cannot be changed": "Nazwy nie można zmienić",
     "Name is required": "Nazwa jest wymagana",
     "Name is reserved, pick another": "Ta nazwa jest zarezerwowana, wybierz inną",
+    "Name it, then add the people who share its receipts.": "Nadaj nazwę, a potem dodaj osoby, które dzielą jego paragony.",
     "Name must be lowercase letters, numbers and dashes, and start and end with a letter or number": "Nazwa może zawierać małe litery, cyfry i myślniki oraz musi zaczynać się i kończyć literą lub cyfrą",
     "Navigate": "Przejdź",
     "Navigate CartVibe": "Nawigacja po CartVibe",
@@ -813,7 +814,6 @@
     "Save changes": "Zapisz zmiany",
     "Save column": "Zapisz kolumnę",
     "Save column configuration": "Zapisz konfigurację kolumn",
-    "Save first to test the new settings.": "Najpierw zapisz, aby przetestować nowe ustawienia.",
     "Save the main AI first; the backup stands in for it.": "Najpierw zapisz główne AI; zapasowe zastępuje właśnie je.",
     "Saved report templates — open one in the builder, generate it, duplicate it, or delete it.": "Zapisane szablony raportów — otwórz w kreatorze, wygeneruj, zduplikuj lub usuń.",
     "Saving…": "Zapisywanie…",
@@ -1203,6 +1203,18 @@
       "many": "paragonów",
       "one": "paragon",
       "other": "paragonu"
+    }
+  },
+  "_orphaned": {
+    "A key is saved. Leave this empty to keep it.": {
+      "value": "Klucz jest zapisany. Zostaw to pole puste, aby go zachować."
+    },
+    "Group AI Settings": {
+      "value": "Ustawienia AI grupy",
+      "closest": "AI settings saved"
+    },
+    "Save first to test the new settings.": {
+      "value": "Najpierw zapisz, aby przetestować nowe ustawienia."
     }
   }
 }
