@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"github.com/shopspring/decimal"
+	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/utils"
 	"testing"
@@ -163,5 +164,50 @@ func TestUpdateUserPreferencesStoresWellFormedLanguageCodes(t *testing.T) {
 		if updated.Language != want {
 			t.Errorf("language %q should be stored as %q, got %q", language, want, updated.Language)
 		}
+	}
+}
+
+// A new account is greeted once (language, theme, currency); preferences created later for an older
+// account are not, and the desktop turns the flag off through the ordinary update.
+func TestOnboardingPendingIsOnForNewAccountsAndTurnsOff(t *testing.T) {
+	defer TruncateTestDb()
+
+	created, err := NewUserRepository(nil).CreateUser(commands.SignUpCommand{
+		Username:    "newcomer",
+		DisplayName: "Newcomer",
+		Password:    "a really secure password",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	repository := NewUserPreferencesRepository(nil)
+	preferences, err := repository.GetUserPreferencesOrCreate(created.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !preferences.OnboardingPending {
+		t.Errorf("a new account should start with the welcome pending")
+	}
+
+	preferences.OnboardingPending = false
+	if _, err := repository.UpdateUserPreferences(created.ID, preferences); err != nil {
+		t.Fatal(err)
+	}
+	read, _ := repository.GetUserPreferencesOrCreate(created.ID)
+	if read.OnboardingPending {
+		t.Errorf("the welcome should stay done once turned off")
+	}
+
+	// Preferences made on demand for an account that had none (an older account) are not greeted.
+	CreateTestUser()
+	var older models.User
+	GetDB().Where("username = ?", "test").First(&older)
+	lazy, err := repository.GetUserPreferencesOrCreate(older.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if lazy.OnboardingPending {
+		t.Errorf("an older account should not see the welcome")
 	}
 }

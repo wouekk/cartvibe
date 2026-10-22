@@ -68,7 +68,7 @@ describe("ColumnConfigurationDialogComponent", () => {
         "categories": "Categories",
         "tags": "Tags",
         "status": "Status",
-        "resolved_date": "Done on",
+        "resolved_date": "Settled on",
         "first_comment": "Comment"
       };
 

@@ -1,13 +1,13 @@
 import { FormOption } from "src/interfaces/form-option.interface";
 import { formatStatus } from "src/utils";
 import { GroupStatus, ReceiptStatus } from "../open-api";
-import { DONE_LABEL, TO_CHECK_LABEL } from "../utils/receipt-status";
+import { SETTLED_LABEL, TO_CHECK_LABEL } from "../utils/receipt-status";
 
-// The two statuses a family picks from (Phase 3 C6): "To check" writes OPEN, "Done" RESOLVED.
+// The two statuses a family picks from (Phase 3 C6): "To check" writes OPEN, "Settled" RESOLVED.
 // Filters widen them to the statuses they stand for (toStatusWireFilter); see utils/receipt-status.
 export const RECEIPT_STATUS_OPTIONS: FormOption[] = [
   { value: ReceiptStatus.Open, displayValue: TO_CHECK_LABEL },
-  { value: ReceiptStatus.Resolved, displayValue: DONE_LABEL },
+  { value: ReceiptStatus.Resolved, displayValue: SETTLED_LABEL },
 ];
 
 export const GROUP_STATUS_OPTIONS: FormOption[] = Object.keys(GroupStatus).map(

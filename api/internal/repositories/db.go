@@ -178,16 +178,11 @@ func GetDB() *gorm.DB {
 }
 
 func InitDB() error {
-	var systemSettingsCount int64
-	if err := db.Model(&models.SystemSettings{}).Count(&systemSettingsCount).Error; err != nil {
+	// The first settings row is the euro one. Anything that creates a row before this (an empty
+	// row here used to) would leave a fresh install on dollars, because the seed only acts on an
+	// empty table.
+	if err := SeedEuroForNewInstall(); err != nil {
 		return err
-	}
-
-	if systemSettingsCount == 0 {
-		err := db.Create(&models.SystemSettings{})
-		if err.Error != nil {
-			return err.Error
-		}
 	}
 
 	if err := SeedSystemRoles(); err != nil {
@@ -206,12 +201,6 @@ func InitDB() error {
 		if err != nil {
 			return err
 		}
-	}
-
-	// Runs after the bootstrap admin is created so a fresh install's first user
-	// is assigned its legacy-equivalent role by the same one-time migration.
-	if err := SeedEuroForNewInstall(); err != nil {
-		return err
 	}
 
 	if err := SeedDefaultExchangeRates(); err != nil {

@@ -50,7 +50,7 @@ export const REPORT_BUILTIN_DIMENSIONS: ReportField[] = [
   { key: "date_month", label: marker("Month") },
   { key: "date_year", label: marker("Year") },
   { key: "date", label: "Date" },
-  { key: "resolved_date", label: marker("Resolved Date") },
+  { key: "resolved_date", label: marker("Settled on") },
   { key: "created_at", label: "Added At" },
 ];
 
