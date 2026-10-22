@@ -1,5 +1,6 @@
-import { Component, effect, inject, Input, OnInit, signal, TemplateRef, input } from "@angular/core";
+import { Component, DestroyRef, effect, inject, Input, OnInit, signal, TemplateRef, input } from "@angular/core";
 import { FormArray, FormControl, Validators } from "@angular/forms";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Store } from "@ngxs/store";
 import { map, Observable, of, startWith } from "rxjs";
 import { BaseInputComponent } from "../../base-input";
@@ -59,6 +60,8 @@ export class AutocomleteComponent
 
   public creatableOptionId = (Math.random() + 1).toString(36).substring(7);
 
+  private readonly destroyRef = inject(DestroyRef);
+
   public duplicateValuesFound: any[] = [];
 
   public isRequired: boolean = false;
@@ -106,7 +109,7 @@ export class AutocomleteComponent
   private setSingleOptionSelected(): void {
     if (!this.multiple) {
       this.inputFormControl.valueChanges
-        .pipe(startWith(this.inputFormControl.value))
+        .pipe(startWith(this.inputFormControl.value), takeUntilDestroyed(this.destroyRef))
         .subscribe((v) => {
           this.singleOptionSelected.set(!!v);
         });

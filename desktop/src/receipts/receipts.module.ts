@@ -26,7 +26,7 @@ import { TableModule } from "src/table/table.module";
 import { TextareaModule } from "src/textarea/textarea.module";
 import { UserAutocompleteModule } from "src/user-autocomplete/user-autocomplete.module";
 import { ButtonModule } from "../button";
-import { CarouselModule as ReceiptWranglerCarousel } from "../carousel/carousel.module";
+import { CarouselModule as ReceiptCarousel } from "../carousel/carousel.module";
 import { CategoryAutocompleteComponent } from "../category-autocomplete/category-autocomplete.component";
 import { CheckboxModule } from "../checkbox/checkbox.module";
 import { DirectivesModule } from "../directives";
@@ -100,7 +100,7 @@ import { UserTotalWithPercentagePipe } from "./user-total-with-percentage.pipe";
     PipesModule,
     RadioGroupModule,
     ReactiveFormsModule,
-    ReceiptWranglerCarousel,
+    ReceiptCarousel,
     ReceiptsRoutingModule,
     SelectModule,
     SharedUiModule,
