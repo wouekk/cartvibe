@@ -33,15 +33,6 @@ password immediately**. To update, pull the new image and redeploy.
 
 ## Features
 
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/dashboard-dark.png" />
-    <img src="docs/screenshots/dashboard-light.png" alt="The CartVibe Dashboard: the month's spending against a goal, unhealthy and kids' spending, spending by category and by month" width="100%" />
-  </picture>
-  <br />
-  <sub><b>The family Dashboard</b>: the month against your goal, unhealthy spending, a tile per tag, categories and the six-month trend</sub>
-</p>
-
 | Feature | Description |
 | :--- | :--- |
 | **A family dashboard** | The month's spend and change, a monthly goal, a trend chart and the categories behind the numbers, in your own currency; arrange the panels yourself |
@@ -54,7 +45,17 @@ password immediately**. To update, pull the new image and redeploy.
 | **Planned vs unplanned** | Attach a receipt to a list and see what was bought that was not on it |
 | **Made for a household** | No bill splitting, "To check / Settled" statuses, one household group, Admin and User roles |
 | **A friendly first start** | A welcome at the first sign-in to pick the language, the theme and (for an admin) the household currency |
-| **Light, dark, Polish** | White and Black themes on design tokens, English and Polish, phone-first layout |
+| **Themes** | Light and dark (White and Black) on design tokens, following the system or your choice; phone-first layout |
+| **Languages** | Polish and English, chosen per person and saved with the account |
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/dashboard-dark.png" />
+    <img src="docs/screenshots/dashboard-light.png" alt="The CartVibe Dashboard: the month's spending against a goal, unhealthy and kids' spending, spending by category and by month" width="100%" />
+  </picture>
+  <br />
+  <sub><b>The family Dashboard</b>: the month against your goal, unhealthy spending, a tile per tag, categories and the six-month trend</sub>
+</p>
 
 <table>
   <tr>
