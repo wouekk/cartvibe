@@ -53,6 +53,9 @@ export class TagTableComponent implements OnInit, AfterViewInit {
 
   public totalCount = signal(0);
 
+  /** Set after the first answer, so the empty state never shows before the list has loaded. */
+  public loaded = signal(false);
+
   public headerText: string = "Tags";
 
   public ngOnInit(): void {
@@ -79,6 +82,7 @@ export class TagTableComponent implements OnInit, AfterViewInit {
         tap((pagedData) => {
           this.dataSource.set(new TableDataSource<PagedDataDataInner>(pagedData.data));
           this.totalCount.set(pagedData.totalCount);
+          this.loaded.set(true);
         })
       )
       .subscribe();

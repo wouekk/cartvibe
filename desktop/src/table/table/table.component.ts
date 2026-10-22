@@ -23,6 +23,13 @@ export class TableComponent implements OnChanges {
   @Input() public length: number = 0;
   public readonly expandedRowTemplate = input<any>();
   public readonly rowExpandable = input<(row: any) => boolean>(() => true);
+  /**
+   * Shown in place of the rows (and the pager) when there are none. Callers pass it once their data has
+   * loaded, so the empty state never flashes before the first answer. Content marked [tableEmptyAction]
+   * is projected under it (an "Add" button).
+   */
+  public readonly emptyText = input<string>("");
+  public readonly emptyIcon = input<string>("list");
 
   public readonly sorted = output<Sort>();
   public readonly pageChange = output<PageEvent>();
@@ -166,6 +173,10 @@ export class TableComponent implements OnChanges {
     }
 
     this.sorted.emit(sortState);
+  }
+
+  public isEmpty(): boolean {
+    return !!this.emptyText() && this.dataSource().data.length === 0;
   }
 
   public pageChanged(pageEvent: PageEvent): void {

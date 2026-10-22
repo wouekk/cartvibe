@@ -44,6 +44,25 @@ describe("CategoryForm", () => {
     expect(component).toBeTruthy();
   });
 
+  it("provides its own duplicate validator, so a dialog opened from the root injector renders", () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      declarations: [CategoryForm],
+      schemas: [CUSTOM_ELEMENTS_SCHEMA],
+      imports: [ApiModule, PipesModule, ReactiveFormsModule, NoopAnimationsModule],
+      providers: [
+        { provide: AppDialogRef, useValue: { close: () => {} } },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+      ],
+    });
+
+    const standalone = TestBed.createComponent(CategoryForm);
+    standalone.detectChanges();
+
+    expect(standalone.componentInstance.form.contains("name")).toBe(true);
+  });
+
   it("should init form with data", () => {
     const category: CategoryView = {
       id: 1,

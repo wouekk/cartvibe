@@ -24,7 +24,18 @@
       [length]="totalCount()"
       (sorted)="sorted($event)"
       (pageChange)="updatePageData($event)"
-    ></app-table>
+      emptyIcon="sell"
+      [emptyText]="loaded() ? 'No tags yet. Add one, then tag products on your receipts.' : ''"
+    >
+      <app-add-button
+        tableEmptyAction
+        *hasAppPermission="Permission.AppTagsCreate"
+        data-testid="tag-add-empty"
+        [buttonText]="'Add Tag' | t"
+        [tooltip]="'Add Tag' | t"
+        (clicked)="openAddDialog()"
+      ></app-add-button>
+    </app-table>
   </app-settings-entity-list>
 </app-settings-page>
 
