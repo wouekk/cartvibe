@@ -44,6 +44,13 @@ export class SetQuickDateField {
   constructor(public field: ReceiptDateFilterFieldKey) {}
 }
 
+export class SetReceiptSearch {
+  static readonly type = "[ReceiptTable] Set Search";
+
+  /** The free-text phrase of the toolbar search box; empty clears it. Also returns the table to page 1. */
+  constructor(public search: string) {}
+}
+
 export class ResetReceiptFilter {
   static readonly type = "[ReceiptTable] Reset Filter";
 

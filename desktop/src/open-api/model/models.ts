@@ -89,6 +89,7 @@ export * from './receiptProcessingSettings';
 export * from './receiptProduct';
 export * from './receiptProductsView';
 export * from './receiptRequirements';
+export * from './receiptSearchMatch';
 export * from './receiptStatus';
 export * from './receiptSummary';
 export * from './receiptSummaryCommand';

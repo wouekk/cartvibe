@@ -6604,6 +6604,11 @@ components:
         firstComment:
           type: string
           description: Text of the receipt's earliest comment the caller may see. Only populated by the paged receipt list (POST /receipt/group/{groupId}); absent when there is no such comment.
+        searchMatches:
+          type: array
+          description: The product lines that made the receipt match the list's search phrase. Only populated by the paged receipt list while a search is active; absent otherwise.
+          items:
+            $ref: "#/components/schemas/ReceiptSearchMatch"
         groupId:
           type: integer
           description: Group foreign key
@@ -7156,6 +7161,21 @@ components:
           $ref: "#/components/schemas/PagedRequestField"
         createdAt:
           $ref: "#/components/schemas/PagedRequestField"
+        search:
+          type: string
+          description: Free-text, typo-tolerant phrase matched against a receipt's name, shop, comments and product lines. Every word of the phrase must match.
+    ReceiptSearchMatch:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: The product line's plain name
+        amount:
+          type: string
+          nullable: true
+          description: What the line cost, when the receipt shows it
     PagedRequestField:
       type: object
       description: "Contains two keys: operation of type FilterOperation and value which can a different type depending on the field."

@@ -100,6 +100,18 @@ describe("ReceiptFilterService", () => {
     });
   });
 
+  it("sends the search phrase with the table and the summary request", () => {
+    const filter = buildDefaultReceiptFilter();
+    filter.search = "choc noir";
+    store.dispatch(new SetReceiptFilterData({ page: 1, pageSize: 25, orderBy: "date", sortDirection: "desc", filter } as any));
+    const spy = jest.spyOn(receiptService, "getReceiptSummaryForGroup").mockReturnValue(of({} as ReceiptSummary) as any);
+
+    expect((service.buildPagedRequestCommand() as any).filter.search).toBe("choc noir");
+
+    service.getReceiptSummaryForGroup("1", 1).subscribe();
+    expect((spy.mock.calls[0][1] as any).filter.search).toBe("choc noir");
+  });
+
   // Date filters go out as the calendar day picked; the server resolves the day
   // in the right zone. Converted on the request only - the persisted filter
   // keeps the datepickers' Dates.

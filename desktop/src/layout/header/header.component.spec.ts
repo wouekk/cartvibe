@@ -34,12 +34,6 @@ describe("HeaderComponent", () => {
   const bellRendered = (): boolean =>
     !!fixture.nativeElement.querySelector('app-button[icon="notifications"]');
 
-  const searchbarRendered = (): boolean =>
-    !!fixture.nativeElement.querySelector("app-searchbar");
-
-  const grantReceiptsSearch = () =>
-    store.dispatch(new SetPermissions(["app.receipts.search"], {}));
-
   beforeEach(async () => {
     // StoreModule persists auth (incl. permissions) to localStorage; clear it so
     // granted permissions don't leak across tests in this file.
@@ -89,19 +83,12 @@ describe("HeaderComponent", () => {
     expect(bellRendered()).toBe(true);
   });
 
-  it("should hide the search bar without app.receipts.search", async () => {
+  it("should have no search box: receipts are searched in the Receipts toolbar", async () => {
     logIn();
     await fixture.whenStable();
 
-    expect(searchbarRendered()).toBe(false);
-  });
-
-  it("should show the search bar with app.receipts.search", async () => {
-    logIn();
-    grantReceiptsSearch();
-    await fixture.whenStable();
-
-    expect(searchbarRendered()).toBe(true);
+    expect(fixture.nativeElement.querySelector("app-searchbar")).toBeNull();
+    expect(fixture.nativeElement.querySelector("app-product-check-input")).toBeNull();
   });
 
   it("offers a quick theme toggle that switches between the White and Black themes", async () => {

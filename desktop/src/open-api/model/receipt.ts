@@ -11,6 +11,7 @@ import { CustomFieldValue } from './customFieldValue';
 import { Comment } from './comment';
 import { Item } from './item';
 import { Category } from './category';
+import { ReceiptSearchMatch } from './receiptSearchMatch';
 import { ReceiptStatus } from './receiptStatus';
 import { Tag } from './tag';
 import { FileData } from './fileData';
@@ -46,6 +47,10 @@ export interface Receipt {
      * Text of the receipt\'s earliest comment the caller may see. Only populated by the paged receipt list (POST /receipt/group/{groupId}); absent when there is no such comment.
      */
     firstComment?: string;
+    /**
+     * The product lines that made the receipt match the list\'s search phrase. Only populated by the paged receipt list while a search is active; absent otherwise.
+     */
+    searchMatches?: Array<ReceiptSearchMatch>;
     /**
      * Group foreign key
      */

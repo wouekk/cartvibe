@@ -1,6 +1,17 @@
 # HANDOFF.md — Where things stand
 
 **UI chrome and shopping (branch `feat/ui-chrome-and-shopping`, from `feat/receipt-ux-and-upload`; NOT merged, waits for UAT):** the earlier phone session had already built this on `origin/feat/ui-chrome-and-shopping` (commits `8a7f7192`, `0680ba06`, on top of `feature/i18n-runtime`); those two were cherry-picked here (CHANGELOG conflict resolved) and the panel spec was fixed (fake timers hung `whenStable`). Covers: Vibe wordmark `#708090`, mobile logo at 30%, header theme toggle, Add receipt gone from the Dashboard bar, Danger Zone footer, shopping panel (largest list, bullets, instant done + 6 s Undo, first on phones). Local: i18n:check OK, Jest 2150/2150, `ng build` OK; not seen in a browser. **Pushed as `origin/feat/ui-chrome-and-shopping-2`** (the old remote `feat/ui-chrome-and-shopping` has the phone session's history and was left alone); the user decides which one wins.
+## i18n reconciliation (2026-10-22, branch `feature/i18n-reconcile`, from `main` v0.3.0 + `feat/receipt-ux-and-upload`; pushed, NOT merged, no `:preview`)
+
+`feature/i18n-runtime` is merged and released as **v0.3.0** (the older paragraph below that says "NOT merged" is history). This branch brings the translations back in step after the parallel branches:
+- Merged `origin/feat/receipt-ux-and-upload` (HANDOFF/CHANGELOG conflicts resolved by hand); its new texts were already in `en.json` / `pl.json`.
+- `i18n:extract` now also reads toasts sent through `snackService.*` (category and tag forms were missed); 4 strings added, Polish at 1198/1198.
+- `i18n:check` now **fails** when a language has missing keys; a language that may ship incomplete is marked `"partial": true` in `languages.json` (then it only warns and shows English).
+- New `npm run i18n:import -- <legacy.ts> [--lang pl]` merges an old-style TypeScript Polish dictionary into `pl.json` (skips keys not in `en.json`).
+- Jest 291 suites / 2129 tests green, `ng build` OK, `i18n:check` passes. CI result: see the branch's run.
+
+**Product Check is reconciled on branch `feature/product-check-i18n`** (the original `feature/product-check` was left untouched): it merges `feature/i18n-reconcile` (main + v0.3.0 + receipt-ux) into the Product Check work. Mobile files stay deleted; `@types/qrcode` dropped, `@zxing/*` kept, lockfile regenerated (`npm ci` OK); the three doc conflicts were joined. The old `pl.messages-product-check.ts` was imported with `npm run i18n:import` (46 texts) and deleted; strings built in TypeScript (nutrition row labels, risk labels, additive categories) are wrapped in `marker()`, nutrient levels are in `scripts/i18n/extra-keys.json`, the "Unnamed product" fallback is translated where shown. Polish 1244/1244, Jest 300 suites / 2211 tests, `ng build` OK. Not merged, no `:preview`. Merge order note: `feat/ui-chrome-and-shopping*` and `feature/settings-polish` still edit `en.json` / `pl.json`; resolve those by taking either side, then `npm run i18n:extract` and `i18n:check`.
+
 
 ## Status (2026-10-22, Windows PC, Claude Code desktop app) - branch `feat/receipt-ux-and-upload`
 
@@ -27,6 +38,30 @@ formula feedback, task types, tooltips and placeholders, and added the user-faci
 - **Open:** look at every page in Polish on the NAS (`:preview` on request); the AI still answers in one language (the household-wide vs uploader question below is unanswered); Go messages are extracted only from `WriteCustomErrorResponse` and `errors["x"] = "..."` literals (not from `fmt.Sprintf` builders), and a Go-only change does not trigger the desktop CI job, so `i18n:check` sees it on the next desktop change.
 
 **Flutter removal (branch `feature/remove-mobile-api`, not merged):** `mobile/`, its CI and codegen, the mobile sign-in paths and the login QR are removed in three commits (see CHANGELOG "Unreleased"). Vet clean, Jest for touched areas and `ng build` pass locally; CI has not run. After pushing, pull the regenerated `desktop/src/open-api/` (swagger lost `client`/`codeChallenge` params and the QR fields) and re-run the desktop build. `oidc/flow.go`'s mobile branch is dead code behind a router guard on purpose.
+
+## Status (2026-10-22, Windows PC, Claude Code desktop app)
+
+**Receipts search + product checker (branch `feature/product-check`, worktree `../product-check`, not merged; plan in `C:/Users/Marcin/.claude/plans/pasted-content-id-f19d-refactor-the-sprightly-moore.md`).**
+- Done: the header search moved into the Receipts toolbar and is now typo/abbreviation tolerant over shop, name, comments and
+  product lines (API `ReceiptPagedRequestFilter.search`, `utils/fuzzy_match.go`, `Receipt.searchMatches` shown as a "Matched:" line);
+  the Dashboard has a "Scan product" button (next to New list) for a browser-only Open Food Facts **barcode** checker (camera scan, or a typed barcode when there is no camera; drawer with health score,
+  Nutri-Score, NOVA, additives, nutrition, 10 recent scans). See `api/CLAUDE.md` "Receipt search" and `desktop/CLAUDE.md` "Receipts
+  search and the product checker". Jest 2149/2149, `ng build` OK, Go tests of the touched packages pass; seen locally in both
+  themes and at phone width (dev stack, screenshots).
+- **Plain-http fallback (2026-10-22):** without `isSecureContext`/`getUserMedia` the drawer offers "Zrób zdjęcie kodu" (native camera app via `capture`)
+  and "Wgraj zdjęcie" (gallery) as `<label>`s over file inputs; the photo is shrunk to 1280 px and decoded with zxing (TRY_HARDER). Checked with a
+  generated 12 MP photo on the dev stack; **try it on the NAS over http from a real phone** (iPhone Safari and Android Chrome).
+- **Decision, by the user: no name search in the checker.** Open Food Facts answers cross-site browser requests to its search
+  endpoints with a 503 and its search service has no CORS, so only barcodes work from a browser (a server relay was rejected).
+- Not verified: the camera scan on a real device (needs HTTPS: Android Chrome and iPhone Safari on the NAS), the CSP report
+  console (the Report-Only policy now allows `world.openfoodfacts.org` and `images.openfoodfacts.org`), and Polish wording.
+- `@zxing/browser` 0.1.5 + `@zxing/library` 0.21.3 are pinned on purpose: library 0.22+ needs Node 24 (CI pins 20.19.6).
+- Deleted: the header search bar (`src/searchbar/`) and `e2e/search-bar-visibility.spec.ts`; the header slot is empty and the
+  legacy-user e2e check for it is gone. e2e cannot run here.
+- **Merge hazards:** this branch is cut from `main`. Another session has uncommitted translation work in the main checkout
+  (`src/i18n` moved to `assets/i18n/*.json`, `pl.messages*.ts` deleted) and a `feature/remove-mobile` branch; this branch adds
+  `i18n/languages/pl.messages-product-check.ts` and regenerated `mobile/api/`, so both will conflict. Port the new Polish keys
+  into whichever translation format wins, and drop `mobile/api/` changes if mobile is removed first.
 
 **Settings layout (2026-10-21, merged into `main` on the user's go; every settings page is wide, Save in the card footer; screenshots checked in both themes, Jest 2090/2090, `ng build` OK). NAS note: the old ENCRYPTION_KEY was lost, so the user wipes the sqlite folder and sets new keys; write them down.** settings layout
 unification, plan in `C:/Users/Marcin/.claude/plans/pasted-content-id-ff27-perform-a-cheeky-nebula.md` (outside the repo). Decisions by the user: topics inside a

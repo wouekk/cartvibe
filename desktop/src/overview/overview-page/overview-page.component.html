@@ -26,6 +26,14 @@
           [buttonQueryParams]="{ new: 'list' }"
         ></app-button>
       }
+      <app-button
+        icon="barcode_scanner"
+        [buttonText]="'Scan product' | t"
+        [tooltip]="'Check a product barcode' | t"
+        matButtonType="matRaisedButton"
+        data-testid="overview-scan-product"
+        (clicked)="scanProduct()"
+      ></app-button>
     </div>
   </div>
 

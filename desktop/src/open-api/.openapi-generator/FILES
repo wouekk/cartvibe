@@ -130,6 +130,7 @@ model/receiptProcessingSettings.ts
 model/receiptProduct.ts
 model/receiptProductsView.ts
 model/receiptRequirements.ts
+model/receiptSearchMatch.ts
 model/receiptStatus.ts
 model/receiptSummary.ts
 model/receiptSummaryCommand.ts

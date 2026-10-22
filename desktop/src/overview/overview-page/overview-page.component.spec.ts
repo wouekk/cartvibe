@@ -1,4 +1,5 @@
 import { TranslatePipe } from "../../i18n/translate.pipe";
+import { ProductCheckLauncher } from "../../product-check/product-check-launcher.service";
 import { HlmCheckboxImports } from "@spartan-ng/helm/checkbox";
 import { DisplayCurrencyPipe } from "../../pipes/display-currency.pipe";
 import { MoneyComponent } from "../../shared-ui/money/money.component";
@@ -110,6 +111,14 @@ describe("OverviewPageComponent", () => {
     fixture = TestBed.createComponent(OverviewPageComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
+  });
+
+  it("starts the product checker from the Scan product button", () => {
+    const start = jest.spyOn(TestBed.inject(ProductCheckLauncher), "start").mockImplementation();
+
+    component.scanProduct();
+
+    expect(start).toHaveBeenCalledTimes(1);
   });
 
   it("starts on this month, asks for its first and last day, and fills the tiles", () => {
