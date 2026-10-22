@@ -1,59 +1,26 @@
 import { inject, Injectable } from "@angular/core";
 import { AppDialog, AppDialogRef } from "../dialog/app-dialog";
-import { BarcodeScannerDialogComponent } from "./barcode-scanner-dialog.component";
-import { canUseCamera } from "./barcode-scanner.service";
-import { ProductCheckDrawerComponent } from "./product-check-drawer.component";
-import { ProductCheckService } from "./product-check.service";
+import { ProductCheckDialogComponent } from "./product-check-dialog.component";
 
 /**
- * Starts a product check from a button (the Dashboard's "Scan product"). With a camera it opens the scanner and shows the
- * barcode it reads in the drawer; without one (no secure context, no device) it opens the drawer, which then asks for the
- * barcode to be typed.
+ * Starts a product check from a button (the Dashboard's "Scan product"): one centered dialog offering a photo of the
+ * code (the live scanner where the browser has one), an uploaded photo, or the typed barcode number.
  */
 @Injectable({ providedIn: "root" })
 export class ProductCheckLauncher {
   private readonly dialog = inject(AppDialog);
-  private readonly service = inject(ProductCheckService);
 
-  private drawer: AppDialogRef<ProductCheckDrawerComponent> | null = null;
+  private ref: AppDialogRef<ProductCheckDialogComponent> | null = null;
 
   public start(): void {
-    if (canUseCamera()) {
-      this.scan();
-    } else {
-      this.openDrawer();
-    }
-  }
-
-  public scan(): void {
-    this.dialog
-      .open<BarcodeScannerDialogComponent, unknown, string>(BarcodeScannerDialogComponent, {
-        width: "28rem",
-        autoFocus: "dialog",
-      })
-      .afterClosed()
-      .subscribe((code) => {
-        if (code) {
-          this.service.check(code);
-          this.openDrawer();
-        }
-      });
-  }
-
-  public openDrawer(): void {
-    if (this.drawer) {
+    if (this.ref) {
       return;
     }
 
-    this.drawer = this.dialog.open<ProductCheckDrawerComponent>(ProductCheckDrawerComponent, {
-      width: "28rem",
-      minWidth: "0",
-      maxWidth: "100vw",
-      height: "100dvh",
-      maxHeight: "100dvh",
+    this.ref = this.dialog.open<ProductCheckDialogComponent>(ProductCheckDialogComponent, {
+      width: "32rem",
       autoFocus: "dialog",
-      panelClass: "product-check-drawer",
     });
-    this.drawer.afterClosed().subscribe(() => (this.drawer = null));
+    this.ref.afterClosed().subscribe(() => (this.ref = null));
   }
 }

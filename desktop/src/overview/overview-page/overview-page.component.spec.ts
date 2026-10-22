@@ -34,6 +34,7 @@ import { ShoppingListState } from "../../store/shopping-list.state";
 import { SystemSettingsState } from "../../store/system-settings.state";
 import { UserState } from "../../store/user.state";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
+import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { todayInZone } from "../../utils/app-time-zone";
 import { toDayKey } from "../overview-period";
 import { OverviewPageComponent } from "./overview-page.component";
@@ -488,18 +489,22 @@ describe("OverviewPageComponent", () => {
   describe("Quick Scan without an AI key", () => {
     const quickScanButton = () => fixture.nativeElement.querySelector("[data-testid=overview-quick-scan]");
 
-    it("shows the button to a member who may scan and, with no AI set up, sends whoever may configure it to the AI page", async () => {
+    it("shows the button to a member who may scan and, with no AI set up, asks whoever may configure it to add a key", async () => {
       TestBed.inject(Store).dispatch(
         new SetPermissions([Permission.AppReceiptProcessingSettingsUpdate], { 1: [Permission.GroupReceiptsRead, Permission.GroupReceiptsQuickScan] })
       );
       await fixture.whenStable();
-      const hint = jest.spyOn(TestBed.inject(SnackbarService), "hint");
       const navigate = jest.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
+      const confirm = { headerText: "", dialogContent: "", confirmText: "" };
+      const open = jest
+        .spyOn(TestBed.inject(AppDialog), "open")
+        .mockReturnValue({ componentInstance: confirm, afterClosed: () => of(true) } as never);
 
       expect(quickScanButton()).not.toBeNull();
       component.openQuickScan();
 
-      expect(hint).toHaveBeenCalledWith("Add an AI API key to scan receipts.");
+      expect(open).toHaveBeenCalledWith(ConfirmationDialogComponent);
+      expect(confirm.confirmText).toBe("Add AI API key");
       expect(navigate).toHaveBeenCalledWith(["/ai"]);
     });
 

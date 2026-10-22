@@ -85,43 +85,6 @@ app-icon {
   @apply block max-h-[inherit] overflow-y-auto outline-none;
 }
 
-/* The product checker's drawer (src/product-check): a dialog docked to the right edge, a bottom sheet on a phone. The CDK
-   centres a dialog with inline styles on its wrapper, hence the !important. */
-.cdk-global-overlay-wrapper:has(> .product-check-drawer) {
-  justify-content: flex-end !important;
-  align-items: stretch !important;
-}
-
-.product-check-drawer {
-  @apply rounded-none! border-l border-border shadow-none! ring-0 slide-in-from-right zoom-in-100 duration-200;
-  height: 100dvh !important;
-  max-height: 100dvh !important;
-}
-
-.product-check-drawer > .cdk-dialog-container {
-  @apply h-full overflow-hidden;
-}
-
-@media (max-width: 639px) {
-  .cdk-global-overlay-wrapper:has(> .product-check-drawer) {
-    justify-content: center !important;
-    align-items: flex-end !important;
-  }
-
-  .product-check-drawer {
-    @apply rounded-t-2xl! border-t border-l-0 slide-in-from-bottom;
-    width: 100vw !important;
-    height: 88dvh !important;
-    max-height: 88dvh !important;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .product-check-drawer {
-    animation: none;
-  }
-}
-
 /* Form fields: one rhythm for every app-* control (the old Material fields carried it in their subscript). */
 app-input,
 app-select,

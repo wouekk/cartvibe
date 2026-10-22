@@ -22,8 +22,10 @@ import {
   lucideChevronsUpDown,
   lucideEllipsisVertical,
   lucideInfo,
+  lucideLanguages,
   lucideLayoutDashboard,
   lucideLogOut,
+  lucidePalette,
   lucideReceiptText,
   lucideSettings,
   lucideShapes,
@@ -36,8 +38,6 @@ import {
   lucideUsers,
 } from "@ng-icons/lucide";
 import { HlmSidebarService } from "@spartan-ng/helm/sidebar";
-import { LanguageSyncService } from "../../i18n/language-sync.service";
-import { TranslationService } from "../../i18n/translation.service";
 import { marker } from "../../i18n/marker";
 
 /** The nav items name Material icons; the sidebar draws the matching Lucide ones, like spartan's own. */
@@ -53,6 +53,9 @@ const LUCIDE_ICONS: Record<string, string> = {
   person: "lucideUser",
   smart_toy: "lucideBot",
   settings: "lucideSettings",
+  manage_accounts: "lucideUserCog",
+  translate: "lucideLanguages",
+  palette: "lucidePalette",
 };
 
 /**
@@ -76,8 +79,10 @@ const LUCIDE_ICONS: Record<string, string> = {
         lucideChevronsUpDown,
         lucideEllipsisVertical,
         lucideInfo,
+        lucideLanguages,
         lucideLayoutDashboard,
         lucideLogOut,
+        lucidePalette,
         lucideReceiptText,
         lucideSettings,
         lucideShapes,
@@ -113,12 +118,6 @@ export class SidebarComponent {
   }
 
   private readonly sidebar = inject(HlmSidebarService);
-
-  protected readonly translation = inject(TranslationService);
-
-  protected readonly languageSync = inject(LanguageSyncService);
-
-  protected readonly languages = this.translation.languages;
 
   public loggedInUser = this.store.selectSignal(AuthState.loggedInUser);
 
@@ -247,30 +246,39 @@ export class SidebarComponent {
     ])
   );
 
-  /** The administration pages, each behind its own read permission. */
+  /**
+   * Everything under "Settings": the household's catalogues, the AI, the person's own settings, then the pages only an
+   * admin may open. Each entry sits behind its own read permission; Language and Theme need none.
+   */
   public readonly manageNavItems = computed(() => {
     const has = (permission: string) => hasAll(this.appPermissions(), permission);
-    const items: { label: string; icon: string; link: string[] }[] = [];
+    const items: { label: string; icon: string; link: string[]; testId: string }[] = [];
 
     if (has(Permission.AppCategoriesRead)) {
-      items.push({ label: marker("Manage Categories"), icon: "category", link: ["/categories"] });
+      items.push({ label: marker("Manage Categories"), icon: "category", link: ["/categories"], testId: "nav-categories" });
     }
     if (has(Permission.AppTagsRead)) {
-      items.push({ label: marker("Manage Tags"), icon: "sell", link: ["/tags"] });
+      items.push({ label: marker("Manage Tags"), icon: "sell", link: ["/tags"], testId: "nav-tags" });
     }
+    if (has(Permission.AppReceiptProcessingSettingsUpdate)) {
+      items.push({ label: "AI", icon: "smart_toy", link: ["/ai"], testId: "nav-ai" });
+    }
+    if (this.canViewUserSettings()) {
+      items.push({ label: marker("User Settings"), icon: "manage_accounts", link: ["/settings"], testId: "nav-user-settings" });
+    }
+    items.push({ label: marker("Language"), icon: "translate", link: ["/language"], testId: "nav-language" });
+    items.push({ label: marker("Theme"), icon: "palette", link: ["/theme"], testId: "nav-theme" });
+
     if (has(Permission.AppGroupsRead)) {
-      items.push({ label: marker("Manage Households"), icon: "groups", link: ["/groups"] });
+      items.push({ label: marker("Manage Households"), icon: "groups", link: ["/groups"], testId: "nav-households" });
     }
     if (has(Permission.AppUsersRead)) {
-      items.push({ label: marker("Manage Users"), icon: "person", link: ["/users"] });
+      items.push({ label: marker("Manage Users"), icon: "person", link: ["/users"], testId: "nav-users" });
     }
     // No "Manage Roles" (Phase 3 M4): a household has Admin and User, picked on the user and member
     // forms. The roles page stays at /roles.
-    if (has(Permission.AppReceiptProcessingSettingsUpdate)) {
-      items.push({ label: "AI", icon: "smart_toy", link: ["/ai"] });
-    }
     if (this.canViewSystemSettings()) {
-      items.push({ label: "System Settings", icon: "settings", link: ["/system-settings"] });
+      items.push({ label: "System Settings", icon: "settings", link: ["/system-settings"], testId: "nav-system-settings" });
     }
 
     return items;

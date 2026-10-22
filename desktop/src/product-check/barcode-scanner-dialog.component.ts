@@ -53,7 +53,7 @@ export type ScannerState = "starting" | "scanning" | "denied" | "unavailable";
       }
 
       @if (state() === 'denied' || state() === 'unavailable') {
-        <app-barcode-photo-actions variant="bar" (barcodeFound)="found($event)" (notFound)="photoFailed.set(true)"></app-barcode-photo-actions>
+        <app-barcode-photo-actions (barcodeFound)="found($event)" (notFound)="photoFailed.set(true)"></app-barcode-photo-actions>
         @if (photoFailed()) {
           <p class="m-0 text-sm text-destructive" role="alert" data-testid="barcode-scanner-photo-failed">
             {{ 'No barcode was found in that photo. Try again with the bars sharp and filling the frame.' | t }}

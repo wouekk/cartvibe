@@ -2,6 +2,23 @@
 
 ## UI sprint (2026-10-22, branch `feature/ui-sprint`, from `main` 70c6d397; pushed, NOT merged, waits for the user's go)
 
+**Settings menu, Quick Scan without AI, Scan product dialog (same branch, later the same day):**
+- Sidebar "Admin Settings" is now **Settings**: Manage Categories, Manage Tags, AI, User Settings, Language, Theme, then the
+  admin pages (Households, Users, System Settings). The account menu keeps only About and Logout. Language (`/language`) and
+  Theme (`/theme`) are pages of their own (no permission); User Settings keeps Profile / Preferences / API Keys, and
+  `/settings/theme` redirects. No API change: a family User already holds the categories, tags and AI permissions.
+- Quick Scan stays visible without an AI key: `QuickScanLauncher` asks "AI API key needed" (Add AI API key / red Cancel, goes
+  to `/ai`) for whoever may set it up, and gives the "ask an admin" hint otherwise. Dashboard, receipts `⋮` menu and
+  `app-quick-scan-button` all use it.
+- Scan product is a centered dialog (`ProductCheckDialogComponent`, was a right-hand drawer): Take a photo of the code (the
+  live scanner when the browser has one, else the phone camera label), Upload a photo, the barcode number with Check, red
+  Cancel. The camera icon inside the barcode box is gone.
+- Checked: Jest 291 suites / 1995 tests, `ng build` OK, `i18n:check` 100% Polish. Seen on the local stack (sprint API on 8081,
+  AI off, web on 4203): sidebar Settings order and highlight, account menu, Quick Scan dialog from the Dashboard and the
+  receipts menu (Add AI API key lands on `/ai`), Scan product dialog with a real Open Food Facts lookup and Cancel, Theme,
+  Language and User Settings pages; Black at 800 px, White at 390 px. **Not seen:** the live camera scanner on a phone, a
+  family User account (covered by the sidebar spec), the NAS.
+
 One branch for the whole sprint, as the user asked (no other worktree had uncommitted changes).
 - **Reports read product lines (API):** Category / Tag / new Health / Planned come from `ReceiptProduct` lines
   (`receiptsource/lines.go`, `ReportDataService.RowsWithLines`), never the receipt's own categories/tags. Cutting by a line

@@ -21,8 +21,8 @@ admin-only with working defaults. The visual target is the **high-craft fintech 
   connection refetches on reconnect and when the tab regains focus.
 - **Overview** landing page: the month's spend and change, open receipts, settle-up, items to buy,
   spend by category, the six-month trend, recent receipts.
-- **Labeled dark sidebar** with the everyday pages first and admin pages under "Manage".
-- **CartVibe identity and themes:** the supplied logo, icon and loaders; User Settings → Theme offers
+- **Labeled dark sidebar** with the everyday pages first and everyone's settings and the admin pages under "Settings".
+- **CartVibe identity and themes:** the supplied logo, icon and loaders; Settings → Theme offers
   System / Light / Dark and five accents (Classic Blue, Alpine Emerald, Twilight Violet, Walnut Brown,
   Graphite Gray) that tint the page, the sidebar and the buttons. Charts keep fixed colors.
 - **Starter reports** (three, created once) and an **AI page every member can use**.

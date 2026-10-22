@@ -48,7 +48,7 @@ import { FilterMonth, monthFilterEntry, monthFromFilterEntry } from "../../utils
 import { buildReceiptFilterForm } from "../../utils/receipt-filter";
 import { buildReceiptFilterChips, ReceiptFilterChip } from "../../utils/receipt-filter-chips";
 import { isFilterEntryActive } from "../../utils/receipt-filter-entry";
-import { openQuickScanDialog } from "../quick-scan-dialog/open-quick-scan-dialog";
+import { QuickScanLauncher } from "../quick-scan-dialog/quick-scan-launcher.service";
 import { BulkStatusUpdateComponent } from "../bulk-resolve-dialog/bulk-status-update-dialog.component";
 import { ColumnConfigurationDialogComponent } from "../column-configuration-dialog/column-configuration-dialog.component";
 import { marker } from "../../i18n/marker";
@@ -587,8 +587,11 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     this.getFilteredReceipts();
   }
 
+  private readonly quickScanLauncher = inject(QuickScanLauncher);
+
   public quickScanClicked(): void {
-    openQuickScanDialog(this.matDialog)
+    this.quickScanLauncher
+      .open()
       .pipe(
         take(1),
         tap(() => this.getFilteredReceipts())

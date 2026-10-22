@@ -6,14 +6,14 @@ import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { BarcodeImageService } from "./barcode-image.service";
 
 /**
- * Reads a barcode from a photo: "Take a photo of the code" opens the phone's own camera, "Upload a photo" picks an existing
- * picture. It is what stands in for the live scanner where the browser offers no live video (plain http) or refuses it.
+ * The two ways to read a barcode from a picture, side by side: "Take a photo of the code" and "Upload a photo".
  *
- * Each button is a native `<label>` around a hidden file input, never a button that calls `input.click()`: iOS Safari and
- * Android Chrome only open a file picker or the camera from a synchronous tap on the control itself, and a click made
- * after an `await` (say, after `getUserMedia` failed) is silently dropped.
+ * Without live video (plain http, no device, a refused camera) "Take a photo" opens the phone's own camera app. Each of
+ * those buttons is a native `<label>` around a hidden file input, never a button that calls `input.click()`: iOS Safari
+ * and Android Chrome only open a file picker or the camera from a synchronous tap on the control itself, and a click
+ * made after an `await` (say, after `getUserMedia` failed) is silently dropped.
  *
- * `variant="bar"` is the labelled pair, `variant="icon"` a single camera icon for inside an input bar.
+ * With `liveCamera` the first button is a plain button that emits `takePhoto`, and the host opens the live scanner.
  */
 @Component({
   selector: "app-barcode-photo-actions",
@@ -22,38 +22,27 @@ import { BarcodeImageService } from "./barcode-image.service";
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: "block" },
   template: `
-    @if (variant() === 'icon') {
-      <label
-        class="inline-flex size-8 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-within:ring-3 focus-within:ring-ring/40"
-        [class.pointer-events-none]="decoding()"
-        [attr.title]="'Take a photo of the code' | t"
-        data-testid="barcode-photo-icon"
-      >
-        <input type="file" accept="image/*" capture="environment" class="sr-only" data-testid="barcode-photo-capture" [attr.aria-label]="'Take a photo of the code' | t" (change)="selected($event)" />
-        @if (decoding()) {
-          <hlm-spinner class="animate-spin" [attr.aria-label]="'Reading the barcode…' | t" />
-        } @else {
+    <div class="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2" data-testid="barcode-photo-bar">
+      @if (liveCamera()) {
+        <button type="button" [class]="photoButtonClass" [disabled]="decoding()" data-testid="barcode-photo-live" (click)="takePhoto.emit()">
           <app-icon name="photo_camera"></app-icon>
-        }
+          <span>{{ 'Take a photo of the code' | t }}</span>
+        </button>
+      } @else {
+        <label [class]="photoButtonClass" class="cursor-pointer focus-within:ring-3 focus-within:ring-ring/50" [class.pointer-events-none]="decoding()" [class.opacity-50]="decoding()">
+          <input type="file" accept="image/*" capture="environment" class="sr-only" data-testid="barcode-photo-capture" (change)="selected($event)" />
+          <app-icon name="photo_camera"></app-icon>
+          <span>{{ 'Take a photo of the code' | t }}</span>
+        </label>
+      }
+      <label [class]="photoButtonClass" class="cursor-pointer focus-within:ring-3 focus-within:ring-ring/50" [class.pointer-events-none]="decoding()" [class.opacity-50]="decoding()">
+        <input type="file" accept="image/*" class="sr-only" data-testid="barcode-photo-upload" (change)="selected($event)" />
+        <app-icon name="image"></app-icon>
+        <span>{{ 'Upload a photo' | t }}</span>
       </label>
-    } @else {
-      <div class="flex flex-col gap-2" data-testid="barcode-photo-bar">
-        <div class="grid grid-cols-2 gap-2">
-          <label [class]="photoButtonClass" class="cursor-pointer focus-within:ring-3 focus-within:ring-ring/50" [class.pointer-events-none]="decoding()" [class.opacity-50]="decoding()">
-            <input type="file" accept="image/*" capture="environment" class="sr-only" data-testid="barcode-photo-capture" (change)="selected($event)" />
-            <app-icon name="photo_camera"></app-icon>
-            <span>{{ 'Take a photo of the code' | t }}</span>
-          </label>
-          <label [class]="photoButtonClass" class="cursor-pointer focus-within:ring-3 focus-within:ring-ring/50" [class.pointer-events-none]="decoding()" [class.opacity-50]="decoding()">
-            <input type="file" accept="image/*" class="sr-only" data-testid="barcode-photo-upload" (change)="selected($event)" />
-            <app-icon name="image"></app-icon>
-            <span>{{ 'Upload a photo' | t }}</span>
-          </label>
-        </div>
-      </div>
-    }
+    </div>
 
-    @if (decoding() && variant() === 'bar') {
+    @if (decoding()) {
       <p class="m-0 mt-2 inline-flex items-center gap-2 text-sm text-muted-foreground" role="status" data-testid="barcode-photo-decoding">
         <hlm-spinner class="animate-spin" /> {{ 'Reading the barcode…' | t }}
       </p>
@@ -63,13 +52,17 @@ import { BarcodeImageService } from "./barcode-image.service";
 export class BarcodePhotoActionsComponent {
   private readonly decoder = inject(BarcodeImageService);
 
-  public readonly variant = input<"bar" | "icon">("bar");
+  /** True when the browser offers live video: "Take a photo" then asks the host to open the live scanner. */
+  public readonly liveCamera = input(false);
 
   /** The labels look like the app's primary button; they stay labels for the reason above. */
   protected readonly photoButtonClass = buttonVariants({ variant: "default" });
 
   /** The barcode read from the photo. */
   public readonly barcodeFound = output<string>();
+
+  /** "Take a photo" was pressed while live video is available. */
+  public readonly takePhoto = output<void>();
 
   /** True while a photo is being decoded. */
   public readonly decoding = signal(false);
