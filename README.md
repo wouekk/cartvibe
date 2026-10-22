@@ -35,18 +35,17 @@ password immediately**. To update, pull the new image and redeploy.
 
 | Feature | Description |
 | :--- | :--- |
-| **A family dashboard** | The month's spend and change, a monthly goal, a trend chart and the categories behind the numbers, in your own currency; arrange the panels yourself |
-| **Receipts read by AI** | Photograph a receipt and the AI (bring your own key) fills in the shop, the total and every product line; Gemini or LM Studio |
-| **Shops at a glance** | Real logos for about 230 chains (Biedronka, Żabka, Lidl, Kaufland, Rewe, ...) next to every receipt |
-| **Healthy or not** | Products are tagged healthy, medium or unhealthy, and fruit and vegetables as seasonal or imported |
-| **Product health check** | Scan or type a barcode in the shop: health score, Nutri-Score, NOVA, additives and nutrition from Open Food Facts, with your recent scans one tap away |
-| **Reports** | Build your own (by shop, category, tag, health, month), preview them live, export CSV, XLSX or PDF |
-| **Shared shopping lists** | Amounts and units, crossed-off items that come back, past lists, and live sync between every phone in the household |
-| **Planned vs unplanned** | Attach a receipt to a list and see what was bought that was not on it |
-| **Made for a household** | No bill splitting, "To check / Settled" statuses, one household group, Admin and User roles |
-| **A friendly first start** | A welcome at the first sign-in to pick the language, the theme and (for an admin) the household currency |
-| **Themes** | Light and dark (White and Black) on design tokens, following the system or your choice; phone-first layout |
-| **Languages** | Polish and English, chosen per person and saved with the account |
+| **Family dashboard** | See what the month cost, how it compares with last month and how close you are to your goal. Drag the panels around until it feels right. |
+| **Receipts read by AI** | Snap a photo and the AI fills in the shop, the total and every line on the receipt. Bring your own Gemini key, or run a model at home with LM Studio. |
+| **Shops at a glance** | Logos for around 230 chains (Biedronka, Żabka, Lidl, Kaufland, Rewe and more), so you can spot a receipt without reading it. |
+| **Healthy or not** | Healthy and unhealthy products are tagged based on the AI's assessment, and fruit and veg are marked as seasonal or imported. |
+| **Product lookup** | Standing in the aisle? Scan or type a barcode to see the Nutri-Score, how processed it is, the additives and the nutrition, straight from Open Food Facts. Your last scans stay one tap away. |
+| **Reports** | Slice your spending by shop, category, tag, health or month, watch the preview change as you go, and download it as CSV, Excel or PDF. |
+| **Shared shopping lists** | One list for the whole household, updated live on every phone. Crossed-off items come back the next time you need them. |
+| **Planned vs unplanned** | Attach a receipt to a list and see exactly what ended up in the basket that wasn't on it. |
+| **Made for a household** | No bill splitting and no approvals: a receipt is either "to check" or "settled", and there are just two roles, Admin and User. |
+| **Themes** | Light or dark, or simply follow your device. Built for the phone first. |
+| **Languages** | Polish and English language support, chosen by each person. |
 
 <p align="center">
   <picture>
@@ -54,38 +53,38 @@ password immediately**. To update, pull the new image and redeploy.
     <img src="docs/screenshots/dashboard-light.png" alt="The CartVibe Dashboard: the month's spending against a goal, unhealthy and kids' spending, spending by category and by month" width="100%" />
   </picture>
   <br />
-  <sub><b>The family Dashboard</b>: the month against your goal, unhealthy spending, a tile per tag, categories and the six-month trend</sub>
+  <sub><b>The family Dashboard</b>: what you've spent this month, how close you are to your goal, and where the money went</sub>
 </p>
 
 <table>
   <tr>
     <td width="50%" valign="top">
-      <img src="docs/screenshots/product-check.png" alt="Product health check: an Alpro almond drink with its health score, Nutri-Score B, NOVA 4 and additives, and the recent scans above" />
-      <p align="center"><sub><b>Product health check</b>: scan, upload or type a barcode; recent scans stay one tap away</sub></p>
+      <img src="docs/screenshots/product-check.png" alt="Product lookup: an Alpro almond drink with its score, Nutri-Score B, NOVA 4 and additives, and the recent scans above" />
+      <p align="center"><sub><b>Product lookup</b>: scan, upload or type a barcode; your recent scans stay one tap away</sub></p>
     </td>
     <td width="50%" valign="top">
       <img src="docs/screenshots/report-builder.png" alt="Report builder with a live preview of spending by shop" />
-      <p align="center"><sub><b>Reports</b>: a live preview of spending by shop, ready as CSV, XLSX or PDF</sub></p>
+      <p align="center"><sub><b>Reports</b>: see the result while you build it, then download it</sub></p>
     </td>
   </tr>
   <tr>
     <td width="50%" valign="top">
       <img src="docs/screenshots/receipts.png" alt="Receipts list with shop logos for Biedronka, Żabka and Kaufland" />
-      <p align="center"><sub><b>Receipts</b>: shop logos, a typo-tolerant search and one period picker</sub></p>
+      <p align="center"><sub><b>Receipts</b>: shop logos, a search that forgives typos, and one date picker</sub></p>
     </td>
     <td width="50%" valign="top">
       <img src="docs/screenshots/shopping-list.png" alt="Shared shopping list with amounts and units" />
-      <p align="center"><sub><b>Shopping lists</b>: shared and live on every phone; tell the household you are going shopping</sub></p>
+      <p align="center"><sub><b>Shopping lists</b>: shared and live, and one tap tells everyone you're heading to the shop</sub></p>
     </td>
   </tr>
   <tr>
     <td width="50%" valign="top">
-      <img src="docs/screenshots/welcome.png" alt="The first sign-in welcome: language, theme and household currency" />
-      <p align="center"><sub><b>First sign-in</b>: language, theme and the household currency in one step</sub></p>
+      <img src="docs/screenshots/welcome.png" alt="The welcome at the first sign-in: language, theme and household currency" />
+      <p align="center"><sub><b>First sign-in</b>: pick a language, a theme and your currency</sub></p>
     </td>
     <td width="50%" valign="top">
-      <img src="docs/screenshots/welcome-pl-dark.png" alt="The same welcome in Polish on the Black theme" />
-      <p align="center"><sub><b>Polski i ciemny motyw</b>: every screen in English and Polish, White and Black</sub></p>
+      <img src="docs/screenshots/welcome-pl-dark.png" alt="The same welcome in Polish on the dark theme" />
+      <p align="center"><sub><b>Polski i ciemny motyw</b>: the whole app in Polish or English, light or dark</sub></p>
     </td>
   </tr>
 </table>
