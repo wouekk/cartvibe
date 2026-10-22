@@ -437,32 +437,6 @@ add 'catalog-accepts-any-key' 'field.go' \
 ' \
 ''
 
-# --- receiptsource: the receipt mapping -------------------------------------
-
-# TestSource_DuplicateCustomFieldValuesResolveByLowestId — position cannot decide
-# which of two values for one field wins, because the association is loaded
-# without an ORDER BY.
-add 'custom-field-first-in-slice-wins' 'receiptsource/receiptsource.go' \
-'		if incumbent, held := winners[key]; held && incumbent <= customFieldValue.ID {
-			continue
-		}' \
-'		if _, held := winners[key]; held {
-			continue
-		}'
-
-# TestSource_UnresolvableCustomFieldValueNeverWins — an empty value must not
-# claim the field and lock out a real one.
-add 'unresolvable-custom-field-value-wins' 'receiptsource/receiptsource.go' \
-'		value, ok := s.customFieldValue(customFieldValue)
-		if !ok {
-			continue
-		}
-
-		winners[key] = customFieldValue.ID' \
-'		value, _ := s.customFieldValue(customFieldValue)
-
-		winners[key] = customFieldValue.ID'
-
 # --- the app time zone: which calendar day a date names ---------------------
 
 # TestSource_InstantPeriodFieldsUseTheAppZone — Added At is an instant: its
@@ -484,11 +458,6 @@ add 'date-parts-read-in-app-zone' 'receiptsource/receiptsource.go' \
 'receipt.Date, time.UTC)' \
 'receipt.Date, s.location)'
 
-# TestSource_InstantPeriodFieldsUseTheAppZone — a DATE custom field is a
-# calendar day too.
-add 'custom-date-parts-read-in-app-zone' 'receiptsource/receiptsource.go' \
-'setDateParts(row, day, month, year, moment, time.UTC)' \
-'setDateParts(row, day, month, year, moment, s.location)'
 
 # TestSource_DateFieldsDeclareTheirDisplayZone — the catalog is where a renderer
 # learns an instant's zone.
@@ -566,11 +535,6 @@ func distinctTags' \
 
 func distinctTags'
 
-# TestSplit_CurrencyCustomFields — an excluded field is carried whole.
-add 'split-ignores-exclusions' 'receiptsource/split.go' \
-'	_, excluded := options.Excluded[customFieldValue.CustomFieldId]
-	return !excluded' \
-'	return true'
 
 # TestSplit_DoesNotMutateTheInput — an unsplit dimension's list must be copied,
 # or the restricted substitution of one copy rewrites the caller's receipt.
@@ -584,11 +548,6 @@ add 'merge-ignores-origin' 'receiptsource/split.go' \
 '	key.WriteString(strconv.Itoa(origin))' \
 '	key.WriteString(strconv.Itoa(0 * origin))'
 
-# TestMerge_FoldsCopiesTheSubstitutionMadeIdentical — merging must not add up a
-# value every copy carried whole.
-add 'merge-sums-excluded-values' 'receiptsource/split.go' \
-'		if index >= len(from.CustomFields) || !s.isSplitCustomFieldValue(customFieldValue, options) {' \
-'		if index >= len(from.CustomFields) || customFieldValue.CurrencyValue == nil {'
 
 # ----------------------------------------------------------------------------
 

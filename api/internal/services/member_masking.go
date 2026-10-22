@@ -94,9 +94,6 @@ func (masker *receiptMemberMasker) apply(receipt *models.Receipt) error {
 		}
 	}
 
-	for i := range receipt.CustomFields {
-		masker.maskBaseModel(&receipt.CustomFields[i].BaseModel)
-	}
 
 	for i := range receipt.ImageFiles {
 		masker.maskBaseModel(&receipt.ImageFiles[i].BaseModel)

@@ -260,9 +260,6 @@ func DeleteUser(userId string) error {
 		modelsWithCreatedBy := []interface{}{
 			&models.RefreshToken{},
 			&models.User{},
-			&models.CustomField{},
-			&models.CustomFieldValue{},
-			&models.CustomFieldOption{},
 			&models.Receipt{},
 			&models.Item{},
 			&models.FileData{},

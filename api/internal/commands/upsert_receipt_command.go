@@ -1,36 +1,35 @@
 package commands
 
 import (
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
 	"encoding/json"
 	"fmt"
 	"github.com/shopspring/decimal"
 	"net/http"
-	"cartvibe/api/internal/models"
-	"cartvibe/api/internal/structs"
-	"cartvibe/api/internal/utils"
 	"time"
 )
 
 type UpsertReceiptCommand struct {
-	Name            string                          `json:"name"`
-	ShopName        string                          `json:"shopName"`
+	Name     string `json:"name"`
+	ShopName string `json:"shopName"`
 	// Currency is what the AI read off the receipt (any spelling: "zł", "£", "CHF"); the server turns it
 	// into a code and converts the amount. It is not stored as such.
-	Currency         string           `json:"currency"`
-	OriginalAmount   *decimal.Decimal `json:"originalAmount"`
-	OriginalCurrency string           `json:"originalCurrency"`
-	ExchangeRate     *decimal.Decimal `json:"exchangeRate"`
-	Amount          decimal.Decimal                 `json:"amount"`
-	Date            time.Time                       `json:"date"`
-	GroupId         uint                            `json:"groupId"`
-	PaidByUserID    uint                            `json:"paidByUserId"`
-	Status          models.ReceiptStatus            `json:"status"`
-	Categories      []UpsertCategoryCommand         `json:"categories"`
-	Tags            []UpsertTagCommand              `json:"tags"`
-	Items           []UpsertItemCommand             `json:"receiptItems"`
-	Comments        []UpsertCommentCommand          `json:"comments"`
-	CustomFields    []UpsertCustomFieldValueCommand `json:"customFields"`
-	CreatedByString string                          `json:"createdByString"`
+	Currency         string                  `json:"currency"`
+	OriginalAmount   *decimal.Decimal        `json:"originalAmount"`
+	OriginalCurrency string                  `json:"originalCurrency"`
+	ExchangeRate     *decimal.Decimal        `json:"exchangeRate"`
+	Amount           decimal.Decimal         `json:"amount"`
+	Date             time.Time               `json:"date"`
+	GroupId          uint                    `json:"groupId"`
+	PaidByUserID     uint                    `json:"paidByUserId"`
+	Status           models.ReceiptStatus    `json:"status"`
+	Categories       []UpsertCategoryCommand `json:"categories"`
+	Tags             []UpsertTagCommand      `json:"tags"`
+	Items            []UpsertItemCommand     `json:"receiptItems"`
+	Comments         []UpsertCommentCommand  `json:"comments"`
+	CreatedByString  string                  `json:"createdByString"`
 }
 
 func (receipt *UpsertReceiptCommand) LoadDataFromRequest(w http.ResponseWriter, r *http.Request) error {

@@ -1,9 +1,9 @@
 package commands
 
 import (
+	"cartvibe/api/internal/utils"
 	"encoding/json"
 	"net/http"
-	"cartvibe/api/internal/utils"
 )
 
 type LogoutCommand struct {

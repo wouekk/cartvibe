@@ -62,16 +62,6 @@ func GetPagedGroups(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			// The settings row's id/status slices are `gorm:"-"`, so Preload(clause.Associations)
-			// loads the row but leaves them nil -- and they carry no omitempty, so a nil
-			// serializes as `null` rather than being absent. Swagger declares arrays that are
-			// always present, and the generated Dart deserializer has no null guard. Hydrate
-			// BEFORE the copy below: anyData takes each group by value, so mutating afterwards
-			// would update rows nobody serializes.
-			if err := repositories.NewGroupReceiptSettingsRepository(nil).
-				LoadSettingsProjectionsForGroups(groups); err != nil {
-				return http.StatusInternalServerError, err
-			}
 
 			anyData := make([]any, len(groups))
 			for i := 0; i < len(groups); i++ {
@@ -148,14 +138,6 @@ func GetGroupsForUser(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			// Same treatment for each group's receipt-settings projections, which are also
-			// `gorm:"-"`. The desktop feeds this response into GroupState, which is what the
-			// receipt form reads a group's defaults from and what the receipts table reads its
-			// summary configuration from — an unloaded response would blank both, and would put
-			// a null where swagger promises an array.
-			if err := repositories.NewGroupReceiptSettingsRepository(nil).LoadSettingsProjectionsForGroups(groups); err != nil {
-				return http.StatusInternalServerError, err
-			}
 
 			bytes, err := utils.MarshalResponseData(groups)
 			if err != nil {
@@ -254,16 +236,6 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			// Same reasoning for the group's settings projections, with one wrinkle: CreateGroup
-			// returns a Find that only preloads GroupMembers, so the settings object is zero-valued
-			// and its GroupId is 0. Set it first, or the loader keys the lookup on group 0 and the
-			// empty result would be right by accident rather than by computation.
-			group.GroupReceiptSettings.GroupId = group.ID
-			if err := repositories.NewGroupReceiptSettingsRepository(nil).LoadSettingsProjections(
-				[]*models.GroupReceiptSettings{&group.GroupReceiptSettings},
-			); err != nil {
-				return http.StatusInternalServerError, err
-			}
 
 			bytes, err := utils.MarshalResponseData(group)
 			if err != nil {
@@ -433,67 +405,6 @@ func UpdateGroupReceiptSettings(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			// The endpoint is gated on GroupUpdate only. Touching the group's default custom field
-			// configuration additionally requires app.custom-fields.read, mirroring
-			// enforceReceiptCustomFieldSelection: without it a group admin could attach fields
-			// whose catalog they are not allowed to read.
-			//
-			// This covers the ingest toggle as well as the selection. The toggle decides whether
-			// the (to that caller invisible) default set gets attached to every quick-scan and
-			// email receipt, so gating only the id list would leave a caller without the
-			// permission able to change what those fields do. Both are pointers, so a nil one
-			// means the client did not touch that key and stays allowed.
-			// The summary's CURRENCY field selection joins the same gate: it names catalog entries
-			// and renders their names, so it needs the same permission as the default set.
-			//
-			// receiptSummaryEnabled and receiptSummaryStatuses deliberately stay OUTSIDE it.
-			// Neither reads the custom field catalog, so gating them would lock a group admin
-			// without app.custom-fields.read out of the master toggle and the status breakdown —
-			// i.e. out of the whole feature. That is the deliberate asymmetry with
-			// applyDefaultCustomFieldsOnIngest, which IS gated because it decides what the
-			// (to such a caller invisible) default set does on every ingested receipt.
-			if command.DefaultCustomFieldIds != nil ||
-				command.ApplyDefaultCustomFieldsOnIngest != nil ||
-				command.ReceiptSummaryCustomFieldIds != nil {
-				token := structs.GetClaims(r)
-				canReadCustomFields, err := services.NewPermissionService(nil).
-					HasAppPermissions(token.UserId, permissions.AppCustomFieldsRead)
-				if err != nil {
-					return http.StatusInternalServerError, err
-				}
-				if !canReadCustomFields {
-					utils.WriteCustomErrorResponse(
-						w,
-						"You do not have permission to configure custom fields",
-						http.StatusForbidden,
-					)
-					return 0, nil
-				}
-
-				// Scoped to each selection: a toggle-only request has no ids to validate, and
-				// dereferencing a nil pointer here would panic.
-				if command.DefaultCustomFieldIds != nil {
-					vErr, err := validateDefaultCustomFieldIds(*command.DefaultCustomFieldIds)
-					if err != nil {
-						return http.StatusInternalServerError, err
-					}
-					if len(vErr.Errors) > 0 {
-						structs.WriteValidatorErrorResponse(w, vErr, http.StatusBadRequest)
-						return 0, nil
-					}
-				}
-
-				if command.ReceiptSummaryCustomFieldIds != nil {
-					vErr, err := validateReceiptSummaryCustomFieldIds(*command.ReceiptSummaryCustomFieldIds)
-					if err != nil {
-						return http.StatusInternalServerError, err
-					}
-					if len(vErr.Errors) > 0 {
-						structs.WriteValidatorErrorResponse(w, vErr, http.StatusBadRequest)
-						return 0, nil
-					}
-				}
-			}
 
 			groupReceiptSettingsRepository := repositories.NewGroupReceiptSettingsRepository(nil)
 			updatedGroupReceiptSettings, err := groupReceiptSettingsRepository.UpdateGroupReceiptSettings(groupId, command)
@@ -730,79 +641,3 @@ func UpdateGroupMemberGrants(w http.ResponseWriter, r *http.Request) {
 	HandleRequest(handler)
 }
 
-// validateDefaultCustomFieldIds rejects a default-custom-field selection referencing
-// an id that does not exist in the catalog. The join table carries no foreign key to
-// custom_fields on the delete side (deletion is cascaded explicitly), so an unknown id
-// would otherwise persist as a row nothing can ever resolve — the receipt form would
-// silently skip it forever. Returns a populated ValidatorError keyed on
-// "defaultCustomFieldIds" when any id is unknown.
-func validateDefaultCustomFieldIds(customFieldIds []uint) (structs.ValidatorError, error) {
-	vErr := structs.ValidatorError{Errors: make(map[string]string)}
-	if len(customFieldIds) == 0 {
-		return vErr, nil
-	}
-
-	found, err := customFieldsById(customFieldIds)
-	if err != nil {
-		return structs.ValidatorError{}, err
-	}
-
-	for _, customFieldId := range customFieldIds {
-		if _, ok := found[customFieldId]; !ok {
-			vErr.Errors["defaultCustomFieldIds"] = "One or more selected custom fields do not exist"
-			break
-		}
-	}
-
-	return vErr, nil
-}
-
-// validateReceiptSummaryCustomFieldIds rejects a summary column selection referencing an id
-// that does not exist, and — unlike the default set — one that is not a CURRENCY field.
-//
-// The type check is what keeps a misconfiguration from reading as data: only CurrencyValue is
-// summed, so a TEXT or BOOLEAN field would total 0.00 on every row forever and look like a
-// group with no spend rather than a column that can never carry a number. Validating at write
-// time is sufficient because a saved field's type is immutable (the custom field update
-// endpoint 400s a type change), so the aggregation needs no runtime type guard.
-func validateReceiptSummaryCustomFieldIds(customFieldIds []uint) (structs.ValidatorError, error) {
-	vErr := structs.ValidatorError{Errors: make(map[string]string)}
-	if len(customFieldIds) == 0 {
-		return vErr, nil
-	}
-
-	found, err := customFieldsById(customFieldIds)
-	if err != nil {
-		return structs.ValidatorError{}, err
-	}
-
-	for _, customFieldId := range customFieldIds {
-		customField, ok := found[customFieldId]
-		if !ok {
-			vErr.Errors["receiptSummaryCustomFieldIds"] = "One or more selected custom fields do not exist"
-			break
-		}
-		if customField.Type != models.CURRENCY {
-			vErr.Errors["receiptSummaryCustomFieldIds"] = "Only currency custom fields can be totalled in the receipt summary"
-			break
-		}
-	}
-
-	return vErr, nil
-}
-
-// customFieldsById resolves a submitted id selection to the catalog entries that actually
-// exist, keyed by id. A missing key is an unknown id; the caller decides what that means.
-func customFieldsById(customFieldIds []uint) (map[uint]models.CustomField, error) {
-	customFields, err := repositories.NewCustomFieldRepository(nil).GetCustomFieldsByIds(customFieldIds)
-	if err != nil {
-		return nil, err
-	}
-
-	found := make(map[uint]models.CustomField, len(customFields))
-	for _, customField := range customFields {
-		found[customField.ID] = customField
-	}
-
-	return found, nil
-}

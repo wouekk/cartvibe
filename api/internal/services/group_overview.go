@@ -42,8 +42,8 @@ var ErrInvalidOverviewMonth = errors.New("month must be formatted yyyy-MM")
 // ErrInvalidOverviewPeriod is returned for a from/to that is not a pair of yyyy-MM-dd days in order.
 var ErrInvalidOverviewPeriod = errors.New("from and to must both be yyyy-MM-dd days, from on or before to, at most five years apart")
 
-// GroupOverviewService builds the Dashboard's period at a glance. Like ReceiptSummaryService and
-// PieChartService it loads the receipts through GetPagedReceiptsByGroupId, the only path that
+// GroupOverviewService builds the Dashboard's period at a glance. Like
+// PieChartService, it loads the receipts through GetPagedReceiptsByGroupId, the only path that
 // applies the "All" group fan-out, paid-by visibility and category/tag grants, and folds them in Go
 // with shopspring/decimal, because SQLite has no decimal type to SUM exactly.
 type GroupOverviewService struct {

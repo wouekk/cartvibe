@@ -143,7 +143,7 @@ func (repository OidcProviderRepository) CreateOidcProvider(
 // GORM's struct form skips zero values, which would silently ignore turning
 // allow_provisioning, link_by_username or enabled OFF -- and each of those is a
 // security toggle, so an admin revoking one would believe they had. Same reason
-// UpdateCustomField and UpdateAppRole use the map form.
+// UpdateAppRole uses the map form.
 //
 // client_secret is only in the map when the request actually supplied one, so an
 // update that leaves the field blank keeps the stored ciphertext byte for byte.

@@ -17,8 +17,8 @@ import (
 	"cartvibe/api/internal/utils"
 )
 
-// createSplitReceipt inserts a receipt with the given amount, categories, tags
-// and custom field values. Categories and tags must be loaded rows, so the
+// createSplitReceipt inserts a receipt with the given amount, categories and tags.
+// Categories and tags must be loaded rows, so the
 // association write does not blank their names.
 func createSplitReceipt(
 	t *testing.T,
@@ -28,7 +28,6 @@ func createSplitReceipt(
 	groupId uint,
 	categories []models.Category,
 	tags []models.Tag,
-	customFields []models.CustomFieldValue,
 ) models.Receipt {
 	t.Helper()
 	receipt := models.Receipt{
@@ -40,7 +39,6 @@ func createSplitReceipt(
 		Status:       models.OPEN,
 		Categories:   categories,
 		Tags:         tags,
-		CustomFields: customFields,
 	}
 	if err := repositories.GetDB().Create(&receipt).Error; err != nil {
 		t.Fatalf("create receipt %q: %v", name, err)
@@ -55,20 +53,6 @@ func loadTag(t *testing.T, id uint) models.Tag {
 		t.Fatalf("load tag %d: %v", id, err)
 	}
 	return tag
-}
-
-func makeCurrencyField(t *testing.T, name string) uint {
-	t.Helper()
-	field := models.CustomField{Name: name, Type: models.CURRENCY}
-	if err := repositories.GetDB().Create(&field).Error; err != nil {
-		t.Fatalf("seed custom field: %v", err)
-	}
-	return field.ID
-}
-
-func currency(literal string) *decimal.Decimal {
-	value := decimal.RequireFromString(literal)
-	return &value
 }
 
 // rowSummary renders each row as "categories|tags|amount" for compact asserts.
@@ -111,7 +95,7 @@ func TestReportDataService_SplitsAcrossCategories(t *testing.T) {
 	toys := loadCategory(t, makeCategory(t, "Toys"))
 	userId, groupId, _ := seedMemberWithGroupRoleGrants(t, "split-cat", nil, nil)
 	// Attached out of id order: the leftover cent still goes to the lowest id.
-	createSplitReceipt(t, "three", "100", userId, groupId, []models.Category{toys, food, fuel}, nil, nil)
+	createSplitReceipt(t, "three", "100", userId, groupId, []models.Category{toys, food, fuel}, nil)
 
 	rowSet, err := NewReportDataService(nil).RowsWithSplit(userId, groupIdString(groupId), commands.ReceiptPagedRequestFilter{},
 		receiptsource.SplitOptions{Categories: true})
@@ -141,7 +125,7 @@ func TestReportDataService_RowsWithoutSplitIsUnchanged(t *testing.T) {
 	food := loadCategory(t, makeCategory(t, "Food"))
 	fuel := loadCategory(t, makeCategory(t, "Fuel"))
 	userId, groupId, _ := seedMemberWithGroupRoleGrants(t, "split-none", nil, nil)
-	createSplitReceipt(t, "two", "100", userId, groupId, []models.Category{food, fuel}, nil, nil)
+	createSplitReceipt(t, "two", "100", userId, groupId, []models.Category{food, fuel}, nil)
 
 	_, rows, err := NewReportDataService(nil).Rows(userId, groupIdString(groupId), commands.ReceiptPagedRequestFilter{})
 	if err != nil {
@@ -174,7 +158,7 @@ func TestReportDataService_SplitUsesTheTrueCategoryCount(t *testing.T) {
 	}
 
 	createSplitReceipt(t, "mixed", "100", restrictedUser, groupId,
-		[]models.Category{loadCategory(t, visibleId), loadCategory(t, hiddenOne), loadCategory(t, hiddenTwo)}, nil, nil)
+		[]models.Category{loadCategory(t, visibleId), loadCategory(t, hiddenOne), loadCategory(t, hiddenTwo)}, nil)
 
 	options := receiptsource.SplitOptions{Categories: true}
 	restricted, err := NewReportDataService(nil).RowsWithSplit(restrictedUser, groupIdString(groupId), commands.ReceiptPagedRequestFilter{}, options)
@@ -208,7 +192,7 @@ func TestReportDataService_SplitMergesHiddenCopiesPerTag(t *testing.T) {
 	sam := loadTag(t, makeTag(t, "Sam"))
 	userId, groupId, _ := seedMemberWithGroupRoleGrants(t, "split-merge", []uint{grantedId}, nil)
 
-	createSplitReceipt(t, "hidden", "10", userId, groupId, []models.Category{hiddenOne, hiddenTwo}, []models.Tag{alex, sam}, nil)
+	createSplitReceipt(t, "hidden", "10", userId, groupId, []models.Category{hiddenOne, hiddenTwo}, []models.Tag{alex, sam})
 
 	rowSet, err := NewReportDataService(nil).RowsWithSplit(userId, groupIdString(groupId), commands.ReceiptPagedRequestFilter{},
 		receiptsource.SplitOptions{Categories: true, Tags: true})
@@ -219,40 +203,6 @@ func TestReportDataService_SplitMergesHiddenCopiesPerTag(t *testing.T) {
 	assertSummary(t, rowSet.Rows, []string{"(Restricted)|Alex|5.00", "(Restricted)|Sam|5.00"})
 	if !reflect.DeepEqual(rowSet.RowsPerReceipt, []int{2}) {
 		t.Errorf("RowsPerReceipt = %v, want [2]", rowSet.RowsPerReceipt)
-	}
-}
-
-func TestReportDataService_SplitHonoursExcludedCurrencyFields(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
-	clearRolePermissionCacheAll()
-
-	food := loadCategory(t, makeCategory(t, "Food"))
-	fuel := loadCategory(t, makeCategory(t, "Fuel"))
-	taxId := makeCurrencyField(t, "Tax")
-	tipId := makeCurrencyField(t, "Tip")
-	userId, groupId, _ := seedMemberWithGroupRoleGrants(t, "split-excluded", nil, nil)
-	createSplitReceipt(t, "fields", "100", userId, groupId, []models.Category{food, fuel}, nil, []models.CustomFieldValue{
-		{CustomFieldId: taxId, CurrencyValue: currency("13")},
-		{CustomFieldId: tipId, CurrencyValue: currency("10")},
-	})
-
-	rowSet, err := NewReportDataService(nil).RowsWithSplit(userId, groupIdString(groupId), commands.ReceiptPagedRequestFilter{},
-		receiptsource.SplitOptions{Categories: true, Excluded: map[uint]struct{}{taxId: {}}})
-	if err != nil {
-		t.Fatalf("RowsWithSplit: %v", err)
-	}
-
-	if len(rowSet.Rows) != 2 {
-		t.Fatalf("rows = %d, want 2", len(rowSet.Rows))
-	}
-	for index, row := range rowSet.Rows {
-		if got := measureFixed(t, row, receiptsource.CustomFieldKey(taxId)); got != "13.00" {
-			t.Errorf("row %d excluded Tax = %s, want 13.00", index, got)
-		}
-		if got := measureFixed(t, row, receiptsource.CustomFieldKey(tipId)); got != "5.00" {
-			t.Errorf("row %d split Tip = %s, want 5.00", index, got)
-		}
 	}
 }
 
@@ -271,50 +221,33 @@ func TestReportService_ReportSplitOptions(t *testing.T) {
 		mutate       func(*commands.ReportRequestCommand)
 		wantCategory bool
 		wantTag      bool
-		wantExcluded []uint
 	}{
-		{"flags off", func(c *commands.ReportRequestCommand) {}, false, false, nil},
+		{"flags off", func(c *commands.ReportRequestCommand) {}, false, false},
 		{"category as aggregate dimension", func(c *commands.ReportRequestCommand) {
 			c.SplitCategoriesEqually = true
-		}, true, false, []uint{}},
+		}, true, false},
 		{"tag as a grouping level", func(c *commands.ReportRequestCommand) {
 			c.GroupBy = []string{"group", "tag"}
 			c.SplitTagsEqually = true
-		}, false, true, []uint{}},
+		}, false, true},
 		{"category flag on a report that never cuts by category", func(c *commands.ReportRequestCommand) {
 			c.Detail.By = "tag"
 			c.SplitCategoriesEqually = true
-		}, false, false, nil},
+		}, false, false},
 		{"records mode with a stray by", func(c *commands.ReportRequestCommand) {
 			c.Detail = commands.ReportDetail{Mode: commands.ReportDetailRecords, By: "category"}
 			c.SplitCategoriesEqually = true
-		}, false, false, nil},
+		}, false, false},
 		{"records mode grouped by category", func(c *commands.ReportRequestCommand) {
 			c.GroupBy = []string{"category"}
 			c.Detail = commands.ReportDetail{Mode: commands.ReportDetailRecords}
 			c.SplitCategoriesEqually = true
-		}, true, false, []uint{}},
+		}, true, false},
 		{"both dimensions", func(c *commands.ReportRequestCommand) {
 			c.GroupBy = []string{"tag"}
 			c.SplitCategoriesEqually = true
 			c.SplitTagsEqually = true
-		}, true, true, []uint{}},
-		{"excluded keys are parsed and malformed ones dropped", func(c *commands.ReportRequestCommand) {
-			c.SplitCategoriesEqually = true
-			c.SplitExcludedFields = []string{"custom_4", "custom_4", "amount", "custom_9_month", "custom_7"}
-		}, true, false, []uint{4, 7}},
-		{"a custom field the report groups by is never split", func(c *commands.ReportRequestCommand) {
-			c.GroupBy = []string{"custom_12"}
-			c.SplitCategoriesEqually = true
-		}, true, false, []uint{12}},
-		{"a custom field the report aggregates by is never split", func(c *commands.ReportRequestCommand) {
-			c.GroupBy = []string{"category"}
-			c.Detail.By = "custom_5"
-			c.SplitCategoriesEqually = true
-		}, true, false, []uint{5}},
-		{"exclusions are ignored while nothing splits", func(c *commands.ReportRequestCommand) {
-			c.SplitExcludedFields = []string{"custom_4"}
-		}, false, false, nil},
+		}, true, true},
 	}
 
 	for _, test := range tests {
@@ -326,19 +259,6 @@ func TestReportService_ReportSplitOptions(t *testing.T) {
 			if options.Categories != test.wantCategory || options.Tags != test.wantTag {
 				t.Errorf("options = categories:%v tags:%v, want categories:%v tags:%v",
 					options.Categories, options.Tags, test.wantCategory, test.wantTag)
-			}
-			if test.wantExcluded == nil {
-				if options.Excluded != nil {
-					t.Errorf("Excluded = %v, want nil", options.Excluded)
-				}
-				return
-			}
-			want := map[uint]struct{}{}
-			for _, id := range test.wantExcluded {
-				want[id] = struct{}{}
-			}
-			if !reflect.DeepEqual(options.Excluded, want) {
-				t.Errorf("Excluded = %v, want %v", options.Excluded, want)
 			}
 		})
 	}
@@ -417,8 +337,8 @@ func TestReportService_BuildModel_SplitsCategoryBuckets(t *testing.T) {
 	fuel := loadCategory(t, makeCategory(t, "Fuel"))
 	toys := loadCategory(t, makeCategory(t, "Toys"))
 	userId, groupIds := seedReportUserInGroups(t, "split-build", "Household")
-	createSplitReceipt(t, "three", "100", userId, groupIds[0], []models.Category{food, fuel, toys}, nil, nil)
-	createSplitReceipt(t, "one", "20", userId, groupIds[0], []models.Category{food}, nil, nil)
+	createSplitReceipt(t, "three", "100", userId, groupIds[0], []models.Category{food, fuel, toys}, nil)
+	createSplitReceipt(t, "one", "20", userId, groupIds[0], []models.Category{food}, nil)
 
 	build, err := NewReportService(nil).buildModel(userId, splitReportCommand(groupIds), time.Now(), 0)
 	if err != nil {
@@ -458,7 +378,7 @@ func TestReportService_BuildModel_SplitsRecordsGroupedByCategory(t *testing.T) {
 	food := loadCategory(t, makeCategory(t, "Food"))
 	fuel := loadCategory(t, makeCategory(t, "Fuel"))
 	userId, groupIds := seedReportUserInGroups(t, "split-records", "Household")
-	createSplitReceipt(t, "shared", "9.99", userId, groupIds[0], []models.Category{food, fuel}, nil, nil)
+	createSplitReceipt(t, "shared", "9.99", userId, groupIds[0], []models.Category{food, fuel}, nil)
 
 	command := splitReportCommand(groupIds)
 	command.GroupBy = []string{"category"}
@@ -495,7 +415,7 @@ func TestReportService_BuildModel_UnattributedSplitIsANoOp(t *testing.T) {
 	alex := loadTag(t, makeTag(t, "Alex"))
 	sam := loadTag(t, makeTag(t, "Sam"))
 	userId, groupIds := seedReportUserInGroups(t, "split-noop", "Household")
-	createSplitReceipt(t, "r", "100", userId, groupIds[0], []models.Category{food, fuel}, []models.Tag{alex, sam}, nil)
+	createSplitReceipt(t, "r", "100", userId, groupIds[0], []models.Category{food, fuel}, []models.Tag{alex, sam})
 
 	// Aggregated by tag only; the category box is ticked, the tag box is not.
 	command := splitReportCommand(groupIds)
@@ -535,8 +455,8 @@ func TestReportService_BuildModel_CapKeepsWholeSplitReceipts(t *testing.T) {
 	fuel := loadCategory(t, makeCategory(t, "Fuel"))
 	toys := loadCategory(t, makeCategory(t, "Toys"))
 	userId, groupIds := seedReportUserInGroups(t, "split-cap", "Household")
-	createSplitReceipt(t, "newest", "90", userId, groupIds[0], []models.Category{food, fuel, toys}, nil, nil)
-	older := createSplitReceipt(t, "older", "50", userId, groupIds[0], []models.Category{food}, nil, nil)
+	createSplitReceipt(t, "newest", "90", userId, groupIds[0], []models.Category{food, fuel, toys}, nil)
+	older := createSplitReceipt(t, "older", "50", userId, groupIds[0], []models.Category{food}, nil)
 	// Receipts are fetched newest first, so the three-way split is the sample.
 	if err := repositories.GetDB().Model(&older).Update("date", time.Date(2026, 5, 2, 0, 0, 0, 0, time.UTC)).Error; err != nil {
 		t.Fatalf("backdate receipt: %v", err)
@@ -564,8 +484,8 @@ func TestReportService_Generate_SplitAcrossGroupsCsv(t *testing.T) {
 	food := loadCategory(t, makeCategory(t, "Food"))
 	fuel := loadCategory(t, makeCategory(t, "Fuel"))
 	userId, groupIds := seedReportUserInGroups(t, "split-csv", "Household", "Roommates")
-	createSplitReceipt(t, "household", "10", userId, groupIds[0], []models.Category{food, fuel}, nil, nil)
-	createSplitReceipt(t, "roommates", "30", userId, groupIds[1], []models.Category{food, fuel}, nil, nil)
+	createSplitReceipt(t, "household", "10", userId, groupIds[0], []models.Category{food, fuel}, nil)
+	createSplitReceipt(t, "roommates", "30", userId, groupIds[1], []models.Category{food, fuel}, nil)
 
 	report, err := NewReportService(nil).Generate(userId, splitReportCommand(groupIds))
 	if err != nil {
@@ -593,7 +513,7 @@ func TestReportService_RenderTemplateForUser_AppliesSplit(t *testing.T) {
 	fuel := loadCategory(t, makeCategory(t, "Fuel"))
 	userId := seedAppUser(t, "widget-split", []string{permissions.AppReportsRead, permissions.AppReportsGenerate})
 	groupId, _ := joinGroup(t, userId, "Household", []string{permissions.GroupReportsRead, permissions.GroupReceiptsRead})
-	createSplitReceipt(t, "shared", "100", userId, groupId, []models.Category{food, fuel}, nil, nil)
+	createSplitReceipt(t, "shared", "100", userId, groupId, []models.Category{food, fuel}, nil)
 
 	templateId := seedRenderableTemplate(t, "Widget", []uint{groupId}, splitReportCommand([]uint{groupId}))
 	preview, err := NewReportService(nil).RenderTemplateForUser(userId, utils.UintToString(templateId))

@@ -12,9 +12,6 @@
 package receiptsource
 
 import (
-	"sort"
-	"strconv"
-	"strings"
 	"time"
 
 	"cartvibe/api/internal/models"
@@ -54,63 +51,6 @@ const (
 	KeyCreatedAtMonth reporting.FieldKey = "created_at_month"
 	KeyCreatedAtYear  reporting.FieldKey = "created_at_year"
 )
-
-// customFieldKeyPrefix builds a custom field's key from its id rather than its
-// name, so that renaming a custom field cannot break a saved report.
-const customFieldKeyPrefix = "custom_"
-
-// CustomFieldKey returns the field key a custom field is referenced by.
-func CustomFieldKey(customFieldID uint) reporting.FieldKey {
-	return reporting.FieldKey(customFieldKeyPrefix + strconv.FormatUint(uint64(customFieldID), 10))
-}
-
-// ParseCustomFieldKey returns the custom field id a key refers to, and whether
-// the key is a custom field key at all. It is the inverse of CustomFieldKey, and
-// deliberately strict: only "custom_" followed by digits alone qualifies, so a
-// derived period key ("custom_7_month") and anything hand-crafted are rejected.
-//
-// The receipts table sorts by these same keys, which is why this lives beside
-// the key builder rather than being re-derived wherever a key is read.
-func ParseCustomFieldKey(key string) (uint, bool) {
-	digits, found := strings.CutPrefix(key, customFieldKeyPrefix)
-	if !found || len(digits) == 0 {
-		return 0, false
-	}
-
-	// ParseUint would accept a leading "+", which CustomFieldKey never emits.
-	for _, character := range digits {
-		if character < '0' || character > '9' {
-			return 0, false
-		}
-	}
-
-	// 32 bits, not 64: the result is a models.CustomField id, which is a uint -
-	// and a uint is 32 bits on a 32-bit build, where parsing to 64 would truncate
-	// and name a DIFFERENT field ("custom_4294967297" would resolve to field 1).
-	// No id reaches 2^32, so the cap only rejects keys that cannot name a real
-	// field, which the caller already treats like any other malformed key.
-	customFieldID, err := strconv.ParseUint(digits, 10, 32)
-	if err != nil {
-		return 0, false
-	}
-
-	return uint(customFieldID), true
-}
-
-// CustomFieldPeriodKeys returns the day/month/year keys derived from a date
-// custom field, the custom-field counterpart of date_day / date_month /
-// date_year. A report groups by one of these to bucket by calendar period;
-// grouping by the raw field buckets on the exact instant, which puts every
-// receipt in its own group.
-//
-// They cannot collide with another custom field's key: CustomFieldKey is always
-// "custom_" followed by digits alone, so no id produces "custom_7_month".
-func CustomFieldPeriodKeys(customFieldID uint) (day, month, year reporting.FieldKey) {
-	base := string(CustomFieldKey(customFieldID))
-	return reporting.FieldKey(base + "_day"),
-		reporting.FieldKey(base + "_month"),
-		reporting.FieldKey(base + "_year")
-}
 
 // builtinFields returns the fields every receipt report may reference.
 //
@@ -153,123 +93,46 @@ func dateFieldRefs(dayKey, monthKey, yearKey reporting.FieldKey, labelPrefix str
 	}
 }
 
-// Source maps receipts to engine rows against a fixed set of custom fields.
-//
-// It resolves the custom field definitions once, so the catalog it offers and
-// the rows it builds cannot disagree about a field's type or about what a
-// select option's value is.
+// Source maps receipts to engine rows.
 type Source struct {
 	catalog reporting.FieldCatalog
 
-	// types maps a custom field's id to its type, which decides which of the
-	// five value columns on a CustomFieldValue holds the answer.
-	types map[uint]models.CustomFieldType
-
-	// options maps a select field's id to its option values by option id, which
-	// is how a stored option id becomes the text a reader sees.
-	options map[uint]map[uint]string
-
 	// location is the app's time zone: the zone an instant (created_at,
 	// resolved_date) is read in to decide which calendar day, month and year it
-	// falls in. Calendar-day fields (date, DATE custom fields) are always read
-	// in UTC, since they are stored as midnight UTC of their day.
+	// falls in. The receipt's Date is a calendar day and is always read in UTC,
+	// since it is stored as midnight UTC of its day.
 	location *time.Location
 }
 
-// New builds a Source over the custom fields a report may reference. Pass them
-// with their Options loaded; a select field whose options are missing resolves
-// to no value rather than to a bare option id.
-//
-// Two custom fields sharing an id are rejected, since they would claim the same
-// field key.
+// New builds a Source.
 //
 // location is the app's time zone, which decides the calendar day of an
 // instant (Added At, Resolved Date): a receipt added at 01:00 UTC on Oct 1 was
-// added on Sep 30 in New York. A calendar-day field (Date, a DATE custom field)
-// ignores it and is read in UTC. Nil means UTC. The source takes the zone as a
-// parameter rather than reading it, so the package stays free of settings.
-func New(customFields []models.CustomField, location *time.Location) (Source, error) {
+// added on Sep 30 in New York. The receipt's Date ignores it and is read in
+// UTC. Nil means UTC. The source takes the zone as a parameter rather than
+// reading it, so the package stays free of settings.
+func New(location *time.Location) (Source, error) {
 	if location == nil {
 		location = time.UTC
 	}
 
-	// Sort by id so the catalog does not depend on the order the definitions
-	// arrived in.
-	sorted := make([]models.CustomField, len(customFields))
-	copy(sorted, customFields)
-	sort.Slice(sorted, func(i, j int) bool { return sorted[i].ID < sorted[j].ID })
-
-	source := Source{
-		types:    make(map[uint]models.CustomFieldType, len(sorted)),
-		options:  make(map[uint]map[uint]string),
-		location: location,
-	}
-
-	fields := builtinFields(location)
-	for _, customField := range sorted {
-		source.types[customField.ID] = customField.Type
-
-		if customField.Type == models.SELECT {
-			values := make(map[uint]string, len(customField.Options))
-			for _, option := range customField.Options {
-				values[option.ID] = option.Value
-			}
-			source.options[customField.ID] = values
-		}
-
-		customFieldRef := reporting.FieldRef{
-			Key:      CustomFieldKey(customField.ID),
-			Label:    customField.Name,
-			DataType: dataTypeFor(customField.Type),
-		}
-		if customField.Type == models.DATE {
-			// A DATE custom field is a calendar day, like the receipt's Date.
-			customFieldRef.Location = time.UTC
-		}
-		fields = append(fields, customFieldRef)
-
-		if customField.Type == models.DATE {
-			day, month, year := CustomFieldPeriodKeys(customField.ID)
-			fields = append(fields, dateFieldRefs(day, month, year, customField.Name)...)
-		}
-	}
-
-	catalog, err := reporting.NewFieldCatalog(fields...)
+	catalog, err := reporting.NewFieldCatalog(builtinFields(location)...)
 	if err != nil {
 		return Source{}, err
 	}
-	source.catalog = catalog
 
-	return source, nil
+	return Source{catalog: catalog, location: location}, nil
 }
 
-// Catalog returns the fields a report run against this source may reference:
-// every built-in, plus one per custom field — and, for a date custom field,
-// its three derived calendar-period fields as well.
+// Catalog returns the fields a report run against this source may reference.
 func (s Source) Catalog() reporting.FieldCatalog { return s.catalog }
-
-// dataTypeFor maps a custom field's type onto the engine's. A currency custom
-// field is a measure and every other kind is a dimension, which is why a tax
-// field needs no special case: it is summable because it is currency.
-func dataTypeFor(customFieldType models.CustomFieldType) reporting.DataType {
-	switch customFieldType {
-	case models.CURRENCY:
-		return reporting.TypeCurrency
-	case models.DATE:
-		return reporting.TypeDate
-	case models.BOOLEAN:
-		return reporting.TypeBool
-	}
-	// TEXT and SELECT both read as text.
-	return reporting.TypeString
-}
 
 // Rows resolves receipts into engine rows, one row per receipt, in the order
 // they were given. The engine preserves that order for a records-mode report,
 // so the caller's query decides how those rows are sorted.
 //
 // The caller must have preloaded whatever the report reads: Categories, Tags
-// and CustomFields on the receipt, plus PaidByUser and Group for their display
+// on the receipt, plus PaidByUser and Group for their display
 // names. An association that was not loaded resolves to no value, which the
 // engine reports as a (None) bucket. A missing preload therefore shows up as an
 // empty group rather than as a crash.
@@ -309,8 +172,6 @@ func (s Source) row(receipt *models.Receipt) reporting.Row {
 		row[KeyGroup] = []reporting.Value{reporting.Str(receipt.Group.Name)}
 	}
 
-	s.addCustomFields(row, receipt)
-
 	return row
 }
 
@@ -326,104 +187,6 @@ func setDateParts(row reporting.Row, dayKey, monthKey, yearKey reporting.FieldKe
 	row[dayKey] = []reporting.Value{reporting.Str(local.Format("2006-01-02"))}
 	row[monthKey] = []reporting.Value{reporting.Str(local.Format("2006-01"))}
 	row[yearKey] = []reporting.Value{reporting.Str(local.Format("2006"))}
-}
-
-// addCustomFields resolves each of a receipt's custom field values against its
-// definition, writing a date field's calendar-period parts alongside its value.
-// A field the receipt carries no value for simply has no entry, which reads as
-// null when measured and as (None) when grouped.
-//
-// Where a receipt holds several values for one field, the one with the lowest id
-// wins. Nothing stops it holding several: custom_field_values carries no unique
-// index on (receipt_id, custom_field_id), and a receipt update replaces the
-// association with whatever the request contained. Preferring whichever came
-// back first would hand the answer to the database, since the association is
-// loaded without an ORDER BY — and a report whose numbers depend on row order is
-// the one thing this package must not produce.
-//
-// A value that does not resolve never wins, so an empty low-id row cannot hide a
-// real one. Ties are only possible between rows that were never persisted, since
-// a saved row has a distinct id; among those the first still wins.
-func (s Source) addCustomFields(row reporting.Row, receipt *models.Receipt) {
-	// The id of the value currently holding each field.
-	winners := make(map[reporting.FieldKey]uint, len(receipt.CustomFields))
-
-	for _, customFieldValue := range receipt.CustomFields {
-		key := CustomFieldKey(customFieldValue.CustomFieldId)
-
-		if incumbent, held := winners[key]; held && incumbent <= customFieldValue.ID {
-			continue
-		}
-
-		value, ok := s.customFieldValue(customFieldValue)
-		if !ok {
-			continue
-		}
-
-		winners[key] = customFieldValue.ID
-		row[key] = []reporting.Value{value}
-
-		// A date field also carries its calendar-period fields. This runs again
-		// whenever a lower-id value takes over, and setDateParts overwrites, so
-		// the parts always describe the value that actually won.
-		if moment, isDate := value.Time(); isDate {
-			day, month, year := CustomFieldPeriodKeys(customFieldValue.CustomFieldId)
-			setDateParts(row, day, month, year, moment, time.UTC)
-		}
-	}
-}
-
-// customFieldValue reads the one column of a value row that its field's type
-// says is populated.
-//
-// The type comes from this source's definitions rather than from the value's
-// own embedded CustomField, which the caller need not have preloaded. A value
-// whose field is not in the catalog is skipped: the engine could not reference
-// it anyway.
-func (s Source) customFieldValue(customFieldValue models.CustomFieldValue) (reporting.Value, bool) {
-	customFieldType, known := s.types[customFieldValue.CustomFieldId]
-	if !known {
-		return reporting.Null(), false
-	}
-
-	switch customFieldType {
-	case models.CURRENCY:
-		if customFieldValue.CurrencyValue == nil {
-			return reporting.Null(), false
-		}
-		return reporting.Num(*customFieldValue.CurrencyValue), true
-
-	case models.TEXT:
-		if customFieldValue.StringValue == nil {
-			return reporting.Null(), false
-		}
-		return reporting.Str(*customFieldValue.StringValue), true
-
-	case models.SELECT:
-		// A select stores an option id, not the text a reader sees.
-		if customFieldValue.SelectValue == nil {
-			return reporting.Null(), false
-		}
-		text, found := s.options[customFieldValue.CustomFieldId][*customFieldValue.SelectValue]
-		if !found {
-			return reporting.Null(), false
-		}
-		return reporting.Str(text), true
-
-	case models.DATE:
-		if customFieldValue.DateValue == nil {
-			return reporting.Null(), false
-		}
-		return reporting.DateVal(*customFieldValue.DateValue), true
-
-	case models.BOOLEAN:
-		if customFieldValue.BooleanValue == nil {
-			return reporting.Null(), false
-		}
-		return reporting.Bool(*customFieldValue.BooleanValue), true
-	}
-
-	return reporting.Null(), false
 }
 
 // userDisplayName prefers what a user chose to be called, falling back to the

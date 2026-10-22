@@ -1,7 +1,6 @@
 package routers
 
 import (
-	"net/http"
 	"cartvibe/api/internal/corspolicy"
 	config "cartvibe/api/internal/env"
 	"cartvibe/api/internal/logging"
@@ -9,6 +8,7 @@ import (
 	"cartvibe/api/internal/middleware"
 	"cartvibe/api/internal/oauth"
 	"cartvibe/api/internal/services"
+	"net/http"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
 	"github.com/go-chi/chi/v5"
@@ -139,10 +139,6 @@ func BuildRootRouter() *chi.Mux {
 	// Export router
 	exportRouter := BuildExportRouter()
 	rootRouter.Mount("/api/export", exportRouter)
-
-	// Custom Field router
-	customFieldRouter := BuildCustomFieldRouter()
-	rootRouter.Mount("/api/customField", customFieldRouter)
 
 	// API Key router
 	apiKeyRouter := BuildApiKeyRouter()

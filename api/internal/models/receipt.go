@@ -31,7 +31,6 @@ type Receipt struct {
 	ImageFiles   []FileData         `json:"imageFiles"`
 	ReceiptItems []Item             `json:"receiptItems"`
 	Comments     []Comment          `json:"comments"`
-	CustomFields []CustomFieldValue `json:"customFields"`
 	// FirstComment is the text of the earliest comment the caller may see, a
 	// transient projection filled only by the paged receipts list (see
 	// PermissionService.LoadFirstVisibleComments). omitempty keeps it off every

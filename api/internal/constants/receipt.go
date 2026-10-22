@@ -8,23 +8,7 @@ const DEFAULT_RECEIPT_ORDER_BY = "created_at"
 // is also the desktop receipts table's column key, so the two must agree.
 const FIRST_COMMENT_ORDER_BY = "first_comment"
 
-// CUSTOM_FIELD_ASSOCIATIONS loads a receipt's custom field values together with
-// the definition (and options) each value is read against.
-//
-// The definition is NOT optional. models.CustomFieldValue.CustomField is a
-// non-pointer struct with no omitempty, so loading the values alone still
-// serializes a zero-valued definition — including "type":"" — and the mobile
-// client's generated CustomFieldType is a closed enum with no empty member.
-// A value it cannot deserialize is swallowed by the one_of AnyOfSerializer,
-// which would collapse every receipt row in the app rather than error. See
-// mobile/CLAUDE.md -> "Serialization contract".
-var CUSTOM_FIELD_ASSOCIATIONS = []string{
-	"CustomFields",
-	"CustomFields.CustomField",
-	"CustomFields.CustomField.Options",
-}
-
-var FULL_RECEIPT_ASSOCIATIONS = append([]string{
+var FULL_RECEIPT_ASSOCIATIONS = []string{
 	"PaidByUser",
 	"ReceiptItems",
 	"ReceiptItems.Categories",
@@ -34,4 +18,4 @@ var FULL_RECEIPT_ASSOCIATIONS = append([]string{
 	"ReceiptItems.LinkedItems.Tags",
 	"Comments",
 	"ImageFiles",
-}, CUSTOM_FIELD_ASSOCIATIONS...)
+}

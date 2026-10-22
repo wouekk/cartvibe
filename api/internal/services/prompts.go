@@ -1,12 +1,12 @@
 package services
 
 import (
-	"errors"
-	"gorm.io/gorm"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/constants"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
+	"errors"
+	"gorm.io/gorm"
 )
 
 type PromptService struct {
@@ -30,18 +30,16 @@ func NewPromptService(tx *gorm.DB) PromptService {
 // most of the latency). buildPrompt inserts the products part right before "\nReceipt text: ".
 const DefaultReceiptPrompt = `
 Read this shop receipt. Reply with minified JSON only, no code block:
-{"name":"...","shopName":"...","currency":"...","amount":0.0,"date":"2024-01-31T00:00:00Z","categories":[{"id":1}],"customFields":[]}
+{"name":"...","shopName":"...","currency":"...","amount":0.0,"date":"2024-01-31T00:00:00Z","categories":[{"id":1}]}
 - "name": the store name; "Default store name" if unreadable.
 - "shopName": the shop brand only (Auchan, Edeka, Rewe); "" if unreadable.
 - "currency": ` + currencyRule + `
 - "amount": the total paid, a number. A refund, return or credit (money back to the customer) is negative.
 - "date": the purchase day at midnight UTC, in exactly that format; the year is @currentYear if not printed.
 - "categories": up to 2 category ids from the list below that fit the store and what was bought, using their descriptions; [] if none fits. Never invent an id.
-- "customFields": a value only for a field the receipt clearly shows: {"customFieldId":id} plus one of "stringValue" (TEXT), "dateValue" yyyy-MM-dd (DATE), "selectValue" an option id (SELECT), "currencyValue" a number (CURRENCY), "booleanValue" (BOOLEAN); [] if none.
 Leave out any other value you cannot read with confidence.
 
 Categories: @categories
-Custom fields: @customFields
 
 Receipt text: @ocrText
 `

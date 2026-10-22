@@ -1,13 +1,13 @@
 package commands
 
 import (
+	"cartvibe/api/internal/constants"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
-	"cartvibe/api/internal/constants"
 )
 
 // ReceiptFileUpload is one image uploaded alongside a receipt create.

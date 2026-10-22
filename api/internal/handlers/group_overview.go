@@ -14,7 +14,7 @@ import (
 )
 
 // GetGroupOverview serves the landing page's month at a glance. It is a GET (not a POST like the
-// receipt summary) so a read-only API key may call it. The "All" group is allowed: like the
+// receipts list) so a read-only API key may call it. The "All" group is allowed: like the
 // receipts table, it spans every group the caller can read.
 func GetGroupOverview(w http.ResponseWriter, r *http.Request) {
 	groupId := chi.URLParam(r, "groupId")

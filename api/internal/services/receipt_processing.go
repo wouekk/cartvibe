@@ -1,16 +1,16 @@
 package services
 
 import (
-	"encoding/json"
-	"fmt"
-	"gorm.io/gorm"
-	"os"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"encoding/json"
+	"fmt"
+	"gorm.io/gorm"
+	"os"
 	"strings"
 	"time"
 )
@@ -275,13 +275,6 @@ func (service ReceiptProcessingService) processImages(
 
 	cleanedResponse := service.cleanResponse(response)
 
-	// Custom field values are read leniently and kept out of the strict unmarshal below (Phase 3 F2).
-	customFields, customFieldsErr := repositories.NewCustomFieldRepository(nil).GetAllCustomFields()
-	if customFieldsErr != nil {
-		return result, customFieldsErr
-	}
-	cleanedResponse, aiCustomFieldValues := splitAiCustomFields(cleanedResponse, customFields)
-
 	err = json.Unmarshal([]byte(cleanedResponse), &receipt)
 	if err != nil {
 		return result, err
@@ -290,8 +283,6 @@ func (service ReceiptProcessingService) processImages(
 	// Tags are the household's own labels, set by people only; the AI picks categories and health.
 	// A stored custom prompt may still ask for tags, so whatever the answer holds is dropped here.
 	dropAiTags(&receipt)
-
-	receipt.CustomFields = aiCustomFieldValues
 
 	// A receipt in another currency is converted at the household's own rate (Phase 3 currencies).
 	ApplyReceiptCurrency(&receipt)
@@ -535,11 +526,6 @@ func (service ReceiptProcessingService) buildTemplateVariableMap(ocrText string)
 		return result, err
 	}
 
-	customFieldsString, err := service.getCustomFieldsString()
-	if err != nil {
-		return result, err
-	}
-
 	// The year as the app's users see it, not the server process's, so a
 	// receipt scanned just after midnight on Jan 1 in the app zone is dated in
 	// the new year.
@@ -547,7 +533,6 @@ func (service ReceiptProcessingService) buildTemplateVariableMap(ocrText string)
 
 	result[structs.CATEGORIES] = categoriesString
 	result[structs.TAGS] = tagsString
-	result[structs.CUSTOM_FIELDS] = customFieldsString
 	result[structs.OCR_TEXT] = ocrText
 	result[structs.CURRENT_YEAR] = currentYearString
 

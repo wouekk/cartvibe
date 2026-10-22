@@ -29,7 +29,7 @@ func storedReceiptName(t *testing.T, receiptId uint) string {
 func TestRenameReceiptChangesOnlyTheName(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	userId, groupId := seedGroupWithRole(t, "rename-ok", []string{permissions.GroupReceiptsRead, permissions.GroupReceiptsUpdate})
-	receiptId := seedReceipt(t, groupId, userId, 0)
+	receiptId := seedReceipt(t, groupId, userId)
 
 	status := renameReceiptRequest(t, receiptId, userId, `{"name":"  Weekly shop  "}`)
 	if status != http.StatusOK {
@@ -49,7 +49,7 @@ func TestRenameReceiptChangesOnlyTheName(t *testing.T) {
 func TestRenameReceiptRejectsBlankAndOverlongNames(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	userId, groupId := seedGroupWithRole(t, "rename-bad", []string{permissions.GroupReceiptsRead, permissions.GroupReceiptsUpdate})
-	receiptId := seedReceipt(t, groupId, userId, 0)
+	receiptId := seedReceipt(t, groupId, userId)
 
 	for _, body := range []string{`{"name":""}`, `{"name":"   "}`, `{"name":"` + strings.Repeat("x", 256) + `"}`, `{}`} {
 		if status := renameReceiptRequest(t, receiptId, userId, body); status != http.StatusBadRequest {
@@ -64,7 +64,7 @@ func TestRenameReceiptRejectsBlankAndOverlongNames(t *testing.T) {
 func TestRenameReceiptNeedsUpdatePermission(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	userId, groupId := seedGroupWithRole(t, "rename-denied", []string{permissions.GroupReceiptsRead})
-	receiptId := seedReceipt(t, groupId, userId, 0)
+	receiptId := seedReceipt(t, groupId, userId)
 
 	if status := renameReceiptRequest(t, receiptId, userId, `{"name":"Nope"}`); status != http.StatusForbidden {
 		utils.PrintTestError(t, status, http.StatusForbidden)

@@ -1,13 +1,13 @@
 package commands
 
 import (
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/mail"
-	"cartvibe/api/internal/models"
-	"cartvibe/api/internal/structs"
-	"cartvibe/api/internal/utils"
 )
 
 type UpdateGroupSettingsCommand struct {

@@ -1,10 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
-	"errors"
-	"fmt"
-	"net/http"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/constants"
 	"cartvibe/api/internal/logging"
@@ -15,6 +11,10 @@ import (
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
 	"cartvibe/api/internal/wranglerasynq"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hibiken/asynq"
@@ -41,12 +41,7 @@ func GetPagedReceiptsForGroup(w http.ResponseWriter, r *http.Request) {
 			pagedData := structs.PagedData{}
 			token := structs.GetClaims(r)
 
-			// The receipts table can show a column per custom field, so the list
-			// always carries the values (and their definitions - see
-			// constants.CUSTOM_FIELD_ASSOCIATIONS for why the definitions are
-			// not optional). FULL_RECEIPT_ASSOCIATIONS already contains them;
-			// gorm's Preloads is a map, so the overlap is not a second query.
-			associations := constants.CUSTOM_FIELD_ASSOCIATIONS
+			var associations []string
 			if pagedRequest.FullReceipts {
 				associations = constants.FULL_RECEIPT_ASSOCIATIONS
 			}
@@ -335,7 +330,7 @@ func isAllGroupDestination(groupId uint) (bool, error) {
 
 // enforceReceiptCreate runs every check a receipt create must pass beyond its
 // declarative group.receipts.create gate — category/tag grants, member
-// visibility, custom-field selection (403s), then the caller's role-required
+// visibility (403s), then the caller's role-required
 // fields (400) — writing the rejection itself. It returns false when the create
 // was rejected. Shared by both create endpoints so they cannot drift.
 func enforceReceiptCreate(
@@ -368,17 +363,6 @@ func enforceReceiptCreate(
 	// An isolated member may not plant a payer or charged-to user outside
 	// their member-visible set for the group.
 	allowed, denyMessage, err = enforceReceiptMemberVisibilitySelection(userId, command.GroupId, command)
-	if err != nil {
-		return false, err
-	}
-	if !allowed {
-		utils.WriteCustomErrorResponse(w, denyMessage, http.StatusForbidden)
-		return false, nil
-	}
-
-	// A new receipt has no existing custom fields, so any custom field present
-	// is an add — blocked unless the caller can manage custom fields.
-	allowed, denyMessage, err = enforceReceiptCustomFieldSelection(userId, command, nil)
 	if err != nil {
 		return false, err
 	}
@@ -671,21 +655,6 @@ func UpdateReceipt(w http.ResponseWriter, r *http.Request) {
 			// An isolated member may not silently drop a stored charge to a member
 			// they cannot see — the wholesale item replace would corrupt the split.
 			allowed, denyMessage, err = enforceReceiptChargedToPreservation(token.UserId, currentReceipt)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-			if !allowed {
-				utils.WriteCustomErrorResponse(w, denyMessage, http.StatusForbidden)
-				return 0, nil
-			}
-
-			// A caller without custom-field access may edit values but not change which
-			// custom fields are attached to the receipt.
-			currentCustomFieldIds := make([]uint, 0, len(currentReceipt.CustomFields))
-			for _, customField := range currentReceipt.CustomFields {
-				currentCustomFieldIds = append(currentCustomFieldIds, customField.CustomFieldId)
-			}
-			allowed, denyMessage, err = enforceReceiptCustomFieldSelection(token.UserId, command, currentCustomFieldIds)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}

@@ -200,19 +200,6 @@ func createTestCategoryForDeletion(t *testing.T, name string) models.Category {
 	return category
 }
 
-func createTestCustomFieldForDeletion(t *testing.T, name string) models.CustomField {
-	t.Helper()
-	db := repositories.GetDB()
-	cf := models.CustomField{
-		Name: name,
-		Type: models.TEXT,
-	}
-	if err := db.Create(&cf).Error; err != nil {
-		t.Fatalf("failed to create custom field %s: %v", name, err)
-	}
-	return cf
-}
-
 func createTestFileDataForDeletion(t *testing.T, receiptId uint) models.FileData {
 	t.Helper()
 	db := repositories.GetDB()
@@ -841,7 +828,6 @@ func TestDeleteUser_Comprehensive(t *testing.T) {
 	compCat2 := createTestCategoryForDeletion(t, "compcat2")
 	compTag1 := createTestTagForDeletion(t, "comptag1")
 	compTag2 := createTestTagForDeletion(t, "comptag2")
-	compCustomField := createTestCustomFieldForDeletion(t, "comp field")
 
 	// Create receipts
 	userReceipt := createTestReceiptForDeletion(t, "user receipt", user.ID, userGroup.ID)
@@ -868,13 +854,6 @@ func TestDeleteUser_Comprehensive(t *testing.T) {
 	}
 	db.Create(&userReceiptReply)
 
-	// Custom field value on user's receipt
-	compStrVal := "comp value"
-	db.Create(&models.CustomFieldValue{
-		ReceiptId:     userReceipt.ID,
-		CustomFieldId: compCustomField.ID,
-		StringValue:   &compStrVal,
-	})
 
 	// File data on user's receipt
 	compFileData := createTestFileDataForDeletion(t, userReceipt.ID)
@@ -964,7 +943,6 @@ func TestDeleteUser_Comprehensive(t *testing.T) {
 	// User's receipt child data should be gone
 	assertCount(t, &models.Item{}, "receipt_id = ?", []interface{}{userReceipt.ID}, 0, "user receipt items should be deleted")
 	assertCount(t, &models.Comment{}, "receipt_id = ?", []interface{}{userReceipt.ID}, 0, "user receipt comments should be deleted")
-	assertCount(t, &models.CustomFieldValue{}, "receipt_id = ?", []interface{}{userReceipt.ID}, 0, "user receipt custom field values should be deleted")
 	assertCount(t, &models.FileData{}, "id = ?", []interface{}{compFileData.ID}, 0, "user receipt file data should be deleted")
 
 	// User's receipt junction tables should be cleaned up
@@ -1026,7 +1004,6 @@ func TestDeleteUser_Comprehensive(t *testing.T) {
 	// Global resources should survive
 	assertCount(t, &models.Category{}, "", nil, 2, "categories should survive")
 	assertCount(t, &models.Tag{}, "", nil, 2, "tags should survive")
-	assertCount(t, &models.CustomField{}, "id = ?", []interface{}{compCustomField.ID}, 1, "custom field should survive")
 
 	// Other user should be unaffected
 	assertCount(t, &models.User{}, "id = ?", []interface{}{otherUser.ID}, 1, "other user should survive")
@@ -1347,7 +1324,6 @@ func TestDeleteUser_WithReceiptHavingFullAssociations(t *testing.T) {
 	cat2 := createTestCategoryForDeletion(t, "rcat2")
 	tag1 := createTestTagForDeletion(t, "rtag1")
 	tag2 := createTestTagForDeletion(t, "rtag2")
-	customField := createTestCustomFieldForDeletion(t, "test field")
 
 	// Create receipt owned by user with categories and tags
 	receipt := createTestReceiptForDeletion(t, "full receipt", user.ID, group.ID)
@@ -1377,14 +1353,6 @@ func TestDeleteUser_WithReceiptHavingFullAssociations(t *testing.T) {
 	}
 	db.Create(&reply)
 
-	// Create custom field value
-	strVal := "test value"
-	cfv := models.CustomFieldValue{
-		ReceiptId:     receipt.ID,
-		CustomFieldId: customField.ID,
-		StringValue:   &strVal,
-	}
-	db.Create(&cfv)
 
 	// Create file data
 	fileData := createTestFileDataForDeletion(t, receipt.ID)
@@ -1405,7 +1373,6 @@ func TestDeleteUser_WithReceiptHavingFullAssociations(t *testing.T) {
 	assertCount(t, &models.Receipt{}, "id = ?", []interface{}{receipt.ID}, 0, "receipt should be deleted")
 	assertCount(t, &models.Item{}, "receipt_id = ?", []interface{}{receipt.ID}, 0, "items should be deleted")
 	assertCount(t, &models.Comment{}, "receipt_id = ?", []interface{}{receipt.ID}, 0, "comments should be deleted")
-	assertCount(t, &models.CustomFieldValue{}, "receipt_id = ?", []interface{}{receipt.ID}, 0, "custom field values should be deleted")
 	assertCount(t, &models.FileData{}, "id = ?", []interface{}{fileData.ID}, 0, "file data should be deleted")
 
 	// Junction tables should be cleaned up
@@ -1418,7 +1385,6 @@ func TestDeleteUser_WithReceiptHavingFullAssociations(t *testing.T) {
 	// Global resources should survive
 	assertCount(t, &models.Category{}, "", nil, 2, "categories should survive")
 	assertCount(t, &models.Tag{}, "", nil, 2, "tags should survive")
-	assertCount(t, &models.CustomField{}, "id = ?", []interface{}{customField.ID}, 1, "custom field should survive")
 }
 
 func TestDeleteUser_WithItemChargedToUserLinkedToOtherItems(t *testing.T) {

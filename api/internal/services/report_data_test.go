@@ -3,7 +3,6 @@ package services
 import (
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
-	"cartvibe/api/internal/reporting"
 	"cartvibe/api/internal/reporting/receiptsource"
 	"cartvibe/api/internal/repositories"
 	"slices"
@@ -143,55 +142,6 @@ func TestReportDataService_SubstitutesRestrictedCategory(t *testing.T) {
 	}
 	if slices.Contains(got, "Salary") {
 		t.Errorf("hidden category leaked into the row: %v", got)
-	}
-}
-
-// The catalog carries the built-ins, the derived date fields, and one field per
-// custom field; and the rows resolve a receipt's custom field value.
-func TestReportDataService_ResolvesCustomFieldsInCatalogAndRows(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
-	clearRolePermissionCacheAll()
-
-	userId, groupId, _ := seedMemberWithGroupRoleGrants(t, "rpt-custom", nil, nil)
-
-	customField := models.CustomField{Name: "HST", Type: models.CURRENCY}
-	if err := repositories.GetDB().Create(&customField).Error; err != nil {
-		t.Fatalf("seed custom field: %v", err)
-	}
-
-	hst := decimal.RequireFromString("15.60")
-	receipt := models.Receipt{
-		Name:         "with-hst",
-		Amount:       decimal.NewFromInt(100),
-		Date:         time.Date(2026, 5, 15, 0, 0, 0, 0, time.UTC),
-		PaidByUserID: userId,
-		GroupId:      groupId,
-		Status:       models.OPEN,
-		CustomFields: []models.CustomFieldValue{{CustomFieldId: customField.ID, CurrencyValue: &hst}},
-	}
-	if err := repositories.GetDB().Create(&receipt).Error; err != nil {
-		t.Fatalf("create receipt: %v", err)
-	}
-
-	customKey := receiptsource.CustomFieldKey(customField.ID)
-	catalog, rows, err := NewReportDataService(nil).Rows(userId, groupIdString(groupId), commands.ReceiptPagedRequestFilter{})
-	if err != nil {
-		t.Fatalf("Rows: %v", err)
-	}
-
-	for _, key := range []reporting.FieldKey{receiptsource.KeyAmount, receiptsource.KeyDateMonth, customKey} {
-		if _, ok := catalog.Get(key); !ok {
-			t.Errorf("catalog missing %s", key)
-		}
-	}
-
-	if len(rows) != 1 {
-		t.Fatalf("expected 1 row, got %d", len(rows))
-	}
-	value, isNumber := rows[0].Measure(customKey).Decimal()
-	if !isNumber || !value.Equal(hst) {
-		t.Errorf("custom field value = %v, want %v", rows[0].Measure(customKey), hst)
 	}
 }
 

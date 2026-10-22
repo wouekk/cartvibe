@@ -1,8 +1,8 @@
 package commands
 
 import (
-	"encoding/json"
 	"cartvibe/api/internal/models"
+	"encoding/json"
 )
 
 type UpsertWidgetCommand struct {

@@ -78,7 +78,7 @@ func TestGetReceiptDeniedWhenPaidByHidden(t *testing.T) {
 	// The member may see only payer's receipts (no own); a receipt paid by a
 	// different user is hidden and accessing it by id must be denied.
 	userId, groupId := seedPaidByRestrictedMember(t, []uint{payer.ID}, false)
-	receiptId := seedReceipt(t, groupId, hidden.ID, 0)
+	receiptId := seedReceipt(t, groupId, hidden.ID)
 
 	w, r := getReceiptByIdRequest(receiptId, userId)
 	GetReceipt(w, r)
@@ -95,7 +95,7 @@ func TestGetReceiptAllowedWhenPaidByVisible(t *testing.T) {
 	repositories.GetDB().Create(&payer)
 
 	userId, groupId := seedPaidByRestrictedMember(t, []uint{payer.ID}, false)
-	receiptId := seedReceipt(t, groupId, payer.ID, 0)
+	receiptId := seedReceipt(t, groupId, payer.ID)
 
 	w, r := getReceiptByIdRequest(receiptId, userId)
 	GetReceipt(w, r)
@@ -113,7 +113,7 @@ func TestGetReceiptAllowedWhenPaidByUnrestricted(t *testing.T) {
 
 	// No paid-by config => unrestricted => visible regardless of payer.
 	userId, groupId := seedPaidByRestrictedMember(t, nil, false)
-	receiptId := seedReceipt(t, groupId, anyPayer.ID, 0)
+	receiptId := seedReceipt(t, groupId, anyPayer.ID)
 
 	w, r := getReceiptByIdRequest(receiptId, userId)
 	GetReceipt(w, r)
@@ -144,7 +144,7 @@ func TestHasAccessDeniedWhenPaidByHidden(t *testing.T) {
 	// The member holds group.receipts.read but is paid-by-restricted to payer, so
 	// the guard probe for a hidden-payer receipt must be denied (clean redirect).
 	userId, groupId := seedPaidByRestrictedMember(t, []uint{payer.ID}, false)
-	receiptId := seedReceipt(t, groupId, hidden.ID, 0)
+	receiptId := seedReceipt(t, groupId, hidden.ID)
 
 	w, r := hasAccessRequest(receiptId, permissions.GroupReceiptsRead, userId)
 	HasAccess(w, r)
@@ -161,7 +161,7 @@ func TestHasAccessAllowedWhenPaidByVisible(t *testing.T) {
 	repositories.GetDB().Create(&payer)
 
 	userId, groupId := seedPaidByRestrictedMember(t, []uint{payer.ID}, false)
-	receiptId := seedReceipt(t, groupId, payer.ID, 0)
+	receiptId := seedReceipt(t, groupId, payer.ID)
 
 	w, r := hasAccessRequest(receiptId, permissions.GroupReceiptsRead, userId)
 	HasAccess(w, r)
@@ -184,7 +184,7 @@ func TestGetAmountOwedNotBlockedByPaidByVisibility(t *testing.T) {
 	// the same for every member), so it is exempt from the paid-by check — only
 	// group.receipts.read is required, which the member holds.
 	userId, groupId := seedPaidByRestrictedMember(t, []uint{payer.ID}, false)
-	receiptId := seedReceipt(t, groupId, hidden.ID, 0)
+	receiptId := seedReceipt(t, groupId, hidden.ID)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/?receiptIds="+utils.UintToString(receiptId), nil)
@@ -208,8 +208,8 @@ func TestExportByIdDeniedWhenAnyPaidByHidden(t *testing.T) {
 	// A multi-id surface (export by id) must deny the whole request when ANY id is
 	// hidden by the caller's paid-by filter.
 	userId, groupId := seedPaidByRestrictedMember(t, []uint{payer.ID}, false)
-	visibleReceipt := seedReceipt(t, groupId, payer.ID, 0)
-	hiddenReceipt := seedReceipt(t, groupId, hidden.ID, 0)
+	visibleReceipt := seedReceipt(t, groupId, payer.ID)
+	hiddenReceipt := seedReceipt(t, groupId, hidden.ID)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/?receiptIds="+utils.UintToString(visibleReceipt)+"&receiptIds="+utils.UintToString(hiddenReceipt), nil)

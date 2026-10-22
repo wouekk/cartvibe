@@ -363,7 +363,7 @@ func (service ReportService) receipts(
 }
 
 // loadRows gathers the engine rows across every covered group under a single
-// catalog. The custom-field catalog is a global pool, so it is identical for each
+// catalog. The catalog is identical for each
 // group; the rows are concatenated, as are the per-receipt row counts. The data
 // service applies grant-narrowing on its own copy of the filter per group, so the
 // caller's filter is reused unchanged.
@@ -423,10 +423,6 @@ func capRowsToReceipts(rows []reporting.Row, rowsPerReceipt []int, limit int) []
 // nothing a reader sees but the number of rows (a records-mode report would list
 // each receipt once per category), so a ticked box on a report that never cuts by
 // that dimension is a no-op.
-//
-// A currency custom field the report groups or aggregates by is never split,
-// whether or not it was excluded: dividing it would move receipts between its
-// own buckets, so grouping by "Tip" would show buckets nobody entered.
 func reportSplitOptions(command commands.ReportRequestCommand) receiptsource.SplitOptions {
 	options := receiptsource.SplitOptions{
 		Categories: command.SplitCategoriesEqually && reportAttributesBy(command, receiptsource.KeyCategory),
@@ -434,18 +430,6 @@ func reportSplitOptions(command commands.ReportRequestCommand) receiptsource.Spl
 	}
 	if !options.Active() {
 		return options
-	}
-
-	options.Excluded = map[uint]struct{}{}
-	excludedKeys := append([]string{}, command.SplitExcludedFields...)
-	excludedKeys = append(excludedKeys, command.GroupBy...)
-	if command.Detail.Mode == commands.ReportDetailAggregate {
-		excludedKeys = append(excludedKeys, command.Detail.By)
-	}
-	for _, key := range excludedKeys {
-		if customFieldId, ok := receiptsource.ParseCustomFieldKey(key); ok {
-			options.Excluded[customFieldId] = struct{}{}
-		}
 	}
 
 	return options

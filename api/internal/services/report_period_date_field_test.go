@@ -449,49 +449,6 @@ func TestReportService_Receipts_ResolveTheReportGeneratorPaidBy(t *testing.T) {
 	}
 }
 
-// Every custom field value carries its definition. Without it the value
-// serializes a zero definition with "type":"", which the mobile client's closed
-// CustomFieldType enum cannot read.
-func TestReportService_Receipts_CarryCustomFieldDefinitions(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
-	clearRolePermissionCacheAll()
-
-	userId, groupIds := seedReportUserInGroups(t, "rpt-drill-custom", "Household")
-	customField := models.CustomField{Name: "HST", Type: models.CURRENCY}
-	if err := repositories.GetDB().Create(&customField).Error; err != nil {
-		t.Fatalf("seed custom field: %v", err)
-	}
-	hst := decimal.RequireFromString("15.60")
-	receipt := models.Receipt{
-		Name:         "with-hst",
-		Amount:       decimal.NewFromInt(100),
-		Date:         time.Date(2026, 6, 15, 0, 0, 0, 0, time.UTC),
-		PaidByUserID: userId,
-		GroupId:      groupIds[0],
-		Status:       models.OPEN,
-		CustomFields: []models.CustomFieldValue{{CustomFieldId: customField.ID, CurrencyValue: &hst}},
-	}
-	if err := repositories.GetDB().Create(&receipt).Error; err != nil {
-		t.Fatalf("create receipt: %v", err)
-	}
-
-	command := periodRecordsCommand(groupIds, commands.ReportPeriod{
-		Preset: commands.ReportPeriodCustom, StartDate: "2026-06-01", EndDate: "2026-06-30",
-	})
-	paged, err := NewReportService(nil).receipts(userId, command, time.Now())
-	if err != nil {
-		t.Fatalf("receipts: %v", err)
-	}
-	if len(paged.Data) != 1 {
-		t.Fatalf("drill-in lists %d receipts, want 1", len(paged.Data))
-	}
-	values := paged.Data[0].(models.Receipt).CustomFields
-	if len(values) != 1 || values[0].CustomField.Type != models.CURRENCY {
-		t.Errorf("custom field values = %+v, want one carrying its CURRENCY definition", values)
-	}
-}
-
 // Receipts from several groups come back as one list, newest receipt date first.
 func TestReportService_Receipts_MergeGroupsNewestFirst(t *testing.T) {
 	defer repositories.TruncateTestDb()

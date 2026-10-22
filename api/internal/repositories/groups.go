@@ -303,16 +303,6 @@ func (repository GroupRepository) GetGroupById(id string,
 		}
 	}
 
-	// The settings projections are `gorm:"-"`, so nothing preloads them. Hydrate explicitly at this
-	// serialization boundary. Keyed on GroupId rather than the settings row id precisely because
-	// the settings row above is created and DISCARDED, leaving its ID at 0 on the very call that
-	// created it (a freshly created row has nothing configured, so empty [] is the right answer).
-	err = groupReceiptSettingsRepository.LoadSettingsProjections(
-		[]*models.GroupReceiptSettings{&group.GroupReceiptSettings},
-	)
-	if err != nil {
-		return models.Group{}, err
-	}
 
 	return group, nil
 }

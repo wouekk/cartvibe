@@ -1,24 +1,24 @@
 package commands
 
 import (
-	"encoding/json"
-	"net/http"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"encoding/json"
+	"net/http"
 )
 
 type UpsertReceiptProcessingSettingsCommand struct {
-	Name          string              `json:"name"`
-	Description   string              `json:"description"`
-	AiType        models.AiClientType `json:"aiType"`
-	Url           string              `json:"url"`
-	Key           string              `json:"key"`
-	Model         string              `json:"model"`
+	Name                      string              `json:"name"`
+	Description               string              `json:"description"`
+	AiType                    models.AiClientType `json:"aiType"`
+	Url                       string              `json:"url"`
+	Key                       string              `json:"key"`
+	Model                     string              `json:"model"`
 	IsVisionModel             bool                `json:"isVisionModel"`
 	EnforceJsonResponseFormat bool                `json:"enforceJsonResponseFormat"`
 	OcrEngine                 models.OcrEngine    `json:"ocrEngine"`
-	PromptId      uint                `json:"promptId"`
+	PromptId                  uint                `json:"promptId"`
 }
 
 func (command *UpsertReceiptProcessingSettingsCommand) LoadDataFromRequest(w http.ResponseWriter, r *http.Request) error {

@@ -151,7 +151,7 @@ func TestMemberIsolationUpdateDeniedForNonVisiblePaidBy(t *testing.T) {
 
 	fx := seedIsolatedReceiptGroupHandler(t, true)
 	// A receipt A can access (paid by self), which A then tries to reassign to B.
-	receiptId := seedReceipt(t, fx.groupId, fx.memberAId, 0)
+	receiptId := seedReceipt(t, fx.groupId, fx.memberAId)
 
 	body := fmt.Sprintf(
 		`{"name":"R","amount":"5","date":"2024-01-01T00:00:00Z","groupId":%d,"paidByUserId":%d,"status":"OPEN"}`,
@@ -172,7 +172,7 @@ func TestMemberIsolationGetReceiptDeniedForNonVisiblePayer(t *testing.T) {
 
 	fx := seedIsolatedReceiptGroupHandler(t, true)
 	// A receipt paid by the non-visible member B.
-	receiptId := seedReceipt(t, fx.groupId, fx.memberBId, 0)
+	receiptId := seedReceipt(t, fx.groupId, fx.memberBId)
 
 	w, r := getReceiptByIdRequest(receiptId, fx.memberAId)
 	GetReceipt(w, r)
@@ -186,7 +186,7 @@ func TestMemberIsolationGetReceiptAllowedForOwnReceipt(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
 	fx := seedIsolatedReceiptGroupHandler(t, true)
-	receiptId := seedReceipt(t, fx.groupId, fx.memberAId, 0)
+	receiptId := seedReceipt(t, fx.groupId, fx.memberAId)
 
 	w, r := getReceiptByIdRequest(receiptId, fx.memberAId)
 	GetReceipt(w, r)
@@ -218,8 +218,8 @@ func TestMemberIsolationPagedListHidesNonVisiblePayer(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
 	fx := seedIsolatedReceiptGroupHandler(t, true)
-	seedReceipt(t, fx.groupId, fx.memberAId, 0) // A's own
-	seedReceipt(t, fx.groupId, fx.memberBId, 0) // B's — hidden from A
+	seedReceipt(t, fx.groupId, fx.memberAId) // A's own
+	seedReceipt(t, fx.groupId, fx.memberBId) // B's — hidden from A
 
 	requestBody := commands.ReceiptPagedRequestCommand{
 		PagedRequestCommand: commands.PagedRequestCommand{Page: 1, PageSize: 10},
@@ -252,8 +252,8 @@ func TestMemberIsolationGetReceiptsForGroupIdsHidesNonVisiblePayer(t *testing.T)
 	defer repositories.TruncateTestDb()
 
 	fx := seedIsolatedReceiptGroupHandler(t, true)
-	seedReceipt(t, fx.groupId, fx.memberAId, 0)
-	seedReceipt(t, fx.groupId, fx.memberBId, 0)
+	seedReceipt(t, fx.groupId, fx.memberAId)
+	seedReceipt(t, fx.groupId, fx.memberBId)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/?groupIds="+utils.UintToString(fx.groupId), nil)
@@ -282,7 +282,7 @@ func TestMemberIsolationBackwardCompatNonIsolatedGroupSeesEverything(t *testing.
 	// Same setup, but the group does NOT isolate members: A is unrestricted and
 	// sees B's receipt exactly as before.
 	fx := seedIsolatedReceiptGroupHandler(t, false)
-	receiptId := seedReceipt(t, fx.groupId, fx.memberBId, 0)
+	receiptId := seedReceipt(t, fx.groupId, fx.memberBId)
 
 	w, r := getReceiptByIdRequest(receiptId, fx.memberAId)
 	GetReceipt(w, r)
