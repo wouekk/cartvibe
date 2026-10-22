@@ -2,6 +2,7 @@ package services
 
 import (
 	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/i18n"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/permissions"
 	"cartvibe/api/internal/reporting"
@@ -26,6 +27,10 @@ type ReportDataService struct {
 	// Date) are bucketed in. Nil reads it from System Settings when rows are
 	// built; ReportService sets it so one report resolves the zone once.
 	Location *time.Location
+
+	// Translator is the language of the person the report is for: field labels,
+	// statuses and the (Restricted) marker read in it. The zero value is English.
+	Translator i18n.Translator
 }
 
 func NewReportDataService(tx *gorm.DB) ReportDataService {
@@ -84,7 +89,7 @@ func (service ReportDataService) RowsWithLines(
 		location = repositories.NewSystemSettingsRepository(service.TX).AppLocation()
 	}
 
-	source, err := receiptsource.New(location)
+	source, err := receiptsource.New(location, service.Translator)
 	if err != nil {
 		return ReportRowSet{}, err
 	}
@@ -140,6 +145,8 @@ func (service ReportDataService) reportLines(userId uint, receipts []models.Rece
 		return nil, err
 	}
 
+	// A category or tag the caller may not see reads as (Restricted), in the reader's language.
+	restricted := service.Translator.T("(Restricted)")
 	for _, product := range products {
 		index, found := indexById[product.ReceiptId]
 		if !found || product.Amount == nil {
@@ -159,7 +166,7 @@ func (service ReportDataService) reportLines(userId uint, receipts []models.Rece
 			line.Category = categoryNames[*product.CategoryId]
 			if !grantFilter.bypassCategories && !grants.categoryUnrestricted {
 				if _, allowed := grants.categoryAllowed[*product.CategoryId]; !allowed {
-					line.Category = restrictedCategoryTagName
+					line.Category = restricted
 				}
 			}
 		}
@@ -167,7 +174,7 @@ func (service ReportDataService) reportLines(userId uint, receipts []models.Rece
 			name := tag.Name
 			if !grantFilter.bypassTags && !grants.tagUnrestricted {
 				if _, allowed := grants.tagAllowed[tag.ID]; !allowed {
-					name = restrictedCategoryTagName
+					name = restricted
 				}
 			}
 			line.Tags = append(line.Tags, name)

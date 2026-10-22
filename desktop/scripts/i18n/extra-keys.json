@@ -33,13 +33,5 @@
     "{user} added to the list {list}.",
     "{user} is going shopping. Add what you need to the lists in {group}."
   ],
-  "Texts the API stores: starter report templates (api/internal/repositories/starter_report_templates.go)": [
-    "Monthly spending by category",
-    "Spending by shop",
-    "Month by month"
-  ],
-  "Marker the API puts on categories a person may not see (services/grant_filter.go)": [
-    "(Restricted)"
-  ],
   "Nutrient levels (product check: the tooltip of a nutrition row)": ["low", "moderate", "high"]
 }

@@ -14,6 +14,7 @@ package receiptsource
 import (
 	"time"
 
+	"cartvibe/api/internal/i18n"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/reporting"
 
@@ -66,38 +67,38 @@ const (
 // The two kinds of date are read in different zones (see New): a receipt's Date
 // is a calendar day, read in UTC; Resolved Date and Added At are instants, read
 // in the app's time zone.
-func builtinFields(location *time.Location) []reporting.FieldRef {
+func builtinFields(location *time.Location, tr i18n.Translator) []reporting.FieldRef {
 	fields := []reporting.FieldRef{
-		{Key: KeyReceiptID, Label: "Receipt Id", DataType: reporting.TypeNumber},
-		{Key: KeyName, Label: "Name", DataType: reporting.TypeString},
-		{Key: KeyShop, Label: "Shop", DataType: reporting.TypeString},
-		{Key: KeyAmount, Label: "Amount", DataType: reporting.TypeCurrency},
-		{Key: KeyDate, Label: "Date", DataType: reporting.TypeDate, Location: time.UTC},
-		{Key: KeyResolvedDate, Label: "Settled on", DataType: reporting.TypeDate, Location: location},
-		{Key: KeyCreatedAt, Label: "Added At", DataType: reporting.TypeDate, Location: location},
-		{Key: KeyStatus, Label: "Status", DataType: reporting.TypeString},
+		{Key: KeyReceiptID, Label: tr.T("Receipt Id"), DataType: reporting.TypeNumber},
+		{Key: KeyName, Label: tr.T("Name"), DataType: reporting.TypeString},
+		{Key: KeyShop, Label: tr.T("Shop"), DataType: reporting.TypeString},
+		{Key: KeyAmount, Label: tr.T("Amount"), DataType: reporting.TypeCurrency},
+		{Key: KeyDate, Label: tr.T("Date"), DataType: reporting.TypeDate, Location: time.UTC},
+		{Key: KeyResolvedDate, Label: tr.T("Settled on"), DataType: reporting.TypeDate, Location: location},
+		{Key: KeyCreatedAt, Label: tr.T("Added At"), DataType: reporting.TypeDate, Location: location},
+		{Key: KeyStatus, Label: tr.T("Status"), DataType: reporting.TypeString},
 		// The key stays paid_by so saved templates keep working; the family app calls it Added by.
-		{Key: KeyPaidBy, Label: "Added by", DataType: reporting.TypeString},
-		{Key: KeyGroup, Label: "Group", DataType: reporting.TypeString},
-		{Key: KeyCategory, Label: "Category", DataType: reporting.TypeString, Multi: true},
-		{Key: KeyTag, Label: "Tag", DataType: reporting.TypeString, Multi: true},
-		{Key: KeyHealth, Label: "Health", DataType: reporting.TypeString, Multi: true},
-		{Key: KeyPlanned, Label: "Planned", DataType: reporting.TypeString, Multi: true},
+		{Key: KeyPaidBy, Label: tr.T("Added by"), DataType: reporting.TypeString},
+		{Key: KeyGroup, Label: tr.T("Group"), DataType: reporting.TypeString},
+		{Key: KeyCategory, Label: tr.T("Category"), DataType: reporting.TypeString, Multi: true},
+		{Key: KeyTag, Label: tr.T("Tag"), DataType: reporting.TypeString, Multi: true},
+		{Key: KeyHealth, Label: tr.T("Health"), DataType: reporting.TypeString, Multi: true},
+		{Key: KeyPlanned, Label: tr.T("Planned"), DataType: reporting.TypeString, Multi: true},
 	}
-	fields = append(fields, dateFieldRefs(KeyDateDay, KeyDateMonth, KeyDateYear, "Date")...)
-	fields = append(fields, dateFieldRefs(KeyResolvedDateDay, KeyResolvedDateMonth, KeyResolvedDateYear, "Settled on")...)
-	fields = append(fields, dateFieldRefs(KeyCreatedAtDay, KeyCreatedAtMonth, KeyCreatedAtYear, "Added At")...)
+	fields = append(fields, dateFieldRefs(KeyDateDay, KeyDateMonth, KeyDateYear, tr.T("Date"), tr)...)
+	fields = append(fields, dateFieldRefs(KeyResolvedDateDay, KeyResolvedDateMonth, KeyResolvedDateYear, tr.T("Settled on"), tr)...)
+	fields = append(fields, dateFieldRefs(KeyCreatedAtDay, KeyCreatedAtMonth, KeyCreatedAtYear, tr.T("Added At"), tr)...)
 	return fields
 }
 
 // dateFieldRefs builds the day/month/year string fields derived from one date
-// column, labelled off a shared prefix (e.g. "Date (Month)"). They are strings,
+// column, labelled off the column's own label (e.g. "Date (Month)"). They are strings,
 // not dates, so the engine buckets them by their exact ISO text.
-func dateFieldRefs(dayKey, monthKey, yearKey reporting.FieldKey, labelPrefix string) []reporting.FieldRef {
+func dateFieldRefs(dayKey, monthKey, yearKey reporting.FieldKey, label string, tr i18n.Translator) []reporting.FieldRef {
 	return []reporting.FieldRef{
-		{Key: dayKey, Label: labelPrefix + " (Day)", DataType: reporting.TypeString},
-		{Key: monthKey, Label: labelPrefix + " (Month)", DataType: reporting.TypeString},
-		{Key: yearKey, Label: labelPrefix + " (Year)", DataType: reporting.TypeString},
+		{Key: dayKey, Label: tr.T("{field} (Day)", "field", label), DataType: reporting.TypeString},
+		{Key: monthKey, Label: tr.T("{field} (Month)", "field", label), DataType: reporting.TypeString},
+		{Key: yearKey, Label: tr.T("{field} (Year)", "field", label), DataType: reporting.TypeString},
 	}
 }
 
@@ -110,6 +111,10 @@ type Source struct {
 	// falls in. The receipt's Date is a calendar day and is always read in UTC,
 	// since it is stored as midnight UTC of its day.
 	location *time.Location
+
+	// tr is the language of the person reading the report: field labels and the
+	// words a value is made of (statuses, health ratings, planned) read in it.
+	tr i18n.Translator
 }
 
 // New builds a Source.
@@ -118,18 +123,19 @@ type Source struct {
 // instant (Added At, Resolved Date): a receipt added at 01:00 UTC on Oct 1 was
 // added on Sep 30 in New York. The receipt's Date ignores it and is read in
 // UTC. Nil means UTC. The source takes the zone as a parameter rather than
-// reading it, so the package stays free of settings.
-func New(location *time.Location) (Source, error) {
+// reading it, so the package stays free of settings. tr is the reader's language
+// (i18n.English for the catalogue wording).
+func New(location *time.Location, tr i18n.Translator) (Source, error) {
 	if location == nil {
 		location = time.UTC
 	}
 
-	catalog, err := reporting.NewFieldCatalog(builtinFields(location)...)
+	catalog, err := reporting.NewFieldCatalog(builtinFields(location, tr)...)
 	if err != nil {
 		return Source{}, err
 	}
 
-	return Source{catalog: catalog, location: location}, nil
+	return Source{catalog: catalog, location: location, tr: tr}, nil
 }
 
 // Catalog returns the fields a report run against this source may reference.
@@ -158,7 +164,7 @@ func (s Source) row(receipt *models.Receipt) reporting.Row {
 		KeyAmount:    {reporting.Num(receipt.Amount)},
 		KeyDate:      {reporting.DateVal(receipt.Date)},
 		KeyCreatedAt: {reporting.DateVal(receipt.CreatedAt)},
-		KeyStatus:    {reporting.Str(statusLabel(receipt.Status))},
+		KeyStatus:    {reporting.Str(statusLabel(receipt.Status, s.tr))},
 	}
 
 	setDateParts(row, KeyDateDay, KeyDateMonth, KeyDateYear, receipt.Date, time.UTC)
@@ -204,12 +210,12 @@ func userDisplayName(user models.User) string {
 // statusLabel is a status as a family reads it, the same two words the app shows: OPEN,
 // NEEDS_ATTENTION and DRAFT are "To check", RESOLVED and DECLINED "Settled". An empty or unknown
 // status stays as it is, so nothing is hidden.
-func statusLabel(status models.ReceiptStatus) string {
+func statusLabel(status models.ReceiptStatus, tr i18n.Translator) string {
 	switch status {
 	case models.OPEN, models.NEEDS_ATTENTION, models.DRAFT:
-		return "To check"
+		return tr.T("To check")
 	case models.RESOLVED, models.DECLINED:
-		return "Settled"
+		return tr.T("Settled")
 	default:
 		return string(status)
 	}

@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 
+	"cartvibe/api/internal/i18n"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/reporting"
 
@@ -75,27 +76,27 @@ func LineDimensionsFor(keys []string) LineDimensions {
 }
 
 // HealthLabel names a stored health rating for a report; "" means no rating.
-func HealthLabel(health string) string {
+func HealthLabel(health string, tr i18n.Translator) string {
 	switch strings.ToUpper(health) {
 	case models.HEALTH_HEALTHY:
-		return "Healthy"
+		return tr.T("Healthy")
 	case models.HEALTH_MEDIUM:
-		return "Medium"
+		return tr.T("Medium")
 	case models.HEALTH_UNHEALTHY:
-		return "Unhealthy"
+		return tr.T("Unhealthy")
 	case models.HEALTH_NOT_FOOD:
-		return "Not food"
+		return tr.T("Not food")
 	}
 	return ""
 }
 
 // PlannedLabel names a line's planned mark. Only false is unplanned: a receipt on
 // no list, or not compared yet, counts as planned.
-func PlannedLabel(planned *bool) string {
+func PlannedLabel(planned *bool, tr i18n.Translator) string {
 	if planned != nil && !*planned {
-		return "Unplanned"
+		return tr.T("Unplanned")
 	}
-	return "Planned"
+	return tr.T("Planned")
 }
 
 // lineValues are one line's labels, each "" when it has none.
@@ -106,12 +107,12 @@ type lineValues struct {
 	planned  string
 }
 
-func valuesOf(line Line) lineValues {
+func valuesOf(line Line, tr i18n.Translator) lineValues {
 	return lineValues{
 		category: line.Category,
 		tags:     distinctStrings(line.Tags),
-		health:   HealthLabel(line.Health),
-		planned:  PlannedLabel(line.Planned),
+		health:   HealthLabel(line.Health, tr),
+		planned:  PlannedLabel(line.Planned, tr),
 	}
 }
 
@@ -160,13 +161,13 @@ func (s Source) RowsWithLines(receipts []models.Receipt, lines [][]Line, dimensi
 
 		base := s.row(&receipts[index])
 		if !dimensions.Active() {
-			setLineLabels(base, receiptLines, allLineIndexes(receiptLines), LineDimensions{})
+			setLineLabels(s.tr, base, receiptLines, allLineIndexes(receiptLines), LineDimensions{})
 			rows = append(rows, base)
 			perReceipt[index] = 1
 			continue
 		}
 
-		receiptRows := cutByLines(base, receipts[index].Amount, receiptLines, dimensions)
+		receiptRows := cutByLines(s.tr, base, receipts[index].Amount, receiptLines, dimensions)
 		rows = append(rows, receiptRows...)
 		perReceipt[index] = len(receiptRows)
 	}
@@ -174,13 +175,13 @@ func (s Source) RowsWithLines(receipts []models.Receipt, lines [][]Line, dimensi
 	return rows, perReceipt
 }
 
-func cutByLines(base reporting.Row, amount decimal.Decimal, lines []Line, dimensions LineDimensions) []reporting.Row {
+func cutByLines(tr i18n.Translator, base reporting.Row, amount decimal.Decimal, lines []Line, dimensions LineDimensions) []reporting.Row {
 	shares, rest := allocateToLines(amount, lines)
 
 	buckets := make([]*lineBucket, 0, len(lines))
 	bucketByKey := make(map[lineKey]*lineBucket, len(lines))
 	for index, line := range lines {
-		for _, key := range keysFor(valuesOf(line), dimensions) {
+		for _, key := range keysFor(valuesOf(line, tr), dimensions) {
 			bucket, found := bucketByKey[key]
 			if !found {
 				bucket = &lineBucket{key: key, amount: decimal.Zero}
@@ -200,7 +201,7 @@ func cutByLines(base reporting.Row, amount decimal.Decimal, lines []Line, dimens
 		setCutValue(row, KeyTag, dimensions.Tag, bucket.key.tag)
 		setCutValue(row, KeyHealth, dimensions.Health, bucket.key.health)
 		setCutValue(row, KeyPlanned, dimensions.Planned, bucket.key.planned)
-		setLineLabels(row, lines, bucket.lines, dimensions)
+		setLineLabels(tr, row, lines, bucket.lines, dimensions)
 		rows = append(rows, row)
 	}
 
@@ -256,10 +257,10 @@ func setCutValue(row reporting.Row, key reporting.FieldKey, cut bool, value stri
 
 // setLineLabels writes the line fields the report does not cut by, as the
 // distinct values of the given lines.
-func setLineLabels(row reporting.Row, lines []Line, indexes []int, cut LineDimensions) {
+func setLineLabels(tr i18n.Translator, row reporting.Row, lines []Line, indexes []int, cut LineDimensions) {
 	var categories, tags, healths, planned []string
 	for _, index := range indexes {
-		values := valuesOf(lines[index])
+		values := valuesOf(lines[index], tr)
 		categories = append(categories, values.category)
 		tags = append(tags, values.tags...)
 		healths = append(healths, values.health)

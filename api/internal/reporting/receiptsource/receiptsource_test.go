@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"cartvibe/api/internal/i18n"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/reporting"
 
@@ -18,7 +19,7 @@ func dec(literal string) decimal.Decimal {
 func mustNew(t *testing.T) Source {
 	t.Helper()
 
-	source, err := New(time.UTC)
+	source, err := New(time.UTC, i18n.English)
 	if err != nil {
 		t.Fatalf("New() error = %v", err)
 	}
@@ -614,7 +615,7 @@ func TestSource_InstantPeriodFieldsUseTheAppZone(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.location.String(), func(t *testing.T) {
-			source, err := New(test.location)
+			source, err := New(test.location, i18n.English)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -635,7 +636,7 @@ func TestSource_DateFieldsDeclareTheirDisplayZone(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	source, err := New(newYork)
+	source, err := New(newYork, i18n.English)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -655,7 +656,7 @@ func TestSource_DateFieldsDeclareTheirDisplayZone(t *testing.T) {
 		}
 	}
 
-	utcSource, err := New(nil)
+	utcSource, err := New(nil, i18n.English)
 	if err != nil {
 		t.Fatal(err)
 	}

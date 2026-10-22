@@ -10,6 +10,8 @@ import {
 import { RECEIPT_DATE_FILTER_FIELDS, ReceiptDateFilterFieldKey } from "src/constants";
 import { ReportPeriod } from "../../open-api";
 import { DEFAULT_APP_TIME_ZONE, todayInZone } from "../../utils/app-time-zone";
+import { marker } from "../../i18n/marker";
+import { englishTranslate, TranslateFn } from "../../i18n/translate-fn";
 
 export interface PeriodRange {
   start: Date;
@@ -52,8 +54,12 @@ export function resolvePeriodRange(
   }
 }
 
-export function formatPeriodRange(range: PeriodRange): string {
-  return `${format(range.start, "yyyy-MM-dd")} to ${format(range.end, "yyyy-MM-dd")}`;
+export function formatPeriodRange(range: PeriodRange, translate: TranslateFn = englishTranslate): string {
+  // The same words the API prints on the report itself ("{start} to {end}"), so the hint and the report agree.
+  return translate(marker("{start} to {end}"), {
+    start: format(range.start, "yyyy-MM-dd"),
+    end: format(range.end, "yyyy-MM-dd"),
+  });
 }
 
 /**
@@ -88,7 +94,11 @@ export function reportPeriodDateFieldLabel(key: ReceiptDateFilterFieldKey): stri
  * read in when that matters: "Added At (America/New_York)". The receipt date is
  * a calendar day that no zone shifts, so it is named alone.
  */
-export function reportPeriodDateFieldHint(key: ReceiptDateFilterFieldKey, timeZone: string): string {
-  const label = reportPeriodDateFieldLabel(key);
+export function reportPeriodDateFieldHint(
+  key: ReceiptDateFilterFieldKey,
+  timeZone: string,
+  translate: TranslateFn = englishTranslate
+): string {
+  const label = translate(reportPeriodDateFieldLabel(key));
   return key === "date" ? label : `${label} (${timeZone || DEFAULT_APP_TIME_ZONE})`;
 }

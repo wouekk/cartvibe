@@ -31,6 +31,7 @@ func Run(spec ReportSpec, catalog FieldCatalog, rows []Row, meta MetaInput) (Rep
 			Params:      copyParams(meta.Params),
 			Currency:    meta.Currency,
 			Location:    meta.Location,
+			Translator:  meta.Translator,
 			NoneLabel:   compiled.spec.NoneLabel,
 		},
 		Columns: run.descriptors(),

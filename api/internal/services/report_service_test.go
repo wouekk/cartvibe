@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/i18n"
 	"cartvibe/api/internal/constants"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/permissions"
@@ -72,6 +73,7 @@ func TestReportService_ResolveDocument(t *testing.T) {
 			Intro:  "Period: {{period}}",
 			Footer: "Prepared by {{currentUser.name}} on {{generatedAt}}",
 		},
+		i18n.English,
 	)
 
 	// An authored title wins over the report name.
@@ -104,6 +106,7 @@ func TestReportService_ResolveDocument_TitleFallsBackToName(t *testing.T) {
 		now,
 		"{{period}} Summary",
 		commands.ReportDocument{Title: "   "},
+		i18n.English,
 	)
 
 	if title != "2026-05-01 to 2026-05-31 Summary" {
@@ -175,7 +178,7 @@ func TestReportService_ApplyPeriodWritesTheChosenDateSlot(t *testing.T) {
 			}
 			filter.Name = sentinel("name")
 
-			label := applyPeriod(&filter, commands.ReportPeriod{Preset: commands.ReportPeriodThisMonth, DateField: test.dateField}, now)
+			label := applyPeriod(&filter, commands.ReportPeriod{Preset: commands.ReportPeriodThisMonth, DateField: test.dateField}, now, i18n.English)
 
 			if label != "2026-06-01 to 2026-06-30" {
 				t.Errorf("label = %q, want the window regardless of the date field", label)
@@ -309,6 +312,7 @@ func TestReportService_BuildDimensions(t *testing.T) {
 		[]reporting.FieldKey{"paid_by", "date", "custom_1", "custom_5", "gone"},
 		catalog,
 		nil,
+		i18n.English,
 	)
 	want := []render.Dimension{
 		{Key: "paid_by", Label: "Paid By", DataType: reporting.TypeString},
@@ -346,6 +350,7 @@ func TestReportService_BuildDimensions_LabelOverrides(t *testing.T) {
 			"gone":     "Renamed Key",  // unknown key still falls back to itself
 			"status":   "Never Used",   // not a grouping level at all
 		},
+		i18n.English,
 	)
 	want := []render.Dimension{
 		{Key: "category", Label: "Expense Type", DataType: reporting.TypeString},
@@ -774,13 +779,13 @@ func TestReportService_UserDisplayName(t *testing.T) {
 	}
 
 	service := NewReportService(nil)
-	if got := service.userDisplayName(named.ID); got != "Displayed Name" {
+	if got := service.userDisplayName(named.ID, i18n.English); got != "Displayed Name" {
 		t.Errorf("display name = %q, want the DisplayName", got)
 	}
-	if got := service.userDisplayName(unnamed.ID); got != "u-unnamed" {
+	if got := service.userDisplayName(unnamed.ID, i18n.English); got != "u-unnamed" {
 		t.Errorf("display name = %q, want the Username fallback", got)
 	}
-	if got := service.userDisplayName(9999999); got != "Unknown User" {
+	if got := service.userDisplayName(9999999, i18n.English); got != "Unknown User" {
 		t.Errorf("display name for a missing user = %q, want Unknown User", got)
 	}
 }

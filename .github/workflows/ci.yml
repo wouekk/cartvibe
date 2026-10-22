@@ -33,6 +33,10 @@ jobs:
               - 'api/**'
             desktop:
               - 'desktop/**'
+              # i18n:check reads the Go texts the API translates (and the error messages the desktop shows),
+              # so a Go-only change still runs it.
+              - 'api/internal/**/*.go'
+              - 'api/internal/i18n/locales/**'
 
   test-api:
     needs: detect-changes

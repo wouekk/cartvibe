@@ -3,6 +3,7 @@ package receiptsource
 import (
 	"testing"
 
+	"cartvibe/api/internal/i18n"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/reporting"
 
@@ -275,12 +276,12 @@ func TestHealthAndPlannedLabels(t *testing.T) {
 		"healthy":               "Healthy",
 	}
 	for stored, want := range health {
-		if got := HealthLabel(stored); got != want {
+		if got := HealthLabel(stored, i18n.English); got != want {
 			t.Errorf("HealthLabel(%q) = %q, want %q", stored, got, want)
 		}
 	}
 
-	if PlannedLabel(nil) != "Planned" || PlannedLabel(boolPointer(true)) != "Planned" || PlannedLabel(boolPointer(false)) != "Unplanned" {
+	if PlannedLabel(nil, i18n.English) != "Planned" || PlannedLabel(boolPointer(true), i18n.English) != "Planned" || PlannedLabel(boolPointer(false), i18n.English) != "Unplanned" {
 		t.Errorf("PlannedLabel: nil and true are Planned, false is Unplanned")
 	}
 }
@@ -389,5 +390,47 @@ func TestRowsWithLines_FeedTheEngine(t *testing.T) {
 	}
 	if cell(model.GrandTotals, "Total") != "15" {
 		t.Errorf("grand total = %s, want 15", cell(model.GrandTotals, "Total"))
+	}
+}
+
+// A source built for a German reader names its fields and the words a value is
+// made of (status, health, planned) in German, so the buckets a report groups by
+// read in that language. The catalogue keys stay the same.
+func TestNew_TranslatesLabelsAndValuesForTheReader(t *testing.T) {
+	source, err := New(nil, i18n.For("de"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	labels := map[reporting.FieldKey]string{
+		KeyShop:      "Laden",
+		KeyAmount:    "Betrag",
+		KeyStatus:    "Status",
+		KeyPaidBy:    "Hinzugefügt von",
+		KeyDateMonth: "Datum (Monat)",
+		KeyPlanned:   "Geplant",
+	}
+	for key, want := range labels {
+		field, found := source.Catalog().Get(key)
+		if !found || field.Label != want {
+			t.Errorf("label of %s = %q, want %q", key, field.Label, want)
+		}
+	}
+
+	receipts := []models.Receipt{{Amount: dec("3.00"), Status: models.OPEN}}
+	lines := [][]Line{{
+		{Amount: dec("1.00"), Health: models.HEALTH_HEALTHY, Planned: boolPointer(false)},
+		{Amount: dec("2.00"), Health: models.HEALTH_NOT_FOOD},
+	}}
+	rows, _ := source.RowsWithLines(receipts, lines, LineDimensions{})
+
+	if got := texts(rows[0], KeyStatus); !equalStrings(got, []string{"Zu prüfen"}) {
+		t.Errorf("status = %v, want [Zu prüfen]", got)
+	}
+	if got := texts(rows[0], KeyHealth); !equalStrings(got, []string{"Gesund", "Kein Lebensmittel"}) {
+		t.Errorf("health = %v", got)
+	}
+	if got := texts(rows[0], KeyPlanned); !equalStrings(got, []string{"Geplant", "Ungeplant"}) {
+		t.Errorf("planned = %v", got)
 	}
 }

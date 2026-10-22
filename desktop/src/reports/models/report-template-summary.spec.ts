@@ -81,6 +81,14 @@ describe("report-template-summary", () => {
     expect(detailSummary(command({ detail: { mode: ReportDetail.ModeEnum.Records } }))).toBe("Record-level");
   });
 
+  it("translates the field it aggregates by, not just the sentence", () => {
+    const german = (text: string, params?: Record<string, unknown>) =>
+      text === "Aggregate by {name}" ? `Aggregiert nach ${params!["name"]}` : text === "Shop" ? "Laden" : text;
+    expect(detailSummary(command({ detail: { mode: ReportDetail.ModeEnum.Aggregate, by: "shop" } }), german)).toBe(
+      "Aggregiert nach Laden"
+    );
+  });
+
   it("renders formats as ordered uppercase chips", () => {
     expect(
       formatChips(
