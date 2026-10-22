@@ -70,7 +70,7 @@ func (repository OidcSessionRepository) ConsumeAuthSession(stateHash string) (mo
 // beyond whether there is one -- and it is scoped to a LIVE session, so a
 // replayed callback learns nothing about a session that was already spent. A miss
 // of any kind -- unknown, expired, already used -- returns the zero session,
-// which reads as a desktop login: the result only ever chooses between fixed,
+// which reads as a login: the result only ever chooses between fixed,
 // server-side redirect constants, so an unknown state can degrade but can never
 // point a user agent somewhere new.
 func (repository OidcSessionRepository) GetPendingAuthSessionRouting(stateHash string) (models.OidcAuthSession, error) {
@@ -78,7 +78,7 @@ func (repository OidcSessionRepository) GetPendingAuthSessionRouting(stateHash s
 
 	err := repository.GetDB().
 		Model(&models.OidcAuthSession{}).
-		Select("client_type", "link_user_id", "purpose").
+		Select("link_user_id", "purpose").
 		Where("state_hash = ? AND used = ? AND expires_at > ?", stateHash, false, time.Now()).
 		Limit(1).
 		Find(&sessions).Error
