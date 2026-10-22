@@ -32,7 +32,7 @@
     </div>
 
     <ul class="m-0 mt-3 flex list-none flex-col gap-3 p-0" data-testid="quick-scan-attachments">
-      @for (preview of images; track preview; let i = $index) {
+      @for (preview of images; track $index; let i = $index) {
         <li class="flex flex-col gap-2" data-testid="quick-scan-attachment">
           <div hlmAttachment class="w-full" size="default">
             <div hlmAttachmentMedia variant="image" class="w-14 rounded-md">

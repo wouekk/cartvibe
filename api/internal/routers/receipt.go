@@ -20,7 +20,6 @@ func BuildReceiptRouter() *chi.Mux {
 	receiptRouter.Post("/withFiles", handlers.CreateReceiptWithFiles)
 	receiptRouter.Post("/{id}/duplicate", handlers.DuplicateReceipt)
 	receiptRouter.Post("/quickScan", handlers.QuickScan)
-	receiptRouter.Get("/quickScan/{taskId}", handlers.GetQuickScanStatus)
 	receiptRouter.Delete("/{id}", handlers.DeleteReceipt)
 	return receiptRouter
 }

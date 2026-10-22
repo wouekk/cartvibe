@@ -2844,7 +2844,7 @@ never hand-edited.
 - **Quick Scan:** nothing is required (`resolveQuickScanFieldConfig`; only the comment keeps its rules), a sole group is
   seeded and its picker hidden. The **Upload photos** button is a centered raised button in the dialog body ("Add more
   photos" once there are some).
-- **Quick Scan closes right after the upload** (one photo or many): "Receipts uploaded. You will get a notification once the AI has read them, or if it fails." The API notifies the uploader per scan (`quick_scan_handler.go`, with a link to the receipt), so there is no waiting and no redirect. The selected photo in the dialog is a small thumbnail, not the big preview.
+- **Quick Scan closes right after the upload** (one photo or many): "Receipts uploaded. You will get a notification once the AI has read them, or if it fails." The API notifies the uploader per scan (`quick_scan_handler.go`, with a link to the receipt), so there is no waiting and no redirect. Photos are added by dropping or choosing them and listed as spartan `attachment` rows (thumbnail, name, size, remove) with their per-photo fields underneath; there is no carousel. `UploadImageComponent.processFiles` is the one entry for picked and dropped files.
 - **Image menu on the receipt form** (`receipt-image-menu`, a `hlmDropdownMenuTrigger` laid over the image stage, 44 px
   target, so it stays in reach after scrolling on a phone): Preview (`expandImage`, full width under 768 px), Rename
   (`RenameReceiptDialogComponent`; a saved receipt goes to `renameReceipt`, a new one just takes the name in the form) and
