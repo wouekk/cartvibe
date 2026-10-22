@@ -19,7 +19,6 @@ func TestConsumeAuthSessionIsAtomic(t *testing.T) {
 
 	created, err := createAuthSession(newAuthSessionParams{
 		ProviderId:   provider.ID,
-		ClientType:   models.OidcClientDesktop,
 		CodeVerifier: "a-verifier",
 	})
 	if err != nil {
@@ -59,57 +58,12 @@ func TestConsumeAuthSessionIsAtomic(t *testing.T) {
 	}
 }
 
-func TestConsumeExchangeCodeIsAtomic(t *testing.T) {
-	defer teardownOidcTest()
-	repositories.CreateTestRoles()
-
-	user := createTestUser(t, "atomicexchange")
-
-	code, err := createExchangeCode(user.ID, challengeFor("a-verifier"))
-	if err != nil {
-		t.Fatalf("failed to create the code: %v", err)
-	}
-
-	var waitGroup sync.WaitGroup
-	results := make(chan bool, 20)
-
-	for i := 0; i < 20; i++ {
-		waitGroup.Add(1)
-		go func() {
-			defer waitGroup.Done()
-
-			consumed, err := consumeExchangeCode(code)
-			if err != nil {
-				results <- false
-				return
-			}
-
-			results <- consumed
-		}()
-	}
-
-	waitGroup.Wait()
-	close(results)
-
-	consumedCount := 0
-	for consumed := range results {
-		if consumed {
-			consumedCount++
-		}
-	}
-
-	if consumedCount != 1 {
-		t.Errorf("exactly one caller must consume the code, got %d", consumedCount)
-	}
-}
-
 func TestDeleteExpiredOidcSessionsKeepsLiveRows(t *testing.T) {
 	defer teardownOidcTest()
 	_, provider := setupOidcTest(t, oidcTestOptions{})
 
 	live, err := createAuthSession(newAuthSessionParams{
 		ProviderId:   provider.ID,
-		ClientType:   models.OidcClientDesktop,
 		CodeVerifier: "live-verifier",
 	})
 	if err != nil {
@@ -118,7 +72,6 @@ func TestDeleteExpiredOidcSessionsKeepsLiveRows(t *testing.T) {
 
 	expired, err := createAuthSession(newAuthSessionParams{
 		ProviderId:   provider.ID,
-		ClientType:   models.OidcClientDesktop,
 		CodeVerifier: "expired-verifier",
 	})
 	if err != nil {

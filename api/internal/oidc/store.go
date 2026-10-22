@@ -15,18 +15,6 @@ const (
 	// order of magnitude as the OAuth server's own authorization-code TTL.
 	authSessionTTL = 10 * time.Minute
 
-	// exchangeCodeTTL bounds the mobile handoff. The app already holds the browser
-	// result and the redemption is a single local POST, so this is deliberately
-	// tight: the code buys a full session with no further proof of user.
-	exchangeCodeTTL = 2 * time.Minute
-
-	// linkLaunchTTL bounds the gap between an app asking to connect an account and
-	// the external browser actually opening. That is one hand-off with no user
-	// interaction in between, so it can be tighter than the login TTL. Kept
-	// separate from exchangeCodeTTL rather than shared: these bound different
-	// things and should be free to diverge.
-	linkLaunchTTL = 2 * time.Minute
-
 	// deleteConfirmationTTL bounds the gap between the provider sign-in that
 	// confirms an account deletion and the client's delete request. One automatic
 	// hand-off, so it is short; it is not tighter still only because the request
@@ -34,18 +22,16 @@ const (
 	deleteConfirmationTTL = 5 * time.Minute
 
 	// randomTokenBytes is the entropy behind state, nonce, the browser binding,
-	// the exchange code, the link launch handle and the delete confirmation code.
+	// the delete confirmation code.
 	randomTokenBytes = 32
 )
 
 // newAuthSessionParams carries what createAuthSession needs to persist.
 type newAuthSessionParams struct {
-	ProviderId          uint
-	ClientType          string
-	MobileCodeChallenge string
-	LinkUserId          *uint
-	Purpose             string
-	CodeVerifier        string
+	ProviderId   uint
+	LinkUserId   *uint
+	Purpose      string
+	CodeVerifier string
 }
 
 // createdAuthSession holds the raw secrets, which exist only in memory and in
@@ -86,31 +72,17 @@ func createAuthSession(params newAuthSessionParams) (createdAuthSession, error) 
 	}
 
 	session := models.OidcAuthSession{
-		OidcProviderId:      params.ProviderId,
-		StateHash:           hashSecret(state),
-		NonceHash:           hashSecret(nonce),
-		CodeVerifier:        encryptedVerifier,
-		ClientType:          params.ClientType,
-		MobileCodeChallenge: params.MobileCodeChallenge,
-		LinkUserId:          params.LinkUserId,
-		Purpose:             params.Purpose,
-		ExpiresAt:           time.Now().Add(authSessionTTL),
+		OidcProviderId: params.ProviderId,
+		StateHash:      hashSecret(state),
+		NonceHash:      hashSecret(nonce),
+		CodeVerifier:   encryptedVerifier,
+		LinkUserId:     params.LinkUserId,
+		Purpose:        params.Purpose,
+		ExpiresAt:      time.Now().Add(authSessionTTL),
 	}
 
-	// EVERY session is bound to the user agent that started it, mobile included.
-	//
-	// This used to be skipped for mobile, on the reasoning that an external user
-	// agent may not carry a cookie. That was wrong: the app hands the login URL
-	// itself to flutter_web_auth_2, so the external browser -- not the app -- is
-	// what fetches /oidc/{name}/login, and it takes the Set-Cookie and returns it
-	// on the callback exactly as the desktop browser does. The mobile LINK start is
-	// the one request the app really does make itself, which is why it creates no
-	// session at all and hands out a launch handle instead; the browser then calls
-	// the launch endpoint and lands here like everyone else.
-	//
-	// PKCE does not substitute for this. Binding stops an attacker DRIVING your
-	// flow; PKCE stops a rogue app STEALING the result of it. They defend different
-	// things and the mobile login leg needs both.
+	// EVERY session is bound to the user agent that started it. Binding stops an
+	// attacker DRIVING your flow; the identity provider's own state alone does not.
 	session.BindingHash = hashSecret(binding)
 
 	err = repositories.NewOidcSessionRepository(nil).CreateAuthSession(&session)
@@ -127,66 +99,6 @@ func consumeAuthSession(state string) (models.OidcAuthSession, bool, error) {
 
 func decryptVerifier(session models.OidcAuthSession) (string, error) {
 	return utils.DecryptB64EncodedData(env.GetEncryptionKey(), session.CodeVerifier)
-}
-
-// createExchangeCode issues the mobile handoff code, bound to the challenge the
-// app generated before the flow started.
-func createExchangeCode(userId uint, codeChallenge string) (string, error) {
-	code, err := utils.GetRandomUrlSafeString(randomTokenBytes)
-	if err != nil {
-		return "", err
-	}
-
-	row := models.OidcExchangeCode{
-		CodeHash:      hashSecret(code),
-		UserId:        userId,
-		CodeChallenge: codeChallenge,
-		ExpiresAt:     time.Now().Add(exchangeCodeTTL),
-	}
-
-	err = repositories.NewOidcSessionRepository(nil).CreateExchangeCode(&row)
-	if err != nil {
-		return "", err
-	}
-
-	return code, nil
-}
-
-func getExchangeCode(code string) (models.OidcExchangeCode, error) {
-	return repositories.NewOidcSessionRepository(nil).GetExchangeCode(hashSecret(code))
-}
-
-func consumeExchangeCode(code string) (bool, error) {
-	return repositories.NewOidcSessionRepository(nil).ConsumeExchangeCode(hashSecret(code))
-}
-
-// createLinkLaunch issues the handle that lets the external browser start a
-// mobile signed-in flow -- a link or a delete confirmation, as purpose says -- on
-// behalf of an already-authenticated user.
-func createLinkLaunch(userId uint, providerId uint, purpose string) (string, error) {
-	handle, err := utils.GetRandomUrlSafeString(randomTokenBytes)
-	if err != nil {
-		return "", err
-	}
-
-	row := models.OidcLinkLaunch{
-		LaunchHash:     hashSecret(handle),
-		UserId:         userId,
-		OidcProviderId: providerId,
-		Purpose:        purpose,
-		ExpiresAt:      time.Now().Add(linkLaunchTTL),
-	}
-
-	err = repositories.NewOidcSessionRepository(nil).CreateLinkLaunch(&row)
-	if err != nil {
-		return "", err
-	}
-
-	return handle, nil
-}
-
-func consumeLinkLaunch(handle string) (models.OidcLinkLaunch, bool, error) {
-	return repositories.NewOidcSessionRepository(nil).ConsumeLinkLaunch(hashSecret(handle))
 }
 
 // createDeleteConfirmation issues the code an OIDC-only account presents to

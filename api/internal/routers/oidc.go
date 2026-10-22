@@ -1,12 +1,10 @@
 package routers
 
 import (
-	"net/http"
 
 	"cartvibe/api/internal/handlers"
 	"cartvibe/api/internal/middleware"
 	"cartvibe/api/internal/oidc"
-	"cartvibe/api/internal/utils"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -18,11 +16,9 @@ import (
 // command validator additionally rejects those words as provider slugs, so no
 // configured provider can shadow a route from the other direction.
 //
-// Every request is browser-driven: rejectMobileClient refuses the native-app
-// variant of the flow before it reaches a handler.
+// Every request is browser-driven.
 func BuildOidcRouter() *chi.Mux {
 	router := chi.NewRouter()
-	router.Use(rejectMobileClient)
 
 	// Unauthenticated: this IS the sign-in path.
 	router.Get("/{name}/login", oidc.Login)
@@ -59,18 +55,4 @@ func BuildOidcProviderRouter() *chi.Mux {
 	router.Post("/", handlers.CreateOidcProvider)
 
 	return router
-}
-
-// rejectMobileClient answers 400 to ?client=mobile. The Flutter app is gone, and the
-// flow's mobile branch (private-scheme redirects, exchange codes, link launch handles)
-// is dead code kept only so oidc/flow.go stays untouched; this keeps it unreachable.
-func rejectMobileClient(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Query().Get("client") == "mobile" {
-			utils.WriteCustomErrorResponse(w, "The mobile OIDC flow is no longer supported", http.StatusBadRequest)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
 }

@@ -74,16 +74,6 @@ func DeleteUser(userId string) error {
 			return txErr
 		}
 
-		txErr = tx.Where("user_id = ?", userId).Delete(&models.OidcLinkLaunch{}).Error
-		if txErr != nil {
-			return txErr
-		}
-
-		txErr = tx.Where("user_id = ?", userId).Delete(&models.OidcExchangeCode{}).Error
-		if txErr != nil {
-			return txErr
-		}
-
 		txErr = tx.Where("user_id = ?", userId).Delete(&models.OidcDeleteConfirmation{}).Error
 		if txErr != nil {
 			return txErr

@@ -2,7 +2,6 @@ package oidc
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -130,9 +129,9 @@ func TestDeleteConfirmationStartRequiresAnInteractiveSession(t *testing.T) {
 	user := seedPasswordlessUser(t, provider, "keyholder", "keyholder-subject")
 
 	for _, authSource := range []string{structs.AuthSourceApiKey, ""} {
-		recorder := startDeleteConfirmation(t, provider.Name, user.ID, authSource, "client=mobile")
-		if recorder.Code != http.StatusForbidden {
-			t.Errorf("auth source %q: expected 403, got %d (%s)", authSource, recorder.Code, recorder.Body.String())
+		recorder := startDeleteConfirmation(t, provider.Name, user.ID, authSource, "")
+		if code := deleteErrorCode(t, recorder); code != errForbidden {
+			t.Errorf("auth source %q: expected %q, got %q (%s)", authSource, errForbidden, code, recorder.Header().Get("Location"))
 		}
 	}
 
@@ -187,13 +186,6 @@ func TestDeleteConfirmationStartRefusesAProviderTheAccountIsNotLinkedTo(t *testi
 	recorder := startDeleteConfirmation(t, provider.Name, user.ID, structs.AuthSourceJwt, "")
 	if code := deleteErrorCode(t, recorder); code != errNotLinked {
 		t.Errorf("expected %q, got %q (%s)", errNotLinked, code, recorder.Header().Get("Location"))
-	}
-
-	// The mobile start is an API call, so it answers in JSON.
-	mobile := startDeleteConfirmation(t, provider.Name, user.ID, structs.AuthSourceJwt, "client=mobile")
-	var flowError structs.OidcFlowError
-	if err := json.Unmarshal(mobile.Body.Bytes(), &flowError); err != nil || flowError.ErrorCode != errNotLinked {
-		t.Errorf("expected a JSON %q, got %d (%s)", errNotLinked, mobile.Code, mobile.Body.String())
 	}
 }
 
@@ -301,66 +293,6 @@ func TestDeleteConfirmationDesktopCallbackIssuesACode(t *testing.T) {
 		if findCookie(callback.Result().Cookies(), name) != nil {
 			t.Errorf("a delete confirmation must not set the %s cookie", name)
 		}
-	}
-}
-
-func TestDeleteConfirmationMobileFlowIssuesACodeToTheApp(t *testing.T) {
-	defer teardownOidcTest()
-	idp, provider := setupOidcTest(t, oidcTestOptions{})
-	user := seedPasswordlessUser(t, provider, "mobiledelete", "mobiledelete-subject")
-
-	start := startDeleteConfirmation(t, provider.Name, user.ID, structs.AuthSourceJwt, "client=mobile")
-	if start.Code != http.StatusOK {
-		t.Fatalf("expected a launch URL, got %d (%s)", start.Code, start.Body.String())
-	}
-
-	if countAuthSessions(t) != 0 {
-		t.Error("the mobile start must create no session; the browser's launch does")
-	}
-
-	var launchRow models.OidcLinkLaunch
-	if err := repositories.GetDB().First(&launchRow).Error; err != nil {
-		t.Fatalf("expected a launch row: %v", err)
-	}
-
-	if launchRow.Purpose != models.OidcPurposeDeleteAccount {
-		t.Errorf("expected the launch to carry the delete purpose, got %q", launchRow.Purpose)
-	}
-
-	launch := launchMobileLink(t, launchUrlFrom(t, start))
-
-	authUrl, err := url.Parse(launch.Header().Get("Location"))
-	if err != nil {
-		t.Fatalf("failed to parse the authorization URL: %v", err)
-	}
-
-	if authUrl.Query().Get("max_age") != "0" {
-		t.Errorf("expected the launched flow to ask for a fresh login, got %q", authUrl.String())
-	}
-
-	idp.setClaims(claimsFor(idp, "mobiledelete-subject", authUrl.Query().Get("nonce"), "mobiledelete"))
-
-	callback := runCallback(t, provider.Name, url.Values{
-		"code":  {"abc"},
-		"state": {authUrl.Query().Get("state")},
-	}, launch.Result().Cookies())
-
-	location := callback.Header().Get("Location")
-	if !strings.HasPrefix(location, mobileCallbackScheme) {
-		t.Fatalf("expected a return to %q, got %q", mobileCallbackScheme, location)
-	}
-
-	parsed, err := url.Parse(location)
-	if err != nil {
-		t.Fatalf("failed to parse the app redirect: %v", err)
-	}
-
-	if len(parsed.Query().Get("deleteConfirmation")) == 0 {
-		t.Errorf("expected a deleteConfirmation code, got %q", location)
-	}
-
-	if countDeleteConfirmations(t) != 1 {
-		t.Errorf("expected exactly one confirmation row")
 	}
 }
 

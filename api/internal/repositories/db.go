@@ -161,8 +161,6 @@ func MakeMigrations() error {
 		&models.OidcProvider{},
 		&models.OidcIdentity{},
 		&models.OidcAuthSession{},
-		&models.OidcExchangeCode{},
-		&models.OidcLinkLaunch{},
 		&models.OidcDeleteConfirmation{},
 		&models.ShoppingList{},
 		&models.ShoppingListItem{},
