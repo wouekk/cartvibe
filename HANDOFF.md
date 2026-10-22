@@ -1,6 +1,6 @@
 # HANDOFF.md — Where things stand
 
-## UI sprint (2026-10-22, branch `feature/ui-sprint`, from `main` 70c6d397; pushed, NOT merged, waits for the user's go)
+## UI sprint (2026-10-22, branch `feature/ui-sprint`, from `main` 70c6d397; fast-forwarded into `main` on the user's go)
 
 **Settings menu, Quick Scan without AI, Scan product dialog (same branch, later the same day):**
 - Sidebar "Admin Settings" is now **Settings**: Manage Categories, Manage Tags, AI, User Settings, Language, Theme, then the
