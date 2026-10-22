@@ -615,6 +615,32 @@ func (repository ReceiptProductRepository) GetPricedProductsForReceipts(receiptI
 	return products, nil
 }
 
+// GetReportLinesForReceipts returns the priced product lines of the given receipts with what a report reads
+// (amount, category, health, planned mark and tags), in receipt order and then the order printed on the
+// receipt, for the caller to group by receipt.
+func (repository ReceiptProductRepository) GetReportLinesForReceipts(receiptIds []uint) ([]models.ReceiptProduct, error) {
+	db := repository.GetDB()
+	products := []models.ReceiptProduct{}
+
+	for start := 0; start < len(receiptIds); start += receiptIdBatchSize {
+		end := min(start+receiptIdBatchSize, len(receiptIds))
+
+		batch := []models.ReceiptProduct{}
+		err := db.
+			Select("id", "receipt_id", "amount", "category_id", "food_group", "health", "planned", "position").
+			Preload("Tags").
+			Where("receipt_id IN ? AND amount IS NOT NULL", receiptIds[start:end]).
+			Order("receipt_id, position, id").
+			Find(&batch).Error
+		if err != nil {
+			return []models.ReceiptProduct{}, err
+		}
+		products = append(products, batch...)
+	}
+
+	return products, nil
+}
+
 // PricedProductTag is one priced product line carrying one tag.
 type PricedProductTag struct {
 	ReceiptProductId uint

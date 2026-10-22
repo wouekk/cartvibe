@@ -37,51 +37,48 @@ func NewReportDataService(tx *gorm.DB) ReportDataService {
 }
 
 // Rows fetches a group's receipts, applies the three reporting access controls,
-// and maps the survivors to engine rows. The controls run in the order they must:
+// and maps the survivors to engine rows, one per receipt. The controls run in the
+// order they must:
 //
 //   - the request filter is narrowed to what the caller may see, so a restricted
 //     caller cannot probe for hidden categories/tags through the filter;
 //   - paid-by visibility is enforced in the query, so a receipt the caller may
 //     not see is never fetched (whole-receipt hiding);
-//   - categories/tags the caller may not see are replaced with a (Restricted)
-//     marker, so a hidden category still counts toward the totals in its own
-//     bucket rather than vanishing.
+//   - line categories/tags the caller may not see read as (Restricted), so their
+//     spend still counts toward the totals in its own bucket rather than vanishing.
 //
 // The returned catalog carries every built-in field.
 func (service ReportDataService) Rows(userId uint, groupId string, filter commands.ReceiptPagedRequestFilter) (reporting.FieldCatalog, []reporting.Row, error) {
-	rowSet, err := service.RowsWithSplit(userId, groupId, filter, receiptsource.SplitOptions{})
+	rowSet, err := service.RowsWithLines(userId, groupId, filter, receiptsource.LineDimensions{})
 	if err != nil {
 		return reporting.FieldCatalog{}, nil, err
 	}
 	return rowSet.Catalog, rowSet.Rows, nil
 }
 
-// ReportRowSet is what RowsWithSplit returns: the engine's catalog and rows, and
-// how many rows each fetched receipt became. Without a split every receipt is
-// one row; with one, a receipt becomes a row per bucket it is divided across,
-// which is why a receipt count cannot be read off len(Rows).
+// ReportRowSet is what RowsWithLines returns: the engine's catalog and rows, and
+// how many rows each fetched receipt became. Without a line dimension every
+// receipt is one row; with one, a receipt becomes a row per bucket its lines fall
+// into, which is why a receipt count cannot be read off len(Rows).
 type ReportRowSet struct {
 	Catalog        reporting.FieldCatalog
 	Rows           []reporting.Row
 	RowsPerReceipt []int
 }
 
-// RowsWithSplit is Rows with the receipts' money optionally divided across their
-// categories and/or tags (receiptsource.Source.Split).
+// RowsWithLines is Rows reading Category, Tag, Health and Planned off the
+// receipts' product lines (receiptsource.Source.RowsWithLines). When the report
+// cuts by one of them, a receipt is divided by its lines' amounts.
 //
-// The split runs BEFORE the restricted-category substitution, so a receipt is
-// divided by its true number of categories rather than by how many the caller
-// can see: a visible category's share is the same for every viewer, and the
-// (Restricted) bucket receives exactly the hidden categories' shares. Copies the
-// substitution made indistinguishable are merged back afterwards.
-func (service ReportDataService) RowsWithSplit(
+// A hidden category or tag becomes (Restricted) on the line itself, so the
+// division is the same for every viewer: a visible category's share never
+// depends on who is looking, and (Restricted) receives exactly the hidden lines.
+func (service ReportDataService) RowsWithLines(
 	userId uint,
 	groupId string,
 	filter commands.ReceiptPagedRequestFilter,
-	splitOptions receiptsource.SplitOptions,
+	dimensions receiptsource.LineDimensions,
 ) (ReportRowSet, error) {
-	permissionService := NewPermissionService(service.TX)
-
 	location := service.Location
 	if location == nil {
 		location = repositories.NewSystemSettingsRepository(service.TX).AppLocation()
@@ -92,28 +89,125 @@ func (service ReportDataService) RowsWithSplit(
 		return ReportRowSet{}, err
 	}
 
-	// The extra preloads are what receiptsource reads beyond the always-loaded
-	// Categories/Tags.
 	receipts, _, err := service.fetchReceipts(userId, groupId, filter, []string{"PaidByUser", "Group"}, -1)
 	if err != nil {
 		return ReportRowSet{}, err
 	}
 
-	split := source.Split(receipts, splitOptions)
-
-	// Replace categories/tags the caller cannot see with a (Restricted) marker so
-	// they aggregate into their own bucket rather than disappearing.
-	if err := permissionService.SubstituteRestrictedCategoriesTags(userId, split.Receipts); err != nil {
+	lines, err := service.reportLines(userId, receipts)
+	if err != nil {
 		return ReportRowSet{}, err
 	}
 
-	merged, rowsPerReceipt := source.Merge(split)
+	rows, rowsPerReceipt := source.RowsWithLines(receipts, lines, dimensions)
 
 	return ReportRowSet{
 		Catalog:        source.Catalog(),
-		Rows:           source.Rows(merged),
+		Rows:           rows,
 		RowsPerReceipt: rowsPerReceipt,
 	}, nil
+}
+
+// reportLines loads the receipts' priced product lines as the report source reads
+// them, parallel to receipts: the category's current name, the tag names, and
+// (Restricted) for a category or tag the caller may not see in the receipt's
+// group. A line whose category was deleted reads as Uncategorized.
+func (service ReportDataService) reportLines(userId uint, receipts []models.Receipt) ([][]receiptsource.Line, error) {
+	lines := make([][]receiptsource.Line, len(receipts))
+	if len(receipts) == 0 {
+		return lines, nil
+	}
+
+	receiptIds := make([]uint, 0, len(receipts))
+	indexById := make(map[uint]int, len(receipts))
+	for index, receipt := range receipts {
+		receiptIds = append(receiptIds, receipt.ID)
+		indexById[receipt.ID] = index
+	}
+
+	products, err := repositories.NewReceiptProductRepository(service.TX).GetReportLinesForReceipts(receiptIds)
+	if err != nil {
+		return nil, err
+	}
+
+	categoryNames, err := service.categoryNames(products)
+	if err != nil {
+		return nil, err
+	}
+
+	grantFilter, err := NewPermissionService(service.TX).newReceiptGrantFilter(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, product := range products {
+		index, found := indexById[product.ReceiptId]
+		if !found || product.Amount == nil {
+			continue
+		}
+		grants, err := grantFilter.grantsForGroup(receipts[index].GroupId)
+		if err != nil {
+			return nil, err
+		}
+
+		line := receiptsource.Line{
+			Amount:  *product.Amount,
+			Health:  product.Health,
+			Planned: product.Planned,
+		}
+		if product.CategoryId != nil {
+			line.Category = categoryNames[*product.CategoryId]
+			if !grantFilter.bypassCategories && !grants.categoryUnrestricted {
+				if _, allowed := grants.categoryAllowed[*product.CategoryId]; !allowed {
+					line.Category = restrictedCategoryTagName
+				}
+			}
+		}
+		for _, tag := range product.Tags {
+			name := tag.Name
+			if !grantFilter.bypassTags && !grants.tagUnrestricted {
+				if _, allowed := grants.tagAllowed[tag.ID]; !allowed {
+					name = restrictedCategoryTagName
+				}
+			}
+			line.Tags = append(line.Tags, name)
+		}
+
+		lines[index] = append(lines[index], line)
+	}
+
+	return lines, nil
+}
+
+// categoryNames reads the current names of the products' categories, so a
+// renamed category reports under its new name.
+func (service ReportDataService) categoryNames(products []models.ReceiptProduct) (map[uint]string, error) {
+	ids := make([]uint, 0)
+	seen := make(map[uint]struct{})
+	for _, product := range products {
+		if product.CategoryId == nil {
+			continue
+		}
+		if _, exists := seen[*product.CategoryId]; exists {
+			continue
+		}
+		seen[*product.CategoryId] = struct{}{}
+		ids = append(ids, *product.CategoryId)
+	}
+
+	names := make(map[uint]string, len(ids))
+	if len(ids) == 0 {
+		return names, nil
+	}
+
+	categories, err := repositories.NewCategoryRepository(service.TX).GetByIds(ids)
+	if err != nil {
+		return nil, err
+	}
+	for _, category := range categories {
+		names[category.ID] = category.Name
+	}
+	return names, nil
 }
 
 // Receipts fetches the same receipts Rows turns into report rows, for a caller
@@ -121,9 +215,7 @@ func (service ReportDataService) RowsWithSplit(
 // at most limit of them, newest first, plus the count of every receipt that
 // matched. Sharing fetchReceipts is what keeps the list and the report's count in
 // step. Where the two differ is presentation, and there it follows the receipts
-// list: categories/tags the caller
-// may not see are stripped rather than marked (Restricted), and user references
-// are masked for member visibility.
+// list: user references are masked for member visibility.
 func (service ReportDataService) Receipts(
 	userId uint,
 	groupId string,
@@ -134,9 +226,6 @@ func (service ReportDataService) Receipts(
 
 	receipts, count, err := service.fetchReceipts(userId, groupId, filter, nil, limit)
 	if err != nil {
-		return nil, 0, err
-	}
-	if err := permissionService.FilterReceiptCategoriesTags(userId, receipts); err != nil {
 		return nil, 0, err
 	}
 	if err := permissionService.MaskReceiptsForMemberVisibility(userId, receipts); err != nil {

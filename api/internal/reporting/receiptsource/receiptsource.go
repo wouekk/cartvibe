@@ -33,8 +33,12 @@ const (
 	KeyStatus       reporting.FieldKey = "status"
 	KeyPaidBy       reporting.FieldKey = "paid_by"
 	KeyGroup        reporting.FieldKey = "group"
-	KeyCategory     reporting.FieldKey = "category"
-	KeyTag          reporting.FieldKey = "tag"
+	// The line fields: read off the receipt's product lines (see lines.go), not
+	// the receipt.
+	KeyCategory reporting.FieldKey = "category"
+	KeyTag      reporting.FieldKey = "tag"
+	KeyHealth   reporting.FieldKey = "health"
+	KeyPlanned  reporting.FieldKey = "planned"
 
 	// Derived date-period fields. A report groups by one of these to bucket
 	// receipts by calendar day, month, or year; the raw date fields above carry
@@ -54,9 +58,10 @@ const (
 
 // builtinFields returns the fields every receipt report may reference.
 //
-// Categories and tags are multi-valued: grouping on one fans a receipt out into
-// every bucket it belongs to, attributing the whole amount to each, exactly as
-// the dashboard pie chart does.
+// Category, Tag, Health and Planned come from the receipt's product lines and
+// are multi-valued: a receipt's lines may carry several. A report that cuts by
+// one divides the receipt by its lines' amounts (RowsWithLines), so no receipt
+// is counted in full in two categories.
 //
 // The two kinds of date are read in different zones (see New): a receipt's Date
 // is a calendar day, read in UTC; Resolved Date and Added At are instants, read
@@ -71,10 +76,13 @@ func builtinFields(location *time.Location) []reporting.FieldRef {
 		{Key: KeyResolvedDate, Label: "Resolved Date", DataType: reporting.TypeDate, Location: location},
 		{Key: KeyCreatedAt, Label: "Added At", DataType: reporting.TypeDate, Location: location},
 		{Key: KeyStatus, Label: "Status", DataType: reporting.TypeString},
-		{Key: KeyPaidBy, Label: "Paid By", DataType: reporting.TypeString},
+		// The key stays paid_by so saved templates keep working; the family app calls it Added by.
+		{Key: KeyPaidBy, Label: "Added by", DataType: reporting.TypeString},
 		{Key: KeyGroup, Label: "Group", DataType: reporting.TypeString},
 		{Key: KeyCategory, Label: "Category", DataType: reporting.TypeString, Multi: true},
 		{Key: KeyTag, Label: "Tag", DataType: reporting.TypeString, Multi: true},
+		{Key: KeyHealth, Label: "Health", DataType: reporting.TypeString, Multi: true},
+		{Key: KeyPlanned, Label: "Planned", DataType: reporting.TypeString, Multi: true},
 	}
 	fields = append(fields, dateFieldRefs(KeyDateDay, KeyDateMonth, KeyDateYear, "Date")...)
 	fields = append(fields, dateFieldRefs(KeyResolvedDateDay, KeyResolvedDateMonth, KeyResolvedDateYear, "Resolved Date")...)
@@ -127,20 +135,17 @@ func New(location *time.Location) (Source, error) {
 // Catalog returns the fields a report run against this source may reference.
 func (s Source) Catalog() reporting.FieldCatalog { return s.catalog }
 
-// Rows resolves receipts into engine rows, one row per receipt, in the order
-// they were given. The engine preserves that order for a records-mode report,
-// so the caller's query decides how those rows are sorted.
+// Rows resolves receipts without product lines into engine rows, one row per
+// receipt, in the order they were given. The engine preserves that order for a
+// records-mode report, so the caller's query decides how those rows are sorted.
+// A report reading lines uses RowsWithLines.
 //
-// The caller must have preloaded whatever the report reads: Categories, Tags
-// on the receipt, plus PaidByUser and Group for their display
-// names. An association that was not loaded resolves to no value, which the
-// engine reports as a (None) bucket. A missing preload therefore shows up as an
-// empty group rather than as a crash.
+// The caller must have preloaded PaidByUser and Group for their display names.
+// An association that was not loaded resolves to no value, which the engine
+// reports as a (None) bucket. A missing preload therefore shows up as an empty
+// group rather than as a crash.
 func (s Source) Rows(receipts []models.Receipt) []reporting.Row {
-	rows := make([]reporting.Row, 0, len(receipts))
-	for index := range receipts {
-		rows = append(rows, s.row(&receipts[index]))
-	}
+	rows, _ := s.RowsWithLines(receipts, nil, LineDimensions{})
 	return rows
 }
 
@@ -154,8 +159,6 @@ func (s Source) row(receipt *models.Receipt) reporting.Row {
 		KeyDate:      {reporting.DateVal(receipt.Date)},
 		KeyCreatedAt: {reporting.DateVal(receipt.CreatedAt)},
 		KeyStatus:    {reporting.Str(string(receipt.Status))},
-		KeyCategory:  categoryValues(receipt.Categories),
-		KeyTag:       tagValues(receipt.Tags),
 	}
 
 	setDateParts(row, KeyDateDay, KeyDateMonth, KeyDateYear, receipt.Date, time.UTC)
@@ -196,22 +199,6 @@ func userDisplayName(user models.User) string {
 		return user.DisplayName
 	}
 	return user.Username
-}
-
-func categoryValues(categories []models.Category) []reporting.Value {
-	values := make([]reporting.Value, 0, len(categories))
-	for _, category := range categories {
-		values = append(values, reporting.Str(category.Name))
-	}
-	return values
-}
-
-func tagValues(tags []models.Tag) []reporting.Value {
-	values := make([]reporting.Value, 0, len(tags))
-	for _, tag := range tags {
-		values = append(values, reporting.Str(tag.Name))
-	}
-	return values
 }
 
 // shopOf is the shop a receipt belongs to for reporting: the shop read from it, else its name.

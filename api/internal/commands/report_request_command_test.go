@@ -392,122 +392,27 @@ func TestReportRequestCommand_Validate_BoundsColumnCount(t *testing.T) {
 	})
 }
 
-func TestReportRequestCommand_Validate_AcceptsSplitOptions(t *testing.T) {
-	tests := []struct {
-		name   string
-		mutate func(*ReportRequestCommand)
-	}{
-		{"categories", func(c *ReportRequestCommand) { c.SplitCategoriesEqually = true }},
-		{"tags", func(c *ReportRequestCommand) { c.SplitTagsEqually = true }},
-		{"both", func(c *ReportRequestCommand) {
-			c.SplitCategoriesEqually = true
-			c.SplitTagsEqually = true
-		}},
-		// Ticked on a report that never cuts by the dimension: a no-op, not an error.
-		{"split on an unattributed dimension", func(c *ReportRequestCommand) {
-			c.GroupBy = []string{"date_month"}
-			c.Detail = ReportDetail{Mode: ReportDetailRecords}
-			c.Columns = []ReportColumn{{Kind: ReportColumnDimension, Name: "Name", Field: "name"}}
-			c.SplitTagsEqually = true
-		}},
-	}
 
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			command := validReportCommand()
-			test.mutate(&command)
-			if errs := command.Validate().Errors; len(errs) != 0 {
-				t.Errorf("Validate() = %v, want no errors", errs)
-			}
-		})
-	}
-}
+// Reports read product lines now; the equal-split options were retired. A
+// template stored while they existed still decodes, the old keys ignored.
+func TestReportRequestCommand_DecodesARetiredSplitConfiguration(t *testing.T) {
+	stored := `{"name":"Old","groupIds":["1"],"period":{"preset":"this_month"},"groupBy":["category"],` +
+		`"detail":{"mode":"records"},"columns":[{"kind":"dimension","name":"Name","field":"name"}],` +
+		`"splitCategoriesEqually":true,"splitTagsEqually":true,"splitExcludedFields":["custom_1"],"formats":["csv"]}`
 
-// The split keys are omitempty so a report that never touched them stores and
-// sends exactly what it did before they existed.
-func TestReportRequestCommand_MarshalOmitsUnsetSplitOptions(t *testing.T) {
-	data, err := json.Marshal(validReportCommand())
-	if err != nil {
-		t.Fatal(err)
+	var command ReportRequestCommand
+	if err := json.Unmarshal([]byte(stored), &command); err != nil {
+		t.Fatalf("decode a stored configuration with the retired keys: %v", err)
 	}
-	for _, key := range []string{"splitCategoriesEqually", "splitTagsEqually"} {
-		if strings.Contains(string(data), `"`+key+`"`) {
-			t.Errorf("unset %s was serialized: %s", key, data)
-		}
+	if command.Name != "Old" || len(command.GroupBy) != 1 || command.GroupBy[0] != "category" {
+		t.Errorf("decoded %+v", command)
 	}
-}
-
-func TestReportRequestCommand_SplitOptionsRoundTrip(t *testing.T) {
-	command := validReportCommand()
-	command.SplitCategoriesEqually = true
-	command.SplitTagsEqually = true
 
 	data, err := json.Marshal(command)
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, fragment := range []string{`"splitCategoriesEqually":true`, `"splitTagsEqually":true`} {
-		if !strings.Contains(string(data), fragment) {
-			t.Errorf("serialized command lacks %s: %s", fragment, data)
-		}
-	}
-
-	var decoded ReportRequestCommand
-	if err := json.Unmarshal(data, &decoded); err != nil {
-		t.Fatal(err)
-	}
-	if !decoded.SplitCategoriesEqually || !decoded.SplitTagsEqually {
-		t.Errorf("round trip lost the split options: %+v", decoded)
-	}
-}
-
-// TestReportSplitOptionsAreOpenOnTheContract pins the swagger shape of the split
-// options. They ride inside ReportTemplate.configuration, which the mobile client
-// deserializes: they must stay optional, so
-// a released build never fails a template payload on them.
-func TestReportSplitOptionsAreOpenOnTheContract(t *testing.T) {
-	_, thisFile, _, ok := runtime.Caller(0)
-	if !ok {
-		t.Fatal("runtime.Caller failed")
-	}
-	data, err := os.ReadFile(filepath.Join(filepath.Dir(thisFile), "..", "..", "swagger.yml"))
-	if err != nil {
-		t.Fatalf("read swagger.yml: %v", err)
-	}
-
-	type schemaProperty struct {
-		Type  string `yaml:"type"`
-		Items struct {
-			Type string   `yaml:"type"`
-			Enum []string `yaml:"enum"`
-			Ref  string   `yaml:"$ref"`
-		} `yaml:"items"`
-	}
-	var doc struct {
-		Components struct {
-			Schemas map[string]struct {
-				Required   []string                  `yaml:"required"`
-				Properties map[string]schemaProperty `yaml:"properties"`
-			} `yaml:"schemas"`
-		} `yaml:"components"`
-	}
-	if err := yaml.Unmarshal(data, &doc); err != nil {
-		t.Fatalf("parse swagger.yml: %v", err)
-	}
-
-	schema, ok := doc.Components.Schemas["ReportRequestCommand"]
-	if !ok {
-		t.Fatal("swagger.yml is missing the ReportRequestCommand schema")
-	}
-	for _, key := range []string{"splitCategoriesEqually", "splitTagsEqually"} {
-		if property, ok := schema.Properties[key]; !ok || property.Type != "boolean" {
-			t.Errorf("%s must be a boolean property, got %+v (present=%v)", key, property, ok)
-		}
-	}
-	for _, required := range schema.Required {
-		switch required {
-		case "splitCategoriesEqually", "splitTagsEqually":
-			t.Errorf("%s must stay optional; templates saved before it existed omit it", required)
-		}
+	if strings.Contains(string(data), "split") {
+		t.Errorf("a re-saved configuration still carries a split key: %s", data)
 	}
 }
