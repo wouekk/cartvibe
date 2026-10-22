@@ -9,6 +9,14 @@
         [label]="'Description' | t"
         [inputFormControl]="form | formGet : 'description'"
       ></app-input>
+      <app-checkbox
+        [label]="'Show on the Dashboard' | t"
+        data-testid="tag-show-on-dashboard"
+        [inputFormControl]="form | formGet : 'showOnDashboard'"
+      ></app-checkbox>
+      <p class="mt-2 text-sm text-muted-foreground">
+        {{ 'Tag products on your receipts, and the Dashboard shows what the tagged products cost in the chosen period and their share of the spending.' | t }}
+      </p>
     </div>
 
     <app-dialog-footer

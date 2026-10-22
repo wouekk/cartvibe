@@ -244,6 +244,9 @@ func AddReceiptProduct(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
+			if err := checkProductLabels(command.CategoryId, command.TagIds, &vErr); err != nil {
+				return http.StatusInternalServerError, err
+			}
 			if len(vErr.Errors) > 0 {
 				structs.WriteValidatorErrorResponse(w, vErr, http.StatusBadRequest)
 				return 0, nil
@@ -261,7 +264,32 @@ func AddReceiptProduct(w http.ResponseWriter, r *http.Request) {
 	HandleRequest(handler)
 }
 
-// UpdateReceiptProduct corrects a product line's name, amount or quantity (Phase 3 C5).
+// checkProductLabels adds a validation error for a category or tag id that does not exist.
+func checkProductLabels(categoryId *uint, tagIds []uint, vErr *structs.ValidatorError) error {
+	if categoryId != nil {
+		count, err := repositories.NewCategoryRepository(nil).CountByIds([]uint{*categoryId})
+		if err != nil {
+			return err
+		}
+		if count != 1 {
+			vErr.Errors["categoryId"] = "Category not found"
+		}
+	}
+
+	if len(tagIds) > 0 {
+		count, err := repositories.NewTagsRepository(nil).CountByIds(tagIds)
+		if err != nil {
+			return err
+		}
+		if count != int64(len(tagIds)) {
+			vErr.Errors["tagIds"] = "Tag not found"
+		}
+	}
+
+	return nil
+}
+
+// UpdateReceiptProduct corrects a product line's name, amount, quantity, category or tags (Phase 3 C5).
 func UpdateReceiptProduct(w http.ResponseWriter, r *http.Request) {
 	product, ok := loadReceiptProductOrDeny(w, chi.URLParam(r, "productId"))
 	if !ok {
@@ -281,12 +309,56 @@ func UpdateReceiptProduct(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
+			if err := checkProductLabels(command.CategoryId, command.TagIds, &vErr); err != nil {
+				return http.StatusInternalServerError, err
+			}
 			if len(vErr.Errors) > 0 {
 				structs.WriteValidatorErrorResponse(w, vErr, http.StatusBadRequest)
 				return 0, nil
 			}
 
 			updated, err := repositories.NewReceiptProductRepository(nil).UpdateProduct(product, command)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			return writeReceiptProduct(w, updated)
+		},
+	}
+
+	HandleRequest(handler)
+}
+
+// SetReceiptProductLabels sets a product line's category and tags only (the pickers on each row), so it
+// never renames the line or sends it back to be classified.
+func SetReceiptProductLabels(w http.ResponseWriter, r *http.Request) {
+	product, ok := loadReceiptProductOrDeny(w, chi.URLParam(r, "productId"))
+	if !ok {
+		return
+	}
+
+	handler := structs.Handler{
+		ErrorMessage:     "Error saving the product's category and tags",
+		Writer:           w,
+		Request:          r,
+		ReceiptId:        utils.UintToString(product.ReceiptId),
+		GroupPermissions: []string{permissions.GroupReceiptsUpdate},
+		ResponseType:     constants.ApplicationJson,
+		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
+			command := commands.SetReceiptProductLabelsCommand{}
+			vErr, err := command.LoadDataFromRequestAndValidate(w, r)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+			if err := checkProductLabels(command.CategoryId, command.TagIds, &vErr); err != nil {
+				return http.StatusInternalServerError, err
+			}
+			if len(vErr.Errors) > 0 {
+				structs.WriteValidatorErrorResponse(w, vErr, http.StatusBadRequest)
+				return 0, nil
+			}
+
+			updated, err := repositories.NewReceiptProductRepository(nil).SetProductLabels(product, command.CategoryId, command.TagIds)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}

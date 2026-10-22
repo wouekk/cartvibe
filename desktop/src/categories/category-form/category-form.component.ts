@@ -10,6 +10,9 @@ import { SnackbarService } from "../../services";
     selector: "app-category-form",
     templateUrl: "./category-form.component.html",
     styleUrls: ["./category-form.component.scss"],
+    // Provided here, like the tag form: the dialog is created from the root injector, which cannot see
+    // the lazy module's providers ("No provider found for DuplicateValidator", a blank Add dialog).
+    providers: [DuplicateValidator],
     standalone: false
 })
 export class CategoryForm implements OnInit {

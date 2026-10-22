@@ -1,7 +1,7 @@
 <app-settings-page
   width="wide"
   [title]="headerText"
-  description="Tag receipts to group and filter them however you like."
+  description="Tag the products on your receipts however you like. A tag can have its own Dashboard tile."
 >
   <div settingsActions class="contents">
     <app-add-button
@@ -24,18 +24,34 @@
       [length]="totalCount()"
       (sorted)="sorted($event)"
       (pageChange)="updatePageData($event)"
-    ></app-table>
+      emptyIcon="sell"
+      [emptyText]="loaded() ? emptyText : ''"
+    >
+      <app-add-button
+        tableEmptyAction
+        *hasAppPermission="Permission.AppTagsCreate"
+        data-testid="tag-add-empty"
+        [buttonText]="'Add Tag' | t"
+        [tooltip]="'Add Tag' | t"
+        (clicked)="openAddDialog()"
+      ></app-add-button>
+    </app-table>
   </app-settings-entity-list>
 </app-settings-page>
 
-<ng-template #nameCell let-element="element">{{ element.name }}</ng-template>
+<ng-template #nameCell let-element="element">
+  {{ element.name }}
+  @if (element.showOnDashboard) {
+    <span class="ms-2 inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground" data-testid="tag-dashboard-badge">{{ 'On the Dashboard' | t }}</span>
+  }
+</ng-template>
 
 <ng-template #descriptionCell let-element="element"
 >{{ element.description }}
 </ng-template>
 
 <ng-template #numberOfReceiptsCell let-element="element"
->{{ element.numberOfReceipts }}
+>{{ element.numberOfProducts ?? 0 }}
 </ng-template>
 
 <ng-template #actionsCell let-element="element" let-index="index">

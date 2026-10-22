@@ -4233,3 +4233,63 @@ The old header search (`GET /search`, name `LIKE` only) is kept for MCP and rele
   notifies the uploader: "Receipt ready" with a link, or "Receipt scan failed" on the **last** retry only (`isFinalAttempt`).
 - `PUT /receipt/{id}/name` (`RenameReceipt`, `group.receipts.update`, paid-by visibility through the receipt gate) changes only
   `receipts.name` (trimmed, 1-255 characters, 400 otherwise), so a rename never saves other form state.
+
+## Categories and tags on product lines (fork, 2026-10, branch `feat/item-level-tags-categories`)
+Categories (one) and tags (any number) describe a receipt's **product lines** (`ReceiptProduct`), not the receipt.
+Receipt-level `categories` / `tags` stay in the model, the API and the category/tag **grants** (visibility is still
+decided by them), but the desktop no longer edits them.
+- **Columns:** `receipt_products.category_id` (plain id, no foreign key, so adding it never rebuilds the table on SQLite;
+  indexed), `category_overridden`, and the join table `receipt_product_tags` (GORM many2many, foreign keys on). `food_group`
+  stays as the category's **name** alongside the id, for the AI paths that speak in names. Lists stay `[]`:
+  `ReceiptProduct.MarshalJSON` turns nil tags into `[]`.
+- **Who sets the category:** the AI read and the classification sweep (`foodGroupResolver.ResolveCategory` returns the id),
+  or a person. A person's choice sets `category_overridden`; from then on the sweep (`SaveClassification` writes
+  `food_group`/`category_id` only where it is false), a rename (`UpdateProduct`) and Read again (`ReplaceProducts` →
+  `carryOverProductLabels`, matched by printed or plain name) keep it. Tags always survive Read again for a line with the same
+  name. A rename without a chosen category clears it so the sweep reclassifies.
+- **Endpoints:** `POST/PUT` product take `categoryId` + `tagIds` (an update **replaces** both; send the current ones).
+  `PUT /receipt-product/product/{id}/labels` sets only the category and tags — the per-line pickers use it, because the full
+  update counts as a rename when printed and plain names differ ("LAIT" vs "Milk") and would drop the health tags. Unknown
+  ids are a 400 (`checkProductLabels`).
+- **Categories by id:** Manage Categories counts products by `category_id`, a rename keeps the products (only their
+  `food_group` copy is updated), a delete sets their `category_id` to NULL. This replaced `LOWER(name)` matching, which
+  SQLite folds only for ASCII ("Ślimaki" lost its products on rename).
+- **Dashboard:** `categories` are grouped by `category_id` (current name from the categories table; `categoryId` on each
+  item, nil for Uncategorized and for names left by categories deleted before ids). `Tag.showOnDashboard` gives a tag a tile:
+  `overview.tags[]` = `{tagId, name, total, previousTotal}`, the period's priced lines carrying the tag (a line counts toward
+  each of its tags), folded in Go from `GetPricedProductTags`. The tap-through takes `kind=FOODGROUP&categoryId=` and
+  `kind=TAG&tagId=`.
+- **Receipts filter:** filtering by category or tag matches the receipt's own (older data) **or** its lines'.
+- **Migration** `item-level-categories-and-tags-2026-10` (once, additive): backfills `category_id` from `food_group`
+  (current names first, then old names/aliases; matched in Go), and copies each receipt's tags onto all of its lines.
+  Receipt rows are untouched. Verified on a copy of the dev database (receipt tags appeared on its lines).
+- Not changed: the receipt prompt still asks the AI for receipt-level categories and tags (stored, not shown).
+- Tests: `handlers/item_labels_test.go`, `repositories/item_labels_migration_test.go`, the category tests.
+
+## AI: no tags, leaner prompts (fork, 2026-10, same branch)
+The full reference (every call, answer shapes, failure handling, how to change a prompt) is `docs/ai-prompts.md`.
+- **The AI never assigns tags** (they are the household's own labels): `DefaultReceiptPrompt` no longer asks for them, and
+  `dropAiTags` empties the tags of the answer (receipt, items, linked items), so a stored custom prompt cannot bring them back.
+  It still assigns categories (receipt-level and, per line, `foodGroup` → `category_id`) and health. A category switched off
+  under Manage Categories (`skipped`) is left out of the receipt prompt's list too, as it already was for product lines.
+- **Prompts are short and ask for minified JSON**, leaving out empty optional keys (`quantity`, `seasonality`; the parsers
+  default them). `@categories` is `[{id, name, description?}]`, not full rows. The product read and the classification
+  sweep share `healthRules`, `seasonalityRuleTemplate` and `currencyRule`. With a category list, the "foodGroup" rule points
+  at it and gives no English examples (they made the AI answer outside a Polish list, creating categories).
+- **Sampling:** Gemini runs at temperature 0, except Gemini 3 (Google's guidance is its default 1.0; `geminiTemperature`).
+  Ollama gets `options.temperature: 0` (its native API ignores the top-level key, kept for OpenAI-style servers).
+- Not measured: the effect on answer length and latency with a real model; check the Logs tab's CHAT_COMPLETION durations.
+
+## Dashboard layout (fork, 2026-10, branch `feat/dashboard-customisation-engine`)
+
+- `GET /dashboardLayout` / `PUT /dashboardLayout` (`handlers/dashboard_layout.go`): the caller's own Dashboard arrangement, one row per
+  user in `dashboard_layouts` (`models.DashboardLayout`, additive). `layout` is a **client-owned JSON document** stored as text
+  (`{"version":1,"panels":[{"id","visible","cols","rows"}],"compactOrder":[...]}`, panel ids are plain strings); the API checks only
+  the envelope (`services.ValidateDashboardLayout`: a JSON object with a numeric version, at most 16 KB) and answers 400 "The dashboard
+  layout could not be read." otherwise, so a newer client can add fields without an API change. No row returns an empty layout (the
+  default). Gated on `app.user-preferences.read` / `.update` (a layout is a preference).
+- **It is not a UserPreferences field on purpose:** `PUT /userPreferences` replaces the whole object, so any client that does not know
+  the field (a future native app, an older build) would erase it.
+- **Entitlement seam:** `services.CanCustomiseDashboard(userId)` is the one place that decides whether a person may save a layout (true
+  for everyone today; a paid tier would answer here). GET reports it as `canCustomise` (computed, `gorm:"-"`), PUT refuses with the
+  usual 403 when it is false. It is per user, so it is not in the unauthenticated `FeatureConfig`.

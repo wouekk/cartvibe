@@ -9,6 +9,8 @@ import (
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+
+	"github.com/shopspring/decimal"
 )
 
 type ReceiptProductRepository struct {
@@ -123,15 +125,31 @@ func (repository ReceiptProductRepository) UpdateExtraction(
 
 // ReplaceProducts stores a receipt's products as a whole set and marks the read done, in one
 // transaction, so a reader never sees half a set.
+//
+// What people set on the old lines survives a re-read: a line read again under the same name gets back
+// its tags, and the category a person chose (the AI's own choice is replaced by the new answer's).
 func (repository ReceiptProductRepository) ReplaceProducts(receiptId uint, products []models.ReceiptProduct) error {
 	return repository.GetDB().Transaction(func(tx *gorm.DB) error {
-		err := tx.Where("receipt_id = ?", receiptId).Delete(&models.ReceiptProduct{}).Error
+		previous := []models.ReceiptProduct{}
+		err := tx.Preload("Tags").Where("receipt_id = ?", receiptId).Order("position ASC").Find(&previous).Error
+		if err != nil {
+			return err
+		}
+		carryOverProductLabels(previous, products)
+
+		err = deleteProductTags(tx, tx.Model(&models.ReceiptProduct{}).Select("id").Where("receipt_id = ?", receiptId))
+		if err != nil {
+			return err
+		}
+
+		err = tx.Where("receipt_id = ?", receiptId).Delete(&models.ReceiptProduct{}).Error
 		if err != nil {
 			return err
 		}
 
 		if len(products) > 0 {
-			err = tx.Create(&products).Error
+			// Omit("Tags.*"): link the existing tags, never write the tag rows themselves.
+			err = tx.Omit("Tags.*").Create(&products).Error
 			if err != nil {
 				return err
 			}
@@ -159,7 +177,8 @@ func (repository ReceiptProductRepository) GetReceiptProducts(receiptId uint) ([
 	db := repository.GetDB()
 	products := []models.ReceiptProduct{}
 
-	err := db.Where("receipt_id = ?", receiptId).Order("position ASC").Order("id ASC").Find(&products).Error
+	err := db.Preload("Tags", func(db *gorm.DB) *gorm.DB { return db.Order("tags.name ASC") }).
+		Where("receipt_id = ?", receiptId).Order("position ASC").Order("id ASC").Find(&products).Error
 	if err != nil {
 		return []models.ReceiptProduct{}, nil, err
 	}
@@ -219,12 +238,132 @@ func (repository ReceiptProductRepository) QueueUnreadReceiptsInGroup(groupId ui
 func (repository ReceiptProductRepository) DeleteReceiptProducts(receiptId uint) error {
 	db := repository.GetDB()
 
-	err := db.Where("receipt_id = ?", receiptId).Delete(&models.ReceiptProduct{}).Error
+	err := deleteProductTags(db, db.Model(&models.ReceiptProduct{}).Select("id").Where("receipt_id = ?", receiptId))
+	if err != nil {
+		return err
+	}
+
+	err = db.Where("receipt_id = ?", receiptId).Delete(&models.ReceiptProduct{}).Error
 	if err != nil {
 		return err
 	}
 
 	return db.Where("receipt_id = ?", receiptId).Delete(&models.ReceiptProductExtraction{}).Error
+}
+
+// deleteProductTags removes the tag links of the products the subquery selects (their ids). Call it
+// before deleting the products: the join table has foreign keys (on in SQLite too), and nothing cascades.
+func deleteProductTags(db *gorm.DB, productIds *gorm.DB) error {
+	return db.Table("receipt_product_tags").Where("receipt_product_id IN (?)", productIds).Delete(&struct{}{}).Error
+}
+
+// carryOverProductLabels gives each re-read line the tags, and the person-chosen category, of the old
+// line with the same printed or plain name.
+func carryOverProductLabels(previous []models.ReceiptProduct, products []models.ReceiptProduct) {
+	byName := map[string]models.ReceiptProduct{}
+	for _, old := range previous {
+		if len(old.Tags) == 0 && !old.CategoryOverridden {
+			continue
+		}
+		for _, name := range []string{old.Name, old.DisplayName} {
+			key := models.NormalizeProductName(name)
+			if _, taken := byName[key]; key != "" && !taken {
+				byName[key] = old
+			}
+		}
+	}
+	if len(byName) == 0 {
+		return
+	}
+
+	for i := range products {
+		old, found := byName[models.NormalizeProductName(products[i].Name)]
+		if !found {
+			old, found = byName[models.NormalizeProductName(products[i].DisplayName)]
+		}
+		if !found {
+			continue
+		}
+
+		products[i].Tags = old.Tags
+		if old.CategoryOverridden {
+			products[i].CategoryId = old.CategoryId
+			products[i].FoodGroup = old.FoodGroup
+			products[i].CategoryOverridden = true
+		}
+	}
+}
+
+// productLabels resolves a category and tags: the category's name (stored alongside its id) and the tag
+// rows to link. The handler has already checked that the ids exist.
+func productLabels(tx *gorm.DB, categoryId *uint, tagIds []uint) (string, []models.Tag, error) {
+	categoryName := ""
+	if categoryId != nil {
+		var category models.Category
+		if err := tx.Select("id", "name").First(&category, *categoryId).Error; err != nil {
+			return "", nil, err
+		}
+		categoryName = category.Name
+	}
+
+	tags := []models.Tag{}
+	if len(tagIds) > 0 {
+		if err := tx.Where("id IN ?", tagIds).Find(&tags).Error; err != nil {
+			return "", nil, err
+		}
+	}
+
+	return categoryName, tags, nil
+}
+
+// replaceProductTags links the line to exactly these tags.
+func replaceProductTags(tx *gorm.DB, productId uint, tags []models.Tag) error {
+	if err := deleteProductTags(tx, tx.Model(&models.ReceiptProduct{}).Select("id").Where("id = ?", productId)); err != nil {
+		return err
+	}
+	if len(tags) == 0 {
+		return nil
+	}
+
+	links := make([]map[string]any, len(tags))
+	for i, tag := range tags {
+		links[i] = map[string]any{"receipt_product_id": productId, "tag_id": tag.ID}
+	}
+	return tx.Table("receipt_product_tags").Create(links).Error
+}
+
+// SetProductLabels sets a line's category and tags, and nothing else: no rename, no new comparison with
+// the shopping list. A category different from the line's current one is a person's choice from then on.
+func (repository ReceiptProductRepository) SetProductLabels(product models.ReceiptProduct, categoryId *uint, tagIds []uint) (models.ReceiptProduct, error) {
+	err := repository.GetDB().Transaction(func(tx *gorm.DB) error {
+		categoryName, tags, err := productLabels(tx, categoryId, tagIds)
+		if err != nil {
+			return err
+		}
+
+		err = tx.Model(&models.ReceiptProduct{}).Where("id = ?", product.ID).Updates(map[string]any{
+			"category_id":         categoryId,
+			"food_group":          categoryName,
+			"category_overridden": product.CategoryOverridden || !sameId(product.CategoryId, categoryId),
+		}).Error
+		if err != nil {
+			return err
+		}
+
+		return replaceProductTags(tx, product.ID, tags)
+	})
+	if err != nil {
+		return models.ReceiptProduct{}, err
+	}
+
+	return getProductWithTags(repository.GetDB(), product.ID)
+}
+
+// getProductWithTags reloads one product with its tags, for a response.
+func getProductWithTags(db *gorm.DB, productId uint) (models.ReceiptProduct, error) {
+	var product models.ReceiptProduct
+	err := db.Preload("Tags", func(db *gorm.DB) *gorm.DB { return db.Order("tags.name ASC") }).First(&product, productId).Error
+	return product, err
 }
 
 // receiptIdBatchSize keeps an IN list well under every database's bound-variable limit.
@@ -269,6 +408,11 @@ func (repository ReceiptProductRepository) CreateProduct(receiptId uint, command
 			position = last.Position + 1
 		}
 
+		categoryName, tags, err := productLabels(tx, command.CategoryId, command.TagIds)
+		if err != nil {
+			return err
+		}
+
 		product = models.ReceiptProduct{
 			ReceiptId:   receiptId,
 			Name:        command.Name,
@@ -276,36 +420,51 @@ func (repository ReceiptProductRepository) CreateProduct(receiptId uint, command
 			Amount:      command.Amount,
 			Quantity:    command.Quantity,
 			Position:    position,
+			CategoryId:  command.CategoryId,
+			// A category chosen with the line is the person's; without one the sweep may fill it in.
+			CategoryOverridden: command.CategoryId != nil,
+			Tags:               tags,
 		}
-		if err := tx.Create(&product).Error; err != nil {
+		product.FoodGroup = categoryName
+		if err := tx.Omit("Tags.*").Create(&product).Error; err != nil {
 			return err
 		}
 
 		return NewShoppingTripRepository(tx).RequeueTripForReceipt(receiptId, time.Now())
 	})
+	if err != nil {
+		return models.ReceiptProduct{}, err
+	}
 
-	return product, err
+	return getProductWithTags(repository.GetDB(), product.ID)
 }
 
-// UpdateProduct changes a product line's name, amount and quantity. A new name drops the health and
-// seasonality tags (unless a person corrected them) and the planned mark, so the product is classified
-// and compared again as the product it now is.
+// UpdateProduct changes a product line's name, amount, quantity, category and tags. A new name drops the
+// health and seasonality tags (unless a person corrected them) and the planned mark, so the product is
+// classified and compared again as the product it now is; its category goes too, unless a person chose it.
+// A category different from the line's current one is a person's choice from then on.
 func (repository ReceiptProductRepository) UpdateProduct(product models.ReceiptProduct, command commands.UpsertReceiptProductCommand) (models.ReceiptProduct, error) {
 	renamed := models.NormalizeProductName(product.Name) != models.NormalizeProductName(command.Name) ||
 		product.DisplayName != command.Name
+	categoryChosen := product.CategoryOverridden || !sameId(product.CategoryId, command.CategoryId)
+	categoryId := command.CategoryId
+	if renamed && !categoryChosen {
+		categoryId = nil
+	}
 
 	updates := map[string]any{
-		"name":         command.Name,
-		"display_name": command.Name,
-		"amount":       command.Amount,
-		"quantity":     command.Quantity,
+		"name":                command.Name,
+		"display_name":        command.Name,
+		"amount":              command.Amount,
+		"quantity":            command.Quantity,
+		"category_id":         categoryId,
+		"category_overridden": categoryChosen,
 	}
 	if renamed {
 		updates["planned"] = nil
 		updates["matched_shopping_list_item_id"] = nil
 		if !product.ClassificationOverridden {
 			updates["health"] = ""
-			updates["food_group"] = ""
 			updates["seasonality"] = ""
 			updates["classified_at"] = nil
 			updates["classification_attempts"] = 0
@@ -313,7 +472,20 @@ func (repository ReceiptProductRepository) UpdateProduct(product models.ReceiptP
 	}
 
 	err := repository.GetDB().Transaction(func(tx *gorm.DB) error {
+		categoryName, tags, err := productLabels(tx, command.CategoryId, command.TagIds)
+		if err != nil {
+			return err
+		}
+		if categoryId == nil {
+			categoryName = ""
+		}
+		updates["food_group"] = categoryName
+
 		if err := tx.Model(&models.ReceiptProduct{}).Where("id = ?", product.ID).Updates(updates).Error; err != nil {
+			return err
+		}
+
+		if err := replaceProductTags(tx, product.ID, tags); err != nil {
 			return err
 		}
 
@@ -323,15 +495,22 @@ func (repository ReceiptProductRepository) UpdateProduct(product models.ReceiptP
 		return models.ReceiptProduct{}, err
 	}
 
-	var updated models.ReceiptProduct
-	err = repository.GetDB().First(&updated, product.ID).Error
+	return getProductWithTags(repository.GetDB(), product.ID)
+}
 
-	return updated, err
+func sameId(a *uint, b *uint) bool {
+	if a == nil || b == nil {
+		return a == nil && b == nil
+	}
+	return *a == *b
 }
 
 // DeleteProduct removes one product line and sends the receipt's trip to be compared again.
 func (repository ReceiptProductRepository) DeleteProduct(product models.ReceiptProduct) error {
 	return repository.GetDB().Transaction(func(tx *gorm.DB) error {
+		if err := deleteProductTags(tx, tx.Model(&models.ReceiptProduct{}).Select("id").Where("id = ?", product.ID)); err != nil {
+			return err
+		}
 		if err := tx.Delete(&models.ReceiptProduct{}, product.ID).Error; err != nil {
 			return err
 		}
@@ -363,9 +542,20 @@ func (repository ReceiptProductRepository) GetPricedUnplannedProducts(receiptIds
 	return products, nil
 }
 
+// ProductKindFilter picks the product lines behind one Dashboard tile or slice.
+type ProductKindFilter struct {
+	// Kind is UNHEALTHY (the default), UNPLANNED, FOODGROUP (a category slice) or TAG.
+	Kind string
+	// CategoryId picks a FOODGROUP slice by its category. Without it, FoodGroup names the slice: "" is
+	// Uncategorized, a name is a product whose category is gone but whose name stayed.
+	CategoryId *uint
+	FoodGroup  string
+	TagId      *uint
+}
+
 // GetProductsForReceiptsByKind returns whole product rows of the given receipts for the Dashboard's
-// tap-through lists: kind UNHEALTHY (rated unhealthy) or UNPLANNED (marked not on the list), priced or not.
-func (repository ReceiptProductRepository) GetProductsForReceiptsByKind(receiptIds []uint, kind string, foodGroup string) ([]models.ReceiptProduct, error) {
+// tap-through lists, priced or not.
+func (repository ReceiptProductRepository) GetProductsForReceiptsByKind(receiptIds []uint, filter ProductKindFilter) ([]models.ReceiptProduct, error) {
 	db := repository.GetDB()
 	products := []models.ReceiptProduct{}
 
@@ -373,12 +563,21 @@ func (repository ReceiptProductRepository) GetProductsForReceiptsByKind(receiptI
 		end := min(start+receiptIdBatchSize, len(receiptIds))
 
 		query := db.Where("receipt_id IN ?", receiptIds[start:end])
-		switch kind {
+		switch filter.Kind {
 		case "UNPLANNED":
 			query = query.Where("planned = ?", false)
 		case "FOODGROUP":
-			// An empty group is the Dashboard's "Uncategorized"; otherwise match the name whatever its case.
-			query = query.Where("LOWER(food_group) = ?", strings.ToLower(strings.TrimSpace(foodGroup)))
+			if filter.CategoryId != nil {
+				query = query.Where("category_id = ?", *filter.CategoryId)
+			} else {
+				query = query.Where("category_id IS NULL AND LOWER(food_group) = ?", strings.ToLower(strings.TrimSpace(filter.FoodGroup)))
+			}
+		case "TAG":
+			var tagId uint
+			if filter.TagId != nil {
+				tagId = *filter.TagId
+			}
+			query = query.Where("id IN (?)", db.Table("receipt_product_tags").Select("receipt_product_id").Where("tag_id = ?", tagId))
 		default:
 			query = query.Where("health = ?", models.HEALTH_UNHEALTHY)
 		}
@@ -394,7 +593,7 @@ func (repository ReceiptProductRepository) GetProductsForReceiptsByKind(receiptI
 }
 
 // GetPricedProductsForReceipts returns the priced products of the given receipts with the columns the
-// Dashboard's category split needs (amount and food group), for the caller to fold in Go.
+// Dashboard's category split needs (amount, category and the name kept with it), for the caller to fold in Go.
 func (repository ReceiptProductRepository) GetPricedProductsForReceipts(receiptIds []uint) ([]models.ReceiptProduct, error) {
 	db := repository.GetDB()
 	products := []models.ReceiptProduct{}
@@ -404,7 +603,7 @@ func (repository ReceiptProductRepository) GetPricedProductsForReceipts(receiptI
 
 		batch := []models.ReceiptProduct{}
 		err := db.
-			Select("id", "receipt_id", "amount", "food_group").
+			Select("id", "receipt_id", "amount", "food_group", "category_id").
 			Where("receipt_id IN ? AND amount IS NOT NULL", receiptIds[start:end]).
 			Find(&batch).Error
 		if err != nil {
@@ -414,4 +613,39 @@ func (repository ReceiptProductRepository) GetPricedProductsForReceipts(receiptI
 	}
 
 	return products, nil
+}
+
+// PricedProductTag is one priced product line carrying one tag.
+type PricedProductTag struct {
+	ReceiptProductId uint
+	ReceiptId        uint
+	TagId            uint
+	Amount           decimal.Decimal
+}
+
+// GetPricedProductTags returns, for the given receipts, every priced product line carrying one of the
+// given tags, once per tag, for the Dashboard's tag tiles to fold in Go.
+func (repository ReceiptProductRepository) GetPricedProductTags(receiptIds []uint, tagIds []uint) ([]PricedProductTag, error) {
+	db := repository.GetDB()
+	rows := []PricedProductTag{}
+	if len(tagIds) == 0 {
+		return rows, nil
+	}
+
+	for start := 0; start < len(receiptIds); start += receiptIdBatchSize {
+		end := min(start+receiptIdBatchSize, len(receiptIds))
+
+		batch := []PricedProductTag{}
+		err := db.Table("receipt_product_tags").
+			Select("receipt_products.id AS receipt_product_id, receipt_products.receipt_id AS receipt_id, receipt_product_tags.tag_id AS tag_id, receipt_products.amount AS amount").
+			Joins("JOIN receipt_products ON receipt_products.id = receipt_product_tags.receipt_product_id").
+			Where("receipt_products.receipt_id IN ? AND receipt_products.amount IS NOT NULL AND receipt_product_tags.tag_id IN ?", receiptIds[start:end], tagIds).
+			Scan(&batch).Error
+		if err != nil {
+			return []PricedProductTag{}, err
+		}
+		rows = append(rows, batch...)
+	}
+
+	return rows, nil
 }

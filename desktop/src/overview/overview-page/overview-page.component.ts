@@ -1,8 +1,9 @@
 import { CurrencyPipe } from "@angular/common";
-import { Component, computed, effect, ElementRef, signal, untracked, viewChild } from "@angular/core";
+import { Component, computed, effect, ElementRef, linkedSignal, signal, untracked, viewChild } from "@angular/core";
+import type { CdkDragDrop } from "@angular/cdk/drag-drop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { toObservable, toSignal } from "@angular/core/rxjs-interop";
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import type { ApexOptions } from "apexcharts";
 
@@ -28,7 +29,7 @@ function ringCenter(paths: SVGPathElement[]): { x: number; y: number } | undefin
   const bottom = Math.max(...boxes.map((box) => box.y + box.height));
   return right > left && bottom > top ? { x: (left + right) / 2, y: (top + bottom) / 2 } : undefined;
 }
-import { catchError, firstValueFrom, map, of, switchMap, take, tap } from "rxjs";
+import { catchError, filter, firstValueFrom, map, of, switchMap, take, tap } from "rxjs";
 import {
   FilterOperation,
   GroupOverview,
@@ -54,8 +55,29 @@ import { downloadFile } from "../../utils/file";
 import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
 import { TranslationService } from "../../i18n/translation.service";
 import { DisplayCurrencyService } from "../../services/display-currency.service";
-import { ViewportService } from "../../services/viewport.service";
 import { ChartColors } from "../../shared-ui/apex-chart/chart-colors";
+import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
+import { FilterTab } from "../../shared-ui/filter-bar/filter-tab.interface";
+import {
+  completeLayout,
+  DashboardLayout,
+  defaultLayout,
+  GRID_COLUMNS,
+  movePanel,
+  PanelGroup,
+  panelDefinition,
+  panelKind,
+  resizePanel,
+  ResolvedPanel,
+  resolveLayout,
+  sameLayout,
+  setVisible,
+  SizeClass,
+  sizeClassFor,
+  startsNewBand,
+  tagPanelId,
+} from "../dashboard-layout/dashboard-layout";
+import { DashboardLayoutStore } from "../dashboard-layout/dashboard-layout.store";
 import {
   buildMonthlyCsv,
   buildPrintHtml,
@@ -83,7 +105,27 @@ import { summarizeShoppingLists } from "../overview-lists";
 import { isWholeCalendarMonth, previousLabel, resolvePeriod, ResolvedPeriod } from "../overview-period";
 import { marker } from "../../i18n/marker";
 
+/** Receipts listed per height step of the receipts panel. */
 const RECENT_RECEIPT_COUNT = 6;
+
+/** The customise screen's preview sizes, in CSS pixels; the PC preview takes the full width. */
+const PREVIEW_WIDTHS: Record<string, number | null> = { mobile: 375, tablet: 768, pc: null };
+
+/** The gap between panels (`gap-4`), which the panel widths make room for. */
+const PANEL_GAP_PX = 16;
+
+/** The taller height step of a chart, list or table panel. */
+const TALL_PANEL_HEIGHT = "34rem";
+
+/** How far the pointer travels to change a panel's height step while resizing. */
+const RESIZE_ROW_STEP_PX = 80;
+
+const LIBRARY_GROUPS: { key: PanelGroup; label: string }[] = [
+  { key: "kpi", label: marker("Key figures") },
+  { key: "tags", label: marker("Tags") },
+  { key: "charts", label: marker("Charts") },
+  { key: "lists", label: marker("Lists") },
+];
 
 /** How many item names a shopping list card spells out before "and N more". */
 const LIST_PREVIEW_ITEMS = 3;
@@ -243,14 +285,20 @@ export class OverviewPageComponent {
     { initialValue: undefined }
   );
 
+  /** The receipts panel lists six receipts, or twelve when it is made taller. */
+  private readonly receiptsRequest = computed(() => {
+    const request = this.request();
+    return request ? { ...request, pageSize: RECENT_RECEIPT_COUNT * this.receiptsPanelRows() } : undefined;
+  });
+
   public readonly recentReceipts = toSignal(
-    toObservable(this.request).pipe(
+    toObservable(this.receiptsRequest).pipe(
       switchMap((request) =>
         request
           ? this.receiptService
               .getReceiptsForGroup(request.groupId, {
                 page: 1,
-                pageSize: RECENT_RECEIPT_COUNT,
+                pageSize: request.pageSize,
                 orderBy: "date",
                 sortDirection: SortDirection.Desc,
                 filter: { date: { operation: FilterOperation.Between, value: [request.from, request.to] } },
@@ -681,6 +729,28 @@ export class OverviewPageComponent {
       : undefined;
   });
 
+  /**
+   * One tile per tag marked "Show on the Dashboard" (Manage Tags), built like the Unhealthy tile: what the
+   * period's product lines carrying the tag cost, their share of the spending, and the change.
+   */
+  public readonly tagTiles = computed(() => {
+    const overview = this.overview();
+    if (!overview) {
+      return [];
+    }
+    const spent = Number(overview.total);
+    return (overview.tags ?? []).map((tag) => {
+      const total = Number(tag.total);
+      return {
+        tagId: tag.tagId,
+        name: tag.name,
+        total,
+        share: spent > 0 ? Math.round((total / spent) * 100) : 0,
+        change: describeChangeAgainst(tag.total, tag.previousTotal, this.previousName(), this.translate),
+      };
+    });
+  });
+
   private readonly groupPermissions = this.store.selectSignal(AuthState.groupPermissions);
 
   public readonly canAddReceipt = computed(() =>
@@ -727,8 +797,237 @@ export class OverviewPageComponent {
     );
   });
 
-  /** On a phone the shopping panel leads the page; on larger screens it sits beside the receipts. */
-  public readonly isHandset = this.viewportService.isHandset;
+  // ---- Panel layout (src/overview/dashboard-layout): what shows, in what order and at what size -------------------
+
+  /** The customise screen (`/overview/group/:id/customize`) is this page in edit mode, so the preview shows real data. */
+  public readonly customising = toSignal(this.activatedRoute.data.pipe(map((data) => data["customise"] === true)), {
+    initialValue: this.activatedRoute.snapshot?.data?.["customise"] === true,
+  });
+
+  public readonly canCustomiseLayout = this.layoutStore.canCustomise;
+
+  public readonly customiseLink = computed(() => ["/overview/group", String(this.groupId()), "customize"]);
+
+  /** The panels this person can have: the shopping ones need a readable list group, a tag needs "Show on the Dashboard". */
+  public readonly availablePanels = computed(() => {
+    const ids = ["spent", "receipts", "unhealthy", "unplanned", "categories", "trend", "recentReceipts"];
+    if (this.shoppingListGroupId() !== undefined) {
+      ids.push("toBuy", "shoppingList");
+    }
+    return [...ids, ...(this.overview()?.tags ?? []).map((tag) => tagPanelId(tag.tagId))];
+  });
+
+  /** The layout being edited on the customise screen; it starts from the saved one and follows it after a save. */
+  public readonly draftLayout = linkedSignal<DashboardLayout | undefined>(() => this.layoutStore.layout());
+
+  private readonly activeLayout = computed(() => (this.customising() ? this.draftLayout() : this.layoutStore.layout()));
+
+  /** The grid's own width picks phone, tablet or PC, so the preview frame reflows the panels like a real screen. */
+  private readonly gridWidth = signal(0);
+
+  private readonly panelGrid = viewChild<ElementRef<HTMLElement>>("panelGrid");
+
+  public readonly sizeClass = computed<SizeClass>(() => (this.gridWidth() > 0 ? sizeClassFor(this.gridWidth()) : "wide"));
+
+  public readonly gridColumns = computed(() => GRID_COLUMNS[this.sizeClass()]);
+
+  public readonly panels = computed(() => resolveLayout(this.activeLayout(), this.availablePanels(), this.sizeClass()));
+
+  private readonly receiptsPanelRows = computed(
+    () => completeLayout(this.activeLayout(), this.availablePanels()).panels.find((panel) => panel.id === "recentReceipts")?.rows ?? 1
+  );
+
+  public readonly layoutDirty = computed(() => {
+    const available = this.availablePanels();
+    return !sameLayout(completeLayout(this.draftLayout(), available), completeLayout(this.layoutStore.layout(), available));
+  });
+
+  public readonly savingLayout = signal(false);
+
+  /** The panel list above the preview; its button folds it away to see more of the preview. */
+  public readonly libraryOpen = signal(true);
+
+  public readonly previewTabs: FilterTab[] = [
+    { value: "mobile", label: marker("Mobile"), icon: "smartphone" },
+    { value: "tablet", label: marker("Tablet"), icon: "tablet" },
+    { value: "pc", label: marker("PC"), icon: "computer" },
+  ];
+
+  public readonly previewDevice = signal("pc");
+
+  public readonly previewWidth = computed(() => (this.customising() ? PREVIEW_WIDTHS[this.previewDevice()] ?? null : null));
+
+  public readonly previewFrame = computed(() => this.previewWidth() !== null);
+
+  public setPreviewDevice(device: string): void {
+    this.previewDevice.set(device in PREVIEW_WIDTHS ? device : "pc");
+  }
+
+  /** The panel list: every available panel by group, switched on or off. */
+  public readonly libraryGroups = computed(() => {
+    const available = this.availablePanels();
+    const panels = completeLayout(this.draftLayout(), available).panels.filter((panel) => available.includes(panel.id));
+    return LIBRARY_GROUPS.map((group) => ({
+      ...group,
+      entries: panels
+        .filter((panel) => panelDefinition(panel.id)?.group === group.key)
+        .map((panel) => ({ id: panel.id, label: this.panelLabel(panel.id), visible: panel.visible })),
+    })).filter((group) => group.entries.length > 0);
+  });
+
+  public panelLabel(id: string): string {
+    if (panelKind(id) === "tag") {
+      return this.overview()?.tags?.find((tag) => tagPanelId(tag.tagId) === id)?.name ?? this.translation.t("Tag");
+    }
+    return this.translation.t(panelDefinition(id)?.label ?? id);
+  }
+
+  public tagTile(id: string) {
+    return this.tagTiles().find((tile) => tagPanelId(tile.tagId) === id);
+  }
+
+  /**
+   * A panel's width is its share of a row (span of the grid's columns, less its part of the gaps); panels on a row that
+   * is not full grow in proportion to their size, so a row never has holes.
+   */
+  public panelFlex(panel: ResolvedPanel): string {
+    const columns = this.gridColumns();
+    return `${panel.span} 1 calc(${panel.span} / ${columns} * 100% - ${(PANEL_GAP_PX * (columns - panel.span)) / columns}px)`;
+  }
+
+  public startsNewBand(index: number): boolean {
+    return startsNewBand(this.panels(), index);
+  }
+
+  /** A taller panel keeps its extra height; the content grows past it rather than being cut. */
+  public panelMinHeight(panel: ResolvedPanel): string | null {
+    return panel.rows > 1 && this.sizeClass() !== "compact" ? TALL_PANEL_HEIGHT : null;
+  }
+
+  /** Edits start from the saved layout completed with what is available now (new tags included). */
+  private editLayout(change: (layout: DashboardLayout) => DashboardLayout): void {
+    this.draftLayout.set(change(completeLayout(this.draftLayout(), this.availablePanels())));
+  }
+
+  public setPanelVisible(id: string, visible: boolean): void {
+    this.editLayout((layout) => setVisible(layout, id, visible));
+  }
+
+  public resize(id: string, size: { cols?: number; rows?: number }): void {
+    this.editLayout((layout) => resizePanel(layout, id, size));
+  }
+
+  public canWiden(panel: ResolvedPanel): boolean {
+    return this.sizeClass() === "wide" && panel.cols < (panelDefinition(panel.id)?.maxCols ?? 0);
+  }
+
+  public canNarrow(panel: ResolvedPanel): boolean {
+    return this.sizeClass() === "wide" && panel.cols > (panelDefinition(panel.id)?.minCols ?? 0);
+  }
+
+  public canChangeHeight(panel: ResolvedPanel): boolean {
+    return (panelDefinition(panel.id)?.maxRows ?? 1) > 1;
+  }
+
+  public isFirstPanel(id: string): boolean {
+    return this.panels()[0]?.id === id;
+  }
+
+  public isLastPanel(id: string): boolean {
+    return this.panels().at(-1)?.id === id;
+  }
+
+  /** Moves a panel one place among the shown ones, in the order of the size being previewed. */
+  public shiftPanel(id: string, by: -1 | 1): void {
+    const shown = this.panels();
+    const target = shown[shown.findIndex((panel) => panel.id === id) + by];
+    if (target) {
+      this.editLayout((layout) => movePanel(layout, this.sizeClass(), id, target.id));
+    }
+  }
+
+  public dropPanel(event: CdkDragDrop<unknown>): void {
+    const shown = this.panels();
+    const moved = shown[event.previousIndex];
+    const target = shown[event.currentIndex];
+    if (moved && target) {
+      this.editLayout((layout) => movePanel(layout, this.sizeClass(), moved.id, target.id));
+    }
+  }
+
+  /** Corner-handle resize in the PC view: the width snaps to grid columns and the height to its steps, within limits. */
+  public startResize(event: PointerEvent, panel: ResolvedPanel): void {
+    const grid = this.panelGrid()?.nativeElement;
+    if (!grid || event.button !== 0) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+
+    const columnWidth = grid.getBoundingClientRect().width / this.gridColumns();
+    const startX = event.clientX;
+    const startY = event.clientY;
+    const handle = event.target as HTMLElement;
+    handle.setPointerCapture?.(event.pointerId);
+
+    const move = (moveEvent: PointerEvent) => {
+      const cols = panel.cols + Math.round((moveEvent.clientX - startX) / columnWidth);
+      const dy = moveEvent.clientY - startY;
+      const rows = dy > RESIZE_ROW_STEP_PX ? 2 : dy < -RESIZE_ROW_STEP_PX ? 1 : panel.rows;
+      this.resize(panel.id, { cols, rows });
+    };
+    const end = () => {
+      handle.removeEventListener("pointermove", move);
+      handle.removeEventListener("pointerup", end);
+      handle.removeEventListener("pointercancel", end);
+    };
+    handle.addEventListener("pointermove", move);
+    handle.addEventListener("pointerup", end);
+    handle.addEventListener("pointercancel", end);
+  }
+
+  public resetLayout(): void {
+    this.draftLayout.set(defaultLayout(this.availablePanels()));
+  }
+
+  public saveLayout(): void {
+    if (this.savingLayout()) {
+      return;
+    }
+    this.savingLayout.set(true);
+    this.layoutStore
+      .save(completeLayout(this.draftLayout(), this.availablePanels()))
+      .subscribe((saved) => {
+        this.savingLayout.set(false);
+        if (saved) {
+          this.snackbarService.success(marker("Dashboard saved"));
+          this.router.navigate(["/overview/group", String(this.groupId())]);
+        }
+      });
+  }
+
+  /** Leaves the customise screen; unsaved changes are confirmed first. */
+  public cancelCustomising(): void {
+    const leave = () => this.router.navigate(["/overview/group", String(this.groupId())]);
+    if (!this.layoutDirty()) {
+      leave();
+      return;
+    }
+
+    const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
+    dialogRef.componentInstance.headerText = marker("Discard changes");
+    dialogRef.componentInstance.dialogContent = this.translation.t("Leave without saving your dashboard changes?");
+    dialogRef
+      .afterClosed()
+      .pipe(
+        take(1),
+        filter((confirmed) => !!confirmed)
+      )
+      .subscribe(() => {
+        this.draftLayout.set(this.layoutStore.layout());
+        leave();
+      });
+  }
 
   public readonly listSummaries = computed(() => {
     if (this.loadedShoppingListGroupId() !== this.shoppingListGroupId()) {
@@ -752,8 +1051,23 @@ export class OverviewPageComponent {
     private productCheck: ProductCheckLauncher,
     public readonly displayCurrencyService: DisplayCurrencyService,
     public readonly translation: TranslationService,
-    private viewportService: ViewportService
+    private layoutStore: DashboardLayoutStore,
+    private router: Router
   ) {
+    this.layoutStore.load();
+
+    // Imperative side effect: measure the panel grid, whose own width picks the phone, tablet or PC arrangement.
+    effect((onCleanup) => {
+      const grid = this.panelGrid()?.nativeElement;
+      if (!grid || typeof ResizeObserver === "undefined") {
+        return;
+      }
+      const observer = new ResizeObserver((entries) => this.gridWidth.set(entries[0]?.contentRect.width ?? 0));
+      observer.observe(grid);
+      untracked(() => this.gridWidth.set(grid.getBoundingClientRect().width));
+      onCleanup(() => observer.disconnect());
+    });
+
     // Imperative side effect: a goal editor that just opened takes the keyboard, with its text selected.
     effect(() => {
       const input = this.goalInput()?.nativeElement;
@@ -784,12 +1098,20 @@ export class OverviewPageComponent {
     this.openDetail(kind, kind === "UNHEALTHY" ? marker("Unhealthy products") : marker("Products not on the list"));
   }
 
-  /** Opens the products of one food group (the category split is by product, Phase 3 3c). */
+  /** Opens the product lines of one category slice (the split is by line, by category id when there is one). */
   public openCategory(segment: DonutSegment): void {
     if (!this.isOpenable(segment)) {
       return;
     }
-    this.openDetail("FOODGROUP", segment.name, segment.name === UNCATEGORIZED ? "" : segment.name);
+    this.openDetail("FOODGROUP", segment.name, {
+      foodGroup: segment.name === UNCATEGORIZED ? "" : segment.name,
+      ...(segment.categoryId !== undefined ? { categoryId: segment.categoryId } : {}),
+    });
+  }
+
+  /** Opens the product lines behind a tag tile. */
+  public openTag(tile: { tagId: number; name: string }): void {
+    this.openDetail("TAG", tile.name, { tagId: tile.tagId });
   }
 
   /** "Other" folds several groups together, so there is no single list behind it. */
@@ -806,7 +1128,11 @@ export class OverviewPageComponent {
     this.productCheck.start();
   }
 
-  private openDetail(kind: OverviewDetailKind, title: string, foodGroup?: string): void {
+  private openDetail(
+    kind: OverviewDetailKind,
+    title: string,
+    filter: Pick<OverviewDetailDialogData, "categoryId" | "foodGroup" | "tagId"> = {}
+  ): void {
     const period = this.period();
     if (!period) {
       return;
@@ -818,7 +1144,7 @@ export class OverviewPageComponent {
       groupId: this.groupId(),
       from: period.from,
       to: period.to,
-      foodGroup,
+      ...filter,
     };
     this.matDialog.open(OverviewDetailDialogComponent, { ...DEFAULT_DIALOG_CONFIG, data });
   }

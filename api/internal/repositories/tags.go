@@ -72,6 +72,9 @@ func (repository TagsRepository) CreateTag(command commands.UpsertTagCommand) (m
 
 	tag.Name = command.Name
 	tag.Description = command.Description
+	if command.ShowOnDashboard != nil {
+		tag.ShowOnDashboard = *command.ShowOnDashboard
+	}
 
 	err := db.Model(&tag).Create(&tag).Error
 	if err != nil {
@@ -90,15 +93,21 @@ func (repository TagsRepository) GetAllPagedTags(pagedRequestCommand commands.Pa
 		pagedRequestCommand.OrderBy = quotedAlias
 	}
 
+	if pagedRequestCommand.OrderBy == "numberOfProducts" {
+		pagedRequestCommand.OrderBy = "\"NumberOfProducts\""
+	}
+
 	pagedRequestCommand.OrderBy = qualifyColumn("tags", pagedRequestCommand.OrderBy)
 
+	// Tags label product lines now; NumberOfReceipts still counts the receipt-level tags of older data.
 	query := repository.Sort(db, pagedRequestCommand.OrderBy, pagedRequestCommand.SortDirection)
 	query = query.Scopes(repository.Paginate(pagedRequestCommand.Page, pagedRequestCommand.PageSize))
-	selectString := fmt.Sprintf("tags.id, tags.name, tags.description, COUNT(DISTINCT receipt_tags.receipt_id) as %s", quotedAlias)
+	selectString := fmt.Sprintf("tags.id, tags.name, tags.description, tags.show_on_dashboard, COUNT(DISTINCT receipt_tags.receipt_id) as %s, COUNT(DISTINCT receipt_product_tags.receipt_product_id) as \"NumberOfProducts\"", quotedAlias)
 	query = query.Table("tags").
 		Select(selectString).
 		Joins("LEFT JOIN receipt_tags ON tags.id = receipt_tags.tag_id").
-		Group("tags.id, tags.name")
+		Joins("LEFT JOIN receipt_product_tags ON tags.id = receipt_product_tags.tag_id").
+		Group("tags.id, tags.name, tags.description, tags.show_on_dashboard")
 
 	err := query.Scan(&tags).Error
 	if err != nil {
@@ -112,7 +121,17 @@ func (repository TagsRepository) UpdateTag(tagId string, command commands.Upsert
 	db := repository.GetDB()
 	var updatedTag models.Tag
 
-	err := db.Model(models.Tag{}).Where("id = ?", tagId).Updates(command).Error
+	// A map, not the command: Updates with a struct skips zero values, so a cleared description or a tile
+	// switched off would never be saved.
+	updates := map[string]any{
+		"name":        command.Name,
+		"description": command.Description,
+	}
+	if command.ShowOnDashboard != nil {
+		updates["show_on_dashboard"] = *command.ShowOnDashboard
+	}
+
+	err := db.Model(models.Tag{}).Where("id = ?", tagId).Updates(updates).Error
 	if err != nil {
 		return models.Tag{}, err
 	}
@@ -130,6 +149,11 @@ func (repository TagsRepository) DeleteTag(tagId uint) error {
 
 	err := db.Transaction(func(tx *gorm.DB) error {
 		err := tx.Delete(&models.ReceiptTag{}, "tag_id = ?", tagId).Error
+		if err != nil {
+			return err
+		}
+
+		err = tx.Table("receipt_product_tags").Where("tag_id = ?", tagId).Delete(&struct{}{}).Error
 		if err != nil {
 			return err
 		}

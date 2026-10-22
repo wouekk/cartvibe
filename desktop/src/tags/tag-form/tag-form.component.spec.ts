@@ -56,6 +56,7 @@ describe("CategoryForm", () => {
     expect(component.form.value).toEqual({
       name: "test",
       description: "test",
+      showOnDashboard: false,
     });
   });
 
@@ -82,6 +83,7 @@ describe("CategoryForm", () => {
       {
         name: "test",
         description: "test",
+        showOnDashboard: false,
       },
     );
   });
@@ -104,6 +106,7 @@ describe("CategoryForm", () => {
     expect(tagServiceSpy).toHaveBeenCalledWith({
       name: "test",
       description: "test",
+      showOnDashboard: true,
     });
   });
 });

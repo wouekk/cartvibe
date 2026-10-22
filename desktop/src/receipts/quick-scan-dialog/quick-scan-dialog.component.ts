@@ -192,12 +192,14 @@ export class QuickScanDialogComponent implements OnInit {
     return this.configForIndex(index).showStatus;
   }
 
-  public showCategories(index: number): boolean {
-    return this.configForIndex(index).showCategories;
+  // Categories and tags describe a receipt's product lines, set once they are read, so Quick Scan no
+  // longer asks for receipt-level ones, whatever the group's quick scan settings say.
+  public showCategories(_index: number): boolean {
+    return false;
   }
 
-  public showTags(index: number): boolean {
-    return this.configForIndex(index).showTags;
+  public showTags(_index: number): boolean {
+    return false;
   }
 
   public showComment(index: number): boolean {

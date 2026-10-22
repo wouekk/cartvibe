@@ -72,25 +72,9 @@
               [inputFormControl]="form | formGet : 'date'"
               [readonly]="mode | inputReadonly"
             ></app-datepicker>
-            @if (!this.selectedGroup()?.groupReceiptSettings?.hideReceiptCategories) {
-              <app-category-autocomplete
-                class="w-full sm:col-span-2"
-                data-testid="receipt-categories"
-                [inputFormControl]="form | formGet : 'categories'"
-                [categories]="categories"
-                [creatable]="canCreateCategories()"
-                [readonly]="mode | inputReadonly"
-              ></app-category-autocomplete>
-            }
-            @if (!this.selectedGroup()?.groupReceiptSettings?.hideReceiptTags) {
-              <app-tag-autocomplete
-                class="w-full sm:col-span-2"
-                [inputFormControl]="form | formGet : 'tags'"
-                [tags]="tags"
-                [creatable]="canCreateTags()"
-                [readonly]="mode | inputReadonly"
-              ></app-tag-autocomplete>
-            }
+            <!-- No receipt-level Categories and Tags: they describe the product lines now (Products
+                 section). The form keeps a receipt's old values, so saving never drops them. -->
+
             @if (showGroupPicker()) {
               <app-group-autocomplete
                 class="w-full sm:col-span-2"

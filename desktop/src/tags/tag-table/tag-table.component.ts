@@ -10,6 +10,7 @@ import { TableColumn } from "src/table/table-column.interface";
 import { TableComponent } from "src/table/table/table.component";
 import { PagedDataDataInner, PagedRequestCommand, Permission, TagService, TagView } from "../../open-api";
 import { SnackbarService } from "../../services";
+import { AppInitService } from "../../services/app-init.service";
 import { SetOrderBy, SetPage, SetPageSize, SetSortDirection } from "../../store/tag-table.state.actions";
 import { TagFormComponent } from "../tag-form/tag-form.component";
 import { marker } from "../../i18n/marker";
@@ -23,6 +24,8 @@ import { TranslationService } from "../../i18n/translation.service";
 })
 export class TagTableComponent implements OnInit, AfterViewInit {
   private readonly translation = inject(TranslationService);
+
+  private readonly appInitService = inject(AppInitService);
 
   public readonly nameCell = viewChild.required<TemplateRef<any>>("nameCell");
 
@@ -53,6 +56,11 @@ export class TagTableComponent implements OnInit, AfterViewInit {
 
   public totalCount = signal(0);
 
+  public readonly emptyText = marker("No tags yet. Add one, then tag products on your receipts.");
+
+  /** Set after the first answer, so the empty state never shows before the list has loaded. */
+  public loaded = signal(false);
+
   public headerText: string = "Tags";
 
   public ngOnInit(): void {
@@ -67,6 +75,16 @@ export class TagTableComponent implements OnInit, AfterViewInit {
     this.getTags();
   }
 
+  /**
+   * After an add, edit or delete: reload the list, and the app data the receipt pickers read their
+   * choices from (loaded at sign-in), so a new or renamed one can be picked at once. A failed reload
+   * only leaves the pickers as they were.
+   */
+  private refreshAfterChange(): void {
+    this.getTags();
+    this.appInitService.getAppData().pipe(take(1)).subscribe({ error: () => undefined });
+  }
+
   private getTags(): void {
     const command: PagedRequestCommand = this.store.selectSnapshot(
       TagTableState.state
@@ -79,6 +97,7 @@ export class TagTableComponent implements OnInit, AfterViewInit {
         tap((pagedData) => {
           this.dataSource.set(new TableDataSource<PagedDataDataInner>(pagedData.data));
           this.totalCount.set(pagedData.totalCount);
+          this.loaded.set(true);
         })
       )
       .subscribe();
@@ -113,8 +132,8 @@ export class TagTableComponent implements OnInit, AfterViewInit {
         sortable: true,
       },
       {
-        columnHeader: marker("Number of Receipts with Tags"),
-        matColumnDef: "numberOfReceipts",
+        columnHeader: marker("Products"),
+        matColumnDef: "numberOfProducts",
         template: this.numberOfReceiptsCell(),
         sortable: true,
       },
@@ -144,7 +163,7 @@ export class TagTableComponent implements OnInit, AfterViewInit {
     this.displayedColumns = [
       "name",
       "description",
-      "numberOfReceipts",
+      "numberOfProducts",
       "actions",
     ];
   }
@@ -164,7 +183,7 @@ export class TagTableComponent implements OnInit, AfterViewInit {
         take(1),
         tap((refreshData) => {
           if (refreshData) {
-            this.getTags();
+            this.refreshAfterChange();
           }
         })
       )
@@ -185,7 +204,7 @@ export class TagTableComponent implements OnInit, AfterViewInit {
         take(1),
         tap((refreshData) => {
           if (refreshData) {
-            this.getTags();
+            this.refreshAfterChange();
           }
         })
       )
@@ -208,7 +227,7 @@ export class TagTableComponent implements OnInit, AfterViewInit {
             return this.tagService.deleteTag(tagView.id as number).pipe(
               tap(() => {
                 this.snackbarService.success("Tag successfully deleted");
-                this.getTags();
+                this.refreshAfterChange();
               })
             );
           } else {
