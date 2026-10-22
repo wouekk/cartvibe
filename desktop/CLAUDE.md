@@ -3048,3 +3048,21 @@ Every Admin and User settings page uses four shared primitives from `src/shared-
 - **CSP** (`docker/default.conf`, still Report-Only): `connect-src` adds `https://world.openfoodfacts.org`, `img-src` adds
   `https://images.openfoodfacts.org`. `Permissions-Policy` already allows `camera=(self)`.
 - E2E: `search-bar-visibility.spec.ts` (header search gated on a permission) is deleted; the header no longer has one.
+
+### Categories and tags on product lines (fork, 2026-10)
+- **Receipt form:** the receipt-level Categories / Tags fields are gone (the form keeps old values, so saving never drops
+  them); Quick Scan no longer asks for them (`showCategories` / `showTags` return false); the household settings lost the
+  two "Hide Receipt Categories/Tags" switches.
+- **Products table** (`receipts/receipt-products`): each line has a Category picker (spartan dropdown, "Uncategorized" first)
+  and a Tags menu (checkbox items, stays open) next to Quantity and Amount; the add row has both too. Choices come from
+  `AuthState.groupCatalog` (the group's categories and tags from AppData), sorted by name. Picks show at once and are saved
+  in order through `setReceiptProductLabels` (a `concatMap` queue; the server's answer replaces the line only when no later
+  pick is pending; a failure reloads). The menu's context is the line as it was when opened, so handlers look the line up
+  again by id. The edit row's Save sends the line's current category and tags (the update replaces them).
+- **Manage Categories / Tags** refresh AppData after add, edit and delete (`refreshAfterChange`), so the pickers see a new
+  name without a reload. The shared `app-table` has an empty state (`emptyText`, `emptyIcon`, `[tableEmptyAction]`
+  projection; pass the text only once loaded). The category form provides `DuplicateValidator` itself: dialogs are created
+  from the root injector, so a provider in the lazy module was invisible and the Add dialog stayed blank (NG0201).
+- **Dashboard:** one tile per tag with "Show on the Dashboard" (tag form switch, on by default for a new tag), the same
+  layout as Unhealthy in a neutral color: name, amount, "{share}% of the spending", the change; it opens the lines behind it
+  (`kind: "TAG"`). Category slices carry `categoryId` and open by it.

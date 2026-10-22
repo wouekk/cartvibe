@@ -24,6 +24,14 @@ export interface TagView {
      * Description of the tag
      */
     description?: string;
+    /**
+     * The tag has its own Dashboard tile
+     */
+    showOnDashboard?: boolean;
+    /**
+     * Number of receipt product lines carrying the tag
+     */
+    numberOfProducts?: number;
     updatedAt?: string;
     /**
      * Number of receipts associated with this tag

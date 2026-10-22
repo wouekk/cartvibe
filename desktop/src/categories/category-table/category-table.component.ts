@@ -10,6 +10,7 @@ import { TableColumn } from "src/table/table-column.interface";
 import { TableComponent } from "src/table/table/table.component";
 import { CategoryService, CategoryView, PagedDataDataInner, PagedRequestCommand, Permission } from "../../open-api";
 import { SnackbarService } from "../../services";
+import { AppInitService } from "../../services/app-init.service";
 import { SetOrderBy, SetPage, SetPageSize, SetSortDirection } from "../../store/category-table.state.actions";
 import { CategoryForm } from "../category-form/category-form.component";
 import { marker } from "../../i18n/marker";
@@ -23,6 +24,8 @@ import { TranslationService } from "../../i18n/translation.service";
 })
 export class CategoryTableComponent implements OnInit, AfterViewInit {
   private readonly translation = inject(TranslationService);
+
+  private readonly appInitService = inject(AppInitService);
 
   public readonly nameCell = viewChild.required<TemplateRef<any>>("nameCell");
 
@@ -53,6 +56,11 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
 
   public totalCount = signal(0);
 
+  public readonly emptyText = marker("No categories yet. The AI adds them as it reads receipts, or add your own.");
+
+  /** Set after the first answer, so the empty state never shows before the list has loaded. */
+  public loaded = signal(false);
+
   public headerText: string = "Categories";
 
   public ngOnInit(): void {
@@ -65,6 +73,16 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
 
   private initTableData(): void {
     this.getCategories();
+  }
+
+  /**
+   * After an add, edit or delete: reload the list, and the app data the receipt pickers read their
+   * choices from (loaded at sign-in), so a new or renamed one can be picked at once. A failed reload
+   * only leaves the pickers as they were.
+   */
+  private refreshAfterChange(): void {
+    this.getCategories();
+    this.appInitService.getAppData().pipe(take(1)).subscribe({ error: () => undefined });
   }
 
   private getCategories(): void {
@@ -81,6 +99,7 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
             pagedData.data
           ));
           this.totalCount.set(pagedData.totalCount);
+          this.loaded.set(true);
         })
       )
       .subscribe();
@@ -163,7 +182,7 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
         take(1),
         tap((refreshData) => {
           if (refreshData) {
-            this.getCategories();
+            this.refreshAfterChange();
           }
         })
       )
@@ -181,7 +200,7 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
         take(1),
         tap((refreshData) => {
           if (refreshData) {
-            this.getCategories();
+            this.refreshAfterChange();
           }
         })
       )
@@ -206,7 +225,7 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
             return this.categoryService.deleteCategory(categoryView.id).pipe(
               tap(() => {
                 this.snackbarService.success("Category successfully deleted");
-                this.getCategories();
+                this.refreshAfterChange();
               })
             );
           } else {

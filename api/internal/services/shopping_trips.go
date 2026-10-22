@@ -60,9 +60,8 @@ Products on the receipt:
 For each receipt product, give the id of the shopping list entry it is, or null if it was not on the list.
 A product matches an entry when it is that thing, whatever the brand, size, language or abbreviation: "LAIT DEMI-ECR 1L" is "Milk", "Coca-Cola 1.5L" is "Coke". A general entry covers specific products: "Fruit" covers "Apples". Several products can match one entry.
 
-Return ONLY valid JSON in plain text, never in a code block, exactly in this shape:
-{"products": [{"id": "1", "listItemId": "2"}, {"id": "2", "listItemId": null}]}
-Return one entry for every receipt product, with the same id.`
+Reply with minified JSON only, no code block, one entry per receipt product with its id:
+{"products":[{"id":"1","listItemId":"2"},{"id":"2","listItemId":null}]}`
 
 type ShoppingTripService struct {
 	BaseService

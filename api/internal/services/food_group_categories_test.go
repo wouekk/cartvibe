@@ -107,3 +107,23 @@ func TestBuildProductExtractionPromptCarriesTheMonthCategoriesAndCorrections(t *
 		}
 	}
 }
+
+func TestProductPromptsOfferExampleCategoriesOnlyWithoutAList(t *testing.T) {
+	withList := buildProductExtractionPrompt(day("2026-10-01"), "Choose \"foodGroup\" from these categories: Nabiał.", nil)
+	if strings.Contains(withList, `"sweets & snacks"`) {
+		t.Error("English example categories must not compete with the household's own list")
+	}
+	if !strings.Contains(withList, "from the list below") {
+		t.Error("expected the food group to point at the list")
+	}
+
+	withoutList := buildProductExtractionPrompt(day("2026-10-01"), "", nil)
+	if !strings.Contains(withoutList, `"sweets & snacks"`) {
+		t.Error("a household without categories gets examples to start its list")
+	}
+
+	classification := buildClassificationPrompt(classificationBatch{month: day("2026-10-01")}, nil, "Choose \"foodGroup\" from these categories: Nabiał.")
+	if strings.Contains(classification, `"sweets & snacks"`) || !strings.Contains(classification, "Nabiał") {
+		t.Error("the classification prompt follows the same rule")
+	}
+}

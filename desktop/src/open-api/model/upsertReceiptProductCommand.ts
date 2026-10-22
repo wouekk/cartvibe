@@ -22,5 +22,13 @@ export interface UpsertReceiptProductCommand {
      * Quantity or weight; may be empty
      */
     quantity?: string;
+    /**
+     * The line\'s one category; null for Uncategorized. An update replaces it, so send the line\'s current one to keep it.
+     */
+    categoryId?: number;
+    /**
+     * The line\'s tags; an update replaces them. Repeats are ignored.
+     */
+    tagIds?: Array<number>;
 }
 

@@ -128,6 +128,10 @@ export interface PagedDataDataInner {
      * Earlier names of this category, one per line (set by renaming; read only)
      */
     aliases?: string;
+    /**
+     * The tag has its own Dashboard tile
+     */
+    showOnDashboard?: boolean;
     prompt: Prompt;
     groupSettings?: GroupSettings;
     groupReceiptSettings: GroupReceiptSettings;
@@ -147,6 +151,10 @@ export interface PagedDataDataInner {
      * Whether member-presence isolation is enabled for the group. When on, members cannot discover other members unless they hold a group role flagged seesAllMembers. Defaults to false.
      */
     isolateMembers?: boolean;
+    /**
+     * Number of receipt product lines carrying the tag
+     */
+    numberOfProducts?: number;
     /**
      * Number of receipts associated with this tag
      */
