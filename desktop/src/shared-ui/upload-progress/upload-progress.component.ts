@@ -26,7 +26,7 @@ import { marker } from "../../i18n/marker";
         >
           <div
             class="h-full rounded-full bg-primary transition-[width] duration-200 ease-out motion-reduce:transition-none"
-            [class.animate-pulse]="current.stage !== 'uploading'"
+            [class.animate-pulse]="current.stage === 'saving'"
             [style.width.%]="width()"
             data-testid="upload-progress-fill"
           ></div>
@@ -46,14 +46,5 @@ export class UploadProgressComponent {
 
   protected readonly width = computed(() => this.percent());
 
-  protected readonly label = computed(() => {
-    switch (this.stage()?.stage) {
-      case "scanning":
-        return marker("Reading your receipt…");
-      case "saving":
-        return marker("Saving…");
-      default:
-        return marker("Uploading {percent}%");
-    }
-  });
+  protected readonly label = computed(() => (this.stage()?.stage === "saving" ? marker("Saving…") : marker("Uploading {percent}%")));
 }
