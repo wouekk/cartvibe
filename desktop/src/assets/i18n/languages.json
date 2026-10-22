@@ -1,4 +1,7 @@
 [
   { "code": "en", "label": "English", "locale": "en-US" },
-  { "code": "pl", "label": "Polski", "locale": "pl" }
+  { "code": "pl", "label": "Polski", "locale": "pl" },
+  { "code": "de", "label": "Deutsch", "locale": "de" },
+  { "code": "fr", "label": "Français", "locale": "fr" },
+  { "code": "es", "label": "Español", "locale": "es" }
 ]

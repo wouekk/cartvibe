@@ -45,7 +45,7 @@ password immediately**. To update, pull the new image and redeploy.
 | **Planned vs unplanned** | Attach a receipt to a list and see exactly what ended up in the basket that wasn't on it. |
 | **Made for a household** | No bill splitting and no approvals: a receipt is either "to check" or "settled", and there are just two roles, Admin and User. |
 | **Themes** | Light or dark, or simply follow your device. Built for the phone first. |
-| **Languages** | Polish and English language support, chosen by each person. |
+| **Languages** | English, Polish, German, French and Spanish, chosen by each person. Reports come out in your language too. |
 
 <p align="center">
   <picture>
