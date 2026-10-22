@@ -13,7 +13,8 @@ func TestRenamingACategoryKeepsTheOldNameAsAnAliasAndMovesItsProducts(t *testing
 	GetDB().Create(&category)
 	receipt := models.Receipt{Name: "r", GroupId: 1, PaidByUserID: 1}
 	GetDB().Create(&receipt)
-	product := models.ReceiptProduct{ReceiptId: receipt.ID, Name: "CHIPS"}
+	// Products follow their category by id; the name they carry alongside is updated with it.
+	product := models.ReceiptProduct{ReceiptId: receipt.ID, Name: "CHIPS", CategoryId: &category.ID}
 	product.FoodGroup = "Sweets & Snacks"
 	GetDB().Create(&product)
 	other := models.ReceiptProduct{ReceiptId: receipt.ID, Name: "LAIT"}

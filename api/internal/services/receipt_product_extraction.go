@@ -298,7 +298,7 @@ func (service ReceiptProductExtractionService) applyProducts(
 			if health, corrected := corrections[models.NormalizeProductName(productClassificationName(products[i]))]; corrected {
 				products[i].Health = health
 			}
-			products[i].FoodGroup = resolver.Resolve(products[i].FoodGroup)
+			products[i].FoodGroup, products[i].CategoryId = resolver.ResolveCategory(products[i].FoodGroup)
 			classifiedAt := time.Now()
 			products[i].ClassifiedAt = &classifiedAt
 		}

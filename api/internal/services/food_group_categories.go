@@ -48,16 +48,22 @@ func (resolver *foodGroupResolver) add(category models.Category) {
 // Resolve turns what the AI wrote into the name a product is stored under. "" means Uncategorized: no
 // usable answer, or the category is switched off. A name the list does not have yet is added to it.
 func (resolver *foodGroupResolver) Resolve(raw string) string {
+	name, _ := resolver.ResolveCategory(raw)
+	return name
+}
+
+// ResolveCategory is Resolve with the category's id, which is what a product line stores; nil with "".
+func (resolver *foodGroupResolver) ResolveCategory(raw string) (string, *uint) {
 	name := strings.TrimSpace(raw)
 	if name == "" {
-		return ""
+		return "", nil
 	}
 
 	if category, found := resolver.byName[strings.ToLower(name)]; found {
 		if category.Skipped {
-			return ""
+			return "", nil
 		}
-		return category.Name
+		return category.Name, &category.ID
 	}
 
 	label := foodGroupLabel(name)
@@ -69,14 +75,14 @@ func (resolver *foodGroupResolver) Resolve(raw string) string {
 	// FirstOrCreate: two receipts read at once may invent the same category.
 	err := db.Where("name = ?", label).FirstOrCreate(&created).Error
 	if err != nil {
-		return ""
+		return "", nil
 	}
 
 	resolver.add(created)
 	if created.Skipped {
-		return ""
+		return "", nil
 	}
-	return created.Name
+	return created.Name, &created.ID
 }
 
 // PromptBlock is what the AI is told about the category list: the names to choose from, the ones it

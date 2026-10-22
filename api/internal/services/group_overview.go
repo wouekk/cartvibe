@@ -158,6 +158,10 @@ func (service GroupOverviewService) GetGroupOverviewForPeriod(userId uint, group
 	if err != nil {
 		return structs.GroupOverview{}, err
 	}
+	err = service.nameProductCategories(periodProducts)
+	if err != nil {
+		return structs.GroupOverview{}, err
+	}
 
 	overview := foldGroupOverview(receipts, period, previous, groupProductsByReceipt(periodProducts))
 
@@ -170,7 +174,80 @@ func (service GroupOverviewService) GetGroupOverviewForPeriod(userId uint, group
 		return structs.GroupOverview{}, err
 	}
 
+	overview.Tags, err = service.sumDashboardTags(receipts, period, previous)
+	if err != nil {
+		return structs.GroupOverview{}, err
+	}
+
 	return overview, nil
+}
+
+// nameProductCategories puts each product's current category name in FoodGroup, so a renamed category
+// shows under its new name whatever the line still carries.
+func (service GroupOverviewService) nameProductCategories(products []models.ReceiptProduct) error {
+	categories, err := repositories.NewCategoryRepository(service.TX).GetAllCategories("id, name")
+	if err != nil {
+		return err
+	}
+
+	names := make(map[uint]string, len(categories))
+	for _, category := range categories {
+		names[category.ID] = category.Name
+	}
+
+	for i := range products {
+		if products[i].CategoryId == nil {
+			continue
+		}
+		if name, found := names[*products[i].CategoryId]; found {
+			products[i].FoodGroup = name
+		} else {
+			products[i].CategoryId = nil
+			products[i].FoodGroup = ""
+		}
+	}
+	return nil
+}
+
+// sumDashboardTags builds the tiles of the tags shown on the Dashboard: what the priced product lines
+// carrying each tag cost in the period and in the previous one, on the receipts the caller can see. A line
+// with two such tags counts toward both tiles.
+func (service GroupOverviewService) sumDashboardTags(receipts []models.Receipt, period OverviewPeriod, previous OverviewPeriod) ([]structs.GroupOverviewTag, error) {
+	tiles := []structs.GroupOverviewTag{}
+
+	tags := []models.Tag{}
+	err := service.GetDB().Model(&models.Tag{}).Where("show_on_dashboard = ?", true).Order("name ASC").Find(&tags).Error
+	if err != nil || len(tags) == 0 {
+		return tiles, err
+	}
+
+	tagIds := make([]uint, len(tags))
+	index := make(map[uint]int, len(tags))
+	for i, tag := range tags {
+		tagIds[i] = tag.ID
+		index[tag.ID] = i
+		tiles = append(tiles, structs.GroupOverviewTag{TagId: tag.ID, Name: tag.Name, Total: decimal.Zero, PreviousTotal: decimal.Zero})
+	}
+
+	repository := repositories.NewReceiptProductRepository(service.TX)
+
+	rows, err := repository.GetPricedProductTags(receiptIdsInPeriod(receipts, period), tagIds)
+	if err != nil {
+		return nil, err
+	}
+	for _, row := range rows {
+		tiles[index[row.TagId]].Total = tiles[index[row.TagId]].Total.Add(row.Amount)
+	}
+
+	rows, err = repository.GetPricedProductTags(receiptIdsInPeriod(receipts, previous), tagIds)
+	if err != nil {
+		return nil, err
+	}
+	for _, row := range rows {
+		tiles[index[row.TagId]].PreviousTotal = tiles[index[row.TagId]].PreviousTotal.Add(row.Amount)
+	}
+
+	return tiles, nil
 }
 
 func earliest(a time.Time, b time.Time) time.Time {
@@ -225,9 +302,9 @@ func (service GroupOverviewService) sumProductKinds(receipts []models.Receipt, p
 	return unhealthy, unplanned, nil
 }
 
-// GetOverviewProducts lists the product lines behind a Dashboard tile for the period: kind
-// "UNHEALTHY" or "UNPLANNED". Only products on receipts the caller can see, newest receipt first.
-func (service GroupOverviewService) GetOverviewProducts(userId uint, groupId string, kind string, foodGroup string, month string, from string, to string) ([]structs.GroupOverviewProduct, error) {
+// GetOverviewProducts lists the product lines behind a Dashboard tile or slice for the period (see
+// repositories.ProductKindFilter). Only products on receipts the caller can see, newest receipt first.
+func (service GroupOverviewService) GetOverviewProducts(userId uint, groupId string, filter repositories.ProductKindFilter, month string, from string, to string) ([]structs.GroupOverviewProduct, error) {
 	period, err := ResolveOverviewPeriod(month, from, to, time.Now())
 	if err != nil {
 		return nil, err
@@ -244,7 +321,7 @@ func (service GroupOverviewService) GetOverviewProducts(userId uint, groupId str
 	}
 
 	products, err := repositories.NewReceiptProductRepository(service.TX).
-		GetProductsForReceiptsByKind(receiptIdsInPeriod(receipts, period), kind, foodGroup)
+		GetProductsForReceiptsByKind(receiptIdsInPeriod(receipts, period), filter)
 	if err != nil {
 		return nil, err
 	}
@@ -378,7 +455,8 @@ func foldGroupOverview(
 		UnplannedTotal:         decimal.Zero,
 		PreviousUnplannedTotal: decimal.Zero,
 	}
-	categoryTotals := map[string]decimal.Decimal{}
+	overview.Tags = []structs.GroupOverviewTag{}
+	categoryTotals := map[overviewCategoryKey]decimal.Decimal{}
 
 	for _, receipt := range receipts {
 		day := receipt.Date.UTC().Format(time.DateOnly)
@@ -432,8 +510,13 @@ func foldGroupOverview(
 	}
 
 	overview.Categories = make([]structs.GroupOverviewCategory, 0, len(categoryTotals))
-	for name, total := range categoryTotals {
-		overview.Categories = append(overview.Categories, structs.GroupOverviewCategory{Name: name, Total: total})
+	for key, total := range categoryTotals {
+		category := structs.GroupOverviewCategory{Name: key.name, Total: total}
+		if key.id != 0 {
+			id := key.id
+			category.CategoryId = &id
+		}
+		overview.Categories = append(overview.Categories, category)
 	}
 	// Largest first; ties by name, so the order never shuffles between requests.
 	sort.Slice(overview.Categories, func(i, j int) bool {
@@ -471,23 +554,39 @@ func foodGroupLabel(foodGroup string) string {
 	return strings.Join(words, " ")
 }
 
-// addReceiptToFoodGroups spreads a receipt's spend over the food groups of its products (Phase 3 3c):
-// each priced product adds its amount to its group, and what the products do not account for, or the
-// whole amount of a receipt without products yet, lands in Uncategorized. Products adding up to more than
-// the receipt (a discount line) leave nothing over rather than going negative.
-func addReceiptToFoodGroups(totals map[string]decimal.Decimal, receipt models.Receipt, products []models.ReceiptProduct) {
+// overviewCategoryKey is one slice of the Dashboard's category split: a category by id (its current name
+// alongside), or, with id 0, a name only (Uncategorized, or a category deleted before ids were stored).
+type overviewCategoryKey struct {
+	id   uint
+	name string
+}
+
+func productCategoryKey(product models.ReceiptProduct) overviewCategoryKey {
+	if product.CategoryId != nil {
+		return overviewCategoryKey{id: *product.CategoryId, name: product.FoodGroup}
+	}
+	return overviewCategoryKey{name: foodGroupLabel(product.FoodGroup)}
+}
+
+// addReceiptToFoodGroups spreads a receipt's spend over the categories of its product lines (Phase 3 3c,
+// by category id since item-level categories): each priced line adds its amount to its category, and what
+// the lines do not account for, or the whole amount of a receipt without products yet, lands in
+// Uncategorized. Lines adding up to more than the receipt (a discount line) leave nothing over rather than
+// going negative.
+func addReceiptToFoodGroups(totals map[overviewCategoryKey]decimal.Decimal, receipt models.Receipt, products []models.ReceiptProduct) {
 	accounted := decimal.Zero
 	for _, product := range products {
 		if product.Amount == nil {
 			continue
 		}
-		label := foodGroupLabel(product.FoodGroup)
-		totals[label] = totals[label].Add(*product.Amount)
+		key := productCategoryKey(product)
+		totals[key] = totals[key].Add(*product.Amount)
 		accounted = accounted.Add(*product.Amount)
 	}
 
 	rest := receipt.Amount.Sub(accounted)
 	if len(products) == 0 || rest.IsPositive() {
-		totals[uncategorizedFoodGroup] = totals[uncategorizedFoodGroup].Add(rest)
+		uncategorized := overviewCategoryKey{name: uncategorizedFoodGroup}
+		totals[uncategorized] = totals[uncategorized].Add(rest)
 	}
 }

@@ -4557,13 +4557,29 @@ paths:
         schema:
           type: string
         required: true
-        description: UNHEALTHY, UNPLANNED or FOODGROUP (the products of one food group)
+        description: >-
+          UNHEALTHY, UNPLANNED, FOODGROUP (the lines of one category slice) or TAG (the lines carrying one
+          tag). A plain string.
       - in: query
         name: foodGroup
         schema:
           type: string
         required: false
-        description: With kind FOODGROUP, the food group's name as the Dashboard shows it; empty for Uncategorized
+        description: >-
+          With kind FOODGROUP and no categoryId, the slice's name as the Dashboard shows it; empty for
+          Uncategorized
+      - in: query
+        name: categoryId
+        schema:
+          type: integer
+        required: false
+        description: With kind FOODGROUP, the slice's category (its categoryId on the overview)
+      - in: query
+        name: tagId
+        schema:
+          type: integer
+        required: false
+        description: With kind TAG (required there), the tile's tag
       - in: query
         name: month
         schema:
@@ -5332,10 +5348,17 @@ components:
         categories:
           type: array
           description: >-
-            Spend per category in the month, largest first. A receipt counts toward each of its
-            categories, so these can add up to more than the total. Always an array.
+            Spend per category in the period, largest first: what each category's product lines cost,
+            and under Uncategorized what a receipt's lines do not account for. Always an array.
           items:
             $ref: "#/components/schemas/GroupOverviewCategory"
+        tags:
+          type: array
+          description: >-
+            One tile per tag marked showOnDashboard, by name: what the period's priced product lines
+            carrying the tag cost. A line with two such tags counts toward both. Always an array.
+          items:
+            $ref: "#/components/schemas/GroupOverviewTag"
         months:
           type: array
           description: The six months ending with month, oldest first; a month without receipts is a zero
@@ -5382,10 +5405,35 @@ components:
         - name
         - total
       properties:
+        categoryId:
+          type: integer
+          nullable: true
+          description: >-
+            The category; null for Uncategorized, and for a name kept by lines whose category was
+            deleted before categories were stored by id
         name:
           type: string
         total:
           type: string
+    GroupOverviewTag:
+      type: object
+      description: A Dashboard tag tile
+      required:
+        - tagId
+        - name
+        - total
+        - previousTotal
+      properties:
+        tagId:
+          type: integer
+        name:
+          type: string
+        total:
+          type: string
+          description: What the period's priced lines carrying the tag cost, as a decimal string
+        previousTotal:
+          type: string
+          description: As total, for the previous period
     GroupOverviewProduct:
       type: object
       description: A product line behind a Dashboard tile, with the receipt it is on
@@ -5447,6 +5495,17 @@ components:
           type: string
           maxLength: 50
           description: Quantity or weight; may be empty
+        categoryId:
+          type: integer
+          nullable: true
+          description: >-
+            The line's one category; null for Uncategorized. An update replaces it, so send the
+            line's current one to keep it.
+        tagIds:
+          type: array
+          description: The line's tags; an update replaces them. Repeats are ignored.
+          items:
+            type: integer
     ReceiptProduct:
       type: object
       required:
@@ -5460,6 +5519,8 @@ components:
         - displayName
         - quantity
         - position
+        - tags
+        - categoryOverridden
       properties:
         id:
           type: integer
@@ -5526,6 +5587,19 @@ components:
           format: uint64
           nullable: true
           description: The list item a planned product matched; it may since have left the list
+        categoryId:
+          type: integer
+          format: uint64
+          nullable: true
+          description: The line's one category (Manage Categories); null for Uncategorized
+        categoryOverridden:
+          type: boolean
+          description: A person chose the category; the AI no longer changes it
+        tags:
+          type: array
+          description: The line's tags, by name. Always an array.
+          items:
+            $ref: "#/components/schemas/Tag"
     ShoppingTrip:
       type: object
       description: A receipt attached to a shopping list, or a photo waiting to become one.
@@ -6689,9 +6763,12 @@ components:
         description:
           type: string
           description: Tag description
+        showOnDashboard:
+          type: boolean
+          description: The tag has its own Dashboard tile
         updatedAt:
           type: string
-      description: Tag to relate receipts to
+      description: Tag to relate receipt product lines (older data, receipts) to
     Dashboard:
       required:
         - id
@@ -6774,7 +6851,10 @@ components:
         description:
           type: string
           description: Tag description
-      description: Tag to relate receipts to
+        showOnDashboard:
+          type: boolean
+          description: Give the tag its own Dashboard tile. Omitted keeps an existing tag as it is, a new one off.
+      description: Tag to relate receipt product lines to
     TagView:
       required:
         - id
@@ -6796,6 +6876,12 @@ components:
         description:
           type: string
           description: Description of the tag
+        showOnDashboard:
+          type: boolean
+          description: The tag has its own Dashboard tile
+        numberOfProducts:
+          type: integer
+          description: Number of receipt product lines carrying the tag
         updatedAt:
           type: string
         numberOfReceipts:

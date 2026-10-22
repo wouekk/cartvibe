@@ -172,7 +172,7 @@ func (service FoodClassificationService) classifyBatch(batch classificationBatch
 			answer.Health = health
 		}
 
-		answer.FoodGroup = resolver.Resolve(answer.FoodGroup)
+		answer.FoodGroup, answer.CategoryId = resolver.ResolveCategory(answer.FoodGroup)
 		err = repository.SaveClassification(candidate, answer, now)
 		if err != nil {
 			return classified, err
