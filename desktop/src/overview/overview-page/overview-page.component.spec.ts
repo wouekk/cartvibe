@@ -27,6 +27,7 @@ import {
 import { PipesModule } from "../../pipes/pipes.module";
 import { AuthState } from "../../store/auth.state";
 import { FeatureConfigState } from "../../store/feature-config.state";
+import { SetFeatureConfig } from "../../store/feature-config.state.actions";
 import { SetPermissions, SetUserPreferences } from "../../store/auth.state.actions";
 import { GroupState } from "../../store/group.state";
 import { ShoppingListState } from "../../store/shopping-list.state";
@@ -481,6 +482,56 @@ describe("OverviewPageComponent", () => {
       const button = fixture.nativeElement.querySelector("[data-testid=overview-empty-add-receipt]");
       expect(button).not.toBeNull();
       expect(button.textContent).toContain("Add receipt");
+    });
+  });
+
+  describe("Quick Scan without an AI key", () => {
+    const quickScanButton = () => fixture.nativeElement.querySelector("[data-testid=overview-quick-scan]");
+
+    it("shows the button to a member who may scan and, with no AI set up, sends whoever may configure it to the AI page", async () => {
+      TestBed.inject(Store).dispatch(
+        new SetPermissions([Permission.AppReceiptProcessingSettingsUpdate], { 1: [Permission.GroupReceiptsRead, Permission.GroupReceiptsQuickScan] })
+      );
+      await fixture.whenStable();
+      const hint = jest.spyOn(TestBed.inject(SnackbarService), "hint");
+      const navigate = jest.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
+
+      expect(quickScanButton()).not.toBeNull();
+      component.openQuickScan();
+
+      expect(hint).toHaveBeenCalledWith("Add an AI API key to scan receipts.");
+      expect(navigate).toHaveBeenCalledWith(["/ai"]);
+    });
+
+    it("tells a member who cannot configure the AI to ask an admin, and goes nowhere", async () => {
+      TestBed.inject(Store).dispatch(new SetPermissions([], { 1: [Permission.GroupReceiptsRead, Permission.GroupReceiptsQuickScan] }));
+      await fixture.whenStable();
+      const hint = jest.spyOn(TestBed.inject(SnackbarService), "hint");
+      const navigate = jest.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
+
+      component.openQuickScan();
+
+      expect(hint).toHaveBeenCalledWith("Scanning needs an AI API key. Ask an admin to add one.");
+      expect(navigate).not.toHaveBeenCalled();
+    });
+
+    it("opens the scan dialog once the AI is set up", async () => {
+      TestBed.inject(Store).dispatch(new SetFeatureConfig({ aiPoweredReceipts: true } as never));
+      TestBed.inject(Store).dispatch(new SetPermissions([], { 1: [Permission.GroupReceiptsRead, Permission.GroupReceiptsQuickScan] }));
+      await fixture.whenStable();
+      const hint = jest.spyOn(TestBed.inject(SnackbarService), "hint");
+      const open = jest.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({ afterClosed: () => new Subject() } as never);
+
+      expect(component.aiConfigured()).toBe(true);
+      component.openQuickScan();
+
+      expect(open).toHaveBeenCalledTimes(1);
+      expect(hint).not.toHaveBeenCalled();
+    });
+
+    it("hides the button from a member who may not scan", async () => {
+      await fixture.whenStable();
+      expect(quickScanButton()).toBeNull();
     });
   });
 
