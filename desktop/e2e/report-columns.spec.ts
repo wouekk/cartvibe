@@ -78,22 +78,22 @@ test.describe('Report Builder — columns', () => {
   });
 
   test('adds an enabled dimension column when grouped by that field', async ({ page }) => {
-    // Group by Paid By so a Paid By dimension column is valid in aggregate mode.
+    // Group by Added by so a Added by dimension column is valid in aggregate mode.
     await openComboboxAndPick(
       page,
       page.getByRole('combobox', { name: /Add grouping level/ }),
-      page.getByRole('option', { name: 'Paid By', exact: true }),
+      page.getByRole('option', { name: 'Added by', exact: true }),
     );
     await expect(page.getByTestId('report-grouping-remove')).toBeVisible();
 
-    // The dimension step presets the Field to the first dimension (Paid By).
+    // The dimension step presets the Field to the first dimension (Added by).
     await page.getByTestId('report-add-column').click();
     await page.getByTestId('picker-kind-dimension').click();
     await page.getByTestId('picker-save').click();
 
     // The new column is enabled (a valid grouped dimension), not disabled.
-    await expect(page.getByTestId('report-column-row').filter({ hasText: 'Paid By' })).toBeVisible();
-    await expect(page.getByTestId('report-column-disabled').filter({ hasText: 'Paid By' })).toHaveCount(0);
+    await expect(page.getByTestId('report-column-row').filter({ hasText: 'Added by' })).toBeVisible();
+    await expect(page.getByTestId('report-column-disabled').filter({ hasText: 'Added by' })).toHaveCount(0);
   });
 
   test('edits, reorders, and removes columns', async ({ page }) => {

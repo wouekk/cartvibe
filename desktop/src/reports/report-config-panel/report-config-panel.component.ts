@@ -28,12 +28,8 @@ import {
   toFieldOptions,
 } from "../models/report-catalog.constants";
 import { CHIP_COLORS, groupInitials } from "../models/report-chip.util";
-import {
-  isDimensionColumnDisabled,
-  isSplitActive,
-  ReportColumnValue,
-  ReportSplitDimension,
-} from "../models/report-command.mapper";
+import { isDimensionColumnDisabled, ReportColumnValue } from "../models/report-command.mapper";
+import { FilterTab } from "../../shared-ui/filter-bar/filter-tab.interface";
 import {
   buildColumnGroup,
   buildGroupByGroup,
@@ -89,16 +85,16 @@ interface ColumnRow {
 // untouched), so it is a constant rather than a real row id.
 const GROUPING_LEVEL_COLUMN_ID = "grouping-level";
 
-// cssClass colours the row's icon chip, which sits on a known background and so
-// keeps its translucent fill; tone colours the badge, which is the shared
-// component and carries its own opaque one.
+// cssClass colours the row's icon tile (token utilities, a tint of the kind's
+// colour); tone colours the badge, which is the shared component and carries its
+// own.
 const KIND_META: Record<
   ReportColumn.KindEnum,
   { label: string; icon: string; cssClass: string; tone: BadgeTone }
 > = {
-  dimension: { label: marker("Dim"), icon: "sell", cssClass: "kind-dimension", tone: "slate" },
-  aggregate: { label: marker("Agg"), icon: "functions", cssClass: "kind-aggregate", tone: "blue" },
-  formula: { label: "Formula", icon: "calculate", cssClass: "kind-formula", tone: "green" },
+  dimension: { label: marker("Dim"), icon: "sell", cssClass: "bg-muted text-muted-foreground", tone: "slate" },
+  aggregate: { label: marker("Agg"), icon: "functions", cssClass: "bg-primary/10 text-primary", tone: "blue" },
+  formula: { label: "Formula", icon: "calculate", cssClass: "bg-success-text/10 text-success-text", tone: "green" },
 };
 
 /**
@@ -112,7 +108,7 @@ const KIND_META: Record<
 @Component({
   selector: "app-report-config-panel",
   templateUrl: "./report-config-panel.component.html",
-  styleUrls: ["./report-config-panel.component.scss"],
+  host: { class: "flex flex-col gap-4" },
   standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -147,6 +143,12 @@ export class ReportConfigPanelComponent implements OnInit {
   public readonly documentVariables = REPORT_DOCUMENT_VARIABLES;
   public readonly ReportPeriodPreset = ReportPeriod.PresetEnum;
   public readonly ReportDetailMode = ReportDetail.ModeEnum;
+
+  // Records / Aggregate as the app's one segmented tab strip.
+  public readonly detailModeTabs: FilterTab[] = [
+    { value: ReportDetail.ModeEnum.Records, label: marker("Records"), icon: "receipt", testId: "report-detail-records" },
+    { value: ReportDetail.ModeEnum.Aggregate, label: marker("Aggregate"), icon: "functions", testId: "report-detail-aggregate" },
+  ];
 
   // The "Add grouping level…" picker is a stateless dispatcher: app-select is
   // FormControl-driven (no change output), so a scratch control feeds each pick
@@ -220,34 +222,12 @@ export class ReportConfigPanelComponent implements OnInit {
   });
 
   /**
-   * Which split boxes are ticked, and which of those do nothing because the report
-   * never buckets receipts by that dimension — those get a note rather than
-   * silently being ignored by the server.
-   */
-  public readonly splitState = computed(() => {
-    this.revision();
-    const categories = this.form().get("splitCategoriesEqually")!.value as boolean;
-    const tags = this.form().get("splitTagsEqually")!.value as boolean;
-    return {
-      anyTicked: categories || tags,
-      categoryInactive: categories && !this.splitApplies("category"),
-      tagInactive: tags && !this.splitApplies("tag"),
-    };
-  });
-
-  /**
    * "aggregate by" is bound straight to detail.by and grouping mutates a FormArray,
    * so re-tick the revision signal when either changes to recompute which columns
-   * are disabled (a dimension column is only shown when it matches one of them)
-   * and whether a ticked split box applies. The split boxes re-tick it too.
+   * are disabled (a dimension column is only shown when it matches one of them).
    */
   public ngOnInit(): void {
-    merge(
-      this.form().get("detail")!.valueChanges,
-      this.groupByArray.valueChanges,
-      this.form().get("splitCategoriesEqually")!.valueChanges,
-      this.form().get("splitTagsEqually")!.valueChanges
-    )
+    merge(this.form().get("detail")!.valueChanges, this.groupByArray.valueChanges)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.bump());
 
@@ -441,15 +421,6 @@ export class ReportConfigPanelComponent implements OnInit {
   }
 
   // ---- helpers -----------------------------------------------------------
-
-  private splitApplies(dimension: ReportSplitDimension): boolean {
-    return isSplitActive(
-      dimension,
-      this.detailMode,
-      this.form().get("detail.by")!.value as string,
-      readGroupByFields(this.groupByArray)
-    );
-  }
 
   private labelForField(key: string): string {
     return this.dimensions().find((field) => field.key === key)?.label ?? key;

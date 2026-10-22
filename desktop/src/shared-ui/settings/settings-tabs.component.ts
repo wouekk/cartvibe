@@ -11,7 +11,7 @@ import { marker } from "../../i18n/marker";
     <hlm-tabs class="max-w-full min-w-0" [tab]="value()" (tabActivated)="valueChange.emit($event)">
       <hlm-tabs-list class="max-w-full cv-scroll-x" [attr.aria-label]="ariaLabel() | t">
         @for (tab of tabs(); track tab.value) {
-          <button class="filter-tab" [hlmTabsTrigger]="tab.value" [class.active]="value() === tab.value">
+          <button class="filter-tab" [hlmTabsTrigger]="tab.value" [class.active]="value() === tab.value" [attr.data-testid]="tab.testId ?? null">
             @if (tab.icon) {
               <app-icon class="size-[17px] text-[17px]" [name]="tab.icon"></app-icon>
             }

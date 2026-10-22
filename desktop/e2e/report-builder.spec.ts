@@ -80,7 +80,7 @@ test.describe('Report Builder', () => {
     await openComboboxAndPick(
       page,
       page.getByRole('combobox', { name: /Add grouping level/ }),
-      page.getByRole('option', { name: 'Paid By', exact: true }),
+      page.getByRole('option', { name: 'Added by', exact: true }),
     );
     await expect(page.getByTestId('report-grouping-remove')).toBeVisible();
 
