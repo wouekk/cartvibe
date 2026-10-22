@@ -4233,3 +4233,35 @@ The old header search (`GET /search`, name `LIKE` only) is kept for MCP and rele
   notifies the uploader: "Receipt ready" with a link, or "Receipt scan failed" on the **last** retry only (`isFinalAttempt`).
 - `PUT /receipt/{id}/name` (`RenameReceipt`, `group.receipts.update`, paid-by visibility through the receipt gate) changes only
   `receipts.name` (trimmed, 1-255 characters, 400 otherwise), so a rename never saves other form state.
+
+## Categories and tags on product lines (fork, 2026-10, branch `feat/item-level-tags-categories`)
+Categories (one) and tags (any number) describe a receipt's **product lines** (`ReceiptProduct`), not the receipt.
+Receipt-level `categories` / `tags` stay in the model, the API and the category/tag **grants** (visibility is still
+decided by them), but the desktop no longer edits them.
+- **Columns:** `receipt_products.category_id` (plain id, no foreign key, so adding it never rebuilds the table on SQLite;
+  indexed), `category_overridden`, and the join table `receipt_product_tags` (GORM many2many, foreign keys on). `food_group`
+  stays as the category's **name** alongside the id, for the AI paths that speak in names. Lists stay `[]`:
+  `ReceiptProduct.MarshalJSON` turns nil tags into `[]`.
+- **Who sets the category:** the AI read and the classification sweep (`foodGroupResolver.ResolveCategory` returns the id),
+  or a person. A person's choice sets `category_overridden`; from then on the sweep (`SaveClassification` writes
+  `food_group`/`category_id` only where it is false), a rename (`UpdateProduct`) and Read again (`ReplaceProducts` →
+  `carryOverProductLabels`, matched by printed or plain name) keep it. Tags always survive Read again for a line with the same
+  name. A rename without a chosen category clears it so the sweep reclassifies.
+- **Endpoints:** `POST/PUT` product take `categoryId` + `tagIds` (an update **replaces** both; send the current ones).
+  `PUT /receipt-product/product/{id}/labels` sets only the category and tags — the per-line pickers use it, because the full
+  update counts as a rename when printed and plain names differ ("LAIT" vs "Milk") and would drop the health tags. Unknown
+  ids are a 400 (`checkProductLabels`).
+- **Categories by id:** Manage Categories counts products by `category_id`, a rename keeps the products (only their
+  `food_group` copy is updated), a delete sets their `category_id` to NULL. This replaced `LOWER(name)` matching, which
+  SQLite folds only for ASCII ("Ślimaki" lost its products on rename).
+- **Dashboard:** `categories` are grouped by `category_id` (current name from the categories table; `categoryId` on each
+  item, nil for Uncategorized and for names left by categories deleted before ids). `Tag.showOnDashboard` gives a tag a tile:
+  `overview.tags[]` = `{tagId, name, total, previousTotal}`, the period's priced lines carrying the tag (a line counts toward
+  each of its tags), folded in Go from `GetPricedProductTags`. The tap-through takes `kind=FOODGROUP&categoryId=` and
+  `kind=TAG&tagId=`.
+- **Receipts filter:** filtering by category or tag matches the receipt's own (older data) **or** its lines'.
+- **Migration** `item-level-categories-and-tags-2026-10` (once, additive): backfills `category_id` from `food_group`
+  (current names first, then old names/aliases; matched in Go), and copies each receipt's tags onto all of its lines.
+  Receipt rows are untouched. Verified on a copy of the dev database (receipt tags appeared on its lines).
+- Not changed: the receipt prompt still asks the AI for receipt-level categories and tags (stored, not shown).
+- Tests: `handlers/item_labels_test.go`, `repositories/item_labels_migration_test.go`, the category tests.

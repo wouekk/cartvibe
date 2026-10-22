@@ -16,14 +16,28 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 - The Dashboard's shopping panel previews the list with the most items still to buy as a bulleted list. Tapping an item
   marks it done and it leaves the list at once; an easy-to-tap Undo row stays for 6 seconds. On a phone (< 768 px) the
   panel is the first panel on the Dashboard.
+- Categories and tags belong to a receipt's product lines: each line has one category and any number of tags, picked
+  right next to its quantity and amount (also when adding a line). Receipt-level categories and tags are no longer
+  edited; on upgrade each receipt's tags are copied onto its lines, and the lines' categories are linked by id.
+- Tags can have their own Dashboard tile ("Show on the Dashboard", on by default for a new tag): what the tagged lines
+  cost in the period and their share of the spending, laid out like Unhealthy, opening the lines behind it.
+- Manage Categories and Tags show an empty state with an Add button when there are none.
 
 ### Changed
+- Spending by category on the Dashboard groups the product lines by category id, so a renamed category keeps its
+  products; Manage Tags counts products instead of receipts. Filtering receipts by category or tag also finds receipts
+  whose lines carry it.
 - The "Vibe" half of the CartVibe wordmark is Slate Gray `#708090` (readable on both the White and Black themes).
 - On a phone the brand icon in the header is scaled to 30% of its size (`app-cartvibe-logo` has a `scale` input).
 - The Dashboard's top action bar no longer has Add receipt (it stays on the Receipts page and in the empty receipts card).
 
 ### Fixed
 - The Danger Zone card's footer no longer inherits the default card footer's border and background.
+- The Add Category dialog opened blank (and Edit failed) because its form's validator was not reachable from a dialog.
+- A category or tag added under Manage can be picked on a receipt at once, without reloading the app.
+- Categories with non-ASCII names (Polish letters) kept their product counts and products through a rename.
+- Polish: "Amount" reads "Kwota" (it read "Ilość", the same as Quantity), and the receipt products status line is
+  translated.
 
 ## [0.3.0] - 2026-10-22
 
