@@ -2,6 +2,11 @@
 
 ## German, French, Spanish + reports in the reader's language (2026-10-23, branch `feature/more-languages`, from `main`)
 
+**`preview` was fast-forwarded to this branch and `:preview` published (run 39873750309, green; CI green on the branch).
+Not in `main`.** To try it on the NAS: point the stack at `:preview`, pull, redeploy, hard-refresh; no schema change. Later the
+same day the builder also learnt to show a starter report's stored English texts in the reader's language and to save
+untouched ones back in English (`report-stored-text.ts`, `TranslationService.data`); the project page lists the languages.
+
 - **Languages:** `languages.json` lists en, pl, de, fr, es; `de.json`, `fr.json`, `es.json` were translated by hand (Claude, no
   Gemini script), 100% like Polish. Kept terms: Beleg / ticket / recibo, Haushalt / foyer / hogar, Schlagwort / étiquette /
   etiqueta, Erledigt / Réglé / Liquidado; "du", "vous", "tú". Not reviewed by a native speaker.
