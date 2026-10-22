@@ -1940,44 +1940,6 @@ paths:
                 type: integer
         500:
           $ref: "#/components/responses/Internal"
-  /user/amountOwedForUser:
-    get:
-      tags:
-        - User
-      summary: Get amount owed for user
-      description:
-        This will return the amount owed for the logged in user, in the
-        specified group, [SYSTEM USER]
-      parameters:
-        - in: query
-          name: groupId
-          schema:
-            type: integer
-          required: false
-          description: The Id of the group to get amount owed for
-        - in: query
-          name: receiptIds
-          schema:
-            type: array
-            items:
-              type: integer
-          required: false
-          description: The Id of the receipts to get amount owed for
-      operationId: getAmountOwedForUser
-      responses:
-        200:
-          description: The amount owed
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties:
-                  type: string
-        500:
-          $ref: "#/components/responses/Internal"
-      security:
-        - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /user/getUserClaims:
     get:
       tags:
@@ -4294,12 +4256,6 @@ components:
         - "r"
         - "w"
         - "rw"
-    ItemStatus:
-      type: string
-      enum:
-        - "OPEN"
-        - "RESOLVED"
-        - "DRAFT"
     GroupStatus:
       type: string
       enum:
@@ -5756,61 +5712,6 @@ components:
           type: integer
           description: User compound primary key
           format: uint64
-    Item:
-      required:
-        - amount
-        - name
-        - receiptId
-        - status
-      type: object
-      properties:
-        IsTaxed:
-          type: boolean
-          description: Is taxed (not used)
-        amount:
-          type: string
-          description: Amount the item costs
-        chargedToUserId:
-          type: integer
-          description: User foreign key
-          format: uint64
-        createdAt:
-          type: string
-        createdBy:
-          type: integer
-          format: uint64
-        id:
-          type: integer
-          format: uint64
-        name:
-          type: string
-          description: Item name
-        receiptId:
-          type: integer
-          description: Receipt foreign key
-          format: uint64
-        status:
-          type: string
-          $ref: "#/components/schemas/ItemStatus"
-        linkedItems:
-          type: array
-          description: Items linked to this item (for sharing)
-          items:
-            $ref: "#/components/schemas/Item"
-        categories:
-          type: array
-          description: Categories associated to the item
-          items:
-            $ref: "#/components/schemas/Category"
-        tags:
-          type: array
-          description: Tags associated to the item
-          items:
-            $ref: "#/components/schemas/Tag"
-        updatedAt:
-          type: string
-      description: Itemized item on a receipt
-      x-go-package: cartvibe/api/internal/models
     Notification:
       required:
         - title
@@ -5896,7 +5797,6 @@ components:
         - status
         - categories
         - tags
-        - receiptItems
         - comments
         - id
       type: object
@@ -5969,11 +5869,6 @@ components:
           type: integer
           description: User paid foreign key
           format: uint64
-        receiptItems:
-          type: array
-          description: Items associated to receipt
-          items:
-            $ref: "#/components/schemas/Item"
         resolvedDate:
           type: string
           description: Date resolved
@@ -6312,7 +6207,7 @@ components:
           $ref: "#/components/schemas/ReceiptPagedRequestFilter"
         fullReceipts:
           type: boolean
-          description: Whether to include all receipt associations (receiptItems, comments, imageFiles, etc.)
+          description: Whether to include all receipt associations (comments, imageFiles, etc.)
     ReceiptPagedRequestFilter:
       type: object
       properties:
@@ -7174,53 +7069,11 @@ components:
           description: Tags associated to receipt
           items:
             $ref: "#/components/schemas/UpsertTagCommand"
-        receiptItems:
-          type: array
-          description: Items associated to receipt
-          items:
-            $ref: "#/components/schemas/UpsertItemCommand"
         comments:
           type: array
           description: Comments associated to receipt
           items:
             $ref: "#/components/schemas/UpsertCommentCommand"
-    UpsertItemCommand:
-      type: object
-      required:
-        - amount
-        - name
-        - receiptId
-        - status
-      properties:
-        amount:
-          type: string
-          description: Amount the item costs
-        chargedToUserId:
-          type: integer
-          description: User foreign key
-        name:
-          type: string
-          description: Item name
-        receiptId:
-          type: integer
-          description: Receipt foreign key
-        status:
-          $ref: "#/components/schemas/ItemStatus"
-        categories:
-          type: array
-          description: Categories associated to item
-          items:
-            $ref: "#/components/schemas/UpsertCategoryCommand"
-        tags:
-          type: array
-          description: Tags associated to item
-          items:
-            $ref: "#/components/schemas/UpsertTagCommand"
-        linkedItems:
-          type: array
-          description: Items linked to this item (for sharing) - one level deep only
-          items:
-            $ref: "#/components/schemas/UpsertItemCommand"
     UpsertCommentCommand:
       type: object
       required:

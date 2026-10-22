@@ -302,42 +302,6 @@ func TestCleanResponse_StripsTrailingCommas(t *testing.T) {
 	}
 }
 
-// TestCleanResponse_TrailingCommaOutputIsParseable guards the actual purpose
-// of the fix: AI output with trailing commas must unmarshal cleanly into the
-// real production type used at the parse site (commands.UpsertReceiptCommand),
-// including a populated items array. Using the production type rather than a
-// hand-picked struct catches drift in the actual integration contract.
-func TestCleanResponse_TrailingCommaOutputIsParseable(t *testing.T) {
-	service := ReceiptProcessingService{}
-	// Note: UpsertReceiptCommand maps items via the "receiptItems" JSON key.
-	raw := `{
-  "name": "BILLA",
-  "amount": 2306.86,
-  "date": "2026-06-03T00:00:00Z",
-  "receiptItems": [
-    { "name": "COTTAGE FIT", "amount": 197.4, },
-    { "name": "Beans, baked", "amount": 51.8, },
-  ],
-  "categories": [],
-  "tags": [],
-}`
-	cleaned := service.cleanResponse(raw)
-
-	var receipt commands.UpsertReceiptCommand
-	if err := json.Unmarshal([]byte(cleaned), &receipt); err != nil {
-		t.Fatalf("expected cleaned response to parse, got error: %v\ncleaned: %s", err, cleaned)
-	}
-	if receipt.Name != "BILLA" {
-		t.Errorf("expected name BILLA, got %q", receipt.Name)
-	}
-	if len(receipt.Items) != 2 {
-		t.Fatalf("expected 2 items, got %d", len(receipt.Items))
-	}
-	if receipt.Items[1].Name != "Beans, baked" {
-		t.Errorf("expected comma-containing item name preserved, got %q", receipt.Items[1].Name)
-	}
-}
-
 // ---------- Fixture helpers for the DB/orchestration tests ----------
 
 // seedReceiptProcessingFixtures creates the minimum viable graph to exercise

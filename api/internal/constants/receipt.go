@@ -10,12 +10,6 @@ const FIRST_COMMENT_ORDER_BY = "first_comment"
 
 var FULL_RECEIPT_ASSOCIATIONS = []string{
 	"PaidByUser",
-	"ReceiptItems",
-	"ReceiptItems.Categories",
-	"ReceiptItems.Tags",
-	"ReceiptItems.LinkedItems",
-	"ReceiptItems.LinkedItems.Categories",
-	"ReceiptItems.LinkedItems.Tags",
 	"Comments",
 	"ImageFiles",
 }

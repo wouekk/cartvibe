@@ -337,16 +337,6 @@ func (filter *receiptGrantFilter) apply(receipt *models.Receipt) error {
 
 	filter.stripCategoriesTags(&receipt.Categories, &receipt.Tags, grants)
 
-	// Receipt items (and their linked items) carry their own categories/tags —
-	// strip them with the same rule so item-level associations don't leak.
-	for i := range receipt.ReceiptItems {
-		item := &receipt.ReceiptItems[i]
-		filter.stripCategoriesTags(&item.Categories, &item.Tags, grants)
-		for j := range item.LinkedItems {
-			linkedItem := &item.LinkedItems[j]
-			filter.stripCategoriesTags(&linkedItem.Categories, &linkedItem.Tags, grants)
-		}
-	}
 	return nil
 }
 

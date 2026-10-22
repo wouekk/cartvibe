@@ -29,7 +29,6 @@ type Receipt struct {
 	Categories   []Category         `gorm:"many2many:receipt_categories" json:"categories"`
 	Tags         []Tag              `gorm:"many2many:receipt_tags" json:"tags"`
 	ImageFiles   []FileData         `json:"imageFiles"`
-	ReceiptItems []Item             `json:"receiptItems"`
 	Comments     []Comment          `json:"comments"`
 	// FirstComment is the text of the earliest comment the caller may see, a
 	// transient projection filled only by the paged receipts list (see

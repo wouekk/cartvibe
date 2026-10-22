@@ -171,32 +171,6 @@ func TestHasAccessAllowedWhenPaidByVisible(t *testing.T) {
 	}
 }
 
-func TestGetAmountOwedNotBlockedByPaidByVisibility(t *testing.T) {
-	defer repositories.TruncateTestDb()
-
-	payer := models.User{Username: "owed-payer", Password: "x"}
-	repositories.GetDB().Create(&payer)
-	hidden := models.User{Username: "owed-hidden", Password: "x"}
-	repositories.GetDB().Create(&hidden)
-
-	// The member is restricted to payer's receipts; amount-owed references a receipt
-	// paid by a hidden user. Accounting must stay reachable (settlement totals are
-	// the same for every member), so it is exempt from the paid-by check — only
-	// group.receipts.read is required, which the member holds.
-	userId, groupId := seedPaidByRestrictedMember(t, []uint{payer.ID}, false)
-	receiptId := seedReceipt(t, groupId, hidden.ID)
-
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest("GET", "/?receiptIds="+utils.UintToString(receiptId), nil)
-	r = r.WithContext(context.WithValue(r.Context(), jwtmiddleware.ContextKey{}, claimsForUser(userId)))
-
-	GetAmountOwedForUser(w, r)
-
-	if w.Result().StatusCode != 200 {
-		utils.PrintTestError(t, w.Result().StatusCode, 200)
-	}
-}
-
 func TestExportByIdDeniedWhenAnyPaidByHidden(t *testing.T) {
 	defer repositories.TruncateTestDb()
 

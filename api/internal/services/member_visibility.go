@@ -374,14 +374,13 @@ func (service PermissionService) FilterGroupMembersForGroup(viewerId uint, group
 	return nil
 }
 
-// ValidateReceiptUserSelection reports whether every user id a receipt upsert plants
-// — the payer (paidByUserId) and each item / linked-item chargedToUserId — is within
-// the caller's member-visible set FOR THE RECEIPT'S GROUP. Unrestricted callers always
-// pass. Used on receipt create/update so an isolated member cannot attach a user they
-// may not see in that group (which would leak that user's presence, or hand them a
-// receipt/charge). A zero id is skipped (unset). Returns (allowed, err); the caller
-// responds 403 when not allowed.
-func (service PermissionService) ValidateReceiptUserSelection(viewerId uint, groupId uint, paidByUserId uint, chargedToUserIds []uint) (bool, error) {
+// ValidateReceiptUserSelection reports whether the user id a receipt upsert plants
+// — the payer (paidByUserId) — is within the caller's member-visible set FOR THE
+// RECEIPT'S GROUP. Unrestricted callers always pass. Used on receipt create/update so
+// an isolated member cannot attach a user they may not see in that group (which would
+// leak that user's presence, or hand them a receipt). A zero id is skipped (unset).
+// Returns (allowed, err); the caller responds 403 when not allowed.
+func (service PermissionService) ValidateReceiptUserSelection(viewerId uint, groupId uint, paidByUserId uint) (bool, error) {
 	visible, unrestricted, err := service.GetVisibleUserIdsForUserInGroup(viewerId, groupId)
 	if err != nil {
 		return false, err
@@ -392,11 +391,6 @@ func (service PermissionService) ValidateReceiptUserSelection(viewerId uint, gro
 
 	if paidByUserId != 0 && !isUserVisible(paidByUserId, viewerId, visible) {
 		return false, nil
-	}
-	for _, id := range chargedToUserIds {
-		if id != 0 && !isUserVisible(id, viewerId, visible) {
-			return false, nil
-		}
 	}
 	return true, nil
 }

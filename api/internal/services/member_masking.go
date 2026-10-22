@@ -86,30 +86,12 @@ func (masker *receiptMemberMasker) apply(receipt *models.Receipt) error {
 
 	masker.maskBaseModel(&receipt.BaseModel)
 
-	for i := range receipt.ReceiptItems {
-		item := &receipt.ReceiptItems[i]
-		masker.maskItem(item)
-		for j := range item.LinkedItems {
-			masker.maskItem(&item.LinkedItems[j])
-		}
-	}
-
-
 	for i := range receipt.ImageFiles {
 		masker.maskBaseModel(&receipt.ImageFiles[i].BaseModel)
 	}
 
 	receipt.Comments = masker.filterComments(receipt.Comments)
 	return nil
-}
-
-// maskItem masks an item's creator and its charged-to user reference.
-func (masker *receiptMemberMasker) maskItem(item *models.Item) {
-	masker.maskBaseModel(&item.BaseModel)
-	if item.ChargedToUserId != nil && !masker.isVisible(*item.ChargedToUserId) {
-		item.ChargedToUserId = nil
-		item.ChargedToUser = models.User{}
-	}
 }
 
 // maskBaseModel nulls the created-by reference (id + denormalized name) when the

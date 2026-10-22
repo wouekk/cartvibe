@@ -596,17 +596,7 @@ func (service ReceiptProcessingService) getTagsString() (string, error) {
 	return string(tagsBytes), nil
 }
 
-// dropAiTags empties the tags of an AI-read receipt and of its items, linked items included.
+// dropAiTags empties the tags of an AI-read receipt.
 func dropAiTags(receipt *commands.UpsertReceiptCommand) {
 	receipt.Tags = []commands.UpsertTagCommand{}
-	for i := range receipt.Items {
-		dropAiItemTags(&receipt.Items[i])
-	}
-}
-
-func dropAiItemTags(item *commands.UpsertItemCommand) {
-	item.Tags = []commands.UpsertTagCommand{}
-	for i := range item.LinkedItems {
-		dropAiItemTags(&item.LinkedItems[i])
-	}
 }
