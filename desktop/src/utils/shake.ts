@@ -12,12 +12,24 @@ export function shakeInvalid(element: Element | null | undefined): void {
   }
 
   const target = element as HTMLElement;
-  target.classList.remove("cv-shake");
-  // Reading the layout restarts the animation when the field is shaken twice in a row.
-  void target.offsetWidth;
-  target.classList.add("cv-shake", "cv-field-error");
+  shakeElement(target);
+  target.classList.add("cv-field-error");
 
   target.querySelector<HTMLElement>("input, textarea")?.focus();
 
   window.setTimeout(() => target.classList.remove("cv-shake", "cv-field-error"), HIGHLIGHT_MS);
+}
+
+/** One shake and nothing else: "this cannot go any further" (a panel at its smallest or largest size). */
+export function shakeElement(element: Element | null | undefined): void {
+  if (!element) {
+    return;
+  }
+
+  const target = element as HTMLElement;
+  target.classList.remove("cv-shake");
+  // Reading the layout restarts the animation when the element is shaken twice in a row.
+  void target.offsetWidth;
+  target.classList.add("cv-shake");
+  window.setTimeout(() => target.classList.remove("cv-shake"), 600);
 }

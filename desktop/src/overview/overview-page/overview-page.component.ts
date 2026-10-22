@@ -1,6 +1,6 @@
 import { CurrencyPipe } from "@angular/common";
 import { Component, computed, effect, ElementRef, linkedSignal, signal, untracked, viewChild } from "@angular/core";
-import type { CdkDragDrop } from "@angular/cdk/drag-drop";
+import { shakeElement } from "../../utils/shake";
 import { AppDialog } from "../../dialog/app-dialog";
 import { toObservable, toSignal } from "@angular/core/rxjs-interop";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -63,6 +63,7 @@ import {
   DashboardLayout,
   defaultLayout,
   GRID_COLUMNS,
+  isTilePanel,
   movePanel,
   PanelGroup,
   panelDefinition,
@@ -74,7 +75,10 @@ import {
   setVisible,
   SizeClass,
   sizeClassFor,
-  startsNewBand,
+  dropTargetAt,
+  PanelRect,
+  sizeLimitHit,
+  SizeLimit,
   tagPanelId,
 } from "../dashboard-layout/dashboard-layout";
 import { DashboardLayoutStore } from "../dashboard-layout/dashboard-layout.store";
@@ -119,6 +123,29 @@ const TALL_PANEL_HEIGHT = "34rem";
 
 /** How far the pointer travels to change a panel's height step while resizing. */
 const RESIZE_ROW_STEP_PX = 80;
+
+/** Dragging near the top or bottom edge of the scrolling area scrolls it. */
+const DRAG_SCROLL_EDGE_PX = 56;
+const DRAG_SCROLL_STEP_PX = 14;
+
+/** What a panel says when a size change runs into its limit (see `sizeLimitHit`). */
+const SIZE_LIMIT_MESSAGES: Record<SizeLimit, string> = {
+  "min-cols": marker("{name} can't be made any narrower."),
+  "max-cols": marker("{name} can't be made any wider."),
+  "min-rows": marker("{name} can't be made any shorter."),
+  "max-rows": marker("{name} can't be made any taller."),
+};
+
+/** The nearest ancestor that scrolls vertically, or undefined when the page itself does. */
+function scrollParent(element: HTMLElement): HTMLElement | undefined {
+  for (let parent = element.parentElement; parent; parent = parent.parentElement) {
+    const overflowY = getComputedStyle(parent).overflowY;
+    if ((overflowY === "auto" || overflowY === "scroll") && parent.scrollHeight > parent.clientHeight) {
+      return parent;
+    }
+  }
+  return undefined;
+}
 
 const LIBRARY_GROUPS: { key: PanelGroup; label: string }[] = [
   { key: "kpi", label: marker("Key figures") },
@@ -887,16 +914,29 @@ export class OverviewPageComponent {
   }
 
   /**
-   * A panel's width is its share of a row (span of the grid's columns, less its part of the gaps); panels on a row that
-   * is not full grow in proportion to their size, so a row never has holes.
+   * A panel's width is exactly its share of a row (span of the grid's columns, less its part of the gaps). Panels never
+   * stretch, so the size set in the editor is the size drawn and a row may end with empty space.
    */
   public panelFlex(panel: ResolvedPanel): string {
     const columns = this.gridColumns();
-    return `${panel.span} 1 calc(${panel.span} / ${columns} * 100% - ${(PANEL_GAP_PX * (columns - panel.span)) / columns}px)`;
+    return `0 0 calc(${panel.span} / ${columns} * 100% - ${(PANEL_GAP_PX * (columns - panel.span)) / columns}px)`;
   }
 
-  public startsNewBand(index: number): boolean {
-    return startsNewBand(this.panels(), index);
+  /** The panels in the order drawn: while one is dragged, the order it would have if dropped now. */
+  public readonly displayPanels = computed(() => {
+    const order = this.dragOrder();
+    const panels = this.panels();
+    return order ? order.map((id) => panels.find((panel) => panel.id === id) as ResolvedPanel).filter(Boolean) : panels;
+  });
+
+  /** Small tiles keep their own height beside a taller chart instead of stretching to it. */
+  public isTile(id: string): boolean {
+    return isTilePanel(id);
+  }
+
+  /** "2/6": the width a panel has, so a change is always visible. */
+  public sizeLabel(panel: ResolvedPanel): string {
+    return `${panel.span}/${this.gridColumns()}`;
   }
 
   /** A taller panel keeps its extra height; the content grows past it rather than being cut. */
@@ -913,16 +953,49 @@ export class OverviewPageComponent {
     this.editLayout((layout) => setVisible(layout, id, visible));
   }
 
-  public resize(id: string, size: { cols?: number; rows?: number }): void {
+  /** Resizes a panel; a size past its limits is refused with a shake and a short note instead of silently clamped. */
+  public resize(id: string, size: { cols?: number; rows?: number }): boolean {
+    if (size.cols !== undefined && this.sizeClass() !== "wide") {
+      shakeElement(this.panelElement(id));
+      this.snackbarService.hint(this.translation.t(marker("Widths are set in the PC view.")));
+      return false;
+    }
+    const hit = sizeLimitHit(id, size);
+    if (hit) {
+      this.notifyLimit(id, hit.limit);
+      return false;
+    }
     this.editLayout((layout) => resizePanel(layout, id, size));
+    return true;
   }
 
-  public canWiden(panel: ResolvedPanel): boolean {
-    return this.sizeClass() === "wide" && panel.cols < (panelDefinition(panel.id)?.maxCols ?? 0);
+  /**
+   * The panel menu's Wider / Narrower / Taller / Shorter. The menu keeps the panel it was opened with, so the step starts
+   * from the panel's size now (by id), never from that stale copy: after widening, Narrower has to narrow from the new width.
+   */
+  public stepSize(id: string, byCols: number, byRows: number): void {
+    const current = this.panels().find((panel) => panel.id === id);
+    if (!current) {
+      return;
+    }
+    this.resize(id, byCols !== 0 ? { cols: current.cols + byCols } : { rows: current.rows + byRows });
   }
 
-  public canNarrow(panel: ResolvedPanel): boolean {
-    return this.sizeClass() === "wide" && panel.cols > (panelDefinition(panel.id)?.minCols ?? 0);
+  public toggleHeight(id: string): void {
+    this.stepSize(id, 0, this.rowsOf(id) === 1 ? 1 : -1);
+  }
+
+  public rowsOf(id: string): number {
+    return this.panels().find((panel) => panel.id === id)?.rows ?? 1;
+  }
+
+  private notifyLimit(id: string, limit: SizeLimit): void {
+    shakeElement(this.panelElement(id));
+    this.snackbarService.hint(this.translation.t(SIZE_LIMIT_MESSAGES[limit], { name: this.panelLabel(id) }));
+  }
+
+  private panelElement(id: string): HTMLElement | null {
+    return this.panelGrid()?.nativeElement.querySelector<HTMLElement>(`[data-panel-id="${id}"]`) ?? null;
   }
 
   public canChangeHeight(panel: ResolvedPanel): boolean {
@@ -946,16 +1019,129 @@ export class OverviewPageComponent {
     }
   }
 
-  public dropPanel(event: CdkDragDrop<unknown>): void {
-    const shown = this.panels();
-    const moved = shown[event.previousIndex];
-    const target = shown[event.currentIndex];
-    if (moved && target) {
-      this.editLayout((layout) => movePanel(layout, this.sizeClass(), moved.id, target.id));
+  // ---- Dragging a panel (any direction, diagonals included) -----------------------------------------------------
+
+  /** The shown panels' order while one is being dragged; undefined otherwise. */
+  private readonly dragOrder = signal<string[] | undefined>(undefined);
+
+  public readonly draggingId = signal<string | undefined>(undefined);
+
+  /**
+   * Starts moving a panel by its handle. The panel follows the pointer; the others reflow live to the place it would
+   * take (the nearest panel to the pointer), and letting go keeps that order. Escape or a cancelled pointer puts it back.
+   */
+  public startDrag(event: PointerEvent, panel: ResolvedPanel): void {
+    const grid = this.panelGrid()?.nativeElement;
+    const element = this.panelElement(panel.id);
+    if (!grid || !element || event.button !== 0 || this.draggingId()) {
+      return;
     }
+    event.preventDefault();
+
+    const handle = event.currentTarget as HTMLElement;
+    handle.setPointerCapture?.(event.pointerId);
+
+    const original = this.panels().map((shown) => shown.id);
+    const scroller = scrollParent(grid);
+    const startRect = element.getBoundingClientRect();
+    // Where the pointer grabbed the panel, relative to its top left corner.
+    const grabX = event.clientX - startRect.left;
+    const grabY = event.clientY - startRect.top;
+    let translateX = 0;
+    let translateY = 0;
+    let pointer = { x: event.clientX, y: event.clientY };
+    let frame = 0;
+
+    this.draggingId.set(panel.id);
+    this.dragOrder.set(original);
+
+    const place = () => {
+      // The panel's own slot is where it would sit untransformed, so the drag follows the pointer across reflows.
+      const rect = element.getBoundingClientRect();
+      const slotLeft = rect.left - translateX;
+      const slotTop = rect.top - translateY;
+      translateX = pointer.x - grabX - slotLeft;
+      translateY = pointer.y - grabY - slotTop;
+      element.style.transform = `translate(${translateX}px, ${translateY}px)`;
+
+      const insideOwnSlot = pointer.x >= slotLeft && pointer.x <= slotLeft + rect.width && pointer.y >= slotTop && pointer.y <= slotTop + rect.height;
+      if (insideOwnSlot) {
+        return;
+      }
+      const rects: PanelRect[] = (this.dragOrder() ?? original).map((id) => {
+        const box = this.panelElement(id)?.getBoundingClientRect();
+        return { id, left: box?.left ?? 0, top: box?.top ?? 0, width: box?.width ?? 0, height: box?.height ?? 0 };
+      });
+      const targetId = dropTargetAt(rects, pointer, panel.id);
+      const order = this.dragOrder() ?? original;
+      if (targetId && order.indexOf(targetId) !== order.indexOf(panel.id)) {
+        const moved = order.filter((id) => id !== panel.id);
+        moved.splice(order.indexOf(targetId), 0, panel.id);
+        this.dragOrder.set(moved);
+      }
+    };
+
+    const autoScroll = () => {
+      const top = scroller ? scroller.getBoundingClientRect().top : 0;
+      const bottom = scroller ? scroller.getBoundingClientRect().bottom : window.innerHeight;
+      const step = pointer.y < top + DRAG_SCROLL_EDGE_PX ? -DRAG_SCROLL_STEP_PX : pointer.y > bottom - DRAG_SCROLL_EDGE_PX ? DRAG_SCROLL_STEP_PX : 0;
+      if (step !== 0) {
+        if (scroller) {
+          scroller.scrollTop += step;
+        } else {
+          window.scrollBy(0, step);
+        }
+      }
+      // Every frame, so the panel stays under the pointer after the others reflow or the page scrolls.
+      place();
+      frame = requestAnimationFrame(autoScroll);
+    };
+
+    const move = (moveEvent: PointerEvent) => {
+      pointer = { x: moveEvent.clientX, y: moveEvent.clientY };
+      place();
+    };
+
+    const finish = (commit: boolean) => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", cancel);
+      window.removeEventListener("keydown", key);
+      handle.releasePointerCapture?.(event.pointerId);
+      element.style.transform = "";
+
+      const order = this.dragOrder();
+      this.dragOrder.set(undefined);
+      this.draggingId.set(undefined);
+      if (commit && order) {
+        const index = order.indexOf(panel.id);
+        const target = original[index];
+        if (target && target !== panel.id) {
+          this.editLayout((layout) => movePanel(layout, this.sizeClass(), panel.id, target));
+        }
+      }
+    };
+    const up = () => finish(true);
+    const cancel = () => finish(false);
+    const key = (keyEvent: KeyboardEvent) => {
+      if (keyEvent.key === "Escape") {
+        finish(false);
+      }
+    };
+
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", cancel);
+    window.addEventListener("keydown", key);
+    frame = requestAnimationFrame(autoScroll);
+    place();
   }
 
-  /** Corner-handle resize in the PC view: the width snaps to grid columns and the height to its steps, within limits. */
+  /**
+   * Corner-handle resize in the PC view, wider or narrower, taller or shorter and diagonally in one gesture: the width
+   * snaps to grid columns and the height to its steps. At a limit the panel shakes and says so, once per time it is hit.
+   */
   public startResize(event: PointerEvent, panel: ResolvedPanel): void {
     const grid = this.panelGrid()?.nativeElement;
     if (!grid || event.button !== 0) {
@@ -964,26 +1150,46 @@ export class OverviewPageComponent {
     event.preventDefault();
     event.stopPropagation();
 
-    const columnWidth = grid.getBoundingClientRect().width / this.gridColumns();
+    const columnWidth = (grid.getBoundingClientRect().width + PANEL_GAP_PX) / this.gridColumns();
     const startX = event.clientX;
     const startY = event.clientY;
-    const handle = event.target as HTMLElement;
+    const handle = event.currentTarget as HTMLElement;
     handle.setPointerCapture?.(event.pointerId);
+    let atLimit = false;
 
     const move = (moveEvent: PointerEvent) => {
       const cols = panel.cols + Math.round((moveEvent.clientX - startX) / columnWidth);
       const dy = moveEvent.clientY - startY;
-      const rows = dy > RESIZE_ROW_STEP_PX ? 2 : dy < -RESIZE_ROW_STEP_PX ? 1 : panel.rows;
+      const rows = dy > RESIZE_ROW_STEP_PX ? panel.rows + 1 : dy < -RESIZE_ROW_STEP_PX ? panel.rows - 1 : panel.rows;
+      const hit = sizeLimitHit(panel.id, { cols, rows });
+      if (hit) {
+        if (!atLimit) {
+          atLimit = true;
+          this.notifyLimit(panel.id, hit.limit);
+        }
+        // Keep what still fits: a diagonal drag past the width limit can still change the height.
+        const definition = panelDefinition(panel.id);
+        if (definition) {
+          this.editLayout((layout) =>
+            resizePanel(layout, panel.id, {
+              cols: Math.min(definition.maxCols, Math.max(definition.minCols, cols)),
+              rows: Math.min(definition.maxRows, Math.max(1, rows)),
+            })
+          );
+        }
+        return;
+      }
+      atLimit = false;
       this.resize(panel.id, { cols, rows });
     };
     const end = () => {
-      handle.removeEventListener("pointermove", move);
-      handle.removeEventListener("pointerup", end);
-      handle.removeEventListener("pointercancel", end);
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", end);
+      window.removeEventListener("pointercancel", end);
     };
-    handle.addEventListener("pointermove", move);
-    handle.addEventListener("pointerup", end);
-    handle.addEventListener("pointercancel", end);
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", end);
+    window.addEventListener("pointercancel", end);
   }
 
   public resetLayout(): void {

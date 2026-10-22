@@ -17,6 +17,11 @@ export class SnackbarService implements SnackbarServiceInterface {
     this.toast.show("info", this.translation.t(message), { ...DEFAULT_SNACKBAR_CONFIG, duration: undefined });
   }
 
+  /** A short, quiet note that goes away by itself (a limit was reached, nothing failed). */
+  public hint(message: string): void {
+    this.toast.show("info", this.translation.t(message), { ...DEFAULT_SNACKBAR_CONFIG, duration: 2500 });
+  }
+
   public error(message: string): void {
     this.toast.show("error", this.translation.t(message), DEFAULT_SNACKBAR_CONFIG);
   }

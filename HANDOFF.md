@@ -1,5 +1,12 @@
 # HANDOFF.md — Where things stand
 
+## Dashboard customise fixes (2026-10-22, branch `feature/clean-schema`, uncommitted)
+
+Exact panel widths (no stretch), pointer-driven 2D drag replacing CDK, limit shake + toast, visible resize chip, `2/6` size label.
+Details: `desktop/CLAUDE.md` -> "Panel layout and the customise screen". Local: Jest `src/overview` 120/120, `ng build` OK, `i18n:check` 100% Polish.
+**Not seen in a browser** (drag feel, reflow, shake, both themes, phone width) and no real touch test: look at it on the dev stack before merging.
+The working tree also shows many modified `api/` files (CRLF noise and other changes) that this session did not touch.
+
 ## Clean-schema rework (2026-10-22, branch `feature/clean-schema`, from `feature/cleanup-audit`; pushed, NOT merged)
 
 Plan: `C:/Users/Marcin/.claude/plans/ultrathink-remove-custom-fields-quizzical-gray.md` (outside the repo). The database holds only test data,
