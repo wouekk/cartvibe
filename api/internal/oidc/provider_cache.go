@@ -10,7 +10,7 @@
 //
 //	discovery -> authorization code + PKCE S256 (state, nonce, browser binding)
 //	-> code exchange with the client secret -> ID token verification
-//	-> identity resolution -> Receipt Wrangler session
+//	-> identity resolution -> CartVibe session
 //
 // No client -- desktop or mobile -- ever handles an identity provider's token or
 // this deployment's client secret.

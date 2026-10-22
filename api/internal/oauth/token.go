@@ -15,7 +15,7 @@ import (
 )
 
 // Token handles POST /oauth/token for the authorization_code and refresh_token
-// grants. Both ultimately mint a standard Receipt Wrangler access JWT via
+// grants. Both ultimately mint a standard CartVibe access JWT via
 // services.GenerateJWT, so the issued access token is validated by the same
 // machinery the REST API uses.
 func Token(w http.ResponseWriter, r *http.Request) {

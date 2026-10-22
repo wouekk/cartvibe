@@ -103,7 +103,7 @@ COPY docker/default.conf /etc/nginx/conf.d/default.conf
 RUN nginx -t
 
 # The desktop's static files
-COPY --from=node /app/cartvibe-desktop/dist/receipt-wrangler/browser /usr/share/nginx/html
+COPY --from=node /app/cartvibe-desktop/dist/cartvibe/browser /usr/share/nginx/html
 
 WORKDIR /app
 ENTRYPOINT ["/app/entrypoint.sh"]

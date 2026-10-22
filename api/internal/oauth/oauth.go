@@ -1,6 +1,6 @@
 // Package oauth implements a minimal, self-hosted OAuth 2.1 authorization
 // server scoped to the MCP integration. It lets MCP clients such as Claude
-// authenticate end users against the existing Receipt Wrangler user store and
+// authenticate end users against the existing CartVibe user store and
 // obtain the same HS512 JWTs the REST API already trusts.
 //
 // The flow Claude drives:
@@ -9,7 +9,7 @@
 //	-> authorization code + PKCE S256 (login form backed by services.LoginUser)
 //	-> token exchange wrapping services.GenerateJWT.
 //
-// The OAuth access token is the existing Receipt Wrangler access JWT, so the
+// The OAuth access token is the existing CartVibe access JWT, so the
 // MCP auth middleware validates it with the same services.InitTokenValidator
 // used everywhere else; no parallel token system is introduced.
 package oauth

@@ -778,7 +778,7 @@ func redirectSignedInError(w http.ResponseWriter, r *http.Request, clientType st
 	http.Redirect(w, r, desktopProfilePath+"?tab=user-profile&"+parameter+"="+url.QueryEscape(code), http.StatusFound)
 }
 
-// issueSession mints Receipt Wrangler tokens and hands them to the client in the
+// issueSession mints CartVibe tokens and hands them to the client in the
 // way that client can actually receive them.
 func issueSession(w http.ResponseWriter, r *http.Request, userId uint, session models.OidcAuthSession) {
 	if session.ClientType == models.OidcClientMobile {

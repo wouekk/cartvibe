@@ -1,4 +1,4 @@
-// Package mcp exposes Receipt Wrangler as a remote Model Context Protocol
+// Package mcp exposes CartVibe as a remote Model Context Protocol
 // server over Streamable HTTP, so MCP clients such as Claude can read a user's
 // receipts, groups, categories, tags, and dashboards.
 //
@@ -43,8 +43,8 @@ const claimsKey = "claims"
 // is how an MCP client discovers it must run the OAuth flow.
 func NewHandler() http.Handler {
 	server := mcpsdk.NewServer(&mcpsdk.Implementation{
-		Name:    "receipt-wrangler",
-		Title:   "Receipt Wrangler",
+		Name:    "cartvibe",
+		Title:   "CartVibe",
 		Version: "1.0.0",
 	}, nil)
 

@@ -19,7 +19,7 @@ var (
 	// ErrNoAccount means the identity is unknown and nothing was configured that
 	// would let it in: username linking is off (or matched nothing) and
 	// provisioning is off.
-	ErrNoAccount = errors.New("no receipt wrangler account is linked to this identity")
+	ErrNoAccount = errors.New("no CartVibe account is linked to this identity")
 
 	// ErrAccountExists means provisioning would have had to invent a username that
 	// an existing, unlinked local account already holds.
