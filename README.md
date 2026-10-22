@@ -9,7 +9,7 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/wouekk/cartvibe/ci.yml?branch=main&label=CI&logo=githubactions&logoColor=white)](https://github.com/wouekk/cartvibe/actions/workflows/ci.yml)
 [![Image](https://img.shields.io/badge/ghcr.io-wouekk%2Fcartvibe-2496ED?logo=docker&logoColor=white)](https://github.com/wouekk/cartvibe/pkgs/container/cartvibe)
 
-[Project page](https://wouekk.github.io/cartvibe/) · [Quick start](#quick-start) · [Changelog](CHANGELOG.md) · [Credits](#credits) · [Issues](https://github.com/wouekk/cartvibe/issues)
+[Project page](https://wouekk.github.io/cartvibe/) · [Quick start](#quick-start) · [Changelog](CHANGELOG.md) · [Credits](NOTICE.md) · [Issues](https://github.com/wouekk/cartvibe/issues)
 
 </div>
 
@@ -108,14 +108,6 @@ Working notes for contributors and AI agents: [CLAUDE.md](CLAUDE.md), [AGENTS.md
 
 [Semantic Versioning](https://semver.org/). Changes are listed in [CHANGELOG.md](CHANGELOG.md); releases are tags
 `vMAJOR.MINOR.PATCH` on `main`. Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/).
-
-## Credits
-
-CartVibe stands on [Receipt Wrangler](https://github.com/Receipt-Wrangler/receipt-wrangler), created by
-[Noah Hall (@Noah231515)](https://github.com/Noah231515) and its contributors: the Go API, the Angular app (and the Flutter
-client this fork has since dropped), the Docker setup and the git history are theirs, kept intact. Thank you for building it in the open under the
-AGPL-3.0. If you want the original, general-purpose project, go to [its repository](https://github.com/Receipt-Wrangler/receipt-wrangler).
-See [NOTICE.md](NOTICE.md).
 
 ## Licence
 
