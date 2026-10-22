@@ -12,7 +12,6 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 - Quick Scan closes right after the upload, whatever the number of photos: the scans are read one at a time and the
   uploader gets a notification for each (ready, with a link to the receipt, or failed after the last retry). Photos are
   added by dropping or choosing them (spartan `attachment`, one row per photo with a thumbnail and a remove button).
-  of the form.
 
 ## [0.3.0] - 2026-10-22
 
