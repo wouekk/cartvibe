@@ -92,6 +92,16 @@ describe("TranslationService", () => {
     expect(service.t("Receipt update: Lidl")).toBe("Aktualizacja paragonu: Lidl");
   });
 
+  it("translates stored data only when it is exactly a catalogue text", () => {
+    service.register("pl", { messages: { "Spending by shop": "Wydatki według sklepu", "Delete {name}": "Usuń {name}" } });
+    service.choose("pl");
+
+    expect(service.data("Spending by shop")).toBe("Wydatki według sklepu");
+    // A name someone typed is never matched against a {placeholder} pattern.
+    expect(service.data("Delete Milk")).toBe("Delete Milk");
+    expect(service.data("Our groceries")).toBe("Our groceries");
+  });
+
   it("matches a sentence that uses a placeholder twice with a back reference", () => {
     service.register("pl", { messages: { "{a} is {a}, not {b}": "{a} to {a}, nie {b}" } });
     service.choose("pl");

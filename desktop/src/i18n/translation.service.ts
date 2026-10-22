@@ -157,6 +157,17 @@ export class TranslationService {
     return params ? translated.replace(/\{(\w+)\}/g, (match, key) => String(params[key] ?? match)) : translated;
   }
 
+  /**
+   * A text that came from stored data, such as a starter report's title: it reads in the language only when it is
+   * exactly a catalogue text, and anything a person typed is returned as written. Unlike `t` it never matches a
+   * {placeholder} pattern ("Delete Milk" stays as typed) and never counts as missing. The API's `Translator.Data` follows
+   * the same rule, so the builder and the generated report agree.
+   */
+  public data(text: string): string {
+    const dictionary = this.dictionary();
+    return (dictionary && translatedValue(dictionary.messages[text])) ?? text;
+  }
+
   /** English, and in a dev build a note of the text for spot checks (`window.__i18nMissing`). */
   private missing(text: string): string {
     if (isDevMode() && typeof window !== "undefined" && this.entry().code !== ENGLISH.code) {

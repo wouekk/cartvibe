@@ -1,4 +1,6 @@
 import { TranslatePipe } from "../../i18n/translate.pipe";
+import { TranslationService } from "../../i18n/translation.service";
+import { registerRealLanguages } from "../../i18n/i18n-test-utils";
 import { Component, NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormArray, FormBuilder, FormControl } from "@angular/forms";
@@ -200,6 +202,66 @@ describe("ReportBuilderComponent", () => {
     expect(snackbar.success).toHaveBeenCalledWith("Template updated");
   });
 
+  describe("a starter report in German", () => {
+    const starter: ReportRequestCommand = {
+      name: "Monthly spending by category",
+      groupIds: ["1"],
+      period: { preset: ReportPeriod.PresetEnum.Ytd },
+      filter: {},
+      groupBy: ["date_month"],
+      groupByLabels: { date_month: "Month" },
+      detail: { mode: ReportDetail.ModeEnum.Aggregate, by: "category" },
+      columns: [
+        { kind: ReportColumn.KindEnum.Dimension, name: "Category", label: "Category", field: "category" },
+        { kind: ReportColumn.KindEnum.Aggregate, name: "Spent", label: "Spent", aggFunc: ReportColumn.AggFuncEnum.Sum, measure: "amount" },
+      ],
+      subtotals: true,
+      grandTotals: true,
+      document: {
+        title: "Monthly spending by category",
+        intro: "What the household spent each month, split by category, for {{period}}.",
+        footer: "Generated {{generatedAt}}",
+      },
+      formats: [ReportRequestCommand.FormatsEnum.Pdf],
+    };
+
+    function openInGerman(): ReportBuilderComponent {
+      const translation = TestBed.inject(TranslationService);
+      registerRealLanguages(translation);
+      translation.choose("de");
+      activatedRoute.snapshot.data = {
+        template: { id: 3, name: starter.name, createdAt: "2026-01-01T00:00:00Z", configuration: starter, configurationVersion: 1 },
+      };
+      return TestBed.createComponent(ReportBuilderComponent).componentInstance;
+    }
+
+    it("shows its stored English texts in the reader's language", () => {
+      const local = openInGerman();
+
+      expect(local.loadedTemplateName()).toBe("Monatliche Ausgaben nach Kategorie");
+      expect(local.form.get("name")!.value).toBe("Monatliche Ausgaben nach Kategorie");
+      expect(local.form.get("document.title")!.value).toBe("Monatliche Ausgaben nach Kategorie");
+      expect(local.form.get("document.footer")!.value).toBe("Erstellt am {{generatedAt}}");
+      const labels = (local.form.get("columns") as FormArray).controls.map((column) => column.get("label")!.value);
+      expect(labels).toEqual(["Kategorie", "Ausgegeben"]);
+    });
+
+    it("saves the untouched texts back in English and a changed one as typed", () => {
+      const local = openInGerman();
+      local.form.get("document.title")!.setValue("Unser Monat");
+
+      local.saveTemplate();
+
+      const saved = runner.updateTemplate.mock.calls[0][1] as ReportRequestCommand;
+      expect(saved.name).toBe("Monthly spending by category");
+      expect(saved.document?.title).toBe("Unser Monat");
+      expect(saved.document?.intro).toBe(starter.document!.intro);
+      expect(saved.document?.footer).toBe("Generated {{generatedAt}}");
+      expect(saved.columns.map((column) => column.label)).toEqual(["Category", "Spent"]);
+      expect(saved.groupByLabels).toEqual({ date_month: "Month" });
+    });
+  });
+
   it("persists every column on save, including a disabled one, so a reopen self-heals", () => {
     // The stored config carries a currently-disabled dimension column: aggregate by
     // tag, group by paid_by, plus a Category dimension that reads neither. Save must
@@ -373,7 +435,7 @@ describe("ReportBuilderComponent", () => {
   });
 
   it("starts from a blank form when no template is resolved", () => {
-    expect(component.loadedTemplateName).toBeNull();
+    expect(component.loadedTemplateName()).toBeNull();
     expect(component.form.get("name")!.value).toBe("Untitled Report");
     expect((component.form.get("columns") as FormArray).length).toBe(3);
   });
@@ -405,7 +467,7 @@ describe("ReportBuilderComponent", () => {
 
     const local = TestBed.createComponent(ReportBuilderComponent).componentInstance;
 
-    expect(local.loadedTemplateName).toBe("Saved Report");
+    expect(local.loadedTemplateName()).toBe("Saved Report");
     expect(local.form.get("name")!.value).toBe("Saved Report");
     expect((local.form.get("scope") as FormArray).length).toBe(2);
     expect((local.form.get("columns") as FormArray).length).toBe(2);

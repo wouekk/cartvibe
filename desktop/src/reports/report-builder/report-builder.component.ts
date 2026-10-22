@@ -24,6 +24,8 @@ import { AuthState } from "../../store";
 import { buildReportForm, buildReportFormFromCommand } from "../models/report-form.factory";
 import { ReportRunnerService } from "../services/report-runner.service";
 import { marker } from "../../i18n/marker";
+import { TranslationService } from "../../i18n/translation.service";
+import { localizeStoredTexts, restoreStoredTexts } from "../models/report-stored-text";
 
 /**
  * The Report Builder screen: owns the report form, drives the debounced live
@@ -47,6 +49,8 @@ export class ReportBuilderComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
   private readonly store = inject(Store);
+  private readonly translation = inject(TranslationService);
+  private readonly storedText = (text: string) => this.translation.data(text);
 
   // On the edit route a resolver supplies the saved template; on "new" it is absent.
   // Read it before the form initializer so the form can be built from its stored
@@ -54,8 +58,10 @@ export class ReportBuilderComponent {
   // once and previews the loaded template (no post-construction patch/rebuild).
   private readonly loadedTemplate: ReportTemplate | null = this.route.snapshot.data["template"] ?? null;
 
-  /** The opened template's name for the breadcrumb, or null when starting fresh. */
-  public readonly loadedTemplateName: string | null = this.loadedTemplate?.name ?? null;
+  /** The opened template's name for the breadcrumb (a starter report's in the reader's language), or null when starting fresh. */
+  public readonly loadedTemplateName = computed<string | null>(() =>
+    this.loadedTemplate?.name ? this.translation.data(this.loadedTemplate.name) : null
+  );
 
   /** Edit route (a template was resolved) vs the blank "new report" route. */
   public readonly isEditMode: boolean = this.loadedTemplate != null;
@@ -82,7 +88,12 @@ export class ReportBuilderComponent {
   );
 
   public readonly form: FormGroup = this.loadedTemplate
-    ? buildReportFormFromCommand(this.formBuilder, this, this.loadedTemplate.configuration)
+    ? buildReportFormFromCommand(
+        this.formBuilder,
+        this,
+        // The starter reports are stored in English; their texts read in the person's language (restored on save).
+        localizeStoredTexts(this.loadedTemplate.configuration, this.storedText)
+      )
     : buildReportForm(this.formBuilder, this);
 
   public readonly previewHtml = signal<string>("");
@@ -202,8 +213,12 @@ export class ReportBuilderComponent {
   // The command persisted on save keeps every column, including currently-disabled
   // ones, so they round-trip into the builder and self-heal; preview and generate
   // still send enabled-only columns via currentCommand().
+  // A starter text left as shown goes back in English, so the template keeps reading in each person's language.
   private commandForSave(): ReportRequestCommand {
-    return toReportRequestCommandForSave(this.form.getRawValue() as ReportBuilderValue);
+    const command = toReportRequestCommandForSave(this.form.getRawValue() as ReportBuilderValue);
+    return this.loadedTemplate
+      ? restoreStoredTexts(command, this.loadedTemplate.configuration, this.storedText)
+      : command;
   }
 
   private isRunnable(): boolean {
