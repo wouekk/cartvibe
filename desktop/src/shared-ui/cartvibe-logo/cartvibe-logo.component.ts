@@ -3,15 +3,22 @@ import { CartVibeIconComponent } from "../cartvibe-icon/cartvibe-icon.component"
 
 /**
  * The CartVibe lockup: the app icon (dark or light, as supplied) beside a large "CartVibe" wordmark, "Cart" in the
- * text color and "Vibe" in the brand emerald (#16C976, the banner's). It follows the app's own `dark` class like the
- * icon does. The wordmark is Geist when it is loaded (the app bundles it), then the system font.
+ * text color and "Vibe" in Slate Gray (#708090). It follows the app's own `dark` class like the icon does. The
+ * wordmark is Geist when it is loaded (the app bundles it), then the system font.
+ *
+ * Why Slate Gray and not Spanish Gray (#999999): the same gray has to read on both pages, and Slate balances them
+ * (4.1:1 on White, 5.2:1 on Black) where Spanish Gray is faint on White (2.9:1) and strong on Black (7.4:1).
+ * The wordmark is 800-weight display text, so both clear the 3:1 bar for large text.
+ *
+ * `scale` shrinks the whole lockup (icon and wordmark together); the header passes 0.3 on a phone so it fits the
+ * compact top bar.
  */
 @Component({
   selector: "app-cartvibe-logo",
   standalone: true,
   imports: [CartVibeIconComponent],
   template: `
-    <app-cartvibe-icon [size]="height()"></app-cartvibe-icon>
+    <app-cartvibe-icon [size]="iconSize()"></app-cartvibe-icon>
     <span
       class="wordmark"
       role="img"
@@ -42,7 +49,7 @@ import { CartVibeIconComponent } from "../cartvibe-icon/cartvibe-icon.component"
         color: #202834;
       }
       .vibe {
-        color: #16c976;
+        color: #708090;
       }
       :host-context(html.dark) .cart {
         color: #ffffff;
@@ -54,5 +61,11 @@ export class CartVibeLogoComponent {
   /** The icon's height in px; the wordmark is sized from it. */
   public readonly height = input(44);
 
-  public readonly fontSize = computed(() => Math.round(this.height() * 0.82));
+  /** 1 is the full lockup; 0.3 is 30% of it. */
+  public readonly scale = input(1);
+
+  /** The icon's height after scaling, never below 1px. */
+  public readonly iconSize = computed(() => Math.max(1, Math.round(this.height() * this.scale())));
+
+  public readonly fontSize = computed(() => Math.round(this.iconSize() * 0.82));
 }

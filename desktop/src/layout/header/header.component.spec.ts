@@ -12,7 +12,9 @@ import { DirectivesModule } from "../../directives/directives.module";
 import { ApiModule, NotificationsService } from "../../open-api";
 import { SetAuthState, SetPermissions } from "../../store/auth.state.actions";
 import { StoreModule } from "../../store/store.module";
-import { HeaderComponent } from "./header.component";
+import { SYSTEM_THEME_KEYS } from "../../theme/themes";
+import { ThemeService } from "../../theme/theme.service";
+import { HANDSET_LOGO_SCALE, HeaderComponent } from "./header.component";
 
 describe("HeaderComponent", () => {
   let component: HeaderComponent;
@@ -100,6 +102,33 @@ describe("HeaderComponent", () => {
     await fixture.whenStable();
 
     expect(searchbarRendered()).toBe(true);
+  });
+
+  it("offers a quick theme toggle that switches between the White and Black themes", async () => {
+    const theme = TestBed.inject(ThemeService);
+    const setMode = jest.spyOn(theme, "setMode").mockImplementation(() => undefined);
+
+    logIn();
+    await fixture.whenStable();
+
+    const toggle = fixture.nativeElement.querySelector("[data-testid=theme-toggle]") as HTMLButtonElement;
+    expect(toggle).not.toBeNull();
+
+    const wasDark = component.isDarkTheme();
+    toggle.click();
+
+    expect(setMode).toHaveBeenCalledWith(wasDark ? SYSTEM_THEME_KEYS.light : SYSTEM_THEME_KEYS.dark);
+  });
+
+  it("scales the logo to 30% on a handset and leaves it whole elsewhere", () => {
+    isHandset.set(false);
+    expect(component.logoScale()).toBe(1);
+
+    isHandset.set(true);
+    expect(component.logoScale()).toBe(HANDSET_LOGO_SCALE);
+    expect(HANDSET_LOGO_SCALE).toBe(0.3);
+
+    isHandset.set(false);
   });
 
   it("should not fetch the notification count without app.notifications.read", async () => {
