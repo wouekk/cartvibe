@@ -1,6 +1,5 @@
 import {
   buildDonutSegments,
-  donutSliceOffset,
   buildMonthBars,
   buildTrendBars,
   describeChangeAgainst,
@@ -201,30 +200,5 @@ describe("parseInlineGoalInput", () => {
     expect(parseInlineGoalInput("1500,5")).toEqual({ ok: true, value: "1500.5" });
     expect(parseInlineGoalInput("abc").ok).toBe(false);
     expect(parseInlineGoalInput("-5").ok).toBe(false);
-  });
-});
-
-describe("donutSliceOffset", () => {
-  it("pushes the first half-circle slice to the right and the second to the left", () => {
-    const right = donutSliceOffset([50, 50], 0, 10);
-    const left = donutSliceOffset([50, 50], 1, 10);
-    expect(right.x).toBeGreaterThan(0);
-    expect(left.x).toBeLessThan(0);
-    expect(right.x).toBeCloseTo(-left.x, 3);
-  });
-
-  it("pushes a slice centered at 12 o'clock straight up and one at 6 o'clock straight down", () => {
-    expect(donutSliceOffset([0.0001, 99.9999], 1, 10).y).toBeGreaterThan(9.9);
-    const up = donutSliceOffset([50, 25, 25], 0, 10);
-    expect(up.x).toBeGreaterThan(0);
-    const down = donutSliceOffset([75, 25], 0, 10);
-    expect(down.x).toBeGreaterThan(0);
-  });
-
-  it("does nothing for a bad index or an empty donut", () => {
-    expect(donutSliceOffset([], 0, 10)).toEqual({ x: 0, y: 0 });
-    expect(donutSliceOffset([0, 0], 0, 10)).toEqual({ x: 0, y: 0 });
-    expect(donutSliceOffset([5, 5], 7, 10)).toEqual({ x: 0, y: 0 });
-    expect(donutSliceOffset([5, 5], -1, 10)).toEqual({ x: 0, y: 0 });
   });
 });

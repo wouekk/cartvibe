@@ -63,6 +63,11 @@ on **spartan/ui (helm + brain) and Tailwind 4**, on the design tokens of the two
 preserved in every screen, dialog, empty state and email-like surface, and a change that looks sloppier than its
 neighbours is not done.
 
+**The visual identity always has priority, until the user says otherwise.** When a request (exact values, effects, a new
+style direction such as glass or blur) would deviate from it, the agent **pauses and asks** before implementing it; requested
+values are adapted to the identity's scales (spacing, radius, motion 150-200ms, tokens) only after the user agrees. A future
+platform or business idea mentioned for context is not a request to change the look.
+
 - **Stack, no exceptions:** spartan/ui components from `src/ui`, Tailwind utilities on tokens, Lucide icons, ApexCharts on the
   chart tokens, Geist. No Angular Material, Bootstrap, ad-hoc hex colors, one-off shadows or hand-rolled widgets where a
   helm part exists. New global CSS goes in a Tailwind layer.
