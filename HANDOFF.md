@@ -1,5 +1,38 @@
 # HANDOFF.md — Where things stand
 
+## Cleanup audit (2026-10-22, branch `feature/cleanup-audit`, from `preview`; NOT merged, waits for the user's go)
+
+Code review, dependency modernization and `receipt-wrangler` remnant purge, run overnight in small commits (plan:
+`C:/Users/Marcin/.claude/plans/pasted-content-id-cd27-ultrathink-and-iridescent-dream.md`, outside the repo).
+**Done:** upstream release scripts, `api/GEMINI.md` and the stale READMEs removed; MCP server name, OAuth sign-in title, Angular
+project (`dist/cartvibe`), dev compose names, swagger title and Go comments now say CartVibe; Go minor/patch bumps (chi 5.5,
+go-oidc 3.21, decimal 1.6, genai 1.75, gorm 1.31.2, x/crypto, ...), asynq 0.26.0, MCP go-sdk 1.8.0, jest-preset-angular 17;
+`setBasePath` fixed (Windows paths, the `cartvibe-api` folder) with a test; refresh-token middleware uses the request context;
+a swallowed re-queue error is logged; the autocomplete's single-select watcher unsubscribes on destroy; CSS prefix `rw-` is
+`cv-` (class names only); the Go module is `cartvibe/api`. Local: `go vet` clean, Go test failures identical to the Windows-only
+baseline (21 PDF/ImageMagick/temp-path failures), Jest 2232/2232, `ng build` OK, `i18n:check` OK.
+**Pushing `api/swagger.yml` triggers `regenerate-clients.yml`: pull after the push.** Not seen in a browser (CSS rename): look at
+both themes once before merging. The dev server on port 4201 that an earlier session left running in this checkout was stopped
+(it held a file `npm ci` needed); restart it with `npm start -- --port 4201` if wanted.
+
+## Morning Decisions Needed
+- **chromedp 0.21 breaks `services/html_to_pdf.go`** (generic `chromedp.Action[T]`, `cdp.Command` is no longer a function): tried and
+  reverted. Staying on 0.13.7 until someone ports the renderer.
+- **@ng-icons 36** needs Angular 22 (peer `>=22`); **@ngxs 22**, **@angular/cdk 22**, **ngx-mask 22** are Angular 22 releases too. All wait
+  for an Angular 22 upgrade. **TypeScript 7** is not supported by Angular 21.
+- **apexcharts 8 / ng2-charts 11**: not attempted (chart code and theme rebuild, visual risk, no visual check overnight).
+- **jest/jest-environment-jsdom 30.5.2**: `npm install` re-resolved ~1800 lockfile lines (the lockfile rule in `desktop/CLAUDE.md`); reverted.
+- **GitHub Actions / Docker majors** not bumped (can only be proven by a CI run): `build-push-action` 6 -> 7, `setup-buildx-action` 3 -> 4,
+  and the `@v4` actions. `node:lts-alpine` stays unpinned.
+- **JWT issuer/audience `https://receiptWrangler.io`** (`services/auth.go`) kept: changing it signs everyone out and invalidates MCP tokens;
+  it needs a dual-accept migration. The API key prefix `rw-v1` kept (existing keys).
+- **Mobile dead code** (`oidc/flow.go` mobile branch, `io.receiptwrangler://oidc`, `OidcExchangeCode` / `OidcLinkLaunch` code) not removed:
+  security-sensitive, wants its own reviewed change. `wranglerasynq` and `wranglervenv` names kept.
+- **asynq 0.26 is proven only by CI**: the inspector tests that exercise it fail on this Windows PC for path reasons.
+- Audit items I checked and found to be intentional, not bugs: the ignored rename error in `models/group.go`, the ignored CDP errors in
+  `html_to_pdf.go` (both documented), the loopback server (closed by its caller). `quick-actions-dialog` valueChanges are on controls
+  the dialog owns, so no leak.
+
 ## Status (2026-10-22, 07:15): v0.4.0 released from `preview`
 
 **`preview` was the integration branch and is now `main` (fast-forward), tagged `v0.4.0`** on the user's go. It holds main
