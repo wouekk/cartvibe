@@ -16,9 +16,10 @@ import { ShopMonogramComponent } from "../shared-ui/shop-monogram/shop-monogram.
 import { SharedUiModule } from "../shared-ui/shared-ui.module";
 import { OverviewPageComponent } from "./overview-page/overview-page.component";
 import { OverviewRoutingModule } from "./overview-routing.module";
+import { OverviewShoppingPanelComponent } from "./overview-shopping-panel/overview-shopping-panel.component";
 
 @NgModule({
   declarations: [OverviewPageComponent],
-  imports: [ApexChartComponent, HlmBadge, DisplayCurrencyPipe, ...HlmCheckboxImports, ...HlmTableImports, MoneyComponent, ShopMonogramComponent, ButtonModule, CommonModule, HlmButton, AppIconComponent, MonthStepperComponent, PeriodPickerComponent, OverviewRoutingModule, PipesModule, SharedUiModule],
+  imports: [ApexChartComponent, HlmBadge, DisplayCurrencyPipe, ...HlmCheckboxImports, ...HlmTableImports, MoneyComponent, ShopMonogramComponent, ButtonModule, CommonModule, HlmButton, AppIconComponent, MonthStepperComponent, PeriodPickerComponent, OverviewRoutingModule, PipesModule, SharedUiModule, OverviewShoppingPanelComponent],
 })
 export class OverviewModule {}

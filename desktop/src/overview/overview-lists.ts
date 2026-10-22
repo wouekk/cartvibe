@@ -1,10 +1,35 @@
-import { ShoppingList } from "../open-api";
+import { ShoppingList, ShoppingListItem } from "../open-api";
 
 export interface ListSummary {
   id: number;
   name: string;
   count: number;
   preview: string;
+}
+
+/** Items still to buy on a list, in the order they were added (the Shopping lists page's order). */
+export function activeItemsOf(list: ShoppingList | undefined): ShoppingListItem[] {
+  return (list?.items ?? [])
+    .filter((item) => !item.isChecked)
+    .sort((a, b) => (a.createdAt ?? "").localeCompare(b.createdAt ?? "") || a.id - b.id);
+}
+
+/**
+ * The list the Dashboard previews: the one with the most items still to buy. A tie goes to the list that comes first
+ * in the given order, so the choice is stable; undefined when no list has anything left to buy.
+ */
+export function pickLargestList(lists: ShoppingList[]): ShoppingList | undefined {
+  let best: ShoppingList | undefined;
+  let bestCount = 0;
+  for (const list of lists) {
+    const count = activeItemsOf(list).length;
+    if (count > bestCount) {
+      best = list;
+      bestCount = count;
+    }
+  }
+
+  return best;
 }
 
 /**
