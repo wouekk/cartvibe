@@ -1,5 +1,6 @@
 import { HttpBackend, HttpClient, HttpErrorResponse } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
+import { marker } from "../i18n/marker";
 import { catchError, map, Observable, of, throwError } from "rxjs";
 import { CheckedProduct, NutrientLevel, NutriScore, ProductNutrientLevels, ProductNutrition } from "./product-check.models";
 
@@ -60,7 +61,7 @@ export class OpenFoodFactsService {
 export function toCheckedProduct(product: OffProduct, fallbackCode: string): CheckedProduct {
   return {
     code: product.code || fallbackCode,
-    name: (product.product_name ?? "").trim() || "Unnamed product",
+    name: (product.product_name ?? "").trim() || marker("Unnamed product"),
     brand: (product.brands ?? "").split(",")[0].trim(),
     imageUrl: product.image_front_small_url ?? null,
     nutriScore: toNutriScore(product.nutriscore_grade),

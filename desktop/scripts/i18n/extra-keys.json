@@ -40,5 +40,6 @@
   ],
   "Marker the API puts on categories a person may not see (services/grant_filter.go)": [
     "(Restricted)"
-  ]
+  ],
+  "Nutrient levels (product check: the tooltip of a nutrition row)": ["low", "moderate", "high"]
 }

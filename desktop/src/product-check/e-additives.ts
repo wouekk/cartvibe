@@ -7,6 +7,8 @@
  * `moderate` is for ones with a sensitivity or intake warning; everything else listed is `safe` at normal intake. It is
  * a guide, not medical advice.
  */
+import { marker } from "../i18n/marker";
+
 export type AdditiveRisk = "safe" | "moderate" | "high";
 
 export type AdditiveCategory =
@@ -30,14 +32,14 @@ export interface AdditiveInfo {
 
 type Entry = [name: string, category: AdditiveCategory, risk: AdditiveRisk];
 
-const C = "Colour" as const;
-const P = "Preservative" as const;
-const A = "Antioxidant" as const;
-const E = "Emulsifier / thickener" as const;
-const S = "Sweetener" as const;
-const F = "Flavour enhancer" as const;
-const R = "Acidity regulator" as const;
-const O = "Other" as const;
+const C = marker("Colour") as AdditiveCategory;
+const P = marker("Preservative") as AdditiveCategory;
+const A = marker("Antioxidant") as AdditiveCategory;
+const E = marker("Emulsifier / thickener") as AdditiveCategory;
+const S = marker("Sweetener") as AdditiveCategory;
+const F = marker("Flavour enhancer") as AdditiveCategory;
+const R = marker("Acidity regulator") as AdditiveCategory;
+const O = marker("Other") as AdditiveCategory;
 
 /** Keyed by the lower-case code without the "en:" prefix of Open Food Facts' tags ("e322i"). */
 const ADDITIVES: Record<string, Entry> = {
