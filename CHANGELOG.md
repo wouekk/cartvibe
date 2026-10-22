@@ -8,6 +8,15 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+### Changed
+- Internal clean-up: the Go module is `cartvibe/api`, the CSS prefix is `cv-`, the Angular project is `cartvibe`, the MCP server and
+  OAuth sign-in page say CartVibe, and the upstream release scripts and READMEs are gone. The JWT issuer and the `rw-v1` API key
+  prefix are unchanged so nobody is signed out and no key stops working.
+- Dependencies: Go minor/patch updates, asynq 0.26, MCP go-sdk 1.8, jest-preset-angular 17.
+
+### Fixed
+- Base path detection when `BASE_PATH` is not set (Windows paths and the `cartvibe-api` folder); the refresh-token check uses the request context.
+
 ## [0.4.0] - 2026-10-22
 
 ### Added
