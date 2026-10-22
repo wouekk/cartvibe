@@ -4,9 +4,7 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
-import { finalize, Observable, of, switchMap, take, tap } from "rxjs";
-import { Router } from "@angular/router";
-import { waitForScannedReceipt } from "../../utils/quick-scan-wait";
+import { finalize, take, tap } from "rxjs";
 import { ReceiptFileUploadCommand } from "../../interfaces";
 import { setRequired } from "../../form";
 import { Category, GroupReceiptSettings, Permission, ReceiptService, ReceiptStatus, Tag } from "../../open-api";
@@ -64,7 +62,6 @@ export class QuickScanDialogComponent implements OnInit {
     private formBuilder: FormBuilder,
     private receiptService: ReceiptService,
     private snackbarService: SnackbarService,
-    private router: Router,
     private store: Store
   ) {}
 
@@ -298,17 +295,6 @@ export class QuickScanDialogComponent implements OnInit {
   /** Where the upload stands, for the progress bar above the footer; null while nothing is being sent. */
   public readonly uploadStage = signal<UploadStage | null>(null);
 
-  /** Set once a single scanned photo has become a receipt: the dialog then offers a button to open it. */
-  public readonly scannedReceiptId = signal<number | null>(null);
-
-  public openScannedReceipt(): void {
-    const receiptId = this.scannedReceiptId();
-    this.dialogRef.close();
-    if (receiptId) {
-      this.router.navigate(["/receipts", receiptId, "edit"]);
-    }
-  }
-
   public submitButtonClicked(): void {
     if (this.uploadStage() !== null) {
       return;
@@ -333,15 +319,7 @@ export class QuickScanDialogComponent implements OnInit {
       )
         .pipe(
           take(1),
-          // One photo: stay on the bar while the AI reads it, then offer a button to open the new receipt. Several
-          // photos (or a scan that fails, times out or cannot be followed) are simply queued: the uploader gets a
-          // notification when each is read, or when it fails.
-          switchMap((result: { taskIds?: string[] } | null) => this.followSingleScan(result)),
-          tap((receiptId) => {
-            if (receiptId) {
-              this.scannedReceiptId.set(receiptId);
-              return;
-            }
+          tap(() => {
             this.snackbarService.success(
               marker("Receipts uploaded. You will get a notification once the AI has read them, or if it fails.")
             );
@@ -358,17 +336,6 @@ export class QuickScanDialogComponent implements OnInit {
     if (this.form.invalid) {
       this.snackbarService.error("Please fill in all required fields. Some images are missing required fields.");
     }
-  }
-
-  /** The receipt id a single queued photo turns into, or null when there is nothing to follow (see submitButtonClicked). */
-  private followSingleScan(result: { taskIds?: string[] } | null): Observable<number | null> {
-    const taskId = result?.taskIds?.length === 1 && this.images.length === 1 ? result.taskIds[0] : undefined;
-    if (!taskId) {
-      return of(null);
-    }
-
-    this.uploadStage.set({ stage: "scanning" });
-    return waitForScannedReceipt(() => this.receiptService.getQuickScanStatus(taskId)).pipe(takeUntilDestroyed(this.destroyRef));
   }
 
   // Serializes each image's selected category/tag objects into a comma-joined id string (one entry

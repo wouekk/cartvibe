@@ -640,7 +640,6 @@
     "Open": "Otwarte",
     "Open full receipt": "Otwórz cały paragon",
     "Open in builder": "Otwórz w kreatorze",
-    "Open receipt": "Otwórz paragon",
     "Open reports": "Otwórz raporty",
     "Operation": "Operacja",
     "Operators": "Operatory",
@@ -736,7 +735,6 @@
     "Read-only access": "Dostęp tylko do odczytu",
     "Read/Write": "Odczyt i zapis",
     "Reading the photo…": "Odczytywanie zdjęcia…",
-    "Reading your receipt…": "Odczytuję paragon…",
     "Receipt": "Paragon",
     "Receipt Date": "Data paragonu",
     "Receipt Editor": "Edytor paragonów",
@@ -755,7 +753,6 @@
     "Receipt renamed": "Zmieniono nazwę paragonu",
     "Receipt saved. It will be compared with the list shortly.": "Zapisano paragon. Wkrótce zostanie porównany z listą.",
     "Receipt scan failed": "Skanowanie paragonu nie powiodło się",
-    "Receipt scanned": "Paragon zeskanowany",
     "Receipt settings updated successfully": "Ustawienia paragonów zostały zaktualizowane",
     "Receipt successfully deleted": "Paragon został usunięty",
     "Receipt successfully duplicated": "Paragon został zduplikowany",
@@ -1225,6 +1222,17 @@
     "Group AI Settings": {
       "value": "Ustawienia AI grupy",
       "closest": "AI settings saved"
+    },
+    "Open receipt": {
+      "value": "Otwórz paragon",
+      "closest": "Open full receipt"
+    },
+    "Reading your receipt…": {
+      "value": "Odczytuję paragon…"
+    },
+    "Receipt scanned": {
+      "value": "Paragon zeskanowany",
+      "closest": "Add Receipt"
     },
     "Save first to test the new settings.": {
       "value": "Najpierw zapisz, aby przetestować nowe ustawienia."

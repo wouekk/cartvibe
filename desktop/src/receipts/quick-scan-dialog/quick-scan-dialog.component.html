@@ -74,33 +74,12 @@
 
   </form>
   <app-upload-progress class="mt-3" [stage]="uploadStage()"></app-upload-progress>
-  @if (scannedReceiptId() !== null) {
-    <div class="mt-3 flex flex-col items-center gap-3 text-center" data-testid="quick-scan-done">
-      <strong>{{ 'Receipt scanned' | t }}</strong>
-      <div class="flex gap-2">
-        <app-button
-          data-testid="quick-scan-open-receipt"
-          matButtonType="matRaisedButton"
-          icon="open_in_new"
-          [buttonText]="'Open receipt' | t"
-          (clicked)="openScannedReceipt()"
-        ></app-button>
-        <app-button
-          data-testid="quick-scan-close"
-          matButtonType="basic"
-          [buttonText]="'Close' | t"
-          (clicked)="cancelButtonClicked()"
-        ></app-button>
-      </div>
-    </div>
-  } @else {
-    <app-dialog-footer
-      submitButtonTooltip="Submit Scans"
-      [disableWhenProgressBarIsShown]="true"
-      (submitClicked)="submitButtonClicked()"
-      (cancelClicked)="cancelButtonClicked()"
-    ></app-dialog-footer>
-  }
+  <app-dialog-footer
+    submitButtonTooltip="Submit Scans"
+    [disableWhenProgressBarIsShown]="true"
+    (submitClicked)="submitButtonClicked()"
+    (cancelClicked)="cancelButtonClicked()"
+  ></app-dialog-footer>
 </app-dialog>
 
 <ng-template #actionsTemplate>

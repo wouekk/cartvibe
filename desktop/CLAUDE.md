@@ -2844,12 +2844,7 @@ never hand-edited.
 - **Quick Scan:** nothing is required (`resolveQuickScanFieldConfig`; only the comment keeps its rules), a sole group is
   seeded and its picker hidden. The **Upload photos** button is a centered raised button in the dialog body ("Add more
   photos" once there are some).
-- **Quick Scan follows a single photo to its receipt:** after the upload the dialog keeps its bar on "Reading your receipt…"
-  and polls `getQuickScanStatus` (`waitForScannedReceipt`, `utils/quick-scan-wait.ts`: every 1.5 s, 2 min limit, a failed
-  poll counts as pending), then shows an **Open receipt** button (`scannedReceiptId`; it never navigates by itself and Close leaves the page alone).
-  Several photos, a failed or slow scan, or an unreadable response close the dialog with "Receipts uploaded. You will get a
-  notification…"; the API notifies the uploader per scan (`quick_scan_handler.go`). The selected photo in the dialog is a small thumbnail, not the
-  big preview.
+- **Quick Scan closes right after the upload** (one photo or many): "Receipts uploaded. You will get a notification once the AI has read them, or if it fails." The API notifies the uploader per scan (`quick_scan_handler.go`, with a link to the receipt), so there is no waiting and no redirect. The selected photo in the dialog is a small thumbnail, not the big preview.
 - **Image menu on the receipt form** (`receipt-image-menu`, a `hlmDropdownMenuTrigger` laid over the image stage, 44 px
   target, so it stays in reach after scrolling on a phone): Preview (`expandImage`, full width under 768 px), Rename
   (`RenameReceiptDialogComponent`; a saved receipt goes to `renameReceipt`, a new one just takes the name in the form) and
