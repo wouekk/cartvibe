@@ -27,7 +27,7 @@ export interface ReceiptPagedRequestCommand {
     sortDirection?: SortDirection;
     filter?: ReceiptPagedRequestFilter;
     /**
-     * Whether to include all receipt associations (receiptItems, comments, imageFiles, etc.)
+     * Whether to include all receipt associations (comments, imageFiles, etc.)
      */
     fullReceipts?: boolean;
 }

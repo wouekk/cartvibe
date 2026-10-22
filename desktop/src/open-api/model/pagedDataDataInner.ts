@@ -19,7 +19,6 @@ import { SystemTaskType } from './systemTaskType';
 import { Activity } from './activity';
 import { UserView } from './userView';
 import { ReceiptProcessingSettings } from './receiptProcessingSettings';
-import { Item } from './item';
 import { GroupReceiptSettings } from './groupReceiptSettings';
 import { SystemTaskStatus } from './systemTaskStatus';
 import { OcrEngine } from './ocrEngine';
@@ -88,10 +87,6 @@ export interface PagedDataDataInner {
      * User paid foreign key
      */
     paidByUserId: number;
-    /**
-     * Items associated to receipt
-     */
-    receiptItems: Array<Item>;
     /**
      * Date resolved
      */

@@ -83,8 +83,6 @@ model/groupReceiptSettings.ts
 model/groupStatus.ts
 model/icon.ts
 model/internalErrorResponse.ts
-model/item.ts
-model/itemStatus.ts
 model/loginCommand.ts
 model/logoutCommand.ts
 model/magicFillCommand.ts
@@ -158,7 +156,6 @@ model/upsertCategoryCommand.ts
 model/upsertCommentCommand.ts
 model/upsertGroupCommand.ts
 model/upsertGroupMemberCommand.ts
-model/upsertItemCommand.ts
 model/upsertOidcProviderCommand.ts
 model/upsertReceiptCommand.ts
 model/upsertReceiptProcessingSettingsCommand.ts
