@@ -3,6 +3,30 @@
   subtitle="Everything the household bought, to check and look back on."
 >
   <div class="flex max-w-full flex-wrap items-center justify-end gap-x-2 gap-y-1">
+    <!-- Searches the shop, name, comments and product lines, tolerating typos and receipt abbreviations. The phrase rides
+         the receipts filter, so the totals below follow it. -->
+    <div hlmInputGroup class="me-2 w-full sm:w-64" data-testid="receipts-search-box">
+      <div hlmInputGroupAddon><app-icon name="search"></app-icon></div>
+      <input
+        hlmInputGroupInput
+        type="search"
+        enterkeyhint="search"
+        autocomplete="off"
+        data-testid="receipts-search"
+        [placeholder]="'Search receipts' | t"
+        [attr.aria-label]="'Search receipts' | t"
+        [value]="searchText()"
+        (input)="searchInput($any($event.target).value)"
+      />
+      @if (searchText()) {
+        <div hlmInputGroupAddon align="inline-end">
+          <button hlmInputGroupButton type="button" size="icon-sm" data-testid="receipts-search-clear" [attr.aria-label]="'Clear search' | t" (click)="clearSearch()">
+            <app-icon name="close"></app-icon>
+          </button>
+        </div>
+      }
+    </div>
+
     <app-add-button
       *ngIf="canCreate"
       class="me-2"
@@ -217,9 +241,18 @@
 <ng-template #shopCell let-element="element">
   <span class="inline-flex items-center gap-2">
     <app-shop-monogram [name]="element.shopName || element.name"></app-shop-monogram>
-    <a [routerLink]="['/receipts/' + element.id + '/view']">
-      {{ element.shopName || element.name }}
-    </a>
+    <span class="min-w-0">
+      <a [routerLink]="['/receipts/' + element.id + '/view']">
+        {{ element.shopName || element.name }}
+      </a>
+      @if (element.searchMatches?.length) {
+        <span
+          class="block max-w-80 truncate text-xs font-normal text-muted-foreground tabular-nums"
+          data-testid="receipt-search-matches"
+          [hlmTooltip]="searchMatchesText(element)"
+        >{{ 'Matched:' | t }} {{ searchMatchesText(element) }}</span>
+      }
+    </span>
   </span>
 </ng-template>
 

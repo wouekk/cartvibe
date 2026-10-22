@@ -11,6 +11,7 @@ import { CustomFieldValue } from './customFieldValue';
 import { Group } from './group';
 import { GroupMember } from './groupMember';
 import { Category } from './category';
+import { ReceiptSearchMatch } from './receiptSearchMatch';
 import { ReportRequestCommand } from './reportRequestCommand';
 import { ReportTemplate } from './reportTemplate';
 import { Activity } from './activity';
@@ -63,6 +64,10 @@ export interface PagedDataDataInner {
      * Text of the receipt\'s earliest comment the caller may see. Only populated by the paged receipt list (POST /receipt/group/{groupId}); absent when there is no such comment.
      */
     firstComment?: string;
+    /**
+     * The product lines that made the receipt match the list\'s search phrase. Only populated by the paged receipt list while a search is active; absent otherwise.
+     */
+    searchMatches?: Array<ReceiptSearchMatch>;
     groupId: number;
     id: number;
     /**

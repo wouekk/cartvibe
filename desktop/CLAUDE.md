@@ -2996,3 +2996,51 @@ Every Admin and User settings page uses four shared primitives from `src/shared-
 - **Settings forms are always editable** (no view/edit pencil): User Profile, User Preferences, Household details and Household receipt settings turn their `/view` route into the edit form for anyone who may update (`editableConfig` / the group components' `ngOnInit`), Save sits in the footer (disabled while pristine) and settles the form instead of navigating. Sections inside use `app-form-section [panel]="true"` (flat rows; its content gets a `gap-3`). The household has no "Group AI Settings" tab any more (AI is household-wide).
 - **AI page:** a saved key shows as dots (`SAVED_KEY_PLACEHOLDER` in the key box, never the key), and **Test connection works on the form as typed**, saved or not: an untouched form tests `{ id }`, a changed one sends the whole command and the API falls back to the stored key for an empty key box (`CheckReceiptProcessingSettingsConnectivity`; a connectivity check ignores the missing prompt id).
 - **Page headers:** `app-form-header` (used by `app-form` and the receipt form) is the settings page header too: a quiet Back link, a 24px title, the header buttons on the right. The receipt form's panels are two columns on desktop (Details with amount | date side by side, Images with an empty-state upload button), comments are one card, Save in the footer bar.
+
+
+### Receipts search and the product checker (fork, 2026-10)
+
+- **Receipts search moved from the header into the Receipts toolbar** (`data-testid="receipts-search"`, Ctrl/Cmd K or `/`
+  focuses it). The phrase lives in `ReceiptTableState.filter.search` (persisted with the filter, selector `search` falls back
+  to `""`); `SetReceiptSearch` also returns to page 1. The box debounces 300 ms, then `getFilteredReceipts()` (the existing
+  last-request-wins stream), so the table and the totals follow. It is not a chip and not counted in the Filter badge (the box
+  shows it); Reset filter clears it, and `SetReceiptFilter` (the filter dialog) keeps it. The Shop cell shows a muted
+  "Matched: Dark chocolate · 2,49 €, ..." line from `Receipt.searchMatches` (`receipt-search-matches`). See `api/CLAUDE.md`
+  "Receipt search" for what matches.
+- **The product checker is the Dashboard's "Scan product" button** (`data-testid="overview-scan-product"`, after New list; code in
+  `src/product-check/`, no API, no permission; the header has no search box any more). `ProductCheckLauncher.start()` opens the
+  camera scanner when the browser has one and the drawer with the scanned barcode; without a camera (plain http, no device) it opens
+  the drawer, which then has a field to type the barcode in. A barcode is 8/12/13 digits with a valid EAN/UPC check digit
+  (anything else answers "enter a barcode" without a request). **There is no name search, on purpose:** Open Food Facts answers
+  any request a browser marks cross-site (`Sec-Fetch-Site`, or just a `Referer`) to its search endpoints (`cgi/search.pl`,
+  `/api/v2/search`) with a 503, and its search service sends no CORS header, while `/api/v2/product/{code}` works. A name search
+  would need a server relay, which was rejected: the checker is browser-only, zero backend. Everything opens in the slide-over `ProductCheckDrawerComponent`
+  (an `AppDialog` with `panelClass: "product-check-drawer"`, docked right, a bottom sheet on a phone; the CSS is in
+  `tailwind.css` and needs `!important` because the CDK centres a dialog with inline styles).
+- **Open Food Facts is read from the browser, never stored.** `OpenFoodFactsService` builds its `HttpClient` on `HttpBackend`
+  so the app's interceptors (credentials, error toasts, queue mode) are skipped. An unknown barcode is a 404 with a JSON body,
+  which the service maps to "not found". `ProductCheckService` drops an answer that arrives after a newer request. The
+  last 10 products are kept as small JSON in `localStorage` (`rw_recent_products`, every access guarded) and shown as pills
+  for flipping between items without another request.
+- **Scoring** (`health-score.ts`, pure, constants documented): 60% Nutri-Score + 40% NOVA (missing counts as 50), minus 15 per
+  high-risk and 5 per moderate additive, clamped to 0-100. `e-additives.ts` is a bundled guide of about 210 codes with a
+  category and `safe | moderate | high`; unknown codes show as unknown. It is a general guide, and the drawer says so.
+- **Photo fallback (plain http, no device, or a refused camera).** The live scanner needs `isSecureContext` and `getUserMedia`
+  (`canUseCamera()`, a synchronous check). Without them the drawer shows `app-barcode-photo-actions`: **"Take a photo of the
+  code"** (`<input type="file" accept="image/*" capture="environment">`, opens the phone's camera app) and **"Upload a photo"**
+  (no `capture`, the gallery or a file on a PC), plus a camera icon inside the barcode field. They are native `<label>`s around
+  hidden inputs, never a button calling `input.click()`: iOS Safari and Android Chrome ignore a file-input click made after an
+  `await`, so it must stay a tap on the control itself. The scanner dialog shows the same pair when the camera is refused or
+  fails. `BarcodeImageService.decode(file)` shrinks the photo to 1280 px on its long side (`fitWithin`, a 12-48 MP photo chokes
+  decoders), draws it on an offscreen canvas and tries the native `BarcodeDetector`, then zxing with `TRY_HARDER` and the
+  EAN/UPC formats; a read counts only after the check digit passes. A photo with no code gives `ProductCheckService`'s
+  `photoFailed` state (a clear message; the labels stay usable to retry). Verified by feeding a generated 12 MP EAN-13 photo to
+  the file input with `isSecureContext` forced false; the real phone camera app is not testable here.
+- **Camera**: the live scanner is used only when `canUseCamera()`.
+  `BarcodeScannerService` uses the native `BarcodeDetector` and otherwise loads `@zxing/browser` on demand (own chunk). A read
+  counts only after the check digit passes. **zxing is pinned to `@zxing/browser` 0.1.5 + `@zxing/library` 0.21.3 on purpose:**
+  library 0.22+ declares `node >= 24`, which fails the engines check against CI's Node 20.19.6.
+- **Nutri-Score colours are tokens** (`--nutri-a..e` in both theme files, `bg-nutri-a` etc. in Tailwind).
+- **CSP** (`docker/default.conf`, still Report-Only): `connect-src` adds `https://world.openfoodfacts.org`, `img-src` adds
+  `https://images.openfoodfacts.org`. `Permissions-Policy` already allows `camera=(self)`.
+- E2E: `search-bar-visibility.spec.ts` (header search gated on a permission) is deleted; the header no longer has one.

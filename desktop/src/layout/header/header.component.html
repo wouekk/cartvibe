@@ -20,10 +20,6 @@
       }
     </div>
     <div class="flex min-w-0 flex-1 items-center justify-end gap-1 md:flex-none">
-      <app-searchbar
-        *hasAppPermission="Permission.AppReceiptsSearch"
-        class="receipt-searchbar min-w-0 flex-1 md:w-[28rem] md:flex-none"
-      ></app-searchbar>
       <span
         *hasAppPermission="Permission.AppNotificationsRead"
         class="inline-flex shrink-0 sm:ms-3"

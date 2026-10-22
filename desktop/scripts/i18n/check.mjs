@@ -70,14 +70,15 @@ for (const language of readRegistry()) {
   const missingNouns = nouns.filter((noun) => !plurals[noun] || categories.some((category) => !plurals[noun][category]));
   const total = keys.length + nouns.length;
   const done = total - missing.length - missingNouns.length;
-  coverage.push({ code: language.code, done, total, missing, missingNouns });
+  coverage.push({ code: language.code, partial: language.partial === true, done, total, missing, missingNouns });
 }
 
-for (const { code, done, total, missing, missingNouns } of coverage) {
+for (const { code, partial, done, total, missing, missingNouns } of coverage) {
   const percent = total ? ((done / total) * 100).toFixed(1) : "100.0";
   console.log(`${code}: ${done}/${total} translated (${percent}%)`);
   if (missing.length || missingNouns.length) {
-    warnings.push(`${code}: ${missing.length + missingNouns.length} missing (shown in English)`);
+    // A language ships complete unless languages.json marks it "partial": true (then the gaps only warn and show English).
+    (partial ? warnings : failures).push(`${code}: ${missing.length + missingNouns.length} missing translations${partial ? " (shown in English)" : "; translate them or mark the language partial in languages.json"}`);
     for (const key of missing.slice(0, 15)) console.log(`    missing: ${key}`);
     for (const noun of missingNouns.slice(0, 5)) console.log(`    missing plural: ${noun}`);
     if (missing.length > 15) console.log(`    ... and ${missing.length - 15} more`);

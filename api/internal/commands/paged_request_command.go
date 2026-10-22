@@ -145,6 +145,9 @@ type ReceiptPagedRequestFilter struct {
 	Group        PagedRequestField `json:"group"`
 	ResolvedDate PagedRequestField `json:"resolvedDate"`
 	CreatedAt    PagedRequestField `json:"createdAt"`
+	// Search is a free-text, typo-tolerant phrase matched against a receipt's name, shop, comments
+	// and product lines. It is a plain string on the contract, not a PagedRequestField.
+	Search string `json:"search,omitempty"`
 }
 
 // The ReceiptPagedRequestFilter keys that hold a receipt date. A report period

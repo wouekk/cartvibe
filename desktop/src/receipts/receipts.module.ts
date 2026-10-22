@@ -12,6 +12,7 @@ import { HlmCheckboxImports } from "@spartan-ng/helm/checkbox";
 import { HlmSpinner } from "@spartan-ng/helm/spinner";
 import { HlmAttachmentImports } from "@spartan-ng/helm/attachment";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
+import { HlmInputGroupImports } from "@spartan-ng/helm/input-group";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { AutocompleteModule } from "src/autocomplete/autocomplete.module";
 import { AvatarModule } from "src/avatar";
@@ -94,6 +95,7 @@ import { UserTotalWithPercentagePipe } from "./user-total-with-percentage.pipe";
     AppIconComponent,
     ...HlmAttachmentImports,
     ...HlmDropdownMenuImports,
+    ...HlmInputGroupImports,
     ...HlmTooltipImports,
     PipesModule,
     RadioGroupModule,

@@ -84,14 +84,6 @@ test.describe('Legacy User visibility', () => {
     ).toHaveCount(0);
   });
 
-  test('header search bar renders (holds app.receipts.search)', async ({
-    page,
-  }) => {
-    await page.goto('/groups/create');
-    // The search bar is now gated on app.receipts.search, which the Legacy User
-    // holds — so the always-visible header search input still renders for them.
-    await expect(page.getByRole('combobox', { name: 'Search receipts' })).toBeVisible();
-  });
 });
 
 // Contrast: an admin (Legacy Admin) holds the corresponding permissions and can

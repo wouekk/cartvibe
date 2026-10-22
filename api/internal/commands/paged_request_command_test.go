@@ -34,6 +34,10 @@ func TestReceiptDateFilterKeysAreFilterJsonKeys(t *testing.T) {
 	for i := 0; i < value.NumField(); i++ {
 		structField := value.Type().Field(i)
 		if structField.Type != fieldType {
+			// Search is the one plain-string member: a free-text phrase, not an { operation, value } condition.
+			if structField.Name == "Search" && structField.Type.Kind() == reflect.String {
+				continue
+			}
 			t.Fatalf("filter field %s is %s, want PagedRequestField", structField.Name, structField.Type)
 		}
 		key := strings.Split(structField.Tag.Get("json"), ",")[0]
