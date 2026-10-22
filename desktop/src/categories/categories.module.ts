@@ -4,7 +4,6 @@ import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { TableModule } from "src/table/table.module";
-import { DuplicateValidator } from "src/validators/duplicate-validator";
 import { DirectivesModule } from "../directives";
 import { InputModule } from "../input";
 import { PipesModule } from "../pipes";
@@ -25,6 +24,5 @@ import { CategoryTableComponent } from "./category-table/category-table.componen
     SharedUiModule,
     TableModule,
   ],
-  providers: [DuplicateValidator],
 })
 export class CategoriesModule {}
