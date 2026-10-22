@@ -12,6 +12,7 @@ func BuildReceiptRouter() *chi.Mux {
 	receiptRouter.Get("/hasAccess", handlers.HasAccess)
 	receiptRouter.Get("/{id}", handlers.GetReceipt)
 	receiptRouter.Put("/{id}", handlers.UpdateReceipt)
+	receiptRouter.Put("/{id}/name", handlers.RenameReceipt)
 	receiptRouter.Post("/group/{groupId}", handlers.GetPagedReceiptsForGroup)
 	receiptRouter.Post("/group/{groupId}/summary", handlers.GetReceiptSummaryForGroup)
 	receiptRouter.Post("/bulkStatusUpdate", handlers.BulkReceiptStatusUpdate)

@@ -9,6 +9,10 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 ## [Unreleased]
 
 ### Added
+- Quick Scan closes right after the upload, whatever the number of photos: the scans are read one at a time and the
+  uploader gets a notification for each (ready, with a link to the receipt, or failed after the last retry). Photos are
+  added by dropping or choosing them (spartan `attachment`, one row per photo with a thumbnail and a remove button).
+  of the form.
 - A quick theme toggle in the header, next to the notification bell (White <-> Black; it leaves System mode).
 - The Dashboard's shopping panel previews the list with the most items still to buy as a bulleted list. Tapping an item
   marks it done and it leaves the list at once; an easy-to-tap Undo row stays for 6 seconds. On a phone (< 768 px) the

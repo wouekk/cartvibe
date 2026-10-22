@@ -322,11 +322,8 @@ describe("GroupFormComponent", () => {
       } as Group
     );
     expect(storeSpy).toHaveBeenCalledWith(new UpdateGroup(returnValue));
-    expect(routerSpy).toHaveBeenCalledWith(["/groups/1/details/view"], {
-      queryParams: {
-        tab: "details",
-      }
-    });
+    // The form stays where it is (always editable): it settles instead of navigating to a view page.
+    expect(component.form.pristine).toBe(true);
   });
 
   it("includes isolateMembers in the create payload when enabled", () => {

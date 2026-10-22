@@ -87,3 +87,22 @@ func TestCheckReceiptProcessingSettingsCommand_Validate_SettingsWithValidationEr
 		utils.PrintTestError(t, "error should exist for field", "ocrEngine")
 	}
 }
+
+func TestCheckReceiptProcessingSettingsCommand_Validate_IgnoresMissingPrompt(t *testing.T) {
+	// The AI page tests settings that are not saved yet, so they have no prompt.
+	command := CheckReceiptProcessingSettingsCommand{
+		UpsertReceiptProcessingSettingsCommand: UpsertReceiptProcessingSettingsCommand{
+			Name:      "Household AI",
+			AiType:    models.GEMINI_NEW,
+			Key:       "typed-key",
+			Model:     "gemini-2.5-flash",
+			OcrEngine: models.TESSERACT,
+		},
+	}
+
+	vErr := command.Validate()
+
+	if len(vErr.Errors) != 0 {
+		utils.PrintTestError(t, len(vErr.Errors), 0)
+	}
+}

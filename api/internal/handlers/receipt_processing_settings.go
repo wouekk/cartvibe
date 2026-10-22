@@ -254,13 +254,29 @@ func CheckReceiptProcessingSettingsConnectivity(w http.ResponseWriter, r *http.R
 				aiClient = client
 				decryptKey = true
 			} else {
+				// Settings typed on the page with no new key: test them with the key already stored for this id.
+				key := command.Key
+				if command.ID > 0 && strings.TrimSpace(key) == "" {
+					stored, storedErr := repositories.NewReceiptProcessingSettings(nil).
+						GetReceiptProcessingSettingsById(utils.UintToString(command.ID))
+					if storedErr != nil {
+						return http.StatusBadRequest, storedErr
+					}
+					if len(stored.Key) > 0 {
+						key, storedErr = utils.DecryptB64EncodedData(config.GetEncryptionKey(), stored.Key)
+						if storedErr != nil {
+							return http.StatusInternalServerError, storedErr
+						}
+					}
+				}
+
 				receiptProcessingSettings := models.ReceiptProcessingSettings{
 					BaseModel:                 models.BaseModel{ID: command.ID},
 					Name:                      command.Name,
 					Description:               command.Description,
 					AiType:                    command.AiType,
 					Url:                       command.Url,
-					Key:                       command.Key,
+					Key:                       key,
 					Model:                     command.Model,
 					EnforceJsonResponseFormat: command.EnforceJsonResponseFormat,
 					OcrEngine:                 &command.OcrEngine,
