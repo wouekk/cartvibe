@@ -8,7 +8,6 @@
  * Do not edit the class manually.
  */
 import { Comment } from './comment';
-import { Item } from './item';
 import { Category } from './category';
 import { ReceiptSearchMatch } from './receiptSearchMatch';
 import { ReceiptStatus } from './receiptStatus';
@@ -79,10 +78,6 @@ export interface Receipt {
      * User paid foreign key
      */
     paidByUserId: number;
-    /**
-     * Items associated to receipt
-     */
-    receiptItems: Array<Item>;
     /**
      * Date resolved
      */

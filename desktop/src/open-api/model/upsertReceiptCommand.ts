@@ -8,7 +8,6 @@
  * Do not edit the class manually.
  */
 import { UpsertCategoryCommand } from './upsertCategoryCommand';
-import { UpsertItemCommand } from './upsertItemCommand';
 import { UpsertCommentCommand } from './upsertCommentCommand';
 import { ReceiptStatus } from './receiptStatus';
 import { UpsertTagCommand } from './upsertTagCommand';
@@ -48,10 +47,6 @@ export interface UpsertReceiptCommand {
      * Tags associated to receipt
      */
     tags?: Array<UpsertTagCommand>;
-    /**
-     * Items associated to receipt
-     */
-    receiptItems?: Array<UpsertItemCommand>;
     /**
      * Comments associated to receipt
      */
