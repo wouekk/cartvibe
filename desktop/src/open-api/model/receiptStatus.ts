@@ -1,5 +1,5 @@
 /**
- * Receipt Wrangler API.
+ * CartVibe API.
  *
  * 
  *
