@@ -59,6 +59,10 @@ export interface UserPreferences {
      * The interface language this person chose (a language code such as en or pl); empty follows the browser
      */
     language?: string;
+    /**
+     * True until this person has been through the first sign-in welcome (language, theme and, for an admin, the household currency). New accounts start with it on; the desktop sends false when it is done.
+     */
+    onboardingPending?: boolean;
     userShortcuts?: Array<UserShortcut>;
 }
 export namespace UserPreferences {
