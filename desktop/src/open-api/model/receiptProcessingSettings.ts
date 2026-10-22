@@ -9,7 +9,6 @@
  */
 import { OcrEngine } from './ocrEngine';
 import { AiType } from './aiType';
-import { Prompt } from './prompt';
 
 
 export interface ReceiptProcessingSettings { 
@@ -51,11 +50,6 @@ export interface ReceiptProcessingSettings {
      */
     enforceJsonResponseFormat?: boolean;
     ocrEngine?: OcrEngine;
-    prompt?: Prompt;
-    /**
-     * Prompt foreign key
-     */
-    promptId?: number;
 }
 export namespace ReceiptProcessingSettings {
 }
