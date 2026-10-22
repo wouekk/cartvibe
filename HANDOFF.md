@@ -1,5 +1,12 @@
 # HANDOFF.md — Where things stand
 
+## v0.5.0 released (2026-10-22): `preview` fast-forwarded into `main` on the user's go
+
+`main` holds everything in `preview`: item-level categories and tags (schema migration; the user backed up the NAS `sqlite`
+folder), the notifications polish, the Dashboard fixes, the donut interaction and the customizable Dashboard. `CHANGELOG.md`
+0.5.0 lists them (the tags notes had been filed under 0.4.0 by mistake and were moved). After the `main` CI, `publish-image.yml`
+pushes `:latest`; on the NAS pull `:latest` (or keep `:preview`, same content) and redeploy, then hard-refresh.
+
 ## Dashboard Customisation Engine (2026-10-22, branch `feat/dashboard-customisation-engine`, from `preview` 2d4962a7; pushed, NOT merged into `preview`, waits for UAT)
 
 `feat/item-level-tags-categories` was merged into `preview` first (2d4962a7, on the user's go; CI green; `:preview` NOT published with
