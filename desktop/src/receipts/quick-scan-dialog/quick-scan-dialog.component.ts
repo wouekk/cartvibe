@@ -298,6 +298,17 @@ export class QuickScanDialogComponent implements OnInit {
   /** Where the upload stands, for the progress bar above the footer; null while nothing is being sent. */
   public readonly uploadStage = signal<UploadStage | null>(null);
 
+  /** Set once a single scanned photo has become a receipt: the dialog then offers a button to open it. */
+  public readonly scannedReceiptId = signal<number | null>(null);
+
+  public openScannedReceipt(): void {
+    const receiptId = this.scannedReceiptId();
+    this.dialogRef.close();
+    if (receiptId) {
+      this.router.navigate(["/receipts", receiptId, "edit"]);
+    }
+  }
+
   public submitButtonClicked(): void {
     if (this.uploadStage() !== null) {
       return;
@@ -322,18 +333,17 @@ export class QuickScanDialogComponent implements OnInit {
       )
         .pipe(
           take(1),
-          // One photo: stay on the bar while the AI reads it, then land on the new receipt. Several photos (or a
-          // scan that fails, times out or cannot be followed) are simply queued, as before.
+          // One photo: stay on the bar while the AI reads it, then offer a button to open the new receipt. Several
+          // photos (or a scan that fails, times out or cannot be followed) are simply queued: the uploader gets a
+          // notification when each is read, or when it fails.
           switchMap((result: { taskIds?: string[] } | null) => this.followSingleScan(result)),
           tap((receiptId) => {
             if (receiptId) {
-              this.snackbarService.success(marker("Receipt scanned"));
-              this.dialogRef.close();
-              this.router.navigate(["/receipts", receiptId, "edit"]);
+              this.scannedReceiptId.set(receiptId);
               return;
             }
             this.snackbarService.success(
-              this.images.length === 1 ? marker("Successfully queued image for processing") : marker("Successfully queued images for processing")
+              marker("Receipts uploaded. You will get a notification once the AI has read them, or if it fails.")
             );
             this.dialogRef.close();
           }),

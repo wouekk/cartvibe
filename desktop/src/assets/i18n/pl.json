@@ -640,6 +640,7 @@
     "Open": "Otwarte",
     "Open full receipt": "Otwórz cały paragon",
     "Open in builder": "Otwórz w kreatorze",
+    "Open receipt": "Otwórz paragon",
     "Open reports": "Otwórz raporty",
     "Operation": "Operacja",
     "Operators": "Operatory",
@@ -750,8 +751,10 @@
     "Receipt data from AI:": "Dane paragonu z AI:",
     "Receipt image": "Zdjęcie paragonu",
     "Receipt photo": "Zdjęcie paragonu",
+    "Receipt ready": "Paragon gotowy",
     "Receipt renamed": "Zmieniono nazwę paragonu",
     "Receipt saved. It will be compared with the list shortly.": "Zapisano paragon. Wkrótce zostanie porównany z listą.",
+    "Receipt scan failed": "Skanowanie paragonu nie powiodło się",
     "Receipt scanned": "Paragon zeskanowany",
     "Receipt settings updated successfully": "Ustawienia paragonów zostały zaktualizowane",
     "Receipt successfully deleted": "Paragon został usunięty",
@@ -764,6 +767,7 @@
     "Receipts from this list": "Paragony z tej listy",
     "Receipts in this report": "Paragony w tym raporcie",
     "Receipts in {period}": "Paragony w okresie {period}",
+    "Receipts uploaded. You will get a notification once the AI has read them, or if it fails.": "Paragony wysłane. Dostaniesz powiadomienie, gdy AI je odczyta lub gdy się nie uda.",
     "Record-level": "Na poziomie paragonów",
     "Records": "Rekordy",
     "Reference columns by name, e.g. Subtotal + Hst": "Odwołuj się do kolumn po nazwie, np. Suma częściowa + Podatek",
@@ -918,8 +922,6 @@
     "Succeeded": "Zakończone",
     "Successfully added receipt": "Paragon został dodany",
     "Successfully logged in": "Zalogowano",
-    "Successfully queued image for processing": "Zdjęcie dodano do kolejki przetwarzania",
-    "Successfully queued images for processing": "Zdjęcia dodano do kolejki przetwarzania",
     "Successfully updated receipt": "Paragon został zaktualizowany",
     "Successfully updated receipt. Congratulations! You have reached the end of the queue.": "Paragon został zaktualizowany. Gratulacje! To koniec kolejki.",
     "Successfully uploaded image(s)": "Obrazy zostały wysłane",
@@ -961,6 +963,7 @@
     "That provider is no longer connected to your account.": "Ten dostawca nie jest już połączony z Twoim kontem.",
     "The AI could not be reached. It will try again automatically.": "Nie udało się połączyć ze sztuczną inteligencją. Spróbuje ponownie automatycznie.",
     "The AI could not read the products on this receipt.": "Sztuczna inteligencja nie mogła odczytać produktów z tego paragonu.",
+    "The AI could not read {name}. Check the activity and add the receipt by hand.": "AI nie mogło odczytać {name}. Sprawdź aktywność i dodaj paragon ręcznie.",
     "The AI found no products on this receipt.": "AI nie znalazło produktów na tym paragonie.",
     "The AI is reading this receipt now.": "Sztuczna inteligencja czyta teraz ten paragon.",
     "The AI picks from these categories when it reads a receipt, and adds new ones here by itself. Rename one and the AI is told to use the new name instead of the old; switch one off and it is told to choose another.": "AI wybiera spośród tych kategorii, czytając paragon, i samo dodaje tu nowe. Zmień nazwę, a AI dostanie polecenie używania nowej zamiast starej; wyłącz kategorię, a dostanie polecenie wyboru innej.",
@@ -987,6 +990,7 @@
     "The products could not be loaded.": "Nie udało się wczytać produktów.",
     "The rate for {code} must be a number above 0, like 1,04.": "Kurs dla {code} musi być liczbą większą od 0, np. 1,04.",
     "The receipt could not be compared with the list.": "Nie udało się porównać paragonu z listą.",
+    "The receipt: {name} has been read by the AI. Check it out!": "Paragon: {name} został odczytany przez AI. Sprawdź go!",
     "The receipt: {name} has been uploaded to the group {group}. Check it out!": "Paragon „{name}” został dodany do grupy {group}. Sprawdź go!",
     "The receipts couldn't be loaded.": "Nie udało się wczytać paragonów.",
     "The report could not be made. Try again.": "Nie udało się wykonać raportu. Spróbuj ponownie.",
@@ -1227,6 +1231,14 @@
     },
     "Show Fullscreen Image": {
       "value": "Pokaż obraz na pełnym ekranie"
+    },
+    "Successfully queued image for processing": {
+      "value": "Zdjęcie dodano do kolejki przetwarzania",
+      "closest": "Email successfully poll successfully queued"
+    },
+    "Successfully queued images for processing": {
+      "value": "Zdjęcia dodano do kolejki przetwarzania",
+      "closest": "Email successfully poll successfully queued"
     }
   }
 }
