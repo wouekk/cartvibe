@@ -1,0 +1,84 @@
+<div class="rw-panel-header">
+  <h2 id="overview-lists-title">{{ 'Shopping lists' | t }}</h2>
+  <a [routerLink]="['/shopping-lists/group', groupId()]">{{ 'Open' | t }}</a>
+</div>
+
+@if (featured(); as list) {
+  <div class="flex items-baseline justify-between gap-3">
+    <span class="min-w-0 truncate font-semibold" data-testid="overview-shopping-list-name">{{ list.name }}</span>
+    <span class="shrink-0 text-sm tabular-nums text-muted-foreground" data-testid="overview-shopping-list-count">
+      {{ '{count} to buy' | t: { count: activeItems().length } }}
+    </span>
+  </div>
+
+  @if (activeItems().length > 0) {
+    @if (canUpdate()) {
+      <p class="m-0 -mt-2 text-xs text-muted-foreground">{{ 'Tap an item to mark it done.' | t }}</p>
+    }
+    <ul class="m-0 flex list-none flex-col p-0" data-testid="overview-shopping-items">
+      @for (item of visibleItems(); track item.id) {
+        <li class="border-b border-border/40 last:border-b-0">
+          <button
+            type="button"
+            role="checkbox"
+            aria-checked="false"
+            class="flex min-h-12 w-full min-w-0 cursor-pointer items-center gap-3 rounded-lg px-1 py-2.5 text-left outline-none transition-colors duration-150 enabled:hover:bg-muted/40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring disabled:cursor-default motion-reduce:transition-none"
+            data-testid="overview-shopping-item"
+            [disabled]="!canUpdate()"
+            [attr.aria-label]="'Mark {name} as done' | t: { name: item.name }"
+            (click)="markDone(item)"
+          >
+            <span class="size-1.5 shrink-0 rounded-full bg-muted-foreground" aria-hidden="true"></span>
+            <span class="min-w-0 flex-1 break-words text-base">{{ item.name }}</span>
+            @if (amountOf(item); as amount) {
+              <span class="ml-auto shrink-0 whitespace-nowrap rounded-md bg-muted px-2.5 py-1 text-sm font-bold tabular-nums" data-testid="overview-shopping-item-amount">{{ amount }}</span>
+            }
+          </button>
+        </li>
+      }
+    </ul>
+    @if (hiddenCount() > 0) {
+      <a class="rw-link -mt-2 self-start text-sm" data-testid="overview-shopping-more" [routerLink]="['/shopping-lists/group', groupId()]">
+        {{ '{count} more on the list' | t: { count: hiddenCount() } }}
+        <app-icon name="arrow_right_alt"></app-icon>
+      </a>
+    }
+  } @else {
+    <p class="m-0 py-4 text-center text-sm text-muted-foreground" data-testid="overview-shopping-done">{{ 'Nothing left to buy on this list.' | t }}</p>
+  }
+} @else {
+  <div class="flex flex-col items-center gap-2 py-4 [&_.empty]:py-0" data-testid="overview-lists-empty">
+    <p class="m-0 py-6 text-center text-muted-foreground">{{ 'There are no items in the shopping lists.' | t }}</p>
+    @if (canCreateList()) {
+      <app-button
+        icon="playlist_add"
+        [buttonText]="'New list' | t"
+        matButtonType="matRaisedButton"
+        data-testid="overview-empty-new-list"
+        [buttonRouterLink]="newListLink()"
+        [buttonQueryParams]="{ new: 'list' }"
+      ></app-button>
+    }
+  </div>
+}
+
+@if (pending().length > 0) {
+  <div class="flex flex-col gap-2" role="status" aria-live="polite" data-testid="overview-shopping-undo">
+    @for (entry of pending(); track entry.item.id) {
+      <div class="flex min-h-12 items-center justify-between gap-3 rounded-lg bg-muted px-4 py-1 text-sm" data-testid="overview-shopping-undo-row">
+        <span class="min-w-0 truncate">{{ '{name} marked done' | t: { name: entry.item.name } }}</span>
+        <button
+          hlmBtn
+          variant="outline"
+          type="button"
+          class="min-h-10 shrink-0"
+          data-testid="overview-shopping-undo-button"
+          (click)="undo(entry)"
+        >
+          <app-icon name="restart_alt"></app-icon>
+          {{ 'Undo' | t }}
+        </button>
+      </div>
+    }
+  </div>
+}

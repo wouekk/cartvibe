@@ -2803,7 +2803,7 @@ never hand-edited.
 - **Tiles:** Spent (change against the period before, `describeChangeAgainst`), Receipts (+ how many "to check"),
   Unhealthy, Not on the list (unplanned spend), To buy. Unhealthy, Not on the list and each real category open
   `OverviewDetailDialogComponent` (the products behind it; "Other", "Uncategorized", "(Restricted)" are not openable).
-  Adding lives here: Add receipt, Quick Scan (AI feature), New list (`/shopping-lists/group/:id?new=list`).
+  Adding lives here: Quick Scan (AI feature), New list (`/shopping-lists/group/:id?new=list`); **Add receipt is not in the top bar** (it lives on the Receipts page and in the empty receipts card).
 - **Monthly spending goal** (`UserPreferences.monthlySpendingGoal`, computed on the frontend only): set from the Spent card
   itself ("+ Set goal", or the pencil / the "/ 1 500 €" text; Enter or leaving saves, Escape cancels, empty or 0 removes; it
   sends the **whole** stored preferences back because that endpoint replaces the object; gated on
@@ -2815,6 +2815,13 @@ never hand-edited.
   the goal split into a good color and red. A custom range **longer than a year** (`exceedsOneYear`) replaces the chart with
   Download Landscape PDF (one year per page) and Export CSV (`overview-export.ts`; one overview request per calendar year;
   the PDF is a print view opened inside the click; CSV is `Month,Total Spent,Goal,Difference`).
+- **Shopping panel** (`app-overview-shopping-panel`, standalone, `OverviewModule`): previews `pickLargestList` (the list with
+  the most unchecked items, first wins ties) as a bulleted list of `role=checkbox` rows (max `PANEL_ITEM_LIMIT` 8, then "{count}
+  more on the list"). Ticking an item is the Shopping lists page's own crossing off (`setShoppingListItemChecked` +
+  `ApplyShoppingListEvent`), so the item leaves at once; a bottom Undo row (`UNDO_WINDOW_MS` 6 s, at most `MAX_UNDO_ROWS` 3) puts
+  it back. The list is pinned while an Undo row is up (another list overtaking it must not swap the list under a thumb), and
+  `latestIntent` keeps a slow response from overwriting a later Undo. Below 768 px (`ViewportService.isHandset`) the page renders
+  the same `ng-template` right under the title row, otherwise beside the receipts. Needs `group.shopping-lists.update` to tick.
 - **Empty cards:** receipts say "No receipts yet in {period}" and shopping lists "There are no items in the shopping
   lists", each with the same button as the page's top right.
 - **Charts never follow the accent:** donut slices are the fixed `CATEGORY_COLORS` (sky, amber, red, violet, pink, teal);
@@ -2904,6 +2911,9 @@ Mobile-first (used in the shop). Backend contract: `api/CLAUDE.md`.
 - **User Settings → Theme** (`ThemeService`, `src/theme/`): System, White and Black (the registry is `src/theme/themes.ts`), kept in
   `rw_theme_mode`; `index.html` applies it before the first paint. A theme is a token block in `src/themes/<key>.css`
   (`docs/themes.md`); the `dark` class on `<html>` follows the theme's scheme.
+- **Header chrome:** a theme toggle button (`data-testid="theme-toggle"`) sits next to the bell and switches between the White and
+  Black themes (`ThemeService.setMode`; it leaves System mode). The "Vibe" wordmark is `#708090`. `app-cartvibe-logo` takes a
+  `scale` (default 1); the header passes `HANDSET_LOGO_SCALE` (0.3) on a handset.
 - **Colors are tokens** (`--background`, `--card`, `--primary`, `--muted-foreground`, `--border`, `--chart-1..5`, `--sidebar-*`,
   `--brand-*`), read by Tailwind utilities and the helm components. Never write a hex color in a component. Charts read the
   tokens at draw time (`shared-ui/apex-chart/chart-colors.ts`), so a new theme recolors them.

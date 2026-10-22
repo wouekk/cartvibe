@@ -424,12 +424,13 @@ describe("OverviewPageComponent", () => {
       expect(fixture.nativeElement.querySelector("[data-testid=overview-empty-add-receipt]")).toBeNull();
     });
 
-    it("offers the same Add receipt button as the top of the page to someone who can add one", async () => {
+    it("offers Add receipt here, and not in the top action bar, to someone who can add one", async () => {
       TestBed.inject(Store).dispatch(
         new SetPermissions([], { 1: [Permission.GroupReceiptsRead, Permission.GroupReceiptsCreate] })
       );
       await fixture.whenStable();
 
+      expect(fixture.nativeElement.querySelector("[data-testid=overview-add-receipt]")).toBeNull();
       const button = fixture.nativeElement.querySelector("[data-testid=overview-empty-add-receipt]");
       expect(button).not.toBeNull();
       expect(button.textContent).toContain("Add receipt");
