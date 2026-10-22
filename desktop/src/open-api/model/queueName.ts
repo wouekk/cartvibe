@@ -9,13 +9,10 @@
  */
 
 
-export type QueueName = 'quick_scan' | 'email_polling' | 'email_receipt_processing' | 'email_receipt_image_cleanup' | 'system_clean_up';
+export type QueueName = 'quick_scan' | 'system_clean_up';
 
 export const QueueName = {
     QuickScan: 'quick_scan' as QueueName,
-    EmailPolling: 'email_polling' as QueueName,
-    EmailReceiptProcessing: 'email_receipt_processing' as QueueName,
-    EmailReceiptImageCleanup: 'email_receipt_image_cleanup' as QueueName,
     SystemCleanUp: 'system_clean_up' as QueueName
 };
 

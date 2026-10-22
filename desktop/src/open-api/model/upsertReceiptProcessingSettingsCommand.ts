@@ -42,10 +42,6 @@ export interface UpsertReceiptProcessingSettingsCommand {
      */
     enforceJsonResponseFormat?: boolean;
     ocrEngine: OcrEngine;
-    /**
-     * Prompt foreign key
-     */
-    promptId: number;
 }
 export namespace UpsertReceiptProcessingSettingsCommand {
 }

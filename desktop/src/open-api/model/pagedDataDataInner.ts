@@ -7,9 +7,11 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { Comment } from './comment';
 import { Group } from './group';
 import { GroupMember } from './groupMember';
 import { Category } from './category';
+import { Receipt } from './receipt';
 import { ReceiptSearchMatch } from './receiptSearchMatch';
 import { ReportRequestCommand } from './reportRequestCommand';
 import { ReportTemplate } from './reportTemplate';
@@ -22,16 +24,11 @@ import { GroupReceiptSettings } from './groupReceiptSettings';
 import { SystemTaskStatus } from './systemTaskStatus';
 import { OcrEngine } from './ocrEngine';
 import { SystemTask } from './systemTask';
-import { GroupSettings } from './groupSettings';
-import { TagView } from './tagView';
-import { FileData } from './fileData';
-import { Comment } from './comment';
-import { Receipt } from './receipt';
 import { AiType } from './aiType';
 import { AssociatedEntityType } from './associatedEntityType';
-import { Prompt } from './prompt';
-import { SystemEmail } from './systemEmail';
+import { TagView } from './tagView';
 import { Tag } from './tag';
+import { FileData } from './fileData';
 
 
 export interface PagedDataDataInner { 
@@ -125,8 +122,6 @@ export interface PagedDataDataInner {
      * The tag has its own Dashboard tile
      */
     showOnDashboard?: boolean;
-    prompt: Prompt;
-    groupSettings?: GroupSettings;
     groupReceiptSettings: GroupReceiptSettings;
     /**
      * Members of the group
@@ -188,30 +183,6 @@ export interface PagedDataDataInner {
      */
     enforceJsonResponseFormat?: boolean;
     ocrEngine?: OcrEngine;
-    /**
-     * Prompt foreign key
-     */
-    promptId?: number;
-    /**
-     * IMAP host
-     */
-    host?: string;
-    /**
-     * IMAP port
-     */
-    port?: string;
-    /**
-     * User\'s username used to login
-     */
-    username: string;
-    /**
-     * IMAP password
-     */
-    password?: string;
-    /**
-     * Whether to use STARTTLS
-     */
-    useStartTLS?: boolean;
     canBeRestarted?: boolean;
     configuration: ReportRequestCommand;
     /**
@@ -222,6 +193,10 @@ export interface PagedDataDataInner {
      * The actions the requesting user may perform on this template (read, generate, update, delete, duplicate), resolved per user and populated only on the list response. Drives the row action buttons.
      */
     allowedActions?: Array<string>;
+    /**
+     * User\'s username used to login
+     */
+    username: string;
     /**
      * Default avatar color
      */

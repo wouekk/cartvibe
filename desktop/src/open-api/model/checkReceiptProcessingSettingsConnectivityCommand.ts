@@ -42,10 +42,6 @@ export interface CheckReceiptProcessingSettingsConnectivityCommand {
      */
     numWorkers?: number;
     ocrEngine?: OcrEngine;
-    /**
-     * Prompt foreign key
-     */
-    promptId?: number;
 }
 export namespace CheckReceiptProcessingSettingsConnectivityCommand {
 }

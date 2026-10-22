@@ -45,10 +45,6 @@ export interface SystemSettings {
      */
     numWorkers?: number;
     /**
-     * Email polling interval
-     */
-    emailPollingInterval?: number;
-    /**
      * Receipt processing settings foreign key
      */
     receiptProcessingSettingsId?: number;

@@ -9,14 +9,12 @@
  */
 
 
-export type AssociatedEntityType = 'NOOP_ENTITY_TYPE' | 'RECEIPT' | 'SYSTEM_EMAIL' | 'RECEIPT_PROCESSING_SETTINGS' | 'PROMPT' | 'API_KEY';
+export type AssociatedEntityType = 'NOOP_ENTITY_TYPE' | 'RECEIPT' | 'RECEIPT_PROCESSING_SETTINGS' | 'API_KEY';
 
 export const AssociatedEntityType = {
     NoopEntityType: 'NOOP_ENTITY_TYPE' as AssociatedEntityType,
     Receipt: 'RECEIPT' as AssociatedEntityType,
-    SystemEmail: 'SYSTEM_EMAIL' as AssociatedEntityType,
     ReceiptProcessingSettings: 'RECEIPT_PROCESSING_SETTINGS' as AssociatedEntityType,
-    Prompt: 'PROMPT' as AssociatedEntityType,
     ApiKey: 'API_KEY' as AssociatedEntityType
 };
 

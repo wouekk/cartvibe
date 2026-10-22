@@ -12,17 +12,13 @@
 /**
  * All permission keys the API recognizes.
  */
-export type Permission = 'app.users.create' | 'app.users.read' | 'app.users.update' | 'app.users.delete' | 'app.prompts.create' | 'app.prompts.read' | 'app.prompts.update' | 'app.prompts.delete' | 'app.categories.create' | 'app.categories.read' | 'app.categories.update' | 'app.categories.delete' | 'app.tags.create' | 'app.tags.read' | 'app.tags.update' | 'app.tags.delete' | 'app.system-settings.read' | 'app.system-settings.update' | 'app.system-settings.restart-task-server' | 'app.receipt-processing-settings.create' | 'app.receipt-processing-settings.read' | 'app.receipt-processing-settings.update' | 'app.receipt-processing-settings.delete' | 'app.system-emails.create' | 'app.system-emails.read' | 'app.system-emails.update' | 'app.system-emails.delete' | 'app.system-tasks.read' | 'app.imports.run' | 'app.groups.create' | 'app.groups.read' | 'app.groups.update-settings' | 'app.groups.delete' | 'app.api-keys.create' | 'app.api-keys.read' | 'app.api-keys.read-any' | 'app.api-keys.update' | 'app.api-keys.delete' | 'app.api-keys.delete-any' | 'app.oidc-providers.create' | 'app.oidc-providers.read' | 'app.oidc-providers.update' | 'app.oidc-providers.delete' | 'app.roles.create' | 'app.roles.read' | 'app.roles.update' | 'app.roles.delete' | 'app.notifications.read' | 'app.notifications.delete' | 'app.user-preferences.read' | 'app.user-preferences.update' | 'app.account.read' | 'app.account.update' | 'app.account.delete' | 'app.receipts.search' | 'app.reports.create' | 'app.reports.delete' | 'app.reports.duplicate' | 'app.reports.generate' | 'app.reports.read' | 'app.reports.update' | 'app.reports.readAll' | 'app.reports.createAll' | 'app.reports.updateAll' | 'app.reports.deleteAll' | 'app.reports.duplicateAll' | 'app.reports.generateAll' | 'group.view' | 'group.update' | 'group.delete' | 'group.members.create' | 'group.members.update' | 'group.members.delete' | 'group.members.grants.update' | 'group.receipts.create' | 'group.receipts.read' | 'group.receipts.update' | 'group.receipts.delete' | 'group.receipts.duplicate' | 'group.receipts.magic-fill' | 'group.receipts.quick-scan' | 'group.comments.create' | 'group.comments.delete' | 'group.dashboards.create' | 'group.dashboards.read' | 'group.dashboards.update' | 'group.dashboards.delete' | 'group.widgets.read' | 'group.reports.read' | 'group.activities.read' | 'group.activities.rerun' | 'group.email.poll' | 'group.shopping-lists.create' | 'group.shopping-lists.read' | 'group.shopping-lists.update' | 'group.shopping-lists.delete';
+export type Permission = 'app.users.create' | 'app.users.read' | 'app.users.update' | 'app.users.delete' | 'app.categories.create' | 'app.categories.read' | 'app.categories.update' | 'app.categories.delete' | 'app.tags.create' | 'app.tags.read' | 'app.tags.update' | 'app.tags.delete' | 'app.system-settings.read' | 'app.system-settings.update' | 'app.system-settings.restart-task-server' | 'app.receipt-processing-settings.create' | 'app.receipt-processing-settings.read' | 'app.receipt-processing-settings.update' | 'app.receipt-processing-settings.delete' | 'app.system-tasks.read' | 'app.groups.create' | 'app.groups.read' | 'app.groups.delete' | 'app.api-keys.create' | 'app.api-keys.read' | 'app.api-keys.read-any' | 'app.api-keys.update' | 'app.api-keys.delete' | 'app.api-keys.delete-any' | 'app.oidc-providers.create' | 'app.oidc-providers.read' | 'app.oidc-providers.update' | 'app.oidc-providers.delete' | 'app.roles.create' | 'app.roles.read' | 'app.roles.update' | 'app.roles.delete' | 'app.notifications.read' | 'app.notifications.delete' | 'app.user-preferences.read' | 'app.user-preferences.update' | 'app.account.read' | 'app.account.update' | 'app.account.delete' | 'app.receipts.search' | 'app.reports.create' | 'app.reports.delete' | 'app.reports.duplicate' | 'app.reports.generate' | 'app.reports.read' | 'app.reports.update' | 'app.reports.readAll' | 'app.reports.createAll' | 'app.reports.updateAll' | 'app.reports.deleteAll' | 'app.reports.duplicateAll' | 'app.reports.generateAll' | 'group.view' | 'group.update' | 'group.delete' | 'group.members.create' | 'group.members.update' | 'group.members.delete' | 'group.members.grants.update' | 'group.receipts.create' | 'group.receipts.read' | 'group.receipts.update' | 'group.receipts.delete' | 'group.receipts.duplicate' | 'group.receipts.magic-fill' | 'group.receipts.quick-scan' | 'group.comments.create' | 'group.comments.delete' | 'group.reports.read' | 'group.activities.read' | 'group.activities.rerun' | 'group.shopping-lists.create' | 'group.shopping-lists.read' | 'group.shopping-lists.update' | 'group.shopping-lists.delete';
 
 export const Permission = {
     AppUsersCreate: 'app.users.create' as Permission,
     AppUsersRead: 'app.users.read' as Permission,
     AppUsersUpdate: 'app.users.update' as Permission,
     AppUsersDelete: 'app.users.delete' as Permission,
-    AppPromptsCreate: 'app.prompts.create' as Permission,
-    AppPromptsRead: 'app.prompts.read' as Permission,
-    AppPromptsUpdate: 'app.prompts.update' as Permission,
-    AppPromptsDelete: 'app.prompts.delete' as Permission,
     AppCategoriesCreate: 'app.categories.create' as Permission,
     AppCategoriesRead: 'app.categories.read' as Permission,
     AppCategoriesUpdate: 'app.categories.update' as Permission,
@@ -38,15 +34,9 @@ export const Permission = {
     AppReceiptProcessingSettingsRead: 'app.receipt-processing-settings.read' as Permission,
     AppReceiptProcessingSettingsUpdate: 'app.receipt-processing-settings.update' as Permission,
     AppReceiptProcessingSettingsDelete: 'app.receipt-processing-settings.delete' as Permission,
-    AppSystemEmailsCreate: 'app.system-emails.create' as Permission,
-    AppSystemEmailsRead: 'app.system-emails.read' as Permission,
-    AppSystemEmailsUpdate: 'app.system-emails.update' as Permission,
-    AppSystemEmailsDelete: 'app.system-emails.delete' as Permission,
     AppSystemTasksRead: 'app.system-tasks.read' as Permission,
-    AppImportsRun: 'app.imports.run' as Permission,
     AppGroupsCreate: 'app.groups.create' as Permission,
     AppGroupsRead: 'app.groups.read' as Permission,
-    AppGroupsUpdateSettings: 'app.groups.update-settings' as Permission,
     AppGroupsDelete: 'app.groups.delete' as Permission,
     AppApiKeysCreate: 'app.api-keys.create' as Permission,
     AppApiKeysRead: 'app.api-keys.read' as Permission,
@@ -98,15 +88,9 @@ export const Permission = {
     GroupReceiptsQuickScan: 'group.receipts.quick-scan' as Permission,
     GroupCommentsCreate: 'group.comments.create' as Permission,
     GroupCommentsDelete: 'group.comments.delete' as Permission,
-    GroupDashboardsCreate: 'group.dashboards.create' as Permission,
-    GroupDashboardsRead: 'group.dashboards.read' as Permission,
-    GroupDashboardsUpdate: 'group.dashboards.update' as Permission,
-    GroupDashboardsDelete: 'group.dashboards.delete' as Permission,
-    GroupWidgetsRead: 'group.widgets.read' as Permission,
     GroupReportsRead: 'group.reports.read' as Permission,
     GroupActivitiesRead: 'group.activities.read' as Permission,
     GroupActivitiesRerun: 'group.activities.rerun' as Permission,
-    GroupEmailPoll: 'group.email.poll' as Permission,
     GroupShoppingListsCreate: 'group.shopping-lists.create' as Permission,
     GroupShoppingListsRead: 'group.shopping-lists.read' as Permission,
     GroupShoppingListsUpdate: 'group.shopping-lists.update' as Permission,
