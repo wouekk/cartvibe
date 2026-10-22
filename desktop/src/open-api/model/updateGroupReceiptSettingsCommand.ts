@@ -25,25 +25,9 @@ export interface UpdateGroupReceiptSettingsCommand {
      */
     hideReceiptTags?: boolean;
     /**
-     * Hide receipt item categories
-     */
-    hideItemCategories?: boolean;
-    /**
-     * Hide receipt item tags
-     */
-    hideItemTags?: boolean;
-    /**
      * Hide receipt comments
      */
     hideComments?: boolean;
-    /**
-     * Hide share categories
-     */
-    hideShareCategories?: boolean;
-    /**
-     * Hide share tags
-     */
-    hideShareTags?: boolean;
     /**
      * Show the paid by field in quick scan
      */
