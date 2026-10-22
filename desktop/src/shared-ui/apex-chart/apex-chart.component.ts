@@ -44,17 +44,29 @@ export class ApexChartComponent {
     });
 
     effect(() => {
-      this.theme();
-      const options = this.options()(readChartColors());
-      this.rendering = this.rendering.then(() => this.draw(options)).catch(() => undefined);
+      const theme = this.theme();
+      const options = this.options()(readChartColors());      this.rendering = this.rendering.then(() => this.draw(options, theme)).catch(() => undefined);
     });
   }
 
-  private async draw(options: ApexOptions): Promise<void> {
+  /** The theme the chart was last drawn in. */
+  private drawnTheme = 0;
+
+  private async draw(options: ApexOptions, theme: number): Promise<void> {
     const { default: ApexCharts } = await import("apexcharts");
     if (this.destroyed) {
       return;
     }
+
+    // A data change updates the chart in place. A theme change rebuilds it: an options update leaves some colors
+    // ApexCharts wrote as SVG attributes (the donut's slice strokes and center text) in the old theme.
+    // The rebuilt chart appears without its entry animation, so a theme switch does not replay it.
+    if (this.chart && theme !== this.drawnTheme) {
+      this.chart.destroy();
+      this.chart = undefined;
+      options = { ...options, chart: { ...options.chart, animations: { ...options.chart?.animations, enabled: false } } };
+    }
+    this.drawnTheme = theme;
 
     if (this.chart) {
       await this.chart.updateOptions(options, true, false);

@@ -14,7 +14,9 @@ import { splitMoney } from "./split-money";
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [CurrencyPipe, CustomCurrencyPipe],
   host: { class: "tabular-nums", "[attr.data-testid]": "null" },
-  template: `@if (parts().integer) {<span class="text-[0.75em] font-medium text-muted-foreground">{{ parts().prefix }}</span><span class="font-bold tracking-tight">{{ parts().integer }}</span><span class="text-[0.75em] font-medium text-muted-foreground">{{ parts().fraction }}{{ parts().suffix }}</span>} @else {{{ parts().prefix }}}`,
+  // The quiet parts take the amount's own color at reduced emphasis (not a fixed muted token), so a red or amber figure
+  // stays red or amber down to its cents.
+  template: `@if (parts().integer) {<span class="text-[0.75em] font-medium opacity-60" data-part="quiet">{{ parts().prefix }}</span><span class="font-bold tracking-tight">{{ parts().integer }}</span><span class="text-[0.75em] font-medium opacity-60" data-part="quiet">{{ parts().fraction }}{{ parts().suffix }}</span>} @else {{{ parts().prefix }}}`,
 })
 export class MoneyComponent {
   private readonly currency = inject(CustomCurrencyPipe);
