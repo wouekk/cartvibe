@@ -49,7 +49,7 @@ receipt summary, default custom fields, app time zone, …) live in `docs/upstre
 
 ## Rules that are easy to break
 
-- **The visual identity is high-craft fintech on spartan/ui + Tailwind** (`AGENTS.md` -> "Visual identity", `desktop/CLAUDE.md`). It overrides older design notes and applies to every UI change, in both themes.
+- **The visual identity is high-craft fintech on spartan/ui + Tailwind** (`AGENTS.md` -> "Visual identity", `desktop/CLAUDE.md`). It overrides older design notes and applies to every UI change, in both themes. It has priority over any request: a deviation means **pause and ask** first.
 
 These are distilled from incidents and reviews; the linked sections explain them.
 

@@ -2951,7 +2951,11 @@ Angular Material, Bootstrap and the Tailwind CDN are gone (`docs/material-remova
   **Menus** are spartan dropdown menus (`hlmDropdownMenuTrigger`). **Icons** are `<app-icon name="receipt_long">`: it takes the
   Material name (the API stores them) and draws the Lucide icon from `shared-ui/icon/icon-map.ts`; add a pair there for a new name.
 - **Money** on the Dashboard cards is `<app-money>` (whole part bold, symbol and decimals quiet); a shop name gets
-  `<app-shop-monogram>`; numbers use `tabular-nums`.
+  `<app-shop-monogram>`; numbers use `tabular-nums`. The quiet parts are `opacity-60` of the amount's own color, never a
+  fixed token, so a tinted amount (`text-destructive`, `text-warning-text`) stays tinted down to its cents.
+- **Charts and the theme:** `app-apex-chart` updates a chart in place for new data but **rebuilds** it on a theme change
+  (without the entry animation), because ApexCharts leaves some attribute colors (donut strokes, center text) in the old
+  theme on an options update; the donut's center text also takes its colors from tokens in `tailwind.css`.
 - **Tests under zoneless:** a view is only re-checked when something marks it; a spec that mutates a plain field should call
   `fixture.changeDetectorRef.markForCheck()` before `detectChanges()`. jsdom has no `ResizeObserver` (stubbed in `setup-jest.ts`).
 
@@ -2982,7 +2986,7 @@ The **English text is the key**: `{{ 'Add receipt' | t }}` (pipe `t`, exported b
 
 ### Shared pieces added in the UI-issues run (2026-10)
 - **`cv-section` / `cv-field-box` / `cv-scroll-x` / `cv-list`** (`src/tailwind.css`, components layer): the inset panel for blocks inside a settings card, the boxed From/To field, the horizontal scroller with no vertical scrollbar (every pill strip uses it), and a hairline list. Use them instead of new one-off classes. All borders default to `--border` in the base layer.
-- **Dashboard donut:** click a slice or a legend dot to focus a category (`focusedSegment`, `toggleFocus`); there are no checkbox chips. Bars use `height: 100%` inside a `min-h-[260px] flex-1` wrapper so the chart fills its card.
+- **Dashboard donut:** click a slice or a legend dot to focus a category (`focusedSegment`, `toggleFocus`); there are no checkbox chips. Hovering a slice (ApexCharts `dataPointMouseEnter/Leave`) or a legend row (`mouseenter`/`focusin`) sets `hoveredSegment`; `activeSegment` = hovered ?? focused. `applySliceEmphasis` works on the drawn SVG (never through the options, so hover does not redraw): the active slice scales 1.06 from the ring's center (`transform-box: fill-box`, origin from the slices' boxes, 200 ms `cubic-bezier(0.16, 1, 0.3, 1)`), the others go to 0.45 opacity (150 ms), and the middle names the category. It runs again on `animationEnd`, since the slices have no size during the entry animation; `customScale: 0.92` leaves room for the grown slice. Legend rows dim with `opacity-45`. Bars use `height: 100%` inside a `min-h-[260px] flex-1` wrapper so the chart fills its card.
 - **AI page:** `app-gemini-model-field` (model dropdown from `POST /receiptProcessingSettings/geminiModels`, text box fallback, key sent in the body, a saved key is used server-side via the settings id) and `app-ai-fallback-card` (a second Gemini settings row linked as `fallbackReceiptProcessingSettingsId`; switching it off only unlinks; hidden without System Settings access). Shared constants live in `ai-settings-shared.ts`.
 - **Dialog footer:** `app-dialog-footer` / `app-cancel-button` render labelled buttons; the submit one is tinted green (`bg-success-text/15`), cancel red. Specs find them by testid.
 
