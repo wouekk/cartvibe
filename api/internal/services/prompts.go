@@ -25,43 +25,22 @@ func NewPromptService(tx *gorm.DB) PromptService {
 // only shaped by the group's categories through @categories). Stored Prompt rows are kept, and a
 // processing setting still names one, but buildPrompt no longer reads it. It asks for no tags: tags are
 // the household's own labels, set by people (the AI's answer is stripped of any, see dropAiTags).
+//
+// Short on purpose (fewer input tokens), and the answer is minified JSON (fewer output tokens, which set
+// most of the latency). buildPrompt inserts the products part right before "\nReceipt text: ".
 const DefaultReceiptPrompt = `
-Find the receipt's name, total cost, and date. Format the found data as:
-{
-	"name": store name,
-	"shopName": the shop brand as printed, like Auchan, Edeka or Rewe (only the brand, "" if unreadable),
-	"currency": the ISO 4217 code of the currency the receipt is in, like EUR, PLN, GBP, CHF or USD,
-	"amount": amount as a number,
-	"date": date in ISO 18601 format in UTC with ALL time values set as 0,
-	"categories": categories,
-	"customFields": custom field values
-}
-If a store name cannot be confidently found, use 'Default store name' as the default name.
-Omit any value if not found with confidence. Assume the date is in the year @currentYear if not provided.
-The amount must be a float or integer.
-Currency: read the code from the receipt. A price written with zł, zl or PLN is PLN (Polish złoty); with £, GBP or the word pounds is GBP; with CHF, Fr. or SFr. is CHF; with $ is USD; with € is EUR. If no currency is printed, return "". Always give the amount exactly as printed, in that currency, without converting it.
-If the receipt represents a refund, return, or credit (money returned to the customer rather than charged), the amount and item amounts MUST be negative. Otherwise they are positive.
+Read this shop receipt. Reply with minified JSON only, no code block:
+{"name":"...","shopName":"...","currency":"...","amount":0.0,"date":"2024-01-31T00:00:00Z","categories":[{"id":1}],"customFields":[]}
+- "name": the store name; "Default store name" if unreadable.
+- "shopName": the shop brand only (Auchan, Edeka, Rewe); "" if unreadable.
+- "currency": ` + currencyRule + `
+- "amount": the total paid, a number. A refund, return or credit (money back to the customer) is negative.
+- "date": the purchase day at midnight UTC, in exactly that format; the year is @currentYear if not printed.
+- "categories": up to 2 category ids from the list below that fit the store and what was bought, using their descriptions; [] if none fits. Never invent an id.
+- "customFields": a value only for a field the receipt clearly shows: {"customFieldId":id} plus one of "stringValue" (TEXT), "dateValue" yyyy-MM-dd (DATE), "selectValue" an option id (SELECT), "currencyValue" a number (CURRENCY), "booleanValue" (BOOLEAN); [] if none.
+Leave out any other value you cannot read with confidence.
 
-Please do NOT add any additional information, only valid JSON.
-Please return the json in plaintext ONLY, do not ever return it in a code block or any other format.
-
-Choose up to 2 categories from the given list based on the receipt's items and store name. If no categories fit, please return an empty array for the field and do not select any categories. When selecting categories, select only the id, like:
-{
-	Id: category id
-}
-
-Emphasize the relationship between the category and the receipt, and use the description of the category to fine tune the results. Do not return categories that have an empty name or do not exist.
-If there are no categories to chose from, then please make categories an empty array.
-
-Categories to chose from: @categories
-
-Custom fields to fill in, as a list of {id, name, type, description, options}. Return a value for a field only when the receipt clearly shows it; otherwise leave it out. If there are no custom fields, make customFields an empty array. Each value is an object with the field's id as customFieldId and exactly one value, by type:
-TEXT: "stringValue": text
-DATE: "dateValue": the date as yyyy-MM-dd
-SELECT: "selectValue": the id of one of the field's options
-CURRENCY: "currencyValue": amount as a number
-BOOLEAN: "booleanValue": true or false
-
+Categories: @categories
 Custom fields: @customFields
 
 Receipt text: @ocrText

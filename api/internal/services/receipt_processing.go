@@ -579,7 +579,18 @@ func (service ReceiptProcessingService) getCategoriesString() (string, error) {
 		}
 	}
 
-	categoriesBytes, err := json.Marshal(categories)
+	// Only what the AI chooses by: the full rows carried timestamps and flags, many tokens per category.
+	type promptCategory struct {
+		Id          uint   `json:"id"`
+		Name        string `json:"name"`
+		Description string `json:"description,omitempty"`
+	}
+	compact := make([]promptCategory, len(categories))
+	for i, category := range categories {
+		compact[i] = promptCategory{Id: category.ID, Name: category.Name, Description: category.Description}
+	}
+
+	categoriesBytes, err := json.Marshal(compact)
 	if err != nil {
 		return "", err
 	}

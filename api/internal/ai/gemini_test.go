@@ -11,6 +11,8 @@ import (
 	"receipt-wrangler/api/internal/utils"
 	"strings"
 	"testing"
+
+	"google.golang.org/genai"
 )
 
 const geminiAnswer = `{"candidates": [{"content": {"role": "model", "parts": [
@@ -151,5 +153,18 @@ func TestGeminiDoesNotRetryAnOutage(t *testing.T) {
 	}
 	if len(*requests) != 1 {
 		t.Errorf("an outage must not cost a second call, got %d", len(*requests))
+	}
+}
+
+func TestGeminiTemperatureIsZeroExceptOnGemini3(t *testing.T) {
+	for model, want := range map[string]*float32{
+		"gemini-2.5-flash":        genai.Ptr[float32](0),
+		"models/gemini-2.0-flash": genai.Ptr[float32](0),
+		"gemini-3-pro-preview":    nil,
+	} {
+		got := geminiTemperature(model)
+		if (got == nil) != (want == nil) || (got != nil && *got != *want) {
+			t.Errorf("%s: expected %v, got %v", model, want, got)
+		}
 	}
 }

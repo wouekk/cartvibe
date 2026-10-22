@@ -4265,3 +4265,16 @@ decided by them), but the desktop no longer edits them.
   Receipt rows are untouched. Verified on a copy of the dev database (receipt tags appeared on its lines).
 - Not changed: the receipt prompt still asks the AI for receipt-level categories and tags (stored, not shown).
 - Tests: `handlers/item_labels_test.go`, `repositories/item_labels_migration_test.go`, the category tests.
+
+## AI: no tags, leaner prompts (fork, 2026-10, same branch)
+- **The AI never assigns tags** (they are the household's own labels): `DefaultReceiptPrompt` no longer asks for them, and
+  `dropAiTags` empties the tags of the answer (receipt, items, linked items), so a stored custom prompt cannot bring them back.
+  It still assigns categories (receipt-level and, per line, `foodGroup` → `category_id`) and health. A category switched off
+  under Manage Categories (`skipped`) is left out of the receipt prompt's list too, as it already was for product lines.
+- **Prompts are short and ask for minified JSON**, leaving out empty optional keys (`quantity`, `seasonality`; the parsers
+  default them). `@categories` is `[{id, name, description?}]`, not full rows. The product read and the classification
+  sweep share `healthRules`, `seasonalityRuleTemplate` and `currencyRule`. With a category list, the "foodGroup" rule points
+  at it and gives no English examples (they made the AI answer outside a Polish list, creating categories).
+- **Sampling:** Gemini runs at temperature 0, except Gemini 3 (Google's guidance is its default 1.0; `geminiTemperature`).
+  Ollama gets `options.temperature: 0` (its native API ignores the top-level key, kept for OpenAI-style servers).
+- Not measured: the effect on answer length and latency with a real model; check the Logs tab's CHAT_COMPLETION durations.
