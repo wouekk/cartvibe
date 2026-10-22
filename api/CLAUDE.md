@@ -4279,3 +4279,17 @@ The full reference (every call, answer shapes, failure handling, how to change a
 - **Sampling:** Gemini runs at temperature 0, except Gemini 3 (Google's guidance is its default 1.0; `geminiTemperature`).
   Ollama gets `options.temperature: 0` (its native API ignores the top-level key, kept for OpenAI-style servers).
 - Not measured: the effect on answer length and latency with a real model; check the Logs tab's CHAT_COMPLETION durations.
+
+## Dashboard layout (fork, 2026-10, branch `feat/dashboard-customisation-engine`)
+
+- `GET /dashboardLayout` / `PUT /dashboardLayout` (`handlers/dashboard_layout.go`): the caller's own Dashboard arrangement, one row per
+  user in `dashboard_layouts` (`models.DashboardLayout`, additive). `layout` is a **client-owned JSON document** stored as text
+  (`{"version":1,"panels":[{"id","visible","cols","rows"}],"compactOrder":[...]}`, panel ids are plain strings); the API checks only
+  the envelope (`services.ValidateDashboardLayout`: a JSON object with a numeric version, at most 16 KB) and answers 400 "The dashboard
+  layout could not be read." otherwise, so a newer client can add fields without an API change. No row returns an empty layout (the
+  default). Gated on `app.user-preferences.read` / `.update` (a layout is a preference).
+- **It is not a UserPreferences field on purpose:** `PUT /userPreferences` replaces the whole object, so any client that does not know
+  the field (a future native app, an older build) would erase it.
+- **Entitlement seam:** `services.CanCustomiseDashboard(userId)` is the one place that decides whether a person may save a layout (true
+  for everyone today; a paid tier would answer here). GET reports it as `canCustomise` (computed, `gorm:"-"`), PUT refuses with the
+  usual 403 when it is false. It is per user, so it is not in the unauthenticated `FeatureConfig`.

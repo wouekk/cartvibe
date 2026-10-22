@@ -156,6 +156,9 @@ import {
   lucideHammer,
   lucideBuilding2,
   lucideCircle,
+  lucideSmartphone,
+  lucideTablet,
+  lucideMonitor,
 } from "@ng-icons/lucide";
 
 export const ICON_DEFINITIONS = {
@@ -312,6 +315,9 @@ export const ICON_DEFINITIONS = {
   lucideHammer,
   lucideBuilding2,
   lucideCircle,
+  lucideSmartphone,
+  lucideTablet,
+  lucideMonitor,
 };
 
 export const MATERIAL_TO_LUCIDE: Record<string, string> = {
@@ -499,4 +505,7 @@ export const MATERIAL_TO_LUCIDE: Record<string, string> = {
   apartment: "lucideBuilding2",
   checklist: "lucideListChecks",
   copy_all: "lucideCopy",
+  smartphone: "lucideSmartphone",
+  tablet: "lucideTablet",
+  computer: "lucideMonitor",
 };
