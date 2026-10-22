@@ -8,12 +8,32 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+### Added
+- **Reports read product lines:** Category and Tag come from the receipt's product lines (they had been read from the
+  receipt, which the app no longer edits), and **Health** and **Planned / Unplanned** are new fields. Cutting by one
+  divides a receipt by what its lines cost; what the lines do not cover is the empty bucket, so totals stay exact.
+
+### Changed
+- **Report builder** follows the visual identity in both themes: hairline section cards (no more white cards with
+  unreadable labels in Black), flat grouping and column rows, the shared tab strip and header, a segmented format
+  control, and a phone layout that scrolls as one page. Paid By is called **Added by** in reports.
+- **One button style:** every action is the filled accent button and is dimmed when inactive (Going shopping, Scan
+  receipt, Attach existing, Test connection, exports, the product checker's photo buttons, dialog submits); every
+  Cancel is red; Save is always labelled and stays dimmed while an edit form has nothing to save.
+
 ### Fixed
+- **Edit user** showed a bare check mark instead of Save.
+- **Shopping list:** the + button sits on the same line as the add box.
+- **Receipt comments:** the card text lines up with its title, says when there are no comments, shows a new first
+  comment at once, and a comment can be added to a receipt opened for viewing.
 - **Dashboard customise screen:** panels keep their exact width (no stretching, so Narrower always shows), drag in any direction
   including diagonally and into empty space, tiles may sit beside charts, a panel at its smallest or largest size shakes and
   says so, panels can be placed in any column and row (empty columns allowed), every page shares one content width (1240px, full width below it), the resize corner is a visible chip, the starting layout fills its rows, and the donut centre no longer overflows on a long date range.
 
 ### Removed
+- **Report splitting options** (split equally across categories / tags, excluded currency fields): reports divide
+  receipts by their product lines instead. Saved templates carrying them still open.
+
 - **Custom fields** (definitions, receipt values, group defaults, AI extraction, report fields, permissions) and the **receipt summary** block under the receipts table.
   **Not an in-place upgrade:** wipe the NAS `sqlite` folder and set new `SECRET_KEY` / `ENCRYPTION_KEY` before deploying; no drop migration was written on purpose.
 
