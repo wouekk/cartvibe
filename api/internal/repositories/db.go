@@ -147,6 +147,7 @@ func MakeMigrations() error {
 		&models.Notification{},
 		&models.UserShortcut{},
 		&models.UserPrefernces{},
+		&models.DashboardLayout{},
 		&models.SubjectLineRegex{},
 		&models.GroupSettingsWhiteListEmail{},
 		&models.GroupSettings{},

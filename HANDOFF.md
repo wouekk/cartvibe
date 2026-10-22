@@ -1,8 +1,25 @@
 # HANDOFF.md — Where things stand
 
-## Preview integration (2026-10-22, 09:10): tags merged, customisation engine next
+## Dashboard Customisation Engine (2026-10-22, branch `feat/dashboard-customisation-engine`, from `preview` 2d4962a7; pushed, NOT merged into `preview`, waits for UAT)
 
-`feat/item-level-tags-categories` and `feat/dashboard-customisation-engine` (part 1) are both merged into `preview` on the user's go. The customisation engine is built next on `feat/dashboard-customisation-engine`, from this `preview`.
+`feat/item-level-tags-categories` was merged into `preview` first (2d4962a7, on the user's go; CI green; `:preview` NOT published with
+it yet: back up the NAS `sqlite` folder before deploying, its migration changes the schema). On top of it:
+- API: `GET/PUT /dashboardLayout` (`models.DashboardLayout`, additive table, client-owned JSON, entitlement seam
+  `services.CanCustomiseDashboard` reported as `canCustomise`); swagger + regenerated client. Go tests in `handlers/dashboard_layout_test.go`.
+- Desktop: layout engine (`src/overview/dashboard-layout/`), the Dashboard renders through it (no more `isHandset` branch), the customise
+  screen `/overview/group/:id/customize` (panel list, drag/move/resize/hide, Mobile/Tablet/PC preview, Save/Cancel/Reset), the receipt date
+  links to the receipt (user request), switches fixed (`data-[state=checked]`). Details: `desktop/CLAUDE.md` -> "Panel layout and the
+  customise screen", `api/CLAUDE.md` -> "Dashboard layout".
+- Deviations from the plan (`C:/Users/Marcin/.claude/plans/ultrathink-pasted-content-id-5438-vectorized-flame.md`): the customise screen
+  is the Dashboard component in edit mode on its own route (not a separate `app-dashboard-panel-grid`); the entitlement is `canCustomise` on
+  the layout response, not a `FeatureConfig` flag (that payload is global and unauthenticated); rows are `flex-wrap` with growing panels,
+  not a strict CSS grid (a strict grid left holes); the panel list sits above the preview, not in a side drawer (so PC previews at full width).
+- Local: Go vet clean, dashboard layout tests pass; Jest 304 suites / 2267 tests; `ng build` OK; i18n 100% Polish. Seen on a separate dev
+  stack (API on 8082 built from this branch, Redis on 6380, web on 4202, a copy of the tags dev database), White and Black at 1400 and 390
+  px: default Dashboard, customise screen in all three previews, and a real save (switch off, save, reload: still off). Not seen: the NAS, a
+  real touch drag on a phone, the corner resize handle by hand (covered by the menu steppers), e2e.
+- Open for the user: the helm checkbox has the same `data-checked` mismatch as the switch (checked boxes do not fill); left alone because
+  fixing it restyles every checkbox.
 
 ## Dashboard fixes + donut interaction (2026-10-22, branch `feat/dashboard-customisation-engine`, from `preview`; merged into `preview` as 29ed2856)
 
