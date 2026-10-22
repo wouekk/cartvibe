@@ -25,6 +25,10 @@ import { PagedData } from '../model/pagedData';
 // @ts-ignore
 import { Permission } from '../model/permission';
 // @ts-ignore
+import { QuickScanResult } from '../model/quickScanResult';
+// @ts-ignore
+import { QuickScanStatus } from '../model/quickScanStatus';
+// @ts-ignore
 import { Receipt } from '../model/receipt';
 // @ts-ignore
 import { ReceiptPagedRequestCommand } from '../model/receiptPagedRequestCommand';
@@ -34,6 +38,8 @@ import { ReceiptStatus } from '../model/receiptStatus';
 import { ReceiptSummary } from '../model/receiptSummary';
 // @ts-ignore
 import { ReceiptSummaryCommand } from '../model/receiptSummaryCommand';
+// @ts-ignore
+import { RenameReceiptCommand } from '../model/renameReceiptCommand';
 // @ts-ignore
 import { UpsertReceiptCommand } from '../model/upsertReceiptCommand';
 
@@ -566,6 +572,84 @@ export class ReceiptService {
     }
 
     /**
+     * Quick scan status
+     * Whether the quick scan queued by quickScanReceipt has created its receipt yet. Only the user who ran the scan may ask. [SYSTEM USER]
+     * @param taskId A task id returned by quickScanReceipt
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getQuickScanStatus(taskId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<QuickScanStatus>;
+    public getQuickScanStatus(taskId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<QuickScanStatus>>;
+    public getQuickScanStatus(taskId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<QuickScanStatus>>;
+    public getQuickScanStatus(taskId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (taskId === null || taskId === undefined) {
+            throw new Error('Required parameter taskId was null or undefined when calling getQuickScanStatus.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        let localVarCredential: string | undefined;
+        // authentication (apiKeyAuth) required
+        localVarCredential = this.configuration.lookupCredential('apiKeyAuth');
+        if (localVarCredential) {
+            localVarHeaders = localVarHeaders.set('Authorization', localVarCredential);
+        }
+
+        // authentication (bearerAuth) required
+        localVarCredential = this.configuration.lookupCredential('bearerAuth');
+        if (localVarCredential) {
+            localVarHeaders = localVarHeaders.set('Authorization', 'Bearer ' + localVarCredential);
+        }
+
+        let localVarHttpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (localVarHttpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            localVarHttpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        let localVarHttpContext: HttpContext | undefined = options && options.context;
+        if (localVarHttpContext === undefined) {
+            localVarHttpContext = new HttpContext();
+        }
+
+        let localVarTransferCache: boolean | undefined = options && options.transferCache;
+        if (localVarTransferCache === undefined) {
+            localVarTransferCache = true;
+        }
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/receipt/quickScan/${this.configuration.encodeParam({name: "taskId", value: taskId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: undefined})}`;
+        return this.httpClient.request<QuickScanStatus>('get', `${this.configuration.basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: <any>responseType_,
+                withCredentials: this.configuration.withCredentials,
+                headers: localVarHeaders,
+                observe: observe,
+                transferCache: localVarTransferCache,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
      * Get receipt
      * This will get a receipt by receipt id [SYSTEM USER]
      * @param receiptId Id of receipt to get
@@ -933,9 +1017,9 @@ export class ReceiptService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public quickScanReceipt(files: Array<Blob>, groupIds: Array<number>, paidByUserIds: Array<number>, statuses: Array<ReceiptStatus>, categoryIds?: Array<string>, tagIds?: Array<string>, comments?: Array<string>, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any>;
-    public quickScanReceipt(files: Array<Blob>, groupIds: Array<number>, paidByUserIds: Array<number>, statuses: Array<ReceiptStatus>, categoryIds?: Array<string>, tagIds?: Array<string>, comments?: Array<string>, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<any>>;
-    public quickScanReceipt(files: Array<Blob>, groupIds: Array<number>, paidByUserIds: Array<number>, statuses: Array<ReceiptStatus>, categoryIds?: Array<string>, tagIds?: Array<string>, comments?: Array<string>, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<any>>;
+    public quickScanReceipt(files: Array<Blob>, groupIds: Array<number>, paidByUserIds: Array<number>, statuses: Array<ReceiptStatus>, categoryIds?: Array<string>, tagIds?: Array<string>, comments?: Array<string>, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<QuickScanResult>;
+    public quickScanReceipt(files: Array<Blob>, groupIds: Array<number>, paidByUserIds: Array<number>, statuses: Array<ReceiptStatus>, categoryIds?: Array<string>, tagIds?: Array<string>, comments?: Array<string>, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<QuickScanResult>>;
+    public quickScanReceipt(files: Array<Blob>, groupIds: Array<number>, paidByUserIds: Array<number>, statuses: Array<ReceiptStatus>, categoryIds?: Array<string>, tagIds?: Array<string>, comments?: Array<string>, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<QuickScanResult>>;
     public quickScanReceipt(files: Array<Blob>, groupIds: Array<number>, paidByUserIds: Array<number>, statuses: Array<ReceiptStatus>, categoryIds?: Array<string>, tagIds?: Array<string>, comments?: Array<string>, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (files === null || files === undefined) {
             throw new Error('Required parameter files was null or undefined when calling quickScanReceipt.');
@@ -1082,10 +1166,102 @@ export class ReceiptService {
         }
 
         let localVarPath = `/receipt/quickScan`;
-        return this.httpClient.request<any>('post', `${this.configuration.basePath}${localVarPath}`,
+        return this.httpClient.request<QuickScanResult>('post', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
                 body: localVarConvertFormParamsToString ? localVarFormParams.toString() : localVarFormParams,
+                responseType: <any>responseType_,
+                withCredentials: this.configuration.withCredentials,
+                headers: localVarHeaders,
+                observe: observe,
+                transferCache: localVarTransferCache,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Rename receipt
+     * Changes only the name of a receipt [SYSTEM USER]
+     * @param receiptId Id of receipt to rename
+     * @param renameReceiptCommand 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public renameReceipt(receiptId: number, renameReceiptCommand: RenameReceiptCommand, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<RenameReceiptCommand>;
+    public renameReceipt(receiptId: number, renameReceiptCommand: RenameReceiptCommand, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<RenameReceiptCommand>>;
+    public renameReceipt(receiptId: number, renameReceiptCommand: RenameReceiptCommand, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<RenameReceiptCommand>>;
+    public renameReceipt(receiptId: number, renameReceiptCommand: RenameReceiptCommand, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (receiptId === null || receiptId === undefined) {
+            throw new Error('Required parameter receiptId was null or undefined when calling renameReceipt.');
+        }
+        if (renameReceiptCommand === null || renameReceiptCommand === undefined) {
+            throw new Error('Required parameter renameReceiptCommand was null or undefined when calling renameReceipt.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        let localVarCredential: string | undefined;
+        // authentication (apiKeyAuth) required
+        localVarCredential = this.configuration.lookupCredential('apiKeyAuth');
+        if (localVarCredential) {
+            localVarHeaders = localVarHeaders.set('Authorization', localVarCredential);
+        }
+
+        // authentication (bearerAuth) required
+        localVarCredential = this.configuration.lookupCredential('bearerAuth');
+        if (localVarCredential) {
+            localVarHeaders = localVarHeaders.set('Authorization', 'Bearer ' + localVarCredential);
+        }
+
+        let localVarHttpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (localVarHttpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            localVarHttpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        let localVarHttpContext: HttpContext | undefined = options && options.context;
+        if (localVarHttpContext === undefined) {
+            localVarHttpContext = new HttpContext();
+        }
+
+        let localVarTransferCache: boolean | undefined = options && options.transferCache;
+        if (localVarTransferCache === undefined) {
+            localVarTransferCache = true;
+        }
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/receipt/${this.configuration.encodeParam({name: "receiptId", value: receiptId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}/name`;
+        return this.httpClient.request<RenameReceiptCommand>('put', `${this.configuration.basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: renameReceiptCommand,
                 responseType: <any>responseType_,
                 withCredentials: this.configuration.withCredentials,
                 headers: localVarHeaders,
