@@ -400,6 +400,12 @@ select {
 /* Every border is the low-contrast hairline unless a utility says otherwise (Tailwind 4 defaults to currentColor, which
    draws white row dividers in the dark theme). */
 @layer base {
+  /* The one content width of every page. Below it the page simply fills the screen, inside the shell's gutter
+     (16px on a phone, 24px from 640px up), so there is no separate tablet or phone width to keep in step. */
+  :root {
+    --page-max: 1240px;
+  }
+
   *,
   ::after,
   ::before,

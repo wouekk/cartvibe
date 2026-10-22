@@ -1,5 +1,9 @@
 # HANDOFF.md — Where things stand
 
+## Free placement and one page width (2026-10-22, branch `feature/clean-schema`)
+
+Panels now sit in a grid with optional saved cells (`x`, `y`) so they can go in any column or row, empty columns allowed; every page (settings, receipts, shopping lists, receipt form, Dashboard) shares `--page-max` = 1240px, full width with 16/24px gutters below it (checked: all 13 routes measure 1240 at 2000px, 720 at 768, 358 at 390, no horizontal overflow). The report builder stays full-bleed. Checked in a browser on a fresh database: drag into the empty last column, drag below the last row, tablet/phone reorder, widen blocked by a neighbour. Not seen: a real touch drag. Old saved layouts have no cells and flow as before.
+
 ## Dashboard customise fixes (2026-10-22, branch `feature/clean-schema`)
 
 Exact panel widths (no stretch), pointer-driven 2D drag replacing CDK, limit shake + toast, visible resize chip, `2/6` label, menu steps from the current size (it used to read a stale copy). The out-of-box layout now fills its rows (`fillRows`); the donut centre reads "Total" for a long date range; stale NGXS storage keys removed. Details: `desktop/CLAUDE.md` -> "Panel layout and the customise screen".

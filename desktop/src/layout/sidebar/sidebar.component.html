@@ -192,7 +192,10 @@
       [class.flex-1]="isContentFullHeight()"
       [class.overflow-hidden]="isContentFullHeight()"
     >
-      <router-outlet></router-outlet>
+      <!-- Every page shares one content width (--page-max, tailwind.css); a full-height route keeps its own frame. -->
+      <div class="mx-auto w-full max-w-[var(--page-max)]" [class.contents]="isContentFullHeight()">
+        <router-outlet></router-outlet>
+      </div>
     </div>
   </main>
 </div>

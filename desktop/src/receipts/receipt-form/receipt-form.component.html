@@ -1,4 +1,4 @@
-<form class="mx-auto mb-6 w-full max-w-5xl" [formGroup]="form" (ngSubmit)="submit()">
+<form class="mb-6 w-full" [formGroup]="form" (ngSubmit)="submit()">
   <app-form-header
     [headerText]="formHeaderText() ?? ''"
     [headerButtonsTemplate]="formHeaderButtons"
@@ -231,7 +231,7 @@
 <!-- Below the Save bar and outside the form: a comment is committed with its own Comment button,
      never by saving the receipt. -->
 @if (!this.selectedGroup()?.groupReceiptSettings?.hideComments) {
-  <section class="mx-auto mb-6 w-full max-w-5xl">
+  <section class="mb-6 w-full">
     @if (isCommentMissing()) {
       <div
         class="cv-requirement-hint mb-2"

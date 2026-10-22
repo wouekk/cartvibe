@@ -2,8 +2,7 @@ import { Component, computed, input } from "@angular/core";
 
 /**
  * The shell every settings page shares: title, description, primary action top right, optional tab strip, content.
- * Every settings page is `wide` (max-w-5xl) so the page does not change width between menus; `narrow` (max-w-3xl) stays
- * available for a one-off form.
+ * Every settings page fills the shared page width (--page-max) so a page never changes width between menus.
  */
 @Component({
   selector: "app-settings-page",
@@ -37,7 +36,6 @@ export class SettingsPageComponent {
   public readonly description = input<string>("");
   public readonly width = input<"narrow" | "wide">("wide");
 
-  public readonly hostClass = computed(() =>
-    this.width() === "wide" ? "mx-auto w-full max-w-5xl" : "mx-auto w-full max-w-3xl",
-  );
+  /** Both widths fill the shared page width (--page-max); `narrow` is kept so a call site can say a form is small. */
+  public readonly hostClass = computed(() => (this.width() === "wide" ? "w-full" : "w-full"));
 }

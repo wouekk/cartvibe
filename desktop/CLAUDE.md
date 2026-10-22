@@ -2459,13 +2459,23 @@ never hand-edited.
   - **Size classes from the grid's own width** (a ResizeObserver, not the viewport): `compact` < 640 px (one column, the phone order),
     `regular` < 1024 (four columns, charts and tables take the whole row), `wide` (six). The phone order is `compactOrder` once the user arranged
     the phone, otherwise the shared order with the shopping list first.
-  - **Rows, not a strict grid:** the grid is `flex-wrap`; a panel's width is **exactly** its share of a row (`panelFlex`, `0 0 calc(...)`, no
-    grow), so a row may end with empty space and the size set in the editor is the size drawn. Tiles may sit beside charts. Because widths are
+  - **A real grid with free placement (PC view):** the panels sit in a CSS grid (`grid-column` / `grid-row` from `ResolvedPanel.x` and `.row`). A
+    panel may carry a saved cell (`PanelLayout.x`, `.y`, 0-based, wide grid only); `placePanels` (pure) gives it that cell when it is free and
+    flows every other panel to the first free spot after the previous one, numbering rows without gaps. Any PC-view edit pins every shown panel
+    first (`pinPlacements`), so changing one panel never moves the rest; old layouts without cells simply flow. Tablet and phone ignore the cells and
+    flow in order. A panel's width is **exactly** its columns, so a row may end with empty space and the size set in the editor is the size drawn. Tiles may sit beside charts. Because widths are
     exact, `defaultLayout` fills its own rows: tiles start one column wide and `fillRows` widens the panels of each row (Spent first) up to
     their limits, so the out-of-the-box Dashboard has no gaps whatever panels are available.
-  - **Dragging** is pointer-driven on the handle (`startDrag`, no CDK drag-drop): the panel follows the pointer, the others reflow live to
-    the order `dropTargetAt` (nearest panel to the pointer, any direction) gives, drop commits with `movePanel`, Escape cancels, the
-    scroll container auto-scrolls near its edges. Move earlier/later in the menu is the keyboard path.
+  - **Dragging** is pointer-driven on the handle (`startDrag`, no CDK drag-drop). PC view: the panel follows the pointer, a dashed outline shows
+    the cell it would take (left edge picks the column, the pointer the row, below the last row opens a new one; `resolveDrop` picks the nearest free
+    spot or a new row), the others stay put, and the drop commits with `applyDrop` (which also reorders the list by row and column, so the tablet
+    and phone order follows the PC arrangement). Tablet and phone: the others reflow live to the order `dropTargetAt` gives. Escape cancels, the
+    scroll container auto-scrolls near its edges. Move left / right / up / down (PC) or earlier / later (others) in the menu is the keyboard path.
+    A panel can only grow up to the next panel in its row (`roomToTheRight`).
+  - **One page width:** `--page-max` (1240px, `tailwind.css`) is the content width of every page, set once on the wrapper around the router outlet in
+    `sidebar.component.html`; settings pages, the receipt form, shopping lists and the Dashboard no longer carry their own `max-w-*`. Below it a page
+    fills the screen inside the shell's gutter (16px phone, 24px from 640px), so there is no separate phone or tablet width. Full-height routes (the
+    report builder) keep their own full-bleed frame.
   - **Limits:** `resize()` refuses a size past `sizeLimitHit` with `shakeElement` and a short `SnackbarService.hint`; widths outside the PC view
     say so the same way. The corner resize handle is a chip with the `resize_corner` icon; the strip shows the width as `2/6`.
     Height step 2 is a `34rem` minimum (content grows past it, never clipped); the receipts panel then lists 12 receipts instead of 6.
