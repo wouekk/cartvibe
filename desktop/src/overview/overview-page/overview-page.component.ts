@@ -36,6 +36,7 @@ import { downloadFile } from "../../utils/file";
 import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
 import { TranslationService } from "../../i18n/translation.service";
 import { DisplayCurrencyService } from "../../services/display-currency.service";
+import { ViewportService } from "../../services/viewport.service";
 import { ChartColors } from "../../shared-ui/apex-chart/chart-colors";
 import {
   buildMonthlyCsv,
@@ -643,6 +644,23 @@ export class OverviewPageComponent {
 
   private readonly loadedShoppingListGroupId = this.store.selectSignal(ShoppingListState.groupId);
 
+  /** The open lists of the shopping list group, for the Dashboard's shopping panel (empty until that group has loaded). */
+  public readonly openLists = computed(() =>
+    this.loadedShoppingListGroupId() === this.shoppingListGroupId() ? this.shoppingLists() : []
+  );
+
+  /** Crossing items off from the panel needs the same permission as on the Shopping lists page. */
+  public readonly canUpdateLists = computed(() => {
+    const listGroupId = this.shoppingListGroupId();
+    return (
+      listGroupId !== undefined &&
+      hasAll(this.groupPermissions()[listGroupId] ?? [], Permission.GroupShoppingListsUpdate)
+    );
+  });
+
+  /** On a phone the shopping panel leads the page; on larger screens it sits beside the receipts. */
+  public readonly isHandset = this.viewportService.isHandset;
+
   public readonly listSummaries = computed(() => {
     if (this.loadedShoppingListGroupId() !== this.shoppingListGroupId()) {
       return [];
@@ -663,7 +681,8 @@ export class OverviewPageComponent {
     private snackbarService: SnackbarService,
     private customCurrencyPipe: CustomCurrencyPipe,
     public readonly displayCurrencyService: DisplayCurrencyService,
-    public readonly translation: TranslationService
+    public readonly translation: TranslationService,
+    private viewportService: ViewportService
   ) {
     // Imperative side effect: a goal editor that just opened takes the keyboard, with its text selected.
     effect(() => {

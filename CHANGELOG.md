@@ -8,6 +8,15 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+### Added
+- A quick theme toggle in the header, next to the notification bell (White <-> Black; it leaves System mode).
+- The Dashboard's shopping panel previews the list with the most items still to buy as a bulleted list. Tapping an item
+  marks it done and it leaves the list at once; an easy-to-tap Undo row stays for 6 seconds. On a phone (< 768 px) the
+  panel is the first panel on the Dashboard.
+
+### Fixed
+- The Danger Zone card's footer no longer inherits the default card footer's border and background.
+
 ### Removed
 - The Flutter mobile app (`mobile/`), its generated Dart client, its CI job and the dart-dio patches. Phones use the
   web app.
@@ -16,6 +25,9 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 - The login QR (`showLoginQr`, `mobileServerUrl`, `loginQrUrl`) and the unused `qrcode` packages.
 
 ### Changed
+- The "Vibe" half of the CartVibe wordmark is Slate Gray `#708090` (readable on both the White and Black themes).
+- On a phone the brand icon in the header is scaled to 30% of its size (`app-cartvibe-logo` has a `scale` input).
+- The Dashboard's top action bar no longer has Add receipt (it stays on the Receipts page and in the empty receipts card).
 - A Quick Scan reads the receipt and its products in one AI call, so its products, categories and health tags are there
   as soon as it is saved (they used to wait for a second call up to 30 seconds later).
 - Gemini answers faster: the app uses Google's current SDK and turns the model's thinking down for receipt reading.
