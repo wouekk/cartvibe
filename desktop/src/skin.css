@@ -64,10 +64,6 @@ body {
     margin-right: 0 !important;
     flex: 0 0 auto;
   }
-  app-header app-cartvibe-logo svg {
-    height: 30px;
-    width: auto;
-  }
   app-header app-button {
     margin-left: 0 !important;
   }
