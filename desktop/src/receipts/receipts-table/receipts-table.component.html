@@ -124,17 +124,6 @@
         <span>{{ 'Configure Columns' | t }}</span>
       </button>
 
-      <ng-container *ngIf="canPollEmail && group?.groupSettings?.emailIntegrationEnabled">
-        <button
-          *appFeature="'aiPoweredReceipts'"
-          hlmDropdownMenuItem
-          data-testid="receipts-poll-email"
-          (click)="pollEmail()"
-        >
-          <app-icon name="mail"></app-icon>
-          <span>{{ 'Poll email(s)' | t }}</span>
-        </button>
-      </ng-container>
 
       @if (selectedReceiptIds().length > 0) {
         <div class="mt-1 border-t border-border px-4 pb-1 pt-2 text-[0.6875rem] font-semibold uppercase tracking-wider text-muted-foreground" role="presentation">

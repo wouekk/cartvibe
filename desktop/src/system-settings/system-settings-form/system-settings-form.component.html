@@ -212,12 +212,6 @@
             hint="The max amount of tasks that can be run concurrently. 0 or negative means all CPU cores available."
             [inputFormControl]="form | formGet:'taskConcurrency'"
           ></app-input>
-          <app-input
-            [label]="'Cleanup polling interval (in seconds)' | t"
-            type="number"
-            [inputFormControl]="form | formGet:'emailPollingInterval'"
-            [readonly]="formConfig.mode |  inputReadonly"
-          ></app-input>
         </div>
       </div>
       <div class="cv-section" data-testid="settings-section-retention">
@@ -252,7 +246,7 @@
           <p class="cv-section__desc">{{ 'A higher number means a higher priority.' | t }}</p>
         </div>
         <ul class="cv-list m-0 list-none p-0">
-          @for (data of visibleQueueData; track data.value) {
+          @for (data of queueData; track data.value) {
             <li data-testid="queue-row" class="flex items-center justify-between gap-4 py-2.5">
               <div class="flex min-w-0 flex-col">
                 <strong>{{ data.displayValue }}</strong>

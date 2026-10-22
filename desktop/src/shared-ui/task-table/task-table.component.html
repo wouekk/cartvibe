@@ -55,12 +55,7 @@
     <div class="flex items-center gap-2">
       <div class="line-clamp-2 min-w-[13rem] max-w-[40ch] text-xs break-words">
         <ng-container
-          *ngIf="element.type === SystemTaskType.EmailRead"
-        >
-          {{ 'Captured Metadata:' | t }}
-        </ng-container>
-        <ng-container
-          *ngIf="element.type === SystemTaskType.EmailUpload || element.type === SystemTaskType.QuickScan"
+          *ngIf="element.type === SystemTaskType.QuickScan"
         >
           {{ 'Receipt data from AI:' | t }}
         </ng-container>

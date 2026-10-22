@@ -46,7 +46,6 @@ describe("ReportRunnerService", () => {
     deleteReportTemplate: jest.Mock;
     generateReport: jest.Mock;
     generateReportFromTemplate: jest.Mock;
-    renderReportTemplate: jest.Mock;
   };
   let service: ReportRunnerService;
 
@@ -61,7 +60,6 @@ describe("ReportRunnerService", () => {
       deleteReportTemplate: jest.fn(() => of(undefined)),
       generateReport: jest.fn(() => of(new Blob())),
       generateReportFromTemplate: jest.fn(() => of(new Blob())),
-      renderReportTemplate: jest.fn(() => of({ html: "", receiptCount: 0 })),
     };
     TestBed.configureTestingModule({
       providers: [
@@ -119,10 +117,6 @@ describe("ReportRunnerService", () => {
     expect(downloadFile).toHaveBeenCalledWith(expect.any(Blob), "Run.pdf");
   });
 
-  it("renderTemplate delegates to renderReportTemplate", () => {
-    service.renderTemplate(9).subscribe();
-    expect(reportService.renderReportTemplate).toHaveBeenCalledWith(9);
-  });
 
   it("downloadTemplateById resolves the template then generates + downloads by id", () => {
     reportService.getReportTemplate.mockReturnValue(

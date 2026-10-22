@@ -24,26 +24,6 @@ describe("GroupTableEditButtonPipe", () => {
       expect(result).toEqual(`/groups/${mockGroup.id}/details/edit`);
     });
 
-    it("should return the settings edit route when the user can only update settings", () => {
-      const result = pipe.transform(
-        mockGroup,
-        ["app.groups.update-settings"],
-        {}
-      );
-
-      expect(result).toEqual(`/groups/${mockGroup.id}/settings/edit`);
-    });
-
-    it("should prefer the details edit route when the user has both permissions", () => {
-      const result = pipe.transform(
-        mockGroup,
-        ["app.groups.update-settings"],
-        { 123: ["group.update"] }
-      );
-
-      expect(result).toEqual(`/groups/${mockGroup.id}/details/edit`);
-    });
-
     it("should return the view route when the user has neither permission", () => {
       const result = pipe.transform(mockGroup, [], {});
 

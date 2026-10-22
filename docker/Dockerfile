@@ -1,9 +1,8 @@
-# Three stages: the desktop build (Node), the API build (Go with the compiler, the -dev libraries and the Python venv
-# for the email client), and a slim Debian runtime that receives only what runs: the binary, the API's files, the venv and the
-# desktop's static files. The Go toolchain, the compilers and the *-dev packages stay behind in the build stages.
+# Three stages: the desktop build (Node), the API build (Go with the compiler and the -dev libraries), and a slim Debian
+# runtime that receives only what runs: the binary, the API's files and the desktop's static files. The Go toolchain, the compilers and the *-dev packages stay behind in the build stages.
 #
 # Layer order matters for build time: each stage installs its dependencies from the few files that declare them
-# BEFORE copying the source, so a code-only change reuses the cached dependency layers (npm packages; Python,
+# BEFORE copying the source, so a code-only change reuses the cached dependency layers (npm packages;
 # ImageMagick, Tesseract; Go modules). Keep anything that changes per build (VERSION, BUILD_DATE, source) below them.
 # The weekly publish run builds without the cache, so the apt layers pick up Debian's security updates.
 
@@ -17,16 +16,15 @@ RUN npm ci --no-audit --no-fund
 COPY desktop/ ./
 RUN npm run build
 
-# ---- API: system libraries, Python venv, Go modules, then the source
+# ---- API: system libraries, Go modules, then the source
 FROM golang:1.26-trixie AS api-build
 
 ENV BASE_PATH="/app/cartvibe-api"
 WORKDIR /app/cartvibe-api
 
-# Tesseract, ImageMagick (with HEIC), Chromium and the Python email client. Only the script and the requirements
-# file it reads are copied first, so this (by far the slowest) layer survives code changes.
+# Tesseract, ImageMagick (with HEIC) and Chromium. Only the script is copied first, so this (by far the slowest)
+# layer survives code changes.
 COPY api/set-up-dependencies.sh ./
-COPY api/imap-client/requirements.txt ./imap-client/requirements.txt
 RUN bash set-up-dependencies.sh
 
 COPY api/go.mod api/go.sum ./
@@ -43,15 +41,14 @@ FROM debian:trixie-slim
 
 ENV ENV="prod"
 ENV BASE_PATH="/app/cartvibe-api"
-ENV PYTHONPATH="/app/cartvibe-api/wranglervenv/lib/python3.13/site-packages"
 
 # What the API runs at run time: nginx, Tesseract and its English data, ImageMagick with HEIC and PDF support, Chromium
-# (HTML to PDF), Python for the OCR scripts, certificates for HTTPS calls and time zone data for the app time zone.
+# (report PDFs), certificates for HTTPS calls and time zone data for the app time zone.
 # Recommended packages stay on for the ones that bring codec plugins and fonts (ImageMagick, Chromium).
 # The upgrade takes Debian's security fixes released since the base image was built.
 RUN apt-get update \
     && apt-get upgrade -y \
-    && apt-get install -y --no-install-recommends ca-certificates tzdata nginx python3 \
+    && apt-get install -y --no-install-recommends ca-certificates tzdata nginx \
     && apt-get install -y imagemagick-7.q16 libheif1 libde265-0 tesseract-ocr-eng chromium \
     && rm -rf /var/lib/apt/lists/* /etc/nginx/sites-enabled/* /etc/nginx/sites-available/*
 
@@ -79,7 +76,6 @@ RUN ! ldd ./api | grep "not found" \
     && rm -f /tmp/check.* \
     && chromium --version \
     && setpriv --version \
-    && ./wranglervenv/bin/python -c "import imapclient" \
     && tesseract --list-langs | grep -q eng
 
 ARG VERSION

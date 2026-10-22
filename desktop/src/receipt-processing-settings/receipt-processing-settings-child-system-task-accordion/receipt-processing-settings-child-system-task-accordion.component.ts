@@ -1,9 +1,7 @@
-import { AfterViewInit, Component, OnInit, TemplateRef, input, viewChild, inject } from "@angular/core";
-import { ActivatedRoute } from "@angular/router";
-import { Prompt, SystemTask, SystemTaskStatus, SystemTaskType } from "../../open-api";
+import { AfterViewInit, Component, TemplateRef, input, viewChild } from "@angular/core";
+import { SystemTask, SystemTaskStatus, SystemTaskType } from "../../open-api";
 import { AccordionPanel } from "../../shared-ui/accordion/accordion-panel.interface";
 import { marker } from "../../i18n/marker";
-import { TranslationService } from "../../i18n/translation.service";
 
 @Component({
     selector: "app-receipt-processing-settings-child-system-task-accordion",
@@ -11,8 +9,7 @@ import { TranslationService } from "../../i18n/translation.service";
     styleUrl: "./receipt-processing-settings-child-system-task-accordion.component.scss",
     standalone: false
 })
-export class ReceiptProcessingSettingsChildSystemTaskAccordionComponent implements OnInit, AfterViewInit {
-  private readonly translation = inject(TranslationService);
+export class ReceiptProcessingSettingsChildSystemTaskAccordionComponent implements AfterViewInit {
 
 
   public readonly ocrProcessingDetails = viewChild.required<TemplateRef<any>>("ocrProcessingDetails");
@@ -32,13 +29,7 @@ export class ReceiptProcessingSettingsChildSystemTaskAccordionComponent implemen
 
   public accordionPanels: AccordionPanel[] = [];
 
-  public prompts: Prompt[] = [];
 
-  constructor(private activatedRoute: ActivatedRoute) {}
-
-  public ngOnInit(): void {
-    this.prompts = this.activatedRoute.snapshot.data["prompts"];
-  }
 
   public ngAfterViewInit(): void {
     this.setAccordionPanels();
@@ -56,8 +47,7 @@ export class ReceiptProcessingSettingsChildSystemTaskAccordionComponent implemen
       }
 
       if (task.type === SystemTaskType.PromptGenerated) {
-        const prompt = this.prompts.find(p => p.id === task.associatedEntityId);
-        const title = this.translation.t("Prompt Used: {name}", { name: prompt?.name });
+        const title = marker("Prompt Used");
 
         this.accordionPanels.push({
           title: title,

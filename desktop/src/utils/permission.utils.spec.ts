@@ -11,7 +11,7 @@ describe("permission.utils", () => {
       { name: "scope wildcard does not cross scope", granted: "group.*", required: "app.users.read", want: false },
       { name: "scope wildcard does not match bare prefix", granted: "group.*", required: "group", want: false },
       { name: "domain wildcard matches", granted: "group.receipts.*", required: "group.receipts.read", want: true },
-      { name: "domain wildcard does not match sibling", granted: "group.receipts.*", required: "group.dashboards.read", want: false },
+      { name: "domain wildcard does not match sibling", granted: "group.receipts.*", required: "group.shopping-lists.read", want: false },
       { name: "domain wildcard covers sub-scope suffix", granted: "group.receipts.*", required: "group.receipts.read:any", want: true },
       { name: "mid wildcard matches one segment", granted: "group.*.read", required: "group.receipts.read", want: true },
       { name: "mid wildcard requires the trailing literal", granted: "group.*.read", required: "group.receipts.create", want: false },

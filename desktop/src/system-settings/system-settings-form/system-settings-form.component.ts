@@ -70,21 +70,6 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
 
   public readonly queueData: QueueData[] = [
     {
-      value: QueueName.EmailPolling,
-      displayValue: marker("Email Polling"),
-      description: marker("Polls system emails for receipts to process")
-    },
-    {
-      value: QueueName.EmailReceiptProcessing,
-      displayValue: marker("Email Receipt Processing"),
-      description: marker("Processing of captured emails")
-    },
-    {
-      value: QueueName.EmailReceiptImageCleanup,
-      displayValue: marker("Email Receipt Image Cleanup (retired)"),
-      description: marker("No longer used. Temporary file cleanup moved to System Clean Up.")
-    },
-    {
       value: QueueName.QuickScan,
       displayValue: "Quick Scan",
       description: marker("Processes quick scan receipts")
@@ -95,14 +80,6 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
       description: marker("Expires refresh tokens and reclaims temporary files")
     }
   ];
-
-  /**
-   * The queues shown for editing. The retired email image clean-up queue stays in the form (the API still wants a
-   * configuration per queue name) but is not offered.
-   */
-  public get visibleQueueData(): QueueData[] {
-    return this.queueData.filter((data) => data.value !== QueueName.EmailReceiptImageCleanup);
-  }
 
   /** Whether the cards of a tab are shown: all of them when the form is not placed on a tab. */
   public shows(section: "general" | "security" | "tasks"): boolean {
@@ -223,7 +200,6 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
     this.form = this.formBuilder.group({
       enableLocalSignUp: [this.originalSystemSettings?.enableLocalSignUp],
       debugOcr: [this.originalSystemSettings?.debugOcr],
-      emailPollingInterval: [this.originalSystemSettings?.emailPollingInterval, [Validators.required, Validators.min(0)]],
       currencyDisplay: [this.originalSystemSettings?.currencyDisplay],
       currencyThousandthsSeparator: [this.originalSystemSettings.currencyThousandthsSeparator, [Validators.required]],
       currencyDecimalSeparator: [this.originalSystemSettings.currencyDecimalSeparator, [Validators.required]],
@@ -470,7 +446,6 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
     delete formValue["tempFileRetentionValue"];
     delete formValue["tempFileRetentionUnit"];
     delete formValue["currency"];
-    formValue["emailPollingInterval"] = Number.parseInt(formValue["emailPollingInterval"]);
     formValue["taskConcurrency"] = Number.parseInt(formValue["taskConcurrency"]);
     formValue["pdfDpi"] = Number.parseInt(formValue["pdfDpi"]);
     (formValue["taskQueueConfigurations"] as Array<any>).forEach(config => {

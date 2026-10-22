@@ -40,7 +40,6 @@ describe("SystemTaskTableComponent", () => {
         useValue: {
           snapshot: {
             data: {
-              prompts: [],
               allReceiptProcessingSettings: []
             }
           }

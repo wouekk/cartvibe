@@ -43,9 +43,6 @@ ENV BASE_PATH="/app/api"
 # Install tesseract dependencies
 RUN bash set-up-dependencies.sh
 
-# Install python dependencies for imap-client
-RUN pip3 install -r imap-client/requirements.txt --break-system-packages
-
 # Build api
 RUN go build
 
@@ -62,9 +59,6 @@ VOLUME /app/api/sqlite
 # Add logs volume
 RUN mkdir logs
 VOLUME /app/api/logs
-
-# Set pythonpath
-ENV PYTHONPATH="/app/api/wranglervenv/lib/python3.11/site-packages"
 
 # Expose http port
 EXPOSE 80

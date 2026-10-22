@@ -94,9 +94,7 @@ const routes: Routes = [
         data: {
           appPermissions: [
             Permission.AppSystemSettingsRead,
-            Permission.AppPromptsRead,
             Permission.AppReceiptProcessingSettingsRead,
-            Permission.AppSystemEmailsRead,
             Permission.AppOidcProvidersRead,
             Permission.AppSystemTasksRead,
           ],

@@ -235,7 +235,6 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
   public canQuickScan: boolean = false;
 
-  public canPollEmail: boolean = false;
 
   public headerText: string = "";
 
@@ -346,9 +345,6 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     );
     this.canQuickScan = this.store.selectSnapshot(
       AuthState.hasGroupPermission(groupId, Permission.GroupReceiptsQuickScan)
-    );
-    this.canPollEmail = this.store.selectSnapshot(
-      AuthState.hasGroupPermission(groupId, Permission.GroupEmailPoll)
     );
   }
 
@@ -878,19 +874,6 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
       .subscribe();
   }
 
-  public pollEmail(): void {
-    const groupId = this.store.selectSnapshot(GroupState.selectedGroupId);
-
-    this.groupsService
-      .pollGroupEmail(groupId as any)
-      .pipe(
-        take(1),
-        tap(() => {
-          this.snackbarService.success("Email successfully poll successfully queued");
-        }),
-      )
-      .subscribe();
-  }
 
   public exportSelectedReceipts(): void {
     const receiptIds = this.dataSource().data.map(data => data.id);

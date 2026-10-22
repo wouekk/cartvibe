@@ -72,7 +72,6 @@ describe("AiSettingsPageComponent", () => {
         key: "secret",
         isVisionModel: true,
         enforceJsonResponseFormat: true,
-        promptId: 0,
       })
     );
     expect(systemSettingsService["updateSystemSettings"]).toHaveBeenCalledWith(
@@ -93,7 +92,7 @@ describe("AiSettingsPageComponent", () => {
   it("updates saved LM Studio settings, keeping the stored key when none is typed", async () => {
     await setUp(
       { receiptProcessingSettingsId: 3 },
-      { id: 3, name: "Old", aiType: AiType.OpenAiCustom, url: "http://pc:1234/v1", model: "qwen", isVisionModel: false, promptId: 2 }
+      { id: 3, name: "Old", aiType: AiType.OpenAiCustom, url: "http://pc:1234/v1", model: "qwen", isVisionModel: false }
     );
     expect(component.form.value.url).toBe("http://pc:1234/v1");
 
@@ -104,7 +103,7 @@ describe("AiSettingsPageComponent", () => {
     expect(id).toBe(3);
     expect(updateKey).toBe(false);
     expect(command).toEqual(
-      expect.objectContaining({ name: "Old", model: "qwen2.5-vl", enforceJsonResponseFormat: false, promptId: 2 })
+      expect.objectContaining({ name: "Old", model: "qwen2.5-vl", enforceJsonResponseFormat: false })
     );
     expect(systemSettingsService["updateSystemSettings"]).not.toHaveBeenCalled();
   });

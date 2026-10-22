@@ -19,7 +19,6 @@ describe("ReceiptProcessingSettingsChildSystemTaskAccordionComponent", () => {
           useValue: {
             snapshot: {
               data: {
-                prompts: [],
               }
             }
           }

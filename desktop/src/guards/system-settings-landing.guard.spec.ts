@@ -36,7 +36,7 @@ describe("systemSettingsLandingGuard", () => {
   it("redirects to the dashboard when the settings are not readable, whatever else is", () => {
     store.dispatch(
       new SetPermissions(
-        [Permission.AppSystemTasksRead, Permission.AppSystemEmailsRead, Permission.AppPromptsRead],
+        [Permission.AppSystemTasksRead, Permission.AppReceiptProcessingSettingsRead],
         {}
       )
     );

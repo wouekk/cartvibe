@@ -107,7 +107,7 @@ describe("AiFallbackCardComponent", () => {
   it("updates the saved backup and keeps its stored key when none is typed", async () => {
     await setUp(
       { receiptProcessingSettingsId: 1, fallbackReceiptProcessingSettingsId: 9 },
-      { id: 9, name: AI_FALLBACK_SETTINGS_NAME, aiType: AiType.Gemini, model: "m", promptId: 4 }
+      { id: 9, name: AI_FALLBACK_SETTINGS_NAME, aiType: AiType.Gemini, model: "m" }
     );
     component.form.patchValue({ model: "gemini-3-pro" });
 
@@ -116,7 +116,7 @@ describe("AiFallbackCardComponent", () => {
     const [id, updateKey, command] = processingService["updateReceiptProcessingSettingsById"].mock.calls[0];
     expect(id).toBe(9);
     expect(updateKey).toBe(false);
-    expect(command).toEqual(expect.objectContaining({ model: "gemini-3-pro", promptId: 4 }));
+    expect(command).toEqual(expect.objectContaining({ model: "gemini-3-pro" }));
   });
 
   it("cannot be saved before the main AI is", async () => {
