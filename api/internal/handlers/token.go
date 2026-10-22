@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"net/http"
 	"cartvibe/api/internal/services"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"net/http"
 
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 )

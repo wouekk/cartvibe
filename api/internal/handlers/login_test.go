@@ -1,10 +1,6 @@
 package handlers
 
 import (
-	"context"
-	"encoding/json"
-	"net/http"
-	"net/http/httptest"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/constants"
 	"cartvibe/api/internal/models"
@@ -12,6 +8,10 @@ import (
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"context"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 )
@@ -206,12 +206,6 @@ func TestLogin_SuccessFirstAdminSetsCookies(t *testing.T) {
 		utils.PrintTestError(t, appData.RefreshToken, "")
 	}
 
-	// Verify the first-admin path also kicked off default-prompt creation.
-	var promptCount int64
-	repositories.GetDB().Model(&models.Prompt{}).Count(&promptCount)
-	if promptCount == 0 {
-		utils.PrintTestError(t, "no default prompt created", "at least 1 prompt")
-	}
 }
 
 // The wire proof for the secureCookies setting: the raw Set-Cookie headers a
@@ -255,37 +249,6 @@ func TestLogin_SetCookieHeadersFollowTheSecureCookiesSetting(t *testing.T) {
 	}
 }
 
-func TestLogin_SuccessSubsequentAdmin(t *testing.T) {
-	defer teardownLoginTests()
-
-	createAdminUser(t, "admin-one", "Password")
-
-	// First login marks admin-one's LastLoginDate so the second login will
-	// take the firstAdminToLogin=false branch.
-	w := httptest.NewRecorder()
-	r := loginRequest(commands.LoginCommand{Username: "admin-one", Password: "Password"}, "", "")
-	Login(w, r)
-	if w.Result().StatusCode != http.StatusOK {
-		utils.PrintTestError(t, w.Result().StatusCode, http.StatusOK)
-	}
-
-	// Second login — same admin, should return 200 without re-running the
-	// "first admin" branch.
-	w2 := httptest.NewRecorder()
-	r2 := loginRequest(commands.LoginCommand{Username: "admin-one", Password: "Password"}, "", "")
-	Login(w2, r2)
-	if w2.Result().StatusCode != http.StatusOK {
-		utils.PrintTestError(t, w2.Result().StatusCode, http.StatusOK)
-	}
-
-	// Only one default prompt should exist — the branch shouldn't have run twice.
-	var promptCount int64
-	repositories.GetDB().Model(&models.Prompt{}).Count(&promptCount)
-	if promptCount != 1 {
-		utils.PrintTestError(t, promptCount, int64(1))
-	}
-}
-
 func TestLogin_TokensInBodyQuery(t *testing.T) {
 	defer teardownLoginTests()
 
@@ -319,38 +282,3 @@ func TestLogin_TokensInBodyQuery(t *testing.T) {
 	}
 }
 
-func TestLogin_NonAdminUserSkipsFirstAdminBranch(t *testing.T) {
-	defer teardownLoginTests()
-
-	// Seed an admin first so the next user defaults to USER.
-	createAdminUser(t, "seed-admin", "Password")
-
-	userRepo := repositories.NewUserRepository(nil)
-	_, err := userRepo.CreateUser(commands.SignUpCommand{
-		Username:    "regular-user",
-		Password:    "Password",
-		DisplayName: "Regular",
-	})
-	if err != nil {
-		utils.PrintTestError(t, err, nil)
-	}
-
-	// Baseline: no prompts exist yet.
-	var beforeCount int64
-	repositories.GetDB().Model(&models.Prompt{}).Count(&beforeCount)
-
-	w := httptest.NewRecorder()
-	r := loginRequest(commands.LoginCommand{Username: "regular-user", Password: "Password"}, "", "")
-	Login(w, r)
-
-	if w.Result().StatusCode != http.StatusOK {
-		utils.PrintTestError(t, w.Result().StatusCode, http.StatusOK)
-	}
-
-	// Non-admin login must not create a default prompt.
-	var afterCount int64
-	repositories.GetDB().Model(&models.Prompt{}).Count(&afterCount)
-	if afterCount != beforeCount {
-		utils.PrintTestError(t, afterCount, beforeCount)
-	}
-}

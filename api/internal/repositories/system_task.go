@@ -216,7 +216,6 @@ func (repository SystemTaskRepository) GetPagedActivities(
 		models.QUICK_SCAN,
 		models.RECEIPT_UPLOADED,
 		models.RECEIPT_UPDATED,
-		models.EMAIL_UPLOAD,
 	}
 
 	query := db.Model(&models.SystemTask{}).

@@ -1,11 +1,8 @@
 package wranglerasynq
 
 import (
-	"slices"
-
-	"github.com/hibiken/asynq"
-	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/models"
+	"github.com/hibiken/asynq"
 )
 
 func StartSystemCleanUpTasks() error {
@@ -18,7 +15,6 @@ func StartSystemCleanUpTasks() error {
 	cleanUpQueue := models.SystemCleanUpQueue
 
 	inspector.DeleteAllScheduledTasks(string(cleanUpQueue))
-	retireEmailReceiptImageCleanupQueue(inspector)
 
 	refreshTokenTask := asynq.NewTask(RefreshTokenCleanUp, nil)
 	_, err = RegisterTask("@every 24h", refreshTokenTask, cleanUpQueue, 0)
@@ -32,13 +28,7 @@ func StartSystemCleanUpTasks() error {
 		return err
 	}
 
-	// The temp sweep lives here rather than in StartEmailPolling, where it used
-	// to be, for two reasons. main.go only calls StartEmailPolling when email
-	// polling is configured, so an install that never set it up ran no temp
-	// cleanup at all — including for quick-scan uploads, which have nothing to do
-	// with email. And StartEmailPolling runs again on every polling-interval
-	// change, while scheduler.Register adds an entry without removing the
-	// previous one, so the sweep used to accumulate duplicate crons.
+	// The temp sweep reclaims the files quick scans leave behind when they fail.
 	tempFileCleanUpTask := asynq.NewTask(TempFileCleanUp, nil)
 	_, err = RegisterTask("@every 1h", tempFileCleanUpTask, cleanUpQueue, 0)
 	if err != nil {
@@ -68,36 +58,4 @@ func StartSystemCleanUpTasks() error {
 	_, err = RegisterTask("@every 1m", shoppingTripSweepTask, cleanUpQueue, 0)
 
 	return err
-}
-
-// retireEmailReceiptImageCleanupQueue drains what the pre-upgrade cleanup cron
-// left on its old queue. Scheduled and pending are both needed: DeleteAllScheduled
-// only touches tasks waiting on a future time, while anything the cron had already
-// fired sits in pending.
-//
-// The queue itself stays declared in models.QueueName — persisted
-// TaskQueueConfigurations reference it, QueueName.Value() whitelists it, and
-// UpsertSystemSettingsCommand.Validate requires a configuration for every name.
-//
-// An install that never ran the old cron has no such queue, and asynq answers "queue does not
-// exist" for it, so the drain only runs when Redis knows the queue.
-func retireEmailReceiptImageCleanupQueue(inspector *asynq.Inspector) {
-	retiredQueue := string(models.EmailReceiptImageCleanupQueue)
-
-	queues, err := inspector.Queues()
-	if err != nil {
-		logging.LogStd(logging.LOG_LEVEL_INFO, err.Error())
-		return
-	}
-	if !slices.Contains(queues, retiredQueue) {
-		return
-	}
-
-	if _, err := inspector.DeleteAllScheduledTasks(retiredQueue); err != nil {
-		logging.LogStd(logging.LOG_LEVEL_INFO, err.Error())
-	}
-
-	if _, err := inspector.DeleteAllPendingTasks(retiredQueue); err != nil {
-		logging.LogStd(logging.LOG_LEVEL_INFO, err.Error())
-	}
 }

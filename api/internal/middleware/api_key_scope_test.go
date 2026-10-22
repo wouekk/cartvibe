@@ -74,11 +74,9 @@ var everyRoute = []routeCase{
 	{http.MethodPost, "/api/apiKey/paged", classRead},
 	{http.MethodPost, "/api/category/getPagedCategories", classRead},
 	{http.MethodPost, "/api/group/getPagedGroups", classRead},
-	{http.MethodPost, "/api/prompt/getPagedPrompts", classRead},
 	{http.MethodPost, "/api/tag/getPagedTags", classRead},
 	{http.MethodPost, "/api/user/getPagedUsers", classRead},
 	{http.MethodPost, "/api/receiptProcessingSettings/getPagedProcessingSettings", classRead},
-	{http.MethodPost, "/api/systemEmail/getSystemEmails", classRead},
 	{http.MethodPost, "/api/systemTask/getPagedSystemTasks", classRead},
 	{http.MethodPost, "/api/systemTask/getPagedActivities", classRead},
 	{http.MethodPost, "/api/report/template/list", classRead},
@@ -89,9 +87,7 @@ var everyRoute = []routeCase{
 	{http.MethodPost, "/api/export/", classRead},
 	{http.MethodPost, "/api/export/7", classRead},
 	{http.MethodPost, "/api/receipt/group/7", classRead},
-	{http.MethodPost, "/api/widget/pieChart/7", classRead},
 	{http.MethodPost, "/api/report/template/7/generate", classRead},
-	{http.MethodPost, "/api/report/template/7/render", classRead},
 
 	// Writes.
 	{http.MethodPost, "/api/receipt/", classWrite},
@@ -123,9 +119,7 @@ var everyRoute = []routeCase{
 
 	// Writes that LOOK like reads. Each persists a row or enqueues a task while
 	// carrying a read-ish name, and two of them carry a ".read" permission.
-	{http.MethodPost, "/api/systemEmail/checkConnectivity", classWrite},
 	{http.MethodPost, "/api/receiptProcessingSettings/checkConnectivity", classWrite},
-	{http.MethodPost, "/api/prompt/createDefaultPrompt", classWrite},
 	{http.MethodPost, "/api/group/1/pollGroupEmail", classWrite},
 	{http.MethodPost, "/api/systemTask/rerunActivity/1", classWrite},
 }

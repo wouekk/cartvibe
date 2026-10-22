@@ -5,7 +5,6 @@ type SystemSettings struct {
 	EnableLocalSignUp                   bool                      `json:"enableLocalSignUp" gorm:"default:false"`
 	DebugOcr                            bool                      `json:"debugOcr" gorm:"default:false"`
 	NumWorkers                          int                       `json:"numWorkers"`
-	EmailPollingInterval                int                       `json:"emailPollingInterval" gorm:"default:1800"`
 	CurrencyDisplay                     string                    `json:"currencyDisplay" gorm:"default:$"`
 	CurrencyThousandthsSeparator        CurrencySeparator         `json:"currencyThousandthsSeparator" gorm:"default:,"`
 	CurrencyDecimalSeparator            CurrencySeparator         `json:"currencyDecimalSeparator" gorm:"default:."`

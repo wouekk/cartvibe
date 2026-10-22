@@ -11,10 +11,6 @@ import (
 func TestCreateReceiptProcessingSettingsKeepsJsonEnforcementOff(t *testing.T) {
 	defer TruncateTestDb()
 
-	prompt := models.Prompt{Name: "p", Prompt: "p"}
-	if err := GetDB().Create(&prompt).Error; err != nil {
-		t.Fatal(err)
-	}
 
 	repository := NewReceiptProcessingSettings(nil)
 	created, err := repository.CreateReceiptProcessingSettings(commands.UpsertReceiptProcessingSettingsCommand{
@@ -22,7 +18,6 @@ func TestCreateReceiptProcessingSettingsKeepsJsonEnforcementOff(t *testing.T) {
 		AiType:                    models.OPEN_AI_CUSTOM,
 		Url:                       "http://lm.local/v1",
 		Model:                     "m",
-		PromptId:                  prompt.ID,
 		EnforceJsonResponseFormat: false,
 	})
 	if err != nil {
@@ -39,7 +34,6 @@ func TestCreateReceiptProcessingSettingsKeepsJsonEnforcementOff(t *testing.T) {
 	}
 
 	on, err := repository.CreateReceiptProcessingSettings(commands.UpsertReceiptProcessingSettingsCommand{
-		Name: "on", AiType: models.OPEN_AI_CUSTOM, Url: "http://x/v1", Model: "m", PromptId: prompt.ID,
 		EnforceJsonResponseFormat: true,
 	})
 	if err != nil {

@@ -1,15 +1,15 @@
 package handlers
 
 import (
-	"encoding/json"
-	"io"
-	"net/http"
 	"cartvibe/api/internal/constants"
 	"cartvibe/api/internal/permissions"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/services"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"encoding/json"
+	"io"
+	"net/http"
 )
 
 // GetDashboardLayout returns the caller's own Dashboard layout; an empty layout means the default.

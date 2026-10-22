@@ -1,9 +1,9 @@
 package wranglerasynq
 
 import (
-	"github.com/hibiken/asynq"
 	config "cartvibe/api/internal/env"
 	"cartvibe/api/internal/logging"
+	"github.com/hibiken/asynq"
 )
 
 var scheduler *asynq.Scheduler

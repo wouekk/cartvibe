@@ -1,13 +1,13 @@
 package handlers
 
 import (
-	"net/http"
 	"cartvibe/api/internal/constants"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/permissions"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"net/http"
 )
 
 func GetUserPreferences(w http.ResponseWriter, r *http.Request) {

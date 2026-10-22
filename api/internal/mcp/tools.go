@@ -1,14 +1,14 @@
 package mcp
 
 import (
-	"context"
-	"errors"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/permissions"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/services"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"context"
+	"errors"
 
 	mcpsdk "github.com/modelcontextprotocol/go-sdk/mcp"
 )
@@ -28,10 +28,6 @@ type searchReceiptsInput struct {
 
 type getReceiptInput struct {
 	Id string `json:"id"`
-}
-
-type listDashboardsInput struct {
-	GroupId string `json:"groupId"`
 }
 
 // registerTools wires the read-only MCP tools onto the server. Every handler
@@ -62,11 +58,6 @@ func registerTools(server *mcpsdk.Server) {
 		Name:        "list_tags",
 		Description: "List the receipt tags available to the authenticated user (filtered by the user's group role grants).",
 	}, handleListTags)
-
-	mcpsdk.AddTool(server, &mcpsdk.Tool{
-		Name:        "list_dashboards",
-		Description: "List the authenticated user's dashboards for a given group. Requires a groupId the user can access.",
-	}, handleListDashboards)
 }
 
 func handleSearchReceipts(ctx context.Context, req *mcpsdk.CallToolRequest, in searchReceiptsInput) (*mcpsdk.CallToolResult, any, error) {
@@ -243,36 +234,6 @@ func visibleByGrants[T any](
 		}
 	}
 	return visible, nil
-}
-
-func handleListDashboards(ctx context.Context, req *mcpsdk.CallToolRequest, in listDashboardsInput) (*mcpsdk.CallToolResult, any, error) {
-	claims, err := claimsFromRequest(req)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if len(in.GroupId) == 0 {
-		return nil, nil, errors.New("groupId is required")
-	}
-
-	groupId, err := utils.StringToUint(in.GroupId)
-	if err != nil {
-		return nil, nil, errors.New("invalid groupId")
-	}
-
-	permissionService := services.NewPermissionService(nil)
-	hasAccess, err := permissionService.HasGroupPermissions(claims.UserId, groupId, permissions.GroupDashboardsRead)
-	if err != nil || !hasAccess {
-		return nil, nil, errors.New("unauthorized to access this group")
-	}
-
-	dashboardRepository := repositories.NewDashboardRepository(nil)
-	dashboards, err := dashboardRepository.GetDashboardsForUserByGroup(claims.UserId, groupId)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return nil, map[string]any{"dashboards": dashboards}, nil
 }
 
 // claimsFromRequest retrieves the verified user claims that verifyToken stashed

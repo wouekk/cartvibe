@@ -2,6 +2,11 @@ package handlers
 
 import (
 	"bytes"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/permissions"
+	"cartvibe/api/internal/repositories"
+	"cartvibe/api/internal/services"
+	"cartvibe/api/internal/utils"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -11,11 +16,6 @@ import (
 	"net/textproto"
 	"os"
 	"path/filepath"
-	"cartvibe/api/internal/models"
-	"cartvibe/api/internal/permissions"
-	"cartvibe/api/internal/repositories"
-	"cartvibe/api/internal/services"
-	"cartvibe/api/internal/utils"
 	"strings"
 	"testing"
 

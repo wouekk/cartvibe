@@ -41,22 +41,13 @@ func NewSystemReceiptProcessingService(tx *gorm.DB, groupId string) (ReceiptProc
 
 	if len(groupId) > 0 {
 		groupRepository := repositories.NewGroupRepository(tx)
-		groupToUse, err := groupRepository.GetGroupById(groupId, false, true, false)
+		groupToUse, err := groupRepository.GetGroupById(groupId, false, false)
 		if err != nil {
 			return ReceiptProcessingService{}, err
 		}
 
 		group = groupToUse
 
-		if groupToUse.GroupSettings.PromptId != nil && *groupToUse.GroupSettings.PromptId > 0 {
-			systemReceiptProcessingSettings.ReceiptProcessingSettings.PromptId = *groupToUse.GroupSettings.PromptId
-		}
-
-		if groupToUse.GroupSettings.FallbackPromptId != nil &&
-			*groupToUse.GroupSettings.FallbackPromptId > 0 &&
-			systemReceiptProcessingSettings.FallbackReceiptProcessingSettings.ID != 0 {
-			systemReceiptProcessingSettings.FallbackReceiptProcessingSettings.PromptId = *groupToUse.GroupSettings.FallbackPromptId
-		}
 	}
 
 	return ReceiptProcessingService{
@@ -471,9 +462,8 @@ func (service ReceiptProcessingService) buildPrompt(
 ) (string, commands.UpsertSystemTaskCommand, error) {
 	systemTaskCommand := commands.UpsertSystemTaskCommand{
 		Type:                 models.PROMPT_GENERATED,
+		AssociatedEntityType: models.NOOP_ENTITY_TYPE,
 		Status:               models.SYSTEM_TASK_SUCCEEDED,
-		AssociatedEntityType: models.PROMPT,
-		AssociatedEntityId:   receiptProcessingSettings.PromptId,
 		StartedAt:            time.Now(),
 	}
 

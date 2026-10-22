@@ -1,14 +1,14 @@
 package handlers
 
 import (
-	"context"
-	"net/http"
-	"net/http/httptest"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/permissions"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/services"
 	"cartvibe/api/internal/utils"
+	"context"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -275,7 +275,7 @@ func TestSourceFileEndpointsAnswerAnUnknownTaskIdLikeADeniedOne(t *testing.T) {
 func TestRerunActivityHidesTheTaskTypeFromAnUnauthorizedCaller(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	fixture := seedSourceFileAuthzFixture(t)
-	nonRerunnableTaskId := seedHiddenActivityOfType(t, fixture, models.EMAIL_READ)
+	nonRerunnableTaskId := seedHiddenActivityOfType(t, fixture, models.MAGIC_FILL)
 
 	w, r := sourceFileRequest(t, nonRerunnableTaskId, fixture.memberA)
 	RerunActivity(w, r)
@@ -291,7 +291,7 @@ func TestRerunActivityHidesTheTaskTypeFromAnUnauthorizedCaller(t *testing.T) {
 func TestRerunActivityStillRejectsANonRerunnableTypeForAnAuthorizedCaller(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	fixture := seedSourceFileAuthzFixture(t)
-	nonRerunnableTaskId := seedHiddenActivityOfType(t, fixture, models.EMAIL_READ)
+	nonRerunnableTaskId := seedHiddenActivityOfType(t, fixture, models.MAGIC_FILL)
 
 	w, r := sourceFileRequest(t, nonRerunnableTaskId, fixture.supervisor)
 	RerunActivity(w, r)

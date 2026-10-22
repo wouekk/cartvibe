@@ -17,7 +17,6 @@ func TestUpsertReceiptProcessingSettingsCommand_Validate_ValidInputs(t *testing.
 				AiType:        models.OPEN_AI_NEW,
 				Key:           "test-key",
 				IsVisionModel: true,
-				PromptId:      1,
 			},
 			updateKey: true,
 		},
@@ -27,7 +26,6 @@ func TestUpsertReceiptProcessingSettingsCommand_Validate_ValidInputs(t *testing.
 				AiType:        models.GEMINI_NEW,
 				Key:           "test-key",
 				IsVisionModel: true,
-				PromptId:      1,
 			},
 			updateKey: true,
 		},
@@ -37,7 +35,6 @@ func TestUpsertReceiptProcessingSettingsCommand_Validate_ValidInputs(t *testing.
 				AiType:    models.OLLAMA,
 				Url:       "http://localhost:11434",
 				OcrEngine: models.TESSERACT_NEW,
-				PromptId:  1,
 			},
 			updateKey: true,
 		},
@@ -47,7 +44,6 @@ func TestUpsertReceiptProcessingSettingsCommand_Validate_ValidInputs(t *testing.
 				AiType:    models.OPEN_AI_CUSTOM_NEW,
 				Url:       "http://custom-endpoint.com",
 				OcrEngine: models.TESSERACT_NEW,
-				PromptId:  1,
 			},
 			updateKey: true,
 		},
@@ -56,7 +52,6 @@ func TestUpsertReceiptProcessingSettingsCommand_Validate_ValidInputs(t *testing.
 				Name:          "Test",
 				AiType:        models.OPEN_AI_NEW,
 				IsVisionModel: true,
-				PromptId:      1,
 			},
 			updateKey: false,
 		},
@@ -78,7 +73,6 @@ func TestUpsertReceiptProcessingSettingsCommand_Validate_MissingName(t *testing.
 		AiType:        models.OPEN_AI_NEW,
 		Key:           "test-key",
 		IsVisionModel: true,
-		PromptId:      1,
 	}
 
 	vErr := command.Validate(true)
@@ -98,7 +92,6 @@ func TestUpsertReceiptProcessingSettingsCommand_Validate_MissingOcrEngineNonVisi
 		AiType:        models.OLLAMA,
 		Url:           "http://localhost:11434",
 		IsVisionModel: false,
-		PromptId:      1,
 	}
 
 	vErr := command.Validate(true)
@@ -114,7 +107,6 @@ func TestUpsertReceiptProcessingSettingsCommand_Validate_VisionModelSkipsOcrEngi
 		AiType:        models.OPEN_AI_NEW,
 		Key:           "test-key",
 		IsVisionModel: true,
-		PromptId:      1,
 	}
 
 	vErr := command.Validate(true)
@@ -128,7 +120,6 @@ func TestUpsertReceiptProcessingSettingsCommand_Validate_MissingAiType(t *testin
 	command := UpsertReceiptProcessingSettingsCommand{
 		Name:          "Test",
 		IsVisionModel: true,
-		PromptId:      1,
 	}
 
 	vErr := command.Validate(true)
@@ -138,26 +129,11 @@ func TestUpsertReceiptProcessingSettingsCommand_Validate_MissingAiType(t *testin
 	}
 }
 
-func TestUpsertReceiptProcessingSettingsCommand_Validate_PromptIdZero(t *testing.T) {
-	command := UpsertReceiptProcessingSettingsCommand{
-		Name:          "Test",
-		IsVisionModel: true,
-		PromptId:      0,
-	}
-
-	vErr := command.Validate(true)
-
-	if _, exists := vErr.Errors["promptId"]; !exists {
-		utils.PrintTestError(t, "error should exist for field", "promptId")
-	}
-}
-
 func TestUpsertReceiptProcessingSettingsCommand_Validate_OpenAiMissingKeyWhenUpdateKey(t *testing.T) {
 	command := UpsertReceiptProcessingSettingsCommand{
 		Name:          "Test",
 		AiType:        models.OPEN_AI_NEW,
 		IsVisionModel: true,
-		PromptId:      1,
 	}
 
 	vErr := command.Validate(true)
@@ -174,7 +150,6 @@ func TestUpsertReceiptProcessingSettingsCommand_Validate_OpenAiUrlNotRequired(t 
 		Key:           "test-key",
 		Url:           "http://unnecessary-url.com",
 		IsVisionModel: true,
-		PromptId:      1,
 	}
 
 	vErr := command.Validate(true)
@@ -189,7 +164,6 @@ func TestUpsertReceiptProcessingSettingsCommand_Validate_OllamaMissingUrl(t *tes
 		Name:      "Test",
 		AiType:    models.OLLAMA,
 		OcrEngine: models.TESSERACT_NEW,
-		PromptId:  1,
 	}
 
 	vErr := command.Validate(true)
@@ -210,10 +184,6 @@ func TestUpsertReceiptProcessingSettingsCommand_IsEmpty(t *testing.T) {
 		},
 		"name set": {
 			command:  UpsertReceiptProcessingSettingsCommand{Name: "Test"},
-			expected: false,
-		},
-		"promptId set": {
-			command:  UpsertReceiptProcessingSettingsCommand{PromptId: 1},
 			expected: false,
 		},
 		"isVisionModel set": {

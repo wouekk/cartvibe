@@ -1,16 +1,15 @@
 package handlers
 
 import (
-	"net/http"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/constants"
-	config "cartvibe/api/internal/env"
 	"cartvibe/api/internal/permissions"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/services"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
 	"cartvibe/api/internal/wranglerasynq"
+	"net/http"
 	"strings"
 )
 
@@ -79,23 +78,12 @@ func UpdateSystemSettings(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			previousSystemSettings, err := systemSettingsRepository.GetSystemSettings()
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
 
 			updatedSystemSettings, err := systemSettingsRepository.UpdateSystemSettings(command)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
 
-			if previousSystemSettings.EmailPollingInterval != updatedSystemSettings.EmailPollingInterval &&
-				updatedSystemSettings.EmailPollingInterval > 0 && config.GetDeployEnv() != "test" {
-				err = wranglerasynq.StartEmailPolling()
-				if err != nil {
-					return http.StatusInternalServerError, err
-				}
-			}
 
 			responseBytes, err := utils.MarshalResponseData(updatedSystemSettings)
 			if err != nil {

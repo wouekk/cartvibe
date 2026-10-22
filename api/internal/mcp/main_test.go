@@ -1,11 +1,11 @@
 package mcp
 
 import (
-	"fmt"
-	"os"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/structs"
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/modelcontextprotocol/go-sdk/auth"

@@ -1,17 +1,17 @@
 package handlers
 
 import (
-	"net/http"
 	"cartvibe/api/internal/ai"
 	"cartvibe/api/internal/commands"
-	config "cartvibe/api/internal/env"
 	"cartvibe/api/internal/constants"
+	config "cartvibe/api/internal/env"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/permissions"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/services"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"net/http"
 	"strings"
 
 	"github.com/go-chi/chi/v5"
@@ -81,10 +81,7 @@ func CreateReceiptProcessingSettings(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			vErr, err := validateWithDefaultPrompt(&command, false)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
+			vErr := command.Validate(false)
 			if len(vErr.Errors) > 0 {
 				structs.WriteValidatorErrorResponse(w, vErr, http.StatusBadRequest)
 				return 0, nil
@@ -166,10 +163,7 @@ func UpdateReceiptProcessingSettingsById(w http.ResponseWriter, r *http.Request)
 				return http.StatusInternalServerError, err
 			}
 
-			vErr, err := validateWithDefaultPrompt(&command, updateKey)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
+			vErr := command.Validate(updateKey)
 			if len(vErr.Errors) > 0 {
 				structs.WriteValidatorErrorResponse(w, vErr, http.StatusBadRequest)
 				return 0, nil
@@ -280,7 +274,6 @@ func CheckReceiptProcessingSettingsConnectivity(w http.ResponseWriter, r *http.R
 					Model:                     command.Model,
 					EnforceJsonResponseFormat: command.EnforceJsonResponseFormat,
 					OcrEngine:                 &command.OcrEngine,
-					PromptId:                  command.PromptId,
 				}
 
 				client := services.AiService{}
@@ -366,25 +359,4 @@ func GetGeminiModels(w http.ResponseWriter, r *http.Request) {
 	}
 
 	HandleRequest(handler)
-}
-
-// validateWithDefaultPrompt validates the command, pointing settings saved without a prompt at the
-// default one (Phase 3 A3: the AI page has no prompt to pick, since every read uses the built-in
-// prompt). The default prompt is only created once the rest of the command is valid.
-func validateWithDefaultPrompt(
-	command *commands.UpsertReceiptProcessingSettingsCommand,
-	updateKey bool,
-) (structs.ValidatorError, error) {
-	vErr := command.Validate(updateKey)
-	if _, missingPrompt := vErr.Errors["promptId"]; !missingPrompt || len(vErr.Errors) > 1 || command.PromptId > 0 {
-		return vErr, nil
-	}
-
-	prompt, err := services.NewPromptService(nil).EnsureDefaultPrompt()
-	if err != nil {
-		return vErr, err
-	}
-
-	command.PromptId = prompt.ID
-	return command.Validate(updateKey), nil
 }

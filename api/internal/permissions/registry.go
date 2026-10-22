@@ -21,11 +21,6 @@ const (
 	AppUsersUpdate = "app.users.update"
 	AppUsersDelete = "app.users.delete"
 
-	AppPromptsCreate = "app.prompts.create"
-	AppPromptsRead   = "app.prompts.read"
-	AppPromptsUpdate = "app.prompts.update"
-	AppPromptsDelete = "app.prompts.delete"
-
 	AppCategoriesCreate = "app.categories.create"
 	AppCategoriesRead   = "app.categories.read"
 	AppCategoriesUpdate = "app.categories.update"
@@ -45,19 +40,12 @@ const (
 	AppReceiptProcessingSettingsUpdate = "app.receipt-processing-settings.update"
 	AppReceiptProcessingSettingsDelete = "app.receipt-processing-settings.delete"
 
-	AppSystemEmailsCreate = "app.system-emails.create"
-	AppSystemEmailsRead   = "app.system-emails.read"
-	AppSystemEmailsUpdate = "app.system-emails.update"
-	AppSystemEmailsDelete = "app.system-emails.delete"
-
 	AppSystemTasksRead = "app.system-tasks.read"
 
-	AppImportsRun = "app.imports.run"
 
-	AppGroupsCreate         = "app.groups.create"
-	AppGroupsRead           = "app.groups.read"
-	AppGroupsUpdateSettings = "app.groups.update-settings"
-	AppGroupsDelete         = "app.groups.delete"
+	AppGroupsCreate = "app.groups.create"
+	AppGroupsRead   = "app.groups.read"
+	AppGroupsDelete = "app.groups.delete"
 
 	AppApiKeysCreate    = "app.api-keys.create"
 	AppApiKeysRead      = "app.api-keys.read"
@@ -132,19 +120,10 @@ const (
 	GroupCommentsCreate = "group.comments.create"
 	GroupCommentsDelete = "group.comments.delete"
 
-	GroupDashboardsCreate = "group.dashboards.create"
-	GroupDashboardsRead   = "group.dashboards.read"
-	GroupDashboardsUpdate = "group.dashboards.update"
-	GroupDashboardsDelete = "group.dashboards.delete"
-
-	GroupWidgetsRead = "group.widgets.read"
-
 	GroupReportsRead = "group.reports.read"
 
 	GroupActivitiesRead  = "group.activities.read"
 	GroupActivitiesRerun = "group.activities.rerun"
-
-	GroupEmailPoll = "group.email.poll"
 
 	// Item mutations (add, edit, check off, remove, clear crossed-off) ride on
 	// update, which keeps the set small; splitting out an items.* key later is
@@ -160,11 +139,6 @@ var registry = []Descriptor{
 	{AppUsersRead, "Read Users", "List and look up user accounts.", "User Management", ScopeApp},
 	{AppUsersUpdate, "Update Users", "Edit user profiles, reset passwords, and convert dummy users.", "User Management", ScopeApp},
 	{AppUsersDelete, "Delete Users", "Delete users individually or in bulk.", "User Management", ScopeApp},
-
-	{AppPromptsCreate, "Create AI Prompts", "Create new AI prompt definitions.", "AI", ScopeApp},
-	{AppPromptsRead, "Read AI Prompts", "View the AI prompt library.", "AI", ScopeApp},
-	{AppPromptsUpdate, "Update AI Prompts", "Edit existing AI prompts.", "AI", ScopeApp},
-	{AppPromptsDelete, "Delete AI Prompts", "Remove AI prompts.", "AI", ScopeApp},
 
 	{AppCategoriesCreate, "Create Categories", "Create new categories.", "Catalog", ScopeApp},
 	{AppCategoriesRead, "Read Categories", "List and look up categories.", "Catalog", ScopeApp},
@@ -185,17 +159,10 @@ var registry = []Descriptor{
 	{AppReceiptProcessingSettingsUpdate, "Update Receipt Processing Configs", "Edit OCR/AI processing configurations.", "System", ScopeApp},
 	{AppReceiptProcessingSettingsDelete, "Delete Receipt Processing Configs", "Remove OCR/AI processing configurations.", "System", ScopeApp},
 
-	{AppSystemEmailsCreate, "Create System Email", "Add inbound email integrations.", "System", ScopeApp},
-	{AppSystemEmailsRead, "Read System Email", "View and test inbound email integrations.", "System", ScopeApp},
-	{AppSystemEmailsUpdate, "Update System Email", "Edit inbound email integrations.", "System", ScopeApp},
-	{AppSystemEmailsDelete, "Delete System Email", "Remove inbound email integrations.", "System", ScopeApp},
-
 	{AppSystemTasksRead, "Read System Tasks", "Inspect the system-wide activity log.", "System", ScopeApp},
-	{AppImportsRun, "Import Configuration", "Restore or seed the system from a configuration export.", "System", ScopeApp},
 
 	{AppGroupsCreate, "Create Groups", "Create new groups.", "Group Management", ScopeApp},
 	{AppGroupsRead, "Read All Groups", "List and look up groups across the system, including ones the calling user is not a member of.", "Group Management", ScopeApp},
-	{AppGroupsUpdateSettings, "Update Group System Settings", "Edit system-level settings on any group (separate from per-group ownership editing).", "Group Management", ScopeApp},
 	{AppGroupsDelete, "Delete Any Group", "Permanently delete any group in the system, including ones the calling user is not a member of. Intended for cleaning up abandoned or accidentally created groups; pairs with Read All Groups.", "Group Management", ScopeApp},
 
 	{AppApiKeysCreate, "Create API Keys", "Issue API keys for the calling user.", "Security", ScopeApp},
@@ -261,19 +228,10 @@ var registry = []Descriptor{
 	{GroupCommentsCreate, "Create Comments", "Add comments to receipts.", "Receipts", ScopeGroup},
 	{GroupCommentsDelete, "Delete Comments", "Remove comments.", "Receipts", ScopeGroup},
 
-	{GroupDashboardsCreate, "Create Dashboards", "Create dashboards for the group.", "Dashboards", ScopeGroup},
-	{GroupDashboardsRead, "Read Dashboards", "View dashboards.", "Dashboards", ScopeGroup},
-	{GroupDashboardsUpdate, "Update Dashboards", "Edit dashboards.", "Dashboards", ScopeGroup},
-	{GroupDashboardsDelete, "Delete Dashboards", "Remove dashboards.", "Dashboards", ScopeGroup},
-
-	{GroupWidgetsRead, "Read Widgets", "Read widget data (charts, summaries).", "Dashboards", ScopeGroup},
-
 	{GroupReportsRead, "Read Reports", "Generate and download reports over the group's receipts.", "Reports", ScopeGroup},
 
 	{GroupActivitiesRead, "Read Activities", "View the activity feed for the group.", "Activity", ScopeGroup},
 	{GroupActivitiesRerun, "Rerun Activities", "Re-execute a failed or stale activity.", "Activity", ScopeGroup},
-
-	{GroupEmailPoll, "Poll Inbound Email", "Trigger an inbound email poll for the group's inbox.", "Group", ScopeGroup},
 
 	{GroupShoppingListsCreate, "Create Shopping Lists", "Create new shopping lists in the group.", "Shopping Lists", ScopeGroup},
 	{GroupShoppingListsRead, "Read Shopping Lists", "View the group's shopping lists and receive their live updates.", "Shopping Lists", ScopeGroup},

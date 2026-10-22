@@ -215,16 +215,10 @@ func TestLegacyAppUserRetainsCategoryTagCreate(t *testing.T) {
 func TestLegacyGroupViewerKeys(t *testing.T) {
 	expected := []string{
 		GroupView,
-		GroupEmailPoll,
 		GroupReceiptsRead,
 		GroupReceiptsMagicFill,
 		GroupCommentsCreate,
 		GroupCommentsDelete,
-		GroupDashboardsCreate,
-		GroupDashboardsRead,
-		GroupDashboardsUpdate,
-		GroupDashboardsDelete,
-		GroupWidgetsRead,
 		GroupActivitiesRead,
 		GroupShoppingListsCreate,
 		GroupShoppingListsRead,
@@ -336,8 +330,8 @@ func TestLegacyGroupEditorDoesNotMutateViewer(t *testing.T) {
 	_ = LegacyGroupEditorKeys()
 
 	viewer := LegacyGroupViewerKeys()
-	if len(viewer) != 16 {
-		utilPrint(t, len(viewer), 16)
+	if len(viewer) != 10 {
+		utilPrint(t, len(viewer), 10)
 	}
 }
 

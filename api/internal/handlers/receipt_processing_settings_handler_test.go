@@ -1,6 +1,12 @@
 package handlers
 
 import (
+	"cartvibe/api/internal/commands"
+	config "cartvibe/api/internal/env"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
+	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -8,12 +14,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"cartvibe/api/internal/commands"
-	config "cartvibe/api/internal/env"
-	"cartvibe/api/internal/models"
-	"cartvibe/api/internal/repositories"
-	"cartvibe/api/internal/structs"
-	"cartvibe/api/internal/utils"
 	"strings"
 	"testing"
 
@@ -42,7 +42,7 @@ func TestShouldNotAllowUserToGetReceiptProcessingSettings(t *testing.T) {
 }
 
 func TestShouldNotGetReceiptProcessingSettingsWithBadRequest(t *testing.T) {
-	defer tearDownSystemEmailTest()
+	defer tearDownGroupTests()
 
 	tests := map[string]struct {
 		input  commands.PagedRequestCommand
@@ -150,7 +150,6 @@ func TestShouldTestValidAndInvalidCreateReceiptProcessingSettingCommands(t *test
 				AiType:      models.GEMINI,
 				OcrEngine:   models.TESSERACT,
 				Key:         "key",
-				PromptId:    1,
 			},
 			expect: http.StatusBadRequest,
 		},
@@ -160,7 +159,6 @@ func TestShouldTestValidAndInvalidCreateReceiptProcessingSettingCommands(t *test
 				Description: "description",
 				AiType:      models.GEMINI,
 				Key:         "key",
-				PromptId:    1,
 			},
 			expect: http.StatusBadRequest,
 		},
@@ -171,7 +169,6 @@ func TestShouldTestValidAndInvalidCreateReceiptProcessingSettingCommands(t *test
 				AiType:      models.GEMINI,
 				OcrEngine:   models.TESSERACT,
 				Key:         "key",
-				PromptId:    1,
 			},
 			expect: http.StatusOK,
 		},
@@ -199,7 +196,6 @@ func TestShouldTestValidAndInvalidCreateReceiptProcessingSettingCommands(t *test
 				AiType:      models.OPEN_AI,
 				OcrEngine:   models.TESSERACT,
 				Key:         "key",
-				PromptId:    1,
 			},
 			expect: http.StatusOK,
 		},
@@ -212,7 +208,6 @@ func TestShouldTestValidAndInvalidCreateReceiptProcessingSettingCommands(t *test
 				IsVisionModel: true,
 				OcrEngine:     models.EASY_OCR,
 				Url:           "http://localhost:8080/v1/chat/completions",
-				PromptId:      1,
 			},
 			expect: http.StatusOK,
 		},
@@ -224,15 +219,12 @@ func TestShouldTestValidAndInvalidCreateReceiptProcessingSettingCommands(t *test
 				OcrEngine:   models.EASY_OCR,
 				Key:         "optionalKey",
 				Url:         "http://localhost:8080/v1/chat/completions",
-				PromptId:    1,
 			},
 			expect: http.StatusOK,
 		},
 	}
 
 	for name, test := range tests {
-		db := repositories.GetDB()
-		db.Create(&models.Prompt{})
 
 		grantAllAppPerms(t, 1)
 
@@ -304,9 +296,7 @@ func TestShouldGetReceiptProcessingSettingsById(t *testing.T) {
 	var expectedStatusCode = http.StatusOK
 
 	db := repositories.GetDB()
-	db.Create(&models.Prompt{})
 	db.Create(&models.ReceiptProcessingSettings{
-		PromptId: 1,
 	})
 
 	chiContext := chi.NewRouteContext()
@@ -372,14 +362,10 @@ func TestShouldTestValidAndInvalidUpdateReceiptProcessingSettingCommands(t *test
 
 	os.Setenv("ENCRYPTION_KEY", "test")
 	db := repositories.GetDB()
-	db.Create(&models.Prompt{
-		Name: "prompt",
-	})
 	db.Create(&models.ReceiptProcessingSettings{
 		BaseModel: models.BaseModel{
 			ID: 1,
 		},
-		PromptId: 1,
 	})
 
 	grantAllAppPerms(t, 1)
@@ -401,7 +387,6 @@ func TestShouldTestValidAndInvalidUpdateReceiptProcessingSettingCommands(t *test
 				AiType:      models.GEMINI,
 				OcrEngine:   models.TESSERACT,
 				Key:         "key",
-				PromptId:    1,
 			},
 			expect: http.StatusBadRequest,
 		},
@@ -411,7 +396,6 @@ func TestShouldTestValidAndInvalidUpdateReceiptProcessingSettingCommands(t *test
 				Description: "description",
 				AiType:      models.GEMINI,
 				Key:         "key",
-				PromptId:    1,
 			},
 			expect: http.StatusBadRequest,
 		},
@@ -423,7 +407,6 @@ func TestShouldTestValidAndInvalidUpdateReceiptProcessingSettingCommands(t *test
 				Model:         "llava",
 				Url:           "http://localhost:8080/v1/chat/completions",
 				IsVisionModel: true,
-				PromptId:      1,
 			},
 			expect: http.StatusOK,
 		},
@@ -435,7 +418,6 @@ func TestShouldTestValidAndInvalidUpdateReceiptProcessingSettingCommands(t *test
 				OcrEngine:   models.EASY_OCR,
 				Model:       "llama3",
 				Url:         "http://localhost:8080/v1/chat/completions",
-				PromptId:    1,
 			},
 			expect: http.StatusOK,
 		},
@@ -446,7 +428,6 @@ func TestShouldTestValidAndInvalidUpdateReceiptProcessingSettingCommands(t *test
 				AiType:      models.GEMINI,
 				OcrEngine:   models.TESSERACT,
 				Key:         "key",
-				PromptId:    1,
 			},
 			expect: http.StatusOK,
 		},
@@ -457,7 +438,6 @@ func TestShouldTestValidAndInvalidUpdateReceiptProcessingSettingCommands(t *test
 				AiType:      models.OPEN_AI,
 				OcrEngine:   models.TESSERACT,
 				Key:         "key",
-				PromptId:    1,
 			},
 			expect: http.StatusOK,
 		},
@@ -469,7 +449,6 @@ func TestShouldTestValidAndInvalidUpdateReceiptProcessingSettingCommands(t *test
 				Model:         "gpt-4o",
 				IsVisionModel: true,
 				Key:           "key",
-				PromptId:      1,
 			},
 			expect: http.StatusOK,
 		},
@@ -481,7 +460,6 @@ func TestShouldTestValidAndInvalidUpdateReceiptProcessingSettingCommands(t *test
 				OcrEngine:   models.EASY_OCR,
 				Key:         "optionalKey",
 				Url:         "http://localhost:8080/v1/chat/completions",
-				PromptId:    1,
 			},
 			expect: http.StatusOK,
 		},
@@ -559,9 +537,7 @@ func TestShouldDeleteReceiptProcessingSettingsById(t *testing.T) {
 	var expectedStatusCode = http.StatusOK
 
 	db := repositories.GetDB()
-	db.Create(&models.Prompt{})
 	db.Create(&models.ReceiptProcessingSettings{
-		PromptId: 1,
 	})
 
 	chiContext := chi.NewRouteContext()
@@ -609,14 +585,12 @@ func TestShouldNotCheckReceiptProcessingSettingsConnectivityWithBadRequest(t *te
 	ocrEngine := models.TESSERACT
 
 	db := repositories.GetDB()
-	db.Create(&models.Prompt{})
 	db.Create(&models.ReceiptProcessingSettings{
 		Name:        "Gemini",
 		Description: "description",
 		AiType:      models.GEMINI,
 		OcrEngine:   &ocrEngine,
 		Key:         key,
-		PromptId:    1,
 	})
 
 	grantAllAppPerms(t, 1)
@@ -667,7 +641,6 @@ func TestShouldNotCheckReceiptProcessingSettingsConnectivityWithBadRequest(t *te
 					AiType:      models.GEMINI,
 					OcrEngine:   models.TESSERACT,
 					Key:         "key",
-					PromptId:    1,
 				},
 			},
 			expect: http.StatusOK,

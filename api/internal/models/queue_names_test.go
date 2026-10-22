@@ -8,9 +8,6 @@ import (
 func TestQueueName_Value(t *testing.T) {
 	valid := []QueueName{
 		QuickScanQueue,
-		EmailPollingQueue,
-		EmailReceiptProcessingQueue,
-		EmailReceiptImageCleanupQueue,
 		SystemCleanUpQueue,
 	}
 	for _, v := range valid {
@@ -40,9 +37,6 @@ func TestGetQueueNames(t *testing.T) {
 
 	expected := []QueueName{
 		QuickScanQueue,
-		EmailPollingQueue,
-		EmailReceiptProcessingQueue,
-		EmailReceiptImageCleanupQueue,
 		SystemCleanUpQueue,
 	}
 	if len(names) != len(expected) {
@@ -61,9 +55,6 @@ func TestGetDefaultQueueConfigurationMap(t *testing.T) {
 
 	expected := map[QueueName]int{
 		QuickScanQueue:                4,
-		EmailPollingQueue:             2,
-		EmailReceiptProcessingQueue:   3,
-		EmailReceiptImageCleanupQueue: 1,
 		SystemCleanUpQueue:            5,
 	}
 	if len(configMap) != len(expected) {

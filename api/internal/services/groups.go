@@ -1,13 +1,13 @@
 package services
 
 import (
-	"errors"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/permissions"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/utils"
+	"errors"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -231,7 +231,7 @@ func (service GroupService) DeleteGroup(groupId string, allowAllGroupDelete bool
 		}
 	}
 
-	group, err := groupRepository.GetGroupById(groupId, false, false, false)
+	group, err := groupRepository.GetGroupById(groupId, false, false)
 	if err != nil {
 		return err
 	}
@@ -248,20 +248,6 @@ func (service GroupService) DeleteGroup(groupId string, allowAllGroupDelete bool
 		// Delete receipts in group
 		for i := 0; i < len(receipts); i++ {
 			txErr = receiptService.DeleteReceipt(utils.UintToString(receipts[i].ID))
-			if txErr != nil {
-				return txErr
-			}
-		}
-
-		// Delete dashboards in group
-		dashboardRepository := repositories.NewDashboardRepository(tx)
-		groupDashboards, txErr := dashboardRepository.GetDashboardsByGroupId(group.ID)
-		if txErr != nil {
-			return txErr
-		}
-
-		for _, dashboard := range groupDashboards {
-			txErr = dashboardRepository.DeleteDashboardById(dashboard.ID)
 			if txErr != nil {
 				return txErr
 			}
@@ -298,17 +284,8 @@ func (service GroupService) DeleteGroup(groupId string, allowAllGroupDelete bool
 			return txErr
 		}
 
-
 		// Unset user preferences
 		tx.Model(models.UserPrefernces{}).Where("quick_scan_default_group_id = ?", groupId).Update("quick_scan_default_group_id", nil)
-
-		// Delete Group Settings
-		if group.GroupSettings.GroupId > 0 {
-			txErr = tx.Model(&group.GroupSettings).Select(clause.Associations).Delete(&group.GroupSettings).Error
-			if txErr != nil {
-				return txErr
-			}
-		}
 
 		// Delete Group Receipt Settings
 		if group.GroupReceiptSettings.GroupId > 0 {

@@ -14,7 +14,6 @@ import (
 	"cartvibe/api/internal/reporting"
 	"cartvibe/api/internal/reporting/receiptsource"
 	"cartvibe/api/internal/repositories"
-	"cartvibe/api/internal/utils"
 )
 
 // createSplitReceipt inserts a receipt with the given amount, categories and tags.
@@ -503,28 +502,3 @@ func TestReportService_Generate_SplitAcrossGroupsCsv(t *testing.T) {
 	}
 }
 
-// A saved template carries its split options, and the dashboard render applies
-// them over the full dataset.
-func TestReportService_RenderTemplateForUser_AppliesSplit(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	resetAuthzCaches()
-
-	food := loadCategory(t, makeCategory(t, "Food"))
-	fuel := loadCategory(t, makeCategory(t, "Fuel"))
-	userId := seedAppUser(t, "widget-split", []string{permissions.AppReportsRead, permissions.AppReportsGenerate})
-	groupId, _ := joinGroup(t, userId, "Household", []string{permissions.GroupReportsRead, permissions.GroupReceiptsRead})
-	createSplitReceipt(t, "shared", "100", userId, groupId, []models.Category{food, fuel}, nil)
-
-	templateId := seedRenderableTemplate(t, "Widget", []uint{groupId}, splitReportCommand([]uint{groupId}))
-	preview, err := NewReportService(nil).RenderTemplateForUser(userId, utils.UintToString(templateId))
-	if err != nil {
-		t.Fatalf("RenderTemplateForUser: %v", err)
-	}
-
-	if preview.ReceiptCount != 1 {
-		t.Errorf("receipt count = %d, want 1", preview.ReceiptCount)
-	}
-	if !strings.Contains(preview.Html, "50.00") || strings.Contains(preview.Html, "200.00") {
-		t.Errorf("expected split 50.00 buckets and no 200.00 double count, got:\n%s", preview.Html)
-	}
-}

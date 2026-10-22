@@ -58,9 +58,6 @@ const (
 	CHAT_COMPLETION                                SystemTaskType = "CHAT_COMPLETION"
 	MAGIC_FILL                                     SystemTaskType = "MAGIC_FILL"
 	QUICK_SCAN                                     SystemTaskType = "QUICK_SCAN"
-	EMAIL_UPLOAD                                   SystemTaskType = "EMAIL_UPLOAD"
-	EMAIL_READ                                     SystemTaskType = "EMAIL_READ"
-	SYSTEM_EMAIL_CONNECTIVITY_CHECK                SystemTaskType = "SYSTEM_EMAIL_CONNECTIVITY_CHECK"
 	RECEIPT_PROCESSING_SETTINGS_CONNECTIVITY_CHECK SystemTaskType = "RECEIPT_PROCESSING_SETTINGS_CONNECTIVITY_CHECK"
 	PROMPT_GENERATED                               SystemTaskType = "PROMPT_GENERATED"
 	RECEIPT_UPDATED                                SystemTaskType = "RECEIPT_UPDATED"
@@ -74,12 +71,9 @@ func (self *SystemTaskType) Scan(value string) error {
 }
 
 func (self SystemTaskType) Value() (driver.Value, error) {
-	if self != SYSTEM_EMAIL_CONNECTIVITY_CHECK &&
-		self != RECEIPT_PROCESSING_SETTINGS_CONNECTIVITY_CHECK &&
+	if self != RECEIPT_PROCESSING_SETTINGS_CONNECTIVITY_CHECK &&
 		self != QUICK_SCAN &&
 		self != MAGIC_FILL &&
-		self != EMAIL_UPLOAD &&
-		self != EMAIL_READ &&
 		self != CHAT_COMPLETION &&
 		self != OCR_PROCESSING &&
 		self != RECEIPT_UPLOADED &&
@@ -96,8 +90,6 @@ type AssociatedEntityType string
 
 const (
 	RECEIPT                     AssociatedEntityType = "RECEIPT"
-	SYSTEM_EMAIL                AssociatedEntityType = "SYSTEM_EMAIL"
-	PROMPT                      AssociatedEntityType = "PROMPT"
 	RECEIPT_PROCESSING_SETTINGS AssociatedEntityType = "RECEIPT_PROCESSING_SETTINGS"
 	NOOP_ENTITY_TYPE            AssociatedEntityType = "NOOP_ENTITY_TYPE"
 	API_KEY                     AssociatedEntityType = "API_KEY"
@@ -109,11 +101,9 @@ func (self *AssociatedEntityType) Scan(value string) error {
 }
 
 func (self AssociatedEntityType) Value() (driver.Value, error) {
-	if self != SYSTEM_EMAIL &&
-		self != NOOP_ENTITY_TYPE &&
+	if self != NOOP_ENTITY_TYPE &&
 		self != RECEIPT_PROCESSING_SETTINGS &&
 		self != RECEIPT &&
-		self != PROMPT &&
 		self != API_KEY {
 		return nil, errors.New("invalid AssociatedEntityType")
 	}

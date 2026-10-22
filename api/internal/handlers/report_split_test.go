@@ -178,20 +178,3 @@ func TestGenerateReportFromTemplate_AppliesSplit(t *testing.T) {
 	}
 }
 
-func TestRenderReportTemplate_AppliesSplit(t *testing.T) {
-	defer tearDownReportTest()
-	repositories.CreateTestGroupWithUsers()
-	grantAppPerms(t, 1, permissions.AppReportsRead)
-	grantGroupPerms(t, 1, 1, permissions.GroupReportsRead)
-	seedSplitReceipt(t)
-	template := seedSplitTemplate(t)
-
-	w, r := reportTemplateIdRequest("POST", 1, fmt.Sprint(template.ID))
-	RenderReportTemplate(w, r)
-
-	assertStatus(t, w, http.StatusOK)
-	preview := decodePreview(t, w.Body.Bytes())
-	if !strings.Contains(preview.Html, "50.00") || strings.Contains(preview.Html, "200.00") {
-		t.Errorf("expected split 50.00 buckets and no 200.00 double count, got:\n%s", preview.Html)
-	}
-}

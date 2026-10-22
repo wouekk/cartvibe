@@ -1,20 +1,16 @@
 package handlers
 
 import (
-	"encoding/json"
-	"errors"
-	"net/http"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/constants"
-	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/permissions"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/services"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
-	"cartvibe/api/internal/wranglerasynq"
+	"errors"
+	"net/http"
 
-	"github.com/hibiken/asynq"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -61,7 +57,6 @@ func GetPagedGroups(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
-
 
 			anyData := make([]any, len(groups))
 			for i := 0; i < len(groups); i++ {
@@ -138,7 +133,6 @@ func GetGroupsForUser(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-
 			bytes, err := utils.MarshalResponseData(groups)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -167,7 +161,7 @@ func GetGroupById(w http.ResponseWriter, r *http.Request) {
 			id := chi.URLParam(r, "groupId")
 
 			groupRepository := repositories.NewGroupRepository(nil)
-			groups, err := groupRepository.GetGroupById(id, true, true, true)
+			groups, err := groupRepository.GetGroupById(id, true, true)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -235,7 +229,6 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 			if err := repositories.NewGroupMemberRepository(nil).LoadMemberGrantsForGroup(&group); err != nil {
 				return http.StatusInternalServerError, err
 			}
-
 
 			bytes, err := utils.MarshalResponseData(group)
 			if err != nil {
@@ -343,47 +336,6 @@ func UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	HandleRequest(handler)
 }
 
-func UpdateGroupSettings(w http.ResponseWriter, r *http.Request) {
-	groupId := chi.URLParam(r, "groupId")
-
-	handler := structs.Handler{
-		ErrorMessage:   "Error updating group settings",
-		Writer:         w,
-		Request:        r,
-		ResponseType:   constants.ApplicationJson,
-		AppPermissions: []string{permissions.AppGroupsUpdateSettings},
-		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			command := commands.UpdateGroupSettingsCommand{}
-			vErr, err := command.LoadDataFromRequestAndValidate(w, r)
-			if len(vErr.Errors) > 0 {
-				structs.WriteValidatorErrorResponse(w, vErr, http.StatusBadRequest)
-				return 0, nil
-			}
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-
-			groupSettingsRepository := repositories.NewGroupSettingsRepository(nil)
-			updatedGroupSettings, err := groupSettingsRepository.UpdateGroupSettings(groupId, command)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-
-			bytes, err := utils.MarshalResponseData(updatedGroupSettings)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-
-			w.WriteHeader(200)
-			w.Write(bytes)
-
-			return 0, nil
-		},
-	}
-
-	HandleRequest(handler)
-}
-
 func UpdateGroupReceiptSettings(w http.ResponseWriter, r *http.Request) {
 	groupId := chi.URLParam(r, "groupId")
 
@@ -405,7 +357,6 @@ func UpdateGroupReceiptSettings(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-
 			groupReceiptSettingsRepository := repositories.NewGroupReceiptSettingsRepository(nil)
 			updatedGroupReceiptSettings, err := groupReceiptSettingsRepository.UpdateGroupReceiptSettings(groupId, command)
 			if err != nil {
@@ -420,91 +371,6 @@ func UpdateGroupReceiptSettings(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 			w.Write(bytes)
 
-			return 0, nil
-		},
-	}
-
-	HandleRequest(handler)
-}
-
-func PollGroupEmail(w http.ResponseWriter, r *http.Request) {
-	groupId := chi.URLParam(r, "groupId")
-	errMessage := "Error polling email(s), please review your email integration settings"
-
-	handler := structs.Handler{
-		ErrorMessage:     errMessage,
-		Writer:           w,
-		Request:          r,
-		GroupPermissions: []string{permissions.GroupEmailPoll},
-		GroupId:          groupId,
-		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			groupSettingsRepository := repositories.NewGroupSettingsRepository(nil)
-			groupRepository := repositories.NewGroupRepository(nil)
-
-			groupIdsToPoll := []string{}
-
-			uintGroupId, err := utils.StringToUint(groupId)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-			isAllGroup, err := groupRepository.IsAllGroup(uintGroupId)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-
-			if isAllGroup {
-				token := structs.GetClaims(r)
-				disabledEmailIntegrationCnt := 0
-				groupService := services.NewGroupService(nil)
-
-				groups, err := groupService.GetGroupsForUser(utils.UintToString(token.UserId))
-				if err != nil {
-					return http.StatusInternalServerError, err
-				}
-
-				for _, group := range groups {
-					if group.GroupSettings.EmailIntegrationEnabled {
-						groupIdsToPoll = append(groupIdsToPoll, utils.UintToString(group.ID))
-					} else {
-						disabledEmailIntegrationCnt += 1
-					}
-				}
-
-				if disabledEmailIntegrationCnt == len(groups) {
-					return http.StatusBadRequest, errors.New("email integration is not enabled for any of your groups")
-				}
-
-			} else {
-				groupSettings, err := groupSettingsRepository.GetAllGroupSettings("group_id = ?", groupId)
-				if err != nil {
-					return http.StatusInternalServerError, err
-				}
-
-				for _, groupSetting := range groupSettings {
-					if !groupSetting.EmailIntegrationEnabled {
-						return http.StatusBadRequest, errors.New("email integration is not enabled for this group")
-					}
-					groupIdsToPoll = append(groupIdsToPoll, utils.UintToString(groupSetting.GroupId))
-				}
-			}
-
-			// TODO: Enqueue instead
-			taskPayload := wranglerasynq.EmailPollTaskPayload{
-				GroupIds: groupIdsToPoll,
-			}
-
-			payloadBytes, err := json.Marshal(taskPayload)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-
-			task := asynq.NewTask(wranglerasynq.EmailPoll, payloadBytes)
-			_, err = wranglerasynq.EnqueueTask(task, models.EmailPollingQueue)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-
-			w.WriteHeader(http.StatusOK)
 			return 0, nil
 		},
 	}
@@ -640,4 +506,3 @@ func UpdateGroupMemberGrants(w http.ResponseWriter, r *http.Request) {
 
 	HandleRequest(handler)
 }
-

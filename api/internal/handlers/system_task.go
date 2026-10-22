@@ -1,13 +1,6 @@
 package handlers
 
 import (
-	"errors"
-	"github.com/go-chi/chi/v5"
-	"gorm.io/gorm"
-	"mime"
-	"net/http"
-	"os"
-	"path/filepath"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/constants"
 	"cartvibe/api/internal/logging"
@@ -18,6 +11,13 @@ import (
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
 	"cartvibe/api/internal/wranglerasynq"
+	"errors"
+	"github.com/go-chi/chi/v5"
+	"gorm.io/gorm"
+	"mime"
+	"net/http"
+	"os"
+	"path/filepath"
 )
 
 func GetSystemTasks(w http.ResponseWriter, r *http.Request) {
@@ -196,9 +196,9 @@ func RerunActivity(w http.ResponseWriter, r *http.Request) {
 			// The task type is checked here rather than before the handler is built,
 			// so it stays behind the gate: a caller who may not reach this activity
 			// must not learn from a 400 that it is of a rerunnable type.
-			if systemTask.Type != models.QUICK_SCAN && systemTask.Type != models.EMAIL_UPLOAD {
-				logging.LogStd(logging.LOG_LEVEL_ERROR, "Only quick scan and email upload activities can be rerun")
-				utils.WriteCustomErrorResponse(w, "Only a quick scan or email upload activity can be rerun.", http.StatusBadRequest)
+			if systemTask.Type != models.QUICK_SCAN {
+				logging.LogStd(logging.LOG_LEVEL_ERROR, "Only quick scan activities can be rerun")
+				utils.WriteCustomErrorResponse(w, "Only a quick scan activity can be rerun.", http.StatusBadRequest)
 				return 0, nil
 			}
 
@@ -220,9 +220,9 @@ func RerunActivity(w http.ResponseWriter, r *http.Request) {
 
 			// Inspector.RunTask does not refuse a task by state — it pushes back
 			// anything that is not active or pending, a succeeded task included —
-			// so the rule lives here. The email queue retains its completed tasks
-			// for the temp sweep, so without this a rerun of one would re-process
-			// an email that already produced a receipt. See CanRerunTask.
+			// so the rule lives here. A completed task can still be
+			// rerun by mistake, so without this a rerun would process the
+			// same upload twice. See CanRerunTask.
 			if !wranglerasynq.CanRerunTask(taskInfo) {
 				utils.WriteCustomErrorResponse(w, "Only a failed activity can be rerun.", http.StatusBadRequest)
 				return 0, nil

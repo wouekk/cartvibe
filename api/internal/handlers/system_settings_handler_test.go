@@ -1,15 +1,15 @@
 package handlers
 
 import (
-	"context"
-	"encoding/json"
-	"net/http"
-	"net/http/httptest"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"context"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -83,17 +83,14 @@ func TestShouldGetSystemSettingsWhenThereAreExistingSettings(t *testing.T) {
 }
 
 func TestShouldValidateUpsertSystemSettingsCommand(t *testing.T) {
-	defer tearDownSystemEmailTest()
+	defer tearDownGroupTests()
 	db := repositories.GetDB()
 	db.Create(&models.SystemSettings{})
-	db.Create(&models.Prompt{})
 	db.Create(&models.ReceiptProcessingSettings{
 		Name:     "test",
-		PromptId: 1,
 	})
 	db.Create(&models.ReceiptProcessingSettings{
 		Name:     "test2",
-		PromptId: 1,
 	})
 
 	defaultAsynqConfigCommands := make([]commands.UpsertTaskQueueConfigurationCommand, 0)
@@ -120,7 +117,6 @@ func TestShouldValidateUpsertSystemSettingsCommand(t *testing.T) {
 		},
 		"invalid email polling interval": {
 			input: commands.UpsertSystemSettingsCommand{
-				EmailPollingInterval: -1,
 			},
 			expect: http.StatusBadRequest,
 		},
@@ -151,7 +147,6 @@ func TestShouldValidateUpsertSystemSettingsCommand(t *testing.T) {
 		},
 		"bad num workers": {
 			input: commands.UpsertSystemSettingsCommand{
-				EmailPollingInterval:                1,
 				EnableLocalSignUp:                   true,
 				ReceiptProcessingSettingsId:         &id,
 				FallbackReceiptProcessingSettingsId: &id2,
@@ -164,7 +159,6 @@ func TestShouldValidateUpsertSystemSettingsCommand(t *testing.T) {
 		},
 		"missing currency thousandths separator": {
 			input: commands.UpsertSystemSettingsCommand{
-				EmailPollingInterval:                1,
 				EnableLocalSignUp:                   true,
 				ReceiptProcessingSettingsId:         &id,
 				FallbackReceiptProcessingSettingsId: &id2,
@@ -178,7 +172,6 @@ func TestShouldValidateUpsertSystemSettingsCommand(t *testing.T) {
 		},
 		"missing currency decimal separator": {
 			input: commands.UpsertSystemSettingsCommand{
-				EmailPollingInterval:                1,
 				EnableLocalSignUp:                   true,
 				ReceiptProcessingSettingsId:         &id,
 				FallbackReceiptProcessingSettingsId: &id2,
@@ -192,7 +185,6 @@ func TestShouldValidateUpsertSystemSettingsCommand(t *testing.T) {
 		},
 		"missing missing currency symbol position": {
 			input: commands.UpsertSystemSettingsCommand{
-				EmailPollingInterval:                1,
 				EnableLocalSignUp:                   true,
 				ReceiptProcessingSettingsId:         &id,
 				FallbackReceiptProcessingSettingsId: &id2,
@@ -206,7 +198,6 @@ func TestShouldValidateUpsertSystemSettingsCommand(t *testing.T) {
 		},
 		"valid command": {
 			input: commands.UpsertSystemSettingsCommand{
-				EmailPollingInterval:                1,
 				CurrencyDisplay:                     "something else",
 				EnableLocalSignUp:                   true,
 				ReceiptProcessingSettingsId:         &id,
@@ -353,7 +344,6 @@ func TestUpdateSystemSettingsPersistsExplicitRefreshTokenLifetimes(t *testing.T)
 		CurrencyThousandthsSeparator: models.COMMA,
 		CurrencyDecimalSeparator:     models.DOT,
 		TaskConcurrency:              1,
-		EmailPollingInterval:         60,
 		TaskQueueConfigurations:      queueConfigs,
 		RefreshTokenValidForHours:    &appHours,
 		McpRefreshTokenValidForHours: &mcpHours,

@@ -1,7 +1,6 @@
 package services
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"cartvibe/api/internal/commands"
@@ -108,27 +107,6 @@ func createTestCommentForDeletion(t *testing.T, receiptId uint, userId uint, tex
 		t.Fatalf("failed to create comment: %v", err)
 	}
 	return comment
-}
-
-func createTestDashboardForDeletion(t *testing.T, userId uint, groupId uint) models.Dashboard {
-	t.Helper()
-	db := repositories.GetDB()
-	dashboard := models.Dashboard{
-		Name:    "test dashboard",
-		UserID:  userId,
-		GroupID: groupId,
-		Widgets: []models.Widget{
-			{
-				Name:          "test widget",
-				WidgetType:    models.GROUP_SUMMARY,
-				Configuration: json.RawMessage(`{}`),
-			},
-		},
-	}
-	if err := db.Create(&dashboard).Error; err != nil {
-		t.Fatalf("failed to create dashboard: %v", err)
-	}
-	return dashboard
 }
 
 func createTestApiKeyForDeletion(t *testing.T, userId uint) models.ApiKey {
@@ -560,28 +538,6 @@ func TestDeleteUser_ReferencedInOtherPreferences(t *testing.T) {
 	}
 }
 
-func TestDeleteUser_ReferencedInGroupSettings(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	user := createUserForDeletion(t, "refgsuser")
-	otherUser := createUserForDeletion(t, "othergsuser")
-
-	otherGroup := getNonAllGroupForUser(t, otherUser.ID)
-
-	db := repositories.GetDB()
-	db.Model(&models.GroupSettings{}).Where("group_id = ?", otherGroup.ID).Update("email_default_receipt_paid_by_id", user.ID)
-
-	err := DeleteUser(utils.UintToString(user.ID))
-	if err != nil {
-		t.Fatalf("DeleteUser failed: %v", err)
-	}
-
-	var gs models.GroupSettings
-	db.Where("group_id = ?", otherGroup.ID).First(&gs)
-	if gs.EmailDefaultReceiptPaidById != nil {
-		t.Errorf("EmailDefaultReceiptPaidById should be nullified, got %v", *gs.EmailDefaultReceiptPaidById)
-	}
-}
-
 func TestDeleteUser_WithRefreshTokens(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	user := createUserForDeletion(t, "tokenuser")
@@ -672,22 +628,6 @@ func TestDeleteUser_RemovesOidcRecords(t *testing.T) {
 	assertCount(t, &models.OidcExchangeCode{}, "user_id = ?", []interface{}{user.ID}, 0, "exchange codes for the deleted user should be gone")
 	assertCount(t, &models.OidcDeleteConfirmation{}, "user_id = ?", []interface{}{user.ID}, 0, "delete confirmations for the deleted user should be gone")
 	assertCount(t, &models.OidcIdentity{}, "user_id = ?", []interface{}{other.ID}, 1, "another user's identity should survive")
-}
-
-func TestDeleteUser_WithDashboards(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	user := createUserForDeletion(t, "dashuser")
-	group := getNonAllGroupForUser(t, user.ID)
-
-	dashboard := createTestDashboardForDeletion(t, user.ID, group.ID)
-
-	err := DeleteUser(utils.UintToString(user.ID))
-	if err != nil {
-		t.Fatalf("DeleteUser failed: %v", err)
-	}
-
-	assertCount(t, &models.Dashboard{}, "user_id = ?", []interface{}{user.ID}, 0, "dashboards should be deleted")
-	assertCount(t, &models.Widget{}, "dashboard_id = ?", []interface{}{dashboard.ID}, 0, "widgets should be deleted")
 }
 
 func TestDeleteUser_WithCommentsOnOtherReceipts(t *testing.T) {
@@ -877,8 +817,6 @@ func TestDeleteUser_Comprehensive(t *testing.T) {
 	}
 	db.Create(&compReply)
 
-	// Dashboard
-	dashboard := createTestDashboardForDeletion(t, user.ID, userGroup.ID)
 
 	// API key with system task reference
 	apiKey := createTestApiKeyForDeletion(t, user.ID)
@@ -908,9 +846,6 @@ func TestDeleteUser_Comprehensive(t *testing.T) {
 	// Set other user's preferences to reference this user
 	db.Model(&models.UserPrefernces{}).Where("user_id = ?", otherUser.ID).Update("quick_scan_default_paid_by_id", user.ID)
 
-	// Set group settings to reference this user
-	db.Model(&models.GroupSettings{}).Where("group_id = ?", otherGroup.ID).Update("email_default_receipt_paid_by_id", user.ID)
-
 	// Created-by reference
 	receiptWithCreatedBy := models.Receipt{
 		Name:         "created by test",
@@ -934,8 +869,6 @@ func TestDeleteUser_Comprehensive(t *testing.T) {
 	assertCount(t, &models.ApiKey{}, "user_id = ?", []interface{}{user.ID}, 0, "API keys should be deleted")
 	assertCount(t, &models.Receipt{}, "id = ?", []interface{}{userReceipt.ID}, 0, "user's receipt should be deleted")
 	assertCount(t, &models.Item{}, "charged_to_user_id = ?", []interface{}{user.ID}, 0, "items charged to user should be deleted")
-	assertCount(t, &models.Dashboard{}, "id = ?", []interface{}{dashboard.ID}, 0, "dashboard should be deleted")
-	assertCount(t, &models.Widget{}, "dashboard_id = ?", []interface{}{dashboard.ID}, 0, "widgets should be deleted")
 	assertCount(t, &models.Notification{}, "user_id = ?", []interface{}{user.ID}, 0, "notifications should be deleted")
 	assertCount(t, &models.UserPrefernces{}, "user_id = ?", []interface{}{user.ID}, 0, "preferences should be deleted")
 	assertCount(t, &models.GroupMember{}, "user_id = ?", []interface{}{user.ID}, 0, "group memberships should be removed")
@@ -989,11 +922,6 @@ func TestDeleteUser_Comprehensive(t *testing.T) {
 		t.Errorf("QuickScanDefaultPaidById should be nil")
 	}
 
-	var gs models.GroupSettings
-	db.Where("group_id = ?", otherGroup.ID).First(&gs)
-	if gs.EmailDefaultReceiptPaidById != nil {
-		t.Errorf("EmailDefaultReceiptPaidById should be nil")
-	}
 
 	var updatedReceipt models.Receipt
 	db.First(&updatedReceipt, receiptWithCreatedBy.ID)

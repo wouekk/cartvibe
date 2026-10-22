@@ -199,44 +199,6 @@ func TestGetReportTemplate_ReturnsPeriodDateField(t *testing.T) {
 	}
 }
 
-// The dashboard widget renders a stored configuration without re-validating it.
-// A stored date field is honoured there; a template saved before the field existed
-// stays on the receipt date, and so does a stored value the report cannot run on.
-// The receipt's three dates fall in three different months, so each case can only
-// match through the date it names: May is the receipt date, July the resolved
-// date, August the date it was added.
-func TestRenderReportTemplate_HonorsPeriodDateField(t *testing.T) {
-	tests := []struct {
-		dateField string
-		month     int
-		want      int
-	}{
-		{commands.ReceiptFilterKeyCreatedAt, 8, 1},
-		{"", 5, 1},
-		{"", 8, 0},
-		{"paidAt", 5, 1},
-		{"paidAt", 8, 0},
-	}
-	for _, test := range tests {
-		t.Run(fmt.Sprintf("dateField=%s/month=%d", test.dateField, test.month), func(t *testing.T) {
-			defer tearDownReportTest()
-			repositories.CreateTestGroupWithUsers()
-			grantAppPerms(t, 1, permissions.AppReportsRead)
-			grantGroupPerms(t, 1, 1, permissions.GroupReportsRead)
-			seedDatedReportReceipt(t, "dated")
-			seeded := seedPeriodTemplate(t, test.dateField, test.month)
-
-			w, r := reportTemplateIdRequest("POST", 1, fmt.Sprint(seeded.ID))
-			RenderReportTemplate(w, r)
-
-			assertStatus(t, w, http.StatusOK)
-			if got := decodePreview(t, w.Body.Bytes()).ReceiptCount; got != test.want {
-				t.Errorf("receiptCount = %d, want %d", got, test.want)
-			}
-		})
-	}
-}
-
 func TestGenerateReportFromTemplate_HonorsPeriodDateField(t *testing.T) {
 	tests := []struct {
 		dateField    string

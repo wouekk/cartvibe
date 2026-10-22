@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hibiken/asynq"
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/services"
+	"github.com/hibiken/asynq"
 )
 
 // HandleReceiptProductSweepTask reads the products of the receipts that are due. Outcomes, including

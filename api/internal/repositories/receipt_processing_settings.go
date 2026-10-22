@@ -74,7 +74,6 @@ func (repository ReceiptProcessingSettingsRepository) CreateReceiptProcessingSet
 		IsVisionModel:             command.IsVisionModel,
 		EnforceJsonResponseFormat: command.EnforceJsonResponseFormat,
 		OcrEngine:                 &command.OcrEngine,
-		PromptId:                  command.PromptId,
 	}
 
 	err := db.Create(&settings).Error
@@ -125,7 +124,6 @@ func (repository ReceiptProcessingSettingsRepository) UpdateReceiptProcessingSet
 	settings.IsVisionModel = command.IsVisionModel
 	settings.EnforceJsonResponseFormat = command.EnforceJsonResponseFormat
 	settings.OcrEngine = &command.OcrEngine
-	settings.PromptId = command.PromptId
 
 	if updateKey {
 		key, err := utils.EncryptAndEncodeToBase64(config.GetEncryptionKey(), command.Key)

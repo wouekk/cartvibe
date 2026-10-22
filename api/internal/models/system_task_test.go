@@ -35,9 +35,6 @@ func TestSystemTaskType_Value(t *testing.T) {
 		CHAT_COMPLETION,
 		MAGIC_FILL,
 		QUICK_SCAN,
-		EMAIL_UPLOAD,
-		EMAIL_READ,
-		SYSTEM_EMAIL_CONNECTIVITY_CHECK,
 		RECEIPT_PROCESSING_SETTINGS_CONNECTIVITY_CHECK,
 		PROMPT_GENERATED,
 		RECEIPT_UPDATED,
@@ -68,8 +65,6 @@ func TestSystemTaskType_Scan(t *testing.T) {
 func TestAssociatedEntityType_Value(t *testing.T) {
 	valid := []AssociatedEntityType{
 		RECEIPT,
-		SYSTEM_EMAIL,
-		PROMPT,
 		RECEIPT_PROCESSING_SETTINGS,
 		NOOP_ENTITY_TYPE,
 		API_KEY,

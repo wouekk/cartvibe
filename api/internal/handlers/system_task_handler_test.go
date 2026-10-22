@@ -1,15 +1,15 @@
 package handlers
 
 import (
-	"context"
-	"encoding/json"
-	"net/http"
-	"net/http/httptest"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"context"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
@@ -61,7 +61,7 @@ func TestShouldNotAllowAdminToGetSystemTasksWithInvalidCommand(t *testing.T) {
 					SortDirection: "asc",
 				},
 				AssociatedEntityId:   1,
-				AssociatedEntityType: models.SYSTEM_EMAIL,
+				AssociatedEntityType: models.RECEIPT_PROCESSING_SETTINGS,
 			},
 			expect: http.StatusOK,
 		},
@@ -73,7 +73,7 @@ func TestShouldNotAllowAdminToGetSystemTasksWithInvalidCommand(t *testing.T) {
 					OrderBy:       "associated_entity_type",
 					SortDirection: "asc",
 				},
-				AssociatedEntityType: models.SYSTEM_EMAIL,
+				AssociatedEntityType: models.RECEIPT_PROCESSING_SETTINGS,
 			},
 			expect: http.StatusOK,
 		},
@@ -85,7 +85,7 @@ func TestShouldNotAllowAdminToGetSystemTasksWithInvalidCommand(t *testing.T) {
 					OrderBy:       "terrible order by",
 					SortDirection: "asc",
 				},
-				AssociatedEntityType: models.SYSTEM_EMAIL,
+				AssociatedEntityType: models.RECEIPT_PROCESSING_SETTINGS,
 			},
 			expect: http.StatusInternalServerError,
 		},

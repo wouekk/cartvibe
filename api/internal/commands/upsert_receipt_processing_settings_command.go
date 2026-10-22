@@ -18,7 +18,6 @@ type UpsertReceiptProcessingSettingsCommand struct {
 	IsVisionModel             bool                `json:"isVisionModel"`
 	EnforceJsonResponseFormat bool                `json:"enforceJsonResponseFormat"`
 	OcrEngine                 models.OcrEngine    `json:"ocrEngine"`
-	PromptId                  uint                `json:"promptId"`
 }
 
 func (command *UpsertReceiptProcessingSettingsCommand) LoadDataFromRequest(w http.ResponseWriter, r *http.Request) error {
@@ -48,10 +47,6 @@ func (command *UpsertReceiptProcessingSettingsCommand) Validate(updateKey bool) 
 	if !command.IsVisionModel && len(command.OcrEngine) == 0 {
 		errors["ocrEngine"] = "ocrEngine is required"
 		return vErrs
-	}
-
-	if command.PromptId < 1 {
-		errors["promptId"] = "promptId must be greater than 0"
 	}
 
 	if len(command.AiType) == 0 {
@@ -87,6 +82,5 @@ func (command *UpsertReceiptProcessingSettingsCommand) IsEmpty() bool {
 		command.Model == "" &&
 		command.IsVisionModel == false &&
 		command.EnforceJsonResponseFormat == false &&
-		command.OcrEngine == "" &&
-		command.PromptId == 0
+		command.OcrEngine == ""
 }

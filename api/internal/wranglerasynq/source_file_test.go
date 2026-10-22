@@ -8,15 +8,14 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/hibiken/asynq"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/structs"
+	"github.com/hibiken/asynq"
 )
 
 func TestResolveActivityFlags(t *testing.T) {
 	directory := containedTempDir(t)
 	present := writeTempFile(t, directory, "present.jpg", 0)
-	presentOcr := writeTempFile(t, directory, "image-present.jpg", 0)
 	missing := filepath.Join(directory, "gone.jpg")
 
 	tests := []struct {
@@ -60,48 +59,6 @@ func TestResolveActivityFlags(t *testing.T) {
 			taskType:               models.QUICK_SCAN,
 			state:                  asynq.TaskStatePending,
 			payload:                QuickScanTaskPayload{TempPath: present},
-			expectedCanBeRestarted: false,
-			expectedHasSourceFile:  true,
-		},
-		{
-			// A body-only email expects no upload at all, so it stays rerunnable.
-			// This is why "expects a file" is tracked apart from "has a file".
-			name:                   "archived body-only email is rerunnable with no source file",
-			taskType:               models.EMAIL_UPLOAD,
-			state:                  asynq.TaskStateArchived,
-			payload:                EmailProcessTaskPayload{},
-			expectedCanBeRestarted: true,
-			expectedHasSourceFile:  false,
-		},
-		{
-			name:                   "archived email with both files is rerunnable and downloadable",
-			taskType:               models.EMAIL_UPLOAD,
-			state:                  asynq.TaskStateArchived,
-			payload:                EmailProcessTaskPayload{TempFilePath: present, ImageForOcrPath: presentOcr},
-			expectedCanBeRestarted: true,
-			expectedHasSourceFile:  true,
-		},
-		{
-			// The email queue retains its completed tasks so the temp sweep can
-			// observe them and release their files (see completedTaskRetention),
-			// which means a succeeded upload is now visible here with both files
-			// still on disk. Neither control belongs on it: the receipt already
-			// carries the image, and a rerun would duplicate it.
-			name:                   "completed email offers neither, though both files survive",
-			taskType:               models.EMAIL_UPLOAD,
-			state:                  asynq.TaskStateCompleted,
-			payload:                EmailProcessTaskPayload{TempFilePath: present, ImageForOcrPath: presentOcr},
-			expectedCanBeRestarted: false,
-			expectedHasSourceFile:  false,
-		},
-		{
-			// A rerun reads the attachment AND the converted copy, so a missing
-			// OCR image breaks it — but the attachment is still the user's file,
-			// so the download stays offered. The two predicates differ on purpose.
-			name:                   "email missing only its OCR copy is downloadable but not rerunnable",
-			taskType:               models.EMAIL_UPLOAD,
-			state:                  asynq.TaskStateArchived,
-			payload:                EmailProcessTaskPayload{TempFilePath: present, ImageForOcrPath: missing},
 			expectedCanBeRestarted: false,
 			expectedHasSourceFile:  true,
 		},
@@ -239,13 +196,6 @@ func TestRerunSourceFilesPresent(t *testing.T) {
 	}{
 		{"quick scan with its upload", models.QUICK_SCAN, QuickScanTaskPayload{TempPath: present}, true},
 		{"quick scan without its upload", models.QUICK_SCAN, QuickScanTaskPayload{TempPath: missing}, false},
-		{"body-only email needs nothing", models.EMAIL_UPLOAD, EmailProcessTaskPayload{}, true},
-		{
-			"email missing its OCR copy",
-			models.EMAIL_UPLOAD,
-			EmailProcessTaskPayload{TempFilePath: present, ImageForOcrPath: missing},
-			false,
-		},
 	}
 
 	for _, test := range tests {
@@ -259,36 +209,6 @@ func TestRerunSourceFilesPresent(t *testing.T) {
 				t.Errorf("RerunSourceFilesPresent() = %v, want %v", got, test.expected)
 			}
 		})
-	}
-}
-
-// The obvious "top level means no parent" rule is wrong here: every EMAIL_UPLOAD
-// task is chained under its EMAIL_READ parent, so that rule would strip the flag
-// from exactly the rows this feature exists for.
-func TestSetSystemTaskHasSourceFile_HydratesEmailUploadWithAParent(t *testing.T) {
-	directory := containedTempDir(t)
-	present := writeTempFile(t, directory, "attachment.pdf", 0)
-
-	parentId := uint(42)
-	groupId := uint(7)
-	systemTasks := []models.SystemTask{
-		{
-			Type:                   models.EMAIL_UPLOAD,
-			AsynqTaskId:            "email-1",
-			GroupId:                &groupId,
-			AssociatedSystemTaskId: &parentId,
-		},
-	}
-
-	lookup := lookupReturning(t, asynq.TaskStateArchived, EmailProcessTaskPayload{
-		TempFilePath:    present,
-		ImageForOcrPath: present,
-	})
-
-	hydrateSystemTaskSourceFiles(systemTasks, lookup, allowAllGroups)
-
-	if !systemTasks[0].HasSourceFile {
-		t.Error("an EMAIL_UPLOAD row with a parent must still be hydrated")
 	}
 }
 

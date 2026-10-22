@@ -15,8 +15,6 @@ type ReceiptProcessingSettings struct {
 	Key                       string       `json:"-"`
 	Model                     string       `json:"model"`
 	OcrEngine                 *OcrEngine   `json:"ocrEngine"`
-	Prompt                    Prompt       `json:"prompt"`
-	PromptId                  uint         `json:"promptId"`
 	IsVisionModel             bool         `json:"isVisionModel"`
 	EnforceJsonResponseFormat bool         `gorm:"default:true" json:"enforceJsonResponseFormat"`
 }

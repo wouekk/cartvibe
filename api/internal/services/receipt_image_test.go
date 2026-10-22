@@ -71,15 +71,7 @@ func seedReceiptImagePipeline(t *testing.T, url string) (models.User, models.Gro
 	if err := db.Create(&member).Error; err != nil {
 		t.Fatalf("seed group member: %v", err)
 	}
-	groupSettings := models.GroupSettings{GroupId: group.ID}
-	if err := db.Create(&groupSettings).Error; err != nil {
-		t.Fatalf("seed group settings: %v", err)
-	}
 
-	prompt := models.Prompt{Name: "ri-prompt", Prompt: "Extract: @ocrText"}
-	if err := db.Create(&prompt).Error; err != nil {
-		t.Fatalf("seed prompt: %v", err)
-	}
 
 	settings := models.ReceiptProcessingSettings{
 		Name:          "ri-rps",
@@ -87,7 +79,6 @@ func seedReceiptImagePipeline(t *testing.T, url string) (models.User, models.Gro
 		Url:           url,
 		Model:         "m",
 		IsVisionModel: true,
-		PromptId:      prompt.ID,
 	}
 	if err := db.Create(&settings).Error; err != nil {
 		t.Fatalf("seed settings: %v", err)

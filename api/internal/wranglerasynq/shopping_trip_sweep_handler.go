@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hibiken/asynq"
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/services"
+	"github.com/hibiken/asynq"
 )
 
 // HandleShoppingTripSweepTask moves the shopping trips that are due one step on: scanning an uploaded

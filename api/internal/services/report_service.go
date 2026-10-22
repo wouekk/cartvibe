@@ -1,8 +1,6 @@
 package services
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
 	"regexp"
 	"slices"
@@ -133,77 +131,6 @@ func (service ReportService) renderHTML(userId uint, command commands.ReportRequ
 	}
 
 	return ReportPreview{Html: string(html), ReceiptCount: build.receiptCount}, nil
-}
-
-// restrictedReportHTML is the self-contained document the report widget renders in
-// place of a report when the caller may not view the pinned template (access
-// revoked, or the template was deleted). It inlines all styling and references no
-// external resources or scripts, so it renders inside the widget's sandboxed
-// iframe (sandbox="allow-same-origin", scripts disabled) exactly like real report
-// output.
-const restrictedReportHTML = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<style>
-  html, body { margin: 0; height: 100%; }
-  body {
-    display: flex; align-items: center; justify-content: center;
-    min-height: 260px; padding: 24px; box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    color: #5f6368; text-align: center;
-  }
-  .notice { max-width: 360px; }
-  .notice__icon { font-size: 40px; line-height: 1; margin-bottom: 12px; }
-  .notice__title { font-size: 16px; font-weight: 600; color: #3c4043; margin: 0 0 6px; }
-  .notice__body { font-size: 13px; margin: 0; }
-</style>
-</head>
-<body>
-  <div class="notice">
-    <div class="notice__icon" aria-hidden="true">&#128274;</div>
-    <p class="notice__title">Restricted</p>
-    <p class="notice__body">You no longer have access to this report.</p>
-  </div>
-</body>
-</html>`
-
-// RenderTemplateForUser renders a saved report template as full-dataset HTML for
-// the dashboard report widget, re-resolving the caller's access to the template on
-// every call. Unlike the builder's Preview it feeds the full dataset to the engine
-// (no row cap) so the widget shows the complete report, and — because the widget
-// always renders whatever HTML it gets back — a revoked/deleted template yields the
-// restrictedReportHTML notice at a normal 200 (empty AllowedActions) rather than an
-// error. AllowedActions carries the actions the caller may perform on the template
-// so the widget can gate its download button off the server result.
-func (service ReportService) RenderTemplateForUser(userId uint, templateId string) (ReportPreview, error) {
-	template, err := repositories.NewReportTemplateRepository(service.TX).GetReportTemplateById(templateId)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return ReportPreview{Html: restrictedReportHTML}, nil
-		}
-		return ReportPreview{}, err
-	}
-
-	actions, err := NewPermissionService(service.TX).AllowedActionsForTemplate(userId, template.ID)
-	if err != nil {
-		return ReportPreview{}, err
-	}
-	if !slices.Contains(actions, "read") {
-		return ReportPreview{Html: restrictedReportHTML}, nil
-	}
-
-	var command commands.ReportRequestCommand
-	if err := json.Unmarshal(template.Configuration, &command); err != nil {
-		return ReportPreview{}, err
-	}
-
-	preview, err := service.renderHTML(userId, command, 0)
-	if err != nil {
-		return ReportPreview{}, err
-	}
-	preview.AllowedActions = actions
-	return preview, nil
 }
 
 // reportBuild is the engine output plus the render inputs both Generate and
@@ -531,7 +458,7 @@ func (service ReportService) groupNames(groupIds []string) ([]string, error) {
 	groupRepository := repositories.NewGroupRepository(service.TX)
 	names := make([]string, 0, len(groupIds))
 	for _, groupId := range groupIds {
-		group, err := groupRepository.GetGroupById(groupId, false, false, false)
+		group, err := groupRepository.GetGroupById(groupId, false, false)
 		if err != nil {
 			return nil, err
 		}
