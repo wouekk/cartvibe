@@ -27,6 +27,10 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 - Spending by category on the Dashboard groups the product lines by category id, so a renamed category keeps its
   products; Manage Tags counts products instead of receipts. Filtering receipts by category or tag also finds receipts
   whose lines carry it.
+- The AI no longer assigns tags (they are the household's own labels); it still sets categories and health, and never offers
+  a category switched off for it.
+- Leaner AI prompts: shorter instructions, a compact category list, minified answers; Gemini reads at temperature 0
+  (Gemini 3 keeps its default) and Ollama's temperature now takes effect.
 - The "Vibe" half of the CartVibe wordmark is Slate Gray `#708090` (readable on both the White and Black themes).
 - On a phone the brand icon in the header is scaled to 30% of its size (`app-cartvibe-logo` has a `scale` input).
 - The Dashboard's top action bar no longer has Add receipt (it stays on the Receipts page and in the empty receipts card).
