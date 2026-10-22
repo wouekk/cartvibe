@@ -6645,21 +6645,9 @@ components:
             hideReceiptTags:
               type: boolean
               description: Hide receipt tags
-            hideItemCategories:
-              type: boolean
-              description: Hide receipt item categories
-            hideItemTags:
-              type: boolean
-              description: Hide receipt item tags
             hideComments:
               type: boolean
               description: Hide receipt comments
-            hideShareCategories:
-              type: boolean
-              description: Hide share categories
-            hideShareTags:
-              type: boolean
-              description: Hide share tags
             quickScanPaidByEnabled:
               type: boolean
               description: Show the paid by field in quick scan
@@ -6710,21 +6698,9 @@ components:
         hideReceiptTags:
           type: boolean
           description: Hide receipt tags
-        hideItemCategories:
-          type: boolean
-          description: Hide receipt item categories
-        hideItemTags:
-          type: boolean
-          description: Hide receipt item tags
         hideComments:
           type: boolean
           description: Hide receipt comments
-        hideShareCategories:
-          type: boolean
-          description: Hide share categories
-        hideShareTags:
-          type: boolean
-          description: Hide share tags
         quickScanPaidByEnabled:
           type: boolean
           description: Show the paid by field in quick scan

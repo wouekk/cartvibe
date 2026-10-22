@@ -738,8 +738,7 @@ async function groupReceiptSettingsEcho(
   const command: Record<string, unknown> = {};
   for (const key of [
     'hideImages', 'hideReceiptCategories', 'hideReceiptTags',
-    'hideItemCategories', 'hideItemTags', 'hideComments',
-    'hideShareCategories', 'hideShareTags',
+    'hideComments',
     'quickScanPaidByEnabled', 'quickScanPaidByRequired',
     'quickScanStatusEnabled', 'quickScanStatusRequired',
     'quickScanCategoriesEnabled', 'quickScanCategoriesRequired',
