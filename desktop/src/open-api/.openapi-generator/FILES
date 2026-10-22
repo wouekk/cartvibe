@@ -123,8 +123,6 @@ model/prompt.ts
 model/queueName.ts
 model/queuedReceiptsView.ts
 model/quickScanDefaultPaidByType.ts
-model/quickScanResult.ts
-model/quickScanStatus.ts
 model/receipt.ts
 model/receiptPagedRequestCommand.ts
 model/receiptPagedRequestFilter.ts

@@ -82,8 +82,6 @@ export * from './prompt';
 export * from './queueName';
 export * from './queuedReceiptsView';
 export * from './quickScanDefaultPaidByType';
-export * from './quickScanResult';
-export * from './quickScanStatus';
 export * from './receipt';
 export * from './receiptPagedRequestCommand';
 export * from './receiptPagedRequestFilter';
