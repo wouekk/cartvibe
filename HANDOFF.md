@@ -1,5 +1,31 @@
 # HANDOFF.md — Where things stand
 
+## Next task for an agent: the "done" receipt status reads **Settled** / **Rozliczone** (user decision 2026-10-22)
+
+The finished receipt status (API `RESOLVED`, and `DECLINED`, which the UI folds into it) is shown as **"Settled"** in English and
+**"Rozliczone"** in Polish, everywhere, replacing "Done" / "Gotowe" and any raw "Resolved". "To check" / "Do sprawdzenia" stays.
+Frontend label only: the API value stays `RESOLVED` (no swagger change, no migration). Where to change it:
+- `desktop/src/utils/receipt-status.ts`: `DONE_LABEL = "Done"` -> `"Settled"` (feeds the status chip, the status picker
+  `RECEIPT_STATUS_OPTIONS`, the filter chips and the bulk status dialog). Rename the constant to `SETTLED_LABEL` if it reads better.
+- `desktop/src/assets/i18n/pl.json`: add `"Settled": "Rozliczone"` (keep `"Resolved": "Rozliczone"`), then `npm run i18n:extract`,
+  `npm run i18n:sync -- --lang pl`, `npm run i18n:check`; drop the orphaned `"Done": "Gotowe"` only if nothing else uses "Done"
+  (shopping lists and other screens may).
+- Check the other places a status is printed: `ALL_RECEIPT_STATUS_OPTIONS` (`formatStatus` -> "Resolved"), the `status` pipe,
+  the receipt view, the Dashboard's "to check" counts, and reports: the report `status` field prints the raw `RESOLVED`
+  (`api/internal/reporting/receiptsource/receiptsource.go`, `KeyStatus`), so either label it there ("Settled" / "To check") or
+  leave reports raw on purpose and say so.
+- Update the specs that assert "Done" (`grep -rn '"Done"' desktop/src --include=*.spec.ts`) and the e2e specs that mention it,
+  add a CHANGELOG "Changed" line when it ships, and look at the receipts table and receipt view in English and Polish.
+- Note: the README screenshots taken on 2026-10-22 show the old "Done" chip; retake the receipts shot after this lands.
+
+## Bug found 2026-10-22: a fresh install starts on `$`, not euros
+
+`repositories.MakeMigrations` (`api/internal/repositories/db.go`, the `systemSettingsCount == 0` block) creates an empty
+`SystemSettings` row right after AutoMigrate, so `SeedEuroForNewInstall` (later in `InitDB`) sees a row and does nothing. Seen
+on a brand-new demo database: currency `$` / START. It matters for the planned NAS wipe. Fix: let one of them own the first
+row (have the migration block create the euro row, or drop it and rely on the seed), and add a test that a fresh `InitDB`
+yields ` €` / END / `.` / `,` and the env time zone.
+
 ## UI sprint (2026-10-22, branch `feature/ui-sprint`, from `main` 70c6d397; fast-forwarded into `main` on the user's go)
 
 **Settings menu, Quick Scan without AI, Scan product dialog (same branch, later the same day):**

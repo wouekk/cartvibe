@@ -380,9 +380,11 @@
                                 (focusout)="hoverSegment(null)"
                               >
                                 <td class="py-2.5">
+                                  <!-- The dot stays beside the name when a long name wraps. -->
+                                  <div class="flex items-center gap-2">
                                   <button
                                     type="button"
-                                    class="mr-2 inline-flex size-4 cursor-pointer items-center justify-center rounded-full align-middle outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    class="inline-flex size-4 flex-none cursor-pointer items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                     [attr.aria-pressed]="focusedSegment() === segment.name"
                                     [attr.aria-label]="'Focus ' + segment.name"
                                     [attr.data-testid]="'overview-donut-focus-' + segment.name"
@@ -400,11 +402,12 @@
                                       {{ segment.name | t }}
                                     </button>
                                   } @else {
-                                    {{ segment.name | t }}
+                                    <span class="min-w-0">{{ segment.name | t }}</span>
                                   }
+                                  </div>
                                 </td>
-                                <td class="text-right font-semibold py-2.5 pl-3 text-right font-medium tabular-nums">{{ segment.total | displayCurrency }}</td>
-                                <td class="text-right text-muted-foreground py-2.5 pl-3 text-right tabular-nums text-muted-foreground">{{ segment.share }}</td>
+                                <td class="py-2.5 pl-3 text-right font-semibold whitespace-nowrap tabular-nums">{{ segment.total | displayCurrency }}</td>
+                                <td class="py-2.5 pl-3 text-right whitespace-nowrap tabular-nums text-muted-foreground">{{ segment.share }}</td>
                               </tr>
                             }
                           </tbody>

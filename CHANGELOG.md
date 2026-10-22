@@ -28,6 +28,8 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
   Cancel is red; Save is always labelled and stays dimmed while an edit form has nothing to save.
 
 ### Fixed
+- **Dashboard category legend:** amounts no longer break onto two lines ("111,89 / €") and a long category name wraps
+  beside its colour dot instead of below it.
 - **Edit user** showed a bare check mark instead of Save.
 - **Shopping list:** the + button sits on the same line as the add box.
 - **Receipt comments:** the card text lines up with its title, says when there are no comments, shows a new first

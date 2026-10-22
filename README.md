@@ -22,18 +22,6 @@
 > AI assistant and are maintained by me for my household as a hobby project. Not affiliated with the original authors.
 > Details in [NOTICE.md](NOTICE.md).
 
-## Features
-
-| Feature | Description |
-| :--- | :--- |
-| **Shared shopping lists** | Amounts and units, crossed-off items that come back, past lists, and live sync between every phone in the household |
-| **Receipts read by AI** | Photograph a receipt and the AI (bring your own key) fills in the shop, the total and every product line; Gemini or LM Studio |
-| **Healthy or not** | Products are tagged healthy, medium or unhealthy, and fruit and vegetables as seasonal or imported |
-| **Planned vs unplanned** | Attach a receipt to a list and see what was bought that was not on it |
-| **A family dashboard** | The month's spend and change, a monthly goal, a trend chart and the categories behind the numbers, in your own currency |
-| **Made for a household** | No bill splitting, "To check / Done" statuses, one household group, Admin and User roles |
-| **Light, dark, Polish** | White and Black themes on design tokens, English and Polish, phone-first layout |
-
 ## Quick start
 
 Requirements: [Docker](https://docs.docker.com/get-docker/) and Docker Compose (or a NAS stack manager such as Dockhand).
@@ -42,6 +30,55 @@ One image, built by GitHub Actions: `ghcr.io/wouekk/cartvibe` (`:latest` from `m
 The root [docker-compose.yml](docker-compose.yml) is a complete stack (app + Redis + SQLite). Set `SECRET_KEY` and
 `ENCRYPTION_KEY` (letters and digits only, no `$`), start it, and sign in with the default `admin` / `admin` **and change that
 password immediately**. To update, pull the new image and redeploy.
+
+## Features
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/dashboard-dark.png" />
+    <img src="docs/screenshots/dashboard-light.png" alt="The CartVibe Dashboard: the month's spending against a goal, unhealthy and kids' spending, spending by category and by month" width="100%" />
+  </picture>
+  <br />
+  <sub><b>The family Dashboard</b>: the month against your goal, unhealthy spending, a tile per tag, categories and the six-month trend</sub>
+</p>
+
+| Feature | Description |
+| :--- | :--- |
+| **A family dashboard** | The month's spend and change, a monthly goal, a trend chart and the categories behind the numbers, in your own currency; arrange the panels yourself |
+| **Receipts read by AI** | Photograph a receipt and the AI (bring your own key) fills in the shop, the total and every product line; Gemini or LM Studio |
+| **Shops at a glance** | Real logos for about 230 chains (Biedronka, Żabka, Lidl, Kaufland, Rewe, ...) next to every receipt |
+| **Healthy or not** | Products are tagged healthy, medium or unhealthy, and fruit and vegetables as seasonal or imported |
+| **Product health check** | Scan or type a barcode in the shop: health score, Nutri-Score, NOVA, additives and nutrition from Open Food Facts, with your recent scans one tap away |
+| **Reports** | Build your own (by shop, category, tag, health, month), preview them live, export CSV, XLSX or PDF |
+| **Shared shopping lists** | Amounts and units, crossed-off items that come back, past lists, and live sync between every phone in the household |
+| **Planned vs unplanned** | Attach a receipt to a list and see what was bought that was not on it |
+| **Made for a household** | No bill splitting, "To check / Done" statuses, one household group, Admin and User roles |
+| **Light, dark, Polish** | White and Black themes on design tokens, English and Polish, phone-first layout |
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="docs/screenshots/product-check.png" alt="Product health check: an Alpro almond drink with its health score, Nutri-Score B, NOVA 4 and additives, and the recent scans above" />
+      <p align="center"><sub><b>Product health check</b>: scan, upload or type a barcode; recent scans stay one tap away</sub></p>
+    </td>
+    <td width="50%" valign="top">
+      <img src="docs/screenshots/report-builder.png" alt="Report builder with a live preview of spending by shop" />
+      <p align="center"><sub><b>Reports</b>: a live preview of spending by shop, ready as CSV, XLSX or PDF</sub></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="docs/screenshots/receipts.png" alt="Receipts list with shop logos for Biedronka, Żabka and Kaufland" />
+      <p align="center"><sub><b>Receipts</b>: shop logos, a typo-tolerant search and one period picker</sub></p>
+    </td>
+    <td width="50%" valign="top">
+      <img src="docs/screenshots/shopping-list.png" alt="Shared shopping list with amounts and units" />
+      <p align="center"><sub><b>Shopping lists</b>: shared and live on every phone, with amounts and units</sub></p>
+    </td>
+  </tr>
+</table>
+
+<sub>Screenshots show demo data.</sub>
 
 ## Repository layout
 
