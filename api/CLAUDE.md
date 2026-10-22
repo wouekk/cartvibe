@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Receipt Wrangler API is a Go-based backend service for a receipt management and splitting application. It provides OCR-powered receipt scanning, AI-assisted data extraction, email integration, and multi-user support with group management capabilities.
+The CartVibe API is a Go-based backend service for a household receipt, shopping list and spending insights application (a fork of Receipt Wrangler, see `NOTICE.md`). It provides OCR-powered receipt scanning, AI-assisted data extraction, email integration, and multi-user support with group management capabilities.
 
 ## Development Commands
 
@@ -1314,7 +1314,7 @@ caller-supplied `AppRoleID` so a sign-up can never self-assign a role.
 
 ## MCP Server & OAuth 2.1
 
-Receipt Wrangler can expose a remote **Model Context Protocol** server so clients such as
+CartVibe can expose a remote **Model Context Protocol** server so clients such as
 Claude can read a user's data. It is **off by default** and Go-native (no separate service).
 
 - **Configuration (System Settings, not env)**: the enable toggle (`mcpEnabled`) and the public
@@ -1344,7 +1344,7 @@ Claude can read a user's data. It is **off by default** and Go-native (no separa
       no password of its own — see "OIDC (OpenID Connect) login" → "A provisioned account's password".
   - `/mcp` — Streamable HTTP MCP endpoint, guarded by bearer-token auth (401 +
     `WWW-Authenticate` advertising the protected-resource metadata)
-- **Auth model**: the OAuth tokens are Receipt Wrangler HS512 JWTs, but **MCP-audience bound**.
+- **Auth model**: the OAuth tokens are CartVibe HS512 JWTs, but **MCP-audience bound**.
   `services.GenerateMcpJWT` mints the access **and** refresh token with the audience set to the MCP
   resource URL (`GetMcpResourceUrl`, i.e. `mcpPublicUrl` + `/mcp`) instead of the normal
   `https://receiptWrangler.io` audience — the audience is *replaced, not appended*. The MCP
