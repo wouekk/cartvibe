@@ -52,7 +52,8 @@ password immediately**. To update, pull the new image and redeploy.
 | **Reports** | Build your own (by shop, category, tag, health, month), preview them live, export CSV, XLSX or PDF |
 | **Shared shopping lists** | Amounts and units, crossed-off items that come back, past lists, and live sync between every phone in the household |
 | **Planned vs unplanned** | Attach a receipt to a list and see what was bought that was not on it |
-| **Made for a household** | No bill splitting, "To check / Done" statuses, one household group, Admin and User roles |
+| **Made for a household** | No bill splitting, "To check / Settled" statuses, one household group, Admin and User roles |
+| **A friendly first start** | A welcome at the first sign-in to pick the language, the theme and (for an admin) the household currency |
 | **Light, dark, Polish** | White and Black themes on design tokens, English and Polish, phone-first layout |
 
 <table>
@@ -73,7 +74,17 @@ password immediately**. To update, pull the new image and redeploy.
     </td>
     <td width="50%" valign="top">
       <img src="docs/screenshots/shopping-list.png" alt="Shared shopping list with amounts and units" />
-      <p align="center"><sub><b>Shopping lists</b>: shared and live on every phone, with amounts and units</sub></p>
+      <p align="center"><sub><b>Shopping lists</b>: shared and live on every phone; tell the household you are going shopping</sub></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="docs/screenshots/welcome.png" alt="The first sign-in welcome: language, theme and household currency" />
+      <p align="center"><sub><b>First sign-in</b>: language, theme and the household currency in one step</sub></p>
+    </td>
+    <td width="50%" valign="top">
+      <img src="docs/screenshots/welcome-pl-dark.png" alt="The same welcome in Polish on the Black theme" />
+      <p align="center"><sub><b>Polski i ciemny motyw</b>: every screen in English and Polish, White and Black</sub></p>
     </td>
   </tr>
 </table>

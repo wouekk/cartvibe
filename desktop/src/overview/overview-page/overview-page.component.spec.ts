@@ -578,6 +578,19 @@ describe("OverviewPageComponent", () => {
 
     const row = (name: string): HTMLElement => fixture.nativeElement.querySelector(`[data-testid="overview-donut-row-${name}"]`);
 
+    it("puts the share in front of the name, with no Share column", () => {
+      const headers = Array.from(fixture.nativeElement.querySelectorAll(".donut__legend th") as NodeListOf<HTMLElement>).map((th) =>
+        th.textContent?.trim()
+      );
+      expect(headers).toEqual(["Category", "Spent"]);
+
+      const cells = row("Groceries").querySelectorAll("td");
+      expect(cells.length).toBe(2);
+      const first = cells[0].textContent?.replace(/\s+/g, " ").trim() ?? "";
+      expect(first).toMatch(/^\d+(\.\d)?% Groceries$/);
+      expect(row("Groceries").querySelector('[data-testid="overview-donut-share"]')).not.toBeNull();
+    });
+
     /** A drawn ring the way ApexCharts leaves it: one path per slice and the two texts in the middle. */
     const drawRing = (): HTMLElement => {
       const element = document.createElement("div");

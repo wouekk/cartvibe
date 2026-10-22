@@ -33,6 +33,7 @@ import { TagTableState } from "../store/tag-table.state";
 import { UserTableState } from "../store/user-table.state";
 import { UserState } from "../store/user.state";
 import { LanguageSyncService, TranslationLoader } from "../i18n";
+import { OnboardingService } from "../onboarding/onboarding.service";
 import { environment } from "src/environments/environment.development";
 
 const ngxsStates = [
@@ -89,6 +90,8 @@ export const appConfig: ApplicationConfig = {
     // the page does not flash in English. It never rejects: a failed load leaves the interface in English.
     provideAppInitializer(async () => {
       inject(LanguageSyncService);
+      // Greets a new account once (language, theme, household currency) after its preferences load.
+      inject(OnboardingService);
       await inject(TranslationLoader).initialize();
     }),
     provideStore(

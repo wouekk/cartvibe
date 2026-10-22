@@ -363,8 +363,7 @@
                           <thead hlmTHead>
                             <tr>
                               <th hlmTh scope="col" class="pb-2 text-left text-xs font-medium text-muted-foreground">{{ 'Category' | t }}</th>
-                              <th hlmTh scope="col" class="text-right pb-2 text-right text-xs font-medium text-muted-foreground">{{ 'Spent' | t }}</th>
-                              <th hlmTh scope="col" class="text-right pb-2 pl-3 text-right text-xs font-medium text-muted-foreground">{{ 'Share' | t }}</th>
+                              <th hlmTh scope="col" class="pb-2 pl-3 text-right text-xs font-medium text-muted-foreground">{{ 'Spent' | t }}</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -380,7 +379,7 @@
                                 (focusout)="hoverSegment(null)"
                               >
                                 <td class="py-2.5">
-                                  <!-- The dot stays beside the name when a long name wraps. -->
+                                  <!-- Dot, share, name: the share leads so the name gets the room, and the dot stays beside a wrapping name. -->
                                   <div class="flex items-center gap-2">
                                   <button
                                     type="button"
@@ -392,6 +391,7 @@
                                   >
                                     <span class="size-2.5 rounded-full transition-transform" [class.scale-150]="focusedSegment() === segment.name" [style.background]="segment.color"></span>
                                   </button>
+                                  <span class="w-12 flex-none whitespace-nowrap tabular-nums text-muted-foreground" data-testid="overview-donut-share">{{ segment.share }}</span>
                                   @if (isOpenable(segment)) {
                                     <button
                                       type="button"
@@ -407,7 +407,6 @@
                                   </div>
                                 </td>
                                 <td class="py-2.5 pl-3 text-right font-semibold whitespace-nowrap tabular-nums">{{ segment.total | displayCurrency }}</td>
-                                <td class="py-2.5 pl-3 text-right whitespace-nowrap tabular-nums text-muted-foreground">{{ segment.share }}</td>
                               </tr>
                             }
                           </tbody>

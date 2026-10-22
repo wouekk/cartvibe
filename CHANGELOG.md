@@ -12,8 +12,17 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 - **Reports read product lines:** Category and Tag come from the receipt's product lines (they had been read from the
   receipt, which the app no longer edits), and **Health** and **Planned / Unplanned** are new fields. Cutting by one
   divides a receipt by what its lines cost; what the lines do not cover is the empty bucket, so totals stay exact.
+- **Welcome at the first sign-in:** a new account picks its language and theme, and an admin the household currency
+  (EUR, PLN, USD, GBP, CHF), in one dialog. Existing accounts are not asked.
 
 ### Changed
+- **"Done" is now "Settled"** ("Rozliczone" in Polish) for a finished receipt, with "Settled on" and "Mark as settled";
+  reports print "To check" / "Settled" instead of the raw status.
+- **Dashboard category legend:** the share sits in front of the name ("21.5% Meat & Fish") and the Share column is gone,
+  leaving more room for the category.
+- **Shopping lists:** one action per section. "Going shopping" (with a bell, since it notifies the household) sits in
+  the list's header, the receipt actions are one "Add receipt" menu beside "Receipts from this list", and the page
+  header keeps only "Add List".
 - **Settings in the sidebar:** "Admin Settings" is now **Settings** and holds Manage Categories, Manage Tags, AI, User
   Settings, **Language** and **Theme** (each now a page of its own), then the admin pages. The account menu keeps only
   About and Logout.
@@ -28,6 +37,8 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
   Cancel is red; Save is always labelled and stays dimmed while an edit form has nothing to save.
 
 ### Fixed
+- **A fresh install started on dollars:** it now starts on euros, as intended.
+- **Tab strips** (the period picker, settings tabs, Records / Aggregate) never showed which tab was selected.
 - **Dashboard category legend:** amounts no longer break onto two lines ("111,89 / €") and a long category name wraps
   beside its colour dot instead of below it.
 - **Edit user** showed a bare check mark instead of Save.
