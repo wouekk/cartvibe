@@ -1,16 +1,16 @@
 // The image carousel: every slide is rendered (the header zoom buttons index the viewers by slide), only the
 // current one is shown. This file is global (ViewEncapsulation.None); the fill rules are gated on a class
 // because the receipt form's fullscreen dialog renders the same component without it.
-.rw-carousel {
+.cv-carousel {
   position: relative;
   display: block;
 }
 
-.rw-carousel__slide--hidden {
+.cv-carousel__slide--hidden {
   display: none;
 }
 
-.rw-carousel__arrow {
+.cv-carousel__arrow {
   position: absolute;
   top: 50%;
   z-index: 2;
@@ -33,11 +33,11 @@
   }
 }
 
-.rw-carousel__arrow--prev {
+.cv-carousel__arrow--prev {
   left: 0.75rem;
 }
 
-.rw-carousel__arrow--next {
+.cv-carousel__arrow--next {
   right: 0.75rem;
 }
 
@@ -51,12 +51,12 @@
 
 // Opt-in: lets the image stage fill the column it sits in instead of using a fixed height. Every link between this
 // host and app-image-canvas is display:inline or height:auto, so a definite height has to be handed down.
-.rw-carousel--fill {
+.cv-carousel--fill {
   display: block;
   height: 100%;
 
-  .rw-carousel,
-  .rw-carousel__slide:not(.rw-carousel__slide--hidden),
+  .cv-carousel,
+  .cv-carousel__slide:not(.cv-carousel__slide--hidden),
   app-image-viewer {
     display: block;
     height: 100%;

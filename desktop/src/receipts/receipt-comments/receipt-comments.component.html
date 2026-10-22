@@ -1,8 +1,8 @@
-<div class="rw-card" data-testid="receipt-comments">
-  <div class="rw-card__head">
-    <h3 class="rw-card__title">{{ 'Comments' | t }}</h3>
+<div class="cv-card" data-testid="receipt-comments">
+  <div class="cv-card__head">
+    <h3 class="cv-card__title">{{ 'Comments' | t }}</h3>
   </div>
-  <div class="rw-card__body">
+  <div class="cv-card__body">
     @if (commentsArray.length > 0) {
       <ul class="m-0 flex list-none flex-col p-0">
         @for (comment of commentsArray.controls; track comment; let index = $index) {

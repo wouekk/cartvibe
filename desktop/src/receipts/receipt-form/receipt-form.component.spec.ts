@@ -139,8 +139,8 @@ describe("ReceiptFormComponent", () => {
 
       for (const field of ["name", "amount"]) {
         const box = fixture.nativeElement.querySelector(`[data-testid="receipt-${field}"]`);
-        expect(box.classList).toContain("rw-shake");
-        expect(box.classList).toContain("rw-field-error");
+        expect(box.classList).toContain("cv-shake");
+        expect(box.classList).toContain("cv-field-error");
       }
     });
 
@@ -1280,7 +1280,7 @@ describe("ReceiptFormComponent", () => {
       const inline = fixture.nativeElement.querySelector("app-carousel") as HTMLElement;
 
       expect(inline).toBeTruthy();
-      expect(inline.classList).toContain("rw-carousel--fill");
+      expect(inline.classList).toContain("cv-carousel--fill");
       expect(inline.getAttribute("stageHeight")).toEqual("100%");
     });
 
@@ -1297,7 +1297,7 @@ describe("ReceiptFormComponent", () => {
       const dialogCarousel = openDialogCarousel();
 
       expect(dialogCarousel).toBeTruthy();
-      expect(dialogCarousel!.classList).toContain("rw-carousel--fill");
+      expect(dialogCarousel!.classList).toContain("cv-carousel--fill");
       expect(dialogCarousel!.getAttribute("stageHeight")).toEqual("100%");
     });
 

@@ -7,12 +7,12 @@
 // align-items: stretch, so this column is ALREADY the right height - everything
 // below is about making its contents actually fill it.
 //
-// Every rule is gated on .rw-images-pane on purpose. The fullscreen
+// Every rule is gated on .cv-images-pane on purpose. The fullscreen
 // #expandedImageTemplate is declared in this component, so its embedded view
 // carries this component's encapsulation attribute even while it renders inside
 // the MatDialog overlay - an ungated rule matching app-carousel or a descendant
 // would reach into the dialog and stretch its image too.
-app-form-section.rw-images-pane {
+app-form-section.cv-images-pane {
   display: flex;
   flex-direction: column;
 
@@ -32,12 +32,12 @@ app-form-section.rw-images-pane {
 // host was display:inline, but a flex container blockifies its children, at
 // which point `height: 100% !important` makes a hidden file input swallow the
 // whole column and leaves the stage with nothing but its own border.
-.rw-images-pane__content {
+.cv-images-pane__content {
   display: flex;
   flex-direction: column;
 }
 
-.rw-images-pane__stage {
+.cv-images-pane__stage {
   flex: 1 1 auto;
   min-height: 0;
 }
@@ -47,7 +47,7 @@ app-form-section.rw-images-pane {
 // from - the chain above would leave it at zero. Give it an explicit height
 // instead; the carousel chain resolves its 100% against this.
 @media (max-width: 767.98px) {
-  .rw-images-pane__stage {
+  .cv-images-pane__stage {
     flex: 0 0 auto;
     height: 50vh;
   }
@@ -61,12 +61,12 @@ app-form-section.rw-images-pane {
 // MatDialog inserts a TemplateRef's nodes straight into .mat-mdc-dialog-surface,
 // which is viewport-tall and padding-free (its padding lives on
 // .mat-mdc-dialog-content, which this dialog does not use), so 100% resolves.
-.rw-image-dialog {
+.cv-image-dialog {
   position: relative;
   height: 100%;
 }
 
-.rw-image-dialog__close {
+.cv-image-dialog__close {
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
@@ -75,7 +75,7 @@ app-form-section.rw-images-pane {
 }
 
 // Inline hint for a role-required image/comment the receipt does not have yet.
-.rw-requirement-hint {
+.cv-requirement-hint {
   color: var(--destructive);
   font-size: 0.875rem;
 }

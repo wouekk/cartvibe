@@ -29,7 +29,7 @@ const ALL_GROUP = 'All';
 const PASSWORD = 'a really secure password';
 
 // Each scope-specific card is located by its own <h2>, not by the shared
-// .rw-card styling class — a raw CSS selector would break silently on a styling
+// .cv-card styling class — a raw CSS selector would break silently on a styling
 // refactor even though the card is unchanged (see CLAUDE.md → "Locators").
 const groupCreationCard = (page: Page) =>
   page.getByRole('heading', { name: 'Group creation' });

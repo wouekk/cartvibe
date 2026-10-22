@@ -461,12 +461,12 @@ report builder's dropdowns and picked rows, and the receipts table's Configure C
 
 Three things about it are load-bearing:
 
-- **The class is `.rw-badge`, NOT `.badge`.** Bootstrap is a global stylesheet here
+- **The class is `.cv-badge`, NOT `.badge`.** Bootstrap is a global stylesheet here
   (`angular.json` builds `bootstrap-scss/bootstrap.scss`) and defines an unscoped `.badge` with its
   own `line-height`, `text-align`, `white-space` and a **white** `color`. A component rule only
   overrides what it *declares*, so everything else leaks — measured as a ~44% height change — and
   Bootstrap's badge is genuinely used elsewhere (`dashboard/pie-chart`), so it can't just be dropped.
-  `rw-` matches the existing `.rw-chip` / `.rw-card` convention. **Any new shared component must check
+  `cv-` matches the existing `.cv-chip` / `.cv-card` convention. **Any new shared component must check
   for a Bootstrap collision on its class names.**
 - **Tones are opaque, and that is the point.** Both originals used a translucent fill, and both
   carried a comment that at 9.5px/700 the text is "small text" under WCAG and needs 4.5:1 against its
@@ -581,12 +581,12 @@ gated by `appPermissionGuard` requiring `app.roles.read` (see **Permission-based
   not what they can edit. See `api/CLAUDE.md` → "Paid-by visibility enforcement".
 - **Report template access (group roles only):** the same grants section shows a "Report template access"
   matrix — templates (rows, from `ReportService.getReportTemplateOptions()`, gated on `app.roles.read`) ×
-  actions (View/Generate/Edit/Delete/Duplicate columns) of `rw-switch` toggles, plus a per-row "All"
+  actions (View/Generate/Edit/Delete/Duplicate columns) of `cv-switch` toggles, plus a per-row "All"
   toggle. State is a `signal<Map<number, Set<string>>>` (immutable replace for zoneless CD, mirroring the
   permissions grid's `Set` pattern — NOT a FormArray). **All-empty = unrestricted**; a template maps to the
   subset of actions the role may perform on it. Hydrates directly from `role.reportTemplateGrants`,
   serializes back for group scope only, resets on `pickType`. See `api/CLAUDE.md` → "Report-template access".
-- **Group creation (app roles only):** an app-scope-only **"Group creation"** `rw-card` in
+- **Group creation (app roles only):** an app-scope-only **"Group creation"** `cv-card` in
   `role-form` (gated on `showAppOptions()` = `type() === "app"`, the mirror of `showGrants()`) holds a
   single `app-checkbox` — "Don't create a personal group for new users with this role"
   (`data-testid="skip-default-group"`) — bound to `skipDefaultGroupCreation` on the
@@ -642,7 +642,7 @@ gated by `appPermissionGuard` requiring `app.roles.read` (see **Permission-based
   feature (see `api/CLAUDE.md` → "Member isolation"): (1) an **"Isolate members"** `app-checkbox` in the
   `group-form` "Group Details" section, bound to `isolateMembers` on the `UpsertGroupCommand` — an
   isolated group's members can't discover each other; (2) a group-scope-only **"Members with this role
-  can see, and be seen by, all members"** `app-checkbox` in `role-form` (a "Member visibility" `rw-card`
+  can see, and be seen by, all members"** `app-checkbox` in `role-form` (a "Member visibility" `cv-card`
   inside the `@if (showGrants())` block), bound to `seesAllMembers` on the `UpsertRoleCommand` (mirrors
   `includeOwnPaidReceipts`; hydrates on edit, resets on type switch, serialized only for GROUP scope).
   E2E coverage for the group-creation card lives in `e2e/skip-default-group.spec.ts` (card present on
@@ -2404,11 +2404,11 @@ between the column and the canvas is `height: auto` and three hosts (`app-carous
 
 The height is handed down in two places, both **gated on a class**:
 - `carousel.component.scss` is global (`ViewEncapsulation.None`), which makes it the right home for
-  the ngx-bootstrap links. `.rw-carousel--fill` carries `display: block; height: 100%` down through
+  the ngx-bootstrap links. `.cv-carousel--fill` carries `display: block; height: 100%` down through
   `carousel`, `.carousel.slide`, `.carousel-inner`, `.carousel-item.active`, `.item` and
   `app-image-viewer`. Use `.carousel-item.active`, not `slide`, so the inactive slides ngx-bootstrap
   takes out of flow stay out of it, and keep them `block` — `flex` fights Bootstrap's `float: left`.
-- `receipt-form.component.scss` covers its own template under `.rw-images-pane`: a flex column so the
+- `receipt-form.component.scss` covers its own template under `.cv-images-pane`: a flex column so the
   always-present section header takes its own height and the content takes the rest. One `::ng-deep`
   is unavoidable — `app-form-section` wraps projected content in a **classless** div of its own,
   reachable only as `.form-section-header + div`.
@@ -2423,7 +2423,7 @@ type).
 the stacking itself is plain Bootstrap rather than a custom media query — without it `.col` holds a
 50/50 split all the way down, which goes lopsided around 600px as the form's minimum width wins and
 only wraps at phone sizes. Once stacked there is no Details pane beside the stage to take height
-from, so `.rw-images-pane__stage` gets an explicit **50vh** under `@media (max-width: 767.98px)`;
+from, so `.cv-images-pane__stage` gets an explicit **50vh** under `@media (max-width: 767.98px)`;
 the carousel chain resolves its `100%` against that. Leave that media query out and the stacked
 canvas collapses to its 2px border.
 
@@ -2433,7 +2433,7 @@ canvas collapses to its 2px border.
 with nothing but its own 2px border.
 
 **The fullscreen dialog runs the same canvas.** `#expandedImageTemplate` passes
-`class="rw-carousel--fill"` and `stageHeight="100%"` exactly as the inline carousel does, plus a
+`class="cv-carousel--fill"` and `stageHeight="100%"` exactly as the inline carousel does, plus a
 floating close button — it previously had **no way out but Esc and the backdrop**. The height chain
 needs no special handling: MatDialog renders a `TemplateRef` as a `TemplatePortal` whose nodes go
 **straight into `.mat-mdc-dialog-surface`** with no wrapper, and that
@@ -2454,7 +2454,7 @@ first-tabbable focus opens the viewer with a focus ring drawn over the image.
 full-height stage they become two full-height columns sitting *above* the canvas in hit-testing.
 Navigation still works, but pan, wheel zoom and double-click all die in those strips, and both the
 left and right corner handles live exactly there, undoing the inset that keeps them grabbable at a
-stage edge. `.rw-carousel--fill` shrinks them to 2.75rem circles centred vertically and clear of
+stage edge. `.cv-carousel--fill` shrinks them to 2.75rem circles centred vertically and clear of
 every corner. This bites on **any receipt with 2+ images**, inline as well as fullscreen.
 
 **Gating every rule on a class is not optional.** `#expandedImageTemplate` is declared in
@@ -2872,7 +2872,7 @@ Mobile-first (used in the shop). Backend contract: `api/CLAUDE.md`.
   and refetched on `TRIPS_CHANGED`. Gates: `group.shopping-lists.read` + `group.receipts.read`.
 - Dialog forms submit through `(ngSubmit)` only (`app-dialog-footer`'s button is `type="submit"`).
 - **Layout (master-detail):** the header row holds "Going shopping" and "Add List"; the open lists are cards in an
-  `rw-scroll-x` row on a phone and a 2/4-column grid from `sm`/`lg`. Below them, the open list is one card (name, "{count}
+  `cv-scroll-x` row on a phone and a 2/4-column grid from `sm`/`lg`. Below them, the open list is one card (name, "{count}
   to buy", the list menu, the add box, hairline item rows, the crossed-off pill) with an aside on `lg` (stacked below on
   smaller screens) holding "Receipts from this list" and "Past lists". The add box keeps its labels; on a phone the name
   takes its own row. Unit labels are translated (`formatShoppingListItemAmount` takes a translate function).
@@ -2886,7 +2886,7 @@ Mobile-first (used in the shop). Backend contract: `api/CLAUDE.md`.
 - **(Superseded in part by "Visual identity" above: the section/panel pattern replaces flat white shadow cards.) Forms and settings screens follow the AI page:** a title and intro, a centered 640-760px column, white cards
   (`$border-radius-lg`, `$shadow-sm`), and **Save inside the card** as a flat accent button. `app-form-button-bar` (12 forms)
   is therefore an inline card row at the end of the form: **never reintroduce a floating bar**.
-- **Required fields shake:** `shakeInvalid()` (`utils/shake.ts`, `.rw-shake` / `.rw-field-error` in `styles.scss`) is the one
+- **Required fields shake:** `shakeInvalid()` (`utils/shake.ts`, `.cv-shake` / `.cv-field-error` in `styles.scss`) is the one
   way to say an empty required box was the problem (shopping list add box; receipt name and amount).
 - **User Settings:** `app-tabs` (also the group tabs) renders the pill tab look: User Profile, User Preferences, **Theme**
   (no permission), API Keys. **System Settings** is five pill tabs in a 760px column: General & Currency, Auth & Security,
@@ -2981,7 +2981,7 @@ The **English text is the key**: `{{ 'Add receipt' | t }}` (pipe `t`, exported b
 - Global element styles (`h1`-`h6` in `styles.scss`) live in `@layer base`, so a utility on the element wins; unlayered global CSS would beat every utility. Keep new global rules in a layer.
 
 ### Shared pieces added in the UI-issues run (2026-10)
-- **`rw-section` / `rw-field-box` / `rw-scroll-x` / `rw-list`** (`src/tailwind.css`, components layer): the inset panel for blocks inside a settings card, the boxed From/To field, the horizontal scroller with no vertical scrollbar (every pill strip uses it), and a hairline list. Use them instead of new one-off classes. All borders default to `--border` in the base layer.
+- **`cv-section` / `cv-field-box` / `cv-scroll-x` / `cv-list`** (`src/tailwind.css`, components layer): the inset panel for blocks inside a settings card, the boxed From/To field, the horizontal scroller with no vertical scrollbar (every pill strip uses it), and a hairline list. Use them instead of new one-off classes. All borders default to `--border` in the base layer.
 - **Dashboard donut:** click a slice or a legend dot to focus a category (`focusedSegment`, `toggleFocus`); there are no checkbox chips. Bars use `height: 100%` inside a `min-h-[260px] flex-1` wrapper so the chart fills its card.
 - **AI page:** `app-gemini-model-field` (model dropdown from `POST /receiptProcessingSettings/geminiModels`, text box fallback, key sent in the body, a saved key is used server-side via the settings id) and `app-ai-fallback-card` (a second Gemini settings row linked as `fallbackReceiptProcessingSettingsId`; switching it off only unlinks; hidden without System Settings access). Shared constants live in `ai-settings-shared.ts`.
 - **Dialog footer:** `app-dialog-footer` / `app-cancel-button` render labelled buttons; the submit one is tinted green (`bg-success-text/15`), cancel red. Specs find them by testid.
@@ -2989,9 +2989,9 @@ The **English text is the key**: `{{ 'Add receipt' | t }}` (pipe `t`, exported b
 ### The settings layout standard (decided by the user, 2026-10)
 Every Admin and User settings page uses four shared primitives from `src/shared-ui/settings/`, so a new page looks right by default:
 - **`app-settings-page`** (`title`, `description`, `width` = `wide` max-w-5xl by default | `narrow` max-w-3xl; slots `[settingsActions]` top right, `[settingsTabs]`, default content). **Every settings page is wide**, so the page never changes width when switching menus (a changing width looked like floating). Same header, same rhythm for configuration views and entity lists.
-- **`app-settings-section`** (the card; `title`, `description`, `tone` default | destructive, `testId`; slots `[sectionActions]` and `[sectionFooter]`): classes `rw-card`, `rw-card__head/title/desc/body/footer/status` in `tailwind.css`. Hairline, no shadow. Inside it a topic is a flat `rw-section` row (hairline between rows; `rw-section` keeps its inset box only outside a card). Read-only blocks may use `rw-inset`.
-- **Save sits in the card footer, right-aligned, status text left** (`<div sectionFooter class="rw-card__footer">`); every card that saves has one.
-- **`app-settings-tabs`**: the one segmented strip; `app-filter-bar` and `app-tabs` render through it. **`app-settings-entity-list`**: draws an `app-table` on the card surface (a table inside `rw-card` loses its own border and shadow).
+- **`app-settings-section`** (the card; `title`, `description`, `tone` default | destructive, `testId`; slots `[sectionActions]` and `[sectionFooter]`): classes `cv-card`, `cv-card__head/title/desc/body/footer/status` in `tailwind.css`. Hairline, no shadow. Inside it a topic is a flat `cv-section` row (hairline between rows; `cv-section` keeps its inset box only outside a card). Read-only blocks may use `cv-inset`.
+- **Save sits in the card footer, right-aligned, status text left** (`<div sectionFooter class="cv-card__footer">`); every card that saves has one.
+- **`app-settings-tabs`**: the one segmented strip; `app-filter-bar` and `app-tabs` render through it. **`app-settings-entity-list`**: draws an `app-table` on the card surface (a table inside `cv-card` loses its own border and shadow).
 - `app-form [settingsCard]="true" settingsTitle="..."` draws a form as one card (Edit in the head, submit in the footer). `app-table-header` is still used by receipts, reports and shopping lists, not by settings pages.
 - **Settings forms are always editable** (no view/edit pencil): User Profile, User Preferences, Household details and Household receipt settings turn their `/view` route into the edit form for anyone who may update (`editableConfig` / the group components' `ngOnInit`), Save sits in the footer (disabled while pristine) and settles the form instead of navigating. Sections inside use `app-form-section [panel]="true"` (flat rows; its content gets a `gap-3`). The household has no "Group AI Settings" tab any more (AI is household-wide).
 - **AI page:** a saved key shows as dots (`SAVED_KEY_PLACEHOLDER` in the key box, never the key), and **Test connection works on the form as typed**, saved or not: an untouched form tests `{ id }`, a changed one sends the whole command and the API falls back to the stored key for an empty key box (`CheckReceiptProcessingSettingsConnectivity`; a connectivity check ignores the missing prompt id).

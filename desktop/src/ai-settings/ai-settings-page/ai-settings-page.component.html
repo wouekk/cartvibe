@@ -4,10 +4,10 @@
   } @else {
     <form class="flex flex-col gap-4" [formGroup]="form" (ngSubmit)="save()">
      <app-settings-section testId="ai-card-main" title="Main AI">
-      <div class="rw-section" data-testid="ai-section-main">
-        <div class="rw-section__head">
-          <h3 class="rw-section__title">{{ 'Provider' | t }}</h3>
-          <p class="rw-section__desc">{{ 'Where receipts are read. Google Gemini runs in the cloud; LM Studio runs on a computer at home.' | t }}</p>
+      <div class="cv-section" data-testid="ai-section-main">
+        <div class="cv-section__head">
+          <h3 class="cv-section__title">{{ 'Provider' | t }}</h3>
+          <p class="cv-section__desc">{{ 'Where receipts are read. Google Gemini runs in the cloud; LM Studio runs on a computer at home.' | t }}</p>
         </div>
       <app-select
         [label]="'Provider' | t"
@@ -74,7 +74,7 @@
           {{ result.message | t: result.params }}
         </p>
       }
-      <div sectionFooter class="rw-card__footer">
+      <div sectionFooter class="cv-card__footer">
         <button
           hlmBtn variant="outline"
           type="button"

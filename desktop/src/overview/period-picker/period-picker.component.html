@@ -1,14 +1,14 @@
 <div class="period flex min-w-0 max-w-full flex-wrap items-center gap-2" data-testid="overview-period">
-  <div class="period__tabs min-w-0 max-w-full shrink rw-scroll-x">
+  <div class="period__tabs min-w-0 max-w-full shrink cv-scroll-x">
     <app-filter-bar [tabs]="periodTabs" [value]="preset()" (valueChange)="selectPeriod($event)"></app-filter-bar>
   </div>
   <div class="period__range flex flex-wrap items-center gap-2" data-testid="overview-custom-range">
-    <label class="rw-field-box">
-      <span class="rw-field-box__label">{{ 'From' | t }}</span>
+    <label class="cv-field-box">
+      <span class="cv-field-box__label">{{ 'From' | t }}</span>
       <input
         hlmInput
         type="text"
-        class="rw-field-box__input"
+        class="cv-field-box__input"
         inputmode="numeric"
         [placeholder]="'DD/MM/YYYY' | t"
         maxlength="10"
@@ -16,17 +16,17 @@
         [value]="fromText()"
         (input)="typeDay('from', $event)"
       />
-      <button type="button" class="rw-field-box__button" [attr.aria-label]="'Pick the first day' | t" data-testid="overview-pick-from" (click)="fromPicker.showPicker()">
+      <button type="button" class="cv-field-box__button" [attr.aria-label]="'Pick the first day' | t" data-testid="overview-pick-from" (click)="fromPicker.showPicker()">
         <app-icon name="calendar_month"></app-icon>
       </button>
       <input #fromPicker type="date" class="pointer-events-none absolute bottom-0 right-0 size-px opacity-0" tabindex="-1" aria-hidden="true" (change)="pickDay('from', $event)" />
     </label>
-    <label class="rw-field-box">
-      <span class="rw-field-box__label">{{ 'To' | t }}</span>
+    <label class="cv-field-box">
+      <span class="cv-field-box__label">{{ 'To' | t }}</span>
       <input
         hlmInput
         type="text"
-        class="rw-field-box__input"
+        class="cv-field-box__input"
         inputmode="numeric"
         [placeholder]="'DD/MM/YYYY' | t"
         maxlength="10"
@@ -34,7 +34,7 @@
         [value]="toText()"
         (input)="typeDay('to', $event)"
       />
-      <button type="button" class="rw-field-box__button" [attr.aria-label]="'Pick the last day' | t" data-testid="overview-pick-to" (click)="toPicker.showPicker()">
+      <button type="button" class="cv-field-box__button" [attr.aria-label]="'Pick the last day' | t" data-testid="overview-pick-to" (click)="toPicker.showPicker()">
         <app-icon name="calendar_month"></app-icon>
       </button>
       <input #toPicker type="date" class="pointer-events-none absolute bottom-0 right-0 size-px opacity-0" tabindex="-1" aria-hidden="true" (change)="pickDay('to', $event)" />

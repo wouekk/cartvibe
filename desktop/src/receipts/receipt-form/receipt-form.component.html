@@ -131,13 +131,13 @@
         </app-form-section>
         @if (!selectedGroup()?.groupReceiptSettings?.hideImages) {
           <app-form-section
-            class="w-full md:flex-1 md:min-w-0 rw-images-pane"
+            class="w-full md:flex-1 md:min-w-0 cv-images-pane"
             [panel]="true"
             [headerText]="'Images' | t"
             [headerButtonsTemplate]="imagesSectionHeaderButtons"
             [indent]="false"
           >
-            <div class="w-full h-full rw-images-pane__content">
+            <div class="w-full h-full cv-images-pane__content">
               <app-upload-image
                 class="w-full"
                 [receiptId]="originalReceipt?.id?.toString()"
@@ -146,7 +146,7 @@
               </app-upload-image>
               @if (isImageMissing()) {
                 <div
-                  class="rw-requirement-hint"
+                  class="cv-requirement-hint"
                   data-testid="receipt-image-required-hint"
                 >
                   {{ 'Your role requires at least one image on this group\'s receipts.' | t }}
@@ -165,7 +165,7 @@
                 </button>
               }
               <div
-                class="rw-images-pane__stage relative"
+                class="cv-images-pane__stage relative"
                 *ngIf="
                 images() &&
                 (images().length > 0 || filesToUpload().length > 0) &&
@@ -178,7 +178,7 @@
                   </div>
                 </ng-container>
                 <app-carousel
-                  class="rw-carousel--fill"
+                  class="cv-carousel--fill"
                   [images]="images()"
                   [imagePreviews]="filesToUpload()"
                   [mode]="mode"
@@ -286,7 +286,7 @@
   <section class="mx-auto mb-6 w-full max-w-5xl">
     @if (isCommentMissing()) {
       <div
-        class="rw-requirement-hint mb-2"
+        class="cv-requirement-hint mb-2"
         data-testid="receipt-comment-required-hint"
       >
         {{ 'Your role requires at least one comment on this group\'s receipts.' | t }}
@@ -507,9 +507,9 @@
 </ng-template>
 
 <ng-template #expandedImageTemplate>
-  <div class="rw-image-dialog">
+  <div class="cv-image-dialog">
     <app-button
-      class="rw-image-dialog__close"
+      class="cv-image-dialog__close"
       data-testid="receipt-image-fullscreen-close"
       matButtonType="iconButton"
       icon="close"
@@ -517,7 +517,7 @@
       (clicked)="closeExpandedImage()"
     ></app-button>
     <app-carousel
-      class="rw-carousel--fill"
+      class="cv-carousel--fill"
       [images]="images()"
       [imagePreviews]="filesToUpload()"
       [mode]="mode"

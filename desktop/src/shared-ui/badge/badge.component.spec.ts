@@ -12,7 +12,7 @@ describe("BadgeComponent", () => {
     }
     fixture.detectChanges();
 
-    return fixture.nativeElement.querySelector(".rw-badge") as HTMLElement;
+    return fixture.nativeElement.querySelector(".cv-badge") as HTMLElement;
   };
 
   beforeEach(async () => {
@@ -36,12 +36,12 @@ describe("BadgeComponent", () => {
   // it appears - hard-coding it per call site is how the two implementations this
   // replaced ended up different colours.
   it("defaults to the custom-field tone", () => {
-    expect(render("Custom").classList).toContain("rw-badge--purple");
+    expect(render("Custom").classList).toContain("cv-badge--purple");
   });
 
   it("applies an explicit tone", () => {
     for (const tone of ["slate", "blue", "green"] as BadgeTone[]) {
-      expect(render("Agg", tone).classList).toContain(`rw-badge--${tone}`);
+      expect(render("Agg", tone).classList).toContain(`cv-badge--${tone}`);
     }
   });
 

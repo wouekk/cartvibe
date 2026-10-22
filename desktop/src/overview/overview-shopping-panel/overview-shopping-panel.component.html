@@ -1,4 +1,4 @@
-<div class="rw-panel-header">
+<div class="cv-panel-header">
   <h2 id="overview-lists-title">{{ 'Shopping lists' | t }}</h2>
   <a [routerLink]="['/shopping-lists/group', groupId()]">{{ 'Open' | t }}</a>
 </div>
@@ -38,7 +38,7 @@
       }
     </ul>
     @if (hiddenCount() > 0) {
-      <a class="rw-link -mt-2 self-start text-sm" data-testid="overview-shopping-more" [routerLink]="['/shopping-lists/group', groupId()]">
+      <a class="cv-link -mt-2 self-start text-sm" data-testid="overview-shopping-more" [routerLink]="['/shopping-lists/group', groupId()]">
         {{ '{count} more on the list' | t: { count: hiddenCount() } }}
         <app-icon name="arrow_right_alt"></app-icon>
       </a>

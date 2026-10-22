@@ -6,10 +6,10 @@
     data-testid="ai-fallback-card"
   >
    <app-settings-section title="Backup AI">
-    <div class="rw-section" data-testid="ai-section-backup">
-      <div class="rw-section__head">
-        <h3 class="rw-section__title">{{ 'Google Gemini' | t }}</h3>
-        <p class="rw-section__desc">
+    <div class="cv-section" data-testid="ai-section-backup">
+      <div class="cv-section__head">
+        <h3 class="cv-section__title">{{ 'Google Gemini' | t }}</h3>
+        <p class="cv-section__desc">
           {{ 'Used when the main AI is not available. It tries at most three times, so a long outage does not use up your quota.' | t }}
         </p>
       </div>
@@ -51,9 +51,9 @@
         {{ result.message | t: result.params }}
       </p>
     }
-    <div sectionFooter class="rw-card__footer">
+    <div sectionFooter class="cv-card__footer">
       @if (primaryId() === undefined) {
-        <span class="rw-card__status">{{ 'Save the main AI first; the backup stands in for it.' | t }}</span>
+        <span class="cv-card__status">{{ 'Save the main AI first; the backup stands in for it.' | t }}</span>
       }
       <button
         hlmBtn

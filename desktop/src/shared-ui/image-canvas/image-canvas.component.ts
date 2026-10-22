@@ -81,7 +81,7 @@ type Drag =
   styleUrl: "./image-canvas.component.scss",
   standalone: true,
   host: {
-    class: "rw-image-canvas",
+    class: "cv-image-canvas",
     "[style.height]": "stageHeight()",
     "(pointerdown)": "onPanStart($event)",
     "(wheel)": "onWheel($event)",
@@ -302,7 +302,7 @@ export class ImageCanvasComponent implements AfterViewInit, OnDestroy {
     element.addEventListener("pointermove", this.onPointerMove);
     element.addEventListener("pointerup", this.onPointerUp);
     element.addEventListener("pointercancel", this.onPointerUp);
-    this.renderer.addClass(element, `rw-image-canvas--${drag.kind}`);
+    this.renderer.addClass(element, `cv-image-canvas--${drag.kind}`);
   }
 
   private endDrag(): void {
@@ -320,7 +320,7 @@ export class ImageCanvasComponent implements AfterViewInit, OnDestroy {
       element.releasePointerCapture(drag.pointerId);
     }
 
-    this.renderer.removeClass(element, `rw-image-canvas--${drag.kind}`);
+    this.renderer.removeClass(element, `cv-image-canvas--${drag.kind}`);
     this.drag = undefined;
   }
 

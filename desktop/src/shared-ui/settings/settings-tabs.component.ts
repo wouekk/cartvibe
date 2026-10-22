@@ -9,7 +9,7 @@ import { marker } from "../../i18n/marker";
   host: { class: "block max-w-full min-w-0" },
   template: `
     <hlm-tabs class="max-w-full min-w-0" [tab]="value()" (tabActivated)="valueChange.emit($event)">
-      <hlm-tabs-list class="max-w-full rw-scroll-x" [attr.aria-label]="ariaLabel() | t">
+      <hlm-tabs-list class="max-w-full cv-scroll-x" [attr.aria-label]="ariaLabel() | t">
         @for (tab of tabs(); track tab.value) {
           <button class="filter-tab" [hlmTabsTrigger]="tab.value" [class.active]="value() === tab.value">
             @if (tab.icon) {

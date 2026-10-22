@@ -26,10 +26,10 @@
   <!-- General & Currency -->
   @if (shows("general")) {
     <app-settings-section testId="settings-card-currency" title="Currency & exchange rates">
-      <div class="rw-section" data-testid="settings-section-currency">
-        <div class="rw-section__head">
-          <h3 class="rw-section__title">{{ 'Currency' | t }}</h3>
-          <p class="rw-section__desc">{{ 'The main currency of the household. Receipts in other currencies are converted into it.' | t }}</p>
+      <div class="cv-section" data-testid="settings-section-currency">
+        <div class="cv-section__head">
+          <h3 class="cv-section__title">{{ 'Currency' | t }}</h3>
+          <p class="cv-section__desc">{{ 'The main currency of the household. Receipts in other currencies are converted into it.' | t }}</p>
         </div>
         <app-select
           [label]="'Currency' | t"
@@ -72,12 +72,12 @@
           ></app-checkbox>
         }
       </div>
-      <div class="rw-section currency-preview" data-testid="settings-section-previews">
-        <div class="rw-section__head">
-          <h3 class="rw-section__title">{{ 'Previews' | t }}</h3>
-          <p class="rw-section__desc">{{ 'How amounts look with these settings.' | t }}</p>
+      <div class="cv-section currency-preview" data-testid="settings-section-previews">
+        <div class="cv-section__head">
+          <h3 class="cv-section__title">{{ 'Previews' | t }}</h3>
+          <p class="cv-section__desc">{{ 'How amounts look with these settings.' | t }}</p>
         </div>
-        <ul class="rw-list rw-inset text-sm">
+        <ul class="cv-list cv-inset text-sm">
           <li><span class="text-muted-foreground">{{ 'A large amount' | t }}</span><span class="font-medium text-foreground">{{ 123456789.12 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span></li>
           <li><span class="text-muted-foreground">{{ 'A small amount' | t }}</span><span class="font-medium text-foreground">{{ 12.99 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span></li>
           <li><span class="text-muted-foreground">{{ 'Ten thousand' | t }}</span><span class="font-medium text-foreground">{{ 10000 | customCurrency :  (form | formGet: 'currencyDisplay').value :  (form | formGet: 'currencyDecimalSeparator').value : (form | formGet: 'currencyThousandthsSeparator').value : ((form | formGet: 'currencySymbolPosition').value) : ((form | formGet: 'currencyHideDecimalPlaces').value) }}</span></li>
@@ -85,13 +85,13 @@
         </ul>
       </div>
       <app-exchange-rates></app-exchange-rates>
-      <div sectionFooter class="rw-card__footer"><ng-container *ngTemplateOutlet="saveActions"></ng-container></div>
+      <div sectionFooter class="cv-card__footer"><ng-container *ngTemplateOutlet="saveActions"></ng-container></div>
     </app-settings-section>
     <app-settings-section testId="settings-card-regional" title="Regional & time zone">
-      <div class="rw-section" data-testid="settings-section-time-zone">
-        <div class="rw-section__head">
-          <h3 class="rw-section__title">{{ 'Time zone' | t }}</h3>
-          <p class="rw-section__desc">
+      <div class="cv-section" data-testid="settings-section-time-zone">
+        <div class="cv-section__head">
+          <h3 class="cv-section__title">{{ 'Time zone' | t }}</h3>
+          <p class="cv-section__desc">
             {{ 'Decides which day a moment in time falls on: when a receipt was added or resolved, what "today" and "last month" mean in reports and filters, and how times are shown. A receipt\'s own Date is a calendar day and never shifts with this setting.' | t }}
           </p>
         </div>
@@ -106,16 +106,16 @@
           [readonly]="formConfig.mode | inputReadonly"
         ></app-autocomlete>
       </div>
-      <div sectionFooter class="rw-card__footer"><ng-container *ngTemplateOutlet="saveActions"></ng-container></div>
+      <div sectionFooter class="cv-card__footer"><ng-container *ngTemplateOutlet="saveActions"></ng-container></div>
     </app-settings-section>
   }
 
   <!-- Auth & Security -->
   @if (shows("security")) {
     <app-settings-section testId="settings-card-signup-session" title="Sign-up & session policy">
-      <div class="rw-section" data-testid="settings-section-sign-up">
-        <div class="rw-section__head">
-          <h3 class="rw-section__title">{{ 'Sign-up' | t }}</h3>
+      <div class="cv-section" data-testid="settings-section-sign-up">
+        <div class="cv-section__head">
+          <h3 class="cv-section__title">{{ 'Sign-up' | t }}</h3>
         </div>
         <app-checkbox
           [label]="'Enable Local Sign Up' | t"
@@ -126,10 +126,10 @@
       <!-- The receipt-reading knobs (Debug OCR, processing settings and their fallback, PDF DPI) are
            gone from the form (Phase 3 M1, A3): the AI page under Manage sets the AI, the rest keeps
            its stored value and the submit still sends it. -->
-      <div class="rw-section" data-testid="settings-section-session">
-        <div class="rw-section__head">
-          <h3 class="rw-section__title">{{ 'Session' | t }}</h3>
-          <p class="rw-section__desc">
+      <div class="cv-section" data-testid="settings-section-session">
+        <div class="cv-section__head">
+          <h3 class="cv-section__title">{{ 'Session' | t }}</h3>
+          <p class="cv-section__desc">
             {{ 'How long a signed-in user can be away before they have to log in again. Sessions renew themselves while the app is in use, so this is an inactivity window rather than a hard limit. Maximum 720 hours (30 days).' | t }}
           </p>
         </div>
@@ -149,10 +149,10 @@
           ></app-select>
         </div>
       </div>
-      <div class="rw-section" data-testid="settings-section-cookies">
-        <div class="rw-section__head">
-          <h3 class="rw-section__title">{{ 'Cookies' | t }}</h3>
-          <p class="rw-section__desc">
+      <div class="cv-section" data-testid="settings-section-cookies">
+        <div class="cv-section__head">
+          <h3 class="cv-section__title">{{ 'Cookies' | t }}</h3>
+          <p class="cv-section__desc">
             {{ 'Marks every cookie as Secure, so browsers only send them over HTTPS. Recommended for any install served over HTTPS. Leave this off if CartVibe is reached over plain HTTP, such as a LAN or bare IP address: browsers refuse Secure cookies there, so nobody would be able to log in.' | t }}
           </p>
         </div>
@@ -171,10 +171,10 @@
           </div>
         }
       </div>
-      <div class="rw-section" data-testid="settings-section-server-url">
-        <div class="rw-section__head">
-          <h3 class="rw-section__title">{{ 'Server address' | t }}</h3>
-          <p class="rw-section__desc">
+      <div class="cv-section" data-testid="settings-section-server-url">
+        <div class="cv-section__head">
+          <h3 class="cv-section__title">{{ 'Server address' | t }}</h3>
+          <p class="cv-section__desc">
             {{ 'The externally reachable address of this server. Used to build the redirect URI that each OIDC identity provider must be configured with, so it has to match how users actually reach CartVibe.' | t }}
           </p>
         </div>
@@ -186,7 +186,7 @@
           [inputFormControl]="form | formGet:'serverPublicUrl'"
         ></app-input>
       </div>
-      <div sectionFooter class="rw-card__footer"><ng-container *ngTemplateOutlet="saveActions"></ng-container></div>
+      <div sectionFooter class="cv-card__footer"><ng-container *ngTemplateOutlet="saveActions"></ng-container></div>
     </app-settings-section>
   }
 
@@ -201,9 +201,9 @@
         [tooltip]="'Restart Task Server' | t"
         (clicked)="restartTaskServer()"
       ></app-button>
-      <div class="rw-section" data-testid="settings-section-worker">
-        <div class="rw-section__head">
-          <h3 class="rw-section__title">{{ 'Worker' | t }}</h3>
+      <div class="cv-section" data-testid="settings-section-worker">
+        <div class="cv-section__head">
+          <h3 class="cv-section__title">{{ 'Worker' | t }}</h3>
         </div>
         <div class="grid grid-cols-[repeat(auto-fit,minmax(min(280px,100%),1fr))] gap-x-4">
           <app-input
@@ -220,10 +220,10 @@
           ></app-input>
         </div>
       </div>
-      <div class="rw-section" data-testid="settings-section-retention">
-        <div class="rw-section__head">
-          <h3 class="rw-section__title">{{ 'Temporary files' | t }}</h3>
-          <p class="rw-section__desc">
+      <div class="cv-section" data-testid="settings-section-retention">
+        <div class="cv-section__head">
+          <h3 class="cv-section__title">{{ 'Temporary files' | t }}</h3>
+          <p class="cv-section__desc">
             {{ 'A quick scan or email upload that fails keeps its image this long, so you can retry it or download the original. Minimum 24 hours, maximum 8760 hours (1 year).' | t }}
           </p>
         </div>
@@ -243,15 +243,15 @@
           ></app-select>
         </div>
       </div>
-      <div sectionFooter class="rw-card__footer"><ng-container *ngTemplateOutlet="saveActions"></ng-container></div>
+      <div sectionFooter class="cv-card__footer"><ng-container *ngTemplateOutlet="saveActions"></ng-container></div>
     </app-settings-section>
     <app-settings-section testId="settings-card-queues" title="Task queue priorities">
-      <div class="rw-section" data-testid="settings-section-queues">
-        <div class="rw-section__head">
-          <h3 class="rw-section__title">{{ 'Priorities' | t }}</h3>
-          <p class="rw-section__desc">{{ 'A higher number means a higher priority.' | t }}</p>
+      <div class="cv-section" data-testid="settings-section-queues">
+        <div class="cv-section__head">
+          <h3 class="cv-section__title">{{ 'Priorities' | t }}</h3>
+          <p class="cv-section__desc">{{ 'A higher number means a higher priority.' | t }}</p>
         </div>
-        <ul class="rw-list m-0 list-none p-0">
+        <ul class="cv-list m-0 list-none p-0">
           @for (data of visibleQueueData; track data.value) {
             <li data-testid="queue-row" class="flex items-center justify-between gap-4 py-2.5">
               <div class="flex min-w-0 flex-col">
@@ -269,7 +269,7 @@
           }
         </ul>
       </div>
-      <div sectionFooter class="rw-card__footer"><ng-container *ngTemplateOutlet="saveActions"></ng-container></div>
+      <div sectionFooter class="cv-card__footer"><ng-container *ngTemplateOutlet="saveActions"></ng-container></div>
     </app-settings-section>
   }
 
@@ -286,9 +286,9 @@
 <ng-template #saveActions>
   @if (formConfig.mode !== FormMode.view) {
     @if (form.invalid) {
-      <span class="rw-card__status" data-testid="settings-invalid">{{ 'Some settings need attention before you can save.' | t }}</span>
+      <span class="cv-card__status" data-testid="settings-invalid">{{ 'Some settings need attention before you can save.' | t }}</span>
     } @else if (hasUnsavedChanges()) {
-      <span class="rw-card__status">{{ 'You have unsaved changes.' | t }}</span>
+      <span class="cv-card__status">{{ 'You have unsaved changes.' | t }}</span>
     }
       <button
         hlmBtn
