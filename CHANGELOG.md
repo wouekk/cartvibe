@@ -17,6 +17,14 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 - **Custom fields** (definitions, receipt values, group defaults, AI extraction, report fields, permissions) and the **receipt summary** block under the receipts table.
   **Not an in-place upgrade:** wipe the NAS `sqlite` folder and set new `SECRET_KEY` / `ENCRYPTION_KEY` before deploying; no drop migration was written on purpose.
 
+- **Old dashboards and widgets** (the per-group widget dashboards, the pie chart widget, the report dashboard widget), **stored prompts**
+  (the receipt prompt is built in), **configuration import**, and the report-template render endpoint. The Dashboard landing page and its
+  customise screen are unchanged.
+- **The email integration:** system emails, group email settings (polling, whitelists, subject rules), the "Poll email(s)" action, email
+  polling and processing queues and tasks, and the Python IMAP client. The image no longer carries Python; Chromium stays for report PDFs.
+- Permissions that went with them: `app.prompts.*`, `app.system-emails.*`, `app.imports.run`, `app.groups.update-settings`,
+  `group.dashboards.*`, `group.widgets.read`, `group.email.poll`. The Queues list in System Settings shows Quick Scan and System Clean Up only.
+
 ### Changed
 - Internal clean-up: the Go module is `cartvibe/api`, the CSS prefix is `cv-`, the Angular project is `cartvibe`, the MCP server and
   OAuth sign-in page say CartVibe, and the upstream release scripts and READMEs are gone. The JWT issuer and the `rw-v1` API key

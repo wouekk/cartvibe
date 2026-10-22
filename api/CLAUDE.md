@@ -8,14 +8,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-The CartVibe API is a Go-based backend service for a household receipt, shopping list and spending insights application (a fork of Receipt Wrangler, see `NOTICE.md`). It provides OCR-powered receipt scanning, AI-assisted data extraction, email integration, and multi-user support with group management capabilities.
+The CartVibe API is a Go-based backend service for a household receipt, shopping list and spending insights application (a fork of Receipt Wrangler, see `NOTICE.md`). It provides OCR-powered receipt scanning, AI-assisted data extraction, and multi-user support with group management capabilities.
 
 ## Development Commands
 
 ### Building and Running
 - `go build` - Build the application
 - `go run main.go` - Run the application directly
-- `./set-up-dependencies.sh` - Install system dependencies (tesseract, ImageMagick, Chromium, Python deps)
+- `./set-up-dependencies.sh` - Install system dependencies (tesseract, ImageMagick, Chromium)
 
 ### Running in the Claude Code Web/Cloud Sandbox
 
@@ -30,8 +30,7 @@ the project's Docker images (and `set-up-dependencies.sh`) assume **Debian** (`g
   repos only ship ImageMagick **6** (`libmagickwand-dev` = IM6) and have no IM7 package, so
   `set-up-dependencies.sh`'s `libmagickwand-7.q16-dev` isn't installable and the Go build fails to
   link. **IM7 must be built from source.**
-- `set-up-dependencies.sh` also installs the Python venv used only by the **IMAP email
-  client**, not the Go server. **Skip it** — install just the native libs below.
+- `set-up-dependencies.sh` is for Debian images; on Ubuntu install just the native libs below.
 
 **Step 1 — Start Redis** (installed but not running by default):
 ```bash
@@ -127,10 +126,10 @@ curl -X POST 'localhost:8081/api/login/?tokensInBody=true' \
   -H 'Content-Type: application/json' -d '{"username":"admin","password":"admin"}'
 ```
 
-**Not needed to boot the server (skip in the sandbox):** the Python venv install, and the
+**Not needed to boot the server (skip in the sandbox):** the
 ImageMagick PDF-policy edit in `set-up-dependencies.sh` (it targets `/etc/ImageMagick-7/policy.xml`; a
 source build's policy is at `/usr/local/etc/ImageMagick-7/policy.xml` and doesn't block PDF by
-default). Those only matter for exercising email-OCR / PDF-receipt processing, not for a running API.
+default). Those only matter for exercising PDF-receipt processing, not for a running API.
 
 **Running the Go test suite in the sandbox — set `CHROMIUM_BINARY_PATH`.** Steps 1-4 above are enough
 to *compile* the module, but two tests additionally need a browser:
@@ -148,7 +147,6 @@ pre-installed binary works.
 ### Testing
 - `go test -v ./...` - Run all Go tests with verbose output
 - `go test -coverprofile=coverage.out -covermode=atomic -v ./...` - Run tests with coverage
-- `python3 -m unittest discover -s ./imap-client` - Run Python IMAP client tests
 
 ### Seeding test data
 - `RW_API_KEY='key.1.<id>.<secret>' node dev/seed-reporting-data.mjs` - Seed a realistic, high-volume
@@ -187,7 +185,6 @@ pre-installed binary works.
 ### Core Structure
 - **main.go** - Application entry point, initializes logging, config, database, and starts HTTP server
 - **internal/** - Core application code organized by domain
-- **imap-client/** - Python-based email processing client
 
 ### Key Directories
 - **internal/handlers/** - HTTP request handlers for each API endpoint
@@ -208,7 +205,7 @@ pre-installed binary works.
 
 ### Background Processing
 - Uses Hibiken's Asynq library for background job processing
-- Email processing, OCR, and cleanup tasks run as background jobs
+- Quick scan, OCR, product reading, classification, shopping trips and cleanup tasks run as background jobs
 - Queue configurations defined in `internal/wranglerasynq/`
 
 ### AI Integration
@@ -338,73 +335,24 @@ When working with tests in this codebase, follow these critical requirements:
   processing setting that still names `EASY_OCR` is read with Tesseract (the enum value stays: released
   clients read it). `prepareImage` shrinks an image to `ocrImageMaxSide` (3000 px) before its filters.
 
-## Email HTML to PDF Rendering
+## HTML to PDF rendering (report PDFs)
 
-- HTML email bodies are rendered to PDF via `chromedp` running headless Chromium
-- The Chromium binary path is read from the `CHROMIUM_BINARY_PATH` env var
-  (defaults to `/usr/bin/chromium`); installed by `set-up-dependencies.sh`
-- The Chromium process sandbox is **off by default**. The fork's image runs the API as the
-  unprivileged `cartvibe` user (`docker/entrypoint.sh`), but Chromium's sandbox also needs user
-  namespaces, which Docker's default seccomp profile (and the NAS kernel) may refuse, so it stays
-  opt-in: set `CHROMIUM_SANDBOX=true` and check an email-body PDF still renders
-- External network resource loads (remote images, CSS, fonts) are
-  **blocked by default** to remove an SSRF / tracking-pixel surface. To
-  permit remote loads (useful when receipts depend on remote logos or
-  product imagery), set `CHROMIUM_ALLOW_EXTERNAL_RESOURCES=true`. Because an
-  `about:blank` document (see below) never fetches network sub-resources at all,
-  the external mode instead serves the HTML from an **ephemeral loopback HTTP
-  server** (`127.0.0.1:0`, one per render, `defer`-closed right after) and
-  navigates to it, giving the document a real `http` origin so remote images
-  actually load; `chromedp.Navigate` waits for the load event, so slow remote
-  images finish before printing.
-- **External mode is SSRF-guarded: only PUBLIC hosts may load.** The email body is
-  attacker-controlled and the render now has a real `http` origin, so a naive
-  external mode would let `<iframe>`/`<img>` reach internal targets (verified: an
-  internal response was baked into the PDF). Sub-resource requests are therefore
-  intercepted via the CDP **Fetch** domain (`isRequestAllowed` in `html_to_pdf.go`)
-  and each is allowed or failed by its resolved address: the render's own loopback
-  page and inline `data:` URIs are allowed; loopback/private/link-local/multicast/
-  unspecified targets — `127.0.0.1:*`, `169.254.169.254` (cloud metadata), RFC1918,
-  `::1`, `fe80::/10`, `0.0.0.0` — plus the non-public ranges the stdlib `net.IP`
-  predicates miss (`ipIsInternal`'s `extraInternalNets`: `0.0.0.0/8`, CGNAT
-  `100.64.0.0/10` incl. Alibaba metadata `100.100.100.200`, benchmarking
-  `198.18.0.0/15`, reserved+broadcast `240.0.0.0/4`, NAT64 `64:ff9b::/96`) and the
-  `localhost` / `*.localhost` names (which chromium resolves to loopback itself,
-  never asking DNS) — and every non-`http(s)` scheme (incl. `file://`) are
-  refused. A URL blocklist can't express this (it can neither allow our own
-  loopback page while denying other internal hosts, nor catch a hostname that
-  resolves to an internal IP). Residual: **DNS rebinding** — the host is resolved
-  at check time and re-resolved by chromium at fetch time, so operators enabling
-  external mode in a cloud should also restrict egress at the network layer / use
-  IMDSv2. Regressions: `TestHtmlToPdfService_Render_ExternalMode_BlocksInternalSSRF`,
-  `TestHtmlToPdfService_Render_ExternalMode_EmbedsDataImage`, and the hermetic
-  policy unit test `TestIsRequestAllowed`.
-- **`file://` loads are ALWAYS blocked, in BOTH modes.** In the default mode the
-  HTML is injected into an `about:blank` page via `page.SetDocumentContent` rather
-  than being written to a temp file and navigated to as `file://<path>`. The email
-  body is attacker-controlled, so a `file://` document origin let it read local
-  files (other groups' receipt images under `data/`, logs, `/etc/passwd`) into the
-  PDF via `<iframe src="file:///…">`/`<img>` — even with JavaScript disabled.
-  `about:blank` (and the loopback `http` origin used in external mode) has no
-  local-file origin, so those sub-resources are cross-origin-blocked; `file://*`
-  is also on the default mode's network blocklist and denied by the external
-  mode's Fetch policy, as defense in depth (blocked in BOTH modes). Inline `data:`
-  URIs still load
-  (`SetDocumentContent` also sidesteps the data-URL length cap that motivated the
-  old temp-file approach) and decode synchronously, so the default path needs no
-  explicit load wait. Regressions:
-  `TestHtmlToPdfService_Render_BlocksLocalFileRead` and
-  `TestHtmlToPdfService_Render_ExternalMode_BlocksLocalFileRead`.
-- Implementation: `internal/services/html_to_pdf.go` (HtmlToPdfService.Render)
-- The rendered PDF is saved on the receipt as a `FileData` and routed
-  through the existing `repositories.ConvertPdfToJpg` pipeline so vision and
-  OCR models receive an image, exactly like a PDF email attachment
-- Gating: only runs when `EmailBodyProcessingEnabled` is true on at least one
-  consuming group (per `shouldRenderEmailBodyPdf` in `wranglerasynq/email.go`)
-- For an email with both an attachment and an HTML body, each per-attachment
-  receipt is augmented with a copy of the body PDF and both images are sent
-  to the LLM together; when the body is sent as an image, its text is dropped
-  from the prompt to avoid duplication
+- Report HTML is rendered to PDF via `chromedp` running headless Chromium (`internal/services/html_to_pdf.go`,
+  `HtmlToPdfService.Render`). Email bodies were its first input; that path is gone, the renderer stays for reports.
+- The Chromium binary path is read from the `CHROMIUM_BINARY_PATH` env var (defaults to `/usr/bin/chromium`);
+  installed by `set-up-dependencies.sh` and the Dockerfile.
+- The Chromium process sandbox is **off by default** (the image runs the API as the unprivileged `cartvibe` user, but
+  Chromium's sandbox also needs user namespaces, which Docker's default seccomp profile and the NAS kernel may refuse).
+  Opt in with `CHROMIUM_SANDBOX=true` and check a report PDF still renders.
+- **`file://` loads are ALWAYS blocked**: the HTML is injected into an `about:blank` page (`SetDocumentContent`),
+  not written to a temp file, so the document has no local-file origin. Inline `data:` URIs still load.
+  Regressions: `TestHtmlToPdfService_Render_BlocksLocalFileRead`, `..._ExternalMode_BlocksLocalFileRead`.
+- External network loads (remote images, CSS, fonts) are **blocked by default** (SSRF / tracking-pixel surface).
+  `CHROMIUM_ALLOW_EXTERNAL_RESOURCES=true` serves the HTML from an ephemeral loopback server and lets only PUBLIC hosts
+  load: sub-resource requests are intercepted via the CDP Fetch domain (`isRequestAllowed`) and refused when they resolve
+  to loopback, private, link-local, metadata (`169.254.169.254`), CGNAT and the other non-public ranges
+  (`ipIsInternal`), or use a non-http(s) scheme. Residual: DNS rebinding, so cloud operators should also restrict egress.
+  Regressions: `TestHtmlToPdfService_Render_ExternalMode_BlocksInternalSSRF`, `..._EmbedsDataImage`, `TestIsRequestAllowed`.
 
 ## Testing Requirements
 
@@ -893,8 +841,7 @@ Because paid-by hides the **whole** receipt (not just fields), enforcement diffe
   role denies it. `GetPagedReceiptsByGroupId` now takes a `GroupReadableResolver`
   (`PermissionService.GroupPermissionResolver(userId, perm)`, cache-backed) and, for the All view,
   drops any group where the caller lacks the permission its **direct** single-group path requires
-  (`group.receipts.read` for list/export/summary, `group.reports.read` for reports, `group.widgets.read`
-  for the pie chart) — before the `group_id IN` scope, the paid-by disjunction, and the count. The
+  (`group.receipts.read` for list/export/summary, `group.reports.read` for reports) — before the `group_id IN` scope, the paid-by disjunction, and the count. The
   `GroupReadableResolver` and `CategoryTagVisibilityResolver` must be passed together for the All view
   (`GetPagedReceiptsByGroupId` fails closed if only one is supplied) — the read gate without the
   category/tag resolver would let a category/tag filter fall through to the flat, group-unscoped subquery.
@@ -1246,8 +1193,8 @@ that list rather than forced into a binary that does not fit it.
 
 **Do not derive read-vs-write from the declared permissions.** It is the obvious shortcut and it
 fails OPEN. Both `checkConnectivity` endpoints persist a `SystemTask` while carrying a `.read`
-permission (`services/ai.go`, `services/system_email.go`), and `app.reports.generate` sits on a pure
-read. `createDefaultPrompt`, `pollGroupEmail` and `rerunActivity` are likewise writes with read-ish
+permission (`services/ai.go`), and `app.reports.generate` sits on a pure
+read. `rerunActivity` is likewise a write with read-ish
 names.
 
 **`UpdateApiKeyLastUsedDate` must stay outside the gate.** It fires on every API-key request
@@ -1374,7 +1321,7 @@ Claude can read a user's data. It is **off by default** and Go-native (no separa
   mapping; `ErrSearchForbidden` → MCP "unauthorized" / REST 403; blank query → empty). These two REST
   handlers therefore intentionally omit the declarative `HandleRequest` permission/`ReceiptId` gates —
   enforcement lives once, in the service. v1 tools are read-only: `search_receipts`, `get_receipt`,
-  `list_groups`, `list_categories`, `list_tags`, `list_dashboards`. `list_categories`/`list_tags` have
+  `list_groups`, `list_categories`, `list_tags`. `list_categories`/`list_tags` have
   no REST twin and stay MCP-local in `tools.go`: they return the caller's grant-visible catalog (the
   full pool only for `app.categories.read`/`app.tags.read` holders, else the union of their group
   roles' grants — `visibleByGrants`).
@@ -2072,22 +2019,13 @@ and the pure `receiptsource` / `render` cases, each with a `mutation-check.sh` e
 
 `temp/` holds the files the ingest pipelines work from. Everything that writes
 there: the **quick-scan upload** (`handlers/receipts.go`, one per file in a
-multi-file scan), the **email attachment and its `image-` OCR copy**
-(`wranglerasynq/email.go`), the **email body image**, short-lived scratch from
-`MagicFillFromImage` / `ConvertPdfToJpg` (each with a
-`defer os.Remove`), and the **`DebugOcr` dumps** from `services/ocr.go`
+multi-file scan), short-lived scratch from `MagicFillFromImage` / `ConvertPdfToJpg`
+(each with a `defer os.Remove`), and the **`DebugOcr` dumps** from `services/ocr.go`
 `writeDebuggingFiles`, which are never removed by the code that writes them.
 
 **`HandleTempFileCleanUpTask` (`wranglerasynq/temp_file_cleanup_handler.go`) is
 the only thing that reclaims them.** It runs `@every 1h` on
-`models.SystemCleanUpQueue`, registered from **`StartSystemCleanUpTasks`**, and
-that placement is load-bearing: it used to live in `StartEmailPolling`, which
-`main.go` calls only when `EmailPollingInterval > 0 && ReceiptProcessingSettingsId != nil`,
-so an install that never configured email polling ran **no temp cleanup at all** —
-including for quick-scan uploads, which have nothing to do with email.
-`StartEmailPolling` also re-runs on every polling-interval change while
-`scheduler.Register` adds an entry without removing the previous one, so the sweep
-used to accumulate duplicate crons.
+`models.SystemCleanUpQueue`, registered from **`StartSystemCleanUpTasks`**.
 
 ### The classification, and its precedence
 
@@ -2100,10 +2038,9 @@ Ordered — the order is the behaviour, not a formatting choice:
 | 3 | else every referencing task is `Completed` | remove now |
 | 4 | unreferenced | keep until aged, **and only when the reference map is complete** |
 
-**Rule 2 must be tested before rule 3.** One email attachment fans out to a
-sibling task per `groupSettingsId`, so a file can be referenced by both a
+**Rule 2 must be tested before rule 3.** A file can be referenced by both a
 succeeded task and a permanently failed one; releasing it because something
-succeeded is precisely the bug this sweeper replaces.
+succeeded is precisely the bug the earlier sweeper had.
 
 **`Archived` can never mean deletable** — it is the state that makes an activity
 rerunnable (`SetActivityFlags`), and the previous cleanup released on it.
@@ -2123,9 +2060,8 @@ and is deleted once aged. So:
    `ListOption` at all. `forEachTaskPage` loops with `asynq.PageSize`/`asynq.Page`
    until a short page, handing each page to a callback and then dropping it —
    the sweep wants each payload's paths and state, while the payloads are the
-   large part (`EmailProcessTaskPayload` carries the body twice, copied per
-   `groupSettingsId`). Accumulating a whole listing first held the archived email
-   set — 10,000 tasks, kept 90 days — in memory at once inside an hourly job.
+   large part (a payload names the upload paths). Accumulating a whole listing first held the archived
+   set — up to 10,000 tasks — in memory at once inside an hourly job.
    Building the map incrementally makes the abort path load-bearing: a listing
    error must discard what it already has, or the unreached files look
    unreferenced and the orphan branch deletes them once aged.
@@ -2145,52 +2081,17 @@ and is deleted once aged. So:
    failure direction is deletion of a user's file, so it fails the safe way: rule 4
    simply reclaims nothing that run.
 
-### Rule 3 is live on the email queue alone
+### Rule 3 and completed-task retention
 
 Asynq drops a successfully-processed task the instant it succeeds unless the
-enqueue sets `asynq.Retention`, in which case the task stays in Redis for that
-long in the **completed** set and the janitor reaps it afterwards. Nothing here
-set it at first, so `ListCompletedTasks` was always empty and rule 3 was dead
-code — which is how the *old* cleanup came to be inverted end to end: its
-`Completed` branch could never fire, so the only files it ever deleted were the
-archived ones it had to keep.
-
-`enqueueOptions` (`task_enqueue.go`) now attaches
-`asynq.Retention(completedTaskRetention)` — **6 hours** — to
-`EmailReceiptProcessingQueue`, so a succeeded email upload's attachment and its
-`image-` OCR copy are released on the next hourly sweep instead of waiting out
-the user-configured window. The duration is a handful of sweep intervals rather
-than a day because `EmailProcessTaskPayload` carries the email body **twice**
-(`Metadata.Body` + `Metadata.BodyHtml`) and `email.go` copies the metadata per
-`groupSettingsId`, so one message consumed by N groups with M attachments retains
-N×M copies of a 50-500 KB body. Overshooting degrades benignly — the files just
-fall back to waiting out the window.
-
-**It is deliberately NOT on the other two queues**, and "the ingest queues" is the
-wrong mental model:
-
-- **Quick scan** already deletes its own file on success — `ReceiptService.QuickScan`
-  ends with `os.Remove(params.TempPath)`, reached only after the create-receipt
-  transaction commits, and every failure path returns earlier and keeps the file.
-  It is 1:1 task-to-file, so by the time such a task completes there is nothing on
-  disk for the sweep to classify. Retention there is pure Redis cost.
-- **`EmailPollingQueue`** owns no temp files at all.
-
-**Do not "fix" the email case by deleting on success inside
-`HandleEmailProcessTask`** instead: one `TempFilePath` fans out to N sibling tasks
-and the first to succeed would break the rest. The sweep owns the decision
-precisely because it can see every referencing task at once, and retention is what
-lets it see them.
-
-**No janitor configuration is needed.** `asynq.Server.Start` starts the janitor
-unconditionally and it runs `DeleteExpiredCompletedTasks` per queue every 8s by
-default; `asynq_server.go` sets only `Concurrency` and `Queues`, so it takes that
-default.
-
-**Retention changed two things outside the sweeper**, both now guarded — see
-"Activity source files" below for `rerunnableState` (the rerun endpoint's state
-check, which asynq does *not* enforce for us) and `offersSourceFile` (a succeeded
-task stops advertising its upload).
+enqueue sets `asynq.Retention`. **No queue sets it now**: quick scan removes its own
+upload on success (`ReceiptService.QuickScan` ends with `os.Remove(params.TempPath)`,
+reached only after the create-receipt transaction commits, and every failure path
+returns earlier and keeps the file) and is 1:1 task-to-file, so retention would only
+pin a payload naming a path that is already gone. Rule 3 stays in the classifier (it
+is pure and cheap to keep) but has nothing to act on; it was only ever live for the
+removed email queue. `rerunnableState` (`source_file.go`) still enforces that only
+an `Archived` task is rerunnable, because `Inspector.RunTask` does not.
 
 ### `TempFileRetentionHours`
 
@@ -2207,16 +2108,7 @@ for the lifetimes they started out holding.
 safety net**, because it also covers a value that predates the bounds or a
 settings row that cannot be read at all.
 
-### Upgrade path
-
-`EmailReceiptImageCleanupQueue` stays declared in `models/queue_names.go` —
-persisted `TaskQueueConfigurations` reference it, `QueueName.Value()` whitelists
-it, and `UpsertSystemSettingsCommand.Validate` requires a configuration for every
-name. The retired `EmailProcessImageCleanUp` **task type** also stays declared and
-stays routed in `BuildMux`: the type is a string in Redis, so tasks the old cron
-already enqueued outlive the deploy and would otherwise fail as unregistered.
-`DeleteAllScheduledTasks` alone is insufficient — it only touches the *scheduled*
-set, so `retireEmailReceiptImageCleanupQueue` drains **pending** too.
+### Queue configurations on read
 
 **The symmetric case — a persisted list MISSING a name — is handled in
 `repositories/system_settings.go`, and it used to 400 every settings save.** An
@@ -3131,23 +3023,6 @@ declared on the handler as an `AnyAppPermissions` any-of and ANDed with the per-
 `group.reports.read` — so the builder's live feedback loop is reachable by exactly the users who can
 open the builder, and preview is never merely group-scoped.
 
-**`POST /api/report/template/{id}/render`** backs the **dashboard report widget** (a view-only widget
-that pins a saved template — see `desktop/CLAUDE.md` → "Reports"). It mirrors
-`GenerateReportFromTemplate` (loads the stored config server-side) but emits the same JSON
-`ReportPreviewResponse { html, receiptCount, allowedActions }` as `/preview`, with two deliberate
-differences from the builder preview: it renders the **full dataset** (`ReportService.RenderTemplateForUser`
-calls the shared `renderHTML` helper with `rowLimit = 0`, like `Generate` — **not** the capped
-`reportPreviewRowCap` sample the builder's `Preview` uses), and it **returns restricted-notice HTML at a
-normal 200** (with empty `allowedActions`) when the caller may not view the template or it was deleted,
-rather than a 403/404. That's because the widget always drops whatever HTML it gets into its sandboxed
-iframe, so there is no client-side "restricted" branch. Authorization is resolved **in the service** via
-`PermissionService.AllowedActionsForTemplate` (the single source: the base/`*All` app perms + the
-per-group ceiling + the per-template matrix); a result lacking `"read"` yields the restricted notice, and
-the returned `allowedActions` (which include `"generate"` iff the caller may generate) gate the widget's
-download button off the server result — the download itself reuses the enforcing
-`/report/template/{id}/generate`. The `restrictedReportHTML` notice and the extracted `renderHTML` helper
-(shared by `Preview` and `RenderTemplateForUser`) live in `services/report_service.go`.
-
 **Custom currency formatting.** `buildModel` loads System Settings (`SystemSettingsRepository.GetSystemSettings`,
 a get-or-create singleton) and passes the app's currency configuration — symbol, symbol position (START/END),
 thousands/decimal separators, and hide-decimal-places — through `MetaInput.Currency` (mapped by
@@ -3581,10 +3456,8 @@ spending (overspending type 1). `planned = null` (no list, not compared yet, the
   falls back to the configured default, then the uploader; a blank status to the default, then
   OPEN. The comment keeps its rules (group config and role requirements).
 - **Built-in prompt (A3):** `buildPrompt` always uses `services.DefaultReceiptPrompt`, with the same
-  `@categories` / `@tags` / `@ocrText` / `@currentYear` variables; stored Prompt rows are kept but
-  not read. Processing settings saved without a prompt id point at the default prompt
-  (`validateWithDefaultPrompt` → `PromptService.EnsureDefaultPrompt`), created only once the rest of
-  the command is valid — a processing setting still needs a prompt row (foreign key).
+  `@categories` / `@tags` / `@ocrText` / `@currentYear` variables. The prompt table is gone (clean-schema rework), so a
+  processing setting carries no prompt at all.
 - **Family roles (M4):** `SeedSystemRoles` also seeds the app role **User**
   (`permissions.FamilyUserAppKeys`: account, preferences, notifications, receipt search, the AI page's receipt-processing create/read/update, the shared
   categories / tags / custom fields) and the group role **Member**
@@ -3838,3 +3711,25 @@ The full reference (every call, answer shapes, failure handling, how to change a
 - **Entitlement seam:** `services.CanCustomiseDashboard(userId)` is the one place that decides whether a person may save a layout (true
   for everyone today; a paid tier would answer here). GET reports it as `canCustomise` (computed, `gorm:"-"`), PUT refuses with the
   usual 403 when it is false. It is per user, so it is not in the unauthenticated `FeatureConfig`.
+
+## Removed from upstream (clean-schema rework, 2026-10, branch `feature/clean-schema`)
+
+The database is fresh-only for this release (the NAS `sqlite` folder is wiped and new keys set): there are **no drop-table
+migrations**. What is gone from the API, the models and `swagger.yml`:
+
+- **Stage 1:** custom fields (`/customField*`, `app.custom-fields.*`, the prompt variable, the report fields) and the receipt
+  summary block.
+- **Stage 2:** the old per-group dashboards and widgets, the pie chart widget, stored prompts (`models.Prompt`; the receipt prompt
+  is code in `services/receipt_prompt.go`), config import/export (`/import`), and the report template render endpoint.
+  `DashboardLayout` (the Dashboard customise screen) stays.
+- **Stage 3:** the email integration: system emails, group settings (email polling, whitelists, subject regexes), email polling
+  and processing queues and tasks (`QueueName` is `quick_scan` and `system_clean_up`; `SystemTaskType` lost `EMAIL_*`), the
+  IMAP client (`api/imap-client/`) and the Python venv in the image. Chromium stays: reports render to PDF through it.
+- Their permissions went with them (`app.prompts.*`, `app.system-emails.*`, `app.imports.run`, `app.groups.update-settings`,
+  `group.dashboards.*`, `group.widgets.read`, `group.email.poll`); `permissions/registry_test.go` keeps the registry and the
+  swagger `Permission` enum in step.
+
+Passages above that still mention email uploads, `EmailProcessTaskPayload`, `email_process_handler.go`, group settings or
+`EMAIL_UPLOAD` describe code that no longer exists and are kept only as design history; the live behaviour is the quick scan path.
+Left for a later pass: the email-body helpers in `services/receipt_image.go` / `receipt_processing.go`
+(`ReadReceiptImageWithEmailBody`, `FormatEmailContent`), now used only by tests.

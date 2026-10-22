@@ -651,3 +651,10 @@ receipt-wrangler-api/          # Monorepo root
     └── dev/Dockerfile         # Development container
 ```
 
+## Removed in the clean-schema rework (2026-10)
+
+The write-ups above about custom fields, the receipt summary, per-group dashboards and widgets, stored prompts, config import,
+system email, group email settings and the IMAP client describe features this fork has deleted (API, desktop, swagger and the
+Python layer of the image). They stay as upstream history only. What was removed and what to do on upgrade (wipe the NAS
+`sqlite` folder, set new keys) is in `CHANGELOG.md` and in the "Removed from upstream" sections of `api/CLAUDE.md` and
+`desktop/CLAUDE.md`.

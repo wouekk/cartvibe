@@ -160,7 +160,7 @@ CartVibe Desktop is an Angular 21 application with modular architecture using:
 
 #### Features
 - `src/receipts/` - Receipt management (forms, tables, processing)
-- `src/dashboard/` - Customizable dashboard widgets and views
+- `src/overview/` - The Dashboard landing page and its customise screen
 - `src/groups/` - Group management and member administration
 - `src/categories/` and `src/tags/` - Receipt organization features
 - `src/auth/` - Authentication and user management
@@ -690,14 +690,10 @@ gated by `appPermissionGuard` requiring `app.roles.read` (see **Permission-based
     read/create asymmetry — Legacy User holds `app.groups.create` but **not** `app.groups.read`, so
     they create via the sidebar FAB (the groups-list page itself is `app.groups.read`-gated and off
     limits to them), exactly like categories/tags.
-  - **Dashboard CRUD** (`group-dashboards.component.html`): the Add / Edit / Delete dashboard buttons
-    gate on `group.dashboards.create` / `.update` / `.delete` via `*hasGroupPermission` (the group id
-    comes from a `selectedGroupIdNum` computed). Previously ungated — the buttons rendered for every
-    member and 403'd on the backend; now they only render for holders, matching the receipts-table.
   - **Notification delete** (`notification/notification.component.html`): the per-notification delete
     control gates on `app.notifications.delete` via `*hasAppPermission`.
   - **Group row actions** (`group/group-table/group-table.component.html`): edit gates on
-    `group.update` OR `app.groups.update-settings`; **delete** gates on `group.delete` OR
+    `group.update`; **delete** gates on `group.delete` OR
     **`app.groups.delete`** (`orApp`), so an admin who switched the filter to **All Groups** can clean
     up a group they aren't a member of. Two things follow from that view being server-paged over
     groups the caller may not belong to: the button's `[disabled]` is a `deleteDisabled()` computed —
@@ -1437,20 +1433,15 @@ helpers `withAdminApi` + `apiDeleteUserByName` / `apiDeleteGroupById` / `apiDele
   the dev-server `/api` proxy) and `DELETE /api/user/{id}` **hard-deletes** (freeing the app-role) /
   `DELETE /api/group/{id}` frees the group-role assignment, so the role then deletes. **Order:** delete
   the user/group first, then the role; best-effort `try/catch` so a cleanup error doesn't mask the result.
-- Reference specs: `system-settings-tab-gating.spec.ts` (custom app role + user + storageState — note:
-  its UI teardown leaks roles, the reason the new specs use API teardown), `group-viewer-visibility.spec.ts`
+- Reference specs: `group-viewer-visibility.spec.ts`
   (group member with a group role), `search-bar-visibility.spec.ts` (no `app.receipts.search` → header
-  search bar never renders), `dashboard-read-redirect.spec.ts` (no `group.dashboards.read` →
-  `/dashboard/group/:id` redirects to `/receipts/group/:id`; an owner contrast still sees the dashboard),
-  `paid-by-visibility.spec.ts` (a group role limited to "their own receipts" → a hidden-payer receipt
+  search bar never renders), `paid-by-visibility.spec.ts` (a group role limited to "their own receipts" → a hidden-payer receipt
   `GET` 403s and is absent from the list, the member's own 200s; uses `withApiAs`/`apiCreateReceipt` and
   the `createRole` `paidByOwn` option in `helpers/provisioning.ts`),
-  `dashboard-crud-gating.spec.ts` (a Viewer holding `group.dashboards.read` but not create/update/delete
-  sees no Add/Edit/Delete dashboard buttons; owner contrast does),
   `comment-gating.spec.ts` (Receipt-Editor-preset members minus `group.comments.create` / `.delete` →
   no composer / no delete control; uses `apiCreateComment`),
-  `receipt-feature-gating.spec.ts` (Quick Scan / Poll Email / Magic Fill controls hidden for a Viewer —
-  positive contrast is a `test.fixme` because all three also sit behind the `aiPoweredReceipts` feature
+  `receipt-feature-gating.spec.ts` (Quick Scan / Magic Fill controls hidden for a Viewer —
+  positive contrast is a `test.fixme` because both also sit behind the `aiPoweredReceipts` feature
   flag, which is `false` in the dev/CI API),
   `group-delete-any.spec.ts` (two app roles differing only in **Delete Any Group**: the holder deletes
   a group it isn't a member of from the All Groups view and the table stays on that filter; the other
@@ -1677,7 +1668,7 @@ why this feature needed no API change. Picking a month **overwrites** whatever t
 
 ### The overflow menu
 
-Quick Scan, Export all receipts, Configure Columns, Poll email(s) and the selection actions live in a
+Quick Scan, Export all receipts, Configure Columns and the selection actions live in a
 `⋮` `mat-menu` (`data-testid="receipts-overflow-menu"`), always collapsed — not breakpoint-driven.
 
 **Every entry is a plain `<button mat-menu-item>` in `receipts-table.component.html`, never a shared
@@ -1714,7 +1705,7 @@ Reset button in the `app-table-header`, a chip row below it, and `app-system-tas
 dialog. `SystemTaskTableState.filter` is the single slice all three read and write.
 
 - **The filter belongs to the page, not to `app-task-table`.** That shared table is rendered by three
-  hosts (this page, `system-email-form`, `receipt-processing-settings-form`), each with its own table
+  hosts (this page and `receipt-processing-settings-form`), each with its own table
   service, so the filter rides in as one optional input (`[filterProvider]`) rather than widening
   `BaseTableService`. It is a **function**, not the filter value: the page dispatches the filter
   change and calls `getTableData()` in the same synchronous turn, before change detection pushes a
@@ -2403,30 +2394,6 @@ endpoint); the builder's own ad-hoc generate still gates on `app.reports.generat
   the same flag for any future full-bleed page. The report name appears as the rendered heading when
   Document → Title is left blank (the engine falls back to the report name).
 
-### Report dashboard widget
-
-A **view-only** dashboard widget (`WidgetType.Report`, `src/dashboard/report-widget/`) that pins a saved
-report template and renders its HTML inside a **sandboxed `<iframe srcdoc>`** (`sandbox="allow-same-origin"`,
-scripts disabled; `bypassSecurityTrustHtml`) — the same technique as the builder preview, but the widget
-copies the ~10-line idiom locally rather than reusing the builder-coupled `ReportPreviewPanelComponent`.
-The widget stores only `{ reportTemplateId }` in its configuration blob and calls
-`ReportRunnerService.renderTemplate(id)` → `POST /report/template/{id}/render` (see `api/CLAUDE.md`), which
-renders the **full dataset** (not the capped builder preview) and re-resolves access server-side.
-
-- **Restricted state is backend-driven**: a revoked/deleted template comes back as restricted-notice HTML
-  at 200, which the widget renders like any other HTML — there is no special client "restricted" branch
-  (only a generic error state for a network failure or a missing `reportTemplateId`). The report renders
-  in a height-capped, internally-scrolling stage so a long report doesn't blow out the tile.
-- **Download button** (`data-testid="report-widget-download"`): shown **only when** the server-returned
-  `allowedActions` include `"generate"` — gated purely on the server result, **never** re-AND-ed with a
-  client `*hasAppPermission` (same rule as the templates-list row buttons). It calls
-  `ReportRunnerService.downloadTemplateById(id)` (resolve template → `generateFromTemplateById`, the
-  enforcing `/report/template/{id}/generate` path).
-- **Authoring** (`dashboard-form`): the **Report** widget-type option is filtered out unless the user holds
-  `app.reports.read`/`readAll` (`availableWidgetTypeOptions`), and its config is a single template picker
-  (`app-select`) whose options come from `ReportService.getReportTemplates` — server-filtered to the
-  caller's viewable templates (`reportTemplateOptions`, loaded in `ngOnInit`, `catchError`→empty).
-
 ## Testing Requirements
 
 **All new code must have accompanying unit tests.**
@@ -2456,8 +2423,7 @@ never hand-edited.
 ## Dashboard (the landing page, `src/overview/`)
 
 - `/overview/group/:groupId`, shown after login and on a group switch (`GroupState.overviewLink`); `overviewReadGuard`
-  (`group.receipts.read`) falls back to the group's widget dashboards, which moved behind admin (`app.users.read`) as
-  "Widget dashboards". Each card loads on its own, so one failing request blanks only that card.
+  (`group.receipts.read`) falls back to the group's receipts list. Each card loads on its own, so one failing request blanks only that card.
 - **One period control**, `app-period-picker`: This month, Last 7 days, Last 30 days, This year, Custom, plus From / To
   (DD/MM/YYYY, calendar buttons; editing a date switches to Custom). The receipts table uses the same control (it sets the
   Receipt Date filter). Every request sends `from` / `to` as `yyyy-MM-dd` days; "today" is the app time zone's
@@ -2581,10 +2547,9 @@ Mobile-first (used in the shop). Backend contract: `api/CLAUDE.md`.
 - **User Settings:** `app-tabs` (also the group tabs) renders the pill tab look: User Profile, User Preferences, **Theme**
   (no permission), API Keys. **System Settings** is five pill tabs in a 760px column: General & Currency, Auth & Security,
   Integrations & Mobile, Tasks & Storage, Logs. The first four are routes that all render `SystemSettingsFormComponent`
-  (route data `section` picks the cards via `shows()`); embedded tables (system emails, OIDC providers, system tasks) sit
-  **outside** the `<form>`; the form holds every control whatever the tab, so a save sends the whole payload (the retired
-  email-image-cleanup queue stays in it, hidden). The form is always editable; Save is at the end of the tab's last card.
-  Old paths (`settings/view|edit`, `oidc-providers`, `system-emails`, `system-tasks`) redirect to the tabs.
+  (route data `section` picks the cards via `shows()`); embedded tables (OIDC providers, system tasks) sit
+  **outside** the `<form>`; the form holds every control whatever the tab, so a save sends the whole payload. The form is always editable; Save is at the end of the tab's last card.
+  Old paths (`settings/view|edit`, `oidc-providers`, `system-tasks`) redirect to the tabs.
 - **AI page** (`/ai`, `AiSettingsPageComponent`): Gemini or LM Studio, test connection. **Every member can use it**; one who
   cannot read System Settings gets the first AI settings, and the server links the first ones saved.
 - **Roles and wording:** pickers offer Admin and User (`utils/family-roles.ts`); "Household", not Group; "Done on".
@@ -2756,3 +2721,12 @@ Every Admin and User settings page uses four shared primitives from `src/shared-
 - **Dashboard:** one tile per tag with "Show on the Dashboard" (tag form switch, on by default for a new tag), the same
   layout as Unhealthy in a neutral color: name, amount, "{share}% of the spending", the change; it opens the lines behind it
   (`kind: "TAG"`). Category slices carry `categoryId` and open by it.
+
+## Removed from upstream (clean-schema rework, 2026-10)
+
+No longer in the desktop (and not in the API): custom fields and the receipt summary, the per-group widget dashboards and the
+report dashboard widget, stored prompts, config import, system emails and group email settings, the "Poll email(s)" action, and
+the email task and queue labels. `Permission` lost the matching keys (`app.prompts.*`, `app.system-emails.*`, `app.imports.run`,
+`app.groups.update-settings`, `group.dashboards.*`, `group.widgets.read`, `group.email.poll`). The role editor's resource icons and
+presets (`roles/role-presets.ts`) were trimmed to match, and the group list's edit button now only offers `group.update`.
+Passages above that mention these features are design history. See `api/CLAUDE.md` → "Removed from upstream".
