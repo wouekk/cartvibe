@@ -10,6 +10,7 @@ import { UploadProgressComponent } from "../shared-ui/upload-progress/upload-pro
 import { ShopMonogramComponent } from "../shared-ui/shop-monogram/shop-monogram.component";
 import { HlmCheckboxImports } from "@spartan-ng/helm/checkbox";
 import { HlmSpinner } from "@spartan-ng/helm/spinner";
+import { HlmAttachmentImports } from "@spartan-ng/helm/attachment";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { AutocompleteModule } from "src/autocomplete/autocomplete.module";
@@ -91,6 +92,7 @@ import { UserTotalWithPercentagePipe } from "./user-total-with-percentage.pipe";
     HlmSpinner,
     ExpansionPanelComponent,
     AppIconComponent,
+    ...HlmAttachmentImports,
     ...HlmDropdownMenuImports,
     ...HlmTooltipImports,
     PipesModule,

@@ -37,6 +37,15 @@ export class UploadImageComponent {
 
   public async onFileChange(event: any): Promise<void> {
     const files: File[] = Array.from(event?.target?.files ?? []);
+    await this.processFiles(files);
+    // Clearing the input lets the same photo be picked again after it was removed.
+    if (event?.target) {
+      event.target.value = "";
+    }
+  }
+
+  /** Accepts files from the picker or from a drop: keeps the allowed types and emits each one as it is ready. */
+  public async processFiles(files: File[]): Promise<void> {
     const acceptedFiles = files.filter((f) =>
       this.acceptFileTypes().some((t) => new RegExp(t).test(f.type))
     );

@@ -1,14 +1,26 @@
-<app-dialog [headerText]="'Quick Scan' | t" [actionsTemplate]="actionsTemplate">
+<app-dialog [headerText]="'Quick Scan' | t">
   <form [formGroup]="form">
     <app-upload-image
       [multiple]="true"
       (fileLoaded)="fileLoaded($event)"
     ></app-upload-image>
-    <div class="flex flex-col items-center gap-2 pb-4 pt-2 text-center" [class]="images.length === 0 ? 'rounded-2xl border-2 border-dashed border-border !px-4 !py-10' : ''" data-testid="quick-scan-upload-area">
+
+    <!-- Drop zone: click, tap or drop several photos at once. Each photo becomes its own receipt. -->
+    <div
+      class="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border px-4 text-center transition-colors"
+      [class.bg-accent/40]="dragging()"
+      [class.border-primary]="dragging()"
+      [class.py-10]="images.length === 0"
+      [class.py-4]="images.length > 0"
+      data-testid="quick-scan-upload-area"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave()"
+      (drop)="onDrop($event)"
+    >
       @if (images.length === 0) {
         <app-icon class="size-10 text-[40px] text-primary" name="receipt_long"></app-icon>
         <strong>{{ 'Add photos of your receipts' | t }}</strong>
-        <span class="text-[13px] text-muted-foreground">{{ 'The AI reads them for you.' | t }}</span>
+        <span class="text-[13px] text-muted-foreground">{{ 'Drop them here or choose them. The AI reads each photo as its own receipt, one by one.' | t }}</span>
       }
       <app-button
         icon="upload"
@@ -18,14 +30,30 @@
         (clicked)="openImageUploadComponent()"
       ></app-button>
     </div>
-    <div class="quick-scan-slides">
-      <div *ngFor="let preview of images; let i = index" [class.hidden]="i !== currentlySelectedIndex">
-        <div class="flex flex-col justify-center">
-          <img
-            class="mb-2 max-h-40 w-auto self-center rounded-lg border border-border object-contain"
-            [alt]="'quick scan image' | t"
-            [src]="preview.encodedImage || preview.url ?? ''"
-          >
+
+    <ul class="m-0 mt-3 flex list-none flex-col gap-3 p-0" data-testid="quick-scan-attachments">
+      @for (preview of images; track preview; let i = $index) {
+        <li class="flex flex-col gap-2" data-testid="quick-scan-attachment">
+          <div hlmAttachment class="w-full" size="default">
+            <div hlmAttachmentMedia variant="image" class="w-14 rounded-md">
+              <img [alt]="'quick scan image' | t" [src]="preview.encodedImage || preview.url ?? ''" />
+            </div>
+            <div hlmAttachmentContent class="min-w-0 flex-1">
+              <span hlmAttachmentTitle class="truncate font-medium">{{ preview.file.name }}</span>
+              <span hlmAttachmentDescription class="text-xs text-muted-foreground">{{ fileSize(preview) }}</span>
+            </div>
+            <div hlmAttachmentActions>
+              <button
+                hlmAttachmentAction
+                data-testid="quick-scan-attachment-remove"
+                [attr.aria-label]="'Remove' | t"
+                (click)="removeImage(i)"
+              >
+                <app-icon name="close"></app-icon>
+              </button>
+            </div>
+          </div>
+
           @if (soleGroupId() === undefined) {
             <app-group-autocomplete
               [inputFormControl]="form | formGet : 'groupIds.' + i"
@@ -68,10 +96,9 @@
               [additionalErrorMessages]="commentErrorMessages"
             ></app-textarea>
           }
-        </div>
-      </div>
-    </div>
-
+        </li>
+      }
+    </ul>
   </form>
   <app-upload-progress class="mt-3" [stage]="uploadStage()"></app-upload-progress>
   <app-dialog-footer
@@ -81,34 +108,3 @@
     (cancelClicked)="cancelButtonClicked()"
   ></app-dialog-footer>
 </app-dialog>
-
-<ng-template #actionsTemplate>
-  <div class="flex items-center">
-    <app-button
-      *ngIf="images.length > 1"
-      data-testid="quick-scan-nav-left"
-      matButtonType="iconButton"
-      icon="arrow_back"
-      [tooltip]="'Navigate left' | t"
-      color="accent"
-      (clicked)="navigateImages(-1)"
-    >
-    </app-button>
-    <app-button
-      *ngIf="images.length > 1"
-      data-testid="quick-scan-nav-right"
-      matButtonType="iconButton"
-      icon="arrow_forward"
-      [tooltip]="'Navigate right' | t"
-      color="accent"
-      (clicked)="navigateImages(1)"
-    >
-    </app-button>
-    <app-delete-button
-      *ngIf="images.length > 0"
-      [tooltip]="'Remove Current Image' | t"
-      (clicked)="removeImage(currentlySelectedIndex)"
-    >
-    </app-delete-button>
-  </div>
-</ng-template>
