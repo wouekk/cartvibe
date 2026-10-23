@@ -1,2794 +1,386 @@
-# CLAUDE.md
-
-> **The Flutter app was removed.** Remarks below about "mobile" or the Dart client are history.
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
-## Visual identity: high-craft fintech (binding for every UI change)
-
-This **overrides every older design statement** in these files (the approved `Main.dc.html` mock, the "white cards with a
-shadow" settings look, Material/Bootstrap-era patterns). The baseline is a polished, high-craft **fintech** interface built
-on **spartan/ui (helm + brain) and Tailwind 4**, on the design tokens of the two themes (White, Black). It has to be
-preserved in every screen, dialog, empty state and email-like surface, and a change that looks sloppier than its
-neighbours is not done.
-
-- **Stack, no exceptions:** spartan/ui components from `src/ui`, Tailwind utilities on tokens, Lucide icons, ApexCharts on the
-  chart tokens, Geist. No Angular Material, Bootstrap, ad-hoc hex colors, one-off shadows or hand-rolled widgets where a
-  helm part exists. New global CSS goes in a Tailwind layer.
-- **Craft rules:** one spacing scale (4/8px grid) and one radius family; surfaces are separated by a **subtle surface step
-  plus a low-contrast 1px hairline**, not heavy shadows or boxes inside boxes; quiet type hierarchy (small uppercase
-  overlines, tabular figures for money, whole part bold and decimals quiet); one control height per row (toolbars align on
-  one baseline); restrained, purposeful motion (150-200ms, respects `prefers-reduced-motion`); every state designed
-  (hover, focus-visible ring, selected, disabled, loading, empty, error) in **both** themes; dark mode checked for
-  contrast (checkboxes, borders, chips must stay legible on hover and selection).
-- **Consistency over novelty:** the same thing looks the same everywhere (one period picker, one section/panel pattern for
-  settings cards, one tab strip). Fix a pattern once, globally, instead of per page. Tab strips and scroll containers never
-  show stray scrollbars.
-- **Decided direction (see `docs/ui-issues.md`; settings layout in "The settings layout standard" below):** settings pages share `app-settings-page` / `-section` / `-tabs` / `-entity-list` (hairline cards, flat rows, Save in the card footer on the right); one button library (primary filled accent, the same dimmed when inactive, every Cancel red; "Action buttons" below); a single
-  period picker with boxed From/To fields; a shared horizontal-scroll utility with no vertical scrollbar; click-to-focus on
-  the donut and its legend instead of checkbox chips; real shop logos (static files, white/black outline per theme).
-- **Before calling UI work done:** build, run Jest, and look at screenshots at desktop and phone widths in White and Black
-  (`HANDOFF.md` describes the local stack).
-
-## Development Commands
-
-### Core Development
-- `npm start` - Start development server with proxy configuration (serves on localhost:4200, proxies /api to localhost:8081)
-- `npm run build` - Build production application
-- `npm run watch` - Build in watch mode for development
-- `npm test` - Run unit tests with coverage
-- `npm test:ci` - Run tests in CI mode with ChromeHeadless
-- `npm run e2e` - Run Playwright end-to-end tests (see **E2E Testing** below)
-- `npm run e2e:ui` - Run Playwright tests in interactive UI mode
-- `npm run e2e:install` - Install Playwright browser binaries (one-time setup)
-
-### Build Configuration
-- Production builds go to `dist/cartvibe/`
-- Development server uses proxy configuration in `proxy.conf.json` to route API calls to backend
-- Angular CLI configuration in `angular.json`
-
-### Running in the Claude Code Web/Cloud Sandbox
-
-> Playbook for booting the desktop app in the Claude Code web (cloud) sandbox from a **fresh session**.
-> Everything is ephemeral — re-run these each session. See `api/CLAUDE.md` →
-> "Running in the Claude Code Web/Cloud Sandbox" for the backend, and the root `CLAUDE.md` for the
-> shared root-cause / run-order notes.
-
-1. **Backend first.** The dev server only *proxies* `/api` → `localhost:8081`; it does not start the
-   API. Bring the Go backend up first (see `api/CLAUDE.md`).
-2. **`npm install`** — first run, node_modules isn't present.
-   - **Lockfile gotcha:** the sandbox's npm (10.9.7) rewrites `package-lock.json`, stripping the
-     `"libc"` platform-hint fields from optional platform deps. This is **metadata drift only** — no
-     packages/versions change. Do **not** commit it: `git restore desktop/package-lock.json` to keep
-     the tree clean.
-3. **`npm start`** — serves on `0.0.0.0:4200`, proxying `/api` → `:8081` (`proxy.conf.json`). First
-   compile is ~30–60s; ready when the log shows `➜  Local:   http://localhost:4200/`. Verify the proxy:
-   `curl localhost:4200/api/featureConfig` → `200`.
-4. **Log in as `admin` / `admin`** (the backend's auto-created default admin). Login lands on
-   `/overview/group/<id>` (the Overview, mostly empty on a fresh DB).
-
-**Driving the UI / screenshots with Playwright in the sandbox.** `@playwright/test` is pinned to
-`1.59.1`, which expects Chromium build **1217**, but the sandbox pre-installs build **1194** at
-`/opt/pw-browsers/chromium` (`PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`). Do **not** run
-`playwright install` / `npm run e2e:install` (the download is blocked and pointless). Instead launch
-Chromium by explicit path:
-```js
-const { chromium } = require('@playwright/test');
-const browser = await chromium.launch({
-  headless: true,
-  executablePath: '/opt/pw-browsers/chromium',   // pre-installed 1194, ignore the 1217 mismatch
-});
-```
-Run a standalone script (one that lives outside `desktop/`) with
-`NODE_PATH=/home/user/receipt-wrangler/desktop/node_modules node script.js` so `require('@playwright/test')`
-resolves. Scripted login flow (selectors from `e2e/helpers/auth.ts`):
-```js
-await page.goto('http://localhost:4200/auth/login');
-await page.getByLabel('Username').fill('admin');
-await page.getByLabel('Password').fill('admin');
-await page.getByRole('button', { name: 'Login' }).click();
-await page.waitForURL(/\/dashboard\/group\/\d+/);
-```
-
-**Running the whole `npm run e2e` suite in the sandbox — bridge the build numbers with symlinks.**
-The `executablePath` trick above only helps ad-hoc scripts; `playwright.config.ts` has no
-`launchOptions` hook, so the suite resolves the 1217 paths and fails. Bridge them to the installed
-build with symlinks (outside the repo, so nothing is committed). Alongside the `chromium` convenience
-symlink, the image ships two **versioned directories** — `chromium-1194/` and
-`chromium_headless_shell-1194/` — and those are what you point at; confirm the number first, since it
-moves with the sandbox image:
-
-```bash
-ls -d /opt/pw-browsers/chromium*   # chromium, chromium-1194, chromium_headless_shell-1194
-SRC=1194                           # installed build, from the listing above
-WANT=1217                          # build @playwright/test 1.59.1 resolves
-
-# full chromium: the installed layout already matches what $WANT expects
-ln -sfn /opt/pw-browsers/chromium-$SRC /opt/pw-browsers/chromium-$WANT
-
-# headless shell: the directory AND the binary are named differently, so build the shape by hand
-mkdir -p /opt/pw-browsers/chromium_headless_shell-$WANT
-ln -sfn /opt/pw-browsers/chromium_headless_shell-$SRC/chrome-linux \
-        /opt/pw-browsers/chromium_headless_shell-$WANT/chrome-headless-shell-linux64
-ln -sfn headless_shell \
-        /opt/pw-browsers/chromium_headless_shell-$SRC/chrome-linux/chrome-headless-shell
-touch /opt/pw-browsers/chromium_headless_shell-$WANT/{INSTALLATION_COMPLETE,DEPENDENCIES_VALIDATED}
-```
-
-`devices['Desktop Chrome']` runs headless, so it is the **headless shell** path that actually fails
-first — symlinking only `chromium-$WANT` is not enough. Then export the four `E2E_*` credential vars
-and run `npx playwright test`; leaving `E2E_BASE_URL` at `http://localhost:4200` keeps the config's
-`webServer` block active, which reuses an `ng serve` you already have running.
-
-## Code Architecture
-
-### Application Structure
-CartVibe Desktop is an Angular 22 application with modular architecture using:
-
-- **State Management**: NGXS store with persistent storage for application state
-- **API Layer**: Auto-generated OpenAPI client in `src/open-api/` (do not manually edit these files)
-- **Component Architecture**: Feature modules with lazy-loaded routing
-- **UI Framework**: Tailwind CSS 4 + spartan/ui (brain + helm, copied into `src/ui`) + Lucide icons, no Angular Material and no Bootstrap (see "UI stack" at the end)
-
-### Key Architectural Patterns
-
-#### Module Organization
-- Feature modules (receipts, dashboard, groups, etc.) with their own routing
-- Shared UI components in `src/shared-ui/` for reusable elements
-- Lazy-loaded modules for performance optimization
-- Centralized store management with NGXS states
-
-#### State Management (NGXS)
-- All application state managed through NGXS store
-- State persistence configured for key data (auth, user preferences, table states)
-- Individual state files for each feature (receipt-table.state.ts, group.state.ts, etc.)
-- Actions and state updates follow NGXS patterns
-
-#### Component Structure
-- Feature components organized by domain (receipts/, dashboard/, groups/)
-- Shared UI components provide consistent design patterns
-- Form components use reactive forms with custom validation
-- Table components use base table service pattern for pagination and filtering
-
-### Key Directories
-
-#### Core Application
-- `src/app/` - Main application module and routing
-- `src/store/` - NGXS state management (18+ state files)
-- `src/services/` - Application services and business logic
-- `src/guards/` - Route guards for authentication and authorization
-
-#### Features
-- `src/receipts/` - Receipt management (forms, tables, processing)
-- `src/overview/` - The Dashboard landing page and its customise screen
-- `src/groups/` - Group management and member administration
-- `src/categories/` and `src/tags/` - Receipt organization features
-- `src/auth/` - Authentication and user management
-- `src/roles/` - Role & permission management (admin-only Manage Roles UI)
-
-#### Shared Infrastructure
-- `src/shared-ui/` - 30+ reusable UI components (buttons, forms, tables, dialogs)
-- `src/pipes/` - Custom Angular pipes for data transformation
-- `src/utils/` - Utility functions and helpers
-- `src/open-api/` - Generated API client (auto-generated, do not edit)
-
-### Testing Strategy
-- Unit tests use Jasmine/Karma framework
-- Code coverage reporting with minimum thresholds
-- Tests exclude auto-generated API code (`src/open-api/`)
-- CI tests run in headless Chrome
-
-### Development Environment
-- Angular CLI 22 with TypeScript 6.0 (Node 24)
-- Tailwind + spartan/ui components (`src/ui`), CDK for overlays
-- NGXS for state management with Redux DevTools integration
-- Strict TypeScript configuration with comprehensive compiler options
-
-### Dependency Security & Version Pins
-
-Keep `npm audit` at **0 vulnerabilities**. Two conventions exist specifically to hold that line —
-do not undo them without re-checking `npm audit`:
-- **`overrides` block in `package.json`** forces patched versions of transitive deps that a dependency
-  otherwise pins inside vulnerable ranges. When `npm audit` flags a new transitive advisory that
-  upstream hasn't bumped yet, add/raise the floor here rather than waiting on an upstream release.
-  - `esbuild`, `undici` — floors under the toolchain (`undici` via jsdom's `^7.25`).
-  - `vite` (`~8.3.4`) — `@angular/build` 22.2.4 pins exactly `8.3.0`, which carries six advisories
-    fixed in 8.3.3. Kept on the 8.3 line, the one Angular's builder was released against.
-  - `js-yaml` (`^4.1.1`) — `babel-plugin-istanbul` (every version, via jest) →
-    `@istanbuljs/load-nyc-config` → `js-yaml@3` → `argparse@1` → `sprintf-js`. load-nyc-config only
-    calls `js-yaml.load()`, which v4 keeps. Global form, not nested, so it dedupes with cosmiconfig's.
-  - Drop an override once it does nothing — its target has left the tree, or every range still
-    declaring it already admits the floor (`npm ls <name>` shows who declares it). Dead ones mislead.
-    With Angular 22 (2026-10-23) five went: `@modelcontextprotocol/sdk` and `hono` (the CLI no longer
-    ships the MCP SDK 1 / express chain), `ts-morph` (NGXS 22 declares `>=21`), and `@babel/core` /
-    `vite` at `^7`, which had started forcing **Angular's own** builder (it declares Babel 8 and Vite 8)
-    back onto the old majors. An override applies to every declarer, so check that a floor still
-    sits on the major each declarer asks for after any toolchain major.
-- **When an advisory has no patched release, remove the path — don't bump.** `braces` (`<=3.0.3`) and
-  `sprintf-js` (`<=1.1.3`) both have *no* fixed version, so no floor can clear them; the `js-yaml`
-  override above and the builder switch below each cut the edge that pulled them in.
-- **Builders are `@angular/build:*`, not `@angular-devkit/build-angular`.** The app was already on the
-  esbuild `application` builder, so build-angular was only a wrapper — but it hard-pinned
-  `webpack-dev-server` and `http-proxy-middleware` (both → `braces`) plus ~400 more webpack-era
-  packages. Do not add it back; nothing here uses a webpack builder.
-- **Exact pins (no caret):** `@playwright/test` (`1.59.1`) is pinned because Playwright `1.61` needs a
-  newer browser build than the pinned `e2e:install` cache. Bump it deliberately and reinstall browsers in
-  the same change. (ngx-bootstrap, once pinned here too, is gone.)
-- **Angular 22 (2026-10-23)**, TypeScript 6.0, Node 24. Stay on the `22.2.x` patch line for security fixes;
-  a jump to 23 is its own breaking upgrade. What the 22 migrations changed, and must not be undone:
-  - Components without a `changeDetection` were pinned to `ChangeDetectionStrategy.Eager`, because 22's
-    default is OnPush. New components may use either; the zoneless rules below still apply.
-  - `provideHttpClient(withXhr(), …)`: 22's default backend is fetch, and upload progress needs XHR.
-  - In templates, `?.` now yields `undefined` like plain JavaScript; the 12 places where `null` still
-    mattered read `$safeNavigationMigration(…)`. Two extended diagnostics are suppressed in
-    `tsconfig.app.json` by the migration.
-  - `tsconfig.json` has no `baseUrl` (deprecated in TypeScript 6): bare `src/...` imports resolve through
-    the `"src/*"` path, and `skipLibCheck` is on because apexcharts 4's types use a `module` declaration
-    TypeScript 6 rejects (its later majors are the parked apexcharts upgrade).
-  - npm 11 runs no install scripts that are not approved (esbuild, lmdb, msgpackr-extract, unrs-resolver,
-    `@parcel/watcher`); all of them only fetch or check optional native binaries, and CI runs the same npm.
-
-**Never regenerate `package-lock.json` from scratch to fix an audit finding.** Deleting the lockfile
-and reinstalling re-resolves *every* package to the newest version its range allows, which breaks CI
-in two ways that `npm install` and `npm audit` both report as clean:
-
-1. **`npm ci` refuses the result (`EUSAGE`).** A fresh resolve can *hoist* a package that the
-   committed tree deliberately keeps nested. The real case: `pkijs` (via `selfsigned` ←
-   `webpack-dev-server`) hard-depends on `@noble/hashes@1.4.0`, while `@exodus/bytes` (via `jsdom`)
-   declares an *optional* peer `@noble/hashes@^1.8.0 || ^2.0.0`. The committed tree keeps 1.4.0 at
-   `node_modules/pkijs/node_modules/@noble/hashes` and installs nothing at the root. A from-scratch
-   install hoisted 1.4.0 to the root, where the optional peer then wants 2.4.0 — so `npm ci` fails
-   with `Invalid: lock file's @noble/hashes@1.4.0 does not satisfy @noble/hashes@2.4.0` /
-   `Missing: @noble/hashes@1.4.0 from lock file`. `npm install` accepts that lockfile happily; only
-   `npm ci` rejects it. (That particular pair left the tree with `webpack-dev-server` when the
-   builders moved to `@angular/build`; the hoisting failure mode did not.)
-2. **It drifts the tree past CI's Node floor.** CI pins one exact Node (`node-version` in `ci.yml`, **24.22.1**
-   since 2026-10-23; it was 20.19.6). On Node 20 a fresh resolve pulled `jsdom` 29→30, `whatwg-url` 16→17 and
-   `@asamuzakjp/*`, all of which declare `node: ^22.x || >=24` and emit `EBADENGINE`; the same can happen
-   against any pinned floor.
-
-**Do this instead** — update the lockfile incrementally, and when npm refuses to move a
-peer-coupled family in place (the Angular packages are one), delete just those entries and let it
-re-resolve that subtree only:
-
-Do every step below with **CI's own Node and npm** (Node 24.22.1, which bundles npm 11.19.1 — unpack
-the `nodejs.org/dist` tarball and put its `bin/` first on `PATH` if your machine has another), so the
-lockfile is written by the same npm that later runs `npm ci` on it.
-
-```bash
-# 1. start from the committed lockfile; edit package.json pins/overrides as needed
-# 2. drop the entries npm will not move on its own: the peer-coupled family it
-#    ERESOLVEs on, every `overrides` target (an override is ignored unless its
-#    entry is re-resolved), and any flagged transitive package whose fixed version
-#    its declaring range already admits (only its lockfile entry is stale), at any
-#    nesting depth
-python3 - <<'EOF'
-import json, re
-NAMESPACES = ('@angular/', '@angular-devkit/', '@ngtools/')   # the peer-coupled family
-OVERRIDES  = ('esbuild', 'js-yaml', 'vite',
-              'undici')                                        # keep in sync with package.json
-STALE      = ()                                                # e.g. ('handlebars', 'shell-quote')
-pat = re.compile(
-    r'(^|/)node_modules/(?:' + '|'.join(map(re.escape, NAMESPACES)) + r')[^/]+$'
-    r'|(^|/)node_modules/(?:' + '|'.join(map(re.escape, OVERRIDES + STALE)) + r')$')
-d = json.load(open('package-lock.json'))
-gone = [k for k in d['packages'] if pat.search(k)]
-for k in gone:
-    del d['packages'][k]
-json.dump(d, open('package-lock.json', 'w'), indent=2)
-open('package-lock.json', 'a').write('\n')
-print(f'dropped {len(gone)} entries')
-EOF
-# 3. rebuild; npm re-resolves only what was dropped and leaves the rest of the tree pinned
-rm -rf node_modules && npm install
-# 4. rebuild AGAIN and confirm nothing moves — then confirm the tree is whole
-cp package-lock.json /tmp/lock.pass1 && npm install && cmp package-lock.json /tmp/lock.pass1
-npm ls --all > /dev/null   # must exit 0 (UNMET OPTIONAL lines are fine)
-```
-
-**Why step 4 exists.** One pass is not guaranteed to restore everything step 2 dropped. In the
-2026-10 audit fix, the first `npm install` left `express` 5 (under `@angular/cli` →
-`@modelcontextprotocol/sdk`) without `qs`, `proxy-addr` and their dependencies. Because the
-vulnerable packages were *absent*, `npm audit` read 0 — a false clean — and the lockfile was exactly
-the "Missing: … from lock file" kind that `npm ci` refuses. The second install filled them in at
-fixed versions. Repeat until a pass changes nothing.
-
-**If `npm install` crashes with `Cannot read properties of null (reading 'edgesOut')`** (stack in
-`#loadPeerSet`), a freshly published package's peer set is inconsistent — npm bug, not ours. Seen
-when re-placing `@angular/build`: its optional peer `vitest@4.1.12` (published 2026-10-15) pins
-every sibling peer at `4.1.12` except `@vitest/browser-webdriverio: ^4.1.11`, and npm 10.8.2 and
-10.9.4 both crash placing that set. Confirm with the publish times (`npm view <pkg> time`), then
-resolve with `npm install --before=<ISO time just before it>` — the cutoff only constrains entries
-being re-resolved, and nothing about it persists. Check every fixed version you need predates it.
-
-**Optional-peer strays (history).** npm 10 could record packages reachable *only* through optional
-peers (`"optional": true, "peer": true`: `@angular/build`'s `less`, vite's `terser` / `jiti`), which npm 11
-prunes. Since CI, this PC and the Docker build (`node:lts-alpine`) all run npm 11, a lockfile written with
-CI's npm no longer carries them; if a diff shows such entries appearing, the lockfile was written with an
-older npm.
-
-**Always gate on `npm ci`, not `npm install`.** `npm ci` applies a stricter sync check, so a lockfile
-that installs fine locally can still fail the build. Run the full gate before pushing any dependency
-change — a lockfile can satisfy `npm ci` and still break the app, so the build and tests are part of
-it, not an afterthought:
-
-```bash
-rm -rf node_modules
-npm ci --verbose          # real install, exactly what CI runs (on Node 24.22.1) — must exit 0
-npm audit                 # must report 0 vulnerabilities
-npm run test:ci           # must pass
-npm run build             # must succeed
-
-# Every package's engines.node must admit the Node version CI pins (`node-version`
-# in .github/workflows/ci.yml). semver is NOT a direct dependency — it resolves out
-# of the tree the `npm ci` above installed, so this step must come last. After
-# `npm ci --dry-run`, which writes nothing, it fails with MODULE_NOT_FOUND.
-node -e '
-const semver = require("semver");
-const lock = require("./package-lock.json");
-const NODE = "24.22.1";
-const bad = Object.entries(lock.packages)
-  .filter(([, p]) => p.engines?.node && !semver.satisfies(NODE, p.engines.node))
-  .map(([k, p]) => k.replace("node_modules/", "") + "@" + p.version + " needs " + p.engines.node);
-console.log(bad.length ? "INCOMPATIBLE:\n  " + bad.join("\n  ") : "engines OK for Node " + NODE);
-process.exit(bad.length ? 1 : 0);
-'
-```
-
-### API Integration
-- Backend API proxied through development server
-- OpenAPI client generated from backend specification
-- API base path configurable through environment
-- HTTP interceptors handle authentication and error responses
-
-### Code Conventions
-- SCSS for styling with component-scoped styles
-- TypeScript strict mode enabled
-- Angular style guide followed for component organization
-- Lazy loading for feature modules to optimize bundle size
-
-### Use Established Patterns (do not invent one-offs)
-New UI MUST reuse the application's established patterns and shared components rather than
-inventing a divergent, one-off implementation of something the app already standardizes — **unless
-the user explicitly confirms the divergence**. Examples of standards to follow:
-- **Form actions:** the floating save bar fixed to the bottom of the page — `<app-form>` (which wraps
-  `app-form-button-bar` + `app-submit-button`), or, for bespoke layouts, a plain
-  `<form (ngSubmit)="...">` ending in a standalone `<app-form-button-bar [mode]="...">` containing an
-  `<app-submit-button>` (see `src/receipts/receipt-form/` for the bespoke-layout precedent). Do NOT
-  place Save/Cancel buttons in the page header.
-- **Action buttons (one library, 2026-10):** a labelled action is the **primary** button (`app-button` `matRaisedButton`,
-  `hlmBtn` default variant: the filled accent) and its **inactive** state is the same button dimmed (`disabled`, the
-  helm `data-disabled:opacity-50`). Every **Cancel is red** (`app-cancel-button`, or `hlmBtn variant="destructive"`).
-  Outline and ghost stay for toggles, menus, pagers and icon-only row actions; real deletes stay destructive. The Save
-  is `app-submit-button`: labelled "Save" by default (`onlyIcon` is opt-in), and with `[mode]="FormMode.edit"` (or
-  `app-dialog-footer [editing]="true"`) it is dimmed while its enclosing form is pristine, read from `form.events`.
-  Add forms are never dimmed this way (a prefilled add dialog must still submit). State that is not a form control
-  (the user form's grants, Magic Fill) marks the form dirty so Save lights up.
-- **Form fields:** `app-input`, `app-textarea`, `app-select`, `app-checkbox`, grouped with
-  `app-form-section`; bind via the `formGet` pipe.
-- **Field hints:** `app-input` and `app-textarea` bind
-  `[subscriptSizing]="hint ? 'dynamic' : 'fixed'"`, and that conditional is load-bearing both ways.
-  Material's default `fixed` reserves a **single line** for the subscript and positions the hint
-  wrapper **absolutely**, so a hint that wraps to two or more lines escapes its box and paints over
-  whatever follows the field — which is exactly what a long hint in a narrow column does (the MCP
-  section's "Connector sign-in lasts" hint used to cover the Connector URL block). A field with
-  **no** hint keeps `fixed` so its error row stays reserved and it does not jump when a `mat-error`
-  appears. Note `app-select` has **no** `hint` input at all — passing `hint="…"` to it silently
-  renders nothing.
-  - **A hint is in-flow content once the subscript is dynamic**, so it also feeds the field's
-    intrinsic width. Inside a `d-flex`, `flex-grow-1` alone leaves `flex-basis: auto`, so a hinted
-    column swallows the row and squeezes its neighbour. Base both columns at 0 instead — see
-    `.duration-row` in `system-settings-form.component.scss`, which keeps the Session and MCP
-    value + unit rows even and aligned with each other.
-- **Margins on a shared control's host need `d-block`.** `app-checkbox` / `app-input` have no
-  `:host { display: block }` and their SCSS is empty, so a bare `class="mb-3"` on the host is an
-  **inline** element's vertical margin and does nothing. Pair it (`class="d-block mb-3"`).
-- **Password fields:** `app-input` owns both password affordances as opt-in suffix icon buttons —
-  `[showVisibilityEye]="true"` (the eye, `data-testid="password-visibility-toggle"`) and
-  `[showGeneratePassword]="true"` (`data-testid="password-generate"`). Switching either flag on
-  masks the field — on the initial binding *and* on a later `false -> true` flip, so a field that
-  becomes a password field at runtime is never left in plain text. Generate fills the
-  control with `generateSecurePassword()` (`src/utils/password.utils.ts` — `crypto.getRandomValues`
-  with rejection sampling, one char per class, ambiguous glyphs excluded), reveals it, and copies it
-  to the clipboard with a toast via `PasswordGeneratorService`
-  (`src/services/password-generator.service.ts`). It is deliberately **admin-sets-someone-else's-
-  password only** — the user form, Set Password, and Convert Dummy User dialogs — not sign-up or the
-  fields that hold an existing external secret (system email, receipt-processing settings). The
-  generate handler is synchronous by design: `type` is a plain `@Input`, so under zoneless CD only
-  the click event's CD pass renders the reveal (the clipboard write is a detached side effect).
-- **Tables:** `app-table`; **dialogs:** `app-dialog` + `app-dialog-footer`.
-- **Confirming an action:** the shared **`ConfirmationDialogComponent`**
-  (`src/shared-ui/confirmation-dialog/`). Open it with `matDialog.open(ConfirmationDialogComponent)`,
-  set `componentInstance.headerText` / `componentInstance.dialogContent` (two plain `@Input()`s — it
-  does **not** take `MAT_DIALOG_DATA`), then act on a truthy `afterClosed()`. Check truthiness, not
-  `=== true`: a backdrop click or ESC closes with `undefined`. Every action that writes a record the
-  user can't trivially undo gates on it — deletes, and the receipt **Duplicate** in both the
-  receipts-table row action and the receipt view header (each creates a real receipt, and the table's
-  then navigates away, so a mis-click is easy to miss).
-- **Badges:** the shared standalone **`app-badge`** (`src/shared-ui/badge/`) — `<app-badge [text]="..."
-  [tone]="...">`, a 9.5px uppercase micro-badge for marking an item in a list. Do NOT hand-roll one;
-  see **The shared badge** below for the tones and the two traps.
-- **Simple filters:** the segmented `app-filter-bar` (`src/shared-ui/filter-bar/`) — pass `FilterTab[]`
-  (`{ value, label, icon?, count? }`) and two-way bind the selected `value`.
-- **Breadcrumbs:** `app-breadcrumb` with `BreadcrumbItem[]`.
-- **List-page headers & the "add" button:** every list page's header is `app-table-header`
-  (`src/shared-ui/table-header/`), which takes `[headerText]` and an optional `[subtitle]` one-line
-  description — every list should set a subtitle. For a subtitle that needs rich content (e.g. a link),
-  project it via the `[table-header-subtitle]` slot instead of the string input (see
-  `role-list`). The component owns its own vertical rhythm via a `:host` margin (a small gap above,
-  a larger gap below to separate it from the table), so pages should **not** re-add margins around it.
-  The primary create control is the shared **`app-add-button`**
-  (`src/shared-ui/add-button/`): pass `[buttonText]="'Add X'"` to render a filled **`+ Add X`** button;
-  omit `buttonText` and it stays the compact icon-only **`+`** used for in-form section-header adds
-  (Add Item / Share / Widget / shortcut / option). Standardize the verb on **"Add X"**; give every add
-  control a `<resource>-add` `data-testid` and a `tooltip`. Do NOT hand-roll a raw `app-button` for a
-  list-page add action, and do NOT use a bespoke page-title header.
-If a design appears to require a new pattern, confirm with the user before diverging.
-
-### The chip picker's close-on-select preference
-
-`app-autocomlete` in `[multiple]` mode (Categories, Tags, the user/group/icon pickers, the role
-form's permission picker, report filters) deliberately **re-opens** its option panel after every
-pick, so several values can be chosen in a row. `closeChipSelectOnSelect` on `UserPreferences` flips
-that per user; the default is **off**, i.e. the panel stays open exactly as before.
-
-Three things about it are load-bearing:
-
-- **The component reads the preference itself**, from `AuthState.closeChipSelectOnSelect`, rather
-  than taking an `@Input`. It is global by design — the setting says "all of these pickers" — and
-  threading a flag through the twenty-odd call sites would only create a way for one of them to
-  disagree with the rest. The default (`?? false`) lives in the selector, not at the reader.
-- **`closePanel()` alone does not close it.** `MatAutocompleteTrigger` opens on `focus`, and
-  Material returns focus to the input after a selection, so the panel comes straight back.
-  `clearFilterAndClosePanel()` therefore also **blurs** `inputMultiple()`. This is also why the e2e
-  asserts the blur *before* asserting the panel is hidden: Material closes the panel on selection by
-  itself, so "hidden" alone would pass even if the preference were ignored entirely.
-- **Removing a chip is deliberately NOT covered.** `removeOption()` refocuses the input, which opens
-  the panel again regardless of the preference. The setting is about selecting, and a removal that
-  left the field blurred would make removing several chips take an extra click each.
-
-The panel handling runs inside the existing `setTimeout(…, 0)` in `optionSelected()`, so the two
-tests in `autocomlete.component.spec.ts` that call `jest.runAllTimers()` are the only ones that
-exercise it at all — every other `optionSelected` case stops at the `FormArray` push. They stub the
-trigger (`textarea.component.spec.ts` is the precedent), because `CUSTOM_ELEMENTS_SCHEMA` leaves the
-template's real `#auto` trigger unresolvable.
-
-Because the component now injects `Store`, **any spec that instantiates a real `AutocomleteComponent`
-needs `AuthState` registered** — `NgxsModule.forRoot([AuthState])`. That covers the base spec, the
-`category-autocomplete` / `tag-autocomplete` / `grant-picker` specs, and `system-settings-form`
-(which registered only `SystemSettingsState`).
-
-`desktop/e2e/chip-select-close-on-select.spec.ts` is the wire test: the Jest specs drive the
-component against a mocked store, so only the e2e proves the checkbox reaches the picker through
-`PUT /userPreferences` -> the stored column -> AppData -> `AuthState`. It **provisions its own
-account**, because the preference is per-user and global and the suite runs `fullyParallel` —
-flipping it on a shared e2e account would change behavior under every spec running as that account
-at the same time.
-
-### Roles & Permissions (Manage Roles)
-
-The admin-only **Manage Roles** feature (`src/roles/` — `role-list`, `role-form`, `role-presets`,
-`roles.module`) provides CRUD for the backend's app- and group-scoped roles (see the backend
-"Roles & Permissions" section in `api/CLAUDE.md` for the permission model). The Manage Roles routes are
-gated by `appPermissionGuard` requiring `app.roles.read` (see **Permission-based UI gating** below).
-
-- Talks to the backend via the **generated** clients in `src/open-api/` — `RoleService` for role
-  CRUD and `PermissionService` (`GET /permission`) to load the permission catalog that populates the
-  role editor's permission picker. `role-presets.ts` holds the role templates. Never hand-edit
-  `src/open-api/` — regenerate it from `swagger.yml` instead.
-- Built on existing shared patterns: `app-breadcrumb` and the segmented `app-filter-bar` (see "Use
-  Established Patterns" above).
-- **Category/tag grants (group roles only):** the role editor shows a "Category & tag access" section
-  (gated on `showGrants()` = group scope) with `app-category-autocomplete` / `app-tag-autocomplete`
-  (both fed the full pool via `CategoryService.getAllCategories()` / `TagService.getAllTags()` — the
-  editor is admin-only). Selecting grants restricts members to those categories/tags; **empty = all**.
-  The selections drive `FormArray`s loaded from `role.categoryGrants` / `role.tagGrants` (resolved to
-  pool objects by an effect once the pool arrives) and serialized back as id arrays on
-  `UpsertRoleCommand` for group scope only. The grant pickers pass `[creatable]="false"` (pick from
-  existing, never create). See `api/CLAUDE.md` → "Data model".
-- **Shared grant picker (`src/shared-ui/grant-picker/`):** the category/tag grant UI is a standalone
-  `app-grant-picker` used by **three** forms — `role-form` (a group role's grants), `user-form` and
-  `group-member-form` (an individual member's assignment). It owns the two autocomplete `FormArray`s
-  and the pool→id resolution effect, takes `[selectedCategoryIds]`/`[selectedTagIds]` and emits
-  `(grantsChange)` with the current ids. An optional `[ceiling]` (`GrantCeiling`) **filters the offered
-  pool** and shows a hint naming the constraint — filtering rather than per-option disabling because
-  the shared `app-autocomlete` has no per-option disable support and adding one would touch a
-  component used app-wide. **It emits nothing while merely seeding itself** (`emitEvent: false`), so a
-  host must not treat "no emission" as "empty selection" — `role-form` uses a `linkedSignal`
-  (`grantSelection`) defaulting to the loaded role's grants, or an untouched save would wipe them.
-  `shared-ui/grant-picker/member-grant-assignment.ts` holds the shared row-building
-  (`buildMemberGrantRows`, `ceilingForRole`) and the diff-and-write helper
-  (`saveChangedMemberGrants`), so the two member-facing entry points cannot drift.
-  - **It stops seeding once the user edits.** The effect's inputs keep changing after mount (the
-    pool arrives async; the ceiling changes again when the host's role list resolves), so without
-    that guard a late re-run silently discards the user's selection and hands the host back the
-    original value.
-  - **Each instance passes a unique `inputId`** to the autocompletes. The base `app-autocomlete`
-    otherwise derives the input's DOM id from its label, so the user form's N pickers would all
-    render `id="categories"` — which breaks `<label for>` association for every field after the
-    first and misdirects the base component's `getElementById`-based filter clear to the first
-    instance. `app-category-autocomplete` / `app-tag-autocomplete` gained an `inputId` passthrough
-    for this.
-- **Per-member category/tag assignment (`user-form`, `group-member-form`):** grants hang off a group
-  **membership**, so both forms only offer the picker for a membership that already exists on the
-  server — `user-form` renders one section per group the **edited** user belongs to (nothing in add
-  mode), and `group-member-form` shows it only when editing an already-persisted member. They write
-  through the dedicated **`PUT /group/{groupId}/member/{userId}/grants`** endpoint (its own permission,
-  `group.members.grants.update`), **not** the group-member upsert — so grants are saved independently
-  of the parent form and the two entry points cannot clobber each other via `UpdateGroup`'s wholesale
-  roster replace. Only **changed** rows issue a request. The role's own grants supply the picker's
-  ceiling; the backend re-validates and 400s an out-of-ceiling id. See `api/CLAUDE.md` →
-  "Category/tag grant resolution".
-  - **Gated on `group.members.grants.update`, per group.** The endpoint declares **no**
-    `OrAppPermissions` bypass, so holding `app.users.update` (user form) or `group.members.update`
-    (member dialog) is not enough. `user-form` filters `grantRows()` to the groups the admin holds it
-    in — so the section disappears when none qualifies — and `group-member-form` wraps its block in
-    `*hasGroupPermission`. Without this both forms render pickers whose saves can only 403.
-  - **The "leave empty" guidance is conditional.** `MemberGrantRow` carries
-    `requiresIndividualCategories`/`requiresIndividualTags` from the role, and the shared
-    `emptySelectionHint(row)` turns them into the right sentence: normally empty means "everything the
-    role allows", but under a require-individual role empty means **nothing**. Both forms render that
-    helper rather than hard-coded text — the wording is the only thing that tells an admin which rule
-    is in force, so it must not drift between the two entry points.
-  - **Reporting the outcome:** because the grants are a *second* write that can fail on its own, both
-    forms fire their success toast only **after** it lands, and a failed write leaves the dialog open
-    (a trailing `catchError` — the interceptor already reports the error) so the admin can correct the
-    selection instead of losing it. `user-form` is the only submit in the app with two writes, so this
-    is where the general "toast in a `tap` on the write it describes" convention needs stating: the
-    message must speak for *all* the writes it covers, not just the first.
-- **Receipt requirements (`role-form`, group roles only):** "Require a comment / an image on
-  receipts". See **Role-required receipt fields & single-call create** below.
-- **Require-individual-assignment toggles (`role-form`, group roles only):** two `app-checkbox`es in
-  the grants section bound to `requiresIndividualCategoryGrants` / `requiresIndividualTagGrants`. When
-  on, a member of that role with no individual assignment sees **nothing** rather than the role's set,
-  so a newly added member is never exposed by default. Default off — existing roles are unchanged.
-- **Paid-by visibility (group roles only):** the same group-scoped grants section also shows a
-  "Paid-by visibility" picker — a single `app-autocomlete` multi-select over `paidByOptions()` (a
-  pinned **"Their own receipts"** sentinel option, id `OWN_PAID_RECEIPTS_OPTION_ID = -1`, followed by
-  every user from `UserState.users`). On submit the selections split into `includeOwnPaidReceipts`
-  (the sentinel is present) and `paidByUserGrants` (the remaining user ids, sentinel excluded); on
-  edit they rehydrate from `role.paidByUserGrants` / `role.includeOwnPaidReceipts` via an effect that
-  filters the shared `paidByOptions()` (stable references so the autocomplete excludes selected
-  options). Empty = members see every payer's receipts; it restricts which receipts a member can see,
-  not what they can edit. See `api/CLAUDE.md` → "Paid-by visibility enforcement".
-- **Report template access (group roles only):** the same grants section shows a "Report template access"
-  matrix — templates (rows, from `ReportService.getReportTemplateOptions()`, gated on `app.roles.read`) ×
-  actions (View/Generate/Edit/Delete/Duplicate columns) of `cv-switch` toggles, plus a per-row "All"
-  toggle. State is a `signal<Map<number, Set<string>>>` (immutable replace for zoneless CD, mirroring the
-  permissions grid's `Set` pattern — NOT a FormArray). **All-empty = unrestricted**; a template maps to the
-  subset of actions the role may perform on it. Hydrates directly from `role.reportTemplateGrants`,
-  serializes back for group scope only, resets on `pickType`. See `api/CLAUDE.md` → "Report-template access".
-- **Group creation (app roles only):** an app-scope-only **"Group creation"** `cv-card` in
-  `role-form` (gated on `showAppOptions()` = `type() === "app"`, the mirror of `showGrants()`) holds a
-  single `app-checkbox` — "Don't create a personal group for new users with this role"
-  (`data-testid="skip-default-group"`) — bound to `skipDefaultGroupCreation` on the
-  `UpsertRoleCommand`. New users normally get a personal "My Receipts" group; turning this on skips it
-  for accounts that should only belong to groups an admin adds them to (the virtual "All" group is
-  always created, so the dashboard still works). It mirrors `seesAllMembers` exactly but in the
-  opposite scope: hydrates on edit, resets in `pickType`, and serializes in the **`else`** branch of
-  `submit`'s `if (showGrants())` so it only ships on APP scope. Creation-time only — toggling it never
-  changes an existing user's groups. See `api/CLAUDE.md` → "Skipping the personal group per app role".
-- **Default roles:** the role-list page shows two `app-select` controls above the filter bar —
-  "Default application role" and "Default group role". Each is pre-selected from the role flagged
-  `isDefault` for its scope and, on change, calls `RoleService.setDefaultRole(scope, roleId)` then
-  reloads (setting one default clears the previous one). The default role per scope is what new
-  accounts / group creators receive (see `api/CLAUDE.md` → "Default roles"); the current default
-  cannot be deleted. Default rows also carry a "Default" badge next to the System badge.
-- **Modern role assignment in authoring forms:** the user add/edit form (`src/user/user-form/`) and
-  the group-member add/edit form (`src/group/group-member-form/`) assign **modern roles** — an
-  `app-select` of `RoleService.getRoles()` filtered to the `APP` / `GROUP` scope, bound to
-  `appRoleId` / `groupRoleId` (not the legacy enums). Add forms pre-select the configured default
-  role. Each selector has a Preview icon button (`data-testid="role-preview"`) that opens the shared
-  **`RolePreviewDialogComponent`** (`src/roles/role-preview/`, standalone, opened via
-  `openRolePreviewDialog(dialog, role)`) — a read-only dialog rendering the role's scope, description
-  and permissions (grouped by resource using the `role-presets.ts` helpers). The `getRoles()` calls
-  use `catchError` so a non-admin who lacks `app.roles.read` (see **Permission-based UI gating** below)
-  gets an empty selector rather than an error.
-- **Member-table role display:** the admin user-list (`src/user/user-list/`) and `group-form`
-  (`src/group/group-form/`, loaded by every group view including non-admins) resolve each user's
-  `appRoleId` / each member's `groupRoleId` to the role **name** via the shared `RoleNamePipe`
-  (`src/pipes/role-name.pipe.ts` — `{{ id | roleName : roles() : scope }}`). The pipe matches on
-  **id _and_ `PermissionScope`** because app- and group-role ids are independent sequences and can
-  collide (e.g. group role `id=1` vs app role `id=1`); callers pass `PermissionScope.App` (user-list)
-  / `PermissionScope.Group` (group-form) so the wrong-scope role is never matched. Both load roles with
-  `RoleService.getRoles()` wrapped in `catchError`, so a non-admin lacking `app.roles.read` sees a
-  blank name rather than a 403-driven logout. There is no longer any legacy `groupRole` enum sync,
-  and `group-form` no longer enforces a "keep an owner" rule — the backend dropped the owner concept,
-  so group management is governed entirely by `group.*` permissions.
-  - **Member controls gate on `group.members.*`:** `group-form`'s Add / Edit / Delete member controls
-    render only for holders of `group.members.create` / `.update` / `.delete` (signals resolved from
-    `AuthState.hasGroupPermission`), mirroring the backend `UpdateGroup` guard (see `api/CLAUDE.md` →
-    "Group member management"). They default to enabled in **create** mode (no group yet; the creator
-    becomes owner). This is UI-only; the server re-enforces on every request.
-- **Manage Users is a server-paged `app-table`:** the admin user-list (`src/user/user-list/`) follows
-  the standard paginated-table pattern (`BaseTableComponent` + `UserTableService` + the NGXS
-  `UserTableState`, mirroring the groups/roles list pages) and reads a page at a time from
-  `UserService.getPagedUsers` (`POST /user/getPagedUsers`) — it no longer wraps `UserState.users` in a
-  client-side `MatTableDataSource`. Server-sortable columns use the DB column names as their
-  `matColumnDef` (`username`, `display_name`, `created_at`, `updated_at`); the client-resolved **Role**
-  column is non-sortable. CRUD row actions refetch via `getTableData()` after the mutation, and delete /
-  bulk-delete still dispatch `RemoveUser` / `RemoveUsers` so the `UserState` cache (consumed by the
-  role-editor & report-builder paid-by pickers, `user-autocomplete`, the `user` pipe, etc.) stays in
-  sync. `UserState` itself is unchanged and still bootstrap-loaded from AppData for those other consumers.
-- **Member isolation (presence privacy).** Two config controls drive the backend member-isolation
-  feature (see `api/CLAUDE.md` → "Member isolation"): (1) an **"Isolate members"** `app-checkbox` in the
-  `group-form` "Group Details" section, bound to `isolateMembers` on the `UpsertGroupCommand` — an
-  isolated group's members can't discover each other; (2) a group-scope-only **"Members with this role
-  can see, and be seen by, all members"** `app-checkbox` in `role-form` (a "Member visibility" `cv-card`
-  inside the `@if (showGrants())` block), bound to `seesAllMembers` on the `UpsertRoleCommand` (mirrors
-  `includeOwnPaidReceipts`; hydrates on edit, resets on type switch, serialized only for GROUP scope).
-  E2E coverage for the group-creation card lives in `e2e/skip-default-group.spec.ts` (card present on
-  APP / absent on GROUP, reset on type switch, round-trip through save including turning it back off,
-  the end-to-end effect on a provisioned account, and the server's 400 on GROUP scope).
-  Isolation is resolved **per group** on the backend ("isolated means isolated" — an isolated group hides
-  co-members and their settlement/report data regardless of any other group you share; co-members are
-  visible only through a shared **non-isolated** group). Everything is enforced **server-side** — the
-  desktop simply receives the already-filtered `appData.users` (union name-table) and per-group filtered
-  group rosters / receipts / Group-Summary settlement, so no client-side filtering is needed (and mobile
-  needs no change). This works because every group-context user picker sources its SET from the group
-  roster (`group.groupMembers`) or `roster ∩ flat-list`, using the flat `UserState.users` only to resolve
-  a name/avatar by id (see `GroupMemberUserService.getUsersInGroup`). The larger `UserAccessService` /
-  `UserView`-retype consolidation is a deferred follow-up.
-- **Permission-based UI gating.** The UI gates on the user's effective permissions, mirroring the
-  backend's enforcement. Permissions are delivered on **AppData** (`appPermissions: string[]` and
-  `groupPermissions: { [groupId]: string[] }`) and stored in `AuthState` via the dedicated
-  `SetPermissions` action — dispatched **only** from `setAppData` (`utils/app-data.utill.ts`), never from
-  `TokenRefreshService` (whose claims-only `SetAuthState` must not wipe permissions). They refresh on
-  login + app-init; the server re-checks real permissions on every request, so the stored set is a UI
-  hint (a stale button at worst 403s, handled by the interceptor).
-  - **`string[]`, not the `Permission` enum — on purpose.** `swagger.yml` types these two `AppData`
-    fields as plain strings rather than `$ref`-ing the `Permission` enum, so the generated
-    `appData.ts` yields `Array<string>`. The enum stays the contract for the *catalog*
-    (`Role.permissions`, `UpsertRoleCommand.permissions`, `PermissionDescriptor.key` — the role
-    editor still gets an exhaustive, type-safe list). The desktop is unaffected either way (TS string
-    enums are assignable to `string`), but the **mobile** Dart client is not: a closed built_value
-    enum throws on an unknown value and fails the whole `AppData` parse, hard-failing login on
-    already-released builds. Also, a granted string may be a **wildcard** (`app.*`), which the
-    matcher supports and an enum cannot express. Don't "tighten" these back to `Permission`.
-  - **403 handling (`src/interceptors/http-interceptor.ts`).** The backend returns **403 for every
-    access denial** (auth *and* permission — it never uses 401). With a still-valid token a 403 is a
-    permission denial, so the interceptor surfaces it via a **Forbidden toast** (only for
-    user-initiated mutations — non-`GET` — and never in `queueMode`) and **re-throws without logging
-    the user out**. It does **not** refresh/retry on 403: token freshness is handled proactively
-    elsewhere (15-min timer in `app.component.ts`, app-init, and `auth.guard`), and
-    `TokenRefreshService` keeps its own logout-on-refresh-failure path for a truly dead session.
-    Background `GET` 403s propagate silently for callers to handle (e.g. the `getRoles` +
-    `catchError` reads above).
-  - **One toast per error, and the server's `errorMsg` always wins.** `MatSnackBar.open()`
-    dismisses whatever is already showing, so two `snackbarService.error(...)` calls in one tick
-    means only the *last* is readable. The server-supplied `errorMsg` is the user-friendly message;
-    Angular's generic `HttpErrorResponse.message` ("Http failure response for ...: 500 Internal
-    Server Error") is a **fallback only** for a 5xx that carries no message at all, so an
-    infra-level failure (nginx 502, gateway timeout) is not silent. The two branches must stay
-    mutually exclusive — **do not restore them as two independent `if`s.** They were, and the
-    second one only stayed harmless because its regex was broken: `new RegExp("5d{2}")` matches the
-    literal `5dd`, never `"500"`. Repairing it to `5\d{2}` (commit `4bb640c`, 2026-03-23) activated
-    the override, and since nearly every Go handler writes 5xx through `WriteCustomErrorResponse`
-    with an `errorMsg`, the useful message was being replaced app-wide — most visibly on a failed
-    login, where "Invalid credentials." lasted a few milliseconds. `queueMode` suppresses **both**
-    branches, like the 403 one. Pinned by three cases in `http-interceptor.spec.ts`
-    (5xx-with-`errorMsg`, 5xx-without, and 5xx-in-queue-mode) and by
-    `e2e/auth.spec.ts` → "a wrong password reports it and leaves the form filled in".
-  - **Category/tag catalogs:** AppData also carries `groupCategories` / `groupTags` (keyed by group
-    id, filtered to the user's grants), stored via `SetGroupCatalog` and read with the
-    `AuthState.groupCategories(groupId)` / `groupTags(groupId)` selectors. The **receipt form** and
-    **receipts-table filters** source their category/tag options from these per-group catalogs (not
-    the global `GET /category` / `GET /tag`, which are now admin-only — the receipt routes no longer
-    use the category/tag resolvers). The receipt form's pickers gate `[creatable]` on
-    `app.categories.create` / `app.tags.create` so restricted users can only pick from the granted set.
-  - **Matcher:** `src/utils/permission.utils.ts` — `matches`/`hasAll`/`hasAny`, a faithful port of the Go
-    matcher (`api/internal/permissions/matcher.go`) including wildcard semantics, so UI gating === backend.
-  - **Selectors** (`AuthState`): `hasAppPermission(perm)`, `hasAnyAppPermission(perms)`,
-    `hasGroupPermission(groupId, perm, orApp = [])` — the group one applies the `orApp` app-scoped
-    override first, mirroring the backend `OrAppPermissions` (admin-not-a-member) pattern.
-  - **Directives** (`DirectivesModule`, signal/`effect`-driven so they re-render when AppData lands after
-    first paint): `*hasAppPermission="Permission.X"` and
-    `*hasGroupPermission="{ groupId, permission, orApp? }"`. Components expose the generated `Permission`
-    const to reference it in templates.
-  - **Route guards** (`src/guards/`): `appPermissionGuard` (`data: { appPermissions: [...] }`, ANY-of)
-    and `groupPermissionGuard` (`data: { groupPermission, orAppPermissions?, useRouteGroupId? }`).
-    `receiptGuardGuard` is unchanged (server-checked per-receipt access); `system-settings-landing.guard`
-    redirects `/system-settings` to the first tab the user can read, and `settings-landing.guard`
-    does the same for `/settings` (the sidebar Settings → "User Settings" link → first readable of
-    User Profile `app.account.read` / User Preferences `app.user-preferences.read` / API Keys
-    `app.api-keys.read`). The `/settings` shell and each tab route are `appPermissionGuard`-gated on
-    those reads, the in-page tabs render conditionally on the same, and the sidebar link is
-    gated by a `hasAnyAppPermission` signal.
-  - **Retired** with this migration: `RoleGuard`, `GroupRoleGuard`, the `*appRole` `RoleDirective`, the
-    `groupRole` `GroupRolePipe`, and `GroupUtil.hasGroupAccess`. The group-member legacy-enum bridge
-    (`legacyGroupRoleFromRole`) and `AuthState.userRole`/`hasRole` are now **removed** as well, since
-    the backend legacy `UserRole`/`GroupRole` enums (and the `userRole`/`groupRole` API fields) are gone.
-  - **Behavior note:** create actions for categories/tags/custom-fields now gate on the granular
-    `.create` permission, so a normal user (Legacy User holds `.create`) sees the **Add** button;
-    **Edit/Delete** stay admin-only (`.update`/`.delete`). **Group creation** follows the same shape:
-    the Create-Group FAB on the groups list (`group-table`), the sidebar speed-dial "Add Group"
-    button, and the `/groups/create` route guard all gate on `app.groups.create`. Note the
-    read/create asymmetry — Legacy User holds `app.groups.create` but **not** `app.groups.read`, so
-    they create via the sidebar FAB (the groups-list page itself is `app.groups.read`-gated and off
-    limits to them), exactly like categories/tags.
-  - **Notification delete** (`notification/notification.component.html`): the per-notification delete
-    control gates on `app.notifications.delete` via `*hasAppPermission`.
-  - **Group row actions** (`group/group-table/group-table.component.html`): edit gates on
-    `group.update`; **delete** gates on `group.delete` OR
-    **`app.groups.delete`** (`orApp`), so an admin who switched the filter to **All Groups** can clean
-    up a group they aren't a member of. Two things follow from that view being server-paged over
-    groups the caller may not belong to: the button's `[disabled]` is a `deleteDisabled()` computed —
-    `!canDeleteAnyGroup() && groups().length <= 1`, mirroring the backend `CanDeleteGroup` rule and
-    its `app.groups.delete` escape, rather than blanket-disabling every row for a one-group admin —
-    and `deleteGroup()` refetches with **`getTableData()`** after a successful delete (the standard
-    row-mutation pattern) instead of swapping in `GroupState.groupsWithoutAll`, which would collapse
-    the table to the caller's own groups and lose pagination. The `RemoveGroup` dispatch stays, to
-    keep the `GroupState` cache in sync; it no-ops for a group the caller isn't in. E2E:
-    `e2e/group-delete-any.spec.ts`.
-
-
-### Receipt status colors
-
-Everything visual for a receipt status is the ~20 lines of
-`src/shared-ui/status-chip/status-chip.component.scss` plus the `[ngClass]` map in its template. The
-options themselves need no code: `RECEIPT_STATUS_OPTIONS` (`src/constants/receipt-status-options.ts`)
-derives from `Object.keys(ReceiptStatus)` and `formatStatus` (`src/utils/status.utils.ts`)
-snake→title-cases the label, so **a status added to `swagger.yml` reaches the receipt form, the
-filters, bulk status update and both "default status" settings on regeneration alone** — only a color
-has to be authored.
-
-The convention is a **pale tint carrying the default (dark) `mat-chip` text**:
-
-| Status | Background |
-|---|---|
-| `NEEDS_ATTENTION` | `variables.$warning-amber` (`#ffe0b2`) |
-| `DECLINED` | `map.get(variables.$warn-palette, 100)` (`#f2bfbf`) — the red NEEDS_ATTENTION gave up |
-| `OPEN` | `#fffacd` |
-| `RESOLVED` | `lightgreen` |
-| `DRAFT` | *(no rule — the default chip surface)* |
-
-**Do not set an explicit `color` on these rules.** `.needs-attention` and `.open` used to declare
-`color: white`, i.e. white on `#f2bfbf` / `#fffacd` — about 1.6:1 and 1.2:1, an effectively invisible
-label. The tints are chosen to be legible under the dark default.
-
-The chip is also driven by an unrelated `customStatusColor` input (`"red" | "green" | "gray" |
-"yellow"`) for **system-task** status in the activity list; `'red'` maps to `.declined`, so red still
-means failure there. (`'gray'` maps to no class — a pre-existing dead value.)
-`status-chip.component.spec.ts` pins the whole status → class map, including that repoint.
-
-### The Comment column (`first_comment`)
-
-The tenth built-in column shows the receipt's **first** comment and sorts on it. It is the last
-built-in in `DEFAULT_RECEIPT_TABLE_COLUMNS`.
-
-- **Hidden by default, with no merge code.** The default entry is `visible: false`, and
-  `mergeCustomFieldColumns` appends a missing built-in with its default's visibility. So a layout
-  saved before this column existed gains it **unchecked**, and upgrading widens nobody's table.
-- **`first_comment` is both the `matColumnDef` and the `orderBy`**, the same convention as
-  `custom_<id>`. `sort()` already sends `sortState.active` verbatim, so sorting needed no client
-  code. The header reads `RECEIPT_COLUMN_DISPLAY_NAMES.first_comment` rather than a new literal.
-- **The value is `Receipt.firstComment`**, which only the paged list returns. The server has already
-  applied member isolation, so a comment the viewer may not see is never in the payload.
-  `hideComments` is deliberately **not** applied here; that group setting stays receipt-form-only.
-  See `api/CLAUDE.md` → "The first comment".
-- The cell (`#firstCommentCell`, `data-testid="receipt-first-comment"`) is one ellipsised line capped
-  at 20rem, so a long comment can't stretch the row. `matTooltip` shows the full text, which is why
-  `ReceiptsModule` now imports `MatTooltipModule`.
-- **E2E:** `e2e/receipt-comment-column.spec.ts` (serial, admin storageState, own seeded group) covers:
-  - the column offered unchecked and unbadged;
-  - the first comment shown, never a later one that sorts lower;
-  - the `first_comment` sort in both directions against the real API.
-
-### Seeding the receipt group
-
-The Group field is a default, not a lock: when there is only one group to pick, both the receipt form
-and the Quick Scan dialog pre-select it. See the root `CLAUDE.md` → "Seeding the Group Field" for the
-cross-client contract.
-
-- **`GroupState.soleGroupId`** (`src/store/group.state.ts`) is the shared rule, declared as
-  `@Selector([GroupState.groupsWithoutAll])` so it counts exactly the set `app-group-autocomplete`
-  offers. That selector-array form is new to this repo (everything else uses bare `@Selector()` or
-  `createSelector`) but is correct here: with a non-empty dependency list NGXS does **not** prepend
-  the container state, so the function receives the groups directly.
-- **`GroupState.addTargetGroupId`** is the group a *new* receipt would land in: the selected group,
-  or — when that is the "All" group, unset, or **no longer resolvable** — `soleGroupId`. Because it
-  resolves off `groupsWithoutAll`, all three of those are one lookup miss rather than three checks.
-  `selectedGroupId` is persisted to localStorage and `setAppData` only overwrites a *falsy* one
-  (`app-data.utill.ts`), so it genuinely outlives a group the user has left — that stale case is why
-  the resolution is a lookup rather than a `Number()` coercion.
-- **`receipt-form.component.ts` `initForm()`** seeds `addTargetGroupId ?? ""`. No
-  `syncSingleDisplay()` is needed: the seed is written while the parent builds the form, which is
-  *before* the child autocomplete's `ngOnInit` seeds its display from the control (unlike Magic Fill,
-  which patches after init).
-  - **The blank sentinel must stay `""` — never `0`.** `Validators.required` calls Angular's
-    `isEmptyInputValue`, which counts only `null`/`undefined` and zero-length string/array as empty,
-    so a `0` seed leaves a group-less form **valid** and POSTs `groupId: 0`. `0` is also what
-    `app-autocomlete` filters its options by (`_filter` does `value.toString()`), so the dropdown
-    would silently show only groups whose name contains a zero, while `!!0` still suppresses the
-    clear button the e2e helpers rely on. Pinned by an explicit `form.get("groupId").valid === false`
-    assertion in the spec.
-- **`setReceiptPermissions()` and the `/receipts/add` route guard both gate on
-  `addTargetGroupId ?? Number.parseInt(selectedGroupId)`** — the same group the form seeds. Without
-  this a sole-group user whose *All*-group membership lacks `group.receipts.create` is bounced off
-  `/receipts/add` even though they can create in their real group, which is where login lands them.
-  The `??` tail is load-bearing: a multi-group user on the All dashboard has no add target and must
-  keep gating on the All group, because `Number.parseInt("")` is `NaN` and `groupPermissions[NaN]` is
-  empty — gating on the seed alone would render the add form read-only. The guard opts in per route
-  via `data: { useAddTargetGroupId: true }` (a third mode beside `useRouteGroupId`), so a future
-  route that wants "the group being browsed" keeps that by default; `/receipts/add` is the only
-  consumer of the plain selected-group branch today.
-- **`quick-scan-dialog.component.ts` `fileLoaded()`** puts it *after* the user's
-  `quickScanDefaultGroupId`. `configureImages()` already runs at the end of `fileLoaded`, so the
-  seeded group's show/require config lands on that image with no interaction.
-- **The e2e helpers had to learn the field can already be filled.** A single-select `app-autocomlete`
-  binds `[readonly]="readonly || singleOptionSelected()"`, and Material's `_canOpen()` refuses to open
-  a readonly input — so an unconditional `click()` + pick simply times out. `selectFirstOption`
-  (`e2e/receipts.spec.ts`) now skips a filled field, the empty-form validation case clears it first via
-  `clearAutocomplete` (`data-testid="autocomplete-clear"`), and `quick-scan-dialog.spec.ts` routes its
-  pick through the shared `selectImageGroup`. This matters on a **fresh** database, where
-  `api/dev/seed-e2e-users.sh` leaves `e2e-admin`/`e2e-user` with exactly one group until another spec
-  creates one.
-- **E2e:** `e2e/single-group-default.spec.ts` provisions its own Legacy User (a new account owns only
-  "My Receipts" + "All") and asserts both the receipt form and the Quick Scan dialog arrive pre-filled.
-
-### Role-required receipt fields & single-call create
-
-A group role can require its members to keep **at least one comment** and/or **one image** on the
-group's receipts. The server resolves and enforces it; see `api/CLAUDE.md` → "Role-required receipt
-fields & single-call create" for the contract.
-
-- **Role form:** two `app-checkbox`es in a "Receipt requirements" card inside `@if (showGrants())`
-  (`data-testid="require-receipt-comment"` / `"require-receipt-image"`), bound to
-  `requireReceiptComment` / `requireReceiptImage`. Wired like `seesAllMembers`: hydrated in
-  `loadRole`, reset in `pickType`, serialized only in `submit()`'s `showGrants()` branch (APP scope
-  400s them).
-- **Store:** `SetPermissions` carries AppData's `groupReceiptRequirements` as an optional third
-  argument (dispatched only from `setAppData`). Read it through `AuthState.receiptRequirements(groupId)`
-  or `receiptRequirementsFor(map, groupId)` (`src/utils/receipt-requirements.ts`), which default to
-  nothing required. The server has already applied the waivers (hidden field, no comment permission),
-  so **never re-derive them from group settings**.
-- **Create is ONE call.** `createReceipt()` sends `ReceiptService.createReceiptWithFiles(form.value,
-  filesToUpload() files)` (`POST /receipt/withFiles`, multipart). The comments ride `form.value`.
-  The old `createReceipt` + per-image `uploadReceiptImage` `forkJoin` is gone; the create is atomic,
-  so there is no "receipt added, images failed" state. Don't call the deprecated JSON `createReceipt`.
-- **Submit guard** mirrors the server, keyed on the form's **current** `groupId` (a `currentGroupId`
-  signal written in `listenForGroupChanges`), so it re-evaluates on a group change and checks the
-  destination group in edit mode. `isImageMissing()` counts `filesToUpload()` in add mode and
-  `images()` in edit mode (the receipt's own `imageFiles` while those load). `isCommentMissing()` reads
-  the comments child's `commentCount` signal: `commentsArray` is not reactive, so the child mirrors its
-  length on every mutation. That covers queued comments in add mode and the saved comments, updated
-  live, in edit mode. A miss shows an inline hint in the section (`receipt-image-required-hint` /
-  `receipt-comment-required-hint`) and blocks submit with a snackbar.
-- **Last item in edit mode:** the image remove button (`receipt-image-remove`) is disabled by
-  `isLastImageLocked()`, and `app-receipt-comments` takes `[preventDeletingLastComment]`, hiding
-  delete on the only comment (`isLastCommentLocked`). Add-mode items are unsaved, so they stay
-  deletable. To swap the only image, upload the new one first.
-- **Quick scan:** `resolveQuickScanFieldConfig` takes `roleRequiresComment`, which shows **and**
-  requires the comment even when the group's config leaves it off. It still yields to `hideComments`
-  and `group.comments.create`.
-- **E2E:** `e2e/receipt-role-requirements.spec.ts` (serial). An admin provisions the role through
-  the role form (`createRole`'s new `requireReceiptComment` / `requireReceiptImage` options) and a
-  group with e2e-user in it. The spec covers the flags round-tripping, create blocked without a
-  comment and then an image, then saving in exactly one `POST /api/receipt/withFiles` with no
-  `/receiptImage` upload, edit refusing the last image/comment (UI and server 400), and quick scan
-  requiring the comment (UI, plus the server's 400 without one).
-
-## Login QR (removed)
-
-The login QR and its `showLoginQr` / `mobileServerUrl` settings went away with the Flutter app.
-The shared `absoluteUrlValidator()` (`src/validators/url-validators.ts`) still guards `mcpPublicUrl`.
-
-## OIDC sign-in (external identity providers)
-
-Users can sign in with an external identity provider; administrators register providers in System
-Settings. The **backend owns the whole OIDC exchange** (see `api/CLAUDE.md` → "OIDC (OpenID Connect)
-login"), so the desktop's job is three things: render the buttons, bootstrap the session after the
-redirect, and administer the provider rows.
-
-- **Login buttons** (`src/auth/sign-up/auth-form.component.*`): one `app-button` per
-  `FeatureConfigState.oidcProviders`, which `AppInitService` already loads pre-login off the public
-  `GET /featureConfig`. The click is
-  **`window.location.href = /api/oidc/{name}/login`** — a full-page navigation, not an `HttpClient`
-  call: the browser has to follow the redirect chain to the identity provider, and an XHR would just
-  fetch its HTML into JavaScript. The URL is built by the exported pure `buildOidcLoginUrl`, and the
-  navigation itself goes through a `navigateToUrl` seam so a spec can assert where it goes (jsdom
-  refuses to let `window.location` be replaced).
-  **The section is gated on `oidcProviders().length`, NOT `*appFeature`** — `FeatureConfigState.hasFeature`
-  is a truthiness check and `[]` is truthy, so the directive would render a bare "or" divider on an
-  install with no providers configured.
-- **`/auth/callback`** (`src/auth/oidc-callback/`) is the piece that is easy to miss.
-  `AppInitService.initAppData()` only loads app data when `isLoggedIn || hadSession`, both of which
-  read persisted NGXS state out of `localStorage`. A **first-ever** OIDC login has perfectly valid
-  `jwt` / `refresh_token` cookies but an **empty store**, so the initializer takes its unauthenticated
-  branch and the app boots signed-out while holding a working session. The component calls
-  `getAppData()` → `setAppData(...)` → navigates to `GroupState.dashboardLink`.
-  It lives under `/auth` deliberately: `AuthGuard` lets an unauthenticated user through any route whose
-  URL contains `auth`. **Rejected alternative:** making the initializer always attempt `getAppData()` —
-  that adds a guaranteed 403 to every anonymous page load.
-  A corollary: because `AuthGuard` also *bounces an already logged-in user away* from those routes, the
-  **link** flow must not return through `/auth/callback`; its success target is the profile page.
-- **Login error reporting:** the backend redirects failures to `/auth/login?oidcError=<code>` from a
-  small fixed vocabulary (it never echoes an identity provider's own text). `auth-form.component.ts`
-  maps those to copy in `OIDC_ERROR_MESSAGES`, with a fallback for an unrecognized code.
-- **Admin CRUD** — a new **OIDC Providers** tab in System Settings
-  (`src/system-settings/oidc-provider-table/` + `oidc-provider-form/`, following the
-  `custom-fields` shape: a paged table plus one dialog serving add/view/edit). As with every
-  system-settings tab, the entry must be added to **both** `system-settings.component.ts`'s `allTabs`
-  **and** `guards/system-settings-landing.guard.ts` **at the same index** — the guard's contract is
-  that it redirects in the order the tab bar renders.
-  - The dialog shows the **exact redirect URI** to register with the provider (read-only, with a copy
-    button). Providers match it exactly, so a near miss fails at their end where this app never sees it.
-  - **The name is disabled outside add mode** — it is part of that redirect URI, so a rename would
-    break every subsequent login. The server rejects it too.
-  - **The client secret renders blank on edit and is omitted from the payload when untouched.** That is
-    the client half of the server's `ClientSecret *string` contract (omitted = keep the stored one), and
-    it is why the secret is never sent to the browser at all; `hasClientSecret` reports whether one
-    exists.
-  - The **username-linking** checkbox carries a plain-language warning that it is only safe for a
-    provider you control — see the backend doc for why it defaults off.
-  - The actions column is gated on `hasAnyAppPermission([Update, Delete])`; gating on delete alone
-    would hide the whole column, and with it the edit button, from an update-only holder.
-  - **It is the one dialog form in the app that guards against a double submit** — a private
-    `isSubmitting` field checked in `submit()` and cleared in `finalize()`. Do not "tidy" it back
-    into line with the other eleven, all of which are `take(1) → tap → close` with the button
-    live for the whole request. `take(1)` caps one subscription; it does not stop a second click
-    starting a second request. The shared `disableWhenProgressBarIsShown` input on
-    `app-dialog-footer` looks like the house answer and is not: the only dispatcher of
-    `ShowProgressBar` anywhere is Magic Fill (`receipt-form.component.ts`), so the three call
-    sites that opt in are protected by nothing. Here it mattered because `oidc_providers.name`
-    carries a DB unique index — the duplicate request cannot create a second provider, it just
-    fails, and `MatSnackBar.open()` dismisses the success toast to show that error, so the admin
-    is left reading a failure for a save that worked. It clears in `finalize` rather than `tap`
-    because a failed save leaves the dialog open for the interceptor to report.
-  - **The redirect URI's copy button handles an absent clipboard, not just a rejected write.**
-    `navigator.clipboard` is `undefined` outside a secure context, so the call throws
-    *synchronously* — and plain-http LAN self-hosting is a deployment this project supports. This
-    is the one string an admin has to hand to their identity provider, so a dead button gets a
-    message rather than silence. It is deliberately **not** the shared `app-copy-button`, which is
-    silent on failure by design (pinned by `copy-button.component.spec.ts`); the model here is
-    `api-key-form-dialog`, the other hand-rolled `content_copy` button in a dialog, which toasts
-    both outcomes.
-- **Profile → Connected accounts** (`src/settings/user-profile/`): link and unlink providers from an
-  authenticated session — `window.location.href = /api/oidc/link/{name}` again. This is the safe way to
-  attach a pre-existing password account, and what makes the server's username-matching toggle
-  comfortable to leave off. **Unlink is hidden for a provisioned account's last connection**, mirroring
-  the server's lockout guard (the server refuses it either way). A failed load yields no section rather
-  than an error, so an older server degrades quietly.
-  - **Provider-confirmed self-delete — passwordless accounts only.** A provisioned account has no
-    password to type, so when any connection has `provisionedUser` (`isPasswordless`), Delete Account
-    opens `DeleteAccountDialogComponent` with `data: { providers }` and it renders one
-    `delete-confirm-<name>` button per connection instead of the password field. The pick goes through
-    the component's `navigateToUrl` seam to `buildOidcDeleteConfirmationUrl` →
-    `/api/oidc/connections/{name}/delete-confirmation` (full-page, same reason as login). The backend
-    returns to this page with `?deleteConfirmation=<code>`, which `ngOnInit` **strips first**
-    (`replaceUrl`, so a reload cannot resubmit a spent code) and then spends via
-    `deleteAccount({ confirmationCode })` — success is the password path's Logout → toast → `/`, and a
-    refused code is a 400 the interceptor already toasts. `?deleteError=<code>` is stripped the same
-    way and mapped through `DELETE_CONFIRMATION_ERROR_MESSAGES` (own-property lookup, default copy).
-    Every other account — including one whose connections failed to load — keeps the password dialog
-    and its 401 re-open loop unchanged. The dialog closes with `{ password }` / `{ providerName }` /
-    `false` (`DeleteAccountDialogResult`), and `MAT_DIALOG_DATA` is `@Optional()`.
-- **`serverPublicUrl`** is a new field in the System Settings form's **Server** section — the
-  externally reachable origin the redirect URIs are built from. It carries the shared
-  `absoluteUrlValidator()` and is deliberately **never conditionally required** here: the backend
-  accepts a blank value, and the "required once a provider is enabled" rule is enforced where providers
-  are saved, so an admin cannot register one with no redirect URI to publish.
-- **Specs:** `auth-form.component.spec.ts` (buttons per provider, none when empty, URL escaping,
-  `?oidcError=` snackbar), `oidc-callback.component.spec.ts` (bootstrap, failure, and the error-code
-  passthrough that must **not** call the API), `delete-account-dialog.component.spec.ts` and
-  `user-profile.component.spec.ts` (both dialog modes, the URL and its escaping, strip-before-spend,
-  the `deleteError` copy), `oidc-provider-form.component.spec.ts` (name disabled on
-  edit, blank secret omitted / typed secret included, scope must contain `openid`, reserved and
-  malformed names, the warning renders), `oidc-provider-table.component.spec.ts` (the actions-column
-  gating in all three permission shapes), and `feature-config.state.spec.ts` (defaults to `[]`, and
-  survives a payload that omits the key). Note the table specs use **`detectChanges(false)`**, the
-  existing convention for these tables — `setColumns()` runs in `ngAfterViewInit` and mutates a plain
-  property, which trips NG0100 in the dev-mode check-no-changes pass.
-
-## Secure cookies setting
-
-A **Cookies** `app-form-section` on the System Settings form, after **Session**, holds one
-`app-checkbox` (`data-testid="system-settings-secure-cookies"`) bound to `secureCookies`. It marks
-every cookie the API sets as `Secure`; see `api/CLAUDE.md` → "Cookie `Secure` is a System Setting"
-for the server side and the lockout recovery.
-
-- **Seeded `?? false`**, the server's own default, so an older server that omits the key renders
-  unchecked; it is in the view-mode disable block and rides the payload through `getRawValue()`.
-- **The HTTP warning** (`data-testid="secure-cookies-http-warning"`, an `alert alert-warning`) shows
-  while the box is ticked and `servedOverHttps` is false. That field is read once from
-  `window.location.protocol`: the browser that loaded this page is exactly the one that would drop the
-  cookies, so it is the right thing to ask, and the API cannot answer it reliably from behind a
-  second proxy. It warns rather than blocks — `http://localhost` is a secure context in Chromium, so
-  the warning is conservative there. The spec drives it under jsdom's `http://localhost` and
-  overrides the field for the HTTPS case.
-
-## Duration settings (Hours/Days selector over an hours-based API)
-
-The System Settings form exposes two configurable refresh-token lifetimes (see `api/CLAUDE.md` →
-"Session lifetime"): a **Session** `app-form-section` with **"Stay signed in for"**
-(`refreshTokenValidForHours`) and, inside the existing **MCP Server** section, **"Connector sign-in
-lasts"** (`mcpRefreshTokenValidForHours`).
-
-**Hours are the wire format; the unit is presentation only.** Each setting is edited as a pair of
-**form-only** controls — `<name>Value` (an `app-input type="number"`) and `<name>Unit` (an
-`app-select` over `durationUnits`) — which `submit()` folds back into `<name>Hours` via `toHours(...)`
-before `delete`-ing the four helper keys from the payload. The exact-payload assertion in
-`system-settings-form.component.spec.ts` fails if any of them leak.
-
-The conversion lives in **`src/utils/duration.utils.ts`** (`splitHours` / `toHours` / `maxForUnit`),
-shared by both settings so they cannot drift. `splitHours` renders a value as Days only when it
-divides evenly into whole days and is at least 24 (720 → 30 Days, 36 → 36 Hours), and falls back to
-the 24h default for the `0`/null the API sends when the setting is unset — so the view page shows
-"1 Days", not "0 Hours". Note `toHours` guards on `parsed <= 0`, not just `Number.isFinite`:
-`Number(null)` and `Number("")` are both `0`, so an emptied number field would otherwise submit a
-zero-length lifetime.
-
-**The bounds track the selected unit** (720 hours === 30 days).
-`listenForDurationUnitChanges(value, unit, maxHours, minHours = 1)` — one parameterised method called
-once per setting — re-applies
-`[Validators.required, durationValueValidator(maxForUnit(...), minForUnit(...))]` whenever the unit
-flips, the same shape as `urlValidators()` above (`setValidators` replaces the whole list, so
-`required` must be re-supplied each time rather than declared in `initForm`). Every control is also
-added to the **view-mode disable block**, or it stays editable on the read-only page.
-
-**A third consumer: `tempFileRetentionHours`** — a "Temporary Files" section holding **"Keep failed
-uploads for"** (how long a failed upload's image is kept so the user can rerun, preview or download
-it; see `api/CLAUDE.md` → "Temporary file retention & cleanup"). Three things it does differently, all
-of them traps:
-
-- **Its bounds are its own** — 24 to 8760 hours. `MAX_TOKEN_LIFETIME_HOURS` is the *token* cap; reusing
-  it would cap a year-long retention at 30 days. Hence the bounds became parameters of
-  `listenForDurationUnitChanges`, which previously hardcoded that constant *inside* the method (only
-  the control names were parameters), so both existing call sites had to be updated.
-- **Seed it as `splitHours(settings?.tempFileRetentionHours || 720)`.** `splitHours` falls back to
-  `DEFAULT_DURATION_HOURS` (24) for the `0`/null the API sends when unset, which would render this
-  setting as "1 Days" instead of its real 30-day default.
-- **A floor converts with `minForUnit`, never `maxForUnit`.** `maxForUnit` floors, which turns a
-  1-hour minimum into **0 days** and admits a zero-length duration; `minForUnit` rounds up and never
-  yields zero. `durationValueValidator` gained an optional `min` for this, so the 24-hour floor is a
-  field-level message rather than a bare server 400.
-
-The spec's `.duration-row` count assertion is now **3**, and both exact `toEqual` assertions (on
-`form.value` and on the `updateSystemSettings` payload) carry the new control pair.
-
-**E2E:** `e2e/session-lifetime.spec.ts` (serial, admin `storageState`; the setting is **global**, so
-`afterAll` re-reads live settings and restores only the captured field). It is the only test that
-proves the value survives **model → command → DB → JWT → Set-Cookie**: an admin saves "2 Days", the
-API stores `48`, the view page renders it back as "2 Days", and a fresh login's `refresh_token`
-cookie expiry lands in the configured window while the `jwt` cookie stays inside 20 minutes.
-
-**`durationValueValidator`** (`src/validators/duration-validators.ts`) replaces
-`Validators.min`/`max` here for two reasons, both of which cost real UX:
-
-- **Whole numbers.** The API field is a Go `int`, so a fractional entry (`type="number"` accepts
-  decimals) fails `json.Unmarshal` outright and returns an unparseable-body error rather than a
-  field-level message.
-- **Visible messages.** `BaseInputComponent.errorMessages` only maps `required`/`email`/`duplicate`/
-  `min`, so a `Validators.max` failure renders as an **empty** `mat-error` — a red field with no
-  explanation. This validator emits its message as the error *value*, which takes that component's
-  `typeof value === "string"` path and renders verbatim. Reach for the same trick for any new
-  validator whose error key is not in that map.
-
-## Activity source file (preview / download)
-
-A failed quick scan or email upload keeps its image, so the user can retrieve it and enter the receipt
-by hand — the endpoints and the retention window are in `api/CLAUDE.md` → "Activity source files".
-
-- **Two places render it.** The dashboard **activity widget**'s `itemMetaTemplate`
-  (`activity-source-file-preview` / `-download`, beside the existing rerun button), and an **opt-in
-  column** on the shared `app-task-table` behind `[showSourceFileActions]="true"` — only the System
-  Settings → System Tasks page passes it, so the component's other host is unchanged. The column id
-  goes into `displayedColumns` **before** the `"expand"` push (`expand` stays last, and `mat-table`
-  throws on a displayed id with no matching `columns` entry).
-- **Both gate on `item.hasSourceFile` and the group permission**, and the server decides the flag —
-  on the app-scoped tasks table it is resolved per caller, so a button never appears where the
-  endpoint would 403.
-- **Gate on `item.groupId`, NOT the widget's `groupId()`.** The activity widget's rerun button had
-  this wrong: on the "All" dashboard `groupId()` is the synthetic aggregate, which never appears in
-  `AuthState.groupPermissions`, so every control silently vanished for activities the user was
-  entitled to act on. Mobile fixed it long ago and documents the reasoning at
-  `group_activity_list_item.dart`; desktop never did. Rerun was fixed in the same change, and
-  `activity.component.spec.ts` pins it by setting the two ids to different values.
-- **`SourceFileViewerDialogComponent`** (`shared-ui/source-file-viewer-dialog/`) wraps
-  `app-image-viewer` in `app-dialog`, opened with `DEFAULT_DIALOG_CONFIG` — shaped on
-  `DescriptionViewerDialogComponent`, and declared **and** exported in `SharedUiModule`.
-- **The download is observed as a `response`, not a body.** The original file name is only on
-  `Content-Disposition` and an activity row does not carry it, so
-  `filenameFromContentDisposition` (`src/utils/file.ts`) reads it back before handing off to the
-  shared `downloadFile`.
-
-**E2E:** `e2e/failed-activity-source-file.spec.ts` (serial, admin storageState). It is the only test
-that proves the image actually survived in `temp/` through a failure and that the asynq payload still
-resolves to it. Making a quick scan fail is the whole trick: the spec points the **global** AI
-provider at an unreachable host rather than assuming the backend has none configured, which is what
-makes it work against the shared demo backend as well as a local database. It therefore mutates
-global state, runs serially, restores what it found, and leans on the `e2e-shared-backend` job-level
-concurrency group. It asserts the preview converts, the download is **byte-identical** to the
-uploaded fixture, a non-member 403s on both endpoints, and the tasks table renders the controls.
-
-`e2e/temp-file-retention.spec.ts` covers the setting's own round trip (days in, hours stored, days
-rendered back) and the 24-hour floor. **Do not try to e2e the sweeper** — the 24-hour minimum
-retention makes it unobservable; its coverage is the Go table tests.
-
-## Signals & Zoneless Change Detection
-
-This application uses Angular's signal-based reactivity model with zoneless change detection (`provideZonelessChangeDetection()`). All new code MUST follow these patterns.
-
-### Signal Primitives — Decision Guide
-
-| Need | Use | NOT |
-|------|-----|-----|
-| Mutable state | `signal()` | Plain class properties |
-| Read-only derived value | `computed()` | `effect()` that copies signals |
-| Writable derived state (resets on dependency change, can be overridden) | `linkedSignal()` | `effect()` that sets a signal |
-| Sync signal state to imperative/external APIs (DOM, localStorage, canvas, analytics) | `effect()` | — |
-| DOM measurement/manipulation after render | `afterRenderEffect()` | `effect()` + `setTimeout` |
-| Async data fetching | `resource()` | Manual subscribe + signal set |
-| Observable → Signal bridge | `toSignal()` | `subscribe()` + signal set |
-| Signal → Observable bridge | `toObservable()` | — |
-
-### signal() — Writable State
-- Use for mutable, source-of-truth state in components or services.
-- Prefer `signal()` over plain class properties — signals automatically notify Angular's change detection.
-- Provide a custom equality function when needed to avoid unnecessary updates.
-
-```typescript
-count = signal(0);
-items = signal<Item[]>([]);
-```
-
-### computed() — Derived State
-- Use whenever a value is derived from other signals. Always prefer over `effect()` for derivations.
-- Computed signals are lazy (not evaluated until read) and cached (not recalculated until dependencies change).
-- Safe to perform expensive operations (e.g., filtering arrays) inside computed.
-
-```typescript
-fullName = computed(() => `${this.firstName()} ${this.lastName()}`);
-filteredItems = computed(() => this.items().filter(i => i.active));
-```
-
-### linkedSignal() — Writable Derived State
-- Use when a value normally follows a computation but can be manually overridden.
-- Resets to the computed value when dependencies change, but allows `set()`/`update()`.
-- Perfect for selections that reset when options change.
-
-```typescript
-// Resets to first option when options change, but user can select manually
-selectedOption = linkedSignal(() => this.options()[0]);
-```
-
-### effect() — Side Effects (Last Resort)
-- **NEVER** use `effect()` to derive state or copy signal values between signals. Use `computed()` or `linkedSignal()` instead.
-- **ONLY** use for syncing to non-reactive/imperative APIs: logging, localStorage, canvas rendering, third-party UI libraries.
-- Effects run during change detection. They do not need `allowSignalWrites` (removed in Angular 19).
-- Use `afterRenderEffect()` instead when you need to read DOM properties (offsetWidth, etc.) after rendering.
-
-```typescript
-// GOOD: Syncing to localStorage
-effect(() => {
-  localStorage.setItem('theme', this.theme());
-});
-
-// BAD: Deriving state — use computed() instead
-effect(() => {
-  this.fullName.set(`${this.firstName()} ${this.lastName()}`); // ❌ NEVER DO THIS
-});
-```
-
-### Signal Inputs — input() and input.required()
-- Use `input()` for optional inputs with defaults. Use `input.required()` for required inputs.
-- Signal inputs are read-only (`InputSignal`). Template binding syntax `[prop]="value"` is unchanged.
-- Use `computed()` to derive values from inputs. Use `effect()` only for imperative side effects triggered by input changes.
-- Use `model()` for two-way binding (component modifies a value based on user interaction, e.g., custom form controls).
-
-```typescript
-// Required input — no undefined in type
-mode = input.required<FormMode>();
-
-// Optional input with default
-disabled = input(false);
-
-// Optional input without default
-tooltip = input<string>();
-
-// Two-way binding
-value = model<string>('');
-
-// Deriving from inputs — use computed, NOT effect
-displayText = computed(() => this.mode() === FormMode.Edit ? 'Save' : 'Create');
-```
-
-**Replacing ngOnChanges:** Convert input-watching logic from `ngOnChanges` to `computed()` (for derived values) or `effect()` (for imperative side effects like loading data).
-
-```typescript
-// Before (ngOnChanges)
-ngOnChanges(changes: SimpleChanges) {
-  if (changes['groupId']) this.loadData();
-}
-
-// After (effect for imperative side effect)
-constructor() {
-  effect(() => {
-    const id = this.groupId();
-    if (id) this.loadData(id);
-  });
-}
-```
-
-### Signal Outputs — output()
-- Use `output()` instead of `@Output() + EventEmitter`. Template syntax `(event)="handler($event)"` is unchanged.
-- Use `outputFromObservable()` when the source is an Observable.
-
-```typescript
-clicked = output<MouseEvent>();
-// Emit: this.clicked.emit(event);
-```
-
-### Signal Queries — viewChild() / viewChildren()
-- Use `viewChild()` / `viewChildren()` instead of `@ViewChild` / `@ViewChildren`.
-- Access via signal call: `this.paginator()` instead of `this.paginator`.
-- Use `viewChild.required()` when the element is guaranteed to exist (not behind `@if`).
-
-```typescript
-paginator = viewChild.required(MatPaginator);
-optionalEl = viewChild<ElementRef>('myEl');
-items = viewChildren(ItemComponent);
-```
-
-### RxJS Interop
-- **`toSignal(observable)`**: Converts Observable to Signal. Creates a subscription — call once and reuse the signal, never call repeatedly. Automatically unsubscribes on destroy.
-  - Provide `initialValue` for Observables that don't emit synchronously.
-  - Use `requireSync: true` for BehaviorSubject or other synchronous sources.
-- **`toObservable(signal)`**: Converts Signal to Observable. Only emits the latest stabilized value.
-- **`takeUntilDestroyed()`**: Replaces `@UntilDestroy()` / `untilDestroyed(this)`. Use in constructor or pass `DestroyRef`.
-- **`outputFromObservable()`**: Declares an output from an Observable source.
-
-```typescript
-// NGXS selector → signal (preferred pattern)
-groups = this.store.selectSignal(GroupState.groups);
-
-// HTTP Observable → signal
-data = toSignal(this.http.get<Data>('/api/data'), { initialValue: [] });
-
-// Cleanup subscriptions
-constructor() {
-  this.someObservable$.pipe(
-    takeUntilDestroyed(),
-  ).subscribe(val => this.doSomething(val));
-}
-```
-
-### NGXS State Access
-- Use `store.selectSignal()` instead of `@Select` decorator for template-bound state. Returns a `Signal<T>`.
-- `store.selectSnapshot()` remains valid for synchronous one-time reads in methods.
-- Remove `| async` pipe from templates — use signal reads `()` instead.
-
-```typescript
-// Before
-@Select(AuthState.isLoggedIn) isLoggedIn!: Observable<boolean>;
-// Template: *ngIf="isLoggedIn | async"
-
-// After
-isLoggedIn = this.store.selectSignal(AuthState.isLoggedIn);
-// Template: @if (isLoggedIn()) { ... }
-```
-
-### Zoneless Change Detection Rules
-Angular no longer uses zone.js. Change detection is triggered ONLY by:
-1. **Signal writes** — `signal.set()`, `signal.update()`, `computed()` recalculation
-2. **`ChangeDetectorRef.markForCheck()`** — for non-signal reactive patterns (AsyncPipe calls this automatically)
-3. **Template event bindings** — `(click)="handler()"` automatically triggers CD
-4. **`ComponentRef.setInput()`** — programmatic input setting
-
-**Key implications:**
-- Plain property mutations (`this.foo = 'bar'`) in async callbacks (subscribe, setTimeout, Promise.then) will NOT trigger change detection. Always use signals for state that affects templates.
-  - **`finalize()` is an async callback too, and a success path can mask the bug.** The login form
-    kept `isLoading` as a plain field reset in `finalize()` for ~5 months after the zoneless
-    migration (`d3b4246`, which never touched that file): on success `router.navigate()` happened to
-    trigger CD so the reset repainted, while on **failure** nothing did and the spinner stuck
-    forever. State only written on a failure path is the easiest kind to miss — check that a
-    converted signal is exercised by a test on the *error* branch, not just the happy one.
-- `ChangeDetectorRef.detectChanges()` still works but is rarely needed — prefer signals.
-- `setTimeout` still works for delays but won't auto-trigger CD. The callback must write to a signal if the template needs updating.
-- All `@HostListener` handlers automatically trigger CD (same as template events).
-
-### Testing with Zoneless
-- Add `provideZonelessChangeDetection()` to `TestBed.configureTestingModule` providers.
-- Prefer `await fixture.whenStable()` over `fixture.detectChanges()` for most realistic test behavior.
-- Use `TestBed.flushEffects()` when testing effect-based logic.
-
-## E2E Testing
-
-End-to-end tests live in `e2e/` and use **Playwright**. They drive the real Angular UI against a real Go API. Config is `playwright.config.ts`.
-
-### Running locally
-
-1. **One-time:** install browsers — `npm run e2e:install`. (In the Claude Code web sandbox the browser
-   is pre-installed and `e2e:install` is blocked — apply the `chromium-1217` /
-   `chromium_headless_shell-1217` symlinks from "Running in the Claude Code Web/Cloud Sandbox" above
-   instead.)
-2. **One-time:** create the two e2e accounts against your local DB. On a fresh DB, public sign-up is
-   **off** (`enableLocalSignUp` defaults false) and the API has already auto-created `admin`/`admin`,
-   so create them as `admin` (Users screen, or `POST /api/user/` with `appRoleId`):
-   - username `e2e-admin`, password `e2e-admin-password`, display name `E2E Admin`, role Legacy Admin
-   - username `e2e-user`, password `e2e-user-password`, display name **`E2E User`**, role Legacy User
-
-   The display name matters: the provisioning fixtures pick the member by the option text
-   `E2E User`, so any other name times out every spec that builds a group in `beforeAll`.
-3. **Every run:** source the dev env script so the `E2E_*` vars are exported:
-   ```bash
-   cd ../api/dev && source switch-to-sqlite.sh && cd -
-   ```
-   (`switch-to-mariadb.sh` / `switch-to-postgresql.sh` work the same — all three export the same `E2E_*` defaults.)
-4. Start the Go API separately (`cd ../api && go run main.go`). Playwright auto-starts the Angular dev server via its `webServer` config, but it cannot launch the API.
-5. Run the tests: `npm run e2e` (or `npm run e2e:ui` for watch-style debugging).
-
-### CI
-
-The e2e specs do not run in this fork's CI (they need a live API). To run them against a remote deployment, set `E2E_BASE_URL` to it and supply the `E2E_*` credentials. When `E2E_BASE_URL` is remote, the config skips the `webServer` block and does not start a local dev server.
-
-The mobile e2e suite that used to share this backend was removed.
-
-### Best practices (follow these when adding new e2e tests)
-
-**Locators — prefer `data-testid`; auto-retrying selectors only.**
-- **Use `page.getByTestId(...)` as the standard selector.** Icon-only controls (the shared
-  `app-add-button` / `app-edit-button` / `app-delete-button` / `app-cancel-button`, filter/menu icon
-  buttons, etc.) and any element without a stable accessible name **must** carry a `data-testid`. Name
-  it `<resource>-<action>` — e.g. `group-delete`, `comment-delete`, `receipt-duplicate`,
-  `add-group-member`, `dialog-submit-button`. The `data-testid` passes through the shared button
-  components to the host element, so `getByTestId('comment-delete')` resolves it directly.
-- `page.getByRole('button', { name: '...' })` / `page.getByLabel(...)` / `page.getByPlaceholder(...)`
-  remain fine for elements that already have a real accessible name (text buttons, labelled inputs).
-- **Never** use structural CSS chains (`page.locator('app-receipt-comments app-delete-button')`) or raw
-  CSS/XPath (`page.locator('.btn-primary')`) — they're brittle to component-structure refactors. Add a
-  `data-testid` to the control instead.
-
-**Assertions — rely on web-first expects, never `waitForTimeout`.**
-- Use `await expect(locator).toBeVisible()`, `toHaveText()`, `toHaveURL()`, `toHaveCount()` — they auto-retry until `expect.timeout`.
-- Never `await page.waitForTimeout(ms)` — it's a fixed sleep and flakes.
-- Prefer `await page.waitForURL(/.../)` or `await page.waitForResponse(...)` for navigation/network waits.
-
-**Isolation — each test gets a fresh `BrowserContext`.**
-- No cookies/localStorage/session leak between siblings.
-- Do NOT hand-write state-sharing between tests. If two tests need a logged-in session, use Playwright's `storageState` pattern (see below), not module-level globals.
-
-**Auth — reuse login state, don't re-login in every test.**
-- Current suite is tiny (login IS the test), so each test logs in via the UI. Fine for now.
-- When the suite grows, switch to the **setup project** pattern: a `*.setup.ts` file logs in once and saves `storageState` to `e2e/.auth/<role>.json`; other tests declare `test.use({ storageState: 'e2e/.auth/user.json' })`. Keep `.auth/` git-ignored — it contains session cookies.
-- One storageState file per role (admin, user). Never share one login across roles.
-
-**`webServer` — for processes Playwright can launch.**
-- The config uses `webServer` to start `npm start` when `E2E_BASE_URL` is localhost, and skips it when the URL is remote. `reuseExistingServer: !process.env.CI` lets local devs keep `ng serve` running between runs.
-- Playwright cannot launch the Go API — that's always a separate process.
-
-**Env vars and secrets.**
-- Read via `process.env.E2E_*` — never hardcode credentials.
-- Local defaults come from `api/dev/switch-to-*.sh`. CI values come from GitHub secrets.
-- Never commit `.env` files or `e2e/.auth/` artifacts.
-
-**Parallelism and flake budget.**
-- `fullyParallel: true` is on. Tests must not mutate shared server state in ways that collide (same DB row, same uploaded file, same group membership). When you need mutation, create unique data per test (timestamp/UUID in names) and clean up after.
-- `retries: 2` in CI, `0` locally — a test that only passes with retries is a bug, not a feature. Fix the root cause.
-- `trace: 'on-first-retry'` captures a trace file on the first retry; view with `npx playwright show-trace <file>`. Do not set `trace: 'on'` — too heavy.
-
-**Writing selectors for this app.**
-- Forms use a custom `<app-input>` wrapper over `<mat-form-field>`. `page.getByLabel('Username')` resolves through the `<mat-label>` association.
-- Submit buttons use `<app-button>` rendering `<button>` with visible text — `page.getByRole('button', { name: '...' })` works directly.
-- Error feedback is often a Material snackbar (not inline `<mat-error>`). When asserting errors, locate the snackbar container or its text, not the form.
-- **`getByLabel` matches substrings.** On any password field carrying the generate button, plain
-  `getByLabel('Password')` resolves *two* elements — the input and the button, whose accessible name
-  is "Generate password" — and fails on strict mode. Use `getByLabel('Password', { exact: true })`
-  for the Create User / Set Password dialogs (the login form has no generate button, so it is
-  unaffected). The generated password is asserted in `generate-password.spec.ts`, which also grants
-  `permissions: ['clipboard-read', 'clipboard-write']` in `test.use` — the only clipboard-reading
-  spec in the suite.
-
-### Per-member category/tag grant specs
-
-Three specs cover the per-member grant feature (see `api/CLAUDE.md` → "Category/tag grant
-resolution"). They use the standard **`e2e-user`** as the restricted member with custom **group**
-roles — no custom app role or per-spec `storageState` is needed, because the default app role
-(Legacy User) omits `app.categories.read`/`app.tags.read`, so that user does **not** get the admin
-grant bypass and is genuinely restrictable.
-
-- **`member-grant-visibility.spec.ts`** — the composed semantics: role-only, member-only, the
-  intersection, a role narrowed below an existing assignment (fails closed), clearing, category/tag
-  independence, the require-individual toggle both ways, the write-side 403 on an out-of-grant
-  category, and that the receipt form's picker offers exactly the effective set. Assertions read
-  `apiMemberCatalog` (appData's per-group catalogs) — the same array the desktop pickers render
-  from, so it tests the real delivery path rather than a parallel one.
-- **`member-grant-security.spec.ts`** — the silent failure modes: a member with
-  `group.members.update` but **not** `group.members.grants.update` is denied (with the positive
-  contrast), ceiling/existence/non-member rejections, the URL (not the body) identifying the
-  membership, and the two lifecycle regressions — a group rename preserving both the assignment and
-  its restriction flag, and no grant resurrection when a removed member rejoins. Both lifecycle
-  tests were verified to FAIL when their fix is reverted.
-- **`member-grant-assignment.spec.ts`** — the authoring UI: one section per group, the ceiling
-  narrowing the offered pool plus its hint, the unrestricted case, assignment persisting, an
-  untouched save issuing **no** grants request, both add-modes hiding the section, the role form
-  rehydrating its grants, and the **"one record, two doors"** check that the group-member dialog and
-  the user form edit the same membership.
-
-Helpers added to `e2e/helpers/provisioning.ts`: `apiCreateCategory`/`apiCreateTag` (+ deletes),
-`apiSetMemberGrants` (returns the raw response so specs assert 200/400/403/404), `apiMemberCatalog`,
-`apiSetGroupRoster`, `apiGetGroupMembers`, plus `categoryGrants`/`tagGrants`/`requiresIndividual*` on
-`UpsertRolePayload` and `CreateRoleOptions`.
-
-**Gotchas these specs encode:**
-- **Categories/tags are global with a unique name** — every spec mints `uniqueName`-suffixed ones and
-  deletes them in `afterAll`, or a re-run's create fails.
-- **Teardown order:** group → role → categories/tags (a role can't be deleted while assigned).
-- The group roster is only editable on `/groups/:id/details/**edit**`; `/details/view` is read-only.
-- The group-member dialog's submit is dispatched (`dispatchEvent('click')`) rather than clicked:
-  adding a chip grows the dialog and MatDialog re-centres, so the footer button never satisfies
-  Playwright's stability check.
-
-### Permission-gating specs (provisioned roles/users/groups)
-
-Negative-permission coverage needs an account/role that *lacks* the permission under test, which no
-seeded account provides — so an admin context **provisions a custom role (and user/group) through the
-real UI** in `beforeAll` and **tears it down through the admin API** in `afterAll`. Shared flows live
-in `e2e/helpers/provisioning.ts`: `createRole` (role form — type, preset, category toggles, individual
-toggle-offs), `createUserWithRole`, `createGroupWithMember`, `uniqueName`, and the API-teardown
-helpers `withAdminApi` + `apiDeleteUserByName` / `apiDeleteGroupById` / `apiDeleteRoleByName`.
-`createRole` also accepts `skipDefaultGroup` (app roles only — ticks the "Group creation" checkbox).
-
-- **Asserting as a provisioned user without a browser session.** `withApiAsCreds(username, password,
-  fn)` opens an `APIRequestContext` for arbitrary credentials — `withApiAs` is now a thin wrapper over
-  it for the two `E2E_*` fixture accounts. Use it when the assertion is about server state rather than
-  UI, e.g. `apiGroupNames(api)` (the caller's own groups, gated on `app.account.read`) in
-  `skip-default-group.spec.ts`, which checks a new account got the "All" group but no personal
-  "My Receipts". A role built from the **"Read Only"** preset grants every `*.read` permission,
-  including the `app.account.read` those calls need.
-
-- An admin `BrowserContext` (`storageState: 'e2e/.auth/admin.json'`) provisions in `beforeAll`. Tests
-  then run **either** as the default e2e-user — for a *group-scoped* member added to a fixture group
-  (Angular re-fetches AppData on every navigation, so a membership added after the saved session still
-  drives the route guards without re-login) — **or** as a freshly-provisioned *custom user* whose
-  session is captured to a git-ignored `e2e/.auth/<name>.json` (wait for the held permission in
-  `localStorage.auth` before saving) and `rmSync`-ed in `afterAll`.
-- **Teardown is API-based, not UI.** The role-list delete button is disabled while a role is assigned,
-  and the UI's *bulk* user-delete dummy-converts a group-owning user (so the role stays assigned and
-  never deletable) — UI teardown leaks roles. `withAdminApi` logs in via `request.newContext` (through
-  the dev-server `/api` proxy) and `DELETE /api/user/{id}` **hard-deletes** (freeing the app-role) /
-  `DELETE /api/group/{id}` frees the group-role assignment, so the role then deletes. **Order:** delete
-  the user/group first, then the role; best-effort `try/catch` so a cleanup error doesn't mask the result.
-- Reference specs: `group-viewer-visibility.spec.ts`
-  (group member with a group role), `search-bar-visibility.spec.ts` (no `app.receipts.search` → header
-  search bar never renders), `paid-by-visibility.spec.ts` (a group role limited to "their own receipts" → a hidden-payer receipt
-  `GET` 403s and is absent from the list, the member's own 200s; uses `withApiAs`/`apiCreateReceipt` and
-  the `createRole` `paidByOwn` option in `helpers/provisioning.ts`),
-  `comment-gating.spec.ts` (Receipt-Editor-preset members minus `group.comments.create` / `.delete` →
-  no composer / no delete control; uses `apiCreateComment`),
-  `receipt-feature-gating.spec.ts` (Quick Scan / Magic Fill controls hidden for a Viewer —
-  positive contrast is a `test.fixme` because both also sit behind the `aiPoweredReceipts` feature
-  flag, which is `false` in the dev/CI API),
-  `group-delete-any.spec.ts` (two app roles differing only in **Delete Any Group**: the holder deletes
-  a group it isn't a member of from the All Groups view and the table stays on that filter; the other
-  sees the same group with no `group-delete` action and its direct `DELETE /api/group/:id` **403s**),
-  `receipt-action-gating.spec.ts` (a Legacy Viewer sees no duplicate/delete row action, the
-  `/receipts/:id/edit` route redirects, and `POST /api/receipt` **403s** via `withApiAs('user')`).
-  `legacy-user-visibility.spec.ts` likewise carries **API-403** assertions (`DELETE /api/category|tag/:id`)
-  so server enforcement is proven, not just the hidden control. Note: the receipts-table **edit** action
-  is not template-gated (only duplicate/delete are); the edit *route* is guarded, so the edit denial is
-  asserted at the route level, not button absence. (`receipt-action-gating.spec.ts` is a standalone
-  spec rather than an extension of `group-viewer-visibility.spec.ts`, whose serial block has a known
-  pre-existing failure — a Legacy User can't load `/groups` — that would skip any test appended to it.)
-
-## App time zone (dates)
-
-One admin-set IANA zone (System Setting `timeZone`, default `UTC`) decides every calendar boundary.
-It reaches the desktop on AppData and lives in **`SystemSettingsState.timeZone`** (persisted slice;
-the selector falls back to `UTC` for a hydrated slice that predates the key), set by `setAppData`.
-All helpers are in `src/utils/app-time-zone.ts`. The rules (root `CLAUDE.md` holds the table):
-
-- **Two kinds of value.** A receipt's `date` and DATE custom fields are **calendar days**, stored as
-  midnight UTC and read by their **UTC** day, so no zone ever shifts them. `createdAt`,
-  `resolvedDate`, `updatedAt`, task `startedAt`/`endedAt` etc. are **instants**, shown in the app zone.
-- **Display: the `appDate` pipe** (`src/pipes/app-date.pipe.ts`, standalone, exported by
-  `PipesModule`) replaces Angular's `date` pipe everywhere — do not add a bare `| date`.
-  `value | appDate[:format]` is instant mode: `DatePipe` formatting with `offsetAt(value, zone)`
-  (DatePipe takes an offset, not an IANA name, and the offset depends on DST at that instant).
-  `value | appDate:format:'calendar'` shows the stored UTC day. Format strings are DatePipe's
-  (default `mediumDate`); empty/unparseable → `null`, so `(x | appDate) || 'Never'` works.
-  - **It is impure on purpose**: it reads the zone signal in `transform`, which the template's
-    reactive consumer tracks, so a zone change repaints every date under zoneless CD. A pure pipe
-    would keep its cached string. It memoizes on (value, format, mode, zone).
-  - Code that builds strings outside a template uses `formatAppDate(...)` (e.g. `SearchResultPipe`).
-  - **Filter chips deliberately do not use it**: a filter value is the day the user *picked*, a
-    local-midnight `Date`, so the chips keep formatting it on the browser's calendar.
-- **Wire rule.** Date **filters** go out as a bare `yyyy-MM-dd` via `toDateWireFilter(filter, keys)`
-  (`src/utils/date-wire-filter.ts`), applied **at the request, never in the store** (the datepicker
-  would misread a stored bare day as UTC midnight). Callers: `ReceiptFilterService.buildPagedRequestCommand`
-  (table, summary, filtered-receipts widget), the pie-chart widget, CSV export, the report builder's
-  preview/generate (`toReportRequestCommand`) **and save** (`toReportRequestCommandForSave`), and
-  system tasks (`toSystemTaskWireFilter`). The server turns the day into a range in the right zone.
-  - **Saved report templates store bare days too.** The server generates a template later and reads
-    an instant by its calendar day *as written*; a local midnight east of UTC is written as the
-    previous day (`2026-08-31T15:00:00.000Z` for a Tokyo Sep 1), so a stored instant silently covered
-    the wrong days. The way back is `fromDateWireFilter(filter, keys)` in `buildReportFormFromCommand`:
-    a bare day becomes the datepicker's local midnight, and a **legacy instant** loads as its first
-    ten characters — the day as written, which is the day the server generates it for, so the builder
-    never disagrees with the report. A re-save rewrites it as a bare day. The round-trip specs
-    (`report-form.factory.spec.ts`) pin both, through the save mapper as well as generate. **Receipt dates** go out as midnight UTC of the picked day
-  (`2026-09-30T00:00:00.000Z`, `toMidnightUtc`), converted in `ReceiptFormComponent.buildSubmitCommand()`
-  on a copy of the form value; on load `calendarDayToLocalDate` turns the stored UTC day into the
-  datepicker's local midnight (also used for magic fill, replacing the old `getTimezoneOffset` hack).
-- **"Today" is `todayInZone(zone)`**, a local-midnight `Date` of the zone's calendar day: the month
-  stepper's seed and shortcuts, the `WITHIN_CURRENT_MONTH` implied range in `app-filter-field`, a new
-  receipt's default date, and the report period hint, which also names the zone for instant fields
-  ("… on Added At (America/New_York)"; Receipt Date is named alone).
-- **The setting** is a "Time Zone" `app-form-section` on the System Settings form (above Currency
-  Format): a single-select `app-autocomlete` (`data-testid="system-settings-time-zone"`,
-  `[creatable]="false"`, `Validators.required`) over `timeZoneOptions()` — `UTC` first, then
-  `Intl.supportedValuesOf('timeZone')` (~420 bare strings; the autocomplete filters and renders plain
-  strings itself, so no `{ value, displayValue }` objects are needed). Two traps:
-  - **It must pass a `displayWith`** (`timeZoneDisplayWith`). The autocomplete's default returns
-    `""`, which would blank the field the moment a zone is picked.
-  - Seeded from `originalSystemSettings?.timeZone || "UTC"`, added to the view-mode disable block, read
-    through `getRawValue()` like every other control, and dispatched as `SetTimeZone` after a
-    successful save (next to `SetCurrencyData`), so the open app repaints in the new zone without a
-    reload. Other sessions pick it up from AppData on their next load. Both full-object `toEqual`s in
-    the spec carry the key.
-- **E2E:** `e2e/app-time-zone.spec.ts` (serial, admin storageState; `timeZone` is **global**, so
-  `beforeAll` captures it and `afterAll` restores the captured value). It picks `America/New_York` in
-  the typeahead (clearing the current value first — a single-select goes `readonly` once filled),
-  asserts `GET /api/systemSettings` stored it, then checks a seeded receipt's **"Added at"** line
-  (`appDate:"medium"`) against its real `createdAt` formatted in New York, and the report builder's
-  hint naming the zone; switching back to UTC through the API (so the browser learns it from AppData)
-  moves both back. `created_at` cannot be set through the API, so the "late Sep 30 Eastern lands in
-  last month" case is pinned by the Go report tests instead. Whitespace is normalized before
-  comparing, because Angular's CLDR data puts a U+202F before AM/PM.
-
-## Filter dialogs (the shared pieces)
-
-Two tables have a `{ operation, value }` filter dialog — receipts and system tasks — and they are
-**one implementation with two field lists**, not two dialogs. Anything new of this shape reuses these
-four pieces rather than copying a row template:
-
-- **`app-filter-field`** (`src/shared-ui/filter-field/`, declared *and exported* by `SharedUiModule`)
-  renders one row: the value editor for the field's `type` beside its Operation `app-select`,
-  switching shape with the selected operation (a two-slot range for `BETWEEN`, a **disabled** implied
-  range for `WITHIN_CURRENT_MONTH`, a single editor otherwise). It is deliberately presentational and
-  form-agnostic — it reaches into the caller's `parentForm` by `basePath + fieldName`, exactly as the
-  receipt filter's local `#filterField` template did before it was extracted.
-- **`src/utils/filter-form.ts`** holds the form machinery: `buildFieldFormGroup` (a `FormArray` value
-  for list/users fields, because the multi-select autocompletes `push()` onto the control),
-  `listenForBetweenOperation` (swaps the value control between a scalar and a two-slot range as the
-  operation flips) and `setupAutoOperationSelection` (picks the first operation for a field's type as
-  soon as it gains a value, and clears it when the value empties). Every entry point takes a
-  `thisContext` for `untilDestroyed`, so **the calling component must carry `@UntilDestroy()`**.
-  `buildReceiptFilterForm` and `buildSystemTaskFilterForm` are thin field lists over these.
-- **`src/utils/filter-chips.ts`** builds the chip labels (`"<Field> <operation> <value>"`,
-  `WITHIN_CURRENT_MONTH` stopping at the operation, `BETWEEN` joined with `" – "`). It is pure: the
-  caller injects `formatDate` / `formatCurrency` / `resolveOptionName`. `receipt-filter-chips.ts` and
-  `system-task-filter-chips.ts` are wrappers supplying only their own id resolution. There is
-  deliberately **no suppression hook**: every active condition gets a chip, because one without a
-  chip is one the user can neither see nor clear (see "Every active condition is chipped" below).
-- **`FilterField<TKey>` / `FilterFieldType`** (`src/constants/filter-fields.constant.ts`) is the one
-  field-metadata type; `ReceiptFilterField` and `SystemTaskFilterField` are aliases of it.
-  `isFilterEntryActive` (`src/utils/receipt-filter-entry.ts`) is likewise shared verbatim, which is
-  what keeps every Filter badge and its chip row in agreement.
-
-**A chip row needs `MatChipsModule` in the consuming module** — `SharedUiModule` imports it but does
-not export it. `MatIconModule` too, for the `cancel` icon inside `matChipRemove`.
-
-## Receipts table filtering
-
-The receipts table (`src/receipts/receipts-table/`) offers three ways into **one** filter —
-`ReceiptTableState.filter`, which is persisted to localStorage. The advanced dialog
-(`app-receipt-filter`), the month stepper and the filter chips all read and write that single slice,
-so they can never disagree.
-
-- **Field metadata is shared — but the labels only partly.** `RECEIPT_FILTER_FIELDS`
-  (`src/constants/receipt-filter-fields.constant.ts`) defines each field's key, label and operation
-  type, and `OperationsPipe` reads the extracted `FILTER_OPERATION_DISPLAY_VALUES`, so the operation
-  wording is genuinely single-sourced. **The field labels are not.** The dialog reads only
-  `{ key, type }` from the constant (the shared `setupAutoOperationSelection()`) and **authors its own
-  label per row** — each row is an `<app-filter-field label="Receipt Date" fieldName="date"
-  type="date">`. So the constant's `label` reaches the chips and the quick-date picker only, and
-  **renaming a field means editing both `receipt-filter-fields.constant.ts` and
-  `receipt-filter.component.html`** or the dialog row will disagree with the chip it produces.
-  (Driving those ten rows from the constant with an `@for` is not the one-liner it looks like: four
-  carry an extra `[options]` binding and the Group row sits in its own conditional.)
-- **A field's label matches its table column.** `date` is **"Receipt Date"**, not "Date" — the
-  column header is `Receipt Date` and the table also shows `Resolved Date` and `Added At`, so a bare
-  "Date" left the user guessing which of the three a filter or chip meant.
-- **`isFilterEntryActive`** (`src/utils/receipt-filter-entry.ts`) is the shared "does this field
-  narrow anything" predicate: any non-empty stringified value, **or** the operation
-  `WITHIN_CURRENT_MONTH` (the one operation that carries no value). **Zero counts** — no field
-  defaults to `0` (they default to `null`/`[]`), and the API applies an `amount EQUALS 0`, so
-  excluding it would leave a filter that narrows the table with no badge and no clearable chip. `ReceiptTableState.numFiltersApplied`
-  and the chip builder both call it, so the Filter badge and the chip set always agree.
-- **Single-field writes go through `SetReceiptFilterField`**, whose handler spreads a new filter
-  object and rebuilds a cleared field from a **fresh** `buildDefaultReceiptFilter()`. That factory
-  replaced the shared `defaultReceiptFilter` constant inside `@State` defaults and `ResetReceiptFilter`
-  for the same reason: the old code wrote the module-level object straight into state, where a later
-  in-place edit would have corrupted the default for the rest of the session.
-  `ReceiptsTableComponent.applyFilterField()` is the only caller — it dispatches the action, then
-  `SetPage(1)`, then refetches, so narrowing a filter from page 7 can never land on an empty page.
-- **`sort()` no longer refreshes the receipt summary** — it calls `getFilteredReceiptsPage()`. See
-  "Receipt summary" below; sorting changes the order of the result set, not its membership.
-- **Refreshes go through one `switchMap`** (`listenForRefreshRequests()`, wired in the constructor;
-  `getFilteredReceipts()` just pushes onto its `Subject`). Each refresh used to be its own
-  subscription, so the last *response* won rather than the last *request* — and the quick date
-  arrows put those one click apart, so a slow earlier page could repaint the table with a month the
-  user had already stepped past. The inner observable carries a `catchError(() => EMPTY)`: an error
-  surfacing *through* `switchMap` would complete the outer subscription and silently kill every
-  later refresh. `getInitialData()` deliberately stays on its own one-shot subscription, because it
-  owns the single `setColumns()` call and that reads `viewChild.required` template refs.
-
-### The month stepper targets one date field
-
-`app-month-stepper` (`src/shared-ui/month-stepper/`, standalone, deliberately presentational) emits
-months; `receipts-table` translates them with `src/utils/receipt-date-filter.ts` and writes them to
-**whichever date field the control is pointed at** — `date`, `resolvedDate` or `createdAt`.
-
-**Its panel is a CDK overlay, not a `mat-menu` — do not "simplify" it back.** The panel holds a year
-pager, a month grid and three shortcuts, and **none of them is a `mat-menu-item`**. Inside a menu
-that makes the `FocusKeyManager`'s item list empty, so arrow keys are no-ops, and
-`ListKeyManager.onKeydown` turns **Tab** into `tabOut`, which `MatMenu` wires to `closed.emit('tab')`
-— so Tab *dismissed* the panel instead of entering it, leaving the whole picker mouse-only
-(verified in a browser: the grid is gone after one Tab). It is now
-`cdkConnectedOverlay` + `cdkTrapFocus [cdkTrapFocusAutoCapture]` with `role="dialog"`, an
-`aria-label`, `(keydown.escape)` and a transparent backdrop; the trap restores focus to the trigger
-when the overlay is destroyed. The year pager's old `$event.stopPropagation()` is gone with it — it
-only existed because a menu closes on any click inside itself.
-
-The same rule applies to the two house alternatives, which is why neither was used: `cdkMenu` (the
-`filtered-stateful-menu` precedent) has the identical empty-key-manager problem, and `ngbPopover`
-(the header notifications precedent) hard-codes `role="tooltip"` on `NgbPopoverWindow`'s host, which
-is equally wrong for interactive content and cannot be overridden. `e2e/receipt-quick-date-filter.spec.ts`
-pins the keyboard path — it fails against a `mat-menu` implementation. A month is written
-as `BETWEEN [startOfMonth, endOfMonth]` — the one operation that can express *any* month, which is
-why this feature needed no API change. Picking a month **overwrites** whatever that field held.
-
-- **The target field is a chip-shaped `mat-menu` trigger at the right-hand end of the control**
-  (`receipts-quick-date-field`), so it reads left to right as "September 2026 … on Receipt Date".
-  It offers `RECEIPT_DATE_FILTER_FIELDS` — the `type: "date"` subset of
-  `RECEIPT_FILTER_FIELDS`, so the picker, the dialog row and the chip all name a field identically.
-  **A `mat-menu` is right here and wrong for the stepper's own panel**: every entry really is a
-  `<button mat-menu-item>`, so the `FocusKeyManager` has items. This is not a licence to convert that
-  panel back — see the paragraph above.
-- **The chosen field is persisted state** (`ReceiptTableInterface.quickDateField` +
-  `SetQuickDateField`), because the filter itself is persisted: without it a reload would leave the
-  stepper reading `date` while the user's month sat on `resolvedDate`. The **fallback lives in the
-  `ReceiptTableState.quickDateField` selector, not only in the `@State` defaults** — defaults never
-  run for a state hydrated from localStorage, so every install that filtered before this key existed
-  would otherwise read `undefined` and index the filter with it. `ResetReceiptFilter` clears it back
-  to `date` alongside the filter.
-- **Switching fields is deliberately non-destructive and triggers no refetch.** It changes no
-  condition, only which one the stepper describes, so a Date filter set in the dialog survives a move
-  to Resolved Date — and is still visible and clearable as its own chip. `SetReceiptFilterData` (the
-  sort path) omits the key and `patchState` only touches what it is handed, so sorting cannot reset
-  it either.
-- **Every active condition is chipped, including the stepper's own.** This reverses the original
-  rule ("never show the same condition twice", which omitted `date` while the stepper named that
-  month): now that the target field is selectable, the chip row is the only place that says *which*
-  date column is filtered, and a condition with no chip is one the user can neither see nor clear
-  from there. `buildReceiptFilterChips` therefore no longer takes an `omitKeys` argument. When the
-  stepper cannot describe the entry (a partial range, a `GREATER_THAN`, `WITHIN_CURRENT_MONTH`) the
-  label reads **"Custom"**, and the chip spells out what it actually is.
-- **`monthFromFilterEntry` must accept ISO strings, not just `Date`s.** The filter is persisted and
-  NGXS serializes through JSON, so after a reload the entry's value is two ISO strings. It matches
-  on calendar fields (day 1, same year+month, `getDaysInMonth` on the end) rather than on the
-  serialized text, which also makes it tolerate the local-midnight pair the dialog's datepickers
-  write. Get this wrong and the label silently degrades to "Custom" after every refresh —
-  `e2e/receipt-quick-date-filter.spec.ts` covers it because the Jest specs cannot.
-- **`WITHIN_CURRENT_MONTH` is a no-op on the backend for `date` today.** `BuildGormFilterQuery` guards
-  every field with `if Filter.Date.Value != nil` and the dialog stores `value: null` for that
-  operation, so it never reaches the query builder — the badge counts it and nothing is filtered.
-  Pre-existing; the chip just surfaces it for the first time.
-- **Arrow steps from "All time"/"Custom" seed the current month** — the **app time zone's**, via
-  the stepper's `[timeZone]` input (see "App time zone") — and then apply the delta, so `‹`
-  and `›` never do the same thing.
-- **`RECEIPT_DATE_FILTER_FIELDS` has a second consumer: the Report Builder's period "Date field"
-  picker.** That one is server-backed, so a new key there needs the API side too. See "Period date
-  field" under "Reports (Report Builder)".
-
-### The overflow menu
-
-Quick Scan, Export all receipts, Configure Columns and the selection actions live in a
-`⋮` `mat-menu` (`data-testid="receipts-overflow-menu"`), always collapsed — not breakpoint-driven.
-
-**Every entry is a plain `<button mat-menu-item>` in `receipts-table.component.html`, never a shared
-component that renders one.** `MatMenu` collects items with a **content** query
-(`@ContentChildren(MatMenuItem, { descendants: true })`), which does not cross a child component's
-**view** boundary — so a `mat-menu-item` rendered inside `app-quick-scan-button`'s own template would
-be invisible to the menu and silently skipped by its `FocusKeyManager` (no arrow-key navigation, no
-typeahead, no open-focus). `display: contents` does not help. The behaviour still lives in one place:
-export calls `ReceiptExportService` directly, and Quick Scan calls the shared
-`openQuickScanDialog(matDialog)` (`src/receipts/quick-scan-dialog/open-quick-scan-dialog.ts`), which
-`app-quick-scan-button` uses too.
-
-Two consequences for tests and styles:
-- **A `mat-menu-item`'s role is `menuitem`, not `button`.** A `getByRole('button', { name: 'Quick Scan' })`
-  negative would pass whether or not the entry rendered, so `receipt-feature-gating.spec.ts` asserts
-  those absences by `data-testid` **with the menu open** (`openReceiptsOverflowMenu` in
-  `e2e/helpers/receipts-table.ts`). Any new negative assertion about a menu entry must do the same.
-- **Menu content renders in a CDK overlay**, outside `app-receipts-table`, so the
-  `ViewEncapsulation.None` + `app-receipts-table { … }` nesting in the component's SCSS cannot reach
-  it — the `N selected` section label is styled at the top level of that file instead.
-
-The chips row is inline markup (`mat-chip-set` / `matChipRemove`) with every label built by the pure
-`buildReceiptFilterChips` util, so `ReceiptsModule` must import **`MatChipsModule`** — `SharedUiModule`
-imports it but does not export it. It makes no exceptions: see "Every active condition is chipped"
-above. An id the caller cannot resolve (a category outside their grants,
-a group they have left) renders as the raw id rather than dropping the chip, so a filter that is
-actively removing rows is never invisible.
-
-## System tasks table filtering
-
-The System Tasks page (`src/system-settings/system-task-table/`) filters on **Type**, **Ran By**,
-**Started At** and **Ended At** through the shared pieces above: a badge-counted Filter button and a
-Reset button in the `app-table-header`, a chip row below it, and `app-system-task-filter` as the
-dialog. `SystemTaskTableState.filter` is the single slice all three read and write.
-
-- **The filter belongs to the page, not to `app-task-table`.** That shared table is rendered by three
-  hosts (this page and `receipt-processing-settings-form`), each with its own table
-  service, so the filter rides in as one optional input (`[filterProvider]`) rather than widening
-  `BaseTableService`. It is a **function**, not the filter value: the page dispatches the filter
-  change and calls `getTableData()` in the same synchronous turn, before change detection pushes a
-  new input value in, so a value input would send the previous filter and a cleared chip would stay
-  applied. The two embedded hosts leave it unbound, the key is omitted from the request, and the
-  API's zero-value filter adds no predicates.
-- **`TaskTableComponent` refreshes through one `switchMap`** (`listenForRefreshRequests()`, wired in
-  the constructor; `getTableData()` just pushes onto its `Subject`), with `catchError(() => EMPTY)`
-  on the *inner* observable so an error cannot complete the outer subscription and kill every later
-  refresh. Clearing two chips in quick succession is the same last-response-wins race the receipts
-  month stepper hit.
-- **"Ran By" is a `list` field, not `users`.** `app-user-autocomplete` cannot prepend the pinned
-  **"System"** option (`SYSTEM_RAN_BY_OPTION_ID = -1`) that matches the rows with no `ranByUserId` —
-  most of the table. Same reason the report builder's paid-by picker is a plain `app-autocomlete`.
-  Both types offer the same `CONTAINS`-only operation, so the row is identical either way. The API
-  turns the sentinel into an `IS NULL` disjunct (see `api/CLAUDE.md` → "System task filtering").
-- **The Type picker omits two types.** `SYSTEM_TASK_TYPE_OPTIONS`
-  (`src/constants/system-task-type-options.ts`) drops `CHAT_COMPLETION` and `OCR_PROCESSING`:
-  `GetPagedSystemTasks` never returns them as top-level rows (they are children, shown in an
-  expanded row), so offering them would be a picker that can only ever return zero rows. Keep
-  `CHILD_ONLY_SYSTEM_TASK_TYPES` in sync with `filteredSystemTaskTypes` in the Go repository —
-  `TestGetPagedSystemTasksExcludesChildTaskTypes` pins that side.
-- **"Receipt Uploaded" is offered, and matches only parentless rows.** A manual create or duplicate
-  records one with no parent, and those are top-level rows; a quick scan or email upload's stays
-  nested under its parent. The row needs no special rendering: `SystemTaskTypePipe` already labels
-  it and the generic description path pretty-prints the receipt JSON. See `api/CLAUDE.md` →
-  "System task filtering".
-- **The persisted slice predates the filter, so every read must tolerate its absence.**
-  `systemTaskTable` was already in both storage-key lists, so an existing session rehydrates with no
-  `filter` key at all. `SystemTaskTableState.filter` / `.numFiltersApplied` and the
-  `SetSystemTaskFilterField` handler all fall back to `buildDefaultSystemTaskFilter()`; without that
-  the page throws for anyone who has ever loaded it before. Covered by a spec case.
-- **`buildDefaultSystemTaskFilter()` is a factory, not a shared constant** — the value is written
-  straight into state, so handing out one object would let a later in-place edit corrupt the default
-  for the rest of the session. Same reasoning as `buildDefaultReceiptFilter`.
-- **Every filter write outside the dialog goes through `applyFilterChange()`**, which dispatches the
-  action, then `SetPage(1)`, then refetches — narrowing from page 7 can never land on an empty page.
-  The dialog's `afterClosed()` does the same.
-- **Date fields are timestamps, and the server widens them to whole days.** `EQUALS` means that
-  calendar day, `BETWEEN` runs to the end of the last day. See `api/CLAUDE.md` → "System task
-  filtering" for the query side.
-- **The date fields go on the wire as `YYYY-MM-DD`, normalized by `toSystemTaskWireFilter`** (now a
-  thin wrapper over the shared `toDateWireFilter` — see "App time zone")
-  (`src/utils/system-task-filter.ts`) where `TaskTableComponent` assembles the request. The
-  datepicker writes a local-midnight `Date`, which serializes as an *instant*; the server resolves
-  that instant to a day in **its** zone, so a UTC-4 browser picking Sep 22 selects Sep 21 against an
-  API in America/Los_Angeles. A calendar day carries no zone to misread.
-  - **Normalize at the request, never in the store.** NGXS persists the filter and hands it back to
-    the datepicker when the dialog reopens, and Material's `NativeDateAdapter.deserialize` matches a
-    bare `YYYY-MM-DD` against its ISO-8601 regex and parses it with `new Date()` — UTC midnight,
-    which renders as the *previous* day west of Greenwich. Storing the normalized form just moves
-    the off-by-one into the picker.
-
-**E2E:** `e2e/system-task-filter.spec.ts` (serial, admin storageState). It seeds a deterministic row
-by creating and deleting an API key (`apiRecordApiKeyDeletedSystemTask` — system tasks are only ever
-written as a side effect of real work, so there is no endpoint that creates one), then asserts what
-the Jest specs cannot: the server narrows (`totalCount` included, which is what proves the predicates
-land before the count), the "System" sentinel matches unattributed rows, a Started At of the task's
-own day matches while the previous day does not, and the filter survives a reload. It also creates a
-receipt through `POST /api/receipt` in a throwaway group and asserts its Receipt Uploaded task comes
-back top-level, with every row the type filter returns parentless.
-
-## Receipt update diff (System Tasks)
-
-An **Updated Receipt** (`RECEIPT_UPDATED`) row stores the receipt before and after the edit. The
-description cell summarizes it ("Changed: name, amount", or "No changes") and its open button shows
-`app-receipt-update-diff-dialog` (`src/shared-ui/receipt-update-diff-dialog/`): the two receipts as
-pretty-printed JSON, before on the left and after on the right, like a split-view diff.
-
-- **The description is double-encoded, which is why it has its own parser.** The API stores
-  `{"before":"<receipt JSON>","after":"<receipt JSON>"}`, each side a JSON *string*.
-  `PrettyJsonPipe`'s cleanup rewrites every `"` inside a string value to `'`, so the rebuilt text is
-  invalid JSON and the pipe falls back to printing the raw escaped string. That was the "busted"
-  display. `parseReceiptUpdateDescription` (`src/utils/receipt-update-description.ts`) parses each
-  side once more and never throws. A **failed** update stores its plain error text, which returns
-  `undefined`, and that row renders through the old `app-pretty-json` path like every other task.
-  `RECEIPT_UPDATED` is the only double-encoded type, so the pipe is untouched.
-- **`TaskTableComponent.receiptUpdates` parses once per page** (a `computed` over the data source,
-  keyed by task id), not per change-detection pass, since each row holds two whole receipts.
-- **The summary ignores the record-keeping fields at every depth**: the API's `BaseModel`, i.e.
-  `id`, `createdAt`, `updatedAt`, `createdBy` and `createdByString`. An update deletes and recreates
-  the receipt's items (linked items included) and custom field values, so they come back with new ids
-  and timestamps on *every* save, and it bumps `updatedAt` on the receipt, its categories and its tags.
-  Comparing those would list `receiptItems`, `customFields`, `categories` and `tags` on every row
-  whose receipt has any. The **diff itself is deliberately raw**, so those lines still show as changed
-  there.
-- **The diff is hand-written** (`src/utils/line-diff.ts`): it trims the common prefix and suffix, runs
-  Myers' O(ND) diff on the rest, and keeps each round's frontier only for the diagonals it can read,
-  so memory is O(D²). Removed and added lines in one run are paired side by side as `changed` rows,
-  and `inlineChange` marks the part that differs. It avoids a new runtime dependency (and the
-  sandbox lockfile drift above). `line-diff.spec.ts` fuzzes it against a reference LCS, so a
-  regression that stays *valid* but stops being *minimal* still fails.
-- **"All lines" is the default**, and "Changes only" (`collapseUnchanged`, 3 lines of context)
-  replaces longer unchanged runs with a "⋯ N unchanged lines" row. A run of one line is shown rather
-  than replaced by a marker the same size.
-- **The code cell's content is written on one template line.** The column is `white-space: pre-wrap`,
-  so template whitespace inside the `<td>` would render as indentation.
-- **Older rows are versioned, and the dialog says how far to trust "before".** The API writes
-  `version: 2`. A row without the key is version 1, whose own "before" is incomplete (see
-  `api/CLAUDE.md` → "Receipt update snapshots"). The listing rebuilds such a row from an earlier
-  complete copy when one exists, and names it in `beforeSource`. `receiptUpdateBeforeState` turns
-  that into one of three states, and the dialog renders a notice for the last two
-  (`data-testid="receipt-diff-version-notice"`, `data-before-state`):
-  - `complete`: a version 2 row; no notice.
-  - `rebuilt`: an `alert-info` naming the copy, "as saved when it was created" or "by the previous
-    update", and its date. It also warns that bulk status changes can fold in.
-  - `incomplete`: an `alert-warning` that item categories and tags, shares and custom field names
-    can show as changed when they weren't.
-  The notice sits **inside** the scroll box, above the table, so it scrolls away rather than
-  shrinking the diff; the sticky header still pins to the box's top. Nothing else on the desktop
-  branches on the version, because the summary and diff simply read the rebuilt "before".
-
-**E2E:** `e2e/receipt-update-diff.spec.ts` updates a receipt through the real API and asserts the
-row summary, the old/new name on the correct sides, and the "Changes only" collapse. The receipt
-keeps an unchanged item across the update under test, so the summary assertion also proves the
-server-side item recreation is not reported as an edit (it fails if only `updatedAt` is ignored).
-It also asserts the stored row carries `version: 2` and that the dialog shows no notice. The current
-API cannot write a version 1 row, so that path is covered by the Go service tests and the Jest specs. It narrows the
-paged response to its own task with `page.route` + `route.fetch()`, so the row is still the real
-server's output while other specs' tasks stay out of the way.
-
-## Quick Scan Configuration
-
-- **Group receipt settings** (`src/group/group-receipt-settings/`) has a **Quick Scan** section: per
-  field (paid-by, status, categories, tags, comment) a *Show* + *Require* `app-checkbox`, plus a default
-  control for paid-by (`app-select` of Uploader/Specific user + a conditional `app-user-autocomplete`) and
-  status (`app-status-select`) shown only when that field is not both shown+required. The component
-  mirrors the backend rule as reactive validators (default required unless shown+required) and coerces an
-  empty `quickScanDefaultPaidById` to `undefined` on submit. See `api/CLAUDE.md` → "Quick Scan Field
-  Configuration".
-  - **The comment toggles are DISABLED (greyed out), not cleared, while `hideComments` is on** — hiding
-    comments group-wide hides the quick-scan comment too, and the derivation is self-healing: the stored
-    values stay put and apply again the moment `hideComments` is unticked. `applyQuickScanDerivedState`
-    (run on init **and** from the `valueChanges` subscription) does the enable/disable with
-    `{ emitEvent: false }` — it runs *inside* that subscription, and `enable()`/`disable()` emit by
-    default, which recurses forever — and returns early outside `FormMode.edit`, because `initForm`
-    disables the whole form *after* subscribing and that disable emits (an unguarded `enable()` would
-    make two checkboxes editable on the read-only view page).
-  - **`submit()` MUST read `form.getRawValue()`, not `form.value`.** A disabled control is omitted from
-    `form.value`, so with `hideComments` on the two comment toggles would be sent as `undefined`,
-    unmarshal server-side as `false`, and the API's unconditional assignment would **wipe the admin's
-    stored configuration**. Guarded by a spec case that submits while they are disabled.
-- **Quick scan dialog** (`src/receipts/quick-scan-dialog/`) resolves each image's config from **that
-  image's selected group** (`GroupState.getGroupById(...).groupReceiptSettings`) to drive per-image
-  field visibility + required validators; hidden paid-by/status are sent empty so the server backfills
-  the group default.
-  - **Until a group is picked for an image, ONLY its Group field renders.** There is no configuration
-    to honour yet, and the old fallback (paid-by/status shown+required) was a guess that flipped the
-    field set the moment the user chose a group whose config hides them. The derivation lives in one
-    pure helper, **`resolveQuickScanFieldConfig(settings, { hasGroup, canCreateComments })`**
-    (`quick-scan-field-config.ts`) — a line-for-line port of mobile's
-    `lib/shared/functions/quick_scan_field_config.dart`, and the single source for both the
-    `show*(i)` getters and `configureImages()`, which previously each carried their own copy of the
-    `?? true` / `?? false` default table.
-  - **`hasGroup` is "a group id is chosen", NOT "settings resolved".** `settingsForIndex` returns
-    `undefined` for *two* states — no group, and a group id the store doesn't know (a stale
-    `quickScanDefaultGroupId`, or AppData not carrying it; pinned by the spec case
-    `'should push new image when there user preferences'`, which seeds a group absent from the
-    store). Only the first collapses to Group-only.
-  - **`configureImages()` gates its CLEARING on `hasGroupAt(i)`, but not its `setRequired`.** Hidden
-    *because this group's config hides it* must clear, so the server backfills its configured default
-    instead of receiving a stale value (what the `preset paid-by falls off the submission` e2e pins).
-    Hidden *because no group is picked yet* must **not**: those values are the caller's
-    `quickScanDefault*` prefills, and every `FormArray.push` in `fileLoaded()` emits `valueChanges`,
-    so `configureImages()` runs **before `groupIds` is even pushed** — an ungated clear wipes the
-    prefills on the first pass and never restores them. Requiredness is recomputed unconditionally
-    because a validator left over from a group the user just **cleared** (the autocomplete's X, which
-    the e2e helper `selectImageGroup` clicks on every switch) has to come off. Note desktop *can*
-    return to the no-group state mid-session this way; mobile's dropdown offers no null option, so
-    there it is only ever the initial state.
-  - `configForIndex(i)` is resolved per call, never cached per index — `removeImage()` shifts every
-    later image down, so an index-keyed cache would hand an image another one's config. Category/tag pickers (`app-category-autocomplete`/`app-tag-autocomplete`,
-  `[creatable]="false"`) source options from `AuthState.groupCategories`/`groupTags` and are serialized
-  as per-image comma-joined id strings for `quickScanReceipt(...)`. The **comment** is an
-  `app-textarea` (`data-testid="quick-scan-comment"`) backed by a scalar per-image `FormControl` in a
-  `comments` `FormArray` — already one string per image, so unlike categories/tags it needs no id
-  joining. `showComment(i)` ANDs the group's `quickScanCommentEnabled`, `!hideComments`, and the
-  caller's **`group.comments.create`** for that image's group (read via `selectSnapshot` and memoized
-  per group id — `AuthState.hasGroupPermission()` allocates a fresh selector per call and the getter
-  runs every change-detection pass). Without the permission the field is hidden and never required, so
-  a member who cannot comment is never locked out of quick scan; the server drops any comment they send.
-  - **The comment's two validators both mirror backend semantics, and neither is the stock Angular
-    one** (`src/validators/text-validators.ts`, shared): `codePointMaxLengthValidator(500)` counts
-    **code points** (`Array.from(v).length`) because `Validators.maxLength` counts UTF-16 code units
-    and would reject `"😀".repeat(500)` — 1000 units but 500 runes, which the API accepts;
-    `trimmedRequiredValidator()` treats whitespace-only as blank because `QuickScanCommand` **trims**
-    each comment on parse, so `"   "` reaches the required check empty and 400s while
-    `Validators.required` called it valid. Both emit the standard `maxlength` / `required` error keys
-    so the shared inputs' message mapping is unchanged. The length cap is attached where the control
-    is **created** (it must survive every show/require recompute); the required one is toggled by
-    `setRequired`, whose optional third argument overrides which validator is toggled — pass a
-    **module-level singleton**, since `removeValidators` matches by reference identity.
-  - **`base-input` has no message for the `maxlength` error**, so an unmapped one renders an *empty*
-    `mat-error`. The `app-textarea` passes `[additionalErrorMessages]` for it (same pattern as
-    `prompt-form` / `receipt-filter`). Any new non-stock error key needs the same treatment.
-  - **Each image's `categories`/`tags` control MUST be a `FormArray`** (`this.formBuilder.array([])`),
-    *not* a `FormControl([])`: `app-category-autocomplete`/`app-tag-autocomplete` run in `multiple`
-    mode, and the base `app-autocomlete`'s `optionSelected` **pushes** the picked option onto the
-    control (`inputFormControl.push(...)`) — exactly as the receipt form's `categories` FormArray does.
-    A plain `FormControl` has no `push()`, so a selection throws `push is not a function` and silently
-    adds nothing (the picker looks dead). Clear a hidden field with `FormArray.clear()`, not
-    `setValue([])` (which throws on a non-empty array). Guarded by `quick-scan-dialog-behavior.spec.ts`
-    (picks a category and asserts the submit carries its id).
-- **E2e** (`e2e/quick-scan-config.spec.ts`, `e2e/quick-scan-dialog.spec.ts`, `e2e/quick-scan-dialog-behavior.spec.ts`,
-  admin storageState): the config page is driven directly (checkboxes carry `data-testid`s
-  `quick-scan-<field>-show/-require` because the "Show"/"Require" labels collide across the four field groups).
-  The dialog is gated by the `aiPoweredReceipts` feature flag (off in dev/CI); rather than mutate that global
-  server state, the specs **intercept `GET /api/user/appData`** (`page.route`, like `stubTokenRefresh`) to flip
-  `featureConfig.aiPoweredReceipts` true **and** inject the target group's `groupReceiptSettings` (plus
-  `userPreferences.quickScanDefault*` and `groupCategories`/`groupTags` catalogs) — a per-BrowserContext
-  client-side stub with no server side effects (the negative `receipt-feature-gating.spec.ts` still sees the
-  button absent). The shared injector + a multipart field parser live in **`e2e/helpers/quick-scan.ts`**
-  (`injectQuickScanAppData`, `parseMultipartFields`, `openQuickScanDialog`, `selectImageGroup`,
-  `uploadQuickScanImages`). The Quick Scan header button is icon-only (tooltip is `aria-describedby`, not the
-  a11y name), so it carries `data-testid="receipts-quick-scan"`; the dialog's carousel nav buttons carry
-  `data-testid="quick-scan-nav-left/-right"` for the same reason. This appData-injection pattern is the general
-  way to e2e any feature-flag-gated UI here.
-  - `quick-scan-dialog-behavior.spec.ts` covers the deeper matrix: a **user-preference paid-by preset falls
-    off** the form (and the submission) when the group hides paid-by; **switching an image's group re-flips**
-    its field set; a **category picked from the catalog** rides the multipart; and **two images on different
-    groups** get independent field sets where one image's unmet required field blocks the whole submit. The two
-    **submit** tests **mock `POST /api/receipt/quickScan`** (the backend validates each group's *persisted*
-    config, which the client-side injection doesn't touch, so a real submit would 400) and assert the exact
-    multipart the client builds via `parseMultipartFields` — e.g. a hidden paid-by is sent as the empty
-    sentinel. To **change** an already-selected group in a single-select `app-autocomlete`, click its **X clear
-    button** first (the input goes `readonly` once a value is chosen); `selectImageGroup` handles this.
-  - The comment axis is covered on both sides: `quick-scan-config.spec.ts` asserts the toggles grey out
-    (keeping their values) with **Hide Comments** and that the configuration **round-trips through a
-    save + reload** (the guard for the API's field-by-field persistence), and
-    `quick-scan-dialog-behavior.spec.ts` asserts a required comment blocks submit then rides the
-    multipart, and that the field is hidden both without `group.comments.create` and when the group
-    hides comments. The permission case uses the new **`groupPermissions`** option on
-    `injectQuickScanAppData` — inject a group's effective permissions client-side instead of
-    provisioning a custom role.
-  - `receipt-feature-gating.spec.ts` now has the **positive** Quick Scan contrast (previously `test.fixme`):
-    with the flag injected on, a **Legacy Editor** member (holds `group.receipts.quick-scan`) sees the button
-    while the Viewer — same user, same flag — does not.
-
-## Magic Fill (receipt form)
-
-Distinct from Quick Scan (which creates a receipt entirely server-side): the ✨ **Magic Fill** button on the
-receipt form (`src/receipts/receipt-form/`, `magicFill()` → `patchMagicValues`) calls
-`POST /receiptImage/magicFill`, which returns the backend's fully-parsed `UpsertReceiptCommand`, and patches
-it **into the form** for the user to review before saving. `patchMagicValues` ingests the **whole** receipt —
-name/amount/date/paid-by/status, categories/tags, `receiptItems` (items **and** shares — items with a
-`chargedToUserId` — plus nested `linkedItems` and per-item categories/tags), `customFields`, and `comments` —
-reusing the form's existing builders (`buildItemForm`, `buildCustomOptionFormGroup`, and the comments child's
-`buildCommentFormGroup`) so `this.form.value` round-trips into `UpsertReceiptCommand` on submit with nothing
-dropped. Each field is reported filled (and named in the success toast, via a friendly-label map) **only when
-it actually changes the form**, so an empty or unmatched value never claims a phantom fill. Guarded by
-`receipt-form.component.spec.ts` → `describe("magicFill — full receipt ingest")`.
-
-Two cross-component seams support this (each with its own focused spec):
-- **Paid-by display:** `patchValue` updates the `paidByUserId` control but not the autocomplete's shown text
-  (the single-select display is seeded from the control only once on init), so
-  `AutocomleteComponent.syncSingleDisplay()` re-seeds it after the patch.
-- **Comments:** the `app-receipt-comments` child owns the comments array and is **mode-aware**, so Magic Fill
-  hands them to `ReceiptCommentsComponent.addMagicFilledComments()` — add mode collects them for the
-  single-call create submit; edit mode POSTs each via `CommentService` because the receipt-**update** path does not persist
-  comments (they're individual resources — see `api/CLAUDE.md` → `UpdateReceipt`).
-- **Custom fields** reference a field by id only (the magic-fill response carries no field definition), so a
-  value whose `customFieldId` isn't in the loaded catalog pool is skipped, and adding one flips its
-  manage-fields menu entry to selected via an immutable array replace (zoneless CD).
-
-## Receipt image canvas
-
-The receipt form's inline image is an interactive canvas: four corner handles to pull, drag to pan,
-wheel to zoom, double-click to fit. It replaced a viewer whose only controls were two zoom buttons
-and a free `cdkDrag` on the `<img>`.
-
-**A first attempt resized the form/image *panes* with a draggable splitter. That was reverted** — it
-moved the page layout, when the thing worth manipulating is the image. Don't reintroduce it.
-
-- **`app-image-canvas`** (`src/shared-ui/image-canvas/`, standalone, registered in `SharedUiModule`'s
-  `imports` + `exports`) is generic and presentational: it takes a resolved `src` and a `stageHeight`
-  and owns the whole interaction. The stage is a **fixed viewport** — the image is clipped by it and
-  panned around — so growing the image can never move the surrounding page.
-- **Scale and pan are one transform on one element.** The old viewer put `scale()` on a wrapper div
-  and let `cdkDrag` translate the `<img>` inside it, so drag distance desynchronised from the cursor
-  by a factor of the scale. One matrix is what makes direct manipulation tractable.
-- **Nothing in the template reads the viewport.** It is a plain field, not a signal: the image and the
-  handle frame are both positioned imperatively, so a 120Hz drag runs **no change detection at all**
-  over the receipt form's large, non-`OnPush` template. `pointermove` is likewise a native listener
-  rather than a host binding, which would schedule CD per event.
-- **Handles sit fully INSIDE the image box, not centred on its corners.** The stage clips with
-  `overflow: hidden` and clipped pixels are not hit-testable, so a centred handle loses half its
-  target the moment the image meets a stage edge — which at the fit scale is always true of two of
-  the four. Each also grabs from an invisible 24px box (`::before`, `inset: -6px`).
-- **The image floats on the stage; it is not contained by it.** It may be smaller than the stage,
-  sit in a corner, or hang over an edge. The only positional rule is that `MIN_VISIBLE_PX` (48) of it
-  stays on the stage, so nothing can be flicked out of reach. This replaced a "centre any axis
-  narrower than the stage, and never allow dead space at an edge" rule, and **that rule is what made
-  the handles fake**: centring throws away the anchor a corner drag just established, and forbidding
-  dead space slides the image rather than pinning the corner you did *not* grab. Do not reintroduce
-  either — a containment rule and a real resize handle cannot both exist.
-- **The resize floor is a minimum size, not the fit.** `clampScale` used to floor at `fitScale()`,
-  and since the image *opens* at the fit, pulling a handle inward was a guaranteed no-op — handles
-  could only ever grow the image, which is a zoom button with extra steps. The floor is now
-  `minScale()`, the scale leaving the image's shorter side at `MIN_VISIBLE_PX`, below which the four
-  12px handles would overlap. `fitScale()` is unchanged and is still what load and double-click use.
-- **The sliver outranks the anchor** on the one state where they conflict. With the opposite corner
-  already off-stage, holding it while the image shrinks would carry the whole image off the stage —
-  so the resize keeps going and lets that invisible anchor drift instead. Constraining the *scale* to
-  preserve the anchor is the tempting alternative and it is wrong: it freezes the handle exactly
-  where the image is hardest to recover, which is the dead handle this section exists to prevent.
-  Pinned by its own spec.
-- Two consequences worth knowing. **`fit()` centres the image itself** — committing `x: 0, y: 0` and
-  letting the clamp centre it no longer works. And **a stage resize re-clamps the position only**:
-  the bounds are stage-relative so a stage that shrank can strand the image, but the scale is the
-  user's, and a stage that *grows* no longer re-grows an image that was showing in full.
-- Wheel zoom is anchored at the cursor and moves a meaningful amount. The viewer this replaced
-  multiplied `deltaY` by `-0.000001`, so one notch changed the scale by 0.0001 — wheel zoom did
-  nothing at all.
-- **A handle stops `dblclick` itself.** The host binds `(dblclick)="fit()"` and the handles are its
-  descendants. `onResizeStart` already calls `preventDefault()` + `stopPropagation()`, but those act
-  on the **PointerEvent** — `dblclick` is a separate event and is not suppressed by either, so
-  quickly pulling a corner twice used to bubble up and throw away the size just dragged to. Hence
-  `(dblclick)="$event.stopPropagation()"` on the handle, pinned by its own spec.
-
-**Wiring.** `app-carousel` gained `stageHeight`, passed to `app-image-viewer`, which renders
-`app-image-canvas`. **Both** carousels get it — the inline one and the fullscreen dialog's (see "The
-fullscreen dialog runs the same canvas" below); there is no opt-out, and no second rendering path.
-The canvas rolled out behind a `directManipulation` flag while only the inline view used it; once
-fullscreen was ported, both call sites passed `true`, so the flag and the old path it selected were
-deleted rather than left as dead configuration.
-
-**What went with the old viewer.** Its `@else` branch (a `transform: scale()` wrapper around an
-`img.viewer-image` with an **unbounded `cdkDrag`**, which could fling the image out of view with no
-way back), the carousel's `scale` / `adjustScale()` / `onScroll()` — including the `deltaY *
--0.000001` wheel bug above — and the `[scale]` / `wheel` plumbing between them. `image-viewer` no
-longer has a stylesheet; `.viewer-image` was its only rule. `DragDropModule` stays: `cdkDrag` is
-still used by the column-configuration dialog and the receipt-form dialog.
-
-**Zoom buttons are per-image.** The header Zoom In/Out delegate through the carousel to the *active
-slide's* viewer rather than mutating one `scale` shared by every slide, which is what a canvas
-implies. That lookup is `viewChildren(ImageViewerComponent)` indexed by `currentlyShownImageIndex`
-— a **slide** index into a **viewer** query, so the two only agree while every slide renders exactly
-one viewer. This is why `carousel.component.html` renders `app-image-viewer` **unconditionally** in
-both loops: the `*ngIf`s that used to gate it were redundant (the viewer already renders nothing
-without a source) and would silently compact the query, pointing the buttons at the wrong slide. Do
-not reintroduce them.
-
-**The stage is exactly as tall as the Details pane beside it**, so the two columns move together
-like a two-column grid rather than a short image box floating next to a tall form. Bootstrap's
-`.row` is already `display: flex` with the initial `align-items: stretch`, so the Images column is
-*already* the right height — the work is entirely in making its contents fill it, because every link
-between the column and the canvas is `height: auto` and three hosts (`app-carousel`, ngx-bootstrap's
-`<carousel>`, `app-image-viewer`) are `display: inline`.
-
-The height is handed down in two places, both **gated on a class**:
-- `carousel.component.scss` is global (`ViewEncapsulation.None`), which makes it the right home for
-  the ngx-bootstrap links. `.cv-carousel--fill` carries `display: block; height: 100%` down through
-  `carousel`, `.carousel.slide`, `.carousel-inner`, `.carousel-item.active`, `.item` and
-  `app-image-viewer`. Use `.carousel-item.active`, not `slide`, so the inactive slides ngx-bootstrap
-  takes out of flow stay out of it, and keep them `block` — `flex` fights Bootstrap's `float: left`.
-- `receipt-form.component.scss` covers its own template under `.cv-images-pane`: a flex column so the
-  always-present section header takes its own height and the content takes the rest. One `::ng-deep`
-  is unavoidable — `app-form-section` wraps projected content in a **classless** div of its own,
-  reachable only as `.form-section-header + div`.
-
-`stageHeight` is bound to `[style.height]`, an inline style, so the receipt form simply passes
-`stageHeight="100%"`; no rule on the canvas and no `!important`. The canvas needs no change at all —
-its `ResizeObserver` already re-clamps when the stage resizes, which is what makes a layout-derived
-height safe, and the Details pane's height genuinely does change live (category/tag chips wrap as you
-type).
-
-**Below Bootstrap's `md` the panes stack into one column.** Both sections are `col-12 col-md`, so
-the stacking itself is plain Bootstrap rather than a custom media query — without it `.col` holds a
-50/50 split all the way down, which goes lopsided around 600px as the form's minimum width wins and
-only wraps at phone sizes. Once stacked there is no Details pane beside the stage to take height
-from, so `.cv-images-pane__stage` gets an explicit **50vh** under `@media (max-width: 767.98px)`;
-the carousel chain resolves its `100%` against that. Leave that media query out and the stacked
-canvas collapses to its 2px border.
-
-**`app-upload-image` must not carry `h-100` in that column.** The class was inert while its host was
-`display: inline`, but a flex container blockifies its children — at which point
-`height: 100% !important` makes a hidden file input swallow the whole column and leaves the stage
-with nothing but its own 2px border.
-
-**The fullscreen dialog runs the same canvas.** `#expandedImageTemplate` passes
-`class="cv-carousel--fill"` and `stageHeight="100%"` exactly as the inline carousel does, plus a
-floating close button — it previously had **no way out but Esc and the backdrop**. The height chain
-needs no special handling: MatDialog renders a `TemplateRef` as a `TemplatePortal` whose nodes go
-**straight into `.mat-mdc-dialog-surface`** with no wrapper, and that
-surface is viewport-tall and padding-free (dialog padding lives on `.mat-mdc-dialog-content`, which
-this dialog does not use). Two things there are load-bearing:
-- **Do not wrap it in `app-dialog`.** That costs ~110px before the stage starts — an
-  always-rendered `<h2>` (~39px even when `headerText` is empty), a `.p-4` wrapper and
-  `mat-dialog-content`'s `padding: 20px 24px` — **and caps the body at `max-height: 65vh`**. A
-  `height: 100%` stage inside it collapses.
-- **Do not add a `maxHeight` to the dialog config.** Leaving it undefined is what puts the CDK on its
-  flush-vertical path (`shouldBeFlushVertically` requires no maxHeight), giving the pane the full
-  viewport height. Setting one silently re-centres the dialog and shortens it.
-`autoFocus: "dialog"` because the close button is the only tabbable control, so the default
-first-tabbable focus opens the viewer with a focus ring drawn over the image.
-
-**ngx-bootstrap's carousel controls must stay small over a canvas.** Bootstrap sizes prev/next as
-`top: 0; bottom: 0; width: 15%` at `z-index: 1`, as siblings of `.carousel-inner` — so on a
-full-height stage they become two full-height columns sitting *above* the canvas in hit-testing.
-Navigation still works, but pan, wheel zoom and double-click all die in those strips, and both the
-left and right corner handles live exactly there, undoing the inset that keeps them grabbable at a
-stage edge. `.cv-carousel--fill` shrinks them to 2.75rem circles centred vertically and clear of
-every corner. This bites on **any receipt with 2+ images**, inline as well as fullscreen.
-
-**Gating every rule on a class is not optional.** `#expandedImageTemplate` is declared in
-`receipt-form`, so its embedded view carries that component's encapsulation attribute even while it
-renders inside the MatDialog overlay — an ungated `app-carousel { height: 100% }` reaches into the
-dialog too. It cost a distorted `img.viewer-image` back when the dialog rendered the old viewer;
-both carousels now render the canvas, so the immediate symptom is gone, but the reach is not and
-neither is the rule.
-`receipt-form.component.spec.ts` pins that both carousels — the inline one and the dialog's — carry
-the fill class and `stageHeight="100%"`.
-
-**The collapse/expand toggle is gone**, along with the `showLargeImagePreviews` checkbox in User
-Preferences that seeded it — the canvas replaced what the toggle was for. **The preference is now
-removed end to end**: the Go model field, the `swagger.yml` property, and both generated clients.
-Only the physical `user_preferences.show_large_image_previews` column survives on already-migrated
-installs — AutoMigrate never drops columns, and the column is nullable with no default, so an orphan
-is inert. Two things made the removal safe for already-released mobile builds, and both are worth
-knowing before removing any other response field: the generated Dart field was `bool?`, so an
-**absent** key never enters the deserializer's `switch` (an explicit `null` would still fail the
-`as bool` cast — dropping the Go field guarantees the key is omitted, not nulled), and the API sets
-no `DisallowUnknownFields`, so an old client still PUTting the field is ignored rather than 400'd.
-
-`carouselComponent` is also no longer `viewChild.required`: the Zoom/Download/Fullscreen header
-buttons render whenever there are images, but the carousel itself is behind `*ngIf="… && showImages"`,
-so hiding images and clicking one of them used to throw.
-
-
-## Reports (Report Builder)
-
-The **Report Builder** (`src/reports/`) is a two-pane screen for building and downloading receipt
-reports against the backend reporting engine (see `api/CLAUDE.md` → "Reporting Engine"). The lazy
-`ReportsModule` is gated by `appPermissionGuard` on **`app.reports.read` OR `app.reports.readAll`** (the
-avatar-menu "Reports" entry gates on the same via a `hasAnyAppPermission([...])` signal, since the
-`*hasAppPermission` directive is single-key). Its routes: `/reports` is the **templates list** landing
-(below), and the builder lives at `/reports/new` and `/reports/:id/edit` (both `fullHeight`).
-**Per-template access is enforced end-to-end** (see `api/CLAUDE.md` → "Report-template access"): the list
-is server-filtered to the user's visible templates and each row's action buttons are gated purely on the
-server-computed **`element.allowedActions`** (never AND-ed with a client `*hasAppPermission` — that would
-wrongly hide a button from an `*All`-only holder). Row **Generate** runs the template by id through
-`ReportRunnerService.generateFromTemplateById` → `POST /report/template/{id}/generate` (the enforcing
-endpoint); the builder's own ad-hoc generate still gates on `app.reports.generate` + per-group
-`group.reports.read`. The in-builder group picker only lists groups where the user holds `group.reports.read`.
-
-- **Builder state** — the *builder* is a single reactive form (`report-form.factory.ts`) plus signals, no
-  NGXS (the templates *list* is the module's one NGXS slice, `ReportTemplateTableState` — see "Templates
-  list" below);
-  generate/preview are one-shot calls through `ReportRunnerService` (mirrors `ReceiptExportService`:
-  generate → `Blob` → `downloadFile`). `ReportCatalogService` supplies the dimension/measure dropdown
-  options: a built-in engine-key→label constant (`report-catalog.constants.ts`) plus custom fields from
-  `CustomFieldService`, keyed `custom_<id>`. `report-command.mapper.ts` maps the form to the generated
-  `ReportRequestCommand`.
-- **Custom fields in the catalog.** *Every* custom field is a **dimension** whatever its type — the
-  engine restricts measuring, not cutting — so a **CURRENCY** field appears in **both** lists (groupable
-  *and* summable), and a **DATE** field additionally contributes the three calendar-period dimensions the
-  backend derives (`custom_<id>_day|_month|_year`, labelled `"Due Date (Month)"`); grouping by the raw
-  date buckets on the exact instant, i.e. one bucket per receipt. Keys and labels mirror
-  `receiptsource.CustomFieldPeriodKeys` / `dateFieldRefs` — a mismatch is a 400 from the engine, not a
-  silent fallback. Every custom-field entry carries `isCustom: true`, which drives the **"Custom" badge**:
-  `toFieldOptions()` (the one mapping all four field dropdowns share) turns it into an option `badge`,
-  and the shared **`app-select` gained an optional `optionBadgeKey`** input that draws it beside the
-  option text. Because `MatOption.viewValue` is the option's `textContent`, a badged option would read
-  "HSTCustom" in the closed select — so a badged select also renders its own `<mat-select-trigger>`.
-  Both are opt-in and default off, so every other `app-select` call site is unchanged. The badge itself
-  is the shared **`app-badge`** (see "The shared badge" above), as are the picked rows' custom and kind
-  badges; `app-select` also takes an `optionBadgeTone` (defaulting to the custom-field purple) so a
-  select badging something other than a custom field can say so. The already-picked
-  grouping levels and column rows carry the same badge (`isCustom` on `groupByLevels()` / `columnRows()`,
-  resolved through the catalog rather than by matching the key's shape, so a user without
-  `app.custom-fields.read` sees no badge instead of one on a field the builder cannot name).
-  - **E2E:** `e2e/report-custom-fields.spec.ts` (serial, admin storageState) seeds its own group +
-    a CURRENCY/DATE/BOOLEAN field trio + four receipts through the admin API, so the live preview
-    contains exactly its own data, and covers: the grouping picker offering every custom field badged
-    (including the three derived `(Day|Month|Year)` levels), grouping by a **currency** field, a
-    boolean rendering **Yes/No**, a date field bucketing by **calendar month**, `SUM` over a custom
-    currency measure, and a saved template naming its fields rather than showing `custom_<id>`.
-    Teardown deletes the group (cascading the receipts, whose custom field values a field-delete would
-    otherwise orphan) then the fields — a leaked field shows up in every other spec's pickers.
-    Each assertion was verified to **FAIL** with its feature reverted (the renderer's typed
-    formatting, the catalog's currency-as-dimension + period entries, and the list's field-name
-    resolver).
-    - Two gotchas it encodes: the "Custom" badge is inside the `mat-option`, so an option's accessible
-      name reads `"Tip Custom"` — `addGroupingLevel` therefore takes a `string | RegExp` (a plain
-      string still matches exactly, which is what every other caller wants). And money is asserted
-      with a **separator-tolerant** regex (`/1[,. ]500[.,]50/`) rather than a symbol, because the
-      currency configuration is a global System Setting on the shared CI backend that this spec must
-      not mutate; the seeded value is `1500.50` precisely so the thousands separator and trailing
-      zero prove formatting ran.
-- **Period date field.** A **"Date field"** `app-select` sits in Parameters, after "Period covering"
-  and its custom Start/End. It chooses which receipt date the period filters on, bound to
-  `period.dateField`, and the hint reads "Resolves to … on Added At". See `api/CLAUDE.md` →
-  "The period's date field" for the wire contract.
-  - **Its options are `RECEIPT_DATE_FILTER_FIELDS` mapped as-is** (`periodDateFieldOptions`), so they
-    match the receipts table's quick date filter in content and order by construction.
-    `ReportBuilderValue.period.dateField` is typed `ReceiptDateFilterFieldKey`, and the panel spec
-    pins the list.
-  - **A new report defaults to `DEFAULT_QUICK_DATE_FIELD`, and the mapper always sends the field**, so
-    a saved template records which date it covers.
-  - **Rehydrating goes through `toReportPeriodDateField`** (`report-period.util.ts`), which falls back
-    to the **literal** `LEGACY_REPORT_PERIOD_DATE_FIELD` (`"date"`), not the quick filter's default.
-    Templates saved before the picker have no field and always ran on the receipt date; a later
-    change to the table's default must not change what they cover. The swagger field is a plain
-    `string`, so an unrecognized stored value lands on `"date"` too. Re-saving a legacy template writes
-    `dateField: "date"`, so that round trip is intentionally not a fixpoint.
-  - **The drill-in never resolves the period itself.** `report-preview-panel.openReceipts()` hands
-    the dialog the same `toReportRequestCommand` the preview sends. `report-receipts-dialog` makes
-    one `ReportService.getReportReceipts(command)` call (`POST /report/receipts`), and the server
-    runs the report's own filter and period.
-    - It used to build the BETWEEN here, per group, via `getReceiptsForGroup`. That disagreed with
-      the count chip in three ways:
-      - it used the browser's time zone, not the server's;
-      - on SQLite its ISO bounds compared as text and dropped first-day receipts;
-      - the report-generator `-1` paid-by matched nothing.
-    - The subtitle still formats the period client-side (display only), resolving "today" in the
-      app time zone, and names the field — plus the zone for an instant field.
-    - The subtitle's count is the preview's `receiptCount`, falling back to the response's
-      `totalCount`, not the list length: the server caps the list at 100.
-    - When the list is shorter than its `totalCount`, a `report-receipt-truncated` notice reads
-      "Showing the newest N of M receipts", so a partial list is never passed off as the whole report.
-  - **E2E:** `e2e/report-period-date-field.spec.ts` (serial, admin storageState, own group).
-    - Seeds two receipts dated 2024-01-01, one RESOLVED. The server stamps both "resolved" and "added"
-      with now.
-    - Asserts the options and order, and the counts per field across a past window and a window from
-      2025.
-    - The drill-in under Added At lists both receipts, and a saved template reopens on its field.
-    - A second block runs the browser in `timezoneId: 'America/Los_Angeles'` against the UTC backend.
-      A receipt dated 03:00 UTC on January 1 must appear in the January drill-in, matching the chip,
-      and the drill-in shows it as **Jan 1, 2024** (a calendar day, not the browser's Dec 31). The
-      browser zone plays no part in either.
-    - The count chip reads `receipt_long<N> receipts` (icon ligature flush against the number), so it
-      is matched with `(?<!\d)N receipts`.
-    - The label contains "field", so a bare `getByLabel('Field')` elsewhere on the builder now
-      resolves two elements. `report-grouping-label.spec.ts` scopes its column-picker lookup to the
-      dialog for that reason.
-- **Live preview** (`report-preview-panel`): the container debounces the form (~450ms, `switchMap`) into
-  `POST /report/preview` and renders the engine's returned HTML in a **sandboxed `<iframe srcdoc>`**
-  (`sandbox="allow-same-origin"`, scripts disabled; sized to content on load). The response's
-  `receiptCount` drives the chip that opens the receipts drill-in (`report-receipts-dialog`, the
-  receipts the report covers, listed server-side by `POST /report/receipts` from the preview's own
-  command; see "Period date field" above). The drill-in is a read-only list → detail
-  inspector: a `selected` signal toggles the list (clickable rows) and a per-receipt breakdown card
-  (amount/category/paid-by/tags via the shared `customCurrency`/`name`/`user` pipes + `app-status-chip`);
-  "Open full receipt" does `window.open(\`/receipts/${id}/view\`, "_blank")` to view it in a new tab.
-- **Filters** (`report-filters`): the design's inline add-a-filter chips, but built on the **shared**
-  `buildReceiptFilterForm` (`src/utils/receipt-filter.ts`) and SharedUiModule `OperationsPipe`, so it
-  produces the exact `ReceiptPagedRequestFilter` the receipts filter does (same BETWEEN handling) — only
-  the presentation differs. Category/tag options are the union of the user's group catalogs.
-  - **Visible rows on open-in-builder**: the form always holds every filter field; which rows *show* is a
-    local `activeFieldKeys` signal. `addFilter`/`removeFilter` maintain it for edits, and `ngOnInit`
-    **seeds it from the hydrated filter** (every field whose stored `operation` is non-empty) — otherwise
-    a saved template's filter sits in the form but renders no rows. The value itself relies on the backend
-    serializing the filter with lowercase `value`/`tags` keys (see `api/CLAUDE.md` → Report templates).
-  - **Dynamic report-generator paid-by (reporting-only)**: the paid-by row is the one place the reporting
-    filter diverges from the shared receipts filter — instead of the shared `app-user-autocomplete` it
-    uses `app-autocomlete` over `paidByOptions()`, which prepends a pinned **"Whoever generates the
-    report"** sentinel (`REPORT_GENERATOR_PAID_BY_ID = -1`, negative so it never collides with a real id)
-    ahead of `UserState.users`. The control still stores plain numeric ids (the shared form builder, the command
-    mapper, and the round-trip factory are untouched), so a saved template carries the `-1` sentinel and
-    the backend resolves it to whoever generates the report — User A running User B's saved report filters
-    to User A's own receipts. Mirrors the role editor's `OWN_PAID_RECEIPTS_OPTION_ID` convention; the
-    shared receipts filter never offers it. See `api/CLAUDE.md` → "Reporting Engine" (buildModel).
-- **Columns** (`report-config-panel` + `column-picker-dialog`): a `FormArray` of columns edited through a
-  3-step picker (dimension / aggregate / formula). A column's engine `name` (what formulas reference) is a
-  derived identifier kept stable across label edits (`report-column.util.ts`); formula validation is
-  lightweight inline feedback — the backend is the authoritative validator (a bad spec → 400, surfaced by
-  the interceptor). Grouping levels and columns reorder via up/down (no drag-and-drop).
-  - **The section is editable in *both* detail modes.** It used to be replaced by a note in Records mode
-    ("columns are the receipt fields") — which was never true: the `columns` FormArray was still posted,
-    the user just could not see or change it. In Records mode a detail row *is* one receipt, so the
-    engine reads a dimension column straight off that record (`emitRecordRows` →
-    `record.Get(column.field)`) and the disabled-dimension rule below does not apply — a column may read
-    **any** catalog field with no grouping level for it. Aggregates and formulas are configurable there
-    too: each record gets its own accumulator set (so `SUM(amount)` is that receipt's amount and
-    `COUNT()` is 1), and they still roll up correctly across subtotal/grand-total rows. A Records-only
-    hint (`report-columns-records-note`) explains this above the list; the aggregate-only "aggregate by"
-    select (`report-detail-aggregate-by` — it has no `label`, so per the e2e locator rules it carries a
-    `data-testid` rather than being matched on its sibling span's copy) is the one control the mode still
-    toggles. One shared column set spans both modes — switching modes never rewrites it, it just
-    re-derives which columns are disabled.
-  - **Aggregate dimension-column rule**: in aggregate mode the engine can only label an (aggregated) row
-    by a field it's grouped/aggregated by, so a dimension column is valid only when its `field` is the
-    `detail.by` dimension or one of the `groupBy` levels. Rather than error, such a column is **disabled**
-    — a derived state (`isDimensionColumnDisabled` in `report-command.mapper.ts`) shown greyed in the
-    columns list and **left out of the request** (`enabledReportColumns`), auto-re-enabling when the
-    config makes it valid again. `report-builder` blocks preview/generate only if *no* enabled column
-    remains. Nothing is removed or auto-changed — and **Save persists every column, including disabled
-    ones** (`toReportRequestCommandForSave`, distinct from the enabled-only preview/generate
-    `toReportRequestCommand`), so a disabled column round-trips into a reopened template and self-heals
-    instead of being silently dropped. The backend applies the same projection when a stored template is
-    generated (see `api/CLAUDE.md` → "Report templates"), so a template holding a currently-disabled
-    column still generates with it omitted.
-  - **Grouping levels are columns too, and can be renamed.** Every grouping level also renders as a
-    *leading* column in the report, headed server-side from the field catalog (`buildDimensions`) — it
-    is not in the `columns` FormArray and was previously unnameable. Each Grouping row therefore carries
-    an edit pencil (`data-testid="report-grouping-edit"`) beside move-up/down/remove that reuses the
-    **same** `ColumnPickerDialogComponent` in a locked-field mode: `ColumnPickerDialogData.lockField`
-    hides the Back button (the kind step is unreachable — the field is chosen by the grouping level, not
-    the dialog), binds the Field `app-select` `[readonly]`, disables the `field` control, and retitles the
-    dialog "Grouping column". The panel hands the level in as the dimension column it *is* — a synthetic
-    `ReportColumnValue` with an id — so the picker's existing edit path seeds the label and opens straight
-    on the dimension step; only `label` is read back.
-    - **The form's `groupBy` is a `FormArray<FormGroup>` of `{ field, label }`**, not bare field keys, so
-      a heading cannot outlive its level (removing a level drops its rename; reordering carries it along).
-      Read the keys with `readGroupByFields()` (`report-form.factory.ts`), never `readStringArray`.
-    - **A blank `label` means "use the field catalog's label"**, and that is how a user resets: entering
-      the field's own label stores nothing. The mapper emits `groupByLabels` (a `{ [fieldKey]: label }`
-      map on `ReportRequestCommand`) **only** when at least one level is renamed, so an untouched report
-      maps to byte-identical the command it always did and the round-trip spec still holds. Keyed by
-      field, not index-aligned, because grouping keys are unique — reordering can't desynchronize it.
-    - The templates list's Grouping summary (`report-template-summary.ts`) prefers the override, so the
-      list agrees with the report it describes. See `api/CLAUDE.md` → "Reporting Engine".
-    - **E2E:** `e2e/report-grouping-label.spec.ts` — the rename reaches the real rendered report (asserted
-      against the preview iframe's `srcdoc`, which is the engine's own HTML), the dialog is locked/Back-less,
-      retyping the default resets it, and a saved template round-trips the heading into both its list row
-      and a reopened builder. The first two were verified to **FAIL** with the backend override reverted.
-- **Save Template**: the generate bar's secondary button (left of Generate) persists the current
-  configuration. Its gate and label follow the builder's mode, driven by two inputs from
-  `report-builder` (`isEditMode` + `saveButtonPermission`): on the **new** route it **creates** a
-  template (`POST /report/template` via `ReportRunnerService.saveTemplate`, gated by
-  `Permission.AppReportsCreate`, label "Save Template", toast "Template saved"); on the **edit** route it
-  **updates the opened template in place** (`PUT /report/template/{id}` via
-  `ReportRunnerService.updateTemplate`, gated by `Permission.AppReportsUpdate`, label "Update Template",
-  toast "Template updated"). So a user who can open a template (read) but not update it sees no Save
-  action. **Save-as-new is retired** — the list's Duplicate row action covers copying. The template's
-  name is the report's own name (no separate dialog), enabled under the same validity as Generate plus a
-  non-empty name (`canSaveTemplate`). See `api/CLAUDE.md` → "Report templates".
-- **Line fields, no splitting (2026-10).** Category, Tag, **Health** and **Planned / Unplanned** are read off the receipts'
-  product lines on the server (see `api/CLAUDE.md` → "Reports read product lines"); cutting by one divides a receipt by what
-  its lines cost. The old "Splitting" section, `isSplitActive`, `splitState` and the three split fields are gone, and the
-  e2e `report-split-equally.spec.ts` with them. `paid_by` reads **Added by** (catalog and filter). The receipts drill-in
-  shows the shop instead of the receipt-level category and tags.
-- **The look:** the page bar is the shared header (quiet back link, small uppercase breadcrumb, 24px title, the lock note
-  as muted text that wraps under the title on a phone); config sections are `app-report-section` cards; grouping and
-  column rows are flat hairline rows; Records / Aggregate is `app-settings-tabs` (its tabs keep the
-  `report-detail-records` / `-aggregate` test ids through `FilterTab.testId`); scope chips use the chart tokens
-  (`CHIP_COLORS`); the preview pane is a `bg-muted/40` surface with the shared empty and error states; the generate bar's
-  formats are one segmented toggle (`aria-pressed`). No component stylesheet: `report-config-panel.component.scss` was
-  deleted and the column kinds are token utilities in `KIND_META`. Below 900px the panes stack and scroll as one page.
-- **Generate gating**: the generate bar's Generate button is
-  `*hasAppPermission="Permission.AppReportsGenerate"`-gated (preview is not — it stays group-scoped),
-  matching the endpoint, which now ANDs `app.reports.generate` with the per-group `group.reports.read`.
-- **Templates list** (`report-template-list/`, the `/reports` landing): a paged `app-table`
-  (`BaseTableComponent` + `ReportTemplateTableService` + the NGXS `ReportTemplateTableState`, mirroring the
-  groups/roles list pages) of saved templates. Columns Name (+ column count), Scope, Grouping, Detail,
-  Formats, Updated — the JSON-blob-derived ones are non-sortable; only `name`/`updated_at` sort
-  server-side. The derived display strings come from a pure `report-template-summary.ts` util, which takes
-  its lookups as arguments (group ids → names via `GroupState.groupsWithoutAll`; custom-field keys → names
-  via a `FieldLabelResolver` the page builds from `ReportCatalogService`, whose `load()` this page calls
-  too — otherwise a stored `custom_7` grouping renders as the raw key). An unresolvable key still falls
-  back to itself, which is what a user without `app.custom-fields.read` gets. The list shows names only;
-  the Custom badge is builder-only. Row actions carry `data-testid="report-template-<action>"` and
-  gate on the matching permission: **generate** (`AppReportsGenerate`, runs the stored config through the
-  builder's generate path), **open/edit** (read — routes to `/reports/:id/edit`), **duplicate**
-  (`AppReportsDuplicate`), **delete** (`AppReportsDelete`, via `ConfirmationDialogComponent`). The header
-  is the shared `app-table-header` (with a subtitle) and an **"Add Report"** `app-add-button`
-  (`data-testid="report-template-add"`) that routes to the blank builder; an empty state (with a second
-  `report-template-add-empty` add button) shows when there are none.
-- **Open in builder (hydration)**: `/reports/:id/edit` uses a `reportTemplateResolver`
-  (`GET /report/template/{id}`) to load the template before the builder's form initializer, and
-  `buildReportFormFromCommand` (`report-form.factory.ts`) builds the form *seeded from* the stored
-  `ReportRequestCommand` — the faithful inverse of `toReportRequestCommand` (round-trip-tested), reusing
-  `buildReceiptFilterForm` for the filter. Building from the command in the field initializer (before the
-  constructor's preview subscription attaches) means the loaded config previews exactly once. The builder's
-  page-bar gains a back-to-list button + a breadcrumb showing the loaded template name.
-- **Other divergences from the design** (intentional): the **progress bar + Cancel** are gone
-  (generation is synchronous → in-flight spinner, then download); the section card is `app-report-section`, a `cv-card` shell
-  (quiet icon tile, title, description, a `[sectionActions]` slot for the compact `app-add-button`), so the pattern isn't repeated.
-- Structural lists (scope, grouping, columns) mutate the `FormArray` and bump a `revision` signal so the
-  `@for`s re-render under zoneless CD (dialog-driven changes run outside a template event). Multi-select
-  filter controls (categories/tags/paid-by) are `FormArray`s, per the `app-autocomlete` `.push()` contract.
-- **Full-height two-pane frame**: the screen fills the viewport below the app header with the config and
-  preview panes scrolling **independently** and the page-bar/generate-bar pinned flush. This is opt-in via
-  `data: { fullHeight: true }` on the route — `SidebarComponent` reads the deepest active route's
-  `fullHeight` flag and, **only for that route**, drops the shell's `p-4` padding and turns the content
-  area into a bounded flex column (`.drawer-content--full-height`); every other route is unaffected. Reuse
-  the same flag for any future full-bleed page. The report name appears as the rendered heading when
-  Document → Title is left blank (the engine falls back to the report name).
-
-## Testing Requirements
-
-**All new code must have accompanying unit tests.**
-
-Before considering any work complete:
-
-1. Write unit tests for all new components, services, and pipes
-2. Use Angular TestBed for component testing
-3. Mock services and HTTP calls appropriately
-4. Run the full test suite: `npm test`
-5. Ensure all tests pass before submitting changes
-
-Tests should cover:
-
-- Component rendering and user interactions
-- Component method inputs and outputs
-- Service method behavior
-- Form validation logic
-- Error handling scenarios
-
-# Fork guide: CartVibe (household receipts, shopping lists, insights)
-
-Everything below describes the app as it is **now**, by topic (it replaced a chronological log). Product context is in
-the root `AGENTS.md`; the matching API notes are at the end of `api/CLAUDE.md`. Generated clients in `src/open-api/` are
-never hand-edited.
-
-## Dashboard (the landing page, `src/overview/`)
-
-- `/overview/group/:groupId`, shown after login and on a group switch (`GroupState.overviewLink`); `overviewReadGuard`
-  (`group.receipts.read`) falls back to the group's receipts list. Each card loads on its own, so one failing request blanks only that card.
-- **One period control**, `app-period-picker`: This month, Last 7 days, Last 30 days, This year, Custom, plus From / To
-  (DD/MM/YYYY, calendar buttons; editing a date switches to Custom). The receipts table uses the same control (it sets the
-  Receipt Date filter). Every request sends `from` / `to` as `yyyy-MM-dd` days; "today" is the app time zone's
-  (`overview-period.ts`).
-- **Tiles:** Spent (change against the period before, `describeChangeAgainst`), Receipts (+ how many "to check"),
-  Unhealthy, Not on the list (unplanned spend), To buy. Unhealthy, Not on the list and each real category open
-  `OverviewDetailDialogComponent` (the products behind it; "Other", "Uncategorized", "(Restricted)" are not openable).
-  Adding lives here: Quick Scan (AI feature), New list (`/shopping-lists/group/:id?new=list`); **Add receipt is not in the top bar** (it lives on the Receipts page and in the empty receipts card).
-- **Monthly spending goal** (`UserPreferences.monthlySpendingGoal`, computed on the frontend only): set from the Spent card
-  itself ("+ Set goal", or the pencil / the "/ 1 500 €" text; Enter or leaving saves, Escape cancels, empty or 0 removes; it
-  sends the **whole** stored preferences back because that endpoint replaces the object; gated on
-  `app.user-preferences.update`). While exactly one calendar month is shown a thin bar fills toward the goal ("X left" /
-  "+X over goal"). User Settings → Budget edits the same value.
-- **Month chart** (`overview-chart.utils.ts`, pure and tested): one non-wrapping grid row, each column holding its value
-  label, bar, baseline and month name; over six columns it goes `bars--dense`; at most the latest 12 months (with a note).
-  It scales to the tallest month, never the goal, and leaves the goal line out when it would sit above the bars; months over
-  the goal split into a good color and red. A custom range **longer than a year** (`exceedsOneYear`) replaces the chart with
-  Download Landscape PDF (one year per page) and Export CSV (`overview-export.ts`; one overview request per calendar year;
-  the PDF is a print view opened inside the click; CSV is `Month,Total Spent,Goal,Difference`).
-- **Shopping panel** (`app-overview-shopping-panel`, standalone, `OverviewModule`): previews `pickLargestList` (the list with
-  the most unchecked items, first wins ties) as a bulleted list of `role=checkbox` rows (max `PANEL_ITEM_LIMIT` 8, then "{count}
-  more on the list"). Ticking an item is the Shopping lists page's own crossing off (`setShoppingListItemChecked` +
-  `ApplyShoppingListEvent`), so the item leaves at once; a bottom Undo row (`UNDO_WINDOW_MS` 6 s, at most `MAX_UNDO_ROWS` 3) puts
-  it back. The list is pinned while an Undo row is up (another list overtaking it must not swap the list under a thumb), and
-  `latestIntent` keeps a slow response from overwriting a later Undo. Where it sits is the panel layout's business (below): first
-  on a phone by default. Needs `group.shopping-lists.update` to tick.
-- **Panel layout and the customise screen** (`src/overview/dashboard-layout/`):
-  - Every tile and panel is a **panel** with a plain-string id: `spent`, `receipts`, `unhealthy`, `unplanned`, `toBuy`, `tag:<tagId>`,
-    `categories`, `trend`, `recentReceipts`, `shoppingList`. `dashboard-layout.ts` (pure, tested) holds `PANEL_CATALOGUE` (group, label,
-    width limits in the six-column PC grid, the fewest tablet columns, height steps), `defaultLayout`, `parseLayout` (anything unreadable is
-    the default; unknown ids are kept), `completeLayout` (panels the saved layout lacks join it, visible, after their group: a tag an admin
-    just put on the Dashboard appears), `resolveLayout` (visible + available, ordered, with spans), `movePanel`, `resizePanel`, `setVisible`.
-  - **Size classes from the grid's own width** (a ResizeObserver, not the viewport): `compact` < 640 px (one column, the phone order),
-    `regular` < 1024 (four columns, charts and tables take the whole row), `wide` (six). The phone order is `compactOrder` once the user arranged
-    the phone, otherwise the shared order with the shopping list first.
-  - **A real grid with free placement (PC view):** the panels sit in a CSS grid (`grid-column` / `grid-row` from `ResolvedPanel.x` and `.row`). A
-    panel may carry a saved cell (`PanelLayout.x`, `.y`, 0-based, wide grid only); `placePanels` (pure) gives it that cell when it is free and
-    flows every other panel to the first free spot after the previous one, numbering rows without gaps. Any PC-view edit pins every shown panel
-    first (`pinPlacements`), so changing one panel never moves the rest; old layouts without cells simply flow. Tablet and phone ignore the cells and
-    flow in order. A panel's width is **exactly** its columns, so a row may end with empty space and the size set in the editor is the size drawn. Tiles may sit beside charts. Because widths are
-    exact, `defaultLayout` fills its own rows: tiles start one column wide and `fillRows` widens the panels of each row (Spent first) up to
-    their limits, so the out-of-the-box Dashboard has no gaps whatever panels are available.
-  - **Dragging** is pointer-driven on the handle (`startDrag`, no CDK drag-drop). PC view: the panel follows the pointer, a dashed outline shows
-    the cell it would take (left edge picks the column, the pointer the row, below the last row opens a new one; `resolveDrop` picks the nearest free
-    spot or a new row), the others stay put, and the drop commits with `applyDrop` (which also reorders the list by row and column, so the tablet
-    and phone order follows the PC arrangement). Tablet and phone: the others reflow live to the order `dropTargetAt` gives. Escape cancels, the
-    scroll container auto-scrolls near its edges. Move left / right / up / down (PC) or earlier / later (others) in the menu is the keyboard path.
-    A panel can only grow up to the next panel in its row (`roomToTheRight`).
-  - **One page width:** `--page-max` (1240px, `tailwind.css`) is the content width of every page, set once on the wrapper around the router outlet in
-    `sidebar.component.html`; settings pages, the receipt form, shopping lists and the Dashboard no longer carry their own `max-w-*`. Below it a page
-    fills the screen inside the shell's gutter (16px phone, 24px from 640px), so there is no separate phone or tablet width. Full-height routes (the
-    report builder) keep their own full-bleed frame.
-  - **Limits:** `resize()` refuses a size past `sizeLimitHit` with `shakeElement` and a short `SnackbarService.hint`; widths outside the PC view
-    say so the same way. The corner resize handle is a chip with the `resize_corner` icon; the strip shows the width as `2/6`.
-    Height step 2 is a `34rem` minimum (content grows past it, never clipped); the receipts panel then lists 12 receipts instead of 6.
-  - **The customise screen is this page** on `/overview/group/:groupId/customize` (route data `customise: true`, same guards), so the preview
-    shows real figures: a toolbar (Mobile / Tablet / PC preview as `app-settings-tabs`, Panels, Reset, Cancel, Save), the panel list above the
-    preview (grouped switches; above, not beside, so the PC preview gets the full width), and per panel a strip with a drag handle (CDK
-    `cdkDropList`, `mixed` orientation), a menu (move earlier/later, wider/narrower, taller/shorter) and hide; a corner handle resizes in the
-    PC view (widths are PC-grid columns, so width controls only work there). Panel content is `inert` while editing. Mobile previews at 375 px
-    and Tablet at 768 px inside a hairline frame. Cancel with changes asks first (`ConfirmationDialogComponent`).
-  - **Saving** (`DashboardLayoutStore`, root): `GET /dashboardLayout` once per session (cleared on `Logout`), `PUT` on Save; a failed load is the
-    default layout. `canCustomise` from the API decides whether the Customize button shows (see `api/CLAUDE.md` "Dashboard layout").
-- **Switches:** the helm switch's `data-checked:` classes are patched to `data-[state=checked]:` (brn-switch sets `data-state`; recorded
-  in `tools/spartan-add.cjs`). The helm checkbox had the same mismatch (ticked boxes never filled) and is patched the same way (2026-10-23).
-- **Empty cards:** receipts say "No receipts yet in {period}" and shopping lists "There are no items in the shopping
-  lists", each with the same button as the page's top right.
-- **Charts never follow the accent:** donut slices are the fixed `CATEGORY_COLORS` (sky, amber, red, violet, pink, teal);
-  bars and the Spent bar use `--chart-good`; Unhealthy stays `#ea580c`.
-
-## Receipts
-
-- **Table columns:** Receipt Date (first, the default sort, `DEFAULT_RECEIPT_ORDER_BY = "date"`), Shop, Amount, Status, Added
-  by, Comment (opt-in). **Receipt Date and Shop** are both links to the receipt; **Shop** (`shop_name`): the shop the AI read, else the receipt's name, and it
-  sorts that way on the API. No Name, Added At, Categories, Tags or Settled on column (a saved layout loses them through
-  `mergeCustomFieldColumns`; a persisted sort on a removed column resets). The Dashboard's receipts panel uses the same
-  Date and Shop.
-- **Filter badge:** the Filter button does not count the Receipt Date range (the period picker shows it); Reset appears for
-  any filter. Row actions: **Mark as done** and **Read with AI**.
-- **Statuses** (`utils/receipt-status.ts`): OPEN / NEEDS_ATTENTION / DRAFT read "To check", RESOLVED / DECLINED "Settled" (Polish "Rozliczone"; it read "Done" until 2026-10, and reports print the same two words);
-  `toStatusWireFilter` widens a status filter where requests are assembled (not in reports).
-- **Receipt form:** Paid by is the user adding it (hidden); no bill splitting (no Shares, no Paid By column or filter); the
-  upstream Items section is hidden with `d-none` (not removed: `ItemListComponent` keeps the form state); a new receipt is
-  named "Receipt {date}" and, once the AI has read the shop, takes the shop name (`IsPlaceholderReceiptName` on the API; a
-  typed name is kept). An empty required name or amount **shakes** (see Forms).
-- **Products** (`app-receipt-products`): product, original, category (the AI's food group), health, quantity, amount; rows
-  edit in place (comma prices accepted); "Read again" replaces the whole set; a "Not on the list" chip marks
-  `planned === false`. Health / seasonality chips (`app-food-tags`) are display-only; corrections go through menus.
-- **Currency:** `app-receipt-currency-note` shows "45.9 CHF at 1.04" under a converted amount, or an amber "not converted"
-  warning. The rates editor is `app-exchange-rates` (System Settings → General): comma or dot typing is cleaned per
-  keystroke (`sanitizeRateInput`), Enter settles ("1." is 1) and never submits the surrounding form.
-- **Quick Scan:** nothing is required (`resolveQuickScanFieldConfig`; only the comment keeps its rules), a sole group is
-  seeded and its picker hidden. The **Upload photos** button is a centered raised button in the dialog body ("Add more
-  photos" once there are some).
-- **Quick Scan without an AI key asks instead of hiding.** Every entry (Dashboard button, receipts `⋮` menu,
-  `app-quick-scan-button`) goes through `QuickScanLauncher.open()` (`src/receipts/quick-scan-dialog/`) and stays visible
-  without AI. With `aiPoweredReceipts` it opens the scan dialog (and emits its `afterClosed`); without it a member holding
-  `app.receipt-processing-settings.update` gets the shared `ConfirmationDialogComponent` ("AI API key needed", confirm
-  **Add AI API key** via its new `confirmText` input, red Cancel) that goes to `/ai` on yes; anyone else gets the "Ask an
-  admin" hint. The AI page refreshes the feature config after a save, so Quick Scan works right away. Magic fill stays hidden
-  without AI.
-- **Quick Scan closes right after the upload** (one photo or many): "Receipts uploaded. You will get a notification once the AI has read them, or if it fails." The API notifies the uploader per scan (`quick_scan_handler.go`, with a link to the receipt), so there is no waiting and no redirect. Photos are added by dropping or choosing them and listed as spartan `attachment` rows (thumbnail, name, size, remove) with their per-photo fields underneath; there is no carousel. `UploadImageComponent.processFiles` is the one entry for picked and dropped files.
-- **Image menu on the receipt form** (`receipt-image-menu`, a `hlmDropdownMenuTrigger` laid over the image stage, 44 px
-  target, so it stays in reach after scrolling on a phone): Preview (`expandImage`, full width under 768 px), Rename
-  (`RenameReceiptDialogComponent`; a saved receipt goes to `renameReceipt`, a new one just takes the name in the form) and
-  Remove (`confirmRemoveImage`, with a confirmation). It replaced the header's fullscreen and delete icon buttons; the other
-  header buttons (upload, download, hide, zoom, magic fill) stay. Menu entries are plain buttons, like the receipts table's.
-
-## Shopping lists (`src/shopping-lists/`)
-
-Mobile-first (used in the shop). Backend contract: `api/CLAUDE.md`.
-- **One reducer for every write:** `ShoppingListState` (not persisted) applies SSE events and this tab's own HTTP
-  responses through `ApplyShoppingListEvent` (an idempotent upsert/remove by id), so an echo changes nothing.
-  `ShoppingListStreamService` owns the single `EventSource`, refetches on every **re**connect and when the tab becomes
-  visible. The synthetic "All" group is never a list group (`ShoppingListState.targetGroupId`).
-- **Only crossing off is optimistic.** Items carry `amount` (decimal string) + `unit` (`SHOPPING_LIST_UNITS`, in step with
-  the API); the one-line add is name, amount, unit and "+" (an empty name shakes). A fully crossed-off list is **past** (a
-  "Past lists" row); a list's menu has "Start a new list from this"; "Going shopping" notifies the household.
-- **Trips** (`app-shopping-trips`): receipts attached to a list and what was bought that was not planned; held in a signal
-  and refetched on `TRIPS_CHANGED`. Gates: `group.shopping-lists.read` + `group.receipts.read`.
-- Dialog forms submit through `(ngSubmit)` only (`app-dialog-footer`'s button is `type="submit"`).
-- **Layout (master-detail), one action per section (2026-10):** the page header holds only "Add List"; the open lists
-  are cards in an `cv-scroll-x` row on a phone and a 2/4-column grid from `sm`/`lg`. Below them, the open list is one card
-  (name, "{count} to buy", then **"Going shopping"** with a bell icon, `notifications_active`, since it notifies the
-  household, icon-only below `sm`, and the list menu; then the add box, hairline item rows, the crossed-off pill) with an
-  aside on `lg` (stacked below on smaller screens) holding "Receipts from this list" and "Past lists". The receipts panel
-  has one **"Add receipt ▾"** beside its title (a menu: Scan receipt, Attach existing; just "Attach existing" without
-  Quick Scan, since scanning also needs the list update permission). The hidden photo input sits in the same `@if` as
-  the menu, so the menu's `photoInput.click()` can reach the template reference. The add box keeps its labels; on a phone the name
-  takes its own row. Unit labels are translated (`formatShoppingListItemAmount` takes a translate function).
-
-## Navigation, forms and settings screens
-
-- **Sidebar** (`src/layout/sidebar/`): group switcher (a static Household label with one group), everyday pages, a
-  collapsible **Settings** section (was "Admin Settings"; **no Imports**), the account menu (only About and Logout).
-  Settings lists, each behind its own permission: Manage Categories, Manage Tags, AI, User Settings (`/settings`: Profile,
-  Preferences, API Keys), Language (`/language`), Theme (`/theme`), then the admin pages Manage Households, Manage Users,
-  System Settings. A family User holds the first four's permissions, so they see everything up to Theme. Language and Theme
-  need no permission and are top-level routes (`LanguagePageComponent`, `ThemePageComponent` in `src/settings/theme/`), so
-  the User Settings link is not highlighted on them; `/settings/theme` redirects to `/theme`. Each entry carries a
-  `nav-*` test id. Desktop shows it labeled or as an icon rail; phone slides it over the page. Item lists are the `mainNavItems` /
-  `manageNavItems` computeds. The page background fills the strip a hidden sidebar leaves. The page margin follows the sidebar through `drawer-content--rail` / `--wide` (the drawer container only measures once, so a collapse left the old margin); sidebar avatars take `--accent-button`. The loading and "Signing you in" screens are `app-cartvibe-splash` (large loader, rings, bar).
-- **(Superseded in part by "Visual identity" above: the section/panel pattern replaces flat white shadow cards.) Forms and settings screens follow the AI page:** a title and intro, a centered 640-760px column, white cards
-  (`$border-radius-lg`, `$shadow-sm`), and **Save inside the card** as a flat accent button. `app-form-button-bar` (12 forms)
-  is therefore an inline card row at the end of the form: **never reintroduce a floating bar**.
-- **Required fields shake:** `shakeInvalid()` (`utils/shake.ts`, `.cv-shake` / `.cv-field-error` in `styles.scss`) is the one
-  way to say an empty required box was the problem (shopping list add box; receipt name and amount).
-- **User Settings:** `app-tabs` (also the group tabs) renders the pill tab look: User Profile, User Preferences, **Theme**
-  (no permission), API Keys. **System Settings** is five pill tabs in a 760px column: General & Currency, Auth & Security,
-  Integrations & Mobile, Tasks & Storage, Logs. The first four are routes that all render `SystemSettingsFormComponent`
-  (route data `section` picks the cards via `shows()`); embedded tables (OIDC providers, system tasks) sit
-  **outside** the `<form>`; the form holds every control whatever the tab, so a save sends the whole payload. The form is always editable; Save is at the end of the tab's last card.
-  Old paths (`settings/view|edit`, `oidc-providers`, `system-tasks`) redirect to the tabs.
-- **AI page** (`/ai`, `AiSettingsPageComponent`): Claude, Gemini, ChatGPT or Local LM (LM Studio), test connection. **Every member can use it**; one who
-  cannot read System Settings gets the first AI settings, and the server links the first ones saved.
-- **Roles and wording:** pickers offer Admin and User (`utils/family-roles.ts`); "Household", not Group; "Settled on".
-  Manage Categories shows what the AI sorts products into (skip checkbox, "Formerly: ..." names, product count).
-- A count badge with nothing or `0` is hidden (`matBadgeHidden` in `app-button`, plus a safeguard in index.html).
-
-## Identity, themes and the shell
-
-- **CartVibe identity package** (four supplied SVGs, used **as drawn**, never redrawn): `app-cartvibe-logo` (lockup, header and
-  login), `app-cartvibe-icon` (icon alone; the same file is `favicon.svg`), `app-cartvibe-loader` (badge, or
-  `variant="transparent"`; the login loading and "Signing you in" screens). Their light and dark palettes switch on the app's
-  `dark` class through `:host-context(html.dark)`, not the OS; they are fixed brand colors (not the accent) and are kept out
-  of the dark filter. To change the artwork, copy the new supplied file in.
-- **Settings → Theme** (`/theme`, `ThemeService`, `src/theme/`): System, White and Black (the registry is `src/theme/themes.ts`), kept in
-  `rw_theme_mode`; `index.html` applies it before the first paint. A theme is a token block in `src/themes/<key>.css`
-  (`docs/themes.md`); the `dark` class on `<html>` follows the theme's scheme.
-- **Header chrome:** a theme toggle button (`data-testid="theme-toggle"`) sits next to the bell and switches between the White and
-  Black themes (`ThemeService.setMode`; it leaves System mode). The "Vibe" wordmark is the brand emerald `#16C976`. `app-cartvibe-logo` takes a
-  `scale` (default 1); the header passes `HANDSET_LOGO_SCALE` (0.3) on a handset.
-- **Colors are tokens** (`--background`, `--card`, `--primary`, `--muted-foreground`, `--border`, `--chart-1..5`, `--sidebar-*`,
-  `--brand-*`), read by Tailwind utilities and the helm components. Never write a hex color in a component. Charts read the
-  tokens at draw time (`shared-ui/apex-chart/chart-colors.ts`), so a new theme recolors them.
-- **Stale e2e:** specs that mention paid by, shares, statuses, required Quick Scan fields, the Added At column, the old
-  System Settings tabs or pencil, the old logo or page title need updating (see `HANDOFF.md`).
-
-## Small pieces worth knowing
-
-- **Logs tab** (`src/system-settings/logs/`): the newest 300 lines of the app log with an All / Errors / Info filter (admin,
-  `app.system-settings.read`). It is the first place to look when a member reports an error toast: the log is server-wide.
-- **Currency picker** (`currency-presets.ts`): EUR, PLN, USD, GBP, CHF or Custom fills the existing display, position and
-  separator fields (the `currency` control is form-only). A symbol after the amount starts with a space.
-- **Receipt products backfill** (`app-receipt-product-backfill`, group settings page): one button that queues a group's older
-  receipts for the AI to read.
-- **Photos are shrunk before upload** (`utils/downscale-image.ts`): `app-upload-image` (Quick Scan, receipt form) and the
-  shopping trip scan pass each file through `downscaleImageForUpload`, which re-encodes a JPEG/PNG/WebP (and HEIC where the
-  browser decodes it, i.e. Safari) over 1.5 MB as an upright JPEG of at most 3072 px. Anything it cannot improve is returned
-  as picked, so it never blocks an upload; the stored receipt image is the shrunk one.
-
-## UI stack (the redesign, 2026-10)
-
-Angular Material, Bootstrap and the Tailwind CDN are gone (`docs/material-removal.md`). What is used instead:
-- **Tailwind 4** built with PostCSS (`src/tailwind.css`: layers, `@theme inline` token mapping, the dialog, progress and
-  tooltip rules), unprefixed utilities, `tw-animate-css` for enter animations, Geist as the font.
-- **spartan/ui helm components** live in `src/ui` (alias `@spartan-ng/helm/*`), generated by `node tools/spartan-add.cjs <name>`
-  from the official CLI package and ours to edit; the tool re-applies the local patches listed at its end (sidebar active
-  state, collapsible animation, button press). Brain primitives come from `@spartan-ng/brain`. Delete a helm folder that
-  nothing imports.
-- **Wrappers keep the app's API** over the helm parts: `app-button`, `app-input`, `app-select`, `app-checkbox`, `app-textarea`,
-  `app-datepicker` (a native date input with `DateInputDirective` giving the control a Date), `app-autocomlete` (spartan
-  autocomplete, chips for multiple), `app-table` (`hlmTable`, its own sort and pager; `Sort`, `PageEvent`, `TableDataSource`
-  in `src/table/table-types.ts`), `app-tabs`, `app-card`, `app-expansion-panel`.
-- **Dialogs** are `AppDialog` (`src/dialog/app-dialog.ts`, on the CDK dialog) with `open / afterClosed / close / componentInstance`
-  like MatDialog had; inject `AppDialogRef` and `APP_DIALOG_DATA`. Focus moves to the first focusable control unless the
-  caller passes `autoFocus` (a form's first field; Cancel in `ConfirmationDialogComponent`). Never hand the CDK an explicit
-  `undefined`: it overrides the CDK's default, and focus stayed on the page behind the dialog until 2026-10-23.
-  **Toasts** are `SnackbarService` over `ToastService`.
-  **Menus** are spartan dropdown menus (`hlmDropdownMenuTrigger`). **Icons** are `<app-icon name="receipt_long">`: it takes the
-  Material name (the API stores them) and draws the Lucide icon from `shared-ui/icon/icon-map.ts`; add a pair there for a new name.
-- **Money** on the Dashboard cards is `<app-money>` (whole part bold, symbol and decimals quiet); a shop name gets
-  `<app-shop-monogram>`; numbers use `tabular-nums`. The quiet parts are `opacity-60` of the amount's own color, never a
-  fixed token, so a tinted amount (`text-destructive`, `text-warning-text`) stays tinted down to its cents.
-- **Charts and the theme:** `app-apex-chart` updates a chart in place for new data but **rebuilds** it on a theme change
-  (without the entry animation), because ApexCharts leaves some attribute colors (donut strokes, center text) in the old
-  theme on an options update; the donut's center text also takes its colors from tokens in `tailwind.css`.
-- **Tests under zoneless:** a view is only re-checked when something marks it; a spec that mutates a plain field should call
-  `fixture.changeDetectorRef.markForCheck()` before `detectChanges()`. jsdom has no `ResizeObserver` (stubbed in `setup-jest.ts`).
-
-### Dashboard currency and responsive rules
-- `DisplayCurrencyService` / `displayCurrency` pipe / `<app-money [display]="true">` convert by the user's preference rate; only the
-  Dashboard uses them (the detail dialog lists real receipts and keeps the household currency, exports too).
-- Phones: no horizontal overflow at 360 px. Flex children that hold text need `min-w-0`; headings use `break-words`; page padding is
-  `p-4 sm:p-6`; inputs are 16 px on small screens (no iOS zoom); `dvh` and safe-area insets are in the base layer of `tailwind.css`.
-
-## Translations (`src/i18n/`, `src/assets/i18n/`, `scripts/i18n/`)
-
-The **English text is the key**: `{{ 'Add receipt' | t }}` (pipe `t`, exported by `PipesModule`; standalone components import `TranslatePipe`), `'{n} items' | t: { n: 3 }` for parameters, `count | plural: 'item' : 'items'` for nouns, `TranslationService.t()` in TypeScript. A missing translation shows the English text (never a key path), and `null` or `""` in a dictionary counts as missing.
-- **Languages are runtime JSON** in `src/assets/i18n/`: `languages.json` is the registry (`code`, `label` in the language's own name, Angular `locale`; no flags), `<code>.json` is one dictionary (`{ messages, plurals }`), `en.json` is the **generated catalogue** (never fetched at runtime). `TranslationLoader` fetches them through `HttpBackend` (no interceptors, no error toast) and an app initializer loads the registry and the cached language before the first render. A dictionary that fails to load leaves the interface in English. nginx serves the folder with `no-cache` + ETag, so an edited file is picked up on the next load; a new language still ships in the image.
-- **Shipped languages (2026-10):** English, Polski, Deutsch, Français, Español, all at 100%. Terms kept across a dictionary: receipt = paragon / Beleg / ticket / recibo, household = gospodarstwo / Haushalt / foyer / hogar, tag = tag / Schlagwort / étiquette / etiqueta, Settled = Rozliczone / Erledigt / Réglé / Liquidado; German and Spanish say "du" / "tú", French "vous". Check a new string against the existing wording of its language.
-- **Adding a language, no component code:** add a line to `languages.json`, run `npm run i18n:sync -- --lang xx` (creates `xx.json` with every key `null`), translate, add its Angular locale data to `src/i18n/locale-data.ts` if it is not there (en, pl, de, fr, es, it, nl, pt, cs, sk, uk are; any other language formats dates in en-US instead of blanking them), then `npm run i18n:extract` so the API gets its report words (`api/internal/i18n/locales/xx.json`) and add the language's date layout to `dateTimeLayouts` in `api/internal/i18n/i18n.go`.
-- **Reports use these dictionaries too.** The words the API writes into a report are Go literals in `.T("…")` / `i18n.Mark("…")`; `i18n:extract` adds them to the catalogue and writes each language's subset to `api/internal/i18n/locales/`, which `i18n:check` keeps fresh. See `api/CLAUDE.md` → "Reports in the reader's language".
-- **The language is never taken from the browser.** Signed out (including the login page) is English; signed in it is `UserPreferences.language` (synced by `LanguageSyncService`, which loads the dictionary first and then switches, so the interface changes once). `localStorage` (`cartvibe.language`) only caches the signed-in account's language to avoid an English flash on reload and is cleared when the preferences go away (logout). The choice is made on Settings → Language (`/language`, applies at once, no Save); it is saved with the account, so it follows the person to every device.
-- **Plurals** follow `Intl.PluralRules` (CLDR `one/few/many/other`): `plurals` in a dictionary lists exactly the language's categories per noun; lookup is category, then `other`, then the English singular/plural.
-- **Strings defined in TypeScript** (column headers, option labels, presets, toasts, error texts) are wrapped in `marker("Created At")` (`src/i18n/marker.ts`, an identity function) where they are defined and translated where they are shown (`| t`, or a component that translates its `label`, `headerText`, `buttonText`, `tooltip` ... input). A text with values is a key with `{placeholders}` and parameters (`this.translation.t("Delete {name}", { name })`), **never a template literal or concatenation** (`i18n:check` fails on that). Pure helpers with no injector take an optional `TranslateFn` (`src/i18n/translate-fn.ts`) and call `translate(marker("{percent}% less than {name}"), { ... })`; results that carry a message for a template return `message` + `params` and the template renders `message | t: params`.
-- **Validation messages** (`validation-messages.ts`): `required`, `email`, `min`, `max`, `minlength`, `maxlength`, `pattern`, `duplicate` map to keys such as `{label} must be at least {min}.`. `BaseInputComponent` emits `{ error, key, params, message }` and the five input templates render `errorText(err)`, which translates the label first and reads the language signal (so messages switch language at once). A custom validator may return a string (the key) or `{ message: "…{min}…", min }`; `additionalErrorMessages` overrides per field.
-- **Backend messages stay English** (no Go i18n): `i18n:extract` reads the `WriteCustomErrorResponse` message literals and `errors["x"] = "…"` in `api/internal` (skipping field-name technical messages like "name is required" and partial prefixes), `SnackbarService` translates them. Notification titles and bodies are stored in English with parameter tokens; the notification component translates the title and the **parsed** body (a `{user} has added a comment…` key matched by the interpolation patterns). Texts only data can reveal (month names, category names, enum words, the API's notification and starter-report texts) are listed in `scripts/i18n/extra-keys.json`.
-- **Tooling, Node built-ins only** (`desktop/scripts/i18n/`): `npm run i18n:extract` rebuilds `en.json` from templates (`'…' | t`, `plural`, text inputs of `app-*` components, `app-settings-*` title/description), TypeScript (`t(`, snackbar, `marker(`) and Go; `npm run i18n:check` (CI, desktop job, before Jest) **fails** on a stale `en.json`, a language key that is not in the catalogue (prints the closest current key), placeholder or plural-category mismatch, a language in `languages.json` without a file, a template literal passed to `t`/a snackbar, and **warns** with per-language coverage; `npm run i18n:sync -- --lang xx` adds missing keys as `null`, keeps translations, moves orphans to `_orphaned`. `--translate` fills only `null` keys through Gemini (`GEMINI_API_KEY`, developer machine only, English UI strings only, results listed in `_review`); it is never run in CI and was not run when the system was built.
-- **When you add a screen:** write the English text through `t`/`marker`, run `npm run i18n:extract`, then `npm run i18n:sync -- --lang pl` and fill the `null`s in `pl.json` (coverage must stay 100% for Polish, the check only warns for other gaps). Dates, money and household/shop names are data and not translated (month names in period labels go through `months()`); the `appDate` pipe formats with `TranslationService.locale()`. Dev builds collect untranslated texts in `window.__i18nMissing`.
-- Specs read the real JSON through `src/i18n/i18n-test-utils.ts` (`registerRealLanguages`) and run in English by default, so text assertions keep working; `translation.service.spec.ts` also checks every language's placeholders and plural categories.
-
-### Styling rules (after the Tailwind conversion)
-- New and touched components use **Tailwind classes in the template**; a component stylesheet is only for what utilities cannot say (CDK drag classes, the image canvas and carousel, the diff table, the report config panel and column picker, whose classes come from TypeScript). Hosts get their classes from `host: { class: "..." }`, not `:host {}`.
-- **Specs and e2e never select by styling classes**: use `data-testid`, ARIA state (`aria-pressed`, `aria-current`) or text. A utility class is free to change.
-- Global element styles (`h1`-`h6` in `styles.scss`) live in `@layer base`, so a utility on the element wins; unlayered global CSS would beat every utility. Keep new global rules in a layer.
-
-### Shared pieces added in the UI-issues run (2026-10)
-- **`cv-section` / `cv-field-box` / `cv-scroll-x` / `cv-list`** (`src/tailwind.css`, components layer): the inset panel for blocks inside a settings card, the boxed From/To field, the horizontal scroller with no vertical scrollbar (every pill strip uses it), and a hairline list. Use them instead of new one-off classes. All borders default to `--border` in the base layer.
-- **Donut legend (2026-10):** two columns, Category and Spent; each name cell is dot, share ("21.5%", muted, a fixed
-  `w-12`), name, in one flex row so a long name wraps beside its dot; the amount never wraps (`whitespace-nowrap`).
-- **Tab strips show their selected tab:** helm's tabs trigger styled `data-active:`, but `brn-tabs-trigger` sets
-  `data-state="active"`, so no strip (period picker, settings tabs, Records / Aggregate) marked its selection. Patched
-  to `data-[state=active]:` and recorded in `tools/spartan-add.cjs`, like the switch.
-- **First sign-in welcome** (`src/onboarding/`): `OnboardingService` (started with `LanguageSyncService` in
-  `app.config.ts`) opens `WelcomeDialogComponent` once per account while `UserPreferences.onboardingPending` is on (new
-  accounts, see `api/CLAUDE.md`); `disableClose`, one "Get started". Language (`app-settings-tabs` over the registry),
-  Theme (System / White / Black, applied at once, per device) and, for a holder of `app.system-settings.update`, the
-  household currency (EUR, PLN, USD, GBP, CHF from `CURRENCY_PRESETS`). The language switches at once but is saved only
-  with the final preferences PUT (`onboardingPending: false`), not through `LanguageSyncService.choose`, so two PUTs
-  cannot race the flag back on. A changed currency is a GET + PUT of the whole system settings (the endpoint takes the
-  whole body) and `SetCurrencyDisplay` / `SetCurrencyData`. A failed save leaves the dialog open.
-- **Dashboard donut:** click a slice or a legend dot to focus a category (`focusedSegment`, `toggleFocus`); there are no checkbox chips. Hovering a slice (ApexCharts `dataPointMouseEnter/Leave`) or a legend row (`mouseenter`/`focusin`) sets `hoveredSegment`; `activeSegment` = hovered ?? focused. `applySliceEmphasis` works on the drawn SVG (never through the options, so hover does not redraw): the active slice scales 1.06 from the ring's center (`transform-box: fill-box`, origin from the slices' boxes, 200 ms `cubic-bezier(0.16, 1, 0.3, 1)`), the others go to 0.45 opacity (150 ms), and the middle names the category. It runs again on `animationEnd`, since the slices have no size during the entry animation; `customScale: 0.92` leaves room for the grown slice. Legend rows dim with `opacity-45`. Bars use `height: 100%` inside a `min-h-[260px] flex-1` wrapper so the chart fills its card.
-- **AI page:** `app-ai-provider-fields` is the one provider block (provider dropdown Claude / Gemini / ChatGPT / Local LM, then key, model, and for Local LM the URL and vision switch), used by the main card and by `app-ai-fallback-card` (a second settings row of any provider, linked as `fallbackReceiptProcessingSettingsId`; switching it off only unlinks; hidden without System Settings access). Cloud providers get `app-ai-model-field` (model dropdown from `POST /receiptProcessingSettings/aiModels`, text box fallback, key sent in the body, a saved key used server-side via the settings id, only for its own provider). Picking another provider moves the model to that provider's default and empties the key box; saved settings moved to another cloud provider need a new key. `aiType` is a plain string: the values are `src/constants/ai-type.ts`, not the generated client. Shared helpers live in `ai-settings-shared.ts`.
-- **Dialog footer:** `app-dialog-footer` / `app-cancel-button` render labelled buttons: the submit one is the primary (filled accent) Save, cancel is red. `[editing]="true"` on the footer dims Save while the form is unchanged (see "Action buttons"). Specs find them by testid.
-
-### The settings layout standard (decided by the user, 2026-10)
-Every Admin and User settings page uses four shared primitives from `src/shared-ui/settings/`, so a new page looks right by default:
-- **`app-settings-page`** (`title`, `description`, `width` = `wide` max-w-5xl by default | `narrow` max-w-3xl; slots `[settingsActions]` top right, `[settingsTabs]`, default content). **Every settings page is wide**, so the page never changes width when switching menus (a changing width looked like floating). Same header, same rhythm for configuration views and entity lists.
-- **`app-settings-section`** (the card; `title`, `description`, `tone` default | destructive, `testId`; slots `[sectionActions]` and `[sectionFooter]`): classes `cv-card`, `cv-card__head/title/desc/body/footer/status` in `tailwind.css`. Hairline, no shadow. Inside it a topic is a flat `cv-section` row (hairline between rows; `cv-section` keeps its inset box only outside a card). Read-only blocks may use `cv-inset`.
-- **Save sits in the card footer, right-aligned, status text left** (`<div sectionFooter class="cv-card__footer">`); every card that saves has one.
-- **`app-settings-tabs`**: the one segmented strip; `app-filter-bar` and `app-tabs` render through it. **`app-settings-entity-list`**: draws an `app-table` on the card surface (a table inside `cv-card` loses its own border and shadow).
-- `app-form [settingsCard]="true" settingsTitle="..."` draws a form as one card (Edit in the head, submit in the footer). `app-table-header` is still used by receipts, reports and shopping lists, not by settings pages.
-- **Settings forms are always editable** (no view/edit pencil): User Profile, User Preferences, Household details and Household receipt settings turn their `/view` route into the edit form for anyone who may update (`editableConfig` / the group components' `ngOnInit`), Save sits in the footer (disabled while pristine) and settles the form instead of navigating. Sections inside use `app-form-section [panel]="true"` (flat rows; its content gets a `gap-3`). The household has no "Group AI Settings" tab any more (AI is household-wide).
-- **AI page:** a saved key shows as dots (`SAVED_KEY_PLACEHOLDER` in the key box, never the key), and **Test connection works on the form as typed**, saved or not: an untouched form tests `{ id }`, a changed one sends the whole command and the API falls back to the stored key for an empty key box (`CheckReceiptProcessingSettingsConnectivity`; a connectivity check ignores the missing prompt id).
-- **Page headers:** `app-form-header` (used by `app-form` and the receipt form) is the settings page header too: a quiet Back link, a 24px title, the header buttons on the right. The receipt form's panels are two columns on desktop (Details with amount | date side by side, Images with an empty-state upload button), comments are one card, Save in the footer bar.
-
-
-### Receipts search and the product checker (fork, 2026-10)
-
-- **Receipts search moved from the header into the Receipts toolbar** (`data-testid="receipts-search"`, Ctrl/Cmd K or `/`
-  focuses it). The phrase lives in `ReceiptTableState.filter.search` (persisted with the filter, selector `search` falls back
-  to `""`); `SetReceiptSearch` also returns to page 1. The box debounces 300 ms, then `getFilteredReceipts()` (the existing
-  last-request-wins stream), so the table and the totals follow. It is not a chip and not counted in the Filter badge (the box
-  shows it); Reset filter clears it, and `SetReceiptFilter` (the filter dialog) keeps it. The Shop cell shows a muted
-  "Matched: Dark chocolate · 2,49 €, ..." line from `Receipt.searchMatches` (`receipt-search-matches`). See `api/CLAUDE.md`
-  "Receipt search" for what matches.
-- **The product checker is the Dashboard's "Check product" button** (`data-testid="overview-scan-product"`, after New list; code in
-  `src/product-check/`, no API, no permission; the header has no search box any more). `ProductCheckLauncher.start()` opens one
-  centered dialog (`ProductCheckDialogComponent`, 32rem, like every other action; it used to be a right-hand drawer) with three
-  ways in at the top: **Take a photo of the code**, **Upload a photo**, and **Enter a barcode number** (Enter or Check), the
-  results below and a red **Cancel** in the footer. With live video "Take a photo" opens `BarcodeScannerDialogComponent` on top
-  and the read barcode fills the box; without it, it is the native capture label. There is no camera icon inside the barcode
-  box any more (the photo buttons cover it). A barcode is 8/12/13 digits with a valid EAN/UPC check digit
-  (anything else answers "enter a barcode" without a request). **There is no name search, on purpose:** Open Food Facts answers
-  any request a browser marks cross-site (`Sec-Fetch-Site`, or just a `Referer`) to its search endpoints (`cgi/search.pl`,
-  `/api/v2/search`) with a 503, and its search service sends no CORS header, while `/api/v2/product/{code}` works. A name search
-  would need a server relay, which was rejected: the checker is browser-only, zero backend.
-- **Open Food Facts is read from the browser, never stored.** `OpenFoodFactsService` builds its `HttpClient` on `HttpBackend`
-  so the app's interceptors (credentials, error toasts, queue mode) are skipped. An unknown barcode is a 404 with a JSON body,
-  which the service maps to "not found". `ProductCheckService` drops an answer that arrives after a newer request. The
-  last 10 products are kept as small JSON in `localStorage` (`rw_recent_products`, every access guarded) and shown as pills
-  for flipping between items without another request.
-- **Scoring** (`health-score.ts`, pure, constants documented): 60% Nutri-Score + 40% NOVA (missing counts as 50), minus 15 per
-  high-risk and 5 per moderate additive, clamped to 0-100. `e-additives.ts` is a bundled guide of about 210 codes with a
-  category and `safe | moderate | high`; unknown codes show as unknown. It is a general guide, and the dialog says so.
-- **Photo fallback (plain http, no device, or a refused camera).** The live scanner needs `isSecureContext` and `getUserMedia`
-  (`canUseCamera()`, a synchronous check). `app-barcode-photo-actions` is always the dialog's top row: with `[liveCamera]`
-  its "Take a photo" is a button emitting `takePhoto`; without, it is **"Take a photo of the
-  code"** (`<input type="file" accept="image/*" capture="environment">`, opens the phone's camera app). **"Upload a photo"**
-  (no `capture`, the gallery or a file on a PC) is always a label. The file ones are native `<label>`s around
-  hidden inputs, never a button calling `input.click()`: iOS Safari and Android Chrome ignore a file-input click made after an
-  `await`, so it must stay a tap on the control itself. The scanner dialog shows the same pair when the camera is refused or
-  fails. `BarcodeImageService.decode(file)` shrinks the photo to 1280 px on its long side (`fitWithin`, a 12-48 MP photo chokes
-  decoders), draws it on an offscreen canvas and tries the native `BarcodeDetector`, then zxing with `TRY_HARDER` and the
-  EAN/UPC formats; a read counts only after the check digit passes. A photo with no code gives `ProductCheckService`'s
-  `photoFailed` state (a clear message; the labels stay usable to retry). Verified by feeding a generated 12 MP EAN-13 photo to
-  the file input with `isSecureContext` forced false; the real phone camera app is not testable here.
-- **Camera**: the live scanner is used only when `canUseCamera()`.
-  `BarcodeScannerService` uses the native `BarcodeDetector` and otherwise loads `@zxing/browser` on demand (own chunk). A read
-  counts only after the check digit passes. **zxing is pinned to `@zxing/browser` 0.1.5 + `@zxing/library` 0.21.3 on purpose:**
-  library 0.22+ declares `node >= 24`, which failed the engines check against CI's old Node 20.19.6 (CI is on 24 now, so
-  the pin can be lifted in a change of its own).
-- **Nutri-Score colours are tokens** (`--nutri-a..e` in both theme files, `bg-nutri-a` etc. in Tailwind).
-- **CSP** (`docker/default.conf`, still Report-Only): `connect-src` adds `https://world.openfoodfacts.org`, `img-src` adds
-  `https://images.openfoodfacts.org`. `Permissions-Policy` already allows `camera=(self)`.
-- E2E: `search-bar-visibility.spec.ts` (header search gated on a permission) is deleted; the header no longer has one.
-
-### Categories and tags on product lines (fork, 2026-10)
-- **Receipt form:** the receipt-level Categories / Tags fields are gone (the form keeps old values, so saving never drops
-  them); Quick Scan no longer asks for them (`showCategories` / `showTags` return false); the household settings lost the
-  two "Hide Receipt Categories/Tags" switches.
-- **Products table** (`receipts/receipt-products`): each line has a Category picker (spartan dropdown, "Uncategorized" first)
-  and a Tags menu (checkbox items, stays open) next to Quantity and Amount; the add row has both too. Choices come from
-  `AuthState.groupCatalog` (the group's categories and tags from AppData), sorted by name. Picks show at once and are saved
-  in order through `setReceiptProductLabels` (a `concatMap` queue; the server's answer replaces the line only when no later
-  pick is pending; a failure reloads). The menu's context is the line as it was when opened, so handlers look the line up
-  again by id. The edit row's Save sends the line's current category and tags (the update replaces them).
-- **Manage Categories / Tags** refresh AppData after add, edit and delete (`refreshAfterChange`), so the pickers see a new
-  name without a reload. The shared `app-table` has an empty state (`emptyText`, `emptyIcon`, `[tableEmptyAction]`
-  projection; pass the text only once loaded). The category form provides `DuplicateValidator` itself: dialogs are created
-  from the root injector, so a provider in the lazy module was invisible and the Add dialog stayed blank (NG0201).
-- **Dashboard:** one tile per tag with "Show on the Dashboard" (tag form switch, on by default for a new tag), the same
-  layout as Unhealthy in a neutral color: name, amount, "{share}% of the spending", the change; it opens the lines behind it
-  (`kind: "TAG"`). Category slices carry `categoryId` and open by it.
-
-## Removed from upstream (clean-schema rework, 2026-10)
-
-No longer in the desktop (and not in the API): custom fields and the receipt summary, the per-group widget dashboards and the
-report dashboard widget, stored prompts, config import, system emails and group email settings, the "Poll email(s)" action, and
-the email task and queue labels. `Permission` lost the matching keys (`app.prompts.*`, `app.system-emails.*`, `app.imports.run`,
-`app.groups.update-settings`, `group.dashboards.*`, `group.widgets.read`, `group.email.poll`). The role editor's resource icons and
-presets (`roles/role-presets.ts`) were trimmed to match, and the group list's edit button now only offers `group.update`.
-Passages above that mention these features are design history. See `api/CLAUDE.md` → "Removed from upstream".
-
-### Stage 5 (bill splitting)
-
-The receipt form has no Items or Shares sections, no "Sync with items", no quick actions dialog and no Ctrl+I shortcut; the
-`item-list`, `item-add-form`, `share-list`, `quick-actions-dialog` components, `receipts/utils/form.utils.ts`
-(`buildItemForm`) and the unused `app-summary-card` (settle-up) are deleted. Magic fill no longer carries items. The
-household receipt settings lost the four item/share hide switches. A receipt's lines are the Products section only.
+# desktop/CLAUDE.md
+
+The Angular web app CartVibe ships (phones in the shop, desktops for the overview). The look of every screen is in
+`../DESIGN.md`: read it before any UI change; this file covers behaviour and mechanics only.
+
+## Scope and pointers
+
+- Product, rules and infrastructure: `../AGENTS.md`; workflow and cross-component rules: `../CLAUDE.md`.
+- Backend contracts referenced below: `../api/CLAUDE.md`.
+- Deep notes in `docs/`: `sandbox.md` (cloud sandbox boot and Playwright), `lockfile.md` (dependency recipe),
+  `e2e.md` (suite setup, helpers, per-spec gotchas), `image-canvas.md` (receipt image geometry), `system-tasks.md`
+  (filter, receipt diff, source files), `builder.md` (Report Builder internals).
+- `src/open-api/` is generated from `api/swagger.yml`; never edit it by hand.
+
+## Commands and local run
+
+- `npm start`: dev server on :4200, proxying `/api` to :8081 (`proxy.conf.json`). It does not start the API.
+- `npm run build` (output `dist/cartvibe/`), `npm run watch`.
+- `npm test` / `npm run test:ci`: **Jest** (`jest.config.js`, `setup-jest.ts`), not Karma. `npx jest <path>` for one
+  spec. CI also runs `ng build`, because Jest compiles with isolated modules and misses type and template errors.
+- `npm run i18n:extract`, `i18n:check` (CI, before Jest), `i18n:sync -- --lang xx`: see Translations.
+- `npm run e2e` / `e2e:ui` / `e2e:install`: Playwright, needs a live API (`docs/e2e.md`).
+- Local stack on the Windows PC: `../docs/dev-setup.md`. Cloud sandbox: `docs/sandbox.md`. Login on a fresh database is
+  `admin` / `admin`; it lands on `/overview/group/<id>`.
+
+## Stack and conventions
+
+- **Angular 22**, TypeScript 6, NGXS 22, zoneless (`provideZonelessChangeDetection()`), Tailwind 4 + spartan/ui helm
+  components in `src/ui` (alias `@spartan-ng/helm/*`, brain from `@spartan-ng/brain`), Lucide icons, ApexCharts.
+  No Angular Material, no Bootstrap: comments and specs that still mention `mat-*`, `MatDialog` or Bootstrap classes
+  describe the past.
+- **Modules:** 34 feature/shared NgModules remain (plus 12 routing modules); about 164 of 193 components are still
+  `standalone: false` and declared in them (`SharedUiModule`, `ReceiptsModule`, …). New leaf components may be
+  standalone; a non-standalone one must be declared, and exported if another module uses it. Components the Angular 22
+  migration touched are pinned to `ChangeDetectionStrategy.Eager` (22's default is OnPush); either is fine for new code.
+- **State:** NGXS states in `src/store/`; read with `store.selectSignal(...)` (templates) or `selectSnapshot` (one-off
+  reads), no `@Select` / `| async`. Persisted slices are listed in `store.module.ts` (`auth`, `receiptTable`,
+  `systemSettings`, `systemTaskTable`, …).
+- **Zoneless traps.** Only signal writes, template/host events, `markForCheck()` and `setInput()` repaint. A plain
+  field written in `subscribe`, `setTimeout`, a promise or **`finalize()`** never repaints: the login spinner once stuck
+  forever on the failure path while success looked fine because navigation happened to repaint. Keep template state in
+  signals and test the error branch. Arrays and Sets in signals are replaced, never mutated. Prefer `computed` /
+  `linkedSignal` over an `effect` that copies state; `effect` is for imperative sync (DOM, storage, third-party).
+- **HTTP:** `provideHttpClient(withXhr(), …)`; XHR is kept because upload progress needs it (22 defaults to fetch).
+  In templates `?.` yields `undefined`; the few places that relied on `null` read `$safeNavigationMigration(…)`.
+- **Spartan wrappers keep the app's API:** `app-button`, `app-input`, `app-select`, `app-checkbox`, `app-textarea`,
+  `app-datepicker` (native date input; `DateInputDirective` gives the control a `Date`), `app-autocomlete` (sic),
+  `app-table` (`hlmTable`; `Sort`, `PageEvent`, `TableDataSource` in `src/table/table-types.ts`), `app-tabs`, `app-card`,
+  `app-expansion-panel`. Add a helm part with `node tools/spartan-add.cjs <name>`; it re-applies the local patches
+  listed at its end (`data-[state=checked]:` on switch and checkbox, `data-[state=active]:` on tabs, sidebar, button
+  press). Delete a helm folder nothing imports.
+- **Dialogs:** `AppDialog` (`src/dialog/app-dialog.ts`, on the CDK dialog) with `open / afterClosed / close /
+  componentInstance`; the opened component injects `AppDialogRef` and `APP_DIALOG_DATA`. Focus goes to the first
+  tabbable control unless `autoFocus` is passed; never hand the CDK an explicit `undefined` (it overrides the default
+  and leaves focus on the page behind). Dialogs are created from the root injector, so a provider in a lazy module is
+  invisible to them (NG0201): provide it in the dialog component.
+- **Toasts:** `SnackbarService` (over `ToastService`): `success`, `info`, `hint`, `error`. **Menus:** spartan dropdown
+  (`hlmDropdownMenuTrigger`); its items are a content query, so an item rendered inside a child component's template is
+  invisible to keyboard navigation: keep menu entries as plain buttons in the menu's own template.
+- **Icons:** `<app-icon name="receipt_long">` takes the Material name (the API stores those) and draws the Lucide icon
+  mapped in `shared-ui/icon/icon-map.ts`; add a pair there for a new name.
+- **Tests (Jest, zoneless):** `setupZonelessTestEnv()` in `setup-jest.ts`, which also stubs `ResizeObserver`. Prefer
+  `setInput` + `await fixture.whenStable()`; after mutating a plain field call `fixture.changeDetectorRef.markForCheck()`
+  before `detectChanges()`. Specs and e2e select by `data-testid`, ARIA state or text, never styling classes.
+  Translated text is English in specs (`src/i18n/i18n-test-utils.ts`). A spec that instantiates a real
+  `AutocomleteComponent` needs `AuthState` registered (it reads the close-on-select preference).
+
+## Shared patterns (reuse; confirm with the user before inventing a divergent one)
+
+- **Forms:** `app-form` (wraps `app-form-button-bar` + `app-submit-button`; `[settingsCard]="true"` draws it as one
+  card), or a plain `<form (ngSubmit)>` ending in `app-form-button-bar [mode]` with an `app-submit-button`
+  (`src/receipts/receipt-form/` is the bespoke-layout precedent). The button bar is an inline row at the end of the
+  form, never floating, and Save/Cancel never go in the page header. Fields: `app-input`, `app-textarea`, `app-select`,
+  `app-checkbox` grouped in `app-form-section`, bound via the `formGet` pipe.
+- **`FormMode`** (`view` / `edit` / `add`): with `[mode]="FormMode.edit"` (or `app-dialog-footer [editing]="true"`)
+  `app-submit-button` is dimmed while its form is pristine, read from `form.events`. Add forms are never dimmed (a
+  prefilled add dialog must submit). State that is not a control (grants, Magic Fill) marks the form dirty. Settings
+  forms are always editable: their `/view` route renders the edit form for anyone who may update.
+- **Dialog forms** submit through `(ngSubmit)` only (`app-dialog-footer`'s button is `type="submit"`).
+  `disableWhenProgressBarIsShown` protects nothing unless something dispatches `ShowProgressBar` (only Magic Fill does).
+- **Validation messages** (`validation-messages.ts`) cover `required`, `email`, `min`, `max`, `minlength`,
+  `maxlength`, `pattern`, `duplicate`. Any other key renders an empty message: return a string (a translation key) or
+  `{ message, ...params }` from the validator, or pass `additionalErrorMessages`. `app-select` has no `hint` input.
+- **Required fields shake:** `shakeInvalid()` / `shakeElement()` (`src/utils/shake.ts`) is the one way to say an empty
+  required box was the problem.
+- **Passwords:** `app-input [showVisibilityEye]` / `[showGeneratePassword]` (test ids `password-visibility-toggle`,
+  `password-generate`); turning either on masks the field, also on a later `false → true`. Generate uses
+  `generateSecurePassword()` (`src/utils/password.utils.ts`, `crypto.getRandomValues` with rejection sampling) and
+  `PasswordGeneratorService` (copy + toast). Only where an admin sets someone else's password (user form, Set
+  Password, Convert Dummy User), never sign-up or stored external secrets.
+- **Confirmations:** `ConfirmationDialogComponent` (`headerText`, `dialogContent`, `confirmText` inputs set on
+  `componentInstance`, not dialog data); act on a truthy `afterClosed()` (Esc/backdrop give `undefined`). Every write
+  the user cannot trivially undo goes through it, including receipt Duplicate.
+- **Lists:** `app-table` with `BaseTableComponent` + a table service + an NGXS table state for server paging; row
+  mutations refetch with `getTableData()`. `app-table` takes `emptyText`, `emptyIcon`, `[tableEmptyAction]`; pass the
+  text only once loaded. Non-settings list pages use `app-table-header` (with a subtitle) and `app-add-button`
+  (`[buttonText]="'Add X'"`, a `<resource>-add` test id and a tooltip); omit `buttonText` for the compact `+` in a
+  section header. Settings pages use `app-settings-page` / `-section` / `-tabs` / `-entity-list` (`../DESIGN.md`).
+- **Small pieces:** `app-badge` (`src/shared-ui/badge/`), `app-filter-bar` (`FilterTab[]`, renders through
+  `app-settings-tabs`), `app-breadcrumb`, `app-status-chip`, `app-money`, `app-copy-button` (silent on failure by
+  design; hand-roll a toasting copy where the value matters).
+- **Grant picker** (`src/shared-ui/grant-picker/`, used by `user-form` and `group-member-form`): emits nothing while
+  seeding itself, stops seeding once the user edits (inputs keep changing after mount), and passes a unique `inputId`
+  to its autocompletes (otherwise N pickers share one DOM id). Row building and diff-and-save live in
+  `member-grant-assignment.ts`.
+- **Chip pickers** (`app-autocomlete [multiple]`) push onto the control, so it must be a `FormArray` (a `FormControl`
+  has no `push()` and the picker silently does nothing); clear with `FormArray.clear()`. A single-select goes
+  `readonly` once filled; clearing is its X (`autocomplete-clear`). It needs a `displayWith` when options are plain
+  strings and the default would blank the field. `closeChipSelectOnSelect` (a user preference read from `AuthState`,
+  default off) closes the panel after a pick by also blurring the input; removing a chip deliberately ignores it.
+
+## Dependencies
+
+- Keep `npm audit` at 0. Transitive fixes go in `package.json` `overrides` (global form); drop an override once it does
+  nothing, and re-check floors after any toolchain major (an override applies to every declarer).
+- An advisory with no patched release is fixed by removing the path that pulls it in, not by a floor.
+- Builders are `@angular/build:*`; never add `@angular-devkit/build-angular` (it drags the webpack tree back in).
+- Never regenerate `package-lock.json` from scratch; update incrementally with CI's Node and npm.
+- Gate every dependency change on `npm ci` (not `npm install`), audit, `test:ci`, build, and every package's
+  `engines.node` admitting CI's Node (`node-version` in `.github/workflows/ci.yml`, 24.22.1).
+- `@playwright/test` is pinned exactly; bump it deliberately together with the browser build. `@zxing/browser` 0.1.5 /
+  `@zxing/library` 0.21.3 were pinned for Node 20; CI is on Node 24, so the pin can be lifted in a change of its own.
+- Stay on Angular's 22.x patch line; 23 is its own upgrade. `tsconfig.json` has no `baseUrl` (bare `src/...` imports
+  resolve through the `src/*` path) and `skipLibCheck` is on for apexcharts 4's types.
+- Recipe, failure modes and the gate in detail: `docs/lockfile.md`.
+
+## Cross-cutting invariants
+
+- **Permission gating** mirrors the server; the server re-checks every request, so a stale button at worst 403s.
+  AppData carries `appPermissions: string[]` and `groupPermissions: { [groupId]: string[] }`; `SetPermissions` is
+  dispatched only from `setAppData` (`src/utils/app-data.utill.ts`), never from `TokenRefreshService` (its claims-only
+  update must not wipe permissions). The matcher `src/utils/permission.utils.ts` is a port of the Go matcher, wildcards
+  included. Selectors: `AuthState.hasAppPermission`, `hasAnyAppPermission`, `hasGroupPermission(groupId, perm, orApp)`
+  (applies the app-scoped override first). Directives `*hasAppPermission` / `*hasGroupPermission` are effect-driven, so
+  they re-render when AppData lands. Guards: `appPermissionGuard` (`data.appPermissions`, any-of),
+  `groupPermissionGuard` (`groupPermission`, `orAppPermissions`, `useRouteGroupId` or `useAddTargetGroupId`); the
+  `/settings` and `/system-settings` landing guards redirect to the first tab the user can read.
+- **Gate on the item's own group,** never the page's: the synthetic "All" group never appears in `groupPermissions`.
+- **Permission strings stay `string[]`,** not the `Permission` enum, on the wire: a granted value may be a wildcard,
+  and closed enums broke older clients. Same reason new statuses, types and units are plain strings (`aiType` values
+  live in `src/constants/ai-type.ts`, not the generated client).
+- **403 handling** (`src/interceptors/http-interceptor.ts`): the API answers every denial with 403, never 401. With a
+  live session a 403 is a permission denial: toast "Forbidden" for non-GET requests outside queue mode and re-throw;
+  never log out or refresh on it. Background GET 403s are the caller's to handle (`catchError` on optional reads like
+  roles).
+- **One toast per error, and the server's `errorMsg` wins.** A toast replaces the one showing, so two in one tick leave
+  only the last. The generic `HttpErrorResponse.message` is a fallback only for a 5xx with no `errorMsg`; keep the two
+  branches mutually exclusive. A form with two writes toasts success only after both land and stays open on failure.
+- **App time zone.** One admin-set IANA zone (`SystemSettingsState.timeZone`, selector falls back to `UTC`) decides
+  every calendar boundary; helpers in `src/utils/app-time-zone.ts`. A receipt `date` is a calendar day stored as
+  midnight UTC and read by its UTC day; `createdAt`, `resolvedDate`, task times are instants shown in the app zone.
+  Display with the `appDate` pipe (never a bare `| date`; `:'calendar'` for calendar days); it is impure on purpose so
+  a zone change repaints. Outside templates use `formatAppDate`. "Today" is `todayInZone(zone)`. Receipt dates are
+  submitted as `toMidnightUtc` of the picked day and loaded with `calendarDayToLocalDate`.
+- **Wire dates are `yyyy-MM-dd`.** Date filters go out through `toDateWireFilter(filter, keys)` at the request, never in
+  the store: the persisted value goes back to the datepicker, which would read a bare day as UTC midnight (the day
+  before, west of Greenwich).
+- **Persisted filter state:** one slice per table (`ReceiptTableState.filter`, `SystemTaskTableState.filter`) that the
+  dialog, the chips and the quick controls all read and write. Defaults come from factories
+  (`buildDefaultReceiptFilter()`, `buildDefaultSystemTaskFilter()`), never a shared constant written into state. NGXS
+  `@State` defaults never run for a hydrated slice, so a key added later needs its fallback **in the selector** (and in
+  handlers). A filter write dispatches, then `SetPage(1)`, then refetches; refreshes go through one `switchMap` with
+  `catchError(() => EMPTY)` on the inner observable.
+- **Every active filter condition gets a chip** (`isFilterEntryActive`, shared by the badge and the chips; zero counts).
+  An id the user cannot resolve renders as the raw id rather than hiding the chip.
+- **Submit `getRawValue()`, not `value`,** wherever controls can be disabled: a disabled control is omitted from
+  `value`, and the API's unconditional assignment then wipes the stored setting.
+- **A blank select/autocomplete sentinel is `""`, never `0`.** `Validators.required` treats `0` as present, so the form
+  would POST `groupId: 0`. Group seeding: `GroupState.soleGroupId` (the only real group) and `addTargetGroupId` (the
+  selected group, or the sole one when the selection is "All", unset or stale); `/receipts/add` gates on
+  `addTargetGroupId ?? selectedGroupId`.
+- **Receipt create is one call:** `ReceiptService.createReceiptWithFiles(form.value, files)` (`POST /receipt/withFiles`,
+  multipart, comments in the body). Role requirements (`AuthState.receiptRequirements(groupId)`, already waived by the
+  server) block submit for a missing comment or image and lock the last one in edit mode.
+- **Durations are hours on the wire;** the unit select is presentation only. `src/utils/duration.utils.ts`
+  (`splitHours`, `toHours`, `maxForUnit`, `minForUnit`) and `durationValueValidator` (whole numbers, message as the
+  error value). Convert a floor with `minForUnit` (rounds up), never `maxForUnit` (floors 1 hour to 0 days). Each
+  setting passes its own bounds to `listenForDurationUnitChanges`; seed retention as
+  `splitHours(value || 720)`, because `splitHours` falls back to 24.
+- **Calls that must skip the interceptors** (Open Food Facts, translation files) build their `HttpClient` on
+  `HttpBackend`.
+
+## Feature notes
+
+### Dashboard (`src/overview/`)
+
+- `/overview/group/:groupId` is the landing page (`GroupState.overviewLink`); `overviewReadGuard`
+  (`group.receipts.read`) falls back to the receipts list. Each card loads on its own, so a failure blanks one card.
+- `app-period-picker` is the one period control (also on the receipts table, where it sets the Receipt Date filter).
+  Requests send `from` / `to` as `yyyy-MM-dd` in the app zone (`overview-period.ts`).
+- Tiles: Spent (change via `describeChangeAgainst`), Receipts (+ to check), Unhealthy, Not on the list, To buy, one per
+  tag marked "Show on the Dashboard". Unhealthy, Not on the list, tags and real categories open
+  `OverviewDetailDialogComponent` ("Other", "Uncategorized", "(Restricted)" do not).
+- **Monthly goal** (`UserPreferences.monthlySpendingGoal`, computed client-side only): edited on the Spent card and in
+  User Settings → Budget. Saving sends the whole preferences object (that endpoint replaces it); gated on
+  `app.user-preferences.update`.
+- **Month chart** (`overview-chart.utils.ts`, pure): at most 12 months, scales to the tallest month, never the goal.
+  Longer than a year (`exceedsOneYear`) swaps the chart for a landscape PDF and CSV export (`overview-export.ts`, one
+  request per calendar year; the print view opens inside the click handler).
+- **Donut:** `CATEGORY_COLORS` are `var(--chart-1..5)` plus `--muted-foreground` for "Other"; bars use the primary
+  token, faded muted when not selected and destructive over the goal; Unhealthy text is `text-warning-text`. Charts
+  read tokens at draw time (`readChartColors()`), and `app-apex-chart` rebuilds on a theme change (an options update
+  leaves some colours in the old theme). Click a slice or legend dot to focus (`focusedSegment`); hover sets
+  `hoveredSegment`; `applySliceEmphasis` works on the drawn SVG so hover never redraws, and re-runs on `animationEnd`.
+- **Shopping panel** (`app-overview-shopping-panel`): previews `pickLargestList`; ticking is the shopping list's own
+  cross-off, with an Undo row (`UNDO_WINDOW_MS`, `MAX_UNDO_ROWS`). The list is pinned while an Undo row is up, and
+  `latestIntent` keeps a slow response from overwriting a later Undo. Ticking needs `group.shopping-lists.update`.
+- **Layout and customise** (`src/overview/dashboard-layout/`): panels have plain-string ids (`spent`, `tag:<id>`,
+  `shoppingList`, …). `dashboard-layout.ts` (pure, tested) holds `PANEL_CATALOGUE`, `defaultLayout` (`fillRows` leaves
+  no gaps), `parseLayout` (unreadable → default, unknown ids kept), `completeLayout`, `resolveLayout`, `placePanels`,
+  `pinPlacements` (any PC edit pins every shown panel first so one change never moves the rest), `resolveDrop`,
+  `applyDrop`, `roomToTheRight`. Size class comes from the grid's own width (ResizeObserver): compact < 640px, regular
+  < 1024, wide. Saved cells apply to the wide grid only. Dragging is pointer-driven on the handle; keyboard moves are in
+  the panel menu. The customise screen is the same page at `.../customize` (route data `customise: true`) so previews
+  show real figures; panel content is `inert` while editing. `DashboardLayoutStore` loads once per session (cleared on
+  `Logout`), `canCustomise` from the API shows the button.
+- **Page width:** `--page-max` is set once on the wrapper around the router outlet; pages do not set their own max width.
+
+### Receipts (`src/receipts/`)
+
+- **Table:** Receipt Date (default sort `DEFAULT_RECEIPT_ORDER_BY = "date"`), Shop (`shop_name`: the AI-read shop, else
+  the name; sorts that way on the API), Amount, Status, Added by, Comment (opt-in, `first_comment`, the first comment
+  only). Saved layouts are reconciled with the defaults (`reconcileColumns`); a removed column drops out and a new one
+  joins with its default visibility. Row actions: Mark as settled (`receipt-mark-done`), Read with AI. The `⋮` menu
+  (`receipts-overflow-menu`) holds Quick Scan, export, Configure Columns and selection actions as plain items.
+- **Statuses** (`src/utils/receipt-status.ts`): OPEN / NEEDS_ATTENTION / DRAFT read "To check", RESOLVED / DECLINED
+  "Settled". `toStatusWireFilter` widens a status filter where the request is built. `app-status-chip` maps them onto
+  `open` / `resolved` classes and theme tokens; `customStatusColor` drives it for system-task status.
+- **Filtering:** the period picker writes the Receipt Date filter (not counted in the Filter badge); the dialog
+  (`app-receipt-filter`) and chips share `ReceiptTableState.filter`. Field keys/labels are in
+  `RECEIPT_FILTER_FIELDS`, but the dialog authors its own row labels, so a rename touches both the constant and
+  `receipt-filter.component.html`. A field's label matches its column ("Receipt Date", not "Date").
+  `WITHIN_CURRENT_MONTH` carries no value and is a server no-op on `date` today.
+- **Search** lives in the toolbar (`receipts-search`, Ctrl/Cmd K or `/`), stored as `filter.search` (selector falls
+  back to `""`), debounced 300 ms into the same refresh stream; not a chip, not in the badge, cleared by Reset, kept by
+  the dialog. Matches show under the shop (`Receipt.searchMatches`).
+- **Form:** Paid by is the current user (hidden); no bill splitting, no receipt-level categories or tags (old values
+  stay in the form so saving never drops them). A new receipt is named "Receipt {date}" until the AI reads the shop.
+- **Products** (`app-receipt-products`): lines edit in place (comma prices accepted); category picker and tags menu per
+  line from `AuthState.groupCatalog`, saved in order through `setReceiptProductLabels` (a `concatMap` queue; the
+  server's answer replaces the line only when no later pick is pending; handlers re-find the line by id). "Read again"
+  replaces the whole set. Health and seasonality chips (`app-food-tags`) are display-only.
+- **Currency:** `app-receipt-currency-note` shows a converted amount's source; the rates editor `app-exchange-rates`
+  sanitizes per keystroke (`sanitizeRateInput`) and Enter never submits the outer form.
+- **Image:** the stage is `app-image-canvas` (`docs/image-canvas.md`); the image menu (`hlmDropdownMenuTrigger` over
+  the stage) has Preview (`expandImage`), Rename (`RenameReceiptDialogComponent`) and Remove (`confirmRemoveImage`).
+  Uploads go through `downscaleImageForUpload` (over 1.5 MB → JPEG ≤ 3072px; returns the file unchanged when it cannot
+  improve it).
+- **Magic Fill** (`magicFill()` → `patchMagicValues`) patches the AI's parsed receipt into the form for review. A field
+  counts as filled only when it changes the form. Paid by needs `AutocomleteComponent.syncSingleDisplay()` after the
+  patch; comments go through `ReceiptCommentsComponent.addMagicFilledComments()` (queued in add mode, POSTed in edit
+  mode, since a receipt update does not persist comments).
+- **Quick Scan:** every entry (Dashboard, `⋮` menu, `app-quick-scan-button`) calls `QuickScanLauncher.open()`. With
+  `aiPoweredReceipts` it opens the dialog; without it an admin holding `app.receipt-processing-settings.update` gets a
+  confirmation leading to `/ai`, anyone else a hint. The dialog lists photos as attachment rows with per-photo fields
+  (`UploadImageComponent.processFiles` is the one entry for picked and dropped files) and closes right after upload;
+  the API notifies per scan. Field rules come from `resolveQuickScanFieldConfig(settings, { hasGroup, … })`: until a
+  group is chosen only the Group field shows; `configureImages()` clears hidden values only when a group is chosen
+  (otherwise it would wipe the `quickScanDefault*` prefills), but recomputes requiredness always. Resolve config per
+  index on each call (removing an image shifts indexes). The comment uses `codePointMaxLengthValidator(500)` and
+  `trimmedRequiredValidator()` (module-level singletons, because `removeValidators` matches by reference).
+- **Group receipt settings → Quick Scan:** comment toggles are disabled, not cleared, while `hideComments` is on
+  (`applyQuickScanDerivedState` with `emitEvent: false`, edit mode only); submit reads `getRawValue()`.
+
+### Shopping lists (`src/shopping-lists/`)
+
+- One reducer for every write: `ApplyShoppingListEvent` (idempotent upsert/remove by id) applies SSE events and this
+  tab's own responses, so an echo changes nothing. `ShoppingListStreamService` owns the single `EventSource` and
+  refetches on reconnect and when the tab becomes visible. `ShoppingListState` is not persisted; `targetGroupId` is
+  never the "All" group.
+- Only crossing off is optimistic. Items carry `amount` (decimal string) and `unit` (`SHOPPING_LIST_UNITS`, in step
+  with the API; labels translated through `formatShoppingListItemAmount`). A fully crossed-off list is "past"; "Going
+  shopping" notifies the household.
+- Trips (`app-shopping-trips`): receipts attached to a list and their unplanned products, refetched on
+  `TRIPS_CHANGED`; gated on `group.shopping-lists.read` + `group.receipts.read`. The hidden photo input sits inside the
+  same `@if` as the "Add receipt" menu so the menu can reach its template reference.
+
+### Reports (`src/reports/`)
+
+Templates list at `/reports`, builder at `/reports/new` and `/reports/:id/edit` (full-height route). Row actions gate
+on the server's `allowedActions`; the builder previews live in a sandboxed iframe, and its drill-in asks the server for
+the receipts rather than resolving the period itself. Save creates on the new route and updates in place on edit.
+Category, Tag, Health and Planned are read off product lines (a receipt counts once per bucket). Internals:
+`docs/builder.md`.
+
+### Product checker (`src/product-check/`)
+
+- The Dashboard's "Check product" (`overview-scan-product`) opens `ProductCheckDialogComponent` via
+  `ProductCheckLauncher.start()`: take a photo, upload a photo, or type an 8/12/13-digit barcode with a valid check
+  digit. No API and no permission.
+- No name search on purpose: Open Food Facts answers cross-site search requests with 503 and no CORS header, and a
+  server relay was rejected. `OpenFoodFactsService` is on `HttpBackend`; a 404 is "not found"; a stale answer is
+  dropped. The last 10 products are in `localStorage` (`rw_recent_products`, every access guarded).
+- The live scanner needs `canUseCamera()` (`isSecureContext` + `getUserMedia`). Photo inputs are native `<label>`s
+  around hidden file inputs, never a button calling `input.click()` (mobile browsers ignore a click made after an
+  `await`). `BarcodeImageService` shrinks to 1280px, tries `BarcodeDetector`, then zxing (loaded on demand).
+- Scoring (`health-score.ts`, pure): 60% Nutri-Score + 40% NOVA, minus additive penalties from `e-additives.ts`.
+
+### Translations (`src/i18n/`, `src/assets/i18n/`, `scripts/i18n/`)
+
+- The English text is the key: `{{ 'Add receipt' | t }}`, `'{n} items' | t: { n }`, `count | plural: 'item' : 'items'`,
+  `TranslationService.t()` in code. Missing → English; `null` or `""` counts as missing.
+- Strings defined in TypeScript are wrapped in `marker("…")` where defined and translated where shown. Values go in
+  `{placeholders}`, never template literals or concatenation (`i18n:check` fails). Pure helpers take an optional
+  `TranslateFn`.
+- Languages are runtime JSON: `languages.json` (registry), `<code>.json` (`{ messages, plurals }`), `en.json` is the
+  generated catalogue. `TranslationLoader` fetches via `HttpBackend`; a failed load leaves English. Shipped: en, pl,
+  de, fr, es; Polish must stay at 100%.
+- The language is never taken from the browser: English signed out, `UserPreferences.language` signed in
+  (`LanguageSyncService`; `localStorage` only caches it). Chosen on `/language`, applied at once.
+- After adding text: `npm run i18n:extract`, then `npm run i18n:sync -- --lang pl` and fill the `null`s. A new language
+  also needs Angular locale data (`src/i18n/locale-data.ts`) and the API side (`api/CLAUDE.md` → "Reports in the
+  reader's language"). Backend error messages stay English and are translated by `SnackbarService`; texts only data
+  reveals go in `scripts/i18n/extra-keys.json`. Dev builds collect misses in `window.__i18nMissing`.
+
+### Identity and themes
+
+- Themes are White (`light`), Black (`dark`) and System, registered in `src/theme/themes.ts`; `ThemeService` keeps the
+  mode in `rw_theme_mode`, and `index.html` applies it before first paint. The header toggle (`theme-toggle`) switches
+  White/Black and leaves System. Tokens: `src/themes/*.css` (`../DESIGN.md`, `../docs/themes.md`).
+- Brand components (`app-cartvibe-logo`, `-icon`, `-loader`, `-splash`) use the supplied SVGs as drawn; their palettes
+  switch on the `dark` class via `:host-context(html.dark)`.
+- First sign-in: `OnboardingService` opens `WelcomeDialogComponent` while `UserPreferences.onboardingPending` is on
+  (language, theme and, for `app.system-settings.update` holders, currency). The language is saved only with the final
+  preferences PUT so two PUTs cannot race the flag back on; a changed currency is a GET + PUT of the whole settings.
+
+### Navigation and settings screens
+
+- **Sidebar** (`src/layout/sidebar/`, `mainNavItems` / `manageNavItems`): everyday pages, then Settings: Manage
+  Categories, Manage Tags, AI, User Settings, Language (`/language`), Theme (`/theme`), then Manage Households, Manage
+  Users, System Settings, each behind its permission (Language and Theme need none and are top-level routes;
+  `/settings/theme` redirects). Each entry has a `nav-*` test id. Routes with `data: { fullHeight: true }` get a
+  bounded full-bleed content area.
+- **User Settings** (`/settings`): User Profile, User Preferences, API Keys, each gated on its read permission.
+- **System Settings** has four tabs: General & Currency, Auth & Security, Tasks & Storage, Logs. The first three render
+  `SystemSettingsFormComponent` (route data `section` picks the cards); the form holds every control whatever the tab,
+  so a save sends the whole payload. A new tab goes into `system-settings.component.ts`'s `allTabs` and the landing
+  guard order. Old paths redirect. Embedded tables sit outside the `<form>`.
+  - Time zone: a typeahead over `UTC` + `Intl.supportedValuesOf('timeZone')` with `timeZoneDisplayWith`; after save
+    `SetTimeZone` (and `SetCurrencyData` for currency) repaint the open app.
+  - Secure cookies (`system-settings-secure-cookies`): seeded `?? false`; warns while ticked over plain http.
+  - Session and MCP token lifetimes, temp-file retention: the duration rules above.
+  - Logs (`src/system-settings/logs/`): the newest 300 app-log lines, the first place to look for a reported error.
+  - System Tasks: `docs/system-tasks.md`.
+- **AI page** (`/ai`, every member): `app-ai-provider-fields` is the one provider block (main card and
+  `app-ai-fallback-card`); cloud providers get a model list from the API. A saved key shows as
+  `SAVED_KEY_PLACEHOLDER`; Test connection works on the form as typed. Saving refreshes the feature config so Quick
+  Scan works at once.
+- **Roles:** the UI offers Admin and User only (`src/utils/family-roles.ts`); user and member forms load assignable
+  roles with `loadAssignableRoles` and show names via `RoleNamePipe`, which matches on id **and** scope (app and group
+  role ids collide). There is no role editor.
+- **Per-member grants** (`user-form`, `group-member-form`) write through `PUT /group/{groupId}/member/{userId}/grants`,
+  gated per group on `group.members.grants.update` (no app-level bypass); only changed rows are sent. The empty-
+  selection sentence comes from `emptySelectionHint(row)`, since under a require-individual role empty means nothing.
+- **Manage Categories / Tags** refresh AppData after each change (`refreshAfterChange`) so pickers see new names; the
+  category form provides `DuplicateValidator` itself (root-injector dialogs).
+- **Delete account** for a passwordless (provider-provisioned) account confirms through the provider instead of a
+  password; that is why the profile still loads OIDC connections.
+
+## E2E
+
+- Specs live in `e2e/`, need a live API and run nowhere in CI. Setup, helpers and per-spec notes: `docs/e2e.md`.
+  Many predate the family rework; update a spec before trusting it.
+- Select with `getByTestId` (`<resource>-<action>`; shared buttons pass the test id to the host), or by role/label for
+  elements with a real accessible name. Never structural CSS chains or styling classes.
+- Web-first assertions only (`toBeVisible`, `toHaveURL`, `waitForResponse`); never `waitForTimeout`.
+- `fullyParallel` is on: mint unique data (`uniqueName`), never mutate shared rows; a spec that changes a global
+  setting is serial and restores only the field it captured.
+- Logged-in state comes from `storageState` (`e2e/.auth/<role>.json`, git-ignored); one file per role.
+- Credentials come from `E2E_*` environment variables, never literals.
+- A negative assertion about a menu entry opens the menu and asserts by test id (a `menuitem` is not a `button`).
+- Prove server enforcement with an API call that 403s, not only a hidden control.
+
+## Removed (do not resurrect without asking)
+
+- The Flutter mobile app and its generated client.
+- Angular Material, Bootstrap and ngx-bootstrap.
+- Login QR and its `showLoginQr` / `mobileServerUrl` settings.
+- The role editor UI (`/roles`); only Admin and User are offered.
+- OIDC admin UI and login buttons; only `FeatureConfigState.oidcProviders` and the profile's connection load remain.
+- Custom fields (and report custom-field dimensions), the receipt summary, stored prompts, config import, system emails.
+- Items, shares and bill splitting (`item-list`, `share-list`, `buildItemForm`, quick actions, the settle-up card).
+- Per-group widget dashboards and the report widget; the activity widget.
+- The month stepper as a date control (`app-month-stepper` is still imported by two modules but no template renders it;
+  `app-period-picker` replaced it) and the header search box.
+- The `showLargeImagePreviews` preference and the old image viewer/carousel.
