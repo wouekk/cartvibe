@@ -102,6 +102,11 @@ branch carries both. Not seen: the NAS, a phone.
 - `ci.yml` and `regenerate-clients.yml` trigger on `feature/**` only, not `feat/`.
 - Agents merge into `preview` and publish `:preview` only from `preview` or the one active sprint branch (the publish
   workflow cancels a running publish, so two branches clobber the shared tag).
+- **Auto-publish to `:preview` (user's rule, 2026-10-23):** once a feature branch's CI is green, publish it to `:preview`
+  (`gh workflow run publish-image.yml --repo wouekk/cartvibe --ref <branch>`) without asking, so the user can try it on the NAS.
+  **Exception:** if more than one branch or merge is waiting to go to `:preview`, ask first, so two branches do not clobber
+  each other's `:preview` (the tag holds one branch at a time). This covers `:preview` only; `:latest` and `main` still wait
+  for the user's go.
 - `mutation-check.sh` needs `python3`; a shim (`exec uv run --no-project --quiet python "$@"`) in a PATH folder works.
 - Never name anything "Apple" (themes, branches); the user cannot risk a trademark complaint.
 
