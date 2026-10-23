@@ -54,7 +54,7 @@ func (command *UpsertReceiptProcessingSettingsCommand) Validate(updateKey bool) 
 		return vErrs
 	}
 
-	if command.AiType == models.OPEN_AI_NEW || command.AiType == models.GEMINI_NEW {
+	if command.AiType == models.OPEN_AI_NEW || command.AiType == models.GEMINI_NEW || command.AiType == models.ANTHROPIC {
 		if command.Key == "" && updateKey {
 			errors["key"] = "key is required"
 		}

@@ -303,18 +303,19 @@ func CheckReceiptProcessingSettingsConnectivity(w http.ResponseWriter, r *http.R
 	HandleRequest(handler)
 }
 
-// GetGeminiModels lists the content-generating models a Gemini key can use, so the AI page can offer a dropdown
-// instead of a free-text model name. A key typed on the page is used as sent; otherwise the stored key of the named
-// settings is decrypted. The key is never stored or logged here.
-func GetGeminiModels(w http.ResponseWriter, r *http.Request) {
+// GetAiModels lists the models a Claude, Gemini or ChatGPT key can use, so the AI page can offer a dropdown instead of
+// a free-text model name. A key typed on the page is used as sent; otherwise the stored key of the named settings is
+// decrypted, and only for those settings' own provider, so a stored key is never sent to another company. The key is
+// never stored or logged here.
+func GetAiModels(w http.ResponseWriter, r *http.Request) {
 	handler := structs.Handler{
-		ErrorMessage:   "Error listing Gemini models",
+		ErrorMessage:   "Error listing AI models",
 		Writer:         w,
 		Request:        r,
 		AppPermissions: []string{permissions.AppReceiptProcessingSettingsRead},
 		ResponseType:   constants.ApplicationJson,
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			command := commands.GeminiModelsCommand{}
+			command := commands.AiModelsCommand{}
 			if err := command.LoadDataFromRequest(w, r); err != nil {
 				return http.StatusBadRequest, err
 			}
@@ -325,12 +326,20 @@ func GetGeminiModels(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
+			aiType := command.AiType
 			key := strings.TrimSpace(command.Key)
 			if key == "" {
 				settings, err := repositories.NewReceiptProcessingSettings(nil).
 					GetReceiptProcessingSettingsById(utils.UintToString(command.ReceiptProcessingSettingsId))
 				if err != nil {
 					return http.StatusBadRequest, err
+				}
+				if aiType == "" {
+					aiType = settings.AiType
+				}
+				if aiType != settings.AiType {
+					structs.WriteValidatorErrorResponse(w, structs.ValidatorError{Errors: map[string]string{"key": "Paste the API key first."}}, http.StatusBadRequest)
+					return 0, nil
 				}
 				if len(settings.Key) > 0 {
 					key, err = utils.DecryptB64EncodedData(config.GetEncryptionKey(), settings.Key)
@@ -339,14 +348,17 @@ func GetGeminiModels(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 			}
+			if aiType == "" {
+				aiType = models.GEMINI_NEW
+			}
 
-			models, err := ai.ListGeminiModels(r.Context(), nil, ai.GeminiModelsBaseUrl, key)
+			aiModels, err := ai.ListModels(r.Context(), aiType, key)
 			if err != nil {
 				structs.WriteValidatorErrorResponse(w, structs.ValidatorError{Errors: map[string]string{"key": err.Error()}}, http.StatusBadRequest)
 				return 0, nil
 			}
 
-			responseBytes, err := utils.MarshalResponseData(models)
+			responseBytes, err := utils.MarshalResponseData(aiModels)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}

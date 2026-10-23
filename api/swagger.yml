@@ -2490,19 +2490,19 @@ paths:
           $ref: "#/components/responses/BadRequest"
         403:
           $ref: "#/components/responses/Forbidden"
-  /receiptProcessingSettings/geminiModels:
+  /receiptProcessingSettings/aiModels:
     post:
       tags:
         - ReceiptProcessingSettings
-      summary: List the Gemini models an API key can use
-      description: Asks Google which content-generating models the key may call, newest first. The key is only forwarded, never stored.
-      operationId: getGeminiModels
+      summary: List the models an AI API key can use
+      description: Asks Anthropic (Claude), Google (Gemini) or OpenAI (ChatGPT) which models the key may call, newest first. The key is only forwarded, never stored, and a stored key only to its own provider.
+      operationId: getAiModels
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/GeminiModelsCommand"
+              $ref: "#/components/schemas/AiModelsCommand"
       responses:
         200:
           description: The models, newest first (never null)
@@ -2511,7 +2511,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/GeminiModel"
+                  $ref: "#/components/schemas/AiModel"
         500:
           $ref: "#/components/responses/Internal"
         400:
@@ -5265,11 +5265,10 @@ components:
         - "PAIDBY"
     AiType:
       type: string
-      enum:
-        - "OPEN_AI_CUSTOM"
-        - "OPEN_AI"
-        - "GEMINI"
-        - "OLLAMA"
+      description: >-
+        The AI provider: ANTHROPIC (Claude), GEMINI, OPEN_AI (ChatGPT), OPEN_AI_CUSTOM (a local OpenAI-compatible
+        server such as LM Studio) or OLLAMA. A plain string on purpose, so a new provider never breaks a client
+        that does not know it yet.
     OcrEngine:
       type: string
       enum:
@@ -7089,22 +7088,24 @@ components:
         priority:
           type: integer
           description: Queue priority
-    GeminiModelsCommand:
+    AiModelsCommand:
       type: object
-      description: Which key to list models for. Send a new key, or the id of saved settings to use its stored key.
+      description: Which provider and key to list models for. Send a new key, or the id of saved settings to use its stored key.
       properties:
+        aiType:
+          $ref: "#/components/schemas/AiType"
         key:
           type: string
-          description: A Gemini API key not saved yet
+          description: An API key not saved yet
         receiptProcessingSettingsId:
           type: integer
           description: Saved settings whose stored key is used when no key is sent
-    GeminiModel:
+    AiModel:
       type: object
       properties:
         name:
           type: string
-          description: The model id to store, for example gemini-2.5-flash
+          description: The model id to store, for example claude-opus-5-5 or gemini-2.5-flash
         displayName:
           type: string
       required:
