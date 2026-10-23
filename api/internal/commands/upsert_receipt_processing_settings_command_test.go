@@ -206,3 +206,28 @@ func TestUpsertReceiptProcessingSettingsCommand_IsEmpty(t *testing.T) {
 		})
 	}
 }
+
+func TestUpsertReceiptProcessingSettingsCommand_Validate_ClaudeNeedsAKeyAndNoUrl(t *testing.T) {
+	missingKey := UpsertReceiptProcessingSettingsCommand{Name: "Test", AiType: models.ANTHROPIC, IsVisionModel: true}
+	if _, exists := missingKey.Validate(true).Errors["key"]; !exists {
+		utils.PrintTestError(t, "error should exist for field", "key")
+	}
+
+	withUrl := UpsertReceiptProcessingSettingsCommand{
+		Name: "Test", AiType: models.ANTHROPIC, Key: "k", Url: "http://example.com", IsVisionModel: true,
+	}
+	if _, exists := withUrl.Validate(true).Errors["url"]; !exists {
+		utils.PrintTestError(t, "error should exist for field", "url")
+	}
+
+	valid := UpsertReceiptProcessingSettingsCommand{Name: "Test", AiType: models.ANTHROPIC, Key: "k", IsVisionModel: true}
+	if errs := valid.Validate(true).Errors; len(errs) > 0 {
+		t.Fatalf("expected valid, got %v", errs)
+	}
+}
+
+func TestAiClientTypeValueAcceptsClaude(t *testing.T) {
+	if _, err := models.ANTHROPIC.Value(); err != nil {
+		t.Fatalf("ANTHROPIC must be storable: %v", err)
+	}
+}

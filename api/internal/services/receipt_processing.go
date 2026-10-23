@@ -345,7 +345,7 @@ func (service ReceiptProcessingService) encodeImageForAi(
 		return service.getOllamaBase64Image(imagePath)
 	case models.OPEN_AI_NEW, models.OPEN_AI_CUSTOM, models.OPEN_AI_CUSTOM_NEW:
 		return service.getOpenAiBase64Image(imagePath)
-	case models.GEMINI_NEW:
+	case models.GEMINI_NEW, models.ANTHROPIC:
 		return service.getGeminiImage(imagePath)
 	}
 	return "", fmt.Errorf("unsupported AI type for vision encoding: %s", receiptProcessingSettings.AiType)

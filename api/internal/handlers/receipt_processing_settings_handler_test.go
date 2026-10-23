@@ -663,3 +663,43 @@ func TestShouldNotCheckReceiptProcessingSettingsConnectivityWithBadRequest(t *te
 		}
 	}
 }
+
+// A stored key is only ever sent to its own provider: asking for another provider's models without typing a key is
+// refused before any call leaves the server.
+func TestGetAiModelsDoesNotSendAStoredKeyToAnotherProvider(t *testing.T) {
+	defer tearDownReceiptProcessingSettings()
+
+	db := repositories.GetDB()
+	db.Create(&models.ReceiptProcessingSettings{Name: "Household AI", AiType: models.GEMINI_NEW, Key: "stored"})
+	grantAllAppPerms(t, 1)
+
+	body, _ := json.Marshal(commands.AiModelsCommand{AiType: models.ANTHROPIC, ReceiptProcessingSettingsId: 1})
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("POST", "/api/", strings.NewReader(string(body)))
+	r = r.WithContext(context.WithValue(r.Context(), jwtmiddleware.ContextKey{}, &validator.ValidatedClaims{CustomClaims: &structs.Claims{UserId: 1}}))
+
+	GetAiModels(w, r)
+
+	if w.Result().StatusCode != http.StatusBadRequest {
+		utils.PrintTestError(t, w.Result().StatusCode, http.StatusBadRequest)
+	}
+	if !strings.Contains(w.Body.String(), "Paste the API key first.") {
+		t.Fatalf("expected the key error, got %s", w.Body.String())
+	}
+}
+
+func TestGetAiModelsRefusesALocalServer(t *testing.T) {
+	defer tearDownReceiptProcessingSettings()
+	grantAllAppPerms(t, 1)
+
+	body, _ := json.Marshal(commands.AiModelsCommand{AiType: models.OPEN_AI_CUSTOM_NEW, Key: "abc"})
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("POST", "/api/", strings.NewReader(string(body)))
+	r = r.WithContext(context.WithValue(r.Context(), jwtmiddleware.ContextKey{}, &validator.ValidatedClaims{CustomClaims: &structs.Claims{UserId: 1}}))
+
+	GetAiModels(w, r)
+
+	if w.Result().StatusCode != http.StatusBadRequest || !strings.Contains(w.Body.String(), "aiType") {
+		t.Fatalf("expected a 400 on aiType, got %d %s", w.Result().StatusCode, w.Body.String())
+	}
+}

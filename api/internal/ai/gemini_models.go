@@ -17,13 +17,6 @@ import (
 // GeminiModelsBaseUrl is where Google lists the models a key may use.
 const GeminiModelsBaseUrl = "https://generativelanguage.googleapis.com/v1beta/models"
 
-// GeminiModel is one model a key can call for content generation.
-type GeminiModel struct {
-	// Name is what the settings store and the API takes, without the "models/" prefix ("gemini-2.5-flash").
-	Name        string `json:"name"`
-	DisplayName string `json:"displayName"`
-}
-
 type geminiModelsPage struct {
 	Models []struct {
 		Name                       string   `json:"name"`
@@ -36,7 +29,7 @@ type geminiModelsPage struct {
 // ListGeminiModels asks Google which models the key can use and returns the ones that generate content, newest
 // version first. The key travels in a header, never in the URL, so it cannot end up in a log line. baseUrl and client
 // are parameters so tests can point at a local server.
-func ListGeminiModels(ctx context.Context, client *http.Client, baseUrl string, apiKey string) ([]GeminiModel, error) {
+func ListGeminiModels(ctx context.Context, client *http.Client, baseUrl string, apiKey string) ([]AiModel, error) {
 	apiKey = strings.TrimSpace(apiKey)
 	if apiKey == "" {
 		return nil, fmt.Errorf("an API key is required to list the models")
@@ -45,7 +38,7 @@ func ListGeminiModels(ctx context.Context, client *http.Client, baseUrl string, 
 		client = &http.Client{Timeout: 15 * time.Second}
 	}
 
-	models := []GeminiModel{}
+	models := []AiModel{}
 	pageToken := ""
 	for pages := 0; pages < 10; pages++ {
 		query := url.Values{"pageSize": {"200"}}
@@ -88,7 +81,7 @@ func ListGeminiModels(ctx context.Context, client *http.Client, baseUrl string, 
 			if displayName == "" {
 				displayName = name
 			}
-			models = append(models, GeminiModel{Name: name, DisplayName: displayName})
+			models = append(models, AiModel{Name: name, DisplayName: displayName})
 		}
 
 		if page.NextPageToken == "" {
@@ -127,7 +120,7 @@ func geminiVersion(name string) float64 {
 
 // sortGeminiModels puts the newest versions first; within a version the plain names come before dated and preview
 // variants, then alphabetical, so the order is stable.
-func sortGeminiModels(models []GeminiModel) {
+func sortGeminiModels(models []AiModel) {
 	sort.SliceStable(models, func(i, j int) bool {
 		versionI, versionJ := geminiVersion(models[i].Name), geminiVersion(models[j].Name)
 		if versionI != versionJ {

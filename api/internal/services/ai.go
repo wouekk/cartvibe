@@ -52,6 +52,9 @@ func (service *AiService) CreateChatCompletion(options structs.AiChatCompletionO
 	case models.GEMINI_NEW:
 		client = ai.NewGeminiClient(options, service.ReceiptProcessingSettings)
 
+	case models.ANTHROPIC:
+		client = ai.NewAnthropicClient(options, service.ReceiptProcessingSettings)
+
 	default:
 		return "", systemTask, fmt.Errorf("invalid ai type: %s", service.ReceiptProcessingSettings.AiType)
 	}
