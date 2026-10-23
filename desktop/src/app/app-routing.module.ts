@@ -140,7 +140,8 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
+  // View transitions: a short cross-fade between pages (styled in tailwind.css, off under reduced motion).
+  imports: [RouterModule.forRoot(routes, { enableViewTransitions: true })],
   exports: [RouterModule],
 })
 export class AppRoutingModule {}

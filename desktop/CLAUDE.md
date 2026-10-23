@@ -261,6 +261,9 @@ The Angular web app CartVibe ships (phones in the shop, desktops for the overvie
   `trimmedRequiredValidator()` (module-level singletons, because `removeValidators` matches by reference).
 - **Group receipt settings → Quick Scan:** comment toggles are disabled, not cleared, while `hideComments` is on
   (`applyQuickScanDerivedState` with `emitEvent: false`, edit mode only); submit reads `getRawValue()`.
+- **Form Cancel:** a red `app-cancel-button` (`receipt-form-cancel`) sits left of Save in add and edit modes (not in the
+  next/previous queue): add goes to the receipts list (`receiptListLink`), edit back to the receipt's view. No
+  confirmation, since nothing is written.
 
 ### Shopping lists (`src/shopping-lists/`)
 
@@ -274,6 +277,16 @@ The Angular web app CartVibe ships (phones in the shop, desktops for the overvie
 - Trips (`app-shopping-trips`): receipts attached to a list and their unplanned products, refetched on
   `TRIPS_CHANGED`; gated on `group.shopping-lists.read` + `group.receipts.read`. The hidden photo input sits inside the
   same `@if` as the "Add receipt" menu so the menu can reach its template reference.
+- **Deleting several lists:** the header's red **Delete list** (`shopping-list-select-delete`, gated on
+  `group.shopping-lists.delete` and at least one list) starts a choosing mode (`selecting`, `selectedIds`). Cards and
+  past-list rows show a tick box (a visual span, not a nested button) and a click ticks instead of opening; the header
+  becomes a red Cancel and **Delete (n)** (disabled at 0). `deleteSelected()` confirms once, deletes list by list and
+  applies `ListDeleted` per success; a refused list keeps its tick and one toast says some were not deleted. The list
+  menu's single "Delete list" stays.
+- **In the shop:** `ScreenWakeLockService` (a per-visit switch in the list menu, re-acquired when the tab is visible
+  again, released when the page is left), `shoppingListToText` (`shopping-list-share.ts`) feeding `navigator.share` or
+  the clipboard, `navigator.vibrate?.(10)` on crossing off, and `OnlineStatusService` driving the
+  `shopping-list-offline` notice. Menu entries are hidden where the browser lacks the API.
 
 ### Reports (`src/reports/`)
 
@@ -323,6 +336,25 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
 - First sign-in: `OnboardingService` opens `WelcomeDialogComponent` while `UserPreferences.onboardingPending` is on
   (language, theme and, for `app.system-settings.update` holders, currency). The language is saved only with the final
   preferences PUT so two PUTs cannot race the flag back on; a changed currency is a GET + PUT of the whole settings.
+
+### Installable app, offline shell and page transitions
+
+- **Manifest:** `src/manifest.webmanifest` (standalone), linked from `index.html` with `theme-color` and the Apple
+  web-app metas. Icons in `src/assets/brand/pwa/` are rendered from the supplied icon SVG (192/512, maskable 512,
+  180px `apple-touch-icon`); to change the icon, re-render those four files from the new SVG, never redraw it.
+- **Service worker** (`@angular/service-worker`, `ngsw-config.json`) is in the production build only
+  (`provideServiceWorker` with `enabled: !isDevMode()`). It caches the app shell and static assets and has no
+  `dataGroups`, so every API, SSE, OAuth and MCP call goes to the network; `navigationUrls` excludes `/api`, `/oauth`,
+  `/mcp` and `/.well-known`. nginx serves `ngsw.json` and `ngsw-worker.js` with `no-cache`, which is how a new image
+  is noticed. A bad worker means a stuck app: change the config with care and check
+  `dist/cartvibe/browser/ngsw.json` after a build.
+- **`AppUpdateService`** (app initializer): when a new version is ready it activates it on the next navigation and
+  loads the target URL fresh, and checks for updates when the tab becomes visible. The full page load goes through the
+  `navigateToUrl` seam (jsdom cannot replace `window.location`).
+- **Motion:** the router uses `enableViewTransitions: true` (a 160ms page cross-fade, styled at the end of
+  `tailwind.css`, off under `prefers-reduced-motion`). Element fades use `animate.enter` / `animate.leave` with
+  `tw-animate-css` classes; `@angular/animations` stays only as a devDependency for the specs that still import
+  `NoopAnimationsModule`.
 
 ### Navigation and settings screens
 

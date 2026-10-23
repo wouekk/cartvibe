@@ -115,6 +115,11 @@ export class ShoppingListComponent {
    */
   public toggleItem(item: ShoppingListItem): void {
     const isChecked = !item.isChecked;
+    if (isChecked) {
+      // A short tick under the thumb (Android; iOS has no Vibration API, so this is a no-op there).
+      navigator.vibrate?.(10);
+    }
+
     this.applyItem(ShoppingListEventType.ItemToggled, {
       ...item,
       isChecked,

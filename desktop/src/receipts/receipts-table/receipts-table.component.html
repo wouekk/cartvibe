@@ -54,7 +54,8 @@
     ></app-button>
     <app-button
       *ngIf="anyFilterApplied()"
-      @fadeInOut
+      animate.enter="animate-in fade-in-0 duration-200 motion-reduce:animate-none"
+      animate.leave="animate-out fade-out-0 duration-200 motion-reduce:animate-none"
       class="me-2"
       data-testid="receipts-filter-reset"
       icon="restart_alt"

@@ -8,7 +8,23 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+### Added
+- **Install CartVibe on your phone:** the app now has an icon, a name and a standalone window, so "Add to Home Screen"
+  (or Install in Chrome) opens it like any other app. The pages themselves are kept on the device, so it starts fast
+  and picks up a new version the next time you open a page. Your receipts and lists are still always read from the
+  server, never from a stale copy.
+- **Shopping list, in the shop:** a list's menu can keep the screen on while you shop, and share the list as text with
+  the apps on your phone (or copy it where sharing is not available). Crossing off an item gives a short buzz on
+  phones that support it, and a quiet notice appears when the phone has lost its connection.
+- **Delete several shopping lists at once:** a red **Delete list** button next to Add List lets you tick any lists
+  (open or past) and delete them together, after one confirmation. If the server refuses some, those stay ticked.
+- **Cancel on the receipt form:** the Add receipt and Edit receipt screens have a red Cancel next to Save that leaves
+  without saving.
+- **Smoother page changes:** moving between pages is a short fade instead of a hard cut (off if your device is set to
+  reduce motion).
+
 ### Fixed
+- **"Custom" in the period picker is translated** (Polish: Dostosuj, and in German, French and Spanish).
 - **Ticked checkboxes now look ticked:** a checked box fills with the accent in both themes (it used to stay empty
   with only a faint check mark).
 - **Enter adds a shopping list item:** pressing Enter after typing an item's name adds it (it only worked from the
@@ -17,6 +33,8 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
   Cancel. Before, focus stayed on the page behind the dialog, so typing went nowhere.
 
 ### Changed
+- The few fades on the login screen, the receipts toolbar and System Settings use the browser's own animations instead
+  of Angular's older animation package, which is now only used by tests.
 - The Dashboard's **Scan product** button is now **Check product** (it checks a product by photo or barcode number),
   in every language.
 - Report PDFs are rendered with chromedp 0.21; the list that keeps outside images and files out of a report PDF is

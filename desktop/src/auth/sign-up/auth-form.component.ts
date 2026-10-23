@@ -7,7 +7,6 @@ import { BehaviorSubject, catchError, EMPTY, finalize, switchMap, tap, } from "r
 import { AppData, AuthService } from "src/open-api";
 import { SnackbarService } from "src/services";
 import { setAppData } from "src/utils";
-import { fadeIn, fadeInOut } from "../../animations";
 import { GroupState } from "../../store";
 import { UserValidators } from "../../validators";
 import { marker } from "../../i18n/marker";
@@ -17,7 +16,6 @@ import { marker } from "../../i18n/marker";
     templateUrl: "./auth-form.component.html",
     host: { class: "relative flex min-h-dvh items-center justify-center bg-gradient-to-br from-muted via-accent to-muted p-6 max-sm:p-3" },
     providers: [UserValidators],
-    animations: [fadeInOut, fadeIn],
     changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })

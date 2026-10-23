@@ -22,8 +22,9 @@ The look of every UI change: `DESIGN.md`. Local toolchains and manual steps: `do
   did not run. The Playwright e2e specs need a live API and run nowhere yet.
 - A `swagger.yml` change pushed on `feature/**` regenerates `desktop/src/open-api/` and commits it; pull, then build the
   desktop against the generated names.
-- Preview on the NAS: run `publish-image.yml` manually on the branch, which pushes `:preview` only (from `preview` or the
-  one active sprint branch; two branches clobber the shared tag). `:latest` and `:sha-<commit>` publish from `main` after
+- Preview on the NAS: once a feature branch's CI is green, publish it to `:preview` without asking
+  (`gh workflow run publish-image.yml --repo wouekk/cartvibe --ref <branch>`). If two or more branches are ready, ask
+  which one first: the tag holds one branch at a time. `:latest` and `:sha-<commit>` publish from `main` after
   green CI. Deploy on the NAS = pull, then redeploy in Dockhand, then hard-refresh.
 - Use `gh` for CI (`gh run list`, `gh run view <id> --log-failed`) rather than polling the anonymous REST API.
 
