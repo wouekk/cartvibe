@@ -23,7 +23,6 @@ import { GroupReceiptSettings } from './groupReceiptSettings';
 import { SystemTaskStatus } from './systemTaskStatus';
 import { OcrEngine } from './ocrEngine';
 import { SystemTask } from './systemTask';
-import { AiType } from './aiType';
 import { AssociatedEntityType } from './associatedEntityType';
 import { TagView } from './tagView';
 import { Tag } from './tag';
@@ -156,7 +155,10 @@ export interface PagedDataDataInner {
      * Whether the upload behind this activity is still on disk, so it can be previewed or downloaded. False once the temp-file retention window has passed, or for an activity that never had an upload.
      */
     hasSourceFile?: boolean;
-    aiType?: AiType;
+    /**
+     * The AI provider: ANTHROPIC (Claude), GEMINI, OPEN_AI (ChatGPT), OPEN_AI_CUSTOM (a local OpenAI-compatible server such as LM Studio) or OLLAMA. A plain string on purpose, so a new provider never breaks a client that does not know it yet.
+     */
+    aiType?: string;
     /**
      * URL for custom endpoints
      */

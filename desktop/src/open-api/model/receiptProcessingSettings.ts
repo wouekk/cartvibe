@@ -8,7 +8,6 @@
  * Do not edit the class manually.
  */
 import { OcrEngine } from './ocrEngine';
-import { AiType } from './aiType';
 
 
 export interface ReceiptProcessingSettings { 
@@ -28,7 +27,10 @@ export interface ReceiptProcessingSettings {
      * Description of the settings
      */
     description?: string;
-    aiType?: AiType;
+    /**
+     * The AI provider: ANTHROPIC (Claude), GEMINI, OPEN_AI (ChatGPT), OPEN_AI_CUSTOM (a local OpenAI-compatible server such as LM Studio) or OLLAMA. A plain string on purpose, so a new provider never breaks a client that does not know it yet.
+     */
+    aiType?: string;
     /**
      * URL for custom endpoints
      */

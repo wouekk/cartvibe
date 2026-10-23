@@ -1,6 +1,7 @@
 export * from './about';
 export * from './activity';
-export * from './aiType';
+export * from './aiModel';
+export * from './aiModelsCommand';
 export * from './apiKeyFilter';
 export * from './apiKeyResult';
 export * from './apiKeyScope';
@@ -32,8 +33,6 @@ export * from './featureConfig';
 export * from './fileData';
 export * from './fileDataView';
 export * from './filterOperation';
-export * from './geminiModel';
-export * from './geminiModelsCommand';
 export * from './getNewRefreshToken200Response';
 export * from './getSystemTaskCommand';
 export * from './group';
