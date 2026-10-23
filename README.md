@@ -91,7 +91,7 @@ password immediately**. To update, pull the new image and redeploy.
 | `docs/` | Design notes |
 | `site/` | The project page |
 
-Working notes for contributors and AI agents: [CLAUDE.md](CLAUDE.md), [AGENTS.md](AGENTS.md), [HANDOFF.md](HANDOFF.md).
+Working notes for contributors and AI agents: [CLAUDE.md](CLAUDE.md), [AGENTS.md](AGENTS.md), [DESIGN.md](DESIGN.md), [docs/dev-setup.md](docs/dev-setup.md).
 
 ## Versions
 
