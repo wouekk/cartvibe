@@ -1,5 +1,12 @@
 # HANDOFF.md — Where things stand
 
+## v0.7.0 released (2026-10-23) from `main`
+
+On the user's go, `feature/ai-providers` (which holds `feature/more-languages`) was fast-forwarded into `main` and
+`preview` and tagged `v0.7.0`, with a GitHub Release. It holds German/French/Spanish, reports in the reader's language and
+the Claude/ChatGPT providers (`CHANGELOG.md`). **Deploying is in place:** no schema change; pull `:latest`, redeploy,
+hard-refresh. Not seen on the NAS yet. New work starts on a `feature/<name>` branch from `main`.
+
 ## Claude and ChatGPT on the AI page (2026-10-23, branch `feature/ai-providers`, stacked on `feature/more-languages`)
 
 Cut from `feature/more-languages` (not `main`), because that branch is on `:preview` and owns the dictionaries this one

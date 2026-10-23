@@ -36,7 +36,7 @@ password immediately**. To update, pull the new image and redeploy.
 | Feature | Description |
 | :--- | :--- |
 | **Family dashboard** | Your month at a glance: how much you've spent, whether that's more or less than last month, and how you're doing against your budget. Move things around so what matters to you sits at the top. |
-| **Receipts read by AI** | Snap a photo and the AI fills in the shop, the total and every line on the receipt. Bring your own Gemini key, or run a model at home with LM Studio. |
+| **Receipts read by AI** | Snap a photo and the AI fills in the shop, the total and every line on the receipt. Bring your own Claude, Gemini or ChatGPT key, or run a model at home with LM Studio. |
 | **Shops at a glance** | Logos for around 230 chains (Biedronka, Żabka, Lidl, Kaufland, Rewe and more), so you can spot a receipt without reading it. |
 | **Healthy or not** | Healthy and unhealthy products are tagged based on the AI's assessment, and fruit and veg are marked as seasonal or imported. |
 | **Product lookup** | Standing in the aisle? Scan or type a barcode to see the Nutri-Score, how processed it is, the additives and the nutrition, straight from Open Food Facts. Your last scans stay one tap away. |
