@@ -82,10 +82,10 @@ never sum a status — the spec will not compile.
 
 **Every field can cut, measures included.** A groupBy level, an aggregate detail row's key, and a
 label column accept any field in the catalog. Grouping by a number is well defined — bucket keys are
-canonical for decimals (`decimal.String()`) and `compareValues` orders them — so grouping by a
-currency custom field buckets receipts by amount exactly as grouping by a category buckets them by
-name. The alternative would make a custom field's *type* decide whether it is reportable at all,
-which is not a distinction the engine should be making. Presenting those buckets is a renderer's job:
+canonical for decimals (`decimal.String()`) and `compareValues` orders them — so grouping by
+`amount` buckets receipts by amount exactly as grouping by `category` buckets them by name. The
+alternative would make a field's *type* decide whether it is reportable at all, which is not a
+distinction the engine should be making. Presenting those buckets is a renderer's job:
 `render.Dimension` carries the field's `DataType` so a bool reads Yes/No, a date reads as a calendar
 day, and money reads per the report's currency configuration.
 
@@ -150,7 +150,9 @@ the caller's job. The two faithful renderers (XLSX and HTML) share one traversal
 
 ## 4. A worked example, end to end
 
-Ten rows. Group by payer, then by tag; one summed row per category.
+Ten rows. Group by payer, then by tag; one summed row per category. The engine is fed synthetic rows
+here, as in `engine_test.go`: `custom_1` (shown as `Hst`, a tax amount) is a second money measure that
+exists only in the test fixture, not in the receipt catalog.
 
 ### The input
 
@@ -322,7 +324,7 @@ over it is null there too. That is correct — there is no single record for it 
 ## 6. Multi-value fan-out (it double-counts on purpose)
 
 A receipt with two categories is attributed to **both**, in full, and that double count propagates to
-the grand total. This is deliberate: it is the same attribution the dashboard pie chart uses.
+the grand total. This is deliberate: it is the same attribution the Dashboard's tag tiles use.
 
 One receipt of `100.00` in two categories. Owned by `TestRun_MultiValueDimensionsDoubleCount`:
 
@@ -479,26 +481,31 @@ into a live `=SUM(...)` cell formula instead of a computed value.
 ## 10. Feeding it data
 
 `internal/reporting/receiptsource` is the **only** package that imports `models`. It maps
-`[]models.Receipt` + `[]models.CustomField` into `[]reporting.Row`.
+`[]models.Receipt` and their product lines into `[]reporting.Row`.
 
 ```go
-source, err := receiptsource.New(customFields, appLocation) // needs CustomField.Options loaded
-model,  err := reporting.Run(spec, source.Catalog(), source.Rows(receipts), meta)
+source, err := receiptsource.New(appLocation, translator)
+rows, rowsPerReceipt := source.RowsWithLines(receipts, lines, dimensions) // lines parallel to receipts
+model, err := reporting.Run(spec, source.Catalog(), rows, meta)
 ```
 
-It offers `receipt_id`, `name`, `amount`, `date`, `resolved_date`, `created_at`, `status`, `paid_by`,
-`group`, `category`, `tag` (the last two `Multi`), plus one field per custom field, keyed
-`custom_<id>` — **by id, not by name, so renaming a custom field cannot break a saved report**.
+It offers `receipt_id`, `name`, `shop`, `amount`, `date`, `resolved_date`, `created_at`, `status`,
+`paid_by`, `group`, and the line fields `category`, `tag`, `health`, `planned` (all four `Multi`).
+`ReportDataService` builds the `receiptsource.Line` values from `ReceiptProduct` rows, so this package
+reads no database. When a grouping level or the aggregate detail cuts by a line field, a receipt becomes
+one row per distinct key of the line fields in use, each carrying what those lines cost (scaled to the
+receipt by `allocateProportionally`, with a rest row for what the lines do not cover); otherwise a
+receipt is one row and the line fields are labels. Labels are translated through the `Translator`.
 
 Each date field also carries derived `_day` / `_month` / `_year` **string** fields — `date_month`,
 `created_at_year`, `resolved_date_day`, and so on. A report groups by one of these to bucket receipts by
 calendar period; the raw date fields carry the exact instant, so grouping by `date` puts every receipt
 in its own bucket. The strings are zero-padded ISO (`2026-05`), cut in **UTC** for a calendar day (`date`,
-DATE custom fields, stored as midnight UTC) and in the **app time zone** passed to `New` for an instant
+stored as midnight UTC) and in the **app time zone** passed to `New` for an instant
 (`created_at`, `resolved_date`) — the package takes the zone as a parameter and never reads a setting. They
 sort chronologically as plain text.
 
-The caller must preload `PaidByUser`, `Group`, `Categories`, `Tags`, `CustomFields`. An unloaded
+The caller must preload `PaidByUser` and `Group`. An unloaded
 association resolves to no value, which surfaces as a `(None)` bucket rather than as a crash.
 
 Reporting at item grain, or a widget over something else entirely, adds a **sibling** of this package.
@@ -551,7 +558,7 @@ read the model the way a renderer would.
 ### Mutation checking
 
 ```bash
-./internal/reporting/mutation-check.sh          # all 63 mutations
+./internal/reporting/mutation-check.sh          # every mutation
 ./internal/reporting/mutation-check.sh avg      # only those matching "avg"
 ```
 
