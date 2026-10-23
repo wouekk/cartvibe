@@ -4,7 +4,6 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
 import { startWith, switchMap, take, tap } from "rxjs";
-import { fadeInOut } from "../../animations/index";
 import { AutocomleteComponent } from "../../autocomplete/autocomlete/autocomlete.component";
 import { BaseFormComponent } from "../../form";
 import { FormOption } from "../../interfaces/form-option.interface";
@@ -38,7 +37,6 @@ interface QueueData extends FormOption {
   selector: "app-system-settings-form",
   templateUrl: "./system-settings-form.component.html",
   providers: [InputReadonlyPipe],
-  animations: [fadeInOut],
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false
 })

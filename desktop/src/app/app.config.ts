@@ -1,12 +1,13 @@
-import { ApplicationConfig, provideAppInitializer, provideZonelessChangeDetection, inject } from "@angular/core";
+import { ApplicationConfig, isDevMode, provideAppInitializer, provideZonelessChangeDetection, inject } from "@angular/core";
+import { provideServiceWorker } from "@angular/service-worker";
 import { provideHttpClient, withInterceptors, withXhr } from "@angular/common/http";
 import { importProvidersFrom } from "@angular/core";
-import { provideAnimationsAsync } from "@angular/platform-browser/animations/async";
 import { provideNgxMask } from "ngx-mask";
 import { withNgxsReduxDevtoolsPlugin } from "@ngxs/devtools-plugin";
 import { withNgxsStoragePlugin } from "@ngxs/storage-plugin";
 import { provideStore } from "@ngxs/store";
 import { AppInitService, initAppData } from "src/services";
+import { AppUpdateService } from "../services/app-update.service";
 import { httpInterceptor } from "../interceptors/http-interceptor";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { NgxMaskDirective, NgxMaskPipe } from "ngx-mask";
@@ -77,9 +78,16 @@ const ngxsStorageKeys = [
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
-    provideAnimationsAsync(),
     provideHttpClient(withXhr(), withInterceptors([httpInterceptor])),
     provideNgxMask(),
+    // App shell only (ngsw-config.json): API, SSE and OAuth calls always go to the network. Off in development.
+    provideServiceWorker("ngsw-worker.js", {
+      enabled: !isDevMode(),
+      registrationStrategy: "registerWhenStable:30000",
+    }),
+    provideAppInitializer(() => {
+      inject(AppUpdateService);
+    }),
     provideAppInitializer(() => {
       const initializerFn = (initAppData)(inject(AppInitService));
       return initializerFn();

@@ -5,16 +5,55 @@
   >
     <!-- The page's one action. Going shopping sits with the list, receipts with their panel. -->
     <div class="flex items-center gap-2 [&_button]:h-9">
-      @if (canCreate()) {
-        <app-add-button
-          [buttonText]="'Add List' | t"
-          [tooltip]="'Add a shopping list' | t"
-          data-testid="shopping-list-add"
-          (clicked)="addList()"
-        ></app-add-button>
+      @if (selecting()) {
+        <app-cancel-button data-testid="shopping-list-select-cancel" (clicked)="cancelSelecting()"></app-cancel-button>
+        <button
+          hlmBtn
+          variant="destructive"
+          type="button"
+          data-testid="shopping-list-delete-selected"
+          [disabled]="selectedCount() === 0 || deleting()"
+          (click)="deleteSelected()"
+        >
+          <app-icon name="delete"></app-icon>
+          <span>{{ 'Delete ({count})' | t: { count: selectedCount() } }}</span>
+        </button>
+      } @else {
+        @if (canDeleteLists()) {
+          <button
+            hlmBtn
+            variant="destructive"
+            type="button"
+            data-testid="shopping-list-select-delete"
+            [attr.title]="'Choose the lists to delete' | t"
+            (click)="startSelecting()"
+          >
+            <app-icon name="delete"></app-icon>
+            <span>{{ 'Delete list' | t }}</span>
+          </button>
+        }
+        @if (canCreate()) {
+          <app-add-button
+            [buttonText]="'Add List' | t"
+            [tooltip]="'Add a shopping list' | t"
+            data-testid="shopping-list-add"
+            (clicked)="addList()"
+          ></app-add-button>
+        }
       }
     </div>
   </app-table-header>
+
+  @if (!online()) {
+    <div
+      class="mt-4 flex items-center gap-2 rounded-xl border border-border/70 bg-muted/50 px-3 py-2 text-sm text-muted-foreground"
+      role="status"
+      data-testid="shopping-list-offline"
+    >
+      <app-icon name="wifi_off" class="shrink-0"></app-icon>
+      <span>{{ 'You are offline. Changes you make now may not be saved.' | t }}</span>
+    </div>
+  }
 
   @if (isLoaded() && listCards().length > 0) {
     <!-- A swipeable row on a phone, a tidy grid from sm up. -->
@@ -26,13 +65,26 @@
         <button
           type="button"
           class="list-card flex min-h-24 w-60 shrink-0 snap-start flex-col justify-between gap-2 rounded-xl border border-border/70 bg-card p-4 text-left text-card-foreground transition-[border-color,background-color,box-shadow,transform] duration-150 hover:border-primary/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.99] motion-reduce:transition-none motion-reduce:active:scale-100 sm:w-auto"
-          [class]="card.id === selectedList()?.id ? 'border-primary! bg-accent/30 ring-1 ring-primary/20' : ''"
-          [attr.aria-pressed]="card.id === selectedList()?.id"
+          [class]="cardClass(card.id)"
+          [attr.aria-pressed]="isPressed(card.id)"
           [attr.data-testid]="'shopping-list-card-' + card.id"
-          (click)="selectList(card.id.toString())"
+          (click)="pick(card.id)"
         >
           <span class="flex items-start justify-between gap-2">
-            <span class="min-w-0 font-semibold leading-snug tracking-tight break-words">{{ card.name }}</span>
+            <span class="flex min-w-0 items-start gap-2">
+              @if (selecting()) {
+                <span
+                class="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors duration-150"
+                [class]="isSelected(card.id) ? 'border-destructive bg-destructive text-white' : 'border-muted-foreground/60 bg-transparent'"
+                aria-hidden="true"
+              >
+                @if (isSelected(card.id)) {
+                  <app-icon name="check" class="text-xs"></app-icon>
+                }
+              </span>
+              }
+              <span class="min-w-0 font-semibold leading-snug tracking-tight break-words">{{ card.name }}</span>
+            </span>
             <span class="min-w-6 shrink-0 rounded-full bg-muted px-2 py-0.5 text-center text-xs font-medium text-muted-foreground tabular-nums">{{ card.count }}</span>
           </span>
           <span class="line-clamp-1 text-xs text-muted-foreground">{{ card.preview | t }}</span>
@@ -65,7 +117,7 @@
                 <span class="max-sm:sr-only">{{ 'Going shopping' | t }}</span>
               </button>
             }
-            @if (canUpdate() || canDelete()) {
+            @if (canUpdate() || canDelete() || canKeepScreenOn || list.items.length > 0) {
               <button
                 hlmBtn variant="ghost" size="icon"
                 type="button"
@@ -78,6 +130,18 @@
               </button>
               <ng-template #listMenu>
                 <div hlmDropdownMenu class="w-56">
+                  @if (canKeepScreenOn) {
+                    <button hlmDropdownMenuItem data-testid="shopping-list-keep-screen-on" (click)="toggleKeepScreenOn()">
+                      <app-icon name="screen_lock_portrait"></app-icon>
+                      <span>{{ (keepScreenOn() ? 'Let the screen sleep' : 'Keep screen on') | t }}</span>
+                    </button>
+                  }
+                  @if (list.items.length > 0) {
+                    <button hlmDropdownMenuItem data-testid="shopping-list-share" (click)="shareList(list)">
+                      <app-icon name="share"></app-icon>
+                      <span>{{ 'Share list' | t }}</span>
+                    </button>
+                  }
                   @if (canUpdate()) {
                     <button hlmDropdownMenuItem data-testid="shopping-list-rename" (click)="renameList(list)">
                       <app-icon name="edit"></app-icon>
@@ -145,13 +209,24 @@
           <button
             type="button"
             class="flex h-9 w-full items-center justify-between gap-3 rounded-lg px-2 text-left text-sm text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
-            [class.bg-accent]="past.id === selectedList()?.id"
-            [class.text-foreground]="past.id === selectedList()?.id"
-            [attr.aria-pressed]="past.id === selectedList()?.id"
+            [class.bg-accent]="!selecting() && past.id === selectedList()?.id"
+            [class.text-foreground]="isPressed(past.id)"
+            [attr.aria-pressed]="isPressed(past.id)"
             [attr.data-testid]="'shopping-list-past-' + past.id"
-            (click)="selectList(past.id.toString())"
+            (click)="pick(past.id)"
           >
             <span class="flex min-w-0 items-center gap-2">
+              @if (selecting()) {
+                <span
+                class="flex size-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors duration-150"
+                [class]="isSelected(past.id) ? 'border-destructive bg-destructive text-white' : 'border-muted-foreground/60 bg-transparent'"
+                aria-hidden="true"
+              >
+                @if (isSelected(past.id)) {
+                  <app-icon name="check" class="text-xs"></app-icon>
+                }
+              </span>
+              }
               <app-icon name="history" class="shrink-0 text-base"></app-icon>
               <span class="truncate">{{ past.name }}</span>
             </span>

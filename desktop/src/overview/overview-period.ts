@@ -19,11 +19,11 @@ export interface PeriodChoice {
 }
 
 export const PERIOD_CHOICES: PeriodChoice[] = [
-  { value: "THIS_MONTH", label: "This month" },
+  { value: "THIS_MONTH", label: marker("This month") },
   { value: "LAST_7_DAYS", label: marker("Last 7 days") },
   { value: "LAST_30_DAYS", label: marker("Last 30 days") },
   { value: "THIS_YEAR", label: marker("This year") },
-  { value: "CUSTOM", label: "Custom" },
+  { value: "CUSTOM", label: marker("Custom") },
 ];
 
 export interface ResolvedPeriod {
