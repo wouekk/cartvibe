@@ -10,14 +10,13 @@ The Angular web app CartVibe ships (phones in the shop, desktops for the overvie
 - Deep notes in `docs/`: `sandbox.md` (cloud sandbox boot and Playwright), `lockfile.md` (dependency recipe),
   `e2e.md` (suite setup, helpers, per-spec gotchas), `image-canvas.md` (receipt image geometry), `system-tasks.md`
   (filter, receipt diff, source files), `builder.md` (Report Builder internals).
-- `src/open-api/` is generated from `api/swagger.yml`; never edit it by hand.
 
 ## Commands and local run
 
 - `npm start`: dev server on :4200, proxying `/api` to :8081 (`proxy.conf.json`). It does not start the API.
 - `npm run build` (output `dist/cartvibe/`), `npm run watch`.
 - `npm test` / `npm run test:ci`: **Jest** (`jest.config.js`, `setup-jest.ts`), not Karma. `npx jest <path>` for one
-  spec. CI also runs `ng build`, because Jest compiles with isolated modules and misses type and template errors.
+  spec. CI also runs `ng build` (see the root `CLAUDE.md`).
 - `npm run i18n:extract`, `i18n:check` (CI, before Jest), `i18n:sync -- --lang xx`: see Translations.
 - `npm run e2e` / `e2e:ui` / `e2e:install`: Playwright, needs a live API (`docs/e2e.md`).
 - Local stack on the Windows PC: `../docs/dev-setup.md`. Cloud sandbox: `docs/sandbox.md`. Login on a fresh database is
@@ -322,8 +321,7 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
 - The language is never taken from the browser: English signed out, `UserPreferences.language` signed in
   (`LanguageSyncService`; `localStorage` only caches it). Chosen on `/language`, applied at once.
 - After adding text: `npm run i18n:extract`, then `npm run i18n:sync -- --lang pl` and fill the `null`s. A new language
-  also needs Angular locale data (`src/i18n/locale-data.ts`) and the API side (`api/CLAUDE.md` → "Reports in the
-  reader's language"). Backend error messages stay English and are translated by `SnackbarService`; texts only data
+  also needs Angular locale data (`src/i18n/locale-data.ts`) and the API side (`api/CLAUDE.md` → "8. Reporting"). Backend error messages stay English and are translated by `SnackbarService`; texts only data
   reveals go in `scripts/i18n/extra-keys.json`. Dev builds collect misses in `window.__i18nMissing`.
 
 ### Identity and themes

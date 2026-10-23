@@ -12,7 +12,7 @@ import { marker } from "../../i18n/marker";
  * The pinned "report generator" paid-by option id — negative so it never collides
  * with a real (positive) user id. A saved template stores the sentinel rather than a
  * static user, and the backend resolves it to whoever generates the report (see
- * `api/CLAUDE.md` → "Report templates"), so the filter follows the report's generator,
+ * `api/CLAUDE.md` → "8. Reporting"), so the filter follows the report's generator,
  * not its author. This mirrors the role editor's OWN_PAID_RECEIPTS_OPTION_ID
  * convention and is reporting-only — the shared receipts filter never offers it.
  */

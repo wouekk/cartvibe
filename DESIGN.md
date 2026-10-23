@@ -19,7 +19,7 @@ Banned: Angular Material, Bootstrap classes (`d-flex`, `col-*`, `mb-3`), `mat-*`
 
 ## Tokens (`src/themes/light.css`, `dark.css`; mapped in `tailwind.css` `@theme inline`)
 - Themes: `THEMES` in `src/theme/themes.ts` = `light` ("White") and `dark` ("Black"), plus "System". No accent picker exists. `dark` class on `<html>` drives `dark:`.
-- Surfaces: `bg-background` (canvas, zinc-50 / zinc-950), `bg-card` / `bg-popover` (white / zinc-900), `bg-muted` (+ `/30`, `/40` for inset steps), `bg-secondary`, `bg-accent` (a neutral hover/selected tint, NOT a brand color), `bg-sidebar*`.
+- Surfaces: `bg-background` (canvas, zinc-50 / zinc-950), `bg-card` / `bg-popover` (white / zinc-900), `bg-muted` (+ `/30`, `/40` for inset steps), `bg-secondary`, `bg-accent` (a neutral hover/selected tint, not a brand colour), `bg-sidebar*`.
 - Text: `text-foreground`, `text-muted-foreground`, `text-card-foreground`, `text-primary-foreground`.
 - Lines: every border defaults to `--border` (base layer). Hairlines: `border-border`, `border-border/70` (panels), `/60` (dividers), `/40` (list rows). Focus: `ring-ring/50`, `ring-3`.
 - Primary: `bg-primary` = zinc-950 in White, near-white in Black (monochrome). Hover `bg-primary/80`.

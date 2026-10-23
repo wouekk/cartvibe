@@ -279,6 +279,8 @@ which day an instant falls on and what "today" means.
   per-template matrix, `*All` bypass).
 - Reports read in the generating user's language (`ReportService.readerLanguage`). Every report word is a literal inside
   `T(` or `i18n.Mark(` so `npm run i18n:extract` can find it; never edit `internal/i18n/locales/*.json` by hand.
+- User text in report headings and cells is escaped: `html/template` for HTML/PDF, `SanitizeCSVField` for CSV
+  (formula injection). A new label path must go through them.
 - `ReportPeriod.dateField` empty means `date`; adding a key means `ReceiptDateFilterKeys()`, `DateFilterField`, swagger
   and the desktop list. Stored templates are verbatim `ReportRequestCommand` JSON with `configurationVersion` 1; unknown
   keys are ignored on decode.

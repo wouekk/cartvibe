@@ -248,7 +248,7 @@ select {
   }
 }
 
-/* Shared building blocks of the fintech look (docs/ui-issues.md): in the components layer, so a utility on the element wins. */
+/* Shared building blocks of the fintech look (DESIGN.md): in the components layer, so a utility on the element wins. */
 @layer components {
   /* Horizontal scroll without the vertical scrollbar an overflow-x-auto strip grows from a 1px overflow. */
   .cv-scroll-x {

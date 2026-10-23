@@ -1,7 +1,7 @@
 # Report Builder: deep notes
 
 Purpose: the mechanics of `src/reports/` behind the summary in `../CLAUDE.md` → Reports. The engine and its wire
-contract are in `api/CLAUDE.md` → "Reporting Engine" and "Report templates".
+contract are in `../../api/CLAUDE.md` → "8. Reporting" and `api/internal/reporting/README.md`.
 
 ## Routes and access
 

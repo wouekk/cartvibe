@@ -1,7 +1,7 @@
 # System Tasks page: filter and receipt update diff
 
 Purpose: the mechanics of System Settings → Tasks & Storage → System Tasks (`src/system-settings/system-task-table/`
-and the shared `src/shared-ui/task-table/`). Query side: `api/CLAUDE.md` → "System task filtering".
+and the shared `src/shared-ui/task-table/`). Query side: `../../api/CLAUDE.md` → "System tasks and logs".
 
 ## Filter
 
@@ -59,8 +59,7 @@ receipts as pretty-printed JSON side by side.
 
 ## Activity source files
 
-A failed quick scan keeps its image so the user can enter the receipt by hand (`api/CLAUDE.md` → "Activity source
-files"). `app-task-table` shows preview/download controls behind `[showSourceFileActions]="true"` (only the System
+A failed quick scan keeps its image so the user can enter the receipt by hand (`../../api/docs/activity-source-files.md`). `app-task-table` shows preview/download controls behind `[showSourceFileActions]="true"` (only the System
 Tasks page passes it). They gate on the row's `hasSourceFile`, which the server resolves per caller, so a button never
 shows where the endpoint would 403. (Any client-side group gate must use the row's own `groupId`: the synthetic "All"
 group never appears in `groupPermissions`.) Preview opens

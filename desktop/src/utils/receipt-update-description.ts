@@ -5,7 +5,7 @@ export type ReceiptSnapshot = Record<string, unknown>;
 /**
  * The first description version whose own "before" is complete. The API writes
  * it as `version`; a description without one is version 1, whose "before" was
- * loaded one level deep (see api/CLAUDE.md -> "Receipt update snapshots").
+ * loaded one level deep (see api/CLAUDE.md -> "Receipts", update snapshots).
  */
 export const COMPLETE_RECEIPT_UPDATE_VERSION = 2;
 
