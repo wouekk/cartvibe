@@ -10,7 +10,9 @@ place: pull `:latest`, redeploy, hard-refresh. **Not seen on the NAS yet.**
 ## In progress: `feature/backlog-sweep` (from `main`, 2026-10-23)
 
 Backlog review sprint, plan in `C:/Users/Marcin/.claude/plans/ultrathink-backlog-review-and-composed-wren.md` (outside
-the repo). Pushed, not merged; merging into `main` + `preview` waits for the user's go. No `:preview` published yet.
+the repo). Pushed, not merged; merging into `main` + `preview` waits for the user's go. **`:preview` published** from `cec62d45`
+(run 39884780360, green; also `:sha-cec62d4`), on the user's go, to try on the NAS: point the stack at `:preview`, pull,
+redeploy, hard-refresh; no schema change. Not seen on the NAS yet.
 - **Done:** ticked helm checkboxes fill (`data-checked` → `data-[state=checked]`, also in `tools/spartan-add.cjs`); the
   profile's dead connect/disconnect/link-outcome code removed (the OIDC connection load **stays**: passwordless
   self-delete reads it, so `bugs-found.md` #6 was only half right); About's NG8107; chromedp 0.21 (`api/CLAUDE.md` ->
