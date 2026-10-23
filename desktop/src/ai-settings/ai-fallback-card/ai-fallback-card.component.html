@@ -8,34 +8,20 @@
    <app-settings-section title="Backup AI">
     <div class="cv-section" data-testid="ai-section-backup">
       <div class="cv-section__head">
-        <h3 class="cv-section__title">{{ 'Google Gemini' | t }}</h3>
+        <h3 class="cv-section__title">{{ 'Provider' | t }}</h3>
         <p class="cv-section__desc">
           {{ 'Used when the main AI is not available. It tries at most three times, so a long outage does not use up your quota.' | t }}
         </p>
       </div>
 
     <app-checkbox
-      [label]="'Use Google Gemini as a backup' | t"
+      [label]="'Use a backup AI' | t"
       data-testid="ai-fallback-enabled"
       [inputFormControl]="form | formGet : 'enabled'"
     ></app-checkbox>
 
     @if (form.controls.enabled.value) {
-      <app-input
-        type="password"
-        data-testid="ai-fallback-key"
-        [label]="'API key' | t"
-        [placeholder]="keyPlaceholder()"
-        [showVisibilityEye]="true"
-        [inputFormControl]="form | formGet : 'key'"
-      ></app-input>
-
-      <app-gemini-model-field
-        testId="ai-fallback-model"
-        [modelControl]="form.controls.model"
-        [keyControl]="form.controls.key"
-        [settingsId]="saved()?.id"
-      ></app-gemini-model-field>
+      <app-ai-provider-fields testIdPrefix="ai-fallback" [controls]="form.controls" [saved]="saved()"></app-ai-provider-fields>
     }
 
     </div>

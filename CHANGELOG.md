@@ -14,8 +14,13 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 - **Reports in your language:** a generated report (the builder preview, PDF, Excel and CSV) reads in the language of the
   person generating it: field names, statuses, health and planned words, totals, the period line and the footer. The
   three starter reports' titles and texts are translated too; names you typed stay as written.
+- **Claude and ChatGPT:** Settings → AI offers Claude, Gemini, ChatGPT and Local LM, for the main AI and for the backup
+  AI alike. Claude and ChatGPT list the models your key can use, as Gemini already did.
 
 ### Changed
+- The backup AI can be any provider, not only Gemini.
+- Switching saved AI settings to another provider asks for that provider's key; a stored key is never sent to another
+  company.
 - `i18n:extract` also writes the API's report words per language (`api/internal/i18n/locales/`), and CI runs
   `i18n:check` for API-only changes.
 

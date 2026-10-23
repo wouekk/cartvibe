@@ -7,60 +7,9 @@
       <div class="cv-section" data-testid="ai-section-main">
         <div class="cv-section__head">
           <h3 class="cv-section__title">{{ 'Provider' | t }}</h3>
-          <p class="cv-section__desc">{{ 'Where receipts are read. Google Gemini runs in the cloud; LM Studio runs on a computer at home.' | t }}</p>
+          <p class="cv-section__desc">{{ 'Where receipts are read. Claude, Gemini and ChatGPT run in the cloud; a local LM runs on a computer at home.' | t }}</p>
         </div>
-      <app-select
-        [label]="'Provider' | t"
-        optionValueKey="value"
-        optionDisplayKey="displayValue"
-        data-testid="ai-provider"
-        [options]="providers()"
-        [inputFormControl]="form | formGet : 'aiType'"
-      ></app-select>
-
-      @if (!isGemini()) {
-        <app-input
-          [label]="'Server URL' | t"
-          data-testid="ai-url"
-          placeholder="http://192.168.1.20:1234/v1"
-          hint="LM Studio's address as the NAS reaches it, ending in /v1"
-          [inputFormControl]="form | formGet : 'url'"
-        ></app-input>
-      }
-
-      <app-input
-        type="password"
-        data-testid="ai-key"
-        [label]="isGemini() ? 'API key' : 'API key (optional)'"
-        [placeholder]="keyPlaceholder()"
-        [showVisibilityEye]="true"
-        [inputFormControl]="form | formGet : 'key'"
-      ></app-input>
-
-      @if (isGemini()) {
-        <app-gemini-model-field
-          testId="ai-model"
-          [modelControl]="form.controls.model"
-          [keyControl]="form.controls.key"
-          [settingsId]="saved()?.aiType === 'GEMINI' ? saved()?.id : undefined"
-        ></app-gemini-model-field>
-      } @else {
-        <app-input
-          [label]="'Model' | t"
-          data-testid="ai-model"
-          hint="The model name as LM Studio lists it"
-          [inputFormControl]="form | formGet : 'model'"
-        ></app-input>
-      }
-
-      @if (isLmStudio()) {
-        <app-checkbox
-          [label]="'The model reads images (a vision model)' | t"
-          data-testid="ai-vision"
-          [inputFormControl]="form | formGet : 'isVisionModel'"
-        ></app-checkbox>
-      }
-
+      <app-ai-provider-fields testIdPrefix="ai" [controls]="form.controls" [saved]="saved()"></app-ai-provider-fields>
       </div>
 
       @if (connectionResult(); as result) {

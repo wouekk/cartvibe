@@ -12,7 +12,7 @@
     <app-input
       [label]="'Model' | t"
       [attr.data-testid]="testId()"
-      hint="For example gemini-2.5-flash"
+      [hint]="'For example {model}' | t: example()"
       [inputFormControl]="modelControl()"
     ></app-input>
   }
@@ -27,7 +27,7 @@
       (click)="load()"
     >
       <app-icon name="refresh"></app-icon>
-      {{ (loading() ? 'Loading…' : hasModels() ? 'Refresh the model list' : 'Get the models from Google') | t }}
+      {{ (loading() ? 'Loading…' : hasModels() ? 'Refresh the model list' : 'Get the models from {company}') | t: company() }}
     </button>
     @if (error(); as message) {
       <span class="text-sm text-destructive" role="alert" [attr.data-testid]="testId() + '-error'">{{ message | t }}</span>

@@ -1,43 +1,48 @@
 import { CommonModule } from "@angular/common";
 import { Component, DestroyRef, OnInit, computed, inject, signal } from "@angular/core";
-import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
-import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
+import { toSignal } from "@angular/core/rxjs-interop";
+import { FormBuilder, ReactiveFormsModule } from "@angular/forms";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { Store } from "@ngxs/store";
 import { catchError, finalize, map, Observable, of, startWith, switchMap, take, tap } from "rxjs";
-import { CheckboxModule } from "../../checkbox/checkbox.module";
-import { InputModule } from "../../input/input.module";
 import {
-  AiType,
   FeatureConfigService,
-  OcrEngine,
   ReceiptProcessingSettings,
   ReceiptProcessingSettingsService,
   SystemSettings,
   SystemSettingsService,
-  UpsertReceiptProcessingSettingsCommand,
   UpsertSystemSettingsCommand,
 } from "../../open-api";
 import { PipesModule } from "../../pipes/pipes.module";
-import { SelectModule } from "../../select/select.module";
 import { SnackbarService } from "../../services";
+import { TranslationService } from "../../i18n/translation.service";
 import { SetFeatureConfig } from "../../store";
+import { AiProviderFieldsComponent } from "../ai-provider-fields/ai-provider-fields.component";
 import { AiFallbackCardComponent } from "../ai-fallback-card/ai-fallback-card.component";
-import { GeminiModelFieldComponent } from "../gemini-model-field/gemini-model-field.component";
-import { AI_SETTINGS_NAME, ConnectionResult, DEFAULT_GEMINI_MODEL, SAVED_KEY_PLACEHOLDER, describeConnection } from "../ai-settings-shared";
+import {
+  AI_SETTINGS_NAME,
+  ConnectionResult,
+  buildAiProviderControls,
+  buildProviderCommand,
+  canTestProvider,
+  describeConnection,
+  needsNewKey,
+  providerName,
+  providerValueFrom,
+  watchProviderRules,
+} from "../ai-settings-shared";
 import { marker } from "../../i18n/marker";
 
 export { AI_SETTINGS_NAME, DEFAULT_GEMINI_MODEL, describeConnection } from "../ai-settings-shared";
 export type { ConnectionResult } from "../ai-settings-shared";
 
 /**
- * The admin's AI page (Phase 3 A1/A2): pick Google Gemini (model + API key) or an LM Studio
- * server (URL, optional key, model), save, and test the connection. It edits the receipt
- * processing settings System Settings points at, creating and linking them the first time. The
- * prompt is built in (A3), so there is none to pick; OCR is fixed to Tesseract for a model that
- * cannot read images.
+ * The admin's AI page (Phase 3 A1/A2): pick Claude, Gemini or ChatGPT (API key + a model from the key's list) or a
+ * local server such as LM Studio (URL, optional key, model), save, and test the connection. It edits the receipt
+ * processing settings System Settings points at, creating and linking them the first time. The prompt is built in
+ * (A3), so there is none to pick; OCR is fixed to Tesseract for a model that cannot read images.
  */
 @Component({
   selector: "app-ai-settings-page",
@@ -46,16 +51,13 @@ export type { ConnectionResult } from "../ai-settings-shared";
   standalone: true,
   imports: [
     AiFallbackCardComponent,
+    AiProviderFieldsComponent,
     SharedUiModule,
-    CheckboxModule,
-    GeminiModelFieldComponent,
     CommonModule,
-    InputModule,
     HlmButton,
     AppIconComponent,
     PipesModule,
     ReactiveFormsModule,
-    SelectModule,
   ],
 })
 export class AiSettingsPageComponent implements OnInit {
@@ -64,16 +66,11 @@ export class AiSettingsPageComponent implements OnInit {
   private readonly systemSettingsService = inject(SystemSettingsService);
   private readonly featureConfigService = inject(FeatureConfigService);
   private readonly snackbarService = inject(SnackbarService);
+  private readonly translation = inject(TranslationService);
   private readonly store = inject(Store);
   private readonly destroyRef = inject(DestroyRef);
 
-  public readonly form = this.formBuilder.group({
-    aiType: [AiType.Gemini as AiType, Validators.required],
-    model: [DEFAULT_GEMINI_MODEL, Validators.required],
-    url: [""],
-    key: [""],
-    isVisionModel: [true],
-  });
+  public readonly form = this.formBuilder.group(buildAiProviderControls(this.formBuilder));
 
   /** The settings System Settings points at; undefined until loaded or before the first save. */
   public readonly saved = signal<ReceiptProcessingSettings | undefined>(undefined);
@@ -88,33 +85,8 @@ export class AiSettingsPageComponent implements OnInit {
 
   private systemSettings?: SystemSettings;
 
-  private readonly aiType = toSignal(
-    this.form.controls.aiType.valueChanges.pipe(startWith(this.form.controls.aiType.value)),
-    { requireSync: true }
-  );
-
-  public readonly isGemini = computed(() => this.aiType() === AiType.Gemini);
-
-  public readonly isLmStudio = computed(() => this.aiType() === AiType.OpenAiCustom);
-
-  /** Gemini and LM Studio, plus whatever an older setting uses, so it is not lost by opening the page. */
-  public readonly providers = computed(() => {
-    const options = [
-      { value: AiType.Gemini, displayValue: "Google Gemini" },
-      { value: AiType.OpenAiCustom, displayValue: marker("LM Studio (on a computer at home)") },
-    ];
-    const savedType = this.saved()?.aiType;
-    if (savedType && !options.some((option) => option.value === savedType)) {
-      options.push({ value: savedType, displayValue: `${savedType} (set up before)` });
-    }
-    return options;
-  });
-
   public ngOnInit(): void {
-    this.form.controls.aiType.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((aiType) => this.applyProviderRules(aiType));
-    this.applyProviderRules(this.form.controls.aiType.value);
+    watchProviderRules(this.form.controls, this.destroyRef);
 
     this.systemSettingsService
       .getSystemSettings()
@@ -138,50 +110,20 @@ export class AiSettingsPageComponent implements OnInit {
       .subscribe((settings) => {
         if (settings) {
           this.saved.set(settings);
-          this.form.reset({
-            aiType: settings.aiType ?? AiType.Gemini,
-            model: settings.model ?? "",
-            url: settings.url ?? "",
-            key: "",
-            isVisionModel: settings.isVisionModel ?? true,
-          });
+          this.form.reset(providerValueFrom(settings));
         }
       });
   }
-
-  /** A stored key is never sent back, so a saved key shows as dots and an empty key field keeps it. */
-  public readonly keyPlaceholder = computed(() => (this.saved() ? SAVED_KEY_PLACEHOLDER : ""));
 
   private readonly formValue = toSignal(this.form.valueChanges.pipe(startWith(this.form.getRawValue())), {
     initialValue: this.form.getRawValue(),
   });
 
   /** Settings can be tested as typed, saved or not: a saved key covers an empty key box, a new one needs its key or URL. */
-  public readonly canTest = computed(() => {
-    const value = this.formValue();
-    if (this.saved()) {
-      return true;
-    }
-    return value.aiType === AiType.Gemini ? !!(value.key ?? "").trim() : !!(value.url ?? "").trim();
-  });
+  public readonly canTest = computed(() => canTestProvider(this.formValue(), this.saved()));
 
-  private buildCommand(): UpsertReceiptProcessingSettingsCommand {
-    const saved = this.saved();
-    const value = this.form.getRawValue();
-    const isGemini = value.aiType === AiType.Gemini;
-    return {
-      name: saved?.name || AI_SETTINGS_NAME,
-      description: saved?.description ?? "",
-      aiType: value.aiType!,
-      model: (value.model ?? "").trim(),
-      // Gemini takes no URL; the API refuses one.
-      url: isGemini ? "" : (value.url ?? "").trim(),
-      key: (value.key ?? "").trim(),
-      isVisionModel: isGemini ? true : !!value.isVisionModel,
-      // LM Studio refuses the JSON-object response format the flag asks for.
-      enforceJsonResponseFormat: isGemini,
-      ocrEngine: saved?.ocrEngine ?? OcrEngine.Tesseract,
-    };
+  private buildCommand() {
+    return buildProviderCommand(this.form.getRawValue(), this.saved(), AI_SETTINGS_NAME);
   }
 
   public save(): void {
@@ -193,8 +135,10 @@ export class AiSettingsPageComponent implements OnInit {
     const saved = this.saved();
     const value = this.form.getRawValue();
     const key = (value.key ?? "").trim();
-    if (value.aiType === AiType.Gemini && !saved && !key) {
-      this.snackbarService.error("Paste the Gemini API key.");
+    if (needsNewKey(value, saved) && !key) {
+      this.snackbarService.error(
+        this.translation.t(marker("Paste the {provider} API key."), { provider: providerName(value.aiType) })
+      );
       return;
     }
 
@@ -223,7 +167,8 @@ export class AiSettingsPageComponent implements OnInit {
 
   /**
    * Tests the settings as they are on the page, saved or not. A saved key stands in for an empty key box (the API
-   * reads it for this id), so the key never has to be typed twice; an untouched form just tests what is saved.
+   * reads it for this id, for its own provider only), so the key never has to be typed twice; an untouched form just
+   * tests what is saved.
    */
   public testConnection(): void {
     const saved = this.saved();
@@ -277,16 +222,5 @@ export class AiSettingsPageComponent implements OnInit {
       tap((featureConfig) => this.store.dispatch(new SetFeatureConfig(featureConfig))),
       map(() => created)
     );
-  }
-
-  // LM Studio needs a URL; Gemini always reads images and takes no URL.
-  private applyProviderRules(aiType: AiType | null): void {
-    const url = this.form.controls.url;
-    if (aiType === AiType.OpenAiCustom || aiType === AiType.Ollama) {
-      url.setValidators(Validators.required);
-    } else {
-      url.clearValidators();
-    }
-    url.updateValueAndValidity({ emitEvent: false });
   }
 }

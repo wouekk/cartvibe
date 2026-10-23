@@ -1,7 +1,11 @@
 import { FormOption } from "../../interfaces/form-option.interface";
-import { AiType } from "../../open-api";
+import { AiType } from "../../constants/ai-type";
 
 export const aiTypeOptions: FormOption[] = [
+  {
+    value: AiType.Anthropic,
+    displayValue: "Claude"
+  },
   {
     value: AiType.OpenAi,
     displayValue: "OpenAI"

@@ -1,4 +1,4 @@
-import { AiType } from "../../open-api/index";
+import { AiType } from "../../constants/ai-type";
 import { UrlHintPipe } from "./url-hint.pipe";
 
 describe("UrlHintPipe", () => {
