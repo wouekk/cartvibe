@@ -5,7 +5,7 @@ CartVibe's look is made of **design tokens** (CSS variables with the shadcn/ui n
 and the Tailwind utilities (`bg-card`, `text-muted-foreground`, ...) read those tokens, so **a theme is just a block of
 token values**. There is no per-component theme code.
 
-Two themes ship: **Light** and **Dark** (spartan's zinc palette). The user picks one, or "System", in User Settings → Theme.
+Two themes ship: **White** (`light`) and **Black** (`dark`), spartan's zinc palette. The user picks one, or "System", on the Theme page under Settings. There is no accent picker. The look itself is described in `DESIGN.md`.
 
 ## Add a theme in three steps
 
@@ -18,15 +18,15 @@ Two themes ship: **Light** and **Dark** (spartan's zinc palette). The user picks
    `<html>` (that is what Tailwind's `dark:` variants and the spartan components key off), so mark a dark-looking theme
    `"dark"`.
 
-That is all: the theme appears in the Theme tab, is remembered per browser, is applied before the first paint
+That is all: the theme appears on the Theme page, is remembered per browser, is applied before the first paint
 (`index.html` reads the stored key and scheme, it does not need the list), and every component follows it.
 
 ## Rules that keep themes cheap
 
 - **Never write a colour in a component.** Use a token (`bg-card`, `var(--border)`), or add a new token to *every* theme.
   Hard-coded hex values are what made dark mode hard before; a lint-style grep for `#` in `*.scss` finds stragglers.
-- Charts use `--chart-1..5` and the semantic `--destructive`; the Dashboard's category colours are fixed OKLCH hues in
-  `overview-chart.utils.ts` (readable on every theme).
+- Charts read the tokens: categories use `--chart-1..5` plus `--muted-foreground` for "Other" (`overview-chart.utils.ts`),
+  bars use `--primary`, faded muted and `--destructive` (over goal), via `readChartColors()`.
 - The favicon (`desktop/src/favicon.svg`) is a standalone file and cannot read page variables; it switches on the
   operating system's `prefers-color-scheme`. Update its two palettes if the identity changes.
 - Test a new theme by opening each main page with `data-theme="<key>"` set (Playwright screenshots in light and dark are
