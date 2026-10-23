@@ -66,7 +66,8 @@ export class AppDialog {
       height: config.height,
       maxHeight: config.maxHeight ?? "calc(100vh - 2rem)",
       disableClose: config.disableClose,
-      autoFocus: config.autoFocus as never,
+      // An explicit undefined would override the CDK's own default and leave focus on the page behind the dialog.
+      autoFocus: (config.autoFocus ?? "first-tabbable") as never,
       closeOnNavigation: true,
       panelClass: ["app-dialog-panel", ...(Array.isArray(config.panelClass) ? config.panelClass : config.panelClass ? [config.panelClass] : [])],
       backdropClass: "app-dialog-backdrop",
