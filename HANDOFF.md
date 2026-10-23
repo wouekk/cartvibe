@@ -15,13 +15,23 @@ the repo). Pushed, not merged; merging into `main` + `preview` waits for the use
   profile's dead connect/disconnect/link-outcome code removed (the OIDC connection load **stays**: passwordless
   self-delete reads it, so `bugs-found.md` #6 was only half right); About's NG8107; chromedp 0.21 (`api/CLAUDE.md` ->
   HTML to PDF: URLPattern block list, new Chromium test that fails on the naive `http://*`); every GitHub Action on its
-  current major.
-- **Checked:** Jest 293 suites / 2028 tests, `ng build`, `i18n:check`; Go vet, `test-pdf.sh` (Ghostscript checks skip
-  here, the new block-list test does not); checkbox seen ticked in White and Black (Add Category dialog, 1280 px). CI:
-  see the branch's latest run. **Not seen:** the Actions bumps in `publish-image.yml`, `pages.yml` and
-  `regenerate-clients.yml` (only proven by running them); other NG81xx lint warnings remain (left alone).
-- **Blocked, waits for the user:** Angular 22 needs Node `^22.22.3 || ^24.15.0` (CI, this PC and the lockfile gate pin
-  Node 20.19.6, which is end of life). Moving Node is the first step of that upgrade.
+  current major; Scan product → **Check product**.
+- **Node 24.22.1 + Angular 22 (user's go, 2026-10-23):** CI, this PC (`tools\node-v24.22.1-win-x64`, `web.cmd`) and the
+  lockfile gate run Node 24 / npm 11; Angular 22.2, TypeScript 6, NGXS 22, ngx-mask 22, ng-icons 36, spartan brain
+  1.8.1. The unused chart.js pie chart (and ng2-charts, chart.js) removed first. What the migrations did and the
+  override changes: `desktop/CLAUDE.md` -> "Dependency Security & Version Pins".
+- **Two older bugs, reproduced on a worktree of the pre-upgrade commit before fixing:** Enter in the shopping list's
+  item name never added the item (spartan's input cancels Enter), and dialogs left focus on the page behind them
+  (`AppDialog` passed `autoFocus: undefined`). Both fixed with tests that fail on the old code.
+- **Checked:** Jest 293 suites / 2002 tests (the pie chart's 30 left with it), `ng build`, `i18n:check`, `npm ci`,
+  audit 0, engines on Node 24; Go vet, `test-pdf.sh` (Ghostscript checks skip here, the new block-list test does not).
+  Seen on the local stack on Angular 22 (English, Black at 1280 px, White at 390 px): Dashboard, shopping list (add,
+  amount, cross off, suggestion pick), receipt form (ngx-mask amount, multipart save), receipts table selection,
+  Reports list and builder preview, dialogs; no console errors. **Not seen:** the NAS, the Docker image build with
+  Angular 22, the Actions bumps in `publish-image.yml`, `pages.yml` and `regenerate-clients.yml` (only proven by running
+  them). Other NG81xx lint warnings remain (left alone).
+- **Local stack note:** two app tabs reloading at once (dev-server hot reload) both rotate the shared refresh token and
+  the loser signs both out ("Refresh token is invalid or has already been used" in the API log). Keep one app tab open.
 
 ## Decided (2026-10-23, by the user)
 - The AI keeps answering in one language (no per-uploader language).
@@ -75,9 +85,10 @@ The GitHub repository is **`wouekk/cartvibe`**, the page `https://wouekk.github.
 (`/app/receipt-wrangler-api/...`) and the service names are unchanged on purpose. Only `main` and `preview` exist on GitHub.
 
 ## Local stack on the Windows PC (outside the repo, in `C:\Users\Marcin\tools\`)
-- **Node 20.19.6 + npm 10.8.2** (CI's versions) in `tools\node-v20.19.6-win-x64`, not on the PATH:
-  `export PATH="/c/Users/Marcin/tools/node-v20.19.6-win-x64:$PATH"`. `npm ci`, `npx jest <path>`, `npx ng build`
-  (about 35 s) work in `desktop/`. A lockfile regenerated here must still be checked against CI's `npm ci`.
+- **Node 24.22.1 + npm 11.19.1** (CI's versions) in `tools\node-v24.22.1-win-x64`, not on the PATH:
+  `export PATH="/c/Users/Marcin/tools/node-v24.22.1-win-x64:$PATH"`. `npm ci`, `npx jest <path>`, `npx ng build`
+  (about 15 s) work in `desktop/`. A lockfile regenerated here must still be checked against CI's `npm ci`. (Node 20.19.6
+  is still in `tools` for the old checkouts; delete it when nothing needs it.)
 - **API:** `tools\devstack\api.exe`, built with `bash api/scripts/go-without-cgo.sh build -o <path> .` (image and OCR
   libraries are stubs). `tools\devstack\api.cmd` runs it from `tools\devstack\run` on :8081 (SQLite `dev.db`,
   `TZ=Europe/Paris`); login `admin` / `admin`, English, euros. Rebuild `api.exe` after API changes; delete `run\dev.db`
