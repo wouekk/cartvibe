@@ -77,16 +77,6 @@ password immediately**. To update, pull the new image and redeploy.
       <p align="center"><sub><b>Shopping lists</b>: shared and live, and one tap tells everyone you're heading to the shop</sub></p>
     </td>
   </tr>
-  <tr>
-    <td width="50%" valign="top">
-      <img src="docs/screenshots/welcome.png" alt="The welcome at the first sign-in: language, theme and household currency" />
-      <p align="center"><sub><b>First sign-in</b>: pick a language, a theme and your currency</sub></p>
-    </td>
-    <td width="50%" valign="top">
-      <img src="docs/screenshots/welcome-pl-dark.png" alt="The same welcome in Polish on the dark theme" />
-      <p align="center"><sub><b>Multilingual, with light and dark themes</b></sub></p>
-    </td>
-  </tr>
 </table>
 
 <sub>Screenshots show demo data.</sub>

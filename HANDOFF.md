@@ -51,6 +51,9 @@ the repo). Pushed, not merged; merging into `main` + `preview` waits for the use
 ## Backlog: separate projects the user asked for (not started)
 - **Shopping lists, select and delete several (2026-10-23):** a multi-select of shopping lists and a red **Remove list**
   button next to the Add List button; several lists can be selected and deleted at once. Its own project (own branch).
+- **Backup: CSV export and import of the data (2026-10-23):** a **Backup** tab under System Settings to export the
+  household's data as CSV and import it again for an easy restore. Its buttons follow the visual identity (the shared
+  button library: primary filled accent, red Cancel). Its own project (own branch).
 
 ## Parked (only when the user asks)
 - Per-user display currency (Dashboard only first).
