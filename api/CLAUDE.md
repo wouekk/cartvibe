@@ -361,6 +361,12 @@ When working with tests in this codebase, follow these critical requirements:
 - **`file://` loads are ALWAYS blocked**: the HTML is injected into an `about:blank` page (`SetDocumentContent`),
   not written to a temp file, so the document has no local-file origin. Inline `data:` URIs still load.
   Regressions: `TestHtmlToPdfService_Render_BlocksLocalFileRead`, `..._ExternalMode_BlocksLocalFileRead`.
+- **chromedp 0.21 (2026-10-23):** actions are generic (`Action[T]`, `chromedp.Do` / `Func`), protocol commands go through
+  `cdp.Call(ctx, target, page.X, page.XParams{...})`, events through the `chromedp.Events` iterator (Fetch interception
+  ranges over `fetch.RequestPaused`). `network.SetBlockedURLs` now takes **URLPattern** strings (`BlockPattern`): a
+  component left out matches only its default, so `http://*` blocks nothing on another port or path. The list spells out
+  `scheme://*:*/*`, and `TestBlockedExternalUrlPatternsBlockSubResources` proves it with an unblocked control (it fails on
+  `http://*`; the guard tests' Ghostscript checks skip on this PC, this one does not).
 - External network loads (remote images, CSS, fonts) are **blocked by default** (SSRF / tracking-pixel surface).
   `CHROMIUM_ALLOW_EXTERNAL_RESOURCES=true` serves the HTML from an ephemeral loopback server and lets only PUBLIC hosts
   load: sub-resource requests are intercepted via the CDP Fetch domain (`isRequestAllowed`) and refused when they resolve

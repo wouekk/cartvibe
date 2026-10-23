@@ -31,14 +31,16 @@ import (
 // data/). The HTML is loaded via Page.setDocumentContent into an about:blank
 // page (see Render), so there is no legitimate file:// load to allow. Inline
 // data: URIs (base64 content commonly embedded in receipt emails) are NOT in
-// this list and remain allowed.
-var blockedExternalUrlPatterns = []string{
-	"http://*",
-	"https://*",
-	"ws://*",
-	"wss://*",
-	"ftp://*",
-	"file://*",
+// this list and remain allowed. Chromium reads these as URLPattern strings, where a
+// component the pattern leaves out matches only its empty or default value, so each
+// one spells out the host, port and path as wildcards.
+var blockedExternalUrlPatterns = []*network.BlockPattern{
+	{URLPattern: "http://*:*/*", Block: true},
+	{URLPattern: "https://*:*/*", Block: true},
+	{URLPattern: "ws://*:*/*", Block: true},
+	{URLPattern: "wss://*:*/*", Block: true},
+	{URLPattern: "ftp://*:*/*", Block: true},
+	{URLPattern: "file://*/*", Block: true},
 }
 
 const htmlToPdfTimeout = 30 * time.Second
@@ -85,21 +87,7 @@ func (service HtmlToPdfService) Render(html string) ([]byte, commands.UpsertSyst
 		return nil, systemTaskCommand, errors.New("html content is empty")
 	}
 
-	opts := append(chromedp.DefaultExecAllocatorOptions[:],
-		chromedp.ExecPath(env.GetChromiumPath()),
-		chromedp.Headless,
-		chromedp.DisableGPU,
-		chromedp.Flag("disable-javascript", true),
-	)
-	// Default behavior is --no-sandbox because the supported docker images
-	// run as root, where chromium's sandbox refuses to start. Operators
-	// running the API as a non-root user can opt back into the sandbox via
-	// the CHROMIUM_SANDBOX env var.
-	if !env.GetChromiumSandboxEnabled() {
-		opts = append(opts, chromedp.NoSandbox)
-	}
-
-	allocCtx, cancelAlloc := chromedp.NewExecAllocator(context.Background(), opts...)
+	allocCtx, cancelAlloc := chromedp.NewExecAllocator(context.Background(), chromiumAllocatorOptions()...)
 	defer cancelAlloc()
 
 	browserCtx, cancelBrowser := chromedp.NewContext(allocCtx)
@@ -109,8 +97,8 @@ func (service HtmlToPdfService) Render(html string) ([]byte, commands.UpsertSyst
 	defer cancelTimeout()
 
 	var pdfBuf []byte
-	printAction := chromedp.ActionFunc(func(ctx context.Context) error {
-		buf, _, err := page.PrintToPDF().WithPrintBackground(true).Do(ctx)
+	printAction := chromedp.Func(func(ctx context.Context, t *chromedp.Target) error {
+		buf, err := chromedp.PrintToPDF(chromedp.PDFPrintBackground())(ctx, t)
 		if err != nil {
 			return err
 		}
@@ -118,7 +106,7 @@ func (service HtmlToPdfService) Render(html string) ([]byte, commands.UpsertSyst
 		return nil
 	})
 
-	var actions []chromedp.Action
+	var actions []chromedp.Action[chromedp.Void]
 	if env.GetChromiumAllowExternalResources() {
 		// External resources are opt-in (remote logos / product imagery). Serve the
 		// HTML from an ephemeral loopback HTTP server and navigate to it so the
@@ -145,17 +133,28 @@ func (service HtmlToPdfService) Render(html string) ([]byte, commands.UpsertSyst
 		}
 		defer server.Close()
 
-		// Register the interception handler BEFORE Navigate so the main navigation
-		// request is intercepted too. The callback runs on chromedp's event loop and
-		// must not block, so it hands each paused request to a goroutine.
-		chromedp.ListenTarget(browserCtx, func(ev interface{}) {
-			if paused, ok := ev.(*fetch.EventRequestPaused); ok {
+		// Subscribe BEFORE Navigate so the main navigation request is intercepted
+		// too (the subscription buffers from the moment Events returns; it also
+		// starts the browser, on the context without the timeout). The iterator ends
+		// with the browser context. Each paused request is decided in its own
+		// goroutine, since the policy may resolve DNS.
+		pausedRequests := chromedp.Events(browserCtx, fetch.RequestPaused)
+		go func() {
+			for paused, err := range pausedRequests {
+				if err != nil {
+					return
+				}
 				go resolveInterceptedRequest(browserCtx, paused, addr)
 			}
-		})
+		}()
 
-		actions = []chromedp.Action{
-			fetch.Enable().WithPatterns([]*fetch.RequestPattern{{URLPattern: "*"}}),
+		actions = []chromedp.Action[chromedp.Void]{
+			chromedp.Func(func(ctx context.Context, t *chromedp.Target) error {
+				_, err := cdp.Call(ctx, t, fetch.Enable, fetch.EnableParams{
+					Patterns: []*fetch.RequestPattern{{URLPattern: "*"}},
+				})
+				return err
+			}),
 			chromedp.Navigate("http://" + addr + "/"),
 			printAction,
 		}
@@ -168,21 +167,32 @@ func (service HtmlToPdfService) Render(html string) ([]byte, commands.UpsertSyst
 		// <img> cannot exfiltrate local files into the PDF, and the multi-MB
 		// data-URL truncation cap is avoided. Inline data: URIs remain allowed and
 		// load synchronously, so no explicit load wait is needed before printing.
-		actions = []chromedp.Action{
-			network.Enable(),
-			network.SetBlockedURLs(blockedExternalUrlPatterns),
+		actions = []chromedp.Action[chromedp.Void]{
+			chromedp.Func(func(ctx context.Context, t *chromedp.Target) error {
+				if _, err := cdp.Call(ctx, t, network.Enable, network.EnableParams{}); err != nil {
+					return err
+				}
+				_, err := cdp.Call(ctx, t, network.SetBlockedURLs, network.SetBlockedURLsParams{
+					URLPatterns: blockedExternalUrlPatterns,
+				})
+				return err
+			}),
 			chromedp.Navigate("about:blank"),
-			chromedp.ActionFunc(func(ctx context.Context) error {
-				frameTree, err := page.GetFrameTree().Do(ctx)
+			chromedp.Func(func(ctx context.Context, t *chromedp.Target) error {
+				frameTree, err := cdp.Call(ctx, t, page.GetFrameTree, cdp.Empty{})
 				if err != nil {
 					return err
 				}
-				return page.SetDocumentContent(frameTree.Frame.ID, html).Do(ctx)
+				_, err = cdp.Call(ctx, t, page.SetDocumentContent, page.SetDocumentContentParams{
+					FrameID: frameTree.FrameTree.Frame.ID,
+					HTML:    html,
+				})
+				return err
 			}),
 			printAction,
 		}
 	}
-	err := chromedp.Run(timeoutCtx, actions...)
+	err := chromedp.Do(timeoutCtx, actions...)
 
 	endTime := time.Now()
 	systemTaskCommand.EndedAt = &endTime
@@ -205,6 +215,25 @@ func (service HtmlToPdfService) Render(html string) ([]byte, commands.UpsertSyst
 	systemTaskCommand.ResultDescription = "rendered " + elapsed.String()
 	logging.LogStd(logging.LOG_LEVEL_INFO, "HTML to PDF render took: ", elapsed)
 	return pdfBuf, systemTaskCommand, nil
+}
+
+// chromiumAllocatorOptions is how every render starts Chromium: headless, no GPU,
+// JavaScript off.
+func chromiumAllocatorOptions() []chromedp.ExecAllocatorOption {
+	opts := append(chromedp.DefaultExecAllocatorOptions[:],
+		chromedp.ExecPath(env.GetChromiumPath()),
+		chromedp.Headless,
+		chromedp.DisableGPU,
+		chromedp.Flag("disable-javascript", true),
+	)
+	// Default behavior is --no-sandbox because the supported docker images
+	// run as root, where chromium's sandbox refuses to start. Operators
+	// running the API as a non-root user can opt back into the sandbox via
+	// the CHROMIUM_SANDBOX env var.
+	if !env.GetChromiumSandboxEnabled() {
+		opts = append(opts, chromedp.NoSandbox)
+	}
+	return opts
 }
 
 // startLoopbackHtmlServer serves html at "/" on a random loopback port so the
@@ -237,20 +266,19 @@ func startLoopbackHtmlServer(html string) (*http.Server, string, error) {
 
 // resolveInterceptedRequest continues or blocks one Fetch-intercepted request
 // according to the SSRF policy (isRequestAllowed). It runs in its own goroutine
-// so the ListenTarget callback never blocks the CDP event loop. Errors from
+// so a slow DNS lookup never holds up the next paused request. Errors from
 // Continue/Fail are ignored: the browser context may already be cancelled (the
 // render finished or timed out), which is not actionable here.
-func resolveInterceptedRequest(ctx context.Context, paused *fetch.EventRequestPaused, loopbackAddr string) {
-	executor := cdp.WithExecutor(ctx, chromedp.FromContext(ctx).Target)
-
-	var action chromedp.Action
+func resolveInterceptedRequest(ctx context.Context, paused fetch.EventRequestPaused, loopbackAddr string) {
 	if isRequestAllowed(paused.Request.URL, loopbackAddr) {
-		action = fetch.ContinueRequest(paused.RequestID)
-	} else {
-		logging.LogStd(logging.LOG_LEVEL_INFO, "HTML to PDF blocked non-public sub-resource: ", paused.Request.URL)
-		action = fetch.FailRequest(paused.RequestID, network.ErrorReasonBlockedByClient)
+		_, _ = chromedp.Call(ctx, fetch.ContinueRequest, fetch.ContinueRequestParams{RequestID: paused.RequestID})
+		return
 	}
-	_ = action.Do(executor)
+	logging.LogStd(logging.LOG_LEVEL_INFO, "HTML to PDF blocked non-public sub-resource: ", paused.Request.URL)
+	_, _ = chromedp.Call(ctx, fetch.FailRequest, fetch.FailRequestParams{
+		RequestID:   paused.RequestID,
+		ErrorReason: network.ErrorReasonBlockedByClient,
+	})
 }
 
 // isRequestAllowed decides whether a Fetch-intercepted sub-resource request may

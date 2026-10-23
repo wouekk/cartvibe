@@ -2,6 +2,7 @@ package services
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"fmt"
 	"image"
@@ -15,7 +16,12 @@ import (
 	"strings"
 	"sync/atomic"
 	"testing"
+	"time"
 
+	"github.com/chromedp/cdproto/cdp"
+	"github.com/chromedp/cdproto/network"
+	"github.com/chromedp/cdproto/page"
+	"github.com/chromedp/chromedp"
 	"gopkg.in/gographics/imagick.v3/imagick"
 )
 
@@ -233,6 +239,80 @@ func TestHtmlToPdfService_Render_ExternalMode_BlocksInternalSSRF(t *testing.T) {
 
 	if strings.Contains(string(extracted), secret) {
 		t.Fatalf("SECURITY: internal response leaked into the PDF: %q", string(extracted))
+	}
+}
+
+// The default mode's network block cannot be seen through Render: an about:blank
+// document filled with SetDocumentContent fetches no http(s) sub-resource anyway.
+// So this loads a page from one local server, applies the block list the way Render
+// does, and then writes an <img> pointing at a second local server into it. The
+// block list governs sub-resources, not the top-level navigation, which is why the
+// page loads first. The unblocked control proves the counter would see a request.
+// Chromium reads the patterns as URLPattern strings: "http://*" (the old `urls`
+// glob) matches only the default port and "/", and lets this image through.
+func TestBlockedExternalUrlPatternsBlockSubResources(t *testing.T) {
+	var hits int32
+	images := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&hits, 1)
+	}))
+	defer images.Close()
+	pages := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		_, _ = w.Write([]byte("<html><body>page</body></html>"))
+	}))
+	defer pages.Close()
+
+	loadImage := func(block bool) error {
+		allocCtx, cancelAlloc := chromedp.NewExecAllocator(context.Background(), chromiumAllocatorOptions()...)
+		defer cancelAlloc()
+		browserCtx, cancelBrowser := chromedp.NewContext(allocCtx)
+		defer cancelBrowser()
+		timeoutCtx, cancelTimeout := context.WithTimeout(browserCtx, htmlToPdfTimeout)
+		defer cancelTimeout()
+
+		return chromedp.Do(timeoutCtx,
+			chromedp.Navigate(pages.URL+"/"),
+			chromedp.Func(func(ctx context.Context, target *chromedp.Target) error {
+				if _, err := cdp.Call(ctx, target, network.Enable, network.EnableParams{}); err != nil {
+					return err
+				}
+				if !block {
+					return nil
+				}
+				_, err := cdp.Call(ctx, target, network.SetBlockedURLs, network.SetBlockedURLsParams{
+					URLPatterns: blockedExternalUrlPatterns,
+				})
+				return err
+			}),
+			chromedp.Func(func(ctx context.Context, target *chromedp.Target) error {
+				tree, err := cdp.Call(ctx, target, page.GetFrameTree, cdp.Empty{})
+				if err != nil {
+					return err
+				}
+				_, err = cdp.Call(ctx, target, page.SetDocumentContent, page.SetDocumentContentParams{
+					FrameID: tree.FrameTree.Frame.ID,
+					HTML:    `<img src="` + images.URL + `/some/path.png?q=1">`,
+				})
+				return err
+			}),
+			// The image load is not awaited by anything else, so give it time.
+			chromedp.Sleep(1500*time.Millisecond),
+		)
+	}
+
+	if err := loadImage(false); err != nil {
+		t.Fatalf("control render failed: %v", err)
+	}
+	if atomic.LoadInt32(&hits) == 0 {
+		t.Fatalf("the unblocked image never reached the server, so the blocked case proves nothing")
+	}
+
+	atomic.StoreInt32(&hits, 0)
+	if err := loadImage(true); err != nil {
+		t.Fatalf("blocked render failed: %v", err)
+	}
+	if h := atomic.LoadInt32(&hits); h != 0 {
+		t.Fatalf("SECURITY: the block list let %d request(s) through to %s", h, images.URL)
 	}
 }
 
