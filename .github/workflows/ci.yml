@@ -24,8 +24,8 @@ jobs:
       api: ${{ steps.filter.outputs.api }}
       desktop: ${{ steps.filter.outputs.desktop }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
+      - uses: actions/checkout@v7
+      - uses: dorny/paths-filter@v4
         id: filter
         with:
           filters: |
@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     container: golang:1.26-trixie
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Mark workspace as safe directory
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Install app dependencies
@@ -72,8 +72,8 @@ jobs:
     if: needs.detect-changes.outputs.desktop == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: "20.19.6"
       - name: Install dependencies
