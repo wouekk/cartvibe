@@ -4,9 +4,9 @@
     declined: customStatusColor() === 'red',
     open: isToCheck() || customStatusColor() === 'yellow',
     resolved: isDone() || customStatusColor() === 'green',
-    'border-red-500/20 bg-red-500/15 text-red-700': customStatusColor() === 'red',
-    'border-amber-500/25 bg-amber-500/15 text-amber-700': isToCheck() || customStatusColor() === 'yellow',
-    'border-emerald-500/20 bg-emerald-500/15 text-emerald-700': isDone() || customStatusColor() === 'green',
+    'border-destructive/20 bg-destructive/10 text-destructive': customStatusColor() === 'red',
+    'border-warning/30 bg-warning/15 text-warning-text': isToCheck() || customStatusColor() === 'yellow',
+    'border-success-text/20 bg-muted text-success-text': isDone() || customStatusColor() === 'green',
     'border-border bg-muted text-muted-foreground': !(isToCheck() || isDone() || customStatusColor())
   }"
 >

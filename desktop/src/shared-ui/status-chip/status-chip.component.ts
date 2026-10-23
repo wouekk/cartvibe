@@ -2,7 +2,7 @@ import { Component, Input, input, ChangeDetectionStrategy } from "@angular/core"
 import { DONE_STATUSES, receiptStatusLabel, TO_CHECK_STATUSES } from "../../utils/receipt-status";
 
 /**
- * A receipt's status as a family reads it (Phase 3 C6): "To check" in yellow, "Done" in green. A
+ * A receipt's status as a family reads it: "To check" in yellow, "Done" in green. A
  * status this build does not know shows as it came, uncoloured.
  */
 @Component({
