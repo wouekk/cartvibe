@@ -11,6 +11,10 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 ### Fixed
 - **Ticked checkboxes now look ticked:** a checked box fills with the accent in both themes (it used to stay empty
   with only a faint check mark).
+- **Enter adds a shopping list item:** pressing Enter after typing an item's name adds it (it only worked from the
+  amount box or with the + button). With a suggestion highlighted, Enter still picks the suggestion.
+- **Dialogs take the focus:** a dialog's first field is ready for typing as soon as it opens, and a confirmation focuses
+  Cancel. Before, focus stayed on the page behind the dialog, so typing went nowhere.
 
 ### Changed
 - The Dashboard's **Scan product** button is now **Check product** (it checks a product by photo or barcode number),
@@ -18,6 +22,8 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 - Report PDFs are rendered with chromedp 0.21; the list that keeps outside images and files out of a report PDF is
   written for the browser's new pattern syntax and has a test of its own.
 - The build uses the current major version of every GitHub Action.
+- **Angular 22** (with TypeScript 6) and **Node 24** for the web app's build and CI; Node 20 is end of life. The
+  unused chart.js pie chart and its two libraries are gone (the Dashboard charts are ApexCharts).
 - The profile page no longer carries the code for connecting other sign-in accounts (its screen was removed earlier).
 
 ## [0.7.0] - 2026-10-23
