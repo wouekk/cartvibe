@@ -523,7 +523,9 @@ Everything needed to run and look at the app without CI or Docker:
   libraries are stubs, so image/PDF/OCR features do not work locally; everything else does). Run it from
   `tools\devstack\run` with `DB_ENGINE=sqlite DB_FILENAME=dev.db ENCRYPTION_KEY=.. SECRET_KEY=.. REDIS_HOST=127.0.0.1
   BASE_PATH=C:/Users/Marcin/tools/devstack/run`; it listens on :8081; login `admin` / `admin`. `tools\devstack\api.cmd`
-  does exactly that; rebuild `api.exe` after API changes.
+  does exactly that; rebuild `api.exe` after API changes. The local admin is set to English, the household to euros
+  (`12,99 €`) and Europe/Paris; `api.cmd` sets `TZ=Europe/Paris`, so a fresh `dev.db` starts on that time zone too
+  (a new account starts in English by default).
 - **Redis stand-in:** `tools\devstack\redis\miniredis.exe` (a Go in-memory Redis on :6379; start it first).
 - **Web:** `npm start` in `desktop/` serves :4200 and proxies /api to :8081 (`tools\devstack\web.cmd`, the `web` entry in
   `.claude/launch.json`).
