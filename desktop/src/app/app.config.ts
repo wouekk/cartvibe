@@ -2,7 +2,6 @@ import { ApplicationConfig, provideAppInitializer, provideZonelessChangeDetectio
 import { provideHttpClient, withInterceptors } from "@angular/common/http";
 import { importProvidersFrom } from "@angular/core";
 import { provideAnimationsAsync } from "@angular/platform-browser/animations/async";
-import { provideCharts, withDefaultRegisterables } from "ng2-charts";
 import { provideNgxMask } from "ngx-mask";
 import { withNgxsReduxDevtoolsPlugin } from "@ngxs/devtools-plugin";
 import { withNgxsStoragePlugin } from "@ngxs/storage-plugin";
@@ -81,7 +80,6 @@ export const appConfig: ApplicationConfig = {
     provideAnimationsAsync(),
     provideHttpClient(withInterceptors([httpInterceptor])),
     provideNgxMask(),
-    provideCharts(withDefaultRegisterables()),
     provideAppInitializer(() => {
       const initializerFn = (initAppData)(inject(AppInitService));
       return initializerFn();
