@@ -9,5 +9,5 @@ Found by reading code during the redesign. Each entry says what, where, and whet
 | 3 | The sidebar showed "System Settings" to members who could use the AI page, because it checked the receipt-processing permissions. | `sidebar.component.ts` | Fixed earlier. |
 | 4 | Dark mode: the sidebar host counter-inverted the whole page, so only the login screen went dark. | `index.html` | Fixed earlier. |
 | 5 | Buttons stayed blue: a hard-coded gradient overrode the accent. | `button.component.scss` | Fixed earlier. |
-| 6 | The profile page still loads OIDC connections that nothing displays any more (a wasted request per visit). | `user-profile.component.ts` | Open: removed with the dead-code pass. |
-| 7 | `npm audit` reports three transitive findings under `@angular/cli` (mcp sdk, hono, vite); `npm audit fix` crashes with an npm bug. | `package.json` | Open: needs `overrides`. |
+| 6 | The profile page still loads OIDC connections that nothing displays any more (a wasted request per visit). | `settings/user-profile/user-profile.component.ts` | Fixed 2026-10-23: the load and its unused methods are gone. |
+| 7 | `npm audit` reports three transitive findings under `@angular/cli` (mcp sdk, hono, vite); `npm audit fix` crashes with an npm bug. | `package.json` | Fixed: `overrides` in `package.json`; `npm audit` reports 0 (2026-10-23). |
