@@ -17,11 +17,11 @@ import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
 // @ts-ignore
+import { AiModel } from '../model/aiModel';
+// @ts-ignore
+import { AiModelsCommand } from '../model/aiModelsCommand';
+// @ts-ignore
 import { CheckReceiptProcessingSettingsConnectivityCommand } from '../model/checkReceiptProcessingSettingsConnectivityCommand';
-// @ts-ignore
-import { GeminiModel } from '../model/geminiModel';
-// @ts-ignore
-import { GeminiModelsCommand } from '../model/geminiModelsCommand';
 // @ts-ignore
 import { InternalErrorResponse } from '../model/internalErrorResponse';
 // @ts-ignore
@@ -360,18 +360,18 @@ export class ReceiptProcessingSettingsService {
     }
 
     /**
-     * List the Gemini models an API key can use
-     * Asks Google which content-generating models the key may call, newest first. The key is only forwarded, never stored.
-     * @param geminiModelsCommand 
+     * List the models an AI API key can use
+     * Asks Anthropic (Claude), Google (Gemini) or OpenAI (ChatGPT) which models the key may call, newest first. The key is only forwarded, never stored, and a stored key only to its own provider.
+     * @param aiModelsCommand 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getGeminiModels(geminiModelsCommand: GeminiModelsCommand, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<GeminiModel>>;
-    public getGeminiModels(geminiModelsCommand: GeminiModelsCommand, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<GeminiModel>>>;
-    public getGeminiModels(geminiModelsCommand: GeminiModelsCommand, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<GeminiModel>>>;
-    public getGeminiModels(geminiModelsCommand: GeminiModelsCommand, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
-        if (geminiModelsCommand === null || geminiModelsCommand === undefined) {
-            throw new Error('Required parameter geminiModelsCommand was null or undefined when calling getGeminiModels.');
+    public getAiModels(aiModelsCommand: AiModelsCommand, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<AiModel>>;
+    public getAiModels(aiModelsCommand: AiModelsCommand, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<AiModel>>>;
+    public getAiModels(aiModelsCommand: AiModelsCommand, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<AiModel>>>;
+    public getAiModels(aiModelsCommand: AiModelsCommand, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (aiModelsCommand === null || aiModelsCommand === undefined) {
+            throw new Error('Required parameter aiModelsCommand was null or undefined when calling getAiModels.');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -432,11 +432,11 @@ export class ReceiptProcessingSettingsService {
             }
         }
 
-        let localVarPath = `/receiptProcessingSettings/geminiModels`;
-        return this.httpClient.request<Array<GeminiModel>>('post', `${this.configuration.basePath}${localVarPath}`,
+        let localVarPath = `/receiptProcessingSettings/aiModels`;
+        return this.httpClient.request<Array<AiModel>>('post', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
-                body: geminiModelsCommand,
+                body: aiModelsCommand,
                 responseType: <any>responseType_,
                 withCredentials: this.configuration.withCredentials,
                 headers: localVarHeaders,

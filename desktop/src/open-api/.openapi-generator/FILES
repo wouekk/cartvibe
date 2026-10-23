@@ -35,7 +35,8 @@ git_push.sh
 index.ts
 model/about.ts
 model/activity.ts
-model/aiType.ts
+model/aiModel.ts
+model/aiModelsCommand.ts
 model/apiKeyFilter.ts
 model/apiKeyResult.ts
 model/apiKeyScope.ts
@@ -67,8 +68,6 @@ model/featureConfig.ts
 model/fileData.ts
 model/fileDataView.ts
 model/filterOperation.ts
-model/geminiModel.ts
-model/geminiModelsCommand.ts
 model/getNewRefreshToken200Response.ts
 model/getSystemTaskCommand.ts
 model/group.ts
