@@ -26,6 +26,7 @@
             "inlineStyleLanguage": "scss",
             "assets": [
               "src/favicon.svg",
+              "src/manifest.webmanifest",
               "src/assets"
             ],
             "styles": [
@@ -54,6 +55,7 @@
                 }
               ],
               "outputHashing": "all",
+              "serviceWorker": "ngsw-config.json",
               "sourceMap": false,
               "optimization": {
                 "scripts": true,

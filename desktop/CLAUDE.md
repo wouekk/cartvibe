@@ -2622,6 +2622,34 @@ Mobile-first (used in the shop). Backend contract: `api/CLAUDE.md`.
   browser decodes it, i.e. Safari) over 1.5 MB as an upright JPEG of at most 3072 px. Anything it cannot improve is returned
   as picked, so it never blocks an upload; the stored receipt image is the shrunk one.
 
+## Installable app, offline shell and page transitions (2026-10)
+
+- **PWA:** `src/manifest.webmanifest` (standalone, icons in `src/assets/brand/pwa/`, rendered once from the supplied
+  `icon-dark.svg` with Playwright: 192/512 transparent corners, a maskable 512 with the artwork inside the safe zone,
+  and the 180 px `apple-touch-icon`), linked from `index.html` with the `theme-color` and Apple web-app metas. To change
+  the icon, copy the new supplied SVG and re-render these four files; never redraw it.
+- **Service worker (`@angular/service-worker`, `ngsw-config.json`)** is built into the **production** build only
+  (`angular.json` `serviceWorker`; `provideServiceWorker` is `enabled: !isDevMode()`, so `ng serve` never has one). It
+  caches the app shell and static assets; there is **no `dataGroups`, so every API, SSE (`/api/.../stream`), OAuth and MCP
+  call goes to the network**, and `navigationUrls` excludes `/api`, `/oauth`, `/mcp` and `/.well-known` so the worker never
+  answers those navigations with `index.html`. `ngsw.json` and `ngsw-worker.js` are served by nginx's `location /` with
+  `no-cache`, which is what lets a new image be noticed. A bad worker is a bad stuck app: change this file with care and
+  check `dist/cartvibe/browser/ngsw.json` after a build.
+- **`AppUpdateService`** (`src/services/app-update.service.ts`, started by an app initializer): when a new version is
+  ready it waits for the next navigation, activates it and loads the target URL fresh (so nothing typed is lost); it also
+  checks for an update when the tab becomes visible. It does nothing without a service worker. Its full page load goes
+  through the `navigateToUrl` seam (jsdom cannot replace `window.location`).
+- **Shopping list in the shop:** `ScreenWakeLockService` (a per-visit switch in the list menu, re-acquired when the tab is
+  visible again because the browser drops the lock when hidden; released when the page is left), `shoppingListToText`
+  (`shopping-list-share.ts`) feeding `navigator.share` or the clipboard, `navigator.vibrate?.(10)` on crossing off (a no-op
+  on iOS), and `OnlineStatusService` driving the `shopping-list-offline` notice. The menu entries are hidden where the
+  browser lacks the API.
+- **Motion:** the router runs `enableViewTransitions: true` (a 160 ms cross-fade of the whole page, styled once at the end
+  of `tailwind.css`, and switched off there under `prefers-reduced-motion`). The three `@angular/animations` fades became
+  `animate.enter` / `animate.leave` with `tw-animate-css` classes (`motion-reduce:animate-none`); `provideAnimationsAsync`
+  and `src/animations/` are gone, and the package stays only as a devDependency because ~30 specs still import
+  `NoopAnimationsModule` (strip those, then drop the package, when convenient).
+
 ## UI stack (the redesign, 2026-10)
 
 Angular Material, Bootstrap and the Tailwind CDN are gone (`docs/material-removal.md`). What is used instead:

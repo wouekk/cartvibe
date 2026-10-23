@@ -3,7 +3,8 @@
     <app-alert
       #alert
       class="scroll-mt-[75px]"
-      @fadeInOut
+      animate.enter="animate-in fade-in-0 duration-200 motion-reduce:animate-none"
+      animate.leave="animate-out fade-out-0 duration-200 motion-reduce:animate-none"
       type="warning"
       message="Please restart the task server for the changes to take effect."
     ></app-alert>

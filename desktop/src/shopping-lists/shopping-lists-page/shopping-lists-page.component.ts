@@ -6,6 +6,8 @@ import { Store } from "@ngxs/store";
 import { concatMap, filter, from, map, switchMap, take, tap, toArray } from "rxjs";
 import { Permission, ShoppingList, ShoppingListService } from "../../open-api";
 import { SnackbarService } from "../../services";
+import { OnlineStatusService } from "../../services/online-status.service";
+import { ScreenWakeLockService } from "../../services/screen-wake-lock.service";
 import { ShoppingListStreamService } from "../../services/shopping-list-stream.service";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { AuthState, GroupState } from "../../store";
@@ -19,6 +21,7 @@ import {
 } from "../../store/shopping-list.state.actions";
 import { hasAll } from "../../utils/permission.utils";
 import { activeLists, recentPastLists } from "../shopping-list-groups";
+import { shoppingListToText } from "../shopping-list-share";
 import { ShoppingListFormDialogComponent } from "../shopping-list-form-dialog/shopping-list-form-dialog.component";
 import { TranslationService } from "../../i18n/translation.service";
 import { marker } from "../../i18n/marker";
@@ -89,6 +92,17 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
 
   public readonly announcing = signal(false);
 
+  private readonly wakeLock = inject(ScreenWakeLockService);
+
+  /** The "Keep screen on" switch is offered only where the browser can do it. */
+  public readonly canKeepScreenOn = this.wakeLock.supported;
+
+  public readonly keepScreenOn = this.wakeLock.enabled;
+
+  public readonly online = inject(OnlineStatusService).online;
+
+  public readonly canShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
+
   /** Finished lists (everything crossed off), the latest few, shown beside the open list. */
 
   public readonly pastLists = computed(() => recentPastLists(this.lists()));
@@ -127,6 +141,7 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
 
   public ngOnDestroy(): void {
     this.shoppingListStreamService.disconnect();
+    void this.wakeLock.disable();
   }
 
   public selectList(value: string): void {
@@ -209,6 +224,34 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
         },
         error: () => this.announcing.set(false),
       });
+  }
+
+  /** In the shop the screen going dark mid-aisle is the annoyance, so it is a per-visit switch, off by default. */
+  public toggleKeepScreenOn(): void {
+    if (this.wakeLock.enabled()) {
+      void this.wakeLock.disable();
+      return;
+    }
+
+    void this.wakeLock.enable().then((enabled) => {
+      if (!enabled) {
+        this.snackbarService.hint("Could not keep the screen on.");
+      }
+    });
+  }
+
+  /** The share sheet where there is one (phones), otherwise the text goes to the clipboard. */
+  public shareList(list: ShoppingList): void {
+    const text = shoppingListToText(list, (word) => this.translation.t(word));
+    if (this.canShare) {
+      navigator.share({ title: list.name, text }).catch(() => undefined);
+      return;
+    }
+
+    navigator.clipboard
+      ?.writeText(text)
+      .then(() => this.snackbarService.hint("List copied to the clipboard."))
+      .catch(() => this.snackbarService.error("Could not copy the list."));
   }
 
   public renameList(list: ShoppingList): void {
