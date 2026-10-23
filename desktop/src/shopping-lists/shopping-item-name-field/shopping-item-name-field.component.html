@@ -9,7 +9,14 @@
     (searchChange)="onSearch($event)"
     (valueChange)="onPick($event)"
   >
-    <hlm-autocomplete-input class="w-full" [inputId]="testId() + '-input'" [showSearch]="false" [attr.data-testid]="testId()" autocomplete="off" />
+    <hlm-autocomplete-input
+      class="w-full"
+      [inputId]="testId() + '-input'"
+      [showSearch]="false"
+      [attr.data-testid]="testId()"
+      autocomplete="off"
+      (keydown.enter)="submitTyped($event)"
+    />
     @if (options().length > 0) {
       <hlm-autocomplete-content *hlmAutocompletePortal>
         <div hlmAutocompleteList class="max-h-60 overflow-y-auto p-1">

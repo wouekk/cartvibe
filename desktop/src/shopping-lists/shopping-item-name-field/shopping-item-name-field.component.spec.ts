@@ -1,6 +1,6 @@
-import { provideZonelessChangeDetection } from "@angular/core";
+import { Component, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { FormControl } from "@angular/forms";
+import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { NgxsModule } from "@ngxs/store";
 import { ShoppingItemNameFieldComponent } from "./shopping-item-name-field.component";
 
@@ -64,5 +64,62 @@ describe("ShoppingItemNameFieldComponent", () => {
     component.onPick(null);
 
     expect(picked).not.toHaveBeenCalled();
+  });
+});
+
+@Component({
+  standalone: true,
+  imports: [ReactiveFormsModule, ShoppingItemNameFieldComponent],
+  template: `
+    <form [formGroup]="form" (ngSubmit)="submitted = submitted + 1">
+      <app-shopping-item-name-field [control]="form.controls.name" [suggestions]="suggestions" />
+    </form>
+  `,
+})
+class NameFieldInFormHostComponent {
+  public readonly form = new FormGroup({ name: new FormControl<string | null>("") });
+  public suggestions = [{ name: "Milk" }];
+  public submitted = 0;
+}
+
+// spartan's autocomplete input cancels every Enter (it picks the highlighted suggestion), which also cancelled the form's
+// own submit: a typed name was never added with Enter. These drive the real input inside a real form.
+describe("ShoppingItemNameFieldComponent inside the add form", () => {
+  let fixture: ComponentFixture<NameFieldInFormHostComponent>;
+  let input: HTMLInputElement;
+
+  const pressEnter = (): KeyboardEvent => {
+    const event = new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true });
+    input.dispatchEvent(event);
+    return event;
+  };
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [NameFieldInFormHostComponent, NgxsModule.forRoot([])],
+      providers: [provideZonelessChangeDetection()],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(NameFieldInFormHostComponent);
+    await fixture.whenStable();
+    input = fixture.nativeElement.querySelector("input");
+  });
+
+  it("submits the form when Enter is pressed on a typed name", async () => {
+    input.value = "Eggs";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    await fixture.whenStable();
+
+    pressEnter();
+
+    expect(fixture.componentInstance.submitted).toBe(1);
+  });
+
+  it("leaves Enter to the suggestion list while a suggestion is highlighted", async () => {
+    input.setAttribute("aria-activedescendant", "suggestion-1");
+
+    pressEnter();
+
+    expect(fixture.componentInstance.submitted).toBe(0);
   });
 });
