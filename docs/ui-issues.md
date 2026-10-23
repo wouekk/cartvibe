@@ -6,8 +6,8 @@ Then the proposals are discussed and a final go is asked for before any change.
 ## Status (2026-10-21, one-shot run)
 
 All 17 issues were implemented in one run and verified once (`ng build`, full Jest 2037 tests, `go vet`, CI). Done: 1-3, 5-9, 11-17 and 10
-(Gemini model dropdown, backup AI card, 3-try cap with outage backoff). **Issue 4 (shop logos) is waiting for the user**: it needs the
-logo.dev key and the list of chains; the letter monogram stays until then. Not exhaustively covered: strings built inside TypeScript
+(Gemini model dropdown, backup AI card, 3-try cap with outage backoff). Issue 4 (shop logos) shipped later in v0.2.0 (about 230 chains, `scripts/shop-logos/`). It needed the
+logo.dev key and the list of chains; unknown shops keep the letter monogram. Not exhaustively covered: strings built inside TypeScript
 template literals, group-name page titles, some report builder dialog texts (find them by switching the language in the app).
 
 ## Log
