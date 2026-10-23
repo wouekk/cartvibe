@@ -2636,7 +2636,10 @@ Angular Material, Bootstrap and the Tailwind CDN are gone (`docs/material-remova
   autocomplete, chips for multiple), `app-table` (`hlmTable`, its own sort and pager; `Sort`, `PageEvent`, `TableDataSource`
   in `src/table/table-types.ts`), `app-tabs`, `app-card`, `app-expansion-panel`.
 - **Dialogs** are `AppDialog` (`src/dialog/app-dialog.ts`, on the CDK dialog) with `open / afterClosed / close / componentInstance`
-  like MatDialog had; inject `AppDialogRef` and `APP_DIALOG_DATA`. **Toasts** are `SnackbarService` over `ToastService`.
+  like MatDialog had; inject `AppDialogRef` and `APP_DIALOG_DATA`. Focus moves to the first focusable control unless the
+  caller passes `autoFocus` (a form's first field; Cancel in `ConfirmationDialogComponent`). Never hand the CDK an explicit
+  `undefined`: it overrides the CDK's default, and focus stayed on the page behind the dialog until 2026-10-23.
+  **Toasts** are `SnackbarService` over `ToastService`.
   **Menus** are spartan dropdown menus (`hlmDropdownMenuTrigger`). **Icons** are `<app-icon name="receipt_long">`: it takes the
   Material name (the API stores them) and draws the Lucide icon from `shared-ui/icon/icon-map.ts`; add a pair there for a new name.
 - **Money** on the Dashboard cards is `<app-money>` (whole part bold, symbol and decimals quiet); a shop name gets
