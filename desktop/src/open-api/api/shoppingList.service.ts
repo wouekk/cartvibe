@@ -23,6 +23,8 @@ import { InternalErrorResponse } from '../model/internalErrorResponse';
 // @ts-ignore
 import { SetFoodClassificationCommand } from '../model/setFoodClassificationCommand';
 // @ts-ignore
+import { SetShoppingListCheckedCommand } from '../model/setShoppingListCheckedCommand';
+// @ts-ignore
 import { SetShoppingListItemCheckedCommand } from '../model/setShoppingListItemCheckedCommand';
 // @ts-ignore
 import { ShoppingList } from '../model/shoppingList';
@@ -1011,6 +1013,98 @@ export class ShoppingListService {
         return this.httpClient.request<any>('post', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
+                responseType: <any>responseType_,
+                withCredentials: this.configuration.withCredentials,
+                headers: localVarHeaders,
+                observe: observe,
+                transferCache: localVarTransferCache,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Set whether a whole shopping list is crossed off
+     * This will move every item on the list, or only the given items of it, to the given checked state [group.shopping-lists.update]. Items already in that state keep their stamp. Used by \&quot;Mark as complete\&quot;, \&quot;Restore\&quot; and Undo.
+     * @param listId Id of the shopping list to cross off or put back
+     * @param setShoppingListCheckedCommand Target checked state and, optionally, which items
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public setShoppingListChecked(listId: number, setShoppingListCheckedCommand: SetShoppingListCheckedCommand, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ShoppingList>;
+    public setShoppingListChecked(listId: number, setShoppingListCheckedCommand: SetShoppingListCheckedCommand, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ShoppingList>>;
+    public setShoppingListChecked(listId: number, setShoppingListCheckedCommand: SetShoppingListCheckedCommand, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ShoppingList>>;
+    public setShoppingListChecked(listId: number, setShoppingListCheckedCommand: SetShoppingListCheckedCommand, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (listId === null || listId === undefined) {
+            throw new Error('Required parameter listId was null or undefined when calling setShoppingListChecked.');
+        }
+        if (setShoppingListCheckedCommand === null || setShoppingListCheckedCommand === undefined) {
+            throw new Error('Required parameter setShoppingListCheckedCommand was null or undefined when calling setShoppingListChecked.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        let localVarCredential: string | undefined;
+        // authentication (apiKeyAuth) required
+        localVarCredential = this.configuration.lookupCredential('apiKeyAuth');
+        if (localVarCredential) {
+            localVarHeaders = localVarHeaders.set('Authorization', localVarCredential);
+        }
+
+        // authentication (bearerAuth) required
+        localVarCredential = this.configuration.lookupCredential('bearerAuth');
+        if (localVarCredential) {
+            localVarHeaders = localVarHeaders.set('Authorization', 'Bearer ' + localVarCredential);
+        }
+
+        let localVarHttpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (localVarHttpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            localVarHttpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        let localVarHttpContext: HttpContext | undefined = options && options.context;
+        if (localVarHttpContext === undefined) {
+            localVarHttpContext = new HttpContext();
+        }
+
+        let localVarTransferCache: boolean | undefined = options && options.transferCache;
+        if (localVarTransferCache === undefined) {
+            localVarTransferCache = true;
+        }
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/shopping-list/${this.configuration.encodeParam({name: "listId", value: listId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}/checked`;
+        return this.httpClient.request<ShoppingList>('put', `${this.configuration.basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: setShoppingListCheckedCommand,
                 responseType: <any>responseType_,
                 withCredentials: this.configuration.withCredentials,
                 headers: localVarHeaders,

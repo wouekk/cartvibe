@@ -127,6 +127,7 @@ model/role.ts
 model/searchResult.ts
 model/setFoodClassificationCommand.ts
 model/setReceiptProductLabelsCommand.ts
+model/setShoppingListCheckedCommand.ts
 model/setShoppingListItemCheckedCommand.ts
 model/shoppingList.ts
 model/shoppingListEvent.ts
