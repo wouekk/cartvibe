@@ -703,3 +703,79 @@ func TestGetAiModelsRefusesALocalServer(t *testing.T) {
 		t.Fatalf("expected a 400 on aiType, got %d %s", w.Result().StatusCode, w.Body.String())
 	}
 }
+
+func updateSettingsRequest(t *testing.T, command commands.UpsertReceiptProcessingSettingsCommand) *httptest.ResponseRecorder {
+	t.Helper()
+	body, _ := json.Marshal(command)
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("PUT", "/api/", strings.NewReader(string(body)))
+	chiContext := chi.NewRouteContext()
+	chiContext.URLParams.Add("id", "1")
+	r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, chiContext))
+	r = r.WithContext(context.WithValue(r.Context(), jwtmiddleware.ContextKey{}, &validator.ValidatedClaims{CustomClaims: &structs.Claims{UserId: 1}}))
+
+	UpdateReceiptProcessingSettingsById(w, r)
+	return w
+}
+
+func seedGeminiSettingsWithKey(t *testing.T) {
+	t.Helper()
+	key, err := utils.EncryptAndEncodeToBase64(config.GetEncryptionKey(), "gemini-secret")
+	if err != nil {
+		t.Fatal(err)
+	}
+	repositories.GetDB().Create(&models.ReceiptProcessingSettings{Name: "Household AI", AiType: models.GEMINI_NEW, Key: key, IsVisionModel: true})
+	grantAllAppPerms(t, 1)
+}
+
+// Switching a saved Gemini setting to Claude without typing a key must not keep the Gemini key for Claude.
+func TestUpdateReceiptProcessingSettingsSwitchingToClaudeNeedsANewKey(t *testing.T) {
+	defer tearDownReceiptProcessingSettings()
+	seedGeminiSettingsWithKey(t)
+
+	w := updateSettingsRequest(t, commands.UpsertReceiptProcessingSettingsCommand{
+		Name: "Household AI", AiType: models.ANTHROPIC, Model: "claude-opus-5-5", IsVisionModel: true,
+	})
+
+	if w.Result().StatusCode != http.StatusBadRequest || !strings.Contains(w.Body.String(), "key") {
+		t.Fatalf("expected a 400 asking for a key, got %d %s", w.Result().StatusCode, w.Body.String())
+	}
+}
+
+func TestUpdateReceiptProcessingSettingsSwitchingToALocalServerDropsTheStoredKey(t *testing.T) {
+	defer tearDownReceiptProcessingSettings()
+	seedGeminiSettingsWithKey(t)
+
+	w := updateSettingsRequest(t, commands.UpsertReceiptProcessingSettingsCommand{
+		Name: "Household AI", AiType: models.OPEN_AI_CUSTOM_NEW, Url: "http://pc:1234/v1", Model: "qwen", IsVisionModel: true,
+	})
+	if w.Result().StatusCode != http.StatusOK {
+		t.Fatalf("expected 200, got %d %s", w.Result().StatusCode, w.Body.String())
+	}
+
+	stored, err := repositories.NewReceiptProcessingSettings(nil).GetReceiptProcessingSettingsById("1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if stored.Key != "" {
+		t.Fatalf("the Gemini key must not stay on a local server's settings, got %q", stored.Key)
+	}
+}
+
+func TestUpdateReceiptProcessingSettingsSameProviderKeepsTheStoredKey(t *testing.T) {
+	defer tearDownReceiptProcessingSettings()
+	seedGeminiSettingsWithKey(t)
+
+	w := updateSettingsRequest(t, commands.UpsertReceiptProcessingSettingsCommand{
+		Name: "Household AI", AiType: models.GEMINI_NEW, Model: "gemini-3-pro", IsVisionModel: true,
+	})
+	if w.Result().StatusCode != http.StatusOK {
+		t.Fatalf("expected 200, got %d %s", w.Result().StatusCode, w.Body.String())
+	}
+
+	stored, _ := repositories.NewReceiptProcessingSettings(nil).GetReceiptProcessingSettingsById("1")
+	key, _ := utils.DecryptB64EncodedData(config.GetEncryptionKey(), stored.Key)
+	if key != "gemini-secret" {
+		t.Fatalf("expected the stored key to stay, got %q", key)
+	}
+}

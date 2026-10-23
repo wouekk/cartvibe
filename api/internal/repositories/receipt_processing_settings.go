@@ -125,7 +125,10 @@ func (repository ReceiptProcessingSettingsRepository) UpdateReceiptProcessingSet
 	settings.EnforceJsonResponseFormat = command.EnforceJsonResponseFormat
 	settings.OcrEngine = &command.OcrEngine
 
-	if updateKey {
+	if updateKey && command.Key == "" {
+		// No key at all (a local server needs none): nothing to encrypt.
+		settings.Key = ""
+	} else if updateKey {
 		key, err := utils.EncryptAndEncodeToBase64(config.GetEncryptionKey(), command.Key)
 		if err != nil {
 			return models.ReceiptProcessingSettings{}, err
