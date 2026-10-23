@@ -45,6 +45,7 @@ password immediately**. To update, pull the new image and redeploy.
 | **Planned vs unplanned** | Attach a receipt to a list and see exactly what ended up in the basket that wasn't on it. |
 | **Made for a household** | No bill splitting and no approvals: a receipt is either "to check" or "settled", and there are just two roles, Admin and User. |
 | **Themes** | Light or dark, or simply follow your device. Built for the phone first. |
+| **On your home screen** | Add CartVibe to your phone's home screen and it opens like an app. In the shop it can keep the screen on and share the list with the family. |
 | **Languages** | English, Polish, German, French and Spanish, chosen by each person. Reports come out in your language too. |
 
 <p align="center">
@@ -88,7 +89,7 @@ password immediately**. To update, pull the new image and redeploy.
 | `api/` | Go API (Chi, GORM, Asynq) |
 | `desktop/` | Angular web app (the UI that ships, mobile-friendly) |
 | `docker/` | The single image: nginx in front of the API |
-| `docs/` | Design notes |
+| `docs/` | Development setup, AI prompts, themes |
 | `site/` | The project page |
 
 Working notes for contributors and AI agents: [CLAUDE.md](CLAUDE.md), [AGENTS.md](AGENTS.md), [DESIGN.md](DESIGN.md), [docs/dev-setup.md](docs/dev-setup.md).

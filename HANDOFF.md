@@ -5,9 +5,9 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 
 ## Current state
 
-- `preview` holds everything: v0.7.0, the backlog sweep (Angular 22, Node 24), the installable app and page
-  transitions, deleting several shopping lists, the receipt form Cancel, the status chip on theme tokens, and the slimmed
-  docs. Next: fast-forward `main`, release `v0.8.0`.
+- `main` = `preview` = v0.8.0 (2026-10-23): the installable app and page transitions, deleting several shopping lists,
+  the receipt form Cancel, Angular 22 / Node 24, the status chip on theme tokens, and the slimmed docs. `:latest` is
+  published from it after green CI on `main`. Not seen on the NAS yet. No feature branches are open.
 
 ## Open for the user (needs the NAS or a phone)
 
