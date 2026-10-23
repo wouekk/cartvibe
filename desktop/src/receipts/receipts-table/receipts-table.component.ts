@@ -9,7 +9,6 @@ import { Store } from "@ngxs/store";
 import { DONE_STATUSES } from "../../utils/receipt-status";
 import { ResolvedPeriod } from "../../overview/overview-period";
 import { catchError, debounceTime, distinctUntilChanged, EMPTY, filter as rxFilter, map, Subject, switchMap, take, tap } from "rxjs";
-import { fadeInOut } from "src/animations";
 import { ReceiptFilterService } from "src/services/receipt-filter.service";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { ResetReceiptFilter, SetColumnConfig, SetPage, SetPageSize, SetQuickDateField, SetReceiptFilterData, SetReceiptFilterField, SetReceiptSearch } from "src/store/receipt-table.actions";
@@ -57,7 +56,6 @@ import { marker } from "../../i18n/marker";
 @Component({
   selector: "app-receipts-table",
   templateUrl: "./receipts-table.component.html",
-  animations: [fadeInOut],
   host: DEFAULT_HOST_CLASS,
   // The chip labels are built in TS rather than the template, so the formatting
   // pipes are injected. CustomCurrencyPipe is declared in PipesModule and needs

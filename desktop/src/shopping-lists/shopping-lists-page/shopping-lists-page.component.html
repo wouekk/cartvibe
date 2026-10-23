@@ -16,6 +16,17 @@
     </div>
   </app-table-header>
 
+  @if (!online()) {
+    <div
+      class="mt-4 flex items-center gap-2 rounded-xl border border-border/70 bg-muted/50 px-3 py-2 text-sm text-muted-foreground"
+      role="status"
+      data-testid="shopping-list-offline"
+    >
+      <app-icon name="wifi_off" class="shrink-0"></app-icon>
+      <span>{{ 'You are offline. Changes you make now may not be saved.' | t }}</span>
+    </div>
+  }
+
   @if (isLoaded() && listCards().length > 0) {
     <!-- A swipeable row on a phone, a tidy grid from sm up. -->
     <div
@@ -65,7 +76,7 @@
                 <span class="max-sm:sr-only">{{ 'Going shopping' | t }}</span>
               </button>
             }
-            @if (canUpdate() || canDelete()) {
+            @if (canUpdate() || canDelete() || canKeepScreenOn || list.items.length > 0) {
               <button
                 hlmBtn variant="ghost" size="icon"
                 type="button"
@@ -78,6 +89,18 @@
               </button>
               <ng-template #listMenu>
                 <div hlmDropdownMenu class="w-56">
+                  @if (canKeepScreenOn) {
+                    <button hlmDropdownMenuItem data-testid="shopping-list-keep-screen-on" (click)="toggleKeepScreenOn()">
+                      <app-icon name="screen_lock_portrait"></app-icon>
+                      <span>{{ (keepScreenOn() ? 'Let the screen sleep' : 'Keep screen on') | t }}</span>
+                    </button>
+                  }
+                  @if (list.items.length > 0) {
+                    <button hlmDropdownMenuItem data-testid="shopping-list-share" (click)="shareList(list)">
+                      <app-icon name="share"></app-icon>
+                      <span>{{ 'Share list' | t }}</span>
+                    </button>
+                  }
                   @if (canUpdate()) {
                     <button hlmDropdownMenuItem data-testid="shopping-list-rename" (click)="renameList(list)">
                       <app-icon name="edit"></app-icon>

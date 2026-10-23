@@ -164,6 +164,7 @@ import {
   lucideSmartphone,
   lucideTablet,
   lucideMonitor,
+  lucideWifiOff,
 } from "@ng-icons/lucide";
 
 export const ICON_DEFINITIONS = {
@@ -328,6 +329,7 @@ export const ICON_DEFINITIONS = {
   lucideSmartphone,
   lucideTablet,
   lucideMonitor,
+  lucideWifiOff,
 };
 
 export const MATERIAL_TO_LUCIDE: Record<string, string> = {
@@ -523,4 +525,6 @@ export const MATERIAL_TO_LUCIDE: Record<string, string> = {
   smartphone: "lucideSmartphone",
   tablet: "lucideTablet",
   computer: "lucideMonitor",
+  wifi_off: "lucideWifiOff",
+  screen_lock_portrait: "lucideSmartphone",
 };

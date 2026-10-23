@@ -377,3 +377,23 @@ select {
     border-color: var(--border);
   }
 }
+
+/*
+  Page changes cross-fade (the router runs them as view transitions). One short fade for the whole page; the shell
+  around the router outlet is identical on both sides, so only the content appears to change. Off for people who
+  asked the system for less motion.
+*/
+@layer base {
+  ::view-transition-group(root) {
+    animation-duration: 160ms;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

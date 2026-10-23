@@ -37,6 +37,22 @@ before the merge (run 39884780360) and now matches `main` but for docs.
 - **Local stack note:** two app tabs reloading at once (dev-server hot reload) both rotate the shared refresh token and
   the loser signs both out ("Refresh token is invalid or has already been used" in the API log). Keep one app tab open.
 
+## In progress: `feature/pwa-and-motion` (from `feature/backlog-sweep`, 2026-10-23)
+
+Plan phases 1 and 2 of the "use what Angular 22 offers" review (plan outside the repo). Pushed, not merged; nothing published.
+- **Done:** installable app (manifest, icons rendered from the supplied SVG, `@angular/service-worker` in the production
+  build, app shell only, API never cached), `AppUpdateService`, shopping list keep-screen-on / share / vibrate / offline
+  notice, router view transitions (reduced motion respected), the three Angular-animations fades moved to `animate.enter`
+  / `animate.leave`. Details: `desktop/CLAUDE.md` -> "Installable app, offline shell and page transitions".
+- **Checked here:** Jest 297 suites / 2017 tests, `ng build` (ngsw.json, manifest and worker emitted), `i18n:check` 100%
+  in all four languages; a production build served on localhost registers and activates the worker and loads the manifest;
+  on the local stack (Black, 1024 px and 375 px) the list menu, offline notice and a page change show no console errors.
+- **Not seen:** the NAS (the worker behind the Synology reverse proxy and `docker/default.conf`), a real phone install on
+  iPhone Safari / Android Chrome, Wake Lock and Share on a device (the embedded browser refuses the wake lock, which the
+  fallback toast covers), the view transition in motion, `npm ci` against the changed lockfile (CI runs it).
+- **Left for later:** phase 3 (`@defer`, `httpResource`, drop `@ngneat/until-destroy`) and phase 4 (Signal Forms, Vitest);
+  the ~30 specs that still import `NoopAnimationsModule` keep `@angular/animations` as a devDependency.
+
 ## Decided (2026-10-23, by the user)
 - The AI keeps answering in one language (no per-uploader language).
 - Disabled buttons keep `pointer-events: none` (no not-allowed cursor).
