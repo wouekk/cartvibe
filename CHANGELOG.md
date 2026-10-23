@@ -8,6 +8,12 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-23
+
+More languages, reports in your own language, and a choice of AI: Claude, Gemini, ChatGPT or a model at home.
+
+> **Upgrade: in place.** No schema change: pull `:latest`, redeploy, hard-refresh. Settings → AI keeps its saved provider.
+
 ### Added
 - **German, French and Spanish:** the whole interface in Deutsch, Français and Español, next to English and Polish
   (Settings → Language, or the welcome at the first sign-in).
