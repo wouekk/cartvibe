@@ -65,7 +65,6 @@ import { SystemTaskTypePipe } from "./task-table/system-task-type.pipe";
 import { TaskTableComponent } from "./task-table/task-table.component";
 import { EditableListComponent } from './editable-list/editable-list.component';
 import { IconAutocompleteComponent } from './icon-autocomplete/icon-autocomplete.component';
-import { PieChartUiComponent } from './pie-chart/pie-chart.component';
 import { CartVibeLogoComponent } from './cartvibe-logo/cartvibe-logo.component';
 import { BadgeComponent } from './badge/badge.component';
 import { ImageCanvasComponent } from './image-canvas/image-canvas.component';
@@ -149,7 +148,6 @@ import { SettingsTabsComponent } from './settings/settings-tabs.component';
     ...HlmDropdownMenuImports,
     TableModule,
     UserAutocompleteModule,
-    PieChartUiComponent,
     CartVibeLogoComponent,
     BadgeComponent,
     ImageCanvasComponent,
@@ -201,7 +199,6 @@ import { SettingsTabsComponent } from './settings/settings-tabs.component';
     SettingsSectionComponent,
     SettingsEntityListComponent,
     SettingsTabsComponent,
-    PieChartUiComponent,
     CartVibeLogoComponent,
     BadgeComponent,
     ImageCanvasComponent,

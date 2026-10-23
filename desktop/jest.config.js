@@ -44,7 +44,7 @@ module.exports = {
     '^apexcharts$': '<rootDir>/src/testing/apexcharts.stub.ts'
   },
   transformIgnorePatterns: [
-    'node_modules/(?!.*\\.mjs$|@angular|@ngxs|@spartan-ng|@ng-icons|rxjs|ngx-mask|pretty-print-json|ng2-charts|lodash-es|chart\\.js)'
+    'node_modules/(?!.*\\.mjs$|@angular|@ngxs|@spartan-ng|@ng-icons|rxjs|ngx-mask|pretty-print-json|lodash-es)'
   ],
   // Additional performance settings
   testEnvironmentOptions: {
