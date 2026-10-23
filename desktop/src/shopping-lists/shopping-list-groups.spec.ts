@@ -19,6 +19,14 @@ describe("shopping list groups", () => {
     expect(activeLists(lists).map((l) => l.id)).toEqual([1, 3]);
   });
 
+  it("orders past lists by their last cross-off before the list's own update time", () => {
+    const crossedOff = (id: number, checkedAt: string): ShoppingList =>
+      ({ ...list(id, [], "2026-10-09T00:00:00Z"), items: [{ isChecked: true, checkedAt } as ShoppingListItem] }) as ShoppingList;
+    const lists = [crossedOff(1, "2026-10-01T00:00:00Z"), crossedOff(2, "2026-10-05T00:00:00Z")];
+
+    expect(recentPastLists(lists).map((l) => l.id)).toEqual([2, 1]);
+  });
+
   it("shows the latest three past lists, newest first", () => {
     const lists = [
       list(1, [true], "2026-10-01T00:00:00Z"),

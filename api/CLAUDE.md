@@ -296,6 +296,9 @@ which day an instant falls on and what "today" means.
 - `unit` must be in `models.ShoppingListUnits` (keep in step with the desktop's `SHOPPING_LIST_UNITS`) and requires an
   amount. Reviving with either amount form replaces both.
 - `PUT /item/{id}/checked` sets state (required pointer; resending the current state is a no-op and broadcasts nothing).
+  `PUT /{listId}/checked` does the same for the whole list or the given `itemIds` of it (other lists' ids ignored) in
+  one transaction, keeps the stamp of items already in that state, and sends the list whole as `LIST_UPDATED` only when
+  something changed ("Mark as complete", Restore, Undo).
   Adding the name of a crossed-off item on the same list (case-insensitive via `LOWER()` both sides) revives it.
 - **SSE** `GET /shopping-list/group/{groupId}/stream`: `ShoppingListHub` is in-process pub/sub (single container). Publish
   happens after the write commits and never blocks; a subscriber with a full 32-event buffer is dropped and refetches.

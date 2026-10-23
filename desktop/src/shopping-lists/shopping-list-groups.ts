@@ -13,10 +13,15 @@ export function activeLists(lists: ShoppingList[]): ShoppingList[] {
   return lists.filter((list) => !isPastList(list));
 }
 
-/** The most recently touched finished lists, newest first. */
+/** When a finished list was finished: its last cross-off, else when the list itself last changed. */
+function finishedAt(list: ShoppingList): string {
+  return list.items.reduce((latest, item) => ((item.checkedAt ?? "") > latest ? (item.checkedAt ?? "") : latest), "") || (list.updatedAt ?? "");
+}
+
+/** The most recently finished lists, newest first. */
 export function recentPastLists(lists: ShoppingList[], limit = PAST_LISTS_SHOWN): ShoppingList[] {
   return lists
     .filter(isPastList)
-    .sort((a, b) => (b.updatedAt ?? "").localeCompare(a.updatedAt ?? ""))
+    .sort((a, b) => finishedAt(b).localeCompare(finishedAt(a)))
     .slice(0, limit);
 }
