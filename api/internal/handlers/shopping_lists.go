@@ -360,6 +360,44 @@ func DeleteShoppingListItem(w http.ResponseWriter, r *http.Request) {
 	HandleRequest(handler)
 }
 
+// SetShoppingListChecked crosses a whole list off or back on (optionally only some of its items).
+func SetShoppingListChecked(w http.ResponseWriter, r *http.Request) {
+	listId, groupId, ok := resolveShoppingListGroupId(w, chi.URLParam(r, "listId"))
+	if !ok {
+		return
+	}
+
+	handler := structs.Handler{
+		ErrorMessage:     "Error updating shopping list",
+		Writer:           w,
+		Request:          r,
+		GroupId:          utils.UintToString(groupId),
+		GroupPermissions: []string{permissions.GroupShoppingListsUpdate},
+		ResponseType:     constants.ApplicationJson,
+		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
+			command := commands.SetShoppingListCheckedCommand{}
+			vErr, err := command.LoadDataFromRequestAndValidate(w, r)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+			if len(vErr.Errors) > 0 {
+				structs.WriteValidatorErrorResponse(w, vErr, http.StatusBadRequest)
+				return 0, nil
+			}
+
+			token := structs.GetClaims(r)
+			list, err := services.NewShoppingListService(nil).SetShoppingListChecked(groupId, listId, command.ItemIds, *command.IsChecked, token.UserId)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			return writeShoppingListResponse(w, list)
+		},
+	}
+
+	HandleRequest(handler)
+}
+
 func ClearCheckedShoppingListItems(w http.ResponseWriter, r *http.Request) {
 	listId, groupId, ok := resolveShoppingListGroupId(w, chi.URLParam(r, "listId"))
 	if !ok {

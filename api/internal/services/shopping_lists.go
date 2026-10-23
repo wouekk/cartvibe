@@ -291,6 +291,47 @@ func (service ShoppingListService) SetShoppingListItemChecked(
 	return item, nil
 }
 
+// SetShoppingListChecked crosses a whole list off ("Mark as complete") or back on ("Restore", Undo),
+// limited to itemIds when given. The list is sent to subscribers whole, as LIST_UPDATED, and only
+// when something changed.
+func (service ShoppingListService) SetShoppingListChecked(
+	groupId uint,
+	listId uint,
+	itemIds []uint,
+	isChecked bool,
+	userId uint,
+) (models.ShoppingList, error) {
+	var list models.ShoppingList
+	var changedIds []uint
+
+	err := service.GetDB().Transaction(func(tx *gorm.DB) error {
+		repository := repositories.NewShoppingListRepository(tx)
+
+		var err error
+		changedIds, err = repository.SetShoppingListItemsChecked(listId, itemIds, isChecked, userId)
+		if err != nil {
+			return err
+		}
+
+		list, err = repository.GetShoppingListById(listId)
+		return err
+	})
+	if err != nil {
+		return models.ShoppingList{}, err
+	}
+
+	if len(changedIds) > 0 {
+		publishShoppingListEvent(models.ShoppingListEvent{
+			Type:           models.ShoppingListEventListUpdated,
+			GroupId:        groupId,
+			ShoppingListId: listId,
+			List:           &list,
+		})
+	}
+
+	return list, nil
+}
+
 func (service ShoppingListService) DeleteShoppingListItem(groupId uint, itemId uint) error {
 	repository := repositories.NewShoppingListRepository(service.TX)
 

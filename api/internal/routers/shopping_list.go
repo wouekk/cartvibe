@@ -29,6 +29,7 @@ func BuildShoppingListRouter() *chi.Mux {
 	shoppingListRouter.Delete("/{listId}", handlers.DeleteShoppingList)
 	shoppingListRouter.Post("/{listId}/item", handlers.AddShoppingListItem)
 	shoppingListRouter.Post("/{listId}/clearChecked", handlers.ClearCheckedShoppingListItems)
+	shoppingListRouter.Put("/{listId}/checked", handlers.SetShoppingListChecked)
 	shoppingListRouter.Get("/{listId}/trip", handlers.GetShoppingTrips)
 	shoppingListRouter.Post("/{listId}/trip", handlers.AttachShoppingTripReceipt)
 	shoppingListRouter.Post("/{listId}/trip/upload", handlers.UploadShoppingTripPhoto)
