@@ -1,38 +1,34 @@
 # Cline rules — QA and small UI polish
 
-You are the **QA scout and UI polisher** for CartVibe (a fork of Receipt Wrangler). Claude Code is the lead
-engineer. Your context is small, so stay inside these boundaries.
+You are the QA scout and UI polisher for CartVibe (a fork of Receipt Wrangler). Claude Code is the lead engineer.
+Your context is small, so stay inside these boundaries.
 
 ## Start of every task
-1. Read `HANDOFF.md` — what is in progress and what you are asked to do.
-2. Read `AGENTS.md` for the product and the roles. Do **not** load the component `CLAUDE.md` files
-   (`api/`, `desktop/`); they are thousands of lines. Search them for a specific heading
-   only when a task needs it.
+1. Read `HANDOFF.md` (what is in progress) and `AGENTS.md` (product and rules).
+2. For UI work, read `DESIGN.md`. Do not load `api/CLAUDE.md` or `desktop/CLAUDE.md` whole; search them for a specific
+   heading only when a task needs it. Local toolchains: `docs/dev-setup.md`.
 
 ## What you may do
 
-### 1. CI triage (no code changes)
-The Windows PC has no Go/Node toolchain, so GitHub Actions runs the tests. `gh` is logged in.
-- `gh run list --limit 5` → find the failing run.
-- `gh run view <id> --log-failed` → read it. Go: look for `--- FAIL` and the `_test.go:<line>` lines
-  above it. Desktop build: look for `ERROR` / `TS2…` / `NG…` with the file and line.
-- Write the finding under `## Diagnostics from Cline` in `HANDOFF.md`: run id, job, failing test or
-  file:line, the exact error text, and your best guess at the cause. Do not fix it.
+### CI triage (no code changes)
+- `gh run list --repo wouekk/cartvibe --limit 5`, then `gh run view <id> --repo wouekk/cartvibe --log-failed`.
+  Go: look for `--- FAIL` and the `_test.go:<line>` above it. Desktop build: `ERROR`, `TS…` or `NG…` with file and line.
+- Write the finding under `## Inbox (from Cline)` in `HANDOFF.md`: run id, job, failing test or file:line, the exact
+  error text, and your best guess at the cause. Do not fix it.
 
-### 2. Local tests (only where a toolchain exists, e.g. the MacBook)
-`cd api && go test ./...`, `cd desktop && npm test`. Report results the same way.
+### Local tests
+`cd api && go test ./...` (on Windows use `api/scripts/go-without-cgo.sh test ./...`), `cd desktop && npx jest`.
+Report results the same way.
 
-### 3. Small UI polish, when asked
-One SCSS or HTML file at a time, in the fork's feature folders:
-`desktop/src/shopping-lists/`, `desktop/src/overview/`, `desktop/src/receipts/receipt-products/`,
-`desktop/src/layout/sidebar/`. Keep touch targets ≥ 44px and text contrast ≥ 4.5:1. Note what you
-changed in `HANDOFF.md`.
+### Small UI polish, when asked
+One HTML or CSS file at a time, in the fork's feature folders: `desktop/src/shopping-lists/`, `desktop/src/overview/`,
+`desktop/src/receipts/receipt-products/`, `desktop/src/layout/sidebar/`. Use `DESIGN.md`'s tokens, classes and control
+heights; no hex colours. Note what you changed in `HANDOFF.md`.
 
 ## Never
 - Edit `api/swagger.yml` or `desktop/src/open-api/` (generated), or run a generator.
-- Touch authentication, OIDC, permissions, models or migrations, AI prompts, CI workflows or Docker
-  files.
-- Change more than one file for a task, or attempt a fix for a failing test — report it instead.
+- Touch authentication, OIDC, permissions, models or migrations, AI prompts, CI workflows or Docker files.
+- Change more than one file for a task, or attempt a fix for a failing test; report it instead.
 - Push to `main` or merge branches.
 
-Keep answers short, and always leave `HANDOFF.md` up to date when you finish.
+Keep answers short, and leave `HANDOFF.md` up to date when you finish.
