@@ -1,4 +1,4 @@
-import { Component, computed } from "@angular/core";
+import { Component, computed, ChangeDetectionStrategy } from "@angular/core";
 import { Store } from "@ngxs/store";
 import { DEFAULT_HOST_CLASS } from "src/constants";
 import { Permission } from "../../open-api";
@@ -10,6 +10,7 @@ import { marker } from "../../i18n/marker";
     selector: "app-settings",
     templateUrl: "./settings.component.html",
     host: DEFAULT_HOST_CLASS,
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class SettingsComponent {

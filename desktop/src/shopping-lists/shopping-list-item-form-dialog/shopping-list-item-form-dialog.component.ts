@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, Input, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
@@ -12,6 +12,7 @@ import { buildShoppingListItemForm, toUpsertShoppingListItemCommand } from "../s
 @Component({
   selector: "app-shopping-list-item-form-dialog",
   templateUrl: "./shopping-list-item-form-dialog.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class ShoppingListItemFormDialogComponent implements OnInit {

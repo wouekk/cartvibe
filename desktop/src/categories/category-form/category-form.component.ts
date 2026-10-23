@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, Input, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { take, tap } from "rxjs";
@@ -13,6 +13,7 @@ import { SnackbarService } from "../../services";
     // Provided here, like the tag form: the dialog is created from the root injector, which cannot see
     // the lazy module's providers ("No provider found for DuplicateValidator", a blank Add dialog).
     providers: [DuplicateValidator],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class CategoryForm implements OnInit {

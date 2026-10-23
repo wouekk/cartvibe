@@ -1,4 +1,4 @@
-import { Component, inject, output } from "@angular/core";
+import { Component, inject, output, ChangeDetectionStrategy } from "@angular/core";
 import { take, tap } from "rxjs";
 import { QuickScanLauncher } from "../../receipts/quick-scan-dialog/quick-scan-launcher.service";
 
@@ -6,6 +6,7 @@ import { QuickScanLauncher } from "../../receipts/quick-scan-dialog/quick-scan-l
     selector: "app-quick-scan-button",
     templateUrl: "./quick-scan-button.component.html",
     styleUrls: ["./quick-scan-button.component.scss"],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class QuickScanButtonComponent {

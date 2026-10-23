@@ -1,4 +1,4 @@
-import { Component, signal } from "@angular/core";
+import { Component, signal, ChangeDetectionStrategy } from "@angular/core";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
 import { take, tap } from "rxjs";
 import { PagedTableInterface } from "../../interfaces/paged-table.interface";
@@ -9,6 +9,7 @@ import { TableColumn } from "../../table/table-column.interface";
     selector: "app-base-table",
     templateUrl: "./base-table.component.html",
     styleUrl: "./base-table.component.scss",
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class BaseTableComponent<T> {

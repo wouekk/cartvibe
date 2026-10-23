@@ -1,5 +1,5 @@
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 import { DEFAULT_RECEIPT_TABLE_COLUMNS, ReceiptTableColumnConfig } from '../../interfaces';
 import { columnDisplayName, reconcileColumns } from '../../utils';
@@ -12,6 +12,7 @@ interface ColumnConfigItem extends ReceiptTableColumnConfig {
   selector: 'app-column-configuration-dialog',
   templateUrl: './column-configuration-dialog.component.html',
   styleUrls: ['./column-configuration-dialog.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false
 })
 export class ColumnConfigurationDialogComponent implements OnInit {

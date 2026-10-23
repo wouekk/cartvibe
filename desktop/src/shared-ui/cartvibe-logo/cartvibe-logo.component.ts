@@ -1,4 +1,4 @@
-import { Component, computed, input } from "@angular/core";
+import { Component, computed, input, ChangeDetectionStrategy } from "@angular/core";
 import { CartVibeIconComponent } from "../cartvibe-icon/cartvibe-icon.component";
 
 /**
@@ -25,6 +25,7 @@ import { CartVibeIconComponent } from "../cartvibe-icon/cartvibe-icon.component"
       <span class="cart">Cart</span><span class="vibe">Vibe</span>
     </span>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       :host {

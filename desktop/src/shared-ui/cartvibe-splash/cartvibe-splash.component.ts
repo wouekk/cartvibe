@@ -1,4 +1,4 @@
-import { Component, input } from "@angular/core";
+import { Component, input, ChangeDetectionStrategy } from "@angular/core";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 import { marker } from "../../i18n/marker";
 
@@ -26,6 +26,7 @@ import { marker } from "../../i18n/marker";
       <p class="mt-4 text-sm font-medium tracking-wide text-muted-foreground motion-safe:animate-pulse">{{ text() | t }}</p>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       :host {

@@ -1,5 +1,5 @@
 import { CurrencyPipe } from "@angular/common";
-import { Component, computed, effect, ElementRef, inject, linkedSignal, signal, untracked, viewChild } from "@angular/core";
+import { Component, computed, effect, ElementRef, inject, linkedSignal, signal, untracked, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { shakeElement } from "../../utils/shake";
 import { AppDialog } from "../../dialog/app-dialog";
 import { toObservable, toSignal } from "@angular/core/rxjs-interop";
@@ -182,6 +182,7 @@ const UNCATEGORIZED = marker("Uncategorized");
   templateUrl: "./overview-page.component.html",
   standalone: false,
   // The export formats money like the rest of the app; the pipe is declared in PipesModule and needs CurrencyPipe.
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [CurrencyPipe, CustomCurrencyPipe],
 })
 export class OverviewPageComponent {

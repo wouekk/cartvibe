@@ -1,4 +1,4 @@
-import { Component, output } from "@angular/core";
+import { Component, output, ChangeDetectionStrategy } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
 import { FormMode } from "src/enums/form-mode.enum";
@@ -10,6 +10,7 @@ import { FormCommand } from "../interfaces/form-command";
     selector: "app-base-form",
     templateUrl: "./base-form.component.html",
     styleUrls: ["./base-form.component.scss"],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class BaseFormComponent {

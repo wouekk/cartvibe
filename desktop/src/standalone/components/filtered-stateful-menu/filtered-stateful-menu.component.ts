@@ -1,6 +1,6 @@
 import { PluralPipe, TranslatePipe } from "../../../i18n/translate.pipe";
 import { CdkMenu, CdkMenuTrigger } from "@angular/cdk/menu";
-import { Component, Input, computed, input, output } from "@angular/core";
+import { Component, Input, computed, input, output, ChangeDetectionStrategy } from "@angular/core";
 import { FormControl } from "@angular/forms";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { HlmCheckbox } from "@spartan-ng/helm/checkbox";
@@ -19,6 +19,7 @@ import { marker } from "../../../i18n/marker";
     ButtonModule, InputModule, HlmDropdownMenuItem, HlmCheckbox,
   ],
   templateUrl: "./filtered-stateful-menu.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./filtered-stateful-menu.component.scss",
 })
 export class FilteredStatefulMenuComponent extends BaseButtonComponent {

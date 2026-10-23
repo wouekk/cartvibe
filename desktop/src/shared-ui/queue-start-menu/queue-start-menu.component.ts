@@ -1,4 +1,4 @@
-import { Component, OnInit, input } from "@angular/core";
+import { Component, OnInit, input, ChangeDetectionStrategy } from "@angular/core";
 import { Store } from "@ngxs/store";
 import { Permission, Receipt } from "../../open-api/index";
 import { QueueMode, ReceiptQueueService } from "../../services/receipt-queue.service";
@@ -8,6 +8,7 @@ import { AuthState, GroupState } from "../../store/index";
     selector: "app-queue-start-menu",
     templateUrl: "./queue-start-menu.component.html",
     styleUrl: "./queue-start-menu.component.scss",
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class QueueStartMenuComponent implements OnInit {

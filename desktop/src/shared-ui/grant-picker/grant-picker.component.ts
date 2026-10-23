@@ -1,4 +1,4 @@
-import { Component, computed, effect, input, output, inject } from "@angular/core";
+import { Component, computed, effect, input, output, inject, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormArray, FormControl } from "@angular/forms";
 import { CategoryAutocompleteComponent } from "../../category-autocomplete/category-autocomplete.component";
@@ -49,6 +49,7 @@ let grantPickerInstanceCount = 0;
   selector: "app-grant-picker", host: { class: "block" },
   standalone: true,
   imports: [CategoryAutocompleteComponent, TagAutocompleteComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: "./grant-picker.component.html",
 })
 export class GrantPickerComponent {

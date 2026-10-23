@@ -13,7 +13,7 @@ file covers how *this* fork works.
 | Component | Stack | Fork policy |
 |---|---|---|
 | `api/` | Go 1.26, Chi, GORM, Asynq (Redis) | Active development |
-| `desktop/` | Angular 21, NGXS, signals + zoneless, Material + Bootstrap | Active development (the UI we ship) |
+| `desktop/` | Angular 22, NGXS, signals + zoneless, spartan/ui + Tailwind | Active development (the UI we ship) |
 | `docker/` | One monolith image: nginx :80 → Go :8081 | Built by CI, never on the NAS |
 
 Component guides: `api/CLAUDE.md`, `desktop/CLAUDE.md` (long; the fork's own

@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, DestroyRef, OnInit, computed, inject, signal } from "@angular/core";
+import { Component, DestroyRef, OnInit, computed, inject, signal, ChangeDetectionStrategy } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { FormBuilder, ReactiveFormsModule } from "@angular/forms";
 import { HlmButton } from "@spartan-ng/helm/button";
@@ -49,6 +49,7 @@ export type { ConnectionResult } from "../ai-settings-shared";
   host: { class: "block" },
   templateUrl: "./ai-settings-page.component.html",
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     AiFallbackCardComponent,
     AiProviderFieldsComponent,

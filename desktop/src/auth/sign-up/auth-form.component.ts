@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from "@angular/common/http";
-import { Component, OnInit, signal } from "@angular/core";
+import { Component, OnInit, signal, ChangeDetectionStrategy } from "@angular/core";
 import { FormBuilder, FormControl, FormGroup, Validators, } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
@@ -18,6 +18,7 @@ import { marker } from "../../i18n/marker";
     host: { class: "relative flex min-h-dvh items-center justify-center bg-gradient-to-br from-muted via-accent to-muted p-6 max-sm:p-3" },
     providers: [UserValidators],
     animations: [fadeInOut, fadeIn],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class AuthForm implements OnInit {

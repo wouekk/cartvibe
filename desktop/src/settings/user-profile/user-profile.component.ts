@@ -1,4 +1,4 @@
-import {Component, computed, OnInit, signal } from "@angular/core";
+import {Component, computed, OnInit, signal, ChangeDetectionStrategy} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import { AppDialog, AppDialogConfig } from "../../dialog/app-dialog";
 import {ActivatedRoute, Router} from "@angular/router";
@@ -20,6 +20,7 @@ import { marker } from "../../i18n/marker";
 @Component({
     selector: "app-user-profile",
     templateUrl: "./user-profile.component.html",
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class UserProfileComponent implements OnInit {

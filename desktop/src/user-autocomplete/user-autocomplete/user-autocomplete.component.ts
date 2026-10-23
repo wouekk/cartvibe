@@ -1,4 +1,4 @@
-import { Component, computed, effect, input, untracked, viewChild } from "@angular/core";
+import { Component, computed, effect, input, untracked, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { FormControl } from "@angular/forms";
 import { Store } from "@ngxs/store";
 import { AutocomleteComponent } from "src/autocomplete/autocomlete/autocomlete.component";
@@ -11,6 +11,7 @@ import { UserState } from "../../store";
     templateUrl: "./user-autocomplete.component.html",
     styleUrls: ["./user-autocomplete.component.scss"],
     providers: [GroupMemberUserService],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class UserAutocompleteComponent {

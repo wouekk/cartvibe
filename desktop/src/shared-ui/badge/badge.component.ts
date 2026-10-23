@@ -1,5 +1,5 @@
 import { TranslatePipe } from "../../i18n/translate.pipe";
-import { Component, input } from "@angular/core";
+import { Component, input, ChangeDetectionStrategy } from "@angular/core";
 
 /** The colour a badge is drawn in. See `badge.component.scss` for the pairings. */
 export type BadgeTone = "slate" | "blue" | "green";
@@ -20,6 +20,7 @@ export type BadgeTone = "slate" | "blue" | "green";
   templateUrl: "./badge.component.html",
   styleUrl: "./badge.component.scss",
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslatePipe],
 })
 export class BadgeComponent {

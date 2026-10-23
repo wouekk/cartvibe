@@ -1,6 +1,6 @@
 import { PluralPipe, TranslatePipe } from "../i18n/translate.pipe";
 import { CommonModule } from "@angular/common";
-import { Component, input } from "@angular/core";
+import { Component, input, ChangeDetectionStrategy } from "@angular/core";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
 
 @Component({
@@ -10,6 +10,7 @@ import { AppIconComponent } from "../shared-ui/icon/icon.component";
         CommonModule,
         AppIconComponent
     ],
+    changeDetection: ChangeDetectionStrategy.Eager,
     templateUrl: "./alert.component.html",
 })
 export class AlertComponent {

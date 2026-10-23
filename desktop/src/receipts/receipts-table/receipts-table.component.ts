@@ -1,6 +1,6 @@
 import { TranslationService } from "../../i18n/translation.service";
 import { CurrencyPipe, DatePipe } from "@angular/common";
-import { AfterViewInit, Component, computed, HostListener, inject, OnInit, signal, TemplateRef, viewChild } from "@angular/core";
+import { AfterViewInit, Component, computed, HostListener, inject, OnInit, signal, TemplateRef, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -63,6 +63,7 @@ import { marker } from "../../i18n/marker";
   // pipes are injected. CustomCurrencyPipe is declared in PipesModule and needs
   // CurrencyPipe, neither of which is providedIn: "root".
   providers: [CurrencyPipe, CustomCurrencyPipe, DatePipe],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false
 })
 export class ReceiptsTableComponent implements OnInit, AfterViewInit {

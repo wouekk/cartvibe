@@ -1,6 +1,6 @@
 import { TranslationService } from "../../i18n/translation.service";
 import { DatePipe } from "@angular/common";
-import { Component, OnInit, TemplateRef, computed, viewChild } from "@angular/core";
+import { Component, OnInit, TemplateRef, computed, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
 import { ActivatedRoute } from "@angular/router";
 import { UntilDestroy } from "@ngneat/until-destroy";
@@ -35,6 +35,7 @@ import { SystemTaskFilterComponent } from "../system-task-filter/system-task-fil
     },
     DatePipe,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false
 })
 export class SystemTaskTableComponent implements OnInit {

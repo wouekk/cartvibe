@@ -1,4 +1,4 @@
-import { Component, computed, input } from "@angular/core";
+import { Component, computed, input, ChangeDetectionStrategy } from "@angular/core";
 import { toObservable, toSignal } from "@angular/core/rxjs-interop";
 import { ReactiveFormsModule } from "@angular/forms";
 import { startWith, switchMap } from "rxjs";
@@ -28,6 +28,7 @@ import {
   host: { class: "contents" },
   templateUrl: "./ai-provider-fields.component.html",
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [AiModelFieldComponent, CheckboxModule, InputModule, PipesModule, ReactiveFormsModule, SelectModule],
 })
 export class AiProviderFieldsComponent {

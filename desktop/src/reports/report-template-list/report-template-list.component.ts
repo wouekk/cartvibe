@@ -6,6 +6,7 @@ import {
   inject,
   signal,
   viewChild,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
@@ -45,6 +46,7 @@ import { TranslationService } from "../../i18n/translation.service";
   templateUrl: "./report-template-list.component.html",
   host: DEFAULT_HOST_CLASS,
   providers: [{ provide: BaseTableService, useClass: ReportTemplateTableService }],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class ReportTemplateListComponent extends BaseTableComponent<ReportTemplate> implements AfterViewInit {

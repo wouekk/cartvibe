@@ -1,4 +1,4 @@
-import { Component, Inject, Optional } from "@angular/core";
+import { Component, Inject, Optional, ChangeDetectionStrategy } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 
@@ -27,6 +27,7 @@ export type DeleteAccountDialogResult =
     selector: "app-delete-account-dialog",
     templateUrl: "./delete-account-dialog.component.html",
     styleUrls: ["./delete-account-dialog.component.scss"],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class DeleteAccountDialogComponent {

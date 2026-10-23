@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, computed, input, viewChild } from "@angular/core";
+import { Component, Input, OnChanges, SimpleChanges, computed, input, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { Store } from "@ngxs/store";
 import { BaseInputComponent } from "../../base-input";
 import { CurrencySeparator, CurrencySymbolPosition } from "../../open-api/index";
@@ -10,6 +10,7 @@ import { InputInterface } from "../input.interface";
   selector: "app-input",
   templateUrl: "./input.component.html",
   styleUrls: ["./input.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false
 })
 export class InputComponent

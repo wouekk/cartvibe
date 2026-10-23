@@ -1,10 +1,11 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { FormMode } from 'src/enums/form-mode.enum';
 
 @Component({
     selector: 'app-cancel-button',
     templateUrl: './cancel-button.component.html',
     styleUrls: ['./cancel-button.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class CancelButtonComponent {

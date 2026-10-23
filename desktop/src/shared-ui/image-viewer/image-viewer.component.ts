@@ -1,9 +1,10 @@
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges, input, signal, viewChild } from "@angular/core";
+import { Component, Input, OnChanges, OnDestroy, SimpleChanges, input, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { ImageCanvasComponent } from "../image-canvas/image-canvas.component";
 
 @Component({
     selector: "app-image-viewer",
     templateUrl: "./image-viewer.component.html",
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ImageViewerComponent implements OnChanges, OnDestroy {

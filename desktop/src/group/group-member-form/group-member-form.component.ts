@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, computed, effect, inject, signal } from "@angular/core";
+import { Component, DestroyRef, OnInit, computed, effect, inject, signal, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { FormGroup } from "@angular/forms";
 import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
@@ -33,6 +33,7 @@ import { familyRoleOptions, familyUserRole } from "../../utils/family-roles";
     selector: "app-group-member-form",
   host: { class: "block max-h-[85vh] overflow-y-auto" },
     templateUrl: "./group-member-form.component.html",
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class GroupMemberFormComponent implements OnInit {

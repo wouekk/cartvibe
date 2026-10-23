@@ -1,5 +1,5 @@
 import { ApplicationConfig, provideAppInitializer, provideZonelessChangeDetection, inject } from "@angular/core";
-import { provideHttpClient, withInterceptors } from "@angular/common/http";
+import { provideHttpClient, withInterceptors, withXhr } from "@angular/common/http";
 import { importProvidersFrom } from "@angular/core";
 import { provideAnimationsAsync } from "@angular/platform-browser/animations/async";
 import { provideNgxMask } from "ngx-mask";
@@ -78,7 +78,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
     provideAnimationsAsync(),
-    provideHttpClient(withInterceptors([httpInterceptor])),
+    provideHttpClient(withXhr(), withInterceptors([httpInterceptor])),
     provideNgxMask(),
     provideAppInitializer(() => {
       const initializerFn = (initAppData)(inject(AppInitService));

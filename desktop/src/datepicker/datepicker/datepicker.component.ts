@@ -1,4 +1,4 @@
-import { Component } from "@angular/core";
+import { Component, ChangeDetectionStrategy } from "@angular/core";
 import { BaseInputComponent } from "../../base-input";
 
 let nextId = 0;
@@ -7,6 +7,7 @@ let nextId = 0;
     selector: "app-datepicker",
     templateUrl: "./datepicker.component.html",
     styleUrls: ["./datepicker.component.scss"],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class DatepickerComponent extends BaseInputComponent {

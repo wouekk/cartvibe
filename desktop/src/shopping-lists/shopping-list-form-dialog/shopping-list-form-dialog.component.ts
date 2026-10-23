@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, Input, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
@@ -16,6 +16,7 @@ export const SHOPPING_LIST_NAME_MAX_LENGTH = 100;
 @Component({
   selector: "app-shopping-list-form-dialog",
   templateUrl: "./shopping-list-form-dialog.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class ShoppingListFormDialogComponent implements OnInit {

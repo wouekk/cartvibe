@@ -8,6 +8,7 @@ import {
   inject,
   input,
   viewChild,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import { marker } from "../../i18n/marker";
 
@@ -80,6 +81,7 @@ type Drag =
   templateUrl: "./image-canvas.component.html",
   styleUrl: "./image-canvas.component.scss",
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   host: {
     class: "cv-image-canvas",
     "[style.height]": "stageHeight()",

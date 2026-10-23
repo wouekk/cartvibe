@@ -1,6 +1,6 @@
 import { PluralPipe, TranslatePipe } from "../../i18n/translate.pipe";
 import { CommonModule } from "@angular/common";
-import { Component, DestroyRef, OnInit, inject, signal } from "@angular/core";
+import { Component, DestroyRef, OnInit, inject, signal, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
@@ -26,6 +26,7 @@ export const LOG_LEVEL_FILTERS = [
   host: { class: "block" },
   templateUrl: "./logs-page.component.html",
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [SharedUiModule, TranslatePipe, PluralPipe, CommonModule, HlmButton, AppIconComponent],
 })
 export class LogsPageComponent implements OnInit {

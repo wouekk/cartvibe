@@ -1,4 +1,4 @@
-import { Component, input } from "@angular/core";
+import { Component, input, ChangeDetectionStrategy } from "@angular/core";
 import { FormControl } from "@angular/forms";
 import { AutocompleteModule } from "../autocomplete/autocomplete.module";
 import { Tag } from "../open-api/index";
@@ -12,6 +12,7 @@ import { PipesModule } from "../pipes/index";
         PipesModule
     ],
     templateUrl: "./tag-autocomplete.component.html",
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: "./tag-autocomplete.component.scss"
 })
 export class TagAutocompleteComponent {

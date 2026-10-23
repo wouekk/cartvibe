@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject, input, output } from "@angular/core";
+import { Component, Input, OnInit, inject, input, output, ChangeDetectionStrategy } from "@angular/core";
 import { FormControl } from "@angular/forms";
 import { map, Observable, startWith } from "rxjs";
 import { TranslationService } from "../../i18n/translation.service";
@@ -10,6 +10,7 @@ import { InputErrorMessage } from "./input-error-message";
     selector: "app-base-input",
     templateUrl: "./base-input.component.html",
     styleUrls: ["./base-input.component.scss"],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class BaseInputComponent implements OnInit, BaseInputInterface {

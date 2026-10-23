@@ -1,4 +1,4 @@
-import { Component, input } from "@angular/core";
+import { Component, input, ChangeDetectionStrategy } from "@angular/core";
 import { FormControl } from "@angular/forms";
 import { Store } from "@ngxs/store";
 import { Group } from "../../open-api";
@@ -8,6 +8,7 @@ import { GroupState } from "../../store";
     selector: "app-group-autocomplete",
     templateUrl: "./group-autocomplete.component.html",
     styleUrls: ["./group-autocomplete.component.scss"],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class GroupAutocompleteComponent {

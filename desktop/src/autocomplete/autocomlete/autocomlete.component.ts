@@ -1,4 +1,4 @@
-import { Component, DestroyRef, effect, inject, Input, OnInit, signal, TemplateRef, input } from "@angular/core";
+import { Component, DestroyRef, effect, inject, Input, OnInit, signal, TemplateRef, input, ChangeDetectionStrategy } from "@angular/core";
 import { FormArray, FormControl, Validators } from "@angular/forms";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Store } from "@ngxs/store";
@@ -18,6 +18,7 @@ const CREATE_SENTINEL = Symbol("create");
     selector: "app-autocomlete",
     templateUrl: "./autocomlete.component.html",
     styleUrls: ["./autocomlete.component.scss"],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class AutocomleteComponent

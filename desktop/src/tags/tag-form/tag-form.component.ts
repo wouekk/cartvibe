@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, Input, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { take, tap } from "rxjs";
@@ -11,6 +11,7 @@ import { SnackbarService } from "../../services";
     templateUrl: "./tag-form.component.html",
     styleUrls: ["./tag-form.component.scss"],
     providers: [DuplicateValidator],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class TagFormComponent implements OnInit {

@@ -2,13 +2,15 @@ import {
   Component,
   TemplateRef,
   input,
-  output
+  output,
+  ChangeDetectionStrategy
 } from '@angular/core';
 
 @Component({
     selector: 'app-form-list',
     templateUrl: './form-list.component.html',
     styleUrls: ['./form-list.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class FormListComponent {

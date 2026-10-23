@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, computed, Inject, OnInit, signal, TemplateRef, input, viewChild } from "@angular/core";
+import { AfterViewInit, Component, computed, Inject, OnInit, signal, TemplateRef, input, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
@@ -24,6 +24,7 @@ interface ReceiptUpdateRow {
 @Component({
   selector: "app-task-table",
   templateUrl: "./task-table.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false
 })
 export class TaskTableComponent implements OnInit, AfterViewInit {

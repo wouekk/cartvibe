@@ -1,4 +1,4 @@
-import { Component, OnChanges, SimpleChanges, input } from "@angular/core";
+import { Component, OnChanges, SimpleChanges, input, ChangeDetectionStrategy } from "@angular/core";
 import { FormControl } from "@angular/forms";
 import { RECEIPT_STATUS_OPTIONS } from "src/constants";
 import { familyReceiptStatus } from "../../utils/receipt-status";
@@ -7,6 +7,7 @@ import { familyReceiptStatus } from "../../utils/receipt-status";
     selector: "app-status-select",
     templateUrl: "./status-select.component.html",
     styleUrls: ["./status-select.component.scss"],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class StatusSelectComponent implements OnChanges {

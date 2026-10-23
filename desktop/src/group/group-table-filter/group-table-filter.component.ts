@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { FormBuilder } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
@@ -11,6 +11,7 @@ import { associatedGroupOptions } from "./associated-group-options";
     selector: "app-group-table-filter",
     templateUrl: "./group-table-filter.component.html",
     styleUrl: "./group-table-filter.component.scss",
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class GroupTableFilterComponent extends BaseFormComponent implements OnInit {

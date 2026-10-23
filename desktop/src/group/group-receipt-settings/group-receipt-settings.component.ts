@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, inject } from "@angular/core";
+import { Component, DestroyRef, OnInit, inject, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormBuilder } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -20,6 +20,7 @@ import { marker } from "../../i18n/marker";
     selector: "app-group-receipt-settings",
     templateUrl: "./group-receipt-settings.component.html",
     styleUrl: "./group-receipt-settings.component.scss",
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class GroupReceiptSettingsComponent extends BaseFormComponent implements OnInit {

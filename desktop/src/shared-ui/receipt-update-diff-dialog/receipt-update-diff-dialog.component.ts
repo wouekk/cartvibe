@@ -1,4 +1,4 @@
-import { Component, computed, Inject, signal, inject } from "@angular/core";
+import { Component, computed, Inject, signal, inject, ChangeDetectionStrategy } from "@angular/core";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 import { buildSplitDiff, collapseUnchanged, DiffLine, InlineSegments, inlineChange, SplitDiffRow } from "../../utils/line-diff";
 import { SystemTaskType } from "../../open-api";
@@ -39,6 +39,7 @@ export interface ReceiptDiffRow {
   selector: "app-receipt-update-diff-dialog",
   templateUrl: "./receipt-update-diff-dialog.component.html",
   styleUrl: "./receipt-update-diff-dialog.component.scss",
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class ReceiptUpdateDiffDialogComponent {

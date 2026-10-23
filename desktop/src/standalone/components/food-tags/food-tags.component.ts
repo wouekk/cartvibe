@@ -1,4 +1,4 @@
-import { Component, computed, input } from "@angular/core";
+import { Component, computed, input, ChangeDetectionStrategy } from "@angular/core";
 import { TranslatePipe } from "../../../i18n/translate.pipe";
 import { foodTagsOf, FoodTagValues } from "./food-tags";
 
@@ -21,6 +21,7 @@ const TONES: Record<string, string> = {
   `,
   host: { class: "inline-flex flex-wrap gap-1" },
   imports: [TranslatePipe],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
 })
 export class FoodTagsComponent {

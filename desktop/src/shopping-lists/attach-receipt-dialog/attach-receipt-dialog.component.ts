@@ -1,5 +1,5 @@
 import { CurrencyPipe } from "@angular/common";
-import { Component, Input, OnInit, signal } from "@angular/core";
+import { Component, Input, OnInit, signal, ChangeDetectionStrategy } from "@angular/core";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { catchError, map, of, take } from "rxjs";
 import { Receipt, ReceiptService, SortDirection } from "../../open-api";
@@ -13,6 +13,7 @@ export const ATTACHABLE_RECEIPT_COUNT = 15;
   templateUrl: "./attach-receipt-dialog.component.html",
   standalone: false,
   // customCurrency delegates to CurrencyPipe, which PipesModule does not provide.
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [CurrencyPipe],
 })
 export class AttachReceiptDialogComponent implements OnInit {

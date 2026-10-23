@@ -1,4 +1,4 @@
-import { Component, input, model } from "@angular/core";
+import { Component, input, model, ChangeDetectionStrategy } from "@angular/core";
 import { FilterTab } from "./filter-tab.interface";
 
 /**
@@ -19,6 +19,7 @@ import { FilterTab } from "./filter-tab.interface";
 @Component({
   selector: "app-filter-bar",
   templateUrl: "./filter-bar.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class FilterBarComponent {

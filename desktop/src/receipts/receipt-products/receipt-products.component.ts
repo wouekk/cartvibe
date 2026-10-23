@@ -1,6 +1,6 @@
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { CommonModule, CurrencyPipe } from "@angular/common";
-import { Component, computed, DestroyRef, effect, inject, input, signal, untracked, WritableSignal } from "@angular/core";
+import { Component, computed, DestroyRef, effect, inject, input, signal, untracked, WritableSignal, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
@@ -48,6 +48,7 @@ const STATUS_TEXT: { [status: string]: string } = {
   standalone: true,
   imports: [CommonModule, FoodTagsComponent, HlmButton, AppIconComponent, ...HlmDropdownMenuImports, PipesModule],
   // customCurrency delegates to CurrencyPipe, which PipesModule does not provide.
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [CurrencyPipe],
 })
 export class ReceiptProductsComponent {

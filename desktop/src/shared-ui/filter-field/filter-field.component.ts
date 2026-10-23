@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, input } from "@angular/core";
+import { Component, OnInit, inject, input, ChangeDetectionStrategy } from "@angular/core";
 import { FormControl, FormGroup } from "@angular/forms";
 import { endOfDay, startOfMonth } from "date-fns";
 import { FilterFieldType } from "src/constants";
@@ -22,6 +22,7 @@ import { todayInZone } from "../../utils/app-time-zone";
   selector: "app-filter-field",
   templateUrl: "./filter-field.component.html",
   styleUrls: ["./filter-field.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false
 })
 export class FilterFieldComponent implements OnInit {

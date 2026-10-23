@@ -1,6 +1,6 @@
 import { CurrencyPipe } from "@angular/common";
 import { HttpErrorResponse } from "@angular/common/http";
-import { Component, computed, effect, input, signal, untracked, inject } from "@angular/core";
+import { Component, computed, effect, input, signal, untracked, inject, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { Actions, ofActionDispatched, Store } from "@ngxs/store";
@@ -35,6 +35,7 @@ interface ShoppingTripRow {
   host: { class: "block" },
   standalone: false,
   // customCurrency delegates to CurrencyPipe, which PipesModule does not provide.
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [CurrencyPipe],
 })
 export class ShoppingTripsComponent {

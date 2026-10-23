@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from "@angular/common/http";
-import { Component, computed, DestroyRef, inject, input, signal } from "@angular/core";
+import { Component, computed, DestroyRef, inject, input, signal, ChangeDetectionStrategy } from "@angular/core";
 import { RouterLink } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { HlmButton } from "@spartan-ng/helm/button";
@@ -46,6 +46,7 @@ export interface PendingUndo {
   standalone: true,
   imports: [AppIconComponent, ButtonModule, HlmButton, RouterLink, TranslatePipe],
   templateUrl: "./overview-shopping-panel.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   host: { class: "cv-panel", "aria-labelledby": "overview-lists-title" },
 })
 export class OverviewShoppingPanelComponent {

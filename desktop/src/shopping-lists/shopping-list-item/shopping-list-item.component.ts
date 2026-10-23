@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, output } from "@angular/core";
+import { Component, computed, inject, input, output, ChangeDetectionStrategy } from "@angular/core";
 import { TranslationService } from "../../i18n/translation.service";
 import { ShoppingListItem } from "../../open-api";
 import { HEALTH_CHOICES, SEASONALITY_CHOICES } from "../../standalone/components/food-tags/food-tags";
@@ -18,6 +18,7 @@ export interface ShoppingListItemClassification {
 @Component({
   selector: "app-shopping-list-item",
   templateUrl: "./shopping-list-item.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class ShoppingListItemComponent {

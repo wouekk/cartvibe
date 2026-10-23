@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject, input } from "@angular/core";
+import { Component, Input, OnInit, inject, input, ChangeDetectionStrategy } from "@angular/core";
 import { OptionDisplayPipe } from "../pipes/option-display.pipe";
 import { BaseInputComponent } from "../../base-input";
 
@@ -6,6 +6,7 @@ import { BaseInputComponent } from "../../base-input";
     selector: "app-select",
     templateUrl: "./select.component.html",
     styleUrls: ["./select.component.scss"],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class SelectComponent extends BaseInputComponent implements OnInit {

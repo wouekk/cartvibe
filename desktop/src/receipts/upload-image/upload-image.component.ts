@@ -1,4 +1,4 @@
-import { Component, input, output, viewChild } from "@angular/core";
+import { Component, input, output, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { take, tap } from "rxjs";
 import { FormMode } from "src/enums/form-mode.enum";
 import { ReceiptFileUploadCommand } from "../../interfaces";
@@ -9,6 +9,7 @@ import { downscaleImageForUpload } from "../../utils/downscale-image";
     selector: "app-upload-image",
     templateUrl: "./upload-image.component.html",
     styleUrls: ["./upload-image.component.scss"],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class UploadImageComponent {

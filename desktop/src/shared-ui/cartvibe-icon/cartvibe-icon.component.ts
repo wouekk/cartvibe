@@ -1,4 +1,4 @@
-import { Component, input } from "@angular/core";
+import { Component, input, ChangeDetectionStrategy } from "@angular/core";
 
 /**
  * The CartVibe app icon, drawn exactly as supplied in `assets/brand/icon-dark.svg` and `icon-light.svg`: a rounded
@@ -108,6 +108,7 @@ import { Component, input } from "@angular/core";
       </g>
     </svg>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       :host {

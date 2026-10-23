@@ -1,4 +1,4 @@
-import { Component, Inject } from "@angular/core";
+import { Component, Inject, ChangeDetectionStrategy } from "@angular/core";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 
 export interface DescriptionViewerDialogData {
@@ -9,6 +9,7 @@ export interface DescriptionViewerDialogData {
 @Component({
   selector: "app-description-viewer-dialog",
   templateUrl: "./description-viewer-dialog.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class DescriptionViewerDialogComponent {

@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { RadioButtonData } from '../models';
 
@@ -6,6 +6,7 @@ import { RadioButtonData } from '../models';
     selector: 'app-radio-group',
     templateUrl: './radio-group.component.html',
     styleUrls: ['./radio-group.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class RadioGroupComponent {
