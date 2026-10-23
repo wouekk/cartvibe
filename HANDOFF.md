@@ -10,8 +10,18 @@ place: pull `:latest`, redeploy, hard-refresh. **Not seen on the NAS yet.**
 ## In progress: `feature/backlog-sweep` (from `main`, 2026-10-23)
 
 Backlog review sprint, plan in `C:/Users/Marcin/.claude/plans/ultrathink-backlog-review-and-composed-wren.md` (outside
-the repo). Order: bug sweep (checkbox fill, dead OIDC-connection load on the profile, NG8107) → chromedp 0.21 port →
-GitHub Actions majors → Angular 22. Not merged; merging into `main` + `preview` waits for the user's go.
+the repo). Pushed, not merged; merging into `main` + `preview` waits for the user's go. No `:preview` published yet.
+- **Done:** ticked helm checkboxes fill (`data-checked` → `data-[state=checked]`, also in `tools/spartan-add.cjs`); the
+  profile's dead connect/disconnect/link-outcome code removed (the OIDC connection load **stays**: passwordless
+  self-delete reads it, so `bugs-found.md` #6 was only half right); About's NG8107; chromedp 0.21 (`api/CLAUDE.md` ->
+  HTML to PDF: URLPattern block list, new Chromium test that fails on the naive `http://*`); every GitHub Action on its
+  current major.
+- **Checked:** Jest 293 suites / 2028 tests, `ng build`, `i18n:check`; Go vet, `test-pdf.sh` (Ghostscript checks skip
+  here, the new block-list test does not); checkbox seen ticked in White and Black (Add Category dialog, 1280 px). CI:
+  see the branch's latest run. **Not seen:** the Actions bumps in `publish-image.yml`, `pages.yml` and
+  `regenerate-clients.yml` (only proven by running them); other NG81xx lint warnings remain (left alone).
+- **Blocked, waits for the user:** Angular 22 needs Node `^22.22.3 || ^24.15.0` (CI, this PC and the lockfile gate pin
+  Node 20.19.6, which is end of life). Moving Node is the first step of that upgrade.
 
 ## Decided (2026-10-23, by the user)
 - The AI keeps answering in one language (no per-uploader language).

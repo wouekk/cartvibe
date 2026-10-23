@@ -8,6 +8,16 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+### Fixed
+- **Ticked checkboxes now look ticked:** a checked box fills with the accent in both themes (it used to stay empty
+  with only a faint check mark).
+
+### Changed
+- Report PDFs are rendered with chromedp 0.21; the list that keeps outside images and files out of a report PDF is
+  written for the browser's new pattern syntax and has a test of its own.
+- The build uses the current major version of every GitHub Action.
+- The profile page no longer carries the code for connecting other sign-in accounts (its screen was removed earlier).
+
 ## [0.7.0] - 2026-10-23
 
 More languages, reports in your own language, and a choice of AI: Claude, Gemini, ChatGPT or a model at home.
