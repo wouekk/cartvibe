@@ -2487,7 +2487,7 @@ never hand-edited.
   - **Saving** (`DashboardLayoutStore`, root): `GET /dashboardLayout` once per session (cleared on `Logout`), `PUT` on Save; a failed load is the
     default layout. `canCustomise` from the API decides whether the Customize button shows (see `api/CLAUDE.md` "Dashboard layout").
 - **Switches:** the helm switch's `data-checked:` classes are patched to `data-[state=checked]:` (brn-switch sets `data-state`; recorded
-  in `tools/spartan-add.cjs`). The helm checkbox has the same mismatch and was left as it is.
+  in `tools/spartan-add.cjs`). The helm checkbox had the same mismatch (ticked boxes never filled) and is patched the same way (2026-10-23).
 - **Empty cards:** receipts say "No receipts yet in {period}" and shopping lists "There are no items in the shopping
   lists", each with the same button as the page's top right.
 - **Charts never follow the accent:** donut slices are the fixed `CATEGORY_COLORS` (sky, amber, red, violet, pink, teal);

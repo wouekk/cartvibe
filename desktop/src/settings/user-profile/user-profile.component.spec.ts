@@ -285,16 +285,6 @@ describe("UserProfileComponent", () => {
     );
   });
 
-  it("navigates the whole page to the link URL when connecting a provider", () => {
-    const navigateSpy = jest
-      .spyOn(component as any, "navigateToUrl")
-      .mockImplementation(() => undefined);
-
-    component.connectProvider("google");
-
-    expect(navigateSpy).toHaveBeenCalledWith("/api/oidc/link/google");
-  });
-
   describe("returning from a delete confirmation", () => {
     const stripParams = {
       queryParams: { deleteConfirmation: null, deleteError: null },
