@@ -16,16 +16,16 @@ here="$(cd "$(dirname "$0")" && pwd)"
 desktop="$here/../../desktop"
 export PLAYWRIGHT_BROWSERS_PATH="${PLAYWRIGHT_BROWSERS_PATH:-$HOME/tools/ms-playwright}"
 
-# Node: the PATH one, else the portable Node 20.19.6 the Windows PC keeps in ~/tools (HANDOFF.md, local stack).
+# Node: the PATH one, else the portable Node 24.22.1 the Windows PC keeps in ~/tools (HANDOFF.md, local stack).
 if ! command -v npx >/dev/null 2>&1; then
-  for candidate in "$HOME/tools/node-v20.19.6-win-x64" "$HOME/tools/node-v20.19.6-darwin-arm64/bin"; do
+  for candidate in "$HOME/tools/node-v24.22.1-win-x64" "$HOME/tools/node-v24.22.1-darwin-arm64/bin" "$HOME/tools/node-v20.19.6-win-x64"; do
     if [ -x "$candidate/npx" ] || [ -f "$candidate/npx.cmd" ]; then
       export PATH="$candidate:$PATH"
       break
     fi
   done
 fi
-command -v npx >/dev/null 2>&1 || { echo "npx not found: install Node 20.19.6 (see HANDOFF.md)" >&2; exit 1; }
+command -v npx >/dev/null 2>&1 || { echo "npx not found: install Node 24.22.1 (see HANDOFF.md)" >&2; exit 1; }
 
 if [ ! -d "$desktop/node_modules/@playwright/test" ]; then
   echo "desktop/node_modules has no Playwright: run 'npm ci' in desktop/ first" >&2

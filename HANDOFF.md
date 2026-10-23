@@ -38,6 +38,10 @@ the repo). Pushed, not merged; merging into `main` + `preview` waits for the use
 - The Synology reverse proxy's IP, for `set_real_ip_from` (the login rate limit keys on the proxy address today).
 - GHCR: the old `ghcr.io/wouekk/receipt-wrangler` package is no longer updated and can be deleted by hand.
 
+## Backlog: separate projects the user asked for (not started)
+- **Shopping lists, select and delete several (2026-10-23):** a multi-select of shopping lists and a red **Remove list**
+  button next to the Add List button; several lists can be selected and deleted at once. Its own project (own branch).
+
 ## Parked (only when the user asks)
 - Per-user display currency (Dashboard only first).
 - Native-speaker review of de/fr/es; a new receipt's default name "Receipt {date}" stays English; report month buckets
