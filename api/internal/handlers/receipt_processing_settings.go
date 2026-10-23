@@ -163,13 +163,23 @@ func UpdateReceiptProcessingSettingsById(w http.ResponseWriter, r *http.Request)
 				return http.StatusInternalServerError, err
 			}
 
+			receiptProcessingSettingsRepository := repositories.NewReceiptProcessingSettings(nil)
+
+			// A stored key belongs to the provider it was saved for: switching provider replaces it (a cloud provider
+			// then needs a new one), so the old key is never sent to another company.
+			if !updateKey {
+				stored, storedErr := receiptProcessingSettingsRepository.GetReceiptProcessingSettingsById(id)
+				if storedErr == nil && stored.AiType != command.AiType {
+					updateKey = true
+				}
+			}
+
 			vErr := command.Validate(updateKey)
 			if len(vErr.Errors) > 0 {
 				structs.WriteValidatorErrorResponse(w, vErr, http.StatusBadRequest)
 				return 0, nil
 			}
 
-			receiptProcessingSettingsRepository := repositories.NewReceiptProcessingSettings(nil)
 			settings, err := receiptProcessingSettingsRepository.UpdateReceiptProcessingSettingsById(id, updateKey, command)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -248,7 +258,8 @@ func CheckReceiptProcessingSettingsConnectivity(w http.ResponseWriter, r *http.R
 				aiClient = client
 				decryptKey = true
 			} else {
-				// Settings typed on the page with no new key: test them with the key already stored for this id.
+				// Settings typed on the page with no new key: test them with the key already stored for this id, but
+				// only for the provider it was saved for; another provider is tested without a key.
 				key := command.Key
 				if command.ID > 0 && strings.TrimSpace(key) == "" {
 					stored, storedErr := repositories.NewReceiptProcessingSettings(nil).
@@ -256,7 +267,7 @@ func CheckReceiptProcessingSettingsConnectivity(w http.ResponseWriter, r *http.R
 					if storedErr != nil {
 						return http.StatusBadRequest, storedErr
 					}
-					if len(stored.Key) > 0 {
+					if len(stored.Key) > 0 && stored.AiType == command.AiType {
 						key, storedErr = utils.DecryptB64EncodedData(config.GetEncryptionKey(), stored.Key)
 						if storedErr != nil {
 							return http.StatusInternalServerError, storedErr
