@@ -32,9 +32,9 @@
       [headerText]="'Build' | t"
     >
       <div class="flex flex-col m-2">
-        <span>{{ 'Version:' | t }} {{ about()?.version || ('unknown' | t) }}</span>
-        @if (about()?.buildDate !== "unknown") {
-          <span>{{ 'Build Date:' | t }} {{ (about()?.buildDate | appDate) || ('unknown' | t) }}</span>
+        <span>{{ 'Version:' | t }} {{ about().version || ('unknown' | t) }}</span>
+        @if (about().buildDate !== "unknown") {
+          <span>{{ 'Build Date:' | t }} {{ (about().buildDate | appDate) || ('unknown' | t) }}</span>
         } @else {
           <span>{{ 'Build Date: unknown' | t }}</span>
         }
