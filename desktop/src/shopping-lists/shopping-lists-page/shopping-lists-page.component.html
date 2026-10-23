@@ -3,43 +3,29 @@
     [headerText]="'Shopping Lists' | t"
     [subtitle]="groupName() ? ('Shared with everyone in {name}. Changes appear live on every device.' | t: { name: groupName() }) : ''"
   >
-    <!-- The page's one action. Going shopping sits with the list, receipts with their panel. -->
+    <!-- Going shopping and Mark as complete sit with the list, receipts with their panel. -->
     <div class="flex items-center gap-2 [&_button]:h-9">
-      @if (selecting()) {
-        <app-cancel-button data-testid="shopping-list-select-cancel" (clicked)="cancelSelecting()"></app-cancel-button>
+      @if (canDelete() && selectedList(); as list) {
+        <!-- Always the list on screen, so several go by pressing it again. -->
         <button
           hlmBtn
           variant="destructive"
           type="button"
-          data-testid="shopping-list-delete-selected"
-          [disabled]="selectedCount() === 0 || deleting()"
-          (click)="deleteSelected()"
+          data-testid="shopping-list-delete"
+          [attr.title]="'Delete the open list' | t"
+          (click)="deleteList(list)"
         >
           <app-icon name="delete"></app-icon>
-          <span>{{ 'Delete ({count})' | t: { count: selectedCount() } }}</span>
+          <span>{{ 'Delete list' | t }}</span>
         </button>
-      } @else {
-        @if (canDeleteLists()) {
-          <button
-            hlmBtn
-            variant="destructive"
-            type="button"
-            data-testid="shopping-list-select-delete"
-            [attr.title]="'Choose the lists to delete' | t"
-            (click)="startSelecting()"
-          >
-            <app-icon name="delete"></app-icon>
-            <span>{{ 'Delete list' | t }}</span>
-          </button>
-        }
-        @if (canCreate()) {
-          <app-add-button
-            [buttonText]="'Add List' | t"
-            [tooltip]="'Add a shopping list' | t"
-            data-testid="shopping-list-add"
-            (clicked)="addList()"
-          ></app-add-button>
-        }
+      }
+      @if (canCreate()) {
+        <app-add-button
+          [buttonText]="'Add List' | t"
+          [tooltip]="'Add a shopping list' | t"
+          data-testid="shopping-list-add"
+          (clicked)="addList()"
+        ></app-add-button>
       }
     </div>
   </app-table-header>
@@ -55,49 +41,12 @@
     </div>
   }
 
-  @if (isLoaded() && listCards().length > 0) {
-    <!-- A swipeable row on a phone, a tidy grid from sm up. -->
-    <div
-      class="cv-scroll-x -mx-2 mt-5 mb-6 flex snap-x gap-3 px-2 pb-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4"
-      data-testid="shopping-list-cards"
-    >
-      @for (card of listCards(); track card.id) {
-        <button
-          type="button"
-          class="list-card flex min-h-24 w-60 shrink-0 snap-start flex-col justify-between gap-2 rounded-xl border border-border/70 bg-card p-4 text-left text-card-foreground transition-[border-color,background-color,box-shadow,transform] duration-150 hover:border-primary/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.99] motion-reduce:transition-none motion-reduce:active:scale-100 sm:w-auto"
-          [class]="cardClass(card.id)"
-          [attr.aria-pressed]="isPressed(card.id)"
-          [attr.data-testid]="'shopping-list-card-' + card.id"
-          (click)="pick(card.id)"
-        >
-          <span class="flex items-start justify-between gap-2">
-            <span class="flex min-w-0 items-start gap-2">
-              @if (selecting()) {
-                <span
-                class="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors duration-150"
-                [class]="isSelected(card.id) ? 'border-destructive bg-destructive text-white' : 'border-muted-foreground/60 bg-transparent'"
-                aria-hidden="true"
-              >
-                @if (isSelected(card.id)) {
-                  <app-icon name="check" class="text-xs"></app-icon>
-                }
-              </span>
-              }
-              <span class="min-w-0 font-semibold leading-snug tracking-tight break-words">{{ card.name }}</span>
-            </span>
-            <span class="min-w-6 shrink-0 rounded-full bg-muted px-2 py-0.5 text-center text-xs font-medium text-muted-foreground tabular-nums">{{ card.count }}</span>
-          </span>
-          <span class="line-clamp-1 text-xs text-muted-foreground">{{ card.preview | t }}</span>
-        </button>
-      }
-    </div>
-  }
-
   @if (isLoaded()) {
     @if (selectedList(); as list) {
-      <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]" [class.mt-5]="listCards().length === 0">
-        <section class="min-w-0 rounded-xl border border-border/70 bg-card text-card-foreground" data-testid="shopping-list-workspace" [attr.aria-label]="list.name">
-          <header class="flex min-h-14 items-center gap-3 border-b border-border/60 py-2 pr-2 pl-4">
+      <div class="mt-5 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <!-- A container, so the header's button labels fold to icons by the card's width, not the window's. -->
+        <section class="@container min-w-0 rounded-xl border border-border/70 bg-card text-card-foreground" data-testid="shopping-list-workspace" [attr.aria-label]="list.name">
+          <header class="flex min-h-14 items-center gap-2 border-b border-border/60 py-2 pr-2 pl-4">
             <div class="min-w-0 flex-1">
               <h2 class="m-0 truncate text-base font-semibold tracking-tight">{{ list.name }}</h2>
               <p class="m-0 text-xs text-muted-foreground tabular-nums">{{ '{count} to buy' | t: { count: toBuyCount() } }}</p>
@@ -114,10 +63,26 @@
                 (click)="announceGoingShopping()"
               >
                 <app-icon name="notifications_active"></app-icon>
-                <span class="max-sm:sr-only">{{ 'Going shopping' | t }}</span>
+                <span class="@max-lg:sr-only">{{ 'Going shopping' | t }}</span>
               </button>
+              @if (toBuyCount() > 0) {
+                <!-- Everything bought as planned: crosses the whole list off without ticking item by item. -->
+                <button
+                  hlmBtn
+                  variant="outline"
+                  type="button"
+                  class="h-9 shrink-0"
+                  data-testid="shopping-list-complete"
+                  [disabled]="completing()"
+                  [attr.title]="'Cross off everything and open the next list' | t"
+                  (click)="completeList(list)"
+                >
+                  <app-icon name="done_all"></app-icon>
+                  <span class="@max-lg:sr-only">{{ 'Mark as complete' | t }}</span>
+                </button>
+              }
             }
-            @if (canUpdate() || canDelete() || canKeepScreenOn || list.items.length > 0) {
+            @if (canUpdate() || canKeepScreenOn || list.items.length > 0) {
               <button
                 hlmBtn variant="ghost" size="icon"
                 type="button"
@@ -154,12 +119,6 @@
                       <span>{{ 'Start a new list from this' | t }}</span>
                     </button>
                   }
-                  @if (canDelete()) {
-                    <button hlmDropdownMenuItem data-testid="shopping-list-delete" (click)="deleteList(list)">
-                      <app-icon name="delete"></app-icon>
-                      <span>{{ 'Delete list' | t }}</span>
-                    </button>
-                  }
                 </div>
               </ng-template>
             }
@@ -177,9 +136,6 @@
           <div class="rounded-xl border border-border/70 bg-card p-4 text-card-foreground">
             <app-shopping-trips [listId]="list.id" [groupId]="groupId()"></app-shopping-trips>
           </div>
-          @if (pastLists().length > 0) {
-            <ng-container *ngTemplateOutlet="pastListsPanel"></ng-container>
-          }
         </aside>
       </div>
     } @else {
@@ -191,49 +147,86 @@
           {{ (canCreate() ? 'No shopping lists yet. Add one for each store you shop at.' : 'No shopping lists yet.') | t }}
         </p>
       </div>
-      @if (pastLists().length > 0) {
-        <div class="mt-6 max-w-sm">
-          <ng-container *ngTemplateOutlet="pastListsPanel"></ng-container>
+    }
+
+    @if (showCards()) {
+      <section class="mt-6" aria-labelledby="shopping-list-cards-title">
+        <h3 id="shopping-list-cards-title" class="cv-section__title mb-2">{{ 'Lists' | t }}</h3>
+        <!-- Lists being shopped, newest first, then the latest finished ones, dimmed. A swipeable row on a phone,
+             a grid from sm up. -->
+        <div
+          class="cv-scroll-x -mx-2 flex snap-x gap-3 px-2 pb-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3 2xl:grid-cols-4"
+          data-testid="shopping-list-cards"
+        >
+          @for (card of listCards(); track card.id) {
+            <div class="relative w-60 shrink-0 snap-start sm:w-auto">
+              <button
+                type="button"
+                class="list-card flex size-full min-h-24 flex-col justify-between gap-2 rounded-xl border border-border/70 p-4 text-left transition-[border-color,background-color,box-shadow,transform] duration-150 hover:border-primary/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.99] motion-reduce:transition-none motion-reduce:active:scale-100"
+                [class]="cardClass(card.id, card.past)"
+                [attr.aria-pressed]="card.id === selectedList()?.id"
+                [attr.data-testid]="'shopping-list-card-' + card.id"
+                (click)="selectList(card.id)"
+              >
+                <span class="flex items-start justify-between gap-2" [class.pr-9]="card.past">
+                  <span class="flex min-w-0 items-start gap-2">
+                    @if (card.past) {
+                      <app-icon name="history" class="mt-0.5 shrink-0 text-base"></app-icon>
+                      <span class="sr-only">{{ 'Finished:' | t }}</span>
+                    }
+                    <span class="min-w-0 font-semibold leading-snug tracking-tight break-words">{{ card.name }}</span>
+                  </span>
+                  @if (!card.past) {
+                    <span class="min-w-6 shrink-0 rounded-full bg-muted px-2 py-0.5 text-center text-xs font-medium text-muted-foreground tabular-nums">{{ card.count }}</span>
+                  }
+                </span>
+                <span class="line-clamp-1 text-xs text-muted-foreground">{{ card.preview | t }}</span>
+              </button>
+              @if (card.past && canUpdate()) {
+                <!-- A sibling of the card, not inside it: buttons cannot nest. -->
+                <button
+                  hlmBtn variant="ghost" size="icon"
+                  type="button"
+                  class="absolute top-2.5 right-2"
+                  [attr.data-testid]="'shopping-list-past-menu-' + card.id"
+                  [attr.aria-label]="'Actions for {name}' | t: { name: card.name }"
+                  [hlmDropdownMenuTrigger]="pastMenu" align="end"
+                >
+                  <app-icon name="more_vert"></app-icon>
+                </button>
+                <ng-template #pastMenu>
+                  <div hlmDropdownMenu class="w-56">
+                    <button
+                      hlmDropdownMenuItem
+                      [attr.data-testid]="'shopping-list-restore-' + card.id"
+                      [disabled]="completing()"
+                      (click)="restoreList(card.list)"
+                    >
+                      <app-icon name="restart_alt"></app-icon>
+                      <span>{{ 'Restore' | t }}</span>
+                    </button>
+                    @if (canCreate()) {
+                      <button hlmDropdownMenuItem [attr.data-testid]="'shopping-list-past-copy-' + card.id" (click)="copyList(card.list)">
+                        <app-icon name="content_copy"></app-icon>
+                        <span>{{ 'Start a new list from this' | t }}</span>
+                      </button>
+                    }
+                  </div>
+                </ng-template>
+              }
+            </div>
+          }
         </div>
-      }
+      </section>
     }
   }
 </div>
 
-<ng-template #pastListsPanel>
-  <section class="rounded-xl border border-border/70 bg-card p-4 text-card-foreground" data-testid="shopping-list-past" aria-labelledby="shopping-list-past-title">
-    <h3 id="shopping-list-past-title" class="cv-section__title mb-2">{{ 'Past lists' | t }}</h3>
-    <ul class="m-0 flex list-none flex-col gap-0.5 p-0">
-      @for (past of pastLists(); track past.id) {
-        <li>
-          <button
-            type="button"
-            class="flex h-9 w-full items-center justify-between gap-3 rounded-lg px-2 text-left text-sm text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
-            [class.bg-accent]="!selecting() && past.id === selectedList()?.id"
-            [class.text-foreground]="isPressed(past.id)"
-            [attr.aria-pressed]="isPressed(past.id)"
-            [attr.data-testid]="'shopping-list-past-' + past.id"
-            (click)="pick(past.id)"
-          >
-            <span class="flex min-w-0 items-center gap-2">
-              @if (selecting()) {
-                <span
-                class="flex size-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors duration-150"
-                [class]="isSelected(past.id) ? 'border-destructive bg-destructive text-white' : 'border-muted-foreground/60 bg-transparent'"
-                aria-hidden="true"
-              >
-                @if (isSelected(past.id)) {
-                  <app-icon name="check" class="text-xs"></app-icon>
-                }
-              </span>
-              }
-              <app-icon name="history" class="shrink-0 text-base"></app-icon>
-              <span class="truncate">{{ past.name }}</span>
-            </span>
-            <span class="shrink-0 text-xs tabular-nums">{{ past.items.length }}</span>
-          </button>
-        </li>
-      }
-    </ul>
-  </section>
+<ng-template #completedToast>
+  <div class="flex items-center justify-between gap-4" data-testid="shopping-list-completed-toast">
+    <span>{{ '"{name}" is complete.' | t: { name: lastCompleted()?.name ?? '' } }}</span>
+    <button hlmBtn variant="outline" size="sm" type="button" data-testid="shopping-list-complete-undo" (click)="undoComplete()">
+      {{ 'Undo' | t }}
+    </button>
+  </div>
 </ng-template>
