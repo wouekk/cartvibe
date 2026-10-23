@@ -238,6 +238,53 @@ func (repository ShoppingListRepository) SetShoppingListItemChecked(itemId uint,
 		}).Error
 }
 
+// SetShoppingListItemsChecked moves the items of a list that are not yet in the target state (all of
+// them, or only those in itemIds when it is not nil) and returns their ids. Items already there keep
+// their original checkedAt.
+func (repository ShoppingListRepository) SetShoppingListItemsChecked(listId uint, itemIds []uint, isChecked bool, userId uint) ([]uint, error) {
+	db := repository.GetDB()
+	changedIds := []uint{}
+
+	query := db.Model(&models.ShoppingListItem{}).Where("shopping_list_id = ? AND is_checked = ?", listId, !isChecked)
+	if itemIds != nil {
+		if len(itemIds) == 0 {
+			return changedIds, nil
+		}
+		query = query.Where("id IN ?", itemIds)
+	}
+
+	err := query.Pluck("id", &changedIds).Error
+	if err != nil {
+		return []uint{}, err
+	}
+
+	if len(changedIds) == 0 {
+		return changedIds, nil
+	}
+
+	var checkedAt *time.Time
+	var checkedByUserId *uint
+	if isChecked {
+		now := time.Now()
+		checkedAt = &now
+		checkedByUserId = &userId
+	}
+
+	err = db.Model(&models.ShoppingListItem{}).
+		Where("id IN ?", changedIds).
+		Select("is_checked", "checked_at", "checked_by_user_id").
+		Updates(models.ShoppingListItem{
+			IsChecked:       isChecked,
+			CheckedAt:       checkedAt,
+			CheckedByUserId: checkedByUserId,
+		}).Error
+	if err != nil {
+		return []uint{}, err
+	}
+
+	return changedIds, nil
+}
+
 func (repository ShoppingListRepository) DeleteShoppingListItem(itemId uint) error {
 	db := repository.GetDB()
 	return db.Delete(&models.ShoppingListItem{}, itemId).Error
