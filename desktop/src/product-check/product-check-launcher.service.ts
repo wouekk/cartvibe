@@ -3,7 +3,7 @@ import { AppDialog, AppDialogRef } from "../dialog/app-dialog";
 import { ProductCheckDialogComponent } from "./product-check-dialog.component";
 
 /**
- * Starts a product check from a button (the Dashboard's "Scan product"): one centered dialog offering a photo of the
+ * Starts a product check from a button (the Dashboard's "Check product"): one centered dialog offering a photo of the
  * code (the live scanner where the browser has one), an uploaded photo, or the typed barcode number.
  */
 @Injectable({ providedIn: "root" })

@@ -13,6 +13,8 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
   with only a faint check mark).
 
 ### Changed
+- The Dashboard's **Scan product** button is now **Check product** (it checks a product by photo or barcode number),
+  in every language.
 - Report PDFs are rendered with chromedp 0.21; the list that keeps outside images and files out of a report PDF is
   written for the browser's new pattern syntax and has a test of its own.
 - The build uses the current major version of every GitHub Action.
