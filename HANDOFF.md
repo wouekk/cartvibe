@@ -2,17 +2,19 @@
 
 Older session notes are in `docs/handoff-history.md` (history only; this file is what is current).
 
-## Current release: v0.7.0 (2026-10-23, `main` = `preview` = `86709993`)
+## Current state: `main` = `preview` = `33065f4f` (2026-10-23), after v0.7.0, not tagged
 
-German/French/Spanish, reports in the reader's language, Claude/ChatGPT on the AI page (`CHANGELOG.md`). Deploying is in
-place: pull `:latest`, redeploy, hard-refresh. **Not seen on the NAS yet.**
+Last tag v0.7.0 (German/French/Spanish, reports in the reader's language, Claude/ChatGPT). On top of it, untagged and
+listed under `[Unreleased]` in `CHANGELOG.md`: the backlog sweep below. **`:latest` is published from `33065f4f`** (publish
+run 39899463861, after green CI on `main`; Pages green too). Deploying is in place: pull `:latest`, redeploy,
+hard-refresh; no schema change. **Not seen on the NAS yet.** Cutting a release (`v0.8.0`, CHANGELOG section, GitHub
+Release) waits for the user's go.
 
-## In progress: `feature/backlog-sweep` (from `main`, 2026-10-23)
+## Merged: `feature/backlog-sweep` (2026-10-23, fast-forwarded into `main` and `preview` on the user's go)
 
 Backlog review sprint, plan in `C:/Users/Marcin/.claude/plans/ultrathink-backlog-review-and-composed-wren.md` (outside
-the repo). Pushed, not merged; merging into `main` + `preview` waits for the user's go. **`:preview` published** from `cec62d45`
-(run 39884780360, green; also `:sha-cec62d4`), on the user's go, to try on the NAS: point the stack at `:preview`, pull,
-redeploy, hard-refresh; no schema change. Not seen on the NAS yet.
+the repo). The branch can be deleted (local and remote) once the user agrees. `:preview` was published from `cec62d45`
+before the merge (run 39884780360) and now matches `main` but for docs.
 - **Done:** ticked helm checkboxes fill (`data-checked` → `data-[state=checked]`, also in `tools/spartan-add.cjs`); the
   profile's dead connect/disconnect/link-outcome code removed (the OIDC connection load **stays**: passwordless
   self-delete reads it, so `bugs-found.md` #6 was only half right); About's NG8107; chromedp 0.21 (`api/CLAUDE.md` ->
