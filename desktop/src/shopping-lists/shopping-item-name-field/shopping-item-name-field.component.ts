@@ -52,6 +52,18 @@ export class ShoppingItemNameFieldComponent {
     control.markAsDirty();
   }
 
+  /**
+   * spartan's input cancels every Enter so it can pick the highlighted suggestion, which also cancels the form's own
+   * submit. With no suggestion highlighted, the typed name is submitted here instead.
+   */
+  protected submitTyped(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.getAttribute("aria-activedescendant")) {
+      return;
+    }
+    input.form?.requestSubmit();
+  }
+
   protected onPick(suggestion: ItemSuggestion | null | undefined): void {
     if (!suggestion) {
       return;
