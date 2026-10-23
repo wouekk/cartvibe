@@ -2707,7 +2707,7 @@ Every Admin and User settings page uses four shared primitives from `src/shared-
   shows it); Reset filter clears it, and `SetReceiptFilter` (the filter dialog) keeps it. The Shop cell shows a muted
   "Matched: Dark chocolate · 2,49 €, ..." line from `Receipt.searchMatches` (`receipt-search-matches`). See `api/CLAUDE.md`
   "Receipt search" for what matches.
-- **The product checker is the Dashboard's "Scan product" button** (`data-testid="overview-scan-product"`, after New list; code in
+- **The product checker is the Dashboard's "Check product" button** (`data-testid="overview-scan-product"`, after New list; code in
   `src/product-check/`, no API, no permission; the header has no search box any more). `ProductCheckLauncher.start()` opens one
   centered dialog (`ProductCheckDialogComponent`, 32rem, like every other action; it used to be a right-hand drawer) with three
   ways in at the top: **Take a photo of the code**, **Upload a photo**, and **Enter a barcode number** (Enter or Check), the

@@ -128,7 +128,7 @@ describe("OverviewPageComponent", () => {
     await fixture.whenStable();
   });
 
-  it("starts the product checker from the Scan product button", () => {
+  it("starts the product checker from the Check product button", () => {
     const start = jest.spyOn(TestBed.inject(ProductCheckLauncher), "start").mockImplementation();
 
     component.scanProduct();
