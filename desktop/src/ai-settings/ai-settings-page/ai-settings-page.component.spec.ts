@@ -5,8 +5,8 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { NgxsModule } from "@ngxs/store";
 import { of, throwError } from "rxjs";
+import { AiType } from "../../constants/ai-type";
 import {
-  AiType,
   FeatureConfigService,
   ReceiptProcessingSettingsService,
   SystemSettingsService,
@@ -26,7 +26,7 @@ describe("AiSettingsPageComponent", () => {
   const setUp = async (systemSettings: object, stored?: object): Promise<void> => {
     processingService = {
       getReceiptProcessingSettingsById: jest.fn(() => of(stored)),
-      getGeminiModels: jest.fn(() => of([])),
+      getAiModels: jest.fn(() => of([])),
       createReceiptProcessingSettings: jest.fn((command) => of({ id: 5, ...command })),
       updateReceiptProcessingSettingsById: jest.fn((id, _updateKey, command) => of({ id, ...command })),
       checkReceiptProcessingSettingsConnectivity: jest.fn(() =>
@@ -78,6 +78,70 @@ describe("AiSettingsPageComponent", () => {
       expect.objectContaining({ taskConcurrency: 1, receiptProcessingSettingsId: 5 })
     );
     expect(component.saved()?.id).toBe(5);
+  });
+
+  it("offers Claude, Gemini, ChatGPT and Local LM, in that order", async () => {
+    await setUp({});
+    const fields = fixture.debugElement.query((element) => element.name === "app-ai-provider-fields");
+
+    expect(fields.componentInstance.providers().map((option: { displayValue: string }) => option.displayValue)).toEqual([
+      "Claude",
+      "Gemini",
+      "ChatGPT",
+      "Local LM",
+    ]);
+  });
+
+  it("creates Claude settings: a key, no URL, images read, no JSON switch", async () => {
+    await setUp({});
+    component.form.patchValue({ aiType: AiType.Anthropic, model: "claude-opus-5-5", key: "sk-ant" });
+
+    component.save();
+
+    expect(processingService["createReceiptProcessingSettings"]).toHaveBeenCalledWith(
+      expect.objectContaining({
+        aiType: AiType.Anthropic,
+        model: "claude-opus-5-5",
+        key: "sk-ant",
+        url: "",
+        isVisionModel: true,
+        enforceJsonResponseFormat: false,
+      })
+    );
+  });
+
+  it("creates ChatGPT settings held to JSON answers", async () => {
+    await setUp({});
+    component.form.patchValue({ aiType: AiType.OpenAi, model: "gpt-5-mini", key: "sk-openai" });
+
+    component.save();
+
+    expect(processingService["createReceiptProcessingSettings"]).toHaveBeenCalledWith(
+      expect.objectContaining({ aiType: AiType.OpenAi, url: "", enforceJsonResponseFormat: true })
+    );
+  });
+
+  it("picking another provider moves to its default model and empties the key box", async () => {
+    await setUp({});
+    component.form.controls.key.setValue("gemini-key");
+
+    component.form.controls.aiType.markAsDirty();
+    component.form.controls.aiType.setValue(AiType.Anthropic);
+
+    expect(component.form.controls.model.value).toBe("claude-opus-5-5");
+    expect(component.form.controls.key.value).toBe("");
+  });
+
+  it("asks for a new key when saved Gemini settings move to Claude", async () => {
+    await setUp({ receiptProcessingSettingsId: 3 }, { id: 3, name: "Old", aiType: AiType.Gemini, model: "m" });
+    component.form.controls.aiType.markAsDirty();
+    component.form.controls.aiType.setValue(AiType.Anthropic);
+
+    expect(component.canTest()).toBe(false);
+    component.save();
+
+    expect(snackbar.error).toHaveBeenCalledWith("Paste the Claude API key.");
+    expect(processingService["updateReceiptProcessingSettingsById"]).not.toHaveBeenCalled();
   });
 
   it("asks for a Gemini key before the first save", async () => {
@@ -138,7 +202,7 @@ describe("AiSettingsPageComponent", () => {
       await setUp({});
       TestBed.resetTestingModule();
       processingService = {
-        getGeminiModels: jest.fn(() => of([])),
+        getAiModels: jest.fn(() => of([])),
         getPagedProcessingSettings: jest.fn(() =>
           of({ data: [{ id: 3, aiType: AiType.Gemini, model: "gemini-2.5-flash", url: "", isVisionModel: true }] })
         ),

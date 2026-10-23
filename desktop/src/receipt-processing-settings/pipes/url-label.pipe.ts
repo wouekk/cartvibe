@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from "@angular/core";
-import { AiType } from "../../open-api/index";
+import { AiType } from "../../constants/ai-type";
 import { marker } from "../../i18n/marker";
 
 @Pipe({

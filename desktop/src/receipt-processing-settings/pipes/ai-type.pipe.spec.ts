@@ -1,4 +1,4 @@
-import { AiType } from "../../open-api";
+import { AiType } from "../../constants/ai-type";
 import { AiTypePipe } from "./ai-type.pipe";
 
 describe("AiTypePipe", () => {
@@ -26,5 +26,9 @@ describe("AiTypePipe", () => {
     const result = pipe.transform(AiType.Gemini);
 
     expect(result).toEqual("Gemini");
+  });
+
+  it("transform ANTHROPIC", () => {
+    expect(new AiTypePipe().transform(AiType.Anthropic)).toEqual("Claude");
   });
 });

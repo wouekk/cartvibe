@@ -3,7 +3,8 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { NgxsModule } from "@ngxs/store";
 import { of, throwError } from "rxjs";
-import { AiType, ReceiptProcessingSettingsService, SystemSettingsService, SystemTaskStatus } from "../../open-api";
+import { AiType } from "../../constants/ai-type";
+import { ReceiptProcessingSettingsService, SystemSettingsService, SystemTaskStatus } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { AI_FALLBACK_SETTINGS_NAME, AiFallbackCardComponent } from "./ai-fallback-card.component";
 
@@ -17,7 +18,7 @@ describe("AiFallbackCardComponent", () => {
   const setUp = async (systemSettings: object | "forbidden", fallback?: object, primaryId: number | null = 1) => {
     processingService = {
       getReceiptProcessingSettingsById: jest.fn(() => of(fallback)),
-      getGeminiModels: jest.fn(() => of([])),
+      getAiModels: jest.fn(() => of([])),
       createReceiptProcessingSettings: jest.fn((command) => of({ id: 9, ...command })),
       updateReceiptProcessingSettingsById: jest.fn((id, _updateKey, command) => of({ id, ...command })),
       checkReceiptProcessingSettingsConnectivity: jest.fn(() =>
@@ -75,6 +76,45 @@ describe("AiFallbackCardComponent", () => {
       expect.objectContaining({ receiptProcessingSettingsId: 1, taskConcurrency: 2, fallbackReceiptProcessingSettingsId: 9 })
     );
     expect(component.saved()?.id).toBe(9);
+  });
+
+  it("can be any provider: a Claude backup", async () => {
+    await setUp({ receiptProcessingSettingsId: 1 });
+    component.form.patchValue({ enabled: true, aiType: AiType.Anthropic, model: "claude-sonnet-5-5", key: "sk-ant" });
+
+    component.save();
+
+    expect(processingService["createReceiptProcessingSettings"]).toHaveBeenCalledWith(
+      expect.objectContaining({ name: AI_FALLBACK_SETTINGS_NAME, aiType: AiType.Anthropic, model: "claude-sonnet-5-5", url: "" })
+    );
+  });
+
+  it("can be a Local LM backup, which needs its URL but no key", async () => {
+    await setUp({ receiptProcessingSettingsId: 1 });
+    component.form.controls.enabled.setValue(true);
+    component.form.controls.aiType.markAsDirty();
+    component.form.controls.aiType.setValue(AiType.OpenAiCustom);
+    component.form.patchValue({ model: "qwen" });
+
+    component.save();
+    expect(component.form.controls.url.invalid).toBe(true);
+    expect(processingService["createReceiptProcessingSettings"]).not.toHaveBeenCalled();
+
+    component.form.patchValue({ url: "http://pc:1234/v1" });
+    component.save();
+
+    expect(processingService["createReceiptProcessingSettings"]).toHaveBeenCalledWith(
+      expect.objectContaining({ aiType: AiType.OpenAiCustom, url: "http://pc:1234/v1", key: "", enforceJsonResponseFormat: false })
+    );
+  });
+
+  it("switching off works even while the provider fields are incomplete", async () => {
+    await setUp({ receiptProcessingSettingsId: 1 });
+    component.form.patchValue({ enabled: false, aiType: AiType.OpenAiCustom, url: "" });
+
+    component.save();
+
+    expect(snackbar.success).toHaveBeenCalledWith("Backup AI is off");
   });
 
   it("asks for a key before the first save", async () => {

@@ -208,7 +208,7 @@ any folder. From PowerShell call Git Bash by path, because `bash` there is WSL (
 - **internal/commands/** - Command objects for API requests/responses
 - **internal/routers/** - Route definitions and middleware setup
 - **internal/wranglerasynq/** - Background job processing using Asynq
-- **internal/ai/** - AI client implementations (OpenAI, Gemini, Ollama)
+- **internal/ai/** - AI client implementations (Claude, OpenAI, Gemini, Ollama)
 - **internal/permissions/** - Pure permission registry + wildcard matcher (no DB)
 - **internal/reporting/** - Pure report engine (no DB); `receiptsource/` maps receipts into it
 
@@ -223,7 +223,7 @@ any folder. From PowerShell call Git Bash by path, because `bash` there is WSL (
 - Queue configurations defined in `internal/wranglerasynq/`
 
 ### AI Integration
-- Supports multiple AI providers: OpenAI, Google Gemini, and Ollama
+- Supports multiple AI providers: Claude (Anthropic), OpenAI (ChatGPT), Google Gemini, OpenAI-compatible local servers (LM Studio) and Ollama
 - AI clients implement a common interface defined in `internal/ai/base_client.go`
 - Used for receipt data extraction and processing
 - **The configured URL is used verbatim.** `internal/ai/open_ai.go` treats
@@ -3520,7 +3520,7 @@ Dashboard's figures in the browser; stored amounts, exports and every other scre
 
 ## AI retries, backup model list and image normalization (fork, 2026-10)
 - **Three tries, then FAILED.** Product extraction and shopping trips count outages as attempts too (not "no AI configured": nothing is called then), and give up after `productExtractionMaxBadAnswers` / `shoppingTripMaxBadAnswers` = 3; "Read with AI" / trip retry reset the counter. Food classification never fails a product on an outage but backs off in memory (`outageBackoff`: 5 min, doubling to 1 h; a success resets). Quick scan keeps its own 3-try rule.
-- **`POST /receiptProcessingSettings/geminiModels`** (`app.receipt-processing-settings.read`): body `{key}` or `{receiptProcessingSettingsId}` (the stored key is decrypted server-side). `ai.ListGeminiModels` calls Google with the key in the `x-goog-api-key` header (never the URL), keeps `generateContent` models, newest version first. A refused key is a 400 with `errors.key`.
+- **`POST /receiptProcessingSettings/aiModels`** (was `geminiModels`; `app.receipt-processing-settings.read`): body `{aiType, key}` or `{aiType, receiptProcessingSettingsId}`; see "Claude and ChatGPT" below for the other providers (the stored key is decrypted server-side). `ai.ListGeminiModels` calls Google with the key in the `x-goog-api-key` header (never the URL), keeps `generateContent` models, newest version first. A refused key is a 400 with `errors.key`.
 - **Vision images** are normalized by `FileRepository.NormalizeImageForVision` (orientation, flatten alpha onto white, sRGB, long side at most 2048, JPEG 85) in `ReceiptProcessingService.readNormalizedImage`, used by the Ollama/OpenAI/Gemini readers. The stored original is untouched.
 
 ## One AI call per quick scan, Gemini SDK, hardened image (fork, 2026-10)
@@ -3698,3 +3698,25 @@ A report (builder preview, PDF, XLSX, CSV, a template run by id) reads in the la
   CSV export (a raw machine export by decision).
 - Tests: `internal/i18n/i18n_test.go`, `receiptsource/lines_test.go` (German source), `render/language_test.go`, and
   `services/report_language_test.go` (a German preview, English without a language, an unknown code).
+
+## Claude and ChatGPT (fork, 2026-10, branch `feature/ai-providers`)
+
+The AI page offers **Claude, Gemini, ChatGPT and Local LM** for the main AI and for the backup AI.
+- **Claude** is `AiType` `ANTHROPIC` (`internal/ai/anthropic.go`, the official `anthropic-sdk-go`). No temperature is sent
+  (current Claude models answer 400 to anything but the default), `max_tokens` is 16000, the SDK's own retries are off
+  (the sweeps count every try), images go as base64 JPEG blocks before the text (`encodeImageForAi` treats it like
+  Gemini), a ```json fence around the answer is stripped (Claude has no JSON-only switch), and a `refusal` stop reason is
+  an error, so the backup AI takes the receipt. The server-side `fallbacks` parameter is not used: the household's model
+  is free text, and the backup AI already covers a decline. `anthropicBaseUrl` points tests at a fake server.
+- **ChatGPT** is the existing `OPEN_AI` type (go-openai, no URL, JSON response format on).
+- **`AiType` is a plain string on the contract** (it was a closed enum); new providers are new strings, never new enum
+  values. `models.AiClientType.Value()` still guards what is stored.
+- **Model lists:** `POST /receiptProcessingSettings/aiModels` (`ai.ListModels`): Gemini as before, Claude from `GET
+  /v1/models` (retired models left out), ChatGPT from `GET /models` keeping GPT and o-series chat models (no embedding,
+  speech, image, realtime, search or moderation models), newest first. A local server has no list (400 on `aiType`).
+- **A stored key stays with its provider:** the model list and Test connection use the stored key only when the request's
+  provider is the one it was saved for, and saving settings under another provider replaces the key (a cloud provider
+  then needs a new one; a local server gets none). `UpdateReceiptProcessingSettingsById` stores an empty key without
+  encrypting it.
+- Tests: `ai/anthropic_test.go` (request shape, no temperature, single try, refusal, fence, both model lists),
+  `commands/ai_models_command_test.go`, and the provider-switch cases in `handlers/receipt_processing_settings_handler_test.go`.

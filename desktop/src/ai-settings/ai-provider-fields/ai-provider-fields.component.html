@@ -1,0 +1,52 @@
+<app-select
+  [label]="'Provider' | t"
+  optionValueKey="value"
+  optionDisplayKey="displayValue"
+  [attr.data-testid]="testId('provider')"
+  [options]="providers()"
+  [inputFormControl]="controls().aiType"
+></app-select>
+
+@if (isLocal()) {
+  <app-input
+    [label]="'Server URL' | t"
+    [attr.data-testid]="testId('url')"
+    placeholder="http://192.168.1.20:1234/v1"
+    hint="LM Studio's address as the NAS reaches it, ending in /v1"
+    [inputFormControl]="controls().url"
+  ></app-input>
+}
+
+<app-input
+  type="password"
+  [attr.data-testid]="testId('key')"
+  [label]="isCloud() ? 'API key' : 'API key (optional)'"
+  [placeholder]="keyPlaceholder()"
+  [showVisibilityEye]="true"
+  [inputFormControl]="controls().key"
+></app-input>
+
+@if (isCloud()) {
+  <app-ai-model-field
+    [testId]="testId('model')"
+    [aiType]="currentAiType()"
+    [modelControl]="controls().model"
+    [keyControl]="controls().key"
+    [settingsId]="modelSettingsId()"
+  ></app-ai-model-field>
+} @else {
+  <app-input
+    [label]="'Model' | t"
+    [attr.data-testid]="testId('model')"
+    hint="The model name as LM Studio lists it"
+    [inputFormControl]="controls().model"
+  ></app-input>
+}
+
+@if (isLocal()) {
+  <app-checkbox
+    [label]="'The model reads images (a vision model)' | t"
+    [attr.data-testid]="testId('vision')"
+    [inputFormControl]="controls().isVisionModel"
+  ></app-checkbox>
+}

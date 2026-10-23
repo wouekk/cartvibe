@@ -2,45 +2,53 @@ import { Component, computed, effect, inject, input, signal, untracked } from "@
 import { FormControl } from "@angular/forms";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { finalize, take } from "rxjs";
-import { GeminiModel, ReceiptProcessingSettingsService } from "../../open-api";
+import { AiType } from "../../constants/ai-type";
+import { AiModel, ReceiptProcessingSettingsService } from "../../open-api";
 import { InputModule } from "../../input/input.module";
 import { PipesModule } from "../../pipes/pipes.module";
 import { SelectModule } from "../../select/select.module";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { marker } from "../../i18n/marker";
+import { defaultModelFor, providerCompany } from "../ai-settings-shared";
 
 /**
- * The model field for Google Gemini: a dropdown of the models the API key can use (newest first), fetched from Google
- * through the API, falling back to a plain text box until the list is loaded or when Google refuses the key. The
- * typed key is used when there is one; otherwise the key of the saved settings (`settingsId`) is used server-side, so
- * the stored key never reaches the browser.
+ * The model field for a cloud provider (Claude, Gemini, ChatGPT): a dropdown of the models the API key can use, fetched
+ * from the provider through the API, falling back to a plain text box until the list is loaded or when the provider
+ * refuses the key. The typed key is used when there is one; otherwise the key of the saved settings (`settingsId`) is
+ * used server-side, so the stored key never reaches the browser.
  */
 @Component({
-  selector: "app-gemini-model-field",
+  selector: "app-ai-model-field",
   host: { class: "block" },
-  templateUrl: "./gemini-model-field.component.html",
+  templateUrl: "./ai-model-field.component.html",
   standalone: true,
   imports: [AppIconComponent, HlmButton, InputModule, PipesModule, SelectModule],
 })
-export class GeminiModelFieldComponent {
+export class AiModelFieldComponent {
   private readonly receiptProcessingSettingsService = inject(ReceiptProcessingSettingsService);
 
   public readonly modelControl = input.required<FormControl<string | null>>();
 
   public readonly keyControl = input.required<FormControl<string | null>>();
 
-  /** Saved settings whose stored key is used while no key is typed. */
+  public readonly aiType = input.required<AiType>();
+
+  /** Saved settings of this provider, whose stored key is used while no key is typed. */
   public readonly settingsId = input<number | undefined>(undefined);
 
   public readonly testId = input("ai-model");
 
-  public readonly models = signal<GeminiModel[]>([]);
+  public readonly models = signal<AiModel[]>([]);
 
   public readonly loading = signal(false);
 
   public readonly error = signal<string | undefined>(undefined);
 
-  /** The loaded models, plus the current value when Google no longer lists it, so opening the page never loses it. */
+  public readonly company = computed(() => ({ company: providerCompany(this.aiType()) }));
+
+  public readonly example = computed(() => ({ model: defaultModelFor(this.aiType()) }));
+
+  /** The loaded models, plus the current value when the provider no longer lists it, so opening the page never loses it. */
   public readonly options = computed(() => {
     const options = this.models().map((model) => ({ value: model.name, displayValue: model.displayName }));
     const current = (this.modelControl().value ?? "").trim();
@@ -55,12 +63,17 @@ export class GeminiModelFieldComponent {
   public readonly canLoad = computed(() => !this.loading());
 
   constructor() {
-    // A saved key can list its models straight away; a typed one waits for the button.
+    // Another provider starts with no list; a saved key can list its models straight away, a typed one waits for the button.
     effect(() => {
       const settingsId = this.settingsId();
-      if (settingsId !== undefined) {
-        untracked(() => this.load());
-      }
+      this.aiType();
+      untracked(() => {
+        this.models.set([]);
+        this.error.set(undefined);
+        if (settingsId !== undefined) {
+          this.load();
+        }
+      });
     });
   }
 
@@ -74,10 +87,11 @@ export class GeminiModelFieldComponent {
       return;
     }
 
+    const aiType = this.aiType();
     this.loading.set(true);
     this.error.set(undefined);
     this.receiptProcessingSettingsService
-      .getGeminiModels(typedKey ? { key: typedKey } : { receiptProcessingSettingsId: settingsId })
+      .getAiModels(typedKey ? { aiType, key: typedKey } : { aiType, receiptProcessingSettingsId: settingsId })
       .pipe(
         take(1),
         finalize(() => this.loading.set(false))
@@ -86,7 +100,7 @@ export class GeminiModelFieldComponent {
         next: (models) => {
           this.models.set(models);
           if (models.length === 0) {
-            this.error.set(marker("Google listed no models for this key."));
+            this.error.set(marker("No models were listed for this key."));
           }
         },
         error: (response) => {

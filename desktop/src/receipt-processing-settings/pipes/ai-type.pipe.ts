@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from "@angular/core";
-import { AiType } from "../../open-api";
+import { AiType } from "../../constants/ai-type";
 import { aiTypeOptions } from "../constants/ai-type-options";
 
 @Pipe({
