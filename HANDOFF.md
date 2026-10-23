@@ -468,6 +468,8 @@ because Pages was off.
   filter: author colors for the light page.
 
 ## Reminders for a fresh session
+- **Functional tests (clicking through the app, screenshots) only in English and Polish** (user's decision, 2026-10-23).
+  German, French and Spanish need no look-through; `i18n:check` keeps their dictionaries complete.
 - Go is not on the bash PATH here (`export PATH="$PATH:/c/Program Files/Go/bin"`); `api/scripts/go-without-cgo.sh vet ./...`
   and `... test <pkg>` work locally, but the services package's PDF/Chromium/image tests and some wranglerasynq temp-path
   tests fail here only (CI is the judge). No Node, Docker, ImageMagick, Tesseract or Python on this PC.
