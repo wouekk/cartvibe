@@ -124,6 +124,29 @@ describe("ReceiptFormComponent", () => {
       }
     });
 
+    it("offers Cancel next to Save, and Cancel goes back to the receipts list without saving", () => {
+      const router = TestBed.inject(Router);
+      const navigate = jest.spyOn(router, "navigate").mockResolvedValue(true);
+      routeDataSubject.next({ mode: FormMode.add });
+      fixture.detectChanges();
+
+      const cancel = fixture.nativeElement.querySelector('[data-testid="receipt-form-cancel"]');
+      expect(cancel).toBeTruthy();
+
+      component.cancel();
+
+      expect(navigate).toHaveBeenCalledWith([component.receiptListLink()]);
+    });
+
+    it("cancels an edit back to the receipt itself", () => {
+      const navigate = jest.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
+      routeDataSubject.next({ mode: FormMode.edit, receipt: { id: 7, name: "R", amount: "1.00", paidByUserId: 1 } as any });
+
+      component.cancel();
+
+      expect(navigate).toHaveBeenCalledWith(["/receipts/7/view"]);
+    });
+
     it("asks for Paid By on a saved receipt without one", () => {
       routeDataSubject.next({
         mode: FormMode.edit,

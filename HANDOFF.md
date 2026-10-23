@@ -53,6 +53,14 @@ Plan phases 1 and 2 of the "use what Angular 22 offers" review (plan outside the
 - **Left for later:** phase 3 (`@defer`, `httpResource`, drop `@ngneat/until-destroy`) and phase 4 (Signal Forms, Vitest);
   the ~30 specs that still import `NoopAnimationsModule` keep `@angular/animations` as a devDependency.
 
+## In progress: `feature/list-delete-and-receipt-cancel` (on top of `feature/pwa-and-motion`, 2026-10-23)
+
+User's requests: Cancel next to Save on the receipt form, a red **Delete list** next to Add List with multi-select (this
+was the "select and delete several" backlog item), and "Custom" in the period picker translated (Dostosuj). Done and
+checked (Jest 298 suites / 2026 tests, `ng build`, `i18n:check`; seen on the local stack: select two of three lists,
+confirm, both gone; Cancel on /receipts/add lands on the receipts list). Stacked on the PWA branch, so `:preview` from this
+branch carries both. Not seen: the NAS, a phone.
+
 ## Decided (2026-10-23, by the user)
 - The AI keeps answering in one language (no per-uploader language).
 - Disabled buttons keep `pointer-events: none` (no not-allowed cursor).
@@ -69,8 +77,6 @@ Plan phases 1 and 2 of the "use what Angular 22 offers" review (plan outside the
 - GHCR: the old `ghcr.io/wouekk/receipt-wrangler` package is no longer updated and can be deleted by hand.
 
 ## Backlog: separate projects the user asked for (not started)
-- **Shopping lists, select and delete several (2026-10-23):** a multi-select of shopping lists and a red **Remove list**
-  button next to the Add List button; several lists can be selected and deleted at once. Its own project (own branch).
 - **Backup: CSV export and import of the data (2026-10-23):** a **Backup** tab under System Settings to export the
   household's data as CSV and import it again for an easy restore. Its buttons follow the visual identity (the shared
   button library: primary filled accent, red Cancel). Its own project (own branch).

@@ -2549,6 +2549,12 @@ Mobile-first (used in the shop). Backend contract: `api/CLAUDE.md`.
 - **Only crossing off is optimistic.** Items carry `amount` (decimal string) + `unit` (`SHOPPING_LIST_UNITS`, in step with
   the API); the one-line add is name, amount, unit and "+" (an empty name shakes). A fully crossed-off list is **past** (a
   "Past lists" row); a list's menu has "Start a new list from this"; "Going shopping" notifies the household.
+- **Deleting several lists** (page header): a red **Delete list** (`hlmBtn variant="destructive"`, `shopping-list-select-delete`,
+  gated on `group.shopping-lists.delete` and at least one list) starts a choosing mode (`selecting`, `selectedIds`): the cards
+  and the past-list rows show a tick box (a visual span, not a nested button) and a click ticks instead of opening; the header
+  becomes a red Cancel and **Delete (n)** (disabled at 0). `deleteSelected()` confirms once (`ConfirmationDialogComponent`),
+  deletes one list after another and applies `ListDeleted` per success; a refused list keeps its tick and a toast says some were
+  not deleted (the interceptor already toasts the reason). The list menu's single "Delete list" stays.
 - **Trips** (`app-shopping-trips`): receipts attached to a list and what was bought that was not planned; held in a signal
   and refetched on `TRIPS_CHANGED`. Gates: `group.shopping-lists.read` + `group.receipts.read`.
 - Dialog forms submit through `(ngSubmit)` only (`app-dialog-footer`'s button is `type="submit"`).
@@ -2576,6 +2582,8 @@ Mobile-first (used in the shop). Backend contract: `api/CLAUDE.md`.
 - **(Superseded in part by "Visual identity" above: the section/panel pattern replaces flat white shadow cards.) Forms and settings screens follow the AI page:** a title and intro, a centered 640-760px column, white cards
   (`$border-radius-lg`, `$shadow-sm`), and **Save inside the card** as a flat accent button. `app-form-button-bar` (12 forms)
   is therefore an inline card row at the end of the form: **never reintroduce a floating bar**.
+- **Receipt form Cancel:** a red `app-cancel-button` (`receipt-form-cancel`) sits left of Save in the add and edit modes (not in the
+  next/previous queue): add goes to the receipts list (`receiptListLink`), edit back to the receipt's view. No confirmation: nothing is written.
 - **Required fields shake:** `shakeInvalid()` (`utils/shake.ts`, `.cv-shake` / `.cv-field-error` in `styles.scss`) is the one
   way to say an empty required box was the problem (shopping list add box; receipt name and amount).
 - **User Settings:** `app-tabs` (also the group tabs) renders the pill tab look: User Profile, User Preferences, **Theme**

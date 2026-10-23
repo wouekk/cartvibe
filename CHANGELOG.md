@@ -16,10 +16,15 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 - **Shopping list, in the shop:** a list's menu can keep the screen on while you shop, and share the list as text with
   the apps on your phone (or copy it where sharing is not available). Crossing off an item gives a short buzz on
   phones that support it, and a quiet notice appears when the phone has lost its connection.
+- **Delete several shopping lists at once:** a red **Delete list** button next to Add List lets you tick any lists
+  (open or past) and delete them together, after one confirmation. If the server refuses some, those stay ticked.
+- **Cancel on the receipt form:** the Add receipt and Edit receipt screens have a red Cancel next to Save that leaves
+  without saving.
 - **Smoother page changes:** moving between pages is a short fade instead of a hard cut (off if your device is set to
   reduce motion).
 
 ### Fixed
+- **"Custom" in the period picker is translated** (Polish: Dostosuj, and in German, French and Spanish).
 - **Ticked checkboxes now look ticked:** a checked box fills with the accent in both themes (it used to stay empty
   with only a faint check mark).
 - **Enter adds a shopping list item:** pressing Enter after typing an item's name adds it (it only worked from the

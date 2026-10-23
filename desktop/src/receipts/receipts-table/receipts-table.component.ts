@@ -163,7 +163,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
     // A filter the stepper cannot describe still has to be visible as a
     // filter — the chip below spells out what it actually is.
-    return isFilterEntryActive(this.quickDateEntry()) ? "Custom" : "All time";
+    return isFilterEntryActive(this.quickDateEntry()) ? marker("Custom") : marker("All time");
   });
 
   public filterChips = computed<ReceiptFilterChip[]>(() => {

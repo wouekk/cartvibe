@@ -205,7 +205,10 @@
           ></app-button>
         }
       </div>
-      <div class="flex flex-1 min-w-0 items-center justify-end">
+      <div class="flex flex-1 min-w-0 items-center justify-end gap-2">
+        @if (!(mode | inputReadonly) && queueIndex < 0) {
+          <app-cancel-button data-testid="receipt-form-cancel" (clicked)="cancel()"></app-cancel-button>
+        }
         <app-submit-button
           *ngIf="!(mode | inputReadonly)"
           [onlyIcon]="false"

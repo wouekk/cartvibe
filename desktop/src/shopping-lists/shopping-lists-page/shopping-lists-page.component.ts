@@ -3,7 +3,7 @@ import { toSignal } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
-import { concatMap, filter, from, map, switchMap, take, tap, toArray } from "rxjs";
+import { catchError, concatMap, EMPTY, filter, from, map, switchMap, take, tap, toArray } from "rxjs";
 import { Permission, ShoppingList, ShoppingListService } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { OnlineStatusService } from "../../services/online-status.service";
@@ -92,6 +92,17 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
 
   public readonly announcing = signal(false);
 
+  /** Choosing lists to delete: the cards become checkable and the header offers Delete (n) and Cancel. */
+  public readonly selecting = signal(false);
+
+  public readonly selectedIds = signal<ReadonlySet<number>>(new Set());
+
+  public readonly selectedCount = computed(() => this.selectedIds().size);
+
+  public readonly deleting = signal(false);
+
+  public readonly canDeleteLists = computed(() => this.canDelete() && this.lists().length > 0);
+
   private readonly wakeLock = inject(ScreenWakeLockService);
 
   /** The "Keep screen on" switch is offered only where the browser can do it. */
@@ -142,6 +153,103 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
   public ngOnDestroy(): void {
     this.shoppingListStreamService.disconnect();
     void this.wakeLock.disable();
+  }
+
+  public startSelecting(): void {
+    this.selectedIds.set(new Set());
+    this.selecting.set(true);
+  }
+
+  public cancelSelecting(): void {
+    this.selecting.set(false);
+    this.selectedIds.set(new Set());
+  }
+
+  public isSelected(id: number): boolean {
+    return this.selectedIds().has(id);
+  }
+
+  /** What a card is "pressed" for: ticked while choosing lists to delete, otherwise the open list. */
+  public isPressed(id: number): boolean {
+    return this.selecting() ? this.isSelected(id) : id === this.selectedList()?.id;
+  }
+
+  public cardClass(id: number): string {
+    if (this.selecting()) {
+      return this.isSelected(id) ? "border-destructive! bg-destructive/10 ring-1 ring-destructive/30" : "";
+    }
+
+    return id === this.selectedList()?.id ? "border-primary! bg-accent/30 ring-1 ring-primary/20" : "";
+  }
+
+  /** A card or past list was clicked: it opens the list, or ticks it while choosing lists to delete. */
+  public pick(id: number): void {
+    if (!this.selecting()) {
+      this.selectList(id.toString());
+      return;
+    }
+
+    this.selectedIds.update((ids) => {
+      const next = new Set(ids);
+      if (!next.delete(id)) {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  /** Deletes the ticked lists one after another; the ones the server refused stay ticked. */
+  public deleteSelected(): void {
+    const chosen = this.lists().filter((list) => this.selectedIds().has(list.id));
+    if (chosen.length === 0) {
+      return;
+    }
+
+    const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
+    dialogRef.componentInstance.headerText = marker("Delete Lists");
+    dialogRef.componentInstance.dialogContent = this.translation.t("Delete {count} lists and all of their items?", {
+      count: chosen.length,
+    });
+
+    dialogRef
+      .afterClosed()
+      .pipe(
+        take(1),
+        // Truthiness, not === true: a backdrop click or ESC closes with undefined.
+        filter((confirmed) => !!confirmed),
+        tap(() => this.deleting.set(true)),
+        switchMap(() =>
+          from(chosen).pipe(
+            concatMap((list) =>
+              this.shoppingListService.deleteShoppingList(list.id).pipe(
+                tap(() =>
+                  this.store.dispatch(
+                    new ApplyShoppingListEvent({
+                      type: ShoppingListEventType.ListDeleted,
+                      groupId: list.groupId,
+                      shoppingListId: list.id,
+                    })
+                  )
+                ),
+                map(() => list.id),
+                // The interceptor already toasts the refusal; carry on with the rest.
+                catchError(() => EMPTY)
+              )
+            ),
+            toArray()
+          )
+        )
+      )
+      .subscribe((deletedIds) => {
+        this.deleting.set(false);
+        if (deletedIds.length === chosen.length) {
+          this.cancelSelecting();
+          return;
+        }
+
+        this.selectedIds.set(new Set(chosen.map((list) => list.id).filter((id) => !deletedIds.includes(id))));
+        this.snackbarService.error("Some lists could not be deleted.");
+      });
   }
 
   public selectList(value: string): void {

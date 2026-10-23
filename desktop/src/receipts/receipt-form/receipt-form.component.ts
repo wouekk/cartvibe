@@ -203,6 +203,16 @@ export class ReceiptFormComponent implements OnInit {
     private store: Store,
   ) {}
 
+  /** Leaves without saving: back to the receipt when editing one, to the receipts list when adding. */
+  public cancel(): void {
+    if (this.mode === FormMode.edit && this.originalReceipt?.id) {
+      this.router.navigate([`/receipts/${this.originalReceipt.id}/view`]);
+      return;
+    }
+
+    this.router.navigate([this.receiptListLink()]);
+  }
+
   @HostListener("window:keydown", ["$event"])
   public handleKeyboardEvent(event: KeyboardEvent): void {
     const isBodyActive = document.activeElement === document.body;
