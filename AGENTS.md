@@ -49,6 +49,9 @@ build, run Jest, and check desktop and phone widths in White and Black.
 - **One monolith image** from `docker/Dockerfile` (nginx :80 → Go :8081); never add per-component Dockerfiles.
   Dependencies install from their manifests before the source is copied, so code-only builds reuse the cached layers;
   keep `VERSION`, `BUILD_DATE` and source copies below them.
+- **Hardening, keep all of it:** the API runs as uid 10001 through `setpriv`; ImageMagick's `policy.xml` denies the
+  coders receipts never need (the build proves PDF still converts); nginx sends `server_tokens off` and the security
+  headers; the image is rebuilt weekly without the cache, with a grype report.
 - **Built by GitHub, not the NAS:** `publish-image.yml` pushes `ghcr.io/wouekk/cartvibe:latest` and `:sha-<commit>` from
   green `main` (amd64), or `:preview` from a manual run on another branch.
 - **The NAS** (Synology, Dockhand) runs the root `docker-compose.yml`: the app image, `redis:7.4-alpine` (background
@@ -57,7 +60,7 @@ build, run Jest, and check desktop and phone widths in White and Black.
   redeploy (a redeploy alone reuses the cached image). Back up the `sqlite` folder before a release that changes the
   schema.
 - Repo `wouekk/cartvibe`, project page `https://wouekk.github.io/cartvibe/` (from `site/`), image
-  `ghcr.io/wouekk/cartvibe`. Only `main` and `preview` exist on GitHub.
+  `ghcr.io/wouekk/cartvibe`. `main` and `preview` are the long-lived branches; a feature branch is deleted once merged.
 
 ## Agents
 

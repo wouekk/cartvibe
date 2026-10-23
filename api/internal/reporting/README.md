@@ -351,12 +351,9 @@ row: tag=[Alex, Sam]  category=[Clothing, Medical]  amount=10.00
 and its amount is counted once (`Row.dimensionValues` deduplicates by bucket key). Fan-out
 double-counts *across* different buckets, never *within* one.
 
-**The opt-in alternative: splitting equally.** A report can instead divide a receipt's money across its
-categories and/or tags (`receiptsource.Source.Split`). It never reaches the engine: the receipt
-becomes one copy per category (or per category × tag), each carrying an equal share, so the fan-out
-above sees one value per row and the buckets add back up to what was spent. The engine is unchanged.
-The `100.00` receipt above, split, gives Clothing `50.00`, Medical `50.00`, and a grand total of
-`100.00`. See `api/CLAUDE.md` → "Splitting a receipt equally across categories / tags".
+**Line fields read product lines.** A report that cuts by a line field (category, tag, health, planned) reads
+the receipt's product lines instead (`receiptsource/lines.go`, `allocateProportionally`), so each line's money lands
+in its own bucket and the totals stay exact. See `api/CLAUDE.md` → "8. Reporting".
 
 **A multi-valued field cannot be measured.** `SUM` over a field that resolves to several values would
 silently read the first and drop the rest, so `Validate` refuses it with `ErrMeasureIsMultiValued`. A

@@ -31,7 +31,7 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
   `NoopAnimationsModule` from ~30 specs, then drop `@angular/animations`.
 - Per-user display currency (Dashboard first); native-speaker review of de/fr/es.
 - e2e in CI (needs a job with a live API + Redis); several specs still drive the removed `/roles` page.
-- Jest 30, apexcharts 8, Chromium sandbox (`CHROMIUM_SANDBOX=true`), `--no-install-recommends` for apt installs.
+- apexcharts 8, Chromium sandbox (`CHROMIUM_SANDBOX=true`), `--no-install-recommends` for apt installs.
 - Kept as they are until asked: the default receipt name "Receipt {date}" in English, ISO report month buckets
   (`2026-10`), the full-bleed report builder.
 

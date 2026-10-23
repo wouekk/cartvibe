@@ -556,7 +556,7 @@ func (repository FileRepository) GetTempDirectoryPath() string {
 // AssertWithinTempDirectory returns an error when path resolves outside temp/.
 //
 // temp/ is deliberately exempt from the data-scoped helpers (see api/CLAUDE.md →
-// "Filesystem Access & Path-Traversal Safety"): those resolve against data/ and
+// "3. Security invariants", Paths): those resolve against data/ and
 // would reject every temp path. That exemption holds for paths the server builds
 // itself, but a temp path read back out of an asynq payload is attacker-adjacent
 // — the payload is JSON in Redis — so anything sourced from one must come

@@ -26,7 +26,7 @@ export interface MemberGrantRow {
    * These invert what an empty selection means: normally empty is "no narrowing"
    * and the member gets everything the role allows, but under these flags an
    * unconfigured member sees NOTHING (the backend's fail-closed rule — see
-   * `api/CLAUDE.md` → "Category/tag grant resolution"). The hint text has to say
+   * `api/docs/authorization.md` → "Category/tag grants"). The hint text has to say
    * so, which is why they are carried on the row rather than folded into the
    * ceiling: a ceiling bounds what may be picked, these change what picking
    * nothing means.
