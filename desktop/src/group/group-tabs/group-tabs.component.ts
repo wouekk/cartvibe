@@ -1,4 +1,4 @@
-import { Component } from "@angular/core";
+import { Component, ChangeDetectionStrategy } from "@angular/core";
 import { Store } from "@ngxs/store";
 import { TabConfig } from "src/shared-ui/tabs/tab-config.interface";
 import { marker } from "../../i18n/marker";
@@ -7,6 +7,7 @@ import { marker } from "../../i18n/marker";
     selector: "app-group-tabs",
     templateUrl: "./group-tabs.component.html",
     styleUrls: ["./group-tabs.component.scss"],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class GroupTabsComponent {

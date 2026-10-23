@@ -1,4 +1,4 @@
-import { Component, input } from "@angular/core";
+import { Component, input, ChangeDetectionStrategy } from "@angular/core";
 import { FormControl } from "@angular/forms";
 import { AutocompleteModule } from "../autocomplete/autocomplete.module";
 import { Category } from "../open-api/index";
@@ -12,6 +12,7 @@ import { PipesModule } from "../pipes/index";
     PipesModule
   ],
   templateUrl: "./category-autocomplete.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./category-autocomplete.component.scss"
 })
 export class CategoryAutocompleteComponent {

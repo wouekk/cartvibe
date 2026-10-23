@@ -1,4 +1,4 @@
-import { Component, input } from "@angular/core";
+import { Component, input, ChangeDetectionStrategy } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { SHOPPING_LIST_UNITS } from "../shopping-list-item-form";
 import { marker } from "../../i18n/marker";
@@ -8,6 +8,7 @@ import { marker } from "../../i18n/marker";
   selector: "app-shopping-list-amount-fields",
   templateUrl: "./shopping-list-amount-fields.component.html",
   host: { class: "block" },
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class ShoppingListAmountFieldsComponent {

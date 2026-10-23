@@ -1,4 +1,4 @@
-import { Component, DestroyRef, computed, inject, input, OnInit, signal } from "@angular/core";
+import { Component, DestroyRef, computed, inject, input, OnInit, signal, ChangeDetectionStrategy } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { FormBuilder, ReactiveFormsModule } from "@angular/forms";
 import { HlmButton } from "@spartan-ng/helm/button";
@@ -45,6 +45,7 @@ export const AI_FALLBACK_SETTINGS_NAME = "Household AI backup";
   host: { class: "block" },
   templateUrl: "./ai-fallback-card.component.html",
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [SharedUiModule, AppIconComponent, AiProviderFieldsComponent, CheckboxModule, HlmButton, PipesModule, ReactiveFormsModule],
 })
 export class AiFallbackCardComponent implements OnInit {

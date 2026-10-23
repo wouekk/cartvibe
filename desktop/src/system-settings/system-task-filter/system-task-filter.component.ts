@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, computed, output } from "@angular/core";
+import { Component, Input, OnInit, computed, output, ChangeDetectionStrategy } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
@@ -24,6 +24,7 @@ import { UserState } from "../../store";
   selector: "app-system-task-filter",
   templateUrl: "./system-task-filter.component.html",
   styleUrls: ["./system-task-filter.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false
 })
 export class SystemTaskFilterComponent implements OnInit {

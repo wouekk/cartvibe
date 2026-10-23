@@ -11,14 +11,14 @@
   >
     {{ 'Added by:' | t }}
     <ng-container *ngIf="data?.createdByString">{{ data?.createdByString }}</ng-container>
-    <ng-container *ngIf="data?.createdBy">{{ (data?.createdBy?.toString() | user)?.displayName }}</ng-container>
+    <ng-container *ngIf="data?.createdBy">{{ ($safeNavigationMigration(data?.createdBy?.toString()) | user)?.displayName }}</ng-container>
   </span>
-      <span class="mb-1">{{ 'Added at:' | t }} {{ data?.createdAt | appDate : "medium" }}</span>
-      <span>{{ 'Updated at:' | t }} {{ data?.updatedAt | appDate : "medium" }}</span>
+      <span class="mb-1">{{ 'Added at:' | t }} {{ $safeNavigationMigration(data?.createdAt) | appDate : "medium" }}</span>
+      <span>{{ 'Updated at:' | t }} {{ $safeNavigationMigration(data?.updatedAt) | appDate : "medium" }}</span>
       <ng-container *ngIf="data?.resolvedDate">
     <span class="mt-2">
       {{ 'Resolved at:' | t }}
-      {{ data?.resolvedDate | appDate : "medium" }}
+      {{ $safeNavigationMigration(data?.resolvedDate) | appDate : "medium" }}
     </span>
       </ng-container>
     </div>

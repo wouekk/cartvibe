@@ -1,10 +1,11 @@
-import { Component, Input, OnInit, TemplateRef, input } from "@angular/core";
+import { Component, Input, OnInit, TemplateRef, input, ChangeDetectionStrategy } from "@angular/core";
 
 @Component({
     selector: "app-form-section",
     templateUrl: "./form-section.component.html",
     styleUrls: ["./form-section.component.scss"],
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.Eager,
     host: { "[class.cv-section]": "panel()", "[class.mb-4]": "panel()", "[class.block]": "panel()" }
 })
 export class FormSectionComponent implements OnInit {

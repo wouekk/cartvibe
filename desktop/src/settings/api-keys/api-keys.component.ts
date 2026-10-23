@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { FormConfig } from "src/interfaces";
 import { FormMode } from "src/enums/form-mode.enum";
@@ -7,6 +7,7 @@ import { FormMode } from "src/enums/form-mode.enum";
     selector: "app-api-keys",
     templateUrl: "./api-keys.component.html",
     styleUrls: ["./api-keys.component.scss"],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ApiKeysComponent implements OnInit {

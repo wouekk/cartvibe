@@ -41,6 +41,6 @@
      </app-settings-section>
     </form>
 
-    <app-ai-fallback-card [primaryId]="saved()?.id"></app-ai-fallback-card>
+    <app-ai-fallback-card [primaryId]="$safeNavigationMigration(saved()?.id)"></app-ai-fallback-card>
   }
 </app-settings-page>

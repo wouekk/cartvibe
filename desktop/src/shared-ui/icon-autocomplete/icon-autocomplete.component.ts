@@ -1,4 +1,4 @@
-import { Component, input } from "@angular/core";
+import { Component, input, ChangeDetectionStrategy } from "@angular/core";
 import { FormControl } from "@angular/forms";
 import { Store } from "@ngxs/store";
 import { Icon } from "../../open-api/index";
@@ -8,6 +8,7 @@ import { AuthState } from "../../store/index";
     selector: "app-icon-autocomplete",
     templateUrl: "./icon-autocomplete.component.html",
     styleUrl: "./icon-autocomplete.component.scss",
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class IconAutocompleteComponent {

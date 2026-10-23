@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, Input, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { FormControl, FormGroup } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { marker } from "../../i18n/marker";
@@ -14,6 +14,7 @@ export const RECEIPT_NAME_MAX_LENGTH = 255;
 @Component({
   selector: "app-rename-receipt-dialog",
   templateUrl: "./rename-receipt-dialog.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class RenameReceiptDialogComponent implements OnInit {

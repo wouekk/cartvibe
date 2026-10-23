@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, input, OnDestroy, output, signal } from "@angular/core";
+import { Component, DestroyRef, inject, input, OnDestroy, output, signal, ChangeDetectionStrategy } from "@angular/core";
 import { marker } from "../../i18n/marker";
 
 /**
@@ -17,6 +17,7 @@ import { marker } from "../../i18n/marker";
   selector: "app-copy-button",
   templateUrl: "./copy-button.component.html",
   styleUrl: "./copy-button.component.scss",
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class CopyButtonComponent implements OnDestroy {

@@ -5,7 +5,8 @@ import {
   computed,
   inject,
   input,
-  signal
+  signal,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormGroupDirective } from '@angular/forms';
@@ -23,6 +24,7 @@ import { FormButtonComponent } from '../form-button/form-button.component';
 @Component({
     selector: 'app-submit-button',
     templateUrl: './submit-button.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class SubmitButtonComponent extends FormButtonComponent implements OnInit {

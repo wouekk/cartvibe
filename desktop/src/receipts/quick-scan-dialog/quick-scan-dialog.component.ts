@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, inject, signal, viewChild } from "@angular/core";
+import { Component, DestroyRef, OnInit, inject, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { UploadStage, withUploadProgress } from "../../utils/upload-progress";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
@@ -33,6 +33,7 @@ const commentRequiredValidator = trimmedRequiredValidator();
     selector: "app-quick-scan-dialog",
   host: { class: "block" },
     templateUrl: "./quick-scan-dialog.component.html",
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class QuickScanDialogComponent implements OnInit {

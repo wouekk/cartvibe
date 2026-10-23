@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, linkedSignal, ViewEncapsulation } from "@angular/core";
+import { Component, computed, effect, inject, linkedSignal, ViewEncapsulation, ChangeDetectionStrategy } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { Data, NavigationEnd, Router } from "@angular/router";
@@ -70,6 +70,7 @@ const LUCIDE_ICONS: Record<string, string> = {
     styleUrls: ["./sidebar.component.scss"],
     encapsulation: ViewEncapsulation.None,
     standalone: false,
+    changeDetection: ChangeDetectionStrategy.Eager,
     providers: [
       provideIcons({
         lucideBot,

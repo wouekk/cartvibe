@@ -1,10 +1,11 @@
-import { Component, TemplateRef, input, output } from "@angular/core";
+import { Component, TemplateRef, input, output, ChangeDetectionStrategy } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { FormConfig } from "src/interfaces";
 
 @Component({
     selector: "app-form",
     templateUrl: "./form.component.html",
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class FormComponent {

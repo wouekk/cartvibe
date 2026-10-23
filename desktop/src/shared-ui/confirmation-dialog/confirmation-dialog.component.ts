@@ -1,4 +1,4 @@
-import { Component, Input, TemplateRef } from '@angular/core';
+import { Component, Input, TemplateRef, ChangeDetectionStrategy } from '@angular/core';
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { marker } from "../../i18n/marker";
 
@@ -6,6 +6,7 @@ import { marker } from "../../i18n/marker";
     selector: 'app-confirmation-dialog',
     templateUrl: './confirmation-dialog.component.html',
     styleUrls: ['./confirmation-dialog.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ConfirmationDialogComponent {

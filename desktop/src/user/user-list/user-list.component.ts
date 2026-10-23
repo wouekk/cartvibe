@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, DestroyRef, inject, TemplateRef, viewChild } from "@angular/core";
+import { AfterViewInit, Component, DestroyRef, inject, TemplateRef, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
@@ -34,6 +34,7 @@ import { TranslationService } from "../../i18n/translation.service";
             useClass: UserTableService
         }
     ],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class UserListComponent extends BaseTableComponent<User> implements AfterViewInit {

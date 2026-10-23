@@ -123,7 +123,7 @@ and run `npx playwright test`; leaving `E2E_BASE_URL` at `http://localhost:4200`
 ## Code Architecture
 
 ### Application Structure
-CartVibe Desktop is an Angular 21 application with modular architecture using:
+CartVibe Desktop is an Angular 22 application with modular architecture using:
 
 - **State Management**: NGXS store with persistent storage for application state
 - **API Layer**: Auto-generated OpenAPI client in `src/open-api/` (do not manually edit these files)
@@ -179,7 +179,7 @@ CartVibe Desktop is an Angular 21 application with modular architecture using:
 - CI tests run in headless Chrome
 
 ### Development Environment
-- Angular CLI 21 with TypeScript 5.9
+- Angular CLI 22 with TypeScript 6.0 (Node 24)
 - Tailwind + spartan/ui components (`src/ui`), CDK for overlays
 - NGXS for state management with Redux DevTools integration
 - Strict TypeScript configuration with comprehensive compiler options
@@ -191,33 +191,42 @@ do not undo them without re-checking `npm audit`:
 - **`overrides` block in `package.json`** forces patched versions of transitive deps that a dependency
   otherwise pins inside vulnerable ranges. When `npm audit` flags a new transitive advisory that
   upstream hasn't bumped yet, add/raise the floor here rather than waiting on an upstream release.
-  - `@babel/core`, `esbuild`, `undici` — floors under the Angular toolchain.
-  - `ts-morph` (`^28`) — `@ngxs/storage-plugin@21` peer-pins `ts-morph@21.0.1`, whose
-    `@ts-morph/common@0.22` pulls `fast-glob` → `micromatch` → `braces`. The plugin never imports
-    ts-morph (its tarball has no schematics), so the override is runtime-inert; NGXS 22 relaxes the
-    peer to `>=21`. This one sits in the **production** tree, not just dev.
+  - `esbuild`, `undici` — floors under the toolchain (`undici` via jsdom's `^7.25`).
+  - `vite` (`~8.3.4`) — `@angular/build` 22.2.4 pins exactly `8.3.0`, which carries six advisories
+    fixed in 8.3.3. Kept on the 8.3 line, the one Angular's builder was released against.
   - `js-yaml` (`^4.1.1`) — `babel-plugin-istanbul` (every version, via jest) →
     `@istanbuljs/load-nyc-config` → `js-yaml@3` → `argparse@1` → `sprintf-js`. load-nyc-config only
     calls `js-yaml.load()`, which v4 keeps. Global form, not nested, so it dedupes with cosmiconfig's.
   - Drop an override once it does nothing — its target has left the tree, or every range still
     declaring it already admits the floor (`npm ls <name>` shows who declares it). Dead ones mislead.
-    `http-proxy-middleware` and `uuid` left with build-angular; `qs` was only there to lift express 4's
-    `~6.15` cap, and the express 5 / body-parser 2 left behind already accept the fixed 6.16.x.
+    With Angular 22 (2026-10-23) five went: `@modelcontextprotocol/sdk` and `hono` (the CLI no longer
+    ships the MCP SDK 1 / express chain), `ts-morph` (NGXS 22 declares `>=21`), and `@babel/core` /
+    `vite` at `^7`, which had started forcing **Angular's own** builder (it declares Babel 8 and Vite 8)
+    back onto the old majors. An override applies to every declarer, so check that a floor still
+    sits on the major each declarer asks for after any toolchain major.
 - **When an advisory has no patched release, remove the path — don't bump.** `braces` (`<=3.0.3`) and
-  `sprintf-js` (`<=1.1.3`) both have *no* fixed version, so no floor can clear them; the `ts-morph` /
-  `js-yaml` overrides above and the builder switch below each cut the edge that pulled them in.
-  `npm audit`'s own suggestion for these (`@ngxs/storage-plugin@22`, `jest-preset-angular@14`) is a
-  major jump or a downgrade — ignore it.
+  `sprintf-js` (`<=1.1.3`) both have *no* fixed version, so no floor can clear them; the `js-yaml`
+  override above and the builder switch below each cut the edge that pulled them in.
 - **Builders are `@angular/build:*`, not `@angular-devkit/build-angular`.** The app was already on the
   esbuild `application` builder, so build-angular was only a wrapper — but it hard-pinned
   `webpack-dev-server` and `http-proxy-middleware` (both → `braces`) plus ~400 more webpack-era
   packages. Do not add it back; nothing here uses a webpack builder.
-- **Exact pins (no caret):** `ngx-bootstrap` (`21.0.1`) and `@playwright/test` (`1.59.1`) are pinned
-  because their next minor introduced an incompatibility (ngx-bootstrap dropped `CarouselModule.forRoot()`
-  used by `src/carousel/`; Playwright `1.61` needs a newer browser build than the pinned `e2e:install`
-  cache). Bump these deliberately — update the consuming code / reinstall browsers in the same change.
-- Stay on the Angular `21.2.x` patch line for security fixes; a jump to Angular 22 is a separate,
-  breaking upgrade and out of scope for audit hygiene.
+- **Exact pins (no caret):** `@playwright/test` (`1.59.1`) is pinned because Playwright `1.61` needs a
+  newer browser build than the pinned `e2e:install` cache. Bump it deliberately and reinstall browsers in
+  the same change. (ngx-bootstrap, once pinned here too, is gone.)
+- **Angular 22 (2026-10-23)**, TypeScript 6.0, Node 24. Stay on the `22.2.x` patch line for security fixes;
+  a jump to 23 is its own breaking upgrade. What the 22 migrations changed, and must not be undone:
+  - Components without a `changeDetection` were pinned to `ChangeDetectionStrategy.Eager`, because 22's
+    default is OnPush. New components may use either; the zoneless rules below still apply.
+  - `provideHttpClient(withXhr(), …)`: 22's default backend is fetch, and upload progress needs XHR.
+  - In templates, `?.` now yields `undefined` like plain JavaScript; the 12 places where `null` still
+    mattered read `$safeNavigationMigration(…)`. Two extended diagnostics are suppressed in
+    `tsconfig.app.json` by the migration.
+  - `tsconfig.json` has no `baseUrl` (deprecated in TypeScript 6): bare `src/...` imports resolve through
+    the `"src/*"` path, and `skipLibCheck` is on because apexcharts 4's types use a `module` declaration
+    TypeScript 6 rejects (its later majors are the parked apexcharts upgrade).
+  - npm 11 runs no install scripts that are not approved (esbuild, lmdb, msgpackr-extract, unrs-resolver,
+    `@parcel/watcher`); all of them only fetch or check optional native binaries, and CI runs the same npm.
 
 **Never regenerate `package-lock.json` from scratch to fix an audit finding.** Deleting the lockfile
 and reinstalling re-resolves *every* package to the newest version its range allows, which breaks CI
@@ -256,8 +265,8 @@ lockfile is written by the same npm that later runs `npm ci` on it.
 python3 - <<'EOF'
 import json, re
 NAMESPACES = ('@angular/', '@angular-devkit/', '@ngtools/')   # the peer-coupled family
-OVERRIDES  = ('@babel/core', 'esbuild', 'js-yaml',
-              'ts-morph', 'undici')                            # keep in sync with package.json
+OVERRIDES  = ('esbuild', 'js-yaml', 'vite',
+              'undici')                                        # keep in sync with package.json
 STALE      = ()                                                # e.g. ('handlebars', 'shell-quote')
 pat = re.compile(
     r'(^|/)node_modules/(?:' + '|'.join(map(re.escape, NAMESPACES)) + r')[^/]+$'

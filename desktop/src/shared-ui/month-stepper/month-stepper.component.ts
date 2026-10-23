@@ -2,7 +2,7 @@ import { NgClass } from "@angular/common";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 import { A11yModule } from "@angular/cdk/a11y";
 import { ConnectedPosition, OverlayModule } from "@angular/cdk/overlay";
-import { Component, computed, input, linkedSignal, output, signal } from "@angular/core";
+import { Component, computed, input, linkedSignal, output, signal, ChangeDetectionStrategy } from "@angular/core";
 import { ButtonModule } from "../../button";
 import { todayInZone } from "../../utils/app-time-zone";
 import { FilterMonth, monthOfDate, shiftMonth } from "../../utils/receipt-date-filter";
@@ -40,6 +40,7 @@ const MAX_YEAR_OFFSET = 5;
   host: { class: "inline-block" },
   templateUrl: "./month-stepper.component.html",
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [A11yModule, ButtonModule, NgClass, OverlayModule, TranslatePipe],
 })
 export class MonthStepperComponent {

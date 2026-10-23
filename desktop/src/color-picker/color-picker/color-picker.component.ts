@@ -1,4 +1,4 @@
-import { Component, Input } from "@angular/core";
+import { Component, Input, ChangeDetectionStrategy } from "@angular/core";
 import { FormControl } from "@angular/forms";
 import { BaseInputInterface } from "../../base-input";
 
@@ -6,6 +6,7 @@ import { BaseInputInterface } from "../../base-input";
     selector: "app-color-picker",
     templateUrl: "./color-picker.component.html",
     styleUrls: ["./color-picker.component.scss"],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ColorPickerComponent implements BaseInputInterface {

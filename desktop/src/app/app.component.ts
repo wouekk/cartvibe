@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
@@ -13,6 +13,7 @@ import { ToastHostComponent } from "../toast/toast-host.component";
 @Component({
     selector: "app-root", host: { class: "block size-full" },
     templateUrl: "./app.component.html",
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [RouterOutlet, ToastHostComponent],
 })
 export class AppComponent implements OnInit {

@@ -1,6 +1,6 @@
 import { LiveAnnouncer } from "@angular/cdk/a11y";
 import { SelectionModel } from "@angular/cdk/collections";
-import { Component, Input, OnChanges, SimpleChanges, inject, input, output, signal } from "@angular/core";
+import { Component, Input, OnChanges, SimpleChanges, inject, input, output, signal, ChangeDetectionStrategy } from "@angular/core";
 import { TranslationService } from "../../i18n/translation.service";
 import { TableColumn } from "../table-column.interface";
 import { PageEvent, Sort, TableDataSource } from "../table-types";
@@ -10,6 +10,7 @@ import { marker } from "../../i18n/marker";
   selector: "app-table",
   host: { class: "block overflow-hidden rounded-xl border border-border bg-card shadow-md" },
   templateUrl: "./table.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false
 })
 export class TableComponent implements OnChanges {

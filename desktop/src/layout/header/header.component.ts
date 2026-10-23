@@ -1,5 +1,5 @@
 import { ConnectedPosition } from "@angular/cdk/overlay";
-import { Component, computed, effect, signal, untracked } from "@angular/core";
+import { Component, computed, effect, signal, untracked, ChangeDetectionStrategy } from "@angular/core";
 import { Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
@@ -17,6 +17,7 @@ export const HANDSET_LOGO_SCALE = 0.3;
 @Component({
     selector: "app-header",
     templateUrl: "./header.component.html",
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class HeaderComponent {

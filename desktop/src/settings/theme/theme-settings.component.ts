@@ -1,4 +1,4 @@
-import { Component, inject } from "@angular/core";
+import { Component, inject, ChangeDetectionStrategy } from "@angular/core";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { SYSTEM_MODE, ThemeMode, ThemeService } from "../../theme/theme.service";
@@ -20,6 +20,7 @@ interface ModeOption {
   selector: "app-theme-settings",
   standalone: true,
   imports: [AppIconComponent, SharedUiModule, TranslatePipe],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <app-settings-section testId="theme-mode-card" title="Colour theme" description="Choose how CartVibe looks on this device.">
         <ul class="m-0 flex list-none flex-col gap-1 px-3 py-3" role="radiogroup" [attr.aria-label]="'Theme' | t">

@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, OnInit, Signal, signal, TemplateRef, inject, input, viewChild} from "@angular/core";
+import {AfterViewInit, Component, OnInit, Signal, signal, TemplateRef, inject, input, viewChild, ChangeDetectionStrategy} from "@angular/core";
 import {toSignal} from "@angular/core/rxjs-interop";
 import {FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import { AppDialog } from "../../dialog/app-dialog";
@@ -28,6 +28,7 @@ import { marker } from "../../i18n/marker";
     templateUrl: "./group-form.component.html",
     styleUrls: ["./group-form.component.scss"],
     host: DEFAULT_HOST_CLASS,
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class GroupFormComponent implements OnInit, AfterViewInit {

@@ -1,4 +1,4 @@
-import { Component, OnInit, input, output } from "@angular/core";
+import { Component, OnInit, input, output, ChangeDetectionStrategy } from "@angular/core";
 import { take, tap } from "rxjs";
 import { ParameterizedDataParser } from "src/utils";
 import { Notification, NotificationsService, Permission } from "../../open-api";
@@ -7,6 +7,7 @@ import { Notification, NotificationsService, Permission } from "../../open-api";
     selector: "app-notification",
     templateUrl: "./notification.component.html",
     styleUrls: ["./notification.component.scss"],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class NotificationComponent implements OnInit {

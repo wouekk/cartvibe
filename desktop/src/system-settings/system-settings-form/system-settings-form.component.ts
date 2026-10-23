@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnInit, signal, viewChild } from "@angular/core";
+import { AfterViewInit, Component, ElementRef, OnInit, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { FormArray, FormBuilder, FormGroup, ValidatorFn, Validators } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
@@ -39,6 +39,7 @@ interface QueueData extends FormOption {
   templateUrl: "./system-settings-form.component.html",
   providers: [InputReadonlyPipe],
   animations: [fadeInOut],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false
 })
 export class SystemSettingsFormComponent extends BaseFormComponent implements OnInit, AfterViewInit {

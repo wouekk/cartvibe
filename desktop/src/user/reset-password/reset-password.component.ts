@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, Input, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { take, tap } from "rxjs";
@@ -9,6 +9,7 @@ import { SnackbarService } from "../../services";
     selector: "app-reset-password",
     templateUrl: "./reset-password.component.html",
     styleUrls: ["./reset-password.component.scss"],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ResetPasswordComponent implements OnInit {

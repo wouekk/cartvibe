@@ -1,4 +1,4 @@
-import { Component, input, output, viewChild } from "@angular/core";
+import { Component, input, output, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { FormArray, FormGroup } from "@angular/forms";
 import { FormCommand } from "../../form/index";
 import { FormConfig } from "../../interfaces/index";
@@ -9,6 +9,7 @@ import { EditableListComponent } from "../../shared-ui/editable-list/editable-li
     selector: "app-user-shortcut",
     templateUrl: "./user-shortcut.component.html",
     styleUrl: "./user-shortcut.component.scss",
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class UserShortcutComponent {

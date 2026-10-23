@@ -1,4 +1,4 @@
-import { Component, Inject } from "@angular/core";
+import { Component, Inject, ChangeDetectionStrategy } from "@angular/core";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 
 export interface SourceFileViewerDialogData {
@@ -15,6 +15,7 @@ export interface SourceFileViewerDialogData {
 @Component({
   selector: "app-source-file-viewer-dialog",
   templateUrl: "./source-file-viewer-dialog.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class SourceFileViewerDialogComponent {

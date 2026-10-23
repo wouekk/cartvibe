@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, Input, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { take, tap } from "rxjs";
@@ -9,6 +9,7 @@ import { marker } from "../../i18n/marker";
 @Component({
   selector: "app-api-key-form-dialog",
   templateUrl: "./api-key-form-dialog.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false
 })
 export class ApiKeyFormDialogComponent implements OnInit {

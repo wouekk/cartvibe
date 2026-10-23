@@ -1,4 +1,4 @@
-import { Component, computed, input } from "@angular/core";
+import { Component, computed, input, ChangeDetectionStrategy } from "@angular/core";
 
 /**
  * The shell every settings page shares: title, description, primary action top right, optional tab strip, content.
@@ -8,6 +8,7 @@ import { Component, computed, input } from "@angular/core";
   selector: "app-settings-page",
   standalone: false,
   host: { class: "block", "[class]": "hostClass()" },
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <div class="flex flex-col gap-6" data-testid="settings-page">
       <div class="flex min-w-0 flex-col gap-4">

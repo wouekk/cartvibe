@@ -1,4 +1,4 @@
-import { Component, OnChanges, OnInit, computed, signal, SimpleChanges, input } from "@angular/core";
+import { Component, OnChanges, OnInit, computed, signal, SimpleChanges, input, ChangeDetectionStrategy } from "@angular/core";
 import { ActivatedRoute, NavigationEnd, Router } from "@angular/router";
 import { tap } from "rxjs";
 import { TabConfig } from "./tab-config.interface";
@@ -6,6 +6,7 @@ import { TabConfig } from "./tab-config.interface";
 @Component({
     selector: "app-tabs",
     templateUrl: "./tabs.component.html",
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class TabsComponent implements OnInit, OnChanges {

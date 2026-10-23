@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, TemplateRef, input, viewChild } from "@angular/core";
+import { AfterViewInit, Component, TemplateRef, input, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { SystemTask, SystemTaskStatus, SystemTaskType } from "../../open-api";
 import { AccordionPanel } from "../../shared-ui/accordion/accordion-panel.interface";
 import { marker } from "../../i18n/marker";
@@ -7,6 +7,7 @@ import { marker } from "../../i18n/marker";
     selector: "app-receipt-processing-settings-child-system-task-accordion",
     templateUrl: "./receipt-processing-settings-child-system-task-accordion.component.html",
     styleUrl: "./receipt-processing-settings-child-system-task-accordion.component.scss",
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ReceiptProcessingSettingsChildSystemTaskAccordionComponent implements AfterViewInit {

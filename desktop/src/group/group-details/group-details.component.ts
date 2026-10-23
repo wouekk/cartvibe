@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { Group, Permission } from "../../open-api";
@@ -8,6 +8,7 @@ import { AuthState } from "../../store";
     selector: "app-group-details",
     templateUrl: "./group-details.component.html",
     styleUrl: "./group-details.component.scss",
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class GroupDetailsComponent implements OnInit {

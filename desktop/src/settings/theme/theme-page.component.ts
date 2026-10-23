@@ -1,4 +1,4 @@
-import { Component } from "@angular/core";
+import { Component, ChangeDetectionStrategy } from "@angular/core";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { ThemeSettingsComponent } from "./theme-settings.component";
 
@@ -8,6 +8,7 @@ import { ThemeSettingsComponent } from "./theme-settings.component";
   standalone: true,
   host: { class: "block" },
   imports: [SharedUiModule, ThemeSettingsComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <app-settings-page title="Theme" description="How CartVibe looks on this device.">
       <app-theme-settings></app-theme-settings>

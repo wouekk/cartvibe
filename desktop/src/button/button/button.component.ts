@@ -1,4 +1,4 @@
-import { Component, ViewEncapsulation, } from "@angular/core";
+import { Component, ViewEncapsulation, ChangeDetectionStrategy } from "@angular/core";
 import { BaseButtonComponent } from "../base-button/base-button.component";
 
 @Component({
@@ -6,6 +6,7 @@ import { BaseButtonComponent } from "../base-button/base-button.component";
   templateUrl: "./button.component.html",
   styleUrls: ["./button.component.scss"],
   encapsulation: ViewEncapsulation.None,
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false
 })
 export class ButtonComponent extends BaseButtonComponent {

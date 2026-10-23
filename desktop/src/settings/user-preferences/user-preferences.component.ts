@@ -1,4 +1,4 @@
-import { Component, computed, OnInit, signal, viewChild, inject } from "@angular/core";
+import { Component, computed, OnInit, signal, viewChild, inject, ChangeDetectionStrategy } from "@angular/core";
 import { FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
@@ -19,6 +19,7 @@ import { TranslationService } from "../../i18n/translation.service";
     selector: "app-user-preferences",
     templateUrl: "./user-preferences.component.html",
     styleUrls: ["./user-preferences.component.scss"],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class UserPreferencesComponent extends BaseFormComponent implements OnInit {

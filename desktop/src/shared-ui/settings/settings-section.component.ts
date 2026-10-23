@@ -1,4 +1,4 @@
-import { Component, computed, input } from "@angular/core";
+import { Component, computed, input, ChangeDetectionStrategy } from "@angular/core";
 
 /**
  * The settings card: a hairline surface with a title row, a body of flat `cv-section` rows and an optional footer
@@ -8,6 +8,7 @@ import { Component, computed, input } from "@angular/core";
   selector: "app-settings-section",
   standalone: false,
   host: { class: "block min-w-0" },
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <section [class]="cardClass()" [attr.data-testid]="testId()">
       @if (title() || description()) {

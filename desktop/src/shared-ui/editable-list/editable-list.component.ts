@@ -1,9 +1,10 @@
-import { Component, Input, signal, TemplateRef, input, output } from "@angular/core";
+import { Component, Input, signal, TemplateRef, input, output, ChangeDetectionStrategy } from "@angular/core";
 
 @Component({
     selector: "app-editable-list",
     templateUrl: "./editable-list.component.html",
     styleUrl: "./editable-list.component.scss",
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class EditableListComponent {

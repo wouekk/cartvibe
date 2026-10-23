@@ -1,5 +1,5 @@
 import { PluralPipe, TranslatePipe } from "../../../i18n/translate.pipe";
-import { Component, computed, input, signal } from "@angular/core";
+import { Component, computed, input, signal, ChangeDetectionStrategy } from "@angular/core";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { AppIconComponent } from "../../../shared-ui/icon/icon.component";
 import { Store } from "@ngxs/store";
@@ -18,6 +18,7 @@ import { hasAll } from "../../../utils/permission.utils";
   host: { class: "block" },
   templateUrl: "./receipt-product-backfill.component.html",
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslatePipe, PluralPipe, HlmButton, AppIconComponent],
 })
 export class ReceiptProductBackfillComponent {

@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from "@angular/common/http";
-import { Component, computed, ElementRef, inject, input, signal } from "@angular/core";
+import { Component, computed, ElementRef, inject, input, signal, ChangeDetectionStrategy } from "@angular/core";
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { AppDialog } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
@@ -28,6 +28,7 @@ const OFFLINE_MESSAGE = "Couldn't reach the server. Check your connection and tr
 @Component({
   selector: "app-shopping-list",
   templateUrl: "./shopping-list.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class ShoppingListComponent {

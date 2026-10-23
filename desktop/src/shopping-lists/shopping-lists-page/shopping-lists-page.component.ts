@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, computed, effect, signal, untracked, inject } from "@angular/core";
+import { Component, OnDestroy, OnInit, computed, effect, signal, untracked, inject, ChangeDetectionStrategy } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -26,6 +26,7 @@ import { marker } from "../../i18n/marker";
 @Component({
   selector: "app-shopping-lists-page",
   templateUrl: "./shopping-lists-page.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class ShoppingListsPageComponent implements OnInit, OnDestroy {

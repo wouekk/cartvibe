@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, TemplateRef, input, output } from "@angular/core";
+import { Component, Input, OnInit, TemplateRef, input, output, ChangeDetectionStrategy } from "@angular/core";
 import { FormGroup, } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
@@ -14,6 +14,7 @@ import { GroupState } from "../../store";
   selector: "app-receipt-filter",
   templateUrl: "./receipt-filter.component.html",
   styleUrls: ["./receipt-filter.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false
 })
 export class ReceiptFilterComponent implements OnInit {

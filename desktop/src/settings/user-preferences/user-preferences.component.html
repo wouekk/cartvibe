@@ -28,7 +28,7 @@
       <app-user-autocomplete
         [label]="'Default Paid By' | t"
         [inputFormControl]="form | formGet : 'quickScanDefaultPaidById'"
-        [groupId]="form.get('quickScanDefaultGroupId')?.value"
+        [groupId]="$safeNavigationMigration(form.get('quickScanDefaultGroupId')?.value)"
         [selectGroupMembersOnly]="true"
         [readonly]="formConfig.mode | inputReadonly"
       ></app-user-autocomplete>

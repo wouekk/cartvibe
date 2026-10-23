@@ -1,4 +1,4 @@
-import { Component, input } from "@angular/core";
+import { Component, input, ChangeDetectionStrategy } from "@angular/core";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 
 /**
@@ -121,6 +121,7 @@ import { TranslatePipe } from "../../i18n/translate.pipe";
       </svg>
     }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       /* The palette is the theme's: every theme defines the --brand-* tokens (src/themes), this only maps them. */

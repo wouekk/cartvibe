@@ -1,6 +1,6 @@
 import { PluralPipe, TranslatePipe } from "../../i18n/translate.pipe";
 import { CommonModule } from "@angular/common";
-import { Component, inject } from "@angular/core";
+import { Component, inject, ChangeDetectionStrategy } from "@angular/core";
 import { Store } from "@ngxs/store";
 import { About } from "../../open-api/index";
 import { AppDatePipe } from "../../pipes/app-date.pipe";
@@ -22,6 +22,7 @@ interface Link {
         SharedUiModule
     ],
     templateUrl: "./about.component.html",
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: "./about.component.scss"
 })
 export class AboutComponent {

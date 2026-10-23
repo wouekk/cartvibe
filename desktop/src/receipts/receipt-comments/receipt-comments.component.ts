@@ -1,4 +1,4 @@
-import { Component, OnInit, Signal, computed, input, output, signal } from "@angular/core";
+import { Component, OnInit, Signal, computed, input, output, signal, ChangeDetectionStrategy } from "@angular/core";
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators, } from "@angular/forms";
 import { UntilDestroy } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
@@ -12,6 +12,7 @@ import { AuthState } from "../../store";
 @Component({
     selector: "app-receipt-comments",
     templateUrl: "./receipt-comments.component.html",
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ReceiptCommentsComponent implements OnInit {

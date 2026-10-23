@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { FormBuilder } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
@@ -14,6 +14,7 @@ import { associatedApiKeyOptions } from "./associated-api-key-options";
     selector: "app-api-key-table-filter",
     templateUrl: "./api-key-table-filter.component.html",
     styleUrl: "./api-key-table-filter.component.scss",
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ApiKeyTableFilterComponent extends BaseFormComponent implements OnInit {

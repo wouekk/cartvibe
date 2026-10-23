@@ -1,4 +1,4 @@
-import { Component, input } from "@angular/core";
+import { Component, input, ChangeDetectionStrategy } from "@angular/core";
 import { BreadcrumbItem } from "./breadcrumb-item.interface";
 
 /**
@@ -15,6 +15,7 @@ import { BreadcrumbItem } from "./breadcrumb-item.interface";
 @Component({
   selector: "app-breadcrumb",
   templateUrl: "./breadcrumb.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class BreadcrumbComponent {

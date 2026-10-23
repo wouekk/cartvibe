@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild, inject } from "@angular/core";
+import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild, inject, ChangeDetectionStrategy } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
 import { Store } from "@ngxs/store";
@@ -20,6 +20,7 @@ import { TranslationService } from "../../i18n/translation.service";
     selector: "app-tags-list",
     templateUrl: "./tag-table.component.html",
     styleUrls: ["./tag-table.component.scss"],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class TagTableComponent implements OnInit, AfterViewInit {

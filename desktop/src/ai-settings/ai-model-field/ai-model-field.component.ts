@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, signal, untracked } from "@angular/core";
+import { Component, computed, effect, inject, input, signal, untracked, ChangeDetectionStrategy } from "@angular/core";
 import { FormControl } from "@angular/forms";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { finalize, take } from "rxjs";
@@ -22,6 +22,7 @@ import { defaultModelFor, providerCompany } from "../ai-settings-shared";
   host: { class: "block" },
   templateUrl: "./ai-model-field.component.html",
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [AppIconComponent, HlmButton, InputModule, PipesModule, SelectModule],
 })
 export class AiModelFieldComponent {

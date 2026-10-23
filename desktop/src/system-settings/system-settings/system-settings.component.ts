@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit, signal } from "@angular/core";
+import { Component, DestroyRef, inject, OnInit, signal, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { NavigationEnd, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
@@ -21,6 +21,7 @@ interface SystemSettingsTab extends TabConfig {
 @Component({
     selector: "app-system-settings",
     templateUrl: "./system-settings.component.html",
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class SystemSettingsComponent implements OnInit {

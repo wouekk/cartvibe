@@ -1,4 +1,4 @@
-import { Component, input, output } from "@angular/core";
+import { Component, input, output, ChangeDetectionStrategy } from "@angular/core";
 import { FilterTab } from "../filter-bar/filter-tab.interface";
 import { marker } from "../../i18n/marker";
 
@@ -7,6 +7,7 @@ import { marker } from "../../i18n/marker";
   selector: "app-settings-tabs",
   standalone: false,
   host: { class: "block max-w-full min-w-0" },
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <hlm-tabs class="max-w-full min-w-0" [tab]="value()" (tabActivated)="valueChange.emit($event)">
       <hlm-tabs-list class="max-w-full cv-scroll-x" [attr.aria-label]="ariaLabel() | t">

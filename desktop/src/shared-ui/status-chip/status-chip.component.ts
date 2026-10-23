@@ -1,4 +1,4 @@
-import { Component, Input, input } from "@angular/core";
+import { Component, Input, input, ChangeDetectionStrategy } from "@angular/core";
 import { DONE_STATUSES, receiptStatusLabel, TO_CHECK_STATUSES } from "../../utils/receipt-status";
 
 /**
@@ -8,6 +8,7 @@ import { DONE_STATUSES, receiptStatusLabel, TO_CHECK_STATUSES } from "../../util
 @Component({
     selector: "app-status-chip",
     templateUrl: "./status-chip.component.html",
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class StatusChipComponent {

@@ -1,6 +1,6 @@
 import { PluralPipe, TranslatePipe } from "../../i18n/translate.pipe";
 import { CommonModule } from "@angular/common";
-import { Component, Inject, computed, inject } from "@angular/core";
+import { Component, Inject, computed, inject, ChangeDetectionStrategy } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { APP_DIALOG_DATA, AppDialog, AppDialogRef } from "../../dialog/app-dialog";
@@ -54,6 +54,7 @@ interface PreviewGroup {
     AppIconComponent,
     SharedUiModule,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: "./role-preview-dialog.component.html",
 })
 export class RolePreviewDialogComponent {

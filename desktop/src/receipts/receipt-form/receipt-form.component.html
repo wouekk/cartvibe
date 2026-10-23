@@ -109,7 +109,7 @@
             <div class="w-full h-full cv-images-pane__content">
               <app-upload-image
                 class="w-full"
-                [receiptId]="originalReceipt?.id?.toString()"
+                [receiptId]="$safeNavigationMigration(originalReceipt?.id?.toString())"
                 (fileLoaded)="imageFileLoaded($event)"
               >
               </app-upload-image>
@@ -246,8 +246,8 @@
          comments (and the required-comment check would count them). -->
     @for (receipt of [originalReceipt]; track receipt?.id) {
       <app-receipt-comments
-        [receiptId]="receipt?.id"
-        [groupId]="receipt?.groupId"
+        [receiptId]="$safeNavigationMigration(receipt?.id)"
+        [groupId]="$safeNavigationMigration(receipt?.groupId)"
         [comments]="receipt?.comments ?? []"
         [mode]="mode"
         [preventDeletingLastComment]="isCommentDeletionLimited()"

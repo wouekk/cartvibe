@@ -1,4 +1,4 @@
-import { Component, OnInit, output, signal } from "@angular/core";
+import { Component, OnInit, output, signal, ChangeDetectionStrategy } from "@angular/core";
 import { take, tap } from "rxjs";
 import { Notification, NotificationsService } from "../../open-api";
 
@@ -6,6 +6,7 @@ import { Notification, NotificationsService } from "../../open-api";
     selector: "app-notifications-list",
     templateUrl: "./notifications-list.component.html",
     styleUrls: ["./notifications-list.component.scss"],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class NotificationsListComponent implements OnInit {

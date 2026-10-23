@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, computed, input } from "@angular/core";
+import { Component, computed, input, ChangeDetectionStrategy } from "@angular/core";
 
 /** The part of a receipt the note reads; any receipt-shaped object works, so the table can pass its rows. */
 export interface ReceiptCurrencyFields {
@@ -45,6 +45,7 @@ export interface ReceiptCurrencyFields {
     `,
   ],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule],
 })
 export class ReceiptCurrencyNoteComponent {

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from "@angular/core";
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
@@ -12,6 +12,7 @@ import { TranslationService } from "../../i18n/translation.service";
     selector: "app-dummy-user-conversion-dialog",
     templateUrl: "./dummy-user-conversion-dialog.component.html",
     styleUrls: ["./dummy-user-conversion-dialog.component.scss"],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class DummyUserConversionDialogComponent implements OnInit {

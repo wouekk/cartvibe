@@ -64,7 +64,7 @@
               class="w-full"
               [label]="'Paid By' | t"
               [inputFormControl]="form | formGet : 'paidByUserIds.' + i"
-              [groupId]="form.get('groupIds.' + i)?.value"
+              [groupId]="$safeNavigationMigration(form.get('groupIds.' + i)?.value)"
               [selectGroupMembersOnly]="true"
             ></app-user-autocomplete>
           }

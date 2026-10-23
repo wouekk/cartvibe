@@ -1,4 +1,4 @@
-import { Component, OnChanges, SimpleChanges, ViewEncapsulation, computed, input, output, viewChildren } from "@angular/core";
+import { Component, OnChanges, SimpleChanges, ViewEncapsulation, computed, input, output, viewChildren, ChangeDetectionStrategy } from "@angular/core";
 import { ImageViewerComponent } from "src/shared-ui/image-viewer/image-viewer.component";
 import { UntilDestroy } from "@ngneat/until-destroy";
 import { FormMode } from "src/enums/form-mode.enum";
@@ -11,6 +11,7 @@ import { FileDataView } from "../../open-api";
     templateUrl: "./carousel.component.html",
     styleUrls: ["./carousel.component.scss"],
     encapsulation: ViewEncapsulation.None,
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class CarouselComponent implements OnChanges {

@@ -1,9 +1,10 @@
-import { Component, computed, Input, input, output } from "@angular/core";
+import { Component, computed, Input, input, output, ChangeDetectionStrategy } from "@angular/core";
 
 @Component({
   selector: "app-base-button",
   standalone: false,
   templateUrl: "./base-button.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./base-button.component.scss"
 })
 export class BaseButtonComponent {

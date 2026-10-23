@@ -1,4 +1,4 @@
-import { Component, ElementRef, EmbeddedViewRef, HostListener, inject, Injector, OnInit, Signal, TemplateRef, computed, runInInjectionContext, signal, viewChild } from "@angular/core";
+import { Component, ElementRef, EmbeddedViewRef, HostListener, inject, Injector, OnInit, Signal, TemplateRef, computed, runInInjectionContext, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { UploadStage, withUploadProgress } from "../../utils/upload-progress";
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
@@ -53,6 +53,7 @@ import { TranslationService } from "../../i18n/translation.service";
   styleUrls: ["./receipt-form.component.scss"],
 
   host: DEFAULT_HOST_CLASS,
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false
 })
 export class ReceiptFormComponent implements OnInit {

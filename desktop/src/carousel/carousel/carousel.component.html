@@ -15,7 +15,7 @@
         source anyway.
       -->
       <app-image-viewer
-        [imageBase64]="preview?.encodedImage"
+        [imageBase64]="$safeNavigationMigration(preview?.encodedImage)"
         [imageFile]="$any(preview.file)"
         [stageHeight]="stageHeight()"
       ></app-image-viewer>

@@ -1,4 +1,4 @@
-import { Component, Input } from "@angular/core";
+import { Component, Input, ChangeDetectionStrategy } from "@angular/core";
 import { FormControl } from "@angular/forms";
 import { BaseInputInterface } from "../../base-input";
 
@@ -6,6 +6,7 @@ import { BaseInputInterface } from "../../base-input";
   selector: "app-checkbox",
   templateUrl: "./checkbox.component.html",
   styleUrls: ["./checkbox.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false
 })
 export class CheckboxComponent implements BaseInputInterface {

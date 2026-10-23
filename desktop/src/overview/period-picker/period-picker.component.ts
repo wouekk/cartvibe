@@ -1,4 +1,4 @@
-import { Component, computed, effect, output, signal } from "@angular/core";
+import { Component, computed, effect, output, signal, ChangeDetectionStrategy } from "@angular/core";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { Store } from "@ngxs/store";
 import { FilterTab } from "../../shared-ui/filter-bar/filter-tab.interface";
@@ -25,6 +25,7 @@ import {
   templateUrl: "./period-picker.component.html",
   host: { class: "block min-w-0 max-w-full" },
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [AppIconComponent, SharedUiModule, TranslatePipe],
 })
 export class PeriodPickerComponent {

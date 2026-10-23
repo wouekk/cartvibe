@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { RECEIPT_STATUS_OPTIONS } from "src/constants/receipt-status-options";
@@ -8,6 +8,7 @@ import { ReceiptStatus } from "../../open-api";
     selector: "app-bulk-status-update-dialog",
     templateUrl: "./bulk-status-update-dialog.component.html",
     styleUrls: ["./bulk-status-update-dialog.component.scss"],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class BulkStatusUpdateComponent implements OnInit {

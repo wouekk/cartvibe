@@ -1,10 +1,11 @@
-import { Component, Input, input, output } from "@angular/core";
+import { Component, Input, input, output, ChangeDetectionStrategy } from "@angular/core";
 import { FormMode } from "src/enums/form-mode.enum";
 
 @Component({
   selector: "app-form-button",
   templateUrl: "./form-button.component.html",
   styleUrls: ["./form-button.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false
 })
 export class FormButtonComponent {

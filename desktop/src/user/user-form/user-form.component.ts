@@ -1,4 +1,4 @@
-import { Component, DestroyRef, Input, OnInit, computed, effect, inject, signal } from "@angular/core";
+import { Component, DestroyRef, Input, OnInit, computed, effect, inject, signal, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { FormBuilder, FormControl, FormGroup, Validators, } from "@angular/forms";
 import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
@@ -40,6 +40,7 @@ import { AddUser, AuthState, UpdateUser } from "../../store";
   host: { class: "block max-h-[85vh] overflow-y-auto" },
     templateUrl: "./user-form.component.html",
     providers: [UserValidators],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class UserFormComponent implements OnInit {
