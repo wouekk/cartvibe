@@ -8,6 +8,13 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-10-23
+
+CartVibe on your home screen, a shopping list made for the shop, and Angular 22 underneath.
+
+> **Upgrade: in place.** No schema change: pull `:latest`, redeploy, hard-refresh. From this version on the app picks up
+> a new release by itself the next time you open a page.
+
 ### Added
 - **Install CartVibe on your phone:** the app now has an icon, a name and a standalone window, so "Add to Home Screen"
   (or Install in Chrome) opens it like any other app. The pages themselves are kept on the device, so it starts fast
@@ -24,6 +31,8 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
   reduce motion).
 
 ### Fixed
+- **Receipt status chips are readable in Black:** "To check" and "Settled" now use the theme's colours instead of
+  fixed light-mode ones.
 - **"Custom" in the period picker is translated** (Polish: Dostosuj, and in German, French and Spanish).
 - **Ticked checkboxes now look ticked:** a checked box fills with the accent in both themes (it used to stay empty
   with only a faint check mark).
@@ -43,6 +52,8 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 - **Angular 22** (with TypeScript 6) and **Node 24** for the web app's build and CI; Node 20 is end of life. The
   unused chart.js pie chart and its two libraries are gone (the Dashboard charts are ApexCharts).
 - The profile page no longer carries the code for connecting other sign-in accounts (its screen was removed earlier).
+- The notes for contributors and AI agents were rewritten to match the current code, with the look described once in
+  `DESIGN.md`.
 
 ## [0.7.0] - 2026-10-23
 
