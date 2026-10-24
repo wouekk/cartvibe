@@ -1,7 +1,7 @@
 import { ShoppingList } from "../open-api";
 
 /** How many finished lists the page keeps in view (Phase 3 S2). */
-export const PAST_LISTS_SHOWN = 3;
+export const PAST_LISTS_SHOWN = 6;
 
 /** A list is finished ("past") once it has items and every one is crossed off; an empty new list is active. */
 export function isPastList(list: ShoppingList): boolean {

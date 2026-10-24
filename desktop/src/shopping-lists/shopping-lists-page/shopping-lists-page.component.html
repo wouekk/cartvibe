@@ -149,78 +149,108 @@
       </div>
     }
 
-    @if (showCards()) {
+    @if (showActiveCards() || completedCards().length > 0) {
       <section class="mt-6" aria-labelledby="shopping-list-cards-title">
         <h3 id="shopping-list-cards-title" class="cv-section__title mb-2">{{ 'Lists' | t }}</h3>
-        <!-- Lists being shopped, newest first, then the latest finished ones, dimmed. A swipeable row on a phone,
-             a grid from sm up. -->
-        <div
-          class="cv-scroll-x -mx-2 flex snap-x gap-3 px-2 pb-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3 2xl:grid-cols-4"
-          data-testid="shopping-list-cards"
-        >
-          @for (card of listCards(); track card.id) {
-            <div class="relative w-60 shrink-0 snap-start sm:w-auto">
-              <button
-                type="button"
-                class="list-card flex size-full min-h-24 flex-col justify-between gap-2 rounded-xl border border-border/70 p-4 text-left transition-[border-color,background-color,box-shadow,transform] duration-150 hover:border-primary/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.99] motion-reduce:transition-none motion-reduce:active:scale-100"
-                [class]="cardClass(card.id, card.past)"
-                [attr.aria-pressed]="card.id === selectedList()?.id"
-                [attr.data-testid]="'shopping-list-card-' + card.id"
-                (click)="selectList(card.id)"
-              >
-                <span class="flex items-start justify-between gap-2" [class.pr-9]="card.past">
-                  <span class="flex min-w-0 items-start gap-2">
-                    @if (card.past) {
-                      <app-icon name="history" class="mt-0.5 shrink-0 text-base"></app-icon>
-                      <span class="sr-only">{{ 'Finished:' | t }}</span>
-                    }
-                    <span class="min-w-0 font-semibold leading-snug tracking-tight break-words">{{ card.name }}</span>
-                  </span>
-                  @if (!card.past) {
-                    <span class="min-w-6 shrink-0 rounded-full bg-muted px-2 py-0.5 text-center text-xs font-medium text-muted-foreground tabular-nums">{{ card.count }}</span>
-                  }
-                </span>
-                <span class="line-clamp-1 text-xs text-muted-foreground">{{ card.preview | t }}</span>
-              </button>
-              @if (card.past && canUpdate()) {
-                <!-- A sibling of the card, not inside it: buttons cannot nest. -->
-                <button
-                  hlmBtn variant="ghost" size="icon"
-                  type="button"
-                  class="absolute top-2.5 right-2"
-                  [attr.data-testid]="'shopping-list-past-menu-' + card.id"
-                  [attr.aria-label]="'Actions for {name}' | t: { name: card.name }"
-                  [hlmDropdownMenuTrigger]="pastMenu" align="end"
-                >
-                  <app-icon name="more_vert"></app-icon>
-                </button>
-                <ng-template #pastMenu>
-                  <div hlmDropdownMenu class="w-56">
-                    <button
-                      hlmDropdownMenuItem
-                      [attr.data-testid]="'shopping-list-restore-' + card.id"
-                      [disabled]="completing()"
-                      (click)="restoreList(card.list)"
-                    >
-                      <app-icon name="restart_alt"></app-icon>
-                      <span>{{ 'Restore' | t }}</span>
-                    </button>
-                    @if (canCreate()) {
-                      <button hlmDropdownMenuItem [attr.data-testid]="'shopping-list-past-copy-' + card.id" (click)="copyList(card.list)">
-                        <app-icon name="content_copy"></app-icon>
-                        <span>{{ 'Start a new list from this' | t }}</span>
-                      </button>
-                    }
-                  </div>
-                </ng-template>
+        @if (showActiveCards()) {
+          <!-- Lists being shopped, newest first. A swipeable row on a phone, a grid from sm up. -->
+          <div
+            class="cv-scroll-x -mx-2 flex snap-x gap-3 px-2 pb-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3 2xl:grid-cols-4"
+            data-testid="shopping-list-cards"
+          >
+            @for (card of activeCards(); track card.id) {
+              <ng-container *ngTemplateOutlet="listCard; context: { $implicit: card }"></ng-container>
+            }
+          </div>
+        }
+        @if (completedCards().length > 0) {
+          <!-- Finished lists fold away, like the crossed-off items inside a list. -->
+          <button
+            type="button"
+            class="inline-flex items-center gap-1 rounded-lg bg-muted/50 px-3 py-1.5 text-xs font-medium text-muted-foreground tabular-nums transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            [class.mt-4]="showActiveCards()"
+            data-testid="shopping-list-completed-toggle"
+            [attr.aria-expanded]="showCompleted()"
+            (click)="showCompleted.set(!showCompleted())"
+          >
+            <app-icon class="text-sm transition-transform duration-150 motion-reduce:transition-none" [class.rotate-180]="showCompleted()" name="expand_more"></app-icon>
+            {{ 'Completed ({count})' | t: { count: completedCards().length } }}
+          </button>
+          @if (showCompleted()) {
+            <div
+              class="cv-scroll-x -mx-2 mt-3 flex snap-x gap-3 px-2 pb-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3 2xl:grid-cols-4"
+              data-testid="shopping-list-completed-cards"
+            >
+              @for (card of completedCards(); track card.id) {
+                <ng-container *ngTemplateOutlet="listCard; context: { $implicit: card }"></ng-container>
               }
             </div>
           }
-        </div>
+        }
       </section>
     }
   }
 </div>
+
+<!-- One list's card: a list being shopped, or a finished one (dimmed, with its own menu beside it). -->
+<ng-template #listCard let-card>
+  <div class="relative w-60 shrink-0 snap-start sm:w-auto">
+    <button
+      type="button"
+      class="list-card flex size-full min-h-24 flex-col justify-between gap-2 rounded-xl border border-border/70 p-4 text-left transition-[border-color,background-color,box-shadow,transform] duration-150 hover:border-primary/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.99] motion-reduce:transition-none motion-reduce:active:scale-100"
+      [class]="cardClass(card.id, card.past)"
+      [attr.aria-pressed]="card.id === selectedList()?.id"
+      [attr.data-testid]="'shopping-list-card-' + card.id"
+      (click)="selectList(card.id)"
+    >
+      <span class="flex items-start justify-between gap-2" [class.pr-9]="card.past">
+        <span class="flex min-w-0 items-start gap-2">
+          @if (card.past) {
+            <app-icon name="history" class="mt-0.5 shrink-0 text-base"></app-icon>
+            <span class="sr-only">{{ 'Finished:' | t }}</span>
+          }
+          <span class="min-w-0 font-semibold leading-snug tracking-tight break-words">{{ card.name }}</span>
+        </span>
+        @if (!card.past) {
+          <span class="min-w-6 shrink-0 rounded-full bg-muted px-2 py-0.5 text-center text-xs font-medium text-muted-foreground tabular-nums">{{ card.count }}</span>
+        }
+      </span>
+      <span class="line-clamp-1 text-xs text-muted-foreground">{{ card.preview | t }}</span>
+    </button>
+    @if (card.past && canUpdate()) {
+      <!-- A sibling of the card, not inside it: buttons cannot nest. -->
+      <button
+        hlmBtn variant="ghost" size="icon"
+        type="button"
+        class="absolute top-2.5 right-2"
+        [attr.data-testid]="'shopping-list-past-menu-' + card.id"
+        [attr.aria-label]="'Actions for {name}' | t: { name: card.name }"
+        [hlmDropdownMenuTrigger]="pastMenu" align="end"
+      >
+        <app-icon name="more_vert"></app-icon>
+      </button>
+      <ng-template #pastMenu>
+        <div hlmDropdownMenu class="w-56">
+          <button
+            hlmDropdownMenuItem
+            [attr.data-testid]="'shopping-list-restore-' + card.id"
+            [disabled]="completing()"
+            (click)="restoreList(card.list)"
+          >
+            <app-icon name="restart_alt"></app-icon>
+            <span>{{ 'Restore' | t }}</span>
+          </button>
+          @if (canCreate()) {
+            <button hlmDropdownMenuItem [attr.data-testid]="'shopping-list-past-copy-' + card.id" (click)="copyList(card.list)">
+              <app-icon name="content_copy"></app-icon>
+              <span>{{ 'Start a new list from this' | t }}</span>
+            </button>
+          }
+        </div>
+      </ng-template>
+    }
+  </div>
+</ng-template>
 
 <ng-template #completedToast>
   <div class="flex items-center justify-between gap-4" data-testid="shopping-list-completed-toast">
