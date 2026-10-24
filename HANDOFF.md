@@ -5,13 +5,10 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 
 ## Current state
 
-- `main` = `preview` = v0.8.0 (2026-10-23): the installable app and page transitions, deleting several shopping lists,
-  the receipt form Cancel, Angular 22 / Node 24, the status chip on theme tokens, and the slimmed docs. `:latest` is
-  published from it after green CI on `main`. Not seen on the NAS yet.
-- `preview` = v0.8.0 + `feature/shopping-list-switcher`: the open list first, list cards below (newest first, finished
-  lists folded under Completed (n) with Restore / Start a new list), header Delete list deletes the open list, Mark as
-  complete with Undo; a receipt's Products card invites adding lines and shows the part not split into products; the
-  README rewritten with new screenshots. `main` waits for the user's go; delete the branch once it is in `main`.
+- `main` = `preview` = v0.9.0 (2026-10-24): the shopping lists page rebuilt around the open list (Mark as complete
+  with Undo, finished lists under Completed, Restore, header Delete list deletes the open list), the receipt Products
+  card explaining unsplit spending, and the README rewritten with new screenshots. `:latest` is published from it
+  after green CI on `main`. Not seen on the NAS yet. No feature branches are open.
 
 ## Open for the user (needs the NAS or a phone)
 
