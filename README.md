@@ -35,47 +35,53 @@ password immediately**. To update, pull the new image and redeploy.
 
 | Feature | Description |
 | :--- | :--- |
-| **Family dashboard** | Your month at a glance: how much you've spent, whether that's more or less than last month, and how you're doing against your budget. Move things around so what matters to you sits at the top. |
-| **Receipts read by AI** | Snap a photo and the AI fills in the shop, the total and every line on the receipt. Bring your own Claude, Gemini or ChatGPT key, or run a model at home with LM Studio. |
-| **Shops at a glance** | Logos for around 230 chains (Biedronka, Żabka, Lidl, Kaufland, Rewe and more), so you can spot a receipt without reading it. |
-| **Healthy or not** | Healthy and unhealthy products are tagged based on the AI's assessment, and fruit and veg are marked as seasonal or imported. |
-| **Product lookup** | Standing in the aisle? Scan or type a barcode to see the Nutri-Score, how processed it is, the additives and the nutrition, straight from Open Food Facts. Your last scans stay one tap away. |
-| **Reports** | Slice your spending by shop, category, tag, health or month, watch the preview change as you go, and download it as CSV, Excel or PDF. |
-| **Shared shopping lists** | One list for the whole household, updated live on every phone. Crossed-off items come back the next time you need them. |
-| **Planned vs unplanned** | Attach a receipt to a list and see exactly what ended up in the basket that wasn't on it. |
-| **Made for a household** | No bill splitting and no approvals: a receipt is either "to check" or "settled", and there are just two roles, Admin and User. |
-| **Themes** | Light or dark, or simply follow your device. Built for the phone first. |
-| **On your home screen** | Add CartVibe to your phone's home screen and it opens like an app. In the shop it can keep the screen on and share the list with the family. |
-| **Languages** | English, Polish, German, French and Spanish, chosen by each person. Reports come out in your language too. |
+| **AI Receipt Scanning & Logging** | Snap a photo of a receipt and let the AI do the heavy lifting. It reads the shop, the total and every line with its price, and sorts each product into your categories. Works with Claude, Gemini or ChatGPT, or with a private model running at home through LM Studio or Ollama. |
+| **Nutritional Insights & Item Health** | Built-in Open Food Facts lookup: scan or type a barcode to see the Nutri-Score, the NOVA processing level, the additives and the nutrition. On your receipts, the AI marks every product as healthy, medium or unhealthy. |
+| **Actionable Spending Dashboards** | See where the month's money went at a glance. Track spending against your family's monthly budget, break it down by category, and spot impulse buys by comparing what you bought with what was on the list. |
+| **App-Like PWA Experience** | A web app built for the phone first. Add CartVibe to your iOS or Android home screen and it opens like an app, and it can keep the screen on while you walk the aisles. |
+| **Native Multi-Language Support** | The whole app speaks English, Polish, German, French and Spanish, and each person picks their own. English and Polish are checked by hand; German, French and Spanish are machine translations still waiting for a native speaker. Reports come out in your language too. |
+| **Live Shared Shopping Lists** | Keep the whole household in sync in real time. Cross items off in the aisle, mark the whole list as done in one tap, bring back a finished list or start a new one from it, and let the family know you're heading to the shop. |
+| **Automated Merchant Recognition** | Recognises around 230 European chains by name (Biedronka, Żabka, Lidl, Kaufland, Rewe and more) and shows their logos, so your receipts are easy to tell apart at a glance. |
+| **Flexible Reporting & Export** | Build your own reports by shop, category, tag, health or period, with a live preview as you go. Export to CSV or Excel for your spreadsheets, or to PDF for your records. |
 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/dashboard-dark.png" />
-    <img src="docs/screenshots/dashboard-light.png" alt="The CartVibe Dashboard: the month's spending against a goal, unhealthy and kids' spending, spending by category and by month" width="100%" />
+    <img src="docs/screenshots/dashboard-light.png" alt="The CartVibe Dashboard: the month's spending against a 600 € goal, unhealthy spending, spending not on the list, the Kids tag, spending by category and by month" width="100%" />
   </picture>
   <br />
-  <sub><b>The family Dashboard</b>: what you've spent this month, how close you are to your goal, and where the money went</sub>
+  <sub><b>The family Dashboard</b>: what you've spent this month, how close you are to your budget, what wasn't on the list, and where the money went</sub>
 </p>
 
 <table>
   <tr>
     <td width="50%" valign="top">
-      <img src="docs/screenshots/product-check.png" alt="Product lookup: an Alpro almond drink with its score, Nutri-Score B, NOVA 4 and additives, and the recent scans above" />
-      <p align="center"><sub><b>Product lookup</b>: scan, upload or type a barcode; your recent scans stay one tap away</sub></p>
+      <img src="docs/screenshots/receipt-products.png" alt="A Kaufland receipt photo next to the products read from it, each with its health rating, category and price" />
+      <p align="center"><sub><b>Receipts read by AI</b>: every line from the photo, with a health rating and a category</sub></p>
     </td>
     <td width="50%" valign="top">
-      <img src="docs/screenshots/report-builder.png" alt="Report builder with a live preview of spending by shop" />
-      <p align="center"><sub><b>Reports</b>: see the result while you build it, then download it</sub></p>
+      <img src="docs/screenshots/product-check.png" alt="Product lookup: an Alpro almond drink with its health score, Nutri-Score B, NOVA 4 and additives" />
+      <p align="center"><sub><b>Product lookup</b>: scan, upload or type a barcode to see what's inside</sub></p>
     </td>
   </tr>
   <tr>
     <td width="50%" valign="top">
-      <img src="docs/screenshots/receipts.png" alt="Receipts list with shop logos for Biedronka, Żabka and Kaufland" />
+      <img src="docs/screenshots/receipts.png" alt="Receipts list with shop logos for Kaufland, Biedronka, Lidl, Dino and Rossmann" />
       <p align="center"><sub><b>Receipts</b>: shop logos, a search that forgives typos, and one date picker</sub></p>
     </td>
     <td width="50%" valign="top">
-      <img src="docs/screenshots/shopping-list.png" alt="Shared shopping list with amounts and units" />
-      <p align="center"><sub><b>Shopping lists</b>: shared and live, and one tap tells everyone you're heading to the shop</sub></p>
+      <img src="docs/screenshots/report-builder.png" alt="Report builder with a live preview of spending by shop and CSV, XLSX and PDF export" />
+      <p align="center"><sub><b>Reports</b>: see the result while you build it, then export it</sub></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="docs/screenshots/shopping-list.png" alt="The Weekly groceries list open, with Going shopping and Mark as complete, and the household's other lists below, finished ones dimmed" />
+      <p align="center"><sub><b>Shopping lists</b>: shared and live; finish a list in one tap, bring back an old one</sub></p>
+    </td>
+    <td width="50%" valign="top" align="center">
+      <img src="docs/screenshots/phone-shopping-list-pl.png" alt="The shopping list on a phone, in Polish" width="62%" />
+      <p align="center"><sub><b>On your phone</b>: from the home screen, in your language (here Polish)</sub></p>
     </td>
   </tr>
 </table>
@@ -86,11 +92,11 @@ password immediately**. To update, pull the new image and redeploy.
 
 | Folder | What |
 |---|---|
-| `api/` | Go API (Chi, GORM, Asynq) |
-| `desktop/` | Angular web app (the UI that ships, mobile-friendly) |
-| `docker/` | The single image: nginx in front of the API |
-| `docs/` | Development setup, AI prompts, themes |
-| `site/` | The project page |
+| `api/` | Go backend (Chi router, GORM, Asynq background workers on Redis) |
+| `desktop/` | Angular web app, installable as a PWA and built for phones first |
+| `docker/` | One production image: nginx serves the app and proxies the Go API |
+| `docs/` | Developer setup, the AI prompts, themes and these screenshots |
+| `site/` | The static project page |
 
 Working notes for contributors and AI agents: [CLAUDE.md](CLAUDE.md), [AGENTS.md](AGENTS.md), [DESIGN.md](DESIGN.md), [docs/dev-setup.md](docs/dev-setup.md).
 
