@@ -34,8 +34,8 @@ What exists today:
 - The AI answers in one language for the household.
 - Reports cut by a line field count a receipt once per bucket it falls into (totals stay exact).
 - Kept on purpose, do not rename: JWT issuer/audience `https://receiptWrangler.io` (changing it signs everyone out and
-  breaks MCP tokens), API key prefix `rw-v1`, the `wranglerasynq` / `wranglervenv` names, the container paths
-  `/app/receipt-wrangler-api/...`.
+  breaks MCP tokens), API key prefix `rw-v1`, the `wranglerasynq` / `wranglervenv` names. The container paths are
+  `/app/cartvibe-api/...` (the image, the root compose file and the README guide must agree).
 
 ## Visual identity
 

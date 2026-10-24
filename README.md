@@ -24,12 +24,90 @@
 
 ## Quick start
 
-Requirements: [Docker](https://docs.docker.com/get-docker/) and Docker Compose (or a NAS stack manager such as Dockhand).
+All you need is [Docker](https://docs.docker.com/get-docker/) with Docker Compose, or a NAS stack manager such as
+Dockhand or Synology's Container Manager. There is nothing to build: GitHub publishes a ready-made image,
+`ghcr.io/wouekk/cartvibe` (`:latest` is the current release, `:preview` the version being tried out).
 
-One image, built by GitHub Actions: `ghcr.io/wouekk/cartvibe` (`:latest` from `main`, `:preview` from a branch).
-The root [docker-compose.yml](docker-compose.yml) is a complete stack (app + Redis + SQLite). Set `SECRET_KEY` and
-`ENCRYPTION_KEY` (letters and digits only, no `$`), start it, and sign in with the default `admin` / `admin` **and change that
-password immediately**. To update, pull the new image and redeploy.
+### 1. Make a folder and save this as `docker-compose.yml`
+
+```yaml
+services:
+  cartvibe:
+    image: ghcr.io/wouekk/cartvibe:latest
+    pull_policy: always              # every deploy checks for a newer image
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - "8091:80"                    # open CartVibe at http://<your-server>:8091
+    environment:
+      - TZ=Europe/Paris              # your time zone
+      - SECRET_KEY=${SECRET_KEY}     # both come from the .env file in step 2
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - DB_ENGINE=sqlite
+      - DB_FILENAME=app.db           # keep this name, or the app starts with an empty database
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    volumes:
+      - ./sqlite:/app/cartvibe-api/sqlite   # the database
+      - ./data:/app/cartvibe-api/data       # receipt photos
+      - ./logs:/app/cartvibe-api/logs
+
+  redis:                             # background jobs (AI reads, clean-up) queue here
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - redis-data:/data
+
+volumes:
+  redis-data:
+```
+
+### 2. Add your two keys
+
+Next to it, create a file called `.env` with two long random keys. Use letters and digits only: Compose treats a `$`
+as the start of a variable and silently drops it.
+
+```bash
+printf 'SECRET_KEY=%s\nENCRYPTION_KEY=%s\n' "$(openssl rand -hex 32)" "$(openssl rand -hex 32)" > .env
+```
+
+Keep this file safe and never change `ENCRYPTION_KEY` later: everyone's passwords and the AI keys you save in the app
+depend on it, so a new one would lock you out.
+
+### 3. Start it
+
+```bash
+docker compose up -d
+```
+
+Open `http://<your-server>:8091` and sign in with `admin` / `admin`, then **change that password straight away**.
+The welcome screen asks for your language, theme and currency, and the AI page is where you add a Claude, Gemini or
+ChatGPT key (or a model at home) so receipts can be read.
+
+### Updating
+
+```bash
+docker compose pull && docker compose up -d
+```
+
+Then hard-refresh the browser. Before a release whose [changelog](CHANGELOG.md) mentions a database change, copy the
+`sqlite` folder somewhere safe first.
+
+### On a Synology NAS (Dockhand or Container Manager)
+
+Paste the YAML as a new stack and set `SECRET_KEY` and `ENCRYPTION_KEY` in the stack's environment variables instead of
+a `.env` file. Point the three folders at shared folders on the NAS (for example `/volume1/docker/cartvibe/sqlite`)
+and create them first. If the app can't write to them, also set `PUID` and `PGID` to the DSM user that owns them (run
+`id <user>` over SSH, for example 1026 and 100). Updating is a redeploy: `pull_policy: always` fetches the new image.
+The annotated stack this project runs itself is [docker-compose.yml](docker-compose.yml).
 
 ## Features
 
