@@ -62,8 +62,9 @@
             <app-datepicker
               [label]="'Date' | t"
               class="w-full"
+              data-testid="receipt-date"
               [inputFormControl]="form | formGet : 'date'"
-              [readonly]="mode | inputReadonly"
+              [readonly]="(mode | inputReadonly) && !canSetDateInPlace()"
             ></app-datepicker>
             <!-- No receipt-level Categories and Tags: they describe the product lines now (Products
                  section). The form keeps a receipt's old values, so saving never drops them. -->
