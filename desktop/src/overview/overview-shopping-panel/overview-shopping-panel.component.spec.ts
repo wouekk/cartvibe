@@ -94,6 +94,29 @@ describe("OverviewShoppingPanelComponent", () => {
 
     expect(rows().length).toBe(PANEL_ITEM_LIMIT);
     expect(el().querySelector("[data-testid=overview-shopping-more]")?.textContent).toContain("3");
+    expect(el().querySelector("[data-testid=overview-shopping-items]")?.hasAttribute("data-scrollable")).toBe(false);
+  });
+
+  it("with a mouse, lists every item in a box that scrolls", async () => {
+    window.matchMedia = jest.fn((query: string) => ({
+      matches: true,
+      media: query,
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+    })) as unknown as typeof window.matchMedia;
+    try {
+      fixture.destroy();
+      fixture = TestBed.createComponent(OverviewShoppingPanelComponent);
+      fixture.componentRef.setInput("groupId", 1);
+      fixture.componentRef.setInput("canUpdate", true);
+      await render([list(1, "Big", Array.from({ length: PANEL_ITEM_LIMIT + 3 }, (_v, i) => item(i + 1, 1, `item ${i + 1}`)))]);
+
+      expect(rows().length).toBe(PANEL_ITEM_LIMIT + 3);
+      expect(el().querySelector("[data-testid=overview-shopping-items]")?.hasAttribute("data-scrollable")).toBe(true);
+      expect(el().querySelector("[data-testid=overview-shopping-more]")).toBeNull();
+    } finally {
+      delete (window as Partial<Window>).matchMedia;
+    }
   });
 
   it("makes an item leave the list at once and offers Undo", async () => {

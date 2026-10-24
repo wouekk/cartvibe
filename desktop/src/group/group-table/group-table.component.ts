@@ -160,6 +160,7 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
       );
 
       dialogRef.componentInstance.headerText = marker("Delete Group");
+      dialogRef.componentInstance.confirmText = marker("Delete");
       dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you want to delete the group '{name}'? All receipts will be deleted as a result.", { name: group.name });
 
       dialogRef.afterClosed().subscribe((r) => {

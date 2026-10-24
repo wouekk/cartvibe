@@ -14,10 +14,14 @@ import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { formatShoppingListItemAmount } from "../../shopping-lists/shopping-list-item-form";
 import { ShoppingListEventType } from "../../store/shopping-list.state";
 import { ApplyShoppingListEvent } from "../../store/shopping-list.state.actions";
+import { finePointerSignal } from "../../utils/fine-pointer";
 import { activeItemsOf, pickLargestList } from "../overview-lists";
 
-/** How many items the panel lists before pointing at the full list. */
-export const PANEL_ITEM_LIMIT = 8;
+/**
+ * How many items the panel shows. With a mouse the rest scroll inside the panel; on a touch screen the panel stops
+ * there and points at the full list, since a scroll box under the thumb would catch the swipe meant for the page.
+ */
+export const PANEL_ITEM_LIMIT = 5;
 
 /** How long the Undo row stays after an item is marked done. */
 export const UNDO_WINDOW_MS = 6000;
@@ -79,7 +83,14 @@ export class OverviewShoppingPanelComponent {
 
   public readonly activeItems = computed(() => activeItemsOf(this.featured()));
 
-  public readonly visibleItems = computed(() => this.activeItems().slice(0, PANEL_ITEM_LIMIT));
+  private readonly finePointer = finePointerSignal();
+
+  /** More items than fit, with a mouse: they all render and the list scrolls under the wheel. */
+  public readonly scrollable = computed(() => this.finePointer() && this.activeItems().length > PANEL_ITEM_LIMIT);
+
+  public readonly visibleItems = computed(() =>
+    this.scrollable() ? this.activeItems() : this.activeItems().slice(0, PANEL_ITEM_LIMIT)
+  );
 
   public readonly hiddenCount = computed(() => this.activeItems().length - this.visibleItems().length);
 

@@ -494,9 +494,16 @@
                       <a [routerLink]="['/receipts/group', groupId()]">{{ 'All receipts' | t }}</a>
                     </div>
                     @if (recentReceipts().length > 0) {
-                      <div class="overflow-x-auto">
+                      <!-- With a mouse it scrolls under the wheel, header pinned; the page takes over at either end. -->
+                      <div
+                        class="overflow-x-auto"
+                        [class.cv-scroll-y]="recentReceiptsMaxHeight()"
+                        [style.max-height]="recentReceiptsMaxHeight()"
+                        [attr.data-scrollable]="recentReceiptsMaxHeight() ? '' : null"
+                        data-testid="overview-recent-receipts-scroll"
+                      >
                         <table hlmTable class="w-full min-w-[35rem]" data-testid="overview-recent-receipts">
-                          <thead>
+                          <thead class="[&_th]:sticky [&_th]:top-0 [&_th]:z-10 [&_th]:bg-card [&_th]:shadow-[inset_0_-1px_0_var(--border)]">
                             <tr hlmTr>
                               <th hlmTh scope="col">{{ 'Date' | t }}</th>
                               <th hlmTh scope="col">{{ 'Shop' | t }}</th>

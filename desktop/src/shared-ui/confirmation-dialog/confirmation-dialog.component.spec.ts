@@ -41,4 +41,10 @@ describe('ConfirmationDialogComponent', () => {
 
     expect(footer().submitButtonTooltip).toBe('Add AI API key');
   });
+
+  it('starts the focus on the question, so no button tooltip pops open with the dialog', () => {
+    const content: HTMLElement = fixture.nativeElement.querySelector('[data-testid=confirmation-dialog-content]');
+    expect(content.hasAttribute('cdkFocusInitial')).toBe(true);
+    expect(content.getAttribute('tabindex')).toBe('-1');
+  });
 });

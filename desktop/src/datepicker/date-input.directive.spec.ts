@@ -47,4 +47,25 @@ describe("DateInputDirective", () => {
     input.dispatchEvent(new Event("input"));
     expect(fixture.componentInstance.control.value).toBeNull();
   });
+
+  it("closes the calendar after a day is picked, but keeps the focus while the day is typed", async () => {
+    const fixture = TestBed.createComponent(HostComponent);
+    document.body.appendChild(fixture.nativeElement);
+    await fixture.whenStable();
+    const input: HTMLInputElement = fixture.nativeElement.querySelector("input");
+
+    input.focus();
+    input.dispatchEvent(new Event("pointerdown"));
+    input.value = "2026-11-02";
+    input.dispatchEvent(new Event("input"));
+    expect(document.activeElement).not.toBe(input);
+
+    input.focus();
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "3" }));
+    input.value = "2026-11-03";
+    input.dispatchEvent(new Event("input"));
+    expect(document.activeElement).toBe(input);
+
+    fixture.nativeElement.remove();
+  });
 });
