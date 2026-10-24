@@ -1195,6 +1195,44 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
+  /receipt/{receiptId}/amount:
+    parameters:
+      - in: path
+        name: receiptId
+        schema:
+          type: integer
+        required: true
+        description: Id of the receipt whose total changes
+    put:
+      tags:
+        - Receipt
+      summary: Set a receipt's total
+      description: >-
+        Changes only the total of a receipt, e.g. to the sum of its products when they add up to more
+        [group.receipts.update]. Refused (400) for a receipt converted from another currency.
+      operationId: setReceiptAmount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetReceiptAmountCommand"
+      responses:
+        200:
+          description: The saved total
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SetReceiptAmountCommand"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
   /receipt/{receiptId}:
     parameters:
       - in: path
@@ -6532,6 +6570,14 @@ components:
         name:
           type: string
           maxLength: 255
+    SetReceiptAmountCommand:
+      type: object
+      required:
+        - amount
+      properties:
+        amount:
+          type: string
+          description: The new total in the main currency, as a decimal string greater than 0 (e.g. "85.00")
     QuickScanCommand:
       required:
         - files

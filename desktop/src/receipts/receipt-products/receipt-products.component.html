@@ -165,6 +165,20 @@
     </p>
   }
 
+  @if (overTotal(); as over) {
+    <!-- The total stays as entered (the gap may be a discount) until the person sets it to the products. -->
+    <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground tabular-nums" data-testid="receipt-products-over-total">
+      <span>
+        {{ 'The products add up to {sum}, {over} more than the total ({total}).' | t: { sum: (over.sum | customCurrency), over: (over.over | customCurrency), total: ((receiptAmount() ?? 0) | customCurrency) } }}
+      </span>
+      @if (canUpdate() && !receiptConverted()) {
+        <button hlmBtn variant="outline" size="sm" type="button" data-testid="receipt-products-set-total" (click)="setTotal.emit(over.sum)">
+          {{ 'Set total to {amount}' | t: { amount: (over.sum | customCurrency) } }}
+        </button>
+      }
+    </div>
+  }
+
   @if (canUpdate()) {
     <form class="mt-3 flex flex-wrap items-center gap-2" data-testid="receipt-product-add-row" (submit)="$event.preventDefault(); addProduct()">
       <input
