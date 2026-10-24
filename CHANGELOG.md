@@ -8,6 +8,31 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-10-24
+
+Receipts whose products don't match the total, and a proofread of every language.
+
+> **Upgrade: in place.** No schema change: pull `:latest`, redeploy, hard-refresh.
+
+### Added
+- **Set the total from the products:** when a receipt's products add up to more than its total (say a 75 € total with
+  products of 75 € and 10 €), the receipt page says so and offers **Set total to 85,00 €**. One tap updates the total,
+  and the Dashboard and reports follow. The total never changes by itself, since the difference may be a discount. A
+  receipt converted from another currency gets the explanation but no button.
+
+### Fixed
+- **Units count properly in every language:** "2 butelki" and "5 butelek" in Polish, "2 Flaschen", "2 bocaux",
+  "2 botellas", and "2 bottles" in English (it used to say "2 bottle").
+- **Dashboard day labels** use the right grammatical form, e.g. "21 października 2026" in Polish.
+- **Polish proofread:** wrong meanings fixed ("Nieżywnościowe", "Od początku", "Wym."), names no longer forced into
+  the wrong case ("Usuń: {name}"), success messages in the usual impersonal form ("Usunięto paragon"), "AI" used
+  consistently, and counts that read right with 1, 2 and 5.
+- **German, French and Spanish proofread:** the same kinds of fixes, plus error messages that now speak to you
+  directly, one word for "crossed off", and the receipt word used consistently.
+- A few English texts were corrected: "Previous (Left Arrow)", "Thousands Separator", the delete-user warning,
+  "Base URL" and others.
+- The Dashboard's shopping list link has its own label ("Open list") instead of borrowing the receipt status "Open".
+
 ## [0.9.0] - 2026-10-24
 
 A shopping lists page built around the list you're shopping from, and receipts that are easier to split into
