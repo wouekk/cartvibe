@@ -572,6 +572,7 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
     const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
 
     dialogRef.componentInstance.headerText = marker("Remove Image");
+    dialogRef.componentInstance.confirmText = marker("Remove");
     dialogRef.componentInstance.dialogContent = marker("Are you sure you would like to remove this image?");
 
     dialogRef

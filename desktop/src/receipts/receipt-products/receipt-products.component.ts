@@ -332,6 +332,7 @@ export class ReceiptProductsComponent {
   public remove(product: ReceiptProduct): void {
     const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
     dialogRef.componentInstance.headerText = marker("Remove product");
+    dialogRef.componentInstance.confirmText = marker("Remove");
     dialogRef.componentInstance.dialogContent = this.translation.t("Remove \"{name}\" from this receipt?", { name: product.displayName || product.name });
 
     dialogRef

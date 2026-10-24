@@ -1233,6 +1233,44 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
+  /receipt/{receiptId}/date:
+    parameters:
+      - in: path
+        name: receiptId
+        schema:
+          type: integer
+        required: true
+        description: Id of the receipt whose date changes
+    put:
+      tags:
+        - Receipt
+      summary: Set a receipt's date
+      description: >-
+        Changes only the date of a receipt, settled or not, e.g. from its view page [group.receipts.update].
+        Refused (400) for a receipt converted from another currency.
+      operationId: setReceiptDate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetReceiptDateCommand"
+      responses:
+        200:
+          description: The saved date
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SetReceiptDateCommand"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
   /receipt/{receiptId}:
     parameters:
       - in: path
@@ -6578,6 +6616,14 @@ components:
         amount:
           type: string
           description: The new total in the main currency, as a decimal string greater than 0 (e.g. "85.00")
+    SetReceiptDateCommand:
+      type: object
+      required:
+        - date
+      properties:
+        date:
+          type: string
+          description: The receipt's calendar day as yyyy-MM-dd (e.g. "2026-10-21"), stored as midnight UTC
     QuickScanCommand:
       required:
         - files

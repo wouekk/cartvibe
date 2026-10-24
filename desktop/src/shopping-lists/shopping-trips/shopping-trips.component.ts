@@ -166,7 +166,7 @@ export class ShoppingTripsComponent {
   }
 
   public remove(trip: ShoppingTripView): void {
-    this.confirm(marker("Remove Receipt"), marker("Remove this receipt from the list? The receipt itself is kept."))
+    this.confirm(marker("Remove Receipt"), marker("Remove this receipt from the list? The receipt itself is kept."), marker("Remove"))
       .pipe(switchMap(() => this.shoppingListService.detachShoppingTrip(trip.id)))
       .subscribe({
         next: () => this.trips.set(this.trips().filter((candidate) => candidate.id !== trip.id)),
@@ -189,10 +189,11 @@ export class ShoppingTripsComponent {
       });
   }
 
-  private confirm(headerText: string, dialogContent: string): Observable<unknown> {
+  private confirm(headerText: string, dialogContent: string, confirmText: string): Observable<unknown> {
     const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
     dialogRef.componentInstance.headerText = headerText;
     dialogRef.componentInstance.dialogContent = dialogContent;
+    dialogRef.componentInstance.confirmText = confirmText;
 
     // Truthiness, not === true: a backdrop click or ESC closes with undefined.
     return dialogRef.afterClosed().pipe(

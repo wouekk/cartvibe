@@ -721,6 +721,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
 
     dialogRef.componentInstance.headerText = marker("Delete Receipt");
+    dialogRef.componentInstance.confirmText = marker("Delete");
     dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you would like to delete the receipt {name}? This action is irreversible.", { name: row.name });
 
     dialogRef

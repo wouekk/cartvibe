@@ -389,6 +389,7 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
   public deleteList(list: ShoppingList): void {
     const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
     dialogRef.componentInstance.headerText = marker("Delete List");
+    dialogRef.componentInstance.confirmText = marker("Delete");
     dialogRef.componentInstance.dialogContent = this.translation.t("Delete \"{name}\" and all of its items?", { name: list.name });
 
     dialogRef

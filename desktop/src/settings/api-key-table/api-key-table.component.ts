@@ -212,6 +212,7 @@ export class ApiKeyTableComponent extends BaseTableComponent<ApiKeyView> impleme
     );
 
     dialogRef.componentInstance.headerText = "Delete API Key";
+    dialogRef.componentInstance.confirmText = marker("Delete");
     dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you would like to delete the API key \"{name}\"? This action is irreversible and the API key will no longer be usable.", { name: apiKeyView.name });
 
     dialogRef.afterClosed().subscribe((confirmed) => {

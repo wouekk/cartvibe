@@ -218,6 +218,7 @@ export class TagTableComponent implements OnInit, AfterViewInit {
       DEFAULT_DIALOG_CONFIG
     );
     dialogRef.componentInstance.headerText = this.translation.t("Delete {name}", { name: tagView.name });
+    dialogRef.componentInstance.confirmText = marker("Delete");
     dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you want to delete {name}? This action is irreversible and will remove this tag from the receipts it is associated with.", { name: tagView.name });
     dialogRef
       .afterClosed()

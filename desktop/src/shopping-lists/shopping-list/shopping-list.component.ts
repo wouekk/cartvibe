@@ -145,7 +145,7 @@ export class ShoppingListComponent {
   }
 
   public deleteItem(item: ShoppingListItem): void {
-    this.confirm(marker("Delete Item"), this.translation.t("Delete \"{name}\" from this list?", { name: item.name }))
+    this.confirm(marker("Delete Item"), this.translation.t("Delete \"{name}\" from this list?", { name: item.name }), marker("Delete"))
       .pipe(switchMap(() => this.shoppingListService.deleteShoppingListItem(item.id)))
       .subscribe({
         next: () => this.applyItem(ShoppingListEventType.ItemDeleted, item),
@@ -155,7 +155,7 @@ export class ShoppingListComponent {
 
   public clearCrossedOff(): void {
     const itemIds = this.checkedItems().map((item) => item.id);
-    this.confirm(marker("Clear Crossed Off"), this.translation.t("Remove all {count} crossed-off items from this list?", { count: itemIds.length }))
+    this.confirm(marker("Clear Crossed Off"), this.translation.t("Remove all {count} crossed-off items from this list?", { count: itemIds.length }), marker("Remove"))
       .pipe(switchMap(() => this.shoppingListService.clearCheckedShoppingListItems(this.list().id)))
       .subscribe({
         next: () =>
@@ -191,10 +191,11 @@ export class ShoppingListComponent {
     );
   }
 
-  private confirm(headerText: string, dialogContent: string) {
+  private confirm(headerText: string, dialogContent: string, confirmText: string) {
     const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
     dialogRef.componentInstance.headerText = headerText;
     dialogRef.componentInstance.dialogContent = dialogContent;
+    dialogRef.componentInstance.confirmText = confirmText;
 
     // Truthiness, not === true: a backdrop click or ESC closes with undefined.
     return dialogRef.afterClosed().pipe(
