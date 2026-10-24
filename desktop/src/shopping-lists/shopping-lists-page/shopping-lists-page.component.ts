@@ -1,11 +1,24 @@
-import { Component, OnDestroy, OnInit, computed, effect, signal, untracked, inject, ChangeDetectionStrategy } from "@angular/core";
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  TemplateRef,
+  computed,
+  effect,
+  signal,
+  untracked,
+  inject,
+  viewChild,
+  ChangeDetectionStrategy,
+} from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
-import { catchError, concatMap, EMPTY, filter, from, map, switchMap, take, tap, toArray } from "rxjs";
+import { concatMap, filter, from, map, switchMap, take, tap, toArray } from "rxjs";
 import { Permission, ShoppingList, ShoppingListService } from "../../open-api";
 import { SnackbarService } from "../../services";
+import { ToastRef } from "../../toast/toast.service";
 import { OnlineStatusService } from "../../services/online-status.service";
 import { ScreenWakeLockService } from "../../services/screen-wake-lock.service";
 import { ShoppingListStreamService } from "../../services/shopping-list-stream.service";
@@ -65,15 +78,20 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
 
   public readonly canDelete = computed(() => hasAll(this.permissions(), Permission.GroupShoppingListsDelete));
 
-  /** One card per list still being shopped: its name, what is left to buy and the first few items (Phase 3 S2). */
-  public readonly listCards = computed(() =>
-    activeLists(this.lists()).map((list) => {
+  /**
+   * The switcher under the open list: one card per list still being shopped (newest first, with what is left to
+   * buy and the first few items), then the latest finished lists, dimmed, with every item they had.
+   */
+  public readonly listCards = computed(() => [
+    ...activeLists(this.lists()).map((list) => {
       const toBuy = list.items.filter((item) => !item.isChecked);
       const names = toBuy.slice(0, 3).map((item) => item.name);
       const more = toBuy.length - names.length;
       return {
         id: list.id,
         name: list.name,
+        past: false,
+        list,
         count: toBuy.length,
         preview:
           toBuy.length === 0
@@ -82,8 +100,29 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
               ? this.translation.t("{names}, and {count} more", { names: names.join(", "), count: more })
               : names.join(", "),
       };
-    })
-  );
+    }),
+    ...recentPastLists(this.lists()).map((list) => {
+      const names = list.items.slice(0, 3).map((item) => item.name);
+      const more = list.items.length - names.length;
+      return {
+        id: list.id,
+        name: list.name,
+        past: true,
+        list,
+        count: list.items.length,
+        preview:
+          more > 0
+            ? this.translation.t("{names}, and {count} more", { names: names.join(", "), count: more })
+            : names.join(", "),
+      };
+    }),
+  ]);
+
+  /** The switcher is left out when its only card would be the list already open above it. */
+  public readonly showCards = computed(() => {
+    const cards = this.listCards();
+    return cards.length > 1 || (cards.length === 1 && cards[0].id !== this.selectedList()?.id);
+  });
 
   /** What is left to buy on the open list, for its workspace header. */
   public readonly toBuyCount = computed(
@@ -92,16 +131,15 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
 
   public readonly announcing = signal(false);
 
-  /** Choosing lists to delete: the cards become checkable and the header offers Delete (n) and Cancel. */
-  public readonly selecting = signal(false);
+  /** True while a whole list is being crossed off or put back, so the buttons cannot fire twice. */
+  public readonly completing = signal(false);
 
-  public readonly selectedIds = signal<ReadonlySet<number>>(new Set());
+  /** The list "Mark as complete" just finished and the items it crossed off, for the toast's Undo. */
+  public readonly lastCompleted = signal<{ listId: number; name: string; itemIds: number[] } | undefined>(undefined);
 
-  public readonly selectedCount = computed(() => this.selectedIds().size);
+  private readonly completedToast = viewChild.required<TemplateRef<unknown>>("completedToast");
 
-  public readonly deleting = signal(false);
-
-  public readonly canDeleteLists = computed(() => this.canDelete() && this.lists().length > 0);
+  private completedToastRef?: ToastRef;
 
   private readonly wakeLock = inject(ScreenWakeLockService);
 
@@ -113,10 +151,6 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
   public readonly online = inject(OnlineStatusService).online;
 
   public readonly canShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
-
-  /** Finished lists (everything crossed off), the latest few, shown beside the open list. */
-
-  public readonly pastLists = computed(() => recentPastLists(this.lists()));
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -155,105 +189,81 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
     void this.wakeLock.disable();
   }
 
-  public startSelecting(): void {
-    this.selectedIds.set(new Set());
-    this.selecting.set(true);
-  }
-
-  public cancelSelecting(): void {
-    this.selecting.set(false);
-    this.selectedIds.set(new Set());
-  }
-
-  public isSelected(id: number): boolean {
-    return this.selectedIds().has(id);
-  }
-
-  /** What a card is "pressed" for: ticked while choosing lists to delete, otherwise the open list. */
-  public isPressed(id: number): boolean {
-    return this.selecting() ? this.isSelected(id) : id === this.selectedList()?.id;
-  }
-
-  public cardClass(id: number): string {
-    if (this.selecting()) {
-      return this.isSelected(id) ? "border-destructive! bg-destructive/10 ring-1 ring-destructive/30" : "";
+  /** The open list's card carries the selected style; a finished list's card is dimmed. */
+  public cardClass(id: number, past: boolean): string {
+    if (id === this.selectedList()?.id) {
+      return "border-primary! bg-accent/30 ring-1 ring-primary/20 text-card-foreground";
     }
 
-    return id === this.selectedList()?.id ? "border-primary! bg-accent/30 ring-1 ring-primary/20" : "";
+    return past ? "bg-muted/30 text-muted-foreground" : "bg-card text-card-foreground";
   }
 
-  /** A card or past list was clicked: it opens the list, or ticks it while choosing lists to delete. */
-  public pick(id: number): void {
-    if (!this.selecting()) {
-      this.selectList(id.toString());
+  public selectList(id: number): void {
+    this.store.dispatch(new SelectShoppingList(id));
+  }
+
+  /**
+   * Everything was bought as planned: crosses the whole list off in one go and opens the next list still being
+   * shopped. The toast's Undo puts back exactly the items this crossed off.
+   */
+  public completeList(list: ShoppingList): void {
+    const itemIds = list.items.filter((item) => !item.isChecked).map((item) => item.id);
+    if (itemIds.length === 0) {
       return;
     }
 
-    this.selectedIds.update((ids) => {
-      const next = new Set(ids);
-      if (!next.delete(id)) {
-        next.add(id);
+    navigator.vibrate?.(10);
+    this.setListChecked(list, true, undefined, () => {
+      const next = activeLists(this.lists())[0];
+      if (next) {
+        this.selectList(next.id);
       }
-      return next;
+
+      this.lastCompleted.set({ listId: list.id, name: list.name, itemIds });
+      this.completedToastRef?.dismiss();
+      this.completedToastRef = this.snackbarService.successFromTemplate(this.completedToast(), { duration: 8000 });
     });
   }
 
-  /** Deletes the ticked lists one after another; the ones the server refused stay ticked. */
-  public deleteSelected(): void {
-    const chosen = this.lists().filter((list) => this.selectedIds().has(list.id));
-    if (chosen.length === 0) {
+  public undoComplete(): void {
+    const completed = this.lastCompleted();
+    this.completedToastRef?.dismiss();
+    this.completedToastRef = undefined;
+    const list = completed && this.lists().find((candidate) => candidate.id === completed.listId);
+    if (!completed || !list) {
       return;
     }
 
-    const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
-    dialogRef.componentInstance.headerText = marker("Delete Lists");
-    dialogRef.componentInstance.dialogContent = this.translation.t("Delete {count} lists and all of their items?", {
-      count: chosen.length,
-    });
-
-    dialogRef
-      .afterClosed()
-      .pipe(
-        take(1),
-        // Truthiness, not === true: a backdrop click or ESC closes with undefined.
-        filter((confirmed) => !!confirmed),
-        tap(() => this.deleting.set(true)),
-        switchMap(() =>
-          from(chosen).pipe(
-            concatMap((list) =>
-              this.shoppingListService.deleteShoppingList(list.id).pipe(
-                tap(() =>
-                  this.store.dispatch(
-                    new ApplyShoppingListEvent({
-                      type: ShoppingListEventType.ListDeleted,
-                      groupId: list.groupId,
-                      shoppingListId: list.id,
-                    })
-                  )
-                ),
-                map(() => list.id),
-                // The interceptor already toasts the refusal; carry on with the rest.
-                catchError(() => EMPTY)
-              )
-            ),
-            toArray()
-          )
-        )
-      )
-      .subscribe((deletedIds) => {
-        this.deleting.set(false);
-        if (deletedIds.length === chosen.length) {
-          this.cancelSelecting();
-          return;
-        }
-
-        this.selectedIds.set(new Set(chosen.map((list) => list.id).filter((id) => !deletedIds.includes(id))));
-        this.snackbarService.error("Some lists could not be deleted.");
-      });
+    this.lastCompleted.set(undefined);
+    this.setListChecked(list, false, completed.itemIds, () => this.selectList(list.id));
   }
 
-  public selectList(value: string): void {
-    this.store.dispatch(new SelectShoppingList(Number(value)));
+  /** A finished list back on the go: every item un-crossed, and the list opened. */
+  public restoreList(list: ShoppingList): void {
+    this.setListChecked(list, false, undefined, () => this.selectList(list.id));
+  }
+
+  private setListChecked(list: ShoppingList, isChecked: boolean, itemIds: number[] | undefined, done: () => void): void {
+    this.completing.set(true);
+    this.shoppingListService
+      .setShoppingListChecked(list.id, { isChecked, itemIds })
+      .pipe(take(1))
+      .subscribe({
+        next: (saved) => {
+          this.store.dispatch(
+            new ApplyShoppingListEvent({
+              type: ShoppingListEventType.ListUpdated,
+              groupId: saved.groupId,
+              shoppingListId: saved.id,
+              list: saved,
+            })
+          );
+          this.completing.set(false);
+          done();
+        },
+        // The interceptor toasts the refusal.
+        error: () => this.completing.set(false),
+      });
   }
 
   public addList(): void {

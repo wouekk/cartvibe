@@ -151,6 +151,7 @@ func TestShoppingListEndpointsRequirePermissions(t *testing.T) {
 		"check item":    {SetShoppingListItemChecked, "PUT", `{"isChecked":true}`, itemParam},
 		"delete item":   {DeleteShoppingListItem, "DELETE", "", itemParam},
 		"clear checked": {ClearCheckedShoppingListItems, "POST", "", listParam},
+		"check list":    {SetShoppingListChecked, "PUT", `{"isChecked":true}`, listParam},
 	}
 
 	for name, test := range tests {
@@ -291,6 +292,125 @@ func TestShoppingListSetCheckedRequiresState(t *testing.T) {
 	stored, _ := repositories.NewShoppingListRepository(nil).GetShoppingListItemById(item.ID)
 	if !stored.IsChecked {
 		t.Error("an empty body must not un-check the item")
+	}
+}
+
+func setShoppingListCheckedForTest(t *testing.T, userId uint, listId uint, body string) models.ShoppingList {
+	t.Helper()
+	w, r := shoppingListRequest("PUT", body, userId, map[string]string{"listId": fmt.Sprint(listId)})
+	SetShoppingListChecked(w, r)
+	assertStatus(t, w, http.StatusOK)
+	return decodeShoppingListResponse[models.ShoppingList](t, w)
+}
+
+func checkedItemIds(list models.ShoppingList) map[uint]bool {
+	checked := map[uint]bool{}
+	for _, item := range list.Items {
+		if item.IsChecked {
+			checked[item.ID] = true
+		}
+	}
+	return checked
+}
+
+func TestShoppingListSetListCheckedCompletesAndRestores(t *testing.T) {
+	defer tearDownShoppingListTest()
+	repositories.CreateTestGroupWithUsers()
+	grantAllGroupPerms(t, 1, 1)
+	list := createShoppingListForTest(t, 1, "1", "Supermarket")
+	milk := addShoppingListItemForTest(t, 1, list.ID, `{"name":"Milk"}`)
+	bread := addShoppingListItemForTest(t, 1, list.ID, `{"name":"Bread"}`)
+	eggs := addShoppingListItemForTest(t, 1, list.ID, `{"name":"Eggs"}`)
+	earlier := setShoppingListItemCheckedForTest(t, 1, milk.ID, true)
+
+	other := createShoppingListForTest(t, 1, "1", "Bakery")
+	otherItem := addShoppingListItemForTest(t, 1, other.ID, `{"name":"Rolls"}`)
+
+	completed := setShoppingListCheckedForTest(t, 1, list.ID, `{"isChecked":true}`)
+	if len(completed.Items) != 3 || len(checkedItemIds(completed)) != 3 {
+		t.Fatalf("expected every item crossed off, got %+v", completed.Items)
+	}
+	for _, item := range completed.Items {
+		if item.CheckedAt == nil || item.CheckedByUserId == nil {
+			t.Errorf("expected a stamped item, got %+v", item)
+		}
+		// Already crossed off: keeps its original stamp.
+		if item.ID == milk.ID && !item.CheckedAt.Equal(*earlier.CheckedAt) {
+			t.Errorf("re-checking changed the stamp of an item already crossed off: %+v", item)
+		}
+	}
+
+	// Undo: only the items that were open go back on; an id from another list is ignored.
+	undone := setShoppingListCheckedForTest(t, 1, list.ID, fmt.Sprintf(`{"isChecked":false,"itemIds":[%d,%d,%d]}`, bread.ID, eggs.ID, otherItem.ID))
+	checked := checkedItemIds(undone)
+	if len(checked) != 1 || !checked[milk.ID] {
+		t.Errorf("expected only milk to stay crossed off, got %+v", undone.Items)
+	}
+
+	stored, _ := repositories.NewShoppingListRepository(nil).GetShoppingListItemById(otherItem.ID)
+	if stored.IsChecked {
+		t.Error("an item of another list must not change")
+	}
+
+	// Restore: everything back on the list.
+	restored := setShoppingListCheckedForTest(t, 1, list.ID, `{"isChecked":false}`)
+	if len(checkedItemIds(restored)) != 0 {
+		t.Errorf("expected nothing crossed off, got %+v", restored.Items)
+	}
+	for _, item := range restored.Items {
+		if item.CheckedAt != nil || item.CheckedByUserId != nil {
+			t.Errorf("expected the stamp cleared, got %+v", item)
+		}
+	}
+}
+
+func TestShoppingListSetListCheckedRequiresState(t *testing.T) {
+	defer tearDownShoppingListTest()
+	repositories.CreateTestGroupWithUsers()
+	grantAllGroupPerms(t, 1, 1)
+	list := createShoppingListForTest(t, 1, "1", "Supermarket")
+
+	w, r := shoppingListRequest("PUT", `{}`, 1, map[string]string{"listId": fmt.Sprint(list.ID)})
+	SetShoppingListChecked(w, r)
+	assertStatus(t, w, http.StatusBadRequest)
+
+	// An empty list completes to an empty list, serialized as [].
+	w, r = shoppingListRequest("PUT", `{"isChecked":true}`, 1, map[string]string{"listId": fmt.Sprint(list.ID)})
+	SetShoppingListChecked(w, r)
+	assertStatus(t, w, http.StatusOK)
+	if !strings.Contains(w.Body.String(), `"items":[]`) {
+		t.Errorf("expected items to serialize as [], got %s", w.Body.String())
+	}
+}
+
+func TestShoppingListSetListCheckedPublishesTheWholeList(t *testing.T) {
+	defer tearDownShoppingListTest()
+	repositories.CreateTestGroupWithUsers()
+	grantAllGroupPerms(t, 1, 1)
+	list := createShoppingListForTest(t, 1, "1", "Supermarket")
+	addShoppingListItemForTest(t, 1, list.ID, `{"name":"Milk"}`)
+
+	hub := services.GetShoppingListHub()
+	subscriber := hub.Subscribe(1)
+	defer hub.Unsubscribe(subscriber)
+
+	setShoppingListCheckedForTest(t, 1, list.ID, `{"isChecked":true}`)
+	// Nothing left to change: no broadcast.
+	setShoppingListCheckedForTest(t, 1, list.ID, `{"isChecked":true}`)
+
+	select {
+	case event := <-subscriber.Events:
+		if event.Type != models.ShoppingListEventListUpdated || event.List == nil || len(event.List.Items) != 1 || !event.List.Items[0].IsChecked {
+			t.Errorf("expected LIST_UPDATED with the crossed-off list, got %+v", event)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for LIST_UPDATED")
+	}
+
+	select {
+	case event := <-subscriber.Events:
+		t.Errorf("unexpected extra event %+v", event)
+	default:
 	}
 }
 

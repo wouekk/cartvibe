@@ -56,12 +56,22 @@ describe("ShoppingListState", () => {
   };
 
   describe("LoadShoppingLists", () => {
-    it("stores the group's lists sorted by name and selects the first", () => {
-      load(1, [list(2, "Pharmacy"), list(1, "Supermarket")]);
+    it("stores the group's lists newest first and selects the newest", () => {
+      load(1, [
+        { ...list(1, "Pharmacy"), createdAt: "2026-10-23T08:00:00Z" },
+        { ...list(2, "Supermarket"), createdAt: "2026-10-20T08:00:00Z" },
+        list(3, "Bakery"),
+      ]);
 
       expect(store.selectSnapshot(ShoppingListState.groupId)).toBe(1);
-      expect(store.selectSnapshot(ShoppingListState.lists).map((l) => l.name)).toEqual(["Pharmacy", "Supermarket"]);
-      expect(store.selectSnapshot(ShoppingListState.selectedList)?.id).toBe(2);
+      expect(store.selectSnapshot(ShoppingListState.lists).map((l) => l.name)).toEqual(["Pharmacy", "Supermarket", "Bakery"]);
+      expect(store.selectSnapshot(ShoppingListState.selectedList)?.id).toBe(1);
+    });
+
+    it("opens the newest list still being shopped, not a finished one", () => {
+      load(1, [list(2, "Done", [item(1, { isChecked: true })]), list(1, "Open", [item(2)])]);
+
+      expect(store.selectSnapshot(ShoppingListState.selectedList)?.id).toBe(1);
     });
 
     it("keeps the selection across a refetch while the list still exists", () => {
@@ -73,9 +83,13 @@ describe("ShoppingListState", () => {
       expect(store.selectSnapshot(ShoppingListState.selectedList)?.id).toBe(2);
     });
 
-    it("falls back to the first list when the selected one is gone", () => {
+    it("falls back to the newest list when the selected one is gone", () => {
+      load(1, [list(1, "A"), list(2, "B"), list(3, "C")]);
+      store.dispatch(new SelectShoppingList(3));
+
       load(1, [list(1, "A"), list(2, "B")]);
-      store.dispatch(new SelectShoppingList(2));
+
+      expect(store.selectSnapshot(ShoppingListState.selectedList)?.id).toBe(2);
 
       load(1, [list(1, "A")]);
 
@@ -143,7 +157,7 @@ describe("ShoppingListState", () => {
         shoppingListId: 1,
         list: list(1, "Aldi", [item(1)]),
       });
-      expect(store.selectSnapshot(ShoppingListState.lists).map((l) => l.name)).toEqual(["Aldi", "Bakery"]);
+      expect(store.selectSnapshot(ShoppingListState.lists).map((l) => l.name)).toEqual(["Bakery", "Aldi"]);
 
       apply({ type: ShoppingListEventType.ListDeleted, groupId: 1, shoppingListId: 1 });
       expect(store.selectSnapshot(ShoppingListState.lists).map((l) => l.id)).toEqual([2]);

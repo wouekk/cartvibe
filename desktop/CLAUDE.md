@@ -276,12 +276,18 @@ The Angular web app CartVibe ships (phones in the shop, desktops for the overvie
 - Trips (`app-shopping-trips`): receipts attached to a list and their unplanned products, refetched on
   `TRIPS_CHANGED`; gated on `group.shopping-lists.read` + `group.receipts.read`. The hidden photo input sits inside the
   same `@if` as the "Add receipt" menu so the menu can reach its template reference.
-- **Deleting several lists:** the header's red **Delete list** (`shopping-list-select-delete`, gated on
-  `group.shopping-lists.delete` and at least one list) starts a choosing mode (`selecting`, `selectedIds`). Cards and
-  past-list rows show a tick box (a visual span, not a nested button) and a click ticks instead of opening; the header
-  becomes a red Cancel and **Delete (n)** (disabled at 0). `deleteSelected()` confirms once, deletes list by list and
-  applies `ListDeleted` per success; a refused list keeps its tick and one toast says some were not deleted. The list
-  menu's single "Delete list" stays.
+- **Page layout:** the open list comes first, the **Lists** card row below it (`listCards`, `showCards`: left out
+  when its only card is the open list). `ShoppingListState` sorts lists newest first (`createdAt`, then id) and falls
+  back to the newest list still being shopped. Cards: active lists, then the latest finished ones
+  (`recentPastLists`, ordered by their last cross-off), dimmed with a history icon and a sibling `⋮` menu (cards are
+  buttons, so the menu cannot sit inside): Restore and Start a new list from this.
+- **Delete list** in the page header (`shopping-list-delete`, `group.shopping-lists.delete`) always deletes the open
+  list after the usual confirmation; the next list opens, so several go by pressing it again.
+- **Mark as complete** (`shopping-list-complete`, next to Going shopping, shown while something is left to buy)
+  crosses the whole list off through `PUT /shopping-list/{listId}/checked`, applies the returned list as
+  `ListUpdated`, opens the newest list still being shopped and toasts with Undo (`lastCompleted`, 8 s), which sends
+  `isChecked: false` with exactly the item ids it crossed. Restore sends `isChecked: false` for every item. The header
+  labels fold to icons by the card's width (`@container`, `@max-lg:sr-only`).
 - **In the shop:** `ScreenWakeLockService` (a per-visit switch in the list menu, re-acquired when the tab is visible
   again, released when the page is left), `shoppingListToText` (`shopping-list-share.ts`) feeding `navigator.share` or
   the clipboard, `navigator.vibrate?.(10)` on crossing off, and `OnlineStatusService` driving the
