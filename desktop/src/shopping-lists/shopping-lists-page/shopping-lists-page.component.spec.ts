@@ -109,21 +109,30 @@ describe("ShoppingListsPageComponent", () => {
     expect(workspace.compareDocumentPosition(cards) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it("lists the cards newest first, finished lists last", () => {
-    expect(component.listCards().map((card) => [card.id, card.past])).toEqual([
-      [2, false],
-      [1, false],
-      [3, true],
-    ]);
+  it("lists the lists being shopped newest first, and the finished ones apart", () => {
+    expect(component.activeCards().map((card) => card.id)).toEqual([2, 1]);
+    expect(component.completedCards().map((card) => card.id)).toEqual([3]);
   });
 
-  it("leaves the cards out when the only one is the open list", async () => {
+  it("keeps finished lists folded away until Completed is opened", async () => {
+    expect(testId("shopping-list-completed-toggle")?.textContent).toContain("Completed (1)");
+    expect(testId("shopping-list-completed-cards")).toBeNull();
+
+    (testId("shopping-list-completed-toggle") as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    expect(testId("shopping-list-completed-cards")).not.toBeNull();
+    expect(testId("shopping-list-card-3")).not.toBeNull();
+  });
+
+  it("leaves the active cards out when the only one is the open list", async () => {
     shoppingListService["getShoppingListsForGroup"].mockReturnValue(of([lists()[0]]));
     store.dispatch(new LoadShoppingLists(1));
     await fixture.whenStable();
 
-    expect(component.showCards()).toBe(false);
+    expect(component.showActiveCards()).toBe(false);
     expect(testId("shopping-list-cards")).toBeNull();
+    expect(testId("shopping-list-completed-toggle")).toBeNull();
   });
 
   it("opens a list from its card", async () => {
@@ -166,11 +175,8 @@ describe("ShoppingListsPageComponent", () => {
     expect(shoppingListService["setShoppingListChecked"]).toHaveBeenCalledWith(2, { isChecked: true, itemIds: undefined });
     expect(component.lists().find((l) => l.id === 2)?.items.every((i) => i.isChecked)).toBe(true);
     expect(component.selectedList()?.id).toBe(1);
-    expect(component.listCards().map((card) => [card.id, card.past])).toEqual([
-      [1, false],
-      [2, true],
-      [3, true],
-    ]);
+    expect(component.activeCards().map((card) => card.id)).toEqual([1]);
+    expect(component.completedCards().map((card) => card.id)).toEqual([2, 3]);
     expect(snackbarService["successFromTemplate"]).toHaveBeenCalled();
     expect(component.lastCompleted()).toEqual({ listId: 2, name: "Aldi", itemIds: [20] });
   });
@@ -193,10 +199,14 @@ describe("ShoppingListsPageComponent", () => {
 
     expect(shoppingListService["setShoppingListChecked"]).toHaveBeenCalledWith(3, { isChecked: false, itemIds: undefined });
     expect(component.selectedList()?.id).toBe(3);
-    expect(component.listCards().find((card) => card.id === 3)?.past).toBe(false);
+    expect(component.activeCards().map((card) => card.id)).toContain(3);
+    expect(component.completedCards()).toEqual([]);
   });
 
-  it("gives finished lists a menu, and lists being shopped none", () => {
+  it("gives finished lists a menu, and lists being shopped none", async () => {
+    component.showCompleted.set(true);
+    await fixture.whenStable();
+
     expect(testId("shopping-list-past-menu-3")).not.toBeNull();
     expect(testId("shopping-list-past-menu-1")).toBeNull();
   });

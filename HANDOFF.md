@@ -9,9 +9,9 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
   the receipt form Cancel, Angular 22 / Node 24, the status chip on theme tokens, and the slimmed docs. `:latest` is
   published from it after green CI on `main`. Not seen on the NAS yet.
 - `preview` = v0.8.0 + `feature/shopping-list-switcher`: the open list first, list cards below (newest first, finished
-  lists dimmed with Restore / Start a new list), header Delete list deletes the open list, Mark as complete with Undo.
-  Checked locally (Jest, build, desktop in Black, phone in White). `main` waits for the user's go; delete the branch
-  once it is in `main`.
+  lists folded under Completed (n) with Restore / Start a new list), header Delete list deletes the open list, Mark as
+  complete with Undo; a receipt's Products card invites adding lines and shows the part not split into products; the
+  README rewritten with new screenshots. `main` waits for the user's go; delete the branch once it is in `main`.
 
 ## Open for the user (needs the NAS or a phone)
 
