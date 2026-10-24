@@ -42,7 +42,7 @@
         <app-icon name="sell"></app-icon>
         <span>{{ 'Correct tags' | t }}</span>
       </button>
-      <button hlmDropdownMenuItem data-testid="shopping-list-item-delete" (click)="deleteClicked.emit(item())">
+      <button hlmDropdownMenuItem variant="destructive" data-testid="shopping-list-item-delete" (click)="deleteClicked.emit(item())">
         <app-icon name="delete"></app-icon>
         <span>{{ 'Delete' | t }}</span>
       </button>

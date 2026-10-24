@@ -13,6 +13,7 @@
     data-testid="dialog-submit-button"
     [mode]="submitMode()"
     [buttonText]="submitButtonTooltip()"
+    [destructive]="submitDestructive()"
     [disabled]="
       disableWhenProgressBarIsShown() ? showProgressBar() ?? false : false
     "

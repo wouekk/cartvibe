@@ -1,13 +1,14 @@
 <!--
   Every app-button is a shadcn/ui button: the hlmBtn directive styles a plain <button>, so the look is Tailwind and the
   accent tokens. A "primary" or "accent" raised button is the filled one, "warn" the destructive one; text and icon
-  buttons are ghost buttons in the accent (or red for "warn").
+  buttons are ghost buttons in the accent (or red for "warn"); a basic button in "outline" is the neutral bordered one
+  (Cancel: white in White, black in Black).
 -->
 @switch (matButtonType()) {
   @case ("basic") {
     <button
       hlmBtn
-      [variant]="color() === 'warn' ? 'destructive' : 'ghost'"
+      [variant]="color() === 'warn' ? 'destructive' : color() === 'outline' ? 'outline' : 'ghost'"
       class="relative" [class]="buttonClass()"
       [type]="type()"
       [disabled]="disabled()"
