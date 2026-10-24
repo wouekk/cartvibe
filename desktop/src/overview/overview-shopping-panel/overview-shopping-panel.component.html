@@ -15,7 +15,14 @@
     @if (canUpdate()) {
       <p class="m-0 -mt-2 text-xs text-muted-foreground">{{ 'Tap an item to mark it done.' | t }}</p>
     }
-    <ul class="m-0 flex list-none flex-col p-0" data-testid="overview-shopping-items">
+    <!-- Five rows high (min-h-12 + hairline each) when it scrolls; the page takes over at either end. -->
+    <ul
+      class="m-0 flex list-none flex-col p-0"
+      [class.cv-scroll-y]="scrollable()"
+      [style.max-height]="scrollable() ? 'calc(5 * 3rem + 5px)' : null"
+      [attr.data-scrollable]="scrollable() ? '' : null"
+      data-testid="overview-shopping-items"
+    >
       @for (item of visibleItems(); track item.id) {
         <li class="border-b border-border/40 last:border-b-0">
           <button

@@ -40,6 +40,9 @@ export class DateInputDirective implements ControlValueAccessor {
 
   private onTouched: () => void = () => {};
 
+  /** True from a key press until the next pointer press: the day is being typed, not picked from the calendar. */
+  private typing = false;
+
   public writeValue(value: unknown): void {
     this.element.value = formatDateInput(value);
   }
@@ -59,6 +62,22 @@ export class DateInputDirective implements ControlValueAccessor {
   @HostListener("input")
   public handleInput(): void {
     this.onChange(parseDateInput(this.element.value));
+
+    // A day picked from the calendar closes it: Safari (macOS and iOS) keeps its popover open until the field loses
+    // focus. Typing keeps the focus, so the next segment can still be typed.
+    if (!this.typing && this.element.value) {
+      this.element.blur();
+    }
+  }
+
+  @HostListener("keydown")
+  public handleKeydown(): void {
+    this.typing = true;
+  }
+
+  @HostListener("pointerdown")
+  public handlePointerdown(): void {
+    this.typing = false;
   }
 
   @HostListener("blur")

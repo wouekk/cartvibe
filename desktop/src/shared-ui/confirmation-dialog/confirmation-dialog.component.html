@@ -1,5 +1,6 @@
 <app-dialog [headerText]="headerText">
-  <span>
+  <!-- Focus starts on the question, not on Cancel: a focused button pops its tooltip open the moment the dialog does. -->
+  <span cdkFocusInitial tabindex="-1" class="outline-none" data-testid="confirmation-dialog-content">
     {{ dialogContent | t }}
   </span>
   <app-dialog-footer

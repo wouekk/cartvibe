@@ -44,7 +44,7 @@ Banned: Angular Material, Bootstrap classes (`d-flex`, `col-*`, `mb-3`), `mat-*`
 ## Building blocks (`src/shared-ui` unless noted)
 - Settings page: `app-settings-page` (title, description, `[settingsActions]`, `[settingsTabs]`) > `app-settings-section` (card; `[sectionActions]`, `[sectionFooter]` with `class="cv-card__footer"`, `tone="destructive"`) > `.cv-section` rows. Lists: `app-settings-entity-list` around `app-table`. (`shared-ui/settings/`)
 - Tabs / segmented filters: `app-settings-tabs` (also behind `app-filter-bar`, `app-tabs`). Period: `app-period-picker` (`overview/period-picker`).
-- CSS components (`tailwind.css`): `cv-card*`, `cv-section*`, `cv-inset` (read-only muted block), `cv-list` (hairline key/value list), `cv-scroll-x` (sideways scroll, no scrollbar), `cv-field-box*` (boxed labelled field), `cv-panel*` / `cv-tile` / `cv-tile-link` (Dashboard), `cv-pill-up` / `-down`, `cv-link`.
+- CSS components (`tailwind.css`): `cv-card*`, `cv-section*`, `cv-inset` (read-only muted block), `cv-list` (hairline key/value list), `cv-scroll-x` (sideways scroll, no scrollbar), `cv-scroll-y` (a Dashboard list scrolling under the mouse wheel, thin scrollbar; fine pointers only, never on touch), `cv-field-box*` (boxed labelled field), `cv-panel*` / `cv-tile` / `cv-tile-link` (Dashboard), `cv-pill-up` / `-down`, `cv-link`.
 - List page header: `app-table-header` (+ `subtitle`); create: `app-add-button [buttonText]="'Add X'"`.
 - Buttons: `hlmBtn` (primary), `variant="outline|ghost"` for toggles/menus/icon rows, `variant="destructive"` for Cancel and deletes. Save = `app-submit-button`; Cancel = `app-cancel-button` (red).
 - Dialogs: `AppDialog` (`src/dialog/app-dialog.ts`) + `app-dialog-footer`; confirm with `ConfirmationDialogComponent`.
@@ -60,7 +60,7 @@ Banned: Angular Material, Bootstrap classes (`d-flex`, `col-*`, `mb-3`), `mat-*`
   `more_vert` ghost icon button placed beside the card button (absolute, top right), never nested inside it. A group
   of them folds away behind a chevron toggle (`expand_more`, rotated when open) with its count, like Crossed off.
 - Settings: always editable; Save in the card footer on the right, status text left (`cv-card__status`), dimmed while pristine (`[mode]="FormMode.edit"`). No floating save bar.
-- Dialog footer: hairline `border-t`, actions right: red Cancel, primary Save.
+- Dialog footer: hairline `border-t`, actions right: red Cancel, primary Save. A confirmation's button names the action ("Delete", "Remove"), not "Confirm".
 - Empty: centered, `py-10`, icon in a `size-10 rounded-full bg-muted text-muted-foreground` circle, one `text-sm text-muted-foreground` line, then the page's own add button. Whole-page empty: same inside `rounded-xl border border-dashed`.
 - Loading: render nothing or `–` placeholders until loaded (`isLoaded()`), spinner inline for actions; each panel loads and fails on its own. Error: toast via `SnackbarService`; field errors in `--destructive`.
 - Toolbars: one `flex flex-wrap items-center gap-2` row, all `h-9`; strips in `cv-scroll-x`.

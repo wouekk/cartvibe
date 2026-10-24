@@ -381,6 +381,39 @@ describe("ReceiptFormComponent", () => {
     expect(component.originalReceipt?.amount).toEqual("85.00");
   });
 
+  it("changes only the date on the view page of a settled receipt", () => {
+    jest.useFakeTimers();
+    try {
+      TestBed.inject(Store).dispatch(new SetPermissions([], { 4: [Permission.GroupReceiptsUpdate] }));
+      routeDataSubject.next({
+        mode: FormMode.view,
+        receipt: { id: 4, groupId: 4, name: "Market", amount: "75.00", status: ReceiptStatus.Resolved, date: "2026-10-01T00:00:00Z" } as any,
+      });
+      const setDate = jest.spyOn(TestBed.inject(ReceiptService), "setReceiptDate").mockReturnValue(of({ date: "2026-10-21" }) as any);
+
+      expect(component.canSetDateInPlace()).toBe(true);
+      component.form.get("date")?.setValue(new Date(2026, 9, 21));
+      jest.advanceTimersByTime(800);
+
+      expect(setDate).toHaveBeenCalledTimes(1);
+      expect(setDate).toHaveBeenCalledWith(4, { date: "2026-10-21" });
+      expect(component.originalReceipt?.date).toEqual("2026-10-21T00:00:00Z");
+      expect(component.form.get("status")?.value).toEqual(ReceiptStatus.Resolved);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it("keeps the date read-only on the view page of a converted receipt or without update permission", () => {
+    TestBed.inject(Store).dispatch(new SetPermissions([], { 4: [Permission.GroupReceiptsUpdate] }));
+    routeDataSubject.next({ mode: FormMode.view, receipt: { id: 4, groupId: 4, amount: "75.00", originalCurrency: "PLN" } as any });
+    expect(component.canSetDateInPlace()).toBe(false);
+
+    TestBed.inject(Store).dispatch(new SetPermissions([], { 4: [Permission.GroupReceiptsRead] }));
+    routeDataSubject.next({ mode: FormMode.view, receipt: { id: 5, groupId: 4, amount: "75.00" } as any });
+    expect(component.canSetDateInPlace()).toBe(false);
+  });
+
   // Full-receipt magic-fill ingest: proves the form takes in every field the
   // backend can return (paid-by, status, items, shares, custom fields, comments),
   // not just the header fields, and drops nothing on the way into the form.
