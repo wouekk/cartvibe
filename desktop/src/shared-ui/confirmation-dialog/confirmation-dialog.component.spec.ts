@@ -42,6 +42,18 @@ describe('ConfirmationDialogComponent', () => {
     expect(footer().submitButtonTooltip).toBe('Add AI API key');
   });
 
+  it('makes the button red for Delete and Remove only', () => {
+    const footer = () => fixture.nativeElement.querySelector('app-dialog-footer');
+    expect(footer().submitDestructive).toBe(false);
+
+    for (const [text, red] of [['Delete', true], ['Remove', true], ['Add AI API key', false]] as const) {
+      component.confirmText = text;
+      fixture.changeDetectorRef.markForCheck();
+      fixture.detectChanges();
+      expect(footer().submitDestructive).toBe(red);
+    }
+  });
+
   it('starts the focus on the question, so no button tooltip pops open with the dialog', () => {
     const content: HTMLElement = fixture.nativeElement.querySelector('[data-testid=confirmation-dialog-content]');
     expect(content.hasAttribute('cdkFocusInitial')).toBe(true);

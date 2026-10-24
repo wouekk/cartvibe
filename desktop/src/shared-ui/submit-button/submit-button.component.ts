@@ -32,6 +32,9 @@ export class SubmitButtonComponent extends FormButtonComponent implements OnInit
 
   public readonly disableOnLoading = input<boolean>(false);
 
+  /** Red, for a button that deletes or removes (a confirmation's Delete / Remove). */
+  public readonly destructive = input<boolean>(false);
+
   public override readonly type = input<'button' | 'submit'>('submit');
 
   public formMode = FormMode;
