@@ -5,14 +5,10 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 
 ## Current state
 
-- `main` = `preview` = v0.9.0 (2026-10-24): the shopping lists page rebuilt around the open list (Mark as complete
-  with Undo, finished lists under Completed, Restore, header Delete list deletes the open list), the receipt Products
-  card explaining unsplit spending, and the README rewritten with new screenshots. `:latest` is published from it
-  after green CI on `main`. Not seen on the NAS yet.
-- `preview` = v0.9.0 + `feature/receipt-over-total` + `feature/i18n-audit` (stacked on it): **Set total to …** when a
-  receipt's products add up to more than its total (new `PUT /receipt/{id}/amount`); the i18n audit applied to pl, de,
-  fr, es (unit plurals, Intl day labels, own key for the Dashboard's Open list, a dozen English key fixes). `main`
-  waits for the user's go. The audit notes (`i18n-audit-en-pl.md`, untracked) are the user's.
+- `main` = `preview` = v0.10.0 (2026-10-24): **Set total to …** when a receipt's products add up to more than its
+  total, and the translation audit applied to pl, de, fr, es (unit plurals, day labels, English key fixes), on top of
+  v0.9.0's shopping lists page. `:latest` is published from it after green CI on `main`. Not seen on the NAS yet. No
+  feature branches are open. The audit notes (`i18n-audit-en-pl.md`, untracked) are the user's.
 
 ## Open for the user (needs the NAS or a phone)
 
