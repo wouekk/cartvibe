@@ -183,6 +183,8 @@
               [receiptId]="receipt!.id"
               [groupId]="receipt!.groupId"
               [receiptAmount]="receipt!.amount"
+              [receiptConverted]="!!receipt!.originalCurrency"
+              (setTotal)="setTotal($event)"
             ></app-receipt-products>
           }
         </app-form-section>

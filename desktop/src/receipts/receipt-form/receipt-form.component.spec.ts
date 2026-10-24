@@ -369,6 +369,18 @@ describe("ReceiptFormComponent", () => {
     expect(component.editLink).toEqual("/receipts/2/edit");
   });
 
+  it("sets only the total when the products card asks, and shows the new total", () => {
+    routeDataSubject.next({ receipt: { id: 4, name: "Market", amount: "75.00" } as any });
+    const service = TestBed.inject(ReceiptService);
+    const setAmount = jest.spyOn(service, "setReceiptAmount").mockReturnValue(of({ amount: "85.00" }) as any);
+
+    component.setTotal("85.00");
+
+    expect(setAmount).toHaveBeenCalledWith(4, { amount: "85.00" });
+    expect(component.form.get("amount")?.value).toEqual("85.00");
+    expect(component.originalReceipt?.amount).toEqual("85.00");
+  });
+
   // Full-receipt magic-fill ingest: proves the form takes in every field the
   // backend can return (paid-by, status, items, shares, custom fields, comments),
   // not just the header fields, and drops nothing on the way into the form.

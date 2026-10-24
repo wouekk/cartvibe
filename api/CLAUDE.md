@@ -389,7 +389,9 @@ which day an instant falls on and what "today" means.
 - `DuplicateReceipt` and `CreateReceiptWithFiles` are all-or-nothing: paths are tracked before each write, the copy runs
   on the transaction, the stored bytes are copied (`ReadDataFile`, never the display conversion), and the system task is
   recorded from a deferred call reading a named `err`.
-- `PUT /receipt/{id}/name` changes only the name (1-255 chars).
+- `PUT /receipt/{id}/name` changes only the name (1-255 chars). `PUT /receipt/{id}/amount` changes only the total
+  (a decimal above 0); it refuses a receipt converted from another currency, whose total is in the main currency
+  while its lines may not be.
 - **Update snapshots:** `UpdateReceipt` records `RECEIPT_UPDATED` with `{"before","after","version":2}`, each side a
   double-encoded `Receipt.ToString()` loaded with `GetFullyLoadedReceiptById`. Keep the format stable; bump
   `ReceiptUpdateDescriptionVersion` (and the desktop's constant) on change. Version 1 rows are rebuilt on read by

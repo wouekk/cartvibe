@@ -241,7 +241,10 @@ The Angular web app CartVibe ships (phones in the shop, desktops for the overvie
   replaces the whole set. Health and seasonality chips (`app-food-tags`) are display-only. Lines are edited on the
   view page too, settled or not (settling is a status, not a lock), so a hand-entered receipt is split there without
   Edit / Save: with no lines it invites adding them, and `unsplitAmount` (cents, from `[receiptAmount]`) says how much
-  of the total no line covers, which the Dashboard and reports count as Uncategorized.
+  of the total no line covers, which the Dashboard and reports count as Uncategorized. Lines adding up to more than
+  the total never change it by themselves (the gap may be a discount): `overTotal` says so and, with update
+  permission on an unconverted receipt, offers **Set total to …** (`setTotal` output; the form calls
+  `setReceiptAmount` and patches its amount).
 - **Currency:** `app-receipt-currency-note` shows a converted amount's source; the rates editor `app-exchange-rates`
   sanitizes per keystroke (`sanitizeRateInput`) and Enter never submits the outer form.
 - **Image:** the stage is `app-image-canvas` (`docs/image-canvas.md`); the image menu (`hlmDropdownMenuTrigger` over

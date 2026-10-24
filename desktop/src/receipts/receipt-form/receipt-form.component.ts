@@ -1,4 +1,4 @@
-import { Component, ElementRef, EmbeddedViewRef, HostListener, inject, Injector, OnInit, Signal, TemplateRef, computed, runInInjectionContext, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
+import { ChangeDetectorRef, Component, ElementRef, EmbeddedViewRef, HostListener, inject, Injector, OnInit, Signal, TemplateRef, computed, runInInjectionContext, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { UploadStage, withUploadProgress } from "../../utils/upload-progress";
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
@@ -162,6 +162,8 @@ export class ReceiptFormComponent implements OnInit {
   public submitButtonText = "Save";
 
   private readonly host = inject(ElementRef<HTMLElement>);
+
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
   public imagesLoading = signal(false);
 
@@ -334,6 +336,26 @@ export class ReceiptFormComponent implements OnInit {
         }
         this.receiptDone.set(true);
         this.snackbarService.success("Marked as done");
+      });
+  }
+
+  /** The products card's "Set total to …": changes only the total, without opening the edit form. */
+  public setTotal(amount: string): void {
+    const receiptId = this.originalReceipt?.id;
+    if (!receiptId) {
+      return;
+    }
+
+    this.receiptService
+      .setReceiptAmount(receiptId, { amount })
+      .pipe(take(1))
+      .subscribe(() => {
+        this.form.patchValue({ amount });
+        if (this.originalReceipt) {
+          this.originalReceipt = { ...this.originalReceipt, amount };
+        }
+        this.changeDetectorRef.markForCheck();
+        this.snackbarService.success("Total updated");
       });
   }
 
