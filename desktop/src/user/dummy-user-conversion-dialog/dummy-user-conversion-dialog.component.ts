@@ -49,7 +49,7 @@ export class DummyUserConversionDialogComponent implements OnInit {
           take(1),
           tap(() => {
             this.snackbarService.success(
-              this.translation.t("{name} sucessfully converted to normal user", { name: this.user.displayName })
+              this.translation.t("{name} is now a normal user", { name: this.user.displayName })
             );
           }),
           switchMap(() =>

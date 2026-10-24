@@ -65,7 +65,7 @@
         data-testid="display-currency-rate"
         type="text"
         [label]="rateLabel()"
-        hint="Your own rate: 4,25 means 1 household unit is 4,25 of your currency."
+        hint="Your rate: 4,25 means 1 of the household currency is worth 4,25 of yours."
         [inputFormControl]="form | formGet : 'displayCurrencyRate'"
         [readonly]="formConfig.mode | inputReadonly"
       ></app-input>

@@ -8,9 +8,9 @@ import { marker } from "../../i18n/marker";
 export class UrlLabelPipe implements PipeTransform {
   public transform(aiType: AiType): string {
     if (aiType === AiType.OpenAiCustom) {
-      return marker("Base Url");
+      return marker("Base URL");
     }
 
-    return "Url";
+    return marker("URL");
   }
 }

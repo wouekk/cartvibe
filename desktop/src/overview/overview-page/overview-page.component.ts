@@ -625,17 +625,25 @@ export class OverviewPageComponent {
     };
   };
 
-  /** The floating tooltip: a small card on the theme tokens, a heading and one row per figure (the Flowbite look). */
-  /** "October 2026" for a month bar, "21 October 2026" for a day bar. */
+  /**
+   * "October 2026" for a month bar, "21 October 2026" for a day bar. A day is formatted by the browser in the
+   * language's locale, which puts the month in the right grammatical case ("21 października 2026").
+   */
   private barHeading(key: string, fallback: string): string {
     const [year, month, day] = key.split("-").map(Number);
     if (!year || !month) {
       return fallback;
     }
+    if (day) {
+      return new Intl.DateTimeFormat(this.translation.locale(), { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(
+        Date.UTC(year, month - 1, day)
+      );
+    }
     const monthName = new Date(year, month - 1, 1).toLocaleString("en", { month: "long" });
-    return this.translation.months(day ? `${day} ${monthName} ${year}` : `${monthName} ${year}`);
+    return this.translation.months(`${monthName} ${year}`);
   }
 
+  /** The floating tooltip: a small card on the theme tokens, a heading and one row per figure (the Flowbite look). */
   private tooltipCard(heading: string, rows: { color: string; label: string; value: string }[]): string {
     const escape = (text: string) => text.replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char] ?? char);
     const body = rows

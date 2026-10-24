@@ -6,3 +6,12 @@
 export function marker(text: string): string {
   return text;
 }
+
+/**
+ * Marks a noun counted in TypeScript ("bottle" / "bottles"), like `| plural: 'bottle' : 'bottles'` does in a template:
+ * the extractor adds it to the catalogue's plurals, and `TranslationService.plural()` picks the language's form. It
+ * returns the English plural so a caller can keep it.
+ */
+export function pluralMarker(singular: string, plural: string): string {
+  return plural;
+}

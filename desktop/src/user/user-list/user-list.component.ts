@@ -102,7 +102,7 @@ export class UserListComponent extends BaseTableComponent<User> implements After
       },
 
       {
-        columnHeader: "Displayname",
+        columnHeader: "Display Name",
         matColumnDef: "display_name",
         template: this.displaynameCell(),
         sortable: true,
@@ -206,7 +206,7 @@ export class UserListComponent extends BaseTableComponent<User> implements After
       );
 
       dialogRef.componentInstance.headerText = marker("Delete User");
-      dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you would like to delete the user '{name}'? This will remove the user from the user from groups, the user's receipt items, groups where this user is the only member, and receipts where the user paid. This action is irreversible.", { name: user.username });
+      dialogRef.componentInstance.dialogContent = this.translation.t("Delete the user '{name}'? They are removed from their groups, and the groups where they are the only member and the receipts they paid for are deleted. This can't be undone.", { name: user.username });
 
       dialogRef.afterClosed().subscribe((r) => {
         if (r) {
