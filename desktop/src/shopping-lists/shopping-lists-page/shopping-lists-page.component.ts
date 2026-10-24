@@ -78,12 +78,9 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
 
   public readonly canDelete = computed(() => hasAll(this.permissions(), Permission.GroupShoppingListsDelete));
 
-  /**
-   * The switcher under the open list: one card per list still being shopped (newest first, with what is left to
-   * buy and the first few items), then the latest finished lists, dimmed, with every item they had.
-   */
-  public readonly listCards = computed(() => [
-    ...activeLists(this.lists()).map((list) => {
+  /** The switcher under the open list: one card per list still being shopped, newest first, with what is left to buy. */
+  public readonly activeCards = computed(() =>
+    activeLists(this.lists()).map((list) => {
       const toBuy = list.items.filter((item) => !item.isChecked);
       const names = toBuy.slice(0, 3).map((item) => item.name);
       const more = toBuy.length - names.length;
@@ -100,8 +97,12 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
               ? this.translation.t("{names}, and {count} more", { names: names.join(", "), count: more })
               : names.join(", "),
       };
-    }),
-    ...recentPastLists(this.lists()).map((list) => {
+    })
+  );
+
+  /** The latest finished lists, newest first, behind the "Completed (n)" toggle. */
+  public readonly completedCards = computed(() =>
+    recentPastLists(this.lists()).map((list) => {
       const names = list.items.slice(0, 3).map((item) => item.name);
       const more = list.items.length - names.length;
       return {
@@ -115,14 +116,17 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
             ? this.translation.t("{names}, and {count} more", { names: names.join(", "), count: more })
             : names.join(", "),
       };
-    }),
-  ]);
+    })
+  );
 
-  /** The switcher is left out when its only card would be the list already open above it. */
-  public readonly showCards = computed(() => {
-    const cards = this.listCards();
+  /** The active cards are left out when their only card would be the list already open above them. */
+  public readonly showActiveCards = computed(() => {
+    const cards = this.activeCards();
     return cards.length > 1 || (cards.length === 1 && cards[0].id !== this.selectedList()?.id);
   });
+
+  /** Finished lists stay folded away until asked for, like the crossed-off items inside a list. */
+  public readonly showCompleted = signal(false);
 
   /** What is left to buy on the open list, for its workspace header. */
   public readonly toBuyCount = computed(
