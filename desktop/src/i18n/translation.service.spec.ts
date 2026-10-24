@@ -85,10 +85,20 @@ describe("TranslationService", () => {
     expect(fresh.language()).toBe("pl");
   });
 
+  it("counts shopping units in the language's plural forms", () => {
+    service.choose("pl");
+
+    expect(service.plural(1, "bottle", "bottles")).toBe("butelka");
+    expect(service.plural(2, "bottle", "bottles")).toBe("butelki");
+    expect(service.plural(5, "bottle", "bottles")).toBe("butelek");
+    expect(service.plural(22, "bottle", "bottles")).toBe("butelki");
+    expect(service.plural(1.5, "bottle", "bottles")).toBe("butelki");
+  });
+
   it("translates a message that already has its values in it by matching the {placeholder} keys", () => {
     service.choose("pl");
 
-    expect(service.t("Delete Milk")).toBe("Usuń Milk");
+    expect(service.t("Delete Milk")).toBe("Usuń: Milk");
     expect(service.t("Receipt update: Lidl")).toBe("Aktualizacja paragonu: Lidl");
   });
 

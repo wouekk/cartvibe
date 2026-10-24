@@ -29,7 +29,13 @@ export class ShoppingListItemComponent {
   private readonly translation = inject(TranslationService);
 
   /** "1.5 kg"; empty when no amount was given. */
-  public readonly amount = computed(() => formatShoppingListItemAmount(this.item(), (text) => this.translation.t(text)));
+  public readonly amount = computed(() =>
+    formatShoppingListItemAmount(
+      this.item(),
+      (text) => this.translation.t(text),
+      (count, singular, plural) => this.translation.plural(count, singular, plural)
+    )
+  );
 
   /**
    * Seasonality is offered only for produce the AI already tagged, and only with a health rating the

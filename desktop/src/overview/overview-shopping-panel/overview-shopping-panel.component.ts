@@ -98,7 +98,11 @@ export class OverviewShoppingPanelComponent {
 
   /** "1.5 kg"; empty when no amount was given. */
   public amountOf(item: ShoppingListItem): string {
-    return formatShoppingListItemAmount(item, (text) => this.translation.t(text));
+    return formatShoppingListItemAmount(
+      item,
+      (text) => this.translation.t(text),
+      (count, singular, plural) => this.translation.plural(count, singular, plural)
+    );
   }
 
   /** Marks an item done: it leaves the list immediately and an Undo row takes its place for a few seconds. */

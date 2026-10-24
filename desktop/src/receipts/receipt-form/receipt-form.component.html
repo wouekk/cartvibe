@@ -203,7 +203,7 @@
           <app-button
             matButtonType="iconButton"
             icon="arrow_back"
-            [tooltip]="'Previous (Right Arrow)' | t"
+            [tooltip]="'Previous (Left Arrow)' | t"
             (clicked)="queuePrevious()"
           ></app-button>
         }
@@ -270,7 +270,7 @@
 <ng-template #successDuplicateSnackbar>
   <div class="flex justify-end items-center">
     <span class="me-6">
-      {{ 'Receipt successfully duplicated. Click navigate to view duplicated receipt.' | t }}
+      {{ 'Receipt duplicated. Select Navigate to open the copy.' | t }}
     </span>
     <app-button
       [buttonText]="'Navigate' | t"

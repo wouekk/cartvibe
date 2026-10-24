@@ -9,8 +9,10 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
   with Undo, finished lists under Completed, Restore, header Delete list deletes the open list), the receipt Products
   card explaining unsplit spending, and the README rewritten with new screenshots. `:latest` is published from it
   after green CI on `main`. Not seen on the NAS yet.
-- `preview` = v0.9.0 + `feature/receipt-over-total`: when a receipt's products add up to more than its total, the
-  Products card says so and offers **Set total to …** (new `PUT /receipt/{id}/amount`). `main` waits for the user's go.
+- `preview` = v0.9.0 + `feature/receipt-over-total` + `feature/i18n-audit` (stacked on it): **Set total to …** when a
+  receipt's products add up to more than its total (new `PUT /receipt/{id}/amount`); the i18n audit applied to pl, de,
+  fr, es (unit plurals, Intl day labels, own key for the Dashboard's Open list, a dozen English key fixes). `main`
+  waits for the user's go. The audit notes (`i18n-audit-en-pl.md`, untracked) are the user's.
 
 ## Open for the user (needs the NAS or a phone)
 
