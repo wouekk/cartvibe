@@ -126,6 +126,7 @@ model/resetPasswordCommand.ts
 model/role.ts
 model/searchResult.ts
 model/setFoodClassificationCommand.ts
+model/setReceiptAmountCommand.ts
 model/setReceiptProductLabelsCommand.ts
 model/setShoppingListCheckedCommand.ts
 model/setShoppingListItemCheckedCommand.ts
