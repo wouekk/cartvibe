@@ -938,10 +938,6 @@ func DuplicateReceipt(w http.ResponseWriter, r *http.Request) {
 
 // RenameReceipt changes only a receipt's name, so a rename never saves anything else the receipt form holds.
 // It rides the same gate as an edit (group.receipts.update, paid-by visibility), resolved from the receipt.
-// convertedReceiptAmountMessage refuses a new total for a receipt converted from another currency: its
-// total is in the main currency while its lines may not be.
-const convertedReceiptAmountMessage = "The total of a receipt in another currency can only be changed on its edit page"
-
 // SetReceiptAmount changes only a receipt's total (the desktop's "Set total to the products").
 func SetReceiptAmount(w http.ResponseWriter, r *http.Request) {
 	receiptId := chi.URLParam(r, "id")
@@ -971,8 +967,9 @@ func SetReceiptAmount(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
+			// A converted receipt's total is in the main currency while its lines may not be.
 			if receipt.OriginalCurrency != "" {
-				utils.WriteCustomErrorResponse(w, convertedReceiptAmountMessage, http.StatusBadRequest)
+				utils.WriteCustomErrorResponse(w, "The total of a receipt in another currency can only be changed on its edit page", http.StatusBadRequest)
 				return 0, nil
 			}
 

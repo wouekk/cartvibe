@@ -109,15 +109,41 @@ describe("ReceiptProductsComponent", () => {
       expect(element("receipt-products-unsplit")).not.toBeNull();
     });
 
-    it("says nothing when the lines cover the total, or go over it", async () => {
+    it("says nothing when the lines cover the total exactly", async () => {
       await render(view({ products: [line(1, "12.40")] }));
       fixture.componentRef.setInput("receiptAmount", "12.40");
       await fixture.whenStable();
-      expect(element("receipt-products-unsplit")).toBeNull();
 
-      fixture.componentRef.setInput("receiptAmount", "10.00");
+      expect(element("receipt-products-unsplit")).toBeNull();
+      expect(element("receipt-products-over-total")).toBeNull();
+    });
+
+    it("says when the lines add up to more than the total, and offers to set it", async () => {
+      await render(view({ products: [line(1, "75.00"), line(2, "10.00")] }), [Permission.GroupReceiptsUpdate]);
+      fixture.componentRef.setInput("receiptAmount", "75.00");
       await fixture.whenStable();
+      const asked: string[] = [];
+      fixture.componentInstance.setTotal.subscribe((amount) => asked.push(amount));
+
+      expect(fixture.componentInstance.overTotal()).toEqual({ sum: "85.00", over: "10.00" });
       expect(fixture.componentInstance.unsplitAmount()).toBeUndefined();
+      element("receipt-products-set-total")!.click();
+
+      expect(asked).toEqual(["85.00"]);
+    });
+
+    it("explains the gap but offers no fix on a converted receipt or without update permission", async () => {
+      await render(view({ products: [line(1, "85.00")] }));
+      fixture.componentRef.setInput("receiptAmount", "75.00");
+      await fixture.whenStable();
+      expect(element("receipt-products-over-total")).not.toBeNull();
+      expect(element("receipt-products-set-total")).toBeNull();
+
+      await render(view({ products: [line(1, "85.00")] }), [Permission.GroupReceiptsUpdate]);
+      fixture.componentRef.setInput("receiptAmount", "75.00");
+      fixture.componentRef.setInput("receiptConverted", true);
+      await fixture.whenStable();
+      expect(element("receipt-products-set-total")).toBeNull();
     });
   });
 
