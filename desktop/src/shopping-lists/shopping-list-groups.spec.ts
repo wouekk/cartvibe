@@ -27,15 +27,12 @@ describe("shopping list groups", () => {
     expect(recentPastLists(lists).map((l) => l.id)).toEqual([2, 1]);
   });
 
-  it("shows the latest three past lists, newest first", () => {
+  it("shows the latest six past lists, newest first", () => {
     const lists = [
-      list(1, [true], "2026-10-01T00:00:00Z"),
-      list(2, [true], "2026-10-04T00:00:00Z"),
-      list(3, [true], "2026-10-03T00:00:00Z"),
-      list(4, [true], "2026-10-02T00:00:00Z"),
-      list(5, [false], "2026-10-09T00:00:00Z"),
+      ...[1, 2, 3, 4, 5, 6, 7].map((id) => list(id, [true], `2026-10-0${id}T00:00:00Z`)),
+      list(8, [false], "2026-10-09T00:00:00Z"),
     ];
 
-    expect(recentPastLists(lists).map((l) => l.id)).toEqual([2, 3, 4]);
+    expect(recentPastLists(lists).map((l) => l.id)).toEqual([7, 6, 5, 4, 3, 2]);
   });
 });

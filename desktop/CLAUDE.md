@@ -238,7 +238,10 @@ The Angular web app CartVibe ships (phones in the shop, desktops for the overvie
 - **Products** (`app-receipt-products`): lines edit in place (comma prices accepted); category picker and tags menu per
   line from `AuthState.groupCatalog`, saved in order through `setReceiptProductLabels` (a `concatMap` queue; the
   server's answer replaces the line only when no later pick is pending; handlers re-find the line by id). "Read again"
-  replaces the whole set. Health and seasonality chips (`app-food-tags`) are display-only.
+  replaces the whole set. Health and seasonality chips (`app-food-tags`) are display-only. Lines are edited on the
+  view page too, settled or not (settling is a status, not a lock), so a hand-entered receipt is split there without
+  Edit / Save: with no lines it invites adding them, and `unsplitAmount` (cents, from `[receiptAmount]`) says how much
+  of the total no line covers, which the Dashboard and reports count as Uncategorized.
 - **Currency:** `app-receipt-currency-note` shows a converted amount's source; the rates editor `app-exchange-rates`
   sanitizes per keystroke (`sanitizeRateInput`) and Enter never submits the outer form.
 - **Image:** the stage is `app-image-canvas` (`docs/image-canvas.md`); the image menu (`hlmDropdownMenuTrigger` over
@@ -276,11 +279,13 @@ The Angular web app CartVibe ships (phones in the shop, desktops for the overvie
 - Trips (`app-shopping-trips`): receipts attached to a list and their unplanned products, refetched on
   `TRIPS_CHANGED`; gated on `group.shopping-lists.read` + `group.receipts.read`. The hidden photo input sits inside the
   same `@if` as the "Add receipt" menu so the menu can reach its template reference.
-- **Page layout:** the open list comes first, the **Lists** card row below it (`listCards`, `showCards`: left out
-  when its only card is the open list). `ShoppingListState` sorts lists newest first (`createdAt`, then id) and falls
-  back to the newest list still being shopped. Cards: active lists, then the latest finished ones
-  (`recentPastLists`, ordered by their last cross-off), dimmed with a history icon and a sibling `⋮` menu (cards are
-  buttons, so the menu cannot sit inside): Restore and Start a new list from this.
+- **Page layout:** the open list comes first, the **Lists** section below it. `ShoppingListState` sorts lists newest
+  first (`createdAt`, then id) and falls back to the newest list still being shopped. Active lists are cards
+  (`activeCards`, `showActiveCards`: left out when the only one is the open list); the latest six finished lists
+  (`recentPastLists`, ordered by their last cross-off) fold away behind a **Completed (n)** chevron toggle
+  (`showCompleted`, closed on every visit, styled like Crossed off), dimmed with a history icon and a sibling `⋮`
+  menu (cards are buttons, so the menu cannot sit inside): Restore and Start a new list from this. Both rows render
+  the one `#listCard` template.
 - **Delete list** in the page header (`shopping-list-delete`, `group.shopping-lists.delete`) always deletes the open
   list after the usual confirmation; the next list opens, so several go by pressing it again.
 - **Mark as complete** (`shopping-list-complete`, next to Going shopping, shown while something is left to buy)

@@ -28,8 +28,14 @@ const byName = <T extends { name?: string }>(rows: T[]): T[] => [...rows].sort((
 
 const toggled = (ids: number[], id: number): number[] => (ids.includes(id) ? ids.filter((other) => other !== id) : [...ids, id]);
 
+/** A decimal string as whole cents, or undefined when it is not a number. */
+const toCents = (amount: string | undefined): number | undefined => {
+  const value = Number(amount);
+  return amount === undefined || amount === "" || Number.isNaN(value) ? undefined : Math.round(value * 100);
+};
+
 const STATUS_TEXT: { [status: string]: string } = {
-  NOT_QUEUED: marker("Products are read from the receipt's image. This receipt has none yet."),
+  NOT_QUEUED: marker("No products yet. Add them below to sort this receipt into categories; until then all of it counts as Uncategorized."),
   PENDING: marker("Waiting to be read by the AI. This usually takes a few minutes."),
   RUNNING: marker("The AI is reading this receipt now."),
   UNAVAILABLE: marker("The AI could not be reached. It will try again automatically."),
@@ -58,6 +64,9 @@ export class ReceiptProductsComponent {
 
   public readonly groupId = input.required<number>();
 
+  /** The receipt's total, so the card can say how much of it no product line covers yet. */
+  public readonly receiptAmount = input<string | undefined>(undefined);
+
   public readonly view = signal<ReceiptProductsView | undefined>(undefined);
 
   public readonly loadFailed = signal(false);
@@ -66,10 +75,26 @@ export class ReceiptProductsComponent {
 
   public readonly statusText = computed(() => {
     const view = this.view();
-    if (!view || view.status === "DONE") {
+    // Lines added by hand to a receipt the AI never read need no status line.
+    if (!view || view.status === "DONE" || (view.status === "NOT_QUEUED" && view.products.length > 0)) {
       return "";
     }
     return STATUS_TEXT[view.status] ?? "";
+  });
+
+  /**
+   * The part of the total no product line covers, as a decimal string, or undefined when the lines cover it all.
+   * The Dashboard and reports count that part as Uncategorized. Worked in cents: totals are never floats.
+   */
+  public readonly unsplitAmount = computed(() => {
+    const products = this.view()?.products ?? [];
+    const total = toCents(this.receiptAmount());
+    if (products.length === 0 || total === undefined) {
+      return undefined;
+    }
+
+    const rest = products.reduce((left, product) => left - (toCents(product.amount ?? undefined) ?? 0), total);
+    return rest > 0 ? (rest / 100).toFixed(2) : undefined;
   });
 
   public readonly isInProgress = computed(() => ["PENDING", "RUNNING"].includes(this.view()?.status ?? ""));

@@ -83,6 +83,44 @@ describe("ReceiptProductsComponent", () => {
     expect(element("receipt-products-status")?.textContent).toContain("try again automatically");
   });
 
+  describe("a receipt split into products by hand", () => {
+    const line = (id: number, amount?: string) =>
+      ({ id, receiptId: 7, name: `line-${id}`, quantity: "", position: id, amount }) as ReceiptProductsView["products"][number];
+
+    it("invites adding products when a receipt has none and the AI never read it", async () => {
+      await render(view({ status: "NOT_QUEUED" }), [Permission.GroupReceiptsUpdate]);
+
+      expect(element("receipt-products-status")?.textContent).toContain("No products yet");
+      expect(element("receipt-product-add-row")).not.toBeNull();
+    });
+
+    it("drops the status line once lines were added by hand", async () => {
+      await render(view({ status: "NOT_QUEUED", products: [line(1, "2.00")] }));
+
+      expect(element("receipt-products-status")).toBeNull();
+    });
+
+    it("says how much of the total no line covers yet", async () => {
+      await render(view({ status: "NOT_QUEUED", products: [line(1, "10.10"), line(2, "0.20"), line(3)] }));
+      fixture.componentRef.setInput("receiptAmount", "12.40");
+      await fixture.whenStable();
+
+      expect(fixture.componentInstance.unsplitAmount()).toBe("2.10");
+      expect(element("receipt-products-unsplit")).not.toBeNull();
+    });
+
+    it("says nothing when the lines cover the total, or go over it", async () => {
+      await render(view({ products: [line(1, "12.40")] }));
+      fixture.componentRef.setInput("receiptAmount", "12.40");
+      await fixture.whenStable();
+      expect(element("receipt-products-unsplit")).toBeNull();
+
+      fixture.componentRef.setInput("receiptAmount", "10.00");
+      await fixture.whenStable();
+      expect(fixture.componentInstance.unsplitAmount()).toBeUndefined();
+    });
+  });
+
   it("offers Read again only with update permission, and queues the read", async () => {
     await render(view({ status: "FAILED" }));
     expect(element("receipt-products-read-again")).toBeNull();

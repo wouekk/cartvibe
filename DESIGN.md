@@ -57,7 +57,8 @@ Banned: Angular Material, Bootstrap classes (`d-flex`, `col-*`, `mb-3`), `mat-*`
 - Rows: `flex min-h-14 items-center border-b border-border/40 last:border-b-0`, hover `bg-muted/40`, trailing ghost icon button with `more_vert` menu. Amounts right-aligned, bold, tabular.
 - Selected card: `border-primary bg-accent/30 ring-1 ring-primary/20` + `aria-pressed`.
 - Finished/archived card: `bg-muted/30 text-muted-foreground`, a `history` icon before the name, and its actions in a
-  `more_vert` ghost icon button placed beside the card button (absolute, top right), never nested inside it.
+  `more_vert` ghost icon button placed beside the card button (absolute, top right), never nested inside it. A group
+  of them folds away behind a chevron toggle (`expand_more`, rotated when open) with its count, like Crossed off.
 - Settings: always editable; Save in the card footer on the right, status text left (`cv-card__status`), dimmed while pristine (`[mode]="FormMode.edit"`). No floating save bar.
 - Dialog footer: hairline `border-t`, actions right: red Cancel, primary Save.
 - Empty: centered, `py-10`, icon in a `size-10 rounded-full bg-muted text-muted-foreground` circle, one `text-sm text-muted-foreground` line, then the page's own add button. Whole-page empty: same inside `rounded-xl border border-dashed`.
