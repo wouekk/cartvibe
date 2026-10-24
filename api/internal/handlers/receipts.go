@@ -996,6 +996,65 @@ func SetReceiptAmount(w http.ResponseWriter, r *http.Request) {
 	HandleRequest(handler)
 }
 
+// SetReceiptDate changes only a receipt's date (the desktop's view page, settled or not), stored as midnight UTC.
+// Like the total, it refuses a receipt converted from another currency: its rate belongs to the day it was added.
+func SetReceiptDate(w http.ResponseWriter, r *http.Request) {
+	receiptId := chi.URLParam(r, "id")
+
+	handler := structs.Handler{
+		ErrorMessage:     "Error changing the receipt date.",
+		Writer:           w,
+		Request:          r,
+		ReceiptId:        receiptId,
+		GroupPermissions: []string{permissions.GroupReceiptsUpdate},
+		ResponseType:     constants.ApplicationJson,
+		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
+			command := commands.SetReceiptDateCommand{}
+			err := command.LoadDataFromRequest(w, r)
+			if err != nil {
+				return http.StatusBadRequest, err
+			}
+
+			vErr := command.Validate()
+			if len(vErr.Errors) > 0 {
+				structs.WriteValidatorErrorResponse(w, vErr, http.StatusBadRequest)
+				return 0, nil
+			}
+			day, _ := command.Day()
+
+			var receipt models.Receipt
+			err = repositories.GetDB().Select("id", "original_currency").First(&receipt, receiptId).Error
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+			if receipt.OriginalCurrency != "" {
+				utils.WriteCustomErrorResponse(w, "The date of a receipt in another currency can only be changed on its edit page", http.StatusBadRequest)
+				return 0, nil
+			}
+
+			err = repositories.GetDB().
+				Model(&models.Receipt{}).
+				Where("id = ?", receiptId).
+				Update("date", utils.CalendarDayUTC(day)).Error
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			responseBytes, err := json.Marshal(command)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			w.WriteHeader(http.StatusOK)
+			w.Write(responseBytes)
+
+			return 0, nil
+		},
+	}
+
+	HandleRequest(handler)
+}
+
 func RenameReceipt(w http.ResponseWriter, r *http.Request) {
 	receiptId := chi.URLParam(r, "id")
 

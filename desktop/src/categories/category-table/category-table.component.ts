@@ -215,6 +215,7 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
     );
 
     dialogRef.componentInstance.headerText = this.translation.t("Delete {name}", { name: categoryView.name });
+    dialogRef.componentInstance.confirmText = marker("Delete");
     dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you want to delete {name}? This action is irreversible and will remove this category from the receipts it is associated with.", { name: categoryView.name });
 
     dialogRef

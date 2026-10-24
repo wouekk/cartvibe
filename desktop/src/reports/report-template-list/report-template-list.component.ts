@@ -216,6 +216,7 @@ export class ReportTemplateListComponent extends BaseTableComponent<ReportTempla
   public delete(template: ReportTemplate): void {
     const dialogRef = this.matDialog.open(ConfirmationDialogComponent, DEFAULT_DIALOG_CONFIG);
     dialogRef.componentInstance.headerText = marker("Delete Report Template");
+    dialogRef.componentInstance.confirmText = marker("Delete");
     dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you want to delete \"{name}\"? This action is irreversible.", { name: template.name });
 
     dialogRef

@@ -55,6 +55,7 @@ import { DEFAULT_DIALOG_CONFIG } from "../../constants/dialog.constant";
 import { todayInZone } from "../../utils/app-time-zone";
 import { hasAll } from "../../utils/permission.utils";
 import { downloadFile } from "../../utils/file";
+import { finePointerSignal } from "../../utils/fine-pointer";
 import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
 import { TranslationService } from "../../i18n/translation.service";
 import { DisplayCurrencyService } from "../../services/display-currency.service";
@@ -119,6 +120,9 @@ import { marker } from "../../i18n/marker";
 
 /** Receipts listed per height step of the receipts panel. */
 const RECENT_RECEIPT_COUNT = 6;
+
+/** With a mouse the receipts panel loads this many of the period and scrolls them within its own height. */
+const RECENT_RECEIPT_SCROLL_LIMIT = 50;
 
 /** The customise screen's preview sizes, in CSS pixels; the PC preview takes the full width. */
 const PREVIEW_WIDTHS: Record<string, number | null> = { mobile: 375, tablet: 768, pc: null };
@@ -321,10 +325,20 @@ export class OverviewPageComponent {
     { initialValue: undefined }
   );
 
-  /** The receipts panel lists six receipts, or twelve when it is made taller. */
+  private readonly finePointer = finePointerSignal();
+
+  /** The receipts the panel is tall enough for: six, or twelve when it is made taller. */
+  private readonly receiptsPanelVisible = computed(() => RECENT_RECEIPT_COUNT * this.receiptsPanelRows());
+
+  /**
+   * With a mouse the panel loads more of the period and scrolls them under the wheel. On a touch screen it lists only
+   * what it is tall for: a scroll box under the thumb would catch the swipe meant for the page, and the table already
+   * scrolls sideways on a phone.
+   */
   private readonly receiptsRequest = computed(() => {
     const request = this.request();
-    return request ? { ...request, pageSize: RECENT_RECEIPT_COUNT * this.receiptsPanelRows() } : undefined;
+    const pageSize = this.finePointer() ? RECENT_RECEIPT_SCROLL_LIMIT : this.receiptsPanelVisible();
+    return request ? { ...request, pageSize } : undefined;
   });
 
   public readonly recentReceipts = toSignal(
@@ -349,6 +363,12 @@ export class OverviewPageComponent {
     ),
     { initialValue: [] as Receipt[] }
   );
+
+  /** The scroll box height: the header and the visible rows (2.5rem + a hairline each), or null when they all fit. */
+  public readonly recentReceiptsMaxHeight = computed(() => {
+    const rows = this.receiptsPanelVisible();
+    return this.finePointer() && this.recentReceipts().length > rows ? `calc(${rows + 1} * (2.5rem + 1px))` : null;
+  });
 
   /** Unhealthy tile (Phase 3 D2): what the period's products rated unhealthy cost, and their share. */
   public readonly unhealthyTotal = computed(() => Number(this.overview()?.unhealthyTotal ?? 0));

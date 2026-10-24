@@ -391,7 +391,8 @@ which day an instant falls on and what "today" means.
   recorded from a deferred call reading a named `err`.
 - `PUT /receipt/{id}/name` changes only the name (1-255 chars). `PUT /receipt/{id}/amount` changes only the total
   (a decimal above 0); it refuses a receipt converted from another currency, whose total is in the main currency
-  while its lines may not be.
+  while its lines may not be. `PUT /receipt/{id}/date` changes only the date (`yyyy-MM-dd`, stored as midnight UTC),
+  settled or not, and refuses a converted receipt too (its rate belongs to the day it was added).
 - **Update snapshots:** `UpdateReceipt` records `RECEIPT_UPDATED` with `{"before","after","version":2}`, each side a
   double-encoded `Receipt.ToString()` loaded with `GetFullyLoadedReceiptById`. Keep the format stable; bump
   `ReceiptUpdateDescriptionVersion` (and the desktop's constant) on change. Version 1 rows are rebuilt on read by

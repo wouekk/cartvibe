@@ -43,7 +43,8 @@ The Angular web app CartVibe ships (phones in the shop, desktops for the overvie
 - **HTTP:** `provideHttpClient(withXhr(), …)`; XHR is kept because upload progress needs it (22 defaults to fetch).
   In templates `?.` yields `undefined`; the few places that relied on `null` read `$safeNavigationMigration(…)`.
 - **Spartan wrappers keep the app's API:** `app-button`, `app-input`, `app-select`, `app-checkbox`, `app-textarea`,
-  `app-datepicker` (native date input; `DateInputDirective` gives the control a `Date`), `app-autocomlete` (sic),
+  `app-datepicker` (native date input; `DateInputDirective` gives the control a `Date` and blurs the field when a day
+  is picked from the calendar, so Safari's popover closes; typing keeps the focus), `app-autocomlete` (sic),
   `app-table` (`hlmTable`; `Sort`, `PageEvent`, `TableDataSource` in `src/table/table-types.ts`), `app-tabs`, `app-card`,
   `app-expansion-panel`. Add a helm part with `node tools/spartan-add.cjs <name>`; it re-applies the local patches
   listed at its end (`data-[state=checked]:` on switch and checkbox, `data-[state=active]:` on tabs, sidebar, button
@@ -89,7 +90,9 @@ The Angular web app CartVibe ships (phones in the shop, desktops for the overvie
   Password, Convert Dummy User), never sign-up or stored external secrets.
 - **Confirmations:** `ConfirmationDialogComponent` (`headerText`, `dialogContent`, `confirmText` inputs set on
   `componentInstance`, not dialog data); act on a truthy `afterClosed()` (Esc/backdrop give `undefined`). Every write
-  the user cannot trivially undo goes through it, including receipt Duplicate.
+  the user cannot trivially undo goes through it, including receipt Duplicate. A delete passes
+  `confirmText = marker("Delete")`, a removal `marker("Remove")`. The dialog starts the focus on the question
+  (`cdkFocusInitial`), not on Cancel, whose tooltip would pop open.
 - **Lists:** `app-table` with `BaseTableComponent` + a table service + an NGXS table state for server paging; row
   mutations refetch with `getTableData()`. `app-table` takes `emptyText`, `emptyIcon`, `[tableEmptyAction]`; pass the
   text only once loaded. Non-settings list pages use `app-table-header` (with a subtitle) and `app-add-button`
@@ -204,6 +207,10 @@ The Angular web app CartVibe ships (phones in the shop, desktops for the overvie
 - **Shopping panel** (`app-overview-shopping-panel`): previews `pickLargestList`; ticking is the shopping list's own
   cross-off, with an Undo row (`UNDO_WINDOW_MS`, `MAX_UNDO_ROWS`). The list is pinned while an Undo row is up, and
   `latestIntent` keeps a slow response from overwriting a later Undo. Ticking needs `group.shopping-lists.update`.
+- **Scrolling panels:** with a fine pointer (`finePointerSignal()`, `src/utils/fine-pointer.ts`) the shopping panel
+  renders every item in a five-row `cv-scroll-y` box and the receipts panel loads up to 50 receipts of the period in a
+  box its height (sticky header); on touch screens neither scrolls (a box under the thumb catches the page swipe): the
+  shopping panel shows `PANEL_ITEM_LIMIT` (5) and links to the rest, the receipts panel lists six per height step.
 - **Layout and customise** (`src/overview/dashboard-layout/`): panels have plain-string ids (`spent`, `tag:<id>`,
   `shoppingList`, …). `dashboard-layout.ts` (pure, tested) holds `PANEL_CATALOGUE`, `defaultLayout` (`fillRows` leaves
   no gaps), `parseLayout` (unreadable → default, unknown ids kept), `completeLayout`, `resolveLayout`, `placePanels`,
@@ -245,6 +252,9 @@ The Angular web app CartVibe ships (phones in the shop, desktops for the overvie
   the total never change it by themselves (the gap may be a discount): `overTotal` says so and, with update
   permission on an unconverted receipt, offers **Set total to …** (`setTotal` output; the form calls
   `setReceiptAmount` and patches its amount).
+- **Date on the view page:** editable in place, settled or not, with update permission on an unconverted receipt
+  (`canSetDateInPlace`); a change is saved alone through `setReceiptDate` after `DATE_IN_PLACE_DEBOUNCE_MS`, and a
+  failure puts the stored day back.
 - **Currency:** `app-receipt-currency-note` shows a converted amount's source; the rates editor `app-exchange-rates`
   sanitizes per keystroke (`sanitizeRateInput`) and Enter never submits the outer form.
 - **Image:** the stage is `app-image-canvas` (`docs/image-canvas.md`); the image menu (`hlmDropdownMenuTrigger` over

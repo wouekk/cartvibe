@@ -259,6 +259,13 @@ select {
     display: none;
   }
 
+  /* A Dashboard panel's list that scrolls under the mouse wheel (fine pointers only), with a thin scrollbar. */
+  .cv-scroll-y {
+    @apply overflow-y-auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
   /* A boxed field with its label inside (From / To): the same height and hairline as the strip beside it. */
   .cv-field-box {
     @apply relative inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-muted/40 pr-1 pl-3 text-xs text-muted-foreground shadow-xs transition-[color,box-shadow,border-color] focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/40;
