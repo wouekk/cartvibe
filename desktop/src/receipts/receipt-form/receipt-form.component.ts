@@ -8,7 +8,8 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
 import { DONE_STATUSES } from "../../utils/receipt-status";
-import { catchError, finalize, forkJoin, map, of, startWith, take, tap } from "rxjs";
+import { catchError, debounceTime, EMPTY, filter, finalize, forkJoin, map, of, startWith, switchMap, take, tap } from "rxjs";
+import { formatDateInput, parseDateInput } from "../../datepicker/date-input.directive";
 import { CarouselComponent } from "src/carousel/carousel/carousel.component";
 import { DEFAULT_DIALOG_CONFIG, DEFAULT_HOST_CLASS } from "src/constants";
 import { RECEIPT_STATUS_OPTIONS } from "src/constants/receipt-status-options";
@@ -45,6 +46,9 @@ import { UploadImageComponent } from "../upload-image/upload-image.component";
 import { marker } from "../../i18n/marker";
 import { RenameReceiptDialogComponent } from "../rename-receipt-dialog/rename-receipt-dialog.component";
 import { TranslationService } from "../../i18n/translation.service";
+
+/** How long a date typed on the view page waits before it is saved. */
+export const DATE_IN_PLACE_DEBOUNCE_MS = 800;
 
 @UntilDestroy()
 @Component({
@@ -359,6 +363,54 @@ export class ReceiptFormComponent implements OnInit {
       });
   }
 
+  /**
+   * The view page changes the date in place, settled or not (settling is a status, not a lock). Not for a receipt
+   * converted from another currency: its rate belongs to the day it was added, so that goes through Edit.
+   */
+  public canSetDateInPlace(): boolean {
+    return this.mode === FormMode.view && this.canEditReceipt() && !this.originalReceipt?.originalCurrency;
+  }
+
+  /**
+   * Saves a date changed on the view page with `setReceiptDate` (only the date, like Set total to …). A day picked from
+   * the calendar is final; a typed one waits for a pause, since every complete day typed is a change of its own.
+   */
+  private listenForDateChangesInPlace(): void {
+    const receiptId = this.originalReceipt?.id;
+    if (!receiptId) {
+      return;
+    }
+
+    let savedDay = formatDateInput(calendarDayToLocalDate(this.originalReceipt?.date));
+    const control = this.form.get("date");
+    control?.valueChanges
+      .pipe(
+        untilDestroyed(this),
+        filter((value): value is Date => value instanceof Date && this.canSetDateInPlace()),
+        debounceTime(DATE_IN_PLACE_DEBOUNCE_MS),
+        map((value) => formatDateInput(value)),
+        filter((day) => !!day && day !== savedDay),
+        switchMap((day) =>
+          this.receiptService.setReceiptDate(receiptId, { date: day }).pipe(
+            map(() => day),
+            // The interceptor toasts the error; the field goes back to the day that is stored.
+            catchError(() => {
+              control.setValue(parseDateInput(savedDay), { emitEvent: false });
+              return EMPTY;
+            })
+          )
+        )
+      )
+      .subscribe((day) => {
+        savedDay = day;
+        if (this.originalReceipt) {
+          this.originalReceipt = { ...this.originalReceipt, date: `${day}T00:00:00Z` };
+        }
+        this.changeDetectorRef.markForCheck();
+        this.snackbarService.success("Date updated");
+      });
+  }
+
   private initForm(): void {
 this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""));
 
@@ -418,6 +470,7 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
 
     if (this.mode === FormMode.view) {
       this.form.get("status")?.disable();
+      this.listenForDateChangesInPlace();
     }
 
     this.showPaidBy.set(!this.form.get("paidByUserId")?.value);
