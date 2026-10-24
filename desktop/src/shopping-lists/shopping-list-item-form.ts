@@ -1,6 +1,6 @@
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { ShoppingListItem, UpsertShoppingListItemCommand } from "../open-api";
-import { marker } from "../i18n/marker";
+import { marker, pluralMarker } from "../i18n/marker";
 
 // Match the API's column limits, so an over-long value is caught here rather than as a 400.
 export const SHOPPING_LIST_ITEM_NAME_MAX_LENGTH = 200;
@@ -10,21 +10,27 @@ export const SHOPPING_LIST_ITEM_NOTE_MAX_LENGTH = 500;
  * The units an amount may be in — keep in step with the API's `models.ShoppingListUnits`. The unit
  * is a plain string on the contract, so a unit the API adds later still displays, as its raw value.
  */
-export const SHOPPING_LIST_UNITS: { value: string; displayValue: string }[] = [
+export const SHOPPING_LIST_UNITS: { value: string; displayValue: string; plural?: string }[] = [
   { value: "pcs", displayValue: marker("pcs") },
   { value: "kg", displayValue: marker("kg") },
   { value: "g", displayValue: marker("g") },
   { value: "l", displayValue: marker("L") },
   { value: "ml", displayValue: marker("ml") },
-  { value: "pack", displayValue: marker("pack") },
-  { value: "bottle", displayValue: marker("bottle") },
-  { value: "can", displayValue: marker("can") },
-  { value: "box", displayValue: marker("box") },
-  { value: "bag", displayValue: marker("bag") },
-  { value: "jar", displayValue: marker("jar") },
-  { value: "bunch", displayValue: marker("bunch") },
-  { value: "dozen", displayValue: marker("dozen") },
+  // Countable units take the language's plural after an amount ("2 butelki", "5 butelek"); abbreviations don't.
+  { value: "pack", displayValue: marker("pack"), plural: pluralMarker("pack", "packs") },
+  { value: "bottle", displayValue: marker("bottle"), plural: pluralMarker("bottle", "bottles") },
+  { value: "can", displayValue: marker("can"), plural: pluralMarker("can", "cans") },
+  { value: "box", displayValue: marker("box"), plural: pluralMarker("box", "boxes") },
+  { value: "bag", displayValue: marker("bag"), plural: pluralMarker("bag", "bags") },
+  { value: "jar", displayValue: marker("jar"), plural: pluralMarker("jar", "jars") },
+  { value: "bunch", displayValue: marker("bunch"), plural: pluralMarker("bunch", "bunches") },
+  { value: "dozen", displayValue: marker("dozen"), plural: pluralMarker("dozen", "dozen") },
 ];
+
+/** Picks the noun for a count ("1 bottle", "2 bottles"); `TranslationService.plural` in the app, English rules here. */
+export type PluralFn = (count: number, singular: string, plural: string) => string;
+
+const englishPlural: PluralFn = (count, singular, plural) => (count === 1 ? singular : plural);
 
 export const DEFAULT_SHOPPING_LIST_UNIT = "pcs";
 
@@ -67,10 +73,19 @@ export function toUpsertShoppingListItemCommand(
   };
 }
 
-/** "1.5 kg", "6 pcs", "1 L"; an item from before amounts existed shows its free text. */
-export function formatShoppingListItemAmount(item: ShoppingListItem, translate: (text: string) => string = (text) => text): string {
+/** "1.5 kg", "6 pcs", "2 bottles"; an item from before amounts existed shows its free text. */
+export function formatShoppingListItemAmount(
+  item: ShoppingListItem,
+  translate: (text: string) => string = (text) => text,
+  plural: PluralFn = englishPlural
+): string {
   if (item.amount) {
-    const unit = translate(SHOPPING_LIST_UNITS.find((candidate) => candidate.value === item.unit)?.displayValue ?? item.unit ?? "");
+    const known = SHOPPING_LIST_UNITS.find((candidate) => candidate.value === item.unit);
+    const count = Number(item.amount);
+    const unit =
+      known?.plural && Number.isFinite(count)
+        ? plural(count, known.displayValue, known.plural)
+        : translate(known?.displayValue ?? item.unit ?? "");
     return unit ? `${item.amount} ${unit}` : item.amount;
   }
   return item.quantity ?? "";

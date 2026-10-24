@@ -89,6 +89,16 @@ describe("shopping list item form", () => {
       expect(formatShoppingListItemAmount(item({ amount: "6", unit: "" }), translate)).toBe("6");
     });
 
+    it("counts countable units, in English by default and in the given plural rules otherwise", () => {
+      expect(formatShoppingListItemAmount(item({ amount: "1", unit: "bottle" }))).toBe("1 bottle");
+      expect(formatShoppingListItemAmount(item({ amount: "2", unit: "bottle" }))).toBe("2 bottles");
+      expect(formatShoppingListItemAmount(item({ amount: "3", unit: "dozen" }))).toBe("3 dozen");
+
+      const polish = (count: number) => (count === 1 ? "butelka" : Number.isInteger(count) && count < 5 ? "butelki" : "butelek");
+      expect(formatShoppingListItemAmount(item({ amount: "2", unit: "bottle" }), undefined, polish)).toBe("2 butelki");
+      expect(formatShoppingListItemAmount(item({ amount: "5", unit: "bottle" }), undefined, polish)).toBe("5 butelek");
+    });
+
     it("falls back to the old free-text quantity, or nothing", () => {
       expect(formatShoppingListItemAmount(item({ quantity: "a few" }))).toBe("a few");
       expect(formatShoppingListItemAmount(item({}))).toBe("");

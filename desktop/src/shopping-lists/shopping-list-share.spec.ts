@@ -28,11 +28,14 @@ describe("shoppingListToText", () => {
     expect(shoppingListToText(list([item({ isChecked: true })]))).toBe("Saturday shop");
   });
 
-  it("translates unit names", () => {
-    const text = shoppingListToText(list([item({ name: "Water", amount: "6", unit: "bottle" })]), (word) =>
-      word === "bottle" ? "butelki" : word
+  it("translates unit names, counting the countable ones", () => {
+    const text = shoppingListToText(
+      list([item({ name: "Water", amount: "6", unit: "bottle" }), item({ id: 2, name: "Flour", amount: "1", unit: "kg" })]),
+      (word) => (word === "kg" ? "kg." : word),
+      (count, singular) => (singular === "bottle" && count >= 5 ? "butelek" : singular)
     );
 
-    expect(text).toContain("(6 butelki)");
+    expect(text).toContain("(6 butelek)");
+    expect(text).toContain("(1 kg.)");
   });
 });

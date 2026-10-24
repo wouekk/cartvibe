@@ -284,6 +284,12 @@ export function extract() {
     }
     if (file.endsWith(".ts")) {
       scriptMessages(text, add, problem);
+      // pluralMarker("bottle", "bottles"): a noun counted in TypeScript, the script twin of `| plural:`.
+      const pluralMarkers = new RegExp(String.raw`\bpluralMarker\(\s*(${LITERAL})\s*,\s*(${LITERAL})\s*\)`, "g");
+      let pluralMatch;
+      while ((pluralMatch = pluralMarkers.exec(text))) {
+        addPlural(unquote(pluralMatch[1]), unquote(pluralMatch[2]), pluralMatch.index);
+      }
     }
   }
 

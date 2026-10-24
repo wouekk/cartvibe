@@ -54,7 +54,7 @@
             [options]="symbolPositions"
           ></app-select>
           <app-select
-            [label]="'Thousandths Separator' | t"
+            [label]="'Thousands Separator' | t"
             optionValueKey="value"
             optionDisplayKey="displayValue"
             [inputFormControl]="form  | formGet:'currencyThousandthsSeparator'"
@@ -210,7 +210,7 @@
           <app-input
             [label]="'Task Concurrency' | t"
             type="number"
-            hint="The max amount of tasks that can be run concurrently. 0 or negative means all CPU cores available."
+            hint="The most tasks that run at once. 0 or a negative number uses every CPU core."
             [inputFormControl]="form | formGet:'taskConcurrency'"
           ></app-input>
         </div>
