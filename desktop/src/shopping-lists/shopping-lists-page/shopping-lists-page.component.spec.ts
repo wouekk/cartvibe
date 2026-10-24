@@ -4,9 +4,9 @@ import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@angular/core"
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ActivatedRoute, Router } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
-import { of, throwError } from "rxjs";
+import { of } from "rxjs";
 import { AppDialog } from "../../dialog/app-dialog";
-import { Permission, ShoppingList, ShoppingListService } from "../../open-api";
+import { Permission, ShoppingList, ShoppingListItem, ShoppingListService } from "../../open-api";
 import { PipesModule } from "../../pipes/pipes.module";
 import { SnackbarService } from "../../services";
 import { ShoppingListStreamService } from "../../services/shopping-list-stream.service";
@@ -16,23 +16,51 @@ import { ShoppingListState } from "../../store/shopping-list.state";
 import { LoadShoppingLists } from "../../store/shopping-list.state.actions";
 import { ShoppingListsPageComponent } from "./shopping-lists-page.component";
 
-const list = (id: number, name: string): ShoppingList => ({ id, groupId: 1, name, items: [] });
+const item = (id: number, listId: number, isChecked = false): ShoppingListItem =>
+  ({ id, shoppingListId: listId, name: `item-${id}`, isChecked, checkedAt: isChecked ? "2026-10-21T10:00:00Z" : undefined }) as ShoppingListItem;
 
-describe("ShoppingListsPageComponent: choosing lists to delete", () => {
+const list = (id: number, name: string, createdAt: string, items: ShoppingListItem[]): ShoppingList =>
+  ({ id, groupId: 1, name, createdAt, items }) as ShoppingList;
+
+/** Aldi is the newest list, Lidl an older one still being shopped, Market finished. */
+const lists = (): ShoppingList[] => [
+  list(1, "Lidl", "2026-10-20T08:00:00Z", [item(10, 1)]),
+  list(2, "Aldi", "2026-10-22T08:00:00Z", [item(20, 2), item(21, 2, true)]),
+  list(3, "Market", "2026-10-21T08:00:00Z", [item(30, 3, true)]),
+];
+
+/** What the server answers for PUT /{listId}/checked. */
+const setChecked = (listId: number, command: { isChecked: boolean; itemIds?: number[] }) => {
+  const target = lists().find((candidate) => candidate.id === listId)!;
+  return of({
+    ...target,
+    items: target.items.map((existing) =>
+      !command.itemIds || command.itemIds.includes(existing.id) ? { ...existing, isChecked: command.isChecked } : existing
+    ),
+  });
+};
+
+describe("ShoppingListsPageComponent", () => {
   let fixture: ComponentFixture<ShoppingListsPageComponent>;
   let component: ShoppingListsPageComponent;
   let store: Store;
   let shoppingListService: { [method: string]: jest.Mock };
-  let snackbarService: { error: jest.Mock; success: jest.Mock; hint: jest.Mock };
+  let snackbarService: { [method: string]: jest.Mock };
   let confirmed: boolean | undefined;
 
   beforeEach(async () => {
     confirmed = true;
     shoppingListService = {
-      getShoppingListsForGroup: jest.fn().mockReturnValue(of([list(1, "Lidl"), list(2, "Aldi"), list(3, "Market")])),
+      getShoppingListsForGroup: jest.fn().mockReturnValue(of(lists())),
       deleteShoppingList: jest.fn().mockReturnValue(of(undefined)),
+      setShoppingListChecked: jest.fn().mockImplementation(setChecked),
     };
-    snackbarService = { error: jest.fn(), success: jest.fn(), hint: jest.fn() };
+    snackbarService = {
+      error: jest.fn(),
+      success: jest.fn(),
+      hint: jest.fn(),
+      successFromTemplate: jest.fn().mockReturnValue({ dismiss: jest.fn() }),
+    };
 
     await TestBed.configureTestingModule({
       declarations: [ShoppingListsPageComponent],
@@ -57,7 +85,12 @@ describe("ShoppingListsPageComponent: choosing lists to delete", () => {
     store = TestBed.inject(Store);
     store.reset({
       ...store.snapshot(),
-      auth: { ...store.snapshot().auth, groupPermissions: { 1: [Permission.GroupShoppingListsDelete] } },
+      auth: {
+        ...store.snapshot().auth,
+        groupPermissions: {
+          1: [Permission.GroupShoppingListsCreate, Permission.GroupShoppingListsUpdate, Permission.GroupShoppingListsDelete],
+        },
+      },
     });
     store.dispatch(new LoadShoppingLists(1));
 
@@ -66,84 +99,105 @@ describe("ShoppingListsPageComponent: choosing lists to delete", () => {
     await fixture.whenStable();
   });
 
-  it("offers Delete list only to someone who may delete lists", () => {
-    expect(component.canDeleteLists()).toBe(true);
+  const testId = (id: string): HTMLElement | null => fixture.nativeElement.querySelector(`[data-testid="${id}"]`);
 
-    store.reset({ ...store.snapshot(), auth: { ...store.snapshot().auth, groupPermissions: { 1: [] } } });
+  it("opens the newest list and puts the open list above the list cards", () => {
+    expect(component.selectedList()?.id).toBe(2);
 
-    expect(component.canDeleteLists()).toBe(false);
+    const workspace = testId("shopping-list-workspace")!;
+    const cards = testId("shopping-list-cards")!;
+    expect(workspace.compareDocumentPosition(cards) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it("ticks lists instead of opening them while choosing, and unticks on a second click", () => {
-    component.startSelecting();
-
-    component.pick(1);
-    component.pick(2);
-    component.pick(1);
-
-    expect([...component.selectedIds()]).toEqual([2]);
-    expect(component.selectedCount()).toBe(1);
+  it("lists the cards newest first, finished lists last", () => {
+    expect(component.listCards().map((card) => [card.id, card.past])).toEqual([
+      [2, false],
+      [1, false],
+      [3, true],
+    ]);
   });
 
-  it("opens the list on a click when not choosing", () => {
-    const open = jest.spyOn(component, "selectList");
-
-    component.pick(2);
-
-    expect(open).toHaveBeenCalledWith("2");
-    expect(component.selectedCount()).toBe(0);
-  });
-
-  it("deletes every ticked list after confirming and leaves choosing mode", async () => {
-    component.startSelecting();
-    component.pick(1);
-    component.pick(3);
-
-    component.deleteSelected();
+  it("leaves the cards out when the only one is the open list", async () => {
+    shoppingListService["getShoppingListsForGroup"].mockReturnValue(of([lists()[0]]));
+    store.dispatch(new LoadShoppingLists(1));
     await fixture.whenStable();
 
-    expect(shoppingListService.deleteShoppingList.mock.calls.map((call) => call[0])).toEqual([1, 3]);
-    expect(component.lists().map((l) => l.id)).toEqual([2]);
-    expect(component.selecting()).toBe(false);
-    expect(component.selectedCount()).toBe(0);
+    expect(component.showCards()).toBe(false);
+    expect(testId("shopping-list-cards")).toBeNull();
+  });
+
+  it("opens a list from its card", async () => {
+    (testId("shopping-list-card-1") as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    expect(component.selectedList()?.id).toBe(1);
+  });
+
+  it("deletes the open list from the header after confirming", async () => {
+    (testId("shopping-list-delete") as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    expect(shoppingListService["deleteShoppingList"]).toHaveBeenCalledWith(2);
+    expect(component.lists().map((l) => l.id)).toEqual([3, 1]);
+    // The next list still being shopped opens, so pressing Delete again removes that one.
+    expect(component.selectedList()?.id).toBe(1);
   });
 
   it("deletes nothing when the confirmation is dismissed", async () => {
     confirmed = undefined;
-    component.startSelecting();
-    component.pick(1);
 
-    component.deleteSelected();
+    (testId("shopping-list-delete") as HTMLButtonElement).click();
     await fixture.whenStable();
 
-    expect(shoppingListService.deleteShoppingList).not.toHaveBeenCalled();
-    expect(component.selecting()).toBe(true);
+    expect(shoppingListService["deleteShoppingList"]).not.toHaveBeenCalled();
   });
 
-  it("keeps the lists the server refused ticked and says so", async () => {
-    shoppingListService.deleteShoppingList.mockImplementation((id: number) =>
-      id === 2 ? throwError(() => new Error("forbidden")) : of(undefined)
-    );
-    component.startSelecting();
-    component.pick(1);
-    component.pick(2);
-
-    component.deleteSelected();
+  it("hides Delete list from someone who may not delete lists", async () => {
+    store.reset({ ...store.snapshot(), auth: { ...store.snapshot().auth, groupPermissions: { 1: [] } } });
     await fixture.whenStable();
 
-    expect(component.lists().map((l) => l.id)).toEqual([2, 3]);
-    expect([...component.selectedIds()]).toEqual([2]);
-    expect(component.selecting()).toBe(true);
-    expect(snackbarService.error).toHaveBeenCalledWith("Some lists could not be deleted.");
+    expect(testId("shopping-list-delete")).toBeNull();
   });
 
-  it("cancel leaves choosing mode and forgets the ticks", () => {
-    component.startSelecting();
-    component.pick(1);
+  it("marks the open list complete, opens the next list and offers Undo", async () => {
+    (testId("shopping-list-complete") as HTMLButtonElement).click();
+    await fixture.whenStable();
 
-    component.cancelSelecting();
+    expect(shoppingListService["setShoppingListChecked"]).toHaveBeenCalledWith(2, { isChecked: true, itemIds: undefined });
+    expect(component.lists().find((l) => l.id === 2)?.items.every((i) => i.isChecked)).toBe(true);
+    expect(component.selectedList()?.id).toBe(1);
+    expect(component.listCards().map((card) => [card.id, card.past])).toEqual([
+      [1, false],
+      [2, true],
+      [3, true],
+    ]);
+    expect(snackbarService["successFromTemplate"]).toHaveBeenCalled();
+    expect(component.lastCompleted()).toEqual({ listId: 2, name: "Aldi", itemIds: [20] });
+  });
 
-    expect(component.selecting()).toBe(false);
-    expect(component.selectedCount()).toBe(0);
+  it("Undo puts back only the items Mark as complete crossed off and reopens the list", async () => {
+    component.completeList(component.selectedList()!);
+    await fixture.whenStable();
+
+    component.undoComplete();
+    await fixture.whenStable();
+
+    expect(shoppingListService["setShoppingListChecked"]).toHaveBeenLastCalledWith(2, { isChecked: false, itemIds: [20] });
+    expect(component.selectedList()?.id).toBe(2);
+    expect(component.selectedList()?.items.map((i) => i.isChecked)).toEqual([false, true]);
+  });
+
+  it("restores a finished list and opens it", async () => {
+    component.restoreList(component.lists().find((l) => l.id === 3)!);
+    await fixture.whenStable();
+
+    expect(shoppingListService["setShoppingListChecked"]).toHaveBeenCalledWith(3, { isChecked: false, itemIds: undefined });
+    expect(component.selectedList()?.id).toBe(3);
+    expect(component.listCards().find((card) => card.id === 3)?.past).toBe(false);
+  });
+
+  it("gives finished lists a menu, and lists being shopped none", () => {
+    expect(testId("shopping-list-past-menu-3")).not.toBeNull();
+    expect(testId("shopping-list-past-menu-1")).toBeNull();
   });
 });

@@ -91,6 +91,7 @@ export * from './role';
 export * from './searchResult';
 export * from './setFoodClassificationCommand';
 export * from './setReceiptProductLabelsCommand';
+export * from './setShoppingListCheckedCommand';
 export * from './setShoppingListItemCheckedCommand';
 export * from './shoppingList';
 export * from './shoppingListEvent';

@@ -9,6 +9,7 @@ import {
   ShoppingListItem,
   ShoppingListService,
 } from "../open-api";
+import { isPastList } from "../shopping-lists/shopping-list-groups";
 import { hasAll } from "../utils/permission.utils";
 import { AuthState } from "./auth.state";
 import { GroupState } from "./group.state";
@@ -157,16 +158,20 @@ function compareByCreation(a: ShoppingListItem, b: ShoppingListItem): number {
   return (a.createdAt ?? "").localeCompare(b.createdAt ?? "") || a.id - b.id;
 }
 
+/** Newest first: the list started last is the one being shopped for. */
 function sortLists(lists: ShoppingList[]): ShoppingList[] {
-  return [...lists].sort((a, b) => a.name.localeCompare(b.name) || a.id - b.id);
+  return [...lists].sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? "") || b.id - a.id);
 }
 
-/** Keeps the current selection while it still exists, otherwise falls back to the first list. */
+/**
+ * Keeps the current selection while it still exists (a finished list can be viewed), otherwise falls
+ * back to the newest list still being shopped, then the newest list.
+ */
 function resolveSelection(lists: ShoppingList[], selectedListId?: number): number | undefined {
   if (lists.some((list) => list.id === selectedListId)) {
     return selectedListId;
   }
-  return lists[0]?.id;
+  return (lists.find((list) => !isPastList(list)) ?? lists[0])?.id;
 }
 
 function upsertById<T extends { id: number }>(entities: T[], entity: T): T[] {

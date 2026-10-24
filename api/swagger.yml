@@ -3461,6 +3461,46 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
+  /shopping-list/{listId}/checked:
+    parameters:
+      - in: path
+        name: listId
+        schema:
+          type: integer
+        required: true
+        description: Id of the shopping list to cross off or put back
+    put:
+      tags:
+        - ShoppingList
+      summary: Set whether a whole shopping list is crossed off
+      description: >-
+        This will move every item on the list, or only the given items of it, to the given checked state
+        [group.shopping-lists.update]. Items already in that state keep their stamp. Used by "Mark as
+        complete", "Restore" and Undo.
+      operationId: setShoppingListChecked
+      requestBody:
+        description: Target checked state and, optionally, which items
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetShoppingListCheckedCommand"
+      responses:
+        200:
+          description: The list in its new state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShoppingList"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
   /shopping-list/{listId}/trip:
     parameters:
       - in: path
@@ -4511,6 +4551,19 @@ components:
         isChecked:
           type: boolean
           description: The target state. Setting the state an item is already in changes nothing.
+    SetShoppingListCheckedCommand:
+      type: object
+      required:
+        - isChecked
+      properties:
+        isChecked:
+          type: boolean
+          description: The target state for the items.
+        itemIds:
+          type: array
+          description: Only these items of the list; omitted means every item. Ids of other lists' items are ignored.
+          items:
+            type: integer
     ShoppingListEvent:
       type: object
       description: >-
