@@ -5,6 +5,7 @@
   </span>
   <app-dialog-footer
     [submitButtonTooltip]="confirmText"
+    [submitDestructive]="destructive()"
     (submitClicked)="submitButtonClicked()"
     (cancelClicked)="cancelButtonClicked()"
   ></app-dialog-footer>

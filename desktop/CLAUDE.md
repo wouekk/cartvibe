@@ -91,7 +91,8 @@ The Angular web app CartVibe ships (phones in the shop, desktops for the overvie
 - **Confirmations:** `ConfirmationDialogComponent` (`headerText`, `dialogContent`, `confirmText` inputs set on
   `componentInstance`, not dialog data); act on a truthy `afterClosed()` (Esc/backdrop give `undefined`). Every write
   the user cannot trivially undo goes through it, including receipt Duplicate. A delete passes
-  `confirmText = marker("Delete")`, a removal `marker("Remove")`. The dialog starts the focus on the question
+  `confirmText = marker("Delete")`, a removal `marker("Remove")`; those two (`DESTRUCTIVE_CONFIRM_TEXTS`) turn the
+  button red through `app-dialog-footer [submitDestructive]`. The dialog starts the focus on the question
   (`cdkFocusInitial`), not on Cancel, whose tooltip would pop open.
 - **Lists:** `app-table` with `BaseTableComponent` + a table service + an NGXS table state for server paging; row
   mutations refetch with `getTableData()`. `app-table` takes `emptyText`, `emptyIcon`, `[tableEmptyAction]`; pass the
@@ -276,7 +277,7 @@ The Angular web app CartVibe ships (phones in the shop, desktops for the overvie
   `trimmedRequiredValidator()` (module-level singletons, because `removeValidators` matches by reference).
 - **Group receipt settings → Quick Scan:** comment toggles are disabled, not cleared, while `hideComments` is on
   (`applyQuickScanDerivedState` with `emitEvent: false`, edit mode only); submit reads `getRawValue()`.
-- **Form Cancel:** a red `app-cancel-button` (`receipt-form-cancel`) sits left of Save in add and edit modes (not in the
+- **Form Cancel:** an `app-cancel-button` (neutral outline) (`receipt-form-cancel`) sits left of Save in add and edit modes (not in the
   next/previous queue): add goes to the receipts list (`receiptListLink`), edit back to the receipt's view. No
   confirmation, since nothing is written.
 

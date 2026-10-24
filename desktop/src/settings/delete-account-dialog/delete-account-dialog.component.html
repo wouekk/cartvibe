@@ -32,6 +32,7 @@
     ></app-input>
     <app-dialog-footer
       submitButtonTooltip="Delete Account"
+      [submitDestructive]="true"
       (submitClicked)="submitButtonClicked()"
       (cancelClicked)="cancelButtonClicked()"
     ></app-dialog-footer>

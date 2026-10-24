@@ -410,6 +410,7 @@
       </button>
       <button
         hlmDropdownMenuItem
+        variant="destructive"
         data-testid="receipt-image-remove"
         [attr.title]="isLastImageLocked() ? ('An image is required, so the last one cannot be removed' | t) : null"
         [disabled]="!canEditReceipt() || isLastImageLocked() || (showProgressBar() ?? false)"
