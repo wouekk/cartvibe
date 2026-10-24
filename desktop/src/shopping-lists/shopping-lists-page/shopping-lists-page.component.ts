@@ -364,7 +364,11 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
 
   /** The share sheet where there is one (phones), otherwise the text goes to the clipboard. */
   public shareList(list: ShoppingList): void {
-    const text = shoppingListToText(list, (word) => this.translation.t(word));
+    const text = shoppingListToText(
+      list,
+      (word) => this.translation.t(word),
+      (count, singular, plural) => this.translation.plural(count, singular, plural)
+    );
     if (this.canShare) {
       navigator.share({ title: list.name, text }).catch(() => undefined);
       return;

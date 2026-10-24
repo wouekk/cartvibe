@@ -34,7 +34,7 @@ export class UserProfileComponent implements OnInit {
   public formMode = FormMode;
 
   public usernameTooltip: string =
-    marker("Only system admin may change your username.");
+    marker("Only an admin can change your username.");
 
   protected readonly Permission = Permission;
 

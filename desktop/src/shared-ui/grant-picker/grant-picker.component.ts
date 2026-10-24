@@ -173,7 +173,7 @@ export class GrantPickerComponent {
     if (!ceiling || available.length === pool.length) {
       return "";
     }
-    const key = resource === "categories" ? marker("Limited to the {count} categories allowed by {name}.") : marker("Limited to the {count} tags allowed by {name}.");
+    const key = resource === "categories" ? marker("Only the categories {name} allows ({count}).") : marker("Only the tags {name} allows ({count}).");
     return this.translation.t(key, { count: available.length, name: ceiling.label });
   }
 

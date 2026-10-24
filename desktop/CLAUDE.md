@@ -328,7 +328,11 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
   `TranslationService.t()` in code. Missing → English; `null` or `""` counts as missing.
 - Strings defined in TypeScript are wrapped in `marker("…")` where defined and translated where shown. Values go in
   `{placeholders}`, never template literals or concatenation (`i18n:check` fails). Pure helpers take an optional
-  `TranslateFn`.
+  `TranslateFn`. A noun counted in TypeScript is `pluralMarker("bottle", "bottles")` (the twin of `| plural:`) and is
+  picked with `TranslationService.plural()`; countable shopping units use it, so "2 butelki" / "5 butelek" are right.
+- A `{name}` can't take a grammatical case: put it after a colon or a noun ("Usuń: {name}", "kategorię „{name}”"), and
+  keep counts in a form that reads right at 1, 2 and 5 ("Wybrano: {count}"). An English text change is a key change:
+  carry each language's value over to the new key.
 - Languages are runtime JSON: `languages.json` (registry), `<code>.json` (`{ messages, plurals }`), `en.json` is the
   generated catalogue. `TranslationLoader` fetches via `HttpBackend`; a failed load leaves English. Shipped: en, pl,
   de, fr, es; Polish must stay at 100%.

@@ -855,7 +855,7 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
           )
           .pipe(
             tap((data) => {
-              this.snackbarService.success("Successfully uploaded image(s)");
+              this.snackbarService.success("Images uploaded");
               this.images.update(imgs => [...imgs, data]);
               })
           )
