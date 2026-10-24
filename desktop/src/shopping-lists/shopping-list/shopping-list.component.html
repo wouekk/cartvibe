@@ -68,9 +68,8 @@
       </button>
       @if (canUpdate() && showCrossedOff()) {
         <button
-          hlmBtn variant="ghost" size="sm"
+          hlmBtn variant="destructive" size="sm"
           type="button"
-          class="text-muted-foreground"
           data-testid="shopping-list-clear-crossed-off"
           (click)="clearCrossedOff()"
         >

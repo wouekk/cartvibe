@@ -12,6 +12,7 @@
 <app-button
   *ngIf="!onlyIcon()"
   matButtonType="matRaisedButton"
+  [color]="destructive() ? 'warn' : 'primary'"
   [buttonText]="buttonText() ?? 'Save'"
   [type]="type() || 'submit'"
   [tooltip]="tooltip ?? ''"

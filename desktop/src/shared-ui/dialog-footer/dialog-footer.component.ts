@@ -14,6 +14,8 @@ export class DialogFooterComponent {
   @Input() public additionalButtonsTemplate?: TemplateRef<any>;
   public readonly submitButtonTooltip = input<string>("Save");
   public readonly submitButtonType = input<"button" | "submit">("submit");
+  // Red Save for a dialog whose action deletes or removes.
+  public readonly submitDestructive = input<boolean>(false);
   public readonly disableWhenProgressBarIsShown = input<boolean>(false);
   // Set when the dialog edits something that exists: Save is then dimmed while the form is unchanged.
   public readonly editing = input<boolean>(false);

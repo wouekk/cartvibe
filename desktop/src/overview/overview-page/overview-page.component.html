@@ -20,7 +20,7 @@
         <button type="button" hlmBtn variant="ghost" data-testid="dashboard-customise-reset" (click)="resetLayout()">
           <app-icon name="restart_alt"></app-icon>{{ 'Reset' | t }}
         </button>
-        <button type="button" hlmBtn variant="destructive" data-testid="dashboard-customise-cancel" (click)="cancelCustomising()">{{ 'Cancel' | t }}</button>
+        <button type="button" hlmBtn variant="outline" data-testid="dashboard-customise-cancel" (click)="cancelCustomising()">{{ 'Cancel' | t }}</button>
         <button type="button" hlmBtn data-testid="dashboard-customise-save" [disabled]="savingLayout() || !layoutDirty()" (click)="saveLayout()">{{ 'Save' | t }}</button>
       </div>
     </div>
