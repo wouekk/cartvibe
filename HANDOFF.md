@@ -8,7 +8,9 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 - `main` = `preview` = v0.9.0 (2026-10-24): the shopping lists page rebuilt around the open list (Mark as complete
   with Undo, finished lists under Completed, Restore, header Delete list deletes the open list), the receipt Products
   card explaining unsplit spending, and the README rewritten with new screenshots. `:latest` is published from it
-  after green CI on `main`. Not seen on the NAS yet. No feature branches are open.
+  after green CI on `main`. Not seen on the NAS yet.
+- `preview` = v0.9.0 + `feature/receipt-over-total`: when a receipt's products add up to more than its total, the
+  Products card says so and offers **Set total to …** (new `PUT /receipt/{id}/amount`). `main` waits for the user's go.
 
 ## Open for the user (needs the NAS or a phone)
 

@@ -938,6 +938,64 @@ func DuplicateReceipt(w http.ResponseWriter, r *http.Request) {
 
 // RenameReceipt changes only a receipt's name, so a rename never saves anything else the receipt form holds.
 // It rides the same gate as an edit (group.receipts.update, paid-by visibility), resolved from the receipt.
+// SetReceiptAmount changes only a receipt's total (the desktop's "Set total to the products").
+func SetReceiptAmount(w http.ResponseWriter, r *http.Request) {
+	receiptId := chi.URLParam(r, "id")
+
+	handler := structs.Handler{
+		ErrorMessage:     "Error changing the receipt total.",
+		Writer:           w,
+		Request:          r,
+		ReceiptId:        receiptId,
+		GroupPermissions: []string{permissions.GroupReceiptsUpdate},
+		ResponseType:     constants.ApplicationJson,
+		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
+			command := commands.SetReceiptAmountCommand{}
+			err := command.LoadDataFromRequest(w, r)
+			if err != nil {
+				return http.StatusBadRequest, err
+			}
+
+			vErr := command.Validate()
+			if len(vErr.Errors) > 0 {
+				structs.WriteValidatorErrorResponse(w, vErr, http.StatusBadRequest)
+				return 0, nil
+			}
+
+			var receipt models.Receipt
+			err = repositories.GetDB().Select("id", "original_currency").First(&receipt, receiptId).Error
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+			// A converted receipt's total is in the main currency while its lines may not be.
+			if receipt.OriginalCurrency != "" {
+				utils.WriteCustomErrorResponse(w, "The total of a receipt in another currency can only be changed on its edit page", http.StatusBadRequest)
+				return 0, nil
+			}
+
+			err = repositories.GetDB().
+				Model(&models.Receipt{}).
+				Where("id = ?", receiptId).
+				Update("amount", *command.Amount).Error
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			responseBytes, err := json.Marshal(command)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			w.WriteHeader(http.StatusOK)
+			w.Write(responseBytes)
+
+			return 0, nil
+		},
+	}
+
+	HandleRequest(handler)
+}
+
 func RenameReceipt(w http.ResponseWriter, r *http.Request) {
 	receiptId := chi.URLParam(r, "id")
 

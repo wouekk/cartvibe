@@ -1,6 +1,6 @@
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { CommonModule, CurrencyPipe } from "@angular/common";
-import { Component, computed, DestroyRef, effect, inject, input, signal, untracked, WritableSignal, ChangeDetectionStrategy } from "@angular/core";
+import { Component, computed, DestroyRef, effect, inject, input, output, signal, untracked, WritableSignal, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
@@ -67,6 +67,12 @@ export class ReceiptProductsComponent {
   /** The receipt's total, so the card can say how much of it no product line covers yet. */
   public readonly receiptAmount = input<string | undefined>(undefined);
 
+  /** A receipt converted from another currency: its total is not offered a change to the lines' sum. */
+  public readonly receiptConverted = input(false);
+
+  /** Asks the page to set the receipt's total to this sum of the lines. */
+  public readonly setTotal = output<string>();
+
   public readonly view = signal<ReceiptProductsView | undefined>(undefined);
 
   public readonly loadFailed = signal(false);
@@ -87,14 +93,33 @@ export class ReceiptProductsComponent {
    * The Dashboard and reports count that part as Uncategorized. Worked in cents: totals are never floats.
    */
   public readonly unsplitAmount = computed(() => {
+    const rest = this.restCents();
+    return rest !== undefined && rest > 0 ? (rest / 100).toFixed(2) : undefined;
+  });
+
+  /**
+   * When the lines add up to more than the total: their sum and the difference. The total stays as entered
+   * (the gap may be a discount line) until the person sets it to the sum.
+   */
+  public readonly overTotal = computed(() => {
+    const rest = this.restCents();
+    if (rest === undefined || rest >= 0) {
+      return undefined;
+    }
+
+    const total = toCents(this.receiptAmount()) ?? 0;
+    return { sum: ((total - rest) / 100).toFixed(2), over: (-rest / 100).toFixed(2) };
+  });
+
+  /** The total minus the lines' prices, in cents; undefined without lines or a total. */
+  private readonly restCents = computed(() => {
     const products = this.view()?.products ?? [];
     const total = toCents(this.receiptAmount());
     if (products.length === 0 || total === undefined) {
       return undefined;
     }
 
-    const rest = products.reduce((left, product) => left - (toCents(product.amount ?? undefined) ?? 0), total);
-    return rest > 0 ? (rest / 100).toFixed(2) : undefined;
+    return products.reduce((left, product) => left - (toCents(product.amount ?? undefined) ?? 0), total);
   });
 
   public readonly isInProgress = computed(() => ["PENDING", "RUNNING"].includes(this.view()?.status ?? ""));
