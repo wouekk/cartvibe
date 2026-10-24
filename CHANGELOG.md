@@ -8,6 +8,32 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-24
+
+A shopping lists page built around the list you're shopping from, and receipts that are easier to split into
+products.
+
+> **Upgrade: in place.** No schema change: pull `:latest`, redeploy, hard-refresh.
+
+### Added
+- **Mark as complete:** a button next to Going shopping crosses off the whole list in one go (everything bought as
+  planned) and opens the next list. A short message offers **Undo**, which puts back exactly the items it crossed off.
+- **Restore a finished list:** a finished list's menu brings every item back so the list can be shopped again, or
+  starts a new list from it.
+
+### Changed
+- **The open list comes first** on the shopping lists page, and the other lists sit below it. Lists open newest first
+  instead of in alphabetical order, so the page opens on the list you started last.
+- **Finished lists fold away** under a **Completed** toggle below the lists you're still shopping, like the
+  crossed-off items inside a list. The latest six are kept there, newest first.
+- **Delete list** in the page header now deletes the list you're looking at (after the usual confirmation), so
+  removing several is just pressing it again. The mode for ticking several lists to delete is gone.
+- **Splitting a receipt into products:** on a receipt's page, a receipt with no products (typed in by hand) now says to
+  add them right there, and one that is only partly split says how much of the total isn't covered yet. That part
+  counts as Uncategorized on the Dashboard and in reports. Adding products never needed Edit and Save, and doesn't
+  change a settled receipt's total or status.
+- The README has a new features list and fresh screenshots.
+
 ## [0.8.0] - 2026-10-23
 
 CartVibe on your home screen, a shopping list made for the shop, and Angular 22 underneath.
