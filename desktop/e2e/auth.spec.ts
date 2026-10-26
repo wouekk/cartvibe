@@ -34,7 +34,7 @@ test.describe('authentication', () => {
 
     // Still on the login form, with what was typed.
     await expect(page).toHaveURL(/\/auth\/login/);
-    await expect(page.getByTestId('auth-loading')).toHaveCount(0);
+    await expect(page.getByTestId('sign-in-transition')).toHaveCount(0);
     await expect(page.getByLabel('Username')).toHaveValue(username);
     await expect(page.getByLabel('Password')).toHaveValue(
       'definitely-not-the-password',

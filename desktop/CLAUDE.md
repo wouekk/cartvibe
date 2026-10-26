@@ -384,6 +384,10 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
   `tailwind.css`, off under `prefers-reduced-motion`). Element fades use `animate.enter` / `animate.leave` with
   `tw-animate-css` classes; `@angular/animations` stays only as a devDependency for the specs that still import
   `NoopAnimationsModule`.
+- **Signing in:** `SignInTransitionService` drives one splash in `AppComponent` (`sign-in-transition`, `z-[1100]`, over
+  the header) from the Login press until `router.navigate` to the first page resolves, then fades it out (300 ms). The
+  sidebar and header appear as soon as `setAppData` stores the session, so a splash inside the login page sat in the
+  middle of a half-drawn app. A failed login fades back to the form; `submit()` ignores presses while it is up.
 
 ### Navigation and settings screens
 
