@@ -8,6 +8,32 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-10-26
+
+Smaller things that got in the way: dates, buttons, the Dashboard panels, logging in and Quick Scan.
+
+> **Upgrade: in place.** No schema change: pull `:latest`, redeploy, hard-refresh.
+
+### Added
+- **Change the date on the receipt page:** the date can be changed right where you read the receipt, settled or not,
+  without pressing Edit. It saves on its own. A receipt converted from another currency still goes through Edit,
+  since its rate belongs to the day it was added.
+- **Scrolling Dashboard panels:** with a mouse or trackpad, the shopping list shows five items and the receipts panel
+  its usual height, and the rest scroll inside the panel. On a phone they stay plain lists (five items, then a link
+  to the rest), so a swipe always scrolls the page.
+- **One smooth step from login to the Dashboard:** the loading screen covers the app until the Dashboard is ready,
+  then fades away. Before, the sidebar and header showed up around a loading screen that hadn't finished.
+
+### Changed
+- **Buttons say what they do:** delete and remove confirmations say **Delete** or **Remove** instead of "Confirm",
+  and those buttons are red everywhere, menus included. **Cancel** is a plain white or black button, never red.
+
+### Fixed
+- **Quick Scan uploads arrive whole:** a scan could fail with "multipart: NextPart: EOF" because the photo was cut
+  off on the way. Calls to the server now skip the installable app's offline layer, which only caches the app itself.
+- **The calendar closes when you pick a day** (Safari kept it open until you clicked somewhere else).
+- **Confirmations no longer pop up the Cancel tooltip:** the focus now starts on the question.
+
 ## [0.10.0] - 2026-10-24
 
 Receipts whose products don't match the total, and a proofread of every language.
