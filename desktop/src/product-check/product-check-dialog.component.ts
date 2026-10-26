@@ -258,7 +258,7 @@ interface NutritionRow {
     </div>
 
     <footer class="flex justify-end border-t border-border px-5 py-3">
-      <button hlmBtn variant="destructive" type="button" data-testid="product-check-cancel" (click)="close()">{{ 'Cancel' | t }}</button>
+      <button hlmBtn variant="outline" type="button" data-testid="product-check-cancel" (click)="close()">{{ 'Cancel' | t }}</button>
     </footer>
   `,
 })
