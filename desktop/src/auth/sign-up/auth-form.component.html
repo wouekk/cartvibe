@@ -1,72 +1,67 @@
-@if (isLoading()) {
-  <div class="block" data-testid="auth-loading" animate.enter="animate-in fade-in-0 duration-200 motion-reduce:animate-none" animate.leave="animate-out fade-out-0 duration-200 motion-reduce:animate-none">
-    <app-cartvibe-splash text="Loading..."></app-cartvibe-splash>
-  </div>
-} @else {
-  <div class="relative z-10 w-full max-w-[26rem]" animate.enter="animate-in fade-in-0 duration-200 motion-reduce:animate-none">
-    <div class="relative overflow-hidden rounded-3xl border border-border bg-card p-8 shadow-xl max-sm:p-6">
-      <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-chart-1/60 to-primary"></div>
-      <!-- Logo and Welcome -->
-      <div class="mb-6 text-center">
-        <app-cartvibe-logo class="mb-4 inline-block max-w-full transition-transform duration-300 hover:scale-105" [height]="64"></app-cartvibe-logo>
-        <h1 class="mb-1 text-2xl font-bold text-foreground max-sm:text-xl">
-          {{ ((isSignUp | async) ? 'Create your account' : 'Welcome back') | t }}
-        </h1>
-        <p class="text-base text-muted-foreground max-sm:text-sm">
-          {{ ((isSignUp | async) ? 'Join your household on CartVibe' : 'Sign in to your household') | t }}
-        </p>
+<!-- While signing in, the app root covers this page with the splash (SignInTransitionService). -->
+<div class="relative z-10 w-full max-w-[26rem]" animate.enter="animate-in fade-in-0 duration-200 motion-reduce:animate-none">
+  <div class="relative overflow-hidden rounded-3xl border border-border bg-card p-8 shadow-xl max-sm:p-6">
+    <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-chart-1/60 to-primary"></div>
+    <!-- Logo and Welcome -->
+    <div class="mb-6 text-center">
+      <app-cartvibe-logo class="mb-4 inline-block max-w-full transition-transform duration-300 hover:scale-105" [height]="64"></app-cartvibe-logo>
+      <h1 class="mb-1 text-2xl font-bold text-foreground max-sm:text-xl">
+        {{ ((isSignUp | async) ? 'Create your account' : 'Welcome back') | t }}
+      </h1>
+      <p class="text-base text-muted-foreground max-sm:text-sm">
+        {{ ((isSignUp | async) ? 'Join your household on CartVibe' : 'Sign in to your household') | t }}
+      </p>
+    </div>
+
+    <!-- Form -->
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <!-- Form Fields -->
+      <div class="mb-2 flex flex-col gap-2">
+        <ng-container *ngIf="isSignUp | async">
+          <app-input
+            appearance="outline"
+            [label]="'Display Name' | t"
+            [inputFormControl]="form | formGet : 'displayname'"
+          ></app-input>
+        </ng-container>
+
+        <app-input
+          appearance="outline"
+          [label]="'Username' | t"
+          [inputFormControl]="form | formGet : 'username'"
+        ></app-input>
+
+        <app-input
+          appearance="outline"
+          [label]="'Password' | t"
+          type="password"
+          [showVisibilityEye]="true"
+          [inputFormControl]="form | formGet : 'password'"
+        ></app-input>
       </div>
 
-      <!-- Form -->
-      <form [formGroup]="form" (ngSubmit)="submit()">
-        <!-- Form Fields -->
-        <div class="mb-2 flex flex-col gap-2">
-          <ng-container *ngIf="isSignUp | async">
-            <app-input
-              appearance="outline"
-              [label]="'Display Name' | t"
-              [inputFormControl]="form | formGet : 'displayname'"
-            ></app-input>
-          </ng-container>
-
-          <app-input
-            appearance="outline"
-            [label]="'Username' | t"
-            [inputFormControl]="form | formGet : 'username'"
-          ></app-input>
-
-          <app-input
-            appearance="outline"
-            [label]="'Password' | t"
-            type="password"
-            [showVisibilityEye]="true"
-            [inputFormControl]="form | formGet : 'password'"
-          ></app-input>
+      <!-- Form Actions -->
+      <div class="flex flex-col gap-2">
+        <div class="w-full">
+          <app-button
+            buttonClass="w-full"
+            matButtonType="matRaisedButton"
+            type="submit"
+            [buttonText]="primaryButtonText"
+          ></app-button>
         </div>
 
-        <!-- Form Actions -->
-        <div class="flex flex-col gap-2">
-          <div class="w-full">
-            <app-button
-              buttonClass="w-full"
-              matButtonType="matRaisedButton"
-              type="submit"
-              [buttonText]="primaryButtonText"
-            ></app-button>
-          </div>
-
-          <div class="w-full text-center" *appFeature="'enableLocalSignUp'">
-            <app-button
-              buttonClass="w-full"
-              matButtonType="matRaisedButton"
-              type="button"
-              [buttonText]="secondaryButtonText"
-              [routerLink]="secondaryButtonRouterLink"
-            ></app-button>
-          </div>
+        <div class="w-full text-center" *appFeature="'enableLocalSignUp'">
+          <app-button
+            buttonClass="w-full"
+            matButtonType="matRaisedButton"
+            type="button"
+            [buttonText]="secondaryButtonText"
+            [routerLink]="secondaryButtonRouterLink"
+          ></app-button>
         </div>
-      </form>
+      </div>
+    </form>
 
-    </div>
   </div>
-}
+</div>

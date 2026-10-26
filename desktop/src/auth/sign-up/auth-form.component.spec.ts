@@ -17,11 +17,14 @@ import { InputModule } from '../../input';
 import { PipesModule } from '../../pipes/pipes.module';
 import { AppInitService } from '../../services/app-init.service';
 import { SnackbarService } from '../../services/snackbar.service';
+import { SignInTransitionService } from '../../services/sign-in-transition.service';
 import { AuthForm } from './auth-form.component';
 import { AuthState } from '../../store/auth.state';
 import { FeatureConfigState } from '../../store/feature-config.state';
+import { GroupState } from '../../store/group.state';
 import { AuthFormUtil } from './auth-form.util';
 import { RouterTestingModule } from '@angular/router/testing';
+import { Router } from '@angular/router';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('AuthForm', () => {
@@ -33,7 +36,7 @@ describe('AuthForm', () => {
     declarations: [AuthForm, FeatureDirective],
     imports: [ButtonModule,
         InputModule,
-        NgxsModule.forRoot([AuthState, FeatureConfigState]),
+        NgxsModule.forRoot([AuthState, FeatureConfigState, GroupState]),
         NoopAnimationsModule,
         PipesModule,
         ReactiveFormsModule,
@@ -68,7 +71,30 @@ describe('AuthForm', () => {
   // Under zoneless change detection nothing repaints on the failure path (the
   // success path only repainted because router.navigate() triggers CD), so the
   // loading GIF stayed up forever and the user never got their form back.
-  it('clears the spinner and restores the populated form when login fails', async () => {
+  it('keeps the splash over the app until the first page is in place, and ignores a second submit', async () => {
+    const httpTesting = TestBed.inject(HttpTestingController);
+    const transition = TestBed.inject(SignInTransitionService);
+    let arrive!: (done: boolean) => void;
+    const navigate = jest
+      .spyOn(TestBed.inject(Router), 'navigate')
+      .mockReturnValue(new Promise<boolean>((resolve) => (arrive = resolve)));
+    component.form.setValue({ username: 'wrangler', password: 'secret' });
+
+    component.submit();
+    component.submit();
+    httpTesting.expectOne('/api/login/').flush({ claims: {}, groups: [{ id: 1, groupMembers: [] }], users: [], featureConfig: {}, userPreferences: {} });
+    await fixture.whenStable();
+
+    expect(navigate).toHaveBeenCalledTimes(1);
+    expect(transition.active()).toBe(true);
+
+    arrive(true);
+    await fixture.whenStable();
+
+    expect(transition.active()).toBe(false);
+  });
+
+  it('clears the splash and restores the populated form when login fails', async () => {
     const httpTesting = TestBed.inject(HttpTestingController);
     component.form.setValue({
       username: 'wrangler',
@@ -80,9 +106,7 @@ describe('AuthForm', () => {
 
     // The spinner is up while the request is in flight.
     expect(component.isLoading()).toBe(true);
-    expect(
-      fixture.nativeElement.querySelector('[data-testid=auth-loading]')
-    ).toBeTruthy();
+    expect(TestBed.inject(SignInTransitionService).active()).toBe(true);
 
     httpTesting
       .expectOne('/api/login/')
@@ -94,7 +118,7 @@ describe('AuthForm', () => {
     await fixture.whenStable();
 
     expect(component.isLoading()).toBe(false);
-    expect(fixture.nativeElement.querySelector('[data-testid=auth-loading]')).toBeNull();
+    expect(TestBed.inject(SignInTransitionService).active()).toBe(false);
 
     // The form is back in the DOM, still rendering what the user typed.
     const inputs: HTMLInputElement[] = Array.from(

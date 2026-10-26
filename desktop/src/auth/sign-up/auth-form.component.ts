@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from "@angular/common/http";
-import { Component, OnInit, signal, ChangeDetectionStrategy } from "@angular/core";
+import { Component, OnInit, signal, ChangeDetectionStrategy, inject } from "@angular/core";
 import { FormBuilder, FormControl, FormGroup, Validators, } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
@@ -10,6 +10,7 @@ import { setAppData } from "src/utils";
 import { GroupState } from "../../store";
 import { UserValidators } from "../../validators";
 import { marker } from "../../i18n/marker";
+import { SignInTransitionService } from "../../services/sign-in-transition.service";
 
 @Component({
     selector: "app-auth-form",
@@ -29,6 +30,8 @@ export class AuthForm implements OnInit {
   public secondaryButtonText: string = "";
   public secondaryButtonRouterLink: string[] = [];
   public readonly isLoading = signal<boolean>(false);
+
+  private readonly signInTransition = inject(SignInTransitionService);
 
   constructor(
     private authSerivce: AuthService,
@@ -98,6 +101,11 @@ export class AuthForm implements OnInit {
   }
 
   public submit(): void {
+    // The form stays under the splash while signing in; Enter in a field must not send a second login.
+    if (this.isLoading()) {
+      return;
+    }
+
     const isSignUp = this.isSignUp.getValue();
     const isValid = this.form.valid;
 
@@ -132,19 +140,24 @@ export class AuthForm implements OnInit {
       .subscribe();
   }
 
+  /**
+   * The splash covers the whole app from the press until the first page is in place (the sidebar and header appear as
+   * soon as the session is stored, before the Dashboard has loaded), then fades away to reveal it. A refused login
+   * fades it back to the form.
+   */
   private login(): void {
     this.isLoading.set(true);
+    this.signInTransition.start();
     this.authSerivce
       .login(this.form.value)
       .pipe(
         switchMap((appData: AppData) => setAppData(this.store, appData)),
-        tap(() =>
-          this.router.navigate([
-            this.store.selectSnapshot(GroupState.overviewLink),
-          ]),
-        ),
+        switchMap(() => this.router.navigate([this.store.selectSnapshot(GroupState.overviewLink)])),
         catchError(() => EMPTY), // the HTTP interceptor surfaces the failure toast
-        finalize(() => this.isLoading.set(false))
+        finalize(() => {
+          this.isLoading.set(false);
+          this.signInTransition.finish();
+        })
       )
       .subscribe();
   }

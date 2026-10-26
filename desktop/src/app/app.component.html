@@ -1,4 +1,15 @@
 <div class="flex h-full flex-col">
   <router-outlet></router-outlet>
 </div>
+<!-- Signing in: above the header (z-[1000]) until the first page is in place, then it fades away to reveal it. -->
+@if (signInTransition.active()) {
+  <div
+    class="fixed inset-0 z-[1100]"
+    data-testid="sign-in-transition"
+    animate.enter="animate-in fade-in-0 duration-200 motion-reduce:animate-none"
+    animate.leave="animate-out fade-out-0 duration-300 ease-out motion-reduce:animate-none"
+  >
+    <app-cartvibe-splash text="Loading..."></app-cartvibe-splash>
+  </div>
+}
 <app-toast-host></app-toast-host>
