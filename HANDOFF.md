@@ -13,7 +13,10 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
   view page (`PUT /receipt/{id}/date`), the calendar closes on a pick, confirmations say Delete / Remove and no longer
   focus Cancel, and the Dashboard's shopping and receipts panels scroll under a mouse (touch keeps plain lists). Not
   seen in a browser: the API cannot run on the Windows PC. Check on the NAS: the Safari calendar closing on a pick, the
-  view-page date save, both panels scrolling in White and Black, and that a phone shows no scroll box.
+  view-page date save, both panels scrolling in White and Black, and that a phone shows no scroll box. Also: neutral
+  outline Cancel and red Delete / Remove everywhere, and API calls now skip the service worker (Quick Scan failed on
+  the NAS with `multipart: NextPart: EOF`); if a scan still fails, the log line now carries the request's
+  Content-Length.
 
 ## Open for the user (needs the NAS or a phone)
 

@@ -372,7 +372,9 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
 - **Service worker** (`@angular/service-worker`, `ngsw-config.json`) is in the production build only
   (`provideServiceWorker` with `enabled: !isDevMode()`). It caches the app shell and static assets and has no
   `dataGroups`, so every API, SSE, OAuth and MCP call goes to the network; `navigationUrls` excludes `/api`, `/oauth`,
-  `/mcp` and `/.well-known`. nginx serves `ngsw.json` and `ngsw-worker.js` with `no-cache`, which is how a new image
+  `/mcp` and `/.well-known`. `serviceWorkerBypassInterceptor` sends every `/api` HttpClient call with the
+  `ngsw-bypass` header, so the worker never handles it (passing an upload through the worker cut its multipart body
+  short: Quick Scan logged `multipart: NextPart: EOF`); keep it first in `withInterceptors`. nginx serves `ngsw.json` and `ngsw-worker.js` with `no-cache`, which is how a new image
   is noticed. A bad worker means a stuck app: change the config with care and check
   `dist/cartvibe/browser/ngsw.json` after a build.
 - **`AppUpdateService`** (app initializer): when a new version is ready it activates it on the next navigation and
