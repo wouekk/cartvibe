@@ -9,6 +9,7 @@ import { provideStore } from "@ngxs/store";
 import { AppInitService, initAppData } from "src/services";
 import { AppUpdateService } from "../services/app-update.service";
 import { httpInterceptor } from "../interceptors/http-interceptor";
+import { serviceWorkerBypassInterceptor } from "../interceptors/service-worker-bypass.interceptor";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { NgxMaskDirective, NgxMaskPipe } from "ngx-mask";
 import { AppRoutingModule } from "./app-routing.module";
@@ -78,7 +79,7 @@ const ngxsStorageKeys = [
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
-    provideHttpClient(withXhr(), withInterceptors([httpInterceptor])),
+    provideHttpClient(withXhr(), withInterceptors([serviceWorkerBypassInterceptor, httpInterceptor])),
     provideNgxMask(),
     // App shell only (ngsw-config.json): API, SSE and OAuth calls always go to the network. Off in development.
     provideServiceWorker("ngsw-worker.js", {

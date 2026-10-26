@@ -407,7 +407,8 @@ func QuickScan(w http.ResponseWriter, r *http.Request) {
 
 	vErr, err := quickScanCommand.LoadDataFromRequestAndValidate(w, r)
 	if err != nil {
-		logging.LogStd(logging.LOG_LEVEL_ERROR, err.Error())
+		// The declared size tells a body cut short on the way (a proxy, the browser) from a malformed one.
+		logging.LogStd(logging.LOG_LEVEL_ERROR, fmt.Sprintf("quick scan upload: %s (Content-Length %d)", err.Error(), r.ContentLength))
 		utils.WriteCustomErrorResponse(w, errMsg, http.StatusInternalServerError)
 		return
 	}

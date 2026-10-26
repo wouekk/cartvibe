@@ -14,7 +14,7 @@ func GetCorsPolicy() *cors.Cors {
 			AllowCredentials:    true,
 			AllowPrivateNetwork: true,
 			AllowedMethods:      []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-			AllowedHeaders:      []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+			AllowedHeaders:      []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "ngsw-bypass"},
 		})
 	}
 
@@ -24,7 +24,7 @@ func GetCorsPolicy() *cors.Cors {
 			AllowCredentials:    true,
 			AllowPrivateNetwork: true,
 			AllowedMethods:      []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-			AllowedHeaders:      []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+			AllowedHeaders:      []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "ngsw-bypass"},
 		})
 	}
 
