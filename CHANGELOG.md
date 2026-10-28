@@ -8,6 +8,25 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+All your spending, not only the groceries.
+
+> **Upgrade: back up the `sqlite` folder first.** The first start adds the starter categories to the database.
+
+### Added
+- **Starter categories:** besides groceries, CartVibe now starts with categories for everyday spending: Restaurant,
+  Takeaway & Delivery, Taxi, Public Transport, Parking, Highway Tolls, Airlines, Trains, Cruises, Hotels, Travel,
+  Museum, Cinema, Events & Concerts, Books, Bills, Phone & Internet, Subscriptions and more. They're added once. A
+  category you already have, under any of its names, is never doubled, and one you delete stays deleted.
+- **More logos:** Uber, Bolt, FreeNow, Ryanair, easyJet, Wizz Air, LOT and other airlines, Royal Caribbean, MSC and
+  Costa cruises, Booking.com, Airbnb, Orange, Play, T-Mobile and other telecoms, energy companies, cinemas, streaming
+  services and motorway operators now show their logo next to the receipt.
+
+### Changed
+- **Any receipt or bill:** the AI no longer gives up on a receipt that isn't from a shop. A taxi ride, a flight, a toll,
+  a hotel stay or an energy bill becomes one line per service, at the amount paid with its fees, in the right category
+  instead of Uncategorized.
+- The Dashboard's Quick Scan button now shows the receipt icon, like Quick Scan everywhere else.
+
 ## [0.12.0] - 2026-10-28
 
 Make it yours: five colour palettes, each in Day and Night.

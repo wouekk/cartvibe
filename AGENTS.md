@@ -8,7 +8,8 @@ CartVibe is a fork of Receipt Wrangler (`NOTICE.md`) for one household: receipts
 insights, branded CartVibe in the UI, repo, image and API. It is used mostly in a phone browser in the shop, and on a
 desktop for the overview.
 
-It is a family grocery budget, not expense tracking. Upstream was built for small businesses (shared bills, who owes
+It is a family spending tracker (groceries first, plus eating out, transport, travel, leisure and bills), not business
+expense tracking. Upstream was built for small businesses (shared bills, who owes
 whom, approval statuses, configurable prompts). Here everyone in the family can add things and nobody splits bills:
 hide what a family does not need, fill in what it should not have to (paid by = the logged-in user), and keep AI
 configuration admin-only with working defaults.

@@ -15,6 +15,12 @@ the "Prompts" table and the prompt a processing setting names are kept for upstr
 - **Categories describe product lines** (`receipt_products.category_id`), one per line; the AI names them through
   `foodGroup`. An unknown name becomes a new category (Title Case); an old name (alias) of a renamed category resolves to
   it. A category a person chose (`category_overridden`) is never replaced by the AI.
+- **Any receipt or bill, not only a shop's.** A bill for a service (ride, flight, ticket, toll, stay, meal, utility) is
+  read as one line per service at the amount paid with its own taxes and fees (`productLineRulesTemplate`), so it lands
+  in a category instead of Uncategorized. Only "not a receipt or bill" answers `products:[]`.
+- **A starter category list is seeded once** (`repositories/starter_categories.go`, through the data-migration ledger):
+  groceries plus everyday spending (Restaurant, Taxi, Airlines, Bills, Travel, ...). An install with a list gets no
+  English examples in the prompt (see `foodGroupRule`); the examples remain for a household that empties its list.
 - **Prompts are short, answers are minified JSON.** Output tokens set most of the latency; keys that would be empty are
   left out and the parsers default them.
 - **AI is optional and fallible.** Nothing may block or fail because the AI is missing, slow or wrong: record a status,

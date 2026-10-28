@@ -41,7 +41,9 @@ and are linked from the section they belong to.
   statuses, `AppLogEntry.level` and every effective-permission string are `type: string`. A Go type may still guard what
   is stored (`AiClientType.Value()`).
 - Migrations are AutoMigrate plus additive columns; a new column's GORM default must reproduce the old behaviour. A
-  one-time data change goes in `dataMigrations` (`repositories/data_migrations.go`, empty today); `RunDataMigrations`
+  one-time data change goes in `dataMigrations` (`repositories/data_migrations.go`; today only the starter categories,
+  `starter_categories.go`, which skip a name or covered name the household already has and are not seeded into test
+  databases); `RunDataMigrations`
   claims the ledger row and runs it in one transaction, retrying next boot on failure. Starter report templates use the
   same ledger so a deleted one stays deleted.
 - A query that joins must qualify its columns (`qualifyColumn`): the categories list joins `receipt_products`, which also
