@@ -358,7 +358,8 @@ which day an instant falls on and what "today" means.
   envelope (`ValidateDashboardLayout`: object, numeric version, ≤16 KB). It is not a `UserPreferences` field because
   `PUT /userPreferences` replaces the whole object and would erase it from any client that does not know it.
   `CanCustomiseDashboard` is the entitlement seam.
-- `UserPreferences.DisplayCurrency` / `DisplayCurrencyRate` are stored only; the desktop converts Dashboard figures.
+- `UserPreferences.DisplayCurrency` / `DisplayCurrencyRate` stay on the contract but are unused: there is no per-person
+  currency (the household currency is an admin setting); the desktop ignores them and clears them on a preferences save.
   `onboardingPending` is on for accounts created by `CreateUser`, off by column default for older ones.
 
 ### Currencies

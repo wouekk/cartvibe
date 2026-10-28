@@ -37,6 +37,12 @@ All your spending, not only the groceries.
 - **Logos are no longer bundled:** the app and the image carry no logo files any more (Logo.dev's free plan does not
   allow storing them). Until an admin enters a Logo.dev key, every receipt shows its shop's first letter.
 - System Settings → General & Currency is now called **Currency & Time Zone**.
+- **Settings → Management:** Manage Categories, Manage Tags, Manage Users and Manage Households are one page with a tab
+  for each.
+
+### Removed
+- **The personal Dashboard currency** under User Settings: the Dashboard shows the household currency an admin sets
+  under System Settings, like the rest of the app. A currency someone chose before is ignored.
 
 ## [0.12.0] - 2026-10-28
 

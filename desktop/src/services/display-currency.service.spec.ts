@@ -17,23 +17,15 @@ describe("DisplayCurrencyService", () => {
     service = TestBed.inject(DisplayCurrencyService);
   });
 
-  it("formats like the household without a code and a rate", () => {
-    setPreferences({ displayCurrency: "", displayCurrencyRate: null });
-
-    expect(service.conversion()).toBeUndefined();
+  it("formats in the household currency", () => {
     expect(service.format(12.5)).toContain("12.50");
+    expect(service.format(null)).toContain("0.00");
   });
 
-  it("converts by the rate in the chosen currency", () => {
+  it("ignores a Dashboard currency an older version stored in a person's preferences", () => {
     setPreferences({ displayCurrency: "PLN", displayCurrencyRate: "4.25" });
 
-    expect(service.conversion()).toEqual({ code: "PLN", rate: 4.25 });
-    expect(service.format("10")).toMatch(/42[.,]50/);
-  });
-
-  it("ignores a code without a usable rate", () => {
-    setPreferences({ displayCurrency: "PLN", displayCurrencyRate: "0" });
-
-    expect(service.conversion()).toBeUndefined();
+    expect(service.format("10")).toContain("10.00");
+    expect(service.format("10")).not.toMatch(/42[.,]50/);
   });
 });

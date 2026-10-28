@@ -231,7 +231,6 @@
     "Controls what a member can do inside a group — receipts, dashboards, activity.": "Decide qué puede hacer un miembro dentro de un grupo: recibos, paneles, actividad.",
     "Convert to normal user": "Convertir en usuario normal",
     "Convert {name} to a normal user": "Convertir a {name} en usuario normal",
-    "Converted in your browser at the rate in your preferences": "Convertido en tu navegador al tipo de tus preferencias",
     "Cookies": "Cookies",
     "Copied!": "¡Copiado!",
     "Copy before and after as JSON": "Copiar el antes y el después como JSON",
@@ -272,7 +271,6 @@
     "Dairy": "Lácteos",
     "Danger Zone": "Acciones irreversibles",
     "Dashboard": "Panel",
-    "Dashboard currency": "Moneda del panel",
     "Dashboard saved": "Panel guardado",
     "Date": "Fecha",
     "Date field": "Campo de fecha",
@@ -438,7 +436,6 @@
     "Get started": "Empezar",
     "Get the models from {company}": "Obtener los modelos de {company}",
     "Gifts": "Regalos",
-    "Give the Dashboard currency as three letters, like PLN, and your rate above 0, like 4,25.": "Indica la moneda del panel con tres letras, como EUR, y tu tipo mayor que 0, como 4,25.",
     "Goal": "Objetivo",
     "Goal {amount}": "Objetivo {amount}",
     "Going shopping": "Me voy de compras",
@@ -759,7 +756,6 @@
     "Quick scan defaults": "Valores por defecto del escaneo rápido",
     "Ran By": "Ejecutado por",
     "Ranges over 1 year are best viewed as a report.": "Los periodos de más de 1 año se ven mejor como informe.",
-    "Rate: 1 {symbol} in your currency": "Tipo: 1 {symbol} en tu moneda",
     "Rates changed: press Save changes to keep them.": "Tipos cambiados: pulsa «Guardar cambios» para conservarlos.",
     "Raw Chat Completion Details": "Detalles sin procesar de la respuesta del chat",
     "Raw OCR Processing Details": "Detalles sin procesar del OCR",
@@ -915,13 +911,11 @@
     "Show": "Mostrar",
     "Show Images": "Mostrar imágenes",
     "Show on the Dashboard": "Mostrar en el panel",
-    "Show the Dashboard in (currency code)": "Mostrar el panel en (código de moneda)",
     "Show {label}": "Mostrar {label}",
     "Show, hide, move and resize panels, and check them on each screen size before you save.": "Muestra, oculta, mueve y cambia el tamaño de los paneles, y revísalos en cada tamaño de pantalla antes de guardar.",
     "Showing the latest {count} months.": "Se muestran los últimos {count} meses.",
     "Showing the newest {count} of {total} receipts.": "Recibos más recientes: {count} de {total}.",
     "Shown as who added a receipt": "Se muestra como quien añadió el recibo",
-    "Shown in {code}": "Mostrado en {code}",
     "Sign Up": "Registrarse",
     "Sign in to your household": "Inicia sesión en tu hogar",
     "Sign-up": "Registro",
@@ -1071,7 +1065,6 @@
     "This role grants no permissions.": "Este rol no concede ningún permiso.",
     "This year": "Este año",
     "Thousands Separator": "Separador de miles",
-    "Three letters, like PLN or USD. Leave empty to see the household currency. Only the Dashboard converts; receipts stay as entered.": "Tres letras, como EUR o USD. Déjalo vacío para ver la moneda del hogar. Solo el panel convierte; los recibos se quedan como se introdujeron.",
     "Time zone": "Zona horaria",
     "Title": "Título",
     "Title, preamble & footer · supports variables": "Título, introducción y pie · admite variables",
@@ -1191,7 +1184,6 @@
     "Your new API key:": "Tu nueva clave API:",
     "Your profile, preferences and API keys.": "Tu perfil, preferencias y claves API.",
     "Your provider didn't ask you to sign in again. Sign out of it and try again.": "Tu proveedor no te pidió volver a iniciar sesión. Cierra sesión en él e inténtalo de nuevo.",
-    "Your rate: 4,25 means 1 of the household currency is worth 4,25 of yours.": "Tu tipo: 4,25 significa que 1 unidad de la moneda del hogar equivale a 4,25 de tu moneda.",
     "Your role requires a comment on receipts; use Quick Scan for this receipt": "Tu rol exige un comentario en los recibos; usa el escaneo rápido para este recibo",
     "Your role requires a comment on this group's receipts.": "Tu rol exige un comentario en los recibos de este grupo.",
     "Your role requires an image and a comment on this group's receipts.": "Tu rol exige una imagen y un comentario en los recibos de este grupo.",
@@ -1340,9 +1332,19 @@
       "value": "Todos los hogares",
       "closest": "All"
     },
+    "Converted in your browser at the rate in your preferences": {
+      "value": "Convertido en tu navegador al tipo de tus preferencias"
+    },
+    "Dashboard currency": {
+      "value": "Moneda del panel",
+      "closest": "Add currency"
+    },
     "General & Currency": {
       "value": "General y moneda",
       "closest": "Add currency"
+    },
+    "Give the Dashboard currency as three letters, like PLN, and your rate above 0, like 4,25.": {
+      "value": "Indica la moneda del panel con tres letras, como EUR, y tu tipo mayor que 0, como 4,25."
     },
     "Manage Categories": {
       "value": "Categorías",
@@ -1363,6 +1365,22 @@
     "My Households": {
       "value": "Mis hogares",
       "closest": "Households"
+    },
+    "Rate: 1 {symbol} in your currency": {
+      "value": "Tipo: 1 {symbol} en tu moneda"
+    },
+    "Show the Dashboard in (currency code)": {
+      "value": "Mostrar el panel en (código de moneda)",
+      "closest": "Show on the Dashboard"
+    },
+    "Shown in {code}": {
+      "value": "Mostrado en {code}"
+    },
+    "Three letters, like PLN or USD. Leave empty to see the household currency. Only the Dashboard converts; receipts stay as entered.": {
+      "value": "Tres letras, como EUR o USD. Déjalo vacío para ver la moneda del hogar. Solo el panel convierte; los recibos se quedan como se introdujeron."
+    },
+    "Your rate: 4,25 means 1 of the household currency is worth 4,25 of yours.": {
+      "value": "Tu tipo: 4,25 significa que 1 unidad de la moneda del hogar equivale a 4,25 de tu moneda."
     }
   }
 }

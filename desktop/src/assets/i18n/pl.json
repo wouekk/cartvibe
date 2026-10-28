@@ -231,7 +231,6 @@
     "Controls what a member can do inside a group — receipts, dashboards, activity.": "Decyduje, co członek może robić w grupie: paragony, pulpity, aktywność.",
     "Convert to normal user": "Zamień na zwykłego użytkownika",
     "Convert {name} to a normal user": "Zamień na zwykłego użytkownika: {name}",
-    "Converted in your browser at the rate in your preferences": "Przeliczone w przeglądarce według kursu z Twoich ustawień",
     "Cookies": "Pliki cookie",
     "Copied!": "Skopiowano!",
     "Copy before and after as JSON": "Kopiuj stan przed i po jako JSON",
@@ -272,7 +271,6 @@
     "Dairy": "Nabiał",
     "Danger Zone": "Nieodwracalne działania",
     "Dashboard": "Pulpit",
-    "Dashboard currency": "Waluta Pulpitu",
     "Dashboard saved": "Pulpit zapisany",
     "Date": "Data",
     "Date field": "Pole daty",
@@ -438,7 +436,6 @@
     "Get started": "Zaczynamy",
     "Get the models from {company}": "Pobierz modele z {company}",
     "Gifts": "Prezenty",
-    "Give the Dashboard currency as three letters, like PLN, and your rate above 0, like 4,25.": "Podaj walutę Pulpitu jako trzy litery, np. PLN, oraz kurs większy niż 0, np. 4,25.",
     "Goal": "Cel",
     "Goal {amount}": "Cel {amount}",
     "Going shopping": "Idę na zakupy",
@@ -759,7 +756,6 @@
     "Quick scan defaults": "Domyślne ustawienia szybkiego skanowania",
     "Ran By": "Uruchomił(a)",
     "Ranges over 1 year are best viewed as a report.": "Zakresy dłuższe niż rok najlepiej oglądać jako raport.",
-    "Rate: 1 {symbol} in your currency": "Kurs: 1 {symbol} w Twojej walucie",
     "Rates changed: press Save changes to keep them.": "Kursy zmieniono: naciśnij „Zapisz zmiany”, aby je zachować.",
     "Raw Chat Completion Details": "Surowe szczegóły odpowiedzi czatu",
     "Raw OCR Processing Details": "Surowe szczegóły przetwarzania OCR",
@@ -915,13 +911,11 @@
     "Show": "Pokaż",
     "Show Images": "Pokaż obrazy",
     "Show on the Dashboard": "Pokaż na Pulpicie",
-    "Show the Dashboard in (currency code)": "Pokaż Pulpit w walucie (kod)",
     "Show {label}": "Pokaż: {label}",
     "Show, hide, move and resize panels, and check them on each screen size before you save.": "Pokazuj, ukrywaj, przesuwaj i zmieniaj rozmiar paneli, a przed zapisaniem sprawdź je na każdym rozmiarze ekranu.",
     "Showing the latest {count} months.": "Pokazano ostatnie {count} mies.",
     "Showing the newest {count} of {total} receipts.": "Najnowsze paragony: {count} z {total}.",
     "Shown as who added a receipt": "Pokazywane jako osoba, która dodała paragon",
-    "Shown in {code}": "Pokazano w {code}",
     "Sign Up": "Rejestracja",
     "Sign in to your household": "Zaloguj się do swojego gospodarstwa",
     "Sign-up": "Rejestracja",
@@ -1071,7 +1065,6 @@
     "This role grants no permissions.": "Ta rola nie nadaje żadnych uprawnień.",
     "This year": "Ten rok",
     "Thousands Separator": "Separator tysięcy",
-    "Three letters, like PLN or USD. Leave empty to see the household currency. Only the Dashboard converts; receipts stay as entered.": "Trzy litery, np. PLN lub USD. Zostaw puste, aby widzieć walutę gospodarstwa. Przelicza tylko Pulpit; paragony zostają bez zmian.",
     "Time zone": "Strefa czasowa",
     "Title": "Tytuł",
     "Title, preamble & footer · supports variables": "Tytuł, wstęp i stopka · obsługuje zmienne",
@@ -1191,7 +1184,6 @@
     "Your new API key:": "Twój nowy klucz API:",
     "Your profile, preferences and API keys.": "Twój profil, preferencje i klucze API.",
     "Your provider didn't ask you to sign in again. Sign out of it and try again.": "Dostawca nie poprosił o ponowne logowanie. Wyloguj się u niego i spróbuj ponownie.",
-    "Your rate: 4,25 means 1 of the household currency is worth 4,25 of yours.": "Twój kurs: 4,25 oznacza, że 1 jednostka waluty gospodarstwa to 4,25 w Twojej walucie.",
     "Your role requires a comment on receipts; use Quick Scan for this receipt": "Twoja rola wymaga komentarza do paragonów; użyj szybkiego skanowania dla tego paragonu",
     "Your role requires a comment on this group's receipts.": "Twoja rola wymaga komentarza przy paragonach tej grupy.",
     "Your role requires an image and a comment on this group's receipts.": "Twoja rola wymaga zdjęcia i komentarza przy paragonach tej grupy.",
@@ -1351,9 +1343,19 @@
       "value": "Wszystkie gospodarstwa",
       "closest": "All"
     },
+    "Converted in your browser at the rate in your preferences": {
+      "value": "Przeliczone w przeglądarce według kursu z Twoich ustawień"
+    },
+    "Dashboard currency": {
+      "value": "Waluta Pulpitu",
+      "closest": "Add currency"
+    },
     "General & Currency": {
       "value": "Ogólne i waluta",
       "closest": "Add currency"
+    },
+    "Give the Dashboard currency as three letters, like PLN, and your rate above 0, like 4,25.": {
+      "value": "Podaj walutę Pulpitu jako trzy litery, np. PLN, oraz kurs większy niż 0, np. 4,25."
     },
     "Manage Categories": {
       "value": "Kategorie",
@@ -1374,6 +1376,22 @@
     "My Households": {
       "value": "Moje gospodarstwa",
       "closest": "Households"
+    },
+    "Rate: 1 {symbol} in your currency": {
+      "value": "Kurs: 1 {symbol} w Twojej walucie"
+    },
+    "Show the Dashboard in (currency code)": {
+      "value": "Pokaż Pulpit w walucie (kod)",
+      "closest": "Show on the Dashboard"
+    },
+    "Shown in {code}": {
+      "value": "Pokazano w {code}"
+    },
+    "Three letters, like PLN or USD. Leave empty to see the household currency. Only the Dashboard converts; receipts stay as entered.": {
+      "value": "Trzy litery, np. PLN lub USD. Zostaw puste, aby widzieć walutę gospodarstwa. Przelicza tylko Pulpit; paragony zostają bez zmian."
+    },
+    "Your rate: 4,25 means 1 of the household currency is worth 4,25 of yours.": {
+      "value": "Twój kurs: 4,25 oznacza, że 1 jednostka waluty gospodarstwa to 4,25 w Twojej walucie."
     }
   }
 }

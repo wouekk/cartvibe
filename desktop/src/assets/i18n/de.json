@@ -231,7 +231,6 @@
     "Controls what a member can do inside a group — receipts, dashboards, activity.": "Legt fest, was ein Mitglied in einer Gruppe tun kann: Belege, Dashboards, Aktivität.",
     "Convert to normal user": "In normalen Benutzer umwandeln",
     "Convert {name} to a normal user": "{name} in einen normalen Benutzer umwandeln",
-    "Converted in your browser at the rate in your preferences": "Im Browser zum Kurs aus deinen Einstellungen umgerechnet",
     "Cookies": "Cookies",
     "Copied!": "Kopiert!",
     "Copy before and after as JSON": "Vorher und nachher als JSON kopieren",
@@ -272,7 +271,6 @@
     "Dairy": "Milchprodukte",
     "Danger Zone": "Unwiderrufliche Aktionen",
     "Dashboard": "Dashboard",
-    "Dashboard currency": "Dashboard-Währung",
     "Dashboard saved": "Dashboard gespeichert",
     "Date": "Datum",
     "Date field": "Datumsfeld",
@@ -438,7 +436,6 @@
     "Get started": "Los geht’s",
     "Get the models from {company}": "Modelle von {company} abrufen",
     "Gifts": "Geschenke",
-    "Give the Dashboard currency as three letters, like PLN, and your rate above 0, like 4,25.": "Gib die Dashboard-Währung mit drei Buchstaben an, z. B. EUR, und deinen Kurs über 0, z. B. 4,25.",
     "Goal": "Ziel",
     "Goal {amount}": "Ziel {amount}",
     "Going shopping": "Ich gehe einkaufen",
@@ -759,7 +756,6 @@
     "Quick scan defaults": "Standards für den Schnellscan",
     "Ran By": "Ausgeführt von",
     "Ranges over 1 year are best viewed as a report.": "Zeiträume über 1 Jahr sieht man am besten als Bericht.",
-    "Rate: 1 {symbol} in your currency": "Kurs: 1 {symbol} in deiner Währung",
     "Rates changed: press Save changes to keep them.": "Kurse geändert: Drücke „Änderungen speichern“, um sie zu behalten.",
     "Raw Chat Completion Details": "Rohdaten der Chat-Antwort",
     "Raw OCR Processing Details": "Rohdaten der OCR-Verarbeitung",
@@ -915,13 +911,11 @@
     "Show": "Anzeigen",
     "Show Images": "Bilder anzeigen",
     "Show on the Dashboard": "Auf dem Dashboard anzeigen",
-    "Show the Dashboard in (currency code)": "Dashboard anzeigen in (Währungscode)",
     "Show {label}": "{label} anzeigen",
     "Show, hide, move and resize panels, and check them on each screen size before you save.": "Bereiche anzeigen, ausblenden, verschieben und in der Größe ändern, und vor dem Speichern auf jeder Bildschirmgröße prüfen.",
     "Showing the latest {count} months.": "Die letzten {count} Monate werden angezeigt.",
     "Showing the newest {count} of {total} receipts.": "Neueste Belege: {count} von {total}.",
     "Shown as who added a receipt": "Angezeigt als die Person, die einen Beleg hinzugefügt hat",
-    "Shown in {code}": "In {code} angezeigt",
     "Sign Up": "Registrieren",
     "Sign in to your household": "Bei deinem Haushalt anmelden",
     "Sign-up": "Registrierung",
@@ -1071,7 +1065,6 @@
     "This role grants no permissions.": "Diese Rolle gewährt keine Berechtigungen.",
     "This year": "Dieses Jahr",
     "Thousands Separator": "Tausendertrennzeichen",
-    "Three letters, like PLN or USD. Leave empty to see the household currency. Only the Dashboard converts; receipts stay as entered.": "Drei Buchstaben, z. B. EUR oder USD. Leer lassen, um die Haushaltswährung zu sehen. Nur das Dashboard rechnet um; Belege bleiben wie eingegeben.",
     "Time zone": "Zeitzone",
     "Title": "Titel",
     "Title, preamble & footer · supports variables": "Titel, Einleitung und Fußzeile · unterstützt Variablen",
@@ -1191,7 +1184,6 @@
     "Your new API key:": "Dein neuer API-Schlüssel:",
     "Your profile, preferences and API keys.": "Dein Profil, deine Einstellungen und API-Schlüssel.",
     "Your provider didn't ask you to sign in again. Sign out of it and try again.": "Dein Anbieter hat dich nicht erneut zur Anmeldung aufgefordert. Melde dich dort ab und versuche es erneut.",
-    "Your rate: 4,25 means 1 of the household currency is worth 4,25 of yours.": "Dein Kurs: 4,25 bedeutet, 1 Einheit der Haushaltswährung entspricht 4,25 deiner Währung.",
     "Your role requires a comment on receipts; use Quick Scan for this receipt": "Deine Rolle verlangt einen Kommentar zu Belegen; nutze für diesen Beleg den Schnellscan",
     "Your role requires a comment on this group's receipts.": "Deine Rolle verlangt einen Kommentar zu den Belegen dieser Gruppe.",
     "Your role requires an image and a comment on this group's receipts.": "Deine Rolle verlangt ein Bild und einen Kommentar zu den Belegen dieser Gruppe.",
@@ -1329,9 +1321,19 @@
       "value": "Alle Haushalte",
       "closest": "All"
     },
+    "Converted in your browser at the rate in your preferences": {
+      "value": "Im Browser zum Kurs aus deinen Einstellungen umgerechnet"
+    },
+    "Dashboard currency": {
+      "value": "Dashboard-Währung",
+      "closest": "Add currency"
+    },
     "General & Currency": {
       "value": "Allgemein und Währung",
       "closest": "Add currency"
+    },
+    "Give the Dashboard currency as three letters, like PLN, and your rate above 0, like 4,25.": {
+      "value": "Gib die Dashboard-Währung mit drei Buchstaben an, z. B. EUR, und deinen Kurs über 0, z. B. 4,25."
     },
     "Manage Categories": {
       "value": "Kategorien",
@@ -1352,6 +1354,22 @@
     "My Households": {
       "value": "Meine Haushalte",
       "closest": "Households"
+    },
+    "Rate: 1 {symbol} in your currency": {
+      "value": "Kurs: 1 {symbol} in deiner Währung"
+    },
+    "Show the Dashboard in (currency code)": {
+      "value": "Dashboard anzeigen in (Währungscode)",
+      "closest": "Show on the Dashboard"
+    },
+    "Shown in {code}": {
+      "value": "In {code} angezeigt"
+    },
+    "Three letters, like PLN or USD. Leave empty to see the household currency. Only the Dashboard converts; receipts stay as entered.": {
+      "value": "Drei Buchstaben, z. B. EUR oder USD. Leer lassen, um die Haushaltswährung zu sehen. Nur das Dashboard rechnet um; Belege bleiben wie eingegeben."
+    },
+    "Your rate: 4,25 means 1 of the household currency is worth 4,25 of yours.": {
+      "value": "Dein Kurs: 4,25 bedeutet, 1 Einheit der Haushaltswährung entspricht 4,25 deiner Währung."
     }
   }
 }

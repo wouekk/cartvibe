@@ -231,7 +231,6 @@
     "Controls what a member can do inside a group — receipts, dashboards, activity.": "Détermine ce qu’un membre peut faire dans un groupe : tickets, tableaux de bord, activité.",
     "Convert to normal user": "Convertir en utilisateur normal",
     "Convert {name} to a normal user": "Convertir {name} en utilisateur normal",
-    "Converted in your browser at the rate in your preferences": "Converti dans votre navigateur au taux de vos préférences",
     "Cookies": "Cookies",
     "Copied!": "Copié !",
     "Copy before and after as JSON": "Copier l’avant et l’après en JSON",
@@ -272,7 +271,6 @@
     "Dairy": "Produits laitiers",
     "Danger Zone": "Actions irréversibles",
     "Dashboard": "Tableau de bord",
-    "Dashboard currency": "Devise du tableau de bord",
     "Dashboard saved": "Tableau de bord enregistré",
     "Date": "Date",
     "Date field": "Champ de date",
@@ -438,7 +436,6 @@
     "Get started": "C’est parti",
     "Get the models from {company}": "Récupérer les modèles depuis {company}",
     "Gifts": "Cadeaux",
-    "Give the Dashboard currency as three letters, like PLN, and your rate above 0, like 4,25.": "Indiquez la devise du tableau de bord en trois lettres, comme EUR, et votre taux supérieur à 0, comme 4,25.",
     "Goal": "Objectif",
     "Goal {amount}": "Objectif {amount}",
     "Going shopping": "Je pars faire les courses",
@@ -759,7 +756,6 @@
     "Quick scan defaults": "Valeurs par défaut du scan rapide",
     "Ran By": "Lancé par",
     "Ranges over 1 year are best viewed as a report.": "Les périodes de plus d’un an se consultent mieux sous forme de rapport.",
-    "Rate: 1 {symbol} in your currency": "Taux : 1 {symbol} dans votre devise",
     "Rates changed: press Save changes to keep them.": "Taux modifiés : appuyez sur « Enregistrer les modifications » pour les garder.",
     "Raw Chat Completion Details": "Détails bruts de la réponse du chat",
     "Raw OCR Processing Details": "Détails bruts du traitement OCR",
@@ -915,13 +911,11 @@
     "Show": "Afficher",
     "Show Images": "Afficher les images",
     "Show on the Dashboard": "Afficher sur le tableau de bord",
-    "Show the Dashboard in (currency code)": "Afficher le tableau de bord en (code de devise)",
     "Show {label}": "Afficher {label}",
     "Show, hide, move and resize panels, and check them on each screen size before you save.": "Affichez, masquez, déplacez et redimensionnez les panneaux, et vérifiez-les sur chaque taille d’écran avant d’enregistrer.",
     "Showing the latest {count} months.": "Affichage des {count} derniers mois.",
     "Showing the newest {count} of {total} receipts.": "Tickets les plus récents : {count} sur {total}.",
     "Shown as who added a receipt": "Affiché comme la personne qui a ajouté un ticket",
-    "Shown in {code}": "Affiché en {code}",
     "Sign Up": "S’inscrire",
     "Sign in to your household": "Connectez-vous à votre foyer",
     "Sign-up": "Inscription",
@@ -1071,7 +1065,6 @@
     "This role grants no permissions.": "Ce rôle n’accorde aucun droit.",
     "This year": "Cette année",
     "Thousands Separator": "Séparateur des milliers",
-    "Three letters, like PLN or USD. Leave empty to see the household currency. Only the Dashboard converts; receipts stay as entered.": "Trois lettres, comme EUR ou USD. Laissez vide pour voir la devise du foyer. Seul le tableau de bord convertit ; les tickets restent tels que saisis.",
     "Time zone": "Fuseau horaire",
     "Title": "Titre",
     "Title, preamble & footer · supports variables": "Titre, introduction et pied de page · accepte les variables",
@@ -1191,7 +1184,6 @@
     "Your new API key:": "Votre nouvelle clé API :",
     "Your profile, preferences and API keys.": "Votre profil, vos préférences et vos clés API.",
     "Your provider didn't ask you to sign in again. Sign out of it and try again.": "Votre fournisseur ne vous a pas demandé de vous reconnecter. Déconnectez-vous chez lui et réessayez.",
-    "Your rate: 4,25 means 1 of the household currency is worth 4,25 of yours.": "Votre taux : 4,25 signifie qu’1 unité de la devise du foyer vaut 4,25 dans votre devise.",
     "Your role requires a comment on receipts; use Quick Scan for this receipt": "Votre rôle exige un commentaire sur les tickets ; utilisez le scan rapide pour ce ticket",
     "Your role requires a comment on this group's receipts.": "Votre rôle exige un commentaire sur les tickets de ce groupe.",
     "Your role requires an image and a comment on this group's receipts.": "Votre rôle exige une image et un commentaire sur les tickets de ce groupe.",
@@ -1340,9 +1332,19 @@
       "value": "Tous les foyers",
       "closest": "All"
     },
+    "Converted in your browser at the rate in your preferences": {
+      "value": "Converti dans votre navigateur au taux de vos préférences"
+    },
+    "Dashboard currency": {
+      "value": "Devise du tableau de bord",
+      "closest": "Add currency"
+    },
     "General & Currency": {
       "value": "Général et devise",
       "closest": "Add currency"
+    },
+    "Give the Dashboard currency as three letters, like PLN, and your rate above 0, like 4,25.": {
+      "value": "Indiquez la devise du tableau de bord en trois lettres, comme EUR, et votre taux supérieur à 0, comme 4,25."
     },
     "Manage Categories": {
       "value": "Catégories",
@@ -1363,6 +1365,22 @@
     "My Households": {
       "value": "Mes foyers",
       "closest": "Households"
+    },
+    "Rate: 1 {symbol} in your currency": {
+      "value": "Taux : 1 {symbol} dans votre devise"
+    },
+    "Show the Dashboard in (currency code)": {
+      "value": "Afficher le tableau de bord en (code de devise)",
+      "closest": "Show on the Dashboard"
+    },
+    "Shown in {code}": {
+      "value": "Affiché en {code}"
+    },
+    "Three letters, like PLN or USD. Leave empty to see the household currency. Only the Dashboard converts; receipts stay as entered.": {
+      "value": "Trois lettres, comme EUR ou USD. Laissez vide pour voir la devise du foyer. Seul le tableau de bord convertit ; les tickets restent tels que saisis."
+    },
+    "Your rate: 4,25 means 1 of the household currency is worth 4,25 of yours.": {
+      "value": "Votre taux : 4,25 signifie qu’1 unité de la devise du foyer vaut 4,25 dans votre devise."
     }
   }
 }

@@ -78,11 +78,6 @@
   <div class="flex flex-wrap items-center gap-2">
     <app-period-picker (periodChange)="period.set($event)"></app-period-picker>
     <span class="ml-auto text-sm text-muted-foreground" data-testid="overview-period-label">{{ periodLabel() }}</span>
-    @if (displayCurrencyService.conversion(); as conversion) {
-      <span hlmBadge variant="outline" class="text-muted-foreground" data-testid="overview-display-currency" [title]="'Converted in your browser at the rate in your preferences' | t">
-        {{ 'Shown in {code}' | t: { code: conversion.code } }}
-      </span>
-    }
   </div>
 
   @if (!period()) {
