@@ -8,6 +8,12 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-10-28
+
+Make it yours: five colour palettes, each in Day and Night.
+
+> **Upgrade: in place.** No schema change: pull `:latest`, redeploy, hard-refresh.
+
 ### Added
 - **Colour palettes:** pick Stone, Zinc, Indigo, Emerald or Violet, each in Day and Night. Zinc is the look CartVibe
   always had; Stone is the same with warm greys; Indigo, Emerald and Violet colour the buttons, links, switches, focus
@@ -17,6 +23,10 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ### Changed
 - **White and Black are now Day and Night:** your choice carries over, and nothing changes until you pick another palette.
+- **A truer black:** Zinc's black (and so Indigo's, Emerald's and Violet's) is a plain neutral black instead of one with
+  a slight blue cast. Stone's buttons are a touch softer (stone-900) than before.
+- **Hints look like the menus:** the little hint that appears when you hover a button is now the same light or dark
+  panel with a thin border as the menus, instead of a black box on the Day page.
 
 ## [0.11.0] - 2026-10-26
 
