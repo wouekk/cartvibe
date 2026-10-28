@@ -73,6 +73,7 @@ import { SettingsPageComponent } from './settings/settings-page.component';
 import { SettingsSectionComponent } from './settings/settings-section.component';
 import { SettingsEntityListComponent } from './settings/settings-entity-list.component';
 import { SettingsTabsComponent } from './settings/settings-tabs.component';
+import { ManagementTabsComponent } from './management-tabs/management-tabs.component';
 
 @NgModule({
   declarations: [
@@ -123,6 +124,7 @@ import { SettingsTabsComponent } from './settings/settings-tabs.component';
     SettingsSectionComponent,
     SettingsEntityListComponent,
     SettingsTabsComponent,
+    ManagementTabsComponent,
   ],
   imports: [
     ...HlmTabsImports,
@@ -199,6 +201,7 @@ import { SettingsTabsComponent } from './settings/settings-tabs.component';
     SettingsSectionComponent,
     SettingsEntityListComponent,
     SettingsTabsComponent,
+    ManagementTabsComponent,
     CartVibeLogoComponent,
     BadgeComponent,
     ImageCanvasComponent,

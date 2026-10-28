@@ -9,8 +9,13 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
   a palette menu in the header beside the day/night switch, Appearance and Colour palette cards on Settings → Theme and
   in the welcome, tooltips on the popover surface, Zinc's black = neutral-950, Stone's lead = stone-900. v0.11.0 (date
   edits on the view page, named red Delete / Remove, panels that scroll under a mouse, one login splash, API calls
-  skipping the service worker) came before it. `:latest` is published from `main` after green CI. No feature branches
-  are open. The audit notes (`i18n-audit-en-pl.md`, untracked) are the user's.
+  skipping the service worker) came before it. `:latest` is published from `main` after green CI.
+- Open: `feature/everyday-spending` (starter categories seeded once, prompts read any receipt or bill, 60 travel /
+  telecom / leisure / clothing / restaurant brands in `shop-brands.ts`, receipt icon on the Dashboard's Quick Scan).
+  Logos are no longer bundled: the household's Logo.dev key goes in System Settings → Shop Logos and browsers load
+  them from Logo.dev. Settings has one Management page with tabs (Categories, Tags, Users, Households); the
+  per-person Dashboard currency is gone from User Settings. Waiting on the user: their Logo.dev key in the new tab; back up
+  `sqlite` before deploying; Quick Scan a taxi or flight receipt with a real AI key (not tried on the devstack). The audit notes (`i18n-audit-en-pl.md`, untracked) are the user's.
 - Seen in a browser on the Windows PC's devstack (Redis stand-in + API + `npm start` run there): the palettes, all 10
   combinations on the Dashboard, the Theme page, phone width. Not yet, check on the NAS or a phone: the Dashboard
   charts and Reports in the accent palettes, a Quick Scan from a phone (it failed with `multipart: NextPart: EOF`; if
@@ -38,7 +43,7 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 
 - Angular 22 phases 3 and 4: `@defer`, `httpResource`, drop `@ngneat/until-destroy`; Signal Forms, Vitest; strip
   `NoopAnimationsModule` from ~30 specs, then drop `@angular/animations`.
-- Per-user display currency (Dashboard first); native-speaker review of de/fr/es.
+- Native-speaker review of de/fr/es.
 - e2e in CI (needs a job with a live API + Redis); several specs still drive the removed `/roles` page.
 - apexcharts 8, Chromium sandbox (`CHROMIUM_SANDBOX=true`), `--no-install-recommends` for apt installs.
 - Kept as they are until asked: the default receipt name "Receipt {date}" in English, ISO report month buckets

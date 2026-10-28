@@ -27,7 +27,7 @@ const (
 // foodClassificationPrompt shares its rules with the product read (healthRules, foodGroupRule, the seasonality
 // rule). The %s slots are the region, the month, the food group rule, the seasonality rule, the category
 // block with the corrections, and the products.
-const foodClassificationPrompt = `Classify these shop products for a household in %s; the current month is %s.
+const foodClassificationPrompt = `Classify these purchased items for a household in %s; the current month is %s.
 For each product:
 - "health": ` + healthRules + `
 - "foodGroup": %s

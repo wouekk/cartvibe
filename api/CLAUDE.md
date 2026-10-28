@@ -41,7 +41,9 @@ and are linked from the section they belong to.
   statuses, `AppLogEntry.level` and every effective-permission string are `type: string`. A Go type may still guard what
   is stored (`AiClientType.Value()`).
 - Migrations are AutoMigrate plus additive columns; a new column's GORM default must reproduce the old behaviour. A
-  one-time data change goes in `dataMigrations` (`repositories/data_migrations.go`, empty today); `RunDataMigrations`
+  one-time data change goes in `dataMigrations` (`repositories/data_migrations.go`; today only the starter categories,
+  `starter_categories.go`, which skip a name or covered name the household already has and are not seeded into test
+  databases); `RunDataMigrations`
   claims the ledger row and runs it in one transaction, retrying next boot on failure. Starter report templates use the
   same ledger so a deleted one stays deleted.
 - A query that joins must qualify its columns (`qualifyColumn`): the categories list joins `receipt_products`, which also
@@ -77,7 +79,8 @@ and are linked from the section they belong to.
   denial; any handler denying for its own reason reuses that constant. Authorization runs before any file- or
   type-specific 400/404.
 - A route answering with a redirect checks permissions in the body (a 403 JSON body would land in the browser).
-- Unauthenticated by design: username availability and `ConvertToJpg`. Self-service endpoints use `app.account.*`,
+- Unauthenticated by design: username availability, `ConvertToJpg` and `GET /featureConfig` (which carries the
+  Logo.dev publishable key, `shopLogoKey`: public by design, and only a `pk_` key is accepted). Self-service endpoints use `app.account.*`,
   `app.user-preferences.*`, `app.notifications.*`, `app.receipts.search`.
 
 ### Visibility layers (rationale: `api/docs/authorization.md`)
@@ -355,7 +358,8 @@ which day an instant falls on and what "today" means.
   envelope (`ValidateDashboardLayout`: object, numeric version, ≤16 KB). It is not a `UserPreferences` field because
   `PUT /userPreferences` replaces the whole object and would erase it from any client that does not know it.
   `CanCustomiseDashboard` is the entitlement seam.
-- `UserPreferences.DisplayCurrency` / `DisplayCurrencyRate` are stored only; the desktop converts Dashboard figures.
+- `UserPreferences.DisplayCurrency` / `DisplayCurrencyRate` stay on the contract but are unused: there is no per-person
+  currency (the household currency is an admin setting); the desktop ignores them and clears them on a preferences save.
   `onboardingPending` is on for accounts created by `CreateUser`, off by column default for older ones.
 
 ### Currencies

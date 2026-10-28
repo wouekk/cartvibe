@@ -7,7 +7,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute } from '@angular/router';
 import { NgxsModule, Store } from '@ngxs/store';
-import { of } from 'rxjs';
+import { firstValueFrom, of } from 'rxjs';
 import { ApiModule } from '../../open-api';
 import { SetFeatureConfig } from '../../store/feature-config.state.actions';
 
@@ -61,10 +61,24 @@ describe('AuthForm', () => {
     fixture = TestBed.createComponent(AuthForm);
     component = fixture.componentInstance;
     fixture.detectChanges();
+    // The page reloads the feature config on open (Logo.dev attribution, sign-up): answer it as an older server would.
+    TestBed.inject(HttpTestingController).expectOne('/api/featureConfig').flush({ enableLocalSignUp: true, aiPoweredReceipts: false });
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it("shows Logo.dev's attribution only while a logo key is set", async () => {
+    const attribution = () => fixture.nativeElement.querySelector('[data-testid="logo-dev-attribution"]');
+    expect(attribution()).toBeNull();
+
+    await firstValueFrom(TestBed.inject(Store).dispatch(new SetFeatureConfig({ enableLocalSignUp: true, aiPoweredReceipts: false, shopLogoKey: 'pk_ExampleKey12345' })));
+    fixture.changeDetectorRef.markForCheck();
+    fixture.detectChanges();
+
+    expect(attribution().textContent.trim()).toBe('Logos provided by Logo.dev');
+    expect(attribution().querySelector('a').getAttribute('href')).toBe('https://logo.dev');
   });
 
   // Regression guard: isLoading used to be a plain field reset inside finalize().

@@ -22,4 +22,4 @@ affiliated with or endorsed by the original authors. Please report problems with
 
 ## Third-party assets
 
-Shop logos in `desktop/src/assets/shops/` are provided by [Logo.dev](https://logo.dev) and belong to their respective owners. They are downloaded once by `scripts/shop-logos/download-shop-logos.mjs` (needs a Logo.dev publishable key in `LOGO_DEV_TOKEN`; no key is stored in the repo). Add a shop in `scripts/shop-logos/shops.mjs` and re-run the script.
+Shop logos are not part of this repository or the image. An admin can enter the household's own [Logo.dev](https://logo.dev) publishable key under System Settings → Shop Logos; browsers then load the logos straight from Logo.dev, and the login page shows Logo.dev's attribution. The logos belong to their respective owners. Without a key, every receipt shows its shop's first letter. The list of known brands (names and web domains only) is `desktop/src/shared-ui/shop-monogram/shop-brands.ts`. Logo images that earlier versions bundled remain in this repository's git history only.

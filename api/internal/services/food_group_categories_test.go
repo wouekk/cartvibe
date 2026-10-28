@@ -108,6 +108,24 @@ func TestBuildProductExtractionPromptCarriesTheMonthCategoriesAndCorrections(t *
 	}
 }
 
+func TestProductPromptsReadBillsForServicesNotOnlyShopReceipts(t *testing.T) {
+	month := day("2026-10-01")
+	for name, prompt := range map[string]string{
+		"standalone": buildProductExtractionPrompt(month, "", nil),
+		"inline":     buildInlineProductPrompt(month, "", nil),
+	} {
+		if strings.Contains(prompt, "shop receipt") {
+			t.Errorf("%s: a taxi or flight bill must not read as \"not a shop receipt\"", name)
+		}
+		if !strings.Contains(prompt, "A bill for a service (ride, flight") {
+			t.Errorf("%s: expected the one-line-per-service rule", name)
+		}
+	}
+	if strings.Contains(DefaultReceiptPrompt, "shop receipt") {
+		t.Error("the receipt read should take any receipt or bill")
+	}
+}
+
 func TestProductPromptsOfferExampleCategoriesOnlyWithoutAList(t *testing.T) {
 	withList := buildProductExtractionPrompt(day("2026-10-01"), "Choose \"foodGroup\" from these categories: Nabiał.", nil)
 	if strings.Contains(withList, `"sweets & snacks"`) {

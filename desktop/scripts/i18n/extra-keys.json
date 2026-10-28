@@ -13,7 +13,10 @@
     "Electronics", "Fast Food", "Fish", "Fish & Seafood", "Fresh Produce", "Frozen", "Frozen Food", "Fruit & Vegetables", "Fuel",
     "Furniture", "Garden", "Health & Beauty", "Home & Garden", "Kitchenware", "Lighting", "Meat", "Meat & Poultry", "Non-food",
     "Pantry", "Personal Care", "Pet Food", "Pet Supplies", "Pharmacy", "Produce", "Restaurant", "Seafood", "Snacks", "Spices",
-    "Stationery", "Sweets", "Sweets & Snacks", "Tobacco", "Toys", "Transport"
+    "Stationery", "Sweets", "Sweets & Snacks", "Tobacco", "Toys", "Transport",
+    "Household", "Takeaway & Delivery", "Coffee & Cafés", "Taxi", "Public Transport", "Parking", "Highway Tolls", "Car",
+    "Airlines", "Trains", "Cruises", "Hotels", "Travel", "Museum", "Cinema", "Events & Concerts", "Sports", "Bills",
+    "Phone & Internet", "Subscriptions", "Health", "Education", "Gifts"
   ],
   "Texts the API stores: notification titles and bodies (api/internal/repositories/comments.go, receipts.go, services/shopping_notifications.go)": [
     "Comment Added",

@@ -27,22 +27,22 @@ import (
 // productExtractionPromptTemplate asks for a receipt's shop and product lines, with each product's
 // category, health and season in the same answer (Phase 3 feedback: no separate classification wait).
 // The %s slots are the region, the month and the product rules (productLineRulesTemplate).
-const productExtractionPromptTemplate = `List every purchased product line on this shop receipt and classify each for a household in %s; the current month is %s.
+const productExtractionPromptTemplate = `List every purchased line on this receipt or bill and classify each for a household in %s; the current month is %s.
 Reply with minified JSON only, no code block:
 {"shop":"...","currency":"...","products":[{"name":"...","displayName":"...","amount":0.0,"quantity":"...","health":"...","foodGroup":"...","seasonality":"..."}]}
-- "shop": the brand only (Auchan, Edeka, Rewe), not street or branch; "" if unreadable.
+- "shop": the brand only (Auchan, Uber, Ryanair), not street or branch; "" if unreadable.
 - "currency": ` + currencyRule + `
 %s
-Not a shop receipt, or no product lines: {"shop":"","currency":"","products":[]}.`
+Not a receipt or bill: {"shop":"","currency":"","products":[]}.`
 
 // inlineProductPromptTemplate is added to the receipt prompt of a quick scan, so the one answer carries the
 // products too (ApplyInlineRead). The %s slots are the region, the month and the product rules.
 const inlineProductPromptTemplate = `
 
-Also add a "products" key to the same JSON object: every purchased product line, classified for a household in %s; the current month is %s.
+Also add a "products" key to the same JSON object: every purchased line, classified for a household in %s; the current month is %s.
 "products":[{"name":"...","displayName":"...","amount":0.0,"quantity":"...","health":"...","foodGroup":"...","seasonality":"..."}]
 %s
-Not a shop receipt, or no product lines: "products":[].`
+Not a receipt or bill: "products":[].`
 
 // currencyRule is how both receipt prompts read the currency.
 const currencyRule = `ISO 4217 code as printed: zł/zl/PLN=PLN, £/pounds=GBP, CHF/Fr./SFr.=CHF, $=USD, €=EUR; "" if none. Give every amount exactly as printed, never converted.`
@@ -58,7 +58,7 @@ const seasonalityRuleTemplate = `only for fresh fruit and vegetables: SEASONAL i
 
 // foodGroupExamples names example categories only for a household without a category list: with one, English
 // examples would tempt the AI to answer outside it, and every unknown name becomes a new category.
-const foodGroupExamples = `a short lowercase category, e.g. "fresh produce", "dairy", "bakery", "meat", "fish", "drinks", "sweets & snacks", "alcohol", "frozen", "pantry", "household".`
+const foodGroupExamples = `a short lowercase category, e.g. "fresh produce", "dairy", "bakery", "meat", "drinks", "sweets & snacks", "alcohol", "household", "restaurant", "taxi", "airlines", "bills".`
 
 const foodGroupFromList = `the category, from the list below.`
 
@@ -81,7 +81,8 @@ const productLineRulesTemplate = `For each product line:
 - "foodGroup": %s
 - "seasonality": %s
 %s%s
-Skip totals, subtotals, taxes, payments, change, loyalty points, bottle deposits and coupons.`
+A bill for a service (ride, flight, ticket, toll, stay, meal, utility) is one line per service charged, at the amount paid with its own taxes and fees.
+Skip totals, subtotals, separately printed tax summaries, payments, change, loyalty points, bottle deposits and coupons.`
 
 // buildProductExtractionPrompt fills the template for a receipt bought in the given month.
 func buildProductExtractionPrompt(month time.Time, categoryBlock string, corrections map[string]string) string {

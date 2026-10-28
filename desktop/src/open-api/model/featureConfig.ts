@@ -23,5 +23,9 @@ export interface FeatureConfig {
      * Enabled OIDC identity providers, so a login screen can render one button per provider. Always present as an array (never null) and carries only the slug and display name -- never the issuer, client id, or any secret.
      */
     oidcProviders?: Array<OidcProviderSummary>;
+    /**
+     * The Logo.dev publishable key browsers load shop logos with, or \"\" when shop logos are off. Public by design (it is in every logo URL); the login page shows Logo.dev\'s attribution while it is set.
+     */
+    shopLogoKey?: string;
 }
 

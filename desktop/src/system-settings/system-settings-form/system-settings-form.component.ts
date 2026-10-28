@@ -32,6 +32,28 @@ interface QueueData extends FormOption {
   description: string;
 }
 
+/** The tab a settings form is placed on (route data `section`). */
+export type SystemSettingsSection = "general" | "logos" | "security" | "tasks";
+
+/**
+ * The Logo.dev key field: empty (logos off) or a publishable key. A secret key gets its own message, because every
+ * browser sees this key. Mirrors the API's validateShopLogoKey.
+ */
+export function shopLogoKeyValidator(): ValidatorFn {
+  return (control) => {
+    const value = String(control.value ?? "").trim();
+    if (!value) {
+      return null;
+    }
+    if (value.startsWith("sk_")) {
+      return { shopLogoKey: marker("This is a secret key. Use the publishable key, which starts with pk_") };
+    }
+    return /^pk_[A-Za-z0-9_-]{8,200}$/.test(value)
+      ? null
+      : { shopLogoKey: marker("A Logo.dev publishable key starts with pk_") };
+  };
+}
+
 @UntilDestroy()
 @Component({
   selector: "app-system-settings-form",
@@ -63,7 +85,7 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
   public readonly showRestartTaskServerAlert = signal(false);
 
   /** Which tab's cards this form shows (route data); undefined shows every card. */
-  public section?: "general" | "security" | "tasks";
+  public section?: SystemSettingsSection;
 
   public readonly canReadSystemTasks = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppSystemTasksRead));
 
@@ -81,7 +103,7 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
   ];
 
   /** Whether the cards of a tab are shown: all of them when the form is not placed on a tab. */
-  public shows(section: "general" | "security" | "tasks"): boolean {
+  public shows(section: SystemSettingsSection): boolean {
     return !this.section || this.section === section;
   }
 
@@ -220,6 +242,7 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
       // register one that has no redirect URI to publish.
       serverPublicUrl: [this.originalSystemSettings?.serverPublicUrl, [absoluteUrlValidator()]],
       secureCookies: [this.originalSystemSettings?.secureCookies ?? false],
+      shopLogoKey: [this.originalSystemSettings?.shopLogoKey ?? "", [shopLogoKeyValidator()]],
       // Form-only controls. The API stores hours; the unit is presentation and
       // is folded back into `<name>Hours` in submit().
       refreshTokenValidForValue: [refreshTokenLifetime.value],
@@ -243,6 +266,7 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
       this.form.get("mcpPublicUrl")?.disable();
       this.form.get("serverPublicUrl")?.disable();
       this.form.get("secureCookies")?.disable();
+      this.form.get("shopLogoKey")?.disable();
       this.form.get("refreshTokenValidForValue")?.disable();
       this.form.get("refreshTokenValidForUnit")?.disable();
       this.form.get("mcpRefreshTokenValidForValue")?.disable();

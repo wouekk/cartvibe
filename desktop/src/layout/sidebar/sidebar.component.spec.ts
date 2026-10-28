@@ -194,7 +194,7 @@ describe("SidebarComponent", () => {
       );
       await fixture.whenStable();
 
-      expect(itemIds()).toEqual(["nav-categories", "nav-tags", "nav-ai", "nav-user-settings", "nav-language", "nav-theme"]);
+      expect(itemIds()).toEqual(["nav-management", "nav-ai", "nav-user-settings", "nav-language", "nav-theme"]);
     });
 
     it("adds the admin pages after the ones every member has", async () => {
@@ -216,14 +216,11 @@ describe("SidebarComponent", () => {
       await fixture.whenStable();
 
       expect(itemIds()).toEqual([
-        "nav-categories",
-        "nav-tags",
+        "nav-management",
         "nav-ai",
         "nav-user-settings",
         "nav-language",
         "nav-theme",
-        "nav-households",
-        "nav-users",
         "nav-system-settings",
       ]);
     });
@@ -252,11 +249,18 @@ describe("SidebarComponent", () => {
       expect(items().getAttribute("data-state")).toBe("open");
 
       const text = sidebarText();
-      expect(text).toContain("Manage Categories");
-      expect(text).toContain("Manage Tags");
-      expect(text).toContain("Manage Households");
-      expect(text).not.toContain("Manage Users");
+      expect(text).toContain("Management");
       expect(text).not.toContain("System Settings");
+    });
+
+    it("points Management at the first tab the user may read", async () => {
+      login();
+      store.dispatch(new SetPermissions(["app.users.read", "app.groups.read"], {}));
+      await fixture.whenStable();
+
+      expect(queryTestId("nav-management").nativeElement.getAttribute("href")).toBe("/users");
+      expect(component.isActiveUnder(component.manageNavItems()[0], "/groups/5/details/view")).toBe(true);
+      expect(component.isActiveUnder(component.manageNavItems()[0], "/receipts/group/5")).toBe(false);
     });
 
     it("shows the AI page but not System Settings to a member holding the receipt-processing permissions", async () => {
@@ -280,7 +284,7 @@ describe("SidebarComponent", () => {
       expect(text).not.toContain("System Settings");
     });
 
-    it("keeps Manage Households but hides the group switcher while there is only one real group (Phase 3 M5)", async () => {
+    it("keeps Management but hides the group switcher while there is only one real group (Phase 3 M5)", async () => {
       login();
       store.dispatch(
         new SetGroups([
@@ -294,7 +298,7 @@ describe("SidebarComponent", () => {
       queryTestId("sidebar-manage-toggle").nativeElement.click();
       await fixture.whenStable();
 
-      expect(sidebarText()).toContain("Manage Households");
+      expect(sidebarText()).toContain("Management");
       expect(queryTestId("sidebar-group-switcher")).toBeFalsy();
       expect(queryTestId("sidebar-group-static").nativeElement.textContent).toContain("Household");
     });

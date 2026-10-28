@@ -13,6 +13,7 @@ import { SnackbarService } from "../../services";
 import { ViewportService } from "../../services/viewport.service";
 import { AuthState, GroupState, Logout, SetSelectedGroupId } from "../../store";
 import { hasAll } from "../../utils/permission.utils";
+import { allowedManagementTabs } from "../../shared-ui/management-tabs/management-tabs.component";
 import { provideIcons } from "@ng-icons/core";
 import {
   lucideBot,
@@ -57,6 +58,15 @@ const LUCIDE_ICONS: Record<string, string> = {
   translate: "lucideLanguages",
   palette: "lucidePalette",
 };
+
+/** An entry under Settings. `activeUnder` lists every page address the entry stands for (Management's four tabs). */
+interface ManageNavItem {
+  label: string;
+  icon: string;
+  link: string[];
+  testId: string;
+  activeUnder?: string[];
+}
 
 /**
  * The app's navigation: everyday pages (shopping lists, receipts, dashboard, reports) up top, the
@@ -253,13 +263,19 @@ export class SidebarComponent {
    */
   public readonly manageNavItems = computed(() => {
     const has = (permission: string) => hasAll(this.appPermissions(), permission);
-    const items: { label: string; icon: string; link: string[]; testId: string }[] = [];
+    const items: ManageNavItem[] = [];
 
-    if (has(Permission.AppCategoriesRead)) {
-      items.push({ label: marker("Manage Categories"), icon: "category", link: ["/categories"], testId: "nav-categories" });
-    }
-    if (has(Permission.AppTagsRead)) {
-      items.push({ label: marker("Manage Tags"), icon: "sell", link: ["/tags"], testId: "nav-tags" });
+    // Categories, Tags, Users and Households are one page with tabs; the entry opens the first tab the user may read
+    // and stays highlighted on all four (their pages keep their own addresses).
+    const managementTabs = allowedManagementTabs(this.appPermissions());
+    if (managementTabs.length > 0) {
+      items.push({
+        label: marker("Management"),
+        icon: "category",
+        link: [managementTabs[0].link],
+        testId: "nav-management",
+        activeUnder: managementTabs.map((tab) => tab.link),
+      });
     }
     if (has(Permission.AppReceiptProcessingSettingsUpdate)) {
       items.push({ label: "AI", icon: "smart_toy", link: ["/ai"], testId: "nav-ai" });
@@ -270,12 +286,6 @@ export class SidebarComponent {
     items.push({ label: marker("Language"), icon: "translate", link: ["/language"], testId: "nav-language" });
     items.push({ label: marker("Theme"), icon: "palette", link: ["/theme"], testId: "nav-theme" });
 
-    if (has(Permission.AppGroupsRead)) {
-      items.push({ label: marker("Manage Households"), icon: "groups", link: ["/groups"], testId: "nav-households" });
-    }
-    if (has(Permission.AppUsersRead)) {
-      items.push({ label: marker("Manage Users"), icon: "person", link: ["/users"], testId: "nav-users" });
-    }
     // No "Manage Roles" (Phase 3 M4): a household has Admin and User, picked on the user and member
     // forms. The roles page stays at /roles.
     if (this.canViewSystemSettings()) {
@@ -291,8 +301,13 @@ export class SidebarComponent {
    */
   public readonly isManageOpen = linkedSignal(() => {
     const url = this.currentUrl();
-    return this.manageNavItems().some((item) => url.startsWith(item.link[0]));
+    return this.manageNavItems().some((item) => this.isActiveUnder(item, url) || url.startsWith(item.link[0]));
   });
+
+  /** Whether an entry that covers several pages (Management) is the current one. */
+  public isActiveUnder(item: ManageNavItem, url: string = this.currentUrl()): boolean {
+    return !!item.activeUnder?.some((link) => url === link || url.startsWith(`${link}/`) || url.startsWith(`${link}?`));
+  }
 
   // Walks from the router state root to the deepest activated child so the
   // fullHeight flag is picked up wherever it is declared in the route tree.

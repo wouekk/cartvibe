@@ -26,9 +26,9 @@ func ledgerCount(t *testing.T, name string) int64 {
 	return count
 }
 
-func TestDataMigrationRegistryIsEmptyOnAFreshSchema(t *testing.T) {
-	if len(dataMigrations) != 0 {
-		utils.PrintTestError(t, len(dataMigrations), 0)
+func TestDataMigrationRegistryHoldsOnlyTheStarterCategories(t *testing.T) {
+	if len(dataMigrations) != 1 || dataMigrations[0].name != starterCategoriesMigration {
+		utils.PrintTestError(t, len(dataMigrations), 1)
 	}
 }
 

@@ -30,6 +30,9 @@ type FeatureConfig struct {
 	// deserializer has no null guard, so a null would fail the whole payload on
 	// every already-released build.
 	OidcProviders []OidcProviderSummary `json:"oidcProviders"`
+	// ShopLogoKey is the Logo.dev publishable key browsers load shop logos with, "" when logos are off. It
+	// is unauthenticated on purpose: the login page shows Logo.dev's required attribution while it is set.
+	ShopLogoKey string `json:"shopLogoKey"`
 }
 
 type DatabaseConfig struct {

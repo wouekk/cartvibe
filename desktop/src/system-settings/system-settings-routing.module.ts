@@ -25,7 +25,7 @@ const routes: Routes = [
       // The four settings tabs are the one form showing its own cards (route data `section`). Each carries
       // every resolver its cards need, because the tables embedded in a tab read the route's data: system
       // emails want allGroups, system tasks want prompts and the processing settings.
-      ...(["general", "security", "tasks"] as const).map((section) => ({
+      ...(["general", "logos", "security", "tasks"] as const).map((section) => ({
         path: section,
         component: SystemSettingsFormComponent,
         canActivate: [appPermissionGuard],

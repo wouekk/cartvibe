@@ -6458,6 +6458,12 @@ components:
             slug and display name -- never the issuer, client id, or any secret.
           items:
             $ref: "#/components/schemas/OidcProviderSummary"
+        shopLogoKey:
+          type: string
+          description:
+            The Logo.dev publishable key browsers load shop logos with, or "" when shop logos are
+            off. Public by design (it is in every logo URL); the login page shows Logo.dev's
+            attribution while it is set.
     OidcProviderSummary:
       required:
         - name
@@ -7368,6 +7374,12 @@ components:
                 HTTPS. Recommended for any install served over HTTPS. Off by default, because a
                 browser drops a Secure cookie set over plain HTTP, which breaks login.
               default: false
+            shopLogoKey:
+              type: string
+              description: >-
+                The household's Logo.dev publishable key. With one, browsers load shop logos from
+                img.logo.dev; empty means every receipt shows its shop's first letter.
+              default: ""
     UpsertSystemSettingsCommand:
       type: object
       required:
@@ -7461,6 +7473,12 @@ components:
             Marks every cookie the server sets as Secure. Only turn it on when the app is served
             over HTTPS: a browser drops a Secure cookie set over plain HTTP, which breaks login.
             Omit the key entirely to leave the currently configured value unchanged.
+        shopLogoKey:
+          type: string
+          description: >-
+            The household's Logo.dev publishable key (starts with pk_), or "" to turn shop logos
+            off. A secret key (sk_) or anything else is a 400 under the shopLogoKey key. Omit the
+            key entirely to leave the currently configured value unchanged.
     SystemTask:
       allOf:
         - $ref: "#/components/schemas/BaseModel"

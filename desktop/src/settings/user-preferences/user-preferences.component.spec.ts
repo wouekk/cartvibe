@@ -86,8 +86,6 @@ describe("UserPreferencesComponent", () => {
       quickScanDefaultGroupId: "",
       quickScanDefaultStatus: "",
       monthlySpendingGoal: "",
-      displayCurrency: "",
-      displayCurrencyRate: "",
       closeChipSelectOnSelect: false,
       userShortcuts: []
     });
@@ -115,8 +113,6 @@ describe("UserPreferencesComponent", () => {
       quickScanDefaultGroupId: "2",
       quickScanDefaultStatus: "OPEN",
       monthlySpendingGoal: "",
-      displayCurrency: "",
-      displayCurrencyRate: "",
       closeChipSelectOnSelect: true,
       userShortcuts: [{ name: "Test", url: "test", icon: "icon", trackby: 0 }],
     });
@@ -174,37 +170,23 @@ describe("UserPreferencesComponent", () => {
   });
 
   describe("the Dashboard currency", () => {
-    const submitWith = (code: string, rate: string) => {
+    it("is no longer a preference: no field, and saving clears one an older version stored", () => {
+      const store = TestBed.inject(Store);
+      store.reset({
+        ...store.snapshot(),
+        auth: { ...store.snapshot().auth, userPreferences: { displayCurrency: "PLN", displayCurrencyRate: "4.25" } },
+      });
       const serviceSpy = jest
         .spyOn(TestBed.inject(UserPreferencesService), "updateUserPreferences")
         .mockReturnValue(of({} as any));
+
       component.ngOnInit();
-      component.form.patchValue({ displayCurrency: code, displayCurrencyRate: rate });
+      expect(component.form.get("displayCurrency")).toBeNull();
       component.submit();
-      return serviceSpy;
-    };
-
-    it("sends an upper-cased code and a dot-decimal rate", () => {
-      const serviceSpy = submitWith(" pln ", "4,25");
-
-      expect(serviceSpy).toHaveBeenCalledWith(expect.objectContaining({ displayCurrency: "PLN", displayCurrencyRate: "4.25" }));
-    });
-
-    it("clears both when the code is empty", () => {
-      const serviceSpy = submitWith("", "4,25");
 
       expect(serviceSpy).toHaveBeenCalledWith(expect.objectContaining({ displayCurrency: "", displayCurrencyRate: null }));
     });
-
-    it("refuses a code that is not three letters, or a missing or zero rate", () => {
-      for (const [code, rate] of [["PL", "4"], ["PLN", ""], ["PLN", "0"], ["PLN", "abc"]]) {
-        const serviceSpy = submitWith(code, rate);
-        expect(serviceSpy).not.toHaveBeenCalled();
-        serviceSpy.mockRestore();
-      }
-    });
   });
-
   describe("when userShortcutComponent is not yet available", () => {
     beforeEach(() => {
       Object.defineProperty(component, 'userShortcutComponent', {
