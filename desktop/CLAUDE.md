@@ -396,10 +396,14 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
 
 ### Navigation and settings screens
 
-- **Sidebar** (`src/layout/sidebar/`, `mainNavItems` / `manageNavItems`): everyday pages, then Settings: Manage
-  Categories, Manage Tags, AI, User Settings, Language (`/language`), Theme (`/theme`), then Manage Households, Manage
-  Users, System Settings, each behind its permission (Language and Theme need none and are top-level routes;
-  `/settings/theme` redirects). Each entry has a `nav-*` test id. Routes with `data: { fullHeight: true }` get a
+- **Sidebar** (`src/layout/sidebar/`, `mainNavItems` / `manageNavItems`): everyday pages, then Settings: Management,
+  AI, User Settings, Language (`/language`), Theme (`/theme`), System Settings, each behind its permission (Language
+  and Theme need none and are top-level routes; `/settings/theme` redirects). Each entry has a `nav-*` test id.
+- **Management** is Categories (`/categories`), Tags (`/tags`), Users (`/users`) and Households (`/groups`) as tabs:
+  each list page keeps its own route and module, is titled "Management" and puts `app-management-tabs` in its
+  `settingsTabs` slot (`MANAGEMENT_TABS`, `allowedManagementTabs`, `managementTabForUrl` in
+  `shared-ui/management-tabs/`). The sidebar entry opens the first tab the user may read and stays active under all
+  four (`activeUnder`); a household's or user's own pages keep their own headers. Routes with `data: { fullHeight: true }` get a
   bounded full-bleed content area.
 - **User Settings** (`/settings`): User Profile, User Preferences, API Keys, each gated on its read permission.
 - **System Settings** has five tabs: Currency & Time Zone (route `general`), Shop Logos (`logos`), Auth & Security,

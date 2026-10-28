@@ -96,7 +96,6 @@
     "All": "Alle",
     "All API Keys": "Alle API-Schlüssel",
     "All Groups": "Alle Gruppen",
-    "All Households": "Alle Haushalte",
     "All caught up!": "Alles gelesen!",
     "All done": "Alles erledigt",
     "All lines": "Alle Zeilen",
@@ -554,12 +553,9 @@
     "Main AI": "Haupt-KI",
     "Main navigation": "Hauptnavigation",
     "Malformed report request": "Fehlerhafte Berichtsanfrage",
-    "Manage Categories": "Kategorien",
-    "Manage Households": "Haushalte",
-    "Manage Tags": "Schlagwörter",
-    "Manage Users": "Benutzer",
     "Manage user accounts and the roles assigned to them.": "Verwalte Benutzerkonten und die ihnen zugewiesenen Rollen.",
     "Manage users & keys": "Benutzer und Schlüssel verwalten",
+    "Management": "Verwaltung",
     "Mar": "März",
     "March": "März",
     "Mark all as read": "Alle als gelesen markieren",
@@ -600,7 +596,6 @@
     "Must be at most {max}.": "Darf höchstens {max} sein.",
     "My API Keys": "Meine API-Schlüssel",
     "My Groups": "Meine Gruppen",
-    "My Households": "Meine Haushalte",
     "Name": "Name",
     "Name and the groups it covers": "Name und die erfassten Gruppen",
     "Name cannot be changed": "Der Name kann nicht geändert werden",
@@ -1330,9 +1325,33 @@
     }
   },
   "_orphaned": {
+    "All Households": {
+      "value": "Alle Haushalte",
+      "closest": "All"
+    },
     "General & Currency": {
       "value": "Allgemein und Währung",
       "closest": "Add currency"
+    },
+    "Manage Categories": {
+      "value": "Kategorien",
+      "closest": "Categories"
+    },
+    "Manage Households": {
+      "value": "Haushalte",
+      "closest": "Households"
+    },
+    "Manage Tags": {
+      "value": "Schlagwörter",
+      "closest": "Correct tags"
+    },
+    "Manage Users": {
+      "value": "Benutzer",
+      "closest": "Manage users & keys"
+    },
+    "My Households": {
+      "value": "Meine Haushalte",
+      "closest": "Households"
     }
   }
 }

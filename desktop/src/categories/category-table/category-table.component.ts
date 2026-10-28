@@ -62,7 +62,6 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
   /** Set after the first answer, so the empty state never shows before the list has loaded. */
   public loaded = signal(false);
 
-  public headerText: string = "Categories";
 
   public ngOnInit(): void {
     this.initTableData();

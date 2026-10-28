@@ -1,8 +1,9 @@
 <app-settings-page
   width="wide"
-  [title]="headerText"
+  title="Management"
   description="Tag the products on your receipts however you like. A tag can have its own Dashboard tile."
 >
+  <app-management-tabs settingsTabs></app-management-tabs>
   <div settingsActions class="contents">
     <app-add-button
       *hasAppPermission="Permission.AppTagsCreate"

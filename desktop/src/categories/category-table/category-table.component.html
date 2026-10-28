@@ -1,8 +1,9 @@
 <app-settings-page
   width="wide"
-  [title]="headerText"
+  title="Management"
   description="The categories the AI sorts receipt products into. New ones appear here by themselves; rename one to change what the AI uses, or switch one off."
 >
+  <app-management-tabs settingsTabs></app-management-tabs>
   <div settingsActions class="contents">
     <app-add-button
       *hasAppPermission="Permission.AppCategoriesCreate"

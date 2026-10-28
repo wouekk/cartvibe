@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, computed, OnInit, signal, TemplateRef, viewChild, inject, ChangeDetectionStrategy } from "@angular/core";
+import { AfterViewInit, Component, computed, OnInit, TemplateRef, viewChild, inject, ChangeDetectionStrategy } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
@@ -6,7 +6,7 @@ import { take, tap } from "rxjs";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { TableComponent } from "src/table/table/table.component";
 import { DEFAULT_DIALOG_CONFIG, DEFAULT_HOST_CLASS } from "../../constants";
-import { AssociatedGroup, Group, GroupsService, Permission } from "../../open-api";
+import { Group, GroupsService, Permission } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { BaseTableService } from "../../services/base-table.service";
 import { BaseTableComponent } from "../../shared-ui/base-table/base-table.component";
@@ -68,8 +68,6 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
     () => !this.canDeleteAnyGroup() && (this.groups()?.length ?? 0) <= 1
   );
 
-  public tableHeaderText = signal(marker("My Households"));
-
   constructor(
     public override baseTableService: BaseTableService,
     private groupsService: GroupsService,
@@ -92,15 +90,7 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
     this.store.select(GroupTableState.filter)
       .pipe(
         untilDestroyed(this),
-        tap((filter) => {
-            this.getTableData();
-            if (filter.associatedGroup === AssociatedGroup.All) {
-              this.tableHeaderText.set(marker("All Households"));
-            } else {
-              this.tableHeaderText.set(marker("My Households"));
-            }
-          }
-        )
+        tap(() => this.getTableData())
       )
       .subscribe();
   }

@@ -1,8 +1,9 @@
 <app-settings-page
   width="wide"
-  title="Users"
+  title="Management"
   description="Manage user accounts and the roles assigned to them."
 >
+  <app-management-tabs settingsTabs></app-management-tabs>
   <div settingsActions class="contents">
     <ng-container *hasAppPermission="Permission.AppUsersDelete">
       <app-button

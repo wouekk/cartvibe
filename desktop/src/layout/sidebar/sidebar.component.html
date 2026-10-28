@@ -103,7 +103,7 @@
                               hlmSidebarMenuSubButton
                               routerLinkActive
                               #manageActive="routerLinkActive"
-                              [isActive]="manageActive.isActive"
+                              [isActive]="item.activeUnder ? isActiveUnder(item) : manageActive.isActive"
                               [routerLink]="item.link"
                               [attr.data-testid]="item.testId"
                               (click)="closeMobileSidebar()"

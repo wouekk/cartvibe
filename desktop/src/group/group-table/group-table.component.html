@@ -1,8 +1,9 @@
 <app-settings-page
   width="wide"
-  [title]="tableHeaderText()"
+  title="Management"
   description="Households organize receipts and the people who share them."
 >
+  <app-management-tabs settingsTabs></app-management-tabs>
   <div settingsActions class="contents">
     <app-add-button
       *hasAppPermission="Permission.AppGroupsCreate"
