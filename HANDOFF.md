@@ -11,8 +11,11 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
   edits on the view page, named red Delete / Remove, panels that scroll under a mouse, one login splash, API calls
   skipping the service worker) came before it. `:latest` is published from `main` after green CI.
 - Open: `feature/everyday-spending` (starter categories seeded once, prompts read any receipt or bill, 60 travel /
-  telecom / leisure brands in `scripts/shop-logos/shops.mjs`, receipt icon on the Dashboard's Quick Scan). Logos are
-  downloaded (Helios dropped: Logo.dev gave a wrong image). Waiting on the user: back up `sqlite` before deploying; Quick Scan a taxi or flight receipt with a real AI key (not tried on the devstack). The audit notes (`i18n-audit-en-pl.md`, untracked) are the user's.
+  telecom / leisure / clothing / restaurant brands in `shop-brands.ts`, receipt icon on the Dashboard's Quick Scan).
+  Logos are no longer bundled: the household's Logo.dev key goes in System Settings → Shop Logos and browsers load
+  them from Logo.dev. Queued on this branch: Settings → one Management page with tabs (Categories, Tags, Users,
+  Households); Dashboard currency out of User Settings. Waiting on the user: their Logo.dev key in the new tab; back up
+  `sqlite` before deploying; Quick Scan a taxi or flight receipt with a real AI key (not tried on the devstack). The audit notes (`i18n-audit-en-pl.md`, untracked) are the user's.
 - Seen in a browser on the Windows PC's devstack (Redis stand-in + API + `npm start` run there): the palettes, all 10
   combinations on the Dashboard, the Theme page, phone width. Not yet, check on the NAS or a phone: the Dashboard
   charts and Reports in the accent palettes, a Quick Scan from a phone (it failed with `multipart: NextPart: EOF`; if

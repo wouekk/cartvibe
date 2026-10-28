@@ -79,7 +79,8 @@ and are linked from the section they belong to.
   denial; any handler denying for its own reason reuses that constant. Authorization runs before any file- or
   type-specific 400/404.
 - A route answering with a redirect checks permissions in the body (a 403 JSON body would land in the browser).
-- Unauthenticated by design: username availability and `ConvertToJpg`. Self-service endpoints use `app.account.*`,
+- Unauthenticated by design: username availability, `ConvertToJpg` and `GET /featureConfig` (which carries the
+  Logo.dev publishable key, `shopLogoKey`: public by design, and only a `pk_` key is accepted). Self-service endpoints use `app.account.*`,
   `app.user-preferences.*`, `app.notifications.*`, `app.receipts.search`.
 
 ### Visibility layers (rationale: `api/docs/authorization.md`)

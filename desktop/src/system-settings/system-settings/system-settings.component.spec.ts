@@ -62,14 +62,15 @@ describe("SystemSettingsComponent", () => {
     expect(component.tabs).toEqual([]);
   });
 
-  it("shows the four tabs, in order, when the user can read the settings", () => {
+  it("shows the five tabs, in order, when the user can read the settings", () => {
     store.dispatch(new SetPermissions([Permission.AppSystemSettingsRead], {}));
 
     fixture.detectChanges();
 
-    expect(component.tabs.map((tab) => tab.name)).toEqual(["general", "security", "tasks", "logs"]);
+    expect(component.tabs.map((tab) => tab.name)).toEqual(["general", "logos", "security", "tasks", "logs"]);
     expect(component.filterTabs.map((tab) => tab.label)).toEqual([
-      "General & Currency",
+      "Currency & Time Zone",
+      "Shop Logos",
       "Auth & Security",
       "Tasks & Storage",
       "Logs",

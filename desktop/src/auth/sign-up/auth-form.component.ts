@@ -3,11 +3,12 @@ import { Component, OnInit, signal, ChangeDetectionStrategy, inject } from "@ang
 import { FormBuilder, FormControl, FormGroup, Validators, } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
-import { BehaviorSubject, catchError, EMPTY, finalize, switchMap, tap, } from "rxjs";
-import { AppData, AuthService } from "src/open-api";
+import { BehaviorSubject, catchError, EMPTY, finalize, switchMap, take, tap, } from "rxjs";
+import { AppData, AuthService, FeatureConfigService } from "src/open-api";
 import { SnackbarService } from "src/services";
 import { setAppData } from "src/utils";
-import { GroupState } from "../../store";
+import { GroupState, SetFeatureConfig } from "../../store";
+import { FeatureConfigState } from "../../store/feature-config.state";
 import { UserValidators } from "../../validators";
 import { marker } from "../../i18n/marker";
 import { SignInTransitionService } from "../../services/sign-in-transition.service";
@@ -31,7 +32,12 @@ export class AuthForm implements OnInit {
   public secondaryButtonRouterLink: string[] = [];
   public readonly isLoading = signal<boolean>(false);
 
+  /** Set while an admin has entered a Logo.dev key: the page then shows Logo.dev's required attribution. */
+  protected readonly shopLogoKey = inject(Store).selectSignal(FeatureConfigState.shopLogoKey);
+
   private readonly signInTransition = inject(SignInTransitionService);
+
+  private readonly featureConfigService = inject(FeatureConfigService);
 
   constructor(
     private authSerivce: AuthService,
@@ -48,6 +54,23 @@ export class AuthForm implements OnInit {
     this.initForm();
     this.listenForRouteChanges();
     this.listenForIsSignUpChanges();
+    this.refreshFeatureConfig();
+  }
+
+  /**
+   * The app loads the feature config at start only for a browser that never signed in; one coming back from a
+   * session (signed out, or its session expired) would show stale or default settings here, and miss Logo.dev's
+   * required attribution. A failure keeps what the store has.
+   */
+  private refreshFeatureConfig(): void {
+    this.featureConfigService
+      .getFeatureConfig()
+      .pipe(
+        take(1),
+        switchMap((config) => this.store.dispatch(new SetFeatureConfig(config))),
+        catchError(() => EMPTY)
+      )
+      .subscribe();
   }
 
   private listenForRouteChanges(): void {

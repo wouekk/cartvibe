@@ -1,11 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, input, signal } from "@angular/core";
-import { findShopLogo } from "./shop-logo-match";
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from "@angular/core";
+import { Store } from "@ngxs/store";
+import { FeatureConfigState } from "../../store/feature-config.state";
+import { findShopBrand } from "./shop-logo-match";
 
 /**
- * A 24px badge in front of a receipt's shop name: the shop's logo when it is a known one (static files in
- * `assets/shops`, see `scripts/shop-logos`), otherwise its first letter. The logo sits on a white tile with a ring
- * in the foreground color (black on the White theme, white on Black) so light and dark logos both stay visible. The
- * letter is white on black on the White theme and black on white on Black. If a logo file fails to load, the letter shows.
+ * A 24px badge in front of a receipt's shop name: the shop's logo when it is a known brand and an admin has entered a
+ * Logo.dev key (System Settings → Shop logos), otherwise its first letter. Logos load in the browser straight from
+ * img.logo.dev, which Logo.dev's free plan requires (it does not allow storing them); nothing is bundled or kept on the
+ * server. The logo sits on a white tile with a ring in the foreground color (black by day, white at night) so light
+ * and dark logos both stay visible. The letter is white on black by day and black on white at night. If a logo fails
+ * to load (Logo.dev has none, or the browser is offline), the letter shows.
  */
 @Component({
   selector: "app-shop-monogram",
@@ -19,7 +23,15 @@ import { findShopLogo } from "./shop-logo-match";
     "data-testid": "shop-monogram",
   },
   template: `@if (logoSrc(); as src) {
-    <img class="size-full object-contain p-px" data-testid="shop-logo" alt="" [src]="src" (error)="markFailed()" />
+    <img
+      class="size-full object-contain p-px"
+      data-testid="shop-logo"
+      alt=""
+      loading="lazy"
+      referrerpolicy="no-referrer"
+      [src]="src"
+      (error)="markFailed()"
+    />
   } @else {
     {{ initial() }}
   }`,
@@ -27,18 +39,21 @@ import { findShopLogo } from "./shop-logo-match";
 export class ShopMonogramComponent {
   public readonly name = input<string | null | undefined>("");
 
-  /** The logo whose file failed to load; keyed by slug so a reused component for another shop tries its own file. */
+  private readonly logoKey = inject(Store).selectSignal(FeatureConfigState.shopLogoKey);
+
+  /** The brand whose logo failed to load; keyed by slug so a reused component for another shop tries its own. */
   private readonly failedSlug = signal("");
 
-  private readonly logo = computed(() => findShopLogo(this.name()));
+  private readonly brand = computed(() => findShopBrand(this.name()));
 
   protected markFailed(): void {
-    this.failedSlug.set(this.logo()?.slug ?? "");
+    this.failedSlug.set(this.brand()?.slug ?? "");
   }
 
   protected readonly logoSrc = computed(() => {
-    const logo = this.logo();
-    return logo && logo.slug !== this.failedSlug() ? `assets/shops/${logo.slug}.png` : "";
+    const brand = this.brand();
+    const key = this.logoKey();
+    return brand && key && brand.slug !== this.failedSlug() ? shopLogoUrl(brand.domain, key) : "";
   });
 
   protected readonly hostClass = computed(() =>
@@ -49,4 +64,9 @@ export class ShopMonogramComponent {
     const first = Array.from((this.name() ?? "").trim())[0];
     return first ? first.toLocaleUpperCase() : "?";
   });
+}
+
+/** Logo.dev's image URL: 64px covers the 24px badge on a 2x screen, and fallback=404 makes a missing logo an error. */
+export function shopLogoUrl(domain: string, key: string): string {
+  return `https://img.logo.dev/${encodeURIComponent(domain)}?token=${encodeURIComponent(key)}&size=64&format=png&fallback=404`;
 }

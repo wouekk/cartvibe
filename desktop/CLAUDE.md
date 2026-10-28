@@ -402,10 +402,16 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
   `/settings/theme` redirects). Each entry has a `nav-*` test id. Routes with `data: { fullHeight: true }` get a
   bounded full-bleed content area.
 - **User Settings** (`/settings`): User Profile, User Preferences, API Keys, each gated on its read permission.
-- **System Settings** has four tabs: General & Currency, Auth & Security, Tasks & Storage, Logs. The first three render
+- **System Settings** has five tabs: Currency & Time Zone (route `general`), Shop Logos (`logos`), Auth & Security,
+  Tasks & Storage, Logs. The first four render
   `SystemSettingsFormComponent` (route data `section` picks the cards); the form holds every control whatever the tab,
   so a save sends the whole payload. A new tab goes into `system-settings.component.ts`'s `allTabs` and the landing
   guard order. Old paths redirect. Embedded tables sit outside the `<form>`.
+  - Shop logos: the Logo.dev publishable key (`shopLogoKey`, `shopLogoKeyValidator` refuses `sk_`). It rides on the
+    public feature config; `app-shop-monogram` loads `img.logo.dev/<domain>` for a brand in `shop-brands.ts`
+    (`findShopBrand`, `shopLogoUrl`) and falls back to the letter on any error. Nothing is bundled: Logo.dev's free plan
+    forbids storing logos. The login page (`AuthForm`, which reloads the feature config on open) shows the required
+    "Logos provided by Logo.dev" link while a key is set; `img.logo.dev` is in the CSP's `img-src`.
   - Time zone: a typeahead over `UTC` + `Intl.supportedValuesOf('timeZone')` with `timeZoneDisplayWith`; after save
     `SetTimeZone` (and `SetCurrencyData` for currency) repaint the open app.
   - Secure cookies (`system-settings-secure-cookies`): seeded `?? false`; warns while ticked over plain http.

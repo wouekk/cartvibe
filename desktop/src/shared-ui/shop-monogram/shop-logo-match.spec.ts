@@ -1,8 +1,11 @@
-import { buildCandidates, findShopLogo, normalizeShopName } from "./shop-logo-match";
-import { ShopLogo } from "./shop-logos.generated";
+import { buildCandidates, findShopBrand, normalizeShopName } from "./shop-logo-match";
+import { ShopBrand } from "./shop-brands";
+
+/** Matching reads names and spellings only; the domain is what the logo is loaded from. */
+const brands = (list: Omit<ShopBrand, "domain">[]): ShopBrand[] => list.map((brand) => ({ ...brand, domain: "" }));
 
 describe("shop logo matching", () => {
-  const candidates = buildCandidates([
+  const candidates = buildCandidates(brands([
     { slug: "lidl", name: "Lidl", aliases: [] },
     { slug: "carrefour", name: "Carrefour", aliases: ["carrefour market"] },
     { slug: "carrefour-polska", name: "Carrefour Polska", aliases: [] },
@@ -10,8 +13,8 @@ describe("shop logo matching", () => {
     { slug: "dm", name: "dm", aliases: ["dm drogerie markt"] },
     { slug: "biedronka", name: "Biedronka", aliases: [] },
     { slug: "h-and-m", name: "H&M", aliases: ["h&m"] },
-  ]);
-  const match = (name: string | null | undefined) => findShopLogo(name, candidates)?.slug;
+  ]));
+  const match = (name: string | null | undefined) => findShopBrand(name, candidates)?.slug;
 
   it("normalizes case, accents, the Polish l-stroke and punctuation", () => {
     expect(normalizeShopName("  ŻABKA, Sp. z o.o.! ")).toBe("zabka sp z o o");
@@ -50,7 +53,7 @@ describe("shop logo matching", () => {
 
 // The travel, telecom and delivery entries of scripts/shop-logos/shops.mjs whose spellings could collide, so the
 // matching is tested whether or not their logo files have been downloaded yet.
-const LOGOS: ShopLogo[] = [
+const LOGOS: Omit<ShopBrand, "domain">[] = [
   { slug: "uber", name: "Uber", aliases: ["uber bv", "uber poland", "uber france"] },
   { slug: "uber-eats", name: "Uber Eats", aliases: [] },
   { slug: "bolt", name: "Bolt", aliases: ["bolt operations", "bolt technology"] },
@@ -68,10 +71,10 @@ const LOGOS: ShopLogo[] = [
   { slug: "deliveroo", name: "Deliveroo", aliases: [] },
 ];
 
-const CANDIDATES = buildCandidates(LOGOS);
-const slugOf = (shopName: string) => findShopLogo(shopName, CANDIDATES)?.slug;
+const CANDIDATES = buildCandidates(brands(LOGOS));
+const slugOf = (shopName: string) => findShopBrand(shopName, CANDIDATES)?.slug;
 
-describe("findShopLogo for travel, telecom and delivery brands", () => {
+describe("findShopBrand for travel, telecom and delivery brands", () => {
   it("finds rides and food delivery, the longer brand first", () => {
     expect(slugOf("Uber B.V.")).toBe("uber");
     expect(slugOf("Uber Eats")).toBe("uber-eats");

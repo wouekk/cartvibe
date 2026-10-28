@@ -10,26 +10,33 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 All your spending, not only the groceries.
 
-> **Upgrade: back up the `sqlite` folder first.** The first start adds the starter categories to the database.
+> **Upgrade: back up the `sqlite` folder first.** The first start adds the starter categories to the database. Shop
+> logos then show only after an admin enters a Logo.dev key under System Settings → Shop Logos.
 
 ### Added
 - **Starter categories:** besides groceries, CartVibe now starts with categories for everyday spending: Restaurant,
   Takeaway & Delivery, Taxi, Public Transport, Parking, Highway Tolls, Airlines, Trains, Cruises, Hotels, Travel,
   Museum, Cinema, Events & Concerts, Books, Bills, Phone & Internet, Subscriptions and more. They're added once. A
   category you already have, under any of its names, is never doubled, and one you delete stays deleted.
-- **More logos:** Uber, Bolt, FreeNow, Ryanair, easyJet, Wizz Air, LOT and other airlines, Royal Caribbean, MSC and
-  Costa cruises, Booking.com, Airbnb, Orange, Play, T-Mobile and other telecoms, energy companies, cinemas, streaming
-  services and motorway operators now show their logo next to the receipt. So do about 60 clothing and shoe brands
-  (Mango, Bershka, Pull&Bear, Massimo Dutti, Mohito, Levi's, Tommy Hilfiger, Lacoste, Jack & Jones, Calzedonia, Vans,
-  New Balance, The North Face, Foot Locker, Vinted and more), and about 40 more restaurant, café and fast-food chains
-  (MAX Premium Burgers, Bobby Burger, Pasibus, Da Grasso, Green Caffè Nero, Popeyes, Wendy's, Taco Bell, Nando's,
-  Pret A Manger, PizzaExpress, Buffalo Grill, O'Tacos, L'Osteria, Hans im Glück and more).
+- **Shop logos with your own Logo.dev key:** a new System Settings → Shop Logos tab takes the household's free
+  Logo.dev publishable key (it starts with `pk_`; a secret `sk_` key is refused) and explains where to get one. With a
+  key, receipts from about 390 known brands show their logo, loaded by each browser straight from Logo.dev, and the
+  login page shows the "Logos provided by Logo.dev" link Logo.dev's free plan asks for. The known brands now include
+  Uber, Bolt, FreeNow, Ryanair, easyJet, Wizz Air, LOT and other airlines, Royal Caribbean, MSC and Costa cruises,
+  Booking.com, Airbnb, Orange, Play, T-Mobile and other telecoms, energy companies, cinemas, streaming services,
+  motorway operators, about 60 clothing and shoe brands (Mango, Bershka, Pull&Bear, Mohito, Levi's, Tommy Hilfiger,
+  Lacoste, Vans, New Balance, The North Face, Foot Locker, Vinted and more) and about 40 more restaurant, café and
+  fast-food chains (MAX Premium Burgers, Bobby Burger, Pasibus, Da Grasso, Green Caffè Nero, Popeyes, Wendy's,
+  Nando's, Pret A Manger, PizzaExpress, O'Tacos, L'Osteria, Hans im Glück and more).
 
 ### Changed
 - **Any receipt or bill:** the AI no longer gives up on a receipt that isn't from a shop. A taxi ride, a flight, a toll,
   a hotel stay or an energy bill becomes one line per service, at the amount paid with its fees, in the right category
   instead of Uncategorized.
 - The Dashboard's Quick Scan button now shows the receipt icon, like Quick Scan everywhere else.
+- **Logos are no longer bundled:** the app and the image carry no logo files any more (Logo.dev's free plan does not
+  allow storing them). Until an admin enters a Logo.dev key, every receipt shows its shop's first letter.
+- System Settings → General & Currency is now called **Currency & Time Zone**.
 
 ## [0.12.0] - 2026-10-28
 

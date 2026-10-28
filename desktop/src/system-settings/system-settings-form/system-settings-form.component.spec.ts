@@ -128,6 +128,7 @@ describe("SystemSettingsFormComponent", () => {
       serverPublicUrl: null,
       // Unset on the wire (an older server): seeds the server's own default, off.
       secureCookies: false,
+      shopLogoKey: "",
       // With no stored value, splitHours falls back to the 24h default and
       // renders it as the friendlier "1 Days".
       refreshTokenValidForValue: 1,
@@ -182,6 +183,7 @@ describe("SystemSettingsFormComponent", () => {
       mcpPublicUrl: "https://receipts.example.com",
       serverPublicUrl: "https://receipts.example.com",
       secureCookies: true,
+      shopLogoKey: "pk_ExampleKey12345",
       refreshTokenValidForHours: 720,
       mcpRefreshTokenValidForHours: 6,
     };
@@ -210,6 +212,7 @@ describe("SystemSettingsFormComponent", () => {
       mcpPublicUrl: "https://receipts.example.com",
       serverPublicUrl: "https://receipts.example.com",
       secureCookies: true,
+      shopLogoKey: "pk_ExampleKey12345",
       // 720 hours divides evenly into days, so it renders as 30 Days; 6 does
       // not, so it stays in hours.
       refreshTokenValidForValue: 30,
@@ -467,6 +470,7 @@ describe("SystemSettingsFormComponent", () => {
       mcpPublicUrl: "https://receipts.example.com",
       serverPublicUrl: "https://receipts.example.com",
       secureCookies: true,
+      shopLogoKey: "",
       // The value/unit pairs are folded into hours and the presentation-only
       // controls are stripped — toEqual would fail if any of them leaked.
       refreshTokenValidForHours: 336,
@@ -638,10 +642,19 @@ describe("SystemSettingsFormComponent", () => {
     it("shows every settings card when it is not placed on a tab", () => {
       place(undefined);
 
-      expect(cards()).toEqual(["currency", "regional", "signup-session", "worker", "queues"]);
+      expect(cards()).toEqual(["currency", "regional", "shop-logos", "signup-session", "worker", "queues"]);
     });
 
-    it("General & Currency holds the currency (with rates) and the time zone", () => {
+    it("Shop Logos holds the Logo.dev key with how to get it and the attribution", () => {
+      place("logos");
+
+      expect(cards()).toEqual(["shop-logos"]);
+      expect(fixture.nativeElement.querySelector("[data-testid=system-settings-shop-logo-key]")).not.toBeNull();
+      expect(fixture.nativeElement.querySelector("[data-testid=shop-logos-steps]")).not.toBeNull();
+      expect(fixture.nativeElement.textContent).toContain("Logos provided by Logo.dev");
+    });
+
+    it("Currency & Time Zone holds the currency (with rates) and the time zone", () => {
       place("general");
 
       expect(cards()).toEqual(["currency", "regional"]);
