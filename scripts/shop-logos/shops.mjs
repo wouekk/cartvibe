@@ -302,7 +302,6 @@ export const SHOPS = [
   // Cinemas, streaming, books
   { slug: "cinema-city", name: "Cinema City", domain: "cinema-city.pl", aliases: [] },
   { slug: "multikino", name: "Multikino", domain: "multikino.pl", aliases: [] },
-  { slug: "helios", name: "Helios", domain: "helios.pl", aliases: ["kino helios"] },
   { slug: "pathe", name: "Pathé", domain: "pathe.fr", aliases: ["pathe gaumont"] },
   { slug: "ugc", name: "UGC", domain: "ugc.fr", aliases: ["ugc cine cite"] },
   { slug: "cgv", name: "CGV", domain: "cgv.fr", aliases: [] },
