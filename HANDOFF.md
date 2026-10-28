@@ -10,12 +10,13 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
   in the welcome, tooltips on the popover surface, Zinc's black = neutral-950, Stone's lead = stone-900. v0.11.0 (date
   edits on the view page, named red Delete / Remove, panels that scroll under a mouse, one login splash, API calls
   skipping the service worker) came before it. `:latest` is published from `main` after green CI.
-- Open: `feature/everyday-spending` (starter categories seeded once, prompts read any receipt or bill, 60 travel /
-  telecom / leisure / clothing / restaurant brands in `shop-brands.ts`, receipt icon on the Dashboard's Quick Scan).
-  Logos are no longer bundled: the household's Logo.dev key goes in System Settings → Shop Logos and browsers load
-  them from Logo.dev. Settings has one Management page with tabs (Categories, Tags, Users, Households); the
-  per-person Dashboard currency is gone from User Settings. Waiting on the user: their Logo.dev key in the new tab; back up
-  `sqlite` before deploying; Quick Scan a taxi or flight receipt with a real AI key (not tried on the devstack). The audit notes (`i18n-audit-en-pl.md`, untracked) are the user's.
+- On `main` and `preview`, not yet released (CHANGELOG → Unreleased): starter categories seeded once, prompts read any
+  receipt or bill, ~390 brands in `shop-brands.ts`, receipt icon on the Dashboard's Quick Scan. Logos are no longer
+  bundled: the household's Logo.dev key goes in System Settings → Shop Logos and browsers load them from Logo.dev.
+  Settings has one Management page with tabs; the per-person Dashboard currency is gone. Waiting on the user: their
+  Logo.dev key in the new tab; back up `sqlite` before deploying; Quick Scan a taxi or flight receipt with a real AI
+  key. Old logo PNGs remain in git history (and the README screenshot shows logos). The audit notes
+  (`i18n-audit-en-pl.md`, untracked) are the user's.
 - Seen in a browser on the Windows PC's devstack (Redis stand-in + API + `npm start` run there): the palettes, all 10
   combinations on the Dashboard, the Theme page, phone width. Not yet, check on the NAS or a phone: the Dashboard
   charts and Reports in the accent palettes, a Quick Scan from a phone (it failed with `multipart: NextPart: EOF`; if
