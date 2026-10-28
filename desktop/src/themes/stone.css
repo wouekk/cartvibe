@@ -1,8 +1,9 @@
 /*
   Palette: Stone. Zinc's monochrome look with warm greys: the neutral ramp swaps zinc for Tailwind's stone, the steps sit
-  in the same places (canvas 50, panels 100, hairlines 200, night surfaces 800/900/950). Status, chart and brand tokens
-  come from zinc.css. Both blocks must define the same tokens (themes.spec.ts checks it): the night block wins on
-  <html> by specificity, so a token missing from it would show the day value at night.
+  in the same places (canvas 50, panels 100, hairlines 200, night surfaces 800/900/950); the lead colour (the day
+  primary) is stone-900. Status, chart and brand tokens come from zinc.css. Both blocks must define the same tokens
+  (themes.spec.ts checks it): the night block wins on <html> by specificity, so a token missing from it would show the
+  day value at night.
 */
 [data-palette="stone"] {
   --background: oklch(0.985 0.001 106.423); /* stone-50 */
@@ -11,7 +12,7 @@
   --card-foreground: oklch(0.147 0.004 49.25);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.147 0.004 49.25);
-  --primary: oklch(0.147 0.004 49.25); /* stone-950 */
+  --primary: oklch(0.216 0.006 56.043); /* stone-900, the lead colour */
   --primary-foreground: oklch(0.985 0.001 106.423);
   --secondary: oklch(0.97 0.001 106.424);
   --secondary-foreground: oklch(0.216 0.006 56.043);

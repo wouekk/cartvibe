@@ -19,10 +19,10 @@ Banned: Angular Material, Bootstrap classes (`d-flex`, `col-*`, `mb-3`), `mat-*`
 
 ## Tokens (`src/themes/<palette>.css`, `zinc.css` is the base; mapped in `tailwind.css` `@theme inline`)
 - Look = palette x mode, per browser. Palettes (`PALETTES` in `src/theme/themes.ts`, `data-palette` on `<html>`): Stone, Zinc (default), Indigo, Emerald, Violet. Modes: System, Day, Night (`dark` class on `<html>` drives `dark:`). Pickers: the header palette menu (`palette-menu`, left of the day/night `theme-toggle`), Settings → Theme (Appearance and Colour palette cards), the welcome. Accent palettes change only the primary, the focus ring and the sidebar primary; surfaces, status, charts and brand are the same in all.
-- Surfaces: `bg-background` (canvas, zinc-50 / zinc-950), `bg-card` / `bg-popover` (white / zinc-900), `bg-muted` (+ `/30`, `/40` for inset steps), `bg-secondary`, `bg-accent` (a neutral hover/selected tint, not a brand colour), `bg-sidebar*`.
+- Surfaces: `bg-background` (canvas, zinc-50 / neutral-950), `bg-card` / `bg-popover` (white / zinc-900), `bg-muted` (+ `/30`, `/40` for inset steps), `bg-secondary`, `bg-accent` (a neutral hover/selected tint, not a brand colour), `bg-sidebar*`.
 - Text: `text-foreground`, `text-muted-foreground`, `text-card-foreground`, `text-primary-foreground`.
 - Lines: every border defaults to `--border` (base layer). Hairlines: `border-border`, `border-border/70` (panels), `/60` (dividers), `/40` (list rows). Focus: `ring-ring/50`, `ring-3`.
-- Primary: `bg-primary` is monochrome in Zinc and Stone (950 by day, near-white at night) and the hue in Indigo / Emerald / Violet (600-700 by day, 400 at night, with `text-primary-foreground` kept at 4.5:1). Hover `bg-primary/80`. `text-primary` (links, "blue" badge) must hold 4.5:1 on background, card and accent.
+- Primary: `bg-primary` is monochrome in Zinc (neutral-950 by day) and Stone (stone-900 by day), near-white at night in both and the hue in Indigo / Emerald / Violet (600-700 by day, 400 at night, with `text-primary-foreground` kept at 4.5:1). Hover `bg-primary/80`. `text-primary` (links, "blue" badge) must hold 4.5:1 on background, card and accent.
 - Status: `text-destructive` / `bg-destructive/10`; `text-warning-text` (orange: rises, unhealthy, "to check"); `text-success-text` (green: falls, done); `bg-warning text-warning-foreground` (filled warning); `nutri-a..e` (health score only).
 - Charts: `--chart-1..5` + `--muted-foreground` ("Other") via `readChartColors()` (`shared-ui/apex-chart/chart-colors.ts`); bars: `colors.primary` selected, faded muted otherwise, `colors.destructive` over goal. Grid `colors.border`, dashed 3.
 - Brand: `--brand-*` only for the logo/icon/loader components. Never reuse them in UI.
@@ -49,7 +49,7 @@ Banned: Angular Material, Bootstrap classes (`d-flex`, `col-*`, `mb-3`), `mat-*`
 - Buttons: `hlmBtn` (primary), `variant="outline|ghost"` for toggles/menus/icon rows, `variant="destructive"` (red) for every delete and remove: buttons, row icons, menu items (`hlmDropdownMenuItem variant="destructive"`) and the confirm button of a Delete / Remove dialog. Save = `app-submit-button`; Cancel = `app-cancel-button`, neutral `outline` (white by day, black at night), never red.
 - Dialogs: `AppDialog` (`src/dialog/app-dialog.ts`) + `app-dialog-footer`; confirm with `ConfirmationDialogComponent`.
 - Fields: `app-input`, `app-select`, `app-textarea`, `app-checkbox`, `app-datepicker`, `app-autocomlete`, `app-form-section [panel]`.
-- Menus `hlmDropdownMenuTrigger`; tips `hlmTooltip`; toggles `hlm-switch`; badges `app-badge` (tones slate/blue/green); status `app-status-chip`; shops `app-shop-monogram`; toasts `SnackbarService`; loading `hlm-spinner`, `.app-progress-indeterminate`; required-empty `shakeInvalid()`.
+- Menus `hlmDropdownMenuTrigger`; tips `hlmTooltip` (the popover surface with a hairline, no arrow, not an inverted black box); toggles `hlm-switch`; badges `app-badge` (tones slate/blue/green); status `app-status-chip`; shops `app-shop-monogram`; toasts `SnackbarService`; loading `hlm-spinner`, `.app-progress-indeterminate`; required-empty `shakeInvalid()`.
 
 ## Patterns
 - Page: header row (`h1` + muted context left, actions right, `flex-wrap gap-2`), then `flex flex-col gap-6`. Text flex children need `min-w-0`; headings `break-words`.

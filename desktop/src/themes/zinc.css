@@ -1,7 +1,7 @@
 /*
-  Palette: Zinc (spartan/ui "zinc"), the base every other palette builds on. It holds every token: the surfaces and the
-  primary, the status and Nutri-Score colours, and the --brand-* tokens, which are the same in every palette. The other
-  palette files only override what differs from this one.
+  Palette: Zinc (spartan/ui "zinc" with Tailwind's neutral-950 as its black), the base every other palette builds on.
+  It holds every token: the surfaces and the primary, the status and Nutri-Score colours, and the --brand-* tokens, which
+  are the same in every palette. The other palette files only override what differs from this one.
 
   Selectors: a palette is `[data-palette="<key>"]` on <html> (ThemeService, index.html). Night adds the `dark` class on
   <html>, which is also what Tailwind's `dark:` variants and the spartan components key off. `:root` and `.dark` carry
@@ -23,12 +23,12 @@
   --nutri-e: #e63e11;
   --warning: oklch(0.84 0.16 84);
   --warning-foreground: oklch(0.28 0.07 46);
-  --foreground: oklch(0.141 0.005 285.823);
+  --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.141 0.005 285.823);
+  --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.141 0.005 285.823); /* zinc-950 */
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.145 0 0); /* neutral-950 */
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.967 0.001 286.375);
   --secondary-foreground: oklch(0.21 0.006 285.885);
@@ -46,7 +46,7 @@
   --chart-4: oklch(0.56 0.22 303);
   --chart-5: oklch(0.62 0.21 16);
   --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.141 0.005 285.823);
+  --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.21 0.006 285.885);
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.967 0.001 286.375);
@@ -71,7 +71,7 @@
 .dark [data-palette="zinc"] {
   color-scheme: dark;
 
-  --background: oklch(0.141 0.005 285.823);
+  --background: oklch(0.145 0 0); /* neutral-950 */
   --warning-text: #fb923c;
   --success-text: #4ade80;
   --nutri-a: #038141;
@@ -87,7 +87,7 @@
   --popover: oklch(0.21 0.006 285.885);
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.141 0.005 285.823);
+  --primary-foreground: oklch(0.145 0 0);
   --secondary: oklch(0.274 0.006 286.033);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.274 0.006 286.033);

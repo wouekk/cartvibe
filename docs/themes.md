@@ -13,7 +13,7 @@ The look is two independent choices, remembered per browser (localStorage, no AP
   (what Tailwind's `dark:` variants, the spartan components and the night token blocks key off); System follows the
   operating system, also when it switches.
 
-Zinc is spartan's zinc palette and the base of everything. Stone and Zinc are monochrome (Stone with warm greys); Indigo,
+Zinc is spartan's zinc palette and the base of everything; its black is Tailwind's neutral-950 (a pure grey), and Stone's lead colour is stone-900. Stone and Zinc are monochrome (Stone with warm greys); Indigo,
 Emerald and Violet are **accent only**: the neutral surfaces stay zinc and only the primary, the focus ring and the
 sidebar's primary take the hue. Charts (`--chart-1..5`), status colours, Nutri-Score and the brand tokens are the same in
 every palette. The header's palette menu (`palette-menu`, left of the day/night `theme-toggle`), Settings → Theme and the

@@ -60,6 +60,24 @@ describe("palette stylesheets (src/themes)", () => {
     }
   });
 
+  /** The value of a token in a palette's day or night block. */
+  const tokenOf = (file: string, night: boolean, token: string): string | undefined => {
+    const css = readFileSync(join(THEMES_DIR, file), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    const rule = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].find(
+      ([, selector]) => selector.split(",").every((part) => part.trim().startsWith(".dark")) === night
+    );
+    return rule?.[2].match(new RegExp(`${token}\\s*:\\s*([^;]+);`))?.[1].trim();
+  };
+
+  it("uses Tailwind's neutral-950 as the black of the zinc base, and stone-900 as Stone's lead colour", () => {
+    const neutral950 = "oklch(0.145 0 0)";
+
+    expect(tokenOf("zinc.css", false, "--primary")).toBe(neutral950);
+    expect(tokenOf("zinc.css", false, "--foreground")).toBe(neutral950);
+    expect(tokenOf("zinc.css", true, "--background")).toBe(neutral950);
+    expect(tokenOf("stone.css", false, "--primary")).toBe("oklch(0.216 0.006 56.043)");
+  });
+
   it("zinc defines every token for day and for night, brand colours included", () => {
     const day = zinc.find((block) => !isNight(block));
     const night = zinc.find(isNight);

@@ -106,6 +106,10 @@ const patches = [
   // brn-tabs-trigger marks the selected tab as data-state="active", never a data-active attribute, so no tab strip
   // (period picker, settings tabs, Records / Aggregate, the welcome's choices) showed which tab was selected.
   ["tabs/lib/hlm-tabs-trigger.ts", /data-active:/g, () => "data-[state=active]:"],
+  // A tip is a small popover like the menus (popover surface, hairline), not an inverted black box in the day palette:
+  // no arrow, since a bordered arrow would break the hairline.
+  ["tooltip/lib/hlm-tooltip.ts", /bg-foreground text-background/g, () => "bg-popover text-popover-foreground border border-border shadow-md"],
+  ["tooltip/lib/hlm-tooltip.ts", "'bg-foreground fill-foreground z-50 block", "'hidden z-50"],
 ];
 for (const [file, from, to] of patches) {
   const target = path.join(outRoot, file);
