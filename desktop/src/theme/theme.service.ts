@@ -1,15 +1,11 @@
-import { Injectable, signal } from "@angular/core";
-import { findTheme, SYSTEM_THEME_KEYS, ThemeScheme } from "./themes";
+import { computed, Injectable, signal } from "@angular/core";
+import { DEFAULT_PALETTE, findPalette, isThemeMode, SYSTEM_MODE, ThemeMode } from "./themes";
 
-/** "system" follows the operating system; anything else is the key of a theme in the registry (themes.ts). */
-export type ThemeMode = string;
-
-export const SYSTEM_MODE = "system";
-
+/** "system", "light" (day) or "dark" (night). The same key and values as before palettes existed. */
 export const THEME_MODE_STORAGE_KEY = "rw_theme_mode";
 
-/** The scheme of the stored theme, kept beside it so index.html can set the `dark` class before the first paint. */
-export const THEME_SCHEME_STORAGE_KEY = "rw_theme_scheme";
+/** The key of a palette in the registry (themes.ts). */
+export const THEME_PALETTE_STORAGE_KEY = "rw_theme_palette";
 
 function read(key: string): string | null {
   try {
@@ -27,62 +23,66 @@ function write(key: string, value: string): void {
   }
 }
 
-/** The stored choice: "system", or a registered theme's key. Anything else (a removed theme, junk) is "system". */
+/** The stored mode; anything else (a removed value, junk) is "system". */
 export function storedMode(): ThemeMode {
   const stored = read(THEME_MODE_STORAGE_KEY);
-  return stored && findTheme(stored) ? stored : SYSTEM_MODE;
+  return isThemeMode(stored) ? stored : SYSTEM_MODE;
+}
+
+/** The stored palette's key; anything unknown (a removed palette, junk) is the default. */
+export function storedPalette(): string {
+  const stored = read(THEME_PALETTE_STORAGE_KEY);
+  return findPalette(stored) ? (stored as string) : DEFAULT_PALETTE;
 }
 
 /**
  * The look of the app. The choice is per browser (localStorage), needs no backend, and writes what the CSS reads:
- * `data-theme="<key>"` on `<html>` (which selects the theme's tokens in src/themes) and the `dark` class when the
- * theme is a dark one. index.html applies the stored choice before the first paint; this service keeps it in step
- * afterwards, including when the system switches while "System" is chosen.
+ * `data-palette="<key>"` on `<html>` (which selects the palette's tokens in src/themes) and the `dark` class at night.
+ * index.html applies the stored choice before the first paint; this service keeps it in step afterwards, including when
+ * the system switches while "System" is chosen.
  */
 @Injectable({ providedIn: "root" })
 export class ThemeService {
   public readonly mode = signal<ThemeMode>(storedMode());
 
+  public readonly palette = signal<string>(storedPalette());
+
   private readonly query =
     typeof window !== "undefined" && window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : undefined;
 
+  private readonly systemDark = signal(this.query?.matches ?? false);
+
+  /** Whether the page is dark (night) right now; follows the mode and, on System, the operating system. */
+  public readonly isDark = computed(() => {
+    const mode = this.mode();
+    return mode === SYSTEM_MODE ? this.systemDark() : mode === "dark";
+  });
+
   constructor() {
-    this.query?.addEventListener?.("change", () => this.apply());
+    this.query?.addEventListener?.("change", () => {
+      this.systemDark.set(this.query?.matches ?? false);
+      this.apply();
+    });
     this.apply();
   }
 
   public setMode(mode: ThemeMode): void {
-    const next = mode === SYSTEM_MODE || findTheme(mode) ? mode : SYSTEM_MODE;
+    const next = isThemeMode(mode) ? mode : SYSTEM_MODE;
     this.mode.set(next);
     write(THEME_MODE_STORAGE_KEY, next);
     this.apply();
   }
 
-  /** The key of the theme showing right now. */
-  public activeThemeKey(): string {
-    const mode = this.mode();
-    if (mode !== SYSTEM_MODE) {
-      return mode;
-    }
-
-    return SYSTEM_THEME_KEYS[this.query?.matches ? "dark" : "light"];
-  }
-
-  /** Whether the page is dark right now. */
-  public isDark(): boolean {
-    return this.scheme() === "dark";
-  }
-
-  private scheme(): ThemeScheme {
-    return findTheme(this.activeThemeKey())?.scheme ?? "light";
+  public setPalette(key: string): void {
+    const next = findPalette(key) ? key : DEFAULT_PALETTE;
+    this.palette.set(next);
+    write(THEME_PALETTE_STORAGE_KEY, next);
+    this.apply();
   }
 
   private apply(): void {
     const root = document.documentElement;
-    const key = this.activeThemeKey();
-    const scheme = this.scheme();
-    root.setAttribute("data-theme", key);
-    root.classList.toggle("dark", scheme === "dark");
-    write(THEME_SCHEME_STORAGE_KEY, scheme);
+    root.setAttribute("data-palette", this.palette());
+    root.classList.toggle("dark", this.isDark());
   }
 }

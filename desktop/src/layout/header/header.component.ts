@@ -9,7 +9,7 @@ import { AuthService, NotificationsService, Permission } from "../../open-api";
 import { AuthState, GroupState } from "../../store";
 import { marker } from "../../i18n/marker";
 import { ThemeService } from "../../theme/theme.service";
-import { SYSTEM_THEME_KEYS } from "../../theme/themes";
+import { PALETTES } from "../../theme/themes";
 
 /** The logo's scale on a phone: 30% of its full size, so it sits compactly in the top bar. */
 export const HANDSET_LOGO_SCALE = 0.3;
@@ -54,16 +54,18 @@ export class HeaderComponent {
 
   public readonly logoScale = computed(() => (this.viewportService.isHandset() ? HANDSET_LOGO_SCALE : 1));
 
-  /** Whether the page is dark; follows the theme choice, so the toggle's icon flips the moment it is used. */
-  public readonly isDarkTheme = computed(() => {
-    this.theme.mode();
-    return this.theme.isDark();
-  });
+  /** Whether the page is at night; follows the mode (and the system on System), so the toggle's icon flips the moment it is used. */
+  public readonly isDarkTheme = this.theme.isDark;
 
-  /** The toggle shows (and offers) the theme it would switch to. */
+  /** The toggle shows (and offers) the mode it would switch to. */
   public readonly themeToggleLabel = computed(() =>
-    this.isDarkTheme() ? marker("Switch to the White theme") : marker("Switch to the Black theme")
+    this.isDarkTheme() ? marker("Switch to day mode") : marker("Switch to night mode")
   );
+
+  /** The colour palettes the menu offers, and the one showing. */
+  public readonly palettes = PALETTES;
+
+  public readonly activePalette = this.theme.palette;
 
   private readonly canReadNotifications = this.store.selectSignal(
     AuthState.hasAppPermission(Permission.AppNotificationsRead)
@@ -80,9 +82,14 @@ export class HeaderComponent {
     this.listenForLoggedInUser();
   }
 
-  /** Quick switch between the two page themes; picking one leaves "System" for this browser, like the Theme tab does. */
+  /** Quick switch between day and night; picking one leaves "System" for this browser, like the Theme page does. */
   public toggleTheme(): void {
-    this.theme.setMode(this.isDarkTheme() ? SYSTEM_THEME_KEYS.light : SYSTEM_THEME_KEYS.dark);
+    this.theme.setMode(this.isDarkTheme() ? "light" : "dark");
+  }
+
+  /** The palette menu: applies at once and is remembered, like the Theme page. */
+  public pickPalette(key: string): void {
+    this.theme.setPalette(key);
   }
 
   private listenForLoggedInUser(): void {

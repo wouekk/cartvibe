@@ -58,6 +58,7 @@ describe("WelcomeDialogComponent", () => {
   afterEach(() => {
     window.localStorage.clear();
     document.documentElement.className = "";
+    document.documentElement.removeAttribute("data-palette");
   });
 
   it("offers language and theme to everyone, and the currency only to an admin", async () => {
@@ -72,13 +73,29 @@ describe("WelcomeDialogComponent", () => {
     expect(element("welcome-currency-PLN")).not.toBeNull();
   });
 
-  it("applies a theme at once", async () => {
+  it("applies a mode at once", async () => {
     await create();
 
     element("welcome-theme-dark")?.click();
     await fixture.whenStable();
 
     expect(TestBed.inject(ThemeService).mode()).toBe("dark");
+  });
+
+  it("applies a palette at once and keeps the mode", async () => {
+    await create();
+    for (const key of ["stone", "zinc", "indigo", "emerald", "violet"]) {
+      expect(element(`welcome-palette-${key}`)).not.toBeNull();
+    }
+
+    element("welcome-theme-dark")?.click();
+    await fixture.whenStable();
+    element("welcome-palette-emerald")?.click();
+    await fixture.whenStable();
+
+    const theme = TestBed.inject(ThemeService);
+    expect(theme.palette()).toBe("emerald");
+    expect(theme.mode()).toBe("dark");
   });
 
   it("ends the welcome on Get started and keeps the household currency when it was not changed", async () => {

@@ -355,9 +355,14 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
 
 ### Identity and themes
 
-- Themes are White (`light`), Black (`dark`) and System, registered in `src/theme/themes.ts`; `ThemeService` keeps the
-  mode in `rw_theme_mode`, and `index.html` applies it before first paint. The header toggle (`theme-toggle`) switches
-  White/Black and leaves System. Tokens: `src/themes/*.css` (`../DESIGN.md`, `../docs/themes.md`).
+- The look is a palette (Stone, Zinc, Indigo, Emerald, Violet; `PALETTES` in `src/theme/themes.ts`) times a mode
+  (System, Day, Night). `ThemeService` keeps `mode` (`rw_theme_mode`: `system|light|dark`) and `palette`
+  (`rw_theme_palette`, default zinc) per browser, writes `data-palette` and the `dark` class on `<html>`, and `isDark`
+  follows the OS on System. `index.html` applies both before first paint (its hash is in `docker/default.conf`). The
+  header has a palette menu (`palette-menu`, `app-palette-swatch` items) left of the day/night toggle (`theme-toggle`,
+  which leaves System); Settings → Theme has the Appearance (`theme-mode-*`) and Colour palette (`theme-palette-*`)
+  cards; the welcome has `welcome-theme-<mode>` and `welcome-palette-<key>` strips. Tokens: `src/themes/*.css`, with
+  `themes.spec.ts` guarding that day and night blocks match (`../DESIGN.md`, `../docs/themes.md`).
 - Brand components (`app-cartvibe-logo`, `-icon`, `-loader`, `-splash`) use the supplied SVGs as drawn; their palettes
   switch on the `dark` class via `:host-context(html.dark)`.
 - First sign-in: `OnboardingService` opens `WelcomeDialogComponent` while `UserPreferences.onboardingPending` is on

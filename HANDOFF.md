@@ -5,16 +5,18 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 
 ## Current state
 
-- `main` = `preview` = v0.11.0 (2026-10-26): the date edits in place on a receipt's view page
-  (`PUT /receipt/{id}/date`), the calendar closes on a pick, Delete / Remove confirmations are named and red, Cancel
-  is a neutral outline, the Dashboard's shopping and receipts panels scroll under a mouse (touch keeps plain lists),
-  one splash from Login to the first page, and API calls skip the service worker. `:latest` is published from it
-  after green CI on `main`. No feature branches are open. The audit notes (`i18n-audit-en-pl.md`, untracked) are the
-  user's.
-- Not seen in a browser yet (the API cannot run on the Windows PC). Check on the NAS: a Quick Scan from a phone (it
-  failed with `multipart: NextPart: EOF`; if it still does, the log line now carries the Content-Length), the Safari
-  calendar closing on a pick, the view-page date save, the login fade, both panels scrolling in White and Black, and
-  that a phone shows no scroll box.
+- `main` = `preview` = v0.12.0 (2026-10-28): five colour palettes (Stone, Zinc, Indigo, Emerald, Violet) x Day / Night,
+  a palette menu in the header beside the day/night switch, Appearance and Colour palette cards on Settings → Theme and
+  in the welcome, tooltips on the popover surface, Zinc's black = neutral-950, Stone's lead = stone-900. v0.11.0 (date
+  edits on the view page, named red Delete / Remove, panels that scroll under a mouse, one login splash, API calls
+  skipping the service worker) came before it. `:latest` is published from `main` after green CI. No feature branches
+  are open. The audit notes (`i18n-audit-en-pl.md`, untracked) are the user's.
+- Seen in a browser on the Windows PC's devstack (Redis stand-in + API + `npm start` run there): the palettes, all 10
+  combinations on the Dashboard, the Theme page, phone width. Not yet, check on the NAS or a phone: the Dashboard
+  charts and Reports in the accent palettes, a Quick Scan from a phone (it failed with `multipart: NextPart: EOF`; if
+  it still does, the log line carries the Content-Length), the Safari calendar closing on a pick, the view-page date
+  save, the login fade, both panels scrolling, and that a phone shows no scroll box. The `index.html` script changed,
+  so its CSP hash in `docker/default.conf` was recomputed.
 
 ## Open for the user (needs the NAS or a phone)
 

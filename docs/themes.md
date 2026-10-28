@@ -2,52 +2,79 @@
 
 CartVibe's look is made of **design tokens** (CSS variables with the shadcn/ui names: `--background`, `--card`,
 `--primary`, `--muted-foreground`, `--border`, ...). Every component, the spartan/ui helm components in `desktop/src/ui`
-and the Tailwind utilities (`bg-card`, `text-muted-foreground`, ...) read those tokens, so **a theme is just a block of
+and the Tailwind utilities (`bg-card`, `text-muted-foreground`, ...) read those tokens, so **a palette is just a block of
 token values**. There is no per-component theme code.
 
-Two themes ship: **White** (`light`) and **Black** (`dark`), spartan's zinc palette. The user picks one, or "System", on the Theme page under Settings. There is no accent picker. The look itself is described in `DESIGN.md`.
+The look is two independent choices, remembered per browser (localStorage, no API):
 
-## Add a theme in three steps
+- **Palette** (`rw_theme_palette`, default `zinc`): **Stone**, **Zinc**, **Indigo**, **Emerald**, **Violet**. It is
+  `data-palette="<key>"` on `<html>`.
+- **Mode** (`rw_theme_mode`): **System**, **Day** (`light`) or **Night** (`dark`). Night puts the `dark` class on `<html>`
+  (what Tailwind's `dark:` variants, the spartan components and the night token blocks key off); System follows the
+  operating system, also when it switches.
 
-1. **Write the tokens.** Copy `desktop/src/themes/dark.css` (or `light.css`) to `desktop/src/themes/<key>.css` and change
-   the values. The selector is `[data-theme="<key>"]`. Set `color-scheme: light|dark`. Besides the shadcn tokens, set the
-   `--brand-*` tokens, which colour the CartVibe logo, icon and loaders (badge, cart, bars, arrow, wordmark).
+Zinc is spartan's zinc palette and the base of everything; its black is Tailwind's neutral-950 (a pure grey), and Stone's lead colour is stone-900. Stone and Zinc are monochrome (Stone with warm greys); Indigo,
+Emerald and Violet are **accent only**: the neutral surfaces stay zinc and only the primary, the focus ring and the
+sidebar's primary take the hue. Charts (`--chart-1..5`), status colours, Nutri-Score and the brand tokens are the same in
+every palette. The header's palette menu (`palette-menu`, left of the day/night `theme-toggle`), Settings → Theme and the
+first-sign-in welcome pick a palette and a mode; the look itself is described in `DESIGN.md`.
+
+## Files and selectors (`desktop/src/themes/`)
+
+- `zinc.css` is the base: every token (surfaces, primary, status, Nutri-Score, charts, sidebar, `--brand-*`). The other
+  palette files override only what differs from it. `themes.css` imports them all, zinc first.
+- Day: `:root` (zinc only, so the page is right before a palette is applied) and `[data-palette="<key>"]`.
+- Night: `.dark` (zinc only) and `.dark[data-palette="<key>"], .dark [data-palette="<key>"]`. The descendant form lets a
+  swatch inside the page show its own palette.
+- **A palette's day and night blocks must define the same tokens.** On `<html>` the night block (0,2,0) beats the day
+  block (0,1,0); a token missing from the night block would show its day value at night. `src/theme/themes.spec.ts`
+  checks this, that each palette file is imported and registered, and that palettes override only tokens zinc defines.
+- Stone overrides the neutral ramp (background, foreground, card, popover, primary, secondary, muted, accent, border, input,
+  ring, sidebar*). Indigo, Emerald and Violet override only `--primary`, `--primary-foreground`, `--ring`,
+  `--sidebar-primary`, `--sidebar-primary-foreground` and `--sidebar-ring`.
+
+## Add a palette
+
+1. **Write the tokens.** Create `desktop/src/themes/<key>.css` with a day block and a night block in the selector shapes
+   above. A neutral palette copies `stone.css` and swaps the ramp; an accent palette copies `indigo.css` and swaps the six
+   tokens. Take OKLCH values from `node_modules/tailwindcss/theme.css`. Never write `--brand-*` (the logo keeps its colours)
+   or hex values.
 2. **Import it.** Add `@import "./<key>.css";` to `desktop/src/themes/themes.css`.
-3. **Register it.** Add an entry to `THEMES` in `desktop/src/theme/themes.ts`:
-   `{ key: "<key>", label: "Forest", scheme: "dark", icon: "park" }`. `scheme` decides whether the `dark` class is put on
-   `<html>` (that is what Tailwind's `dark:` variants and the spartan components key off), so mark a dark-looking theme
-   `"dark"`.
+3. **Register it.** Add `{ key: "<key>", label: marker("<Name>") }` to `PALETTES` in `desktop/src/theme/themes.ts`, then
+   `npm run i18n:extract` and fill the label in pl, de, fr and es.
 
-That is all: the theme appears on the Theme page, is remembered per browser, is applied before the first paint
-(`index.html` reads the stored key and scheme, it does not need the list), and every component follows it.
+That is all: the palette appears in the header menu (with its `app-palette-swatch`, a dot of the palette's `--primary` and
+`--muted`), on the Theme page and in the welcome, is remembered, and every component follows it. `index.html` applies the
+stored key before the first paint and needs no copy of the list (an unknown key just shows zinc).
 
-## Rules that keep themes cheap
+## Rules that keep palettes cheap
 
-- **Never write a colour in a component.** Use a token (`bg-card`, `var(--border)`), or add a new token to *every* theme.
-  Hard-coded hex values are what made dark mode hard before; a lint-style grep for `#` in `*.scss` finds stragglers.
+- **Never write a colour in a component.** Use a token (`bg-card`, `var(--border)`), or add a new token to *every*
+  palette (in `zinc.css` at least). A grep for `#` in `*.scss` finds stragglers.
+- **Contrast, in day and night:** the primary against `--primary-foreground`, and `text-primary` on background, card and
+  accent (links, the "blue" badge, Dashboard buttons) must reach 4.5:1; muted text and the ring are judged as zinc is.
+  That is why Emerald's day primary is emerald-700 (600 is only 3.8:1 with white) and the night primaries are the 400s with
+  the 950 as text.
 - Charts read the tokens: categories use `--chart-1..5` plus `--muted-foreground` for "Other" (`overview-chart.utils.ts`),
-  bars use `--primary`, faded muted and `--destructive` (over goal), via `readChartColors()`.
+  bars use `--primary`, faded muted and `--destructive` (over goal), via `readChartColors()`. `app-apex-chart` redraws when
+  `class` or `data-palette` changes on `<html>`.
+- The inline script in `index.html` sets `data-palette` and `dark` before the first paint. The CSP in `docker/default.conf`
+  allows it by hash: after changing the script, hash the text between `<script>` and `</script>` (base64 SHA-256) and update
+  the `script-src` value.
 - The favicon (`desktop/src/favicon.svg`) is a standalone file and cannot read page variables; it switches on the
-  operating system's `prefers-color-scheme`. Update its two palettes if the identity changes.
-- Test a new theme by opening each main page with `data-theme="<key>"` set (Playwright screenshots in light and dark are
-  how the existing ones were checked, see `HANDOFF.md`).
+  operating system's `prefers-color-scheme`, like the `theme-color` meta, which stays static. Update the favicon's two
+  palettes if the identity changes.
+- Test a palette by opening each main page with `data-palette="<key>"` set, in day and in night (Playwright screenshots
+  are how the existing ones were checked, see `HANDOFF.md`).
 
 ## Compatibility with spartan's theming guide
 
 The token names, the OKLCH values and the `@theme inline` mapping follow https://spartan.ng/documentation/theming, so a theme
 copied from spartan or shadcn/ui works as it is:
 
-- Paste its `:root { ... }` block into `themes/light.css` and its `.dark { ... }` block into `themes/dark.css` (that file already
-  answers to `.dark` as well as `[data-theme="dark"]`). Keep the `--brand-*` tokens, which spartan does not know about.
-- A **custom colour** is the documented three-step: define `--warning` / `--warning-foreground` in every theme, map them in the
-  `@theme inline` block of `src/tailwind.css` (`--color-warning: var(--warning)`), then use `bg-warning text-warning-foreground`.
-  `warning` ships as the worked example.
+- Paste its `:root { ... }` block into a palette's day block and its `.dark { ... }` block into the night block. Keep the
+  `--brand-*` tokens (in `zinc.css`), which spartan does not know about.
+- A **custom colour** is the documented three-step: define `--warning` / `--warning-foreground` in `zinc.css` (day and
+  night), map them in the `@theme inline` block of `src/tailwind.css` (`--color-warning: var(--warning)`), then use
+  `bg-warning text-warning-foreground`. `warning` ships as the worked example.
 - `--radius` lives in `src/skin.css`; the radius scale in `@theme inline` derives from it.
-
-## Adding a preset theme later (blue, emerald, rose, violet, orange)
-
-Two themes are active today, **White** (zinc-50 canvas, white cards, zinc-200 borders, zinc-950 primary) and **Black** (zinc-950
-canvas, zinc-900 cards, zinc-800 borders, white primary). A preset from spartan's or shadcn's theme list is one more token
-block: copy `dark.css` or `light.css` to `themes/<key>.css`, paste the preset's `--primary`, `--ring`, `--chart-1..5` and sidebar
-values over it, import it in `themes/themes.css` and add `{ key, label, scheme, icon }` to `THEMES`. No template changes: the
-components, the charts and the logo read tokens only. The picker lists whatever `THEMES` holds.

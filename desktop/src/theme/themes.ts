@@ -1,31 +1,56 @@
 import { marker } from "../i18n/marker";
 /**
- * The theme registry: the one list the app, the Theme settings and the early script in index.html read.
+ * The look of the app is two independent choices, both remembered per browser:
  *
- * A theme is a block of design tokens in src/themes/<key>.css selected by `[data-theme="<key>"]` (see
- * docs/themes.md). Registering it here is all the code a new theme needs: the Theme tab lists it, the choice is
- * remembered, and the components (which only read tokens) follow it.
+ * - the **palette** (this file's `PALETTES`): a block of design tokens per palette in src/themes/<key>.css, selected by
+ *   `[data-palette="<key>"]` on <html> (see docs/themes.md);
+ * - the **mode** (`MODE_OPTIONS`): day, night, or "system" (follow the operating system). Night puts the `dark` class on
+ *   <html>, which is what the `dark:` variants and the tokens' night blocks key off.
+ *
+ * Registering a palette here is all the code it needs: the header menu, the Theme page and the welcome list it, and the
+ * components (which only read tokens) follow it.
  */
 export type ThemeScheme = "light" | "dark";
 
-export interface ThemeDefinition {
-  /** Matches `[data-theme="<key>"]` in src/themes/<key>.css. */
+/** "system" follows the operating system; "light" is day and "dark" is night (the stored values predate palettes). */
+export type ThemeMode = "system" | ThemeScheme;
+
+export const SYSTEM_MODE: ThemeMode = "system";
+
+export interface PaletteDefinition {
+  /** Matches `[data-palette="<key>"]` in src/themes/<key>.css. */
   key: string;
   label: string;
-  /** Whether the theme is a light or a dark page; "dark" also puts the `dark` class on <html> (Tailwind's `dark:`). */
-  scheme: ThemeScheme;
+}
+
+export const PALETTES: readonly PaletteDefinition[] = [
+  { key: "stone", label: marker("Stone") },
+  { key: "zinc", label: marker("Zinc") },
+  { key: "indigo", label: marker("Indigo") },
+  { key: "emerald", label: marker("Emerald") },
+  { key: "violet", label: marker("Violet") },
+];
+
+/** Zinc is the look CartVibe shipped with, and what the page shows before a palette is applied. */
+export const DEFAULT_PALETTE = "zinc";
+
+export function findPalette(key: string | null | undefined): PaletteDefinition | undefined {
+  return PALETTES.find((palette) => palette.key === key);
+}
+
+export interface ModeOption {
+  mode: ThemeMode;
+  label: string;
   /** An icon (Material icon name) for the picker. */
   icon: string;
 }
 
-export const THEMES: readonly ThemeDefinition[] = [
-  { key: "light", label: marker("White"), scheme: "light", icon: "light_mode" },
-  { key: "dark", label: marker("Black"), scheme: "dark", icon: "dark_mode" },
+export const MODE_OPTIONS: readonly ModeOption[] = [
+  { mode: "system", label: marker("System"), icon: "contrast" },
+  { mode: "light", label: marker("Day"), icon: "light_mode" },
+  { mode: "dark", label: marker("Night"), icon: "dark_mode" },
 ];
 
-/** What "System" resolves to when the operating system asks for a light or a dark page. */
-export const SYSTEM_THEME_KEYS: Record<ThemeScheme, string> = { light: "light", dark: "dark" };
-
-export function findTheme(key: string | null | undefined): ThemeDefinition | undefined {
-  return THEMES.find((theme) => theme.key === key);
+export function isThemeMode(value: string | null | undefined): value is ThemeMode {
+  return MODE_OPTIONS.some((option) => option.mode === value);
 }
