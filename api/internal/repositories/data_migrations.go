@@ -16,10 +16,12 @@ type dataMigration struct {
 	run  func(tx *gorm.DB) error
 }
 
-// dataMigrations is the ordered registry of one-time data migrations. It is empty on
-// purpose: the clean-schema release starts from a fresh database, so every earlier
-// upgrade-only migration was deleted. New migrations are appended here.
-var dataMigrations = []dataMigration{}
+// dataMigrations is the ordered registry of one-time data migrations. The clean-schema
+// release started from a fresh database, so every earlier upgrade-only migration was
+// deleted. New migrations are appended here.
+var dataMigrations = []dataMigration{
+	{name: starterCategoriesMigration, run: runStarterCategoriesMigration},
+}
 
 // RunDataMigrations applies any registered one-time data migrations that have
 // not yet been recorded in the data_migrations ledger. Each migration claims its
