@@ -21,7 +21,9 @@ All your spending, not only the groceries.
   Costa cruises, Booking.com, Airbnb, Orange, Play, T-Mobile and other telecoms, energy companies, cinemas, streaming
   services and motorway operators now show their logo next to the receipt. So do about 60 clothing and shoe brands
   (Mango, Bershka, Pull&Bear, Massimo Dutti, Mohito, Levi's, Tommy Hilfiger, Lacoste, Jack & Jones, Calzedonia, Vans,
-  New Balance, The North Face, Foot Locker, Vinted and more).
+  New Balance, The North Face, Foot Locker, Vinted and more), and about 40 more restaurant, café and fast-food chains
+  (MAX Premium Burgers, Bobby Burger, Pasibus, Da Grasso, Green Caffè Nero, Popeyes, Wendy's, Taco Bell, Nando's,
+  Pret A Manger, PizzaExpress, Buffalo Grill, O'Tacos, L'Osteria, Hans im Glück and more).
 
 ### Changed
 - **Any receipt or bill:** the AI no longer gives up on a receipt that isn't from a shop. A taxi ride, a flight, a toll,
