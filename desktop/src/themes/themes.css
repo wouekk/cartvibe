@@ -1,3 +1,9 @@
-/* One import per theme. A new theme: add its file here and register it in src/theme/themes.ts (docs/themes.md). */
-@import "./light.css";
-@import "./dark.css";
+/*
+  One import per palette; zinc first, it holds the base tokens the others override. A new palette: add its file here and
+  register it in src/theme/themes.ts (docs/themes.md).
+*/
+@import "./zinc.css";
+@import "./stone.css";
+@import "./indigo.css";
+@import "./emerald.css";
+@import "./violet.css";

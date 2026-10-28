@@ -3,7 +3,6 @@ import { Store } from "@ngxs/store";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { firstValueFrom, map, Observable, of, switchMap } from "rxjs";
 import { AppDialogRef } from "../dialog/app-dialog";
-import { marker } from "../i18n/marker";
 import { TranslatePipe } from "../i18n/translate.pipe";
 import { TranslationLoader } from "../i18n/translation-loader";
 import { AppLanguage, TranslationService } from "../i18n/translation.service";
@@ -16,8 +15,8 @@ import { AuthState } from "../store/auth.state";
 import { SetUserPreferences } from "../store/auth.state.actions";
 import { SystemSettingsState } from "../store/system-settings.state";
 import { SetCurrencyData, SetCurrencyDisplay } from "../store/system-settings.state.actions";
-import { SYSTEM_MODE, ThemeMode, ThemeService } from "../theme/theme.service";
-import { THEMES } from "../theme/themes";
+import { ThemeService } from "../theme/theme.service";
+import { MODE_OPTIONS, PALETTES, ThemeMode } from "../theme/themes";
 
 /** Short labels for the currency strip; the presets' own labels ("Euro (12,99 €)") are for the settings form. */
 const CURRENCY_SHORT: Record<string, string> = { EUR: "EUR €", PLN: "PLN zł", USD: "USD $", GBP: "GBP £", CHF: "CHF" };
@@ -48,7 +47,8 @@ const CURRENCY_SHORT: Record<string, string> = { EUR: "EUR €", PLN: "PLN zł",
 
       <section class="flex flex-col gap-2 border-t border-border/60 px-6 py-4" data-testid="welcome-theme">
         <h3 class="cv-section__title">{{ 'Theme' | t }}</h3>
-        <app-settings-tabs [tabs]="themeTabs" [value]="theme.mode()" ariaLabel="Theme" (valueChange)="pickTheme($event)"></app-settings-tabs>
+        <app-settings-tabs [tabs]="modeTabs" [value]="theme.mode()" ariaLabel="Appearance" (valueChange)="pickMode($event)"></app-settings-tabs>
+        <app-settings-tabs [tabs]="paletteTabs" [value]="theme.palette()" ariaLabel="Colour palette" (valueChange)="theme.setPalette($event)"></app-settings-tabs>
       </section>
 
       @if (canSetCurrency()) {
@@ -82,10 +82,18 @@ export class WelcomeDialogComponent {
     this.translation.languages().map((option) => ({ value: option.code, label: option.label, testId: `welcome-language-${option.code}` }))
   );
 
-  protected readonly themeTabs: FilterTab[] = [
-    { value: SYSTEM_MODE, label: marker("System"), icon: "contrast", testId: `welcome-theme-${SYSTEM_MODE}` },
-    ...THEMES.map((theme) => ({ value: theme.key, label: theme.label, icon: theme.icon, testId: `welcome-theme-${theme.key}` })),
-  ];
+  protected readonly modeTabs: FilterTab[] = MODE_OPTIONS.map((option) => ({
+    value: option.mode,
+    label: option.label,
+    icon: option.icon,
+    testId: `welcome-theme-${option.mode}`,
+  }));
+
+  protected readonly paletteTabs: FilterTab[] = PALETTES.map((palette) => ({
+    value: palette.key,
+    label: palette.label,
+    testId: `welcome-palette-${palette.key}`,
+  }));
 
   protected readonly currencyTabs: FilterTab[] = CURRENCY_PRESETS.map((preset) => ({
     value: preset.code,
@@ -117,7 +125,7 @@ export class WelcomeDialogComponent {
   }
 
   /** Per device, like Settings → Theme: applies and is remembered at once. */
-  protected pickTheme(mode: string): void {
+  protected pickMode(mode: string): void {
     this.theme.setMode(mode as ThemeMode);
   }
 

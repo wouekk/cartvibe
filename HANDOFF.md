@@ -9,8 +9,13 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
   (`PUT /receipt/{id}/date`), the calendar closes on a pick, Delete / Remove confirmations are named and red, Cancel
   is a neutral outline, the Dashboard's shopping and receipts panels scroll under a mouse (touch keeps plain lists),
   one splash from Login to the first page, and API calls skip the service worker. `:latest` is published from it
-  after green CI on `main`. No feature branches are open. The audit notes (`i18n-audit-en-pl.md`, untracked) are the
-  user's.
+  after green CI on `main`. The audit notes (`i18n-audit-en-pl.md`, untracked) are the user's.
+- Open: `feature/theme-palettes` (Stone, Zinc, Indigo, Emerald, Violet x Day, Night; palette menu in the header next to
+  the day/night switch; Theme page and welcome pick both). Jest (301 suites), `i18n:check` and `ng build` passed here;
+  seen in the local devstack browser (API ran), all 10 combinations on the Dashboard, the Theme page, phone width.
+  Not yet: CI on the branch, `:preview` on the NAS, the Dashboard chart/report pages in the accent palettes, and a
+  device. Needs the user's go to merge to `main`/`preview`. The CSP hash in `docker/default.conf` was recomputed for the
+  new `index.html` script.
 - Not seen in a browser yet (the API cannot run on the Windows PC). Check on the NAS: a Quick Scan from a phone (it
   failed with `multipart: NextPart: EOF`; if it still does, the log line now carries the Content-Length), the Safari
   calendar closing on a pick, the view-page date save, the login fade, both panels scrolling in White and Black, and

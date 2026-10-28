@@ -1,0 +1,125 @@
+/*
+  Palette: Zinc (spartan/ui "zinc"), the base every other palette builds on. It holds every token: the surfaces and the
+  primary, the status and Nutri-Score colours, and the --brand-* tokens, which are the same in every palette. The other
+  palette files only override what differs from this one.
+
+  Selectors: a palette is `[data-palette="<key>"]` on <html> (ThemeService, index.html). Night adds the `dark` class on
+  <html>, which is also what Tailwind's `dark:` variants and the spartan components key off. `:root` and `.dark` carry
+  the zinc values too, so the page is correct before a palette is applied. The `.dark [data-palette]` forms let an
+  element inside the page (the palette swatches) show its own palette. See docs/themes.md.
+*/
+:root,
+[data-palette="zinc"] {
+  color-scheme: light;
+
+  /* shadcn/ui tokens */
+  --background: oklch(0.985 0 0); /* zinc-50 canvas */
+  --warning-text: #ea580c;
+  --success-text: #16a34a;
+  --nutri-a: #038141;
+  --nutri-b: #85bb2f;
+  --nutri-c: #fecb02;
+  --nutri-d: #ee8100;
+  --nutri-e: #e63e11;
+  --warning: oklch(0.84 0.16 84);
+  --warning-foreground: oklch(0.28 0.07 46);
+  --foreground: oklch(0.141 0.005 285.823);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.141 0.005 285.823);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.141 0.005 285.823);
+  --primary: oklch(0.141 0.005 285.823); /* zinc-950 */
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.967 0.001 286.375);
+  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --muted: oklch(0.967 0.001 286.375);
+  --muted-foreground: oklch(0.552 0.016 285.938);
+  --accent: oklch(0.967 0.001 286.375);
+  --accent-foreground: oklch(0.21 0.006 285.885);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.92 0.004 286.32);
+  --input: oklch(0.92 0.004 286.32);
+  --ring: oklch(0.705 0.015 286.067);
+  --chart-1: oklch(0.55 0.2 259);
+  --chart-2: oklch(0.62 0.15 162);
+  --chart-3: oklch(0.72 0.16 70);
+  --chart-4: oklch(0.56 0.22 303);
+  --chart-5: oklch(0.62 0.21 16);
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.141 0.005 285.823);
+  --sidebar-primary: oklch(0.21 0.006 285.885);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.967 0.001 286.375);
+  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
+  --sidebar-border: oklch(0.92 0.004 286.32);
+  --sidebar-ring: oklch(0.705 0.015 286.067);
+
+  /* CartVibe identity: a black badge on the day page, with emerald and amber for contrast */
+  --brand-badge-from: #09090b;
+  --brand-badge-to: #3f3f46;
+  --brand-cart: #fafafa;
+  --brand-bar-top: #34d399;
+  --brand-bar-bottom: #10b981;
+  --brand-arrow-from: #60a5fa;
+  --brand-arrow-to: #2563eb;
+  --brand-wordmark: #09090b;
+  --brand-wordmark-accent: #2563eb;
+}
+
+.dark,
+.dark[data-palette="zinc"],
+.dark [data-palette="zinc"] {
+  color-scheme: dark;
+
+  --background: oklch(0.141 0.005 285.823);
+  --warning-text: #fb923c;
+  --success-text: #4ade80;
+  --nutri-a: #038141;
+  --nutri-b: #85bb2f;
+  --nutri-c: #fecb02;
+  --nutri-d: #ee8100;
+  --nutri-e: #e63e11;
+  --warning: oklch(0.41 0.11 46);
+  --warning-foreground: oklch(0.99 0.02 95);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.21 0.006 285.885);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.21 0.006 285.885);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.141 0.005 285.823);
+  --secondary: oklch(0.274 0.006 286.033);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.274 0.006 286.033);
+  --muted-foreground: oklch(0.705 0.015 286.067);
+  --accent: oklch(0.274 0.006 286.033);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(0.274 0.006 286.033); /* zinc-800 */
+  --input: oklch(0.274 0.006 286.033);
+  --ring: oklch(0.552 0.016 285.938);
+  --chart-1: oklch(0.68 0.17 259);
+  --chart-2: oklch(0.74 0.16 162);
+  --chart-3: oklch(0.8 0.15 75);
+  --chart-4: oklch(0.7 0.19 303);
+  --chart-5: oklch(0.72 0.18 16);
+  --sidebar: oklch(0.21 0.006 285.885);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.274 0.006 286.033);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.274 0.006 286.033);
+  --sidebar-ring: oklch(0.552 0.016 285.938);
+
+  /* CartVibe identity: a white badge on the night page, with deeper emerald and amber for contrast */
+  --brand-badge-from: #e4e4e7;
+  --brand-badge-to: #ffffff;
+  --brand-cart: #09090b;
+  --brand-bar-top: #10b981;
+  --brand-bar-bottom: #047857;
+  --brand-arrow-from: #93c5fd;
+  --brand-arrow-to: #3b82f6;
+  --brand-wordmark: #fafafa;
+  --brand-wordmark-accent: #60a5fa;
+}

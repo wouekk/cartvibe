@@ -12,7 +12,6 @@ import { DirectivesModule } from "../../directives/directives.module";
 import { ApiModule, NotificationsService } from "../../open-api";
 import { SetAuthState, SetPermissions } from "../../store/auth.state.actions";
 import { StoreModule } from "../../store/store.module";
-import { SYSTEM_THEME_KEYS } from "../../theme/themes";
 import { ThemeService } from "../../theme/theme.service";
 import { HANDSET_LOGO_SCALE, HeaderComponent } from "./header.component";
 
@@ -91,7 +90,7 @@ describe("HeaderComponent", () => {
     expect(fixture.nativeElement.querySelector("app-product-check-input")).toBeNull();
   });
 
-  it("offers a quick theme toggle that switches between the White and Black themes", async () => {
+  it("offers a quick toggle that switches between day and night", async () => {
     const theme = TestBed.inject(ThemeService);
     const setMode = jest.spyOn(theme, "setMode").mockImplementation(() => undefined);
 
@@ -104,7 +103,42 @@ describe("HeaderComponent", () => {
     const wasDark = component.isDarkTheme();
     toggle.click();
 
-    expect(setMode).toHaveBeenCalledWith(wasDark ? SYSTEM_THEME_KEYS.light : SYSTEM_THEME_KEYS.dark);
+    expect(setMode).toHaveBeenCalledWith(wasDark ? "light" : "dark");
+  });
+
+  it("flips the toggle's label and icon with the mode, and keeps the palette when it is used", async () => {
+    const theme = TestBed.inject(ThemeService);
+    theme.setPalette("violet");
+    theme.setMode("light");
+
+    logIn();
+    await fixture.whenStable();
+
+    expect(component.themeToggleLabel()).toBe("Switch to night mode");
+    fixture.nativeElement.querySelector("[data-testid=theme-toggle]").click();
+    await fixture.whenStable();
+
+    expect(theme.mode()).toBe("dark");
+    expect(theme.palette()).toBe("violet");
+    expect(component.themeToggleLabel()).toBe("Switch to day mode");
+  });
+
+  it("puts a colour palette button next to the day/night toggle, and picking a palette applies it", async () => {
+    const theme = TestBed.inject(ThemeService);
+    const setPalette = jest.spyOn(theme, "setPalette").mockImplementation(() => undefined);
+
+    logIn();
+    await fixture.whenStable();
+
+    const palette = fixture.nativeElement.querySelector("[data-testid=palette-menu]") as HTMLButtonElement;
+    const toggle = fixture.nativeElement.querySelector("[data-testid=theme-toggle]") as HTMLButtonElement;
+    expect(palette).not.toBeNull();
+    expect(palette.nextElementSibling).toBe(toggle);
+    expect(component.palettes.map((entry) => entry.key)).toEqual(["stone", "zinc", "indigo", "emerald", "violet"]);
+
+    component.pickPalette("emerald");
+
+    expect(setPalette).toHaveBeenCalledWith("emerald");
   });
 
   it("scales the logo to 30% on a handset and leaves it whole elsewhere", () => {

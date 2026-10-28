@@ -1,0 +1,23 @@
+/*
+  Palette: Violet. Zinc's neutral surfaces with a violet accent: only the primary, the focus ring and the sidebar's
+  primary change; everything else (surfaces, status, charts, brand) comes from zinc.css. Day uses violet-600, night
+  violet-400 with violet-950 text. Both blocks must define the same tokens (themes.spec.ts checks it).
+*/
+[data-palette="violet"] {
+  --primary: oklch(0.541 0.281 293.009); /* violet-600 */
+  --primary-foreground: oklch(1 0 0);
+  --ring: oklch(0.702 0.183 293.541); /* violet-400 */
+  --sidebar-primary: oklch(0.541 0.281 293.009);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-ring: oklch(0.702 0.183 293.541);
+}
+
+.dark[data-palette="violet"],
+.dark [data-palette="violet"] {
+  --primary: oklch(0.702 0.183 293.541); /* violet-400 */
+  --primary-foreground: oklch(0.283 0.141 291.089); /* violet-950 */
+  --ring: oklch(0.606 0.25 292.717); /* violet-500 */
+  --sidebar-primary: oklch(0.702 0.183 293.541);
+  --sidebar-primary-foreground: oklch(0.283 0.141 291.089);
+  --sidebar-ring: oklch(0.606 0.25 292.717);
+}

@@ -1,0 +1,23 @@
+/*
+  Palette: Indigo. Zinc's neutral surfaces with an indigo accent: only the primary, the focus ring and the sidebar's
+  primary change; everything else (surfaces, status, charts, brand) comes from zinc.css. Day uses indigo-600 on white
+  (5.7:1), night indigo-400 with indigo-950 text. Both blocks must define the same tokens (themes.spec.ts checks it).
+*/
+[data-palette="indigo"] {
+  --primary: oklch(0.511 0.262 276.966); /* indigo-600 */
+  --primary-foreground: oklch(1 0 0);
+  --ring: oklch(0.673 0.182 276.935); /* indigo-400 */
+  --sidebar-primary: oklch(0.511 0.262 276.966);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-ring: oklch(0.673 0.182 276.935);
+}
+
+.dark[data-palette="indigo"],
+.dark [data-palette="indigo"] {
+  --primary: oklch(0.673 0.182 276.935); /* indigo-400 */
+  --primary-foreground: oklch(0.257 0.09 281.288); /* indigo-950 */
+  --ring: oklch(0.585 0.233 277.117); /* indigo-500 */
+  --sidebar-primary: oklch(0.673 0.182 276.935);
+  --sidebar-primary-foreground: oklch(0.257 0.09 281.288);
+  --sidebar-ring: oklch(0.585 0.233 277.117);
+}

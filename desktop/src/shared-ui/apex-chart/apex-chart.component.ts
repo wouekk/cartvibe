@@ -35,7 +35,7 @@ export class ApexChartComponent {
 
   constructor() {
     const observer = new MutationObserver(() => this.theme.update((n) => n + 1));
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-theme"] });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-palette"] });
     inject(DestroyRef).onDestroy(() => {
       this.destroyed = true;
       observer.disconnect();
