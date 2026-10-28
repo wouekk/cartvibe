@@ -145,7 +145,7 @@ The annotated stack this project runs itself is [docker-compose.yml](docker-comp
   <tr>
     <td width="50%" valign="top">
       <img src="docs/screenshots/receipts.png" alt="Receipts list with shop logos for Kaufland, Biedronka, Lidl, Dino and Rossmann" />
-      <p align="center"><sub><b>Receipts</b>: shop logos (with your own Logo.dev key), a search that forgives typos, and one date picker</sub></p>
+      <p align="center"><sub><b>Receipts</b>: shop logos (optional: they load from Logo.dev once an admin adds a free Logo.dev API key under System Settings → Shop Logos; without one, each shop shows its first letter), a search that forgives typos, and one date picker</sub></p>
     </td>
     <td width="50%" valign="top">
       <img src="docs/screenshots/report-builder.png" alt="Report builder with a live preview of spending by shop and CSV, XLSX and PDF export" />
