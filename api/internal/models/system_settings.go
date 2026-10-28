@@ -59,4 +59,8 @@ type SystemSettings struct {
 	// cookie set over http — turning this on there breaks login. See
 	// services.UseSecureCookies.
 	SecureCookies bool `json:"secureCookies" gorm:"default:false"`
+	// ShopLogoKey is the household's Logo.dev publishable key. With one, browsers load shop logos from
+	// img.logo.dev (nothing is stored on the server, which Logo.dev's free plan does not allow); without
+	// one every receipt shows its shop's first letter. Public by design: FeatureConfig serves it to everyone.
+	ShopLogoKey string `json:"shopLogoKey" gorm:"default:''"`
 }

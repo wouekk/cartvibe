@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -70,6 +71,10 @@ type UpsertSystemSettingsCommand struct {
 	// more for a security toggle than for a lifetime: a client that does not send
 	// it must not silently turn Secure cookies back off.
 	SecureCookies *bool `json:"secureCookies"`
+	// ShopLogoKey is the household's Logo.dev publishable key ("pk_..."). Browsers load shop logos from
+	// img.logo.dev with it, so it is public by design and served to every client; a secret key ("sk_...")
+	// is refused. A pointer for the same omitted-key reason as the fields above. "" turns logos off.
+	ShopLogoKey *string `json:"shopLogoKey"`
 }
 
 func (command *UpsertSystemSettingsCommand) LoadDataFromRequest(w http.ResponseWriter, r *http.Request) error {
@@ -176,7 +181,35 @@ func (command *UpsertSystemSettingsCommand) Validate() structs.ValidatorError {
 		errorMap["timeZone"] = msg
 	}
 
+	if msg := validateShopLogoKey(command.ShopLogoKey); len(msg) > 0 {
+		errorMap["shopLogoKey"] = msg
+	}
+
 	return vErr
+}
+
+var shopLogoKeyPattern = regexp.MustCompile(`^pk_[A-Za-z0-9_-]{8,200}$`)
+
+// validateShopLogoKey accepts an omitted key, "" (logos off) or a Logo.dev publishable key. The key is
+// sent to every browser, so a secret key, which would let anyone use the household's paid API, is refused
+// with its own message.
+func validateShopLogoKey(key *string) string {
+	if key == nil {
+		return ""
+	}
+
+	value := strings.TrimSpace(*key)
+	if value == "" {
+		return ""
+	}
+	if strings.HasPrefix(value, "sk_") {
+		return "This is a secret key. Use the publishable key, which starts with pk_"
+	}
+	if !shopLogoKeyPattern.MatchString(value) {
+		return "A Logo.dev publishable key starts with pk_"
+	}
+
+	return ""
 }
 
 // validateTimeZone requires a sent time zone to be a name the Go runtime can
@@ -319,6 +352,10 @@ func (command *UpsertSystemSettingsCommand) OmittedColumns() []string {
 		columns = append(columns, "SecureCookies")
 	}
 
+	if command.ShopLogoKey == nil {
+		columns = append(columns, "ShopLogoKey")
+	}
+
 	return columns
 }
 
@@ -352,5 +389,11 @@ func (command *UpsertSystemSettingsCommand) ApplyOmittedValues(existing models.S
 
 	if command.SecureCookies == nil {
 		updated.SecureCookies = existing.SecureCookies
+	}
+
+	if command.ShopLogoKey == nil {
+		updated.ShopLogoKey = existing.ShopLogoKey
+	} else {
+		updated.ShopLogoKey = strings.TrimSpace(*command.ShopLogoKey)
 	}
 }

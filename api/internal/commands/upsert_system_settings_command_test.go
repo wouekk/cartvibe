@@ -3,6 +3,7 @@ package commands
 import (
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/utils"
+	"strings"
 	"testing"
 )
 
@@ -369,32 +370,32 @@ func TestOmittedColumnsNamesEveryUnsentField(t *testing.T) {
 	}{
 		"all omitted": {
 			modify:   func(cmd *UpsertSystemSettingsCommand) {},
-			expected: []string{"RefreshTokenValidForHours", "McpRefreshTokenValidForHours", "TempFileRetentionHours", "ServerPublicUrl", "TimeZone", "SecureCookies"},
+			expected: []string{"RefreshTokenValidForHours", "McpRefreshTokenValidForHours", "TempFileRetentionHours", "ServerPublicUrl", "TimeZone", "SecureCookies", "ShopLogoKey"},
 		},
 		"retention sent, lifetimes omitted": {
 			modify: func(cmd *UpsertSystemSettingsCommand) {
 				cmd.TempFileRetentionHours = intPtr(48)
 			},
-			expected: []string{"RefreshTokenValidForHours", "McpRefreshTokenValidForHours", "ServerPublicUrl", "TimeZone", "SecureCookies"},
+			expected: []string{"RefreshTokenValidForHours", "McpRefreshTokenValidForHours", "ServerPublicUrl", "TimeZone", "SecureCookies", "ShopLogoKey"},
 		},
 		"lifetimes sent, retention omitted": {
 			modify: func(cmd *UpsertSystemSettingsCommand) {
 				cmd.RefreshTokenValidForHours = intPtr(24)
 				cmd.McpRefreshTokenValidForHours = intPtr(24)
 			},
-			expected: []string{"TempFileRetentionHours", "ServerPublicUrl", "TimeZone", "SecureCookies"},
+			expected: []string{"TempFileRetentionHours", "ServerPublicUrl", "TimeZone", "SecureCookies", "ShopLogoKey"},
 		},
 		"only time zone sent": {
 			modify: func(cmd *UpsertSystemSettingsCommand) {
 				cmd.TimeZone = stringPtr("America/New_York")
 			},
-			expected: []string{"RefreshTokenValidForHours", "McpRefreshTokenValidForHours", "TempFileRetentionHours", "ServerPublicUrl", "SecureCookies"},
+			expected: []string{"RefreshTokenValidForHours", "McpRefreshTokenValidForHours", "TempFileRetentionHours", "ServerPublicUrl", "SecureCookies", "ShopLogoKey"},
 		},
 		"only secure cookies sent, as false": {
 			modify: func(cmd *UpsertSystemSettingsCommand) {
 				cmd.SecureCookies = boolPtr(false)
 			},
-			expected: []string{"RefreshTokenValidForHours", "McpRefreshTokenValidForHours", "TempFileRetentionHours", "ServerPublicUrl", "TimeZone"},
+			expected: []string{"RefreshTokenValidForHours", "McpRefreshTokenValidForHours", "TempFileRetentionHours", "ServerPublicUrl", "TimeZone", "ShopLogoKey"},
 		},
 		"all sent": {
 			modify: func(cmd *UpsertSystemSettingsCommand) {
@@ -404,6 +405,7 @@ func TestOmittedColumnsNamesEveryUnsentField(t *testing.T) {
 				cmd.ServerPublicUrl = stringPtr("https://receipts.example.com")
 				cmd.TimeZone = stringPtr("UTC")
 				cmd.SecureCookies = boolPtr(true)
+				cmd.ShopLogoKey = stringPtr("")
 			},
 			expected: []string{},
 		},
@@ -526,5 +528,39 @@ func TestUpsertSystemSettingsCommand_Validate_TimeZone(t *testing.T) {
 				t.Errorf("expected a timeZone error for %q, got %v", name, vErr.Errors)
 			}
 		})
+	}
+}
+
+func TestValidateShopLogoKey(t *testing.T) {
+	accepted := []*string{nil, stringPtr(""), stringPtr("  "), stringPtr("pk_ExampleKey12345"), stringPtr(" pk_abc-DEF_12345 ")}
+	for _, key := range accepted {
+		if msg := validateShopLogoKey(key); msg != "" {
+			t.Errorf("expected %v to be accepted, got %q", key, msg)
+		}
+	}
+
+	if msg := validateShopLogoKey(stringPtr("sk_live1234567890")); !strings.Contains(msg, "secret key") {
+		t.Errorf("a secret key must be refused as one, got %q", msg)
+	}
+	for _, key := range []string{"pk_", "pk_short", "ExampleKey12345", "pk_has space1234", "pk_<script>12345"} {
+		if msg := validateShopLogoKey(stringPtr(key)); msg == "" {
+			t.Errorf("expected %q to be refused", key)
+		}
+	}
+}
+
+func TestApplyOmittedValuesKeepsOrTrimsTheShopLogoKey(t *testing.T) {
+	existing := models.SystemSettings{ShopLogoKey: "pk_stored12345678"}
+
+	updated := models.SystemSettings{}
+	(&UpsertSystemSettingsCommand{}).ApplyOmittedValues(existing, &updated)
+	if updated.ShopLogoKey != "pk_stored12345678" {
+		t.Errorf("an omitted key must keep the stored one, got %q", updated.ShopLogoKey)
+	}
+
+	updated = models.SystemSettings{}
+	(&UpsertSystemSettingsCommand{ShopLogoKey: stringPtr(" pk_new123456789 ")}).ApplyOmittedValues(existing, &updated)
+	if updated.ShopLogoKey != "pk_new123456789" {
+		t.Errorf("a sent key is stored trimmed, got %q", updated.ShopLogoKey)
 	}
 }
