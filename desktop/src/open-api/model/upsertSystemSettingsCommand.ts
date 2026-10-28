@@ -82,6 +82,10 @@ export interface UpsertSystemSettingsCommand {
      * Marks every cookie the server sets as Secure. Only turn it on when the app is served over HTTPS: a browser drops a Secure cookie set over plain HTTP, which breaks login. Omit the key entirely to leave the currently configured value unchanged.
      */
     secureCookies?: boolean;
+    /**
+     * The household\'s Logo.dev publishable key (starts with pk_), or \"\" to turn shop logos off. A secret key (sk_) or anything else is a 400 under the shopLogoKey key. Omit the key entirely to leave the currently configured value unchanged.
+     */
+    shopLogoKey?: string;
 }
 export namespace UpsertSystemSettingsCommand {
 }

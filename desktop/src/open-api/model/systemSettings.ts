@@ -93,6 +93,10 @@ export interface SystemSettings {
      * Marks every cookie the server sets as Secure, so browsers only send them over HTTPS. Recommended for any install served over HTTPS. Off by default, because a browser drops a Secure cookie set over plain HTTP, which breaks login.
      */
     secureCookies?: boolean;
+    /**
+     * The household\'s Logo.dev publishable key. With one, browsers load shop logos from img.logo.dev; empty means every receipt shows its shop\'s first letter.
+     */
+    shopLogoKey?: string;
 }
 export namespace SystemSettings {
 }
