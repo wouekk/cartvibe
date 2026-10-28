@@ -19,7 +19,9 @@ All your spending, not only the groceries.
   category you already have, under any of its names, is never doubled, and one you delete stays deleted.
 - **More logos:** Uber, Bolt, FreeNow, Ryanair, easyJet, Wizz Air, LOT and other airlines, Royal Caribbean, MSC and
   Costa cruises, Booking.com, Airbnb, Orange, Play, T-Mobile and other telecoms, energy companies, cinemas, streaming
-  services and motorway operators now show their logo next to the receipt.
+  services and motorway operators now show their logo next to the receipt. So do about 60 clothing and shoe brands
+  (Mango, Bershka, Pull&Bear, Massimo Dutti, Mohito, Levi's, Tommy Hilfiger, Lacoste, Jack & Jones, Calzedonia, Vans,
+  New Balance, The North Face, Foot Locker, Vinted and more).
 
 ### Changed
 - **Any receipt or bill:** the AI no longer gives up on a receipt that isn't from a shop. A taxi ride, a flight, a toll,
