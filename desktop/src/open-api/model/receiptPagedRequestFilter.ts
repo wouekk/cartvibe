@@ -58,5 +58,9 @@ export interface ReceiptPagedRequestFilter {
      * Only receipts whose warranty ends today (app time zone) or later. Sort with orderBy warranty_until.
      */
     warrantyActive?: boolean;
+    /**
+     * Only receipts whose warranty ends on this day (yyyy-MM-dd) or before; with warrantyActive, the warranties ending soon. A value that is not a day adds no condition.
+     */
+    warrantyEndsBy?: string;
 }
 
