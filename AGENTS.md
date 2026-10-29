@@ -53,7 +53,9 @@ build, run Jest, and check desktop and phone widths in day and night (Zinc plus 
   jobs need it), SQLite in `/volume2/docker/cartvibe/sqlite` (`DB_FILENAME=app.db`), and `SECRET_KEY` /
   `ENCRYPTION_KEY` from Dockhand's variables, with no `$` in them (compose reads it as a variable). Deploy = pull, then
   redeploy (a redeploy alone reuses the cached image). Back up the `sqlite` folder before a release that changes the
-  schema.
+  schema; the database runs in WAL mode, so copy the whole folder (`app.db`, `-wal`, `-shm`) with the container stopped.
+- **A VPS** runs `docker-compose.vps.yml` (Caddy TLS, Litestream for the database, restic for the files, Redis with a
+  password); setup and the restore drill are in `docs/vps-deploy.md`.
 - Repo `wouekk/cartvibe`, project page `https://wouekk.github.io/cartvibe/` (from `site/`), image
   `ghcr.io/wouekk/cartvibe`. `main` and `preview` are the long-lived branches; a feature branch is deleted once merged.
 

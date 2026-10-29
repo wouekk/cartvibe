@@ -1,0 +1,119 @@
+# VPS stack (OVH or any Linux host with Docker). The NAS keeps using docker-compose.yml; this file adds what a
+# public server needs: TLS (Caddy), continuous SQLite replication (Litestream) and file backups (restic), both to
+# S3-compatible object storage such as OVH Object Storage. Setup, variables and the restore drill: docs/vps-deploy.md.
+#
+# Every variable below comes from a .env file next to this one (chmod 600) or the shell. No "$" in any value: compose
+# reads it as the start of a variable name.
+services:
+  # Restores the database from the replica before the app starts, but only when there is no database yet (a new
+  # server or a lost disk). An existing app.db is never touched.
+  litestream-restore:
+    image: litestream/litestream:0.3.13
+    user: "${PUID:-10001}:${PGID:-10001}"
+    command: ["restore", "-config", "/etc/litestream.yml", "-if-db-not-exists", "-if-replica-exists", "/data/sqlite/app.db"]
+    environment: &litestream-env
+      - LITESTREAM_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
+      - LITESTREAM_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
+      - S3_BUCKET=${S3_BUCKET}
+      - S3_ENDPOINT=${S3_ENDPOINT}
+      - S3_REGION=${S3_REGION}
+    volumes: &litestream-volumes
+      - ./data/sqlite:/data/sqlite
+      - ./deploy/vps/litestream.yml:/etc/litestream.yml:ro
+
+  cartvibe:
+    image: ghcr.io/wouekk/cartvibe:latest
+    pull_policy: always
+    container_name: cartvibe
+    restart: unless-stopped
+    depends_on:
+      litestream-restore:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    # No published port: only Caddy reaches it, over the compose network.
+    expose:
+      - "80"
+    environment:
+      - TZ=${TZ:-Europe/Paris}
+      - SECRET_KEY=${SECRET_KEY}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - DB_ENGINE=sqlite
+      - DB_FILENAME=app.db
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - PUID=${PUID:-10001}
+      - PGID=${PGID:-10001}
+    volumes:
+      - ./data/sqlite:/app/cartvibe-api/sqlite
+      - ./data/files:/app/cartvibe-api/data
+      - ./data/logs:/app/cartvibe-api/logs
+
+  # Streams every committed WAL page to the bucket (about one second behind) and keeps 7 days of snapshots.
+  litestream:
+    image: litestream/litestream:0.3.13
+    restart: unless-stopped
+    user: "${PUID:-10001}:${PGID:-10001}"
+    depends_on:
+      litestream-restore:
+        condition: service_completed_successfully
+    command: ["replicate", "-config", "/etc/litestream.yml"]
+    environment: *litestream-env
+    volumes: *litestream-volumes
+
+  # Receipt images, shopping-trip photos and shop logos are files, which Litestream does not see.
+  restic:
+    image: restic/restic:0.17.3
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "/backup.sh"]
+    environment:
+      - RESTIC_REPOSITORY=s3:${S3_ENDPOINT}/${S3_BUCKET}/restic
+      - RESTIC_PASSWORD=${RESTIC_PASSWORD}
+      - AWS_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${S3_REGION}
+      - BACKUP_INTERVAL_SECONDS=${BACKUP_INTERVAL_SECONDS:-21600}
+    volumes:
+      - ./data/files:/backup/files:ro
+      - ./data/logs:/backup/logs:ro
+      - ./deploy/vps/restic-backup.sh:/backup.sh:ro
+      - restic-cache:/root/.cache/restic
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: cartvibe-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" --no-auth-warning ping | grep -q PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    volumes:
+      - redis-data:/data
+
+  # TLS with automatic Let's Encrypt certificates for CARTVIBE_DOMAIN.
+  caddy:
+    image: caddy:2.8.4-alpine
+    restart: unless-stopped
+    depends_on:
+      - cartvibe
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      - CARTVIBE_DOMAIN=${CARTVIBE_DOMAIN}
+    volumes:
+      - ./deploy/vps/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  redis-data:
+  restic-cache:
+  caddy-data:
+  caddy-config:

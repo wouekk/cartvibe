@@ -4,13 +4,13 @@ import (
 	"errors"
 	"strings"
 
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 	"cartvibe/api/internal/commands"
 	config "cartvibe/api/internal/env"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type SystemSettingsRepository struct {
@@ -265,6 +265,9 @@ func SeedEuroForNewInstall() error {
 		CurrencySymbolPosition:       models.END,
 		CurrencyThousandthsSeparator: models.DOT,
 		CurrencyDecimalSeparator:     models.COMMA,
+		// Four workers, not the column default of ten: SQLite takes one writer at a time, so more only
+		// queue on the lock. Existing installs keep their value (System Settings → Task concurrency).
+		TaskConcurrency: 4,
 	}).Error
 }
 

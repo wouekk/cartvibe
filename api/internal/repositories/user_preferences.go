@@ -80,8 +80,9 @@ func (repository UserPreferncesRepository) UpdateUserPreferences(userId uint, us
 	userPreferencesToUpdate.OnboardingPending = userPreferences.OnboardingPending
 	userPreferencesToUpdate.UserShortcuts = userPreferences.UserShortcuts
 
+	// Both writes go through tx: a write on another connection would wait for this transaction's lock.
 	err = db.Transaction(func(tx *gorm.DB) error {
-		err = db.
+		err := tx.
 			Model(&userPreferencesToUpdate).
 			Select("*").
 			Updates(&userPreferencesToUpdate).Error
@@ -89,7 +90,7 @@ func (repository UserPreferncesRepository) UpdateUserPreferences(userId uint, us
 			return err
 		}
 
-		err = db.
+		err = tx.
 			Model(&userPreferencesToUpdate).
 			Association("UserShortcuts").
 			Replace(&userPreferencesToUpdate.UserShortcuts)
