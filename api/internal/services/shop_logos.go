@@ -94,11 +94,9 @@ func StartShopLogoSync() {
 	}()
 }
 
-// ClearShopLogos removes every downloaded logo, when the household removes its key.
-func ClearShopLogos() error {
+// HasShopLogos reports whether any logo is downloaded. Downloaded logos are shown with or without a key: removing the
+// key only stops the downloads.
+func HasShopLogos() bool {
 	store, _, err := ShopLogos()
-	if err != nil {
-		return err
-	}
-	return store.Clear()
+	return err == nil && len(store.Available()) > 0
 }

@@ -131,7 +131,7 @@
         </ol>
         <app-input
           [label]="'Logo.dev secret key' | t"
-          hint="Starts with sk_, for example sk_A1b2C3d4E5f6. Stored encrypted and never sent to a browser. Empty it and save to remove the key and the logos."
+          hint="Starts with sk_, for example sk_A1b2C3d4E5f6. Stored encrypted and never sent to a browser. To switch keys, paste the new one over it. Saving it empty stops the downloads; the logos stay."
           data-testid="system-settings-shop-logo-key"
           [showVisibilityEye]="true"
           [readonly]="formConfig.mode | inputReadonly"

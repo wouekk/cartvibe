@@ -6560,7 +6560,7 @@ components:
         shopLogosEnabled:
           type: boolean
           description:
-            Whether the household has a Logo.dev key, so the app asks GET /shopLogo for the logos
+            Whether the household has a Logo.dev key or logos downloaded with one, so the app asks GET /shopLogo for the logos
             the server downloaded and the login page credits Logo.dev. The key never leaves the server.
     OidcProviderSummary:
       required:
@@ -7620,8 +7620,8 @@ components:
           type: string
           description: >-
             The household's Logo.dev secret key (starts with sk_), which the server downloads the
-            shop logos with through Logo.dev's API; stored encrypted. "" removes the key and the
-            downloaded logos. A publishable key (pk_) or anything else is a 400 under the shopLogoKey
+            shop logos with through Logo.dev's API; stored encrypted. "" removes the key and stops the
+            downloads; the logos already downloaded stay. A publishable key (pk_) or anything else is a 400 under the shopLogoKey
             key. Omit the key entirely to leave the saved key unchanged.
     SystemTask:
       allOf:

@@ -952,7 +952,7 @@
     "Started At": "Rozpoczęto",
     "Started at: {date}": "Rozpoczęto: {date}",
     "Starting the camera…": "Uruchamianie aparatu…",
-    "Starts with sk_, for example sk_A1b2C3d4E5f6. Stored encrypted and never sent to a browser. Empty it and save to remove the key and the logos.": "Zaczyna się od sk_, na przykład sk_A1b2C3d4E5f6. Zapisywany w postaci zaszyfrowanej i nigdy nie trafia do przeglądarki. Wyczyść pole i zapisz, aby usunąć klucz i logo.",
+    "Starts with sk_, for example sk_A1b2C3d4E5f6. Stored encrypted and never sent to a browser. To switch keys, paste the new one over it. Saving it empty stops the downloads; the logos stay.": "Zaczyna się od sk_, na przykład sk_A1b2C3d4E5f6. Zapisywany w postaci zaszyfrowanej i nigdy nie trafia do przeglądarki. Aby zmienić klucz, wklej nowy w miejsce starego. Zapisanie pustego pola wstrzymuje pobieranie; logo zostają.",
     "Stationery": "Artykuły papiernicze",
     "Status": "Status",
     "Status is required": "Status jest wymagany",
@@ -1421,7 +1421,7 @@
     },
     "Starts with pk_, for example pk_A1b2C3d4E5f6. Leave it empty to show letters instead of logos.": {
       "value": "Zaczyna się od pk_, na przykład pk_A1b2C3d4E5f6. Zostaw puste, aby zamiast logo pokazywać litery.",
-      "closest": "Starts with sk_, for example sk_A1b2C3d4E5f6. Stored encrypted and never sent to a browser. Empty it and save to remove the key and the logos."
+      "closest": "Starts with sk_, for example sk_A1b2C3d4E5f6. Stored encrypted and never sent to a browser. To switch keys, paste the new one over it. Saving it empty stops the downloads; the logos stay."
     },
     "The free plan is plenty: the first download asks Logo.dev about each brand once, then a daily check asks again about a logo once a month.": {
       "value": "Darmowy plan w zupełności wystarczy: pierwsze pobieranie pyta Logo.dev o każdą markę raz, potem codzienne sprawdzenie pyta o dane logo raz w miesiącu."

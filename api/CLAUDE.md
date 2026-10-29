@@ -247,7 +247,8 @@ which day an instant falls on and what "today" means.
   limiting stops the run; the reason is in the status (`GET /shopLogo/status`, counted over the wanted brands). Runs:
   after a key is saved, at API start, every 12 h on the clean-up queue (`system_clean_up:shop_logos`, never retried
   by the queue) and on `POST /shopLogo/sync` (the Fetch logos now button); one at a time (`TryLock`), and a run with
-  nothing missing makes no call. Saving `""` removes the key and the folder. `GET /shopLogo` lists every stored logo,
+  nothing missing makes no call. Saving `""` removes the key and stops the downloads but keeps the folder, and
+  `shopLogosEnabled` stays on while any logo is stored, so switching keys never loses logos. `GET /shopLogo` lists every stored logo,
   `GET /shopLogo/{slug}` serves one (only known slugs become file names), both to any signed-in user.
 - **Outage vs bad answer:** no AI configured means nothing is called and nothing counted. A failed call or unreadable
   answer counts an attempt; extraction and trips give up after 3 (`productExtractionMaxBadAnswers`,

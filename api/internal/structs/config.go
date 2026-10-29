@@ -30,8 +30,8 @@ type FeatureConfig struct {
 	// deserializer has no null guard, so a null would fail the whole payload on
 	// every already-released build.
 	OidcProviders []OidcProviderSummary `json:"oidcProviders"`
-	// ShopLogosEnabled is true while the household has a Logo.dev key: the app then asks the server for the
-	// downloaded logos, and the login page credits Logo.dev. The key itself never leaves the server.
+	// ShopLogosEnabled is true while the household has a Logo.dev key or logos downloaded with one: the app then
+	// asks the server for the downloaded logos, and the login page credits Logo.dev. The key never leaves the server.
 	ShopLogosEnabled bool `json:"shopLogosEnabled"`
 }
 

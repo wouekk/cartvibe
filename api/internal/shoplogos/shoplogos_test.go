@@ -279,25 +279,12 @@ func TestSyncNeverStoresSomethingThatIsNotAPNG(t *testing.T) {
 	}
 }
 
-func TestTheStoreOnlyKnowsBrandSlugsAndClears(t *testing.T) {
+func TestTheStoreOnlyKnowsBrandSlugs(t *testing.T) {
 	withBrands(t, testBrands)
-	newFakeLogoDev(t)
-	syncer, store := newTestSyncer(t)
+	_, store := newTestSyncer(t)
 
 	if _, err := store.ReadLogo("../../app"); !errors.Is(err, ErrUnknownBrand) {
 		t.Errorf("an unknown slug must be refused, got %v", err)
-	}
-	if err := syncer.Run(context.Background(), "sk_test", Brands()); err != nil {
-		t.Fatal(err)
-	}
-	if err := store.Clear(); err != nil {
-		t.Fatal(err)
-	}
-	if len(store.Available()) != 0 {
-		t.Error("clearing should remove every logo")
-	}
-	if err := store.Clear(); err != nil {
-		t.Errorf("clearing twice should be fine, got %v", err)
 	}
 }
 
