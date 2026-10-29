@@ -23,6 +23,7 @@ api/receiptProduct.service.ts
 api/report.service.ts
 api/role.service.ts
 api/search.service.ts
+api/shopLogo.service.ts
 api/shoppingList.service.ts
 api/systemSettings.service.ts
 api/systemTask.service.ts
@@ -131,6 +132,8 @@ model/setReceiptDateCommand.ts
 model/setReceiptProductLabelsCommand.ts
 model/setShoppingListCheckedCommand.ts
 model/setShoppingListItemCheckedCommand.ts
+model/shopLogo.ts
+model/shopLogoStatus.ts
 model/shoppingList.ts
 model/shoppingListEvent.ts
 model/shoppingListItem.ts

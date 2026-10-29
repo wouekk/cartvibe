@@ -24,8 +24,8 @@ export interface FeatureConfig {
      */
     oidcProviders?: Array<OidcProviderSummary>;
     /**
-     * The Logo.dev publishable key browsers load shop logos with, or \"\" when shop logos are off. Public by design (it is in every logo URL); the login page shows Logo.dev\'s attribution while it is set.
+     * Whether the household has a Logo.dev key, so the app asks GET /shopLogo for the logos the server downloaded and the login page credits Logo.dev. The key never leaves the server.
      */
-    shopLogoKey?: string;
+    shopLogosEnabled?: boolean;
 }
 

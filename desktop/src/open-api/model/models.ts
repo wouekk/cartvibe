@@ -95,6 +95,8 @@ export * from './setReceiptDateCommand';
 export * from './setReceiptProductLabelsCommand';
 export * from './setShoppingListCheckedCommand';
 export * from './setShoppingListItemCheckedCommand';
+export * from './shopLogo';
+export * from './shopLogoStatus';
 export * from './shoppingList';
 export * from './shoppingListEvent';
 export * from './shoppingListItem';
