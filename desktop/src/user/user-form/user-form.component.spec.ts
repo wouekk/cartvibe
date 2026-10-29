@@ -22,6 +22,7 @@ import { SetPermissions } from "../../store/auth.state.actions";
 import { UserFormComponent } from "./user-form.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 
+import type { Mock } from "vitest";
 describe("UserFormComponent", () => {
   const defaultAppRole: Role = {
     id: 7,
@@ -47,10 +48,10 @@ describe("UserFormComponent", () => {
   let component: UserFormComponent;
   let fixture: ComponentFixture<UserFormComponent>;
   let store: Store;
-  let getRolesMock: jest.Mock;
+  let getRolesMock: Mock;
 
   beforeEach(async () => {
-    getRolesMock = jest.fn().mockReturnValue(of([] as Role[]));
+    getRolesMock = vi.fn().mockReturnValue(of([] as Role[]));
     await TestBed.configureTestingModule({
     declarations: [UserFormComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -132,23 +133,23 @@ describe("UserFormComponent", () => {
       },
     });
 
-    jest.spyOn(TestBed.inject(SnackbarService), "success").mockReturnValue();
-    jest.spyOn(TestBed.inject(UserService), "getUsernameCount").mockReturnValue(
+    vi.spyOn(TestBed.inject(SnackbarService), "success").mockReturnValue();
+    vi.spyOn(TestBed.inject(UserService), "getUsernameCount").mockReturnValue(
       of(0 as any)
     );
-    const userServiceSpy = jest.spyOn(TestBed.inject(UserService), "updateUserById");
+    const userServiceSpy = vi.spyOn(TestBed.inject(UserService), "updateUserById");
     userServiceSpy.mockReturnValue(of(undefined as any));
 
-    const authServiceSpy = jest.spyOn(
+    const authServiceSpy = vi.spyOn(
       TestBed.inject(TokenRefreshService),
       "refreshToken"
     );
     authServiceSpy.mockReturnValue(of(undefined as any));
 
-    const storeSpy = jest.spyOn(TestBed.inject(Store), "dispatch");
+    const storeSpy = vi.spyOn(TestBed.inject(Store), "dispatch");
     storeSpy.mockReturnValue(of(undefined));
 
-    const dialogRefSpy = jest.spyOn(component.matDialogRef, "close");
+    const dialogRefSpy = vi.spyOn(component.matDialogRef, "close");
 
     const user: User = {
       id: 1,
@@ -191,23 +192,23 @@ describe("UserFormComponent", () => {
       },
     });
 
-    jest.spyOn(TestBed.inject(SnackbarService), "success").mockReturnValue();
-    jest.spyOn(TestBed.inject(UserService), "getUsernameCount").mockReturnValue(
+    vi.spyOn(TestBed.inject(SnackbarService), "success").mockReturnValue();
+    vi.spyOn(TestBed.inject(UserService), "getUsernameCount").mockReturnValue(
       of(0 as any)
     );
-    const userServiceSpy = jest.spyOn(TestBed.inject(UserService), "updateUserById");
+    const userServiceSpy = vi.spyOn(TestBed.inject(UserService), "updateUserById");
     userServiceSpy.mockReturnValue(of(undefined as any));
 
-    const authServiceSpy = jest.spyOn(
+    const authServiceSpy = vi.spyOn(
       TestBed.inject(TokenRefreshService),
       "refreshToken"
     );
     authServiceSpy.mockReturnValue(of(undefined as any));
 
-    const storeSpy = jest.spyOn(TestBed.inject(Store), "dispatch");
+    const storeSpy = vi.spyOn(TestBed.inject(Store), "dispatch");
     storeSpy.mockReturnValue(of(undefined));
 
-    const dialogRefSpy = jest.spyOn(component.matDialogRef, "close");
+    const dialogRefSpy = vi.spyOn(component.matDialogRef, "close");
 
     const user: User = {
       id: 1,
@@ -245,8 +246,8 @@ describe("UserFormComponent", () => {
   });
 
   it("should attempt to create user", () => {
-    jest.spyOn(TestBed.inject(SnackbarService), "success").mockReturnValue();
-    jest.spyOn(TestBed.inject(UserService), "getUsernameCount").mockReturnValue(
+    vi.spyOn(TestBed.inject(SnackbarService), "success").mockReturnValue();
+    vi.spyOn(TestBed.inject(UserService), "getUsernameCount").mockReturnValue(
       of(0 as any)
     );
     const user: User = {
@@ -257,13 +258,13 @@ describe("UserFormComponent", () => {
       appRoleId: 5,
     } as User;
 
-    const userServiceSpy = jest.spyOn(TestBed.inject(UserService), "createUser");
+    const userServiceSpy = vi.spyOn(TestBed.inject(UserService), "createUser");
     userServiceSpy.mockReturnValue(of(user as any));
 
-    const storeSpy = jest.spyOn(TestBed.inject(Store), "dispatch");
+    const storeSpy = vi.spyOn(TestBed.inject(Store), "dispatch");
     storeSpy.mockReturnValue(of(undefined));
 
-    const dialogRefSpy = jest.spyOn(component.matDialogRef, "close");
+    const dialogRefSpy = vi.spyOn(component.matDialogRef, "close");
     component.ngOnInit();
 
     component.form.patchValue({
@@ -292,22 +293,22 @@ describe("UserFormComponent", () => {
   it("keeps the dialog open when creating the user fails", () => {
     // Closing on failure would report a create that never happened and discard
     // everything the admin typed.
-    const errorSpy = jest
+    const errorSpy = vi
       .spyOn(TestBed.inject(SnackbarService), "error")
       .mockReturnValue();
-    const successSpy = jest
+    const successSpy = vi
       .spyOn(TestBed.inject(SnackbarService), "success")
       .mockReturnValue();
-    jest
+    vi
       .spyOn(TestBed.inject(UserService), "getUsernameCount")
       .mockReturnValue(of(0 as any));
-    jest
+    vi
       .spyOn(TestBed.inject(UserService), "createUser")
       .mockReturnValue(
         throwError(() => ({ error: { username: "Username already exists" } })) as any
       );
 
-    const dialogRefSpy = jest.spyOn(component.matDialogRef, "close");
+    const dialogRefSpy = vi.spyOn(component.matDialogRef, "close");
     component.ngOnInit();
 
     component.form.patchValue({
@@ -405,7 +406,7 @@ describe("UserFormComponent", () => {
   it("opens the preview dialog for the selected role", async () => {
     const freshComponent = await createWithRoles(of([defaultAppRole]));
 
-    const openSpy = jest
+    const openSpy = vi
       .spyOn(TestBed.inject(AppDialog), "open")
       .mockReturnValue({ afterClosed: () => of(undefined) } as any);
 
@@ -462,27 +463,27 @@ describe("UserFormComponent", () => {
       grantWritePermission();
       getRolesMock.mockReturnValue(of([defaultAppRole, groupRole]));
 
-      const successSpy = jest
+      const successSpy = vi
         .spyOn(TestBed.inject(SnackbarService), "success")
         .mockReturnValue();
-      jest
+      vi
         .spyOn(TestBed.inject(UserService), "getUsernameCount")
         .mockReturnValue(of(0 as any));
-      jest
+      vi
         .spyOn(TestBed.inject(UserService), "updateUserById")
         .mockReturnValue((results.userUpdate ?? of(undefined)) as any);
-      jest
+      vi
         .spyOn(TestBed.inject(TokenRefreshService), "refreshToken")
         .mockReturnValue(of(undefined as any));
-      const updateGrantsSpy = jest
+      const updateGrantsSpy = vi
         .spyOn(TestBed.inject(GroupsService), "updateGroupMemberGrants")
         .mockReturnValue((results.grants ?? of({})) as any);
 
-      jest.spyOn(TestBed.inject(Store), "dispatch").mockReturnValue(of(undefined));
+      vi.spyOn(TestBed.inject(Store), "dispatch").mockReturnValue(of(undefined));
 
       const freshFixture = TestBed.createComponent(UserFormComponent);
       const freshComponent = freshFixture.componentInstance;
-      const closeSpy = jest.spyOn(freshComponent.matDialogRef, "close");
+      const closeSpy = vi.spyOn(freshComponent.matDialogRef, "close");
       freshComponent.user = user;
       freshComponent.ngOnInit();
       await freshFixture.whenStable();

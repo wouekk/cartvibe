@@ -8,11 +8,12 @@ import { AuthState } from "../../store/auth.state";
 import { SetPermissions } from "../../store/auth.state.actions";
 import { ExchangeRatesComponent } from "./exchange-rates.component";
 
+import type { Mock } from "vitest";
 describe("ExchangeRatesComponent", () => {
   let fixture: ComponentFixture<ExchangeRatesComponent>;
   let component: ExchangeRatesComponent;
-  let service: { getExchangeRates: jest.Mock; updateExchangeRates: jest.Mock };
-  let snackbar: { success: jest.Mock; error: jest.Mock };
+  let service: { getExchangeRates: Mock; updateExchangeRates: Mock };
+  let snackbar: { success: Mock; error: Mock };
 
   const table = (rates: { code: string; rate?: string }[]): CurrencyRateTable => ({ mainCurrency: "EUR", rates });
 
@@ -29,10 +30,10 @@ describe("ExchangeRatesComponent", () => {
 
   beforeEach(async () => {
     service = {
-      getExchangeRates: jest.fn(() => of(table([{ code: "CHF" }, { code: "PLN", rate: "0.230000" }]))),
-      updateExchangeRates: jest.fn((view: CurrencyRateTable) => of(view)),
+      getExchangeRates: vi.fn(() => of(table([{ code: "CHF" }, { code: "PLN", rate: "0.230000" }]))),
+      updateExchangeRates: vi.fn((view: CurrencyRateTable) => of(view)),
     };
-    snackbar = { success: jest.fn(), error: jest.fn() };
+    snackbar = { success: vi.fn(), error: vi.fn() };
 
     await TestBed.configureTestingModule({
       imports: [NgxsModule.forRoot([AuthState]), ExchangeRatesComponent],

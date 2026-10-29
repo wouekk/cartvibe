@@ -8,7 +8,7 @@ import { RECEIPT_NAME_MAX_LENGTH, RenameReceiptDialogComponent } from "./rename-
 describe("RenameReceiptDialogComponent", () => {
   let component: RenameReceiptDialogComponent;
   let fixture: ComponentFixture<RenameReceiptDialogComponent>;
-  const close = jest.fn();
+  const close = vi.fn();
 
   beforeEach(() => {
     close.mockReset();

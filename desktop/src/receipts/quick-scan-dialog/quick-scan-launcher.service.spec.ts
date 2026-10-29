@@ -15,9 +15,10 @@ import { SetFeatureConfig } from "../../store/feature-config.state.actions";
 import { QuickScanDialogComponent } from "./quick-scan-dialog.component";
 import { QuickScanLauncher } from "./quick-scan-launcher.service";
 
+import type { Mock } from "vitest";
 describe("QuickScanLauncher", () => {
-  let open: jest.Mock;
-  let hint: jest.Mock;
+  let open: Mock;
+  let hint: Mock;
   let store: Store;
   let confirm: { headerText: string; dialogContent: string; confirmText: string };
 
@@ -25,8 +26,8 @@ describe("QuickScanLauncher", () => {
 
   beforeEach(() => {
     confirm = { headerText: "", dialogContent: "", confirmText: "" };
-    open = jest.fn();
-    hint = jest.fn();
+    open = vi.fn();
+    hint = vi.fn();
     TestBed.configureTestingModule({
       imports: [NgxsModule.forRoot([AuthState, FeatureConfigState])],
       providers: [
@@ -53,7 +54,7 @@ describe("QuickScanLauncher", () => {
   it("asks a member who may set the AI up to add a key, and goes to the AI page on yes", () => {
     store.dispatch(new SetPermissions([Permission.AppReceiptProcessingSettingsUpdate], {}));
     open.mockReturnValue({ componentInstance: confirm, afterClosed: () => of(true) });
-    const navigate = jest.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
+    const navigate = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
     let emitted = false;
 
     launcher().open().subscribe(() => (emitted = true));
@@ -69,7 +70,7 @@ describe("QuickScanLauncher", () => {
   it("stays put when the question is cancelled", () => {
     store.dispatch(new SetPermissions([Permission.AppReceiptProcessingSettingsUpdate], {}));
     open.mockReturnValue({ componentInstance: confirm, afterClosed: () => of(false) });
-    const navigate = jest.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
+    const navigate = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
 
     launcher().open().subscribe();
 

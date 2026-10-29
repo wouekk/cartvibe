@@ -11,14 +11,15 @@ import { ButtonModule } from "src/button";
 import { PipesModule } from "src/pipes/pipes.module";
 import { CancelButtonComponent } from "src/shared-ui/cancel-button/cancel-button.component";
 
+import type { Mocked } from "vitest";
 describe("DeleteAccountDialogComponent", () => {
   let component: DeleteAccountDialogComponent;
   let fixture: ComponentFixture<DeleteAccountDialogComponent>;
-  let dialogRefSpy: jest.Mocked<AppDialogRef<DeleteAccountDialogComponent>>;
+  let dialogRefSpy: Mocked<AppDialogRef<DeleteAccountDialogComponent>>;
 
   async function setUp(data?: DeleteAccountDialogData): Promise<void> {
     dialogRefSpy = {
-      close: jest.fn(),
+      close: vi.fn(),
     } as any;
 
     // app-button carries a routerLink, so the real buttons need a router.

@@ -16,17 +16,18 @@ import { SelectModule } from '../../select/select.module';
 
 import { ApiKeyFormDialogComponent } from './api-key-form-dialog.component';
 
+import type { Mocked } from "vitest";
 describe('ApiKeyFormDialogComponent', () => {
   let component: ApiKeyFormDialogComponent;
   let fixture: ComponentFixture<ApiKeyFormDialogComponent>;
-  let mockDialogRef: jest.Mocked<AppDialogRef<ApiKeyFormDialogComponent>>;
-  let mockApiKeyService: jest.Mocked<ApiKeyService>;
-  let mockSnackbarService: jest.Mocked<SnackbarService>;
+  let mockDialogRef: Mocked<AppDialogRef<ApiKeyFormDialogComponent>>;
+  let mockApiKeyService: Mocked<ApiKeyService>;
+  let mockSnackbarService: Mocked<SnackbarService>;
 
   beforeEach(async () => {
-    mockDialogRef = { close: jest.fn() } as unknown as jest.Mocked<AppDialogRef<ApiKeyFormDialogComponent>>;
-    mockApiKeyService = { createApiKey: jest.fn(), updateApiKey: jest.fn() } as unknown as jest.Mocked<ApiKeyService>;
-    mockSnackbarService = { success: jest.fn(), error: jest.fn() } as unknown as jest.Mocked<SnackbarService>;
+    mockDialogRef = { close: vi.fn() } as unknown as Mocked<AppDialogRef<ApiKeyFormDialogComponent>>;
+    mockApiKeyService = { createApiKey: vi.fn(), updateApiKey: vi.fn() } as unknown as Mocked<ApiKeyService>;
+    mockSnackbarService = { success: vi.fn(), error: vi.fn() } as unknown as Mocked<SnackbarService>;
 
     await TestBed.configureTestingModule({
       declarations: [ApiKeyFormDialogComponent],
@@ -150,7 +151,7 @@ describe('ApiKeyFormDialogComponent', () => {
   });
 
   it('should copy API key to clipboard', async () => {
-    const mockClipboard = { writeText: jest.fn() };
+    const mockClipboard = { writeText: vi.fn() };
     mockClipboard.writeText.mockReturnValue(Promise.resolve());
     Object.defineProperty(navigator, 'clipboard', { value: mockClipboard });
 

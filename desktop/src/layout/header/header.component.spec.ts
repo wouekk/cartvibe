@@ -92,7 +92,7 @@ describe("HeaderComponent", () => {
 
   it("offers a quick toggle that switches between day and night", async () => {
     const theme = TestBed.inject(ThemeService);
-    const setMode = jest.spyOn(theme, "setMode").mockImplementation(() => undefined);
+    const setMode = vi.spyOn(theme, "setMode").mockImplementation(() => undefined);
 
     logIn();
     await fixture.whenStable();
@@ -125,7 +125,7 @@ describe("HeaderComponent", () => {
 
   it("puts a colour palette button next to the day/night toggle, and picking a palette applies it", async () => {
     const theme = TestBed.inject(ThemeService);
-    const setPalette = jest.spyOn(theme, "setPalette").mockImplementation(() => undefined);
+    const setPalette = vi.spyOn(theme, "setPalette").mockImplementation(() => undefined);
 
     logIn();
     await fixture.whenStable();
@@ -153,7 +153,7 @@ describe("HeaderComponent", () => {
   });
 
   it("should not fetch the notification count without app.notifications.read", async () => {
-    const countSpy = jest
+    const countSpy = vi
       .spyOn(notificationsService, "getNotificationCount")
       .mockReturnValue(of(0));
 
@@ -164,7 +164,7 @@ describe("HeaderComponent", () => {
   });
 
   it("should fetch the notification count once permission is present", async () => {
-    const countSpy = jest
+    const countSpy = vi
       .spyOn(notificationsService, "getNotificationCount")
       .mockReturnValue(of(3));
 

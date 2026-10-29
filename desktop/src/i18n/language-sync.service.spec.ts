@@ -29,7 +29,7 @@ describe("LanguageSyncService", () => {
     translation.setLanguages([...translation.languages(), { code: "pl", label: "Polski", locale: "pl" }]);
     store = TestBed.inject(Store);
     http = TestBed.inject(HttpTestingController);
-    jest.spyOn(console, "warn").mockImplementation(() => undefined);
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
     service = TestBed.inject(LanguageSyncService);
   });
 

@@ -19,6 +19,7 @@ import { AuthState, GroupState } from "../../store";
 import { ReportRunnerService } from "../services/report-runner.service";
 import { ReportTemplateListComponent } from "./report-template-list.component";
 
+import type { Mock } from "vitest";
 function makeTemplate(id: number, name: string): ReportTemplate {
   return {
     id,
@@ -45,14 +46,14 @@ describe("ReportTemplateListComponent", () => {
   let fixture: ComponentFixture<ReportTemplateListComponent>;
   let component: ReportTemplateListComponent;
   let runner: {
-    listTemplates: jest.Mock;
-    duplicateTemplate: jest.Mock;
-    deleteTemplate: jest.Mock;
-    generateFromTemplateById: jest.Mock;
-    getTemplate: jest.Mock;
+    listTemplates: Mock;
+    duplicateTemplate: Mock;
+    deleteTemplate: Mock;
+    generateFromTemplateById: Mock;
+    getTemplate: Mock;
   };
-  let router: { navigate: jest.Mock };
-  let snackbar: { success: jest.Mock; error: jest.Mock };
+  let router: { navigate: Mock };
+  let snackbar: { success: Mock; error: Mock };
   let dialogResult: boolean;
   let dialogInstance: { headerText: string; dialogContent: string };
   // Drives the component's canEnterBuilder gate (the "New Report" button). The store mock
@@ -66,29 +67,29 @@ describe("ReportTemplateListComponent", () => {
     dialogInstance = { headerText: "", dialogContent: "" };
     canEnterBuilder = signal(true);
     runner = {
-      listTemplates: jest.fn(() => of({ data: templates, totalCount: templates.length })),
-      duplicateTemplate: jest.fn(() => of(makeTemplate(3, "Alpha duplicate"))),
-      deleteTemplate: jest.fn(() => of(undefined)),
-      generateFromTemplateById: jest.fn(() => of(new Blob())),
-      getTemplate: jest.fn(),
+      listTemplates: vi.fn(() => of({ data: templates, totalCount: templates.length })),
+      duplicateTemplate: vi.fn(() => of(makeTemplate(3, "Alpha duplicate"))),
+      deleteTemplate: vi.fn(() => of(undefined)),
+      generateFromTemplateById: vi.fn(() => of(new Blob())),
+      getTemplate: vi.fn(),
     };
-    router = { navigate: jest.fn() };
-    snackbar = { success: jest.fn(), error: jest.fn() };
+    router = { navigate: vi.fn() };
+    snackbar = { success: vi.fn(), error: vi.fn() };
 
     const store = {
       // The component makes two selectSignal calls: GroupState.groupsWithoutAll (the
       // group list) and AuthState.hasAnyAppPermission([...]) (the builder-entry gate).
       // Route the group one to an empty list and everything else to the canEnterBuilder
       // signal.
-      selectSignal: jest.fn((selector: unknown) =>
+      selectSignal: vi.fn((selector: unknown) =>
         selector === GroupState.groupsWithoutAll ? signal([]) : canEnterBuilder,
       ),
-      selectSnapshot: jest.fn(() => ({ page: 1, pageSize: 50, orderBy: "updated_at", sortDirection: "desc" })),
-      select: jest.fn(() => of(1)),
-      dispatch: jest.fn(),
+      selectSnapshot: vi.fn(() => ({ page: 1, pageSize: 50, orderBy: "updated_at", sortDirection: "desc" })),
+      select: vi.fn(() => of(1)),
+      dispatch: vi.fn(),
     };
     const matDialog = {
-      open: jest.fn(() => ({
+      open: vi.fn(() => ({
         componentInstance: dialogInstance,
         afterClosed: () => of(dialogResult),
       })),
@@ -111,7 +112,7 @@ describe("ReportTemplateListComponent", () => {
     // Installed before createComponent because the builder-entry gate reads the selector
     // at field init. Call through (default) so selectSignal still receives a real selector
     // object, which the store mock maps to the controllable canEnterBuilder signal.
-    jest.spyOn(AuthState, "hasAnyAppPermission");
+    vi.spyOn(AuthState, "hasAnyAppPermission");
 
     fixture = TestBed.createComponent(ReportTemplateListComponent);
     component = fixture.componentInstance;
@@ -120,7 +121,7 @@ describe("ReportTemplateListComponent", () => {
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it("loads templates into the table on init", () => {

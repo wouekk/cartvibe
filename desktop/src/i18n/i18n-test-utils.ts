@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { Dictionary, LanguageEntry } from "./languages/language";
 import { TranslationService } from "./translation.service";
 
@@ -5,9 +7,7 @@ const DIRECTORY = "src/assets/i18n";
 
 /** Reads one of the real JSON files under `src/assets/i18n` (specs only; the app fetches them over HTTP). */
 export function readI18nFile<T>(name: string): T {
-  const fs = jest.requireActual("fs") as typeof import("fs");
-  const path = jest.requireActual("path") as typeof import("path");
-  return JSON.parse(fs.readFileSync(path.join(process.cwd(), DIRECTORY, name), "utf8")) as T;
+  return JSON.parse(readFileSync(join(process.cwd(), DIRECTORY, name), "utf8")) as T;
 }
 
 export function readLanguageRegistry(): LanguageEntry[] {

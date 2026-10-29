@@ -8,6 +8,7 @@ import { ReceiptService, SortDirection } from "../open-api";
 import { SystemSettingsState } from "../store/system-settings.state";
 import { WarrantiesPageComponent } from "./warranties-page.component";
 
+import type { Mock } from "vitest";
 const receipt = (id: number, shopName: string, warrantyProducts: string[] = []) => ({
   id,
   name: `Receipt ${id}`,
@@ -19,13 +20,13 @@ const receipt = (id: number, shopName: string, warrantyProducts: string[] = []) 
 
 describe("WarrantiesPageComponent", () => {
   let harness: RouterTestingHarness;
-  let getReceiptsForGroup: jest.Mock;
+  let getReceiptsForGroup: Mock;
 
   const el = (): HTMLElement => harness.routeNativeElement as HTMLElement;
   const byTestId = (id: string): HTMLElement[] => Array.from(el().querySelectorAll(`[data-testid=${id}]`));
 
   const open = async (response: () => Observable<unknown>, { settle = true } = {}) => {
-    getReceiptsForGroup = jest.fn(response);
+    getReceiptsForGroup = vi.fn(response);
     await TestBed.configureTestingModule({
       imports: [NgxsModule.forRoot([SystemSettingsState])],
       providers: [

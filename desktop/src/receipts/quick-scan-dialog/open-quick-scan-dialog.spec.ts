@@ -9,7 +9,7 @@ describe("openQuickScanDialog", () => {
   // real dialog (and its whole component tree) out of the test.
   function dialogDouble(afterClosed = of(undefined)) {
     return {
-      open: jest.fn().mockReturnValue({ afterClosed: () => afterClosed }),
+      open: vi.fn().mockReturnValue({ afterClosed: () => afterClosed }),
     } as unknown as AppDialog;
   }
 

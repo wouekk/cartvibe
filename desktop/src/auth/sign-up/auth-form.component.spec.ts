@@ -87,7 +87,7 @@ describe('AuthForm', () => {
     const httpTesting = TestBed.inject(HttpTestingController);
     const transition = TestBed.inject(SignInTransitionService);
     let arrive!: (done: boolean) => void;
-    const navigate = jest
+    const navigate = vi
       .spyOn(TestBed.inject(Router), 'navigate')
       .mockReturnValue(new Promise<boolean>((resolve) => (arrive = resolve)));
     component.form.setValue({ username: 'wrangler', password: 'secret' });
@@ -168,7 +168,7 @@ describe('AuthForm', () => {
 
   it('surfaces a sign-up field validation error, which the interceptor ignores', async () => {
     const httpTesting = TestBed.inject(HttpTestingController);
-    const errorSpy = jest
+    const errorSpy = vi
       .spyOn(TestBed.inject(SnackbarService), 'error')
       .mockImplementation(() => {});
     await enterSignUpMode(httpTesting);
@@ -191,7 +191,7 @@ describe('AuthForm', () => {
 
   it('leaves an errorMsg sign-up failure to the interceptor', async () => {
     const httpTesting = TestBed.inject(HttpTestingController);
-    const errorSpy = jest
+    const errorSpy = vi
       .spyOn(TestBed.inject(SnackbarService), 'error')
       .mockImplementation(() => {});
     await enterSignUpMode(httpTesting);

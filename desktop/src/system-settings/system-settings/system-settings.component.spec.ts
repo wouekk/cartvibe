@@ -80,7 +80,7 @@ describe("SystemSettingsComponent", () => {
   it("opens a tab's route when it is picked", () => {
     store.dispatch(new SetPermissions([Permission.AppSystemSettingsRead], {}));
     fixture.detectChanges();
-    const navigate = jest.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
+    const navigate = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
 
     component.select("tasks");
 

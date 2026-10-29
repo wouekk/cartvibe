@@ -13,6 +13,7 @@ import {
   RolePreviewDialogData,
 } from "./role-preview-dialog.component";
 
+import type { Mock } from "vitest";
 describe("RolePreviewDialogComponent", () => {
   const role: Role = {
     id: 1,
@@ -43,15 +44,15 @@ describe("RolePreviewDialogComponent", () => {
 
   let fixture: ComponentFixture<RolePreviewDialogComponent>;
   let component: RolePreviewDialogComponent;
-  let getPermissionsMock: jest.Mock;
+  let getPermissionsMock: Mock;
 
   beforeEach(async () => {
-    getPermissionsMock = jest.fn().mockReturnValue(of(descriptors));
+    getPermissionsMock = vi.fn().mockReturnValue(of(descriptors));
     await TestBed.configureTestingModule({
       imports: [RolePreviewDialogComponent],
       providers: [
         provideZonelessChangeDetection(),
-        { provide: AppDialogRef, useValue: { close: jest.fn() } },
+        { provide: AppDialogRef, useValue: { close: vi.fn() } },
         {
           provide: APP_DIALOG_DATA,
           useValue: { role } as RolePreviewDialogData,

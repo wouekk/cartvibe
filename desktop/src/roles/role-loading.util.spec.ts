@@ -6,9 +6,10 @@ import { AuthState } from "../store";
 import { SetPermissions } from "../store/auth.state.actions";
 import { loadAssignableRoles } from "./role-loading.util";
 
+import type { Mock } from "vitest";
 describe("loadAssignableRoles", () => {
   let store: Store;
-  let getRoles: jest.Mock;
+  let getRoles: Mock;
   let roleService: RoleService;
 
   const roles: Role[] = [
@@ -27,7 +28,7 @@ describe("loadAssignableRoles", () => {
       imports: [NgxsModule.forRoot([AuthState])],
     });
     store = TestBed.inject(Store);
-    getRoles = jest.fn().mockReturnValue(of(roles));
+    getRoles = vi.fn().mockReturnValue(of(roles));
     roleService = { getRoles } as unknown as RoleService;
   });
 

@@ -24,6 +24,7 @@ import { SystemSettingsFormComponent } from "./system-settings-form.component";
 import { SAVED_KEY_PLACEHOLDER } from "../../ai-settings/ai-settings-shared";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 
+import type { MockInstance } from "vitest";
 describe("SystemSettingsFormComponent", () => {
   let component: SystemSettingsFormComponent;
   let fixture: ComponentFixture<SystemSettingsFormComponent>;
@@ -59,7 +60,7 @@ describe("SystemSettingsFormComponent", () => {
                 }
             }
         },
-        { provide: Router, useValue: { navigate: jest.fn().mockResolvedValue(true) } },
+        { provide: Router, useValue: { navigate: vi.fn().mockResolvedValue(true) } },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
     ]
@@ -407,9 +408,9 @@ describe("SystemSettingsFormComponent", () => {
     const snackbarService = TestBed.inject(SnackbarService);
     const router = TestBed.inject(Router);
 
-    const updateSystemSettingsSpy = jest.spyOn(systemSettingsService, "updateSystemSettings").mockReturnValue(of(null as any));
-    const snackbarServiceSpy = jest.spyOn(snackbarService, "success");
-    const routerSpy = jest.spyOn(router, "navigate");
+    const updateSystemSettingsSpy = vi.spyOn(systemSettingsService, "updateSystemSettings").mockReturnValue(of(null as any));
+    const snackbarServiceSpy = vi.spyOn(snackbarService, "success");
+    const routerSpy = vi.spyOn(router, "navigate");
 
     component.originalSystemSettings.taskQueueConfigurations = [{
       name: QueueName.QuickScan,
@@ -592,9 +593,9 @@ describe("SystemSettingsFormComponent", () => {
     it("dispatches the saved zone once the save succeeds", () => {
       const systemSettingsService = TestBed.inject(SystemSettingsService);
       const featureConfigService = TestBed.inject(FeatureConfigService);
-      jest.spyOn(systemSettingsService, "updateSystemSettings").mockReturnValue(of(null as any));
-      jest.spyOn(featureConfigService, "getFeatureConfig").mockReturnValue(of({} as any));
-      const dispatchSpy = jest.spyOn(store, "dispatch");
+      vi.spyOn(systemSettingsService, "updateSystemSettings").mockReturnValue(of(null as any));
+      vi.spyOn(featureConfigService, "getFeatureConfig").mockReturnValue(of({} as any));
+      const dispatchSpy = vi.spyOn(store, "dispatch");
 
       setRouteSettings({ timeZone: "UTC" });
       component.ngOnInit();
@@ -610,10 +611,10 @@ describe("SystemSettingsFormComponent", () => {
 
     it("does not dispatch a zone the server rejected", () => {
       const systemSettingsService = TestBed.inject(SystemSettingsService);
-      jest
+      vi
         .spyOn(systemSettingsService, "updateSystemSettings")
         .mockReturnValue(throwError(() => new Error("400")) as any);
-      const dispatchSpy = jest.spyOn(store, "dispatch");
+      const dispatchSpy = vi.spyOn(store, "dispatch");
 
       component.ngOnInit();
       component.form.get("timeZone")!.setValue("America/New_York");
@@ -688,11 +689,11 @@ describe("SystemSettingsFormComponent", () => {
     });
   });
   describe("exchange rates share the Save changes button", () => {
-    const fakeRates = (dirty: boolean) => ({ dirty: () => dirty, save: jest.fn() });
-    let updateSystemSettings: jest.SpyInstance;
+    const fakeRates = (dirty: boolean) => ({ dirty: () => dirty, save: vi.fn() });
+    let updateSystemSettings: MockInstance;
 
     beforeEach(() => {
-      updateSystemSettings = jest
+      updateSystemSettings = vi
         .spyOn(TestBed.inject(SystemSettingsService), "updateSystemSettings")
         .mockReturnValue(of(null as any));
     });
@@ -728,7 +729,7 @@ describe("SystemSettingsFormComponent", () => {
 
   describe("the Logo.dev key", () => {
     const submitted = () => {
-      const spy = jest
+      const spy = vi
         .spyOn(TestBed.inject(SystemSettingsService), "updateSystemSettings")
         .mockReturnValue(of({ shopLogoKeySet: true } as any));
       component.form.markAsDirty();
@@ -751,14 +752,14 @@ describe("SystemSettingsFormComponent", () => {
       key.markAsDirty();
       expect(submitted()["shopLogoKey"]).toBe("sk_ExampleKey12345");
 
-      jest.restoreAllMocks();
+      vi.restoreAllMocks();
       key.setValue("");
       key.markAsDirty();
       expect(submitted()["shopLogoKey"]).toBe("");
     });
 
     it("shows how many logos are downloaded on the Shop Logos tab", async () => {
-      jest
+      vi
         .spyOn(TestBed.inject(ShopLogoService), "getShopLogoStatus")
         .mockReturnValue(of({ running: false, downloaded: 312, total: 393, lastError: "Logo.dev refused the key" } as any));
       const activatedRoute = TestBed.inject(ActivatedRoute);
@@ -774,8 +775,8 @@ describe("SystemSettingsFormComponent", () => {
 
     it("offers Fetch logos now only with a saved key, and starts a fetch", () => {
       const api = TestBed.inject(ShopLogoService);
-      jest.spyOn(api, "getShopLogoStatus").mockReturnValue(of({ running: false, downloaded: 1, total: 2, lastError: "" } as any));
-      const start = jest
+      vi.spyOn(api, "getShopLogoStatus").mockReturnValue(of({ running: false, downloaded: 1, total: 2, lastError: "" } as any));
+      const start = vi
         .spyOn(api, "startShopLogoSync")
         .mockReturnValue(of({ running: false, downloaded: 1, total: 2, lastError: "" } as any));
 
@@ -799,13 +800,13 @@ describe("SystemSettingsFormComponent", () => {
 
     it("deletes the logos only after the confirmation, and never during a download", () => {
       const api = TestBed.inject(ShopLogoService);
-      const remove = jest
+      const remove = vi
         .spyOn(api, "deleteShopLogos")
         .mockReturnValue(of({ running: false, downloaded: 0, total: 2, lastError: "" } as any));
-      jest.spyOn(TestBed.inject(FeatureConfigService), "getFeatureConfig").mockReturnValue(of({} as any));
+      vi.spyOn(TestBed.inject(FeatureConfigService), "getFeatureConfig").mockReturnValue(of({} as any));
       const answer = new Subject<boolean | undefined>();
       const dialogRef = { componentInstance: {} as any, afterClosed: () => answer.asObservable() };
-      jest.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue(dialogRef as any);
+      vi.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue(dialogRef as any);
 
       component.logoStatus.set({ running: true, downloaded: 2, total: 2, lastError: "" } as any);
       expect(component.canDeleteLogos()).toBe(false);

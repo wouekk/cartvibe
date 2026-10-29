@@ -9,14 +9,15 @@ import { buildReportForm } from "../models/report-form.factory";
 import { ReportPreviewPanelComponent } from "./report-preview-panel.component";
 
 
+import type { Mock } from "vitest";
 describe("ReportPreviewPanelComponent", () => {
   let fixture: ComponentFixture<ReportPreviewPanelComponent>;
   let component: ReportPreviewPanelComponent;
-  let dialog: { open: jest.Mock };
+  let dialog: { open: Mock };
   let form: FormGroup;
 
   beforeEach(async () => {
-    dialog = { open: jest.fn() };
+    dialog = { open: vi.fn() };
     await TestBed.configureTestingModule({
       imports: [TranslatePipe],
       declarations: [ReportPreviewPanelComponent],

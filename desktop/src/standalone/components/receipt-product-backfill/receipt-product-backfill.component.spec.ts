@@ -7,9 +7,10 @@ import { AuthState } from "../../../store/auth.state";
 import { SetPermissions } from "../../../store/auth.state.actions";
 import { ReceiptProductBackfillComponent } from "./receipt-product-backfill.component";
 
+import type { Mock } from "vitest";
 describe("ReceiptProductBackfillComponent", () => {
   let fixture: ComponentFixture<ReceiptProductBackfillComponent>;
-  let service: { queueGroupReceiptProducts: jest.Mock };
+  let service: { queueGroupReceiptProducts: Mock };
 
   const button = (): HTMLButtonElement | null =>
     fixture.nativeElement.querySelector('[data-testid="receipt-product-backfill"]');
@@ -22,7 +23,7 @@ describe("ReceiptProductBackfillComponent", () => {
   };
 
   beforeEach(async () => {
-    service = { queueGroupReceiptProducts: jest.fn(() => of({ queued: 4 })) };
+    service = { queueGroupReceiptProducts: vi.fn(() => of({ queued: 4 })) };
     await TestBed.configureTestingModule({
       imports: [ReceiptProductBackfillComponent, NgxsModule.forRoot([AuthState])],
       providers: [provideZonelessChangeDetection(), { provide: ReceiptProductService, useValue: service }],

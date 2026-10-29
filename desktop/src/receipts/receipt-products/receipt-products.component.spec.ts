@@ -8,6 +8,7 @@ import { SetGroupCatalog, SetPermissions } from "../../store/auth.state.actions"
 import { SystemSettingsState } from "../../store/system-settings.state";
 import { ReceiptProductsComponent } from "./receipt-products.component";
 
+import type { Mock } from "vitest";
 const view = (overrides: Partial<ReceiptProductsView>): ReceiptProductsView => ({
   status: "DONE",
   lastError: "",
@@ -17,7 +18,7 @@ const view = (overrides: Partial<ReceiptProductsView>): ReceiptProductsView => (
 
 describe("ReceiptProductsComponent", () => {
   let fixture: ComponentFixture<ReceiptProductsComponent>;
-  let service: { [method: string]: jest.Mock };
+  let service: { [method: string]: Mock };
 
   const element = (testId: string): HTMLElement | null =>
     fixture.nativeElement.querySelector(`[data-testid="${testId}"]`);
@@ -33,12 +34,12 @@ describe("ReceiptProductsComponent", () => {
 
   beforeEach(async () => {
     service = {
-      getReceiptProducts: jest.fn(),
-      readReceiptProducts: jest.fn(),
-      addReceiptProduct: jest.fn(),
-      updateReceiptProduct: jest.fn(),
-      deleteReceiptProduct: jest.fn(),
-      setReceiptProductLabels: jest.fn(),
+      getReceiptProducts: vi.fn(),
+      readReceiptProducts: vi.fn(),
+      addReceiptProduct: vi.fn(),
+      updateReceiptProduct: vi.fn(),
+      deleteReceiptProduct: vi.fn(),
+      setReceiptProductLabels: vi.fn(),
     };
     await TestBed.configureTestingModule({
       imports: [ReceiptProductsComponent, NgxsModule.forRoot([AuthState, SystemSettingsState])],

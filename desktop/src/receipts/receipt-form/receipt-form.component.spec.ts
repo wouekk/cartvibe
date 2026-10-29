@@ -22,6 +22,7 @@ import { SetGroups, SetSelectedGroupId } from "../../store/group.state.actions";
 import { StoreModule } from "../../store/store.module";
 import { ReceiptFormComponent } from "./receipt-form.component";
 
+import type { Mock, MockInstance } from "vitest";
 describe("ReceiptFormComponent", () => {
   let component: ReceiptFormComponent;
   let fixture: ComponentFixture<ReceiptFormComponent>;
@@ -67,10 +68,10 @@ describe("ReceiptFormComponent", () => {
 
 
   it("should init form correctly when there is no initial data", () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     // Midday UTC, so "today" in the default UTC app zone is Jan 1 whatever the
     // test machine's own zone; the form holds it as that day's local midnight.
-    jest.setSystemTime(new Date(Date.UTC(2020, 0, 1, 12)));
+    vi.setSystemTime(new Date(Date.UTC(2020, 0, 1, 12)));
     const mockedDate = new Date(2020, 0, 1);
     component.ngOnInit();
 
@@ -88,7 +89,7 @@ describe("ReceiptFormComponent", () => {
       groupId: "",
       status: ReceiptStatus.Open,
     });
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   describe("a new receipt (Phase 3 C1/C2)", () => {
@@ -98,10 +99,10 @@ describe("ReceiptFormComponent", () => {
     });
 
     it("is named after today and paid by the user adding it, without asking", () => {
-      jest.useFakeTimers();
-      jest.setSystemTime(new Date(Date.UTC(2020, 0, 1, 12)));
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(Date.UTC(2020, 0, 1, 12)));
       routeDataSubject.next({ mode: FormMode.add });
-      jest.useRealTimers();
+      vi.useRealTimers();
 
       expect(component.form.get("name")?.value).toEqual("Receipt 1 Jan 2020");
       expect(component.form.get("paidByUserId")?.value).toEqual(5);
@@ -124,7 +125,7 @@ describe("ReceiptFormComponent", () => {
 
     it("offers Cancel next to Save, and Cancel goes back to the receipts list without saving", () => {
       const router = TestBed.inject(Router);
-      const navigate = jest.spyOn(router, "navigate").mockResolvedValue(true);
+      const navigate = vi.spyOn(router, "navigate").mockResolvedValue(true);
       routeDataSubject.next({ mode: FormMode.add });
       fixture.detectChanges();
 
@@ -137,7 +138,7 @@ describe("ReceiptFormComponent", () => {
     });
 
     it("cancels an edit back to the receipt itself", () => {
-      const navigate = jest.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
+      const navigate = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
       routeDataSubject.next({ mode: FormMode.edit, receipt: { id: 7, name: "R", amount: "1.00", paidByUserId: 1 } as any });
 
       component.cancel();
@@ -165,7 +166,7 @@ describe("ReceiptFormComponent", () => {
         value: () => ({ currentlyShownImageIndex: 0 }),
         configurable: true,
       });
-      jest.spyOn(TestBed.inject(ReceiptImageService), "magicFillReceipt")
+      vi.spyOn(TestBed.inject(ReceiptImageService), "magicFillReceipt")
         .mockReturnValue(of({ name: "Corner Shop", paidByUserId: 9 } as any));
 
       component.magicFill();
@@ -206,12 +207,12 @@ describe("ReceiptFormComponent", () => {
       ],
     } as any;
 
-    const receiptImageServiceSpy = jest.spyOn(
+    const receiptImageServiceSpy = vi.spyOn(
       TestBed.inject(ReceiptImageService),
       "magicFillReceipt"
     ).mockReturnValue(of(magicReceipt));
 
-    const snackbarSpy = jest.spyOn(
+    const snackbarSpy = vi.spyOn(
       TestBed.inject(SnackbarService),
       "success"
     ).mockReturnValue(undefined);
@@ -260,7 +261,7 @@ describe("ReceiptFormComponent", () => {
       date: "0001-01-01T00:00:00Z",
     } as any;
 
-    const receiptImageServiceSpy = jest.spyOn(
+    const receiptImageServiceSpy = vi.spyOn(
       TestBed.inject(ReceiptImageService),
       "magicFillReceipt"
     ).mockReturnValue(of(magicReceipt));
@@ -301,12 +302,12 @@ describe("ReceiptFormComponent", () => {
       date: "0001-01-01T00:00:00Z",
     } as any;
 
-    const receiptImageServiceSpy = jest.spyOn(
+    const receiptImageServiceSpy = vi.spyOn(
       TestBed.inject(ReceiptImageService),
       "magicFillReceipt"
     ).mockReturnValue(of(magicReceipt));
 
-    const snackbarSpy = jest.spyOn(
+    const snackbarSpy = vi.spyOn(
       TestBed.inject(SnackbarService),
       "error"
     ).mockReturnValue(undefined);
@@ -370,7 +371,7 @@ describe("ReceiptFormComponent", () => {
   it("sets only the total when the products card asks, and shows the new total", () => {
     routeDataSubject.next({ receipt: { id: 4, name: "Market", amount: "75.00" } as any });
     const service = TestBed.inject(ReceiptService);
-    const setAmount = jest.spyOn(service, "setReceiptAmount").mockReturnValue(of({ amount: "85.00" }) as any);
+    const setAmount = vi.spyOn(service, "setReceiptAmount").mockReturnValue(of({ amount: "85.00" }) as any);
 
     component.setTotal("85.00");
 
@@ -380,25 +381,25 @@ describe("ReceiptFormComponent", () => {
   });
 
   it("changes only the date on the view page of a settled receipt", () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     try {
       TestBed.inject(Store).dispatch(new SetPermissions([], { 4: [Permission.GroupReceiptsUpdate] }));
       routeDataSubject.next({
         mode: FormMode.view,
         receipt: { id: 4, groupId: 4, name: "Market", amount: "75.00", status: ReceiptStatus.Resolved, date: "2026-10-01T00:00:00Z" } as any,
       });
-      const setDate = jest.spyOn(TestBed.inject(ReceiptService), "setReceiptDate").mockReturnValue(of({ date: "2026-10-21" }) as any);
+      const setDate = vi.spyOn(TestBed.inject(ReceiptService), "setReceiptDate").mockReturnValue(of({ date: "2026-10-21" }) as any);
 
       expect(component.canSetDateInPlace()).toBe(true);
       component.form.get("date")?.setValue(new Date(2026, 9, 21));
-      jest.advanceTimersByTime(800);
+      vi.advanceTimersByTime(800);
 
       expect(setDate).toHaveBeenCalledTimes(1);
       expect(setDate).toHaveBeenCalledWith(4, { date: "2026-10-21" });
       expect(component.originalReceipt?.date).toEqual("2026-10-21T00:00:00Z");
       expect(component.form.get("status")?.value).toEqual(ReceiptStatus.Resolved);
     } finally {
-      jest.useRealTimers();
+      vi.useRealTimers();
     }
   });
 
@@ -423,8 +424,8 @@ describe("ReceiptFormComponent", () => {
       });
     }
 
-    function stubCommentsComponent(): { addMagicFilledComments: jest.Mock } {
-      const addMagicFilledComments = jest.fn();
+    function stubCommentsComponent(): { addMagicFilledComments: Mock } {
+      const addMagicFilledComments = vi.fn();
       Object.defineProperty(component, "receiptCommentsComponent", {
         value: () => ({ addMagicFilledComments }),
         configurable: true,
@@ -432,8 +433,8 @@ describe("ReceiptFormComponent", () => {
       return { addMagicFilledComments };
     }
 
-    function stubPaidByAutocomplete(): { syncSingleDisplay: jest.Mock } {
-      const syncSingleDisplay = jest.fn();
+    function stubPaidByAutocomplete(): { syncSingleDisplay: Mock } {
+      const syncSingleDisplay = vi.fn();
       Object.defineProperty(component, "paidByAutocomplete", {
         value: () => ({ autocompleteComponent: () => ({ syncSingleDisplay }) }),
         configurable: true,
@@ -441,18 +442,18 @@ describe("ReceiptFormComponent", () => {
       return { syncSingleDisplay };
     }
 
-    function mockMagicFill(magicReceipt: any): jest.SpyInstance {
-      return jest
+    function mockMagicFill(magicReceipt: any): MockInstance {
+      return vi
         .spyOn(TestBed.inject(ReceiptImageService), "magicFillReceipt")
         .mockReturnValue(of(magicReceipt));
     }
 
-    function spySuccess(): jest.SpyInstance {
-      return jest.spyOn(TestBed.inject(SnackbarService), "success").mockReturnValue(undefined);
+    function spySuccess(): MockInstance {
+      return vi.spyOn(TestBed.inject(SnackbarService), "success").mockReturnValue(undefined);
     }
 
-    function spyError(): jest.SpyInstance {
-      return jest.spyOn(TestBed.inject(SnackbarService), "error").mockReturnValue(undefined);
+    function spyError(): MockInstance {
+      return vi.spyOn(TestBed.inject(SnackbarService), "error").mockReturnValue(undefined);
     }
 
 
@@ -857,7 +858,7 @@ describe("ReceiptFormComponent", () => {
     // output does. The handler is mocked out because actually closing here runs
     // a change-detection pass this block does not stub view children for.
     it("wires the close button to closeExpandedImage", () => {
-      const close = jest
+      const close = vi
         .spyOn(component, "closeExpandedImage")
         .mockImplementation(() => {});
       openDialogCarousel();
@@ -879,7 +880,7 @@ describe("ReceiptFormComponent", () => {
     let receiptService: ReceiptService;
 
     const stubDialog = (result: unknown) =>
-      jest.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({
+      vi.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({
         componentInstance: {},
         afterClosed: () => of(result),
       } as any);
@@ -892,7 +893,7 @@ describe("ReceiptFormComponent", () => {
       component.mode = FormMode.edit;
       component.originalReceipt = { id: 4, name: "Lunch" } as any;
       component.form.get("name")?.setValue("Lunch");
-      const rename = jest.spyOn(receiptService, "renameReceipt").mockReturnValue(of({ name: "Weekly shop" }) as any);
+      const rename = vi.spyOn(receiptService, "renameReceipt").mockReturnValue(of({ name: "Weekly shop" }) as any);
       const open = stubDialog("Weekly shop");
 
       component.renameReceipt();
@@ -906,7 +907,7 @@ describe("ReceiptFormComponent", () => {
     it("only fills in the name on a receipt that is not saved yet", () => {
       component.mode = FormMode.add;
       component.originalReceipt = undefined;
-      const rename = jest.spyOn(receiptService, "renameReceipt");
+      const rename = vi.spyOn(receiptService, "renameReceipt");
       stubDialog("Corner shop");
 
       component.renameReceipt();
@@ -919,7 +920,7 @@ describe("ReceiptFormComponent", () => {
       component.mode = FormMode.edit;
       component.originalReceipt = { id: 4, name: "Lunch" } as any;
       component.form.get("name")?.setValue("Lunch");
-      const rename = jest.spyOn(receiptService, "renameReceipt");
+      const rename = vi.spyOn(receiptService, "renameReceipt");
       stubDialog(undefined);
 
       component.renameReceipt();
@@ -929,7 +930,7 @@ describe("ReceiptFormComponent", () => {
     });
 
     it("removes the image only once the confirmation is accepted", () => {
-      const remove = jest.spyOn(component, "removeImage").mockImplementation(() => {});
+      const remove = vi.spyOn(component, "removeImage").mockImplementation(() => {});
 
       stubDialog(false);
       component.confirmRemoveImage();
@@ -942,7 +943,7 @@ describe("ReceiptFormComponent", () => {
     });
 
     it("opens the preview full width on a phone", () => {
-      const open = jest.spyOn(TestBed.inject(AppDialog), "open");
+      const open = vi.spyOn(TestBed.inject(AppDialog), "open");
       const original = window.innerWidth;
       try {
         Object.defineProperty(window, "innerWidth", { value: 390, configurable: true });
@@ -959,7 +960,7 @@ describe("ReceiptFormComponent", () => {
     let receiptService: ReceiptService;
 
     const stubDialog = (confirmed: boolean | undefined) =>
-      jest.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({
+      vi.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({
         componentInstance: {},
         afterClosed: () => of(confirmed),
       } as any);
@@ -967,14 +968,14 @@ describe("ReceiptFormComponent", () => {
     beforeEach(() => {
       component.originalReceipt = { id: 4, name: "Lunch" } as any;
       receiptService = TestBed.inject(ReceiptService);
-      jest
+      vi
         .spyOn(receiptService, "duplicateReceipt")
         .mockReturnValue(of({ id: 9 }) as any);
       // The success path renders a template-driven snackbar; the template is
       // only available once the view is laid out, so stub the service call.
-      jest
+      vi
         .spyOn(TestBed.inject(SnackbarService), "successFromTemplate")
-        .mockReturnValue({ dismiss: jest.fn() } as any);
+        .mockReturnValue({ dismiss: vi.fn() } as any);
     });
 
     it("duplicates the receipt once confirmed", () => {
@@ -1010,7 +1011,7 @@ describe("ReceiptFormComponent", () => {
     let store: Store;
     let receiptService: ReceiptService;
     let receiptImageService: ReceiptImageService;
-    let snackbarError: jest.SpyInstance;
+    let snackbarError: MockInstance;
     let commentCount: number;
 
     const group = (id: number): any => ({
@@ -1049,8 +1050,8 @@ describe("ReceiptFormComponent", () => {
       store = TestBed.inject(Store);
       receiptService = TestBed.inject(ReceiptService);
       receiptImageService = TestBed.inject(ReceiptImageService);
-      snackbarError = jest.spyOn(TestBed.inject(SnackbarService), "error");
-      jest.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
+      snackbarError = vi.spyOn(TestBed.inject(SnackbarService), "error");
+      vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
       commentCount = 0;
 
       store.dispatch(new SetGroups([group(7), group(8)]));
@@ -1088,8 +1089,8 @@ describe("ReceiptFormComponent", () => {
 
     it("creates with exactly one request carrying the files and comments", () => {
       const httpMock = TestBed.inject(HttpTestingController);
-      const createSpy = jest.spyOn(receiptService, "createReceiptWithFiles");
-      const uploadSpy = jest.spyOn(receiptImageService, "uploadReceiptImage");
+      const createSpy = vi.spyOn(receiptService, "createReceiptWithFiles");
+      const uploadSpy = vi.spyOn(receiptImageService, "uploadReceiptImage");
       openAddForm();
       fillValidForm();
       queueComment("Business lunch");
@@ -1119,7 +1120,7 @@ describe("ReceiptFormComponent", () => {
 
     it("still creates in one request when the group requires nothing", () => {
       store.dispatch(new SetPermissions([], { 7: [Permission.GroupReceiptsCreate] }, {}));
-      const createSpy = jest
+      const createSpy = vi
         .spyOn(receiptService, "createReceiptWithFiles")
         .mockReturnValue(of(new HttpResponse({ body: { id: 5 } })) as any);
       openAddForm();
@@ -1136,7 +1137,7 @@ describe("ReceiptFormComponent", () => {
     });
 
     it("blocks an add-mode submit without the required image", () => {
-      const createSpy = jest.spyOn(receiptService, "createReceiptWithFiles");
+      const createSpy = vi.spyOn(receiptService, "createReceiptWithFiles");
       openAddForm();
       fillValidForm();
       queueComment("Has a comment");
@@ -1152,7 +1153,7 @@ describe("ReceiptFormComponent", () => {
     });
 
     it("blocks an add-mode submit without the required comment", () => {
-      const createSpy = jest.spyOn(receiptService, "createReceiptWithFiles");
+      const createSpy = vi.spyOn(receiptService, "createReceiptWithFiles");
       openAddForm();
       fillValidForm();
       component.filesToUpload.set([{ file: pngFile("a.png"), receiptId: 0 }]);
@@ -1191,7 +1192,7 @@ describe("ReceiptFormComponent", () => {
     });
 
     it("checks the saved images and comments in edit mode", () => {
-      const updateSpy = jest.spyOn(receiptService, "updateReceipt");
+      const updateSpy = vi.spyOn(receiptService, "updateReceipt");
       openEditForm({ id: 3, name: "R", amount: "1.00", paidByUserId: 1, groupId: 7 });
       component.images.set([]);
 
@@ -1204,7 +1205,7 @@ describe("ReceiptFormComponent", () => {
     });
 
     it("locks removing the last image in edit mode when an image is required", () => {
-      const deleteSpy = jest.spyOn(receiptImageService, "deleteReceiptImageById");
+      const deleteSpy = vi.spyOn(receiptImageService, "deleteReceiptImageById");
       openEditForm({ id: 3, name: "R", amount: "1.00", paidByUserId: 1, groupId: 7 });
       component.images.set([{ id: 11 } as any]);
 
@@ -1244,7 +1245,7 @@ describe("ReceiptFormComponent", () => {
 
     beforeEach(() => {
       receiptService = TestBed.inject(ReceiptService);
-      jest.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
+      vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
       // The store persists across this file; clear any role requirement an
       // earlier describe left on group 7 so submit reaches the request.
       TestBed.inject(Store).dispatch(new SetPermissions([], {}, {}));
@@ -1274,7 +1275,7 @@ describe("ReceiptFormComponent", () => {
     });
 
     it("sends the picked days as midnight UTC, leaving the form's Dates alone", () => {
-      const updateSpy = jest
+      const updateSpy = vi
         .spyOn(receiptService, "updateReceipt")
         .mockReturnValue(of({}) as any);
       routeDataSubject.next({ mode: FormMode.edit, receipt: editReceipt });

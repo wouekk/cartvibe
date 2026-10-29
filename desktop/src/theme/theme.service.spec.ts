@@ -13,7 +13,7 @@ describe("ThemeService", () => {
       matches: initiallyDark,
       addEventListener: (_type: string, listener: () => void) => listeners.push(listener),
     };
-    window.matchMedia = jest.fn().mockReturnValue(query) as unknown as typeof window.matchMedia;
+    window.matchMedia = vi.fn().mockReturnValue(query) as unknown as typeof window.matchMedia;
     return {
       switchTo: (dark: boolean) => {
         query.matches = dark;
@@ -149,7 +149,7 @@ describe("ThemeService", () => {
 
   it("still works when storage is blocked", () => {
     const service = create();
-    const setItem = jest.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+    const setItem = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
       throw new Error("blocked");
     });
 

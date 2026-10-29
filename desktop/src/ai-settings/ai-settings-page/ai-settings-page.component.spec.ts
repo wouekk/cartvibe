@@ -15,28 +15,29 @@ import { SnackbarService } from "../../services";
 import { FeatureConfigState } from "../../store/feature-config.state";
 import { AI_SETTINGS_NAME, AiSettingsPageComponent, describeConnection } from "./ai-settings-page.component";
 
+import type { Mock } from "vitest";
 describe("AiSettingsPageComponent", () => {
   let fixture: ComponentFixture<AiSettingsPageComponent>;
   let component: AiSettingsPageComponent;
-  let processingService: { [method: string]: jest.Mock };
-  let systemSettingsService: { [method: string]: jest.Mock };
-  let snackbar: { success: jest.Mock; error: jest.Mock };
+  let processingService: { [method: string]: Mock };
+  let systemSettingsService: { [method: string]: Mock };
+  let snackbar: { success: Mock; error: Mock };
 
   const setUp = async (systemSettings: object, stored?: object): Promise<void> => {
     processingService = {
-      getReceiptProcessingSettingsById: jest.fn(() => of(stored)),
-      getAiModels: jest.fn(() => of([])),
-      createReceiptProcessingSettings: jest.fn((command) => of({ id: 5, ...command })),
-      updateReceiptProcessingSettingsById: jest.fn((id, _updateKey, command) => of({ id, ...command })),
-      checkReceiptProcessingSettingsConnectivity: jest.fn(() =>
+      getReceiptProcessingSettingsById: vi.fn(() => of(stored)),
+      getAiModels: vi.fn(() => of([])),
+      createReceiptProcessingSettings: vi.fn((command) => of({ id: 5, ...command })),
+      updateReceiptProcessingSettingsById: vi.fn((id, _updateKey, command) => of({ id, ...command })),
+      checkReceiptProcessingSettingsConnectivity: vi.fn(() =>
         of({ status: SystemTaskStatus.Succeeded, resultDescription: "" })
       ),
     };
     systemSettingsService = {
-      getSystemSettings: jest.fn(() => of(systemSettings)),
-      updateSystemSettings: jest.fn((command) => of(command)),
+      getSystemSettings: vi.fn(() => of(systemSettings)),
+      updateSystemSettings: vi.fn((command) => of(command)),
     };
-    snackbar = { success: jest.fn(), error: jest.fn() };
+    snackbar = { success: vi.fn(), error: vi.fn() };
 
     await TestBed.configureTestingModule({
       imports: [AiSettingsPageComponent, NgxsModule.forRoot([FeatureConfigState])],
@@ -46,7 +47,7 @@ describe("AiSettingsPageComponent", () => {
         provideHttpClientTesting(),
         { provide: ReceiptProcessingSettingsService, useValue: processingService },
         { provide: SystemSettingsService, useValue: systemSettingsService },
-        { provide: FeatureConfigService, useValue: { getFeatureConfig: jest.fn(() => of({ aiPoweredReceipts: true })) } },
+        { provide: FeatureConfigService, useValue: { getFeatureConfig: vi.fn(() => of({ aiPoweredReceipts: true })) } },
         { provide: SnackbarService, useValue: snackbar },
       ],
     }).compileComponents();
@@ -201,16 +202,16 @@ describe("AiSettingsPageComponent", () => {
       await setUp({});
       TestBed.resetTestingModule();
       processingService = {
-        getAiModels: jest.fn(() => of([])),
-        getPagedProcessingSettings: jest.fn(() =>
+        getAiModels: vi.fn(() => of([])),
+        getPagedProcessingSettings: vi.fn(() =>
           of({ data: [{ id: 3, aiType: AiType.Gemini, model: "gemini-2.5-flash", url: "", isVisionModel: true }] })
         ),
-        updateReceiptProcessingSettingsById: jest.fn((id, _updateKey, command) => of({ id, ...command })),
-        checkReceiptProcessingSettingsConnectivity: jest.fn(),
+        updateReceiptProcessingSettingsById: vi.fn((id, _updateKey, command) => of({ id, ...command })),
+        checkReceiptProcessingSettingsConnectivity: vi.fn(),
       };
       systemSettingsService = {
-        getSystemSettings: jest.fn(() => throwError(() => new Error("403"))),
-        updateSystemSettings: jest.fn(),
+        getSystemSettings: vi.fn(() => throwError(() => new Error("403"))),
+        updateSystemSettings: vi.fn(),
       };
       await TestBed.configureTestingModule({
         imports: [AiSettingsPageComponent, NgxsModule.forRoot([FeatureConfigState])],
@@ -220,8 +221,8 @@ describe("AiSettingsPageComponent", () => {
           provideHttpClientTesting(),
           { provide: ReceiptProcessingSettingsService, useValue: processingService },
           { provide: SystemSettingsService, useValue: systemSettingsService },
-          { provide: FeatureConfigService, useValue: { getFeatureConfig: jest.fn(() => of({ aiPoweredReceipts: true })) } },
-          { provide: SnackbarService, useValue: { success: jest.fn(), error: jest.fn() } },
+          { provide: FeatureConfigService, useValue: { getFeatureConfig: vi.fn(() => of({ aiPoweredReceipts: true })) } },
+          { provide: SnackbarService, useValue: { success: vi.fn(), error: vi.fn() } },
         ],
       }).compileComponents();
       fixture = TestBed.createComponent(AiSettingsPageComponent);

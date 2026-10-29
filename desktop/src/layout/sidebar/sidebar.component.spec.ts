@@ -154,7 +154,7 @@ describe("SidebarComponent", () => {
     });
 
     it("lands on the group's overview when switching groups", () => {
-      const navigate = jest.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
+      const navigate = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
 
       component.groupClicked(5);
 
@@ -356,7 +356,7 @@ describe("SidebarComponent", () => {
       const service = TestBed.inject(HlmSidebarService);
       const router = TestBed.inject(Router);
       router.resetConfig([{ path: "receipts", children: [] }]);
-      const setOpenMobile = jest.spyOn(service, "setOpenMobile");
+      const setOpenMobile = vi.spyOn(service, "setOpenMobile");
 
       await router.navigateByUrl("/receipts");
       await fixture.whenStable();

@@ -79,7 +79,7 @@ describe("ReceiptCommentsComponent", () => {
 
 
   it("should delete comment that is a top level comment", () => {
-    const spy = jest.spyOn(TestBed.inject(CommentService), "deleteComment");
+    const spy = vi.spyOn(TestBed.inject(CommentService), "deleteComment");
     spy.mockReturnValue(of(undefined as any));
     fixture.componentRef.setInput('comments', comments);
 
@@ -113,7 +113,7 @@ describe("ReceiptCommentsComponent", () => {
   });
 
   it("should add comment if form is valid and is in add mode", () => {
-    const eventEmitterSpy = jest.spyOn(component.commentsUpdated, "emit");
+    const eventEmitterSpy = vi.spyOn(component.commentsUpdated, "emit");
     store.reset({
       auth: {
         userId: 1,
@@ -246,7 +246,7 @@ describe("ReceiptCommentsComponent", () => {
   });
 
   it("collects magic-filled comments and emits them in add mode", () => {
-    const emitSpy = jest.spyOn(component.commentsUpdated, "emit");
+    const emitSpy = vi.spyOn(component.commentsUpdated, "emit");
     store.reset({ auth: { userId: 1 } });
     fixture.componentRef.setInput("mode", FormMode.add);
     fixture.componentRef.setInput("receiptId", 3);
@@ -273,7 +273,7 @@ describe("ReceiptCommentsComponent", () => {
   });
 
   it("posts each magic-filled comment individually in edit mode", () => {
-    const addSpy = jest.spyOn(TestBed.inject(CommentService), "addComment");
+    const addSpy = vi.spyOn(TestBed.inject(CommentService), "addComment");
     addSpy.mockReturnValue(
       of({
         id: 8,
@@ -284,7 +284,7 @@ describe("ReceiptCommentsComponent", () => {
         updatedAt: "",
       }) as any
     );
-    const emitSpy = jest.spyOn(component.commentsUpdated, "emit");
+    const emitSpy = vi.spyOn(component.commentsUpdated, "emit");
     store.reset({ auth: { userId: 1 } });
     fixture.componentRef.setInput("mode", FormMode.edit);
     fixture.componentRef.setInput("receiptId", 2);
@@ -306,7 +306,7 @@ describe("ReceiptCommentsComponent", () => {
   });
 
   it("does nothing when there are no magic-filled comments", () => {
-    const emitSpy = jest.spyOn(component.commentsUpdated, "emit");
+    const emitSpy = vi.spyOn(component.commentsUpdated, "emit");
     fixture.componentRef.setInput("mode", FormMode.add);
     component.ngOnInit();
 
@@ -317,7 +317,7 @@ describe("ReceiptCommentsComponent", () => {
   });
 
   it("should send api call if form is valid and is in edit mode", () => {
-    const spy = jest.spyOn(TestBed.inject(CommentService), "addComment");
+    const spy = vi.spyOn(TestBed.inject(CommentService), "addComment");
     spy.mockReturnValue(
       of({
         id: 5,
@@ -358,7 +358,7 @@ describe("ReceiptCommentsComponent", () => {
   });
 
   it("posts a comment on a receipt opened in view mode", () => {
-    const spy = jest.spyOn(TestBed.inject(CommentService), "addComment");
+    const spy = vi.spyOn(TestBed.inject(CommentService), "addComment");
     spy.mockReturnValue(
       of({ id: 7, userId: 1, receiptId: 3, comment: "seen it", createdAt: "", updatedAt: "" }) as any
     );
@@ -375,7 +375,7 @@ describe("ReceiptCommentsComponent", () => {
   });
 
   it("renders the first comment as soon as it is posted", async () => {
-    jest.spyOn(TestBed.inject(CommentService), "addComment").mockReturnValue(
+    vi.spyOn(TestBed.inject(CommentService), "addComment").mockReturnValue(
       of({ id: 8, userId: 1, receiptId: 3, comment: "first", createdAt: "", updatedAt: "" }) as any
     );
     // Keep the user slice: the rendered row resolves its author through it.

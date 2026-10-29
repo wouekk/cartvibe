@@ -13,9 +13,9 @@ import { ProductCheckService } from "./product-check.service";
 describe("ProductCheckDialogComponent", () => {
   let fixture: ComponentFixture<ProductCheckDialogComponent>;
   let service: ProductCheckService;
-  const close = jest.fn();
-  const decode = jest.fn();
-  const openDialog = jest.fn();
+  const close = vi.fn();
+  const decode = vi.fn();
+  const openDialog = vi.fn();
 
   const element = (testId: string): HTMLElement | null => fixture.nativeElement.querySelector(`[data-testid="${testId}"]`);
   const text = (testId: string): string => (element(testId)?.textContent ?? "").replace(/\s+/g, " ").trim();
@@ -34,7 +34,7 @@ describe("ProductCheckDialogComponent", () => {
         provideZonelessChangeDetection(),
         { provide: AppDialogRef, useValue: { close } },
         { provide: AppDialog, useValue: { open: openDialog } },
-        { provide: OpenFoodFactsService, useValue: { getByBarcode: jest.fn(), search: jest.fn() } },
+        { provide: OpenFoodFactsService, useValue: { getByBarcode: vi.fn(), search: vi.fn() } },
         { provide: BarcodeImageService, useValue: { decode } },
       ],
     }).compileComponents();
@@ -44,7 +44,7 @@ describe("ProductCheckDialogComponent", () => {
     await render();
   });
 
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(() => vi.restoreAllMocks());
 
   it("explains what to do before anything was checked", () => {
     expect(element("product-check-idle")).not.toBeNull();
@@ -116,7 +116,7 @@ describe("ProductCheckDialogComponent", () => {
   });
 
   it("always offers the typed barcode number, looked up on Enter or with Check", async () => {
-    const lookup = jest.spyOn(service, "check").mockImplementation();
+    const lookup = vi.spyOn(service, "check").mockImplementation();
     const box = element("product-check-barcode") as HTMLInputElement;
     box.value = "3017620422003";
     box.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
@@ -125,7 +125,7 @@ describe("ProductCheckDialogComponent", () => {
     expect(lookup).toHaveBeenCalledTimes(2);
     expect(lookup).toHaveBeenCalledWith("3017620422003");
 
-    jest.spyOn(scanner, "canUseCamera").mockReturnValue(true);
+    vi.spyOn(scanner, "canUseCamera").mockReturnValue(true);
     const withCamera = TestBed.createComponent(ProductCheckDialogComponent);
     await withCamera.whenStable();
     expect(withCamera.nativeElement.querySelector('[data-testid="product-check-barcode"]')).not.toBeNull();
@@ -142,7 +142,7 @@ describe("ProductCheckDialogComponent", () => {
     let withCamera: ComponentFixture<ProductCheckDialogComponent>;
 
     beforeEach(async () => {
-      jest.spyOn(scanner, "canUseCamera").mockReturnValue(true);
+      vi.spyOn(scanner, "canUseCamera").mockReturnValue(true);
       withCamera = TestBed.createComponent(ProductCheckDialogComponent);
       await withCamera.whenStable();
     });
@@ -155,7 +155,7 @@ describe("ProductCheckDialogComponent", () => {
 
     it("looks up the barcode the scanner read and shows it in the box", async () => {
       openDialog.mockReturnValue({ afterClosed: () => of("3017620422003") });
-      const lookup = jest.spyOn(service, "check").mockImplementation();
+      const lookup = vi.spyOn(service, "check").mockImplementation();
 
       withCamera.nativeElement.querySelector('[data-testid="barcode-photo-live"]').click();
 
@@ -186,7 +186,7 @@ describe("ProductCheckDialogComponent", () => {
 
     it("fills the barcode field and looks the product up when the photo is read", async () => {
       decode.mockResolvedValue("3017620422003");
-      const lookup = jest.spyOn(service, "check").mockImplementation();
+      const lookup = vi.spyOn(service, "check").mockImplementation();
 
       await choose("barcode-photo-upload");
 

@@ -75,7 +75,7 @@ describe("FilteredStatefulMenuComponent", () => {
   });
 
   it("should handle item selection and emit itemSelected event", () => {
-    jest.spyOn(component.itemSelected, "emit");
+    vi.spyOn(component.itemSelected, "emit");
     const mockEvent = new MouseEvent("click");
     const mockItem = mockItems[0];
 
@@ -85,7 +85,7 @@ describe("FilteredStatefulMenuComponent", () => {
   });
 
   it("should not emit itemSelected event when readonly is true", () => {
-    jest.spyOn(component.itemSelected, "emit");
+    vi.spyOn(component.itemSelected, "emit");
     fixture.componentRef.setInput('readonly', true);
     const mockEvent = new MouseEvent("click");
     const mockItem = mockItems[0];

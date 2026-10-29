@@ -90,7 +90,7 @@ describe("KeyboardShortcutService", () => {
         key: "i",
         ctrlKey: true
       });
-      jest.spyOn(event, "preventDefault");
+      vi.spyOn(event, "preventDefault");
 
       service.handleKeyboardEvent(event);
       expect(event.preventDefault).toHaveBeenCalled();
@@ -132,13 +132,13 @@ describe("KeyboardShortcutService", () => {
 
           // Fast-forward the timeout
           try {
-            jest.useFakeTimers();
+            vi.useFakeTimers();
           } catch (e) {
             // Clock already installed, continue
           }
-          jest.advanceTimersByTime(2001);
+          vi.advanceTimersByTime(2001);
           try {
-            jest.useRealTimers();
+            vi.useRealTimers();
           } catch (e) {
             // Clock not installed, continue
           }

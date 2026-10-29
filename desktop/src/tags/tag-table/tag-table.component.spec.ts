@@ -12,16 +12,17 @@ import { TagFormComponent } from "../tag-form/tag-form.component";
 import { TagTableComponent } from "./tag-table.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 
+import type { Mocked } from "vitest";
 describe("TagsListComponent", () => {
   let component: TagTableComponent;
   let fixture: ComponentFixture<TagTableComponent>;
   let store: Store;
-  let tagService: jest.Mocked<TagService>;
+  let tagService: Mocked<TagService>;
 
   beforeEach(() => {
     const tagServiceSpy = {
-      getPagedTags: jest.fn(),
-      deleteTag: jest.fn()
+      getPagedTags: vi.fn(),
+      deleteTag: vi.fn()
     };
     tagServiceSpy.getPagedTags.mockReturnValue(of({
       data: [],
@@ -41,7 +42,7 @@ describe("TagsListComponent", () => {
 });
     fixture = TestBed.createComponent(TagTableComponent);
     store = TestBed.inject(Store);
-    tagService = TestBed.inject(TagService) as jest.Mocked<TagService>;
+    tagService = TestBed.inject(TagService) as Mocked<TagService>;
     component = fixture.componentInstance;
   });
 
@@ -137,7 +138,7 @@ describe("TagsListComponent", () => {
   });
 
   it("should open edit dialog and refresh data when after closed with true", () => {
-    const dialogSpy = jest.spyOn(TestBed.inject(AppDialog), "open");
+    const dialogSpy = vi.spyOn(TestBed.inject(AppDialog), "open");
     dialogSpy.mockReturnValue({
       componentInstance: {
         tag: {},
@@ -157,7 +158,7 @@ describe("TagsListComponent", () => {
   });
 
   it("should open edit dialog and not refresh data when after closed with false", () => {
-    const dialogSpy = jest.spyOn(TestBed.inject(AppDialog), "open");
+    const dialogSpy = vi.spyOn(TestBed.inject(AppDialog), "open");
     dialogSpy.mockReturnValue({
       componentInstance: {
         tag: {},
@@ -177,7 +178,7 @@ describe("TagsListComponent", () => {
   });
 
   it("should open confirmation dialog and refresh data when after closed with true", () => {
-    const dialogSpy = jest.spyOn(TestBed.inject(AppDialog), "open");
+    const dialogSpy = vi.spyOn(TestBed.inject(AppDialog), "open");
     tagService.deleteTag.mockReturnValue(of(undefined as any));
     dialogSpy.mockReturnValue({
       componentInstance: {
@@ -198,7 +199,7 @@ describe("TagsListComponent", () => {
   });
 
   it("should open confirmation dialog and not refresh data when after closed with false", () => {
-    const dialogSpy = jest.spyOn(TestBed.inject(AppDialog), "open");
+    const dialogSpy = vi.spyOn(TestBed.inject(AppDialog), "open");
     dialogSpy.mockReturnValue({
       componentInstance: {
         tag: {},
@@ -218,7 +219,7 @@ describe("TagsListComponent", () => {
   });
 
   it("should open add dialog and refresh data when after closed with true", () => {
-    const dialogSpy = jest.spyOn(TestBed.inject(AppDialog), "open");
+    const dialogSpy = vi.spyOn(TestBed.inject(AppDialog), "open");
     dialogSpy.mockReturnValue({
       componentInstance: {
         tag: {},
@@ -237,7 +238,7 @@ describe("TagsListComponent", () => {
   });
 
   it("should open add dialog and not refresh data when after closed with false", () => {
-    const dialogSpy = jest.spyOn(TestBed.inject(AppDialog), "open");
+    const dialogSpy = vi.spyOn(TestBed.inject(AppDialog), "open");
     dialogSpy.mockReturnValue({
       componentInstance: {
         tag: {},

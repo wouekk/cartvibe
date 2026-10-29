@@ -77,7 +77,7 @@ describe("QuickScanDialogComponent", () => {
 
   it("should push fileData into images when loaded", () => {
     const originalCreateObjectURL = URL.createObjectURL;
-    URL.createObjectURL = jest.fn().mockReturnValue("awesome");
+    URL.createObjectURL = vi.fn().mockReturnValue("awesome");
     const fileData = {} as ReceiptFileUploadCommand;
     component.fileLoaded(fileData);
 
@@ -86,7 +86,7 @@ describe("QuickScanDialogComponent", () => {
   });
 
   it("should close the dialog", () => {
-    const dialogSpy = jest.spyOn(TestBed.inject(AppDialogRef), "close");
+    const dialogSpy = vi.spyOn(TestBed.inject(AppDialogRef), "close");
 
     component.cancelButtonClicked();
 
@@ -94,7 +94,7 @@ describe("QuickScanDialogComponent", () => {
   });
 
   it("should show error if no image has been selected", () => {
-    const snackbarSpy = jest.spyOn(TestBed.inject(SnackbarService), "error");
+    const snackbarSpy = vi.spyOn(TestBed.inject(SnackbarService), "error");
 
     component.submitButtonClicked();
 
@@ -358,14 +358,14 @@ describe("QuickScanDialogComponent", () => {
   it("shows the upload progress while sending, ignores a second click, and clears it on a failure", () => {
     const originalCreateObjectURL = URL.createObjectURL;
     try {
-      URL.createObjectURL = jest.fn().mockReturnValue("blob");
+      URL.createObjectURL = vi.fn().mockReturnValue("blob");
       store.reset({
         auth: { groupCategories: {}, groupTags: {} },
         groups: { groups: [{ id: 2, groupReceiptSettings: { quickScanPaidByEnabled: false, quickScanStatusEnabled: false } }], selectedGroupId: "", selectedDashboardId: "" },
       });
       const events = new Subject<HttpEvent<any>>();
       const receiptService = TestBed.inject(ReceiptService);
-      const serviceSpy = jest.spyOn(receiptService, "quickScanReceipt").mockReturnValue(events as any);
+      const serviceSpy = vi.spyOn(receiptService, "quickScanReceipt").mockReturnValue(events as any);
 
       component.fileLoaded({ file: { name: "a" } } as any);
       component.groupIds.at(0).setValue(2);
@@ -389,7 +389,7 @@ describe("QuickScanDialogComponent", () => {
     it("lists each photo as its own attachment row and removes only that one", () => {
       const originalCreateObjectURL = URL.createObjectURL;
       try {
-        URL.createObjectURL = jest.fn().mockReturnValue("blob");
+        URL.createObjectURL = vi.fn().mockReturnValue("blob");
         component.fileLoaded({ file: { name: "a.jpg", size: 2048 } } as any);
         component.fileLoaded({ file: { name: "b.jpg", size: 3 * 1024 * 1024 } } as any);
         fixture.changeDetectorRef.markForCheck();
@@ -416,10 +416,10 @@ describe("QuickScanDialogComponent", () => {
 
     it("hands dropped files to the uploader and shows the drop state while dragging", () => {
       // The uploader is not declared in this spec, so its required view query has no value: stand one in.
-      const processFiles = jest.fn().mockResolvedValue(undefined);
+      const processFiles = vi.fn().mockResolvedValue(undefined);
       (component as any).uploadImageComponent = () => ({ processFiles });
       const file = new File(["x"], "dropped.jpg", { type: "image/jpeg" });
-      const preventDefault = jest.fn();
+      const preventDefault = vi.fn();
 
       component.onDragOver({ preventDefault } as any);
       expect(component.dragging()).toBe(true);
@@ -438,7 +438,7 @@ describe("QuickScanDialogComponent", () => {
   it("should send category and tag ids per image on submit", () => {
     const originalCreateObjectURL = URL.createObjectURL;
     try {
-      URL.createObjectURL = jest.fn().mockReturnValue("blob");
+      URL.createObjectURL = vi.fn().mockReturnValue("blob");
 
       const group = {
         id: 2,
@@ -462,7 +462,7 @@ describe("QuickScanDialogComponent", () => {
       });
 
       const receiptService = TestBed.inject(ReceiptService);
-      const serviceSpy = jest
+      const serviceSpy = vi
         .spyOn(receiptService, "quickScanReceipt")
         .mockReturnValue(of(new HttpResponse({ body: {} })) as any);
 
@@ -686,7 +686,7 @@ describe("QuickScanDialogComponent", () => {
     it("should send the comment per image on submit", () => {
       const originalCreateObjectURL = URL.createObjectURL;
       try {
-        URL.createObjectURL = jest.fn().mockReturnValue("blob");
+        URL.createObjectURL = vi.fn().mockReturnValue("blob");
         seedStore({
           quickScanPaidByEnabled: false,
           quickScanStatusEnabled: false,
@@ -695,7 +695,7 @@ describe("QuickScanDialogComponent", () => {
         });
 
         const receiptService = TestBed.inject(ReceiptService);
-        const serviceSpy = jest
+        const serviceSpy = vi
           .spyOn(receiptService, "quickScanReceipt")
           .mockReturnValue(of(new HttpResponse({ body: {} })) as any);
 

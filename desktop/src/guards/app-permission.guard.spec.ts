@@ -7,11 +7,12 @@ import { SetPermissions } from "../store/auth.state.actions";
 import { GroupState } from "../store/group.state";
 import { appPermissionGuard } from "./app-permission.guard";
 
+import type { MockInstance } from "vitest";
 describe("appPermissionGuard", () => {
   const executeGuard: CanActivateFn = (...params) =>
     TestBed.runInInjectionContext(() => appPermissionGuard(...params));
   let store: Store;
-  let navigateSpy: jest.SpyInstance;
+  let navigateSpy: MockInstance;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -20,7 +21,7 @@ describe("appPermissionGuard", () => {
     });
 
     store = TestBed.inject(Store);
-    navigateSpy = jest
+    navigateSpy = vi
       .spyOn(TestBed.inject(Router), "navigate")
       .mockResolvedValue(true);
   });

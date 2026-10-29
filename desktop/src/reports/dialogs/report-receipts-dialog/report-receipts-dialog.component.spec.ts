@@ -20,6 +20,7 @@ import {
   ReportReceiptsDialogData,
 } from "./report-receipts-dialog.component";
 
+import type { Mock } from "vitest";
 const receipts: Receipt[] = [
   { id: 7, name: "Coffee", date: "2026-07-03", amount: "12.50", status: "RESOLVED", groupId: 1, paidByUserId: 1, categories: [], tags: [] } as Receipt,
   { id: 8, name: "Lunch", date: "2026-07-05", amount: "30.00", status: "OPEN", groupId: 1, paidByUserId: 2, categories: [], tags: [] } as Receipt,
@@ -48,25 +49,25 @@ function configure(
 ): {
   fixture: ComponentFixture<ReportReceiptsDialogComponent>;
   component: ReportReceiptsDialogComponent;
-  reportService: { getReportReceipts: jest.Mock };
+  reportService: { getReportReceipts: Mock };
 } {
-  const reportService = { getReportReceipts: jest.fn(() => response) };
+  const reportService = { getReportReceipts: vi.fn(() => response) };
   TestBed.configureTestingModule({
     declarations: [ReportReceiptsDialogComponent],
     imports: [PipesModule],
     providers: [
       provideZonelessChangeDetection(),
       { provide: ReportService, useValue: reportService },
-      { provide: AppDialogRef, useValue: { close: jest.fn() } },
+      { provide: AppDialogRef, useValue: { close: vi.fn() } },
       // The row pipes (user, customCurrency) read the store; nothing here asserts
       // on them. The app time zone is the one value the subtitle reads.
       {
         provide: Store,
         useValue: {
-          selectSnapshot: jest.fn((selector) =>
+          selectSnapshot: vi.fn((selector) =>
             selector === SystemSettingsState.timeZone ? "America/New_York" : {}
           ),
-          selectSignal: jest.fn((selector) =>
+          selectSignal: vi.fn((selector) =>
             signal(selector === SystemSettingsState.timeZone ? "America/New_York" : {})
           ),
         },
@@ -112,7 +113,7 @@ describe("ReportReceiptsDialogComponent", () => {
 
   it("opens the full receipt page in a new tab", () => {
     const { component } = configure();
-    const openSpy = jest.spyOn(window, "open").mockReturnValue(null);
+    const openSpy = vi.spyOn(window, "open").mockReturnValue(null);
     component.openFullReceipt(receipts[0]);
     expect(openSpy).toHaveBeenCalledWith("/receipts/7/view", "_blank");
     openSpy.mockRestore();

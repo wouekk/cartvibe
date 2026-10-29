@@ -22,6 +22,7 @@ import { PipesModule } from "../../pipes";
 import { AuthState } from "../../store";
 import { GroupMemberFormComponent } from "./group-member-form.component";
 
+import type { Mock } from "vitest";
 describe("GroupMemberFormComponent", () => {
   const defaultGroupRole: Role = {
     id: 10,
@@ -46,10 +47,10 @@ describe("GroupMemberFormComponent", () => {
 
   let component: GroupMemberFormComponent;
   let fixture: ComponentFixture<GroupMemberFormComponent>;
-  let getRolesMock: jest.Mock;
-  let dialogRefMock: { close: jest.Mock };
-  let getGroupByIdMock: jest.Mock;
-  let updateGrantsMock: jest.Mock;
+  let getRolesMock: Mock;
+  let dialogRefMock: { close: Mock };
+  let getGroupByIdMock: Mock;
+  let updateGrantsMock: Mock;
 
   const categoryPool = [
     { id: 1, name: "Child A" },
@@ -80,10 +81,10 @@ describe("GroupMemberFormComponent", () => {
   }
 
   beforeEach(async () => {
-    getRolesMock = jest.fn().mockReturnValue(of([] as Role[]));
-    dialogRefMock = { close: jest.fn() };
-    getGroupByIdMock = jest.fn().mockReturnValue(of({ id: 5, groupMembers: [] } as unknown as Group));
-    updateGrantsMock = jest.fn().mockReturnValue(of({}));
+    getRolesMock = vi.fn().mockReturnValue(of([] as Role[]));
+    dialogRefMock = { close: vi.fn() };
+    getGroupByIdMock = vi.fn().mockReturnValue(of({ id: 5, groupMembers: [] } as unknown as Group));
+    updateGrantsMock = vi.fn().mockReturnValue(of({}));
     await TestBed.configureTestingModule({
       declarations: [GroupMemberFormComponent],
       imports: [
@@ -167,7 +168,7 @@ describe("GroupMemberFormComponent", () => {
     getRolesMock.mockReturnValue(of([defaultGroupRole]));
     await createComponent();
 
-    const openSpy = jest
+    const openSpy = vi
       .spyOn(TestBed.inject(AppDialog), "open")
       .mockReturnValue({ afterClosed: () => of(undefined) } as any);
 

@@ -70,7 +70,7 @@ describe("GroupReceiptSettingsComponent", () => {
       providers: [
         FormBuilder,
         GroupsService,
-        { provide: Router, useValue: { navigate: jest.fn().mockResolvedValue(true) } },
+        { provide: Router, useValue: { navigate: vi.fn().mockResolvedValue(true) } },
         Store,
         SnackbarService,
         {
@@ -124,10 +124,10 @@ describe("GroupReceiptSettingsComponent", () => {
     const router = TestBed.inject(Router);
     const snackbarService = TestBed.inject(SnackbarService);
 
-    jest.spyOn(groupsService, "updateGroupReceiptSettings").mockReturnValue(of(testGroup.groupReceiptSettings as any));
-    jest.spyOn(store, "dispatch").mockReturnValue(of(undefined));
-    jest.spyOn(router, "navigate");
-    jest.spyOn(snackbarService, "success");
+    vi.spyOn(groupsService, "updateGroupReceiptSettings").mockReturnValue(of(testGroup.groupReceiptSettings as any));
+    vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
+    vi.spyOn(router, "navigate");
+    vi.spyOn(snackbarService, "success");
 
     component.form.patchValue(testGroup.groupReceiptSettings);
     component.submit();
@@ -230,8 +230,8 @@ describe("GroupReceiptSettingsComponent", () => {
     const groupsService = TestBed.inject(GroupsService);
     const store = TestBed.inject(Store);
 
-    jest.spyOn(groupsService, "updateGroupReceiptSettings").mockReturnValue(of(testGroup.groupReceiptSettings as any));
-    jest.spyOn(store, "dispatch").mockReturnValue(of(undefined));
+    vi.spyOn(groupsService, "updateGroupReceiptSettings").mockReturnValue(of(testGroup.groupReceiptSettings as any));
+    vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
 
     component.form.patchValue({
       quickScanCommentEnabled: true,

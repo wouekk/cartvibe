@@ -23,6 +23,7 @@ import { ReceiptsTableComponent } from "./receipts-table.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 
 
+import type { MockInstance } from "vitest";
 describe("ReceiptsTableComponent", () => {
   let component: ReceiptsTableComponent;
   let fixture: ComponentFixture<ReceiptsTableComponent>;
@@ -246,13 +247,13 @@ describe("ReceiptsTableComponent", () => {
     expect(component.selectedReceiptIds()).toEqual([1, 2]);
   });
   describe("quick date filtering and filter chips", () => {
-    let refetch: jest.SpyInstance;
+    let refetch: MockInstance;
 
     const setFilter = (filter: Record<string, unknown>) =>
       store.dispatch(new SetReceiptFilter(filter as any));
 
     beforeEach(() => {
-      refetch = jest
+      refetch = vi
         .spyOn(TestBed.inject(ReceiptFilterService), "getPagedReceiptsForGroups")
         .mockReturnValue(of({ data: [], totalCount: 0 } as any));
     });
@@ -461,16 +462,16 @@ describe("ReceiptsTableComponent", () => {
   // Duplicating a receipt creates a real record and navigates away from the
   // list, so a mis-click is easy to miss — the row action confirms first.
   describe("toolbar search", () => {
-    let refetch: jest.SpyInstance;
+    let refetch: MockInstance;
 
     beforeEach(() => {
-      jest.useFakeTimers();
-      refetch = jest
+      vi.useFakeTimers();
+      refetch = vi
         .spyOn(TestBed.inject(ReceiptFilterService), "getPagedReceiptsForGroups")
         .mockReturnValue(of({ data: [], totalCount: 0 } as any));
     });
 
-    afterEach(() => jest.useRealTimers());
+    afterEach(() => vi.useRealTimers());
 
     const storedSearch = () => store.selectSnapshot(ReceiptTableState.search);
 
@@ -478,10 +479,10 @@ describe("ReceiptsTableComponent", () => {
       component.searchInput("c");
       component.searchInput("choc");
       component.searchInput("choc ");
-      jest.advanceTimersByTime(299);
+      vi.advanceTimersByTime(299);
       expect(storedSearch()).toBe("");
 
-      jest.advanceTimersByTime(1);
+      vi.advanceTimersByTime(1);
 
       expect(storedSearch()).toBe("choc");
       expect(refetch).toHaveBeenCalledTimes(1);
@@ -490,18 +491,18 @@ describe("ReceiptsTableComponent", () => {
 
     it("does not ask again for a phrase that is already applied", () => {
       component.searchInput("milk");
-      jest.advanceTimersByTime(300);
+      vi.advanceTimersByTime(300);
       refetch.mockClear();
 
       component.searchInput("milk");
-      jest.advanceTimersByTime(300);
+      vi.advanceTimersByTime(300);
 
       expect(refetch).not.toHaveBeenCalled();
     });
 
     it("clears at once, without the debounce", () => {
       component.searchInput("milk");
-      jest.advanceTimersByTime(300);
+      vi.advanceTimersByTime(300);
       refetch.mockClear();
 
       component.clearSearch();
@@ -514,7 +515,7 @@ describe("ReceiptsTableComponent", () => {
     it("offers Reset for a search alone, and reset empties the box", () => {
       expect(component.anyFilterApplied()).toBe(false);
       component.searchInput("milk");
-      jest.advanceTimersByTime(300);
+      vi.advanceTimersByTime(300);
       expect(component.anyFilterApplied()).toBe(true);
 
       component.resetFilterButtonClicked();
@@ -524,7 +525,7 @@ describe("ReceiptsTableComponent", () => {
     });
 
     it("lists the matched product lines with their prices", () => {
-      jest.spyOn((component as any).customCurrencyPipe, "transform").mockImplementation((value: any) => "€" + value);
+      vi.spyOn((component as any).customCurrencyPipe, "transform").mockImplementation((value: any) => "€" + value);
       const text = component.searchMatchesText({
         searchMatches: [{ name: "Dark chocolate", amount: "2.49" }, { name: "Chocolate milk" }],
       });
@@ -541,7 +542,7 @@ describe("ReceiptsTableComponent", () => {
     let router: Router;
 
     const stubDialog = (confirmed: boolean | undefined) =>
-      jest.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({
+      vi.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({
         componentInstance: {},
         afterClosed: () => of(confirmed),
       } as any);
@@ -549,10 +550,10 @@ describe("ReceiptsTableComponent", () => {
     beforeEach(() => {
       receiptService = TestBed.inject(ReceiptService);
       router = TestBed.inject(Router);
-      jest
+      vi
         .spyOn(receiptService, "duplicateReceipt")
         .mockReturnValue(of({ id: 9 } as Receipt) as any);
-      jest.spyOn(router, "navigateByUrl").mockResolvedValue(true);
+      vi.spyOn(router, "navigateByUrl").mockResolvedValue(true);
     });
 
     it("duplicates and navigates to the copy once confirmed", () => {

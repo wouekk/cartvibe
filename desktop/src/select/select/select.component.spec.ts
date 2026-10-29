@@ -51,7 +51,7 @@ describe('SelectComponent', () => {
 
   it("translates the closed select text like the open list", () => {
     configure('hst');
-    jest.spyOn(TestBed.inject(TranslationService), 't').mockImplementation((text: string) => (text === 'HST' ? 'PST' : text));
+    vi.spyOn(TestBed.inject(TranslationService), 't').mockImplementation((text: string) => (text === 'HST' ? 'PST' : text));
 
     expect(component.itemToString('hst')).toBe('PST');
   });

@@ -30,7 +30,7 @@ describe("TabsComponent", () => {
 
   it("navigates to a tab's link relative to the page that hosts the tabs", () => {
     const router = TestBed.inject(Router);
-    const navigate = jest.spyOn(router, "navigate").mockResolvedValue(true);
+    const navigate = vi.spyOn(router, "navigate").mockResolvedValue(true);
     fixture.componentRef.setInput("tabs", [{ label: "Theme", name: "theme", routerLink: "theme" }]);
 
     component.activate("theme");

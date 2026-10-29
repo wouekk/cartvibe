@@ -15,6 +15,7 @@ import { SetPermissions } from "../../store/auth.state.actions";
 import { buildOidcDeleteConfirmationUrl, UserProfileComponent } from "./user-profile.component";
 import { DeleteAccountDialogComponent } from "../delete-account-dialog/delete-account-dialog.component";
 
+import type { Mock } from "vitest";
 function connection(overrides: Partial<OidcConnectionView> = {}): OidcConnectionView {
   return {
     providerName: "google",
@@ -44,7 +45,7 @@ describe("UserProfileComponent", () => {
             provide: ActivatedRoute,
             useValue: { snapshot: { data: { formConfig: {} } } },
         },
-        { provide: Router, useValue: { navigate: jest.fn().mockResolvedValue(true) } },
+        { provide: Router, useValue: { navigate: vi.fn().mockResolvedValue(true) } },
         provideHttpClient(withInterceptorsFromDi()),
     ]
 }).compileComponents();
@@ -108,10 +109,10 @@ describe("UserProfileComponent", () => {
 
   it("should submit form and update state correctly", () => {
     const store = TestBed.inject(Store);
-    const serviceSpy = jest.spyOn(TestBed.inject(UserService), "updateUserProfile");
-    const authSpy = jest.spyOn(TestBed.inject(TokenRefreshService), "refreshToken");
+    const serviceSpy = vi.spyOn(TestBed.inject(UserService), "updateUserProfile");
+    const authSpy = vi.spyOn(TestBed.inject(TokenRefreshService), "refreshToken");
 
-    jest.spyOn(TestBed.inject(UserService), "getUserClaims").mockReturnValue(
+    vi.spyOn(TestBed.inject(UserService), "getUserClaims").mockReturnValue(
       of({
         userId: "1",
         displayname: "store",
@@ -158,7 +159,7 @@ describe("UserProfileComponent", () => {
       componentInstance: {},
     } as any;
 
-    const dialogSpy = jest.spyOn(matDialog, "open").mockReturnValue(dialogRefMock);
+    const dialogSpy = vi.spyOn(matDialog, "open").mockReturnValue(dialogRefMock);
 
     component.deleteAccount();
 
@@ -181,10 +182,10 @@ describe("UserProfileComponent", () => {
       componentInstance: {},
     } as any;
 
-    jest.spyOn(matDialog, "open").mockReturnValue(dialogRefMock);
-    const deleteAccountSpy = jest.spyOn(userService, "deleteAccount").mockReturnValue(of(undefined) as any);
-    const dispatchSpy = jest.spyOn(store, "dispatch").mockReturnValue(of(undefined));
-    const navigateSpy = jest.spyOn(router, "navigate").mockResolvedValue(true);
+    vi.spyOn(matDialog, "open").mockReturnValue(dialogRefMock);
+    const deleteAccountSpy = vi.spyOn(userService, "deleteAccount").mockReturnValue(of(undefined) as any);
+    const dispatchSpy = vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
+    const navigateSpy = vi.spyOn(router, "navigate").mockResolvedValue(true);
 
     component.deleteAccount();
 
@@ -207,13 +208,13 @@ describe("UserProfileComponent", () => {
       componentInstance: {},
     } as any;
 
-    const dialogSpy = jest.spyOn(matDialog, "open")
+    const dialogSpy = vi.spyOn(matDialog, "open")
       .mockReturnValueOnce(passwordDialogRef)
       .mockReturnValueOnce(cancelledDialogRef);
-    jest.spyOn(userService, "deleteAccount").mockReturnValue(
+    vi.spyOn(userService, "deleteAccount").mockReturnValue(
       throwError(() => ({ status: 401, error: { errorMsg: "Error deleting account." } }))
     );
-    const dispatchSpy = jest.spyOn(store, "dispatch");
+    const dispatchSpy = vi.spyOn(store, "dispatch");
 
     component.deleteAccount();
 
@@ -227,12 +228,12 @@ describe("UserProfileComponent", () => {
     const store = TestBed.inject(Store);
     component.connections.set([connection({ provisionedUser: false })]);
 
-    const dialogSpy = jest.spyOn(matDialog, "open").mockReturnValue({
+    const dialogSpy = vi.spyOn(matDialog, "open").mockReturnValue({
       afterClosed: () => of({ password: "userpassword" }),
       componentInstance: {},
     } as any);
-    const deleteAccountSpy = jest.spyOn(userService, "deleteAccount").mockReturnValue(of(undefined) as any);
-    jest.spyOn(store, "dispatch").mockReturnValue(of(undefined));
+    const deleteAccountSpy = vi.spyOn(userService, "deleteAccount").mockReturnValue(of(undefined) as any);
+    vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
 
     component.deleteAccount();
 
@@ -249,14 +250,14 @@ describe("UserProfileComponent", () => {
       connection({ providerName: "google", providerDisplayName: "Google" }),
     ]);
 
-    const dialogSpy = jest.spyOn(matDialog, "open").mockReturnValue({
+    const dialogSpy = vi.spyOn(matDialog, "open").mockReturnValue({
       afterClosed: () => of({ providerName: "my idp" }),
       componentInstance: {},
     } as any);
-    const navigateSpy = jest
+    const navigateSpy = vi
       .spyOn(component as any, "navigateToUrl")
       .mockImplementation(() => undefined);
-    const deleteAccountSpy = jest.spyOn(userService, "deleteAccount");
+    const deleteAccountSpy = vi.spyOn(userService, "deleteAccount");
 
     component.deleteAccount();
 
@@ -295,7 +296,7 @@ describe("UserProfileComponent", () => {
     function initWithQueryParams(queryParams: Record<string, string>): void {
       const route = TestBed.inject(ActivatedRoute) as any;
       route.snapshot.queryParams = queryParams;
-      jest
+      vi
         .spyOn(TestBed.inject(OidcService), "getOidcConnections")
         .mockReturnValue(of([]) as any);
 
@@ -306,11 +307,11 @@ describe("UserProfileComponent", () => {
       const store = TestBed.inject(Store);
       const router = TestBed.inject(Router);
       const route = TestBed.inject(ActivatedRoute);
-      const deleteAccountSpy = jest
+      const deleteAccountSpy = vi
         .spyOn(TestBed.inject(UserService), "deleteAccount")
         .mockReturnValue(of(undefined) as any);
-      const dispatchSpy = jest.spyOn(store, "dispatch").mockReturnValue(of(undefined));
-      const successSpy = jest
+      const dispatchSpy = vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
+      const successSpy = vi
         .spyOn(TestBed.inject(SnackbarService), "success")
         .mockImplementation(() => undefined as any);
 
@@ -319,7 +320,7 @@ describe("UserProfileComponent", () => {
       expect(router.navigate).toHaveBeenCalledWith([], { relativeTo: route, ...stripParams });
       expect(deleteAccountSpy).toHaveBeenCalledWith({ confirmationCode: "the-code" });
       // Stripped before spending, so a reload cannot resubmit a spent code.
-      expect((router.navigate as jest.Mock).mock.invocationCallOrder[0]).toBeLessThan(
+      expect((router.navigate as Mock).mock.invocationCallOrder[0]).toBeLessThan(
         deleteAccountSpy.mock.invocationCallOrder[0]
       );
       expect(dispatchSpy).toHaveBeenCalledWith(expect.any(Logout));
@@ -330,10 +331,10 @@ describe("UserProfileComponent", () => {
     it("stays signed in when the code is refused", () => {
       const store = TestBed.inject(Store);
       const router = TestBed.inject(Router);
-      jest
+      vi
         .spyOn(TestBed.inject(UserService), "deleteAccount")
         .mockReturnValue(throwError(() => ({ status: 400 })));
-      const dispatchSpy = jest.spyOn(store, "dispatch");
+      const dispatchSpy = vi.spyOn(store, "dispatch");
 
       initWithQueryParams({ deleteConfirmation: "spent-code" });
 
@@ -351,8 +352,8 @@ describe("UserProfileComponent", () => {
     ])("strips deleteError=%s and reports it", (code, message) => {
       const router = TestBed.inject(Router);
       const route = TestBed.inject(ActivatedRoute);
-      const deleteAccountSpy = jest.spyOn(TestBed.inject(UserService), "deleteAccount");
-      const errorSpy = jest
+      const deleteAccountSpy = vi.spyOn(TestBed.inject(UserService), "deleteAccount");
+      const errorSpy = vi
         .spyOn(TestBed.inject(SnackbarService), "error")
         .mockImplementation(() => undefined as any);
 
@@ -381,8 +382,8 @@ describe("UserProfileComponent", () => {
       componentInstance: {},
     } as any;
 
-    jest.spyOn(matDialog, "open").mockReturnValue(dialogRefMock);
-    const deleteAccountSpy = jest.spyOn(userService, "deleteAccount");
+    vi.spyOn(matDialog, "open").mockReturnValue(dialogRefMock);
+    const deleteAccountSpy = vi.spyOn(userService, "deleteAccount");
 
     component.deleteAccount();
 

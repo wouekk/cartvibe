@@ -14,6 +14,7 @@ import { buildColumnGroup } from "../models/report-form.factory";
 import { ReportConfigPanelComponent } from "./report-config-panel.component";
 import { SystemSettingsState } from "src/store/system-settings.state";
 
+import type { Mock } from "vitest";
 const GROUPS = [
   { id: 1, name: "Household" },
   { id: 2, name: "Roommates" },
@@ -45,10 +46,10 @@ describe("ReportConfigPanelComponent", () => {
   let component: ReportConfigPanelComponent;
   let form: FormGroup;
   let formBuilder: FormBuilder;
-  let dialog: { open: jest.Mock };
+  let dialog: { open: Mock };
 
   beforeEach(async () => {
-    dialog = { open: jest.fn() };
+    dialog = { open: vi.fn() };
 
     await TestBed.configureTestingModule({
       declarations: [ReportConfigPanelComponent],

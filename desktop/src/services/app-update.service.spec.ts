@@ -4,10 +4,11 @@ import { SwUpdate } from "@angular/service-worker";
 import { Subject } from "rxjs";
 import { AppUpdateService } from "./app-update.service";
 
+import type { Mock } from "vitest";
 describe("AppUpdateService", () => {
   let versionUpdates: Subject<any>;
   let routerEvents: Subject<any>;
-  let swUpdate: { isEnabled: boolean; versionUpdates: Subject<any>; activateUpdate: jest.Mock; checkForUpdate: jest.Mock };
+  let swUpdate: { isEnabled: boolean; versionUpdates: Subject<any>; activateUpdate: Mock; checkForUpdate: Mock };
 
   function create(isEnabled = true): AppUpdateService {
     versionUpdates = new Subject();
@@ -15,8 +16,8 @@ describe("AppUpdateService", () => {
     swUpdate = {
       isEnabled,
       versionUpdates,
-      activateUpdate: jest.fn().mockResolvedValue(true),
-      checkForUpdate: jest.fn().mockResolvedValue(false),
+      activateUpdate: vi.fn().mockResolvedValue(true),
+      checkForUpdate: vi.fn().mockResolvedValue(false),
     };
 
     TestBed.configureTestingModule({
@@ -27,7 +28,7 @@ describe("AppUpdateService", () => {
     });
 
     const service = TestBed.inject(AppUpdateService);
-    jest.spyOn(service, "navigateToUrl").mockImplementation(() => undefined);
+    vi.spyOn(service, "navigateToUrl").mockImplementation(() => undefined);
     return service;
   }
 

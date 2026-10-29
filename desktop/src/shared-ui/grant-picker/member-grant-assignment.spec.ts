@@ -180,7 +180,7 @@ describe("member-grant-assignment", () => {
 
     beforeEach(() => {
       groupsService = {
-        updateGroupMemberGrants: jest.fn().mockReturnValue(of({})),
+        updateGroupMemberGrants: vi.fn().mockReturnValue(of({})),
       };
     });
 

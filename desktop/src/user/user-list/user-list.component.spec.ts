@@ -35,7 +35,7 @@ describe("UserListComponent", () => {
   });
 
   const mockPagedUsers = () =>
-    jest.spyOn(TestBed.inject(UserService), "getPagedUsers").mockReturnValue(
+    vi.spyOn(TestBed.inject(UserService), "getPagedUsers").mockReturnValue(
       of({ data: [{ id: 1, username: "admin" }], totalCount: 1 } as any)
     );
 
@@ -93,7 +93,7 @@ describe("UserListComponent", () => {
 
   it("should refetch the current page after deleting a user", () => {
     const serviceSpy = mockPagedUsers();
-    const deleteSpy = jest
+    const deleteSpy = vi
       .spyOn(TestBed.inject(UserService), "deleteUserById")
       .mockReturnValue(of({} as any));
 
@@ -102,7 +102,7 @@ describe("UserListComponent", () => {
       new TableDataSource<User>([{ id: 5, username: "victim" } as User])
     );
 
-    jest
+    vi
       .spyOn(TestBed.inject(AppDialog), "open")
       .mockReturnValue({ afterClosed: () => of(true), componentInstance: {} } as any);
 
@@ -116,12 +116,12 @@ describe("UserListComponent", () => {
     // getTableData delegates errors to the global HTTP interceptor (no component
     // handler), so RxJS reports the error asynchronously. Swallow that rethrow with
     // fake timers + a no-op onUnhandledError so the assertion stays deterministic.
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     const previousHandler = config.onUnhandledError;
     config.onUnhandledError = () => {};
 
     try {
-      const serviceSpy = jest
+      const serviceSpy = vi
         .spyOn(TestBed.inject(UserService), "getPagedUsers")
         .mockReturnValue(throwError(() => new Error("boom")) as any);
 
@@ -131,10 +131,10 @@ describe("UserListComponent", () => {
       expect(component.totalCount()).toBe(0);
       expect(component.dataSource().data.length).toBe(0);
 
-      jest.runOnlyPendingTimers();
+      vi.runOnlyPendingTimers();
     } finally {
       config.onUnhandledError = previousHandler;
-      jest.useRealTimers();
+      vi.useRealTimers();
     }
   });
 });

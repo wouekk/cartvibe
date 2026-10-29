@@ -18,6 +18,7 @@ import { ApplyShoppingListEvent } from "../../store/shopping-list.state.actions"
 import { SystemSettingsState } from "../../store/system-settings.state";
 import { ShoppingTripsComponent } from "./shopping-trips.component";
 
+import type { Mock } from "vitest";
 const LIST_PERMISSIONS = [Permission.GroupShoppingListsRead, Permission.GroupShoppingListsUpdate];
 
 const doneTrip: ShoppingTripView = {
@@ -36,7 +37,7 @@ const doneTrip: ShoppingTripView = {
 
 describe("ShoppingTripsComponent", () => {
   let fixture: ComponentFixture<ShoppingTripsComponent>;
-  let shoppingListService: { [method: string]: jest.Mock };
+  let shoppingListService: { [method: string]: Mock };
 
   const element = (testId: string): HTMLElement | null =>
     fixture.nativeElement.querySelector(`[data-testid="${testId}"]`);
@@ -51,8 +52,8 @@ describe("ShoppingTripsComponent", () => {
 
   beforeEach(async () => {
     shoppingListService = {
-      getShoppingTrips: jest.fn().mockReturnValue(of([doneTrip])),
-      uploadShoppingTripPhoto: jest.fn().mockReturnValue(of({})),
+      getShoppingTrips: vi.fn().mockReturnValue(of([doneTrip])),
+      uploadShoppingTripPhoto: vi.fn().mockReturnValue(of({})),
     };
 
     await TestBed.configureTestingModule({
@@ -70,7 +71,7 @@ describe("ShoppingTripsComponent", () => {
         provideHttpClientTesting(),
         provideRouter([]),
         { provide: ShoppingListService, useValue: shoppingListService },
-        { provide: SnackbarService, useValue: { success: jest.fn(), error: jest.fn() } },
+        { provide: SnackbarService, useValue: { success: vi.fn(), error: vi.fn() } },
       ],
     }).compileComponents();
   });

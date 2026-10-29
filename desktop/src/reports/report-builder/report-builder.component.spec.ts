@@ -30,16 +30,17 @@ import { ReportRunnerService } from "../services/report-runner.service";
 import { ReportBuilderComponent } from "./report-builder.component";
 
 
+import type { Mock } from "vitest";
 describe("ReportBuilderComponent", () => {
   let fixture: ComponentFixture<ReportBuilderComponent>;
   let component: ReportBuilderComponent;
   let runner: {
-    preview: jest.Mock;
-    generateAndDownload: jest.Mock;
-    saveTemplate: jest.Mock;
-    updateTemplate: jest.Mock;
+    preview: Mock;
+    generateAndDownload: Mock;
+    saveTemplate: Mock;
+    updateTemplate: Mock;
   };
-  let snackbar: { success: jest.Mock };
+  let snackbar: { success: Mock };
   let store: Store;
   // Mutable route stub: the builder reads snapshot.data.template in its field
   // initializer, so a test sets this before creating its own component instance.
@@ -47,12 +48,12 @@ describe("ReportBuilderComponent", () => {
 
   beforeEach(async () => {
     runner = {
-      preview: jest.fn(() => of({ html: "<p></p>", receiptCount: 0 })),
-      generateAndDownload: jest.fn(() => of(new Blob())),
-      saveTemplate: jest.fn(() => of({ id: 1 })),
-      updateTemplate: jest.fn(() => of({ id: 7 })),
+      preview: vi.fn(() => of({ html: "<p></p>", receiptCount: 0 })),
+      generateAndDownload: vi.fn(() => of(new Blob())),
+      saveTemplate: vi.fn(() => of({ id: 1 })),
+      updateTemplate: vi.fn(() => of({ id: 7 })),
     };
-    snackbar = { success: jest.fn() };
+    snackbar = { success: vi.fn() };
     activatedRoute.snapshot.data = {};
 
     await TestBed.configureTestingModule({
@@ -115,20 +116,20 @@ describe("ReportBuilderComponent", () => {
   });
 
   it("flags previewError when the debounced preview request fails", () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     try {
       runner.preview.mockReturnValue(throwError(() => new Error("boom")));
       // A fresh component so its construction-time debounce runs under fake timers.
       const local = TestBed.createComponent(ReportBuilderComponent).componentInstance;
       (local.form.get("scope") as FormArray).push(new FormControl("1"));
       // Advance past the 450ms debounce so the preview fires and errors.
-      jest.advanceTimersByTime(500);
+      vi.advanceTimersByTime(500);
 
       expect(runner.preview).toHaveBeenCalled();
       expect(local.previewError()).toBe(true);
       expect(local.previewLoading()).toBe(false);
     } finally {
-      jest.useRealTimers();
+      vi.useRealTimers();
     }
   });
 

@@ -11,7 +11,7 @@ describe("setEntityHeaderText", () => {
   });
 
   it("hands the key and the translated type to the translator", () => {
-    const translate = jest.fn((text: string, params?: Record<string, string | number | null | undefined>) =>
+    const translate = vi.fn((text: string, params?: Record<string, string | number | null | undefined>) =>
       text === "Receipt Settings" ? "Ustawienia paragonów" : `${text}|${params?.["name"]}|${params?.["type"]}`
     );
 

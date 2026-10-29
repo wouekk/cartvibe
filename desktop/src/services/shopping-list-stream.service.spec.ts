@@ -3,6 +3,7 @@ import { Store } from "@ngxs/store";
 import { ApplyShoppingListEvent, LoadShoppingLists } from "../store/shopping-list.state.actions";
 import { ShoppingListStreamService } from "./shopping-list-stream.service";
 
+import type { Mock } from "vitest";
 /** Just enough of EventSource to drive the service: listeners, readyState and close(). */
 class FakeEventSource {
   public readyState = 0;
@@ -38,7 +39,7 @@ class FakeEventSource {
 
 describe("ShoppingListStreamService", () => {
   let service: ShoppingListStreamService;
-  let dispatch: jest.Mock;
+  let dispatch: Mock;
   let sources: FakeEventSource[];
 
   const latest = () => sources[sources.length - 1];
@@ -49,8 +50,8 @@ describe("ShoppingListStreamService", () => {
   };
 
   beforeEach(() => {
-    jest.useFakeTimers();
-    dispatch = jest.fn();
+    vi.useFakeTimers();
+    dispatch = vi.fn();
 
     TestBed.configureTestingModule({
       providers: [{ provide: Store, useValue: { dispatch } }],
@@ -67,7 +68,7 @@ describe("ShoppingListStreamService", () => {
 
   afterEach(() => {
     service.disconnect();
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   it("opens the group's stream and applies its events", () => {
@@ -102,13 +103,13 @@ describe("ShoppingListStreamService", () => {
     latest().failPermanently();
     expect(sources).toHaveLength(1);
 
-    jest.advanceTimersByTime(1000);
+    vi.advanceTimersByTime(1000);
     expect(sources).toHaveLength(2);
 
     latest().failPermanently();
-    jest.advanceTimersByTime(1000);
+    vi.advanceTimersByTime(1000);
     expect(sources).toHaveLength(2);
-    jest.advanceTimersByTime(1000);
+    vi.advanceTimersByTime(1000);
     expect(sources).toHaveLength(3);
   });
 
@@ -128,7 +129,7 @@ describe("ShoppingListStreamService", () => {
 
     service.disconnect();
     setVisibility("visible");
-    jest.advanceTimersByTime(60000);
+    vi.advanceTimersByTime(60000);
 
     expect(source.closed).toBe(true);
     expect(sources).toHaveLength(1);

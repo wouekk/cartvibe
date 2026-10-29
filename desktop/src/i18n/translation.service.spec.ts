@@ -16,7 +16,7 @@ describe("TranslationService", () => {
   });
 
   it("is English until someone is signed in, whatever the browser says", () => {
-    jest.spyOn(navigator, "languages", "get").mockReturnValue(["pl-PL", "pl"]);
+    vi.spyOn(navigator, "languages", "get").mockReturnValue(["pl-PL", "pl"]);
 
     expect(service.language()).toBe("en");
     expect(service.t("Dashboard")).toBe("Dashboard");

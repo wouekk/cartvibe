@@ -29,7 +29,7 @@ describe("BarcodeScannerService", () => {
     delete (globalThis as any).BarcodeDetector;
     delete (globalThis as any).__zxingCallback;
     delete (globalThis as any).__zxingStopped;
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   beforeEach(() => {
@@ -54,10 +54,10 @@ describe("BarcodeScannerService", () => {
   });
 
   it("uses the native detector when there is one, and only accepts a valid barcode", async () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     const reads = [[{ rawValue: "1234567890123" }], [], [{ rawValue: "5449000000996" }]];
     (globalThis as any).BarcodeDetector = class {
-      public detect = jest.fn(async () => reads.shift() ?? []);
+      public detect = vi.fn(async () => reads.shift() ?? []);
     };
     const service = TestBed.inject(BarcodeScannerService) as TestScanner;
     const codes: string[] = [];
@@ -65,7 +65,7 @@ describe("BarcodeScannerService", () => {
     expect(service.supportsNative()).toBe(true);
     await service.start(stream, video, (code) => codes.push(code));
     for (let i = 0; i < 4; i++) {
-      await jest.advanceTimersByTimeAsync(200);
+      await vi.advanceTimersByTimeAsync(200);
     }
 
     expect(service.zxingLoads).toBe(0);
@@ -73,18 +73,18 @@ describe("BarcodeScannerService", () => {
   });
 
   it("stops looking when stopped", async () => {
-    jest.useFakeTimers();
-    const detect = jest.fn(async () => []);
+    vi.useFakeTimers();
+    const detect = vi.fn(async () => []);
     (globalThis as any).BarcodeDetector = class {
       public detect = detect;
     };
     const service = TestBed.inject(BarcodeScannerService) as TestScanner;
 
     const handle = await service.start(stream, video, () => undefined);
-    await jest.advanceTimersByTimeAsync(200);
+    await vi.advanceTimersByTimeAsync(200);
     handle.stop();
     detect.mockClear();
-    await jest.advanceTimersByTimeAsync(1000);
+    await vi.advanceTimersByTimeAsync(1000);
 
     expect(detect).not.toHaveBeenCalled();
   });

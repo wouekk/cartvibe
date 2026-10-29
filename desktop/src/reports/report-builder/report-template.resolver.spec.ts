@@ -7,10 +7,11 @@ import { SnackbarService } from "../../services";
 import { ReportRunnerService } from "../services/report-runner.service";
 import { reportTemplateResolver } from "./report-template.resolver";
 
+import type { Mock } from "vitest";
 describe("reportTemplateResolver", () => {
-  let runner: { getTemplate: jest.Mock };
-  let router: { navigate: jest.Mock };
-  let snackbar: { error: jest.Mock };
+  let runner: { getTemplate: Mock };
+  let router: { navigate: Mock };
+  let snackbar: { error: Mock };
 
   function route(id: string | null): ActivatedRouteSnapshot {
     return { paramMap: { get: () => id } } as unknown as ActivatedRouteSnapshot;
@@ -23,9 +24,9 @@ describe("reportTemplateResolver", () => {
   }
 
   beforeEach(() => {
-    runner = { getTemplate: jest.fn() };
-    router = { navigate: jest.fn() };
-    snackbar = { error: jest.fn() };
+    runner = { getTemplate: vi.fn() };
+    router = { navigate: vi.fn() };
+    snackbar = { error: vi.fn() };
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),

@@ -49,7 +49,7 @@ describe("TokenRefreshService", () => {
 
   describe("refreshToken", () => {
     it("should call authService.getNewRefreshToken and return claims", (done) => {
-      const spy = jest.spyOn(authService, "getNewRefreshToken").mockReturnValue(
+      const spy = vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         of(mockClaims as any)
       );
 
@@ -61,10 +61,10 @@ describe("TokenRefreshService", () => {
     });
 
     it("should dispatch SetAuthState on successful refresh", (done) => {
-      jest.spyOn(authService, "getNewRefreshToken").mockReturnValue(
+      vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         of(mockClaims as any)
       );
-      const dispatchSpy = jest.spyOn(store, "dispatch");
+      const dispatchSpy = vi.spyOn(store, "dispatch");
 
       service.refreshToken().subscribe(() => {
         expect(dispatchSpy).toHaveBeenCalledWith(
@@ -76,12 +76,12 @@ describe("TokenRefreshService", () => {
 
     it("should dispatch Logout and clear localStorage on refresh failure", (done) => {
       const error = new Error("Token expired");
-      jest.spyOn(authService, "getNewRefreshToken").mockReturnValue(
+      vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         throwError(() => error)
       );
-      const dispatchSpy = jest.spyOn(store, "dispatch").mockReturnValue(of(undefined));
-      const clearSpy = jest.spyOn(Storage.prototype, "clear");
-      const navigateSpy = jest.spyOn(router, "navigate").mockResolvedValue(true);
+      const dispatchSpy = vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
+      const clearSpy = vi.spyOn(Storage.prototype, "clear");
+      const navigateSpy = vi.spyOn(router, "navigate").mockResolvedValue(true);
 
       service.refreshToken().subscribe({
         error: (err) => {
@@ -96,17 +96,17 @@ describe("TokenRefreshService", () => {
     });
 
     it("should navigate to /auth/login on refresh failure", (done) => {
-      jest.spyOn(authService, "getNewRefreshToken").mockReturnValue(
+      vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         throwError(() => new Error("fail"))
       );
-      jest.spyOn(store, "dispatch").mockReturnValue(of(undefined));
-      jest.spyOn(Storage.prototype, "clear");
-      const navigateSpy = jest.spyOn(router, "navigate").mockResolvedValue(true);
+      vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
+      vi.spyOn(Storage.prototype, "clear");
+      const navigateSpy = vi.spyOn(router, "navigate").mockResolvedValue(true);
 
       service.refreshToken().subscribe({
         error: () => {
           expect(navigateSpy).toHaveBeenCalledWith(["/auth/login"]);
-          jest.spyOn(Storage.prototype, "clear").mockRestore();
+          vi.spyOn(Storage.prototype, "clear").mockRestore();
           done();
         },
       });
@@ -114,7 +114,7 @@ describe("TokenRefreshService", () => {
 
     it("should serialize concurrent calls — only one HTTP request fires", () => {
       const subject = new Subject<any>();
-      const spy = jest.spyOn(authService, "getNewRefreshToken").mockReturnValue(
+      const spy = vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         subject.asObservable()
       );
 
@@ -138,10 +138,10 @@ describe("TokenRefreshService", () => {
 
     it("should serialize concurrent calls — SetAuthState dispatched once", () => {
       const subject = new Subject<any>();
-      jest.spyOn(authService, "getNewRefreshToken").mockReturnValue(
+      vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         subject.asObservable()
       );
-      const dispatchSpy = jest.spyOn(store, "dispatch");
+      const dispatchSpy = vi.spyOn(store, "dispatch");
 
       service.refreshToken().subscribe();
       service.refreshToken().subscribe();
@@ -156,7 +156,7 @@ describe("TokenRefreshService", () => {
     });
 
     it("should reset in-flight state after successful completion allowing new requests", () => {
-      const spy = jest.spyOn(authService, "getNewRefreshToken").mockReturnValue(
+      const spy = vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         of(mockClaims as any)
       );
 
@@ -170,10 +170,10 @@ describe("TokenRefreshService", () => {
     });
 
     it("should reset in-flight state after error allowing new requests", () => {
-      const spy = jest.spyOn(authService, "getNewRefreshToken");
-      jest.spyOn(store, "dispatch").mockReturnValue(of(undefined));
-      jest.spyOn(router, "navigate").mockResolvedValue(true);
-      const clearSpy = jest.spyOn(Storage.prototype, "clear");
+      const spy = vi.spyOn(authService, "getNewRefreshToken");
+      vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
+      vi.spyOn(router, "navigate").mockResolvedValue(true);
+      const clearSpy = vi.spyOn(Storage.prototype, "clear");
 
       // First call — fails
       spy.mockReturnValue(throwError(() => new Error("fail")));
@@ -190,12 +190,12 @@ describe("TokenRefreshService", () => {
 
     it("should propagate error to all concurrent subscribers on failure", () => {
       const subject = new Subject<any>();
-      jest.spyOn(authService, "getNewRefreshToken").mockReturnValue(
+      vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         subject.asObservable()
       );
-      jest.spyOn(store, "dispatch").mockReturnValue(of(undefined));
-      jest.spyOn(router, "navigate").mockResolvedValue(true);
-      const clearSpy = jest.spyOn(Storage.prototype, "clear");
+      vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
+      vi.spyOn(router, "navigate").mockResolvedValue(true);
+      const clearSpy = vi.spyOn(Storage.prototype, "clear");
 
       const errors: any[] = [];
       service.refreshToken().subscribe({ error: (e) => errors.push(e) });
@@ -213,12 +213,12 @@ describe("TokenRefreshService", () => {
 
     it("should dispatch Logout only once for concurrent failures", () => {
       const subject = new Subject<any>();
-      jest.spyOn(authService, "getNewRefreshToken").mockReturnValue(
+      vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         subject.asObservable()
       );
-      const dispatchSpy = jest.spyOn(store, "dispatch").mockReturnValue(of(undefined));
-      jest.spyOn(router, "navigate").mockResolvedValue(true);
-      const clearSpy = jest.spyOn(Storage.prototype, "clear");
+      const dispatchSpy = vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
+      vi.spyOn(router, "navigate").mockResolvedValue(true);
+      const clearSpy = vi.spyOn(Storage.prototype, "clear");
 
       service.refreshToken().subscribe({ error: () => {} });
       service.refreshToken().subscribe({ error: () => {} });
@@ -234,12 +234,12 @@ describe("TokenRefreshService", () => {
     });
 
     it("should not dispatch SetAuthState on failure", () => {
-      jest.spyOn(authService, "getNewRefreshToken").mockReturnValue(
+      vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         throwError(() => new Error("fail"))
       );
-      const dispatchSpy = jest.spyOn(store, "dispatch").mockReturnValue(of(undefined));
-      jest.spyOn(router, "navigate").mockResolvedValue(true);
-      const clearSpy = jest.spyOn(Storage.prototype, "clear");
+      const dispatchSpy = vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
+      vi.spyOn(router, "navigate").mockResolvedValue(true);
+      const clearSpy = vi.spyOn(Storage.prototype, "clear");
 
       service.refreshToken().subscribe({ error: () => {} });
 
@@ -255,7 +255,7 @@ describe("TokenRefreshService", () => {
       const futureExp = Math.floor(Date.now() / 1000) + 3600;
       const claims = { ...mockClaims, exp: futureExp };
 
-      jest.spyOn(authService, "getNewRefreshToken").mockReturnValue(
+      vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         of(claims as any)
       );
 
@@ -269,7 +269,7 @@ describe("TokenRefreshService", () => {
     });
 
     it("should handle rapid sequential calls correctly", () => {
-      const spy = jest.spyOn(authService, "getNewRefreshToken").mockReturnValue(
+      const spy = vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         of(mockClaims as any)
       );
 
@@ -287,7 +287,7 @@ describe("TokenRefreshService", () => {
 
     it("should handle late subscriber to in-flight refresh", () => {
       const subject = new Subject<any>();
-      jest.spyOn(authService, "getNewRefreshToken").mockReturnValue(
+      vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         subject.asObservable()
       );
 
@@ -305,7 +305,7 @@ describe("TokenRefreshService", () => {
       // Late subscriber after completion — shareReplay(1) replays the last value
       // but finalize has reset refreshInFlight$, so this starts a new request
       const subject2 = new Subject<any>();
-      jest.spyOn(authService, "getNewRefreshToken").mockReturnValue(
+      vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         subject2.asObservable()
       );
 

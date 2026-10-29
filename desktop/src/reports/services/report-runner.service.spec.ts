@@ -5,7 +5,8 @@ import { PagedRequestCommand, ReportRequestCommand, ReportService } from "../../
 import { downloadFile } from "../../utils/file";
 import { ReportRunnerService, reportFilename } from "./report-runner.service";
 
-jest.mock("../../utils/file", () => ({ downloadFile: jest.fn() }));
+import type { Mock } from "vitest";
+vi.mock("../../utils/file", () => ({ downloadFile: vi.fn() }));
 
 function command(name: string, formats: ReportRequestCommand.FormatsEnum[]): ReportRequestCommand {
   return {
@@ -38,28 +39,28 @@ describe("reportFilename", () => {
 
 describe("ReportRunnerService", () => {
   let reportService: {
-    createReportTemplate: jest.Mock;
-    updateReportTemplate: jest.Mock;
-    getReportTemplates: jest.Mock;
-    getReportTemplate: jest.Mock;
-    duplicateReportTemplate: jest.Mock;
-    deleteReportTemplate: jest.Mock;
-    generateReport: jest.Mock;
-    generateReportFromTemplate: jest.Mock;
+    createReportTemplate: Mock;
+    updateReportTemplate: Mock;
+    getReportTemplates: Mock;
+    getReportTemplate: Mock;
+    duplicateReportTemplate: Mock;
+    deleteReportTemplate: Mock;
+    generateReport: Mock;
+    generateReportFromTemplate: Mock;
   };
   let service: ReportRunnerService;
 
   beforeEach(() => {
-    (downloadFile as jest.Mock).mockClear();
+    (downloadFile as Mock).mockClear();
     reportService = {
-      createReportTemplate: jest.fn(() => of({ id: 1 })),
-      updateReportTemplate: jest.fn(() => of({ id: 2 })),
-      getReportTemplates: jest.fn(() => of({ data: [], totalCount: 0 })),
-      getReportTemplate: jest.fn(() => of({ id: 3 })),
-      duplicateReportTemplate: jest.fn(() => of({ id: 4 })),
-      deleteReportTemplate: jest.fn(() => of(undefined)),
-      generateReport: jest.fn(() => of(new Blob())),
-      generateReportFromTemplate: jest.fn(() => of(new Blob())),
+      createReportTemplate: vi.fn(() => of({ id: 1 })),
+      updateReportTemplate: vi.fn(() => of({ id: 2 })),
+      getReportTemplates: vi.fn(() => of({ data: [], totalCount: 0 })),
+      getReportTemplate: vi.fn(() => of({ id: 3 })),
+      duplicateReportTemplate: vi.fn(() => of({ id: 4 })),
+      deleteReportTemplate: vi.fn(() => of(undefined)),
+      generateReport: vi.fn(() => of(new Blob())),
+      generateReportFromTemplate: vi.fn(() => of(new Blob())),
     };
     TestBed.configureTestingModule({
       providers: [

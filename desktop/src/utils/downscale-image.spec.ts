@@ -5,7 +5,7 @@ function fileOf(size: number, type: string, name = "IMG_0001.jpeg"): File {
 }
 
 describe("downscaleImageForUpload", () => {
-  const close = jest.fn();
+  const close = vi.fn();
   let drawn: { width: number; height: number } | undefined;
   let blobSize = 400_000;
   const originalCreateImageBitmap = (globalThis as any).createImageBitmap;
@@ -14,22 +14,22 @@ describe("downscaleImageForUpload", () => {
     close.mockClear();
     drawn = undefined;
     blobSize = 400_000;
-    (globalThis as any).createImageBitmap = jest.fn().mockResolvedValue({ width: 4032, height: 3024, close });
-    jest.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(function (this: HTMLCanvasElement) {
+    (globalThis as any).createImageBitmap = vi.fn().mockResolvedValue({ width: 4032, height: 3024, close });
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(function (this: HTMLCanvasElement) {
       const canvas = this;
       return {
         fillStyle: "",
-        fillRect: jest.fn(),
-        drawImage: jest.fn(() => (drawn = { width: canvas.width, height: canvas.height })),
+        fillRect: vi.fn(),
+        drawImage: vi.fn(() => (drawn = { width: canvas.width, height: canvas.height })),
       } as unknown as CanvasRenderingContext2D;
     } as any);
-    jest
+    vi
       .spyOn(HTMLCanvasElement.prototype, "toBlob")
       .mockImplementation((callback: BlobCallback) => callback(new Blob([new Uint8Array(blobSize)], { type: "image/jpeg" })));
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
     (globalThis as any).createImageBitmap = originalCreateImageBitmap;
   });
 
@@ -45,7 +45,7 @@ describe("downscaleImageForUpload", () => {
   });
 
   it("re-encodes a large photo that is already small enough in pixels without enlarging it", async () => {
-    (globalThis as any).createImageBitmap = jest.fn().mockResolvedValue({ width: 1200, height: 1600, close });
+    (globalThis as any).createImageBitmap = vi.fn().mockResolvedValue({ width: 1200, height: 1600, close });
 
     await downscaleImageForUpload(fileOf(2_000_000, "image/png", "scan.png"));
 
@@ -58,7 +58,7 @@ describe("downscaleImageForUpload", () => {
     expect(await downscaleImageForUpload(small)).toBe(small);
     expect(await downscaleImageForUpload(pdf)).toBe(pdf);
 
-    (globalThis as any).createImageBitmap = jest.fn().mockRejectedValue(new Error("HEIC not supported"));
+    (globalThis as any).createImageBitmap = vi.fn().mockRejectedValue(new Error("HEIC not supported"));
     const heic = fileOf(6_000_000, "image/heic", "IMG_0002.HEIC");
     expect(await downscaleImageForUpload(heic)).toBe(heic);
   });
