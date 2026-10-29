@@ -6176,6 +6176,13 @@ components:
           description: The product lines that made the receipt match the list's search phrase. Only populated by the paged receipt list while a search is active; absent otherwise.
           items:
             $ref: "#/components/schemas/ReceiptSearchMatch"
+        warrantyProducts:
+          type: array
+          description: >-
+            The receipt's product names in the order printed (the plain name, else as printed). Only populated by the
+            paged receipt list while filter.warrantyActive is set; absent otherwise and for a receipt without products.
+          items:
+            type: string
         groupId:
           type: integer
           description: Group foreign key

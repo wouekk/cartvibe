@@ -60,6 +60,10 @@ export interface PagedDataDataInner {
      * The product lines that made the receipt match the list\'s search phrase. Only populated by the paged receipt list while a search is active; absent otherwise.
      */
     searchMatches?: Array<ReceiptSearchMatch>;
+    /**
+     * The receipt\'s product names in the order printed (the plain name, else as printed). Only populated by the paged receipt list while filter.warrantyActive is set; absent otherwise and for a receipt without products.
+     */
+    warrantyProducts?: Array<string>;
     groupId: number;
     id: number;
     /**

@@ -118,13 +118,7 @@ import { summarizeShoppingLists } from "../overview-lists";
 import { isWholeCalendarMonth, previousLabel, resolvePeriod, ResolvedPeriod } from "../overview-period";
 import { marker } from "../../i18n/marker";
 import { formatDateInput, parseDateInput } from "../../datepicker/date-input.directive";
-import { addCalendarMonths, daysBetween, WARRANTY_ENDING_SOON_MONTHS } from "../../utils/warranty-period";
-
-/** A row of the warranties panel: the receipt and the whole days until its warranty ends. */
-interface WarrantyRow {
-  receipt: Receipt;
-  daysLeft: number;
-}
+import { addCalendarMonths, WARRANTY_ENDING_SOON_MONTHS, warrantyRows } from "../../utils/warranty-period";
 
 /** Receipts listed per height step of the receipts panel. */
 const RECENT_RECEIPT_COUNT = 6;
@@ -376,14 +370,14 @@ export class OverviewPageComponent {
   private readonly appToday = computed(() => formatDateInput(todayInZone(this.store.selectSnapshot(SystemSettingsState.timeZone))));
 
   /**
-   * Warranties ending in the next two months, nearest first, whatever the period picked: what is still covered and
-   * soon will not be. Each row carries its days left (0 is today).
+   * The receipts whose warranty ends in the next two months, nearest first, whatever the period picked: what is still
+   * covered and soon will not be. The tile counts them; the panel lists their products.
    */
   public readonly warrantiesEndingSoon = toSignal(
     toObservable(computed(() => (this.request() ? this.groupId() : undefined))).pipe(
       switchMap((groupId) => {
         if (groupId === undefined) {
-          return of([] as WarrantyRow[]);
+          return of([] as Receipt[]);
         }
         const today = this.appToday();
         const endsBy = formatDateInput(addCalendarMonths(parseDateInput(today) ?? new Date(), WARRANTY_ENDING_SOON_MONTHS));
@@ -396,18 +390,16 @@ export class OverviewPageComponent {
             filter: { warrantyActive: true, warrantyEndsBy: endsBy },
           })
           .pipe(
-            map((page) =>
-              (page.data as unknown as Receipt[]).map((receipt) => ({
-                receipt,
-                daysLeft: daysBetween(today, receipt.warrantyUntil) ?? 0,
-              }))
-            ),
-            catchError(() => of([] as WarrantyRow[]))
+            map((page) => page.data as unknown as Receipt[]),
+            catchError(() => of([] as Receipt[]))
           );
       })
     ),
-    { initialValue: [] as WarrantyRow[] }
+    { initialValue: [] as Receipt[] }
   );
+
+  /** The panel's rows: a product each (one row for a receipt without products), with its days left (0 is today). */
+  public readonly warrantyEndingSoonRows = computed(() => warrantyRows(this.warrantiesEndingSoon(), this.appToday()));
 
   /** The scroll box height: the header and the visible rows (2.5rem + a hairline each), or null when they all fit. */
   public readonly recentReceiptsMaxHeight = computed(() => {
