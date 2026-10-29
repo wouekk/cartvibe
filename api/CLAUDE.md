@@ -246,9 +246,10 @@ which day an instant falls on and what "today" means.
   retried after 180 days (`index.json`); a 202 is retried next run. A refused key, used-up credits (402) or rate
   limiting stops the run; the reason is in the status (`GET /shopLogo/status`, counted over the wanted brands). Runs:
   after a key is saved, at API start, every 12 h on the clean-up queue (`system_clean_up:shop_logos`, never retried
-  by the queue) and on `POST /shopLogo/sync` (the Fetch logos now button); one at a time (`TryLock`), and a run with
+  by the queue) and on `POST /shopLogo/sync` (the Download logos button); one at a time (`TryLock`), and a run with
   nothing missing makes no call. Saving `""` removes the key and stops the downloads but keeps the folder, and
-  `shopLogosEnabled` stays on while any logo is stored, so switching keys never loses logos. `GET /shopLogo` lists every stored logo,
+  `shopLogosEnabled` stays on while any logo is stored, so switching keys never loses logos. `DELETE /shopLogo` (the Delete logos
+  button) removes the folder and index but keeps the key, and is a 409 while a download runs. `GET /shopLogo` lists every stored logo,
   `GET /shopLogo/{slug}` serves one (only known slugs become file names), both to any signed-in user.
 - **Outage vs bad answer:** no AI configured means nothing is called and nothing counted. A failed call or unreadable
   answer counts an attempt; extraction and trips give up after 3 (`productExtractionMaxBadAnswers`,

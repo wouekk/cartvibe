@@ -413,8 +413,10 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
   guard order. Old paths redirect. Embedded tables sit outside the `<form>`.
   - Shop logos: the Logo.dev secret key (`shopLogoKey`, sent only when typed; a saved one shows as
     `SAVED_KEY_PLACEHOLDER`; `shopLogoKeyValidator` refuses `pk_`), the download status from
-    `GET /shopLogo/status` (over the known shops on the receipts), polled while a download runs, and Fetch logos now
-    (`shop-logos-fetch`, `POST /shopLogo/sync`; only with a saved key and nothing running). The server downloads and serves the logos (`api/CLAUDE.md` §7);
+    `GET /shopLogo/status` (over the known shops on the receipts), polled while a download runs, Download logos
+    (`shop-logos-fetch`, `POST /shopLogo/sync`; only with a saved key and nothing running), Delete logos (red,
+    `shop-logos-delete`, confirmed, `DELETE /shopLogo`; only with logos and nothing running) and Save key (the
+    shared save, relabelled on this tab). The server downloads and serves the logos (`api/CLAUDE.md` §7);
     `ShopLogoCatalog` loads `GET /shopLogo` once per sign-in while `FeatureConfig.shopLogosEnabled`, and
     `app-shop-monogram` matches a shop name against it (`findShopBrand`) and loads `/api/shopLogo/<slug>` from this
     server, falling back to the letter on any error. Browsers never contact Logo.dev. The login page (`AuthForm`,

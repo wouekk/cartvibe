@@ -156,13 +156,23 @@
         </div>
         <ul class="m-0 flex list-disc flex-col gap-1 pl-5 text-sm text-muted-foreground">
           <li>{{ 'Use the secret key (sk_), not the publishable key (pk_): Logo.dev only allows keeping logos that came through its API, which needs the secret key.' | t }}</li>
-          <li>{{ 'The free plan pays for about 250 logos a month. CartVibe fetches only the shops on your receipts, each once, looks for new ones every 12 hours, and waits for next month if the credits run out. Fetch logos now looks at once.' | t }}</li>
+          <li>{{ 'The free plan pays for about 250 logos a month. CartVibe fetches only the shops on your receipts, each once, looks for new ones every 12 hours, and waits for next month if the credits run out. Download logos looks at once.' | t }}</li>
           <li>{{ 'Browsers load the logos from this server, so Logo.dev never sees who uses CartVibe or which shops appear, and the logos work offline.' | t }}</li>
           <li>{{ 'Logo.dev asks commercial projects to credit it; while logos are on, the login page shows "Logos provided by Logo.dev".' | t }}</li>
         </ul>
       </div>
       <div sectionFooter class="cv-card__footer">
-        <!-- A plain button, never the form's submit: it fetches with the saved key. -->
+        <!-- Plain buttons, never the form's submit: they act on the saved key and the downloaded logos. -->
+        <button
+          hlmBtn
+          variant="destructive"
+          type="button"
+          data-testid="shop-logos-delete"
+          [disabled]="!canDeleteLogos()"
+          (click)="deleteLogos()"
+        >
+          {{ 'Delete logos' | t }}
+        </button>
         <button
           hlmBtn
           variant="outline"
@@ -171,7 +181,7 @@
           [disabled]="!canFetchLogos()"
           (click)="fetchLogos()"
         >
-          {{ 'Fetch logos now' | t }}
+          {{ 'Download logos' | t }}
         </button>
         <ng-container *ngTemplateOutlet="saveActions"></ng-container>
       </div>
@@ -359,7 +369,7 @@
         data-testid="settings-save"
         [disabled]="!hasUnsavedChanges() || form.invalid"
       >
-        {{ 'Save changes' | t }}
+        {{ (section === 'logos' ? 'Save key' : 'Save changes') | t }}
       </button>
   }
 </ng-template>

@@ -305,7 +305,10 @@
     "Delete Selected": "Ausgewählte löschen",
     "Delete User": "Benutzer löschen",
     "Delete Users": "Benutzer löschen",
+    "Delete every downloaded logo from this server? Receipts show the shop's first letter until the logos are downloaded again, which uses Logo.dev credits. The key stays saved.": "Alle heruntergeladenen Logos von diesem Server löschen? Belege zeigen den ersten Buchstaben des Geschäfts, bis die Logos erneut geladen werden, was Logo.dev-Guthaben verbraucht. Der Schlüssel bleibt gespeichert.",
     "Delete list": "Liste löschen",
+    "Delete logos": "Logos löschen",
+    "Delete the logos": "Logos löschen",
     "Delete the open list": "Die geöffnete Liste löschen",
     "Delete the user '{name}'? They are removed from their groups, and the groups where they are the only member and the receipts they paid for are deleted. This can't be undone.": "Den Benutzer „{name}“ löschen? Er wird aus seinen Gruppen entfernt; Gruppen, in denen er das einzige Mitglied ist, und Belege, die er bezahlt hat, werden gelöscht. Das kann nicht rückgängig gemacht werden.",
     "Delete {name}": "{name} löschen",
@@ -327,6 +330,7 @@
     "Done": "Fertig",
     "Download Image": "Bild herunterladen",
     "Download Landscape PDF (1 yr/page)": "PDF im Querformat herunterladen (1 Jahr pro Seite)",
+    "Download logos": "Logos laden",
     "Download source file": "Quelldatei herunterladen",
     "Downloading logos: {downloaded} of {total} so far.": "Logos werden geladen: bisher {downloaded} von {total}.",
     "Draft": "Entwurf",
@@ -396,7 +400,6 @@
     "Fast Food": "Fast Food",
     "Feb": "Feb.",
     "February": "Februar",
-    "Fetch logos now": "Logos jetzt laden",
     "Fibre": "Ballaststoffe",
     "Field": "Feld",
     "Filter": "Filter",
@@ -866,6 +869,7 @@
     "Save changes": "Änderungen speichern",
     "Save column": "Spalte speichern",
     "Save column configuration": "Spalteneinstellungen speichern",
+    "Save key": "Schlüssel speichern",
     "Save the main AI first; the backup stands in for it.": "Speichere zuerst die Haupt-KI; die Ersatz-KI springt für sie ein.",
     "Saved report templates — open one in the builder, generate it, duplicate it, or delete it.": "Gespeicherte Berichtsvorlagen — im Editor öffnen, erstellen, duplizieren oder löschen.",
     "Saved with your account, so CartVibe speaks it on every device.": "Mit deinem Konto gespeichert, daher spricht CartVibe sie auf jedem Gerät.",
@@ -1030,10 +1034,11 @@
     "The externally reachable address of this server. Used to build the redirect URI that each OIDC identity provider must be configured with, so it has to match how users actually reach CartVibe.": "Die von außen erreichbare Adresse dieses Servers. Daraus wird die Weiterleitungs-URI gebildet, mit der jeder OIDC-Identitätsanbieter eingerichtet sein muss, sie muss also dazu passen, wie Benutzer CartVibe tatsächlich erreichen.",
     "The file could not be read": "Die Datei konnte nicht gelesen werden",
     "The file this activity needs is no longer available.": "Die Datei, die diese Aktivität braucht, ist nicht mehr verfügbar.",
-    "The free plan pays for about 250 logos a month. CartVibe fetches only the shops on your receipts, each once, looks for new ones every 12 hours, and waits for next month if the credits run out. Fetch logos now looks at once.": "Der kostenlose Tarif reicht für etwa 250 Logos im Monat. CartVibe lädt nur die Geschäfte auf deinen Belegen, jedes einmal, sucht alle 12 Stunden nach neuen und wartet auf den nächsten Monat, wenn das Guthaben aufgebraucht ist. „Logos jetzt laden“ sucht sofort.",
+    "The free plan pays for about 250 logos a month. CartVibe fetches only the shops on your receipts, each once, looks for new ones every 12 hours, and waits for next month if the credits run out. Download logos looks at once.": "Der kostenlose Tarif reicht für etwa 250 Logos im Monat. CartVibe lädt nur die Geschäfte auf deinen Belegen, jedes einmal, sucht alle 12 Stunden nach neuen und wartet auf den nächsten Monat, wenn das Guthaben aufgebraucht ist. „Logos laden“ sucht sofort.",
     "The household has been told you are going shopping.": "Der Haushalt weiß jetzt, dass du einkaufen gehst.",
     "The language of menus, buttons and messages.": "Die Sprache von Menüs, Schaltflächen und Meldungen.",
     "The last download stopped: {error}": "Der letzte Download wurde abgebrochen: {error}",
+    "The logos were deleted": "Die Logos wurden gelöscht",
     "The main currency of the household. Receipts in other currencies are converted into it.": "Die Hauptwährung des Haushalts. Belege in anderen Währungen werden in sie umgerechnet.",
     "The model name as LM Studio lists it": "Der Modellname, wie LM Studio ihn anzeigt",
     "The model reads images (a vision model)": "Das Modell liest Bilder (ein Vision-Modell)",
@@ -1344,6 +1349,9 @@
     "Each browser loads the logos straight from Logo.dev and keeps them for a day. Logo.dev sees which brands' logos are asked for, never your receipts. Nothing is stored on this server.": {
       "value": "Jeder Browser lädt die Logos direkt von Logo.dev und behält sie einen Tag. Logo.dev sieht, welche Marken-Logos angefragt werden, nie deine Belege. Auf diesem Server wird nichts gespeichert."
     },
+    "Fetch logos now": {
+      "value": "Logos jetzt laden"
+    },
     "General & Currency": {
       "value": "Allgemein und Währung",
       "closest": "Add currency"
@@ -1403,6 +1411,10 @@
     },
     "The free plan is plenty: the first download asks Logo.dev about each brand once, then a daily check asks again about a logo once a month.": {
       "value": "Der kostenlose Tarif reicht völlig: Der erste Download fragt Logo.dev einmal je Marke, danach fragt eine tägliche Prüfung einmal im Monat erneut nach einem Logo."
+    },
+    "The free plan pays for about 250 logos a month. CartVibe fetches only the shops on your receipts, each once, looks for new ones every 12 hours, and waits for next month if the credits run out. Fetch logos now looks at once.": {
+      "value": "Der kostenlose Tarif reicht für etwa 250 Logos im Monat. CartVibe lädt nur die Geschäfte auf deinen Belegen, jedes einmal, sucht alle 12 Stunden nach neuen und wartet auf den nächsten Monat, wenn das Guthaben aufgebraucht ist. „Logos jetzt laden“ sucht sofort.",
+      "closest": "The free plan pays for about 250 logos a month. CartVibe fetches only the shops on your receipts, each once, looks for new ones every 12 hours, and waits for next month if the credits run out. Download logos looks at once."
     },
     "This is a secret key. Use the publishable key, which starts with pk_": {
       "value": "Das ist ein geheimer Schlüssel. Verwende den öffentlichen Schlüssel, der mit pk_ beginnt",

@@ -5,7 +5,8 @@ import { FormArray, FormControl, FormGroup, ReactiveFormsModule } from "@angular
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { ActivatedRoute, Router } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
-import { of, throwError } from "rxjs";
+import { of, Subject, throwError } from "rxjs";
+import { AppDialog } from "../../dialog/app-dialog";
 import { AutocompleteModule } from "../../autocomplete/autocomplete.module";
 import { CheckboxModule } from "../../checkbox/checkbox.module";
 import { InputModule } from "../../input/index";
@@ -796,6 +797,37 @@ describe("SystemSettingsFormComponent", () => {
       expect(start).toHaveBeenCalledTimes(1);
       expect(component.logoStatus()?.running).toBe(true);
       expect(component.canFetchLogos()).toBe(false);
+    });
+
+    it("deletes the logos only after the confirmation, and never during a download", () => {
+      const api = TestBed.inject(ShopLogoService);
+      const remove = jest
+        .spyOn(api, "deleteShopLogos")
+        .mockReturnValue(of({ running: false, downloaded: 0, total: 2, lastError: "" } as any));
+      jest.spyOn(TestBed.inject(FeatureConfigService), "getFeatureConfig").mockReturnValue(of({} as any));
+      const answer = new Subject<boolean | undefined>();
+      const dialogRef = { componentInstance: {} as any, afterClosed: () => answer.asObservable() };
+      jest.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue(dialogRef as any);
+
+      component.logoStatus.set({ running: true, downloaded: 2, total: 2, lastError: "" } as any);
+      expect(component.canDeleteLogos()).toBe(false);
+      component.logoStatus.set({ running: false, downloaded: 0, total: 2, lastError: "" } as any);
+      expect(component.canDeleteLogos()).toBe(false);
+      component.logoStatus.set({ running: false, downloaded: 2, total: 2, lastError: "" } as any);
+      expect(component.canDeleteLogos()).toBe(true);
+
+      component.deleteLogos();
+      expect(dialogRef.componentInstance.confirmText).toBe("Delete");
+      answer.next(undefined);
+      expect(remove).not.toHaveBeenCalled();
+
+      const confirm = new Subject<boolean | undefined>();
+      dialogRef.afterClosed = () => confirm.asObservable();
+      component.deleteLogos();
+      confirm.next(true);
+      expect(remove).toHaveBeenCalledTimes(1);
+      expect(component.logoStatus()?.downloaded).toBe(0);
+      expect(component.canDeleteLogos()).toBe(false);
     });
   });
 });

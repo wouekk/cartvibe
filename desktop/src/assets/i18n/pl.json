@@ -305,7 +305,10 @@
     "Delete Selected": "Usuń zaznaczone",
     "Delete User": "Usuń użytkownika",
     "Delete Users": "Usuń użytkowników",
+    "Delete every downloaded logo from this server? Receipts show the shop's first letter until the logos are downloaded again, which uses Logo.dev credits. The key stays saved.": "Usunąć z tego serwera wszystkie pobrane logo? Do ponownego pobrania, które zużywa kredyty Logo.dev, paragony pokazują pierwszą literę sklepu. Klucz pozostaje zapisany.",
     "Delete list": "Usuń listę",
+    "Delete logos": "Usuń logo",
+    "Delete the logos": "Usuń logo",
     "Delete the open list": "Usuń otwartą listę",
     "Delete the user '{name}'? They are removed from their groups, and the groups where they are the only member and the receipts they paid for are deleted. This can't be undone.": "Usunąć użytkownika „{name}”? Zostanie usunięty z grup, a grupy, w których jest jedynym członkiem, oraz paragony, które opłacił, zostaną usunięte. Tej operacji nie można cofnąć.",
     "Delete {name}": "Usuń: {name}",
@@ -327,6 +330,7 @@
     "Done": "Gotowe",
     "Download Image": "Pobierz obraz",
     "Download Landscape PDF (1 yr/page)": "Pobierz PDF poziomy (1 rok na stronę)",
+    "Download logos": "Pobierz logo",
     "Download source file": "Pobierz plik źródłowy",
     "Downloading logos: {downloaded} of {total} so far.": "Pobieranie logo: na razie {downloaded} z {total}.",
     "Draft": "Wersja robocza",
@@ -396,7 +400,6 @@
     "Fast Food": "Fast food",
     "Feb": "lut",
     "February": "luty",
-    "Fetch logos now": "Pobierz logo teraz",
     "Fibre": "Błonnik",
     "Field": "Pole",
     "Filter": "Filtr",
@@ -866,6 +869,7 @@
     "Save changes": "Zapisz zmiany",
     "Save column": "Zapisz kolumnę",
     "Save column configuration": "Zapisz konfigurację kolumn",
+    "Save key": "Zapisz klucz",
     "Save the main AI first; the backup stands in for it.": "Najpierw zapisz główne AI — zapasowe tylko je zastępuje.",
     "Saved report templates — open one in the builder, generate it, duplicate it, or delete it.": "Zapisane szablony raportów — otwórz w kreatorze, wygeneruj, zduplikuj lub usuń.",
     "Saved with your account, so CartVibe speaks it on every device.": "Zapisany na Twoim koncie, więc CartVibe używa go na każdym urządzeniu.",
@@ -1030,10 +1034,11 @@
     "The externally reachable address of this server. Used to build the redirect URI that each OIDC identity provider must be configured with, so it has to match how users actually reach CartVibe.": "Adres serwera dostępny z zewnątrz. Służy do zbudowania adresu przekierowania, z którym musi być skonfigurowany każdy dostawca tożsamości OIDC, więc musi odpowiadać temu, jak użytkownicy naprawdę łączą się z CartVibe.",
     "The file could not be read": "Nie udało się odczytać pliku",
     "The file this activity needs is no longer available.": "Plik potrzebny do tej czynności jest już niedostępny.",
-    "The free plan pays for about 250 logos a month. CartVibe fetches only the shops on your receipts, each once, looks for new ones every 12 hours, and waits for next month if the credits run out. Fetch logos now looks at once.": "Darmowy plan pozwala na około 250 logo miesięcznie. CartVibe pobiera tylko sklepy z Twoich paragonów, każdy raz, szuka nowych co 12 godzin, a gdy limit się wyczerpie, czeka do następnego miesiąca. „Pobierz logo teraz” szuka od razu.",
+    "The free plan pays for about 250 logos a month. CartVibe fetches only the shops on your receipts, each once, looks for new ones every 12 hours, and waits for next month if the credits run out. Download logos looks at once.": "Darmowy plan pozwala na około 250 logo miesięcznie. CartVibe pobiera tylko sklepy z Twoich paragonów, każdy raz, szuka nowych co 12 godzin, a gdy limit się wyczerpie, czeka do następnego miesiąca. „Pobierz logo” szuka od razu.",
     "The household has been told you are going shopping.": "Domownicy dostali informację, że idziesz na zakupy.",
     "The language of menus, buttons and messages.": "Język menu, przycisków i komunikatów.",
     "The last download stopped: {error}": "Ostatnie pobieranie zatrzymało się: {error}",
+    "The logos were deleted": "Logo zostały usunięte",
     "The main currency of the household. Receipts in other currencies are converted into it.": "Główna waluta gospodarstwa. Paragony w innych walutach są na nią przeliczane.",
     "The model name as LM Studio lists it": "Nazwa modelu tak, jak pokazuje ją LM Studio",
     "The model reads images (a vision model)": "Model czyta obrazy (model wizyjny)",
@@ -1366,6 +1371,9 @@
     "Each browser loads the logos straight from Logo.dev and keeps them for a day. Logo.dev sees which brands' logos are asked for, never your receipts. Nothing is stored on this server.": {
       "value": "Każda przeglądarka pobiera logo prosto z Logo.dev i przechowuje je przez jeden dzień. Logo.dev widzi, o logo których marek proszono, nigdy Twoje paragony. Na tym serwerze nic nie jest zapisywane."
     },
+    "Fetch logos now": {
+      "value": "Pobierz logo teraz"
+    },
     "General & Currency": {
       "value": "Ogólne i waluta",
       "closest": "Add currency"
@@ -1425,6 +1433,10 @@
     },
     "The free plan is plenty: the first download asks Logo.dev about each brand once, then a daily check asks again about a logo once a month.": {
       "value": "Darmowy plan w zupełności wystarczy: pierwsze pobieranie pyta Logo.dev o każdą markę raz, potem codzienne sprawdzenie pyta o dane logo raz w miesiącu."
+    },
+    "The free plan pays for about 250 logos a month. CartVibe fetches only the shops on your receipts, each once, looks for new ones every 12 hours, and waits for next month if the credits run out. Fetch logos now looks at once.": {
+      "value": "Darmowy plan pozwala na około 250 logo miesięcznie. CartVibe pobiera tylko sklepy z Twoich paragonów, każdy raz, szuka nowych co 12 godzin, a gdy limit się wyczerpie, czeka do następnego miesiąca. „Pobierz logo teraz” szuka od razu.",
+      "closest": "The free plan pays for about 250 logos a month. CartVibe fetches only the shops on your receipts, each once, looks for new ones every 12 hours, and waits for next month if the credits run out. Download logos looks at once."
     },
     "This is a secret key. Use the publishable key, which starts with pk_": {
       "value": "To jest klucz tajny. Użyj klucza publicznego, który zaczyna się od pk_",
