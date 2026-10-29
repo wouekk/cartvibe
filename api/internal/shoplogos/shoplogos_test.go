@@ -22,6 +22,7 @@ type fakeLogoDev struct {
 	downloads atomic.Int32
 	etag      string
 	refuse    bool
+	noCredits bool
 	notPNG    bool
 }
 
@@ -32,6 +33,10 @@ func newFakeLogoDev(t *testing.T) *fakeLogoDev {
 		switch {
 		case r.URL.Path == "/v2/brands/logo":
 			fake.lookups.Add(1)
+			if fake.noCredits {
+				w.WriteHeader(http.StatusPaymentRequired)
+				return
+			}
 			if fake.refuse || r.Header.Get("Authorization") != "Bearer sk_test" {
 				w.WriteHeader(http.StatusUnauthorized)
 				return
@@ -127,7 +132,7 @@ func TestSyncDownloadsLogosAndRemembersWhatLogoDevHasNot(t *testing.T) {
 	fake := newFakeLogoDev(t)
 	syncer, store := newTestSyncer(t)
 
-	if err := syncer.Run(context.Background(), "sk_test"); err != nil {
+	if err := syncer.Run(context.Background(), "sk_test", Brands()); err != nil {
 		t.Fatal(err)
 	}
 
@@ -139,7 +144,7 @@ func TestSyncDownloadsLogosAndRemembersWhatLogoDevHasNot(t *testing.T) {
 	if err != nil || string(data) != string(fakePNG) {
 		t.Fatalf("stored logo = %q, %v", data, err)
 	}
-	if status := syncer.Status(); status.Downloaded != 2 || status.Total != 4 || status.Running || status.LastRun == nil || status.LastError != "" {
+	if status := syncer.Status(Brands()); status.Downloaded != 2 || status.Total != 4 || status.Running || status.LastRun == nil || status.LastError != "" {
 		t.Errorf("unexpected status %+v", status)
 	}
 	if fake.lookups.Load() != 4 || fake.downloads.Load() != 2 {
@@ -147,7 +152,7 @@ func TestSyncDownloadsLogosAndRemembersWhatLogoDevHasNot(t *testing.T) {
 	}
 
 	// A second run asks again only about the brand Logo.dev was still indexing.
-	if err := syncer.Run(context.Background(), "sk_test"); err != nil {
+	if err := syncer.Run(context.Background(), "sk_test", Brands()); err != nil {
 		t.Fatal(err)
 	}
 	if fake.lookups.Load() != 5 || fake.downloads.Load() != 2 {
@@ -155,32 +160,90 @@ func TestSyncDownloadsLogosAndRemembersWhatLogoDevHasNot(t *testing.T) {
 	}
 }
 
-func TestSyncDownloadsAgainOnlyWhenTheLogoChanged(t *testing.T) {
+func TestSyncNeverAsksAgainAboutAStoredLogo(t *testing.T) {
 	withBrands(t, testBrands[:1])
 	fake := newFakeLogoDev(t)
 	syncer, _ := newTestSyncer(t)
 
-	if err := syncer.Run(context.Background(), "sk_test"); err != nil {
+	if err := syncer.Run(context.Background(), "sk_test", Brands()); err != nil {
 		t.Fatal(err)
 	}
 
-	// A month later the same version is not downloaded again.
-	syncer.now = func() time.Time { return time.Now().Add(refreshAfter + time.Hour) }
-	if err := syncer.Run(context.Background(), "sk_test"); err != nil {
+	// Every call costs credits, so a stored logo is never asked about again, however much later.
+	syncer.now = func() time.Time { return time.Now().Add(365 * 24 * time.Hour) }
+	if err := syncer.Run(context.Background(), "sk_test", Brands()); err != nil {
 		t.Fatal(err)
 	}
-	if fake.lookups.Load() != 2 || fake.downloads.Load() != 1 {
-		t.Fatalf("same ETag: lookups %d, downloads %d", fake.lookups.Load(), fake.downloads.Load())
+	if fake.lookups.Load() != 1 || fake.downloads.Load() != 1 {
+		t.Fatalf("a stored logo must cost nothing: lookups %d, downloads %d", fake.lookups.Load(), fake.downloads.Load())
+	}
+}
+
+func TestSyncStopsWhenTheCreditsAreUsedUp(t *testing.T) {
+	withBrands(t, testBrands)
+	fake := newFakeLogoDev(t)
+	fake.noCredits = true
+	syncer, _ := newTestSyncer(t)
+
+	err := syncer.Run(context.Background(), "sk_test", Brands())
+	if !errors.Is(err, ErrCreditsUsedUp) || fake.lookups.Load() != 1 {
+		t.Fatalf("used-up credits should stop at the first call: %v after %d calls", err, fake.lookups.Load())
+	}
+	if !strings.Contains(syncer.Status(Brands()).LastError, "credits are used up") {
+		t.Errorf("the status should say why, got %q", syncer.Status(Brands()).LastError)
+	}
+}
+
+func TestSyncFetchesOnlyTheWantedBrands(t *testing.T) {
+	withBrands(t, testBrands)
+	fake := newFakeLogoDev(t)
+	syncer, store := newTestSyncer(t)
+
+	wanted := BrandsFor([]string{"CARREFOUR MARKET Lyon", "Boulangerie du coin"})
+	if err := syncer.Run(context.Background(), "sk_test", wanted); err != nil {
+		t.Fatal(err)
+	}
+	if fake.lookups.Load() != 1 || !store.HasLogo("carrefour") || store.HasLogo("leclerc") {
+		t.Errorf("only carrefour should be fetched: %d calls", fake.lookups.Load())
+	}
+	if status := syncer.Status(wanted); status.Downloaded != 1 || status.Total != 1 {
+		t.Errorf("the status counts the wanted brands, got %+v", status)
+	}
+}
+
+func TestBrandsForMatchesLikeTheApp(t *testing.T) {
+	withBrands(t, []Brand{
+		{Slug: "lidl", Name: "Lidl", Domain: "lidl.com", Aliases: []string{}},
+		{Slug: "carrefour", Name: "Carrefour", Domain: "carrefour.fr", Aliases: []string{"carrefour market"}},
+		{Slug: "carrefour-polska", Name: "Carrefour Polska", Domain: "carrefour.pl", Aliases: []string{}},
+		{Slug: "zabka", Name: "Żabka", Domain: "zabka.pl", Aliases: []string{}},
+		{Slug: "dm", Name: "dm", Domain: "dm.de", Aliases: []string{}},
+		{Slug: "biedronka", Name: "Biedronka", Domain: "biedronka.pl", Aliases: []string{}},
+	})
+
+	slugs := func(names ...string) []string {
+		result := []string{}
+		for _, brand := range BrandsFor(names) {
+			result = append(result, brand.Slug)
+		}
+		return result
 	}
 
-	// Another month later Logo.dev has a new version: it is downloaded.
-	fake.etag = "v2"
-	syncer.now = func() time.Time { return time.Now().Add(2*refreshAfter + time.Hour) }
-	if err := syncer.Run(context.Background(), "sk_test"); err != nil {
-		t.Fatal(err)
+	cases := map[string][]string{
+		"LIDL Polska sp. z o.o.":  {"lidl"},
+		"Carrefour Polska":        {"carrefour-polska"},
+		"ŻABKA, Sp. z o.o.!":      {"zabka"},
+		"Sklep Biedronka nr 1234": {"biedronka"},
+		"Haribo dm":               {},
+		"Lidlington Market":       {},
 	}
-	if fake.downloads.Load() != 2 {
-		t.Errorf("a changed ETag should download again, got %d downloads", fake.downloads.Load())
+	for name, want := range cases {
+		if got := slugs(name); strings.Join(got, ",") != strings.Join(want, ",") {
+			t.Errorf("%q: got %v, want %v", name, got, want)
+		}
+	}
+	if got := slugs("Lidl", "LIDL", "Biedronka"); strings.Join(got, ",") != "lidl,biedronka" {
+		t.Errorf("each brand once, in brand order: got %v", got)
 	}
 }
 
@@ -190,15 +253,15 @@ func TestSyncStopsWhenTheKeyIsRefused(t *testing.T) {
 	fake.refuse = true
 	syncer, store := newTestSyncer(t)
 
-	err := syncer.Run(context.Background(), "sk_test")
+	err := syncer.Run(context.Background(), "sk_test", Brands())
 	if !errors.Is(err, ErrKeyRefused) {
 		t.Fatalf("expected the refused key, got %v", err)
 	}
 	if fake.lookups.Load() != 1 {
 		t.Errorf("a refused key should stop at the first call, got %d", fake.lookups.Load())
 	}
-	if len(store.Available()) != 0 || syncer.Status().LastError != ErrKeyRefused.Error() {
-		t.Errorf("unexpected state %+v", syncer.Status())
+	if len(store.Available()) != 0 || syncer.Status(Brands()).LastError != ErrKeyRefused.Error() {
+		t.Errorf("unexpected state %+v", syncer.Status(Brands()))
 	}
 }
 
@@ -208,7 +271,7 @@ func TestSyncNeverStoresSomethingThatIsNotAPNG(t *testing.T) {
 	fake.notPNG = true
 	syncer, store := newTestSyncer(t)
 
-	if err := syncer.Run(context.Background(), "sk_test"); err == nil {
+	if err := syncer.Run(context.Background(), "sk_test", Brands()); err == nil {
 		t.Fatal("expected the run to report the bad file")
 	}
 	if store.HasLogo("carrefour") {
@@ -224,7 +287,7 @@ func TestTheStoreOnlyKnowsBrandSlugsAndClears(t *testing.T) {
 	if _, err := store.ReadLogo("../../app"); !errors.Is(err, ErrUnknownBrand) {
 		t.Errorf("an unknown slug must be refused, got %v", err)
 	}
-	if err := syncer.Run(context.Background(), "sk_test"); err != nil {
+	if err := syncer.Run(context.Background(), "sk_test", Brands()); err != nil {
 		t.Fatal(err)
 	}
 	if err := store.Clear(); err != nil {
@@ -243,7 +306,7 @@ func TestSyncWithoutAKeyDoesNothing(t *testing.T) {
 	fake := newFakeLogoDev(t)
 	syncer, _ := newTestSyncer(t)
 
-	if err := syncer.Run(context.Background(), ""); err != nil || fake.lookups.Load() != 0 {
+	if err := syncer.Run(context.Background(), "", Brands()); err != nil || fake.lookups.Load() != 0 {
 		t.Errorf("no key should make no call, got %v and %d calls", err, fake.lookups.Load())
 	}
 }

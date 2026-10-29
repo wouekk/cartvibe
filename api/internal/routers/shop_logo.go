@@ -14,6 +14,7 @@ func BuildShopLogoRouter() *chi.Mux {
 
 	shopLogoRouter.Get("/", handlers.GetShopLogos)
 	shopLogoRouter.Get("/status", handlers.GetShopLogoStatus)
+	shopLogoRouter.Post("/sync", handlers.StartShopLogoSync)
 	shopLogoRouter.Get("/{slug}", handlers.GetShopLogo)
 
 	return shopLogoRouter

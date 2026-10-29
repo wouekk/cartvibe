@@ -8,25 +8,27 @@ import (
 	"time"
 )
 
-// refreshAfter is how long a brand's logo (or Logo.dev's "no logo") is trusted before Logo.dev is asked again; a
-// logo is downloaded again only when its ETag changed.
-const refreshAfter = 30 * 24 * time.Hour
+// retryMissingAfter is how long Logo.dev's "no logo for this brand" is trusted before it is asked again. Every API call
+// costs credits (about 2 of the free plan's 500 a month), so a stored logo is never asked about again either.
+const retryMissingAfter = 180 * 24 * time.Hour
 
 // maxFailuresInARow stops a sync when Logo.dev keeps failing (an outage); the next sync goes on.
 const maxFailuresInARow = 10
 
 var pngSignature = []byte("\x89PNG\r\n\x1a\n")
 
-// Status is what the Shop Logos tab shows about the logos.
+// Status is what the Shop Logos tab shows about the logos of the brands on the household's receipts.
 type Status struct {
-	Running    bool       `json:"running"`
-	Downloaded int        `json:"downloaded"`
-	Total      int        `json:"total"`
-	LastRun    *time.Time `json:"lastRun"`
-	LastError  string     `json:"lastError"`
+	Running bool `json:"running"`
+	// Downloaded is how many of those brands have a logo.
+	Downloaded int `json:"downloaded"`
+	// Total is how many known brands appear on the receipts.
+	Total     int        `json:"total"`
+	LastRun   *time.Time `json:"lastRun"`
+	LastError string     `json:"lastError"`
 }
 
-// Syncer downloads the logos the store lacks and refreshes old ones, one at a time and never two runs at once.
+// Syncer downloads the logos the store lacks for the brands on the receipts, one at a time and never two runs at once.
 type Syncer struct {
 	store *Store
 	// pause is the wait before each API call: Logo.dev allows 100 a minute on every plan.
@@ -46,14 +48,21 @@ func NewSyncer(store *Store) *Syncer {
 	return &Syncer{store: store, pause: 700 * time.Millisecond, now: time.Now}
 }
 
-// Status reports the stored logos and the last run.
-func (syncer *Syncer) Status() Status {
+// Status reports the logos of the wanted brands and the last run.
+func (syncer *Syncer) Status(wanted []Brand) Status {
+	downloaded := 0
+	for _, brand := range wanted {
+		if syncer.store.HasLogo(brand.Slug) {
+			downloaded++
+		}
+	}
+
 	syncer.statusMu.Lock()
 	defer syncer.statusMu.Unlock()
 	return Status{
 		Running:    syncer.isRunning,
-		Downloaded: len(syncer.store.Available()),
-		Total:      len(Brands()),
+		Downloaded: downloaded,
+		Total:      len(wanted),
 		LastRun:    syncer.lastRun,
 		LastError:  syncer.lastError,
 	}
@@ -70,16 +79,17 @@ func (syncer *Syncer) setRunning(running bool, lastError string) {
 	}
 }
 
-// Run downloads what is missing or stale with the secret key. A run already going makes this a no-op. It returns the
-// error that stopped the run early (a refused key, rate limiting, an outage), also kept in Status.
-func (syncer *Syncer) Run(ctx context.Context, key string) error {
+// Run downloads the missing logos of the wanted brands with the secret key. A run already going makes this a no-op.
+// It returns the error that stopped the run early (a refused key, used-up credits, rate limiting, an outage), also
+// kept in Status.
+func (syncer *Syncer) Run(ctx context.Context, key string, wanted []Brand) error {
 	if key == "" || !syncer.running.TryLock() {
 		return nil
 	}
 	defer syncer.running.Unlock()
 
 	syncer.setRunning(true, "")
-	err := syncer.run(ctx, newClient(key))
+	err := syncer.run(ctx, newClient(key), wanted)
 	message := ""
 	if err != nil {
 		message = err.Error()
@@ -88,16 +98,17 @@ func (syncer *Syncer) Run(ctx context.Context, key string) error {
 	return err
 }
 
-func (syncer *Syncer) run(ctx context.Context, client *client) error {
+func (syncer *Syncer) run(ctx context.Context, client *client, wanted []Brand) error {
 	index := syncer.store.readIndex()
 	failures := 0
 	var lastFailure error
 
-	for _, brand := range Brands() {
+	for _, brand := range wanted {
+		if syncer.store.HasLogo(brand.Slug) {
+			continue
+		}
 		current := index[brand.Slug]
-		hasLogo := syncer.store.HasLogo(brand.Slug)
-		fresh := syncer.now().Sub(current.CheckedAt) < refreshAfter
-		if fresh && (hasLogo || current.Missing) {
+		if current.Missing && syncer.now().Sub(current.CheckedAt) < retryMissingAfter {
 			continue
 		}
 
@@ -107,8 +118,9 @@ func (syncer *Syncer) run(ctx context.Context, client *client) error {
 		case <-time.After(syncer.pause):
 		}
 
-		next, err := syncer.fetch(ctx, client, brand, current, hasLogo)
-		if errors.Is(err, ErrKeyRefused) || errors.Is(err, ErrRateLimited) || errors.Is(err, context.Canceled) {
+		next, err := syncer.fetch(ctx, client, brand, current)
+		if errors.Is(err, ErrKeyRefused) || errors.Is(err, ErrCreditsUsedUp) || errors.Is(err, ErrRateLimited) ||
+			errors.Is(err, context.Canceled) {
 			_ = syncer.store.writeIndex(index)
 			return err
 		}
@@ -131,8 +143,8 @@ func (syncer *Syncer) run(ctx context.Context, client *client) error {
 	return lastFailure
 }
 
-// fetch asks Logo.dev about one brand and stores its logo when it is new or changed.
-func (syncer *Syncer) fetch(ctx context.Context, client *client, brand Brand, current entry, hasLogo bool) (entry, error) {
+// fetch asks Logo.dev about one brand and stores its logo.
+func (syncer *Syncer) fetch(ctx context.Context, client *client, brand Brand, current entry) (entry, error) {
 	result, err := client.lookup(ctx, brand.Domain)
 	if err != nil {
 		return current, err
@@ -144,10 +156,6 @@ func (syncer *Syncer) fetch(ctx context.Context, client *client, brand Brand, cu
 		return current, nil
 	case logoMissing:
 		return entry{CheckedAt: syncer.now(), Missing: true}, nil
-	}
-
-	if hasLogo && result.etag != "" && result.etag == current.ETag {
-		return entry{ETag: current.ETag, CheckedAt: syncer.now()}, nil
 	}
 
 	data, err := client.download(ctx, result.url)

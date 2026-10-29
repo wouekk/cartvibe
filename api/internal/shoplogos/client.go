@@ -23,6 +23,8 @@ var (
 	ErrKeyRefused = errors.New("Logo.dev refused the key")
 	// ErrRateLimited means Logo.dev asked to slow down; the sync stops and the next one goes on.
 	ErrRateLimited = errors.New("Logo.dev asked to slow down")
+	// ErrCreditsUsedUp means the month's API credits are spent (402); the free plan pays for about 250 logos.
+	ErrCreditsUsedUp = errors.New("this month's Logo.dev API credits are used up; the download goes on when they renew")
 )
 
 // lookupStatus is what Logo.dev said about one brand.
@@ -79,6 +81,8 @@ func (client *client) lookup(ctx context.Context, domain string) (lookupResult, 
 		return lookupResult{}, ErrKeyRefused
 	case http.StatusTooManyRequests:
 		return lookupResult{}, ErrRateLimited
+	case http.StatusPaymentRequired:
+		return lookupResult{}, ErrCreditsUsedUp
 	default:
 		return lookupResult{}, fmt.Errorf("Logo.dev answered %d for %s", response.StatusCode, domain)
 	}

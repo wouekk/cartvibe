@@ -2236,6 +2236,30 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
+  /shopLogo/sync:
+    post:
+      tags:
+        - ShopLogo
+      summary: Fetch the missing shop logos now
+      description:
+        Starts downloading, in the background, the missing logos of the brands on the household's
+        receipts, instead of waiting for the 12-hourly run; a download already running is left alone.
+        Answers with the current status [SYSTEM SETTINGS UPDATE]
+      operationId: startShopLogoSync
+      responses:
+        202:
+          description: The download was started; the status as it is now
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopLogoStatus"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
   /shopLogo/{slug}:
     get:
       tags:
@@ -6779,10 +6803,10 @@ components:
           description: Whether a download is going on now
         downloaded:
           type: integer
-          description: How many brands have a downloaded logo
+          description: How many of the known brands on the household's receipts have a downloaded logo
         total:
           type: integer
-          description: How many brands CartVibe knows
+          description: How many known brands appear on the household's receipts (only these are downloaded)
         lastRun:
           type: string
           format: date-time
@@ -6790,7 +6814,9 @@ components:
           description: When the last download finished; null before the first
         lastError:
           type: string
-          description: Why the last download stopped early, such as a refused key; "" when it went well
+          description:
+            Why the last download stopped early, such as a refused key or the month's API credits being used
+            up; "" when it went well
     DashboardLayout:
       allOf:
         - $ref: "#/components/schemas/BaseModel"
