@@ -8,6 +8,13 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+### Changed
+- **Under the hood, nothing to do on upgrade.** The web app's tests now run on Vitest instead of Jest, the
+  `@ngneat/until-destroy` and `@angular/animations` packages are gone, and the Warranties list loads through Angular's
+  `rxResource`. ApexCharts stays on 4.x on purpose: from 5.1 it is no longer MIT-licensed. The Chromium comment now
+  says the API runs as uid 10001; the sandbox is still opt-in. Two security advisories (`undici`, `fast-uri`) are
+  cleared and `npm audit` reports 0.
+
 ## [0.13.0] - 2026-10-29
 
 All your spending, not only the groceries, and the warranties that come with it.
