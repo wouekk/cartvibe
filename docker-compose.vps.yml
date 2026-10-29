@@ -45,6 +45,11 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - PUID=${PUID:-10001}
       - PGID=${PGID:-10001}
+      # Warranty reminders as device notifications (Web Push). Generate the pair once with
+      # npx web-push generate-vapid-keys and keep it; empty means reminders stay in the app.
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY:-}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY:-}
+      - VAPID_SUBJECT=${VAPID_SUBJECT:-}
     volumes:
       - ./data/sqlite:/app/cartvibe-api/sqlite
       - ./data/files:/app/cartvibe-api/data

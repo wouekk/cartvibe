@@ -10,11 +10,10 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
   key, then tag v0.13.0 (agreed). Offered, not built: a Stop download button for logos.
 - 2026-10-29, VPS prep (AGPL kept; plan in the session): `feature/sqlite-vps-hardening` (WAL, busy_timeout,
   `_txlock=immediate`, pool 8, `docker-compose.vps.yml` with Caddy/Litestream/restic, nginx real IP from private
-  networks) is green and merged into `preview` + published to `:preview`. `feature/warranty` (warranty dates,
-  reminders, Web Push, Warranties tile/panel/page) is pushed; merge into `preview` once CI is green. Next agreed:
-  `feature/households` (tenant model), from `preview` after warranty. Add the VAPID variables to
-  `docker-compose.vps.yml` when the two meet. Not run anywhere yet: a Litestream/restic restore drill, Web Push on a
-  real device (needs HTTPS + VAPID keys).
+  networks) and `feature/warranty` (warranty dates, reminders, Web Push, Warranties sidebar entry, tile, panel and
+  page) are green and merged into `preview`, published to `:preview` from `preview`. Next agreed:
+  `feature/households` (tenant model), from `preview`. Not run anywhere yet: a Litestream/restic restore drill, Web
+  Push on a real device (needs HTTPS + VAPID keys).
 - 2026-10-29: the component guides were cut roughly in half; feature detail moved to `api/docs/domain.md`,
   `api/docs/shop-logos.md`, `desktop/docs/features.md`. If a rule seems ignored, move it back or mark it IMPORTANT.
 - Git history was rewritten on 2026-10-29 (old logo PNGs dropped, everything force-pushed): re-clone on the Mac. The

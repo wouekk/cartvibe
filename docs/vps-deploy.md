@@ -37,6 +37,9 @@ Litestream only covers the SQLite database. The files go through restic, so you 
    S3_ACCESS_KEY_ID=<key>
    S3_SECRET_ACCESS_KEY=<secret>
    RESTIC_PASSWORD=<a long passphrase; without it the file backups cannot be read>
+   VAPID_PUBLIC_KEY=<optional, for warranty reminders on devices: npx web-push generate-vapid-keys>
+   VAPID_PRIVATE_KEY=<the private half of the same pair>
+   VAPID_SUBJECT=mailto:you@example.com
    ```
 
    No `$` in any value: compose reads it as a variable. `openssl rand -hex 32` gives a safe 64-character value. Keep
