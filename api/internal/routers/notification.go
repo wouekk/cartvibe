@@ -28,9 +28,6 @@ func BuildNotificationRouter() *chi.Mux {
 	//
 	//     Deprecated: false
 	//
-	//     Security:
-	//       api_key:
-	//
 	//
 	//
 	//     Responses:
@@ -52,9 +49,6 @@ func BuildNotificationRouter() *chi.Mux {
 	//
 	//     Deprecated: false
 	//
-	//     Security:
-	//       api_key:
-	//
 	//     Responses:
 	//       200: Ok
 	//       500: Internal Server Error
@@ -71,9 +65,6 @@ func BuildNotificationRouter() *chi.Mux {
 	//
 	//     Deprecated: false
 	//
-	//     Security:
-	//       api_key:
-	//
 	//     Responses:
 	//       200: Ok
 	//       500: Internal Server Error
@@ -89,9 +80,6 @@ func BuildNotificationRouter() *chi.Mux {
 	//     Schemes: https
 	//
 	//     Deprecated: false
-	//
-	//     Security:
-	//       api_key:
 	//
 	//     Responses:
 	//       200: Ok

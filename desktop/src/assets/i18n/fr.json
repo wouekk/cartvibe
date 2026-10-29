@@ -27,17 +27,8 @@
     "AI API key needed": "Clé API de l’IA requise",
     "AI settings saved": "Paramètres de l’IA enregistrés",
     "AI skips": "L’IA ignore",
-    "API Key Deleted": "Clé API supprimée",
-    "API Keys": "Clés API",
-    "API Keys to View": "Clés API à afficher",
     "API key": "Clé API",
-    "API key \"{name}\" successfully deleted": "Clé API « {name} » supprimée",
     "API key (optional)": "Clé API (facultatif)",
-    "API key copied to clipboard": "Clé API copiée dans le presse-papiers",
-    "API key created successfully": "Clé API créée",
-    "API key scope does not permit this operation": "La portée de la clé API ne permet pas cette opération",
-    "API key updated successfully": "Clé API mise à jour",
-    "API keys let scripts and other apps use CartVibe.": "Les clés API permettent à des scripts et à d’autres applications d’utiliser CartVibe.",
     "About": "À propos",
     "About the same as {name}": "À peu près comme {name}",
     "Account": "Compte",
@@ -48,7 +39,6 @@
     "Add": "Ajouter",
     "Add & edit receipts": "Ajouter et modifier des tickets",
     "Add AI API key": "Ajouter une clé API de l’IA",
-    "Add API Key": "Ajouter une clé API",
     "Add Category": "Ajouter une catégorie",
     "Add Group Member": "Ajouter un membre au groupe",
     "Add Household": "Ajouter un foyer",
@@ -97,7 +87,6 @@
     "Airlines": "Compagnies aériennes",
     "Alcohol": "Alcool",
     "All": "Tout",
-    "All API Keys": "Toutes les clés API",
     "All Groups": "Tous les groupes",
     "All caught up!": "Tout est lu !",
     "All done": "Tout est fait",
@@ -124,7 +113,6 @@
     "Are you sure you want to delete the group '{name}'? All receipts will be deleted as a result.": "Voulez-vous vraiment supprimer le groupe « {name} » ? Tous ses tickets seront supprimés.",
     "Are you sure you want to delete {name}? This action is irreversible and will remove this category from the receipts it is associated with.": "Supprimer la catégorie « {name} » ? Cette action est irréversible et la retirera de tous les tickets associés.",
     "Are you sure you want to delete {name}? This action is irreversible and will remove this tag from the receipts it is associated with.": "Supprimer l’étiquette « {name} » ? Cette action est irréversible et la retirera de tous les tickets associés.",
-    "Are you sure you would like to delete the API key \"{name}\"? This action is irreversible and the API key will no longer be usable.": "Voulez-vous vraiment supprimer la clé API « {name} » ? Cette action est irréversible et la clé ne pourra plus être utilisée.",
     "Are you sure you would like to delete the receipt {name}? This action is irreversible.": "Voulez-vous vraiment supprimer le ticket {name} ? Cette action est irréversible.",
     "Are you sure you would like to delete {count} user(s): {names}? This will remove these users from groups, their receipt items, groups where they are the only member, and receipts where they paid. This action is irreversible.": "Voulez-vous vraiment supprimer {count} utilisateur(s) : {names} ? Ils seront retirés des groupes, ainsi que leurs lignes de tickets, les groupes dont ils sont les seuls membres et les tickets qu’ils ont payés. Cette action est irréversible.",
     "Are you sure you would like to duplicate the receipt {name}?": "Voulez-vous vraiment dupliquer le ticket {name} ?",
@@ -171,7 +159,6 @@
     "Calories": "Calories",
     "Cancel": "Annuler",
     "Canned Goods": "Conserves",
-    "Cannot delete API key: ID is missing": "Impossible de supprimer la clé API : identifiant manquant",
     "Cannot delete current user or no valid users selected": "Impossible de supprimer l’utilisateur actuel ou aucun utilisateur valide sélectionné",
     "Car": "Voiture",
     "CartVibe is a fork of": "CartVibe est un fork de",
@@ -234,7 +221,7 @@
     "Confirm with {name}": "Confirmer avec {name}",
     "Connected. Receipts will be read by this AI.": "Connecté. Les tickets seront lus par cette IA.",
     "Contains": "Contient",
-    "Controls app-wide capabilities — users, settings, prompts, API keys and more.": "Détermine ce qu’on peut faire dans toute l’application : utilisateurs, paramètres, clés API et plus.",
+    "Controls app-wide capabilities — users, settings, prompts and more.": "Détermine ce qu’on peut faire dans toute l’application : utilisateurs, paramètres et plus.",
     "Controls what a member can do inside a group — receipts, dashboards, activity.": "Détermine ce qu’un membre peut faire dans un groupe : tickets, tableaux de bord, activité.",
     "Convert to normal user": "Convertir en utilisateur normal",
     "Convert {name} to a normal user": "Convertir {name} en utilisateur normal",
@@ -242,7 +229,6 @@
     "Copied!": "Copié !",
     "Copy before and after as JSON": "Copier l’avant et l’après en JSON",
     "Copy description": "Copier la description",
-    "Copy to clipboard": "Copier dans le presse-papiers",
     "Correct tags": "Corriger les indications",
     "Could not confirm the account deletion. Please try again.": "Impossible de confirmer la suppression du compte. Veuillez réessayer.",
     "Could not copy the list.": "Impossible de copier la liste.",
@@ -252,14 +238,12 @@
     "Couldn't reach the server. Check your connection and try again.": "Impossible de joindre le serveur. Vérifiez votre connexion et réessayez.",
     "Couldn't render the preview.": "Impossible d’afficher l’aperçu.",
     "Count": "Nombre",
-    "Create API Key": "Créer une clé API",
     "Create Group": "Créer un groupe",
     "Create a free account at": "Créez un compte gratuit sur",
     "Create your account": "Créez votre compte",
     "Create {name}": "Créer {name}",
     "Create {name} {type}": "Créer {name} ({type})",
     "Created At": "Créé le",
-    "Created By": "Créé par",
     "Credits": "Remerciements",
     "Cross off everything and open the next list": "Tout barrer et ouvrir la liste suivante",
     "Crossed off ({count})": "Barrés ({count})",
@@ -302,7 +286,6 @@
     "Delete": "Supprimer",
     "Delete \"{name}\" and all of its items?": "Supprimer « {name} » et tous ses articles ?",
     "Delete \"{name}\" from this list?": "Supprimer « {name} » de cette liste ?",
-    "Delete API Key": "Supprimer la clé API",
     "Delete Account": "Supprimer le compte",
     "Delete Group": "Supprimer le groupe",
     "Delete Household": "Supprimer le foyer",
@@ -351,8 +334,6 @@
     "Duplicate tag grant": "Droit d’étiquette en double",
     "Each row is one receipt, so a dimension column shows that receipt's own value — it doesn't have to be something you group by. Aggregates and formulas read a single receipt per row, and still roll up across the subtotal and grand total rows.": "Chaque ligne est un ticket, donc une colonne de dimension affiche la valeur de ce ticket — pas besoin de regrouper par elle. Les agrégats et les formules lisent un seul ticket par ligne, et se cumulent quand même dans les lignes de sous-total et de total général.",
     "Edit": "Modifier",
-    "Edit API Key": "Modifier la clé API",
-    "Edit API Keys": "Modifier les clés API",
     "Edit Group Member": "Modifier le membre du groupe",
     "Edit Group Receipt Settings": "Modifier les réglages des tickets du groupe",
     "Edit Item": "Modifier l’article",
@@ -379,8 +360,6 @@
     "Ended At": "Terminé le",
     "Ended at: {date}": "Terminé le : {date}",
     "Ends today": "Se termine aujourd'hui",
-    "Enter API key description (optional)": "Description de la clé API (facultatif)",
-    "Enter API key name": "Nom de la clé API",
     "Enter a barcode number": "Saisir un numéro de code-barres",
     "Enter a number above 0, up to 3 decimals": "Saisissez un nombre supérieur à 0, avec 3 décimales au plus",
     "Equals": "Égal à",
@@ -406,14 +385,12 @@
     "Expression": "Expression",
     "FORMAT": "FORMAT",
     "Failed": "Échec",
-    "Failed to copy API key to clipboard": "Impossible de copier la clé API dans le presse-papiers",
     "Fast Food": "Restauration rapide",
     "Feb": "févr.",
     "February": "février",
     "Fibre": "Fibres",
     "Field": "Champ",
     "Filter": "Filtrer",
-    "Filter API Keys": "Filtrer les clés API",
     "Filter Groups": "Filtrer les groupes",
     "Filter Receipts": "Filtrer les tickets",
     "Filter System Tasks": "Filtrer les tâches système",
@@ -502,7 +479,6 @@
     "Image successfully removed": "Image supprimée",
     "Images": "Images",
     "Images uploaded": "Images envoyées",
-    "Important:": "Important :",
     "Imported": "Importé",
     "Imported / out of season": "Importé / hors saison",
     "In season": "De saison",
@@ -533,7 +509,6 @@
     "Language": "Langue",
     "Last 30 days": "30 derniers jours",
     "Last 7 days": "7 derniers jours",
-    "Last Used At": "Dernière utilisation",
     "Last month": "Mois dernier",
     "Last page": "Dernière page",
     "Leave a comment": "Laisser un commentaire",
@@ -608,7 +583,6 @@
     "Must be a whole number.": "Doit être un nombre entier.",
     "Must be at least {min}.": "Doit être au moins {min}.",
     "Must be at most {max}.": "Doit être au plus {max}.",
-    "My API Keys": "Mes clés API",
     "My Groups": "Mes groupes",
     "Name": "Nom",
     "Name and the groups it covers": "Nom et groupes couverts",
@@ -738,7 +712,6 @@
     "Planned": "Prévu",
     "Planned / Unplanned": "Prévu / imprévu",
     "Please enter your password to confirm account deletion.": "Saisissez votre mot de passe pour confirmer la suppression du compte.",
-    "Please fill in all required fields": "Veuillez remplir tous les champs obligatoires",
     "Please fill in all required fields. Some images are missing required fields.": "Veuillez remplir tous les champs obligatoires. Certaines images ont des champs obligatoires manquants.",
     "Please select images to upload": "Veuillez sélectionner des images à envoyer",
     "Point the camera at the barcode.": "Pointez la caméra vers le code-barres.",
@@ -781,14 +754,12 @@
     "Rates changed: press Save changes to keep them.": "Taux modifiés : appuyez sur « Enregistrer les modifications » pour les garder.",
     "Raw Chat Completion Details": "Détails bruts de la réponse du chat",
     "Raw OCR Processing Details": "Détails bruts du traitement OCR",
-    "Read": "Lecture",
     "Read Only": "Lecture seule",
     "Read again": "Relire",
     "Read from the receipt by the AI, e.g. Auchan, Edeka, Rewe": "Lu sur le ticket par l’IA, p. ex. Auchan, Carrefour, Leclerc",
     "Read products of older receipts": "Lire les produits des anciens tickets",
     "Read with AI": "Lire avec l’IA",
     "Read-only access": "Accès en lecture seule",
-    "Read/Write": "Lecture/écriture",
     "Reading the barcode…": "Lecture du code-barres…",
     "Reading the photo…": "Lecture de la photo…",
     "Receipt": "Ticket",
@@ -895,10 +866,8 @@
     "Scan a barcode": "Scanner un code-barres",
     "Scan receipt": "Scanner un ticket",
     "Scanning needs an AI API key. Ask an admin to add one.": "Le scan nécessite une clé API de l’IA. Demandez à un administrateur d’en ajouter une.",
-    "Scope": "Portée",
     "Scope is required": "La portée est requise",
     "Scope must be either APP or GROUP": "La portée doit être APP ou GROUP",
-    "Scope must be one of: r, w, rw": "La portée doit être l’une de : r, w, rw",
     "Seafood": "Fruits de mer",
     "Search receipts": "Rechercher des tickets",
     "Seasonal": "De saison",
@@ -1083,7 +1052,6 @@
     "Theme": "Thème",
     "There are no items in the shopping lists.": "Il n’y a aucun article dans les listes de courses.",
     "There is no room to move {name} that way.": "Pas de place pour déplacer {name} dans ce sens.",
-    "This API key will only be shown once. Make sure to copy it now!": "Cette clé API ne sera affichée qu’une seule fois. Copiez-la maintenant !",
     "This action is": "Cette action est",
     "This activity type has no source file.": "Ce type d’activité n’a pas de fichier source.",
     "This could not be loaded.": "Impossible de charger ceci.",
@@ -1124,7 +1092,6 @@
     "Unnamed product": "Produit sans nom",
     "Unplanned": "Imprévu",
     "Until {date}": "Jusqu'au {date}",
-    "Update API Key": "Mettre à jour la clé API",
     "Update Template": "Mettre à jour le modèle",
     "Updated": "Mis à jour",
     "Updated At": "Mis à jour le",
@@ -1166,7 +1133,6 @@
     "Users": "Utilisateurs",
     "Valid — recomputes from these columns each row": "Valide — recalculée à partir de ces colonnes à chaque ligne",
     "Version:": "Version :",
-    "View API Keys": "Voir les clés API",
     "View Group": "Voir le groupe",
     "View Group Receipt Settings": "Voir les réglages des tickets du groupe",
     "View Mode": "Mode lecture",
@@ -1209,7 +1175,6 @@
     "Worker": "Tâches en arrière-plan",
     "Worker & retention": "Tâches en arrière-plan et conservation",
     "Working": "Chargement",
-    "Write": "Écriture",
     "Year": "Année",
     "Year to date": "Année en cours",
     "You are offline. Changes you make now may not be saved.": "Vous êtes hors ligne. Les modifications faites maintenant risquent de ne pas être enregistrées.",
@@ -1221,8 +1186,7 @@
     "Your account can't be deleted this way.": "Votre compte ne peut pas être supprimé de cette façon.",
     "Your account has been successfully deleted": "Votre compte a été supprimé",
     "Your account has no password of its own. To confirm the deletion, sign in again with one of your connected accounts.": "Votre compte n’a pas de mot de passe propre. Pour confirmer la suppression, reconnectez-vous avec l’un de vos comptes liés.",
-    "Your new API key:": "Votre nouvelle clé API :",
-    "Your profile, preferences and API keys.": "Votre profil, vos préférences et vos clés API.",
+    "Your profile and preferences.": "Votre profil et vos préférences.",
     "Your provider didn't ask you to sign in again. Sign out of it and try again.": "Votre fournisseur ne vous a pas demandé de vous reconnecter. Déconnectez-vous chez lui et réessayez.",
     "Your purchase at {shop}": "Votre achat chez {shop}",
     "Your role requires a comment on receipts; use Quick Scan for this receipt": "Votre rôle exige un commentaire sur les tickets ; utilisez le scan rapide pour ce ticket",
@@ -1390,26 +1354,114 @@
       "value": "Une clé publique Logo.dev commence par pk_",
       "closest": "A Logo.dev secret key starts with sk_"
     },
+    "API Key Deleted": {
+      "value": "Clé API supprimée",
+      "closest": "API key"
+    },
+    "API Keys": {
+      "value": "Clés API",
+      "closest": "API key"
+    },
+    "API Keys to View": {
+      "value": "Clés API à afficher",
+      "closest": "Groups to View"
+    },
+    "API key \"{name}\" successfully deleted": {
+      "value": "Clé API « {name} » supprimée",
+      "closest": "AI API key needed"
+    },
+    "API key copied to clipboard": {
+      "value": "Clé API copiée dans le presse-papiers",
+      "closest": "Password generated and copied to clipboard"
+    },
+    "API key created successfully": {
+      "value": "Clé API créée",
+      "closest": "AI API key needed"
+    },
+    "API key scope does not permit this operation": {
+      "value": "La portée de la clé API ne permet pas cette opération"
+    },
+    "API key updated successfully": {
+      "value": "Clé API mise à jour",
+      "closest": "AI API key needed"
+    },
+    "API keys let scripts and other apps use CartVibe.": {
+      "value": "Les clés API permettent à des scripts et à d’autres applications d’utiliser CartVibe."
+    },
+    "Add API Key": {
+      "value": "Ajouter une clé API",
+      "closest": "Add AI API key"
+    },
+    "All API Keys": {
+      "value": "Toutes les clés API"
+    },
     "All Households": {
       "value": "Tous les foyers",
       "closest": "All"
+    },
+    "Are you sure you would like to delete the API key \"{name}\"? This action is irreversible and the API key will no longer be usable.": {
+      "value": "Voulez-vous vraiment supprimer la clé API « {name} » ? Cette action est irréversible et la clé ne pourra plus être utilisée.",
+      "closest": "Are you sure you want to delete {name}? This action is irreversible and will remove this category from the receipts it is associated with."
     },
     "Attribution: Logo.dev's free plan asks for a visible link to Logo.dev on a page anyone can open. While a key is set, the login page shows \"Logos provided by Logo.dev\".": {
       "value": "Attribution : l'offre gratuite de Logo.dev demande un lien visible vers Logo.dev sur une page accessible à tous. Tant qu'une clé est définie, la page de connexion affiche « Logos provided by Logo.dev ».",
       "closest": "Logo.dev asks commercial projects to credit it; while logos are on, the login page shows \"Logos provided by Logo.dev\"."
     },
+    "Cannot delete API key: ID is missing": {
+      "value": "Impossible de supprimer la clé API : identifiant manquant"
+    },
+    "Controls app-wide capabilities — users, settings, prompts, API keys and more.": {
+      "value": "Détermine ce qu’on peut faire dans toute l’application : utilisateurs, paramètres, clés API et plus.",
+      "closest": "Controls app-wide capabilities — users, settings, prompts and more."
+    },
     "Converted in your browser at the rate in your preferences": {
       "value": "Converti dans votre navigateur au taux de vos préférences"
+    },
+    "Copy to clipboard": {
+      "value": "Copier dans le presse-papiers"
+    },
+    "Create API Key": {
+      "value": "Créer une clé API",
+      "closest": "API key"
+    },
+    "Created By": {
+      "value": "Créé par",
+      "closest": "Added by"
     },
     "Dashboard currency": {
       "value": "Devise du tableau de bord",
       "closest": "Add currency"
     },
+    "Delete API Key": {
+      "value": "Supprimer la clé API",
+      "closest": "API key"
+    },
     "Each browser loads the logos straight from Logo.dev and keeps them for a day. Logo.dev sees which brands' logos are asked for, never your receipts. Nothing is stored on this server.": {
       "value": "Chaque navigateur charge les logos directement depuis Logo.dev et les garde une journée. Logo.dev voit quels logos de marques sont demandés, jamais vos tickets. Rien n'est stocké sur ce serveur."
     },
+    "Edit API Key": {
+      "value": "Modifier la clé API",
+      "closest": "API key"
+    },
+    "Edit API Keys": {
+      "value": "Modifier les clés API"
+    },
+    "Enter API key description (optional)": {
+      "value": "Description de la clé API (facultatif)",
+      "closest": "API key (optional)"
+    },
+    "Enter API key name": {
+      "value": "Nom de la clé API",
+      "closest": "AI API key needed"
+    },
+    "Failed to copy API key to clipboard": {
+      "value": "Impossible de copier la clé API dans le presse-papiers"
+    },
     "Fetch logos now": {
       "value": "Récupérer les logos"
+    },
+    "Filter API Keys": {
+      "value": "Filtrer les clés API"
     },
     "General & Currency": {
       "value": "Général et devise",
@@ -1418,9 +1470,15 @@
     "Give the Dashboard currency as three letters, like PLN, and your rate above 0, like 4,25.": {
       "value": "Indiquez la devise du tableau de bord en trois lettres, comme EUR, et votre taux supérieur à 0, comme 4,25."
     },
+    "Important:": {
+      "value": "Important :"
+    },
     "In the Logo.dev dashboard, open API keys and copy the publishable key.": {
       "value": "Dans le tableau de bord Logo.dev, ouvrez API keys et copiez la clé publique (publishable key).",
       "closest": "In the Logo.dev dashboard, open API keys and copy the secret key."
+    },
+    "Last Used At": {
+      "value": "Dernière utilisation"
     },
     "Logo.dev publishable key": {
       "value": "Clé publique Logo.dev",
@@ -1442,6 +1500,9 @@
       "value": "Utilisateurs",
       "closest": "Manage users & keys"
     },
+    "My API Keys": {
+      "value": "Mes clés API"
+    },
     "My Households": {
       "value": "Mes foyers",
       "closest": "Households"
@@ -1454,8 +1515,26 @@
       "value": "Collez-la ci-dessous et enregistrez. Les logos se téléchargent en arrière-plan, ce qui prend quelques minutes la première fois.",
       "closest": "Paste it below and save. The logos of the shops on your receipts download in the background."
     },
+    "Please fill in all required fields": {
+      "value": "Veuillez remplir tous les champs obligatoires",
+      "closest": "Please fill in all required fields. Some images are missing required fields."
+    },
     "Rate: 1 {symbol} in your currency": {
       "value": "Taux : 1 {symbol} dans votre devise"
+    },
+    "Read": {
+      "value": "Lecture",
+      "closest": "Read Only"
+    },
+    "Read/Write": {
+      "value": "Lecture/écriture",
+      "closest": "Read Only"
+    },
+    "Scope": {
+      "value": "Portée"
+    },
+    "Scope must be one of: r, w, rw": {
+      "value": "La portée doit être l’une de : r, w, rw"
     },
     "Show the Dashboard in (currency code)": {
       "value": "Afficher le tableau de bord en (code de devise)",
@@ -1475,6 +1554,9 @@
       "value": "L'offre gratuite couvre environ 250 logos par mois. CartVibe ne récupère que les magasins de vos tickets, chacun une fois, cherche les nouveaux toutes les 12 heures et attend le mois suivant si les crédits sont épuisés. « Récupérer les logos » cherche tout de suite.",
       "closest": "The free plan pays for about 250 logos a month. CartVibe fetches only the shops on your receipts, each once, looks for new ones every 12 hours, and waits for next month if the credits run out. Download logos looks at once."
     },
+    "This API key will only be shown once. Make sure to copy it now!": {
+      "value": "Cette clé API ne sera affichée qu’une seule fois. Copiez-la maintenant !"
+    },
     "This is a secret key. Use the publishable key, which starts with pk_": {
       "value": "C'est une clé secrète. Utilisez la clé publique, qui commence par pk_",
       "closest": "This is the publishable key. The server needs the secret key, which starts with sk_"
@@ -1482,9 +1564,16 @@
     "Three letters, like PLN or USD. Leave empty to see the household currency. Only the Dashboard converts; receipts stay as entered.": {
       "value": "Trois lettres, comme EUR ou USD. Laissez vide pour voir la devise du foyer. Seul le tableau de bord convertit ; les tickets restent tels que saisis."
     },
+    "Update API Key": {
+      "value": "Mettre à jour la clé API",
+      "closest": "API key"
+    },
     "Use the publishable key (pk_), never the secret key (sk_): this key is sent to every browser that opens CartVibe.": {
       "value": "Utilisez la clé publique (pk_), jamais la clé secrète (sk_) : cette clé est envoyée à chaque navigateur qui ouvre CartVibe.",
       "closest": "This is the publishable key. The server needs the secret key, which starts with sk_"
+    },
+    "View API Keys": {
+      "value": "Voir les clés API"
     },
     "With a Logo.dev key, CartVibe downloads the logos of about 390 known shops, restaurants, airlines and services to this server and shows them next to receipts. Without a key, every receipt shows the shop's first letter.": {
       "value": "Avec une clé Logo.dev, CartVibe télécharge sur ce serveur les logos d'environ 390 magasins, restaurants, compagnies aériennes et services connus et les affiche à côté des tickets. Sans clé, chaque ticket affiche la première lettre du magasin.",
@@ -1493,6 +1582,17 @@
     "With a Logo.dev key, receipts from about 390 known shops, restaurants, airlines and services show the brand's logo instead of its first letter. Without a key, every receipt shows the first letter.": {
       "value": "Avec une clé Logo.dev, les tickets d'environ 390 magasins, restaurants, compagnies aériennes et services connus affichent le logo de la marque au lieu de sa première lettre. Sans clé, chaque ticket affiche la première lettre.",
       "closest": "With a Logo.dev key, CartVibe downloads the logos of about 390 known shops, restaurants, airlines and services to this server and shows them next to receipts. Without a key, every receipt shows the shop's first letter."
+    },
+    "Write": {
+      "value": "Écriture"
+    },
+    "Your new API key:": {
+      "value": "Votre nouvelle clé API :",
+      "closest": "AI API key needed"
+    },
+    "Your profile, preferences and API keys.": {
+      "value": "Votre profil, vos préférences et vos clés API.",
+      "closest": "Your profile and preferences."
     },
     "Your rate: 4,25 means 1 of the household currency is worth 4,25 of yours.": {
       "value": "Votre taux : 4,25 signifie qu’1 unité de la devise du foyer vaut 4,25 dans votre devise."

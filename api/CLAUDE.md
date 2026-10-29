@@ -21,7 +21,7 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
 - The test DB enforces foreign keys, so a cleanup test passes on `ON DELETE CASCADE` alone. To prove an explicit delete,
   run under `repositories.UseTestDbWithoutForeignKeysForTests()` and defer its restore. A failed run can leave `app.db`
   in a test package directory; delete those, never anything under `sqlite/`.
-- `dev/seed-reporting-data.mjs` seeds a large reporting dataset over HTTP (`RW_API_KEY` from the environment).
+- `dev/seed-reporting-data.mjs` seeds a large reporting dataset over HTTP (`RW_USERNAME` / `RW_PASSWORD` from the environment).
 
 ## 2. Conventions and gotchas
 
@@ -111,12 +111,9 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
 
 ### Credentials
 
-- **API-key scopes** (`middleware/api_key_scope.go`): exact match on `r` / `w` / `rw`; the HTTP method classifies the
-  request, with `readOnlyPostPaths` / `readOnlyPostPatterns` for reads over POST and `readWritePostPatterns` for writes
-  that disclose. "Read" means disclosure to the caller. Never derive the class from declared permissions. **A new
-  read-over-POST endpoint must be added to the allowlist** or `r` keys get 403.
-- **`Claims.AuthSource`** is stamped only by `UnifiedAuthMiddleware` and is `json:"-"`. Checks require `AuthSourceJwt`;
-  never write "reject `AuthSourceApiKey`" and never infer it from `ApiKeyScope`.
+- **There are no API keys** (removed 2026-10-29; the data migration `remove-api-keys-v1` drops the old tables). A
+  request authenticates with the session cookie or a bearer JWT only; do not reintroduce a second credential type
+  without a scope story.
 - **Access vs refresh tokens** carry `TokenType`; access paths reject refresh tokens (a typeless token with a `jti` is
   refresh). Refresh rotation is one conditional `UPDATE` checked by `RowsAffected`. The access token is fixed at 20 min.
 - **Cookies:** `services.UseSecureCookies()` is the only `Secure` resolver, read live; every cookie builder asks it. Off by

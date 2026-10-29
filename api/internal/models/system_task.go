@@ -22,7 +22,6 @@ type SystemTask struct {
 	AssociatedSystemTaskId *uint                `json:"associatedSystemTaskId"`
 	ChildSystemTasks       []*SystemTask        `gorm:"foreignKey:AssociatedSystemTaskId" json:"childSystemTasks"`
 	AsynqTaskId            string               `json:"asynqTaskId"`
-	ApiKeyId               *string              `json:"apiKeyId"`
 	// HasSourceFile reports whether the upload behind this task is still on disk,
 	// so a client can offer to preview or download it. It is transient and filled
 	// per request by the list handler — it depends on Redis and on the caller's
@@ -61,7 +60,6 @@ const (
 	RECEIPT_PROCESSING_SETTINGS_CONNECTIVITY_CHECK SystemTaskType = "RECEIPT_PROCESSING_SETTINGS_CONNECTIVITY_CHECK"
 	PROMPT_GENERATED                               SystemTaskType = "PROMPT_GENERATED"
 	RECEIPT_UPDATED                                SystemTaskType = "RECEIPT_UPDATED"
-	API_KEY_DELETED                                SystemTaskType = "API_KEY_DELETED"
 	HTML_TO_PDF                                    SystemTaskType = "HTML_TO_PDF"
 )
 
@@ -79,7 +77,6 @@ func (self SystemTaskType) Value() (driver.Value, error) {
 		self != RECEIPT_UPLOADED &&
 		self != PROMPT_GENERATED &&
 		self != RECEIPT_UPDATED &&
-		self != API_KEY_DELETED &&
 		self != HTML_TO_PDF {
 		return nil, errors.New("invalid SystemTaskType")
 	}
@@ -92,7 +89,6 @@ const (
 	RECEIPT                     AssociatedEntityType = "RECEIPT"
 	RECEIPT_PROCESSING_SETTINGS AssociatedEntityType = "RECEIPT_PROCESSING_SETTINGS"
 	NOOP_ENTITY_TYPE            AssociatedEntityType = "NOOP_ENTITY_TYPE"
-	API_KEY                     AssociatedEntityType = "API_KEY"
 )
 
 func (self *AssociatedEntityType) Scan(value string) error {
@@ -103,8 +99,7 @@ func (self *AssociatedEntityType) Scan(value string) error {
 func (self AssociatedEntityType) Value() (driver.Value, error) {
 	if self != NOOP_ENTITY_TYPE &&
 		self != RECEIPT_PROCESSING_SETTINGS &&
-		self != RECEIPT &&
-		self != API_KEY {
+		self != RECEIPT {
 		return nil, errors.New("invalid AssociatedEntityType")
 	}
 	return string(self), nil

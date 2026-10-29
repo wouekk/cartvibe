@@ -22,10 +22,6 @@ export class SettingsComponent {
     AuthState.hasAppPermission(Permission.AppUserPreferencesRead)
   );
 
-  private readonly canReadApiKeys = this.store.selectSignal(
-    AuthState.hasAppPermission(Permission.AppApiKeysRead)
-  );
-
   public readonly tabs = computed<TabConfig[]>(() => {
     const tabs: TabConfig[] = [];
 
@@ -45,13 +41,6 @@ export class SettingsComponent {
       });
     }
     // Theme and Language have their own pages under Settings in the sidebar.
-    if (this.canReadApiKeys()) {
-      tabs.push({
-        label: "API Keys",
-        routerLink: "api-keys/view",
-        name: "api-keys",
-      });
-    }
 
     return tabs;
   });

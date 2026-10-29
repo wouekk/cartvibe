@@ -17,7 +17,6 @@ import { LayoutModule } from "../layout/layout.module";
 import { ApiModule, Configuration } from "../open-api";
 import { PipesModule } from "../pipes";
 import { AboutState } from "../store/about.state";
-import { ApiKeyTableState } from "../store/api-key-table.state";
 import { AuthState } from "../store/auth.state";
 import { CategoryTableState } from "../store/category-table.state";
 import { FeatureConfigState } from "../store/feature-config.state";
@@ -39,7 +38,6 @@ import { environment } from "src/environments/environment.development";
 
 const ngxsStates = [
   AboutState,
-  ApiKeyTableState,
   AuthState,
   CategoryTableState,
   FeatureConfigState,
@@ -60,7 +58,6 @@ const ngxsStates = [
 
 const ngxsStorageKeys = [
   "about",
-  "apiKeyTable",
   "auth",
   "categoryTable",
   "groupTable",

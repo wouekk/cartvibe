@@ -21,8 +21,8 @@ import (
 )
 
 // startDeleteConfirmation drives GET /oidc/connections/{name}/delete-confirmation
-// with claims built the way the named auth source would have built them.
-func startDeleteConfirmation(t *testing.T, providerName string, userId uint, authSource string, query string) *httptest.ResponseRecorder {
+// as the given user.
+func startDeleteConfirmation(t *testing.T, providerName string, userId uint, query string) *httptest.ResponseRecorder {
 	t.Helper()
 
 	target := "/api/oidc/connections/" + providerName + "/delete-confirmation"
@@ -35,7 +35,7 @@ func startDeleteConfirmation(t *testing.T, providerName string, userId uint, aut
 	request = request.WithContext(context.WithValue(
 		request.Context(),
 		jwtmiddleware.ContextKey{},
-		&validator.ValidatedClaims{CustomClaims: &structs.Claims{UserId: userId, AuthSource: authSource}},
+		&validator.ValidatedClaims{CustomClaims: &structs.Claims{UserId: userId}},
 	))
 
 	recorder := httptest.NewRecorder()
@@ -103,7 +103,7 @@ func countDeleteConfirmations(t *testing.T) int64 {
 func runDeleteConfirmation(t *testing.T, idp *fakeIdp, provider models.OidcProvider, user models.User, claims func(nonce string) map[string]interface{}) *httptest.ResponseRecorder {
 	t.Helper()
 
-	start := startDeleteConfirmation(t, provider.Name, user.ID, structs.AuthSourceJwt, "")
+	start := startDeleteConfirmation(t, provider.Name, user.ID, "")
 	if start.Code != http.StatusFound {
 		t.Fatalf("expected the confirmation to start, got %d (%s)", start.Code, start.Body.String())
 	}
@@ -121,25 +121,6 @@ func runDeleteConfirmation(t *testing.T, idp *fakeIdp, provider models.OidcProvi
 	}, start.Result().Cookies())
 }
 
-// TestDeleteConfirmationStartRequiresAnInteractiveSession: a key must not be able
-// to begin destroying the account that issued it, whatever its scope.
-func TestDeleteConfirmationStartRequiresAnInteractiveSession(t *testing.T) {
-	defer teardownOidcTest()
-	_, provider := setupOidcTest(t, oidcTestOptions{})
-	user := seedPasswordlessUser(t, provider, "keyholder", "keyholder-subject")
-
-	for _, authSource := range []string{structs.AuthSourceApiKey, ""} {
-		recorder := startDeleteConfirmation(t, provider.Name, user.ID, authSource, "")
-		if code := deleteErrorCode(t, recorder); code != errForbidden {
-			t.Errorf("auth source %q: expected %q, got %q (%s)", authSource, errForbidden, code, recorder.Header().Get("Location"))
-		}
-	}
-
-	if countAuthSessions(t) != 0 {
-		t.Error("a refused start created an auth session")
-	}
-}
-
 func TestDeleteConfirmationStartRequiresAccountDeletePermission(t *testing.T) {
 	defer teardownOidcTest()
 	_, provider := setupOidcTest(t, oidcTestOptions{})
@@ -147,7 +128,7 @@ func TestDeleteConfirmationStartRequiresAccountDeletePermission(t *testing.T) {
 	user := createTestUser(t, "nodelete")
 	seedIdentity(t, provider, user.ID, "nodelete-subject", true)
 
-	recorder := startDeleteConfirmation(t, provider.Name, user.ID, structs.AuthSourceJwt, "")
+	recorder := startDeleteConfirmation(t, provider.Name, user.ID, "")
 	if code := deleteErrorCode(t, recorder); code != errForbidden {
 		t.Errorf("expected %q, got %q (%s)", errForbidden, code, recorder.Header().Get("Location"))
 	}
@@ -166,7 +147,7 @@ func TestDeleteConfirmationStartRefusesAnAccountWithAPassword(t *testing.T) {
 	user := createTestUserWithPermissions(t, "haspassword", permissions.AppAccountDelete)
 	seedIdentity(t, provider, user.ID, "haspassword-subject", false)
 
-	recorder := startDeleteConfirmation(t, provider.Name, user.ID, structs.AuthSourceJwt, "")
+	recorder := startDeleteConfirmation(t, provider.Name, user.ID, "")
 	if code := deleteErrorCode(t, recorder); code != errForbidden {
 		t.Errorf("expected %q, got %q (%s)", errForbidden, code, recorder.Header().Get("Location"))
 	}
@@ -183,7 +164,7 @@ func TestDeleteConfirmationStartRefusesAProviderTheAccountIsNotLinkedTo(t *testi
 	other := createTestProvider(t, idp.issuer(), providerOptions{name: "otheridp", clientId: idp.clientId})
 	user := seedPasswordlessUser(t, other, "elsewhere", "elsewhere-subject")
 
-	recorder := startDeleteConfirmation(t, provider.Name, user.ID, structs.AuthSourceJwt, "")
+	recorder := startDeleteConfirmation(t, provider.Name, user.ID, "")
 	if code := deleteErrorCode(t, recorder); code != errNotLinked {
 		t.Errorf("expected %q, got %q (%s)", errNotLinked, code, recorder.Header().Get("Location"))
 	}
@@ -197,7 +178,7 @@ func TestDeleteConfirmationStartAsksForAFreshLogin(t *testing.T) {
 	idp, provider := setupOidcTest(t, oidcTestOptions{})
 	user := seedPasswordlessUser(t, provider, "fresh", "fresh-subject")
 
-	recorder := startDeleteConfirmation(t, provider.Name, user.ID, structs.AuthSourceJwt, "")
+	recorder := startDeleteConfirmation(t, provider.Name, user.ID, "")
 	if recorder.Code != http.StatusFound {
 		t.Fatalf("expected 302, got %d (%s)", recorder.Code, recorder.Body.String())
 	}
@@ -390,7 +371,7 @@ func TestSignedInFlowsReturnToTheProfileWhenTheProviderRefuses(t *testing.T) {
 		start     *httptest.ResponseRecorder
 		errorName string
 	}{
-		{name: "delete confirmation", start: startDeleteConfirmation(t, provider.Name, deleter.ID, structs.AuthSourceJwt, ""), errorName: "deleteError"},
+		{name: "delete confirmation", start: startDeleteConfirmation(t, provider.Name, deleter.ID, ""), errorName: "deleteError"},
 		{name: "link", start: startLink(t, provider.Name, linker.ID), errorName: "oidcError"},
 	} {
 		t.Run(testCase.name, func(t *testing.T) {

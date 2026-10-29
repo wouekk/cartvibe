@@ -20,7 +20,6 @@ export const settingsLandingGuard: CanActivateFn = (): UrlTree => {
       path: "user-preferences/view",
       permission: Permission.AppUserPreferencesRead,
     },
-    { path: "api-keys/view", permission: Permission.AppApiKeysRead },
   ];
 
   for (const tab of tabs) {

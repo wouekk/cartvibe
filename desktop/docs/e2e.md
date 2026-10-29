@@ -35,7 +35,7 @@ Config: `fullyParallel`, `retries` 2 on CI and 0 locally, `trace: 'on-first-retr
   `withApiAs('admin' | 'user')` / `withAdminApi`; creators `apiCreateRole`, `apiUpdateRole`, `apiCreateGroup`,
   `apiCreateReceipt`, `apiCreateComment`, `apiCreateCategory`, `apiCreateTag`, `apiCreateReportTemplate`,
   `apiSetMemberGrants` (returns the raw response so specs assert 200/400/403/404), `apiSetGroupRoster`,
-  `apiPatchSystemSettings`, `apiQuickScan`, `apiRecordApiKeyDeletedSystemTask`; readers `apiMemberCatalog`,
+  `apiPatchSystemSettings`, `apiQuickScan`; readers `apiMemberCatalog`,
   `apiGetGroupMembers`, `apiGroupNames`, `apiPagedSystemTasks`, `apiWaitForFailedQuickScan`; teardown
   `apiDeleteUserByName`, `apiDeleteGroupById`, `apiDeleteRoleByName`, `apiDeleteCategoryById`, `apiDeleteTagById`,
   `apiDeleteReportTemplateById`, `apiDeleteProcessingSettings`. UI flows `createRole`, `createUserWithRole`,
@@ -104,7 +104,7 @@ Config: `fullyParallel`, `retries` 2 on CI and 0 locally, `trace: 'on-first-retr
   the days/hours round trip and the 24-hour floor. Do not e2e the temp-file sweeper (the floor makes it unobservable).
 - `failed-activity-source-file.spec.ts`: points the global AI provider at an unreachable host to make a quick scan
   fail, then checks preview, a byte-identical download, a non-member 403 and the tasks table controls.
-- `system-task-filter.spec.ts`: seeds a row by creating and deleting an API key (nothing creates a task directly).
+- `system-task-filter.spec.ts`: seeds a row by creating a receipt, which records a Receipt Uploaded task (nothing creates a task directly).
 - `receipt-update-diff.spec.ts`: keeps an unchanged item across the update so the summary proves recreated items are
   not reported as edits.
 - `report-*.spec.ts`: `report-period-date-field.spec.ts` runs a block with `timezoneId: 'America/Los_Angeles'`; the

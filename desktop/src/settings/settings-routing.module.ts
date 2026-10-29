@@ -5,7 +5,6 @@ import { appPermissionGuard } from "src/guards/app-permission.guard";
 import { settingsLandingGuard } from "src/guards/settings-landing.guard";
 import { FormConfig } from "src/interfaces";
 import { Permission } from "../open-api";
-import { ApiKeysComponent } from "./api-keys/api-keys.component";
 import { SettingsComponent } from "./settings/settings.component";
 import { UserPreferencesComponent } from "./user-preferences/user-preferences.component";
 import { UserProfileComponent } from "./user-profile/user-profile.component";
@@ -74,30 +73,6 @@ const routes: Routes = [
       {
         path: "theme",
         redirectTo: "/theme",
-      },
-      {
-        path: "api-keys/view",
-        component: ApiKeysComponent,
-        canActivate: [appPermissionGuard],
-        data: {
-          formConfig: {
-            mode: FormMode.view,
-            headerText: marker("View API Keys"),
-          } as FormConfig,
-          appPermissions: [Permission.AppApiKeysRead],
-        },
-      },
-      {
-        path: "api-keys/edit",
-        component: ApiKeysComponent,
-        canActivate: [appPermissionGuard],
-        data: {
-          formConfig: {
-            mode: FormMode.edit,
-            headerText: marker("Edit API Keys"),
-          } as FormConfig,
-          appPermissions: [Permission.AppApiKeysRead],
-        },
       },
     ],
   },

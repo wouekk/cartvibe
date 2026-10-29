@@ -26,8 +26,6 @@ export class SystemTaskTypePipe implements PipeTransform {
         return marker("Prompt Generated");
       case "RECEIPT_UPDATED":
         return marker("Updated Receipt");
-      case "API_KEY_DELETED":
-        return marker("API Key Deleted");
       case "HTML_TO_PDF":
         return marker("HTML to PDF");
     }

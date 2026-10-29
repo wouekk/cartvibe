@@ -263,7 +263,6 @@ export class SidebarComponent {
     AuthState.hasAnyAppPermission([
       Permission.AppAccountRead,
       Permission.AppUserPreferencesRead,
-      Permission.AppApiKeysRead,
     ])
   );
 

@@ -78,7 +78,6 @@ const routes: Routes = [
           appPermissions: [
             Permission.AppAccountRead,
             Permission.AppUserPreferencesRead,
-            Permission.AppApiKeysRead,
           ],
         },
       },

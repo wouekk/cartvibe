@@ -77,12 +77,6 @@ func main() {
 	logging.LogStd(logging.LOG_LEVEL_INFO, "Initializing Imagick...")
 	imagick.Initialize()
 	defer imagick.Terminate()
-	pepperService := services.NewPepperService(nil)
-	err = pepperService.InitPepper()
-	if err != nil {
-		logging.LogStd(logging.LOG_LEVEL_FATAL, "Failed to initialize pepper: "+err.Error())
-	}
-
 	err = wranglerasynq.StartSystemCleanUpTasks()
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_FATAL, err.Error())

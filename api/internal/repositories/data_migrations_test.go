@@ -26,9 +26,11 @@ func ledgerCount(t *testing.T, name string) int64 {
 	return count
 }
 
-func TestDataMigrationRegistryHoldsOnlyTheStarterCategories(t *testing.T) {
-	if len(dataMigrations) != 1 || dataMigrations[0].name != starterCategoriesMigration {
-		utils.PrintTestError(t, len(dataMigrations), 1)
+func TestDataMigrationRegistryHoldsTheKnownMigrations(t *testing.T) {
+	if len(dataMigrations) != 2 ||
+		dataMigrations[0].name != starterCategoriesMigration ||
+		dataMigrations[1].name != removeApiKeysMigration {
+		utils.PrintTestError(t, len(dataMigrations), 2)
 	}
 }
 

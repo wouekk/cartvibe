@@ -50,17 +50,18 @@ breaks login. `dev` forces it on (it uses `SameSite=None`, which requires `Secur
 - CodeQL `go/insecure-cookie` alerts on the default are accepted. Auto-detecting from `X-Forwarded-Proto` was rejected:
   behind a second TLS proxy the container's nginx reports `http`.
 - Turning it on over plain http locks the web app out, admin included (the desktop warns first). Recovery with an admin
-  credential, an `rw` API key or a bearer JWT from `POST /api/login/?tokensInBody=true`:
+  credential: sign in with the tokens in the body (no cookie is set) and send the JWT as a bearer token:
 
 ```bash
 HOST=http://receipts.lan
-AUTH='key.1.<id>.<secret>'   # or AUTH="Bearer <jwt>"
+JWT=$(curl -s -X POST -H 'Content-Type: application/json' -d '{"username":"admin","password":"<password>"}'   "$HOST/api/login/?tokensInBody=true" | jq -r .jwt)
+AUTH="Bearer $JWT"
 curl -s -H "Authorization: $AUTH" "$HOST/api/systemSettings/" \
   | jq '.secureCookies = false' \
   | curl -s -X PUT -H "Authorization: $AUTH" -H 'Content-Type: application/json' -d @- "$HOST/api/systemSettings/"
 ```
 
-The PUT validates a whole body, hence the GET round trip (and the `rw` key).
+The PUT validates a whole body, hence the GET round trip.
 
 ## Housekeeping
 

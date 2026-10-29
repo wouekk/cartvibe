@@ -15,14 +15,5 @@
 //	Produces:
 //	- application/json
 //
-//	Security:
-//	- api_key:
-//
-//	SecurityDefinitions:
-//	api_key:
-//	     type: string
-//	     name: jwt
-//	     in: header
-//
 // swagger:meta
 package docs

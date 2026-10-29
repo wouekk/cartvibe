@@ -1,6 +1,6 @@
 # Authorization in depth
 
-Purpose: the rationale behind roles, grants, paid-by and member isolation, API-key scopes and the All-group gate. `api/CLAUDE.md` holds the rules; read this before changing any of these layers.
+Purpose: the rationale behind roles, grants, paid-by and member isolation and the All-group gate. `api/CLAUDE.md` holds the rules; read this before changing any of these layers.
 
 ## Roles and the permission registry
 
@@ -154,30 +154,6 @@ group the template covers, from the `report_template_groups` index); and the per
 the body because the declarative gate is AND-only. The matrix is UX scoping: the ad-hoc `/report/generate` and a fresh
 duplicate are not bound by it, and neither can widen data access beyond the group ceiling and grants, which every
 generation re-resolves.
-
-## API-key scopes
-
-Enforced in `middleware.UnifiedAuthMiddleware`, the only place a key becomes `Claims`.
-
-- **Exact match** (`apiKeyScopePermits` switches on the three `ApiKeyScope` constants): an earlier `strings.Contains`
-  read `r,w` as both. This is the only request-time check: `Claims.Validate` never runs on the key path and the column is
-  a plain string, so anything written around `UpsertApiKeyCommand.Validate` arrives unchecked.
-- **Method decides, with an allowlist.** GET/HEAD/OPTIONS read; everything else writes unless listed in
-  `readOnlyPostPaths` / `readOnlyPostPatterns` (`middleware/api_key_scope.go`). It fails closed for new write endpoints.
-- **Read means disclosure to the caller**, not touching rows. A write that returns another entity's content is a read
-  too: the two duplicate endpoints are in `readWritePostPatterns` and need `rw`.
-- Do not derive read/write from declared permissions: `checkConnectivity` writes a `SystemTask` under a `.read`
-  permission.
-- `UpdateApiKeyLastUsedDate` stays outside the gate (authentication bookkeeping).
-- Login, logout, refresh and signup never mount this middleware; MCP uses audience-bound tokens, not keys.
-
-## AuthSource
-
-`UnifiedAuthMiddleware` stamps `Claims.AuthSource` (`AuthSourceJwt` / `AuthSourceApiKey`). It is `json:"-"` (cannot ride
-on or be forged into a token). Checks are written as "require `AuthSourceJwt`" so the zero value denies; never infer it
-from `ApiKeyScope`. Consumers: OIDC link and unlink, self-delete and its provider confirmation. A `GET /oidc/link/{name}`
-clears an `r` key's scope gate, and linking the key-holder's own IdP identity would turn a revocable scoped credential
-into a permanent interactive login.
 
 ## Households and role-required fields
 

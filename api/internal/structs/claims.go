@@ -3,7 +3,6 @@ package structs
 import (
 	"context"
 	"fmt"
-	"cartvibe/api/internal/models"
 	"strconv"
 	"strings"
 
@@ -19,40 +18,14 @@ const (
 	TokenTypeRefresh = "refresh"
 )
 
-// How a request authenticated, recorded on Claims.AuthSource by
-// middleware.UnifiedAuthMiddleware. The zero value is neither of these, so a
-// check written as "require AuthSourceJwt" denies anything unmarked.
-const (
-	AuthSourceJwt    = "jwt"
-	AuthSourceApiKey = "api_key"
-)
-
 type Claims struct {
 	DefaultAvatarColor string             `json:"defaultAvatarColor"`
 	Displayname        string             `json:"displayName"`
 	UserId             uint               `json:"userId"`
 	Username           string             `json:"username"`
-	ApiKeyScope        models.ApiKeyScope `json:"apiKeyScope"`
 	// TokenType is "access" or "refresh" on tokens minted after the token-type
 	// fix. It is empty on legacy tokens issued before it (see IsRefreshToken).
 	TokenType string `json:"tokenType"`
-
-	// AuthSource records HOW this request authenticated: AuthSourceJwt for an
-	// interactive session, AuthSourceApiKey for a key. It exists because a handful
-	// of operations are legitimate for a signed-in human and an escalation for a
-	// key -- connecting an identity provider above all, which turns a scoped,
-	// revocable credential into a permanent login.
-	//
-	// json:"-" is load bearing, not tidiness. The field must never ride on a token:
-	// serialized, it would be settable by whoever minted the token and inheritable
-	// by any legacy one, and the thing it answers ("how did THIS request arrive")
-	// is not a property of a token at all. UnifiedAuthMiddleware sets it per
-	// request, and it is the only writer.
-	//
-	// Do NOT infer the same thing from ApiKeyScope being non-empty. It happens to
-	// hold today, it is a serialized claim, and the inference fails OPEN for any
-	// path that does not set it.
-	AuthSource string `json:"-"`
 
 	jwt.RegisteredClaims
 }
@@ -98,13 +71,6 @@ func (claim *Claims) Validate(ctx context.Context) error {
 		// Check if it's valid hex
 		if _, err := strconv.ParseInt(claim.DefaultAvatarColor[1:], 16, 64); err != nil {
 			return fmt.Errorf("invalid hex color: %s", claim.DefaultAvatarColor)
-		}
-	}
-
-	// Validate API key scope if present (should be valid scope values)
-	if claim.ApiKeyScope != "" {
-		if !claim.ApiKeyScope.IsValid() {
-			return fmt.Errorf("invalid API key scope: %s", claim.ApiKeyScope)
 		}
 	}
 
