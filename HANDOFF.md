@@ -5,12 +5,11 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 
 ## Current state
 
-- `main` = `preview` = v0.12.0 plus CHANGELOG → Unreleased: shop logos, starter categories, Management tabs, and since
-  2026-10-29 the SQLite hardening (WAL, busy_timeout, `_txlock=immediate`, pool 8) with the VPS stack
-  (`docker-compose.vps.yml`), warranties (dates, reminders, Web Push, sidebar entry, tile, panel and page with a row
-  per product) and product lines grossed up when an invoice prints them before VAT. Waiting on the user: deploy
-  `:latest` (back up `sqlite/` with its `-wal`/`-shm` first), a taxi or flight Quick Scan with a real AI key, then tag
-  v0.13.0 (agreed). Offered, not built: a Stop download button for logos.
+- `main` = `preview` = v0.13.0 (2026-10-29): shop logos, starter categories, Management tabs, SQLite hardening (WAL,
+  busy_timeout, `_txlock=immediate`, pool 8) with the VPS stack (`docker-compose.vps.yml`), warranties and product
+  lines grossed up when an invoice prints them before VAT. The user's Uber Quick Scan read well. Waiting on the user:
+  deploy `:latest` (back up `sqlite/` with its `-wal`/`-shm` first). Offered, not built: a Stop download button for
+  logos.
 - Next agreed: `feature/households` (tenant model) from `main`. Not run anywhere yet: a Litestream/restic restore
   drill, Web Push on a real device (needs HTTPS + VAPID keys).
 - 2026-10-29: the component guides were cut roughly in half; feature detail moved to `api/docs/domain.md`,

@@ -8,10 +8,15 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
-All your spending, not only the groceries.
+## [0.13.0] - 2026-10-29
 
-> **Upgrade: back up the `sqlite` folder first.** The first start adds the starter categories to the database. Shop
-> logos then show only after an admin enters a Logo.dev key under System Settings → Shop Logos.
+All your spending, not only the groceries, and the warranties that come with it.
+
+> **Upgrade: stop the app and back up the whole `sqlite` folder first.** The first start adds the starter categories
+> and the warranty columns, and switches the database to WAL mode, so from then on the folder holds `app.db-wal` and
+> `app.db-shm` next to `app.db`: back up all three, with the app stopped. Shop logos show only after an admin enters a
+> Logo.dev key under System Settings → Shop Logos. Warranty reminders reach phones only with VAPID keys set (see
+> `docker-compose.yml`) and the app served over HTTPS; without them they stay in the app's notifications.
 
 ### Added
 - **Warranties:** a receipt can carry the day its warranty ends. **Add warranty date** on the receipt starts the
