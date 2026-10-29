@@ -9,8 +9,8 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
   (nothing used them; the Settings tab did nothing visible). Gone: the tab and screens, `/apiKey`, `app.api-keys.*`,
   `AuthSource`/scopes, the pepper; the data migration `remove-api-keys-v1` drops `api_keys`/`peppers` and the
   "API Key Deleted" task rows on first boot (back up `sqlite/` first). The seed script now signs in with
-  `RW_USERNAME`/`RW_PASSWORD`; `system-task-filter.spec.ts` seeds from a receipt upload. Next: pull the regenerated
-  `desktop/src/open-api` after CI, delete the orphaned apiKey client files, rerun CI, then `:preview`.
+  `RW_USERNAME`/`RW_PASSWORD`; `system-task-filter.spec.ts` seeds from a receipt upload. The regenerated
+  client is pulled and the orphaned apiKey client files deleted. Next: CI green, then `:preview`.
   Branch off `main`, so it will conflict with `feature/chartjs` in `CHANGELOG.md`/`HANDOFF.md` only.
 - `main` = `preview` = v0.13.0 (2026-10-29): shop logos, starter categories, Management tabs, SQLite hardening (WAL,
   busy_timeout, `_txlock=immediate`, pool 8) with the VPS stack (`docker-compose.vps.yml`), warranties and product
