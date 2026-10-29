@@ -6583,6 +6583,11 @@ components:
         warrantyActive:
           type: boolean
           description: Only receipts whose warranty ends today (app time zone) or later. Sort with orderBy warranty_until.
+        warrantyEndsBy:
+          type: string
+          description: >-
+            Only receipts whose warranty ends on this day (yyyy-MM-dd) or before; with warrantyActive, the warranties
+            ending soon. A value that is not a day adds no condition.
     ReceiptSearchMatch:
       type: object
       required:

@@ -150,6 +150,9 @@ type ReceiptPagedRequestFilter struct {
 	Search string `json:"search,omitempty"`
 	// WarrantyActive keeps only receipts whose warranty ends today (app time zone) or later: the Warranties list.
 	WarrantyActive bool `json:"warrantyActive,omitempty"`
+	// WarrantyEndsBy ("yyyy-MM-dd") keeps only receipts whose warranty ends on that day or before: with
+	// WarrantyActive, the Dashboard's warranties ending soon. Anything that is not a day adds no condition.
+	WarrantyEndsBy string `json:"warrantyEndsBy,omitempty"`
 }
 
 // The ReceiptPagedRequestFilter keys that hold a receipt date. A report period

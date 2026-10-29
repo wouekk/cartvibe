@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/utils"
@@ -278,5 +279,35 @@ func TestActiveWarrantiesCountFromTodayOn(t *testing.T) {
 	}
 	if hidden != 0 {
 		t.Errorf("member A cannot see B's receipts, so counts none, got %d", hidden)
+	}
+}
+
+// Ending soon: from today up to the bound, nearest first; later and expired warranties are left out.
+func TestWarrantiesEndingSoonFilter(t *testing.T) {
+	defer repositories.TruncateTestDb()
+	resetIsolationCaches()
+	fx := seedIsolatedReceiptGroup(t)
+
+	today := time.Now().UTC()
+	inAMonth := seedWarrantyReceipt(t, fx.groupId, fx.memberBId, warrantyDay(today.AddDate(0, 1, 0).Format(time.DateOnly)))
+	inAWeek := seedWarrantyReceipt(t, fx.groupId, fx.memberBId, warrantyDay(today.AddDate(0, 0, 7).Format(time.DateOnly)))
+	seedWarrantyReceipt(t, fx.groupId, fx.memberBId, warrantyDay(today.AddDate(0, 3, 0).Format(time.DateOnly)))
+	seedWarrantyReceipt(t, fx.groupId, fx.memberBId, warrantyDay(today.AddDate(0, 0, -1).Format(time.DateOnly)))
+
+	request := commands.ReceiptPagedRequestCommand{
+		PagedRequestCommand: commands.PagedRequestCommand{Page: 1, PageSize: 10, OrderBy: "warranty_until", SortDirection: commands.ASCENDING},
+		Filter: commands.ReceiptPagedRequestFilter{
+			WarrantyActive: true,
+			WarrantyEndsBy: today.AddDate(0, 2, 0).Format(time.DateOnly),
+		},
+	}
+	receipts, count, err := repositories.NewReceiptRepository(nil).GetPagedReceiptsByGroupId(
+		fx.memberBId, utils.UintToString(fx.groupId), request, nil, nil, nil, nil, nil,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 || len(receipts) != 2 || receipts[0].ID != inAWeek || receipts[1].ID != inAMonth {
+		t.Fatalf("expected the week's then the month's warranty, got %d: %+v", count, receipts)
 	}
 }

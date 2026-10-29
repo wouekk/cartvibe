@@ -804,6 +804,9 @@ func (repository ReceiptRepository) BuildGormFilterQuery(pagedRequest commands.R
 	if pagedRequest.Filter.WarrantyActive {
 		query = query.Where("receipts.warranty_until IS NOT NULL AND receipts.warranty_until >= ?", time.Now().In(appLocation).Format(time.DateOnly))
 	}
+	if endsBy, err := time.Parse(time.DateOnly, pagedRequest.Filter.WarrantyEndsBy); err == nil {
+		query = query.Where("receipts.warranty_until IS NOT NULL AND receipts.warranty_until <= ?", endsBy.Format(time.DateOnly))
+	}
 
 	// Date
 	query = repository.BuildDayFilterQuery(
