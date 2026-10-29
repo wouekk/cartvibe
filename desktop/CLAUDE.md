@@ -87,6 +87,9 @@ feature.
   every package's `engines.node` admitting CI's Node.
 - `@playwright/test` is pinned exactly; bump it with the browser build. `@zxing/*` pins can be lifted in a change of
   their own. Stay on Angular's 22.x patch line; 23 is its own upgrade.
+- **`apexcharts` stays on 4.x (MIT).** From 5.1.0 it is source-available: free under $2M revenue, and a paid OEM
+  licence is needed to embed it in a product other people use (a hosted CartVibe), which also clashes with AGPL-3.0.
+  Never let `npm update` or `audit fix` cross it; check a new dependency's `license` field before adding it.
 
 ## Cross-cutting invariants
 

@@ -282,6 +282,11 @@ The long form of points the guide states briefly.
   components in `src/ui` (alias `@spartan-ng/helm/*`, brain from `@spartan-ng/brain`), Lucide icons, ApexCharts.
   No Angular Material, no Bootstrap: comments and specs that still mention `mat-*`, `MatDialog` or Bootstrap classes
   describe the past.
+- **`@defer` and `rxResource`:** `rxResource` over the generated service (not `httpResource` on a hand-typed URL, which
+  would bypass `open-api`) suits a read that blanks while it reloads, like the Warranties list. The Dashboard loaders
+  keep the previous value while they reload (and use `null` for "failed"), so they stay on `toSignal`. `@defer` was
+  measured and left out: the Dashboard panels sit in a DOM-measured drag grid, the shopping panel and the report
+  preview are a few kB inside lazy modules, and `@zxing` and `apexcharts` are already dynamic imports.
 - **Modules:** 34 feature/shared NgModules remain (plus 12 routing modules); about 164 of 193 components are still
   `standalone: false` and declared in them (`SharedUiModule`, `ReceiptsModule`, …). New leaf components may be
   standalone; a non-standalone one must be declared, and exported if another module uses it. Components the Angular 22

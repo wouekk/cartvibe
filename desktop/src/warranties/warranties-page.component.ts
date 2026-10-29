@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
-import { toObservable, toSignal } from "@angular/core/rxjs-interop";
+import { rxResource, toSignal } from "@angular/core/rxjs-interop";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { HlmTableImports } from "@spartan-ng/helm/table";
-import { catchError, map, of, switchMap } from "rxjs";
+import { catchError, map, of } from "rxjs";
 import { formatDateInput } from "../datepicker/date-input.directive";
 import { PluralPipe, TranslatePipe } from "../i18n/translate.pipe";
 import { Receipt, ReceiptService, SortDirection } from "../open-api";
@@ -36,24 +36,24 @@ export class WarrantiesPageComponent {
 
   private readonly today = computed(() => formatDateInput(todayInZone(this.store.selectSnapshot(SystemSettingsState.timeZone))));
 
+  private readonly warranties = rxResource({
+    params: this.groupId,
+    stream: ({ params: groupId }) =>
+      this.receiptService
+        .getReceiptsForGroup(groupId, {
+          page: 1,
+          pageSize: 200,
+          orderBy: "warranty_until",
+          sortDirection: SortDirection.Asc,
+          filter: { warrantyActive: true },
+        })
+        .pipe(
+          map((page) => warrantyRows(page.data as unknown as Receipt[], this.today())),
+          // A failed load reads as an empty list: the page never blocks on it.
+          catchError(() => of([] as WarrantyRow[]))
+        ),
+  });
+
   /** undefined while loading, so the empty state shows only once the list came back empty. */
-  public readonly rows = toSignal(
-    toObservable(this.groupId).pipe(
-      switchMap((groupId) =>
-        this.receiptService
-          .getReceiptsForGroup(groupId, {
-            page: 1,
-            pageSize: 200,
-            orderBy: "warranty_until",
-            sortDirection: SortDirection.Asc,
-            filter: { warrantyActive: true },
-          })
-          .pipe(
-            map((page) => warrantyRows(page.data as unknown as Receipt[], this.today())),
-            catchError(() => of([] as WarrantyRow[]))
-          )
-      )
-    ),
-    { initialValue: undefined }
-  );
+  public readonly rows = this.warranties.value;
 }
