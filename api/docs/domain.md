@@ -132,7 +132,9 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   `GetReceiptForUser` (paid-by and member isolation included). `fire_on = max(today, end − lead)`; an end before today
   plans nothing. `SyncWarrantyReminders` re-plans one receipt (an upsert that keeps `fired_for`) after the warranty
   date, a receipt update (group or payer may move) and a duplicate; `SyncWarrantyRemindersForUser` after a preferences
-  save; `SyncAllWarrantyReminders` at start-up. Receipt and user deletion remove the rows explicitly.
+  save; `SyncWarrantyRemindersForGroup` after a group update or member grants change; `SyncWarrantyRemindersForUser`
+  also for a new account (it joins the household); `SyncAllWarrantyReminders` at start-up (catches role edits).
+  Receipt and user deletion remove the rows explicitly.
 - The `system_clean_up:warranty_reminders` sweep (every minute) drops reminders of ended warranties and, once the app
   zone is past 09:00, fires due rows: a conditional UPDATE sets `fired_for = warranty_until` and the notification is
   created in the same transaction, so one receipt and date fires once whatever reruns or re-saves follow; a new date

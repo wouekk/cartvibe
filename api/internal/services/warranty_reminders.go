@@ -123,6 +123,28 @@ func SyncWarrantyRemindersForUser(userId uint, now time.Time) error {
 	return syncWarrantyRemindersFor(receiptIds, now)
 }
 
+// SyncWarrantyRemindersForGroup plans again the reminders of every running warranty in the group, after its roster,
+// roles or member grants changed: a new member is reminded too, one who lost sight of a receipt is not.
+func SyncWarrantyRemindersForGroup(groupId uint, now time.Time) error {
+	var receiptIds []uint
+	err := repositories.GetDB().Model(&models.Receipt{}).
+		Where("group_id = ? AND warranty_until IS NOT NULL AND warranty_until >= ?", groupId, AppToday(now)).
+		Pluck("id", &receiptIds).Error
+	if err != nil {
+		return err
+	}
+
+	return syncWarrantyRemindersFor(receiptIds, now)
+}
+
+// SyncWarrantyRemindersForGroupQuietly is SyncWarrantyRemindersForGroup for request handlers (see
+// SyncWarrantyRemindersQuietly).
+func SyncWarrantyRemindersForGroupQuietly(groupId uint) {
+	if err := SyncWarrantyRemindersForGroup(groupId, time.Now()); err != nil {
+		logging.LogStd(logging.LOG_LEVEL_ERROR, "warranty reminders: "+err.Error())
+	}
+}
+
 // SyncAllWarrantyReminders plans every reminder again, and drops those of receipts that lost their date. Run at
 // start-up, so a reminder never depends on a change having been seen by this process.
 func SyncAllWarrantyReminders(now time.Time) error {

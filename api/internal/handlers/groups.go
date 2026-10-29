@@ -11,7 +11,6 @@ import (
 	"errors"
 	"net/http"
 
-
 	"github.com/go-chi/chi/v5"
 )
 
@@ -312,6 +311,8 @@ func UpdateGroup(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
+			// The roster, roles or isolation may have changed who sees the group's receipts.
+			services.SyncWarrantyRemindersForGroupQuietly(updatedGroup.ID)
 
 			// Grants are transient (gorm:"-") and so are absent from anything the
 			// repository returns. Load them, as GetGroupById does: the desktop feeds
@@ -483,6 +484,8 @@ func UpdateGroupMemberGrants(w http.ResponseWriter, r *http.Request) {
 			case err != nil:
 				return http.StatusInternalServerError, err
 			}
+			// Narrower or wider grants can change which receipts the member sees.
+			services.SyncWarrantyRemindersForGroupQuietly(groupId)
 
 			categoryIds, tagIds, err := groupService.GetMemberGrants(groupId, userId)
 			if err != nil {

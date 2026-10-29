@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"time"
+
 	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/services"
@@ -34,10 +37,14 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 			// strip the caller-supplied app role id from the command.
 			userData.AppRoleID = nil
 			userRepository := repositories.NewUserRepository(nil)
-			_, err = userRepository.CreateUser(userData)
+			createdUser, err := userRepository.CreateUser(userData)
 
 			if err != nil {
 				return http.StatusInternalServerError, err
+			}
+			// A new household member is reminded of the warranties already running there.
+			if err := services.SyncWarrantyRemindersForUser(createdUser.ID, time.Now()); err != nil {
+				logging.LogStd(logging.LOG_LEVEL_ERROR, "warranty reminders: "+err.Error())
 			}
 
 			w.WriteHeader(http.StatusOK)

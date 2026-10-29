@@ -311,3 +311,28 @@ func TestWarrantiesEndingSoonFilter(t *testing.T) {
 		t.Fatalf("expected the week's then the month's warranty, got %d: %+v", count, receipts)
 	}
 }
+
+// Someone who joins the group after a warranty date was set is reminded of it once the group is planned again.
+func TestSyncWarrantyRemindersForGroupRemindsANewMember(t *testing.T) {
+	defer repositories.TruncateTestDb()
+	resetIsolationCaches()
+	fx := seedIsolatedReceiptGroup(t)
+
+	receiptId := seedWarrantyReceipt(t, fx.groupId, fx.supervisorId, warrantyDay("2027-03-12"))
+	if err := SyncWarrantyReminders(receiptId, warrantyNow); err != nil {
+		t.Fatal(err)
+	}
+
+	newcomer := makeUser(t, "warranty-newcomer")
+	seedIsoMember(t, fx.groupId, newcomer, &fx.supRoleId)
+	if _, ok := warrantyRemindersFor(t, receiptId)[newcomer]; ok {
+		t.Fatalf("not planned yet before the group is synced")
+	}
+
+	if err := SyncWarrantyRemindersForGroup(fx.groupId, warrantyNow); err != nil {
+		t.Fatal(err)
+	}
+	if got := warrantyRemindersFor(t, receiptId)[newcomer].FireOn; got != "2027-02-10" {
+		t.Errorf("the new member should be reminded on 2027-02-10, got %q", got)
+	}
+}
