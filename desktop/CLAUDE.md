@@ -45,14 +45,14 @@ feature.
 - **Icons:** `<app-icon name="receipt_long">` takes the Material name and draws the Lucide icon mapped in
   `shared-ui/icon/icon-map.ts`; add a pair there for a new name.
 - **Tests (Vitest, zoneless):** `angular.json` target `test` (builds with the JIT `build:test` configuration, runs
-  isolated, `vitest.config.ts` sets the timeouts), `setup-vitest.ts` (stubs `ResizeObserver`, canvas and `apexcharts`).
+  isolated, `vitest.config.ts` sets the timeouts), `setup-vitest.ts` (stubs `ResizeObserver`, canvas and `chart.js`: `src/testing/chartjs.stub.ts` records the config it is given).
   Globals are `describe`, `it`, `expect` and `vi`; mock types come from `vitest`. Prefer `setInput` +
   `await fixture.whenStable()`; after mutating a plain field call `fixture.changeDetectorRef.markForCheck()` before
   `detectChanges()`. Select by `data-testid`, ARIA state or text, never styling classes. Translated text is English in
   specs (`src/i18n/i18n-test-utils.ts`). A spec with a real `AutocomleteComponent` needs `AuthState`.
 - **Spec traps (Vitest):** spec type errors fail the run. The TestBed throws on unknown elements and properties: import
   the real module or standalone component, never a `NO_ERRORS_SCHEMA`. An unhandled RxJS error fails the whole run
-  (give a `subscribe` on a `throwError` mock a handler). `vi.mock` takes package specifiers only (`apexcharts`), not
+  (give a `subscribe` on a `throwError` mock a handler). `vi.mock` takes package specifiers only (`chart.js`), not
   relative paths: drive the real function through the globals it reads. No `done` callbacks (return a promise); a mock
   used with `new` must be a `function`; `vi.fn<(a: string) => Promise<void>>()` takes one function type.
 
@@ -95,9 +95,9 @@ feature.
   every package's `engines.node` admitting CI's Node.
 - `@playwright/test` is pinned exactly; bump it with the browser build. `@zxing/*` pins can be lifted in a change of
   their own. Stay on Angular's 22.x patch line; 23 is its own upgrade.
-- **`apexcharts` stays on 4.x (MIT).** From 5.1.0 it is source-available: free under $2M revenue, and a paid OEM
-  licence is needed to embed it in a product other people use (a hosted CartVibe), which also clashes with AGPL-3.0.
-  Never let `npm update` or `audit fix` cross it; check a new dependency's `license` field before adding it.
+- **Check a new dependency's `license` field before adding it, and after a major bump.** Charts are Chart.js (MIT)
+  because apexcharts went source-available at 5.1 (a paid OEM licence to embed it in a product other people use, which
+  also clashes with AGPL-3.0). Never let `npm update` or `audit fix` cross a licence change.
 
 ## Cross-cutting invariants
 

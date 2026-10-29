@@ -26,9 +26,18 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
   request per calendar year; the print view opens inside the click handler).
 - **Donut:** `CATEGORY_COLORS` are `var(--chart-1..5)` plus `--muted-foreground` for "Other"; bars use the primary
   token, faded muted when not selected and destructive over the goal; Unhealthy text is `text-warning-text`. Charts
-  read tokens at draw time (`readChartColors()`), and `app-apex-chart` rebuilds on a theme change (an options update
-  leaves some colours in the old theme). Click a slice or legend dot to focus (`focusedSegment`); hover sets
-  `hoveredSegment`; `applySliceEmphasis` works on the drawn SVG so hover never redraws, and re-runs on `animationEnd`.
+  read tokens at draw time (`readChartColors()`); `app-chart` (Chart.js on a canvas, `shared-ui/chart/`) recolours in
+  place on a theme change, without a rebuild or a replayed entry animation. Click a slice or legend dot to focus
+  (`focusedSegment`); hover sets `hoveredSegment`. The wrapper's `activeIndex` input (`activeSegmentIndex`) is what the
+  chart emphasises (the slice slides out, the others fade, the middle names it) without rebuilding, and shows as
+  `data-active-index` on the host: a canvas has no DOM, so specs and Playwright read that.
+- **Chart.js traps** (`shared-ui/chart/`): the lazy chunk is `chart-lazy.ts` with static named imports (`await
+  import("chart.js")` does not tree-shake); plugins are module-level (`chart-plugins.ts`) and read `options.plugins.<id>`;
+  never read a function-valued option through `chart.options` (Chart.js calls it as a scriptable option), use
+  `chart.config.options`; `update("emphasis")` is a custom mode (a plain repaint), `"active"` makes every arc grow;
+  Chart.js 4.5 does not reserve the hover offset in the ring, so the donut has `layout.padding`; a canvas needs the
+  computed font family (not `inherit`) after `document.fonts.load`; touch has no mouse-out, so the wrapper clears on a
+  touch outside the chart; `animation: false` is how reduced motion is honoured; the tooltip card is on `<body>`.
 - **Shopping panel** (`app-overview-shopping-panel`): previews `pickLargestList`; ticking is the shopping list's own
   cross-off, with an Undo row (`UNDO_WINDOW_MS`, `MAX_UNDO_ROWS`). The list is pinned while an Undo row is up, and
   `latestIntent` keeps a slow response from overwriting a later Undo. Ticking needs `group.shopping-lists.update`.
@@ -279,14 +288,14 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
 The long form of points the guide states briefly.
 
 - **Angular 22**, TypeScript 6, NGXS 22, zoneless (`provideZonelessChangeDetection()`), Tailwind 4 + spartan/ui helm
-  components in `src/ui` (alias `@spartan-ng/helm/*`, brain from `@spartan-ng/brain`), Lucide icons, ApexCharts.
+  components in `src/ui` (alias `@spartan-ng/helm/*`, brain from `@spartan-ng/brain`), Lucide icons, Chart.js.
   No Angular Material, no Bootstrap: comments and specs that still mention `mat-*`, `MatDialog` or Bootstrap classes
   describe the past.
 - **`@defer` and `rxResource`:** `rxResource` over the generated service (not `httpResource` on a hand-typed URL, which
   would bypass `open-api`) suits a read that blanks while it reloads, like the Warranties list. The Dashboard loaders
   keep the previous value while they reload (and use `null` for "failed"), so they stay on `toSignal`. `@defer` was
   measured and left out: the Dashboard panels sit in a DOM-measured drag grid, the shopping panel and the report
-  preview are a few kB inside lazy modules, and `@zxing` and `apexcharts` are already dynamic imports.
+  preview are a few kB inside lazy modules, and `@zxing` and `chart.js` are already dynamic imports.
 - **Modules:** 34 feature/shared NgModules remain (plus 12 routing modules); about 164 of 193 components are still
   `standalone: false` and declared in them (`SharedUiModule`, `ReceiptsModule`, …). New leaf components may be
   standalone; a non-standalone one must be declared, and exported if another module uses it. Components the Angular 22
@@ -317,7 +326,7 @@ The long form of points the guide states briefly.
 - `@playwright/test` is pinned exactly; bump it deliberately together with the browser build. `@zxing/browser` 0.1.5 /
   `@zxing/library` 0.21.3 were pinned for Node 20; CI is on Node 24, so the pin can be lifted in a change of its own.
 - Stay on Angular's 22.x patch line; 23 is its own upgrade. `tsconfig.json` has no `baseUrl` (bare `src/...` imports
-  resolve through the `src/*` path) and `skipLibCheck` is on for apexcharts 4's types.
+  resolve through the `src/*` path) and `skipLibCheck` is on.
 - **Permission gating** mirrors the server; the server re-checks every request, so a stale button at worst 403s.
   AppData carries `appPermissions: string[]` and `groupPermissions: { [groupId]: string[] }`; `SetPermissions` is
   dispatched only from `setAppData` (`src/utils/app-data.utill.ts`), never from `TokenRefreshService` (its claims-only

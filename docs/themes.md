@@ -56,7 +56,7 @@ stored key before the first paint and needs no copy of the list (an unknown key 
   That is why Emerald's day primary is emerald-700 (600 is only 3.8:1 with white) and the night primaries are the 400s with
   the 950 as text.
 - Charts read the tokens: categories use `--chart-1..5` plus `--muted-foreground` for "Other" (`overview-chart.utils.ts`),
-  bars use `--primary`, faded muted and `--destructive` (over goal), via `readChartColors()`. `app-apex-chart` redraws when
+  bars use `--primary`, faded muted and `--destructive` (over goal), via `readChartColors()`. `app-chart` recolours when
   `class` or `data-palette` changes on `<html>`.
 - The inline script in `index.html` sets `data-palette` and `dark` before the first paint. The CSP in `docker/default.conf`
   allows it by hash: after changing the script, hash the text between `<script>` and `</script>` (base64 SHA-256) and update

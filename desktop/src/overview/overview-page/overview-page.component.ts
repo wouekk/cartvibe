@@ -5,32 +5,18 @@ import { AppDialog } from "../../dialog/app-dialog";
 import { toObservable, toSignal } from "@angular/core/rxjs-interop";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
-import type { ApexOptions } from "apexcharts";
+import type { ScriptableContext } from "chart.js";
 
-/** The ApexCharts instance handed to chart events; only its container is used here. */
-type ChartContext = { el?: HTMLElement };
-
-/** How far the active donut slice grows from the ring's center, and how faint the other slices and legend rows go. */
-const DONUT_POP_OUT_SCALE = 1.06;
+/** How far the active donut slice slides out of the ring, and how faint the other slices and legend rows go. */
+const DONUT_POP_OUT_OFFSET = 8;
 const DONUT_DIMMED_OPACITY = 0.45;
 
 /** The longest text the middle of the donut shows on one line. */
 const DONUT_CENTER_LABEL_MAX = 16;
 
-/**
- * The middle of the drawn ring: the center of the box around all its slices (they always close the circle). Undefined
- * while the ring has no size yet (ApexCharts grows the slices from nothing during its entry animation).
- */
-function ringCenter(paths: SVGPathElement[]): { x: number; y: number } | undefined {
-  const boxes = paths.filter((path) => typeof path.getBBox === "function").map((path) => path.getBBox());
-  if (boxes.length === 0) {
-    return undefined;
-  }
-  const left = Math.min(...boxes.map((box) => box.x));
-  const top = Math.min(...boxes.map((box) => box.y));
-  const right = Math.max(...boxes.map((box) => box.x + box.width));
-  const bottom = Math.max(...boxes.map((box) => box.y + box.height));
-  return right > left && bottom > top ? { x: (left + right) / 2, y: (top + bottom) / 2 } : undefined;
+/** "rgb(r, g, b)" at a lower opacity; any other form is returned as it is. */
+function withAlpha(color: string, alpha: number): string {
+  return color.startsWith("rgb(") ? color.replace("rgb(", "rgba(").replace(")", `, ${alpha})`) : color;
 }
 import { catchError, filter, firstValueFrom, map, of, switchMap, take, tap } from "rxjs";
 import {
@@ -59,7 +45,10 @@ import { finePointerSignal } from "../../utils/fine-pointer";
 import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
 import { TranslationService } from "../../i18n/translation.service";
 import { DisplayCurrencyService } from "../../services/display-currency.service";
-import { ChartColors } from "../../shared-ui/apex-chart/chart-colors";
+import { centerTextPlugin, goalLinePlugin, pointerPlugin } from "../../shared-ui/chart/chart-plugins";
+import { ChartColors } from "../../shared-ui/chart/chart-colors";
+import { ChartSpec } from "../../shared-ui/chart/chart.component";
+import { htmlTooltip, tooltipCard } from "../../shared-ui/chart/chart-tooltip";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { FilterTab } from "../../shared-ui/filter-bar/filter-tab.interface";
 import {
@@ -429,6 +418,12 @@ export class OverviewPageComponent {
   /** What the ring and the legend emphasise: the hovered category, else the focused one. */
   public readonly activeSegment = computed(() => this.hoveredSegment() ?? this.focusedSegment());
 
+  /** The ring's emphasised slice, for the chart: null when no category is hovered or focused. */
+  public readonly activeSegmentIndex = computed(() => {
+    const index = this.segments().findIndex((segment) => segment.name === this.activeSegment());
+    return index >= 0 ? index : null;
+  });
+
   public isDimmed(name: string): boolean {
     const active = this.activeSegment();
     return active !== null && active !== name;
@@ -441,9 +436,6 @@ export class OverviewPageComponent {
   public hoverSegment(name: string | null): void {
     this.hoveredSegment.set(name);
   }
-
-  /** The drawn donut, kept from its chart events so a legend hover can emphasise a slice without a redraw. */
-  private donutElement?: HTMLElement;
 
   public readonly bars = computed(() => {
     const overview = this.overview();
@@ -488,73 +480,70 @@ export class OverviewPageComponent {
   );
 
   /**
-   * The category donut (ApexCharts on the theme tokens); the total, or the focused category, sits in its middle. Hover
-   * is not part of the options: it is applied to the drawn SVG (`applySliceEmphasis`), so it never redraws the chart.
+   * The category donut (Chart.js on the theme tokens); the total, or the active category, sits in its middle. Hover is
+   * not an input of this config: the middle, the fading and the slide-out read `activeSegment` when they paint, and the
+   * chart wrapper repaints on `activeIndex`, so hovering never rebuilds the chart.
    */
-  public readonly donutOptions = (colors: ChartColors): ApexOptions => {
+  public readonly donutOptions = (colors: ChartColors): ChartSpec => {
     const segments = this.segments();
-    const { label: centerLabel, value: centerValue } = this.centerText(this.focusedSegment());
+    const color = (index: number) => colors.series[index % colors.series.length];
+    const fill = (context: ScriptableContext<"doughnut">) =>
+      this.isDimmed(segments[context.dataIndex]?.name ?? "") ? withAlpha(color(context.dataIndex), DONUT_DIMMED_OPACITY) : color(context.dataIndex);
     return {
-      chart: {
-        type: "donut",
-        height: 200,
-        width: 200,
-        background: "transparent",
-        fontFamily: "inherit",
-        animations: { speed: 400 },
-        events: {
-          mounted: (chart: ChartContext) => this.keepDonut(chart),
-          updated: (chart: ChartContext) => this.keepDonut(chart),
-          // The slices only have their final shape once the entry animation ends, so the grown slice's origin is set again.
-          animationEnd: (chart: ChartContext) => this.keepDonut(chart),
-          dataPointSelection: (_event: unknown, _chart: unknown, config: { dataPointIndex: number }) => {
-            const segment = this.segments()[config.dataPointIndex];
-            if (segment) {
-              this.toggleFocus(segment.name);
-            }
+      type: "doughnut",
+      data: {
+        labels: segments.map((segment) => this.translation.t(segment.name)),
+        datasets: [
+          {
+            data: segments.map((segment) => segment.total),
+            backgroundColor: fill,
+            hoverBackgroundColor: fill,
+            borderColor: colors.card,
+            hoverBorderColor: colors.card,
+            borderWidth: 3,
+            hoverBorderWidth: 3,
+            hoverOffset: DONUT_POP_OUT_OFFSET,
           },
-          dataPointMouseEnter: (_event: unknown, _chart: unknown, config: { dataPointIndex: number }) =>
-            this.hoverSegment(this.segments()[config.dataPointIndex]?.name ?? null),
-          dataPointMouseLeave: () => this.hoverSegment(null),
-        },
+        ],
       },
-      series: segments.map((segment) => segment.total),
-      // ApexCharts writes the hovered slice's label into the middle itself, so the labels are the translated names.
-      labels: segments.map((segment) => this.translation.t(segment.name)),
-      colors: segments.map((_segment, index) => colors.series[index % colors.series.length]),
-      stroke: { width: 3, colors: [colors.card] },
-      legend: { show: false },
-      dataLabels: { enabled: false },
-      states: { hover: { filter: { type: "none" } }, active: { filter: { type: "none" } } },
-      tooltip: {
-        custom: ({ seriesIndex }: { seriesIndex: number }) => {
-          const segment = segments[seriesIndex];
-          if (!segment) {
-            return "";
-          }
-          const color = colors.series[seriesIndex % colors.series.length];
-          return this.tooltipCard(this.translation.t(segment.name), [
-            { color, label: this.translation.t("Spent"), value: this.displayCurrencyService.format(segment.total) },
-            { color, label: this.translation.t("Share of total"), value: segment.share },
-          ]);
-        },
-      },
-      plotOptions: {
-        pie: {
-          expandOnClick: false,
-          // Room inside the chart box for the active slice to grow (DONUT_POP_OUT_SCALE) without being clipped.
-          customScale: 0.92,
-          donut: {
-            size: "76%",
-            labels: {
-              show: true,
-              name: { show: true, color: colors.mutedForeground, fontSize: "12px", offsetY: 22 },
-              value: { show: true, color: colors.foreground, fontSize: "20px", fontWeight: 600, offsetY: -14, formatter: (value: string) => this.displayCurrencyService.format(Number(value)) },
-              total: { show: true, showAlways: true, label: centerLabel, color: colors.mutedForeground, fontSize: "12px", formatter: () => centerValue },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "76%",
+        // Chart.js 4.5 does not reserve the hover offset in the ring's size: the grown slice would be cut at the edge.
+        layout: { padding: DONUT_POP_OUT_OFFSET },
+        animation: { duration: 400 },
+        transitions: { active: { animation: { duration: 200 } }, emphasis: { animation: { duration: 200 } } },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            enabled: false,
+            external: htmlTooltip((tooltip) => {
+              const index = tooltip.dataPoints[0]?.dataIndex ?? -1;
+              const segment = segments[index];
+              if (!segment) {
+                return "";
+              }
+              return tooltipCard(this.translation.t(segment.name), [
+                { color: color(index), label: this.translation.t("Spent"), value: this.displayCurrencyService.format(segment.total) },
+                { color: color(index), label: this.translation.t("Share of total"), value: segment.share },
+              ]);
+            }),
+          },
+          cvCenterText: { text: () => this.centerText(this.activeSegment()), labelColor: colors.mutedForeground, valueColor: colors.foreground },
+          cvPointer: {
+            hover: (index) => this.hoverSegment(index === null ? null : this.segments()[index]?.name ?? null),
+            click: (index) => {
+              const segment = this.segments()[index];
+              if (segment) {
+                this.toggleFocus(segment.name);
+              }
             },
+            active: () => this.activeSegmentIndex(),
           },
         },
       },
+      plugins: [centerTextPlugin, pointerPlugin],
     };
   };
 
@@ -575,110 +564,82 @@ export class OverviewPageComponent {
     return text.includes(" – ") ? this.translation.t(marker("Total")) : `${text.slice(0, DONUT_CENTER_LABEL_MAX - 1)}…`;
   }
 
-  private keepDonut(chart: ChartContext): void {
-    this.donutElement = chart?.el;    this.applySliceEmphasis();
-  }
-
-  /**
-   * Emphasises the active category on the drawn SVG: its slice grows out from the ring's center, the other slices go
-   * faint, and the middle names it. Done on the SVG (ApexCharts has no option for a programmatic pop-out) after every
-   * render and whenever the active category changes, so hovering the legend or the ring never redraws the chart. The
-   * ring is drawn smaller (customScale) so the grown slice stays inside the chart box.
-   */
-  private applySliceEmphasis(): void {
-    const container = this.donutElement;
-    if (!container?.isConnected) {
-      return;
-    }
-
-    const segments = this.segments();
-    const active = this.activeSegment();
-    const activeIndex = segments.findIndex((segment) => segment.name === active);
-    const calm = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const paths = Array.from(container.querySelectorAll<SVGPathElement>("path.apexcharts-pie-area"));
-    const center = ringCenter(paths);
-    for (const path of paths) {
-      const match = /apexcharts-(?:donut|pie)-slice-(\d+)/.exec(path.getAttribute("class") ?? "");
-      const index = match ? Number(match[1]) : -1;
-      const grown = activeIndex >= 0 && index === activeIndex;
-      const box = typeof path.getBBox === "function" ? path.getBBox() : undefined;
-      if (center && box) {
-        // fill-box puts the origin in the slice's own box, so the ring's center is given relative to it.
-        path.style.transformBox = "fill-box";
-        path.style.transformOrigin = `${center.x - box.x}px ${center.y - box.y}px`;
-      }
-      path.style.transition = calm ? "none" : "transform 200ms cubic-bezier(0.16, 1, 0.3, 1), opacity 150ms ease";
-      path.style.transform = grown ? `scale(${DONUT_POP_OUT_SCALE})` : "scale(1)";
-      path.style.opacity = activeIndex >= 0 && !grown ? String(DONUT_DIMMED_OPACITY) : "1";
-    }
-
-    // ApexCharts writes the hovered slice into the middle itself; a legend hover and a cleared hover need it here.
-    const text = this.centerText(active);
-    const label = container.querySelector(".apexcharts-datalabel-label");
-    const value = container.querySelector(".apexcharts-datalabel-value");
-    if (label && value) {
-      label.textContent = text.label;
-      value.textContent = text.value;
-    }
-  }
-
   /** The spending bars: black in the light theme, white in the dark one (the primary token), red above the goal. */
-  public readonly barsOptions = (colors: ChartColors): ApexOptions => {
+  public readonly barsOptions = (colors: ChartColors): ChartSpec => {
     const bars = this.chartBars();
     const goalMode = this.goalMode();
-    const faded = colors.mutedForeground.startsWith("rgb(") ? colors.mutedForeground.replace("rgb(", "rgba(").replace(")", ", 0.35)") : colors.mutedForeground;
+    const daily = this.isDailyTrend();
+    const faded = withAlpha(colors.mutedForeground, 0.35);
     const money = (value: number) => this.displayCurrencyService.format(value);
+    const base = (context: ScriptableContext<"bar">) => (bars[context.dataIndex]?.isSelected ? colors.primary : faded);
+    const hasOver = (index: number) => goalMode && (bars[index]?.overAmount ?? 0) > 0;
+    // Only the top segment of a stack is rounded, at its top; the other segment and every bottom stay square.
+    const dataset = (label: string, data: number[], fill: ((context: ScriptableContext<"bar">) => string) | string, isTop: (index: number) => boolean) => ({
+      label,
+      data,
+      backgroundColor: fill,
+      hoverBackgroundColor: fill,
+      borderWidth: 0,
+      borderRadius: (context: ScriptableContext<"bar">) => (isTop(context.dataIndex) ? { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 } : 0),
+      borderSkipped: false as const,
+      categoryPercentage: 1,
+      barPercentage: bars.length > 6 ? 0.55 : 0.38,
+    });
     return {
-      chart: {
-        type: "bar",
-        height: "100%",
-        stacked: true,
-        toolbar: { show: false },
-        zoom: { enabled: false },
-        background: "transparent",
-        fontFamily: "inherit",
-        animations: { speed: 500 },
+      type: "bar",
+      data: {
+        labels: bars.map((bar) => this.translation.months(bar.shortName)),
+        datasets: goalMode
+          ? [
+              dataset("Spent", bars.map((bar) => bar.baseAmount ?? 0), base, (index) => !hasOver(index)),
+              dataset("Over goal", bars.map((bar) => bar.overAmount ?? 0), colors.destructive, hasOver),
+            ]
+          : [dataset("Spent", bars.map((bar) => bar.total), base, () => true)],
       },
-      series: goalMode
-        ? [
-            { name: "Spent", data: bars.map((bar) => bar.baseAmount ?? 0) },
-            { name: "Over goal", data: bars.map((bar) => bar.overAmount ?? 0) },
-          ]
-        : [{ name: "Spent", data: bars.map((bar) => bar.total) }],
-      colors: goalMode
-        ? [({ dataPointIndex }: { dataPointIndex: number }) => (bars[dataPointIndex]?.isSelected ? colors.primary : faded), colors.destructive]
-        : [({ dataPointIndex }: { dataPointIndex: number }) => (bars[dataPointIndex]?.isSelected ? colors.primary : faded)],
-      plotOptions: { bar: { borderRadius: 4, borderRadiusApplication: "end", borderRadiusWhenStacked: "last", columnWidth: bars.length > 6 ? "55%" : "38%" } },
-      dataLabels: { enabled: false },
-      stroke: { show: false },
-      grid: { borderColor: colors.border, strokeDashArray: 3, padding: { left: 8, right: 8 }, xaxis: { lines: { show: false } } },
-      xaxis: {
-        categories: bars.map((bar) => this.translation.months(bar.shortName)),
-        axisBorder: { color: colors.border },
-        axisTicks: { show: false },
-        labels: { style: { colors: colors.mutedForeground, fontSize: "12px" } },
-      },
-      yaxis: { labels: { style: { colors: colors.mutedForeground, fontSize: "11px" }, formatter: (value: number) => money(value) } },
-      legend: { show: false },
-      tooltip: {
-        shared: true,
-        intersect: false,
-        custom: ({ dataPointIndex }: { dataPointIndex: number }) => {
-          const bar = bars[dataPointIndex];
-          if (!bar) {
-            return "";
-          }
-          const rows = [{ color: colors.primary, label: this.translation.t("Spent"), value: money(bar.total) }];
-          if (goalMode && (bar.overAmount ?? 0) > 0) {
-            rows.push({ color: colors.destructive, label: this.translation.t("Over goal"), value: money(bar.overAmount ?? 0) });
-          }
-          return this.tooltipCard(this.barHeading(bar.key, bar.shortName), rows);
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 500 },
+        transitions: { active: { animation: { duration: 0 } } },
+        interaction: { mode: "index", intersect: false },
+        layout: { padding: { left: 8, right: 8 } },
+        scales: {
+          x: {
+            stacked: true,
+            grid: { display: false },
+            border: { color: colors.border },
+            // Months are all labelled, slanted when they do not fit; the labels of up to 31 days are thinned out.
+            ticks: { color: colors.mutedForeground, font: { size: 12 }, autoSkip: daily, autoSkipPadding: 6, maxRotation: daily ? 0 : 45 },
+          },
+          y: {
+            stacked: true,
+            beginAtZero: true,
+            // Chart.js 4 takes the dash of the grid lines from the axis border.
+            border: { display: false, dash: [3, 3] },
+            grid: { color: colors.border, lineWidth: 1, drawTicks: false },
+            ticks: { color: colors.mutedForeground, font: { size: 11 }, maxTicksLimit: 6, padding: 6, callback: (value) => money(Number(value)) },
+          },
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            enabled: false,
+            external: htmlTooltip((tooltip) => {
+              const bar = bars[tooltip.dataPoints[0]?.dataIndex ?? -1];
+              if (!bar) {
+                return "";
+              }
+              const rows = [{ color: colors.primary, label: this.translation.t("Spent"), value: money(bar.total) }];
+              if (goalMode && (bar.overAmount ?? 0) > 0) {
+                rows.push({ color: colors.destructive, label: this.translation.t("Over goal"), value: money(bar.overAmount ?? 0) });
+              }
+              return tooltipCard(this.barHeading(bar.key, bar.shortName), rows);
+            }),
+          },
+          cvGoalLine: { value: goalMode && this.showGoalLine() ? this.goal() : 0, color: colors.mutedForeground, label: this.translation.t(marker("Goal")) },
         },
       },
-      annotations:
-        goalMode && this.showGoalLine()
-          ? { yaxis: [{ y: this.goal(), borderColor: colors.mutedForeground, strokeDashArray: 5, label: { text: marker("Goal"), position: "left", borderColor: "transparent", style: { color: colors.mutedForeground, background: "transparent", fontSize: "10px" } } }] }
-          : {},
+      plugins: [goalLinePlugin],
     };
   };
 
@@ -698,18 +659,6 @@ export class OverviewPageComponent {
     }
     const monthName = new Date(year, month - 1, 1).toLocaleString("en", { month: "long" });
     return this.translation.months(`${monthName} ${year}`);
-  }
-
-  /** The floating tooltip: a small card on the theme tokens, a heading and one row per figure (the Flowbite look). */
-  private tooltipCard(heading: string, rows: { color: string; label: string; value: string }[]): string {
-    const escape = (text: string) => text.replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char] ?? char);
-    const body = rows
-      .map(
-        (row) =>
-          `<div class="flex items-center gap-2 px-3 py-1.5"><span class="size-2.5 rounded-full" style="background:${row.color}"></span><span class="text-muted-foreground">${escape(row.label)}</span><span class="ml-auto pl-4 font-semibold tabular-nums">${escape(row.value)}</span></div>`
-      )
-      .join("");
-    return `<div class="min-w-40 overflow-hidden rounded-lg border border-border bg-popover text-sm text-popover-foreground shadow-lg"><div class="border-b border-border bg-muted px-3 py-1.5 font-semibold">${escape(heading)}</div>${body}</div>`;
   }
 
   /** Month totals for the whole period, fetched a calendar year at a time. */
@@ -1459,13 +1408,6 @@ export class OverviewPageComponent {
         input.focus();
         input.select();
       }
-    });
-
-    // Imperative side effect: emphasise the active donut slice on the drawn SVG (hover never redraws the chart).
-    effect(() => {
-      this.activeSegment();
-      this.segments();
-      untracked(() => this.applySliceEmphasis());
     });
 
     // Imperative side effect: keep the shopping list store on the group the card describes.
