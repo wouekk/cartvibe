@@ -9,7 +9,7 @@
  */
 
 
-export type SystemTaskType = 'OCR_PROCESSING' | 'CHAT_COMPLETION' | 'MAGIC_FILL' | 'QUICK_SCAN' | 'RECEIPT_PROCESSING_SETTINGS_CONNECTIVITY_CHECK' | 'RECEIPT_UPLOADED' | 'RECEIPT_UPDATED' | 'PROMPT_GENERATED' | 'API_KEY_DELETED' | 'HTML_TO_PDF';
+export type SystemTaskType = 'OCR_PROCESSING' | 'CHAT_COMPLETION' | 'MAGIC_FILL' | 'QUICK_SCAN' | 'RECEIPT_PROCESSING_SETTINGS_CONNECTIVITY_CHECK' | 'RECEIPT_UPLOADED' | 'RECEIPT_UPDATED' | 'PROMPT_GENERATED' | 'HTML_TO_PDF';
 
 export const SystemTaskType = {
     OcrProcessing: 'OCR_PROCESSING' as SystemTaskType,
@@ -20,7 +20,6 @@ export const SystemTaskType = {
     ReceiptUploaded: 'RECEIPT_UPLOADED' as SystemTaskType,
     ReceiptUpdated: 'RECEIPT_UPDATED' as SystemTaskType,
     PromptGenerated: 'PROMPT_GENERATED' as SystemTaskType,
-    ApiKeyDeleted: 'API_KEY_DELETED' as SystemTaskType,
     HtmlToPdf: 'HTML_TO_PDF' as SystemTaskType
 };
 

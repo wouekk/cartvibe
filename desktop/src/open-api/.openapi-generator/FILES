@@ -2,7 +2,6 @@
 README.md
 api.module.ts
 api/api.ts
-api/apiKey.service.ts
 api/auth.service.ts
 api/category.service.ts
 api/comment.service.ts
@@ -38,13 +37,8 @@ model/about.ts
 model/activity.ts
 model/aiModel.ts
 model/aiModelsCommand.ts
-model/apiKeyFilter.ts
-model/apiKeyResult.ts
-model/apiKeyScope.ts
-model/apiKeyView.ts
 model/appData.ts
 model/appLogEntry.ts
-model/associatedApiKeys.ts
 model/associatedEntityType.ts
 model/associatedGroup.ts
 model/attachShoppingTripReceiptCommand.ts
@@ -93,7 +87,6 @@ model/oidcConnectionView.ts
 model/oidcProviderSummary.ts
 model/oidcProviderView.ts
 model/pagedActivityRequestCommand.ts
-model/pagedApiKeyRequestCommand.ts
 model/pagedData.ts
 model/pagedDataDataInner.ts
 model/pagedGroupRequestCommand.ts
@@ -159,7 +152,6 @@ model/updateDashboardLayoutCommand.ts
 model/updateGroupMemberGrantsCommand.ts
 model/updateGroupReceiptSettingsCommand.ts
 model/updateProfileCommand.ts
-model/upsertApiKeyCommand.ts
 model/upsertCategoryCommand.ts
 model/upsertCommentCommand.ts
 model/upsertGroupCommand.ts
