@@ -38,6 +38,11 @@ func TestReceiptDateFilterKeysAreFilterJsonKeys(t *testing.T) {
 			if structField.Name == "Search" && structField.Type.Kind() == reflect.String {
 				continue
 			}
+			// The warranty list's switch and upper bound are plain values too, not report-selectable dates.
+			if (structField.Name == "WarrantyActive" && structField.Type.Kind() == reflect.Bool) ||
+				(structField.Name == "WarrantyEndsBy" && structField.Type.Kind() == reflect.String) {
+				continue
+			}
 			t.Fatalf("filter field %s is %s, want PagedRequestField", structField.Name, structField.Type)
 		}
 		key := strings.Split(structField.Tag.Get("json"), ",")[0]
