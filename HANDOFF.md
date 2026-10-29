@@ -5,28 +5,16 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 
 ## Current state
 
-- `main` = `preview` = v0.12.0 (2026-10-28): five colour palettes (Stone, Zinc, Indigo, Emerald, Violet) x Day / Night,
-  a palette menu in the header beside the day/night switch, Appearance and Colour palette cards on Settings → Theme and
-  in the welcome, tooltips on the popover surface, Zinc's black = neutral-950, Stone's lead = stone-900. v0.11.0 (date
-  edits on the view page, named red Delete / Remove, panels that scroll under a mouse, one login splash, API calls
-  skipping the service worker) came before it. `:latest` is published from `main` after green CI.
-- On `main` and `preview`, not yet released (CHANGELOG → Unreleased): starter categories seeded once, prompts read any
-  receipt or bill, receipt icon on the Dashboard's Quick Scan, one Management page with tabs, no per-person Dashboard
-  currency. Git history was rewritten on 2026-10-29 to drop the old logo PNGs (all branches and tags force-pushed):
-  re-clone on the Mac. GitHub Support can purge the cached old commits if the user asks them.
-- Also on `main` and `preview`: the server downloads the shop logos with the Logo.dev secret key (System Settings →
-  Shop Logos) into `data/shop-logos` and serves them; browsers no longer contact Logo.dev. It works on the NAS but
-  the first version used up the free credits, so now only the shops on the receipts are fetched, a stored logo is
-  never asked about again, the check runs every 12 h, and the tab has Delete logos / Download logos / Save key;
-  removing or switching the key keeps the logos. Waiting on the user: deploy `:latest`, a taxi or flight Quick Scan
-  with a real AI key; then tag v0.13.0 (agreed). Offered, not built: a Stop download button. The user is sending GitHub
-  Support the cached-commit purge request. The audit notes (`i18n-audit-en-pl.md`, untracked) are the user's.
-- Seen in a browser on the Windows PC's devstack (Redis stand-in + API + `npm start` run there): the palettes, all 10
-  combinations on the Dashboard, the Theme page, phone width. Not yet, check on the NAS or a phone: the Dashboard
-  charts and Reports in the accent palettes, a Quick Scan from a phone (it failed with `multipart: NextPart: EOF`; if
-  it still does, the log line carries the Content-Length), the Safari calendar closing on a pick, the view-page date
-  save, the login fade, both panels scrolling, and that a phone shows no scroll box. The `index.html` script changed,
-  so its CSP hash in `docker/default.conf` was recomputed.
+- `main` = `preview` = v0.12.0 plus CHANGELOG → Unreleased (server-side shop logos with a credit budget, starter
+  categories, Management tabs, …). Waiting on the user: deploy `:latest`, a taxi or flight Quick Scan with a real AI
+  key, then tag v0.13.0 (agreed). Offered, not built: a Stop download button for logos.
+- On `feature/docs-trim` (2026-10-29): the component guides cut roughly in half; feature detail moved to
+  `api/docs/domain.md`, `api/docs/shop-logos.md`, `desktop/docs/features.md`. Merged into `preview`; `main` waits.
+- Git history was rewritten on 2026-10-29 (old logo PNGs dropped, everything force-pushed): re-clone on the Mac. The
+  user is asking GitHub Support to purge the cached commits. `i18n-audit-en-pl.md` (untracked) is the user's.
+- Not yet checked on the NAS or a phone: Dashboard charts and Reports in the accent palettes, a phone Quick Scan (it
+  failed with `multipart: NextPart: EOF`; the log line carries the Content-Length), the Safari calendar closing on a
+  pick, the view-page date save, the login fade, both panels scrolling, no scroll box on a phone.
 
 ## Open for the user (needs the NAS or a phone)
 
