@@ -161,3 +161,25 @@ func TestQuickScanPromptAsksForTheProductsBeforeTheReceiptText(t *testing.T) {
 		t.Errorf("magic fill must not ask for products")
 	}
 }
+
+// An invoice read at its net (HT) line price is stored at what was paid: the VAT is not left as an Uncategorized rest.
+func TestApplyInlineReadGrossesUpALineReadBeforeVat(t *testing.T) {
+	defer repositories.TruncateTestDb()
+	receipt := queueInlineReceipt(t)
+	repositories.GetDB().Model(&models.Receipt{}).Where("id = ?", receipt.ID).Update("amount", "1399.00")
+
+	answer := `{"name": "Apple", "shopName": "Apple", "currency": "EUR", "amount": 1399.00,
+		"products": [{"name": "MBA13.6 MDN", "displayName": "MacBook Air 13.6", "amount": 1165.83, "health": "NOT_FOOD", "foodGroup": "electronics"}]}`
+	applied, err := NewReceiptProductExtractionService(nil).ApplyInlineRead(receipt.ID, answer)
+	if err != nil || !applied {
+		t.Fatalf("expected the products applied, got %v, %v", applied, err)
+	}
+
+	products, _, err := repositories.NewReceiptProductRepository(nil).GetReceiptProducts(receipt.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(products) != 1 || products[0].Amount == nil || products[0].Amount.StringFixed(2) != "1399.00" {
+		t.Fatalf("expected the line at 1399.00 incl. VAT, got %+v", products)
+	}
+}

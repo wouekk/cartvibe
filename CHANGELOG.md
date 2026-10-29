@@ -36,6 +36,10 @@ All your spending, not only the groceries.
   Nando's, Pret A Manger, PizzaExpress, O'Tacos, L'Osteria, Hans im Glück and more).
 
 ### Changed
+- **Invoices with prices before VAT:** an invoice that lists its items before tax ("HT", "net", "excl. VAT") and adds
+  the VAT at the bottom, like an Apple Store invoice, now has its products at what you paid, tax included. The VAT no
+  longer shows up as a part of the receipt "not split into products yet" under Uncategorized. A receipt read before
+  this change is fixed by **Read again**.
 - **Any receipt or bill:** the AI no longer gives up on a receipt that isn't from a shop. A taxi ride, a flight, a toll,
   a hotel stay or an energy bill becomes one line per service, at the amount paid with its fees, in the right category
   instead of Uncategorized.
