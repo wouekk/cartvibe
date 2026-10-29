@@ -46,6 +46,8 @@ Banned: Angular Material, Bootstrap classes (`d-flex`, `col-*`, `mb-3`), `mat-*`
 - Tabs / segmented filters: `app-settings-tabs` (also behind `app-filter-bar`, `app-tabs`). Period: `app-period-picker` (`overview/period-picker`).
 - CSS components (`tailwind.css`): `cv-card*`, `cv-section*`, `cv-inset` (read-only muted block), `cv-list` (hairline key/value list), `cv-scroll-x` (sideways scroll, no scrollbar), `cv-scroll-y` (a Dashboard list scrolling under the mouse wheel, thin scrollbar; fine pointers only, never on touch), `cv-field-box*` (boxed labelled field), `cv-panel*` / `cv-tile` / `cv-tile-link` (Dashboard), `cv-pill-up` / `-down`, `cv-link`.
 - List page header: `app-table-header` (+ `subtitle`); create: `app-add-button [buttonText]="'Add X'"`.
+- Countdown columns (Days left on the warranties panel and page): right-aligned, bold, tabular, "Today" for 0, and
+  `text-warning-text` within a week.
 - Buttons: `hlmBtn` (primary), `variant="outline|ghost"` for toggles/menus/icon rows, `variant="destructive"` (red) for every delete and remove: buttons, row icons, menu items (`hlmDropdownMenuItem variant="destructive"`) and the confirm button of a Delete / Remove dialog. Save = `app-submit-button`; Cancel = `app-cancel-button`, neutral `outline` (white by day, black at night), never red.
 - Dialogs: `AppDialog` (`src/dialog/app-dialog.ts`) + `app-dialog-footer`; confirm with `ConfirmationDialogComponent`.
 - Fields: `app-input`, `app-select`, `app-textarea`, `app-checkbox`, `app-datepicker`, `app-autocomlete`, `app-form-section [panel]`.

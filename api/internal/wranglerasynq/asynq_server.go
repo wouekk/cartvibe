@@ -73,6 +73,7 @@ func BuildMux() *asynq.ServeMux {
 	mux.HandleFunc(FoodClassificationSweep, HandleFoodClassificationSweepTask)
 	mux.HandleFunc(ShoppingTripSweep, HandleShoppingTripSweepTask)
 	mux.HandleFunc(ShopLogoSync, HandleShopLogoSyncTask)
+	mux.HandleFunc(WarrantyReminderSweep, HandleWarrantyReminderSweepTask)
 
 	return mux
 }

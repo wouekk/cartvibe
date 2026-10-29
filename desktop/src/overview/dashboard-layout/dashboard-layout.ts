@@ -63,11 +63,13 @@ export const PANEL_CATALOGUE: readonly PanelDefinition[] = [
   kpi("unhealthy", marker("Unhealthy")),
   kpi("unplanned", marker("Not on the list")),
   kpi("toBuy", marker("To buy")),
+  kpi("warranties", marker("Warranties")),
   { kind: "tag", group: "tags", label: marker("Tag"), minCols: 1, maxCols: 2, defaultCols: 1, minRegularCols: 1, maxRows: 1 },
   { kind: "categories", group: "charts", label: marker("Spending by category"), minCols: 3, maxCols: 6, defaultCols: 3, minRegularCols: 4, maxRows: 2 },
   { kind: "trend", group: "charts", label: marker("Spending by month"), minCols: 3, maxCols: 6, defaultCols: 3, minRegularCols: 4, maxRows: 2 },
   { kind: "recentReceipts", group: "lists", label: marker("Recent receipts"), minCols: 3, maxCols: 6, defaultCols: 4, minRegularCols: 4, maxRows: 2 },
   { kind: "shoppingList", group: "lists", label: marker("Shopping list"), minCols: 2, maxCols: 3, defaultCols: 2, minRegularCols: 2, maxRows: 2 },
+  { kind: "warrantiesEndingSoon", group: "lists", label: marker("Warranties ending soon"), minCols: 2, maxCols: 6, defaultCols: 3, minRegularCols: 4, maxRows: 2 },
 ];
 
 const TAG_PREFIX = "tag:";

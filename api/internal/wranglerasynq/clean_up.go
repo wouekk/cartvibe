@@ -2,6 +2,8 @@ package wranglerasynq
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/models"
@@ -69,8 +71,30 @@ func StartSystemCleanUpTasks() error {
 	// can also fetch at once from System Settings → Shop Logos (POST /shopLogo/sync).
 	shopLogoSyncTask := asynq.NewTask(ShopLogoSync, nil)
 	_, err = RegisterTask("@every 12h", shopLogoSyncTask, cleanUpQueue, 0)
+	if err != nil {
+		return err
+	}
+
+	// Every minute: sends the warranty reminders whose day has come once it is past 09:00 in the app time zone.
+	// With nothing due it costs two indexed queries.
+	warrantyReminderTask := asynq.NewTask(WarrantyReminderSweep, nil)
+	_, err = RegisterTask("@every 1m", warrantyReminderTask, cleanUpQueue, 0)
 
 	return err
+}
+
+// HandleWarrantyReminderSweepTask sends the due warranty reminders. Only a database error fails the task; push
+// failures are logged by the service.
+func HandleWarrantyReminderSweepTask(_ context.Context, _ *asynq.Task) error {
+	sent, err := services.FireDueWarrantyReminders(time.Now())
+	if sent > 0 {
+		logging.LogStd(logging.LOG_LEVEL_INFO, fmt.Sprintf("warranty reminders: sent %d", sent))
+	}
+	if err != nil {
+		return HandleError(err)
+	}
+
+	return nil
 }
 
 // HandleShopLogoSyncTask runs the logo sync. Its outcome is the sync status in System Settings, so a failure is

@@ -220,6 +220,11 @@ which day an instant falls on and what "today" means.
 
 ## 9. Fork domain (traps; behaviour in `docs/domain.md`)
 
+- **Warranty reminders are planned rows** (`warranty_reminders`): any new path that changes a receipt's warranty date,
+  group or payer, a member's access or a lead time must call `SyncWarrantyReminders*`, and receipt/user deletion
+  removes the rows explicitly. `warranty_until` is written only by `PUT /receipt/{id}/warranty`. A Web Push endpoint
+  must pass `ValidatePushEndpoint` (the server posts to it).
+
 - A shopping-list item has no group id; it is resolved through its list (`GetGroupIdForShoppingListItem`). `unit` must
   be in `models.ShoppingListUnits`, kept in step with the desktop's `SHOPPING_LIST_UNITS`.
 - **SSE** (`ShoppingListHub`, in-process, single container): publish after the write commits and never block; never

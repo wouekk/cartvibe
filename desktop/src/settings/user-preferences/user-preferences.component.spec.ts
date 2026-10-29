@@ -87,7 +87,10 @@ describe("UserPreferencesComponent", () => {
       quickScanDefaultStatus: "",
       monthlySpendingGoal: "",
       closeChipSelectOnSelect: false,
-      userShortcuts: []
+      userShortcuts: [],
+      region: "browser",
+      warrantyPeriodYears: "automatic",
+      warrantyReminderLeadDays: "30",
     });
   });
 
@@ -115,6 +118,9 @@ describe("UserPreferencesComponent", () => {
       monthlySpendingGoal: "",
       closeChipSelectOnSelect: true,
       userShortcuts: [{ name: "Test", url: "test", icon: "icon", trackby: 0 }],
+      region: "browser",
+      warrantyPeriodYears: "automatic",
+      warrantyReminderLeadDays: "30",
     });
   });
 
@@ -166,7 +172,33 @@ describe("UserPreferencesComponent", () => {
       displayCurrencyRate: null,
       closeChipSelectOnSelect: false,
       userShortcuts: [],
+      region: "",
+      warrantyPeriodYears: null,
+      warrantyReminderLeadDays: 30,
     } as any);
+  });
+
+  describe("the warranty settings", () => {
+    it("shows what Automatic resolves to for the region and saves numbers", () => {
+      const store = TestBed.inject(Store);
+      store.reset({
+        ...store.snapshot(),
+        auth: { ...store.snapshot().auth, userPreferences: { region: "PL", warrantyPeriodYears: 3, warrantyReminderLeadDays: 7 } },
+      });
+      const serviceSpy = jest
+        .spyOn(TestBed.inject(UserPreferencesService), "updateUserPreferences")
+        .mockReturnValue(of(undefined as any));
+
+      component.ngOnInit();
+      expect(component.periodOptions()[0].displayValue).toBe("Automatic (2 years)");
+      component.form.get("region")?.setValue("US");
+      expect(component.periodOptions()[0].displayValue).toBe("Automatic (1 year)");
+
+      component.submit();
+      expect(serviceSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ region: "US", warrantyPeriodYears: 3, warrantyReminderLeadDays: 7 })
+      );
+    });
   });
 
   describe("the Dashboard currency", () => {

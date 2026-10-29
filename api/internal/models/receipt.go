@@ -11,25 +11,29 @@ type Receipt struct {
 	Name string `gorm:"not null" json:"name"`
 	// ShopName is the shop printed on the receipt (Auchan, Edeka, Rewe), read by the AI or typed by a
 	// person. Distinct from Name, which people set freely. Empty when unknown.
-	ShopName     string             `gorm:"type:varchar(200);not null;default:''" json:"shopName"`
+	ShopName string `gorm:"type:varchar(200);not null;default:''" json:"shopName"`
 	// OriginalAmount, OriginalCurrency and ExchangeRate record a receipt that was in another currency
 	// than the main one: Amount is then the converted amount. ExchangeRate is the rate used (main units
 	// per foreign unit); with a currency but no rate the receipt is unconverted and waits for a rate.
 	OriginalAmount   *decimal.Decimal `gorm:"type:decimal(14,2)" json:"originalAmount"`
 	OriginalCurrency string           `gorm:"type:varchar(3);not null;default:''" json:"originalCurrency"`
 	ExchangeRate     *decimal.Decimal `gorm:"type:decimal(18,6)" json:"exchangeRate"`
-	Amount       decimal.Decimal    `gorm:"type:decimal(10,2);not null" json:"amount"`
-	Date         time.Time          `gorm:"not null" json:"date"`
-	ResolvedDate *time.Time         `json:"resolvedDate"`
-	PaidByUserID uint               `json:"paidByUserId"`
-	PaidByUser   User               `json:"-"`
-	Status       ReceiptStatus      `gorm:"default:'OPEN';not null" json:"status"`
-	GroupId      uint               `gorm:"not null" json:"groupId"`
-	Group        Group              `json:"-"`
-	Categories   []Category         `gorm:"many2many:receipt_categories" json:"categories"`
-	Tags         []Tag              `gorm:"many2many:receipt_tags" json:"tags"`
-	ImageFiles   []FileData         `json:"imageFiles"`
-	Comments     []Comment          `json:"comments"`
+	Amount           decimal.Decimal  `gorm:"type:decimal(10,2);not null" json:"amount"`
+	Date             time.Time        `gorm:"not null" json:"date"`
+	// WarrantyUntil is the last day of the purchase's warranty, a calendar day "2028-10-29" (not a
+	// timestamp), so ">= today" is a plain string comparison. Nil when none was entered. It is set only
+	// through PUT /receipt/{id}/warranty, never by the full receipt update.
+	WarrantyUntil *string       `gorm:"size:10;index" json:"warrantyUntil"`
+	ResolvedDate  *time.Time    `json:"resolvedDate"`
+	PaidByUserID  uint          `json:"paidByUserId"`
+	PaidByUser    User          `json:"-"`
+	Status        ReceiptStatus `gorm:"default:'OPEN';not null" json:"status"`
+	GroupId       uint          `gorm:"not null" json:"groupId"`
+	Group         Group         `json:"-"`
+	Categories    []Category    `gorm:"many2many:receipt_categories" json:"categories"`
+	Tags          []Tag         `gorm:"many2many:receipt_tags" json:"tags"`
+	ImageFiles    []FileData    `json:"imageFiles"`
+	Comments      []Comment     `json:"comments"`
 	// FirstComment is the text of the earliest comment the caller may see, a
 	// transient projection filled only by the paged receipts list (see
 	// PermissionService.LoadFirstVisibleComments). omitempty keeps it off every

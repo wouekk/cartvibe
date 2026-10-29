@@ -50,6 +50,39 @@
         [readonly]="formConfig.mode | inputReadonly"
       ></app-input>
     </app-form-section>
+    <app-form-section [panel]="true" [headerText]="'Warranty' | t">
+      <div class="grid w-full gap-4 sm:grid-cols-3">
+        <app-select
+          [label]="'Region' | t"
+          data-testid="preferences-region"
+          optionValueKey="value"
+          optionDisplayKey="displayValue"
+          [options]="regionOptions"
+          [inputFormControl]="form | formGet : 'region'"
+          [readonly]="formConfig.mode | inputReadonly"
+        ></app-select>
+        <app-select
+          [label]="'Warranty period' | t"
+          data-testid="preferences-warranty-period"
+          optionValueKey="value"
+          optionDisplayKey="displayValue"
+          [options]="periodOptions()"
+          [inputFormControl]="form | formGet : 'warrantyPeriodYears'"
+          [readonly]="formConfig.mode | inputReadonly"
+        ></app-select>
+        <app-input
+          data-testid="preferences-warranty-lead-days"
+          type="number"
+          [label]="'Reminder (days before the end)' | t"
+          hint="0 reminds you on the day."
+          [inputFormControl]="form | formGet : 'warrantyReminderLeadDays'"
+          [readonly]="formConfig.mode | inputReadonly"
+        ></app-input>
+      </div>
+      <p class="m-0 mt-2 text-[0.8125rem] text-muted-foreground" data-testid="preferences-warranty-footer">
+        {{ '2 years in the EU (legal minimum), 1 year elsewhere; only sets where a new warranty date starts.' | t }}
+      </p>
+    </app-form-section>
     <app-form-section [panel]="true" [headerText]="'Selection preferences' | t">
       <app-checkbox
        

@@ -13,7 +13,28 @@ import { SystemSettingsState } from "../../store/system-settings.state";
 import { AuthState, SetUserPreferences } from "../../store";
 import { UserShortcutComponent } from "../user-shortcut/user-shortcut.component";
 import { TranslationService } from "../../i18n/translation.service";
+import { pluralMarker } from "../../i18n/marker";
+import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
+import {
+  automaticWarrantyYears,
+  browserRegion,
+  DEFAULT_WARRANTY_LEAD_DAYS,
+  effectiveRegion,
+  REGION_CHOICES,
+  regionName,
+  WARRANTY_PERIOD_CHOICES,
+} from "../../utils/warranty-period";
 
+/** The select cannot show an option whose value is "", so "from the browser" and Automatic have values of their own. */
+const FROM_BROWSER = "browser";
+const AUTOMATIC = "automatic";
+const fromChoice = (value: string | null | undefined): string =>
+  !value || value === FROM_BROWSER || value === AUTOMATIC ? "" : value;
+
+/** "year" / "years" in the period options, counted with TranslationService.plural. */
+pluralMarker("year", "years");
+
+@UntilDestroy()
 @Component({
     selector: "app-user-preferences",
     templateUrl: "./user-preferences.component.html",
@@ -35,6 +56,30 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
   );
 
   private readonly currencySymbol = this.store.selectSignal(SystemSettingsState.currencyDisplay);
+
+  /** The region picked in the form, so the Automatic option can say what it resolves to. */
+  private readonly regionValue = signal("");
+
+  /** The countries offered: the browser's (empty), the EU and its outermost regions, and common others. */
+  public readonly regionOptions = [
+    { value: FROM_BROWSER, displayValue: this.translation.t("From the browser ({region})", { region: browserRegion() || "–" }) },
+    ...REGION_CHOICES.map((code) => ({ value: code, displayValue: regionName(code, this.translation.locale()) })).sort(
+      (a, b) => a.displayValue.localeCompare(b.displayValue)
+    ),
+  ];
+
+  /** "Automatic (2 years)" for the region picked, then the fixed periods. */
+  public readonly periodOptions = computed(() => {
+    const automatic = automaticWarrantyYears(effectiveRegion(this.regionValue()));
+    return [
+      { value: AUTOMATIC, displayValue: this.translation.t("Automatic ({years})", { years: this.yearsLabel(automatic) }) },
+      ...WARRANTY_PERIOD_CHOICES.map((years) => ({ value: String(years), displayValue: this.yearsLabel(years) })),
+    ];
+  });
+
+  private yearsLabel(years: number): string {
+    return `${years} ${this.translation.plural(years, "year", "years")}`;
+  }
 
   /** "Monthly spending goal (€)", with the household's own currency symbol. */
   public readonly goalLabel = computed(() => this.translation.t("Monthly spending goal ({symbol})", { symbol: (this.currencySymbol() ?? "").trim() || "€" }));
@@ -73,7 +118,16 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
       closeChipSelectOnSelect:
         userPreferences?.closeChipSelectOnSelect ?? false,
       userShortcuts: this.formBuilder.array(this.originalUserShortcuts().map((userShortcut, i) => this.buildUserShortcut(i, userShortcut))),
+      region: userPreferences?.region || FROM_BROWSER,
+      warrantyPeriodYears: userPreferences?.warrantyPeriodYears ? String(userPreferences.warrantyPeriodYears) : AUTOMATIC,
+      warrantyReminderLeadDays: [
+        String(userPreferences?.warrantyReminderLeadDays ?? DEFAULT_WARRANTY_LEAD_DAYS),
+        [Validators.required, Validators.min(0), Validators.pattern(/^\d+$/)],
+      ],
     });
+
+    this.regionValue.set(fromChoice(this.form.get("region")?.value));
+    this.form.get("region")?.valueChanges.pipe(untilDestroyed(this)).subscribe((region) => this.regionValue.set(fromChoice(region)));
 
 
     if (this.formConfig.mode === FormMode.view) {
@@ -178,6 +232,11 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
       if (result.quickScanDefaultGroupId === "") {
         result.quickScanDefaultGroupId = null;
       }
+
+      // Automatic is null; the lead time is a whole number of days, never negative (0 is on the day).
+      result.region = fromChoice(result.region);
+      result.warrantyPeriodYears = fromChoice(result.warrantyPeriodYears) ? Number(result.warrantyPeriodYears) : null;
+      result.warrantyReminderLeadDays = Math.max(0, Number(result.warrantyReminderLeadDays) || 0);
 
       this.userPreferencesService
         .updateUserPreferences(result)

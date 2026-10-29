@@ -800,6 +800,14 @@ func (repository ReceiptRepository) BuildGormFilterQuery(pagedRequest commands.R
 	// WITHIN_CURRENT_MONTH is always the app zone's. See BuildDayFilterQuery.
 	appLocation := repository.AppLocation()
 
+	// Warranties that end today or later; warranty_until is a "yyyy-MM-dd" day, so this compares as text.
+	if pagedRequest.Filter.WarrantyActive {
+		query = query.Where("receipts.warranty_until IS NOT NULL AND receipts.warranty_until >= ?", time.Now().In(appLocation).Format(time.DateOnly))
+	}
+	if endsBy, err := time.Parse(time.DateOnly, pagedRequest.Filter.WarrantyEndsBy); err == nil {
+		query = query.Where("receipts.warranty_until IS NOT NULL AND receipts.warranty_until <= ?", endsBy.Format(time.DateOnly))
+	}
+
 	// Date
 	query = repository.BuildDayFilterQuery(
 		query,
@@ -1011,7 +1019,7 @@ func (repository ReceiptRepository) orderBySubquery(
 }
 
 func (repository ReceiptRepository) isTrustedValue(pagedRequest commands.ReceiptPagedRequestCommand) bool {
-	orderByTrusted := []interface{}{"date", "name", "shop_name", "paid_by_user_id", "amount", "categories", "tags", "status", "resolved_date", "created_at"}
+	orderByTrusted := []interface{}{"date", "name", "shop_name", "paid_by_user_id", "amount", "categories", "tags", "status", "resolved_date", "created_at", "warranty_until"}
 	directionTrusted := commands.GetValidSortDirections()
 
 	isOrderByTrusted := utils.Contains(orderByTrusted, pagedRequest.OrderBy)

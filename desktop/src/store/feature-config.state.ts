@@ -36,6 +36,12 @@ export class FeatureConfigState {
     return !!state?.shopLogosEnabled;
   }
 
+  /** The server's VAPID public key, "" when it has none (and then nothing asks for push). */
+  @Selector()
+  static webPushPublicKey(state: FeatureConfig): string {
+    return state?.webPushPublicKey ?? "";
+  }
+
   @Selector()
   static featureConfig(state: FeatureConfig): FeatureConfig {
     return state;

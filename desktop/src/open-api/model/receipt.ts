@@ -38,6 +38,10 @@ export interface Receipt {
      */
     date: string;
     /**
+     * The last day of the purchase\'s warranty, yyyy-MM-dd; null when none was entered. Changed only through PUT /receipt/{receiptId}/warranty.
+     */
+    warrantyUntil?: string;
+    /**
      * Text of the receipt\'s earliest comment the caller may see. Only populated by the paged receipt list (POST /receipt/group/{groupId}); absent when there is no such comment.
      */
     firstComment?: string;

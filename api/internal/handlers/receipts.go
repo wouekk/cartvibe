@@ -685,6 +685,8 @@ func UpdateReceipt(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
+			// A new group or payer can change who sees the receipt, and so who is reminded of its warranty.
+			services.SyncWarrantyRemindersQuietly(updatedReceipt.ID)
 
 			err = permissionService.FilterReceiptCategoriesTagsForReceipt(token.UserId, &updatedReceipt)
 			if err != nil {
@@ -921,6 +923,8 @@ func DuplicateReceipt(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
+			// The copy keeps the warranty date, so it gets reminders of its own.
+			services.SyncWarrantyRemindersQuietly(newReceipt.ID)
 
 			responseBytes, err := json.Marshal(newReceipt)
 			if err != nil {
@@ -1042,6 +1046,62 @@ func SetReceiptDate(w http.ResponseWriter, r *http.Request) {
 			}
 
 			responseBytes, err := json.Marshal(command)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			w.WriteHeader(http.StatusOK)
+			w.Write(responseBytes)
+
+			return 0, nil
+		},
+	}
+
+	HandleRequest(handler)
+}
+
+// SetReceiptWarranty sets or clears only the receipt's warranty end, from its view or edit page, and plans its
+// reminders again. The full receipt update never touches the date, so a form opened before it was set cannot
+// clear it.
+func SetReceiptWarranty(w http.ResponseWriter, r *http.Request) {
+	receiptId := chi.URLParam(r, "id")
+
+	handler := structs.Handler{
+		ErrorMessage:     "Error changing the warranty date.",
+		Writer:           w,
+		Request:          r,
+		ReceiptId:        receiptId,
+		GroupPermissions: []string{permissions.GroupReceiptsUpdate},
+		ResponseType:     constants.ApplicationJson,
+		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
+			command := commands.SetReceiptWarrantyCommand{}
+			err := command.LoadDataFromRequest(w, r)
+			if err != nil {
+				return http.StatusBadRequest, err
+			}
+
+			vErr := command.Validate()
+			if len(vErr.Errors) > 0 {
+				structs.WriteValidatorErrorResponse(w, vErr, http.StatusBadRequest)
+				return 0, nil
+			}
+
+			uintReceiptId, err := utils.StringToUint(receiptId)
+			if err != nil {
+				return http.StatusBadRequest, err
+			}
+
+			day := command.Day()
+			err = repositories.GetDB().
+				Model(&models.Receipt{}).
+				Where("id = ?", uintReceiptId).
+				Update("warranty_until", day).Error
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+			services.SyncWarrantyRemindersQuietly(uintReceiptId)
+
+			responseBytes, err := json.Marshal(commands.SetReceiptWarrantyCommand{WarrantyUntil: day})
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}

@@ -4,6 +4,11 @@ type EnvironmentVariable string
 
 const (
 	EncryptionKey EnvironmentVariable = "ENCRYPTION_KEY"
+	// VapidPublicKey / VapidPrivateKey sign Web Push messages (warranty reminders). Unset means no push.
+	VapidPublicKey  EnvironmentVariable = "VAPID_PUBLIC_KEY"
+	VapidPrivateKey EnvironmentVariable = "VAPID_PRIVATE_KEY"
+	// VapidSubject is the contact the push services see ("mailto:you@example.com" or an https URL).
+	VapidSubject  EnvironmentVariable = "VAPID_SUBJECT"
 	SecretKey     EnvironmentVariable = "SECRET_KEY"
 	DbUser        EnvironmentVariable = "DB_USER"
 	DbPassword    EnvironmentVariable = "DB_PASSWORD"

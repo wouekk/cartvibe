@@ -98,5 +98,9 @@ func BuildNotificationRouter() *chi.Mux {
 	//       500: Internal Server Error
 	notificationRouter.Delete("/{id}", handlers.DeleteNotification)
 
+	// This browser's Web Push subscription (warranty reminders on the device), saved or removed.
+	notificationRouter.Post("/pushSubscription", handlers.SavePushSubscription)
+	notificationRouter.Post("/pushSubscription/remove", handlers.RemovePushSubscription)
+
 	return notificationRouter
 }

@@ -66,6 +66,10 @@
               [inputFormControl]="form | formGet : 'date'"
               [readonly]="(mode | inputReadonly) && !canSetDateInPlace()"
             ></app-datepicker>
+            @if (originalReceipt?.id) {
+              <!-- Saved on its own (not with the form), so it works on the view page too. -->
+              <app-receipt-warranty class="w-full" [receipt]="originalReceipt!" [canEdit]="canEditReceipt()"></app-receipt-warranty>
+            }
             <!-- No receipt-level Categories and Tags: they describe the product lines now (Products
                  section). The form keeps a receipt's old values, so saving never drops them. -->
 

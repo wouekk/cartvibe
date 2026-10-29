@@ -1,9 +1,9 @@
 package services
 
 import (
-	"gorm.io/gorm"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/structs"
+	"gorm.io/gorm"
 )
 
 type SystemSettingsService struct {
@@ -36,6 +36,7 @@ func (service SystemSettingsService) GetFeatureConfig() (structs.FeatureConfig, 
 	featureConfig.EnableLocalSignUp = systemSettings.EnableLocalSignUp
 	featureConfig.AiPoweredReceipts = aiPoweredReceipts
 	featureConfig.ShopLogosEnabled = systemSettings.ShopLogoKeySet || HasShopLogos()
+	featureConfig.WebPushPublicKey = WebPushPublicKey()
 
 	providers, err := repositories.NewOidcProviderRepository(service.TX).GetAllEnabledOidcProviders()
 	if err != nil {

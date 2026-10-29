@@ -121,6 +121,16 @@ describe("SidebarComponent", () => {
       expect(queryTestId("nav-receipts")).toBeTruthy();
     });
 
+    it("offers Warranties as its own entry to someone who can read the group's receipts", async () => {
+      selectGroupFive([]);
+      await fixture.whenStable();
+      expect(queryTestId("nav-warranties")).toBeFalsy();
+
+      selectGroupFive([Permission.GroupReceiptsRead]);
+      await fixture.whenStable();
+      expect(queryTestId("nav-warranties").nativeElement.getAttribute("href")).toBe("/warranties/group/5");
+    });
+
 
     it("offers Shopping Lists for a readable real group even while the All group is selected", async () => {
       store.dispatch(new SetSelectedGroupId("10"));

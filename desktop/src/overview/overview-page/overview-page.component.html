@@ -322,6 +322,17 @@
                     </a>
                   }
                 }
+                @case ('warranties') {
+                  <a class="cv-tile cv-tile-link" data-testid="overview-tile-warranties" [routerLink]="['/warranties/group', groupId()]">
+                    <span class="text-xs font-medium text-muted-foreground">{{ 'Warranties' | t }}</span>
+                    <span class="text-3xl font-bold">{{ overview()?.warrantyCount ?? "–" }}</span>
+                    @if (warrantiesEndingSoon().length > 0) {
+                      <span class="text-[0.8125rem] font-medium text-warning-text">{{ '{count} ending soon' | t: { count: warrantiesEndingSoon().length } }}</span>
+                    } @else {
+                      <span class="text-[0.8125rem] font-medium text-muted-foreground">{{ 'still covered' | t }}</span>
+                    }
+                  </a>
+                }
                 @case ('tag') {
                   @if (tagTile(panel.id); as tile) {
                     <button type="button" class="cv-tile cv-tile-link w-full border-0 text-left font-[inherit]" [attr.data-testid]="'overview-tile-tag-' + tile.tagId" (click)="openTag(tile)">
@@ -539,6 +550,49 @@
                           ></app-add-button>
                         }
                       </div>
+                    }
+                  </section>
+                }
+                @case ('warrantiesEndingSoon') {
+                  <section class="cv-panel" aria-labelledby="overview-warranties-title">
+                    <div class="cv-panel-header">
+                      <h2 id="overview-warranties-title">{{ 'Warranties ending soon' | t }}</h2>
+                      <a [routerLink]="['/warranties/group', groupId()]">{{ 'All warranties' | t }}</a>
+                    </div>
+                    @if (warrantiesEndingSoon().length > 0) {
+                      <div class="overflow-x-auto">
+                        <table hlmTable class="w-full" data-testid="overview-warranties-ending-soon">
+                          <thead>
+                            <tr hlmTr>
+                              <th hlmTh scope="col">{{ 'Shop' | t }}</th>
+                              <th hlmTh scope="col" class="max-sm:hidden">{{ 'Warranty until' | t }}</th>
+                              <th hlmTh scope="col" class="text-right">{{ 'Days left' | t }}</th>
+                            </tr>
+                          </thead>
+                          <tbody hlmTBody>
+                            @for (row of warrantiesEndingSoon(); track row.receipt.id) {
+                              <tr hlmTr>
+                                <td hlmTd class="font-semibold">
+                                  <span class="inline-flex items-center gap-2">
+                                    <app-shop-monogram [name]="row.receipt.shopName || row.receipt.name"></app-shop-monogram>
+                                    <a [routerLink]="['/receipts', row.receipt.id, 'view']">{{ row.receipt.shopName || row.receipt.name }}</a>
+                                  </span>
+                                </td>
+                                <td hlmTd class="whitespace-nowrap text-muted-foreground max-sm:hidden">{{ row.receipt.warrantyUntil | appDate : "MMM d, y" : "calendar" }}</td>
+                                <td hlmTd class="text-right font-semibold tabular-nums" [class.text-warning-text]="row.daysLeft <= 7" data-testid="overview-warranty-days-left">
+                                  @if (row.daysLeft === 0) {
+                                    {{ 'Today' | t }}
+                                  } @else {
+                                    {{ row.daysLeft }} {{ row.daysLeft | plural: 'day' : 'days' }}
+                                  }
+                                </td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      </div>
+                    } @else {
+                      <p class="m-0 py-6 text-center text-muted-foreground" data-testid="overview-warranties-empty">{{ 'No warranty ends in the next two months.' | t }}</p>
                     }
                   </section>
                 }

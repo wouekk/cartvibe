@@ -226,6 +226,8 @@ func MakeMigrations() error {
 		&models.ReceiptProductExtraction{},
 		&models.ExchangeRate{},
 		&models.ProductClassificationOverride{},
+		&models.WarrantyReminder{},
+		&models.PushSubscription{},
 	)
 
 	return err

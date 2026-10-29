@@ -112,6 +112,11 @@ export class GroupState {
   }
 
   @Selector()
+  static warrantiesLink(state: GroupStateInterface): string {
+    return `/warranties/group/${state.selectedGroupId}`;
+  }
+
+  @Selector()
   static dashboardLink(state: GroupStateInterface): string {
     // The guards' fallback landing. The old widget dashboards redirected here when unreadable.
     return `/receipts/group/${state.selectedGroupId}`;

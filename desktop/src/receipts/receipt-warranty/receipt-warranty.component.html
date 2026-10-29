@@ -1,0 +1,36 @@
+<div class="flex w-full flex-col gap-1.5" data-testid="receipt-warranty">
+  <span class="text-sm font-medium leading-none text-foreground">{{ 'Warranty' | t }}</span>
+
+  @if (editing()) {
+    <div class="flex flex-wrap items-end gap-2">
+      <app-datepicker class="w-full sm:w-56" data-testid="receipt-warranty-date" [inputFormControl]="control"></app-datepicker>
+      <button hlmBtn type="button" class="h-9" data-testid="receipt-warranty-save" [disabled]="saving()" (click)="save()">{{ 'Save' | t }}</button>
+      <button hlmBtn variant="outline" type="button" class="h-9" (click)="cancel()">{{ 'Cancel' | t }}</button>
+    </div>
+  } @else if (warrantyUntil(); as until) {
+    <div class="flex min-h-9 flex-wrap items-center gap-x-3 gap-y-1">
+      <span class="text-sm" data-testid="receipt-warranty-until">{{ 'Until {date}' | t: { date: (until | appDate : "MMM d, y" : "calendar") } }}</span>
+      @if (daysLeft(); as days) {
+        @if (days > 0) {
+          <span class="text-[0.8125rem] font-medium text-muted-foreground" [class.text-warning-text]="days <= 60">{{ days }} {{ days | plural: 'day left' : 'days left' }}</span>
+        } @else {
+          <span class="text-[0.8125rem] font-medium text-muted-foreground">{{ 'Ended' | t }}</span>
+        }
+      } @else {
+        <span class="text-[0.8125rem] font-medium text-warning-text">{{ 'Ends today' | t }}</span>
+      }
+      @if (canEdit()) {
+        <span class="ml-auto flex gap-2">
+          <button hlmBtn variant="ghost" type="button" class="h-9" data-testid="receipt-warranty-change" (click)="change()">{{ 'Change' | t }}</button>
+          <button hlmBtn variant="destructive" type="button" class="h-9" data-testid="receipt-warranty-remove" [disabled]="saving()" (click)="remove()">{{ 'Remove' | t }}</button>
+        </span>
+      }
+    </div>
+  } @else if (canEdit()) {
+    <div class="flex min-h-9 items-center">
+      <button hlmBtn variant="outline" type="button" class="h-9" data-testid="receipt-warranty-add" (click)="add()">{{ 'Add warranty date' | t }}</button>
+    </div>
+  } @else {
+    <span class="text-sm text-muted-foreground">{{ 'No warranty date' | t }}</span>
+  }
+</div>

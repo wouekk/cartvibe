@@ -439,6 +439,7 @@ export const MATERIAL_TO_LUCIDE: Record<string, string> = {
   bookmark: "lucideBookmark",
   manage_accounts: "lucideUserCog",
   shield_person: "lucideShieldUser",
+  verified_user: "lucideShieldCheck",
   table_rows: "lucideRows3",
   table_chart: "lucideTable",
   lightbulb: "lucideLightbulb",

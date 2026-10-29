@@ -54,5 +54,13 @@ export interface ReceiptPagedRequestFilter {
      * Free-text, typo-tolerant phrase matched against a receipt\'s name, shop, comments and product lines. Every word of the phrase must match.
      */
     search?: string;
+    /**
+     * Only receipts whose warranty ends today (app time zone) or later. Sort with orderBy warranty_until.
+     */
+    warrantyActive?: boolean;
+    /**
+     * Only receipts whose warranty ends on this day (yyyy-MM-dd) or before; with warrantyActive, the warranties ending soon. A value that is not a day adds no condition.
+     */
+    warrantyEndsBy?: string;
 }
 

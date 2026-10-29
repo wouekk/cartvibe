@@ -7,12 +7,12 @@ import (
 	"time"
 	"unicode"
 
-	"gorm.io/gorm"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/permissions"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/structs"
+	"gorm.io/gorm"
 
 	"github.com/shopspring/decimal"
 )
@@ -179,7 +179,40 @@ func (service GroupOverviewService) GetGroupOverviewForPeriod(userId uint, group
 		return structs.GroupOverview{}, err
 	}
 
+	overview.WarrantyCount, err = service.countActiveWarranties(userId, groupId)
+	if err != nil {
+		return structs.GroupOverview{}, err
+	}
+
 	return overview, nil
+}
+
+// countActiveWarranties counts what the Warranties list shows: the receipts the caller can see whose warranty ends
+// today or later. It reads through GetPagedReceiptsByGroupId, so the same visibility rules apply.
+func (service GroupOverviewService) countActiveWarranties(userId uint, groupId string) (int64, error) {
+	permissionService := NewPermissionService(service.TX)
+
+	pagedRequest := commands.ReceiptPagedRequestCommand{
+		PagedRequestCommand: commands.PagedRequestCommand{
+			Page:          1,
+			PageSize:      1,
+			OrderBy:       "warranty_until",
+			SortDirection: commands.ASCENDING,
+		},
+		Filter: commands.ReceiptPagedRequestFilter{WarrantyActive: true},
+	}
+
+	_, count, err := repositories.NewReceiptRepository(service.TX).GetPagedReceiptsByGroupId(
+		userId,
+		groupId,
+		pagedRequest,
+		nil,
+		permissionService.PaidByListResolver(userId),
+		nil,
+		permissionService.GroupPermissionResolver(userId, permissions.GroupReceiptsRead),
+		permissionService.CategoryTagVisibilityResolver(userId),
+	)
+	return count, err
 }
 
 // nameProductCategories puts each product's current category name in FoodGroup, so a renamed category

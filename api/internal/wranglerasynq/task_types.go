@@ -19,4 +19,7 @@ const (
 	// ShopLogoSync downloads the missing logos of the brands on the household's receipts with its Logo.dev key
 	// (see services.SyncShopLogos). Same queue, same reason.
 	ShopLogoSync = "system_clean_up:shop_logos"
+	// WarrantyReminderSweep sends the warranty reminders whose day has come (see
+	// services.FireDueWarrantyReminders). Same queue, same reason.
+	WarrantyReminderSweep = "system_clean_up:warranty_reminders"
 )

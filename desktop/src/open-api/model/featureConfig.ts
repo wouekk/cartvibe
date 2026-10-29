@@ -27,5 +27,9 @@ export interface FeatureConfig {
      * Whether the household has a Logo.dev key or logos downloaded with one, so the app asks GET /shopLogo for the logos the server downloaded and the login page credits Logo.dev. The key never leaves the server.
      */
     shopLogosEnabled?: boolean;
+    /**
+     * The server\'s VAPID public key for Web Push; empty when push is not set up.
+     */
+    webPushPublicKey?: string;
 }
 

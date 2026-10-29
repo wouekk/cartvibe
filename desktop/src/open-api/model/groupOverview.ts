@@ -31,6 +31,10 @@ export interface GroupOverview {
      */
     openReceiptCount: number;
     /**
+     * The receipts the caller can see whose warranty ends today or later, whatever the period
+     */
+    warrantyCount?: number;
+    /**
      * What the month\'s products rated UNHEALTHY cost, as a decimal string, whatever the receipt\'s category. Products without a price or not rated yet do not count.
      */
     unhealthyTotal: string;

@@ -1,9 +1,9 @@
 package repositories
 
 import (
-	"regexp"
-	"gorm.io/gorm/clause"
 	"cartvibe/api/internal/models"
+	"gorm.io/gorm/clause"
+	"regexp"
 	"strings"
 
 	"gorm.io/gorm"
@@ -79,6 +79,9 @@ func (repository UserPreferncesRepository) UpdateUserPreferences(userId uint, us
 	userPreferencesToUpdate.Language = normalizeLanguage(userPreferences.Language)
 	userPreferencesToUpdate.OnboardingPending = userPreferences.OnboardingPending
 	userPreferencesToUpdate.UserShortcuts = userPreferences.UserShortcuts
+	userPreferencesToUpdate.Region = normalizeRegion(userPreferences.Region)
+	userPreferencesToUpdate.WarrantyPeriodYears = normalizeWarrantyPeriodYears(userPreferences.WarrantyPeriodYears)
+	userPreferencesToUpdate.WarrantyReminderLeadDays = normalizeLeadDays(userPreferences.WarrantyReminderLeadDays)
 
 	// Both writes go through tx: a write on another connection would wait for this transaction's lock.
 	err = db.Transaction(func(tx *gorm.DB) error {
@@ -150,6 +153,42 @@ func (repository UserPreferncesRepository) DeleteUserPreferences(userId uint) er
 // languageCodePattern is a BCP 47 style code ("en", "pl", "pt-br"). Which codes the interface actually has is the
 // desktop's language registry, so adding a language never needs an API change.
 var languageCodePattern = regexp.MustCompile("^[a-z]{2,3}(-[a-z0-9]{2,8})?$")
+
+var regionCodePattern = regexp.MustCompile("^[A-Z]{2}$")
+
+// normalizeRegion upper-cases a two-letter country code; anything else means "take it from the browser".
+func normalizeRegion(region string) string {
+	region = strings.ToUpper(strings.TrimSpace(region))
+	if regionCodePattern.MatchString(region) {
+		return region
+	}
+	return ""
+}
+
+// normalizeWarrantyPeriodYears keeps 1, 2, 3 or 5 years; anything else is Automatic (nil).
+func normalizeWarrantyPeriodYears(years *int) *int {
+	if years == nil {
+		return nil
+	}
+	switch *years {
+	case 1, 2, 3, 5:
+		value := *years
+		return &value
+	}
+	return nil
+}
+
+// normalizeLeadDays never stores a negative lead time (0 is on the day); nil stays nil (30 days).
+func normalizeLeadDays(days *int) *int {
+	if days == nil {
+		return nil
+	}
+	value := *days
+	if value < 0 {
+		value = 0
+	}
+	return &value
+}
 
 // normalizeLanguage lower-cases a well-formed language code; anything else means "follow the browser".
 func normalizeLanguage(language string) string {
