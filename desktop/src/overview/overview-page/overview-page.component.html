@@ -559,38 +559,53 @@
                       <h2 id="overview-warranties-title">{{ 'Warranties ending soon' | t }}</h2>
                       <a [routerLink]="['/warranties/group', groupId()]">{{ 'All warranties' | t }}</a>
                     </div>
-                    @if (warrantiesEndingSoon().length > 0) {
-                      <div class="overflow-x-auto">
-                        <table hlmTable class="w-full" data-testid="overview-warranties-ending-soon">
-                          <thead>
+                    @if (warrantyEndingSoonRows().length > 0) {
+                      <!-- Fixed layout: long names are cut with an ellipsis instead of pushing Days left off a phone. -->
+                      <table hlmTable class="w-full table-fixed" data-testid="overview-warranties-ending-soon">
+                        <thead>
+                          <tr hlmTr>
+                            <th hlmTh scope="col" class="w-[30%]">{{ 'Shop' | t }}</th>
+                            <th hlmTh scope="col">{{ 'Product' | t }}</th>
+                            <th hlmTh scope="col" class="w-32 max-sm:hidden">{{ 'Warranty until' | t }}</th>
+                            <th hlmTh scope="col" class="w-20 text-right sm:w-24">{{ 'Days left' | t }}</th>
+                          </tr>
+                        </thead>
+                        <tbody hlmTBody>
+                          @for (row of warrantyEndingSoonRows(); track row.receiptId + ':' + $index) {
                             <tr hlmTr>
-                              <th hlmTh scope="col">{{ 'Shop' | t }}</th>
-                              <th hlmTh scope="col" class="max-sm:hidden">{{ 'Warranty until' | t }}</th>
-                              <th hlmTh scope="col" class="text-right">{{ 'Days left' | t }}</th>
-                            </tr>
-                          </thead>
-                          <tbody hlmTBody>
-                            @for (row of warrantiesEndingSoon(); track row.receipt.id) {
-                              <tr hlmTr>
-                                <td hlmTd class="font-semibold">
-                                  <span class="inline-flex items-center gap-2">
-                                    <app-shop-monogram [name]="row.receipt.shopName || row.receipt.name"></app-shop-monogram>
-                                    <a [routerLink]="['/receipts', row.receipt.id, 'view']">{{ row.receipt.shopName || row.receipt.name }}</a>
+                              <td hlmTd class="font-semibold">
+                                @if (row.first) {
+                                  <span class="flex min-w-0 items-center gap-2">
+                                    <app-shop-monogram class="shrink-0 max-sm:hidden" [name]="row.shop"></app-shop-monogram>
+                                    <a class="truncate" [title]="row.shop" [routerLink]="['/receipts', row.receiptId, 'view']">{{ row.shop }}</a>
                                   </span>
-                                </td>
-                                <td hlmTd class="whitespace-nowrap text-muted-foreground max-sm:hidden">{{ row.receipt.warrantyUntil | appDate : "MMM d, y" : "calendar" }}</td>
-                                <td hlmTd class="text-right font-semibold tabular-nums" [class.text-warning-text]="row.daysLeft <= 7" data-testid="overview-warranty-days-left">
+                                }
+                              </td>
+                              <td hlmTd class="truncate" [title]="row.product" data-testid="overview-warranty-product">
+                                @if (row.product) {
+                                  <a [routerLink]="['/receipts', row.receiptId, 'view']">{{ row.product }}</a>
+                                } @else if (row.first) {
+                                  <span class="text-muted-foreground">–</span>
+                                }
+                              </td>
+                              <td hlmTd class="whitespace-nowrap text-muted-foreground max-sm:hidden">
+                                @if (row.first) {
+                                  {{ row.warrantyUntil | appDate : "MMM d, y" : "calendar" }}
+                                }
+                              </td>
+                              <td hlmTd class="whitespace-nowrap text-right font-semibold tabular-nums" [class.text-warning-text]="row.daysLeft <= 7" data-testid="overview-warranty-days-left">
+                                @if (row.first) {
                                   @if (row.daysLeft === 0) {
                                     {{ 'Today' | t }}
                                   } @else {
                                     {{ row.daysLeft }} {{ row.daysLeft | plural: 'day' : 'days' }}
                                   }
-                                </td>
-                              </tr>
-                            }
-                          </tbody>
-                        </table>
-                      </div>
+                                }
+                              </td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
                     } @else {
                       <p class="m-0 py-6 text-center text-muted-foreground" data-testid="overview-warranties-empty">{{ 'No warranty ends in the next two months.' | t }}</p>
                     }

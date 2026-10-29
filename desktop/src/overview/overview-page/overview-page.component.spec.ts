@@ -719,7 +719,7 @@ describe("OverviewPageComponent", () => {
           command.filter?.warrantyActive
             ? {
                 data: [
-                  { id: 5, name: "Kettle", shopName: "Media Expert", date: "2025-01-03", warrantyUntil: today, amount: "1", status: "OPEN" },
+                  { id: 5, name: "Kettle", shopName: "Media Expert", date: "2025-01-03", warrantyUntil: today, amount: "1", status: "OPEN", warrantyProducts: ["Electric kettle", "Descaler"] },
                   { id: 6, name: "Phone", shopName: "", date: "2025-01-03", warrantyUntil: inDays(12), amount: "1", status: "OPEN" },
                 ],
                 totalCount: 2,
@@ -741,7 +741,11 @@ describe("OverviewPageComponent", () => {
       const daysLeft = Array.from(
         fixture.nativeElement.querySelectorAll('[data-testid="overview-warranty-days-left"]') as NodeListOf<HTMLElement>
       ).map((cell) => cell.textContent?.trim().replace(/\s+/g, " "));
-      expect(daysLeft).toEqual(["Today", "12 days"]);
+      expect(daysLeft).toEqual(["Today", "", "12 days"]);
+      const products = Array.from(
+        fixture.nativeElement.querySelectorAll('[data-testid="overview-warranty-product"]') as NodeListOf<HTMLElement>
+      ).map((cell) => cell.textContent?.trim());
+      expect(products).toEqual(["Electric kettle", "Descaler", "–"]);
     });
 
     it("gives a tag shown on the Dashboard its own panel next to the KPI tiles", async () => {

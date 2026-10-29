@@ -97,5 +97,37 @@ export function daysBetween(from: string | null | undefined, to: string | null |
   return start === null || end === null ? null : Math.round((end - start) / 86_400_000);
 }
 
+/** One row of a warranties table: a product of a receipt, and the receipt's warranty. */
+export interface WarrantyRow {
+  receiptId: number;
+  shop: string;
+  /** The product's name; "" for a receipt without products. */
+  product: string;
+  bought: string;
+  warrantyUntil: string;
+  daysLeft: number;
+  /** The receipt's first row: it carries the shop and the dates, the rows after it only their product. */
+  first: boolean;
+}
+
+/** A row per product of each receipt (one row for a receipt without products), in the receipts' order. */
+export function warrantyRows(
+  receipts: readonly { id: number; name: string; shopName?: string; date: string; warrantyUntil?: string; warrantyProducts?: string[] }[],
+  today: string
+): WarrantyRow[] {
+  return receipts.flatMap((receipt) => {
+    const products = receipt.warrantyProducts?.length ? receipt.warrantyProducts : [""];
+    return products.map((product, index) => ({
+      receiptId: receipt.id,
+      shop: receipt.shopName || receipt.name,
+      product,
+      bought: receipt.date,
+      warrantyUntil: receipt.warrantyUntil ?? "",
+      daysLeft: daysBetween(today, receipt.warrantyUntil) ?? 0,
+      first: index === 0,
+    }));
+  });
+}
+
 /** How far ahead the Dashboard looks for warranties ending soon. */
 export const WARRANTY_ENDING_SOON_MONTHS = 2;

@@ -6,6 +6,7 @@ import {
   daysBetween,
   effectiveRegion,
   regionFromLocale,
+  warrantyRows,
   warrantyYears,
 } from "./warranty-period";
 
@@ -47,6 +48,21 @@ describe("warranty period", () => {
     expect(iso(addWarrantyYears(new Date(2024, 1, 29), 4))).toBe("2028-02-29");
     expect(iso(addCalendarMonths(new Date(2026, 11, 31), 2))).toBe("2027-02-28");
     expect(iso(addCalendarMonths(new Date(2026, 9, 29), 2))).toBe("2026-12-29");
+  });
+
+  it("makes a row per product, the shop and dates on the receipt's first row", () => {
+    const rows = warrantyRows(
+      [
+        { id: 1, name: "Apple", shopName: "Apple", date: "2026-10-07T00:00:00Z", warrantyUntil: "2026-11-08", warrantyProducts: ["Apple MacBook", "Apple MacBook cable"] },
+        { id: 2, name: "Lamp", date: "2026-01-02T00:00:00Z", warrantyUntil: "2026-12-01" },
+      ],
+      "2026-10-29"
+    );
+    expect(rows.map((row) => [row.receiptId, row.shop, row.product, row.daysLeft, row.first])).toEqual([
+      [1, "Apple", "Apple MacBook", 10, true],
+      [1, "Apple", "Apple MacBook cable", 10, false],
+      [2, "Lamp", "", 33, true],
+    ]);
   });
 
   it("counts the days left", () => {

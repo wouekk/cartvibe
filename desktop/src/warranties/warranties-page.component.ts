@@ -13,16 +13,11 @@ import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { ShopMonogramComponent } from "../shared-ui/shop-monogram/shop-monogram.component";
 import { SystemSettingsState } from "../store/system-settings.state";
 import { todayInZone } from "../utils/app-time-zone";
-import { daysBetween } from "../utils/warranty-period";
-
-interface WarrantyRow {
-  receipt: Receipt;
-  daysLeft: number;
-}
+import { WarrantyRow, warrantyRows } from "../utils/warranty-period";
 
 /**
- * The Warranties list: every receipt the person can see whose warranty ends today or later, nearest end first, with
- * its end date and the days left. Expired warranties do not appear.
+ * The Warranties list: every receipt the person can see whose warranty ends today or later, nearest end first, one
+ * row per product, with the end date and the days left on the receipt's first row. Expired warranties do not appear.
  */
 @Component({
   selector: "app-warranties-page",
@@ -54,11 +49,7 @@ export class WarrantiesPageComponent {
             filter: { warrantyActive: true },
           })
           .pipe(
-            map((page) =>
-              (page.data as unknown as Receipt[]).map(
-                (receipt): WarrantyRow => ({ receipt, daysLeft: daysBetween(this.today(), receipt.warrantyUntil) ?? 0 })
-              )
-            ),
+            map((page) => warrantyRows(page.data as unknown as Receipt[], this.today())),
             catchError(() => of([] as WarrantyRow[]))
           )
       )
