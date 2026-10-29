@@ -69,11 +69,11 @@ describe('AuthForm', () => {
     expect(component).toBeTruthy();
   });
 
-  it("shows Logo.dev's attribution only while a logo key is set", async () => {
+  it("credits Logo.dev only while logos are on", async () => {
     const attribution = () => fixture.nativeElement.querySelector('[data-testid="logo-dev-attribution"]');
     expect(attribution()).toBeNull();
 
-    await firstValueFrom(TestBed.inject(Store).dispatch(new SetFeatureConfig({ enableLocalSignUp: true, aiPoweredReceipts: false, shopLogoKey: 'pk_ExampleKey12345' })));
+    await firstValueFrom(TestBed.inject(Store).dispatch(new SetFeatureConfig({ enableLocalSignUp: true, aiPoweredReceipts: false, shopLogosEnabled: true })));
     fixture.changeDetectorRef.markForCheck();
     fixture.detectChanges();
 

@@ -8,7 +8,7 @@
     "+{amount} over goal": "+{amount} au-delà de l’objectif",
     "0 of 0": "0 sur 0",
     "8, 12 or 13 digits": "8, 12 ou 13 chiffres",
-    "A Logo.dev publishable key starts with pk_": "Une clé publique Logo.dev commence par pk_",
+    "A Logo.dev secret key starts with sk_": "Une clé secrète Logo.dev commence par sk_",
     "A few choices to make it yours. You can change them any time under Settings.": "Quelques choix pour commencer. Vous pourrez les modifier à tout moment dans les Paramètres.",
     "A general guide from Nutri-Score, NOVA and the additives, not medical advice.": "Une indication générale tirée du Nutri-Score, de NOVA et des additifs, pas un avis médical.",
     "A higher number means a higher priority.": "Un nombre plus élevé signifie une priorité plus haute.",
@@ -127,7 +127,6 @@
     "Are you sure you would like to remove this image?": "Voulez-vous vraiment retirer cette image ?",
     "Attach a Receipt": "Joindre un ticket",
     "Attach existing": "Joindre un existant",
-    "Attribution: Logo.dev's free plan asks for a visible link to Logo.dev on a page anyone can open. While a key is set, the login page shows \"Logos provided by Logo.dev\".": "Attribution : l'offre gratuite de Logo.dev demande un lien visible vers Logo.dev sur une page accessible à tous. Tant qu'une clé est définie, la page de connexion affiche « Logos provided by Logo.dev ».",
     "Audit Details": "Détails de la modification",
     "Aug": "août",
     "August": "août",
@@ -156,6 +155,7 @@
     "Breadcrumb": "Fil d’Ariane",
     "Breakfast": "Petit-déjeuner",
     "British pound (£12.99)": "Livre sterling (£12.99)",
+    "Browsers load the logos from this server, so Logo.dev never sees who uses CartVibe or which shops appear, and the logos work offline.": "Les navigateurs chargent les logos depuis ce serveur : Logo.dev ne voit jamais qui utilise CartVibe ni quels magasins apparaissent, et les logos fonctionnent hors ligne.",
     "Budget": "Budget",
     "Build": "Créer",
     "Build Date:": "Date de compilation :",
@@ -328,6 +328,7 @@
     "Download Image": "Télécharger l’image",
     "Download Landscape PDF (1 yr/page)": "Télécharger le PDF paysage (1 an par page)",
     "Download source file": "Télécharger le fichier source",
+    "Downloading logos: {downloaded} of {total} so far.": "Téléchargement des logos : {downloaded} sur {total} pour l'instant.",
     "Draft": "Brouillon",
     "Drinks": "Boissons",
     "Drop them here or choose them. The AI reads each photo as its own receipt, one by one.": "Déposez-les ici ou choisissez-les. L’IA lit chaque photo comme un ticket distinct, l’une après l’autre.",
@@ -336,7 +337,6 @@
     "Duplicate category grant": "Droit de catégorie en double",
     "Duplicate paid-by user grant": "Droit de payeur en double",
     "Duplicate tag grant": "Droit d’étiquette en double",
-    "Each browser loads the logos straight from Logo.dev and keeps them for a day. Logo.dev sees which brands' logos are asked for, never your receipts. Nothing is stored on this server.": "Chaque navigateur charge les logos directement depuis Logo.dev et les garde une journée. Logo.dev voit quels logos de marques sont demandés, jamais vos tickets. Rien n'est stocké sur ce serveur.",
     "Each row is one receipt, so a dimension column shows that receipt's own value — it doesn't have to be something you group by. Aggregates and formulas read a single receipt per row, and still roll up across the subtotal and grand total rows.": "Chaque ligne est un ticket, donc une colonne de dimension affiche la valeur de ce ticket — pas besoin de regrouper par elle. Les agrégats et les formules lisent un seul ticket par ligne, et se cumulent quand même dans les lignes de sous-total et de total général.",
     "Edit": "Modifier",
     "Edit API Key": "Modifier la clé API",
@@ -491,7 +491,7 @@
     "Imported": "Importé",
     "Imported / out of season": "Importé / hors saison",
     "In season": "De saison",
-    "In the Logo.dev dashboard, open API keys and copy the publishable key.": "Dans le tableau de bord Logo.dev, ouvrez API keys et copiez la clé publique (publishable key).",
+    "In the Logo.dev dashboard, open API keys and copy the secret key.": "Dans le tableau de bord Logo.dev, ouvrez API keys et copiez la clé secrète (secret key).",
     "Indigo": "Indigo",
     "Info": "Info",
     "Insert a column": "Insérer une colonne",
@@ -541,7 +541,8 @@
     "Loading…": "Chargement…",
     "Local LM": "Modèle local",
     "Login": "Connexion",
-    "Logo.dev publishable key": "Clé publique Logo.dev",
+    "Logo.dev asks commercial projects to credit it; while logos are on, the login page shows \"Logos provided by Logo.dev\".": "Logo.dev demande aux projets commerciaux de le citer ; tant que les logos sont activés, la page de connexion affiche « Logos provided by Logo.dev ».",
+    "Logo.dev secret key": "Clé secrète Logo.dev",
     "Logos next to your receipts": "Des logos à côté de vos tickets",
     "Logout": "Déconnexion",
     "Logs": "Journaux",
@@ -695,7 +696,7 @@
     "Password generated and copied to clipboard": "Mot de passe généré et copié dans le presse-papiers",
     "Password generated, but copying to the clipboard failed": "Mot de passe généré, mais la copie dans le presse-papiers a échoué",
     "Password successfully set": "Mot de passe défini",
-    "Paste it below and save. Logos appear the next time a page loads.": "Collez-la ci-dessous et enregistrez. Les logos apparaissent au prochain chargement d'une page.",
+    "Paste it below and save. The logos download in the background, which takes a few minutes the first time.": "Collez-la ci-dessous et enregistrez. Les logos se téléchargent en arrière-plan, ce qui prend quelques minutes la première fois.",
     "Paste the API key first.": "Collez d’abord la clé API.",
     "Paste the {provider} API key for the backup AI.": "Collez la clé API {provider} pour l’IA de secours.",
     "Paste the {provider} API key.": "Collez la clé API {provider}.",
@@ -949,7 +950,7 @@
     "Started At": "Démarré le",
     "Started at: {date}": "Démarré le : {date}",
     "Starting the camera…": "Démarrage de la caméra…",
-    "Starts with pk_, for example pk_A1b2C3d4E5f6. Leave it empty to show letters instead of logos.": "Commence par pk_, par exemple pk_A1b2C3d4E5f6. Laissez vide pour afficher des lettres au lieu des logos.",
+    "Starts with sk_, for example sk_A1b2C3d4E5f6. Stored encrypted and never sent to a browser. Empty it and save to remove the key and the logos.": "Commence par sk_, par exemple sk_A1b2C3d4E5f6. Stockée chiffrée et jamais envoyée à un navigateur. Videz le champ et enregistrez pour supprimer la clé et les logos.",
     "Stationery": "Papeterie",
     "Status": "Statut",
     "Status is required": "Le statut est requis",
@@ -1027,8 +1028,10 @@
     "The externally reachable address of this server. Used to build the redirect URI that each OIDC identity provider must be configured with, so it has to match how users actually reach CartVibe.": "L’adresse de ce serveur accessible depuis l’extérieur. Elle sert à construire l’URI de redirection à configurer chez chaque fournisseur d’identité OIDC, elle doit donc correspondre à la façon dont les utilisateurs accèdent réellement à CartVibe.",
     "The file could not be read": "Le fichier n’a pas pu être lu",
     "The file this activity needs is no longer available.": "Le fichier nécessaire à cette activité n’est plus disponible.",
+    "The free plan is plenty: the first download asks Logo.dev about each brand once, then a daily check asks again about a logo once a month.": "L'offre gratuite suffit largement : le premier téléchargement interroge Logo.dev une fois par marque, puis une vérification quotidienne redemande un logo une fois par mois.",
     "The household has been told you are going shopping.": "Le foyer a été prévenu que vous partez faire les courses.",
     "The language of menus, buttons and messages.": "La langue des menus, des boutons et des messages.",
+    "The last download stopped: {error}": "Le dernier téléchargement s'est arrêté : {error}",
     "The main currency of the household. Receipts in other currencies are converted into it.": "La devise principale du foyer. Les tickets dans d’autres devises y sont convertis.",
     "The model name as LM Studio lists it": "Le nom du modèle tel que LM Studio l’affiche",
     "The model reads images (a vision model)": "Le modèle lit les images (un modèle de vision)",
@@ -1059,7 +1062,7 @@
     "This action is": "Cette action est",
     "This activity type has no source file.": "Ce type d’activité n’a pas de fichier source.",
     "This could not be loaded.": "Impossible de charger ceci.",
-    "This is a secret key. Use the publishable key, which starts with pk_": "C'est une clé secrète. Utilisez la clé publique, qui commence par pk_",
+    "This is the publishable key. The server needs the secret key, which starts with sk_": "C'est la clé publique. Le serveur a besoin de la clé secrète, qui commence par sk_",
     "This month": "Ce mois-ci",
     "This page was loaded over HTTP. If you save with secure cookies on, browsers will drop the login cookies on HTTP connections: you will be signed out, and nobody reaching CartVibe over HTTP will be able to log back in until it is turned off again.": "Cette page a été chargée en HTTP. Si vous enregistrez avec les cookies sécurisés activés, les navigateurs abandonneront les cookies de connexion en HTTP : vous serez déconnecté, et personne accédant à CartVibe en HTTP ne pourra se reconnecter tant que l’option ne sera pas désactivée.",
     "This role grants no permissions.": "Ce rôle n’accorde aucun droit.",
@@ -1110,7 +1113,7 @@
     "Uploading…": "Envoi…",
     "Use a backup AI": "Utiliser une IA de secours",
     "Use secure cookies (HTTPS only)": "Utiliser des cookies sécurisés (HTTPS uniquement)",
-    "Use the publishable key (pk_), never the secret key (sk_): this key is sent to every browser that opens CartVibe.": "Utilisez la clé publique (pk_), jamais la clé secrète (sk_) : cette clé est envoyée à chaque navigateur qui ouvre CartVibe.",
+    "Use the secret key (sk_), not the publishable key (pk_): Logo.dev only allows keeping logos that came through its API, which needs the secret key.": "Utilisez la clé secrète (sk_), pas la clé publique (pk_) : Logo.dev n'autorise à conserver que les logos obtenus par son API, qui demande la clé secrète.",
     "Used for every receipt and total in the household.": "Utilisée pour chaque ticket et chaque total du foyer.",
     "Used when the main AI is not available. It tries at most three times, so a long outage does not use up your quota.": "Utilisée quand l’IA principale n’est pas disponible. Elle essaie au plus trois fois, pour qu’une longue panne n’épuise pas votre quota.",
     "User": "Utilisateur",
@@ -1164,7 +1167,7 @@
     "Whoever generates the report": "La personne qui génère le rapport",
     "Wider": "Plus large",
     "Widths are set in the PC view.": "Les largeurs se règlent dans la vue PC.",
-    "With a Logo.dev key, receipts from about 390 known shops, restaurants, airlines and services show the brand's logo instead of its first letter. Without a key, every receipt shows the first letter.": "Avec une clé Logo.dev, les tickets d'environ 390 magasins, restaurants, compagnies aériennes et services connus affichent le logo de la marque au lieu de sa première lettre. Sans clé, chaque ticket affiche la première lettre.",
+    "With a Logo.dev key, CartVibe downloads the logos of about 390 known shops, restaurants, airlines and services to this server and shows them next to receipts. Without a key, every receipt shows the shop's first letter.": "Avec une clé Logo.dev, CartVibe télécharge sur ce serveur les logos d'environ 390 magasins, restaurants, compagnies aériennes et services connus et les affiche à côté des tickets. Sans clé, chaque ticket affiche la première lettre du magasin.",
     "Within current month": "Dans le mois en cours",
     "Worker": "Tâches en arrière-plan",
     "Worker & retention": "Tâches en arrière-plan et conservation",
@@ -1237,6 +1240,7 @@
     "{count} to buy": "{count} à acheter",
     "{count} to check": "{count} à vérifier",
     "{count} user(s) successfully deleted": "{count} utilisateur(s) supprimé(s)",
+    "{downloaded} of {total} logos downloaded.": "{downloaded} logos téléchargés sur {total}.",
     "{field} (Day)": "{field} (jour)",
     "{field} (Month)": "{field} (mois)",
     "{field} (Year)": "{field} (année)",
@@ -1328,9 +1332,17 @@
     }
   },
   "_orphaned": {
+    "A Logo.dev publishable key starts with pk_": {
+      "value": "Une clé publique Logo.dev commence par pk_",
+      "closest": "A Logo.dev secret key starts with sk_"
+    },
     "All Households": {
       "value": "Tous les foyers",
       "closest": "All"
+    },
+    "Attribution: Logo.dev's free plan asks for a visible link to Logo.dev on a page anyone can open. While a key is set, the login page shows \"Logos provided by Logo.dev\".": {
+      "value": "Attribution : l'offre gratuite de Logo.dev demande un lien visible vers Logo.dev sur une page accessible à tous. Tant qu'une clé est définie, la page de connexion affiche « Logos provided by Logo.dev ».",
+      "closest": "Logo.dev asks commercial projects to credit it; while logos are on, the login page shows \"Logos provided by Logo.dev\"."
     },
     "Converted in your browser at the rate in your preferences": {
       "value": "Converti dans votre navigateur au taux de vos préférences"
@@ -1339,12 +1351,23 @@
       "value": "Devise du tableau de bord",
       "closest": "Add currency"
     },
+    "Each browser loads the logos straight from Logo.dev and keeps them for a day. Logo.dev sees which brands' logos are asked for, never your receipts. Nothing is stored on this server.": {
+      "value": "Chaque navigateur charge les logos directement depuis Logo.dev et les garde une journée. Logo.dev voit quels logos de marques sont demandés, jamais vos tickets. Rien n'est stocké sur ce serveur."
+    },
     "General & Currency": {
       "value": "Général et devise",
       "closest": "Add currency"
     },
     "Give the Dashboard currency as three letters, like PLN, and your rate above 0, like 4,25.": {
       "value": "Indiquez la devise du tableau de bord en trois lettres, comme EUR, et votre taux supérieur à 0, comme 4,25."
+    },
+    "In the Logo.dev dashboard, open API keys and copy the publishable key.": {
+      "value": "Dans le tableau de bord Logo.dev, ouvrez API keys et copiez la clé publique (publishable key).",
+      "closest": "In the Logo.dev dashboard, open API keys and copy the secret key."
+    },
+    "Logo.dev publishable key": {
+      "value": "Clé publique Logo.dev",
+      "closest": "Logo.dev secret key"
     },
     "Manage Categories": {
       "value": "Catégories",
@@ -1366,6 +1389,10 @@
       "value": "Mes foyers",
       "closest": "Households"
     },
+    "Paste it below and save. Logos appear the next time a page loads.": {
+      "value": "Collez-la ci-dessous et enregistrez. Les logos apparaissent au prochain chargement d'une page.",
+      "closest": "Paste it below and save. The logos download in the background, which takes a few minutes the first time."
+    },
     "Rate: 1 {symbol} in your currency": {
       "value": "Taux : 1 {symbol} dans votre devise"
     },
@@ -1376,8 +1403,24 @@
     "Shown in {code}": {
       "value": "Affiché en {code}"
     },
+    "Starts with pk_, for example pk_A1b2C3d4E5f6. Leave it empty to show letters instead of logos.": {
+      "value": "Commence par pk_, par exemple pk_A1b2C3d4E5f6. Laissez vide pour afficher des lettres au lieu des logos.",
+      "closest": "Starts with sk_, for example sk_A1b2C3d4E5f6. Stored encrypted and never sent to a browser. Empty it and save to remove the key and the logos."
+    },
+    "This is a secret key. Use the publishable key, which starts with pk_": {
+      "value": "C'est une clé secrète. Utilisez la clé publique, qui commence par pk_",
+      "closest": "This is the publishable key. The server needs the secret key, which starts with sk_"
+    },
     "Three letters, like PLN or USD. Leave empty to see the household currency. Only the Dashboard converts; receipts stay as entered.": {
       "value": "Trois lettres, comme EUR ou USD. Laissez vide pour voir la devise du foyer. Seul le tableau de bord convertit ; les tickets restent tels que saisis."
+    },
+    "Use the publishable key (pk_), never the secret key (sk_): this key is sent to every browser that opens CartVibe.": {
+      "value": "Utilisez la clé publique (pk_), jamais la clé secrète (sk_) : cette clé est envoyée à chaque navigateur qui ouvre CartVibe.",
+      "closest": "This is the publishable key. The server needs the secret key, which starts with sk_"
+    },
+    "With a Logo.dev key, receipts from about 390 known shops, restaurants, airlines and services show the brand's logo instead of its first letter. Without a key, every receipt shows the first letter.": {
+      "value": "Avec une clé Logo.dev, les tickets d'environ 390 magasins, restaurants, compagnies aériennes et services connus affichent le logo de la marque au lieu de sa première lettre. Sans clé, chaque ticket affiche la première lettre.",
+      "closest": "With a Logo.dev key, CartVibe downloads the logos of about 390 known shops, restaurants, airlines and services to this server and shows them next to receipts. Without a key, every receipt shows the shop's first letter."
     },
     "Your rate: 4,25 means 1 of the household currency is worth 4,25 of yours.": {
       "value": "Votre taux : 4,25 signifie qu’1 unité de la devise du foyer vaut 4,25 dans votre devise."

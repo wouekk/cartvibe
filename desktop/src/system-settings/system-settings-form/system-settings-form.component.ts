@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnInit, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
+import { AfterViewInit, Component, DestroyRef, ElementRef, inject, OnInit, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { FormArray, FormBuilder, FormGroup, ValidatorFn, Validators } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
@@ -14,9 +14,12 @@ import {
   Permission,
   QueueName,
   ReceiptProcessingSettings,
+  ShopLogoService,
+  ShopLogoStatus,
   SystemSettings,
   SystemSettingsService
 } from "../../open-api";
+import { SAVED_KEY_PLACEHOLDER } from "../../ai-settings/ai-settings-shared";
 import { InputReadonlyPipe } from "../../pipes/input-readonly.pipe";
 import { SnackbarService } from "../../services";
 import { AuthState, SetFeatureConfig } from "../../store";
@@ -36,21 +39,21 @@ interface QueueData extends FormOption {
 export type SystemSettingsSection = "general" | "logos" | "security" | "tasks";
 
 /**
- * The Logo.dev key field: empty (logos off) or a publishable key. A secret key gets its own message, because every
- * browser sees this key. Mirrors the API's validateShopLogoKey.
+ * The Logo.dev key field: empty (no key), the dots standing for a saved key, or a secret key. The publishable key gets
+ * its own message: it cannot download logos the server may keep. Mirrors the API's validateShopLogoKey.
  */
 export function shopLogoKeyValidator(): ValidatorFn {
   return (control) => {
     const value = String(control.value ?? "").trim();
-    if (!value) {
+    if (!value || value === SAVED_KEY_PLACEHOLDER) {
       return null;
     }
-    if (value.startsWith("sk_")) {
-      return { shopLogoKey: marker("This is a secret key. Use the publishable key, which starts with pk_") };
+    if (value.startsWith("pk_")) {
+      return { shopLogoKey: marker("This is the publishable key. The server needs the secret key, which starts with sk_") };
     }
-    return /^pk_[A-Za-z0-9_-]{8,200}$/.test(value)
+    return /^sk_[A-Za-z0-9_-]{8,200}$/.test(value)
       ? null
-      : { shopLogoKey: marker("A Logo.dev publishable key starts with pk_") };
+      : { shopLogoKey: marker("A Logo.dev secret key starts with sk_") };
   };
 }
 
@@ -196,6 +199,35 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
     this.section = this.activatedRoute.snapshot.data?.["section"];
     this.showRestartTaskServerAlert.set(this.activatedRoute.snapshot?.queryParams?.["restartTaskServer"] === "true");
     this.initForm();
+    if (this.section === "logos") {
+      this.refreshLogoStatus();
+    }
+  }
+
+  /** The logo download as the server reports it; undefined until loaded (or when the status cannot be read). */
+  public readonly logoStatus = signal<ShopLogoStatus | undefined>(undefined);
+
+  private readonly shopLogoService = inject(ShopLogoService);
+
+  private logoStatusTimer?: ReturnType<typeof setTimeout>;
+
+  private readonly stopLogoStatusPolling = inject(DestroyRef).onDestroy(() => clearTimeout(this.logoStatusTimer));
+
+  /** Reads the download status, and again every few seconds while a download runs. */
+  private refreshLogoStatus(): void {
+    clearTimeout(this.logoStatusTimer);
+    this.shopLogoService
+      .getShopLogoStatus()
+      .pipe(take(1))
+      .subscribe({
+        next: (status) => {
+          this.logoStatus.set(status);
+          if (status.running) {
+            this.logoStatusTimer = setTimeout(() => this.refreshLogoStatus(), 3000);
+          }
+        },
+        error: () => this.logoStatus.set(undefined),
+      });
   }
 
   public ngAfterViewInit(): void {
@@ -242,7 +274,8 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
       // register one that has no redirect URI to publish.
       serverPublicUrl: [this.originalSystemSettings?.serverPublicUrl, [absoluteUrlValidator()]],
       secureCookies: [this.originalSystemSettings?.secureCookies ?? false],
-      shopLogoKey: [this.originalSystemSettings?.shopLogoKey ?? "", [shopLogoKeyValidator()]],
+      // A saved key is never sent back: the field shows dots, and only a typed change is sent (see submit()).
+      shopLogoKey: [this.originalSystemSettings?.shopLogoKeySet ? SAVED_KEY_PLACEHOLDER : "", [shopLogoKeyValidator()]],
       // Form-only controls. The API stores hours; the unit is presentation and
       // is folded back into `<name>Hours` in submit().
       refreshTokenValidForValue: [refreshTokenLifetime.value],
@@ -469,6 +502,13 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
     delete formValue["tempFileRetentionValue"];
     delete formValue["tempFileRetentionUnit"];
     delete formValue["currency"];
+    // The Logo.dev key goes out only when typed: omitted, the server keeps the saved one; "" removes it.
+    const shopLogoKey = this.form.get("shopLogoKey");
+    if (!shopLogoKey?.dirty || formValue["shopLogoKey"] === SAVED_KEY_PLACEHOLDER) {
+      delete formValue["shopLogoKey"];
+    } else {
+      formValue["shopLogoKey"] = String(formValue["shopLogoKey"] ?? "").trim();
+    }
     formValue["taskConcurrency"] = Number.parseInt(formValue["taskConcurrency"]);
     formValue["pdfDpi"] = Number.parseInt(formValue["pdfDpi"]);
     (formValue["taskQueueConfigurations"] as Array<any>).forEach(config => {
@@ -484,6 +524,11 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
           // Stay on the tab: the form is always editable, so a save just settles it.
           if (saved) {
             this.originalSystemSettings = { ...this.originalSystemSettings, ...saved };
+          }
+          if ("shopLogoKey" in formValue) {
+            // The key is never shown again: dots while one is saved. The server has just started the download.
+            this.form.get("shopLogoKey")?.setValue(this.originalSystemSettings?.shopLogoKeySet ? SAVED_KEY_PLACEHOLDER : "");
+            this.logoStatusTimer = setTimeout(() => this.refreshLogoStatus(), 1000);
           }
           this.form.markAsPristine();
           this.showRestartTaskServerAlert.set(restartTaskServer);

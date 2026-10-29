@@ -10,7 +10,7 @@ import { AutocompleteModule } from "../../autocomplete/autocomplete.module";
 import { CheckboxModule } from "../../checkbox/checkbox.module";
 import { InputModule } from "../../input/index";
 import { FormMode } from "../../enums/form-mode.enum";
-import { CurrencySeparator, CurrencySymbolPosition, FeatureConfigService, QueueName, SystemSettingsService } from "../../open-api";
+import { CurrencySeparator, CurrencySymbolPosition, FeatureConfigService, QueueName, ShopLogoService, SystemSettingsService } from "../../open-api";
 import { PipesModule } from "../../pipes";
 import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
 import { SnackbarService } from "../../services";
@@ -21,6 +21,7 @@ import { SetTimeZone } from "../../store/system-settings.state.actions";
 import { TaskQueueFormControlPipe } from "../pipes/task-queue-form-control.pipe";
 
 import { SystemSettingsFormComponent } from "./system-settings-form.component";
+import { SAVED_KEY_PLACEHOLDER } from "../../ai-settings/ai-settings-shared";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 
 describe("SystemSettingsFormComponent", () => {
@@ -183,7 +184,7 @@ describe("SystemSettingsFormComponent", () => {
       mcpPublicUrl: "https://receipts.example.com",
       serverPublicUrl: "https://receipts.example.com",
       secureCookies: true,
-      shopLogoKey: "pk_ExampleKey12345",
+      shopLogoKeySet: true,
       refreshTokenValidForHours: 720,
       mcpRefreshTokenValidForHours: 6,
     };
@@ -212,7 +213,7 @@ describe("SystemSettingsFormComponent", () => {
       mcpPublicUrl: "https://receipts.example.com",
       serverPublicUrl: "https://receipts.example.com",
       secureCookies: true,
-      shopLogoKey: "pk_ExampleKey12345",
+      shopLogoKey: SAVED_KEY_PLACEHOLDER,
       // 720 hours divides evenly into days, so it renders as 30 Days; 6 does
       // not, so it stays in hours.
       refreshTokenValidForValue: 30,
@@ -470,7 +471,6 @@ describe("SystemSettingsFormComponent", () => {
       mcpPublicUrl: "https://receipts.example.com",
       serverPublicUrl: "https://receipts.example.com",
       secureCookies: true,
-      shopLogoKey: "",
       // The value/unit pairs are folded into hours and the presentation-only
       // controls are stripped — toEqual would fail if any of them leaked.
       refreshTokenValidForHours: 336,
@@ -724,6 +724,53 @@ describe("SystemSettingsFormComponent", () => {
 
       expect(updateSystemSettings).toHaveBeenCalled();
       expect(rates.save).toHaveBeenCalledWith(true);
+    });
+  });
+
+  describe("the Logo.dev key", () => {
+    const submitted = () => {
+      const spy = jest
+        .spyOn(TestBed.inject(SystemSettingsService), "updateSystemSettings")
+        .mockReturnValue(of({ shopLogoKeySet: true } as any));
+      component.form.markAsDirty();
+      component.submit();
+      return spy.mock.calls[0][0] as Record<string, unknown>;
+    };
+
+    it("leaves a saved key alone unless one is typed", () => {
+      const activatedRoute = TestBed.inject(ActivatedRoute);
+      activatedRoute.snapshot.data["systemSettings"] = { ...activatedRoute.snapshot.data["systemSettings"], shopLogoKeySet: true };
+      component.ngOnInit();
+
+      expect(component.form.get("shopLogoKey")!.value).toBe(SAVED_KEY_PLACEHOLDER);
+      expect("shopLogoKey" in submitted()).toBe(false);
+    });
+
+    it("sends a typed key trimmed, and an emptied field as \"\" to remove it", () => {
+      const key = component.form.get("shopLogoKey")!;
+      key.setValue("  sk_ExampleKey12345 ");
+      key.markAsDirty();
+      expect(submitted()["shopLogoKey"]).toBe("sk_ExampleKey12345");
+
+      jest.restoreAllMocks();
+      key.setValue("");
+      key.markAsDirty();
+      expect(submitted()["shopLogoKey"]).toBe("");
+    });
+
+    it("shows how many logos are downloaded on the Shop Logos tab", async () => {
+      jest
+        .spyOn(TestBed.inject(ShopLogoService), "getShopLogoStatus")
+        .mockReturnValue(of({ running: false, downloaded: 312, total: 393, lastError: "Logo.dev refused the key" } as any));
+      const activatedRoute = TestBed.inject(ActivatedRoute);
+      activatedRoute.snapshot.data["section"] = "logos";
+      activatedRoute.snapshot.data["formConfig"] = { mode: FormMode.edit };
+      component.ngOnInit();
+      fixture.changeDetectorRef.markForCheck();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector("[data-testid=shop-logos-status]").textContent).toContain("312 of 393 logos downloaded.");
+      expect(fixture.nativeElement.querySelector("[data-testid=shop-logos-error]").textContent).toContain("Logo.dev refused the key");
     });
   });
 });

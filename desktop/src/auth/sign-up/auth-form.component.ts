@@ -32,8 +32,8 @@ export class AuthForm implements OnInit {
   public secondaryButtonRouterLink: string[] = [];
   public readonly isLoading = signal<boolean>(false);
 
-  /** Set while an admin has entered a Logo.dev key: the page then shows Logo.dev's required attribution. */
-  protected readonly shopLogoKey = inject(Store).selectSignal(FeatureConfigState.shopLogoKey);
+  /** On while the household has a Logo.dev key: the page then credits Logo.dev. */
+  protected readonly shopLogosEnabled = inject(Store).selectSignal(FeatureConfigState.shopLogosEnabled);
 
   private readonly signInTransition = inject(SignInTransitionService);
 
@@ -59,8 +59,8 @@ export class AuthForm implements OnInit {
 
   /**
    * The app loads the feature config at start only for a browser that never signed in; one coming back from a
-   * session (signed out, or its session expired) would show stale or default settings here, and miss Logo.dev's
-   * required attribution. A failure keeps what the store has.
+   * session (signed out, or its session expired) would show stale or default settings here, and miss the Logo.dev
+   * credit. A failure keeps what the store has.
    */
   private refreshFeatureConfig(): void {
     this.featureConfigService
