@@ -9,6 +9,11 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 ## [Unreleased]
 
 ### Changed
+- **Dashboard charts moved to Chart.js.** The category donut and the month and day bars look the same (same colours
+  in every theme and palette, same goal line and red over-goal part, same tooltip card). Two small differences: the
+  slice you point at slides out of the ring instead of growing, and the day bars thin out their date labels instead of
+  slanting all 31. The chart code the Dashboard loads is about 60% smaller (49 kB instead of 128 kB compressed). It
+  replaces ApexCharts, which stopped being MIT-licensed at 5.1.
 - **Under the hood, nothing to do on upgrade.** The web app's tests now run on Vitest instead of Jest, the
   `@ngneat/until-destroy` and `@angular/animations` packages are gone, and the Warranties list loads through Angular's
   `rxResource`. ApexCharts stays on 4.x on purpose: from 5.1 it is no longer MIT-licensed. The Chromium comment now

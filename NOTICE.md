@@ -22,4 +22,7 @@ affiliated with or endorsed by the original authors. Please report problems with
 
 ## Third-party assets
 
+The Dashboard charts are drawn with [Chart.js](https://www.chartjs.org) (MIT licence, © Chart.js Contributors) and its
+one dependency, [@kurkle/color](https://github.com/kurkle/color) (MIT, © Jukka Kurkela).
+
 Shop logos are not part of this repository or the image. An admin can enter the household's own [Logo.dev](https://logo.dev) secret key under System Settings → Shop Logos; the server then downloads the logos through Logo.dev's API (which Logo.dev allows on every plan) into its own data folder and serves them, and the login page credits Logo.dev. The logos belong to their respective owners. Without a key, every receipt shows its shop's first letter. The list of known brands (names and web domains only) is `api/internal/shoplogos/brands.json`.

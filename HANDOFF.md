@@ -5,6 +5,12 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 
 ## Current state
 
+- `feature/chartjs` (2026-10-29, waiting for CI, not merged): the Dashboard charts moved from apexcharts to Chart.js with
+  our own `app-chart` wrapper (`desktop/src/shared-ui/chart/`); the lazy chunk went from 128 kB to 49 kB brotli.
+  Decided with the user: the hovered slice slides 8 px out instead of scaling. Run here: full specs (2131), `ng build`,
+  `npm audit` 0, 32 browser checks and `e2e/dashboard-charts.spec.ts` (9) on the local stack. Not run: Safari/iPhone,
+  Firefox, the NAS. Next: CI green, then `:preview`; the user looks over the charts (day, night, palettes, phone).
+  The plan and the backlog scan that came with it: `docs/plans/chart-library-migration.md`.
 - `main` = `preview` = v0.13.0 (2026-10-29): shop logos, starter categories, Management tabs, SQLite hardening (WAL,
   busy_timeout, `_txlock=immediate`, pool 8) with the VPS stack (`docker-compose.vps.yml`), warranties and product
   lines grossed up when an invoice prints them before VAT. The user's Uber Quick Scan read well. Waiting on the user:
@@ -47,8 +53,6 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
   (`desktop/docs/features.md`).
 - Native-speaker review of de/fr/es.
 - e2e in CI (needs a job with a live API + Redis); several specs still drive the removed `/roles` page.
-- Charts: `apexcharts` stays on 4.x (5.1+ is not MIT, `desktop/CLAUDE.md`). If it is ever replaced: Apache ECharts
-  (SVG renderer, `highlight` actions) or Chart.js, on a `feature/echarts` branch.
 - The Chromium sandbox stays opt-in (`CHROMIUM_SANDBOX=true`); `--no-install-recommends` for apt installs.
 - Kept as they are until asked: the default receipt name "Receipt {date}" in English, ISO report month buckets
   (`2026-10`), the full-bleed report builder.

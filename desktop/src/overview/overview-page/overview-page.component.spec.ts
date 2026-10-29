@@ -3,6 +3,7 @@ import { TranslatePipe } from "../../i18n/translate.pipe";
 import { ProductCheckLauncher } from "../../product-check/product-check-launcher.service";
 import { HlmCheckboxImports } from "@spartan-ng/helm/checkbox";
 import { DisplayCurrencyPipe } from "../../pipes/display-currency.pipe";
+import { ChartComponent } from "../../shared-ui/chart/chart.component";
 import { MoneyComponent } from "../../shared-ui/money/money.component";
 import { ShopMonogramComponent } from "../../shared-ui/shop-monogram/shop-monogram.component";
 import { provideHttpClient } from "@angular/common/http";
@@ -40,6 +41,7 @@ import { toDayKey } from "../overview-period";
 import { OverviewPageComponent } from "./overview-page.component";
 
 import type { Mock } from "vitest";
+import type { ChartConfiguration } from "chart.js";
 const overview = (from: string, to: string): GroupOverview => ({
   month: from.slice(0, 7),
   from,
@@ -108,7 +110,7 @@ describe("OverviewPageComponent", () => {
 
     await TestBed.configureTestingModule({
       declarations: [OverviewPageComponent],
-      imports: [TranslatePipe, NgxsModule.forRoot([AuthState, FeatureConfigState, GroupState, ShoppingListState, SystemSettingsState, UserState]), PipesModule, SharedUiModule, MoneyComponent, ShopMonogramComponent, DisplayCurrencyPipe, ...HlmCheckboxImports],
+      imports: [ChartComponent, TranslatePipe, NgxsModule.forRoot([AuthState, FeatureConfigState, GroupState, ShoppingListState, SystemSettingsState, UserState]), PipesModule, SharedUiModule, MoneyComponent, ShopMonogramComponent, DisplayCurrencyPipe, ...HlmCheckboxImports],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -314,6 +316,27 @@ describe("OverviewPageComponent", () => {
       expect(text("overview-trend-summary")).toContain("Goal");
     });
 
+    it("gives the chart the goal, a red over-goal part, and rounds only the top segment of each bar", async () => {
+      await setGoal("95");
+
+      const spec = component.barsOptions(CHART_COLORS) as ChartConfiguration<"bar">;
+      expect(spec.options?.plugins?.cvGoalLine).toMatchObject({ value: 95, color: CHART_COLORS.mutedForeground });
+      const [spent, over] = spec.data.datasets;
+      expect(spent.data).toEqual([95, 92]);
+      expect(over.data).toEqual([5, 0]);
+      expect(over.backgroundColor).toBe(CHART_COLORS.destructive);
+
+      const colorOf = (index: number) => (spent.backgroundColor as (context: { dataIndex: number }) => string)({ dataIndex: index });
+      expect(colorOf(1)).toBe(CHART_COLORS.primary); // this month is the selected bar
+      expect(colorOf(0)).toBe("rgba(100, 100, 100, 0.35)");
+
+      const radius = (dataset: (typeof spec.data.datasets)[number], index: number) =>
+        (dataset.borderRadius as (context: { dataIndex: number }) => unknown)({ dataIndex: index });
+      expect(radius(over, 0)).toMatchObject({ topLeft: 4, topRight: 4, bottomLeft: 0 }); // September: the red part is the top
+      expect(radius(spent, 0)).toBe(0); // and the base under it stays square
+      expect(radius(spent, 1)).toMatchObject({ topLeft: 4, topRight: 4 }); // this month has no red part
+    });
+
     it("keeps the scale on the tallest month and leaves out a goal line that would not fit", async () => {
       await setGoal("1500");
 
@@ -433,9 +456,12 @@ describe("OverviewPageComponent", () => {
       component.period.set({ from: "2026-01-01", to: "2026-12-31", label: "2026" });
       await fixture.whenStable();
 
-      const options = component.barsOptions(CHART_COLORS);
-      expect((options.xaxis as { categories: string[] }).categories.length).toBe(12);
-      expect((options.xaxis as { categories: string[] }).categories.every((name) => name.length > 0)).toBe(true);
+      const spec = component.barsOptions(CHART_COLORS);
+      const labels = spec.data.labels as string[];
+      expect(labels.length).toBe(12);
+      expect(labels.every((name) => name.length > 0)).toBe(true);
+      // Every month keeps its label (slanted when they do not fit); only a month of days is thinned out.
+      expect((spec.options?.scales?.["x"] as { ticks: { autoSkip: boolean } }).ticks.autoSkip).toBe(false);
       expect(fixture.nativeElement.querySelector("[data-testid=overview-bars]")).not.toBeNull();
       expect(fixture.nativeElement.querySelector("[data-testid=overview-chart-capped]")).toBeNull();
     });
@@ -545,7 +571,7 @@ describe("OverviewPageComponent", () => {
     await fixture.whenStable();
     const first = component.segments()[0];
     expect(first).toBeDefined();
-    const count = () => (component.donutOptions(CHART_COLORS).series as number[]).length;
+    const count = () => component.donutOptions(CHART_COLORS).data.datasets[0].data.length;
     const all = count();
 
     component.toggleFocus(first.name);
@@ -592,18 +618,6 @@ describe("OverviewPageComponent", () => {
       expect(row("Groceries").querySelector('[data-testid="overview-donut-share"]')).not.toBeNull();
     });
 
-    /** A drawn ring the way ApexCharts leaves it: one path per slice and the two texts in the middle. */
-    const drawRing = (): HTMLElement => {
-      const element = document.createElement("div");
-      element.innerHTML =
-        '<svg><path class="apexcharts-pie-area apexcharts-donut-slice-0"></path><path class="apexcharts-pie-area apexcharts-donut-slice-1"></path>' +
-        '<text class="apexcharts-datalabel-label"></text><text class="apexcharts-datalabel-value"></text></svg>';
-      document.body.appendChild(element);
-      const events = component.donutOptions(CHART_COLORS).chart?.events as { mounted: (chart: { el: HTMLElement }) => void };
-      events.mounted({ el: element });
-      return element;
-    };
-
     it("dims the other legend rows while one is hovered, and clears on leave", async () => {
       row("Drinks").dispatchEvent(new Event("mouseenter"));
       await fixture.whenStable();
@@ -618,51 +632,50 @@ describe("OverviewPageComponent", () => {
       expect(row("Groceries").getAttribute("data-dimmed")).toBe("false");
     });
 
-    it("grows the hovered row's slice, fades the others and names it in the middle, without a redraw", async () => {
-      const ring = drawRing();
-      const centerOf = () => {
-        const options = component.donutOptions(CHART_COLORS);
-        return { total: options.plotOptions?.pie?.donut?.labels?.total?.label, fill: options.fill, series: options.series };
-      };
-      const before = centerOf();
+    const donut = () => component.donutOptions(CHART_COLORS) as ChartConfiguration<"doughnut">;
+    const hostIndex = () => (fixture.nativeElement.querySelector('[data-testid="overview-donut"]') as HTMLElement).getAttribute("data-active-index");
+    const fill = (index: number) => (donut().data.datasets[0].backgroundColor as (context: { dataIndex: number }) => string)({ dataIndex: index });
+
+    it("emphasises the hovered row's slice, fades the others and names it in the middle, without new chart data", async () => {
+      const before = donut().data.datasets[0].data;
+      expect(donut().options?.plugins?.cvCenterText?.text?.().label).toBe("January 2025");
+      expect(hostIndex()).toBeNull();
 
       row("Drinks").dispatchEvent(new Event("mouseenter"));
       await fixture.whenStable();
 
-      const [groceries, drinks] = Array.from(ring.querySelectorAll<SVGPathElement>("path"));
-      expect(drinks.style.transform).toBe("scale(1.06)");
-      expect(drinks.style.opacity).toBe("1");
-      expect(groceries.style.transform).toBe("scale(1)");
-      expect(groceries.style.opacity).toBe("0.45");
-      expect(ring.querySelector(".apexcharts-datalabel-label")?.textContent).toBe("Drinks");
-      expect(ring.querySelector(".apexcharts-datalabel-value")?.textContent).toContain("32");
-      // Hover is not an input of the chart options (they come out the same), so the chart is not redrawn.
-      expect(centerOf()).toEqual(before);
+      expect(component.activeSegmentIndex()).toBe(1);
+      expect(hostIndex()).toBe("1");
+      const middle = donut().options?.plugins?.cvCenterText?.text?.();
+      expect(middle?.label).toBe("Drinks");
+      expect(middle?.value).toContain("32");
+      // The slice colors are scriptable, so the others go faint without the chart being given new data.
+      expect(fill(1)).toBe("rgb(2, 2, 2)");
+      expect(fill(0)).toBe("rgba(1, 1, 1, 0.45)");
+      expect(donut().data.datasets[0].data).toEqual(before);
 
       row("Drinks").dispatchEvent(new Event("mouseleave"));
       await fixture.whenStable();
-      expect(drinks.style.transform).toBe("scale(1)");
-      expect(groceries.style.opacity).toBe("1");
-      expect(ring.querySelector(".apexcharts-datalabel-label")?.textContent).toBe("January 2025");
-      ring.remove();
+      expect(hostIndex()).toBeNull();
+      expect(fill(0)).toBe("rgb(1, 1, 1)");
+      expect(donut().options?.plugins?.cvCenterText?.text?.().label).toBe("January 2025");
     });
 
     it("dims the legend when a slice is hovered on the ring, and a click still focuses it", async () => {
-      const events = component.donutOptions(CHART_COLORS).chart?.events as {
-        dataPointMouseEnter: (event: unknown, chart: unknown, config: { dataPointIndex: number }) => void;
-        dataPointMouseLeave: () => void;
-        dataPointSelection: (event: unknown, chart: unknown, config: { dataPointIndex: number }) => void;
-      };
+      const pointer = donut().options?.plugins?.cvPointer;
 
-      events.dataPointMouseEnter(undefined, undefined, { dataPointIndex: 0 });
+      pointer?.hover?.(0);
       await fixture.whenStable();
       expect(row("Drinks").getAttribute("data-dimmed")).toBe("true");
 
-      events.dataPointMouseLeave();
-      events.dataPointSelection(undefined, undefined, { dataPointIndex: 1 });
+      pointer?.hover?.(null);
+      pointer?.click?.(1);
       await fixture.whenStable();
       expect(component.focusedSegment()).toBe("Drinks");
       expect(row("Groceries").getAttribute("data-dimmed")).toBe("true");
+      // Once the pointer leaves, the focused slice is the one the chart keeps emphasised.
+      expect(pointer?.active?.()).toBe(1);
+      expect(hostIndex()).toBe("1");
     });
   });
 

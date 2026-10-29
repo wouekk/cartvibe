@@ -15,5 +15,17 @@ if (typeof (globalThis as any).ResizeObserver === 'undefined') {
   };
 }
 
-// ApexCharts needs a real SVG layout engine; the specs assert the options passed to this stand-in instead.
-vi.mock('apexcharts', async () => ({ default: (await import('./src/testing/apexcharts.stub')).default }));
+// Chart.js needs a real canvas; the specs assert the configuration passed to this stand-in instead.
+vi.mock('chart.js', async () => {
+  const { ChartStub, ChartPieceStub } = await import('./src/testing/chartjs.stub');
+  return {
+    Chart: ChartStub,
+    ArcElement: ChartPieceStub,
+    BarController: ChartPieceStub,
+    BarElement: ChartPieceStub,
+    CategoryScale: ChartPieceStub,
+    DoughnutController: ChartPieceStub,
+    LinearScale: ChartPieceStub,
+    Tooltip: ChartPieceStub,
+  };
+});

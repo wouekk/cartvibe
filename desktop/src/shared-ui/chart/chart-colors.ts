@@ -1,4 +1,4 @@
-/** The theme tokens a chart needs, resolved to concrete colors (ApexCharts cannot read CSS variables). */
+/** The theme tokens a chart needs, resolved to concrete colors (a canvas cannot read CSS variables). */
 export interface ChartColors {
   foreground: string;
   mutedForeground: string;
