@@ -118,7 +118,7 @@
         <div class="cv-section__head">
           <h3 class="cv-section__title">{{ 'Logos next to your receipts' | t }}</h3>
           <p class="cv-section__desc">
-            {{ 'With a Logo.dev key, CartVibe downloads the logos of about 390 known shops, restaurants, airlines and services to this server and shows them next to receipts. Without a key, every receipt shows the shop\'s first letter.' | t }}
+            {{ 'With a Logo.dev key, CartVibe downloads to this server the logos of the known shops, restaurants, airlines and services that appear on your receipts, and shows them next to the receipts. Without a key, every receipt shows the shop\'s first letter.' | t }}
           </p>
         </div>
         <ol class="m-0 flex list-decimal flex-col gap-1 pl-5 text-sm" data-testid="shop-logos-steps">
@@ -127,7 +127,7 @@
             <a class="cv-link" href="https://www.logo.dev" target="_blank" rel="noopener noreferrer">logo.dev</a>.
           </li>
           <li>{{ 'In the Logo.dev dashboard, open API keys and copy the secret key.' | t }}</li>
-          <li>{{ 'Paste it below and save. The logos download in the background, which takes a few minutes the first time.' | t }}</li>
+          <li>{{ 'Paste it below and save. The logos of the shops on your receipts download in the background.' | t }}</li>
         </ol>
         <app-input
           [label]="'Logo.dev secret key' | t"
@@ -142,7 +142,7 @@
             @if (status.running) {
               {{ 'Downloading logos: {downloaded} of {total} so far.' | t: { downloaded: status.downloaded, total: status.total } }}
             } @else {
-              {{ '{downloaded} of {total} logos downloaded.' | t: { downloaded: status.downloaded, total: status.total } }}
+              {{ 'Logos for {downloaded} of the {total} known shops on your receipts.' | t: { downloaded: status.downloaded, total: status.total } }}
             }
             @if (status.lastError) {
               <span class="block text-destructive" data-testid="shop-logos-error">{{ 'The last download stopped: {error}' | t: { error: status.lastError } }}</span>
@@ -156,12 +156,25 @@
         </div>
         <ul class="m-0 flex list-disc flex-col gap-1 pl-5 text-sm text-muted-foreground">
           <li>{{ 'Use the secret key (sk_), not the publishable key (pk_): Logo.dev only allows keeping logos that came through its API, which needs the secret key.' | t }}</li>
-          <li>{{ 'The free plan is plenty: the first download asks Logo.dev about each brand once, then a daily check asks again about a logo once a month.' | t }}</li>
+          <li>{{ 'The free plan pays for about 250 logos a month. CartVibe fetches only the shops on your receipts, each once, looks for new ones every 12 hours, and waits for next month if the credits run out. Fetch logos now looks at once.' | t }}</li>
           <li>{{ 'Browsers load the logos from this server, so Logo.dev never sees who uses CartVibe or which shops appear, and the logos work offline.' | t }}</li>
           <li>{{ 'Logo.dev asks commercial projects to credit it; while logos are on, the login page shows "Logos provided by Logo.dev".' | t }}</li>
         </ul>
       </div>
-      <div sectionFooter class="cv-card__footer"><ng-container *ngTemplateOutlet="saveActions"></ng-container></div>
+      <div sectionFooter class="cv-card__footer">
+        <!-- A plain button, never the form's submit: it fetches with the saved key. -->
+        <button
+          hlmBtn
+          variant="outline"
+          type="button"
+          data-testid="shop-logos-fetch"
+          [disabled]="!canFetchLogos()"
+          (click)="fetchLogos()"
+        >
+          {{ 'Fetch logos now' | t }}
+        </button>
+        <ng-container *ngTemplateOutlet="saveActions"></ng-container>
+      </div>
     </app-settings-section>
   }
 

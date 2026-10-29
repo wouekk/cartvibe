@@ -237,14 +237,17 @@ which day an instant falls on and what "today" means.
   (`claimDue`), so overlapping sweeps never double-process and a dead sweep's row returns.
 - **Shop logos** (`internal/shoplogos`, `services/shop_logos.go`): with the household's Logo.dev secret key
   (`SystemSettings.ShopLogoKey`, encrypted like the AI keys, `json:"-"`; `ShopLogoSecretKey` treats anything that is
-  not an encrypted `sk_` key as none) the server downloads the logos of the brands in the embedded `brands.json`
-  through `api.logo.dev/v2/brands/logo` (Logo.dev allows self-hosting only from its API, never from the image CDN)
-  into `data/shop-logos/<slug>.png`, one call every 0.7 s (the API allows 100 a minute), PNG only, ≤1 MB, written
-  through a temp file and a rename. `index.json` keeps each brand's ETag and check time: a brand is asked again after
-  30 days and re-downloaded only when its ETag changed; a 404 is remembered, a 202 retried next run. A refused key
-  or rate limiting stops the run; its reason is in `Syncer.Status()` (`GET /shopLogo/status`). Runs: after a key is
-  saved, at API start and daily on the clean-up queue (`system_clean_up:shop_logos`, never retried by the queue);
-  one at a time (`TryLock`). Saving `""` removes the key and the folder. `GET /shopLogo` lists the downloaded brands,
+  not an encrypted `sk_` key as none) the server downloads logos through `api.logo.dev/v2/brands/logo` (Logo.dev
+  allows self-hosting only from its API, never from the image CDN) into `data/shop-logos/<slug>.png`, one call every
+  0.7 s (100 a minute allowed), PNG only, ≤1 MB, written through a temp file and a rename. **Credits are the limit:**
+  each lookup costs about 2 of the free plan's 500 monthly credits (~250 logos a month), so only the brands of the
+  embedded `brands.json` that appear on receipts (`WantedShopLogos`: shop name, else receipt name, matched like the
+  desktop's monogram by `shoplogos.BrandsFor`) are fetched, a stored logo is never asked about again, and a 404 is
+  retried after 180 days (`index.json`); a 202 is retried next run. A refused key, used-up credits (402) or rate
+  limiting stops the run; the reason is in the status (`GET /shopLogo/status`, counted over the wanted brands). Runs:
+  after a key is saved, at API start, every 12 h on the clean-up queue (`system_clean_up:shop_logos`, never retried
+  by the queue) and on `POST /shopLogo/sync` (the Fetch logos now button); one at a time (`TryLock`), and a run with
+  nothing missing makes no call. Saving `""` removes the key and the folder. `GET /shopLogo` lists every stored logo,
   `GET /shopLogo/{slug}` serves one (only known slugs become file names), both to any signed-in user.
 - **Outage vs bad answer:** no AI configured means nothing is called and nothing counted. A failed call or unreadable
   answer counts an attempt; extraction and trips give up after 3 (`productExtractionMaxBadAnswers`,

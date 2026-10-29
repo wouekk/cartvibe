@@ -769,8 +769,33 @@ describe("SystemSettingsFormComponent", () => {
       fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
 
-      expect(fixture.nativeElement.querySelector("[data-testid=shop-logos-status]").textContent).toContain("312 of 393 logos downloaded.");
+      expect(fixture.nativeElement.querySelector("[data-testid=shop-logos-status]").textContent).toContain("Logos for 312 of the 393 known shops on your receipts.");
       expect(fixture.nativeElement.querySelector("[data-testid=shop-logos-error]").textContent).toContain("Logo.dev refused the key");
+    });
+
+    it("offers Fetch logos now only with a saved key, and starts a fetch", () => {
+      const api = TestBed.inject(ShopLogoService);
+      jest.spyOn(api, "getShopLogoStatus").mockReturnValue(of({ running: false, downloaded: 1, total: 2, lastError: "" } as any));
+      const start = jest
+        .spyOn(api, "startShopLogoSync")
+        .mockReturnValue(of({ running: false, downloaded: 1, total: 2, lastError: "" } as any));
+
+      expect(component.canFetchLogos()).toBe(false);
+
+      const activatedRoute = TestBed.inject(ActivatedRoute);
+      activatedRoute.snapshot.data["systemSettings"] = { ...activatedRoute.snapshot.data["systemSettings"], shopLogoKeySet: true };
+      component.ngOnInit();
+      expect(component.canFetchLogos()).toBe(true);
+
+      // A typed key has to be saved first.
+      component.form.get("shopLogoKey")!.markAsDirty();
+      expect(component.canFetchLogos()).toBe(false);
+      component.form.get("shopLogoKey")!.markAsPristine();
+
+      component.fetchLogos();
+      expect(start).toHaveBeenCalledTimes(1);
+      expect(component.logoStatus()?.running).toBe(true);
+      expect(component.canFetchLogos()).toBe(false);
     });
   });
 });

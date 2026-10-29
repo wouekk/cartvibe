@@ -213,6 +213,26 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
 
   private readonly stopLogoStatusPolling = inject(DestroyRef).onDestroy(() => clearTimeout(this.logoStatusTimer));
 
+  /** Fetch logos now: with a saved key, while nothing runs, and not with a typed key that still needs saving. */
+  public canFetchLogos(): boolean {
+    return !!this.originalSystemSettings?.shopLogoKeySet && !this.logoStatus()?.running && !this.form.get("shopLogoKey")?.dirty;
+  }
+
+  /** Fetches the missing logos now instead of at the next 12-hourly run, then follows the download's status. */
+  public fetchLogos(): void {
+    this.shopLogoService
+      .startShopLogoSync()
+      .pipe(take(1))
+      .subscribe({
+        next: (status) => {
+          this.logoStatus.set({ ...status, running: true });
+          clearTimeout(this.logoStatusTimer);
+          this.logoStatusTimer = setTimeout(() => this.refreshLogoStatus(), 1500);
+        },
+        error: () => this.refreshLogoStatus(),
+      });
+  }
+
   /** Reads the download status, and again every few seconds while a download runs. */
   private refreshLogoStatus(): void {
     clearTimeout(this.logoStatusTimer);

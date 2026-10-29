@@ -396,6 +396,7 @@
     "Fast Food": "Restauration rapide",
     "Feb": "févr.",
     "February": "février",
+    "Fetch logos now": "Récupérer les logos",
     "Fibre": "Fibres",
     "Field": "Champ",
     "Filter": "Filtrer",
@@ -543,6 +544,7 @@
     "Login": "Connexion",
     "Logo.dev asks commercial projects to credit it; while logos are on, the login page shows \"Logos provided by Logo.dev\".": "Logo.dev demande aux projets commerciaux de le citer ; tant que les logos sont activés, la page de connexion affiche « Logos provided by Logo.dev ».",
     "Logo.dev secret key": "Clé secrète Logo.dev",
+    "Logos for {downloaded} of the {total} known shops on your receipts.": "Logos pour {downloaded} des {total} magasins connus de vos tickets.",
     "Logos next to your receipts": "Des logos à côté de vos tickets",
     "Logout": "Déconnexion",
     "Logs": "Journaux",
@@ -696,7 +698,7 @@
     "Password generated and copied to clipboard": "Mot de passe généré et copié dans le presse-papiers",
     "Password generated, but copying to the clipboard failed": "Mot de passe généré, mais la copie dans le presse-papiers a échoué",
     "Password successfully set": "Mot de passe défini",
-    "Paste it below and save. The logos download in the background, which takes a few minutes the first time.": "Collez-la ci-dessous et enregistrez. Les logos se téléchargent en arrière-plan, ce qui prend quelques minutes la première fois.",
+    "Paste it below and save. The logos of the shops on your receipts download in the background.": "Collez-la ci-dessous et enregistrez. Les logos des magasins de vos tickets se téléchargent en arrière-plan.",
     "Paste the API key first.": "Collez d’abord la clé API.",
     "Paste the {provider} API key for the backup AI.": "Collez la clé API {provider} pour l’IA de secours.",
     "Paste the {provider} API key.": "Collez la clé API {provider}.",
@@ -1028,7 +1030,7 @@
     "The externally reachable address of this server. Used to build the redirect URI that each OIDC identity provider must be configured with, so it has to match how users actually reach CartVibe.": "L’adresse de ce serveur accessible depuis l’extérieur. Elle sert à construire l’URI de redirection à configurer chez chaque fournisseur d’identité OIDC, elle doit donc correspondre à la façon dont les utilisateurs accèdent réellement à CartVibe.",
     "The file could not be read": "Le fichier n’a pas pu être lu",
     "The file this activity needs is no longer available.": "Le fichier nécessaire à cette activité n’est plus disponible.",
-    "The free plan is plenty: the first download asks Logo.dev about each brand once, then a daily check asks again about a logo once a month.": "L'offre gratuite suffit largement : le premier téléchargement interroge Logo.dev une fois par marque, puis une vérification quotidienne redemande un logo une fois par mois.",
+    "The free plan pays for about 250 logos a month. CartVibe fetches only the shops on your receipts, each once, looks for new ones every 12 hours, and waits for next month if the credits run out. Fetch logos now looks at once.": "L'offre gratuite couvre environ 250 logos par mois. CartVibe ne récupère que les magasins de vos tickets, chacun une fois, cherche les nouveaux toutes les 12 heures et attend le mois suivant si les crédits sont épuisés. « Récupérer les logos » cherche tout de suite.",
     "The household has been told you are going shopping.": "Le foyer a été prévenu que vous partez faire les courses.",
     "The language of menus, buttons and messages.": "La langue des menus, des boutons et des messages.",
     "The last download stopped: {error}": "Le dernier téléchargement s'est arrêté : {error}",
@@ -1167,7 +1169,7 @@
     "Whoever generates the report": "La personne qui génère le rapport",
     "Wider": "Plus large",
     "Widths are set in the PC view.": "Les largeurs se règlent dans la vue PC.",
-    "With a Logo.dev key, CartVibe downloads the logos of about 390 known shops, restaurants, airlines and services to this server and shows them next to receipts. Without a key, every receipt shows the shop's first letter.": "Avec une clé Logo.dev, CartVibe télécharge sur ce serveur les logos d'environ 390 magasins, restaurants, compagnies aériennes et services connus et les affiche à côté des tickets. Sans clé, chaque ticket affiche la première lettre du magasin.",
+    "With a Logo.dev key, CartVibe downloads to this server the logos of the known shops, restaurants, airlines and services that appear on your receipts, and shows them next to the receipts. Without a key, every receipt shows the shop's first letter.": "Avec une clé Logo.dev, CartVibe télécharge sur ce serveur les logos des magasins, restaurants, compagnies aériennes et services connus qui apparaissent sur vos tickets, et les affiche à côté des tickets. Sans clé, chaque ticket affiche la première lettre du magasin.",
     "Within current month": "Dans le mois en cours",
     "Worker": "Tâches en arrière-plan",
     "Worker & retention": "Tâches en arrière-plan et conservation",
@@ -1240,7 +1242,6 @@
     "{count} to buy": "{count} à acheter",
     "{count} to check": "{count} à vérifier",
     "{count} user(s) successfully deleted": "{count} utilisateur(s) supprimé(s)",
-    "{downloaded} of {total} logos downloaded.": "{downloaded} logos téléchargés sur {total}.",
     "{field} (Day)": "{field} (jour)",
     "{field} (Month)": "{field} (mois)",
     "{field} (Year)": "{field} (année)",
@@ -1393,6 +1394,10 @@
       "value": "Collez-la ci-dessous et enregistrez. Les logos apparaissent au prochain chargement d'une page.",
       "closest": "Paste it below and save. The logos download in the background, which takes a few minutes the first time."
     },
+    "Paste it below and save. The logos download in the background, which takes a few minutes the first time.": {
+      "value": "Collez-la ci-dessous et enregistrez. Les logos se téléchargent en arrière-plan, ce qui prend quelques minutes la première fois.",
+      "closest": "Paste it below and save. The logos of the shops on your receipts download in the background."
+    },
     "Rate: 1 {symbol} in your currency": {
       "value": "Taux : 1 {symbol} dans votre devise"
     },
@@ -1407,6 +1412,9 @@
       "value": "Commence par pk_, par exemple pk_A1b2C3d4E5f6. Laissez vide pour afficher des lettres au lieu des logos.",
       "closest": "Starts with sk_, for example sk_A1b2C3d4E5f6. Stored encrypted and never sent to a browser. Empty it and save to remove the key and the logos."
     },
+    "The free plan is plenty: the first download asks Logo.dev about each brand once, then a daily check asks again about a logo once a month.": {
+      "value": "L'offre gratuite suffit largement : le premier téléchargement interroge Logo.dev une fois par marque, puis une vérification quotidienne redemande un logo une fois par mois."
+    },
     "This is a secret key. Use the publishable key, which starts with pk_": {
       "value": "C'est une clé secrète. Utilisez la clé publique, qui commence par pk_",
       "closest": "This is the publishable key. The server needs the secret key, which starts with sk_"
@@ -1418,12 +1426,20 @@
       "value": "Utilisez la clé publique (pk_), jamais la clé secrète (sk_) : cette clé est envoyée à chaque navigateur qui ouvre CartVibe.",
       "closest": "This is the publishable key. The server needs the secret key, which starts with sk_"
     },
+    "With a Logo.dev key, CartVibe downloads the logos of about 390 known shops, restaurants, airlines and services to this server and shows them next to receipts. Without a key, every receipt shows the shop's first letter.": {
+      "value": "Avec une clé Logo.dev, CartVibe télécharge sur ce serveur les logos d'environ 390 magasins, restaurants, compagnies aériennes et services connus et les affiche à côté des tickets. Sans clé, chaque ticket affiche la première lettre du magasin.",
+      "closest": "With a Logo.dev key, CartVibe downloads to this server the logos of the known shops, restaurants, airlines and services that appear on your receipts, and shows them next to the receipts. Without a key, every receipt shows the shop's first letter."
+    },
     "With a Logo.dev key, receipts from about 390 known shops, restaurants, airlines and services show the brand's logo instead of its first letter. Without a key, every receipt shows the first letter.": {
       "value": "Avec une clé Logo.dev, les tickets d'environ 390 magasins, restaurants, compagnies aériennes et services connus affichent le logo de la marque au lieu de sa première lettre. Sans clé, chaque ticket affiche la première lettre.",
       "closest": "With a Logo.dev key, CartVibe downloads the logos of about 390 known shops, restaurants, airlines and services to this server and shows them next to receipts. Without a key, every receipt shows the shop's first letter."
     },
     "Your rate: 4,25 means 1 of the household currency is worth 4,25 of yours.": {
       "value": "Votre taux : 4,25 signifie qu’1 unité de la devise du foyer vaut 4,25 dans votre devise."
+    },
+    "{downloaded} of {total} logos downloaded.": {
+      "value": "{downloaded} logos téléchargés sur {total}.",
+      "closest": "Downloading logos: {downloaded} of {total} so far."
     }
   }
 }
