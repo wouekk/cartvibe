@@ -50,6 +50,10 @@ export interface Receipt {
      */
     searchMatches?: Array<ReceiptSearchMatch>;
     /**
+     * The receipt\'s product names in the order printed (the plain name, else as printed). Only populated by the paged receipt list while filter.warrantyActive is set; absent otherwise and for a receipt without products.
+     */
+    warrantyProducts?: Array<string>;
+    /**
      * Group foreign key
      */
     groupId: number;
