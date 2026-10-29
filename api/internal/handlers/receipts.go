@@ -111,6 +111,22 @@ func GetPagedReceiptsForGroup(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
+			// The Warranties list shows a row per product of each receipt.
+			if pagedRequest.Filter.WarrantyActive && len(receipts) > 0 {
+				receiptIds := make([]uint, len(receipts))
+				for i := range receipts {
+					receiptIds[i] = receipts[i].ID
+				}
+
+				productNames, namesErr := repositories.NewReceiptProductRepository(nil).GetProductNamesForReceipts(receiptIds)
+				if namesErr != nil {
+					return http.StatusInternalServerError, namesErr
+				}
+				for i := range receipts {
+					receipts[i].WarrantyProducts = productNames[receipts[i].ID]
+				}
+			}
+
 			anyData := make([]any, len(receipts))
 			for i := 0; i < len(receipts); i++ {
 				anyData[i] = receipts[i]

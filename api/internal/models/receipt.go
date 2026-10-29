@@ -42,6 +42,9 @@ type Receipt struct {
 	// SearchMatches names the product lines that made the receipt match the list's search phrase,
 	// filled only by the paged receipts list while a search is active.
 	SearchMatches []ReceiptSearchMatch `gorm:"-" json:"searchMatches,omitempty"`
+	// WarrantyProducts names the receipt's product lines in order (the plain name, else as printed), filled only by
+	// the paged receipts list while it lists warranties (filter.warrantyActive): one row each on the Warranties list.
+	WarrantyProducts []string `gorm:"-" json:"warrantyProducts,omitempty"`
 }
 
 // ReceiptSearchMatch is one product line shown under a receipt to say why a search found it.

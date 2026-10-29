@@ -1,10 +1,10 @@
 package repositories
 
 import (
-	"errors"
-	"strings"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
+	"errors"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -613,6 +613,36 @@ func (repository ReceiptProductRepository) GetPricedProductsForReceipts(receiptI
 	}
 
 	return products, nil
+}
+
+// GetProductNamesForReceipts returns each receipt's product names in the order printed: the plain name when there is
+// one, else the line as printed. Receipts without products are absent from the map.
+func (repository ReceiptProductRepository) GetProductNamesForReceipts(receiptIds []uint) (map[uint][]string, error) {
+	db := repository.GetDB()
+	names := map[uint][]string{}
+
+	for start := 0; start < len(receiptIds); start += receiptIdBatchSize {
+		end := min(start+receiptIdBatchSize, len(receiptIds))
+
+		batch := []models.ReceiptProduct{}
+		err := db.
+			Select("id", "receipt_id", "name", "display_name", "position").
+			Where("receipt_id IN ?", receiptIds[start:end]).
+			Order("receipt_id ASC").Order("position ASC").Order("id ASC").
+			Find(&batch).Error
+		if err != nil {
+			return map[uint][]string{}, err
+		}
+		for _, product := range batch {
+			name := product.DisplayName
+			if name == "" {
+				name = product.Name
+			}
+			names[product.ReceiptId] = append(names[product.ReceiptId], name)
+		}
+	}
+
+	return names, nil
 }
 
 // GetReportLinesForReceipts returns the priced product lines of the given receipts with what a report reads
