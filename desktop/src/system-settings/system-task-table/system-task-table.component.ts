@@ -1,9 +1,8 @@
 import { TranslationService } from "../../i18n/translation.service";
 import { DatePipe } from "@angular/common";
-import { Component, OnInit, TemplateRef, computed, viewChild, ChangeDetectionStrategy } from "@angular/core";
+import { Component, DestroyRef, OnInit, TemplateRef, computed, inject, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
 import { ActivatedRoute } from "@angular/router";
-import { UntilDestroy } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "../../constants/dialog.constant";
@@ -24,7 +23,6 @@ import { buildSystemTaskFilterChips, SystemTaskFilterChip } from "../../utils/sy
 import { buildSystemTaskFilterForm } from "../../utils/system-task-filter";
 import { SystemTaskFilterComponent } from "../system-task-filter/system-task-filter.component";
 
-@UntilDestroy()
 @Component({
   selector: "app-system-task-table",
   templateUrl: "./system-task-table.component.html",
@@ -44,6 +42,7 @@ export class SystemTaskTableComponent implements OnInit {
 
   public allReceiptProcessingSettings: ReceiptProcessingSettings[] = [];
   protected readonly AssociatedEntityType = AssociatedEntityType;
+  private readonly destroyRef = inject(DestroyRef);
 
   public filter = this.store.selectSignal(SystemTaskTableState.filter);
 
@@ -92,7 +91,7 @@ export class SystemTaskTableComponent implements OnInit {
       maxWidth: "100%",
     });
     dialogRef.componentInstance.headerText = "Filter System Tasks";
-    dialogRef.componentInstance.parentForm = buildSystemTaskFilterForm(this.filter(), this);
+    dialogRef.componentInstance.parentForm = buildSystemTaskFilterForm(this.filter(), this.destroyRef);
 
     const formCommandSubscription = dialogRef.componentInstance.formCommand.subscribe(
       (formCommand) => applyFormCommand(dialogRef.componentInstance.parentForm, formCommand)

@@ -1,6 +1,6 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject } from "@angular/core";
+import { Component, DestroyRef, OnInit, ChangeDetectionStrategy, inject } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { RouterOutlet } from "@angular/router";
-import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
 import { interval, take, tap } from "rxjs";
 import { HideProgressBar } from "src/store/layout.state.actions";
@@ -11,7 +11,6 @@ import { AuthState } from "../store";
 import { ThemeService } from "../theme/theme.service";
 import { ToastHostComponent } from "../toast/toast-host.component";
 
-@UntilDestroy()
 @Component({
     selector: "app-root", host: { class: "block size-full" },
     templateUrl: "./app.component.html",
@@ -20,6 +19,7 @@ import { ToastHostComponent } from "../toast/toast-host.component";
 })
 export class AppComponent implements OnInit {
   protected readonly signInTransition = inject(SignInTransitionService);
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor(
     private tokenRefreshService: TokenRefreshService,
@@ -37,7 +37,7 @@ export class AppComponent implements OnInit {
     const fifteenMinutes = 1000 * 60 * 15;
     interval(fifteenMinutes)
       .pipe(
-        untilDestroyed(this),
+        takeUntilDestroyed(this.destroyRef),
         tap(() => {
           if (this.store.selectSnapshot(AuthState.isLoggedIn)) {
             this.tokenRefreshService.refreshToken().pipe(take(1)).subscribe();

@@ -9,7 +9,6 @@ import {
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { FormArray, FormBuilder, FormGroup } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
-import { UntilDestroy } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
 import { EMPTY, catchError, debounceTime, finalize, startWith, switchMap, take, tap } from "rxjs";
 import { Permission, ReportPeriod, ReportRequestCommand, ReportTemplate } from "../../open-api";
@@ -31,10 +30,7 @@ import { localizeStoredTexts, restoreStoredTexts } from "../models/report-stored
  * The Report Builder screen: owns the report form, drives the debounced live
  * preview, and runs the synchronous generate-and-download. The config panel,
  * preview panel, and generate bar are presentational children bound to this form.
- * It is @UntilDestroy()-decorated because the shared receipt-filter form builder
- * (reused inside buildReportForm) registers untilDestroyed subscriptions.
  */
-@UntilDestroy()
 @Component({
   selector: "app-report-builder",
   host: { class: "block h-full min-h-0" },
@@ -90,11 +86,11 @@ export class ReportBuilderComponent {
   public readonly form: FormGroup = this.loadedTemplate
     ? buildReportFormFromCommand(
         this.formBuilder,
-        this,
+        this.destroyRef,
         // The starter reports are stored in English; their texts read in the person's language (restored on save).
         localizeStoredTexts(this.loadedTemplate.configuration, this.storedText)
       )
-    : buildReportForm(this.formBuilder, this);
+    : buildReportForm(this.formBuilder, this.destroyRef);
 
   public readonly previewHtml = signal<string>("");
   public readonly receiptCount = signal<number>(0);

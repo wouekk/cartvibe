@@ -1,3 +1,4 @@
+import { DestroyRef } from "@angular/core";
 import { parseISO } from "date-fns";
 import { FormArray, FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { DEFAULT_QUICK_DATE_FIELD, RECEIPT_DATE_FILTER_KEYS, ReceiptDateFilterFieldKey } from "src/constants";
@@ -19,10 +20,10 @@ export function nextReportRowId(): string {
  * Builds the Report Builder's root form. The filter sub-group reuses the shared
  * buildReceiptFilterForm so the builder's filter stays in lockstep with the
  * receipts filter (same shape, same BETWEEN/validator wiring); it needs the owning
- * component as `thisContext` for its untilDestroyed subscriptions, so this is
- * called from the container (which is @UntilDestroy()-decorated).
+ * component's `destroyRef` for its takeUntilDestroyed subscriptions, so this is
+ * called from the container.
  */
-export function buildReportForm(formBuilder: FormBuilder, thisContext: any): FormGroup {
+export function buildReportForm(formBuilder: FormBuilder, destroyRef: DestroyRef): FormGroup {
   return formBuilder.group({
     name: formBuilder.control("Untitled Report"),
     scope: formBuilder.array<FormControl<string>>([]),
@@ -32,7 +33,7 @@ export function buildReportForm(formBuilder: FormBuilder, thisContext: any): For
       endDate: formBuilder.control<Date | null>(null),
       dateField: formBuilder.control<ReceiptDateFilterFieldKey>(DEFAULT_QUICK_DATE_FIELD),
     }),
-    filter: buildReceiptFilterForm({}, thisContext),
+    filter: buildReceiptFilterForm({}, destroyRef),
     groupBy: formBuilder.array<FormGroup>([]),
     detail: formBuilder.group({
       mode: formBuilder.control<ReportDetail.ModeEnum>(ReportDetail.ModeEnum.Aggregate),
@@ -71,7 +72,7 @@ export function buildReportForm(formBuilder: FormBuilder, thisContext: any): For
  */
 export function buildReportFormFromCommand(
   formBuilder: FormBuilder,
-  thisContext: any,
+  destroyRef: DestroyRef,
   command: ReportRequestCommand
 ): FormGroup {
   const formats = command.formats ?? [];
@@ -101,7 +102,7 @@ export function buildReportFormFromCommand(
     // midnight, or Material would parse a bare day as UTC midnight.
     filter: buildReceiptFilterForm(
       fromDateWireFilter(command.filter, RECEIPT_DATE_FILTER_KEYS) ?? {},
-      thisContext
+      destroyRef
     ),
     groupBy: formBuilder.array<FormGroup>(
       (command.groupBy ?? []).map((key) =>

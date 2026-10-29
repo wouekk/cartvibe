@@ -1,6 +1,6 @@
-import { AfterViewInit, Component, computed, OnInit, TemplateRef, viewChild, inject, ChangeDetectionStrategy } from "@angular/core";
+import { AfterViewInit, Component, computed, OnInit, TemplateRef, viewChild, inject, ChangeDetectionStrategy, DestroyRef } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
-import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
@@ -17,7 +17,6 @@ import { GroupTableService } from "./group-table.service";
 import { marker } from "../../i18n/marker";
 import { TranslationService } from "../../i18n/translation.service";
 
-@UntilDestroy()
 @Component({
     selector: "app-group-table",
     templateUrl: "./group-table.component.html",
@@ -34,6 +33,7 @@ import { TranslationService } from "../../i18n/translation.service";
 })
 export class GroupTableComponent extends BaseTableComponent<Group> implements OnInit, AfterViewInit {
   private readonly translation = inject(TranslationService);
+  private readonly destroyRef = inject(DestroyRef);
 
   public groups = this.store.selectSignal(GroupState.groups);
 
@@ -89,7 +89,7 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
   private listenForFilterChanges(): void {
     this.store.select(GroupTableState.filter)
       .pipe(
-        untilDestroyed(this),
+        takeUntilDestroyed(this.destroyRef),
         tap(() => this.getTableData())
       )
       .subscribe();

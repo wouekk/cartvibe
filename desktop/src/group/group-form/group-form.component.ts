@@ -1,10 +1,9 @@
-import {AfterViewInit, Component, OnInit, Signal, signal, TemplateRef, inject, input, viewChild, ChangeDetectionStrategy} from "@angular/core";
-import {toSignal} from "@angular/core/rxjs-interop";
+import {AfterViewInit, Component, DestroyRef, OnInit, Signal, signal, TemplateRef, inject, input, viewChild, ChangeDetectionStrategy} from "@angular/core";
+import {takeUntilDestroyed, toSignal} from "@angular/core/rxjs-interop";
 import {FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import { AppDialog } from "../../dialog/app-dialog";
 import { Sort, TableDataSource } from "../../table/table-types";
 import {ActivatedRoute, Router} from "@angular/router";
-import {UntilDestroy, untilDestroyed} from "@ngneat/until-destroy";
 import {Store} from "@ngxs/store";
 import {map, startWith, switchMap, take, tap} from "rxjs";
 import {DEFAULT_HOST_CLASS} from "src/constants";
@@ -22,7 +21,6 @@ import {GroupMemberFormComponent} from "../group-member-form/group-member-form.c
 import {buildGroupMemberForm} from "../utils/group-member.utils";
 import { marker } from "../../i18n/marker";
 
-@UntilDestroy()
 @Component({
     selector: "app-create-group-form",
     templateUrl: "./group-form.component.html",
@@ -33,6 +31,7 @@ import { marker } from "../../i18n/marker";
 })
 export class GroupFormComponent implements OnInit, AfterViewInit {
   protected readonly PermissionScope = PermissionScope;
+  private readonly destroyRef = inject(DestroyRef);
 
   public readonly nameCell = viewChild.required<TemplateRef<any>>("nameCell");
 
@@ -135,7 +134,7 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
   private listenForGroupMemberChanges(): void {
     this.groupMembers.valueChanges
       .pipe(
-        untilDestroyed(this),
+        takeUntilDestroyed(this.destroyRef),
         tap((v) => {
           this.dataSource.set(new TableDataSource<GroupMember>(Array.from(v)));
         })
@@ -211,7 +210,7 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
 
     this.groupMembers.valueChanges
       .pipe(
-        untilDestroyed(this),
+        takeUntilDestroyed(this.destroyRef),
         startWith(this.groupMembers.value),
         tap((v) => {
           this.disableDeleteButton = v.length === 1;

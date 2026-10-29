@@ -1,19 +1,13 @@
 import { TranslatePipe } from "../../i18n/translate.pipe";
-import { Component, NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
+import { DestroyRef, NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormArray, FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { AppDialog } from "../../dialog/app-dialog";
-import { UntilDestroy } from "@ngneat/until-destroy";
 import { ReportReceiptsDialogComponent } from "../dialogs/report-receipts-dialog/report-receipts-dialog.component";
 import { ReportBuilderValue, toReportRequestCommand } from "../models/report-command.mapper";
 import { buildReportForm } from "../models/report-form.factory";
 import { ReportPreviewPanelComponent } from "./report-preview-panel.component";
 
-// buildReportForm wires untilDestroyed subscriptions, so it needs an
-// @UntilDestroy()-decorated context.
-@UntilDestroy()
-@Component({ selector: "app-noop", template: "", standalone: false })
-class NoopComponent {}
 
 describe("ReportPreviewPanelComponent", () => {
   let fixture: ComponentFixture<ReportPreviewPanelComponent>;
@@ -25,13 +19,13 @@ describe("ReportPreviewPanelComponent", () => {
     dialog = { open: jest.fn() };
     await TestBed.configureTestingModule({
       imports: [TranslatePipe],
-      declarations: [ReportPreviewPanelComponent, NoopComponent],
+      declarations: [ReportPreviewPanelComponent],
       providers: [provideZonelessChangeDetection(), FormBuilder, { provide: AppDialog, useValue: dialog }],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
 
-    const host = TestBed.createComponent(NoopComponent).componentInstance;
-    form = buildReportForm(TestBed.inject(FormBuilder), host);
+    const destroyRef = TestBed.inject(DestroyRef);
+    form = buildReportForm(TestBed.inject(FormBuilder), destroyRef);
     (form.get("scope") as FormArray).push(new FormControl("3", { nonNullable: true }));
     form.get("period.dateField")!.setValue("createdAt");
 

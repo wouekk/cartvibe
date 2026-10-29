@@ -33,7 +33,6 @@
     "@fontsource-variable/geist": "5.3.0",
     "@ng-icons/core": "36.1.0",
     "@ng-icons/lucide": "36.1.0",
-    "@ngneat/until-destroy": "^10.0.0",
     "@ngxs/storage-plugin": "^22.0.0",
     "@ngxs/store": "^22.0.0",
     "@spartan-ng/brain": "1.8.1",

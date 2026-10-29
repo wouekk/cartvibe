@@ -1,11 +1,10 @@
-import { ChangeDetectorRef, Component, ElementRef, EmbeddedViewRef, HostListener, inject, Injector, OnInit, Signal, TemplateRef, computed, runInInjectionContext, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
-import { toSignal } from "@angular/core/rxjs-interop";
+import { ChangeDetectorRef, DestroyRef, Component, ElementRef, EmbeddedViewRef, HostListener, inject, Injector, OnInit, Signal, TemplateRef, computed, runInInjectionContext, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
+import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { UploadStage, withUploadProgress } from "../../utils/upload-progress";
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
 import { ToastRef } from "../../toast/toast.service";
 import { ActivatedRoute, Router } from "@angular/router";
-import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
 import { DONE_STATUSES } from "../../utils/receipt-status";
 import { catchError, debounceTime, EMPTY, filter, finalize, forkJoin, map, of, startWith, switchMap, take, tap } from "rxjs";
@@ -50,7 +49,6 @@ import { TranslationService } from "../../i18n/translation.service";
 /** How long a date typed on the view page waits before it is saved. */
 export const DATE_IN_PLACE_DEBOUNCE_MS = 800;
 
-@UntilDestroy()
 @Component({
   selector: "app-receipt-form",
   templateUrl: "./receipt-form.component.html",
@@ -62,6 +60,7 @@ export const DATE_IN_PLACE_DEBOUNCE_MS = 800;
 })
 export class ReceiptFormComponent implements OnInit {
   private readonly translation = inject(TranslationService);
+  private readonly destroyRef = inject(DestroyRef);
 
   // Optional: the comments child only renders when the group doesn't hide
   // comments (see the @if in the template), so this query may be empty.
@@ -233,7 +232,7 @@ export class ReceiptFormComponent implements OnInit {
 
   public ngOnInit(): void {
     this.activatedRoute.data
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((data) => {
         this.duplicatedSnackbarRef?.dismiss();
         // categories/tags are sourced per-group from AppData (see
@@ -268,7 +267,7 @@ export class ReceiptFormComponent implements OnInit {
     this.formHeaderText = runInInjectionContext(this.injector, () => toSignal(
       (this.form.get("name") as AbstractControl).valueChanges.pipe(
         startWith(this.form.get("name")?.value),
-        untilDestroyed(this),
+        takeUntilDestroyed(this.destroyRef),
         map((name) => {
           // The page title is the action, or the receipt's own name when it is only being looked at.
           switch (this.mode) {
@@ -385,7 +384,7 @@ export class ReceiptFormComponent implements OnInit {
     const control = this.form.get("date");
     control?.valueChanges
       .pipe(
-        untilDestroyed(this),
+        takeUntilDestroyed(this.destroyRef),
         filter((value): value is Date => value instanceof Date && this.canSetDateInPlace()),
         debounceTime(DATE_IN_PLACE_DEBOUNCE_MS),
         map((value) => formatDateInput(value)),
@@ -495,7 +494,7 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
     this.form
       .get("groupId")
       ?.valueChanges.pipe(
-      untilDestroyed(this),
+      takeUntilDestroyed(this.destroyRef),
       startWith(this.form.get("groupId")?.value),
       tap((groupId) => {
         this.currentGroupId.set(groupId);

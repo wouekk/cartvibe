@@ -1,6 +1,5 @@
 import { Component, OnInit, Signal, computed, input, output, signal, ChangeDetectionStrategy } from "@angular/core";
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators, } from "@angular/forms";
-import { UntilDestroy } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
 import { FormMode } from "src/enums/form-mode.enum";
@@ -8,7 +7,6 @@ import { Comment, CommentService, Permission } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { AuthState } from "../../store";
 
-@UntilDestroy()
 @Component({
     selector: "app-receipt-comments",
     templateUrl: "./receipt-comments.component.html",

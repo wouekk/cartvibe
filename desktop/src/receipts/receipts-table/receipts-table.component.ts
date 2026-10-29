@@ -1,10 +1,10 @@
 import { TranslationService } from "../../i18n/translation.service";
 import { CurrencyPipe, DatePipe } from "@angular/common";
-import { AfterViewInit, Component, computed, HostListener, inject, OnInit, signal, TemplateRef, viewChild, ChangeDetectionStrategy } from "@angular/core";
+import { AfterViewInit, Component, computed, HostListener, inject, OnInit, signal, TemplateRef, viewChild, ChangeDetectionStrategy, DestroyRef } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
 import { ActivatedRoute, Router } from "@angular/router";
-import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
 import { DONE_STATUSES } from "../../utils/receipt-status";
 import { ResolvedPeriod } from "../../overview/overview-period";
@@ -52,7 +52,6 @@ import { BulkStatusUpdateComponent } from "../bulk-resolve-dialog/bulk-status-up
 import { ColumnConfigurationDialogComponent } from "../column-configuration-dialog/column-configuration-dialog.component";
 import { marker } from "../../i18n/marker";
 
-@UntilDestroy()
 @Component({
   selector: "app-receipts-table",
   templateUrl: "./receipts-table.component.html",
@@ -367,7 +366,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   private setSelectedReceiptIdsObservable(): void {
     this.table()?.selection?.changed
       .pipe(
-        untilDestroyed(this),
+        takeUntilDestroyed(this.destroyRef),
         map((event) => (event.source.selected as Receipt[]).map((r) => r.id)),
         tap((ids) => this.selectedReceiptIds.set(ids))
       )
@@ -509,7 +508,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
     dialogRef.componentInstance.categories = this.categories();
     dialogRef.componentInstance.tags = this.tags();
-    dialogRef.componentInstance.parentForm = buildReceiptFilterForm(filter, this);
+    dialogRef.componentInstance.parentForm = buildReceiptFilterForm(filter, this.destroyRef);
     dialogRef.componentInstance.headerText = "Filter Receipts";
     // The group filter is only meaningful on the "All groups" view; a
     // single-group view is already scoped to one group.
@@ -587,6 +586,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   }
 
   private readonly quickScanLauncher = inject(QuickScanLauncher);
+  private readonly destroyRef = inject(DestroyRef);
 
   public quickScanClicked(): void {
     this.quickScanLauncher
@@ -626,7 +626,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
         debounceTime(300),
         distinctUntilChanged(),
         rxFilter((value) => value !== this.appliedSearch()),
-        untilDestroyed(this)
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe((value) => this.applySearch(value));
   }
@@ -700,7 +700,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   private listenForRefreshRequests(): void {
     this.refreshRequested
       .pipe(
-        untilDestroyed(this),
+        takeUntilDestroyed(this.destroyRef),
         switchMap(() =>
           this.receiptFilterService.getPagedReceiptsForGroups(this.groupId.toString()).pipe(
             // Keeps the outer subscription alive. An error surfacing through

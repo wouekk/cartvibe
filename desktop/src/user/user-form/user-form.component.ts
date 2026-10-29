@@ -2,7 +2,6 @@ import { Component, DestroyRef, Input, OnInit, computed, effect, inject, signal,
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { FormBuilder, FormControl, FormGroup, Validators, } from "@angular/forms";
 import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
-import { UntilDestroy } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
 import { catchError, defer, iif, of, startWith, switchMap, take, tap, } from "rxjs";
 import { UserValidators } from "src/validators/user-validators";
@@ -34,7 +33,6 @@ import { openRolePreviewDialog } from "../../roles/role-preview/role-preview-dia
 import { SnackbarService, TokenRefreshService } from "../../services";
 import { AddUser, AuthState, UpdateUser } from "../../store";
 
-@UntilDestroy()
 @Component({
     selector: "app-user-form",
   host: { class: "block max-h-[85vh] overflow-y-auto" },

@@ -1,11 +1,10 @@
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
-import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
+import { CUSTOM_ELEMENTS_SCHEMA, DestroyRef } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
-import { UntilDestroy } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { PipesModule } from "src/pipes/pipes.module";
@@ -19,19 +18,12 @@ import { applyFormCommand } from "../../utils/index";
 import { buildSystemTaskFilterForm } from "../../utils/system-task-filter";
 import { SystemTaskFilterComponent } from "./system-task-filter.component";
 
-@UntilDestroy()
-@Component({
-  selector: "app-noop",
-  template: "",
-  standalone: false
-})
-class NoopComponent {}
 
 describe("SystemTaskFilterComponent", () => {
   let component: SystemTaskFilterComponent;
   let fixture: ComponentFixture<SystemTaskFilterComponent>;
   let store: Store;
-  let noopComponent: NoopComponent;
+  let destroyRef: DestroyRef;
 
   const filledFilter = {
     type: {
@@ -54,7 +46,7 @@ describe("SystemTaskFilterComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [SystemTaskFilterComponent, NoopComponent],
+      declarations: [SystemTaskFilterComponent],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
       imports: [
         InputModule,
@@ -71,11 +63,11 @@ describe("SystemTaskFilterComponent", () => {
     }).compileComponents();
 
     store = TestBed.inject(Store);
-    noopComponent = TestBed.createComponent(NoopComponent).componentInstance;
+    destroyRef = TestBed.inject(DestroyRef);
 
     fixture = TestBed.createComponent(SystemTaskFilterComponent);
     component = fixture.componentInstance;
-    component.parentForm = buildSystemTaskFilterForm({}, noopComponent);
+    component.parentForm = buildSystemTaskFilterForm({}, destroyRef);
     fixture.detectChanges();
   });
 
@@ -89,7 +81,7 @@ describe("SystemTaskFilterComponent", () => {
 
   it("round-trips a seeded filter", () => {
     const localFixture = TestBed.createComponent(SystemTaskFilterComponent);
-    localFixture.componentInstance.parentForm = buildSystemTaskFilterForm(filledFilter, noopComponent);
+    localFixture.componentInstance.parentForm = buildSystemTaskFilterForm(filledFilter, destroyRef);
     localFixture.detectChanges();
 
     expect(localFixture.componentInstance.parentForm.value).toEqual(filledFilter);
@@ -109,7 +101,7 @@ describe("SystemTaskFilterComponent", () => {
   // reset() leaves a FormArray populated, so the two list fields need an
   // explicit clear command on top of it.
   it("resets every field, clearing the list ones", () => {
-    component.parentForm = buildSystemTaskFilterForm(filledFilter, noopComponent);
+    component.parentForm = buildSystemTaskFilterForm(filledFilter, destroyRef);
     component.formCommand.subscribe((formCommand) =>
       applyFormCommand(component.parentForm, formCommand)
     );
@@ -123,7 +115,7 @@ describe("SystemTaskFilterComponent", () => {
     const dispatchSpy = jest.spyOn(store, "dispatch").mockReturnValue(of({}));
     const closeSpy = jest.spyOn(TestBed.inject(AppDialogRef<SystemTaskFilterComponent>), "close");
 
-    component.parentForm = buildSystemTaskFilterForm(filledFilter, noopComponent);
+    component.parentForm = buildSystemTaskFilterForm(filledFilter, destroyRef);
     component.submitButtonClicked();
 
     expect(dispatchSpy).toHaveBeenCalledWith(new SetSystemTaskFilter(filledFilter as any));

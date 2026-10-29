@@ -1,4 +1,5 @@
-import { Component, computed, OnInit, signal, viewChild, inject, ChangeDetectionStrategy } from "@angular/core";
+import { Component, computed, OnInit, signal, viewChild, inject, ChangeDetectionStrategy, DestroyRef } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
@@ -14,7 +15,6 @@ import { AuthState, SetUserPreferences } from "../../store";
 import { UserShortcutComponent } from "../user-shortcut/user-shortcut.component";
 import { TranslationService } from "../../i18n/translation.service";
 import { pluralMarker } from "../../i18n/marker";
-import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import {
   automaticWarrantyYears,
   browserRegion,
@@ -34,7 +34,6 @@ const fromChoice = (value: string | null | undefined): string =>
 /** "year" / "years" in the period options, counted with TranslationService.plural. */
 pluralMarker("year", "years");
 
-@UntilDestroy()
 @Component({
     selector: "app-user-preferences",
     templateUrl: "./user-preferences.component.html",
@@ -44,6 +43,7 @@ pluralMarker("year", "years");
 })
 export class UserPreferencesComponent extends BaseFormComponent implements OnInit {
   private readonly translation = inject(TranslationService);
+  private readonly destroyRef = inject(DestroyRef);
 
   public readonly userShortcutComponent = viewChild(UserShortcutComponent);
 
@@ -127,7 +127,7 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
     });
 
     this.regionValue.set(fromChoice(this.form.get("region")?.value));
-    this.form.get("region")?.valueChanges.pipe(untilDestroyed(this)).subscribe((region) => this.regionValue.set(fromChoice(region)));
+    this.form.get("region")?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((region) => this.regionValue.set(fromChoice(region)));
 
 
     if (this.formConfig.mode === FormMode.view) {
