@@ -6,7 +6,8 @@ Your context is small, so stay inside these boundaries.
 ## Start of every task
 1. Read `HANDOFF.md` (what is in progress) and `AGENTS.md` (product and rules).
 2. For UI work, read `DESIGN.md`. Do not load `api/CLAUDE.md` or `desktop/CLAUDE.md` whole; search them for a specific
-   heading only when a task needs it. Local toolchains: `docs/dev-setup.md`.
+   heading only when a task needs it; feature detail is in `desktop/docs/features.md` and `api/docs/domain.md`.
+   Local toolchains: `docs/dev-setup.md`.
 
 ## What you may do
 

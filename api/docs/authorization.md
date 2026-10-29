@@ -178,3 +178,15 @@ on or be forged into a token). Checks are written as "require `AuthSourceJwt`" s
 from `ApiKeyScope`. Consumers: OIDC link and unlink, self-delete and its provider confirmation. A `GET /oidc/link/{name}`
 clears an `r` key's scope gate, and linking the key-holder's own IdP identity would turn a revocable scoped credential
 into a permanent interactive login.
+
+## Households and role-required fields
+
+- First user and household: the first account gets a group named `Household` (`HouseholdGroupName`); later accounts join
+  it as Member (`joinHouseholdGroup`) and get no personal group. Without a Household group, accounts get "My Receipts".
+  Every account also gets the All group.
+- Role-required receipt fields (`RequireReceiptComment` / `RequireReceiptImage`) are resolved, never read raw:
+  `ResolveReceiptRequirements` waives the comment when the group hides comments or the caller lacks
+  `group.comments.create`, the image when the group hides images, and requires nothing for non-members, role-less members
+  and the All group. Enforced as 400 validator errors on both creates, update (against stored comments/images, target
+  group), deleting the last comment/image, and quick scan. `AppData.groupReceiptRequirements` lists only groups with a
+  requirement, `{}` when none.

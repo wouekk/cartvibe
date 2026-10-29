@@ -4,11 +4,8 @@ CartVibe: a personal AGPL-3.0 fork of Receipt Wrangler, turned into a household 
 insights app, self-hosted on a Synology NAS. `AGENTS.md` (product, rules, infrastructure) and `HANDOFF.md` (where things
 stand) are imported below.
 
-| Component | Stack | Guide (loaded when you work there) |
-|---|---|---|
-| `api/` | Go 1.26, Chi, GORM, Asynq (Redis), SQLite | `api/CLAUDE.md`, deep notes in `api/docs/` |
-| `desktop/` | Angular 22, NGXS, signals + zoneless, spartan/ui + Tailwind 4, Jest | `desktop/CLAUDE.md`, deep notes in `desktop/docs/` |
-| `docker/` | One monolith image: nginx :80 → Go :8081, built by CI | `AGENTS.md` → Infrastructure |
+Component guides load when you work there: `api/CLAUDE.md` (Go API) and `desktop/CLAUDE.md` (Angular web app), each
+with deep notes in its `docs/`. The Docker image is in `AGENTS.md` → Infrastructure.
 
 The look of every UI change: `DESIGN.md`. Local toolchains and manual steps: `docs/dev-setup.md`. AI prompts:
 `docs/ai-prompts.md`. Adding a theme: `docs/themes.md`.
@@ -16,7 +13,7 @@ The look of every UI change: `DESIGN.md`. Local toolchains and manual steps: `do
 ## Workflow
 
 - Work on `feature/<name>` from `main`, or on `preview` when the user says so. Agents merge finished work into `preview`.
-  Merging or pushing to `main` waits for the user's go.
+  **IMPORTANT:** merging or pushing to `main` waits for the user's go.
 - CI (`ci.yml`) runs on `main` and `feature/**` only: Go build + tests, desktop Jest and `ng build` (Jest compiles with
   isolated modules, so type and template errors only show in the build). CI is the judge; never claim tests passed that
   did not run. The Playwright e2e specs need a live API and run nowhere yet.
@@ -30,13 +27,14 @@ The look of every UI change: `DESIGN.md`. Local toolchains and manual steps: `do
 
 ## Rules that are easy to break
 
-- Ship a `swagger.yml` change with the regenerated client in the same branch; never hand-edit `desktop/src/open-api/`.
+- **IMPORTANT:** ship a `swagger.yml` change with the regenerated client in the same branch; never hand-edit
+  `desktop/src/open-api/`.
 - New statuses, types and units are plain strings on the contract, not new values in a closed enum (this also rules out
   new `QueueName` or `SystemTaskType` values).
 - Lists serialize as `[]`, never `null`.
 - Money is `shopspring/decimal`, a string on the wire; totals are folded in Go, never with SQL `SUM`. Everything works on
   SQLite, and migrations are additive.
-- Authorization is server-side and read from the database, never the JWT; details in `api/CLAUDE.md`.
+- **IMPORTANT:** authorization is server-side and read from the database, never the JWT; details in `api/CLAUDE.md`.
 - The synthetic "All" group is never a destination (no lists, receipts or backfills in it).
 - New group permissions go in `permissions/registry.go` and the swagger `Permission` enum.
 - A receipt `date` is a calendar day stored as midnight UTC; "today", "this month" and timestamps use the app time zone.

@@ -9,20 +9,14 @@ insights, branded CartVibe in the UI, repo, image and API. It is used mostly in 
 desktop for the overview.
 
 It is a family spending tracker (groceries first, plus eating out, transport, travel, leisure and bills), not business
-expense tracking. Upstream was built for small businesses (shared bills, who owes
-whom, approval statuses, configurable prompts). Here everyone in the family can add things and nobody splits bills:
-hide what a family does not need, fill in what it should not have to (paid by = the logged-in user), and keep AI
-configuration admin-only with working defaults.
+expense tracking. Upstream was built for small businesses (shared bills, who owes whom, approval statuses,
+configurable prompts). Here everyone in the family can add things and nobody splits bills: hide what a family does not
+need, fill in what it should not have to (paid by = the logged-in user), and keep AI configuration admin-only with
+working defaults.
 
-What exists today:
-- **Shopping lists** per group: several named lists; items with name, amount + unit and a note; instant cross-off;
-  live sync between viewers over Server-Sent Events (refetch on reconnect and on tab focus).
-- **Dashboard** (landing page): period picker, spend tiles, goals, category donut, trend chart, recent receipts;
-  customisable layout.
-- **Receipts** with AI-read product lines, categories and tags on lines, health (healthy / medium / unhealthy) and
-  seasonality, and receipts attached to a list (unplanned spend = products not on the list).
-- **Monthly goals**, household notifications, reports (three starter reports), an admin-only AI page (several
-  providers, test connection), Admin and User roles only, a Logs tab, a currency choice, five UI languages.
+The main pieces are live-synced shopping lists, a customisable Dashboard (the landing page), receipts whose product
+lines the AI reads and labels (category, health, planned or not), monthly goals and reports. Only Admin and User roles
+are offered; the UI ships in five languages.
 
 ## Product rules
 
