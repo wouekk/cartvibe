@@ -63,8 +63,8 @@
       </div>
     </form>
 
-    <!-- Logo.dev's free plan asks for this link on a page anyone can open; it shows while a logo key is set. -->
-    @if (shopLogoKey()) {
+    <!-- Logo.dev asks commercial projects to credit it on a page anyone can open; shown while logos are on. -->
+    @if (shopLogosEnabled()) {
       <p class="mt-4 mb-0 text-center text-xs text-muted-foreground" data-testid="logo-dev-attribution">
         <a class="cv-link" href="https://logo.dev" target="_blank" rel="noopener noreferrer">Logos provided by Logo.dev</a>
       </p>

@@ -10,8 +10,9 @@ import (
 )
 
 func WriteFile(path string, data []byte) error {
-	// TODO: Fix perms
-	err := os.WriteFile(path, data, 777)
+	// 0o644: the owner (the API's user) can rewrite the file. This was the decimal 777 (octal 1411), which left every
+	// new file read-only to its owner, so a file written twice (the shop logo index) failed on its second write.
+	err := os.WriteFile(path, data, 0o644)
 	if err != nil {
 		return err
 	}

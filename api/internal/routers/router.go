@@ -108,6 +108,9 @@ func BuildRootRouter() *chi.Mux {
 	dashboardLayoutRouter := BuildDashboardLayoutRouter()
 	rootRouter.Mount("/api/dashboardLayout", dashboardLayoutRouter)
 
+	shopLogoRouter := BuildShopLogoRouter()
+	rootRouter.Mount("/api/shopLogo", shopLogoRouter)
+
 
 
 	// System Task router

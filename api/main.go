@@ -88,6 +88,10 @@ func main() {
 		logging.LogStd(logging.LOG_LEVEL_FATAL, err.Error())
 	}
 
+	// Fetch what the logo store lacks now rather than at the first daily run (a fresh volume, a new release's
+	// brands). Without a Logo.dev key it does nothing.
+	services.StartShopLogoSync()
+
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 

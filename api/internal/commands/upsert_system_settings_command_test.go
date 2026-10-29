@@ -532,17 +532,17 @@ func TestUpsertSystemSettingsCommand_Validate_TimeZone(t *testing.T) {
 }
 
 func TestValidateShopLogoKey(t *testing.T) {
-	accepted := []*string{nil, stringPtr(""), stringPtr("  "), stringPtr("pk_ExampleKey12345"), stringPtr(" pk_abc-DEF_12345 ")}
+	accepted := []*string{nil, stringPtr(""), stringPtr("  "), stringPtr("sk_ExampleKey12345"), stringPtr(" sk_abc-DEF_12345 ")}
 	for _, key := range accepted {
 		if msg := validateShopLogoKey(key); msg != "" {
 			t.Errorf("expected %v to be accepted, got %q", key, msg)
 		}
 	}
 
-	if msg := validateShopLogoKey(stringPtr("sk_live1234567890")); !strings.Contains(msg, "secret key") {
-		t.Errorf("a secret key must be refused as one, got %q", msg)
+	if msg := validateShopLogoKey(stringPtr("pk_live1234567890")); !strings.Contains(msg, "publishable key") {
+		t.Errorf("a publishable key must be refused as one, got %q", msg)
 	}
-	for _, key := range []string{"pk_", "pk_short", "ExampleKey12345", "pk_has space1234", "pk_<script>12345"} {
+	for _, key := range []string{"sk_", "sk_short", "ExampleKey12345", "sk_has space1234", "sk_<script>12345"} {
 		if msg := validateShopLogoKey(stringPtr(key)); msg == "" {
 			t.Errorf("expected %q to be refused", key)
 		}
@@ -550,17 +550,17 @@ func TestValidateShopLogoKey(t *testing.T) {
 }
 
 func TestApplyOmittedValuesKeepsOrTrimsTheShopLogoKey(t *testing.T) {
-	existing := models.SystemSettings{ShopLogoKey: "pk_stored12345678"}
+	existing := models.SystemSettings{ShopLogoKey: "sk_stored12345678"}
 
 	updated := models.SystemSettings{}
 	(&UpsertSystemSettingsCommand{}).ApplyOmittedValues(existing, &updated)
-	if updated.ShopLogoKey != "pk_stored12345678" {
+	if updated.ShopLogoKey != "sk_stored12345678" {
 		t.Errorf("an omitted key must keep the stored one, got %q", updated.ShopLogoKey)
 	}
 
 	updated = models.SystemSettings{}
-	(&UpsertSystemSettingsCommand{ShopLogoKey: stringPtr(" pk_new123456789 ")}).ApplyOmittedValues(existing, &updated)
-	if updated.ShopLogoKey != "pk_new123456789" {
+	(&UpsertSystemSettingsCommand{ShopLogoKey: stringPtr(" sk_new123456789 ")}).ApplyOmittedValues(existing, &updated)
+	if updated.ShopLogoKey != "sk_new123456789" {
 		t.Errorf("a sent key is stored trimmed, got %q", updated.ShopLogoKey)
 	}
 }

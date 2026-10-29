@@ -2190,6 +2190,81 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
+  /shopLogo:
+    get:
+      tags:
+        - ShopLogo
+      summary: List the downloaded shop logos
+      description:
+        The brands whose logo the server downloaded from Logo.dev with the household's key, for matching a
+        receipt's shop name; [] without a key [SYSTEM USER]
+      operationId: getShopLogos
+      responses:
+        200:
+          description: The brands with a downloaded logo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ShopLogo"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+  /shopLogo/status:
+    get:
+      tags:
+        - ShopLogo
+      summary: Get the shop logo download status
+      description:
+        How many logos are downloaded, whether a download is running, and why the last one stopped
+        [SYSTEM SETTINGS READ]
+      operationId: getShopLogoStatus
+      responses:
+        200:
+          description: The download status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopLogoStatus"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+  /shopLogo/{slug}:
+    get:
+      tags:
+        - ShopLogo
+      summary: Get a shop logo
+      description: One downloaded logo as a PNG; 404 for a brand without one [SYSTEM USER]
+      operationId: getShopLogo
+      parameters:
+        - name: slug
+          in: path
+          description: The brand's slug, from GET /shopLogo
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: The logo
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
   /dashboardLayout:
     get:
       tags:
@@ -6458,12 +6533,11 @@ components:
             slug and display name -- never the issuer, client id, or any secret.
           items:
             $ref: "#/components/schemas/OidcProviderSummary"
-        shopLogoKey:
-          type: string
+        shopLogosEnabled:
+          type: boolean
           description:
-            The Logo.dev publishable key browsers load shop logos with, or "" when shop logos are
-            off. Public by design (it is in every logo URL); the login page shows Logo.dev's
-            attribution while it is set.
+            Whether the household has a Logo.dev key, so the app asks GET /shopLogo for the logos
+            the server downloaded and the login page credits Logo.dev. The key never leaves the server.
     OidcProviderSummary:
       required:
         - name
@@ -6674,6 +6748,49 @@ components:
             type: string
             maxLength: 500
             description: Comment for the file at the same index (empty for none)
+    ShopLogo:
+      type: object
+      required:
+        - slug
+        - name
+        - aliases
+      properties:
+        slug:
+          type: string
+          description: The brand's id; its logo is GET /shopLogo/{slug}
+        name:
+          type: string
+          description: The brand's name
+        aliases:
+          type: array
+          description: Other spellings seen on receipts, matched as whole words
+          items:
+            type: string
+    ShopLogoStatus:
+      type: object
+      required:
+        - running
+        - downloaded
+        - total
+        - lastError
+      properties:
+        running:
+          type: boolean
+          description: Whether a download is going on now
+        downloaded:
+          type: integer
+          description: How many brands have a downloaded logo
+        total:
+          type: integer
+          description: How many brands CartVibe knows
+        lastRun:
+          type: string
+          format: date-time
+          nullable: true
+          description: When the last download finished; null before the first
+        lastError:
+          type: string
+          description: Why the last download stopped early, such as a refused key; "" when it went well
     DashboardLayout:
       allOf:
         - $ref: "#/components/schemas/BaseModel"
@@ -7374,12 +7491,12 @@ components:
                 HTTPS. Recommended for any install served over HTTPS. Off by default, because a
                 browser drops a Secure cookie set over plain HTTP, which breaks login.
               default: false
-            shopLogoKey:
-              type: string
+            shopLogoKeySet:
+              type: boolean
               description: >-
-                The household's Logo.dev publishable key. With one, browsers load shop logos from
-                img.logo.dev; empty means every receipt shows its shop's first letter.
-              default: ""
+                Whether a Logo.dev secret key is saved. The key itself is stored encrypted and never
+                returned; with one the server downloads the shop logos and serves them (GET /shopLogo).
+              default: false
     UpsertSystemSettingsCommand:
       type: object
       required:
@@ -7476,9 +7593,10 @@ components:
         shopLogoKey:
           type: string
           description: >-
-            The household's Logo.dev publishable key (starts with pk_), or "" to turn shop logos
-            off. A secret key (sk_) or anything else is a 400 under the shopLogoKey key. Omit the
-            key entirely to leave the currently configured value unchanged.
+            The household's Logo.dev secret key (starts with sk_), which the server downloads the
+            shop logos with through Logo.dev's API; stored encrypted. "" removes the key and the
+            downloaded logos. A publishable key (pk_) or anything else is a 400 under the shopLogoKey
+            key. Omit the key entirely to leave the saved key unchanged.
     SystemTask:
       allOf:
         - $ref: "#/components/schemas/BaseModel"

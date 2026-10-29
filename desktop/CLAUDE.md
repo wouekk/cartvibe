@@ -411,11 +411,13 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
   `SystemSettingsFormComponent` (route data `section` picks the cards); the form holds every control whatever the tab,
   so a save sends the whole payload. A new tab goes into `system-settings.component.ts`'s `allTabs` and the landing
   guard order. Old paths redirect. Embedded tables sit outside the `<form>`.
-  - Shop logos: the Logo.dev publishable key (`shopLogoKey`, `shopLogoKeyValidator` refuses `sk_`). It rides on the
-    public feature config; `app-shop-monogram` loads `img.logo.dev/<domain>` for a brand in `shop-brands.ts`
-    (`findShopBrand`, `shopLogoUrl`) and falls back to the letter on any error. Nothing is bundled: Logo.dev's free plan
-    forbids storing logos. The login page (`AuthForm`, which reloads the feature config on open) shows the required
-    "Logos provided by Logo.dev" link while a key is set; `img.logo.dev` is in the CSP's `img-src`.
+  - Shop logos: the Logo.dev secret key (`shopLogoKey`, sent only when typed; a saved one shows as
+    `SAVED_KEY_PLACEHOLDER`; `shopLogoKeyValidator` refuses `pk_`), plus the download status from
+    `GET /shopLogo/status`, polled while a download runs. The server downloads and serves the logos (`api/CLAUDE.md` §7);
+    `ShopLogoCatalog` loads `GET /shopLogo` once per sign-in while `FeatureConfig.shopLogosEnabled`, and
+    `app-shop-monogram` matches a shop name against it (`findShopBrand`) and loads `/api/shopLogo/<slug>` from this
+    server, falling back to the letter on any error. Browsers never contact Logo.dev. The login page (`AuthForm`,
+    which reloads the feature config on open) shows "Logos provided by Logo.dev" while logos are on.
   - Time zone: a typeahead over `UTC` + `Intl.supportedValuesOf('timeZone')` with `timeZoneDisplayWith`; after save
     `SetTimeZone` (and `SetCurrencyData` for currency) repaint the open app.
   - Secure cookies (`system-settings-secure-cookies`): seeded `?? false`; warns while ticked over plain http.

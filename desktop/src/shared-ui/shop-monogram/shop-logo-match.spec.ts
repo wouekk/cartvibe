@@ -1,11 +1,7 @@
-import { buildCandidates, findShopBrand, normalizeShopName } from "./shop-logo-match";
-import { ShopBrand } from "./shop-brands";
-
-/** Matching reads names and spellings only; the domain is what the logo is loaded from. */
-const brands = (list: Omit<ShopBrand, "domain">[]): ShopBrand[] => list.map((brand) => ({ ...brand, domain: "" }));
+import { buildCandidates, findShopBrand, normalizeShopName, ShopBrand } from "./shop-logo-match";
 
 describe("shop logo matching", () => {
-  const candidates = buildCandidates(brands([
+  const candidates = buildCandidates([
     { slug: "lidl", name: "Lidl", aliases: [] },
     { slug: "carrefour", name: "Carrefour", aliases: ["carrefour market"] },
     { slug: "carrefour-polska", name: "Carrefour Polska", aliases: [] },
@@ -13,7 +9,7 @@ describe("shop logo matching", () => {
     { slug: "dm", name: "dm", aliases: ["dm drogerie markt"] },
     { slug: "biedronka", name: "Biedronka", aliases: [] },
     { slug: "h-and-m", name: "H&M", aliases: ["h&m"] },
-  ]));
+  ]);
   const match = (name: string | null | undefined) => findShopBrand(name, candidates)?.slug;
 
   it("normalizes case, accents, the Polish l-stroke and punctuation", () => {
@@ -53,7 +49,7 @@ describe("shop logo matching", () => {
 
 // The travel, telecom and delivery entries of scripts/shop-logos/shops.mjs whose spellings could collide, so the
 // matching is tested whether or not their logo files have been downloaded yet.
-const LOGOS: Omit<ShopBrand, "domain">[] = [
+const LOGOS: ShopBrand[] = [
   { slug: "uber", name: "Uber", aliases: ["uber bv", "uber poland", "uber france"] },
   { slug: "uber-eats", name: "Uber Eats", aliases: [] },
   { slug: "bolt", name: "Bolt", aliases: ["bolt operations", "bolt technology"] },
@@ -71,7 +67,7 @@ const LOGOS: Omit<ShopBrand, "domain">[] = [
   { slug: "deliveroo", name: "Deliveroo", aliases: [] },
 ];
 
-const CANDIDATES = buildCandidates(brands(LOGOS));
+const CANDIDATES = buildCandidates(LOGOS);
 const slugOf = (shopName: string) => findShopBrand(shopName, CANDIDATES)?.slug;
 
 describe("findShopBrand for travel, telecom and delivery brands", () => {

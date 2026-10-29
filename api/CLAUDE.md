@@ -79,8 +79,7 @@ and are linked from the section they belong to.
   denial; any handler denying for its own reason reuses that constant. Authorization runs before any file- or
   type-specific 400/404.
 - A route answering with a redirect checks permissions in the body (a 403 JSON body would land in the browser).
-- Unauthenticated by design: username availability, `ConvertToJpg` and `GET /featureConfig` (which carries the
-  Logo.dev publishable key, `shopLogoKey`: public by design, and only a `pk_` key is accepted). Self-service endpoints use `app.account.*`,
+- Unauthenticated by design: username availability, `ConvertToJpg` and `GET /featureConfig`. Self-service endpoints use `app.account.*`,
   `app.user-preferences.*`, `app.notifications.*`, `app.receipts.search`.
 
 ### Visibility layers (rationale: `api/docs/authorization.md`)
@@ -236,6 +235,17 @@ which day an instant falls on and what "today" means.
   (60 products + 60 list items, batched per group and purchase month), shopping trips every 1 min (5 trips), temp files
   hourly, refresh tokens and OIDC sessions daily. Rows are claimed with a conditional UPDATE and a 30-minute lease
   (`claimDue`), so overlapping sweeps never double-process and a dead sweep's row returns.
+- **Shop logos** (`internal/shoplogos`, `services/shop_logos.go`): with the household's Logo.dev secret key
+  (`SystemSettings.ShopLogoKey`, encrypted like the AI keys, `json:"-"`; `ShopLogoSecretKey` treats anything that is
+  not an encrypted `sk_` key as none) the server downloads the logos of the brands in the embedded `brands.json`
+  through `api.logo.dev/v2/brands/logo` (Logo.dev allows self-hosting only from its API, never from the image CDN)
+  into `data/shop-logos/<slug>.png`, one call every 0.7 s (the API allows 100 a minute), PNG only, ≤1 MB, written
+  through a temp file and a rename. `index.json` keeps each brand's ETag and check time: a brand is asked again after
+  30 days and re-downloaded only when its ETag changed; a 404 is remembered, a 202 retried next run. A refused key
+  or rate limiting stops the run; its reason is in `Syncer.Status()` (`GET /shopLogo/status`). Runs: after a key is
+  saved, at API start and daily on the clean-up queue (`system_clean_up:shop_logos`, never retried by the queue);
+  one at a time (`TryLock`). Saving `""` removes the key and the folder. `GET /shopLogo` lists the downloaded brands,
+  `GET /shopLogo/{slug}` serves one (only known slugs become file names), both to any signed-in user.
 - **Outage vs bad answer:** no AI configured means nothing is called and nothing counted. A failed call or unreadable
   answer counts an attempt; extraction and trips give up after 3 (`productExtractionMaxBadAnswers`,
   `shoppingTripMaxBadAnswers`) or 14 days; "Read with AI" and trip retry reset. Classification never fails a product on

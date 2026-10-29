@@ -2,11 +2,15 @@ package repositories
 
 import (
 	"errors"
+	"strings"
+
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"cartvibe/api/internal/commands"
+	config "cartvibe/api/internal/env"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
 )
 
 type SystemSettingsRepository struct {
@@ -56,8 +60,22 @@ func (repository SystemSettingsRepository) GetSystemSettings() (models.SystemSet
 	}
 
 	systemSettings.TaskQueueConfigurations = withMissingQueueConfigurations(systemSettings.TaskQueueConfigurations)
+	systemSettings.ShopLogoKeySet = ShopLogoSecretKey(systemSettings) != ""
 
 	return systemSettings, nil
+}
+
+// ShopLogoSecretKey decrypts the household's Logo.dev secret key; "" when there is none, or when the stored value is
+// not an encrypted secret key (an earlier build kept a publishable key in plain text, which counts as no key).
+func ShopLogoSecretKey(settings models.SystemSettings) string {
+	if settings.ShopLogoKey == "" {
+		return ""
+	}
+	key, err := utils.DecryptB64EncodedData(config.GetEncryptionKey(), settings.ShopLogoKey)
+	if err != nil || !strings.HasPrefix(key, "sk_") {
+		return ""
+	}
+	return key
 }
 
 // withMissingQueueConfigurations returns the persisted queue configurations with a
@@ -138,6 +156,15 @@ func (repository SystemSettingsRepository) UpdateSystemSettings(command commands
 	omittedColumns := append([]string{"TaskQueueConfigurations"}, command.OmittedColumns()...)
 	command.ApplyOmittedValues(existingSettings, &updatedSettings)
 
+	// A sent Logo.dev key is stored encrypted, like the AI keys ("" removes it).
+	if command.ShopLogoKey != nil && updatedSettings.ShopLogoKey != "" {
+		encrypted, err := utils.EncryptAndEncodeToBase64(config.GetEncryptionKey(), updatedSettings.ShopLogoKey)
+		if err != nil {
+			return models.SystemSettings{}, err
+		}
+		updatedSettings.ShopLogoKey = encrypted
+	}
+
 	err = db.Transaction(func(tx *gorm.DB) error {
 		txErr := tx.Model(&updatedSettings).Select("*").Omit(omittedColumns...).Where("id = ?", existingSettings.ID).Updates(&updatedSettings).Error
 		if txErr != nil {
@@ -212,6 +239,7 @@ func (repository SystemSettingsRepository) UpdateSystemSettings(command commands
 		return models.SystemSettings{}, err
 	}
 
+	updatedSettings.ShopLogoKeySet = ShopLogoSecretKey(updatedSettings) != ""
 	return updatedSettings, nil
 }
 

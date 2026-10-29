@@ -19,9 +19,11 @@ All your spending, not only the groceries.
   Museum, Cinema, Events & Concerts, Books, Bills, Phone & Internet, Subscriptions and more. They're added once. A
   category you already have, under any of its names, is never doubled, and one you delete stays deleted.
 - **Shop logos with your own Logo.dev key:** a new System Settings → Shop Logos tab takes the household's free
-  Logo.dev publishable key (it starts with `pk_`; a secret `sk_` key is refused) and explains where to get one. With a
-  key, receipts from about 390 known brands show their logo, loaded by each browser straight from Logo.dev, and the
-  login page shows the "Logos provided by Logo.dev" link Logo.dev's free plan asks for. The known brands now include
+  Logo.dev secret key (it starts with `sk_`; it is stored encrypted, and the publishable `pk_` key is refused) and
+  explains where to get one. With a key, the server downloads the logos of about 390 known brands through Logo.dev's
+  API into its data folder, checks each about once a month, and shows them next to receipts; the tab shows how many
+  are downloaded. Browsers load them from CartVibe, never from Logo.dev, so they work offline. The login page credits
+  Logo.dev while logos are on. The known brands now include
   Uber, Bolt, FreeNow, Ryanair, easyJet, Wizz Air, LOT and other airlines, Royal Caribbean, MSC and Costa cruises,
   Booking.com, Airbnb, Orange, Play, T-Mobile and other telecoms, energy companies, cinemas, streaming services,
   motorway operators, about 60 clothing and shoe brands (Mango, Bershka, Pull&Bear, Mohito, Levi's, Tommy Hilfiger,
@@ -34,8 +36,8 @@ All your spending, not only the groceries.
   a hotel stay or an energy bill becomes one line per service, at the amount paid with its fees, in the right category
   instead of Uncategorized.
 - The Dashboard's Quick Scan button now shows the receipt icon, like Quick Scan everywhere else.
-- **Logos are no longer bundled:** the app and the image carry no logo files any more (Logo.dev's free plan does not
-  allow storing them). Until an admin enters a Logo.dev key, every receipt shows its shop's first letter.
+- **Logos are no longer bundled:** the repository and the image carry no logo files any more. Until an admin enters a
+  Logo.dev key, every receipt shows its shop's first letter.
 - System Settings → General & Currency is now called **Currency & Time Zone**.
 - **Settings → Management:** Manage Categories, Manage Tags, Manage Users and Manage Households are one page with a tab
   for each.

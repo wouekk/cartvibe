@@ -94,9 +94,9 @@ export interface SystemSettings {
      */
     secureCookies?: boolean;
     /**
-     * The household\'s Logo.dev publishable key. With one, browsers load shop logos from img.logo.dev; empty means every receipt shows its shop\'s first letter.
+     * Whether a Logo.dev secret key is saved. The key itself is stored encrypted and never returned; with one the server downloads the shop logos and serves them (GET /shopLogo).
      */
-    shopLogoKey?: string;
+    shopLogoKeySet?: boolean;
 }
 export namespace SystemSettings {
 }

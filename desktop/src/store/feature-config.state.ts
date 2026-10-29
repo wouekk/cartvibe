@@ -9,7 +9,7 @@ import { SetFeatureConfig } from "./feature-config.state.actions";
     enableLocalSignUp: true,
     aiPoweredReceipts: false,
     oidcProviders: [],
-    shopLogoKey: "",
+    shopLogosEnabled: false,
   },
 })
 @Injectable()
@@ -29,11 +29,11 @@ export class FeatureConfigState {
     return state.oidcProviders ?? [];
   }
 
-  /** The Logo.dev publishable key shop logos load with; "" shows every shop's first letter. */
+  /** Whether the server has a Logo.dev key, and so logos to show; without one every shop shows its first letter. */
   @Selector()
-  static shopLogoKey(state: FeatureConfig): string {
+  static shopLogosEnabled(state: FeatureConfig): boolean {
     // Optional chaining: the monogram reads this in every list, also in specs that never register the state.
-    return state?.shopLogoKey ?? "";
+    return !!state?.shopLogosEnabled;
   }
 
   @Selector()
@@ -59,7 +59,7 @@ export class FeatureConfigState {
       // the contract, so a server that predates it sends nothing, and consumers
       // should still get an array to iterate.
       oidcProviders: payload.config?.oidcProviders ?? [],
-      shopLogoKey: payload.config?.shopLogoKey ?? "",
+      shopLogosEnabled: !!payload.config?.shopLogosEnabled,
     });
   }
 }

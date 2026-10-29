@@ -35,7 +35,7 @@ func (service SystemSettingsService) GetFeatureConfig() (structs.FeatureConfig, 
 
 	featureConfig.EnableLocalSignUp = systemSettings.EnableLocalSignUp
 	featureConfig.AiPoweredReceipts = aiPoweredReceipts
-	featureConfig.ShopLogoKey = systemSettings.ShopLogoKey
+	featureConfig.ShopLogosEnabled = systemSettings.ShopLogoKeySet
 
 	providers, err := repositories.NewOidcProviderRepository(service.TX).GetAllEnabledOidcProviders()
 	if err != nil {
