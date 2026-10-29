@@ -13,8 +13,10 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
 - Tiles: Spent (change via `describeChangeAgainst`), Receipts (+ to check), Unhealthy, Not on the list, To buy,
   Warranties (`warrantyCount`, opens `/warranties/group/:groupId`), one per tag marked "Show on the Dashboard".
 - **Warranties ending soon** panel (`warrantiesEndingSoon`): the receipts whose warranty ends between today and two
-  months on (`WARRANTY_ENDING_SOON_MONTHS`), nearest first, with a Days left column ("Today", then `N days`; a week or
-  less in `text-warning-text`). It loads once per group, whatever the period. Unhealthy, Not on the list, tags and real categories open
+  months on (`WARRANTY_ENDING_SOON_MONTHS`), nearest first, one row per product (`warrantyRows` over the list's
+  `warrantyProducts`; the shop and dates on a receipt's first row), and a Days left column ("Today", then `N days`; a
+  week or less in `text-warning-text`). It loads once per group, whatever the period. The Warranties page uses the same
+  rows. Both tables are `table-fixed` so long names end in an ellipsis, and phones drop the monogram and date columns. Unhealthy, Not on the list, tags and real categories open
   `OverviewDetailDialogComponent` ("Other", "Uncategorized", "(Restricted)" do not).
 - **Monthly goal** (`UserPreferences.monthlySpendingGoal`, computed client-side only): edited on the Spent card and in
   User Settings → Budget. Saving sends the whole preferences object (that endpoint replaces it); gated on
