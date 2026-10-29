@@ -59,8 +59,12 @@ type SystemSettings struct {
 	// cookie set over http — turning this on there breaks login. See
 	// services.UseSecureCookies.
 	SecureCookies bool `json:"secureCookies" gorm:"default:false"`
-	// ShopLogoKey is the household's Logo.dev publishable key. With one, browsers load shop logos from
-	// img.logo.dev (nothing is stored on the server, which Logo.dev's free plan does not allow); without
-	// one every receipt shows its shop's first letter. Public by design: FeatureConfig serves it to everyone.
-	ShopLogoKey string `json:"shopLogoKey" gorm:"default:''"`
+	// ShopLogoKey is the household's Logo.dev secret key ("sk_..."), encrypted with ENCRYPTION_KEY like the AI
+	// keys and never sent to a browser. With one, the server downloads the shop logos through Logo.dev's API into
+	// data/shop-logos and serves them itself (package shoplogos); without one every receipt shows its shop's
+	// first letter. A value that does not decrypt to a secret key (a publishable key an earlier build stored in
+	// plain text) counts as no key.
+	ShopLogoKey string `json:"-" gorm:"default:''"`
+	// ShopLogoKeySet tells the settings form a key is saved, without the key. Not a column.
+	ShopLogoKeySet bool `json:"shopLogoKeySet" gorm:"-"`
 }

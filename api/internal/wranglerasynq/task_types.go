@@ -16,4 +16,7 @@ const (
 	// ShoppingTripSweep scans photos uploaded from shopping lists and compares receipts with their
 	// lists (see services.ShoppingTripService). Same queue, same reason.
 	ShoppingTripSweep = "system_clean_up:shopping_trips"
+	// ShopLogoSync downloads the shop logos the server lacks and refreshes month-old ones with the household's
+	// Logo.dev key (see services.SyncShopLogos). Same queue, same reason.
+	ShopLogoSync = "system_clean_up:shop_logos"
 )

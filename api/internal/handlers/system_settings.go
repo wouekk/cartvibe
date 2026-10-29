@@ -84,6 +84,14 @@ func UpdateSystemSettings(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
+			// A new Logo.dev key starts the logo download; removing it removes the logos.
+			if command.ShopLogoKey != nil {
+				if updatedSystemSettings.ShopLogoKeySet {
+					services.StartShopLogoSync()
+				} else if err := services.ClearShopLogos(); err != nil {
+					return http.StatusInternalServerError, err
+				}
+			}
 
 			responseBytes, err := utils.MarshalResponseData(updatedSystemSettings)
 			if err != nil {
