@@ -15,9 +15,11 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
   currency. Git history was rewritten on 2026-10-29 to drop the old logo PNGs (all branches and tags force-pushed):
   re-clone on the Mac. GitHub Support can purge the cached old commits if the user asks them.
 - Also on `main` and `preview`: the server downloads the shop logos with the Logo.dev secret key (System Settings →
-  Shop Logos) into `data/shop-logos` and serves them; browsers no longer contact Logo.dev. Waiting on the user: back
-  up `sqlite`, deploy, their `sk_` key in the tab (a real download is untried; the response shape is from Logo.dev's
-  docs), a taxi or flight Quick Scan with a real AI key; then tag v0.13.0 (agreed). The user is sending GitHub
+  Shop Logos) into `data/shop-logos` and serves them; browsers no longer contact Logo.dev. It works on the NAS but
+  the first version used up the free credits, so now only the shops on the receipts are fetched, a stored logo is
+  never asked about again, the check runs every 12 h, and the tab has Delete logos / Download logos / Save key;
+  removing or switching the key keeps the logos. Waiting on the user: deploy `:latest`, a taxi or flight Quick Scan
+  with a real AI key; then tag v0.13.0 (agreed). Offered, not built: a Stop download button. The user is sending GitHub
   Support the cached-commit purge request. The audit notes (`i18n-audit-en-pl.md`, untracked) are the user's.
 - Seen in a browser on the Windows PC's devstack (Redis stand-in + API + `npm start` run there): the palettes, all 10
   combinations on the Dashboard, the Theme page, phone width. Not yet, check on the NAS or a phone: the Dashboard
