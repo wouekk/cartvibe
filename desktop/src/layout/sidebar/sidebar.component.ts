@@ -30,7 +30,7 @@ import {
   lucideReceiptText,
   lucideSettings,
   lucideShapes,
-  lucideWrench,
+  lucideShieldCheck,
   lucideShoppingCart,
   lucideSlidersHorizontal,
   lucideTag,
@@ -47,7 +47,7 @@ const LUCIDE_ICONS: Record<string, string> = {
   space_dashboard: "lucideLayoutDashboard",
   shopping_cart: "lucideShoppingCart",
   receipt_long: "lucideReceiptText",
-  build: "lucideWrench",
+  verified_user: "lucideShieldCheck",
   insights: "lucideChartLine",
   category: "lucideShapes",
   sell: "lucideTag",
@@ -99,7 +99,7 @@ interface ManageNavItem {
         lucideReceiptText,
         lucideSettings,
         lucideShapes,
-        lucideWrench,
+        lucideShieldCheck,
         lucideShoppingCart,
         lucideSlidersHorizontal,
         lucideTag,
@@ -241,7 +241,7 @@ export class SidebarComponent {
 
     // Its own entry, not under Receipts: the running warranties of the group being browsed.
     if (hasAll(this.selectedGroupPermissions(), Permission.GroupReceiptsRead)) {
-      items.push({ label: "Warranties", icon: "build", link: [this.warrantiesLink()], testId: "nav-warranties" });
+      items.push({ label: "Warranties", icon: "verified_user", link: [this.warrantiesLink()], testId: "nav-warranties" });
     }
 
     if (this.canViewReports()) {
