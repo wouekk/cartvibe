@@ -2,7 +2,6 @@ import { CommonModule } from '@angular/common';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { DatepickerComponent } from './datepicker.component';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('DatepickerComponent', () => {
   let component: DatepickerComponent;
@@ -13,7 +12,6 @@ describe('DatepickerComponent', () => {
       declarations: [DatepickerComponent],
       imports: [
         CommonModule,
-        NoopAnimationsModule,
         ReactiveFormsModule,
       ],
     }).compileComponents();

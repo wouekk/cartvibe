@@ -2,7 +2,6 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
-import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { ActivatedRoute, Router } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of, Subject, throwError } from "rxjs";
@@ -40,8 +39,7 @@ describe("SystemSettingsFormComponent", () => {
         NgxsModule.forRoot([SystemSettingsState, AuthState]),
         PipesModule,
         ReactiveFormsModule,
-        SharedUiModule,
-        NoopAnimationsModule],
+        SharedUiModule],
     providers: [
         provideZonelessChangeDetection(),
         CustomCurrencyPipe,

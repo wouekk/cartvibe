@@ -1,7 +1,6 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormControl } from "@angular/forms";
-import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { NgxsModule } from "@ngxs/store";
 import { of, throwError } from "rxjs";
 import { AiType } from "../../constants/ai-type";
@@ -25,7 +24,7 @@ describe("AiModelFieldComponent", () => {
     keyControl = new FormControl<string | null>("");
 
     await TestBed.configureTestingModule({
-      imports: [AiModelFieldComponent, NgxsModule.forRoot([]), NoopAnimationsModule],
+      imports: [AiModelFieldComponent, NgxsModule.forRoot([])],
       providers: [provideZonelessChangeDetection(), { provide: ReceiptProcessingSettingsService, useValue: service }],
     }).compileComponents();
 

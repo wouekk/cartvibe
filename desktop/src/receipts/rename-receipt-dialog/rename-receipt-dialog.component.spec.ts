@@ -1,7 +1,6 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
-import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { PipesModule } from "../../pipes";
 import { RECEIPT_NAME_MAX_LENGTH, RenameReceiptDialogComponent } from "./rename-receipt-dialog.component";
@@ -16,7 +15,7 @@ describe("RenameReceiptDialogComponent", () => {
     TestBed.configureTestingModule({
       declarations: [RenameReceiptDialogComponent],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      imports: [NoopAnimationsModule, PipesModule, ReactiveFormsModule],
+      imports: [PipesModule, ReactiveFormsModule],
       providers: [{ provide: AppDialogRef, useValue: { close } }],
     });
     fixture = TestBed.createComponent(RenameReceiptDialogComponent);

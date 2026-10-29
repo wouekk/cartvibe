@@ -6,7 +6,6 @@ import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed, } from "@angular/core/testing";
 import { FormArray, FormControl, ReactiveFormsModule } from "@angular/forms";
 import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
-import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { ActivatedRoute } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
@@ -31,7 +30,6 @@ describe("QuickScanDialogComponent", () => {
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
         NgxsModule.forRoot([AuthState, GroupState, LayoutState]),
-        NoopAnimationsModule,
         PipesModule,
         ReactiveFormsModule,
         SharedUiModule],

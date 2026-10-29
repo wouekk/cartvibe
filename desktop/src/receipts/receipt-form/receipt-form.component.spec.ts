@@ -5,7 +5,6 @@ import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { AppDialog } from "../../dialog/app-dialog";
-import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { BehaviorSubject, of } from "rxjs";
@@ -36,7 +35,6 @@ describe("ReceiptFormComponent", () => {
       imports: [ApiModule,
         PipesModule,
         StoreModule,
-        NoopAnimationsModule,
         PipesModule,
         ReactiveFormsModule,
         SharedUiModule

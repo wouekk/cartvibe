@@ -4,7 +4,6 @@ import { CUSTOM_ELEMENTS_SCHEMA, DestroyRef } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
-import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { PipesModule } from "src/pipes/pipes.module";
@@ -74,7 +73,6 @@ describe("ReceiptFilterComponent", () => {
       imports: [PipesModule,
         InputModule,
         StoreModule,
-        NoopAnimationsModule,
         PipesModule,
         ReactiveFormsModule],
       providers: [

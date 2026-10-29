@@ -3,7 +3,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { OptionDisplayPipe } from '../pipes/option-display.pipe';
 import { ReadonlyValuePipe } from '../pipes/readonly-value.pipe';
@@ -22,7 +21,7 @@ describe('SelectComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [SelectComponent, OptionDisplayPipe, ReadonlyValuePipe],
-      imports: [...HlmSelectImports, ...HlmInputImports, ReactiveFormsModule, NoopAnimationsModule],
+      imports: [...HlmSelectImports, ...HlmInputImports, ReactiveFormsModule],
       providers: [OptionDisplayPipe, provideZonelessChangeDetection()],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();

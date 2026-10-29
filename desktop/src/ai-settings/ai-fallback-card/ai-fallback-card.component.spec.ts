@@ -1,6 +1,5 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { NgxsModule } from "@ngxs/store";
 import { of, throwError } from "rxjs";
 import { AiType } from "../../constants/ai-type";
@@ -34,7 +33,7 @@ describe("AiFallbackCardComponent", () => {
     snackbar = { success: jest.fn(), error: jest.fn() };
 
     await TestBed.configureTestingModule({
-      imports: [AiFallbackCardComponent, NgxsModule.forRoot([]), NoopAnimationsModule],
+      imports: [AiFallbackCardComponent, NgxsModule.forRoot([])],
       providers: [
         provideZonelessChangeDetection(),
         { provide: ReceiptProcessingSettingsService, useValue: processingService },

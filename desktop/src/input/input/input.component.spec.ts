@@ -7,7 +7,6 @@ import { HlmButton } from "@spartan-ng/helm/button";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { By } from "@angular/platform-browser";
-import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { NgxsModule } from "@ngxs/store";
 import { NgxMaskDirective, provideNgxMask } from "ngx-mask";
 import { PasswordGeneratorService } from "../../services/password-generator.service";
@@ -33,7 +32,6 @@ describe("InputComponent", () => {
         HlmButton,
         AppIconComponent,
         ...HlmTooltipImports,
-        NoopAnimationsModule,
         ReactiveFormsModule,
         NgxMaskDirective,
         NgxsModule.forRoot([SystemSettingsState]),

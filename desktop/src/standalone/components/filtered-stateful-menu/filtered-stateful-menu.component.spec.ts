@@ -1,6 +1,5 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { ActivatedRoute } from "@angular/router";
 import { ButtonModule } from "../../../button/index";
 import { InputModule } from "../../../input/index";
@@ -25,7 +24,6 @@ describe("FilteredStatefulMenuComponent", () => {
         FilteredStatefulMenuComponent,
         ButtonModule,
         InputModule,
-        NoopAnimationsModule
       ],
       providers: [
         {

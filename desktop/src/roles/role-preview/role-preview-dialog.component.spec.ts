@@ -1,6 +1,5 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 import { of, throwError } from "rxjs";
 import {
@@ -49,7 +48,7 @@ describe("RolePreviewDialogComponent", () => {
   beforeEach(async () => {
     getPermissionsMock = jest.fn().mockReturnValue(of(descriptors));
     await TestBed.configureTestingModule({
-      imports: [RolePreviewDialogComponent, NoopAnimationsModule],
+      imports: [RolePreviewDialogComponent],
       providers: [
         provideZonelessChangeDetection(),
         { provide: AppDialogRef, useValue: { close: jest.fn() } },

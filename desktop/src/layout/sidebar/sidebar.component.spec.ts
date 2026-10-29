@@ -9,7 +9,6 @@ import { HlmCollapsibleImports } from "@spartan-ng/helm/collapsible";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { By } from "@angular/platform-browser";
-import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { Router } from "@angular/router";
 import { RouterTestingModule } from "@angular/router/testing";
 import { NgxsModule, Store } from "@ngxs/store";
@@ -67,7 +66,6 @@ describe("SidebarComponent", () => {
         ...HlmCollapsibleImports,
         ...HlmDropdownMenuImports,
         ...HlmTooltipImports,
-        NoopAnimationsModule,
         RouterTestingModule,
         SharedUiModule,
         ApiModule],

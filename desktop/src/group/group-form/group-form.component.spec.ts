@@ -2,7 +2,6 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { AppDialog } from "../../dialog/app-dialog";
-import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { ActivatedRoute, Router, provideRouter } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
@@ -37,7 +36,6 @@ describe("GroupFormComponent", () => {
         PipesModule,
         InputModule,
         NgxsModule.forRoot([AuthState]),
-        NoopAnimationsModule,
         PipesModule,
         ReactiveFormsModule,
         SelectModule,

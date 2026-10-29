@@ -2,7 +2,6 @@ import { provideHttpClient } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { NgxsModule } from "@ngxs/store";
 import { of, throwError } from "rxjs";
 import { AiType } from "../../constants/ai-type";
@@ -40,7 +39,7 @@ describe("AiSettingsPageComponent", () => {
     snackbar = { success: jest.fn(), error: jest.fn() };
 
     await TestBed.configureTestingModule({
-      imports: [AiSettingsPageComponent, NgxsModule.forRoot([FeatureConfigState]), NoopAnimationsModule],
+      imports: [AiSettingsPageComponent, NgxsModule.forRoot([FeatureConfigState])],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -214,7 +213,7 @@ describe("AiSettingsPageComponent", () => {
         updateSystemSettings: jest.fn(),
       };
       await TestBed.configureTestingModule({
-        imports: [AiSettingsPageComponent, NgxsModule.forRoot([FeatureConfigState]), NoopAnimationsModule],
+        imports: [AiSettingsPageComponent, NgxsModule.forRoot([FeatureConfigState])],
         providers: [
           provideZonelessChangeDetection(),
           provideHttpClient(),
