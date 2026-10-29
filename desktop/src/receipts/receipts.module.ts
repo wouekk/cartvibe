@@ -42,6 +42,7 @@ import { ColumnConfigurationDialogComponent } from "./column-configuration-dialo
 import { QuickScanDialogComponent } from "./quick-scan-dialog/quick-scan-dialog.component";
 import { ReceiptCommentsComponent } from "./receipt-comments/receipt-comments.component";
 import { ReceiptFormComponent } from "./receipt-form/receipt-form.component";
+import { ReceiptWarrantyComponent } from "./receipt-warranty/receipt-warranty.component";
 import { RenameReceiptDialogComponent } from "./rename-receipt-dialog/rename-receipt-dialog.component";
 import { ReceiptsRoutingModule } from "./receipts-routing.module";
 import { ReceiptsTableComponent } from "./receipts-table/receipts-table.component";
@@ -60,6 +61,7 @@ import { ReceiptProductsComponent } from "./receipt-products/receipt-products.co
     QuickScanDialogComponent,
   ],
   imports: [
+    ReceiptWarrantyComponent,
     UploadProgressComponent,
     AutocompleteModule,
     AvatarModule,

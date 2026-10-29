@@ -10,8 +10,11 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
   (`group.receipts.read`) falls back to the receipts list. Each card loads on its own, so a failure blanks one card.
 - `app-period-picker` is the one period control (also on the receipts table, where it sets the Receipt Date filter).
   Requests send `from` / `to` as `yyyy-MM-dd` in the app zone (`overview-period.ts`).
-- Tiles: Spent (change via `describeChangeAgainst`), Receipts (+ to check), Unhealthy, Not on the list, To buy, one per
-  tag marked "Show on the Dashboard". Unhealthy, Not on the list, tags and real categories open
+- Tiles: Spent (change via `describeChangeAgainst`), Receipts (+ to check), Unhealthy, Not on the list, To buy,
+  Warranties (`warrantyCount`, opens `/warranties/group/:groupId`), one per tag marked "Show on the Dashboard".
+- **Warranties ending soon** panel (`warrantiesEndingSoon`): the receipts whose warranty ends between today and two
+  months on (`WARRANTY_ENDING_SOON_MONTHS`), nearest first, with a Days left column ("Today", then `N days`; a week or
+  less in `text-warning-text`). It loads once per group, whatever the period. Unhealthy, Not on the list, tags and real categories open
   `OverviewDetailDialogComponent` ("Other", "Uncategorized", "(Restricted)" do not).
 - **Monthly goal** (`UserPreferences.monthlySpendingGoal`, computed client-side only): edited on the Spent card and in
   User Settings → Budget. Saving sends the whole preferences object (that endpoint replaces it); gated on
@@ -43,6 +46,14 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
 - **Page width:** `--page-max` is set once on the wrapper around the router outlet; pages do not set their own max width.
 
 ## Receipts (`src/receipts/`)
+
+- **Warranty** (`receipt-warranty/`, under the date on the view and edit page): "Add warranty date" opens the picker at
+  the receipt day plus the person's period (`utils/warranty-period.ts`: the chosen 1/2/3/5 years, else Automatic by the
+  Region preference or the browser locale); Change and Remove follow. It saves on its own with `setReceiptWarranty`,
+  never with the form. The first date asks for notification permission (`WebPushService`, which does nothing without a
+  VAPID key, a service worker or permission). Settings → User Preferences → Warranty holds Region, the period
+  ("Automatic (2 years)") and the reminder lead days. `/warranties/group/:groupId` lists running warranties, nearest end
+  first, with days left. Return dates are deliberately not tracked.
 
 - **Table:** Receipt Date (default sort `DEFAULT_RECEIPT_ORDER_BY = "date"`), Shop (`shop_name`: the AI-read shop, else
   the name; sorts that way on the API), Amount, Status, Added by, Comment (opt-in, `first_comment`, the first comment

@@ -117,6 +117,40 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   `UpcastReceiptUpdateDescriptions` from the nearest earlier complete copy, never rewritten.
 - `ReceiptRepository.UpdateReceipt` skips zero values, so an omitted `shopName` is never blanked.
 
+## Warranties
+
+- `receipts.warranty_until` is a calendar day as text (`yyyy-MM-dd`), so `>= today` is a string compare on SQLite. It
+  is written only by `PUT /receipt/{id}/warranty` (null or "" clears it); the full receipt update never touches it, so
+  a form opened before the date was set cannot clear it. `DuplicateReceipt` copies it. Return dates are not tracked on
+  purpose (return rights vary too much to keep correct).
+- Preferences: `region` (ISO 3166-1, "" = the browser's, read by the desktop), `warrantyPeriodYears` (null = Automatic:
+  2 years in the EU states and outermost regions, 1 elsewhere; `services/warranty_period.go`, mirrored in the desktop's
+  `utils/warranty-period.ts`), `warrantyReminderLeadDays` (null = 30, never negative, 0 = on the day). The period only
+  decides where the desktop's picker starts.
+- **Reminders** (`services/warranty_reminders.go`): one `warranty_reminders` row per person and receipt, unique
+  `(user_id, key)` with key `warranty-<receiptId>`, for every member of the receipt's group who passes
+  `GetReceiptForUser` (paid-by and member isolation included). `fire_on = max(today, end − lead)`; an end before today
+  plans nothing. `SyncWarrantyReminders` re-plans one receipt (an upsert that keeps `fired_for`) after the warranty
+  date, a receipt update (group or payer may move) and a duplicate; `SyncWarrantyRemindersForUser` after a preferences
+  save; `SyncAllWarrantyReminders` at start-up. Receipt and user deletion remove the rows explicitly.
+- The `system_clean_up:warranty_reminders` sweep (every minute) drops reminders of ended warranties and, once the app
+  zone is past 09:00, fires due rows: a conditional UPDATE sets `fired_for = warranty_until` and the notification is
+  created in the same transaction, so one receipt and date fires once whatever reruns or re-saves follow; a new date
+  fires again. The notification has no actor and is written in the recipient's language (`i18n.Day`): "Warranty ends
+  12 March" or "today", the shop as body, never the amount, with a receipt link token. A recipient who lost access
+  gets nothing and loses the row.
+- **Web Push** (`services/web_push.go`, `webpush-go`): VAPID keys from `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY`
+  (`VAPID_SUBJECT` optional, e.g. `mailto:you@example.com`; generate the pair once with
+  `npx web-push generate-vapid-keys` and keep it: new keys orphan every subscription); without them push is off and
+  `featureConfig.webPushPublicKey` is "". Push needs HTTPS and the service worker (not `ng serve`). Subscriptions are
+  saved by `POST /notifications/pushSubscription` (and `/remove`), only for https endpoints of the known push services
+  (`pushServiceHosts`; anything else would let a browser make the server call any URL). A 404/410 deletes the
+  subscription. The payload is the Angular service worker's `notification` shape with a `navigateLastFocusedOrOpen`
+  click to the receipt.
+- Lists: the paged receipts filter takes `warrantyActive` (ends today or later) and `warrantyEndsBy` (`yyyy-MM-dd`
+  upper bound), and `orderBy: warranty_until`; `GET /overview/group/{id}` carries `warrantyCount`, read through
+  `GetPagedReceiptsByGroupId`.
+
 ## System tasks and logs
 
 - `getPagedSystemTasks` filters `type`, `ranBy` (`SystemRanByUserId` = -1 for "System", i.e. `IS NULL`), `startedAt`,

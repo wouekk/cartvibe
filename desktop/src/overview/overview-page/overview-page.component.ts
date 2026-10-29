@@ -117,6 +117,14 @@ import {
 import { summarizeShoppingLists } from "../overview-lists";
 import { isWholeCalendarMonth, previousLabel, resolvePeriod, ResolvedPeriod } from "../overview-period";
 import { marker } from "../../i18n/marker";
+import { formatDateInput, parseDateInput } from "../../datepicker/date-input.directive";
+import { addCalendarMonths, daysBetween, WARRANTY_ENDING_SOON_MONTHS } from "../../utils/warranty-period";
+
+/** A row of the warranties panel: the receipt and the whole days until its warranty ends. */
+interface WarrantyRow {
+  receipt: Receipt;
+  daysLeft: number;
+}
 
 /** Receipts listed per height step of the receipts panel. */
 const RECENT_RECEIPT_COUNT = 6;
@@ -362,6 +370,43 @@ export class OverviewPageComponent {
       )
     ),
     { initialValue: [] as Receipt[] }
+  );
+
+  /** Today in the app time zone, "yyyy-MM-dd": the warranty panel counts its days left from it. */
+  private readonly appToday = computed(() => formatDateInput(todayInZone(this.store.selectSnapshot(SystemSettingsState.timeZone))));
+
+  /**
+   * Warranties ending in the next two months, nearest first, whatever the period picked: what is still covered and
+   * soon will not be. Each row carries its days left (0 is today).
+   */
+  public readonly warrantiesEndingSoon = toSignal(
+    toObservable(computed(() => (this.request() ? this.groupId() : undefined))).pipe(
+      switchMap((groupId) => {
+        if (groupId === undefined) {
+          return of([] as WarrantyRow[]);
+        }
+        const today = this.appToday();
+        const endsBy = formatDateInput(addCalendarMonths(parseDateInput(today) ?? new Date(), WARRANTY_ENDING_SOON_MONTHS));
+        return this.receiptService
+          .getReceiptsForGroup(groupId, {
+            page: 1,
+            pageSize: 50,
+            orderBy: "warranty_until",
+            sortDirection: SortDirection.Asc,
+            filter: { warrantyActive: true, warrantyEndsBy: endsBy },
+          })
+          .pipe(
+            map((page) =>
+              (page.data as unknown as Receipt[]).map((receipt) => ({
+                receipt,
+                daysLeft: daysBetween(today, receipt.warrantyUntil) ?? 0,
+              }))
+            ),
+            catchError(() => of([] as WarrantyRow[]))
+          );
+      })
+    ),
+    { initialValue: [] as WarrantyRow[] }
   );
 
   /** The scroll box height: the header and the visible rows (2.5rem + a hairline each), or null when they all fit. */
@@ -884,7 +929,7 @@ export class OverviewPageComponent {
 
   /** The panels this person can have: the shopping ones need a readable list group, a tag needs "Show on the Dashboard". */
   public readonly availablePanels = computed(() => {
-    const ids = ["spent", "receipts", "unhealthy", "unplanned", "categories", "trend", "recentReceipts"];
+    const ids = ["spent", "receipts", "unhealthy", "unplanned", "categories", "trend", "recentReceipts", "warranties", "warrantiesEndingSoon"];
     if (this.shoppingListGroupId() !== undefined) {
       ids.push("toBuy", "shoppingList");
     }

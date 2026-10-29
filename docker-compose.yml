@@ -32,6 +32,12 @@ services:
       # 1026 and 100). Left unset, the image's own user is tried, and the API falls back to root if the folders refuse it.
       - PUID=${PUID:-}
       - PGID=${PGID:-}
+      # Optional: warranty reminders as device notifications (Web Push). Generate the pair once
+      # (npx web-push generate-vapid-keys) and keep it; left empty, reminders stay in the app's notifications.
+      # Device notifications also need the app served over HTTPS.
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY:-}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY:-}
+      - VAPID_SUBJECT=${VAPID_SUBJECT:-}
     volumes:
       - /volume2/docker/cartvibe/sqlite:/app/cartvibe-api/sqlite
       - /volume2/docker/cartvibe/data:/app/cartvibe-api/data

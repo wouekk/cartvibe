@@ -683,7 +683,7 @@ describe("OverviewPageComponent", () => {
       component.period.set({ from: "2025-01-01", to: "2025-01-31", label: "January 2025" });
       await fixture.whenStable();
 
-      expect(panelOrder()).toEqual(["spent", "receipts", "unhealthy", "unplanned", "categories", "trend", "recentReceipts"]);
+      expect(panelOrder()).toEqual(["spent", "receipts", "unhealthy", "unplanned", "warranties", "categories", "trend", "recentReceipts", "warrantiesEndingSoon"]);
       // The router directives are not loaded here (the shop name link has no href either); the date is now a link.
       const dateLink = fixture.nativeElement.querySelector('[data-testid="overview-receipt-date-link"]') as HTMLAnchorElement;
       expect(dateLink.tagName).toBe("A");
@@ -708,6 +708,42 @@ describe("OverviewPageComponent", () => {
       expect(trend.getAttribute("data-span")).toBe("6");
     });
 
+    it("lists the warranties ending in the next two months, nearest first, with the days left", async () => {
+      const today = toDayKey(todayInZone(TestBed.inject(Store).selectSnapshot(SystemSettingsState.timeZone)));
+      const inDays = (days: number) => {
+        const [year, month, day] = today.split("-").map(Number);
+        return toDayKey(new Date(year, month - 1, day + days));
+      };
+      receiptService.getReceiptsForGroup.mockImplementation((_groupId: number, command: { filter?: { warrantyActive?: boolean } }) =>
+        of(
+          command.filter?.warrantyActive
+            ? {
+                data: [
+                  { id: 5, name: "Kettle", shopName: "Media Expert", date: "2025-01-03", warrantyUntil: today, amount: "1", status: "OPEN" },
+                  { id: 6, name: "Phone", shopName: "", date: "2025-01-03", warrantyUntil: inDays(12), amount: "1", status: "OPEN" },
+                ],
+                totalCount: 2,
+              }
+            : { data: [], totalCount: 0 }
+        )
+      );
+      // The panel loads once per group, so it needs a component created after the answer is set up.
+      fixture = TestBed.createComponent(OverviewPageComponent);
+      component = fixture.componentInstance;
+      await fixture.whenStable();
+      component.period.set({ from: "2025-01-01", to: "2025-01-31", label: "January 2025" });
+      await fixture.whenStable();
+
+      const request = receiptService.getReceiptsForGroup.mock.calls.find(([, command]) => command.filter?.warrantyActive)?.[1];
+      expect(request).toEqual(
+        expect.objectContaining({ orderBy: "warranty_until", sortDirection: "asc", filter: { warrantyActive: true, warrantyEndsBy: expect.any(String) } })
+      );
+      const daysLeft = Array.from(
+        fixture.nativeElement.querySelectorAll('[data-testid="overview-warranty-days-left"]') as NodeListOf<HTMLElement>
+      ).map((cell) => cell.textContent?.trim().replace(/\s+/g, " "));
+      expect(daysLeft).toEqual(["Today", "12 days"]);
+    });
+
     it("gives a tag shown on the Dashboard its own panel next to the KPI tiles", async () => {
       overviewService.getGroupOverview.mockImplementation((_groupId: number, _month: string, from: string, to: string) =>
         of({ ...overview(from, to), tags: [{ tagId: 7, name: "Party", total: "23", previousTotal: "10" }] })
@@ -715,7 +751,7 @@ describe("OverviewPageComponent", () => {
       component.period.set({ from: "2025-01-01", to: "2025-12-31", label: "2025" });
       await fixture.whenStable();
 
-      expect(panelOrder().indexOf("tag:7")).toBe(panelOrder().indexOf("unplanned") + 1);
+      expect(panelOrder().indexOf("tag:7")).toBe(panelOrder().indexOf("warranties") + 1);
       expect(component.panelLabel("tag:7")).toBe("Party");
     });
 

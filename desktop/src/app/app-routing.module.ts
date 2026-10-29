@@ -64,6 +64,12 @@ const routes: Routes = [
         canActivate: [AuthGuard],
       },
       {
+        // Group-scoped like the receipts list; the API applies the receipt read rules to what it lists.
+        path: "warranties/group/:groupId",
+        loadComponent: () => import("../warranties/warranties-page.component").then((m) => m.WarrantiesPageComponent),
+        canActivate: [AuthGuard],
+      },
+      {
         path: "settings",
         loadChildren: () =>
           import("../settings/settings.module").then((m) => m.SettingsModule),

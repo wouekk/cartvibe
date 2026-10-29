@@ -1,0 +1,53 @@
+<div class="flex flex-col gap-6">
+  <app-table-header
+    [headerText]="'Warranties' | t"
+    [subtitle]="'Purchases still under warranty, the nearest end first.' | t"
+  ></app-table-header>
+
+  @if (rows(); as rows) {
+    @if (rows.length > 0) {
+      <section class="rounded-xl border border-border/70 bg-card">
+        <div class="overflow-x-auto">
+          <table hlmTable class="w-full" data-testid="warranties-list">
+            <thead>
+              <tr hlmTr>
+                <th hlmTh scope="col">{{ 'Shop' | t }}</th>
+                <th hlmTh scope="col" class="max-sm:hidden">{{ 'Bought' | t }}</th>
+                <th hlmTh scope="col">{{ 'Warranty until' | t }}</th>
+                <th hlmTh scope="col" class="text-right">{{ 'Days left' | t }}</th>
+              </tr>
+            </thead>
+            <tbody hlmTBody>
+              @for (row of rows; track row.receipt.id) {
+                <tr hlmTr>
+                  <td hlmTd class="font-semibold">
+                    <span class="inline-flex min-w-0 items-center gap-2">
+                      <app-shop-monogram [name]="row.receipt.shopName || row.receipt.name"></app-shop-monogram>
+                      <a class="min-w-0 break-words" [routerLink]="['/receipts', row.receipt.id, 'view']">{{ row.receipt.shopName || row.receipt.name }}</a>
+                    </span>
+                  </td>
+                  <td hlmTd class="whitespace-nowrap text-muted-foreground max-sm:hidden">{{ row.receipt.date | appDate : "MMM d, y" : "calendar" }}</td>
+                  <td hlmTd class="whitespace-nowrap" data-testid="warranty-until">{{ row.receipt.warrantyUntil | appDate : "MMM d, y" : "calendar" }}</td>
+                  <td hlmTd class="text-right font-semibold tabular-nums" [class.text-warning-text]="row.daysLeft <= 7" data-testid="warranty-days-left">
+                    @if (row.daysLeft === 0) {
+                      {{ 'Today' | t }}
+                    } @else {
+                      {{ row.daysLeft }} {{ row.daysLeft | plural: 'day' : 'days' }}
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    } @else {
+      <div class="flex flex-col items-center gap-3 rounded-xl border border-dashed py-10" data-testid="warranties-empty">
+        <span class="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
+          <app-icon name="verified_user"></app-icon>
+        </span>
+        <p class="m-0 text-sm text-muted-foreground">{{ 'No warranties running. Add a warranty date on a receipt to see it here.' | t }}</p>
+      </div>
+    }
+  }
+</div>

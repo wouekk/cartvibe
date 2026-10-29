@@ -14,6 +14,15 @@ All your spending, not only the groceries.
 > logos then show only after an admin enters a Logo.dev key under System Settings → Shop Logos.
 
 ### Added
+- **Warranties:** a receipt can carry the day its warranty ends. **Add warranty date** on the receipt starts the
+  picker at the purchase day plus your warranty period: Automatic is 2 years in the EU (the legal minimum) and 1 year
+  elsewhere, or pick 1, 2, 3 or 5 years under Settings → User Preferences → Warranty, next to your region and how many
+  days ahead you want a reminder (30 unless you change it; 0 is on the day). Everyone in the household who can see the
+  receipt is reminded once at 09:00 on that day, in the app's notifications and, if you allow it when you add your
+  first date, as a notification on the device (the server needs VAPID keys for that; see `api/docs/domain.md` → Warranties). The
+  reminder names the shop, never the amount. A **Warranties** tile and a **Warranties ending soon** panel on the
+  Dashboard (the next two months, with the days left) open the full list of running warranties. Return dates are not
+  tracked on purpose: return rights differ too much from shop to shop.
 - **Starter categories:** besides groceries, CartVibe now starts with categories for everyday spending: Restaurant,
   Takeaway & Delivery, Taxi, Public Transport, Parking, Highway Tolls, Airlines, Trains, Cruises, Hotels, Travel,
   Museum, Cinema, Events & Concerts, Books, Bills, Phone & Internet, Subscriptions and more. They're added once. A
