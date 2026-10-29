@@ -24,7 +24,7 @@ describe("CopyButtonComponent", () => {
   });
 
   it("writes text to clipboard and emits copied on success", async () => {
-    const writeText = vi.fn<Promise<void>, [string]>().mockResolvedValue(undefined);
+    const writeText = vi.fn<(text: string) => Promise<void>>().mockResolvedValue(undefined);
     const originalClipboard = (navigator as any).clipboard;
     (navigator as any).clipboard = { writeText };
 
@@ -43,7 +43,7 @@ describe("CopyButtonComponent", () => {
   });
 
   it("does not emit copied when writeText rejects", async () => {
-    const writeText = vi.fn<Promise<void>, [string]>().mockRejectedValue(new Error("blocked"));
+    const writeText = vi.fn<(text: string) => Promise<void>>().mockRejectedValue(new Error("blocked"));
     const originalClipboard = (navigator as any).clipboard;
     (navigator as any).clipboard = { writeText };
 

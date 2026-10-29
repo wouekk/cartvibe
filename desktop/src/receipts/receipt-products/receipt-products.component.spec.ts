@@ -9,16 +9,20 @@ import { SystemSettingsState } from "../../store/system-settings.state";
 import { ReceiptProductsComponent } from "./receipt-products.component";
 
 import type { Mock } from "vitest";
-const view = (overrides: Partial<ReceiptProductsView>): ReceiptProductsView => ({
-  status: "DONE",
-  lastError: "",
-  products: [],
-  ...overrides,
-});
+// Fixtures list only the fields a test cares about, so the products are typed loosely here.
+type ViewOverrides = Omit<Partial<ReceiptProductsView>, "products"> & { products?: Partial<ReceiptProductsView["products"][number]>[] };
+
+const view = (overrides: ViewOverrides): ReceiptProductsView =>
+  ({
+    status: "DONE",
+    lastError: "",
+    products: [],
+    ...overrides,
+  }) as ReceiptProductsView;
 
 describe("ReceiptProductsComponent", () => {
   let fixture: ComponentFixture<ReceiptProductsComponent>;
-  let service: { [method: string]: Mock };
+  let service: Record<"getReceiptProducts" | "readReceiptProducts" | "addReceiptProduct" | "updateReceiptProduct" | "deleteReceiptProduct" | "setReceiptProductLabels", Mock>;
 
   const element = (testId: string): HTMLElement | null =>
     fixture.nativeElement.querySelector(`[data-testid="${testId}"]`);

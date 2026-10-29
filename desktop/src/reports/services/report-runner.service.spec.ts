@@ -2,11 +2,12 @@ import { provideZonelessChangeDetection } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { of } from "rxjs";
 import { PagedRequestCommand, ReportRequestCommand, ReportService } from "../../open-api";
-import { downloadFile } from "../../utils/file";
 import { ReportRunnerService, reportFilename } from "./report-runner.service";
 
-import type { Mock } from "vitest";
-vi.mock("../../utils/file", () => ({ downloadFile: vi.fn() }));
+import type { Mock, MockInstance } from "vitest";
+// The Angular unit-test builder does not support vi.mock of relative modules, so the real downloadFile runs
+// and is observed at the browser boundary: the object URL it creates and the anchor it clicks.
+const downloadFile = vi.fn();
 
 function command(name: string, formats: ReportRequestCommand.FormatsEnum[]): ReportRequestCommand {
   return {
@@ -49,9 +50,25 @@ describe("ReportRunnerService", () => {
     generateReportFromTemplate: Mock;
   };
   let service: ReportRunnerService;
+  let originalCreateObjectURL: typeof URL.createObjectURL;
+  let clickSpy: MockInstance;
+
+  afterEach(() => {
+    URL.createObjectURL = originalCreateObjectURL;
+    clickSpy.mockRestore();
+  });
 
   beforeEach(() => {
-    (downloadFile as Mock).mockClear();
+    downloadFile.mockClear();
+    originalCreateObjectURL = URL.createObjectURL;
+    let lastBlob: Blob | undefined;
+    URL.createObjectURL = vi.fn((blob: Blob) => {
+      lastBlob = blob;
+      return "blob:report";
+    });
+    clickSpy = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (this: HTMLAnchorElement) {
+      downloadFile(lastBlob, this.getAttribute("download"));
+    });
     reportService = {
       createReportTemplate: vi.fn(() => of({ id: 1 })),
       updateReportTemplate: vi.fn(() => of({ id: 2 })),

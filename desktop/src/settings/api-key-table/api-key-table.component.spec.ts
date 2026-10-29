@@ -19,8 +19,8 @@ describe("ApiKeyTableComponent", () => {
   let fixture: ComponentFixture<ApiKeyTableComponent>;
   let store: Store;
 
-  const ownKey = { id: 1, userId: 7 } as ApiKeyView;
-  const otherKey = { id: 2, userId: 99 } as ApiKeyView;
+  const ownKey = { id: 1, userId: 7 } as unknown as ApiKeyView;
+  const otherKey = { id: 2, userId: 99 } as unknown as ApiKeyView;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

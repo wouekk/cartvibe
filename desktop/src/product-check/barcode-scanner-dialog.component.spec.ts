@@ -3,10 +3,15 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppDialogRef } from "../dialog/app-dialog";
 import { BarcodeImageService } from "./barcode-image.service";
 import { BarcodeScannerDialogComponent } from "./barcode-scanner-dialog.component";
-import * as scannerModule from "./barcode-scanner.service";
 import { BarcodeScannerService } from "./barcode-scanner.service";
 
 import type { Mock } from "vitest";
+
+// canUseCamera() reads these two globals; an ES module namespace cannot be spied on, so the specs set them instead.
+const originalSecureContext = Object.getOwnPropertyDescriptor(globalThis, "isSecureContext");
+const setSecureContext = (value: boolean) =>
+  Object.defineProperty(globalThis, "isSecureContext", { value, configurable: true, writable: true });
+
 describe("BarcodeScannerDialogComponent", () => {
   let fixture: ComponentFixture<BarcodeScannerDialogComponent>;
   let close: Mock;
@@ -25,7 +30,7 @@ describe("BarcodeScannerDialogComponent", () => {
     decode = vi.fn();
     getUserMedia = vi.fn().mockResolvedValue({ getTracks: () => [track] });
     Object.defineProperty(globalThis.navigator, "mediaDevices", { value: { getUserMedia }, configurable: true });
-    vi.spyOn(scannerModule, "canUseCamera").mockReturnValue(true);
+    setSecureContext(true);
     vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
 
     await TestBed.configureTestingModule({
@@ -51,6 +56,11 @@ describe("BarcodeScannerDialogComponent", () => {
   afterEach(() => {
     vi.restoreAllMocks();
     delete (globalThis.navigator as any).mediaDevices;
+    if (originalSecureContext) {
+      Object.defineProperty(globalThis, "isSecureContext", originalSecureContext);
+    } else {
+      delete (globalThis as any).isSecureContext;
+    }
   });
 
   const start = async () => {
@@ -124,7 +134,7 @@ describe("BarcodeScannerDialogComponent", () => {
     });
 
     it("is offered without a secure context, with a message when the photo has no barcode", async () => {
-      vi.spyOn(scannerModule, "canUseCamera").mockReturnValue(false);
+      setSecureContext(false);
       decode.mockResolvedValue(null);
       await start();
       fixture.detectChanges();
@@ -146,7 +156,7 @@ describe("BarcodeScannerDialogComponent", () => {
   });
 
   it("is unavailable without a secure context", async () => {
-    vi.spyOn(scannerModule, "canUseCamera").mockReturnValue(false);
+    setSecureContext(false);
 
     await start();
 

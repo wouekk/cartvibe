@@ -4,7 +4,7 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
-import { of, Subject, throwError } from "rxjs";
+import { config, of, Subject, throwError } from "rxjs";
 import { AppDialog } from "../../dialog/app-dialog";
 import { AutocompleteModule } from "../../autocomplete/autocomplete.module";
 import { CheckboxModule } from "../../checkbox/checkbox.module";
@@ -24,7 +24,7 @@ import { SystemSettingsFormComponent } from "./system-settings-form.component";
 import { SAVED_KEY_PLACEHOLDER } from "../../ai-settings/ai-settings-shared";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 
-import type { MockInstance } from "vitest";
+import { onTestFinished, type MockInstance } from "vitest";
 describe("SystemSettingsFormComponent", () => {
   let component: SystemSettingsFormComponent;
   let fixture: ComponentFixture<SystemSettingsFormComponent>;
@@ -71,6 +71,9 @@ describe("SystemSettingsFormComponent", () => {
     fixture = TestBed.createComponent(SystemSettingsFormComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+    // ngAfterViewInit defers a scroll-to-alert to a timer; let it run before a test raises the restart alert,
+    // otherwise it fires later against a view that has not rendered the alert and throws (Vitest reports that).
+    await new Promise((resolve) => setTimeout(resolve));
   });
 
   it("should create", () => {
@@ -609,7 +612,12 @@ describe("SystemSettingsFormComponent", () => {
       expect(store.selectSnapshot(SystemSettingsState.timeZone)).toEqual("America/New_York");
     });
 
-    it("does not dispatch a zone the server rejected", () => {
+    it("does not dispatch a zone the server rejected", async () => {
+      // The component leaves the failure to the interceptor, so RxJS reports it as unhandled on a timer; absorb it.
+      config.onUnhandledError = () => {};
+      onTestFinished(() => {
+        config.onUnhandledError = null;
+      });
       const systemSettingsService = TestBed.inject(SystemSettingsService);
       vi
         .spyOn(systemSettingsService, "updateSystemSettings")
@@ -621,6 +629,7 @@ describe("SystemSettingsFormComponent", () => {
       component.submit();
 
       expect(dispatchSpy).not.toHaveBeenCalledWith(new SetTimeZone("America/New_York"));
+      await new Promise((resolve) => setTimeout(resolve));
     });
   });
 
@@ -734,7 +743,7 @@ describe("SystemSettingsFormComponent", () => {
         .mockReturnValue(of({ shopLogoKeySet: true } as any));
       component.form.markAsDirty();
       component.submit();
-      return spy.mock.calls[0][0] as Record<string, unknown>;
+      return spy.mock.calls[0][0] as unknown as Record<string, unknown>;
     };
 
     it("leaves a saved key alone unless one is typed", () => {

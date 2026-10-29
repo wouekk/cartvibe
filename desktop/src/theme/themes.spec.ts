@@ -2,7 +2,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { PALETTES } from "./themes";
 
-const THEMES_DIR = join(__dirname, "..", "themes");
+const THEMES_DIR = join(process.cwd(), "src", "themes");
 
 interface Block {
   selectors: string[];

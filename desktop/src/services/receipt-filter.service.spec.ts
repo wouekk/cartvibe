@@ -59,7 +59,7 @@ describe("ReceiptFilterService", () => {
 
       expect(command.filter.createdAt.value).toEqual(["2026-09-01", "2026-09-30"]);
       expect(command.filter.date.value).toBe("2026-09-15");
-      expect(store.selectSnapshot(ReceiptTableState.filterData).filter.createdAt.value[0]).toEqual(
+      expect((store.selectSnapshot(ReceiptTableState.filterData).filter as any).createdAt.value[0]).toEqual(
         new Date(2026, 8, 1)
       );
     });

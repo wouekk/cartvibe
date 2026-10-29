@@ -155,7 +155,7 @@ describe("HeaderComponent", () => {
   it("should not fetch the notification count without app.notifications.read", async () => {
     const countSpy = vi
       .spyOn(notificationsService, "getNotificationCount")
-      .mockReturnValue(of(0));
+      .mockReturnValue(of(0) as any);
 
     logIn();
     await fixture.whenStable();
@@ -166,7 +166,7 @@ describe("HeaderComponent", () => {
   it("should fetch the notification count once permission is present", async () => {
     const countSpy = vi
       .spyOn(notificationsService, "getNotificationCount")
-      .mockReturnValue(of(3));
+      .mockReturnValue(of(3) as any);
 
     logIn();
     grantNotificationsRead();

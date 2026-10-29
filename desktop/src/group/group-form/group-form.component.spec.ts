@@ -64,7 +64,7 @@ describe("GroupFormComponent", () => {
     component = fixture.componentInstance;
     Object.defineProperty(component, 'table', {
       value: () => ({
-        sort: () => new MatSort(),
+        sort: () => ({}),
       }),
       configurable: true,
     });
@@ -393,7 +393,7 @@ describe("GroupFormComponent", () => {
     component.ngOnInit();
     component.ngAfterViewInit();
 
-    updateSpy.mockReturnValue(of({ id: 1 } as Group));
+    updateSpy.mockReturnValue(of({ id: 1 } as Group) as any);
 
     component.submit();
 

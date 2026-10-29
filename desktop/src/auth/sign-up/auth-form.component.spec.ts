@@ -18,6 +18,7 @@ import { AppInitService } from '../../services/app-init.service';
 import { SnackbarService } from '../../services/snackbar.service';
 import { SignInTransitionService } from '../../services/sign-in-transition.service';
 import { AuthForm } from './auth-form.component';
+import { CartVibeLogoComponent } from '../../shared-ui/cartvibe-logo/cartvibe-logo.component';
 import { AuthState } from '../../store/auth.state';
 import { FeatureConfigState } from '../../store/feature-config.state';
 import { GroupState } from '../../store/group.state';
@@ -34,6 +35,7 @@ describe('AuthForm', () => {
     await TestBed.configureTestingModule({
     declarations: [AuthForm, FeatureDirective],
     imports: [ButtonModule,
+        CartVibeLogoComponent,
         InputModule,
         NgxsModule.forRoot([AuthState, FeatureConfigState, GroupState]),
         PipesModule,

@@ -3,6 +3,7 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { HlmButton } from "@spartan-ng/helm/button";
+import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { provideRouter, RouterLink } from "@angular/router";
@@ -37,7 +38,7 @@ const doneTrip: ShoppingTripView = {
 
 describe("ShoppingTripsComponent", () => {
   let fixture: ComponentFixture<ShoppingTripsComponent>;
-  let shoppingListService: { [method: string]: Mock };
+  let shoppingListService: Record<"getShoppingTrips" | "uploadShoppingTripPhoto", Mock>;
 
   const element = (testId: string): HTMLElement | null =>
     fixture.nativeElement.querySelector(`[data-testid="${testId}"]`);
@@ -61,6 +62,7 @@ describe("ShoppingTripsComponent", () => {
       imports: [
         NgxsModule.forRoot([AuthState, ShoppingListState, SystemSettingsState]),
         HlmButton,
+        ...HlmDropdownMenuImports,
         AppIconComponent,
         PipesModule,
         RouterLink,

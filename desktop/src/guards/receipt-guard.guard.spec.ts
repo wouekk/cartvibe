@@ -2,7 +2,7 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
 import { CanActivateFn } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
-import { Observable, of, take, tap } from "rxjs";
+import { firstValueFrom, Observable, of } from "rxjs";
 import { ApiModule, Permission, ReceiptService } from "../open-api";
 import { receiptGuardGuard } from "./receipt-guard.guard";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
@@ -45,7 +45,7 @@ describe("receiptGuardGuard", () => {
     expect(spy).toHaveBeenCalledWith(1, Permission.GroupReceiptsRead);
   });
 
-  it("should allow the user through", (done) => {
+  it("should allow the user through", async () => {
     vi.spyOn(receiptService, "hasAccessToReceipt").mockReturnValue(
       of(true) as any
     );
@@ -58,15 +58,11 @@ describe("receiptGuardGuard", () => {
       },
     };
 
-    (executeGuard(route, {} as any) as Observable<boolean>)
-      .pipe(
-        take(1),
-        tap((result) => {
-          expect(result).toEqual(true);
-          done();
-        })
-      )
-      .subscribe();
+    const result = await firstValueFrom(
+      executeGuard(route, {} as any) as Observable<boolean>
+    );
+
+    expect(result).toEqual(true);
   });
 
   // TODO: Fix this test

@@ -120,7 +120,37 @@
             "exclude": [
               "src/open-api/**"
             ],
-            "watch": false
+            "watch": false,
+            "runnerConfig": "vitest.config.ts",
+            "isolate": true
+          },
+          "configurations": {
+            "ci": {
+              "coverage": true,
+              "coverageReporters": [
+                "html",
+                "lcov",
+                "cobertura",
+                "text-summary"
+              ],
+              "coverageInclude": [
+                "src/**/*.ts"
+              ],
+              "coverageExclude": [
+                "src/**/*.d.ts",
+                "src/**/*.spec.ts",
+                "src/main.ts",
+                "src/open-api/**",
+                "src/environments/**",
+                "src/testing/**"
+              ],
+              "coverageThresholds": {
+                "statements": 1,
+                "branches": 1,
+                "functions": 1,
+                "lines": 1
+              }
+            }
           }
         }
       }

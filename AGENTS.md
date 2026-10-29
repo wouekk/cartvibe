@@ -37,7 +37,7 @@ are offered; the UI ships in five languages.
 `DESIGN.md` describes the look; it applies to every UI change, in day and night, in every palette. It has priority over a
 request until the user says otherwise: when a request would deviate from it, pause and ask before implementing. A future
 platform or business idea mentioned for context is not a request to change the look. Before calling UI work done:
-build, run Jest, and check desktop and phone widths in day and night (Zinc plus an accent palette).
+build, run the specs, and check desktop and phone widths in day and night (Zinc plus an accent palette).
 
 ## Infrastructure
 

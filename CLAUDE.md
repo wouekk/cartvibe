@@ -14,8 +14,8 @@ The look of every UI change: `DESIGN.md`. Local toolchains and manual steps: `do
 
 - Work on `feature/<name>` from `main`, or on `preview` when the user says so. Agents merge finished work into `preview`.
   **IMPORTANT:** merging or pushing to `main` waits for the user's go.
-- CI (`ci.yml`) runs on `main` and `feature/**` only: Go build + tests, desktop Jest and `ng build` (Jest compiles with
-  isolated modules, so type and template errors only show in the build). CI is the judge; never claim tests passed that
+- CI (`ci.yml`) runs on `main` and `feature/**` only: Go build + tests, desktop Vitest and `ng build` (the spec build compiles
+  components JIT, so template errors only show in the build). CI is the judge; never claim tests passed that
   did not run. The Playwright e2e specs need a live API and run nowhere yet.
 - A `swagger.yml` change pushed on `feature/**` regenerates `desktop/src/open-api/` and commits it; pull, then build the
   desktop against the generated names.

@@ -6,7 +6,7 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppDialog } from "../../dialog/app-dialog";
 import { TableDataSource } from "../../table/table-types";
 import { By } from "@angular/platform-browser";
-import { provideRouter } from "@angular/router";
+import { provideRouter, RouterLink } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
@@ -34,6 +34,7 @@ describe("GroupTableComponent", () => {
     await TestBed.configureTestingModule({
       declarations: [GroupTableComponent],
       imports: [TranslatePipe, 
+        RouterLink,
         ApiModule,
         ButtonModule,
         DirectivesModule,

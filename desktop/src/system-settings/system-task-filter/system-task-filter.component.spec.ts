@@ -110,7 +110,7 @@ describe("SystemTaskFilterComponent", () => {
   });
 
   it("dispatches the filter and closes with true on submit", () => {
-    const dispatchSpy = vi.spyOn(store, "dispatch").mockReturnValue(of({}));
+    const dispatchSpy = vi.spyOn(store, "dispatch").mockReturnValue(of({}) as any);
     const closeSpy = vi.spyOn(TestBed.inject(AppDialogRef<SystemTaskFilterComponent>), "close");
 
     component.parentForm = buildSystemTaskFilterForm(filledFilter, destroyRef);

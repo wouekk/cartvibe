@@ -48,8 +48,7 @@ describe("PasswordGeneratorService", () => {
   });
 
   it("writes the password to the clipboard and toasts success", async () => {
-    const writeText = vi
-      .fn<Promise<void>, [string]>()
+    const writeText = vi.fn<(text: string) => Promise<void>>()
       .mockResolvedValue(undefined);
     (navigator as any).clipboard = { writeText };
 
@@ -64,8 +63,7 @@ describe("PasswordGeneratorService", () => {
 
   it("toasts an error when the clipboard write is rejected", async () => {
     (navigator as any).clipboard = {
-      writeText: vi
-        .fn<Promise<void>, [string]>()
+      writeText: vi.fn<(text: string) => Promise<void>>()
         .mockRejectedValue(new Error("blocked")),
     };
 

@@ -130,7 +130,7 @@ describe("OverviewPageComponent", () => {
   });
 
   it("starts the product checker from the Check product button", () => {
-    const start = vi.spyOn(TestBed.inject(ProductCheckLauncher), "start").mockImplementation();
+    const start = vi.spyOn(TestBed.inject(ProductCheckLauncher), "start").mockImplementation(() => undefined);
 
     component.scanProduct();
 
@@ -668,7 +668,7 @@ describe("OverviewPageComponent", () => {
 
   describe("panel layout", () => {
     const panelOrder = (): string[] =>
-      Array.from(fixture.nativeElement.querySelectorAll<HTMLElement>('[data-testid^="dashboard-panel-"][data-span]')).map(
+      Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('[data-testid^="dashboard-panel-"][data-span]')).map(
         (panel) => panel.getAttribute("data-testid")!.replace("dashboard-panel-", "")
       );
 

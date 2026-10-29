@@ -1,6 +1,6 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute, RouterLink } from "@angular/router";
 import { ButtonModule } from "../../button";
 import { AddButtonComponent } from "./add-button.component";
 
@@ -11,7 +11,7 @@ describe("AddButtonComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [AddButtonComponent],
-      imports: [ButtonModule],
+      imports: [ButtonModule, RouterLink],
       providers: [
         provideZonelessChangeDetection(),
         { provide: ActivatedRoute, useValue: {} },

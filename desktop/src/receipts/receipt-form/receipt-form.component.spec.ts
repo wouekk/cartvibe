@@ -18,6 +18,7 @@ import { SnackbarService } from "../../services";
 import { QueueMode } from "../../services/receipt-queue.service";
 import { StatefulMenuItem } from "../../standalone/components/filtered-stateful-menu/stateful-menu-item";
 import { SetPermissions } from "../../store/auth.state.actions";
+import { UserAutocompleteModule } from "../../user-autocomplete/user-autocomplete.module";
 import { SetGroups, SetSelectedGroupId } from "../../store/group.state.actions";
 import { StoreModule } from "../../store/store.module";
 import { ReceiptFormComponent } from "./receipt-form.component";
@@ -38,7 +39,8 @@ describe("ReceiptFormComponent", () => {
         StoreModule,
         PipesModule,
         ReactiveFormsModule,
-        SharedUiModule
+        SharedUiModule,
+        UserAutocompleteModule,
       ],
       providers: [
         {

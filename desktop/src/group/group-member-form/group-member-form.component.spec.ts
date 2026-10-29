@@ -18,6 +18,7 @@ import {
   Tag,
   TagService,
 } from "../../open-api";
+import { DirectivesModule } from "../../directives/directives.module";
 import { PipesModule } from "../../pipes";
 import { AuthState } from "../../store";
 import { GroupMemberFormComponent } from "./group-member-form.component";
@@ -89,6 +90,7 @@ describe("GroupMemberFormComponent", () => {
       declarations: [GroupMemberFormComponent],
       imports: [
         NgxsModule.forRoot([AuthState]),
+        DirectivesModule,
         PipesModule,
         ReactiveFormsModule,
       ],
@@ -175,7 +177,7 @@ describe("GroupMemberFormComponent", () => {
     component.previewRole();
 
     expect(openSpy).toHaveBeenCalledTimes(1);
-    expect(openSpy.mock.calls[0][1]?.data?.role).toEqual(defaultGroupRole);
+    expect((openSpy.mock.calls[0][1]?.data as any)?.role).toEqual(defaultGroupRole);
   });
 
   describe("per-member category/tag assignment", () => {

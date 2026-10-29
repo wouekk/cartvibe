@@ -1,5 +1,5 @@
 import { TranslatePipe } from "../../i18n/translate.pipe";
-import { HlmSidebarService } from "@spartan-ng/helm/sidebar";
+import { HlmSidebarImports, HlmSidebarService } from "@spartan-ng/helm/sidebar";
 import { OverlayContainer } from "@angular/cdk/overlay";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection, signal } from "@angular/core";
@@ -66,6 +66,7 @@ describe("SidebarComponent", () => {
         ...HlmCollapsibleImports,
         ...HlmDropdownMenuImports,
         ...HlmTooltipImports,
+        ...HlmSidebarImports,
         RouterTestingModule,
         SharedUiModule,
         ApiModule],

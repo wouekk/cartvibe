@@ -22,8 +22,8 @@ import {
 
 import type { Mock } from "vitest";
 const receipts: Receipt[] = [
-  { id: 7, name: "Coffee", date: "2026-07-03", amount: "12.50", status: "RESOLVED", groupId: 1, paidByUserId: 1, categories: [], tags: [] } as Receipt,
-  { id: 8, name: "Lunch", date: "2026-07-05", amount: "30.00", status: "OPEN", groupId: 1, paidByUserId: 2, categories: [], tags: [] } as Receipt,
+  { id: 7, name: "Coffee", date: "2026-07-03", amount: "12.50", status: "RESOLVED", groupId: 1, paidByUserId: 1, categories: [], tags: [] } as unknown as Receipt,
+  { id: 8, name: "Lunch", date: "2026-07-05", amount: "30.00", status: "OPEN", groupId: 1, paidByUserId: 2, categories: [], tags: [] } as unknown as Receipt,
 ];
 
 const command: ReportRequestCommand = {

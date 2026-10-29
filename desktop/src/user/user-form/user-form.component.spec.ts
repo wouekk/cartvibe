@@ -413,7 +413,7 @@ describe("UserFormComponent", () => {
     freshComponent.previewRole();
 
     expect(openSpy).toHaveBeenCalledTimes(1);
-    expect(openSpy.mock.calls[0][1]?.data?.role).toEqual(defaultAppRole);
+    expect((openSpy.mock.calls[0][1]?.data as any)?.role).toEqual(defaultAppRole);
   });
 
   describe("per-member category/tag assignment", () => {

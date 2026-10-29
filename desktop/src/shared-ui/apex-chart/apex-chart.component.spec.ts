@@ -4,11 +4,15 @@ import type { ApexOptions } from "apexcharts";
 import { ApexChartComponent } from "./apex-chart.component";
 
 import type { Mock } from "vitest";
-const instances: { options: ApexOptions; render: Mock; updateOptions: Mock; destroy: Mock }[] = [];
+type ChartInstance = { options: ApexOptions; render: Mock; updateOptions: Mock; destroy: Mock };
+
+// vi.mock is hoisted above the imports, so what its factory uses has to be hoisted too.
+const instances = vi.hoisted(() => [] as ChartInstance[]);
 
 vi.mock("apexcharts", () => ({
   __esModule: true,
-  default: vi.fn().mockImplementation((_el: HTMLElement, options: ApexOptions) => {
+  // A constructor (called with `new`), so a function rather than an arrow.
+  default: vi.fn(function (_el: HTMLElement, options: ApexOptions) {
     const instance = {
       options,
       render: vi.fn(() => Promise.resolve()),

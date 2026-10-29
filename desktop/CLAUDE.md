@@ -11,9 +11,10 @@ feature.
 ## Commands
 
 - `npm start`: dev server on :4200, proxying `/api` to :8081 (`proxy.conf.json`). It does not start the API.
-- `npm run build` (output `dist/cartvibe/`). `npm test` / `npm run test:ci` is **Jest**, not Karma; `npx jest <path>`
-  for one spec; run `ng build` too (root `CLAUDE.md`).
-- `npm run i18n:extract`, `i18n:check` (CI, before Jest), `i18n:sync -- --lang xx`: see Translations.
+- `npm run build` (output `dist/cartvibe/`). `npm test` runs the specs on **Vitest** through `ng test`
+  (`@angular/build:unit-test`); `npm run test:ci` adds coverage (`coverage/cartvibe/cobertura-coverage.xml`). One spec:
+  `npx ng test --include "src/path/x.spec.ts"` (quote the glob). Run `ng build` too (root `CLAUDE.md`).
+- `npm run i18n:extract`, `i18n:check` (CI, before the specs), `i18n:sync -- --lang xx`: see Translations.
 - `npm run e2e` / `e2e:ui` / `e2e:install`: Playwright, needs a live API (`docs/e2e.md`).
 - Local stack on the Windows PC: `../docs/dev-setup.md`. Login on a fresh database is `admin` / `admin`; it lands on
   `/overview/group/<id>`.
@@ -43,10 +44,17 @@ feature.
   keyboard navigation: keep menu entries as plain buttons in the menu's own template.
 - **Icons:** `<app-icon name="receipt_long">` takes the Material name and draws the Lucide icon mapped in
   `shared-ui/icon/icon-map.ts`; add a pair there for a new name.
-- **Tests (Jest, zoneless):** `setupZonelessTestEnv()` in `setup-jest.ts` (also stubs `ResizeObserver`). Prefer
-  `setInput` + `await fixture.whenStable()`; after mutating a plain field call `fixture.changeDetectorRef.markForCheck()`
-  before `detectChanges()`. Select by `data-testid`, ARIA state or text, never styling classes. Translated text is
-  English in specs (`src/i18n/i18n-test-utils.ts`). A spec with a real `AutocomleteComponent` needs `AuthState`.
+- **Tests (Vitest, zoneless):** `angular.json` target `test` (builds with the JIT `build:test` configuration, runs
+  isolated, `vitest.config.ts` sets the timeouts), `setup-vitest.ts` (stubs `ResizeObserver`, canvas and `apexcharts`).
+  Globals are `describe`, `it`, `expect` and `vi`; mock types come from `vitest`. Prefer `setInput` +
+  `await fixture.whenStable()`; after mutating a plain field call `fixture.changeDetectorRef.markForCheck()` before
+  `detectChanges()`. Select by `data-testid`, ARIA state or text, never styling classes. Translated text is English in
+  specs (`src/i18n/i18n-test-utils.ts`). A spec with a real `AutocomleteComponent` needs `AuthState`.
+- **Spec traps (Vitest):** spec type errors fail the run. The TestBed throws on unknown elements and properties: import
+  the real module or standalone component, never a `NO_ERRORS_SCHEMA`. An unhandled RxJS error fails the whole run
+  (give a `subscribe` on a `throwError` mock a handler). `vi.mock` takes package specifiers only (`apexcharts`), not
+  relative paths: drive the real function through the globals it reads. No `done` callbacks (return a promise); a mock
+  used with `new` must be a `function`; `vi.fn<(a: string) => Promise<void>>()` takes one function type.
 
 ## Shared patterns (reuse; confirm with the user before inventing a divergent one)
 

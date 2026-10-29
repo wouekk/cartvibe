@@ -126,7 +126,7 @@ describe("TranslationService", () => {
 
     service.t("Nobody translated this");
 
-    expect(window.__i18nMissing?.has("Nobody translated this")).toBe(true);
+    expect((window.__i18nMissing as Set<string> | undefined)?.has("Nobody translated this")).toBe(true);
   });
 
   it("ignores a language the registry does not have", () => {

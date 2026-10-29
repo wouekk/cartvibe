@@ -4,7 +4,7 @@ import { AppDialogRef } from "../../dialog/app-dialog";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { ActivatedRoute } from '@angular/router';
 import { NgxsModule } from '@ngxs/store';
-import { of, throwError } from 'rxjs';
+import { config, of, throwError } from 'rxjs';
 import { ApiKeyResult, ApiKeyScope, ApiKeyService, ApiKeyView } from '../../open-api';
 import { SnackbarService } from '../../services';
 import { SharedUiModule } from '../../shared-ui/shared-ui.module';
@@ -234,6 +234,17 @@ describe('ApiKeyFormDialogComponent', () => {
   });
 
   describe('Error Handling', () => {
+    // The component leaves an HTTP error to the interceptor, so RxJS reports it as unhandled on a timer; absorb
+    // it here (and let the timer fire) instead of failing the run with an uncaught exception.
+    beforeEach(() => {
+      config.onUnhandledError = () => {};
+    });
+
+    afterEach(async () => {
+      await new Promise((resolve) => setTimeout(resolve));
+      config.onUnhandledError = null;
+    });
+
     it('should handle create API key error', () => {
       const error = { message: 'API Error', status: 500 };
       mockApiKeyService.createApiKey.mockReturnValue(throwError(() => error) as any);

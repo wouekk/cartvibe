@@ -16,7 +16,7 @@ import { LoadShoppingLists } from "../../store/shopping-list.state.actions";
 import { ShoppingListComponent } from "./shopping-list.component";
 
 import type { Mock } from "vitest";
-const milk: ShoppingListItem = {
+const milk = {
   id: 1,
   shoppingListId: 1,
   name: "Milk",
@@ -24,7 +24,7 @@ const milk: ShoppingListItem = {
   quantity: "",
   note: "",
   isChecked: false,
-};
+} as ShoppingListItem;
 
 const supermarket: ShoppingList = { id: 1, groupId: 1, name: "Supermarket", items: [milk] };
 
@@ -32,7 +32,7 @@ describe("ShoppingListComponent", () => {
   let fixture: ComponentFixture<ShoppingListComponent>;
   let component: ShoppingListComponent;
   let store: Store;
-  let shoppingListService: { [method: string]: Mock };
+  let shoppingListService: Record<"getShoppingListsForGroup" | "setShoppingListItemChecked" | "addShoppingListItem" | "setShoppingListItemClassification", Mock>;
   let snackbarService: { error: Mock };
 
   beforeEach(async () => {

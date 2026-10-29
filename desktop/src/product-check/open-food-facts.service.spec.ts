@@ -1,6 +1,6 @@
 import { HttpBackend, HttpErrorResponse, HttpRequest, HttpResponse } from "@angular/common/http";
 import { TestBed } from "@angular/core/testing";
-import { Observable, of, throwError } from "rxjs";
+import { firstValueFrom, Observable, of, throwError } from "rxjs";
 import { OpenFoodFactsService, toCheckedProduct } from "./open-food-facts.service";
 
 class FakeBackend {
@@ -40,46 +40,40 @@ describe("OpenFoodFactsService", () => {
     service = TestBed.inject(OpenFoodFactsService);
   });
 
-  it("looks a barcode up on world.openfoodfacts.org without the app's interceptors", (done) => {
+  it("looks a barcode up on world.openfoodfacts.org without the app's interceptors", async () => {
     backend.body = { status: 1, product: NUTELLA };
 
-    service.getByBarcode("3017620422003").subscribe((product) => {
-      const request = backend.requests[0];
-      expect(request.url).toBe("https://world.openfoodfacts.org/api/v2/product/3017620422003.json");
-      expect(request.params.get("fields")).toContain("additives_tags");
-      expect(product?.name).toBe("Nutella");
-      done();
-    });
+    const product = await firstValueFrom(service.getByBarcode("3017620422003"));
+
+    const request = backend.requests[0];
+    expect(request.url).toBe("https://world.openfoodfacts.org/api/v2/product/3017620422003.json");
+    expect(request.params.get("fields")).toContain("additives_tags");
+    expect(product?.name).toBe("Nutella");
   });
 
-  it("answers null for a barcode Open Food Facts does not know", (done) => {
+  it("answers null for a barcode Open Food Facts does not know", async () => {
     backend.body = { status: 0, status_verbose: "product not found" };
 
-    service.getByBarcode("0000000000000").subscribe((product) => {
-      expect(product).toBeNull();
-      done();
-    });
+    const product = await firstValueFrom(service.getByBarcode("0000000000000"));
+
+    expect(product).toBeNull();
   });
 
-  it("treats the 404 Open Food Facts sends for an unknown barcode as not found", (done) => {
+  it("treats the 404 Open Food Facts sends for an unknown barcode as not found", async () => {
     backend.failWith = 404;
     backend.body = { code: "96385074", status: 0, status_verbose: "product not found" };
 
-    service.getByBarcode("96385074").subscribe((product) => {
-      expect(product).toBeNull();
-      done();
-    });
+    const product = await firstValueFrom(service.getByBarcode("96385074"));
+
+    expect(product).toBeNull();
   });
 
-  it("still reports any other HTTP failure as an error", (done) => {
+  it("still reports any other HTTP failure as an error", async () => {
     backend.failWith = 503;
 
-    service.getByBarcode("3017620422003").subscribe({
-      error: (error) => {
-        expect(error.status).toBe(503);
-        done();
-      },
-    });
+    const error = await firstValueFrom(service.getByBarcode("3017620422003")).catch((e) => e);
+
+    expect(error.status).toBe(503);
   });
 
   it("maps a product to the trimmed shape", () => {

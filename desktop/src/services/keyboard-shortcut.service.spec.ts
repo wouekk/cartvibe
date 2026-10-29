@@ -53,7 +53,7 @@ describe("KeyboardShortcutService", () => {
   });
 
   describe("handleKeyboardEvent", () => {
-    it("should trigger action for matching shortcut", (done) => {
+    it("should trigger action for matching shortcut", () => new Promise<void>((done) => {
       const event = new KeyboardEvent("keydown", {
         key: "i",
         ctrlKey: true
@@ -67,7 +67,7 @@ describe("KeyboardShortcutService", () => {
 
       const handled = service.handleKeyboardEvent(event);
       expect(handled).toBe(true);
-    });
+    }));
 
     it("should not trigger action for non-matching shortcut", () => {
       const event = new KeyboardEvent("keydown", {
@@ -110,7 +110,7 @@ describe("KeyboardShortcutService", () => {
   });
 
   describe("showHint", () => {
-    /*    it("should emit hint visibility for item shortcuts", (done) => {
+    /*    it("should emit hint visibility for item shortcuts", () => new Promise<void>((done) => {
           let hintStates: boolean[] = [];
 
           service.showHint.subscribe((show: boolean) => {
@@ -142,7 +142,7 @@ describe("KeyboardShortcutService", () => {
           } catch (e) {
             // Clock not installed, continue
           }
-        });*/
+        }));*/
 
     it("should not show hint for non-item shortcuts", () => {
       let hintEmitted = false;
@@ -165,7 +165,7 @@ describe("KeyboardShortcutService", () => {
   });
 
   describe("clearHintTimeout", () => {
-    it("should clear hint and emit false", (done) => {
+    it("should clear hint and emit false", () => new Promise<void>((done) => {
       service.showHint.subscribe((show: boolean) => {
         if (!show) {
           expect(show).toBe(false);
@@ -174,7 +174,7 @@ describe("KeyboardShortcutService", () => {
       });
 
       service.clearHintTimeout();
-    });
+    }));
   });
 
   describe("default shortcuts", () => {

@@ -1,5 +1,5 @@
 import { HttpEvent, HttpEventType, HttpResponse } from "@angular/common/http";
-import { of, throwError } from "rxjs";
+import { from, of, throwError } from "rxjs";
 import { UploadStage, withUploadProgress } from "./upload-progress";
 
 describe("withUploadProgress", () => {
@@ -10,13 +10,13 @@ describe("withUploadProgress", () => {
     const bodies: string[] = [];
 
     withUploadProgress(
-      of<HttpEvent<string>>(
+      from<HttpEvent<string>[]>([
         { type: HttpEventType.Sent },
         progress(25, 100),
         progress(70, 100),
         progress(100, 100),
-        new HttpResponse({ body: "done" })
-      ),
+        new HttpResponse({ body: "done" }),
+      ]),
       (stage) => stages.push(stage)
     ).subscribe((body) => bodies.push(body));
 

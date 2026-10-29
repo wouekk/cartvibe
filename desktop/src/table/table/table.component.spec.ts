@@ -1,4 +1,5 @@
 import { TranslatePipe } from "../../i18n/translate.pipe";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { CommonModule } from '@angular/common';
 import { Component, signal, TemplateRef, viewChild } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -35,7 +36,7 @@ describe('TableComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [TableComponent, ColumnContextHostComponent],
-      imports: [TranslatePipe, CommonModule],
+      imports: [TranslatePipe, CommonModule, AppIconComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TableComponent);

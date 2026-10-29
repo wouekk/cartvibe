@@ -48,7 +48,7 @@ describe("TokenRefreshService", () => {
   });
 
   describe("refreshToken", () => {
-    it("should call authService.getNewRefreshToken and return claims", (done) => {
+    it("should call authService.getNewRefreshToken and return claims", () => new Promise<void>((done) => {
       const spy = vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         of(mockClaims as any)
       );
@@ -58,9 +58,9 @@ describe("TokenRefreshService", () => {
         expect(claims).toEqual(mockClaims);
         done();
       });
-    });
+    }));
 
-    it("should dispatch SetAuthState on successful refresh", (done) => {
+    it("should dispatch SetAuthState on successful refresh", () => new Promise<void>((done) => {
       vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         of(mockClaims as any)
       );
@@ -72,9 +72,9 @@ describe("TokenRefreshService", () => {
         );
         done();
       });
-    });
+    }));
 
-    it("should dispatch Logout and clear localStorage on refresh failure", (done) => {
+    it("should dispatch Logout and clear localStorage on refresh failure", () => new Promise<void>((done) => {
       const error = new Error("Token expired");
       vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         throwError(() => error)
@@ -93,9 +93,9 @@ describe("TokenRefreshService", () => {
           done();
         },
       });
-    });
+    }));
 
-    it("should navigate to /auth/login on refresh failure", (done) => {
+    it("should navigate to /auth/login on refresh failure", () => new Promise<void>((done) => {
       vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         throwError(() => new Error("fail"))
       );
@@ -110,7 +110,7 @@ describe("TokenRefreshService", () => {
           done();
         },
       });
-    });
+    }));
 
     it("should serialize concurrent calls — only one HTTP request fires", () => {
       const subject = new Subject<any>();
@@ -251,7 +251,7 @@ describe("TokenRefreshService", () => {
       clearSpy.mockRestore();
     });
 
-    it("should update auth state expiration date on success", (done) => {
+    it("should update auth state expiration date on success", () => new Promise<void>((done) => {
       const futureExp = Math.floor(Date.now() / 1000) + 3600;
       const claims = { ...mockClaims, exp: futureExp };
 
@@ -266,7 +266,7 @@ describe("TokenRefreshService", () => {
         expect(expirationDate).toBe(futureExp.toString());
         done();
       });
-    });
+    }));
 
     it("should handle rapid sequential calls correctly", () => {
       const spy = vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(

@@ -71,8 +71,10 @@ describe("NotificationComponent", () => {
         ],
       },
     });
-    component.notification.body =
-      "Hey check out the group: ${groupId:5.name.string}!";
+    fixture.componentRef.setInput("notification", {
+      ...component.notification(),
+      body: "Hey check out the group: ${groupId:5.name.string}!",
+    });
 
     component.ngOnInit();
 
