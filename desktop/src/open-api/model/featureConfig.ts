@@ -24,7 +24,7 @@ export interface FeatureConfig {
      */
     oidcProviders?: Array<OidcProviderSummary>;
     /**
-     * Whether the household has a Logo.dev key, so the app asks GET /shopLogo for the logos the server downloaded and the login page credits Logo.dev. The key never leaves the server.
+     * Whether the household has a Logo.dev key or logos downloaded with one, so the app asks GET /shopLogo for the logos the server downloaded and the login page credits Logo.dev. The key never leaves the server.
      */
     shopLogosEnabled?: boolean;
 }

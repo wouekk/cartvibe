@@ -3,7 +3,10 @@ import { FormArray, FormBuilder, FormGroup, ValidatorFn, Validators } from "@ang
 import { ActivatedRoute, Router } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
-import { startWith, switchMap, take, tap } from "rxjs";
+import { filter, startWith, switchMap, take, tap } from "rxjs";
+import { DEFAULT_DIALOG_CONFIG } from "../../constants";
+import { AppDialog } from "../../dialog/app-dialog";
+import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { AutocomleteComponent } from "../../autocomplete/autocomlete/autocomlete.component";
 import { BaseFormComponent } from "../../form";
 import { FormOption } from "../../interfaces/form-option.interface";
@@ -209,9 +212,62 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
 
   private readonly shopLogoService = inject(ShopLogoService);
 
+  private readonly appDialog = inject(AppDialog);
+
   private logoStatusTimer?: ReturnType<typeof setTimeout>;
 
   private readonly stopLogoStatusPolling = inject(DestroyRef).onDestroy(() => clearTimeout(this.logoStatusTimer));
+
+  /** Fetch logos now: with a saved key, while nothing runs, and not with a typed key that still needs saving. */
+  public canFetchLogos(): boolean {
+    return !!this.originalSystemSettings?.shopLogoKeySet && !this.logoStatus()?.running && !this.form.get("shopLogoKey")?.dirty;
+  }
+
+  /** Delete logos: once some are downloaded and while nothing runs (the server refuses during a download). */
+  public canDeleteLogos(): boolean {
+    const status = this.logoStatus();
+    return !!status && !status.running && status.downloaded > 0;
+  }
+
+  /** Asks first, then deletes every downloaded logo; the key stays, and downloading them again costs credits. */
+  public deleteLogos(): void {
+    const dialogRef = this.appDialog.open(ConfirmationDialogComponent, DEFAULT_DIALOG_CONFIG);
+    dialogRef.componentInstance.headerText = marker("Delete the logos");
+    dialogRef.componentInstance.confirmText = marker("Delete");
+    dialogRef.componentInstance.dialogContent = marker(
+      "Delete every downloaded logo from this server? Receipts show the shop's first letter until the logos are downloaded again, which uses Logo.dev credits. The key stays saved."
+    );
+
+    dialogRef
+      .afterClosed()
+      .pipe(
+        take(1),
+        filter((confirmed) => !!confirmed),
+        switchMap(() => this.shopLogoService.deleteShopLogos()),
+        tap((status) => {
+          this.logoStatus.set(status);
+          this.snackbarService.success(marker("The logos were deleted"));
+        }),
+        switchMap(() => this.featureConfigService.getFeatureConfig()),
+        tap((featureConfig) => this.store.dispatch(new SetFeatureConfig(featureConfig))),
+      )
+      .subscribe({ error: () => this.refreshLogoStatus() });
+  }
+
+  /** Fetches the missing logos now instead of at the next 12-hourly run, then follows the download's status. */
+  public fetchLogos(): void {
+    this.shopLogoService
+      .startShopLogoSync()
+      .pipe(take(1))
+      .subscribe({
+        next: (status) => {
+          this.logoStatus.set({ ...status, running: true });
+          clearTimeout(this.logoStatusTimer);
+          this.logoStatusTimer = setTimeout(() => this.refreshLogoStatus(), 1500);
+        },
+        error: () => this.refreshLogoStatus(),
+      });
+  }
 
   /** Reads the download status, and again every few seconds while a download runs. */
   private refreshLogoStatus(): void {

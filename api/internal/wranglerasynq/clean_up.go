@@ -64,16 +64,17 @@ func StartSystemCleanUpTasks() error {
 		return err
 	}
 
-	// Daily: fetches what is missing (a brand Logo.dev was still indexing, a new brand) and asks again about
-	// logos older than a month. Without a Logo.dev key it does nothing.
+	// Every 12 hours: fetches the logo of a brand that newly appears on a receipt (and one Logo.dev was still
+	// indexing). A run with nothing missing makes no API call; without a Logo.dev key it does nothing. An admin
+	// can also fetch at once from System Settings → Shop Logos (POST /shopLogo/sync).
 	shopLogoSyncTask := asynq.NewTask(ShopLogoSync, nil)
-	_, err = RegisterTask("@every 24h", shopLogoSyncTask, cleanUpQueue, 0)
+	_, err = RegisterTask("@every 12h", shopLogoSyncTask, cleanUpQueue, 0)
 
 	return err
 }
 
 // HandleShopLogoSyncTask runs the logo sync. Its outcome is the sync status in System Settings, so a failure is
-// logged and never retried by the queue: tomorrow's run goes on where this one stopped.
+// logged and never retried by the queue: the next run goes on where this one stopped.
 func HandleShopLogoSyncTask(ctx context.Context, task *asynq.Task) error {
 	if err := services.SyncShopLogos(ctx); err != nil {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, "Shop logos: "+err.Error())

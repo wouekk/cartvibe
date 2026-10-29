@@ -15,11 +15,11 @@ export interface ShopLogoStatus {
      */
     running: boolean;
     /**
-     * How many brands have a downloaded logo
+     * How many of the known brands on the household\'s receipts have a downloaded logo
      */
     downloaded: number;
     /**
-     * How many brands CartVibe knows
+     * How many known brands appear on the household\'s receipts (only these are downloaded)
      */
     total: number;
     /**
@@ -27,7 +27,7 @@ export interface ShopLogoStatus {
      */
     lastRun?: string;
     /**
-     * Why the last download stopped early, such as a refused key; \"\" when it went well
+     * Why the last download stopped early, such as a refused key or the month\'s API credits being used up; \"\" when it went well
      */
     lastError: string;
 }

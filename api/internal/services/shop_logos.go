@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"cartvibe/api/internal/logging"
+	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/shoplogos"
 )
@@ -36,8 +37,37 @@ func shopLogoKey() string {
 	return repositories.ShopLogoSecretKey(settings)
 }
 
-// SyncShopLogos downloads the missing or stale logos with the household's key and waits for the run. Without a key
-// it does nothing. The daily clean-up task calls it.
+// WantedShopLogos lists the known brands that appear on the household's receipts, by shop name or, without one, by
+// receipt name (what the monogram shows). Only these are downloaded: Logo.dev's free plan pays for about 250 logos a
+// month, fewer than the brands CartVibe knows.
+func WantedShopLogos() ([]shoplogos.Brand, error) {
+	db := repositories.GetDB()
+	var shopNames []string
+	if err := db.Model(&models.Receipt{}).Where("shop_name <> ''").Distinct().Pluck("shop_name", &shopNames).Error; err != nil {
+		return nil, err
+	}
+	var receiptNames []string
+	if err := db.Model(&models.Receipt{}).Where("shop_name = '' OR shop_name IS NULL").Distinct().Pluck("name", &receiptNames).Error; err != nil {
+		return nil, err
+	}
+	return shoplogos.BrandsFor(append(shopNames, receiptNames...)), nil
+}
+
+// ShopLogoStatus reports the logos of the brands on the receipts, for System Settings → Shop Logos.
+func ShopLogoStatus() (shoplogos.Status, error) {
+	_, syncer, err := ShopLogos()
+	if err != nil {
+		return shoplogos.Status{}, err
+	}
+	wanted, err := WantedShopLogos()
+	if err != nil {
+		return shoplogos.Status{}, err
+	}
+	return syncer.Status(wanted), nil
+}
+
+// SyncShopLogos downloads the missing logos of the brands on the receipts with the household's key, and waits for the
+// run. Without a key it does nothing. The clean-up task calls it.
 func SyncShopLogos(ctx context.Context) error {
 	key := shopLogoKey()
 	if key == "" {
@@ -47,7 +77,11 @@ func SyncShopLogos(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	return syncer.Run(ctx, key)
+	wanted, err := WantedShopLogos()
+	if err != nil {
+		return err
+	}
+	return syncer.Run(ctx, key, wanted)
 }
 
 // StartShopLogoSync runs SyncShopLogos in the background: after a key is saved, and when the API starts. A failure
@@ -60,11 +94,18 @@ func StartShopLogoSync() {
 	}()
 }
 
-// ClearShopLogos removes every downloaded logo, when the household removes its key.
-func ClearShopLogos() error {
-	store, _, err := ShopLogos()
+// DeleteShopLogos deletes every downloaded logo; the key stays. shoplogos.ErrSyncRunning while a download runs.
+func DeleteShopLogos() error {
+	_, syncer, err := ShopLogos()
 	if err != nil {
 		return err
 	}
-	return store.Clear()
+	return syncer.Clear()
+}
+
+// HasShopLogos reports whether any logo is downloaded. Downloaded logos are shown with or without a key: removing the
+// key only stops the downloads.
+func HasShopLogos() bool {
+	store, _, err := ShopLogos()
+	return err == nil && len(store.Available()) > 0
 }

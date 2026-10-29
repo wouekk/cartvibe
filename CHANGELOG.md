@@ -20,9 +20,13 @@ All your spending, not only the groceries.
   category you already have, under any of its names, is never doubled, and one you delete stays deleted.
 - **Shop logos with your own Logo.dev key:** a new System Settings → Shop Logos tab takes the household's free
   Logo.dev secret key (it starts with `sk_`; it is stored encrypted, and the publishable `pk_` key is refused) and
-  explains where to get one. With a key, the server downloads the logos of about 390 known brands through Logo.dev's
-  API into its data folder, checks each about once a month, and shows them next to receipts; the tab shows how many
-  are downloaded. Browsers load them from CartVibe, never from Logo.dev, so they work offline. The login page credits
+  explains where to get one. With a key, the server downloads through Logo.dev's API the logos of the known brands
+  that appear on your receipts (the free plan pays for about 250 a month), each once, into its data folder, looks
+  for new ones every 12 hours or at once with **Download logos**, and shows them next to receipts; the tab shows how
+  many are downloaded, and says when the month's credits are used up. A new key carries on where the last one
+  stopped, removing the key keeps the logos already downloaded, and a red **Delete logos** button (after a
+  confirmation) removes them while keeping the key. Browsers load them from CartVibe, never from
+  Logo.dev, so they work offline. The login page credits
   Logo.dev while logos are on. The known brands now include
   Uber, Bolt, FreeNow, Ryanair, easyJet, Wizz Air, LOT and other airlines, Royal Caribbean, MSC and Costa cruises,
   Booking.com, Airbnb, Orange, Play, T-Mobile and other telecoms, energy companies, cinemas, streaming services,

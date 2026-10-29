@@ -2213,6 +2213,30 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
+    delete:
+      tags:
+        - ShopLogo
+      summary: Delete the downloaded shop logos
+      description:
+        Deletes every downloaded logo and what the server remembers about Logo.dev's answers; the saved key
+        stays, so the next download fetches them again with credits. Answers with the status [SYSTEM SETTINGS UPDATE]
+      operationId: deleteShopLogos
+      responses:
+        200:
+          description: The logos were deleted; the status as it is now
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopLogoStatus"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        409:
+          description: A download is running; try again once it stops
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
   /shopLogo/status:
     get:
       tags:
@@ -2225,6 +2249,30 @@ paths:
       responses:
         200:
           description: The download status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopLogoStatus"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+  /shopLogo/sync:
+    post:
+      tags:
+        - ShopLogo
+      summary: Fetch the missing shop logos now
+      description:
+        Starts downloading, in the background, the missing logos of the brands on the household's
+        receipts, instead of waiting for the 12-hourly run; a download already running is left alone.
+        Answers with the current status [SYSTEM SETTINGS UPDATE]
+      operationId: startShopLogoSync
+      responses:
+        202:
+          description: The download was started; the status as it is now
           content:
             application/json:
               schema:
@@ -6536,7 +6584,7 @@ components:
         shopLogosEnabled:
           type: boolean
           description:
-            Whether the household has a Logo.dev key, so the app asks GET /shopLogo for the logos
+            Whether the household has a Logo.dev key or logos downloaded with one, so the app asks GET /shopLogo for the logos
             the server downloaded and the login page credits Logo.dev. The key never leaves the server.
     OidcProviderSummary:
       required:
@@ -6779,10 +6827,10 @@ components:
           description: Whether a download is going on now
         downloaded:
           type: integer
-          description: How many brands have a downloaded logo
+          description: How many of the known brands on the household's receipts have a downloaded logo
         total:
           type: integer
-          description: How many brands CartVibe knows
+          description: How many known brands appear on the household's receipts (only these are downloaded)
         lastRun:
           type: string
           format: date-time
@@ -6790,7 +6838,9 @@ components:
           description: When the last download finished; null before the first
         lastError:
           type: string
-          description: Why the last download stopped early, such as a refused key; "" when it went well
+          description:
+            Why the last download stopped early, such as a refused key or the month's API credits being used
+            up; "" when it went well
     DashboardLayout:
       allOf:
         - $ref: "#/components/schemas/BaseModel"
@@ -7594,8 +7644,8 @@ components:
           type: string
           description: >-
             The household's Logo.dev secret key (starts with sk_), which the server downloads the
-            shop logos with through Logo.dev's API; stored encrypted. "" removes the key and the
-            downloaded logos. A publishable key (pk_) or anything else is a 400 under the shopLogoKey
+            shop logos with through Logo.dev's API; stored encrypted. "" removes the key and stops the
+            downloads; the logos already downloaded stay. A publishable key (pk_) or anything else is a 400 under the shopLogoKey
             key. Omit the key entirely to leave the saved key unchanged.
     SystemTask:
       allOf:

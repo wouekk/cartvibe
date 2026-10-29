@@ -102,6 +102,17 @@ func (store *Store) Available() []Brand {
 	return available
 }
 
+// clear removes every stored logo and the index.
+func (store *Store) clear() error {
+	store.mu.Lock()
+	defer store.mu.Unlock()
+
+	if _, err := os.Stat(store.dir); errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	return utils.RemoveAllInDataDir(store.dir)
+}
+
 func (store *Store) readIndex() map[string]entry {
 	store.mu.Lock()
 	defer store.mu.Unlock()
@@ -129,15 +140,4 @@ func (store *Store) writeIndex(index map[string]entry) error {
 		return err
 	}
 	return utils.WriteDataFile(filepath.Join(store.dir, indexFile), data)
-}
-
-// Clear removes every stored logo and the index, when the household removes its key.
-func (store *Store) Clear() error {
-	store.mu.Lock()
-	defer store.mu.Unlock()
-
-	if _, err := os.Stat(store.dir); errors.Is(err, os.ErrNotExist) {
-		return nil
-	}
-	return utils.RemoveAllInDataDir(store.dir)
 }

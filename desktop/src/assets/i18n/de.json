@@ -305,7 +305,10 @@
     "Delete Selected": "Ausgewählte löschen",
     "Delete User": "Benutzer löschen",
     "Delete Users": "Benutzer löschen",
+    "Delete every downloaded logo from this server? Receipts show the shop's first letter until the logos are downloaded again, which uses Logo.dev credits. The key stays saved.": "Alle heruntergeladenen Logos von diesem Server löschen? Belege zeigen den ersten Buchstaben des Geschäfts, bis die Logos erneut geladen werden, was Logo.dev-Guthaben verbraucht. Der Schlüssel bleibt gespeichert.",
     "Delete list": "Liste löschen",
+    "Delete logos": "Logos löschen",
+    "Delete the logos": "Logos löschen",
     "Delete the open list": "Die geöffnete Liste löschen",
     "Delete the user '{name}'? They are removed from their groups, and the groups where they are the only member and the receipts they paid for are deleted. This can't be undone.": "Den Benutzer „{name}“ löschen? Er wird aus seinen Gruppen entfernt; Gruppen, in denen er das einzige Mitglied ist, und Belege, die er bezahlt hat, werden gelöscht. Das kann nicht rückgängig gemacht werden.",
     "Delete {name}": "{name} löschen",
@@ -327,6 +330,7 @@
     "Done": "Fertig",
     "Download Image": "Bild herunterladen",
     "Download Landscape PDF (1 yr/page)": "PDF im Querformat herunterladen (1 Jahr pro Seite)",
+    "Download logos": "Logos laden",
     "Download source file": "Quelldatei herunterladen",
     "Downloading logos: {downloaded} of {total} so far.": "Logos werden geladen: bisher {downloaded} von {total}.",
     "Draft": "Entwurf",
@@ -543,6 +547,7 @@
     "Login": "Anmelden",
     "Logo.dev asks commercial projects to credit it; while logos are on, the login page shows \"Logos provided by Logo.dev\".": "Logo.dev bittet kommerzielle Projekte um eine Nennung; solange Logos an sind, zeigt die Anmeldeseite „Logos provided by Logo.dev“.",
     "Logo.dev secret key": "Geheimer Logo.dev-Schlüssel",
+    "Logos for {downloaded} of the {total} known shops on your receipts.": "Logos für {downloaded} der {total} bekannten Geschäfte auf deinen Belegen.",
     "Logos next to your receipts": "Logos neben deinen Belegen",
     "Logout": "Abmelden",
     "Logs": "Protokolle",
@@ -696,7 +701,7 @@
     "Password generated and copied to clipboard": "Passwort erzeugt und in die Zwischenablage kopiert",
     "Password generated, but copying to the clipboard failed": "Passwort erzeugt, aber das Kopieren in die Zwischenablage ist fehlgeschlagen",
     "Password successfully set": "Passwort wurde festgelegt",
-    "Paste it below and save. The logos download in the background, which takes a few minutes the first time.": "Unten einfügen und speichern. Die Logos werden im Hintergrund geladen, beim ersten Mal dauert das einige Minuten.",
+    "Paste it below and save. The logos of the shops on your receipts download in the background.": "Unten einfügen und speichern. Die Logos der Geschäfte auf deinen Belegen werden im Hintergrund geladen.",
     "Paste the API key first.": "Füge zuerst den API-Schlüssel ein.",
     "Paste the {provider} API key for the backup AI.": "Füge den {provider}-API-Schlüssel für die Ersatz-KI ein.",
     "Paste the {provider} API key.": "Füge den {provider}-API-Schlüssel ein.",
@@ -864,6 +869,7 @@
     "Save changes": "Änderungen speichern",
     "Save column": "Spalte speichern",
     "Save column configuration": "Spalteneinstellungen speichern",
+    "Save key": "Schlüssel speichern",
     "Save the main AI first; the backup stands in for it.": "Speichere zuerst die Haupt-KI; die Ersatz-KI springt für sie ein.",
     "Saved report templates — open one in the builder, generate it, duplicate it, or delete it.": "Gespeicherte Berichtsvorlagen — im Editor öffnen, erstellen, duplizieren oder löschen.",
     "Saved with your account, so CartVibe speaks it on every device.": "Mit deinem Konto gespeichert, daher spricht CartVibe sie auf jedem Gerät.",
@@ -950,7 +956,7 @@
     "Started At": "Gestartet am",
     "Started at: {date}": "Gestartet am: {date}",
     "Starting the camera…": "Kamera wird gestartet…",
-    "Starts with sk_, for example sk_A1b2C3d4E5f6. Stored encrypted and never sent to a browser. Empty it and save to remove the key and the logos.": "Beginnt mit sk_, zum Beispiel sk_A1b2C3d4E5f6. Wird verschlüsselt gespeichert und nie an einen Browser gesendet. Leeren und speichern, um Schlüssel und Logos zu entfernen.",
+    "Starts with sk_, for example sk_A1b2C3d4E5f6. Stored encrypted and never sent to a browser. To switch keys, paste the new one over it. Saving it empty stops the downloads; the logos stay.": "Beginnt mit sk_, zum Beispiel sk_A1b2C3d4E5f6. Wird verschlüsselt gespeichert und nie an einen Browser gesendet. Zum Wechseln den neuen Schlüssel einfach darüber einfügen. Leer gespeichert stoppt die Downloads; die Logos bleiben.",
     "Stationery": "Schreibwaren",
     "Status": "Status",
     "Status is required": "Status ist erforderlich",
@@ -1028,10 +1034,11 @@
     "The externally reachable address of this server. Used to build the redirect URI that each OIDC identity provider must be configured with, so it has to match how users actually reach CartVibe.": "Die von außen erreichbare Adresse dieses Servers. Daraus wird die Weiterleitungs-URI gebildet, mit der jeder OIDC-Identitätsanbieter eingerichtet sein muss, sie muss also dazu passen, wie Benutzer CartVibe tatsächlich erreichen.",
     "The file could not be read": "Die Datei konnte nicht gelesen werden",
     "The file this activity needs is no longer available.": "Die Datei, die diese Aktivität braucht, ist nicht mehr verfügbar.",
-    "The free plan is plenty: the first download asks Logo.dev about each brand once, then a daily check asks again about a logo once a month.": "Der kostenlose Tarif reicht völlig: Der erste Download fragt Logo.dev einmal je Marke, danach fragt eine tägliche Prüfung einmal im Monat erneut nach einem Logo.",
+    "The free plan pays for about 250 logos a month. CartVibe fetches only the shops on your receipts, each once, looks for new ones every 12 hours, and waits for next month if the credits run out. Download logos looks at once.": "Der kostenlose Tarif reicht für etwa 250 Logos im Monat. CartVibe lädt nur die Geschäfte auf deinen Belegen, jedes einmal, sucht alle 12 Stunden nach neuen und wartet auf den nächsten Monat, wenn das Guthaben aufgebraucht ist. „Logos laden“ sucht sofort.",
     "The household has been told you are going shopping.": "Der Haushalt weiß jetzt, dass du einkaufen gehst.",
     "The language of menus, buttons and messages.": "Die Sprache von Menüs, Schaltflächen und Meldungen.",
     "The last download stopped: {error}": "Der letzte Download wurde abgebrochen: {error}",
+    "The logos were deleted": "Die Logos wurden gelöscht",
     "The main currency of the household. Receipts in other currencies are converted into it.": "Die Hauptwährung des Haushalts. Belege in anderen Währungen werden in sie umgerechnet.",
     "The model name as LM Studio lists it": "Der Modellname, wie LM Studio ihn anzeigt",
     "The model reads images (a vision model)": "Das Modell liest Bilder (ein Vision-Modell)",
@@ -1167,7 +1174,7 @@
     "Whoever generates the report": "Wer den Bericht erstellt",
     "Wider": "Breiter",
     "Widths are set in the PC view.": "Breiten werden in der PC-Ansicht festgelegt.",
-    "With a Logo.dev key, CartVibe downloads the logos of about 390 known shops, restaurants, airlines and services to this server and shows them next to receipts. Without a key, every receipt shows the shop's first letter.": "Mit einem Logo.dev-Schlüssel lädt CartVibe die Logos von rund 390 bekannten Geschäften, Restaurants, Fluglinien und Diensten auf diesen Server und zeigt sie neben den Belegen. Ohne Schlüssel zeigt jeder Beleg den ersten Buchstaben des Geschäfts.",
+    "With a Logo.dev key, CartVibe downloads to this server the logos of the known shops, restaurants, airlines and services that appear on your receipts, and shows them next to the receipts. Without a key, every receipt shows the shop's first letter.": "Mit einem Logo.dev-Schlüssel lädt CartVibe die Logos der bekannten Geschäfte, Restaurants, Fluglinien und Dienste, die auf deinen Belegen vorkommen, auf diesen Server und zeigt sie neben den Belegen. Ohne Schlüssel zeigt jeder Beleg den ersten Buchstaben des Geschäfts.",
     "Within current month": "Im aktuellen Monat",
     "Worker": "Hintergrundaufgaben",
     "Worker & retention": "Hintergrundaufgaben und Aufbewahrung",
@@ -1240,7 +1247,6 @@
     "{count} to buy": "{count} zu kaufen",
     "{count} to check": "{count} zu prüfen",
     "{count} user(s) successfully deleted": "{count} Benutzer gelöscht",
-    "{downloaded} of {total} logos downloaded.": "{downloaded} von {total} Logos geladen.",
     "{field} (Day)": "{field} (Tag)",
     "{field} (Month)": "{field} (Monat)",
     "{field} (Year)": "{field} (Jahr)",
@@ -1343,6 +1349,9 @@
     "Each browser loads the logos straight from Logo.dev and keeps them for a day. Logo.dev sees which brands' logos are asked for, never your receipts. Nothing is stored on this server.": {
       "value": "Jeder Browser lädt die Logos direkt von Logo.dev und behält sie einen Tag. Logo.dev sieht, welche Marken-Logos angefragt werden, nie deine Belege. Auf diesem Server wird nichts gespeichert."
     },
+    "Fetch logos now": {
+      "value": "Logos jetzt laden"
+    },
     "General & Currency": {
       "value": "Allgemein und Währung",
       "closest": "Add currency"
@@ -1382,6 +1391,10 @@
       "value": "Unten einfügen und speichern. Die Logos erscheinen beim nächsten Laden einer Seite.",
       "closest": "Paste it below and save. The logos download in the background, which takes a few minutes the first time."
     },
+    "Paste it below and save. The logos download in the background, which takes a few minutes the first time.": {
+      "value": "Unten einfügen und speichern. Die Logos werden im Hintergrund geladen, beim ersten Mal dauert das einige Minuten.",
+      "closest": "Paste it below and save. The logos of the shops on your receipts download in the background."
+    },
     "Rate: 1 {symbol} in your currency": {
       "value": "Kurs: 1 {symbol} in deiner Währung"
     },
@@ -1394,7 +1407,14 @@
     },
     "Starts with pk_, for example pk_A1b2C3d4E5f6. Leave it empty to show letters instead of logos.": {
       "value": "Beginnt mit pk_, zum Beispiel pk_A1b2C3d4E5f6. Leer lassen, um Buchstaben statt Logos zu zeigen.",
-      "closest": "Starts with sk_, for example sk_A1b2C3d4E5f6. Stored encrypted and never sent to a browser. Empty it and save to remove the key and the logos."
+      "closest": "Starts with sk_, for example sk_A1b2C3d4E5f6. Stored encrypted and never sent to a browser. To switch keys, paste the new one over it. Saving it empty stops the downloads; the logos stay."
+    },
+    "The free plan is plenty: the first download asks Logo.dev about each brand once, then a daily check asks again about a logo once a month.": {
+      "value": "Der kostenlose Tarif reicht völlig: Der erste Download fragt Logo.dev einmal je Marke, danach fragt eine tägliche Prüfung einmal im Monat erneut nach einem Logo."
+    },
+    "The free plan pays for about 250 logos a month. CartVibe fetches only the shops on your receipts, each once, looks for new ones every 12 hours, and waits for next month if the credits run out. Fetch logos now looks at once.": {
+      "value": "Der kostenlose Tarif reicht für etwa 250 Logos im Monat. CartVibe lädt nur die Geschäfte auf deinen Belegen, jedes einmal, sucht alle 12 Stunden nach neuen und wartet auf den nächsten Monat, wenn das Guthaben aufgebraucht ist. „Logos jetzt laden“ sucht sofort.",
+      "closest": "The free plan pays for about 250 logos a month. CartVibe fetches only the shops on your receipts, each once, looks for new ones every 12 hours, and waits for next month if the credits run out. Download logos looks at once."
     },
     "This is a secret key. Use the publishable key, which starts with pk_": {
       "value": "Das ist ein geheimer Schlüssel. Verwende den öffentlichen Schlüssel, der mit pk_ beginnt",
@@ -1407,12 +1427,20 @@
       "value": "Verwende den öffentlichen Schlüssel (pk_), nie den geheimen (sk_): Dieser Schlüssel geht an jeden Browser, der CartVibe öffnet.",
       "closest": "This is the publishable key. The server needs the secret key, which starts with sk_"
     },
+    "With a Logo.dev key, CartVibe downloads the logos of about 390 known shops, restaurants, airlines and services to this server and shows them next to receipts. Without a key, every receipt shows the shop's first letter.": {
+      "value": "Mit einem Logo.dev-Schlüssel lädt CartVibe die Logos von rund 390 bekannten Geschäften, Restaurants, Fluglinien und Diensten auf diesen Server und zeigt sie neben den Belegen. Ohne Schlüssel zeigt jeder Beleg den ersten Buchstaben des Geschäfts.",
+      "closest": "With a Logo.dev key, CartVibe downloads to this server the logos of the known shops, restaurants, airlines and services that appear on your receipts, and shows them next to the receipts. Without a key, every receipt shows the shop's first letter."
+    },
     "With a Logo.dev key, receipts from about 390 known shops, restaurants, airlines and services show the brand's logo instead of its first letter. Without a key, every receipt shows the first letter.": {
       "value": "Mit einem Logo.dev-Schlüssel zeigen Belege von rund 390 bekannten Geschäften, Restaurants, Fluglinien und Diensten das Logo der Marke statt ihres ersten Buchstabens. Ohne Schlüssel zeigt jeder Beleg den ersten Buchstaben.",
       "closest": "With a Logo.dev key, CartVibe downloads the logos of about 390 known shops, restaurants, airlines and services to this server and shows them next to receipts. Without a key, every receipt shows the shop's first letter."
     },
     "Your rate: 4,25 means 1 of the household currency is worth 4,25 of yours.": {
       "value": "Dein Kurs: 4,25 bedeutet, 1 Einheit der Haushaltswährung entspricht 4,25 deiner Währung."
+    },
+    "{downloaded} of {total} logos downloaded.": {
+      "value": "{downloaded} von {total} Logos geladen.",
+      "closest": "Downloading logos: {downloaded} of {total} so far."
     }
   }
 }

@@ -83,7 +83,7 @@ export interface UpsertSystemSettingsCommand {
      */
     secureCookies?: boolean;
     /**
-     * The household\'s Logo.dev secret key (starts with sk_), which the server downloads the shop logos with through Logo.dev\'s API; stored encrypted. \"\" removes the key and the downloaded logos. A publishable key (pk_) or anything else is a 400 under the shopLogoKey key. Omit the key entirely to leave the saved key unchanged.
+     * The household\'s Logo.dev secret key (starts with sk_), which the server downloads the shop logos with through Logo.dev\'s API; stored encrypted. \"\" removes the key and stops the downloads; the logos already downloaded stay. A publishable key (pk_) or anything else is a 400 under the shopLogoKey key. Omit the key entirely to leave the saved key unchanged.
      */
     shopLogoKey?: string;
 }

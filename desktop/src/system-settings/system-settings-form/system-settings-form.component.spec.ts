@@ -5,7 +5,8 @@ import { FormArray, FormControl, FormGroup, ReactiveFormsModule } from "@angular
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { ActivatedRoute, Router } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
-import { of, throwError } from "rxjs";
+import { of, Subject, throwError } from "rxjs";
+import { AppDialog } from "../../dialog/app-dialog";
 import { AutocompleteModule } from "../../autocomplete/autocomplete.module";
 import { CheckboxModule } from "../../checkbox/checkbox.module";
 import { InputModule } from "../../input/index";
@@ -769,8 +770,64 @@ describe("SystemSettingsFormComponent", () => {
       fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
 
-      expect(fixture.nativeElement.querySelector("[data-testid=shop-logos-status]").textContent).toContain("312 of 393 logos downloaded.");
+      expect(fixture.nativeElement.querySelector("[data-testid=shop-logos-status]").textContent).toContain("Logos for 312 of the 393 known shops on your receipts.");
       expect(fixture.nativeElement.querySelector("[data-testid=shop-logos-error]").textContent).toContain("Logo.dev refused the key");
+    });
+
+    it("offers Fetch logos now only with a saved key, and starts a fetch", () => {
+      const api = TestBed.inject(ShopLogoService);
+      jest.spyOn(api, "getShopLogoStatus").mockReturnValue(of({ running: false, downloaded: 1, total: 2, lastError: "" } as any));
+      const start = jest
+        .spyOn(api, "startShopLogoSync")
+        .mockReturnValue(of({ running: false, downloaded: 1, total: 2, lastError: "" } as any));
+
+      expect(component.canFetchLogos()).toBe(false);
+
+      const activatedRoute = TestBed.inject(ActivatedRoute);
+      activatedRoute.snapshot.data["systemSettings"] = { ...activatedRoute.snapshot.data["systemSettings"], shopLogoKeySet: true };
+      component.ngOnInit();
+      expect(component.canFetchLogos()).toBe(true);
+
+      // A typed key has to be saved first.
+      component.form.get("shopLogoKey")!.markAsDirty();
+      expect(component.canFetchLogos()).toBe(false);
+      component.form.get("shopLogoKey")!.markAsPristine();
+
+      component.fetchLogos();
+      expect(start).toHaveBeenCalledTimes(1);
+      expect(component.logoStatus()?.running).toBe(true);
+      expect(component.canFetchLogos()).toBe(false);
+    });
+
+    it("deletes the logos only after the confirmation, and never during a download", () => {
+      const api = TestBed.inject(ShopLogoService);
+      const remove = jest
+        .spyOn(api, "deleteShopLogos")
+        .mockReturnValue(of({ running: false, downloaded: 0, total: 2, lastError: "" } as any));
+      jest.spyOn(TestBed.inject(FeatureConfigService), "getFeatureConfig").mockReturnValue(of({} as any));
+      const answer = new Subject<boolean | undefined>();
+      const dialogRef = { componentInstance: {} as any, afterClosed: () => answer.asObservable() };
+      jest.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue(dialogRef as any);
+
+      component.logoStatus.set({ running: true, downloaded: 2, total: 2, lastError: "" } as any);
+      expect(component.canDeleteLogos()).toBe(false);
+      component.logoStatus.set({ running: false, downloaded: 0, total: 2, lastError: "" } as any);
+      expect(component.canDeleteLogos()).toBe(false);
+      component.logoStatus.set({ running: false, downloaded: 2, total: 2, lastError: "" } as any);
+      expect(component.canDeleteLogos()).toBe(true);
+
+      component.deleteLogos();
+      expect(dialogRef.componentInstance.confirmText).toBe("Delete");
+      answer.next(undefined);
+      expect(remove).not.toHaveBeenCalled();
+
+      const confirm = new Subject<boolean | undefined>();
+      dialogRef.afterClosed = () => confirm.asObservable();
+      component.deleteLogos();
+      confirm.next(true);
+      expect(remove).toHaveBeenCalledTimes(1);
+      expect(component.logoStatus()?.downloaded).toBe(0);
+      expect(component.canDeleteLogos()).toBe(false);
     });
   });
 });

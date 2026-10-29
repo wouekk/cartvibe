@@ -13,7 +13,9 @@ func BuildShopLogoRouter() *chi.Mux {
 	shopLogoRouter.Use(middleware.UnifiedAuthMiddleware)
 
 	shopLogoRouter.Get("/", handlers.GetShopLogos)
+	shopLogoRouter.Delete("/", handlers.DeleteShopLogos)
 	shopLogoRouter.Get("/status", handlers.GetShopLogoStatus)
+	shopLogoRouter.Post("/sync", handlers.StartShopLogoSync)
 	shopLogoRouter.Get("/{slug}", handlers.GetShopLogo)
 
 	return shopLogoRouter
