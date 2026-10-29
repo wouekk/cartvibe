@@ -288,6 +288,38 @@ func TestTheStoreOnlyKnowsBrandSlugs(t *testing.T) {
 	}
 }
 
+func TestClearDeletesTheLogosButNeverDuringADownload(t *testing.T) {
+	withBrands(t, testBrands)
+	newFakeLogoDev(t)
+	syncer, store := newTestSyncer(t)
+
+	if err := syncer.Run(context.Background(), "sk_test", Brands()); err != nil {
+		t.Fatal(err)
+	}
+	if len(store.Available()) == 0 {
+		t.Fatal("expected logos before clearing")
+	}
+
+	syncer.running.Lock()
+	if err := syncer.Clear(); !errors.Is(err, ErrSyncRunning) {
+		t.Errorf("clearing during a download should be refused, got %v", err)
+	}
+	syncer.running.Unlock()
+	if len(store.Available()) == 0 {
+		t.Error("a refused clear must keep the logos")
+	}
+
+	if err := syncer.Clear(); err != nil {
+		t.Fatal(err)
+	}
+	if len(store.Available()) != 0 {
+		t.Error("clearing should remove every logo")
+	}
+	if err := syncer.Clear(); err != nil {
+		t.Errorf("clearing twice should be fine, got %v", err)
+	}
+}
+
 func TestSyncWithoutAKeyDoesNothing(t *testing.T) {
 	withBrands(t, testBrands)
 	fake := newFakeLogoDev(t)

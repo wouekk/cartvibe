@@ -79,6 +79,26 @@ func (syncer *Syncer) setRunning(running bool, lastError string) {
 	}
 }
 
+// ErrSyncRunning is returned when the logos are deleted while a download is running.
+var ErrSyncRunning = errors.New("a logo download is running")
+
+// Clear deletes every downloaded logo and the index, when the household asks for it. It never runs alongside a
+// download, which would write the logos straight back.
+func (syncer *Syncer) Clear() error {
+	if !syncer.running.TryLock() {
+		return ErrSyncRunning
+	}
+	defer syncer.running.Unlock()
+
+	if err := syncer.store.clear(); err != nil {
+		return err
+	}
+	syncer.statusMu.Lock()
+	defer syncer.statusMu.Unlock()
+	syncer.lastError = ""
+	return nil
+}
+
 // Run downloads the missing logos of the wanted brands with the secret key. A run already going makes this a no-op.
 // It returns the error that stopped the run early (a refused key, used-up credits, rate limiting, an outage), also
 // kept in Status.

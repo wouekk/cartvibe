@@ -2213,6 +2213,30 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
+    delete:
+      tags:
+        - ShopLogo
+      summary: Delete the downloaded shop logos
+      description:
+        Deletes every downloaded logo and what the server remembers about Logo.dev's answers; the saved key
+        stays, so the next download fetches them again with credits. Answers with the status [SYSTEM SETTINGS UPDATE]
+      operationId: deleteShopLogos
+      responses:
+        200:
+          description: The logos were deleted; the status as it is now
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopLogoStatus"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        409:
+          description: A download is running; try again once it stops
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
   /shopLogo/status:
     get:
       tags:

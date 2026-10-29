@@ -94,6 +94,15 @@ func StartShopLogoSync() {
 	}()
 }
 
+// DeleteShopLogos deletes every downloaded logo; the key stays. shoplogos.ErrSyncRunning while a download runs.
+func DeleteShopLogos() error {
+	_, syncer, err := ShopLogos()
+	if err != nil {
+		return err
+	}
+	return syncer.Clear()
+}
+
 // HasShopLogos reports whether any logo is downloaded. Downloaded logos are shown with or without a key: removing the
 // key only stops the downloads.
 func HasShopLogos() bool {

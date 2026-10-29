@@ -118,6 +118,38 @@ func StartShopLogoSync(w http.ResponseWriter, r *http.Request) {
 	HandleRequest(handler)
 }
 
+// DeleteShopLogos deletes every downloaded logo for System Settings → Shop Logos; 409 while a download runs.
+func DeleteShopLogos(w http.ResponseWriter, r *http.Request) {
+	handler := structs.Handler{
+		ErrorMessage:   "Error deleting the shop logos.",
+		Writer:         w,
+		Request:        r,
+		AppPermissions: []string{permissions.AppSystemSettingsUpdate},
+		ResponseType:   constants.ApplicationJson,
+		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
+			if err := services.DeleteShopLogos(); errors.Is(err, shoplogos.ErrSyncRunning) {
+				return http.StatusConflict, err
+			} else if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			status, err := services.ShopLogoStatus()
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+			bytes, err := utils.MarshalResponseData(status)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+			w.WriteHeader(http.StatusOK)
+			w.Write(bytes)
+			return 0, nil
+		},
+	}
+
+	HandleRequest(handler)
+}
+
 // GetShopLogoStatus reports the logo download for System Settings → Shop Logos.
 func GetShopLogoStatus(w http.ResponseWriter, r *http.Request) {
 	handler := structs.Handler{

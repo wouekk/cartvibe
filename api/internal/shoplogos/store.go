@@ -102,6 +102,17 @@ func (store *Store) Available() []Brand {
 	return available
 }
 
+// clear removes every stored logo and the index.
+func (store *Store) clear() error {
+	store.mu.Lock()
+	defer store.mu.Unlock()
+
+	if _, err := os.Stat(store.dir); errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	return utils.RemoveAllInDataDir(store.dir)
+}
+
 func (store *Store) readIndex() map[string]entry {
 	store.mu.Lock()
 	defer store.mu.Unlock()
