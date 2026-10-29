@@ -5,11 +5,11 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 
 ## Current state
 
-- `feature/chartjs` (2026-10-29, waiting for CI, not merged): the Dashboard charts moved from apexcharts to Chart.js with
+- `preview` (2026-10-29, ahead of `main`, CI green on the branch, `:preview` image published): the Dashboard charts moved from apexcharts to Chart.js with
   our own `app-chart` wrapper (`desktop/src/shared-ui/chart/`); the lazy chunk went from 128 kB to 49 kB brotli.
   Decided with the user: the hovered slice slides 8 px out instead of scaling. Run here: full specs (2131), `ng build`,
   `npm audit` 0, 32 browser checks and `e2e/dashboard-charts.spec.ts` (9) on the local stack. Not run: Safari/iPhone,
-  Firefox, the NAS. Next: CI green, then `:preview`; the user looks over the charts (day, night, palettes, phone).
+  Firefox, the NAS. Next: the user looks over the charts on `:preview` (day, night, palettes, phone), then says go for `main`.
   The plan and the backlog scan that came with it: `docs/plans/chart-library-migration.md`.
 - `main` = `preview` = v0.13.0 (2026-10-29): shop logos, starter categories, Management tabs, SQLite hardening (WAL,
   busy_timeout, `_txlock=immediate`, pool 8) with the VPS stack (`docker-compose.vps.yml`), warranties and product
