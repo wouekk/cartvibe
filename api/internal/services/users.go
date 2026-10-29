@@ -155,6 +155,16 @@ func DeleteUser(userId string) error {
 			return txErr
 		}
 
+		// Remove user's warranty reminders and push subscriptions
+		txErr = tx.Where("user_id = ?", uintUserId).Delete(&models.WarrantyReminder{}).Error
+		if txErr != nil {
+			return txErr
+		}
+		txErr = tx.Where("user_id = ?", uintUserId).Delete(&models.PushSubscription{}).Error
+		if txErr != nil {
+			return txErr
+		}
+
 		// Remove user's preferences
 		txErr = userPreferncesRepository.DeleteUserPreferences(uintUserId)
 		if txErr != nil {

@@ -3,6 +3,7 @@ module cartvibe/api
 go 1.26.9
 
 require (
+	github.com/SherClockHolmes/webpush-go v1.4.0
 	github.com/anthropics/anthropic-sdk-go v1.84.0
 	github.com/auth0/go-jwt-middleware/v2 v2.3.1
 	github.com/chromedp/cdproto v0.157.8

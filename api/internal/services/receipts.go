@@ -1,13 +1,6 @@
 package services
 
 import (
-	"encoding/json"
-	"errors"
-	"fmt"
-	"github.com/jinzhu/copier"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
-	"os"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/models"
@@ -15,6 +8,13 @@ import (
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"github.com/jinzhu/copier"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -226,6 +226,12 @@ func (service ReceiptService) DeleteReceipt(id string) error {
 			return err
 		}
 
+		// Nor its planned warranty reminders.
+		err = tx.Where("receipt_id = ?", receipt.ID).Delete(&models.WarrantyReminder{}).Error
+		if err != nil {
+			return err
+		}
+
 		err = tx.Select(clause.Associations).Delete(&receipt).Error
 		if err != nil {
 			return err
@@ -382,7 +388,6 @@ func (service ReceiptService) QuickScan(params QuickScanParams) (models.Receipt,
 			UserId:  &commentUserId,
 		})
 	}
-
 
 	vErr := receiptCommand.Validate(token.UserId, true)
 	if len(vErr.Errors) > 0 {

@@ -21,6 +21,9 @@ type GroupOverview struct {
 	PreviousReceiptCount int64 `json:"previousReceiptCount"`
 	// OpenReceiptCount counts the period's receipts still to check (OPEN, NEEDS_ATTENTION or DRAFT).
 	OpenReceiptCount int64 `json:"openReceiptCount"`
+	// WarrantyCount counts the receipts the caller can see whose warranty ends today or later, whatever the period
+	// (the Warranties tile).
+	WarrantyCount int64 `json:"warrantyCount"`
 	// UnhealthyTotal is what the period's products rated unhealthy cost (Phase 2b tags), whatever the
 	// receipt's category. Products without a price, or not rated yet, do not count.
 	UnhealthyTotal         decimal.Decimal `json:"unhealthyTotal"`

@@ -33,6 +33,9 @@ type FeatureConfig struct {
 	// ShopLogosEnabled is true while the household has a Logo.dev key or logos downloaded with one: the app then
 	// asks the server for the downloaded logos, and the login page credits Logo.dev. The key never leaves the server.
 	ShopLogosEnabled bool `json:"shopLogosEnabled"`
+	// WebPushPublicKey is the server's VAPID public key, which a browser needs to subscribe to Web Push; "" when the
+	// server has no VAPID keys, and then the app offers no push.
+	WebPushPublicKey string `json:"webPushPublicKey"`
 }
 
 type DatabaseConfig struct {
@@ -57,10 +60,10 @@ type DebugConfig struct {
 }
 
 type Config struct {
-	SecretKey            string          `json:"secretKey"`
-	AiSettings           AiSettings      `json:"aiSettings"`
-	EmailSettings        []EmailSettings `json:"emailSettings"`
-	Features             FeatureConfig   `json:"features"`
-	Database             DatabaseConfig  `json:"database"`
-	Debug                DebugConfig     `json:"debug"`
+	SecretKey     string          `json:"secretKey"`
+	AiSettings    AiSettings      `json:"aiSettings"`
+	EmailSettings []EmailSettings `json:"emailSettings"`
+	Features      FeatureConfig   `json:"features"`
+	Database      DatabaseConfig  `json:"database"`
+	Debug         DebugConfig     `json:"debug"`
 }

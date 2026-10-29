@@ -1,14 +1,14 @@
 package repositories
 
 import (
-	"fmt"
-	"log"
-	"os"
 	config "cartvibe/api/internal/env"
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"fmt"
+	"log"
+	"os"
 	"time"
 
 	"github.com/glebarez/sqlite"
@@ -168,6 +168,8 @@ func MakeMigrations() error {
 		&models.ReceiptProductExtraction{},
 		&models.ExchangeRate{},
 		&models.ProductClassificationOverride{},
+		&models.WarrantyReminder{},
+		&models.PushSubscription{},
 	)
 
 	return err

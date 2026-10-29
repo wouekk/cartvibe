@@ -148,6 +148,8 @@ type ReceiptPagedRequestFilter struct {
 	// Search is a free-text, typo-tolerant phrase matched against a receipt's name, shop, comments
 	// and product lines. It is a plain string on the contract, not a PagedRequestField.
 	Search string `json:"search,omitempty"`
+	// WarrantyActive keeps only receipts whose warranty ends today (app time zone) or later: the Warranties list.
+	WarrantyActive bool `json:"warrantyActive,omitempty"`
 }
 
 // The ReceiptPagedRequestFilter keys that hold a receipt date. A report period

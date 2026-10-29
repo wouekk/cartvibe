@@ -134,6 +134,28 @@ func (t Translator) DateTime(moment time.Time) string {
 	return moment.Format(layout)
 }
 
+// dayLayouts is how a calendar day reads in a sentence ("Warranty ends 12 March"); the year is added only when it
+// is not the current one. Numeric outside English, for the same reason as dateTimeLayouts.
+var dayLayouts = map[string][2]string{
+	"en": {"2 January", "2 January 2006"},
+	"pl": {"02.01.2006", "02.01.2006"},
+	"de": {"02.01.2006", "02.01.2006"},
+	"fr": {"02/01/2006", "02/01/2006"},
+	"es": {"02/01/2006", "02/01/2006"},
+}
+
+// Day is a calendar day as the language writes it; withYear adds the year where the short form leaves it out.
+func (t Translator) Day(day time.Time, withYear bool) string {
+	layouts, ok := dayLayouts[t.Lang()]
+	if !ok {
+		return day.Format(time.DateOnly)
+	}
+	if withYear {
+		return day.Format(layouts[1])
+	}
+	return day.Format(layouts[0])
+}
+
 // Mark returns key unchanged. It marks an English text defined as a value (a stored template title, a label kept in
 // a table) so the extractor puts it in the catalogue; it is translated later where it is shown, with T or Data.
 func Mark(key string) string {

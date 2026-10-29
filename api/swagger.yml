@@ -1008,6 +1008,53 @@ paths:
       security:
         - bearerAuth: [ ]
         - apiKeyAuth: [ ]
+  /notifications/pushSubscription:
+    post:
+      tags:
+        - Notifications
+      summary: Save this browser's push subscription
+      description: >-
+        Stores the browser's Web Push subscription for the signed-in person, so warranty reminders ring the device.
+        Only https endpoints of known push services are accepted (400 otherwise); 404 when the server has no VAPID keys.
+      operationId: savePushSubscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushSubscriptionCommand"
+      responses:
+        200:
+          description: Saved
+        400:
+          $ref: "#/components/responses/BadRequest"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+  /notifications/pushSubscription/remove:
+    post:
+      tags:
+        - Notifications
+      summary: Remove this browser's push subscription
+      operationId: removePushSubscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushSubscriptionCommand"
+      responses:
+        200:
+          description: Removed (or was not stored)
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
   /notifications/notificationCount:
     get:
       tags:
@@ -1224,6 +1271,44 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SetReceiptAmountCommand"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+        - apiKeyAuth: [ ]
+  /receipt/{receiptId}/warranty:
+    parameters:
+      - in: path
+        name: receiptId
+        schema:
+          type: integer
+        required: true
+        description: Id of the receipt whose warranty date changes
+    put:
+      tags:
+        - Receipt
+      summary: Set or clear a receipt's warranty date
+      description: >-
+        Sets the last day of the purchase's warranty, or clears it with null, and plans its reminders again
+        [group.receipts.update]. The full receipt update never changes this date.
+      operationId: setReceiptWarranty
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetReceiptWarrantyCommand"
+      responses:
+        200:
+          description: The saved warranty date
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SetReceiptWarrantyCommand"
         400:
           $ref: "#/components/responses/BadRequest"
         403:
@@ -4825,6 +4910,10 @@ components:
           type: integer
           format: int64
           description: The month's receipts still to check (OPEN, NEEDS_ATTENTION or DRAFT)
+        warrantyCount:
+          type: integer
+          format: int64
+          description: The receipts the caller can see whose warranty ends today or later, whatever the period
         unhealthyTotal:
           type: string
           description: >-
@@ -6073,6 +6162,12 @@ components:
         date:
           type: string
           description: Receipt date
+        warrantyUntil:
+          type: string
+          nullable: true
+          description: >-
+            The last day of the purchase's warranty, yyyy-MM-dd; null when none was entered. Changed only through
+            PUT /receipt/{receiptId}/warranty.
         firstComment:
           type: string
           description: Text of the receipt's earliest comment the caller may see. Only populated by the paged receipt list (POST /receipt/group/{groupId}); absent when there is no such comment.
@@ -6485,6 +6580,9 @@ components:
         search:
           type: string
           description: Free-text, typo-tolerant phrase matched against a receipt's name, shop, comments and product lines. Every word of the phrase must match.
+        warrantyActive:
+          type: boolean
+          description: Only receipts whose warranty ends today (app time zone) or later. Sort with orderBy warranty_until.
     ReceiptSearchMatch:
       type: object
       required:
@@ -6586,6 +6684,9 @@ components:
           description:
             Whether the household has a Logo.dev key or logos downloaded with one, so the app asks GET /shopLogo for the logos
             the server downloaded and the login page credits Logo.dev. The key never leaves the server.
+        webPushPublicKey:
+          type: string
+          description: The server's VAPID public key for Web Push; empty when push is not set up.
     OidcProviderSummary:
       required:
         - name
@@ -6744,6 +6845,28 @@ components:
         amount:
           type: string
           description: The new total in the main currency, as a decimal string greater than 0 (e.g. "85.00")
+    SetReceiptWarrantyCommand:
+      type: object
+      properties:
+        warrantyUntil:
+          type: string
+          nullable: true
+          description: The warranty's last day as yyyy-MM-dd (e.g. "2028-10-29"); null clears it
+    PushSubscriptionCommand:
+      type: object
+      description: A browser's PushSubscription as PushSubscription.toJSON() writes it
+      required:
+        - endpoint
+      properties:
+        endpoint:
+          type: string
+        keys:
+          type: object
+          properties:
+            p256dh:
+              type: string
+            auth:
+              type: string
     SetReceiptDateCommand:
       type: object
       required:
@@ -6924,6 +7047,19 @@ components:
               description: >-
                 True until this person has been through the first sign-in welcome (language, theme and, for an admin,
                 the household currency). New accounts start with it on; the desktop sends false when it is done.
+            region:
+              type: string
+              description: >-
+                The person's country, ISO 3166-1 alpha-2 ("PL"); empty means the browser's region. It decides the
+                Automatic warranty period.
+            warrantyPeriodYears:
+              type: integer
+              nullable: true
+              description: Where a new warranty date starts, in years after the receipt day (1, 2, 3 or 5); null is Automatic
+            warrantyReminderLeadDays:
+              type: integer
+              nullable: true
+              description: Days before a warranty ends that its reminder comes, 0 on the day; null is 30
             userShortcuts:
               type: array
               items:

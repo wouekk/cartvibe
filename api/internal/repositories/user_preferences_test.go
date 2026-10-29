@@ -1,10 +1,10 @@
 package repositories
 
 import (
-	"github.com/shopspring/decimal"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/utils"
+	"github.com/shopspring/decimal"
 	"testing"
 )
 
@@ -209,5 +209,47 @@ func TestOnboardingPendingIsOnForNewAccountsAndTurnsOff(t *testing.T) {
 	}
 	if lazy.OnboardingPending {
 		t.Errorf("an older account should not see the welcome")
+	}
+}
+
+// The warranty settings round-trip, are normalized, and a missing lead time or period stays nil (30 days,
+// Automatic); reading them back from the database must give the same values.
+func TestUpdateUserPreferencesRoundTripsTheWarrantySettings(t *testing.T) {
+	defer TruncateTestDb()
+	CreateTestUser()
+
+	repository := NewUserPreferencesRepository(nil)
+	if _, err := repository.GetUserPreferencesOrCreate(1); err != nil {
+		t.Fatal(err)
+	}
+
+	years, lead := 3, 0
+	if _, err := repository.UpdateUserPreferences(1, models.UserPrefernces{Region: " pl ", WarrantyPeriodYears: &years, WarrantyReminderLeadDays: &lead}); err != nil {
+		t.Fatal(err)
+	}
+	stored, err := repository.GetUserPreferencesOrCreate(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if stored.Region != "PL" || stored.WarrantyPeriodYears == nil || *stored.WarrantyPeriodYears != 3 ||
+		stored.WarrantyReminderLeadDays == nil || *stored.WarrantyReminderLeadDays != 0 {
+		t.Fatalf("unexpected warranty settings: region %q, period %v, lead %v", stored.Region, stored.WarrantyPeriodYears, stored.WarrantyReminderLeadDays)
+	}
+
+	badYears, negative := 4, -5
+	updated, err := repository.UpdateUserPreferences(1, models.UserPrefernces{Region: "Poland", WarrantyPeriodYears: &badYears, WarrantyReminderLeadDays: &negative})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if updated.Region != "" || updated.WarrantyPeriodYears != nil || updated.WarrantyReminderLeadDays == nil || *updated.WarrantyReminderLeadDays != 0 {
+		t.Fatalf("expected a bad region and period dropped and a negative lead clamped to 0, got %q %v %v", updated.Region, updated.WarrantyPeriodYears, updated.WarrantyReminderLeadDays)
+	}
+
+	cleared, err := repository.UpdateUserPreferences(1, models.UserPrefernces{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cleared.WarrantyPeriodYears != nil || cleared.WarrantyReminderLeadDays != nil {
+		t.Fatalf("an omitted period and lead time should be stored as nil (Automatic, 30 days)")
 	}
 }

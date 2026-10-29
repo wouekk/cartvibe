@@ -1,17 +1,17 @@
 package main
 
 import (
-	"errors"
-	"fmt"
-	"net/http"
-	"os"
-	"os/signal"
 	config "cartvibe/api/internal/env"
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/routers"
 	"cartvibe/api/internal/services"
 	"cartvibe/api/internal/wranglerasynq"
+	"errors"
+	"fmt"
+	"net/http"
+	"os"
+	"os/signal"
 	"syscall"
 	"time"
 	// Embeds the IANA zone database so the app time zone setting resolves
@@ -91,6 +91,13 @@ func main() {
 	// Fetch what the logo store lacks now rather than at the first daily run (a fresh volume, a new release's
 	// brands). Without a Logo.dev key it does nothing.
 	services.StartShopLogoSync()
+
+	// Plan every warranty reminder again, so none depends on this process having seen the change that moved it.
+	go func() {
+		if err := services.SyncAllWarrantyReminders(time.Now()); err != nil {
+			logging.LogStd(logging.LOG_LEVEL_ERROR, "warranty reminders: "+err.Error())
+		}
+	}()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
