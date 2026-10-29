@@ -52,7 +52,8 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
   Region preference or the browser locale); Change and Remove follow. It saves on its own with `setReceiptWarranty`,
   never with the form. The first date asks for notification permission (`WebPushService`, which does nothing without a
   VAPID key, a service worker or permission). Settings → User Preferences → Warranty holds Region, the period
-  ("Automatic (2 years)") and the reminder lead days. `/warranties/group/:groupId` lists running warranties, nearest end
+  ("Automatic (2 years)") and the reminder lead days. `/warranties/group/:groupId` (its own sidebar entry,
+  `nav-warranties`, beside Receipts; also the Dashboard tile and panel) lists running warranties, nearest end
   first, with days left. Return dates are deliberately not tracked.
 
 - **Table:** Receipt Date (default sort `DEFAULT_RECEIPT_ORDER_BY = "date"`), Shop (`shop_name`: the AI-read shop, else

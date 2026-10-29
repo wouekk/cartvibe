@@ -23,6 +23,8 @@ dump.rdb
 # Written by running the Go tests locally
 internal/**/test.db
 internal/**/test.db-journal
+internal/**/test.db-wal
+internal/**/test.db-shm
 internal/**/test.json
 internal/**/logs/
 internal/**/data/shopping-trips/
