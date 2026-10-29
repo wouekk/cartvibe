@@ -10,10 +10,10 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
   lines grossed up when an invoice prints them before VAT. The user's Uber Quick Scan read well. Waiting on the user:
   deploy `:latest` (back up `sqlite/` with its `-wal`/`-shm` first). Offered, not built: a Stop download button for
   logos.
-- `preview` also holds `feature/parked-backlog` (not on `main`, waits for the user's go): specs on Vitest, no
+- `main` = `preview` (2026-10-29, unreleased after 0.13.0) also has the parked backlog: specs on Vitest, no
   `@ngneat/until-destroy`, no `@angular/animations`, `rxResource` on the Warranties list, undici/fast-uri floors,
-  Chromium-sandbox comment. Waiting on the user: look over Dashboard charts, dialogs and menus, a report, Warranties
-  (phone and desktop, day and night), de/fr/es spot checks.
+  Chromium-sandbox comment. `:latest` is published. Waiting on the user: look over Dashboard charts, dialogs and menus,
+  a report, Warranties (phone and desktop, day and night), de/fr/es spot checks.
 - Next agreed: `feature/households` (tenant model) from `main`. Not run anywhere yet: a Litestream/restic restore
   drill, Web Push on a real device (needs HTTPS + VAPID keys).
 - 2026-10-29: the component guides were cut roughly in half; feature detail moved to `api/docs/domain.md`,
