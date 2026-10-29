@@ -18,6 +18,11 @@ the "Prompts" table and the prompt a processing setting names are kept for upstr
 - **Any receipt or bill, not only a shop's.** A bill for a service (ride, flight, ticket, toll, stay, meal, utility) is
   read as one line per service at the amount paid with its own taxes and fees (`productLineRulesTemplate`), so it lands
   in a category instead of Uncategorized. Only "not a receipt or bill" answers `products:[]`.
+- **Product lines are what was paid, VAT included.** An invoice that prints its prices before tax ("HT", "net",
+  "excl. VAT") and adds the VAT at the bottom is asked to give each line with its tax (`productLineRulesTemplate`).
+  If an answer still carries net prices, `GrossUpNetLines` (`services/net_price_lines.go`, called from
+  `applyProducts` before currency conversion) scales the lines to the receipt total when their sum plus one standard
+  VAT rate makes that total to a cent per line; mixed rates, discounts and unlisted items are left as read.
 - **A starter category list is seeded once** (`repositories/starter_categories.go`, through the data-migration ledger):
   groceries plus everyday spending (Restaurant, Taxi, Airlines, Bills, Travel, ...). An install with a list gets no
   English examples in the prompt (see `foodGroupRule`); the examples remain for a household that empties its list.

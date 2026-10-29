@@ -55,6 +55,10 @@ All your spending, not only the groceries.
   installs start with 4 background workers instead of 10.
 - **Rate limits per visitor behind a proxy:** the login and sign-up limits now count each visitor's real address
   behind the Synology or another reverse proxy on a private network, instead of everyone sharing the proxy's.
+- **Invoices with prices before VAT:** an invoice that lists its items before tax ("HT", "net", "excl. VAT") and adds
+  the VAT at the bottom, like an Apple Store invoice, now has its products at what you paid, tax included. The VAT no
+  longer shows up as a part of the receipt "not split into products yet" under Uncategorized. A receipt read before
+  this change is fixed by **Read again**.
 - **Any receipt or bill:** the AI no longer gives up on a receipt that isn't from a shop. A taxi ride, a flight, a toll,
   a hotel stay or an energy bill becomes one line per service, at the amount paid with its fees, in the right category
   instead of Uncategorized.

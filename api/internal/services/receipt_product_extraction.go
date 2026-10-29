@@ -75,7 +75,7 @@ func foodGroupRule(categoryBlock string) string {
 const productLineRulesTemplate = `For each product line:
 - "name": the line exactly as printed.
 - "displayName": a short plain English name, e.g. "Semi-skimmed milk 1 L" for "LAIT DEMI-ECR 1L".
-- "amount": the line's total as a number, after its own printed discount; leave it out if the line has no price.
+- "amount": the line's total as a number, after its own printed discount and including its VAT (when prices are printed before tax, e.g. "HT", "net", "excl. VAT", add the line's tax); leave it out if the line has no price.
 - "quantity": the quantity or weight if printed ("2", "1.25 kg"); leave it out otherwise.
 - "health": ` + healthRules + `
 - "foodGroup": %s
@@ -303,6 +303,15 @@ func (service ReceiptProductExtractionService) applyProducts(
 	corrections map[string]string,
 ) error {
 	repository := repositories.NewReceiptProductRepository(service.TX)
+
+	// An invoice that prints its line prices before VAT and adds the tax at the bottom: the lines become what was
+	// paid, so the VAT does not end up as an "uncovered" Uncategorized rest. Compared in the currency the lines were
+	// read in (the receipt's original amount when it was converted), so before the conversion below.
+	readTotal := receipt.Amount
+	if receipt.OriginalAmount != nil {
+		readTotal = *receipt.OriginalAmount
+	}
+	GrossUpNetLines(products, readTotal)
 
 	// A receipt in another currency has its product amounts converted at the same rate as the receipt
 	// (Phase 3 currencies): the rate it already carries, else the table's. Without a rate they stay as read.
