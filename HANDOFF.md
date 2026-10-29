@@ -8,6 +8,13 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 - `main` = `preview` = v0.12.0 plus CHANGELOG → Unreleased (server-side shop logos with a credit budget, starter
   categories, Management tabs, …). Waiting on the user: deploy `:latest`, a taxi or flight Quick Scan with a real AI
   key, then tag v0.13.0 (agreed). Offered, not built: a Stop download button for logos.
+- 2026-10-29, VPS prep (AGPL kept; plan in the session): `feature/sqlite-vps-hardening` (WAL, busy_timeout,
+  `_txlock=immediate`, pool 8, `docker-compose.vps.yml` with Caddy/Litestream/restic, nginx real IP from private
+  networks) is green and merged into `preview` + published to `:preview`. `feature/warranty` (warranty dates,
+  reminders, Web Push, Warranties tile/panel/page) is pushed; merge into `preview` once CI is green. Next agreed:
+  `feature/households` (tenant model), from `preview` after warranty. Add the VAPID variables to
+  `docker-compose.vps.yml` when the two meet. Not run anywhere yet: a Litestream/restic restore drill, Web Push on a
+  real device (needs HTTPS + VAPID keys).
 - 2026-10-29: the component guides were cut roughly in half; feature detail moved to `api/docs/domain.md`,
   `api/docs/shop-logos.md`, `desktop/docs/features.md`. If a rule seems ignored, move it back or mark it IMPORTANT.
 - Git history was rewritten on 2026-10-29 (old logo PNGs dropped, everything force-pushed): re-clone on the Mac. The
@@ -25,7 +32,8 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
   `Content-Security-Policy` (recompute the inline script hash from the built `dist/index.html` first).
 - Barcode scanner (camera and photo fallback over `http://`) on a phone; a real touch drag on the Dashboard customise
   screen.
-- The Synology reverse proxy's IP, for `set_real_ip_from` (the login rate limit keys on the proxy address today).
+- Check the login rate limit still keys per visitor behind the Synology proxy (nginx now trusts X-Forwarded-For from
+  private networks).
 - GHCR: the old `ghcr.io/wouekk/receipt-wrangler` package can be deleted by hand.
 
 ## Backlog (separate projects, own branch each, not started)
