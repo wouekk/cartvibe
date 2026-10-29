@@ -63,6 +63,18 @@ export interface UserPreferences {
      * True until this person has been through the first sign-in welcome (language, theme and, for an admin, the household currency). New accounts start with it on; the desktop sends false when it is done.
      */
     onboardingPending?: boolean;
+    /**
+     * The person\'s country, ISO 3166-1 alpha-2 (\"PL\"); empty means the browser\'s region. It decides the Automatic warranty period.
+     */
+    region?: string;
+    /**
+     * Where a new warranty date starts, in years after the receipt day (1, 2, 3 or 5); null is Automatic
+     */
+    warrantyPeriodYears?: number;
+    /**
+     * Days before a warranty ends that its reminder comes, 0 on the day; null is 30
+     */
+    warrantyReminderLeadDays?: number;
     userShortcuts?: Array<UserShortcut>;
 }
 export namespace UserPreferences {

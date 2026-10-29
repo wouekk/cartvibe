@@ -101,6 +101,8 @@ model/pagedRequestCommand.ts
 model/permission.ts
 model/permissionDescriptor.ts
 model/permissionScope.ts
+model/pushSubscriptionCommand.ts
+model/pushSubscriptionCommandKeys.ts
 model/queueName.ts
 model/queuedReceiptsView.ts
 model/quickScanDefaultPaidByType.ts
@@ -130,6 +132,7 @@ model/setFoodClassificationCommand.ts
 model/setReceiptAmountCommand.ts
 model/setReceiptDateCommand.ts
 model/setReceiptProductLabelsCommand.ts
+model/setReceiptWarrantyCommand.ts
 model/setShoppingListCheckedCommand.ts
 model/setShoppingListItemCheckedCommand.ts
 model/shopLogo.ts
