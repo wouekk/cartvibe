@@ -47,6 +47,10 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
   Filter values arrive as `interface{}`; unwrap with comma-ok so a malformed body adds no predicate instead of panicking.
 - `utils.ReadFile` returns `(nil, nil)` on any error; never use it where a missing file must be an error.
 - GORM's "record not found" log is silenced (`quietGormLogger`): empty sweep queues are normal.
+- **SQLite opens through `sqliteParams`** (`repositories/db.go`; the test DB too): WAL (Litestream needs it),
+  `busy_timeout` 5 s, `synchronous(NORMAL)`, foreign keys, `_txlock=immediate` (a transaction takes the write lock at
+  BEGIN, so a read-then-write never fails on the upgrade), pool capped at 8. A write on a second connection inside a
+  transaction waits for that transaction and fails after 5 s: write through the `tx`.
 
 ## 3. Security invariants
 

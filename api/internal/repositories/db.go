@@ -1,14 +1,14 @@
 package repositories
 
 import (
-	"fmt"
-	"log"
-	"os"
 	config "cartvibe/api/internal/env"
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"fmt"
+	"log"
+	"os"
 	"time"
 
 	"github.com/glebarez/sqlite"
@@ -38,8 +38,60 @@ func BuildSqliteConnectionString(dbConfig structs.DatabaseConfig) (string, error
 		return "", err
 	}
 
-	connectionString := fmt.Sprintf("file:./sqlite/%s?_pragma=foreign_keys(1)", dbConfig.Filename)
+	connectionString := fmt.Sprintf("file:./sqlite/%s?%s", dbConfig.Filename, sqliteParams(true))
 	return connectionString, nil
+}
+
+// sqliteParams is the DSN query every SQLite connection opens with. The driver runs each _pragma on
+// every new pooled connection, which matters for the per-connection ones (busy_timeout, foreign_keys).
+//   - WAL lets readers run while one writer commits, and Litestream needs it to replicate.
+//   - busy_timeout makes a writer wait for the lock instead of failing with SQLITE_BUSY at once; the
+//     quick-scan workers, the sweeps and the API all write through one pool.
+//   - synchronous(NORMAL) is the safe level for WAL: a power cut can lose the last commits, never
+//     corrupt the file.
+//   - _txlock=immediate takes the write lock at BEGIN, so a transaction that read first never fails on
+//     upgrading to a writer (which busy_timeout cannot retry in WAL).
+func sqliteParams(foreignKeys bool) string {
+	foreignKeysValue := 0
+	if foreignKeys {
+		foreignKeysValue = 1
+	}
+
+	return fmt.Sprintf(
+		"_pragma=foreign_keys(%d)&_pragma=journal_mode(WAL)&_pragma=busy_timeout(%d)&_pragma=synchronous(NORMAL)&_txlock=immediate",
+		foreignKeysValue,
+		sqliteBusyTimeoutMs,
+	)
+}
+
+const (
+	sqliteBusyTimeoutMs = 5000
+
+	// sqliteMaxOpenConns caps the pool. SQLite has one writer at a time whatever the pool size, so more
+	// connections only add readers; more than one is still needed because some services open a second
+	// connection inside a transaction (see UseTestDbWithoutForeignKeysForTests).
+	sqliteMaxOpenConns = 8
+)
+
+// configureSqlitePool caps the connection pool and logs the journal mode the file is really in, so a
+// volume that cannot hold WAL (a network share) shows up in the log instead of as lock errors later.
+func configureSqlitePool(connectedDb *gorm.DB) error {
+	sqlDB, err := connectedDb.DB()
+	if err != nil {
+		return err
+	}
+
+	sqlDB.SetMaxOpenConns(sqliteMaxOpenConns)
+	sqlDB.SetMaxIdleConns(sqliteMaxOpenConns)
+	sqlDB.SetConnMaxIdleTime(5 * time.Minute)
+
+	var journalMode string
+	if err := connectedDb.Raw("PRAGMA journal_mode").Scan(&journalMode).Error; err != nil {
+		return err
+	}
+	logging.LogStd(logging.LOG_LEVEL_INFO, fmt.Sprintf("sqlite journal mode: %s", journalMode))
+
+	return nil
 }
 
 const (
@@ -87,6 +139,12 @@ func Connect() error {
 	connectedDb, err := openWithRetry(dialector, maxAttempts)
 	if err != nil {
 		return err
+	}
+
+	if dbEngine == "sqlite" {
+		if err := configureSqlitePool(connectedDb); err != nil {
+			return err
+		}
 	}
 
 	db = connectedDb
@@ -221,7 +279,7 @@ func InitDB() error {
 const testDbFile = "file:test.db"
 
 func InitTestDb() {
-	sqlite, err := gorm.Open(sqlite.Open(testDbFile+"?_pragma=foreign_keys(1)"), &gorm.Config{})
+	sqlite, err := gorm.Open(sqlite.Open(testDbFile+"?"+sqliteParams(true)), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
@@ -242,7 +300,7 @@ func InitTestDb() {
 // deadlocks any code that opens a second one mid-transaction, which
 // services.DeleteUser does.
 func UseTestDbWithoutForeignKeysForTests() (restore func(), err error) {
-	withoutForeignKeys, err := gorm.Open(sqlite.Open(testDbFile+"?_pragma=foreign_keys(0)"), &gorm.Config{})
+	withoutForeignKeys, err := gorm.Open(sqlite.Open(testDbFile+"?"+sqliteParams(false)), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}

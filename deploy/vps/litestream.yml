@@ -1,0 +1,15 @@
+# Litestream replicates the CartVibe database (WAL mode, set by the API) to S3-compatible storage. Credentials come
+# from LITESTREAM_ACCESS_KEY_ID / LITESTREAM_SECRET_ACCESS_KEY; the rest from the variables below
+# (docker-compose.vps.yml passes them in).
+dbs:
+  - path: /data/sqlite/app.db
+    replicas:
+      - type: s3
+        bucket: ${S3_BUCKET}
+        path: litestream/app.db
+        endpoint: ${S3_ENDPOINT}
+        region: ${S3_REGION}
+        # A full snapshot a day keeps restores quick; WAL segments in between are kept for 7 days.
+        snapshot-interval: 24h
+        retention: 168h
+        sync-interval: 1s

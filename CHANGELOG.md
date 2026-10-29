@@ -34,8 +34,18 @@ All your spending, not only the groceries.
   Lacoste, Vans, New Balance, The North Face, Foot Locker, Vinted and more) and about 40 more restaurant, café and
   fast-food chains (MAX Premium Burgers, Bobby Burger, Pasibus, Da Grasso, Green Caffè Nero, Popeyes, Wendy's,
   Nando's, Pret A Manger, PizzaExpress, O'Tacos, L'Osteria, Hans im Glück and more).
+- **Running on a server of your own:** `docker-compose.vps.yml` and `docs/vps-deploy.md` set CartVibe up on a rented
+  Linux server with HTTPS (Caddy), the database copied off the server about a second after every change (Litestream)
+  and the receipt images backed up every 6 hours (restic), both to S3-compatible storage such as OVH Object Storage,
+  with a restore drill.
 
 ### Changed
+- **Steadier database under load:** SQLite now runs in WAL mode, waits up to 5 seconds for a busy database instead of
+  failing at once, and caps its connections, so receipts scanned at the same time no longer trip over each other. The
+  `sqlite` folder now also holds `app.db-wal` and `app.db-shm`: back up the whole folder with the app stopped. New
+  installs start with 4 background workers instead of 10.
+- **Rate limits per visitor behind a proxy:** the login and sign-up limits now count each visitor's real address
+  behind the Synology or another reverse proxy on a private network, instead of everyone sharing the proxy's.
 - **Any receipt or bill:** the AI no longer gives up on a receipt that isn't from a shop. A taxi ride, a flight, a toll,
   a hotel stay or an energy bill becomes one line per service, at the amount paid with its fees, in the right category
   instead of Uncategorized.
