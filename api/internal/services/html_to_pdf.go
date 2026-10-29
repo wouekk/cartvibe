@@ -226,10 +226,11 @@ func chromiumAllocatorOptions() []chromedp.ExecAllocatorOption {
 		chromedp.DisableGPU,
 		chromedp.Flag("disable-javascript", true),
 	)
-	// Default behavior is --no-sandbox because the supported docker images
-	// run as root, where chromium's sandbox refuses to start. Operators
-	// running the API as a non-root user can opt back into the sandbox via
-	// the CHROMIUM_SANDBOX env var.
+	// Default behavior is --no-sandbox. The image runs the API as uid 10001,
+	// so root is not the reason, but chromium's sandbox needs user namespaces
+	// and Docker's default seccomp/AppArmor profile (and some NAS kernels)
+	// refuse them, which would break every PDF. Operators whose runtime
+	// allows them can opt in with the CHROMIUM_SANDBOX env var.
 	if !env.GetChromiumSandboxEnabled() {
 		opts = append(opts, chromedp.NoSandbox)
 	}

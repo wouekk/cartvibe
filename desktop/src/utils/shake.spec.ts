@@ -1,8 +1,8 @@
 import { shakeInvalid } from "./shake";
 
 describe("shakeInvalid", () => {
-  beforeEach(() => jest.useFakeTimers());
-  afterEach(() => jest.useRealTimers());
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
 
   const field = (): HTMLElement => {
     const host = document.createElement("div");
@@ -20,7 +20,7 @@ describe("shakeInvalid", () => {
     expect(host.classList.contains("cv-field-error")).toBe(true);
     expect(document.activeElement).toBe(host.querySelector("input"));
 
-    jest.advanceTimersByTime(1700);
+    vi.advanceTimersByTime(1700);
 
     expect(host.classList.contains("cv-shake")).toBe(false);
     expect(host.classList.contains("cv-field-error")).toBe(false);

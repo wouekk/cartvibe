@@ -18,10 +18,10 @@ import { WelcomeDialogComponent } from "./welcome-dialog.component";
 describe("WelcomeDialogComponent", () => {
   let fixture: ComponentFixture<WelcomeDialogComponent>;
   let store: Store;
-  const close = jest.fn();
-  const updateUserPreferences = jest.fn();
-  const getSystemSettings = jest.fn();
-  const updateSystemSettings = jest.fn();
+  const close = vi.fn();
+  const updateUserPreferences = vi.fn();
+  const getSystemSettings = vi.fn();
+  const updateSystemSettings = vi.fn();
 
   const element = (testId: string): HTMLElement | null => fixture.nativeElement.querySelector(`[data-testid="${testId}"]`);
 
@@ -129,7 +129,7 @@ describe("WelcomeDialogComponent", () => {
 });
 
 describe("OnboardingService", () => {
-  const open = jest.fn();
+  const open = vi.fn();
 
   beforeEach(() => {
     open.mockReset();

@@ -4,7 +4,6 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
-import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { ActivatedRoute } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { ButtonComponent } from "../../button/index";
@@ -33,8 +32,7 @@ describe("SystemTaskTableComponent", () => {
       imports: [TranslatePipe, SharedUiModule,
         AppIconComponent,
         NgxsModule.forRoot([SystemTaskTableState, UserState]),
-        TableModule,
-        NoopAnimationsModule],
+        TableModule],
       providers: [{
         provide: ActivatedRoute,
         useValue: {
@@ -82,8 +80,8 @@ describe("SystemTaskTableComponent", () => {
       type: { operation: FilterOperation.Contains, value: ["QUICK_SCAN"] },
     } as any));
 
-    const dispatchSpy = jest.spyOn(store, "dispatch");
-    jest.spyOn(component, "refresh").mockImplementation(() => {});
+    const dispatchSpy = vi.spyOn(store, "dispatch");
+    vi.spyOn(component, "refresh").mockImplementation(() => {});
 
     component.filterChipCleared("type");
 

@@ -15,6 +15,7 @@ import {
   UNDO_WINDOW_MS,
 } from "./overview-shopping-panel.component";
 
+import type { Mock } from "vitest";
 const item = (id: number, shoppingListId: number, name: string, isChecked = false): ShoppingListItem =>
   ({ id, shoppingListId, name, isChecked, createdAt: `2026-10-22T08:00:${String(id).padStart(2, "0")}Z` }) as unknown as ShoppingListItem;
 
@@ -24,8 +25,8 @@ const list = (id: number, name: string, items: ShoppingListItem[]): ShoppingList
 describe("OverviewShoppingPanelComponent", () => {
   let fixture: ComponentFixture<OverviewShoppingPanelComponent>;
   let lists: ShoppingList[];
-  let setChecked: jest.Mock;
-  let snackbar: { error: jest.Mock };
+  let setChecked: Mock;
+  let snackbar: { error: Mock };
 
   const el = (): HTMLElement => fixture.nativeElement;
   const rows = (): HTMLElement[] => Array.from(el().querySelectorAll("[data-testid=overview-shopping-item]"));
@@ -39,11 +40,11 @@ describe("OverviewShoppingPanelComponent", () => {
   };
 
   beforeEach(async () => {
-    setChecked = jest.fn((_id: number, body: { isChecked: boolean }) => {
+    setChecked = vi.fn((_id: number, body: { isChecked: boolean }) => {
       const found = lists.flatMap((l) => l.items).find((candidate) => candidate.id === _id)!;
       return of({ ...found, isChecked: body.isChecked });
     });
-    snackbar = { error: jest.fn() };
+    snackbar = { error: vi.fn() };
 
     await TestBed.configureTestingModule({
       imports: [OverviewShoppingPanelComponent, NgxsModule.forRoot([ShoppingListState])],
@@ -56,7 +57,7 @@ describe("OverviewShoppingPanelComponent", () => {
     }).compileComponents();
 
     // The page feeds the panel from the store; here a dispatched event stands in for that round trip.
-    jest.spyOn(TestBed.inject(Store), "dispatch").mockImplementation((action: unknown) => {
+    vi.spyOn(TestBed.inject(Store), "dispatch").mockImplementation((action: unknown) => {
       const event = (action as ApplyShoppingListEvent).event;
       const next = lists.map((l) =>
         l.id === event.shoppingListId
@@ -74,7 +75,7 @@ describe("OverviewShoppingPanelComponent", () => {
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   it("shows the list with the most items still to buy as a bulleted list", async () => {
@@ -98,11 +99,11 @@ describe("OverviewShoppingPanelComponent", () => {
   });
 
   it("with a mouse, lists every item in a box that scrolls", async () => {
-    window.matchMedia = jest.fn((query: string) => ({
+    window.matchMedia = vi.fn((query: string) => ({
       matches: true,
       media: query,
-      addEventListener: jest.fn(),
-      removeEventListener: jest.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
     })) as unknown as typeof window.matchMedia;
     try {
       fixture.destroy();
@@ -148,10 +149,10 @@ describe("OverviewShoppingPanelComponent", () => {
     await render([list(1, "Weekly", [item(1, 1, "milk"), item(2, 1, "bread")])]);
 
     // Fake timers only around the click: the zoneless scheduler needs real ones for whenStable().
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     rows()[0].click();
-    jest.advanceTimersByTime(UNDO_WINDOW_MS + 1);
-    jest.useRealTimers();
+    vi.advanceTimersByTime(UNDO_WINDOW_MS + 1);
+    vi.useRealTimers();
     await fixture.whenStable();
 
     expect(undoRows().length).toBe(0);

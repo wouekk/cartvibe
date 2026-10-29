@@ -2,10 +2,12 @@ import { provideZonelessChangeDetection } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { of } from "rxjs";
 import { PagedRequestCommand, ReportRequestCommand, ReportService } from "../../open-api";
-import { downloadFile } from "../../utils/file";
 import { ReportRunnerService, reportFilename } from "./report-runner.service";
 
-jest.mock("../../utils/file", () => ({ downloadFile: jest.fn() }));
+import type { Mock, MockInstance } from "vitest";
+// The Angular unit-test builder does not support vi.mock of relative modules, so the real downloadFile runs
+// and is observed at the browser boundary: the object URL it creates and the anchor it clicks.
+const downloadFile = vi.fn();
 
 function command(name: string, formats: ReportRequestCommand.FormatsEnum[]): ReportRequestCommand {
   return {
@@ -38,28 +40,44 @@ describe("reportFilename", () => {
 
 describe("ReportRunnerService", () => {
   let reportService: {
-    createReportTemplate: jest.Mock;
-    updateReportTemplate: jest.Mock;
-    getReportTemplates: jest.Mock;
-    getReportTemplate: jest.Mock;
-    duplicateReportTemplate: jest.Mock;
-    deleteReportTemplate: jest.Mock;
-    generateReport: jest.Mock;
-    generateReportFromTemplate: jest.Mock;
+    createReportTemplate: Mock;
+    updateReportTemplate: Mock;
+    getReportTemplates: Mock;
+    getReportTemplate: Mock;
+    duplicateReportTemplate: Mock;
+    deleteReportTemplate: Mock;
+    generateReport: Mock;
+    generateReportFromTemplate: Mock;
   };
   let service: ReportRunnerService;
+  let originalCreateObjectURL: typeof URL.createObjectURL;
+  let clickSpy: MockInstance;
+
+  afterEach(() => {
+    URL.createObjectURL = originalCreateObjectURL;
+    clickSpy.mockRestore();
+  });
 
   beforeEach(() => {
-    (downloadFile as jest.Mock).mockClear();
+    downloadFile.mockClear();
+    originalCreateObjectURL = URL.createObjectURL;
+    let lastBlob: Blob | undefined;
+    URL.createObjectURL = vi.fn((blob: Blob) => {
+      lastBlob = blob;
+      return "blob:report";
+    });
+    clickSpy = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (this: HTMLAnchorElement) {
+      downloadFile(lastBlob, this.getAttribute("download"));
+    });
     reportService = {
-      createReportTemplate: jest.fn(() => of({ id: 1 })),
-      updateReportTemplate: jest.fn(() => of({ id: 2 })),
-      getReportTemplates: jest.fn(() => of({ data: [], totalCount: 0 })),
-      getReportTemplate: jest.fn(() => of({ id: 3 })),
-      duplicateReportTemplate: jest.fn(() => of({ id: 4 })),
-      deleteReportTemplate: jest.fn(() => of(undefined)),
-      generateReport: jest.fn(() => of(new Blob())),
-      generateReportFromTemplate: jest.fn(() => of(new Blob())),
+      createReportTemplate: vi.fn(() => of({ id: 1 })),
+      updateReportTemplate: vi.fn(() => of({ id: 2 })),
+      getReportTemplates: vi.fn(() => of({ data: [], totalCount: 0 })),
+      getReportTemplate: vi.fn(() => of({ id: 3 })),
+      duplicateReportTemplate: vi.fn(() => of({ id: 4 })),
+      deleteReportTemplate: vi.fn(() => of(undefined)),
+      generateReport: vi.fn(() => of(new Blob())),
+      generateReportFromTemplate: vi.fn(() => of(new Blob())),
     };
     TestBed.configureTestingModule({
       providers: [

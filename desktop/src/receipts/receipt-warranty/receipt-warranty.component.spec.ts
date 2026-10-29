@@ -12,11 +12,12 @@ import { FeatureConfigState } from "../../store/feature-config.state";
 import { SystemSettingsState } from "../../store/system-settings.state";
 import { ReceiptWarrantyComponent } from "./receipt-warranty.component";
 
+import type { Mock } from "vitest";
 describe("ReceiptWarrantyComponent", () => {
   let fixture: ComponentFixture<ReceiptWarrantyComponent>;
   let component: ReceiptWarrantyComponent;
-  let receiptService: { setReceiptWarranty: jest.Mock };
-  let webPush: { enableForWarranties: jest.Mock };
+  let receiptService: { setReceiptWarranty: Mock };
+  let webPush: { enableForWarranties: Mock };
 
   const receipt = (warrantyUntil?: string): Receipt =>
     ({ id: 9, name: "Toaster", date: "2026-10-29T00:00:00Z", warrantyUntil, amount: "49", status: "OPEN" }) as Receipt;
@@ -27,8 +28,8 @@ describe("ReceiptWarrantyComponent", () => {
   };
 
   beforeEach(async () => {
-    receiptService = { setReceiptWarranty: jest.fn((_id: number, command: { warrantyUntil: string }) => of({ warrantyUntil: command.warrantyUntil || undefined })) };
-    webPush = { enableForWarranties: jest.fn(() => Promise.resolve()) };
+    receiptService = { setReceiptWarranty: vi.fn((_id: number, command: { warrantyUntil: string }) => of({ warrantyUntil: command.warrantyUntil || undefined })) };
+    webPush = { enableForWarranties: vi.fn(() => Promise.resolve()) };
 
     await TestBed.configureTestingModule({
       imports: [ReceiptWarrantyComponent, NgxsModule.forRoot([AuthState, FeatureConfigState, SystemSettingsState])],

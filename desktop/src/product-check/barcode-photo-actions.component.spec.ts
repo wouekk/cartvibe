@@ -3,9 +3,10 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { BarcodeImageService } from "./barcode-image.service";
 import { BarcodePhotoActionsComponent } from "./barcode-photo-actions.component";
 
+import type { Mock } from "vitest";
 describe("BarcodePhotoActionsComponent", () => {
   let fixture: ComponentFixture<BarcodePhotoActionsComponent>;
-  let decode: jest.Mock;
+  let decode: Mock;
   let found: string[];
   let missed: number;
   let release: (code: string | null) => void;
@@ -30,7 +31,7 @@ describe("BarcodePhotoActionsComponent", () => {
   beforeEach(async () => {
     found = [];
     missed = 0;
-    decode = jest.fn().mockImplementation(() => new Promise((resolve) => (release = resolve)));
+    decode = vi.fn().mockImplementation(() => new Promise((resolve) => (release = resolve)));
     await TestBed.configureTestingModule({
       imports: [BarcodePhotoActionsComponent],
       providers: [provideZonelessChangeDetection(), { provide: BarcodeImageService, useValue: { decode } }],

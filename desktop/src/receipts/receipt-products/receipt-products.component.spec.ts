@@ -8,16 +8,21 @@ import { SetGroupCatalog, SetPermissions } from "../../store/auth.state.actions"
 import { SystemSettingsState } from "../../store/system-settings.state";
 import { ReceiptProductsComponent } from "./receipt-products.component";
 
-const view = (overrides: Partial<ReceiptProductsView>): ReceiptProductsView => ({
-  status: "DONE",
-  lastError: "",
-  products: [],
-  ...overrides,
-});
+import type { Mock } from "vitest";
+// Fixtures list only the fields a test cares about, so the products are typed loosely here.
+type ViewOverrides = Omit<Partial<ReceiptProductsView>, "products"> & { products?: Partial<ReceiptProductsView["products"][number]>[] };
+
+const view = (overrides: ViewOverrides): ReceiptProductsView =>
+  ({
+    status: "DONE",
+    lastError: "",
+    products: [],
+    ...overrides,
+  }) as ReceiptProductsView;
 
 describe("ReceiptProductsComponent", () => {
   let fixture: ComponentFixture<ReceiptProductsComponent>;
-  let service: { [method: string]: jest.Mock };
+  let service: Record<"getReceiptProducts" | "readReceiptProducts" | "addReceiptProduct" | "updateReceiptProduct" | "deleteReceiptProduct" | "setReceiptProductLabels", Mock>;
 
   const element = (testId: string): HTMLElement | null =>
     fixture.nativeElement.querySelector(`[data-testid="${testId}"]`);
@@ -33,12 +38,12 @@ describe("ReceiptProductsComponent", () => {
 
   beforeEach(async () => {
     service = {
-      getReceiptProducts: jest.fn(),
-      readReceiptProducts: jest.fn(),
-      addReceiptProduct: jest.fn(),
-      updateReceiptProduct: jest.fn(),
-      deleteReceiptProduct: jest.fn(),
-      setReceiptProductLabels: jest.fn(),
+      getReceiptProducts: vi.fn(),
+      readReceiptProducts: vi.fn(),
+      addReceiptProduct: vi.fn(),
+      updateReceiptProduct: vi.fn(),
+      deleteReceiptProduct: vi.fn(),
+      setReceiptProductLabels: vi.fn(),
     };
     await TestBed.configureTestingModule({
       imports: [ReceiptProductsComponent, NgxsModule.forRoot([AuthState, SystemSettingsState])],

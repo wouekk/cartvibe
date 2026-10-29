@@ -132,7 +132,8 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
 - External loads are blocked by default (`network.SetBlockedURLs` takes URLPattern strings: spell out `scheme://*:*/*`;
   `http://*` blocks nothing on another port or path). `CHROMIUM_ALLOW_EXTERNAL_RESOURCES=true` lets only public hosts
   through Fetch interception (`isRequestAllowed`, `ipIsInternal`).
-- The Chromium sandbox is off by default (needs user namespaces the NAS may refuse); `CHROMIUM_SANDBOX=true` opts in.
+- The Chromium sandbox is off by default although the API runs as uid 10001: it needs user namespaces, which Docker's
+  default security profile and some NAS kernels refuse. `CHROMIUM_SANDBOX=true` opts in.
 
 ## 4. Permissions and roles
 

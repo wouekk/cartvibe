@@ -3,10 +3,11 @@ import { Router } from "@angular/router";
 import { RouterTestingModule } from "@angular/router/testing";
 import { QueueMode, ReceiptQueueService } from "./receipt-queue.service";
 
+import type { MockInstance } from "vitest";
 describe("ReceiptQueueService", () => {
   let service: ReceiptQueueService;
   let router: Router;
-  let navigateSpy: jest.SpyInstance;
+  let navigateSpy: MockInstance;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -15,7 +16,7 @@ describe("ReceiptQueueService", () => {
     });
     service = TestBed.inject(ReceiptQueueService);
     router = TestBed.inject(Router);
-    navigateSpy = jest.spyOn(router, "navigate").mockResolvedValue(true);
+    navigateSpy = vi.spyOn(router, "navigate").mockResolvedValue(true);
   });
 
   it("should be created", () => {

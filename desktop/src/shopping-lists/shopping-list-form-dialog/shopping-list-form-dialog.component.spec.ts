@@ -17,7 +17,7 @@ describe("ShoppingListFormDialogComponent", () => {
       imports: [NgxsModule.forRoot([SystemSettingsState]), PipesModule, ReactiveFormsModule],
       providers: [
         provideZonelessChangeDetection(),
-        { provide: AppDialogRef, useValue: { close: jest.fn() } },
+        { provide: AppDialogRef, useValue: { close: vi.fn() } },
         { provide: ShoppingListService, useValue: {} },
       ],
       schemas: [NO_ERRORS_SCHEMA],
@@ -28,12 +28,12 @@ describe("ShoppingListFormDialogComponent", () => {
     component = TestBed.createComponent(ShoppingListFormDialogComponent).componentInstance;
   });
 
-  afterEach(() => jest.useRealTimers());
+  afterEach(() => vi.useRealTimers());
 
   it("names a new list after the app zone's today (Phase 3 S3)", () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     // 23:30 UTC is already the next day in Amsterdam.
-    jest.setSystemTime(new Date("2026-10-20T23:30:00Z"));
+    vi.setSystemTime(new Date("2026-10-20T23:30:00Z"));
 
     component.ngOnInit();
 

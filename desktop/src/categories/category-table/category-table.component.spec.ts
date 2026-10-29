@@ -35,7 +35,7 @@ describe("CategoriesListComponent", () => {
   });
 
   it("should attempt to get table data, set datasource and total count", () => {
-    const serviceSpy = jest.spyOn(
+    const serviceSpy = vi.spyOn(
       TestBed.inject(CategoryService),
       "getPagedCategories"
     );
@@ -60,7 +60,7 @@ describe("CategoriesListComponent", () => {
   });
 
   it("should attempt to get table data, with new sorted direction and key", () => {
-    const serviceSpy = jest.spyOn(
+    const serviceSpy = vi.spyOn(
       TestBed.inject(CategoryService),
       "getPagedCategories"
     );
@@ -91,7 +91,7 @@ describe("CategoriesListComponent", () => {
   });
 
   it("should attempt to get table data, with newpage and new page size", () => {
-    const serviceSpy = jest.spyOn(
+    const serviceSpy = vi.spyOn(
       TestBed.inject(CategoryService),
       "getPagedCategories"
     );
@@ -134,8 +134,8 @@ describe("CategoriesListComponent", () => {
   });
 
   it("should open edit dialog and refresh data when after closed with true", () => {
-    const dialogSpy = jest.spyOn(TestBed.inject(AppDialog), "open");
-    const serviceSpy = jest.spyOn(
+    const dialogSpy = vi.spyOn(TestBed.inject(AppDialog), "open");
+    const serviceSpy = vi.spyOn(
       TestBed.inject(CategoryService),
       "getPagedCategories"
     );
@@ -158,8 +158,8 @@ describe("CategoriesListComponent", () => {
   });
 
   it("should open edit dialog and not refresh data when after closed with false", () => {
-    const dialogSpy = jest.spyOn(TestBed.inject(AppDialog), "open");
-    const serviceSpy = jest.spyOn(
+    const dialogSpy = vi.spyOn(TestBed.inject(AppDialog), "open");
+    const serviceSpy = vi.spyOn(
       TestBed.inject(CategoryService),
       "getPagedCategories"
     );
@@ -182,10 +182,10 @@ describe("CategoriesListComponent", () => {
   });
 
   it("should open confirmation dialog and refresh data when after closed with true", () => {
-    const dialogSpy = jest.spyOn(TestBed.inject(AppDialog), "open");
-    const deleteSpy = jest.spyOn(TestBed.inject(CategoryService), "deleteCategory");
+    const dialogSpy = vi.spyOn(TestBed.inject(AppDialog), "open");
+    const deleteSpy = vi.spyOn(TestBed.inject(CategoryService), "deleteCategory");
     deleteSpy.mockReturnValue(of(undefined as any));
-    const serviceSpy = jest.spyOn(
+    const serviceSpy = vi.spyOn(
       TestBed.inject(CategoryService),
       "getPagedCategories"
     );
@@ -208,8 +208,8 @@ describe("CategoriesListComponent", () => {
   });
 
   it("should open confirmation dialog and not refresh data when after closed with false", () => {
-    const dialogSpy = jest.spyOn(TestBed.inject(AppDialog), "open");
-    const serviceSpy = jest.spyOn(
+    const dialogSpy = vi.spyOn(TestBed.inject(AppDialog), "open");
+    const serviceSpy = vi.spyOn(
       TestBed.inject(CategoryService),
       "getPagedCategories"
     );
@@ -232,8 +232,8 @@ describe("CategoriesListComponent", () => {
   });
 
   it("should open add dialog and refresh data when after closed with true", () => {
-    const dialogSpy = jest.spyOn(TestBed.inject(AppDialog), "open");
-    const serviceSpy = jest.spyOn(
+    const dialogSpy = vi.spyOn(TestBed.inject(AppDialog), "open");
+    const serviceSpy = vi.spyOn(
       TestBed.inject(CategoryService),
       "getPagedCategories"
     );
@@ -255,8 +255,8 @@ describe("CategoriesListComponent", () => {
   });
 
   it("should open add dialog and not refresh data when after closed with false", () => {
-    const dialogSpy = jest.spyOn(TestBed.inject(AppDialog), "open");
-    const serviceSpy = jest.spyOn(
+    const dialogSpy = vi.spyOn(TestBed.inject(AppDialog), "open");
+    const serviceSpy = vi.spyOn(
       TestBed.inject(CategoryService),
       "getPagedCategories"
     );

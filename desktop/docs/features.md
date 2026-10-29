@@ -220,8 +220,7 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
   `navigateToUrl` seam (jsdom cannot replace `window.location`).
 - **Motion:** the router uses `enableViewTransitions: true` (a 160ms page cross-fade, styled at the end of
   `tailwind.css`, off under `prefers-reduced-motion`). Element fades use `animate.enter` / `animate.leave` with
-  `tw-animate-css` classes; `@angular/animations` stays only as a devDependency for the specs that still import
-  `NoopAnimationsModule`.
+  `tw-animate-css` classes; `@angular/animations` is not a dependency, so a spec needs no animations provider.
 - **Signing in:** `SignInTransitionService` drives one splash in `AppComponent` (`sign-in-transition`, `z-[1100]`, over
   the header) from the Login press until `router.navigate` to the first page resolves, then fades it out (300 ms). The
   sidebar and header appear as soon as `setAppData` stores the session, so a splash inside the login page sat in the
@@ -283,6 +282,11 @@ The long form of points the guide states briefly.
   components in `src/ui` (alias `@spartan-ng/helm/*`, brain from `@spartan-ng/brain`), Lucide icons, ApexCharts.
   No Angular Material, no Bootstrap: comments and specs that still mention `mat-*`, `MatDialog` or Bootstrap classes
   describe the past.
+- **`@defer` and `rxResource`:** `rxResource` over the generated service (not `httpResource` on a hand-typed URL, which
+  would bypass `open-api`) suits a read that blanks while it reloads, like the Warranties list. The Dashboard loaders
+  keep the previous value while they reload (and use `null` for "failed"), so they stay on `toSignal`. `@defer` was
+  measured and left out: the Dashboard panels sit in a DOM-measured drag grid, the shopping panel and the report
+  preview are a few kB inside lazy modules, and `@zxing` and `apexcharts` are already dynamic imports.
 - **Modules:** 34 feature/shared NgModules remain (plus 12 routing modules); about 164 of 193 components are still
   `standalone: false` and declared in them (`SharedUiModule`, `ReceiptsModule`, …). New leaf components may be
   standalone; a non-standalone one must be declared, and exported if another module uses it. Components the Angular 22

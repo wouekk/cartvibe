@@ -5,19 +5,20 @@ import { GroupState } from "../store";
 import { SetSelectedGroupId } from "../store/group.state.actions";
 import { redirectToLanding } from "./landing-redirect";
 
+import type { MockInstance } from "vitest";
 describe("redirectToLanding", () => {
   let store: Store;
   let router: Router;
-  let navigate: jest.SpyInstance;
+  let navigate: MockInstance;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NgxsModule.forRoot([GroupState])],
-      providers: [{ provide: Router, useValue: { navigate: jest.fn() } }],
+      providers: [{ provide: Router, useValue: { navigate: vi.fn() } }],
     });
     store = TestBed.inject(Store);
     router = TestBed.inject(Router);
-    navigate = jest.spyOn(router, "navigate");
+    navigate = vi.spyOn(router, "navigate");
     store.dispatch(new SetSelectedGroupId("5"));
   });
 

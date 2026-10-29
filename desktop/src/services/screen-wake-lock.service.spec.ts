@@ -1,16 +1,17 @@
 import { TestBed } from "@angular/core/testing";
 import { ScreenWakeLockService } from "./screen-wake-lock.service";
 
+import type { Mock } from "vitest";
 function fakeSentinel() {
   const listeners: { [type: string]: (() => void)[] } = {};
   return {
-    release: jest.fn().mockImplementation(async () => (listeners["release"] ?? []).forEach((listener) => listener())),
+    release: vi.fn().mockImplementation(async () => (listeners["release"] ?? []).forEach((listener) => listener())),
     addEventListener: (type: string, listener: () => void) => (listeners[type] ??= []).push(listener),
   };
 }
 
 describe("ScreenWakeLockService", () => {
-  let request: jest.Mock;
+  let request: Mock;
 
   function create(): ScreenWakeLockService {
     TestBed.resetTestingModule();
@@ -23,7 +24,7 @@ describe("ScreenWakeLockService", () => {
   }
 
   beforeEach(() => {
-    request = jest.fn().mockImplementation(async () => fakeSentinel());
+    request = vi.fn().mockImplementation(async () => fakeSentinel());
     Object.defineProperty(navigator, "wakeLock", { value: { request }, configurable: true });
   });
 

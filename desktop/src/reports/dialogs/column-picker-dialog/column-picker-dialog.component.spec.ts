@@ -6,12 +6,13 @@ import { PipesModule } from "../../../pipes";
 import { ReportColumn } from "../../../open-api";
 import { ColumnPickerDialogComponent, ColumnPickerDialogData } from "./column-picker-dialog.component";
 
+import type { Mock } from "vitest";
 function configure(data: ColumnPickerDialogData): {
   fixture: ComponentFixture<ColumnPickerDialogComponent>;
   component: ColumnPickerDialogComponent;
-  close: jest.Mock;
+  close: Mock;
 } {
-  const close = jest.fn();
+  const close = vi.fn();
   TestBed.configureTestingModule({
     declarations: [ColumnPickerDialogComponent],
     imports: [PipesModule],

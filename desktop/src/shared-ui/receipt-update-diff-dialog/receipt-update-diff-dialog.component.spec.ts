@@ -10,10 +10,11 @@ import { CollapsedDiffRow } from "../../utils/line-diff";
 import { ReceiptUpdateSnapshots } from "../../utils/receipt-update-description";
 import { ReceiptUpdateDiffDialogComponent, ReceiptUpdateDiffDialogData } from "./receipt-update-diff-dialog.component";
 
+import type { Mock } from "vitest";
 describe("ReceiptUpdateDiffDialogComponent", () => {
   let fixture: ComponentFixture<ReceiptUpdateDiffDialogComponent>;
   let component: ReceiptUpdateDiffDialogComponent;
-  let dialogRef: { close: jest.Mock };
+  let dialogRef: { close: Mock };
 
   // Enough unchanged keys around the edit that "Changes only" has lines to hide.
   const before = {
@@ -42,7 +43,7 @@ describe("ReceiptUpdateDiffDialogComponent", () => {
   };
 
   const create = async (snapshots: ReceiptUpdateSnapshots) => {
-    dialogRef = { close: jest.fn() };
+    dialogRef = { close: vi.fn() };
     await TestBed.configureTestingModule({
       declarations: [ReceiptUpdateDiffDialogComponent],
       imports: [TranslatePipe, AppDatePipe, CommonModule, NgxsModule.forRoot([SystemSettingsState])],

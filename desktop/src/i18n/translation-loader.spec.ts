@@ -17,7 +17,7 @@ describe("TranslationLoader", () => {
     loader = TestBed.inject(TranslationLoader);
     service = TestBed.inject(TranslationService);
     http = TestBed.inject(HttpTestingController);
-    jest.spyOn(console, "warn").mockImplementation(() => undefined);
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
   });
 
   it("loads the registry, keeps English first and ignores malformed lines", async () => {

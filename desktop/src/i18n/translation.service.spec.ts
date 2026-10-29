@@ -16,7 +16,7 @@ describe("TranslationService", () => {
   });
 
   it("is English until someone is signed in, whatever the browser says", () => {
-    jest.spyOn(navigator, "languages", "get").mockReturnValue(["pl-PL", "pl"]);
+    vi.spyOn(navigator, "languages", "get").mockReturnValue(["pl-PL", "pl"]);
 
     expect(service.language()).toBe("en");
     expect(service.t("Dashboard")).toBe("Dashboard");
@@ -126,7 +126,7 @@ describe("TranslationService", () => {
 
     service.t("Nobody translated this");
 
-    expect(window.__i18nMissing?.has("Nobody translated this")).toBe(true);
+    expect((window.__i18nMissing as Set<string> | undefined)?.has("Nobody translated this")).toBe(true);
   });
 
   it("ignores a language the registry does not have", () => {

@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, DestroyRef, ElementRef, inject, OnInit, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormArray, FormBuilder, FormGroup, ValidatorFn, Validators } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
-import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
 import { filter, startWith, switchMap, take, tap } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "../../constants";
@@ -60,7 +60,6 @@ export function shopLogoKeyValidator(): ValidatorFn {
   };
 }
 
-@UntilDestroy()
 @Component({
   selector: "app-system-settings-form",
   templateUrl: "./system-settings-form.component.html",
@@ -210,13 +209,14 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
   /** The logo download as the server reports it; undefined until loaded (or when the status cannot be read). */
   public readonly logoStatus = signal<ShopLogoStatus | undefined>(undefined);
 
+  private readonly destroyRef = inject(DestroyRef);
   private readonly shopLogoService = inject(ShopLogoService);
 
   private readonly appDialog = inject(AppDialog);
 
   private logoStatusTimer?: ReturnType<typeof setTimeout>;
 
-  private readonly stopLogoStatusPolling = inject(DestroyRef).onDestroy(() => clearTimeout(this.logoStatusTimer));
+  private readonly stopLogoStatusPolling = this.destroyRef.onDestroy(() => clearTimeout(this.logoStatusTimer));
 
   /** Fetch logos now: with a saved key, while nothing runs, and not with a typed key that still needs saving. */
   public canFetchLogos(): boolean {
@@ -404,7 +404,7 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
     this.form.get(unitControlName)?.valueChanges
       .pipe(
         startWith(this.form.get(unitControlName)?.value),
-        untilDestroyed(this),
+        takeUntilDestroyed(this.destroyRef),
         tap((unit: DurationUnit) => {
           valueControl?.setValidators([
             Validators.required,
@@ -430,7 +430,7 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
     this.form.get("receiptProcessingSettingsId")?.valueChanges
       .pipe(
         startWith(this.form.get("receiptProcessingSettingsId")?.value),
-        untilDestroyed(this),
+        takeUntilDestroyed(this.destroyRef),
         tap((value: number) => {
           this.filteredReceiptProcessingSettings = this.allReceiptProcessingSettings.filter((rps) => rps.id !== value);
 
@@ -447,7 +447,7 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
     this.form.get("currency")?.valueChanges
       .pipe(
         startWith(this.form.get("currency")?.value),
-        untilDestroyed(this),
+        takeUntilDestroyed(this.destroyRef),
         tap((code: string) => {
           this.isCustomCurrency.set(code === CUSTOM_CURRENCY);
 
@@ -470,7 +470,7 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
     this.form.get("currencyHideDecimalPlaces")?.valueChanges
       .pipe(
         startWith(this.form.get("currencyHideDecimalPlaces")?.value),
-        untilDestroyed(this),
+        takeUntilDestroyed(this.destroyRef),
         tap((hide: boolean) => {
           if (hide) {
             this.form.get("currencyDecimalSeparator")?.disable();
@@ -492,7 +492,7 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
     this.form.get("mcpEnabled")?.valueChanges
       .pipe(
         startWith(this.form.get("mcpEnabled")?.value),
-        untilDestroyed(this),
+        takeUntilDestroyed(this.destroyRef),
         tap((enabled: boolean) => {
           mcpPublicUrl?.setValidators(this.urlValidators(enabled));
           mcpPublicUrl?.updateValueAndValidity({ emitEvent: false });

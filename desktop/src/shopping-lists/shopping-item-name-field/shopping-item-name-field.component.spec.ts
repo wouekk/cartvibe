@@ -48,7 +48,7 @@ describe("ShoppingItemNameFieldComponent", () => {
   });
 
   it("picking a suggestion sets the name and tells the list", () => {
-    const picked = jest.fn();
+    const picked = vi.fn();
     component.picked.subscribe(picked);
 
     component.onPick({ name: "Milk", amount: "1", unit: "l" });
@@ -58,7 +58,7 @@ describe("ShoppingItemNameFieldComponent", () => {
   });
 
   it("ignores an empty pick", () => {
-    const picked = jest.fn();
+    const picked = vi.fn();
     component.picked.subscribe(picked);
 
     component.onPick(null);

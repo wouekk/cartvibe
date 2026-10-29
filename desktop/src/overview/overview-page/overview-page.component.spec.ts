@@ -39,6 +39,7 @@ import { todayInZone } from "../../utils/app-time-zone";
 import { toDayKey } from "../overview-period";
 import { OverviewPageComponent } from "./overview-page.component";
 
+import type { Mock } from "vitest";
 const overview = (from: string, to: string): GroupOverview => ({
   month: from.slice(0, 7),
   from,
@@ -77,11 +78,11 @@ const CHART_COLORS = {
 describe("OverviewPageComponent", () => {
   let fixture: ComponentFixture<OverviewPageComponent>;
   let component: OverviewPageComponent;
-  let overviewService: { getGroupOverview: jest.Mock };
-  let receiptService: { getReceiptsForGroup: jest.Mock };
+  let overviewService: { getGroupOverview: Mock };
+  let receiptService: { getReceiptsForGroup: Mock };
   const params = new BehaviorSubject(convertToParamMap({ groupId: "1" }));
   let routeData: BehaviorSubject<Record<string, unknown>>;
-  let dashboardLayoutService: { getDashboardLayout: jest.Mock; updateDashboardLayout: jest.Mock };
+  let dashboardLayoutService: { getDashboardLayout: Mock; updateDashboardLayout: Mock };
 
   const text = (testId: string): string =>
     fixture.nativeElement.querySelector(`[data-testid="${testId}"]`)?.textContent ?? "";
@@ -96,13 +97,13 @@ describe("OverviewPageComponent", () => {
 
   beforeEach(async () => {
     overviewService = {
-      getGroupOverview: jest.fn((_groupId: number, _month: string, from: string, to: string) => of(overview(from, to))),
+      getGroupOverview: vi.fn((_groupId: number, _month: string, from: string, to: string) => of(overview(from, to))),
     };
-    receiptService = { getReceiptsForGroup: jest.fn(() => of({ data: [], totalCount: 0 })) };
+    receiptService = { getReceiptsForGroup: vi.fn(() => of({ data: [], totalCount: 0 })) };
     routeData = new BehaviorSubject<Record<string, unknown>>({});
     dashboardLayoutService = {
-      getDashboardLayout: jest.fn(() => of({ userId: 1, layout: "", canCustomise: true })),
-      updateDashboardLayout: jest.fn((command: { layout: string }) => of({ userId: 1, layout: command.layout, canCustomise: true })),
+      getDashboardLayout: vi.fn(() => of({ userId: 1, layout: "", canCustomise: true })),
+      updateDashboardLayout: vi.fn((command: { layout: string }) => of({ userId: 1, layout: command.layout, canCustomise: true })),
     };
 
     await TestBed.configureTestingModule({
@@ -117,7 +118,7 @@ describe("OverviewPageComponent", () => {
         { provide: DashboardLayoutService, useValue: dashboardLayoutService },
         { provide: OverviewService, useValue: overviewService },
         { provide: ReceiptService, useValue: receiptService },
-        { provide: ShoppingListService, useValue: { getShoppingListsForGroup: jest.fn(() => of([])) } },
+        { provide: ShoppingListService, useValue: { getShoppingListsForGroup: vi.fn(() => of([])) } },
       ],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
@@ -129,7 +130,7 @@ describe("OverviewPageComponent", () => {
   });
 
   it("starts the product checker from the Check product button", () => {
-    const start = jest.spyOn(TestBed.inject(ProductCheckLauncher), "start").mockImplementation();
+    const start = vi.spyOn(TestBed.inject(ProductCheckLauncher), "start").mockImplementation(() => undefined);
 
     component.scanProduct();
 
@@ -191,7 +192,7 @@ describe("OverviewPageComponent", () => {
   });
 
   it("opens the products behind the Unhealthy and Unplanned tiles for the period", () => {
-    const open = jest.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({} as never);
+    const open = vi.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({} as never);
     const { from, to } = thisMonth();
 
     component.openProducts("UNPLANNED");
@@ -201,7 +202,7 @@ describe("OverviewPageComponent", () => {
   });
 
   it("does not open the folded Other slice", () => {
-    const open = jest.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({} as never);
+    const open = vi.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({} as never);
     const segment = { name: "Other", total: 1, share: "1%", color: "", dashArray: "", dashOffset: 0 };
 
     expect(component.isOpenable(segment)).toBe(false);
@@ -211,7 +212,7 @@ describe("OverviewPageComponent", () => {
   });
 
   it("opens the products of a food group, and Uncategorized as the empty group", () => {
-    const open = jest.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({} as never);
+    const open = vi.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({} as never);
     const segment = (name: string) => ({ name, total: 1, share: "1%", color: "", dashArray: "", dashOffset: 0 });
 
     component.openCategory(segment("Dairy"));
@@ -222,7 +223,7 @@ describe("OverviewPageComponent", () => {
   });
 
   it("opens a category slice by its id when it has one", () => {
-    const open = jest.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({} as never);
+    const open = vi.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({} as never);
 
     component.openCategory({ name: "Nabiał", categoryId: 4, total: 1, share: "1%", color: "", dashArray: "", dashOffset: 0 });
 
@@ -241,7 +242,7 @@ describe("OverviewPageComponent", () => {
     expect(tile).toContain("23");
     expect(tile).toContain("25% of");
 
-    const open = jest.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({} as never);
+    const open = vi.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({} as never);
     (fixture.nativeElement.querySelector('[data-testid="overview-tile-tag-7"]') as HTMLElement).click();
     expect(open.mock.calls[0][1]?.data).toMatchObject({ kind: "TAG", tagId: 7, from: "2025-01-01", to: "2025-12-31" });
   });
@@ -323,14 +324,14 @@ describe("OverviewPageComponent", () => {
     });
 
     describe("setting it from the card", () => {
-      let userPreferencesService: { updateUserPreferences: jest.Mock };
+      let userPreferencesService: { updateUserPreferences: Mock };
 
       beforeEach(() => {
         userPreferencesService = {
-          updateUserPreferences: jest.fn((preferences: UserPreferences) => of(preferences)),
+          updateUserPreferences: vi.fn((preferences: UserPreferences) => of(preferences)),
         };
         (component as any).userPreferencesService = userPreferencesService;
-        (component as any).snackbarService = { error: jest.fn(), success: jest.fn() };
+        (component as any).snackbarService = { error: vi.fn(), success: vi.fn() };
       });
 
       const type = async (value: string) => {
@@ -494,9 +495,9 @@ describe("OverviewPageComponent", () => {
         new SetPermissions([Permission.AppReceiptProcessingSettingsUpdate], { 1: [Permission.GroupReceiptsRead, Permission.GroupReceiptsQuickScan] })
       );
       await fixture.whenStable();
-      const navigate = jest.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
+      const navigate = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
       const confirm = { headerText: "", dialogContent: "", confirmText: "" };
-      const open = jest
+      const open = vi
         .spyOn(TestBed.inject(AppDialog), "open")
         .mockReturnValue({ componentInstance: confirm, afterClosed: () => of(true) } as never);
 
@@ -511,8 +512,8 @@ describe("OverviewPageComponent", () => {
     it("tells a member who cannot configure the AI to ask an admin, and goes nowhere", async () => {
       TestBed.inject(Store).dispatch(new SetPermissions([], { 1: [Permission.GroupReceiptsRead, Permission.GroupReceiptsQuickScan] }));
       await fixture.whenStable();
-      const hint = jest.spyOn(TestBed.inject(SnackbarService), "hint");
-      const navigate = jest.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
+      const hint = vi.spyOn(TestBed.inject(SnackbarService), "hint");
+      const navigate = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
 
       component.openQuickScan();
 
@@ -524,8 +525,8 @@ describe("OverviewPageComponent", () => {
       TestBed.inject(Store).dispatch(new SetFeatureConfig({ aiPoweredReceipts: true } as never));
       TestBed.inject(Store).dispatch(new SetPermissions([], { 1: [Permission.GroupReceiptsRead, Permission.GroupReceiptsQuickScan] }));
       await fixture.whenStable();
-      const hint = jest.spyOn(TestBed.inject(SnackbarService), "hint");
-      const open = jest.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({ afterClosed: () => new Subject() } as never);
+      const hint = vi.spyOn(TestBed.inject(SnackbarService), "hint");
+      const open = vi.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({ afterClosed: () => new Subject() } as never);
 
       expect(component.aiConfigured()).toBe(true);
       component.openQuickScan();
@@ -667,7 +668,7 @@ describe("OverviewPageComponent", () => {
 
   describe("panel layout", () => {
     const panelOrder = (): string[] =>
-      Array.from(fixture.nativeElement.querySelectorAll<HTMLElement>('[data-testid^="dashboard-panel-"][data-span]')).map(
+      Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('[data-testid^="dashboard-panel-"][data-span]')).map(
         (panel) => panel.getAttribute("data-testid")!.replace("dashboard-panel-", "")
       );
 
@@ -796,7 +797,7 @@ describe("OverviewPageComponent", () => {
       });
 
       it("hides and moves panels in the draft only, then saves the whole layout and returns", async () => {
-        const navigate = jest.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
+        const navigate = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
 
         component.setPanelVisible("unhealthy", false);
         component.shiftPanel("trend", -1);
@@ -817,7 +818,7 @@ describe("OverviewPageComponent", () => {
       });
 
       it("refuses sizes past the limits with a shake and a hint, and widths outside the PC view", async () => {
-        const hint = jest.spyOn(TestBed.inject(SnackbarService), "hint");
+        const hint = vi.spyOn(TestBed.inject(SnackbarService), "hint");
         const spent = () => component.panels().find((panel) => panel.id === "spent")!;
         expect(component.resize("spent", { cols: 9 })).toBe(false);
         expect(spent().cols).toBe(2);
@@ -869,15 +870,15 @@ describe("OverviewPageComponent", () => {
       });
 
       it("cannot widen a panel into its neighbour, and says so", () => {
-        const hint = jest.spyOn(TestBed.inject(SnackbarService), "hint");
+        const hint = vi.spyOn(TestBed.inject(SnackbarService), "hint");
         // Spent (2 columns) has Receipts right beside it.
         expect(component.resize("spent", { cols: 3 })).toBe(false);
         expect(hint).toHaveBeenCalled();
       });
 
       it("asks before leaving with unsaved changes, and leaves at once without any", async () => {
-        const navigate = jest.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
-        const open = jest.spyOn(TestBed.inject(AppDialog), "open");
+        const navigate = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
+        const open = vi.spyOn(TestBed.inject(AppDialog), "open");
 
         component.cancelCustomising();
         expect(open).not.toHaveBeenCalled();

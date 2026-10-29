@@ -1,6 +1,5 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { ActivatedRoute } from "@angular/router";
 import { ButtonModule } from "../../../button/index";
 import { InputModule } from "../../../input/index";
@@ -25,7 +24,6 @@ describe("FilteredStatefulMenuComponent", () => {
         FilteredStatefulMenuComponent,
         ButtonModule,
         InputModule,
-        NoopAnimationsModule
       ],
       providers: [
         {
@@ -77,7 +75,7 @@ describe("FilteredStatefulMenuComponent", () => {
   });
 
   it("should handle item selection and emit itemSelected event", () => {
-    jest.spyOn(component.itemSelected, "emit");
+    vi.spyOn(component.itemSelected, "emit");
     const mockEvent = new MouseEvent("click");
     const mockItem = mockItems[0];
 
@@ -87,7 +85,7 @@ describe("FilteredStatefulMenuComponent", () => {
   });
 
   it("should not emit itemSelected event when readonly is true", () => {
-    jest.spyOn(component.itemSelected, "emit");
+    vi.spyOn(component.itemSelected, "emit");
     fixture.componentRef.setInput('readonly', true);
     const mockEvent = new MouseEvent("click");
     const mockItem = mockItems[0];

@@ -1,11 +1,10 @@
 import { TranslatePipe } from "../../i18n/translate.pipe";
 import { TranslationService } from "../../i18n/translation.service";
 import { registerRealLanguages } from "../../i18n/i18n-test-utils";
-import { Component, NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
+import { DestroyRef, NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormArray, FormBuilder, FormControl } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
-import { UntilDestroy } from "@ngneat/until-destroy";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of, Subject, throwError } from "rxjs";
 import { SnackbarService } from "../../services";
@@ -30,23 +29,18 @@ import {
 import { ReportRunnerService } from "../services/report-runner.service";
 import { ReportBuilderComponent } from "./report-builder.component";
 
-// buildReceiptFilterForm wires untilDestroyed subscriptions, so building a canonical
-// filter fixture needs an @UntilDestroy()-decorated context — a throwaway host, as the
-// factory spec does.
-@UntilDestroy()
-@Component({ selector: "app-noop", template: "", standalone: false })
-class NoopComponent {}
 
+import type { Mock } from "vitest";
 describe("ReportBuilderComponent", () => {
   let fixture: ComponentFixture<ReportBuilderComponent>;
   let component: ReportBuilderComponent;
   let runner: {
-    preview: jest.Mock;
-    generateAndDownload: jest.Mock;
-    saveTemplate: jest.Mock;
-    updateTemplate: jest.Mock;
+    preview: Mock;
+    generateAndDownload: Mock;
+    saveTemplate: Mock;
+    updateTemplate: Mock;
   };
-  let snackbar: { success: jest.Mock };
+  let snackbar: { success: Mock };
   let store: Store;
   // Mutable route stub: the builder reads snapshot.data.template in its field
   // initializer, so a test sets this before creating its own component instance.
@@ -54,16 +48,16 @@ describe("ReportBuilderComponent", () => {
 
   beforeEach(async () => {
     runner = {
-      preview: jest.fn(() => of({ html: "<p></p>", receiptCount: 0 })),
-      generateAndDownload: jest.fn(() => of(new Blob())),
-      saveTemplate: jest.fn(() => of({ id: 1 })),
-      updateTemplate: jest.fn(() => of({ id: 7 })),
+      preview: vi.fn(() => of({ html: "<p></p>", receiptCount: 0 })),
+      generateAndDownload: vi.fn(() => of(new Blob())),
+      saveTemplate: vi.fn(() => of({ id: 1 })),
+      updateTemplate: vi.fn(() => of({ id: 7 })),
     };
-    snackbar = { success: jest.fn() };
+    snackbar = { success: vi.fn() };
     activatedRoute.snapshot.data = {};
 
     await TestBed.configureTestingModule({
-      declarations: [ReportBuilderComponent, NoopComponent],
+      declarations: [ReportBuilderComponent],
       // AuthState feeds the Save/Generate permission gates (saveTemplateAllowed /
       // generateAllowed), which resolve through the hasAnyAppPermission selector.
       imports: [TranslatePipe, NgxsModule.forRoot([AuthState])],
@@ -122,20 +116,20 @@ describe("ReportBuilderComponent", () => {
   });
 
   it("flags previewError when the debounced preview request fails", () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     try {
       runner.preview.mockReturnValue(throwError(() => new Error("boom")));
       // A fresh component so its construction-time debounce runs under fake timers.
       const local = TestBed.createComponent(ReportBuilderComponent).componentInstance;
       (local.form.get("scope") as FormArray).push(new FormControl("1"));
       // Advance past the 450ms debounce so the preview fires and errors.
-      jest.advanceTimersByTime(500);
+      vi.advanceTimersByTime(500);
 
       expect(runner.preview).toHaveBeenCalled();
       expect(local.previewError()).toBe(true);
       expect(local.previewLoading()).toBe(false);
     } finally {
-      jest.useRealTimers();
+      vi.useRealTimers();
     }
   });
 
@@ -476,7 +470,7 @@ describe("ReportBuilderComponent", () => {
   it("maps every field of a fully populated template into the builder form on the edit route", () => {
     // A canonical filter touching every builder-visible filter field, built the same
     // way the backend stores it (buildReceiptFilterForm is a fixpoint on its own output).
-    const host = TestBed.createComponent(NoopComponent).componentInstance;
+    const destroyRef = TestBed.inject(DestroyRef);
     const filter = buildReceiptFilterForm(
       {
         name: { operation: FilterOperation.Contains, value: "coffee" },
@@ -487,7 +481,7 @@ describe("ReportBuilderComponent", () => {
         tags: { operation: FilterOperation.Contains, value: [7] },
         status: { operation: FilterOperation.Contains, value: ["OPEN"] },
       },
-      host
+      destroyRef
     ).getRawValue();
 
     // A fully-populated, internally-consistent aggregate report: every dimension

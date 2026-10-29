@@ -4,14 +4,15 @@ import { NgxsModule, Store } from '@ngxs/store';
 import { FeatureConfigState } from '../store/feature-config.state';
 import { FeatureDirective } from './feature.directive';
 
+import type { Mocked } from "vitest";
 describe('FeatureDirective', () => {
   let store: Store;
-  let templateRef: jest.Mocked<TemplateRef<any>>;
-  let viewContainer: jest.Mocked<ViewContainerRef>;
+  let templateRef: Mocked<TemplateRef<any>>;
+  let viewContainer: Mocked<ViewContainerRef>;
 
   beforeEach(() => {
-    const templateSpy = { createEmbeddedView: jest.fn() };
-    const viewContainerSpy = { createEmbeddedView: jest.fn(), clear: jest.fn() };
+    const templateSpy = { createEmbeddedView: vi.fn() };
+    const viewContainerSpy = { createEmbeddedView: vi.fn(), clear: vi.fn() };
 
     TestBed.configureTestingModule({
       imports: [NgxsModule.forRoot([FeatureConfigState])],
@@ -22,8 +23,8 @@ describe('FeatureDirective', () => {
     });
 
     store = TestBed.inject(Store);
-    templateRef = TestBed.inject(TemplateRef) as jest.Mocked<TemplateRef<any>>;
-    viewContainer = TestBed.inject(ViewContainerRef) as jest.Mocked<ViewContainerRef>;
+    templateRef = TestBed.inject(TemplateRef) as Mocked<TemplateRef<any>>;
+    viewContainer = TestBed.inject(ViewContainerRef) as Mocked<ViewContainerRef>;
   });
 
   it('should create an instance', () => {

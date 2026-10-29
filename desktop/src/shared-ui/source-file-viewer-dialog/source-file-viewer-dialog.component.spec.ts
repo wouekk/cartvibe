@@ -28,7 +28,7 @@ class ButtonStubComponent {
 describe("SourceFileViewerDialogComponent", () => {
   let component: SourceFileViewerDialogComponent;
   let fixture: ComponentFixture<SourceFileViewerDialogComponent>;
-  const dialogRef = { close: jest.fn() };
+  const dialogRef = { close: vi.fn() };
   const data = { name: "receipt.png", encodedImage: "data:image/png;base64,AAA" };
 
   beforeEach(async () => {
@@ -52,7 +52,7 @@ describe("SourceFileViewerDialogComponent", () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should create", () => {

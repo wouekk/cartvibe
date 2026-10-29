@@ -3,7 +3,6 @@ import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
-import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { of } from "rxjs";
 import { DuplicateValidator } from "src/validators/duplicate-validator";
 import { ApiModule, CategoryService, CategoryView } from "../../open-api";
@@ -21,8 +20,7 @@ describe("CategoryForm", () => {
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
         PipesModule,
-        ReactiveFormsModule,
-        NoopAnimationsModule],
+        ReactiveFormsModule],
     providers: [
         DuplicateValidator,
         {
@@ -49,7 +47,7 @@ describe("CategoryForm", () => {
     TestBed.configureTestingModule({
       declarations: [CategoryForm],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      imports: [ApiModule, PipesModule, ReactiveFormsModule, NoopAnimationsModule],
+      imports: [ApiModule, PipesModule, ReactiveFormsModule],
       providers: [
         { provide: AppDialogRef, useValue: { close: () => {} } },
         provideHttpClient(withInterceptorsFromDi()),
@@ -82,12 +80,12 @@ describe("CategoryForm", () => {
   });
 
   it("should submit form with correct data, when editing", () => {
-    const categoryServiceSpy = jest.spyOn(
+    const categoryServiceSpy = vi.spyOn(
       TestBed.inject(CategoryService),
       "updateCategory"
     );
     categoryServiceSpy.mockReturnValue(of({} as any));
-    const nameValidateSpy = jest.spyOn(
+    const nameValidateSpy = vi.spyOn(
       TestBed.inject(CategoryService),
       "getCategoryCountByName"
     ).mockReturnValue(of(0) as any);
@@ -114,11 +112,11 @@ describe("CategoryForm", () => {
   });
 
   it("should submit form with correct data, when creating", () => {
-    const nameValidateSpy = jest.spyOn(
+    const nameValidateSpy = vi.spyOn(
       TestBed.inject(CategoryService),
       "getCategoryCountByName"
     ).mockReturnValue(of(0) as any);
-    const categoryServiceSpy = jest.spyOn(
+    const categoryServiceSpy = vi.spyOn(
       TestBed.inject(CategoryService),
       "createCategory"
     );

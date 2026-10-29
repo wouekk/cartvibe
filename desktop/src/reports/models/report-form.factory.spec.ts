@@ -1,9 +1,8 @@
-import { Component, provideZonelessChangeDetection } from "@angular/core";
+import { DestroyRef, provideZonelessChangeDetection } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { FormArray, FormBuilder } from "@angular/forms";
-import { UntilDestroy } from "@ngneat/until-destroy";
 import { DEFAULT_QUICK_DATE_FIELD, RECEIPT_DATE_FILTER_FIELDS } from "src/constants";
-import { FilterOperation, ReportColumn, ReportDetail, ReportPeriod, ReportRequestCommand } from "../../open-api";
+import { FilterOperation, ReceiptPagedRequestFilter, ReportColumn, ReportDetail, ReportPeriod, ReportRequestCommand } from "../../open-api";
 import { buildReceiptFilterForm } from "../../utils/receipt-filter";
 import { ReportBuilderValue, toReportRequestCommand, toReportRequestCommandForSave } from "./report-command.mapper";
 import {
@@ -13,23 +12,15 @@ import {
   readStringArray,
 } from "./report-form.factory";
 
-// buildReceiptFilterForm wires untilDestroyed subscriptions, so it needs an
-// @UntilDestroy()-decorated context — a throwaway host, exactly as the receipt
-// filter's own spec does.
-@UntilDestroy()
-@Component({ selector: "app-noop", template: "", standalone: false })
-class NoopComponent {}
-
 describe("buildReportFormFromCommand", () => {
-  let host: NoopComponent;
+  let destroyRef: DestroyRef;
   let fb: FormBuilder;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [NoopComponent],
       providers: [provideZonelessChangeDetection(), FormBuilder],
     }).compileComponents();
-    host = TestBed.createComponent(NoopComponent).componentInstance;
+    destroyRef = TestBed.inject(DestroyRef);
     fb = TestBed.inject(FormBuilder);
   });
 
@@ -37,10 +28,10 @@ describe("buildReportFormFromCommand", () => {
   // emits, so round-tripping it through buildReceiptFilterForm is a fixpoint. Seed the
   // fixture's filter the same way so the deep-equal below isn't tripped by the sparse-
   // vs-canonical normalization.
-  const canonicalFilter = (seed: unknown): unknown => buildReceiptFilterForm(seed, host).getRawValue();
+  const canonicalFilter = (seed: unknown): ReceiptPagedRequestFilter => buildReceiptFilterForm(seed, destroyRef).getRawValue() as ReceiptPagedRequestFilter;
 
   function roundTrip(command: ReportRequestCommand): ReportRequestCommand {
-    const form = buildReportFormFromCommand(fb, host, command);
+    const form = buildReportFormFromCommand(fb, destroyRef, command);
     return toReportRequestCommand(form.getRawValue() as ReportBuilderValue);
   }
 
@@ -92,7 +83,7 @@ describe("buildReportFormFromCommand", () => {
       formats: [ReportRequestCommand.FormatsEnum.Csv],
     };
 
-    const form = buildReportFormFromCommand(fb, host, command);
+    const form = buildReportFormFromCommand(fb, destroyRef, command);
 
     // The save mapper keeps every column, so hydrate -> save is a fixpoint: the
     // disabled Category column survives the round-trip instead of being lost.
@@ -149,7 +140,7 @@ describe("buildReportFormFromCommand", () => {
       formats: [ReportRequestCommand.FormatsEnum.Pdf],
     };
 
-    const form = buildReportFormFromCommand(fb, host, command);
+    const form = buildReportFormFromCommand(fb, destroyRef, command);
     const start = form.get("period.startDate")!.value as Date;
     expect(start instanceof Date).toBe(true);
     expect(start.getFullYear()).toBe(2026);
@@ -174,7 +165,7 @@ describe("buildReportFormFromCommand", () => {
       formats: [ReportRequestCommand.FormatsEnum.Csv],
     };
 
-    const form = buildReportFormFromCommand(fb, host, command);
+    const form = buildReportFormFromCommand(fb, destroyRef, command);
     // Assert the array CONTENTS carried over, not just the lengths.
     expect(readStringArray(form.get("scope") as FormArray)).toEqual(["3", "4", "9"]);
     expect(readGroupByFields(form.get("groupBy") as FormArray)).toEqual(["group", "status"]);
@@ -214,7 +205,7 @@ describe("buildReportFormFromCommand", () => {
       formats: [ReportRequestCommand.FormatsEnum.Csv],
     };
 
-    const form = buildReportFormFromCommand(fb, host, command);
+    const form = buildReportFormFromCommand(fb, destroyRef, command);
     expect(readGroupByFields(form.get("groupBy") as FormArray)).toEqual(["group", "category"]);
     // A level the stored config does not rename holds a blank label, which maps
     // back to no override at all.
@@ -277,7 +268,7 @@ describe("buildReportFormFromCommand", () => {
   });
 
   it("lands each filter field's value and operation in the hydrated form controls", () => {
-    const form = buildReportFormFromCommand(fb, host, commandWithFilter(everyFilterSeed));
+    const form = buildReportFormFromCommand(fb, destroyRef, commandWithFilter(everyFilterSeed));
 
     expect(form.get("filter.name.value")!.value).toBe("coffee");
     expect(form.get("filter.name.operation")!.value).toBe(FilterOperation.Contains);
@@ -302,7 +293,7 @@ describe("buildReportFormFromCommand", () => {
       createdAt: { operation: FilterOperation.Between, value: ["2026-09-01", "2026-09-30"] },
     });
 
-    const form = buildReportFormFromCommand(fb, host, command);
+    const form = buildReportFormFromCommand(fb, destroyRef, command);
     expect(toReportRequestCommandForSave(form.getRawValue() as ReportBuilderValue)).toEqual(command);
   });
 
@@ -317,7 +308,7 @@ describe("buildReportFormFromCommand", () => {
       },
     });
 
-    const form = buildReportFormFromCommand(fb, host, legacy);
+    const form = buildReportFormFromCommand(fb, destroyRef, legacy);
     expect(form.get("filter.createdAt.value")!.value).toEqual([new Date(2026, 7, 31), new Date(2026, 8, 30)]);
 
     const saved = toReportRequestCommandForSave(form.getRawValue() as ReportBuilderValue);
@@ -328,7 +319,7 @@ describe("buildReportFormFromCommand", () => {
     const command = commandWithFilter({ date: { operation: FilterOperation.WithinCurrentMonth } });
 
     expect(roundTrip(command)).toEqual(command);
-    const form = buildReportFormFromCommand(fb, host, command);
+    const form = buildReportFormFromCommand(fb, destroyRef, command);
     expect(form.get("filter.date.operation")!.value).toBe(FilterOperation.WithinCurrentMonth);
   });
 
@@ -338,7 +329,7 @@ describe("buildReportFormFromCommand", () => {
     // it for the report runner's own id at generate time.
     const sentinelOnly = commandWithFilter({ paidBy: { operation: FilterOperation.Contains, value: [-1] } });
     expect(roundTrip(sentinelOnly)).toEqual(sentinelOnly);
-    expect(buildReportFormFromCommand(fb, host, sentinelOnly).get("filter.paidBy.value")!.value).toEqual([-1]);
+    expect(buildReportFormFromCommand(fb, destroyRef, sentinelOnly).get("filter.paidBy.value")!.value).toEqual([-1]);
 
     const mixed = commandWithFilter({ paidBy: { operation: FilterOperation.Contains, value: [-1, 12] } });
     expect(roundTrip(mixed)).toEqual(mixed);
@@ -355,7 +346,7 @@ describe("buildReportFormFromCommand", () => {
     }
 
     it("defaults a new report to the receipts table's quick date field", () => {
-      const form = buildReportForm(fb, host);
+      const form = buildReportForm(fb, destroyRef);
       expect(form.get("period.dateField")!.value).toBe(DEFAULT_QUICK_DATE_FIELD);
     });
 
@@ -363,7 +354,7 @@ describe("buildReportFormFromCommand", () => {
       "rehydrates and round-trips a template covering %s",
       (dateField) => {
         const command = commandOnDateField(dateField);
-        expect(buildReportFormFromCommand(fb, host, command).get("period.dateField")!.value).toBe(dateField);
+        expect(buildReportFormFromCommand(fb, destroyRef, command).get("period.dateField")!.value).toBe(dateField);
         expect(roundTrip(command)).toEqual(command);
       }
     );
@@ -372,12 +363,12 @@ describe("buildReportFormFromCommand", () => {
     // Re-saving it writes that down, so this is deliberately not a fixpoint.
     it("rehydrates a template with no date field onto the receipt date", () => {
       const legacy = commandOnDateField();
-      expect(buildReportFormFromCommand(fb, host, legacy).get("period.dateField")!.value).toBe("date");
+      expect(buildReportFormFromCommand(fb, destroyRef, legacy).get("period.dateField")!.value).toBe("date");
       expect(roundTrip(legacy).period).toEqual({ preset: ReportPeriod.PresetEnum.ThisMonth, dateField: "date" });
     });
 
     it("falls back to the receipt date for a stored field the picker does not offer", () => {
-      const form = buildReportFormFromCommand(fb, host, commandOnDateField("paidAt"));
+      const form = buildReportFormFromCommand(fb, destroyRef, commandOnDateField("paidAt"));
       expect(form.get("period.dateField")!.value).toBe("date");
     });
   });

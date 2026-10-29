@@ -82,10 +82,11 @@ func GetChromiumPath() string {
 }
 
 // GetChromiumSandboxEnabled reports whether chromium should run with its
-// process sandbox enabled. Defaults to false because the supported docker
-// images run as root and the chromium sandbox refuses to start in that
-// situation. Operators running the API as a non-root user can opt back in
-// by setting CHROMIUM_SANDBOX to a truthy value (1, t, true, etc.). An
+// process sandbox enabled. Defaults to false: the image runs the API as uid
+// 10001, but the sandbox needs user namespaces, which Docker's default
+// security profile (and some NAS kernels) block. Operators whose runtime
+// allows them can opt in by setting CHROMIUM_SANDBOX to a truthy value
+// (1, t, true, etc.). An
 // unparseable value (e.g. yes/on/enabled) is logged at INFO and treated
 // as the default (disabled) so misconfigurations are visible rather than
 // silently ignored.

@@ -1,17 +1,17 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormControl } from "@angular/forms";
-import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { NgxsModule } from "@ngxs/store";
 import { of, throwError } from "rxjs";
 import { AiType } from "../../constants/ai-type";
 import { ReceiptProcessingSettingsService } from "../../open-api";
 import { AiModelFieldComponent } from "./ai-model-field.component";
 
+import type { Mock } from "vitest";
 describe("AiModelFieldComponent", () => {
   let fixture: ComponentFixture<AiModelFieldComponent>;
   let component: AiModelFieldComponent;
-  let service: { getAiModels: jest.Mock };
+  let service: { getAiModels: Mock };
   let modelControl: FormControl<string | null>;
   let keyControl: FormControl<string | null>;
 
@@ -20,12 +20,12 @@ describe("AiModelFieldComponent", () => {
     models = [{ name: "gemini-2.5-flash", displayName: "Gemini 2.5 Flash" }],
     aiType: string = AiType.Gemini
   ) => {
-    service = { getAiModels: jest.fn(() => of(models)) };
+    service = { getAiModels: vi.fn(() => of(models)) };
     modelControl = new FormControl<string | null>("gemini-2.5-flash");
     keyControl = new FormControl<string | null>("");
 
     await TestBed.configureTestingModule({
-      imports: [AiModelFieldComponent, NgxsModule.forRoot([]), NoopAnimationsModule],
+      imports: [AiModelFieldComponent, NgxsModule.forRoot([])],
       providers: [provideZonelessChangeDetection(), { provide: ReceiptProcessingSettingsService, useValue: service }],
     }).compileComponents();
 

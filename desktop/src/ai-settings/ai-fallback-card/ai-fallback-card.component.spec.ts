@@ -1,6 +1,5 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { NgxsModule } from "@ngxs/store";
 import { of, throwError } from "rxjs";
 import { AiType } from "../../constants/ai-type";
@@ -8,33 +7,34 @@ import { ReceiptProcessingSettingsService, SystemSettingsService, SystemTaskStat
 import { SnackbarService } from "../../services";
 import { AI_FALLBACK_SETTINGS_NAME, AiFallbackCardComponent } from "./ai-fallback-card.component";
 
+import type { Mock } from "vitest";
 describe("AiFallbackCardComponent", () => {
   let fixture: ComponentFixture<AiFallbackCardComponent>;
   let component: AiFallbackCardComponent;
-  let processingService: { [method: string]: jest.Mock };
-  let systemSettingsService: { [method: string]: jest.Mock };
-  let snackbar: { success: jest.Mock; error: jest.Mock };
+  let processingService: { [method: string]: Mock };
+  let systemSettingsService: { [method: string]: Mock };
+  let snackbar: { success: Mock; error: Mock };
 
   const setUp = async (systemSettings: object | "forbidden", fallback?: object, primaryId: number | null = 1) => {
     processingService = {
-      getReceiptProcessingSettingsById: jest.fn(() => of(fallback)),
-      getAiModels: jest.fn(() => of([])),
-      createReceiptProcessingSettings: jest.fn((command) => of({ id: 9, ...command })),
-      updateReceiptProcessingSettingsById: jest.fn((id, _updateKey, command) => of({ id, ...command })),
-      checkReceiptProcessingSettingsConnectivity: jest.fn(() =>
+      getReceiptProcessingSettingsById: vi.fn(() => of(fallback)),
+      getAiModels: vi.fn(() => of([])),
+      createReceiptProcessingSettings: vi.fn((command) => of({ id: 9, ...command })),
+      updateReceiptProcessingSettingsById: vi.fn((id, _updateKey, command) => of({ id, ...command })),
+      checkReceiptProcessingSettingsConnectivity: vi.fn(() =>
         of({ status: SystemTaskStatus.Succeeded, resultDescription: "" })
       ),
     };
     systemSettingsService = {
-      getSystemSettings: jest.fn(() =>
+      getSystemSettings: vi.fn(() =>
         systemSettings === "forbidden" ? throwError(() => new Error("403")) : of(systemSettings)
       ),
-      updateSystemSettings: jest.fn((command) => of(command)),
+      updateSystemSettings: vi.fn((command) => of(command)),
     };
-    snackbar = { success: jest.fn(), error: jest.fn() };
+    snackbar = { success: vi.fn(), error: vi.fn() };
 
     await TestBed.configureTestingModule({
-      imports: [AiFallbackCardComponent, NgxsModule.forRoot([]), NoopAnimationsModule],
+      imports: [AiFallbackCardComponent, NgxsModule.forRoot([])],
       providers: [
         provideZonelessChangeDetection(),
         { provide: ReceiptProcessingSettingsService, useValue: processingService },

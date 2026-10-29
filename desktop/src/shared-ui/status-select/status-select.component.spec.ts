@@ -4,7 +4,6 @@ import { StatusSelectComponent } from './status-select.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { SelectModule } from 'src/select/select.module';
 import { FormControl } from '@angular/forms';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RECEIPT_STATUS_OPTIONS } from 'src/constants';
 
 describe('StatusSelectComponent', () => {
@@ -14,7 +13,7 @@ describe('StatusSelectComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       declarations: [StatusSelectComponent],
-      imports: [SelectModule, NoopAnimationsModule],
+      imports: [SelectModule],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     });
     fixture = TestBed.createComponent(StatusSelectComponent);

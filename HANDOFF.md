@@ -10,6 +10,10 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
   lines grossed up when an invoice prints them before VAT. The user's Uber Quick Scan read well. Waiting on the user:
   deploy `:latest` (back up `sqlite/` with its `-wal`/`-shm` first). Offered, not built: a Stop download button for
   logos.
+- `preview` also holds `feature/parked-backlog` (not on `main`, waits for the user's go): specs on Vitest, no
+  `@ngneat/until-destroy`, no `@angular/animations`, `rxResource` on the Warranties list, undici/fast-uri floors,
+  Chromium-sandbox comment. Waiting on the user: look over Dashboard charts, dialogs and menus, a report, Warranties
+  (phone and desktop, day and night), de/fr/es spot checks.
 - Next agreed: `feature/households` (tenant model) from `main`. Not run anywhere yet: a Litestream/restic restore
   drill, Web Push on a real device (needs HTTPS + VAPID keys).
 - 2026-10-29: the component guides were cut roughly in half; feature detail moved to `api/docs/domain.md`,
@@ -39,11 +43,13 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 
 ## Parked (only when the user asks)
 
-- Angular 22 phases 3 and 4: `@defer`, `httpResource`, drop `@ngneat/until-destroy`; Signal Forms, Vitest; strip
-  `NoopAnimationsModule` from ~30 specs, then drop `@angular/animations`.
+- Signal Forms (still experimental, every form is reactive). `@defer` was measured and not worth it
+  (`desktop/docs/features.md`).
 - Native-speaker review of de/fr/es.
 - e2e in CI (needs a job with a live API + Redis); several specs still drive the removed `/roles` page.
-- apexcharts 8, Chromium sandbox (`CHROMIUM_SANDBOX=true`), `--no-install-recommends` for apt installs.
+- Charts: `apexcharts` stays on 4.x (5.1+ is not MIT, `desktop/CLAUDE.md`). If it is ever replaced: Apache ECharts
+  (SVG renderer, `highlight` actions) or Chart.js, on a `feature/echarts` branch.
+- The Chromium sandbox stays opt-in (`CHROMIUM_SANDBOX=true`); `--no-install-recommends` for apt installs.
 - Kept as they are until asked: the default receipt name "Receipt {date}" in English, ISO report month buckets
   (`2026-10`), the full-bleed report builder.
 

@@ -7,13 +7,14 @@ import { ApiModule } from "../open-api";
 import { SnackbarService } from "../services";
 import { httpInterceptor } from "./http-interceptor";
 
+import type { MockInstance } from "vitest";
 const FORBIDDEN_MESSAGE = "You do not have permission to perform this action.";
 
 describe("httpInterceptor", () => {
   let httpTestingController: HttpTestingController;
   let httpClient: HttpClient;
   let snackbarService: SnackbarService;
-  let errorSpy: jest.SpyInstance;
+  let errorSpy: MockInstance;
   let isLoggedIn: boolean;
   let activatedRouteStub: { snapshot: { queryParams: Record<string, unknown> } };
 
@@ -34,7 +35,7 @@ describe("httpInterceptor", () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     httpClient = TestBed.inject(HttpClient);
     snackbarService = TestBed.inject(SnackbarService);
-    errorSpy = jest.spyOn(snackbarService, "error").mockImplementation(() => {});
+    errorSpy = vi.spyOn(snackbarService, "error").mockImplementation(() => {});
   });
 
   afterEach(() => {

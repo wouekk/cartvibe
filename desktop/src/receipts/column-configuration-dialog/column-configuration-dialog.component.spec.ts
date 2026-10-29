@@ -10,10 +10,11 @@ import { ReceiptTableState } from "../../store/receipt-table.state";
 import { RECEIPT_COLUMN_DISPLAY_NAMES } from "../../utils";
 import { ColumnConfigurationDialogComponent } from "./column-configuration-dialog.component";
 
+import type { Mocked } from "vitest";
 describe("ColumnConfigurationDialogComponent", () => {
   let component: ColumnConfigurationDialogComponent;
   let fixture: ComponentFixture<ColumnConfigurationDialogComponent>;
-  let mockDialogRef: jest.Mocked<AppDialogRef<ColumnConfigurationDialogComponent>>;
+  let mockDialogRef: Mocked<AppDialogRef<ColumnConfigurationDialogComponent>>;
   let mockDialogData: {
     currentColumns?: ReceiptTableColumnConfig[];
   };
@@ -25,7 +26,7 @@ describe("ColumnConfigurationDialogComponent", () => {
 
   beforeEach(async () => {
     // Create spy for AppDialogRef
-    mockDialogRef = { close: jest.fn() } as unknown as jest.Mocked<AppDialogRef<ColumnConfigurationDialogComponent>>;
+    mockDialogRef = { close: vi.fn() } as unknown as Mocked<AppDialogRef<ColumnConfigurationDialogComponent>>;
 
     // Initialize mock dialog data
     mockDialogData = {
@@ -76,7 +77,7 @@ describe("ColumnConfigurationDialogComponent", () => {
     });
 
     it("should initialize columns on ngOnInit", () => {
-      jest.spyOn(component as any, "initializeColumns");
+      vi.spyOn(component as any, "initializeColumns");
 
       component.ngOnInit();
 

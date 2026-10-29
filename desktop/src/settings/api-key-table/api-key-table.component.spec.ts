@@ -3,7 +3,6 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 
-import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { provideRouter } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { ApiKeyView, Permission } from "../../open-api";
@@ -20,8 +19,8 @@ describe("ApiKeyTableComponent", () => {
   let fixture: ComponentFixture<ApiKeyTableComponent>;
   let store: Store;
 
-  const ownKey = { id: 1, userId: 7 } as ApiKeyView;
-  const otherKey = { id: 2, userId: 99 } as ApiKeyView;
+  const ownKey = { id: 1, userId: 7 } as unknown as ApiKeyView;
+  const otherKey = { id: 2, userId: 99 } as unknown as ApiKeyView;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -30,7 +29,6 @@ describe("ApiKeyTableComponent", () => {
         SharedUiModule,
         NgxsModule.forRoot([AuthState, ApiKeyTableState]),
         TableModule,
-        NoopAnimationsModule,
       ],
       providers: [
         provideZonelessChangeDetection(),

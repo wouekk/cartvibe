@@ -1,4 +1,4 @@
-/** Jest stand-in for ApexCharts, which needs a real SVG layout engine; the specs assert the options instead. */
+/** Vitest stand-in for ApexCharts, which needs a real SVG layout engine; the specs assert the options instead. */
 export default class ApexChartsStub {
   constructor(public readonly el: HTMLElement, public readonly options: unknown) {}
 

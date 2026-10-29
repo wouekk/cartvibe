@@ -53,7 +53,7 @@ describe("KeyboardShortcutService", () => {
   });
 
   describe("handleKeyboardEvent", () => {
-    it("should trigger action for matching shortcut", (done) => {
+    it("should trigger action for matching shortcut", () => new Promise<void>((done) => {
       const event = new KeyboardEvent("keydown", {
         key: "i",
         ctrlKey: true
@@ -67,7 +67,7 @@ describe("KeyboardShortcutService", () => {
 
       const handled = service.handleKeyboardEvent(event);
       expect(handled).toBe(true);
-    });
+    }));
 
     it("should not trigger action for non-matching shortcut", () => {
       const event = new KeyboardEvent("keydown", {
@@ -90,7 +90,7 @@ describe("KeyboardShortcutService", () => {
         key: "i",
         ctrlKey: true
       });
-      jest.spyOn(event, "preventDefault");
+      vi.spyOn(event, "preventDefault");
 
       service.handleKeyboardEvent(event);
       expect(event.preventDefault).toHaveBeenCalled();
@@ -110,7 +110,7 @@ describe("KeyboardShortcutService", () => {
   });
 
   describe("showHint", () => {
-    /*    it("should emit hint visibility for item shortcuts", (done) => {
+    /*    it("should emit hint visibility for item shortcuts", () => new Promise<void>((done) => {
           let hintStates: boolean[] = [];
 
           service.showHint.subscribe((show: boolean) => {
@@ -132,17 +132,17 @@ describe("KeyboardShortcutService", () => {
 
           // Fast-forward the timeout
           try {
-            jest.useFakeTimers();
+            vi.useFakeTimers();
           } catch (e) {
             // Clock already installed, continue
           }
-          jest.advanceTimersByTime(2001);
+          vi.advanceTimersByTime(2001);
           try {
-            jest.useRealTimers();
+            vi.useRealTimers();
           } catch (e) {
             // Clock not installed, continue
           }
-        });*/
+        }));*/
 
     it("should not show hint for non-item shortcuts", () => {
       let hintEmitted = false;
@@ -165,7 +165,7 @@ describe("KeyboardShortcutService", () => {
   });
 
   describe("clearHintTimeout", () => {
-    it("should clear hint and emit false", (done) => {
+    it("should clear hint and emit false", () => new Promise<void>((done) => {
       service.showHint.subscribe((show: boolean) => {
         if (!show) {
           expect(show).toBe(false);
@@ -174,7 +174,7 @@ describe("KeyboardShortcutService", () => {
       });
 
       service.clearHintTimeout();
-    });
+    }));
   });
 
   describe("default shortcuts", () => {

@@ -1,11 +1,9 @@
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
-import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
+import { CUSTOM_ELEMENTS_SCHEMA, DestroyRef } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
-import { NoopAnimationsModule } from "@angular/platform-browser/animations";
-import { UntilDestroy } from "@ngneat/until-destroy";
 import { Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { PipesModule } from "src/pipes/pipes.module";
@@ -19,13 +17,6 @@ import { buildReceiptFilterForm } from "../../utils/receipt-filter";
 import { OperationsPipe } from "./operations.pipe";
 import { ReceiptFilterComponent } from "./receipt-filter.component";
 
-@UntilDestroy()
-@Component({
-  selector: "app-noop",
-  template: "",
-  standalone: false
-})
-class NoopComponent {}
 
 describe("ReceiptFilterComponent", () => {
   let component: ReceiptFilterComponent;
@@ -82,7 +73,6 @@ describe("ReceiptFilterComponent", () => {
       imports: [PipesModule,
         InputModule,
         StoreModule,
-        NoopAnimationsModule,
         PipesModule,
         ReactiveFormsModule],
       providers: [
@@ -120,9 +110,9 @@ describe("ReceiptFilterComponent", () => {
   });
 
   it("should init form with no default initial data", () => {
-    const noopComponent = TestBed.createComponent(NoopComponent).componentInstance;
+    const destroyRef = TestBed.inject(DestroyRef);
 
-    component.parentForm = buildReceiptFilterForm({}, noopComponent);
+    component.parentForm = buildReceiptFilterForm({}, destroyRef);
     component.ngOnInit();
 
     expect(component.parentForm.value).toEqual(defaultReceiptFilter);
@@ -135,9 +125,9 @@ describe("ReceiptFilterComponent", () => {
       },
     });
 
-    const noopComponent = TestBed.createComponent(NoopComponent).componentInstance;
+    const destroyRef = TestBed.inject(DestroyRef);
 
-    component.parentForm = buildReceiptFilterForm(filledFilter, noopComponent);
+    component.parentForm = buildReceiptFilterForm(filledFilter, destroyRef);
     component.ngOnInit();
 
     expect(component.parentForm.value).toEqual(filledFilter);
@@ -154,9 +144,9 @@ describe("ReceiptFilterComponent", () => {
       applyFormCommand(component.parentForm, formCommand);
     });
 
-    const noopComponent = TestBed.createComponent(NoopComponent).componentInstance;
+    const destroyRef = TestBed.inject(DestroyRef);
 
-    component.parentForm = buildReceiptFilterForm(filledFilter, noopComponent);
+    component.parentForm = buildReceiptFilterForm(filledFilter, destroyRef);
     component.ngOnInit();
 
     expect(component.parentForm.value).toEqual(filledFilter);
@@ -166,11 +156,11 @@ describe("ReceiptFilterComponent", () => {
   });
 
   it("should set form in state and close dialog", () => {
-    const dialogRefSpy = jest.spyOn(
+    const dialogRefSpy = vi.spyOn(
       TestBed.inject(AppDialogRef<ReceiptFilterComponent>),
       "close"
     );
-    const storeRefSpy = jest.spyOn(store, "dispatch").mockReturnValue(of(undefined));
+    const storeRefSpy = vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
 
     component.submitButtonClicked();
 
@@ -181,11 +171,11 @@ describe("ReceiptFilterComponent", () => {
   });
 
   it("renders the group field only when showGroupFilter is true", () => {
-    const noopComponent = TestBed.createComponent(NoopComponent).componentInstance;
+    const destroyRef = TestBed.inject(DestroyRef);
 
     const countListRows = (showGroupFilter: boolean): number => {
       const localFixture = TestBed.createComponent(ReceiptFilterComponent);
-      localFixture.componentInstance.parentForm = buildReceiptFilterForm({}, noopComponent);
+      localFixture.componentInstance.parentForm = buildReceiptFilterForm({}, destroyRef);
       localFixture.componentInstance.showGroupFilter = showGroupFilter;
       localFixture.detectChanges();
       // The rows are the shared app-filter-field; CUSTOM_ELEMENTS_SCHEMA keeps
@@ -202,7 +192,7 @@ describe("ReceiptFilterComponent", () => {
   });
 
   it("should close dialog on cancel", () => {
-    const dialogRefSpy = jest.spyOn(
+    const dialogRefSpy = vi.spyOn(
       TestBed.inject(AppDialogRef<ReceiptFilterComponent>),
       "close"
     );

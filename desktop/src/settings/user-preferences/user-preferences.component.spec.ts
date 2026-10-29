@@ -40,7 +40,7 @@ describe("UserPreferencesComponent", () => {
         },
         {
           provide: Router,
-          useValue: { navigate: jest.fn().mockResolvedValue(true) },
+          useValue: { navigate: vi.fn().mockResolvedValue(true) },
         },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
@@ -51,9 +51,9 @@ describe("UserPreferencesComponent", () => {
     Object.defineProperty(component, 'userShortcutComponent', {
       value: () => ({
         editableListComponent: () => ({
-          openLastRow: jest.fn(),
-          closeRow: jest.fn(),
-          getCurrentRowOpen: jest.fn(),
+          openLastRow: vi.fn(),
+          closeRow: vi.fn(),
+          getCurrentRowOpen: vi.fn(),
         }),
         isAddingShortcut: false,
       }),
@@ -130,11 +130,11 @@ describe("UserPreferencesComponent", () => {
       quickScanDefaultGroupId: 2,
       quickScanDefaultStatus: "OPEN",
     } as UserPreferences;
-    const serviceSpy = jest.spyOn(
+    const serviceSpy = vi.spyOn(
       TestBed.inject(UserPreferencesService),
       "updateUserPreferences"
     ).mockReturnValue(of(userPreference) as any);
-    const storeSpy = jest.spyOn(TestBed.inject(Store), "dispatch");
+    const storeSpy = vi.spyOn(TestBed.inject(Store), "dispatch");
 
     component.ngOnInit();
     component.form.patchValue(userPreference);
@@ -155,7 +155,7 @@ describe("UserPreferencesComponent", () => {
       },
     });
 
-    const serviceSpy = jest.spyOn(
+    const serviceSpy = vi.spyOn(
       TestBed.inject(UserPreferencesService),
       "updateUserPreferences"
     ).mockReturnValue(of(undefined as any));
@@ -185,7 +185,7 @@ describe("UserPreferencesComponent", () => {
         ...store.snapshot(),
         auth: { ...store.snapshot().auth, userPreferences: { region: "PL", warrantyPeriodYears: 3, warrantyReminderLeadDays: 7 } },
       });
-      const serviceSpy = jest
+      const serviceSpy = vi
         .spyOn(TestBed.inject(UserPreferencesService), "updateUserPreferences")
         .mockReturnValue(of(undefined as any));
 
@@ -208,7 +208,7 @@ describe("UserPreferencesComponent", () => {
         ...store.snapshot(),
         auth: { ...store.snapshot().auth, userPreferences: { displayCurrency: "PLN", displayCurrencyRate: "4.25" } },
       });
-      const serviceSpy = jest
+      const serviceSpy = vi
         .spyOn(TestBed.inject(UserPreferencesService), "updateUserPreferences")
         .mockReturnValue(of({} as any));
 

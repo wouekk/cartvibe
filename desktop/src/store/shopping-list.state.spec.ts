@@ -20,9 +20,9 @@ const item = (id: number, overrides: Partial<ShoppingListItem> = {}): ShoppingLi
   isChecked: false,
   createdAt: `2026-10-19T10:00:0${id}Z`,
   ...overrides,
-});
+}) as ShoppingListItem;
 
-const list = (id: number, name: string, items: ShoppingListItem[] = []): ShoppingList => ({
+const list =(id: number, name: string, items: ShoppingListItem[] = []): ShoppingList => ({
   id,
   groupId: 1,
   name,

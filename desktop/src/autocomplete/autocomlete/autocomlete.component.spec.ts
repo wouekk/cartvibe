@@ -8,10 +8,11 @@ import { AutocompleteSelection, AutocomleteComponent } from "./autocomlete.compo
 import { OptionDisplayPipe } from "./option-display.pipe";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 
+import type { Mock } from "vitest";
 describe("AutocomleteComponent", () => {
   let component: AutocomleteComponent;
   let fixture: ComponentFixture<AutocomleteComponent>;
-  jest.useFakeTimers();
+  vi.useFakeTimers();
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -257,33 +258,33 @@ describe("AutocomleteComponent", () => {
   // which this branch is not about.
   describe("panel behavior after selecting in multiple mode", () => {
     function selectAnOption(): {
-      openPanel: jest.Mock;
-      closePanel: jest.Mock;
-      blur: jest.Mock;
+      openPanel: Mock;
+      closePanel: Mock;
+      blur: Mock;
     } {
-      const openPanel = jest.fn();
-      const closePanel = jest.fn();
-      const blur = jest.fn();
+      const openPanel = vi.fn();
+      const closePanel = vi.fn();
+      const blur = vi.fn();
 
       component.multiple = true;
       component.inputFormControl = new FormArray([]) as any;
-      jest.spyOn(component, "openPanel").mockImplementation(openPanel);
-      jest.spyOn(component, "closePanel").mockImplementation(closePanel);
+      vi.spyOn(component, "openPanel").mockImplementation(openPanel);
+      vi.spyOn(component, "closePanel").mockImplementation(closePanel);
       document.body.innerHTML = '<input id="stub-input">';
       const input = document.getElementById("stub-input") as HTMLInputElement;
       input.blur = blur;
       component.inputId = "stub-input";
 
-      // jest.useFakeTimers() is describe-scoped and none of the other
+      // vi.useFakeTimers() is describe-scoped and none of the other
       // optionSelected cases flush, so the queue is carrying their timers -
       // bound to components TestBed has since destroyed. Drop them, or
       // runAllTimers() fires those instead and throws NG0205.
-      jest.clearAllTimers();
+      vi.clearAllTimers();
 
       component.optionSelected({
         option: { id: "selected-option", value: "value 1" },
       } as AutocompleteSelection);
-      jest.runAllTimers();
+      vi.runAllTimers();
 
       return { openPanel, closePanel, blur };
     }

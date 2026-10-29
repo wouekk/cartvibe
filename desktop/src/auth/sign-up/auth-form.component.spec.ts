@@ -4,7 +4,6 @@ import {
 } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute } from '@angular/router';
 import { NgxsModule, Store } from '@ngxs/store';
 import { firstValueFrom, of } from 'rxjs';
@@ -19,6 +18,7 @@ import { AppInitService } from '../../services/app-init.service';
 import { SnackbarService } from '../../services/snackbar.service';
 import { SignInTransitionService } from '../../services/sign-in-transition.service';
 import { AuthForm } from './auth-form.component';
+import { CartVibeLogoComponent } from '../../shared-ui/cartvibe-logo/cartvibe-logo.component';
 import { AuthState } from '../../store/auth.state';
 import { FeatureConfigState } from '../../store/feature-config.state';
 import { GroupState } from '../../store/group.state';
@@ -35,9 +35,9 @@ describe('AuthForm', () => {
     await TestBed.configureTestingModule({
     declarations: [AuthForm, FeatureDirective],
     imports: [ButtonModule,
+        CartVibeLogoComponent,
         InputModule,
         NgxsModule.forRoot([AuthState, FeatureConfigState, GroupState]),
-        NoopAnimationsModule,
         PipesModule,
         ReactiveFormsModule,
         ApiModule,
@@ -89,7 +89,7 @@ describe('AuthForm', () => {
     const httpTesting = TestBed.inject(HttpTestingController);
     const transition = TestBed.inject(SignInTransitionService);
     let arrive!: (done: boolean) => void;
-    const navigate = jest
+    const navigate = vi
       .spyOn(TestBed.inject(Router), 'navigate')
       .mockReturnValue(new Promise<boolean>((resolve) => (arrive = resolve)));
     component.form.setValue({ username: 'wrangler', password: 'secret' });
@@ -170,7 +170,7 @@ describe('AuthForm', () => {
 
   it('surfaces a sign-up field validation error, which the interceptor ignores', async () => {
     const httpTesting = TestBed.inject(HttpTestingController);
-    const errorSpy = jest
+    const errorSpy = vi
       .spyOn(TestBed.inject(SnackbarService), 'error')
       .mockImplementation(() => {});
     await enterSignUpMode(httpTesting);
@@ -193,7 +193,7 @@ describe('AuthForm', () => {
 
   it('leaves an errorMsg sign-up failure to the interceptor', async () => {
     const httpTesting = TestBed.inject(HttpTestingController);
-    const errorSpy = jest
+    const errorSpy = vi
       .spyOn(TestBed.inject(SnackbarService), 'error')
       .mockImplementation(() => {});
     await enterSignUpMode(httpTesting);

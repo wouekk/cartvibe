@@ -3,16 +3,21 @@ import { TestBed } from "@angular/core/testing";
 import type { ApexOptions } from "apexcharts";
 import { ApexChartComponent } from "./apex-chart.component";
 
-const instances: { options: ApexOptions; render: jest.Mock; updateOptions: jest.Mock; destroy: jest.Mock }[] = [];
+import type { Mock } from "vitest";
+type ChartInstance = { options: ApexOptions; render: Mock; updateOptions: Mock; destroy: Mock };
 
-jest.mock("apexcharts", () => ({
+// vi.mock is hoisted above the imports, so what its factory uses has to be hoisted too.
+const instances = vi.hoisted(() => [] as ChartInstance[]);
+
+vi.mock("apexcharts", () => ({
   __esModule: true,
-  default: jest.fn().mockImplementation((_el: HTMLElement, options: ApexOptions) => {
+  // A constructor (called with `new`), so a function rather than an arrow.
+  default: vi.fn(function (_el: HTMLElement, options: ApexOptions) {
     const instance = {
       options,
-      render: jest.fn(() => Promise.resolve()),
-      updateOptions: jest.fn(() => Promise.resolve()),
-      destroy: jest.fn(),
+      render: vi.fn(() => Promise.resolve()),
+      updateOptions: vi.fn(() => Promise.resolve()),
+      destroy: vi.fn(),
     };
     instances.push(instance);
     return instance;

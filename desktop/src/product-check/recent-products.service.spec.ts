@@ -22,7 +22,7 @@ describe("RecentProductsService", () => {
     TestBed.resetTestingModule();
   });
 
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(() => vi.restoreAllMocks());
 
   it("keeps the newest first, without repeats, up to the limit", () => {
     const service = TestBed.inject(RecentProductsService);
@@ -51,7 +51,7 @@ describe("RecentProductsService", () => {
   });
 
   it("still works when storage refuses writes", () => {
-    jest.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
       throw new Error("quota");
     });
     const service = TestBed.inject(RecentProductsService);

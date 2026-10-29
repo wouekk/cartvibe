@@ -1,11 +1,9 @@
 import { Component, OnChanges, SimpleChanges, ViewEncapsulation, computed, input, output, viewChildren, ChangeDetectionStrategy } from "@angular/core";
 import { ImageViewerComponent } from "src/shared-ui/image-viewer/image-viewer.component";
-import { UntilDestroy } from "@ngneat/until-destroy";
 import { FormMode } from "src/enums/form-mode.enum";
 import { ReceiptFileUploadCommand } from "../../interfaces";
 import { FileDataView } from "../../open-api";
 
-@UntilDestroy()
 @Component({
     selector: "app-carousel",
     templateUrl: "./carousel.component.html",

@@ -3,29 +3,35 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppDialogRef } from "../dialog/app-dialog";
 import { BarcodeImageService } from "./barcode-image.service";
 import { BarcodeScannerDialogComponent } from "./barcode-scanner-dialog.component";
-import * as scannerModule from "./barcode-scanner.service";
 import { BarcodeScannerService } from "./barcode-scanner.service";
+
+import type { Mock } from "vitest";
+
+// canUseCamera() reads these two globals; an ES module namespace cannot be spied on, so the specs set them instead.
+const originalSecureContext = Object.getOwnPropertyDescriptor(globalThis, "isSecureContext");
+const setSecureContext = (value: boolean) =>
+  Object.defineProperty(globalThis, "isSecureContext", { value, configurable: true, writable: true });
 
 describe("BarcodeScannerDialogComponent", () => {
   let fixture: ComponentFixture<BarcodeScannerDialogComponent>;
-  let close: jest.Mock;
-  let track: { stop: jest.Mock };
-  let stopScan: jest.Mock;
+  let close: Mock;
+  let track: { stop: Mock };
+  let stopScan: Mock;
   let onCode: (code: string) => void;
-  let getUserMedia: jest.Mock;
-  let decode: jest.Mock;
+  let getUserMedia: Mock;
+  let decode: Mock;
 
   const state = (): string => fixture.componentInstance.state();
 
   beforeEach(async () => {
-    close = jest.fn();
-    track = { stop: jest.fn() };
-    stopScan = jest.fn();
-    decode = jest.fn();
-    getUserMedia = jest.fn().mockResolvedValue({ getTracks: () => [track] });
+    close = vi.fn();
+    track = { stop: vi.fn() };
+    stopScan = vi.fn();
+    decode = vi.fn();
+    getUserMedia = vi.fn().mockResolvedValue({ getTracks: () => [track] });
     Object.defineProperty(globalThis.navigator, "mediaDevices", { value: { getUserMedia }, configurable: true });
-    jest.spyOn(scannerModule, "canUseCamera").mockReturnValue(true);
-    jest.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
+    setSecureContext(true);
+    vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
 
     await TestBed.configureTestingModule({
       imports: [BarcodeScannerDialogComponent],
@@ -36,7 +42,7 @@ describe("BarcodeScannerDialogComponent", () => {
         {
           provide: BarcodeScannerService,
           useValue: {
-            start: jest.fn(async (_stream: unknown, _video: unknown, callback: (code: string) => void) => {
+            start: vi.fn(async (_stream: unknown, _video: unknown, callback: (code: string) => void) => {
               onCode = callback;
 
               return { stop: stopScan };
@@ -48,8 +54,13 @@ describe("BarcodeScannerDialogComponent", () => {
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
     delete (globalThis.navigator as any).mediaDevices;
+    if (originalSecureContext) {
+      Object.defineProperty(globalThis, "isSecureContext", originalSecureContext);
+    } else {
+      delete (globalThis as any).isSecureContext;
+    }
   });
 
   const start = async () => {
@@ -123,7 +134,7 @@ describe("BarcodeScannerDialogComponent", () => {
     });
 
     it("is offered without a secure context, with a message when the photo has no barcode", async () => {
-      jest.spyOn(scannerModule, "canUseCamera").mockReturnValue(false);
+      setSecureContext(false);
       decode.mockResolvedValue(null);
       await start();
       fixture.detectChanges();
@@ -145,7 +156,7 @@ describe("BarcodeScannerDialogComponent", () => {
   });
 
   it("is unavailable without a secure context", async () => {
-    jest.spyOn(scannerModule, "canUseCamera").mockReturnValue(false);
+    setSecureContext(false);
 
     await start();
 

@@ -5,13 +5,14 @@ import { OpenFoodFactsService } from "./open-food-facts.service";
 import { CheckedProduct } from "./product-check.models";
 import { ProductCheckService } from "./product-check.service";
 
+import type { Mock } from "vitest";
 describe("ProductCheckService", () => {
-  let openFoodFacts: { getByBarcode: jest.Mock };
+  let openFoodFacts: { getByBarcode: Mock };
   let service: ProductCheckService;
 
   beforeEach(() => {
     localStorage.clear();
-    openFoodFacts = { getByBarcode: jest.fn() };
+    openFoodFacts = { getByBarcode: vi.fn() };
     TestBed.configureTestingModule({ providers: [{ provide: OpenFoodFactsService, useValue: openFoodFacts }] });
     service = TestBed.inject(ProductCheckService);
   });

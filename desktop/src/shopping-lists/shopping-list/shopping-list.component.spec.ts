@@ -15,7 +15,8 @@ import { ShoppingListState } from "../../store/shopping-list.state";
 import { LoadShoppingLists } from "../../store/shopping-list.state.actions";
 import { ShoppingListComponent } from "./shopping-list.component";
 
-const milk: ShoppingListItem = {
+import type { Mock } from "vitest";
+const milk = {
   id: 1,
   shoppingListId: 1,
   name: "Milk",
@@ -23,7 +24,7 @@ const milk: ShoppingListItem = {
   quantity: "",
   note: "",
   isChecked: false,
-};
+} as ShoppingListItem;
 
 const supermarket: ShoppingList = { id: 1, groupId: 1, name: "Supermarket", items: [milk] };
 
@@ -31,17 +32,17 @@ describe("ShoppingListComponent", () => {
   let fixture: ComponentFixture<ShoppingListComponent>;
   let component: ShoppingListComponent;
   let store: Store;
-  let shoppingListService: { [method: string]: jest.Mock };
-  let snackbarService: { error: jest.Mock };
+  let shoppingListService: Record<"getShoppingListsForGroup" | "setShoppingListItemChecked" | "addShoppingListItem" | "setShoppingListItemClassification", Mock>;
+  let snackbarService: { error: Mock };
 
   beforeEach(async () => {
     shoppingListService = {
-      getShoppingListsForGroup: jest.fn().mockReturnValue(of([supermarket])),
-      setShoppingListItemChecked: jest.fn(),
-      addShoppingListItem: jest.fn(),
-      setShoppingListItemClassification: jest.fn(),
+      getShoppingListsForGroup: vi.fn().mockReturnValue(of([supermarket])),
+      setShoppingListItemChecked: vi.fn(),
+      addShoppingListItem: vi.fn(),
+      setShoppingListItemClassification: vi.fn(),
     };
-    snackbarService = { error: jest.fn() };
+    snackbarService = { error: vi.fn() };
 
     await TestBed.configureTestingModule({
       declarations: [ShoppingListComponent],

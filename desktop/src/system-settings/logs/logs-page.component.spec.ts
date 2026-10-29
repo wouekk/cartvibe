@@ -5,20 +5,21 @@ import { SystemSettingsService } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { LogsPageComponent } from "./logs-page.component";
 
+import type { Mock } from "vitest";
 describe("LogsPageComponent", () => {
   let fixture: ComponentFixture<LogsPageComponent>;
   let component: LogsPageComponent;
-  let systemSettingsService: { getAppLog: jest.Mock };
-  let snackbar: { error: jest.Mock };
+  let systemSettingsService: { getAppLog: Mock };
+  let snackbar: { error: Mock };
 
   const entries = [
     { timestamp: "2026/10/20 10:00:02", level: "INFO", message: "done" },
     { timestamp: "2026/10/20 10:00:01", level: "ERROR", message: "boom" },
   ];
 
-  const setUp = async (getAppLog: jest.Mock): Promise<void> => {
+  const setUp = async (getAppLog: Mock): Promise<void> => {
     systemSettingsService = { getAppLog };
-    snackbar = { error: jest.fn() };
+    snackbar = { error: vi.fn() };
 
     await TestBed.configureTestingModule({
       imports: [LogsPageComponent],
@@ -35,7 +36,7 @@ describe("LogsPageComponent", () => {
   };
 
   it("loads the newest entries and renders them with errors marked", async () => {
-    await setUp(jest.fn(() => of(entries)));
+    await setUp(vi.fn(() => of(entries)));
 
     expect(systemSettingsService.getAppLog).toHaveBeenCalledWith(undefined, 300);
     const rows = fixture.nativeElement.querySelectorAll(".entry");
@@ -45,7 +46,7 @@ describe("LogsPageComponent", () => {
   });
 
   it("asks for one level when a filter is picked", async () => {
-    await setUp(jest.fn(() => of(entries)));
+    await setUp(vi.fn(() => of(entries)));
 
     component.selectLevel("ERROR");
 
@@ -54,13 +55,13 @@ describe("LogsPageComponent", () => {
   });
 
   it("says so when the log is empty", async () => {
-    await setUp(jest.fn(() => of([])));
+    await setUp(vi.fn(() => of([])));
 
     expect(fixture.nativeElement.querySelector("[data-testid=log-empty]")).not.toBeNull();
   });
 
   it("reports a failed load and stops the spinner", async () => {
-    await setUp(jest.fn(() => throwError(() => new Error("boom"))));
+    await setUp(vi.fn(() => throwError(() => new Error("boom"))));
 
     expect(snackbar.error).toHaveBeenCalledWith("Could not load the log");
     expect(component.loading()).toBe(false);

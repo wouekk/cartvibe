@@ -6,8 +6,7 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppDialog } from "../../dialog/app-dialog";
 import { TableDataSource } from "../../table/table-types";
 import { By } from "@angular/platform-browser";
-import { NoopAnimationsModule } from "@angular/platform-browser/animations";
-import { provideRouter } from "@angular/router";
+import { provideRouter, RouterLink } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
@@ -35,12 +34,12 @@ describe("GroupTableComponent", () => {
     await TestBed.configureTestingModule({
       declarations: [GroupTableComponent],
       imports: [TranslatePipe, 
+        RouterLink,
         ApiModule,
         ButtonModule,
         DirectivesModule,
         AppDatePipe,
         NgxsModule.forRoot([AuthState, GroupState, GroupTableState, SystemSettingsState]),
-        NoopAnimationsModule,
         SharedUiModule,
         TableModule,
       ],
@@ -149,13 +148,13 @@ describe("GroupTableComponent", () => {
     it("refetches the current page instead of swapping in the caller's own groups", () => {
       // The table is server-paged and may be showing the all-groups filter, so
       // the post-delete refresh has to go back to the server.
-      const deleteSpy = jest
+      const deleteSpy = vi
         .spyOn(TestBed.inject(GroupsService), "deleteGroup")
         .mockReturnValue(of({} as any));
-      const refetchSpy = jest
+      const refetchSpy = vi
         .spyOn(component, "getTableData")
         .mockImplementation(() => {});
-      jest
+      vi
         .spyOn(TestBed.inject(AppDialog), "open")
         .mockReturnValue({ afterClosed: () => of(true), componentInstance: {} } as any);
 
@@ -171,8 +170,8 @@ describe("GroupTableComponent", () => {
     });
 
     it("does nothing when deletion is disabled", () => {
-      const deleteSpy = jest.spyOn(TestBed.inject(GroupsService), "deleteGroup");
-      const dialogSpy = jest.spyOn(TestBed.inject(AppDialog), "open");
+      const deleteSpy = vi.spyOn(TestBed.inject(GroupsService), "deleteGroup");
+      const dialogSpy = vi.spyOn(TestBed.inject(AppDialog), "open");
 
       store.dispatch(new SetGroups([{ id: 1 } as Group]));
       store.dispatch(new SetPermissions([], {}));

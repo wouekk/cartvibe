@@ -4,12 +4,13 @@ import { AppDialog } from "../dialog/app-dialog";
 import { ProductCheckDialogComponent } from "./product-check-dialog.component";
 import { ProductCheckLauncher } from "./product-check-launcher.service";
 
+import type { Mock } from "vitest";
 describe("ProductCheckLauncher", () => {
-  let open: jest.Mock;
+  let open: Mock;
   let launcher: ProductCheckLauncher;
 
   beforeEach(() => {
-    open = jest.fn().mockReturnValue({ afterClosed: () => of(undefined) });
+    open = vi.fn().mockReturnValue({ afterClosed: () => of(undefined) });
     TestBed.configureTestingModule({ providers: [{ provide: AppDialog, useValue: { open } }] });
     launcher = TestBed.inject(ProductCheckLauncher);
   });

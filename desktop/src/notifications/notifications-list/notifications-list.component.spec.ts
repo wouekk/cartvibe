@@ -50,10 +50,10 @@ describe("NotificationsListComponent", () => {
       },
     ];
 
-    jest.spyOn(service, "getNotificationsForuser").mockReturnValue(
+    vi.spyOn(service, "getNotificationsForuser").mockReturnValue(
       of(mockNotifications as any)
     );
-    const emitSpy = jest.spyOn(component.notificationCountChanged, "emit");
+    const emitSpy = vi.spyOn(component.notificationCountChanged, "emit");
 
     component.ngOnInit();
 
@@ -63,7 +63,7 @@ describe("NotificationsListComponent", () => {
   });
 
   it("should delete all notifications", () => {
-    jest.spyOn(service, "deleteAllNotificationsForUser").mockReturnValue(
+    vi.spyOn(service, "deleteAllNotificationsForUser").mockReturnValue(
       of(undefined as any)
     );
     component.notifications.set([
@@ -85,7 +85,7 @@ describe("NotificationsListComponent", () => {
       },
     ]);
 
-    const emitSpy = jest.spyOn(component.notificationCountChanged, "emit");
+    const emitSpy = vi.spyOn(component.notificationCountChanged, "emit");
 
     component.deleteAllNotifications();
 
@@ -114,7 +114,7 @@ describe("NotificationsListComponent", () => {
       },
     ]);
 
-    const emitSpy = jest.spyOn(component.notificationCountChanged, "emit");
+    const emitSpy = vi.spyOn(component.notificationCountChanged, "emit");
 
     component.notificationDeleted(1);
 
@@ -143,7 +143,7 @@ describe("NotificationsListComponent", () => {
       },
     ]);
 
-    const emitSpy = jest.spyOn(component.notificationCountChanged, "emit");
+    const emitSpy = vi.spyOn(component.notificationCountChanged, "emit");
 
     component.notificationDeleted(1);
 

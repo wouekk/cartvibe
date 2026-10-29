@@ -8,13 +8,14 @@ import {
 } from "./password-generator.service";
 import { SnackbarService } from "./snackbar.service";
 
+import type { Mock } from "vitest";
 describe("PasswordGeneratorService", () => {
   let service: PasswordGeneratorService;
-  let snackbarService: { success: jest.Mock; error: jest.Mock };
+  let snackbarService: { success: Mock; error: Mock };
   let originalClipboard: any;
 
   beforeEach(() => {
-    snackbarService = { success: jest.fn(), error: jest.fn() };
+    snackbarService = { success: vi.fn(), error: vi.fn() };
 
     TestBed.configureTestingModule({
       providers: [
@@ -36,7 +37,7 @@ describe("PasswordGeneratorService", () => {
   });
 
   it("returns a generated password and copies that same value", () => {
-    const copyAndNotify = jest
+    const copyAndNotify = vi
       .spyOn(service, "copyAndNotify")
       .mockResolvedValue(undefined);
 
@@ -47,8 +48,7 @@ describe("PasswordGeneratorService", () => {
   });
 
   it("writes the password to the clipboard and toasts success", async () => {
-    const writeText = jest
-      .fn<Promise<void>, [string]>()
+    const writeText = vi.fn<(text: string) => Promise<void>>()
       .mockResolvedValue(undefined);
     (navigator as any).clipboard = { writeText };
 
@@ -63,8 +63,7 @@ describe("PasswordGeneratorService", () => {
 
   it("toasts an error when the clipboard write is rejected", async () => {
     (navigator as any).clipboard = {
-      writeText: jest
-        .fn<Promise<void>, [string]>()
+      writeText: vi.fn<(text: string) => Promise<void>>()
         .mockRejectedValue(new Error("blocked")),
     };
 

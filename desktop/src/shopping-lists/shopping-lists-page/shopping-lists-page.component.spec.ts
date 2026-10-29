@@ -16,6 +16,7 @@ import { ShoppingListState } from "../../store/shopping-list.state";
 import { LoadShoppingLists } from "../../store/shopping-list.state.actions";
 import { ShoppingListsPageComponent } from "./shopping-lists-page.component";
 
+import type { Mock } from "vitest";
 const item = (id: number, listId: number, isChecked = false): ShoppingListItem =>
   ({ id, shoppingListId: listId, name: `item-${id}`, isChecked, checkedAt: isChecked ? "2026-10-21T10:00:00Z" : undefined }) as ShoppingListItem;
 
@@ -44,22 +45,22 @@ describe("ShoppingListsPageComponent", () => {
   let fixture: ComponentFixture<ShoppingListsPageComponent>;
   let component: ShoppingListsPageComponent;
   let store: Store;
-  let shoppingListService: { [method: string]: jest.Mock };
-  let snackbarService: { [method: string]: jest.Mock };
+  let shoppingListService: { [method: string]: Mock };
+  let snackbarService: { [method: string]: Mock };
   let confirmed: boolean | undefined;
 
   beforeEach(async () => {
     confirmed = true;
     shoppingListService = {
-      getShoppingListsForGroup: jest.fn().mockReturnValue(of(lists())),
-      deleteShoppingList: jest.fn().mockReturnValue(of(undefined)),
-      setShoppingListChecked: jest.fn().mockImplementation(setChecked),
+      getShoppingListsForGroup: vi.fn().mockReturnValue(of(lists())),
+      deleteShoppingList: vi.fn().mockReturnValue(of(undefined)),
+      setShoppingListChecked: vi.fn().mockImplementation(setChecked),
     };
     snackbarService = {
-      error: jest.fn(),
-      success: jest.fn(),
-      hint: jest.fn(),
-      successFromTemplate: jest.fn().mockReturnValue({ dismiss: jest.fn() }),
+      error: vi.fn(),
+      success: vi.fn(),
+      hint: vi.fn(),
+      successFromTemplate: vi.fn().mockReturnValue({ dismiss: vi.fn() }),
     };
 
     await TestBed.configureTestingModule({
@@ -70,13 +71,13 @@ describe("ShoppingListsPageComponent", () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: ActivatedRoute, useValue: { paramMap: of(new Map([["groupId", "1"]]) as any), snapshot: undefined } },
-        { provide: Router, useValue: { navigate: jest.fn() } },
+        { provide: Router, useValue: { navigate: vi.fn() } },
         { provide: ShoppingListService, useValue: shoppingListService },
-        { provide: ShoppingListStreamService, useValue: { connect: jest.fn(), disconnect: jest.fn() } },
+        { provide: ShoppingListStreamService, useValue: { connect: vi.fn(), disconnect: vi.fn() } },
         { provide: SnackbarService, useValue: snackbarService },
         {
           provide: AppDialog,
-          useValue: { open: jest.fn().mockImplementation(() => ({ componentInstance: {}, afterClosed: () => of(confirmed) })) },
+          useValue: { open: vi.fn().mockImplementation(() => ({ componentInstance: {}, afterClosed: () => of(confirmed) })) },
         },
       ],
       schemas: [NO_ERRORS_SCHEMA],

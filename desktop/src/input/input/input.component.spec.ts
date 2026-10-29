@@ -7,23 +7,23 @@ import { HlmButton } from "@spartan-ng/helm/button";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { By } from "@angular/platform-browser";
-import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { NgxsModule } from "@ngxs/store";
 import { NgxMaskDirective, provideNgxMask } from "ngx-mask";
 import { PasswordGeneratorService } from "../../services/password-generator.service";
 import { SystemSettingsState } from "../../store/system-settings.state";
 import { InputComponent } from "./input.component";
 
+import type { Mock } from "vitest";
 const GENERATED_PASSWORD = "Fixed-Pass-1";
 
 describe("InputComponent", () => {
   let component: InputComponent;
   let fixture: ComponentFixture<InputComponent>;
-  let passwordGeneratorService: { generateAndCopy: jest.Mock };
+  let passwordGeneratorService: { generateAndCopy: Mock };
 
   beforeEach(async () => {
     passwordGeneratorService = {
-      generateAndCopy: jest.fn().mockReturnValue(GENERATED_PASSWORD),
+      generateAndCopy: vi.fn().mockReturnValue(GENERATED_PASSWORD),
     };
 
     await TestBed.configureTestingModule({
@@ -33,7 +33,6 @@ describe("InputComponent", () => {
         HlmButton,
         AppIconComponent,
         ...HlmTooltipImports,
-        NoopAnimationsModule,
         ReactiveFormsModule,
         NgxMaskDirective,
         NgxsModule.forRoot([SystemSettingsState]),

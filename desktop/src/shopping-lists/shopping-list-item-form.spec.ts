@@ -6,16 +6,17 @@ import {
   toUpsertShoppingListItemCommand,
 } from "./shopping-list-item-form";
 
-const item = (overrides: Partial<ShoppingListItem>): ShoppingListItem => ({
-  id: 1,
-  shoppingListId: 1,
-  name: "Milk",
-  unit: "",
-  quantity: "",
-  note: "",
-  isChecked: false,
-  ...overrides,
-});
+const item = (overrides: Partial<ShoppingListItem>): ShoppingListItem =>
+  ({
+    id: 1,
+    shoppingListId: 1,
+    name: "Milk",
+    unit: "",
+    quantity: "",
+    note: "",
+    isChecked: false,
+    ...overrides,
+  }) as ShoppingListItem;
 
 describe("shopping list item form", () => {
   const formBuilder = new FormBuilder();

@@ -4,7 +4,6 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormBuilder, FormGroup } from "@angular/forms";
-import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 import { provideRouter } from "@angular/router";
 import { ButtonModule } from "../../button/button.module";
 import { ReportGenerateBarComponent } from "./report-generate-bar.component";
@@ -20,7 +19,7 @@ describe("ReportGenerateBarComponent", () => {
       // The real ButtonModule renders the Save/Generate app-buttons as real <button>s
       // whose rendered/disabled state the DOM assertions below can inspect. The bar no
       // longer gates on permissions itself — the parent passes resolved booleans.
-      imports: [TranslatePipe, ButtonModule, NoopAnimationsModule],
+      imports: [TranslatePipe, ButtonModule],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),
@@ -64,14 +63,14 @@ describe("ReportGenerateBarComponent", () => {
   });
 
   it("emits generate on request", () => {
-    const spy = jest.fn();
+    const spy = vi.fn();
     component.generate.subscribe(spy);
     component.onGenerate();
     expect(spy).toHaveBeenCalledTimes(1);
   });
 
   it("emits saveTemplate on request", () => {
-    const spy = jest.fn();
+    const spy = vi.fn();
     component.saveTemplate.subscribe(spy);
     component.onSaveTemplate();
     expect(spy).toHaveBeenCalledTimes(1);

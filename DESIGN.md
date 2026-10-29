@@ -75,4 +75,4 @@ Banned: Angular Material, Bootstrap classes (`d-flex`, `col-*`, `mb-3`), `mat-*`
 - [ ] Loading, empty, error, disabled, focus-visible designed.
 - [ ] No hex, no shadow beyond what the shared class has, no Material/Bootstrap class.
 - [ ] Strings through `| t` / `marker()`, `npm run i18n:extract`, Polish filled.
-- [ ] `data-testid` on interactive parts (specs never select by class); `ng build` + Jest green.
+- [ ] `data-testid` on interactive parts (specs never select by class); `ng build` + specs green.

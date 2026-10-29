@@ -59,7 +59,10 @@
               "sourceMap": false,
               "optimization": {
                 "scripts": true,
-                "styles": { "minify": true, "inlineCritical": false },
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
                 "fonts": true
               }
             },
@@ -74,6 +77,12 @@
                   "with": "src/environments/environment.development.ts"
                 }
               ]
+            },
+            "test": {
+              "aot": false,
+              "optimization": false,
+              "sourceMap": true,
+              "extractLicenses": false
             }
           },
           "defaultConfiguration": "production"
@@ -94,6 +103,54 @@
           "builder": "@angular/build:extract-i18n",
           "options": {
             "buildTarget": "cartvibe:build"
+          }
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "runner": "vitest",
+            "buildTarget": "cartvibe:build:test",
+            "tsConfig": "tsconfig.spec.json",
+            "setupFiles": [
+              "setup-vitest.ts"
+            ],
+            "include": [
+              "src/**/*.spec.ts"
+            ],
+            "exclude": [
+              "src/open-api/**"
+            ],
+            "watch": false,
+            "runnerConfig": "vitest.config.ts",
+            "isolate": true
+          },
+          "configurations": {
+            "ci": {
+              "coverage": true,
+              "coverageReporters": [
+                "html",
+                "lcov",
+                "cobertura",
+                "text-summary"
+              ],
+              "coverageInclude": [
+                "src/**/*.ts"
+              ],
+              "coverageExclude": [
+                "src/**/*.d.ts",
+                "src/**/*.spec.ts",
+                "src/main.ts",
+                "src/open-api/**",
+                "src/environments/**",
+                "src/testing/**"
+              ],
+              "coverageThresholds": {
+                "statements": 1,
+                "branches": 1,
+                "functions": 1,
+                "lines": 1
+              }
+            }
           }
         }
       }

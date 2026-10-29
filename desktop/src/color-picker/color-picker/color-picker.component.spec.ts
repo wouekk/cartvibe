@@ -4,7 +4,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ColorPickerComponent } from './color-picker.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('ColorPickerComponent', () => {
   let component: ColorPickerComponent;
@@ -15,7 +14,6 @@ describe('ColorPickerComponent', () => {
       declarations: [ColorPickerComponent],
       imports: [TranslatePipe, 
         ReactiveFormsModule,
-        NoopAnimationsModule,
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     });
@@ -44,7 +42,7 @@ describe('ColorPickerComponent', () => {
     const event: any = {
       preventDefault: () => {},
     };
-    const eventSpy = jest.spyOn(event, 'preventDefault');
+    const eventSpy = vi.spyOn(event, 'preventDefault');
 
     component.handleClick(event);
 
@@ -55,7 +53,7 @@ describe('ColorPickerComponent', () => {
     const event: any = {
       preventDefault: () => {},
     };
-    const eventSpy = jest.spyOn(event, 'preventDefault');
+    const eventSpy = vi.spyOn(event, 'preventDefault');
     component.readonly = true;
     component.handleClick(event);
 
