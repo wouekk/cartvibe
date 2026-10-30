@@ -57,12 +57,14 @@ ENV BASE_PATH="/app/cartvibe-api"
 
 # What the API runs at run time: nginx, Tesseract and its English data, ImageMagick with HEIC and PDF support, Chromium
 # (report PDFs), certificates for HTTPS calls and time zone data for the app time zone.
-# Recommended packages stay on for the ones that bring codec plugins and fonts (ImageMagick, Chromium).
+# Recommended packages are off: Tesseract, ghostscript, the fonts and the HEIC plugin are named below because the API
+# needs them and they only used to arrive as Recommends. docker/checks/runtime-check.sh proves each one, so a missing
+# package fails the build; add the package it names rather than switching Recommends back on.
 # The upgrade takes Debian's security fixes released since the base image was built.
 RUN apt-get update \
     && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends ca-certificates tzdata nginx \
-    && apt-get install -y imagemagick-7.q16 libheif1 libde265-0 tesseract-ocr-eng chromium \
+    && apt-get install -y --no-install-recommends imagemagick-7.q16 libheif1 libde265-0 tesseract-ocr-eng chromium \
     && rm -rf /var/lib/apt/lists/* /etc/nginx/sites-enabled/* /etc/nginx/sites-available/*
 
 # The API runs as this user (entrypoint.sh drops to it); nginx keeps its own www-data workers.
