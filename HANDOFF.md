@@ -5,9 +5,17 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 
 ## Current state
 
-- `feature/vps-images` (merged into `preview`): `docker-compose.vps.yml` runs Caddy 2.11.7 and restic 0.19.1 (Litestream
-  stays 0.3.13). CI does not cover this file and Docker is not running on the Windows PC, so `compose config`, `caddy
-  validate` and `restic version` have not been run; the next VPS `pull` and `up -d` is the first test.
+- `preview` is ahead of `main` (2026-10-30) with small updates, each from its own branch, gated on Node 24.22.1 (npm ci,
+  lockfile stable, audit 0, specs, build, CSP hash) and green in CI: `docker-compose.vps.yml` on Caddy 2.11.7 and restic
+  0.19.1 (no CI covers it; Docker is down on the Windows PC, so the first VPS `pull` + `up -d` is its test),
+  Playwright 1.64.1, jsdom 30.1.3, `@spartan-ng/brain` 1.9.0 (released 2026-10-29; 1.8.3 is the patch line). Waiting on the
+  user: look over selects, autocompletes, sheets, tooltips and dialogs after the brain bump (phone and desktop, day and night).
+- Not merged, waiting on the user: `feature/zxing-bump` (`@zxing/library` 0.23.0 is Apache-2.0, was MIT, and declares
+  node >= 24; browser 0.2.1; needs the user's OK on the licence and a real barcode read on a phone) and
+  `feature/slim-image` (`:preview` is 103 MB smaller: 405,085,123 vs 508,118,804 bytes; try a PDF import, a photo scan, a
+  HEIC upload and a report PDF on the NAS; CJK glyphs lose their fallback font).
+- `e2e-smoke` fails now and then with `HTTP 503` on an API login in `provisioning.ts` (nginx login limit, 30 a minute);
+  a re-run of the failed job passes. Seen twice in one session (the `deletes a template` spec both times); not fixed.
 
 - `main` = `preview` (2026-10-30, unreleased after 0.13.0) also has: the CSP hash is the LF one and NGXS runs without
   `new Function` (checked under the enforcing policy; the header stays Report-Only), About credits Geist/Lucide/spartan/
