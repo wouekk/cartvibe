@@ -37,7 +37,7 @@ services:
     pull_policy: always              # every deploy checks for a newer image
     restart: unless-stopped
     depends_on:
-      redis:
+      valkey:
         condition: service_healthy
     ports:
       - "8091:80"                    # open CartVibe at http://<your-server>:8091
@@ -47,27 +47,27 @@ services:
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - DB_ENGINE=sqlite
       - DB_FILENAME=app.db           # keep this name, or the app starts with an empty database
-      - REDIS_HOST=redis
+      - REDIS_HOST=valkey            # Valkey speaks the Redis protocol, hence the name
       - REDIS_PORT=6379
     volumes:
       - ./sqlite:/app/cartvibe-api/sqlite   # the database
       - ./data:/app/cartvibe-api/data       # receipt photos
       - ./logs:/app/cartvibe-api/logs
 
-  redis:                             # background jobs (AI reads, clean-up) queue here
-    image: redis:7.4-alpine
+  valkey:                            # background jobs (AI reads, clean-up) queue here
+    image: valkey/valkey:9.1-alpine
     restart: unless-stopped
-    command: ["redis-server", "--appendonly", "yes"]
+    command: ["valkey-server", "--appendonly", "yes"]
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "valkey-cli", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5
     volumes:
-      - redis-data:/data
+      - valkey-data:/data
 
 volumes:
-  redis-data:
+  valkey-data:
 ```
 
 ### 2. Add your two keys
@@ -170,7 +170,7 @@ The annotated stack this project runs itself is [docker-compose.yml](docker-comp
 
 | Folder | What |
 |---|---|
-| `api/` | Go backend (Chi router, GORM, Asynq background workers on Redis) |
+| `api/` | Go backend (Chi router, GORM, Asynq background workers on Valkey) |
 | `desktop/` | Angular web app, installable as a PWA and built for phones first |
 | `docker/` | One production image: nginx serves the app and proxies the Go API |
 | `docs/` | Developer setup, the AI prompts, themes and these screenshots |

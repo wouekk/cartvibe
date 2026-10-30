@@ -29,7 +29,7 @@ services:
     depends_on:
       litestream-restore:
         condition: service_completed_successfully
-      redis:
+      valkey:
         condition: service_healthy
     # No published port: only Caddy reaches it, over the compose network.
     expose:
@@ -40,7 +40,8 @@ services:
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - DB_ENGINE=sqlite
       - DB_FILENAME=app.db
-      - REDIS_HOST=redis
+      # Valkey speaks the Redis protocol, so the app's settings keep their REDIS_ names.
+      - REDIS_HOST=valkey
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - PUID=${PUID:-10001}
@@ -85,20 +86,22 @@ services:
       - ./deploy/vps/restic-backup.sh:/backup.sh:ro
       - restic-cache:/root/.cache/restic
 
-  redis:
-    image: redis:7.4-alpine
-    container_name: cartvibe-redis
+  # Replaces the Redis 7.4 service of earlier versions (container cartvibe-redis, volume redis-data: remove them by
+  # hand once this is up; only jobs still waiting in the queue are lost).
+  valkey:
+    image: valkey/valkey:9.1-alpine
+    container_name: cartvibe-valkey
     restart: unless-stopped
-    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
+    command: ["valkey-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" --no-auth-warning ping | grep -q PONG"]
+      test: ["CMD-SHELL", "valkey-cli -a \"$$REDIS_PASSWORD\" --no-auth-warning ping | grep -q PONG"]
       interval: 10s
       timeout: 3s
       retries: 5
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     volumes:
-      - redis-data:/data
+      - valkey-data:/data
 
   # TLS with automatic Let's Encrypt certificates for CARTVIBE_DOMAIN.
   caddy:
@@ -118,7 +121,7 @@ services:
       - caddy-config:/config
 
 volumes:
-  redis-data:
+  valkey-data:
   restic-cache:
   caddy-data:
   caddy-config:
