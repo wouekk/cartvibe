@@ -323,8 +323,9 @@ The long form of points the guide states briefly.
   `readonly` once filled; clearing is its X (`autocomplete-clear`). It needs a `displayWith` when options are plain
   strings and the default would blank the field. `closeChipSelectOnSelect` (a user preference read from `AuthState`,
   default off) closes the panel after a pick by also blurring the input; removing a chip deliberately ignores it.
-- `@playwright/test` is pinned exactly; bump it deliberately together with the browser build. `@zxing/browser` 0.1.5 /
-  `@zxing/library` 0.21.3 were pinned for Node 20; CI is on Node 24, so the pin can be lifted in a change of its own.
+- `@playwright/test` is pinned exactly; bump it deliberately together with the browser build. `@zxing/browser` 0.2.1 /
+  `@zxing/library` 0.23.0 are pinned exactly and move together (browser 0.2.x peers `library ^0.23.0`). The library is
+  Apache-2.0 since 0.23 (it was MIT) and declares `node >= 24`, which CI's Node admits.
 - Stay on Angular's 22.x patch line; 23 is its own upgrade. `tsconfig.json` has no `baseUrl` (bare `src/...` imports
   resolve through the `src/*` path) and `skipLibCheck` is on.
 - **Permission gating** mirrors the server; the server re-checks every request, so a stale button at worst 403s.
