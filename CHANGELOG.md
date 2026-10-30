@@ -21,6 +21,9 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
   schema.
 
 ### Changed
+- **The Stone colour palette is now Blue.** Blue colours the buttons, links, switches and focus rings in blue-700 by day
+  and a lighter blue at night, on the same grey surfaces as Zinc (which stays the default). If you had picked Stone, the
+  app shows Zinc until you choose another palette under Settings → Theme.
 - **Dashboard charts moved to Chart.js.** The category donut and the month and day bars look the same (same colours
   in every theme and palette, same goal line and red over-goal part, same tooltip card). Two small differences: the
   slice you point at slides out of the ring instead of growing, and the day bars thin out their date labels instead of

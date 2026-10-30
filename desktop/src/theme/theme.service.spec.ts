@@ -154,9 +154,9 @@ describe("ThemeService", () => {
     });
 
     expect(() => service.setMode("dark")).not.toThrow();
-    expect(() => service.setPalette("stone")).not.toThrow();
+    expect(() => service.setPalette("blue")).not.toThrow();
     expect(root.classList.contains("dark")).toBe(true);
-    expect(root.getAttribute("data-palette")).toBe("stone");
+    expect(root.getAttribute("data-palette")).toBe("blue");
 
     setItem.mockRestore();
   });
@@ -166,7 +166,7 @@ describe("ThemeService", () => {
     const modes = MODE_OPTIONS.map((option) => option.mode);
 
     expect(new Set(keys).size).toBe(keys.length);
-    expect(keys).toEqual(["stone", "zinc", "indigo", "emerald", "violet"]);
+    expect(keys).toEqual(["blue", "zinc", "indigo", "emerald", "violet"]);
     expect(findPalette(DEFAULT_PALETTE)).toBeDefined();
     expect(modes).toEqual(["system", "light", "dark"]);
   });

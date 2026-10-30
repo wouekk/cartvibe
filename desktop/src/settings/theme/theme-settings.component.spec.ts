@@ -50,7 +50,7 @@ describe("ThemeSettingsComponent", () => {
   });
 
   it("lists the five palettes, each with a swatch, and Zinc is the one showing at first", () => {
-    for (const [key, label] of [["stone", "Stone"], ["zinc", "Zinc"], ["indigo", "Indigo"], ["emerald", "Emerald"], ["violet", "Violet"]]) {
+    for (const [key, label] of [["blue", "Blue"], ["zinc", "Zinc"], ["indigo", "Indigo"], ["emerald", "Emerald"], ["violet", "Violet"]]) {
       expect(el(`theme-palette-${key}`).textContent).toContain(label);
       expect(el(`theme-palette-${key}`).querySelector(`app-palette-swatch[data-palette=${key}]`)).not.toBeNull();
     }

@@ -142,6 +142,7 @@
     "Between": "Entre",
     "Beverages": "Bebidas",
     "Bills": "Facturas",
+    "Blue": "Azul",
     "Books": "Libros",
     "Bottle Deposit": "Depósito de envases",
     "Bought": "Comprado",
@@ -950,7 +951,6 @@
     "Status": "Estado",
     "Status is required": "El estado es obligatorio",
     "Stay signed in for": "Mantener la sesión durante",
-    "Stone": "Piedra",
     "Submit Scans": "Enviar escaneos",
     "Subscriptions": "Suscripciones",
     "Subtotal": "Subtotal",
@@ -1548,6 +1548,9 @@
     "Starts with pk_, for example pk_A1b2C3d4E5f6. Leave it empty to show letters instead of logos.": {
       "value": "Empieza por pk_, por ejemplo pk_A1b2C3d4E5f6. Déjala vacía para mostrar letras en lugar de logos.",
       "closest": "Starts with sk_, for example sk_A1b2C3d4E5f6. Stored encrypted and never sent to a browser. To switch keys, paste the new one over it. Saving it empty stops the downloads; the logos stay."
+    },
+    "Stone": {
+      "value": "Piedra"
     },
     "The free plan is plenty: the first download asks Logo.dev about each brand once, then a daily check asks again about a logo once a month.": {
       "value": "El plan gratuito sobra: la primera descarga pregunta a Logo.dev una vez por marca y luego una comprobación diaria vuelve a preguntar por un logo una vez al mes."
