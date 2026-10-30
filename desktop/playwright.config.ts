@@ -1,7 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const baseURL = process.env.E2E_BASE_URL ?? 'http://localhost:4200';
-const isLocal = /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?\/?/i.test(baseURL);
+// E2E_NO_WEBSERVER: the app is already running at baseURL (CI runs the built image on localhost:8091).
+const isLocal = /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?\/?/i.test(baseURL) && !process.env.E2E_NO_WEBSERVER;
 
 export default defineConfig({
   testDir: './e2e',

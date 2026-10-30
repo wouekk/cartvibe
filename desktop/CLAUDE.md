@@ -161,8 +161,9 @@ feature.
 
 ## E2E (setup and per-spec notes: `docs/e2e.md`)
 
-- Specs in `e2e/` need a live API and run nowhere in CI; many predate the family rework, so update a spec before
-  trusting it.
+- Specs in `e2e/` need a live API. CI runs only the fully green ones (`npm run e2e:smoke`, the `e2e-smoke` job: the built
+  image next to Valkey); a spec that passes locally joins that list in `package.json`. Many specs predate the family
+  rework, so update a spec before trusting it.
 - Select with `getByTestId` (`<resource>-<action>`) or by role/label; never structural CSS chains or styling classes.
 - Web-first assertions only; never `waitForTimeout`. `fullyParallel` is on: mint unique data (`uniqueName`), never
   mutate shared rows; a spec that changes a global setting is serial and restores only the field it captured.
