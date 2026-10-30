@@ -93,8 +93,8 @@ feature.
 - **Never regenerate `package-lock.json` from scratch**; update incrementally with CI's Node and npm (`node-version` in
   `.github/workflows/ci.yml`). Gate every dependency change on `npm ci` (not `npm install`), audit, `test:ci`, build, and
   every package's `engines.node` admitting CI's Node.
-- `@playwright/test` is pinned exactly; bump it with the browser build. `@zxing/*` pins can be lifted in a change of
-  their own. Stay on Angular's 22.x patch line; 23 is its own upgrade.
+- `@playwright/test` is pinned exactly; bump it with the browser build. `@zxing/*` are pinned exactly and move
+  together (`@zxing/library` is Apache-2.0 since 0.23). Stay on Angular's 22.x patch line; 23 is its own upgrade.
 - **Check a new dependency's `license` field before adding it, and after a major bump.** Charts are Chart.js (MIT)
   because apexcharts went source-available at 5.1 (a paid OEM licence to embed it in a product other people use, which
   also clashes with AGPL-3.0). Never let `npm update` or `audit fix` cross a licence change.
