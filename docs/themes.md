@@ -7,13 +7,13 @@ token values**. There is no per-component theme code.
 
 The look is two independent choices, remembered per browser (localStorage, no API):
 
-- **Palette** (`rw_theme_palette`, default `zinc`): **Stone**, **Zinc**, **Indigo**, **Emerald**, **Violet**. It is
+- **Palette** (`rw_theme_palette`, default `zinc`): **Blue**, **Zinc**, **Indigo**, **Emerald**, **Violet**. It is
   `data-palette="<key>"` on `<html>`.
 - **Mode** (`rw_theme_mode`): **System**, **Day** (`light`) or **Night** (`dark`). Night puts the `dark` class on `<html>`
   (what Tailwind's `dark:` variants, the spartan components and the night token blocks key off); System follows the
   operating system, also when it switches.
 
-Zinc is spartan's zinc palette and the base of everything; its black is Tailwind's neutral-950 (a pure grey), and Stone's lead colour is stone-900. Stone and Zinc are monochrome (Stone with warm greys); Indigo,
+Zinc is spartan's zinc palette and the base of everything; its black is Tailwind's neutral-950 (a pure grey). Zinc is monochrome; Blue, Indigo,
 Emerald and Violet are **accent only**: the neutral surfaces stay zinc and only the primary, the focus ring and the
 sidebar's primary take the hue. Charts (`--chart-1..5`), status colours, Nutri-Score and the brand tokens are the same in
 every palette. The header's palette menu (`palette-menu`, left of the day/night `theme-toggle`), Settings → Theme and the
@@ -29,15 +29,15 @@ first-sign-in welcome pick a palette and a mode; the look itself is described in
 - **A palette's day and night blocks must define the same tokens.** On `<html>` the night block (0,2,0) beats the day
   block (0,1,0); a token missing from the night block would show its day value at night. `src/theme/themes.spec.ts`
   checks this, that each palette file is imported and registered, and that palettes override only tokens zinc defines.
-- Stone overrides the neutral ramp (background, foreground, card, popover, primary, secondary, muted, accent, border, input,
-  ring, sidebar*). Indigo, Emerald and Violet override only `--primary`, `--primary-foreground`, `--ring`,
+- Blue, Indigo, Emerald and Violet override only `--primary`, `--primary-foreground`, `--ring`,
   `--sidebar-primary`, `--sidebar-primary-foreground` and `--sidebar-ring`.
 
 ## Add a palette
 
 1. **Write the tokens.** Create `desktop/src/themes/<key>.css` with a day block and a night block in the selector shapes
-   above. A neutral palette copies `stone.css` and swaps the ramp; an accent palette copies `indigo.css` and swaps the six
-   tokens. Take OKLCH values from `node_modules/tailwindcss/theme.css`. Never write `--brand-*` (the logo keeps its colours)
+   above. A neutral palette overrides the whole ramp (background, foreground, card, popover, primary, secondary, muted,
+   accent, border, input, ring, sidebar*; the removed Stone palette in git history is an example); an accent palette
+   copies `blue.css` and swaps the six tokens. Take OKLCH values from `node_modules/tailwindcss/theme.css`. Never write `--brand-*` (the logo keeps its colours)
    or hex values.
 2. **Import it.** Add `@import "./<key>.css";` to `desktop/src/themes/themes.css`.
 3. **Register it.** Add `{ key: "<key>", label: marker("<Name>") }` to `PALETTES` in `desktop/src/theme/themes.ts`, then
@@ -53,7 +53,7 @@ stored key before the first paint and needs no copy of the list (an unknown key 
   palette (in `zinc.css` at least). A grep for `#` in `*.scss` finds stragglers.
 - **Contrast, in day and night:** the primary against `--primary-foreground`, and `text-primary` on background, card and
   accent (links, the "blue" badge, Dashboard buttons) must reach 4.5:1; muted text and the ring are judged as zinc is.
-  That is why Emerald's day primary is emerald-700 (600 is only 3.8:1 with white) and the night primaries are the 400s with
+  That is why Emerald's day primary is emerald-700 (600 is only 3.8:1 with white) and Blue's is blue-700 and the night primaries are the 400s with
   the 950 as text.
 - Charts read the tokens: categories use `--chart-1..5` plus `--muted-foreground` for "Other" (`overview-chart.utils.ts`),
   bars use `--primary`, faded muted and `--destructive` (over goal), via `readChartColors()`. `app-apex-chart` redraws when

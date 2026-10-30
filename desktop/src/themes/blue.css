@@ -1,0 +1,23 @@
+/*
+  Palette: Blue. Zinc's neutral surfaces with a blue accent: only the primary, the focus ring and the sidebar's primary
+  change; everything else (surfaces, status, charts, brand) comes from zinc.css. Day uses blue-700 on white (6.7:1),
+  night blue-400 with blue-950 text. Both blocks must define the same tokens (themes.spec.ts checks it).
+*/
+[data-palette="blue"] {
+  --primary: oklch(0.488 0.243 264.376); /* blue-700 */
+  --primary-foreground: oklch(1 0 0);
+  --ring: oklch(0.707 0.165 254.624); /* blue-400 */
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-ring: oklch(0.707 0.165 254.624);
+}
+
+.dark[data-palette="blue"],
+.dark [data-palette="blue"] {
+  --primary: oklch(0.707 0.165 254.624); /* blue-400 */
+  --primary-foreground: oklch(0.282 0.091 267.935); /* blue-950 */
+  --ring: oklch(0.623 0.214 259.815); /* blue-500 */
+  --sidebar-primary: oklch(0.707 0.165 254.624);
+  --sidebar-primary-foreground: oklch(0.282 0.091 267.935);
+  --sidebar-ring: oklch(0.623 0.214 259.815);
+}

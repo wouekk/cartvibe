@@ -188,7 +188,7 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
 
 ## Identity and themes
 
-- The look is a palette (Stone, Zinc, Indigo, Emerald, Violet; `PALETTES` in `src/theme/themes.ts`) times a mode
+- The look is a palette (Blue, Zinc, Indigo, Emerald, Violet; `PALETTES` in `src/theme/themes.ts`) times a mode
   (System, Day, Night). `ThemeService` keeps `mode` (`rw_theme_mode`: `system|light|dark`) and `palette`
   (`rw_theme_palette`, default zinc) per browser, writes `data-palette` and the `dark` class on `<html>`, and `isDark`
   follows the OS on System. `index.html` applies both before first paint (its hash is in `docker/default.conf`). The

@@ -3,7 +3,7 @@
   register it in src/theme/themes.ts (docs/themes.md).
 */
 @import "./zinc.css";
-@import "./stone.css";
+@import "./blue.css";
 @import "./indigo.css";
 @import "./emerald.css";
 @import "./violet.css";

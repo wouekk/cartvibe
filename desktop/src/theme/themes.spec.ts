@@ -30,7 +30,7 @@ describe("palette stylesheets (src/themes)", () => {
 
     expect(imports.sort()).toEqual(PALETTES.map((palette) => palette.key).sort());
     expect(readFileSync(join(THEMES_DIR, "themes.css"), "utf8").indexOf("zinc.css")).toBeLessThan(
-      readFileSync(join(THEMES_DIR, "themes.css"), "utf8").indexOf("stone.css")
+      readFileSync(join(THEMES_DIR, "themes.css"), "utf8").indexOf("blue.css")
     );
   });
 
@@ -69,13 +69,13 @@ describe("palette stylesheets (src/themes)", () => {
     return rule?.[2].match(new RegExp(`${token}\\s*:\\s*([^;]+);`))?.[1].trim();
   };
 
-  it("uses Tailwind's neutral-950 as the black of the zinc base, and stone-900 as Stone's lead colour", () => {
+  it("uses Tailwind's neutral-950 as the black of the zinc base, and blue-700 as Blue's day primary", () => {
     const neutral950 = "oklch(0.145 0 0)";
 
     expect(tokenOf("zinc.css", false, "--primary")).toBe(neutral950);
     expect(tokenOf("zinc.css", false, "--foreground")).toBe(neutral950);
     expect(tokenOf("zinc.css", true, "--background")).toBe(neutral950);
-    expect(tokenOf("stone.css", false, "--primary")).toBe("oklch(0.216 0.006 56.043)");
+    expect(tokenOf("blue.css", false, "--primary")).toBe("oklch(0.488 0.243 264.376)");
   });
 
   it("zinc defines every token for day and for night, brand colours included", () => {

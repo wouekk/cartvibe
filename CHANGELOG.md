@@ -9,6 +9,9 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 ## [Unreleased]
 
 ### Changed
+- **The Stone colour palette is now Blue.** Blue colours the buttons, links, switches and focus rings in blue-700 by day
+  and a lighter blue at night, on the same grey surfaces as Zinc (which stays the default). If you had picked Stone, the
+  app shows Zinc until you choose another palette under Settings → Theme.
 - **Under the hood, nothing to do on upgrade.** The web app's tests now run on Vitest instead of Jest, the
   `@ngneat/until-destroy` and `@angular/animations` packages are gone, and the Warranties list loads through Angular's
   `rxResource`. ApexCharts stays on 4.x on purpose: from 5.1 it is no longer MIT-licensed. The Chromium comment now
