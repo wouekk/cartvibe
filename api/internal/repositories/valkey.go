@@ -11,8 +11,8 @@ func GetAsynqClient() *asynq.Client {
 	return client
 }
 
-func ConnectToRedis() error {
-	opts, err := config.GetAsynqRedisClientConnectionOptions()
+func ConnectToValkey() error {
+	opts, err := config.GetAsynqClientOptions()
 	if err != nil {
 		return err
 	}

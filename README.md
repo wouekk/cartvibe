@@ -47,8 +47,8 @@ services:
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - DB_ENGINE=sqlite
       - DB_FILENAME=app.db           # keep this name, or the app starts with an empty database
-      - REDIS_HOST=valkey            # Valkey speaks the Redis protocol, hence the name
-      - REDIS_PORT=6379
+      - PUID=${PUID:-}               # optional: the user and group that own the three folders below
+      - PGID=${PGID:-}               # (a Synology needs these, see "On a Synology NAS")
     volumes:
       - ./sqlite:/app/cartvibe-api/sqlite   # the database
       - ./data:/app/cartvibe-api/data       # receipt photos

@@ -36,8 +36,10 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
   fails the build before it is published. `npm run e2e:smoke` runs the same set locally; `e2e/seed-accounts.mjs`
   creates the two test accounts.
 - **Valkey replaces Redis for the job queue.** The compose files (NAS, VPS and the README example) run
-  `valkey/valkey:9.1-alpine`, a BSD-licensed fork that speaks the same protocol; the app's `REDIS_*` settings keep
-  their names, but `REDIS_HOST` is now `valkey`. Redeploy the stack from the new compose file; the old
+  `valkey/valkey:9.1-alpine`, a BSD-licensed fork that speaks the same protocol; the app's settings are now `VALKEY_HOST`,
+  `VALKEY_PORT`, `VALKEY_USER` and `VALKEY_PASSWORD` and default to the compose service (`valkey`, port 6379), so the NAS
+  stack sets none of them. On a VPS, rename `REDIS_PASSWORD` to `VALKEY_PASSWORD` in `.env`. Redeploy the stack from
+  the new compose file; the old
   `cartvibe-redis` container and `redis-data` volume are not used any more and can be removed (jobs still waiting in the
   queue are lost, nothing else).
 - **Security and dependency patches.** Go 1.26.10 (a `crypto/x509` advisory), `golang.org/x/net` 0.62.0, Angular

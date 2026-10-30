@@ -50,7 +50,7 @@ build, run the specs, and check desktop and phone widths in day and night (Zinc 
 - **Built by GitHub, not the NAS:** `publish-image.yml` pushes `ghcr.io/wouekk/cartvibe:latest` and `:sha-<commit>` from
   green `main` (amd64), or `:preview` from a manual run on another branch.
 - **The NAS** (Synology, Dockhand) runs the root `docker-compose.yml`: the app image, `valkey/valkey:9.1-alpine` (background
-  jobs need it; BSD-licensed, speaks the Redis protocol, so the app's settings keep their `REDIS_*` names), SQLite in `/volume2/docker/cartvibe/sqlite` (`DB_FILENAME=app.db`), and `SECRET_KEY` /
+  jobs need it; BSD-licensed, found by the app as host `valkey`, port 6379, so no setting is needed), SQLite in `/volume2/docker/cartvibe/sqlite` (`DB_FILENAME=app.db`), and `SECRET_KEY` /
   `ENCRYPTION_KEY` from Dockhand's variables, with no `$` in them (compose reads it as a variable). Deploy = pull, then
   redeploy (a redeploy alone reuses the cached image). Back up the `sqlite` folder before a release that changes the
   schema; the database runs in WAL mode, so copy the whole folder (`app.db`, `-wal`, `-shm`) with the container stopped.

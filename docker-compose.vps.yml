@@ -40,10 +40,8 @@ services:
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - DB_ENGINE=sqlite
       - DB_FILENAME=app.db
-      # Valkey speaks the Redis protocol, so the app's settings keep their REDIS_ names.
-      - REDIS_HOST=valkey
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      # The app finds Valkey as "valkey" on port 6379; only the password is needed.
+      - VALKEY_PASSWORD=${VALKEY_PASSWORD}
       - PUID=${PUID:-10001}
       - PGID=${PGID:-10001}
       # Warranty reminders as device notifications (Web Push). Generate the pair once with
@@ -92,14 +90,14 @@ services:
     image: valkey/valkey:9.1-alpine
     container_name: cartvibe-valkey
     restart: unless-stopped
-    command: ["valkey-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
+    command: ["valkey-server", "--appendonly", "yes", "--requirepass", "${VALKEY_PASSWORD}"]
     healthcheck:
-      test: ["CMD-SHELL", "valkey-cli -a \"$$REDIS_PASSWORD\" --no-auth-warning ping | grep -q PONG"]
+      test: ["CMD-SHELL", "valkey-cli -a \"$$VALKEY_PASSWORD\" --no-auth-warning ping | grep -q PONG"]
       interval: 10s
       timeout: 3s
       retries: 5
     environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - VALKEY_PASSWORD=${VALKEY_PASSWORD}
     volumes:
       - valkey-data:/data
 

@@ -56,7 +56,7 @@ func main() {
 		logging.LogStd(logging.LOG_LEVEL_FATAL, err.Error())
 	}
 
-	err = repositories.ConnectToRedis()
+	err = repositories.ConnectToValkey()
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_FATAL, fmt.Errorf("redis connection error: %w", err))
 	}

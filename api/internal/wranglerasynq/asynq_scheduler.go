@@ -9,7 +9,7 @@ import (
 var scheduler *asynq.Scheduler
 
 func StartEmbeddedAsynqScheduler() error {
-	opts, err := config.GetAsynqRedisClientConnectionOptions()
+	opts, err := config.GetAsynqClientOptions()
 	if err != nil {
 		return err
 	}

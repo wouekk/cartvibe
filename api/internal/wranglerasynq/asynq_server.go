@@ -11,7 +11,7 @@ import (
 var server *asynq.Server
 
 func StartEmbeddedAsynqServer() error {
-	opts, err := config.GetAsynqRedisClientConnectionOptions()
+	opts, err := config.GetAsynqClientOptions()
 	if err != nil {
 		return err
 	}

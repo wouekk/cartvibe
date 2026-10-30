@@ -6,8 +6,8 @@ export DB_PASSWORD=123456
 export DB_ENGINE=postgresql
 export ENCRYPTION_KEY=test
 export SECRET_KEY=test
-export REDIS_HOST=redis
-export REDIS_PORT=6379
+export VALKEY_HOST=valkey
+export VALKEY_PORT=6379
 
 # E2E test configuration (Playwright) — local defaults; CI overrides from GitHub secrets
 export E2E_BASE_URL=http://localhost:4200

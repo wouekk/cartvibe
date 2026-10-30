@@ -10,7 +10,7 @@ source. Install only the native libs below; do not run `set-up-dependencies.sh`.
 
 ## Steps
 
-1. **Redis** (installed, not running): `redis-server --daemonize yes --save "" --appendonly no`, then `redis-cli ping`.
+1. **A Redis-compatible server** (Redis is installed, not running; Valkey works the same): `redis-server --daemonize yes --save "" --appendonly no`, then `redis-cli ping`.
 2. **Tesseract and build tools:**
    `apt-get install -y build-essential pkg-config libtesseract-dev libleptonica-dev tesseract-ocr-eng`
 3. **IM7 delegate libs:**
@@ -39,10 +39,10 @@ source. Install only the native libs below; do not run `set-up-dependencies.sh`.
 7. **Run from `api/`** (`logs/`, `data/`, `sqlite/` are relative to the working directory):
    ```bash
    DB_ENGINE=sqlite DB_FILENAME=wrangler.db ENCRYPTION_KEY=dev SECRET_KEY=dev \
-   REDIS_HOST=127.0.0.1 REDIS_PORT=6379 go run main.go
+   VALKEY_HOST=127.0.0.1 go run main.go
    ```
    The two keys only need to be non-empty (`env.CheckRequiredEnvironmentVariables`). `dev/switch-to-sqlite.sh` exports
-   `REDIS_HOST=redis` (the compose service name); override it for a local Redis. Ready on `Listening on port 8081`;
+   `VALKEY_HOST=valkey` (the compose service name); override it for a local server. Ready on `Listening on port 8081`;
    smoke test `curl localhost:8081/api/featureConfig`.
 
 ## Logging in
