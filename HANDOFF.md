@@ -5,15 +5,14 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 
 ## Current state
 
-- `preview` is ahead of `main` (2026-10-30) with small updates, each from its own branch, gated on Node 24.22.1 (npm ci,
-  lockfile stable, audit 0, specs, build, CSP hash) and green in CI: `docker-compose.vps.yml` on Caddy 2.11.7 and restic
-  0.19.1 (no CI covers it; Docker is down on the Windows PC, so the first VPS `pull` + `up -d` is its test),
-  Playwright 1.64.1, jsdom 30.1.3, `@spartan-ng/brain` 1.9.0 (released 2026-10-29; 1.8.3 is the patch line). Waiting on the
-  user: look over selects, autocompletes, sheets, tooltips and dialogs after the brain bump (phone and desktop, day and night).
-- Not merged, waiting on the user: `feature/zxing-bump` (`@zxing/library` 0.23.0 is Apache-2.0, was MIT, and declares
-  node >= 24; browser 0.2.1; needs the user's OK on the licence and a real barcode read on a phone) and
-  `feature/slim-image` (`:preview` is 103 MB smaller: 405,085,123 vs 508,118,804 bytes; try a PDF import, a photo scan, a
-  HEIC upload and a report PDF on the NAS; CJK glyphs lose their fallback font).
+- `preview` is ahead of `main` (2026-10-30), each piece from its own branch, gated on Node 24.22.1 (npm ci, lockfile
+  stable, audit 0, specs, build, CSP hash) and green in CI: the runtime image installs no Recommends
+  (`docker/checks/runtime-check.sh`; `:preview` is 405,085,123 bytes compressed vs 508,118,804 for `:latest`; CJK glyphs in
+  a report PDF lose their fallback font), `docker-compose.vps.yml` on Caddy 2.11.7 and restic 0.19.1 (no CI covers it;
+  first VPS `pull` + `up -d` is its test), Playwright 1.64.1, jsdom 30.1.3, `@spartan-ng/brain` 1.9.0 (released
+  2026-10-29; 1.8.3 is the patch line), `@zxing/library` 0.23.0 (Apache-2.0, was MIT; node >= 24) and browser 0.2.1.
+  Waiting on the user: on the NAS a PDF import, a photo scan, a HEIC upload and a report PDF; a real barcode read on a
+  phone; selects, autocompletes, sheets, tooltips and dialogs after the brain bump (phone and desktop, day and night).
 - `e2e-smoke` fails now and then with `HTTP 503` on an API login in `provisioning.ts` (nginx login limit, 30 a minute);
   a re-run of the failed job passes. Seen twice in one session (the `deletes a template` spec both times); not fixed.
 
@@ -65,8 +64,8 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 ## Backlog (separate projects, own branch each, not started)
 
 - Backup: a **Backup** tab under System Settings to export the household's data as CSV and import it again.
-- Slim image: `--no-install-recommends` on the second apt line (about 350 MB installed) after strengthening the build
-  checks (text PDF through magick and tesseract, HEIC decode, Chromium PDF round trip, `fc-list`); try on `:preview`.
+- Litestream 0.3.13 to 0.5.x: not a plain bump (new LTX format cannot restore 0.3 backups, config `replicas` becomes
+  `replica`, `-if-replica-exists` reported failing on 0.5.0). Do it together with the first restore drill.
 
 ## Parked (only when the user asks)
 
