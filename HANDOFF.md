@@ -6,8 +6,8 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 ## Current state
 
 - `feature/slim-image` (not merged): runtime apt installs no Recommends, named packages plus
-  `docker/checks/runtime-check.sh` (HEIC, text PDF, OCR, Chromium PDF, fonts). `:latest` was 508,118,804 bytes
-  compressed. Waiting on the user: try `:preview` on the NAS (PDF import, photo scan, HEIC upload, a report PDF). CJK
+  `docker/checks/runtime-check.sh` (HEIC, text PDF, OCR, Chromium PDF, fonts). Compressed: `:latest` 508,118,804
+  bytes, `:preview` 405,085,123 (103 MB, 20% smaller); CI and `e2e-smoke` green, `:preview` published. Waiting on the user: try `:preview` on the NAS (PDF import, photo scan, HEIC upload, a report PDF). CJK
   glyphs in a report PDF lose their fallback font (Droid Sans Fallback is gone).
 
 - `main` = `preview` (2026-10-30, unreleased after 0.13.0) also has: the CSP hash is the LF one and NGXS runs without
