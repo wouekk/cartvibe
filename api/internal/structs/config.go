@@ -48,7 +48,7 @@ type DatabaseConfig struct {
 	Filename string `json:"filename"`
 }
 
-type RedisConfig struct {
+type ValkeyConfig struct {
 	Host     string `json:"host"`
 	Port     int    `json:"port"`
 	Username string `json:"username"`

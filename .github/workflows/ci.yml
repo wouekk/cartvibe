@@ -152,7 +152,7 @@ jobs:
         run: |
           docker network create e2e
           docker run -d --name valkey --network e2e valkey/valkey:9.1-alpine valkey-server --appendonly no
-          docker run -d --name cartvibe --network e2e -p 8091:80             -e TZ=Europe/Paris -e SECRET_KEY=ci-secret-key -e ENCRYPTION_KEY=ci-encryption-key             -e DB_ENGINE=sqlite -e DB_FILENAME=app.db -e REDIS_HOST=valkey -e REDIS_PORT=6379             cartvibe:ci
+          docker run -d --name cartvibe --network e2e -p 8091:80             -e TZ=Europe/Paris -e SECRET_KEY=ci-secret-key -e ENCRYPTION_KEY=ci-encryption-key             -e DB_ENGINE=sqlite -e DB_FILENAME=app.db             cartvibe:ci
           for i in $(seq 1 60); do
             if curl -fsS http://localhost:8091/api/featureConfig > /dev/null; then exit 0; fi
             sleep 2

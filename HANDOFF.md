@@ -7,8 +7,8 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 
 - `feature/csp-licences-e2e-valkey` (2026-10-30, not merged yet): the CSP hash is the LF one and NGXS runs without
   `new Function` (checked under the enforcing policy; the header stays Report-Only), About credits Geist/Lucide/spartan/
-  Chart.js and links the shipped licence texts, Valkey 9.1 replaces Redis in the NAS/VPS/README compose files (REDIS_HOST is
-  now `valkey`; remove the old `cartvibe-redis` container and `redis-data` volume after the redeploy), Go 1.26.10 + Angular
+  Chart.js and links the shipped licence texts, Valkey 9.1 replaces Redis in the NAS/VPS/README compose files (the app reads
+  `VALKEY_HOST`/`PORT`/`USER`/`PASSWORD`, defaulting to `valkey:6379`; the VPS `.env` renames `REDIS_PASSWORD`; remove the old `cartvibe-redis` container and `redis-data` volume after the redeploy), Go 1.26.10 + Angular
   22.2.4/5 patches, and a CI `e2e-smoke` job (built image + Valkey, 23 tests). Waiting on: that job green on CI, then the
   user's go for `preview` and `main`.
 - `main` = `preview` (2026-10-30, unreleased after 0.13.0): Chart.js charts (our `app-chart` wrapper in

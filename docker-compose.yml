@@ -23,10 +23,8 @@ services:
       # so keep DB_FILENAME the same across updates or the app starts with an empty database.
       - DB_ENGINE=sqlite
       - DB_FILENAME=app.db
-      # Background jobs (OCR, email polling, cleanup) queue through Valkey, a BSD-licensed fork of Redis that speaks the
-      # same protocol (hence the REDIS_ names). The image does not include it, so it runs as the second service below.
-      - REDIS_HOST=valkey
-      - REDIS_PORT=6379
+      # Background jobs (OCR, email polling, cleanup) queue through Valkey, the second service below. The app finds it as
+      # "valkey" on port 6379; VALKEY_HOST, VALKEY_PORT, VALKEY_USER and VALKEY_PASSWORD only matter for another setup.
       # The API runs as this user and group, which must be able to write the three folders below. Set both in
       # Dockhand's environment variables, to the DSM user that owns the folders (`id <user>` over SSH, for example
       # 1026 and 100). Left unset, the image's own user is tried, and the API falls back to root if the folders refuse it.
