@@ -5,12 +5,13 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 
 ## Current state
 
-- `feature/csp-licences-e2e-valkey` (2026-10-30, not merged yet): the CSP hash is the LF one and NGXS runs without
+- `main` = `preview` (2026-10-30, unreleased after 0.13.0) also has: the CSP hash is the LF one and NGXS runs without
   `new Function` (checked under the enforcing policy; the header stays Report-Only), About credits Geist/Lucide/spartan/
-  Chart.js and links the shipped licence texts, Valkey 9.1 replaces Redis in the NAS/VPS/README compose files (the app reads
-  `VALKEY_HOST`/`PORT`/`USER`/`PASSWORD`, defaulting to `valkey:6379`; the VPS `.env` renames `REDIS_PASSWORD`; remove the old `cartvibe-redis` container and `redis-data` volume after the redeploy), Go 1.26.10 + Angular
-  22.2.4/5 patches, and a CI `e2e-smoke` job (built image + Valkey, 23 tests). Waiting on: that job green on CI, then the
-  user's go for `preview` and `main`.
+  Chart.js and links the shipped licence texts, Valkey 9.1 replaces Redis (the app reads `VALKEY_HOST`/`PORT`/`USER`/
+  `PASSWORD`, defaulting to `valkey:6379`; the VPS `.env` renames `REDIS_PASSWORD`; remove the old `cartvibe-redis`
+  container and `redis-data` volume after the redeploy), Go 1.26.10 + Angular 22.2.4/5 patches, and a CI `e2e-smoke` job
+  (built image + Valkey, 25 tests; it gates `:latest`). The user is watching the NAS for a queue error after the Valkey
+  move and will report it; not a backlog item.
 - `main` = `preview` (2026-10-30, unreleased after 0.13.0): Chart.js charts (our `app-chart` wrapper in
   `desktop/src/shared-ui/chart/`, 49 kB brotli instead of 128), API keys removed (the data migration
   `remove-api-keys-v1` drops `api_keys`/`peppers` on first boot; back up `sqlite/` first), Logo.dev and Open Food Facts
