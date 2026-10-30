@@ -8,6 +8,15 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-10-30
+
+Charts on a free licence, no API keys, Valkey for the job queue and a smaller image.
+
+> **Upgrade: stop the app and back up the whole `sqlite` folder first** (`app.db`, `app.db-wal` and `app.db-shm`). The
+> first start drops the unused API-key tables. Redeploy from the new compose file: the job queue runs on Valkey now (on a
+> VPS, rename `REDIS_PASSWORD` to `VALKEY_PASSWORD` in `.env`). Pull the image before the redeploy, or it reuses the
+> cached one.
+
 ### Added
 - **Licence texts in About.** The font (Geist), the icons (Lucide), the UI sources (spartan/ui) and the charts
   (Chart.js) are credited, and two links open the licence texts the app now ships: every bundled npm package
@@ -52,6 +61,16 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
   slice you point at slides out of the ring instead of growing, and the day bars thin out their date labels instead of
   slanting all 31. The chart code the Dashboard loads is about 60% smaller (49 kB instead of 128 kB compressed). It
   replaces ApexCharts, which stopped being MIT-licensed at 5.1.
+- **A smaller image.** The runtime image no longer installs "recommended" packages: it is 405 MB to pull instead of
+  508 MB (compressed). What the app needs is named in the Dockerfile (Tesseract, ghostscript, the Helvetica and Arial
+  fonts), and the image build now proves it: it decodes a HEIC photo, turns a PDF into an image and reads its text,
+  and prints a report page to PDF with Polish letters, € and zł. One visible difference: report PDFs no longer have a
+  fallback font for Chinese, Japanese and Korean text, which shows as empty boxes.
+- **Dependency updates.** Playwright 1.64.1, jsdom 30.1.3, `@spartan-ng/brain` 1.9.0, and the barcode scanner libraries
+  `@zxing/library` 0.23.0 with `@zxing/browser` 0.2.1. The library changed its licence from MIT to Apache-2.0, which
+  works with AGPL-3.0; its text ships in `/3rdpartylicenses.txt`.
+- **VPS stack images.** Caddy 2.11.7 and restic 0.19.1. Litestream stays at 0.3.13: 0.5 cannot restore the backups 0.3
+  wrote and renames its settings, so it needs its own migration.
 - **Under the hood, nothing to do on upgrade.** The web app's tests now run on Vitest instead of Jest, the
   `@ngneat/until-destroy` and `@angular/animations` packages are gone, and the Warranties list loads through Angular's
   `rxResource`. The Chromium comment now

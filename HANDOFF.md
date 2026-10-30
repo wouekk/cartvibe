@@ -5,8 +5,9 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 
 ## Current state
 
-- `preview` is ahead of `main` (2026-10-30), each piece from its own branch, gated on Node 24.22.1 (npm ci, lockfile
-  stable, audit 0, specs, build, CSP hash) and green in CI: the runtime image installs no Recommends
+- `main` = `preview` = v0.14.0 (2026-10-30; the entries below marked "in 0.14.0" are part of it). Last pieces, each from
+  its own branch, gated on Node 24.22.1 (npm ci, lockfile stable, audit 0, specs, build, CSP hash) and green in CI,
+  also on the merged tree: the runtime image installs no Recommends
   (`docker/checks/runtime-check.sh`; `:preview` is 405,085,123 bytes compressed vs 508,118,804 for `:latest`; CJK glyphs in
   a report PDF lose their fallback font), `docker-compose.vps.yml` on Caddy 2.11.7 and restic 0.19.1 (no CI covers it;
   first VPS `pull` + `up -d` is its test), Playwright 1.64.1, jsdom 30.1.3, `@spartan-ng/brain` 1.9.0 (released
@@ -16,14 +17,14 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 - `e2e-smoke` fails now and then with `HTTP 503` on an API login in `provisioning.ts` (nginx login limit, 30 a minute);
   a re-run of the failed job passes. Seen twice in one session (the `deletes a template` spec both times); not fixed.
 
-- `main` = `preview` (2026-10-30, unreleased after 0.13.0) also has: the CSP hash is the LF one and NGXS runs without
+- In 0.14.0 (2026-10-30), also: the CSP hash is the LF one and NGXS runs without
   `new Function` (checked under the enforcing policy; the header stays Report-Only), About credits Geist/Lucide/spartan/
   Chart.js and links the shipped licence texts, Valkey 9.1 replaces Redis (the app reads `VALKEY_HOST`/`PORT`/`USER`/
   `PASSWORD`, defaulting to `valkey:6379`; the VPS `.env` renames `REDIS_PASSWORD`; remove the old `cartvibe-redis`
   container and `redis-data` volume after the redeploy), Go 1.26.10 + Angular 22.2.4/5 patches, and a CI `e2e-smoke` job
   (built image + Valkey, 25 tests; it gates `:latest`). The user is watching the NAS for a queue error after the Valkey
   move and will report it; not a backlog item.
-- `main` = `preview` (2026-10-30, unreleased after 0.13.0): Chart.js charts (our `app-chart` wrapper in
+- In 0.14.0 (2026-10-30), also: Chart.js charts (our `app-chart` wrapper in
   `desktop/src/shared-ui/chart/`, 49 kB brotli instead of 128), API keys removed (the data migration
   `remove-api-keys-v1` drops `api_keys`/`peppers` on first boot; back up `sqlite/` first), Logo.dev and Open Food Facts
   credited in About, the Stone palette replaced by Blue (a stored Stone shows Zinc). Waiting on the user: deploy
@@ -34,7 +35,7 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
   lines grossed up when an invoice prints them before VAT. The user's Uber Quick Scan read well. Waiting on the user:
   deploy `:latest` (back up `sqlite/` with its `-wal`/`-shm` first). Offered, not built: a Stop download button for
   logos.
-- `main` = `preview` (2026-10-29, unreleased after 0.13.0) also has the parked backlog: specs on Vitest, no
+- In 0.14.0 (2026-10-29), also the parked backlog: specs on Vitest, no
   `@ngneat/until-destroy`, no `@angular/animations`, `rxResource` on the Warranties list, undici/fast-uri floors,
   Chromium-sandbox comment. `:latest` is published. Waiting on the user: look over Dashboard charts, dialogs and menus,
   a report, Warranties (phone and desktop, day and night), de/fr/es spot checks.
