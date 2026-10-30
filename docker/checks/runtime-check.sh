@@ -45,12 +45,14 @@ fi
 # Chromium renders report HTML to a PDF (no sandbox, as the API runs it by default) and ghostscript finds the text in it.
 chromium --version >/dev/null || fail "Chromium is missing"
 cat > page.html <<'HTML'
-<!doctype html><html><body style="font-family: Arial, Helvetica, sans-serif"><h1>Monthly report</h1><p id="p">Groceries 42</p></body></html>
+<!doctype html><html><body style="font-family: Arial, Helvetica, sans-serif"><h1>Monthly report</h1><p id="p">Groceries 42</p><p>Zażółć gęślą jaźń 5 € 7 zł</p></body></html>
 HTML
 chromium --headless --no-sandbox --disable-gpu --user-data-dir="$work/profile" --print-to-pdf="$work/page.pdf" "file://$work/page.html" >chromium.log 2>&1 \
   || { tail -20 chromium.log >&2; fail "Chromium cannot print a page to PDF"; }
 gs -q -dNOPAUSE -dBATCH -sDEVICE=txtwrite -sOutputFile=- page.pdf 2>/dev/null | grep -q "Monthly report" \
   || fail "the PDF Chromium printed has no readable text"
+gs -q -dNOPAUSE -dBATCH -sDEVICE=txtwrite -sOutputFile=- page.pdf 2>/dev/null | grep -q "Zażółć gęślą jaźń 5 € 7 zł" \
+  || fail "the PDF lost Polish letters or currency signs (a font is missing)"
 chromium --headless --no-sandbox --disable-gpu --user-data-dir="$work/profile" --dump-dom "file://$work/page.html" 2>/dev/null | grep -q "Groceries 42" \
   || fail "Chromium cannot render a page"
 

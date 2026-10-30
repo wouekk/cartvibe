@@ -47,6 +47,9 @@ build, run the specs, and check desktop and phone widths in day and night (Zinc 
 - **Hardening, keep all of it:** the API runs as uid 10001 through `setpriv`; ImageMagick's `policy.xml` denies the
   coders receipts never need (the build proves PDF still converts); nginx sends `server_tokens off` and the security
   headers; the image is rebuilt weekly without the cache, with a grype report.
+- **The runtime stage installs no Recommends.** What the API needs (Tesseract, ghostscript, the fonts, the HEIC and
+  Chromium pieces) is named in the Dockerfile and proved by `docker/checks/runtime-check.sh` at build time. A new
+  tool or font the API relies on gets a package name there and a check in the script, never `Recommends` switched back on.
 - **Built by GitHub, not the NAS:** `publish-image.yml` pushes `ghcr.io/wouekk/cartvibe:latest` and `:sha-<commit>` from
   green `main` (amd64), or `:preview` from a manual run on another branch.
 - **The NAS** (Synology, Dockhand) runs the root `docker-compose.yml`: the app image, `valkey/valkey:9.1-alpine` (background

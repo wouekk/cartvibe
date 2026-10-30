@@ -5,6 +5,11 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 
 ## Current state
 
+- `feature/slim-image` (not merged): runtime apt installs no Recommends, named packages plus
+  `docker/checks/runtime-check.sh` (HEIC, text PDF, OCR, Chromium PDF, fonts). `:latest` was 508,118,804 bytes
+  compressed. Waiting on the user: try `:preview` on the NAS (PDF import, photo scan, HEIC upload, a report PDF). CJK
+  glyphs in a report PDF lose their fallback font (Droid Sans Fallback is gone).
+
 - `main` = `preview` (2026-10-30, unreleased after 0.13.0) also has: the CSP hash is the LF one and NGXS runs without
   `new Function` (checked under the enforcing policy; the header stays Report-Only), About credits Geist/Lucide/spartan/
   Chart.js and links the shipped licence texts, Valkey 9.1 replaces Redis (the app reads `VALKEY_HOST`/`PORT`/`USER`/
@@ -53,8 +58,8 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 ## Backlog (separate projects, own branch each, not started)
 
 - Backup: a **Backup** tab under System Settings to export the household's data as CSV and import it again.
-- Slim image: `--no-install-recommends` on the second apt line (about 350 MB installed) after strengthening the build
-  checks (text PDF through magick and tesseract, HEIC decode, Chromium PDF round trip, `fc-list`); try on `:preview`.
+- Litestream 0.3.13 to 0.5.x: not a plain bump (new LTX format cannot restore 0.3 backups, config `replicas` becomes
+  `replica`, `-if-replica-exists` reported failing on 0.5.0). Do it together with the first restore drill.
 
 ## Parked (only when the user asks)
 
