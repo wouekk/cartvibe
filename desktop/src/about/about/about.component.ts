@@ -45,4 +45,9 @@ export class AboutComponent {
 
   public readonly originalAuthorUrl = "https://github.com/Noah231515";
 
+  /** Shop logos come from Logo.dev, and the product check reads Open Food Facts (ODbL); both ask for a credit. */
+  public readonly logoDevUrl = "https://logo.dev";
+
+  public readonly openFoodFactsUrl = "https://world.openfoodfacts.org";
+
 }

@@ -8,6 +8,10 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+### Added
+- **More credits in About.** Logo.dev (the shop logos) and Open Food Facts (the product check, under the ODbL) are now
+  named and linked next to the Receipt Wrangler credit.
+
 ### Changed
 - **Under the hood, nothing to do on upgrade.** The web app's tests now run on Vitest instead of Jest, the
   `@ngneat/until-destroy` and `@angular/animations` packages are gone, and the Warranties list loads through Angular's
