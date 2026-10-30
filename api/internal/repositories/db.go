@@ -210,8 +210,6 @@ func MakeMigrations() error {
 		&models.ReportTemplateGroup{},
 		&models.GroupRoleReportTemplateGrant{},
 		&models.GroupReceiptSettings{},
-		&models.Pepper{},
-		&models.ApiKey{},
 		&models.DataMigration{},
 		&models.OAuthClient{},
 		&models.OAuthAuthorizationCode{},

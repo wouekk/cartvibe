@@ -79,23 +79,6 @@ func DeleteUser(userId string) error {
 			return txErr
 		}
 
-		// Remove API keys (first nullify SystemTask.ApiKeyId references)
-		var apiKeyIds []string
-		txErr = tx.Model(&models.ApiKey{}).Where("user_id = ?", userId).Pluck("id", &apiKeyIds).Error
-		if txErr != nil {
-			return txErr
-		}
-		if len(apiKeyIds) > 0 {
-			txErr = tx.Model(&models.SystemTask{}).Where("api_key_id IN ?", apiKeyIds).Update("api_key_id", nil).Error
-			if txErr != nil {
-				return txErr
-			}
-		}
-		txErr = tx.Where("user_id = ?", userId).Delete(&models.ApiKey{}).Error
-		if txErr != nil {
-			return txErr
-		}
-
 		// Remove receipts that the user paid
 		txErr = tx.Model(models.Receipt{}).Where("paid_by_user_id = ?", userId).Select("id").Find(&receipts).Error
 		if txErr != nil {
@@ -201,8 +184,6 @@ func DeleteUser(userId string) error {
 			&models.ReceiptProcessingSettings{},
 			&models.ReportTemplate{},
 			&models.GroupReceiptSettings{},
-			&models.Pepper{},
-			&models.ApiKey{},
 			&models.Group{},
 		}
 		for _, model := range modelsWithCreatedBy {

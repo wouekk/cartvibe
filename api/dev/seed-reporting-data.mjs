@@ -7,14 +7,16 @@
  * receipts spread across a date range — so the Report Builder can be exercised at
  * volume with lifelike data.
  *
- * Auth is an admin API key sent RAW in the Authorization header (no "Bearer").
- * The key is read from the RW_API_KEY env var and is never written to disk.
+ * Auth is an admin login: the script signs in with RW_USERNAME / RW_PASSWORD (tokens in the body) and sends
+ * the access token as a Bearer header, signing in again when it expires. The password is read from the
+ * environment and never written to disk.
  *
  * Usage:
- *   RW_API_KEY='key.1.<id>.<secret>' node api/dev/seed-reporting-data.mjs
+ *   RW_USERNAME=admin RW_PASSWORD='...' node api/dev/seed-reporting-data.mjs
  *
- * Env vars (all optional except RW_API_KEY):
- *   RW_API_KEY          (required) admin API key
+ * Env vars (all optional except RW_USERNAME and RW_PASSWORD):
+ *   RW_USERNAME         (required) admin username
+ *   RW_PASSWORD         (required) admin password
  *   API_BASE_URL        default http://localhost:8081/api
  *   RECEIPT_COUNT       default 2000   (receipts created THIS run; additive)
  *   NEW_USER_COUNT      default 3      member users to ensure
@@ -35,7 +37,8 @@ function envInt(value, fallback) {
 }
 
 const API_BASE_URL = (process.env.API_BASE_URL || "http://localhost:8081/api").replace(/\/+$/, "");
-const API_KEY = process.env.RW_API_KEY;
+const RW_USERNAME = process.env.RW_USERNAME;
+const RW_PASSWORD = process.env.RW_PASSWORD;
 const RECEIPT_COUNT = envInt(process.env.RECEIPT_COUNT, 2000);
 const NEW_USER_COUNT = envInt(process.env.NEW_USER_COUNT, 3);
 const SEED_GROUP_NAME = process.env.SEED_GROUP_NAME || "Reporting Load Test";
@@ -45,9 +48,9 @@ const RANDOM_SEED = envInt(process.env.RANDOM_SEED, 42);
 const CONCURRENCY = Math.max(1, envInt(process.env.CONCURRENCY, 4));
 const SEED_USER_PASSWORD = process.env.SEED_USER_PASSWORD || "ReportingSeed!23";
 
-if (!API_KEY) {
-  console.error("RW_API_KEY is required (the admin API key, sent raw in the Authorization header).");
-  console.error("Example: RW_API_KEY='key.1.<id>.<secret>' node api/dev/seed-reporting-data.mjs");
+if (!RW_USERNAME || !RW_PASSWORD) {
+  console.error("RW_USERNAME and RW_PASSWORD are required (an admin login).");
+  console.error("Example: RW_USERNAME=admin RW_PASSWORD='...' node api/dev/seed-reporting-data.mjs");
   process.exit(1);
 }
 if (!(START_DATE < END_DATE)) {
@@ -97,17 +100,32 @@ function money(min, max) {
 // ---------- HTTP ----------
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+let accessToken = null;
+
+// Signs in and keeps the access token (it lives 20 minutes, so a long seed signs in again on a 403).
+async function login() {
+  const res = await fetch(API_BASE_URL + "/login/?tokensInBody=true", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: RW_USERNAME, password: RW_PASSWORD }),
+  });
+  if (!res.ok) throw new Error(`login -> ${res.status}: ${(await res.text()).slice(0, 160)}`);
+  accessToken = (await res.json()).jwt;
+}
+
 async function api(method, path, body) {
   const url = API_BASE_URL + path;
   let lastError;
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
+      if (!accessToken) await login();
       const res = await fetch(url, {
         method,
-        headers: { Authorization: API_KEY, "Content-Type": "application/json" },
+        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
         body: body === undefined ? undefined : JSON.stringify(body),
       });
       const text = await res.text();
+      if (res.status === 403) accessToken = null; // expired or refused: sign in again, then retry
       if (res.status >= 500) {
         // Transient (e.g. SQLite write lock) — back off and retry.
         lastError = new Error(`${method} ${path} -> ${res.status}: ${text.slice(0, 160)}`);

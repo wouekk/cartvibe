@@ -93,24 +93,6 @@ func createTestCommentForDeletion(t *testing.T, receiptId uint, userId uint, tex
 	return comment
 }
 
-func createTestApiKeyForDeletion(t *testing.T, userId uint) models.ApiKey {
-	t.Helper()
-	db := repositories.GetDB()
-	apiKey := models.ApiKey{
-		ID:      utils.UintToString(userId) + "-test-key",
-		Name:    "test key",
-		UserID:  &userId,
-		Prefix:  "key",
-		Hmac:    "hmac",
-		Version: 1,
-		Scope:   "r",
-	}
-	if err := db.Create(&apiKey).Error; err != nil {
-		t.Fatalf("failed to create api key: %v", err)
-	}
-	return apiKey
-}
-
 func createTestRefreshTokenForDeletion(t *testing.T, userId uint) models.RefreshToken {
 	t.Helper()
 	db := repositories.GetDB()
@@ -563,20 +545,6 @@ func TestDeleteUser_WithCommentsOnOtherReceipts(t *testing.T) {
 	}
 }
 
-func TestDeleteUser_WithApiKeys(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	user := createUserForDeletion(t, "apikeyuser")
-
-	createTestApiKeyForDeletion(t, user.ID)
-
-	err := DeleteUser(utils.UintToString(user.ID))
-	if err != nil {
-		t.Fatalf("DeleteUser failed: %v", err)
-	}
-
-	assertCount(t, &models.ApiKey{}, "user_id = ?", []interface{}{user.ID}, 0, "API keys should be deleted")
-}
-
 func TestDeleteUser_WithSystemTasks(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	user := createUserForDeletion(t, "systaskuser")
@@ -626,36 +594,6 @@ func TestDeleteUser_WithCreatedByReferences(t *testing.T) {
 	if updatedReceipt.CreatedBy != nil {
 		t.Errorf("Receipt.CreatedBy should be nil, got %v", *updatedReceipt.CreatedBy)
 	}
-}
-
-func TestDeleteUser_ApiKeyWithSystemTaskRef(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	user := createUserForDeletion(t, "apitaskuser")
-
-	apiKey := createTestApiKeyForDeletion(t, user.ID)
-
-	// Create a system task referencing the API key
-	db := repositories.GetDB()
-	task := models.SystemTask{
-		Type:                 models.API_KEY_DELETED,
-		Status:               models.SYSTEM_TASK_SUCCEEDED,
-		AssociatedEntityType: models.API_KEY,
-		StartedAt:            time.Now(),
-		ApiKeyId:             &apiKey.ID,
-	}
-	db.Create(&task)
-
-	err := DeleteUser(utils.UintToString(user.ID))
-	if err != nil {
-		t.Fatalf("DeleteUser failed: %v", err)
-	}
-
-	var updatedTask models.SystemTask
-	db.First(&updatedTask, task.ID)
-	if updatedTask.ApiKeyId != nil {
-		t.Errorf("SystemTask.ApiKeyId should be nil, got %v", *updatedTask.ApiKeyId)
-	}
-	assertCount(t, &models.ApiKey{}, "id = ?", []interface{}{apiKey.ID}, 0, "API key should be deleted")
 }
 
 func TestBulkDeleteUsers(t *testing.T) {

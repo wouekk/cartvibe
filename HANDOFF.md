@@ -5,12 +5,13 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 
 ## Current state
 
-- `preview` (2026-10-29, ahead of `main`, CI green on the branch, `:preview` image published): the Dashboard charts moved from apexcharts to Chart.js with
-  our own `app-chart` wrapper (`desktop/src/shared-ui/chart/`); the lazy chunk went from 128 kB to 49 kB brotli.
-  Decided with the user: the hovered slice slides 8 px out instead of scaling. Run here: full specs (2131), `ng build`,
-  `npm audit` 0, 32 browser checks and `e2e/dashboard-charts.spec.ts` (9) on the local stack. Not run: Safari/iPhone,
-  Firefox, the NAS. Next: the user looks over the charts on `:preview` (day, night, palettes, phone), then says go for `main`.
-  The plan and the backlog scan that came with it: `docs/plans/chart-library-migration.md`.
+- `preview` (2026-10-30, ahead of `main`, not merged to it): two changes, each CI-green on its branch. **Chart.js:**
+  the Dashboard charts moved off apexcharts to our `app-chart` wrapper (`desktop/src/shared-ui/chart/`, 49 kB brotli
+  instead of 128); the hovered slice slides 8 px out. Not run: Safari/iPhone, Firefox, the NAS. Plan and backlog scan:
+  `docs/plans/chart-library-migration.md`. **API keys removed** (nothing used them): tab, `/apiKey`, `app.api-keys.*`,
+  `AuthSource`, the pepper; the data migration `remove-api-keys-v1` drops `api_keys`/`peppers` on first boot (back up
+  `sqlite/` first). The seed script signs in with `RW_USERNAME`/`RW_PASSWORD`. Next: the user looks over the charts
+  and the missing API Keys tab on `:preview`, then says go for `main`.
 - `main` = `preview` = v0.13.0 (2026-10-29): shop logos, starter categories, Management tabs, SQLite hardening (WAL,
   busy_timeout, `_txlock=immediate`, pool 8) with the VPS stack (`docker-compose.vps.yml`), warranties and product
   lines grossed up when an invoice prints them before VAT. The user's Uber Quick Scan read well. Waiting on the user:

@@ -8,6 +8,14 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+### Removed
+- **API keys are gone.** CartVibe is used in the browser, nothing called the API with a key, and a key that never
+  shows up in a log is a credential nobody can watch. The API Keys tab, its screens, the `/apiKey` endpoints, the
+  `app.api-keys.*` permissions and the secret that hashed the keys are removed. The first start drops the old
+  `api_keys` and `peppers` tables and the "API Key Deleted" task-log rows; a script that sent a key now gets a 403
+  (sign in and use the bearer token instead). Back up the `sqlite` folder first, as for any release that touches the
+  schema.
+
 ### Changed
 - **Dashboard charts moved to Chart.js.** The category donut and the month and day bars look the same (same colours
   in every theme and palette, same goal line and red over-goal part, same tooltip card). Two small differences: the
@@ -16,7 +24,7 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
   replaces ApexCharts, which stopped being MIT-licensed at 5.1.
 - **Under the hood, nothing to do on upgrade.** The web app's tests now run on Vitest instead of Jest, the
   `@ngneat/until-destroy` and `@angular/animations` packages are gone, and the Warranties list loads through Angular's
-  `rxResource`. ApexCharts stays on 4.x on purpose: from 5.1 it is no longer MIT-licensed. The Chromium comment now
+  `rxResource`. The Chromium comment now
   says the API runs as uid 10001; the sandbox is still opt-in. Two security advisories (`undici`, `fast-uri`) are
   cleared and `npm audit` reports 0.
 

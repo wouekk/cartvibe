@@ -26,14 +26,7 @@ func startLink(t *testing.T, providerName string, userId uint) *httptest.Respons
 	request = request.WithContext(context.WithValue(
 		request.Context(),
 		jwtmiddleware.ContextKey{},
-		&validator.ValidatedClaims{CustomClaims: &structs.Claims{
-			UserId: userId,
-			// What UnifiedAuthMiddleware's JWT branch stamps. Spelling it here rather
-			// than leaving it zero is the point: LinkStart requires an interactive
-			// session, so an unmarked caller -- which is what every one of these
-			// helpers was before the gate existed -- is refused.
-			AuthSource: structs.AuthSourceJwt,
-		}},
+		&validator.ValidatedClaims{CustomClaims: &structs.Claims{UserId: userId}},
 	))
 
 	recorder := httptest.NewRecorder()
@@ -51,114 +44,6 @@ func countAuthSessions(t *testing.T) int64 {
 	}
 
 	return count
-}
-
-// startLinkAsApiKey drives the same route as startLink, but with the claims
-// UnifiedAuthMiddleware's API-KEY branch would have built: the owner's user id,
-// the key's scope, and AuthSourceApiKey.
-func startLinkAsApiKey(t *testing.T, providerName string, userId uint, scope models.ApiKeyScope, query string) *httptest.ResponseRecorder {
-	t.Helper()
-
-	target := "/api/oidc/link/" + providerName
-	if len(query) > 0 {
-		target += "?" + query
-	}
-
-	request := httptest.NewRequest(http.MethodGet, target, nil)
-	request = withUrlParam(request, "name", providerName)
-	request = request.WithContext(context.WithValue(
-		request.Context(),
-		jwtmiddleware.ContextKey{},
-		&validator.ValidatedClaims{CustomClaims: &structs.Claims{
-			UserId:      userId,
-			ApiKeyScope: scope,
-			AuthSource:  structs.AuthSourceApiKey,
-		}},
-	))
-
-	recorder := httptest.NewRecorder()
-	LinkStart(recorder, request)
-
-	return recorder
-}
-
-// TestLinkStartRefusesAnApiKey is a privilege-escalation regression, not a
-// policy preference.
-//
-// The route is a GET, so middleware.classifyRequest reads it as a read and the
-// weakest possible key -- scope "r" -- clears the scope gate. The permission
-// check clears too, because Legacy User holds app.account.update. What the
-// holder gets from there is not a read: they open the launch URL (or follow the
-// 302) in their own browser, authenticate at the identity provider as
-// THEMSELVES, and the callback writes that identity against the key owner's
-// account. "Log in with X" is then a full interactive session -- one that
-// survives revoking the key.
-//
-// Asserted at BOTH ends of the scope range on purpose. "rw" is the obvious case;
-// "r" is the one that makes this an escalation rather than a lateral move.
-func TestLinkStartRefusesAnApiKey(t *testing.T) {
-	for _, scope := range []models.ApiKeyScope{
-		models.API_KEY_SCOPE_READ,
-		models.API_KEY_SCOPE_WRITE,
-		models.API_KEY_SCOPE_READ_WRITE,
-	} {
-		t.Run(string(scope), func(t *testing.T) {
-			defer teardownOidcTest()
-			_, provider := setupOidcTest(t, oidcTestOptions{})
-
-			// Holds the permission, so only the credential can be what refuses this.
-			user := createTestUserWithPermissions(t, "keyowner", permissions.AppAccountUpdate)
-
-			recorder := startLinkAsApiKey(t, provider.Name, user.ID, scope, "")
-
-			if recorder.Code != http.StatusFound {
-				t.Fatalf("expected a redirect, got %d (%s)", recorder.Code, recorder.Body.String())
-			}
-
-			if code := oidcErrorCode(t, recorder); code != errForbidden {
-				t.Errorf("expected the %q error code, got %q", errForbidden, code)
-			}
-
-			// The session row is the thing that would be redeemable at the callback, so
-			// a refused start must leave none.
-			if count := countAuthSessions(t); count != 0 {
-				t.Errorf("expected no auth session for an API key, got %d", count)
-			}
-		})
-	}
-}
-
-// TestLinkStartRefusesUnmarkedClaims is why the check reads "must be a JWT"
-// rather than "must not be an API key".
-//
-// structs.Claims' zero AuthSource is neither source. Phrased as a rejection, any
-// future path that puts claims in the context without going through
-// UnifiedAuthMiddleware would be waved straight through; phrased as a
-// requirement, it is denied.
-func TestLinkStartRefusesUnmarkedClaims(t *testing.T) {
-	defer teardownOidcTest()
-	_, provider := setupOidcTest(t, oidcTestOptions{})
-
-	user := createTestUserWithPermissions(t, "unmarked", permissions.AppAccountUpdate)
-
-	request := httptest.NewRequest(http.MethodGet, "/api/oidc/link/"+provider.Name, nil)
-	request = withUrlParam(request, "name", provider.Name)
-	request = request.WithContext(context.WithValue(
-		request.Context(),
-		jwtmiddleware.ContextKey{},
-		&validator.ValidatedClaims{CustomClaims: &structs.Claims{UserId: user.ID}},
-	))
-
-	recorder := httptest.NewRecorder()
-	LinkStart(recorder, request)
-
-	if code := oidcErrorCode(t, recorder); code != errForbidden {
-		t.Errorf("expected the %q error code for unmarked claims, got %q", errForbidden, code)
-	}
-
-	if count := countAuthSessions(t); count != 0 {
-		t.Errorf("expected no auth session for unmarked claims, got %d", count)
-	}
 }
 
 // TestLinkStartRequiresAccountUpdatePermission is the gate itself.

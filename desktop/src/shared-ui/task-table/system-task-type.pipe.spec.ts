@@ -19,7 +19,6 @@ describe("SystemTaskTypePipe", () => {
       ["RECEIPT_UPLOADED", "Receipt Uploaded"],
       ["PROMPT_GENERATED", "Prompt Generated"],
       ["RECEIPT_UPDATED", "Updated Receipt"],
-      ["API_KEY_DELETED", "API Key Deleted"],
       ["HTML_TO_PDF", "HTML to PDF"],
     ];
 

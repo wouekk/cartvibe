@@ -5,7 +5,6 @@ import { NgxsStoragePluginModule } from "@ngxs/storage-plugin";
 import { NgxsModule } from "@ngxs/store";
 import { environment } from "src/environments/environment.development";
 import { AboutState } from "./about.state";
-import { ApiKeyTableState } from "./api-key-table.state";
 import { AuthState } from "./auth.state";
 import { CategoryTableState } from "./category-table.state";
 import { FeatureConfigState } from "./feature-config.state";
@@ -26,7 +25,6 @@ import { UserState } from "./user.state";
     CommonModule,
     NgxsModule.forRoot([
       AboutState,
-      ApiKeyTableState,
       AuthState,
       CategoryTableState,
       FeatureConfigState,
@@ -48,7 +46,6 @@ import { UserState } from "./user.state";
     NgxsStoragePluginModule.forRoot({
       keys: [
         "about",
-        "apiKeyTable",
         "auth",
         "categoryTable",
         "groupTable",

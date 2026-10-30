@@ -89,25 +89,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 //
 // The check lives in the handler body rather than on a structs.Handler because
 // this route answers with a redirect, not JSON: HandleRequest's 403 would drop a
-// raw error object into a browser the user navigated here. Same shape as
-// GetPagedApiKeys' app.api-keys.read-any check.
-//
-// An API KEY MAY NOT START A LINK, whatever its scope. This is the one gate here
-// that is about the credential rather than the user, and it closes a privilege
-// escalation: the route is a GET, so middleware.classifyRequest reads it as a
-// read and a plain "r" key satisfies the scope gate; Legacy User holds
-// app.account.update, so the permission check below passes too. The holder then
-// opens the returned launch URL (or follows the 302) in their own browser,
-// authenticates at the identity provider as THEMSELVES, and the callback writes
-// that identity against the key owner's account. "Log in with X" afterwards is a
-// full interactive session -- one that survives revoking the key, and that shows
-// up only as an extra Connected Accounts row.
-//
-// There is no existing equivalent to fall back on, which is why this is worth a
-// gate of its own rather than accepting it as inherent to holding a key: a
-// non-admin's key cannot reach ResetPassword (app.users.update, which Legacy User
-// lacks) and UpdateProfileCommand carries no password. A key is a scoped,
-// revocable credential and must not be able to mint an unscoped, unrevocable one.
+// raw error object into a browser the user navigated here.
 func LinkStart(w http.ResponseWriter, r *http.Request) {
 	userId, ok := authorizeSignedInStart(w, r, models.OidcPurposeLink, permissions.AppAccountUpdate)
 	if !ok {
@@ -185,20 +167,6 @@ func authorizeSignedInStart(
 	permission string,
 ) (uint, bool) {
 	claims := structs.GetClaims(r)
-
-	// Phrased as "must be an interactive session", never "must not be an API key".
-	// The zero AuthSource is neither, so anything that reaches this handler without
-	// having gone through UnifiedAuthMiddleware is denied rather than waved past.
-	// Checked before the permission read because it is a property of the request,
-	// not of the user, and it costs no query.
-	if claims.AuthSource != structs.AuthSourceJwt {
-		logging.LogStd(
-			logging.LOG_LEVEL_ERROR,
-			"Refused a signed-in OIDC flow start that was not authenticated by an interactive session",
-		)
-		failBrowserFlowStart(w, r, purpose, errForbidden)
-		return 0, false
-	}
 
 	allowed, err := services.NewPermissionService(nil).HasAppPermissions(claims.UserId, permission)
 	if err != nil {

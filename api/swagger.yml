@@ -12,7 +12,6 @@ servers:
   - url: /api
 security:
   - bearerAuth: [ ]
-  - apiKeyAuth: [ ]
 paths:
   /report/generate:
     post:
@@ -48,7 +47,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /report/preview:
     post:
       tags:
@@ -83,7 +81,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /report/receipts:
     post:
       tags:
@@ -118,7 +115,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /report/template:
     post:
       tags:
@@ -151,7 +147,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /report/template/list:
     post:
       tags:
@@ -183,7 +178,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /report/template/options:
     get:
       tags:
@@ -209,7 +203,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /report/template/{id}:
     get:
       tags:
@@ -243,7 +236,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     put:
       tags:
         - Report
@@ -283,7 +275,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     delete:
       tags:
         - Report
@@ -308,7 +299,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /report/template/{id}/duplicate:
     post:
       tags:
@@ -342,7 +332,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /report/template/{id}/generate:
     post:
       tags:
@@ -378,7 +367,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /category/{categoryName}:
     parameters:
       - in: path
@@ -406,7 +394,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /category/getPagedCategories:
     post:
       tags:
@@ -432,7 +419,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /category/:
     get:
       tags:
@@ -453,7 +439,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     post:
       tags:
         - Category
@@ -478,7 +463,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /category/{categoryId}:
     parameters:
       - in: path
@@ -509,7 +493,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     delete:
       tags:
         - Category
@@ -525,7 +508,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /comment/:
     post:
       tags:
@@ -551,7 +533,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /comment/{commentId}:
     delete:
       tags:
@@ -573,7 +554,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /export/{groupId}:
     post:
       tags:
@@ -613,7 +593,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /export:
     post:
       tags:
@@ -646,7 +625,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /featureConfig:
     get:
       tags:
@@ -684,7 +662,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     post:
       tags:
         - Groups
@@ -705,7 +682,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /group/{groupId}:
     parameters:
       - in: path
@@ -727,7 +703,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     put:
       tags:
         - Groups
@@ -750,7 +725,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     delete:
       tags:
         - Groups
@@ -766,7 +740,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /group/{groupId}/groupReceiptSettings:
     put:
       tags:
@@ -801,7 +774,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /group/{groupId}/member/{userId}/grants:
     put:
       tags:
@@ -865,7 +837,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /group/getPagedGroups:
     post:
       tags:
@@ -893,7 +864,6 @@ paths:
           $ref: "#/components/responses/BadRequest"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
 
   /login/:
     post:
@@ -971,7 +941,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     delete:
       tags:
         - Notifications
@@ -985,7 +954,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /notifications/{notificationId}:
     delete:
       tags:
@@ -1007,7 +975,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /notifications/pushSubscription:
     post:
       tags:
@@ -1034,7 +1001,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /notifications/pushSubscription/remove:
     post:
       tags:
@@ -1054,7 +1020,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /notifications/notificationCount:
     get:
       tags:
@@ -1075,7 +1040,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /receipt/:
     post:
       tags:
@@ -1109,7 +1073,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /receipt/withFiles:
     post:
       tags:
@@ -1148,7 +1111,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /receipt/quickScan:
     post:
       tags:
@@ -1172,7 +1134,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /receipt/hasAccess:
     get:
       tags:
@@ -1205,7 +1166,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /receipt/{receiptId}/name:
     parameters:
       - in: path
@@ -1241,7 +1201,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /receipt/{receiptId}/amount:
     parameters:
       - in: path
@@ -1279,7 +1238,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /receipt/{receiptId}/warranty:
     parameters:
       - in: path
@@ -1317,7 +1275,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /receipt/{receiptId}/date:
     parameters:
       - in: path
@@ -1355,7 +1312,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /receipt/{receiptId}:
     parameters:
       - in: path
@@ -1381,7 +1337,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     put:
       tags:
         - Receipt
@@ -1406,7 +1361,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     delete:
       tags:
         - Receipt
@@ -1420,7 +1374,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /receipt/{receiptId}/duplicate:
     post:
       tags:
@@ -1442,7 +1395,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /receipt/bulkStatusUpdate:
     post:
       tags:
@@ -1472,7 +1424,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /receipt/group/{groupId}:
     post:
       tags:
@@ -1506,7 +1457,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /receiptImage/:
     post:
       tags:
@@ -1532,7 +1482,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /receiptImage/convertToJpg:
     post:
       tags:
@@ -1565,7 +1514,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
 
   /receiptImage/magicFill:
     post:
@@ -1602,7 +1550,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
 
   /receiptImage/{receiptImageId}:
     parameters:
@@ -1629,7 +1576,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     delete:
       tags:
         - ReceiptImage
@@ -1643,7 +1589,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /receiptImage/{receiptImageId}/download:
     get:
       tags:
@@ -1672,7 +1617,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /search/:
     get:
       tags:
@@ -1700,7 +1644,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /signUp:
     post:
       tags:
@@ -1746,7 +1689,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /tag/{tagName}:
     parameters:
       - in: path
@@ -1772,7 +1714,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /tag/{tagId}:
     parameters:
       - in: path
@@ -1805,7 +1746,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     delete:
       tags:
         - Tag
@@ -1819,7 +1759,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /tag/:
     get:
       tags:
@@ -1840,7 +1779,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     post:
       tags:
         - Tag
@@ -1865,7 +1803,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /token/:
     post:
       tags:
@@ -1914,7 +1851,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     post:
       tags:
         - User
@@ -1935,7 +1871,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /user/getPagedUsers:
     post:
       tags:
@@ -1965,7 +1900,6 @@ paths:
           $ref: "#/components/responses/Forbidden"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /user/{userId}:
     put:
       tags:
@@ -1994,7 +1928,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     delete:
       tags:
         - User
@@ -2015,7 +1948,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /user/{userId}/convertDummyUserToNormalUser:
     post:
       tags:
@@ -2046,7 +1978,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /user/{userId}/resetPassword:
     post:
       tags:
@@ -2075,7 +2006,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /user/{username}:
     get:
       tags:
@@ -2121,7 +2051,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /user/updateUserProfile:
     put:
       tags:
@@ -2143,7 +2072,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /user/deleteAccount:
     post:
       tags:
@@ -2155,8 +2083,7 @@ paths:
         account without one - created by signing in with an identity provider -
         confirms with the confirmationCode that oidcDeleteConfirmationStart hands back
         (400 when it is missing, spent, expired or not this account's). Which applies
-        is decided by the account, not by which field is sent. Requires an interactive
-        session; an API key is refused with 403 whatever its scope.
+        is decided by the account, not by which field is sent.
       requestBody:
         description: Confirmation for account deletion
         required: true
@@ -2200,7 +2127,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /user/bulk:
     delete:
       tags:
@@ -2226,7 +2152,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /userPreferences:
     get:
       tags:
@@ -2247,7 +2172,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     put:
       tags:
         - UserPreferences
@@ -2274,7 +2198,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /shopLogo:
     get:
       tags:
@@ -2297,7 +2220,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     delete:
       tags:
         - ShopLogo
@@ -2321,7 +2243,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /shopLogo/status:
     get:
       tags:
@@ -2344,7 +2265,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /shopLogo/sync:
     post:
       tags:
@@ -2368,7 +2288,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /shopLogo/{slug}:
     get:
       tags:
@@ -2397,7 +2316,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /dashboardLayout:
     get:
       tags:
@@ -2419,7 +2337,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     put:
       tags:
         - DashboardLayout
@@ -2449,7 +2366,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /systemTask/getPagedSystemTasks:
     post:
       tags:
@@ -2479,7 +2395,6 @@ paths:
           $ref: "#/components/responses/Forbidden"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /systemTask/getPagedActivities:
     post:
       tags:
@@ -2509,7 +2424,6 @@ paths:
           $ref: "#/components/responses/Forbidden"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /systemTask/rerunActivity/{id}:
     post:
       tags:
@@ -2535,7 +2449,6 @@ paths:
           $ref: "#/components/responses/Forbidden"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /systemTask/{id}/sourceFile:
     get:
       tags:
@@ -2569,7 +2482,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /systemTask/{id}/sourceFile/download:
     get:
       tags:
@@ -2604,7 +2516,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /receiptProcessingSettings/{id}:
     get:
       tags:
@@ -2747,7 +2658,6 @@ paths:
           $ref: "#/components/responses/Forbidden"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /receiptProcessingSettings/checkConnectivity:
     post:
       tags:
@@ -2894,115 +2804,6 @@ paths:
           $ref: "#/components/responses/Internal"
         403:
           $ref: "#/components/responses/Forbidden"
-  /apiKey/:
-    post:
-      tags:
-        - ApiKey
-      summary: Create API key
-      description: Create a new API key for the authenticated user
-      operationId: createApiKey
-      requestBody:
-        description: API key details
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpsertApiKeyCommand"
-      responses:
-        200:
-          description: The created API key
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiKeyResult"
-        400:
-          $ref: "#/components/responses/BadRequest"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        500:
-          $ref: "#/components/responses/Internal"
-      security:
-        - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
-  /apiKey/paged:
-    post:
-      tags:
-        - ApiKey
-      summary: Get paged API keys
-      description: This will return paged API keys for the authenticated user or all API keys for admins
-      operationId: getPagedApiKeys
-      requestBody:
-        description: Paging and sorting data
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/PagedApiKeyRequestCommand"
-      responses:
-        200:
-          description: Paged API keys
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PagedData"
-        400:
-          $ref: "#/components/responses/BadRequest"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        500:
-          $ref: "#/components/responses/Internal"
-      security:
-        - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
-  /apiKey/{id}:
-    parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-        required: true
-        description: API key ID to update
-    put:
-      tags:
-        - ApiKey
-      summary: Update API key
-      description: This will update an API key. Users can only update their own API keys.
-      operationId: updateApiKey
-      requestBody:
-        description: API key details to update
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpsertApiKeyCommand"
-      responses:
-        200:
-          $ref: "#/components/responses/Ok"
-        400:
-          $ref: "#/components/responses/BadRequest"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        500:
-          $ref: "#/components/responses/Internal"
-      security:
-        - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
-    delete:
-      tags:
-        - ApiKey
-      summary: Delete API key
-      description: Delete an API key. Admins can delete any API key, non-admins can only delete their own API keys.
-      operationId: deleteApiKey
-      responses:
-        200:
-          $ref: "#/components/responses/Ok"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        500:
-          $ref: "#/components/responses/Internal"
-      security:
-        - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /oidc/{name}/login:
     get:
       tags:
@@ -3068,12 +2869,6 @@ paths:
 
         A browser navigates to this URL and is redirected (302) to the identity
         provider; a failure redirects back to the profile page with ?oidcError={code}.
-
-
-        An API key cannot start a link, whatever its scope - this needs an
-        interactive session. Connecting a provider adds a permanent way to sign in,
-        so a key that could do it would be able to mint a credential wider and
-        longer-lived than itself, and one that outlives revoking it.
       operationId: oidcLinkStart
       parameters:
         - name: name
@@ -3108,7 +2903,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /oidc/connections/{name}:
     delete:
       tags:
@@ -3117,11 +2911,6 @@ paths:
       description:
         Refused when it is the caller's last connection and the account was created by
         that provider, because such an account has no password to fall back on.
-
-
-        Like connecting one, this needs an interactive session and is refused to an
-        API key. Which identity providers may sign into an account is for that
-        account's own session to decide.
       operationId: deleteOidcConnection
       parameters:
         - name: name
@@ -3153,7 +2942,7 @@ paths:
         identity provider. Such an account cannot confirm a self-delete with a password,
         so it signs in at one of its linked providers again instead, and the callback
         hands back a single-use confirmationCode for POST /user/deleteAccount.
-        Requires app.account.delete and an interactive session, never an API key. An
+        Requires app.account.delete. An
         account with a password of its own is refused; it confirms with that password.
 
 
@@ -3207,7 +2996,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /oidcProvider/{oidcProviderId}:
     get:
       tags:
@@ -3236,7 +3024,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     put:
       tags:
         - OidcProvider
@@ -3275,7 +3062,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     delete:
       tags:
         - OidcProvider
@@ -3297,7 +3083,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /oidcProvider/getPagedOidcProviders:
     post:
       tags:
@@ -3324,7 +3109,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /permission:
     get:
       tags:
@@ -3345,7 +3129,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /role:
     get:
       tags:
@@ -3366,7 +3149,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     post:
       tags:
         - Role
@@ -3393,7 +3175,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /role/{roleId}:
     parameters:
       - in: path
@@ -3433,7 +3214,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     delete:
       tags:
         - Role
@@ -3462,7 +3242,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /role/{roleId}/default:
     parameters:
       - in: path
@@ -3503,7 +3282,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /shopping-list/group/{groupId}:
     parameters:
       - in: path
@@ -3535,7 +3313,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     post:
       tags:
         - ShoppingList
@@ -3564,7 +3341,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /shopping-list/group/{groupId}/stream:
     parameters:
       - in: path
@@ -3599,7 +3375,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /shopping-list/group/{groupId}/going-shopping:
     parameters:
       - in: path
@@ -3627,7 +3402,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /shopping-list/{listId}:
     parameters:
       - in: path
@@ -3664,7 +3438,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     delete:
       tags:
         - ShoppingList
@@ -3680,7 +3453,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /shopping-list/{listId}/item:
     parameters:
       - in: path
@@ -3720,7 +3492,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /shopping-list/{listId}/clearChecked:
     parameters:
       - in: path
@@ -3744,7 +3515,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /shopping-list/{listId}/checked:
     parameters:
       - in: path
@@ -3784,7 +3554,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /shopping-list/{listId}/trip:
     parameters:
       - in: path
@@ -3817,7 +3586,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     post:
       tags:
         - ShoppingList
@@ -3849,7 +3617,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /shopping-list/{listId}/trip/upload:
     parameters:
       - in: path
@@ -3896,7 +3663,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /shopping-list/trip/{tripId}:
     parameters:
       - in: path
@@ -3922,7 +3688,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /shopping-list/trip/{tripId}/retry:
     parameters:
       - in: path
@@ -3950,7 +3715,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /shopping-list/item/{itemId}:
     parameters:
       - in: path
@@ -3987,7 +3751,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     delete:
       tags:
         - ShoppingList
@@ -4003,7 +3766,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /shopping-list/item/{itemId}/checked:
     parameters:
       - in: path
@@ -4043,7 +3805,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /overview/group/{groupId}:
     parameters:
       - in: path
@@ -4093,7 +3854,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /overview/group/{groupId}/products:
     parameters:
       - in: path
@@ -4173,7 +3933,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /receipt-product/receipt/{receiptId}:
     parameters:
       - in: path
@@ -4201,7 +3960,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /receipt-product/receipt/{receiptId}/read:
     parameters:
       - in: path
@@ -4229,7 +3987,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /receipt-product/group/{groupId}/backfill:
     parameters:
       - in: path
@@ -4261,7 +4018,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /shopping-list/item/{itemId}/classification:
     parameters:
       - in: path
@@ -4299,7 +4055,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /receipt-product/product/{productId}/classification:
     parameters:
       - in: path
@@ -4337,7 +4092,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /receipt-product/product/{productId}/labels:
     parameters:
       - in: path
@@ -4376,7 +4130,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /receipt-product/receipt/{receiptId}/product:
     parameters:
       - in: path
@@ -4412,7 +4165,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /receipt-product/product/{productId}:
     parameters:
       - in: path
@@ -4450,7 +4202,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     delete:
       tags:
         - ReceiptProduct
@@ -4466,7 +4217,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
   /exchangeRate:
     get:
       tags:
@@ -4487,7 +4237,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
     put:
       tags:
         - ExchangeRate
@@ -4518,18 +4267,12 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-        - apiKeyAuth: [ ]
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-    apiKeyAuth:
-      type: apiKey
-      in: header
-      name: Authorization
-      description: API Key in format v1.xxx.xxx.xxx
   responses:
     Ok:
       description: Request was successfully processed
@@ -4565,21 +4308,6 @@ components:
         - "UPLOADER"
         - "USER"
         - ""
-    ApiKeyScope:
-      description:
-        What an API key may do, enforced on every request. The values are literal - "r" permits
-        reads and denies writes, "w" permits writes and denies reads, "rw" permits both. "Read"
-        means data is returned to the caller, not that a row was read internally, so a "w" key may
-        update freely. Reads are GET/HEAD/OPTIONS plus the endpoints that answer a query over POST
-        because their filter arrives in the request body (the paged lists, the report endpoints,
-        the exports, the pie chart, the receipt summary). A few endpoints both return data and
-        change it - duplicating a receipt or a report template answers with the source's contents -
-        and those require "rw". A request outside the key's scope is refused with 403.
-      type: string
-      enum:
-        - "r"
-        - "w"
-        - "rw"
     GroupStatus:
       type: string
       enum:
@@ -4622,12 +4350,6 @@ components:
         - "app.groups.create"
         - "app.groups.read"
         - "app.groups.delete"
-        - "app.api-keys.create"
-        - "app.api-keys.read"
-        - "app.api-keys.read-any"
-        - "app.api-keys.update"
-        - "app.api-keys.delete"
-        - "app.api-keys.delete-any"
         - "app.oidc-providers.create"
         - "app.oidc-providers.read"
         - "app.oidc-providers.update"
@@ -5631,7 +5353,6 @@ components:
         - "RECEIPT_UPLOADED"
         - "RECEIPT_UPDATED"
         - "PROMPT_GENERATED"
-        - "API_KEY_DELETED"
         - "HTML_TO_PDF"
     AssociatedEntityType:
       type: string
@@ -5639,7 +5360,6 @@ components:
         - "NOOP_ENTITY_TYPE"
         - "RECEIPT"
         - "RECEIPT_PROCESSING_SETTINGS"
-        - "API_KEY"
     AssociatedGroup:
       type: string
       enum:
@@ -7823,9 +7543,6 @@ components:
               format: uint64
             resultDescription:
               type: string
-            apiKeyId:
-              type: string
-              nullable: true
             childSystemTasks:
               type: array
               items:
@@ -7975,81 +7692,6 @@ components:
         version:
           type: string
           description: Version
-    UpsertApiKeyCommand:
-      type: object
-      required:
-        - name
-        - scope
-      properties:
-        name:
-          type: string
-          description: API key name
-        description:
-          type: string
-          description: API key description
-        scope:
-          $ref: "#/components/schemas/ApiKeyScope"
-    ApiKeyResult:
-      type: object
-      required:
-        - key
-      properties:
-        key:
-          type: string
-          description: The generated API key
-    PagedApiKeyRequestCommand:
-      allOf:
-        - $ref: "#/components/schemas/PagedRequestCommand"
-        - type: object
-          properties:
-            filter:
-              $ref: "#/components/schemas/ApiKeyFilter"
-    ApiKeyFilter:
-      type: object
-      properties:
-        associatedApiKeys:
-          $ref: "#/components/schemas/AssociatedApiKeys"
-    AssociatedApiKeys:
-      type: string
-      enum:
-        - "MINE"
-        - "ALL"
-    ApiKeyView:
-      type: object
-      properties:
-        id:
-          type: string
-          description: API key ID
-        createdAt:
-          type: string
-          format: date-time
-          description: Creation timestamp
-        updatedAt:
-          type: string
-          format: date-time
-          description: Last update timestamp
-        createdBy:
-          type: integer
-          description: ID of the user who created this API key
-        createdByString:
-          type: string
-          description: String representation of the creator
-        name:
-          type: string
-          description: API key name
-        description:
-          type: string
-          description: API key description
-        userId:
-          type: integer
-          description: ID of the user who owns this API key
-        scope:
-          type: string
-          description: API key scope/permissions
-        lastUsedAt:
-          type: string
-          format: date-time
-          description: When the API key was last used
     InternalErrorResponse:
       type: object
       required:

@@ -31,7 +31,6 @@ export interface SystemTask {
     receiptId?: number;
     groupId?: number;
     resultDescription?: string;
-    apiKeyId?: string;
     childSystemTasks?: Array<SystemTask>;
     /**
      * Whether the upload behind this task is still on disk AND the caller may reach it. Resolved per caller, since this listing is app-scoped and spans groups the caller may not belong to.

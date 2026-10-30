@@ -1,5 +1,3 @@
-export * from './apiKey.service';
-import { ApiKeyService } from './apiKey.service';
 export * from './auth.service';
 import { AuthService } from './auth.service';
 export * from './category.service';
@@ -54,4 +52,4 @@ export * from './user.service';
 import { UserService } from './user.service';
 export * from './userPreferences.service';
 import { UserPreferencesService } from './userPreferences.service';
-export const APIS = [ApiKeyService, AuthService, CategoryService, CommentService, DashboardLayoutService, ExchangeRateService, ExportService, FeatureConfigService, GroupsService, NotificationsService, OidcService, OidcProviderService, OverviewService, PermissionService, ReceiptService, ReceiptImageService, ReceiptProcessingSettingsService, ReceiptProductService, ReportService, RoleService, SearchService, ShopLogoService, ShoppingListService, SystemSettingsService, SystemTaskService, TagService, UserService, UserPreferencesService];
+export const APIS = [AuthService, CategoryService, CommentService, DashboardLayoutService, ExchangeRateService, ExportService, FeatureConfigService, GroupsService, NotificationsService, OidcService, OidcProviderService, OverviewService, PermissionService, ReceiptService, ReceiptImageService, ReceiptProcessingSettingsService, ReceiptProductService, ReportService, RoleService, SearchService, ShopLogoService, ShoppingListService, SystemSettingsService, SystemTaskService, TagService, UserService, UserPreferencesService];

@@ -65,8 +65,6 @@ The middleware reads the `jwt` cookie before the header, so a top-level navigati
 
 - Gated on `app.account.update` (adding a sign-in method is at least as privileged as removing one), checked in the
   handler body because the route answers with a redirect.
-- Link and unlink require `AuthSourceJwt` (see `authorization.md` → AuthSource). `GET /oidc/connections` keeps API-key
-  access.
 - `ProvisionedUser` is an account fact held on every identity row: `provisionUser` sets it, `resolveLink` inherits it,
   `ClearProvisionedFlagForUser` clears it when a password is set (`handlers.ResetPassword`), and `UnlinkIdentity`
   re-asserts it before deleting a flagged row. Unlinking refuses the last identity of a passwordless account.

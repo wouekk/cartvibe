@@ -2,7 +2,6 @@ package structs
 
 import (
 	"context"
-	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/utils"
 	"testing"
 
@@ -15,7 +14,6 @@ func TestClaims_Validate_Success(t *testing.T) {
 		Username:           "testuser",
 		Displayname:        "Test User",
 		DefaultAvatarColor: "#FF0000",
-		ApiKeyScope:        models.API_KEY_SCOPE_READ,
 		RegisteredClaims:   jwt.RegisteredClaims{},
 	}
 
@@ -31,7 +29,6 @@ func TestClaims_Validate_AllValidFields(t *testing.T) {
 		Username:           "fulluser",
 		Displayname:        "Full Display Name",
 		DefaultAvatarColor: "#00FF00",
-		ApiKeyScope:        models.API_KEY_SCOPE_READ_WRITE,
 		RegisteredClaims:   jwt.RegisteredClaims{},
 	}
 
@@ -47,7 +44,6 @@ func TestClaims_Validate_MissingUserId(t *testing.T) {
 		Username:           "testuser",
 		Displayname:        "Test User",
 		DefaultAvatarColor: "#FF0000",
-		ApiKeyScope:        models.API_KEY_SCOPE_READ,
 		RegisteredClaims:   jwt.RegisteredClaims{},
 	}
 
@@ -68,7 +64,6 @@ func TestClaims_Validate_MissingUsername(t *testing.T) {
 		Username:           "", // Invalid - should not be empty
 		Displayname:        "Test User",
 		DefaultAvatarColor: "#FF0000",
-		ApiKeyScope:        models.API_KEY_SCOPE_READ,
 		RegisteredClaims:   jwt.RegisteredClaims{},
 	}
 
@@ -89,7 +84,6 @@ func TestClaims_Validate_MissingDisplayname(t *testing.T) {
 		Username:           "testuser",
 		Displayname:        "", // Invalid - should not be empty
 		DefaultAvatarColor: "#FF0000",
-		ApiKeyScope:        models.API_KEY_SCOPE_READ,
 		RegisteredClaims:   jwt.RegisteredClaims{},
 	}
 
@@ -110,7 +104,6 @@ func TestClaims_Validate_InvalidAvatarColorFormat(t *testing.T) {
 		Username:           "testuser",
 		Displayname:        "Test User",
 		DefaultAvatarColor: "FF0000", // Invalid - missing #
-		ApiKeyScope:        models.API_KEY_SCOPE_READ,
 		RegisteredClaims:   jwt.RegisteredClaims{},
 	}
 
@@ -131,7 +124,6 @@ func TestClaims_Validate_InvalidAvatarColorLength(t *testing.T) {
 		Username:           "testuser",
 		Displayname:        "Test User",
 		DefaultAvatarColor: "#FF00", // Invalid - too short
-		ApiKeyScope:        models.API_KEY_SCOPE_READ,
 		RegisteredClaims:   jwt.RegisteredClaims{},
 	}
 
@@ -152,7 +144,6 @@ func TestClaims_Validate_InvalidHexColor(t *testing.T) {
 		Username:           "testuser",
 		Displayname:        "Test User",
 		DefaultAvatarColor: "#GGGGGG", // Invalid - G is not a hex digit
-		ApiKeyScope:        models.API_KEY_SCOPE_READ,
 		RegisteredClaims:   jwt.RegisteredClaims{},
 	}
 
@@ -173,7 +164,6 @@ func TestClaims_Validate_EmptyAvatarColor(t *testing.T) {
 		Username:           "testuser",
 		Displayname:        "Test User",
 		DefaultAvatarColor: "", // Empty should be allowed
-		ApiKeyScope:        models.API_KEY_SCOPE_READ,
 		RegisteredClaims:   jwt.RegisteredClaims{},
 	}
 
@@ -202,63 +192,6 @@ func TestClaims_Validate_ValidAvatarColors(t *testing.T) {
 	}
 }
 
-func TestClaims_Validate_InvalidApiKeyScope(t *testing.T) {
-	claims := Claims{
-		UserId:             1,
-		Username:           "testuser",
-		Displayname:        "Test User",
-		DefaultAvatarColor: "#FF0000",
-		ApiKeyScope:        models.ApiKeyScope("invalid_scope"), // Invalid scope
-		RegisteredClaims:   jwt.RegisteredClaims{},
-	}
-
-	err := claims.Validate(context.Background())
-	if err == nil {
-		utils.PrintTestError(t, err, "an error for invalid API key scope")
-	}
-
-	expectedMsg := "invalid API key scope: invalid_scope"
-	if err.Error() != expectedMsg {
-		utils.PrintTestError(t, err.Error(), expectedMsg)
-	}
-}
-
-func TestClaims_Validate_ValidApiKeyScopes(t *testing.T) {
-	validScopes := []models.ApiKeyScope{models.API_KEY_SCOPE_READ, models.API_KEY_SCOPE_WRITE, models.API_KEY_SCOPE_READ_WRITE}
-
-	for _, scope := range validScopes {
-		claims := Claims{
-			UserId:             1,
-			Username:           "testuser",
-			Displayname:        "Test User",
-			DefaultAvatarColor: "#FF0000",
-			ApiKeyScope:        scope,
-			RegisteredClaims:   jwt.RegisteredClaims{},
-		}
-
-		err := claims.Validate(context.Background())
-		if err != nil {
-			utils.PrintTestError(t, err, "no error for valid scope: "+string(scope))
-		}
-	}
-}
-
-func TestClaims_Validate_EmptyApiKeyScope(t *testing.T) {
-	claims := Claims{
-		UserId:             1,
-		Username:           "testuser",
-		Displayname:        "Test User",
-		DefaultAvatarColor: "#FF0000",
-		ApiKeyScope:        "", // Empty should be allowed
-		RegisteredClaims:   jwt.RegisteredClaims{},
-	}
-
-	err := claims.Validate(context.Background())
-	if err != nil {
-		utils.PrintTestError(t, err, "no error for empty API key scope")
-	}
-}
-
 func TestClaims_Validate_AllMinimalFields(t *testing.T) {
 	// Test with minimal required fields only
 	claims := Claims{
@@ -266,7 +199,7 @@ func TestClaims_Validate_AllMinimalFields(t *testing.T) {
 		Username:         "minimaluser",
 		Displayname:      "Minimal User",
 		RegisteredClaims: jwt.RegisteredClaims{},
-		// DefaultAvatarColor and ApiKeyScope are optional and empty
+		// DefaultAvatarColor is optional and empty
 	}
 
 	err := claims.Validate(context.Background())

@@ -131,11 +131,6 @@ func BuildRootRouter() *chi.Mux {
 	exportRouter := BuildExportRouter()
 	rootRouter.Mount("/api/export", exportRouter)
 
-	// API Key router
-	apiKeyRouter := BuildApiKeyRouter()
-	rootRouter.Mount("/api/apiKey", apiKeyRouter)
-
-
 	// Report router
 	reportRouter := BuildReportRouter()
 	rootRouter.Mount("/api/report", reportRouter)

@@ -38,12 +38,6 @@ describe("settingsLandingGuard", () => {
     expect(run().toString()).toBe("/settings/user-preferences/view");
   });
 
-  it("falls through to api-keys when only it is readable", () => {
-    store.dispatch(new SetPermissions([Permission.AppApiKeysRead], {}));
-
-    expect(run().toString()).toBe("/settings/api-keys/view");
-  });
-
   it("redirects to the dashboard when no tab is readable", () => {
     store.dispatch(new SetPermissions([], {}));
 

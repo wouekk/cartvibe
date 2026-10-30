@@ -75,29 +75,12 @@ describe('SettingsComponent', () => {
         [
           Permission.AppAccountRead,
           Permission.AppUserPreferencesRead,
-          Permission.AppApiKeysRead,
         ],
         {}
       )
     );
     fixture.detectChanges();
 
-    expect(tabNames()).toEqual([
-      'user-profile',
-      'user-preferences',
-      'api-keys',
-    ]);
-  });
-
-  it('hides the API Keys tab without app.api-keys.read', () => {
-    store.dispatch(
-      new SetPermissions(
-        [Permission.AppAccountRead, Permission.AppUserPreferencesRead],
-        {}
-      )
-    );
-    fixture.detectChanges();
-
-    expect(tabNames()).not.toContain('api-keys');
+    expect(tabNames()).toEqual(['user-profile', 'user-preferences']);
   });
 });

@@ -21,6 +21,7 @@ type dataMigration struct {
 // deleted. New migrations are appended here.
 var dataMigrations = []dataMigration{
 	{name: starterCategoriesMigration, run: runStarterCategoriesMigration},
+	{name: removeApiKeysMigration, run: runRemoveApiKeysMigration},
 }
 
 // RunDataMigrations applies any registered one-time data migrations that have

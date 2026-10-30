@@ -6,7 +6,6 @@ import {
   apiDeleteGroupById,
   apiGetUserId,
   apiPagedSystemTasks,
-  apiRecordApiKeyDeletedSystemTask,
   uniqueName,
   withAdminApi,
 } from './helpers/provisioning';
@@ -28,14 +27,14 @@ import {
 //     while the ones nested under a quick scan or email upload are not.
 //
 // Runs as admin (the page is gated on app.system-tasks.read) and seeds its own
-// task, so the assertions do not depend on what else the shared backend holds.
+// task (the Receipt Uploaded row a receipt create records), so the assertions do
+// not depend on what else the shared backend holds.
 
 test.use({ storageState: 'e2e/.auth/admin.json' });
 
 test.describe('System tasks filter', () => {
   test.describe.configure({ mode: 'serial' });
 
-  const apiKeyName = uniqueName('sys-task-filter');
   let adminUserId: number;
   let groupId: number | undefined;
   let receiptId: number;
@@ -43,11 +42,9 @@ test.describe('System tasks filter', () => {
   test.beforeAll(async () => {
     await withAdminApi(async (api) => {
       adminUserId = await apiGetUserId(api, creds('admin').username);
-      // Records exactly one API_KEY_DELETED task, ran by the admin, right now.
-      await apiRecordApiKeyDeletedSystemTask(api, apiKeyName);
-
       // A receipt created through the form's endpoint records a parentless
-      // RECEIPT_UPLOADED task, ran by the admin.
+      // RECEIPT_UPLOADED task, ran by the admin, right now. System tasks are only
+      // written as a side effect of real work, so this is the spec's seed.
       groupId = (await apiCreateGroup(api, uniqueName('sys-task-filter'))).id;
       receiptId = await apiCreateReceipt(api, {
         groupId,
@@ -85,12 +82,12 @@ test.describe('System tasks filter', () => {
     await withAdminApi(async (api) => {
       const unfiltered = await apiPagedSystemTasks(api);
       const byType = await apiPagedSystemTasks(api, {
-        type: { operation: 'CONTAINS', value: ['API_KEY_DELETED'] },
+        type: { operation: 'CONTAINS', value: ['RECEIPT_UPLOADED'] },
       });
 
       expect(byType.totalCount).toBeGreaterThan(0);
       expect(byType.totalCount).toBeLessThanOrEqual(unfiltered.totalCount);
-      expect(byType.data.every((task) => task.type === 'API_KEY_DELETED')).toBe(true);
+      expect(byType.data.every((task) => task.type === 'RECEIPT_UPLOADED')).toBe(true);
 
       // The child-only types never appear as top-level rows, which is why the
       // Type picker omits them.
@@ -150,7 +147,11 @@ test.describe('System tasks filter', () => {
 
   test('a Started At of today matches the seeded task but yesterday does not', async () => {
     await withAdminApi(async (api) => {
-      const seeded = { type: { operation: 'CONTAINS', value: ['API_KEY_DELETED'] } };
+      // Narrowed to the admin so the seeded row stays on the first page.
+      const seeded = {
+        type: { operation: 'CONTAINS', value: ['RECEIPT_UPLOADED'] },
+        ranBy: { operation: 'CONTAINS', value: [adminUserId] },
+      };
 
       // EQUALS on a timestamp column only ever matches if the server widens the
       // picked date to the whole calendar day.
@@ -158,13 +159,13 @@ test.describe('System tasks filter', () => {
         ...seeded,
         startedAt: { operation: 'EQUALS', value: isoDay(0) },
       });
-      expect(today.totalCount).toBeGreaterThan(0);
+      expect(today.data.some((task) => task.receiptId === receiptId)).toBe(true);
 
       const yesterday = await apiPagedSystemTasks(api, {
         ...seeded,
         startedAt: { operation: 'EQUALS', value: isoDay(-1) },
       });
-      expect(yesterday.data.some((task) => task.resultDescription?.includes(apiKeyName))).toBe(false);
+      expect(yesterday.data.some((task) => task.receiptId === receiptId)).toBe(false);
     });
   });
 
@@ -184,7 +185,7 @@ test.describe('System tasks filter', () => {
     // multi-select panel stays open over the footer after a pick — so the row
     // is driven by role and the panel is dismissed by clicking the heading.
     await page.getByRole('combobox', { name: 'Type' }).click();
-    await page.getByRole('option', { name: 'API Key Deleted', exact: true }).click();
+    await page.getByRole('option', { name: 'Receipt Uploaded', exact: true }).click();
     await page.getByRole('heading', { name: 'Filter System Tasks' }).click();
 
     const request = page.waitForRequest(
@@ -194,24 +195,24 @@ test.describe('System tasks filter', () => {
 
     // The condition reaches the server, not just the store.
     const body = (await (await request).postDataJSON()) as any;
-    expect(body.filter.type.value).toEqual(['API_KEY_DELETED']);
+    expect(body.filter.type.value).toEqual(['RECEIPT_UPLOADED']);
     expect(body.page).toBe(1);
 
     const chip = page.getByTestId('system-task-filter-chip-type');
     await expect(chip).toBeVisible();
-    await expect(chip).toContainText('Type contains API Key Deleted');
+    await expect(chip).toContainText('Type contains Receipt Uploaded');
 
     // Every visible row is the filtered type.
     const typeCells = page.locator('table tbody tr:not(.example-detail-row) td:nth-child(3)');
     await expect(typeCells.first()).toBeVisible();
     for (const cell of await typeCells.all()) {
-      await expect(cell).toContainText('API Key Deleted');
+      await expect(cell).toContainText('Receipt Uploaded');
     }
 
     // Persisted to localStorage, so it has to come back after a reload.
     await page.reload();
     await expect(page.getByTestId('system-task-filter-chip-type')).toContainText(
-      'Type contains API Key Deleted',
+      'Type contains Receipt Uploaded',
     );
 
     // A chip clears its own condition and nothing else.

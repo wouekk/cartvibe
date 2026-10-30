@@ -94,7 +94,7 @@ export class OidcService {
 
     /**
      * Disconnect a provider from the caller\&#39;s account
-     * Refused when it is the caller\&#39;s last connection and the account was created by that provider, because such an account has no password to fall back on.  Like connecting one, this needs an interactive session and is refused to an API key. Which identity providers may sign into an account is for that account\&#39;s own session to decide.
+     * Refused when it is the caller\&#39;s last connection and the account was created by that provider, because such an account has no password to fall back on.
      * @param name The provider\&#39;s slug
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -177,12 +177,6 @@ export class OidcService {
         let localVarHeaders = this.defaultHeaders;
 
         let localVarCredential: string | undefined;
-        // authentication (apiKeyAuth) required
-        localVarCredential = this.configuration.lookupCredential('apiKeyAuth');
-        if (localVarCredential) {
-            localVarHeaders = localVarHeaders.set('Authorization', localVarCredential);
-        }
-
         // authentication (bearerAuth) required
         localVarCredential = this.configuration.lookupCredential('bearerAuth');
         if (localVarCredential) {
@@ -316,7 +310,7 @@ export class OidcService {
 
     /**
      * Confirm deleting the signed-in account by signing in at a linked provider
-     * For an account with no password of its own - one created by signing in with an identity provider. Such an account cannot confirm a self-delete with a password, so it signs in at one of its linked providers again instead, and the callback hands back a single-use confirmationCode for POST /user/deleteAccount. Requires app.account.delete and an interactive session, never an API key. An account with a password of its own is refused; it confirms with that password.  The provider is asked for a fresh sign-in with max_age&#x3D;0. When it returns auth_time, a sign-in older than this flow is refused (stale_login). Signing in as any identity other than the account\&#39;s own at this provider is refused (identity_mismatch).  A browser navigates here and is redirected (302) to the identity provider; the callback returns to the profile page with ?deleteConfirmation&#x3D;{code} or ?deleteError&#x3D;{code}.
+     * For an account with no password of its own - one created by signing in with an identity provider. Such an account cannot confirm a self-delete with a password, so it signs in at one of its linked providers again instead, and the callback hands back a single-use confirmationCode for POST /user/deleteAccount. Requires app.account.delete. An account with a password of its own is refused; it confirms with that password.  The provider is asked for a fresh sign-in with max_age&#x3D;0. When it returns auth_time, a sign-in older than this flow is refused (stale_login). Signing in as any identity other than the account\&#39;s own at this provider is refused (identity_mismatch).  A browser navigates here and is redirected (302) to the identity provider; the callback returns to the profile page with ?deleteConfirmation&#x3D;{code} or ?deleteError&#x3D;{code}.
      * @param name The slug of a provider linked to the account
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -387,7 +381,7 @@ export class OidcService {
 
     /**
      * Connect a provider to the signed-in account
-     * Starts the same flow as a login, but the session proves who the caller is, so the callback links the identity directly instead of matching or provisioning. Requires app.account.update, the same permission as disconnecting one.  A browser navigates to this URL and is redirected (302) to the identity provider; a failure redirects back to the profile page with ?oidcError&#x3D;{code}.  An API key cannot start a link, whatever its scope - this needs an interactive session. Connecting a provider adds a permanent way to sign in, so a key that could do it would be able to mint a credential wider and longer-lived than itself, and one that outlives revoking it.
+     * Starts the same flow as a login, but the session proves who the caller is, so the callback links the identity directly instead of matching or provisioning. Requires app.account.update, the same permission as disconnecting one.  A browser navigates to this URL and is redirected (302) to the identity provider; a failure redirects back to the profile page with ?oidcError&#x3D;{code}.
      * @param name The provider\&#39;s slug
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.

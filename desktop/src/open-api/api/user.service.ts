@@ -128,12 +128,6 @@ export class UserService {
         let localVarHeaders = this.defaultHeaders;
 
         let localVarCredential: string | undefined;
-        // authentication (apiKeyAuth) required
-        localVarCredential = this.configuration.lookupCredential('apiKeyAuth');
-        if (localVarCredential) {
-            localVarHeaders = localVarHeaders.set('Authorization', localVarCredential);
-        }
-
         // authentication (bearerAuth) required
         localVarCredential = this.configuration.lookupCredential('bearerAuth');
         if (localVarCredential) {
@@ -220,12 +214,6 @@ export class UserService {
         let localVarHeaders = this.defaultHeaders;
 
         let localVarCredential: string | undefined;
-        // authentication (apiKeyAuth) required
-        localVarCredential = this.configuration.lookupCredential('apiKeyAuth');
-        if (localVarCredential) {
-            localVarHeaders = localVarHeaders.set('Authorization', localVarCredential);
-        }
-
         // authentication (bearerAuth) required
         localVarCredential = this.configuration.lookupCredential('bearerAuth');
         if (localVarCredential) {
@@ -308,12 +296,6 @@ export class UserService {
         let localVarHeaders = this.defaultHeaders;
 
         let localVarCredential: string | undefined;
-        // authentication (apiKeyAuth) required
-        localVarCredential = this.configuration.lookupCredential('apiKeyAuth');
-        if (localVarCredential) {
-            localVarHeaders = localVarHeaders.set('Authorization', localVarCredential);
-        }
-
         // authentication (bearerAuth) required
         localVarCredential = this.configuration.lookupCredential('bearerAuth');
         if (localVarCredential) {
@@ -380,7 +362,7 @@ export class UserService {
 
     /**
      * Delete own account
-     * Deletes the signed-in user\&#39;s own account once it is confirmed. An account with a password of its own confirms with that password (401 when it is wrong). An account without one - created by signing in with an identity provider - confirms with the confirmationCode that oidcDeleteConfirmationStart hands back (400 when it is missing, spent, expired or not this account\&#39;s). Which applies is decided by the account, not by which field is sent. Requires an interactive session; an API key is refused with 403 whatever its scope.
+     * Deletes the signed-in user\&#39;s own account once it is confirmed. An account with a password of its own confirms with that password (401 when it is wrong). An account without one - created by signing in with an identity provider - confirms with the confirmationCode that oidcDeleteConfirmationStart hands back (400 when it is missing, spent, expired or not this account\&#39;s). Which applies is decided by the account, not by which field is sent.
      * @param deleteAccountCommand Confirmation for account deletion
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -478,12 +460,6 @@ export class UserService {
         let localVarHeaders = this.defaultHeaders;
 
         let localVarCredential: string | undefined;
-        // authentication (apiKeyAuth) required
-        localVarCredential = this.configuration.lookupCredential('apiKeyAuth');
-        if (localVarCredential) {
-            localVarHeaders = localVarHeaders.set('Authorization', localVarCredential);
-        }
-
         // authentication (bearerAuth) required
         localVarCredential = this.configuration.lookupCredential('bearerAuth');
         if (localVarCredential) {
@@ -552,12 +528,6 @@ export class UserService {
         let localVarHeaders = this.defaultHeaders;
 
         let localVarCredential: string | undefined;
-        // authentication (apiKeyAuth) required
-        localVarCredential = this.configuration.lookupCredential('apiKeyAuth');
-        if (localVarCredential) {
-            localVarHeaders = localVarHeaders.set('Authorization', localVarCredential);
-        }
-
         // authentication (bearerAuth) required
         localVarCredential = this.configuration.lookupCredential('bearerAuth');
         if (localVarCredential) {
@@ -630,12 +600,6 @@ export class UserService {
         let localVarHeaders = this.defaultHeaders;
 
         let localVarCredential: string | undefined;
-        // authentication (apiKeyAuth) required
-        localVarCredential = this.configuration.lookupCredential('apiKeyAuth');
-        if (localVarCredential) {
-            localVarHeaders = localVarHeaders.set('Authorization', localVarCredential);
-        }
-
         // authentication (bearerAuth) required
         localVarCredential = this.configuration.lookupCredential('bearerAuth');
         if (localVarCredential) {
@@ -714,12 +678,6 @@ export class UserService {
         let localVarHeaders = this.defaultHeaders;
 
         let localVarCredential: string | undefined;
-        // authentication (apiKeyAuth) required
-        localVarCredential = this.configuration.lookupCredential('apiKeyAuth');
-        if (localVarCredential) {
-            localVarHeaders = localVarHeaders.set('Authorization', localVarCredential);
-        }
-
         // authentication (bearerAuth) required
         localVarCredential = this.configuration.lookupCredential('bearerAuth');
         if (localVarCredential) {
@@ -792,12 +750,6 @@ export class UserService {
         let localVarHeaders = this.defaultHeaders;
 
         let localVarCredential: string | undefined;
-        // authentication (apiKeyAuth) required
-        localVarCredential = this.configuration.lookupCredential('apiKeyAuth');
-        if (localVarCredential) {
-            localVarHeaders = localVarHeaders.set('Authorization', localVarCredential);
-        }
-
         // authentication (bearerAuth) required
         localVarCredential = this.configuration.lookupCredential('bearerAuth');
         if (localVarCredential) {
@@ -866,12 +818,6 @@ export class UserService {
         let localVarHeaders = this.defaultHeaders;
 
         let localVarCredential: string | undefined;
-        // authentication (apiKeyAuth) required
-        localVarCredential = this.configuration.lookupCredential('apiKeyAuth');
-        if (localVarCredential) {
-            localVarHeaders = localVarHeaders.set('Authorization', localVarCredential);
-        }
-
         // authentication (bearerAuth) required
         localVarCredential = this.configuration.lookupCredential('bearerAuth');
         if (localVarCredential) {
@@ -948,12 +894,6 @@ export class UserService {
         let localVarHeaders = this.defaultHeaders;
 
         let localVarCredential: string | undefined;
-        // authentication (apiKeyAuth) required
-        localVarCredential = this.configuration.lookupCredential('apiKeyAuth');
-        if (localVarCredential) {
-            localVarHeaders = localVarHeaders.set('Authorization', localVarCredential);
-        }
-
         // authentication (bearerAuth) required
         localVarCredential = this.configuration.lookupCredential('bearerAuth');
         if (localVarCredential) {
@@ -1040,12 +980,6 @@ export class UserService {
         let localVarHeaders = this.defaultHeaders;
 
         let localVarCredential: string | undefined;
-        // authentication (apiKeyAuth) required
-        localVarCredential = this.configuration.lookupCredential('apiKeyAuth');
-        if (localVarCredential) {
-            localVarHeaders = localVarHeaders.set('Authorization', localVarCredential);
-        }
-
         // authentication (bearerAuth) required
         localVarCredential = this.configuration.lookupCredential('bearerAuth');
         if (localVarCredential) {
@@ -1128,12 +1062,6 @@ export class UserService {
         let localVarHeaders = this.defaultHeaders;
 
         let localVarCredential: string | undefined;
-        // authentication (apiKeyAuth) required
-        localVarCredential = this.configuration.lookupCredential('apiKeyAuth');
-        if (localVarCredential) {
-            localVarHeaders = localVarHeaders.set('Authorization', localVarCredential);
-        }
-
         // authentication (bearerAuth) required
         localVarCredential = this.configuration.lookupCredential('bearerAuth');
         if (localVarCredential) {

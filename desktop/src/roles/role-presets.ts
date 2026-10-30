@@ -52,7 +52,7 @@ export const ROLE_TYPES: RoleTypeMeta[] = [
     color: PRIMARY_COLOR,
     tint: PRIMARY_TINT,
     description:
-      marker("Controls app-wide capabilities — users, settings, prompts, API keys and more."),
+      marker("Controls app-wide capabilities — users, settings, prompts and more."),
     scope: PermissionScope.App,
   },
   {
@@ -82,7 +82,7 @@ function intersect(wanted: readonly string[], available: readonly string[]): Set
   return new Set(wanted.filter((k) => availableSet.has(k)));
 }
 
-const USER_MANAGER_RESOURCES = new Set(["app.users", "app.api-keys"]);
+const USER_MANAGER_RESOURCES = new Set(["app.users"]);
 
 const GROUP_MANAGER_KEYS = [
   "group.receipts.create",
@@ -220,7 +220,6 @@ const RESOURCE_ICONS: Record<string, string> = {
   "app.receipt-processing-settings": "document_scanner",
   "app.system-settings": "settings",
   "app.system-tasks": "task_alt",
-  "app.api-keys": "key",
   group: "workspaces",
   "group.receipts": "receipt_long",
   "group.comments": "chat_bubble",
@@ -233,7 +232,6 @@ export function iconForResource(resourceKey: string): string {
 
 const RESOURCE_NAME_OVERRIDES: Record<string, string> = {
   "receipt-processing-settings": marker("Receipt Processing"),
-  "api-keys": marker("API Keys"),
   "system-settings": marker("System Settings"),
   "system-emails": marker("System Emails"),
   "system-tasks": marker("System Tasks"),

@@ -38,7 +38,6 @@ func TestSystemTaskType_Value(t *testing.T) {
 		RECEIPT_PROCESSING_SETTINGS_CONNECTIVITY_CHECK,
 		PROMPT_GENERATED,
 		RECEIPT_UPDATED,
-		API_KEY_DELETED,
 		HTML_TO_PDF,
 	}
 	for _, v := range valid {
@@ -67,7 +66,6 @@ func TestAssociatedEntityType_Value(t *testing.T) {
 		RECEIPT,
 		RECEIPT_PROCESSING_SETTINGS,
 		NOOP_ENTITY_TYPE,
-		API_KEY,
 	}
 	for _, v := range valid {
 		assertValuerValid(t, string(v), v, string(v))

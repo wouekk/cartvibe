@@ -246,7 +246,7 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
   `shared-ui/management-tabs/`). The sidebar entry opens the first tab the user may read and stays active under all
   four (`activeUnder`); a household's or user's own pages keep their own headers. Routes with `data: { fullHeight: true }` get a
   bounded full-bleed content area.
-- **User Settings** (`/settings`): User Profile, User Preferences, API Keys, each gated on its read permission.
+- **User Settings** (`/settings`): User Profile and User Preferences, each gated on its read permission.
 - **System Settings** has five tabs: Currency & Time Zone (route `general`), Shop Logos (`logos`), Auth & Security,
   Tasks & Storage, Logs. The first four render
   `SystemSettingsFormComponent` (route data `section` picks the cards); the form holds every control whatever the tab,

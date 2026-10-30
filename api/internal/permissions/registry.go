@@ -47,13 +47,6 @@ const (
 	AppGroupsRead   = "app.groups.read"
 	AppGroupsDelete = "app.groups.delete"
 
-	AppApiKeysCreate    = "app.api-keys.create"
-	AppApiKeysRead      = "app.api-keys.read"
-	AppApiKeysReadAny   = "app.api-keys.read-any"
-	AppApiKeysUpdate    = "app.api-keys.update"
-	AppApiKeysDelete    = "app.api-keys.delete"
-	AppApiKeysDeleteAny = "app.api-keys.delete-any"
-
 	AppOidcProvidersCreate = "app.oidc-providers.create"
 	AppOidcProvidersRead   = "app.oidc-providers.read"
 	AppOidcProvidersUpdate = "app.oidc-providers.update"
@@ -165,12 +158,6 @@ var registry = []Descriptor{
 	{AppGroupsRead, "Read All Groups", "List and look up groups across the system, including ones the calling user is not a member of.", "Group Management", ScopeApp},
 	{AppGroupsDelete, "Delete Any Group", "Permanently delete any group in the system, including ones the calling user is not a member of. Intended for cleaning up abandoned or accidentally created groups; pairs with Read All Groups.", "Group Management", ScopeApp},
 
-	{AppApiKeysCreate, "Create API Keys", "Issue API keys for the calling user.", "Security", ScopeApp},
-	{AppApiKeysRead, "Read API Keys", "List the calling user's API keys.", "Security", ScopeApp},
-	{AppApiKeysReadAny, "Read Any API Key", "List API keys belonging to other users.", "Security", ScopeApp},
-	{AppApiKeysUpdate, "Update API Keys", "Edit the calling user's API keys.", "Security", ScopeApp},
-	{AppApiKeysDelete, "Delete API Keys", "Revoke the calling user's API keys.", "Security", ScopeApp},
-	{AppApiKeysDeleteAny, "Delete Any API Key", "Revoke API keys belonging to other users.", "Security", ScopeApp},
 
 	{AppOidcProvidersCreate, "Create OIDC Providers", "Register a new OpenID Connect identity provider users can sign in with.", "Security", ScopeApp},
 	{AppOidcProvidersRead, "Read OIDC Providers", "View configured OpenID Connect identity providers. Client secrets are never returned.", "Security", ScopeApp},
