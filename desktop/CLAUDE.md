@@ -140,7 +140,9 @@ feature.
 - **Service worker:** `serviceWorkerBypassInterceptor` stays first in `withInterceptors` (an upload through the worker
   cut its multipart body short). The worker has no `dataGroups`; a bad worker means a stuck app, so check
   `dist/cartvibe/browser/ngsw.json` after a build. `index.html`'s inline script hash is in `docker/default.conf`:
-  recompute it when that script changes.
+  recompute it when that script changes (`npm run check:csp` after a build; CI and the image build run it, and
+  `.gitattributes` keeps `index.html` LF because the hash is over LF text). `app.config.ts` sets NGXS
+  `strictContentSecurityPolicy` (no `new Function`): never add `'unsafe-eval'` to the policy.
 - **Photo inputs** are native `<label>`s around hidden file inputs, never a button calling `input.click()` (mobile
   browsers ignore a click made after an `await`).
 - **Receipt filter:** the dialog authors its own row labels, so a rename touches both `RECEIPT_FILTER_FIELDS` and

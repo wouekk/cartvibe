@@ -33,6 +33,8 @@ jobs:
               - 'api/**'
             desktop:
               - 'desktop/**'
+              # check:csp compares the built index.html with the script-src hash in the nginx config.
+              - 'docker/default.conf'
               # i18n:check reads the Go texts the API translates (and the error messages the desktop shows),
               # so a Go-only change still runs it.
               - 'api/internal/**/*.go'
@@ -99,6 +101,10 @@ jobs:
             done
             exit 1
           fi
+        working-directory: ./desktop
+      # The inline theme script in the built index.html must be allowed by docker/default.conf, or the CSP blocks it.
+      - name: Check CSP script hash
+        run: npm run check:csp
         working-directory: ./desktop
       - name: Generate coverage report
         uses: irongut/CodeCoverageSummary@v1.3.0
