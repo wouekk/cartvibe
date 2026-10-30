@@ -7,6 +7,8 @@
 services:
   # Restores the database from the replica before the app starts, but only when there is no database yet (a new
   # server or a lost disk). An existing app.db is never touched.
+  # Litestream stays on 0.3.13 on purpose: 0.5 writes a new format that cannot restore these replicas and renames config
+  # keys, so it is a migration of its own (HANDOFF.md), not a version bump.
   litestream-restore:
     image: litestream/litestream:0.3.13
     user: "${PUID:-10001}:${PGID:-10001}"
@@ -68,7 +70,7 @@ services:
 
   # Receipt images, shopping-trip photos and shop logos are files, which Litestream does not see.
   restic:
-    image: restic/restic:0.17.3
+    image: restic/restic:0.19.1
     restart: unless-stopped
     entrypoint: ["/bin/sh", "/backup.sh"]
     environment:
@@ -103,7 +105,7 @@ services:
 
   # TLS with automatic Let's Encrypt certificates for CARTVIBE_DOMAIN.
   caddy:
-    image: caddy:2.8.4-alpine
+    image: caddy:2.11.7-alpine
     restart: unless-stopped
     depends_on:
       - cartvibe

@@ -5,6 +5,10 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 
 ## Current state
 
+- `feature/vps-images` (merged into `preview`): `docker-compose.vps.yml` runs Caddy 2.11.7 and restic 0.19.1 (Litestream
+  stays 0.3.13). CI does not cover this file and Docker is not running on the Windows PC, so `compose config`, `caddy
+  validate` and `restic version` have not been run; the next VPS `pull` and `up -d` is the first test.
+
 - `main` = `preview` (2026-10-30, unreleased after 0.13.0) also has: the CSP hash is the LF one and NGXS runs without
   `new Function` (checked under the enforcing policy; the header stays Report-Only), About credits Geist/Lucide/spartan/
   Chart.js and links the shipped licence texts, Valkey 9.1 replaces Redis (the app reads `VALKEY_HOST`/`PORT`/`USER`/
