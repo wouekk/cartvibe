@@ -7,7 +7,7 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
 
 ## 1. Build and test
 
-- Go 1.26.9+ (`go.mod` sets `go 1.26.9` so no build runs on a standard library with the advisories fixed there; raise it
+- Go 1.26.10+ (`go.mod` sets `go 1.26.10` so no build runs on a standard library with the advisories fixed there; raise it
   when a patch release fixes stdlib advisories, which only `govulncheck` reports). Images and CI use `golang:1.26-trixie`
   with `GOTOOLCHAIN=local`, so check the image digest before raising the directive.
 - Accepted advisories: GO-2026-5932 (`x/crypto/openpgp`, unmaintained, not imported) and the excelize GHSA set, cleared by

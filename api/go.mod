@@ -1,6 +1,6 @@
 module cartvibe/api
 
-go 1.26.9
+go 1.26.10
 
 require (
 	github.com/SherClockHolmes/webpush-go v1.4.0
@@ -23,7 +23,7 @@ require (
 	github.com/shopspring/decimal v1.6.0
 	github.com/xuri/excelize/v2 v2.11.1-0.20261003002531-6258dcebc4e2
 	golang.org/x/crypto v0.58.0
-	golang.org/x/net v0.61.0
+	golang.org/x/net v0.62.0
 	golang.org/x/oauth2 v0.37.0
 	google.golang.org/genai v1.75.0
 	gopkg.in/gographics/imagick.v3 v3.7.3

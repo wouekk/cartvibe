@@ -9,7 +9,7 @@ backups. The family NAS keeps using the root `docker-compose.yml`; this guide us
 |---|---|
 | `caddy` | The only public service (ports 80 and 443). Gets a Let's Encrypt certificate for your domain and forwards to the app. |
 | `cartvibe` | The app image from GHCR (nginx + Go API), unchanged from the NAS. |
-| `redis` | Background jobs, now with a password and no published port. |
+| `valkey` | Background jobs (a Redis-compatible store), now with a password and no published port. The password is still called `REDIS_PASSWORD`. |
 | `litestream-restore` | Runs once before the app: restores the database from the bucket if there is none on disk yet. |
 | `litestream` | Copies every database change to the bucket about a second after it commits, plus a daily snapshot, kept 7 days. |
 | `restic` | Every 6 hours backs up receipt images, trip photos, logos and logs; keeps 14 daily, 8 weekly, 6 monthly. |

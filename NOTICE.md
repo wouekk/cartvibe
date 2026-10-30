@@ -25,4 +25,14 @@ affiliated with or endorsed by the original authors. Please report problems with
 The Dashboard charts are drawn with [Chart.js](https://www.chartjs.org) (MIT licence, © Chart.js Contributors) and its
 one dependency, [@kurkle/color](https://github.com/kurkle/color) (MIT, © Jukka Kurkela).
 
+The app is set in [Geist](https://github.com/vercel/geist-font) (SIL Open Font License 1.1, © The Geist Project
+Authors), draws its icons with [Lucide](https://lucide.dev) (ISC; portions © Cole Bemis as part of Feather, MIT) and
+vendors the component sources of [spartan/ui](https://github.com/spartan-ng/spartan) (MIT) in `desktop/src/ui`, whose
+styles follow [shadcn/ui](https://ui.shadcn.com) (MIT). The licence texts of the font, the icons and those sources are in
+`desktop/src/assets/licenses/NOTICES.txt`; the Angular build writes the licences of every bundled npm package to
+`3rdpartylicenses.txt`, and both are served by the app and linked from About.
+
+The product check reads [Open Food Facts](https://world.openfoodfacts.org) from the browser: its data is under the Open
+Database Licence (ODbL) and its product images under CC BY-SA, so the About screen credits it.
+
 Shop logos are not part of this repository or the image. An admin can enter the household's own [Logo.dev](https://logo.dev) secret key under System Settings → Shop Logos; the server then downloads the logos through Logo.dev's API (which Logo.dev allows on every plan) into its own data folder and serves them, and the login page credits Logo.dev. The logos belong to their respective owners. Without a key, every receipt shows its shop's first letter. The list of known brands (names and web domains only) is `api/internal/shoplogos/brands.json`.

@@ -9,8 +9,18 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 ## [Unreleased]
 
 ### Added
+- **Licence texts in About.** The font (Geist), the icons (Lucide), the UI sources (spartan/ui) and the charts
+  (Chart.js) are credited, and two links open the licence texts the app now ships: every bundled npm package
+  (`/3rdpartylicenses.txt`) and the font, icon and UI notices (`/assets/licenses/NOTICES.txt`).
 - **More credits in About.** Logo.dev (the shop logos) and Open Food Facts (the product check, under the ODbL) are now
   named and linked next to the Receipt Wrangler credit.
+
+### Fixed
+- **The Content-Security-Policy could never have been enforced.** The allowed hash of the theme script was computed from
+  a Windows (CRLF) checkout, so the report-only policy flagged every page load, and the state library the app uses
+  built its selectors with `new Function`, which an enforcing policy blocks. The hash is now the one the image really
+  serves, a check in CI and in the image build keeps it right, and the app no longer needs `'unsafe-eval'`. The header
+  is still Report-Only; switching it to enforcing waits for a clean console on the NAS.
 
 ### Removed
 - **API keys are gone.** CartVibe is used in the browser, nothing called the API with a key, and a key that never
@@ -21,6 +31,17 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
   schema.
 
 ### Changed
+- **CI drives the built app.** A new `e2e-smoke` job builds the image, starts it next to Valkey and runs 23 Playwright
+  tests (sign-in, Dashboard charts, password generation, report templates) against it, so a broken image or queue store
+  fails the build before it is published. `npm run e2e:smoke` runs the same set locally; `e2e/seed-accounts.mjs`
+  creates the two test accounts.
+- **Valkey replaces Redis for the job queue.** The compose files (NAS, VPS and the README example) run
+  `valkey/valkey:9.1-alpine`, a BSD-licensed fork that speaks the same protocol; the app's `REDIS_*` settings keep
+  their names, but `REDIS_HOST` is now `valkey`. Redeploy the stack from the new compose file; the old
+  `cartvibe-redis` container and `redis-data` volume are not used any more and can be removed (jobs still waiting in the
+  queue are lost, nothing else).
+- **Security and dependency patches.** Go 1.26.10 (a `crypto/x509` advisory), `golang.org/x/net` 0.62.0, Angular
+  22.2.4/22.2.5 and postcss 8.5.32.
 - **The Stone colour palette is now Blue.** Blue colours the buttons, links, switches and focus rings in blue-700 by day
   and a lighter blue at night, on the same grey surfaces as Zinc (which stays the default). If you had picked Stone, the
   app shows Zinc until you choose another palette under Settings → Theme.

@@ -9,7 +9,7 @@ services:
     container_name: cartvibe
     restart: unless-stopped
     depends_on:
-      redis:
+      valkey:
         condition: service_healthy
     ports:
       - "8091:80" # Change 8091 if that port is already used on your Synology
@@ -23,9 +23,9 @@ services:
       # so keep DB_FILENAME the same across updates or the app starts with an empty database.
       - DB_ENGINE=sqlite
       - DB_FILENAME=app.db
-      # Background jobs (OCR, email polling, cleanup) queue through Redis. The image does not
-      # include it, so it runs as the second service below.
-      - REDIS_HOST=redis
+      # Background jobs (OCR, email polling, cleanup) queue through Valkey, a BSD-licensed fork of Redis that speaks the
+      # same protocol (hence the REDIS_ names). The image does not include it, so it runs as the second service below.
+      - REDIS_HOST=valkey
       - REDIS_PORT=6379
       # The API runs as this user and group, which must be able to write the three folders below. Set both in
       # Dockhand's environment variables, to the DSM user that owns the folders (`id <user>` over SSH, for example
@@ -43,21 +43,23 @@ services:
       - /volume2/docker/cartvibe/data:/app/cartvibe-api/data
       - /volume2/docker/cartvibe/logs:/app/cartvibe-api/logs
 
-  redis:
-    image: redis:7.4-alpine
-    container_name: cartvibe-redis
+  # Replaces the Redis 7.4 service of earlier versions. Its container (cartvibe-redis) and volume (redis-data) are not
+  # used any more: remove them by hand once this stack is up. Only jobs still waiting in the queue are lost.
+  valkey:
+    image: valkey/valkey:9.1-alpine
+    container_name: cartvibe-valkey
     restart: unless-stopped
     # Persist queued jobs across restarts.
     # tcp-backlog 128 matches the NAS kernel's somaxconn, which silences the "TCP backlog 511" warning; one household never needs more.
-    command: ["redis-server", "--appendonly", "yes", "--tcp-backlog", "128"]
+    command: ["valkey-server", "--appendonly", "yes", "--tcp-backlog", "128"]
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "valkey-cli", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5
     volumes:
       # A Docker-managed volume, so there is no NAS folder to create first.
-      - redis-data:/data
+      - valkey-data:/data
 
 volumes:
-  redis-data:
+  valkey-data:

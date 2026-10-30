@@ -1,11 +1,16 @@
 # E2E suite (Playwright): setup, helpers and per-spec gotchas
 
 Purpose: how to run `desktop/e2e/` and what each group of specs relies on. The rules every new spec follows are in
-`../CLAUDE.md` → E2E. The suite needs a live Go API, so it runs nowhere in CI yet.
+`../CLAUDE.md` → E2E. The suite needs a live Go API. CI runs a smoke subset (`npm run e2e:smoke`) against the built image; the rest is not run there.
 
 ## State of the suite
 
-About 44 specs plus `auth.setup.ts`. Many predate the family rework and the UI redesign and have not been run since:
+About 44 specs plus `auth.setup.ts`. A full run on the Windows devstack (2026-10-30, dev server, 4 workers): 217 tests, 45
+passed, 90 failed, 82 did not run (their `beforeAll` failed). Fully green files, which make up `e2e:smoke`: `auth.spec`,
+`dashboard-charts`, `generate-password`, `report-template-list`. New accounts get a welcome dialog (`onboardingPending`)
+that covers the page, so a spec that creates its own user must switch it off the way `seed-accounts.mjs` does.
+
+Many predate the family rework and the UI redesign and have not been run since:
 anything that drives the role editor UI (`createRole` in `helpers/provisioning.ts`, `roles.spec.ts`,
 `role-defaults.spec.ts`; there is no `/roles` route any more), custom fields, paid by, shares, the old receipt
 statuses, required Quick Scan fields, the Added At column, the old System Settings tabs, or Material selectors
@@ -15,9 +20,10 @@ provisioning a role.
 ## Running locally
 
 1. Install the browser once: `npm run e2e:install` (in the cloud sandbox see `sandbox.md` instead).
-2. Create the two accounts once, as `admin`, against your database (public sign-up is off on a fresh DB):
-   `e2e-admin` / `e2e-admin-password` (display name `E2E Admin`, admin role) and `e2e-user` / `e2e-user-password`
-   (display name exactly **`E2E User`**: the provisioning helpers pick the member by that option text).
+2. Create the two accounts once with `node e2e/seed-accounts.mjs` (after step 3's variables; `API_URL` defaults to
+   `http://localhost:8081`). It signs in as the first-start `admin` / `admin`, creates `e2e-admin` (Legacy Admin, display
+   name `E2E Admin`) and `e2e-user` (Legacy User, display name exactly **`E2E User`**: the provisioning helpers pick the
+   member by that option text) through the API, and switches their welcome dialog off. It leaves existing accounts alone.
 3. Export the `E2E_*` variables each run: `source api/dev/switch-to-sqlite.sh` (the MariaDB / PostgreSQL scripts
    export the same defaults).
 4. Start the Go API yourself; Playwright's `webServer` only starts `npm start`, and only when `E2E_BASE_URL` is

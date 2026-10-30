@@ -16,6 +16,10 @@ RUN npm ci --no-audit --no-fund
 COPY desktop/ ./
 RUN npm run build
 
+# The inline theme script in the built index.html must be allowed by the CSP in default.conf (a wrong hash blocks it).
+COPY docker/default.conf /tmp/default.conf
+RUN node tools/check-csp-hash.cjs dist/cartvibe/browser/index.html /tmp/default.conf
+
 # ---- API: system libraries, Go modules, then the source
 FROM golang:1.26-trixie AS api-build
 
@@ -100,6 +104,8 @@ RUN nginx -t
 
 # The desktop's static files
 COPY --from=node /app/cartvibe-desktop/dist/cartvibe/browser /usr/share/nginx/html
+# The notice file the Angular build writes next to the app (About links to it).
+COPY --from=node /app/cartvibe-desktop/dist/cartvibe/3rdpartylicenses.txt /usr/share/nginx/html/3rdpartylicenses.txt
 
 WORKDIR /app
 ENTRYPOINT ["/app/entrypoint.sh"]

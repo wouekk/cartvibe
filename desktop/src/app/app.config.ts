@@ -100,7 +100,11 @@ export const appConfig: ApplicationConfig = {
     }),
     provideStore(
       ngxsStates,
-      { developmentMode: !environment.isProd },
+      {
+        developmentMode: !environment.isProd,
+        // Selectors are built without `new Function`, which the CSP (no 'unsafe-eval') would block.
+        compatibility: { strictContentSecurityPolicy: true },
+      },
       withNgxsStoragePlugin({ keys: ngxsStorageKeys }),
       withNgxsReduxDevtoolsPlugin({ disabled: environment.isProd }),
     ),

@@ -33,6 +33,18 @@
         {{ 'Product check (ODbL):' | t }}
         <a class="text-primary underline-offset-4 hover:underline" [href]="openFoodFactsUrl" target="_blank" rel="noopener">Open Food Facts</a>
       </p>
+      <p class="m-2 text-sm text-muted-foreground" data-testid="about-credits-libraries">
+        {{ 'Built with:' | t }}
+        <a class="text-primary underline-offset-4 hover:underline" [href]="geistUrl" target="_blank" rel="noopener">Geist</a>,
+        <a class="text-primary underline-offset-4 hover:underline" [href]="lucideUrl" target="_blank" rel="noopener">Lucide</a>,
+        <a class="text-primary underline-offset-4 hover:underline" [href]="spartanUrl" target="_blank" rel="noopener">spartan/ui</a>,
+        <a class="text-primary underline-offset-4 hover:underline" [href]="chartJsUrl" target="_blank" rel="noopener">Chart.js</a>
+      </p>
+      <p class="m-2 text-sm text-muted-foreground" data-testid="about-credits-licences">
+        {{ 'Licence texts:' | t }}
+        <a class="text-primary underline-offset-4 hover:underline" [href]="packageLicencesUrl" target="_blank" rel="noopener">{{ 'Packages' | t }}</a>,
+        <a class="text-primary underline-offset-4 hover:underline" [href]="noticesUrl" target="_blank" rel="noopener">{{ 'Font, icons and UI' | t }}</a>
+      </p>
     </app-form-section>
   </div>
   <div class="mb-4">

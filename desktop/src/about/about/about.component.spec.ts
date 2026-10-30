@@ -44,5 +44,19 @@ describe("AboutComponent", () => {
     expect(href("about-credits-product-data")).toBe("https://world.openfoodfacts.org");
   });
 
+  it("credits the font, icons, UI sources and charts and links the licence texts", () => {
+    const element: HTMLElement = fixture.nativeElement;
+    const hrefs = (testId: string) =>
+      Array.from(element.querySelectorAll(`[data-testid="${testId}"] a`)).map((a) => a.getAttribute("href"));
+
+    expect(hrefs("about-credits-libraries")).toEqual([
+      "https://github.com/vercel/geist-font",
+      "https://lucide.dev",
+      "https://github.com/spartan-ng/spartan",
+      "https://www.chartjs.org",
+    ]);
+    expect(hrefs("about-credits-licences")).toEqual(["/3rdpartylicenses.txt", "/assets/licenses/NOTICES.txt"]);
+  });
+
 
 });

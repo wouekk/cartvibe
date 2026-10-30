@@ -1,1 +1,4 @@
 *.sh text eol=lf
+# index.html holds the inline theme script whose hash is in docker/default.conf: the same bytes on every checkout.
+*.html text eol=lf
+docker/default.conf text eol=lf

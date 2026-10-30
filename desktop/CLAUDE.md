@@ -140,7 +140,9 @@ feature.
 - **Service worker:** `serviceWorkerBypassInterceptor` stays first in `withInterceptors` (an upload through the worker
   cut its multipart body short). The worker has no `dataGroups`; a bad worker means a stuck app, so check
   `dist/cartvibe/browser/ngsw.json` after a build. `index.html`'s inline script hash is in `docker/default.conf`:
-  recompute it when that script changes.
+  recompute it when that script changes (`npm run check:csp` after a build; CI and the image build run it, and
+  `.gitattributes` keeps `index.html` LF because the hash is over LF text). `app.config.ts` sets NGXS
+  `strictContentSecurityPolicy` (no `new Function`): never add `'unsafe-eval'` to the policy.
 - **Photo inputs** are native `<label>`s around hidden file inputs, never a button calling `input.click()` (mobile
   browsers ignore a click made after an `await`).
 - **Receipt filter:** the dialog authors its own row labels, so a rename touches both `RECEIPT_FILTER_FIELDS` and
@@ -159,8 +161,9 @@ feature.
 
 ## E2E (setup and per-spec notes: `docs/e2e.md`)
 
-- Specs in `e2e/` need a live API and run nowhere in CI; many predate the family rework, so update a spec before
-  trusting it.
+- Specs in `e2e/` need a live API. CI runs only the fully green ones (`npm run e2e:smoke`, the `e2e-smoke` job: the built
+  image next to Valkey); a spec that passes locally joins that list in `package.json`. Many specs predate the family
+  rework, so update a spec before trusting it.
 - Select with `getByTestId` (`<resource>-<action>`) or by role/label; never structural CSS chains or styling classes.
 - Web-first assertions only; never `waitForTimeout`. `fullyParallel` is on: mint unique data (`uniqueName`), never
   mutate shared rows; a spec that changes a global setting is serial and restores only the field it captured.
