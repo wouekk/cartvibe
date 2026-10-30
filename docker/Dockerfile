@@ -40,6 +40,15 @@ RUN go build
 # Every shared library the binary links must be one the runtime stage installs (checked there too).
 RUN ldd ./api | tee /tmp/api-libs.txt && ! grep "not found" /tmp/api-libs.txt
 
+# ---- Check fixtures: a tiny HEIC made with a full toolchain (the runtime image has no encoder), so the runtime checks
+# decode a real file rather than only listing the format.
+FROM debian:trixie-slim AS fixtures
+RUN apt-get update \
+    && apt-get install -y imagemagick-7.q16 libheif-plugin-x265 \
+    && mkdir /out \
+    && magick -size 16x16 gradient:white-black /out/tiny.heic \
+    && test -s /out/tiny.heic
+
 # ---- Runtime
 FROM debian:trixie-slim
 
@@ -72,15 +81,11 @@ RUN POLICY_FILE="/etc/ImageMagick-7/policy.xml"; \
 WORKDIR /app/cartvibe-api
 COPY --from=api-build /app/cartvibe-api /app/cartvibe-api
 
-# Fail the build, not the NAS, when something the API needs is missing at run time.
-RUN ! ldd ./api | grep "not found" \
-    && magick -list format | grep -i heic \
-    && magick -size 40x40 xc:white /tmp/check.pdf && magick /tmp/check.pdf /tmp/check.jpg \
-    && ! magick -size 40x40 xc:white /tmp/check.eps \
-    && rm -f /tmp/check.* \
-    && chromium --version \
-    && setpriv --version \
-    && tesseract --list-langs | grep -q eng
+# Fail the build, not the NAS, when something the API needs is missing at run time (libraries, HEIC and PDF
+# conversion, fonts, OCR, Chromium printing a PDF). The script lists every failure in one build.
+COPY --from=fixtures /out/tiny.heic /tmp/checks/tiny.heic
+COPY docker/checks/runtime-check.sh /tmp/checks/runtime-check.sh
+RUN sh /tmp/checks/runtime-check.sh && rm -rf /tmp/checks
 
 ARG VERSION
 ARG BUILD_DATE
