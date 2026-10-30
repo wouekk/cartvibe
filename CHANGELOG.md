@@ -8,6 +8,10 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+### Added
+- **More credits in About.** Logo.dev (the shop logos) and Open Food Facts (the product check, under the ODbL) are now
+  named and linked next to the Receipt Wrangler credit.
+
 ### Removed
 - **API keys are gone.** CartVibe is used in the browser, nothing called the API with a key, and a key that never
   shows up in a log is a credential nobody can watch. The API Keys tab, its screens, the `/apiKey` endpoints, the
