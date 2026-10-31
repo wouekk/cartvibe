@@ -56,7 +56,7 @@ Real captures of the **demo** (the real app on its made-up household), in `src/a
 2. `cd site && npm run shots` (`tools/shots.mjs`; it borrows Playwright from `../desktop`; set `E2E_CHROMIUM_PATH` for an
    installed Chromium, `DEMO_URL` for another address, `SHOTS_ONLY=lines` or `SHOTS_ONLY=lines-phone-dark` to redo some).
 
-It writes the `.webp` files directly (desktop 1440 px captured at 2x, phone 390 px at 2x). In CI, the manual workflow "Site screenshots" (`site-shots.yml`) does all of this on the branch it is started on and commits the files. The demo's "Demo, nothing is saved" strip is
+It writes the `.webp` files directly (desktop 1440 px captured at 2x, phone 390 px at 2x). In CI, running the "Project page" workflow by hand with `shots` ticked (job `shots` in `pages.yml`) does all of this on the branch it is started on and commits the files. The demo's "Demo, nothing is saved" strip is
 hidden in the captures. The sample data moves with the date (the demo seeds relative to today), so a regenerated set shows other
 figures; only the demo's household is ever on screen. Not run in CI.
 
