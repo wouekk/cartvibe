@@ -17,7 +17,7 @@ const nav = [
   { href: `${base}/#features`, label: "Features" },
   { href: `${base}/#why`, label: "Why CartVibe" },
   { href: `${base}/#cloud`, label: "Cloud plan" },
-  { href: `${base}/roadmap/`, label: "Roadmap" },
+  { href: `${base}/#roadmap`, label: "Roadmap" },
   { href: `${base}/#faq`, label: "FAQ" },
 ];
 // Same keys and order as PALETTES in desktop/src/theme/themes.ts.
@@ -28,7 +28,7 @@ const palettes = [
   { key: "emerald", label: "Emerald" },
   { key: "violet", label: "Violet" },
 ];
-const linkClass = "rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground";
+const linkClass = "rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground aria-[current=location]:bg-accent aria-[current=location]:text-foreground";
 ---
 
 <!doctype html>
@@ -74,7 +74,7 @@ const linkClass = "rounded-md px-3 py-2 text-sm font-medium text-muted-foregroun
           <Wordmark />
         </a>
         <nav aria-label="Main" class="ml-6 hidden items-center gap-1 md:flex">
-          {nav.map((item) => <a href={item.href} class={linkClass}>{item.label}</a>)}
+          {nav.map((item) => <a href={item.href} class={linkClass} data-spy>{item.label}</a>)}
           <a href={repo} class={linkClass}>GitHub</a>
         </nav>
         <div class="ml-auto flex items-center gap-2">
@@ -127,7 +127,7 @@ const linkClass = "rounded-md px-3 py-2 text-sm font-medium text-muted-foregroun
               <Icon name="menu" />
             </summary>
             <div class="absolute right-0 top-11 z-50 w-56 rounded-xl border border-border/70 bg-popover p-1.5 text-popover-foreground">
-              {nav.map((item) => <a href={item.href} class="block rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent">{item.label}</a>)}
+              {nav.map((item) => <a href={item.href} class="block rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent aria-[current=location]:bg-accent" data-spy>{item.label}</a>)}
               <a href={repo} class="block rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent">GitHub</a>
               <a
                 href={`${repo}#quick-start`}
@@ -145,6 +145,47 @@ const linkClass = "rounded-md px-3 py-2 text-sm font-medium text-muted-foregroun
     </main>
 
     <Footer />
+
+    <script>
+      // The nav link of the section in view is marked (aria-current="location"): scroll down to the FAQ and "FAQ" lights up.
+      const items = Array.from(document.querySelectorAll<HTMLAnchorElement>("a[data-spy]"))
+        .map((a) => {
+          const url = new URL(a.href);
+          return { a, id: url.hash.slice(1), path: url.pathname.replace(/\/$/, "") };
+        })
+        .filter((i) => i.id && i.path === location.pathname.replace(/\/$/, ""));
+      if (items.length > 0) {
+        const ids = [...new Set(items.map((i) => i.id))];
+        // Features is two elements, a scroll track on large screens and a stack on small ones; the hidden one has no box.
+        const find = (id: string) =>
+          [id, `${id}-stacked`].map((x) => document.getElementById(x)).find((el) => el && el.getClientRects().length > 0) ?? null;
+        const header = document.querySelector<HTMLElement>('[data-testid="site-header"]');
+        let queued = false;
+        const update = () => {
+          queued = false;
+          const line = (header?.getBoundingClientRect().height ?? 64) + window.innerHeight * 0.2;
+          const sections = ids.map((id) => ({ id, el: find(id) })).filter((s): s is { id: string; el: HTMLElement } => s.el !== null);
+          let current = "";
+          for (const s of sections) if (s.el.getBoundingClientRect().top <= line) current = s.id;
+          const last = sections[sections.length - 1];
+          // Below the last section (the closing call to action, the footer) nothing is marked.
+          if (last && current === last.id && last.el.getBoundingClientRect().bottom < line) current = "";
+          for (const i of items) {
+            if (i.id === current) i.a.setAttribute("aria-current", "location");
+            else i.a.removeAttribute("aria-current");
+          }
+        };
+        const queue = () => {
+          if (!queued) {
+            queued = true;
+            requestAnimationFrame(update);
+          }
+        };
+        window.addEventListener("scroll", queue, { passive: true });
+        window.addEventListener("resize", queue);
+        update();
+      }
+    </script>
 
     <script is:inline>
       (function () {

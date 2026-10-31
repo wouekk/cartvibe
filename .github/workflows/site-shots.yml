@@ -1,0 +1,54 @@
+---
+name: Site screenshots
+
+# Manual only. Builds the demo, takes the site's screenshots from it (site/tools/shots.mjs) and commits the .webp files to the
+# branch it was started on. Needed because the shots come from a browser and Linux fonts, not from a developer machine.
+on:
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "Redo one screenshot only (SHOTS_ONLY, e.g. dashboard or dashboard-phone-dark); empty for all"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  shots:
+    if: github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24.22.1"
+          cache: npm
+          cache-dependency-path: |
+            site/package-lock.json
+            desktop/package-lock.json
+      - run: npm ci
+        working-directory: desktop
+      - run: npm ci
+        working-directory: site
+      - run: npm run build:demo
+        working-directory: desktop
+      - run: npx playwright install --with-deps chromium
+        working-directory: desktop
+      - name: Serve the demo and take the screenshots
+        env:
+          SHOTS_ONLY: ${{ inputs.only }}
+        run: |
+          node tools/serve-demo.cjs > /tmp/serve-demo.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://localhost:4300/cartvibe/demo/ > /dev/null && break; sleep 1; done
+          cd ../site
+          npm run shots
+        working-directory: desktop
+      - name: Commit the screenshots
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/src/assets/shots
+          git diff --cached --quiet && { echo "No change."; exit 0; }
+          git commit -m "chore(site): regenerate the screenshots from the demo"
+          git push

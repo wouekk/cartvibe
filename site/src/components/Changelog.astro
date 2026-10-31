@@ -1,49 +1,62 @@
 ---
-// The latest releases from CHANGELOG.md, read at build time (no request in the browser). `all` shows every release in a
-// grid below the roadmap; otherwise it is the short column next to it on the home page.
+// The releases of CHANGELOG.md as a list, one line per release (version, date, its milestone), read at build time (no
+// request in the browser). The latest four are shown; the older ones sit behind a "show older" row.
 import Icon from "./Icon.astro";
 import { formatDate, parseChangelog } from "../lib/changelog.mjs";
 import changelog from "../../../CHANGELOG.md?raw";
 
-interface Props {
-  all?: boolean;
-}
-const { all = false } = Astro.props;
-const releases = parseChangelog(changelog, { releases: all ? 100 : 5, highlights: 3 });
+const SHOWN = 4;
+const releases = parseChangelog(changelog, { releases: 100, highlights: 3 }).map((r) => ({
+  ...r,
+  line: r.summary || r.highlights.join(" · "),
+}));
+const recent = releases.slice(0, SHOWN);
+const older = releases.slice(SHOWN);
 const url = "https://github.com/wouekk/cartvibe/blob/main/CHANGELOG.md";
-const link = "inline-flex h-9 items-center gap-1.5 self-start rounded-md border border-border bg-background px-4 text-sm font-medium transition-colors duration-150 hover:bg-accent active:scale-[0.98]";
+const link = "inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-4 text-sm font-medium transition-colors duration-150 hover:bg-accent active:scale-[0.98]";
 ---
 
-<section aria-labelledby={all ? "changelog-title-all" : "changelog-title"} data-testid="changelog-section" class="min-w-0">
-  <div class="flex items-center gap-2 px-1 pb-3">
-    <span class="size-2 rounded-full bg-foreground/60" aria-hidden="true"></span>
-    <h3 id={all ? "changelog-title-all" : "changelog-title"} class="text-base font-bold">Changelog</h3>
-    <span class="rounded-full border border-border/70 bg-muted/30 px-2 text-[11px] font-medium tabular-nums text-muted-foreground" data-testid="changelog-count">{releases.length}</span>
+<section id="changelog" aria-labelledby="changelog-title" data-testid="changelog-section" class="min-w-0">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="cv-overline">CHANGELOG</p>
+      <h3 id="changelog-title" class="mt-2 text-xl font-semibold tracking-tight">What changed, release by release</h3>
+    </div>
+    <a href={url} class={link} rel="noopener noreferrer" data-testid="changelog-full">
+      Full changelog on GitHub <Icon name="external" class="size-3.5" />
+    </a>
   </div>
-  <ol class:list={["grid gap-3", all && "sm:grid-cols-2 lg:grid-cols-3"]}>
-    {
-      releases.map((r) => (
-        <li class="flex min-w-0 flex-col gap-2 rounded-xl border border-border/70 bg-card p-4" data-testid="changelog-release">
-          <div class="flex items-baseline justify-between gap-3">
+
+  <div class="mt-5 overflow-hidden rounded-xl border border-border/70 bg-card">
+    <ol class="divide-y divide-border/60" data-testid="changelog-recent">
+      {recent.map((r) => (
+        <li class="flex flex-col gap-0.5 px-4 py-3 sm:flex-row sm:items-baseline sm:gap-5" data-testid="changelog-release">
+          <span class="flex shrink-0 items-baseline gap-3 sm:w-48">
             <h4 class="text-[15px] font-semibold tabular-nums">{r.version}</h4>
             <time class="text-xs tabular-nums text-muted-foreground" datetime={r.date}>{formatDate(r.date)}</time>
-          </div>
-          {r.summary && <p class="text-[13px] text-muted-foreground" data-testid="changelog-summary">{r.summary}</p>}
-          {!r.summary && r.highlights.length > 0 && (
-            <ul class="space-y-1 text-[13px] text-muted-foreground">
-              {r.highlights.map((h) => (
-                <li class="flex gap-2">
-                  <span class="mt-2 size-1 shrink-0 rounded-full bg-muted-foreground/60" aria-hidden="true"></span>
-                  <span class="min-w-0 break-words">{h}</span>
-                </li>
-              ))}
-            </ul>
-          )}
+          </span>
+          {r.line && <p class="min-w-0 text-[13px] text-muted-foreground sm:truncate" title={r.line} data-testid="changelog-summary">{r.line}</p>}
         </li>
-      ))
-    }
-  </ol>
-  <a href={url} class:list={[link, "mt-3"]} data-testid="changelog-full">
-    Full changelog on GitHub <Icon name="external" class="size-3.5" />
-  </a>
+      ))}
+    </ol>
+    {older.length > 0 && (
+      <details class="border-t border-border/60" data-testid="changelog-more">
+        <summary class="flex h-11 cursor-pointer items-center justify-between gap-3 px-4 text-[13px] font-medium text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-foreground">
+          <span>Older versions <span class="tabular-nums">({older.length})</span></span>
+          <Icon name="chevron" class="faq-chevron size-4 shrink-0" />
+        </summary>
+        <ol class="divide-y divide-border/60 border-t border-border/60" data-testid="changelog-older">
+          {older.map((r) => (
+            <li class="flex flex-col gap-0.5 px-4 py-3 sm:flex-row sm:items-baseline sm:gap-5" data-testid="changelog-release">
+              <span class="flex shrink-0 items-baseline gap-3 sm:w-48">
+                <h4 class="text-[15px] font-semibold tabular-nums">{r.version}</h4>
+                <time class="text-xs tabular-nums text-muted-foreground" datetime={r.date}>{formatDate(r.date)}</time>
+              </span>
+              {r.line && <p class="min-w-0 text-[13px] text-muted-foreground sm:truncate" title={r.line}>{r.line}</p>}
+            </li>
+          ))}
+        </ol>
+      </details>
+    )}
+  </div>
 </section>
