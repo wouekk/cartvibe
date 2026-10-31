@@ -1,0 +1,48 @@
+---
+// The latest releases from CHANGELOG.md, read at build time (no request in the browser). `all` shows every release in a
+// grid below the roadmap; otherwise it is the short column next to it on the home page.
+import Icon from "./Icon.astro";
+import { formatDate, parseChangelog } from "../lib/changelog.mjs";
+import changelog from "../../../CHANGELOG.md?raw";
+
+interface Props {
+  all?: boolean;
+}
+const { all = false } = Astro.props;
+const releases = parseChangelog(changelog, { releases: all ? 100 : 5, highlights: 3 });
+const url = "https://github.com/wouekk/cartvibe/blob/main/CHANGELOG.md";
+const link = "inline-flex h-9 items-center gap-1.5 self-start rounded-md border border-border bg-background px-4 text-sm font-medium transition-colors duration-150 hover:bg-accent active:scale-[0.98]";
+---
+
+<section aria-labelledby={all ? "changelog-title-all" : "changelog-title"} data-testid="changelog-section" class="min-w-0">
+  <div class="flex items-center gap-2 px-1 pb-3">
+    <span class="size-2 rounded-full bg-foreground/60" aria-hidden="true"></span>
+    <h3 id={all ? "changelog-title-all" : "changelog-title"} class="text-base font-bold">Changelog</h3>
+    <span class="rounded-full border border-border/70 bg-muted/30 px-2 text-[11px] font-medium tabular-nums text-muted-foreground" data-testid="changelog-count">{releases.length}</span>
+  </div>
+  <ol class:list={["grid gap-3", all && "sm:grid-cols-2 lg:grid-cols-3"]}>
+    {
+      releases.map((r) => (
+        <li class="flex min-w-0 flex-col gap-2 rounded-xl border border-border/70 bg-card p-4" data-testid="changelog-release">
+          <div class="flex items-baseline justify-between gap-3">
+            <h4 class="text-[15px] font-semibold tabular-nums">{r.version}</h4>
+            <time class="text-xs tabular-nums text-muted-foreground" datetime={r.date}>{formatDate(r.date)}</time>
+          </div>
+          {r.highlights.length > 0 && (
+            <ul class="space-y-1 text-[13px] text-muted-foreground">
+              {r.highlights.map((h) => (
+                <li class="flex gap-2">
+                  <span class="mt-2 size-1 shrink-0 rounded-full bg-muted-foreground/60" aria-hidden="true"></span>
+                  <span class="min-w-0 break-words">{h}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </li>
+      ))
+    }
+  </ol>
+  <a href={url} class:list={[link, "mt-3"]} data-testid="changelog-full">
+    Full changelog on GitHub <Icon name="external" class="size-3.5" />
+  </a>
+</section>
