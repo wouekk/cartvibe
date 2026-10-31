@@ -59,7 +59,8 @@ function findItem(db: DemoDb, itemId: number): { list: ShoppingList; item: Shopp
 
 function applyItemCommand(item: ShoppingListItem, command: UpsertShoppingListItemCommand): void {
   item.name = command.name;
-  item.amount = command.amount === undefined || command.amount === "" ? undefined : formatCents(parseCents(command.amount));
+  // The amount is a plain decimal of up to 3 places (2, 0.125), not money: keep what the client sent, comma as point.
+  item.amount = command.amount === undefined || command.amount === "" ? undefined : command.amount.trim().replace(",", ".");
   item.unit = command.unit ?? "";
   item.quantity = command.quantity ?? item.quantity;
   item.note = command.note ?? "";

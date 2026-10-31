@@ -71,7 +71,8 @@ function dimsFor(db: DemoDb, receipt: Receipt, product: ReceiptProduct | undefin
   };
 }
 
-function entriesFor(db: DemoDb, receipts: Receipt[], productLevel: boolean): Entry[] {
+/** `byTag` repeats a line once per tag it carries, which only a report that groups by tag wants (as in the Go engine). */
+function entriesFor(db: DemoDb, receipts: Receipt[], productLevel: boolean, byTag: boolean): Entry[] {
   const entries: Entry[] = [];
   for (const receipt of receipts) {
     if (!productLevel) {
@@ -87,7 +88,7 @@ function entriesFor(db: DemoDb, receipts: Receipt[], productLevel: boolean): Ent
       }
       const cents = parseCents(product.amount);
       accounted += cents;
-      const tags = product.tags.length > 0 ? product.tags.map((tag) => tag.name) : [undefined];
+      const tags = byTag && product.tags.length > 0 ? product.tags.map((tag) => tag.name) : [undefined];
       tags.forEach((tag) => entries.push({ receipt, cents, dims: dimsFor(db, receipt, product, tag) }));
     }
     const rest = parseCents(receipt.amount) - accounted;
@@ -136,7 +137,8 @@ export function runReport(db: DemoDb, command: ReportRequestCommand): ReportTabl
   const levels = [...(command.groupBy ?? []), ...(aggregateMode && command.detail?.by ? [command.detail.by] : [])];
   const dimensionFields = columns.filter((column) => column.kind === "dimension").map((column) => column.field ?? "");
   const productLevel = [...levels, ...dimensionFields].some((field) => PRODUCT_DIMS.has(field));
-  const entries = entriesFor(db, base, productLevel);
+  const byTag = [...levels, ...dimensionFields].includes("tag");
+  const entries = entriesFor(db, base, productLevel, byTag);
   const period = `${from} - ${to}`;
   const fill = (text: string | undefined): string => (text ?? "").replace("{{period}}", period).replace("{{generatedAt}}", db.today);
 
@@ -193,7 +195,18 @@ export function runReport(db: DemoDb, command: ReportRequestCommand): ReportTabl
     ];
   };
 
-  const keys = [...buckets.keys()].sort((a, b) => a.localeCompare(b));
+  // Compared level by level, so a name that is the start of another ("2026-1" / "2026-10") never mixes the groups.
+  const keys = [...buckets.keys()].sort((a, b) => {
+    const left = a.split("\u0000");
+    const right = b.split("\u0000");
+    for (let i = 0; i < left.length; i++) {
+      const result = left[i].localeCompare(right[i]);
+      if (result !== 0) {
+        return result;
+      }
+    }
+    return 0;
+  });
   let previousFirst: string | undefined;
   let subtotalGroup: Entry[] = [];
   const flushSubtotal = (): void => {

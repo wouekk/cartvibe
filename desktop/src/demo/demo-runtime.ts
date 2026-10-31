@@ -4,7 +4,7 @@ import { ChangeDetectionStrategy, Component, EnvironmentProviders, Provider } fr
 /**
  * The production side of the demo seam. `angular.json` swaps this file for `demo-runtime.demo.ts` in the `demo` build;
  * here every piece is empty, so nothing of the demo (backend, sample data, banner) is compiled into the real app.
- * `scripts/check-demo-free.cjs` fails CI if a trace of it shows up in the production bundle.
+ * `tools/check-demo-bundle.cjs` fails CI if a trace of it shows up in the production bundle.
  */
 export const DEMO_MODE = false;
 

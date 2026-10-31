@@ -165,11 +165,18 @@ describe("DemoBackend", () => {
       expect(receiptsOf(backend).totalCount).toBe(15);
     });
 
+    it("sends a warranty end as a bare day, which is what the days-left maths reads", () => {
+      const withWarranty = receiptsOf(backend, { warrantyActive: true }).data as { warrantyUntil?: string }[];
+
+      expect(withWarranty).toHaveLength(2);
+      expect(withWarranty.map((receipt) => receipt.warrantyUntil)).toEqual([expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/), expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/)]);
+    });
+
     it("sets one field at a time, as the view page does", () => {
       expect(json<{ name: string }>(call(backend, "PUT", "/receipt/1/name", { name: "Big shop" })).name).toBe("Big shop");
       expect(json<{ amount: string }>(call(backend, "PUT", "/receipt/1/amount", { amount: "30" })).amount).toBe("30.00");
       expect(json<{ date: string }>(call(backend, "PUT", "/receipt/1/date", { date: "2026-10-20" })).date).toBe("2026-10-20T00:00:00Z");
-      expect(json<{ warrantyUntil?: string }>(call(backend, "PUT", "/receipt/1/warranty", { warrantyUntil: "2027-01-01" })).warrantyUntil).toBe("2027-01-01T00:00:00Z");
+      expect(json<{ warrantyUntil?: string }>(call(backend, "PUT", "/receipt/1/warranty", { warrantyUntil: "2027-01-01" })).warrantyUntil).toBe("2027-01-01");
     });
 
     it("edits product lines and labels, and keeps the category name with the id", () => {
@@ -255,6 +262,12 @@ describe("DemoBackend", () => {
       expect(undone.items.every((entry) => !entry.isChecked)).toBe(true);
     });
 
+    it("keeps an amount as the plain decimal the client sent", () => {
+      const item = json<{ id: number; amount?: string }>(call(backend, "POST", "/shopping-list/1/item", { name: "Flour", amount: "0,125", unit: "kg" }));
+      expect(item.amount).toBe("0.125");
+      expect(json<{ amount?: string }>(call(backend, "PUT", `/shopping-list/item/${item.id}`, { name: "Flour", amount: "2", unit: "l" })).amount).toBe("2");
+    });
+
     it("creates, renames and deletes a list", () => {
       const list = json<{ id: number; items: unknown[] }>(call(backend, "POST", "/shopping-list/group/1", { name: "BBQ" }));
       expect(list.items).toEqual([]);
@@ -303,6 +316,10 @@ describe("DemoBackend", () => {
       expect(json<unknown[]>(call(backend, "GET", "/user"))).toHaveLength(4);
       call(backend, "DELETE", `/user/${user.id}`);
       expect(json<unknown[]>(call(backend, "GET", "/user"))).toHaveLength(3);
+
+      // The receipts a deleted user paid for go with them, as the confirmation on the real page says.
+      call(backend, "DELETE", "/user/3");
+      expect(receiptsOf(backend).totalCount).toBe(11);
     });
 
     it("replaces the preferences like the real endpoint and keeps them until a reset", () => {
@@ -337,6 +354,40 @@ describe("DemoBackend", () => {
       expect(json<{ html: string }>(call(backend, "POST", "/report/preview", byShop.configuration)).html).toContain('<td class="">Total</td>');
       const byCategory = json<{ configuration: object }>(call(backend, "GET", "/report/template/1"));
       expect(json<{ html: string }>(call(backend, "POST", "/report/preview", byCategory.configuration)).html).toContain("Total 2026-10");
+    });
+
+    it("counts every line once in a report that is not cut by tag, so the category and shop reports agree", () => {
+      const grandTotal = (id: number): string => {
+        const template = json<{ configuration: object }>(call(backend, "GET", `/report/template/${id}`));
+        const html = json<{ html: string }>(call(backend, "POST", "/report/preview", template.configuration)).html;
+        // The grand total is the last emphasised row; its first figure is the money column.
+        const totalRows = html.match(/<tr class="total">.*?<\/tr>/g) ?? [];
+        return /<td class="num">(\d+\.\d{2})<\/td>/.exec(totalRows[totalRows.length - 1] ?? "")?.[1] ?? "";
+      };
+
+      const all = receiptsOf(backend, { date: { operation: "BETWEEN", value: ["2026-01-01", "2026-10-31"] } }).data;
+      const expected = all.reduce((sum, receipt) => sum + parseCents(receipt.amount), 0);
+
+      expect(parseCents(grandTotal(1))).toBe(expected);
+      expect(parseCents(grandTotal(2))).toBe(expected);
+      expect(parseCents(grandTotal(3))).toBe(expected);
+    });
+
+    it("repeats a line per tag only when the report groups by tag", () => {
+      const byTag = {
+        name: "By tag",
+        groupIds: ["1"],
+        period: { preset: "ytd" },
+        groupBy: [],
+        detail: { mode: "aggregate", by: "tag" },
+        columns: [{ kind: "dimension", name: "Tag", field: "tag" }, { kind: "aggregate", name: "Spent", aggFunc: "SUM", measure: "amount" }],
+        grandTotals: true,
+        formats: ["csv"],
+      };
+      const html = json<{ html: string }>(call(backend, "POST", "/report/preview", byTag)).html;
+
+      expect(html).toContain("Weekly shop");
+      expect(html).toContain("No tag");
     });
 
     it("lists the receipts behind a preview and downloads CSV, XLSX and PDF", () => {

@@ -18,7 +18,13 @@ export async function decodeBody(body: unknown): Promise<unknown> {
     if (typeof value === "string") {
       list.push(value);
     } else if (value.type === "application/json" && value.name === "blob") {
-      list.push(JSON.parse(await value.text()));
+      const text = await value.text();
+      try {
+        list.push(JSON.parse(text));
+      } catch {
+        // Not JSON after all: hand the handler the text, which it answers as a bad request instead of throwing here.
+        list.push(text);
+      }
     } else {
       list.push({ name: value.name, type: value.type, size: value.size });
     }

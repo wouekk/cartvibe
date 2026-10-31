@@ -373,7 +373,8 @@ export function buildReceipts(today: string): { receipts: Receipt[]; products: R
       updatedAt: instantOn(day, 9),
       resolvedDate: spec.status === ReceiptStatus.Resolved ? instantOn(day, 20) : undefined,
       warrantyUntil:
-        spec.warrantyDaysFromToday === undefined ? undefined : dayToWire(addDays(today, spec.warrantyDaysFromToday)),
+        // A warranty end is a bare `yyyy-MM-dd` on the wire (unlike the receipt's own date), which the days-left maths reads.
+        spec.warrantyDaysFromToday === undefined ? undefined : addDays(today, spec.warrantyDaysFromToday),
       warrantyProducts: spec.warrantyProducts,
     });
   }

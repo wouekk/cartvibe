@@ -32,7 +32,12 @@ test('sends nothing outside its own origin, and registers no service worker or m
   const outside: string[] = [];
   page.on('request', (request) => {
     const url = request.url();
-    if (!url.startsWith('http://localhost') && !url.startsWith('blob:') && !url.startsWith('data:')) {
+    if (url.startsWith('blob:') || url.startsWith('data:')) {
+      return;
+    }
+    // Only the demo's own files: nothing from the site root, another site of the origin, or another host.
+    const parsed = new URL(url);
+    if (parsed.hostname !== 'localhost' || !parsed.pathname.startsWith('/cartvibe/demo/')) {
       outside.push(url);
     }
   });
@@ -98,7 +103,9 @@ test('a change lives in memory and Reset takes it back', async ({ page }) => {
   await expect(page.getByText(name)).toBeVisible();
 
   await page.getByTestId('demo-reset').click();
+  // Reset reloads at the start address, so the page leaves the shopping list and the hash is gone.
   await expect(page.getByTestId('overview-quick-scan')).toBeVisible();
+  expect(new URL(page.url()).hash).toBe('#/overview/group/1');
   await goTo(page, '/shopping-lists/group/1');
   await expect(page.getByText('Party on Saturday').first()).toBeVisible();
   await expect(page.getByText(name)).toHaveCount(0);

@@ -268,6 +268,11 @@ export function registerCatalog(router: DemoRouter): void {
 }
 
 function removeUsers(db: DemoDb, ids: Set<number>): void {
+  // As on the real API (the confirmation says so): the receipts a deleted user paid for go with them.
+  const gone = new Set(db.receipts.filter((receipt) => ids.has(receipt.paidByUserId)).map((receipt) => receipt.id));
+  db.receipts = db.receipts.filter((receipt) => !gone.has(receipt.id));
+  db.products = db.products.filter((product) => !gone.has(product.receiptId));
+  db.trips = db.trips.filter((trip) => trip.receipt === undefined || !gone.has(trip.receipt.id));
   db.users = db.users.filter((user) => !ids.has(user.id));
   db.groups.forEach((group) => {
     group.groupMembers = group.groupMembers.filter((member) => !ids.has(member.userId));

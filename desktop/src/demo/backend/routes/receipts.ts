@@ -355,7 +355,7 @@ export function registerReceipts(router: DemoRouter): void {
   });
   router.post("/receipt/withFiles", (ctx) => {
     const command = formValues(ctx, "receipt")[0] as UpsertReceiptCommand | undefined;
-    if (!command) {
+    if (!command || typeof command !== "object") {
       return badRequest("A receipt is required.");
     }
     const receipt = newReceipt(ctx.db, command);
@@ -415,7 +415,7 @@ export function registerReceipts(router: DemoRouter): void {
       return notFound("Receipt not found");
     }
     const until = body<{ warrantyUntil?: string }>(ctx).warrantyUntil;
-    receipt.warrantyUntil = until ? dayToWire(until.slice(0, 10)) : undefined;
+    receipt.warrantyUntil = until ? until.slice(0, 10) : undefined;
     return receipt;
   });
   router.get("/receipt/:receiptId", (ctx) => findReceipt(ctx) ?? notFound("Receipt not found"));
