@@ -13,7 +13,7 @@ after(async () => {
 });
 
 // Every page of the site; the demo carries the same two lines from the app (desktop/e2e-demo).
-const PAGES = ["/"];
+const PAGES = ["/", "/roadmap/"];
 
 for (const path of PAGES) {
   test(`${path} ends with the one shared footer, two lines and nothing more`, async () => {

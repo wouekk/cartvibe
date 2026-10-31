@@ -13,10 +13,11 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const repo = "https://github.com/wouekk/cartvibe";
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const nav = [
-  { href: "#features", label: "Features" },
-  { href: "#why", label: "Why CartVibe" },
-  { href: "#pricing", label: "Pricing" },
-  { href: "#faq", label: "FAQ" },
+  { href: `${base}/#features`, label: "Features" },
+  { href: `${base}/#why`, label: "Why CartVibe" },
+  { href: `${base}/#pricing`, label: "Pricing" },
+  { href: `${base}/roadmap/`, label: "Roadmap" },
+  { href: `${base}/#faq`, label: "FAQ" },
 ];
 // Same keys and order as PALETTES in desktop/src/theme/themes.ts.
 const palettes = [
