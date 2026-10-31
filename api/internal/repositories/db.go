@@ -213,7 +213,13 @@ func openWithRetry(dialector gorm.Dialector, maxAttempts int) (*gorm.DB, error) 
 }
 
 func MakeMigrations() error {
-	err := db.AutoMigrate(
+	return migrateSchema(db)
+}
+
+// migrateSchema creates or extends every table on target. MakeMigrations runs it on the process database;
+// the twin-cell tests run it on each fixture cell.
+func migrateSchema(target *gorm.DB) error {
+	err := target.AutoMigrate(
 		&models.RefreshToken{},
 		&models.AppRole{},
 		&models.AppRolePermission{},
