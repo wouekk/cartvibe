@@ -3,6 +3,7 @@ import { RouterModule, Routes } from "@angular/router";
 import { appPermissionGuard } from "src/guards/app-permission.guard";
 import { AuthGuard } from "src/guards/auth.guard";
 import { SidebarComponent } from "src/layout/sidebar/sidebar.component";
+import { DEMO_MODE } from "../demo/demo-runtime";
 import { Permission } from "../open-api";
 
 const routes: Routes = [
@@ -145,8 +146,9 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  // View transitions: a short cross-fade between pages (styled in tailwind.css, off under reduced motion).
-  imports: [RouterModule.forRoot(routes, { enableViewTransitions: true })],
+  // View transitions: a short cross-fade between pages (styled in tailwind.css, off under reduced motion). The demo
+  // lives on static hosting that cannot rewrite deep links, so it routes on the hash.
+  imports: [RouterModule.forRoot(routes, { enableViewTransitions: true, useHash: DEMO_MODE })],
   exports: [RouterModule],
 })
 export class AppRoutingModule {}

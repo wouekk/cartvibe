@@ -66,6 +66,48 @@
                 "fonts": true
               }
             },
+            "demo": {
+              "baseHref": "/cartvibe/demo/",
+              "outputPath": {
+                "base": "dist/cartvibe-demo"
+              },
+              "index": {
+                "input": "src/demo/index.demo.html",
+                "output": "index.html"
+              },
+              "assets": [
+                "src/favicon.svg",
+                "src/assets"
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "src/demo/demo-runtime.ts",
+                  "with": "src/demo/demo-runtime.demo.ts"
+                }
+              ],
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "3.0mb",
+                  "maximumError": "5.0mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "250kb",
+                  "maximumError": "300kb"
+                }
+              ],
+              "outputHashing": "all",
+              "sourceMap": false,
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": true
+              }
+            },
             "development": {
               "optimization": false,
               "extractLicenses": false,
@@ -92,6 +134,9 @@
           "configurations": {
             "production": {
               "buildTarget": "cartvibe:build:production"
+            },
+            "demo": {
+              "buildTarget": "cartvibe:build:demo"
             },
             "development": {
               "buildTarget": "cartvibe:build:development"

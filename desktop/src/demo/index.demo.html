@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>CartVibe demo</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!--
+      The demo's page (the `demo` build swaps it for src/index.html): no manifest and no home-screen metas, so the browser
+      offers no install, and the stored look is read under the demo's own storage prefix (src/demo/demo-storage.ts),
+      otherwise the same first-paint script as index.html. The real page's hash in docker/default.conf does not apply
+      here: the demo is static files on GitHub Pages.
+    -->
+    <meta name="theme-color" content="#151920" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="assets/brand/icon-dark.svg" media="(prefers-color-scheme: light)" />
+    <link rel="icon" type="image/svg+xml" href="assets/brand/icon-light.svg" media="(prefers-color-scheme: dark)" />
+    <script>
+      (function () {
+        var root = document.documentElement;
+        var prefix = "cartvibe-demo:";
+        var palette = "zinc";
+        var dark = false;
+        try {
+          var mode = window.localStorage.getItem(prefix + "rw_theme_mode");
+          dark = mode === "dark" || (mode !== "light" && !!window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          var stored = window.localStorage.getItem(prefix + "rw_theme_palette");
+          if (stored && /^[a-z]+$/.test(stored)) {
+            palette = stored;
+          }
+        } catch (e) {}
+        if (dark) {
+          root.classList.add("dark");
+        }
+        root.setAttribute("data-palette", palette);
+      })();
+    </script>
+  </head>
+  <body>
+    <app-root></app-root>
+  </body>
+</html>

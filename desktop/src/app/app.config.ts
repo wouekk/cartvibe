@@ -34,6 +34,7 @@ import { UserTableState } from "../store/user-table.state";
 import { UserState } from "../store/user.state";
 import { LanguageSyncService, TranslationLoader } from "../i18n";
 import { OnboardingService } from "../onboarding/onboarding.service";
+import { DEMO_MODE, demoInterceptors, demoProviders } from "../demo/demo-runtime";
 import { environment } from "src/environments/environment.development";
 
 const ngxsStates = [
@@ -76,11 +77,11 @@ const ngxsStorageKeys = [
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
-    provideHttpClient(withXhr(), withInterceptors([serviceWorkerBypassInterceptor, httpInterceptor])),
+    provideHttpClient(withXhr(), withInterceptors([serviceWorkerBypassInterceptor, httpInterceptor, ...demoInterceptors])),
     provideNgxMask(),
     // App shell only (ngsw-config.json): API, SSE and OAuth calls always go to the network. Off in development.
     provideServiceWorker("ngsw-worker.js", {
-      enabled: !isDevMode(),
+      enabled: !isDevMode() && !DEMO_MODE,
       registrationStrategy: "registerWhenStable:30000",
     }),
     provideAppInitializer(() => {
@@ -117,5 +118,7 @@ export const appConfig: ApplicationConfig = {
       NgxMaskPipe,
       PipesModule,
     ),
+    // Empty in the real app. The `demo` build swaps in an in-memory backend (src/demo, desktop/docs/demo.md).
+    ...demoProviders,
   ],
 };
