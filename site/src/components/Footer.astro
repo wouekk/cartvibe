@@ -1,0 +1,16 @@
+---
+// The one footer of every page of the site (Base.astro). Two quiet lines and nothing else. The demo carries the same two
+// lines from the app (desktop/src/demo/demo-footer.component.ts); keep the wording in step.
+const repo = "https://github.com/wouekk/cartvibe";
+const link = "font-medium text-foreground underline underline-offset-2 transition-colors duration-150 hover:text-primary";
+---
+
+<footer class="border-t border-border/70" data-testid="site-footer">
+  <div class="page py-6 text-center text-[13px] text-muted-foreground">
+    <p data-testid="footer-licence">
+      Free software under the <a class={link} href={`${repo}/blob/main/LICENSE`}>GNU AGPL-3.0</a>{" "}·{" "}Upstream credits in{" "}
+      <a class={link} href={`${repo}/blob/main/NOTICE.md`} data-testid="footer-notice">NOTICE</a>
+    </p>
+    <p class="mt-1" data-testid="footer-privacy">This site sets no cookies and runs no analytics or third-party scripts.</p>
+  </div>
+</footer>
