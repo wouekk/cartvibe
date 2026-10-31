@@ -381,23 +381,23 @@ export function buildReceipts(today: string): { receipts: Receipt[]; products: R
   return { receipts, products };
 }
 
+/** A list item: `amount` and `unit` are what the app shows ("500 g"); `quantity` is the older free text and stays empty. */
 function item(
   id: number,
   listId: number,
   name: string,
-  quantity: string,
+  amount: string,
   unit: string,
   health: Health,
   categoryName: string,
   checked = false,
   today = "",
-  amount?: string,
 ): ShoppingListItem {
   return {
     id,
     shoppingListId: listId,
     name,
-    quantity,
+    quantity: "",
     unit,
     note: "",
     amount,
@@ -425,12 +425,12 @@ export function buildLists(today: string): ShoppingList[] {
       createdBy: 1,
       items: [
         item(1, 1, "Whole milk", "2", "l", "HEALTHY", "Dairy", true, today),
-        item(2, 1, "Sourdough bread", "1", "", "MEDIUM", "Bakery", true, today),
+        item(2, 1, "Sourdough bread", "1", "pcs", "MEDIUM", "Bakery", true, today),
         item(3, 1, "Apples", "1", "kg", "HEALTHY", "Fresh Produce", false, today),
         item(4, 1, "Chicken breast", "500", "g", "MEDIUM", "Meat", false, today),
         item(5, 1, "Spaghetti", "500", "g", "MEDIUM", "Pantry", false, today),
-        item(6, 1, "Greek yoghurt", "2", "", "HEALTHY", "Dairy", false, today),
-        item(7, 1, "Dish soap", "1", "", "NOT_FOOD", "Household", false, today),
+        item(6, 1, "Greek yoghurt", "2", "pcs", "HEALTHY", "Dairy", false, today),
+        item(7, 1, "Dish soap", "1", "pcs", "NOT_FOOD", "Household", false, today),
         item(8, 1, "Cherry tomatoes", "250", "g", "HEALTHY", "Fresh Produce", false, today),
       ],
     },
@@ -441,11 +441,11 @@ export function buildLists(today: string): ShoppingList[] {
       createdAt: instantOn(today, 7),
       createdBy: 2,
       items: [
-        item(11, 2, "Sparkling water", "6", "", "HEALTHY", "Drinks", false, today),
-        item(12, 2, "Crisps", "3", "", "UNHEALTHY", "Sweets & Snacks", false, today),
-        item(13, 2, "Pizza dough", "2", "", "MEDIUM", "Pantry", false, today),
-        item(14, 2, "Paper plates", "1", "", "NOT_FOOD", "Household", false, today),
-        item(15, 2, "Lemons", "4", "", "HEALTHY", "Fresh Produce", false, today),
+        item(11, 2, "Sparkling water", "6", "pcs", "HEALTHY", "Drinks", false, today),
+        item(12, 2, "Crisps", "3", "pcs", "UNHEALTHY", "Sweets & Snacks", false, today),
+        item(13, 2, "Pizza dough", "2", "pcs", "MEDIUM", "Pantry", false, today),
+        item(14, 2, "Paper plates", "1", "pcs", "NOT_FOOD", "Household", false, today),
+        item(15, 2, "Lemons", "4", "pcs", "HEALTHY", "Fresh Produce", false, today),
       ],
     },
     {
@@ -455,8 +455,8 @@ export function buildLists(today: string): ShoppingList[] {
       createdAt: instantOn(addDays(today, -9), 10),
       createdBy: 2,
       items: [
-        item(21, 3, "Vitamin C", "1", "", "NOT_FOOD", "Pharmacy", true, addDays(today, -9)),
-        item(22, 3, "Plasters", "1", "", "NOT_FOOD", "Pharmacy", true, addDays(today, -9)),
+        item(21, 3, "Vitamin C", "1", "pcs", "NOT_FOOD", "Pharmacy", true, addDays(today, -9)),
+        item(22, 3, "Plasters", "1", "pcs", "NOT_FOOD", "Pharmacy", true, addDays(today, -9)),
       ],
     },
   ];
