@@ -1,0 +1,208 @@
+---
+import "../styles/global.css";
+import Icon from "../components/Icon.astro";
+
+interface Props {
+  title: string;
+  description: string;
+}
+const { title, description } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const repo = "https://github.com/wouekk/cartvibe";
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const nav = [
+  { href: "#features", label: "Features" },
+  { href: "#why", label: "Why CartVibe" },
+  { href: "#pricing", label: "Pricing" },
+  { href: "#faq", label: "FAQ" },
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href={`${base}/cartvibe-icon.svg`} type="image/svg+xml" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#202834" media="(prefers-color-scheme: dark)" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <script is:inline>
+      // Apply a saved theme before first paint. localStorage only; the site sets no cookies.
+      try {
+        var saved = localStorage.getItem("cartvibe-site-theme");
+        if (saved === "light" || saved === "dark") document.documentElement.dataset.theme = saved;
+      } catch (e) {}
+    </script>
+  </head>
+  <body class="min-h-screen antialiased">
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-card focus:px-4 focus:py-2 focus:text-ink focus:ring-2 focus:ring-blue"
+      >Skip to content</a
+    >
+    <header class="sticky top-0 z-50 border-b border-line bg-bg">
+      <div class="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6">
+        <a href={`${base}/`} class="flex items-center gap-2.5 font-semibold" aria-label="CartVibe home">
+          <img class="shot-light h-8 w-8" src={`${base}/brand/icon-light.svg`} width="32" height="32" alt="" />
+          <img class="shot-dark h-8 w-8" src={`${base}/brand/icon-dark.svg`} width="32" height="32" alt="" />
+          <span class="text-lg tracking-tight">Cart<span class="text-green-text">Vibe</span></span>
+        </a>
+        <nav aria-label="Main" class="ml-6 hidden items-center gap-1 md:flex">
+          {
+            nav.map((item) => (
+              <a href={item.href} class="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-ink">
+                {item.label}
+              </a>
+            ))
+          }
+          <a href={repo} class="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-ink">GitHub</a>
+        </nav>
+        <div class="ml-auto flex items-center gap-2">
+          <button
+            type="button"
+            id="theme-toggle"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-line text-ink hover:bg-surface"
+            aria-label="Switch between day and night mode"
+          >
+            <span class="icon-to-dark"><Icon name="moon" /></span>
+            <span class="icon-to-light"><Icon name="sun" /></span>
+          </button>
+          <a
+            href={`${repo}#quick-start`}
+            class="btn-primary hidden h-10 items-center rounded-lg px-4 text-sm font-semibold sm:inline-flex"
+            >Self-host it</a
+          >
+          <details class="relative md:hidden" id="mobile-menu">
+            <summary
+              class="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-line text-ink hover:bg-surface"
+              aria-label="Menu"
+            >
+              <Icon name="menu" />
+            </summary>
+            <div class="absolute right-0 top-12 w-56 rounded-xl border border-line bg-card p-2 shadow-lg">
+              {
+                nav.map((item) => (
+                  <a href={item.href} class="block rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-surface">
+                    {item.label}
+                  </a>
+                ))
+              }
+              <a href={repo} class="block rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-surface">GitHub</a>
+              <a
+                href={`${repo}#quick-start`}
+                class="btn-primary mt-1 block rounded-lg px-3 py-2.5 text-center text-sm font-semibold"
+                >Self-host it</a
+              >
+            </div>
+          </details>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <footer class="border-t border-line bg-surface">
+      <div class="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+        <div class="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+          <div>
+            <div class="flex items-center gap-2.5 font-semibold">
+              <img class="shot-light h-8 w-8" src={`${base}/brand/icon-light.svg`} width="32" height="32" alt="" />
+              <img class="shot-dark h-8 w-8" src={`${base}/brand/icon-dark.svg`} width="32" height="32" alt="" />
+              <span class="text-lg tracking-tight">Cart<span class="text-green-text">Vibe</span></span>
+            </div>
+            <p class="mt-3 max-w-xs text-sm text-muted">
+              A self-hosted household app for receipts, shopping lists and spending insights.
+            </p>
+          </div>
+          <div>
+            <h2 class="text-sm font-semibold">Product</h2>
+            <ul class="mt-3 space-y-2 text-sm text-muted">
+              <li><a class="hover:text-ink" href="#features">Features</a></li>
+              <li><a class="hover:text-ink" href="#pricing">Pricing</a></li>
+              <li><a class="hover:text-ink" href="#faq">FAQ</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2 class="text-sm font-semibold">Project</h2>
+            <ul class="mt-3 space-y-2 text-sm text-muted">
+              <li><a class="hover:text-ink" href={repo}>GitHub</a></li>
+              <li><a class="hover:text-ink" href={`${repo}#quick-start`}>Quick start</a></li>
+              <li><a class="hover:text-ink" href={`${repo}/blob/main/CHANGELOG.md`}>Changelog</a></li>
+              <li><a class="hover:text-ink" href={`${repo}/issues`}>Issues</a></li>
+              <li>
+                <a class="hover:text-ink" href="https://github.com/wouekk/cartvibe/pkgs/container/cartvibe"
+                  >Docker image</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h2 class="text-sm font-semibold">Legal</h2>
+            <ul class="mt-3 space-y-2 text-sm text-muted">
+              <li><a class="hover:text-ink" href={`${repo}/blob/main/LICENSE`}>License (AGPL-3.0)</a></li>
+              <li><a class="hover:text-ink" href={`${repo}/blob/main/NOTICE.md`}>NOTICE: credits</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="mt-10 space-y-3 border-t border-line pt-6 text-sm text-muted">
+          <p>
+            CartVibe is a fork of
+            <a class="font-medium text-green-text underline" href="https://github.com/Receipt-Wrangler/receipt-wrangler"
+              >Receipt Wrangler</a
+            >
+            by
+            <a class="font-medium text-green-text underline" href="https://github.com/Noah231515"
+              >Noah Hall (@Noah231515)</a
+            >
+            and contributors, licensed under the AGPL-3.0. This fork is a vibe-coded personal project, written with an AI
+            assistant and maintained as a hobby. It is not affiliated with the original authors. Please report problems
+            with CartVibe on
+            <a class="font-medium text-green-text underline" href={`${repo}/issues`}>this fork's issues</a>.
+          </p>
+          <p>
+            Free software under the
+            <a class="font-medium text-green-text underline" href={`${repo}/blob/main/LICENSE`}>GNU AGPL-3.0</a>.
+            This site sets no cookies and runs no analytics or third-party scripts.
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <script is:inline>
+      (function () {
+        var root = document.documentElement;
+        var button = document.getElementById("theme-toggle");
+        var current = function () {
+          return root.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        };
+        button.addEventListener("click", function () {
+          var next = current() === "dark" ? "light" : "dark";
+          root.dataset.theme = next;
+          try {
+            localStorage.setItem("cartvibe-site-theme", next);
+          } catch (e) {}
+        });
+        // Close the phone menu after choosing a link, or when Escape is pressed.
+        var menu = document.getElementById("mobile-menu");
+        menu.addEventListener("click", function (event) {
+          if (event.target.closest("a")) menu.open = false;
+        });
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape" && menu.open) {
+            menu.open = false;
+            menu.querySelector("summary").focus();
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

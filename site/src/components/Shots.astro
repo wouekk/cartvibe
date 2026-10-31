@@ -1,0 +1,76 @@
+---
+// A desktop and/or phone screenshot of the real app, in a day and a night version (the page theme picks one).
+// Files live in src/assets/shots as <name>-<desktop|phone>-<light|dark>.webp (see tools/make-images.mjs).
+interface Props {
+  desktop?: string;
+  phone?: string;
+  alt: string;
+  eager?: boolean;
+}
+const { desktop, phone, alt, eager = false } = Astro.props;
+
+const images = import.meta.glob<{ default: ImageMetadata }>("../assets/shots/*.webp", { eager: true });
+const pick = (name: string, vp: string, mode: string) => {
+  const found = images[`../assets/shots/${name}-${vp}-${mode}.webp`];
+  if (!found) throw new Error(`Missing screenshot ${name}-${vp}-${mode}.webp`);
+  return found.default;
+};
+const loading = eager ? "eager" : "lazy";
+---
+
+<figure class="relative mx-auto w-full min-w-0 max-w-[44rem]" data-shots>
+  {
+    desktop && (
+      <div
+        class:list={["overflow-hidden rounded-xl border border-line bg-card shadow-sm", phone ? "hidden sm:mr-16 sm:block" : "overflow-x-auto"]}
+        role={phone ? undefined : "region"}
+        aria-label={phone ? undefined : "Screenshot, scrolls sideways on narrow screens"}
+        tabindex={phone ? undefined : 0}
+      >
+        {(["light", "dark"] as const).map((mode) => {
+          const img = pick(desktop, "desktop", mode);
+          return (
+            <img
+              class={`shot-${mode} h-auto w-full${phone ? "" : " min-w-[34rem]"}`}
+              src={img.src}
+              width={img.width}
+              height={img.height}
+              alt={mode === "light" ? alt : ""}
+              aria-hidden={mode === "dark" ? "true" : undefined}
+              loading={loading}
+              decoding="async"
+            />
+          );
+        })}
+      </div>
+    )
+  }
+  {
+    phone && (
+      <div
+        class:list={[
+          "overflow-hidden rounded-[1.75rem] border-[5px] border-ink/90 bg-card shadow-lg",
+          desktop
+            ? "mx-auto w-[15rem] sm:absolute sm:-bottom-6 sm:right-0 sm:w-[26%] sm:min-w-[5.5rem]"
+            : "mx-auto w-[15rem] sm:w-[16rem]",
+        ]}
+      >
+        {(["light", "dark"] as const).map((mode) => {
+          const img = pick(phone, "phone", mode);
+          return (
+            <img
+              class={`shot-${mode} h-auto w-full`}
+              src={img.src}
+              width={img.width}
+              height={img.height}
+              alt={mode === "light" ? (desktop ? "The same screen on a phone" : alt) : ""}
+              aria-hidden={mode === "dark" ? "true" : undefined}
+              loading={loading}
+              decoding="async"
+            />
+          );
+        })}
+      </div>
+    )
+  }
+</figure>

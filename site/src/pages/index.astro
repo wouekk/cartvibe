@@ -1,0 +1,429 @@
+---
+import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
+import Shots from "../components/Shots.astro";
+
+const repo = "https://github.com/wouekk/cartvibe";
+
+// Alternating feature showcases. `desktop` / `phone` name files in src/assets/shots.
+const showcases = [
+  {
+    id: "scan",
+    icon: "scan",
+    eyebrow: "Scan receipts",
+    title: "Snap a receipt. The AI reads it.",
+    text: "Photograph a receipt or upload a PDF and Quick Scan fills in the shop, the date, the total and every product line. You check it, and anything it was unsure about waits in your To check list. If the AI is off, slow or out of credit, nothing breaks: you simply type it in yourself.",
+    points: [
+      "Optional: you bring your own Claude or ChatGPT key, and only an admin sets it up",
+      "Receipts without the AI work exactly the same",
+    ],
+    desktop: "receipts",
+    phone: "receipts",
+    alt: "The Receipts page with shops, dates, amounts and a To check status",
+  },
+  {
+    id: "lists",
+    icon: "cart",
+    eyebrow: "Shopping lists",
+    title: "Lists the whole household shares, live.",
+    text: "Add an item on one phone and it appears on every other one. Cross things off in the shop, mark the list complete when you are done, and tap Going shopping to let the household know. After the trip, scan the receipt to see what you bought that was not on the list.",
+    points: ["Amounts and units for every item", "Changes show up on every device without a refresh"],
+    desktop: "shopping",
+    phone: "shopping",
+    alt: "A shared shopping list with amounts, a Going shopping button and crossed-off items",
+  },
+  {
+    id: "insights",
+    icon: "chart",
+    eyebrow: "Insights and goals",
+    title: "See where the money goes.",
+    text: "The Dashboard is your landing page: how much you spent this month, how that compares with last month, a donut of the spending by category and a month-by-month chart. Set a monthly goal and watch the bar fill. Rearrange the cards to suit you.",
+    points: ["This month, last 7 or 30 days, this year or a custom range", "Click a slice to see the products behind it"],
+    desktop: "charts",
+    phone: "charts",
+    alt: "Spending by category donut and a spending by month bar chart",
+  },
+  {
+    id: "reports",
+    icon: "file",
+    eyebrow: "Reports",
+    title: "Reports you can keep.",
+    text: "Build a report once and generate it whenever you need it: by category, by shop or month by month, for your household. Reports come out as PDF, ready to print, share with an accountant or just file away.",
+    points: ["Saved report templates you can duplicate and edit", "A builder for scope, grouping and columns"],
+    desktop: "reports",
+    phone: "reports",
+    alt: "A list of saved report templates",
+  },
+  {
+    id: "lines",
+    icon: "tag",
+    eyebrow: "Product lines",
+    title: "Every line, labelled.",
+    text: "A receipt is more than a total. CartVibe keeps each product line and gives it a category, a health rating and a seasonal tag. It also notes whether the item was on your list, so you can see the planned spending and the impulse buys. You can correct any label by hand.",
+    points: ["The AI suggests categories and health, never your tags: those stay yours", "Switch off the categories you do not use"],
+    desktop: "lines",
+    alt: "A receipt's product lines with health chips, seasonal tags and categories",
+  },
+  {
+    id: "warranties",
+    icon: "shield",
+    eyebrow: "Warranties",
+    title: "Know what is still covered.",
+    text: "Add a warranty date to any receipt and CartVibe lists everything still covered, nearest end first, with the days left. The Dashboard flags what ends soon. A kettle that dies in month 23 is a lot less annoying when you can find the receipt.",
+    points: ["The warranty period defaults to your region and can be changed", "Optional push reminders where your server supports them"],
+    desktop: "warranties",
+    phone: "warranties",
+    alt: "A table of purchases under warranty with days left",
+  },
+  {
+    id: "barcode",
+    icon: "barcode",
+    eyebrow: "Barcode scanner",
+    title: "Check a product in the aisle.",
+    text: "Point the camera at a barcode, upload a photo of one or type the digits. CartVibe looks the product up in Open Food Facts, the open food database, and shows the Nutri-Score, the NOVA processing level, the additives and the nutrition.",
+    points: ["Works from the phone camera in the browser", "Product data comes from Open Food Facts"],
+    desktop: "check",
+    phone: "check",
+    alt: "The Check a product dialog with camera, upload and barcode number options",
+  },
+  {
+    id: "app",
+    icon: "phone",
+    eyebrow: "On your phone",
+    title: "Installs like an app. No app store.",
+    text: "CartVibe is a web app made for the phone in your hand at the shop. Add it to your home screen and it opens full screen, with the screen kept awake while you shop. There is nothing to download from a store, and it uses the same account and data as the desktop.",
+    points: ["Layouts made for phones first, desktop second", "Day and night modes, plus accent colour palettes"],
+    phone: "dashboard",
+    alt: "The CartVibe Dashboard on a phone",
+  },
+];
+
+const more = [
+  { icon: "store", title: "Shop logos", text: "Optional logos next to each shop, with your own free Logo.dev key." },
+  { icon: "palette", title: "Day, night and palettes", text: "Light and dark modes with several accent palettes." },
+  { icon: "globe", title: "Five languages", text: "English, Polish, German, French and Spanish." },
+  { icon: "tag", title: "Your own tags", text: "Labels that are yours; the AI never invents tags." },
+  { icon: "coins", title: "Foreign currencies", text: "Keep receipts in other currencies and convert at your own rates." },
+  { icon: "users", title: "Family accounts", text: "Everyone can add things. Nobody splits bills." },
+  { icon: "search", title: "Quick search", text: "Press Ctrl or Cmd K to search your receipts." },
+  { icon: "bell", title: "Notifications", text: "Going shopping and warranty reminders, when you switch them on." },
+  { icon: "refresh", title: "Live updates", text: "Shopping lists sync across devices without a refresh." },
+];
+
+const why = [
+  {
+    icon: "server",
+    title: "Self-hosted and private",
+    text: "CartVibe runs on a server you control: a NAS, a mini PC or a small VPS. No account with us and no sign-up. The site you are reading sets no cookies and loads no third-party scripts.",
+  },
+  {
+    icon: "shield",
+    title: "Your data stays on your NAS",
+    text: "Receipts, lists and photos live in a SQLite database and a folder on your own disk, so a backup is a copy of a folder. With the AI on, a receipt photo goes to the provider whose key you chose, and only then.",
+  },
+  {
+    icon: "code",
+    title: "Open source, AGPL-3.0",
+    text: "Read it, change it, run it. CartVibe is free software under the AGPL-3.0 and a fork of Receipt Wrangler, with the credit kept in the licence files and on this page.",
+  },
+];
+
+const rows = [
+  ["Your data stays on your own server", "yes", "Only if the file stays local", "Usually a vendor's cloud"],
+  ["Reads receipt photos for you", "yes", "no", "Some do"],
+  ["Keeps product lines, not just totals", "yes", "By hand", "Rarely"],
+  ["Category and health labels per product", "yes", "By hand", "Rarely"],
+  ["Shared shopping lists that sync live", "yes", "no", "Rarely"],
+  ["Warranty tracking", "yes", "By hand", "Rarely"],
+  ["Open source", "yes", "n/a", "Usually not"],
+  ["Free to run yourself", "yes", "yes", "Often a paid plan"],
+];
+
+const faq = [
+  {
+    q: "What is CartVibe?",
+    a: "A household app for receipts, shopping lists and spending insights. It is a family spending tracker, groceries first, and not business expense software.",
+  },
+  {
+    q: "Do I need to run a server?",
+    a: "Yes. CartVibe is self-hosted. You need Docker with Docker Compose, or a NAS stack manager such as Synology's Container Manager. There is nothing to build: a ready-made image is published at ghcr.io/wouekk/cartvibe, and the quick start in the README has a short compose file.",
+  },
+  {
+    q: "Does it need the AI?",
+    a: "No. The AI is optional. Without it you add receipts and product lines by hand, and everything else works the same. With it, an admin adds a Claude or ChatGPT key and Quick Scan reads receipts for you. If the provider is down or out of credit, CartVibe keeps going and retries later.",
+  },
+  {
+    q: "What does the AI get to see?",
+    a: "Only when you turn it on, and only what you scan: the receipt photo or PDF goes to the provider whose key you configured. Nothing is sent to us, because there is no \"us\" server in the loop.",
+  },
+  {
+    q: "Where is my data stored?",
+    a: "On your server: a SQLite database and a folder of files. Back it up by copying the folder with the container stopped.",
+  },
+  {
+    q: "Is it really free?",
+    a: "Self-hosting is free, under the AGPL-3.0. You pay for your own hardware or server, and for AI usage if you choose to use it.",
+  },
+  {
+    q: "How is it related to Receipt Wrangler?",
+    a: "CartVibe is a personal fork of Receipt Wrangler by Noah Hall and contributors, reshaped into a household app. It is not affiliated with the original authors; the credit is in NOTICE.md, the README and the footer.",
+  },
+  {
+    q: "Is there a mobile app?",
+    a: "CartVibe is a web app that installs to your home screen on iPhone and Android. A native iPhone app is being worked on separately and has not been released.",
+  },
+  {
+    q: "Can the whole family use it?",
+    a: "Yes. Accounts are either Admin or User, everyone in the household can add receipts and list items, and nobody has to split bills or approve anything.",
+  },
+];
+---
+
+<Base
+  title="CartVibe: receipts, shopping lists and spending insights"
+  description="CartVibe is a self-hosted, open source household app: scan receipts with AI, share live shopping lists and see where the money goes."
+>
+  <!-- Hero -->
+  <section class="overflow-hidden border-b border-line">
+    <div class="mx-auto grid max-w-6xl items-center gap-12 px-4 pb-20 pt-14 sm:px-6 lg:grid-cols-[1fr_1.15fr] lg:pb-24 lg:pt-20">
+      <div>
+        <p class="inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-sm font-medium text-muted">
+          <span class="h-2 w-2 rounded-full bg-green"></span> Self-hosted · Open source · AGPL-3.0
+        </p>
+        <h1 class="mt-5 text-balance text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
+          Your household's spending, <span class="grad-green-text">on your own server.</span>
+        </h1>
+        <p class="mt-5 max-w-xl text-lg text-muted">
+          Scan receipts, share live shopping lists and see where the money goes. Made for a phone in the shop and a
+          desktop for the overview.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href={`${repo}#quick-start`} class="btn-primary inline-flex h-12 items-center gap-2 rounded-xl px-6 font-semibold">
+            <Icon name="server" /> Self-host it
+          </a>
+          <a
+            href="#features"
+            class="inline-flex h-12 items-center rounded-xl border border-line px-6 font-semibold hover:bg-surface"
+            >See the features</a
+          >
+        </div>
+        <p class="mt-4 text-sm text-muted">Free to run yourself. The screenshots on this page show demo data.</p>
+      </div>
+      <Shots desktop="dashboard" phone="dashboard" eager alt="The CartVibe Dashboard on a desktop and on a phone" />
+    </div>
+  </section>
+
+  <!-- Feature showcases -->
+  <section id="features" class="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+    <div class="mx-auto max-w-2xl text-center">
+      <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">Everything the household needs, in one place</h2>
+      <p class="mt-4 text-lg text-muted">
+        Receipts, shopping lists, insights and warranties, built to work together.
+      </p>
+    </div>
+    <div class="mt-16 space-y-24">
+      {
+        showcases.map((s, i) => (
+          <article id={s.id} class="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+            <div class:list={[i % 2 === 1 && "lg:order-2"]}>
+              <span class="grad-blue inline-flex h-11 w-11 items-center justify-center rounded-xl text-white">
+                <Icon name={s.icon} class="h-6 w-6" />
+              </span>
+              <p class="mt-4 text-sm font-semibold uppercase tracking-wide text-blue-text">{s.eyebrow}</p>
+              <h3 class="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">{s.title}</h3>
+              <p class="mt-4 text-lg text-muted">{s.text}</p>
+              <ul class="mt-5 space-y-2">
+                {s.points.map((p) => (
+                  <li class="flex gap-3">
+                    <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green text-[#202834]">
+                      <Icon name="check" class="h-4 w-4" />
+                    </span>
+                    <span>{p}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <Shots desktop={s.desktop} phone={s.phone} alt={s.alt} />
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- And many more -->
+  <section class="border-y border-line bg-surface">
+    <div class="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+      <h2 class="text-balance text-center text-3xl font-bold tracking-tight sm:text-4xl">And many more</h2>
+      <p class="mx-auto mt-4 max-w-2xl text-center text-lg text-muted">The small things that make it pleasant to use every day.</p>
+      <ul class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          more.map((m) => (
+            <li class="rounded-xl border border-line bg-card p-5">
+              <span class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-surface text-green-text">
+                <Icon name={m.icon} />
+              </span>
+              <h3 class="mt-3 font-semibold">{m.title}</h3>
+              <p class="mt-1 text-muted">{m.text}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- Why CartVibe -->
+  <section id="why" class="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+    <h2 class="text-balance text-center text-3xl font-bold tracking-tight sm:text-4xl">Why CartVibe?</h2>
+    <ol class="mt-14 grid gap-8 lg:grid-cols-3">
+      {
+        why.map((w, i) => (
+          <li class="rounded-xl border border-line bg-card p-7">
+            <span class="grad-blue inline-flex h-10 w-10 items-center justify-center rounded-full text-lg font-bold text-white">
+              {i + 1}
+            </span>
+            <h3 class="mt-5 text-xl font-bold">{w.title}</h3>
+            <p class="mt-3 text-muted">{w.text}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <!-- Comparison -->
+  <section class="border-y border-line bg-surface">
+    <div class="mx-auto max-w-5xl px-4 py-20 sm:px-6">
+      <h2 class="text-balance text-center text-3xl font-bold tracking-tight sm:text-4xl">How it compares</h2>
+      <p class="mx-auto mt-4 max-w-2xl text-center text-lg text-muted">
+        CartVibe next to a spreadsheet and a typical expense app.
+      </p>
+      <div class="mt-10 overflow-x-auto rounded-xl border border-line bg-card">
+        <table class="w-full min-w-[40rem] border-collapse text-left">
+          <caption class="sr-only">Comparison of CartVibe, spreadsheets and generic expense apps</caption>
+          <thead>
+            <tr class="border-b border-line">
+              <th scope="col" class="p-4 font-semibold">Feature</th>
+              <th scope="col" class="p-4 font-bold text-green-text">CartVibe</th>
+              <th scope="col" class="p-4 font-semibold">Spreadsheet</th>
+              <th scope="col" class="p-4 font-semibold">Generic expense app</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              rows.map((r) => (
+                <tr class="border-b border-line last:border-0">
+                  <th scope="row" class="p-4 font-medium">{r[0]}</th>
+                  {r.slice(1).map((cell, ci) => (
+                    <td class="p-4">
+                      {cell === "yes" ? (
+                        <span class="inline-flex items-center gap-1.5 font-medium">
+                          <span class="flex h-6 w-6 items-center justify-center rounded-full bg-green text-[#202834]">
+                            <Icon name="check" class="h-4 w-4" />
+                          </span>
+                          <span class="sr-only">Yes</span>
+                        </span>
+                      ) : cell === "no" ? (
+                        <span class="inline-flex items-center gap-1.5 text-muted">
+                          <Icon name="dash" class="h-5 w-5" /> <span>No</span>
+                        </span>
+                      ) : (
+                        <span class:list={[ci === 0 ? "" : "text-muted"]}>{cell}</span>
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-3 text-sm text-muted">
+        Expense apps differ a lot; the last column is a general picture, not a claim about any one product.
+      </p>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section id="pricing" class="mx-auto max-w-5xl px-4 py-20 sm:px-6">
+    <h2 class="text-balance text-center text-3xl font-bold tracking-tight sm:text-4xl">Pricing</h2>
+    <p class="mx-auto mt-4 max-w-2xl text-center text-lg text-muted">Run it yourself, for free. That is the whole offer today.</p>
+    <div class="mt-12 grid gap-6 md:grid-cols-2">
+      <div class="flex flex-col rounded-xl border-2 border-green bg-card p-8">
+        <h3 class="text-xl font-bold">Self-hosted</h3>
+        <p class="mt-2 text-4xl font-bold tracking-tight">Free</p>
+        <p class="mt-2 text-muted">On your own NAS, mini PC or VPS.</p>
+        <ul class="mt-6 flex-1 space-y-3">
+          {
+            [
+              "All the features on this page",
+              "Your data on your own disk",
+              "Free software, AGPL-3.0",
+              "Your own AI key, only if you want the AI",
+            ].map((p) => (
+              <li class="flex gap-3">
+                <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green text-[#202834]">
+                  <Icon name="check" class="h-4 w-4" />
+                </span>
+                <span>{p}</span>
+              </li>
+            ))
+          }
+        </ul>
+        <a href={`${repo}#quick-start`} class="btn-primary mt-8 inline-flex h-12 items-center justify-center rounded-xl font-semibold"
+          >Read the quick start</a
+        >
+      </div>
+      <div class="flex flex-col rounded-xl border border-line bg-card p-8">
+        <div class="flex items-center gap-3">
+          <h3 class="text-xl font-bold">Cloud plan</h3>
+          <span class="rounded-full border border-line bg-surface px-3 py-0.5 text-sm font-medium text-muted">Coming soon</span>
+        </div>
+        <p class="mt-2 text-4xl font-bold tracking-tight text-muted">Not yet</p>
+        <p class="mt-2 text-muted">A hosted version for people who would rather not run a server.</p>
+        <p class="mt-6 flex-1 text-muted">
+          It is an idea, not a product: nothing to sign up for, no price and no date. Follow the repository if you want to
+          see what happens.
+        </p>
+        <a href={repo} class="mt-8 inline-flex h-12 items-center justify-center rounded-xl border border-line font-semibold hover:bg-surface"
+          >Follow on GitHub</a
+        >
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="border-t border-line bg-surface">
+    <div class="mx-auto max-w-3xl px-4 py-20 sm:px-6">
+      <h2 class="text-balance text-center text-3xl font-bold tracking-tight sm:text-4xl">Frequently asked questions</h2>
+      <div class="mt-10 space-y-3">
+        {
+          faq.map((f) => (
+            <details class="group rounded-xl border border-line bg-card">
+              <summary class="flex cursor-pointer items-center justify-between gap-4 rounded-xl p-5 font-semibold">
+                {f.q}
+                <Icon name="chevron" class="faq-chevron h-5 w-5 shrink-0 text-muted" />
+              </summary>
+              <p class="px-5 pb-5 text-muted">{f.a}</p>
+            </details>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Closing call to action -->
+  <section class="mx-auto max-w-6xl px-4 py-20 text-center sm:px-6">
+    <h2 class="text-balance text-3xl font-bold tracking-tight sm:text-4xl">Ready to try it?</h2>
+    <p class="mx-auto mt-4 max-w-xl text-lg text-muted">
+      Pull the image, start the stack and open it on your phone. The quick start takes a few minutes.
+    </p>
+    <div class="mt-8 flex flex-wrap justify-center gap-3">
+      <a href={`${repo}#quick-start`} class="btn-primary inline-flex h-12 items-center rounded-xl px-6 font-semibold">Self-host it</a>
+      <a href={repo} class="inline-flex h-12 items-center gap-2 rounded-xl border border-line px-6 font-semibold hover:bg-surface"
+        ><Icon name="github" /> View on GitHub</a
+      >
+    </div>
+    <p class="mt-5 text-sm text-muted">
+      <code class="rounded bg-surface px-2 py-1">ghcr.io/wouekk/cartvibe</code>
+    </p>
+  </section>
+</Base>

@@ -174,7 +174,7 @@ The annotated stack this project runs itself is [docker-compose.yml](docker-comp
 | `desktop/` | Angular web app, installable as a PWA and built for phones first |
 | `docker/` | One production image: nginx serves the app and proxies the Go API |
 | `docs/` | Developer setup, the AI prompts, themes and these screenshots |
-| `site/` | The static project page |
+| `site/` | The project page (static Astro site, see [docs/site.md](docs/site.md)) |
 
 Working notes for contributors and AI agents: [CLAUDE.md](CLAUDE.md), [AGENTS.md](AGENTS.md), [DESIGN.md](DESIGN.md), [docs/dev-setup.md](docs/dev-setup.md).
 

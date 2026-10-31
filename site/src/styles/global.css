@@ -1,0 +1,173 @@
+@import "tailwindcss";
+@import "@fontsource-variable/geist";
+
+/* Palette taken from the app icon (public/brand/icon-light.svg, icon-dark.svg), not from the web app's own tokens. */
+:root {
+  --bg: #ffffff;
+  --surface: #f0f3f7;
+  --card: #ffffff;
+  --text: #202834;
+  --muted: #566073;
+  --line: #d0d6df;
+  --green: #19e68c;
+  --green-deep: #119966;
+  --green-text: #0b7a52;
+  --blue: #0d6efd;
+  --blue-light: #0099ff;
+  --blue-text: #0b5ed7;
+  --on-green: #202834;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #202834;
+  --surface: #1a212b;
+  --card: #283140;
+  --text: #f0f3f7;
+  --muted: #a8b3c4;
+  --line: #3b4455;
+  --green-text: #19e68c;
+  --blue-text: #5ab8ff;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg: #202834;
+    --surface: #1a212b;
+    --card: #283140;
+    --text: #f0f3f7;
+    --muted: #a8b3c4;
+    --line: #3b4455;
+    --green-text: #19e68c;
+    --blue-text: #5ab8ff;
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --font-sans: "Geist Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-ink: var(--text);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-green: var(--green);
+  --color-green-deep: var(--green-deep);
+  --color-green-text: var(--green-text);
+  --color-blue: var(--blue);
+  --color-blue-text: var(--blue-text);
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* Screenshots exist in a day and a night version; show the one matching the page theme. */
+.shot-dark {
+  display: none;
+}
+:root[data-theme="dark"] .shot-light {
+  display: none;
+}
+:root[data-theme="dark"] .shot-dark {
+  display: block;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .shot-light {
+    display: none;
+  }
+  :root:not([data-theme]) .shot-dark {
+    display: block;
+  }
+}
+/* The theme toggle shows the icon of the mode it switches to. */
+.icon-to-dark {
+  display: inline;
+}
+.icon-to-light {
+  display: none;
+}
+:root[data-theme="dark"] .icon-to-dark {
+  display: none;
+}
+:root[data-theme="dark"] .icon-to-light {
+  display: inline;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .icon-to-dark {
+    display: none;
+  }
+  :root:not([data-theme]) .icon-to-light {
+    display: inline;
+  }
+}
+
+.btn-primary {
+  background: linear-gradient(180deg, #19e68c, #16cc7e);
+  color: var(--on-green);
+}
+.btn-primary:hover {
+  background: linear-gradient(180deg, #3deea0, #19e68c);
+}
+.grad-blue {
+  background: linear-gradient(135deg, #0d6efd, #0099ff);
+}
+.grad-green-text {
+  background: linear-gradient(90deg, #19e68c, #119966);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+:root[data-theme="light"] .grad-green-text,
+:root:not([data-theme]) .grad-green-text {
+  background-image: linear-gradient(90deg, #0fa86f, #0b7a52);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .grad-green-text {
+    background-image: linear-gradient(90deg, #19e68c, #5ee9b0);
+  }
+}
+:root[data-theme="dark"] .grad-green-text {
+  background-image: linear-gradient(90deg, #19e68c, #5ee9b0);
+}
+
+:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+:root[data-theme="dark"] :focus-visible {
+  outline-color: #5ab8ff;
+}
+
+details > summary {
+  list-style: none;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}
+details[open] .faq-chevron {
+  transform: rotate(180deg);
+}
+.faq-chevron {
+  transition: transform 0.2s;
+}
