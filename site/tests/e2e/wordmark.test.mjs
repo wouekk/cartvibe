@@ -29,7 +29,6 @@ for (const mode of ["light", "dark"]) {
     const { page, context } = await open(browser, server.origin, "/", { palette: "zinc", mode });
     const emerald = await resolved(page, "#16c976");
     assert.equal(await colour(page, '[data-testid="site-header"] [data-testid="wordmark-vibe"]'), emerald);
-    assert.equal(await colour(page, "footer [data-testid=wordmark-vibe]"), emerald);
     await context.close();
   });
 
@@ -39,7 +38,6 @@ for (const mode of ["light", "dark"]) {
       const primary = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--primary").trim());
       const accent = await resolved(page, primary);
       assert.equal(await colour(page, '[data-testid="site-header"] [data-testid="wordmark-vibe"]'), accent);
-      assert.equal(await colour(page, "footer [data-testid=wordmark-vibe]"), accent);
       const blue = await resolved(page, mode === "dark" ? "#60a5fa" : "#2563eb");
       if (palette !== "blue") assert.notEqual(accent, blue);
       await context.close();

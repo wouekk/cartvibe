@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import Icon from "../components/Icon.astro";
+import Footer from "../components/Footer.astro";
 import Wordmark from "../components/Wordmark.astro";
 
 interface Props {
@@ -26,7 +27,6 @@ const palettes = [
   { key: "violet", label: "Violet" },
 ];
 const linkClass = "rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground";
-const footLink = "transition-colors duration-150 hover:text-foreground";
 ---
 
 <!doctype html>
@@ -142,64 +142,7 @@ const footLink = "transition-colors duration-150 hover:text-foreground";
       <slot />
     </main>
 
-    <footer class="border-t border-border/70 bg-muted/30">
-      <div class="page py-12">
-        <div class="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
-          <div>
-            <div class="flex items-center gap-2.5 font-semibold">
-              <img class="shot-light size-8" src={`${base}/brand/icon-light.svg`} width="32" height="32" alt="" />
-              <img class="shot-dark size-8" src={`${base}/brand/icon-dark.svg`} width="32" height="32" alt="" />
-              <Wordmark />
-            </div>
-            <p class="mt-3 max-w-xs text-[13px] text-muted-foreground">
-              A self-hosted household app for receipts, shopping lists and spending insights.
-            </p>
-          </div>
-          <div>
-            <h2 class="cv-overline">Product</h2>
-            <ul class="mt-3 space-y-2 text-sm text-muted-foreground">
-              <li><a class={footLink} href="#features">Features</a></li>
-              <li><a class={footLink} href="#pricing">Pricing</a></li>
-              <li><a class={footLink} href="#faq">FAQ</a></li>
-            </ul>
-          </div>
-          <div>
-            <h2 class="cv-overline">Project</h2>
-            <ul class="mt-3 space-y-2 text-sm text-muted-foreground">
-              <li><a class={footLink} href={repo}>GitHub</a></li>
-              <li><a class={footLink} href={`${repo}#quick-start`}>Quick start</a></li>
-              <li><a class={footLink} href={`${repo}/blob/main/CHANGELOG.md`}>Changelog</a></li>
-              <li><a class={footLink} href={`${repo}/issues`}>Issues</a></li>
-              <li><a class={footLink} href={`${repo}/pkgs/container/cartvibe`}>Docker image</a></li>
-            </ul>
-          </div>
-          <div>
-            <h2 class="cv-overline">Legal</h2>
-            <ul class="mt-3 space-y-2 text-sm text-muted-foreground">
-              <li><a class={footLink} href={`${repo}/blob/main/LICENSE`}>License (AGPL-3.0)</a></li>
-              <li><a class={footLink} href={`${repo}/blob/main/NOTICE.md`}>NOTICE: credits</a></li>
-            </ul>
-          </div>
-        </div>
-        <div class="mt-10 space-y-3 border-t border-border/60 pt-6 text-[13px] text-muted-foreground">
-          <p>
-            CartVibe is a fork of
-            <a class="font-medium text-primary underline" href="https://github.com/Receipt-Wrangler/receipt-wrangler">Receipt Wrangler</a>
-            by
-            <a class="font-medium text-primary underline" href="https://github.com/Noah231515">Noah Hall (@Noah231515)</a>
-            and contributors, licensed under the AGPL-3.0. This fork is a vibe-coded personal project, written with an AI
-            assistant and maintained as a hobby. It is not affiliated with the original authors. Please report problems
-            with CartVibe on
-            <a class="font-medium text-primary underline" href={`${repo}/issues`}>this fork's issues</a>.
-          </p>
-          <p>
-            Free software under the
-            <a class="font-medium text-primary underline" href={`${repo}/blob/main/LICENSE`}>GNU AGPL-3.0</a>.
-            This site sets no cookies and runs no analytics or third-party scripts.
-          </p>
-        </div>
-      </div>
-    </footer>
+    <Footer />
 
     <script is:inline>
       (function () {
