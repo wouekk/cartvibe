@@ -124,6 +124,11 @@ product is an error (guessing "unplanned" would overstate unplanned spend).
    (`api/scripts/go-without-cgo.sh test ./internal/services/ -run '...'` on the Windows PC).
 5. Check a real scan on the NAS and compare CHAT_COMPLETION durations before/after.
 
+A live check of the Gemini client on made-up receipts (never in CI, never real receipts: a free-tier key may be used by
+Google) is `api/internal/ai/gemini_live_test.go`:
+`GEMINI_API_KEY=... [GEMINI_MODEL=gemini-3.5-flash] api/scripts/go-without-cgo.sh test -tags liveai -run TestGeminiLive -v ./internal/ai/`.
+It proves the client path for a model (JSON mode, thinking, parsing), not the production prompt.
+
 ## Where the AI's output lands (for reports and visualisations)
 
 | Data | Table / field | API |
