@@ -5,7 +5,7 @@ name: Project page
 on:
   push:
     branches: [main, 'feature/**']
-    paths: ["site/**", "desktop/src/themes/**", ".github/workflows/pages.yml"]
+    paths: ["site/**", "desktop/src/themes/**", "CHANGELOG.md", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
@@ -28,6 +28,9 @@ jobs:
       - run: npm ci
         working-directory: site
       - run: npm run build
+        working-directory: site
+      - name: Site unit tests (roadmap mapping, cache, changelog parser)
+        run: npm test
         working-directory: site
       - uses: actions/configure-pages@v6
         if: github.ref == 'refs/heads/main'
