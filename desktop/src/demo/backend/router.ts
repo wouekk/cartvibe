@@ -67,6 +67,8 @@ export class DemoRouter {
       return isResponse(result) ? result : ok(result);
     }
 
+    // Reaching this means the app called an endpoint the demo has no answer for: say so where a developer looks.
+    console.warn(`[demo] no answer for ${req.method} ${req.path}`);
     return fail(404, "This part of CartVibe is not part of the demo.");
   }
 }

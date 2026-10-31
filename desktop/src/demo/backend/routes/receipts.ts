@@ -101,7 +101,7 @@ function searchMatches(db: DemoDb, receipt: Receipt, term: string): ReceiptProdu
 export function filterReceipts(db: DemoDb, groupId: number | undefined, filter: ReceiptPagedRequestCommand["filter"]): Receipt[] {
   const f = (filter ?? {}) as Record<string, FilterField> & { search?: string; warrantyActive?: boolean; warrantyEndsBy?: string };
   const paidBy = idsOf(f["paidBy"]);
-  const statuses = idsOf(f["status"]) ? undefined : (f["status"]?.value as string[] | undefined);
+  const statuses = Array.isArray(f["status"]?.value) ? (f["status"]?.value as string[]).map(String) : undefined;
   const categories = idsOf(f["categories"]);
   const tags = idsOf(f["tags"]);
   const groups = idsOf(f["group"]);

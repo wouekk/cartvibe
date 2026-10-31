@@ -15,6 +15,8 @@ export interface ReportTable {
   intro: string;
   footer: string;
   header: string[];
+  /** Per column: whether it holds figures (drawn right-aligned). */
+  numeric: boolean[];
   rows: string[][];
   /** Rows (by index) that are subtotals or the grand total, drawn bold. */
   emphasised: number[];
@@ -143,6 +145,7 @@ export function runReport(db: DemoDb, command: ReportRequestCommand): ReportTabl
     intro: fill(command.document?.intro),
     footer: fill(command.document?.footer),
     header: [...(aggregateMode ? levels.filter((field) => !dimensionFields.includes(field)).map((field) => command.groupByLabels?.[field] ?? field) : []), ...columns.map(label)],
+    numeric: [...(aggregateMode ? levels.filter((field) => !dimensionFields.includes(field)).map(() => false) : []), ...columns.map((column) => column.kind !== "dimension")],
     rows: [],
     emphasised: [],
     receiptCount: new Set(entries.map((entry) => entry.receipt.id)).size,
@@ -209,9 +212,9 @@ const escapeHtml = (text: string): string => text.replace(/[<>&"]/g, (char) => (
  * not follow the app's theme (a report is paper too).
  */
 export function reportHtml(table: ReportTable): string {
-  const head = table.header.map((text) => `<th>${escapeHtml(text)}</th>`).join("");
+  const head = table.header.map((text, i) => `<th class="${table.numeric[i] ? "num" : ""}">${escapeHtml(text)}</th>`).join("");
   const body = table.rows
-    .map((row, index) => `<tr${table.emphasised.includes(index) ? ' class="total"' : ""}>${row.map((text, i) => `<td class="${i === 0 ? "" : "num"}">${escapeHtml(text)}</td>`).join("")}</tr>`)
+    .map((row, index) => `<tr${table.emphasised.includes(index) ? ' class="total"' : ""}>${row.map((text, i) => `<td class="${table.numeric[i] ? "num" : ""}">${escapeHtml(text)}</td>`).join("")}</tr>`)
     .join("");
 
   return (
@@ -219,7 +222,7 @@ export function reportHtml(table: ReportTable): string {
     `body{font-family:system-ui,sans-serif;color:#1a1a1a;margin:16px;font-size:13px}` +
     `h1{font-size:18px;margin:0 0 4px}p{color:#555;margin:0 0 12px}` +
     `table{border-collapse:collapse;width:100%}th,td{padding:6px 8px;border-bottom:1px solid #e4e4e7;text-align:left}` +
-    `th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#555}td.num{text-align:right}` +
+    `th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#555}td.num,th.num{text-align:right}` +
     `tr.total td{font-weight:700;background:#f4f4f5}.foot{margin-top:12px;font-size:11px;color:#777}` +
     `</style></head><body><h1>${escapeHtml(table.title)}</h1>` +
     (table.intro ? `<p>${escapeHtml(table.intro)}</p>` : "") +
