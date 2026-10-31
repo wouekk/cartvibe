@@ -5,16 +5,15 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 
 ## Current state
 
-- **Demo site (T4) is on `feature/demo-site`, not merged** (`https://wouekk.github.io/cartvibe/demo/` once published). The real app built
-  with `ng build --configuration demo` on an in-memory API (`desktop/src/demo/`, `desktop/docs/demo.md`), a scripted AI, a
-  "Demo, nothing is saved" banner with Reset, hash routing, prefixed storage, nothing leaves the page. Ran here: all desktop
-  specs (314 files), demo specs (58), `i18n:check`, both builds, `check:csp`, `check:demo`, `e2e:demo` (10 of 10 on the built
-  demo, Chromium only). CI on `214707c` was reported green by the owner; this session could not read it (anonymous API
-  rate-limited, no token). **Waiting on the owner:** apply the two patches in `docs/site.md` (`pages.yml` builds and publishes
-  `/demo/`, `ci.yml` builds the demo and runs `check:demo`); until then nothing publishes the demo or checks the bundle in CI.
-  Reviewer findings fixed in `2c1e719` (warranty days, report double count, list amounts, drill-in link); the rest is in
-  `desktop/docs/demo.md` → Known gaps. The cloud repo was read-only for this session (403), so the T4 queue entry is in
-  `docs/T4-queue-entry.md` for the owner to paste. Not run: Safari, Firefox, Lighthouse, a deployed Pages run, the NAS.
+- **Site update (T7) is on `feature/site-update`** (task entry in the cloud repo's `docs/tasks/QUEUE.md` lists the commits).
+  "Vibe" follows the palette (brand emerald in Zinc), one shared two-line footer (also in the demo), home copy and real demo
+  screenshots (`npm run shots` in `site/`), a native roadmap on the home page and at `/roadmap/` (GitHub issues read in the
+  browser, curated fallback, 15 minute `sessionStorage` cache) with the changelog read from `CHANGELOG.md` at build time. Tests:
+  `cd site && npm test` (unit) and `npm run test:e2e` (Chromium, mocked GitHub); the site-only commits are separable from the one
+  `desktop/` commit (the demo footer). **Waiting on the owner:** create the labels `roadmap`, `status:in-progress`,
+  `status:shipped` and label the issues; apply the `pages.yml`/`ci.yml` patches in `docs/site.md` (the demo ones, then the site
+  tests one). The reviewer cherry-picks the `site/`-only commits to `main`. Not run: Safari, Firefox, Lighthouse, a Pages deploy.
+- **Demo (T4) is in `preview`** (`desktop/docs/demo.md`; published only once the `pages.yml` patch in `docs/site.md` is applied).
 
 - **Cell runtime step 1 is in `preview`, not `main`** (`feature/cell-runtime`, CI green at `f8b97f8`: test-api, test-desktop,
   e2e-smoke; `e2e-smoke` needed one re-run for the known 503 flake). `CARTVIBE_MODE` (`standalone` default, `worker`/`imgproc`

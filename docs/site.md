@@ -1,7 +1,8 @@
 # The project site (`site/`)
 
 The marketing page at https://wouekk.github.io/cartvibe/. A static Astro 7 project with Tailwind 4 and the self-hosted
-Geist font (`@fontsource-variable/geist`); no cookies, no analytics, no third-party requests. English only.
+Geist font (`@fontsource-variable/geist`); no cookies, no analytics, no third-party scripts. English only. The one request to a
+third party is the roadmap's read of the project's public GitHub issues (see "Roadmap and changelog").
 
 **Look.** `DESIGN.md` applies: tokens only (no hex in components), Zinc by default plus the Blue, Indigo, Emerald and Violet
 accents, Day and Night. `src/styles/global.css` imports `desktop/src/themes/themes.css` directly, so a palette change in
@@ -14,9 +15,19 @@ and cross-fades four visual layers (transform and opacity only; with reduced mot
 and scroll the track. Below `lg` the steps stack with their visuals. The four steps are household features only; the
 rest of the app is shown further down with real screenshots.
 
-**Art slots.** Each visual is a `Slot` (`data-slot="nanobanana-hero"`, `-step-1` ... `-step-4`): a CSS wireframe of the UI
-(`Wireframe.astro`, labelled "Sample data") over `public/art/<slot>.webp`. Those files are 1 px placeholders; replace one
-with a real 3:2 image of the same name and the page shows it instead of the wireframe, no code change.
+**Visuals.** The hero and the four steps use real screenshots of the demo (`Shots.astro`, files in `src/assets/shots`, see
+"Screenshots"). The old wireframe slots (`Slot.astro`, `Wireframe.astro`, `public/art`, the slot script in `Base.astro`) are no
+longer used by any page; they stay in the tree until the owner decides whether to keep the art idea.
+
+**Wordmark.** `Wordmark.astro` is the one place the name is drawn: "Cart" in the logo text colour, "Vibe" in the brand emerald
+(`#16C976`, the colour of the brand SVGs) in Zinc and in the active palette's `--primary` in Blue, Indigo, Emerald and
+Violet (`.wordmark-vibe` in `global.css`). The app's `--brand-wordmark-accent` token is blue in every palette and the app does
+not use it (its own wordmark, `cartvibe-logo.component.ts`, is a fixed emerald), so the site does not read it.
+
+**Footer.** `Footer.astro`, used by `Base.astro`, is the only footer: two quiet lines (the licence and "Upstream credits in
+NOTICE", then the no cookies, no analytics, no third-party scripts sentence). The demo ends its pages with the same two lines
+(`desktop/src/demo/demo-footer.component.ts`); keep the wording in step. The Receipt Wrangler credit with the author names
+stays in the FAQ; the full credits are in `NOTICE.md`.
 
 ## Build and edit
 
@@ -29,31 +40,69 @@ npm run build      # writes site/dist
 ```
 
 - All copy is in `src/pages/index.astro` (the `steps`, `more`, `grid`, `why`, `rows`, `faq` arrays at the top).
-- The shell (head, nav, footer with the licence and the Receipt Wrangler credit) is `src/layouts/Base.astro`.
-  Keep `LICENSE`, `NOTICE.md` and the upstream credit in the footer.
+- The shell (head, nav) is `src/layouts/Base.astro`; the footer is `src/components/Footer.astro`. Nav links point at
+  `${base}/#section`, so they work from `/roadmap/` too. Keep `LICENSE`, `NOTICE.md` and the upstream credit (the NOTICE link
+  in the footer, the FAQ answer).
 - Icons are inline in `src/components/Icon.astro`; real screenshots are rendered by `src/components/Shots.astro`.
 - Keep the copy honest: no prices, dates, sign-up forms, reviews or counts, and nothing that is not in the app. The Cloud plan
   section (`#cloud`) says a hosted option is planned and nothing more; no phone app is mentioned.
 
 ## Screenshots
 
-Real captures of the app with made-up data, in `src/assets/shots/<page>-<desktop|phone>-<light|dark>.webp`
-(1200 px and 520 px wide). To redo them:
+Real captures of the **demo** (the real app on its made-up household), in `src/assets/shots/<page>-<desktop|phone>-<light|dark>.webp`
+(1200 px and 520 px wide; eight pages: dashboard, charts, shopping, receipts, lines, warranties, reports, check). To redo them:
 
-1. Start the devstack (`docs/dev-setup.md`) on a **fresh** database; `admin` / `admin`.
-2. `node site/tools/seed.mjs` creates the demo household (receipts with product lines, two shopping lists, warranties,
-   a 650 € goal). It reads `API` from `site/tools/lib.mjs` (`http://localhost:8081/api`). Run it once per database.
-3. `SHOTS_DIR=<folder> node site/tools/shots.cjs '<json page list>'` (see the file; it uses Microsoft Edge through
-   Playwright and the dev server on :4200) writes PNGs for desktop 1440 px and phone 390 px, day and night.
-4. `node site/tools/make-images.mjs <folder>` crops and converts them to WebP into `src/assets/shots`.
+1. Build and serve the demo: `cd desktop && npm run build:demo && node tools/serve-demo.cjs` (http://localhost:4300/cartvibe/demo/).
+2. `cd site && npm run shots` (`tools/shots.mjs`; it borrows Playwright from `../desktop`; set `E2E_CHROMIUM_PATH` for an
+   installed Chromium, `DEMO_URL` for another address, `SHOTS_ONLY=lines` or `SHOTS_ONLY=lines-phone-dark` to redo some).
+
+It writes the `.webp` files directly (desktop 1440 px captured, phone 390 px at 2x). The demo's "Demo, nothing is saved" strip is
+hidden in the captures. The sample data moves with the date (the demo seeds relative to today), so a regenerated set shows other
+figures; only the demo's household is ever on screen. Not run in CI.
+
+## Roadmap and changelog
+
+`Roadmap.astro` (home page section, four cards per column, and the `/roadmap/` page, all of them) shows the public issues of
+`wouekk/cartvibe` labelled `roadmap` in three columns, with the changelog beside it at `xl` (below it on smaller screens) and,
+on `/roadmap/`, the whole changelog under the board.
+
+- **Data.** In the browser, `GET https://api.github.com/repos/wouekk/cartvibe/issues?labels=roadmap&state=all&per_page=30`
+  (`credentials: omit`, no referrer), cached in `sessionStorage` (`cartvibe-roadmap-v1`) for 15 minutes; every storage access is in
+  a try/catch. Pull requests are skipped. Closed with `roadmap` or `status:shipped` is Recently Shipped (not when closed as "not
+  planned"); open with `status:in-progress` is In Progress; every other open `roadmap` issue is Planned. Planned and In Progress
+  sort by `+1` reactions, Shipped by closing date. Cards show the title, a two-line plain-text summary (Markdown stripped), the
+  other labels as chips and a thumbs-up pill that links to the issue. Text is written with `textContent`; links carry
+  `rel="noopener noreferrer"`; an issue URL outside the repository is replaced by the board.
+- **Fallback.** A network error, a rate limit (403, 60 anonymous requests an hour per address), a bad answer or an empty board shows
+  `FALLBACK_ROADMAP` (`src/lib/roadmap.mjs`), silently. It must stay true: planned ideas, one thing under way (the households
+  groundwork) and things already in the app. Edit it when the plans change.
+- **This is the one third-party request of the site.** The page says so ("The roadmap loads public issues from GitHub when you open
+  this page"). The footer sentence ("no cookies and runs no analytics or third-party scripts") stays true: the call is a read of
+  public JSON, not a script, and sets nothing. The browser's own console prints a line when GitHub answers 403.
+- **Changelog.** `src/lib/changelog.mjs` reads `CHANGELOG.md` at build time (`?raw` import): version, date and up to three
+  highlights per release (a Conventional Commit subject, else the bold lead-in, else the first sentence; cut at a clause, 64
+  characters at most; Added first, then Changed, Fixed, the rest). The home column shows five releases, `/roadmap/` all. No request
+  in the browser. A release without bullet points shows only version and date.
+- **For the owner, once:** create the labels `roadmap`, `status:in-progress` and `status:shipped` in the repository (and
+  `enhancement` if missing) and label the issues that belong on the board. The agent that built this did not create any. The
+  "Request a Feature" button opens a new issue with `enhancement` and `roadmap` already set, so new requests land under Planned
+  as soon as they are opened; remove the `roadmap` label from an idea you do not want to show.
+
+## Tests
+
+`cd site && npm test` runs the unit tests (`tests/unit`: the roadmap mapping, cache and fallback, the Markdown stripping, the
+changelog parser). `npm run test:e2e` runs the browser tests (`tests/e2e`) against `site/dist` (run `npm run build` first): the
+wordmark colour in every palette, day and night, the footer, the roadmap against a mocked GitHub (live, cached, expired cache,
+403/500/offline/empty, blocked storage, markup in titles, 360 px overflow), the home page copy and screenshots. They use the
+Playwright of `../desktop` (`npm ci` there) and `E2E_CHROMIUM_PATH` for an installed Chromium. No test calls the real GitHub.
 
 ## The demo
 
 `https://wouekk.github.io/cartvibe/demo/` is the real web app (`desktop/`) built with its `demo` configuration and served
 from the same Pages artifact as this page, under `/demo/`. It runs on an in-memory copy of the API with one sample household
 and a scripted AI, sends nothing off the page, and keeps its own storage keys. How it works and what to do when the app
-changes: `desktop/docs/demo.md`. The site links to it with "Try the demo" in the nav (`Base.astro`), the footer and the hero
-(`index.astro`); the links are `${BASE_URL}/demo/`, so they follow the base path.
+changes: `desktop/docs/demo.md`. The site links to it with "Try the demo" in the nav (`Base.astro`) and the hero (`index.astro`);
+the links are `${BASE_URL}/demo/`, so they follow the base path. The demo ends its pages with the site's two-line footer.
 
 To look at it locally: `cd desktop && npm run build:demo`, then `node tools/serve-demo.cjs` and open
 `http://localhost:4300/cartvibe/demo/` (or `npm run start:demo`). `npm run e2e:demo` smoke-tests the built demo.
@@ -143,4 +192,35 @@ The second adds the demo build and the bundle check to the `test-desktop` job of
        - name: Generate coverage report
          uses: irongut/CodeCoverageSummary@v1.3.0
          with:
+```
+
+### Pending workflow change for the site tests (the owner applies it, after the demo patches above)
+
+`git apply` this on top of the `pages.yml` patch above (checked against it). It runs the site's unit tests after the site build
+and its browser tests after the demo smoke test, which has already installed Playwright's Chromium.
+
+```diff
+--- a/.github/workflows/pages.yml
++++ b/.github/workflows/pages.yml
+@@ -32,6 +32,9 @@
+         working-directory: site
+       - run: npm run build
+         working-directory: site
++      - name: Site unit tests (roadmap mapping, cache, changelog parser)
++        run: npm test
++        working-directory: site
+       # The demo: the real app with an in-memory backend. The production build is made too, because the check below
+       # proves the demo is not inside it.
+       - run: npm ci
+@@ -48,6 +51,10 @@
+           npx playwright install --with-deps chromium
+           npm run e2e:demo
+         working-directory: desktop
++      # The site's browser tests borrow the Playwright and Chromium installed for the demo smoke test above.
++      - name: Site browser tests (wordmark, footer, roadmap against a mocked GitHub, home page)
++        run: npm run test:e2e
++        working-directory: site
+       - name: Publish the demo under /demo/
+         run: |
+           mkdir -p site/dist/demo
 ```
