@@ -96,6 +96,20 @@
   }
 }
 
+/* The wordmark: "Cart" in the logo text colour, "Vibe" in the brand emerald of the brand SVGs (Zinc, the default) or in the
+   active palette's accent. The app's --brand-wordmark-accent is blue in every palette, so it is not used here. */
+.wordmark {
+  color: var(--brand-wordmark);
+  font-weight: 600;
+}
+.wordmark-vibe {
+  --brand-emerald: #16c976;
+  color: var(--brand-emerald);
+}
+[data-palette]:not([data-palette="zinc"]) .wordmark-vibe {
+  color: var(--primary);
+}
+
 /* Small uppercase cv-overline (DESIGN.md typography). */
 .cv-overline {
   font-size: 11px;
