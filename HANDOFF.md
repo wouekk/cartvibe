@@ -5,6 +5,7 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 
 ## Current state
 
+- Planning for a hosted plan lives in the separate private repository `wouekk/cartvibe-cloud`; start at its `docs/NEXT-SESSION.md`.
 - `main` = `preview` = v0.14.0 (2026-10-30; the entries below marked "in 0.14.0" are part of it). Last pieces, each from
   its own branch, gated on Node 24.22.1 (npm ci, lockfile stable, audit 0, specs, build, CSP hash) and green in CI,
   also on the merged tree: the runtime image installs no Recommends
