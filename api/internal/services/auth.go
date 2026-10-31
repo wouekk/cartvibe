@@ -327,7 +327,7 @@ func generateTokenPair(userId uint, audience string, refreshLifetime time.Durati
 func GetAppData(userId uint, r *http.Request) (structs.AppData, error) {
 	appData := structs.AppData{}
 
-	aboutRepository := repositories.NewAboutRepository(nil)
+	aboutRepository := repositories.NewAboutRepository(repositories.ImplicitCell(), nil)
 	groupService := NewGroupService(nil)
 	userRepository := repositories.NewUserRepository(nil)
 	userPreferenceRepository := repositories.NewUserPreferencesRepository(nil)

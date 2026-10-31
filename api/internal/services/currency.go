@@ -30,7 +30,7 @@ func loadCurrencyContext() (currencyContext, error) {
 		return currencyContext{}, err
 	}
 
-	rates, err := repositories.NewExchangeRateRepository(nil).GetAll()
+	rates, err := repositories.NewExchangeRateRepository(repositories.ImplicitCell(), nil).GetAll()
 	if err != nil {
 		return currencyContext{}, err
 	}

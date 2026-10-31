@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"cartvibe/api/internal/cell"
 	"cartvibe/api/internal/models"
 
 	"gorm.io/gorm"
@@ -10,9 +11,9 @@ type DashboardLayoutRepository struct {
 	BaseRepository
 }
 
-func NewDashboardLayoutRepository(tx *gorm.DB) DashboardLayoutRepository {
+func NewDashboardLayoutRepository(h cell.Handle, tx *gorm.DB) DashboardLayoutRepository {
 	return DashboardLayoutRepository{BaseRepository: BaseRepository{
-		DB: GetDB(),
+		DB: h.DB(),
 		TX: tx,
 	}}
 }
