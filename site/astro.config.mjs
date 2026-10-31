@@ -6,5 +6,6 @@ export default defineConfig({
   site: "https://wouekk.github.io",
   base: "/cartvibe",
   trailingSlash: "always",
-  vite: { plugins: [tailwindcss()] },
+  // The app's palettes are imported from ../desktop/src/themes, so the dev server may read one level up.
+  vite: { plugins: [tailwindcss()], server: { fs: { allow: [".."] } } },
 });

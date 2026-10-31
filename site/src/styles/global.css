@@ -1,173 +1,241 @@
 @import "tailwindcss";
 @import "@fontsource-variable/geist";
+/* The app's own palettes (zinc first, then Blue, Indigo, Emerald, Violet): one source of truth, see docs/site.md. */
+@import "../../../desktop/src/themes/themes.css";
 
-/* Palette taken from the app icon (public/brand/icon-light.svg, icon-dark.svg), not from the web app's own tokens. */
-:root {
-  --bg: #ffffff;
-  --surface: #f0f3f7;
-  --card: #ffffff;
-  --text: #202834;
-  --muted: #566073;
-  --line: #d0d6df;
-  --green: #19e68c;
-  --green-deep: #119966;
-  --green-text: #0b7a52;
-  --blue: #0d6efd;
-  --blue-light: #0099ff;
-  --blue-text: #0b5ed7;
-  --on-green: #202834;
-  color-scheme: light;
-}
-:root[data-theme="dark"] {
-  --bg: #202834;
-  --surface: #1a212b;
-  --card: #283140;
-  --text: #f0f3f7;
-  --muted: #a8b3c4;
-  --line: #3b4455;
-  --green-text: #19e68c;
-  --blue-text: #5ab8ff;
-  color-scheme: dark;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    --bg: #202834;
-    --surface: #1a212b;
-    --card: #283140;
-    --text: #f0f3f7;
-    --muted: #a8b3c4;
-    --line: #3b4455;
-    --green-text: #19e68c;
-    --blue-text: #5ab8ff;
-    color-scheme: dark;
-  }
-}
+/* Night is the `dark` class on <html>; the palette is `data-palette` on <html> (same as the app, docs/themes.md). */
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: "Geist Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --color-bg: var(--bg);
-  --color-surface: var(--surface);
+  --font-sans: "Geist Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
   --color-card: var(--card);
-  --color-ink: var(--text);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
-  --color-line: var(--line);
-  --color-green: var(--green);
-  --color-green-deep: var(--green-deep);
-  --color-green-text: var(--green-text);
-  --color-blue: var(--blue);
-  --color-blue-text: var(--blue-text);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-warning-text: var(--warning-text);
+  --color-success-text: var(--success-text);
+  --color-nutri-a: var(--nutri-a);
+  --color-nutri-b: var(--nutri-b);
+  --color-nutri-c: var(--nutri-c);
+  --color-nutri-d: var(--nutri-d);
+  --color-nutri-e: var(--nutri-e);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
 }
 
-html {
-  scroll-behavior: smooth;
-  scroll-padding-top: 5rem;
-}
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
-}
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
+@layer base {
+  :root {
+    --radius: 0.625rem;
+    --page-max: 1240px;
   }
   *,
-  *::before,
-  *::after {
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--border);
+  }
+  html {
+    scroll-padding-top: 5rem;
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: clip;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  :focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 50%, transparent);
+    border-radius: var(--radius-md);
   }
 }
 
-/* Screenshots exist in a day and a night version; show the one matching the page theme. */
+/* The one content width of every section. */
+.page {
+  margin-inline: auto;
+  width: 100%;
+  max-width: var(--page-max);
+  padding-inline: 1rem;
+}
+@media (min-width: 640px) {
+  .page {
+    padding-inline: 1.5rem;
+  }
+}
+
+/* Small uppercase cv-overline (DESIGN.md typography). */
+.cv-overline {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+}
+
+/* Screenshots exist in a day and a night version; show the one matching the page mode. */
 .shot-dark {
   display: none;
 }
-:root[data-theme="dark"] .shot-light {
+:root.dark .shot-light {
   display: none;
 }
-:root[data-theme="dark"] .shot-dark {
+:root.dark .shot-dark {
   display: block;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) .shot-light {
-    display: none;
-  }
-  :root:not([data-theme]) .shot-dark {
-    display: block;
-  }
-}
-/* The theme toggle shows the icon of the mode it switches to. */
-.icon-to-dark {
-  display: inline;
-}
+/* The mode toggle shows the icon of the mode it switches to. */
 .icon-to-light {
   display: none;
 }
-:root[data-theme="dark"] .icon-to-dark {
+:root.dark .icon-to-dark {
   display: none;
 }
-:root[data-theme="dark"] .icon-to-light {
+:root.dark .icon-to-light {
   display: inline;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) .icon-to-dark {
-    display: none;
-  }
-  :root:not([data-theme]) .icon-to-light {
-    display: inline;
-  }
-}
 
-.btn-primary {
-  background: linear-gradient(180deg, #19e68c, #16cc7e);
-  color: var(--on-green);
-}
-.btn-primary:hover {
-  background: linear-gradient(180deg, #3deea0, #19e68c);
-}
-.grad-blue {
-  background: linear-gradient(135deg, #0d6efd, #0099ff);
-}
-.grad-green-text {
-  background: linear-gradient(90deg, #19e68c, #119966);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-:root[data-theme="light"] .grad-green-text,
-:root:not([data-theme]) .grad-green-text {
-  background-image: linear-gradient(90deg, #0fa86f, #0b7a52);
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) .grad-green-text {
-    background-image: linear-gradient(90deg, #19e68c, #5ee9b0);
-  }
-}
-:root[data-theme="dark"] .grad-green-text {
-  background-image: linear-gradient(90deg, #19e68c, #5ee9b0);
-}
-
-:focus-visible {
-  outline: 3px solid var(--blue);
-  outline-offset: 2px;
-  border-radius: 6px;
-}
-:root[data-theme="dark"] :focus-visible {
-  outline-color: #5ab8ff;
-}
-
+/* FAQ */
 details > summary {
   list-style: none;
 }
 details > summary::-webkit-details-marker {
   display: none;
 }
+.faq-chevron {
+  transition: transform 150ms;
+}
 details[open] .faq-chevron {
   transform: rotate(180deg);
 }
-.faq-chevron {
-  transition: transform 0.2s;
+
+/* ------------------------------------------------------------------------------------------------------------------
+   Scroll-driven showcase. Script (src/scripts/showcase.ts) writes data-active (0-3) on the stage and --hero-p (0-1)
+   on the hero visual; everything below moves with transform and opacity only.
+   ------------------------------------------------------------------------------------------------------------------ */
+.hero-visual {
+  transform: translateY(calc((1 - var(--hero-p, 1)) * 28px)) scale(calc(0.97 + var(--hero-p, 1) * 0.03));
+  opacity: calc(0.55 + var(--hero-p, 1) * 0.45);
+  transform-origin: top center;
+  will-change: transform, opacity;
+}
+
+.state-layer {
+  opacity: 0;
+  transform: translateY(14px) scale(0.985);
+  transition:
+    opacity 200ms ease,
+    transform 200ms ease;
+  pointer-events: none;
+}
+[data-active="0"] .state-layer[data-state="0"],
+[data-active="1"] .state-layer[data-state="1"],
+[data-active="2"] .state-layer[data-state="2"],
+[data-active="3"] .state-layer[data-state="3"] {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+/* Rows inside a state enter one after another when it becomes active. */
+.stagger > * {
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 200ms ease,
+    transform 200ms ease;
+}
+[data-active="0"] [data-state="0"] .stagger > *,
+[data-active="1"] [data-state="1"] .stagger > *,
+[data-active="2"] [data-state="2"] .stagger > *,
+[data-active="3"] [data-state="3"] .stagger > *,
+.stack-visual .stagger > * {
+  opacity: 1;
+  transform: none;
+  transition-delay: calc(var(--i, 0) * 60ms + 80ms);
+}
+
+/* A step's description opens by growing its grid row. */
+.step-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 200ms ease,
+    opacity 200ms ease;
+}
+.step-body > div {
+  overflow: hidden;
+}
+[aria-current="step"] .step-body {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+/* Art dropped into a slot (see public/art) replaces the wireframe; the 1px placeholder keeps the wireframe. */
+[data-slot] .slot-art {
+  opacity: 0;
+}
+[data-slot][data-art="true"] .slot-art {
+  opacity: 1;
+}
+[data-slot][data-art="true"] .wireframe {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .hero-visual {
+    transform: none;
+    opacity: 1;
+  }
+  .state-layer {
+    transform: none;
+    transition: opacity 150ms linear;
+  }
+  .stagger > * {
+    transform: none;
+    transition: opacity 150ms linear;
+    transition-delay: 0ms !important;
+  }
+  .step-body {
+    transition: opacity 150ms linear;
+  }
+  .live-dot {
+    animation: none !important;
+  }
 }

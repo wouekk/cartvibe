@@ -22,7 +22,7 @@ const loading = eager ? "eager" : "lazy";
   {
     desktop && (
       <div
-        class:list={["overflow-hidden rounded-xl border border-line bg-card shadow-sm", phone ? "hidden sm:mr-16 sm:block" : "overflow-x-auto"]}
+        class:list={["overflow-hidden rounded-xl border border-border/70 bg-card", phone ? "hidden sm:mr-16 sm:block" : "overflow-x-auto"]}
         role={phone ? undefined : "region"}
         aria-label={phone ? undefined : "Screenshot, scrolls sideways on narrow screens"}
         tabindex={phone ? undefined : 0}
@@ -49,7 +49,7 @@ const loading = eager ? "eager" : "lazy";
     phone && (
       <div
         class:list={[
-          "overflow-hidden rounded-[1.75rem] border-[5px] border-ink/90 bg-card shadow-lg",
+          "overflow-hidden rounded-[1.75rem] border-[5px] border-foreground/90 bg-card",
           desktop
             ? "mx-auto w-[15rem] sm:absolute sm:-bottom-6 sm:right-0 sm:w-[26%] sm:min-w-[5.5rem]"
             : "mx-auto w-[15rem] sm:w-[16rem]",

@@ -5,7 +5,7 @@ const C={produce:1,dairy:2,bakery:3,meat:4,drinks:6,sweets:8,pantry:10,house:11,
 const H="HEALTHY",M="MEDIUM",X="UNHEALTHY",NF="NOT_FOOD";
 const S="SEASONAL",O="OUT_OF_SEASON",NP="NOT_PRODUCE";
 const receipts=[
- {d:"2026-10-30",shop:"Edeka",lines:[["Bananas 1.2 kg",2.39,C.produce,H,O],["Apples, Elstar",3.49,C.produce,H,S],["Pumpkin, Hokkaido",2.99,C.produce,H,S],["Whole milk 1 L",1.19,C.dairy,H,NP],["Greek yoghurt",1.79,C.dairy,H,NP],["Sourdough loaf",3.60,C.bakery,M,NP],["Chocolate bar",1.99,C.sweets,X,NP],["Cola 6-pack",5.40,C.drinks,X,NP],["Dish soap",2.19,C.house,NF,NP]]},
+ {d:"2026-10-30",shop:"Edeka",lines:[["Bananas 1.2 kg",2.39,C.produce,H,O],["Pears, Conference",3.49,C.produce,H,S],["Pumpkin, Hokkaido",2.99,C.produce,H,S],["Whole milk 1 L",1.19,C.dairy,H,NP],["Greek yoghurt",1.79,C.dairy,H,NP],["Sourdough loaf",3.60,C.bakery,M,NP],["Chocolate bar",1.99,C.sweets,X,NP],["Cola 6-pack",5.40,C.drinks,X,NP],["Dish soap",2.19,C.house,NF,NP]]},
  {d:"2026-10-27",shop:"Cafe Linde",lines:[["Flat white",3.80,C.cafe,M,NP],["Croissant",2.90,C.bakery,X,NP]]},
  {d:"2026-10-25",shop:"Rewe",lines:[["Chicken breast",8.49,C.meat,H,NP],["Spinach",1.99,C.produce,H,S],["Pasta 500 g",1.29,C.pantry,M,NP],["Tomato sauce",1.49,C.pantry,M,NP],["Parmesan",3.99,C.dairy,M,NP],["Orange juice",2.29,C.drinks,M,NP],["Crisps",2.49,C.sweets,X,NP]]},
  {d:"2026-10-22",shop:"Trattoria Roma",lines:[["Pizza Margherita",11.50,C.rest,M,NP],["Pasta al forno",13.20,C.rest,M,NP],["Tiramisu",6.50,C.rest,X,NP],["Drinks",9.80,C.rest,M,NP]],status:"OPEN"},
@@ -21,7 +21,7 @@ const receipts=[
  {d:"2026-09-24",shop:"Aral",lines:[["Fuel, 41.0 L",68.10,C.fuel,NF,NP]]},
  {d:"2026-09-20",shop:"Lidl",lines:[["Peaches",3.29,C.produce,H,S],["Yoghurt x4",2.36,C.dairy,H,NP],["Pasta",1.29,C.pantry,M,NP],["Pizza, frozen",2.99,C.pantry,X,NP],["Cola",5.40,C.drinks,X,NP],["Cleaning spray",2.49,C.house,NF,NP]]},
  {d:"2026-09-16",shop:"Trattoria Roma",lines:[["Dinner for two",58.40,C.rest,M,NP]]},
- {d:"2026-09-12",shop:"Rewe",lines:[["Apples",3.99,C.produce,H,S],["Cheese",4.59,C.dairy,M,NP],["Ham",3.29,C.meat,M,NP],["Bread rolls",2.10,C.bakery,M,NP],["Juice",2.29,C.drinks,M,NP]]},
+ {d:"2026-09-12",shop:"Rewe",lines:[["Pears",3.99,C.produce,H,S],["Cheese",4.59,C.dairy,M,NP],["Ham",3.29,C.meat,M,NP],["Bread rolls",2.10,C.bakery,M,NP],["Juice",2.29,C.drinks,M,NP]]},
  {d:"2026-09-08",shop:"Transit pass",lines:[["Monthly pass",49.00,C.transit,NF,NP]]},
  {d:"2026-09-04",shop:"Edeka",lines:[["Mixed salad",2.49,C.produce,H,S],["Eggs x10",3.19,C.dairy,H,NP],["Sausages",4.99,C.meat,X,NP],["Beer 6-pack",6.90,C.drinks,X,NP],["Crisps",2.49,C.sweets,X,NP]]},
  {d:"2026-09-02",shop:"Streaming",lines:[["Monthly plan",11.99,C.subs,NF,NP]]},
@@ -61,7 +61,7 @@ const mk=async(name,items,checkedN)=>{
   return l;
 };
 await mk("Hardware store",[["Light bulbs"],["Picture hooks"],["Wood glue"]],0);
-await mk("Weekly groceries",[["Oat milk","2","l"],["Tomatoes","500","g"],["Eggs","10","pcs"],["Spinach"],["Pasta","1","kg"],["Coffee beans"],["Bread"],["Apples","6","pcs"],["Greek yoghurt"],["Dish soap"]],3);
+await mk("Weekly groceries",[["Oat milk","2","l"],["Tomatoes","500","g"],["Eggs","10","pcs"],["Spinach"],["Pasta","1","kg"],["Coffee beans"],["Bread"],["Pears","6","pcs"],["Greek yoghurt"],["Dish soap"]],3);
 const prefs=await c("GET","/userPreferences");
 await c("PUT","/userPreferences",{...prefs,monthlySpendingGoal:"650",onboardingPending:false});
 console.log("done");

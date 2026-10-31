@@ -1,0 +1,36 @@
+---
+// A frame for one visual. `slot` is the data-slot name ("nanobanana-hero", "nanobanana-step-1" ...).
+// Layers, bottom to top: the final art (public/art/<slot>.webp, swapped in by path only) and a CSS wireframe of the
+// UI state. The art file ships as a 1px placeholder; the script in Base.astro shows the art (and hides the wireframe)
+// once a real image is there. The wireframe is illustration, so the frame always says "Sample data".
+interface Props {
+  slot: string;
+  alt: string;
+  class?: string;
+}
+const { slot, alt, class: cls = "" } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+
+<div
+  data-slot={slot}
+  data-testid={`visual-${slot}`}
+  class:list={["relative overflow-hidden rounded-xl border border-border/70 bg-card", cls]}
+>
+  <img
+    class="slot-art absolute inset-0 h-full w-full object-cover transition-opacity duration-150"
+    src={`${base}/art/${slot}.webp`}
+    alt={alt}
+    width="1200"
+    height="800"
+    loading="lazy"
+    decoding="async"
+  />
+  <div class="wireframe relative h-full w-full pt-8 transition-opacity duration-150" role="img" aria-label={alt}>
+    <slot />
+  </div>
+  <span
+    class="absolute right-3 top-3 z-10 rounded-full border border-border/70 bg-background px-2 py-0.5 text-[11px] font-medium text-muted-foreground"
+    >Sample data</span
+  >
+</div>

@@ -16,6 +16,16 @@ const nav = [
   { href: "#pricing", label: "Pricing" },
   { href: "#faq", label: "FAQ" },
 ];
+// Same keys and order as PALETTES in desktop/src/theme/themes.ts.
+const palettes = [
+  { key: "blue", label: "Blue" },
+  { key: "zinc", label: "Zinc" },
+  { key: "indigo", label: "Indigo" },
+  { key: "emerald", label: "Emerald" },
+  { key: "violet", label: "Violet" },
+];
+const linkClass = "rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground";
+const footLink = "transition-colors duration-150 hover:text-foreground";
 ---
 
 <!doctype html>
@@ -27,77 +37,100 @@ const nav = [
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     <link rel="icon" href={`${base}/cartvibe-icon.svg`} type="image/svg+xml" />
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#202834" media="(prefers-color-scheme: dark)" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonical} />
     <script is:inline>
-      // Apply a saved theme before first paint. localStorage only; the site sets no cookies.
-      try {
-        var saved = localStorage.getItem("cartvibe-site-theme");
-        if (saved === "light" || saved === "dark") document.documentElement.dataset.theme = saved;
-      } catch (e) {}
+      // Apply the saved palette and mode before first paint. localStorage only; the site sets no cookies.
+      (function () {
+        var root = document.documentElement;
+        var palette = null;
+        var mode = null;
+        try {
+          palette = localStorage.getItem("cartvibe-site-palette");
+          mode = localStorage.getItem("cartvibe-site-mode");
+        } catch (e) {}
+        if (["blue", "zinc", "indigo", "emerald", "violet"].indexOf(palette) > -1) root.dataset.palette = palette;
+        var dark = mode === "dark" || (mode !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+        root.classList.toggle("dark", dark);
+      })();
     </script>
   </head>
-  <body class="min-h-screen antialiased">
+  <body class="min-h-screen bg-background text-foreground antialiased">
     <a
       href="#main"
-      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-card focus:px-4 focus:py-2 focus:text-ink focus:ring-2 focus:ring-blue"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:border focus:border-border/70 focus:bg-card focus:px-4 focus:py-2"
       >Skip to content</a
     >
-    <header class="sticky top-0 z-50 border-b border-line bg-bg">
-      <div class="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6">
+    <header class="sticky top-0 z-50 border-b border-border/70 bg-background" data-testid="site-header">
+      <div class="page flex h-16 items-center gap-3">
         <a href={`${base}/`} class="flex items-center gap-2.5 font-semibold" aria-label="CartVibe home">
-          <img class="shot-light h-8 w-8" src={`${base}/brand/icon-light.svg`} width="32" height="32" alt="" />
-          <img class="shot-dark h-8 w-8" src={`${base}/brand/icon-dark.svg`} width="32" height="32" alt="" />
-          <span class="text-lg tracking-tight">Cart<span class="text-green-text">Vibe</span></span>
+          <img class="shot-light size-8" src={`${base}/brand/icon-light.svg`} width="32" height="32" alt="" />
+          <img class="shot-dark size-8" src={`${base}/brand/icon-dark.svg`} width="32" height="32" alt="" />
+          <span class="text-lg tracking-tight" style="color: var(--brand-wordmark)"
+            >Cart<span style="color: var(--brand-wordmark-accent)">Vibe</span></span
+          >
         </a>
         <nav aria-label="Main" class="ml-6 hidden items-center gap-1 md:flex">
-          {
-            nav.map((item) => (
-              <a href={item.href} class="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-ink">
-                {item.label}
-              </a>
-            ))
-          }
-          <a href={repo} class="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-ink">GitHub</a>
+          {nav.map((item) => <a href={item.href} class={linkClass}>{item.label}</a>)}
+          <a href={repo} class={linkClass}>GitHub</a>
         </nav>
         <div class="ml-auto flex items-center gap-2">
+          <details class="relative" id="palette-menu">
+            <summary
+              class="inline-flex size-9 cursor-pointer items-center justify-center rounded-md border border-border bg-background hover:bg-accent"
+              aria-label="Colour palette"
+              data-testid="palette-menu"
+            >
+              <Icon name="palette" />
+            </summary>
+            <div class="absolute right-0 top-11 z-50 w-44 rounded-xl border border-border/70 bg-popover p-1.5 text-popover-foreground">
+              <p class="cv-overline px-2 pb-1 pt-1.5">Colour palette</p>
+              {
+                palettes.map((p) => (
+                  <button
+                    type="button"
+                    data-palette-option={p.key}
+                    data-testid={`palette-${p.key}`}
+                    aria-pressed="false"
+                    class="flex h-9 w-full items-center gap-2.5 rounded-md px-2 text-sm hover:bg-accent aria-pressed:bg-accent aria-pressed:font-medium"
+                  >
+                    <span data-palette={p.key} class="size-4 rounded-full border border-border bg-primary" />
+                    {p.label}
+                  </button>
+                ))
+              }
+            </div>
+          </details>
           <button
             type="button"
-            id="theme-toggle"
-            class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-line text-ink hover:bg-surface"
-            aria-label="Switch between day and night mode"
+            id="mode-toggle"
+            data-testid="mode-toggle"
+            class="inline-flex size-9 items-center justify-center rounded-md border border-border bg-background hover:bg-accent"
+            aria-label="Switch between day and night"
           >
             <span class="icon-to-dark"><Icon name="moon" /></span>
             <span class="icon-to-light"><Icon name="sun" /></span>
           </button>
           <a
             href={`${repo}#quick-start`}
-            class="btn-primary hidden h-10 items-center rounded-lg px-4 text-sm font-semibold sm:inline-flex"
+            class="hidden h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:bg-primary/80 sm:inline-flex"
             >Self-host it</a
           >
           <details class="relative md:hidden" id="mobile-menu">
             <summary
-              class="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-line text-ink hover:bg-surface"
+              class="inline-flex size-9 cursor-pointer items-center justify-center rounded-md border border-border bg-background hover:bg-accent"
               aria-label="Menu"
             >
               <Icon name="menu" />
             </summary>
-            <div class="absolute right-0 top-12 w-56 rounded-xl border border-line bg-card p-2 shadow-lg">
-              {
-                nav.map((item) => (
-                  <a href={item.href} class="block rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-surface">
-                    {item.label}
-                  </a>
-                ))
-              }
-              <a href={repo} class="block rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-surface">GitHub</a>
+            <div class="absolute right-0 top-11 z-50 w-56 rounded-xl border border-border/70 bg-popover p-1.5 text-popover-foreground">
+              {nav.map((item) => <a href={item.href} class="block rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent">{item.label}</a>)}
+              <a href={repo} class="block rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent">GitHub</a>
               <a
                 href={`${repo}#quick-start`}
-                class="btn-primary mt-1 block rounded-lg px-3 py-2.5 text-center text-sm font-semibold"
+                class="mt-1 flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/80"
                 >Self-host it</a
               >
             </div>
@@ -110,67 +143,61 @@ const nav = [
       <slot />
     </main>
 
-    <footer class="border-t border-line bg-surface">
-      <div class="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+    <footer class="border-t border-border/70 bg-muted/30">
+      <div class="page py-12">
         <div class="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div>
             <div class="flex items-center gap-2.5 font-semibold">
-              <img class="shot-light h-8 w-8" src={`${base}/brand/icon-light.svg`} width="32" height="32" alt="" />
-              <img class="shot-dark h-8 w-8" src={`${base}/brand/icon-dark.svg`} width="32" height="32" alt="" />
-              <span class="text-lg tracking-tight">Cart<span class="text-green-text">Vibe</span></span>
+              <img class="shot-light size-8" src={`${base}/brand/icon-light.svg`} width="32" height="32" alt="" />
+              <img class="shot-dark size-8" src={`${base}/brand/icon-dark.svg`} width="32" height="32" alt="" />
+              <span class="text-lg tracking-tight" style="color: var(--brand-wordmark)"
+                >Cart<span style="color: var(--brand-wordmark-accent)">Vibe</span></span
+              >
             </div>
-            <p class="mt-3 max-w-xs text-sm text-muted">
+            <p class="mt-3 max-w-xs text-[13px] text-muted-foreground">
               A self-hosted household app for receipts, shopping lists and spending insights.
             </p>
           </div>
           <div>
-            <h2 class="text-sm font-semibold">Product</h2>
-            <ul class="mt-3 space-y-2 text-sm text-muted">
-              <li><a class="hover:text-ink" href="#features">Features</a></li>
-              <li><a class="hover:text-ink" href="#pricing">Pricing</a></li>
-              <li><a class="hover:text-ink" href="#faq">FAQ</a></li>
+            <h2 class="cv-overline">Product</h2>
+            <ul class="mt-3 space-y-2 text-sm text-muted-foreground">
+              <li><a class={footLink} href="#features">Features</a></li>
+              <li><a class={footLink} href="#pricing">Pricing</a></li>
+              <li><a class={footLink} href="#faq">FAQ</a></li>
             </ul>
           </div>
           <div>
-            <h2 class="text-sm font-semibold">Project</h2>
-            <ul class="mt-3 space-y-2 text-sm text-muted">
-              <li><a class="hover:text-ink" href={repo}>GitHub</a></li>
-              <li><a class="hover:text-ink" href={`${repo}#quick-start`}>Quick start</a></li>
-              <li><a class="hover:text-ink" href={`${repo}/blob/main/CHANGELOG.md`}>Changelog</a></li>
-              <li><a class="hover:text-ink" href={`${repo}/issues`}>Issues</a></li>
-              <li>
-                <a class="hover:text-ink" href="https://github.com/wouekk/cartvibe/pkgs/container/cartvibe"
-                  >Docker image</a
-                >
-              </li>
+            <h2 class="cv-overline">Project</h2>
+            <ul class="mt-3 space-y-2 text-sm text-muted-foreground">
+              <li><a class={footLink} href={repo}>GitHub</a></li>
+              <li><a class={footLink} href={`${repo}#quick-start`}>Quick start</a></li>
+              <li><a class={footLink} href={`${repo}/blob/main/CHANGELOG.md`}>Changelog</a></li>
+              <li><a class={footLink} href={`${repo}/issues`}>Issues</a></li>
+              <li><a class={footLink} href={`${repo}/pkgs/container/cartvibe`}>Docker image</a></li>
             </ul>
           </div>
           <div>
-            <h2 class="text-sm font-semibold">Legal</h2>
-            <ul class="mt-3 space-y-2 text-sm text-muted">
-              <li><a class="hover:text-ink" href={`${repo}/blob/main/LICENSE`}>License (AGPL-3.0)</a></li>
-              <li><a class="hover:text-ink" href={`${repo}/blob/main/NOTICE.md`}>NOTICE: credits</a></li>
+            <h2 class="cv-overline">Legal</h2>
+            <ul class="mt-3 space-y-2 text-sm text-muted-foreground">
+              <li><a class={footLink} href={`${repo}/blob/main/LICENSE`}>License (AGPL-3.0)</a></li>
+              <li><a class={footLink} href={`${repo}/blob/main/NOTICE.md`}>NOTICE: credits</a></li>
             </ul>
           </div>
         </div>
-        <div class="mt-10 space-y-3 border-t border-line pt-6 text-sm text-muted">
+        <div class="mt-10 space-y-3 border-t border-border/60 pt-6 text-[13px] text-muted-foreground">
           <p>
             CartVibe is a fork of
-            <a class="font-medium text-green-text underline" href="https://github.com/Receipt-Wrangler/receipt-wrangler"
-              >Receipt Wrangler</a
-            >
+            <a class="font-medium text-primary underline" href="https://github.com/Receipt-Wrangler/receipt-wrangler">Receipt Wrangler</a>
             by
-            <a class="font-medium text-green-text underline" href="https://github.com/Noah231515"
-              >Noah Hall (@Noah231515)</a
-            >
+            <a class="font-medium text-primary underline" href="https://github.com/Noah231515">Noah Hall (@Noah231515)</a>
             and contributors, licensed under the AGPL-3.0. This fork is a vibe-coded personal project, written with an AI
             assistant and maintained as a hobby. It is not affiliated with the original authors. Please report problems
             with CartVibe on
-            <a class="font-medium text-green-text underline" href={`${repo}/issues`}>this fork's issues</a>.
+            <a class="font-medium text-primary underline" href={`${repo}/issues`}>this fork's issues</a>.
           </p>
           <p>
             Free software under the
-            <a class="font-medium text-green-text underline" href={`${repo}/blob/main/LICENSE`}>GNU AGPL-3.0</a>.
+            <a class="font-medium text-primary underline" href={`${repo}/blob/main/LICENSE`}>GNU AGPL-3.0</a>.
             This site sets no cookies and runs no analytics or third-party scripts.
           </p>
         </div>
@@ -180,27 +207,60 @@ const nav = [
     <script is:inline>
       (function () {
         var root = document.documentElement;
-        var button = document.getElementById("theme-toggle");
-        var current = function () {
-          return root.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-        };
-        button.addEventListener("click", function () {
-          var next = current() === "dark" ? "light" : "dark";
-          root.dataset.theme = next;
+        var store = function (key, value) {
           try {
-            localStorage.setItem("cartvibe-site-theme", next);
+            localStorage.setItem(key, value);
           } catch (e) {}
+        };
+        // Mode: Day or Night (the first visit follows the operating system).
+        document.getElementById("mode-toggle").addEventListener("click", function () {
+          var dark = !root.classList.contains("dark");
+          root.classList.toggle("dark", dark);
+          store("cartvibe-site-mode", dark ? "dark" : "light");
         });
-        // Close the phone menu after choosing a link, or when Escape is pressed.
-        var menu = document.getElementById("mobile-menu");
-        menu.addEventListener("click", function (event) {
-          if (event.target.closest("a")) menu.open = false;
+        // Palette: Zinc (the default) plus the four accent palettes of the app.
+        var options = document.querySelectorAll("[data-palette-option]");
+        var paint = function () {
+          var current = root.dataset.palette || "zinc";
+          options.forEach(function (o) {
+            o.setAttribute("aria-pressed", String(o.dataset.paletteOption === current));
+          });
+        };
+        options.forEach(function (o) {
+          o.addEventListener("click", function () {
+            root.dataset.palette = o.dataset.paletteOption;
+            store("cartvibe-site-palette", o.dataset.paletteOption);
+            paint();
+          });
         });
-        document.addEventListener("keydown", function (event) {
-          if (event.key === "Escape" && menu.open) {
-            menu.open = false;
-            menu.querySelector("summary").focus();
-          }
+        paint();
+        // Menus close after a choice and on Escape.
+        var menus = [document.getElementById("mobile-menu"), document.getElementById("palette-menu")];
+        document.getElementById("mobile-menu").addEventListener("click", function (e) {
+          if (e.target.closest("a")) this.open = false;
+        });
+        document.addEventListener("keydown", function (e) {
+          if (e.key !== "Escape") return;
+          menus.forEach(function (m) {
+            if (m.open) {
+              m.open = false;
+              m.querySelector("summary").focus();
+            }
+          });
+        });
+        document.addEventListener("click", function (e) {
+          menus.forEach(function (m) {
+            if (m.open && !m.contains(e.target)) m.open = false;
+          });
+        });
+        // Final art dropped into public/art replaces a slot's wireframe; the 1px placeholder does not.
+        document.querySelectorAll("[data-slot]").forEach(function (slot) {
+          var img = slot.querySelector(".slot-art");
+          var check = function () {
+            if (img.naturalWidth > 8) slot.dataset.art = "true";
+          };
+          if (img.complete) check();
+          img.addEventListener("load", check);
         });
       })();
     </script>
