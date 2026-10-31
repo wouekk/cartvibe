@@ -208,7 +208,7 @@ func visibleByGrants[T any](
 		return all, nil
 	}
 
-	groupIds, err := repositories.NewGroupMemberRepository(nil).GetGroupIdsByUserId(utils.UintToString(userId))
+	groupIds, err := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil).GetGroupIdsByUserId(utils.UintToString(userId))
 	if err != nil {
 		return nil, err
 	}

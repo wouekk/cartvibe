@@ -156,7 +156,7 @@ func (repository CommentRepository) sendNotificationsToUsers(comment models.Comm
 	authorId := *comment.UserId
 	usersToOmit := make([]interface{}, 0)
 	usersToOmit = append(usersToOmit, authorId)
-	notificationRepository := NewNotificationRepository(repository.TX)
+	notificationRepository := NewNotificationRepository(ImplicitCell(), repository.TX)
 	receiptRepository := NewReceiptRepository(repository.TX)
 
 	receipt, err := receiptRepository.GetReceiptById(utils.UintToString(comment.ReceiptId))
@@ -223,7 +223,7 @@ func (repository CommentRepository) recipientsWhoCannotSeeAuthor(authorId uint, 
 		return nil, nil
 	}
 
-	groupMemberRepository := NewGroupMemberRepository(repository.TX)
+	groupMemberRepository := NewGroupMemberRepository(ImplicitCell(), repository.TX)
 	members, err := groupMemberRepository.GetsGroupMembersByGroupId(utils.UintToString(groupId))
 	if err != nil {
 		return nil, err

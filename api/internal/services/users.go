@@ -36,7 +36,7 @@ func DeleteUser(userId string) error {
 			return txErr
 		}
 		if isAdmin {
-			roleRepository := repositories.NewRoleRepository(tx)
+			roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), tx)
 			adminCount, txErr := roleRepository.CountUsersWithAppPermission(permissions.AppUsersRead)
 			if txErr != nil {
 				return txErr
@@ -48,7 +48,7 @@ func DeleteUser(userId string) error {
 
 		var receipts []models.Receipt
 		var groupIdsToNotDelete []uint
-		notificationsRepository := repositories.NewNotificationRepository(tx)
+		notificationsRepository := repositories.NewNotificationRepository(repositories.ImplicitCell(), tx)
 		userPreferncesRepository := repositories.NewUserPreferencesRepository(repositories.ImplicitCell(), tx)
 		groupService := NewGroupService(tx)
 		receiptService := NewReceiptService(tx)

@@ -259,7 +259,7 @@ func (repository ReceiptRepository) CreateReceipt(
 	createSystemTask bool,
 ) (models.Receipt, error) {
 	db := repository.GetDB()
-	notificationRepository := NewNotificationRepository(nil)
+	notificationRepository := NewNotificationRepository(ImplicitCell(), nil)
 	receipt, err := command.ToReceipt()
 	if err != nil {
 		return models.Receipt{}, err
@@ -473,7 +473,7 @@ func (repository ReceiptRepository) GetPagedReceiptsByGroupId(
 	// Filter receipts by group
 	var memberGroupIds []uint
 	if isAllGroup {
-		groupMemberRepository := NewGroupMemberRepository(nil)
+		groupMemberRepository := NewGroupMemberRepository(ImplicitCell(), nil)
 		memberGroupIds, err = groupMemberRepository.GetGroupIdsByUserId(utils.UintToString(userId))
 		if err != nil {
 			return nil, 0, err

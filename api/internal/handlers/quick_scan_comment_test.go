@@ -57,7 +57,7 @@ func seedQuickScanCommenter(t *testing.T, canComment bool, settings models.Group
 		rolePermissions = append(rolePermissions, permissions.GroupCommentsCreate)
 	}
 
-	role, err := repositories.NewRoleRepository(nil).CreateGroupRole(
+	role, err := repositories.NewRoleRepository(repositories.ImplicitCell(), nil).CreateGroupRole(
 		"Quick Scan Commenter", "", rolePermissions, nil, nil, nil, false, false)
 	if err != nil {
 		t.Fatalf("seed group role: %v", err)

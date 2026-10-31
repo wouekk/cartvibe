@@ -103,7 +103,7 @@ func seedReceiptImagePipeline(t *testing.T, url string) (models.User, models.Gro
 	}
 
 	// Write the jpg to the path BuildFilePath will resolve.
-	fileRepo := repositories.NewFileRepository(nil)
+	fileRepo := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
 	path, err := fileRepo.BuildFilePath(utils.UintToString(receipt.ID), utils.UintToString(fileData.ID), fileData.Name)
 	if err != nil {
 		t.Fatalf("BuildFilePath: %v", err)
@@ -161,7 +161,7 @@ func TestReadReceiptImage_PdfRoutesThroughConversion(t *testing.T) {
 	// Replace the on-disk image with a PDF and update the FileData row to
 	// match.
 	db := repositories.GetDB()
-	fileRepo := repositories.NewFileRepository(nil)
+	fileRepo := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
 	path, err := fileRepo.BuildFilePath(utils.UintToString(fileData.ReceiptId), utils.UintToString(fileData.ID), fileData.Name)
 	if err != nil {
 		t.Fatalf("BuildFilePath: %v", err)
@@ -173,7 +173,7 @@ func TestReadReceiptImage_PdfRoutesThroughConversion(t *testing.T) {
 		t.Fatalf("read seeded jpg: %v", err)
 	}
 	// Reuse the files_test helper via a direct ImageMagick conversion.
-	fileRepoImpl := repositories.NewFileRepository(nil)
+	fileRepoImpl := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
 	_ = fileRepoImpl // reserved for readability
 
 	pdfBytes := jpgToPdf(t, jpg)

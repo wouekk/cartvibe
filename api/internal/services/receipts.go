@@ -129,7 +129,7 @@ func (service ReceiptService) SearchReceiptsForUser(userId uint, query string, l
 		return results, nil
 	}
 
-	groupMemberRepository := repositories.NewGroupMemberRepository(service.TX)
+	groupMemberRepository := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), service.TX)
 	groupIds, err := groupMemberRepository.GetGroupIdsByUserId(utils.UintToString(userId))
 	if err != nil {
 		return nil, err
@@ -206,7 +206,7 @@ func (service ReceiptService) DeleteReceipt(id string) error {
 
 	err = db.Transaction(func(tx *gorm.DB) error {
 		var imagesToDelete []string
-		fileRepository := repositories.NewFileRepository(tx)
+		fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), tx)
 		fileRepository.SetTransaction(tx)
 
 		for _, f := range receipt.ImageFiles {
@@ -215,7 +215,7 @@ func (service ReceiptService) DeleteReceipt(id string) error {
 		}
 
 		// Products are not an association of Receipt, so the delete below cannot reach them.
-		err = repositories.NewReceiptProductRepository(tx).DeleteReceiptProducts(receipt.ID)
+		err = repositories.NewReceiptProductRepository(repositories.ImplicitCell(), tx).DeleteReceiptProducts(receipt.ID)
 		if err != nil {
 			return err
 		}
@@ -274,7 +274,7 @@ func (service ReceiptService) QuickScan(params QuickScanParams) (models.Receipt,
 	systemTaskService := NewSystemTaskService(service.TX)
 	var createdReceipt models.Receipt
 
-	fileRepository := repositories.NewFileRepository(service.TX)
+	fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), service.TX)
 	fileBytes, err := utils.ReadFile(params.TempPath)
 	if err != nil {
 		return models.Receipt{}, err
@@ -758,7 +758,7 @@ func (service ReceiptService) DuplicateReceipt(
 // It returns every path it wrote or tried to write, on success and on failure
 // alike, so the caller can remove them if the transaction does not commit.
 func copyDuplicateImages(tx *gorm.DB, sources []models.FileData, copies []models.FileData) ([]string, error) {
-	fileRepository := repositories.NewFileRepository(tx)
+	fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), tx)
 	written := make([]string, 0, len(copies))
 
 	for i, copied := range copies {
@@ -840,7 +840,7 @@ func (service ReceiptService) CreateReceiptWithFiles(
 		createdReceiptId = createdReceipt.ID
 
 		receiptImageRepository := repositories.NewReceiptImageRepository(tx)
-		fileRepository := repositories.NewFileRepository(tx)
+		fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), tx)
 		for _, file := range files {
 			fileData := models.FileData{
 				Name:      file.Name,

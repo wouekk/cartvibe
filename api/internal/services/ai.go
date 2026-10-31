@@ -11,7 +11,7 @@ import (
 )
 
 func NewAiService(receiptProcessingSettingsId string) (*AiService, error) {
-	repository := repositories.NewReceiptProcessingSettings(nil)
+	repository := repositories.NewReceiptProcessingSettings(repositories.ImplicitCell(), nil)
 	client := &AiService{}
 
 	receiptProcessingSettings, err := repository.GetReceiptProcessingSettingsById(receiptProcessingSettingsId)

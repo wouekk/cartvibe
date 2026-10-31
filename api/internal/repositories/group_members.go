@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"cartvibe/api/internal/cell"
 	"maps"
 	"cartvibe/api/internal/models"
 	"slices"
@@ -12,10 +13,11 @@ type GroupMemberRepository struct {
 	BaseRepository
 }
 
-func NewGroupMemberRepository(tx *gorm.DB) GroupMemberRepository {
+func NewGroupMemberRepository(h cell.Handle, tx *gorm.DB) GroupMemberRepository {
 	repository := GroupMemberRepository{BaseRepository: BaseRepository{
-		DB: GetDB(),
-		TX: tx,
+		DB:   h.DB(),
+		TX:   tx,
+		Cell: h,
 	}}
 	return repository
 }

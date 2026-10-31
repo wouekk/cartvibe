@@ -114,7 +114,7 @@ func (service OcrService) ReadImageWithTesseract(preparedImageBytes []byte) (str
 }
 
 func (service OcrService) writeDebuggingFiles(ocrText string, path string, imageBytes []byte, ocrDuration time.Duration) error {
-	fileRepository := repositories.NewFileRepository(nil)
+	fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
 	pathParts := strings.Split(path, "/")
 	filename := pathParts[len(pathParts)-1]
 

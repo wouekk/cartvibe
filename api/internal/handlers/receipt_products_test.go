@@ -57,7 +57,7 @@ func TestReceiptProductsReportsNotQueuedThenTheProducts(t *testing.T) {
 		t.Errorf("expected NOT_QUEUED with an empty list, got %+v", view)
 	}
 
-	repository := repositories.NewReceiptProductRepository(nil)
+	repository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil)
 	if err := repository.MarkReceiptProductsPending(receipt.ID); err != nil {
 		t.Fatalf("queue: %v", err)
 	}
@@ -126,7 +126,7 @@ func TestBackfillQueuesOnlyUnreadReceiptsWithImages(t *testing.T) {
 	seedProductReceipt(t, 1, false)
 	seedProductReceipt(t, 2, true) // another group
 	// Already queued: not queued again.
-	if err := repositories.NewReceiptProductRepository(nil).MarkReceiptProductsPending(withImage.ID); err != nil {
+	if err := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil).MarkReceiptProductsPending(withImage.ID); err != nil {
 		t.Fatalf("queue: %v", err)
 	}
 

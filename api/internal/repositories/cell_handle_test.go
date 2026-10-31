@@ -47,6 +47,12 @@ func TestRepositoriesUseTheHandlesDatabase(t *testing.T) {
 			"ReportTemplateRepository":  NewReportTemplateRepository(h, nil).GetDB(),
 			"ShoppingTripRepository":    NewShoppingTripRepository(h, nil).GetDB(),
 			"GroupReceiptSettings":      NewGroupReceiptSettingsRepository(h, nil).GetDB(),
+			"RoleRepository":            NewRoleRepository(h, nil).GetDB(),
+			"GroupMemberRepository":     NewGroupMemberRepository(h, nil).GetDB(),
+			"NotificationRepository":    NewNotificationRepository(h, nil).GetDB(),
+			"ReceiptProcessing":         NewReceiptProcessingSettings(h, nil).GetDB(),
+			"FileRepository":            NewFileRepository(h, nil).GetDB(),
+			"ReceiptProductRepository":  NewReceiptProductRepository(h, nil).GetDB(),
 		} {
 			if got != h.DB() {
 				t.Errorf("cell %s: %s does not use its handle's database", w, name)

@@ -48,7 +48,7 @@ func seedRestrictedReceiptCreatorWithGrants(t *testing.T, categoryGrantIds []uin
 		t.Fatalf("seed group: %v", err)
 	}
 
-	role, err := repositories.NewRoleRepository(nil).CreateGroupRole(
+	role, err := repositories.NewRoleRepository(repositories.ImplicitCell(), nil).CreateGroupRole(
 		"Restricted Creator",
 		"",
 		[]string{permissions.GroupReceiptsCreate, permissions.GroupReceiptsRead, permissions.GroupReceiptsUpdate},
@@ -93,7 +93,7 @@ func seedRestrictedQuickScanner(t *testing.T, categoryGrantIds []uint) (uint, ui
 		t.Fatalf("seed group receipt settings: %v", err)
 	}
 
-	role, err := repositories.NewRoleRepository(nil).CreateGroupRole(
+	role, err := repositories.NewRoleRepository(repositories.ImplicitCell(), nil).CreateGroupRole(
 		"Restricted Quick Scanner",
 		"",
 		[]string{permissions.GroupReceiptsQuickScan},

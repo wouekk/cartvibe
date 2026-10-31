@@ -102,7 +102,7 @@ func (service *ReceiptCsvService) GetZippedCsvFiles(receipts []models.Receipt) (
 		return nil, err
 	}
 
-	fileRepository := repositories.NewFileRepository(nil)
+	fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
 	zip, err := fileRepository.ZipFiles(
 		[]string{"receipts.csv"},
 		[][]byte{csvResult.ReceiptCsvBytes},

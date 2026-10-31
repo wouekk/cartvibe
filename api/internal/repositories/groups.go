@@ -42,7 +42,7 @@ func (repository GroupRepository) GetPagedGroups(command commands.PagedGroupRequ
 	if command.GroupFilter.AssociatedGroup == commands.ASSOCIATED_GROUP_ALL {
 		query.Count(&count)
 	} else {
-		groupMemberRepository := NewGroupMemberRepository(nil)
+		groupMemberRepository := NewGroupMemberRepository(ImplicitCell(), nil)
 		groupMembers, err := groupMemberRepository.GetGroupMembersByUserId(userId)
 		if err != nil {
 			return nil, 0, err
@@ -120,7 +120,7 @@ func (repository GroupRepository) CreateGroup(command commands.UpsertGroupComman
 		// Assign the creator the modern default group role so the membership is
 		// not locked out under permission enforcement. Best-effort: nil when no
 		// default is seeded (e.g. an unseeded test database).
-		roleRepository := NewRoleRepository(tx)
+		roleRepository := NewRoleRepository(ImplicitCell(), tx)
 		defaultGroupRoleId, txErr := roleRepository.GetDefaultGroupRoleId()
 		if txErr != nil {
 			repository.ClearTransaction()

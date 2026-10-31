@@ -65,7 +65,7 @@ func NewReceiptProcessingService(tx *gorm.DB, receiptProcessingSettingsId string
 		TX: tx,
 	}}
 
-	receiptProcessingSettingsRepository := repositories.NewReceiptProcessingSettings(nil)
+	receiptProcessingSettingsRepository := repositories.NewReceiptProcessingSettings(repositories.ImplicitCell(), nil)
 	receiptProcessingSettings, err := receiptProcessingSettingsRepository.GetReceiptProcessingSettingsById(receiptProcessingSettingsId)
 	if err != nil {
 		return service, err
@@ -369,7 +369,7 @@ func (service ReceiptProcessingService) readNormalizedImage(imagePath string) ([
 		return nil, err
 	}
 
-	normalized, err := repositories.NewFileRepository(service.TX).NormalizeImageForVision(fileBytes)
+	normalized, err := repositories.NewFileRepository(repositories.ImplicitCell(), service.TX).NormalizeImageForVision(fileBytes)
 	if err != nil {
 		return nil, fmt.Errorf("could not prepare the image for the AI: %w", err)
 	}
@@ -378,7 +378,7 @@ func (service ReceiptProcessingService) readNormalizedImage(imagePath string) ([
 }
 
 func (service ReceiptProcessingService) getOpenAiBase64Image(imagePath string) (string, error) {
-	fileRepository := repositories.NewFileRepository(service.TX)
+	fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), service.TX)
 	fileBytes, err := service.readNormalizedImage(imagePath)
 	if err != nil {
 		return "", err

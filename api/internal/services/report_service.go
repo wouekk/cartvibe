@@ -440,7 +440,7 @@ func (service ReportService) assembleDownload(name string, files []renderedFile)
 		contents[index] = file.bytes
 	}
 
-	zipBytes, err := repositories.NewFileRepository(service.TX).ZipFiles(names, contents)
+	zipBytes, err := repositories.NewFileRepository(repositories.ImplicitCell(), service.TX).ZipFiles(names, contents)
 	if err != nil {
 		return GeneratedReport{}, err
 	}

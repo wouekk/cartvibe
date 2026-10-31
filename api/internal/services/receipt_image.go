@@ -36,7 +36,7 @@ func ReadReceiptImage(receiptImageId string) (commands.UpsertReceiptCommand, com
 	if err != nil {
 		return result, commands.ReceiptProcessingMetadata{}, err
 	}
-	fileRepository := repositories.NewFileRepository(nil)
+	fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
 
 	receiptImagePath, err := fileRepository.BuildFilePath(utils.UintToString(receiptImage.ReceiptId), receiptImageId, receiptImage.Name)
 	if err != nil {
@@ -84,7 +84,7 @@ func MagicFillFromImage(command commands.MagicFillCommand, groupId string, userI
 // magicFillFromImage reads an image into a receipt; includeProducts asks the same call for the product lines,
 // which only a caller that saves the receipt (quick scan) can use.
 func magicFillFromImage(command commands.MagicFillCommand, groupId string, userId uint, includeProducts bool) (commands.UpsertReceiptCommand, commands.ReceiptProcessingMetadata, error) {
-	fileRepository := repositories.NewFileRepository(nil)
+	fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
 	receiptProcessingService, err := NewSystemReceiptProcessingService(nil, groupId)
 	if err != nil {
 		return commands.UpsertReceiptCommand{}, commands.ReceiptProcessingMetadata{}, err

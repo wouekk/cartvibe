@@ -18,7 +18,7 @@ import (
 func setMemberGrants(t *testing.T, userId uint, groupId uint, categoryIds []uint, tagIds []uint) {
 	t.Helper()
 
-	err := repositories.NewGroupMemberRepository(nil).ReplaceMemberGrants(userId, groupId, categoryIds, tagIds)
+	err := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil).ReplaceMemberGrants(userId, groupId, categoryIds, tagIds)
 	if err != nil {
 		t.Fatalf("ReplaceMemberGrants: %v", err)
 	}
@@ -34,7 +34,7 @@ func setMemberGrants(t *testing.T, userId uint, groupId uint, categoryIds []uint
 func setRequiresIndividualGrants(t *testing.T, roleId uint, categories bool, tags bool) {
 	t.Helper()
 
-	err := repositories.NewRoleRepository(nil).SetGroupRoleIndividualGrantConfig(roleId, categories, tags)
+	err := repositories.NewRoleRepository(repositories.ImplicitCell(), nil).SetGroupRoleIndividualGrantConfig(roleId, categories, tags)
 	if err != nil {
 		t.Fatalf("SetGroupRoleIndividualGrantConfig: %v", err)
 	}
@@ -296,7 +296,7 @@ func TestMemberGrants_RemovedMemberGrantsDoNotResurrectOnRejoin(t *testing.T) {
 	// They must come back with NO assignment, not their revoked one.
 	assertAllowedCategories(t, userId, groupId, false, nil)
 
-	categoryIds, err := repositories.NewGroupMemberRepository(nil).GetMemberCategoryGrantIds(userId, groupId)
+	categoryIds, err := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil).GetMemberCategoryGrantIds(userId, groupId)
 	if err != nil {
 		t.Fatalf("GetMemberCategoryGrantIds: %v", err)
 	}
@@ -334,7 +334,7 @@ func TestMemberGrants_OrphanCleanupKeepsRetainedMembers(t *testing.T) {
 		t.Fatalf("DeleteOrphanedMemberGrants: %v", err)
 	}
 
-	groupMemberRepository := repositories.NewGroupMemberRepository(nil)
+	groupMemberRepository := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil)
 
 	keptIds, err := groupMemberRepository.GetMemberCategoryGrantIds(keptUserId, groupId)
 	if err != nil {
@@ -376,7 +376,7 @@ func TestUpdateMemberGrants_RejectsIdsOutsideRoleCeiling(t *testing.T) {
 	}
 
 	// Nothing may have been written.
-	categoryIds, err := repositories.NewGroupMemberRepository(nil).GetMemberCategoryGrantIds(userId, groupId)
+	categoryIds, err := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil).GetMemberCategoryGrantIds(userId, groupId)
 	if err != nil {
 		t.Fatalf("GetMemberCategoryGrantIds: %v", err)
 	}
@@ -555,7 +555,7 @@ func TestDeleteGroupRemovesMemberGrants(t *testing.T) {
 	userId, groupId, _ := seedMemberWithGroupRoleGrants(t, "m-group-delete", nil, nil)
 	setMemberGrants(t, userId, groupId, []uint{catA}, nil)
 
-	before, err := repositories.NewGroupMemberRepository(nil).GetMemberCategoryGrantIds(userId, groupId)
+	before, err := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil).GetMemberCategoryGrantIds(userId, groupId)
 	if err != nil {
 		t.Fatalf("GetMemberCategoryGrantIds: %v", err)
 	}

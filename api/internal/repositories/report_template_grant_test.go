@@ -26,7 +26,7 @@ func makeTestReportTemplate(t *testing.T, name string) uint {
 
 func TestReportTemplateGrantAndGroupTablesMigrate(t *testing.T) {
 	defer TruncateTestDb()
-	repository := NewRoleRepository(nil)
+	repository := NewRoleRepository(ImplicitCell(), nil)
 
 	templateId := makeTestReportTemplate(t, "Quarterly")
 	role, err := repository.CreateGroupRole("Role", "", []string{permissions.GroupReportsRead}, nil, nil, nil, false, false)
@@ -52,7 +52,7 @@ func TestReportTemplateGrantAndGroupTablesMigrate(t *testing.T) {
 
 func TestDeleteReportTemplateCascadesGrantAndGroupRows(t *testing.T) {
 	defer TruncateTestDb()
-	repository := NewRoleRepository(nil)
+	repository := NewRoleRepository(ImplicitCell(), nil)
 
 	templateId := makeTestReportTemplate(t, "Cascade Template")
 	role, err := repository.CreateGroupRole("Role", "", []string{permissions.GroupReportsRead}, nil, nil, nil, false, false)
@@ -85,7 +85,7 @@ func TestDeleteReportTemplateCascadesGrantAndGroupRows(t *testing.T) {
 
 func TestDeleteGroupRoleCascadesReportTemplateGrants(t *testing.T) {
 	defer TruncateTestDb()
-	repository := NewRoleRepository(nil)
+	repository := NewRoleRepository(ImplicitCell(), nil)
 
 	templateId := makeTestReportTemplate(t, "Role Cascade Template")
 	role, err := repository.CreateGroupRole("Role", "", []string{permissions.GroupReportsRead}, nil, nil, nil, false, false)
@@ -110,7 +110,7 @@ func TestDeleteGroupRoleCascadesReportTemplateGrants(t *testing.T) {
 
 func TestReplaceGroupRoleReportTemplateGrantsPersistsAndReplaces(t *testing.T) {
 	defer TruncateTestDb()
-	repository := NewRoleRepository(nil)
+	repository := NewRoleRepository(ImplicitCell(), nil)
 
 	t1 := makeTestReportTemplate(t, "T1")
 	t2 := makeTestReportTemplate(t, "T2")
@@ -182,7 +182,7 @@ func TestReplaceGroupRoleReportTemplateGrantsPersistsAndReplaces(t *testing.T) {
 
 func TestReplaceGroupRoleReportTemplateGrantsEmptyClearsRestricted(t *testing.T) {
 	defer TruncateTestDb()
-	repository := NewRoleRepository(nil)
+	repository := NewRoleRepository(ImplicitCell(), nil)
 
 	t1 := makeTestReportTemplate(t, "T1")
 	role, err := repository.CreateGroupRole("Report Role", "", []string{permissions.GroupReportsRead}, nil, nil, nil, false, false)

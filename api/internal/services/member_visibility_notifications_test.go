@@ -36,7 +36,7 @@ func seedIsoReceipt(t *testing.T, groupId uint, paidByUserId uint) models.Receip
 
 func countNotifications(t *testing.T, userId uint) int {
 	t.Helper()
-	notifications, err := repositories.NewNotificationRepository(nil).GetNotificationsForUser(userId)
+	notifications, err := repositories.NewNotificationRepository(repositories.ImplicitCell(), nil).GetNotificationsForUser(userId)
 	if err != nil {
 		t.Fatalf("get notifications for %d: %v", userId, err)
 	}

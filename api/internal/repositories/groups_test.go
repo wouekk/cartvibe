@@ -73,7 +73,7 @@ func TestCreateGroupAssignsDefaultGroupRole(t *testing.T) {
 	}
 
 	member := created.GroupMembers[0]
-	roleRepository := NewRoleRepository(nil)
+	roleRepository := NewRoleRepository(ImplicitCell(), nil)
 	defaultId, err := roleRepository.GetDefaultGroupRoleId()
 	if err != nil {
 		utils.PrintTestError(t, err, nil)

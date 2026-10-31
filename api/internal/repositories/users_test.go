@@ -67,7 +67,7 @@ func TestCreateUserAssignsDefaultAppRole(t *testing.T) {
 	}
 
 	userRepository := NewUserRepository(nil)
-	roleRepository := NewRoleRepository(nil)
+	roleRepository := NewRoleRepository(ImplicitCell(), nil)
 
 	// The first user becomes ADMIN and must get the Legacy Admin role (never the
 	// configurable default), so the bootstrap admin is never locked out.
@@ -118,7 +118,7 @@ func TestCreateUserHonorsExplicitAppRole(t *testing.T) {
 	}
 
 	userRepository := NewUserRepository(nil)
-	roleRepository := NewRoleRepository(nil)
+	roleRepository := NewRoleRepository(ImplicitCell(), nil)
 
 	legacyAdminId, err := roleRepository.GetAppRoleIdByName(LegacyAdminRoleName)
 	if err != nil || legacyAdminId == nil {
@@ -200,7 +200,7 @@ func TestCreateUserSkipsDefaultGroupForFlaggedAppRole(t *testing.T) {
 	}
 
 	userRepository := NewUserRepository(nil)
-	roleRepository := NewRoleRepository(nil)
+	roleRepository := NewRoleRepository(ImplicitCell(), nil)
 
 	// Occupy the first-user slot so the accounts below take their explicit role
 	// rather than the bootstrap Legacy Admin.
@@ -328,7 +328,7 @@ func TestUpdateUserAssignsAppRole(t *testing.T) {
 	}
 
 	userRepository := NewUserRepository(nil)
-	roleRepository := NewRoleRepository(nil)
+	roleRepository := NewRoleRepository(ImplicitCell(), nil)
 
 	created, err := userRepository.CreateUser(commands.SignUpCommand{
 		Username: "user", DisplayName: "u", Password: "a really secure password",
@@ -534,7 +534,7 @@ func validateUser(t *testing.T, createdUser models.User, userToCreate commands.S
 		utils.PrintTestError(t, createdUser.DefaultAvatarColor, "#27b1ff")
 	}
 
-	roleRepository := NewRoleRepository(nil)
+	roleRepository := NewRoleRepository(ImplicitCell(), nil)
 	var expectedRoleId *uint
 	var err error
 	if isFirstUser {
@@ -732,7 +732,7 @@ func TestSecondUserJoinsHouseholdAsMemberWithoutAPersonalGroup(t *testing.T) {
 		return
 	}
 
-	memberRoleId, _ := NewRoleRepository(nil).GetGroupRoleIdByName(FamilyMemberRoleName)
+	memberRoleId, _ := NewRoleRepository(ImplicitCell(), nil).GetGroupRoleIdByName(FamilyMemberRoleName)
 	for _, member := range members {
 		if member.UserID == second.ID && !uintPtrEqual(member.GroupRoleID, memberRoleId) {
 			utils.PrintTestError(t, member.GroupRoleID, memberRoleId)

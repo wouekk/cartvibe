@@ -21,7 +21,7 @@ func seedMemberWithGroupRoleGrants(t *testing.T, username string, categoryGrantI
 		t.Fatalf("seed group: %v", err)
 	}
 
-	roleRepository := repositories.NewRoleRepository(nil)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
 	role, err := roleRepository.CreateGroupRole("Grant Role "+username, "", []string{permissions.GroupReceiptsRead}, categoryGrantIds, tagGrantIds, nil, false, false)
 	if err != nil {
 		t.Fatalf("seed group role: %v", err)

@@ -30,7 +30,7 @@ func TestGetActivitiesForGroupsFiltersCountAndRowsForIsolatedGroup(t *testing.T)
 	t.Setenv("VALKEY_PORT", "6379")
 
 	db := repositories.GetDB()
-	roleRepository := repositories.NewRoleRepository(nil)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
 
 	group := models.Group{Name: "iso-activities", IsolateMembers: true}
 	if err := db.Create(&group).Error; err != nil {

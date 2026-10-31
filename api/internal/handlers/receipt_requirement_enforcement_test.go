@@ -47,18 +47,18 @@ func seedRequirementGroup(t *testing.T, name string, requireComment bool, requir
 
 func setMemberRequirements(t *testing.T, userId uint, groupId uint, requireComment bool, requireImage bool) {
 	t.Helper()
-	roleId, err := repositories.NewRoleRepository(nil).GetGroupMemberRoleId(userId, groupId)
+	roleId, err := repositories.NewRoleRepository(repositories.ImplicitCell(), nil).GetGroupMemberRoleId(userId, groupId)
 	if err != nil || roleId == nil {
 		t.Fatalf("resolve member role: %v", err)
 	}
-	if err := repositories.NewRoleRepository(nil).SetGroupRoleReceiptRequirements(*roleId, requireComment, requireImage); err != nil {
+	if err := repositories.NewRoleRepository(repositories.ImplicitCell(), nil).SetGroupRoleReceiptRequirements(*roleId, requireComment, requireImage); err != nil {
 		t.Fatalf("set requirements: %v", err)
 	}
 }
 
 func cleanUpGroupDir(t *testing.T, groupId uint) {
 	t.Helper()
-	groupPath, err := repositories.NewFileRepository(nil).BuildGroupPath(groupId, "")
+	groupPath, err := repositories.NewFileRepository(repositories.ImplicitCell(), nil).BuildGroupPath(groupId, "")
 	if err != nil {
 		t.Fatalf("BuildGroupPath: %v", err)
 	}
@@ -156,7 +156,7 @@ func assertNothingWritten(t *testing.T, groupId uint) {
 		}
 	}
 
-	groupPath, err := repositories.NewFileRepository(nil).BuildGroupPath(groupId, "")
+	groupPath, err := repositories.NewFileRepository(repositories.ImplicitCell(), nil).BuildGroupPath(groupId, "")
 	if err != nil {
 		t.Fatalf("BuildGroupPath: %v", err)
 	}

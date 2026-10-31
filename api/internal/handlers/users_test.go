@@ -234,7 +234,7 @@ func TestDeleteAccountShouldPreventLastAdminDeletion(t *testing.T) {
 	grantAppPerms(t, user.ID, permissions.AppUsersRead, permissions.AppAccountDelete)
 
 	// Ensure no other admins exist
-	roleRepository := repositories.NewRoleRepository(nil)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
 	adminCount, err := roleRepository.CountUsersWithAppPermission(permissions.AppUsersRead)
 	if err != nil {
 		t.Fatalf("count admins: %v", err)

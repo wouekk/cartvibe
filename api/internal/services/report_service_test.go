@@ -479,7 +479,7 @@ func TestReportService_BuildReportSpec_ProjectsDisabledDimensionColumns(t *testi
 func seedReportUserInGroups(t *testing.T, username string, groupNames ...string) (uint, []uint) {
 	t.Helper()
 	db := repositories.GetDB()
-	roleRepository := repositories.NewRoleRepository(nil)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
 	role, err := roleRepository.CreateGroupRole(
 		"Report Role "+username, "",
 		[]string{permissions.GroupReportsRead, permissions.GroupReceiptsRead},

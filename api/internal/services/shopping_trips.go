@@ -112,7 +112,7 @@ func (service ShoppingTripService) AttachReceipt(groupId uint, listId uint, rece
 // UploadPhoto starts a trip from a receipt photo taken while shopping. The photo is kept until the AI
 // turns it into a receipt, however long the AI is unavailable (up to the retry window).
 func (service ShoppingTripService) UploadPhoto(groupId uint, listId uint, fileBytes []byte, fileName string, userId uint) (models.ShoppingTrip, error) {
-	fileType, err := repositories.NewFileRepository(service.TX).ValidateFileType(fileBytes)
+	fileType, err := repositories.NewFileRepository(repositories.ImplicitCell(), service.TX).ValidateFileType(fileBytes)
 	if err != nil {
 		return models.ShoppingTrip{}, ErrTripPhotoInvalid
 	}
@@ -206,7 +206,7 @@ func (service ShoppingTripService) createTrip(
 		}
 
 		if receiptId != nil {
-			return repositories.NewReceiptProductRepository(tx).EnsureReceiptProductsQueued(*receiptId)
+			return repositories.NewReceiptProductRepository(repositories.ImplicitCell(), tx).EnsureReceiptProductsQueued(*receiptId)
 		}
 		return nil
 	})
@@ -249,7 +249,7 @@ func (service ShoppingTripService) RetryTrip(groupId uint, tripId uint) error {
 	}
 
 	if trip.ReceiptId != nil {
-		extraction, err := repositories.NewReceiptProductRepository(service.TX).GetExtraction(*trip.ReceiptId)
+		extraction, err := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), service.TX).GetExtraction(*trip.ReceiptId)
 		if err == nil && extraction.Status == models.PRODUCT_EXTRACTION_FAILED {
 			err = RequestReceiptProductRead(*trip.ReceiptId)
 		}
@@ -523,7 +523,7 @@ func (service ShoppingTripService) recordOutage(trip models.ShoppingTrip, aiErr 
 // compare matches the receipt's products with what was planned, once the products have been read.
 func (service ShoppingTripService) compare(trip models.ShoppingTrip, groupId uint) error {
 	repository := repositories.NewShoppingTripRepository(repositories.ImplicitCell(), service.TX)
-	productRepository := repositories.NewReceiptProductRepository(service.TX)
+	productRepository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), service.TX)
 	receiptId := *trip.ReceiptId
 
 	extraction, err := productRepository.GetExtraction(receiptId)

@@ -57,7 +57,7 @@ func seedGrantGroup(t *testing.T) grantFixture {
 		if err := db.Create(&member).Error; err != nil {
 			t.Fatalf("seed member: %v", err)
 		}
-		repository := NewGroupMemberRepository(nil)
+		repository := NewGroupMemberRepository(ImplicitCell(), nil)
 		if err := repository.ReplaceMemberGrants(userId, group.ID, []uint{category.ID}, []uint{tag.ID}); err != nil {
 			t.Fatalf("seed member grants: %v", err)
 		}
@@ -75,7 +75,7 @@ func seedGrantGroup(t *testing.T) grantFixture {
 func memberCategoryGrantIds(t *testing.T, userId uint, groupId uint) []uint {
 	t.Helper()
 
-	ids, err := NewGroupMemberRepository(nil).GetMemberCategoryGrantIds(userId, groupId)
+	ids, err := NewGroupMemberRepository(ImplicitCell(), nil).GetMemberCategoryGrantIds(userId, groupId)
 	if err != nil {
 		t.Fatalf("GetMemberCategoryGrantIds: %v", err)
 	}
@@ -85,7 +85,7 @@ func memberCategoryGrantIds(t *testing.T, userId uint, groupId uint) []uint {
 func memberTagGrantIds(t *testing.T, userId uint, groupId uint) []uint {
 	t.Helper()
 
-	ids, err := NewGroupMemberRepository(nil).GetMemberTagGrantIds(userId, groupId)
+	ids, err := NewGroupMemberRepository(ImplicitCell(), nil).GetMemberTagGrantIds(userId, groupId)
 	if err != nil {
 		t.Fatalf("GetMemberTagGrantIds: %v", err)
 	}
@@ -97,7 +97,7 @@ func memberTagGrantIds(t *testing.T, userId uint, groupId uint) []uint {
 func memberGrantsRestricted(t *testing.T, userId uint, groupId uint) (bool, bool) {
 	t.Helper()
 
-	member, err := NewGroupMemberRepository(nil).GetMemberGrantContext(userId, groupId)
+	member, err := NewGroupMemberRepository(ImplicitCell(), nil).GetMemberGrantContext(userId, groupId)
 	if err != nil {
 		t.Fatalf("GetMemberGrantContext: %v", err)
 	}

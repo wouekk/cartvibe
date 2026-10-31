@@ -273,7 +273,7 @@ func RerunSourceFilesPresent(taskType models.SystemTaskType, payload []byte) boo
 // the endpoint disagree: the client renders a preview button that can only fail. It also
 // stops a bare FileExists from reporting whether an arbitrary server path exists.
 func sourcePathUsable(path string) bool {
-	if err := repositories.NewFileRepository(nil).AssertWithinTempDirectory(path); err != nil {
+	if err := repositories.NewFileRepository(repositories.ImplicitCell(), nil).AssertWithinTempDirectory(path); err != nil {
 		return false
 	}
 
@@ -385,7 +385,7 @@ func ResolveSystemTaskSourceFile(systemTask models.SystemTask) (SystemTaskSource
 		return SystemTaskSourceFile{}, ErrSourceFileUnavailable
 	}
 
-	fileRepository := repositories.NewFileRepository(nil)
+	fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
 	if err := fileRepository.AssertWithinTempDirectory(sourceFile.Path); err != nil {
 		return SystemTaskSourceFile{}, err
 	}

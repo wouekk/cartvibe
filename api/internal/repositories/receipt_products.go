@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"cartvibe/api/internal/cell"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 	"errors"
@@ -17,10 +18,11 @@ type ReceiptProductRepository struct {
 	BaseRepository
 }
 
-func NewReceiptProductRepository(tx *gorm.DB) ReceiptProductRepository {
+func NewReceiptProductRepository(h cell.Handle, tx *gorm.DB) ReceiptProductRepository {
 	repository := ReceiptProductRepository{BaseRepository: BaseRepository{
-		DB: GetDB(),
-		TX: tx,
+		DB:   h.DB(),
+		TX:   tx,
+		Cell: h,
 	}}
 	return repository
 }
@@ -167,7 +169,7 @@ func (repository ReceiptProductRepository) ReplaceProducts(receiptId uint, produ
 		}
 
 		// The new products carry no planned/unplanned marks, so the receipt's trip compares again.
-		return NewShoppingTripRepository(ImplicitCell(), tx).RequeueTripForReceipt(receiptId, time.Now())
+		return NewShoppingTripRepository(repository.Cell, tx).RequeueTripForReceipt(receiptId, time.Now())
 	})
 }
 
@@ -430,7 +432,7 @@ func (repository ReceiptProductRepository) CreateProduct(receiptId uint, command
 			return err
 		}
 
-		return NewShoppingTripRepository(ImplicitCell(), tx).RequeueTripForReceipt(receiptId, time.Now())
+		return NewShoppingTripRepository(repository.Cell, tx).RequeueTripForReceipt(receiptId, time.Now())
 	})
 	if err != nil {
 		return models.ReceiptProduct{}, err
@@ -489,7 +491,7 @@ func (repository ReceiptProductRepository) UpdateProduct(product models.ReceiptP
 			return err
 		}
 
-		return NewShoppingTripRepository(ImplicitCell(), tx).RequeueTripForReceipt(product.ReceiptId, time.Now())
+		return NewShoppingTripRepository(repository.Cell, tx).RequeueTripForReceipt(product.ReceiptId, time.Now())
 	})
 	if err != nil {
 		return models.ReceiptProduct{}, err
@@ -515,7 +517,7 @@ func (repository ReceiptProductRepository) DeleteProduct(product models.ReceiptP
 			return err
 		}
 
-		return NewShoppingTripRepository(ImplicitCell(), tx).RequeueTripForReceipt(product.ReceiptId, time.Now())
+		return NewShoppingTripRepository(repository.Cell, tx).RequeueTripForReceipt(product.ReceiptId, time.Now())
 	})
 }
 

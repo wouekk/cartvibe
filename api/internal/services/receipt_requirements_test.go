@@ -50,7 +50,7 @@ func seedRequirementMember(
 		t.Fatalf("seed group receipt settings: %v", err)
 	}
 
-	roleRepository := repositories.NewRoleRepository(nil)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
 	role, err := roleRepository.CreateGroupRole(name+" role", "", perms, nil, nil, nil, false, false)
 	if err != nil {
 		t.Fatalf("seed role: %v", err)
@@ -234,7 +234,7 @@ func seedCreateWithFilesGroup(t *testing.T) (models.User, models.Group, string) 
 		t.Fatalf("seed member: %v", err)
 	}
 
-	groupPath, err := repositories.NewFileRepository(nil).BuildGroupPath(group.ID, "")
+	groupPath, err := repositories.NewFileRepository(repositories.ImplicitCell(), nil).BuildGroupPath(group.ID, "")
 	if err != nil {
 		t.Fatalf("BuildGroupPath: %v", err)
 	}

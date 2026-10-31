@@ -49,7 +49,7 @@ func NewGroupService(tx *gorm.DB) GroupService {
 //     more-privileged member.
 func (service GroupService) AuthorizeGroupMemberChanges(callerId uint, groupId uint, submitted []commands.UpsertGroupMemberCommand) error {
 	permissionService := NewPermissionService(service.TX)
-	roleRepository := repositories.NewRoleRepository(service.TX)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), service.TX)
 
 	callerPerms, err := permissionService.GetGroupPermissionsForUser(callerId, groupId)
 	if err != nil {
@@ -177,7 +177,7 @@ func (service GroupService) AuthorizeGroupMemberChanges(callerId uint, groupId u
 }
 
 func (service GroupService) GetGroupIdsForUser(userId string) ([]uint, error) {
-	groupMemberRepository := repositories.NewGroupMemberRepository(nil)
+	groupMemberRepository := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil)
 	groupMembers, err := groupMemberRepository.GetGroupMembersByUserId(userId)
 	if err != nil {
 		return nil, err

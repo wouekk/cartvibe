@@ -25,7 +25,7 @@ func NewSystemTaskService(tx *gorm.DB) SystemTaskService {
 }
 
 func (service SystemTaskService) BuildSuccessReceiptProcessResultDescription(metadata commands.ReceiptProcessingMetadata) string {
-	receiptProcessingSettingsRepository := repositories.NewReceiptProcessingSettings(service.TX)
+	receiptProcessingSettingsRepository := repositories.NewReceiptProcessingSettings(repositories.ImplicitCell(), service.TX)
 	idToUse := uint(0)
 
 	if metadata.ReceiptProcessingSettingsIdRan > 0 && metadata.DidReceiptProcessingSettingsSucceed {

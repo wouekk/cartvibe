@@ -37,7 +37,7 @@ func TestSeedSystemRolesCreatesSevenRoles(t *testing.T) {
 		return
 	}
 
-	repository := NewRoleRepository(nil)
+	repository := NewRoleRepository(ImplicitCell(), nil)
 	roles, err := repository.GetAllRoles()
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -74,7 +74,7 @@ func TestSeedSystemRolesIsIdempotent(t *testing.T) {
 		return
 	}
 
-	repository := NewRoleRepository(nil)
+	repository := NewRoleRepository(ImplicitCell(), nil)
 	roles, err := repository.GetAllRoles()
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -94,7 +94,7 @@ func TestSeedSystemRolesPermissionSets(t *testing.T) {
 		return
 	}
 
-	repository := NewRoleRepository(nil)
+	repository := NewRoleRepository(ImplicitCell(), nil)
 	roles, err := repository.GetAllRoles()
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -129,7 +129,7 @@ func TestSeedSystemRolesScopeAndFlags(t *testing.T) {
 		return
 	}
 
-	repository := NewRoleRepository(nil)
+	repository := NewRoleRepository(ImplicitCell(), nil)
 	roles, err := repository.GetAllRoles()
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -188,7 +188,7 @@ func TestSeedSystemRolesReconcilesExistingRolePermissions(t *testing.T) {
 		return
 	}
 
-	repository := NewRoleRepository(nil)
+	repository := NewRoleRepository(ImplicitCell(), nil)
 	roles, err := repository.GetAllRoles()
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -249,7 +249,7 @@ func TestSeedSystemRolesReconcileIsAddOnly(t *testing.T) {
 		return
 	}
 
-	repository := NewRoleRepository(nil)
+	repository := NewRoleRepository(ImplicitCell(), nil)
 	roles, err := repository.GetAllRoles()
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -315,7 +315,7 @@ func TestSeedSystemRolesBackfillsGroupMemberPermissions(t *testing.T) {
 		return
 	}
 
-	repository := NewRoleRepository(nil)
+	repository := NewRoleRepository(ImplicitCell(), nil)
 	roles, err := repository.GetAllRoles()
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -358,7 +358,7 @@ func TestSeedSystemRolesReSeedAddsNoDuplicatePermissions(t *testing.T) {
 		return
 	}
 
-	repository := NewRoleRepository(nil)
+	repository := NewRoleRepository(ImplicitCell(), nil)
 	roles, err := repository.GetAllRoles()
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -450,7 +450,7 @@ func TestEnsureDefaultRolesSetsLegacyDefaults(t *testing.T) {
 		return
 	}
 
-	repository := NewRoleRepository(nil)
+	repository := NewRoleRepository(ImplicitCell(), nil)
 	roles, err := repository.GetAllRoles()
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -527,7 +527,7 @@ func TestEnsureDefaultRolesPreservesCustomDefault(t *testing.T) {
 	}
 
 	// An administrator picked a custom app role as the default before this runs.
-	repository := NewRoleRepository(nil)
+	repository := NewRoleRepository(ImplicitCell(), nil)
 	custom, err := repository.CreateAppRole("Custom Default", "", []string{permissions.AppUsersRead}, false)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -581,7 +581,7 @@ func TestSeedSystemRolesFamilyRoles(t *testing.T) {
 		return
 	}
 
-	roles, err := NewRoleRepository(nil).GetAllRoles()
+	roles, err := NewRoleRepository(ImplicitCell(), nil).GetAllRoles()
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 		return

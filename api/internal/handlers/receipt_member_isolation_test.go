@@ -44,7 +44,7 @@ func seedIsolatedReceiptGroupHandler(t *testing.T, isolate bool) isoHandlerFixtu
 	services.ClearRolePermissionCacheForTests()
 	services.ClearGroupRoleGrantCacheForTests()
 	db := repositories.GetDB()
-	roleRepository := repositories.NewRoleRepository(nil)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
 
 	perms := []string{
 		permissions.GroupReceiptsRead,

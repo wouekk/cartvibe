@@ -133,7 +133,7 @@ func ApplyRatesToWaitingReceipts() (int, error) {
 		return 0, err
 	}
 
-	productRepository := repositories.NewReceiptProductRepository(nil)
+	productRepository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil)
 	changed := 0
 	for _, receipt := range waiting {
 		rate, found := context.lookup(receipt.OriginalCurrency)

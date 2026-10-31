@@ -8,6 +8,7 @@ import (
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
@@ -554,4 +555,255 @@ func TestGroupReceiptSettingsRepositoryStaysInItsCell(t *testing.T) {
 	if !settingsA.HideImages || settingsB.HideImages {
 		t.Errorf("hide-images crossed cells: A=%v B=%v", settingsA.HideImages, settingsB.HideImages)
 	}
+}
+
+func TestRoleRepositoryStaysInItsCell(t *testing.T) {
+	tw := celltest.NewTwin(t, migrateSchema)
+	tw.Seed(t, func(db *gorm.DB, marker string) error {
+		return db.Create(&models.AppRole{Name: "role-" + marker}).Error
+	})
+	tw.RequireIdenticalIDs(t, "app_roles")
+
+	repoA := NewRoleRepository(tw.Handle(celltest.A), nil)
+	repoB := NewRoleRepository(tw.Handle(celltest.B), nil)
+
+	roleA, err := repoA.GetAppRoleById(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	roleB, err := repoB.GetAppRoleById(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tw.ExpectOwn(t, celltest.A, roleA)
+	tw.ExpectOwn(t, celltest.B, roleB)
+
+	if _, err := repoA.UpdateAppRole(1, "renamed-in-a", "", nil, false); err != nil {
+		t.Fatal(err)
+	}
+	if err := repoA.DeleteAppRole(1); err != nil {
+		t.Fatal(err)
+	}
+
+	roleB, err = repoB.GetAppRoleById(1)
+	if err != nil {
+		t.Fatalf("cell B lost its role when cell A deleted its own: %v", err)
+	}
+	tw.ExpectOwn(t, celltest.B, roleB)
+	if _, err := repoA.GetAppRoleById(1); err == nil {
+		t.Error("cell A still reads a role it deleted")
+	}
+}
+
+func TestGroupMemberRepositoryStaysInItsCell(t *testing.T) {
+	tw := celltest.NewTwin(t, migrateSchema)
+	tw.Seed(t, func(db *gorm.DB, marker string) error {
+		if err := seedTwinUser(db, 1, "same-name"); err != nil {
+			return err
+		}
+		if err := db.Create(&models.Group{Name: "group-" + marker}).Error; err != nil {
+			return err
+		}
+		if err := db.Create(&models.Category{Name: "cat-" + marker}).Error; err != nil {
+			return err
+		}
+		return db.Create(&models.GroupMember{UserID: 1, GroupID: 1}).Error
+	})
+	// Cell B alone has a second group with the same user in it.
+	dbB := tw.Handle(celltest.B).DB()
+	if err := dbB.Create(&models.Group{Name: "second-group"}).Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := dbB.Create(&models.GroupMember{UserID: 1, GroupID: 2}).Error; err != nil {
+		t.Fatal(err)
+	}
+
+	repoA := NewGroupMemberRepository(tw.Handle(celltest.A), nil)
+	repoB := NewGroupMemberRepository(tw.Handle(celltest.B), nil)
+
+	idsA, err := repoA.GetGroupIdsByUserId("1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	idsB, err := repoB.GetGroupIdsByUserId("1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(idsA) != 1 || len(idsB) != 2 {
+		t.Fatalf("group ids crossed cells: A=%v B=%v", idsA, idsB)
+	}
+
+	// A grant written in A reaches A only.
+	if err := repoA.ReplaceMemberGrants(1, 1, []uint{1}, nil); err != nil {
+		t.Fatal(err)
+	}
+	grantsA, err := repoA.GetMemberCategoryGrantIds(1, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	grantsB, err := repoB.GetMemberCategoryGrantIds(1, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(grantsA) != 1 || len(grantsB) != 0 {
+		t.Errorf("member grants crossed cells: A=%v B=%v", grantsA, grantsB)
+	}
+}
+
+func TestNotificationRepositoryStaysInItsCell(t *testing.T) {
+	tw := celltest.NewTwin(t, migrateSchema)
+	tw.Seed(t, func(db *gorm.DB, marker string) error {
+		for id, name := range map[uint]string{1: "first", 2: "second"} {
+			if err := seedTwinUser(db, id, name); err != nil {
+				return err
+			}
+		}
+		if err := db.Create(&models.Group{Name: "group-" + marker}).Error; err != nil {
+			return err
+		}
+		if err := db.Create(&models.GroupMember{UserID: 1, GroupID: 1}).Error; err != nil {
+			return err
+		}
+		return db.Create(&models.Notification{Type: "INFO", Title: "note-" + marker, Body: "b", UserId: 1}).Error
+	})
+	// Only cell A has user 2 in group 1.
+	if err := tw.Handle(celltest.A).DB().Create(&models.GroupMember{UserID: 2, GroupID: 1}).Error; err != nil {
+		t.Fatal(err)
+	}
+
+	repoA := NewNotificationRepository(tw.Handle(celltest.A), nil)
+	repoB := NewNotificationRepository(tw.Handle(celltest.B), nil)
+
+	notesA, err := repoA.GetNotificationsForUser(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	notesB, err := repoB.GetNotificationsForUser(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tw.ExpectOwn(t, celltest.A, notesA)
+	tw.ExpectOwn(t, celltest.B, notesB)
+
+	// A group notification reads the roster of the cell it is sent in: two recipients in A, one in B.
+	if err := repoA.SendNotificationToGroup(1, "t", "b", "INFO", nil); err != nil {
+		t.Fatal(err)
+	}
+	if err := repoB.SendNotificationToGroup(1, "t", "b", "INFO", nil); err != nil {
+		t.Fatal(err)
+	}
+	var inA, inB int64
+	tw.Handle(celltest.A).DB().Model(&models.Notification{}).Count(&inA)
+	tw.Handle(celltest.B).DB().Model(&models.Notification{}).Count(&inB)
+	if inA != 3 || inB != 2 {
+		t.Errorf("notifications after a group send in each cell: A=%d (want 3) B=%d (want 2)", inA, inB)
+	}
+
+	if err := repoA.DeleteAllNotificationsForUser(1); err != nil {
+		t.Fatal(err)
+	}
+	notesB, err = repoB.GetNotificationsForUser(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(notesB) != 2 {
+		t.Errorf("cell B lost notifications when cell A cleared its own: %+v", notesB)
+	}
+}
+
+func TestReceiptProcessingSettingsRepositoryStaysInItsCell(t *testing.T) {
+	tw := celltest.NewTwin(t, migrateSchema)
+	tw.Seed(t, func(db *gorm.DB, marker string) error {
+		return db.Create(&models.ReceiptProcessingSettings{Name: "ai-" + marker}).Error
+	})
+	tw.RequireIdenticalIDs(t, "receipt_processing_settings")
+
+	repoA := NewReceiptProcessingSettings(tw.Handle(celltest.A), nil)
+	repoB := NewReceiptProcessingSettings(tw.Handle(celltest.B), nil)
+
+	settingsA, err := repoA.GetReceiptProcessingSettingsById("1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	settingsB, err := repoB.GetReceiptProcessingSettingsById("1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	tw.ExpectOwn(t, celltest.A, settingsA)
+	tw.ExpectOwn(t, celltest.B, settingsB)
+
+	if err := repoA.DeleteReceiptProcessingSettingsById("1"); err != nil {
+		t.Fatal(err)
+	}
+	settingsB, err = repoB.GetReceiptProcessingSettingsById("1")
+	if err != nil {
+		t.Fatalf("cell B lost its settings when cell A deleted its own: %v", err)
+	}
+	tw.ExpectOwn(t, celltest.B, settingsB)
+}
+
+// The file repository reads the PDF resolution from the System Settings of its own cell.
+func TestFileRepositoryReadsItsCellsSettings(t *testing.T) {
+	tw := celltest.NewTwin(t, migrateSchema)
+	for w, dpi := range map[celltest.Which]int{celltest.A: 150, celltest.B: 600} {
+		if err := tw.Handle(w).DB().Create(&models.SystemSettings{BaseModel: models.BaseModel{ID: 1}, PdfDpi: dpi}).Error; err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if got := NewFileRepository(tw.Handle(celltest.A), nil).pdfRasterizationDpi(); got != 150 {
+		t.Errorf("cell A rasterizes at %v dpi, want 150", got)
+	}
+	if got := NewFileRepository(tw.Handle(celltest.B), nil).pdfRasterizationDpi(); got != 600 {
+		t.Errorf("cell B rasterizes at %v dpi, want 600", got)
+	}
+}
+
+func TestReceiptProductRepositoryStaysInItsCell(t *testing.T) {
+	tw := celltest.NewTwin(t, migrateSchema)
+	tw.Seed(t, func(db *gorm.DB, marker string) error {
+		if err := seedTwinUser(db, 1, "same-name"); err != nil {
+			return err
+		}
+		if err := db.Create(&models.Group{Name: "group-" + marker}).Error; err != nil {
+			return err
+		}
+		if err := db.Create(&models.Receipt{Name: "receipt-" + marker, Amount: decimal.RequireFromString("1.00"), Date: time.Now(), PaidByUserID: 1, GroupId: 1}).Error; err != nil {
+			return err
+		}
+		return db.Create(&models.ReceiptProduct{ReceiptId: 1, Name: "product-" + marker}).Error
+	})
+	tw.RequireIdenticalIDs(t, "receipt_products")
+
+	repoA := NewReceiptProductRepository(tw.Handle(celltest.A), nil)
+	repoB := NewReceiptProductRepository(tw.Handle(celltest.B), nil)
+
+	productsA, _, err := repoA.GetReceiptProducts(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	productsB, _, err := repoB.GetReceiptProducts(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tw.ExpectOwn(t, celltest.A, productsA)
+	tw.ExpectOwn(t, celltest.B, productsB)
+
+	// Replacing receipt 1's products in A (which also requeues a trip through a sibling repository built from the
+	// same handle) and then deleting them leaves B's receipt 1 untouched.
+	if err := repoA.ReplaceProducts(1, []models.ReceiptProduct{{ReceiptId: 1, Name: "replaced-in-a"}}); err != nil {
+		t.Fatal(err)
+	}
+	if err := repoA.DeleteReceiptProducts(1); err != nil {
+		t.Fatal(err)
+	}
+
+	productsB, _, err = repoB.GetReceiptProducts(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(productsB) != 1 {
+		t.Fatalf("cell B lost its product: %+v", productsB)
+	}
+	tw.ExpectOwn(t, celltest.B, productsB)
 }

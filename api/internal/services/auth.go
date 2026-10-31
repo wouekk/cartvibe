@@ -493,7 +493,7 @@ func GetAppData(userId uint, r *http.Request) (structs.AppData, error) {
 	// Attach each surviving member's per-member category/tag grants. Loaded after
 	// the isolation filter so grants are never fetched for a member the caller
 	// cannot see. The fields are `gorm:"-"`, so nothing loads them implicitly.
-	if err := repositories.NewGroupMemberRepository(nil).LoadMemberGrantsForGroups(groups); err != nil {
+	if err := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil).LoadMemberGrantsForGroups(groups); err != nil {
 		return appData, err
 	}
 

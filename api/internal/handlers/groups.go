@@ -128,7 +128,7 @@ func GetGroupsForUser(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Attach each visible member's per-member category/tag grants.
-			if err := repositories.NewGroupMemberRepository(nil).LoadMemberGrantsForGroups(groups); err != nil {
+			if err := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil).LoadMemberGrantsForGroups(groups); err != nil {
 				return http.StatusInternalServerError, err
 			}
 
@@ -174,7 +174,7 @@ func GetGroupById(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Attach each visible member's per-member category/tag grants.
-			if err := repositories.NewGroupMemberRepository(nil).LoadMemberGrantsForGroup(&groups); err != nil {
+			if err := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil).LoadMemberGrantsForGroup(&groups); err != nil {
 				return http.StatusInternalServerError, err
 			}
 
@@ -225,7 +225,7 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 
 			// A brand-new group has no grants yet, but the response must still carry
 			// the empty arrays swagger declares rather than null.
-			if err := repositories.NewGroupMemberRepository(nil).LoadMemberGrantsForGroup(&group); err != nil {
+			if err := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil).LoadMemberGrantsForGroup(&group); err != nil {
 				return http.StatusInternalServerError, err
 			}
 
@@ -234,7 +234,7 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			fileRepository := repositories.NewFileRepository(nil)
+			fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
 			groupPath, err := fileRepository.BuildGroupPath(group.ID, "")
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -319,7 +319,7 @@ func UpdateGroup(w http.ResponseWriter, r *http.Request) {
 			// this response straight into GroupState, which is what the user form
 			// reads its assignments from — an unloaded response would show every
 			// member as unassigned.
-			if err := repositories.NewGroupMemberRepository(nil).LoadMemberGrantsForGroup(&updatedGroup); err != nil {
+			if err := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil).LoadMemberGrantsForGroup(&updatedGroup); err != nil {
 				return http.StatusInternalServerError, err
 			}
 

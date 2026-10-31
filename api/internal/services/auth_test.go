@@ -182,7 +182,7 @@ func TestShouldLogInUserCorrectly(t *testing.T) {
 	// "First admin to login" is now defined by the app.users.read permission
 	// (the modern replacement for the removed UserRole == ADMIN check), so the
 	// user must hold an admin role for the firstAdminToLogin path to be exercised.
-	roleRepository := repositories.NewRoleRepository(nil)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
 	adminRole, err := roleRepository.CreateAppRole("Login Admin Role", "", []string{permissions.AppUsersRead}, false)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -603,7 +603,7 @@ func TestGetAppData_PopulatesPermissions(t *testing.T) {
 	ClearRolePermissionCacheForTests()
 
 	db := repositories.GetDB()
-	roleRepository := repositories.NewRoleRepository(nil)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
 
 	appPerms := []string{permissions.AppUsersRead, permissions.AppUsersCreate}
 	appRole, err := roleRepository.CreateAppRole("AppData App Role", "", appPerms, false)
@@ -656,7 +656,7 @@ func TestGetAppData_GroupCategoriesFilteredByGrants(t *testing.T) {
 	ClearGroupRoleGrantCacheForTests()
 
 	db := repositories.GetDB()
-	roleRepository := repositories.NewRoleRepository(nil)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
 
 	grantedCategory := models.Category{Name: "Groceries"}
 	db.Create(&grantedCategory)
@@ -713,7 +713,7 @@ func TestGetAppData_MemberGrantsNarrowGroupCatalog(t *testing.T) {
 	ClearGroupRoleGrantCacheForTests()
 
 	db := repositories.GetDB()
-	roleRepository := repositories.NewRoleRepository(nil)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
 
 	assignedCategory := models.Category{Name: "Child A"}
 	roleOnlyCategory := models.Category{Name: "Child B"}
@@ -746,7 +746,7 @@ func TestGetAppData_MemberGrantsNarrowGroupCatalog(t *testing.T) {
 	if err := db.Create(&models.GroupMember{GroupID: group.ID, UserID: user.ID, GroupRoleID: &groupRole.ID}).Error; err != nil {
 		utils.PrintTestError(t, err, nil)
 	}
-	err = repositories.NewGroupMemberRepository(nil).
+	err = repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil).
 		ReplaceMemberGrants(user.ID, group.ID, []uint{assignedCategory.ID}, nil)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -792,7 +792,7 @@ func TestGetAppData_AdminGetsFlatCategoriesUnrestrictedGroup(t *testing.T) {
 	ClearGroupRoleGrantCacheForTests()
 
 	db := repositories.GetDB()
-	roleRepository := repositories.NewRoleRepository(nil)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
 
 	db.Create(&models.Category{Name: "Groceries"})
 	db.Create(&models.Category{Name: "Salary"})
@@ -1024,7 +1024,7 @@ func TestGetAppData_AllGroupCatalogIsUnionOfRealGroups(t *testing.T) {
 	ClearGroupRoleGrantCacheForTests()
 
 	db := repositories.GetDB()
-	roleRepository := repositories.NewRoleRepository(nil)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
 
 	allowedCategory := models.Category{Name: "AllGroup-Allowed"}
 	hiddenCategory := models.Category{Name: "AllGroup-Hidden"}

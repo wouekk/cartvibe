@@ -28,7 +28,7 @@ func makeTestTag(t *testing.T, name string) uint {
 
 func TestCreateGroupRolePersistsSeesAllMembers(t *testing.T) {
 	defer TruncateTestDb()
-	repository := NewRoleRepository(nil)
+	repository := NewRoleRepository(ImplicitCell(), nil)
 
 	role, err := repository.CreateGroupRole("Supervisor Role", "", []string{permissions.GroupReceiptsRead}, nil, nil, nil, false, true)
 	if err != nil {
@@ -51,7 +51,7 @@ func TestCreateGroupRolePersistsSeesAllMembers(t *testing.T) {
 
 func TestUpdateGroupRolePersistsSeesAllMembersToggle(t *testing.T) {
 	defer TruncateTestDb()
-	repository := NewRoleRepository(nil)
+	repository := NewRoleRepository(ImplicitCell(), nil)
 
 	created, err := repository.CreateGroupRole("Supervisor Role", "", []string{permissions.GroupReceiptsRead}, nil, nil, nil, false, true)
 	if err != nil {
@@ -95,7 +95,7 @@ func TestUpdateGroupRolePersistsSeesAllMembersToggle(t *testing.T) {
 
 func TestCreateGroupRolePersistsCategoryAndTagGrants(t *testing.T) {
 	defer TruncateTestDb()
-	repository := NewRoleRepository(nil)
+	repository := NewRoleRepository(ImplicitCell(), nil)
 
 	cat1 := makeTestCategory(t, "Groceries")
 	cat2 := makeTestCategory(t, "Utilities")
@@ -146,7 +146,7 @@ func TestCreateGroupRolePersistsCategoryAndTagGrants(t *testing.T) {
 
 func TestCreateGroupRoleWithNoGrantsIsUnrestricted(t *testing.T) {
 	defer TruncateTestDb()
-	repository := NewRoleRepository(nil)
+	repository := NewRoleRepository(ImplicitCell(), nil)
 
 	role, err := repository.CreateGroupRole("Open Role", "", []string{permissions.GroupReceiptsRead}, nil, nil, nil, false, false)
 	if err != nil {
@@ -166,7 +166,7 @@ func TestCreateGroupRoleWithNoGrantsIsUnrestricted(t *testing.T) {
 
 func TestUpdateGroupRoleReplacesGrants(t *testing.T) {
 	defer TruncateTestDb()
-	repository := NewRoleRepository(nil)
+	repository := NewRoleRepository(ImplicitCell(), nil)
 
 	cat1 := makeTestCategory(t, "Groceries")
 	cat2 := makeTestCategory(t, "Utilities")
@@ -205,7 +205,7 @@ func TestUpdateGroupRoleReplacesGrants(t *testing.T) {
 
 func TestDeleteGroupRoleCascadesGrants(t *testing.T) {
 	defer TruncateTestDb()
-	repository := NewRoleRepository(nil)
+	repository := NewRoleRepository(ImplicitCell(), nil)
 
 	cat1 := makeTestCategory(t, "Groceries")
 	tag1 := makeTestTag(t, "Reimbursable")
@@ -281,7 +281,7 @@ func makeTestUser(t *testing.T, username string) uint {
 
 func TestCreateGroupRolePersistsPaidByGrants(t *testing.T) {
 	defer TruncateTestDb()
-	repository := NewRoleRepository(nil)
+	repository := NewRoleRepository(ImplicitCell(), nil)
 
 	payer1 := makeTestUser(t, "payer1")
 	payer2 := makeTestUser(t, "payer2")
@@ -331,7 +331,7 @@ func TestCreateGroupRolePersistsPaidByGrants(t *testing.T) {
 
 func TestUpdateGroupRolePersistsIncludeOwnToggleOff(t *testing.T) {
 	defer TruncateTestDb()
-	repository := NewRoleRepository(nil)
+	repository := NewRoleRepository(ImplicitCell(), nil)
 
 	payer := makeTestUser(t, "toggle-payer")
 
@@ -368,7 +368,7 @@ func TestUpdateGroupRolePersistsIncludeOwnToggleOff(t *testing.T) {
 
 func TestDeleteGroupRoleCascadesPaidByGrants(t *testing.T) {
 	defer TruncateTestDb()
-	repository := NewRoleRepository(nil)
+	repository := NewRoleRepository(ImplicitCell(), nil)
 
 	payer := makeTestUser(t, "cascade-payer")
 
@@ -392,7 +392,7 @@ func TestDeleteGroupRoleCascadesPaidByGrants(t *testing.T) {
 
 func TestGroupRolePaidByVisibilityRestrictedPersists(t *testing.T) {
 	defer TruncateTestDb()
-	repository := NewRoleRepository(nil)
+	repository := NewRoleRepository(ImplicitCell(), nil)
 	payer := makeTestUser(t, "restricted-flag-payer")
 
 	assertRestricted := func(roleId uint, want bool, desc string) {

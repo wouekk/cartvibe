@@ -295,7 +295,7 @@ func GetSystemTaskSourceFile(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			fileRepository := repositories.NewFileRepository(nil)
+			fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
 
 			// Prefer the already-converted OCR copy. Converting the original
 			// instead can mean rasterizing a multi-page PDF at the configured DPI

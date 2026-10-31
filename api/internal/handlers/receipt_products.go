@@ -17,7 +17,7 @@ import (
 const receiptProductsNotQueued = "NOT_QUEUED"
 
 func writeReceiptProductsView(w http.ResponseWriter, receiptId uint) (int, error) {
-	products, extraction, err := repositories.NewReceiptProductRepository(nil).GetReceiptProducts(receiptId)
+	products, extraction, err := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil).GetReceiptProducts(receiptId)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -80,7 +80,7 @@ func ReadReceiptProducts(w http.ResponseWriter, r *http.Request) {
 				return http.StatusBadRequest, err
 			}
 
-			err = repositories.NewReceiptProductRepository(nil).MarkReceiptProductsPending(receiptId)
+			err = repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil).MarkReceiptProductsPending(receiptId)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -119,7 +119,7 @@ func QueueGroupReceiptProducts(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			queued, err := repositories.NewReceiptProductRepository(nil).QueueUnreadReceiptsInGroup(groupId)
+			queued, err := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil).QueueUnreadReceiptsInGroup(groupId)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -252,7 +252,7 @@ func AddReceiptProduct(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			product, err := repositories.NewReceiptProductRepository(nil).CreateProduct(receiptId, command)
+			product, err := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil).CreateProduct(receiptId, command)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -317,7 +317,7 @@ func UpdateReceiptProduct(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			updated, err := repositories.NewReceiptProductRepository(nil).UpdateProduct(product, command)
+			updated, err := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil).UpdateProduct(product, command)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -358,7 +358,7 @@ func SetReceiptProductLabels(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			updated, err := repositories.NewReceiptProductRepository(nil).SetProductLabels(product, command.CategoryId, command.TagIds)
+			updated, err := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil).SetProductLabels(product, command.CategoryId, command.TagIds)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -385,7 +385,7 @@ func DeleteReceiptProduct(w http.ResponseWriter, r *http.Request) {
 		GroupPermissions: []string{permissions.GroupReceiptsUpdate},
 		ResponseType:     constants.ApplicationJson,
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			err := repositories.NewReceiptProductRepository(nil).DeleteProduct(product)
+			err := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil).DeleteProduct(product)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}

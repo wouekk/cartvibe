@@ -95,7 +95,7 @@ func HandleTempFileCleanUpTask(context context.Context, task *asynq.Task) error 
 		return err
 	}
 
-	fileRepository := repositories.NewFileRepository(nil)
+	fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
 	removed, err := sweepTempDirectory(
 		fileRepository.GetTempDirectoryPath(),
 		references,

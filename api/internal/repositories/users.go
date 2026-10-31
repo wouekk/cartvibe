@@ -167,7 +167,7 @@ func (repository UserRepository) appRoleSkipsDefaultGroup(tx *gorm.DB, appRoleId
 		return false, nil
 	}
 
-	skip, err := NewRoleRepository(tx).AppRoleSkipsDefaultGroup(*appRoleId)
+	skip, err := NewRoleRepository(ImplicitCell(), tx).AppRoleSkipsDefaultGroup(*appRoleId)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return false, nil
 	}
@@ -185,7 +185,7 @@ func (repository UserRepository) appRoleSkipsDefaultGroup(tx *gorm.DB, appRoleId
 // can't be resolved (e.g. an unseeded test database), leaving the user without a
 // modern role rather than failing creation.
 func (repository UserRepository) resolveAppRoleId(tx *gorm.DB, isAdmin bool) (*uint, error) {
-	roleRepository := NewRoleRepository(tx)
+	roleRepository := NewRoleRepository(ImplicitCell(), tx)
 	if isAdmin {
 		return roleRepository.GetAppRoleIdByName(LegacyAdminRoleName)
 	}
@@ -316,7 +316,7 @@ func (repository UserRepository) UpdateUserLastLoginDate(userId uint) (time.Time
 // replacement for the removed UserRole == ADMIN check). Returns true when no such
 // user has a last_login_date.
 func (repository UserRepository) IsFirstAdminToLogin() (bool, error) {
-	roleRepository := NewRoleRepository(repository.TX)
+	roleRepository := NewRoleRepository(ImplicitCell(), repository.TX)
 	adminRoleIds, err := roleRepository.appRoleIdsWithPermission(permissions.AppUsersRead)
 	if err != nil {
 		return false, err
@@ -356,7 +356,7 @@ func (repository UserRepository) joinHouseholdGroup(tx *gorm.DB, userId uint) (b
 		return false, nil
 	}
 
-	roleRepository := NewRoleRepository(tx)
+	roleRepository := NewRoleRepository(ImplicitCell(), tx)
 	roleId, err := roleRepository.GetGroupRoleIdByName(FamilyMemberRoleName)
 	if err != nil {
 		return false, err

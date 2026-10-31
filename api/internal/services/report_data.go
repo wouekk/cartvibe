@@ -130,7 +130,7 @@ func (service ReportDataService) reportLines(userId uint, receipts []models.Rece
 		indexById[receipt.ID] = index
 	}
 
-	products, err := repositories.NewReceiptProductRepository(service.TX).GetReportLinesForReceipts(receiptIds)
+	products, err := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), service.TX).GetReportLinesForReceipts(receiptIds)
 	if err != nil {
 		return nil, err
 	}

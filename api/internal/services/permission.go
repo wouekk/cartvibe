@@ -162,7 +162,7 @@ func validateRequiredPermissions(scope permissions.Scope, required []string) err
 // with no app role assigned — or a missing/deleted user — resolves to no
 // permissions (deny) rather than an error.
 func (service PermissionService) resolveAppPermissions(userId uint) ([]string, error) {
-	roleRepository := repositories.NewRoleRepository(service.TX)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), service.TX)
 
 	appRoleId, err := roleRepository.GetUserAppRoleId(userId)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -182,7 +182,7 @@ func (service PermissionService) resolveAppPermissions(userId uint) ([]string, e
 // group. A user who is not a member, or whose membership has no group role,
 // resolves to no permissions (deny).
 func (service PermissionService) resolveGroupPermissions(userId uint, groupId uint) ([]string, error) {
-	roleRepository := repositories.NewRoleRepository(service.TX)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), service.TX)
 
 	groupRoleId, err := roleRepository.GetGroupMemberRoleId(userId, groupId)
 	if errors.Is(err, gorm.ErrRecordNotFound) {

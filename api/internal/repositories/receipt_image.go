@@ -38,7 +38,7 @@ func NewReceiptImageRepository(tx *gorm.DB) ReceiptImageRepository {
 
 // TODO: Move to service
 func (repository ReceiptImageRepository) CreateReceiptImage(fileData models.FileData, fileBytes []byte) (models.FileData, error) {
-	fileRepository := NewFileRepository(repository.TX)
+	fileRepository := NewFileRepository(ImplicitCell(), repository.TX)
 	db := repository.GetDB()
 
 	// TODO: refactor to use command
@@ -95,7 +95,7 @@ func (repository ReceiptImageRepository) CreateReceiptImage(fileData models.File
 	// Every receipt image passes through here (quick scan, email, the receipt form, uploads), so this
 	// is the one place a receipt gets queued for its products to be read. Inside the caller's
 	// transaction, so a rolled-back receipt leaves no orphan in the queue.
-	err = NewReceiptProductRepository(repository.TX).MarkReceiptProductsPending(fileData.ReceiptId)
+	err = NewReceiptProductRepository(ImplicitCell(), repository.TX).MarkReceiptProductsPending(fileData.ReceiptId)
 	if err != nil {
 		return fileData, err
 	}

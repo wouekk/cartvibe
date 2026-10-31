@@ -154,7 +154,7 @@ func (service GroupOverviewService) GetGroupOverviewForPeriod(userId uint, group
 		return structs.GroupOverview{}, err
 	}
 
-	periodProducts, err := repositories.NewReceiptProductRepository(service.TX).GetPricedProductsForReceipts(receiptIdsInPeriod(receipts, period))
+	periodProducts, err := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), service.TX).GetPricedProductsForReceipts(receiptIdsInPeriod(receipts, period))
 	if err != nil {
 		return structs.GroupOverview{}, err
 	}
@@ -262,7 +262,7 @@ func (service GroupOverviewService) sumDashboardTags(receipts []models.Receipt, 
 		tiles = append(tiles, structs.GroupOverviewTag{TagId: tag.ID, Name: tag.Name, Total: decimal.Zero, PreviousTotal: decimal.Zero})
 	}
 
-	repository := repositories.NewReceiptProductRepository(service.TX)
+	repository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), service.TX)
 
 	rows, err := repository.GetPricedProductTags(receiptIdsInPeriod(receipts, period), tagIds)
 	if err != nil {
@@ -310,7 +310,7 @@ func (service GroupOverviewService) sumProductKinds(receipts []models.Receipt, p
 		return unhealthy, unplanned, nil
 	}
 
-	productRepository := repositories.NewReceiptProductRepository(service.TX)
+	productRepository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), service.TX)
 
 	unhealthyProducts, err := productRepository.GetPricedProductsWithHealth(receiptIds, models.HEALTH_UNHEALTHY)
 	if err != nil {
@@ -353,7 +353,7 @@ func (service GroupOverviewService) GetOverviewProducts(userId uint, groupId str
 		byId[receipt.ID] = receipt
 	}
 
-	products, err := repositories.NewReceiptProductRepository(service.TX).
+	products, err := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), service.TX).
 		GetProductsForReceiptsByKind(receiptIdsInPeriod(receipts, period), filter)
 	if err != nil {
 		return nil, err

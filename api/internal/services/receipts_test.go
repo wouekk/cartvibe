@@ -50,7 +50,7 @@ func seedReceiptMember(
 		t.Fatalf("seed group: %v", err)
 	}
 
-	role, err := repositories.NewRoleRepository(nil).CreateGroupRole(roleName, "", perms, categoryGrants, tagGrants, paidByGrants, includeOwn, false)
+	role, err := repositories.NewRoleRepository(repositories.ImplicitCell(), nil).CreateGroupRole(roleName, "", perms, categoryGrants, tagGrants, paidByGrants, includeOwn, false)
 	if err != nil {
 		t.Fatalf("seed group role: %v", err)
 	}
@@ -72,7 +72,7 @@ func seedReceiptMember(
 // giveAppRole assigns an app role with the given permissions to a user.
 func giveAppRole(t *testing.T, userId uint, roleName string, perms []string) {
 	t.Helper()
-	role, err := repositories.NewRoleRepository(nil).CreateAppRole(roleName, "", perms, false)
+	role, err := repositories.NewRoleRepository(repositories.ImplicitCell(), nil).CreateAppRole(roleName, "", perms, false)
 	if err != nil {
 		t.Fatalf("create app role: %v", err)
 	}

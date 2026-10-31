@@ -118,7 +118,7 @@ func GetPagedReceiptsForGroup(w http.ResponseWriter, r *http.Request) {
 					receiptIds[i] = receipts[i].ID
 				}
 
-				productNames, namesErr := repositories.NewReceiptProductRepository(nil).GetProductNamesForReceipts(receiptIds)
+				productNames, namesErr := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil).GetProductNamesForReceipts(receiptIds)
 				if namesErr != nil {
 					return http.StatusInternalServerError, namesErr
 				}
@@ -291,7 +291,7 @@ func CreateReceiptWithFiles(w http.ResponseWriter, r *http.Request) {
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
 			// Every file is checked before anything is written, so a bad file
 			// rejects the whole create rather than failing it halfway.
-			fileRepository := repositories.NewFileRepository(nil)
+			fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
 			fileErrs := structs.ValidatorError{Errors: make(map[string]string)}
 			for i, file := range command.Files {
 				if _, err := fileRepository.ValidateFileType(file.Bytes); err != nil {
@@ -447,7 +447,7 @@ func QuickScan(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, errors.New("validation error")
 			}
 
-			fileRepository := repositories.NewFileRepository(nil)
+			fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
 			token := structs.GetClaims(r)
 
 			// No scanned file may land in the synthetic All group (see
