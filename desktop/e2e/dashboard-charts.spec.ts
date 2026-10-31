@@ -48,8 +48,9 @@ const SHARES = [0, 0.334, 0.551];
 
 async function openDashboard(page: Page) {
   await stubTokenRefresh(page);
-  // The period label follows "now": pin it to the month of the mocked overview, or the spec fails once the month turns.
-  await page.clock.setFixedTime(new Date('2026-10-15T12:00:00'));
+  // The period label follows "now": start the clock in the month of the mocked overview (it keeps running, Chart.js animates
+  // on it), or the spec fails once the month turns.
+  await page.clock.install({ time: new Date('2026-10-15T12:00:00') });
   await page.route(/\/api\/overview\/group\/\d+(\?.*)?$/, (route) => route.fulfill({ json: OVERVIEW }));
   // Record what is drawn on canvases, to assert the centre text and the axes.
   await page.addInitScript(() => {
