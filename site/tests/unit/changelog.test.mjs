@@ -57,6 +57,17 @@ test("Removed lines are used when nothing else is there", () => {
   assert.deepEqual(r[0].highlights, ["Old thing gone"]);
 });
 
+test("the sentence under the heading is the summary; none without one; quotes and bullets do not count", () => {
+  const [a, b] = parseChangelog(SAMPLE);
+  assert.equal(a.summary, "Intro line");
+  assert.equal(b.summary, "");
+  const [c] = parseChangelog("## [1.0.0] - 2026-01-02\n\nCharts on a free licence, **no** API keys and\na [smaller](https://x.y) image.\n\n> Upgrade note\n\n### Added\n- one\n");
+  assert.equal(c.summary, "Charts on a free licence, no API keys and a smaller image");
+  const [d] = parseChangelog("## [1.0.0] - 2026-01-02\n\n> Upgrade note\n\n### Added\n- one\n");
+  assert.equal(d.summary, "");
+  assert.ok(parseChangelog(`## [1.0.0] - 2026-01-02\n\n${"word ".repeat(60)}\n`)[0].summary.length <= 140);
+});
+
 test("headline: conventional subject, bold lead-in, first sentence, length cap", () => {
   assert.equal(headline("fix(api)!: stop losing lists"), "stop losing lists");
   assert.equal(headline("**Bold lead:** more text"), "Bold lead");
@@ -79,4 +90,5 @@ test("the real CHANGELOG.md gives five releases with highlights", () => {
   assert.ok(r.every((x) => /^\d+\.\d+\.\d+$/.test(x.version) && /^\d{4}-\d{2}-\d{2}$/.test(x.date)));
   assert.ok(r[0].highlights.length > 0 && r[0].highlights.length <= 3);
   assert.ok(r.every((x) => x.highlights.every((h) => h.length <= 64)));
+  assert.ok(r.every((x) => x.summary.length > 0), "each of the latest five releases has a milestone sentence");
 });

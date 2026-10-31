@@ -28,7 +28,8 @@ const link = "inline-flex h-9 items-center gap-1.5 self-start rounded-md border 
             <h4 class="text-[15px] font-semibold tabular-nums">{r.version}</h4>
             <time class="text-xs tabular-nums text-muted-foreground" datetime={r.date}>{formatDate(r.date)}</time>
           </div>
-          {r.highlights.length > 0 && (
+          {r.summary && <p class="text-[13px] text-muted-foreground" data-testid="changelog-summary">{r.summary}</p>}
+          {!r.summary && r.highlights.length > 0 && (
             <ul class="space-y-1 text-[13px] text-muted-foreground">
               {r.highlights.map((h) => (
                 <li class="flex gap-2">

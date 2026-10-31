@@ -50,8 +50,17 @@ export function headline(bullet) {
   return line;
 }
 
+const SUMMARY_MAX = 140;
+
+/** The milestone sentence of a release: plain text, no closing full stop, cut at a word when very long. */
+function summarise(text) {
+  const flat = plain(text).replace(/\s*[.:;]+$/, "");
+  if (flat.length <= SUMMARY_MAX) return flat;
+  return `${flat.slice(0, SUMMARY_MAX - 1).replace(/\s+\S*$/, "")}…`;
+}
+
 /**
- * The releases of a Keep a Changelog file, newest first, as { version, date, highlights }. [Unreleased] is skipped. A
+ * The releases of a Keep a Changelog file, newest first, as { version, date, summary, highlights }. [Unreleased] is skipped. A
  * release without usable bullets has an empty `highlights`.
  */
 export function parseChangelog(markdown, { releases = 5, highlights = 3 } = {}) {
@@ -67,7 +76,7 @@ export function parseChangelog(markdown, { releases = 5, highlights = 3 } = {}) 
     const heading = /^## \[([^\]]+)\](?:\s*-\s*(\S+))?/.exec(line);
     if (heading) {
       flush();
-      current = /^\d/.test(heading[1]) ? { version: heading[1], date: heading[2] ?? "", bullets: [] } : null;
+      current = /^\d/.test(heading[1]) ? { version: heading[1], date: heading[2] ?? "", bullets: [], intro: [], introDone: false } : null;
       if (current) out.push(current);
       section = "";
       continue;
@@ -77,6 +86,12 @@ export function parseChangelog(markdown, { releases = 5, highlights = 3 } = {}) 
     if (sub) {
       flush();
       section = sub[1].trim().toLowerCase();
+      continue;
+    }
+    // The sentence under the version heading is the release's milestone.
+    if (section === "" && !current.introDone && !/^(- |> |#)/.test(line)) {
+      if (line.trim()) current.intro.push(line.trim());
+      else if (current.intro.length) current.introDone = true;
       continue;
     }
     if (/^- /.test(line)) {
@@ -93,6 +108,7 @@ export function parseChangelog(markdown, { releases = 5, highlights = 3 } = {}) 
   return out.slice(0, releases).map((r) => ({
     version: r.version,
     date: r.date,
+    summary: summarise(r.intro.join(" ")),
     highlights: r.bullets
       .map((b, order) => ({ ...b, order }))
       .sort((a, b) => rank(a.section) - rank(b.section) || a.order - b.order)
