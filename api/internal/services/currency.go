@@ -25,7 +25,7 @@ type currencyContext struct {
 }
 
 func loadCurrencyContext() (currencyContext, error) {
-	settings, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
+	settings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
 	if err != nil {
 		return currencyContext{}, err
 	}

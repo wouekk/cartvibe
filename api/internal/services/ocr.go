@@ -69,7 +69,7 @@ func (service OcrService) ReadImage(path string) (string, commands.UpsertSystemT
 	elapsedTime := endTime.Sub(startTime)
 	logging.LogStd(logging.LOG_LEVEL_INFO, "OCR and Image processing took: ", elapsedTime)
 
-	systemSettingsRepository := repositories.NewSystemSettingsRepository(service.TX)
+	systemSettingsRepository := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), service.TX)
 	systemSettings, err := systemSettingsRepository.GetSystemSettings()
 	if err != nil {
 		systemTaskCommand.Status = models.SYSTEM_TASK_FAILED

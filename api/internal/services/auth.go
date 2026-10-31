@@ -42,7 +42,7 @@ const defaultRefreshTokenLifetime = 24 * time.Hour
 // than an absolute session cap: an actively refreshing client is never logged
 // out, while an idle one must re-authenticate once it exceeds the window.
 func GetRefreshTokenLifetime() time.Duration {
-	systemSettings, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
+	systemSettings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, "Could not read refresh token lifetime, using default: "+err.Error())
 		return defaultRefreshTokenLifetime
@@ -56,7 +56,7 @@ func GetRefreshTokenLifetime() time.Duration {
 // long window chosen for human convenience does not silently extend tokens held
 // by third-party clients.
 func GetMcpRefreshTokenLifetime() time.Duration {
-	systemSettings, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
+	systemSettings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, "Could not read MCP refresh token lifetime, using default: "+err.Error())
 		return defaultRefreshTokenLifetime
@@ -198,7 +198,7 @@ func UseSecureCookies() bool {
 		return true
 	}
 
-	systemSettings, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
+	systemSettings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, "Could not read secure cookies setting, leaving cookies non-secure: "+err.Error())
 		return false
@@ -333,7 +333,7 @@ func GetAppData(userId uint, r *http.Request) (structs.AppData, error) {
 	userPreferenceRepository := repositories.NewUserPreferencesRepository(nil)
 	categoryRepository := repositories.NewCategoryRepository(nil)
 	systemSettingsService := NewSystemSettingsService(nil)
-	systemSettingsRepository := repositories.NewSystemSettingsRepository(nil)
+	systemSettingsRepository := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil)
 	tagRepository := repositories.NewTagsRepository(nil)
 	stringUserId := utils.UintToString(userId)
 

@@ -33,7 +33,7 @@ func setupOidcProviderHandlerTest(t *testing.T) {
 
 	// A server public URL must be configured before a provider can be enabled --
 	// otherwise there is no redirect URI to register with the identity provider.
-	settingsRepository := repositories.NewSystemSettingsRepository(nil)
+	settingsRepository := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil)
 	settings, err := settingsRepository.GetSystemSettings()
 	if err != nil {
 		t.Fatalf("failed to read system settings: %v", err)

@@ -32,7 +32,7 @@ type ReceiptProcessingService struct {
 }
 
 func NewSystemReceiptProcessingService(tx *gorm.DB, groupId string) (ReceiptProcessingService, error) {
-	systemSettingsRepository := repositories.NewSystemSettingsRepository(tx)
+	systemSettingsRepository := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), tx)
 	systemReceiptProcessingSettings, err := systemSettingsRepository.GetSystemReceiptProcessingSettings()
 	group := models.Group{}
 	if err != nil {
@@ -464,7 +464,7 @@ func (service ReceiptProcessingService) buildTemplateVariableMap(ocrText string)
 	// The year as the app's users see it, not the server process's, so a
 	// receipt scanned just after midnight on Jan 1 in the app zone is dated in
 	// the new year.
-	currentYearString := utils.UintToString(uint(time.Now().In(repositories.NewSystemSettingsRepository(service.TX).AppLocation()).Year()))
+	currentYearString := utils.UintToString(uint(time.Now().In(repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), service.TX).AppLocation()).Year()))
 
 	result[structs.CATEGORIES] = categoriesString
 	result[structs.TAGS] = tagsString

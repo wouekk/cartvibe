@@ -155,7 +155,7 @@ func (service ReportService) buildModel(
 	now time.Time,
 	rowLimit int,
 ) (reportBuild, error) {
-	settings, err := repositories.NewSystemSettingsRepository(service.TX).GetSystemSettings()
+	settings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), service.TX).GetSystemSettings()
 	if err != nil {
 		return reportBuild{}, err
 	}
@@ -268,7 +268,7 @@ func (service ReportService) receipts(
 	command commands.ReportRequestCommand,
 	now time.Time,
 ) (structs.PagedData, error) {
-	filter, _ := prepareReportFilter(userId, command, now, repositories.NewSystemSettingsRepository(service.TX).AppLocation(), i18n.English)
+	filter, _ := prepareReportFilter(userId, command, now, repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), service.TX).AppLocation(), i18n.English)
 	dataService := NewReportDataService(service.TX)
 
 	// Each group loads only its newest reportReceiptsCap receipts, which is enough:

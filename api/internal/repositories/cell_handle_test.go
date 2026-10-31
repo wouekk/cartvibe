@@ -1,10 +1,13 @@
 package repositories
 
 import (
+	"encoding/json"
 	"os"
+	"strings"
 	"testing"
 
 	"cartvibe/api/internal/cell/celltest"
+	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 
 	"github.com/shopspring/decimal"
@@ -27,6 +30,9 @@ func TestRepositoriesUseTheHandlesDatabase(t *testing.T) {
 		}
 		if NewDashboardLayoutRepository(h, nil).GetDB() != h.DB() {
 			t.Errorf("cell %s: DashboardLayoutRepository does not use its handle's database", w)
+		}
+		if NewSystemSettingsRepository(h, nil).GetDB() != h.DB() {
+			t.Errorf("cell %s: SystemSettingsRepository does not use its handle's database", w)
 		}
 	}
 }
@@ -187,4 +193,135 @@ func TestSeedExchangeRatesSeedsOnlyTheGivenCell(t *testing.T) {
 		t.Errorf("seeding cell B changed cell A: %+v", ratesA)
 	}
 	tw.ExpectOwn(t, celltest.A, ratesA)
+}
+
+func TestSystemSettingsRepositoryStaysInItsCell(t *testing.T) {
+	tw := celltest.NewTwin(t, migrateSchema)
+	tw.Seed(t, func(db *gorm.DB, marker string) error {
+		return db.Create(&models.SystemSettings{
+			BaseModel:    models.BaseModel{ID: 1},
+			McpPublicUrl: "https://" + marker + ".example",
+		}).Error
+	})
+	tw.RequireIdenticalIDs(t, "system_settings")
+	for w, zone := range map[celltest.Which]string{celltest.A: "Asia/Tokyo", celltest.B: "Europe/Warsaw"} {
+		if err := tw.Handle(w).DB().Model(&models.SystemSettings{}).Where("id = 1").Update("time_zone", zone).Error; err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	repoA := NewSystemSettingsRepository(tw.Handle(celltest.A), nil)
+	repoB := NewSystemSettingsRepository(tw.Handle(celltest.B), nil)
+	if repoA.GetDB() != tw.Handle(celltest.A).DB() || repoB.GetDB() != tw.Handle(celltest.B).DB() {
+		t.Fatal("a SystemSettingsRepository must use its handle's database")
+	}
+
+	settingsA, err := repoA.GetSystemSettings()
+	if err != nil {
+		t.Fatal(err)
+	}
+	settingsB, err := repoB.GetSystemSettings()
+	if err != nil {
+		t.Fatal(err)
+	}
+	tw.ExpectOwn(t, celltest.A, settingsA)
+	tw.ExpectOwn(t, celltest.B, settingsB)
+
+	// The time zone helper reads through the repository's own cell, not the process database.
+	if got := repoA.AppLocation().String(); got != "Asia/Tokyo" {
+		t.Errorf("cell A time zone = %q, want Asia/Tokyo", got)
+	}
+	if got := repoB.AppLocation().String(); got != "Europe/Warsaw" {
+		t.Errorf("cell B time zone = %q, want Europe/Warsaw", got)
+	}
+
+	// A save in A reaches A only.
+	bytes, err := json.Marshal(settingsA)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var command commands.UpsertSystemSettingsCommand
+	if err := json.Unmarshal(bytes, &command); err != nil {
+		t.Fatal(err)
+	}
+	changed := "https://" + tw.Marker(celltest.A) + "-saved.example"
+	command.McpPublicUrl = changed
+	saved, err := repoA.UpdateSystemSettings(command)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tw.ExpectOwn(t, celltest.A, saved)
+
+	settingsB, err = repoB.GetSystemSettings()
+	if err != nil {
+		t.Fatal(err)
+	}
+	tw.ExpectOwn(t, celltest.B, settingsB)
+	if settingsB.McpPublicUrl == changed {
+		t.Errorf("a save in cell A reached cell B: %q", settingsB.McpPublicUrl)
+	}
+
+	// The first read of an empty cell creates its row there and nowhere else.
+	if err := tw.Handle(celltest.B).DB().Where("1 = 1").Delete(&models.SystemSettings{}).Error; err != nil {
+		t.Fatal(err)
+	}
+	if _, err := repoB.GetSystemSettings(); err != nil {
+		t.Fatal(err)
+	}
+	settingsA, err = repoA.GetSystemSettings()
+	if err != nil {
+		t.Fatal(err)
+	}
+	tw.ExpectOwn(t, celltest.A, settingsA)
+}
+
+func TestSeedEuroForNewInstallSeedsOnlyTheGivenCell(t *testing.T) {
+	tw := celltest.NewTwin(t, migrateSchema)
+
+	if err := SeedEuroForNewInstall(tw.Handle(celltest.B)); err != nil {
+		t.Fatal(err)
+	}
+
+	var inA, inB int64
+	tw.Handle(celltest.A).DB().Model(&models.SystemSettings{}).Count(&inA)
+	tw.Handle(celltest.B).DB().Model(&models.SystemSettings{}).Count(&inB)
+	if inA != 0 || inB != 1 {
+		t.Errorf("settings rows after seeding cell B: A=%d B=%d, want 0 and 1", inA, inB)
+	}
+}
+
+// SeedDefaultExchangeRates reads the currency from the same cell it writes to: with A on CHF and B on dollars, the
+// two lists differ in exactly the main currency that is skipped.
+func TestSeedDefaultExchangeRatesReadsAndWritesTheSameCell(t *testing.T) {
+	tw := celltest.NewTwin(t, migrateSchema)
+	for w, display := range map[celltest.Which]string{celltest.A: "CHF", celltest.B: "$"} {
+		if err := tw.Handle(w).DB().Create(&models.SystemSettings{BaseModel: models.BaseModel{ID: 1}, CurrencyDisplay: display}).Error; err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := SeedDefaultExchangeRates(tw.Handle(celltest.A)); err != nil {
+		t.Fatal(err)
+	}
+	if err := SeedDefaultExchangeRates(tw.Handle(celltest.B)); err != nil {
+		t.Fatal(err)
+	}
+
+	codes := func(w celltest.Which) string {
+		rates, err := NewExchangeRateRepository(tw.Handle(w), nil).GetAll()
+		if err != nil {
+			t.Fatal(err)
+		}
+		var out []string
+		for _, rate := range rates {
+			out = append(out, rate.Code)
+		}
+		return strings.Join(out, ",")
+	}
+	if got := codes(celltest.A); got != "GBP,PLN,USD" {
+		t.Errorf("cell A (main currency CHF) listed %q, want GBP,PLN,USD", got)
+	}
+	if got := codes(celltest.B); got != "CHF,GBP,PLN" {
+		t.Errorf("cell B (main currency USD) listed %q, want CHF,GBP,PLN", got)
+	}
 }

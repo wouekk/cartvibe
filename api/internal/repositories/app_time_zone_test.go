@@ -29,7 +29,7 @@ func TestGetAppLocationDefaultsToUTC(t *testing.T) {
 		t.Errorf("GetAppLocation() = %v, want UTC on a fresh install", location)
 	}
 
-	settings, err := NewSystemSettingsRepository(nil).GetSystemSettings()
+	settings, err := NewSystemSettingsRepository(ImplicitCell(), nil).GetSystemSettings()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -55,7 +55,7 @@ func TestGetAppLocationReadsTheConfiguredZone(t *testing.T) {
 func TestGetAppLocationFallsBackToUTCForAnInvalidStoredName(t *testing.T) {
 	defer TruncateTestDb()
 
-	if _, err := NewSystemSettingsRepository(nil).GetSystemSettings(); err != nil {
+	if _, err := NewSystemSettingsRepository(ImplicitCell(), nil).GetSystemSettings(); err != nil {
 		t.Fatal(err)
 	}
 	if err := GetDB().Model(&models.SystemSettings{}).Where("1 = 1").Update("time_zone", "Not/AZone").Error; err != nil {

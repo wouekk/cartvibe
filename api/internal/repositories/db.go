@@ -276,10 +276,13 @@ func GetDB() *gorm.DB {
 }
 
 func InitDB() error {
+	// Startup serves the one implicit cell until the cell is resolved by the caller.
+	h := ImplicitCell()
+
 	// The first settings row is the euro one. Anything that creates a row before this (an empty
 	// row here used to) would leave a fresh install on dollars, because the seed only acts on an
 	// empty table.
-	if err := SeedEuroForNewInstall(); err != nil {
+	if err := SeedEuroForNewInstall(h); err != nil {
 		return err
 	}
 
@@ -301,7 +304,7 @@ func InitDB() error {
 		}
 	}
 
-	if err := SeedDefaultExchangeRates(); err != nil {
+	if err := SeedDefaultExchangeRates(h); err != nil {
 		return err
 	}
 

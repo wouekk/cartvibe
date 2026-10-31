@@ -86,7 +86,7 @@ func (service ReportDataService) RowsWithLines(
 ) (ReportRowSet, error) {
 	location := service.Location
 	if location == nil {
-		location = repositories.NewSystemSettingsRepository(service.TX).AppLocation()
+		location = repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), service.TX).AppLocation()
 	}
 
 	source, err := receiptsource.New(location, service.Translator)

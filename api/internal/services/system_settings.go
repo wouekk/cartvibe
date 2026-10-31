@@ -19,7 +19,7 @@ func NewSystemSettingsService(tx *gorm.DB) SystemSettingsService {
 }
 
 func (service SystemSettingsService) GetFeatureConfig() (structs.FeatureConfig, error) {
-	systemSettingsRepository := repositories.NewSystemSettingsRepository(service.TX)
+	systemSettingsRepository := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), service.TX)
 	featureConfig := structs.FeatureConfig{
 		// Initialized before anything can fail, and only ever overwritten on
 		// success, so this can never serialize as null. See the field's doc comment.

@@ -5,9 +5,10 @@ import (
 	"strings"
 	"time"
 
+	"cartvibe/api/internal/cell"
+	"cartvibe/api/internal/commands"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"cartvibe/api/internal/commands"
 )
 
 // ErrZeroHandleRepository is the panic value of BaseRepository.GetDB when no database is available.
@@ -16,6 +17,9 @@ const ErrZeroHandleRepository = "repository built from a zero cell.Handle: no da
 type BaseRepository struct {
 	DB *gorm.DB
 	TX *gorm.DB
+	// Cell is the handle the repository was built from. A repository that needs a sibling repository (or the app
+	// time zone) builds it from this handle, so the whole call chain stays in one cell.
+	Cell cell.Handle
 }
 
 // GetDB returns the transaction when one is set, else the repository's database. A repository with neither

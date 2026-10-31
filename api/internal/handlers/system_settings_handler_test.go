@@ -292,7 +292,7 @@ func TestUpdateSystemSettingsPreservesOmittedRefreshTokenLifetimes(t *testing.T)
 		utils.PrintTestError(t, w.Result().StatusCode, http.StatusOK)
 	}
 
-	updated, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
+	updated, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
 	if err != nil {
 		t.Fatalf("failed to read back system settings: %v", err)
 	}
@@ -365,7 +365,7 @@ func TestUpdateSystemSettingsPersistsExplicitRefreshTokenLifetimes(t *testing.T)
 		utils.PrintTestError(t, w.Result().StatusCode, http.StatusOK)
 	}
 
-	updated, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
+	updated, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
 	if err != nil {
 		t.Fatalf("failed to read back system settings: %v", err)
 	}
@@ -413,7 +413,7 @@ func TestUpdateSystemSettingsSucceedsOnAnInstallMissingAQueueConfiguration(t *te
 
 	// Build the queue list the way the settings form does: from the payload the
 	// server just handed the client, never from the client's own enum.
-	served, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
+	served, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
 	if err != nil {
 		t.Fatalf("failed to read system settings: %v", err)
 	}
@@ -455,7 +455,7 @@ func TestUpdateSystemSettingsSucceedsOnAnInstallMissingAQueueConfiguration(t *te
 
 	// A 200 that dropped the value would be the worse outcome of the two, so the
 	// setting the save exists to change is asserted alongside the status.
-	updated, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
+	updated, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
 	if err != nil {
 		t.Fatalf("failed to read back system settings: %v", err)
 	}

@@ -306,7 +306,7 @@ const (
 )
 
 func (repository FileRepository) pdfRasterizationDpi() float64 {
-	systemSettingsRepository := NewSystemSettingsRepository(repository.DB)
+	systemSettingsRepository := NewSystemSettingsRepository(repository.Cell, repository.DB)
 	systemSettings, err := systemSettingsRepository.GetSystemSettings()
 	if err != nil {
 		return defaultPdfDpi

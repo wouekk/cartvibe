@@ -17,7 +17,7 @@ const DefaultMcpPublicUrl = "http://localhost:8081"
 // runtime gate that lets an admin toggle the server on and off without a
 // restart (mirroring the live email-polling / task-server pattern).
 func IsMcpEnabled() bool {
-	settings, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
+	settings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, "Failed to read MCP enabled flag from system settings: "+err.Error())
 		return false
@@ -33,7 +33,7 @@ func IsMcpEnabled() bool {
 // restart. Changing it intentionally invalidates existing connector tokens,
 // because the token audience is derived from this value.
 func GetMcpPublicUrl() string {
-	settings, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
+	settings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, "Failed to read MCP public URL from system settings: "+err.Error())
 		return DefaultMcpPublicUrl
