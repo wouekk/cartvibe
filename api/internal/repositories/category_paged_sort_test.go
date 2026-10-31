@@ -23,7 +23,7 @@ func TestPagedCategoriesSortByNameAfterTheProductJoin(t *testing.T) {
 	GetDB().Create(&product)
 
 	for _, orderBy := range []string{"name", "description", "numberOfReceipts", "numberOfProducts"} {
-		categories, err := NewCategoryRepository(nil).GetAllPagedCategories(commands.PagedRequestCommand{
+		categories, err := NewCategoryRepository(ImplicitCell(), nil).GetAllPagedCategories(commands.PagedRequestCommand{
 			Page: 1, PageSize: 10, OrderBy: orderBy, SortDirection: commands.ASCENDING,
 		})
 		if err != nil {
@@ -34,7 +34,7 @@ func TestPagedCategoriesSortByNameAfterTheProductJoin(t *testing.T) {
 		}
 	}
 
-	byName, _ := NewCategoryRepository(nil).GetAllPagedCategories(commands.PagedRequestCommand{
+	byName, _ := NewCategoryRepository(ImplicitCell(), nil).GetAllPagedCategories(commands.PagedRequestCommand{
 		Page: 1, PageSize: 10, OrderBy: "name", SortDirection: commands.ASCENDING,
 	})
 	if byName[0].Name != "Dairy" || byName[0].NumberOfProducts != 1 {

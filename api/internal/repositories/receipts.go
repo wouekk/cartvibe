@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"cartvibe/api/internal/cell"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/constants"
 	"cartvibe/api/internal/models"
@@ -19,10 +20,11 @@ type ReceiptRepository struct {
 	BaseRepository
 }
 
-func NewReceiptRepository(tx *gorm.DB) ReceiptRepository {
+func NewReceiptRepository(h cell.Handle, tx *gorm.DB) ReceiptRepository {
 	repository := ReceiptRepository{BaseRepository: BaseRepository{
-		DB: GetDB(),
-		TX: tx,
+		DB:   h.DB(),
+		TX:   tx,
+		Cell: h,
 	}}
 	return repository
 }
@@ -82,13 +84,13 @@ func (repository ReceiptRepository) BeforeUpdateReceipt(currentReceipt models.Re
 // Bump it whenever the snapshot format changes.
 const ReceiptUpdateDescriptionVersion = 2
 
-func createFailedUpdateSystemTask(command commands.UpsertSystemTaskCommand, err error) {
+func createFailedUpdateSystemTask(h cell.Handle, command commands.UpsertSystemTaskCommand, err error) {
 	endedAt := time.Now()
 	command.EndedAt = &endedAt
 	command.Status = models.SYSTEM_TASK_FAILED
 	command.ResultDescription = err.Error()
 
-	repository := NewSystemTaskRepository(nil)
+	repository := NewSystemTaskRepository(h, nil)
 	repository.CreateSystemTask(command)
 }
 
@@ -132,14 +134,14 @@ func (repository ReceiptRepository) UpdateReceipt(id string, command commands.Up
 
 	updatedReceipt, err := command.ToReceipt()
 	if err != nil {
-		createFailedUpdateSystemTask(systemTask, err)
+		createFailedUpdateSystemTask(repository.Cell, systemTask, err)
 		return models.Receipt{}, err
 	}
 	NormalizeReceiptCalendarDates(&updatedReceipt)
 
 	err = db.Table("receipts").Where("id = ?", id).Preload(clause.Associations).Find(&currentReceipt).Error
 	if err != nil {
-		createFailedUpdateSystemTask(systemTask, err)
+		createFailedUpdateSystemTask(repository.Cell, systemTask, err)
 		return models.Receipt{}, err
 	}
 
@@ -157,12 +159,12 @@ func (repository ReceiptRepository) UpdateReceipt(id string, command commands.Up
 	// every update look like it changed those.
 	beforeReceipt, err := repository.GetFullyLoadedReceiptById(id)
 	if err != nil {
-		createFailedUpdateSystemTask(systemTask, err)
+		createFailedUpdateSystemTask(repository.Cell, systemTask, err)
 		return models.Receipt{}, err
 	}
 	before, err := beforeReceipt.ToString()
 	if err != nil {
-		createFailedUpdateSystemTask(systemTask, err)
+		createFailedUpdateSystemTask(repository.Cell, systemTask, err)
 		return models.Receipt{}, err
 	}
 	systemTaskResultDescription["before"] = before
@@ -199,19 +201,19 @@ func (repository ReceiptRepository) UpdateReceipt(id string, command commands.Up
 		return nil
 	})
 	if err != nil {
-		createFailedUpdateSystemTask(systemTask, err)
+		createFailedUpdateSystemTask(repository.Cell, systemTask, err)
 		return models.Receipt{}, err
 	}
 
 	fullyLoadedReceipt, err := repository.GetFullyLoadedReceiptById(id)
 	if err != nil {
-		createFailedUpdateSystemTask(systemTask, err)
+		createFailedUpdateSystemTask(repository.Cell, systemTask, err)
 		return models.Receipt{}, err
 	}
 
 	after, err := fullyLoadedReceipt.ToString()
 	if err != nil {
-		createFailedUpdateSystemTask(systemTask, err)
+		createFailedUpdateSystemTask(repository.Cell, systemTask, err)
 		return models.Receipt{}, err
 	}
 
@@ -222,15 +224,15 @@ func (repository ReceiptRepository) UpdateReceipt(id string, command commands.Up
 
 	resultDescriptionBytes, err := json.Marshal(systemTaskResultDescription)
 	if err != nil {
-		createFailedUpdateSystemTask(systemTask, err)
+		createFailedUpdateSystemTask(repository.Cell, systemTask, err)
 		return models.Receipt{}, err
 	}
 	systemTask.ResultDescription = string(resultDescriptionBytes)
 
-	systemTaskRepository := NewSystemTaskRepository(nil)
+	systemTaskRepository := NewSystemTaskRepository(repository.Cell, nil)
 	_, err = systemTaskRepository.CreateSystemTask(systemTask)
 	if err != nil {
-		createFailedUpdateSystemTask(systemTask, err)
+		createFailedUpdateSystemTask(repository.Cell, systemTask, err)
 		return models.Receipt{}, err
 	}
 
@@ -259,7 +261,7 @@ func (repository ReceiptRepository) CreateReceipt(
 	createSystemTask bool,
 ) (models.Receipt, error) {
 	db := repository.GetDB()
-	notificationRepository := NewNotificationRepository(nil)
+	notificationRepository := NewNotificationRepository(repository.Cell, nil)
 	receipt, err := command.ToReceipt()
 	if err != nil {
 		return models.Receipt{}, err
@@ -316,7 +318,7 @@ func (repository ReceiptRepository) CreateReceipt(
 	// of the task that ran them.
 	if err != nil {
 		if createSystemTask {
-			createFailedUpdateSystemTask(systemTask, err)
+			createFailedUpdateSystemTask(repository.Cell, systemTask, err)
 		}
 		return models.Receipt{}, err
 	}
@@ -324,7 +326,7 @@ func (repository ReceiptRepository) CreateReceipt(
 	fullyLoadedReceipt, err := repository.GetFullyLoadedReceiptById(utils.UintToString(receipt.ID))
 	if err != nil {
 		if createSystemTask {
-			createFailedUpdateSystemTask(systemTask, err)
+			createFailedUpdateSystemTask(repository.Cell, systemTask, err)
 		}
 		return models.Receipt{}, err
 	}
@@ -335,7 +337,7 @@ func (repository ReceiptRepository) CreateReceipt(
 	if fullyLoadedReceipt.ID == 0 {
 		err = fmt.Errorf("created receipt %s could not be reloaded", utils.UintToString(receipt.ID))
 		if createSystemTask {
-			createFailedUpdateSystemTask(systemTask, err)
+			createFailedUpdateSystemTask(repository.Cell, systemTask, err)
 		}
 		return models.Receipt{}, err
 	}
@@ -353,7 +355,7 @@ func (repository ReceiptRepository) CreateReceipt(
 		systemTask.GroupId = &fullyLoadedReceipt.GroupId
 		systemTask.ResultDescription = newReceiptString
 
-		systemTaskRepository := NewSystemTaskRepository(nil)
+		systemTaskRepository := NewSystemTaskRepository(repository.Cell, nil)
 		_, err = systemTaskRepository.CreateSystemTask(systemTask)
 		if err != nil {
 			return models.Receipt{}, err
@@ -364,7 +366,7 @@ func (repository ReceiptRepository) CreateReceipt(
 }
 
 func (repository ReceiptRepository) GetReceiptById(receiptId string) (models.Receipt, error) {
-	db := GetDB()
+	db := repository.DB
 	var receipt models.Receipt
 	err := db.Model(models.Receipt{}).Where("id = ?", receiptId).First(&receipt).Debug().Error
 	if err != nil {
@@ -431,7 +433,7 @@ func (repository ReceiptRepository) GetPagedReceiptsByGroupId(
 	if err != nil {
 		return nil, 0, err
 	}
-	groupRepository := NewGroupRepository(nil)
+	groupRepository := NewGroupRepository(repository.Cell, nil)
 	isAllGroup, err := groupRepository.IsAllGroup(uintGroupId)
 	if err != nil {
 		return nil, 0, err
@@ -473,7 +475,7 @@ func (repository ReceiptRepository) GetPagedReceiptsByGroupId(
 	// Filter receipts by group
 	var memberGroupIds []uint
 	if isAllGroup {
-		groupMemberRepository := NewGroupMemberRepository(nil)
+		groupMemberRepository := NewGroupMemberRepository(repository.Cell, nil)
 		memberGroupIds, err = groupMemberRepository.GetGroupIdsByUserId(utils.UintToString(userId))
 		if err != nil {
 			return nil, 0, err
@@ -786,6 +788,8 @@ func intersectIds(requested []uint, allowed map[uint]struct{}) []uint {
 
 func (repository ReceiptRepository) BuildGormFilterQuery(pagedRequest commands.ReceiptPagedRequestCommand) (*gorm.DB, error) {
 	query := repository.GetDB().Model(models.Receipt{})
+	// The category and tag subqueries are built on the repository's own database (never the process one).
+	db := repository.DB
 	// Name
 	if pagedRequest.Filter.Name.Value != nil {
 		name := pagedRequest.Filter.Name.Value.(string)

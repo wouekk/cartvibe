@@ -51,7 +51,7 @@ func NewReceiptService(tx *gorm.DB) ReceiptService {
 // forbidden, and paid-by-hidden receipts all collapse to ErrReceiptAccessDenied so
 // the caller cannot infer a receipt's existence.
 func (service ReceiptService) GetReceiptForUser(userId uint, receiptId string) (models.Receipt, error) {
-	receiptRepository := repositories.NewReceiptRepository(service.TX)
+	receiptRepository := repositories.NewReceiptRepository(repositories.ImplicitCell(), service.TX)
 	permissionService := NewPermissionService(service.TX)
 
 	// Authorize on the lightweight auth fields first (this fetch uses First, so a
@@ -129,7 +129,7 @@ func (service ReceiptService) SearchReceiptsForUser(userId uint, query string, l
 		return results, nil
 	}
 
-	groupMemberRepository := repositories.NewGroupMemberRepository(service.TX)
+	groupMemberRepository := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), service.TX)
 	groupIds, err := groupMemberRepository.GetGroupIdsByUserId(utils.UintToString(userId))
 	if err != nil {
 		return nil, err
@@ -153,7 +153,7 @@ func (service ReceiptService) SearchReceiptsForUser(userId uint, query string, l
 		return results, nil
 	}
 
-	receiptRepository := repositories.NewReceiptRepository(service.TX)
+	receiptRepository := repositories.NewReceiptRepository(repositories.ImplicitCell(), service.TX)
 	receipts, err := receiptRepository.SearchReceiptsByGroupIds(readableGroupIds, query, limit, permissionService.PaidByListResolver(userId))
 	if err != nil {
 		return nil, err
@@ -185,7 +185,7 @@ func (service ReceiptService) GetReceiptByReceiptImageId(receiptImageId string) 
 		return models.Receipt{}, err
 	}
 
-	receiptRepository := repositories.NewReceiptRepository(service.TX)
+	receiptRepository := repositories.NewReceiptRepository(repositories.ImplicitCell(), service.TX)
 	receipt, err := receiptRepository.GetReceiptById(strconv.FormatUint(uint64(fileData.ReceiptId), 10))
 	if err != nil {
 		return models.Receipt{}, err
@@ -197,7 +197,7 @@ func (service ReceiptService) GetReceiptByReceiptImageId(receiptImageId string) 
 func (service ReceiptService) DeleteReceipt(id string) error {
 	db := service.GetDB()
 	var receipt models.Receipt
-	receiptRepository := repositories.NewReceiptRepository(service.TX)
+	receiptRepository := repositories.NewReceiptRepository(repositories.ImplicitCell(), service.TX)
 
 	receipt, err := receiptRepository.GetFullyLoadedReceiptById(id)
 	if err != nil {
@@ -206,7 +206,7 @@ func (service ReceiptService) DeleteReceipt(id string) error {
 
 	err = db.Transaction(func(tx *gorm.DB) error {
 		var imagesToDelete []string
-		fileRepository := repositories.NewFileRepository(tx)
+		fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), tx)
 		fileRepository.SetTransaction(tx)
 
 		for _, f := range receipt.ImageFiles {
@@ -215,13 +215,13 @@ func (service ReceiptService) DeleteReceipt(id string) error {
 		}
 
 		// Products are not an association of Receipt, so the delete below cannot reach them.
-		err = repositories.NewReceiptProductRepository(tx).DeleteReceiptProducts(receipt.ID)
+		err = repositories.NewReceiptProductRepository(repositories.ImplicitCell(), tx).DeleteReceiptProducts(receipt.ID)
 		if err != nil {
 			return err
 		}
 
 		// Neither is its shopping trip.
-		err = repositories.NewShoppingTripRepository(tx).DeleteTripForReceipt(receipt.ID)
+		err = repositories.NewShoppingTripRepository(repositories.ImplicitCell(), tx).DeleteTripForReceipt(receipt.ID)
 		if err != nil {
 			return err
 		}
@@ -274,7 +274,7 @@ func (service ReceiptService) QuickScan(params QuickScanParams) (models.Receipt,
 	systemTaskService := NewSystemTaskService(service.TX)
 	var createdReceipt models.Receipt
 
-	fileRepository := repositories.NewFileRepository(service.TX)
+	fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), service.TX)
 	fileBytes, err := utils.ReadFile(params.TempPath)
 	if err != nil {
 		return models.Receipt{}, err
@@ -295,8 +295,8 @@ func (service ReceiptService) QuickScan(params QuickScanParams) (models.Receipt,
 		Filename:  params.OriginalFileName,
 	}
 
-	receiptRepository := repositories.NewReceiptRepository(service.TX)
-	receiptImageRepository := repositories.NewReceiptImageRepository(service.TX)
+	receiptRepository := repositories.NewReceiptRepository(repositories.ImplicitCell(), service.TX)
+	receiptImageRepository := repositories.NewReceiptImageRepository(repositories.ImplicitCell(), service.TX)
 
 	groupIdString := utils.UintToString(groupId)
 
@@ -494,7 +494,7 @@ func (service ReceiptService) resolveQuickScanCategories(
 		return []commands.UpsertCategoryCommand{}, nil
 	}
 
-	categoryRepository := repositories.NewCategoryRepository(service.TX)
+	categoryRepository := repositories.NewCategoryRepository(repositories.ImplicitCell(), service.TX)
 	records, err := categoryRepository.GetByIds(orderedIds)
 	if err != nil {
 		return nil, err
@@ -559,7 +559,7 @@ func (service ReceiptService) resolveQuickScanTags(
 		return []commands.UpsertTagCommand{}, nil
 	}
 
-	tagsRepository := repositories.NewTagsRepository(service.TX)
+	tagsRepository := repositories.NewTagsRepository(repositories.ImplicitCell(), service.TX)
 	records, err := tagsRepository.GetByIds(orderedIds)
 	if err != nil {
 		return nil, err
@@ -653,7 +653,7 @@ func (service ReceiptService) DuplicateReceipt(
 		GroupId:              nil,
 	}
 
-	receiptRepository := repositories.NewReceiptRepository(nil)
+	receiptRepository := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil)
 	receipt, err := receiptRepository.GetFullyLoadedReceiptById(receiptId)
 	defer func() {
 		systemTaskService := NewSystemTaskService(nil)
@@ -758,7 +758,7 @@ func (service ReceiptService) DuplicateReceipt(
 // It returns every path it wrote or tried to write, on success and on failure
 // alike, so the caller can remove them if the transaction does not commit.
 func copyDuplicateImages(tx *gorm.DB, sources []models.FileData, copies []models.FileData) ([]string, error) {
-	fileRepository := repositories.NewFileRepository(tx)
+	fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), tx)
 	written := make([]string, 0, len(copies))
 
 	for i, copied := range copies {
@@ -833,14 +833,14 @@ func (service ReceiptService) CreateReceiptWithFiles(
 	var createdReceiptId uint
 	writtenPaths := make([]string, 0, len(files))
 	err = db.Transaction(func(tx *gorm.DB) error {
-		createdReceipt, txErr := repositories.NewReceiptRepository(tx).CreateReceipt(command, userId, false)
+		createdReceipt, txErr := repositories.NewReceiptRepository(repositories.ImplicitCell(), tx).CreateReceipt(command, userId, false)
 		if txErr != nil {
 			return txErr
 		}
 		createdReceiptId = createdReceipt.ID
 
-		receiptImageRepository := repositories.NewReceiptImageRepository(tx)
-		fileRepository := repositories.NewFileRepository(tx)
+		receiptImageRepository := repositories.NewReceiptImageRepository(repositories.ImplicitCell(), tx)
+		fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), tx)
 		for _, file := range files {
 			fileData := models.FileData{
 				Name:      file.Name,
@@ -878,7 +878,7 @@ func (service ReceiptService) CreateReceiptWithFiles(
 		return models.Receipt{}, err
 	}
 
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(createdReceiptId))
+	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetFullyLoadedReceiptById(utils.UintToString(createdReceiptId))
 	if err != nil {
 		return models.Receipt{}, err
 	}

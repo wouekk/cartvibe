@@ -21,7 +21,7 @@ type foodGroupResolver struct {
 }
 
 func newFoodGroupResolver(tx *gorm.DB) (*foodGroupResolver, error) {
-	categories, err := repositories.NewCategoryRepository(tx).GetAllCategories("id, name, description, skipped, aliases")
+	categories, err := repositories.NewCategoryRepository(repositories.ImplicitCell(), tx).GetAllCategories("id, name, description, skipped, aliases")
 	if err != nil {
 		return nil, err
 	}

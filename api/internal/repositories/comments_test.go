@@ -13,7 +13,7 @@ var commentRepository CommentRepository
 func setupCommentTest() {
 	CreateTestGroupWithUsers()
 	createTestReceipt()
-	commentRepository = NewCommentRepository(nil)
+	commentRepository = NewCommentRepository(ImplicitCell(), nil)
 }
 
 func createTestReceipt() {
@@ -50,7 +50,7 @@ func TestShouldAddCommentAndSendNotificationToAllGroupUsers(t *testing.T) {
 		utils.PrintTestError(t, newComment.ID, 1)
 	}
 
-	notificationRepository := NewNotificationRepository(nil)
+	notificationRepository := NewNotificationRepository(ImplicitCell(), nil)
 
 	user1Notifications, _ := notificationRepository.GetNotificationsForUser(1)
 	if len(user1Notifications) > 0 {
@@ -103,7 +103,7 @@ func TestSendNotificationsReplyBranchOmitsRecipientsWhoCannotSeeAuthor(t *testin
 		t.Fatalf("sendNotificationsToUsers: %v", err)
 	}
 
-	notificationRepository := NewNotificationRepository(nil)
+	notificationRepository := NewNotificationRepository(ImplicitCell(), nil)
 	count := func(userId uint) int {
 		ns, err := notificationRepository.GetNotificationsForUser(userId)
 		if err != nil {

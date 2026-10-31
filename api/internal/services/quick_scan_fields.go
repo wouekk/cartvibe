@@ -25,7 +25,7 @@ type ResolvedQuickScanFields struct {
 // backfills paid-by/status defaults for fields the user left blank. A non-empty ValidatorError means
 // the request should 400 without enqueuing anything.
 func (service ReceiptService) ResolveQuickScanFields(command commands.QuickScanCommand, uploaderUserId uint) ([]ResolvedQuickScanFields, structs.ValidatorError, error) {
-	settingsRepository := repositories.NewGroupReceiptSettingsRepository(service.TX)
+	settingsRepository := repositories.NewGroupReceiptSettingsRepository(repositories.ImplicitCell(), service.TX)
 	permissionService := NewPermissionService(service.TX)
 	settingsCache := make(map[uint]models.GroupReceiptSettings)
 	// Only the role's permission list is cached globally; the membership lookup behind each check is

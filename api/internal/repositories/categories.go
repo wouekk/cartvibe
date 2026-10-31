@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"cartvibe/api/internal/cell"
 	"fmt"
 	"strings"
 	"gorm.io/gorm"
@@ -12,10 +13,11 @@ type CategoryRepository struct {
 	BaseRepository
 }
 
-func NewCategoryRepository(tx *gorm.DB) CategoryRepository {
+func NewCategoryRepository(h cell.Handle, tx *gorm.DB) CategoryRepository {
 	repository := CategoryRepository{BaseRepository: BaseRepository{
-		DB: GetDB(),
-		TX: tx,
+		DB:   h.DB(),
+		TX:   tx,
+		Cell: h,
 	}}
 	return repository
 }

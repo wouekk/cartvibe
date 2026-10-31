@@ -49,7 +49,7 @@ func SyncWarrantyReminders(receiptId uint, now time.Time) error {
 		return db.Where("receipt_id = ?", receiptId).Delete(&models.WarrantyReminder{}).Error
 	}
 
-	members, err := repositories.NewGroupMemberRepository(nil).GetsGroupMembersByGroupId(utils.UintToString(receipt.GroupId))
+	members, err := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil).GetsGroupMembersByGroupId(utils.UintToString(receipt.GroupId))
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func SyncWarrantyReminders(receiptId uint, now time.Time) error {
 		}
 
 		for _, userId := range recipients {
-			preferences, err := repositories.NewUserPreferencesRepository(tx).GetUserPreferencesOrCreate(userId)
+			preferences, err := repositories.NewUserPreferencesRepository(repositories.ImplicitCell(), tx).GetUserPreferencesOrCreate(userId)
 			if err != nil {
 				return err
 			}
@@ -104,7 +104,7 @@ func SyncWarrantyReminders(receiptId uint, now time.Time) error {
 
 // SyncWarrantyRemindersForUser plans again every reminder that involves the person, after their lead time changed.
 func SyncWarrantyRemindersForUser(userId uint, now time.Time) error {
-	groupIds, err := repositories.NewGroupMemberRepository(nil).GetGroupIdsByUserId(utils.UintToString(userId))
+	groupIds, err := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil).GetGroupIdsByUserId(utils.UintToString(userId))
 	if err != nil {
 		return err
 	}
@@ -286,7 +286,7 @@ func buildWarrantyMessage(reminder models.WarrantyReminder, local time.Time) (wa
 	if err := db.Select("id", "name", "shop_name").Where("id = ?", reminder.ReceiptId).Take(&receipt).Error; err != nil {
 		return warrantyMessage{}, err
 	}
-	preferences, err := repositories.NewUserPreferencesRepository(nil).GetUserPreferencesOrCreate(reminder.UserId)
+	preferences, err := repositories.NewUserPreferencesRepository(repositories.ImplicitCell(), nil).GetUserPreferencesOrCreate(reminder.UserId)
 	if err != nil {
 		return warrantyMessage{}, err
 	}

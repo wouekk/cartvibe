@@ -31,7 +31,7 @@ func CanDeleteGroup(next http.Handler) http.Handler {
 			return
 		}
 
-		groupMemberRepository := repositories.NewGroupMemberRepository(nil)
+		groupMemberRepository := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil)
 		groupMembers, err := groupMemberRepository.GetGroupMembersByUserId(utils.UintToString(token.UserId))
 		if err != nil {
 			logging.LogStd(logging.LOG_LEVEL_ERROR, err.Error())

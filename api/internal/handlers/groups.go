@@ -50,7 +50,7 @@ func GetPagedGroups(w http.ResponseWriter, r *http.Request) {
 			}
 
 			userIdString := utils.UintToString(token.UserId)
-			groupRepository := repositories.NewGroupRepository(nil)
+			groupRepository := repositories.NewGroupRepository(repositories.ImplicitCell(), nil)
 
 			groups, count, err := groupRepository.GetPagedGroups(command, userIdString)
 			if err != nil {
@@ -106,7 +106,7 @@ func GetGroupsForUser(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if !hasAllGroup {
-				groupsRepository := repositories.NewGroupRepository(nil)
+				groupsRepository := repositories.NewGroupRepository(repositories.ImplicitCell(), nil)
 				groupService := services.NewGroupService(nil)
 
 				_, err := groupsRepository.CreateAllGroup(token.UserId)
@@ -128,7 +128,7 @@ func GetGroupsForUser(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Attach each visible member's per-member category/tag grants.
-			if err := repositories.NewGroupMemberRepository(nil).LoadMemberGrantsForGroups(groups); err != nil {
+			if err := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil).LoadMemberGrantsForGroups(groups); err != nil {
 				return http.StatusInternalServerError, err
 			}
 
@@ -159,7 +159,7 @@ func GetGroupById(w http.ResponseWriter, r *http.Request) {
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
 			id := chi.URLParam(r, "groupId")
 
-			groupRepository := repositories.NewGroupRepository(nil)
+			groupRepository := repositories.NewGroupRepository(repositories.ImplicitCell(), nil)
 			groups, err := groupRepository.GetGroupById(id, true, true)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -174,7 +174,7 @@ func GetGroupById(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Attach each visible member's per-member category/tag grants.
-			if err := repositories.NewGroupMemberRepository(nil).LoadMemberGrantsForGroup(&groups); err != nil {
+			if err := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil).LoadMemberGrantsForGroup(&groups); err != nil {
 				return http.StatusInternalServerError, err
 			}
 
@@ -216,7 +216,7 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 			token := structs.GetClaims(r)
 
 			command.IsAllGroup = false
-			groupRepository := repositories.NewGroupRepository(nil)
+			groupRepository := repositories.NewGroupRepository(repositories.ImplicitCell(), nil)
 			group, err := groupRepository.CreateGroup(command, token.UserId)
 
 			if err != nil {
@@ -225,7 +225,7 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 
 			// A brand-new group has no grants yet, but the response must still carry
 			// the empty arrays swagger declares rather than null.
-			if err := repositories.NewGroupMemberRepository(nil).LoadMemberGrantsForGroup(&group); err != nil {
+			if err := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil).LoadMemberGrantsForGroup(&group); err != nil {
 				return http.StatusInternalServerError, err
 			}
 
@@ -234,7 +234,7 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			fileRepository := repositories.NewFileRepository(nil)
+			fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
 			groupPath, err := fileRepository.BuildGroupPath(group.ID, "")
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -278,7 +278,7 @@ func UpdateGroup(w http.ResponseWriter, r *http.Request) {
 			}
 			groupId := chi.URLParam(r, "groupId")
 
-			groupRepository := repositories.NewGroupRepository(nil)
+			groupRepository := repositories.NewGroupRepository(repositories.ImplicitCell(), nil)
 			uintGroupId, err := utils.StringToUint(groupId)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -319,7 +319,7 @@ func UpdateGroup(w http.ResponseWriter, r *http.Request) {
 			// this response straight into GroupState, which is what the user form
 			// reads its assignments from — an unloaded response would show every
 			// member as unassigned.
-			if err := repositories.NewGroupMemberRepository(nil).LoadMemberGrantsForGroup(&updatedGroup); err != nil {
+			if err := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil).LoadMemberGrantsForGroup(&updatedGroup); err != nil {
 				return http.StatusInternalServerError, err
 			}
 
@@ -358,7 +358,7 @@ func UpdateGroupReceiptSettings(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			groupReceiptSettingsRepository := repositories.NewGroupReceiptSettingsRepository(nil)
+			groupReceiptSettingsRepository := repositories.NewGroupReceiptSettingsRepository(repositories.ImplicitCell(), nil)
 			updatedGroupReceiptSettings, err := groupReceiptSettingsRepository.UpdateGroupReceiptSettings(groupId, command)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -401,7 +401,7 @@ func DeleteGroup(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			groupRepository := repositories.NewGroupRepository(nil)
+			groupRepository := repositories.NewGroupRepository(repositories.ImplicitCell(), nil)
 			isAllGroup, err := groupRepository.IsAllGroup(uintGroupId)
 			if err != nil {
 				return http.StatusInternalServerError, err

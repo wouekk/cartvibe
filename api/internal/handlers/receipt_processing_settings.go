@@ -37,7 +37,7 @@ func GetPagedReceiptProcessingSettings(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			receiptProcessingSettingsRepository := repositories.NewReceiptProcessingSettings(nil)
+			receiptProcessingSettingsRepository := repositories.NewReceiptProcessingSettings(repositories.ImplicitCell(), nil)
 			receiptProcessingSettings, count, err := receiptProcessingSettingsRepository.GetPagedReceiptProcessingSettings(command)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -87,7 +87,7 @@ func CreateReceiptProcessingSettings(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			receiptProcessingSettingsRepository := repositories.NewReceiptProcessingSettings(nil)
+			receiptProcessingSettingsRepository := repositories.NewReceiptProcessingSettings(repositories.ImplicitCell(), nil)
 			settings, err := receiptProcessingSettingsRepository.CreateReceiptProcessingSettings(command)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -95,7 +95,7 @@ func CreateReceiptProcessingSettings(w http.ResponseWriter, r *http.Request) {
 
 			// The first AI settings of an install become the ones System Settings points at, so a household
 			// member without System Settings access can set the AI up on their own (the AI page).
-			if _, err := repositories.NewSystemSettingsRepository(nil).LinkReceiptProcessingSettingsIfNone(settings.ID); err != nil {
+			if _, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).LinkReceiptProcessingSettingsIfNone(settings.ID); err != nil {
 				return http.StatusInternalServerError, err
 			}
 
@@ -124,7 +124,7 @@ func GetReceiptProcessingSettingsById(w http.ResponseWriter, r *http.Request) {
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
 			id := chi.URLParam(r, "id")
 
-			receiptProcessingSettingsRepository := repositories.NewReceiptProcessingSettings(nil)
+			receiptProcessingSettingsRepository := repositories.NewReceiptProcessingSettings(repositories.ImplicitCell(), nil)
 			settings, err := receiptProcessingSettingsRepository.GetReceiptProcessingSettingsById(id)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -163,7 +163,7 @@ func UpdateReceiptProcessingSettingsById(w http.ResponseWriter, r *http.Request)
 				return http.StatusInternalServerError, err
 			}
 
-			receiptProcessingSettingsRepository := repositories.NewReceiptProcessingSettings(nil)
+			receiptProcessingSettingsRepository := repositories.NewReceiptProcessingSettings(repositories.ImplicitCell(), nil)
 
 			// A stored key belongs to the provider it was saved for: switching provider replaces it (a cloud provider
 			// then needs a new one), so the old key is never sent to another company.
@@ -210,7 +210,7 @@ func DeleteReceiptProcessingSettingsById(w http.ResponseWriter, r *http.Request)
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
 			id := chi.URLParam(r, "id")
 
-			receiptProcessingSettingsRepository := repositories.NewReceiptProcessingSettings(nil)
+			receiptProcessingSettingsRepository := repositories.NewReceiptProcessingSettings(repositories.ImplicitCell(), nil)
 			err := receiptProcessingSettingsRepository.DeleteReceiptProcessingSettingsById(id)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -262,7 +262,7 @@ func CheckReceiptProcessingSettingsConnectivity(w http.ResponseWriter, r *http.R
 				// only for the provider it was saved for; another provider is tested without a key.
 				key := command.Key
 				if command.ID > 0 && strings.TrimSpace(key) == "" {
-					stored, storedErr := repositories.NewReceiptProcessingSettings(nil).
+					stored, storedErr := repositories.NewReceiptProcessingSettings(repositories.ImplicitCell(), nil).
 						GetReceiptProcessingSettingsById(utils.UintToString(command.ID))
 					if storedErr != nil {
 						return http.StatusBadRequest, storedErr
@@ -340,7 +340,7 @@ func GetAiModels(w http.ResponseWriter, r *http.Request) {
 			aiType := command.AiType
 			key := strings.TrimSpace(command.Key)
 			if key == "" {
-				settings, err := repositories.NewReceiptProcessingSettings(nil).
+				settings, err := repositories.NewReceiptProcessingSettings(repositories.ImplicitCell(), nil).
 					GetReceiptProcessingSettingsById(utils.UintToString(command.ReceiptProcessingSettingsId))
 				if err != nil {
 					return http.StatusBadRequest, err

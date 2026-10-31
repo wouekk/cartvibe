@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"cartvibe/api/internal/cell"
 	"fmt"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/utils"
@@ -12,10 +13,11 @@ type NotificationRepository struct {
 	BaseRepository
 }
 
-func NewNotificationRepository(tx *gorm.DB) NotificationRepository {
+func NewNotificationRepository(h cell.Handle, tx *gorm.DB) NotificationRepository {
 	repository := NotificationRepository{BaseRepository: BaseRepository{
-		DB: GetDB(),
-		TX: tx,
+		DB:   h.DB(),
+		TX:   tx,
+		Cell: h,
 	}}
 	return repository
 }
@@ -63,7 +65,7 @@ func (repository NotificationRepository) DeleteNotificationById(notificationId s
 
 func (repository NotificationRepository) SendNotificationToGroup(groupId uint, title string, body string, notificationType models.NotificationType, usersToOmit []interface{}) error {
 	db := repository.GetDB()
-	notifications, err := BuildNotificationForGroup(groupId, title, body, notificationType, usersToOmit)
+	notifications, err := BuildNotificationForGroup(repository.Cell, groupId, title, body, notificationType, usersToOmit)
 	if err != nil {
 		return err
 	}
@@ -107,8 +109,8 @@ func BuildNotificationsForUsers(userIds []uint, title string, body string, notif
 	return notifications, nil
 }
 
-func BuildNotificationForGroup(groupId uint, title string, body string, notificationType models.NotificationType, usersToOmit []interface{}) ([]models.Notification, error) {
-	groupMemberRepository := NewGroupMemberRepository(nil)
+func BuildNotificationForGroup(h cell.Handle, groupId uint, title string, body string, notificationType models.NotificationType, usersToOmit []interface{}) ([]models.Notification, error) {
+	groupMemberRepository := NewGroupMemberRepository(h, nil)
 	groupMembers, err := groupMemberRepository.GetsGroupMembersByGroupId(utils.UintToString(groupId))
 	if err != nil {
 		return nil, err

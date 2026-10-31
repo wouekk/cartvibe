@@ -12,7 +12,7 @@ func setUpGroupTest() {
 }
 
 func setupGroupRepository() GroupRepository {
-	return NewGroupRepository(nil)
+	return NewGroupRepository(ImplicitCell(), nil)
 }
 
 func teardownGroupTest() {
@@ -50,11 +50,11 @@ func TestShouldCreateGroupSuccessfully(t *testing.T) {
 func TestCreateGroupAssignsDefaultGroupRole(t *testing.T) {
 	defer teardownGroupTest()
 
-	if err := SeedSystemRoles(); err != nil {
+	if err := SeedSystemRoles(ImplicitCell()); err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
 	}
-	if err := EnsureDefaultRoles(); err != nil {
+	if err := EnsureDefaultRoles(ImplicitCell()); err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
 	}
@@ -73,7 +73,7 @@ func TestCreateGroupAssignsDefaultGroupRole(t *testing.T) {
 	}
 
 	member := created.GroupMembers[0]
-	roleRepository := NewRoleRepository(nil)
+	roleRepository := NewRoleRepository(ImplicitCell(), nil)
 	defaultId, err := roleRepository.GetDefaultGroupRoleId()
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -107,11 +107,11 @@ func TestCreateGroupLeavesGroupRoleNilWhenUnseeded(t *testing.T) {
 func TestCreateGroupHonorsMemberGroupRoleId(t *testing.T) {
 	defer teardownGroupTest()
 
-	if err := SeedSystemRoles(); err != nil {
+	if err := SeedSystemRoles(ImplicitCell()); err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
 	}
-	if err := EnsureDefaultRoles(); err != nil {
+	if err := EnsureDefaultRoles(ImplicitCell()); err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
 	}
@@ -159,11 +159,11 @@ func TestCreateGroupHonorsMemberGroupRoleId(t *testing.T) {
 func TestUpdateGroupHonorsMemberGroupRoleId(t *testing.T) {
 	defer teardownGroupTest()
 
-	if err := SeedSystemRoles(); err != nil {
+	if err := SeedSystemRoles(ImplicitCell()); err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
 	}
-	if err := EnsureDefaultRoles(); err != nil {
+	if err := EnsureDefaultRoles(ImplicitCell()); err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
 	}

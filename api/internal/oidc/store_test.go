@@ -85,7 +85,7 @@ func TestDeleteExpiredOidcSessionsKeepsLiveRows(t *testing.T) {
 		t.Fatalf("failed to expire the session: %v", err)
 	}
 
-	if err := repositories.NewOidcSessionRepository(nil).DeleteExpiredOidcSessions(); err != nil {
+	if err := repositories.NewOidcSessionRepository(repositories.ImplicitCell(), nil).DeleteExpiredOidcSessions(); err != nil {
 		t.Fatalf("cleanup failed: %v", err)
 	}
 

@@ -137,7 +137,7 @@ func handleListCategories(ctx context.Context, req *mcpsdk.CallToolRequest, _ em
 		return nil, nil, err
 	}
 
-	categories, err := repositories.NewCategoryRepository(nil).GetAllCategories("*")
+	categories, err := repositories.NewCategoryRepository(repositories.ImplicitCell(), nil).GetAllCategories("*")
 	if err != nil {
 		return nil, nil, err
 	}
@@ -165,7 +165,7 @@ func handleListTags(ctx context.Context, req *mcpsdk.CallToolRequest, _ emptyInp
 		return nil, nil, err
 	}
 
-	tags, err := repositories.NewTagsRepository(nil).GetAllTags("*")
+	tags, err := repositories.NewTagsRepository(repositories.ImplicitCell(), nil).GetAllTags("*")
 	if err != nil {
 		return nil, nil, err
 	}
@@ -208,7 +208,7 @@ func visibleByGrants[T any](
 		return all, nil
 	}
 
-	groupIds, err := repositories.NewGroupMemberRepository(nil).GetGroupIdsByUserId(utils.UintToString(userId))
+	groupIds, err := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil).GetGroupIdsByUserId(utils.UintToString(userId))
 	if err != nil {
 		return nil, err
 	}

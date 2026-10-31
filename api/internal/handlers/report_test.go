@@ -478,7 +478,7 @@ func seedReportTemplate(t *testing.T, userId uint, name string) models.ReportTem
 		Columns:  []commands.ReportColumn{{Kind: "dimension", Name: "Name", Label: "Name", Field: "name"}},
 		Formats:  []string{"csv"},
 	}
-	template, err := repositories.NewReportTemplateRepository(nil).CreateReportTemplate(command, userId)
+	template, err := repositories.NewReportTemplateRepository(repositories.ImplicitCell(), nil).CreateReportTemplate(command, userId)
 	if err != nil {
 		t.Fatalf("seed report template: %v", err)
 	}
@@ -739,7 +739,7 @@ func TestUpdateReportTemplate_RejectsMalformedJson(t *testing.T) {
 
 	assertStatus(t, w, http.StatusBadRequest)
 
-	unchanged, err := repositories.NewReportTemplateRepository(nil).GetReportTemplateById(fmt.Sprint(seeded.ID))
+	unchanged, err := repositories.NewReportTemplateRepository(repositories.ImplicitCell(), nil).GetReportTemplateById(fmt.Sprint(seeded.ID))
 	if err != nil {
 		t.Fatalf("re-fetch template: %v", err)
 	}

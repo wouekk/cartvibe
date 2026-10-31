@@ -18,7 +18,7 @@ const inlineAnswerWithProducts = "```json\n" + `{"name": "Edeka", "shopName": "E
 func queueInlineReceipt(t *testing.T) models.Receipt {
 	t.Helper()
 	receipt := seedExtractionReceipt(t, true)
-	if err := repositories.NewReceiptProductRepository(nil).MarkReceiptProductsPending(receipt.ID); err != nil {
+	if err := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil).MarkReceiptProductsPending(receipt.ID); err != nil {
 		t.Fatalf("queue: %v", err)
 	}
 	return receipt
@@ -33,7 +33,7 @@ func TestApplyInlineReadStoresTheProductsOfTheScanAnswer(t *testing.T) {
 		t.Fatalf("expected the products applied, got %v, %v", applied, err)
 	}
 
-	products, extraction, err := repositories.NewReceiptProductRepository(nil).GetReceiptProducts(receipt.ID)
+	products, extraction, err := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil).GetReceiptProducts(receipt.ID)
 	if err != nil {
 		t.Fatalf("get: %v", err)
 	}
@@ -74,7 +74,7 @@ func TestApplyInlineReadNeverTakesAReceiptTheSweepHolds(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	receipt := queueInlineReceipt(t)
 
-	repository := repositories.NewReceiptProductRepository(nil)
+	repository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil)
 	if _, ok, err := repository.ClaimDueExtraction(time.Now().Add(time.Second)); err != nil || !ok {
 		t.Fatalf("sweep claim: %v, %v", ok, err)
 	}
@@ -125,7 +125,7 @@ func TestQuickScanStoresTheProductsOfItsOwnAnswer(t *testing.T) {
 		t.Fatalf("quick scan: %v", err)
 	}
 
-	products, extraction, err := repositories.NewReceiptProductRepository(nil).GetReceiptProducts(created.ID)
+	products, extraction, err := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil).GetReceiptProducts(created.ID)
 	if err != nil {
 		t.Fatalf("get products: %v", err)
 	}
@@ -175,7 +175,7 @@ func TestApplyInlineReadGrossesUpALineReadBeforeVat(t *testing.T) {
 		t.Fatalf("expected the products applied, got %v, %v", applied, err)
 	}
 
-	products, _, err := repositories.NewReceiptProductRepository(nil).GetReceiptProducts(receipt.ID)
+	products, _, err := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil).GetReceiptProducts(receipt.ID)
 	if err != nil {
 		t.Fatal(err)
 	}

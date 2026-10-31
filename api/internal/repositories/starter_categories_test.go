@@ -97,12 +97,12 @@ func TestStarterCategoriesRunOnceSoADeletedOneStaysDeleted(t *testing.T) {
 		return seedStarterCategories(tx)
 	}}})
 
-	if err := RunDataMigrations(); err != nil {
+	if err := RunDataMigrations(ImplicitCell()); err != nil {
 		t.Fatal(err)
 	}
 	GetDB().Where("name = ?", "Museum").Delete(&models.Category{})
 
-	if err := RunDataMigrations(); err != nil {
+	if err := RunDataMigrations(ImplicitCell()); err != nil {
 		t.Fatal(err)
 	}
 	names := categoryNames(t)

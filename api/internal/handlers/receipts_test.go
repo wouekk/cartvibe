@@ -39,7 +39,7 @@ func TestShouldGetPagedReceiptsWithoutFullReceipts(t *testing.T) {
 	setupReceiptsTest()
 
 	// Create a test receipt
-	receiptRepository := repositories.NewReceiptRepository(nil)
+	receiptRepository := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil)
 	testCommand := commands.UpsertReceiptCommand{
 		Name:         "Test Receipt",
 		Amount:       decimal.NewFromFloat(10.00),

@@ -40,7 +40,7 @@ func GetSystemTasks(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			systemTaskRepository := repositories.NewSystemTaskRepository(nil)
+			systemTaskRepository := repositories.NewSystemTaskRepository(repositories.ImplicitCell(), nil)
 			systemTasks, count, err := systemTaskRepository.GetPagedSystemTasks(command)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -119,7 +119,7 @@ func GetActivitiesForGroups(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			systemTaskRepository := repositories.NewSystemTaskRepository(nil)
+			systemTaskRepository := repositories.NewSystemTaskRepository(repositories.ImplicitCell(), nil)
 			token := structs.GetClaims(r)
 
 			// Member isolation: activities run by a user the caller may not see in that
@@ -295,7 +295,7 @@ func GetSystemTaskSourceFile(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			fileRepository := repositories.NewFileRepository(nil)
+			fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
 
 			// Prefer the already-converted OCR copy. Converting the original
 			// instead can mean rasterizing a multi-page PDF at the configured DPI
@@ -415,7 +415,7 @@ func loadSystemTaskForSourceFile(
 	r *http.Request,
 	errorMsg string,
 ) (models.SystemTask, string, bool) {
-	systemTaskRepository := repositories.NewSystemTaskRepository(nil)
+	systemTaskRepository := repositories.NewSystemTaskRepository(repositories.ImplicitCell(), nil)
 
 	systemTaskId, err := utils.StringToUint(chi.URLParam(r, "id"))
 	if err != nil {

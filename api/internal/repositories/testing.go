@@ -212,7 +212,7 @@ func SetSecureCookiesForTests(enabled bool) error {
 // updateSystemSettingsForTests round-trips the stored settings into a command,
 // lets the caller change one field, and saves it through UpdateSystemSettings.
 func updateSystemSettingsForTests(change func(command *commands.UpsertSystemSettingsCommand)) error {
-	repository := NewSystemSettingsRepository(nil)
+	repository := NewSystemSettingsRepository(ImplicitCell(), nil)
 	existing, err := repository.GetSystemSettings()
 	if err != nil {
 		return err

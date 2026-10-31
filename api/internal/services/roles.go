@@ -46,7 +46,7 @@ func (service RoleService) CreateRole(command commands.UpsertRoleCommand) (struc
 	reportTemplateGrants := normalizeReportTemplateGrants(command.ReportTemplateGrants)
 
 	err := repositories.GetDB().Transaction(func(tx *gorm.DB) error {
-		roleRepository := repositories.NewRoleRepository(tx)
+		roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), tx)
 
 		if command.Scope == permissions.ScopeApp {
 			role, txErr := roleRepository.CreateAppRole(command.Name, command.Description, perms, command.SkipDefaultGroupCreation)
@@ -141,7 +141,7 @@ func (service RoleService) UpdateRole(id uint, command commands.UpsertRoleComman
 	reportTemplateGrants := normalizeReportTemplateGrants(command.ReportTemplateGrants)
 
 	err := repositories.GetDB().Transaction(func(tx *gorm.DB) error {
-		roleRepository := repositories.NewRoleRepository(tx)
+		roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), tx)
 
 		if command.Scope == permissions.ScopeApp {
 			existing, txErr := roleRepository.GetAppRoleById(id)
@@ -272,7 +272,7 @@ func normalizeUintSlice(ids []uint) []uint {
 // ErrInvalidGrant otherwise.
 func validateGrantsExist(tx *gorm.DB, categoryGrants []uint, tagGrants []uint, paidByUserGrants []uint, reportTemplateIds []uint) error {
 	if len(categoryGrants) > 0 {
-		categoryRepository := repositories.NewCategoryRepository(tx)
+		categoryRepository := repositories.NewCategoryRepository(repositories.ImplicitCell(), tx)
 		count, err := categoryRepository.CountByIds(categoryGrants)
 		if err != nil {
 			return err
@@ -283,7 +283,7 @@ func validateGrantsExist(tx *gorm.DB, categoryGrants []uint, tagGrants []uint, p
 	}
 
 	if len(tagGrants) > 0 {
-		tagsRepository := repositories.NewTagsRepository(tx)
+		tagsRepository := repositories.NewTagsRepository(repositories.ImplicitCell(), tx)
 		count, err := tagsRepository.CountByIds(tagGrants)
 		if err != nil {
 			return err
@@ -294,7 +294,7 @@ func validateGrantsExist(tx *gorm.DB, categoryGrants []uint, tagGrants []uint, p
 	}
 
 	if len(paidByUserGrants) > 0 {
-		userRepository := repositories.NewUserRepository(tx)
+		userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), tx)
 		count, err := userRepository.CountByIds(paidByUserGrants)
 		if err != nil {
 			return err
@@ -305,7 +305,7 @@ func validateGrantsExist(tx *gorm.DB, categoryGrants []uint, tagGrants []uint, p
 	}
 
 	if len(reportTemplateIds) > 0 {
-		reportTemplateRepository := repositories.NewReportTemplateRepository(tx)
+		reportTemplateRepository := repositories.NewReportTemplateRepository(repositories.ImplicitCell(), tx)
 		count, err := reportTemplateRepository.CountByIds(reportTemplateIds)
 		if err != nil {
 			return err
@@ -382,7 +382,7 @@ func resolveMissingRoleError(roleRepository repositories.RoleRepository, otherSc
 }
 
 func (service RoleService) GetRoles() ([]structs.RoleView, error) {
-	roleRepository := repositories.NewRoleRepository(nil)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
 	return roleRepository.GetAllRoles()
 }
 
@@ -391,7 +391,7 @@ func (service RoleService) GetRoles() ([]structs.RoleView, error) {
 // role cannot be deleted while it is assigned to any user or group member.
 func (service RoleService) DeleteRole(id uint, scope permissions.Scope) error {
 	err := repositories.GetDB().Transaction(func(tx *gorm.DB) error {
-		roleRepository := repositories.NewRoleRepository(tx)
+		roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), tx)
 
 		if scope == permissions.ScopeApp {
 			existing, txErr := roleRepository.GetAppRoleById(id)
@@ -470,7 +470,7 @@ func (service RoleService) SetDefaultRole(id uint, scope permissions.Scope) (str
 	var roleView structs.RoleView
 
 	err := repositories.GetDB().Transaction(func(tx *gorm.DB) error {
-		roleRepository := repositories.NewRoleRepository(tx)
+		roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), tx)
 
 		if scope == permissions.ScopeApp {
 			existing, txErr := roleRepository.GetAppRoleById(id)

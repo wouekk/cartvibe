@@ -74,7 +74,7 @@ func writeQuickScanTempFile(t *testing.T) string {
 	if err != nil {
 		t.Fatalf("read jpg fixture: %v", err)
 	}
-	path, err := repositories.NewFileRepository(nil).WriteTempFile(jpg)
+	path, err := repositories.NewFileRepository(repositories.ImplicitCell(), nil).WriteTempFile(jpg)
 	if err != nil {
 		t.Fatalf("write temp file: %v", err)
 	}
@@ -185,7 +185,7 @@ func TestQuickScan_BackfillsPaidByAndStatusWhenAiOmitsThem(t *testing.T) {
 		return
 	}
 
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
+	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 		return
@@ -230,7 +230,7 @@ func TestQuickScan_KeepsAiPaidByAndStatusWhenPresent(t *testing.T) {
 		return
 	}
 
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
+	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 		return
@@ -264,7 +264,7 @@ func TestQuickScan_MergesUserCategoryAndTagPicksWithAi(t *testing.T) {
 		return
 	}
 
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
+	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 		return
@@ -328,7 +328,7 @@ func TestQuickScan_ResolvesIdOnlyAiCategory(t *testing.T) {
 		return
 	}
 
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
+	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 		return
@@ -366,7 +366,7 @@ func TestQuickScan_DropsUnresolvableAiCategory(t *testing.T) {
 		return
 	}
 
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
+	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 		return
@@ -396,7 +396,7 @@ func TestQuickScan_DropsOutOfGrantAiCategory(t *testing.T) {
 		func(t *testing.T, user models.User, group models.Group) {
 			clearGroupRoleGrantCacheAll()
 			clearRolePermissionCacheAll()
-			role, err := repositories.NewRoleRepository(nil).CreateGroupRole(
+			role, err := repositories.NewRoleRepository(repositories.ImplicitCell(), nil).CreateGroupRole(
 				"restricted-cat", "", []string{permissions.GroupReceiptsRead}, []uint{1}, nil, nil, false, false)
 			if err != nil {
 				t.Fatalf("create restricted role: %v", err)
@@ -413,7 +413,7 @@ func TestQuickScan_DropsOutOfGrantAiCategory(t *testing.T) {
 		return
 	}
 
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
+	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 		return
@@ -445,7 +445,7 @@ func TestQuickScan_DropsMemberOutOfGrantAiCategory(t *testing.T) {
 		func(t *testing.T, user models.User, group models.Group) {
 			clearGroupRoleGrantCacheAll()
 			clearRolePermissionCacheAll()
-			role, err := repositories.NewRoleRepository(nil).CreateGroupRole(
+			role, err := repositories.NewRoleRepository(repositories.ImplicitCell(), nil).CreateGroupRole(
 				"member-restricted-cat", "", []string{permissions.GroupReceiptsRead}, []uint{1, 2}, nil, nil, false, false)
 			if err != nil {
 				t.Fatalf("create role: %v", err)
@@ -455,7 +455,7 @@ func TestQuickScan_DropsMemberOutOfGrantAiCategory(t *testing.T) {
 				Update("group_role_id", role.ID).Error; err != nil {
 				t.Fatalf("assign role to member: %v", err)
 			}
-			err = repositories.NewGroupMemberRepository(nil).
+			err = repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil).
 				ReplaceMemberGrants(user.ID, group.ID, []uint{1}, nil)
 			if err != nil {
 				t.Fatalf("assign member grants: %v", err)
@@ -467,7 +467,7 @@ func TestQuickScan_DropsMemberOutOfGrantAiCategory(t *testing.T) {
 		return
 	}
 
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
+	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 		return
@@ -602,7 +602,7 @@ func TestQuickScan_PersistsUserComment(t *testing.T) {
 		return
 	}
 
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
+	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 		return
@@ -640,7 +640,7 @@ func TestQuickScan_EmptyCommentAddsNothing(t *testing.T) {
 		return
 	}
 
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
+	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 		return
@@ -674,7 +674,7 @@ func TestQuickScan_AppendsUserCommentToAiComment(t *testing.T) {
 		return
 	}
 
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
+	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 		return

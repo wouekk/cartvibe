@@ -56,7 +56,7 @@ func firstCommentNames(
 	resolver CommentAuthorVisibilityResolver,
 	withoutComment ...string,
 ) []string {
-	repository := NewReceiptRepository(nil)
+	repository := NewReceiptRepository(ImplicitCell(), nil)
 
 	receipts, count, err := repository.GetPagedReceiptsByGroupId(
 		userId, utils.UintToString(groupId), sortByFirstComment(sortDirection), nil, nil, resolver, nil, nil,
@@ -254,7 +254,7 @@ func TestFirstCommentSortCarriesTheReceiptIdTiebreaker(t *testing.T) {
 	defer teardownReceiptTest()
 	setupReceiptTest()
 
-	repository := NewReceiptRepository(nil)
+	repository := NewReceiptRepository(ImplicitCell(), nil)
 	restricted := func(groupId uint) ([]uint, bool, error) {
 		return []uint{1}, false, nil
 	}
@@ -294,7 +294,7 @@ func TestFirstCommentSortAddsNoPredicateWhenUnrestricted(t *testing.T) {
 	defer teardownReceiptTest()
 	setupReceiptTest()
 
-	repository := NewReceiptRepository(nil)
+	repository := NewReceiptRepository(ImplicitCell(), nil)
 	unrestricted := func(groupId uint) ([]uint, bool, error) {
 		return nil, true, nil
 	}
@@ -337,7 +337,7 @@ func TestGetCommentsForReceiptIdsReturnsFirstCommentOrder(t *testing.T) {
 	other := createSortableReceipt("other")
 	addCommentAt(other.ID, uintPtr(1), "not requested", firstCommentBaseTime)
 
-	repository := NewCommentRepository(nil)
+	repository := NewCommentRepository(ImplicitCell(), nil)
 	comments, err := repository.GetCommentsForReceiptIds([]uint{wanted.ID})
 	if err != nil {
 		utils.PrintTestError(t, err, nil)

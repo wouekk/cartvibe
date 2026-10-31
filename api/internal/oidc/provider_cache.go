@@ -125,7 +125,7 @@ func buildOauthConfig(
 	discovered *oidc.Provider,
 	redirectUri string,
 ) (*oauth2.Config, error) {
-	secret, err := repositories.NewOidcProviderRepository(nil).GetDecryptedClientSecret(providerRow)
+	secret, err := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil).GetDecryptedClientSecret(providerRow)
 	if err != nil {
 		return nil, err
 	}

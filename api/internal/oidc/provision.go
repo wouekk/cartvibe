@@ -69,8 +69,8 @@ var usernameSanitizer = regexp.MustCompile(`[^a-z0-9._-]+`)
 // In every branch that succeeds the subject is persisted, so step 1 handles every
 // subsequent login.
 func resolveUser(provider models.OidcProvider, claims idTokenClaims) (structs.UserView, error) {
-	identityRepository := repositories.NewOidcIdentityRepository(nil)
-	userRepository := repositories.NewUserRepository(nil)
+	identityRepository := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil)
+	userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
 
 	identity, err := identityRepository.GetIdentityBySubject(provider.ID, claims.Subject)
 	if err == nil {
@@ -138,9 +138,9 @@ func usernameMatchesClaim(storedUsername string, claimedUsername string) bool {
 // linkByUsername attaches an unseen identity to an existing local account whose
 // username matches the preferred_username claim.
 func linkByUsername(provider models.OidcProvider, claims idTokenClaims) (structs.UserView, error) {
-	identityRepository := repositories.NewOidcIdentityRepository(nil)
+	identityRepository := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil)
 
-	user, err := repositories.NewUserRepository(nil).GetUserByUsername(claims.PreferredUsername)
+	user, err := repositories.NewUserRepository(repositories.ImplicitCell(), nil).GetUserByUsername(claims.PreferredUsername)
 	if err != nil {
 		return structs.UserView{}, err
 	}
@@ -184,7 +184,7 @@ func provisionUser(provider models.OidcProvider, claims idTokenClaims) (structs.
 	// Username uniqueness is normally enforced by middleware.ValidateUserData,
 	// which this path does not go through, so check here -- and refuse rather than
 	// suffix (see ErrAccountExists).
-	_, err := repositories.NewUserRepository(nil).GetUserByUsername(username)
+	_, err := repositories.NewUserRepository(repositories.ImplicitCell(), nil).GetUserByUsername(username)
 	if err == nil {
 		return structs.UserView{}, ErrAccountExists
 	}
@@ -226,7 +226,7 @@ func provisionUser(provider models.OidcProvider, claims idTokenClaims) (structs.
 	err = repositories.GetDB().Transaction(func(tx *gorm.DB) error {
 		var txErr error
 
-		created, txErr = repositories.NewUserRepository(tx).CreateUser(commands.SignUpCommand{
+		created, txErr = repositories.NewUserRepository(repositories.ImplicitCell(), tx).CreateUser(commands.SignUpCommand{
 			Username:    username,
 			Password:    password,
 			DisplayName: displayName,
@@ -278,7 +278,7 @@ func createIdentityTx(tx *gorm.DB, provider models.OidcProvider, userId uint, cl
 		LastLoginAt:       &now,
 	}
 
-	return repositories.NewOidcIdentityRepository(tx).CreateIdentity(&identity)
+	return repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), tx).CreateIdentity(&identity)
 }
 
 // deriveUsername builds a candidate username from the claims, preferring the
@@ -327,7 +327,7 @@ func emailLocalPart(email string) string {
 // match/provision decision tree above is skipped and the link is written
 // directly. Neither AllowProvisioning nor LinkByUsername is consulted here.
 func resolveLink(provider models.OidcProvider, claims idTokenClaims, userId uint) error {
-	identityRepository := repositories.NewOidcIdentityRepository(nil)
+	identityRepository := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil)
 
 	// This identity may not already belong to somebody else. Re-pointing it would
 	// silently transfer an account.
@@ -382,12 +382,12 @@ func resolveLink(provider models.OidcProvider, claims idTokenClaims, userId uint
 // dropping GitHub passed it too (that row was not the provisioning one), leaving
 // an account with no identities and a bcrypt hash of a password nobody knew.
 func UnlinkIdentity(userId uint, providerName string) error {
-	providerRow, err := repositories.NewOidcProviderRepository(nil).GetOidcProviderByName(providerName)
+	providerRow, err := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil).GetOidcProviderByName(providerName)
 	if err != nil {
 		return err
 	}
 
-	identityRepository := repositories.NewOidcIdentityRepository(nil)
+	identityRepository := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil)
 
 	identity, err := identityRepository.GetIdentityForUser(providerRow.ID, userId)
 	if err != nil {

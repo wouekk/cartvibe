@@ -86,7 +86,7 @@ func (service ReportDataService) RowsWithLines(
 ) (ReportRowSet, error) {
 	location := service.Location
 	if location == nil {
-		location = repositories.NewSystemSettingsRepository(service.TX).AppLocation()
+		location = repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), service.TX).AppLocation()
 	}
 
 	source, err := receiptsource.New(location, service.Translator)
@@ -130,7 +130,7 @@ func (service ReportDataService) reportLines(userId uint, receipts []models.Rece
 		indexById[receipt.ID] = index
 	}
 
-	products, err := repositories.NewReceiptProductRepository(service.TX).GetReportLinesForReceipts(receiptIds)
+	products, err := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), service.TX).GetReportLinesForReceipts(receiptIds)
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +207,7 @@ func (service ReportDataService) categoryNames(products []models.ReceiptProduct)
 		return names, nil
 	}
 
-	categories, err := repositories.NewCategoryRepository(service.TX).GetByIds(ids)
+	categories, err := repositories.NewCategoryRepository(repositories.ImplicitCell(), service.TX).GetByIds(ids)
 	if err != nil {
 		return nil, err
 	}
@@ -255,7 +255,7 @@ func (service ReportDataService) fetchReceipts(
 	associations []string,
 	limit int,
 ) ([]models.Receipt, int64, error) {
-	receiptRepository := repositories.NewReceiptRepository(service.TX)
+	receiptRepository := repositories.NewReceiptRepository(repositories.ImplicitCell(), service.TX)
 	permissionService := NewPermissionService(service.TX)
 
 	uintGroupId, err := utils.StringToUint(groupId)

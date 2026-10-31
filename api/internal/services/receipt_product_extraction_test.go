@@ -123,7 +123,7 @@ func readExtraction(t *testing.T, receiptId uint) models.ReceiptProductExtractio
 func TestProductExtractionWaitsOutAMissingAi(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	receipt := seedExtractionReceipt(t, true)
-	repository := repositories.NewReceiptProductRepository(nil)
+	repository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil)
 	if err := repository.MarkReceiptProductsPending(receipt.ID); err != nil {
 		t.Fatalf("queue: %v", err)
 	}
@@ -154,7 +154,7 @@ func TestProductExtractionWaitsOutAMissingAi(t *testing.T) {
 func TestProductExtractionFailsAReceiptWithoutImages(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	receipt := seedExtractionReceipt(t, false)
-	if err := repositories.NewReceiptProductRepository(nil).MarkReceiptProductsPending(receipt.ID); err != nil {
+	if err := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil).MarkReceiptProductsPending(receipt.ID); err != nil {
 		t.Fatalf("queue: %v", err)
 	}
 
@@ -170,7 +170,7 @@ func TestProductExtractionFailsAReceiptWithoutImages(t *testing.T) {
 func TestBadAnswersAreRetriedThenGivenUp(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	receipt := seedExtractionReceipt(t, true)
-	repository := repositories.NewReceiptProductRepository(nil)
+	repository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil)
 	if err := repository.MarkReceiptProductsPending(receipt.ID); err != nil {
 		t.Fatalf("queue: %v", err)
 	}
@@ -192,7 +192,7 @@ func TestBadAnswersAreRetriedThenGivenUp(t *testing.T) {
 func TestAnOutageIsGivenUpAfterTheRetryWindow(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	receipt := seedExtractionReceipt(t, true)
-	repository := repositories.NewReceiptProductRepository(nil)
+	repository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil)
 	if err := repository.MarkReceiptProductsPending(receipt.ID); err != nil {
 		t.Fatalf("queue: %v", err)
 	}
@@ -211,7 +211,7 @@ func TestAnOutageIsGivenUpAfterTheRetryWindow(t *testing.T) {
 func TestClaimHandsEachDueExtractionOutOnce(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	receipt := seedExtractionReceipt(t, true)
-	repository := repositories.NewReceiptProductRepository(nil)
+	repository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil)
 	if err := repository.MarkReceiptProductsPending(receipt.ID); err != nil {
 		t.Fatalf("queue: %v", err)
 	}
@@ -235,7 +235,7 @@ func TestClaimHandsEachDueExtractionOutOnce(t *testing.T) {
 func TestReplaceProductsStoresTheSetAndCompletesTheRead(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	receipt := seedExtractionReceipt(t, true)
-	repository := repositories.NewReceiptProductRepository(nil)
+	repository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil)
 	if err := repository.MarkReceiptProductsPending(receipt.ID); err != nil {
 		t.Fatalf("queue: %v", err)
 	}

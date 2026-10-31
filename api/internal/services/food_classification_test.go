@@ -91,7 +91,7 @@ func seedClassificationItem(t *testing.T, name string) models.ShoppingListItem {
 
 func reloadItem(t *testing.T, id uint) models.ShoppingListItem {
 	t.Helper()
-	item, err := repositories.NewShoppingListRepository(nil).GetShoppingListItemById(id)
+	item, err := repositories.NewShoppingListRepository(repositories.ImplicitCell(), nil).GetShoppingListItemById(id)
 	if err != nil {
 		t.Fatalf("reload: %v", err)
 	}
@@ -127,7 +127,7 @@ func TestCorrectionIsSavedAndRemembered(t *testing.T) {
 		t.Errorf("expected the correction applied and marked, got %+v", corrected.FoodClassification)
 	}
 
-	corrections, err := repositories.NewFoodClassificationRepository(nil).CorrectionsForGroup(1)
+	corrections, err := repositories.NewFoodClassificationRepository(repositories.ImplicitCell(), nil).CorrectionsForGroup(1)
 	if err != nil {
 		t.Fatalf("corrections: %v", err)
 	}
@@ -136,7 +136,7 @@ func TestCorrectionIsSavedAndRemembered(t *testing.T) {
 	}
 
 	// A corrected item is never picked up by the sweep again.
-	pending, _ := repositories.NewFoodClassificationRepository(nil).UnclassifiedItems(10)
+	pending, _ := repositories.NewFoodClassificationRepository(repositories.ImplicitCell(), nil).UnclassifiedItems(10)
 	if len(pending) != 0 {
 		t.Errorf("expected nothing pending, got %+v", pending)
 	}
@@ -170,7 +170,7 @@ func TestRenamingAnItemClearsItsTags(t *testing.T) {
 func TestRevivingAnItemReclassifiesItUnlessCorrected(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	strawberries := seedClassificationItem(t, "Strawberries")
-	repository := repositories.NewFoodClassificationRepository(nil)
+	repository := repositories.NewFoodClassificationRepository(repositories.ImplicitCell(), nil)
 	candidate := repositories.ClassificationCandidate{Kind: repositories.ClassificationKindItem, Id: strawberries.ID}
 	if err := repository.SaveClassification(candidate, repositories.ClassificationResult{Health: models.HEALTH_HEALTHY, Seasonality: models.SEASONALITY_SEASONAL}, time.Now()); err != nil {
 		t.Fatalf("classify: %v", err)

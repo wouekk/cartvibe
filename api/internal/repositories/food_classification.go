@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"cartvibe/api/internal/cell"
 	"cartvibe/api/internal/models"
 	"time"
 
@@ -49,8 +50,8 @@ type FoodClassificationRepository struct {
 	BaseRepository
 }
 
-func NewFoodClassificationRepository(tx *gorm.DB) FoodClassificationRepository {
-	return FoodClassificationRepository{BaseRepository: BaseRepository{DB: GetDB(), TX: tx}}
+func NewFoodClassificationRepository(h cell.Handle, tx *gorm.DB) FoodClassificationRepository {
+	return FoodClassificationRepository{BaseRepository: BaseRepository{DB: h.DB(), TX: tx, Cell: h}}
 }
 
 // pendingClassification is the shared "still to classify" condition, on either table.

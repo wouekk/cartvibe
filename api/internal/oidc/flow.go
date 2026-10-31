@@ -122,7 +122,7 @@ func DeleteConfirmationStart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	identityRepository := repositories.NewOidcIdentityRepository(nil)
+	identityRepository := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil)
 
 	passwordless, err := identityRepository.IsAccountPasswordless(userId)
 	if err != nil {
@@ -136,7 +136,7 @@ func DeleteConfirmationStart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	providerRow, err := repositories.NewOidcProviderRepository(nil).GetEnabledOidcProviderByName(chi.URLParam(r, "name"))
+	providerRow, err := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil).GetEnabledOidcProviderByName(chi.URLParam(r, "name"))
 	if err != nil {
 		failBrowserFlowStart(w, r, purpose, errUnknownProvider)
 		return
@@ -190,7 +190,7 @@ func authorizeSignedInStart(
 func startFlow(w http.ResponseWriter, r *http.Request, linkUserId *uint, purpose string) {
 	name := chi.URLParam(r, "name")
 
-	providerRow, err := repositories.NewOidcProviderRepository(nil).GetEnabledOidcProviderByName(name)
+	providerRow, err := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil).GetEnabledOidcProviderByName(name)
 	if err != nil {
 		failBrowserFlowStart(w, r, purpose, errUnknownProvider)
 		return
@@ -270,7 +270,7 @@ func Callback(w http.ResponseWriter, r *http.Request) {
 	// been signed out".
 	pending := pendingSession(state)
 
-	providerRow, err := repositories.NewOidcProviderRepository(nil).GetEnabledOidcProviderByName(name)
+	providerRow, err := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil).GetEnabledOidcProviderByName(name)
 	if err != nil {
 		failCallback(w, r, pending, errUnknownProvider)
 		return
@@ -512,7 +512,7 @@ func finishDeleteConfirmation(
 	purpose := models.OidcPurposeDeleteAccount
 	userId := *session.LinkUserId
 
-	identity, err := repositories.NewOidcIdentityRepository(nil).GetIdentityBySubject(providerRow.ID, claims.Subject)
+	identity, err := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil).GetIdentityBySubject(providerRow.ID, claims.Subject)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, "Failed to load the identity for a delete confirmation: "+err.Error())
 		redirectSignedInError(w, r, purpose, errServerError)
@@ -589,7 +589,7 @@ func issueSession(w http.ResponseWriter, r *http.Request, userId uint) {
 		return
 	}
 
-	_, err = repositories.NewUserRepository(nil).UpdateUserLastLoginDate(userId)
+	_, err = repositories.NewUserRepository(repositories.ImplicitCell(), nil).UpdateUserLastLoginDate(userId)
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, "Failed to stamp last login date after OIDC login: "+err.Error())
 	}
@@ -647,7 +647,7 @@ func pendingSession(state string) models.OidcAuthSession {
 		return desktopLogin
 	}
 
-	session, err := repositories.NewOidcSessionRepository(nil).GetPendingAuthSessionRouting(hashSecret(state))
+	session, err := repositories.NewOidcSessionRepository(repositories.ImplicitCell(), nil).GetPendingAuthSessionRouting(hashSecret(state))
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, "Failed to read a pending OIDC session's routing: "+err.Error())
 		return desktopLogin

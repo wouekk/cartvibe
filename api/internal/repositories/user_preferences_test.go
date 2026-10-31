@@ -15,7 +15,7 @@ func TestUpdateUserPreferencesRoundTripsCloseChipSelectOnSelect(t *testing.T) {
 	defer TruncateTestDb()
 	CreateTestUser()
 
-	repository := NewUserPreferencesRepository(nil)
+	repository := NewUserPreferencesRepository(ImplicitCell(), nil)
 
 	created, err := repository.GetUserPreferencesOrCreate(1)
 	if err != nil {
@@ -54,7 +54,7 @@ func TestUpdateUserPreferencesTurnsCloseChipSelectOnSelectBackOff(t *testing.T) 
 	defer TruncateTestDb()
 	CreateTestUser()
 
-	repository := NewUserPreferencesRepository(nil)
+	repository := NewUserPreferencesRepository(ImplicitCell(), nil)
 
 	_, err := repository.GetUserPreferencesOrCreate(1)
 	if err != nil {
@@ -92,7 +92,7 @@ func TestUpdateUserPreferencesRoundTripsAndClearsTheMonthlySpendingGoal(t *testi
 	defer TruncateTestDb()
 	CreateTestUser()
 
-	repository := NewUserPreferencesRepository(nil)
+	repository := NewUserPreferencesRepository(ImplicitCell(), nil)
 	if _, err := repository.GetUserPreferencesOrCreate(1); err != nil {
 		t.Fatal(err)
 	}
@@ -121,7 +121,7 @@ func TestUpdateUserPreferencesStoresTheDisplayCurrencyAndItsRate(t *testing.T) {
 	defer TruncateTestDb()
 	CreateTestUser()
 
-	repository := NewUserPreferencesRepository(nil)
+	repository := NewUserPreferencesRepository(ImplicitCell(), nil)
 	if _, err := repository.GetUserPreferencesOrCreate(1); err != nil {
 		t.Fatal(err)
 	}
@@ -151,7 +151,7 @@ func TestUpdateUserPreferencesStoresWellFormedLanguageCodes(t *testing.T) {
 	defer TruncateTestDb()
 	CreateTestUser()
 
-	repository := NewUserPreferencesRepository(nil)
+	repository := NewUserPreferencesRepository(ImplicitCell(), nil)
 	if _, err := repository.GetUserPreferencesOrCreate(1); err != nil {
 		t.Fatal(err)
 	}
@@ -172,7 +172,7 @@ func TestUpdateUserPreferencesStoresWellFormedLanguageCodes(t *testing.T) {
 func TestOnboardingPendingIsOnForNewAccountsAndTurnsOff(t *testing.T) {
 	defer TruncateTestDb()
 
-	created, err := NewUserRepository(nil).CreateUser(commands.SignUpCommand{
+	created, err := NewUserRepository(ImplicitCell(), nil).CreateUser(commands.SignUpCommand{
 		Username:    "newcomer",
 		DisplayName: "Newcomer",
 		Password:    "a really secure password",
@@ -181,7 +181,7 @@ func TestOnboardingPendingIsOnForNewAccountsAndTurnsOff(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	repository := NewUserPreferencesRepository(nil)
+	repository := NewUserPreferencesRepository(ImplicitCell(), nil)
 	preferences, err := repository.GetUserPreferencesOrCreate(created.ID)
 	if err != nil {
 		t.Fatal(err)
@@ -218,7 +218,7 @@ func TestUpdateUserPreferencesRoundTripsTheWarrantySettings(t *testing.T) {
 	defer TruncateTestDb()
 	CreateTestUser()
 
-	repository := NewUserPreferencesRepository(nil)
+	repository := NewUserPreferencesRepository(ImplicitCell(), nil)
 	if _, err := repository.GetUserPreferencesOrCreate(1); err != nil {
 		t.Fatal(err)
 	}

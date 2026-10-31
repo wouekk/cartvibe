@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"cartvibe/api/internal/cell"
 	"errors"
 	"fmt"
 	"cartvibe/api/internal/models"
@@ -22,8 +23,8 @@ import (
 // the next boot. It is safe to run on every startup, and a partially-seeded or
 // partially-reconciled database self-heals on the next boot. The roles are
 // seeded only — they are not assigned to any user or group member here.
-func SeedSystemRoles() error {
-	db := GetDB()
+func SeedSystemRoles(h cell.Handle) error {
+	db := h.DB()
 
 	appRoles := []struct {
 		name        string
@@ -187,8 +188,8 @@ func missingPermissions(have []string, desired []string) []string {
 // overrides a default an administrator has set through the UI. Run on every boot
 // after SeedSystemRoles (a fresh database self-heals on the next boot, and an
 // existing dev database that predates the IsDefault column gets backfilled).
-func EnsureDefaultRoles() error {
-	db := GetDB()
+func EnsureDefaultRoles(h cell.Handle) error {
+	db := h.DB()
 
 	if err := ensureDefaultAppRole(db); err != nil {
 		return err

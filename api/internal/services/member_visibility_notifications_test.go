@@ -36,7 +36,7 @@ func seedIsoReceipt(t *testing.T, groupId uint, paidByUserId uint) models.Receip
 
 func countNotifications(t *testing.T, userId uint) int {
 	t.Helper()
-	notifications, err := repositories.NewNotificationRepository(nil).GetNotificationsForUser(userId)
+	notifications, err := repositories.NewNotificationRepository(repositories.ImplicitCell(), nil).GetNotificationsForUser(userId)
 	if err != nil {
 		t.Fatalf("get notifications for %d: %v", userId, err)
 	}
@@ -63,7 +63,7 @@ func TestCommentNotificationSuppressedForIsolatedRecipient(t *testing.T) {
 	receipt := seedIsoReceipt(t, group.ID, author.ID)
 
 	comment := commands.UpsertCommentCommand{Comment: "hello", ReceiptId: receipt.ID, UserId: &author.ID}
-	if _, err := repositories.NewCommentRepository(nil).AddComment(comment, authorVisibleToResolver()); err != nil {
+	if _, err := repositories.NewCommentRepository(repositories.ImplicitCell(), nil).AddComment(comment, authorVisibleToResolver()); err != nil {
 		t.Fatalf("add comment: %v", err)
 	}
 
@@ -95,7 +95,7 @@ func TestCommentNotificationDeliveredToAllInNonIsolatedGroup(t *testing.T) {
 	receipt := seedIsoReceipt(t, group.ID, author.ID)
 
 	comment := commands.UpsertCommentCommand{Comment: "hello", ReceiptId: receipt.ID, UserId: &author.ID}
-	if _, err := repositories.NewCommentRepository(nil).AddComment(comment, authorVisibleToResolver()); err != nil {
+	if _, err := repositories.NewCommentRepository(repositories.ImplicitCell(), nil).AddComment(comment, authorVisibleToResolver()); err != nil {
 		t.Fatalf("add comment: %v", err)
 	}
 

@@ -19,7 +19,7 @@ import (
 func setRefreshTokenLifetimeSettings(t *testing.T, appHours int, mcpHours int) {
 	t.Helper()
 
-	settings, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
+	settings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
 	if err != nil {
 		t.Fatalf("failed to load system settings: %v", err)
 	}

@@ -479,7 +479,7 @@ func TestReportService_BuildReportSpec_ProjectsDisabledDimensionColumns(t *testi
 func seedReportUserInGroups(t *testing.T, username string, groupNames ...string) (uint, []uint) {
 	t.Helper()
 	db := repositories.GetDB()
-	roleRepository := repositories.NewRoleRepository(nil)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
 	role, err := roleRepository.CreateGroupRole(
 		"Report Role "+username, "",
 		[]string{permissions.GroupReportsRead, permissions.GroupReceiptsRead},
@@ -698,7 +698,7 @@ func TestReportService_Preview_AppliesCustomCurrencyFormat(t *testing.T) {
 	createReportReceipt(t, "household-1", userId, groupIds[0], []models.Category{category})
 
 	// A non-USD configuration: symbol trails, dot thousands, comma decimal.
-	if _, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings(); err != nil {
+	if _, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings(); err != nil {
 		t.Fatalf("seed settings: %v", err)
 	}
 	if err := repositories.GetDB().Model(&models.SystemSettings{}).Where("id = ?", 1).Updates(models.SystemSettings{

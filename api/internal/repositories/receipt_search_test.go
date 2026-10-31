@@ -29,7 +29,7 @@ func searchRequest(phrase string, page int, pageSize int) commands.ReceiptPagedR
 }
 
 func searchNames(t *testing.T, phrase string, paidBy PaidByAllowedResolver) ([]string, int64) {
-	receipts, count, err := NewReceiptRepository(nil).GetPagedReceiptsByGroupId(
+	receipts, count, err := NewReceiptRepository(ImplicitCell(), nil).GetPagedReceiptsByGroupId(
 		1, "1", searchRequest(phrase, 1, 50), nil, paidBy, nil, nil, nil,
 	)
 	if err != nil {
@@ -91,7 +91,7 @@ func TestSearchCountAndPagingFollowTheMatches(t *testing.T) {
 		createSortableReceipt(name)
 	}
 
-	receipts, count, err := NewReceiptRepository(nil).GetPagedReceiptsByGroupId(
+	receipts, count, err := NewReceiptRepository(ImplicitCell(), nil).GetPagedReceiptsByGroupId(
 		1, "1", searchRequest("milk", 2, 2), nil, nil, nil, nil, nil,
 	)
 	if err != nil {
@@ -154,7 +154,7 @@ func TestGetProductSearchMatchesCapsAndNamesTheLines(t *testing.T) {
 	addSearchProduct(receipt.ID, "CHOC D", "Chocolate D", "1.70")
 	nameOnly := createSortableReceipt("Chocolate name only")
 
-	matches, err := NewReceiptRepository(nil).GetProductSearchMatches(
+	matches, err := NewReceiptRepository(ImplicitCell(), nil).GetProductSearchMatches(
 		[]uint{receipt.ID, nameOnly.ID}, utils.NewFuzzyQuery("chocolate"),
 	)
 	if err != nil {

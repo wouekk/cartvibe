@@ -27,7 +27,7 @@ func GetOidcConnections(w http.ResponseWriter, r *http.Request) {
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
 			token := structs.GetClaims(r)
 
-			identities, err := repositories.NewOidcIdentityRepository(nil).GetIdentitiesForUser(token.UserId)
+			identities, err := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil).GetIdentitiesForUser(token.UserId)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}

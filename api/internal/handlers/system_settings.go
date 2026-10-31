@@ -21,7 +21,7 @@ func GetSystemSettings(w http.ResponseWriter, r *http.Request) {
 		AppPermissions: []string{permissions.AppSystemSettingsRead},
 		ResponseType:   constants.ApplicationJson,
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			systemSettingsRepository := repositories.NewSystemSettingsRepository(nil)
+			systemSettingsRepository := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil)
 			systemSettings, err := systemSettingsRepository.GetSystemSettings()
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -50,7 +50,7 @@ func UpdateSystemSettings(w http.ResponseWriter, r *http.Request) {
 		AppPermissions: []string{permissions.AppSystemSettingsUpdate},
 		ResponseType:   constants.ApplicationJson,
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			systemSettingsRepository := repositories.NewSystemSettingsRepository(nil)
+			systemSettingsRepository := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil)
 			command := commands.UpsertSystemSettingsCommand{}
 			err := command.LoadDataFromRequest(w, r)
 			if err != nil {
@@ -127,7 +127,7 @@ func serverPublicUrlStillNeeded(command commands.UpsertSystemSettingsCommand) (b
 		return false, nil
 	}
 
-	enabledProviders, err := repositories.NewOidcProviderRepository(nil).GetAllEnabledOidcProviders()
+	enabledProviders, err := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil).GetAllEnabledOidcProviders()
 	if err != nil {
 		return false, err
 	}

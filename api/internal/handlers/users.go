@@ -27,7 +27,7 @@ func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 		AppPermissions: []string{permissions.AppUsersRead},
 		ResponseType:   constants.ApplicationJson,
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			userRepository := repositories.NewUserRepository(nil)
+			userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
 			users, err := userRepository.GetAllUserViews()
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -68,7 +68,7 @@ func GetPagedUsers(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			userRepository := repositories.NewUserRepository(nil)
+			userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
 			users, count, err := userRepository.GetPagedUsers(command)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -109,7 +109,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 			var UserView structs.UserView
 			bodyData := r.Context().Value("user").(commands.SignUpCommand)
 
-			userRepository := repositories.NewUserRepository(nil)
+			userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
 			createdUser, err := userRepository.CreateUser(bodyData)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -150,7 +150,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 			id := chi.URLParam(r, "id")
 			bodyData := r.Context().Value("user").(commands.SignUpCommand)
 
-			userRepository := repositories.NewUserRepository(nil)
+			userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
 			err := userRepository.UpdateUser(id, bodyData)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -228,7 +228,7 @@ func ResetPassword(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			err = repositories.NewOidcIdentityRepository(nil).ClearProvisionedFlagForUser(userId)
+			err = repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil).ClearProvisionedFlagForUser(userId)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}

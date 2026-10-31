@@ -13,8 +13,9 @@ type AboutRepository struct {
 
 func NewAboutRepository(h cell.Handle, tx *gorm.DB) AboutRepository {
 	repository := AboutRepository{BaseRepository: BaseRepository{
-		DB: h.DB(),
-		TX: tx,
+		DB:   h.DB(),
+		TX:   tx,
+		Cell: h,
 	}}
 	return repository
 }

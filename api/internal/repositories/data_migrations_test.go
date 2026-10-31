@@ -40,7 +40,7 @@ func TestRunDataMigrationsRunsOnceAndRecordsTheLedger(t *testing.T) {
 	withMigrations(t, []dataMigration{{name: "test-once", run: func(tx *gorm.DB) error { runs++; return nil }}})
 
 	for i := 0; i < 2; i++ {
-		if err := RunDataMigrations(); err != nil {
+		if err := RunDataMigrations(ImplicitCell()); err != nil {
 			utils.PrintTestError(t, err, nil)
 			return
 		}
@@ -62,7 +62,7 @@ func TestRunDataMigrationsSkipsWhenAlreadyApplied(t *testing.T) {
 	runs := 0
 	withMigrations(t, []dataMigration{{name: "test-applied", run: func(tx *gorm.DB) error { runs++; return nil }}})
 
-	if err := RunDataMigrations(); err != nil {
+	if err := RunDataMigrations(ImplicitCell()); err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
 	}
@@ -75,7 +75,7 @@ func TestRunDataMigrationsRollsBackOnFailure(t *testing.T) {
 	defer TruncateTestDb()
 	withMigrations(t, []dataMigration{{name: "test-fails", run: func(tx *gorm.DB) error { return errors.New("boom") }}})
 
-	if err := RunDataMigrations(); err == nil {
+	if err := RunDataMigrations(ImplicitCell()); err == nil {
 		utils.PrintTestError(t, nil, "an error")
 	}
 	// The claim rolls back with the failure, so it retries on the next boot.

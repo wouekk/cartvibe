@@ -236,7 +236,7 @@ func TestCreateChatCompletion_DownedServer_Failed(t *testing.T) {
 func TestCheckConnectivity_HappyPath_SavesSystemTask(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
-	userRepo := repositories.NewUserRepository(nil)
+	userRepo := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
 	user, err := userRepo.CreateUser(aiTestSignUp())
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -264,7 +264,7 @@ func TestCheckConnectivity_HappyPath_SavesSystemTask(t *testing.T) {
 func TestCheckConnectivity_NoSettingsId_DoesNotPersist(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
-	userRepo := repositories.NewUserRepository(nil)
+	userRepo := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
 	user, err := userRepo.CreateUser(aiTestSignUp())
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -298,7 +298,7 @@ func TestCheckConnectivity_NoSettingsId_DoesNotPersist(t *testing.T) {
 func TestCheckConnectivity_Failure_RecordsFailedStatus(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
-	userRepo := repositories.NewUserRepository(nil)
+	userRepo := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
 	user, err := userRepo.CreateUser(aiTestSignUp())
 	if err != nil {
 		utils.PrintTestError(t, err, nil)

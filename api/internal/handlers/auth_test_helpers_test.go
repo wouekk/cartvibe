@@ -23,7 +23,7 @@ func grantAppPerms(t *testing.T, userId uint, perms ...string) {
 	services.ClearRolePermissionCacheForTests()
 	db := repositories.GetDB()
 
-	roleRepository := repositories.NewRoleRepository(nil)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
 	role, err := roleRepository.CreateAppRole(fmt.Sprintf("Test App Role %d", userId), "", perms, false)
 	if err != nil {
 		t.Fatalf("create app role: %v", err)
@@ -58,7 +58,7 @@ func grantGroupPerms(t *testing.T, userId uint, groupId uint, perms ...string) {
 	services.ClearGroupRoleGrantCacheForTests()
 	db := repositories.GetDB()
 
-	roleRepository := repositories.NewRoleRepository(nil)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
 	role, err := roleRepository.CreateGroupRole(fmt.Sprintf("Test Group Role %d-%d", userId, groupId), "", perms, nil, nil, nil, false, false)
 	if err != nil {
 		t.Fatalf("create group role: %v", err)
@@ -105,7 +105,7 @@ func isolateGroupWithSupervisor(t *testing.T, groupId uint, supervisorUserId uin
 		t.Fatalf("isolate group: %v", err)
 	}
 
-	supRole, err := repositories.NewRoleRepository(nil).CreateGroupRole(
+	supRole, err := repositories.NewRoleRepository(repositories.ImplicitCell(), nil).CreateGroupRole(
 		fmt.Sprintf("Iso Supervisor %d-%d", groupId, supervisorUserId), "",
 		[]string{permissions.GroupReceiptsRead}, nil, nil, nil, false, true)
 	if err != nil {

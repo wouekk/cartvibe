@@ -22,7 +22,7 @@ func seedAppUser(t *testing.T, username string, appPerms []string) uint {
 	t.Helper()
 	db := repositories.GetDB()
 
-	role, err := repositories.NewRoleRepository(nil).CreateAppRole("App "+username, "", appPerms, false)
+	role, err := repositories.NewRoleRepository(repositories.ImplicitCell(), nil).CreateAppRole("App "+username, "", appPerms, false)
 	if err != nil {
 		t.Fatalf("seed app role: %v", err)
 	}
@@ -43,7 +43,7 @@ func joinGroup(t *testing.T, userId uint, groupName string, groupPerms []string)
 	if err := db.Create(&group).Error; err != nil {
 		t.Fatalf("seed group: %v", err)
 	}
-	role, err := repositories.NewRoleRepository(nil).CreateGroupRole("Role "+groupName, "", groupPerms, nil, nil, nil, false, false)
+	role, err := repositories.NewRoleRepository(repositories.ImplicitCell(), nil).CreateGroupRole("Role "+groupName, "", groupPerms, nil, nil, nil, false, false)
 	if err != nil {
 		t.Fatalf("seed group role: %v", err)
 	}
@@ -75,7 +75,7 @@ func seedTemplateInGroups(t *testing.T, name string, groupIds []uint) uint {
 // new grants take effect on the next resolution.
 func setMatrix(t *testing.T, roleId uint, matrix []commands.ReportTemplateGrantCommand) {
 	t.Helper()
-	if err := repositories.NewRoleRepository(nil).ReplaceGroupRoleReportTemplateGrants(roleId, matrix); err != nil {
+	if err := repositories.NewRoleRepository(repositories.ImplicitCell(), nil).ReplaceGroupRoleReportTemplateGrants(roleId, matrix); err != nil {
 		t.Fatalf("set matrix: %v", err)
 	}
 	resetAuthzCaches()

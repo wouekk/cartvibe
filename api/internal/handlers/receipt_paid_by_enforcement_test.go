@@ -29,7 +29,7 @@ func seedPaidByRestrictedMember(t *testing.T, paidByUserGrantIds []uint, include
 		t.Fatalf("seed group: %v", err)
 	}
 
-	role, err := repositories.NewRoleRepository(nil).CreateGroupRole(
+	role, err := repositories.NewRoleRepository(repositories.ImplicitCell(), nil).CreateGroupRole(
 		"PaidBy Restricted Reader",
 		"",
 		[]string{permissions.GroupReceiptsRead},

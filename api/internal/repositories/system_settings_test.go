@@ -178,14 +178,14 @@ func TestUpdateSystemSettingsConcurrentLifetimeUpdatesBothSurvive(t *testing.T) 
 			go func(c commands.UpsertSystemSettingsCommand) {
 				defer done.Done()
 				start.Wait()
-				NewSystemSettingsRepository(nil).UpdateSystemSettings(c)
+				NewSystemSettingsRepository(ImplicitCell(), nil).UpdateSystemSettings(c)
 			}(command)
 		}
 
 		start.Done()
 		done.Wait()
 
-		settings, err := NewSystemSettingsRepository(nil).GetSystemSettings()
+		settings, err := NewSystemSettingsRepository(ImplicitCell(), nil).GetSystemSettings()
 		if err != nil {
 			t.Fatalf("failed to read system settings: %v", err)
 		}
@@ -239,7 +239,7 @@ func TestGetSystemSettingsFillsInAMissingQueueConfiguration(t *testing.T) {
 	defer TruncateTestDb()
 	seedFourQueueConfigurations(t)
 
-	settings, err := NewSystemSettingsRepository(nil).GetSystemSettings()
+	settings, err := NewSystemSettingsRepository(ImplicitCell(), nil).GetSystemSettings()
 	if err != nil {
 		t.Fatalf("failed to read system settings: %v", err)
 	}
@@ -295,7 +295,7 @@ func TestUpdateSystemSettingsInsertsAMissingQueueConfiguration(t *testing.T) {
 		}
 	}
 
-	if _, err := NewSystemSettingsRepository(nil).UpdateSystemSettings(command); err != nil {
+	if _, err := NewSystemSettingsRepository(ImplicitCell(), nil).UpdateSystemSettings(command); err != nil {
 		t.Fatalf("failed to update system settings: %v", err)
 	}
 
@@ -359,13 +359,13 @@ func TestUpdateSystemSettingsReturnsTheTransactionError(t *testing.T) {
 		}
 	}
 
-	_, err := NewSystemSettingsRepository(nil).UpdateSystemSettings(command)
+	_, err := NewSystemSettingsRepository(ImplicitCell(), nil).UpdateSystemSettings(command)
 	if err == nil {
 		t.Fatal("expected the failed transaction to be reported to the caller")
 	}
 
 	// And the rollback really rolled back, so the error is not merely cosmetic.
-	settings, readErr := NewSystemSettingsRepository(nil).GetSystemSettings()
+	settings, readErr := NewSystemSettingsRepository(ImplicitCell(), nil).GetSystemSettings()
 	if readErr != nil {
 		t.Fatalf("failed to read system settings: %v", readErr)
 	}
@@ -423,7 +423,7 @@ func TestLinkReceiptProcessingSettingsIfNoneOnlyLinksTheFirst(t *testing.T) {
 	}
 	defer restore()
 
-	repository := NewSystemSettingsRepository(nil)
+	repository := NewSystemSettingsRepository(ImplicitCell(), nil)
 
 	linked, err := repository.LinkReceiptProcessingSettingsIfNone(7)
 	if err != nil || !linked {

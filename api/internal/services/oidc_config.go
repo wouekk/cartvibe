@@ -19,7 +19,7 @@ const DefaultServerPublicUrl = "http://localhost:8081"
 // MCP token audience, so sharing one setting would mean an OIDC deployment tweak
 // silently invalidated every live MCP connector token.
 func GetServerPublicUrl() string {
-	settings, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
+	settings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, "Failed to read server public URL from system settings: "+err.Error())
 		return DefaultServerPublicUrl
@@ -38,7 +38,7 @@ func NormalizeServerPublicUrl(raw string) string {
 // origin, as opposed to falling back to the dev default. Enabling an OIDC
 // provider without it would register a redirect URI pointing at localhost.
 func IsServerPublicUrlConfigured() bool {
-	settings, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
+	settings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
 	if err != nil {
 		return false
 	}

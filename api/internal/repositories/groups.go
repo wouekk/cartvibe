@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"cartvibe/api/internal/cell"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/utils"
@@ -14,10 +15,11 @@ type GroupRepository struct {
 	BaseRepository
 }
 
-func NewGroupRepository(tx *gorm.DB) GroupRepository {
+func NewGroupRepository(h cell.Handle, tx *gorm.DB) GroupRepository {
 	repository := GroupRepository{BaseRepository: BaseRepository{
-		DB: GetDB(),
-		TX: tx,
+		DB:   h.DB(),
+		TX:   tx,
+		Cell: h,
 	}}
 	return repository
 }
@@ -42,7 +44,7 @@ func (repository GroupRepository) GetPagedGroups(command commands.PagedGroupRequ
 	if command.GroupFilter.AssociatedGroup == commands.ASSOCIATED_GROUP_ALL {
 		query.Count(&count)
 	} else {
-		groupMemberRepository := NewGroupMemberRepository(nil)
+		groupMemberRepository := NewGroupMemberRepository(repository.Cell, nil)
 		groupMembers, err := groupMemberRepository.GetGroupMembersByUserId(userId)
 		if err != nil {
 			return nil, 0, err
@@ -109,7 +111,7 @@ func (repository GroupRepository) CreateGroup(command commands.UpsertGroupComman
 
 	err := db.Transaction(func(tx *gorm.DB) error {
 		repository.SetTransaction(tx)
-		groupReceiptSettingsRepository := NewGroupReceiptSettingsRepository(tx)
+		groupReceiptSettingsRepository := NewGroupReceiptSettingsRepository(repository.Cell, tx)
 
 		txErr := tx.Model(&groupToCreate).Create(&groupToCreate).Error
 		if txErr != nil {
@@ -120,7 +122,7 @@ func (repository GroupRepository) CreateGroup(command commands.UpsertGroupComman
 		// Assign the creator the modern default group role so the membership is
 		// not locked out under permission enforcement. Best-effort: nil when no
 		// default is seeded (e.g. an unseeded test database).
-		roleRepository := NewRoleRepository(tx)
+		roleRepository := NewRoleRepository(repository.Cell, tx)
 		defaultGroupRoleId, txErr := roleRepository.GetDefaultGroupRoleId()
 		if txErr != nil {
 			repository.ClearTransaction()
@@ -264,7 +266,7 @@ func (repository GroupRepository) GetGroupById(id string,
 		return models.Group{}, err
 	}
 
-	groupReceiptSettingsRepository := NewGroupReceiptSettingsRepository(repository.TX)
+	groupReceiptSettingsRepository := NewGroupReceiptSettingsRepository(repository.Cell, repository.TX)
 
 	if group.GroupReceiptSettings.ID == 0 && createMissingGroupReceiptSettings {
 		_, err := groupReceiptSettingsRepository.CreateGroupReceiptSettings(group.ID)
@@ -292,7 +294,7 @@ func (repository GroupRepository) CreateAllGroup(userId uint) (models.Group, err
 
 func (repository GroupRepository) IsAllGroup(groupId uint) (bool, error) {
 	var group models.Group
-	err := db.Where("id = ?", groupId).First(&group).Select("is_all_group").Error
+	err := repository.DB.Where("id = ?", groupId).First(&group).Select("is_all_group").Error
 	if err != nil {
 		return false, err
 	}

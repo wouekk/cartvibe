@@ -13,7 +13,7 @@ type ExchangeRateRepository struct {
 }
 
 func NewExchangeRateRepository(h cell.Handle, tx *gorm.DB) ExchangeRateRepository {
-	return ExchangeRateRepository{BaseRepository: BaseRepository{DB: h.DB(), TX: tx}}
+	return ExchangeRateRepository{BaseRepository: BaseRepository{DB: h.DB(), TX: tx, Cell: h}}
 }
 
 // GetAll returns every listed currency, ordered by code.
@@ -90,13 +90,13 @@ func SeedExchangeRates(h cell.Handle, codes []string, mainCode string) error {
 	return nil
 }
 
-// SeedDefaultExchangeRates lists CHF, PLN, GBP and USD (less the main currency) on a fresh install. It still
-// reads the System Settings through the implicit cell, so it moves to a handle with SystemSettingsRepository.
-func SeedDefaultExchangeRates() error {
-	settings, err := NewSystemSettingsRepository(nil).GetSystemSettings()
+// SeedDefaultExchangeRates lists CHF, PLN, GBP and USD (less the main currency) on a fresh install. It reads the
+// System Settings and writes the rates through the same handle, so one cell's currency never seeds another's list.
+func SeedDefaultExchangeRates(h cell.Handle) error {
+	settings, err := NewSystemSettingsRepository(h, nil).GetSystemSettings()
 	if err != nil {
 		return err
 	}
 
-	return SeedExchangeRates(ImplicitCell(), []string{"CHF", "PLN", "GBP", "USD"}, utils.MainCurrencyCode(settings.CurrencyDisplay))
+	return SeedExchangeRates(h, []string{"CHF", "PLN", "GBP", "USD"}, utils.MainCurrencyCode(settings.CurrencyDisplay))
 }

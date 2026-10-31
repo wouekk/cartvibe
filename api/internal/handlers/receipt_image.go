@@ -20,7 +20,7 @@ import (
 
 func UploadReceiptImage(w http.ResponseWriter, r *http.Request) {
 	errMessage := "Error uploading image."
-	fileRepository := repositories.NewFileRepository(nil)
+	fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
 
 	err := r.ParseMultipartForm(constants.MultipartFormMaxSize)
 	if err != nil {
@@ -62,7 +62,7 @@ func UploadReceiptImage(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			fileImageRepository := repositories.NewReceiptImageRepository(nil)
+			fileImageRepository := repositories.NewReceiptImageRepository(repositories.ImplicitCell(), nil)
 			fileData := models.FileData{
 				Name:      fileHeader.Filename,
 				Size:      uint(fileHeader.Size),
@@ -131,7 +131,7 @@ func GetReceiptImage(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			fileRepository := repositories.NewFileRepository(nil)
+			fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
 			bytes, err = fileRepository.GetBytesForFileData(fileData)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -181,7 +181,7 @@ func DownloadReceiptImage(w http.ResponseWriter, r *http.Request) {
 		Request:          r,
 		ResponseType:     "",
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			fileRepository := repositories.NewFileRepository(nil)
+			fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
 
 			path, err := fileRepository.BuildFilePath(utils.UintToString(fileData.ReceiptId), utils.UintToString(fileData.ID), fileData.Name)
 			if err != nil {
@@ -233,7 +233,7 @@ func RemoveReceiptImage(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			fileRepository := repositories.NewFileRepository(nil)
+			fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
 			path, err := fileRepository.BuildFilePath(utils.UintToString(fileData.ReceiptId), id, fileData.Name)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -371,7 +371,7 @@ func ConvertToJpg(w http.ResponseWriter, r *http.Request) {
 		Request:      r,
 		ResponseType: constants.ApplicationJson,
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			fileRepository := repositories.NewFileRepository(nil)
+			fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
 			result := make(map[string]string)
 
 			err := r.ParseMultipartForm(50 << 20)
@@ -421,7 +421,7 @@ func validateReceiptImageAccess(r *http.Request, requiredPermission string, rece
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	receiptImageRepository := repositories.NewReceiptImageRepository(nil)
+	receiptImageRepository := repositories.NewReceiptImageRepository(repositories.ImplicitCell(), nil)
 
 	receiptImage, err := receiptImageRepository.GetReceiptImageById(receiptImageIdUint)
 	if err != nil {

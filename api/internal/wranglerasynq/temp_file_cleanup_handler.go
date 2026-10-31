@@ -95,7 +95,7 @@ func HandleTempFileCleanUpTask(context context.Context, task *asynq.Task) error 
 		return err
 	}
 
-	fileRepository := repositories.NewFileRepository(nil)
+	fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
 	removed, err := sweepTempDirectory(
 		fileRepository.GetTempDirectoryPath(),
 		references,
@@ -365,7 +365,7 @@ func cleanedTempPaths(paths ...string) []string {
 // not the command validator, is the real safety net, because it also covers a
 // value that predates the bounds or a settings row that cannot be read at all.
 func tempFileRetention() time.Duration {
-	systemSettingsRepository := repositories.NewSystemSettingsRepository(nil)
+	systemSettingsRepository := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil)
 
 	systemSettings, err := systemSettingsRepository.GetSystemSettings()
 	if err != nil {

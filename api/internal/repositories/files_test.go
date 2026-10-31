@@ -64,7 +64,7 @@ func makePdfFromJpg(t *testing.T, jpgBytes []byte) []byte {
 }
 
 func TestShouldZipMultipleFilesSuccessfully(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 
 	filenames := []string{"file1.txt", "file2.txt", "file3.txt"}
 	fileContents := [][]byte{
@@ -116,7 +116,7 @@ func TestShouldZipMultipleFilesSuccessfully(t *testing.T) {
 }
 
 func TestShouldReturnErrorWhenFilenamesAndContentsDontMatch(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 
 	filenames := []string{"file1.txt", "file2.txt"}
 	fileContents := [][]byte{[]byte("Content of file 1")}
@@ -130,7 +130,7 @@ func TestShouldReturnErrorWhenFilenamesAndContentsDontMatch(t *testing.T) {
 }
 
 func TestShouldReturnErrorWhenNoFilesAreProvided(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 
 	filenames := []string{}
 	fileContents := [][]byte{}
@@ -144,7 +144,7 @@ func TestShouldReturnErrorWhenNoFilesAreProvided(t *testing.T) {
 }
 
 func TestShouldHandleEmptyFileContent(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 
 	filenames := []string{"empty.txt"}
 	fileContents := [][]byte{[]byte("")}
@@ -186,7 +186,7 @@ func TestShouldHandleEmptyFileContent(t *testing.T) {
 }
 
 func TestShouldHandleLargeFileContent(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 
 	// Create a 100KB file
 	largeContent := bytes.Repeat([]byte("A"), 100*1024)
@@ -226,7 +226,7 @@ func TestShouldHandleLargeFileContent(t *testing.T) {
 }
 
 func TestShouldHandleSpecialCharactersInFilenames(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 
 	filenames := []string{"special!@#$%^&*.txt", "path/with/slashes.txt", "空白.txt"}
 	fileContents := [][]byte{
@@ -285,7 +285,7 @@ func TestShouldHandleSpecialCharactersInFilenames(t *testing.T) {
 // ---------- Pure-function tests (no filesystem/DB) ----------
 
 func TestValidateFileType_AcceptsJpg(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	jpg := readTestJpgBytes(t)
 
 	got, err := repository.ValidateFileType(jpg)
@@ -298,7 +298,7 @@ func TestValidateFileType_AcceptsJpg(t *testing.T) {
 }
 
 func TestValidateFileType_RejectsText(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 
 	_, err := repository.ValidateFileType([]byte("just plain text"))
 	if err == nil {
@@ -307,7 +307,7 @@ func TestValidateFileType_RejectsText(t *testing.T) {
 }
 
 func TestValidateJsonFileType_AcceptsJson(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 
 	got, err := repository.ValidateJsonFileType([]byte(`{"a":1}`))
 	if err != nil {
@@ -319,7 +319,7 @@ func TestValidateJsonFileType_AcceptsJson(t *testing.T) {
 }
 
 func TestValidateJsonFileType_RejectsImage(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	_, err := repository.ValidateJsonFileType(readTestJpgBytes(t))
 	if err == nil {
 		utils.PrintTestError(t, err, "expected invalid file type error for image")
@@ -327,7 +327,7 @@ func TestValidateJsonFileType_RejectsImage(t *testing.T) {
 }
 
 func TestIsImage_TrueForJpg(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 
 	got, err := repository.IsImage(readTestJpgBytes(t))
 	if err != nil {
@@ -339,7 +339,7 @@ func TestIsImage_TrueForJpg(t *testing.T) {
 }
 
 func TestIsImage_ErrorOnInvalidType(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	_, err := repository.IsImage([]byte("plain text"))
 	if err == nil {
 		utils.PrintTestError(t, err, "expected validate error")
@@ -347,7 +347,7 @@ func TestIsImage_ErrorOnInvalidType(t *testing.T) {
 }
 
 func TestIsPdf_FalseForJpg(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	got, err := repository.IsPdf(readTestJpgBytes(t))
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -358,7 +358,7 @@ func TestIsPdf_FalseForJpg(t *testing.T) {
 }
 
 func TestIsPdf_TrueForPdf(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	pdf := makePdfFromJpg(t, readTestJpgBytes(t))
 
 	got, err := repository.IsPdf(pdf)
@@ -371,7 +371,7 @@ func TestIsPdf_TrueForPdf(t *testing.T) {
 }
 
 func TestIsPdf_ErrorOnInvalidType(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	_, err := repository.IsPdf([]byte("plain text"))
 	if err == nil {
 		utils.PrintTestError(t, err, "expected validate error")
@@ -379,7 +379,7 @@ func TestIsPdf_ErrorOnInvalidType(t *testing.T) {
 }
 
 func TestGetFileType_PdfMappedToImageJpeg(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	pdf := makePdfFromJpg(t, readTestJpgBytes(t))
 
 	got, err := repository.GetFileType(pdf)
@@ -392,7 +392,7 @@ func TestGetFileType_PdfMappedToImageJpeg(t *testing.T) {
 }
 
 func TestGetFileType_JpgPassThrough(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	got, err := repository.GetFileType(readTestJpgBytes(t))
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -403,7 +403,7 @@ func TestGetFileType_JpgPassThrough(t *testing.T) {
 }
 
 func TestGetFileType_ErrorOnInvalidType(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	_, err := repository.GetFileType([]byte("plain text"))
 	if err == nil {
 		utils.PrintTestError(t, err, "expected validate error")
@@ -411,7 +411,7 @@ func TestGetFileType_ErrorOnInvalidType(t *testing.T) {
 }
 
 func TestBuildEncodedImageString_ProducesDataUri(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	got, err := repository.BuildEncodedImageString(readTestJpgBytes(t))
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -425,7 +425,7 @@ func TestBuildEncodedImageString_ProducesDataUri(t *testing.T) {
 }
 
 func TestBuildEncodedImageString_ErrorOnInvalidType(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	_, err := repository.BuildEncodedImageString([]byte("plain text"))
 	if err == nil {
 		utils.PrintTestError(t, err, "expected error")
@@ -453,7 +453,7 @@ func decodeDataUriPayload(t *testing.T, dataUri string) []byte {
 // tells the truth about what the browser would try to decode.
 func TestBuildDisplayImageString_PdfRasterizes(t *testing.T) {
 	t.Setenv("BASE_PATH", testBasePath())
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	pdf := makePdfFromJpg(t, readTestJpgBytes(t))
 
 	got, err := repository.BuildDisplayImageString(pdf)
@@ -480,7 +480,7 @@ func TestBuildDisplayImageString_PdfRasterizes(t *testing.T) {
 
 func TestBuildDisplayImageString_JpgPassesThroughUntouched(t *testing.T) {
 	t.Setenv("BASE_PATH", testBasePath())
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	jpg := readTestJpgBytes(t)
 
 	got, err := repository.BuildDisplayImageString(jpg)
@@ -496,7 +496,7 @@ func TestBuildDisplayImageString_JpgPassesThroughUntouched(t *testing.T) {
 }
 
 func TestBuildDisplayImageString_ErrorOnInvalidType(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	_, err := repository.BuildDisplayImageString([]byte("plain text"))
 	if err == nil {
 		utils.PrintTestError(t, err, "expected error")
@@ -508,7 +508,7 @@ func TestBuildDisplayImageString_ErrorOnInvalidType(t *testing.T) {
 func TestGetTempDirectoryPath_UsesBasePath(t *testing.T) {
 	t.Setenv("BASE_PATH", testBasePath())
 
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	got := repository.GetTempDirectoryPath()
 	want := filepath.Join(testBasePath(), "temp")
 	if got != want {
@@ -523,7 +523,7 @@ func TestGetTempDirectoryPath_UsesBasePath(t *testing.T) {
 func TestAssertWithinTempDirectory(t *testing.T) {
 	t.Setenv("BASE_PATH", testBasePath())
 
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	tempDirectory := repository.GetTempDirectoryPath()
 
 	allowed := []string{
@@ -557,7 +557,7 @@ func TestAssertWithinTempDirectory(t *testing.T) {
 func TestBuildTempFilePath_FormatAndExtension(t *testing.T) {
 	t.Setenv("BASE_PATH", testBasePath())
 
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	got, err := repository.BuildTempFilePath("jpg")
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -573,7 +573,7 @@ func TestBuildTempFilePath_FormatAndExtension(t *testing.T) {
 func TestGetTestJpgBytes_ReadsFixture(t *testing.T) {
 	t.Setenv("BASE_PATH", testBasePath())
 
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	got, err := repository.GetTestJpgBytes()
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -586,7 +586,7 @@ func TestGetTestJpgBytes_ReadsFixture(t *testing.T) {
 func TestWriteTempFile_WritesJpgBytes(t *testing.T) {
 	t.Setenv("BASE_PATH", testBasePath())
 
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	jpg := readTestJpgBytes(t)
 
 	path, err := repository.WriteTempFile(jpg)
@@ -611,7 +611,7 @@ func TestWriteTempFile_WritesJpgBytes(t *testing.T) {
 func TestWriteTempFile_RejectsInvalidFileType(t *testing.T) {
 	t.Setenv("BASE_PATH", testBasePath())
 
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	_, err := repository.WriteTempFile([]byte("not an image"))
 	if err == nil {
 		utils.PrintTestError(t, err, "expected invalid-file-type error")
@@ -623,7 +623,7 @@ func TestWriteTempFile_RejectsInvalidFileType(t *testing.T) {
 func TestConvertPdfToJpg_HappyPath(t *testing.T) {
 	t.Setenv("BASE_PATH", testBasePath())
 
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	pdf := makePdfFromJpg(t, readTestJpgBytes(t))
 
 	out, err := repository.ConvertPdfToJpg(pdf)
@@ -645,7 +645,7 @@ func TestConvertPdfToJpg_HappyPath(t *testing.T) {
 func TestConvertPdfToJpg_InvalidBytes(t *testing.T) {
 	t.Setenv("BASE_PATH", testBasePath())
 
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	_, err := repository.ConvertPdfToJpg([]byte("not a pdf"))
 	if err == nil {
 		utils.PrintTestError(t, err, "expected ImageMagick error")
@@ -655,7 +655,7 @@ func TestConvertPdfToJpg_InvalidBytes(t *testing.T) {
 func TestPdfRasterizationDpi_DefaultsWhenUnset(t *testing.T) {
 	defer TruncateTestDb()
 	setPdfDpiSetting(t, 0)
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	if got := repository.pdfRasterizationDpi(); got != 300 {
 		utils.PrintTestError(t, got, 300)
 	}
@@ -664,7 +664,7 @@ func TestPdfRasterizationDpi_DefaultsWhenUnset(t *testing.T) {
 func TestPdfRasterizationDpi_HonorsSetting(t *testing.T) {
 	defer TruncateTestDb()
 	setPdfDpiSetting(t, 150)
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	if got := repository.pdfRasterizationDpi(); got != 150 {
 		utils.PrintTestError(t, got, 150)
 	}
@@ -672,7 +672,7 @@ func TestPdfRasterizationDpi_HonorsSetting(t *testing.T) {
 
 func TestPdfRasterizationDpi_FallsBackOnOutOfRange(t *testing.T) {
 	defer TruncateTestDb()
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	for _, bad := range []int{10, 5000, -100} {
 		setPdfDpiSetting(t, bad)
 		if got := repository.pdfRasterizationDpi(); got != 300 {
@@ -692,7 +692,7 @@ func decodeDimensions(t *testing.T, jpg []byte) (int, int) {
 func TestConvertPdfToJpg_HigherDpiProducesLargerImage(t *testing.T) {
 	defer TruncateTestDb()
 	t.Setenv("BASE_PATH", testBasePath())
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	pdf := makePdfFromJpg(t, readTestJpgBytes(t))
 
 	setPdfDpiSetting(t, 72)
@@ -718,7 +718,7 @@ func TestConvertPdfToJpg_HigherDpiProducesLargerImage(t *testing.T) {
 }
 
 func TestConvertHeicToJpg_InvalidBytes(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	_, err := repository.ConvertHeicToJpg([]byte("not heic"))
 	if err == nil {
 		utils.PrintTestError(t, err, "expected ImageMagick error")
@@ -726,7 +726,7 @@ func TestConvertHeicToJpg_InvalidBytes(t *testing.T) {
 }
 
 func TestGetBytesFromImageBytes_JpgPassThrough(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	jpg := readTestJpgBytes(t)
 
 	got, err := repository.GetBytesFromImageBytes(jpg)
@@ -741,7 +741,7 @@ func TestGetBytesFromImageBytes_JpgPassThrough(t *testing.T) {
 func TestGetBytesFromImageBytes_PdfRoutesThroughConversion(t *testing.T) {
 	t.Setenv("BASE_PATH", testBasePath())
 
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	pdf := makePdfFromJpg(t, readTestJpgBytes(t))
 
 	got, err := repository.GetBytesFromImageBytes(pdf)
@@ -759,7 +759,7 @@ func TestGetBytesFromImageBytes_PdfRoutesThroughConversion(t *testing.T) {
 }
 
 func TestGetBytesFromImageBytes_InvalidTypeErrors(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	_, err := repository.GetBytesFromImageBytes([]byte("nope"))
 	if err == nil {
 		utils.PrintTestError(t, err, "expected invalid-file-type error")
@@ -771,7 +771,7 @@ func TestGetBytesFromImageBytes_InvalidTypeErrors(t *testing.T) {
 func TestBuildGroupPath_WithAlternateName(t *testing.T) {
 	defer TruncateTestDb()
 
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	got, err := repository.BuildGroupPath(42, "alt-name")
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -790,7 +790,7 @@ func TestBuildGroupPath_LooksUpGroupByName(t *testing.T) {
 		utils.PrintTestError(t, err, nil)
 	}
 
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	got, err := repository.BuildGroupPath(group.ID, "")
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -817,7 +817,7 @@ func TestBuildFilePath_ComposesGroupAndFileName(t *testing.T) {
 		utils.PrintTestError(t, err, nil)
 	}
 
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	got, err := repository.BuildFilePath(utils.UintToString(receipt.ID), "99", "photo.jpg")
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -835,7 +835,7 @@ func TestBuildFilePath_ComposesGroupAndFileName(t *testing.T) {
 func TestCreateZipFromTempFiles_ArchivesSeededFiles(t *testing.T) {
 	t.Setenv("BASE_PATH", testBasePath())
 
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	tempDir := repository.GetTempDirectoryPath()
 	_ = os.MkdirAll(tempDir, 0o755)
 
@@ -900,7 +900,7 @@ func TestGetBytesForFileData_ReadsAndReturnsBytes(t *testing.T) {
 	}
 
 	// Write the JPG fixture to the exact path BuildFilePath will construct.
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	targetPath, err := repository.BuildFilePath(utils.UintToString(receipt.ID), utils.UintToString(fileData.ID), fileData.Name)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -923,7 +923,7 @@ func TestGetBytesForFileData_ReadsAndReturnsBytes(t *testing.T) {
 
 // Sanity: a PDF fixture really is recognised as ApplicationPdf.
 func TestValidateFileType_AcceptsPdf(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 	pdf := makePdfFromJpg(t, readTestJpgBytes(t))
 
 	got, err := repository.ValidateFileType(pdf)
@@ -937,7 +937,7 @@ func TestValidateFileType_AcceptsPdf(t *testing.T) {
 
 // Example of a table test in the style of the existing tests
 func TestShouldValidateZipFilesInput(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 
 	tests := map[string]struct {
 		filenames    []string
@@ -1012,7 +1012,7 @@ func writePng(t *testing.T, width, height int) []byte {
 }
 
 func TestNormalizeImageForVision_OversizedTransparentPngBecomesSmallOpaqueJpeg(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 
 	normalized, err := repository.NormalizeImageForVision(writePng(t, 3000, 1500))
 	if err != nil {
@@ -1040,7 +1040,7 @@ func TestNormalizeImageForVision_OversizedTransparentPngBecomesSmallOpaqueJpeg(t
 }
 
 func TestNormalizeImageForVision_SmallImagesAreNotUpscaled(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 
 	normalized, err := repository.NormalizeImageForVision(writePng(t, 400, 300))
 	if err != nil {
@@ -1057,7 +1057,7 @@ func TestNormalizeImageForVision_SmallImagesAreNotUpscaled(t *testing.T) {
 }
 
 func TestNormalizeImageForVision_RejectsBytesThatAreNotAnImage(t *testing.T) {
-	repository := NewFileRepository(nil)
+	repository := NewFileRepository(ImplicitCell(), nil)
 
 	if _, err := repository.NormalizeImageForVision([]byte("not an image")); err == nil {
 		t.Error("expected an error for bytes that are not an image")

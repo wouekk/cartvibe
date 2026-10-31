@@ -32,7 +32,7 @@ type ReceiptProcessingService struct {
 }
 
 func NewSystemReceiptProcessingService(tx *gorm.DB, groupId string) (ReceiptProcessingService, error) {
-	systemSettingsRepository := repositories.NewSystemSettingsRepository(tx)
+	systemSettingsRepository := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), tx)
 	systemReceiptProcessingSettings, err := systemSettingsRepository.GetSystemReceiptProcessingSettings()
 	group := models.Group{}
 	if err != nil {
@@ -40,7 +40,7 @@ func NewSystemReceiptProcessingService(tx *gorm.DB, groupId string) (ReceiptProc
 	}
 
 	if len(groupId) > 0 {
-		groupRepository := repositories.NewGroupRepository(tx)
+		groupRepository := repositories.NewGroupRepository(repositories.ImplicitCell(), tx)
 		groupToUse, err := groupRepository.GetGroupById(groupId, false, false)
 		if err != nil {
 			return ReceiptProcessingService{}, err
@@ -65,7 +65,7 @@ func NewReceiptProcessingService(tx *gorm.DB, receiptProcessingSettingsId string
 		TX: tx,
 	}}
 
-	receiptProcessingSettingsRepository := repositories.NewReceiptProcessingSettings(nil)
+	receiptProcessingSettingsRepository := repositories.NewReceiptProcessingSettings(repositories.ImplicitCell(), nil)
 	receiptProcessingSettings, err := receiptProcessingSettingsRepository.GetReceiptProcessingSettingsById(receiptProcessingSettingsId)
 	if err != nil {
 		return service, err
@@ -369,7 +369,7 @@ func (service ReceiptProcessingService) readNormalizedImage(imagePath string) ([
 		return nil, err
 	}
 
-	normalized, err := repositories.NewFileRepository(service.TX).NormalizeImageForVision(fileBytes)
+	normalized, err := repositories.NewFileRepository(repositories.ImplicitCell(), service.TX).NormalizeImageForVision(fileBytes)
 	if err != nil {
 		return nil, fmt.Errorf("could not prepare the image for the AI: %w", err)
 	}
@@ -378,7 +378,7 @@ func (service ReceiptProcessingService) readNormalizedImage(imagePath string) ([
 }
 
 func (service ReceiptProcessingService) getOpenAiBase64Image(imagePath string) (string, error) {
-	fileRepository := repositories.NewFileRepository(service.TX)
+	fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), service.TX)
 	fileBytes, err := service.readNormalizedImage(imagePath)
 	if err != nil {
 		return "", err
@@ -464,7 +464,7 @@ func (service ReceiptProcessingService) buildTemplateVariableMap(ocrText string)
 	// The year as the app's users see it, not the server process's, so a
 	// receipt scanned just after midnight on Jan 1 in the app zone is dated in
 	// the new year.
-	currentYearString := utils.UintToString(uint(time.Now().In(repositories.NewSystemSettingsRepository(service.TX).AppLocation()).Year()))
+	currentYearString := utils.UintToString(uint(time.Now().In(repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), service.TX).AppLocation()).Year()))
 
 	result[structs.CATEGORIES] = categoriesString
 	result[structs.TAGS] = tagsString
@@ -475,7 +475,7 @@ func (service ReceiptProcessingService) buildTemplateVariableMap(ocrText string)
 }
 
 func (service ReceiptProcessingService) getCategoriesString() (string, error) {
-	categoryRepository := repositories.NewCategoryRepository(nil)
+	categoryRepository := repositories.NewCategoryRepository(repositories.ImplicitCell(), nil)
 	allCategories, err := categoryRepository.GetAllCategories("id, name, description, skipped")
 	if err != nil {
 		return "", err
@@ -519,7 +519,7 @@ func (service ReceiptProcessingService) getCategoriesString() (string, error) {
 }
 
 func (service ReceiptProcessingService) getTagsString() (string, error) {
-	tagsRepository := repositories.NewTagsRepository(nil)
+	tagsRepository := repositories.NewTagsRepository(repositories.ImplicitCell(), nil)
 	tags, err := tagsRepository.GetAllTags("id, name")
 	if err != nil {
 		return "", err

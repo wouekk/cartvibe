@@ -33,7 +33,7 @@ func TestCreateOidcProviderPersistsADisabledProvider(t *testing.T) {
 	defer TruncateTestDb()
 	t.Setenv("ENCRYPTION_KEY", "oidc-repo-test-key")
 
-	repository := NewOidcProviderRepository(nil)
+	repository := NewOidcProviderRepository(ImplicitCell(), nil)
 
 	provider, err := repository.CreateOidcProvider(oidcProviderCommand("disabled", false), nil)
 	if err != nil {
@@ -58,7 +58,7 @@ func TestGetEnabledOidcProviderByNameIgnoresDisabledOnes(t *testing.T) {
 	defer TruncateTestDb()
 	t.Setenv("ENCRYPTION_KEY", "oidc-repo-test-key")
 
-	repository := NewOidcProviderRepository(nil)
+	repository := NewOidcProviderRepository(ImplicitCell(), nil)
 
 	if _, err := repository.CreateOidcProvider(oidcProviderCommand("off", false), nil); err != nil {
 		t.Fatalf("failed to create the provider: %v", err)
@@ -83,7 +83,7 @@ func TestDeleteOidcProviderCascades(t *testing.T) {
 	defer TruncateTestDb()
 	t.Setenv("ENCRYPTION_KEY", "oidc-repo-test-key")
 
-	repository := NewOidcProviderRepository(nil)
+	repository := NewOidcProviderRepository(ImplicitCell(), nil)
 
 	provider, err := repository.CreateOidcProvider(oidcProviderCommand("cascade", true), nil)
 	if err != nil {
@@ -150,7 +150,7 @@ func TestOidcIdentityUniqueIndexes(t *testing.T) {
 	defer TruncateTestDb()
 	t.Setenv("ENCRYPTION_KEY", "oidc-repo-test-key")
 
-	provider, err := NewOidcProviderRepository(nil).CreateOidcProvider(oidcProviderCommand("unique", true), nil)
+	provider, err := NewOidcProviderRepository(ImplicitCell(), nil).CreateOidcProvider(oidcProviderCommand("unique", true), nil)
 	if err != nil {
 		t.Fatalf("failed to create the provider: %v", err)
 	}
@@ -180,7 +180,7 @@ func TestOidcIdentityUniqueIndexes(t *testing.T) {
 }
 
 func TestValidateOrderByRejectsUnknownColumns(t *testing.T) {
-	repository := NewOidcProviderRepository(nil)
+	repository := NewOidcProviderRepository(ImplicitCell(), nil)
 
 	// The column is interpolated into the query, so the allow-list is the guard.
 	if err := repository.validateOrderBy("name"); err != nil {

@@ -29,7 +29,7 @@ func TestGetAppLocationDefaultsToUTC(t *testing.T) {
 		t.Errorf("GetAppLocation() = %v, want UTC on a fresh install", location)
 	}
 
-	settings, err := NewSystemSettingsRepository(nil).GetSystemSettings()
+	settings, err := NewSystemSettingsRepository(ImplicitCell(), nil).GetSystemSettings()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -55,7 +55,7 @@ func TestGetAppLocationReadsTheConfiguredZone(t *testing.T) {
 func TestGetAppLocationFallsBackToUTCForAnInvalidStoredName(t *testing.T) {
 	defer TruncateTestDb()
 
-	if _, err := NewSystemSettingsRepository(nil).GetSystemSettings(); err != nil {
+	if _, err := NewSystemSettingsRepository(ImplicitCell(), nil).GetSystemSettings(); err != nil {
 		t.Fatal(err)
 	}
 	if err := GetDB().Model(&models.SystemSettings{}).Where("1 = 1").Update("time_zone", "Not/AZone").Error; err != nil {
@@ -302,7 +302,7 @@ func TestCurrentMonthBoundsUseTheAppZonesToday(t *testing.T) {
 
 func receiptFilterBounds(t *testing.T, filter commands.ReceiptPagedRequestFilter) ([]time.Time, string) {
 	t.Helper()
-	query, err := NewReceiptRepository(nil).BuildGormFilterQuery(commands.ReceiptPagedRequestCommand{Filter: filter})
+	query, err := NewReceiptRepository(ImplicitCell(), nil).BuildGormFilterQuery(commands.ReceiptPagedRequestCommand{Filter: filter})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -382,7 +382,7 @@ func TestReceiptFilterAddedAtFollowsTheAppZone(t *testing.T) {
 		CreatedAt: commands.PagedRequestField{Operation: commands.BETWEEN, Value: []interface{}{"2026-09-01", "2026-09-30"}},
 	}
 	count := func() int64 {
-		query, err := NewReceiptRepository(nil).BuildGormFilterQuery(commands.ReceiptPagedRequestCommand{Filter: september})
+		query, err := NewReceiptRepository(ImplicitCell(), nil).BuildGormFilterQuery(commands.ReceiptPagedRequestCommand{Filter: september})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -425,7 +425,7 @@ func TestCreateAndUpdateReceiptStoreCalendarDatesAsMidnightUTC(t *testing.T) {
 
 	assertStored := func(t *testing.T, id uint, wantDate time.Time) {
 		t.Helper()
-		stored, err := NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(id))
+		stored, err := NewReceiptRepository(ImplicitCell(), nil).GetFullyLoadedReceiptById(utils.UintToString(id))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -450,14 +450,14 @@ func TestCreateAndUpdateReceiptStoreCalendarDatesAsMidnightUTC(t *testing.T) {
 
 	for name, input := range inputs {
 		t.Run(name, func(t *testing.T) {
-			created, err := NewReceiptRepository(nil).CreateReceipt(command(input), 1, false)
+			created, err := NewReceiptRepository(ImplicitCell(), nil).CreateReceipt(command(input), 1, false)
 			if err != nil {
 				t.Fatal(err)
 			}
 			assertStored(t, created.ID, september1)
 
 			updated := time.Date(2026, 10, 5, 0, 0, 0, 0, newYork)
-			if _, err := NewReceiptRepository(nil).UpdateReceipt(utils.UintToString(created.ID), command(updated), 1); err != nil {
+			if _, err := NewReceiptRepository(ImplicitCell(), nil).UpdateReceipt(utils.UintToString(created.ID), command(updated), 1); err != nil {
 				t.Fatal(err)
 			}
 			assertStored(t, created.ID, october5)

@@ -32,7 +32,7 @@ func seedQuickScanCommenter(t *testing.T, canComment bool, settings models.Group
 		t.Fatalf("seed group: %v", err)
 	}
 
-	settingsRepository := repositories.NewGroupReceiptSettingsRepository(nil)
+	settingsRepository := repositories.NewGroupReceiptSettingsRepository(repositories.ImplicitCell(), nil)
 	if _, err := settingsRepository.CreateGroupReceiptSettings(group.ID); err != nil {
 		t.Fatalf("seed group receipt settings: %v", err)
 	}
@@ -57,7 +57,7 @@ func seedQuickScanCommenter(t *testing.T, canComment bool, settings models.Group
 		rolePermissions = append(rolePermissions, permissions.GroupCommentsCreate)
 	}
 
-	role, err := repositories.NewRoleRepository(nil).CreateGroupRole(
+	role, err := repositories.NewRoleRepository(repositories.ImplicitCell(), nil).CreateGroupRole(
 		"Quick Scan Commenter", "", rolePermissions, nil, nil, nil, false, false)
 	if err != nil {
 		t.Fatalf("seed group role: %v", err)

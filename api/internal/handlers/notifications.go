@@ -21,7 +21,7 @@ func GetNotificationsForUser(w http.ResponseWriter, r *http.Request) {
 		ResponseType:   constants.ApplicationJson,
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
 			token := structs.GetClaims(r)
-			notificationRepository := repositories.NewNotificationRepository(nil)
+			notificationRepository := repositories.NewNotificationRepository(repositories.ImplicitCell(), nil)
 
 			notifications, err := notificationRepository.GetNotificationsForUser(token.UserId)
 			if err != nil {
@@ -52,7 +52,7 @@ func GetNotificationCountForUser(w http.ResponseWriter, r *http.Request) {
 		ResponseType:   constants.ApplicationJson,
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
 			token := structs.GetClaims(r)
-			notificationRepository := repositories.NewNotificationRepository(nil)
+			notificationRepository := repositories.NewNotificationRepository(repositories.ImplicitCell(), nil)
 
 			result, err := notificationRepository.GetNotificationCountForUser(token.UserId)
 			if err != nil {
@@ -83,7 +83,7 @@ func DeleteAllNotificationsForUser(w http.ResponseWriter, r *http.Request) {
 		ResponseType:   "",
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
 			token := structs.GetClaims(r)
-			notificationRepository := repositories.NewNotificationRepository(nil)
+			notificationRepository := repositories.NewNotificationRepository(repositories.ImplicitCell(), nil)
 
 			err := notificationRepository.DeleteAllNotificationsForUser(token.UserId)
 			if err != nil {
@@ -109,7 +109,7 @@ func DeleteNotification(w http.ResponseWriter, r *http.Request) {
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
 			id := chi.URLParam(r, "id")
 			token := structs.GetClaims(r)
-			notificationRepository := repositories.NewNotificationRepository(nil)
+			notificationRepository := repositories.NewNotificationRepository(repositories.ImplicitCell(), nil)
 
 			notification, err := notificationRepository.GetNotificationById(id)
 			if err != nil {

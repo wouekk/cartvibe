@@ -230,7 +230,7 @@ func TestCreateGroupRoleRejectsNonExistentReportTemplateGrant(t *testing.T) {
 
 func TestUpdateGroupRoleServiceReplacesGrants(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	roleRepository := repositories.NewRoleRepository(nil)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
 
 	catA := models.Category{Name: "A"}
 	repositories.GetDB().Create(&catA)
@@ -264,7 +264,7 @@ func TestUpdateGroupRoleServiceReplacesGrants(t *testing.T) {
 
 func TestUpdateRolePersistsChanges(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	roleRepository := repositories.NewRoleRepository(nil)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
 
 	created, err := roleRepository.CreateAppRole("App Role", "Description", []string{permissions.AppUsersCreate}, false)
 	if err != nil {
@@ -356,7 +356,7 @@ func TestCreateGroupRoleNeverCarriesSkipDefaultGroupCreation(t *testing.T) {
 
 func TestUpdateRoleBlocksTypeSwitch(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	roleRepository := repositories.NewRoleRepository(nil)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
 
 	created, err := roleRepository.CreateAppRole("App Role", "Description", []string{permissions.AppUsersCreate}, false)
 	if err != nil {
@@ -425,7 +425,7 @@ func TestUpdateRoleNotFound(t *testing.T) {
 
 func TestSetDefaultRoleApp(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	roleRepository := repositories.NewRoleRepository(nil)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
 
 	created, err := roleRepository.CreateAppRole("App Role", "", []string{permissions.AppUsersRead}, false)
 	if err != nil {
@@ -482,7 +482,7 @@ func TestSetDefaultRoleAllowsSystemRole(t *testing.T) {
 
 func TestSetDefaultRoleTypeMismatch(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	roleRepository := repositories.NewRoleRepository(nil)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
 
 	created, err := roleRepository.CreateAppRole("App Role", "", []string{permissions.AppUsersRead}, false)
 	if err != nil {
@@ -510,7 +510,7 @@ func TestSetDefaultRoleNotFound(t *testing.T) {
 
 func TestDeleteRoleRejectsDefault(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	roleRepository := repositories.NewRoleRepository(nil)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
 
 	created, err := roleRepository.CreateAppRole("Default App Role", "", []string{permissions.AppUsersRead}, false)
 	if err != nil {
@@ -552,7 +552,7 @@ func TestCreateAndUpdateRoleRoundTripReceiptRequirements(t *testing.T) {
 		t.Errorf("created view = (%v, %v), want (true, true)", roleView.RequireReceiptComment, roleView.RequireReceiptImage)
 	}
 
-	stored, err := repositories.NewRoleRepository(nil).GetGroupRoleById(roleView.Id)
+	stored, err := repositories.NewRoleRepository(repositories.ImplicitCell(), nil).GetGroupRoleById(roleView.Id)
 	if err != nil {
 		t.Fatalf("GetGroupRoleById: %v", err)
 	}
@@ -575,7 +575,7 @@ func TestCreateAndUpdateRoleRoundTripReceiptRequirements(t *testing.T) {
 		t.Errorf("updated view = (%v, %v), want (false, true)", updated.RequireReceiptComment, updated.RequireReceiptImage)
 	}
 
-	stored, err = repositories.NewRoleRepository(nil).GetGroupRoleById(roleView.Id)
+	stored, err = repositories.NewRoleRepository(repositories.ImplicitCell(), nil).GetGroupRoleById(roleView.Id)
 	if err != nil {
 		t.Fatalf("GetGroupRoleById: %v", err)
 	}

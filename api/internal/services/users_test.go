@@ -16,7 +16,7 @@ import (
 
 func createUserForDeletion(t *testing.T, username string) models.User {
 	t.Helper()
-	userRepo := repositories.NewUserRepository(nil)
+	userRepo := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
 	user, err := userRepo.CreateUser(commands.SignUpCommand{
 		Username:    username,
 		Password:    "password",
@@ -42,7 +42,7 @@ func makeUserAdmin(t *testing.T, userId uint) {
 	t.Helper()
 	const adminRoleName = "Test Admin Role"
 	db := repositories.GetDB()
-	roleRepository := repositories.NewRoleRepository(nil)
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
 
 	roleId, err := roleRepository.GetAppRoleIdByName(adminRoleName)
 	if err != nil {
@@ -237,7 +237,7 @@ func TestDeleteUser_WithPaidByGrant(t *testing.T) {
 	user := createUserForDeletion(t, "paidbygrantuser")
 
 	// A group role that grants paid-by visibility of this user's receipts.
-	role, err := repositories.NewRoleRepository(nil).CreateGroupRole(
+	role, err := repositories.NewRoleRepository(repositories.ImplicitCell(), nil).CreateGroupRole(
 		"PaidBy Cascade Role",
 		"",
 		[]string{permissions.GroupReceiptsRead},
@@ -265,7 +265,7 @@ func TestDeleteUser_KeepsReportTemplates(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	user := createUserForDeletion(t, "templateowner")
 
-	template, err := repositories.NewReportTemplateRepository(nil).CreateReportTemplate(
+	template, err := repositories.NewReportTemplateRepository(repositories.ImplicitCell(), nil).CreateReportTemplate(
 		commands.ReportRequestCommand{Name: "Owned", Formats: []string{"csv"}},
 		user.ID,
 	)
@@ -364,7 +364,7 @@ func TestDeleteUser_RemovesMemberGrants(t *testing.T) {
 		}
 	}
 
-	groupMemberRepository := repositories.NewGroupMemberRepository(nil)
+	groupMemberRepository := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil)
 	for _, groupId := range []uint{firstGroup.ID, secondGroup.ID} {
 		if err := groupMemberRepository.ReplaceMemberGrants(user.ID, groupId, []uint{category.ID}, nil); err != nil {
 			t.Fatalf("seed member grants: %v", err)

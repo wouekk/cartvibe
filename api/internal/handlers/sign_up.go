@@ -36,7 +36,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 			// admin-protected POST /user endpoint may set a role explicitly, so
 			// strip the caller-supplied app role id from the command.
 			userData.AppRoleID = nil
-			userRepository := repositories.NewUserRepository(nil)
+			userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
 			createdUser, err := userRepository.CreateUser(userData)
 
 			if err != nil {

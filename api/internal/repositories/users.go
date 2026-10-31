@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"cartvibe/api/internal/cell"
 	"errors"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
@@ -16,10 +17,11 @@ type UserRepository struct {
 	BaseRepository
 }
 
-func NewUserRepository(tx *gorm.DB) UserRepository {
+func NewUserRepository(h cell.Handle, tx *gorm.DB) UserRepository {
 	repository := UserRepository{BaseRepository: BaseRepository{
-		DB: GetDB(),
-		TX: tx,
+		DB:   h.DB(),
+		TX:   tx,
+		Cell: h,
 	}}
 	return repository
 }
@@ -57,9 +59,9 @@ func (repository UserRepository) CreateUser(userData commands.SignUpCommand) (mo
 	user.Password = string(bytes)
 
 	err = db.Transaction(func(tx *gorm.DB) error {
-		groupRepository := NewGroupRepository(tx)
+		groupRepository := NewGroupRepository(repository.Cell, tx)
 		repository.SetTransaction(tx)
-		userPreferencesRepository := NewUserPreferencesRepository(tx)
+		userPreferencesRepository := NewUserPreferencesRepository(repository.Cell, tx)
 
 		if userData.AppRoleID != nil {
 			// The admin-protected create endpoint chose a modern app role
@@ -167,7 +169,7 @@ func (repository UserRepository) appRoleSkipsDefaultGroup(tx *gorm.DB, appRoleId
 		return false, nil
 	}
 
-	skip, err := NewRoleRepository(tx).AppRoleSkipsDefaultGroup(*appRoleId)
+	skip, err := NewRoleRepository(repository.Cell, tx).AppRoleSkipsDefaultGroup(*appRoleId)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return false, nil
 	}
@@ -185,7 +187,7 @@ func (repository UserRepository) appRoleSkipsDefaultGroup(tx *gorm.DB, appRoleId
 // can't be resolved (e.g. an unseeded test database), leaving the user without a
 // modern role rather than failing creation.
 func (repository UserRepository) resolveAppRoleId(tx *gorm.DB, isAdmin bool) (*uint, error) {
-	roleRepository := NewRoleRepository(tx)
+	roleRepository := NewRoleRepository(repository.Cell, tx)
 	if isAdmin {
 		return roleRepository.GetAppRoleIdByName(LegacyAdminRoleName)
 	}
@@ -316,7 +318,7 @@ func (repository UserRepository) UpdateUserLastLoginDate(userId uint) (time.Time
 // replacement for the removed UserRole == ADMIN check). Returns true when no such
 // user has a last_login_date.
 func (repository UserRepository) IsFirstAdminToLogin() (bool, error) {
-	roleRepository := NewRoleRepository(repository.TX)
+	roleRepository := NewRoleRepository(repository.Cell, repository.TX)
 	adminRoleIds, err := roleRepository.appRoleIdsWithPermission(permissions.AppUsersRead)
 	if err != nil {
 		return false, err
@@ -356,7 +358,7 @@ func (repository UserRepository) joinHouseholdGroup(tx *gorm.DB, userId uint) (b
 		return false, nil
 	}
 
-	roleRepository := NewRoleRepository(tx)
+	roleRepository := NewRoleRepository(repository.Cell, tx)
 	roleId, err := roleRepository.GetGroupRoleIdByName(FamilyMemberRoleName)
 	if err != nil {
 		return false, err

@@ -10,7 +10,7 @@ import (
 func TestIsAccountPasswordless(t *testing.T) {
 	defer TruncateTestDb()
 	db := GetDB()
-	repository := NewOidcIdentityRepository(nil)
+	repository := NewOidcIdentityRepository(ImplicitCell(), nil)
 
 	user := models.User{Username: "passwordless", DisplayName: "Passwordless", Password: "x"}
 	if err := db.Create(&user).Error; err != nil {
