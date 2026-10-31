@@ -12,7 +12,9 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
   demo, Chromium only). CI on `214707c` was reported green by the owner; this session could not read it (anonymous API
   rate-limited, no token). **Waiting on the owner:** apply the two patches in `docs/site.md` (`pages.yml` builds and publishes
   `/demo/`, `ci.yml` builds the demo and runs `check:demo`); until then nothing publishes the demo or checks the bundle in CI.
-  Not run: Safari, Firefox, Lighthouse, a deployed Pages run, the NAS.
+  Reviewer findings fixed in `2c1e719` (warranty days, report double count, list amounts, drill-in link); the rest is in
+  `desktop/docs/demo.md` → Known gaps. The cloud repo was read-only for this session (403), so the T4 queue entry is in
+  `docs/T4-queue-entry.md` for the owner to paste. Not run: Safari, Firefox, Lighthouse, a deployed Pages run, the NAS.
 
 - **Cell runtime step 1 is in `preview`, not `main`** (`feature/cell-runtime`, CI green at `f8b97f8`: test-api, test-desktop,
   e2e-smoke; `e2e-smoke` needed one re-run for the known 503 flake). `CARTVIBE_MODE` (`standalone` default, `worker`/`imgproc`
