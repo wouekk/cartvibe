@@ -51,3 +51,9 @@ Real captures of the app with made-up data, in `src/assets/shots/<page>-<desktop
 
 `.github/workflows/pages.yml` builds `site/` on every push that touches it (or `desktop/src/themes/`) (main and `feature/**`) and deploys
 `site/dist` to GitHub Pages from `main` only. The base path is `/cartvibe` (`astro.config.mjs`).
+
+### Changelog on the site
+
+Each release card shows the sentence under its version heading in `CHANGELOG.md` (the milestone, at most 140 characters). A
+release without such a sentence falls back to up to three one-line highlights from its bullets. Keep that sentence short
+when writing a release entry.
