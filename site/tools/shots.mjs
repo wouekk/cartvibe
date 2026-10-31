@@ -22,10 +22,11 @@ const out = join(here, "..", "src", "assets", "shots");
 const only = process.env.SHOTS_ONLY;
 mkdirSync(out, { recursive: true });
 
-// Output sizes: desktop 1440 px wide captured, written 1200 wide; phone 390 px at 2x, written 520 wide. `crop` keeps the
+// Output sizes: desktop 1440 px captured at 2x, written 2000 wide, so a 2x screen is not shown an upscaled picture; phone
+// 390 px at 2x, written 520 wide. `crop` keeps the
 // top part of a short page (in captured CSS px) so the frame hugs the content.
 const VIEWPORTS = {
-  desktop: { width: 1440, height: 900, scale: 1, outWidth: 1200, mobile: false },
+  desktop: { width: 1440, height: 900, scale: 2, outWidth: 2000, mobile: false },
   phone: { width: 390, height: 844, scale: 2, outWidth: 520, mobile: true },
 };
 
@@ -64,6 +65,7 @@ for (const [vpName, vp] of Object.entries(VIEWPORTS)) {
       isMobile: vp.mobile,
       hasTouch: vp.mobile,
       colorScheme: mode,
+      locale: "en-US", // the site is in English, so are its screenshots
       reducedMotion: "reduce",
     });
     // The demo reads its look under its own storage prefix (desktop/docs/demo.md).
@@ -92,7 +94,7 @@ for (const [vpName, vp] of Object.entries(VIEWPORTS)) {
       const keep = p.crop?.[vpName] ? Math.min(meta.height, p.crop[vpName] * vp.scale) : meta.height;
       image = image.extract({ left: 0, top: 0, width: meta.width, height: keep });
       const file = `${p.name}-${vpName}-${mode}.webp`;
-      const info = await image.resize({ width: vp.outWidth }).webp({ quality: 78, effort: 6 }).toFile(join(out, file));
+      const info = await image.resize({ width: vp.outWidth }).webp({ quality: 80, effort: 6 }).toFile(join(out, file));
       console.log(`${file} ${info.width}x${info.height} ${Math.round(info.size / 1024)} kB`);
       written++;
     }

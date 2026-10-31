@@ -61,7 +61,7 @@ const titles = (page, slug) => page.getByTestId(`roadmap-column-${slug}`).getByR
 
 test("live issues fill the three columns by label; pull requests are skipped", async () => {
   const g = github(json(ISSUES));
-  const { page, context, messages } = await open(browser, server.origin, "/roadmap/", { setup: g.setup });
+  const { page, context, messages } = await open(browser, server.origin, "/", { setup: g.setup });
   await settled(page);
   assert.equal(await page.locator("[data-roadmap]").getAttribute("data-source"), "live");
   assert.deepEqual(await titles(page, "planned"), ['<img src=x onerror="window.__xss=1"> Unsafe', "Idea 2", "Idea 1"]);
@@ -78,7 +78,7 @@ test("live issues fill the three columns by label; pull requests are skipped", a
 
 test("a card has a title, a plain two-line summary, chips without roadmap labels and an upvote pill that links out", async () => {
   const g = github(json(ISSUES));
-  const { page, context } = await open(browser, server.origin, "/roadmap/", { setup: g.setup });
+  const { page, context } = await open(browser, server.origin, "/", { setup: g.setup });
   await settled(page);
   const card = page.getByTestId("roadmap-column-in-progress").getByTestId("roadmap-card").first();
   assert.equal(await card.getByRole("heading", { level: 4 }).innerText(), "Idea 3");
@@ -98,7 +98,7 @@ test("a card has a title, a plain two-line summary, chips without roadmap labels
 
 test("text from GitHub is drawn as text, never as markup", async () => {
   const g = github(json(ISSUES));
-  const { page, context } = await open(browser, server.origin, "/roadmap/", { setup: g.setup });
+  const { page, context } = await open(browser, server.origin, "/", { setup: g.setup });
   await settled(page);
   assert.equal(await page.locator('[data-testid="roadmap-card"] img, [data-testid="roadmap-card"] script').count(), 0);
   assert.equal(await page.evaluate(() => window.__xss), undefined);
@@ -108,7 +108,7 @@ test("text from GitHub is drawn as text, never as markup", async () => {
 
 test("the answer is cached in sessionStorage for 15 minutes", async () => {
   const g = github(json(ISSUES));
-  const { page, context } = await open(browser, server.origin, "/roadmap/", { setup: g.setup });
+  const { page, context } = await open(browser, server.origin, "/", { setup: g.setup });
   await settled(page);
   assert.equal(g.state.calls, 1);
   await page.reload();
@@ -138,7 +138,7 @@ const FAILURES = {
 for (const [name, answer] of Object.entries(FAILURES)) {
   test(`${name} shows the curated roadmap and nothing alarming`, async () => {
     const g = github(answer);
-    const { page, context } = await open(browser, server.origin, "/roadmap/", { setup: g.setup });
+    const { page, context } = await open(browser, server.origin, "/", { setup: g.setup });
     await settled(page);
     assert.equal(await page.locator("[data-roadmap]").getAttribute("data-source"), "fallback");
     const planned = await titles(page, "planned");
@@ -147,7 +147,7 @@ for (const [name, answer] of Object.entries(FAILURES)) {
     }
     assert.ok((await titles(page, "in-progress")).length > 0);
     assert.ok((await titles(page, "shipped")).length > 0);
-    const text = (await page.locator("main").innerText()).toLowerCase();
+    const text = (await page.locator("[data-roadmap]").innerText()).toLowerCase();
     for (const word of ["error", "failed", "rate limit", "offline", "unavailable", "oops"]) assert.ok(!text.includes(word), word);
     await context.close();
   });
@@ -161,7 +161,7 @@ test("a blocked sessionStorage does not stop the page", async () => {
     });
     await g.setup(context);
   };
-  const { page, context } = await open(browser, server.origin, "/roadmap/", { setup });
+  const { page, context } = await open(browser, server.origin, "/", { setup });
   await settled(page);
   assert.equal(await page.locator("[data-roadmap]").getAttribute("data-source"), "live");
   assert.equal((await titles(page, "planned")).length, 3);
@@ -170,7 +170,7 @@ test("a blocked sessionStorage does not stop the page", async () => {
 
 test("header: overline, title, the thumbs-up line, a primary request button and an outline board link, both 36 px", async () => {
   const g = github(json(ISSUES));
-  const { page, context } = await open(browser, server.origin, "/roadmap/", { setup: g.setup });
+  const { page, context } = await open(browser, server.origin, "/", { setup: g.setup });
   await settled(page);
   const section = page.getByTestId("roadmap-section");
   assert.equal(await section.locator(".cv-overline").first().innerText(), "ROADMAP & FEEDBACK");
@@ -190,7 +190,7 @@ test("header: overline, title, the thumbs-up line, a primary request button and 
 
 test("columns are labelled regions with a heading, a count and a coloured dot; three across at lg", async () => {
   const g = github(json(ISSUES));
-  const { page, context } = await open(browser, server.origin, "/roadmap/", { setup: g.setup, width: 1280 });
+  const { page, context } = await open(browser, server.origin, "/", { setup: g.setup, width: 1280 });
   await settled(page);
   for (const name of ["Planned", "In Progress", "Recently Shipped"]) {
     assert.equal(await page.getByRole("region", { name }).count(), 1, name);
@@ -205,15 +205,15 @@ test("columns are labelled regions with a heading, a count and a coloured dot; t
 
 test("on narrow screens the columns stack", async () => {
   const g = github(json(ISSUES));
-  const { page, context } = await open(browser, server.origin, "/roadmap/", { setup: g.setup, width: 800 });
+  const { page, context } = await open(browser, server.origin, "/", { setup: g.setup, width: 800 });
   await settled(page);
   const [a, b] = await Promise.all(["planned", "in-progress"].map((s) => page.getByTestId(`roadmap-column-${s}`).boundingBox()));
   assert.ok(b.y > a.y + a.height - 1);
   await context.close();
 });
 
-test("no horizontal overflow at 360 px, day and night, Zinc plus emerald and violet, live and curated, both pages", async () => {
-  for (const path of ["/", "/roadmap/"]) {
+test("no horizontal overflow at 360 px, day and night, Zinc plus emerald and violet, live and curated", async () => {
+  for (const path of ["/"]) {
     for (const mode of ["light", "dark"]) {
       for (const palette of ["zinc", "emerald", "violet"]) {
         for (const answer of [json(ISSUES.concat([issue(8, { title: "A".repeat(80) + "Longwordwithoutspaces".repeat(6) })])), json([], 500)]) {
@@ -254,57 +254,85 @@ test("the home page shows four cards per column but counts the whole column", as
   await context.close();
 });
 
-test("the changelog: latest five releases on the home page, beside the columns at xl and below them under it", async () => {
-  for (const [width, beside] of [[1440, true], [1024, false]]) {
-    const g = github(json(ISSUES));
-    const { page, context } = await open(browser, server.origin, "/", { setup: g.setup, width, height: 900 });
-    await settled(page);
-    const log = page.getByTestId("changelog-section");
-    assert.equal(await log.getByTestId("changelog-release").count(), 5);
-    for (const rel of await log.getByTestId("changelog-release").all()) {
-      assert.match(await rel.locator("h4").innerText(), /^\d+\.\d+\.\d+$/);
-      assert.ok((await rel.locator("time").innerText()).length > 0);
-      assert.ok((await rel.locator("ul li").count()) <= 3);
-      assert.ok((await rel.getByTestId("changelog-summary").innerText()).length > 0, "each of the five has its milestone sentence");
-    }
-    assert.equal(await log.getByTestId("changelog-full").getAttribute("href"), `${REPO}/blob/main/CHANGELOG.md`);
-    const planned = await page.getByTestId("roadmap-column-planned").boundingBox();
-    const shipped = await page.getByTestId("roadmap-column-shipped").boundingBox();
-    const box = await log.boundingBox();
-    if (beside) {
-      assert.ok(box.x >= shipped.x + shipped.width - 1);
-      assert.ok(Math.abs(box.y - planned.y) < 40);
-    } else {
-      assert.ok(box.y > shipped.y);
-      assert.ok(box.x <= planned.x + 1);
-    }
-    await context.close();
-  }
-});
-
-test("the roadmap page lists every release, each with at most three one-line highlights", async () => {
+test("the changelog is a list under the board: the latest four releases one line each, the rest behind a row", async () => {
   const g = github(json(ISSUES));
-  const { page, context } = await open(browser, server.origin, "/roadmap/", { setup: g.setup });
+  const { page, context } = await open(browser, server.origin, "/", { setup: g.setup, width: 1280, height: 900 });
   await settled(page);
-  const releases = page.getByTestId("changelog-release");
-  assert.ok((await releases.count()) > 5);
-  for (const rel of await releases.all()) assert.ok((await rel.locator("ul li").count()) <= 3);
+  const log = page.getByTestId("changelog-section");
+  const recent = log.getByTestId("changelog-recent").getByTestId("changelog-release");
+  assert.equal(await recent.count(), 4);
+  for (const rel of await recent.all()) {
+    assert.match(await rel.locator("h4").innerText(), /^\d+\.\d+\.\d+$/);
+    assert.ok((await rel.locator("time").innerText()).length > 0);
+    const line = rel.getByTestId("changelog-summary");
+    assert.ok((await line.innerText()).length > 0, "every recent release has its milestone");
+    // One line: the text is a single row high on a desktop screen.
+    assert.ok((await line.evaluate((el) => el.getBoundingClientRect().height)) < 24);
+  }
+  // A list, not panels: one bordered block, rows divided by hairlines, no card per release.
+  assert.equal(await log.locator("ol > li").first().evaluate((el) => getComputedStyle(el).borderTopLeftRadius), "0px");
+  // It sits under the board, not beside it.
+  const shipped = await page.getByTestId("roadmap-column-shipped").boundingBox();
+  const box = await log.boundingBox();
+  assert.ok(box.y > shipped.y + shipped.height - 1);
+  // The older releases are folded away until asked for.
+  const more = log.getByTestId("changelog-more");
+  const older = more.getByTestId("changelog-release");
+  const olderCount = await older.count();
+  assert.ok(olderCount > 0);
+  assert.equal(await older.first().isVisible(), false);
+  await more.locator("summary").click();
+  assert.equal(await older.first().isVisible(), true);
+  assert.equal((await more.locator("summary").innerText()).replace(/\s+/g, " ").trim(), `Older versions (${olderCount})`);
+  assert.equal(await log.getByTestId("changelog-full").getAttribute("href"), `${REPO}/blob/main/CHANGELOG.md`);
   await context.close();
 });
 
-test("the roadmap link is in the navigation of both pages and works from the roadmap page back to a home section", async () => {
+test("on a phone a changelog row wraps instead of running off the screen", async () => {
   const g = github(json(ISSUES));
-  const { page, context } = await open(browser, server.origin, "/roadmap/", { setup: g.setup });
-  const nav = page.getByRole("navigation", { name: "Main" });
-  assert.match(await nav.getByRole("link", { name: "Roadmap" }).getAttribute("href"), /\/cartvibe\/roadmap\/$/);
-  assert.match(await nav.getByRole("link", { name: "FAQ" }).getAttribute("href"), /\/cartvibe\/#faq$/);
+  const { page, context } = await open(browser, server.origin, "/", { setup: g.setup, width: 360, height: 740 });
+  await settled(page);
+  const over = await page.evaluate(() => ({ doc: document.documentElement.scrollWidth, win: innerWidth }));
+  assert.ok(over.doc <= over.win);
   await context.close();
 });
 
-test("the footer is on the roadmap page too, and the wordmark follows the palette there", async () => {
+test("the roadmap is in the navigation and /roadmap/ still lands on it", async () => {
+  const g = github(json(ISSUES));
+  const { page, context } = await open(browser, server.origin, "/", { setup: g.setup });
+  const nav = page.getByRole("navigation", { name: "Main" });
+  assert.match(await nav.getByRole("link", { name: "Roadmap" }).getAttribute("href"), /\/cartvibe\/#roadmap$/);
+  assert.match(await nav.getByRole("link", { name: "FAQ" }).getAttribute("href"), /\/cartvibe\/#faq$/);
+  await page.goto(`${server.origin}/cartvibe/roadmap/`);
+  await page.waitForURL(/\/cartvibe\/#roadmap$/);
+  assert.equal(await page.getByTestId("roadmap-section").count(), 1);
+  await context.close();
+});
+
+test("scrolling marks the nav link of the section in view", async () => {
+  const g = github(json(ISSUES));
+  const { page, context } = await open(browser, server.origin, "/", { setup: g.setup, width: 1280, height: 900 });
+  await settled(page);
+  const nav = page.getByRole("navigation", { name: "Main" });
+  const current = () => nav.locator('a[aria-current="location"]').allInnerTexts();
+  assert.deepEqual(await current(), [], "nothing is marked at the top");
+  for (const [id, label] of [["why", "Why CartVibe"], ["cloud", "Cloud plan"], ["roadmap", "Roadmap"], ["faq", "FAQ"], ["features", "Features"]]) {
+    await page.evaluate((x) => document.getElementById(x).scrollIntoView({ block: "start" }), id);
+    await page.waitForFunction(
+      (l) => [...document.querySelectorAll('nav[aria-label="Main"] a[aria-current="location"]')].map((a) => a.textContent.trim()).join() === l,
+      label,
+    );
+    assert.deepEqual(await current(), [label]);
+  }
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForFunction(() => document.querySelectorAll('nav[aria-label="Main"] a[aria-current="location"]').length === 0);
+  await context.close();
+});
+
+test("the wordmark follows the palette on the home page, and the footer is there", async () => {
   const g = github(json(ISSUES));
   for (const palette of PALETTES) {
-    const { page, context } = await open(browser, server.origin, "/roadmap/", { setup: g.setup, palette });
+    const { page, context } = await open(browser, server.origin, "/", { setup: g.setup, palette });
     assert.equal(await page.locator("footer").count(), 1);
     const [vibe, primary] = await page.evaluate(() => {
       const probe = document.createElement("span");

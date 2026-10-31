@@ -41,7 +41,7 @@ npm run build      # writes site/dist
 
 - All copy is in `src/pages/index.astro` (the `steps`, `more`, `grid`, `why`, `rows`, `faq` arrays at the top).
 - The shell (head, nav) is `src/layouts/Base.astro`; the footer is `src/components/Footer.astro`. Nav links point at
-  `${base}/#section`, so they work from `/roadmap/` too. Keep `LICENSE`, `NOTICE.md` and the upstream credit (the NOTICE link
+  `${base}/#section`, so they work from any page. Keep `LICENSE`, `NOTICE.md` and the upstream credit (the NOTICE link
   in the footer, the FAQ answer).
 - Icons are inline in `src/components/Icon.astro`; real screenshots are rendered by `src/components/Shots.astro`.
 - Keep the copy honest: no prices, dates, sign-up forms, reviews or counts, and nothing that is not in the app. The Cloud plan
@@ -50,21 +50,20 @@ npm run build      # writes site/dist
 ## Screenshots
 
 Real captures of the **demo** (the real app on its made-up household), in `src/assets/shots/<page>-<desktop|phone>-<light|dark>.webp`
-(1200 px and 520 px wide; eight pages: dashboard, charts, shopping, receipts, lines, warranties, reports, check). To redo them:
+(2000 px and 520 px wide, so a 2x screen gets a sharp picture; eight pages: dashboard, charts, shopping, receipts, lines, warranties, reports, check). To redo them:
 
 1. Build and serve the demo: `cd desktop && npm run build:demo && node tools/serve-demo.cjs` (http://localhost:4300/cartvibe/demo/).
 2. `cd site && npm run shots` (`tools/shots.mjs`; it borrows Playwright from `../desktop`; set `E2E_CHROMIUM_PATH` for an
    installed Chromium, `DEMO_URL` for another address, `SHOTS_ONLY=lines` or `SHOTS_ONLY=lines-phone-dark` to redo some).
 
-It writes the `.webp` files directly (desktop 1440 px captured, phone 390 px at 2x). The demo's "Demo, nothing is saved" strip is
+It writes the `.webp` files directly (desktop 1440 px captured at 2x, phone 390 px at 2x). In CI, running the "Project page" workflow by hand with `shots` ticked (job `shots` in `pages.yml`) does all of this on the branch it is started on and commits the files. The demo's "Demo, nothing is saved" strip is
 hidden in the captures. The sample data moves with the date (the demo seeds relative to today), so a regenerated set shows other
 figures; only the demo's household is ever on screen. Not run in CI.
 
 ## Roadmap and changelog
 
-`Roadmap.astro` (home page section, four cards per column, and the `/roadmap/` page, all of them) shows the public issues of
-`wouekk/cartvibe` labelled `roadmap` in three columns, with the changelog beside it at `xl` (below it on smaller screens) and,
-on `/roadmap/`, the whole changelog under the board.
+`Roadmap.astro` (the home page section `#roadmap`, four cards per column; `/roadmap/` redirects to it) shows the public issues of
+`wouekk/cartvibe` labelled `roadmap` in three columns, with the changelog list (`#changelog`) under the board.
 
 - **Data.** In the browser, `GET https://api.github.com/repos/wouekk/cartvibe/issues?labels=roadmap&state=all&per_page=30`
   (`credentials: omit`, no referrer), cached in `sessionStorage` (`cartvibe-roadmap-v1`) for 15 minutes; every storage access is in
@@ -81,7 +80,7 @@ on `/roadmap/`, the whole changelog under the board.
   public JSON, not a script, and sets nothing. The browser's own console prints a line when GitHub answers 403.
 - **Changelog.** `src/lib/changelog.mjs` reads `CHANGELOG.md` at build time (`?raw` import): version, date and up to three
   highlights per release (a Conventional Commit subject, else the bold lead-in, else the first sentence; cut at a clause, 64
-  characters at most; Added first, then Changed, Fixed, the rest). The home column shows five releases, `/roadmap/` all. No request
+  characters at most; Added first, then Changed, Fixed, the rest). The list shows the latest four releases, one line each, and folds the rest into "Older versions". No request
   in the browser. A release without bullet points shows only version and date.
 - **For the owner, once:** create the labels `roadmap`, `status:in-progress` and `status:shipped` in the repository (and
   `enhancement` if missing) and label the issues that belong on the board. The agent that built this did not create any. The
@@ -230,3 +229,9 @@ and its browser tests after the demo smoke test, which has already installed Pla
 Each release card shows the sentence under its version heading in `CHANGELOG.md` (the milestone, at most 140 characters). A
 release without such a sentence falls back to up to three one-line highlights from its bullets. Keep that sentence short
 when writing a release entry.
+
+### Nav highlight
+
+`Base.astro` marks the nav link of the section in view with `aria-current="location"` (links with `data-spy`; the line is 20% down
+the screen below the header; nothing is marked above the first section or below the last, and Features follows whichever of its two
+elements, the scroll track or the stack, is shown).
