@@ -59,7 +59,7 @@ func (service SystemTaskService) CreateSystemTasksFromMetadata(metadata commands
 	groupId *uint,
 	asynqTaskId string,
 	parentAssociatedSystemTaskId func(command commands.UpsertSystemTaskCommand) *uint) (structs.ReceiptProcessingSystemTasks, error) {
-	systemTaskRepository := repositories.NewSystemTaskRepository(service.TX)
+	systemTaskRepository := repositories.NewSystemTaskRepository(repositories.ImplicitCell(), service.TX)
 	result := structs.ReceiptProcessingSystemTasks{}
 
 	if metadata.ReceiptProcessingSettingsIdRan > 0 {
@@ -131,7 +131,7 @@ func (service SystemTaskService) CreateChildSystemTasks(
 	metadata commands.ReceiptProcessingMetadata,
 ) ([]models.SystemTask, error) {
 	var systemTasks []models.SystemTask
-	systemTaskRepository := repositories.NewSystemTaskRepository(service.TX)
+	systemTaskRepository := repositories.NewSystemTaskRepository(repositories.ImplicitCell(), service.TX)
 	isFallback := parentSystemTask.AssociatedEntityId == metadata.FallbackReceiptProcessingSettingsIdRan
 
 	if !isFallback && len(metadata.OcrSystemTaskCommand.Type) > 0 {
@@ -216,7 +216,7 @@ func (service SystemTaskService) CreateReceiptUploadedSystemTask(
 	quickScanSystemTasks structs.ReceiptProcessingSystemTasks,
 	uploadStart time.Time,
 ) (models.SystemTask, error) {
-	systemTaskRepository := repositories.NewSystemTaskRepository(service.TX)
+	systemTaskRepository := repositories.NewSystemTaskRepository(repositories.ImplicitCell(), service.TX)
 	receiptProcessingSettingsId := quickScanSystemTasks.SystemTask.AssociatedEntityId
 	systemTaskId := quickScanSystemTasks.SystemTask.ID
 	status := models.SYSTEM_TASK_SUCCEEDED
@@ -263,7 +263,7 @@ func (service SystemTaskService) AssociateProcessingSystemTasksToReceipt(
 	tasks structs.ReceiptProcessingSystemTasks,
 	receiptId uint,
 ) error {
-	systemTaskRepository := repositories.NewSystemTaskRepository(service.TX)
+	systemTaskRepository := repositories.NewSystemTaskRepository(repositories.ImplicitCell(), service.TX)
 
 	if tasks.SystemTask.ID > 0 {
 		err := systemTaskRepository.AssociateSystemTaskToReceipt(receiptId, tasks.SystemTask.ID)
@@ -293,6 +293,6 @@ func (service SystemTaskService) CreateSystemTaskFromError(command commands.Upse
 		command.Status = models.SYSTEM_TASK_SUCCEEDED
 	}
 
-	systemTaskRepository := repositories.NewSystemTaskRepository(service.TX)
+	systemTaskRepository := repositories.NewSystemTaskRepository(repositories.ImplicitCell(), service.TX)
 	return systemTaskRepository.CreateSystemTask(command)
 }

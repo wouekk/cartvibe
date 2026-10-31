@@ -69,7 +69,7 @@ var usernameSanitizer = regexp.MustCompile(`[^a-z0-9._-]+`)
 // In every branch that succeeds the subject is persisted, so step 1 handles every
 // subsequent login.
 func resolveUser(provider models.OidcProvider, claims idTokenClaims) (structs.UserView, error) {
-	identityRepository := repositories.NewOidcIdentityRepository(nil)
+	identityRepository := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil)
 	userRepository := repositories.NewUserRepository(nil)
 
 	identity, err := identityRepository.GetIdentityBySubject(provider.ID, claims.Subject)
@@ -138,7 +138,7 @@ func usernameMatchesClaim(storedUsername string, claimedUsername string) bool {
 // linkByUsername attaches an unseen identity to an existing local account whose
 // username matches the preferred_username claim.
 func linkByUsername(provider models.OidcProvider, claims idTokenClaims) (structs.UserView, error) {
-	identityRepository := repositories.NewOidcIdentityRepository(nil)
+	identityRepository := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil)
 
 	user, err := repositories.NewUserRepository(nil).GetUserByUsername(claims.PreferredUsername)
 	if err != nil {
@@ -278,7 +278,7 @@ func createIdentityTx(tx *gorm.DB, provider models.OidcProvider, userId uint, cl
 		LastLoginAt:       &now,
 	}
 
-	return repositories.NewOidcIdentityRepository(tx).CreateIdentity(&identity)
+	return repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), tx).CreateIdentity(&identity)
 }
 
 // deriveUsername builds a candidate username from the claims, preferring the
@@ -327,7 +327,7 @@ func emailLocalPart(email string) string {
 // match/provision decision tree above is skipped and the link is written
 // directly. Neither AllowProvisioning nor LinkByUsername is consulted here.
 func resolveLink(provider models.OidcProvider, claims idTokenClaims, userId uint) error {
-	identityRepository := repositories.NewOidcIdentityRepository(nil)
+	identityRepository := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil)
 
 	// This identity may not already belong to somebody else. Re-pointing it would
 	// silently transfer an account.
@@ -387,7 +387,7 @@ func UnlinkIdentity(userId uint, providerName string) error {
 		return err
 	}
 
-	identityRepository := repositories.NewOidcIdentityRepository(nil)
+	identityRepository := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil)
 
 	identity, err := identityRepository.GetIdentityForUser(providerRow.ID, userId)
 	if err != nil {

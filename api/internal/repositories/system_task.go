@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"cartvibe/api/internal/cell"
 	"errors"
 	"math"
 
@@ -22,10 +23,11 @@ type SystemTaskRepository struct {
 	BaseRepository
 }
 
-func NewSystemTaskRepository(tx *gorm.DB) SystemTaskRepository {
+func NewSystemTaskRepository(h cell.Handle, tx *gorm.DB) SystemTaskRepository {
 	repository := SystemTaskRepository{BaseRepository: BaseRepository{
-		DB: GetDB(),
-		TX: tx,
+		DB:   h.DB(),
+		TX:   tx,
+		Cell: h,
 	}}
 	return repository
 }

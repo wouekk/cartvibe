@@ -21,7 +21,7 @@ func GetAllCategories(w http.ResponseWriter, r *http.Request) {
 		AppPermissions: []string{permissions.AppCategoriesRead},
 		ResponseType:   constants.ApplicationJson,
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			categoriesRepository := repositories.NewCategoryRepository(nil)
+			categoriesRepository := repositories.NewCategoryRepository(repositories.ImplicitCell(), nil)
 			categories, err := categoriesRepository.GetAllCategories("*")
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -56,7 +56,7 @@ func CreateCategory(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			categoriesRepository := repositories.NewCategoryRepository(nil)
+			categoriesRepository := repositories.NewCategoryRepository(repositories.ImplicitCell(), nil)
 			category.Aliases = ""
 			createdCategory, err := categoriesRepository.CreateCategory(category)
 			if err != nil {
@@ -93,7 +93,7 @@ func GetPagedCategories(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			categoriesRepository := repositories.NewCategoryRepository(nil)
+			categoriesRepository := repositories.NewCategoryRepository(repositories.ImplicitCell(), nil)
 			categories, err := categoriesRepository.GetAllPagedCategories(pagedRequestCommand)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -142,7 +142,7 @@ func UpdateCategory(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			categoryRepository := repositories.NewCategoryRepository(nil)
+			categoryRepository := repositories.NewCategoryRepository(repositories.ImplicitCell(), nil)
 			category.ID = uintId
 
 			updatedCategory, err := categoryRepository.UpdateCategory(category, "name, description")
@@ -180,7 +180,7 @@ func DeleteCategory(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			categoryRepository := repositories.NewCategoryRepository(nil)
+			categoryRepository := repositories.NewCategoryRepository(repositories.ImplicitCell(), nil)
 			err = categoryRepository.DeleteCategory(uintId)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -203,7 +203,7 @@ func GetCategoryNameCount(w http.ResponseWriter, r *http.Request) {
 		AppPermissions: []string{permissions.AppCategoriesRead},
 		ResponseType:   constants.TextPlain,
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			categoryRepository := repositories.NewCategoryRepository(nil)
+			categoryRepository := repositories.NewCategoryRepository(repositories.ImplicitCell(), nil)
 			categoryName := chi.URLParam(r, "categoryName")
 			count, err := categoryRepository.GetCount("categories", "name = ?", categoryName)
 			if err != nil {

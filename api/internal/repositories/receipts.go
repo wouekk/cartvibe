@@ -88,7 +88,7 @@ func createFailedUpdateSystemTask(command commands.UpsertSystemTaskCommand, err 
 	command.Status = models.SYSTEM_TASK_FAILED
 	command.ResultDescription = err.Error()
 
-	repository := NewSystemTaskRepository(nil)
+	repository := NewSystemTaskRepository(ImplicitCell(), nil)
 	repository.CreateSystemTask(command)
 }
 
@@ -227,7 +227,7 @@ func (repository ReceiptRepository) UpdateReceipt(id string, command commands.Up
 	}
 	systemTask.ResultDescription = string(resultDescriptionBytes)
 
-	systemTaskRepository := NewSystemTaskRepository(nil)
+	systemTaskRepository := NewSystemTaskRepository(ImplicitCell(), nil)
 	_, err = systemTaskRepository.CreateSystemTask(systemTask)
 	if err != nil {
 		createFailedUpdateSystemTask(systemTask, err)
@@ -353,7 +353,7 @@ func (repository ReceiptRepository) CreateReceipt(
 		systemTask.GroupId = &fullyLoadedReceipt.GroupId
 		systemTask.ResultDescription = newReceiptString
 
-		systemTaskRepository := NewSystemTaskRepository(nil)
+		systemTaskRepository := NewSystemTaskRepository(ImplicitCell(), nil)
 		_, err = systemTaskRepository.CreateSystemTask(systemTask)
 		if err != nil {
 			return models.Receipt{}, err

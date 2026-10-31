@@ -50,7 +50,7 @@ func warrantyRemindersFor(t *testing.T, receiptId uint) map[uint]models.Warranty
 
 func setLeadDays(t *testing.T, userId uint, days int) {
 	t.Helper()
-	repository := repositories.NewUserPreferencesRepository(nil)
+	repository := repositories.NewUserPreferencesRepository(repositories.ImplicitCell(), nil)
 	if _, err := repository.GetUserPreferencesOrCreate(userId); err != nil {
 		t.Fatal(err)
 	}

@@ -137,7 +137,7 @@ func handleListCategories(ctx context.Context, req *mcpsdk.CallToolRequest, _ em
 		return nil, nil, err
 	}
 
-	categories, err := repositories.NewCategoryRepository(nil).GetAllCategories("*")
+	categories, err := repositories.NewCategoryRepository(repositories.ImplicitCell(), nil).GetAllCategories("*")
 	if err != nil {
 		return nil, nil, err
 	}
@@ -165,7 +165,7 @@ func handleListTags(ctx context.Context, req *mcpsdk.CallToolRequest, _ emptyInp
 		return nil, nil, err
 	}
 
-	tags, err := repositories.NewTagsRepository(nil).GetAllTags("*")
+	tags, err := repositories.NewTagsRepository(repositories.ImplicitCell(), nil).GetAllTags("*")
 	if err != nil {
 		return nil, nil, err
 	}

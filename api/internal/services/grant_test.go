@@ -163,7 +163,7 @@ func TestGetVisibleCategoriesForUserFilters(t *testing.T) {
 	userId, groupId, _ := seedMemberWithGroupRoleGrants(t, "u-vis", []uint{cat1, cat3}, nil)
 	service := NewPermissionService(nil)
 
-	allCategories, err := repositories.NewCategoryRepository(nil).GetAllCategories("*")
+	allCategories, err := repositories.NewCategoryRepository(repositories.ImplicitCell(), nil).GetAllCategories("*")
 	if err != nil {
 		t.Fatalf("get all categories: %v", err)
 	}
@@ -194,7 +194,7 @@ func TestGetVisibleCategoriesUnrestrictedPassThrough(t *testing.T) {
 	userId, groupId, _ := seedMemberWithGroupRoleGrants(t, "u-open2", nil, nil)
 	service := NewPermissionService(nil)
 
-	allCategories, err := repositories.NewCategoryRepository(nil).GetAllCategories("*")
+	allCategories, err := repositories.NewCategoryRepository(repositories.ImplicitCell(), nil).GetAllCategories("*")
 	if err != nil {
 		t.Fatalf("get all categories: %v", err)
 	}
@@ -217,7 +217,7 @@ func TestGetVisibleTagsForUserFilters(t *testing.T) {
 	userId, groupId, _ := seedMemberWithGroupRoleGrants(t, "u-tagvis", nil, []uint{tag1})
 	service := NewPermissionService(nil)
 
-	allTags, err := repositories.NewTagsRepository(nil).GetAllTags("*")
+	allTags, err := repositories.NewTagsRepository(repositories.ImplicitCell(), nil).GetAllTags("*")
 	if err != nil {
 		t.Fatalf("get all tags: %v", err)
 	}

@@ -71,7 +71,7 @@ func SyncWarrantyReminders(receiptId uint, now time.Time) error {
 		}
 
 		for _, userId := range recipients {
-			preferences, err := repositories.NewUserPreferencesRepository(tx).GetUserPreferencesOrCreate(userId)
+			preferences, err := repositories.NewUserPreferencesRepository(repositories.ImplicitCell(), tx).GetUserPreferencesOrCreate(userId)
 			if err != nil {
 				return err
 			}
@@ -286,7 +286,7 @@ func buildWarrantyMessage(reminder models.WarrantyReminder, local time.Time) (wa
 	if err := db.Select("id", "name", "shop_name").Where("id = ?", reminder.ReceiptId).Take(&receipt).Error; err != nil {
 		return warrantyMessage{}, err
 	}
-	preferences, err := repositories.NewUserPreferencesRepository(nil).GetUserPreferencesOrCreate(reminder.UserId)
+	preferences, err := repositories.NewUserPreferencesRepository(repositories.ImplicitCell(), nil).GetUserPreferencesOrCreate(reminder.UserId)
 	if err != nil {
 		return warrantyMessage{}, err
 	}

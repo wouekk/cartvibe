@@ -259,7 +259,7 @@ func (service GroupService) DeleteGroup(groupId string, allowAllGroupDelete bool
 			return txErr
 		}
 
-		txErr = repositories.NewShoppingListRepository(tx).DeleteShoppingListsForGroup(uintGroupId)
+		txErr = repositories.NewShoppingListRepository(repositories.ImplicitCell(), tx).DeleteShoppingListsForGroup(uintGroupId)
 		if txErr != nil {
 			return txErr
 		}

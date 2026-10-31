@@ -21,7 +21,7 @@ func GetUserPreferences(w http.ResponseWriter, r *http.Request) {
 		AppPermissions: []string{permissions.AppUserPreferencesRead},
 		ResponseType:   constants.ApplicationJson,
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			userPreferencesRepository := repositories.NewUserPreferencesRepository(nil)
+			userPreferencesRepository := repositories.NewUserPreferencesRepository(repositories.ImplicitCell(), nil)
 			token := structs.GetClaims(r)
 
 			userPreferences, err := userPreferencesRepository.GetUserPreferencesOrCreate(token.UserId)
@@ -56,7 +56,7 @@ func UpdateUserPreferences(w http.ResponseWriter, r *http.Request) {
 			userPreferences.LoadDataFromRequest(w, r)
 			token := structs.GetClaims(r)
 
-			userPreferencesRepository := repositories.NewUserPreferencesRepository(nil)
+			userPreferencesRepository := repositories.NewUserPreferencesRepository(repositories.ImplicitCell(), nil)
 			updatedUserPreferences, err := userPreferencesRepository.UpdateUserPreferences(token.UserId, userPreferences)
 			if err != nil {
 				return http.StatusInternalServerError, err

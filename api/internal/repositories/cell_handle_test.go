@@ -34,6 +34,18 @@ func TestRepositoriesUseTheHandlesDatabase(t *testing.T) {
 		if NewSystemSettingsRepository(h, nil).GetDB() != h.DB() {
 			t.Errorf("cell %s: SystemSettingsRepository does not use its handle's database", w)
 		}
+		for name, got := range map[string]*gorm.DB{
+			"CategoryRepository":        NewCategoryRepository(h, nil).GetDB(),
+			"TagsRepository":            NewTagsRepository(h, nil).GetDB(),
+			"UserPreferencesRepository": NewUserPreferencesRepository(h, nil).GetDB(),
+			"ShoppingListRepository":    NewShoppingListRepository(h, nil).GetDB(),
+			"SystemTaskRepository":      NewSystemTaskRepository(h, nil).GetDB(),
+			"OidcIdentityRepository":    NewOidcIdentityRepository(h, nil).GetDB(),
+		} {
+			if got != h.DB() {
+				t.Errorf("cell %s: %s does not use its handle's database", w, name)
+			}
+		}
 	}
 }
 

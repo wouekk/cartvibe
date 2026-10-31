@@ -39,7 +39,7 @@ func rejectAllGroupShoppingList(w http.ResponseWriter, groupId uint) (bool, erro
 func resolveShoppingListGroupId(w http.ResponseWriter, listIdParam string) (uint, uint, bool) {
 	listId, err := utils.StringToUint(listIdParam)
 	if err == nil {
-		groupId, lookupErr := repositories.NewShoppingListRepository(nil).GetGroupIdForShoppingList(listId)
+		groupId, lookupErr := repositories.NewShoppingListRepository(repositories.ImplicitCell(), nil).GetGroupIdForShoppingList(listId)
 		if lookupErr == nil {
 			return listId, groupId, true
 		}
@@ -55,7 +55,7 @@ func resolveShoppingListGroupId(w http.ResponseWriter, listIdParam string) (uint
 func resolveShoppingListItemGroupId(w http.ResponseWriter, itemIdParam string) (uint, uint, bool) {
 	itemId, err := utils.StringToUint(itemIdParam)
 	if err == nil {
-		groupId, lookupErr := repositories.NewShoppingListRepository(nil).GetGroupIdForShoppingListItem(itemId)
+		groupId, lookupErr := repositories.NewShoppingListRepository(repositories.ImplicitCell(), nil).GetGroupIdForShoppingListItem(itemId)
 		if lookupErr == nil {
 			return itemId, groupId, true
 		}

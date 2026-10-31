@@ -241,7 +241,7 @@ func TestCategoryAndTagCountByIds(t *testing.T) {
 	cat2 := makeTestCategory(t, "Utilities")
 	tag1 := makeTestTag(t, "Reimbursable")
 
-	categoryCount, err := NewCategoryRepository(nil).CountByIds([]uint{cat1, cat2})
+	categoryCount, err := NewCategoryRepository(ImplicitCell(), nil).CountByIds([]uint{cat1, cat2})
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
@@ -251,7 +251,7 @@ func TestCategoryAndTagCountByIds(t *testing.T) {
 	}
 
 	// A non-existent id should not be counted.
-	categoryCount, err = NewCategoryRepository(nil).CountByIds([]uint{cat1, 999999})
+	categoryCount, err = NewCategoryRepository(ImplicitCell(), nil).CountByIds([]uint{cat1, 999999})
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
@@ -260,7 +260,7 @@ func TestCategoryAndTagCountByIds(t *testing.T) {
 		utils.PrintTestError(t, categoryCount, 1)
 	}
 
-	tagCount, err := NewTagsRepository(nil).CountByIds([]uint{tag1})
+	tagCount, err := NewTagsRepository(ImplicitCell(), nil).CountByIds([]uint{tag1})
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 		return

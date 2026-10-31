@@ -114,7 +114,7 @@ func (service *AiService) CheckConnectivity(ranByUserId uint, decryptKey bool) (
 		systemTaskCommand.AssociatedEntityId = service.ReceiptProcessingSettings.ID
 		systemTaskCommand.AssociatedEntityType = models.RECEIPT_PROCESSING_SETTINGS
 
-		systemTaskRepository := repositories.NewSystemTaskRepository(nil)
+		systemTaskRepository := repositories.NewSystemTaskRepository(repositories.ImplicitCell(), nil)
 		return systemTaskRepository.CreateSystemTask(systemTaskCommand)
 	}
 

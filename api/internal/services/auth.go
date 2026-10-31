@@ -149,7 +149,7 @@ func LoginUser(loginAttempt commands.LoginCommand) (models.User, bool, error) {
 	// password check on purpose: every caller answers this error exactly like a
 	// wrong password, and asking first would answer faster than bcrypt and tell
 	// anyone which usernames are identity provider accounts.
-	passwordless, err := repositories.NewOidcIdentityRepository(nil).IsAccountPasswordless(dbUser.ID)
+	passwordless, err := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil).IsAccountPasswordless(dbUser.ID)
 	if err != nil {
 		return models.User{}, false, err
 	}
@@ -330,11 +330,11 @@ func GetAppData(userId uint, r *http.Request) (structs.AppData, error) {
 	aboutRepository := repositories.NewAboutRepository(repositories.ImplicitCell(), nil)
 	groupService := NewGroupService(nil)
 	userRepository := repositories.NewUserRepository(nil)
-	userPreferenceRepository := repositories.NewUserPreferencesRepository(nil)
-	categoryRepository := repositories.NewCategoryRepository(nil)
+	userPreferenceRepository := repositories.NewUserPreferencesRepository(repositories.ImplicitCell(), nil)
+	categoryRepository := repositories.NewCategoryRepository(repositories.ImplicitCell(), nil)
 	systemSettingsService := NewSystemSettingsService(nil)
 	systemSettingsRepository := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil)
-	tagRepository := repositories.NewTagsRepository(nil)
+	tagRepository := repositories.NewTagsRepository(repositories.ImplicitCell(), nil)
 	stringUserId := utils.UintToString(userId)
 
 	systemSettings, err := systemSettingsRepository.GetSystemSettings()

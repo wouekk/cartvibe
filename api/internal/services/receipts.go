@@ -494,7 +494,7 @@ func (service ReceiptService) resolveQuickScanCategories(
 		return []commands.UpsertCategoryCommand{}, nil
 	}
 
-	categoryRepository := repositories.NewCategoryRepository(service.TX)
+	categoryRepository := repositories.NewCategoryRepository(repositories.ImplicitCell(), service.TX)
 	records, err := categoryRepository.GetByIds(orderedIds)
 	if err != nil {
 		return nil, err
@@ -559,7 +559,7 @@ func (service ReceiptService) resolveQuickScanTags(
 		return []commands.UpsertTagCommand{}, nil
 	}
 
-	tagsRepository := repositories.NewTagsRepository(service.TX)
+	tagsRepository := repositories.NewTagsRepository(repositories.ImplicitCell(), service.TX)
 	records, err := tagsRepository.GetByIds(orderedIds)
 	if err != nil {
 		return nil, err

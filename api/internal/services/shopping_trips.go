@@ -406,7 +406,7 @@ func (service ShoppingTripService) ProcessDueTrips() (int, error) {
 			break
 		}
 
-		groupId, err := repositories.NewShoppingListRepository(service.TX).GetGroupIdForShoppingList(trip.ShoppingListId)
+		groupId, err := repositories.NewShoppingListRepository(repositories.ImplicitCell(), service.TX).GetGroupIdForShoppingList(trip.ShoppingListId)
 		if err != nil {
 			return processed, err
 		}

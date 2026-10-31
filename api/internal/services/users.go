@@ -49,7 +49,7 @@ func DeleteUser(userId string) error {
 		var receipts []models.Receipt
 		var groupIdsToNotDelete []uint
 		notificationsRepository := repositories.NewNotificationRepository(tx)
-		userPreferncesRepository := repositories.NewUserPreferencesRepository(tx)
+		userPreferncesRepository := repositories.NewUserPreferencesRepository(repositories.ImplicitCell(), tx)
 		groupService := NewGroupService(tx)
 		receiptService := NewReceiptService(tx)
 
@@ -231,7 +231,7 @@ var ErrDeleteConfirmationRequired = errors.New("confirm the deletion by signing 
 // request happened to fill. A code is not a way around a password, and an
 // account with no password cannot be confirmed by guessing one.
 func DeleteAccountForUser(userId uint, command commands.DeleteAccountCommand) (int, error) {
-	passwordless, err := repositories.NewOidcIdentityRepository(nil).IsAccountPasswordless(userId)
+	passwordless, err := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil).IsAccountPasswordless(userId)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

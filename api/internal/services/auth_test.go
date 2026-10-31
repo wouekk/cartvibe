@@ -984,7 +984,7 @@ func TestLoginUserRejectsPasswordlessOidcAccount(t *testing.T) {
 
 	// An administrator's password reset gives the account a password of its own,
 	// which is the documented way back in.
-	if err := repositories.NewOidcIdentityRepository(nil).ClearProvisionedFlagForUser(user.ID); err != nil {
+	if err := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil).ClearProvisionedFlagForUser(user.ID); err != nil {
 		t.Fatalf("failed to clear the provisioned flag: %v", err)
 	}
 

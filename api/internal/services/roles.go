@@ -272,7 +272,7 @@ func normalizeUintSlice(ids []uint) []uint {
 // ErrInvalidGrant otherwise.
 func validateGrantsExist(tx *gorm.DB, categoryGrants []uint, tagGrants []uint, paidByUserGrants []uint, reportTemplateIds []uint) error {
 	if len(categoryGrants) > 0 {
-		categoryRepository := repositories.NewCategoryRepository(tx)
+		categoryRepository := repositories.NewCategoryRepository(repositories.ImplicitCell(), tx)
 		count, err := categoryRepository.CountByIds(categoryGrants)
 		if err != nil {
 			return err
@@ -283,7 +283,7 @@ func validateGrantsExist(tx *gorm.DB, categoryGrants []uint, tagGrants []uint, p
 	}
 
 	if len(tagGrants) > 0 {
-		tagsRepository := repositories.NewTagsRepository(tx)
+		tagsRepository := repositories.NewTagsRepository(repositories.ImplicitCell(), tx)
 		count, err := tagsRepository.CountByIds(tagGrants)
 		if err != nil {
 			return err

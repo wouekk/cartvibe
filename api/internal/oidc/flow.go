@@ -122,7 +122,7 @@ func DeleteConfirmationStart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	identityRepository := repositories.NewOidcIdentityRepository(nil)
+	identityRepository := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil)
 
 	passwordless, err := identityRepository.IsAccountPasswordless(userId)
 	if err != nil {
@@ -512,7 +512,7 @@ func finishDeleteConfirmation(
 	purpose := models.OidcPurposeDeleteAccount
 	userId := *session.LinkUserId
 
-	identity, err := repositories.NewOidcIdentityRepository(nil).GetIdentityBySubject(providerRow.ID, claims.Subject)
+	identity, err := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil).GetIdentityBySubject(providerRow.ID, claims.Subject)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, "Failed to load the identity for a delete confirmation: "+err.Error())
 		redirectSignedInError(w, r, purpose, errServerError)

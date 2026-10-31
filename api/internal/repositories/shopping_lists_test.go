@@ -10,7 +10,7 @@ import (
 
 func seedShoppingList(t *testing.T, groupId uint, itemNames ...string) models.ShoppingList {
 	t.Helper()
-	repository := NewShoppingListRepository(nil)
+	repository := NewShoppingListRepository(ImplicitCell(), nil)
 
 	list, err := repository.CreateShoppingList(models.ShoppingList{GroupId: groupId, Name: "List"})
 	if err != nil {
@@ -35,7 +35,7 @@ func TestDeleteShoppingListsForGroupLeavesOtherGroups(t *testing.T) {
 	kept := seedShoppingList(t, 2, "Eggs")
 
 	err := GetDB().Transaction(func(tx *gorm.DB) error {
-		return NewShoppingListRepository(tx).DeleteShoppingListsForGroup(1)
+		return NewShoppingListRepository(ImplicitCell(), tx).DeleteShoppingListsForGroup(1)
 	})
 	if err != nil {
 		t.Fatalf("delete: %v", err)
@@ -58,7 +58,7 @@ func TestGetGroupIdForShoppingListItem(t *testing.T) {
 	defer TruncateTestDb()
 	CreateTestGroupWithUsers()
 	list := seedShoppingList(t, 2, "Eggs")
-	repository := NewShoppingListRepository(nil)
+	repository := NewShoppingListRepository(ImplicitCell(), nil)
 
 	listGroupId, err := repository.GetGroupIdForShoppingList(list.ID)
 	if err != nil || listGroupId != 2 {

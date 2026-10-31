@@ -20,7 +20,7 @@ func GetAllTags(w http.ResponseWriter, r *http.Request) {
 		AppPermissions: []string{permissions.AppTagsRead},
 		ResponseType:   constants.ApplicationJson,
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			tagsRepository := repositories.NewTagsRepository(nil)
+			tagsRepository := repositories.NewTagsRepository(repositories.ImplicitCell(), nil)
 			tags, err := tagsRepository.GetAllTags("*")
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -60,7 +60,7 @@ func CreateTag(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			tagRepository := repositories.NewTagsRepository(nil)
+			tagRepository := repositories.NewTagsRepository(repositories.ImplicitCell(), nil)
 			createdTag, err := tagRepository.CreateTag(tag)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -96,7 +96,7 @@ func GetPagedTags(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			tagsRepository := repositories.NewTagsRepository(nil)
+			tagsRepository := repositories.NewTagsRepository(repositories.ImplicitCell(), nil)
 			tags, err := tagsRepository.GetAllPagedTags(pagedRequestCommand)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -141,7 +141,7 @@ func UpdateTag(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			tagRepository := repositories.NewTagsRepository(nil)
+			tagRepository := repositories.NewTagsRepository(repositories.ImplicitCell(), nil)
 			updatedTag, err := tagRepository.UpdateTag(id, tagUpsertCommand)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -177,7 +177,7 @@ func DeleteTag(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			tagRepository := repositories.NewTagsRepository(nil)
+			tagRepository := repositories.NewTagsRepository(repositories.ImplicitCell(), nil)
 			err = tagRepository.DeleteTag(uintId)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -200,7 +200,7 @@ func GetTagNameCount(w http.ResponseWriter, r *http.Request) {
 		AppPermissions: []string{permissions.AppTagsRead},
 		ResponseType:   constants.TextPlain,
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			tagRepository := repositories.NewTagsRepository(nil)
+			tagRepository := repositories.NewTagsRepository(repositories.ImplicitCell(), nil)
 			tagName := chi.URLParam(r, "tagName")
 			count, err := tagRepository.GetCount("tags", "name = ?", tagName)
 			if err != nil {

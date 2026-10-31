@@ -475,7 +475,7 @@ func (service ReceiptProcessingService) buildTemplateVariableMap(ocrText string)
 }
 
 func (service ReceiptProcessingService) getCategoriesString() (string, error) {
-	categoryRepository := repositories.NewCategoryRepository(nil)
+	categoryRepository := repositories.NewCategoryRepository(repositories.ImplicitCell(), nil)
 	allCategories, err := categoryRepository.GetAllCategories("id, name, description, skipped")
 	if err != nil {
 		return "", err
@@ -519,7 +519,7 @@ func (service ReceiptProcessingService) getCategoriesString() (string, error) {
 }
 
 func (service ReceiptProcessingService) getTagsString() (string, error) {
-	tagsRepository := repositories.NewTagsRepository(nil)
+	tagsRepository := repositories.NewTagsRepository(repositories.ImplicitCell(), nil)
 	tags, err := tagsRepository.GetAllTags("id, name")
 	if err != nil {
 		return "", err

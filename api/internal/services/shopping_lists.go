@@ -25,7 +25,7 @@ func NewShoppingListService(tx *gorm.DB) ShoppingListService {
 }
 
 func (service ShoppingListService) GetShoppingListsForGroup(groupId uint) ([]models.ShoppingList, error) {
-	return repositories.NewShoppingListRepository(service.TX).GetShoppingListsByGroupId(groupId)
+	return repositories.NewShoppingListRepository(repositories.ImplicitCell(), service.TX).GetShoppingListsByGroupId(groupId)
 }
 
 func (service ShoppingListService) CreateShoppingList(
@@ -33,7 +33,7 @@ func (service ShoppingListService) CreateShoppingList(
 	command commands.UpsertShoppingListCommand,
 	userId uint,
 ) (models.ShoppingList, error) {
-	list, err := repositories.NewShoppingListRepository(service.TX).CreateShoppingList(models.ShoppingList{
+	list, err := repositories.NewShoppingListRepository(repositories.ImplicitCell(), service.TX).CreateShoppingList(models.ShoppingList{
 		BaseModel: models.BaseModel{CreatedBy: &userId},
 		GroupId:   groupId,
 		Name:      command.Name,
@@ -58,7 +58,7 @@ func (service ShoppingListService) UpdateShoppingList(
 	listId uint,
 	command commands.UpsertShoppingListCommand,
 ) (models.ShoppingList, error) {
-	repository := repositories.NewShoppingListRepository(service.TX)
+	repository := repositories.NewShoppingListRepository(repositories.ImplicitCell(), service.TX)
 
 	err := repository.UpdateShoppingListName(listId, command.Name)
 	if err != nil {
@@ -90,7 +90,7 @@ func (service ShoppingListService) DeleteShoppingList(groupId uint, listId uint)
 			return tripErr
 		}
 
-		return repositories.NewShoppingListRepository(tx).DeleteShoppingList(listId)
+		return repositories.NewShoppingListRepository(repositories.ImplicitCell(), tx).DeleteShoppingList(listId)
 	})
 	if err != nil {
 		return err
@@ -122,7 +122,7 @@ func (service ShoppingListService) AddShoppingListItem(
 	eventType := models.ShoppingListEventItemAdded
 
 	err := service.GetDB().Transaction(func(tx *gorm.DB) error {
-		repository := repositories.NewShoppingListRepository(tx)
+		repository := repositories.NewShoppingListRepository(repositories.ImplicitCell(), tx)
 
 		existing, err := repository.FindCheckedShoppingListItemByName(listId, command.Name)
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -201,7 +201,7 @@ func (service ShoppingListService) UpdateShoppingListItem(
 	itemId uint,
 	command commands.UpsertShoppingListItemCommand,
 ) (models.ShoppingListItem, error) {
-	repository := repositories.NewShoppingListRepository(service.TX)
+	repository := repositories.NewShoppingListRepository(repositories.ImplicitCell(), service.TX)
 
 	existing, err := repository.GetShoppingListItemById(itemId)
 	if err != nil {
@@ -254,7 +254,7 @@ func (service ShoppingListService) SetShoppingListItemChecked(
 	changed := false
 
 	err := service.GetDB().Transaction(func(tx *gorm.DB) error {
-		repository := repositories.NewShoppingListRepository(tx)
+		repository := repositories.NewShoppingListRepository(repositories.ImplicitCell(), tx)
 
 		current, err := repository.GetShoppingListItemById(itemId)
 		if err != nil {
@@ -305,7 +305,7 @@ func (service ShoppingListService) SetShoppingListChecked(
 	var changedIds []uint
 
 	err := service.GetDB().Transaction(func(tx *gorm.DB) error {
-		repository := repositories.NewShoppingListRepository(tx)
+		repository := repositories.NewShoppingListRepository(repositories.ImplicitCell(), tx)
 
 		var err error
 		changedIds, err = repository.SetShoppingListItemsChecked(listId, itemIds, isChecked, userId)
@@ -333,7 +333,7 @@ func (service ShoppingListService) SetShoppingListChecked(
 }
 
 func (service ShoppingListService) DeleteShoppingListItem(groupId uint, itemId uint) error {
-	repository := repositories.NewShoppingListRepository(service.TX)
+	repository := repositories.NewShoppingListRepository(repositories.ImplicitCell(), service.TX)
 
 	item, err := repository.GetShoppingListItemById(itemId)
 	if err != nil {
@@ -360,7 +360,7 @@ func (service ShoppingListService) ClearCheckedShoppingListItems(groupId uint, l
 
 	err := service.GetDB().Transaction(func(tx *gorm.DB) error {
 		var err error
-		itemIds, err = repositories.NewShoppingListRepository(tx).ClearCheckedShoppingListItems(listId)
+		itemIds, err = repositories.NewShoppingListRepository(repositories.ImplicitCell(), tx).ClearCheckedShoppingListItems(listId)
 		return err
 	})
 	if err != nil {

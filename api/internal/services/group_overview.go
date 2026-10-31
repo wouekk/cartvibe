@@ -218,7 +218,7 @@ func (service GroupOverviewService) countActiveWarranties(userId uint, groupId s
 // nameProductCategories puts each product's current category name in FoodGroup, so a renamed category
 // shows under its new name whatever the line still carries.
 func (service GroupOverviewService) nameProductCategories(products []models.ReceiptProduct) error {
-	categories, err := repositories.NewCategoryRepository(service.TX).GetAllCategories("id, name")
+	categories, err := repositories.NewCategoryRepository(repositories.ImplicitCell(), service.TX).GetAllCategories("id, name")
 	if err != nil {
 		return err
 	}

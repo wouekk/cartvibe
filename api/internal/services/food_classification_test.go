@@ -91,7 +91,7 @@ func seedClassificationItem(t *testing.T, name string) models.ShoppingListItem {
 
 func reloadItem(t *testing.T, id uint) models.ShoppingListItem {
 	t.Helper()
-	item, err := repositories.NewShoppingListRepository(nil).GetShoppingListItemById(id)
+	item, err := repositories.NewShoppingListRepository(repositories.ImplicitCell(), nil).GetShoppingListItemById(id)
 	if err != nil {
 		t.Fatalf("reload: %v", err)
 	}

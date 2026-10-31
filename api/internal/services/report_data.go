@@ -207,7 +207,7 @@ func (service ReportDataService) categoryNames(products []models.ReceiptProduct)
 		return names, nil
 	}
 
-	categories, err := repositories.NewCategoryRepository(service.TX).GetByIds(ids)
+	categories, err := repositories.NewCategoryRepository(repositories.ImplicitCell(), service.TX).GetByIds(ids)
 	if err != nil {
 		return nil, err
 	}

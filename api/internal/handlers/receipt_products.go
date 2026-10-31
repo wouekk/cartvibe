@@ -267,7 +267,7 @@ func AddReceiptProduct(w http.ResponseWriter, r *http.Request) {
 // checkProductLabels adds a validation error for a category or tag id that does not exist.
 func checkProductLabels(categoryId *uint, tagIds []uint, vErr *structs.ValidatorError) error {
 	if categoryId != nil {
-		count, err := repositories.NewCategoryRepository(nil).CountByIds([]uint{*categoryId})
+		count, err := repositories.NewCategoryRepository(repositories.ImplicitCell(), nil).CountByIds([]uint{*categoryId})
 		if err != nil {
 			return err
 		}
@@ -277,7 +277,7 @@ func checkProductLabels(categoryId *uint, tagIds []uint, vErr *structs.Validator
 	}
 
 	if len(tagIds) > 0 {
-		count, err := repositories.NewTagsRepository(nil).CountByIds(tagIds)
+		count, err := repositories.NewTagsRepository(repositories.ImplicitCell(), nil).CountByIds(tagIds)
 		if err != nil {
 			return err
 		}

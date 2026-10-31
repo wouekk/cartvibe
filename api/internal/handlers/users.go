@@ -228,7 +228,7 @@ func ResetPassword(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			err = repositories.NewOidcIdentityRepository(nil).ClearProvisionedFlagForUser(userId)
+			err = repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil).ClearProvisionedFlagForUser(userId)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}

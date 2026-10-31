@@ -186,7 +186,7 @@ func (service FoodClassificationService) classifyBatch(batch classificationBatch
 // publishClassifiedItems sends the updated items to the group's open shopping lists, so the tags
 // appear without a refetch.
 func (service FoodClassificationService) publishClassifiedItems(groupId uint, candidates []repositories.ClassificationCandidate) {
-	shoppingListRepository := repositories.NewShoppingListRepository(service.TX)
+	shoppingListRepository := repositories.NewShoppingListRepository(repositories.ImplicitCell(), service.TX)
 	for _, candidate := range candidates {
 		item, err := shoppingListRepository.GetShoppingListItemById(candidate.Id)
 		if err != nil {
@@ -208,7 +208,7 @@ func (service FoodClassificationService) CorrectShoppingListItem(
 	itemId uint,
 	command commands.SetFoodClassificationCommand,
 ) (models.ShoppingListItem, error) {
-	shoppingListRepository := repositories.NewShoppingListRepository(service.TX)
+	shoppingListRepository := repositories.NewShoppingListRepository(repositories.ImplicitCell(), service.TX)
 	item, err := shoppingListRepository.GetShoppingListItemById(itemId)
 	if err != nil {
 		return models.ShoppingListItem{}, err

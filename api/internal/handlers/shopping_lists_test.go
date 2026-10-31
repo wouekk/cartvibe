@@ -289,7 +289,7 @@ func TestShoppingListSetCheckedRequiresState(t *testing.T) {
 	SetShoppingListItemChecked(w, r)
 	assertStatus(t, w, http.StatusBadRequest)
 
-	stored, _ := repositories.NewShoppingListRepository(nil).GetShoppingListItemById(item.ID)
+	stored, _ := repositories.NewShoppingListRepository(repositories.ImplicitCell(), nil).GetShoppingListItemById(item.ID)
 	if !stored.IsChecked {
 		t.Error("an empty body must not un-check the item")
 	}
@@ -347,7 +347,7 @@ func TestShoppingListSetListCheckedCompletesAndRestores(t *testing.T) {
 		t.Errorf("expected only milk to stay crossed off, got %+v", undone.Items)
 	}
 
-	stored, _ := repositories.NewShoppingListRepository(nil).GetShoppingListItemById(otherItem.ID)
+	stored, _ := repositories.NewShoppingListRepository(repositories.ImplicitCell(), nil).GetShoppingListItemById(otherItem.ID)
 	if stored.IsChecked {
 		t.Error("an item of another list must not change")
 	}

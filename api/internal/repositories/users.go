@@ -59,7 +59,7 @@ func (repository UserRepository) CreateUser(userData commands.SignUpCommand) (mo
 	err = db.Transaction(func(tx *gorm.DB) error {
 		groupRepository := NewGroupRepository(tx)
 		repository.SetTransaction(tx)
-		userPreferencesRepository := NewUserPreferencesRepository(tx)
+		userPreferencesRepository := NewUserPreferencesRepository(ImplicitCell(), tx)
 
 		if userData.AppRoleID != nil {
 			// The admin-protected create endpoint chose a modern app role

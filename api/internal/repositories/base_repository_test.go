@@ -14,7 +14,7 @@ func TestGetCountBindsParameters(t *testing.T) {
 	defer TruncateTestDb()
 	CreateTestCategories() // seeds "test", "test2", "test3"
 
-	repository := NewCategoryRepository(nil)
+	repository := NewCategoryRepository(ImplicitCell(), nil)
 
 	// Bound value matches the literal row.
 	legit, err := repository.GetCount("categories", "name = ?", "test")
