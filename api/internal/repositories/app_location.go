@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"cartvibe/api/internal/logging"
-	"gorm.io/gorm"
 )
 
 // loadedLocations caches parsed zones by name. It caches the zone DATABASE
@@ -29,18 +28,19 @@ var reportedInvalidZones sync.Map // string -> struct{}
 // settings row, an empty name or a name the runtime cannot load all resolve to
 // UTC, which is also the setting's default.
 func GetAppLocation() *time.Location {
-	return appLocation(ImplicitCell().DB(), nil)
+	return appLocation(BaseRepository{DB: ImplicitCell().DB(), Cell: ImplicitCell()})
 }
 
 // AppLocation is GetAppLocation read through the repository's transaction, so a
 // filter built inside a transaction never opens a second connection for it.
 func (repository BaseRepository) AppLocation() *time.Location {
-	return appLocation(repository.DB, repository.TX)
+	return appLocation(repository)
 }
 
-// appLocation reads the zone through db (the caller's own database, so a repository never asks another cell) or tx.
-func appLocation(db *gorm.DB, tx *gorm.DB) *time.Location {
-	settings, err := SystemSettingsRepository{BaseRepository: BaseRepository{DB: db, TX: tx}}.GetSystemSettings()
+// appLocation reads the zone through the given repository's own database or transaction, so a repository never asks
+// another cell.
+func appLocation(base BaseRepository) *time.Location {
+	settings, err := SystemSettingsRepository{BaseRepository: base}.GetSystemSettings()
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, "Could not read the app time zone, using UTC: "+err.Error())
 		return time.UTC

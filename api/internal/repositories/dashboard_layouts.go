@@ -13,8 +13,9 @@ type DashboardLayoutRepository struct {
 
 func NewDashboardLayoutRepository(h cell.Handle, tx *gorm.DB) DashboardLayoutRepository {
 	return DashboardLayoutRepository{BaseRepository: BaseRepository{
-		DB: h.DB(),
-		TX: tx,
+		DB:   h.DB(),
+		TX:   tx,
+		Cell: h,
 	}}
 }
 

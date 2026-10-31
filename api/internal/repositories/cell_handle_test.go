@@ -22,45 +22,41 @@ func TestRepositoriesUseTheHandlesDatabase(t *testing.T) {
 
 	for _, w := range []celltest.Which{celltest.A, celltest.B} {
 		h := tw.Handle(w)
-		if NewAboutRepository(h, nil).GetDB() != h.DB() {
-			t.Errorf("cell %s: AboutRepository does not use its handle's database", w)
-		}
-		if NewExchangeRateRepository(h, nil).GetDB() != h.DB() {
-			t.Errorf("cell %s: ExchangeRateRepository does not use its handle's database", w)
-		}
-		if NewDashboardLayoutRepository(h, nil).GetDB() != h.DB() {
-			t.Errorf("cell %s: DashboardLayoutRepository does not use its handle's database", w)
-		}
-		if NewSystemSettingsRepository(h, nil).GetDB() != h.DB() {
-			t.Errorf("cell %s: SystemSettingsRepository does not use its handle's database", w)
-		}
-		for name, got := range map[string]*gorm.DB{
-			"CategoryRepository":        NewCategoryRepository(h, nil).GetDB(),
-			"TagsRepository":            NewTagsRepository(h, nil).GetDB(),
-			"UserPreferencesRepository": NewUserPreferencesRepository(h, nil).GetDB(),
-			"ShoppingListRepository":    NewShoppingListRepository(h, nil).GetDB(),
-			"SystemTaskRepository":      NewSystemTaskRepository(h, nil).GetDB(),
-			"OidcIdentityRepository":    NewOidcIdentityRepository(h, nil).GetDB(),
-			"OidcProviderRepository":    NewOidcProviderRepository(h, nil).GetDB(),
-			"OidcSessionRepository":     NewOidcSessionRepository(h, nil).GetDB(),
-			"FoodClassification":        NewFoodClassificationRepository(h, nil).GetDB(),
-			"ReportTemplateRepository":  NewReportTemplateRepository(h, nil).GetDB(),
-			"ShoppingTripRepository":    NewShoppingTripRepository(h, nil).GetDB(),
-			"GroupReceiptSettings":      NewGroupReceiptSettingsRepository(h, nil).GetDB(),
-			"RoleRepository":            NewRoleRepository(h, nil).GetDB(),
-			"GroupMemberRepository":     NewGroupMemberRepository(h, nil).GetDB(),
-			"NotificationRepository":    NewNotificationRepository(h, nil).GetDB(),
-			"ReceiptProcessing":         NewReceiptProcessingSettings(h, nil).GetDB(),
-			"FileRepository":            NewFileRepository(h, nil).GetDB(),
-			"ReceiptProductRepository":  NewReceiptProductRepository(h, nil).GetDB(),
-			"ReceiptRepository":         NewReceiptRepository(h, nil).GetDB(),
-			"ReceiptImageRepository":    NewReceiptImageRepository(h, nil).GetDB(),
-			"CommentRepository":         NewCommentRepository(h, nil).GetDB(),
-			"GroupRepository":           NewGroupRepository(h, nil).GetDB(),
-			"UserRepository":            NewUserRepository(h, nil).GetDB(),
+		// Every constructor builds on its handle's database and keeps the handle (siblings are built from it).
+		for name, base := range map[string]BaseRepository{
+			"AboutRepository":           NewAboutRepository(h, nil).BaseRepository,
+			"ExchangeRateRepository":    NewExchangeRateRepository(h, nil).BaseRepository,
+			"DashboardLayoutRepository": NewDashboardLayoutRepository(h, nil).BaseRepository,
+			"SystemSettingsRepository":  NewSystemSettingsRepository(h, nil).BaseRepository,
+			"CategoryRepository":        NewCategoryRepository(h, nil).BaseRepository,
+			"TagsRepository":            NewTagsRepository(h, nil).BaseRepository,
+			"UserPreferencesRepository": NewUserPreferencesRepository(h, nil).BaseRepository,
+			"ShoppingListRepository":    NewShoppingListRepository(h, nil).BaseRepository,
+			"SystemTaskRepository":      NewSystemTaskRepository(h, nil).BaseRepository,
+			"OidcIdentityRepository":    NewOidcIdentityRepository(h, nil).BaseRepository,
+			"OidcProviderRepository":    NewOidcProviderRepository(h, nil).BaseRepository,
+			"OidcSessionRepository":     NewOidcSessionRepository(h, nil).BaseRepository,
+			"FoodClassification":        NewFoodClassificationRepository(h, nil).BaseRepository,
+			"ReportTemplateRepository":  NewReportTemplateRepository(h, nil).BaseRepository,
+			"ShoppingTripRepository":    NewShoppingTripRepository(h, nil).BaseRepository,
+			"GroupReceiptSettings":      NewGroupReceiptSettingsRepository(h, nil).BaseRepository,
+			"RoleRepository":            NewRoleRepository(h, nil).BaseRepository,
+			"GroupMemberRepository":     NewGroupMemberRepository(h, nil).BaseRepository,
+			"NotificationRepository":    NewNotificationRepository(h, nil).BaseRepository,
+			"ReceiptProcessingSettings": NewReceiptProcessingSettings(h, nil).BaseRepository,
+			"FileRepository":            NewFileRepository(h, nil).BaseRepository,
+			"ReceiptProductRepository":  NewReceiptProductRepository(h, nil).BaseRepository,
+			"ReceiptRepository":         NewReceiptRepository(h, nil).BaseRepository,
+			"ReceiptImageRepository":    NewReceiptImageRepository(h, nil).BaseRepository,
+			"CommentRepository":         NewCommentRepository(h, nil).BaseRepository,
+			"GroupRepository":           NewGroupRepository(h, nil).BaseRepository,
+			"UserRepository":            NewUserRepository(h, nil).BaseRepository,
 		} {
-			if got != h.DB() {
+			if base.GetDB() != h.DB() {
 				t.Errorf("cell %s: %s does not use its handle's database", w, name)
+			}
+			if base.Cell != h {
+				t.Errorf("cell %s: %s does not keep its handle in Cell", w, name)
 			}
 		}
 	}

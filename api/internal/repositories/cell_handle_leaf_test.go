@@ -1037,12 +1037,132 @@ func TestUserRepositoryStaysInItsCell(t *testing.T) {
 		t.Errorf("after CreateUser in cell A: preferences in A=%d (want 1), in B=%d (want 0), groups in B=%d (want 0)", prefsInA, prefsInB, groupsInB)
 	}
 
-	// The first-admin check reads the roles of its own cell.
-	first, err := repoB.IsFirstAdminToLogin()
+	// The first-admin check reads the roles of its own cell: both cells hold an admin role (id 100) and user 1 on it,
+	// but only in A has that admin logged in.
+	for _, w := range []celltest.Which{celltest.A, celltest.B} {
+		db := tw.Handle(w).DB()
+		role := models.AppRole{BaseModel: models.BaseModel{ID: 100}, Name: "admin", Permissions: []models.AppRolePermission{{Permission: "app.users.read"}}}
+		if err := db.Create(&role).Error; err != nil {
+			t.Fatal(err)
+		}
+		if err := db.Model(&models.User{}).Where("id = 1").Update("app_role_id", 100).Error; err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := tw.Handle(celltest.A).DB().Model(&models.User{}).Where("id = 1").Update("last_login_date", time.Now()).Error; err != nil {
+		t.Fatal(err)
+	}
+	firstA, err := repoA.IsFirstAdminToLogin()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !first {
-		t.Error("cell B has no admin role, so its first login counts as the first admin")
+	firstB, err := repoB.IsFirstAdminToLogin()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if firstA || !firstB {
+		t.Errorf("first-admin check crossed cells: A=%v (want false, its admin has logged in) B=%v (want true)", firstA, firstB)
+	}
+}
+
+// The All-group view reads the group, the caller's memberships and the receipts from one cell: both cells have group 1
+// as an All group and receipt 1 in group 2, but the user is a member of group 2 in A only.
+func TestAllGroupReceiptsAreReadInTheirCell(t *testing.T) {
+	tw := celltest.NewTwin(t, migrateSchema)
+	tw.Seed(t, func(db *gorm.DB, marker string) error {
+		if err := seedTwinUser(db, 1, "same-name"); err != nil {
+			return err
+		}
+		if err := db.Create(&models.Group{Name: "all", IsAllGroup: true}).Error; err != nil {
+			return err
+		}
+		if err := db.Create(&models.Group{Name: "group-" + marker}).Error; err != nil {
+			return err
+		}
+		if err := db.Create(&models.GroupMember{UserID: 1, GroupID: 1}).Error; err != nil {
+			return err
+		}
+		return db.Create(&models.Receipt{Name: "receipt-" + marker, Amount: decimal.RequireFromString("1.00"), Date: time.Now(), PaidByUserID: 1, GroupId: 2}).Error
+	})
+	if err := tw.Handle(celltest.A).DB().Create(&models.GroupMember{UserID: 1, GroupID: 2}).Error; err != nil {
+		t.Fatal(err)
+	}
+
+	readable := func(uint) (bool, error) { return true, nil }
+	catTagVis := func(uint) (CategoryTagVisibility, error) {
+		return CategoryTagVisibility{CategoryUnrestricted: true, TagUnrestricted: true}, nil
+	}
+	read := func(w celltest.Which) ([]models.Receipt, int64) {
+		receipts, count, err := NewReceiptRepository(tw.Handle(w), nil).GetPagedReceiptsByGroupId(1, "1", pagedRequestAllReceipts(), nil, nil, nil, readable, catTagVis)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return receipts, count
+	}
+
+	receiptsA, countA := read(celltest.A)
+	receiptsB, countB := read(celltest.B)
+	if countA != 1 || countB != 0 {
+		t.Errorf("the All view crossed cells: A shows %d receipts (want 1), B shows %d (want 0)", countA, countB)
+	}
+	tw.ExpectOwn(t, celltest.A, receiptsA)
+	tw.RejectOther(t, celltest.B, receiptsB)
+
+	// A category filter builds its subquery on the repository's own database.
+	filtered := pagedRequestAllReceipts()
+	filtered.Filter.Categories = commands.PagedRequestField{Operation: commands.CONTAINS, Value: []interface{}{1}}
+	if _, _, err := NewReceiptRepository(tw.Handle(celltest.B), nil).GetPagedReceiptsByGroupId(1, "1", filtered, nil, nil, nil, readable, catTagVis); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// Create and update write their activity tasks and group notifications into the cell of the repository.
+func TestReceiptWritesStayInTheirCell(t *testing.T) {
+	tw := celltest.NewTwin(t, migrateSchema)
+	tw.Seed(t, func(db *gorm.DB, marker string) error {
+		if err := seedTwinReceipt(db, marker); err != nil {
+			return err
+		}
+		if err := seedTwinUser(db, 2, "second"); err != nil {
+			return err
+		}
+		return db.Create(&models.GroupMember{UserID: 1, GroupID: 1}).Error
+	})
+	// Only cell A has a second member, who is the one to be notified.
+	if err := tw.Handle(celltest.A).DB().Create(&models.GroupMember{UserID: 2, GroupID: 1}).Error; err != nil {
+		t.Fatal(err)
+	}
+
+	repoA := NewReceiptRepository(tw.Handle(celltest.A), nil)
+	command := commands.UpsertReceiptCommand{Name: "created-in-a", Amount: decimal.RequireFromString("2.00"), Date: time.Now(), GroupId: 1, PaidByUserID: 1, Status: models.OPEN}
+	if _, err := repoA.CreateReceipt(command, 1, true); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := repoA.UpdateReceipt("1", command, 1); err != nil {
+		t.Fatal(err)
+	}
+	// An update of a receipt that does not exist records a failed task, again in A.
+	if _, err := repoA.UpdateReceipt("999", command, 1); err == nil {
+		t.Fatal("updating a missing receipt should fail")
+	}
+
+	count := func(w celltest.Which, model any) int64 {
+		var n int64
+		tw.Handle(w).DB().Model(model).Count(&n)
+		return n
+	}
+	if got := count(celltest.A, &models.SystemTask{}); got != 3 {
+		t.Errorf("cell A recorded %d tasks, want 3 (create, update, failed update)", got)
+	}
+	if got := count(celltest.A, &models.Notification{}); got != 1 {
+		t.Errorf("cell A holds %d notifications, want 1", got)
+	}
+	for _, model := range []any{&models.SystemTask{}, &models.Notification{}} {
+		if got := count(celltest.B, model); got != 0 {
+			t.Errorf("cell B holds %d %T after writes in cell A", got, model)
+		}
+	}
+	if got := count(celltest.B, &models.Receipt{}); got != 1 {
+		t.Errorf("cell B holds %d receipts, want its own 1", got)
 	}
 }

@@ -788,6 +788,8 @@ func intersectIds(requested []uint, allowed map[uint]struct{}) []uint {
 
 func (repository ReceiptRepository) BuildGormFilterQuery(pagedRequest commands.ReceiptPagedRequestCommand) (*gorm.DB, error) {
 	query := repository.GetDB().Model(models.Receipt{})
+	// The category and tag subqueries are built on the repository's own database (never the process one).
+	db := repository.DB
 	// Name
 	if pagedRequest.Filter.Name.Value != nil {
 		name := pagedRequest.Filter.Name.Value.(string)

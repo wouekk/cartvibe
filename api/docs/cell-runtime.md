@@ -38,8 +38,8 @@ data. The hosted design itself is kept outside this repository.
   until the connect code moves.
 - Anything keyed by a bare id (a cache, an in-memory hub, a backoff map) is wrong in a multi-cell process: two cells
   hold the same ids. Key it by `(cell id, id)` when it is touched; none has been converted yet.
-- A function that writes to one cell but reads settings through another is a leak. `SeedDefaultExchangeRates` still reads
-  the System Settings through `ImplicitCell()` for that reason and moves when `SystemSettingsRepository` does.
+- A function that writes to one cell but reads settings through another is a leak: read and write through the same
+  handle (`SeedDefaultExchangeRates(h)` does).
 
 ### Moving a repository over
 
@@ -48,9 +48,29 @@ data. The hosted design itself is kept outside this repository.
 2. Update every caller. `go vet ./...` lists them; production callers pass `repositories.ImplicitCell()` for now.
 3. Add a twin-cell test (below) that reads and writes the repository through both cells.
 4. The repository's findings disappear from the lint report; the count only goes down.
+5. A repository that builds a sibling uses `repository.Cell`. While the sibling's caller is not moved yet its `Cell` is zero,
+   so there the call passes `ImplicitCell()` and changes to `repository.Cell` in the same commit that moves the caller.
 
-Done so far: `AboutRepository`, `ExchangeRateRepository` (with `SeedExchangeRates`), `DashboardLayoutRepository`.
-Everything else still reaches `repositories.GetDB()` through its constructor.
+Done so far: every repository takes the handle: `AboutRepository`, `ExchangeRateRepository`, `DashboardLayoutRepository`,
+`SystemSettingsRepository`, `CategoryRepository`, `TagsRepository`, `UserPreferncesRepository`, `ShoppingListRepository`,
+`SystemTaskRepository`, `OidcIdentityRepository`, `OidcProviderRepository`, `OidcSessionRepository`,
+`FoodClassificationRepository`, `ReportTemplateRepository`, `ShoppingTripRepository`, `GroupReceiptSettingsRepository`,
+`RoleRepository`, `GroupMemberRepository`, `NotificationRepository`, `ReceiptProcessingSettingsRepository`, `FileRepository`,
+`ReceiptProductRepository`, `ReceiptImageRepository`, `CommentRepository`, `GroupRepository`, `UserRepository` and
+`ReceiptRepository`. So are the startup seeds (`SeedEuroForNewInstall`, `SeedDefaultExchangeRates`, `SeedSystemRoles`,
+`EnsureDefaultRoles`, `RunDataMigrations`, `SeedStarterReportTemplates`, all `(h cell.Handle)`); `InitDB` serves the implicit
+cell until the caller resolves one. Each has a twin-cell test in `repositories/cell_handle_test.go` or
+`cell_handle_leaf_test.go`.
+
+What still reaches the process database: the services, handlers, middleware, `oauth` and `oidc` packages (they call
+`repositories.GetDB()` for their own queries and build their `BaseService` from it), the test-support helpers in
+`repositories/testing.go`, and `repositories.GetAppLocation()` (a package function with no repository to take a handle from;
+it reads the implicit cell, while `BaseRepository.AppLocation()` reads the repository's own database).
+
+**`BaseRepository.Cell`.** A constructor stores the handle it was built from next to `DB` and `TX`. A method that needs a
+sibling repository builds it with `NewXRepository(repository.Cell, tx)`, so one call chain never leaves its cell (before
+this, siblings were built from the process database). A repository built by a struct literal has a zero `Cell`; use the
+constructor.
 
 ## Twin-cell fixture (`internal/cell/celltest`)
 
@@ -87,16 +107,22 @@ non-test files). **It is report-only**: findings exit 0. A build or load failure
 lint never looks clean. To make it required, set `CELL_LINT_ENFORCE=1` (exit 1 on any finding), once the count is zero or
 the remaining sites are listed and accepted.
 
-**CI step, not yet in `ci.yml`.** The branch could not push a workflow change (the token has no `workflow` scope), so the
-step waits for a person to add it to `test-api`, after `Build`. `continue-on-error` is what keeps a finding, or the tool
-itself breaking, from failing the job:
+**Counts on the real API** (all files / non-test), lint run over `./...`:
 
-```yaml
-      - name: Cell lint (report-only)
-        continue-on-error: true
-        run: scripts/cell-lint.sh
-        working-directory: ./api
-``` The analyzer's own tests (`cd tools/celllint && go test ./...`) run on stub
+| Category | Step 1 baseline | After step 2 |
+|---|---|---|
+| `global-db` | 2 / 1 | 2 / 1 |
+| `gorm-open` | 4 / 3 | 4 / 3 |
+| `get-db` | 660 / 115 | 630 / 85 |
+
+The 85 left are in services (about 45), handlers (about 20), `oauth`, `oidc`, middleware, the refresh-token sweep and the six
+test-support helpers in `repositories/testing.go`; none is inside a repository. The lint does not see a **read** of the
+package variable `db` (it flags the declaration only): step 2 found two such reads by renaming the variable and compiling
+(`GroupRepository.IsAllGroup`, the category/tag subqueries of `ReceiptRepository.BuildGormFilterQuery`) and moved them to
+the repository's own database. Do the same check after moving a package.
+
+**CI step.** `ci.yml` runs it in `test-api` after `Build` as a `continue-on-error` step, so a finding, or the tool itself
+breaking, never fails the job. The `test-api` log prints the summary. The analyzer's own tests (`cd tools/celllint && go test ./...`) run on stub
 packages, not on the API.
 
 A check that handler goroutines carry a handle is not in the lint yet.

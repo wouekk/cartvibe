@@ -294,7 +294,7 @@ func (repository GroupRepository) CreateAllGroup(userId uint) (models.Group, err
 
 func (repository GroupRepository) IsAllGroup(groupId uint) (bool, error) {
 	var group models.Group
-	err := db.Where("id = ?", groupId).First(&group).Select("is_all_group").Error
+	err := repository.DB.Where("id = ?", groupId).First(&group).Select("is_all_group").Error
 	if err != nil {
 		return false, err
 	}

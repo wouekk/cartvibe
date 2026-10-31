@@ -24,7 +24,7 @@ func connectSqliteForTest(t *testing.T) *gorm.DB {
 		t.Fatalf("Connect failed: %v", err)
 	}
 	connected := db
-	db = previous
+	setDB(previous)
 
 	t.Cleanup(func() {
 		if sqlDB, err := connected.DB(); err == nil {

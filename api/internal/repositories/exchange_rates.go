@@ -13,7 +13,7 @@ type ExchangeRateRepository struct {
 }
 
 func NewExchangeRateRepository(h cell.Handle, tx *gorm.DB) ExchangeRateRepository {
-	return ExchangeRateRepository{BaseRepository: BaseRepository{DB: h.DB(), TX: tx}}
+	return ExchangeRateRepository{BaseRepository: BaseRepository{DB: h.DB(), TX: tx, Cell: h}}
 }
 
 // GetAll returns every listed currency, ordered by code.
