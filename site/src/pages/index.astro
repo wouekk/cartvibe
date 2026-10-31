@@ -78,7 +78,7 @@ const more = [
     id: "app",
     icon: "phone",
     eyebrow: "On your phone",
-    title: "Installs like an app. No app store.",
+    title: "Installs like an app, from your browser.",
     text: "CartVibe is a web app made for the phone in your hand at the shop. Add it to your home screen and it opens full screen, with the screen kept awake while you shop. Same account and data as the desktop.",
     points: ["Phone first, desktop second", "Day and night modes, plus accent palettes"],
     phone: "dashboard",
@@ -121,7 +121,7 @@ const rows = [
   ["Shared shopping lists that sync live", "yes", "no", "Rarely"],
   ["Warranty tracking", "yes", "By hand", "Rarely"],
   ["Open source", "yes", "n/a", "Usually not"],
-  ["Free to run yourself", "yes", "yes", "Often a paid plan"],
+  ["Free to run yourself", "yes", "yes", "Varies"],
 ];
 
 const faq = [
@@ -130,9 +130,9 @@ const faq = [
   { q: "Does it need the AI?", a: "No. The AI is optional. Without it you add receipts and product lines by hand, and everything else works the same. With it, an admin adds a Claude or ChatGPT key and Quick Scan reads receipts for you. If the provider is down or out of credit, CartVibe keeps going and retries later." },
   { q: "What does the AI get to see?", a: "Only when you turn it on, and only what you scan: the receipt photo or PDF goes to the provider whose key you configured. Nothing is sent to us, because there is no \"us\" server in the loop." },
   { q: "Where is my data stored?", a: "On your server: a SQLite database and a folder of files. Back it up by copying the folder with the container stopped." },
-  { q: "Is it really free?", a: "Self-hosting is free, under the AGPL-3.0. You pay for your own hardware or server, and for AI usage if you choose to use it." },
+  { q: "Is it really free?", a: "Self-hosting is free and open source, under the AGPL-3.0, and stays that way. You pay for your own hardware or server, and for AI usage if you choose to use it. A hosted Cloud plan is planned; see the Cloud plan section." },
   { q: "How is it related to Receipt Wrangler?", a: "CartVibe is a personal fork of Receipt Wrangler by Noah Hall and contributors, reshaped into a household app. It is not affiliated with the original authors; the credit is in NOTICE.md, the README and the footer." },
-  { q: "Is there a mobile app?", a: "CartVibe is a web app that installs to your home screen on iPhone and Android. A native iPhone app is being worked on separately and has not been released." },
+  { q: "Is there a mobile app?", a: "CartVibe is a web app. Open it on your phone and add it to your home screen, and it opens full screen like an app." },
   { q: "Can the whole family use it?", a: "Yes. Accounts are either Admin or User, everyone in the household can add receipts and list items, and nobody has to split bills or approve anything." },
 ];
 
@@ -362,16 +362,17 @@ const tick = "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-fu
     </p>
   </section>
 
-  <!-- Pricing -->
-  <section id="pricing" class="border-t border-border/70 bg-muted/30">
+  <!-- Cloud plan -->
+  <section id="cloud" class="border-t border-border/70 bg-muted/30">
     <div class="page max-w-5xl py-20">
-      <h2 class="text-balance text-center text-3xl font-semibold tracking-tight">Pricing</h2>
-      <p class="mx-auto mt-3 max-w-2xl text-center text-sm text-muted-foreground">Run it yourself, for free. That is the whole offer today.</p>
+      <h2 class="text-balance text-center text-3xl font-semibold tracking-tight">Cloud plan</h2>
+      <p class="mx-auto mt-3 max-w-2xl text-center text-sm text-muted-foreground">Self-hosting is what CartVibe is today. A hosted option is planned, and nothing else changes for people who run it themselves.</p>
       <div class="mt-10 grid gap-4 md:grid-cols-2">
         <div class="flex flex-col rounded-xl border border-primary bg-card p-6 ring-1 ring-primary/20">
           <h3 class="text-lg font-semibold">Self-hosted</h3>
+          <p class="cv-overline mt-1 !text-success-text">Available today</p>
           <p class="mt-2 text-4xl font-semibold tracking-tight">Free</p>
-          <p class="mt-2 text-sm text-muted-foreground">On your own NAS, mini PC or VPS.</p>
+          <p class="mt-2 text-sm text-muted-foreground">Open source, on your own server: a NAS, a mini PC or a VPS.</p>
           <ul class="mt-6 flex-1 space-y-3 text-sm">
             {
               ["All the features on this page", "Your data on your own disk", "Free software, AGPL-3.0", "Your own AI key, only if you want the AI"].map((p) => (
@@ -389,12 +390,12 @@ const tick = "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-fu
             <h3 class="text-lg font-semibold">Cloud plan</h3>
             <span class="rounded-full border border-border/70 bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">Coming soon</span>
           </div>
-          <p class="mt-2 text-4xl font-semibold tracking-tight text-muted-foreground">Not yet</p>
-          <p class="mt-2 text-sm text-muted-foreground">A hosted version for people who would rather not run a server.</p>
+          <p class="mt-2 text-4xl font-semibold tracking-tight text-muted-foreground">Planned</p>
+          <p class="mt-2 text-sm text-muted-foreground">A hosted version, with sync across your devices, for people who would rather not run a server.</p>
           <p class="mt-6 flex-1 text-sm text-muted-foreground">
-            It is an idea, not a product: nothing to sign up for, no price and no date. Follow the repository if you want to see what happens.
+            This is a plan, not a product yet: there is nothing to buy or sign up for, and no price or date is set. Self-hosting stays free and open source either way. News, if there is any, goes on the GitHub repository.
           </p>
-          <a href={repo} class={`${btnOutline} mt-8`}>Follow on GitHub</a>
+          <a href={repo} class={`${btnOutline} mt-8`}>News on GitHub</a>
         </div>
       </div>
     </div>

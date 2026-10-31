@@ -32,8 +32,8 @@ npm run build      # writes site/dist
 - The shell (head, nav, footer with the licence and the Receipt Wrangler credit) is `src/layouts/Base.astro`.
   Keep `LICENSE`, `NOTICE.md` and the upstream credit in the footer.
 - Icons are inline in `src/components/Icon.astro`; real screenshots are rendered by `src/components/Shots.astro`.
-- Keep the copy honest: no prices, reviews or counts, and nothing that is not in the app. The cloud plan and the
-  iPhone app are not released.
+- Keep the copy honest: no prices, dates, sign-up forms, reviews or counts, and nothing that is not in the app. The Cloud plan
+  section (`#cloud`) says a hosted option is planned and nothing more; no phone app is mentioned.
 
 ## Screenshots
 
