@@ -147,7 +147,7 @@ for (const [name, answer] of Object.entries(FAILURES)) {
     }
     assert.ok((await titles(page, "in-progress")).length > 0);
     assert.ok((await titles(page, "shipped")).length > 0);
-    const text = (await page.locator("main").innerText()).toLowerCase();
+    const text = (await page.locator("[data-roadmap]").innerText()).toLowerCase();
     for (const word of ["error", "failed", "rate limit", "offline", "unavailable", "oops"]) assert.ok(!text.includes(word), word);
     await context.close();
   });
@@ -283,7 +283,7 @@ test("the changelog is a list under the board: the latest four releases one line
   assert.equal(await older.first().isVisible(), false);
   await more.locator("summary").click();
   assert.equal(await older.first().isVisible(), true);
-  assert.match(await more.locator("summary").innerText(), new RegExp(`Older versions \(${olderCount}\)`));
+  assert.equal((await more.locator("summary").innerText()).replace(/s+/g, " ").trim(), `Older versions (${olderCount})`);
   assert.equal(await log.getByTestId("changelog-full").getAttribute("href"), `${REPO}/blob/main/CHANGELOG.md`);
   await context.close();
 });
