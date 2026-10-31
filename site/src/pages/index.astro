@@ -4,6 +4,7 @@ import Icon from "../components/Icon.astro";
 import Shots from "../components/Shots.astro";
 import Slot from "../components/Slot.astro";
 import Wireframe from "../components/Wireframe.astro";
+import Roadmap from "../components/Roadmap.astro";
 
 const repo = "https://github.com/wouekk/cartvibe";
 // The live demo of the real app, built from desktop/ and published beside this page (docs/site.md, "The demo").
@@ -403,6 +404,8 @@ const tick = "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-fu
       </div>
     </div>
   </section>
+
+  <Roadmap limit={4} />
 
   <!-- FAQ -->
   <section id="faq" class="page max-w-3xl py-20">

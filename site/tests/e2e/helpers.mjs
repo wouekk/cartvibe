@@ -44,7 +44,7 @@ export function launch() {
 export const PALETTES = ["zinc", "blue", "indigo", "emerald", "violet"];
 
 /** Opens a page with the palette and mode set the way the site stores them (localStorage, no cookie). */
-export async function open(browser, origin, path, { palette = "zinc", mode = "light", width = 1280, height = 900 } = {}) {
+export async function open(browser, origin, path, { palette = "zinc", mode = "light", width = 1280, height = 900, setup } = {}) {
   const context = await browser.newContext({ viewport: { width, height }, colorScheme: mode });
   await context.addInitScript(
     ([p, m]) => {
@@ -55,6 +55,7 @@ export async function open(browser, origin, path, { palette = "zinc", mode = "li
     },
     [palette, mode],
   );
+  if (setup) await setup(context);
   const page = await context.newPage();
   page.setDefaultTimeout(5000);
   const messages = [];
