@@ -171,7 +171,11 @@
     [class.flex-col]="isContentFullHeight()"
     [class.overflow-hidden]="isContentFullHeight()"
   >
-    <app-header class="sticky top-0 z-10 block"></app-header>
+    <!-- The demo build puts its "nothing is saved" strip above the header (an empty element in the real app). -->
+    <div class="sticky top-0 z-10 block">
+      <app-demo-banner></app-demo-banner>
+      <app-header class="block"></app-header>
+    </div>
     <div
       class="drawer-outlet block"
       [class.p-4]="isLoggedIn() && !isContentFullHeight()"

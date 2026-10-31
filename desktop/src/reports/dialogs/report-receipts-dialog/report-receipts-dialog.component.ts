@@ -7,7 +7,9 @@ import {
   inject,
   signal,
 } from "@angular/core";
+import { Location } from "@angular/common";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { Router } from "@angular/router";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { Receipt, ReportRequestCommand, ReportService } from "../../../open-api";
@@ -52,6 +54,8 @@ export class ReportReceiptsDialogComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly store = inject(Store);
   private readonly translation = inject(TranslationService);
+  private readonly router = inject(Router);
+  private readonly location = inject(Location);
 
   public readonly loading = signal<boolean>(true);
   public readonly receipts = signal<Receipt[]>([]);
@@ -92,7 +96,9 @@ export class ReportReceiptsDialogComponent {
 
   /** Opens the receipt's full page in a new tab (read-only drill-in stays open). */
   public openFullReceipt(receipt: Receipt): void {
-    window.open(`/receipts/${receipt.id}/view`, "_blank");
+    // Through the router's location strategy: the same path as before in the app, and under the demo's base and hash.
+    const path = this.router.serializeUrl(this.router.createUrlTree(["/receipts", receipt.id, "view"]));
+    window.open(this.location.prepareExternalUrl(path), "_blank");
   }
 
   public close(): void {

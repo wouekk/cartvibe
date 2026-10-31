@@ -5,7 +5,7 @@ file covers behaviour and mechanics only. Backend contracts: `../api/CLAUDE.md`.
 
 Deep notes in `docs/`: `features.md` (how each area works: Dashboard, receipts, shopping lists, reports, product
 checker, translations, themes, installable app, settings screens), `sandbox.md`, `lockfile.md`, `e2e.md`,
-`image-canvas.md`, `system-tasks.md`, `builder.md`. Read the matching section of `features.md` before changing a
+`image-canvas.md`, `system-tasks.md`, `builder.md`, `demo.md` (the live demo build). Read the matching section of `features.md` before changing a
 feature.
 
 ## Commands
@@ -14,6 +14,8 @@ feature.
 - `npm run build` (output `dist/cartvibe/`). `npm test` runs the specs on **Vitest** through `ng test`
   (`@angular/build:unit-test`); `npm run test:ci` adds coverage (`coverage/cartvibe/cobertura-coverage.xml`). One spec:
   `npx ng test --include "src/path/x.spec.ts"` (quote the glob). Run `ng build` too (root `CLAUDE.md`).
+- `npm run build:demo` / `start:demo` / `check:demo` / `e2e:demo`: the demo on an in-memory API (`docs/demo.md`). `check:demo`
+  proves it is not in the production bundle; a new endpoint the UI calls also needs an answer in `src/demo/backend`.
 - `npm run i18n:extract`, `i18n:check` (CI, before the specs), `i18n:sync -- --lang xx`: see Translations.
 - `npm run e2e` / `e2e:ui` / `e2e:install`: Playwright, needs a live API (`docs/e2e.md`).
 - Local stack on the Windows PC: `../docs/dev-setup.md`. Login on a fresh database is `admin` / `admin`; it lands on
