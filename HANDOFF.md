@@ -16,15 +16,16 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
   `desktop/docs/demo.md` → Known gaps. The cloud repo was read-only for this session (403), so the T4 queue entry is in
   `docs/T4-queue-entry.md` for the owner to paste. Not run: Safari, Firefox, Lighthouse, a deployed Pages run, the NAS.
 
-- **Cell runtime step 1 is in `preview`, not `main`** (`feature/cell-runtime`, CI green at `f8b97f8`: test-api, test-desktop,
-  e2e-smoke; `e2e-smoke` needed one re-run for the known 503 flake). `CARTVIBE_MODE` (`standalone` default, `worker`/`imgproc`
-  refuse to boot), `internal/cell` (opaque `Handle`, standalone and static managers), `repositories.ImplicitCell()` bridge,
-  twin-cell fixture `cell/celltest`, report-only lint (`tools/celllint`, `scripts/cell-lint.sh`, a `continue-on-error` step
-  in `ci.yml`), About/ExchangeRate/DashboardLayout on the handle, `BaseRepository.GetDB()` panics clearly on a zero handle.
-  Docs: `api/docs/cell-runtime.md`. Lint baseline on the real API (all files / non-test): `global-db` 2/1, `gorm-open` 4/3,
-  `get-db` 660/115. Next (task queue in the private cloud repo): migrate more repositories (SystemSettings first,
-  `SeedDefaultExchangeRates` waits on it), then cell-keyed caches. `celllint` is a separate Go module: add it to any
-  vulnerability or dependency tooling when that exists.
+- **Cell runtime steps 1 and 2 are in `preview`, not `main`** (step 2 merged as `76aeddc7`, CI green at `7bba632`). Every
+  repository takes a `cell.Handle` (`NewXRepository(h, tx)`), `BaseRepository.Cell` keeps it for sibling repositories, the
+  startup seeds take a handle, twin-cell tests in `repositories/cell_handle_test.go` and `cell_handle_leaf_test.go`.
+  `CARTVIBE_MODE` standalone is unchanged. Lint on the real API (all files / non-test): `global-db` 2/1, `gorm-open` 4/3,
+  `get-db` 630/85 after step 2 (was 660/115), 626/81 after the cache work (local lint, stubbed cgo). The 81 left are in services, handlers, middleware, oauth, oidc and
+  `repositories/testing.go`. Lint blind spot: reads of the package variable `db` (see `api/docs/cell-runtime.md`).
+  `celllint` is a separate Go module: add it to any vulnerability or dependency tooling when that exists.
+- **Cell-keyed caches (task T3) are on `feature/cell-caches`** (SSE hub, OIDC provider cache, outage backoff, role permission
+  and grant caches keyed by `cell.CellKey`; quick-scan mutex is a design note only). See the status of the branch in the task
+  queue. Next: move services/handlers off `repositories.GetDB()` so they carry a handle, then the shop-logo syncer per cell.
 - **Project page rebuilt** (`feature/landing-site`, `feature/site-cloud-plan`): Astro site in `site/` (`docs/site.md`),
   scroll-driven showcase on the app's design tokens and palettes, wireframe slots for the user's own art (`site/public/art`),
   real demo-data screenshots, a "Cloud plan, coming soon" section (no prices). The new page is on `main`; the Cloud plan

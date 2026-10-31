@@ -45,8 +45,10 @@ func (service RoleService) CreateRole(command commands.UpsertRoleCommand) (struc
 	paidByUserGrants := normalizeUintSlice(command.PaidByUserGrants)
 	reportTemplateGrants := normalizeReportTemplateGrants(command.ReportTemplateGrants)
 
-	err := repositories.GetDB().Transaction(func(tx *gorm.DB) error {
-		roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), tx)
+	// One handle for the whole operation: the role is read, written and evicted from the cache in the same cell.
+	h := repositories.ImplicitCell()
+	err := h.DB().Transaction(func(tx *gorm.DB) error {
+		roleRepository := repositories.NewRoleRepository(h, tx)
 
 		if command.Scope == permissions.ScopeApp {
 			role, txErr := roleRepository.CreateAppRole(command.Name, command.Description, perms, command.SkipDefaultGroupCreation)
@@ -140,8 +142,10 @@ func (service RoleService) UpdateRole(id uint, command commands.UpsertRoleComman
 	paidByUserGrants := normalizeUintSlice(command.PaidByUserGrants)
 	reportTemplateGrants := normalizeReportTemplateGrants(command.ReportTemplateGrants)
 
-	err := repositories.GetDB().Transaction(func(tx *gorm.DB) error {
-		roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), tx)
+	// One handle for the whole operation: the role is read, written and evicted from the cache in the same cell.
+	h := repositories.ImplicitCell()
+	err := h.DB().Transaction(func(tx *gorm.DB) error {
+		roleRepository := repositories.NewRoleRepository(h, tx)
 
 		if command.Scope == permissions.ScopeApp {
 			existing, txErr := roleRepository.GetAppRoleById(id)
@@ -246,12 +250,12 @@ func (service RoleService) UpdateRole(id uint, command commands.UpsertRoleComman
 
 	// A role's permission list just changed; drop its cached permissions so the
 	// next permission check resolves the new set.
-	clearRolePermissionCache(implicitCellID(), command.Scope, id)
+	clearRolePermissionCache(h.ID(), command.Scope, id)
 
 	// Group roles also carry category/tag grants, which the update just
 	// replaced — evict the cached grant sets so enforcement uses the new grants.
 	if command.Scope == permissions.ScopeGroup {
-		clearGroupRoleGrantCache(implicitCellID(), id)
+		clearGroupRoleGrantCache(h.ID(), id)
 	}
 
 	return roleView, nil
@@ -390,8 +394,10 @@ func (service RoleService) GetRoles() ([]structs.RoleView, error) {
 // id (app and group role ids overlap). System roles cannot be deleted, and a
 // role cannot be deleted while it is assigned to any user or group member.
 func (service RoleService) DeleteRole(id uint, scope permissions.Scope) error {
-	err := repositories.GetDB().Transaction(func(tx *gorm.DB) error {
-		roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), tx)
+	// One handle for the whole operation: the role is read, written and evicted from the cache in the same cell.
+	h := repositories.ImplicitCell()
+	err := h.DB().Transaction(func(tx *gorm.DB) error {
+		roleRepository := repositories.NewRoleRepository(h, tx)
 
 		if scope == permissions.ScopeApp {
 			existing, txErr := roleRepository.GetAppRoleById(id)
@@ -450,11 +456,11 @@ func (service RoleService) DeleteRole(id uint, scope permissions.Scope) error {
 	}
 
 	// The role is gone; evict any cached permissions for it.
-	clearRolePermissionCache(implicitCellID(), scope, id)
+	clearRolePermissionCache(h.ID(), scope, id)
 
 	// And its cached category/tag grants (group roles only).
 	if scope == permissions.ScopeGroup {
-		clearGroupRoleGrantCache(implicitCellID(), id)
+		clearGroupRoleGrantCache(h.ID(), id)
 	}
 
 	return nil
@@ -469,8 +475,10 @@ func (service RoleService) DeleteRole(id uint, scope permissions.Scope) error {
 func (service RoleService) SetDefaultRole(id uint, scope permissions.Scope) (structs.RoleView, error) {
 	var roleView structs.RoleView
 
-	err := repositories.GetDB().Transaction(func(tx *gorm.DB) error {
-		roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), tx)
+	// One handle for the whole operation: the role is read, written and evicted from the cache in the same cell.
+	h := repositories.ImplicitCell()
+	err := h.DB().Transaction(func(tx *gorm.DB) error {
+		roleRepository := repositories.NewRoleRepository(h, tx)
 
 		if scope == permissions.ScopeApp {
 			existing, txErr := roleRepository.GetAppRoleById(id)

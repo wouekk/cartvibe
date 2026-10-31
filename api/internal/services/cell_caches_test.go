@@ -42,7 +42,19 @@ func TestRolePermissionCacheKeepsCellsApart(t *testing.T) {
 	tw.ExpectOwn(t, celltest.A, permsA)
 	tw.ExpectOwn(t, celltest.B, permsB)
 
-	// Both are cached now, each under its own cell, and still apart on the second read.
+	// Both are cached now, each under its own cell: the entries are there and carry their own marker.
+	cachedA, okA := getCachedRolePermissions(celltest.IDA, permissions.ScopeApp, 1)
+	cachedB, okB := getCachedRolePermissions(celltest.IDB, permissions.ScopeApp, 1)
+	if !okA || !okB {
+		t.Fatalf("expected both cells to hold a cached entry: A=%v B=%v", okA, okB)
+	}
+	tw.ExpectOwn(t, celltest.A, cachedA)
+	tw.ExpectOwn(t, celltest.B, cachedB)
+
+	// A change in A's database is not seen until the entry is evicted (it is served from the cache), and never in B.
+	if err := tw.Handle(celltest.A).DB().Model(&models.AppRolePermission{}).Where("app_role_id = 1").Update("permission", "app.changed").Error; err != nil {
+		t.Fatal(err)
+	}
 	permsA, _ = loadRolePermissions(repoA, permissions.ScopeApp, 1)
 	permsB, _ = loadRolePermissions(repoB, permissions.ScopeApp, 1)
 	tw.ExpectOwn(t, celltest.A, permsA)
@@ -102,6 +114,12 @@ func TestGroupRoleGrantCacheKeepsCellsApart(t *testing.T) {
 	if len(grantsA.categoryIds) != 1 || len(grantsB.categoryIds) != 0 {
 		t.Errorf("grants crossed cells: A restricts to %d categories (want 1), B to %d (want 0)", len(grantsA.categoryIds), len(grantsB.categoryIds))
 	}
+	// Both entries are cached, each under its own cell.
+	cachedA, okA := getCachedGroupRoleGrants(celltest.IDA, 1)
+	cachedB, okB := getCachedGroupRoleGrants(celltest.IDB, 1)
+	if !okA || !okB || len(cachedA.categoryIds) != 1 || len(cachedB.categoryIds) != 0 {
+		t.Errorf("cached grants: A=%v/%v B=%v/%v, want A restricted to 1 category and B to none", okA, cachedA, okB, cachedB)
+	}
 
 	// Eviction is per cell, for one role and for the whole cell.
 	clearGroupRoleGrantCache(celltest.IDA, 1)
@@ -147,5 +165,53 @@ func TestClassificationOutageBackoffIsPerCell(t *testing.T) {
 	inA.recordSuccess()
 	if classificationOutages(celltest.IDA).paused(now) {
 		t.Error("cell A is still paused after a success")
+	}
+}
+
+// Deleting a group role evicts its cached grants in the role's own cell.
+func TestGroupRoleGrantCacheEvictedOnRoleDelete(t *testing.T) {
+	defer repositories.TruncateTestDb()
+	clearGroupRoleGrantCacheAll()
+	defer clearGroupRoleGrantCacheAll()
+
+	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
+	role, err := roleRepository.CreateGroupRole("Deletable Group Role", "", []string{permissions.GroupReceiptsRead}, nil, nil, nil, false, false)
+	if err != nil {
+		t.Fatalf("seed role: %v", err)
+	}
+
+	// An entry for the same role id in another cell must survive this delete.
+	setCachedGroupRoleGrants(implicitCellID(), role.ID, &grantEntry{}, groupRoleGrantCacheGen())
+	setCachedGroupRoleGrants(celltest.IDB, role.ID, &grantEntry{}, groupRoleGrantCacheGen())
+
+	if err := NewRoleService(nil).DeleteRole(role.ID, permissions.ScopeGroup); err != nil {
+		t.Fatalf("DeleteRole: %v", err)
+	}
+
+	if _, ok := getCachedGroupRoleGrants(implicitCellID(), role.ID); ok {
+		t.Error("the deleted role's cached grants were not evicted")
+	}
+	if _, ok := getCachedGroupRoleGrants(celltest.IDB, role.ID); !ok {
+		t.Error("deleting a role in the standalone cell evicted another cell's entry")
+	}
+}
+
+// A per-cell flush bumps the shared generation, so a load already in flight (or a request's memo) cannot keep what the
+// flush was meant to drop.
+func TestEvictAllGroupRoleGrantsBumpsTheGeneration(t *testing.T) {
+	clearGroupRoleGrantCacheAll()
+	defer clearGroupRoleGrantCacheAll()
+
+	before := groupRoleGrantCacheGen()
+	EvictAllGroupRoleGrants(celltest.IDA)
+	if groupRoleGrantCacheGen() == before {
+		t.Error("EvictAllGroupRoleGrants did not advance the generation")
+	}
+
+	// A write that read before the flush is dropped.
+	stale := before
+	setCachedGroupRoleGrants(celltest.IDA, 9, &grantEntry{}, stale)
+	if _, ok := getCachedGroupRoleGrants(celltest.IDA, 9); ok {
+		t.Error("a write that read before the flush was cached")
 	}
 }

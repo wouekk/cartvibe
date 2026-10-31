@@ -100,8 +100,13 @@ Decisions worth knowing:
   else. Per-cell counters would be exact but add a map and a lock for no correctness gain.
 - **Not keyed, on purpose:** `repositories.loadedLocations` (parsed time zones by IANA name, no cell data),
   `PermissionService.grantMemo` and the per-request maps in `quick_scan_fields.go`, `member_visibility.go` and `grant_filter.go`
-  (all live for one request, which is one cell), and the shop logo store (`services.ShopLogos`), a singleton over the data
-  directory that moves with the file layout, not with the database.
+  (all live for one request, which is one cell), and the shop logo store and syncer (`services.ShopLogos`): the store is a singleton over the data
+  directory and moves with the file layout, but the syncer also keeps household status in memory (`running`, `lastRun`,
+  `lastError`), so in a multi-cell process one cell would see another's last error and wait on its sync. It needs one syncer
+  per cell when that work happens; nothing keyed by an id is wrong in it today, which is why it was left.
+- **Evict through the handle you read with.** A service that reads through a handle and evicts through a second call to
+  `ImplicitCell()` works only while both name the same cell; take the handle once per operation and use it for the repository,
+  the cache read and the eviction (`RoleService`, the food classification sweep and `DeleteReportTemplate` do).
 - **Tests:** `cell/key_test.go`, `services/cell_caches_test.go`, `services/shopping_list_hub_test.go` and
   `oidc/provider_cache_test.go` seed the same ids with different content into twin cells (or discover the same provider row
   in both) and fail when a value crosses. Each was checked by making the key ignore the cell, which fails it.

@@ -241,12 +241,14 @@ func DeleteReportTemplate(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			err := repositories.NewReportTemplateRepository(repositories.ImplicitCell(), nil).DeleteReportTemplateById(utils.UintToString(template.ID))
+			// The template is deleted, and the cell's grant cache flushed, through the same handle.
+			h := repositories.ImplicitCell()
+			err := repositories.NewReportTemplateRepository(h, nil).DeleteReportTemplateById(utils.UintToString(template.ID))
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
 
-			services.EvictAllGroupRoleGrants(services.ImplicitCellID())
+			services.EvictAllGroupRoleGrants(h.ID())
 
 			w.WriteHeader(http.StatusOK)
 			return 0, nil
