@@ -1,11 +1,12 @@
 ---
 name: Project page
 
-# site/ is an Astro project. Every push that touches it builds it; only main deploys.
+# site/ is an Astro project, and desktop/ is built a second time in its `demo` configuration (desktop/docs/demo.md) and
+# published under /demo/ of the same artifact. Every push that touches either builds both; only main deploys.
 on:
   push:
     branches: [main, 'feature/**']
-    paths: ["site/**", "desktop/src/themes/**", ".github/workflows/pages.yml"]
+    paths: ["site/**", "desktop/**", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
@@ -24,11 +25,40 @@ jobs:
         with:
           node-version: "24.22.1"
           cache: npm
-          cache-dependency-path: site/package-lock.json
+          cache-dependency-path: |
+            site/package-lock.json
+            desktop/package-lock.json
       - run: npm ci
         working-directory: site
       - run: npm run build
         working-directory: site
+      - name: Site unit tests (roadmap mapping, cache, changelog parser)
+        run: npm test
+        working-directory: site
+      # The demo: the real app with an in-memory backend. The production build is made too, because the check below
+      # proves the demo is not inside it.
+      - run: npm ci
+        working-directory: desktop
+      - run: npm run build:demo
+        working-directory: desktop
+      - run: npm run build
+        working-directory: desktop
+      - name: The demo is compiled out of the production build
+        run: npm run check:demo
+        working-directory: desktop
+      - name: Smoke-test the built demo
+        run: |
+          npx playwright install --with-deps chromium
+          npm run e2e:demo
+        working-directory: desktop
+      # The site's browser tests borrow the Playwright and Chromium installed for the demo smoke test above.
+      - name: Site browser tests (wordmark, footer, roadmap against a mocked GitHub, home page)
+        run: npm run test:e2e
+        working-directory: site
+      - name: Publish the demo under /demo/
+        run: |
+          mkdir -p site/dist/demo
+          cp -r desktop/dist/cartvibe-demo/browser/. site/dist/demo/
       - uses: actions/configure-pages@v6
         if: github.ref == 'refs/heads/main'
       - uses: actions/upload-pages-artifact@v5

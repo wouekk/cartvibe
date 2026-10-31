@@ -115,6 +115,13 @@ jobs:
       - name: Check CSP script hash
         run: npm run check:csp
         working-directory: ./desktop
+      # The demo (desktop/docs/demo.md) builds from the same sources; none of it may reach the production bundle above.
+      - name: Build the demo
+        run: npm run build:demo
+        working-directory: ./desktop
+      - name: Check the demo is compiled out of the production build
+        run: npm run check:demo
+        working-directory: ./desktop
       - name: Generate coverage report
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
