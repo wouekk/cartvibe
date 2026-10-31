@@ -1,0 +1,83 @@
+---
+// Roadmap and feedback: three columns of the project's public GitHub issues, drawn in the browser (src/lib/roadmap-dom.mjs),
+// with a curated list when GitHub cannot be reached. The changelog sits beside it at xl and below it on smaller screens.
+// This is the one place the site calls a third party; docs/site.md, "Roadmap".
+import Changelog from "./Changelog.astro";
+import Icon from "./Icon.astro";
+import { BOARD_URL, REQUEST_URL } from "../lib/roadmap.mjs";
+
+interface Props {
+  /** Cards shown per column (the counts always show the whole column). Omit for all. */
+  limit?: number;
+  /** The /roadmap/ page: an h1, and the whole changelog below the board instead of the short column beside it. */
+  page?: boolean;
+}
+const { limit, page = false } = Astro.props;
+
+const columns = [
+  { slug: "planned", title: "Planned", dot: "bg-muted-foreground" },
+  { slug: "in-progress", title: "In Progress", dot: "bg-primary" },
+  { slug: "shipped", title: "Recently Shipped", dot: "bg-success-text" },
+];
+const Title = page ? "h1" : "h2";
+const btnPrimary = "inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:bg-primary/80 active:scale-[0.98]";
+const btnOutline = "inline-flex h-9 items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-medium transition-colors duration-150 hover:bg-accent active:scale-[0.98]";
+---
+
+<section id="roadmap" class="page py-16 sm:py-20" data-testid="roadmap-section" aria-labelledby="roadmap-title">
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div class="max-w-2xl">
+      <p class="cv-overline">ROADMAP &amp; FEEDBACK</p>
+      <Title id="roadmap-title" class="mt-2 text-balance text-3xl font-semibold tracking-tight">What is coming, and what you can ask for</Title>
+      <p class="mt-3 text-sm text-muted-foreground">
+        Features are prioritised by thumbs-up reactions on GitHub. Add yours to an idea you want, or request a new one.
+      </p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <a href={REQUEST_URL} class={btnPrimary} rel="noopener noreferrer" data-testid="roadmap-request">Request a Feature</a>
+      <a href={BOARD_URL} class={btnOutline} rel="noopener noreferrer" data-testid="roadmap-board">
+        View full board on GitHub <Icon name="external" class="size-3.5" />
+      </a>
+    </div>
+  </div>
+
+  <div class:list={["mt-8 grid gap-4", !page && "xl:grid-cols-4"]}>
+    <div
+      class:list={["grid min-w-0 grid-cols-1 items-start gap-4 lg:grid-cols-3", !page && "xl:col-span-3"]}
+      data-roadmap
+      data-limit={limit}
+      data-source="pending"
+      aria-busy="true"
+    >
+      {
+        columns.map((c) => (
+          <section class="min-w-0" data-testid={`roadmap-column-${c.slug}`} aria-labelledby={`roadmap-col-${c.slug}${page ? "-page" : ""}`}>
+            <div class="flex items-center gap-2 px-1 pb-3">
+              <span class={`size-2 rounded-full ${c.dot}`} aria-hidden="true"></span>
+              <h3 id={`roadmap-col-${c.slug}${page ? "-page" : ""}`} class="text-base font-bold">{c.title}</h3>
+              <span class="rounded-full border border-border/70 bg-muted/30 px-2 text-[11px] font-medium tabular-nums text-muted-foreground" data-count>–</span>
+            </div>
+            <ul class="grid gap-3" data-list>
+              <li class="h-24 animate-pulse rounded-xl border border-border/70 bg-muted/30 motion-reduce:animate-none" aria-hidden="true"></li>
+              <li class="h-24 animate-pulse rounded-xl border border-border/70 bg-muted/30 motion-reduce:animate-none" aria-hidden="true"></li>
+            </ul>
+          </section>
+        ))
+      }
+    </div>
+    {!page && <Changelog />}
+  </div>
+
+  <noscript><p class="mt-4 text-[13px] text-muted-foreground">The roadmap needs JavaScript. The ideas and their votes are on <a class="font-medium text-primary underline" href={BOARD_URL}>the board on GitHub</a>.</p></noscript>
+  <p class="mt-6 text-[13px] text-muted-foreground" data-testid="roadmap-note">
+    The roadmap loads public issues from GitHub when you open this page. That request goes to GitHub, carries no cookies and no
+    referrer, and the answer is kept in this tab for 15 minutes.
+  </p>
+
+  {page && <div class="mt-12"><Changelog all /></div>}
+</section>
+
+<script>
+  import { startRoadmap } from "../lib/roadmap-dom.mjs";
+  startRoadmap(window);
+</script>

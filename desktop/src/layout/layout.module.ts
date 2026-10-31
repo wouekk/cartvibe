@@ -18,7 +18,7 @@ import { HlmCollapsibleImports } from "@spartan-ng/helm/collapsible";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { HlmSidebarImports } from "@spartan-ng/helm/sidebar";
 import { ButtonModule } from "../button";
-import { DemoBannerComponent } from "../demo/demo-runtime";
+import { DemoBannerComponent, DemoFooterComponent } from "../demo/demo-runtime";
 import { DirectivesModule } from "../directives/directives.module";
 import { AddReceiptIconComponent } from "./add-receipt-icon/add-receipt-icon.component";
 import { DashboardIconComponent } from "./dashboard-icon/dashboard-icon.component";
@@ -40,6 +40,7 @@ import { SidebarComponent } from "./sidebar/sidebar.component";
     ButtonModule,
     CommonModule,
     DemoBannerComponent,
+    DemoFooterComponent,
     DirectivesModule,
     DirectivesModule,
     HlmButton,

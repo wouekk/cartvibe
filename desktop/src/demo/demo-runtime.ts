@@ -14,3 +14,6 @@ export const demoProviders: (Provider | EnvironmentProviders)[] = [];
 
 @Component({ selector: "app-demo-banner", template: "", changeDetection: ChangeDetectionStrategy.OnPush })
 export class DemoBannerComponent {}
+
+@Component({ selector: "app-demo-footer", template: "", changeDetection: ChangeDetectionStrategy.OnPush })
+export class DemoFooterComponent {}

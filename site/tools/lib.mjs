@@ -1,3 +1,0 @@
-export const api = "http://localhost:8081/api";
-export async function login(u="admin",p="admin"){const r=await fetch(`${api}/login/?tokensInBody=true`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:u,password:p})});return (await r.json()).jwt;}
-export function caller(t){return async (m,p,b)=>{const r=await fetch(api+p,{method:m,headers:{"Content-Type":"application/json",Authorization:`Bearer ${t}`},body:b===undefined?undefined:JSON.stringify(b)});const x=await r.text();if(!r.ok)throw new Error(`${m} ${p} ${r.status} ${x}`);return x?JSON.parse(x):undefined;};}
