@@ -28,7 +28,7 @@ const palettes = [
   { key: "emerald", label: "Emerald" },
   { key: "violet", label: "Violet" },
 ];
-const linkClass = "rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground aria-[current=location]:bg-accent aria-[current=location]:text-foreground";
+const linkClass = "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground aria-[current=location]:bg-accent aria-[current=location]:text-foreground";
 ---
 
 <!doctype html>
@@ -73,7 +73,7 @@ const linkClass = "rounded-md px-3 py-2 text-sm font-medium text-muted-foregroun
           <img class="shot-dark size-8" src={`${base}/brand/icon-dark.svg`} width="32" height="32" alt="" />
           <Wordmark />
         </a>
-        <nav aria-label="Main" class="ml-6 hidden items-center gap-1 md:flex">
+        <nav aria-label="Main" class="ml-6 hidden items-center gap-1 lg:flex">
           {nav.map((item) => <a href={item.href} class={linkClass} data-spy>{item.label}</a>)}
           <a href={repo} class={linkClass}>GitHub</a>
         </nav>
@@ -116,10 +116,10 @@ const linkClass = "rounded-md px-3 py-2 text-sm font-medium text-muted-foregroun
           </button>
           <a
             href={`${repo}#quick-start`}
-            class="hidden h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:bg-primary/80 sm:inline-flex"
+            class="hidden h-9 items-center whitespace-nowrap rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:bg-primary/80 sm:inline-flex"
             >Self-host it</a
           >
-          <details class="relative md:hidden" id="mobile-menu">
+          <details class="relative lg:hidden" id="mobile-menu">
             <summary
               class="inline-flex size-9 cursor-pointer items-center justify-center rounded-md border border-border bg-background hover:bg-accent"
               aria-label="Menu"
