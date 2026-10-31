@@ -301,7 +301,7 @@ func TestGrantCacheReturnsCachedUntilCleared(t *testing.T) {
 	}
 
 	// After an explicit eviction, the fresh DB value {cat2} is read.
-	clearGroupRoleGrantCache(roleId)
+	clearGroupRoleGrantCache(implicitCellID(), roleId)
 	allowed, _, err = service.GetGroupCategoryIdsForUser(userId, groupId)
 	if err != nil {
 		t.Fatalf("fresh resolve: %v", err)

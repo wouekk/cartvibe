@@ -383,5 +383,5 @@ func (service ShoppingListService) ClearCheckedShoppingListItems(groupId uint, l
 // "after commit" because the handlers construct this service without an outer transaction; a caller
 // that passes one must not expect the broadcast to wait for its commit.
 func publishShoppingListEvent(event models.ShoppingListEvent) {
-	GetShoppingListHub().Publish(event)
+	GetShoppingListHub().Publish(implicitCellID(), event)
 }

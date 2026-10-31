@@ -196,7 +196,7 @@ func startFlow(w http.ResponseWriter, r *http.Request, linkUserId *uint, purpose
 		return
 	}
 
-	discovered, err := GetProvider(providerRow)
+	discovered, err := GetProvider(repositories.ImplicitCell().ID(), providerRow)
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, "OIDC discovery failed for provider "+providerRow.Name+": "+err.Error())
 		failBrowserFlowStart(w, r, purpose, errProviderError)
@@ -339,7 +339,7 @@ func Callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	discovered, err := GetProvider(providerRow)
+	discovered, err := GetProvider(repositories.ImplicitCell().ID(), providerRow)
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, "OIDC discovery failed on callback: "+err.Error())
 		failCallback(w, r, session, errProviderError)

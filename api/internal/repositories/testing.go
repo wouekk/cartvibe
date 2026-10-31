@@ -232,3 +232,9 @@ func updateSystemSettingsForTests(change func(command *commands.UpsertSystemSett
 	_, err = repository.UpdateSystemSettings(command)
 	return err
 }
+
+// MigrateSchemaForTests creates the whole schema on a database that is not the process one, for the twin-cell
+// fixture (internal/cell/celltest) in tests outside this package.
+func MigrateSchemaForTests(target *gorm.DB) error {
+	return migrateSchema(target)
+}

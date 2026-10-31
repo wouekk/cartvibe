@@ -201,7 +201,7 @@ func (service PermissionService) resolveGroupPermissions(userId uint, groupId ui
 // loadRolePermissions returns a role's permission strings, consulting the cache
 // first and populating it on a miss. Callers must not mutate the returned slice.
 func loadRolePermissions(roleRepository repositories.RoleRepository, scope permissions.Scope, roleId uint) ([]string, error) {
-	if cached, ok := getCachedRolePermissions(scope, roleId); ok {
+	if cached, ok := getCachedRolePermissions(roleRepository.Cell.ID(), scope, roleId); ok {
 		return cached, nil
 	}
 
@@ -220,6 +220,6 @@ func loadRolePermissions(roleRepository repositories.RoleRepository, scope permi
 		return nil, err
 	}
 
-	setCachedRolePermissions(scope, roleId, perms, observedGen)
+	setCachedRolePermissions(roleRepository.Cell.ID(), scope, roleId, perms, observedGen)
 	return perms, nil
 }

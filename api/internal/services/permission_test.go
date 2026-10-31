@@ -327,8 +327,8 @@ func TestPermissionCacheInvalidatedOnRoleDelete(t *testing.T) {
 		t.Fatalf("seed role: %v", err)
 	}
 
-	setCachedRolePermissions(permissions.ScopeApp, role.ID, []string{permissions.AppUsersRead}, rolePermissionCacheGen())
-	if _, ok := getCachedRolePermissions(permissions.ScopeApp, role.ID); !ok {
+	setCachedRolePermissions(implicitCellID(), permissions.ScopeApp, role.ID, []string{permissions.AppUsersRead}, rolePermissionCacheGen())
+	if _, ok := getCachedRolePermissions(implicitCellID(), permissions.ScopeApp, role.ID); !ok {
 		t.Fatal("precondition: role permissions should be cached")
 	}
 
@@ -336,7 +336,7 @@ func TestPermissionCacheInvalidatedOnRoleDelete(t *testing.T) {
 		t.Fatalf("DeleteRole: %v", err)
 	}
 
-	if _, ok := getCachedRolePermissions(permissions.ScopeApp, role.ID); ok {
+	if _, ok := getCachedRolePermissions(implicitCellID(), permissions.ScopeApp, role.ID); ok {
 		t.Error("expected role's cached permissions to be evicted after delete")
 	}
 }
@@ -346,18 +346,18 @@ func TestRolePermissionCacheRejectsStaleWrite(t *testing.T) {
 
 	// Generation observed before a (simulated) concurrent eviction.
 	staleGen := rolePermissionCacheGen()
-	clearRolePermissionCache(permissions.ScopeApp, 1)
+	clearRolePermissionCache(implicitCellID(), permissions.ScopeApp, 1)
 
 	// A write carrying the pre-eviction generation must be dropped, otherwise a
 	// concurrent miss could resurrect revoked permissions.
-	setCachedRolePermissions(permissions.ScopeApp, 1, []string{permissions.AppUsersRead}, staleGen)
-	if _, ok := getCachedRolePermissions(permissions.ScopeApp, 1); ok {
+	setCachedRolePermissions(implicitCellID(), permissions.ScopeApp, 1, []string{permissions.AppUsersRead}, staleGen)
+	if _, ok := getCachedRolePermissions(implicitCellID(), permissions.ScopeApp, 1); ok {
 		t.Error("expected stale-generation write to be rejected")
 	}
 
 	// A write with the current generation is stored normally.
-	setCachedRolePermissions(permissions.ScopeApp, 1, []string{permissions.AppUsersRead}, rolePermissionCacheGen())
-	if _, ok := getCachedRolePermissions(permissions.ScopeApp, 1); !ok {
+	setCachedRolePermissions(implicitCellID(), permissions.ScopeApp, 1, []string{permissions.AppUsersRead}, rolePermissionCacheGen())
+	if _, ok := getCachedRolePermissions(implicitCellID(), permissions.ScopeApp, 1); !ok {
 		t.Error("expected current-generation write to be cached")
 	}
 }

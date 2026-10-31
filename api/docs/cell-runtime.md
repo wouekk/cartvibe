@@ -37,7 +37,8 @@ data. The hosted design itself is kept outside this repository.
 - Open a database only inside `internal/cell` (`gorm.Open` is reported anywhere else). `repositories/db.go` still does,
   until the connect code moves.
 - Anything keyed by a bare id (a cache, an in-memory hub, a backoff map) is wrong in a multi-cell process: two cells
-  hold the same ids. Key it by `(cell id, id)` when it is touched; none has been converted yet.
+  hold the same ids. Key it by `cell.CellKey[T]{Cell, ID}` (`cell.KeyOf(h, id)`, or `cell.KeyIn(cellID, id)` where only the
+  cell id is at hand). See "Cell-keyed caches" below for the ones that exist.
 - A function that writes to one cell but reads settings through another is a leak: read and write through the same
   handle (`SeedDefaultExchangeRates(h)` does).
 
@@ -51,7 +52,7 @@ data. The hosted design itself is kept outside this repository.
 5. A repository that builds a sibling uses `repository.Cell`. While the sibling's caller is not moved yet its `Cell` is zero,
    so there the call passes `ImplicitCell()` and changes to `repository.Cell` in the same commit that moves the caller.
 
-Done so far: every repository takes the handle: `AboutRepository`, `ExchangeRateRepository`, `DashboardLayoutRepository`,
+Done so far (steps 1 and 2): every repository takes the handle: `AboutRepository`, `ExchangeRateRepository`, `DashboardLayoutRepository`,
 `SystemSettingsRepository`, `CategoryRepository`, `TagsRepository`, `UserPreferncesRepository`, `ShoppingListRepository`,
 `SystemTaskRepository`, `OidcIdentityRepository`, `OidcProviderRepository`, `OidcSessionRepository`,
 `FoodClassificationRepository`, `ReportTemplateRepository`, `ShoppingTripRepository`, `GroupReceiptSettingsRepository`,
@@ -71,6 +72,60 @@ it reads the implicit cell, while `BaseRepository.AppLocation()` reads the repos
 sibling repository builds it with `NewXRepository(repository.Cell, tx)`, so one call chain never leaves its cell (before
 this, siblings were built from the process database). A repository built by a struct literal has a zero `Cell`; use the
 constructor.
+
+## Cell-keyed caches
+
+Every process-wide in-memory store that holds a cell's rows is keyed by `cell.CellKey[T]` (`internal/cell/key.go`):
+
+| Store | Key | Where |
+|---|---|---|
+| Shopping list SSE hub (subscribers, `Publish`, `SubscriberCount`) | `CellKey[groupId]` | `services/shopping_list_hub.go` |
+| OIDC discovered providers (with their signing keys) | `CellKey[providerId]` | `oidc/provider_cache.go` |
+| AI outage backoff of the food classification sweep | `CellKey["food-classification"]` | `services/ai_outage_backoff.go` |
+| Role permission cache | `CellKey[{scope, roleId}]` | `services/permission_cache.go` |
+| Group role grant cache | `CellKey[roleId]` | `services/grant_cache.go` |
+
+The cache functions take the cell id (`cell.ID`). The role caches get it from the `RoleRepository` they read through
+(`roleRepository.Cell.ID()`); the services, handlers and the OIDC flow, which have no handle yet, pass
+`services.ImplicitCellID()` / `repositories.ImplicitCell().ID()` (the standalone cell). They move to the request's cell with
+the services.
+
+Decisions worth knowing:
+
+- **Eviction is per cell.** `clearRolePermissionCache(cellID, scope, id)`, `clearGroupRoleGrantCache(cellID, id)` and
+  `EvictAllGroupRoleGrants(cellID)` (a deleted report template) leave other cells' entries alone. The `*All` helpers and the
+  `...ForTests` functions empty every cell.
+- **The eviction generations are shared by all cells.** A write that raced an eviction is dropped when the generation moved;
+  with one counter an eviction in cell A also drops an in-flight write of cell B, which costs B one cache miss and nothing
+  else. Per-cell counters would be exact but add a map and a lock for no correctness gain.
+- **Not keyed, on purpose:** `repositories.loadedLocations` (parsed time zones by IANA name, no cell data),
+  `PermissionService.grantMemo` and the per-request maps in `quick_scan_fields.go`, `member_visibility.go` and `grant_filter.go`
+  (all live for one request, which is one cell), and the shop logo store and syncer (`services.ShopLogos`): the store is a singleton over the data
+  directory and moves with the file layout, but the syncer also keeps household status in memory (`running`, `lastRun`,
+  `lastError`), so in a multi-cell process one cell would see another's last error and wait on its sync. It needs one syncer
+  per cell when that work happens; nothing keyed by an id is wrong in it today, which is why it was left.
+- **Evict through the handle you read with.** A service that reads through a handle and evicts through a second call to
+  `ImplicitCell()` works only while both name the same cell; take the handle once per operation and use it for the repository,
+  the cache read and the eviction (`RoleService`, the food classification sweep and `DeleteReportTemplate` do).
+- **Tests:** `cell/key_test.go`, `services/cell_caches_test.go`, `services/shopping_list_hub_test.go` and
+  `oidc/provider_cache_test.go` seed the same ids with different content into twin cells (or discover the same provider row
+  in both) and fail when a value crosses. Each was checked by making the key ignore the cell, which fails it.
+
+### Design note: the quick-scan mutex as a per-cell semaphore (not built)
+
+`wranglerasynq.quickScanMutex` is one process-wide `sync.Mutex`: quick scans run one at a time, so five photos are read in
+the order queued instead of five AI calls at once, which is also what the provider's rate limit prefers. In a multi-cell
+process that serialises every household behind the slowest scan, and the lock is held across the AI call. The design when a
+cell worker exists:
+
+- A per-cell semaphore: `map[cell.ID]chan struct{}` with capacity 1 per cell (the same serial behaviour inside a household),
+  created on first use under a mutex and dropped when the cell is evicted from the manager's LRU. A scan acquires its own
+  cell's slot only.
+- A process-wide cap on top (a second semaphore, capacity = the number of AI calls the worker may have in flight) so many
+  cells cannot start many scans at once; the provider limit then applies to the process, not to a household.
+- Acquire with the task's context, so a cancelled or timed-out task leaves the queue instead of waiting on the lock.
+- Across processes the lock has to live in Valkey (a lease per cell with a TTL longer than the longest scan, renewed while the
+  scan runs). That is a later step: no Valkey change is made now, and a standalone install keeps the single mutex.
 
 ## Twin-cell fixture (`internal/cell/celltest`)
 

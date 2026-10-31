@@ -60,9 +60,11 @@ type classificationBatch struct {
 // ProcessPending classifies what is waiting. It is what the periodic sweep runs. An AI that is missing
 // or unreachable leaves everything waiting for the next sweep; only a database error is returned.
 func (service FoodClassificationService) ProcessPending() (int, error) {
-	repository := repositories.NewFoodClassificationRepository(repositories.ImplicitCell(), service.TX)
+	h := repositories.ImplicitCell()
+	repository := repositories.NewFoodClassificationRepository(h, service.TX)
+	outages := classificationOutages(h.ID())
 
-	if classificationOutages.paused(time.Now()) {
+	if outages.paused(time.Now()) {
 		return 0, nil
 	}
 
@@ -120,7 +122,9 @@ func buildClassificationBatches(candidates []repositories.ClassificationCandidat
 }
 
 func (service FoodClassificationService) classifyBatch(batch classificationBatch) (int, error) {
-	repository := repositories.NewFoodClassificationRepository(repositories.ImplicitCell(), service.TX)
+	h := repositories.ImplicitCell()
+	repository := repositories.NewFoodClassificationRepository(h, service.TX)
+	outages := classificationOutages(h.ID())
 
 	corrections, err := repository.CorrectionsForGroup(batch.groupId)
 	if err != nil {
@@ -146,10 +150,10 @@ func (service FoodClassificationService) classifyBatch(batch classificationBatch
 	}
 	if outcome == textAiUnreachable {
 		// An outage counts against no product, but the sweep backs off so a long one is not hammered.
-		classificationOutages.recordFailure(time.Now())
+		outages.recordFailure(time.Now())
 		return 0, nil
 	}
-	classificationOutages.recordSuccess()
+	outages.recordSuccess()
 
 	now := time.Now()
 	classified := 0
