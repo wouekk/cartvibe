@@ -205,7 +205,7 @@ func UpdateOidcProvider(w http.ResponseWriter, r *http.Request) {
 			// Drop the cached discovery so an issuer or client-id change takes effect
 			// immediately on this process. The UpdatedAt fingerprint already covers
 			// correctness (including on other replicas); this just frees it promptly.
-			oidc.InvalidateProvider(id)
+			oidc.InvalidateProvider(repositories.ImplicitCell().ID(), id)
 
 			bytes, err := json.Marshal(view)
 			if err != nil {
@@ -240,7 +240,7 @@ func DeleteOidcProvider(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			oidc.InvalidateProvider(id)
+			oidc.InvalidateProvider(repositories.ImplicitCell().ID(), id)
 
 			w.WriteHeader(http.StatusOK)
 

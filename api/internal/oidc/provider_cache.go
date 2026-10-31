@@ -19,6 +19,7 @@ package oidc
 import (
 	"context"
 	"net/http"
+	"cartvibe/api/internal/cell"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
 	"sync"
@@ -41,11 +42,12 @@ type cacheEntry struct {
 
 var (
 	providerCacheMutex sync.RWMutex
-	providerCache      = map[uint]cacheEntry{}
+	providerCache      = map[cell.CellKey[uint]]cacheEntry{}
 )
 
-// GetProvider returns a discovered *oidc.Provider for a configured row, caching
-// it across requests.
+// GetProvider returns a discovered *oidc.Provider for a configured row of the given cell, caching
+// it across requests. The cache is keyed by (cell, row id): two cells hold the same provider ids, and one
+// household's provider (and its cached signing keys) must never serve another's login.
 //
 // Caching is not an optimization here, it is the design. oidc.NewProvider makes a
 // network round trip on EVERY call, and the *oidc.Provider is what owns the
@@ -59,9 +61,10 @@ var (
 // invalidates the entry BY CONSTRUCTION -- including on other replicas, which
 // never see the explicit InvalidateProvider call. That is why this needs no
 // cross-process invalidation, and nobody should add any.
-func GetProvider(providerRow models.OidcProvider) (*oidc.Provider, error) {
+func GetProvider(cellID cell.ID, providerRow models.OidcProvider) (*oidc.Provider, error) {
 	providerCacheMutex.RLock()
-	entry, ok := providerCache[providerRow.ID]
+	key := cell.KeyIn(cellID, providerRow.ID)
+	entry, ok := providerCache[key]
 	providerCacheMutex.RUnlock()
 
 	if ok && entry.issuerUrl == providerRow.IssuerUrl && entry.updatedAt.Equal(providerRow.UpdatedAt) {
@@ -88,7 +91,7 @@ func GetProvider(providerRow models.OidcProvider) (*oidc.Provider, error) {
 	}
 
 	providerCacheMutex.Lock()
-	providerCache[providerRow.ID] = cacheEntry{
+	providerCache[key] = cacheEntry{
 		provider:  discovered,
 		issuerUrl: providerRow.IssuerUrl,
 		updatedAt: providerRow.UpdatedAt,
@@ -101,9 +104,9 @@ func GetProvider(providerRow models.OidcProvider) (*oidc.Provider, error) {
 // InvalidateProvider drops a cached entry. The UpdatedAt fingerprint already
 // makes this unnecessary for correctness; it just frees the memory promptly on
 // the process that handled the write.
-func InvalidateProvider(id uint) {
+func InvalidateProvider(cellID cell.ID, id uint) {
 	providerCacheMutex.Lock()
-	delete(providerCache, id)
+	delete(providerCache, cell.KeyIn(cellID, id))
 	providerCacheMutex.Unlock()
 }
 
@@ -114,7 +117,7 @@ func InvalidateProvider(id uint) {
 // remedy, as ClearRolePermissionCacheForTests.
 func ClearProviderCacheForTests() {
 	providerCacheMutex.Lock()
-	providerCache = map[uint]cacheEntry{}
+	providerCache = map[cell.CellKey[uint]]cacheEntry{}
 	providerCacheMutex.Unlock()
 }
 

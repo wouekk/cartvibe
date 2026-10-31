@@ -84,7 +84,7 @@ func streamShoppingListEvents(w http.ResponseWriter, r *http.Request, groupId ui
 	w.WriteHeader(http.StatusOK)
 
 	hub := services.GetShoppingListHub()
-	subscriber := hub.Subscribe(groupId)
+	subscriber := hub.Subscribe(services.ImplicitCellID(), groupId)
 	defer hub.Unsubscribe(subscriber)
 
 	_, err = fmt.Fprintf(w, "retry: %d\n: connected\n\n", shoppingListStreamRetryMs)

@@ -342,7 +342,7 @@ func (service PermissionService) resolveGroupRoleGrants(userId uint, groupId uin
 // loadGroupRoleGrants returns a group role's grant sets, consulting the cache
 // first and populating it on a miss (mirroring loadRolePermissions).
 func loadGroupRoleGrants(roleRepository repositories.RoleRepository, roleId uint) (*grantEntry, error) {
-	if cached, ok := getCachedGroupRoleGrants(roleId); ok {
+	if cached, ok := getCachedGroupRoleGrants(roleRepository.Cell.ID(), roleId); ok {
 		return cached, nil
 	}
 
@@ -391,7 +391,7 @@ func loadGroupRoleGrants(roleRepository repositories.RoleRepository, roleId uint
 		requiresIndividualTagGrants:      requiresIndividualTagGrants,
 	}
 
-	setCachedGroupRoleGrants(roleId, entry, observedGen)
+	setCachedGroupRoleGrants(roleRepository.Cell.ID(), roleId, entry, observedGen)
 	return entry, nil
 }
 

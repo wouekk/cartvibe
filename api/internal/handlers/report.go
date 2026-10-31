@@ -246,7 +246,7 @@ func DeleteReportTemplate(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			services.EvictAllGroupRoleGrants()
+			services.EvictAllGroupRoleGrants(services.ImplicitCellID())
 
 			w.WriteHeader(http.StatusOK)
 			return 0, nil

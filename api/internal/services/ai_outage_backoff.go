@@ -3,6 +3,8 @@ package services
 import (
 	"sync"
 	"time"
+
+	"cartvibe/api/internal/cell"
 )
 
 // outageBackoff spaces out retries while the AI keeps failing, so a long outage costs a handful of calls instead of
@@ -16,8 +18,30 @@ type outageBackoff struct {
 	cap      time.Duration
 }
 
-// classificationOutages guards the food classification sweep, which runs every minute.
-var classificationOutages = &outageBackoff{base: 5 * time.Minute, cap: time.Hour}
+// outageBackoffs holds one backoff per (cell, guarded job): an outage the AI shows one household's key says nothing
+// about another's, so the sweep of one cell never pauses the sweep of another.
+var (
+	outageBackoffsMutex sync.Mutex
+	outageBackoffs      = map[cell.CellKey[string]]*outageBackoff{}
+)
+
+// classificationJob names the food classification sweep, which runs every minute, in outageBackoffs.
+const classificationJob = "food-classification"
+
+// classificationOutages is the backoff that guards the food classification sweep of a cell.
+func classificationOutages(cellID cell.ID) *outageBackoff {
+	outageBackoffsMutex.Lock()
+	defer outageBackoffsMutex.Unlock()
+
+	key := cell.KeyIn(cellID, classificationJob)
+	backoff, ok := outageBackoffs[key]
+	if !ok {
+		backoff = &outageBackoff{base: 5 * time.Minute, cap: time.Hour}
+		outageBackoffs[key] = backoff
+	}
+
+	return backoff
+}
 
 func (backoff *outageBackoff) paused(now time.Time) bool {
 	backoff.mutex.Lock()

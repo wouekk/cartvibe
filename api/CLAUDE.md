@@ -35,7 +35,8 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
   takes the handle from day one, and no new code adds a `repositories.GetDB()` call, a package-level `*gorm.DB` or a
   `gorm.Open` outside `internal/cell` (`scripts/cell-lint.sh` reports them; it is report-only for now). Test a moved
   repository against both cells with `cell/celltest` (identical ids, a marker per cell). `CARTVIBE_MODE` is `standalone`
-  (default); `worker` and `imgproc` are reserved and refuse to boot.
+  (default); `worker` and `imgproc` are reserved and refuse to boot. A process-wide cache, hub or
+  backoff keyed by a bare id is a leak between cells: key it by `cell.CellKey` (`docs/cell-runtime.md` → Cell-keyed caches).
 - **Map-form `Updates`** whenever a bool, empty string or zero must be written: GORM's struct form skips zero values, so
   a toggled-off flag or cleared description would stick. Repositories that assign fields one at a time
   (`UpdateUserPreferences`, `UpdateGroupReceiptSettings`) need each new field added by hand; their round-trip tests exist

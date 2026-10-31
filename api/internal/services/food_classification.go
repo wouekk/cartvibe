@@ -62,7 +62,7 @@ type classificationBatch struct {
 func (service FoodClassificationService) ProcessPending() (int, error) {
 	repository := repositories.NewFoodClassificationRepository(repositories.ImplicitCell(), service.TX)
 
-	if classificationOutages.paused(time.Now()) {
+	if classificationOutages(implicitCellID()).paused(time.Now()) {
 		return 0, nil
 	}
 
@@ -146,10 +146,10 @@ func (service FoodClassificationService) classifyBatch(batch classificationBatch
 	}
 	if outcome == textAiUnreachable {
 		// An outage counts against no product, but the sweep backs off so a long one is not hammered.
-		classificationOutages.recordFailure(time.Now())
+		classificationOutages(implicitCellID()).recordFailure(time.Now())
 		return 0, nil
 	}
-	classificationOutages.recordSuccess()
+	classificationOutages(implicitCellID()).recordSuccess()
 
 	now := time.Now()
 	classified := 0

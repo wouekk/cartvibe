@@ -245,7 +245,7 @@ func TestGetGroupPaidByUserIdsFailsClosedAfterGrantedUserDeleted(t *testing.T) {
 		t.Fatalf("delete payer: %v", err)
 	}
 	// A user delete does not evict the role's grant cache, so force a fresh load.
-	clearGroupRoleGrantCache(roleId)
+	clearGroupRoleGrantCache(implicitCellID(), roleId)
 
 	allowed, unrestricted, err = service.GetGroupPaidByUserIdsForUser(userId, groupId)
 	if err != nil {
@@ -280,7 +280,7 @@ func TestGetGroupPaidByUserIdsFailsClosedWhenFlagDesynced(t *testing.T) {
 		Update("paid_by_visibility_restricted", false).Error; err != nil {
 		t.Fatalf("force flag false: %v", err)
 	}
-	clearGroupRoleGrantCache(roleId)
+	clearGroupRoleGrantCache(implicitCellID(), roleId)
 
 	allowed, unrestricted, err := NewPermissionService(nil).GetGroupPaidByUserIdsForUser(userId, groupId)
 	if err != nil {

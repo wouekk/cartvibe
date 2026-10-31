@@ -246,12 +246,12 @@ func (service RoleService) UpdateRole(id uint, command commands.UpsertRoleComman
 
 	// A role's permission list just changed; drop its cached permissions so the
 	// next permission check resolves the new set.
-	clearRolePermissionCache(command.Scope, id)
+	clearRolePermissionCache(implicitCellID(), command.Scope, id)
 
 	// Group roles also carry category/tag grants, which the update just
 	// replaced — evict the cached grant sets so enforcement uses the new grants.
 	if command.Scope == permissions.ScopeGroup {
-		clearGroupRoleGrantCache(id)
+		clearGroupRoleGrantCache(implicitCellID(), id)
 	}
 
 	return roleView, nil
@@ -450,11 +450,11 @@ func (service RoleService) DeleteRole(id uint, scope permissions.Scope) error {
 	}
 
 	// The role is gone; evict any cached permissions for it.
-	clearRolePermissionCache(scope, id)
+	clearRolePermissionCache(implicitCellID(), scope, id)
 
 	// And its cached category/tag grants (group roles only).
 	if scope == permissions.ScopeGroup {
-		clearGroupRoleGrantCache(id)
+		clearGroupRoleGrantCache(implicitCellID(), id)
 	}
 
 	return nil
