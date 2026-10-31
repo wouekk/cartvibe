@@ -9,7 +9,9 @@ copy of the API. How it is published is in `../../docs/site.md`.
 A signed-in Admin ("Alex Demo") of a three-person household, with about 14 receipts over six months (product lines,
 categories, health labels, planned or not), three shopping lists, two warranties, a 650 € monthly goal, three report
 templates and a scripted AI. Everything is writable, but only in memory: a slim banner ("Demo, nothing is saved")
-carries a Reset button that throws the changes away and reloads the page at its start.
+carries a Reset button that throws the changes away and reloads the page at its start. Every page ends with the project site's two-line footer (the licence and the NOTICE credit link, and the no
+cookies, no analytics, no third-party scripts sentence; `demo-footer.component.ts`, wording kept in step with
+`site/src/components/Footer.astro`).
 
 ## How it is wired
 
@@ -18,7 +20,7 @@ carries a Reset button that throws the changes away and reloads the page at its 
   `src/demo/index.demo.html` as `index.html`, and one file replacement: `src/demo/demo-runtime.ts` →
   `demo-runtime.demo.ts`.
 - **The seam** is `demo-runtime.ts`. In the real app it exports empty things (`DEMO_MODE = false`, no providers, no
-  interceptors, an empty `app-demo-banner`). The demo file exports the in-memory interceptor, the providers and the real
+  interceptors, an empty `app-demo-banner` and `app-demo-footer`). The demo file exports the in-memory interceptor, the providers and the real
   banner. `app.config.ts`, `app-routing.module.ts` and the layout read only the seam, so the demo code is never
   imported by the real app and is not in its bundle.
 - **Backend:** `demoInterceptor` is last in the interceptor chain (after `httpInterceptor`, so errors toast the way they

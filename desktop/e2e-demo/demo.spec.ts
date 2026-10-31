@@ -143,3 +143,36 @@ for (const width of [360, 1280]) {
     }
   });
 }
+
+test('every page ends with the two-line footer of the project site', async ({ page }) => {
+  await openDemo(page);
+
+  for (const hash of ['/overview/group/1', '/receipts/group/1', '/shopping-lists/group/1', '/reports', '/warranties/group/1']) {
+    await goTo(page, hash);
+    await page.waitForLoadState('networkidle');
+    const footer = page.getByTestId('demo-footer');
+    await expect(footer, hash).toBeVisible();
+    await expect(footer.locator('p')).toHaveText([
+      /^\s*Free software under the GNU AGPL-3\.0 · Upstream credits in\s+NOTICE\s*$/,
+      'This site sets no cookies and runs no analytics or third-party scripts.',
+    ]);
+    await expect(page.getByTestId('demo-footer-notice')).toHaveAttribute('href', 'https://github.com/wouekk/cartvibe/blob/main/NOTICE.md');
+  }
+  await expect(page.getByTestId('demo-footer')).toHaveCount(1);
+});
+
+test('the footer fits a 360px phone and sits below the page content', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await openDemo(page);
+  await goTo(page, '/receipts/group/1');
+  await page.waitForLoadState('networkidle');
+
+  const footer = page.getByTestId('demo-footer');
+  await footer.scrollIntoViewIfNeeded();
+  const box = (await footer.boundingBox())!;
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width).toBeLessThanOrEqual(360);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
+  const outlet = (await page.locator('router-outlet + *').first().boundingBox())!;
+  expect(box.y).toBeGreaterThanOrEqual(outlet.y);
+});

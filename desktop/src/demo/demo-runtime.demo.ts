@@ -9,6 +9,7 @@ import { demoInterceptor } from "./demo-interceptor";
 import { installDemoStorage } from "./demo-storage";
 
 export { DemoBannerComponent } from "./demo-banner.component";
+export { DemoFooterComponent } from "./demo-footer.component";
 
 /** The demo side of the seam (see `demo-runtime.ts`). */
 export const DEMO_MODE = true;

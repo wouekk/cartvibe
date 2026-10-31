@@ -15,6 +15,7 @@ const path = require("node:path");
 const MARKERS = [
   "cartvibe-demo:", // the demo's storage prefix (demo-storage.ts)
   "Demo, nothing is saved", // the banner (demo-banner.component.ts)
+  "Upstream credits in", // the footer (demo-footer.component.ts)
   "Greenfield Market", // the sample household (backend/seed.ts)
   "Corner Bakery", // the scripted scan (backend/scripted-scan.ts)
   "Sample receipt, drawn by the demo", // the drawn receipt picture (backend/receipt-image.ts)
