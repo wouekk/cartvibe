@@ -15,8 +15,7 @@ three shopping lists, two warranties, a 650 EUR goal, three report templates), s
 "Read again" and trip photos, a "Demo, nothing is saved" banner with Reset, hash routing, prefixed storage, no request
 leaves the page, service worker and manifest off, real zip/CSV/XLSX/PDF downloads, five languages. "Try the demo" link in
 the site nav, footer and hero.
-Ran in this session (Node 24.22.1, as CI): full desktop specs `test:ci` on the first commits (314 files passed; re-run on
-`2c1e719` was started, result below if filled in), demo specs (74 incl. the report dialog spec) on `2c1e719`, `i18n:check`,
+Ran in this session (Node 24.22.1, as CI): full desktop specs `test:ci` on the first commits (314 files passed, first run; 314 files passed again on `2c1e719`), demo specs (74 incl. the report dialog spec) on `2c1e719`, `i18n:check`,
 `ng build` and `ng build --configuration demo`, `check:csp`, `check:demo` (also shown to fail when pointed at a build that
 contains the markers), `e2e:demo` 10 of 10 (Chromium from `/opt/pw-browsers`, built demo served like Pages), screenshots at
 360 and 1280 px, day and night, Zinc, Emerald and Violet. Not run: Safari, Firefox, Lighthouse, a Pages deploy, Excel or
