@@ -17,7 +17,9 @@ data. The hosted design itself is kept outside this repository.
 - **`internal/cell`**:
   - `cell.Handle` is opaque (unexported fields). Only a `cell.Manager` can build one; `h.DB()` returns the cell's pool and
     `h.ID()` its id. The zero `Handle` belongs to no cell and its `DB()` is nil, which is exactly what `GetDB()` returned
-    before the database was connected.
+    before the database was connected. A repository built from it is allowed; `BaseRepository.GetDB()` then panics with
+    "repository built from a zero cell.Handle" the first time it needs the database (no transaction either), instead
+    of a nil-pointer panic deep in GORM.
   - `cell.Manager` has `Open(ctx, id)` and `Implicit()`. `NewStandaloneManager(db)` serves today's single database as the
     cell `cell.StandaloneID`; `Open` refuses every other id with `ErrUnknownCell`, so a stray cell id fails instead of
     reading the one database. `NewStaticManager` serves a fixed set of cells (tests, `celltest`).
@@ -98,3 +100,8 @@ itself breaking, from failing the job:
 packages, not on the API.
 
 A check that handler goroutines carry a handle is not in the lint yet.
+
+**`tools/celllint` is a separate Go module** (its own `go.mod`/`go.sum`), so `go build ./...`, `go test ./...` and anything
+that walks only `api/go.mod` skip it. Add it to any dependency-update or vulnerability tooling the repository gets
+(`govulncheck`, Dependabot or Renovate, an SBOM); none exists in this repository today. Its one dependency is
+`golang.org/x/tools`, and it is never built into the image.

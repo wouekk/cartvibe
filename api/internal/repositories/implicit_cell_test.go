@@ -1,9 +1,12 @@
 package repositories
 
 import (
+	"strings"
 	"testing"
 
 	"cartvibe/api/internal/cell"
+
+	"gorm.io/gorm"
 )
 
 // Standalone behaviour: the implicit cell is the process database, always.
@@ -45,5 +48,40 @@ func TestImplicitCellIsZeroBeforeConnect(t *testing.T) {
 
 	if !ImplicitCell().IsZero() {
 		t.Error("before the database is connected the implicit cell must be the zero Handle, as GetDB was nil")
+	}
+
+	// Building a repository from it is allowed (AboutRepository never needs a database); using its database
+	// is what fails, and it fails loudly (see TestBaseRepositoryPanicsClearlyWithoutADatabase).
+	repository := NewExchangeRateRepository(ImplicitCell(), nil)
+	if repository.DB != nil {
+		t.Error("a repository built from the zero Handle must carry no database")
+	}
+	if _, err := NewAboutRepository(ImplicitCell(), nil).GetAboutData(); err != nil {
+		t.Errorf("AboutRepository does not touch the database and must still work: %v", err)
+	}
+}
+
+func TestBaseRepositoryPanicsClearlyWithoutADatabase(t *testing.T) {
+	defer func() {
+		recovered := recover()
+		message, _ := recovered.(string)
+		if !strings.Contains(message, "repository built from a zero cell.Handle") {
+			t.Errorf("expected the zero-handle message, recovered %v", recovered)
+		}
+	}()
+
+	NewExchangeRateRepository(cell.Handle{}, nil).GetDB()
+	t.Error("GetDB on a repository with no database and no transaction must panic")
+}
+
+func TestBaseRepositoryPrefersTheTransactionAndNeverPanicsWithADatabase(t *testing.T) {
+	handle := ImplicitCell()
+	tx := handle.DB().Session(&gorm.Session{})
+
+	if NewExchangeRateRepository(handle, nil).GetDB() != handle.DB() {
+		t.Error("without a transaction GetDB must return the handle's database")
+	}
+	if NewExchangeRateRepository(cell.Handle{}, tx).GetDB() != tx {
+		t.Error("a transaction alone is enough: GetDB must return it")
 	}
 }

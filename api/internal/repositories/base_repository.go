@@ -10,14 +10,24 @@ import (
 	"cartvibe/api/internal/commands"
 )
 
+// ErrZeroHandleRepository is the panic value of BaseRepository.GetDB when no database is available.
+const ErrZeroHandleRepository = "repository built from a zero cell.Handle: no database (not connected, or the handle came from nowhere)"
+
 type BaseRepository struct {
 	DB *gorm.DB
 	TX *gorm.DB
 }
 
+// GetDB returns the transaction when one is set, else the repository's database. A repository with neither
+// was built from a zero cell.Handle (or before the database connected): that is a programming error, so it
+// stops here with a readable message instead of a nil-pointer panic inside GORM.
 func (repository BaseRepository) GetDB() *gorm.DB {
 	if repository.TX != nil {
 		return repository.TX
+	}
+
+	if repository.DB == nil {
+		panic(ErrZeroHandleRepository)
 	}
 
 	return repository.DB
