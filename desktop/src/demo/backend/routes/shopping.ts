@@ -124,9 +124,12 @@ const tripRow = (view: ShoppingTripView): ShoppingTrip => ({
 export function registerShopping(router: DemoRouter): void {
   router.get("/shopping-list/group/:groupId", (ctx) => ctx.db.lists.filter((list) => list.groupId === idParam(ctx, "groupId")));
   router.post("/shopping-list/group/:groupId/going-shopping", (ctx) => {
-    const open = ctx.db.lists.filter((list) => list.groupId === idParam(ctx, "groupId") && list.items.some((item) => !item.isChecked));
-    const left = open.reduce((sum, list) => sum + list.items.filter((item) => !item.isChecked).length, 0);
-    notify(ctx.db, "SHOPPING_LIST", "Going shopping", `${left} items are still on the lists.`);
+    const groupId = idParam(ctx, "groupId");
+    notify(
+      ctx.db,
+      "Going shopping",
+      `\${userId:${ctx.db.currentUserId}.displayName:string} is going shopping. Add what you need to the lists in \${groupId:${groupId}.name:string}.`,
+    );
     return ok();
   });
   router.get("/shopping-list/group/:groupId/stream", () => ok(""));

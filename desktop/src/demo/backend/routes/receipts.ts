@@ -23,7 +23,7 @@ import { paginate } from "../paging";
 import { DemoRouter } from "../router";
 import { formatCents, parseCents } from "../money";
 import { receiptImageDataUrl } from "../receipt-image";
-import { SCRIPTED_SCAN, addScriptedReceipt, scriptedProducts, scriptedReceiptDraft } from "../scripted-scan";
+import { addScriptedReceipt, scriptedProducts, scriptedReceiptDraft } from "../scripted-scan";
 import { notify } from "./session";
 
 type FilterField = { operation?: string; value?: unknown } | undefined;
@@ -349,7 +349,7 @@ export function registerReceipts(router: DemoRouter): void {
         Number(paidBy[index] ?? paidBy[0] ?? ctx.db.currentUserId),
         (String(statuses[index] ?? statuses[0] ?? "") || ReceiptStatus.Open) as ReceiptStatus,
       );
-      notify(ctx.db, "RECEIPT", "Receipt read", `${receipt.name} was read from a sample: ${SCRIPTED_SCAN.lines.length} products.`);
+      notify(ctx.db, "Receipt ready", `The receipt: ${receipt.name} has been read by the AI. Check it out! \${receiptId:${receipt.id}.:link}`);
     }
     return ok();
   });

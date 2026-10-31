@@ -36,5 +36,13 @@
     "{user} added to the list {list}.",
     "{user} is going shopping. Add what you need to the lists in {group}."
   ],
-  "Nutrient levels (product check: the tooltip of a nutrition row)": ["low", "moderate", "high"]
+  "Nutrient levels (product check: the tooltip of a nutrition row)": ["low", "moderate", "high"],
+  "Answers of the demo backend (src/demo/backend: sent as errorMsg, translated by SnackbarService)": [
+    "Sign up is switched off in the demo.",
+    "The sample account cannot be deleted in the demo.",
+    "The demo keeps its one household.",
+    "This is switched off in the demo.",
+    "Reading again is scripted in the demo: use Read again on a receipt.",
+    "This part of CartVibe is not part of the demo."
+  ]
 }

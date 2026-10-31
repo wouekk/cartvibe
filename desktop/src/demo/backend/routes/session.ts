@@ -142,12 +142,15 @@ export function registerSession(router: DemoRouter): void {
   router.post("/user/deleteAccount", () => badRequest("The sample account cannot be deleted in the demo."));
 }
 
-/** Adds a notification for the signed-in user; used by the scripted scan and by Going shopping. */
-export function notify(db: DemoDb, type: string, title: string, text: string): Notification {
+/**
+ * Adds a notification for the signed-in user, for the scripted scan and Going shopping. The title and body are worded and
+ * tokenised as the API writes them (`${userId:2.displayName:string}`), so the app translates and links them as usual.
+ */
+export function notify(db: DemoDb, title: string, text: string): Notification {
   const notification: Notification = {
     id: nextId(db, "notification"),
     userId: db.currentUserId,
-    type,
+    type: "NORMAL",
     title,
     body: text,
     createdAt: `${db.today}T12:00:00Z`,

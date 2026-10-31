@@ -212,7 +212,11 @@ describe("DemoBackend", () => {
       expect(scanned?.name).toBe("Sunday brunch");
       expect(scanned?.amount).toBe("16.90");
       expect(json<{ products: unknown[] }>(call(backend, "GET", `/receipt-product/receipt/${scanned?.id}`)).products).toHaveLength(5);
+      const latest = json<{ title: string; body: string }[]>(call(backend, "GET", "/notifications"))[0];
       expect(json<unknown[]>(call(backend, "GET", "/notifications")).length).toBe(notifications + 1);
+      // Worded and tokenised like the API's own, so the app translates and links it.
+      expect(latest.title).toBe("Receipt ready");
+      expect(latest.body).toContain("has been read by the AI. Check it out! ${receiptId:");
     });
 
     it("answers Magic Fill with the same fixed draft and never saves it", () => {
@@ -327,6 +331,12 @@ describe("DemoBackend", () => {
       expect(preview.receiptCount).toBe(14);
       expect(preview.html).toContain("Month by month");
       expect(preview.html).toContain("142.85");
+
+      // A report with a grand total labels it in its first dimension column, and subtotals sit under their level.
+      const byShop = json<{ configuration: object }>(call(backend, "GET", "/report/template/2"));
+      expect(json<{ html: string }>(call(backend, "POST", "/report/preview", byShop.configuration)).html).toContain('<td class="">Total</td>');
+      const byCategory = json<{ configuration: object }>(call(backend, "GET", "/report/template/1"));
+      expect(json<{ html: string }>(call(backend, "POST", "/report/preview", byCategory.configuration)).html).toContain("Total 2026-10");
     });
 
     it("lists the receipts behind a preview and downloads CSV, XLSX and PDF", () => {

@@ -174,12 +174,31 @@ export function runReport(db: DemoDb, command: ReportRequestCommand): ReportTabl
     buckets.set(key, [...(buckets.get(key) ?? []), entry]);
   }
 
+  // A subtotal or grand total row: the label goes in the first label cell (a grouping level, else the first dimension).
+  const totalRow = (text: string, group: Entry[]): string[] => {
+    const labelled = leading.length === 0;
+    let placed = false;
+    return [
+      ...leading.map((_, index) => (index === 0 ? text : "")),
+      ...columns.map((column) => {
+        if (column.kind === "aggregate") {
+          return aggregate(column, group);
+        }
+        if (labelled && column.kind === "dimension" && !placed) {
+          placed = true;
+          return text;
+        }
+        return "";
+      }),
+    ];
+  };
+
   const keys = [...buckets.keys()].sort((a, b) => a.localeCompare(b));
   let previousFirst: string | undefined;
   let subtotalGroup: Entry[] = [];
   const flushSubtotal = (): void => {
     if (command.subtotals && levels.length > 1 && subtotalGroup.length > 0) {
-      table.rows.push([...leading.map((_, index) => (index === 0 ? `Total ${previousFirst}` : "")), ...columns.map((column) => (column.kind === "aggregate" ? aggregate(column, subtotalGroup) : ""))]);
+      table.rows.push(totalRow(`Total ${previousFirst}`, subtotalGroup));
       table.emphasised.push(table.rows.length - 1);
     }
     subtotalGroup = [];
@@ -198,7 +217,7 @@ export function runReport(db: DemoDb, command: ReportRequestCommand): ReportTabl
   flushSubtotal();
 
   if (command.grandTotals && entries.length > 0) {
-    table.rows.push([...leading.map((_, index) => (index === 0 ? "Total" : "")), ...columns.map((column) => (column.kind === "aggregate" ? aggregate(column, entries) : ""))]);
+    table.rows.push(totalRow("Total", entries));
     table.emphasised.push(table.rows.length - 1);
   }
 

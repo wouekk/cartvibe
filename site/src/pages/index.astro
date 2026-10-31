@@ -6,6 +6,8 @@ import Slot from "../components/Slot.astro";
 import Wireframe from "../components/Wireframe.astro";
 
 const repo = "https://github.com/wouekk/cartvibe";
+// The live demo of the real app, built from desktop/ and published beside this page (docs/site.md, "The demo").
+const demo = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/demo/`;
 
 // The four steps of the scroll-driven track. `kind` picks the wireframe, the slot name the art file in public/art.
 const steps = [
@@ -158,6 +160,7 @@ const tick = "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-fu
       </p>
       <div class="mt-6 flex flex-wrap items-center justify-center gap-2">
         <a href={`${repo}#quick-start`} class={btnPrimary}><Icon name="server" class="size-4" /> Self-host it</a>
+        <a href={demo} class={btnOutline} data-testid="hero-demo">Try the demo</a>
         <a href="#features" class={btnOutline}>See how it works</a>
       </div>
       <div class="hero-visual mx-auto mt-12 max-w-4xl text-left" data-testid="hero-visual">

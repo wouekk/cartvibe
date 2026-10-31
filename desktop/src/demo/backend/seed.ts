@@ -619,9 +619,10 @@ export function createDemoDb(today: string): DemoDb {
     lists: buildLists(today),
     trips: [],
     reportTemplates: [],
+    // Worded and tokenised exactly as the API writes them, so they translate and link like the real ones.
     notifications: [
-      { id: 1, userId: DEMO_USER_ID, type: "SHOPPING_LIST", title: "Sam is going shopping", body: "Weekly shop has 6 items left.", createdAt: instantOn(today, 9) },
-      { id: 2, userId: DEMO_USER_ID, type: "RECEIPT", title: "Receipt read", body: "Weekly shop was read: 8 products.", createdAt: instantOn(today, 10) },
+      { id: 1, userId: DEMO_USER_ID, type: "NORMAL", title: "Going shopping", body: "${userId:2.displayName:string} is going shopping. Add what you need to the lists in ${groupId:1.name:string}.", createdAt: instantOn(today, 9) },
+      { id: 2, userId: DEMO_USER_ID, type: "NORMAL", title: "Receipt ready", body: "The receipt: Weekly shop has been read by the AI. Check it out! ${receiptId:1.:link}", createdAt: instantOn(today, 10) },
     ],
     systemTasks: [
       {
