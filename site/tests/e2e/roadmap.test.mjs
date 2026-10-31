@@ -283,7 +283,7 @@ test("the changelog is a list under the board: the latest four releases one line
   assert.equal(await older.first().isVisible(), false);
   await more.locator("summary").click();
   assert.equal(await older.first().isVisible(), true);
-  assert.equal((await more.locator("summary").innerText()).replace(/s+/g, " ").trim(), `Older versions (${olderCount})`);
+  assert.equal((await more.locator("summary").innerText()).replace(/\s+/g, " ").trim(), `Older versions (${olderCount})`);
   assert.equal(await log.getByTestId("changelog-full").getAttribute("href"), `${REPO}/blob/main/CHANGELOG.md`);
   await context.close();
 });
