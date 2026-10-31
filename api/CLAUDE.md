@@ -3,7 +3,8 @@
 The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated here. Deep notes in `docs/`:
 `authorization.md` (visibility rationale, households, role-required fields), `oidc.md`, `sessions-cookies.md`,
 `domain.md` (shopping lists, products, trips, Dashboard, currencies, search, receipts, sweeps), `shop-logos.md`,
-`activity-source-files.md`, `sandbox.md` (cloud sandbox boot and the real cgo suite).
+`activity-source-files.md`, `sandbox.md` (cloud sandbox boot and the real cgo suite), `cell-runtime.md` (cell handle,
+`CARTVIBE_MODE`, twin-cell tests, the lint).
 
 ## 1. Build and test
 
@@ -18,6 +19,8 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
 - PDF tests: `scripts/install-test-chromium.sh` once, then `scripts/test-pdf.sh`. Elsewhere set `CHROMIUM_BINARY_PATH`
   (default `/usr/bin/chromium`); without a browser the HTML-to-PDF tests fail and `internal/services` reports FAIL.
 - **CI is the judge.** Run the packages you touched locally where the toolchain allows, and say which tests did not run.
+- `scripts/cell-lint.sh` (from `api/`) runs the cell lint in `tools/celllint`, a separate Go module (`cd tools/celllint && go test ./...`
+  for its own tests); `go build ./...` and `go test ./...` in `api/` skip it.
 - The test DB enforces foreign keys, so a cleanup test passes on `ON DELETE CASCADE` alone. To prove an explicit delete,
   run under `repositories.UseTestDbWithoutForeignKeysForTests()` and defer its restore. A failed run can leave `app.db`
   in a test package directory; delete those, never anything under `sqlite/`.
@@ -27,6 +30,12 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
 
 - Request flow: `handlers/` (`structs.Handler` + `HandleRequest`) → `services/` → `repositories/` (GORM); `commands/`
   carry `Validate()`; `permissions/` and `reporting/` are pure.
+- **Database access goes through a `cell.Handle`** (`internal/cell`, `docs/cell-runtime.md`). A repository constructor takes
+  `h cell.Handle` and builds on `h.DB()`; callers without a handle yet pass `repositories.ImplicitCell()`. A new repository
+  takes the handle from day one, and no new code adds a `repositories.GetDB()` call, a package-level `*gorm.DB` or a
+  `gorm.Open` outside `internal/cell` (`scripts/cell-lint.sh` reports them; it is report-only for now). Test a moved
+  repository against both cells with `cell/celltest` (identical ids, a marker per cell). `CARTVIBE_MODE` is `standalone`
+  (default); `worker` and `imgproc` are reserved and refuse to boot.
 - **Map-form `Updates`** whenever a bool, empty string or zero must be written: GORM's struct form skips zero values, so
   a toggled-off flag or cleared description would stick. Repositories that assign fields one at a time
   (`UpdateUserPreferences`, `UpdateGroupReceiptSettings`) need each new field added by hand; their round-trip tests exist

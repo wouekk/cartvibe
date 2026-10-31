@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"cartvibe/api/internal/cell"
 	config "cartvibe/api/internal/env"
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/models"
@@ -20,6 +21,39 @@ import (
 )
 
 var db *gorm.DB
+
+// cells serves the cell handles. In standalone mode it holds today's single database; it always wraps
+// the same *gorm.DB as db, because setDB is the only place either is assigned.
+var cells cell.Manager
+
+// setDB replaces the process database and the standalone manager that wraps it.
+func setDB(connectedDb *gorm.DB) {
+	db = connectedDb
+
+	if connectedDb == nil {
+		cells = nil
+		return
+	}
+
+	// Only a nil database makes this fail, and that case returned above.
+	cells, _ = cell.NewStandaloneManager(connectedDb)
+}
+
+// ImplicitCell returns the handle of the one standalone cell, the zero Handle before the database is
+// connected (as GetDB returned nil then). It is the bridge for callers that do not receive a handle
+// yet; once the HTTP layer resolves the cell per request it goes away.
+func ImplicitCell() cell.Handle {
+	if cells == nil {
+		return cell.Handle{}
+	}
+
+	handle, err := cells.Implicit()
+	if err != nil {
+		return cell.Handle{}
+	}
+
+	return handle
+}
 
 func BuildMariaDbConnectionString(dbConfig structs.DatabaseConfig) string {
 	host := fmt.Sprintf("%s:%d", dbConfig.Host, dbConfig.Port)
@@ -147,7 +181,7 @@ func Connect() error {
 		}
 	}
 
-	db = connectedDb
+	setDB(connectedDb)
 	return nil
 }
 
@@ -179,7 +213,13 @@ func openWithRetry(dialector gorm.Dialector, maxAttempts int) (*gorm.DB, error) 
 }
 
 func MakeMigrations() error {
-	err := db.AutoMigrate(
+	return migrateSchema(db)
+}
+
+// migrateSchema creates or extends every table on target. MakeMigrations runs it on the process database;
+// the twin-cell tests run it on each fixture cell.
+func migrateSchema(target *gorm.DB) error {
+	err := target.AutoMigrate(
 		&models.RefreshToken{},
 		&models.AppRole{},
 		&models.AppRolePermission{},
@@ -284,7 +324,7 @@ func InitTestDb() {
 		panic(err)
 	}
 
-	db = sqlite
+	setDB(sqlite)
 }
 
 // UseTestDbWithoutForeignKeysForTests points the package database at a second
@@ -306,10 +346,10 @@ func UseTestDbWithoutForeignKeysForTests() (restore func(), err error) {
 	}
 
 	previous := db
-	db = withoutForeignKeys
+	setDB(withoutForeignKeys)
 
 	return func() {
-		db = previous
+		setDB(previous)
 
 		if sqlDB, err := withoutForeignKeys.DB(); err == nil {
 			sqlDB.Close()

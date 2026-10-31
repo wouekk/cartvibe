@@ -1,17 +1,19 @@
 package repositories
 
 import (
-	"gorm.io/gorm"
+	"cartvibe/api/internal/cell"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/utils"
+
+	"gorm.io/gorm"
 )
 
 type ExchangeRateRepository struct {
 	BaseRepository
 }
 
-func NewExchangeRateRepository(tx *gorm.DB) ExchangeRateRepository {
-	return ExchangeRateRepository{BaseRepository: BaseRepository{DB: GetDB(), TX: tx}}
+func NewExchangeRateRepository(h cell.Handle, tx *gorm.DB) ExchangeRateRepository {
+	return ExchangeRateRepository{BaseRepository: BaseRepository{DB: h.DB(), TX: tx}}
 }
 
 // GetAll returns every listed currency, ordered by code.
@@ -68,8 +70,8 @@ func (repository ExchangeRateRepository) ReplaceAll(rates []models.ExchangeRate)
 
 // SeedExchangeRates lists the currencies the household starts with (rates empty, to be typed in), once:
 // only when the table is empty, so an administrator's removals stay removed. The main currency is skipped.
-func SeedExchangeRates(codes []string, mainCode string) error {
-	db := GetDB()
+func SeedExchangeRates(h cell.Handle, codes []string, mainCode string) error {
+	db := h.DB()
 
 	var count int64
 	if err := db.Model(&models.ExchangeRate{}).Count(&count).Error; err != nil || count > 0 {
@@ -88,12 +90,13 @@ func SeedExchangeRates(codes []string, mainCode string) error {
 	return nil
 }
 
-// SeedDefaultExchangeRates lists CHF, PLN, GBP and USD (less the main currency) on a fresh install.
+// SeedDefaultExchangeRates lists CHF, PLN, GBP and USD (less the main currency) on a fresh install. It still
+// reads the System Settings through the implicit cell, so it moves to a handle with SystemSettingsRepository.
 func SeedDefaultExchangeRates() error {
 	settings, err := NewSystemSettingsRepository(nil).GetSystemSettings()
 	if err != nil {
 		return err
 	}
 
-	return SeedExchangeRates([]string{"CHF", "PLN", "GBP", "USD"}, utils.MainCurrencyCode(settings.CurrencyDisplay))
+	return SeedExchangeRates(ImplicitCell(), []string{"CHF", "PLN", "GBP", "USD"}, utils.MainCurrencyCode(settings.CurrencyDisplay))
 }

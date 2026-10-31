@@ -58,6 +58,12 @@ jobs:
       - name: Build
         run: go build -v ./...
         working-directory: ./api
+      # Report-only (api/docs/cell-runtime.md): findings never fail the job. Remove continue-on-error and set
+      # CELL_LINT_ENFORCE=1 once the repositories are migrated.
+      - name: Cell lint (report-only)
+        continue-on-error: true
+        run: scripts/cell-lint.sh
+        working-directory: ./api
       - name: Test
         # Failures are also raised as annotations, so they can be read without access to the log.
         shell: bash
