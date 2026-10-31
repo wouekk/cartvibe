@@ -23,6 +23,9 @@ const (
 	ValkeyPassword EnvironmentVariable = "VALKEY_PASSWORD"
 	BasePath      EnvironmentVariable = "BASE_PATH"
 	Env           EnvironmentVariable = "ENV"
+	// CartvibeMode is "standalone" (the default, today's single-household server); "worker" and "imgproc" are
+	// reserved for the hosted plan and refused at boot. See docs/cell-runtime.md.
+	CartvibeMode EnvironmentVariable = "CARTVIBE_MODE"
 
 	ChromiumBinaryPath             EnvironmentVariable = "CHROMIUM_BINARY_PATH"
 	ChromiumSandbox                EnvironmentVariable = "CHROMIUM_SANDBOX"

@@ -2,6 +2,7 @@ package env
 
 import (
 	"os"
+	"cartvibe/api/internal/cell"
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/utils"
 	"testing"
@@ -305,5 +306,32 @@ func TestFindBasePath(t *testing.T) {
 				t.Errorf("findBasePath(%q) = %q, want %q", test.cwd, got, test.want)
 			}
 		})
+	}
+}
+
+func TestShouldDefaultToStandaloneMode(t *testing.T) {
+	os.Unsetenv("CARTVIBE_MODE")
+
+	mode, err := GetCellMode()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if mode != cell.ModeStandalone || !mode.Implemented() {
+		t.Errorf("an unset CARTVIBE_MODE must be standalone, got %q", mode)
+	}
+}
+
+func TestShouldReadReservedAndRejectUnknownModes(t *testing.T) {
+	defer os.Unsetenv("CARTVIBE_MODE")
+
+	os.Setenv("CARTVIBE_MODE", "worker")
+	mode, err := GetCellMode()
+	if err != nil || mode != cell.ModeWorker || mode.Implemented() {
+		t.Errorf("worker must parse and be reported as not implemented, got %q (%v)", mode, err)
+	}
+
+	os.Setenv("CARTVIBE_MODE", "nonsense")
+	if _, err := GetCellMode(); err == nil {
+		t.Error("an unknown CARTVIBE_MODE must be an error")
 	}
 }

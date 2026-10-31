@@ -3,6 +3,7 @@ package env
 import (
 	"flag"
 	"os"
+	"cartvibe/api/internal/cell"
 	"cartvibe/api/internal/constants"
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/structs"
@@ -67,6 +68,12 @@ func GetEncryptionKey() string {
 func CheckRequiredEnvironmentVariables() {
 	GetEncryptionKey()
 	GetSecretKey()
+}
+
+// GetCellMode reads CARTVIBE_MODE. Unset or empty is standalone, so an install that never set it runs
+// exactly as before; an unknown value is an error.
+func GetCellMode() (cell.Mode, error) {
+	return cell.ParseMode(os.Getenv(string(constants.CartvibeMode)))
 }
 
 func GetDeployEnv() string {
