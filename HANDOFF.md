@@ -5,6 +5,17 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 
 ## Current state
 
+- **`feature/cell-runtime` (pushed, not merged, no PR; `main` and `preview` untouched):** step 1 of the cell runtime.
+  Done: `CARTVIBE_MODE` (`standalone` default, `worker`/`imgproc` refuse to boot), `internal/cell` (opaque `Handle`,
+  standalone and static managers), `repositories.ImplicitCell()` bridge, twin-cell fixture `cell/celltest`, report-only
+  lint `tools/celllint` + `scripts/cell-lint.sh`, About/ExchangeRate/DashboardLayout repositories on the handle,
+  `docs/cell-runtime.md`, `CLAUDE.md`. Baseline and results are in the commit messages. **CI has not run on it.**
+  Needs a person: add the report-only lint step to `ci.yml` (snippet in `docs/cell-runtime.md`; the push token cannot
+  change workflows). Verified only on a substitute SQLite driver (mattn, throwaway shim) because `modernc.org/sqlite`,
+  `modernc.org/libc` and `segmentio/encoding` could not be downloaded in the session; `main`, `routers`, `mcp` did not
+  build there, and the server was not booted. Five HTML-to-PDF tests fail with a Chromium `-32602` error, also on `main`.
+  Next: migrate more repositories (SystemSettings first, `SeedDefaultExchangeRates` waits on it), then cell-keyed caches.
+
 - `main` = `preview` = v0.14.0 (2026-10-30; the entries below marked "in 0.14.0" are part of it). Last pieces, each from
   its own branch, gated on Node 24.22.1 (npm ci, lockfile stable, audit 0, specs, build, CSP hash) and green in CI,
   also on the merged tree: the runtime image installs no Recommends
