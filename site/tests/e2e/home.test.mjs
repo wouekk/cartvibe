@@ -56,6 +56,13 @@ test('the "And more" block has only its heading and still has its four screensho
   await context.close();
 });
 
+test('the self-hosted plan says "Free forever"', async () => {
+  const { page, context } = await open(browser, server.origin, "/", { setup: noGithub });
+  const plan = page.locator("#cloud");
+  assert.match(await plan.innerText(), /Free forever/);
+  await context.close();
+});
+
 test("no horizontal overflow at 360 px in every palette, day and night", async () => {
   for (const palette of ["zinc", "blue", "indigo", "emerald", "violet"]) {
     for (const mode of ["light", "dark"]) {
