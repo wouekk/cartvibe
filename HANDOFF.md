@@ -5,31 +5,17 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 
 ## Current state
 
-- **Site update (T7) is on `feature/site-update`** (task entry in the cloud repo's `docs/tasks/QUEUE.md` lists the commits).
-  "Vibe" follows the palette (brand emerald in Zinc), one shared two-line footer (also in the demo), home copy and real demo
-  screenshots (`npm run shots` in `site/`), a native roadmap on the home page and at `/roadmap/` (GitHub issues read in the
-  browser, curated fallback, 15 minute `sessionStorage` cache) with the changelog read from `CHANGELOG.md` at build time. Tests:
-  `cd site && npm test` (unit) and `npm run test:e2e` (Chromium, mocked GitHub); the site-only commits are separable from the one
-  `desktop/` commit (the demo footer). **Waiting on the owner:** create the labels `roadmap`, `status:in-progress`,
-  `status:shipped` and label the issues; apply the `pages.yml`/`ci.yml` patches in `docs/site.md` (the demo ones, then the site
-  tests one). The reviewer cherry-picks the `site/`-only commits to `main`. Not run: Safari, Firefox, Lighthouse, a Pages deploy.
-- **Demo (T4) is in `preview`** (`desktop/docs/demo.md`; published only once the `pages.yml` patch in `docs/site.md` is applied).
-
-- **Cell runtime steps 1 and 2 are in `preview`, not `main`** (step 2 merged as `76aeddc7`, CI green at `7bba632`). Every
-  repository takes a `cell.Handle` (`NewXRepository(h, tx)`), `BaseRepository.Cell` keeps it for sibling repositories, the
-  startup seeds take a handle, twin-cell tests in `repositories/cell_handle_test.go` and `cell_handle_leaf_test.go`.
-  `CARTVIBE_MODE` standalone is unchanged. Lint on the real API (all files / non-test): `global-db` 2/1, `gorm-open` 4/3,
-  `get-db` 630/85 after step 2 (was 660/115), 626/81 after the cache work (local lint, stubbed cgo). The 81 left are in services, handlers, middleware, oauth, oidc and
-  `repositories/testing.go`. Lint blind spot: reads of the package variable `db` (see `api/docs/cell-runtime.md`).
-  `celllint` is a separate Go module: add it to any vulnerability or dependency tooling when that exists.
-- **Cell-keyed caches (task T3) are on `feature/cell-caches`** (SSE hub, OIDC provider cache, outage backoff, role permission
-  and grant caches keyed by `cell.CellKey`; quick-scan mutex is a design note only). See the status of the branch in the task
-  queue. Next: move services/handlers off `repositories.GetDB()` so they carry a handle, then the shop-logo syncer per cell.
-- **Project page rebuilt** (`feature/landing-site`, `feature/site-cloud-plan`): Astro site in `site/` (`docs/site.md`),
-  scroll-driven showcase on the app's design tokens and palettes, wireframe slots for the user's own art (`site/public/art`),
-  real demo-data screenshots, a "Cloud plan, coming soon" section (no prices). The new page is on `main`; the Cloud plan
-  section is in `preview` only. Not run: Lighthouse, Safari/iPhone.
-
+- **Project page** (`site/`, `docs/site.md`): shared footer, "Vibe" follows the palette, real demo screenshots (regenerate with
+  `npm run shots`, or run the "Project page" workflow by hand with `shots` ticked), one home-page section for the roadmap (public
+  GitHub issues labelled `roadmap`, read in the browser, curated fallback; `/roadmap/` redirects to it) with the changelog list
+  under it (latest four, one line each), the nav marks the section in view. The demo is published under `/demo/` (`desktop/docs/demo.md`).
+  Not run: Safari, Firefox, Lighthouse.
+- **Cell runtime steps 1 to 3 (cell handle, repositories, cell-keyed caches)**: every repository takes a `cell.Handle`
+  (`NewXRepository(h, tx)`), caches are keyed by `cell.CellKey`, `CARTVIBE_MODE` standalone is unchanged. Lint on the real API
+  (all files / non-test): `global-db` 2/1, `gorm-open` 4/3, `get-db` 626/81 (local lint, stubbed cgo; CI runs it report-only).
+  Next: move services/handlers off `repositories.GetDB()` so they carry a handle, then the shop-logo syncer per cell. Details:
+  `api/docs/cell-runtime.md`. Lint blind spot: reads of the package variable `db`. `celllint` is a separate Go module.
+- Planning for a hosted plan lives in the separate private repository `wouekk/cartvibe-cloud`; start at its `docs/NEXT-SESSION.md`.
 - `main` = `preview` = v0.14.0 (2026-10-30; the entries below marked "in 0.14.0" are part of it). Last pieces, each from
   its own branch, gated on Node 24.22.1 (npm ci, lockfile stable, audit 0, specs, build, CSP hash) and green in CI,
   also on the merged tree: the runtime image installs no Recommends
