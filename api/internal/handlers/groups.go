@@ -358,7 +358,7 @@ func UpdateGroupReceiptSettings(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			groupReceiptSettingsRepository := repositories.NewGroupReceiptSettingsRepository(nil)
+			groupReceiptSettingsRepository := repositories.NewGroupReceiptSettingsRepository(repositories.ImplicitCell(), nil)
 			updatedGroupReceiptSettings, err := groupReceiptSettingsRepository.UpdateGroupReceiptSettings(groupId, command)
 			if err != nil {
 				return http.StatusInternalServerError, err

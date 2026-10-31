@@ -254,7 +254,7 @@ func (service GroupService) DeleteGroup(groupId string, allowAllGroupDelete bool
 		}
 
 		// Delete shopping lists in group, with their trips and items. Trips first: they reference the lists.
-		tripPhotoPaths, txErr = repositories.NewShoppingTripRepository(tx).DeleteTripsForGroup(uintGroupId)
+		tripPhotoPaths, txErr = repositories.NewShoppingTripRepository(repositories.ImplicitCell(), tx).DeleteTripsForGroup(uintGroupId)
 		if txErr != nil {
 			return txErr
 		}
@@ -265,7 +265,7 @@ func (service GroupService) DeleteGroup(groupId string, allowAllGroupDelete bool
 		}
 
 		// Delete the group's remembered product corrections
-		txErr = repositories.NewFoodClassificationRepository(tx).DeleteCorrectionsForGroup(uintGroupId)
+		txErr = repositories.NewFoodClassificationRepository(repositories.ImplicitCell(), tx).DeleteCorrectionsForGroup(uintGroupId)
 		if txErr != nil {
 			return txErr
 		}

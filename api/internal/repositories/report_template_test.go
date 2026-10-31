@@ -32,7 +32,7 @@ func TestCreateReportTemplate_PersistsNameOwnerAndConfig(t *testing.T) {
 	var userId uint = 7
 	command := sampleReportCommand()
 
-	template, err := NewReportTemplateRepository(nil).CreateReportTemplate(command, userId)
+	template, err := NewReportTemplateRepository(ImplicitCell(), nil).CreateReportTemplate(command, userId)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
@@ -75,7 +75,7 @@ func TestCreateReportTemplate_PersistedRowIsReadable(t *testing.T) {
 	command := sampleReportCommand()
 	command.Name = "Reloadable"
 
-	created, err := NewReportTemplateRepository(nil).CreateReportTemplate(command, userId)
+	created, err := NewReportTemplateRepository(ImplicitCell(), nil).CreateReportTemplate(command, userId)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
@@ -106,7 +106,7 @@ func TestCreateReportTemplate_PersistedRowIsReadable(t *testing.T) {
 func TestCreateReportTemplate_StoredConfigOmitsEmptyPeriodDateField(t *testing.T) {
 	defer TruncateTestDb()
 
-	template, err := NewReportTemplateRepository(nil).CreateReportTemplate(sampleReportCommand(), 1)
+	template, err := NewReportTemplateRepository(ImplicitCell(), nil).CreateReportTemplate(sampleReportCommand(), 1)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
@@ -125,7 +125,7 @@ func TestCreateReportTemplate_StoredConfigKeepsPeriodDateField(t *testing.T) {
 			command := sampleReportCommand()
 			command.Period.DateField = dateField
 
-			template, err := NewReportTemplateRepository(nil).CreateReportTemplate(command, 1)
+			template, err := NewReportTemplateRepository(ImplicitCell(), nil).CreateReportTemplate(command, 1)
 			if err != nil {
 				utils.PrintTestError(t, err, nil)
 				return
@@ -146,7 +146,7 @@ func TestCreateReportTemplate_StoredConfigKeepsPeriodDateField(t *testing.T) {
 func TestUpdateReportTemplate_ChangesPeriodDateField(t *testing.T) {
 	defer TruncateTestDb()
 
-	repository := NewReportTemplateRepository(nil)
+	repository := NewReportTemplateRepository(ImplicitCell(), nil)
 	command := sampleReportCommand()
 	command.Period.DateField = commands.ReceiptFilterKeyCreatedAt
 	created, err := repository.CreateReportTemplate(command, 1)
@@ -188,7 +188,7 @@ func pagedReportTemplateCommand(orderBy string, direction commands.SortDirection
 func TestGetPagedReportTemplates_ReturnsRowsAndCount(t *testing.T) {
 	defer TruncateTestDb()
 
-	repository := NewReportTemplateRepository(nil)
+	repository := NewReportTemplateRepository(ImplicitCell(), nil)
 	for _, name := range []string{"Beta", "Alpha"} {
 		command := sampleReportCommand()
 		command.Name = name
@@ -220,7 +220,7 @@ func TestGetPagedReportTemplates_ReturnsRowsAndCount(t *testing.T) {
 func TestGetPagedReportTemplates_EmptyReturnsZeroCount(t *testing.T) {
 	defer TruncateTestDb()
 
-	templates, count, err := NewReportTemplateRepository(nil).GetPagedReportTemplates(pagedReportTemplateCommand("name", commands.ASCENDING), nil)
+	templates, count, err := NewReportTemplateRepository(ImplicitCell(), nil).GetPagedReportTemplates(pagedReportTemplateCommand("name", commands.ASCENDING), nil)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
@@ -237,7 +237,7 @@ func TestGetPagedReportTemplates_RejectsInvalidColumn(t *testing.T) {
 	defer TruncateTestDb()
 
 	// An order-by outside the allow-list is rejected rather than interpolated as raw SQL.
-	_, _, err := NewReportTemplateRepository(nil).GetPagedReportTemplates(pagedReportTemplateCommand("configuration", commands.ASCENDING), nil)
+	_, _, err := NewReportTemplateRepository(ImplicitCell(), nil).GetPagedReportTemplates(pagedReportTemplateCommand("configuration", commands.ASCENDING), nil)
 	if err == nil {
 		utils.PrintTestError(t, nil, "an invalid column error")
 	}
@@ -246,7 +246,7 @@ func TestGetPagedReportTemplates_RejectsInvalidColumn(t *testing.T) {
 func TestGetPagedReportTemplates_SortsByAllowedColumns(t *testing.T) {
 	defer TruncateTestDb()
 
-	repository := NewReportTemplateRepository(nil)
+	repository := NewReportTemplateRepository(ImplicitCell(), nil)
 	for _, name := range []string{"Alpha", "Beta"} {
 		command := sampleReportCommand()
 		command.Name = name
@@ -276,7 +276,7 @@ func TestGetPagedReportTemplates_SortsByAllowedColumns(t *testing.T) {
 func TestGetReportTemplateById_ReturnsRow(t *testing.T) {
 	defer TruncateTestDb()
 
-	repository := NewReportTemplateRepository(nil)
+	repository := NewReportTemplateRepository(ImplicitCell(), nil)
 	created, err := repository.CreateReportTemplate(sampleReportCommand(), 4)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -299,7 +299,7 @@ func TestGetReportTemplateById_ReturnsRow(t *testing.T) {
 func TestGetReportTemplateById_ReturnsRecordNotFoundForMissingId(t *testing.T) {
 	defer TruncateTestDb()
 
-	_, err := NewReportTemplateRepository(nil).GetReportTemplateById("999999")
+	_, err := NewReportTemplateRepository(ImplicitCell(), nil).GetReportTemplateById("999999")
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		utils.PrintTestError(t, err, gorm.ErrRecordNotFound)
 	}
@@ -308,7 +308,7 @@ func TestGetReportTemplateById_ReturnsRecordNotFoundForMissingId(t *testing.T) {
 func TestDuplicateReportTemplate_CopiesConfigAndStampsNewOwnerAndId(t *testing.T) {
 	defer TruncateTestDb()
 
-	repository := NewReportTemplateRepository(nil)
+	repository := NewReportTemplateRepository(ImplicitCell(), nil)
 	command := sampleReportCommand()
 	command.Name = "Quarterly Spend"
 	source, err := repository.CreateReportTemplate(command, 2)
@@ -344,7 +344,7 @@ func TestDuplicateReportTemplate_CopiesConfigAndStampsNewOwnerAndId(t *testing.T
 func TestDuplicateReportTemplate_ReturnsRecordNotFoundForMissingSource(t *testing.T) {
 	defer TruncateTestDb()
 
-	_, err := NewReportTemplateRepository(nil).DuplicateReportTemplate(1, "999999")
+	_, err := NewReportTemplateRepository(ImplicitCell(), nil).DuplicateReportTemplate(1, "999999")
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		utils.PrintTestError(t, err, gorm.ErrRecordNotFound)
 	}
@@ -353,7 +353,7 @@ func TestDuplicateReportTemplate_ReturnsRecordNotFoundForMissingSource(t *testin
 func TestUpdateReportTemplate_UpdatesNameAndConfigPreservingIdAndOwner(t *testing.T) {
 	defer TruncateTestDb()
 
-	repository := NewReportTemplateRepository(nil)
+	repository := NewReportTemplateRepository(ImplicitCell(), nil)
 	var owner uint = 4
 	created, err := repository.CreateReportTemplate(sampleReportCommand(), owner)
 	if err != nil {
@@ -418,7 +418,7 @@ func TestUpdateReportTemplate_UpdatesNameAndConfigPreservingIdAndOwner(t *testin
 func TestUpdateReportTemplate_ReturnsRecordNotFoundForMissingId(t *testing.T) {
 	defer TruncateTestDb()
 
-	_, err := NewReportTemplateRepository(nil).UpdateReportTemplate(sampleReportCommand(), "999999")
+	_, err := NewReportTemplateRepository(ImplicitCell(), nil).UpdateReportTemplate(sampleReportCommand(), "999999")
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		utils.PrintTestError(t, err, gorm.ErrRecordNotFound)
 	}
@@ -427,7 +427,7 @@ func TestUpdateReportTemplate_ReturnsRecordNotFoundForMissingId(t *testing.T) {
 func TestUpdateReportTemplate_BindsIdAndDoesNotUpdateOnCraftedId(t *testing.T) {
 	defer TruncateTestDb()
 
-	repository := NewReportTemplateRepository(nil)
+	repository := NewReportTemplateRepository(ImplicitCell(), nil)
 	created, err := repository.CreateReportTemplate(sampleReportCommand(), 1)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -457,7 +457,7 @@ func TestUpdateReportTemplate_BindsIdAndDoesNotUpdateOnCraftedId(t *testing.T) {
 func TestDeleteReportTemplateById_RemovesTheRow(t *testing.T) {
 	defer TruncateTestDb()
 
-	repository := NewReportTemplateRepository(nil)
+	repository := NewReportTemplateRepository(ImplicitCell(), nil)
 	created, err := repository.CreateReportTemplate(sampleReportCommand(), 5)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -484,7 +484,7 @@ func TestDeleteReportTemplateById_RemovesTheRow(t *testing.T) {
 func TestDeleteReportTemplateById_BindsIdAndDoesNotDeleteOnCraftedId(t *testing.T) {
 	defer TruncateTestDb()
 
-	repository := NewReportTemplateRepository(nil)
+	repository := NewReportTemplateRepository(ImplicitCell(), nil)
 	created, err := repository.CreateReportTemplate(sampleReportCommand(), 1)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)

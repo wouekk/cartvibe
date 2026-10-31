@@ -85,7 +85,7 @@ func createAuthSession(params newAuthSessionParams) (createdAuthSession, error) 
 	// attacker DRIVING your flow; the identity provider's own state alone does not.
 	session.BindingHash = hashSecret(binding)
 
-	err = repositories.NewOidcSessionRepository(nil).CreateAuthSession(&session)
+	err = repositories.NewOidcSessionRepository(repositories.ImplicitCell(), nil).CreateAuthSession(&session)
 	if err != nil {
 		return createdAuthSession{}, err
 	}
@@ -94,7 +94,7 @@ func createAuthSession(params newAuthSessionParams) (createdAuthSession, error) 
 }
 
 func consumeAuthSession(state string) (models.OidcAuthSession, bool, error) {
-	return repositories.NewOidcSessionRepository(nil).ConsumeAuthSession(hashSecret(state))
+	return repositories.NewOidcSessionRepository(repositories.ImplicitCell(), nil).ConsumeAuthSession(hashSecret(state))
 }
 
 func decryptVerifier(session models.OidcAuthSession) (string, error) {
@@ -115,7 +115,7 @@ func createDeleteConfirmation(userId uint) (string, error) {
 		ExpiresAt: time.Now().Add(deleteConfirmationTTL),
 	}
 
-	err = repositories.NewOidcSessionRepository(nil).CreateDeleteConfirmation(&row)
+	err = repositories.NewOidcSessionRepository(repositories.ImplicitCell(), nil).CreateDeleteConfirmation(&row)
 	if err != nil {
 		return "", err
 	}

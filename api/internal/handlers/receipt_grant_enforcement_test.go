@@ -89,7 +89,7 @@ func seedRestrictedQuickScanner(t *testing.T, categoryGrantIds []uint) (uint, ui
 		t.Fatalf("seed group: %v", err)
 	}
 
-	if _, err := repositories.NewGroupReceiptSettingsRepository(nil).CreateGroupReceiptSettings(group.ID); err != nil {
+	if _, err := repositories.NewGroupReceiptSettingsRepository(repositories.ImplicitCell(), nil).CreateGroupReceiptSettings(group.ID); err != nil {
 		t.Fatalf("seed group receipt settings: %v", err)
 	}
 

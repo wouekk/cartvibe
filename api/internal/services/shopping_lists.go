@@ -85,7 +85,7 @@ func (service ShoppingListService) DeleteShoppingList(groupId uint, listId uint)
 	err := service.GetDB().Transaction(func(tx *gorm.DB) error {
 		// Trips first: they reference the list.
 		var tripErr error
-		photoPaths, tripErr = repositories.NewShoppingTripRepository(tx).DeleteTripsForList(listId)
+		photoPaths, tripErr = repositories.NewShoppingTripRepository(repositories.ImplicitCell(), tx).DeleteTripsForList(listId)
 		if tripErr != nil {
 			return tripErr
 		}
@@ -159,7 +159,7 @@ func (service ShoppingListService) AddShoppingListItem(
 			// Back on the list, possibly in another month: its seasonality is worked out again. A
 			// person's own correction is kept.
 			if !existing.ClassificationOverridden {
-				err = repositories.NewFoodClassificationRepository(tx).ResetClassification(repositories.ClassificationKindItem, existing.ID)
+				err = repositories.NewFoodClassificationRepository(repositories.ImplicitCell(), tx).ResetClassification(repositories.ClassificationKindItem, existing.ID)
 				if err != nil {
 					return err
 				}
@@ -221,7 +221,7 @@ func (service ShoppingListService) UpdateShoppingListItem(
 
 	// A different product now: its tags (and any correction, which was about the old one) no longer apply.
 	if models.NormalizeProductName(existing.Name) != models.NormalizeProductName(command.Name) {
-		err = repositories.NewFoodClassificationRepository(service.TX).ResetClassification(repositories.ClassificationKindItem, itemId)
+		err = repositories.NewFoodClassificationRepository(repositories.ImplicitCell(), service.TX).ResetClassification(repositories.ClassificationKindItem, itemId)
 		if err != nil {
 			return models.ShoppingListItem{}, err
 		}

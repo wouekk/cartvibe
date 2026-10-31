@@ -279,7 +279,7 @@ func spendDeleteConfirmation(userId uint, code string) (int, error) {
 
 	// utils.Sha256Hash is the hash the OIDC callback stored the code under
 	// (oidc.hashSecret), so both sides agree on the lookup key.
-	consumed, err := repositories.NewOidcSessionRepository(nil).ConsumeDeleteConfirmation(utils.Sha256Hash([]byte(code)), userId)
+	consumed, err := repositories.NewOidcSessionRepository(repositories.ImplicitCell(), nil).ConsumeDeleteConfirmation(utils.Sha256Hash([]byte(code)), userId)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

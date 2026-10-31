@@ -60,7 +60,7 @@ type classificationBatch struct {
 // ProcessPending classifies what is waiting. It is what the periodic sweep runs. An AI that is missing
 // or unreachable leaves everything waiting for the next sweep; only a database error is returned.
 func (service FoodClassificationService) ProcessPending() (int, error) {
-	repository := repositories.NewFoodClassificationRepository(service.TX)
+	repository := repositories.NewFoodClassificationRepository(repositories.ImplicitCell(), service.TX)
 
 	if classificationOutages.paused(time.Now()) {
 		return 0, nil
@@ -120,7 +120,7 @@ func buildClassificationBatches(candidates []repositories.ClassificationCandidat
 }
 
 func (service FoodClassificationService) classifyBatch(batch classificationBatch) (int, error) {
-	repository := repositories.NewFoodClassificationRepository(service.TX)
+	repository := repositories.NewFoodClassificationRepository(repositories.ImplicitCell(), service.TX)
 
 	corrections, err := repository.CorrectionsForGroup(batch.groupId)
 	if err != nil {
@@ -263,7 +263,7 @@ func (service FoodClassificationService) saveCorrection(
 	command commands.SetFoodClassificationCommand,
 ) error {
 	return service.GetDB().Transaction(func(tx *gorm.DB) error {
-		repository := repositories.NewFoodClassificationRepository(tx)
+		repository := repositories.NewFoodClassificationRepository(repositories.ImplicitCell(), tx)
 
 		err := repository.SaveCorrection(kind, id, command.Health, command.Seasonality, time.Now())
 		if err != nil {

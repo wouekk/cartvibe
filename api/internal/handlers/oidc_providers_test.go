@@ -212,7 +212,7 @@ func TestClientSecretIsEncryptedAtRest(t *testing.T) {
 		t.Fatal("the client secret was stored in plaintext")
 	}
 
-	decrypted, err := repositories.NewOidcProviderRepository(nil).GetDecryptedClientSecret(stored)
+	decrypted, err := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil).GetDecryptedClientSecret(stored)
 	if err != nil {
 		t.Fatalf("failed to decrypt the stored secret: %v", err)
 	}
@@ -286,7 +286,7 @@ func TestUpdateClearsBooleanFlags(t *testing.T) {
 	}
 
 	// And omitting the secret must keep the stored ciphertext byte for byte.
-	decrypted, err := repositories.NewOidcProviderRepository(nil).GetDecryptedClientSecret(stored)
+	decrypted, err := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil).GetDecryptedClientSecret(stored)
 	if err != nil {
 		t.Fatalf("failed to decrypt after the update: %v", err)
 	}

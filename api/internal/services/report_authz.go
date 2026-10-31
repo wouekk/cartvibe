@@ -53,7 +53,7 @@ func (service PermissionService) CanActOnTemplate(userId uint, templateId uint, 
 		return false, nil
 	}
 
-	groupIds, err := repositories.NewReportTemplateRepository(service.TX).GetGroupIdsByTemplateId(templateId)
+	groupIds, err := repositories.NewReportTemplateRepository(repositories.ImplicitCell(), service.TX).GetGroupIdsByTemplateId(templateId)
 	if err != nil {
 		return false, err
 	}
@@ -67,7 +67,7 @@ func (service PermissionService) CanActOnTemplate(userId uint, templateId uint, 
 // action buttons, so the client can gate purely off this set. The template's
 // covered groups are loaded once and reused across every action.
 func (service PermissionService) AllowedActionsForTemplate(userId uint, templateId uint) ([]string, error) {
-	groupIds, err := repositories.NewReportTemplateRepository(service.TX).GetGroupIdsByTemplateId(templateId)
+	groupIds, err := repositories.NewReportTemplateRepository(repositories.ImplicitCell(), service.TX).GetGroupIdsByTemplateId(templateId)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func (service PermissionService) VisibleTemplateIds(userId uint) (ids []uint, un
 		return []uint{}, false, nil
 	}
 
-	mappings, err := repositories.NewReportTemplateRepository(service.TX).GetAllTemplateGroupMappings()
+	mappings, err := repositories.NewReportTemplateRepository(repositories.ImplicitCell(), service.TX).GetAllTemplateGroupMappings()
 	if err != nil {
 		return nil, false, err
 	}

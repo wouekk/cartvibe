@@ -382,7 +382,7 @@ func resolveLink(provider models.OidcProvider, claims idTokenClaims, userId uint
 // dropping GitHub passed it too (that row was not the provisioning one), leaving
 // an account with no identities and a bcrypt hash of a password nobody knew.
 func UnlinkIdentity(userId uint, providerName string) error {
-	providerRow, err := repositories.NewOidcProviderRepository(nil).GetOidcProviderByName(providerName)
+	providerRow, err := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil).GetOidcProviderByName(providerName)
 	if err != nil {
 		return err
 	}

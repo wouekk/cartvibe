@@ -109,7 +109,7 @@ func (repository GroupRepository) CreateGroup(command commands.UpsertGroupComman
 
 	err := db.Transaction(func(tx *gorm.DB) error {
 		repository.SetTransaction(tx)
-		groupReceiptSettingsRepository := NewGroupReceiptSettingsRepository(tx)
+		groupReceiptSettingsRepository := NewGroupReceiptSettingsRepository(ImplicitCell(), tx)
 
 		txErr := tx.Model(&groupToCreate).Create(&groupToCreate).Error
 		if txErr != nil {
@@ -264,7 +264,7 @@ func (repository GroupRepository) GetGroupById(id string,
 		return models.Group{}, err
 	}
 
-	groupReceiptSettingsRepository := NewGroupReceiptSettingsRepository(repository.TX)
+	groupReceiptSettingsRepository := NewGroupReceiptSettingsRepository(ImplicitCell(), repository.TX)
 
 	if group.GroupReceiptSettings.ID == 0 && createMissingGroupReceiptSettings {
 		_, err := groupReceiptSettingsRepository.CreateGroupReceiptSettings(group.ID)

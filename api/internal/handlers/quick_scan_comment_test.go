@@ -32,7 +32,7 @@ func seedQuickScanCommenter(t *testing.T, canComment bool, settings models.Group
 		t.Fatalf("seed group: %v", err)
 	}
 
-	settingsRepository := repositories.NewGroupReceiptSettingsRepository(nil)
+	settingsRepository := repositories.NewGroupReceiptSettingsRepository(repositories.ImplicitCell(), nil)
 	if _, err := settingsRepository.CreateGroupReceiptSettings(group.ID); err != nil {
 		t.Fatalf("seed group receipt settings: %v", err)
 	}

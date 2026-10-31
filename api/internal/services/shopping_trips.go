@@ -83,7 +83,7 @@ func (service ShoppingTripService) AttachReceipt(groupId uint, listId uint, rece
 		return models.ShoppingTrip{}, ErrTripReceiptInOtherGroup
 	}
 
-	_, err = repositories.NewShoppingTripRepository(service.TX).GetTripForReceipt(receiptId)
+	_, err = repositories.NewShoppingTripRepository(repositories.ImplicitCell(), service.TX).GetTripForReceipt(receiptId)
 	if err == nil {
 		return models.ShoppingTrip{}, ErrReceiptAlreadyOnTrip
 	}
@@ -200,7 +200,7 @@ func (service ShoppingTripService) createTrip(
 		}
 		trip.SetPlannedItems(planned)
 
-		err = repositories.NewShoppingTripRepository(tx).CreateTrip(&trip)
+		err = repositories.NewShoppingTripRepository(repositories.ImplicitCell(), tx).CreateTrip(&trip)
 		if err != nil {
 			return err
 		}
@@ -217,7 +217,7 @@ func (service ShoppingTripService) createTrip(
 // DetachTrip removes a trip from its list, and its planned marks from the receipt's products. The
 // receipt itself stays.
 func (service ShoppingTripService) DetachTrip(groupId uint, tripId uint) error {
-	trip, err := repositories.NewShoppingTripRepository(service.TX).GetTripById(tripId)
+	trip, err := repositories.NewShoppingTripRepository(repositories.ImplicitCell(), service.TX).GetTripById(tripId)
 	if err != nil {
 		return err
 	}
@@ -225,7 +225,7 @@ func (service ShoppingTripService) DetachTrip(groupId uint, tripId uint) error {
 	var photoPaths []string
 	err = service.GetDB().Transaction(func(tx *gorm.DB) error {
 		var deleteErr error
-		photoPaths, deleteErr = repositories.NewShoppingTripRepository(tx).DeleteTrip(tripId)
+		photoPaths, deleteErr = repositories.NewShoppingTripRepository(repositories.ImplicitCell(), tx).DeleteTrip(tripId)
 		return deleteErr
 	})
 	if err != nil {
@@ -239,7 +239,7 @@ func (service ShoppingTripService) DetachTrip(groupId uint, tripId uint) error {
 
 // RetryTrip gives a failed trip another try, re-reading its receipt's products if that is what failed.
 func (service ShoppingTripService) RetryTrip(groupId uint, tripId uint) error {
-	repository := repositories.NewShoppingTripRepository(service.TX)
+	repository := repositories.NewShoppingTripRepository(repositories.ImplicitCell(), service.TX)
 	trip, err := repository.GetTripById(tripId)
 	if err != nil {
 		return err
@@ -294,7 +294,7 @@ func publishTripsChanged(groupId uint, listId uint) {
 // GetTripsForList returns a list's recent trips as the user may see them: a receipt hidden from them
 // by their paid-by visibility shows no details and no result.
 func (service ShoppingTripService) GetTripsForList(listId uint, userId uint) ([]structs.ShoppingTripView, error) {
-	repository := repositories.NewShoppingTripRepository(service.TX)
+	repository := repositories.NewShoppingTripRepository(repositories.ImplicitCell(), service.TX)
 	trips, err := repository.GetTripsForList(listId, shoppingTripsShownPerList)
 	if err != nil {
 		return []structs.ShoppingTripView{}, err
@@ -394,7 +394,7 @@ func buildShoppingTripView(
 // Each outcome, including an unreachable AI, is recorded on the trip; only a database error is
 // returned.
 func (service ShoppingTripService) ProcessDueTrips() (int, error) {
-	repository := repositories.NewShoppingTripRepository(service.TX)
+	repository := repositories.NewShoppingTripRepository(repositories.ImplicitCell(), service.TX)
 	processed := 0
 
 	for processed < shoppingTripBatchSize {
@@ -430,7 +430,7 @@ func (service ShoppingTripService) ProcessDueTrips() (int, error) {
 // scanPhoto turns a trip's photo into a receipt the way Quick Scan does, with the group's quick-scan
 // defaults for who paid and the status.
 func (service ShoppingTripService) scanPhoto(trip models.ShoppingTrip, groupId uint) error {
-	repository := repositories.NewShoppingTripRepository(service.TX)
+	repository := repositories.NewShoppingTripRepository(repositories.ImplicitCell(), service.TX)
 
 	if !utils.FileExists(trip.PhotoPath) || utils.AssertWithinDataDir(trip.PhotoPath) != nil {
 		return repository.UpdateClaimedTrip(trip.ID, models.SHOPPING_TRIP_FAILED, time.Now(), trip.Attempts, "The photo is no longer there; attach the receipt again")
@@ -445,7 +445,7 @@ func (service ShoppingTripService) scanPhoto(trip models.ShoppingTrip, groupId u
 		return service.recordOutage(trip, errNoAiConfigured)
 	}
 
-	settings, err := repositories.NewGroupReceiptSettingsRepository(service.TX).GetGroupReceiptSettingsByGroupId(groupId)
+	settings, err := repositories.NewGroupReceiptSettingsRepository(repositories.ImplicitCell(), service.TX).GetGroupReceiptSettingsByGroupId(groupId)
 	if err != nil {
 		return err
 	}
@@ -479,7 +479,7 @@ func (service ShoppingTripService) scanPhoto(trip models.ShoppingTrip, groupId u
 // recordScanFailure waits longer after each failed scan: every attempt that reaches the AI is
 // recorded in the group's activity, so an outage of days should not fill it.
 func (service ShoppingTripService) recordScanFailure(trip models.ShoppingTrip, scanErr error) error {
-	repository := repositories.NewShoppingTripRepository(service.TX)
+	repository := repositories.NewShoppingTripRepository(repositories.ImplicitCell(), service.TX)
 	attempts := trip.Attempts + 1
 	message := truncateRunes("The photo could not be read into a receipt yet: "+scanErr.Error(), 500)
 
@@ -499,7 +499,7 @@ func shoppingTripScanBackoff(attempts int) time.Duration {
 }
 
 func (service ShoppingTripService) recordOutage(trip models.ShoppingTrip, aiErr error) error {
-	repository := repositories.NewShoppingTripRepository(service.TX)
+	repository := repositories.NewShoppingTripRepository(repositories.ImplicitCell(), service.TX)
 	message := truncateRunes("The AI was not available: "+aiErr.Error(), 500)
 
 	if time.Since(trip.QueuedAt) > shoppingTripRetryWindow {
@@ -522,7 +522,7 @@ func (service ShoppingTripService) recordOutage(trip models.ShoppingTrip, aiErr 
 
 // compare matches the receipt's products with what was planned, once the products have been read.
 func (service ShoppingTripService) compare(trip models.ShoppingTrip, groupId uint) error {
-	repository := repositories.NewShoppingTripRepository(service.TX)
+	repository := repositories.NewShoppingTripRepository(repositories.ImplicitCell(), service.TX)
 	productRepository := repositories.NewReceiptProductRepository(service.TX)
 	receiptId := *trip.ReceiptId
 

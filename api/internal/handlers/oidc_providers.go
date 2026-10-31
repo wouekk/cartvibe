@@ -40,7 +40,7 @@ func GetPagedOidcProviders(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			providers, count, err := repositories.NewOidcProviderRepository(nil).GetPagedOidcProviders(pagedRequestCommand)
+			providers, count, err := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil).GetPagedOidcProviders(pagedRequestCommand)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -82,7 +82,7 @@ func GetOidcProviderById(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			provider, err := repositories.NewOidcProviderRepository(nil).GetOidcProviderById(id)
+			provider, err := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil).GetOidcProviderById(id)
 			if err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return http.StatusNotFound, err
@@ -177,7 +177,7 @@ func UpdateOidcProvider(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			repository := repositories.NewOidcProviderRepository(nil)
+			repository := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil)
 			existing, err := repository.GetOidcProviderById(id)
 			if err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -235,7 +235,7 @@ func DeleteOidcProvider(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			err = repositories.NewOidcProviderRepository(nil).DeleteOidcProvider(id)
+			err = repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil).DeleteOidcProvider(id)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}

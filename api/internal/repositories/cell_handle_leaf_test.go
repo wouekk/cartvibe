@@ -314,3 +314,244 @@ func TestOidcIdentityRepositoryStaysInItsCell(t *testing.T) {
 		t.Errorf("cell A still counts %d identities after deleting its own", countA)
 	}
 }
+
+func TestOidcProviderRepositoryStaysInItsCell(t *testing.T) {
+	tw := celltest.NewTwin(t, migrateSchema)
+	tw.Seed(t, func(db *gorm.DB, marker string) error {
+		return db.Create(&models.OidcProvider{Name: "idp", DisplayName: "IdP " + marker, IssuerUrl: "https://issuer.example", ClientId: "client", ClientSecret: "x", Enabled: true}).Error
+	})
+	tw.RequireIdenticalIDs(t, "oidc_providers")
+
+	repoA := NewOidcProviderRepository(tw.Handle(celltest.A), nil)
+	repoB := NewOidcProviderRepository(tw.Handle(celltest.B), nil)
+
+	providerA, err := repoA.GetOidcProviderByName("idp")
+	if err != nil {
+		t.Fatal(err)
+	}
+	providerB, err := repoB.GetOidcProviderById(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tw.ExpectOwn(t, celltest.A, providerA)
+	tw.ExpectOwn(t, celltest.B, providerB)
+
+	// Deleting the provider in A leaves B's provider (same id, same name) alone.
+	if err := repoA.DeleteOidcProvider(1); err != nil {
+		t.Fatal(err)
+	}
+	enabledA, err := repoA.GetAllEnabledOidcProviders()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(enabledA) != 0 {
+		t.Errorf("cell A still lists a deleted provider: %+v", enabledA)
+	}
+	enabledB, err := repoB.GetAllEnabledOidcProviders()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(enabledB) != 1 {
+		t.Fatalf("cell B lost its provider: %+v", enabledB)
+	}
+	tw.ExpectOwn(t, celltest.B, enabledB)
+}
+
+func TestOidcSessionRepositoryStaysInItsCell(t *testing.T) {
+	tw := celltest.NewTwin(t, migrateSchema)
+	tw.Seed(t, func(db *gorm.DB, marker string) error {
+		return db.Create(&models.OidcProvider{Name: "idp", DisplayName: "IdP", IssuerUrl: "https://issuer.example", ClientId: "client", ClientSecret: "x"}).Error
+	})
+
+	repoA := NewOidcSessionRepository(tw.Handle(celltest.A), nil)
+	repoB := NewOidcSessionRepository(tw.Handle(celltest.B), nil)
+
+	// The same state value exists in both cells; only A stores a session for it.
+	linkUser := uint(1)
+	err := repoA.CreateAuthSession(&models.OidcAuthSession{
+		OidcProviderId: 1, StateHash: "same-state", NonceHash: "n", CodeVerifier: "v", LinkUserId: &linkUser, ExpiresAt: time.Now().Add(time.Minute),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, claimed, err := repoB.ConsumeAuthSession("same-state"); err != nil || claimed {
+		t.Fatalf("cell B claimed a session that exists only in cell A: claimed=%v err=%v", claimed, err)
+	}
+	routingB, err := repoB.GetPendingAuthSessionRouting("same-state")
+	if err != nil || routingB.LinkUserId != nil {
+		t.Errorf("cell B can read the routing of a session that exists only in cell A: %+v (err %v)", routingB, err)
+	}
+	if routingA, err := repoA.GetPendingAuthSessionRouting("same-state"); err != nil || routingA.LinkUserId == nil {
+		t.Errorf("cell A cannot read the routing of its own session: %+v (err %v)", routingA, err)
+	}
+
+	session, claimed, err := repoA.ConsumeAuthSession("same-state")
+	if err != nil || !claimed || session.OidcProviderId != 1 {
+		t.Fatalf("cell A could not claim its own session: claimed=%v err=%v", claimed, err)
+	}
+}
+
+func TestFoodClassificationRepositoryStaysInItsCell(t *testing.T) {
+	tw := celltest.NewTwin(t, migrateSchema)
+	tw.Seed(t, func(db *gorm.DB, marker string) error {
+		return db.Create(&models.Group{Name: "group-" + marker}).Error
+	})
+	tw.RequireIdenticalIDs(t, "groups")
+
+	repoA := NewFoodClassificationRepository(tw.Handle(celltest.A), nil)
+	repoB := NewFoodClassificationRepository(tw.Handle(celltest.B), nil)
+
+	if err := repoA.RememberCorrection(1, "Oat Milk", "healthy"); err != nil {
+		t.Fatal(err)
+	}
+	if err := repoB.RememberCorrection(1, "Oat Milk", "unhealthy"); err != nil {
+		t.Fatal(err)
+	}
+
+	correctionsA, err := repoA.CorrectionsForGroup(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	correctionsB, err := repoB.CorrectionsForGroup(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if correctionsA["oat milk"] != "healthy" || correctionsB["oat milk"] != "unhealthy" {
+		t.Errorf("corrections crossed cells: A=%v B=%v", correctionsA, correctionsB)
+	}
+
+	if err := repoA.DeleteCorrectionsForGroup(1); err != nil {
+		t.Fatal(err)
+	}
+	correctionsB, err = repoB.CorrectionsForGroup(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if correctionsB["oat milk"] != "unhealthy" {
+		t.Errorf("deleting group 1's corrections in cell A removed cell B's: %v", correctionsB)
+	}
+}
+
+func TestReportTemplateRepositoryAndStarterSeedStayInTheirCell(t *testing.T) {
+	tw := celltest.NewTwin(t, migrateSchema)
+	tw.Seed(t, func(db *gorm.DB, marker string) error {
+		if err := seedTwinUser(db, 1, "same-name"); err != nil {
+			return err
+		}
+		return db.Create(&models.Group{Name: HouseholdGroupName}).Error
+	})
+
+	// Seeding B creates B's starter templates and its ledger row, and nothing in A.
+	if err := SeedStarterReportTemplates(tw.Handle(celltest.B)); err != nil {
+		t.Fatal(err)
+	}
+
+	count := func(w celltest.Which, model any) int64 {
+		var n int64
+		tw.Handle(w).DB().Model(model).Count(&n)
+		return n
+	}
+	if got := count(celltest.A, &models.ReportTemplate{}); got != 0 {
+		t.Errorf("seeding cell B created %d templates in cell A", got)
+	}
+	if got := count(celltest.A, &models.DataMigration{}); got != 0 {
+		t.Errorf("seeding cell B wrote %d ledger rows in cell A", got)
+	}
+	if got := count(celltest.B, &models.ReportTemplate{}); got != 3 {
+		t.Errorf("cell B holds %d starter templates, want 3", got)
+	}
+
+	// The ledger is per cell: A still seeds its own after B has been seeded.
+	if err := SeedStarterReportTemplates(tw.Handle(celltest.A)); err != nil {
+		t.Fatal(err)
+	}
+	if got := count(celltest.A, &models.ReportTemplate{}); got != 3 {
+		t.Errorf("cell A holds %d starter templates after its own seed, want 3", got)
+	}
+
+	// Reads stay in their cell: delete one in A, B keeps all three.
+	repoA := NewReportTemplateRepository(tw.Handle(celltest.A), nil)
+	repoB := NewReportTemplateRepository(tw.Handle(celltest.B), nil)
+	if err := repoA.DeleteReportTemplateById("1"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := repoB.GetReportTemplateById("1"); err != nil {
+		t.Errorf("cell B lost template 1 when cell A deleted its own: %v", err)
+	}
+	if _, err := repoA.GetReportTemplateById("1"); err == nil {
+		t.Error("cell A still reads a template it deleted")
+	}
+}
+
+func TestShoppingTripRepositoryStaysInItsCell(t *testing.T) {
+	tw := celltest.NewTwin(t, migrateSchema)
+	tw.Seed(t, func(db *gorm.DB, marker string) error {
+		if err := db.Create(&models.Group{Name: "group-" + marker}).Error; err != nil {
+			return err
+		}
+		if err := db.Create(&models.ShoppingList{GroupId: 1, Name: "list-" + marker}).Error; err != nil {
+			return err
+		}
+		return db.Create(&models.ShoppingTrip{ShoppingListId: 1, PlannedItems: "[]", Status: "PENDING", LastError: "trip-" + marker, NextAttemptAt: time.Now(), QueuedAt: time.Now()}).Error
+	})
+	tw.RequireIdenticalIDs(t, "shopping_trips")
+
+	repoA := NewShoppingTripRepository(tw.Handle(celltest.A), nil)
+	repoB := NewShoppingTripRepository(tw.Handle(celltest.B), nil)
+
+	tripA, err := repoA.GetTripById(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tripsB, err := repoB.GetTripsForList(1, 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tw.ExpectOwn(t, celltest.A, tripA)
+	tw.ExpectOwn(t, celltest.B, tripsB)
+
+	if _, err := repoA.DeleteTripsForList(1); err != nil {
+		t.Fatal(err)
+	}
+	tripsB, err = repoB.GetTripsForList(1, 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(tripsB) != 1 {
+		t.Fatalf("cell B lost its trip when cell A deleted the trips of its own list 1: %+v", tripsB)
+	}
+	tw.ExpectOwn(t, celltest.B, tripsB)
+}
+
+func TestGroupReceiptSettingsRepositoryStaysInItsCell(t *testing.T) {
+	tw := celltest.NewTwin(t, migrateSchema)
+	tw.Seed(t, func(db *gorm.DB, marker string) error {
+		return db.Create(&models.Group{Name: "group-" + marker}).Error
+	})
+
+	repoA := NewGroupReceiptSettingsRepository(tw.Handle(celltest.A), nil)
+	repoB := NewGroupReceiptSettingsRepository(tw.Handle(celltest.B), nil)
+	if _, err := repoA.CreateGroupReceiptSettings(1); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := repoB.CreateGroupReceiptSettings(1); err != nil {
+		t.Fatal(err)
+	}
+
+	// Hiding images in A reaches A only, although both cells hold group 1.
+	if _, err := repoA.UpdateGroupReceiptSettings("1", commands.UpdateGroupReceiptSettingsCommand{HideImages: true}); err != nil {
+		t.Fatal(err)
+	}
+	settingsA, err := repoA.GetGroupReceiptSettingsByGroupId(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	settingsB, err := repoB.GetGroupReceiptSettingsByGroupId(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !settingsA.HideImages || settingsB.HideImages {
+		t.Errorf("hide-images crossed cells: A=%v B=%v", settingsA.HideImages, settingsB.HideImages)
+	}
+}

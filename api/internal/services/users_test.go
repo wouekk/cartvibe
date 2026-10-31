@@ -265,7 +265,7 @@ func TestDeleteUser_KeepsReportTemplates(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	user := createUserForDeletion(t, "templateowner")
 
-	template, err := repositories.NewReportTemplateRepository(nil).CreateReportTemplate(
+	template, err := repositories.NewReportTemplateRepository(repositories.ImplicitCell(), nil).CreateReportTemplate(
 		commands.ReportRequestCommand{Name: "Owned", Formats: []string{"csv"}},
 		user.ID,
 	)

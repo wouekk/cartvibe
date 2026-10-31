@@ -12,7 +12,7 @@ import (
 // seedQuickScanGroup creates a group (id 1) with the given quick-scan receipt settings.
 func seedQuickScanGroup(settings models.GroupReceiptSettings) {
 	repositories.CreateTestGroup()
-	repository := repositories.NewGroupReceiptSettingsRepository(nil)
+	repository := repositories.NewGroupReceiptSettingsRepository(repositories.ImplicitCell(), nil)
 	if _, err := repository.CreateGroupReceiptSettings(1); err != nil {
 		panic(err)
 	}

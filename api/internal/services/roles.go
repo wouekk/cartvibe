@@ -305,7 +305,7 @@ func validateGrantsExist(tx *gorm.DB, categoryGrants []uint, tagGrants []uint, p
 	}
 
 	if len(reportTemplateIds) > 0 {
-		reportTemplateRepository := repositories.NewReportTemplateRepository(tx)
+		reportTemplateRepository := repositories.NewReportTemplateRepository(repositories.ImplicitCell(), tx)
 		count, err := reportTemplateRepository.CountByIds(reportTemplateIds)
 		if err != nil {
 			return err

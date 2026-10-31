@@ -229,7 +229,7 @@ func TestReportTemplateCountByIds(t *testing.T) {
 	t1 := makeTestReportTemplate(t, "T1")
 	t2 := makeTestReportTemplate(t, "T2")
 
-	count, err := NewReportTemplateRepository(nil).CountByIds([]uint{t1, t2})
+	count, err := NewReportTemplateRepository(ImplicitCell(), nil).CountByIds([]uint{t1, t2})
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
@@ -239,7 +239,7 @@ func TestReportTemplateCountByIds(t *testing.T) {
 	}
 
 	// A non-existent id is not counted.
-	count, err = NewReportTemplateRepository(nil).CountByIds([]uint{t1, 999999})
+	count, err = NewReportTemplateRepository(ImplicitCell(), nil).CountByIds([]uint{t1, 999999})
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
@@ -251,7 +251,7 @@ func TestReportTemplateCountByIds(t *testing.T) {
 
 func TestCreateAndUpdateSyncTemplateGroupIndex(t *testing.T) {
 	defer TruncateTestDb()
-	repo := NewReportTemplateRepository(nil)
+	repo := NewReportTemplateRepository(ImplicitCell(), nil)
 
 	created, err := repo.CreateReportTemplate(sampleReportCommand(), 1)
 	if err != nil {
@@ -289,7 +289,7 @@ func TestCreateAndUpdateSyncTemplateGroupIndex(t *testing.T) {
 
 func TestGetPagedReportTemplatesAppliesIdFilter(t *testing.T) {
 	defer TruncateTestDb()
-	repo := NewReportTemplateRepository(nil)
+	repo := NewReportTemplateRepository(ImplicitCell(), nil)
 
 	first := sampleReportCommand()
 	first.Name = "A"

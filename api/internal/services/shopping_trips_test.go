@@ -93,7 +93,7 @@ func seedTripFixture(t *testing.T) tripFixture {
 
 func readTrip(t *testing.T, tripId uint) models.ShoppingTrip {
 	t.Helper()
-	trip, err := repositories.NewShoppingTripRepository(nil).GetTripById(tripId)
+	trip, err := repositories.NewShoppingTripRepository(repositories.ImplicitCell(), nil).GetTripById(tripId)
 	if err != nil {
 		t.Fatalf("read trip: %v", err)
 	}
@@ -295,7 +295,7 @@ func TestReReadingProductsComparesTheTripAgainAndDetachClearsMarks(t *testing.T)
 	if products[0].Planned != nil {
 		t.Error("expected detaching to clear the product's mark")
 	}
-	if _, err := repositories.NewShoppingTripRepository(nil).GetTripById(trip.ID); err == nil {
+	if _, err := repositories.NewShoppingTripRepository(repositories.ImplicitCell(), nil).GetTripById(trip.ID); err == nil {
 		t.Error("expected the trip gone")
 	}
 }

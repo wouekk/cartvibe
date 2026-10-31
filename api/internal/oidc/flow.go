@@ -136,7 +136,7 @@ func DeleteConfirmationStart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	providerRow, err := repositories.NewOidcProviderRepository(nil).GetEnabledOidcProviderByName(chi.URLParam(r, "name"))
+	providerRow, err := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil).GetEnabledOidcProviderByName(chi.URLParam(r, "name"))
 	if err != nil {
 		failBrowserFlowStart(w, r, purpose, errUnknownProvider)
 		return
@@ -190,7 +190,7 @@ func authorizeSignedInStart(
 func startFlow(w http.ResponseWriter, r *http.Request, linkUserId *uint, purpose string) {
 	name := chi.URLParam(r, "name")
 
-	providerRow, err := repositories.NewOidcProviderRepository(nil).GetEnabledOidcProviderByName(name)
+	providerRow, err := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil).GetEnabledOidcProviderByName(name)
 	if err != nil {
 		failBrowserFlowStart(w, r, purpose, errUnknownProvider)
 		return
@@ -270,7 +270,7 @@ func Callback(w http.ResponseWriter, r *http.Request) {
 	// been signed out".
 	pending := pendingSession(state)
 
-	providerRow, err := repositories.NewOidcProviderRepository(nil).GetEnabledOidcProviderByName(name)
+	providerRow, err := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil).GetEnabledOidcProviderByName(name)
 	if err != nil {
 		failCallback(w, r, pending, errUnknownProvider)
 		return
@@ -647,7 +647,7 @@ func pendingSession(state string) models.OidcAuthSession {
 		return desktopLogin
 	}
 
-	session, err := repositories.NewOidcSessionRepository(nil).GetPendingAuthSessionRouting(hashSecret(state))
+	session, err := repositories.NewOidcSessionRepository(repositories.ImplicitCell(), nil).GetPendingAuthSessionRouting(hashSecret(state))
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, "Failed to read a pending OIDC session's routing: "+err.Error())
 		return desktopLogin

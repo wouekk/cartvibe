@@ -221,7 +221,7 @@ func (service ReceiptService) DeleteReceipt(id string) error {
 		}
 
 		// Neither is its shopping trip.
-		err = repositories.NewShoppingTripRepository(tx).DeleteTripForReceipt(receipt.ID)
+		err = repositories.NewShoppingTripRepository(repositories.ImplicitCell(), tx).DeleteTripForReceipt(receipt.ID)
 		if err != nil {
 			return err
 		}

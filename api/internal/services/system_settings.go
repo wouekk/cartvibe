@@ -38,7 +38,7 @@ func (service SystemSettingsService) GetFeatureConfig() (structs.FeatureConfig, 
 	featureConfig.ShopLogosEnabled = systemSettings.ShopLogoKeySet || HasShopLogos()
 	featureConfig.WebPushPublicKey = WebPushPublicKey()
 
-	providers, err := repositories.NewOidcProviderRepository(service.TX).GetAllEnabledOidcProviders()
+	providers, err := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), service.TX).GetAllEnabledOidcProviders()
 	if err != nil {
 		return structs.FeatureConfig{}, err
 	}

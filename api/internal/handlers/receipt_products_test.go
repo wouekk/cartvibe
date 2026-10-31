@@ -185,7 +185,7 @@ func TestSetReceiptProductClassification(t *testing.T) {
 		t.Errorf("expected the correction applied, got %+v", updated.FoodClassification)
 	}
 
-	corrections, _ := repositories.NewFoodClassificationRepository(nil).CorrectionsForGroup(1)
+	corrections, _ := repositories.NewFoodClassificationRepository(repositories.ImplicitCell(), nil).CorrectionsForGroup(1)
 	if corrections["dark chocolate"] != models.HEALTH_MEDIUM {
 		t.Errorf("expected the display name remembered, got %v", corrections)
 	}

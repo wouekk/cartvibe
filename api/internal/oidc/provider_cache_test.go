@@ -49,7 +49,7 @@ func TestGetProviderRebuildsWhenTheRowChanges(t *testing.T) {
 		t.Fatalf("failed to touch the provider: %v", err)
 	}
 
-	updated, err := repositories.NewOidcProviderRepository(nil).GetOidcProviderById(provider.ID)
+	updated, err := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil).GetOidcProviderById(provider.ID)
 	if err != nil {
 		t.Fatalf("failed to reload the provider: %v", err)
 	}

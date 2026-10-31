@@ -127,7 +127,7 @@ func serverPublicUrlStillNeeded(command commands.UpsertSystemSettingsCommand) (b
 		return false, nil
 	}
 
-	enabledProviders, err := repositories.NewOidcProviderRepository(nil).GetAllEnabledOidcProviders()
+	enabledProviders, err := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil).GetAllEnabledOidcProviders()
 	if err != nil {
 		return false, err
 	}

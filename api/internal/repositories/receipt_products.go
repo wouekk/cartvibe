@@ -167,7 +167,7 @@ func (repository ReceiptProductRepository) ReplaceProducts(receiptId uint, produ
 		}
 
 		// The new products carry no planned/unplanned marks, so the receipt's trip compares again.
-		return NewShoppingTripRepository(tx).RequeueTripForReceipt(receiptId, time.Now())
+		return NewShoppingTripRepository(ImplicitCell(), tx).RequeueTripForReceipt(receiptId, time.Now())
 	})
 }
 
@@ -430,7 +430,7 @@ func (repository ReceiptProductRepository) CreateProduct(receiptId uint, command
 			return err
 		}
 
-		return NewShoppingTripRepository(tx).RequeueTripForReceipt(receiptId, time.Now())
+		return NewShoppingTripRepository(ImplicitCell(), tx).RequeueTripForReceipt(receiptId, time.Now())
 	})
 	if err != nil {
 		return models.ReceiptProduct{}, err
@@ -489,7 +489,7 @@ func (repository ReceiptProductRepository) UpdateProduct(product models.ReceiptP
 			return err
 		}
 
-		return NewShoppingTripRepository(tx).RequeueTripForReceipt(product.ReceiptId, time.Now())
+		return NewShoppingTripRepository(ImplicitCell(), tx).RequeueTripForReceipt(product.ReceiptId, time.Now())
 	})
 	if err != nil {
 		return models.ReceiptProduct{}, err
@@ -515,7 +515,7 @@ func (repository ReceiptProductRepository) DeleteProduct(product models.ReceiptP
 			return err
 		}
 
-		return NewShoppingTripRepository(tx).RequeueTripForReceipt(product.ReceiptId, time.Now())
+		return NewShoppingTripRepository(ImplicitCell(), tx).RequeueTripForReceipt(product.ReceiptId, time.Now())
 	})
 }
 

@@ -143,7 +143,7 @@ func InlineProductPrompt(tx *gorm.DB, groupId uint) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	corrections, err := repositories.NewFoodClassificationRepository(tx).CorrectionsForGroup(groupId)
+	corrections, err := repositories.NewFoodClassificationRepository(repositories.ImplicitCell(), tx).CorrectionsForGroup(groupId)
 	if err != nil {
 		return "", err
 	}
@@ -231,7 +231,7 @@ func (service ReceiptProductExtractionService) extract(extraction models.Receipt
 	if err != nil {
 		return err
 	}
-	corrections, err := repositories.NewFoodClassificationRepository(service.TX).CorrectionsForGroup(receipt.GroupId)
+	corrections, err := repositories.NewFoodClassificationRepository(repositories.ImplicitCell(), service.TX).CorrectionsForGroup(receipt.GroupId)
 	if err != nil {
 		return err
 	}
@@ -284,7 +284,7 @@ func (service ReceiptProductExtractionService) ApplyInlineRead(receiptId uint, r
 	if err != nil {
 		return false, err
 	}
-	corrections, err := repositories.NewFoodClassificationRepository(service.TX).CorrectionsForGroup(receipt.GroupId)
+	corrections, err := repositories.NewFoodClassificationRepository(repositories.ImplicitCell(), service.TX).CorrectionsForGroup(receipt.GroupId)
 	if err != nil {
 		return false, err
 	}
