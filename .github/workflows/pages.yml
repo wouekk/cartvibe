@@ -6,7 +6,7 @@ name: Project page
 on:
   push:
     branches: [main, 'feature/**']
-    paths: ["site/**", "desktop/**", ".github/workflows/pages.yml"]
+    paths: ["site/**", "desktop/**", "CHANGELOG.md", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
