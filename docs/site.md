@@ -112,7 +112,7 @@ To look at it locally: `cd desktop && npm run build:demo`, then `node tools/serv
 `.github/workflows/pages.yml` builds `site/` on every push that touches it (or `desktop/src/themes/`) (main and `feature/**`) and deploys
 `site/dist` to GitHub Pages from `main` only. The base path is `/cartvibe` (`astro.config.mjs`).
 
-### Pending workflow change for the demo (the owner applies it)
+### Workflow change for the demo (applied by the owner, kept here for reference)
 
 Agents may not edit `.github/workflows/`, so the demo is **not published or checked in CI until these two patches are
 applied** (`git apply`; both were checked against the workflows at the time of writing). The first makes the Pages build
@@ -194,7 +194,7 @@ The second adds the demo build and the bundle check to the `test-desktop` job of
          with:
 ```
 
-### Pending workflow change for the site tests (the owner applies it, after the demo patches above)
+### Workflow change for the site tests (applied together with the demo change)
 
 `git apply` this on top of the `pages.yml` patch above (checked against it). It runs the site's unit tests after the site build
 and its browser tests after the demo smoke test, which has already installed Playwright's Chromium.
@@ -224,3 +224,9 @@ and its browser tests after the demo smoke test, which has already installed Pla
          run: |
            mkdir -p site/dist/demo
 ```
+
+### Changelog on the site
+
+Each release card shows the sentence under its version heading in `CHANGELOG.md` (the milestone, at most 140 characters). A
+release without such a sentence falls back to up to three one-line highlights from its bullets. Keep that sentence short
+when writing a release entry.

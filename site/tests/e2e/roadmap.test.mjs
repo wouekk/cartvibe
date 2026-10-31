@@ -265,6 +265,7 @@ test("the changelog: latest five releases on the home page, beside the columns a
       assert.match(await rel.locator("h4").innerText(), /^\d+\.\d+\.\d+$/);
       assert.ok((await rel.locator("time").innerText()).length > 0);
       assert.ok((await rel.locator("ul li").count()) <= 3);
+      assert.ok((await rel.getByTestId("changelog-summary").innerText()).length > 0, "each of the five has its milestone sentence");
     }
     assert.equal(await log.getByTestId("changelog-full").getAttribute("href"), `${REPO}/blob/main/CHANGELOG.md`);
     const planned = await page.getByTestId("roadmap-column-planned").boundingBox();
