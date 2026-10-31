@@ -2,41 +2,39 @@
 import Base from "../layouts/Base.astro";
 import Icon from "../components/Icon.astro";
 import Shots from "../components/Shots.astro";
-import Slot from "../components/Slot.astro";
-import Wireframe from "../components/Wireframe.astro";
 import Roadmap from "../components/Roadmap.astro";
 
 const repo = "https://github.com/wouekk/cartvibe";
 
-// The four steps of the scroll-driven track. `kind` picks the wireframe, the slot name the art file in public/art.
+// The four steps of the scroll-driven track. `shot` names the demo screenshots in src/assets/shots (npm run shots).
 const steps = [
   {
     icon: "cart",
     title: "Live household shopping lists",
     text: "Build the list on your phone, in the shop, one-handed. Add an item and it shows on every other phone in the family; cross things off as you go and mark the trip done. Made for a 360 px screen first.",
-    kind: "list",
-    alt: "A shared shopping list on a phone with amounts, a live indicator and crossed-off items",
+    shot: "shopping",
+    alt: "A shared shopping list with amounts, health labels and a list of lists, on a desktop and a phone",
   },
   {
     icon: "scan",
     title: "Smart receipt line scanning",
     text: "Upload a photo or a PDF and the receipt's lines are read out one by one. Money is kept as exact decimals, never floats, so the lines add up to the cent and a mismatch is flagged instead of hidden.",
-    kind: "scan",
-    alt: "A receipt on the left and the product lines read from it on the right, adding up to the total",
+    shot: "receipts",
+    alt: "The household's receipts with shop, amount and a status that flags a receipt to check, on a desktop and a phone",
   },
   {
     icon: "tag",
     title: "Optional AI labels",
     text: "With an AI key switched on, each line gets a category, a food-health rating (healthy, medium, unhealthy) and a planned or not-on-the-list flag. If the AI is offline, slow or out of credit, nothing fails: lines stay planned and unknown until a retry. The AI never assigns your tags.",
-    kind: "labels",
-    alt: "Product lines with category badges, health chips and planned or unplanned flags",
+    shot: "lines",
+    alt: "A receipt's product lines with category, health labels and a Not on the list flag, on a desktop and a phone",
   },
   {
     icon: "chart",
     title: "Household overview and monthly goals",
     text: "One Dashboard for groceries, eating out, transport, travel, leisure and bills, with a monthly goal you can watch fill up. Everyone in the family can add receipts, and Paid by is already the person signed in.",
-    kind: "overview",
-    alt: "Spending this month against a goal, split by category",
+    shot: "charts",
+    alt: "Spending by category as a donut and spending by month as bars against a monthly goal, on a desktop and a phone",
   },
 ];
 
@@ -149,22 +147,18 @@ const tick = "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-fu
   <!-- Hero -->
   <section class="border-b border-border/70" data-testid="hero">
     <div class="page pb-16 pt-14 text-center sm:pt-20 lg:pb-24">
-      <p class="cv-overline">Self-hosted · Open source · AGPL-3.0</p>
-      <h1 class="mx-auto mt-4 max-w-3xl text-balance text-4xl font-semibold tracking-tight sm:text-6xl">
-        Your household's spending, on your own server.
+      <h1 class="mx-auto max-w-3xl text-balance text-4xl font-semibold tracking-tight sm:text-6xl">
+        Your household's spending tracking, on your own server.
       </h1>
       <p class="mx-auto mt-4 max-w-xl text-[13px] text-muted-foreground sm:text-sm">
-        Scan receipts, share live shopping lists and see where the money goes. Made for a phone in the shop and a desktop
-        for the overview.
+        Scan receipts, share live shopping lists and see where the money goes. Made for a phone.
       </p>
       <div class="mt-6 flex flex-wrap items-center justify-center gap-2">
         <a href={`${repo}#quick-start`} class={btnPrimary}><Icon name="server" class="size-4" /> Self-host it</a>
         <a href="#features" class={btnOutline}>See how it works</a>
       </div>
       <div class="hero-visual mx-auto mt-12 max-w-4xl text-left" data-testid="hero-visual">
-        <Slot slot="nanobanana-hero" alt="The CartVibe Dashboard: spent this month, a monthly goal and a shopping list" class="h-[26rem] sm:h-[24rem]">
-          <Wireframe kind="hero" />
-        </Slot>
+        <Shots desktop="dashboard" phone="dashboard" eager class="max-w-4xl" alt="The CartVibe Dashboard of the demo household: spent this month against a goal, spending by category and the open shopping list" />
       </div>
     </div>
   </section>
@@ -208,9 +202,9 @@ const tick = "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-fu
           {
             steps.map((s, i) => (
               <div class="state-layer absolute inset-0" data-state={i}>
-                <Slot slot={`nanobanana-step-${i + 1}`} alt={s.alt} class="h-full">
-                  <Wireframe kind={s.kind} />
-                </Slot>
+                <div class="flex h-full items-center">
+                  <Shots desktop={s.shot} phone={s.shot} alt={s.alt} />
+                </div>
               </div>
             ))
           }
@@ -234,11 +228,7 @@ const tick = "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-fu
               <h3 class="mt-3 text-lg font-semibold">{s.title}</h3>
               <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">{s.text}</p>
             </div>
-            <div class="stack-visual">
-              <Slot slot={`nanobanana-step-${i + 1}`} alt={s.alt} class="min-h-[22rem]">
-                <Wireframe kind={s.kind} />
-              </Slot>
-            </div>
+            <Shots desktop={s.shot} phone={s.shot} alt={s.alt} />
           </article>
         ))
       }
@@ -249,9 +239,7 @@ const tick = "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-fu
   <section class="border-t border-border/70 bg-muted/30">
     <div class="page py-20">
       <div class="mx-auto max-w-2xl text-center">
-        <p class="cv-overline">And more</p>
-        <h2 class="mt-2 text-balance text-3xl font-semibold tracking-tight">The rest of the app</h2>
-        <p class="mt-3 text-sm text-muted-foreground">Screens of the running app, with demo data.</p>
+        <h2 class="text-balance text-3xl font-semibold tracking-tight">And more</h2>
       </div>
       <div class="mt-14 space-y-20">
         {

@@ -6,8 +6,10 @@ interface Props {
   phone?: string;
   alt: string;
   eager?: boolean;
+  /** Replaces the default `max-w-[44rem]` of the frame. */
+  class?: string;
 }
-const { desktop, phone, alt, eager = false } = Astro.props;
+const { desktop, phone, alt, eager = false, class: cls = "max-w-[44rem]" } = Astro.props;
 
 const images = import.meta.glob<{ default: ImageMetadata }>("../assets/shots/*.webp", { eager: true });
 const pick = (name: string, vp: string, mode: string) => {
@@ -18,7 +20,7 @@ const pick = (name: string, vp: string, mode: string) => {
 const loading = eager ? "eager" : "lazy";
 ---
 
-<figure class="relative mx-auto w-full min-w-0 max-w-[44rem]" data-shots>
+<figure class:list={["relative mx-auto w-full min-w-0", cls]} data-shots>
   {
     desktop && (
       <div
