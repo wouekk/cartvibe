@@ -65,6 +65,7 @@ for (const [vpName, vp] of Object.entries(VIEWPORTS)) {
       isMobile: vp.mobile,
       hasTouch: vp.mobile,
       colorScheme: mode,
+      locale: "en-US", // the site is in English, so are its screenshots
       reducedMotion: "reduce",
     });
     // The demo reads its look under its own storage prefix (desktop/docs/demo.md).
