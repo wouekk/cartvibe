@@ -446,7 +446,7 @@ func TestUserCountByIds(t *testing.T) {
 	user1 := makeTestUser(t, "count-user1")
 	user2 := makeTestUser(t, "count-user2")
 
-	count, err := NewUserRepository(nil).CountByIds([]uint{user1, user2})
+	count, err := NewUserRepository(ImplicitCell(), nil).CountByIds([]uint{user1, user2})
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
@@ -455,7 +455,7 @@ func TestUserCountByIds(t *testing.T) {
 		utils.PrintTestError(t, count, 2)
 	}
 
-	count, err = NewUserRepository(nil).CountByIds([]uint{user1, 999999})
+	count, err = NewUserRepository(ImplicitCell(), nil).CountByIds([]uint{user1, 999999})
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 		return

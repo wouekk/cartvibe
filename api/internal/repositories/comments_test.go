@@ -13,7 +13,7 @@ var commentRepository CommentRepository
 func setupCommentTest() {
 	CreateTestGroupWithUsers()
 	createTestReceipt()
-	commentRepository = NewCommentRepository(nil)
+	commentRepository = NewCommentRepository(ImplicitCell(), nil)
 }
 
 func createTestReceipt() {

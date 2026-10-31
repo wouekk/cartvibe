@@ -38,7 +38,7 @@ func loginRequest(cmd commands.LoginCommand, query, userAgent string) *http.Requ
 
 func createAdminUser(t *testing.T, username, password string) models.User {
 	t.Helper()
-	userRepo := repositories.NewUserRepository(nil)
+	userRepo := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
 	user, err := userRepo.CreateUser(commands.SignUpCommand{
 		Username:    username,
 		Password:    password,
@@ -86,7 +86,7 @@ func TestLogin_WrongPassword(t *testing.T) {
 func TestLogin_DummyUserRejected(t *testing.T) {
 	defer teardownLoginTests()
 
-	userRepo := repositories.NewUserRepository(nil)
+	userRepo := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
 	_, err := userRepo.CreateUser(commands.SignUpCommand{
 		Username:    "dummy-user",
 		Password:    "Password",
@@ -113,7 +113,7 @@ func TestLogin_DummyUserRejected(t *testing.T) {
 func TestLogin_PasswordlessOidcAccountLooksLikeWrongPassword(t *testing.T) {
 	defer teardownLoginTests()
 
-	user, err := repositories.NewUserRepository(nil).CreateUser(commands.SignUpCommand{
+	user, err := repositories.NewUserRepository(repositories.ImplicitCell(), nil).CreateUser(commands.SignUpCommand{
 		Username:    "oidc-only",
 		Password:    "correctpassword",
 		DisplayName: "OIDC Only",

@@ -452,7 +452,7 @@ func (service ReportService) assembleDownload(name string, files []renderedFile)
 }
 
 func (service ReportService) groupNames(groupIds []string) ([]string, error) {
-	groupRepository := repositories.NewGroupRepository(service.TX)
+	groupRepository := repositories.NewGroupRepository(repositories.ImplicitCell(), service.TX)
 	names := make([]string, 0, len(groupIds))
 	for _, groupId := range groupIds {
 		group, err := groupRepository.GetGroupById(groupId, false, false)
@@ -481,7 +481,7 @@ func (service ReportService) readerLanguage(userId uint) i18n.Translator {
 }
 
 func (service ReportService) userDisplayName(userId uint, tr i18n.Translator) string {
-	user, err := repositories.NewUserRepository(service.TX).GetUserById(userId)
+	user, err := repositories.NewUserRepository(repositories.ImplicitCell(), service.TX).GetUserById(userId)
 	if err != nil {
 		return tr.T("Unknown User")
 	}

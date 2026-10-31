@@ -255,7 +255,7 @@ func (service ReportDataService) fetchReceipts(
 	associations []string,
 	limit int,
 ) ([]models.Receipt, int64, error) {
-	receiptRepository := repositories.NewReceiptRepository(service.TX)
+	receiptRepository := repositories.NewReceiptRepository(repositories.ImplicitCell(), service.TX)
 	permissionService := NewPermissionService(service.TX)
 
 	uintGroupId, err := utils.StringToUint(groupId)

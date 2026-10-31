@@ -59,7 +59,7 @@ func GetPagedReceiptsForGroup(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			receiptRepository := repositories.NewReceiptRepository(nil)
+			receiptRepository := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil)
 			receipts, count, err := receiptRepository.GetPagedReceiptsByGroupId(
 				token.UserId,
 				groupId,
@@ -164,7 +164,7 @@ func GetReceiptsForGroupIds(w http.ResponseWriter, r *http.Request) {
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
 			token := structs.GetClaims(r)
 			permissionService := services.NewPermissionService(nil)
-			receiptRepository := repositories.NewReceiptRepository(nil)
+			receiptRepository := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil)
 			receipts, err := receiptRepository.GetReceiptsByGroupIds(groupIds, "*", clause.Associations)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -246,7 +246,7 @@ func CreateReceipt(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			receiptRepository := repositories.NewReceiptRepository(nil)
+			receiptRepository := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil)
 			createdReceipt, err := receiptRepository.CreateReceipt(command, token.UserId, true)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -337,7 +337,7 @@ const (
 // scan and a move on update — rejects it. A group that does not exist is not
 // the All group; the permission check that follows denies it.
 func isAllGroupDestination(groupId uint) (bool, error) {
-	isAllGroup, err := repositories.NewGroupRepository(nil).IsAllGroup(groupId)
+	isAllGroup, err := repositories.NewGroupRepository(repositories.ImplicitCell(), nil).IsAllGroup(groupId)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return false, err
 	}
@@ -589,7 +589,7 @@ func UpdateReceipt(w http.ResponseWriter, r *http.Request) {
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
 			token := structs.GetClaims(r)
 			command := commands.UpsertReceiptCommand{}
-			receiptRepository := repositories.NewReceiptRepository(nil)
+			receiptRepository := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil)
 			err := command.LoadDataFromRequest(w, r)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -753,7 +753,7 @@ func BulkReceiptStatusUpdate(w http.ResponseWriter, r *http.Request) {
 		ResponseType:     constants.ApplicationJson,
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
 			db := repositories.GetDB()
-			receiptRepository := repositories.NewReceiptRepository(nil)
+			receiptRepository := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil)
 			var receipts []models.Receipt
 
 			if len(bulkCommand.Status) == 0 {
@@ -860,7 +860,7 @@ func HasAccess(w http.ResponseWriter, r *http.Request) {
 				return http.StatusBadRequest, errors.New("invalid group permission")
 			}
 
-			receiptRepository := repositories.NewReceiptRepository(nil)
+			receiptRepository := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil)
 			receipt, err := receiptRepository.GetReceiptById(receiptId)
 			if err != nil {
 				return http.StatusBadRequest, err

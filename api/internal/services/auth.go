@@ -157,7 +157,7 @@ func LoginUser(loginAttempt commands.LoginCommand) (models.User, bool, error) {
 		return models.User{}, false, ErrPasswordLoginUnavailable
 	}
 
-	userRepository := repositories.NewUserRepository(nil)
+	userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
 
 	// "Administrator" is defined by the app.users.read permission (the modern
 	// replacement for the removed UserRole == ADMIN check), resolved from the
@@ -329,7 +329,7 @@ func GetAppData(userId uint, r *http.Request) (structs.AppData, error) {
 
 	aboutRepository := repositories.NewAboutRepository(repositories.ImplicitCell(), nil)
 	groupService := NewGroupService(nil)
-	userRepository := repositories.NewUserRepository(nil)
+	userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
 	userPreferenceRepository := repositories.NewUserPreferencesRepository(repositories.ImplicitCell(), nil)
 	categoryRepository := repositories.NewCategoryRepository(repositories.ImplicitCell(), nil)
 	systemSettingsService := NewSystemSettingsService(nil)

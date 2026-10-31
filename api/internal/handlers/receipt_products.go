@@ -110,7 +110,7 @@ func QueueGroupReceiptProducts(w http.ResponseWriter, r *http.Request) {
 				return http.StatusBadRequest, err
 			}
 
-			isAllGroup, err := repositories.NewGroupRepository(nil).IsAllGroup(groupId)
+			isAllGroup, err := repositories.NewGroupRepository(repositories.ImplicitCell(), nil).IsAllGroup(groupId)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -170,7 +170,7 @@ func SetReceiptProductClassification(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			receipt, err := repositories.NewReceiptRepository(nil).GetReceiptById(utils.UintToString(product.ReceiptId))
+			receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetReceiptById(utils.UintToString(product.ReceiptId))
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}

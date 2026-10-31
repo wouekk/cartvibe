@@ -31,7 +31,7 @@ func ReadReceiptImage(receiptImageId string) (commands.UpsertReceiptCommand, com
 		return result, commands.ReceiptProcessingMetadata{}, err
 	}
 
-	receiptImageRepository := repositories.NewReceiptImageRepository(nil)
+	receiptImageRepository := repositories.NewReceiptImageRepository(repositories.ImplicitCell(), nil)
 	receiptImage, err := receiptImageRepository.GetReceiptImageById(receiptImageUint)
 	if err != nil {
 		return result, commands.ReceiptProcessingMetadata{}, err
@@ -110,7 +110,7 @@ func magicFillFromImage(command commands.MagicFillCommand, groupId string, userI
 
 func GetReceiptImagesForGroup(groupId string, userId string) ([]models.FileData, error) {
 	db := repositories.GetDB()
-	groupRepository := repositories.NewGroupRepository(nil)
+	groupRepository := repositories.NewGroupRepository(repositories.ImplicitCell(), nil)
 	groupService := NewGroupService(nil)
 	groupIds := make([]uint, 0)
 
@@ -158,7 +158,7 @@ func GetReceiptFromReceiptImageId(receiptImageId string) (models.Receipt, error)
 
 	receiptIdString := utils.UintToString(fileData.ReceiptId)
 
-	receiptRepository := repositories.NewReceiptRepository(nil)
+	receiptRepository := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil)
 	receipt, err = receiptRepository.GetReceiptById(receiptIdString)
 	if err != nil {
 		return models.Receipt{}, err

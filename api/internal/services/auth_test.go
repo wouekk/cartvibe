@@ -168,7 +168,7 @@ func TestShouldLogInUserCorrectly(t *testing.T) {
 	expectedUsername := "Another username"
 	password := "Password"
 
-	userRepository := repositories.NewUserRepository(nil)
+	userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
 
 	createdUser, err := userRepository.CreateUser(commands.SignUpCommand{
 		Username:    expectedUsername,
@@ -217,7 +217,7 @@ func TestShouldNotLogUserInWithWrongPassword(t *testing.T) {
 	expectedUsername := "Another username"
 	password := "Password"
 
-	userRepository := repositories.NewUserRepository(nil)
+	userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
 
 	_, err := userRepository.CreateUser(commands.SignUpCommand{
 		Username:    expectedUsername,
@@ -455,7 +455,7 @@ func TestCookiesAreSecureWhenTheSettingIsOn(t *testing.T) {
 func TestGetAppData_PopulatesFields(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
-	userRepository := repositories.NewUserRepository(nil)
+	userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
 	user, err := userRepository.CreateUser(commands.SignUpCommand{
 		Username:    "appdata-user",
 		Password:    "Password",
@@ -563,7 +563,7 @@ func TestGetAppData_IsolationHidesPeerFromDirectoryAndRoster(t *testing.T) {
 func TestGetAppData_WithRequestPopulatesClaims(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
-	userRepository := repositories.NewUserRepository(nil)
+	userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
 	user, err := userRepository.CreateUser(commands.SignUpCommand{
 		Username:    "claims-user",
 		Password:    "Password",
@@ -837,7 +837,7 @@ func TestGetAppData_NoRolePermissionsEmpty(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	ClearRolePermissionCacheForTests()
 
-	userRepository := repositories.NewUserRepository(nil)
+	userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
 	user, err := userRepository.CreateUser(commands.SignUpCommand{
 		Username:    "appdata-no-role-user",
 		Password:    "Password",
@@ -873,7 +873,7 @@ func TestLoginUserRejectsDummyUser(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	ClearRolePermissionCacheForTests()
 
-	userRepository := repositories.NewUserRepository(nil)
+	userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
 	_, err := userRepository.CreateUser(commands.SignUpCommand{
 		Username:    "ghost",
 		DisplayName: "Ghost",
@@ -899,7 +899,7 @@ func TestLoginUserRejectsEmptyPassword(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	ClearRolePermissionCacheForTests()
 
-	userRepository := repositories.NewUserRepository(nil)
+	userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
 	_, err := userRepository.CreateUser(commands.SignUpCommand{
 		Username:    "realuser",
 		Password:    "Password",
@@ -959,7 +959,7 @@ func TestLoginUserRejectsPasswordlessOidcAccount(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	ClearRolePermissionCacheForTests()
 
-	user, err := repositories.NewUserRepository(nil).CreateUser(commands.SignUpCommand{
+	user, err := repositories.NewUserRepository(repositories.ImplicitCell(), nil).CreateUser(commands.SignUpCommand{
 		Username:    "oidconly",
 		Password:    "Password",
 		DisplayName: "OIDC Only",
@@ -999,7 +999,7 @@ func TestLoginUserAllowsLinkedAccountWithItsOwnPassword(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	ClearRolePermissionCacheForTests()
 
-	user, err := repositories.NewUserRepository(nil).CreateUser(commands.SignUpCommand{
+	user, err := repositories.NewUserRepository(repositories.ImplicitCell(), nil).CreateUser(commands.SignUpCommand{
 		Username:    "linkeduser",
 		Password:    "Password",
 		DisplayName: "Linked User",

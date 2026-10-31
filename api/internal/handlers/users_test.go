@@ -148,7 +148,7 @@ func TestShouldNotAllowUserToUpdateUser(t *testing.T) {
 }
 
 func createTestUser(t *testing.T, username string, password string) models.User {
-	userRepository := repositories.NewUserRepository(nil)
+	userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
 	user, err := userRepository.CreateUser(commands.SignUpCommand{
 		Username:    username,
 		DisplayName: username,

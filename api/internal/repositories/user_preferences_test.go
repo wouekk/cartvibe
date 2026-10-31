@@ -172,7 +172,7 @@ func TestUpdateUserPreferencesStoresWellFormedLanguageCodes(t *testing.T) {
 func TestOnboardingPendingIsOnForNewAccountsAndTurnsOff(t *testing.T) {
 	defer TruncateTestDb()
 
-	created, err := NewUserRepository(nil).CreateUser(commands.SignUpCommand{
+	created, err := NewUserRepository(ImplicitCell(), nil).CreateUser(commands.SignUpCommand{
 		Username:    "newcomer",
 		DisplayName: "Newcomer",
 		Password:    "a really secure password",

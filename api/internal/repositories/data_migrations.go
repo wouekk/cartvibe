@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"cartvibe/api/internal/cell"
 	"cartvibe/api/internal/models"
 	"time"
 
@@ -28,8 +29,8 @@ var dataMigrations = []dataMigration{
 // not yet been recorded in the data_migrations ledger. Each migration claims its
 // ledger row and runs in the same transaction, so a failure rolls back cleanly
 // and the migration retries on the next boot.
-func RunDataMigrations() error {
-	db := GetDB()
+func RunDataMigrations(h cell.Handle) error {
+	db := h.DB()
 
 	for _, migration := range dataMigrations {
 		err := db.Transaction(func(tx *gorm.DB) error {

@@ -51,7 +51,7 @@ func NewReceiptService(tx *gorm.DB) ReceiptService {
 // forbidden, and paid-by-hidden receipts all collapse to ErrReceiptAccessDenied so
 // the caller cannot infer a receipt's existence.
 func (service ReceiptService) GetReceiptForUser(userId uint, receiptId string) (models.Receipt, error) {
-	receiptRepository := repositories.NewReceiptRepository(service.TX)
+	receiptRepository := repositories.NewReceiptRepository(repositories.ImplicitCell(), service.TX)
 	permissionService := NewPermissionService(service.TX)
 
 	// Authorize on the lightweight auth fields first (this fetch uses First, so a
@@ -153,7 +153,7 @@ func (service ReceiptService) SearchReceiptsForUser(userId uint, query string, l
 		return results, nil
 	}
 
-	receiptRepository := repositories.NewReceiptRepository(service.TX)
+	receiptRepository := repositories.NewReceiptRepository(repositories.ImplicitCell(), service.TX)
 	receipts, err := receiptRepository.SearchReceiptsByGroupIds(readableGroupIds, query, limit, permissionService.PaidByListResolver(userId))
 	if err != nil {
 		return nil, err
@@ -185,7 +185,7 @@ func (service ReceiptService) GetReceiptByReceiptImageId(receiptImageId string) 
 		return models.Receipt{}, err
 	}
 
-	receiptRepository := repositories.NewReceiptRepository(service.TX)
+	receiptRepository := repositories.NewReceiptRepository(repositories.ImplicitCell(), service.TX)
 	receipt, err := receiptRepository.GetReceiptById(strconv.FormatUint(uint64(fileData.ReceiptId), 10))
 	if err != nil {
 		return models.Receipt{}, err
@@ -197,7 +197,7 @@ func (service ReceiptService) GetReceiptByReceiptImageId(receiptImageId string) 
 func (service ReceiptService) DeleteReceipt(id string) error {
 	db := service.GetDB()
 	var receipt models.Receipt
-	receiptRepository := repositories.NewReceiptRepository(service.TX)
+	receiptRepository := repositories.NewReceiptRepository(repositories.ImplicitCell(), service.TX)
 
 	receipt, err := receiptRepository.GetFullyLoadedReceiptById(id)
 	if err != nil {
@@ -295,8 +295,8 @@ func (service ReceiptService) QuickScan(params QuickScanParams) (models.Receipt,
 		Filename:  params.OriginalFileName,
 	}
 
-	receiptRepository := repositories.NewReceiptRepository(service.TX)
-	receiptImageRepository := repositories.NewReceiptImageRepository(service.TX)
+	receiptRepository := repositories.NewReceiptRepository(repositories.ImplicitCell(), service.TX)
+	receiptImageRepository := repositories.NewReceiptImageRepository(repositories.ImplicitCell(), service.TX)
 
 	groupIdString := utils.UintToString(groupId)
 
@@ -653,7 +653,7 @@ func (service ReceiptService) DuplicateReceipt(
 		GroupId:              nil,
 	}
 
-	receiptRepository := repositories.NewReceiptRepository(nil)
+	receiptRepository := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil)
 	receipt, err := receiptRepository.GetFullyLoadedReceiptById(receiptId)
 	defer func() {
 		systemTaskService := NewSystemTaskService(nil)
@@ -833,13 +833,13 @@ func (service ReceiptService) CreateReceiptWithFiles(
 	var createdReceiptId uint
 	writtenPaths := make([]string, 0, len(files))
 	err = db.Transaction(func(tx *gorm.DB) error {
-		createdReceipt, txErr := repositories.NewReceiptRepository(tx).CreateReceipt(command, userId, false)
+		createdReceipt, txErr := repositories.NewReceiptRepository(repositories.ImplicitCell(), tx).CreateReceipt(command, userId, false)
 		if txErr != nil {
 			return txErr
 		}
 		createdReceiptId = createdReceipt.ID
 
-		receiptImageRepository := repositories.NewReceiptImageRepository(tx)
+		receiptImageRepository := repositories.NewReceiptImageRepository(repositories.ImplicitCell(), tx)
 		fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), tx)
 		for _, file := range files {
 			fileData := models.FileData{
@@ -878,7 +878,7 @@ func (service ReceiptService) CreateReceiptWithFiles(
 		return models.Receipt{}, err
 	}
 
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(createdReceiptId))
+	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetFullyLoadedReceiptById(utils.UintToString(createdReceiptId))
 	if err != nil {
 		return models.Receipt{}, err
 	}

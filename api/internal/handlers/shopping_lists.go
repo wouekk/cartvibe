@@ -20,7 +20,7 @@ const allGroupShoppingListMessage = "Shopping lists cannot be used in the All gr
 // group, which is never a destination. Lists addressed by their own id need no such check: none can
 // exist in the All group, because every route that creates or reads by group runs this first.
 func rejectAllGroupShoppingList(w http.ResponseWriter, groupId uint) (bool, error) {
-	isAllGroup, err := repositories.NewGroupRepository(nil).IsAllGroup(groupId)
+	isAllGroup, err := repositories.NewGroupRepository(repositories.ImplicitCell(), nil).IsAllGroup(groupId)
 	if err != nil {
 		return false, err
 	}

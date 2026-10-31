@@ -112,7 +112,7 @@ func TestUpdateGroupClearsRemovedMembersGrants(t *testing.T) {
 	defer TruncateTestDb()
 
 	fixture := seedGrantGroup(t)
-	repository := NewGroupRepository(nil)
+	repository := NewGroupRepository(ImplicitCell(), nil)
 
 	_, err := repository.UpdateGroup(commands.UpsertGroupCommand{
 		Name:   "Agency",
@@ -147,7 +147,7 @@ func TestUpdateGroupDoesNotResurrectGrantsOnRejoin(t *testing.T) {
 	defer TruncateTestDb()
 
 	fixture := seedGrantGroup(t)
-	repository := NewGroupRepository(nil)
+	repository := NewGroupRepository(ImplicitCell(), nil)
 	groupIdString := utils.UintToString(fixture.groupId)
 
 	_, err := repository.UpdateGroup(commands.UpsertGroupCommand{
@@ -195,7 +195,7 @@ func TestUpdateGroupPreservesRetainedMemberGrantFlags(t *testing.T) {
 	defer TruncateTestDb()
 
 	fixture := seedGrantGroup(t)
-	repository := NewGroupRepository(nil)
+	repository := NewGroupRepository(ImplicitCell(), nil)
 
 	_, err := repository.UpdateGroup(commands.UpsertGroupCommand{
 		Name:   "Agency Renamed",

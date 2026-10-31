@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -806,4 +807,242 @@ func TestReceiptProductRepositoryStaysInItsCell(t *testing.T) {
 		t.Fatalf("cell B lost its product: %+v", productsB)
 	}
 	tw.ExpectOwn(t, celltest.B, productsB)
+}
+
+// seedTwinReceipt seeds user 1, group 1 and receipt 1 (named with the marker) into one cell.
+func seedTwinReceipt(db *gorm.DB, marker string) error {
+	if err := seedTwinUser(db, 1, "same-name"); err != nil {
+		return err
+	}
+	if err := db.Create(&models.Group{Name: "group-" + marker}).Error; err != nil {
+		return err
+	}
+	return db.Create(&models.Receipt{Name: "receipt-" + marker, Amount: decimal.RequireFromString("1.00"), Date: time.Now(), PaidByUserID: 1, GroupId: 1}).Error
+}
+
+func TestReceiptRepositoryStaysInItsCell(t *testing.T) {
+	tw := celltest.NewTwin(t, migrateSchema)
+	tw.Seed(t, seedTwinReceipt)
+	tw.RequireIdenticalIDs(t, "receipts")
+
+	repoA := NewReceiptRepository(tw.Handle(celltest.A), nil)
+	repoB := NewReceiptRepository(tw.Handle(celltest.B), nil)
+
+	receiptA, err := repoA.GetReceiptById("1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	receiptB, err := repoB.GetReceiptById("1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	tw.ExpectOwn(t, celltest.A, receiptA)
+	tw.ExpectOwn(t, celltest.B, receiptB)
+
+	fullA, err := repoA.GetFullyLoadedReceiptById("1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	tw.ExpectOwn(t, celltest.A, fullA)
+
+	// The failed-update task is recorded in the cell of the repository that failed.
+	createFailedUpdateSystemTask(repoA.Cell, commands.UpsertSystemTaskCommand{
+		Type: models.RECEIPT_UPDATED, AssociatedEntityType: models.RECEIPT, AssociatedEntityId: 1, StartedAt: time.Now(),
+	}, errors.New("boom"))
+	var inA, inB int64
+	tw.Handle(celltest.A).DB().Model(&models.SystemTask{}).Count(&inA)
+	tw.Handle(celltest.B).DB().Model(&models.SystemTask{}).Count(&inB)
+	if inA != 1 || inB != 0 {
+		t.Errorf("failed-update tasks after a failure in cell A: A=%d (want 1) B=%d (want 0)", inA, inB)
+	}
+
+	pagedB, err := repoB.GetReceiptsByGroupIds([]string{"1"}, "*", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	tw.ExpectOwn(t, celltest.B, pagedB)
+}
+
+func TestReceiptImageRepositoryStaysInItsCell(t *testing.T) {
+	tw := celltest.NewTwin(t, migrateSchema)
+	tw.Seed(t, func(db *gorm.DB, marker string) error {
+		if err := seedTwinReceipt(db, marker); err != nil {
+			return err
+		}
+		return db.Create(&models.FileData{Name: "scan-" + marker + ".jpg", FileType: "image/jpeg", Size: 1, ReceiptId: 1}).Error
+	})
+	tw.RequireIdenticalIDs(t, "file_data")
+
+	repoA := NewReceiptImageRepository(tw.Handle(celltest.A), nil)
+	repoB := NewReceiptImageRepository(tw.Handle(celltest.B), nil)
+
+	imageA, err := repoA.GetReceiptImageById(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	imagesB, err := repoB.GetReceiptImagesByIdArray([]uint{1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	tw.ExpectOwn(t, celltest.A, imageA)
+	tw.ExpectOwn(t, celltest.B, imagesB)
+}
+
+func TestCommentRepositoryStaysInItsCell(t *testing.T) {
+	tw := celltest.NewTwin(t, migrateSchema)
+	tw.Seed(t, func(db *gorm.DB, marker string) error {
+		if err := seedTwinReceipt(db, marker); err != nil {
+			return err
+		}
+		if err := seedTwinUser(db, 2, "second"); err != nil {
+			return err
+		}
+		if err := db.Create(&models.GroupMember{UserID: 1, GroupID: 1}).Error; err != nil {
+			return err
+		}
+		author := uint(1)
+		return db.Create(&models.Comment{Comment: "comment-" + marker, ReceiptId: 1, UserId: &author}).Error
+	})
+	// Only cell A has a second member, who is the one to be notified of a new comment.
+	if err := tw.Handle(celltest.A).DB().Create(&models.GroupMember{UserID: 2, GroupID: 1}).Error; err != nil {
+		t.Fatal(err)
+	}
+
+	repoA := NewCommentRepository(tw.Handle(celltest.A), nil)
+	repoB := NewCommentRepository(tw.Handle(celltest.B), nil)
+
+	commentsA, err := repoA.GetCommentsForReceiptIds([]uint{1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	commentsB, err := repoB.GetCommentsForReceiptIds([]uint{1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	tw.ExpectOwn(t, celltest.A, commentsA)
+	tw.ExpectOwn(t, celltest.B, commentsB)
+
+	// The notification fan-out of a new comment runs in the commenting cell, through sibling repositories.
+	author := uint(1)
+	if _, err := repoA.AddComment(commands.UpsertCommentCommand{Comment: "new", ReceiptId: 1, UserId: &author}, nil); err != nil {
+		t.Fatal(err)
+	}
+	var notificationsA, notificationsB, commentsInB int64
+	tw.Handle(celltest.A).DB().Model(&models.Notification{}).Count(&notificationsA)
+	tw.Handle(celltest.B).DB().Model(&models.Notification{}).Count(&notificationsB)
+	tw.Handle(celltest.B).DB().Model(&models.Comment{}).Count(&commentsInB)
+	if notificationsA != 1 || notificationsB != 0 || commentsInB != 1 {
+		t.Errorf("after a comment in cell A: notifications A=%d (want 1) B=%d (want 0), comments in B=%d (want 1)", notificationsA, notificationsB, commentsInB)
+	}
+}
+
+func TestGroupRepositoryStaysInItsCell(t *testing.T) {
+	tw := celltest.NewTwin(t, migrateSchema)
+	tw.Seed(t, func(db *gorm.DB, marker string) error {
+		if err := seedTwinUser(db, 1, "same-name"); err != nil {
+			return err
+		}
+		if err := db.Create(&models.Group{Name: "group-" + marker}).Error; err != nil {
+			return err
+		}
+		return db.Create(&models.GroupMember{UserID: 1, GroupID: 1}).Error
+	})
+	// Cell B alone has a second group with the user in it.
+	dbB := tw.Handle(celltest.B).DB()
+	if err := dbB.Create(&models.Group{Name: "second-group"}).Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := dbB.Create(&models.GroupMember{UserID: 1, GroupID: 2}).Error; err != nil {
+		t.Fatal(err)
+	}
+
+	repoA := NewGroupRepository(tw.Handle(celltest.A), nil)
+	repoB := NewGroupRepository(tw.Handle(celltest.B), nil)
+
+	paged := commands.PagedGroupRequestCommand{PagedRequestCommand: commands.PagedRequestCommand{Page: 1, PageSize: 10, OrderBy: "name", SortDirection: commands.ASCENDING}}
+	groupsA, countA, err := repoA.GetPagedGroups(paged, "1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	groupsB, countB, err := repoB.GetPagedGroups(paged, "1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if countA != 1 || countB != 2 {
+		t.Errorf("the roster of user 1 crossed cells: A lists %d groups (want 1), B lists %d (want 2)", countA, countB)
+	}
+	tw.RejectOther(t, celltest.A, groupsA)
+	tw.ExpectOwn(t, celltest.B, groupsB[:1])
+
+	// A group created in A (with its settings and role assignment through sibling repositories) stays in A.
+	if err := SeedSystemRoles(tw.Handle(celltest.A)); err != nil {
+		t.Fatal(err)
+	}
+	if err := EnsureDefaultRoles(tw.Handle(celltest.A)); err != nil {
+		t.Fatal(err)
+	}
+	created, err := repoA.CreateGroup(commands.UpsertGroupCommand{Name: "created-in-a", Status: models.GroupStatus("ACTIVE")}, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var settingsInA, settingsInB, groupsInB int64
+	tw.Handle(celltest.A).DB().Model(&models.GroupReceiptSettings{}).Where("group_id = ?", created.ID).Count(&settingsInA)
+	tw.Handle(celltest.B).DB().Model(&models.GroupReceiptSettings{}).Count(&settingsInB)
+	tw.Handle(celltest.B).DB().Model(&models.Group{}).Count(&groupsInB)
+	if settingsInA != 1 || settingsInB != 0 || groupsInB != 2 {
+		t.Errorf("after CreateGroup in cell A: settings in A=%d (want 1), settings in B=%d (want 0), groups in B=%d (want 2)", settingsInA, settingsInB, groupsInB)
+	}
+}
+
+func TestUserRepositoryStaysInItsCell(t *testing.T) {
+	tw := celltest.NewTwin(t, migrateSchema)
+	tw.Seed(t, func(db *gorm.DB, marker string) error {
+		return db.Create(&models.User{BaseModel: models.BaseModel{ID: 1}, Username: "same-name", DisplayName: "user-" + marker, Password: "x"}).Error
+	})
+	tw.RequireIdenticalIDs(t, "users")
+
+	repoA := NewUserRepository(tw.Handle(celltest.A), nil)
+	repoB := NewUserRepository(tw.Handle(celltest.B), nil)
+
+	userA, err := repoA.GetUserByUsername("same-name")
+	if err != nil {
+		t.Fatal(err)
+	}
+	userB, err := repoB.GetUserById(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tw.ExpectOwn(t, celltest.A, userA)
+	tw.ExpectOwn(t, celltest.B, userB)
+
+	// A sign-up in A creates the account, its preferences and its group (sibling repositories) in A only.
+	if err := SeedSystemRoles(tw.Handle(celltest.A)); err != nil {
+		t.Fatal(err)
+	}
+	if err := EnsureDefaultRoles(tw.Handle(celltest.A)); err != nil {
+		t.Fatal(err)
+	}
+	created, err := repoA.CreateUser(commands.SignUpCommand{Username: "new-in-a", Password: "Password1!", DisplayName: "New"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := repoB.GetUserByUsername("new-in-a"); err == nil {
+		t.Error("cell B can see a user created in cell A")
+	}
+	var prefsInA, prefsInB, groupsInB int64
+	tw.Handle(celltest.A).DB().Model(&models.UserPrefernces{}).Where("user_id = ?", created.ID).Count(&prefsInA)
+	tw.Handle(celltest.B).DB().Model(&models.UserPrefernces{}).Count(&prefsInB)
+	tw.Handle(celltest.B).DB().Model(&models.Group{}).Count(&groupsInB)
+	if prefsInA != 1 || prefsInB != 0 || groupsInB != 0 {
+		t.Errorf("after CreateUser in cell A: preferences in A=%d (want 1), in B=%d (want 0), groups in B=%d (want 0)", prefsInA, prefsInB, groupsInB)
+	}
+
+	// The first-admin check reads the roles of its own cell.
+	first, err := repoB.IsFirstAdminToLogin()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !first {
+		t.Error("cell B has no admin role, so its first login counts as the first admin")
+	}
 }

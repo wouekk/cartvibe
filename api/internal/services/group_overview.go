@@ -202,7 +202,7 @@ func (service GroupOverviewService) countActiveWarranties(userId uint, groupId s
 		Filter: commands.ReceiptPagedRequestFilter{WarrantyActive: true},
 	}
 
-	_, count, err := repositories.NewReceiptRepository(service.TX).GetPagedReceiptsByGroupId(
+	_, count, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), service.TX).GetPagedReceiptsByGroupId(
 		userId,
 		groupId,
 		pagedRequest,
@@ -427,7 +427,7 @@ func (service GroupOverviewService) fetchReceipts(
 		},
 	}
 
-	receipts, _, err := repositories.NewReceiptRepository(service.TX).GetPagedReceiptsByGroupId(
+	receipts, _, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), service.TX).GetPagedReceiptsByGroupId(
 		userId,
 		groupId,
 		pagedRequest,

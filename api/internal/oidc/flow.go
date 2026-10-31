@@ -589,7 +589,7 @@ func issueSession(w http.ResponseWriter, r *http.Request, userId uint) {
 		return
 	}
 
-	_, err = repositories.NewUserRepository(nil).UpdateUserLastLoginDate(userId)
+	_, err = repositories.NewUserRepository(repositories.ImplicitCell(), nil).UpdateUserLastLoginDate(userId)
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, "Failed to stamp last login date after OIDC login: "+err.Error())
 	}

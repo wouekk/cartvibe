@@ -40,7 +40,7 @@ func NewSystemReceiptProcessingService(tx *gorm.DB, groupId string) (ReceiptProc
 	}
 
 	if len(groupId) > 0 {
-		groupRepository := repositories.NewGroupRepository(tx)
+		groupRepository := repositories.NewGroupRepository(repositories.ImplicitCell(), tx)
 		groupToUse, err := groupRepository.GetGroupById(groupId, false, false)
 		if err != nil {
 			return ReceiptProcessingService{}, err

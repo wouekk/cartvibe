@@ -301,7 +301,7 @@ func TestWarrantiesEndingSoonFilter(t *testing.T) {
 			WarrantyEndsBy: today.AddDate(0, 2, 0).Format(time.DateOnly),
 		},
 	}
-	receipts, count, err := repositories.NewReceiptRepository(nil).GetPagedReceiptsByGroupId(
+	receipts, count, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetPagedReceiptsByGroupId(
 		fx.memberBId, utils.UintToString(fx.groupId), request, nil, nil, nil, nil, nil,
 	)
 	if err != nil {

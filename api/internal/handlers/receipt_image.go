@@ -62,7 +62,7 @@ func UploadReceiptImage(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			fileImageRepository := repositories.NewReceiptImageRepository(nil)
+			fileImageRepository := repositories.NewReceiptImageRepository(repositories.ImplicitCell(), nil)
 			fileData := models.FileData{
 				Name:      fileHeader.Filename,
 				Size:      uint(fileHeader.Size),
@@ -421,7 +421,7 @@ func validateReceiptImageAccess(r *http.Request, requiredPermission string, rece
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	receiptImageRepository := repositories.NewReceiptImageRepository(nil)
+	receiptImageRepository := repositories.NewReceiptImageRepository(repositories.ImplicitCell(), nil)
 
 	receiptImage, err := receiptImageRepository.GetReceiptImageById(receiptImageIdUint)
 	if err != nil {

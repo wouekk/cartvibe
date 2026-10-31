@@ -210,7 +210,7 @@ func (service ReceiptProductExtractionService) ProcessDueExtractions() (int, err
 func (service ReceiptProductExtractionService) extract(extraction models.ReceiptProductExtraction) error {
 	repository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), service.TX)
 
-	receipt, err := repositories.NewReceiptRepository(service.TX).GetReceiptById(utils.UintToString(extraction.ReceiptId))
+	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), service.TX).GetReceiptById(utils.UintToString(extraction.ReceiptId))
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		// Deleted since it was queued; nothing left to read.
 		return repository.DeleteReceiptProducts(extraction.ReceiptId)
@@ -276,7 +276,7 @@ func (service ReceiptProductExtractionService) ApplyInlineRead(receiptId uint, r
 		return false, err
 	}
 
-	receipt, err := repositories.NewReceiptRepository(service.TX).GetReceiptById(utils.UintToString(receiptId))
+	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), service.TX).GetReceiptById(utils.UintToString(receiptId))
 	if err != nil {
 		return false, err
 	}
@@ -706,7 +706,7 @@ func (service ReceiptProductExtractionService) applyReadResult(
 	}
 
 	// Stamps the resolved date and settles the receipt's items, as every other way of resolving does.
-	return repositories.NewReceiptRepository(service.TX).AfterReceiptUpdated(&receipt)
+	return repositories.NewReceiptRepository(repositories.ImplicitCell(), service.TX).AfterReceiptUpdated(&receipt)
 }
 
 // productClassificationName is the name a product's correction is remembered under: its plain name.

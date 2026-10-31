@@ -185,7 +185,7 @@ func TestQuickScan_BackfillsPaidByAndStatusWhenAiOmitsThem(t *testing.T) {
 		return
 	}
 
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
+	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 		return
@@ -230,7 +230,7 @@ func TestQuickScan_KeepsAiPaidByAndStatusWhenPresent(t *testing.T) {
 		return
 	}
 
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
+	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 		return
@@ -264,7 +264,7 @@ func TestQuickScan_MergesUserCategoryAndTagPicksWithAi(t *testing.T) {
 		return
 	}
 
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
+	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 		return
@@ -328,7 +328,7 @@ func TestQuickScan_ResolvesIdOnlyAiCategory(t *testing.T) {
 		return
 	}
 
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
+	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 		return
@@ -366,7 +366,7 @@ func TestQuickScan_DropsUnresolvableAiCategory(t *testing.T) {
 		return
 	}
 
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
+	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 		return
@@ -413,7 +413,7 @@ func TestQuickScan_DropsOutOfGrantAiCategory(t *testing.T) {
 		return
 	}
 
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
+	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 		return
@@ -467,7 +467,7 @@ func TestQuickScan_DropsMemberOutOfGrantAiCategory(t *testing.T) {
 		return
 	}
 
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
+	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 		return
@@ -602,7 +602,7 @@ func TestQuickScan_PersistsUserComment(t *testing.T) {
 		return
 	}
 
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
+	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 		return
@@ -640,7 +640,7 @@ func TestQuickScan_EmptyCommentAddsNothing(t *testing.T) {
 		return
 	}
 
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
+	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 		return
@@ -674,7 +674,7 @@ func TestQuickScan_AppendsUserCommentToAiComment(t *testing.T) {
 		return
 	}
 
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
+	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 		return

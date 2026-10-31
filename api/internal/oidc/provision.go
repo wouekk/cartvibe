@@ -70,7 +70,7 @@ var usernameSanitizer = regexp.MustCompile(`[^a-z0-9._-]+`)
 // subsequent login.
 func resolveUser(provider models.OidcProvider, claims idTokenClaims) (structs.UserView, error) {
 	identityRepository := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil)
-	userRepository := repositories.NewUserRepository(nil)
+	userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
 
 	identity, err := identityRepository.GetIdentityBySubject(provider.ID, claims.Subject)
 	if err == nil {
@@ -140,7 +140,7 @@ func usernameMatchesClaim(storedUsername string, claimedUsername string) bool {
 func linkByUsername(provider models.OidcProvider, claims idTokenClaims) (structs.UserView, error) {
 	identityRepository := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil)
 
-	user, err := repositories.NewUserRepository(nil).GetUserByUsername(claims.PreferredUsername)
+	user, err := repositories.NewUserRepository(repositories.ImplicitCell(), nil).GetUserByUsername(claims.PreferredUsername)
 	if err != nil {
 		return structs.UserView{}, err
 	}
@@ -184,7 +184,7 @@ func provisionUser(provider models.OidcProvider, claims idTokenClaims) (structs.
 	// Username uniqueness is normally enforced by middleware.ValidateUserData,
 	// which this path does not go through, so check here -- and refuse rather than
 	// suffix (see ErrAccountExists).
-	_, err := repositories.NewUserRepository(nil).GetUserByUsername(username)
+	_, err := repositories.NewUserRepository(repositories.ImplicitCell(), nil).GetUserByUsername(username)
 	if err == nil {
 		return structs.UserView{}, ErrAccountExists
 	}
@@ -226,7 +226,7 @@ func provisionUser(provider models.OidcProvider, claims idTokenClaims) (structs.
 	err = repositories.GetDB().Transaction(func(tx *gorm.DB) error {
 		var txErr error
 
-		created, txErr = repositories.NewUserRepository(tx).CreateUser(commands.SignUpCommand{
+		created, txErr = repositories.NewUserRepository(repositories.ImplicitCell(), tx).CreateUser(commands.SignUpCommand{
 			Username:    username,
 			Password:    password,
 			DisplayName: displayName,

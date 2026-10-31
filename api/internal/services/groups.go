@@ -222,7 +222,7 @@ func (service GroupService) DeleteGroup(groupId string, allowAllGroupDelete bool
 		return err
 	}
 
-	groupRepository := repositories.NewGroupRepository(nil)
+	groupRepository := repositories.NewGroupRepository(repositories.ImplicitCell(), nil)
 
 	if !allowAllGroupDelete {
 		isAllGroup, err := groupRepository.IsAllGroup(uintGroupId)

@@ -578,7 +578,7 @@ func TestCreateReceipt_LegacyEndpointUnaffectedWithoutRequirements(t *testing.T)
 
 func addStoredImage(t *testing.T, receiptId uint, name string) models.FileData {
 	t.Helper()
-	fileData, err := repositories.NewReceiptImageRepository(nil).CreateReceiptImage(
+	fileData, err := repositories.NewReceiptImageRepository(repositories.ImplicitCell(), nil).CreateReceiptImage(
 		models.FileData{Name: name, ReceiptId: receiptId}, readHandlerTestJpg(t))
 	if err != nil {
 		t.Fatalf("CreateReceiptImage: %v", err)

@@ -16,7 +16,7 @@ import (
 
 func createUserForDeletion(t *testing.T, username string) models.User {
 	t.Helper()
-	userRepo := repositories.NewUserRepository(nil)
+	userRepo := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
 	user, err := userRepo.CreateUser(commands.SignUpCommand{
 		Username:    username,
 		Password:    "password",

@@ -286,18 +286,18 @@ func InitDB() error {
 		return err
 	}
 
-	if err := SeedSystemRoles(); err != nil {
+	if err := SeedSystemRoles(h); err != nil {
 		return err
 	}
 
 	// Must run after the roles are seeded and before the bootstrap admin /
 	// data migration so the default app and group roles exist for assignment.
-	if err := EnsureDefaultRoles(); err != nil {
+	if err := EnsureDefaultRoles(h); err != nil {
 		return err
 	}
 
 	if config.GetDeployEnv() != "test" {
-		userRepository := NewUserRepository(nil)
+		userRepository := NewUserRepository(h, nil)
 		err := userRepository.CreateUserIfNoneExist()
 		if err != nil {
 			return err
@@ -308,7 +308,7 @@ func InitDB() error {
 		return err
 	}
 
-	if err := RunDataMigrations(); err != nil {
+	if err := RunDataMigrations(h); err != nil {
 		return err
 	}
 	if err := SeedStarterReportTemplates(h); err != nil {

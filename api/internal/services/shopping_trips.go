@@ -75,7 +75,7 @@ func NewShoppingTripService(tx *gorm.DB) ShoppingTripService {
 // is the list as it stands now: its open items, plus those crossed off from the day of the receipt
 // (or the last day, whichever is earlier).
 func (service ShoppingTripService) AttachReceipt(groupId uint, listId uint, receiptId uint, userId uint) (models.ShoppingTrip, error) {
-	receipt, err := repositories.NewReceiptRepository(service.TX).GetReceiptById(utils.UintToString(receiptId))
+	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), service.TX).GetReceiptById(utils.UintToString(receiptId))
 	if err != nil {
 		return models.ShoppingTrip{}, err
 	}

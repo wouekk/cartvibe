@@ -172,7 +172,7 @@ func TestResolveReceiptRequirements_NothingRequired(t *testing.T) {
 func TestGetAppData_GroupReceiptRequirements(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
-	user, err := repositories.NewUserRepository(nil).CreateUser(commands.SignUpCommand{
+	user, err := repositories.NewUserRepository(repositories.ImplicitCell(), nil).CreateUser(commands.SignUpCommand{
 		Username:    "req-appdata",
 		Password:    "Password",
 		DisplayName: "Req AppData",

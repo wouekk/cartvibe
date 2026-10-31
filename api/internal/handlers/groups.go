@@ -50,7 +50,7 @@ func GetPagedGroups(w http.ResponseWriter, r *http.Request) {
 			}
 
 			userIdString := utils.UintToString(token.UserId)
-			groupRepository := repositories.NewGroupRepository(nil)
+			groupRepository := repositories.NewGroupRepository(repositories.ImplicitCell(), nil)
 
 			groups, count, err := groupRepository.GetPagedGroups(command, userIdString)
 			if err != nil {
@@ -106,7 +106,7 @@ func GetGroupsForUser(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if !hasAllGroup {
-				groupsRepository := repositories.NewGroupRepository(nil)
+				groupsRepository := repositories.NewGroupRepository(repositories.ImplicitCell(), nil)
 				groupService := services.NewGroupService(nil)
 
 				_, err := groupsRepository.CreateAllGroup(token.UserId)
@@ -159,7 +159,7 @@ func GetGroupById(w http.ResponseWriter, r *http.Request) {
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
 			id := chi.URLParam(r, "groupId")
 
-			groupRepository := repositories.NewGroupRepository(nil)
+			groupRepository := repositories.NewGroupRepository(repositories.ImplicitCell(), nil)
 			groups, err := groupRepository.GetGroupById(id, true, true)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -216,7 +216,7 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 			token := structs.GetClaims(r)
 
 			command.IsAllGroup = false
-			groupRepository := repositories.NewGroupRepository(nil)
+			groupRepository := repositories.NewGroupRepository(repositories.ImplicitCell(), nil)
 			group, err := groupRepository.CreateGroup(command, token.UserId)
 
 			if err != nil {
@@ -278,7 +278,7 @@ func UpdateGroup(w http.ResponseWriter, r *http.Request) {
 			}
 			groupId := chi.URLParam(r, "groupId")
 
-			groupRepository := repositories.NewGroupRepository(nil)
+			groupRepository := repositories.NewGroupRepository(repositories.ImplicitCell(), nil)
 			uintGroupId, err := utils.StringToUint(groupId)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -401,7 +401,7 @@ func DeleteGroup(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			groupRepository := repositories.NewGroupRepository(nil)
+			groupRepository := repositories.NewGroupRepository(repositories.ImplicitCell(), nil)
 			isAllGroup, err := groupRepository.IsAllGroup(uintGroupId)
 			if err != nil {
 				return http.StatusInternalServerError, err

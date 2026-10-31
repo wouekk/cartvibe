@@ -294,7 +294,7 @@ func validateGrantsExist(tx *gorm.DB, categoryGrants []uint, tagGrants []uint, p
 	}
 
 	if len(paidByUserGrants) > 0 {
-		userRepository := repositories.NewUserRepository(tx)
+		userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), tx)
 		count, err := userRepository.CountByIds(paidByUserGrants)
 		if err != nil {
 			return err
