@@ -5,12 +5,14 @@ Purpose: how to run `desktop/e2e/` and what each group of specs relies on. The r
 
 ## State of the suite
 
-About 41 specs plus `auth.setup.ts`. A full run in Docker (2026-11-01, built image, 2 workers, fresh database, `run-docker.sh`):
-193 tests, 113 passed, 39 failed, 41 did not run (a `beforeAll` failed). The 2026-10-30 devstack run was 217 tests, 45 passed,
-90 failed, 82 did not run; the difference in total is the three deleted role-editor specs (`roles`, `role-defaults`,
-`role-assignment`) and the cases dropped from `receipts`, `skip-default-group` and `receipt-role-requirements`. `e2e:smoke`
-is unchanged (`auth.spec`, `dashboard-charts`, `generate-password`, `report-template-list`); more files join it only after
-three green runs in a row.
+About 40 specs plus `auth.setup.ts`. Full runs in Docker (built image, 2 workers, fresh database, `run-docker.sh`):
+- 2026-10-30 (devstack): 217 tests, 45 passed, 90 failed, 82 did not run.
+- 2026-11-01 round 1: 193 tests, 113 passed, 39 failed, 41 did not run.
+- 2026-11-01 round 2: 187 tests, 129 passed, 22 failed, 2 skipped (`test.fixme`), 34 did not run (a `beforeAll` failed).
+
+`e2e:smoke` is `auth.spec`, `dashboard-charts`, `generate-password`, `report-template-list` and `member-grant-security` (green three
+runs in a row, 7 seconds). `report-template-list` still shows two failing cases in full local runs (duplicate, delete: a 503 or a
+changed row action); CI retries hide it, so look at it first if smoke ever flakes. More files join smoke only after three green runs.
 
 What was wrong, by cause (fixed unless marked open):
 - **Rate limit and expiry (environment).** nginx allows 10 requests a second (burst 20) and 30 logins a minute for the whole
@@ -25,33 +27,34 @@ What was wrong, by cause (fixed unless marked open):
 - **Landing is `/overview/group/<id>`**, not `/dashboard/...`; a denied route lands on the Dashboard, the receipts list or `/`.
 - **`e2e-admin` must own the Household** to have `group.reports.read` (a new account is a Member there): `seed-accounts.mjs`
   does it, otherwise the report builder's "Add a group" lists nothing.
-- **Unnamed selects.** `app-select` does not associate its `<label>` with the trigger, so `getByRole('combobox', { name })` finds
-  nothing; use `comboboxNamed(scope, label)` (`helpers/ui.ts`). The checkboxes in Configure Columns all read "Receipt Date" to
-  assistive tech (`aria-labelledby="null-label"`), so find them through the wrapping `<label>` and click the label text.
+- **Select and checkbox names.** Fixed in the app (round 2): `app-select` labels its trigger and checkboxes get unique ids. A native-looking `check()` on an `app-checkbox` can still toggle twice (the button is inside its label): use `setAppCheckbox` (`helpers/ui.ts`).
 - **Dates:** the period pickers are native date inputs, `fill('yyyy-MM-dd')`. The count chip says "1 receipt" in the singular.
 - **Receipt form:** no Group, Paid By, shares or items; the Name is pre-filled and Amount is the only other required field.
 
-Still failing (open), by cause:
-- Quick Scan dialog specs (`quick-scan-dialog`, `-behavior`, `quick-scan-config`, 11 tests): the dialog no longer shows the
-  Group / Status / Categories selects or the paid-by defaults these expect, and "Successfully queued" is not the toast text.
-  Rewrite against the current dialog or delete the paid-by cases.
-- `paid-by-visibility`, `single-group-default`, `receipt-role-requirements` (create case): they assume a Group or Paid By field
-  on the receipt form. Drop or rewrite.
-- Report builder: `report-grouping-label` (the grouping Field input is no longer read-only), `report-builder` aggregate-column
-  case, `report-period-date-field` drill-in, `report-template-*` gating/access specs (the custom users they provision log in
-  and capture a session; the cause is not found yet), `report-template-list` delete.
-- System Settings: `app-time-zone`, `session-lifetime`, `temp-file-retention` (the tabs and labels moved), and
-  `system-task-filter` (option list).
-- `comment-gating` (delete control), `group-delete-any`, `group-viewer-visibility`, `member-grant-assignment` /
-  `-visibility` (one UI case each), `shopping-list` (list tab), `receipt-update-diff`, `receipt-quick-date-filter`
-  (month stepper removed), `receipt-comment-column`, `chip-select-close-on-select`, `skip-default-group` (personal group case),
-  `generate-password` (Set Password dialog opener).
-- `receipts.spec` "create a basic receipt" fails now and then at 3 workers (503 on the save); fine at 2.
+Still failing (open), by cause. The 34 not-run tests belong to the same files:
+- **Receipt form assumptions:** `chip-select-close-on-select` (the receipt form has no Categories picker; the preference needs
+  another chip picker to test), `member-grant-visibility` "receipt form offers the effective set" (same picker),
+  `receipt-role-requirements` create case (needs a Group field), `single-group-default` now passes only because the
+  form hides the Group; its premise is gone, so retire it next.
+- **Report area:** `report-builder` aggregate-column case and `report-grouping-label` (the grouping Field input is not
+  read-only any more), `report-period-date-field` drill-in (the receipt name matches two elements), `report-template-list`
+  duplicate, `report-template-access` generate (503 or timing; passes alone).
+- **System Settings:** `app-time-zone` first case is `test.fixme` and the second fails behind it (serial); after Clear the typeahead
+  lists no zones, which may be an app bug. `system-task-filter` filter dialog (option list for Type).
+- **Individual UI cases:** `comment-gating` delete control still renders without `group.comments.delete`
+  (check whether the control is gated; possible app bug), `group-delete-any`, `group-viewer-visibility`,
+  `member-grant-assignment` capped role, `shopping-list` (list tab), `receipt-update-diff`, `receipt-quick-date-filter`
+  (month stepper removed: delete or rewrite for the period tabs), `receipt-comment-column` first-comment case,
+  `skip-default-group` personal-group case (expects a "My Receipts" group), `quick-scan-config` comment-greying case.
+- `quick-scan-config` "blocks save" is `test.fixme`: Save no longer navigates to the view page after choosing the Uploader default.
+- `receipts.spec` create cases are flaky at 2 to 3 workers (503 on the save).
+- Welcome dialog: `createUserWithRole` starts the account on Legacy User, turns the dialog off, then assigns the role (a custom role
+  without `app.user-preferences.*` cannot switch it off itself).
 
 Real app problems found (not hidden by the specs):
-1. `app-select` has no accessible name (label not tied to the trigger): screen readers announce an unnamed combobox.
-2. The Configure Columns checkboxes are all named "Receipt Date" (`aria-labelledby="null-label"` from `hlm-checkbox`).
-3. A new admin account joins the Household as Member and so cannot report on it until made Owner; the first-start `admin` is Owner.
+1. (Fixed in round 2) `app-select` had no accessible name: its label is now tied to the trigger (`comboboxNamed` is a plain role lookup again).
+2. (Fixed in round 2) Every `hlm-checkbox` without an id shared the label id "null-label", so all were named after the first; it now gets a unique id (patched in `tools/spartan-add.cjs` too).
+3. Open question for the product (not changed): a new admin joins the Household as Member and cannot report on it until made Owner; the first-start `admin` is Owner.
 
 ## Running the full suite in Docker (Windows PC without Node)
 
@@ -96,7 +99,7 @@ Config: `fullyParallel`, `retries` 2 on CI and 0 locally, `trace: 'on-first-retr
   `createGroupWithMember` keep the old UI-flow names but call the admin API (the role editor is gone).
 - `quick-scan.ts`: `injectQuickScanAppData`, `openQuickScanDialog`, `uploadQuickScanImages`, `selectImageGroup`,
   `parseMultipartFields`.
-- `ui.ts`: `comboboxNamed` (a combobox by label, for the unnamed `app-select`).
+- `ui.ts`: `comboboxNamed` (a combobox by label), `setAppCheckbox` (toggle an `app-checkbox` through its label).
 - `receipts-table.ts`: `gotoReceiptsTable`, `openReceiptsOverflowMenu`.
 - `reports.ts`: `gotoReports`, `gotoReportBuilder`, `addFirstGroupToScope`, `addGroupToScopeByName`,
   `openComboboxAndPick`, `waitForPreview`, `addGroupingLevel` (takes `string | RegExp`).
