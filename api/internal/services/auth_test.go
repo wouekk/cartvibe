@@ -37,7 +37,7 @@ func TestGenerateJWTGeneratesJWTCorrectly(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	expectedDisplayname := "Displayname"
 	expectedUsername := "Test"
-	expectedIssuer := "https://receiptWrangler.io"
+	expectedIssuer := "https://cartvibe.app"
 	var user models.User
 
 	v, err := InitTokenValidator()
@@ -102,7 +102,7 @@ func TestGenerateRefreshTokenCorrectly(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	expectedDisplayname := "Another displayname"
 	expectedUsername := "Another username"
-	expectedIssuer := "https://receiptWrangler.io"
+	expectedIssuer := "https://cartvibe.app"
 	var user models.User
 
 	v, err := InitTokenValidator()
@@ -321,18 +321,18 @@ func TestBuildTokenCookies_DevEnvironment(t *testing.T) {
 // as a bug — see BUG-1 in the bug report.
 func TestPrepareAccessTokenClaims_DoesNotMutateCaller(t *testing.T) {
 	claims := structs.Claims{}
-	claims.Issuer = "https://receiptWrangler.io"
-	claims.Audience = []string{"https://receiptWrangler.io"}
+	claims.Issuer = "https://cartvibe.app"
+	claims.Audience = []string{"https://cartvibe.app"}
 
 	PrepareAccessTokenClaims(claims)
 
 	// Documenting observed behavior: caller's Issuer/Audience are unchanged
 	// because the function receives claims by value.
-	if claims.Issuer != "https://receiptWrangler.io" {
-		utils.PrintTestError(t, claims.Issuer, "https://receiptWrangler.io")
+	if claims.Issuer != "https://cartvibe.app" {
+		utils.PrintTestError(t, claims.Issuer, "https://cartvibe.app")
 	}
-	if len(claims.Audience) != 1 || claims.Audience[0] != "https://receiptWrangler.io" {
-		utils.PrintTestError(t, claims.Audience, []string{"https://receiptWrangler.io"})
+	if len(claims.Audience) != 1 || claims.Audience[0] != "https://cartvibe.app" {
+		utils.PrintTestError(t, claims.Audience, []string{"https://cartvibe.app"})
 	}
 }
 
@@ -344,8 +344,8 @@ func TestPrepareAccessTokenClaims_ClearsIssuerAndAudience(t *testing.T) {
 	t.Skip("see BUG-1: PrepareAccessTokenClaims takes structs.Claims by value; caller mutations are lost")
 
 	claims := structs.Claims{}
-	claims.Issuer = "https://receiptWrangler.io"
-	claims.Audience = []string{"https://receiptWrangler.io"}
+	claims.Issuer = "https://cartvibe.app"
+	claims.Audience = []string{"https://cartvibe.app"}
 
 	PrepareAccessTokenClaims(claims)
 

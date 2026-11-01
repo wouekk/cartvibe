@@ -20,7 +20,7 @@ describe("TokenRefreshService", () => {
     displayName: "Test User",
     defaultAvatarColor: "#CD5C5C",
     username: "testuser",
-    iss: "https://receiptWrangler.io",
+    iss: "https://cartvibe.app",
     exp: Math.floor(Date.now() / 1000) + 1200,
   };
 

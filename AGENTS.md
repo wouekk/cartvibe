@@ -30,8 +30,8 @@ are offered; the UI ships in five languages.
   switched off under Manage Categories. Prompts are code and kept short; read `docs/ai-prompts.md` before changing one.
 - The AI answers in one language for the household.
 - Reports cut by a line field count a receipt once per bucket it falls into (totals stay exact).
-- Kept on purpose, do not rename: JWT issuer/audience `https://receiptWrangler.io` (changing it signs everyone out and
-  breaks MCP tokens), the `wranglerasynq` name. The container paths are
+- Do not rename lightly: the JWT issuer/audience `https://cartvibe.app` (since 2026-11-02; a change signs everyone out
+  and breaks MCP tokens) and the `wranglerasynq` name. The container paths are
   `/app/cartvibe-api/...` (the image, the root compose file and the README guide must agree).
 
 ## Visual identity

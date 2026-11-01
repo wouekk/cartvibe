@@ -8,6 +8,11 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+### Changed
+- **Sign-in tokens carry CartVibe's own name.** The issuer and audience inside the login tokens are now
+  `https://cartvibe.app` instead of the upstream project's address. Tokens issued before the update stop working, so
+  everyone signs in once more after updating, and an MCP client (such as a Claude connector) has to be connected again.
+
 ## [0.15.0] - 2026-11-01
 
 A sturdier AI read, a project page with a roadmap and a live demo, and groundwork for hosting.

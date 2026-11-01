@@ -24,13 +24,14 @@ func customClaims() validator.CustomClaims {
 }
 
 // jwtIssuer is the issuer stamped on, and required of, every CartVibe
-// JWT regardless of audience.
-const jwtIssuer = "https://receiptWrangler.io"
+// JWT regardless of audience. It is a label only; nothing connects to it.
+// Changing it invalidates every issued token (everyone signs in again).
+const jwtIssuer = "https://cartvibe.app"
 
 // defaultAudience is the audience for normal REST API tokens. MCP tokens use a
 // distinct, runtime-derived audience instead (see GenerateMcpJWT) so an MCP
 // token is rejected everywhere except the MCP endpoints.
-const defaultAudience = "https://receiptWrangler.io"
+const defaultAudience = "https://cartvibe.app"
 
 // defaultRefreshTokenLifetime is the fallback refresh-token lifetime, used when
 // the System Settings value is unset (0), out of range, or unreadable.

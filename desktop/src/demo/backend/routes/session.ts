@@ -24,7 +24,7 @@ export function claimsFor(db: DemoDb): Claims {
     displayName: user.displayName,
     defaultAvatarColor: user.defaultAvatarColor ?? "",
     username: user.username,
-    iss: "https://receiptWrangler.io",
+    iss: "https://cartvibe.app",
     exp: Math.floor(Date.parse(`${db.today}T00:00:00Z`) / 1000) + SESSION_SECONDS,
   };
 }

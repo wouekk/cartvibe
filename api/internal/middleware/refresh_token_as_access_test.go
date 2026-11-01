@@ -14,8 +14,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-const testIssuer = "https://receiptWrangler.io"
-const testAudience = "https://receiptWrangler.io"
+const testIssuer = "https://cartvibe.app"
+const testAudience = "https://cartvibe.app"
 
 // signClaims signs a Claims value with the server secret so it passes the token
 // validator (same issuer/audience/algorithm the middleware requires).
