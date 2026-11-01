@@ -1,7 +1,11 @@
 ---
+import { getImage } from "astro:assets";
 // A desktop and/or phone screenshot of the real app, in a day and a night version (the page theme picks one).
-// Files live in src/assets/shots as <name>-<desktop|phone>-<light|dark>.webp (see tools/make-images.mjs).
+// Files live in src/assets/shots as <name>-<desktop|phone>-<light|dark>.webp (see tools/make-images.mjs). Each is served as a
+// srcset cut from that file at build time, so a phone is not sent the 2000 px desktop picture.
 interface Props {
+  /** The `sizes` of the desktop picture: how wide it is shown. */
+  sizes?: string;
   desktop?: string;
   phone?: string;
   alt: string;
@@ -9,7 +13,8 @@ interface Props {
   /** Replaces the default `max-w-[44rem]` of the frame. */
   class?: string;
 }
-const { desktop, phone, alt, eager = false, class: cls = "max-w-[44rem]" } = Astro.props;
+const { desktop, phone, alt, eager = false, class: cls = "max-w-[44rem]", sizes = "(min-width: 768px) 704px, 100vw" } = Astro.props;
+const phoneSizes = "(min-width: 640px) 256px, 240px";
 
 const images = import.meta.glob<{ default: ImageMetadata }>("../assets/shots/*.webp", { eager: true });
 const pick = (name: string, vp: string, mode: string) => {
@@ -18,6 +23,14 @@ const pick = (name: string, vp: string, mode: string) => {
   return found.default;
 };
 const loading = eager ? "eager" : "lazy";
+// The same picture at several widths; the browser takes the smallest that is still sharp on its screen.
+const cut = async (meta: ImageMetadata, widths: number[]) => {
+  const w = widths.filter((x) => x < meta.width);
+  const r = await getImage({ src: meta, widths: [...w, meta.width], format: "webp", quality: 78 });
+  return { src: r.src, srcset: r.srcSet.attribute };
+};
+const desktopWidths = [640, 960, 1400];
+const phoneWidths = [260, 390];
 ---
 
 <figure class:list={["relative mx-auto w-full min-w-0", cls]} data-shots>
@@ -29,12 +42,16 @@ const loading = eager ? "eager" : "lazy";
         aria-label={phone ? undefined : "Screenshot, scrolls sideways on narrow screens"}
         tabindex={phone ? undefined : 0}
       >
-        {(["light", "dark"] as const).map((mode) => {
+        {(["light", "dark"] as const).map(async (mode) => {
           const img = pick(desktop, "desktop", mode);
+          const set = await cut(img, desktopWidths);
           return (
             <img
               class={`shot-${mode} h-auto w-full${phone ? "" : " min-w-[34rem]"}`}
-              src={img.src}
+              src={set.src}
+              srcset={set.srcset}
+              sizes={sizes}
+              fetchpriority={eager && mode === "light" ? "high" : undefined}
               width={img.width}
               height={img.height}
               alt={mode === "light" ? alt : ""}
@@ -57,12 +74,15 @@ const loading = eager ? "eager" : "lazy";
             : "mx-auto w-[15rem] sm:w-[16rem]",
         ]}
       >
-        {(["light", "dark"] as const).map((mode) => {
+        {(["light", "dark"] as const).map(async (mode) => {
           const img = pick(phone, "phone", mode);
+          const set = await cut(img, phoneWidths);
           return (
             <img
               class={`shot-${mode} h-auto w-full`}
-              src={img.src}
+              src={set.src}
+              srcset={set.srcset}
+              sizes={phoneSizes}
               width={img.width}
               height={img.height}
               alt={mode === "light" ? (desktop ? "The same screen on a phone" : alt) : ""}

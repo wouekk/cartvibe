@@ -56,6 +56,20 @@ test("the header and the hero buttons wrap cleanly from 360 to 1280 px", async (
   }
 });
 
+test("screenshots come as srcsets, so a phone is not sent the desktop picture; the hero's visible one has high priority", async () => {
+  const { page, context } = await open(browser, server.origin, "/", { setup: noGithub, width: 390, height: 844 });
+  const hero = page.getByTestId("hero-visual").locator("img.shot-light");
+  for (const img of await hero.all()) {
+    assert.match((await img.getAttribute("srcset")) ?? "", /\d+w, .*\d+w/);
+    assert.ok(await img.getAttribute("sizes"));
+  }
+  const desktop = hero.first();
+  assert.equal(await desktop.getAttribute("fetchpriority"), "high");
+  const shown = await page.evaluate(() => [...document.querySelectorAll('[data-testid="hero-visual"] img.shot-light')].filter((i) => i.offsetParent).map((i) => i.currentSrc));
+  assert.ok(shown.length >= 1);
+  await context.close();
+});
+
 test("the hero visual and the four steps are screenshots of the demo, not mock-ups", async () => {
   const { page, context } = await open(browser, server.origin, "/", { setup: noGithub, width: 1440 });
   assert.equal(await page.locator("[data-slot], .wireframe").count(), 0);
@@ -63,7 +77,7 @@ test("the hero visual and the four steps are screenshots of the demo, not mock-u
   assert.equal(await hero.count(), 2);
   for (const img of await hero.all()) {
     await img.evaluate((el) => (el.loading = "eager"));
-    await page.waitForFunction((el) => el.complete && el.naturalWidth > 400, await img.elementHandle());
+    await page.waitForFunction((el) => el.complete && el.naturalWidth > 200, await img.elementHandle());
   }
   // Each step has a desktop and a phone shot, by name, from the demo (src/assets/shots).
   const stage = await page.locator('[data-testid="sticky-stage"] [data-state] img.shot-light').evaluateAll((els) => els.map((e) => e.getAttribute("src")));
