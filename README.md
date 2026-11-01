@@ -115,16 +115,22 @@ The annotated stack this project runs itself is [docker-compose.yml](docker-comp
 
 ## Features
 
-| Feature | Description |
+The same tour, with screenshots and a live demo, is on [cartvibe.app](https://cartvibe.app/).
+
+| Feature | What it does |
 | :--- | :--- |
-| **AI Receipt Scanning & Logging** | Snap a photo of a receipt and let the AI do the heavy lifting. It reads the shop, the total and every line with its price, and sorts each product into your categories. Works with Claude, Gemini or ChatGPT, or with a private model running at home through LM Studio or Ollama. |
-| **Nutritional Insights & Item Health** | Built-in Open Food Facts lookup: scan or type a barcode to see the Nutri-Score, the NOVA processing level, the additives and the nutrition. On your receipts, the AI marks every product as healthy, medium or unhealthy. |
-| **Actionable Spending Dashboards** | See where the month's money went at a glance. Track spending against your family's monthly budget, break it down by category, and spot impulse buys by comparing what you bought with what was on the list. |
-| **App-Like PWA Experience** | A web app built for the phone first. Add CartVibe to your iOS or Android home screen and it opens like an app, and it can keep the screen on while you walk the aisles. |
-| **Native Multi-Language Support** | The whole app speaks English, Polish, German, French and Spanish, and each person picks their own. English and Polish are checked by hand; German, French and Spanish are machine translations still waiting for a native speaker. Reports come out in your language too. |
-| **Live Shared Shopping Lists** | Keep the whole household in sync in real time. Cross items off in the aisle, mark the whole list as done in one tap, bring back a finished list or start a new one from it, and let the family know you're heading to the shop. |
-| **Automated Merchant Recognition** | Recognises around 230 European chains by name (Biedronka, Żabka, Lidl, Kaufland, Rewe and more) and shows their logos, so your receipts are easy to tell apart at a glance. |
-| **Flexible Reporting & Export** | Build your own reports by shop, category, tag, health or period, with a live preview as you go. Export to CSV or Excel for your spreadsheets, or to PDF for your records. |
+| **Live shared shopping lists** | Build the list on your phone in the shop. What you add shows on every phone in the family; cross things off as you go and mark the trip done. |
+| **Receipt line scanning** | Upload a photo or a PDF and every line is read out. Money is kept as exact decimals, so the lines add up to the cent and a mismatch is flagged. |
+| **Optional AI labels** | With an AI key (Claude, Gemini, ChatGPT, or a model at home through LM Studio or Ollama), each line gets a category, a health rating and a planned or not-on-the-list flag. If the AI is down, nothing fails, and it never assigns your tags. |
+| **Household overview and goals** | One Dashboard for groceries, eating out, transport, travel, leisure and bills, with a monthly goal you can watch fill up. |
+| **Warranties** | Add a warranty date to a receipt and see what is still covered, nearest end first, with optional reminders. |
+| **Reports** | Build a report by category, shop or month with a live preview, and export it to PDF, CSV or Excel. |
+| **Barcode scanner** | Scan or type a barcode to see the Nutri-Score, NOVA level, additives and nutrition from Open Food Facts. |
+| **Installs like an app** | Phone first: add it to your home screen and it opens full screen, keeping the screen awake while you shop. |
+
+**Also:** shop logos (with your own free Logo.dev key), day and night with four accent palettes, five languages (English
+and Polish checked by hand; German, French and Spanish still machine-translated), your own tags, foreign currencies, family
+accounts where nobody splits bills, Ctrl or Cmd K search, and going-shopping and warranty reminders.
 
 <p align="center">
   <picture>
@@ -149,7 +155,7 @@ The annotated stack this project runs itself is [docker-compose.yml](docker-comp
   <tr>
     <td width="50%" valign="top">
       <img src="docs/screenshots/receipts.webp" alt="Receipts list with shop logos for Kaufland, Biedronka, Lidl, Dino and Rossmann" />
-      <p align="center"><sub><b>Receipts</b>: shop logos (optional: they load from Logo.dev once an admin adds a free Logo.dev API key under System Settings → Shop Logos; without one, each shop shows its first letter), a search that forgives typos, and one date picker</sub></p>
+      <p align="center"><sub><b>Receipts</b>: optional shop logos, a search that forgives typos, and one date picker</sub></p>
     </td>
     <td width="50%" valign="top">
       <img src="docs/screenshots/report-builder.webp" alt="Report builder with a live preview of spending by shop and CSV, XLSX and PDF export" />
