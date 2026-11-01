@@ -1,3 +1,4 @@
+import { comboboxNamed } from './helpers/ui';
 import { expect, type Locator, type Page, test } from '@playwright/test';
 import { creds, stubTokenRefresh } from './helpers/auth';
 import {
@@ -269,7 +270,7 @@ test.describe('Per-member grant assignment (UI)', () => {
     await expect(section).toBeVisible();
 
     // The dialog must be for the member we clicked, not another row's.
-    await expect(memberDialog.getByRole('combobox', { name: 'User' })).toHaveValue('E2E User');
+    await expect(comboboxNamed(memberDialog, 'User')).toHaveValue('E2E User');
 
     // The section only renders once every async input has landed (see
     // GroupMemberFormComponent.grantsReady), so it is stable as soon as it appears.

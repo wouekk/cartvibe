@@ -1,3 +1,4 @@
+import { comboboxNamed } from './helpers/ui';
 import { expect, test, type Page } from '@playwright/test';
 import { creds, stubTokenRefresh } from './helpers/auth';
 import {
@@ -184,7 +185,7 @@ test.describe('System tasks filter', () => {
     // getByLabel matches the autocomplete's listbox as well as its input, and a
     // multi-select panel stays open over the footer after a pick — so the row
     // is driven by role and the panel is dismissed by clicking the heading.
-    await page.getByRole('combobox', { name: 'Type' }).click();
+    await comboboxNamed(page, 'Type').click();
     await page.getByRole('option', { name: 'Receipt Uploaded', exact: true }).click();
     await page.getByRole('heading', { name: 'Filter System Tasks' }).click();
 

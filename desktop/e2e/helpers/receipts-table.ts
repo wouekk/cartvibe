@@ -6,11 +6,11 @@ import { expect, type Page } from '@playwright/test';
  * toolbar control no permission or feature flag can hide.
  */
 export async function gotoReceiptsTable(page: Page): Promise<string> {
-  // storageState means we're already authed; "/" redirects to the dashboard
-  // for the user's group, from which we can recover the group id.
+  // storageState means we're already authed; "/" redirects to the Dashboard
+  // (/overview/group/<id>) for the user's group, from which we can recover the group id.
   await page.goto('/');
-  await page.waitForURL(/\/dashboard\/group\/\d+/);
-  const groupId = page.url().match(/\/dashboard\/group\/(\d+)/)![1];
+  await page.waitForURL(/\/overview\/group\/\d+/);
+  const groupId = page.url().match(/\/overview\/group\/(\d+)/)![1];
   await page.goto(`/receipts/group/${groupId}`);
   await expect(page.getByTestId('receipts-overflow-menu')).toBeVisible();
 

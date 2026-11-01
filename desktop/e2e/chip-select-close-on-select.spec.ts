@@ -1,3 +1,4 @@
+import { comboboxNamed } from './helpers/ui';
 import { expect, test, type Page } from '@playwright/test';
 import { rmSync } from 'node:fs';
 import { stubTokenRefresh } from './helpers/auth';
@@ -101,7 +102,7 @@ test.describe('Close chip select on select preference', () => {
     // getByRole, not getByLabel: once the panel opens, the overlay's listbox is
     // labelled by the same mat-label, so getByLabel('Categories') matches two
     // elements and every later assertion dies on strict mode.
-    const categories = page.getByRole('combobox', { name: 'Categories' });
+    const categories = comboboxNamed(page, 'Categories');
     await categories.click();
     await expect(page.getByRole('listbox')).toBeVisible();
     await page.getByRole('option').first().click();

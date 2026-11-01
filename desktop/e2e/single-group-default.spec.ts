@@ -1,3 +1,4 @@
+import { comboboxNamed } from './helpers/ui';
 import { expect, test } from '@playwright/test';
 import { rmSync } from 'node:fs';
 import { stubTokenRefresh } from './helpers/auth';
@@ -125,6 +126,6 @@ test.describe('Single-group users get the Group field pre-filled', () => {
     await uploadQuickScanImages(dialog, 1);
 
     // Seeded, so the picker is hidden (Phase 3 C3); the submit carries the group.
-    await expect(dialog.getByRole('combobox', { name: 'Group' })).toHaveCount(0);
+    await expect(comboboxNamed(dialog, 'Group')).toHaveCount(0);
   });
 });

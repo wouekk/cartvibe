@@ -7,13 +7,10 @@ import {
 } from '@playwright/test';
 import { creds, type Role } from './auth';
 
-// Shared provisioning for permission e2e specs. Roles/users/groups are CREATED
-// through the real app UI (the realistic flow under test); TEARDOWN goes through
-// the admin API. UI teardown can't reliably remove a custom role: the role-list
-// delete button is disabled while the role is assigned, and the UI's *bulk*
-// user-delete dummy-converts a group-owning user (keeping the role assigned), so
-// the role is never freed. `DELETE /api/user/{id}` hard-deletes, and deleting a
-// group frees its members' group-role assignment — so the API tears down cleanly.
+// Shared provisioning for permission e2e specs. Roles, users and groups are created and torn down through the admin
+// API: the role editor and the custom-role pickers are gone since the family rework. `DELETE /api/user/{id}`
+// hard-deletes, and deleting a group frees its members' group-role assignment, so the API tears down cleanly (a role in
+// use cannot be deleted: user and group first, then the role).
 
 export function uniqueName(tag: string): string {
   return `e2e-${tag}-${Date.now()}`;
@@ -68,200 +65,190 @@ export interface CreateRoleOptions {
   requireReceiptImage?: boolean;
 }
 
-/**
- * Creates a role via the role form: pick type → name it → apply a preset →
- * optionally flip whole resource groups on → optionally switch individual
- * permissions off. Leaves the browser on `/roles`.
- */
-export async function createRole(page: Page, opts: CreateRoleOptions): Promise<void> {
-  await page.goto('/roles');
-  await page.getByRole('button', { name: 'Add Role' }).first().click();
-  await expect(page).toHaveURL(/\/roles\/new$/);
-  await expect(page.getByLabel('Role Name')).toBeVisible();
+// Permission keys behind the role form's presets and toggles. The role editor UI is gone (the family rework offers
+// Admin and User only), so a spec's custom role is created through the API from the same names the form used.
+const PRESET_BASE_ROLES: Record<string, { scope: 'APP' | 'GROUP'; base: string | null }> = {
+  'Start from scratch': { scope: 'APP', base: null },
+  'Read Only': { scope: 'APP', base: 'Legacy User' },
+  Administrator: { scope: 'APP', base: 'Legacy Admin' },
+  Viewer: { scope: 'GROUP', base: 'Legacy Viewer' },
+  'Receipt Editor': { scope: 'GROUP', base: 'Legacy Editor' },
+  'Group Manager': { scope: 'GROUP', base: 'Legacy Owner' },
+};
 
-  // Pick the scope first — it swaps the available presets.
-  await page.getByRole('button', { name: new RegExp(opts.type) }).click();
-  await page.getByLabel('Role Name').fill(opts.name);
-  await page.getByRole('button', { name: opts.preset }).click();
+// "Toggle all <Category> permissions" -> key prefix.
+const CATEGORY_PREFIXES: Record<string, string> = {
+  Account: 'app.account.',
+  Notifications: 'app.notifications.',
+  Groups: 'app.groups.',
+  Reports: 'app.reports.',
+  Receipts: 'group.receipts.',
+};
 
-  for (const category of opts.enableCategories ?? []) {
-    await page
-      .getByRole('button', { name: `Toggle all ${category} permissions` })
-      .click();
-  }
+// Permission row label -> key.
+const PERMISSION_LABEL_KEYS: Record<string, string> = {
+  'Delete Any Group': 'app.groups.delete',
+  'Create Reports For Any Group': 'app.reports.createAll',
+  'Duplicate All Report Templates': 'app.reports.duplicateAll',
+  'Duplicate Report Templates': 'app.reports.duplicate',
+  'Generate All Reports': 'app.reports.generateAll',
+  'Generate Reports': 'app.reports.generate',
+  'Save Report Templates': 'app.reports.create',
+  'Update All Report Templates': 'app.reports.updateAll',
+  'Update Report Templates': 'app.reports.update',
+  'Create Comments': 'group.comments.create',
+  'Delete Comments': 'group.comments.delete',
+};
 
-  // Expand each accordion at most once (clicking its sub-text toggles it), then
-  // switch off every listed permission under it. Opening a panel per entry would
-  // re-close it when two permissions share a panel (e.g. two app.reports perms).
-  const openedPanels = new Set<string>();
-  for (const { panelKey, label } of opts.disablePermissions ?? []) {
-    if (!openedPanels.has(panelKey)) {
-      // The resource key is unique on the page, so this won't collide with e.g. a
-      // sidebar "Dashboards" link.
-      const subText = new RegExp(`${panelKey.replace(/\./g, '\\.')} \\u00b7`);
-      await page.getByText(subText).click();
-      openedPanels.add(panelKey);
-    }
-    await page.getByRole('button', { name: `Toggle ${label}` }).click();
-  }
-
-  if (opts.skipDefaultGroup) {
-    await page
-      .getByTestId('skip-default-group')
-      .getByRole('checkbox')
-      .check();
-  }
-
-  if (opts.paidByOwn || (opts.paidByUsers?.length ?? 0) > 0) {
-    // The picker is a multi-select autocomplete; while its panel is open the
-    // listbox shares the field's label, so target the combobox role.
-    const paidByField = page.getByRole('combobox', {
-      name: 'Visible paid-by users',
-    });
-    if (opts.paidByOwn) {
-      await paidByField.click();
-      await page
-        .getByRole('option', { name: 'Their own receipts', exact: true })
-        .click();
-    }
-    for (const displayName of opts.paidByUsers ?? []) {
-      await paidByField.click();
-      await paidByField.fill(displayName);
-      await page.getByRole('option', { name: displayName, exact: true }).click();
-    }
-    // Selecting an option re-opens the panel; close it so Save is clickable.
-    await page.keyboard.press('Escape');
-  }
-
-  await selectGrants(page, 'grant-picker-categories', 'Categories', opts.categoryGrants);
-  await selectGrants(page, 'grant-picker-tags', 'Tags', opts.tagGrants);
-
-  if (opts.requiresIndividualCategories) {
-    await page
-      .getByText('Require an individual category assignment for each member')
-      .click();
-  }
-  if (opts.requiresIndividualTags) {
-    await page
-      .getByText('Require an individual tag assignment for each member')
-      .click();
-  }
-
-  if (opts.requireReceiptComment) {
-    await page.getByTestId('require-receipt-comment').getByRole('checkbox').check();
-  }
-  if (opts.requireReceiptImage) {
-    await page.getByTestId('require-receipt-image').getByRole('checkbox').check();
-  }
-
-  await page.getByRole('button', { name: 'Save Role' }).click();
-  await expect(page).toHaveURL(/\/roles$/);
+interface RoleRow {
+  id: number;
+  name: string;
+  scope: 'APP' | 'GROUP';
+  permissions?: string[];
 }
 
-/**
- * Picks [names] in one of the grant picker's multi-select autocompletes. While
- * the option panel is open the listbox shares the field's label, so the field is
- * targeted by its combobox role within the testid-scoped picker.
- */
-async function selectGrants(
-  page: Page,
-  testId: string,
-  label: string,
+async function apiListRoles(api: APIRequestContext): Promise<RoleRow[]> {
+  const res = await api.get('/api/role');
+  if (!res.ok()) {
+    throw new Error(`list roles failed: HTTP ${res.status()} ${await res.text()}`);
+  }
+  return (await res.json()) as RoleRow[];
+}
+
+async function apiUsersByDisplayName(api: APIRequestContext): Promise<Map<string, number>> {
+  const users = (await (await api.get('/api/user/')).json()) as { id: number; displayName: string }[];
+  return new Map(users.map((u) => [u.displayName, u.id]));
+}
+
+async function namesToIds(
+  api: APIRequestContext,
+  path: 'category' | 'tag',
   names?: string[],
-): Promise<void> {
+): Promise<number[] | undefined> {
   if (!names?.length) {
-    return;
+    return undefined;
   }
-
-  const field = page.getByTestId(testId).getByRole('combobox', { name: label });
-  for (const name of names) {
-    await field.click();
-    await field.fill(name);
-    await page.getByRole('option', { name, exact: true }).click();
-  }
-  // Selecting an option re-opens the panel; close it so Save stays clickable.
-  await page.keyboard.press('Escape');
+  const rows = (await (await api.get(`/api/${path}`)).json()) as { id: number; name: string }[];
+  return names.map((name) => {
+    const row = rows.find((r) => r.name === name);
+    if (!row) {
+      throw new Error(`${path} ${name} not found`);
+    }
+    return row.id;
+  });
 }
 
-/** Creates a user assigned [opts.role] via the Add User dialog. */
+/**
+ * Creates a custom role through the admin API from the form's option names (preset, resource categories switched on,
+ * single permissions switched off). Replaces the removed role editor UI; the [page] argument is kept so specs still
+ * pass their admin page and is not used.
+ */
+export async function createRole(_page: Page | null, opts: CreateRoleOptions): Promise<void> {
+  const scope: 'APP' | 'GROUP' = opts.type === 'Group role' ? 'GROUP' : 'APP';
+  const preset = PRESET_BASE_ROLES[opts.preset];
+  if (!preset) {
+    throw new Error(`unknown role preset ${opts.preset}`);
+  }
+  await withAdminApi(async (api) => {
+    const roles = await apiListRoles(api);
+    const universe = new Set<string>(roles.filter((r) => r.scope === scope).flatMap((r) => r.permissions ?? []));
+    const base = preset.base ? roles.find((r) => r.name === preset.base && r.scope === scope) : undefined;
+    const permissions = new Set<string>(base?.permissions ?? []);
+    for (const category of opts.enableCategories ?? []) {
+      const prefix = CATEGORY_PREFIXES[category];
+      if (!prefix) {
+        throw new Error(`unknown permission category ${category}`);
+      }
+      [...universe].filter((key) => key.startsWith(prefix)).forEach((key) => permissions.add(key));
+    }
+    for (const { label } of opts.disablePermissions ?? []) {
+      const key = PERMISSION_LABEL_KEYS[label];
+      if (!key) {
+        throw new Error(`unknown permission label ${label}`);
+      }
+      permissions.delete(key);
+    }
+    const users = opts.paidByUsers?.length ? await apiUsersByDisplayName(api) : null;
+    const res = await api.post('/api/role', {
+      data: {
+        name: opts.name,
+        description: '',
+        scope,
+        permissions: [...permissions],
+        ...(opts.skipDefaultGroup ? { skipDefaultGroupCreation: true } : {}),
+        ...(opts.paidByOwn ? { includeOwnPaidReceipts: true } : {}),
+        ...(users ? { paidByUserGrants: opts.paidByUsers!.map((n) => users.get(n)!) } : {}),
+        categoryGrants: await namesToIds(api, 'category', opts.categoryGrants),
+        tagGrants: await namesToIds(api, 'tag', opts.tagGrants),
+        ...(opts.requiresIndividualCategories ? { requiresIndividualCategoryGrants: true } : {}),
+        ...(opts.requiresIndividualTags ? { requiresIndividualTagGrants: true } : {}),
+        ...(opts.requireReceiptComment ? { requireReceiptComment: true } : {}),
+        ...(opts.requireReceiptImage ? { requireReceiptImage: true } : {}),
+      },
+    });
+    if (!res.ok()) {
+      throw new Error(`create role ${opts.name} failed: HTTP ${res.status()} ${await res.text()}`);
+    }
+  });
+}
+
+/** Creates a user assigned the app role [opts.role] through the admin API (the Add User dialog's role select has no accessible name). */
 export async function createUserWithRole(
-  page: Page,
+  _page: Page | null,
   opts: { username: string; password: string; role: string },
 ): Promise<void> {
-  await page.goto('/users');
-  await page.getByTestId('user-add').click();
-  const dialog = page.getByRole('dialog').filter({ hasText: 'Create User' });
-  await expect(dialog).toBeVisible();
-
-  // The password input is *ngIf-ed in (create mode only) and carries the
-  // generate/visibility buttons, so it settles a tick after the dialog opens.
-  // Wait for it BEFORE filling anything: typing into a half-rendered dialog can
-  // land the password in whichever field currently owns focus (seen as a
-  // username of "<name><password>" and an empty, still-required password).
-  const password = dialog.getByLabel('Password', { exact: true });
-  await expect(password).toBeVisible();
-
-  // Waiting for the password field narrows that race but does not close it — a
-  // fill can still land in a neighbouring input while the dialog settles, and
-  // because Username and Displayname carry the SAME value the damage reads as a
-  // doubled username ("<name><name>") rather than as an obvious mis-type. So
-  // fill and verify as one retryable unit: a misdirected round re-fills from
-  // scratch instead of failing the whole spec's beforeAll. Same idiom as
-  // openComboboxAndPick in helpers/reports.ts.
-  await expect(async () => {
-    await dialog.getByLabel('Username').fill(opts.username);
-    await dialog.getByLabel('Displayname').fill(opts.username);
-    await password.fill(opts.password);
-
-    await expect(dialog.getByLabel('Username')).toHaveValue(opts.username, { timeout: 2000 });
-    await expect(dialog.getByLabel('Displayname')).toHaveValue(opts.username, { timeout: 2000 });
-    await expect(password).toHaveValue(opts.password, { timeout: 2000 });
-  }).toPass({ timeout: 15_000 });
-  await dialog.getByRole('combobox', { name: 'App Role' }).click();
-  // The option panel is a floating overlay rendered on the page, not the dialog.
-  await page.getByRole('option', { name: opts.role, exact: true }).click();
-  await dialog.locator('app-submit-button button').click();
-  await expect(dialog).toBeHidden();
+  await withAdminApi(async (api) => {
+    const role = (await apiListRoles(api)).find((r) => r.name === opts.role && r.scope === 'APP');
+    if (!role) {
+      throw new Error(`app role ${opts.role} not found`);
+    }
+    const res = await api.post('/api/user', {
+      data: {
+        username: opts.username,
+        password: opts.password,
+        displayName: opts.username,
+        isDummyUser: false,
+        appRoleId: role.id,
+      },
+    });
+    if (!res.ok()) {
+      throw new Error(`create user ${opts.username} failed: HTTP ${res.status()} ${await res.text()}`);
+    }
+  });
 }
 
 /**
- * Creates a group with [opts.memberDisplayName] added as [opts.roleName], and
- * returns the new group's id. Mirrors the group-member form flow.
+ * Creates a group owned by the admin with [opts.memberDisplayName] added as [opts.roleName] (a custom group role the
+ * household member picker would not offer), and returns the new group's id.
  */
 export async function createGroupWithMember(
-  page: Page,
+  _page: Page | null,
   opts: { groupName: string; memberDisplayName: string; roleName: string },
 ): Promise<string> {
-  await page.goto('/groups/create');
-  await expect(page.getByLabel('Group Name')).toBeVisible();
-  await page.getByLabel('Group Name').fill(opts.groupName);
-
-  await page.getByTestId('add-group-member').click();
-  const memberDialog = page
-    .getByRole('dialog')
-    .filter({ hasText: 'Add Group Member' });
-  await expect(memberDialog).toBeVisible();
-
-  // The user autocomplete filters/displays by display name; while the option
-  // panel is open the listbox shares the field's aria label, so target the combobox.
-  const userField = memberDialog.getByRole('combobox', { name: 'User' });
-  await userField.fill(opts.memberDisplayName);
-  await page
-    .getByRole('option', { name: opts.memberDisplayName, exact: true })
-    .click();
-
-  // Role defaults to "Legacy Owner" — switch it to the chosen role.
-  const roleSelect = memberDialog.getByRole('combobox', { name: 'Role' });
-  await roleSelect.click();
-  await page.getByRole('option', { name: opts.roleName, exact: true }).click();
-
-  await memberDialog.getByTestId('dialog-submit-button').click();
-  await expect(memberDialog).toBeHidden();
-
-  // The page-level save is icon-only; the app-form submits on Enter from a field.
-  await page.getByLabel('Group Name').press('Enter');
-  await page.waitForURL(/\/groups\/\d+\/details\/view/);
-  return page.url().match(/\/groups\/(\d+)\//)![1];
+  return withAdminApi(async (api) => {
+    const roles = await apiListRoles(api);
+    const role = roles.find((r) => r.name === opts.roleName && r.scope === 'GROUP');
+    if (!role) {
+      throw new Error(`group role ${opts.roleName} not found`);
+    }
+    const memberId = (await apiUsersByDisplayName(api)).get(opts.memberDisplayName);
+    if (!memberId) {
+      throw new Error(`user ${opts.memberDisplayName} not found`);
+    }
+    const created = await apiCreateGroup(api, opts.groupName);
+    const existing = await apiGetGroupMembers(api, created.id);
+    const res = await apiSetGroupRoster(api, created.id, {
+      name: opts.groupName,
+      members: [
+        ...existing.map((m) => ({ userId: m.userId, groupRoleId: m.groupRoleId })),
+        { userId: memberId, groupRoleId: role.id },
+      ],
+    });
+    if (!res.ok()) {
+      throw new Error(`add member to ${opts.groupName} failed: HTTP ${res.status()} ${await res.text()}`);
+    }
+    return String(created.id);
+  });
 }
 
 // --- API teardown -----------------------------------------------------------
@@ -291,6 +278,38 @@ export async function loginWithRetry(
   return res;
 }
 
+const SESSION_CACHE_MS = 5 * 60_000;
+const sessionCache = new Map<string, { state: Awaited<ReturnType<APIRequestContext["storageState"]>>; at: number }>();
+
+const RETRY_METHODS = new Set(['get', 'post', 'put', 'patch', 'delete', 'fetch']);
+
+/**
+ * nginx allows 10 requests a second with a burst of 20 for the whole run (every worker shares one address) and answers
+ * 503 beyond that. A provisioning call that hits it is repeated after a short wait, so a burst of setup calls never
+ * fails a spec.
+ */
+export function retryOn503(api: APIRequestContext): APIRequestContext {
+  return new Proxy(api, {
+    get(target, prop, receiver) {
+      const value = Reflect.get(target, prop, receiver);
+      if (typeof prop !== 'string' || !RETRY_METHODS.has(prop) || typeof value !== 'function') {
+        return typeof value === 'function' ? value.bind(target) : value;
+      }
+      return async (...args: unknown[]) => {
+        let res: APIResponse = await value.apply(target, args);
+        for (const delay of [300, 600, 1200, 2400, 4800]) {
+          if (res.status() !== 503) {
+            break;
+          }
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          res = await value.apply(target, args);
+        }
+        return res;
+      };
+    },
+  });
+}
+
 const apiBaseUrl = (): string =>
   process.env.E2E_BASE_URL ?? 'http://localhost:4200';
 
@@ -304,13 +323,26 @@ export async function withApiAsCreds<T>(
   password: string,
   fn: (api: APIRequestContext) => Promise<T>,
 ): Promise<T> {
-  const api = await pwRequest.newContext({ baseURL: apiBaseUrl() });
+  // The login is cached per account for a few minutes (the access token lives 20): provisioning helpers log in
+  // several times per spec, and nginx limits /api/login to 30 a minute for the whole run.
+  const key = `${username}\u0000${password}`;
+  const cached = sessionCache.get(key);
+  if (cached && Date.now() - cached.at < SESSION_CACHE_MS) {
+    const api = await pwRequest.newContext({ baseURL: apiBaseUrl(), storageState: cached.state });
+    try {
+      return await fn(retryOn503(api));
+    } finally {
+      await api.dispose();
+    }
+  }
+  const api = await pwRequest.newContext({ baseURL: apiBaseUrl(), storageState: undefined });
   try {
     const res = await loginWithRetry(api, username, password);
     if (!res.ok()) {
       throw new Error(`${username} API login failed: HTTP ${res.status()}`);
     }
-    return await fn(api);
+    sessionCache.set(key, { state: await api.storageState(), at: Date.now() });
+    return await fn(retryOn503(api));
   } finally {
     await api.dispose();
   }

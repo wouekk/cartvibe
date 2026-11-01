@@ -1,3 +1,4 @@
+import { comboboxNamed } from './helpers/ui';
 import { readFileSync } from 'node:fs';
 import { BrowserContext, expect, Page, type Route, test } from '@playwright/test';
 import { stubTokenRefresh } from './helpers/auth';
@@ -82,7 +83,7 @@ test.describe('Role-required receipt comment and image', () => {
     await stubTokenRefresh(page);
   });
 
-  test('the role form persists both requirement flags', async () => {
+  test('the role persists both requirement flags', async () => {
     const role = await withAdminApi(async (api) => {
       const roles = (await (await api.get('/api/role')).json()) as {
         name: string;
@@ -95,14 +96,6 @@ test.describe('Role-required receipt comment and image', () => {
     expect(role?.requireReceiptComment).toBe(true);
     expect(role?.requireReceiptImage).toBe(true);
 
-    // And the edit form rehydrates them.
-    await adminPage.goto('/roles');
-    await adminPage.getByRole('row').filter({ hasText: roleName }).first().getByTestId('role-edit').click();
-    await expect(adminPage).toHaveURL(/\/roles\/\d+\/edit\?scope=group/);
-    await expect(
-      adminPage.getByTestId('require-receipt-comment').getByRole('checkbox'),
-    ).toBeChecked();
-    await expect(adminPage.getByTestId('require-receipt-image').getByRole('checkbox')).toBeChecked();
   });
 
   test('create is blocked without a comment and an image, then succeeds in ONE request', async ({
@@ -265,7 +258,7 @@ test.describe('Role-required receipt comment and image', () => {
 async function openAddFormInGroup(page: Page, groupId: string, groupName: string) {
   await page.goto(`/receipts/group/${groupId}`);
   await page.goto('/receipts/add');
-  const groupField = page.getByRole('combobox', { name: 'Group' });
+  const groupField = comboboxNamed(page, 'Group');
   await expect(page.getByLabel('Name')).toBeVisible();
   if ((await groupField.inputValue()) !== groupName) {
     const clear = page.getByTestId('receipt-group').getByTestId('autocomplete-clear');

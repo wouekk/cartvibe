@@ -1,3 +1,4 @@
+import { comboboxNamed } from './helpers/ui';
 import { BrowserContext, expect, Page, test } from '@playwright/test';
 import { stubTokenRefresh } from './helpers/auth';
 
@@ -66,14 +67,14 @@ test.describe('Group Viewer is denied group/receipt edits', () => {
     // The user autocomplete filters/displays by display name. Target the
     // combobox role: while the option panel is open the listbox shares the
     // field's aria label, so getByLabel would match two elements.
-    const userField = memberDialog.getByRole('combobox', { name: 'User' });
+    const userField = comboboxNamed(memberDialog, 'User');
     await userField.fill('E2E User');
     await adminPage
       .getByRole('option', { name: 'E2E User', exact: true })
       .click();
 
     // Role defaults to "Legacy Owner" — switch it to "Legacy Viewer".
-    const roleSelect = memberDialog.getByRole('combobox', { name: 'Role' });
+    const roleSelect = comboboxNamed(memberDialog, 'Role');
     await roleSelect.click();
     await adminPage
       .getByRole('option', { name: 'Legacy Viewer', exact: true })

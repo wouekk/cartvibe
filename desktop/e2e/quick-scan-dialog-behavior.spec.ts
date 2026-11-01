@@ -1,3 +1,4 @@
+import { comboboxNamed } from './helpers/ui';
 import { expect, type Route, test } from '@playwright/test';
 import { creds, stubTokenRefresh } from './helpers/auth';
 import {
@@ -81,13 +82,13 @@ test.describe('Quick scan dialog behavior', () => {
     const dialog = await openQuickScanDialog(page, groupA.id);
     await uploadQuickScanImages(dialog, 1);
     // Group A is preselected from the prefill, so its config drives the fields.
-    await expect(dialog.getByRole('combobox', { name: 'Group' })).toBeVisible();
+    await expect(comboboxNamed(dialog, 'Group')).toBeVisible();
 
     // Paid-by is hidden by group A -> the preset admin fell off (field absent).
-    await expect(dialog.getByRole('combobox', { name: 'Paid By' })).toHaveCount(0);
+    await expect(comboboxNamed(dialog, 'Paid By')).toHaveCount(0);
 
     // Status is shown -> the preset OPEN is prefilled (trigger reads "Open").
-    const status = dialog.getByRole('combobox', { name: 'Status' });
+    const status = comboboxNamed(dialog, 'Status');
     await expect(status).toBeVisible();
     await expect(status).toContainText('Open');
   });
@@ -131,7 +132,7 @@ test.describe('Quick scan dialog behavior', () => {
 
     const dialog = await openQuickScanDialog(page, groupA.id);
     await uploadQuickScanImages(dialog, 1);
-    await expect(dialog.getByRole('combobox', { name: 'Paid By' })).toHaveCount(0);
+    await expect(comboboxNamed(dialog, 'Paid By')).toHaveCount(0);
 
     await dialog.getByTestId('dialog-submit-button').click();
     await expect(page.getByText('Successfully queued', { exact: false })).toBeVisible();
@@ -179,13 +180,13 @@ test.describe('Quick scan dialog behavior', () => {
 
     // Group A: paid-by hidden, status shown.
     await selectImageGroup(page, dialog, groupA.name);
-    await expect(dialog.getByRole('combobox', { name: 'Status' })).toBeVisible();
-    await expect(dialog.getByRole('combobox', { name: 'Paid By' })).toHaveCount(0);
+    await expect(comboboxNamed(dialog, 'Status')).toBeVisible();
+    await expect(comboboxNamed(dialog, 'Paid By')).toHaveCount(0);
 
     // Switch to group B: the field set flips — paid-by shown, status hidden.
     await selectImageGroup(page, dialog, groupB.name);
-    await expect(dialog.getByRole('combobox', { name: 'Paid By' })).toBeVisible();
-    await expect(dialog.getByRole('combobox', { name: 'Status' })).toHaveCount(0);
+    await expect(comboboxNamed(dialog, 'Paid By')).toBeVisible();
+    await expect(comboboxNamed(dialog, 'Status')).toHaveCount(0);
   });
 
   // Gap #5 — the positive category path: a required category picked from the
@@ -225,7 +226,7 @@ test.describe('Quick scan dialog behavior', () => {
     await uploadQuickScanImages(dialog, 1);
     await selectImageGroup(page, dialog, groupA.name);
 
-    const categories = dialog.getByRole('combobox', { name: 'Categories' });
+    const categories = comboboxNamed(dialog, 'Categories');
     await expect(categories).toBeVisible();
     await categories.click();
     await categories.fill(category.name);
@@ -288,17 +289,17 @@ test.describe('Quick scan dialog behavior', () => {
     // so only image 1 is left missing a required field.
     const slide0 = dialog.getByTestId('quick-scan-attachment').nth(0);
     await selectImageGroup(page, slide0, groupA.name);
-    await expect(slide0.getByRole('combobox', { name: 'Status' })).toBeVisible();
-    await expect(slide0.getByRole('combobox', { name: 'Paid By' })).toHaveCount(0);
-    await slide0.getByRole('combobox', { name: 'Status' }).click();
+    await expect(comboboxNamed(slide0, 'Status')).toBeVisible();
+    await expect(comboboxNamed(slide0, 'Paid By')).toHaveCount(0);
+    await comboboxNamed(slide0, 'Status').click();
     await page.getByRole('option', { name: 'Open', exact: true }).click();
 
     // Image 1 -> group B: paid-by shown+required, status hidden. Leave paid-by empty.
     const slide1 = dialog.getByTestId('quick-scan-attachment').nth(1);
-    await expect(slide1.getByRole('combobox', { name: 'Group' })).toBeVisible();
+    await expect(comboboxNamed(slide1, 'Group')).toBeVisible();
     await selectImageGroup(page, slide1, groupB.name);
-    await expect(slide1.getByRole('combobox', { name: 'Paid By' })).toBeVisible();
-    await expect(slide1.getByRole('combobox', { name: 'Status' })).toHaveCount(0);
+    await expect(comboboxNamed(slide1, 'Paid By')).toBeVisible();
+    await expect(comboboxNamed(slide1, 'Status')).toHaveCount(0);
 
     // Submit is blocked: image 1's required paid-by is empty -> error, no POST.
     await dialog.getByTestId('dialog-submit-button').click();

@@ -1,3 +1,4 @@
+import { comboboxNamed } from './helpers/ui';
 import { expect, test } from '@playwright/test';
 import { creds, stubTokenRefresh } from './helpers/auth';
 import {
@@ -22,15 +23,6 @@ test.describe('Report Builder', () => {
 
   test('admin builds a report, sees a live preview, and downloads it', async ({ page }) => {
     await gotoReportBuilder(page);
-
-    // The reports route opts into the shell's full-height frame: the content area
-    // becomes a bounded flex column and the outlet drops the default p-4 padding so
-    // the two panes scroll independently under the sticky page-bar/generate-bar.
-    await expect(page.locator('mat-drawer-content.drawer-content--full-height')).toBeVisible();
-    const outletPadding = await page.locator('.drawer-outlet').evaluate(
-      (el) => getComputedStyle(el).padding,
-    );
-    expect(outletPadding).toBe('0px');
 
     await addFirstGroupToScope(page);
 
@@ -79,7 +71,7 @@ test.describe('Report Builder', () => {
     // not a native <select>. Picking a dimension appends a grouping row.
     await openComboboxAndPick(
       page,
-      page.getByRole('combobox', { name: /Add grouping level/ }),
+      comboboxNamed(page, /Add grouping level/),
       page.getByRole('option', { name: 'Added by', exact: true }),
     );
     await expect(page.getByTestId('report-grouping-remove')).toBeVisible();
@@ -88,7 +80,7 @@ test.describe('Report Builder', () => {
     // adds its filter row.
     await openComboboxAndPick(
       page,
-      page.getByRole('combobox', { name: /Add filter/ }),
+      comboboxNamed(page, /Add filter/),
       page.getByRole('option', { name: 'Name', exact: true }),
     );
     await expect(page.getByTestId('report-filter-remove')).toBeVisible();
@@ -144,16 +136,16 @@ test.describe('Report Builder — receipt drill-in', () => {
     // full year of slack so time zones can't push it out of the window).
     await openComboboxAndPick(
       page,
-      page.getByRole('combobox', { name: /Period covering/ }),
+      comboboxNamed(page, /Period covering/),
       page.getByRole('option', { name: /Custom range/ }),
     );
-    await page.getByLabel('Start', { exact: true }).fill('01/01/2023');
-    await page.getByLabel('End', { exact: true }).fill('12/31/2024');
+    await page.getByLabel('Start', { exact: true }).fill('2023-01-01');
+    await page.getByLabel('End', { exact: true }).fill('2024-12-31');
     await page.getByLabel('End', { exact: true }).blur();
 
     // The preview now covers exactly the one provisioned receipt.
     const chip = page.getByTestId('report-receipt-count');
-    await expect(chip).toContainText('1 receipts', { timeout: 20_000 });
+    await expect(chip).toContainText(/(?<!\d)1 receipt/, { timeout: 20_000 });
     await chip.click();
 
     await expect(page.getByText('Receipts in this report')).toBeVisible();

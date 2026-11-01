@@ -27,29 +27,30 @@ test.describe('Receipt table column configuration', () => {
     await expect(
       dialog.getByText('Select which columns to display'),
     ).toBeVisible();
-    await expect(dialog.locator('mat-checkbox').first()).toBeVisible();
+    await expect(dialog.getByRole('checkbox').first()).toBeVisible();
   });
 
   test('hides a column on save and restores it via reset', async ({ page }) => {
     await gotoReceiptsTable(page);
 
-    // "Added At" (created_at) is visible by default and maps to the first
-    // dialog checkbox.
-    const addedAtHeader = page.getByRole('columnheader', { name: 'Added At' });
-    await expect(addedAtHeader).toBeVisible();
+    // "Shop" is visible by default; its checkbox is found through the wrapping label because
+    // every checkbox in the dialog is named "Receipt Date" for assistive tech (app bug, see docs/e2e.md).
+    const shopHeader = page.getByRole('columnheader', { name: 'Shop' });
+    await expect(shopHeader).toBeVisible();
 
-    // Open the dialog and toggle "Added At" off, then save.
+    // Open the dialog and toggle "Shop" off, then save.
     await openReceiptsOverflowMenu(page);
     await page.getByTestId('configure-columns').click();
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible();
-    const addedAtCheckbox = dialog.getByRole('checkbox', { name: 'Added At' });
-    await addedAtCheckbox.uncheck();
-    await expect(addedAtCheckbox).not.toBeChecked();
+    const shopCheckbox = dialog.locator('label').filter({ hasText: 'Shop' }).getByRole('checkbox');
+    await expect(shopCheckbox).toBeChecked();
+    await dialog.getByText('Shop', { exact: true }).click();
+    await expect(shopCheckbox).not.toBeChecked();
     await dialog.getByTestId('dialog-submit-button').click();
 
     await expect(dialog).toBeHidden();
-    await expect(addedAtHeader).toHaveCount(0);
+    await expect(shopHeader).toHaveCount(0);
 
     // Reopen and reset back to the defaults — the column returns.
     await openReceiptsOverflowMenu(page);
@@ -59,6 +60,6 @@ test.describe('Receipt table column configuration', () => {
     await dialog.getByTestId('dialog-submit-button').click();
 
     await expect(dialog).toBeHidden();
-    await expect(addedAtHeader).toBeVisible();
+    await expect(shopHeader).toBeVisible();
   });
 });

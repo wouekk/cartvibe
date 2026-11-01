@@ -12,10 +12,11 @@ import { uniqueName, withAdminApi, withApiAs } from './helpers/provisioning';
 // permission gates and route guards, so they are covered transitively here plus
 // by the directive unit tests.
 
-// Admin-only areas a Legacy User must be redirected away from. (`/users` is the
-// case corrected in this change: the Legacy User role no longer holds
-// app.users.read, so the route guard now denies it.)
-const ADMIN_ONLY_ROUTES = ['/users', '/roles', '/system-settings'];
+// Admin-only areas a Legacy User must be redirected away from. Categories and Tags are admin-only too since the
+// family rework (app.categories.read / app.tags.read); a user sees them per group instead.
+const ADMIN_ONLY_ROUTES = ['/users', '/roles', '/system-settings', '/categories', '/tags'];
+// The guard sends a denied route to the landing page: the Dashboard, the receipts list or the root.
+const LANDING = /^[^?]*(\/(overview|receipts)\/group\/\d+|\/)$/;
 
 test.describe('Legacy User visibility', () => {
   // The default chromium project uses e2e/.auth/user.json (e2e-user = Legacy User).
@@ -24,27 +25,11 @@ test.describe('Legacy User visibility', () => {
   });
 
   for (const path of ADMIN_ONLY_ROUTES) {
-    test(`is redirected to the dashboard from ${path}`, async ({ page }) => {
+    test(`is redirected away from ${path}`, async ({ page }) => {
       await page.goto(path);
-      await expect(page).toHaveURL(/\/dashboard\/group\/\d+/);
+      await expect(page).toHaveURL(LANDING);
     });
   }
-
-  test('categories: can add, cannot edit or delete', async ({ page }) => {
-    await page.goto('/categories');
-    // Legacy User holds app.categories.create.
-    await expect(page.getByTestId('category-add')).toBeVisible();
-    // ...but not app.categories.update / .delete — those row actions never render.
-    await expect(page.getByTestId('category-edit')).toHaveCount(0);
-    await expect(page.getByTestId('category-delete')).toHaveCount(0);
-  });
-
-  test('tags: can add, cannot edit or delete', async ({ page }) => {
-    await page.goto('/tags');
-    await expect(page.getByTestId('tag-add')).toBeVisible();
-    await expect(page.getByTestId('tag-edit')).toHaveCount(0);
-    await expect(page.getByTestId('tag-delete')).toHaveCount(0);
-  });
 
 
   test('groups: can reach the create form (holds app.groups.create)', async ({

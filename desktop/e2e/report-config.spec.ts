@@ -1,3 +1,4 @@
+import { comboboxNamed } from './helpers/ui';
 import { expect, Page, test } from '@playwright/test';
 import { stubTokenRefresh } from './helpers/auth';
 import { addFirstGroupToScope, addGroupingLevel, gotoReportBuilder, openComboboxAndPick } from './helpers/reports';
@@ -85,7 +86,7 @@ test.describe('Report Builder — configuration', () => {
   test('the custom period range reveals date pickers', async ({ page }) => {
     await openComboboxAndPick(
       page,
-      page.getByRole('combobox', { name: 'Period covering' }),
+      comboboxNamed(page, 'Period covering'),
       page.getByRole('option', { name: /Custom range/ }),
     );
 
@@ -94,8 +95,8 @@ test.describe('Report Builder — configuration', () => {
     await expect(start).toBeVisible();
     await expect(end).toBeVisible();
 
-    await start.fill('01/15/2026');
-    await end.fill('06/15/2026');
+    await start.fill('2026-01-15');
+    await end.fill('2026-06-15');
     await start.blur();
 
     // The preview still renders after choosing a custom range.

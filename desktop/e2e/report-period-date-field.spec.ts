@@ -1,3 +1,4 @@
+import { comboboxNamed } from './helpers/ui';
 import { expect, Page, test } from '@playwright/test';
 import { creds, stubTokenRefresh } from './helpers/auth';
 import {
@@ -24,7 +25,7 @@ test.use({ storageState: 'e2e/.auth/admin.json' });
 const DATE_FIELDS = ['Receipt Date', 'Settled on', 'Added At'];
 
 function dateFieldSelect(page: Page) {
-  return page.getByRole('combobox', { name: 'Date field', exact: true });
+  return comboboxNamed(page, 'Date field');
 }
 
 /** Points the period at a date field and waits for the preview to recompute. */
@@ -35,11 +36,11 @@ async function pickDateField(page: Page, label: string): Promise<void> {
   ]);
 }
 
-/** Sets a custom period. Dates are typed in the datepicker's MM/DD/YYYY. */
+/** Sets a custom period. The datepicker is a native date input: it takes yyyy-MM-dd. */
 async function setCustomPeriod(page: Page, start: string, end: string): Promise<void> {
   await openComboboxAndPick(
     page,
-    page.getByRole('combobox', { name: /Period covering/ }),
+    comboboxNamed(page, /Period covering/),
     page.getByRole('option', { name: /Custom range/ }),
   );
   await page.getByLabel('Start', { exact: true }).fill(start);
@@ -52,7 +53,7 @@ async function setCustomPeriod(page: Page, start: string, end: string): Promise<
  * flush against the number, so a plain "2 receipts" would also match "12 receipts".
  */
 async function expectReceiptCount(page: Page, count: number): Promise<void> {
-  await expect(page.getByTestId('report-receipt-count')).toContainText(new RegExp(`(?<!\\d)${count} receipts`), {
+  await expect(page.getByTestId('report-receipt-count')).toContainText(new RegExp(`(?<!\\d)${count} receipts?`), {
     timeout: 20_000,
   });
 }
@@ -111,7 +112,7 @@ test.describe.serial('Report Builder — period date field', () => {
   });
 
   test('a past window matches only on the receipt date', async ({ page }) => {
-    await setCustomPeriod(page, '01/01/2023', '12/31/2024');
+    await setCustomPeriod(page, '2023-01-01', '2024-12-31');
     await expectReceiptCount(page, 2);
 
     await pickDateField(page, 'Settled on');
@@ -122,7 +123,7 @@ test.describe.serial('Report Builder — period date field', () => {
   });
 
   test('a window from 2025 on matches on the resolved and added-at dates', async ({ page }) => {
-    await setCustomPeriod(page, '01/01/2025', '12/31/2099');
+    await setCustomPeriod(page, '2025-01-01', '2099-12-31');
     await expectReceiptCount(page, 0);
 
     await pickDateField(page, 'Settled on');
@@ -202,7 +203,7 @@ test.describe.serial('Report Builder — drill-in across time zones', () => {
     await gotoReportBuilder(page);
     await addGroupToScopeByName(page, groupName);
 
-    await setCustomPeriod(page, '01/01/2024', '01/31/2024');
+    await setCustomPeriod(page, '2024-01-01', '2024-01-31');
     await expectReceiptCount(page, 1);
 
     await page.getByTestId('report-receipt-count').click();
