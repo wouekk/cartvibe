@@ -13,7 +13,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const repo = "https://github.com/wouekk/cartvibe";
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const nav = [
-  { href: `${base}/demo/`, label: "Try the demo" },
   { href: `${base}/#features`, label: "Features" },
   { href: `${base}/#why`, label: "Why CartVibe" },
   { href: `${base}/#cloud`, label: "Cloud plan" },
@@ -115,6 +114,12 @@ const linkClass = "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium te
             <span class="icon-to-light"><Icon name="sun" /></span>
           </button>
           <a
+            href={`${base}/demo/`}
+            class="hidden h-9 items-center whitespace-nowrap rounded-md border border-border bg-background px-4 text-sm font-medium transition-colors duration-150 hover:bg-accent md:inline-flex"
+            data-testid="header-demo"
+            >Try the demo</a
+          >
+          <a
             href={`${repo}#quick-start`}
             class="hidden h-9 items-center whitespace-nowrap rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:bg-primary/80 sm:inline-flex"
             >Self-host it</a
@@ -129,6 +134,11 @@ const linkClass = "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium te
             <div class="absolute right-0 top-11 z-50 w-56 rounded-xl border border-border/70 bg-popover p-1.5 text-popover-foreground">
               {nav.map((item) => <a href={item.href} class="block rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent aria-[current=location]:bg-accent" data-spy>{item.label}</a>)}
               <a href={repo} class="block rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent">GitHub</a>
+              <a
+                href={`${base}/demo/`}
+                class="mt-1 flex h-9 items-center justify-center rounded-md border border-border bg-background px-3 text-sm font-medium hover:bg-accent"
+                >Try the demo</a
+              >
               <a
                 href={`${repo}#quick-start`}
                 class="mt-1 flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/80"
