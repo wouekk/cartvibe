@@ -43,7 +43,7 @@ export const HLM_CHECKBOX_VALUE_ACCESSOR = {
 	},
 	template: `
 		<brn-checkbox
-			[id]="inputId()"
+			[id]="inputId() ?? _autoId"
 			[name]="name()"
 			[class]="_computedClass()"
 			[checked]="checked()"
@@ -78,6 +78,10 @@ export class HlmCheckbox implements ControlValueAccessor {
 
 	/** Used to set the id on the underlying brn element. */
 	public readonly inputId = input<string | null>(null);
+
+	/** Without an id every checkbox's label got the id "null-label" and all of them were named after the first. */
+	protected readonly _autoId = `hlm-checkbox-${HlmCheckbox._nextId++}`;
+	private static _nextId = 0;
 
 	/** Used to set the aria-label attribute on the underlying brn element. */
 	public readonly ariaLabel = input<string | null>(null, { alias: 'aria-label' });

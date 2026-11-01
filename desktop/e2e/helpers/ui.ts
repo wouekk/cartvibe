@@ -1,13 +1,9 @@
 import type { Locator, Page } from '@playwright/test';
 
 /**
- * A form combobox by its visible label. The autocompletes expose the label as the accessible name, but `app-select`
- * does not (its `<label>` is not associated with the trigger, so the combobox has no name), which is why a plain
- * `getByRole('combobox', { name })` finds nothing for a select. This matches either.
+ * A form combobox by its visible label. `app-select` ties its `<label>` to the trigger, so this is the accessible
+ * name lookup; `.first()` keeps it from tripping strict mode when a label is a substring of another.
  */
 export function comboboxNamed(scope: Page | Locator, name: string | RegExp): Locator {
-  return scope
-    .getByRole('combobox', { name })
-    .or(scope.locator('app-select').filter({ hasText: name }).getByRole('combobox'))
-    .first();
+  return scope.getByRole('combobox', { name }).first();
 }

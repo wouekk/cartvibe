@@ -8,6 +8,7 @@ import { OptionDisplayPipe } from '../pipes/option-display.pipe';
 import { ReadonlyValuePipe } from '../pipes/readonly-value.pipe';
 import { SelectComponent } from './select.component';
 import { TranslationService } from '../../i18n/translation.service';
+import { TranslatePipe } from '../../i18n/translate.pipe';
 
 describe('SelectComponent', () => {
   let component: SelectComponent;
@@ -21,7 +22,7 @@ describe('SelectComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [SelectComponent, OptionDisplayPipe, ReadonlyValuePipe],
-      imports: [...HlmSelectImports, ...HlmInputImports, ReactiveFormsModule],
+      imports: [...HlmSelectImports, ...HlmInputImports, ReactiveFormsModule, TranslatePipe],
       providers: [OptionDisplayPipe, provideZonelessChangeDetection()],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
@@ -54,5 +55,19 @@ describe('SelectComponent', () => {
     vi.spyOn(TestBed.inject(TranslationService), 't').mockImplementation((text: string) => (text === 'HST' ? 'PST' : text));
 
     expect(component.itemToString('hst')).toBe('PST');
+  });
+
+  it("ties the visible label to the trigger so the combobox has an accessible name", async () => {
+    configure('hst');
+    component.label = 'Role';
+    fixture.changeDetectorRef.markForCheck();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const label = fixture.nativeElement.querySelector('label') as HTMLLabelElement;
+    const trigger = fixture.nativeElement.querySelector('button[data-slot="select-trigger"]') as HTMLButtonElement;
+
+    expect(trigger.id).not.toBe('');
+    expect(label.htmlFor).toBe(trigger.id);
   });
 });

@@ -1,6 +1,6 @@
 <div class="flex w-full flex-col gap-1.5">
   @if (label) {
-    <label class="text-sm font-medium leading-none text-foreground">{{ label | t }}</label>
+    <label class="text-sm font-medium leading-none text-foreground" [attr.for]="triggerId">{{ label | t }}</label>
   }
   @if (readonly) {
     <input
@@ -10,7 +10,7 @@
     />
   } @else {
     <hlm-select [formControl]="inputFormControl" [itemToString]="itemToString">
-      <hlm-select-trigger class="w-full" (blur)="inputBlur.emit($event)">
+      <hlm-select-trigger class="w-full" [buttonId]="triggerId" (blur)="inputBlur.emit($event)">
         <hlm-select-value />
       </hlm-select-trigger>
       <hlm-select-content *hlmSelectPortal>

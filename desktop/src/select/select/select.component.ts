@@ -2,6 +2,8 @@ import { Component, Input, OnInit, inject, input, ChangeDetectionStrategy } from
 import { OptionDisplayPipe } from "../pipes/option-display.pipe";
 import { BaseInputComponent } from "../../base-input";
 
+let nextTriggerId = 0;
+
 @Component({
     selector: "app-select",
     templateUrl: "./select.component.html",
@@ -10,6 +12,9 @@ import { BaseInputComponent } from "../../base-input";
     standalone: false
 })
 export class SelectComponent extends BaseInputComponent implements OnInit {
+  /** Id of the trigger button: the visible label points at it, so the combobox has an accessible name. */
+  public readonly triggerId = `app-select-trigger-${nextTriggerId++}`;
+
   public readonly options = input<any[]>([]);
 
   public readonly optionsDisplayArray = input<any[]>([]);

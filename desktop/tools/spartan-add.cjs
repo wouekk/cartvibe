@@ -103,6 +103,10 @@ const patches = [
   ["switch/lib/hlm-switch-thumb.ts", /data-(un)?checked:/g, (_match, un) => `data-[state=${un ? "unchecked" : "checked"}]:`],
   // brn-checkbox has the same data-state="checked" and no data-checked, so a ticked checkbox never filled.
   ["checkbox/lib/hlm-checkbox.ts", /data-checked:/g, () => "data-[state=checked]:"],
+  // brn-checkbox labels itself through the id of its enclosing <label>, derived from its own id; with no id every
+  // checkbox's label got "null-label" and all of them were named after the first one. An unset id gets a unique one.
+  ["checkbox/lib/hlm-checkbox.ts", '[id]="inputId()"', '[id]="inputId() ?? _autoId"'],
+  ["checkbox/lib/hlm-checkbox.ts", "public readonly inputId = input<string | null>(null);", "public readonly inputId = input<string | null>(null);\n\n\tprotected readonly _autoId = `hlm-checkbox-${HlmCheckbox._nextId++}`;\n\tprivate static _nextId = 0;"],
   // brn-tabs-trigger marks the selected tab as data-state="active", never a data-active attribute, so no tab strip
   // (period picker, settings tabs, Records / Aggregate, the welcome's choices) showed which tab was selected.
   ["tabs/lib/hlm-tabs-trigger.ts", /data-active:/g, () => "data-[state=active]:"],
