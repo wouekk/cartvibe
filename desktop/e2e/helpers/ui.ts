@@ -9,6 +9,19 @@ export function comboboxNamed(scope: Page | Locator, name: string | RegExp): Loc
 }
 
 /**
+ * Waits for [target] and reloads the page while it is missing. nginx answers 503 beyond its request limit (10 a
+ * second, burst 20) and the app does not retry, which leaves a table or form empty for good; a reload re-fetches.
+ */
+export async function reloadUntilVisible(page: Page, target: Locator): Promise<void> {
+  await expect(async () => {
+    if (!(await target.isVisible())) {
+      await page.reload();
+    }
+    await expect(target).toBeVisible({ timeout: 5_000 });
+  }).toPass({ timeout: 40_000 });
+}
+
+/**
  * Sets an `app-checkbox` host (found by its data-testid) on or off. The checkbox button sits inside its label, so a
  * click on the button can toggle twice and Playwright's `check()` / `uncheck()` then report "did not change its
  * state"; clicking the label toggles once.

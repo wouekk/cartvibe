@@ -208,6 +208,9 @@ export class GroupMemberFormComponent implements OnInit {
 
   public onGrantsChange(groupId: number, selection: GrantSelection): void {
     this.editedGrants.set(groupId, selection);
+    // The grants are not form controls, but they are something to save: without this the dialog's Save stays
+    // dimmed when the assignment is all that changed (the user form does the same).
+    this.form.markAsDirty();
   }
 
   private listenToGroupRoleChanges(): void {
