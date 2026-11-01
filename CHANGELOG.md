@@ -8,6 +8,26 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-11-01
+
+A sturdier AI read, a project page with a roadmap and a live demo, and groundwork for hosting.
+
+### Fixed
+- **A receipt read no longer fails when the AI answers a category as a bare number.** The model sometimes wrote
+  `"categories":[4]` instead of `[{"id":4}]`, which failed the whole read. Both shapes are accepted now.
+- **"Add an item" no longer draws over the header.** On the shopping list the sticky add row pins below the header (and the
+  demo banner) instead of on top of it.
+- **Links in the demo stay in the demo.** The About licence links and the header shortcuts opened the real site root
+  from the demo; they now resolve under the demo's own address.
+
+### Changed
+- **The project page** has a roadmap read from the public GitHub issues, a short changelog list, screenshots taken from the
+  built demo, one footer on every page and a "Free forever" self-hosted plan. The live demo is published under `/demo/`.
+- **Groundwork for a hosted version** (no change for a NAS install): repositories take a database handle and the SSE hub,
+  OIDC cache and role caches are keyed per cell. `CARTVIBE_MODE` stays `standalone`.
+- **CI** retries the end-to-end login when nginx answers 503, and the AI prompt has an opt-in live check
+  (`-tags liveai`, needs `GEMINI_API_KEY`; never runs in CI).
+
 ## [0.14.0] - 2026-10-30
 
 Charts on a free licence, no API keys, Valkey for the job queue and a smaller image.
