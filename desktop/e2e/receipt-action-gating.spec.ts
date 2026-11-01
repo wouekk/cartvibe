@@ -2,6 +2,7 @@ import { BrowserContext, expect, Page, test } from '@playwright/test';
 import { creds, stubTokenRefresh } from './helpers/auth';
 import {
   apiCreateReceipt,
+  midMonthIso,
   apiDeleteGroupById,
   apiGetUserId,
   createGroupWithMember,
@@ -57,6 +58,7 @@ test.describe('Group Viewer is denied receipt write actions', () => {
         groupId,
         paidByUserId: adminId,
         name: receiptName,
+        date: midMonthIso(),
       });
     });
   });

@@ -219,7 +219,7 @@ test.describe('Role-required receipt comment and image', () => {
 
     await comment.fill('Scanned with a note');
     await dialog.getByTestId('dialog-submit-button').click();
-    await expect(page.getByText('Successfully queued', { exact: false })).toBeVisible();
+    await expect(page.getByText('Receipts uploaded', { exact: false })).toBeVisible();
     expect(requests).toHaveLength(1);
 
     // The server enforces it on its own: the same scan without a comment is a 400.

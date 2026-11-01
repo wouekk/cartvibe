@@ -40,6 +40,7 @@ const VALID_GENERATE_BODY = {
 };
 
 test.describe('Reports — generate/duplicate permission gating', () => {
+  test.describe.configure({ mode: 'serial' });
   test.use({ storageState: AUTH_FILE });
 
   let roleName: string;

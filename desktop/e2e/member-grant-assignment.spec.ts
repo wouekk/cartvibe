@@ -319,9 +319,9 @@ test.describe('Per-member grant assignment (UI)', () => {
       .toEqual([catB.id, catC.id].sort());
 
     const userDialog = await openUserForm(page);
-    expect(await selectedNames(grantSection(userDialog, cappedGroupId))).toEqual(
-      [catB.name, catC.name].sort(),
-    );
+    await expect
+      .poll(() => selectedNames(grantSection(userDialog, cappedGroupId)))
+      .toEqual([catB.name, catC.name].sort());
   });
 
   test('the Add Group Member form has no assignment section', async ({ page }) => {

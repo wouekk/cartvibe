@@ -23,6 +23,8 @@ import { gotoReports } from './helpers/reports';
 // in api/internal/services/report_authz_test.go; these prove the UI wiring.
 
 test.describe('Reports — matrix restricts a group member', () => {
+  // Serial: beforeAll provisions one user and a shared session file that a second worker would overwrite.
+  test.describe.configure({ mode: 'serial' });
   const AUTH_FILE = 'e2e/.auth/report-matrix-member.json';
   test.use({ storageState: AUTH_FILE });
 

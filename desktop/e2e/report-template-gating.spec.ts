@@ -39,6 +39,7 @@ const VALID_TEMPLATE_BODY = {
 };
 
 test.describe('Report Builder — Save Template permission gating', () => {
+  test.describe.configure({ mode: 'serial' });
   test.use({ storageState: AUTH_FILE });
 
   let roleName: string;
