@@ -1,3 +1,4 @@
+import { comboboxNamed } from './helpers/ui';
 import { expect, type Locator, type Page, test } from '@playwright/test';
 import { creds, stubTokenRefresh } from './helpers/auth';
 import {
@@ -179,7 +180,7 @@ test.describe.serial('App time zone (System Settings → every rendered instant)
     await addGroupToScopeByName(page, group.name);
     await openComboboxAndPick(
       page,
-      page.getByRole('combobox', { name: 'Date field', exact: true }),
+      comboboxNamed(page, 'Date field'),
       page.getByRole('option', { name: 'Added At', exact: true }),
     );
     await expect(page.getByText(/Resolves to .* on Added At \(America\/New_York\)/)).toBeVisible();
@@ -197,7 +198,7 @@ test.describe.serial('App time zone (System Settings → every rendered instant)
     await addGroupToScopeByName(page, group.name);
     await openComboboxAndPick(
       page,
-      page.getByRole('combobox', { name: 'Date field', exact: true }),
+      comboboxNamed(page, 'Date field'),
       page.getByRole('option', { name: 'Added At', exact: true }),
     );
     await expect(page.getByText(/Resolves to .* on Added At \(UTC\)/)).toBeVisible();

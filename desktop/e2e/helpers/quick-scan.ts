@@ -1,3 +1,4 @@
+import { comboboxNamed } from './ui';
 import { openReceiptsOverflowMenu } from './receipts-table';
 import { expect, type Locator, type Page, type Route } from '@playwright/test';
 
@@ -147,7 +148,7 @@ export async function selectImageGroup(
   if (await clear.count()) {
     await clear.first().click();
   }
-  const groupField = scope.getByRole('combobox', { name: 'Group' });
+  const groupField = comboboxNamed(scope, 'Group');
   await groupField.click();
   await groupField.fill(groupName);
   await page.getByRole('option', { name: groupName, exact: true }).click();

@@ -76,3 +76,32 @@ for (const account of accounts) {
     console.log(`${account.username}: welcome dialog switched off`);
   }
 }
+
+// The report specs run as e2e-admin and need a group where it holds group.reports.read, which the Owner group role
+// has and the Member role (what a new account gets in the shared Household) does not. Make it an Owner there.
+{
+  const adminAccount = accounts[0];
+  const allUsers = await call(jwt, "GET", "/user");
+  const adminUser = allUsers.find((user) => user.username === adminAccount.username);
+  const groupRoles = (await call(jwt, "GET", "/role")).filter((r) => r.scope === "GROUP");
+  const ownerRole = groupRoles.find((r) => r.permissions?.includes("group.reports.read"));
+  const groups = await call(jwt, "GET", "/group");
+  for (const group of groups.filter((g) => !g.isAllGroup && g.name !== "All")) {
+    const members = group.groupMembers ?? [];
+    const membership = members.find((m) => m.userId === adminUser.id);
+    if (!membership || !ownerRole || membership.groupRoleId === ownerRole.id) {
+      continue;
+    }
+    await call(jwt, "PUT", `/group/${group.id}`, {
+      name: group.name,
+      status: group.status,
+      isAllGroup: false,
+      groupMembers: members.map((m) => ({
+        userId: m.userId,
+        groupId: group.id,
+        groupRoleId: m.userId === adminUser.id ? ownerRole.id : m.groupRoleId,
+      })),
+    });
+    console.log(`${adminAccount.username}: made an owner of ${group.name}`);
+  }
+}

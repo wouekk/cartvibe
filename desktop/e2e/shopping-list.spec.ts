@@ -1,3 +1,4 @@
+import { comboboxNamed } from './helpers/ui';
 import { BrowserContext, expect, Page, test } from '@playwright/test';
 import { stubTokenRefresh } from './helpers/auth';
 import {
@@ -119,7 +120,7 @@ test.describe('Shopping lists', () => {
       await page.getByLabel('Add an item').fill('Flour');
       // A comma decimal, as a European phone keyboard types it.
       await page.getByLabel('Amount').fill('1,5');
-      await page.getByRole('combobox', { name: 'Unit' }).click();
+      await comboboxNamed(page, 'Unit').click();
       await page.getByRole('option', { name: 'kg', exact: true }).click();
       await page.getByTestId('shopping-list-add-submit').click();
 

@@ -112,7 +112,7 @@ test.describe('Receipts table — Comment column', () => {
     await gotoTable(page);
 
     const dialog = await openConfigureColumns(page);
-    const checkbox = dialog.getByRole('checkbox', { name: 'Comment', exact: true });
+    const checkbox = dialog.locator('label').filter({ hasText: 'Comment' }).getByRole('checkbox');
     await expect(checkbox).toBeVisible();
     await expect(checkbox).not.toBeChecked();
 

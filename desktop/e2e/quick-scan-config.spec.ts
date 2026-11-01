@@ -1,3 +1,4 @@
+import { comboboxNamed } from './helpers/ui';
 import { expect, test } from '@playwright/test';
 import { stubTokenRefresh } from './helpers/auth';
 import {
@@ -43,8 +44,8 @@ test.describe('Quick scan group receipt settings', () => {
   test('reveals the paid-by/status defaults only when the field is optional', async ({ page }) => {
     const paidByShow = page.getByTestId('quick-scan-paidby-show').getByRole('checkbox');
     const paidByRequire = page.getByTestId('quick-scan-paidby-require').getByRole('checkbox');
-    const defaultPaidBy = page.getByRole('combobox', { name: 'Default Paid By', exact: true });
-    const defaultPaidByUser = page.getByRole('combobox', { name: 'Default Paid By User' });
+    const defaultPaidBy = comboboxNamed(page, 'Default Paid By');
+    const defaultPaidByUser = comboboxNamed(page, 'Default Paid By User');
 
     // Shown + required → no default needed → default controls hidden.
     await paidByShow.check();
@@ -66,7 +67,7 @@ test.describe('Quick scan group receipt settings', () => {
 
     // Status behaves the same way.
     const statusRequire = page.getByTestId('quick-scan-status-require').getByRole('checkbox');
-    const defaultStatus = page.getByRole('combobox', { name: 'Default Status' });
+    const defaultStatus = comboboxNamed(page, 'Default Status');
     await page.getByTestId('quick-scan-status-show').getByRole('checkbox').check();
     await statusRequire.check();
     await expect(defaultStatus).toHaveCount(0);
@@ -79,13 +80,13 @@ test.describe('Quick scan group receipt settings', () => {
     await page.getByTestId('quick-scan-paidby-require').getByRole('checkbox').uncheck();
 
     // "Specific user" with no user chosen → form invalid → Save is a no-op (stays on /edit).
-    await page.getByRole('combobox', { name: 'Default Paid By', exact: true }).click();
+    await comboboxNamed(page, 'Default Paid By').click();
     await page.getByRole('option', { name: 'Specific user', exact: true }).click();
     await page.getByRole('button', { name: 'Save' }).click();
     await expect(page).toHaveURL(/\/receipt-settings\/edit/);
 
     // Switch to "Uploader" (a complete default) → Save succeeds and navigates to the view page.
-    await page.getByRole('combobox', { name: 'Default Paid By', exact: true }).click();
+    await comboboxNamed(page, 'Default Paid By').click();
     await page.getByRole('option', { name: 'Uploader', exact: true }).click();
     await page.getByRole('button', { name: 'Save' }).click();
     await expect(page).toHaveURL(/\/receipt-settings\/view/);

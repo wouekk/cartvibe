@@ -1,3 +1,4 @@
+import { comboboxNamed } from './helpers/ui';
 import { expect, Route, test } from '@playwright/test';
 import { stubTokenRefresh } from './helpers/auth';
 import { openReceiptsOverflowMenu } from './helpers/receipts-table';
@@ -81,7 +82,7 @@ test.describe('Quick scan dialog field response', () => {
     await dialog
       .locator('app-upload-image input[type="file"]')
       .setInputFiles('e2e/fixtures/receipt.png');
-    const groupField = dialog.getByRole('combobox', { name: 'Group' });
+    const groupField = comboboxNamed(dialog, 'Group');
     await expect(groupField).toBeVisible();
 
     // No group is selected yet (the admin belongs to several, so soleGroupId seeds nothing), and a
@@ -90,10 +91,10 @@ test.describe('Quick scan dialog field response', () => {
     // is load-bearing: it pins that precondition, since an auto-filled group would silently turn
     // the five absence assertions below into vacuous truths.
     await expect(groupField).toHaveValue('');
-    await expect(dialog.getByRole('combobox', { name: 'Paid By' })).toHaveCount(0);
-    await expect(dialog.getByRole('combobox', { name: 'Status' })).toHaveCount(0);
-    await expect(dialog.getByRole('combobox', { name: 'Categories' })).toHaveCount(0);
-    await expect(dialog.getByRole('combobox', { name: 'Tags' })).toHaveCount(0);
+    await expect(comboboxNamed(dialog, 'Paid By')).toHaveCount(0);
+    await expect(comboboxNamed(dialog, 'Status')).toHaveCount(0);
+    await expect(comboboxNamed(dialog, 'Categories')).toHaveCount(0);
+    await expect(comboboxNamed(dialog, 'Tags')).toHaveCount(0);
     await expect(dialog.getByTestId('quick-scan-comment')).toHaveCount(0);
 
     // Select the injected-config group. Via the shared helper because the field
@@ -102,10 +103,10 @@ test.describe('Quick scan dialog field response', () => {
     await selectImageGroup(page, dialog, group.name);
 
     // Fields now reflect the injected config: paid-by + tags hidden, status + categories shown.
-    await expect(dialog.getByRole('combobox', { name: 'Paid By' })).toHaveCount(0);
-    await expect(dialog.getByRole('combobox', { name: 'Tags' })).toHaveCount(0);
-    await expect(dialog.getByRole('combobox', { name: 'Status' })).toBeVisible();
-    await expect(dialog.getByRole('combobox', { name: 'Categories' })).toBeVisible();
+    await expect(comboboxNamed(dialog, 'Paid By')).toHaveCount(0);
+    await expect(comboboxNamed(dialog, 'Tags')).toHaveCount(0);
+    await expect(comboboxNamed(dialog, 'Status')).toBeVisible();
+    await expect(comboboxNamed(dialog, 'Categories')).toBeVisible();
 
     // Categories is required and empty → submitting surfaces a validation error and queues nothing.
     await dialog.getByTestId('dialog-submit-button').click();

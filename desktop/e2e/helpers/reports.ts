@@ -1,3 +1,4 @@
+import { comboboxNamed } from './ui';
 import { expect, Locator, Page } from '@playwright/test';
 
 // Shared Report Builder e2e flows. The reports area is gated by the app-level
@@ -69,7 +70,7 @@ export function waitForPreview(page: Page) {
  * name reads "Tip Custom" and an exact-string match would never resolve.
  */
 export async function addGroupingLevel(page: Page, label: string | RegExp): Promise<void> {
-  const combobox = page.getByRole('combobox', { name: /Add grouping level/ });
+  const combobox = comboboxNamed(page, /Add grouping level/);
   const option =
     typeof label === 'string'
       ? page.getByRole('option', { name: label, exact: true })

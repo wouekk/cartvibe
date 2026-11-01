@@ -1,3 +1,4 @@
+import { comboboxNamed } from './helpers/ui';
 import { expect, test } from '@playwright/test';
 import { stubTokenRefresh } from './helpers/auth';
 import { addFirstGroupToScope, gotoReportBuilder, openComboboxAndPick } from './helpers/reports';
@@ -29,7 +30,7 @@ test.describe('Report Builder — columns', () => {
     await page.getByTestId('report-add-column').click();
     await page.getByTestId('picker-kind-aggregate').click();
     await page.getByRole('button', { name: 'COUNT' }).click();
-    await expect(page.getByRole('combobox', { name: 'Measure' })).toHaveCount(0);
+    await expect(comboboxNamed(page, 'Measure')).toHaveCount(0);
     await page.getByTestId('picker-save').click();
 
     await expect(rows).toHaveCount(before + 2);
@@ -81,7 +82,7 @@ test.describe('Report Builder — columns', () => {
     // Group by Added by so a Added by dimension column is valid in aggregate mode.
     await openComboboxAndPick(
       page,
-      page.getByRole('combobox', { name: /Add grouping level/ }),
+      comboboxNamed(page, /Add grouping level/),
       page.getByRole('option', { name: 'Added by', exact: true }),
     );
     await expect(page.getByTestId('report-grouping-remove')).toBeVisible();

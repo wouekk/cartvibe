@@ -1,3 +1,4 @@
+import { comboboxNamed } from './helpers/ui';
 import { expect, test, type Browser, type Page } from '@playwright/test';
 import { rmSync } from 'node:fs';
 import { stubTokenRefresh } from './helpers/auth';
@@ -38,7 +39,7 @@ async function showAllGroups(page: Page): Promise<void> {
   await page.getByTestId('group-filter').click();
   const dialog = page.getByRole('dialog').filter({ hasText: 'Filter Groups' });
   await expect(dialog).toBeVisible();
-  await dialog.getByRole('combobox', { name: 'Groups to View' }).click();
+  await comboboxNamed(dialog, 'Groups to View').click();
   await page.getByRole('option', { name: 'All Groups', exact: true }).click();
   await dialog.getByTestId('dialog-submit-button').click();
   await expect(dialog).toBeHidden();

@@ -335,7 +335,7 @@ export async function withApiAsCreds<T>(
       await api.dispose();
     }
   }
-  const api = await pwRequest.newContext({ baseURL: apiBaseUrl() });
+  const api = await pwRequest.newContext({ baseURL: apiBaseUrl(), storageState: undefined });
   try {
     const res = await loginWithRetry(api, username, password);
     if (!res.ok()) {
