@@ -142,7 +142,7 @@ elements, the scroll track or the stack, is shown).
 
 ## Page background
 
-Sections have no background of their own (no `bg-muted` tint), so the page keeps one shade from top to bottom in day and night;
-sections are told apart by hairline borders only. Cards keep `bg-card`.
+Sections have no background of their own (no `bg-muted` tint) and no divider lines, so the page keeps one shade from top to
+bottom in day and night; spacing alone separates them. Only the sticky header and the footer keep a hairline. Cards keep `bg-card`.
 
 `Base.astro` renders a fixed `.bg-canvas` (a 48 px hairline grid and a soft primary-tinted spotlight, tokens only, no blur) behind the page. The vignette is a static `::after` overlay fading to `--background` (no mask: a masked fixed layer is re-blended every scroll frame in Safari; the picture is identical within 3/255); a passive, rAF-throttled scroll listener only changes transforms and stops under `prefers-reduced-motion`. Tested in `site/tests/e2e/home.test.mjs`.

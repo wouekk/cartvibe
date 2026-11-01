@@ -163,11 +163,15 @@ test("scrolling glides the grid (wrapping inside 48 px) and drifts the glow; red
   await context.close();
 });
 
-test("the page keeps one background shade: no section paints its own, day and night", async () => {
+test("the page keeps one background shade: no section paints its own or draws a divider, day and night", async () => {
   for (const mode of ["light", "dark"]) {
     const { page, context } = await open(browser, server.origin, "/", { setup: noGithub, mode });
     const backgrounds = await page.locator("main > section").evaluateAll((els) => [...new Set(els.map((e) => getComputedStyle(e).backgroundColor))]);
     assert.deepEqual(backgrounds, ["rgba(0, 0, 0, 0)"], mode);
+    const dividers = await page.locator("main > section").evaluateAll((els) =>
+      els.filter((e) => parseFloat(getComputedStyle(e).borderTopWidth) > 0 || parseFloat(getComputedStyle(e).borderBottomWidth) > 0).length,
+    );
+    assert.equal(dividers, 0, `${mode}: a section draws a divider line`);
     await context.close();
   }
 });
