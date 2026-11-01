@@ -27,7 +27,8 @@ const resolved = (page, css) =>
 for (const mode of ["light", "dark"]) {
   test(`Zinc shows "Vibe" in the brand emerald, not blue (${mode})`, async () => {
     const { page, context } = await open(browser, server.origin, "/", { palette: "zinc", mode });
-    const emerald = await resolved(page, "#16c976");
+    // Night keeps the brand green; the day one is darker so the text passes AA on the canvas.
+    const emerald = await resolved(page, mode === "dark" ? "#16c976" : "#047857");
     assert.equal(await colour(page, '[data-testid="site-header"] [data-testid="wordmark-vibe"]'), emerald);
     await context.close();
   });

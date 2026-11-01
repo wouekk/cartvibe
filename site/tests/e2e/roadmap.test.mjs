@@ -340,7 +340,7 @@ test("the wordmark follows the palette on the home page, and the footer is there
       document.body.append(probe);
       return [getComputedStyle(document.querySelector('[data-testid="wordmark-vibe"]')).color, getComputedStyle(probe).color];
     });
-    if (palette === "zinc") assert.equal(vibe, "rgb(22, 201, 118)");
+    if (palette === "zinc") assert.equal(vibe, "rgb(4, 120, 87)");
     else assert.equal(vibe, primary);
     await context.close();
   }
