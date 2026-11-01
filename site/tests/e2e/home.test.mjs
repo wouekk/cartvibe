@@ -93,6 +93,49 @@ test('the self-hosted plan says "Free forever"', async () => {
   await context.close();
 });
 
+test("the background canvas is token-driven: the mask sits on the static parent, the glow has no blur, nothing is clickable", async () => {
+  const { page, context } = await open(browser, server.origin, "/", { setup: noGithub });
+  const css = await page.evaluate(() => {
+    const s = (sel) => getComputedStyle(document.querySelector(sel));
+    const canvas = s(".bg-canvas");
+    return {
+      hidden: document.querySelector(".bg-canvas").getAttribute("aria-hidden"),
+      position: canvas.position,
+      z: canvas.zIndex,
+      events: canvas.pointerEvents,
+      parentMask: canvas.maskImage || canvas.webkitMaskImage,
+      gridMask: s(".bg-canvas__grid").maskImage,
+      glowFilter: s(".bg-canvas__glow").filter,
+      gridImage: s(".bg-canvas__grid").backgroundImage,
+    };
+  });
+  assert.equal(css.hidden, "true");
+  assert.equal(css.position, "fixed");
+  assert.equal(css.z, "-1");
+  assert.equal(css.events, "none");
+  assert.match(css.parentMask, /radial-gradient/);
+  assert.ok(css.gridMask === "none" || css.gridMask === "", "the moving grid carries no mask");
+  assert.equal(css.glowFilter, "none");
+  assert.match(css.gridImage, /linear-gradient/);
+  await context.close();
+});
+
+test("scrolling glides the grid (wrapping inside 48 px) and drifts the glow; reduced motion keeps both still", async () => {
+  const { page, context } = await open(browser, server.origin, "/", { setup: noGithub, width: 1280, height: 800 });
+  const t = () => page.evaluate(() => ({ grid: document.querySelector(".bg-canvas__grid").style.transform, glow: document.querySelector(".bg-canvas__glow").style.transform }));
+  await page.evaluate(() => window.scrollTo(0, 1000));
+  await page.waitForFunction(() => document.querySelector(".bg-canvas__grid").style.transform.includes("translate3d"));
+  const moved = await t();
+  const gy = Number(/translate3d\(0px, (-?[\d.]+)px/.exec(moved.grid)[1]);
+  assert.ok(gy <= 0 && gy > -48, `grid offset ${gy} stays within one cell`);
+  assert.match(moved.glow, /translate3d/);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.evaluate(() => window.scrollTo(0, 1300));
+  await page.waitForFunction(() => getComputedStyle(document.querySelector(".bg-canvas__grid")).transform === "none");
+  assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".bg-canvas__glow")).transform), "none");
+  await context.close();
+});
+
 test("no horizontal overflow at 360 px in every palette, day and night", async () => {
   for (const palette of ["zinc", "blue", "indigo", "emerald", "violet"]) {
     for (const mode of ["light", "dark"]) {

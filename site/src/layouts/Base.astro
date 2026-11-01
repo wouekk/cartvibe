@@ -59,6 +59,7 @@ const linkClass = "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium te
     </script>
   </head>
   <body class="min-h-screen bg-background text-foreground antialiased">
+    <div class="bg-canvas" aria-hidden="true"><div class="bg-canvas__glow"></div><div class="bg-canvas__grid"></div></div>
     <a
       href="#main"
       class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:border focus:border-border/70 focus:bg-card focus:px-4 focus:py-2"
@@ -166,6 +167,40 @@ const linkClass = "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium te
     </main>
 
     <Footer />
+
+    <script>
+      // Background parallax: the grid glides up at 0.18x the scroll speed (wrapping every 48px, so it never runs out) and the
+      // glow drifts along a sine. Only transforms change on scroll; the mask sits on the static parent (global.css).
+      const grid = document.querySelector<HTMLElement>(".bg-canvas__grid");
+      const glow = document.querySelector<HTMLElement>(".bg-canvas__glow");
+      if (grid && glow) {
+        const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+        let queued = false;
+        const apply = () => {
+          queued = false;
+          if (reduce.matches) {
+            grid.style.transform = "";
+            glow.style.transform = "";
+            return;
+          }
+          const y = -(window.scrollY * 0.18) % 48;
+          grid.style.transform = `translate3d(0, ${y}px, 0)`;
+          glow.style.transform = `translate3d(0, ${Math.sin(window.scrollY * 0.0015) * 40}px, 0)`;
+        };
+        window.addEventListener(
+          "scroll",
+          () => {
+            if (!queued) {
+              queued = true;
+              requestAnimationFrame(apply);
+            }
+          },
+          { passive: true },
+        );
+        reduce.addEventListener("change", apply);
+        apply();
+      }
+    </script>
 
     <script>
       // The nav link of the section in view is marked (aria-current="location"): scroll down to the FAQ and "FAQ" lights up.
