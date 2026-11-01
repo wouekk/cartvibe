@@ -19,7 +19,7 @@ rest of the app is shown further down with real screenshots.
 "Screenshots"). The old wireframe slots and their art placeholders are gone.
 
 **Wordmark.** `Wordmark.astro` is the one place the name is drawn: "Cart" in the logo text colour, "Vibe" in the brand emerald
-(`#16C976`, the colour of the brand SVGs) in Zinc and in the active palette's `--primary` in Blue, Indigo, Emerald and
+(`#16C976`, the colour of the brand SVGs, at night; in the day `#047857`, because the brand green is 2.1:1 on the canvas and fails AA as text) in Zinc and in the active palette's `--primary` in Blue, Indigo, Emerald and
 Violet (`.wordmark-vibe` in `global.css`). The app's `--brand-wordmark-accent` token is blue in every palette and the app does
 not use it (its own wordmark, `cartvibe-logo.component.ts`, is a fixed emerald), so the site does not read it.
 

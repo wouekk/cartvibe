@@ -103,8 +103,11 @@
   font-weight: 600;
 }
 .wordmark-vibe {
-  --brand-emerald: #16c976;
+  --brand-emerald: #047857; /* day: emerald-700, 5.4:1 on the canvas (the brand #16c976 is 2.1:1 and fails AA as text) */
   color: var(--brand-emerald);
+}
+.dark .wordmark-vibe {
+  --brand-emerald: #16c976;
 }
 [data-palette]:not([data-palette="zinc"]) .wordmark-vibe {
   color: var(--primary);
