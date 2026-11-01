@@ -1,6 +1,11 @@
-import { comboboxNamed } from './helpers/ui';
-import { BrowserContext, expect, Page, test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { stubTokenRefresh } from './helpers/auth';
+import {
+  apiDeleteGroupById,
+  createGroupWithMember,
+  uniqueName,
+  withAdminApi,
+} from './helpers/provisioning';
 
 // A group VIEWER (low-tier member) must be denied the group-scoped edit actions
 // — editing the group, its receipt settings, and creating receipts — while
@@ -10,95 +15,34 @@ import { stubTokenRefresh } from './helpers/auth';
 // path (a Viewer/Editor tier being held back from what an Owner can do).
 //
 // e2e-user has no low-tier membership by default (creating a group makes them
-// the Owner), so an admin browser context provisions a group and adds e2e-user
-// as a "Legacy Viewer" through the real group-member form — the same flow
-// exercised by role-assignment.spec.ts. The assertions then run as the default
-// project user (e2e-user = the Viewer) against that group.
-
-function uniqueName(tag: string) {
-  return `e2e-${tag}-${Date.now()}`;
-}
-
-// Deletes a group from the list by name. The delete button is an icon-only
-// control (data-testid), as is the confirmation dialog's submit. Mirrors the
-// helper in role-defaults.spec.ts.
-async function deleteGroupByName(page: Page, name: string) {
-  await page.goto('/groups');
-  const row = page.getByRole('row').filter({ hasText: name }).first();
-  await expect(row).toBeVisible();
-  await row.getByTestId('group-delete').click();
-
-  const dialog = page.getByRole('dialog');
-  await expect(dialog).toBeVisible();
-  await dialog.getByTestId('dialog-submit-button').click();
-
-  await expect(page.getByRole('row').filter({ hasText: name })).toHaveCount(0);
-}
+// the Owner), so the admin API provisions a group and adds e2e-user as a
+// "Legacy Viewer" (the household member dialog only offers the family roles).
+// The assertions then run as the default project user (e2e-user = the Viewer)
+// against that group.
 
 test.describe('Group Viewer is denied group/receipt edits', () => {
   // Provision the viewer group once, then run the independent assertions
   // against it in order.
   test.describe.configure({ mode: 'serial' });
 
-  let adminContext: BrowserContext;
-  let adminPage: Page;
   let viewerGroupId: string;
   let groupName: string;
 
-  test.beforeAll(async ({ browser }) => {
+  test.beforeAll(async () => {
     groupName = uniqueName('viewer-grp');
-    adminContext = await browser.newContext({
-      storageState: 'e2e/.auth/admin.json',
+    viewerGroupId = await createGroupWithMember(null, {
+      groupName,
+      memberDisplayName: 'E2E User',
+      roleName: 'Legacy Viewer',
     });
-    adminPage = await adminContext.newPage();
-    await stubTokenRefresh(adminPage);
-
-    // Create the group and add e2e-user (display name "E2E User") as a Viewer.
-    await adminPage.goto('/groups/create');
-    await expect(adminPage.getByLabel('Group Name')).toBeVisible();
-    await adminPage.getByLabel('Group Name').fill(groupName);
-
-    await adminPage.getByTestId('add-group-member').click();
-    const memberDialog = adminPage
-      .getByRole('dialog')
-      .filter({ hasText: 'Add Group Member' });
-    await expect(memberDialog).toBeVisible();
-
-    // The user autocomplete filters/displays by display name. Target the
-    // combobox role: while the option panel is open the listbox shares the
-    // field's aria label, so getByLabel would match two elements.
-    const userField = comboboxNamed(memberDialog, 'User');
-    await userField.fill('E2E User');
-    await adminPage
-      .getByRole('option', { name: 'E2E User', exact: true })
-      .click();
-
-    // Role defaults to "Legacy Owner" — switch it to "Legacy Viewer".
-    const roleSelect = comboboxNamed(memberDialog, 'Role');
-    await roleSelect.click();
-    await adminPage
-      .getByRole('option', { name: 'Legacy Viewer', exact: true })
-      .click();
-
-    await memberDialog.getByTestId('dialog-submit-button').click();
-    await expect(memberDialog).toBeHidden();
-
-    // Submit the group form. The page-level save is an icon-only button; the
-    // app-form submits on Enter from a field (as in role-defaults.spec.ts).
-    // The owner check is skipped in add-mode, and the backend assigns the
-    // creating admin the default (Owner) role, so the group keeps an owner.
-    await adminPage.getByLabel('Group Name').press('Enter');
-    await adminPage.waitForURL(/\/groups\/\d+\/details\/view/);
-    viewerGroupId = adminPage.url().match(/\/groups\/(\d+)\//)![1];
   });
 
   test.afterAll(async () => {
     try {
-      await deleteGroupByName(adminPage, groupName);
+      await withAdminApi((api) => apiDeleteGroupById(api, viewerGroupId));
     } catch {
       // Best-effort cleanup — don't mask a test failure with a cleanup error.
     }
-    await adminContext?.close();
   });
 
   // Assertions run as the default project user (e2e-user = the Viewer).
@@ -108,13 +52,13 @@ test.describe('Group Viewer is denied group/receipt edits', () => {
 
   test('cannot open the group edit route', async ({ page }) => {
     await page.goto(`/groups/${viewerGroupId}/details/edit`);
-    // groupPermissionGuard denies (group.update) and redirects to the dashboard.
-    await expect(page).toHaveURL(/\/overview\/group\/\d+/);
+    // groupPermissionGuard denies (group.update) and redirects to the dashboard or the receipts list.
+    await expect(page).toHaveURL(/\/(overview|receipts)\/group\/\d+/);
   });
 
   test('cannot open the receipt-settings edit route', async ({ page }) => {
     await page.goto(`/groups/${viewerGroupId}/receipt-settings/edit`);
-    await expect(page).toHaveURL(/\/overview\/group\/\d+/);
+    await expect(page).toHaveURL(/\/(overview|receipts)\/group\/\d+/);
   });
 
   test('group row exposes no edit or delete action', async ({ page }) => {

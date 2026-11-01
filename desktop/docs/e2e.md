@@ -9,10 +9,14 @@ About 40 specs plus `auth.setup.ts`. Full runs in Docker (built image, 2 workers
 - 2026-10-30 (devstack): 217 tests, 45 passed, 90 failed, 82 did not run.
 - 2026-11-01 round 1: 193 tests, 113 passed, 39 failed, 41 did not run.
 - 2026-11-01 round 2: 187 tests, 129 passed, 22 failed, 2 skipped (`test.fixme`), 34 did not run (a `beforeAll` failed).
+- 2026-11-01 round 3 (`feature/e2e-repair-3`): 179 tests, no `fixme`. Fresh app and database per run, image built from the branch:
+  the last 5 full runs in a row were green (179 passed, 0 failed, 0 not run, 1.7 minutes each). The 10 runs before the last two
+  spec fixes had 2 reds (the report-template-list delete case, and an unpolled settings read), and the runs before that were
+  red for the app races listed below.
 
 `e2e:smoke` is `auth.spec`, `dashboard-charts`, `generate-password`, `report-template-list` and `member-grant-security` (green three
-runs in a row, 7 seconds). `report-template-list` still shows two failing cases in full local runs (duplicate, delete: a 503 or a
-changed row action); CI retries hide it, so look at it first if smoke ever flakes. More files join smoke only after three green runs.
+runs in a row, 7 seconds). `report-template-list` is serial now: its delete case used to hit the wrong row when a parallel test
+added a template under a pending click. More files join smoke only after three green runs.
 
 What was wrong, by cause (fixed unless marked open):
 - **Rate limit and expiry (environment).** nginx allows 10 requests a second (burst 20) and 30 logins a minute for the whole
@@ -31,30 +35,58 @@ What was wrong, by cause (fixed unless marked open):
 - **Dates:** the period pickers are native date inputs, `fill('yyyy-MM-dd')`. The count chip says "1 receipt" in the singular.
 - **Receipt form:** no Group, Paid By, shares or items; the Name is pre-filled and Amount is the only other required field.
 
-Still failing (open), by cause. The 34 not-run tests belong to the same files:
-- **Receipt form assumptions:** `chip-select-close-on-select` (the receipt form has no Categories picker; the preference needs
-  another chip picker to test), `member-grant-visibility` "receipt form offers the effective set" (same picker),
-  `receipt-role-requirements` create case (needs a Group field), `single-group-default` now passes only because the
-  form hides the Group; its premise is gone, so retire it next.
-- **Report area:** `report-builder` aggregate-column case and `report-grouping-label` (the grouping Field input is not
-  read-only any more), `report-period-date-field` drill-in (the receipt name matches two elements), `report-template-list`
-  duplicate, `report-template-access` generate (503 or timing; passes alone).
-- **System Settings:** `app-time-zone` first case is `test.fixme` and the second fails behind it (serial); after Clear the typeahead
-  lists no zones, which may be an app bug. `system-task-filter` filter dialog (option list for Type).
-- **Individual UI cases:** `comment-gating` delete control still renders without `group.comments.delete`
-  (check whether the control is gated; possible app bug), `group-delete-any`, `group-viewer-visibility`,
-  `member-grant-assignment` capped role, `shopping-list` (list tab), `receipt-update-diff`, `receipt-quick-date-filter`
-  (month stepper removed: delete or rewrite for the period tabs), `receipt-comment-column` first-comment case,
-  `skip-default-group` personal-group case (expects a "My Receipts" group), `quick-scan-config` comment-greying case.
-- `quick-scan-config` "blocks save" is `test.fixme`: Save no longer navigates to the view page after choosing the Uploader default.
-- `receipts.spec` create cases are flaky at 2 to 3 workers (503 on the save).
-- Welcome dialog: `createUserWithRole` starts the account on Legacy User, turns the dialog off, then assigns the role (a custom role
-  without `app.user-preferences.*` cannot switch it off itself).
+Round 3 changes in how the suite is run and written:
+- **`run-docker.sh up` relaxes nginx's request rates** (same config, `10r/s` and `30r/m` raised) because the app does not retry a 503
+  and the limits made tables and forms come up empty at random. CI's `e2e-smoke` still runs against the production limits.
+- **Global-settings specs are their own projects** (`playwright.config.ts`: `app-time-zone`, `session-lifetime`,
+  `temp-file-retention` run after the main project, one after another). A settings save sends the whole payload, so two of them at
+  once overwrote each other, and the zone moving under the other specs is worse. A failure in the main project skips them
+  ("did not run").
+- **A describe whose `beforeAll` provisions one account must be `serial`**: with `fullyParallel` each worker runs its own
+  `beforeAll`, so a second worker created the same user again (or overwrote the shared `.auth` file).
+- `uniqueName` ends in three random digits (two workers minted the same millisecond), the receipts table opens on "this month"
+  (give a receipt `midMonthIso()` when a spec looks for its row there), and `reloadUntilVisible` (`helpers/ui.ts`) is for the
+  rare empty table after a failed request.
+- A single-select or chip autocomplete opens its option list when you type, not on a bare click: `fill(...)`, then pick.
+
+Specs rewritten for the current UI: `group-viewer-visibility` (provisions through the API, a denied route lands on the Dashboard or
+the receipts list), `shopping-list` (list cards, not tabs; the Legacy Viewer base can edit lists, so the read-only role switches
+those off), `quick-scan-config` (Save stays on `/edit`: the PUT is the proof), `skip-default-group` (a new account joins
+"Household"; `createUserWithRole({ createdWithRole: true })` creates it on the role at once), `chip-select-close-on-select` (the
+Categories picker of the receipts filter dialog), `member-grant-visibility` (the product line's category menu on the receipt
+form), `member-grant-assignment`, `receipt-comment-column`, `receipt-update-diff`, `report-builder` (Aggregate detail rows),
+`system-task-filter`, `single-group-default` (still true: a new account has exactly one real group, Household).
+`receipt-quick-date-filter` is now `receipt-period-filter` (the period picker: This month by default, a typed From/To range, the
+date chip).
+
+Retired, because the behaviour they guarded is gone:
+- `receipt-quick-date-filter`: the month stepper, its "date field" menu (Receipt Date / Settled on), the "Custom" fallback label and the
+  month panel's keyboard, Escape and year paging tests. The period picker and the date chip are covered by `receipt-period-filter`.
+- `member-grant-assignment` "the role form authors a ceiling and rehydrates it": it drove `/roles`, removed with the role editor, and
+  no other page edits a role. Its rule (an untouched save keeps the grants) is not tested anywhere in the browser now.
+- `group-delete-any` browser cases: the Management list no longer has an all-groups view (its filter button is gone, so a group a
+  person is not in cannot be reached), so the rule is proved on the server (403 without `app.groups.delete`, 200 with it) and the
+  row action's gate stays in the group table's Vitest spec.
+
+Open: nothing known fails. Not covered: a Quick Scan image upload that really reaches the AI, and anything on a phone. A failure in
+the main project skips the three global-settings projects, so read "did not run" as "look at the failure above it".
 
 Real app problems found (not hidden by the specs):
 1. (Fixed in round 2) `app-select` had no accessible name: its label is now tied to the trigger (`comboboxNamed` is a plain role lookup again).
 2. (Fixed in round 2) Every `hlm-checkbox` without an id shared the label id "null-label", so all were named after the first; it now gets a unique id (patched in `tools/spartan-add.cjs` too).
-3. Open question for the product (not changed): a new admin joins the Household as Member and cannot report on it until made Owner; the first-start `admin` is Owner.
+3. (Fixed in round 3) After Clear, a single-select autocomplete listed only the cleared value: its filtered options kept the filter text
+   from when the options last changed (the time zone picker could not choose a new zone, and it hit every single-select that was cleared).
+   Picking or clearing also never marked the form dirty, so the Save of a settings form stayed dimmed after choosing a zone.
+4. (Fixed in round 3) The group member dialog's Save stayed dimmed when only the category/tag assignment changed (the user form already
+   marked itself dirty).
+5. (Fixed in round 3) A read-only `app-select` (the locked Field of a grouping column) had no accessible name.
+6. (Fixed in round 3) The receipts table and the report template list could paint a slower earlier response over a newer one (the period
+   picker asks for its page on mount while the first load is still out; a delete refetch after a slow list). The newest request wins now.
+7. Not bugs, found while looking: `comment-gating` (the Legacy Editor base grants `group.comments.delete`; the control is gated and the server
+   answers 403) and `quick-scan-config` (Save works, the settings page simply stays on `/edit`).
+8. Open question for the product (not changed): a new admin joins the Household as Member and cannot report on it until made Owner; the first-start `admin` is Owner.
+   Also: a bare click on a chip or single autocomplete shows no options until the first keystroke.
+
 
 ## Running the full suite in Docker (Windows PC without Node)
 
@@ -146,15 +178,15 @@ Config: `fullyParallel`, `retries` 2 on CI and 0 locally, `trace: 'on-first-retr
   route. `group-viewer-visibility.spec.ts` has a known failing serial block (a Legacy User cannot load `/groups`), so
   new tests do not go into it.
 - `receipt-feature-gating.spec.ts`: Quick Scan / Magic Fill for a viewer vs an editor, with the flag injected.
-- `single-group-default.spec.ts` and `receipts.spec.ts`: a single-select autocomplete is `readonly` once filled, so
-  `selectFirstOption` skips a filled field and validation cases clear it via `data-testid="autocomplete-clear"`; on a
-  fresh DB the e2e accounts own exactly one group, which the forms pre-select.
+- `single-group-default.spec.ts` and `receipts.spec.ts`: a single-select autocomplete shows its value in a box with a Clear button
+  (`data-testid="autocomplete-clear"`) once filled. A new account belongs to exactly one real group (Household) and the forms hide
+  the Group; `e2e-user` gets more groups while other specs run, so `receipts.spec` picks Household when the Group field is there.
 - `receipt-role-requirements.spec.ts`: create is one `POST /api/receipt/withFiles` with no `/receiptImage` upload; last
   image/comment refused in edit (UI and 400).
 - `quick-scan-config.spec.ts`, `quick-scan-dialog*.spec.ts`: config checkboxes use `quick-scan-<field>-show/-require`
   test ids (the labels collide). To change an image's group, clear the autocomplete first (`selectImageGroup` does).
-- `receipt-quick-date-filter.spec.ts`: the month stepper's keyboard path and the label surviving a reload (the
-  persisted filter comes back as ISO strings).
+- `receipt-period-filter.spec.ts`: the period picker is typed into (`overview-custom-from/-to`, DD/MM/YYYY); the table always
+  reopens on "This month" (the picker emits it on mount), so a range survives no reload.
 - `receipt-comment-column.spec.ts`: the opt-in column, first comment only, server sort both ways.
 - `app-time-zone.spec.ts`: picks `America/New_York`, compares "Added at" with whitespace normalized (CLDR puts U+202F
   before AM/PM).

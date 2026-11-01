@@ -70,4 +70,19 @@ describe('SelectComponent', () => {
     expect(trigger.id).not.toBe('');
     expect(label.htmlFor).toBe(trigger.id);
   });
+
+  it("names the read-only field by its label too", async () => {
+    configure('hst');
+    component.label = 'Field';
+    component.readonly = true;
+    fixture.changeDetectorRef.markForCheck();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    // hlmInput owns the input's id, so the name is given directly rather than through the label's `for`.
+    const input = fixture.nativeElement.querySelector('input[readonly]') as HTMLInputElement;
+
+    expect(input.getAttribute('aria-label')).toBe('Field');
+    expect(input.value).toBe('HST');
+  });
 });

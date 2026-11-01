@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { stubTokenRefresh } from './helpers/auth';
 import {
   apiCreateReportTemplate,
@@ -16,7 +16,24 @@ import { gotoReports } from './helpers/reports';
 // and tears down what it created (plus any duplicate) so runs don't accumulate rows.
 test.use({ storageState: 'e2e/.auth/admin.json' });
 
+/**
+ * Opens a template from the list through its name link. The list re-renders while it settles (other templates
+ * arrive, the table refetches), and a click that lands on a row being replaced goes nowhere: retry click and
+ * navigation together.
+ */
+async function openTemplate(page: Page, name: string): Promise<void> {
+  const link = page.getByRole('row').filter({ hasText: name }).getByTestId('report-template-name');
+  await expect(async () => {
+    await link.click({ timeout: 3_000 });
+    await expect(page).toHaveURL(/\/reports\/\d+\/edit$/, { timeout: 3_000 });
+  }).toPass({ timeout: 20_000 });
+}
+
 test.describe('Reports — templates list', () => {
+  // Serial: every test seeds a template into the one admin list, and a template a parallel test adds re-renders the
+  // rows under a pending click, which then hits (and deletes) the wrong row.
+  test.describe.configure({ mode: 'serial' });
+
   let seededId: number | undefined;
   let seededName: string;
   const extraIds: number[] = [];
@@ -50,8 +67,7 @@ test.describe('Reports — templates list', () => {
     await expect(row).toBeVisible();
 
     // Open the template in the builder via its name link.
-    await row.getByTestId('report-template-name').click();
-    await expect(page).toHaveURL(/\/reports\/\d+\/edit$/);
+    await openTemplate(page, seededName);
     await expect(page.getByText('Report Builder')).toBeVisible();
 
     // The breadcrumb shows the loaded template name and a live preview fires — both
@@ -83,8 +99,7 @@ test.describe('Reports — templates list', () => {
     const row = page.getByRole('row').filter({ hasText: filterName });
     await expect(row).toBeVisible();
 
-    await row.getByTestId('report-template-name').click();
-    await expect(page).toHaveURL(/\/reports\/\d+\/edit$/);
+    await openTemplate(page, filterName);
 
     // The category filter row is rendered (its remove control) and the stored category
     // resolves to its name chip — proving both the row-seeding fix and that the value
@@ -95,12 +110,7 @@ test.describe('Reports — templates list', () => {
 
   test('updates an opened template in place (same id, no new row)', async ({ page }) => {
     await gotoReports(page);
-    await page
-      .getByRole('row')
-      .filter({ hasText: seededName })
-      .getByTestId('report-template-name')
-      .click();
-    await expect(page).toHaveURL(/\/reports\/\d+\/edit$/);
+    await openTemplate(page, seededName);
 
     // Hydrated: the name field carries the stored name; the edit-route Save is "Update".
     const nameInput = page.getByLabel('Report name');
@@ -141,12 +151,7 @@ test.describe('Reports — templates list', () => {
     extraIds.push(filtered.id);
 
     await gotoReports(page);
-    await page
-      .getByRole('row')
-      .filter({ hasText: filterName })
-      .getByTestId('report-template-name')
-      .click();
-    await expect(page).toHaveURL(/\/reports\/\d+\/edit$/);
+    await openTemplate(page, filterName);
 
     await expect(page.getByTestId('report-filter-remove')).toBeVisible();
     await expect(page.getByText('Whoever generates the report', { exact: true })).toBeVisible();

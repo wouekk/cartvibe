@@ -2,6 +2,7 @@ import { expect, Page, test } from '@playwright/test';
 import { creds, stubTokenRefresh } from './helpers/auth';
 import {
   apiCreateComment,
+  midMonthIso,
   apiCreateGroup,
   apiCreateReceipt,
   apiDeleteGroupById,
@@ -51,6 +52,8 @@ test.describe('Receipts table — Comment column', () => {
           groupId,
           paidByUserId: adminId,
           name: receipt.name,
+          // The table opens on "this month": dated mid-month so the rows are in it whatever today is.
+          date: midMonthIso(),
         });
         // Sequential on purpose: "first" is the earliest, and the id breaks a
         // created_at tie in insertion order.
@@ -92,7 +95,9 @@ test.describe('Receipts table — Comment column', () => {
 
   async function showCommentColumn(page: Page): Promise<void> {
     const dialog = await openConfigureColumns(page);
-    await dialog.getByRole('checkbox', { name: 'Comment', exact: true }).check();
+    // The checkbox button sits inside its label: click the label text (check() can toggle twice).
+    await dialog.getByText('Comment', { exact: true }).click();
+    await expect(dialog.getByRole('checkbox', { name: 'Comment', exact: true })).toBeChecked();
     await dialog.getByTestId('dialog-submit-button').click();
     await expect(dialog).toBeHidden();
     await expect(page.getByRole('columnheader', { name: 'Comment' })).toBeVisible();
@@ -101,7 +106,8 @@ test.describe('Receipts table — Comment column', () => {
   /** The rendered row order, which is what every sort assertion compares. */
   async function receiptNames(page: Page): Promise<string[]> {
     const names = await page.locator('td a[href^="/receipts/"]').allTextContents();
-    return names.map((name) => name.trim());
+    // The date cell is a link too; keep this spec's receipts by name.
+    return names.map((name) => name.trim()).filter((name) => name.startsWith('comment-col-'));
   }
 
   function rowFor(page: Page, receiptName: string) {

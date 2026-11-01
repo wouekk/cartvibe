@@ -87,12 +87,10 @@
     "Airlines": "Compagnies aériennes",
     "Alcohol": "Alcool",
     "All": "Tout",
-    "All Groups": "Tous les groupes",
     "All caught up!": "Tout est lu !",
     "All done": "Tout est fait",
     "All lines": "Toutes les lignes",
     "All receipts": "Tous les tickets",
-    "All time": "Toute la période",
     "All warranties": "Toutes les garanties",
     "Allow pop-ups for this site to print the report.": "Autorisez les fenêtres pop-up pour ce site afin d’imprimer le rapport.",
     "Amount": "Montant",
@@ -395,10 +393,8 @@
     "Fibre": "Fibres",
     "Field": "Champ",
     "Filter": "Filtrer",
-    "Filter Groups": "Filtrer les groupes",
     "Filter Receipts": "Filtrer les tickets",
     "Filter System Tasks": "Filtrer les tâches système",
-    "Filter by month": "Filtrer par mois",
     "Filter options": "Options de filtre",
     "Filters": "Filtres",
     "Finished:": "Terminée :",
@@ -457,7 +453,6 @@
     "Grouping": "Regroupement",
     "Grouping column": "Colonne de regroupement",
     "Groups": "Groupes",
-    "Groups to View": "Groupes à afficher",
     "HTML to PDF": "HTML vers PDF",
     "Health": "Santé",
     "Health & Beauty": "Santé et beauté",
@@ -515,7 +510,6 @@
     "Language": "Langue",
     "Last 30 days": "30 derniers jours",
     "Last 7 days": "7 derniers jours",
-    "Last month": "Mois dernier",
     "Last page": "Dernière page",
     "Leave a comment": "Laisser un commentaire",
     "Leave empty for no goal. The Dashboard compares each month with it.": "Laissez vide pour ne pas avoir d’objectif. Le tableau de bord compare chaque mois avec lui.",
@@ -590,7 +584,6 @@
     "Must be a whole number.": "Doit être un nombre entier.",
     "Must be at least {min}.": "Doit être au moins {min}.",
     "Must be at most {max}.": "Doit être au plus {max}.",
-    "My Groups": "Mes groupes",
     "Name": "Nom",
     "Name and the groups it covers": "Nom et groupes couverts",
     "Name cannot be changed": "Le nom ne peut pas être modifié",
@@ -612,9 +605,7 @@
     "New shopping list": "Nouvelle liste de courses",
     "Next (Right Arrow)": "Suivant (flèche droite)",
     "Next image": "Image suivante",
-    "Next month": "Mois suivant",
     "Next page": "Page suivante",
-    "Next year": "Année suivante",
     "Night": "Nuit",
     "No additives listed.": "Aucun additif indiqué.",
     "No barcode was found in that photo. Try again with the bars sharp and filling the frame.": "Aucun code-barres trouvé sur cette photo. Réessayez avec des barres nettes qui remplissent le cadre.",
@@ -732,9 +723,7 @@
     "Previews": "Aperçus",
     "Previous (Left Arrow)": "Précédent (flèche gauche)",
     "Previous image": "Image précédente",
-    "Previous month": "Mois précédent",
     "Previous page": "Page précédente",
-    "Previous year": "Année précédente",
     "Priorities": "Priorités",
     "Processes quick scan receipts": "Traite les tickets du scan rapide",
     "Produce": "Fruits et légumes",
@@ -1412,8 +1401,16 @@
     "All API Keys": {
       "value": "Toutes les clés API"
     },
+    "All Groups": {
+      "value": "Tous les groupes",
+      "closest": "All"
+    },
     "All Households": {
       "value": "Tous les foyers",
+      "closest": "All"
+    },
+    "All time": {
+      "value": "Toute la période",
       "closest": "All"
     },
     "Are you sure you would like to delete the API key \"{name}\"? This action is irreversible and the API key will no longer be usable.": {
@@ -1480,12 +1477,23 @@
     "Filter API Keys": {
       "value": "Filtrer les clés API"
     },
+    "Filter Groups": {
+      "value": "Filtrer les groupes",
+      "closest": "Add filter…"
+    },
+    "Filter by month": {
+      "value": "Filtrer par mois",
+      "closest": "Month by month"
+    },
     "General & Currency": {
       "value": "Général et devise",
       "closest": "Add currency"
     },
     "Give the Dashboard currency as three letters, like PLN, and your rate above 0, like 4,25.": {
       "value": "Indiquez la devise du tableau de bord en trois lettres, comme EUR, et votre taux supérieur à 0, comme 4,25."
+    },
+    "Groups to View": {
+      "value": "Groupes à afficher"
     },
     "Important:": {
       "value": "Important :"
@@ -1496,6 +1504,10 @@
     },
     "Last Used At": {
       "value": "Dernière utilisation"
+    },
+    "Last month": {
+      "value": "Mois dernier",
+      "closest": "Last page"
     },
     "Logo.dev publishable key": {
       "value": "Clé publique Logo.dev",
@@ -1520,9 +1532,21 @@
     "My API Keys": {
       "value": "Mes clés API"
     },
+    "My Groups": {
+      "value": "Mes groupes",
+      "closest": "Groups"
+    },
     "My Households": {
       "value": "Mes foyers",
       "closest": "Households"
+    },
+    "Next month": {
+      "value": "Mois suivant",
+      "closest": "Month"
+    },
+    "Next year": {
+      "value": "Année suivante",
+      "closest": "Next image"
     },
     "Paste it below and save. Logos appear the next time a page loads.": {
       "value": "Collez-la ci-dessous et enregistrez. Les logos apparaissent au prochain chargement d'une page.",
@@ -1535,6 +1559,14 @@
     "Please fill in all required fields": {
       "value": "Veuillez remplir tous les champs obligatoires",
       "closest": "Please fill in all required fields. Some images are missing required fields."
+    },
+    "Previous month": {
+      "value": "Mois précédent",
+      "closest": "Month"
+    },
+    "Previous year": {
+      "value": "Année précédente",
+      "closest": "Previous image"
     },
     "Rate: 1 {symbol} in your currency": {
       "value": "Taux : 1 {symbol} dans votre devise"

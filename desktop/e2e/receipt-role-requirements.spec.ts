@@ -106,7 +106,6 @@ test.describe('Role-required receipt comment and image', () => {
 
     await page.getByLabel('Name').fill(name);
     await page.getByLabel('Amount').fill('18.00');
-    await selectFirstOption(page, 'Paid By');
 
     // Both inline hints show while nothing is attached.
     await expect(page.getByTestId('receipt-image-required-hint')).toBeVisible();
@@ -220,7 +219,7 @@ test.describe('Role-required receipt comment and image', () => {
 
     await comment.fill('Scanned with a note');
     await dialog.getByTestId('dialog-submit-button').click();
-    await expect(page.getByText('Successfully queued', { exact: false })).toBeVisible();
+    await expect(page.getByText('Receipts uploaded', { exact: false })).toBeVisible();
     expect(requests).toHaveLength(1);
 
     // The server enforces it on its own: the same scan without a comment is a 400.
@@ -270,15 +269,6 @@ async function openAddFormInGroup(page: Page, groupId: string, groupName: string
     await page.getByRole('option', { name: groupName, exact: true }).click();
   }
   await expect(groupField).toHaveValue(groupName);
-}
-
-async function selectFirstOption(page: Page, label: string) {
-  const field = page.getByRole('combobox', { name: label });
-  if (await field.inputValue()) {
-    return;
-  }
-  await field.click();
-  await page.getByRole('option').first().click();
 }
 
 async function clickSave(page: Page) {

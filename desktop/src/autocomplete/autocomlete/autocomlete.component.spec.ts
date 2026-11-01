@@ -98,6 +98,35 @@ describe("AutocomleteComponent", () => {
     expect(component.filterFormControl.value).toEqual(42);
   });
 
+  it("lists every option to a subscriber that arrives after the filter was cleared", () => {
+    // Clear on a filled single select re-creates the input: its new subscription must start from the
+    // current (empty) filter, not the value the control held when the options were set.
+    component.inputFormControl.setValue("b");
+    fixture.componentRef.setInput("options", ["a", "b", "c"]);
+    component.multiple = false;
+    component.syncSingleDisplay();
+    fixture.detectChanges();
+
+    component.removeSingleOption();
+
+    let latest: string[] = [];
+    component.filteredOptions.subscribe((o) => (latest = o)).unsubscribe();
+
+    expect(latest).toEqual(["a", "b", "c"]);
+  });
+
+  it("marks the control dirty when an option is picked or cleared, so Save leaves its pristine state", () => {
+    component.multiple = false;
+    expect(component.inputFormControl.pristine).toBe(true);
+
+    component.optionSelected({ option: { value: "a" } });
+    expect(component.inputFormControl.dirty).toBe(true);
+
+    component.inputFormControl.markAsPristine();
+    component.removeSingleOption();
+    expect(component.inputFormControl.dirty).toBe(true);
+  });
+
   it("leaves the display untouched on syncSingleDisplay in multiple mode", () => {
     component.multiple = true;
     component.inputFormControl = new FormArray([new FormControl(1)]) as any;

@@ -11,7 +11,7 @@ import {
   withApiAsCreds,
 } from './helpers/provisioning';
 
-// An app role can opt its new users out of the automatic personal "My Receipts"
+// An app role can opt its new users out of the automatic default (Household) group
 // group, for accounts that only ever belong to a few specific shared groups. The
 // virtual "All" group is always created, so the account keeps a working
 // dashboard. See api/CLAUDE.md → "Skipping the personal group per app role".
@@ -22,7 +22,8 @@ import {
 // Role management is admin-only, so override the default regular-user state.
 test.use({ storageState: 'e2e/.auth/admin.json' });
 
-const PERSONAL_GROUP = 'My Receipts';
+// A new account joins the shared Household (an install that predates it hands out a personal "My Receipts").
+const PERSONAL_GROUP = 'Household';
 const ALL_GROUP = 'All';
 const PASSWORD = 'a really secure password';
 
@@ -68,11 +69,13 @@ test.describe('a flagged role skips the new user\'s personal group', () => {
       username: skipUser,
       password: PASSWORD,
       role: skipRole,
+      createdWithRole: true,
     });
     await createUserWithRole(adminPage, {
       username: normalUser,
       password: PASSWORD,
       role: normalRole,
+      createdWithRole: true,
     });
   });
 
@@ -100,7 +103,7 @@ test.describe('a flagged role skips the new user\'s personal group', () => {
     expect(groups).toContain(ALL_GROUP);
   });
 
-  test('a user on an unflagged role still gets the personal group', async () => {
+  test('a user on an unflagged role still gets the shared Household', async () => {
     const groups = await withApiAsCreds(normalUser, PASSWORD, apiGroupNames);
 
     // Contrast case: proves the skip is driven by the role's flag, not by
@@ -132,6 +135,7 @@ test.describe('a flagged role skips the new user\'s personal group', () => {
         username: userName,
         password: PASSWORD,
         role: roleName,
+        createdWithRole: true,
       });
 
       // Created while the role was unflagged, so it has the personal group.
@@ -141,12 +145,31 @@ test.describe('a flagged role skips the new user\'s personal group', () => {
       // Flip the flag on after the fact, and confirm it actually persisted —
       // otherwise the "nothing changed" assertion below would pass just as
       // happily on a no-op toggle, proving nothing.
-      await openRoleEditor(page, roleName);
-      await skipCheckbox(page).check();
-      await saveRole(page);
-      await expect(page).toHaveURL(/\/roles$/);
-      await openRoleEditor(page, roleName);
-      await expect(skipCheckbox(page)).toBeChecked();
+      // (The role editor is gone, so the flag is set through the admin API.)
+      await withAdminApi(async (api) => {
+        const roles = (await (await api.get('/api/role')).json()) as {
+          id: number;
+          name: string;
+          scope: string;
+          permissions: string[];
+        }[];
+        const role = roles.find((r) => r.name === roleName && r.scope === 'APP')!;
+        const res = await api.put(`/api/role/${role.id}`, {
+          data: {
+            name: roleName,
+            description: '',
+            scope: 'APP',
+            permissions: role.permissions,
+            skipDefaultGroupCreation: true,
+          },
+        });
+        expect(res.ok()).toBe(true);
+        const stored = (await (await api.get('/api/role')).json()) as {
+          name: string;
+          skipDefaultGroupCreation?: boolean;
+        }[];
+        expect(stored.find((r) => r.name === roleName)?.skipDefaultGroupCreation).toBe(true);
+      });
 
       // The flag is evaluated once, at user-creation time — it is not a live
       // property of the account, so the existing user keeps its personal group.

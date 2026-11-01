@@ -85,10 +85,12 @@ test.describe.serial('Session lifetime (System Settings → refresh cookie)', ()
     await page.getByRole('button', { name: 'Save changes' }).first().click();
 
     // The unit is presentation only -- the wire and the DB store whole hours.
-    await withAdminApi(async (api) => {
-      const settings = await (await api.get('/api/systemSettings')).json();
-      expect(settings.refreshTokenValidForHours).toBe(LIFETIME_HOURS);
-    });
+    // (Polled: the save is still in flight when the click returns.)
+    await expect
+      .poll(() =>
+        withAdminApi(async (api) => (await (await api.get('/api/systemSettings')).json()).refreshTokenValidForHours),
+      )
+      .toBe(LIFETIME_HOURS);
 
     // ...and the view page renders those hours back in the friendlier unit.
     await page.reload();

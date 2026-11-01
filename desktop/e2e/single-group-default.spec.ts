@@ -20,7 +20,7 @@ import {
 //
 // The seeded e2e accounts accumulate groups as other specs run, so the single-
 // group state has to be provisioned: a freshly created user gets exactly one
-// real group ("My Receipts", api/internal/repositories/users.go) plus the
+// real group (the shared "Household", api/internal/repositories/users.go) plus the
 // synthetic "All" group, which is never a receipt target. That makes this the
 // real wire — the group list comes from AppData, not from a client-side stub,
 // which is the half the unit tests (mocked store) cannot prove.
@@ -29,6 +29,8 @@ const NEW_USER_PASSWORD = `${uniqueName('pw')}-Aa1!`;
 const AUTH_FILE = 'e2e/.auth/single-group-user.json';
 
 test.describe('Single-group users get the Group field pre-filled', () => {
+  // Serial: beforeAll provisions one account, which a second worker would try to create again.
+  test.describe.configure({ mode: 'serial' });
   test.use({ storageState: AUTH_FILE });
 
   let username: string;

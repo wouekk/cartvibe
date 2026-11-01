@@ -1,4 +1,3 @@
-import { comboboxNamed } from './helpers/ui';
 import { expect, test, type Page } from '@playwright/test';
 import { rmSync } from 'node:fs';
 import { stubTokenRefresh } from './helpers/auth';
@@ -10,6 +9,8 @@ import {
   uniqueName,
   withAdminApi,
 } from './helpers/provisioning';
+import { gotoReceiptsTable } from './helpers/receipts-table';
+import { setAppCheckbox } from './helpers/ui';
 
 // The "close the option list after each selection" user preference, end to end.
 //
@@ -17,7 +18,9 @@ import {
 // prove the branch but nothing about the wire. Only an e2e covers the whole
 // chain: the checkbox on the User Preferences form -> PUT /userPreferences ->
 // the stored column -> AppData on the next navigation -> AuthState -> the
-// behavior of a chip picker in a completely different feature.
+// behavior of a chip picker in a completely different feature. The chip picker
+// used here is the Categories field of the receipts filter dialog (the receipt
+// form itself no longer has one).
 //
 // It provisions its OWN account. The preference is per-user and global, and the
 // suite runs fullyParallel, so flipping it on a shared e2e account would change
@@ -27,7 +30,8 @@ const NEW_USER_PASSWORD = `${uniqueName('pw')}-Aa1!`;
 const AUTH_FILE = 'e2e/.auth/chip-select-user.json';
 
 test.describe('Close chip select on select preference', () => {
-  // Serial: the second test changes stored state the first one depends on.
+  // Serial: the second test changes stored state the first one depends on, and
+  // beforeAll provisions one account that a second worker would create again.
   test.describe.configure({ mode: 'serial' });
 
   test.use({ storageState: AUTH_FILE });
@@ -35,6 +39,7 @@ test.describe('Close chip select on select preference', () => {
   let username: string;
   let categoryA: { id: number; name: string };
   let categoryB: { id: number; name: string };
+  const categoryPrefix = uniqueName('chipsel');
 
   test.beforeAll(async ({ browser }) => {
     username = uniqueName('chip-select-user');
@@ -67,8 +72,8 @@ test.describe('Close chip select on select preference', () => {
     // which inherits the describe's storageState, and AUTH_FILE does not exist
     // until that login writes it.
     await withAdminApi(async (api) => {
-      categoryA = await apiCreateCategory(api, uniqueName('chipsel-cata'));
-      categoryB = await apiCreateCategory(api, uniqueName('chipsel-catb'));
+      categoryA = await apiCreateCategory(api, `${categoryPrefix}-a`);
+      categoryB = await apiCreateCategory(api, `${categoryPrefix}-b`);
     });
   });
 
@@ -90,51 +95,56 @@ test.describe('Close chip select on select preference', () => {
   });
 
   /**
-   * Opens the Categories picker on a fresh add-receipt form and picks the first
-   * option. Navigating in rather than reusing a page is deliberate: AppData is
-   * refetched per navigation, so the preference is read off the server on every
-   * call rather than from whatever the previous test left in the store.
+   * Opens the receipts filter dialog, types the shared category prefix into its
+   * Categories picker and picks the first option. Navigating in rather than
+   * reusing a page is deliberate: AppData is refetched per navigation, so the
+   * preference is read off the server on every call rather than from whatever
+   * the previous test left in the store.
    */
   async function pickFirstCategory(page: Page) {
-    await page.goto('/receipts/add');
-    await expect(page.getByLabel('Name')).toBeVisible();
+    await gotoReceiptsTable(page);
+    await page.getByTestId('receipts-filter').click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
 
-    // getByRole, not getByLabel: once the panel opens, the overlay's listbox is
-    // labelled by the same mat-label, so getByLabel('Categories') matches two
-    // elements and every later assertion dies on strict mode.
-    const categories = comboboxNamed(page, 'Categories');
-    await categories.click();
-    await expect(page.getByRole('listbox')).toBeVisible();
+    // getByRole, not getByLabel: once the panel opens the listbox shares the field's name.
+    const categories = dialog.getByRole('combobox', { name: 'Categories' }).first();
+    await categories.fill(categoryPrefix);
     await page.getByRole('option').first().click();
 
-    return categories;
+    return { dialog, categories };
   }
 
   test('leaves the option list open by default', async ({ page }) => {
-    const categories = await pickFirstCategory(page);
+    const { dialog, categories } = await pickFirstCategory(page);
 
     // A chip is what says the pick landed; without it the panel assertions
     // below would be describing a click that did nothing.
-    await expect(page.getByTestId('receipt-categories').locator('mat-chip-row')).toHaveCount(1);
+    await expect(dialog.getByTestId('autocomplete-chips')).toHaveCount(1);
+    await expect(dialog.getByTestId('autocomplete-chip-remove')).toHaveCount(1);
+    await expect(page.getByRole('option').first()).toBeVisible();
     await expect(categories).toBeFocused();
-    await expect(page.getByRole('listbox')).toBeVisible();
   });
 
   test('closes the option list once the preference is on', async ({ page }) => {
     await page.goto('/settings/user-preferences/edit');
-    const checkbox = page.getByLabel('Close the option list after each selection?');
-    await expect(checkbox).toBeVisible();
-    await checkbox.check();
+    await setAppCheckbox(
+      page.locator('app-checkbox').filter({ hasText: 'Close the option list after each selection?' }),
+      true,
+    );
+    const saved = page.waitForResponse(
+      (r) => r.url().includes('/api/userPreferences') && r.request().method() === 'PUT',
+    );
     await page.getByRole('button', { name: 'Save', exact: true }).first().click();
-    await expect(page).toHaveURL(/\/settings\/user-preferences\/view/);
+    expect((await saved).ok()).toBe(true);
 
-    const categories = await pickFirstCategory(page);
+    const { dialog, categories } = await pickFirstCategory(page);
 
-    await expect(page.getByTestId('receipt-categories').locator('mat-chip-row')).toHaveCount(1);
-    // Assert the blur BEFORE the panel: Material closes the panel on selection
-    // by itself, so "hidden" alone would pass even with the preference ignored.
-    // Losing focus is what only the close-on-select path produces.
+    await expect(dialog.getByTestId('autocomplete-chips')).toHaveCount(1);
+    // Assert the blur BEFORE the panel: the panel closes on selection by itself,
+    // so "hidden" alone would pass even with the preference ignored. Losing
+    // focus is what only the close-on-select path produces.
     await expect(categories).not.toBeFocused();
-    await expect(page.getByRole('listbox')).toBeHidden();
+    await expect(page.getByRole('option')).toHaveCount(0);
   });
 });

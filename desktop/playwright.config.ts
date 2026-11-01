@@ -4,6 +4,8 @@ const baseURL = process.env.E2E_BASE_URL ?? 'http://localhost:4200';
 // E2E_NO_WEBSERVER: the app is already running at baseURL (CI runs the built image on localhost:8091).
 const isLocal = /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?\/?/i.test(baseURL) && !process.env.E2E_NO_WEBSERVER;
 
+const GLOBAL_SETTINGS_SPECS = ['**/app-time-zone.spec.ts', '**/session-lifetime.spec.ts', '**/temp-file-retention.spec.ts'];
+
 export default defineConfig({
   testDir: './e2e',
   timeout: 60_000,
@@ -16,6 +18,15 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   projects: [
+    // The specs below change GLOBAL system settings (time zone, session lifetime, temp-file retention) and a save
+    // sends the whole settings payload, so two of them at once overwrite each other, and every other spec would
+    // render with a time zone that moves under it. They run after the main project, one project after another.
+    ...GLOBAL_SETTINGS_SPECS.map((spec, index) => ({
+      name: `global-settings-${index + 1}`,
+      testMatch: spec,
+      dependencies: [index === 0 ? 'chromium' : `global-settings-${index}`],
+      use: { ...devices['Desktop Chrome'], storageState: 'e2e/.auth/user.json' },
+    })),
     // Logs in once per role and writes the session to e2e/.auth/*.json.
     {
       name: 'setup',
@@ -29,6 +40,7 @@ export default defineConfig({
     {
       name: 'chromium',
       dependencies: ['setup'],
+      testIgnore: GLOBAL_SETTINGS_SPECS,
       use: {
         ...devices['Desktop Chrome'],
         storageState: 'e2e/.auth/user.json',

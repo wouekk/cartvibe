@@ -13,7 +13,15 @@ import { creds, type Role } from './auth';
 // use cannot be deleted: user and group first, then the role).
 
 export function uniqueName(tag: string): string {
-  return `e2e-${tag}-${Date.now()}`;
+  // Two workers can mint a name in the same millisecond (a delete by name then removes the wrong twin), so a random
+  // part follows the clock.
+  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  return `e2e-${tag}-${Date.now()}${random}`;
+}
+
+/** The 15th of the current UTC month, as an ISO instant: a date the receipts table's default "this month" lists. */
+export function midMonthIso(): string {
+  return `${new Date().toISOString().slice(0, 7)}-15T00:00:00Z`;
 }
 
 export interface CreateRoleOptions {
@@ -98,6 +106,9 @@ const PERMISSION_LABEL_KEYS: Record<string, string> = {
   'Update Report Templates': 'app.reports.update',
   'Create Comments': 'group.comments.create',
   'Delete Comments': 'group.comments.delete',
+  'Create Shopping Lists': 'group.shopping-lists.create',
+  'Update Shopping Lists': 'group.shopping-lists.update',
+  'Delete Shopping Lists': 'group.shopping-lists.delete',
 };
 
 interface RoleRow {
@@ -195,17 +206,34 @@ export async function createRole(_page: Page | null, opts: CreateRoleOptions): P
 /** Creates a user assigned the app role [opts.role] through the admin API (the Add User dialog's role select has no accessible name). */
 export async function createUserWithRole(
   _page: Page | null,
-  opts: { username: string; password: string; role: string },
+  opts: { username: string; password: string; role: string; createdWithRole?: boolean },
 ): Promise<void> {
   // A new account is greeted by a welcome dialog that covers the page (UserPreferences.onboardingPending). The
   // account can only switch it off itself, and a custom role may lack app.user-preferences.*, so the user starts on
-  // Legacy User, turns the dialog off, and only then gets the requested role.
+  // Legacy User, turns the dialog off, and only then gets the requested role. `createdWithRole` skips that and
+  // creates the account on the role at once, for specs about what the role does at creation time (the welcome
+  // dialog does not matter to an API-only account).
   await withAdminApi(async (api) => {
     const roles = await apiListRoles(api);
     const role = roles.find((r) => r.name === opts.role && r.scope === 'APP');
     const starter = roles.find((r) => r.name === 'Legacy User' && r.scope === 'APP');
     if (!role || !starter) {
       throw new Error(`app role ${opts.role} not found`);
+    }
+    if (opts.createdWithRole) {
+      const direct = await api.post('/api/user', {
+        data: {
+          username: opts.username,
+          password: opts.password,
+          displayName: opts.username,
+          isDummyUser: false,
+          appRoleId: role.id,
+        },
+      });
+      if (!direct.ok()) {
+        throw new Error(`create user ${opts.username} failed: HTTP ${direct.status()} ${await direct.text()}`);
+      }
+      return;
     }
     const res = await api.post('/api/user', {
       data: {
@@ -427,7 +455,10 @@ export async function apiCreateReceipt(
     groupId: number | string;
     paidByUserId: number;
     name: string;
-    /** Receipt date as an ISO string. Defaults to a fixed date in 2024. */
+    /**
+     * Receipt date as an ISO string. Defaults to a fixed date in 2024 (the report specs count on it). The receipts
+     * table opens on "this month", so a spec that looks for the row there passes `midMonthIso()`.
+     */
     date?: string;
     /**
      * Receipt status. Defaults to OPEN. Pass RESOLVED to have the server stamp
@@ -569,7 +600,11 @@ export async function apiFirstReportCategory(
     if (!(groupPermissions[groupId] ?? []).includes('group.reports.read')) {
       continue;
     }
-    const category = (groupCategories[groupId] ?? []).find((c) => c.id != null && !!c.name);
+    // The lowest id is a starter category: the specs that mint and delete categories run alongside this one, and a
+    // template filtering on a category that vanishes mid-test hydrates without its row.
+    const category = (groupCategories[groupId] ?? [])
+      .filter((c) => c.id != null && !!c.name)
+      .sort((a, b) => a.id! - b.id!)[0];
     if (category) {
       return { groupId, categoryId: category.id!, categoryName: category.name! };
     }

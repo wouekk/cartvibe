@@ -147,9 +147,7 @@ test.describe.serial('App time zone (System Settings → every rendered instant)
     await expectAddedAt(page, createdAt, UTC);
   });
 
-  // Open: after Clear the typeahead lists no zones (an empty query shows 0 options and 'York' shows only the old
-  // zone), so New York cannot be picked in the browser. Possibly an app bug; see docs/e2e.md.
-  test.fixme('the admin picks America/New_York in the typeahead and it persists', async ({ page }) => {
+  test('the admin picks America/New_York in the typeahead and it persists', async ({ page }) => {
     await page.goto('/system-settings');
     const picker = timeZonePicker(page);
     const input = picker.locator('input');

@@ -84,8 +84,8 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 - Signal Forms (stable in Angular 22.2, but every form is reactive: a wholesale migration for no visible gain). `@defer` was measured and not worth it
   (`desktop/docs/features.md`).
 - Native-speaker review of de/fr/es.
-- The rest of the e2e suite: 45 of 217 tests pass on a devstack (`desktop/docs/e2e.md`); several specs still drive the
-  removed `/roles` page. Passing files join `e2e:smoke`.
+- The e2e suite is green locally: 179 tests, the last 5 fresh Docker runs passed (`desktop/docs/e2e.md`, branch
+  `feature/e2e-repair-3`, not merged). Not in CI: only `e2e:smoke` runs there. Passing files may join `e2e:smoke` after three green runs.
 - The Chromium sandbox stays opt-in (`CHROMIUM_SANDBOX=true`).
 - Kept as they are until asked: the default receipt name "Receipt {date}" in English, ISO report month buckets
   (`2026-10`), the full-bleed report builder.

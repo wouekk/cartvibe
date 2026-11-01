@@ -55,6 +55,7 @@ test.describe('Receipt comment create/delete gating', () => {
   const noDeleteGroup = uniqueName('no-comment-delete-grp');
   let noDeleteGroupId: string;
   let noDeleteReceiptId: number;
+  let noDeleteCommentId: number;
 
   test.beforeAll(async ({ browser }) => {
     adminContext = await browser.newContext({
@@ -91,10 +92,14 @@ test.describe('Receipt comment create/delete gating', () => {
     });
 
     // Receipt Editor — holds create + update + read but NOT delete.
+    // (The Legacy Editor base grants group.comments.delete, so it is switched off explicitly.)
     await createRole(adminPage, {
       name: noDeleteRole,
       type: 'Group role',
       preset: 'Receipt Editor',
+      disablePermissions: [
+        { panelKey: 'group.comments', label: 'Delete Comments' },
+      ],
     });
     noDeleteGroupId = await createGroupWithMember(adminPage, {
       groupName: noDeleteGroup,
@@ -126,7 +131,7 @@ test.describe('Receipt comment create/delete gating', () => {
     // Seed the comment AS e2e-user so it's owned by them (the delete control
     // only renders for the logged-in user's own comments).
     await withApiAs('user', async (api) => {
-      await apiCreateComment(api, {
+      noDeleteCommentId = await apiCreateComment(api, {
         receiptId: noDeleteReceiptId,
         comment: 'e2e-user own comment',
       });
@@ -183,5 +188,11 @@ test.describe('Receipt comment create/delete gating', () => {
     await expect(page.getByText('e2e-user own comment')).toBeVisible();
     // ...but its delete control is gated on group.comments.delete (not held).
     await expect(page.getByTestId('comment-delete')).toHaveCount(0);
+
+    // The server refuses it too.
+    await withApiAs('user', async (api) => {
+      const res = await api.delete(`/api/comment/${noDeleteCommentId}`);
+      expect(res.status()).toBe(403);
+    });
   });
 });

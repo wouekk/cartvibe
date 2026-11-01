@@ -79,10 +79,12 @@ test.describe.serial('Temp file retention (System Settings)', () => {
     await page.getByRole('button', { name: 'Save changes' }).first().click();
 
     // The unit is presentation only -- the wire and the DB store whole hours.
-    await withAdminApi(async (api) => {
-      const settings = await (await api.get('/api/systemSettings')).json();
-      expect(settings.tempFileRetentionHours).toBe(RETENTION_HOURS);
-    });
+    // (Polled: the save is still in flight when the click returns.)
+    await expect
+      .poll(() =>
+        withAdminApi(async (api) => (await (await api.get('/api/systemSettings')).json()).tempFileRetentionHours),
+      )
+      .toBe(RETENTION_HOURS);
 
     // ...and the view page renders those hours back in the friendlier unit.
     await page.reload();

@@ -255,6 +255,15 @@ describe("GroupMemberFormComponent", () => {
       expect(dialogRefMock.close).toHaveBeenCalledWith(component.form);
     });
 
+    it("marks the form dirty when only the assignment changed, so Save is not dimmed", async () => {
+      await createForSavedMember([1]);
+      expect(component.form.pristine).toBe(true);
+
+      component.onGrantsChange(5, { categoryIds: [1, 2], tagIds: [] });
+
+      expect(component.form.dirty).toBe(true);
+    });
+
     it("writes nothing when the assignment was not changed", async () => {
       // Opening and closing the dialog must not rewrite grants — a needless write
       // could also trip the endpoint's ceiling check on a since-narrowed role.
