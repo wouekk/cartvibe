@@ -109,12 +109,12 @@ test.describe('Group Viewer is denied group/receipt edits', () => {
   test('cannot open the group edit route', async ({ page }) => {
     await page.goto(`/groups/${viewerGroupId}/details/edit`);
     // groupPermissionGuard denies (group.update) and redirects to the dashboard.
-    await expect(page).toHaveURL(/\/dashboard\/group\/\d+/);
+    await expect(page).toHaveURL(/\/overview\/group\/\d+/);
   });
 
   test('cannot open the receipt-settings edit route', async ({ page }) => {
     await page.goto(`/groups/${viewerGroupId}/receipt-settings/edit`);
-    await expect(page).toHaveURL(/\/dashboard\/group\/\d+/);
+    await expect(page).toHaveURL(/\/overview\/group\/\d+/);
   });
 
   test('group row exposes no edit or delete action', async ({ page }) => {

@@ -79,7 +79,7 @@ test.describe('Report Builder — Save Template permission gating', () => {
     await userPage.getByLabel('Username').fill(username);
     await userPage.getByLabel('Password').fill(NEW_USER_PASSWORD);
     await userPage.getByRole('button', { name: 'Login' }).click();
-    await expect(userPage).toHaveURL(/\/dashboard\/group\/\d+/, { timeout: 15_000 });
+    await expect(userPage).toHaveURL(/\/overview\/group\/\d+/, { timeout: 15_000 });
     await userPage.waitForFunction(() =>
       (localStorage.getItem('auth') ?? '').includes('app.reports.read'),
     );

@@ -151,7 +151,7 @@ test.describe('Reports — matrix restricts a group member', () => {
     await userPage.getByLabel('Username').fill(username);
     await userPage.getByLabel('Password').fill(password);
     await userPage.getByRole('button', { name: 'Login' }).click();
-    await expect(userPage).toHaveURL(/\/dashboard\/group\/\d+/, { timeout: 15_000 });
+    await expect(userPage).toHaveURL(/\/overview\/group\/\d+/, { timeout: 15_000 });
     await userPage.waitForFunction(() => (localStorage.getItem('auth') ?? '').includes('app.reports.read'));
     await userContext.storageState({ path: AUTH_FILE });
     await userContext.close();

@@ -117,7 +117,7 @@ test.describe.serial('Session lifetime (System Settings → refresh cookie)', ()
 
     const before = Date.now();
     await page.getByRole('button', { name: 'Login' }).click();
-    await expect(page).toHaveURL(/\/dashboard\/group\/\d+/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/overview\/group\/\d+/, { timeout: 15_000 });
 
     const cookies = await context.cookies();
     const refreshToken = cookies.find((c) => c.name === 'refresh_token');
