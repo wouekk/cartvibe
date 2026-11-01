@@ -237,4 +237,4 @@ elements, the scroll track or the stack, is shown).
 
 ## Page background
 
-`Base.astro` renders a fixed `.bg-canvas` (a 48 px hairline grid and a soft primary-tinted spotlight, tokens only, no blur) behind the page. The vignette mask is on the static parent so the moving grid is never re-masked; a passive, rAF-throttled scroll listener only changes transforms and stops under `prefers-reduced-motion`. Tested in `site/tests/e2e/home.test.mjs`.
+`Base.astro` renders a fixed `.bg-canvas` (a 48 px hairline grid and a soft primary-tinted spotlight, tokens only, no blur) behind the page. The vignette is a static `::after` overlay fading to `--background` (no mask: a masked fixed layer is re-blended every scroll frame in Safari; the picture is identical within 3/255); a passive, rAF-throttled scroll listener only changes transforms and stops under `prefers-reduced-motion`. Tested in `site/tests/e2e/home.test.mjs`.

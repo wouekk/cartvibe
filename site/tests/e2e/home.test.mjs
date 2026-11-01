@@ -93,7 +93,7 @@ test('the self-hosted plan says "Free forever"', async () => {
   await context.close();
 });
 
-test("the background canvas is token-driven: the mask sits on the static parent, the glow has no blur, nothing is clickable", async () => {
+test("the background canvas is token-driven: the vignette is a static overlay (no mask anywhere), the glow has no blur, nothing is clickable", async () => {
   const { page, context } = await open(browser, server.origin, "/", { setup: noGithub });
   const css = await page.evaluate(() => {
     const s = (sel) => getComputedStyle(document.querySelector(sel));
@@ -103,8 +103,9 @@ test("the background canvas is token-driven: the mask sits on the static parent,
       position: canvas.position,
       z: canvas.zIndex,
       events: canvas.pointerEvents,
-      parentMask: canvas.maskImage || canvas.webkitMaskImage,
-      gridMask: s(".bg-canvas__grid").maskImage,
+      parentMask: canvas.maskImage || canvas.webkitMaskImage || "none",
+      gridMask: s(".bg-canvas__grid").maskImage || "none",
+      overlay: getComputedStyle(document.querySelector(".bg-canvas"), "::after").backgroundImage,
       glowFilter: s(".bg-canvas__glow").filter,
       gridImage: s(".bg-canvas__grid").backgroundImage,
     };
@@ -113,8 +114,9 @@ test("the background canvas is token-driven: the mask sits on the static parent,
   assert.equal(css.position, "fixed");
   assert.equal(css.z, "-1");
   assert.equal(css.events, "none");
-  assert.match(css.parentMask, /radial-gradient/);
-  assert.ok(css.gridMask === "none" || css.gridMask === "", "the moving grid carries no mask");
+  assert.equal(css.parentMask, "none", "a masked fixed layer is re-blended on every scroll frame in Safari");
+  assert.equal(css.gridMask, "none");
+  assert.match(css.overlay, /radial-gradient/);
   assert.equal(css.glowFilter, "none");
   assert.match(css.gridImage, /linear-gradient/);
   await context.close();

@@ -217,8 +217,9 @@ details[open] .faq-chevron {
   opacity: 1;
 }
 
-/* Page background: a hairline grid and a soft spotlight behind everything, on theme tokens only. The vignette mask is on the
-   static parent, so the moving grid is never re-masked on scroll; the glow is plain gradient stops, no blur filter. */
+/* Page background: a hairline grid and a soft spotlight behind everything, on theme tokens only. The vignette is a static
+   overlay that fades to --background (the same picture a mask gives, without a masked layer that Safari and software
+   compositors blend on every scroll frame); the glow is plain gradient stops, no blur filter. */
 .bg-canvas {
   --glow-strength: 6%;
   position: fixed;
@@ -226,8 +227,13 @@ details[open] .faq-chevron {
   z-index: -1;
   pointer-events: none;
   overflow: hidden;
-  mask-image: radial-gradient(ellipse 85% 65% at 50% 35%, black 15%, transparent 80%);
-  -webkit-mask-image: radial-gradient(ellipse 85% 65% at 50% 35%, black 15%, transparent 80%);
+  contain: strict;
+}
+.bg-canvas::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 85% 65% at 50% 35%, transparent 15%, var(--background) 80%);
 }
 .dark .bg-canvas {
   --glow-strength: 9%;
