@@ -127,6 +127,16 @@ product is an error (guessing "unplanned" would overstate unplanned spend).
 A live check of the Gemini client on made-up receipts (never in CI, never real receipts: a free-tier key may be used by
 Google) is `api/internal/ai/gemini_live_test.go`:
 `GEMINI_API_KEY=... [GEMINI_MODEL=gemini-3.5-flash] api/scripts/go-without-cgo.sh test -tags liveai -run TestGeminiLive -v ./internal/ai/`.
+
+The production receipt prompt has its own live check, `api/internal/services/receipt_prompt_live_test.go`: `DefaultReceiptPrompt`
+plus the quick-scan products part, filled in as `buildPrompt` does, with a five-category list, against four made-up receipts
+(Polish grocery, German restaurant, a French invoice with the VAT printed net, a ride bill in CHF). It checks currency, total,
+product lines (they must add up to the total), and that every category id was offered and the expected one is among them:
+`GEMINI_API_KEY=... api/scripts/go-without-cgo.sh test -tags liveai -run TestReceiptPromptLive -v ./internal/services/`.
+Result on `gemini-3.5-flash` (2026-11-01): all four pass, 1 to 6 seconds each. The first run found one real problem: for the French
+invoice the model answered `"categories":[4]` (bare ids) instead of `[{"id":4}]`, which failed the whole read as an unreadable
+answer. `UpsertCategoryCommand` now accepts a bare id. It also answered `"currency":""` for a receipt that printed no currency
+sign at all, as the prompt tells it to (the made-up receipt now prints `€`). Net-priced lines are grossed up to the total.
 It proves the client path for a model (JSON mode, thinking, parsing), not the production prompt.
 
 ## Where the AI's output lands (for reports and visualisations)
