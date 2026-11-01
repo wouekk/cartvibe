@@ -1,5 +1,5 @@
 @if (canUpdate()) {
-  <form class="add-bar sticky top-0 z-10 bg-card pb-3 pt-1" [formGroup]="addForm" (ngSubmit)="addItem()">
+  <form class="add-bar sticky top-[var(--app-top-bar,0px)] z-10 bg-card pb-3 pt-1" [formGroup]="addForm" (ngSubmit)="addItem()">
     <div class="flex flex-wrap items-start gap-2 sm:flex-nowrap">
       <app-shopping-item-name-field
         class="add-name w-full min-w-0 sm:w-auto sm:flex-1"

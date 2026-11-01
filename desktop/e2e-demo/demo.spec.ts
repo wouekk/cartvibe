@@ -176,3 +176,40 @@ test('the footer fits a 360px phone and sits below the page content', async ({ p
   const outlet = (await page.locator('router-outlet + *').first().boundingBox())!;
   expect(box.y).toBeGreaterThanOrEqual(outlet.y);
 });
+
+test('the About licence links stay inside the demo', async ({ page }) => {
+  await openDemo(page);
+  await goTo(page, '/about');
+
+  const links = page.getByTestId('about-credits-licences').locator('a');
+  await expect(links.first()).toBeVisible();
+  const hrefs = await links.evaluateAll((anchors) => anchors.map((a) => (a as HTMLAnchorElement).pathname));
+  expect(hrefs).toEqual(['/cartvibe/demo/3rdpartylicenses.txt', '/cartvibe/demo/assets/licenses/NOTICES.txt']);
+});
+
+for (const viewport of [{ width: 390, height: 700 }, { width: 1280, height: 700 }]) {
+  test(`the shopping list's add row pins below the header, not over it (${viewport.width}px)`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await openDemo(page);
+    await goTo(page, '/shopping-lists/group/1');
+    const addRow = page.locator('.add-bar').first();
+    await expect(addRow).toBeVisible();
+
+    // Add enough items for the page to scroll, then scroll right to the bottom.
+    for (let i = 0; i < 25; i++) {
+      await page.locator('#shopping-list-add-name-input').fill(`Scroll filler ${i}`);
+      await page.getByTestId('shopping-list-add-submit').click();
+    }
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+
+    const header = (await page.locator('#header-container').boundingBox())!;
+    const row = (await addRow.boundingBox())!;
+    expect(row.y).toBeGreaterThanOrEqual(header.y + header.height - 1);
+    // The header stays the topmost thing at its own position.
+    const topmost = await page.evaluate(
+      ([x, y]) => !!document.elementFromPoint(x, y)?.closest('#header-container'),
+      [viewport.width / 2, header.y + header.height / 2],
+    );
+    expect(topmost).toBe(true);
+  });
+}

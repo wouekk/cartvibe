@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, linkedSignal, ViewEncapsulation, ChangeDetectionStrategy } from "@angular/core";
+import { Component, computed, effect, ElementRef, inject, linkedSignal, ViewEncapsulation, ChangeDetectionStrategy, afterNextRender, viewChild, DestroyRef } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { Data, NavigationEnd, Router } from "@angular/router";
@@ -124,6 +124,7 @@ export class SidebarComponent {
     private store: Store,
     private viewportService: ViewportService,
   ) {
+    afterNextRender(() => this.publishTopBarHeight());
     // A phone's sidebar is a sheet over the page, so it must not stay open behind the page it opened.
     effect(() => {
       this.currentUrl();
@@ -133,11 +134,33 @@ export class SidebarComponent {
 
   private readonly sidebar = inject(HlmSidebarService);
 
+  private readonly topBar = viewChild<ElementRef<HTMLElement>>("topBar");
+
+  private readonly destroyRef = inject(DestroyRef);
+
   public loggedInUser = this.store.selectSignal(AuthState.loggedInUser);
 
   public isLoggedIn = this.store.selectSignal(AuthState.isLoggedIn);
 
   public readonly isHandset = this.viewportService.isHandset;
+
+  /**
+   * Publishes the height of the sticky top bar (demo banner + header) as `--app-top-bar` on the page, so a sticky row
+   * inside a page (the shopping list's "Add an item") pins just below it instead of under or over it.
+   */
+  private publishTopBarHeight(): void {
+    const bar = this.topBar()?.nativeElement;
+    if (!bar || typeof ResizeObserver === "undefined") {
+      return;
+    }
+    const root = document.documentElement;
+    const observer = new ResizeObserver(() => root.style.setProperty("--app-top-bar", `${bar.offsetHeight}px`));
+    observer.observe(bar);
+    this.destroyRef.onDestroy(() => {
+      observer.disconnect();
+      root.style.removeProperty("--app-top-bar");
+    });
+  }
 
   private readonly currentUrl = toSignal(
     this.router.events.pipe(
