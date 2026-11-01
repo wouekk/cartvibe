@@ -103,7 +103,8 @@ export class ReportTemplateListComponent extends BaseTableComponent<ReportTempla
   // Overrides the base fetch to also flip `loaded` (drives the empty state) on both
   // success and error, so a failed load doesn't hang on a blank page.
   public override getTableData(): void {
-    this.baseTableService
+    this.tableDataRequest?.unsubscribe();
+    this.tableDataRequest = this.baseTableService
       .getPagedData()
       .pipe(
         take(1),

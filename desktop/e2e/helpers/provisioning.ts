@@ -597,7 +597,11 @@ export async function apiFirstReportCategory(
     if (!(groupPermissions[groupId] ?? []).includes('group.reports.read')) {
       continue;
     }
-    const category = (groupCategories[groupId] ?? []).find((c) => c.id != null && !!c.name);
+    // The lowest id is a starter category: the specs that mint and delete categories run alongside this one, and a
+    // template filtering on a category that vanishes mid-test hydrates without its row.
+    const category = (groupCategories[groupId] ?? [])
+      .filter((c) => c.id != null && !!c.name)
+      .sort((a, b) => a.id! - b.id!)[0];
     if (category) {
       return { groupId, categoryId: category.id!, categoryName: category.name! };
     }

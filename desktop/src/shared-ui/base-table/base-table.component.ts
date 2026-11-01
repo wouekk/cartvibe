@@ -1,6 +1,6 @@
 import { Component, signal, ChangeDetectionStrategy } from "@angular/core";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
-import { take, tap } from "rxjs";
+import { Subscription, take, tap } from "rxjs";
 import { PagedTableInterface } from "../../interfaces/paged-table.interface";
 import { BaseTableService } from "../../services/base-table.service";
 import { TableColumn } from "../../table/table-column.interface";
@@ -32,8 +32,12 @@ export class BaseTableComponent<T> {
     }
   }
 
+  /** The page request in flight. A newer one cancels it, so a slow earlier answer cannot repaint a newer list. */
+  protected tableDataRequest?: Subscription;
+
   public getTableData(): void {
-    this.baseTableService
+    this.tableDataRequest?.unsubscribe();
+    this.tableDataRequest = this.baseTableService
       .getPagedData()
       .pipe(
         take(1),
