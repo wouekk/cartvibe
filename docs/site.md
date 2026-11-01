@@ -16,8 +16,7 @@ and scroll the track. Below `lg` the steps stack with their visuals. The four st
 rest of the app is shown further down with real screenshots.
 
 **Visuals.** The hero and the four steps use real screenshots of the demo (`Shots.astro`, files in `src/assets/shots`, see
-"Screenshots"). The old wireframe slots (`Slot.astro`, `Wireframe.astro`, `public/art`, the slot script in `Base.astro`) are no
-longer used by any page; they stay in the tree until the owner decides whether to keep the art idea.
+"Screenshots"). The old wireframe slots and their art placeholders are gone.
 
 **Wordmark.** `Wordmark.astro` is the one place the name is drawn: "Cart" in the logo text colour, "Vibe" in the brand emerald
 (`#16C976`, the colour of the brand SVGs) in Zinc and in the active palette's `--primary` in Blue, Indigo, Emerald and

@@ -236,15 +236,6 @@ const linkClass = "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium te
             if (m.open && !m.contains(e.target)) m.open = false;
           });
         });
-        // Final art dropped into public/art replaces a slot's wireframe; the 1px placeholder does not.
-        document.querySelectorAll("[data-slot]").forEach(function (slot) {
-          var img = slot.querySelector(".slot-art");
-          var check = function () {
-            if (img.naturalWidth > 8) slot.dataset.art = "true";
-          };
-          if (img.complete) check();
-          img.addEventListener("load", check);
-        });
       })();
     </script>
   </body>
