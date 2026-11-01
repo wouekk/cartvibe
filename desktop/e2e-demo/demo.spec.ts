@@ -22,7 +22,7 @@ async function goTo(page: Page, hash: string): Promise<void> {
 test('opens signed in on the dashboard, with the banner and no login', async ({ page }) => {
   await openDemo(page);
 
-  await expect(page).toHaveURL(/\/cartvibe\/demo\/#\/overview\/group\/1$/);
+  await expect(page).toHaveURL(/:\d+\/demo\/#\/overview\/group\/1$/);
   await expect(page.getByText('Demo, nothing is saved')).toBeVisible();
   await expect(page.getByText('Alex Demo').first()).toBeVisible();
   await expect(page.getByTestId('overview-donut')).toBeVisible();
