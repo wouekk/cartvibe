@@ -25,8 +25,8 @@ not use it (its own wordmark, `cartvibe-logo.component.ts`, is a fixed emerald),
 
 **Footer.** `Footer.astro`, used by `Base.astro`, is the only footer: two quiet lines (the licence and "Upstream credits in
 NOTICE", then the no cookies, no analytics, no third-party scripts sentence). The demo ends its pages with the same two lines
-(`desktop/src/demo/demo-footer.component.ts`); keep the wording in step. The Receipt Wrangler credit with the author names
-stays in the FAQ; the full credits are in `NOTICE.md`.
+(`desktop/src/demo/demo-footer.component.ts`); keep the wording in step. The upstream credit (the NOTICE link) stays in the footer, and the FAQ has no separate entry for it;
+the full credits with the author names are in `NOTICE.md`.
 
 ## Build and edit
 
@@ -41,7 +41,7 @@ npm run build      # writes site/dist
 - All copy is in `src/pages/index.astro` (the `steps`, `more`, `grid`, `why`, `rows`, `faq` arrays at the top).
 - The shell (head, nav) is `src/layouts/Base.astro`; the footer is `src/components/Footer.astro`. Nav links point at
   `${base}/#section`, so they work from any page. Keep `LICENSE`, `NOTICE.md` and the upstream credit (the NOTICE link
-  in the footer, the FAQ answer).
+  in the footer, the "free software" line in the Why section).
 - Icons are inline in `src/components/Icon.astro`; real screenshots are rendered by `src/components/Shots.astro`.
 - Keep the copy honest: no prices, dates, sign-up forms, reviews or counts, and nothing that is not in the app. The Cloud plan
   section (`#cloud`) says a hosted option is planned and nothing more; no phone app is mentioned.
