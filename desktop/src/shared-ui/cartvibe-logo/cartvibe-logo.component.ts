@@ -3,7 +3,8 @@ import { CartVibeIconComponent } from "../cartvibe-icon/cartvibe-icon.component"
 
 /**
  * The CartVibe lockup: the app icon (dark or light, as supplied) beside a large "CartVibe" wordmark, "Cart" in the
- * text color and "Vibe" in the brand emerald (#16C976, the banner's). It follows the app's own `dark` class like the icon does. The
+ * text color and "Vibe" in the brand emerald in Zinc (#16C976 at night, #047857 by day) or the palette's primary in the
+ * accent palettes, like the project site. It follows the app's own `dark` class and `data-palette` like the icon does. The
  * wordmark is Geist when it is loaded (the app bundles it), then the system font.
  *
  * `scale` shrinks the whole lockup (icon and wordmark together); the header passes 0.3 on a phone so it fits the
@@ -45,11 +46,20 @@ import { CartVibeIconComponent } from "../cartvibe-icon/cartvibe-icon.component"
       .cart {
         color: #202834;
       }
+      /* "Vibe" follows the project site (site/src/styles/global.css, .wordmark-vibe): in Zinc the brand emerald, a darker
+         emerald by day because #16c976 is 2.1:1 on the light canvas; in Blue, Indigo, Emerald and Violet the palette's
+         primary. */
       .vibe {
-        color: #16c976;
+        color: #047857;
       }
       :host-context(html.dark) .cart {
         color: #ffffff;
+      }
+      :host-context(html.dark) .vibe {
+        color: #16c976;
+      }
+      :host-context(html[data-palette]:not([data-palette="zinc"])) .vibe {
+        color: var(--primary);
       }
     `,
   ],

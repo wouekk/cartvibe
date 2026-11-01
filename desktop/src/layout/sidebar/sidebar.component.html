@@ -164,13 +164,15 @@
 
   <main
     hlmSidebarInset
-    class="drawer-content min-w-0"
+    class="drawer-content isolate min-w-0"
     [class.drawer-content--full-height]="isContentFullHeight()"
     [class.flex]="isContentFullHeight()"
     [class.h-svh]="isContentFullHeight()"
     [class.flex-col]="isContentFullHeight()"
     [class.overflow-hidden]="isContentFullHeight()"
   >
+    <!-- The project site's grid-and-glow background, behind the panel's content (the panel is `isolate`). -->
+    <app-bg-canvas></app-bg-canvas>
     <!-- The demo build puts its "nothing is saved" strip above the header (an empty element in the real app). -->
     <div #topBar class="sticky top-0 z-20 block">
       <app-demo-banner></app-demo-banner>

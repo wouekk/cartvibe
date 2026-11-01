@@ -4,6 +4,7 @@ import { ReactiveFormsModule } from "@angular/forms";
 import { HlmButton } from "@spartan-ng/helm/button";
 
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
+import { BgCanvasComponent } from "../shared-ui/bg-canvas/bg-canvas.component";
 import { PaletteSwatchComponent } from "../shared-ui/palette-swatch/palette-swatch.component";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { RouterModule } from "@angular/router";
@@ -45,6 +46,7 @@ import { SidebarComponent } from "./sidebar/sidebar.component";
     DirectivesModule,
     HlmButton,
     AppIconComponent,
+    BgCanvasComponent,
     NgIcon,
     PaletteSwatchComponent,
     ...HlmCollapsibleImports,
