@@ -75,7 +75,7 @@ const linkClass = "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium te
         </a>
         <nav aria-label="Main" class="ml-6 hidden items-center gap-1 xl:flex">
           {nav.map((item) => <a href={item.href} class={linkClass} data-spy>{item.label}</a>)}
-          <a href={repo} class={linkClass}>GitHub</a>
+          <a href={repo} class={`${linkClass} inline-flex items-center gap-1.5`} data-testid="nav-github"><Icon name="github" class="size-4" />GitHub</a>
         </nav>
         <div class="ml-auto flex items-center gap-2">
           <details class="relative" id="palette-menu">
@@ -118,7 +118,7 @@ const linkClass = "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium te
             href={`${base}/demo/`}
             class="hidden h-9 items-center whitespace-nowrap rounded-md border border-border bg-background px-4 text-sm font-medium transition-colors duration-150 hover:bg-accent md:inline-flex"
             data-testid="header-demo"
-            >Try the demo</a
+            >Demo</a
           >
           <a
             href={`${repo}#quick-start`}
@@ -141,7 +141,7 @@ const linkClass = "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium te
             </summary>
             <div class="absolute right-0 top-11 z-50 w-56 rounded-xl border border-border/70 bg-popover p-1.5 text-popover-foreground">
               {nav.map((item) => <a href={item.href} class="block rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent aria-[current=location]:bg-accent" data-spy>{item.label}</a>)}
-              <a href={repo} class="block rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent">GitHub</a>
+              <a href={repo} class="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent"><Icon name="github" class="size-4" />GitHub</a>
               <a
                 href={`${base}/#iphone`}
                 class="mt-1 flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/80"
@@ -150,7 +150,7 @@ const linkClass = "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium te
               <a
                 href={`${base}/demo/`}
                 class="mt-1 flex h-9 items-center justify-center rounded-md border border-border bg-background px-3 text-sm font-medium hover:bg-accent"
-                >Try the demo</a
+                >Demo</a
               >
               <a
                 href={`${repo}#quick-start`}

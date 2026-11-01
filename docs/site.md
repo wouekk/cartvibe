@@ -112,7 +112,7 @@ Playwright of `../desktop` (`npm ci` there) and `E2E_CHROMIUM_PATH` for an insta
 `https://cartvibe.app/demo/` is the real web app (`desktop/`) built with its `demo` configuration and served
 from the same Pages artifact as this page, under `/demo/`. It runs on an in-memory copy of the API with one sample household
 and a scripted AI, sends nothing off the page, and keeps its own storage keys. How it works and what to do when the app
-changes: `desktop/docs/demo.md`. The site links to it with "Try the demo" in the header (`Base.astro`);
+changes: `desktop/docs/demo.md`. The site links to it with "Demo" in the header (`Base.astro`);
 the links are `${BASE_URL}/demo/`, so they follow the base path. The demo ends its pages with the site's two-line footer.
 
 To look at it locally: `cd desktop && npm run build:demo`, then `node tools/serve-demo.cjs` and open
@@ -141,5 +141,8 @@ the screen below the header; nothing is marked above the first section or below 
 elements, the scroll track or the stack, is shown).
 
 ## Page background
+
+Sections have no background of their own (no `bg-muted` tint), so the page keeps one shade from top to bottom in day and night;
+sections are told apart by hairline borders only. Cards keep `bg-card`.
 
 `Base.astro` renders a fixed `.bg-canvas` (a 48 px hairline grid and a soft primary-tinted spotlight, tokens only, no blur) behind the page. The vignette is a static `::after` overlay fading to `--background` (no mask: a masked fixed layer is re-blended every scroll frame in Safari; the picture is identical within 3/255); a passive, rAF-throttled scroll listener only changes transforms and stops under `prefers-reduced-motion`. Tested in `site/tests/e2e/home.test.mjs`.

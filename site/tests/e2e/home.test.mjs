@@ -163,6 +163,24 @@ test("scrolling glides the grid (wrapping inside 48 px) and drifts the glow; red
   await context.close();
 });
 
+test("the page keeps one background shade: no section paints its own, day and night", async () => {
+  for (const mode of ["light", "dark"]) {
+    const { page, context } = await open(browser, server.origin, "/", { setup: noGithub, mode });
+    const backgrounds = await page.locator("main > section").evaluateAll((els) => [...new Set(els.map((e) => getComputedStyle(e).backgroundColor))]);
+    assert.deepEqual(backgrounds, ["rgba(0, 0, 0, 0)"], mode);
+    await context.close();
+  }
+});
+
+test('the header says "Demo", and the GitHub link carries the GitHub icon', async () => {
+  const { page, context } = await open(browser, server.origin, "/", { setup: noGithub, width: 1440 });
+  assert.equal((await page.getByTestId("header-demo").innerText()).trim(), "Demo");
+  const github = page.getByTestId("nav-github");
+  assert.equal((await github.innerText()).trim(), "GitHub");
+  assert.equal(await github.locator("svg").count(), 1);
+  await context.close();
+});
+
 test("no horizontal overflow at 360 px in every palette, day and night", async () => {
   for (const palette of ["zinc", "blue", "indigo", "emerald", "violet"]) {
     for (const mode of ["light", "dark"]) {
