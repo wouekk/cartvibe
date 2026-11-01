@@ -12,7 +12,6 @@ import { BaseTableService } from "../../services/base-table.service";
 import { BaseTableComponent } from "../../shared-ui/base-table/base-table.component";
 import { AuthState, GroupState, RemoveGroup } from "../../store";
 import { GroupTableState } from "../../store/group-table.state";
-import { GroupTableFilterComponent } from "../group-table-filter/group-table-filter.component";
 import { GroupTableService } from "./group-table.service";
 import { marker } from "../../i18n/marker";
 import { TranslationService } from "../../i18n/translation.service";
@@ -173,9 +172,5 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
         }
       });
     }
-  }
-
-  public openFilterDialog(): void {
-    const ref = this.matDialog.open(GroupTableFilterComponent, DEFAULT_DIALOG_CONFIG);
   }
 }

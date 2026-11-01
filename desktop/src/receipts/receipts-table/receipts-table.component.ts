@@ -11,12 +11,11 @@ import { ResolvedPeriod } from "../../overview/overview-period";
 import { catchError, debounceTime, distinctUntilChanged, EMPTY, filter as rxFilter, map, Subject, switchMap, take, tap } from "rxjs";
 import { ReceiptFilterService } from "src/services/receipt-filter.service";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { ResetReceiptFilter, SetColumnConfig, SetPage, SetPageSize, SetQuickDateField, SetReceiptFilterData, SetReceiptFilterField, SetReceiptSearch } from "src/store/receipt-table.actions";
+import { ResetReceiptFilter, SetColumnConfig, SetPage, SetPageSize, SetReceiptFilterData, SetReceiptFilterField, SetReceiptSearch } from "src/store/receipt-table.actions";
 import { DEFAULT_RECEIPT_ORDER_BY, DEFAULT_RECEIPT_SORT_DIRECTION, ReceiptTableState, } from "src/store/receipt-table.state";
-import { SystemSettingsState } from "src/store/system-settings.state";
 import { TableColumn } from "src/table/table-column.interface";
 import { TableComponent } from "src/table/table/table.component";
-import { DEFAULT_DIALOG_CONFIG, DEFAULT_HOST_CLASS, RECEIPT_DATE_FILTER_FIELDS, ReceiptDateFilterFieldKey } from "../../constants";
+import { DEFAULT_DIALOG_CONFIG, DEFAULT_HOST_CLASS } from "../../constants";
 import { ReceiptTableColumnConfig } from "../../interfaces";
 import {
   BulkStatusUpdateCommand,
@@ -43,7 +42,6 @@ import {
   reconcileColumns,
   RECEIPT_COLUMN_DISPLAY_NAMES,
 } from "../../utils/index";
-import { FilterMonth, monthFilterEntry, monthFromFilterEntry } from "../../utils/receipt-date-filter";
 import { buildReceiptFilterForm } from "../../utils/receipt-filter";
 import { buildReceiptFilterChips, ReceiptFilterChip } from "../../utils/receipt-filter-chips";
 import { isFilterEntryActive } from "../../utils/receipt-filter-entry";
@@ -133,40 +131,6 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   private receiptFilter = computed(
     () => this.filter()?.filter as ReceiptPagedRequestFilter | undefined
   );
-
-  /** The date field the quick date control writes to. */
-  public quickDateField = this.store.selectSignal(ReceiptTableState.quickDateField);
-
-  /** The app time zone, which decides the month stepper's "this month". */
-  public timeZone = this.store.selectSignal(SystemSettingsState.timeZone);
-
-  public readonly dateFilterFields = RECEIPT_DATE_FILTER_FIELDS;
-
-  public quickDateFieldLabel = computed(
-    () =>
-      RECEIPT_DATE_FILTER_FIELDS.find((field) => field.key === this.quickDateField())?.label ??
-      "Receipt Date"
-  );
-
-  /** The entry the quick date control currently owns. */
-  private quickDateEntry = computed(() => this.receiptFilter()?.[this.quickDateField()]);
-
-  /**
-   * The month the quick date control is showing, or null when its field is
-   * unset or holds something a month cannot express.
-   */
-  public stepperMonth = computed(() => monthFromFilterEntry(this.quickDateEntry()));
-
-  public stepperLabel = computed(() => {
-    const month = this.stepperMonth();
-    if (month) {
-      return this.datePipe.transform(new Date(month.year, month.month, 1), "LLLL y") ?? "";
-    }
-
-    // A filter the stepper cannot describe still has to be visible as a
-    // filter — the chip below spells out what it actually is.
-    return isFilterEntryActive(this.quickDateEntry()) ? marker("Custom") : marker("All time");
-  });
 
   public filterChips = computed<ReceiptFilterChip[]>(() => {
     const categories = this.categories();
@@ -554,25 +518,6 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
       operation: FilterOperation.Between,
       value: [dayKeyToLocalDate(period.from), dayKeyToLocalDate(period.to)],
     } as any);
-  }
-
-  public monthSelected(month: FilterMonth): void {
-    // The quick control IS its field's filter, so it overwrites whatever was there.
-    this.applyFilterField(this.quickDateField(), monthFilterEntry(month) as any);
-  }
-
-  public allTimeSelected(): void {
-    this.applyFilterField(this.quickDateField(), null);
-  }
-
-  /**
-   * Re-points the quick date control at another date field. Deliberately
-   * non-destructive: it changes no condition — only which one the stepper
-   * describes — so whatever the previous field held stays applied and keeps its
-   * chip. Nothing to refetch.
-   */
-  public quickDateFieldSelected(field: ReceiptDateFilterFieldKey): void {
-    this.store.dispatch(new SetQuickDateField(field));
   }
 
   public filterChipCleared(field: keyof ReceiptPagedRequestFilter): void {

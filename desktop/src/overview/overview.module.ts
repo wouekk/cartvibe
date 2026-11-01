@@ -5,7 +5,6 @@ import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { ButtonModule } from "../button";
 import { PeriodPickerComponent } from "./period-picker/period-picker.component";
 import { PipesModule } from "../pipes/pipes.module";
-import { MonthStepperComponent } from "../shared-ui/month-stepper/month-stepper.component";
 import { HlmCheckboxImports } from "@spartan-ng/helm/checkbox";
 import { HlmTableImports } from "@spartan-ng/helm/table";
 import { ChartComponent } from "../shared-ui/chart/chart.component";
@@ -22,6 +21,6 @@ import { HlmSwitchImports } from "@spartan-ng/helm/switch";
 
 @NgModule({
   declarations: [OverviewPageComponent],
-  imports: [ChartComponent, HlmBadge, DisplayCurrencyPipe, ...HlmCheckboxImports, ...HlmTableImports, MoneyComponent, ShopMonogramComponent, ButtonModule, CommonModule, HlmButton, AppIconComponent, MonthStepperComponent, PeriodPickerComponent, OverviewRoutingModule, PipesModule, SharedUiModule, OverviewShoppingPanelComponent, ...HlmDropdownMenuImports, ...HlmSwitchImports],
+  imports: [ChartComponent, HlmBadge, DisplayCurrencyPipe, ...HlmCheckboxImports, ...HlmTableImports, MoneyComponent, ShopMonogramComponent, ButtonModule, CommonModule, HlmButton, AppIconComponent, PeriodPickerComponent, OverviewRoutingModule, PipesModule, SharedUiModule, OverviewShoppingPanelComponent, ...HlmDropdownMenuImports, ...HlmSwitchImports],
 })
 export class OverviewModule {}

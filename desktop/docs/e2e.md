@@ -62,7 +62,6 @@ date chip).
 Retired, because the behaviour they guarded is gone:
 - `receipt-quick-date-filter`: the month stepper, its "date field" menu (Receipt Date / Settled on), the "Custom" fallback label and the
   month panel's keyboard, Escape and year paging tests. The period picker and the date chip are covered by `receipt-period-filter`.
-  (The stepper component, its Vitest spec and `ReceiptsTableComponent.monthSelected` are still in the tree but no template uses them.)
 - `member-grant-assignment` "the role form authors a ceiling and rehydrates it": it drove `/roles`, removed with the role editor, and
   no other page edits a role. Its rule (an untouched save keeps the grants) is not tested anywhere in the browser now.
 - `group-delete-any` browser cases: the Management list no longer has an all-groups view (its filter button is gone, so a group a
@@ -86,8 +85,7 @@ Real app problems found (not hidden by the specs):
 7. Not bugs, found while looking: `comment-gating` (the Legacy Editor base grants `group.comments.delete`; the control is gated and the server
    answers 403) and `quick-scan-config` (Save works, the settings page simply stays on `/edit`).
 8. Open question for the product (not changed): a new admin joins the Household as Member and cannot report on it until made Owner; the first-start `admin` is Owner.
-   Also: a bare click on a chip or single autocomplete shows no options until the first keystroke, and `GroupTableComponent.openFilterDialog` (plus
-   `GroupTableFilterComponent`) is dead code since the filter button went.
+   Also: a bare click on a chip or single autocomplete shows no options until the first keystroke.
 
 
 ## Running the full suite in Docker (Windows PC without Node)

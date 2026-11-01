@@ -12,13 +12,12 @@ import { DEFAULT_RECEIPT_TABLE_COLUMNS } from "src/interfaces";
 import { SetColumnConfig, SetReceiptFilterData } from "src/store/receipt-table.actions";
 import { ReceiptTableState } from "src/store/receipt-table.state";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { MonthStepperComponent } from "../../shared-ui/month-stepper/month-stepper.component";
 import { ApiModule, FilterOperation, Group, Permission, Receipt, ReceiptService, ReceiptStatus } from "../../open-api";
 import { ReceiptFilterService } from "../../services/receipt-filter.service";
 import { AuthState, GroupState, UserState } from "../../store";
 import { SetPermissions } from "../../store/auth.state.actions";
 import { SetGroups } from "../../store/group.state.actions";
-import { SetQuickDateField, SetReceiptFilter } from "../../store/receipt-table.actions";
+import { SetReceiptFilter } from "../../store/receipt-table.actions";
 import { ReceiptsTableComponent } from "./receipts-table.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 
@@ -37,7 +36,6 @@ describe("ReceiptsTableComponent", () => {
         NgxsModule.forRoot([ReceiptTableState, AuthState, GroupState, UserState]),
         ReactiveFormsModule,
         ...HlmTooltipImports,
-        MonthStepperComponent,
         PipesModule],
     providers: [
         {
@@ -258,11 +256,6 @@ describe("ReceiptsTableComponent", () => {
         .mockReturnValue(of({ data: [], totalCount: 0 } as any));
     });
 
-    it("reads All time with no date filter", () => {
-      expect(component.stepperMonth()).toBeNull();
-      expect(component.stepperLabel()).toEqual("All time");
-    });
-
     it("does not count the date range the period picker already shows in the Filter badge", () => {
       setFilter({ date: { operation: FilterOperation.Between, value: [new Date(2026, 8, 1), new Date(2026, 8, 30)] } });
 
@@ -278,121 +271,13 @@ describe("ReceiptsTableComponent", () => {
       expect(component.numFiltersApplied()).toBe(2);
     });
 
-    it("writes the picked month as a BETWEEN over the whole month", () => {
-      component.monthSelected({ year: 2026, month: 8 });
-
-      const date = (store.selectSnapshot(ReceiptTableState.filterData).filter as any).date;
-      const [start, end] = date.value as Date[];
-      expect(date.operation).toEqual(FilterOperation.Between);
-      expect(start.getMonth()).toEqual(8);
-      expect(start.getDate()).toEqual(1);
-      expect(end.getDate()).toEqual(30);
-
-      expect(component.stepperLabel()).toEqual("September 2026");
-      expect(store.selectSnapshot(ReceiptTableState.page)).toEqual(1);
-      expect(refetch).toHaveBeenCalled();
-    });
-
-    // The quick control IS the date filter, so it replaces whatever was there.
-    it("overrides an existing date filter rather than sitting beside it", () => {
-      setFilter({ date: { operation: FilterOperation.GreaterThan, value: new Date(2020, 0, 1) } });
-
-      component.monthSelected({ year: 2026, month: 8 });
-
-      const date = (store.selectSnapshot(ReceiptTableState.filterData).filter as any).date;
-      expect(date.operation).toEqual(FilterOperation.Between);
-    });
-
-    it("clears the date filter for all time", () => {
-      component.monthSelected({ year: 2026, month: 8 });
-      component.allTimeSelected();
-
-      expect(component.stepperLabel()).toEqual("All time");
-      expect(component.filterChips()).toEqual([]);
-    });
-
-    // A date filter the stepper cannot express stays visible as a chip so it can
-    // still be seen and cleared.
-    it("reads Custom and shows a date chip for a filter it cannot express", () => {
+    // A date filter the period picker did not set stays visible as a chip so it can still be cleared.
+    it("shows a date chip for a date filter the period picker did not set", () => {
       setFilter({ date: { operation: FilterOperation.WithinCurrentMonth, value: null } });
 
-      expect(component.stepperMonth()).toBeNull();
-      expect(component.stepperLabel()).toEqual("Custom");
       expect(component.filterChips()).toEqual([
         { key: "date", label: "Receipt Date within current month" },
       ]);
-    });
-
-    // The chip row used to omit the field the stepper was naming. It is the only
-    // place that says WHICH date column is filtered now that the target is
-    // selectable, so it no longer makes exceptions.
-    it("chips the month the stepper is showing", () => {
-      component.monthSelected({ year: 2026, month: 8 });
-
-      expect(component.filterChips().map((chip) => chip.key)).toEqual(["date"]);
-    });
-
-    describe("choosing which date field to filter on", () => {
-      it("defaults to the receipt date", () => {
-        expect(component.quickDateField()).toEqual("date");
-        expect(component.quickDateFieldLabel()).toEqual("Receipt Date");
-      });
-
-      it("offers exactly the date fields, labelled as the dialog labels them", () => {
-        expect(component.dateFilterFields.map((field) => [field.key, field.label])).toEqual([
-          ["date", "Receipt Date"],
-          ["resolvedDate", "Settled on"],
-          ["createdAt", "Added At"],
-        ]);
-      });
-
-      it("writes the picked month to the selected field, not to date", () => {
-        component.quickDateFieldSelected("resolvedDate");
-        component.monthSelected({ year: 2026, month: 8 });
-
-        const filter = store.selectSnapshot(ReceiptTableState.filterData).filter as any;
-        expect(filter.resolvedDate.operation).toEqual(FilterOperation.Between);
-        expect(filter.date).toEqual({ operation: null, value: null });
-
-        expect(component.quickDateFieldLabel()).toEqual("Settled on");
-        expect(component.stepperLabel()).toEqual("September 2026");
-      });
-
-      it("reads the stepper label and Custom fallback off the selected field", () => {
-        setFilter({
-          date: { operation: FilterOperation.Between, value: [new Date(2026, 8, 1), new Date(2026, 8, 30)] },
-          createdAt: { operation: FilterOperation.WithinCurrentMonth, value: null },
-        });
-
-        expect(component.stepperLabel()).toEqual("September 2026");
-
-        component.quickDateFieldSelected("createdAt");
-
-        expect(component.stepperMonth()).toBeNull();
-        expect(component.stepperLabel()).toEqual("Custom");
-      });
-
-      // Switching the target changes no condition, only which one the stepper
-      // describes — so nothing the user set elsewhere is destroyed, and the
-      // abandoned condition stays visible and clearable as its own chip.
-      it("leaves the previous field's condition applied, with its chip", () => {
-        component.monthSelected({ year: 2026, month: 8 });
-        refetch.mockClear();
-
-        component.quickDateFieldSelected("resolvedDate");
-
-        const filter = store.selectSnapshot(ReceiptTableState.filterData).filter as any;
-        expect(filter.date.operation).toEqual(FilterOperation.Between);
-        expect(component.stepperLabel()).toEqual("All time");
-        expect(component.filterChips().map((chip) => chip.key)).toEqual(["date"]);
-        expect(refetch).not.toHaveBeenCalled();
-      });
-
-      it("follows a field chosen outside the component", () => {
-        store.dispatch(new SetQuickDateField("createdAt"));
-
-        expect(component.quickDateFieldLabel()).toEqual("Added At");
-      });
     });
 
     it("builds a chip per active field, resolving ids to names", () => {
@@ -411,15 +296,14 @@ describe("ReceiptsTableComponent", () => {
     });
 
     // Each refresh used to be its own subscription, so the last RESPONSE won
-    // rather than the last REQUEST — and the quick date arrows are one click
-    // apart, which is what makes this reachable.
+    // rather than the last REQUEST, and the period picker can change twice in quick succession.
     it("lets a newer refresh supersede an in-flight one", () => {
       const superseded = new Subject<any>();
       const latest = new Subject<any>();
       refetch.mockReturnValueOnce(superseded).mockReturnValueOnce(latest);
 
-      component.monthSelected({ year: 2026, month: 8 });
-      component.monthSelected({ year: 2026, month: 9 });
+      component.periodSelected({ from: "2026-09-01", to: "2026-09-30", label: "" });
+      component.periodSelected({ from: "2026-10-01", to: "2026-10-31", label: "" });
 
       // The first request resolving late must not repaint the table.
       superseded.next({ data: [{ id: 1 }], totalCount: 1 });
@@ -461,10 +345,10 @@ describe("ReceiptsTableComponent", () => {
     it("keeps refreshing after a failed request", () => {
       refetch.mockReturnValueOnce(throwError(() => new Error("boom")));
 
-      component.monthSelected({ year: 2026, month: 8 });
+      component.periodSelected({ from: "2026-09-01", to: "2026-09-30", label: "" });
 
       refetch.mockReturnValue(of({ data: [{ id: 3 }], totalCount: 3 }));
-      component.monthSelected({ year: 2026, month: 9 });
+      component.periodSelected({ from: "2026-10-01", to: "2026-10-31", label: "" });
 
       expect(component.totalCount()).toEqual(3);
     });
