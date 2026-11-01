@@ -1,6 +1,6 @@
 /**
- * The demo shares an origin (`wouekk.github.io`) with every other GitHub Pages site of the owner, so it keeps its own
- * namespace: every `localStorage` and `sessionStorage` key the app reads or writes carries this prefix. The patch is
+ * The demo shares its origin (`cartvibe.app`) with the project site, so it keeps its own namespace: every
+ * `localStorage` and `sessionStorage` key the app reads or writes carries this prefix. The patch is
  * installed before the app starts, which also covers the NGXS storage plugin and the theme and language caches.
  * (`key()` and `length` are left alone: the app does not enumerate storage.)
  */

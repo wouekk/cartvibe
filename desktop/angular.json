@@ -67,7 +67,7 @@
               }
             },
             "demo": {
-              "baseHref": "/cartvibe/demo/",
+              "baseHref": "/demo/",
               "outputPath": {
                 "base": "dist/cartvibe-demo"
               },

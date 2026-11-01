@@ -1,0 +1,161 @@
+---
+// The privacy policy of the website, the demo, and CartVibe for iPhone (the App Store asks for its URL). Plain words, one
+// page. Keep it true: a new request from the site, a new host in the iPhone app or a change to iCloud sync changes this page
+// in the same branch (docs/site.md, "Privacy and support").
+import Doc from "../layouts/Doc.astro";
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const contact = "support@cartvibe.app";
+---
+
+<Doc
+  title="Privacy · CartVibe"
+  description="What happens to your information on cartvibe.app, in the demo, in self-hosted CartVibe and in CartVibe for iPhone."
+  overline="Privacy"
+  heading="Privacy policy"
+  updated="Effective 2 November 2026"
+>
+  <p>
+    CartVibe is made by Marcin Wołodźko, in Poland ("we"). This page explains, in plain words, what happens to your
+    information on this website, in the demo, in CartVibe you host yourself, and in CartVibe for iPhone.
+  </p>
+  <p>
+    <strong>The short version:</strong> we run no server that stores your receipts, lists or photos. This website sets no
+    cookies and runs no analytics. Self-hosted CartVibe keeps everything on your own server. The iPhone app keeps
+    everything on your iPhone, or in your own iCloud if you turn on sync.
+  </p>
+
+  <h2>This website</h2>
+  <ul>
+    <li>
+      <strong>Hosting.</strong> cartvibe.app is a set of static pages served by GitHub Pages (GitHub, Inc.). To deliver a page,
+      GitHub receives the usual technical details of your request, such as your IP address and browser, and handles them
+      under the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub
+      privacy statement</a>. The domain's DNS is run by Cloudflare, which answers address lookups for cartvibe.app.
+    </li>
+    <li>
+      <strong>No cookies, no analytics, no ads.</strong> The site remembers your colour palette and Day/Night choice in your
+      browser's local storage. That stays on your device and you can clear it at any time.
+    </li>
+    <li>
+      <strong>The roadmap.</strong> The roadmap section asks GitHub's public API for the project's roadmap issues, straight
+      from your browser, so GitHub sees that request too. The answer is kept in your browser for 15 minutes. No cookies or
+      credentials are sent with it.
+    </li>
+    <li>
+      <strong>Links</strong> to GitHub, the App Store and other sites take you to services with their own privacy policies.
+    </li>
+  </ul>
+
+  <h2>The demo</h2>
+  <p>
+    The <a href={`${base}/demo/`}>demo</a> is the real web app running entirely in your browser with made-up sample data.
+    Whatever you add or change stays in your browser's storage and is never sent anywhere. Reset in the demo, or clearing
+    the site's data in your browser, removes it.
+  </p>
+
+  <h2>CartVibe you host yourself</h2>
+  <p>
+    When you run CartVibe on your own server, its data (the database, receipt photos and files) stays on that server, and
+    you are in charge of it. Nothing is sent to us: the app has no connection to us and reports nothing back. It only talks
+    to the services you switch on yourself, such as the AI provider whose key you add, Logo.dev for shop logos, Open Food Facts
+    for barcode lookups, and your browser's push service for notifications. Each of those has its own privacy policy.
+  </p>
+
+  <h2>CartVibe for iPhone</h2>
+  <p class="note">
+    The iPhone app is not on the App Store yet. This section describes it as it is being built, and will be checked again
+    when it is released.
+  </p>
+  <h3>What stays on your iPhone</h3>
+  <p>
+    Your receipts, their line items, photos, shopping lists, warranty dates, goals and settings are stored on your iPhone, in
+    files that iOS encrypts. Receipts are read on the iPhone itself, with Apple's on-device text recognition and language
+    model. None of it is sent to us or to any artificial-intelligence service.
+  </p>
+  <h3>iCloud sync and shared households</h3>
+  <p>
+    If you turn on sync, your household's data is copied to <strong>your own iCloud account</strong> through Apple's iCloud
+    (CloudKit), so it appears on your other Apple devices. Personal fields such as receipt names, shops, notes, receipt text
+    and photos are also encrypted with keys kept in your iCloud Keychain. We have no copy of your iCloud data and no way to
+    look into it. Apple's handling of iCloud is covered by <a href="https://www.apple.com/legal/privacy/">Apple's privacy
+    policy</a>.
+  </p>
+  <p>
+    If you share a household, the people you invite can see and edit that household's receipts and lists, and you see what
+    they add. You choose who to invite and can remove people at any time. Sharing links are never public.
+  </p>
+  <h3>Barcode lookups (Open Food Facts)</h3>
+  <p>
+    Food &amp; Health looks up a product's barcode in <a href="https://world.openfoodfacts.org">Open Food Facts</a>, a free
+    public food database run by a non-profit association in France. The app asks before the first lookup. A lookup sends the
+    barcode number, the list of product details the app wants back, the app's name and version with our contact address,
+    and what every internet request carries, including your IP address. It sends nothing from your receipts and no name,
+    account or device identifier. Open Food Facts keeps visitors' IP addresses and server logs for three years; see the
+    <a href="https://world.openfoodfacts.org/privacy">Open Food Facts privacy policy</a>. A product you looked up is kept on
+    your iPhone for 30 days.
+  </p>
+  <h3>What the app does not do</h3>
+  <ul>
+    <li>No accounts: there is nothing to sign up for. Purchases and iCloud use your Apple ID.</li>
+    <li>No tracking, no ads, and no analytics or advertising code from anyone else.</li>
+    <li>No other servers: the app connects only to Apple's services and to Open Food Facts.</li>
+    <li>No selling or sharing of your information with anyone.</li>
+  </ul>
+  <h3>Purchases, Face ID and permissions</h3>
+  <ul>
+    <li>Upgrades are sold by Apple through the App Store. We never see your payment details.</li>
+    <li>
+      App lock uses Face ID, Touch ID or your passcode. The check is done by iOS; your face or fingerprint never reaches the
+      app.
+    </li>
+    <li>
+      The camera is used to scan receipts and barcodes, photo access only to save or pick the image you choose, and
+      notifications for the reminders you set. Each permission is asked for when it is first needed.
+    </li>
+    <li>
+      If you choose to share analytics with app developers in your iPhone's settings, Apple may give us crash reports and
+      usage statistics that do not identify you.
+    </li>
+  </ul>
+  <h3>Deleting your data</h3>
+  <ul>
+    <li>Deleting the app removes everything it stored on that iPhone.</li>
+    <li>
+      Your iCloud copy: on your iPhone open Settings → [your name] → iCloud → Manage Storage → CartVibe → Delete Data from
+      iCloud. Deleting the app alone does not delete its iCloud data.
+    </li>
+    <li>In a shared household, the owner can stop sharing or remove a member, and a member can leave.</li>
+  </ul>
+
+  <h2>If you write to us</h2>
+  <p>
+    If you email us, we use your address and message only to answer you, and delete them when they are no longer needed for
+    that. The legal basis is our legitimate interest in answering your question (GDPR Article 6(1)(f)).
+  </p>
+
+  <h2>Your rights</h2>
+  <p>
+    Under the GDPR you can ask us for access to, correction or deletion of the personal data we hold about you, ask us to
+    restrict or stop using it, and ask for a copy to take elsewhere. Because we hold almost nothing (at most an email you
+    sent us), most of these are quick to answer. Write to <a href={`mailto:${contact}`}>{contact}</a>. You can also complain to
+    the Polish data protection authority, the <a href="https://uodo.gov.pl/en">President of the Personal Data Protection
+    Office (UODO)</a>, or to the authority where you live.
+  </p>
+
+  <h2>Children</h2>
+  <p>CartVibe is a household finance app and is not directed at children.</p>
+
+  <h2>Changes</h2>
+  <p>
+    If this policy changes, we update this page and its date. If a change means more of your data leaves your device, the
+    iPhone app tells you before it happens.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    Marcin Wołodźko, <a href={`mailto:${contact}`}>{contact}</a>. Help with the apps is on the <a href={`${base}/support/`}
+      >support page</a
+    >.
+  </p>
+</Doc>

@@ -57,9 +57,10 @@ build, run the specs, and check desktop and phone widths in day and night (Zinc 
   `ENCRYPTION_KEY` from Dockhand's variables, with no `$` in them (compose reads it as a variable). Deploy = pull, then
   redeploy (a redeploy alone reuses the cached image). Back up the `sqlite` folder before a release that changes the
   schema; the database runs in WAL mode, so copy the whole folder (`app.db`, `-wal`, `-shm`) with the container stopped.
-- **A VPS** runs `docker-compose.vps.yml` (Caddy TLS, Litestream for the database, restic for the files, Valkey with a
-  password); setup and the restore drill are in `docs/vps-deploy.md`.
-- Repo `wouekk/cartvibe`, project page `https://wouekk.github.io/cartvibe/` (from `site/`), image
+- **Self-hosters on a VPS** can run `docker-compose.vps.yml` (Caddy TLS, Litestream for the database, restic for the files,
+  Valkey with a password); setup and the restore drill are in `docs/vps-deploy.md`. We run no VPS and no hosted service:
+  since 2026-11-02 there is no hosted plan (`wouekk/cartvibe-cloud` is frozen), and `cartvibe.app` is the static project page.
+- Repo `wouekk/cartvibe`, project page `https://cartvibe.app/` (from `site/`, on GitHub Pages; `docs/site.md`), image
   `ghcr.io/wouekk/cartvibe`. `main` and `preview` are the long-lived branches; a feature branch is deleted once merged.
 
 ## Agents

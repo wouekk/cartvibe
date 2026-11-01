@@ -8,6 +8,10 @@ A **cell** is one household's database. A self-hosted install has exactly one, s
 deployment would serve many cells from one process; the handle is what keeps one cell's request away from another's
 data. The hosted design itself is kept outside this repository.
 
+**Parked since 2026-11-02:** there is no hosted plan, so the move stops after step 3. What is merged stays (the handle, the
+repositories, the cell-keyed caches, the report-only lint); moving services and handlers off `repositories.GetDB()` is not
+planned. The rules below still apply to new repository code.
+
 ## What exists
 
 - **`CARTVIBE_MODE`** (`internal/env.GetCellMode`, parsed by `cell.ParseMode`): `standalone` is the default and the only

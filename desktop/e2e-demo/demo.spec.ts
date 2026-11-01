@@ -1,7 +1,7 @@
 import { expect, Page, test } from '@playwright/test';
 
 // The built demo (see docs/demo.md): no API, no login. Every test starts on the dashboard of the signed-in sample user.
-const START = '/cartvibe/demo/';
+const START = '/demo/';
 
 // A 1x1 PNG: the scripted scan never reads the picture, it only needs a file to send.
 const PIXEL = Buffer.from(
@@ -22,7 +22,7 @@ async function goTo(page: Page, hash: string): Promise<void> {
 test('opens signed in on the dashboard, with the banner and no login', async ({ page }) => {
   await openDemo(page);
 
-  await expect(page).toHaveURL(/\/cartvibe\/demo\/#\/overview\/group\/1$/);
+  await expect(page).toHaveURL(/:\d+\/demo\/#\/overview\/group\/1$/);
   await expect(page.getByText('Demo, nothing is saved')).toBeVisible();
   await expect(page.getByText('Alex Demo').first()).toBeVisible();
   await expect(page.getByTestId('overview-donut')).toBeVisible();
@@ -37,7 +37,7 @@ test('sends nothing outside its own origin, and registers no service worker or m
     }
     // Only the demo's own files: nothing from the site root, another site of the origin, or another host.
     const parsed = new URL(url);
-    if (parsed.hostname !== 'localhost' || !parsed.pathname.startsWith('/cartvibe/demo/')) {
+    if (parsed.hostname !== 'localhost' || !parsed.pathname.startsWith('/demo/')) {
       outside.push(url);
     }
   });
@@ -185,7 +185,7 @@ test('the About licence links stay inside the demo', async ({ page }) => {
   const links = page.getByTestId('about-credits-licences').locator('a');
   await expect(links.first()).toBeVisible();
   const hrefs = await links.evaluateAll((anchors) => anchors.map((a) => (a as HTMLAnchorElement).pathname));
-  expect(hrefs).toEqual(['/cartvibe/demo/3rdpartylicenses.txt', '/cartvibe/demo/assets/licenses/NOTICES.txt']);
+  expect(hrefs).toEqual(['/demo/3rdpartylicenses.txt', '/demo/assets/licenses/NOTICES.txt']);
 });
 
 for (const viewport of [{ width: 390, height: 700 }, { width: 1280, height: 700 }]) {

@@ -179,9 +179,9 @@ describe("HeaderComponent", () => {
   });
 
   it("keeps an in-app shortcut under the app's base (the demo) and leaves other addresses alone", () => {
-    vi.spyOn(TestBed.inject(Location), "prepareExternalUrl").mockImplementation((url) => `/cartvibe/demo/#${url}`);
+    vi.spyOn(TestBed.inject(Location), "prepareExternalUrl").mockImplementation((url) => `/demo/#${url}`);
 
-    expect(component.shortcutHref("/receipts")).toBe("/cartvibe/demo/#/receipts");
+    expect(component.shortcutHref("/receipts")).toBe("/demo/#/receipts");
     expect(component.shortcutHref("https://example.com/x")).toBe("https://example.com/x");
     expect(component.shortcutHref("//example.com/x")).toBe("//example.com/x");
   });

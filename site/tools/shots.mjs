@@ -1,7 +1,7 @@
 // Regenerates src/assets/shots/*.webp from the built demo (the real app on its sample household), phone and desktop,
 // day and night. Not run in CI.
 //
-//   cd desktop && npm run build:demo && node tools/serve-demo.cjs     (serves http://localhost:4300/cartvibe/demo/)
+//   cd desktop && npm run build:demo && node tools/serve-demo.cjs     (serves http://localhost:4300/demo/)
 //   cd site && npm run shots                                          (E2E_CHROMIUM_PATH=<browser> if Playwright has none)
 //
 // Playwright is borrowed from ../desktop (the site does not install it). Environment: DEMO_URL (default above),
@@ -17,7 +17,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(join(here, "..", "..", "desktop", "package.json"));
 const { chromium } = require("@playwright/test");
 
-const demo = (process.env.DEMO_URL ?? "http://localhost:4300/cartvibe/demo/").replace(/\/?$/, "/");
+const demo = (process.env.DEMO_URL ?? "http://localhost:4300/demo/").replace(/\/?$/, "/");
 const out = join(here, "..", "src", "assets", "shots");
 const only = process.env.SHOTS_ONLY;
 mkdirSync(out, { recursive: true });

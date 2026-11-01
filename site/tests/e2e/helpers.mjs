@@ -1,4 +1,4 @@
-// Shared by the browser tests: a static server for the built site (site/dist, mounted at /cartvibe/ like GitHub Pages)
+// Shared by the browser tests: a static server for the built site (site/dist, at the root like https://cartvibe.app/)
 // and Playwright, which the site does not install itself: it is borrowed from ../desktop (the same way tools/shots.mjs
 // does). Build first (`npm run build`), then `npm run test:e2e`. E2E_CHROMIUM_PATH points at an installed Chromium.
 import { createReadStream, existsSync, statSync } from "node:fs";
@@ -25,8 +25,7 @@ const TYPES = {
 export function serve() {
   const server = createServer((req, res) => {
     const url = new URL(req.url ?? "/", "http://localhost");
-    if (!url.pathname.startsWith("/cartvibe/")) return void res.writeHead(404).end("Not found");
-    let file = resolve(dist, decodeURIComponent(url.pathname.slice("/cartvibe/".length)));
+    let file = resolve(dist, decodeURIComponent(url.pathname.slice(1)));
     if (existsSync(file) && statSync(file).isDirectory()) file = join(file, "index.html");
     if (!file.startsWith(dist + sep) || !existsSync(file)) return void res.writeHead(404).end("Not found");
     res.writeHead(200, { "content-type": TYPES[extname(file)] ?? "application/octet-stream" });
@@ -63,6 +62,6 @@ export async function open(browser, origin, path, { palette = "zinc", mode = "li
     if (m.type() === "error" || m.type() === "warning") messages.push(`${m.type()}: ${m.text()}`);
   });
   page.on("pageerror", (e) => messages.push(`pageerror: ${e.message}`));
-  await page.goto(`${origin}/cartvibe${path}`);
+  await page.goto(`${origin}${path}`);
   return { page, context, messages };
 }

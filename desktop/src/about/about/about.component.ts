@@ -36,7 +36,7 @@ export class AboutComponent {
     },
     {
       label: marker("Project page"),
-      url: "https://wouekk.github.io/cartvibe/"
+      url: "https://cartvibe.app/"
     }
   ];
 

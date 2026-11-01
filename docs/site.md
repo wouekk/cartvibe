@@ -1,6 +1,6 @@
 # The project site (`site/`)
 
-The marketing page at https://wouekk.github.io/cartvibe/. A static Astro 7 project with Tailwind 4 and the self-hosted
+The marketing page at https://cartvibe.app/. A static Astro 7 project with Tailwind 4 and the self-hosted
 Geist font (`@fontsource-variable/geist`); no cookies, no analytics, no third-party scripts. English only. The one request to a
 third party is the roadmap's read of the project's public GitHub issues (see "Roadmap and changelog").
 
@@ -24,8 +24,9 @@ Violet (`.wordmark-vibe` in `global.css`). The app's `--brand-wordmark-accent` t
 not use it (its own wordmark, `cartvibe-logo.component.ts`, is a fixed emerald), so the site does not read it.
 
 **Footer.** `Footer.astro`, used by `Base.astro`, is the only footer: two quiet lines (the licence and "Upstream credits in
-NOTICE", then the no cookies, no analytics, no third-party scripts sentence). The demo ends its pages with the same two lines
-(`desktop/src/demo/demo-footer.component.ts`); keep the wording in step. The upstream credit (the NOTICE link) stays in the footer, and the FAQ has no separate entry for it;
+NOTICE", then the no cookies, no analytics, no third-party scripts sentence with the Privacy and Support links). The demo ends
+its pages with the same two sentences (`desktop/src/demo/demo-footer.component.ts`), without the two links; keep the wording
+in step. The upstream credit (the NOTICE link) stays in the footer, and the FAQ has no separate entry for it;
 the full credits with the author names are in `NOTICE.md`.
 
 ## Build and edit
@@ -34,7 +35,7 @@ the full credits with the author names are in `NOTICE.md`.
 export PATH="/c/Users/Marcin/tools/node-v24.22.1-win-x64:$PATH"   # Windows PC, see docs/dev-setup.md
 cd site
 npm ci
-npm run dev        # http://localhost:4321/cartvibe/
+npm run dev        # http://localhost:4321/
 npm run build      # writes site/dist
 ```
 
@@ -43,15 +44,27 @@ npm run build      # writes site/dist
   `${base}/#section`, so they work from any page. Keep `LICENSE`, `NOTICE.md` and the upstream credit (the NOTICE link
   in the footer, the "free software" line in the Why section).
 - Icons are inline in `src/components/Icon.astro`; real screenshots are rendered by `src/components/Shots.astro`.
-- Keep the copy honest: no prices, dates, sign-up forms, reviews or counts, and nothing that is not in the app. The Cloud plan
-  section (`#cloud`) says a hosted option is planned and nothing more; no phone app is mentioned.
+- Keep the copy honest: no prices, dates, sign-up forms, reviews or counts, and nothing that is not in the app. There is no
+  hosted plan (decided 2026-11-02): the page offers self-hosting and CartVibe for iPhone. The `#iphone` section has two cards
+  (Self-hosted, and the iPhone app as "Coming soon", a separate app that does not connect to a server, linking to issue #1 until
+  there is an App Store page). When the app is live, the button becomes the App Store link, with Apple's badge used as Apple's
+  marketing guidelines say.
+
+## Privacy and support
+
+`/privacy/` and `/support/` (`src/pages/privacy.astro`, `support.astro`, on `src/layouts/Doc.astro` and the `.doc` text style in
+`global.css`) are the URLs the App Store asks for, linked from the footer. The privacy page covers the site (GitHub Pages, Cloudflare
+DNS, local storage, the roadmap's GitHub request), the demo, self-hosting and the iPhone app; the app's section follows the app's
+own behaviour (on-device reading, the user's own iCloud, Open Food Facts) and must be checked again when the app ships. Both pages
+give `support@cartvibe.app` (an OVH mailbox on the domain). Keep the privacy page true: a new request from the site, a new host
+in the app or a change to sync changes it in the same branch. This is not legal advice; nobody reviewed it.
 
 ## Screenshots
 
 Real captures of the **demo** (the real app on its made-up household), in `src/assets/shots/<page>-<desktop|phone>-<light|dark>.webp`
 (2000 px and 520 px wide, so a 2x screen gets a sharp picture; eight pages: dashboard, charts, shopping, receipts, lines, warranties, reports, check). To redo them:
 
-1. Build and serve the demo: `cd desktop && npm run build:demo && node tools/serve-demo.cjs` (http://localhost:4300/cartvibe/demo/).
+1. Build and serve the demo: `cd desktop && npm run build:demo && node tools/serve-demo.cjs` (http://localhost:4300/demo/).
 2. `cd site && npm run shots` (`tools/shots.mjs`; it borrows Playwright from `../desktop`; set `E2E_CHROMIUM_PATH` for an
    installed Chromium, `DEMO_URL` for another address, `SHOTS_ONLY=lines` or `SHOTS_ONLY=lines-phone-dark` to redo some).
 
@@ -72,8 +85,8 @@ figures; only the demo's household is ever on screen. Not run in CI.
   other labels as chips and a thumbs-up pill that links to the issue. Text is written with `textContent`; links carry
   `rel="noopener noreferrer"`; an issue URL outside the repository is replaced by the board.
 - **Fallback.** A network error, a rate limit (403, 60 anonymous requests an hour per address), a bad answer or an empty board shows
-  `FALLBACK_ROADMAP` (`src/lib/roadmap.mjs`), silently. It must stay true: planned ideas, one thing under way (the households
-  groundwork) and things already in the app. Edit it when the plans change.
+  `FALLBACK_ROADMAP` (`src/lib/roadmap.mjs`), silently. It must stay true: planned ideas, one thing under way (the iPhone
+  app) and things already in the app. Edit it when the plans change.
 - **This is the one third-party request of the site.** The page says so ("The roadmap loads public issues from GitHub when you open
   this page"). The footer sentence ("no cookies and runs no analytics or third-party scripts") stays true: the call is a read of
   public JSON, not a script, and sets nothing. The browser's own console prints a line when GitHub answers 403.
@@ -90,25 +103,30 @@ figures; only the demo's household is ever on screen. Not run in CI.
 
 `cd site && npm test` runs the unit tests (`tests/unit`: the roadmap mapping, cache and fallback, the Markdown stripping, the
 changelog parser). `npm run test:e2e` runs the browser tests (`tests/e2e`) against `site/dist` (run `npm run build` first): the
-wordmark colour in every palette, day and night, the footer, the roadmap against a mocked GitHub (live, cached, expired cache,
+wordmark colour in every palette, day and night, the footer on every page, the privacy and support pages, the roadmap against a mocked GitHub (live, cached, expired cache,
 403/500/offline/empty, blocked storage, markup in titles, 360 px overflow), the home page copy and screenshots. They use the
 Playwright of `../desktop` (`npm ci` there) and `E2E_CHROMIUM_PATH` for an installed Chromium. No test calls the real GitHub.
 
 ## The demo
 
-`https://wouekk.github.io/cartvibe/demo/` is the real web app (`desktop/`) built with its `demo` configuration and served
+`https://cartvibe.app/demo/` is the real web app (`desktop/`) built with its `demo` configuration and served
 from the same Pages artifact as this page, under `/demo/`. It runs on an in-memory copy of the API with one sample household
 and a scripted AI, sends nothing off the page, and keeps its own storage keys. How it works and what to do when the app
-changes: `desktop/docs/demo.md`. The site links to it with "Try the demo" in the nav (`Base.astro`) and the hero (`index.astro`);
+changes: `desktop/docs/demo.md`. The site links to it with "Try the demo" in the header (`Base.astro`);
 the links are `${BASE_URL}/demo/`, so they follow the base path. The demo ends its pages with the site's two-line footer.
 
 To look at it locally: `cd desktop && npm run build:demo`, then `node tools/serve-demo.cjs` and open
-`http://localhost:4300/cartvibe/demo/` (or `npm run start:demo`). `npm run e2e:demo` smoke-tests the built demo.
+`http://localhost:4300/demo/` (or `npm run start:demo`). `npm run e2e:demo` smoke-tests the built demo.
 
 ## Deploy
 
 `.github/workflows/pages.yml` builds `site/` on every push that touches it (or `desktop/src/themes/`) (main and `feature/**`) and deploys
-`site/dist` to GitHub Pages from `main` only. The base path is `/cartvibe` (`astro.config.mjs`).
+`site/dist` to GitHub Pages from `main` only. The site is served at the root of the custom domain `cartvibe.app`
+(`astro.config.mjs`: `site`, `base: "/"`), and the demo under `/demo/` (`desktop/angular.json`, `baseHref`). The domain is set in
+the repository's Pages settings (no `CNAME` file with an Actions deploy); the old `wouekk.github.io/cartvibe/` address redirects to
+it. DNS lives in Cloudflare (`wouekk/cartvibe-cloud`, `iac/launch/records.tf`): the apex holds GitHub's four A and four AAAA
+addresses and `www` is a CNAME to `wouekk.github.io`, all DNS only (not proxied), so GitHub can issue the HTTPS certificate.
+The mail records stay with OVH mail.
 
 ### Workflow change for the demo (applied by the owner, kept here for reference)
 

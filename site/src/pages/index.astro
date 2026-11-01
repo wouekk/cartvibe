@@ -5,6 +5,8 @@ import Shots from "../components/Shots.astro";
 import Roadmap from "../components/Roadmap.astro";
 
 const repo = "https://github.com/wouekk/cartvibe";
+// News about the iPhone app goes on its roadmap issue until there is an App Store page to link to.
+const iphoneIssue = `${repo}/issues/1`;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 // The live demo of the real app, built from desktop/ and published beside this page (docs/site.md, "The demo").
 const demo = `${base}/demo/`;
@@ -102,12 +104,12 @@ const grid = [
 
 const why = [
   {
-    title: "Zero-maintenance Cloud (planned)",
-    text: "The planned CartVibe Cloud is meant to work out of the box: updates, backups and AI receipt scanning handled for the household, with no server to set up. It is not available yet, and there is no price or date. Self-hosting is the way in today.",
+    title: "No server needed on the iPhone",
+    text: "CartVibe for iPhone, coming to the App Store, reads receipts on the phone itself and keeps your data on the iPhone or in your own iCloud. The family shares a household through iCloud. There is no account to create and no server of ours in between.",
   },
   {
     title: "Strictly private, zero ads",
-    text: "No ads, no tracking cookies and no third-party scripts on this site. Self-hosted, your receipts, lists and photos stay on your own disk, and a backup is a copy of a folder. The Cloud plan is meant to keep each household's data isolated and exportable.",
+    text: "No ads, no tracking cookies and no third-party scripts on this site. Self-hosted, your receipts, lists and photos stay on your own disk, and a backup is a copy of a folder. On the iPhone they stay on the phone or in your own iCloud. We run no server that holds your data.",
   },
   {
     title: "Open source and self-hostable (AGPL-3.0)",
@@ -128,12 +130,13 @@ const rows = [
 
 const faq = [
   { q: "What is CartVibe?", a: "A household app for receipts, shopping lists and spending insights. It is a family spending tracker, groceries first, and not business expense software." },
-  { q: "Do I need to run a server?", a: "Yes. CartVibe is self-hosted. You need Docker with Docker Compose, or a NAS stack manager such as Synology's Container Manager. There is nothing to build: a ready-made image is published at ghcr.io/wouekk/cartvibe, and the quick start in the README has a short compose file." },
+  { q: "Do I need to run a server?", a: "For the web app, yes: it is self-hosted. You need Docker with Docker Compose, or a NAS stack manager such as Synology's Container Manager. There is nothing to build: a ready-made image is published at ghcr.io/wouekk/cartvibe, and the quick start in the README has a short compose file. The iPhone app needs no server at all." },
   { q: "Does it need the AI?", a: "No. The AI is optional. Without it you add receipts and product lines by hand, and everything else works the same. With it, an admin adds a Claude or ChatGPT key and Quick Scan reads receipts for you. If the provider is down or out of credit, CartVibe keeps going and retries later." },
-  { q: "What does the AI get to see?", a: "Only when you turn it on, and only what you scan: the receipt photo or PDF goes to the provider whose key you configured. Nothing is sent to us, because there is no \"us\" server in the loop." },
-  { q: "Where is my data stored?", a: "On your server: a SQLite database and a folder of files. Back it up by copying the folder with the container stopped." },
-  { q: "Is it really free?", a: "Self-hosting is free and open source, under the AGPL-3.0, and stays that way. You pay for your own hardware or server, and for AI usage if you choose to use it. A hosted Cloud plan is planned; see the Cloud plan section." },
-  { q: "Is there a mobile app?", a: "CartVibe is a web app. Open it on your phone and add it to your home screen, and it opens full screen like an app." },
+  { q: "What does the AI get to see?", a: "Only when you turn it on, and only what you scan: the receipt photo or PDF goes to the provider whose key you configured. Nothing is sent to us, because there is no \"us\" server in the loop. The iPhone app reads receipts on the phone itself." },
+  { q: "Where is my data stored?", a: "Self-hosted, on your server: a SQLite database and a folder of files. Back it up by copying the folder with the container stopped. In the iPhone app, on your iPhone, and in your own iCloud if you turn on sync." },
+  { q: "Is it really free?", a: "Self-hosting is free and open source, under the AGPL-3.0, and stays that way. You pay for your own hardware or server, and for AI usage if you choose to use it. The iPhone app will be free to download, with an optional upgrade sold through the App Store." },
+  { q: "Is there a mobile app?", a: "Two ways to have one. The web app installs from your phone's browser: add it to your home screen and it opens full screen like an app. And CartVibe for iPhone, a native app, is coming to the App Store." },
+  { q: "Does the iPhone app connect to my server?", a: "No. CartVibe for iPhone is a separate app with its own data: it stays on your iPhone and, if you turn on sync, in your own iCloud, where we cannot read it. Your self-hosted server keeps its own data. The two share a name and a look, not a database." },
   { q: "Can the whole family use it?", a: "Yes. Accounts are either Admin or User, everyone in the household can add receipts and list items, and nobody has to split bills or approve anything." },
 ];
 
@@ -144,7 +147,7 @@ const tick = "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-fu
 
 <Base
   title="CartVibe: household spending, shared shopping lists, AI receipt scanning"
-  description="Track household spending, share live shopping lists and scan receipts with AI. Open source: self-host it today, with a hosted Cloud plan on the way."
+  description="Track household spending, share live shopping lists and scan receipts with AI. Open source and free to self-host, with CartVibe for iPhone coming to the App Store."
 >
   <!-- Hero -->
   <section class="border-b border-border/70" data-testid="hero">
@@ -153,7 +156,7 @@ const tick = "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-fu
         Your household's spending and shopping, finally in one place.
       </h1>
       <p class="mx-auto mt-4 max-w-xl text-[13px] text-muted-foreground sm:text-sm">
-        Scan receipts at the shop, share live shopping lists, and see where the money goes. Made for your phone: run it on your own server today, with a hosted Cloud plan on the way.
+        Scan receipts at the shop, share live shopping lists, and see where the money goes. Made for your phone: run it free on your own server, or get CartVibe for iPhone, coming soon to the App Store.
       </p>
       <div class="hero-visual mx-auto mt-10 max-w-4xl text-left" data-testid="hero-visual">
         <Shots desktop="dashboard" phone="dashboard" eager class="max-w-4xl" sizes="(min-width: 1024px) 832px, 100vw" alt="The CartVibe Dashboard of the demo household: spent this month against a goal, spending by category and the open shopping list" />
@@ -287,7 +290,7 @@ const tick = "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-fu
   <!-- Why -->
   <section id="why" class="border-y border-border/70 bg-muted/30">
     <div class="page py-20">
-      <h2 class="text-balance text-center text-3xl font-semibold tracking-tight">Private by design. Effortless with the Cloud plan.</h2>
+      <h2 class="text-balance text-center text-3xl font-semibold tracking-tight">Private by design. On your server or your iPhone.</h2>
       <ol class="mt-12 grid gap-4 lg:grid-cols-3">
         {
           why.map((w, i) => (
@@ -349,11 +352,11 @@ const tick = "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-fu
     </p>
   </section>
 
-  <!-- Cloud plan -->
-  <section id="cloud" class="border-t border-border/70 bg-muted/30">
+  <!-- Two ways to use it: self-hosted, or the iPhone app -->
+  <section id="iphone" class="border-t border-border/70 bg-muted/30">
     <div class="page max-w-5xl py-20">
-      <h2 class="text-balance text-center text-3xl font-semibold tracking-tight">Cloud plan</h2>
-      <p class="mx-auto mt-3 max-w-2xl text-center text-sm text-muted-foreground">Self-hosting is what CartVibe is today. A hosted option is planned, and nothing else changes for people who run it themselves.</p>
+      <h2 class="text-balance text-center text-3xl font-semibold tracking-tight">Two ways to use CartVibe</h2>
+      <p class="mx-auto mt-3 max-w-2xl text-center text-sm text-muted-foreground">Run the open-source web app on your own server, or use the iPhone app. Neither one sends your data to us.</p>
       <div class="mt-10 grid gap-4 md:grid-cols-2">
         <div class="flex flex-col rounded-xl border border-primary bg-card p-6 ring-1 ring-primary/20">
           <h3 class="text-lg font-semibold">Self-hosted</h3>
@@ -372,17 +375,27 @@ const tick = "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-fu
           </ul>
           <a href={`${repo}#quick-start`} class={`${btnPrimary} mt-8`}>Read the quick start</a>
         </div>
-        <div class="flex flex-col rounded-xl border border-border/70 bg-card p-6">
+        <div class="flex flex-col rounded-xl border border-border/70 bg-card p-6" data-testid="iphone-card">
           <div class="flex items-center gap-3">
-            <h3 class="text-lg font-semibold">Cloud plan</h3>
+            <h3 class="text-lg font-semibold">CartVibe for iPhone</h3>
             <span class="rounded-full border border-border/70 bg-muted px-2.5 py-0.5 text-[11px] font-medium text-foreground/70">Coming soon</span>
           </div>
-          <p class="mt-2 text-4xl font-semibold tracking-tight text-muted-foreground">Planned</p>
-          <p class="mt-2 text-sm text-muted-foreground">A hosted version, with sync across your devices, for people who would rather not run a server.</p>
+          <p class="mt-2 text-4xl font-semibold tracking-tight">Free to start</p>
+          <p class="mt-2 text-sm text-muted-foreground">A native app for the shop: scan a receipt or tick off the list, even offline. No server to run.</p>
+          <ul class="mt-6 space-y-3 text-sm">
+            {
+              ["Receipts read on the phone itself", "Your data on your iPhone, or in your own iCloud", "Share a household with the family through iCloud", "No account to create; an optional upgrade through the App Store"].map((p) => (
+                <li class="flex gap-3">
+                  <span class={tick}><Icon name="check" class="size-3" /></span>
+                  <span>{p}</span>
+                </li>
+              ))
+            }
+          </ul>
           <p class="mt-6 flex-1 text-sm text-muted-foreground">
-            This is a plan, not a product yet: there is nothing to buy or sign up for, and no price or date is set. Self-hosting stays free and open source either way. News, if there is any, goes on the GitHub repository.
+            It is a separate app from the self-hosted one and does not connect to your server. It is not on the App Store yet; news goes on its GitHub issue.
           </p>
-          <a href={repo} class={`${btnOutline} mt-8`}>News on GitHub</a>
+          <a href={iphoneIssue} class={`${btnOutline} mt-8`}>Follow the iPhone app</a>
         </div>
       </div>
     </div>

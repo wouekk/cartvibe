@@ -1,0 +1,56 @@
+---
+// The support page (the App Store asks for a support URL with a way to reach us). Who to ask, for which app.
+import Doc from "../layouts/Doc.astro";
+
+const repo = "https://github.com/wouekk/cartvibe";
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const contact = "support@cartvibe.app";
+---
+
+<Doc
+  title="Support · CartVibe"
+  description="How to get help with CartVibe for iPhone and with self-hosted CartVibe."
+  overline="Support"
+  heading="Getting help"
+>
+  <p>
+    CartVibe is made by one person, so answers can take a few days. Tell us which app you use, what you did and what you
+    expected; a screenshot helps.
+  </p>
+
+  <h2>CartVibe for iPhone</h2>
+  <p>
+    Email <a href={`mailto:${contact}`} data-testid="support-email">{contact}</a>. Please include your iPhone model and
+    iOS version, and the app version from its settings.
+  </p>
+  <ul>
+    <li>
+      <strong>Sync or a shared household does not update?</strong> Check that you are signed in to iCloud on every device and
+      that iCloud has free space. The app keeps working offline and catches up when iCloud is reachable.
+    </li>
+    <li>
+      <strong>Purchases</strong> are handled by Apple. To restore one, use Restore Purchases in the app's settings; refunds
+      go through <a href="https://reportaproblem.apple.com">Apple's Report a Problem</a>.
+    </li>
+  </ul>
+  <p class="note">The iPhone app is not on the App Store yet. <a href={`${repo}/issues/1`}>Follow its progress on GitHub.</a></p>
+
+  <h2>Self-hosted CartVibe</h2>
+  <ul>
+    <li>Getting started: the <a href={`${repo}#quick-start`}>quick start in the README</a>.</li>
+    <li>
+      A bug or an idea: <a href={`${repo}/issues`}>open an issue on GitHub</a>. Please add the CartVibe version (shown under
+      About) and how you run it (Docker, a NAS, a VPS).
+    </li>
+    <li>Try it before installing: the <a href={`${base}/demo/`}>demo</a> runs in your browser.</li>
+  </ul>
+
+  <h2>Security problems</h2>
+  <p>
+    Please do not post a security problem in a public issue. Email <a href={`mailto:${contact}`}>{contact}</a> with the details
+    and we will reply before anything is made public.
+  </p>
+
+  <h2>Privacy</h2>
+  <p>What happens to your information is on the <a href={`${base}/privacy/`}>privacy page</a>.</p>
+</Doc>
