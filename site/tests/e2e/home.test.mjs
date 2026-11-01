@@ -20,21 +20,28 @@ test("the hero says what it should and the old overline is gone", async () => {
   assert.equal((await hero.locator("h1").innerText()).replace(/\s+/g, " "), "Your household's spending and shopping, finally in one place.");
   assert.equal(
     (await hero.locator("h1 + p").innerText()).replace(/\s+/g, " "),
-    "Scan receipts at the shop, share live shopping lists, and see where the money goes. Made for your phone: run it on your own server today, with a hosted Cloud plan on the way.",
+    "Scan receipts at the shop, share live shopping lists, and see where the money goes. Made for your phone: run it free on your own server, or get CartVibe for iPhone, coming soon to the App Store.",
   );
   assert.equal(await page.getByText("Self-hosted · Open source · AGPL-3.0").count(), 0);
   await context.close();
 });
 
-test("the Cloud plan is the one solid button in the header; the demo and Self-host it are quiet outlines side by side, and the hero has no buttons", async () => {
+test("the page no longer offers a hosted Cloud plan", async () => {
+  const { page, context } = await open(browser, server.origin, "/", { setup: noGithub });
+  assert.equal(await page.locator("#cloud").count(), 0);
+  assert.doesNotMatch(await page.locator("body").innerText(), /Cloud plan|CartVibe Cloud|hosted version/i);
+  await context.close();
+});
+
+test("the iPhone app is the one solid button in the header; the demo and Self-host it are quiet outlines side by side, and the hero has no buttons", async () => {
   for (const mode of ["light", "dark"]) {
     const { page, context } = await open(browser, server.origin, "/", { setup: noGithub, width: 1280, mode });
     for (const [scope, ids] of [
-      ["site-header", ["header-cloud", "header-demo", "header-selfhost"]],
+      ["site-header", ["header-iphone", "header-demo", "header-selfhost"]],
     ]) {
       const bg = (id) => page.getByTestId(id).evaluate((el) => getComputedStyle(el).backgroundColor);
-      const [cloud, demo, selfHost] = await Promise.all(ids.map(bg));
-      assert.notEqual(cloud, demo, `${scope} ${mode}: Cloud is solid, the demo is not`);
+      const [iphone, demo, selfHost] = await Promise.all(ids.map(bg));
+      assert.notEqual(iphone, demo, `${scope} ${mode}: the iPhone app button is solid, the demo is not`);
       assert.equal(demo, selfHost, `${scope} ${mode}: demo and Self-host it look the same`);
       const [d, s] = await Promise.all(ids.slice(1).map((id) => page.getByTestId(id).boundingBox()));
       assert.ok(Math.abs(d.y - s.y) < 2 && s.x > d.x && s.x - (d.x + d.width) < 24, `${scope}: demo and Self-host it sit next to each other`);
@@ -99,10 +106,15 @@ test('the "Built for everything beyond the weekly shop" block has only its headi
   await context.close();
 });
 
-test('the self-hosted plan says "Free forever"', async () => {
+test('the self-hosted card says "Free forever"; the iPhone card says it is coming and is a separate app', async () => {
   const { page, context } = await open(browser, server.origin, "/", { setup: noGithub });
-  const plan = page.locator("#cloud");
-  assert.match(await plan.innerText(), /Free forever/);
+  const section = page.locator("#iphone");
+  assert.match(await section.innerText(), /Free forever/);
+  const card = page.getByTestId("iphone-card");
+  assert.match(await card.innerText(), /Coming soon/);
+  assert.match(await card.innerText(), /does not connect to your server/);
+  assert.equal(await card.getByRole("link").getAttribute("href"), "https://github.com/wouekk/cartvibe/issues/1");
+  assert.equal(await page.getByTestId("header-iphone").getAttribute("href"), "/#iphone");
   await context.close();
 });
 

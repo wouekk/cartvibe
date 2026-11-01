@@ -129,7 +129,7 @@ jobs:
           SHOTS_ONLY: ${{ inputs.only }}
         run: |
           node tools/serve-demo.cjs > /tmp/serve-demo.log 2>&1 &
-          for i in $(seq 1 30); do curl -sf http://localhost:4300/cartvibe/demo/ > /dev/null && break; sleep 1; done
+          for i in $(seq 1 30); do curl -sf http://localhost:4300/demo/ > /dev/null && break; sleep 1; done
           cd ../site
           npm run shots
         working-directory: desktop

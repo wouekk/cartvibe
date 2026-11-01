@@ -9,7 +9,7 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/wouekk/cartvibe/ci.yml?branch=main&label=CI&logo=githubactions&logoColor=white)](https://github.com/wouekk/cartvibe/actions/workflows/ci.yml)
 [![Image](https://img.shields.io/badge/ghcr.io-wouekk%2Fcartvibe-2496ED?logo=docker&logoColor=white)](https://github.com/wouekk/cartvibe/pkgs/container/cartvibe)
 
-[Project page](https://wouekk.github.io/cartvibe/) · [Quick start](#quick-start) · [Changelog](CHANGELOG.md) · [Credits](NOTICE.md) · [Issues](https://github.com/wouekk/cartvibe/issues)
+[Project page](https://cartvibe.app/) · [Quick start](#quick-start) · [Changelog](CHANGELOG.md) · [Credits](NOTICE.md) · [Issues](https://github.com/wouekk/cartvibe/issues)
 
 </div>
 
@@ -21,6 +21,10 @@
 > This fork is a **vibe-coded** personal project: its changes were written with an
 > AI assistant and are maintained by me for my household as a hobby project. Not affiliated with the original authors.
 > Details in [NOTICE.md](NOTICE.md).
+
+Would rather not run a server? **CartVibe for iPhone** is on its way to the App Store. It is a separate app: your data stays
+on the phone, or in your own iCloud if you turn on sync, and it does not connect to a self-hosted CartVibe. You can follow it
+in [issue #1](https://github.com/wouekk/cartvibe/issues/1).
 
 ## Quick start
 

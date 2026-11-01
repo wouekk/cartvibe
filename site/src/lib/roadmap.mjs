@@ -25,7 +25,7 @@ export const FALLBACK_ROADMAP = {
     { title: "Receipt export bundles", summary: "Export a month or a year of receipts with their photos as one file, for the accountant or for your own archive.", chips: ["Export"], votes: null, url: BOARD_URL },
   ],
   inProgress: [
-    { title: "More than one household on one server", summary: "The groundwork for separate households that share nothing but the install, so a family and a flat-share can use the same server.", chips: ["Households"], votes: null, url: BOARD_URL },
+    { title: "iPhone app", summary: "A native CartVibe for iPhone: scan a receipt or tick off the list in the shop, offline. Your data stays on the phone or in your own iCloud.", chips: ["iPhone"], votes: null, url: `${REPO_URL}/issues/1` },
   ],
   shipped: [
     { title: "Charts on a free licence", summary: "The Dashboard donut and bars are drawn with Chart.js: same colours in every palette, a lighter page.", chips: ["Dashboard"], votes: null, url: `${REPO_URL}/blob/main/CHANGELOG.md` },

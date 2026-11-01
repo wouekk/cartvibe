@@ -1,7 +1,9 @@
 ---
 // The one footer of every page of the site (Base.astro). Two quiet lines and nothing else. The demo carries the same two
-// lines from the app (desktop/src/demo/demo-footer.component.ts); keep the wording in step.
+// sentences from the app (desktop/src/demo/demo-footer.component.ts); keep the wording in step. The Privacy and Support
+// links are the site's own: the App Store asks for both pages, and the demo is covered by the same privacy page.
 const repo = "https://github.com/wouekk/cartvibe";
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const link = "font-medium text-foreground underline underline-offset-2 transition-colors duration-150 hover:text-primary";
 ---
 
@@ -11,6 +13,13 @@ const link = "font-medium text-foreground underline underline-offset-2 transitio
       Free software under the <a class={link} href={`${repo}/blob/main/LICENSE`}>GNU AGPL-3.0</a>{" "}·{" "}Upstream credits in{" "}
       <a class={link} href={`${repo}/blob/main/NOTICE.md`} data-testid="footer-notice">NOTICE</a>
     </p>
-    <p class="mt-1" data-testid="footer-privacy">This site sets no cookies and runs no analytics or third-party scripts.</p>
+    <p class="mt-1" data-testid="footer-privacy">
+      This site sets no cookies and runs no analytics or third-party scripts.{" "}
+      <a class={link} href={`${base}/privacy/`} data-testid="footer-privacy-link">Privacy</a>{" "}·{" "}<a
+        class={link}
+        href={`${base}/support/`}
+        data-testid="footer-support-link">Support</a
+      >
+    </p>
   </div>
 </footer>

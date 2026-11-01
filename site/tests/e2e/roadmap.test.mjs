@@ -301,10 +301,10 @@ test("the roadmap is in the navigation and /roadmap/ still lands on it", async (
   const g = github(json(ISSUES));
   const { page, context } = await open(browser, server.origin, "/", { setup: g.setup });
   const nav = page.getByRole("navigation", { name: "Main" });
-  assert.match(await nav.getByRole("link", { name: "Roadmap" }).getAttribute("href"), /\/cartvibe\/#roadmap$/);
-  assert.match(await nav.getByRole("link", { name: "FAQ" }).getAttribute("href"), /\/cartvibe\/#faq$/);
-  await page.goto(`${server.origin}/cartvibe/roadmap/`);
-  await page.waitForURL(/\/cartvibe\/#roadmap$/);
+  assert.equal(await nav.getByRole("link", { name: "Roadmap" }).getAttribute("href"), "/#roadmap");
+  assert.equal(await nav.getByRole("link", { name: "FAQ" }).getAttribute("href"), "/#faq");
+  await page.goto(`${server.origin}/roadmap/`);
+  await page.waitForURL(new RegExp(`^${server.origin}/#roadmap$`));
   assert.equal(await page.getByTestId("roadmap-section").count(), 1);
   await context.close();
 });

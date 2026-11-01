@@ -1,6 +1,6 @@
 # The demo build (`src/demo/`)
 
-Purpose: how the live demo at `https://wouekk.github.io/cartvibe/demo/` works, what it fakes, and what to touch when the
+Purpose: how the live demo at `https://cartvibe.app/demo/` works, what it fakes, and what to touch when the
 app or the API changes. The demo is the real web app, built with its `demo` configuration, running on an in-memory
 copy of the API. How it is published is in `../../docs/site.md`.
 
@@ -15,7 +15,7 @@ cookies, no analytics, no third-party scripts sentence; `demo-footer.component.t
 
 ## How it is wired
 
-- `angular.json` → `build:demo` (`npm run build:demo`, `npm run start:demo`): base href `/cartvibe/demo/`, output
+- `angular.json` → `build:demo` (`npm run build:demo`, `npm run start:demo`): base href `/demo/`, output
   `dist/cartvibe-demo/browser`, **no service worker and no manifest** (so nothing is installable), its own
   `src/demo/index.demo.html` as `index.html`, and one file replacement: `src/demo/demo-runtime.ts` →
   `demo-runtime.demo.ts`.
@@ -31,9 +31,9 @@ cookies, no analytics, no third-party scripts sentence; `demo-footer.component.t
 - **Sign-in:** `DemoAppInitService` replaces `AppInitService` and loads `GET /user/appData` before the first screen; the
   Login page is never shown unless the visitor logs out (any credentials work). `POST /token` returns the sample claims.
 - **Routing** uses the hash (`useHash` from the seam): GitHub Pages cannot rewrite a deep link, so
-  `/cartvibe/demo/#/receipts/1/view` is the shareable form.
+  `/demo/#/receipts/1/view` is the shareable form.
 - **Storage:** `demo-storage.ts` prefixes every `localStorage` and `sessionStorage` key with `cartvibe-demo:` before the
-  app starts (the origin is shared with the owner's other Pages sites). `index.demo.html` reads the prefixed theme keys.
+  app starts (the origin, `cartvibe.app`, is shared with the project site). `index.demo.html` reads the prefixed theme keys.
   Reset removes the prefixed keys except the theme and palette.
 - **Live stream:** the shopping lists' `EventSource` is replaced by a stand-in that never opens
   (`demo-event-source.ts`); each change is applied from the answer to the call, as with the real stream.

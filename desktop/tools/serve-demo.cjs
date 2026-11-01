@@ -1,4 +1,4 @@
-// Serves the built demo the way GitHub Pages will: static files under /cartvibe/demo/, nothing else, no rewrites.
+// Serves the built demo the way GitHub Pages will: static files under /demo/, nothing else, no rewrites.
 //
 //   node tools/serve-demo.cjs [directory] [port]
 //
@@ -7,7 +7,7 @@ const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");
 
-const MOUNT = "/cartvibe/demo/";
+const MOUNT = "/demo/";
 const TYPES = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",

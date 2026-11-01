@@ -86,7 +86,7 @@ export class HeaderComponent {
 
   /**
    * An in-app shortcut ("/receipts") goes through the location strategy, so it keeps the base href and the hash
-   * (the demo lives under /cartvibe/demo/#/); the app itself is unchanged. Other addresses are left alone.
+   * (the demo lives under /demo/#/); the app itself is unchanged. Other addresses are left alone.
    */
   public shortcutHref(url: string | undefined): string {
     if (!url) {

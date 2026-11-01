@@ -5,6 +5,14 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 
 ## Current state
 
+- **No hosted plan (2026-11-02).** After a four-agent review the owner dropped the hosted CartVibe Cloud and cancelled the OVH
+  VPS: `wouekk/cartvibe-cloud` is frozen (ADR 0014 there), the iPhone app keeps its data on the device and in the user's own
+  iCloud, and `cartvibe.app` becomes the static project page. Branch `feature/storefront`: the site at the root of
+  `cartvibe.app` (demo at `/demo/`), the Cloud section replaced by an iPhone app section, `/privacy/` and `/support/`
+  (`docs/site.md`). Go-live, in order: the owner creates the `support@cartvibe.app` mailbox and runs `tofu apply` in
+  `cartvibe-cloud/iac/launch` (apex to GitHub Pages, R2 buckets removed); then merge to `main`, set the Pages custom domain,
+  tick Enforce HTTPS, set the repo homepage. Not run locally: the site's browser tests (Chromium cannot start in this shell);
+  CI runs them.
 - **Project page** (`site/`, `docs/site.md`): shared footer, "Vibe" follows the palette, real demo screenshots (regenerate with
   `npm run shots`, or run the "Project page" workflow by hand with `shots` ticked), one home-page section for the roadmap (public
   GitHub issues labelled `roadmap`, read in the browser, curated fallback; `/roadmap/` redirects to it) with the changelog list
@@ -13,9 +21,7 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 - **Cell runtime steps 1 to 3 (cell handle, repositories, cell-keyed caches)**: every repository takes a `cell.Handle`
   (`NewXRepository(h, tx)`), caches are keyed by `cell.CellKey`, `CARTVIBE_MODE` standalone is unchanged. Lint on the real API
   (all files / non-test): `global-db` 2/1, `gorm-open` 4/3, `get-db` 626/81 (local lint, stubbed cgo; CI runs it report-only).
-  Next: move services/handlers off `repositories.GetDB()` so they carry a handle, then the shop-logo syncer per cell. Details:
-  `api/docs/cell-runtime.md`. Lint blind spot: reads of the package variable `db`. `celllint` is a separate Go module.
-- Planning for a hosted plan lives in the separate private repository `wouekk/cartvibe-cloud`; start at its `docs/NEXT-SESSION.md`.
+  Parked after step 3 (no hosted plan); details: `api/docs/cell-runtime.md`. `celllint` is a separate Go module.
 - `main` = `preview` = v0.15.0 (2026-11-01: AI bare-id fix, demo link and add-row fixes, project page; it follows v0.14.0, whose entries below are marked "in 0.14.0"). Last pieces, each from
   its own branch, gated on Node 24.22.1 (npm ci, lockfile stable, audit 0, specs, build, CSP hash) and green in CI,
   also on the merged tree: the runtime image installs no Recommends
@@ -50,8 +56,8 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
   `@ngneat/until-destroy`, no `@angular/animations`, `rxResource` on the Warranties list, undici/fast-uri floors,
   Chromium-sandbox comment. `:latest` is published. Waiting on the user: look over Dashboard charts, dialogs and menus,
   a report, Warranties (phone and desktop, day and night), de/fr/es spot checks.
-- Next agreed: `feature/households` (tenant model) from `main`. Not run anywhere yet: a Litestream/restic restore
-  drill, Web Push on a real device (needs HTTPS + VAPID keys).
+- `feature/households` (tenant model) is parked with the hosted plan. Next real task: a restore drill of the NAS family data
+  (never run; it is the only real data). Not run anywhere yet: Web Push on a real device (needs HTTPS + VAPID keys).
 - 2026-10-29: the component guides were cut roughly in half; feature detail moved to `api/docs/domain.md`,
   `api/docs/shop-logos.md`, `desktop/docs/features.md`. If a rule seems ignored, move it back or mark it IMPORTANT.
 - Git history was rewritten on 2026-10-29 (old logo PNGs dropped, everything force-pushed): re-clone on the Mac. The
