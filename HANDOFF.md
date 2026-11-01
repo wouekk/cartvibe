@@ -7,12 +7,12 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 
 - **No hosted plan (2026-11-02).** After a four-agent review the owner dropped the hosted CartVibe Cloud and cancelled the OVH
   VPS: `wouekk/cartvibe-cloud` is frozen (ADR 0014 there), the iPhone app keeps its data on the device and in the user's own
-  iCloud, and `cartvibe.app` becomes the static project page. Branch `feature/storefront`: the site at the root of
-  `cartvibe.app` (demo at `/demo/`), the Cloud section replaced by an iPhone app section, `/privacy/` and `/support/`
-  (`docs/site.md`). Go-live, in order: the owner creates the `support@cartvibe.app` mailbox and runs `tofu apply` in
-  `cartvibe-cloud/iac/launch` (apex to GitHub Pages, R2 buckets removed); then merge to `main`, set the Pages custom domain,
-  tick Enforce HTTPS, set the repo homepage. Not run locally: the site's browser tests (Chromium cannot start in this shell);
-  CI runs them.
+  iCloud. **`https://cartvibe.app` is live** (2026-11-02, GitHub Pages, HTTPS enforced; `www`, `http` and the old
+  `wouekk.github.io/cartvibe/` redirect to it): the site at the root, demo at `/demo/`, an iPhone app section instead of the
+  Cloud one, `/privacy/` and `/support/` (`support@cartvibe.app`, an OVH mailbox) (`docs/site.md`). DNS applied from
+  `cartvibe-cloud/iac/launch` (R2 buckets deleted); roadmap issues #2 and #3 closed, #1 reworded, repo homepage set.
+  Waiting on the owner: cancel the R2 subscription in Cloudflare and drop the R2 permission from the token; a look at the
+  live site on a phone. Not checked: the privacy page by a lawyer, Safari, Firefox.
 - **Project page** (`site/`, `docs/site.md`): shared footer, "Vibe" follows the palette, real demo screenshots (regenerate with
   `npm run shots`, or run the "Project page" workflow by hand with `shots` ticked), one home-page section for the roadmap (public
   GitHub issues labelled `roadmap`, read in the browser, curated fallback; `/roadmap/` redirects to it) with the changelog list
