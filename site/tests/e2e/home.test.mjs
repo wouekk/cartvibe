@@ -17,13 +17,43 @@ const noGithub = (context) => context.route(/^https:\/\/api\.github\.com/, (rout
 test("the hero says what it should and the old overline is gone", async () => {
   const { page, context } = await open(browser, server.origin, "/", { setup: noGithub });
   const hero = page.getByTestId("hero");
-  assert.equal((await hero.locator("h1").innerText()).replace(/\s+/g, " "), "Your household's spending tracking, on your own server.");
+  assert.equal((await hero.locator("h1").innerText()).replace(/\s+/g, " "), "Your household's spending and shopping, finally in one place.");
   assert.equal(
     (await hero.locator("h1 + p").innerText()).replace(/\s+/g, " "),
-    "Scan receipts, share live shopping lists and see where the money goes. Made for a phone.",
+    "Scan receipts at the shop, share live shopping lists, and see where the money goes. Made for your phone: run it on your own server today, with a hosted Cloud plan on the way.",
   );
   assert.equal(await page.getByText("Self-hosted · Open source · AGPL-3.0").count(), 0);
   await context.close();
+});
+
+test("the Cloud plan is the one solid button in the header and the hero; the demo and Self-host it are quiet outlines side by side", async () => {
+  for (const mode of ["light", "dark"]) {
+    const { page, context } = await open(browser, server.origin, "/", { setup: noGithub, width: 1280, mode });
+    for (const [scope, ids] of [
+      ["site-header", ["header-cloud", "header-demo", "header-selfhost"]],
+      ["hero-cta", ["hero-cloud", "hero-demo", "hero-selfhost"]],
+    ]) {
+      const bg = (id) => page.getByTestId(id).evaluate((el) => getComputedStyle(el).backgroundColor);
+      const [cloud, demo, selfHost] = await Promise.all(ids.map(bg));
+      assert.notEqual(cloud, demo, `${scope} ${mode}: Cloud is solid, the demo is not`);
+      assert.equal(demo, selfHost, `${scope} ${mode}: demo and Self-host it look the same`);
+      const [d, s] = await Promise.all(ids.slice(1).map((id) => page.getByTestId(id).boundingBox()));
+      assert.ok(Math.abs(d.y - s.y) < 2 && s.x > d.x && s.x - (d.x + d.width) < 24, `${scope}: demo and Self-host it sit next to each other`);
+    }
+    assert.match(await page.getByTestId("hero-cloud").getAttribute("href"), /#cloud$/);
+    await context.close();
+  }
+});
+
+test("the header and the hero buttons wrap cleanly from 360 to 1280 px", async () => {
+  for (const width of [360, 600, 768, 1024, 1280]) {
+    const { page, context } = await open(browser, server.origin, "/", { setup: noGithub, width, height: 800 });
+    const { doc, win } = await page.evaluate(() => ({ doc: document.documentElement.scrollWidth, win: innerWidth }));
+    assert.ok(doc <= win, `${width}: page scrolls sideways (${doc} > ${win})`);
+    const header = await page.getByTestId("site-header").evaluate((el) => el.scrollWidth <= el.clientWidth);
+    assert.ok(header, `${width}: the header overflows`);
+    await context.close();
+  }
 });
 
 test("the hero visual and the four steps are screenshots of the demo, not mock-ups", async () => {
@@ -44,9 +74,9 @@ test("the hero visual and the four steps are screenshots of the demo, not mock-u
   await context.close();
 });
 
-test('the "And more" block has only its heading and still has its four screenshots', async () => {
+test('the "Built for everything beyond the weekly shop" block has only its heading and still has its four screenshots', async () => {
   const { page, context } = await open(browser, server.origin, "/", { setup: noGithub });
-  const heading = page.getByRole("heading", { level: 2, name: "And more", exact: true });
+  const heading = page.getByRole("heading", { level: 2, name: "Built for everything beyond the weekly shop", exact: true });
   assert.equal(await heading.count(), 1);
   assert.equal(await page.getByText("The rest of the app").count(), 0);
   assert.equal(await page.getByText("Screens of the running app, with demo data.").count(), 0);

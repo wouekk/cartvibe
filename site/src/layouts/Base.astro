@@ -15,7 +15,6 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const nav = [
   { href: `${base}/#features`, label: "Features" },
   { href: `${base}/#why`, label: "Why CartVibe" },
-  { href: `${base}/#cloud`, label: "Cloud plan" },
   { href: `${base}/#roadmap`, label: "Roadmap" },
   { href: `${base}/#faq`, label: "FAQ" },
 ];
@@ -72,7 +71,7 @@ const linkClass = "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium te
           <img class="shot-dark size-8" src={`${base}/brand/icon-dark.svg`} width="32" height="32" alt="" />
           <Wordmark />
         </a>
-        <nav aria-label="Main" class="ml-6 hidden items-center gap-1 lg:flex">
+        <nav aria-label="Main" class="ml-6 hidden items-center gap-1 xl:flex">
           {nav.map((item) => <a href={item.href} class={linkClass} data-spy>{item.label}</a>)}
           <a href={repo} class={linkClass}>GitHub</a>
         </nav>
@@ -121,10 +120,17 @@ const linkClass = "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium te
           >
           <a
             href={`${repo}#quick-start`}
-            class="hidden h-9 items-center whitespace-nowrap rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:bg-primary/80 sm:inline-flex"
+            class="hidden h-9 items-center whitespace-nowrap rounded-md border border-border bg-background px-4 text-sm font-medium transition-colors duration-150 hover:bg-accent md:inline-flex"
+            data-testid="header-selfhost"
             >Self-host it</a
           >
-          <details class="relative lg:hidden" id="mobile-menu">
+          <a
+            href={`${base}/#cloud`}
+            class="hidden h-9 items-center whitespace-nowrap rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:bg-primary/80 sm:inline-flex"
+            data-testid="header-cloud"
+            >CartVibe Cloud</a
+          >
+          <details class="relative xl:hidden" id="mobile-menu">
             <summary
               class="inline-flex size-9 cursor-pointer items-center justify-center rounded-md border border-border bg-background hover:bg-accent"
               aria-label="Menu"
@@ -135,13 +141,18 @@ const linkClass = "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium te
               {nav.map((item) => <a href={item.href} class="block rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent aria-[current=location]:bg-accent" data-spy>{item.label}</a>)}
               <a href={repo} class="block rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent">GitHub</a>
               <a
+                href={`${base}/#cloud`}
+                class="mt-1 flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/80"
+                >CartVibe Cloud</a
+              >
+              <a
                 href={`${base}/demo/`}
                 class="mt-1 flex h-9 items-center justify-center rounded-md border border-border bg-background px-3 text-sm font-medium hover:bg-accent"
                 >Try the demo</a
               >
               <a
                 href={`${repo}#quick-start`}
-                class="mt-1 flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/80"
+                class="mt-1 flex h-9 items-center justify-center rounded-md border border-border bg-background px-3 text-sm font-medium hover:bg-accent"
                 >Self-host it</a
               >
             </div>
