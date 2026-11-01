@@ -98,6 +98,9 @@ const PERMISSION_LABEL_KEYS: Record<string, string> = {
   'Update Report Templates': 'app.reports.update',
   'Create Comments': 'group.comments.create',
   'Delete Comments': 'group.comments.delete',
+  'Create Shopping Lists': 'group.shopping-lists.create',
+  'Update Shopping Lists': 'group.shopping-lists.update',
+  'Delete Shopping Lists': 'group.shopping-lists.delete',
 };
 
 interface RoleRow {
