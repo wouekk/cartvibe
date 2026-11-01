@@ -179,7 +179,8 @@ test('the footer fits a 360px phone and sits below the page content', async ({ p
 
 test('the About licence links stay inside the demo', async ({ page }) => {
   await openDemo(page);
-  await goTo(page, '/about');
+  await page.getByTestId('sidebar-avatar-menu').click();
+  await page.getByTestId('sidebar-about').click();
 
   const links = page.getByTestId('about-credits-licences').locator('a');
   await expect(links.first()).toBeVisible();
@@ -195,12 +196,12 @@ for (const viewport of [{ width: 390, height: 700 }, { width: 1280, height: 700 
     const addRow = page.locator('.add-bar').first();
     await expect(addRow).toBeVisible();
 
-    // Add enough items for the page to scroll, then scroll right to the bottom.
+    // Add enough items for the page to scroll, then scroll down (the row pins only while its list is in view).
     for (let i = 0; i < 25; i++) {
       await page.locator('#shopping-list-add-name-input').fill(`Scroll filler ${i}`);
       await page.getByTestId('shopping-list-add-submit').click();
     }
-    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await page.evaluate(() => window.scrollTo(0, 400));
 
     const header = (await page.locator('#header-container').boundingBox())!;
     const row = (await addRow.boundingBox())!;
