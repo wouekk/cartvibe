@@ -26,12 +26,11 @@ test("the hero says what it should and the old overline is gone", async () => {
   await context.close();
 });
 
-test("the Cloud plan is the one solid button in the header and the hero; the demo and Self-host it are quiet outlines side by side", async () => {
+test("the Cloud plan is the one solid button in the header; the demo and Self-host it are quiet outlines side by side, and the hero has no buttons", async () => {
   for (const mode of ["light", "dark"]) {
     const { page, context } = await open(browser, server.origin, "/", { setup: noGithub, width: 1280, mode });
     for (const [scope, ids] of [
       ["site-header", ["header-cloud", "header-demo", "header-selfhost"]],
-      ["hero-cta", ["hero-cloud", "hero-demo", "hero-selfhost"]],
     ]) {
       const bg = (id) => page.getByTestId(id).evaluate((el) => getComputedStyle(el).backgroundColor);
       const [cloud, demo, selfHost] = await Promise.all(ids.map(bg));
@@ -40,12 +39,12 @@ test("the Cloud plan is the one solid button in the header and the hero; the dem
       const [d, s] = await Promise.all(ids.slice(1).map((id) => page.getByTestId(id).boundingBox()));
       assert.ok(Math.abs(d.y - s.y) < 2 && s.x > d.x && s.x - (d.x + d.width) < 24, `${scope}: demo and Self-host it sit next to each other`);
     }
-    assert.match(await page.getByTestId("hero-cloud").getAttribute("href"), /#cloud$/);
+    assert.equal(await page.getByTestId("hero-cta").count(), 0);
     await context.close();
   }
 });
 
-test("the header and the hero buttons wrap cleanly from 360 to 1280 px", async () => {
+test("the header wraps cleanly from 360 to 1280 px", async () => {
   for (const width of [360, 600, 768, 1024, 1280]) {
     const { page, context } = await open(browser, server.origin, "/", { setup: noGithub, width, height: 800 });
     const { doc, win } = await page.evaluate(() => ({ doc: document.documentElement.scrollWidth, win: innerWidth }));
