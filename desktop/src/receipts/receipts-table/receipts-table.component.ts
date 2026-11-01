@@ -151,7 +151,8 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
         // Not appDate: a filter value is the day the user PICKED, held as a
         // local-midnight Date (or its ISO string once persisted), so it is read
         // on the browser's calendar — the same day toDateWireFilter sends.
-        formatDate: (value) => this.datePipe.transform(value as string) ?? "",
+        // In the app's language (the period picker's dates already are), never DatePipe's default en-US.
+        formatDate: (value) => this.datePipe.transform(value as string, "mediumDate", undefined, this.translation.locale()) ?? "",
         formatCurrency: (value) => this.customCurrencyPipe.transform(value as number),
         translate: (text) => this.translation.t(text),
       }
@@ -322,12 +323,9 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     const group = this.store.selectSnapshot(
       GroupState.getGroupById(this.groupId)
     );
+    // Translatable titles (the header passes them through `t`): "<group> Receipts" could never be translated.
     if (group) {
-      if (group.name.toLowerCase().includes("receipt")) {
-        this.headerText = group.name;
-      } else {
-        this.headerText = `${group.name} Receipts`;
-      }
+      this.headerText = group.isAllGroup ? marker("All receipts") : marker("Receipts");
     }
   }
 

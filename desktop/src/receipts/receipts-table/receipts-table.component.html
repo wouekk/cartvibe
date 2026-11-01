@@ -36,35 +36,6 @@
       [buttonRouterLink]="['/receipts/add']"
     ></app-add-button>
 
-    <!-- The same period control as the Dashboard (Phase 3 feedback): quick ranges plus From / To. It
-         sets the Receipt Date filter. -->
-    <app-period-picker class="me-2" data-testid="receipts-period" (periodChange)="periodSelected($event)"></app-period-picker>
-
-
-    <app-button
-      class="relative me-2 inline-flex size-9 flex-none items-center justify-center self-center [&_button]:size-9 [&_button]:p-0"
-      data-testid="receipts-filter"
-      icon="filter_alt"
-      matButtonType="iconButton"
-      [tooltip]="'Filter Receipts' | t"
-      color="accent"
-      matBadgeColor="accent"
-      [matBadgeContent]="numFiltersApplied()"
-      (clicked)="filterButtonClicked()"
-    ></app-button>
-    <app-button
-      *ngIf="anyFilterApplied()"
-      animate.enter="animate-in fade-in-0 duration-200 motion-reduce:animate-none"
-      animate.leave="animate-out fade-out-0 duration-200 motion-reduce:animate-none"
-      class="me-2"
-      data-testid="receipts-filter-reset"
-      icon="restart_alt"
-      matButtonType="iconButton"
-      [tooltip]="'Reset filter' | t"
-      color="accent"
-      (clicked)="resetFilterButtonClicked()"
-    ></app-button>
-
     @if (selectedReceiptIds().length > 1) {
       <app-queue-start-menu
         class="me-2"
@@ -153,6 +124,34 @@
 </ng-template>
   </div>
 </app-table-header>
+
+<!-- The same period row as the Dashboard: quick ranges plus From / To (they set the Receipt Date filter), then the
+     filter and its reset. It starts under the title, left-aligned, rather than wrapping on the right of the header. -->
+<div class="mb-4 mt-4 flex flex-wrap items-center gap-2" data-testid="receipts-period-row">
+  <app-period-picker data-testid="receipts-period" (periodChange)="periodSelected($event)"></app-period-picker>
+  <app-button
+    class="relative inline-flex size-9 flex-none items-center justify-center self-center [&_button]:size-9 [&_button]:p-0"
+    data-testid="receipts-filter"
+    icon="filter_alt"
+    matButtonType="iconButton"
+    [tooltip]="'Filter Receipts' | t"
+    color="accent"
+    matBadgeColor="accent"
+    [matBadgeContent]="numFiltersApplied()"
+    (clicked)="filterButtonClicked()"
+  ></app-button>
+  <app-button
+    *ngIf="anyFilterApplied()"
+    animate.enter="animate-in fade-in-0 duration-200 motion-reduce:animate-none"
+    animate.leave="animate-out fade-out-0 duration-200 motion-reduce:animate-none"
+    data-testid="receipts-filter-reset"
+    icon="restart_alt"
+    matButtonType="iconButton"
+    [tooltip]="'Reset filter' | t"
+    color="accent"
+    (clicked)="resetFilterButtonClicked()"
+  ></app-button>
+</div>
 
 
 @if (filterChips().length > 0) {
