@@ -2,7 +2,7 @@ import { Component, DestroyRef, effect, inject, Input, OnInit, signal, TemplateR
 import { FormArray, FormControl, Validators } from "@angular/forms";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Store } from "@ngxs/store";
-import { map, Observable, of, startWith } from "rxjs";
+import { defer, map, Observable, of, startWith } from "rxjs";
 import { BaseInputComponent } from "../../base-input";
 import { AuthState } from "../../store/auth.state";
 
@@ -82,11 +82,15 @@ export class AutocomleteComponent
 
   private optionsEffect = effect(() => {
     this.options();
-    this.filteredOptions = this.filterFormControl.valueChanges.pipe(
-      startWith(this.filterFormControl.value),
-      map((value) => {
-        return this._filter(value);
-      })
+    // Deferred: the single-select input is re-created after Clear, and its new subscription must start from the
+    // filter text of that moment, not the value the control held when the options last changed.
+    this.filteredOptions = defer(() =>
+      this.filterFormControl.valueChanges.pipe(
+        startWith(this.filterFormControl.value),
+        map((value) => {
+          return this._filter(value);
+        })
+      )
     );
   });
 
