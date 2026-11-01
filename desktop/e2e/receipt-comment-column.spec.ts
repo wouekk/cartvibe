@@ -2,6 +2,7 @@ import { expect, Page, test } from '@playwright/test';
 import { creds, stubTokenRefresh } from './helpers/auth';
 import {
   apiCreateComment,
+  midMonthIso,
   apiCreateGroup,
   apiCreateReceipt,
   apiDeleteGroupById,
@@ -52,7 +53,7 @@ test.describe('Receipts table — Comment column', () => {
           paidByUserId: adminId,
           name: receipt.name,
           // The table opens on "this month": dated mid-month so the rows are in it whatever today is.
-          date: `${new Date().toISOString().slice(0, 7)}-15T00:00:00Z`,
+          date: midMonthIso(),
         });
         // Sequential on purpose: "first" is the earliest, and the id breaks a
         // created_at tie in insertion order.

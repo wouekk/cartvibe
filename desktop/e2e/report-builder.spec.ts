@@ -47,13 +47,15 @@ test.describe('Report Builder', () => {
     // Scope to a group (the disable behavior is independent of the data).
     await addFirstGroupToScope(page);
 
-    // Default is aggregate-by = Category with a valid Category dimension column.
+    // Only Aggregate detail rows tie a dimension column to what is grouped (Records rows show each
+    // receipt's own value). The default aggregate-by is Category with a valid Category dimension column.
     // Switch aggregate-by to Tag — now the Category column reads neither the
     // aggregate-by (Tag) nor a grouping level, so it becomes invalid.
+    await page.getByTestId('report-detail-aggregate').click();
     await openComboboxAndPick(
       page,
-      page.locator('mat-select').filter({ hasText: 'Category' }),
-      page.locator('mat-option').filter({ hasText: 'Tag' }),
+      comboboxNamed(page, 'Aggregate by'),
+      page.getByRole('option', { name: 'Tag', exact: true }),
     );
 
     // The Category column is kept but shown disabled (not removed), and the

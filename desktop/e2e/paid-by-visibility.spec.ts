@@ -2,6 +2,7 @@ import { BrowserContext, expect, Page, test } from '@playwright/test';
 import { creds, stubTokenRefresh } from './helpers/auth';
 import {
   apiCreateReceipt,
+  midMonthIso,
   apiDeleteGroupById,
   apiDeleteRoleByName,
   apiGetUserId,
@@ -68,11 +69,13 @@ test.describe('Group role paid-by visibility', () => {
         groupId,
         paidByUserId: adminId,
         name: hiddenReceiptName,
+        date: midMonthIso(),
       });
       ownReceiptId = await apiCreateReceipt(api, {
         groupId,
         paidByUserId: userId,
         name: ownReceiptName,
+        date: midMonthIso(),
       });
     });
   });

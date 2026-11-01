@@ -16,6 +16,11 @@ export function uniqueName(tag: string): string {
   return `e2e-${tag}-${Date.now()}`;
 }
 
+/** The 15th of the current UTC month, as an ISO instant: a date the receipts table's default "this month" lists. */
+export function midMonthIso(): string {
+  return `${new Date().toISOString().slice(0, 7)}-15T00:00:00Z`;
+}
+
 export interface CreateRoleOptions {
   name: string;
   /** Role-type card to pick, e.g. 'Application role' | 'Group role'. */
@@ -198,17 +203,34 @@ export async function createRole(_page: Page | null, opts: CreateRoleOptions): P
 /** Creates a user assigned the app role [opts.role] through the admin API (the Add User dialog's role select has no accessible name). */
 export async function createUserWithRole(
   _page: Page | null,
-  opts: { username: string; password: string; role: string },
+  opts: { username: string; password: string; role: string; createdWithRole?: boolean },
 ): Promise<void> {
   // A new account is greeted by a welcome dialog that covers the page (UserPreferences.onboardingPending). The
   // account can only switch it off itself, and a custom role may lack app.user-preferences.*, so the user starts on
-  // Legacy User, turns the dialog off, and only then gets the requested role.
+  // Legacy User, turns the dialog off, and only then gets the requested role. `createdWithRole` skips that and
+  // creates the account on the role at once, for specs about what the role does at creation time (the welcome
+  // dialog does not matter to an API-only account).
   await withAdminApi(async (api) => {
     const roles = await apiListRoles(api);
     const role = roles.find((r) => r.name === opts.role && r.scope === 'APP');
     const starter = roles.find((r) => r.name === 'Legacy User' && r.scope === 'APP');
     if (!role || !starter) {
       throw new Error(`app role ${opts.role} not found`);
+    }
+    if (opts.createdWithRole) {
+      const direct = await api.post('/api/user', {
+        data: {
+          username: opts.username,
+          password: opts.password,
+          displayName: opts.username,
+          isDummyUser: false,
+          appRoleId: role.id,
+        },
+      });
+      if (!direct.ok()) {
+        throw new Error(`create user ${opts.username} failed: HTTP ${direct.status()} ${await direct.text()}`);
+      }
+      return;
     }
     const res = await api.post('/api/user', {
       data: {
@@ -431,8 +453,8 @@ export async function apiCreateReceipt(
     paidByUserId: number;
     name: string;
     /**
-     * Receipt date as an ISO string. Defaults to the 15th of the current UTC month: the receipts table opens on
-     * "this month", so a receipt dated any other time would not be listed.
+     * Receipt date as an ISO string. Defaults to a fixed date in 2024 (the report specs count on it). The receipts
+     * table opens on "this month", so a spec that looks for the row there passes `midMonthIso()`.
      */
     date?: string;
     /**
@@ -458,7 +480,7 @@ export async function apiCreateReceipt(
     data: {
       name: opts.name,
       amount: opts.amount ?? '10.00',
-      date: opts.date ?? `${new Date().toISOString().slice(0, 7)}-15T00:00:00Z`,
+      date: opts.date ?? '2024-01-01T00:00:00Z',
       groupId: Number(opts.groupId),
       paidByUserId: opts.paidByUserId,
       status: opts.status ?? 'OPEN',

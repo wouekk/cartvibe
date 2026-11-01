@@ -176,7 +176,7 @@ test.describe('System tasks filter', () => {
     await gotoSystemTasks(page);
 
     // No conditions yet, so no chips and no reset control.
-    await expect(page.locator('mat-chip[data-testid^="system-task-filter-chip-"]')).toHaveCount(0);
+    await expect(page.locator('[data-testid^="system-task-filter-chip-"]')).toHaveCount(0);
     await expect(page.getByTestId('system-tasks-filter-reset')).toBeHidden();
 
     await page.getByTestId('system-tasks-filter').click();
@@ -185,7 +185,8 @@ test.describe('System tasks filter', () => {
     // getByLabel matches the autocomplete's listbox as well as its input, and a
     // multi-select panel stays open over the footer after a pick — so the row
     // is driven by role and the panel is dismissed by clicking the heading.
-    await comboboxNamed(page, 'Type').click();
+    // (A click alone does not open the option list; typing does.)
+    await comboboxNamed(page, 'Type').fill('Receipt Uploaded');
     await page.getByRole('option', { name: 'Receipt Uploaded', exact: true }).click();
     await page.getByRole('heading', { name: 'Filter System Tasks' }).click();
 
@@ -218,7 +219,7 @@ test.describe('System tasks filter', () => {
 
     // A chip clears its own condition and nothing else.
     await page.getByTestId('system-task-filter-chip-clear-type').click();
-    await expect(page.locator('mat-chip[data-testid^="system-task-filter-chip-"]')).toHaveCount(0);
+    await expect(page.locator('[data-testid^="system-task-filter-chip-"]')).toHaveCount(0);
     await expect(page.getByTestId('system-tasks-filter-reset')).toBeHidden();
   });
 });

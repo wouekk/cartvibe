@@ -325,16 +325,16 @@ test.describe('Per-member category/tag visibility', () => {
 
     await page.goto(`/receipts/${receiptId}/edit`);
 
-    const categoryField = page
-      .getByTestId('receipt-categories')
-      .getByRole('combobox', { name: 'Categories' });
-    await expect(categoryField).toBeVisible();
-    await categoryField.click();
+    // The receipt form's category picker is the product line's (the "add a line" row at the end of the products
+    // table), which offers the group's catalog by name.
+    const picker = page.getByTestId('receipt-product-category-picker').last();
+    await expect(picker).toBeVisible();
+    await picker.click();
 
     // Only the intersected category is offered; the other two the ROLE allows are
     // not, because this member's individual assignment narrows past them.
-    await expect(page.getByRole('option', { name: category.b.name, exact: true })).toBeVisible();
-    await expect(page.getByRole('option', { name: category.a.name, exact: true })).toHaveCount(0);
-    await expect(page.getByRole('option', { name: category.c.name, exact: true })).toHaveCount(0);
+    await expect(page.getByTestId(`receipt-product-category-${category.b.id}`)).toBeVisible();
+    await expect(page.getByTestId(`receipt-product-category-${category.a.id}`)).toHaveCount(0);
+    await expect(page.getByTestId(`receipt-product-category-${category.c.id}`)).toHaveCount(0);
   });
 });

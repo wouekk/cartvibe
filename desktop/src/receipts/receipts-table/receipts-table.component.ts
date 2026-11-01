@@ -123,6 +123,9 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
   private readonly refreshRequested = new Subject<void>();
 
+  /** Set by the first refresh: from then on the initial page (still in flight, maybe) is superseded. */
+  private refreshWasRequested = false;
+
   private groups = this.store.selectSignal(GroupState.groups);
 
   private users = this.store.selectSignal(UserState.users);
@@ -325,8 +328,13 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
       .pipe(
         take(1),
         tap((pagedData) => {
-          this.dataSource.set(new TableDataSource<PagedDataDataInner>(pagedData.data));
-          this.totalCount.set(pagedData.totalCount);
+          // The period picker asks for its own page as soon as it mounts. That request is newer than this one, so
+          // when it has been made this response must not repaint the table (it would show receipts the filter
+          // excludes, or the other way round).
+          if (!this.refreshWasRequested) {
+            this.dataSource.set(new TableDataSource<PagedDataDataInner>(pagedData.data));
+            this.totalCount.set(pagedData.totalCount);
+          }
           this.setColumns();
         })
       )
@@ -687,6 +695,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
    * The filter changed, or receipts were mutated, or the page or sort changed: refresh the page.
    */
   public getFilteredReceipts(): void {
+    this.refreshWasRequested = true;
     this.refreshRequested.next();
   }
 
