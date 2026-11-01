@@ -197,9 +197,14 @@ export async function createUserWithRole(
   _page: Page | null,
   opts: { username: string; password: string; role: string },
 ): Promise<void> {
+  // A new account is greeted by a welcome dialog that covers the page (UserPreferences.onboardingPending). The
+  // account can only switch it off itself, and a custom role may lack app.user-preferences.*, so the user starts on
+  // Legacy User, turns the dialog off, and only then gets the requested role.
   await withAdminApi(async (api) => {
-    const role = (await apiListRoles(api)).find((r) => r.name === opts.role && r.scope === 'APP');
-    if (!role) {
+    const roles = await apiListRoles(api);
+    const role = roles.find((r) => r.name === opts.role && r.scope === 'APP');
+    const starter = roles.find((r) => r.name === 'Legacy User' && r.scope === 'APP');
+    if (!role || !starter) {
       throw new Error(`app role ${opts.role} not found`);
     }
     const res = await api.post('/api/user', {
@@ -208,11 +213,23 @@ export async function createUserWithRole(
         password: opts.password,
         displayName: opts.username,
         isDummyUser: false,
-        appRoleId: role.id,
+        appRoleId: starter.id,
       },
     });
     if (!res.ok()) {
       throw new Error(`create user ${opts.username} failed: HTTP ${res.status()} ${await res.text()}`);
+    }
+    await withApiAsCreds(opts.username, opts.password, async (userApi) => {
+      const preferences = (await (await userApi.get('/api/userPreferences')).json()) as Record<string, unknown>;
+      await userApi.put('/api/userPreferences', { data: { ...preferences, onboardingPending: false } });
+    });
+    if (role.id !== starter.id) {
+      const users = (await (await api.get('/api/user/')).json()) as { id: number; username: string }[];
+      const created = users.find((u) => u.username === opts.username)!;
+      const update = await api.put(`/api/user/${created.id}`, { data: { ...created, appRoleId: role.id } });
+      if (!update.ok()) {
+        throw new Error(`assign ${opts.role} to ${opts.username} failed: HTTP ${update.status()} ${await update.text()}`);
+      }
     }
   });
 }
@@ -430,6 +447,7 @@ export async function apiCreateReceipt(
     tags?: { id: number; name: string }[];
   },
 ): Promise<number> {
+  api = retryOn503(api);
   const res = await api.post('/api/receipt', {
     data: {
       name: opts.name,
@@ -481,6 +499,7 @@ export async function apiCreateGroup(
   api: APIRequestContext,
   name: string,
 ): Promise<{ id: number; name: string }> {
+  api = retryOn503(api);
   const res = await api.post('/api/group', {
     data: { name, status: 'ACTIVE' },
   });
@@ -578,6 +597,7 @@ export async function apiCreateReportTemplate(
     columns?: unknown[];
   },
 ): Promise<{ id: number; name: string }> {
+  api = retryOn503(api);
   const name = opts?.name ?? uniqueName('report-template');
   // Scope a real group the caller can report on, so generating over it isn't
   // group-gated out (the seeded admin's group ids are not necessarily [1]).
@@ -639,6 +659,7 @@ export async function apiCreateRole(
   api: APIRequestContext,
   opts: UpsertRolePayload,
 ): Promise<{ id: number }> {
+  api = retryOn503(api);
   const res = await api.post('/api/role', {
     data: { description: '', ...opts },
   });
@@ -660,6 +681,7 @@ export async function apiUpdateRole(
   id: number,
   opts: UpsertRolePayload,
 ): Promise<void> {
+  api = retryOn503(api);
   const res = await api.put(`/api/role/${id}`, {
     data: { description: '', ...opts },
   });
@@ -687,6 +709,7 @@ export async function apiCreateCategory(
   api: APIRequestContext,
   name: string,
 ): Promise<{ id: number; name: string }> {
+  api = retryOn503(api);
   const res = await api.post('/api/category', { data: { name, description: '' } });
   if (!res.ok()) {
     throw new Error(
@@ -702,6 +725,7 @@ export async function apiCreateTag(
   api: APIRequestContext,
   name: string,
 ): Promise<{ id: number; name: string }> {
+  api = retryOn503(api);
   const res = await api.post('/api/tag', { data: { name, description: '' } });
   if (!res.ok()) {
     throw new Error(`create tag failed: HTTP ${res.status()} ${await res.text()}`);

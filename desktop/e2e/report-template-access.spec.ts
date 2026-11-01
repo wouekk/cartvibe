@@ -16,75 +16,11 @@ import {
 } from './helpers/provisioning';
 import { gotoReports } from './helpers/reports';
 
-// End-to-end coverage of the report-template access model: the per-template access
-// MATRIX on the group-role form (authoring + hydration), and its enforcement — a
+// End-to-end coverage of the report-template access model (the matrix authoring UI went with the role editor):
+// its enforcement — a
 // group member restricted by the matrix sees only the granted template and only its
 // granted row actions. The exhaustive per-permission decision matrix is unit-tested
 // in api/internal/services/report_authz_test.go; these prove the UI wiring.
-
-test.describe('Reports — access matrix authoring', () => {
-  test.use({ storageState: 'e2e/.auth/admin.json' });
-
-  let templateName: string;
-  let templateId: number;
-  const roleName = uniqueName('matrix-role');
-
-  test.beforeAll(async () => {
-    templateName = uniqueName('matrix-template');
-    const template = await withAdminApi((api) => apiCreateReportTemplate(api, { name: templateName }));
-    templateId = template.id;
-  });
-
-  test.afterAll(async () => {
-    try {
-      await withAdminApi(async (api) => {
-        await apiDeleteReportTemplateById(api, templateId);
-        await apiDeleteRoleByName(api, roleName, 'GROUP');
-      });
-    } catch {
-      // Best-effort teardown.
-    }
-  });
-
-  test.beforeEach(async ({ page }) => {
-    await stubTokenRefresh(page);
-  });
-
-  test('authors the matrix on a group role and rehydrates it on re-open', async ({ page }) => {
-    await page.goto('/roles');
-    await page.getByRole('button', { name: 'Add Role' }).first().click();
-    await expect(page).toHaveURL(/\/roles\/new$/);
-    await page.getByRole('button', { name: /Group role/ }).click();
-    await page.getByLabel('Role Name').fill(roleName);
-    await page.getByRole('button', { name: 'Start from scratch' }).click();
-    // A realistic group role — grant group.reports.read so it could actually reach reports.
-    await page.getByRole('button', { name: 'Toggle all Reports permissions' }).click();
-
-    // The matrix lists the seeded template (options load from GET /report/template/options).
-    // Grant it View + Generate; leave Edit/Delete/Duplicate off.
-    const viewToggle = page.getByRole('button', { name: `View ${templateName}`, exact: true });
-    await expect(viewToggle).toBeVisible();
-    await viewToggle.click();
-    await page.getByRole('button', { name: `Generate ${templateName}`, exact: true }).click();
-
-    // Save and capture the new role id from the create call, so we can re-open it directly.
-    const [createResponse] = await Promise.all([
-      page.waitForResponse((r) => r.url().endsWith('/api/role') && r.request().method() === 'POST'),
-      page.getByRole('button', { name: 'Save Role' }).click(),
-    ]);
-    expect(createResponse.status()).toBe(200);
-    const created = (await createResponse.json()) as { id: number };
-    await expect(page).toHaveURL(/\/roles$/);
-
-    // Re-open in edit mode → the matrix rehydrates: View + Generate on, the rest off.
-    await page.goto(`/roles/${created.id}/edit?scope=group`);
-    await expect(page.getByRole('button', { name: `View ${templateName}`, exact: true })).toHaveClass(/\bon\b/);
-    await expect(page.getByRole('button', { name: `Generate ${templateName}`, exact: true })).toHaveClass(/\bon\b/);
-    await expect(page.getByRole('button', { name: `Edit ${templateName}`, exact: true })).not.toHaveClass(/\bon\b/);
-    await expect(page.getByRole('button', { name: `Delete ${templateName}`, exact: true })).not.toHaveClass(/\bon\b/);
-    await expect(page.getByRole('button', { name: `Duplicate ${templateName}`, exact: true })).not.toHaveClass(/\bon\b/);
-  });
-});
 
 test.describe('Reports — matrix restricts a group member', () => {
   const AUTH_FILE = 'e2e/.auth/report-matrix-member.json';

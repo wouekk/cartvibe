@@ -47,16 +47,8 @@ test.describe('Quick scan dialog field response', () => {
       if (target) {
         target.groupReceiptSettings = {
           ...target.groupReceiptSettings,
-          quickScanPaidByEnabled: false, // hidden
-          quickScanPaidByRequired: false,
-          quickScanDefaultPaidByType: 'UPLOADER',
-          quickScanStatusEnabled: true, // shown, optional
-          quickScanStatusRequired: false,
-          quickScanDefaultStatus: 'OPEN',
-          quickScanCategoriesEnabled: true, // shown, required
-          quickScanCategoriesRequired: true,
-          quickScanTagsEnabled: false, // hidden
-          quickScanTagsRequired: false,
+          quickScanCommentEnabled: true, // shown, required
+          quickScanCommentRequired: true,
         };
       }
       await route.fulfill({ response, json: body });
@@ -102,13 +94,11 @@ test.describe('Quick scan dialog field response', () => {
     // makes the input readonly until its X is clicked.
     await selectImageGroup(page, dialog, group.name);
 
-    // Fields now reflect the injected config: paid-by + tags hidden, status + categories shown.
-    await expect(comboboxNamed(dialog, 'Paid By')).toHaveCount(0);
-    await expect(comboboxNamed(dialog, 'Tags')).toHaveCount(0);
-    await expect(comboboxNamed(dialog, 'Status')).toBeVisible();
-    await expect(comboboxNamed(dialog, 'Categories')).toBeVisible();
+    // The Comment is the only per-image field left (Paid By, Status, Categories and Tags went with the family
+    // rework): it appears with the group's config and, being required and empty, blocks the submit below.
+    await expect(dialog.getByTestId('quick-scan-comment')).toBeVisible();
 
-    // Categories is required and empty → submitting surfaces a validation error and queues nothing.
+    // The comment is required and empty → submitting surfaces a validation error and queues nothing.
     await dialog.getByTestId('dialog-submit-button').click();
     await expect(
       page.getByText('Please fill in all required fields', { exact: false }),
