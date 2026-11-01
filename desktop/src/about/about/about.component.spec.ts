@@ -55,7 +55,7 @@ describe("AboutComponent", () => {
       "https://github.com/spartan-ng/spartan",
       "https://www.chartjs.org",
     ]);
-    expect(hrefs("about-credits-licences")).toEqual(["/3rdpartylicenses.txt", "/assets/licenses/NOTICES.txt"]);
+    expect(hrefs("about-credits-licences")).toEqual(["3rdpartylicenses.txt", "assets/licenses/NOTICES.txt"]);
   });
 
 

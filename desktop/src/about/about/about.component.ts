@@ -60,8 +60,8 @@ export class AboutComponent {
   public readonly chartJsUrl = "https://www.chartjs.org";
 
   /** Licence texts served by the app itself: the npm packages (written by the build) and the rest. */
-  public readonly packageLicencesUrl = "/3rdpartylicenses.txt";
+  public readonly packageLicencesUrl = "3rdpartylicenses.txt";
 
-  public readonly noticesUrl = "/assets/licenses/NOTICES.txt";
+  public readonly noticesUrl = "assets/licenses/NOTICES.txt";
 
 }

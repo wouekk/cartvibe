@@ -1,5 +1,6 @@
 import { ConnectedPosition } from "@angular/cdk/overlay";
 import { Component, computed, effect, signal, untracked, ChangeDetectionStrategy } from "@angular/core";
+import { Location } from "@angular/common";
 import { Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
@@ -77,9 +78,18 @@ export class HeaderComponent {
     private router: Router,
     private store: Store,
     private viewportService: ViewportService,
-    private theme: ThemeService
+    private theme: ThemeService,
+    private location: Location
   ) {
     this.listenForLoggedInUser();
+  }
+
+  /**
+   * An in-app shortcut ("/receipts") goes through the location strategy, so it keeps the base href and the hash
+   * (the demo lives under /cartvibe/demo/#/); the app itself is unchanged. Other addresses are left alone.
+   */
+  public shortcutHref(url: string): string {
+    return url.startsWith("/") && !url.startsWith("//") ? this.location.prepareExternalUrl(url) : url;
   }
 
   /** Quick switch between day and night; picking one leaves "System" for this browser, like the Theme page does. */

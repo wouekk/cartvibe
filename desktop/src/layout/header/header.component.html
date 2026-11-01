@@ -6,7 +6,7 @@
     <div class="flex min-w-0 items-center max-md:flex-none md:flex-1">
       <button hlmSidebarTrigger class="mr-1" data-testid="sidebar-toggle"></button>
       @for (shortcut of userPreferences()?.userShortcuts ?? []; track shortcut["id"]) {
-        <a class="max-md:hidden" [href]="shortcut.url">
+        <a class="max-md:hidden" [href]="shortcutHref(shortcut.url)">
           <button
             hlmBtn variant="ghost" size="icon-lg"
             color="accent"
