@@ -1,5 +1,6 @@
 import {
   type APIRequestContext,
+  type APIResponse,
   expect,
   type Page,
   request as pwRequest,
@@ -269,6 +270,27 @@ export async function createGroupWithMember(
 // it). `request.newContext` against E2E_BASE_URL reuses the dev-server proxy to
 // `/api`; the admin login cookie is stored on the context for later DELETEs.
 
+/**
+ * POST /api/login, retried with backoff while nginx's login limit answers 503 (30 a minute; parallel workers can
+ * hit it). Any other status is returned at once, so a wrong password still fails fast.
+ */
+export async function loginWithRetry(
+  api: APIRequestContext,
+  username: string,
+  password: string,
+  delaysMs: readonly number[] = [500, 1000, 2000, 4000, 8000],
+): Promise<APIResponse> {
+  let res = await api.post('/api/login', { data: { username, password } });
+  for (const delay of delaysMs) {
+    if (res.status() !== 503) {
+      break;
+    }
+    await new Promise((resolve) => setTimeout(resolve, delay));
+    res = await api.post('/api/login', { data: { username, password } });
+  }
+  return res;
+}
+
 const apiBaseUrl = (): string =>
   process.env.E2E_BASE_URL ?? 'http://localhost:4200';
 
@@ -284,7 +306,7 @@ export async function withApiAsCreds<T>(
 ): Promise<T> {
   const api = await pwRequest.newContext({ baseURL: apiBaseUrl() });
   try {
-    const res = await api.post('/api/login', { data: { username, password } });
+    const res = await loginWithRetry(api, username, password);
     if (!res.ok()) {
       throw new Error(`${username} API login failed: HTTP ${res.status()}`);
     }
