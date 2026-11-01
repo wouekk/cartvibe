@@ -30,6 +30,10 @@ async function openTemplate(page: Page, name: string): Promise<void> {
 }
 
 test.describe('Reports — templates list', () => {
+  // Serial: every test seeds a template into the one admin list, and a template a parallel test adds re-renders the
+  // rows under a pending click, which then hits (and deletes) the wrong row.
+  test.describe.configure({ mode: 'serial' });
+
   let seededId: number | undefined;
   let seededName: string;
   const extraIds: number[] = [];

@@ -13,7 +13,10 @@ import { creds, type Role } from './auth';
 // use cannot be deleted: user and group first, then the role).
 
 export function uniqueName(tag: string): string {
-  return `e2e-${tag}-${Date.now()}`;
+  // Two workers can mint a name in the same millisecond (a delete by name then removes the wrong twin), so a random
+  // part follows the clock.
+  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  return `e2e-${tag}-${Date.now()}${random}`;
 }
 
 /** The 15th of the current UTC month, as an ISO instant: a date the receipts table's default "this month" lists. */
