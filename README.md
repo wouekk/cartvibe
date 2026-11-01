@@ -127,10 +127,7 @@ The same tour, with screenshots and a live demo, is on [cartvibe.app](https://ca
 | **Reports** | Build a report by category, shop or month with a live preview, and export it to PDF, CSV or Excel. |
 | **Barcode scanner** | Scan or type a barcode to see the Nutri-Score, NOVA level, additives and nutrition from Open Food Facts. |
 | **Installs like an app** | Phone first: add it to your home screen and it opens full screen, keeping the screen awake while you shop. |
-
-**Also:** shop logos (with your own free Logo.dev key), day and night with four accent palettes, five languages (English
-and Polish checked by hand; German, French and Spanish still machine-translated), your own tags, foreign currencies, family
-accounts where nobody splits bills, Ctrl or Cmd K search, and going-shopping and warranty reminders.
+| **Other** | Shop logos (with your own free Logo.dev key), day and night with four accent palettes, five languages (English and Polish checked by hand), your own tags, currencies, family accounts, Ctrl or Cmd K search and reminders. |
 
 <p align="center">
   <picture>
@@ -141,35 +138,16 @@ accounts where nobody splits bills, Ctrl or Cmd K search, and going-shopping and
   <sub><b>The family Dashboard</b>: what you've spent this month, how close you are to your budget, what wasn't on the list, and where the money went</sub>
 </p>
 
+<!-- The two receipt shots have different shapes (nearly square and 16:10), so both get the same height and line up. -->
 <table>
   <tr>
-    <td width="50%" valign="top">
-      <img src="docs/screenshots/receipt-products.webp" alt="A Kaufland receipt photo next to the products read from it, each with its health rating, category and price" />
+    <td width="50%" valign="top" align="center">
+      <img src="docs/screenshots/receipt-products.webp" alt="A Kaufland receipt photo next to the products read from it, each with its health rating, category and price" height="260" />
       <p align="center"><sub><b>Receipts read by AI</b>: every line from the photo, with a health rating and a category</sub></p>
     </td>
-    <td width="50%" valign="top">
-      <img src="docs/screenshots/product-check.webp" alt="Product lookup: an Alpro almond drink with its health score, Nutri-Score B, NOVA 4 and additives" />
-      <p align="center"><sub><b>Product lookup</b>: scan, upload or type a barcode to see what's inside</sub></p>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%" valign="top">
-      <img src="docs/screenshots/receipts.webp" alt="Receipts list with shop logos for Kaufland, Biedronka, Lidl, Dino and Rossmann" />
-      <p align="center"><sub><b>Receipts</b>: optional shop logos, a search that forgives typos, and one date picker</sub></p>
-    </td>
-    <td width="50%" valign="top">
-      <img src="docs/screenshots/report-builder.webp" alt="Report builder with a live preview of spending by shop and CSV, XLSX and PDF export" />
-      <p align="center"><sub><b>Reports</b>: see the result while you build it, then export it</sub></p>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%" valign="top">
-      <img src="docs/screenshots/shopping-list.webp" alt="The Weekly groceries list open, with Going shopping and Mark as complete, and the household's other lists below, finished ones dimmed" />
-      <p align="center"><sub><b>Shopping lists</b>: shared and live; finish a list in one tap, bring back an old one</sub></p>
-    </td>
     <td width="50%" valign="top" align="center">
-      <img src="docs/screenshots/phone-shopping-list-pl.webp" alt="The shopping list on a phone, in Polish" width="62%" />
-      <p align="center"><sub><b>On your phone</b>: from the home screen, in your language (here Polish)</sub></p>
+      <img src="docs/screenshots/receipts.webp" alt="Receipts list with shop logos for Kaufland, Biedronka, Lidl, Dino and Rossmann" height="260" />
+      <p align="center"><sub><b>Receipts</b>: optional shop logos, a search that forgives typos, and one date picker</sub></p>
     </td>
   </tr>
 </table>
