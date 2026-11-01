@@ -13,7 +13,8 @@ The look of every UI change: `DESIGN.md`. Local toolchains and manual steps: `do
 ## Workflow
 
 - Work on `feature/<name>` from `main`, or on `preview` when the user says so. Agents merge finished work into `preview`.
-  **IMPORTANT:** merging or pushing to `main` waits for the user's go.
+  **IMPORTANT:** merging or pushing code to `main` waits for the user's go. A docs-only change (Markdown files only; no
+  code, config or workflow) may follow `preview` to `main` without asking.
 - CI (`ci.yml`) runs on `main` and `feature/**` only: Go build + tests, desktop Vitest and `ng build` (the spec build compiles
   components JIT, so template errors only show in the build). CI is the judge; never claim tests passed that
   did not run. The `e2e-smoke` job runs a few Playwright specs (`npm run e2e:smoke`) against the built image; the rest of

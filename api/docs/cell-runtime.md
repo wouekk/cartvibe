@@ -9,8 +9,9 @@ deployment would serve many cells from one process; the handle is what keeps one
 data. The hosted design itself is kept outside this repository.
 
 **Parked since 2026-11-02:** there is no hosted plan, so the move stops after step 3. What is merged stays (the handle, the
-repositories, the cell-keyed caches, the report-only lint); moving services and handlers off `repositories.GetDB()` is not
-planned. The rules below still apply to new repository code.
+repositories, the cell-keyed caches, `tools/celllint`); moving services and handlers off `repositories.GetDB()` is not
+planned, and CI no longer runs the lint. The rules below are a record: new code only follows the existing pattern (a
+repository takes a handle). Reopening the hosted plan brings them back.
 
 ## What exists
 

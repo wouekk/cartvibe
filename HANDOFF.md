@@ -1,99 +1,40 @@
 # HANDOFF.md — where things stand
 
-Session state only; keep it under about 2 KB. Delete an entry once it is done (git history keeps it); permanent
-knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
+Session state only, read by every session: keep it under about 3 KB. Delete an entry once it is done (git history and
+`CHANGELOG.md` keep it); permanent knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 
 ## Current state
 
-- **No hosted plan (2026-11-02).** After a four-agent review the owner dropped the hosted CartVibe Cloud and cancelled the OVH
-  VPS: `wouekk/cartvibe-cloud` is frozen (ADR 0014 there), the iPhone app keeps its data on the device and in the user's own
-  iCloud. **`https://cartvibe.app` is live** (2026-11-02, GitHub Pages, HTTPS enforced; `www`, `http` and the old
-  `wouekk.github.io/cartvibe/` redirect to it): the site at the root, demo at `/demo/`, an iPhone app section instead of the
-  Cloud one, `/privacy/` and `/support/` (`support@cartvibe.app`, an OVH mailbox) (`docs/site.md`). DNS applied from
-  `cartvibe-cloud/iac/launch` (R2 buckets deleted); roadmap issues #2 and #3 closed, #1 reworded, repo homepage set.
-  R2 cancelled, privacy page approved by the owner, phone check done (iPhone Duo too). Domain verified for GitHub Pages;
-  mail has SPF, DKIM (OVH) and DMARC `p=none` (mail-tester 10/10); all records in `cartvibe-cloud/iac/launch/records.tf`,
-  `tofu plan` clean. Around 2026-11-16: if the DMARC reports to `support@` show only OVH passing, move to `p=quarantine`.
-  Not checked: Safari and Firefox on desktop.
-- **Project page** (`site/`, `docs/site.md`): shared footer, "Vibe" follows the palette, real demo screenshots (regenerate with
-  `npm run shots`, or run the "Project page" workflow by hand with `shots` ticked), one home-page section for the roadmap (public
-  GitHub issues labelled `roadmap`, read in the browser, curated fallback; `/roadmap/` redirects to it) with the changelog list
-  under it (latest four, one line each), the nav marks the section in view. The demo is published under `/demo/` (`desktop/docs/demo.md`).
-  Not run: Safari, Firefox, Lighthouse.
-- **Cell runtime steps 1 to 3 (cell handle, repositories, cell-keyed caches)**: every repository takes a `cell.Handle`
-  (`NewXRepository(h, tx)`), caches are keyed by `cell.CellKey`, `CARTVIBE_MODE` standalone is unchanged. Lint on the real API
-  (all files / non-test): `global-db` 2/1, `gorm-open` 4/3, `get-db` 626/81 (local lint, stubbed cgo; CI runs it report-only).
-  Parked after step 3 (no hosted plan); details: `api/docs/cell-runtime.md`. `celllint` is a separate Go module.
-- `main` = `preview` = v0.15.0 (2026-11-01: AI bare-id fix, demo link and add-row fixes, project page; it follows v0.14.0, whose entries below are marked "in 0.14.0"). Last pieces, each from
-  its own branch, gated on Node 24.22.1 (npm ci, lockfile stable, audit 0, specs, build, CSP hash) and green in CI,
-  also on the merged tree: the runtime image installs no Recommends
-  (`docker/checks/runtime-check.sh`; `:preview` is 405,085,123 bytes compressed vs 508,118,804 for `:latest`; CJK glyphs in
-  a report PDF lose their fallback font), `docker-compose.vps.yml` on Caddy 2.11.7 and restic 0.19.1 (no CI covers it;
-  first VPS `pull` + `up -d` is its test), Playwright 1.64.1, jsdom 30.1.3, `@spartan-ng/brain` 1.9.0 (released
-  2026-10-29; 1.8.3 is the patch line), `@zxing/library` 0.23.0 (Apache-2.0, was MIT; node >= 24) and browser 0.2.1.
-  Waiting on the user: on the NAS a PDF import, a photo scan, a HEIC upload and a report PDF; a real barcode read on a
-  phone; selects, autocompletes, sheets, tooltips and dialogs after the brain bump (phone and desktop, day and night).
-- `e2e-smoke` fails now and then with `HTTP 503` on an API login in `provisioning.ts` (nginx login limit, 30 a minute);
-  a re-run of the failed job passes. Seen twice in one session (the `deletes a template` spec both times); not fixed.
+- `main` = `preview`, last release v0.15.0 (2026-11-01). `i18n-audit-en-pl.md` (untracked) is the owner's.
+- **No hosted plan (2026-11-02):** `wouekk/cartvibe-cloud` is frozen (ADR 0014 there); the iPhone app keeps its data on the
+  device and in the user's iCloud. **`https://cartvibe.app` is live** on GitHub Pages: the site, the demo at `/demo/`,
+  `/privacy/`, `/support/` (`docs/site.md`). DNS, DKIM, DMARC and the GitHub domain verification live in
+  `cartvibe-cloud/iac/launch/records.tf`. Around 2026-11-16: if the DMARC reports to `support@` show only OVH passing,
+  move DMARC to `p=quarantine`.
+- Next real task: a restore drill of the NAS family data (never run; it is the only real data).
+- `e2e-smoke` fails now and then with `HTTP 503` on an API login (nginx login limit, 30 a minute); re-running the job passes.
+- Not run anywhere: Safari and Firefox on desktop, Lighthouse, Web Push on a real device (needs HTTPS and VAPID keys).
 
-- In 0.14.0 (2026-10-30), also: the CSP hash is the LF one and NGXS runs without
-  `new Function` (checked under the enforcing policy; the header stays Report-Only), About credits Geist/Lucide/spartan/
-  Chart.js and links the shipped licence texts, Valkey 9.1 replaces Redis (the app reads `VALKEY_HOST`/`PORT`/`USER`/
-  `PASSWORD`, defaulting to `valkey:6379`; the VPS `.env` renames `REDIS_PASSWORD`; remove the old `cartvibe-redis`
-  container and `redis-data` volume after the redeploy), Go 1.26.10 + Angular 22.2.4/5 patches, and a CI `e2e-smoke` job
-  (built image + Valkey, 25 tests; it gates `:latest`). The user is watching the NAS for a queue error after the Valkey
-  move and will report it; not a backlog item.
-- In 0.14.0 (2026-10-30), also: Chart.js charts (our `app-chart` wrapper in
-  `desktop/src/shared-ui/chart/`, 49 kB brotli instead of 128), API keys removed (the data migration
-  `remove-api-keys-v1` drops `api_keys`/`peppers` on first boot; back up `sqlite/` first), Logo.dev and Open Food Facts
-  credited in About, the Stone palette replaced by Blue (a stored Stone shows Zinc). Waiting on the user: deploy
-  `:latest` and look over the charts (day, night, palettes, phone) and the missing API Keys tab. Not run: Safari/iPhone,
-  Firefox, the NAS. Plan and backlog scan: `docs/plans/chart-library-migration.md`.
-- `main` = `preview` = v0.13.0 (2026-10-29): shop logos, starter categories, Management tabs, SQLite hardening (WAL,
-  busy_timeout, `_txlock=immediate`, pool 8) with the VPS stack (`docker-compose.vps.yml`), warranties and product
-  lines grossed up when an invoice prints them before VAT. The user's Uber Quick Scan read well. Waiting on the user:
-  deploy `:latest` (back up `sqlite/` with its `-wal`/`-shm` first). Offered, not built: a Stop download button for
-  logos.
-- In 0.14.0 (2026-10-29), also the parked backlog: specs on Vitest, no
-  `@ngneat/until-destroy`, no `@angular/animations`, `rxResource` on the Warranties list, undici/fast-uri floors,
-  Chromium-sandbox comment. `:latest` is published. Waiting on the user: look over Dashboard charts, dialogs and menus,
-  a report, Warranties (phone and desktop, day and night), de/fr/es spot checks.
-- `feature/households` (tenant model) is parked with the hosted plan. Next real task: a restore drill of the NAS family data
-  (never run; it is the only real data). Not run anywhere yet: Web Push on a real device (needs HTTPS + VAPID keys).
-- 2026-10-29: the component guides were cut roughly in half; feature detail moved to `api/docs/domain.md`,
-  `api/docs/shop-logos.md`, `desktop/docs/features.md`. If a rule seems ignored, move it back or mark it IMPORTANT.
-- Git history was rewritten on 2026-10-29 (old logo PNGs dropped, everything force-pushed): re-clone on the Mac. The
-  user is asking GitHub Support to purge the cached commits. `i18n-audit-en-pl.md` (untracked) is the user's.
-- Not yet checked on the NAS or a phone: Dashboard charts and Reports in the accent palettes, a phone Quick Scan (it
-  failed with `multipart: NextPart: EOF`; the log line carries the Content-Length), the Safari calendar closing on a
-  pick, the view-page date save, the login fade, both panels scrolling, no scroll box on a phone.
+## Waiting on the owner (NAS or phone)
 
-## Open for the user (needs the NAS or a phone)
+- Deploy `:latest` (back up `sqlite/` with its `-wal`/`-shm` first), then: a PDF import, a photo scan, a HEIC upload, a
+  report PDF (CJK glyphs lost their fallback font with the slimmer image), one scan with a real Claude and ChatGPT key, the
+  charts and reports in the accent palettes, selects, sheets, tooltips and dialogs after the spartan bump (phone and
+  desktop, day and night). Report any queue error seen since the Valkey move.
+- A phone Quick Scan once failed with `multipart: NextPart: EOF` (the log line carries the Content-Length).
+- Installable app behind the Synology proxy: install on iPhone Safari and Android Chrome, keep-screen-on, Share, a real
+  barcode read, a touch drag on the Dashboard customise screen.
+- CSP: if the NAS console stays clean, rename `Content-Security-Policy-Report-Only` to `Content-Security-Policy` in
+  `docker/default.conf`. Check the login rate limit still keys per visitor behind the Synology proxy.
 
-- Deploy; try a real Claude and ChatGPT key (Test connection, model list, one scan).
-- Installable app: the service worker behind the Synology reverse proxy, a real install on iPhone Safari and Android
-  Chrome, keep-screen-on and Share on a device, the page transition in motion.
-- CSP: after deploying the branch above, watch the console on the NAS; if it stays clean, rename
-  `Content-Security-Policy-Report-Only` to `Content-Security-Policy` in `docker/default.conf`.
-- Barcode scanner (camera and photo fallback over `http://`) on a phone; a real touch drag on the Dashboard customise
-  screen.
-- Check the login rate limit still keys per visitor behind the Synology proxy (nginx now trusts X-Forwarded-For from
-  private networks).
+## Backlog (own branch each, not started)
 
-## Backlog (separate projects, own branch each, not started)
+- A **Backup** tab under System Settings: export the household's data as CSV and import it again.
+- Litestream 0.3.13 to 0.5.x, only for the self-hosters' `docker-compose.vps.yml` (new LTX format cannot restore 0.3
+  backups; `replicas` becomes `replica`); do it with a restore drill of that stack.
 
-- Backup: a **Backup** tab under System Settings to export the household's data as CSV and import it again.
-- Litestream 0.3.13 to 0.5.x: not a plain bump (new LTX format cannot restore 0.3 backups, config `replicas` becomes
-  `replica`, `-if-replica-exists` reported failing on 0.5.0). It only concerns `docker-compose.vps.yml` for self-hosters
-  (the NAS runs no Litestream); do it with a restore drill of that stack.
+## Parked (only when the owner asks)
 
-## Parked (only when the user asks)
-
-- Signal Forms (stable in Angular 22.2, but every form is reactive: a wholesale migration for no visible gain). `@defer` was measured and not worth it
-  (`desktop/docs/features.md`).
-- Native-speaker review of de/fr/es.
-- The e2e suite is green locally: 179 tests, the last 5 fresh Docker runs passed (`desktop/docs/e2e.md`, branch
-  `feature/e2e-repair-3`, not merged). Not in CI: only `e2e:smoke` runs there. Passing files may join `e2e:smoke` after three green runs.
-- The Chromium sandbox stays opt-in (`CHROMIUM_SANDBOX=true`).
-- Kept as they are until asked: the default receipt name "Receipt {date}" in English, ISO report month buckets
-  (`2026-10`), the full-bleed report builder.
+- Signal Forms; native-speaker review of de/fr/es; the Chromium sandbox stays opt-in; e2e files join `e2e:smoke` after
+  three green runs (`desktop/docs/e2e.md`); the default receipt name "Receipt {date}", ISO report months and the
+  full-bleed report builder stay as they are; `feature/households` and the cell runtime (`api/docs/cell-runtime.md`).
