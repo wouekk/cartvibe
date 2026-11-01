@@ -33,8 +33,7 @@ test.describe('Receipt table column configuration', () => {
   test('hides a column on save and restores it via reset', async ({ page }) => {
     await gotoReceiptsTable(page);
 
-    // "Shop" is visible by default; its checkbox is found through the wrapping label because
-    // every checkbox in the dialog is named "Receipt Date" for assistive tech (app bug, see docs/e2e.md).
+    // "Shop" is visible by default; each checkbox is named after its own label.
     const shopHeader = page.getByRole('columnheader', { name: 'Shop' });
     await expect(shopHeader).toBeVisible();
 
@@ -43,7 +42,7 @@ test.describe('Receipt table column configuration', () => {
     await page.getByTestId('configure-columns').click();
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible();
-    const shopCheckbox = dialog.locator('label').filter({ hasText: 'Shop' }).getByRole('checkbox');
+    const shopCheckbox = dialog.getByRole('checkbox', { name: 'Shop', exact: true });
     await expect(shopCheckbox).toBeChecked();
     await dialog.getByText('Shop', { exact: true }).click();
     await expect(shopCheckbox).not.toBeChecked();

@@ -56,7 +56,7 @@ test.describe('Single-group users get the Group field pre-filled', () => {
     await userPage.getByLabel('Username').fill(username);
     await userPage.getByLabel('Password').fill(NEW_USER_PASSWORD);
     await userPage.getByRole('button', { name: 'Login' }).click();
-    await expect(userPage).toHaveURL(/\/dashboard\/group\/\d+/, { timeout: 15_000 });
+    await expect(userPage).toHaveURL(/\/overview\/group\/\d+/, { timeout: 15_000 });
     await userContext.storageState({ path: AUTH_FILE });
 
     // The one real group, read back off the wire — login lands on whichever

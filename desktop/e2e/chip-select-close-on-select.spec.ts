@@ -57,7 +57,7 @@ test.describe('Close chip select on select preference', () => {
     await userPage.getByLabel('Username').fill(username);
     await userPage.getByLabel('Password').fill(NEW_USER_PASSWORD);
     await userPage.getByRole('button', { name: 'Login' }).click();
-    await expect(userPage).toHaveURL(/\/dashboard\/group\/\d+/, { timeout: 15_000 });
+    await expect(userPage).toHaveURL(/\/overview\/group\/\d+/, { timeout: 15_000 });
     await userContext.storageState({ path: AUTH_FILE });
     await userContext.close();
 

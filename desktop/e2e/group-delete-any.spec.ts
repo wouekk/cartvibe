@@ -63,7 +63,7 @@ async function captureSession(
   await page.getByLabel('Username').fill(username);
   await page.getByLabel('Password').fill(PASSWORD);
   await page.getByRole('button', { name: 'Login' }).click();
-  await expect(page).toHaveURL(/\/dashboard\/group\/\d+/, { timeout: 15_000 });
+  await expect(page).toHaveURL(/\/overview\/group\/\d+/, { timeout: 15_000 });
   await page.waitForFunction(
     (permission) => (localStorage.getItem('auth') ?? '').includes(permission),
     heldPermission,
