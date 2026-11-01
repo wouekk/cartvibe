@@ -115,6 +115,18 @@ describe("AutocomleteComponent", () => {
     expect(latest).toEqual(["a", "b", "c"]);
   });
 
+  it("marks the control dirty when an option is picked or cleared, so Save leaves its pristine state", () => {
+    component.multiple = false;
+    expect(component.inputFormControl.pristine).toBe(true);
+
+    component.optionSelected({ option: { value: "a" } });
+    expect(component.inputFormControl.dirty).toBe(true);
+
+    component.inputFormControl.markAsPristine();
+    component.removeSingleOption();
+    expect(component.inputFormControl.dirty).toBe(true);
+  });
+
   it("leaves the display untouched on syncSingleDisplay in multiple mode", () => {
     component.multiple = true;
     component.inputFormControl = new FormArray([new FormControl(1)]) as any;

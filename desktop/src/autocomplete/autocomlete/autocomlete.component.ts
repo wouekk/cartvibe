@@ -237,6 +237,8 @@ export class AutocomleteComponent
   }
 
   public optionSelected(event: AutocompleteSelection): void {
+    // A pick is the user editing the form: without this a settings form stays pristine and its Save stays dimmed.
+    this.inputFormControl.markAsDirty();
     if (this.multiple) {
       const customOptionSelected = event.option.id === this.creatableOptionId;
       const formArray = this.inputFormControl as any as FormArray;
@@ -308,12 +310,14 @@ export class AutocomleteComponent
     if (this.multiple) {
       const formArray = this.inputFormControl as any as FormArray;
       formArray.removeAt(index);
+      formArray.markAsDirty();
       this.filterFormControl.setValue(null);
       this.inputElement()?.focus();
     }
   }
 
   public removeSingleOption(): void {
+    this.inputFormControl.markAsDirty();
     this.clearFilter();
   }
 
