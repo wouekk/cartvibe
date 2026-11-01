@@ -6,6 +6,7 @@
     <input
       hlmInput
       readonly
+      [attr.aria-label]="label ? (label | t) : null"
       [value]="inputFormControl.value | readonlyValue : options() : optionDisplayKey() : optionValueKey : optionsDisplayArray() | t"
     />
   } @else {

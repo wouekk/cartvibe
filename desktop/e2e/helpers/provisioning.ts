@@ -430,7 +430,10 @@ export async function apiCreateReceipt(
     groupId: number | string;
     paidByUserId: number;
     name: string;
-    /** Receipt date as an ISO string. Defaults to a fixed date in 2024. */
+    /**
+     * Receipt date as an ISO string. Defaults to the 15th of the current UTC month: the receipts table opens on
+     * "this month", so a receipt dated any other time would not be listed.
+     */
     date?: string;
     /**
      * Receipt status. Defaults to OPEN. Pass RESOLVED to have the server stamp
@@ -455,7 +458,7 @@ export async function apiCreateReceipt(
     data: {
       name: opts.name,
       amount: opts.amount ?? '10.00',
-      date: opts.date ?? '2024-01-01T00:00:00Z',
+      date: opts.date ?? `${new Date().toISOString().slice(0, 7)}-15T00:00:00Z`,
       groupId: Number(opts.groupId),
       paidByUserId: opts.paidByUserId,
       status: opts.status ?? 'OPEN',

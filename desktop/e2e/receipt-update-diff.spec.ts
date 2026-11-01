@@ -140,6 +140,7 @@ test.describe('Receipt update diff', () => {
 
     const dialog = page.getByTestId('receipt-diff-dialog');
     const changedRows = dialog.locator('[data-testid="receipt-diff-row"]:not([data-kind="equal"])');
+    await expect(changedRows.first()).toBeVisible();
     const changedCount = await changedRows.count();
 
     await dialog.getByRole('tab', { name: /Changes only/ }).click();

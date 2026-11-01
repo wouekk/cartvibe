@@ -17,6 +17,14 @@ async function getGroupId(page: Page): Promise<string> {
 async function openAddReceipt(page: Page) {
   await page.goto('/receipts/add');
   await expect(page.getByLabel('Name', { exact: true })).toBeVisible();
+  // The form hides the Group when the user belongs to exactly one. Other specs add e2e-user to groups while this
+  // one runs, so when the picker is there, take the shared Household.
+  const group = page.getByRole('combobox', { name: 'Group', exact: true });
+  if (await group.isVisible()) {
+    await group.click();
+    await group.fill('Household');
+    await page.getByRole('option', { name: 'Household', exact: true }).click();
+  }
 }
 
 // The family rework removed the Paid By, Group (for a single-household user), shares and items from this form: the
