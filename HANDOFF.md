@@ -11,8 +11,10 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
   `wouekk.github.io/cartvibe/` redirect to it): the site at the root, demo at `/demo/`, an iPhone app section instead of the
   Cloud one, `/privacy/` and `/support/` (`support@cartvibe.app`, an OVH mailbox) (`docs/site.md`). DNS applied from
   `cartvibe-cloud/iac/launch` (R2 buckets deleted); roadmap issues #2 and #3 closed, #1 reworded, repo homepage set.
-  Waiting on the owner: cancel the R2 subscription in Cloudflare and drop the R2 permission from the token; a look at the
-  live site on a phone. Not checked: the privacy page by a lawyer, Safari, Firefox.
+  R2 cancelled, privacy page approved by the owner, phone check done (iPhone Duo too). Domain verified for GitHub Pages;
+  mail has SPF, DKIM (OVH) and DMARC `p=none` (mail-tester 10/10); all records in `cartvibe-cloud/iac/launch/records.tf`,
+  `tofu plan` clean. Around 2026-11-16: if the DMARC reports to `support@` show only OVH passing, move to `p=quarantine`.
+  Not checked: Safari and Firefox on desktop.
 - **Project page** (`site/`, `docs/site.md`): shared footer, "Vibe" follows the palette, real demo screenshots (regenerate with
   `npm run shots`, or run the "Project page" workflow by hand with `shots` ticked), one home-page section for the roadmap (public
   GitHub issues labelled `roadmap`, read in the browser, curated fallback; `/roadmap/` redirects to it) with the changelog list
