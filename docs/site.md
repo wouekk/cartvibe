@@ -234,3 +234,7 @@ when writing a release entry.
 `Base.astro` marks the nav link of the section in view with `aria-current="location"` (links with `data-spy`; the line is 20% down
 the screen below the header; nothing is marked above the first section or below the last, and Features follows whichever of its two
 elements, the scroll track or the stack, is shown).
+
+## Page background
+
+`Base.astro` renders a fixed `.bg-canvas` (a 48 px hairline grid and a soft primary-tinted spotlight, tokens only, no blur) behind the page. The vignette mask is on the static parent so the moving grid is never re-masked; a passive, rAF-throttled scroll listener only changes transforms and stops under `prefers-reduced-motion`. Tested in `site/tests/e2e/home.test.mjs`.

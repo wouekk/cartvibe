@@ -5,6 +5,9 @@ import Shots from "../components/Shots.astro";
 import Roadmap from "../components/Roadmap.astro";
 
 const repo = "https://github.com/wouekk/cartvibe";
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+// The live demo of the real app, built from desktop/ and published beside this page (docs/site.md, "The demo").
+const demo = `${base}/demo/`;
 
 // The four steps of the scroll-driven track. `shot` names the demo screenshots in src/assets/shots (npm run shots).
 const steps = [
@@ -46,7 +49,7 @@ const more = [
     eyebrow: "Warranties",
     title: "Know what is still covered.",
     text: "Add a warranty date to any receipt and CartVibe lists everything still covered, nearest end first, with the days left. The Dashboard flags what ends soon.",
-    points: ["The period defaults to your region and can be changed", "Optional push reminders where your server supports them"],
+    points: ["The period defaults to your region and can be changed", "Optional push reminders before a warranty expires"],
     desktop: "warranties",
     phone: "warranties",
     alt: "A table of purchases under warranty with days left",
@@ -99,16 +102,16 @@ const grid = [
 
 const why = [
   {
-    title: "Self-hosted and private",
-    text: "CartVibe runs on a server you control: a NAS, a mini PC or a small VPS. No account with us and no sign-up. The site you are reading sets no cookies and loads no third-party scripts.",
+    title: "Zero-maintenance Cloud (planned)",
+    text: "The planned CartVibe Cloud is meant to work out of the box: updates, backups and AI receipt scanning handled for the household, with no server to set up. It is not available yet, and there is no price or date. Self-hosting is the way in today.",
   },
   {
-    title: "Your data stays on your NAS",
-    text: "Receipts, lists and photos live in a SQLite database and a folder on your own disk, so a backup is a copy of a folder. With the AI on, a receipt photo goes to the provider whose key you chose, and only then.",
+    title: "Strictly private, zero ads",
+    text: "No ads, no tracking cookies and no third-party scripts on this site. Self-hosted, your receipts, lists and photos stay on your own disk, and a backup is a copy of a folder. The Cloud plan is meant to keep each household's data isolated and exportable.",
   },
   {
-    title: "Open source, AGPL-3.0",
-    text: "Read it, change it, run it. CartVibe is free software under the AGPL-3.0 and a fork of Receipt Wrangler, with the credit kept in the licence files and on this page.",
+    title: "Open source and self-hostable (AGPL-3.0)",
+    text: "CartVibe is free software under the AGPL-3.0 and a fork of Receipt Wrangler, with the credit kept in the licence files and on this page. No vendor lock-in: you can always run it on your own NAS, mini PC or VPS with SQLite and Docker.",
   },
 ];
 
@@ -141,19 +144,24 @@ const tick = "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-fu
 ---
 
 <Base
-  title="CartVibe: receipts, shopping lists and spending insights"
-  description="CartVibe is a self-hosted, open source household app: scan receipts, share live shopping lists and see where the money goes."
+  title="CartVibe: household spending, shared shopping lists, AI receipt scanning"
+  description="Track household spending, share live shopping lists and scan receipts with AI. Open source: self-host it today, with a hosted Cloud plan on the way."
 >
   <!-- Hero -->
   <section class="border-b border-border/70" data-testid="hero">
     <div class="page pb-16 pt-14 text-center sm:pt-20 lg:pb-24">
       <h1 class="mx-auto max-w-3xl text-balance text-4xl font-semibold tracking-tight sm:text-6xl">
-        Your household's spending tracking, on your own server.
+        Your household's spending and shopping, finally in one place.
       </h1>
       <p class="mx-auto mt-4 max-w-xl text-[13px] text-muted-foreground sm:text-sm">
-        Scan receipts, share live shopping lists and see where the money goes. Made for a phone.
+        Scan receipts at the shop, share live shopping lists, and see where the money goes. Made for your phone: run it on your own server today, with a hosted Cloud plan on the way.
       </p>
-      <div class="hero-visual mx-auto mt-10max-w-4xl text-left" data-testid="hero-visual">
+      <div class="mt-6 flex flex-wrap items-center justify-center gap-2" data-testid="hero-cta">
+        <a href={`${base}/#cloud`} class={btnPrimary} data-testid="hero-cloud">Follow the Cloud plan</a>
+        <a href={demo} class={btnOutline} data-testid="hero-demo">Try the demo</a>
+        <a href={`${repo}#quick-start`} class={btnOutline} data-testid="hero-selfhost">Self-host it</a>
+      </div>
+      <div class="hero-visual mx-auto mt-10 max-w-4xl text-left" data-testid="hero-visual">
         <Shots desktop="dashboard" phone="dashboard" eager class="max-w-4xl" alt="The CartVibe Dashboard of the demo household: spent this month against a goal, spending by category and the open shopping list" />
       </div>
     </div>
@@ -235,7 +243,7 @@ const tick = "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-fu
   <section class="border-t border-border/70 bg-muted/30">
     <div class="page py-20">
       <div class="mx-auto max-w-2xl text-center">
-        <h2 class="text-balance text-3xl font-semibold tracking-tight">And more</h2>
+        <h2 class="text-balance text-3xl font-semibold tracking-tight">Built for everything beyond the weekly shop</h2>
       </div>
       <div class="mt-14 space-y-20">
         {
@@ -285,7 +293,7 @@ const tick = "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-fu
   <!-- Why -->
   <section id="why" class="border-y border-border/70 bg-muted/30">
     <div class="page py-20">
-      <h2 class="text-balance text-center text-3xl font-semibold tracking-tight">Three reasons to host it yourself</h2>
+      <h2 class="text-balance text-center text-3xl font-semibold tracking-tight">Private by design. Effortless with the Cloud plan.</h2>
       <ol class="mt-12 grid gap-4 lg:grid-cols-3">
         {
           why.map((w, i) => (

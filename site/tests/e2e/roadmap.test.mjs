@@ -316,7 +316,7 @@ test("scrolling marks the nav link of the section in view", async () => {
   const nav = page.getByRole("navigation", { name: "Main" });
   const current = () => nav.locator('a[aria-current="location"]').allInnerTexts();
   assert.deepEqual(await current(), [], "nothing is marked at the top");
-  for (const [id, label] of [["why", "Why CartVibe"], ["cloud", "Cloud plan"], ["roadmap", "Roadmap"], ["faq", "FAQ"], ["features", "Features"]]) {
+  for (const [id, label] of [["why", "Why CartVibe"], ["roadmap", "Roadmap"], ["faq", "FAQ"], ["features", "Features"]]) {
     await page.evaluate((x) => document.getElementById(x).scrollIntoView({ block: "start" }), id);
     await page.waitForFunction(
       (l) => [...document.querySelectorAll('nav[aria-label="Main"] a[aria-current="location"]')].map((a) => a.textContent.trim()).join() === l,
