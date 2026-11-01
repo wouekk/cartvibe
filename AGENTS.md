@@ -1,6 +1,6 @@
 # AGENTS.md — what we are building
 
-Shared by every agent working here (Claude Code reads it through `CLAUDE.md`, Cline through `.clinerules`).
+What every agent working here needs (Claude Code reads it through `CLAUDE.md`).
 
 ## Product
 
@@ -20,7 +20,9 @@ are offered; the UI ships in five languages.
 
 ## Product rules
 
-- **Web first:** all UI is in `desktop/`, responsive for phones. There is no mobile app.
+- **Web first:** all UI of this app is in `desktop/`, responsive for phones; there is no mobile app in this repository.
+  CartVibe for iPhone is a separate closed-source app with its own data (on the device and in the user's iCloud); nothing is
+  copied between the two, and nothing here connects to it.
 - **SQLite on the NAS:** new models are SQLite-safe; migrations are additive.
 - **AI is optional and fallible:** nothing blocks or fails because the AI is missing, slow or out of credits; record a
   status, retry later, degrade to "planned" / "unknown".
@@ -29,7 +31,7 @@ are offered; the UI ships in five languages.
 - The AI answers in one language for the household.
 - Reports cut by a line field count a receipt once per bucket it falls into (totals stay exact).
 - Kept on purpose, do not rename: JWT issuer/audience `https://receiptWrangler.io` (changing it signs everyone out and
-  breaks MCP tokens), the `wranglerasynq` / `wranglervenv` names. The container paths are
+  breaks MCP tokens), the `wranglerasynq` name. The container paths are
   `/app/cartvibe-api/...` (the image, the root compose file and the README guide must agree).
 
 ## Visual identity
@@ -65,6 +67,5 @@ build, run the specs, and check desktop and phone widths in day and night (Zinc 
 
 ## Agents
 
-Claude Code is the lead engineer. Cline (a local LLM) does CI triage and single-file UI polish under `.clinerules`, and
-writes findings to `HANDOFF.md` → Inbox, which Claude Code clears once fixed. Work moves between a Windows PC and a
-MacBook, so `HANDOFF.md` is updated before a session ends.
+Claude Code is the only agent. Work moves between a Windows PC and a MacBook, so `HANDOFF.md` is updated before a session
+ends.

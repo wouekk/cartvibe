@@ -42,7 +42,6 @@ The look of every UI change: `DESIGN.md`. Local toolchains and manual steps: `do
   Filters send `yyyy-MM-dd`.
 - Keep `LICENSE`, `NOTICE.md` and the upstream credit in `README.md` and `site/`; never rewrite history. Releases are
   SemVer tags on `main` with Conventional Commits and a `CHANGELOG.md` entry.
-- Nothing is named "Apple" (themes, branches, classes); only the `-apple-system` font keyword is fine.
 
 ## Code changes
 

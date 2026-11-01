@@ -274,7 +274,8 @@ asynq on Valkey or Redis 8, image-size savings (estimates), the NGXS CSP fix, De
 1. Chart.js or ECharts (section 1), and are the look differences OK (slide-out instead of scale pop-out, about 6 of 12 month
    labels at 360 px with the current month always shown, goal label placement)? Or should the arc be subclassed to keep
    the 1.06 scale (a few hours more, untried)?
-2. Is "households" about hosting other families (a VPS for others) or only separation inside the NAS install? That decides
+2. (Answered 2026-11-02: no hosting for other families; the hosted plan is dropped and `feature/households` is parked.)
+   Is "households" about hosting other families (a VPS for others) or only separation inside the NAS install? That decides
    the Redis licence question, attribution work, per-household categories/AI keys/time zone/currency and the Backup format.
    Also: who is a household admin, and can one person belong to several?
 3. Can the NAS be put behind HTTPS (Synology reverse proxy and certificate)? It gates the service worker, install, wake

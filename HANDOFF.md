@@ -79,13 +79,13 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
   screen.
 - Check the login rate limit still keys per visitor behind the Synology proxy (nginx now trusts X-Forwarded-For from
   private networks).
-- GHCR: the old `ghcr.io/wouekk/receipt-wrangler` package can be deleted by hand.
 
 ## Backlog (separate projects, own branch each, not started)
 
 - Backup: a **Backup** tab under System Settings to export the household's data as CSV and import it again.
 - Litestream 0.3.13 to 0.5.x: not a plain bump (new LTX format cannot restore 0.3 backups, config `replicas` becomes
-  `replica`, `-if-replica-exists` reported failing on 0.5.0). Do it together with the first restore drill.
+  `replica`, `-if-replica-exists` reported failing on 0.5.0). It only concerns `docker-compose.vps.yml` for self-hosters
+  (the NAS runs no Litestream); do it with a restore drill of that stack.
 
 ## Parked (only when the user asks)
 
@@ -97,7 +97,3 @@ knowledge goes into a guide, `DESIGN.md` or `docs/dev-setup.md`.
 - The Chromium sandbox stays opt-in (`CHROMIUM_SANDBOX=true`).
 - Kept as they are until asked: the default receipt name "Receipt {date}" in English, ISO report month buckets
   (`2026-10`), the full-bleed report builder.
-
-## Inbox (from Cline)
-
-- *Empty.*
