@@ -68,16 +68,15 @@ test.describe.serial('Temp file retention (System Settings)', () => {
     const page = await context.newPage();
     await stubTokenRefresh(page);
 
-    await page.goto('/system-settings/settings/edit');
+    await page.goto('/system-settings');
+    await page.getByRole('tab', { name: 'Tasks & Storage' }).click();
     await page.getByLabel('Keep failed uploads for').fill(String(RETENTION_DAYS));
     await page
-      .locator('app-form-section')
-      .filter({ hasText: 'Keep failed uploads for' })
+      .getByTestId('duration-row')
       .getByLabel('Unit')
       .click();
     await page.getByRole('option', { name: 'Days' }).click();
-    await page.getByRole('button', { name: 'Save' }).click();
-    await expect(page).toHaveURL(/\/system-settings\/settings\/view/);
+    await page.getByRole('button', { name: 'Save changes' }).first().click();
 
     // The unit is presentation only -- the wire and the DB store whole hours.
     await withAdminApi(async (api) => {
@@ -87,6 +86,7 @@ test.describe.serial('Temp file retention (System Settings)', () => {
 
     // ...and the view page renders those hours back in the friendlier unit.
     await page.reload();
+    await page.getByRole('tab', { name: 'Tasks & Storage' }).click();
     await expect(page.getByLabel('Keep failed uploads for')).toHaveValue(
       String(RETENTION_DAYS),
     );
@@ -105,11 +105,10 @@ test.describe.serial('Temp file retention (System Settings)', () => {
     const page = await context.newPage();
     await stubTokenRefresh(page);
 
-    await page.goto('/system-settings/settings/edit');
+    await page.goto('/system-settings');
+    await page.getByRole('tab', { name: 'Tasks & Storage' }).click();
 
-    const section = page
-      .locator('app-form-section')
-      .filter({ hasText: 'Keep failed uploads for' });
+    const section = page.getByTestId('duration-row');
 
     await section.getByLabel('Unit').click();
     await page.getByRole('option', { name: 'Hours' }).click();

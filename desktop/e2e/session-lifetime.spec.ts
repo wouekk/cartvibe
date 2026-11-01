@@ -74,16 +74,15 @@ test.describe.serial('Session lifetime (System Settings → refresh cookie)', ()
     const page = await context.newPage();
     await stubTokenRefresh(page);
 
-    await page.goto('/system-settings/settings/edit');
+    await page.goto('/system-settings');
+    await page.getByRole('tab', { name: 'Auth & Security' }).click();
     await page.getByLabel('Stay signed in for').fill(String(LIFETIME_DAYS));
     await page
-      .locator('app-form-section')
-      .filter({ hasText: 'Stay signed in for' })
+      .getByTestId('duration-row')
       .getByLabel('Unit')
       .click();
     await page.getByRole('option', { name: 'Days' }).click();
-    await page.getByRole('button', { name: 'Save' }).click();
-    await expect(page).toHaveURL(/\/system-settings\/settings\/view/);
+    await page.getByRole('button', { name: 'Save changes' }).first().click();
 
     // The unit is presentation only -- the wire and the DB store whole hours.
     await withAdminApi(async (api) => {
@@ -93,6 +92,7 @@ test.describe.serial('Session lifetime (System Settings → refresh cookie)', ()
 
     // ...and the view page renders those hours back in the friendlier unit.
     await page.reload();
+    await page.getByRole('tab', { name: 'Auth & Security' }).click();
     await expect(page.getByLabel('Stay signed in for')).toHaveValue(
       String(LIFETIME_DAYS),
     );
@@ -151,7 +151,8 @@ test.describe.serial('Session lifetime (System Settings → refresh cookie)', ()
     const page = await context.newPage();
     await stubTokenRefresh(page);
 
-    await page.goto('/system-settings/settings/edit');
+    await page.goto('/system-settings');
+    await page.getByRole('tab', { name: 'Auth & Security' }).click();
     await page.getByLabel('Stay signed in for').fill('31');
     await page.getByLabel('Stay signed in for').blur();
 
