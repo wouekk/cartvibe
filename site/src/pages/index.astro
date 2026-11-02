@@ -131,12 +131,16 @@ const rows = [
 const faq = [
   { q: "What is CartVibe?", a: "A household app for receipts, shopping lists and spending insights. It is a family spending tracker, groceries first, and not business expense software." },
   { q: "Do I need to run a server?", a: "For the web app, yes: it is self-hosted. You need Docker with Docker Compose, or a NAS stack manager such as Synology's Container Manager. There is nothing to build: a ready-made image is published at ghcr.io/wouekk/cartvibe, and the quick start in the README has a short compose file. The iPhone app needs no server at all." },
-  { q: "Does it need the AI?", a: "No. The AI is optional. Without it you add receipts and product lines by hand, and everything else works the same. With it, an admin adds a Claude or ChatGPT key and Quick Scan reads receipts for you. If the provider is down or out of credit, CartVibe keeps going and retries later." },
+  { q: "Does it need the AI?", a: "No. The AI is optional. Without it you add receipts and product lines by hand, and everything else works the same. With it, an admin adds a Claude, Gemini or ChatGPT key and Quick Scan reads receipts for you. If the provider is down or out of credit, CartVibe keeps going and retries later." },
   { q: "What does the AI get to see?", a: "Only when you turn it on, and only what you scan: the receipt photo or PDF goes to the provider whose key you configured. Nothing is sent to us, because there is no \"us\" server in the loop. The iPhone app reads receipts on the phone itself." },
   { q: "Where is my data stored?", a: "Self-hosted, on your server: a SQLite database and a folder of files. Back it up by copying the folder with the container stopped. In the iPhone app, on your iPhone, and in your own iCloud if you turn on sync." },
   { q: "Is it really free?", a: "Self-hosting is free and open source, under the AGPL-3.0, and stays that way. You pay for your own hardware or server, and for AI usage if you choose to use it. The iPhone app will be free to download, with an optional upgrade sold through the App Store." },
   { q: "Is there a mobile app?", a: "Two ways to have one. The web app installs from your phone's browser: add it to your home screen and it opens full screen like an app. And CartVibe for iPhone, a native app, is coming to the App Store." },
   { q: "Does the iPhone app connect to my server?", a: "No. CartVibe for iPhone is a separate app with its own data: it stays on your iPhone and, if you turn on sync, in your own iCloud, where we cannot read it. Your self-hosted server keeps its own data. The two share a name and a look, not a database." },
+  { q: "How do I add AI API keys?", a: "You create a key on the provider's website (Claude, Gemini or ChatGPT), then sign in to CartVibe as an admin, open the AI page, choose the provider, paste the key, pick a model and press Test connection. The key is stored encrypted on your server. The cheapest small model is enough for receipts. The FAQ in the repository has the key pages and a model table." },
+  { q: "How do I add a Logo.dev API key?", a: "Shop logos are optional. Create a free Logo.dev account and copy its secret key (it starts with sk_). In CartVibe, an admin opens System Settings, then Shop Logos, pastes the key, saves it and presses Download logos. Without a key each shop gets a letter instead." },
+  { q: "How do I change a password?", a: "An admin sets it: Management, then Users, then the key icon on the person's row. There is no \"forgot password\" email, so the admin types a new password or generates one and hands it over. On a fresh install, change the default admin password straight away." },
+  { q: "How do I rename a household?", a: "Open Management, then Households, press the pencil on the household's row, change its name and save. Its receipts, lists and members stay as they are." },
   { q: "Can the whole family use it?", a: "Yes. Accounts are either Admin or User, everyone in the household can add receipts and list items, and nobody has to split bills or approve anything." },
 ];
 
@@ -419,6 +423,9 @@ const tick = "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-fu
         ))
       }
     </div>
+    <p class="mt-6 text-center text-sm text-muted-foreground">
+      More detail, with step-by-step key guides, in the <a class="underline underline-offset-4 hover:text-foreground" href={`${repo}/blob/main/docs/faq.md`}>FAQ in the repository</a>.
+    </p>
   </section>
 
   <!-- Closing call to action -->
