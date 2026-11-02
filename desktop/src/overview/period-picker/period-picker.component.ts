@@ -1,4 +1,4 @@
-import { Component, computed, effect, output, signal, ChangeDetectionStrategy } from "@angular/core";
+import { Component, computed, effect, input, OnInit, output, signal, ChangeDetectionStrategy } from "@angular/core";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { Store } from "@ngxs/store";
 import { FilterTab } from "../../shared-ui/filter-bar/filter-tab.interface";
@@ -28,7 +28,10 @@ import {
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [AppIconComponent, SharedUiModule, TranslatePipe],
 })
-export class PeriodPickerComponent {
+export class PeriodPickerComponent implements OnInit {
+  /** Opens on this range ("yyyy-MM-dd" ends, as a custom range) instead of this month; read once, on init. */
+  public readonly initial = input<{ from: string; to: string }>();
+
   public readonly periodChange = output<ResolvedPeriod | undefined>();
 
   private readonly timeZone = this.store.selectSignal(SystemSettingsState.timeZone);
@@ -64,6 +67,15 @@ export class PeriodPickerComponent {
 
   constructor(private store: Store) {
     effect(() => this.periodChange.emit(this.period()));
+  }
+
+  public ngOnInit(): void {
+    const initial = this.initial();
+    if (initial) {
+      this.customFrom.set(formatDayMonthYear(initial.from));
+      this.customTo.set(formatDayMonthYear(initial.to));
+      this.preset.set("CUSTOM");
+    }
   }
 
   public selectPeriod(value: string): void {

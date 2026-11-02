@@ -172,3 +172,31 @@ export function isWholeCalendarMonth(from: string | undefined, to: string | unde
   const lastDay = new Date(year, month, 0).getDate();
   return to === `${from.slice(0, 7)}-${String(lastDay).padStart(2, "0")}`;
 }
+
+const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
+
+function isRealDay(day: string): boolean {
+  if (!DAY_KEY.test(day)) {
+    return false;
+  }
+  const [year, month, date] = day.split("-").map(Number);
+  const parsed = new Date(Date.UTC(year, month - 1, date));
+  return parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month - 1 && parsed.getUTCDate() === date;
+}
+
+/** A `from`/`to` pair read off a URL: both real "yyyy-MM-dd" days with from not after to, else undefined. */
+export function parseDayRange(from: string | null | undefined, to: string | null | undefined): { from: string; to: string } | undefined {
+  return from && to && isRealDay(from) && isRealDay(to) && from <= to ? { from, to } : undefined;
+}
+
+/** The days a trend bar covers: its calendar month for "yyyy-MM", the one day for "yyyy-MM-dd". */
+export function barRange(key: string): { from: string; to: string } | undefined {
+  if (/^\d{4}-\d{2}$/.test(key)) {
+    const [year, month] = key.split("-").map(Number);
+    if (month < 1 || month > 12) {
+      return undefined;
+    }
+    return { from: `${key}-01`, to: `${key}-${String(new Date(year, month, 0).getDate()).padStart(2, "0")}` };
+  }
+  return parseDayRange(key, key);
+}

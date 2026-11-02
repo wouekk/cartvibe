@@ -170,14 +170,20 @@
             <div class="@container flex min-w-0 flex-1 flex-col [&>*]:flex-1" [class.pointer-events-none]="customising()" [class.select-none]="customising()" [attr.inert]="customising() ? '' : null">
               @switch (panel.kind) {
                 @case ('spent') {
-                  <div class="cv-tile" data-testid="overview-tile-spent">
+                  <div class="cv-tile cv-tile-link relative" data-testid="overview-tile-spent">
                     <div class="flex min-h-6 items-center justify-between gap-2">
-                      <span class="text-xs font-medium text-muted-foreground">{{ 'Spent' | t }}</span>
+                      <!-- A stretched link: the whole tile opens the receipts of the period, the goal controls sit above it. -->
+                      <a
+                        class="text-xs font-medium text-muted-foreground no-underline after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-primary"
+                        data-testid="overview-tile-spent-link"
+                        [routerLink]="['/receipts/group', groupId()]"
+                        [queryParams]="receiptsQuery()"
+                      >{{ 'Spent' | t }}</a>
                       @if (canEditGoal() && !editingGoal()) {
                         @if (goal() > 0) {
                           <button
                             type="button"
-                            class="cursor-pointer rounded-full px-2 py-0.5 text-xs font-semibold text-primary transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary inline-flex !p-0.5 !text-muted-foreground"
+                            class="relative z-10 cursor-pointer rounded-full px-2 py-0.5 text-xs font-semibold text-primary transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary inline-flex !p-0.5 !text-muted-foreground"
                             data-testid="overview-goal-edit"
                             [attr.aria-label]="'Edit the monthly spending goal' | t"
                             [title]="'Edit the monthly spending goal' | t"
@@ -186,7 +192,7 @@
                             <app-icon name="edit"></app-icon>
                           </button>
                         } @else {
-                          <button type="button" class="cursor-pointer rounded-full px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-primary transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary" data-testid="overview-set-goal" (click)="startEditingGoal()">
+                          <button type="button" class="relative z-10 cursor-pointer rounded-full px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-primary transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary" data-testid="overview-set-goal" (click)="startEditingGoal()">
                             {{ '+ Set goal' | t }}
                           </button>
                         }
@@ -201,7 +207,7 @@
                         }
                       </span>
                       @if (editingGoal()) {
-                        <span class="inline-flex items-baseline gap-1 text-[0.9375rem] text-muted-foreground">
+                        <span class="relative z-10 inline-flex items-baseline gap-1 text-[0.9375rem] text-muted-foreground">
                           /
                           <input
                             #goalInput
@@ -223,7 +229,7 @@
                         @if (canEditGoal()) {
                           <button
                             type="button"
-                            class="text-[0.9375rem] font-medium text-muted-foreground cursor-pointer rounded-sm hover:text-foreground hover:underline hover:decoration-dotted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                            class="relative z-10 text-[0.9375rem] font-medium text-muted-foreground cursor-pointer rounded-sm hover:text-foreground hover:underline hover:decoration-dotted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                             data-testid="overview-spent-goal"
                             [title]="'Edit the monthly spending goal' | t"
                             (click)="startEditingGoal()"
@@ -266,7 +272,7 @@
                   </div>
                 }
                 @case ('receipts') {
-                  <a class="cv-tile cv-tile-link" data-testid="overview-tile-receipts" [routerLink]="['/receipts/group', groupId()]">
+                  <a class="cv-tile cv-tile-link" data-testid="overview-tile-receipts" [routerLink]="['/receipts/group', groupId()]" [queryParams]="receiptsQuery()">
                     <span class="text-xs font-medium text-muted-foreground">{{ 'Receipts' | t }}</span>
                     <span class="text-3xl font-bold">{{ overview()?.receiptCount ?? "–" }}</span>
                     @if ((overview()?.openReceiptCount ?? 0) > 0) {
@@ -376,7 +382,7 @@
                           <tbody>
                             @for (segment of segments(); track segment.name) {
                               <tr
-                                class="border-t border-border/60 transition-opacity duration-150 ease-[ease] motion-reduce:transition-none"
+                                class="cursor-pointer border-t border-border/60 transition-opacity duration-150 ease-[ease] motion-reduce:transition-none"
                                 [class.opacity-45]="isDimmed(segment.name)"
                                 [attr.data-testid]="'overview-donut-row-' + segment.name"
                                 [attr.data-dimmed]="isDimmed(segment.name)"
@@ -384,6 +390,7 @@
                                 (mouseleave)="hoverSegment(null)"
                                 (focusin)="hoverSegment(segment.name)"
                                 (focusout)="hoverSegment(null)"
+                                (click)="openCategory(segment)"
                               >
                                 <td class="py-2.5">
                                   <!-- Dot, share, name: the share leads so the name gets the room, and the dot stays beside a wrapping name. -->
@@ -394,23 +401,19 @@
                                     [attr.aria-pressed]="focusedSegment() === segment.name"
                                     [attr.aria-label]="'Focus ' + segment.name"
                                     [attr.data-testid]="'overview-donut-focus-' + segment.name"
-                                    (click)="toggleFocus(segment.name)"
+                                    (click)="toggleFocus(segment.name); $event.stopPropagation()"
                                   >
                                     <span class="size-2.5 rounded-full transition-transform" [class.scale-150]="focusedSegment() === segment.name" [style.background]="segment.color"></span>
                                   </button>
                                   <span class="w-12 flex-none whitespace-nowrap tabular-nums text-muted-foreground" data-testid="overview-donut-share">{{ segment.share }}</span>
-                                  @if (isOpenable(segment)) {
-                                    <button
-                                      type="button"
-                                      class="link-button cursor-pointer border-0 bg-transparent p-0 text-left font-medium text-foreground underline-offset-4 hover:underline"
-                                      data-testid="overview-category-open"
-                                      (click)="openCategory(segment)"
-                                    >
-                                      {{ segment.name | t }}
-                                    </button>
-                                  } @else {
-                                    <span class="min-w-0">{{ segment.name | t }}</span>
-                                  }
+                                  <button
+                                    type="button"
+                                    class="link-button cursor-pointer border-0 bg-transparent p-0 text-left font-medium text-foreground underline-offset-4 hover:underline"
+                                    data-testid="overview-category-open"
+                                    (click)="openCategory(segment); $event.stopPropagation()"
+                                  >
+                                    {{ segment.name | t }}
+                                  </button>
                                   </div>
                                 </td>
                                 <td class="py-2.5 pl-3 text-right font-semibold whitespace-nowrap tabular-nums">{{ segment.total | displayCurrency }}</td>

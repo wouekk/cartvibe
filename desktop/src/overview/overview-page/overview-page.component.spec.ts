@@ -203,14 +203,64 @@ describe("OverviewPageComponent", () => {
     expect(data).toMatchObject({ kind: "UNPLANNED", groupId: 1, from, to });
   });
 
-  it("does not open the folded Other slice", () => {
+  it("opens the folded Other slice as a list of the categories it holds", () => {
     const open = vi.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({} as never);
-    const segment = { name: "Other", total: 1, share: "1%", color: "", dashArray: "", dashOffset: 0 };
+    const members = [{ name: "Pets", categoryId: 3 }, { name: "Uncategorized" }];
 
-    expect(component.isOpenable(segment)).toBe(false);
-    component.openCategory(segment);
+    component.openCategory({ name: "Other", members, total: 1, share: "1%", color: "", dashArray: "", dashOffset: 0 });
 
-    expect(open).not.toHaveBeenCalled();
+    expect(open.mock.calls[0][1]?.data).toMatchObject({ kind: "OTHER", members });
+  });
+
+  it("opens a category when its legend row is clicked, and only focuses from the dot", async () => {
+    overviewService.getGroupOverview.mockImplementation((_groupId: number, _month: string, from: string, to: string) =>
+      of({ ...overview(from, to), categories: [{ name: "Groceries", total: "60" }, { name: "Drinks", total: "32" }] })
+    );
+    component.period.set({ from: "2025-01-01", to: "2025-01-31", label: "January 2025" });
+    await fixture.whenStable();
+    const open = vi.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({} as never);
+    const byId = (id: string) => fixture.nativeElement.querySelector(`[data-testid="${id}"]`) as HTMLElement;
+
+    byId("overview-donut-row-Drinks").dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(open).toHaveBeenCalledTimes(1);
+    expect(open.mock.calls[0][1]?.data).toMatchObject({ kind: "FOODGROUP", foodGroup: "Drinks" });
+
+    byId("overview-donut-focus-Drinks").dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(open).toHaveBeenCalledTimes(1);
+    expect(component.focusedSegment()).toBe("Drinks");
+  });
+
+  it("opens the list when a slice of the ring is clicked", () => {
+    const open = vi.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({} as never);
+    const spec = component.donutOptions(CHART_COLORS) as ChartConfiguration<"doughnut">;
+
+    (spec.options?.plugins as { cvPointer: { click: (index: number) => void } }).cvPointer.click(0);
+
+    expect(open.mock.calls[0][1]?.data).toMatchObject({ kind: "FOODGROUP", foodGroup: "Groceries" });
+  });
+
+  it("opens the receipts of a month bar, and of a day bar", async () => {
+    const navigate = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
+    const bars = component.chartBars();
+    expect(bars.length).toBeGreaterThan(0);
+
+    component.openBar(0);
+    expect(navigate).toHaveBeenLastCalledWith(["/receipts/group", 1], { queryParams: { from: "2026-09-01", to: "2026-09-30" } });
+
+    overviewService.getGroupOverview.mockImplementation((_groupId: number, _month: string, from: string, to: string) =>
+      of({ ...overview(from, to), trendUnit: "DAY", trend: [{ month: "2026-10-21", total: "5" }] })
+    );
+    component.period.set({ from: "2026-10-20", to: "2026-10-25", label: "20 Oct 2026 – 25 Oct 2026" });
+    await fixture.whenStable();
+    component.openBar(0);
+    expect(navigate).toHaveBeenLastCalledWith(["/receipts/group", 1], { queryParams: { from: "2026-10-21", to: "2026-10-21" } });
+  });
+
+  it("starts the receipts list from the Spent and Receipts tiles on the period on show", () => {
+    const { from, to } = thisMonth();
+
+    expect(component.receiptsQuery()).toEqual({ from, to });
+    expect(fixture.nativeElement.querySelector('[data-testid="overview-tile-spent-link"]')).not.toBeNull();
   });
 
   it("opens the products of a food group, and Uncategorized as the empty group", () => {
@@ -661,7 +711,8 @@ describe("OverviewPageComponent", () => {
       expect(donut().options?.plugins?.cvCenterText?.text?.().label).toBe("January 2025");
     });
 
-    it("dims the legend when a slice is hovered on the ring, and a click still focuses it", async () => {
+    it("dims the legend when a slice is hovered on the ring, a click opens its list, and the focused slice stays emphasised", async () => {
+      const open = vi.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({} as never);
       const pointer = donut().options?.plugins?.cvPointer;
 
       pointer?.hover?.(0);
@@ -670,6 +721,9 @@ describe("OverviewPageComponent", () => {
 
       pointer?.hover?.(null);
       pointer?.click?.(1);
+      expect(open.mock.calls[0][1]?.data).toMatchObject({ kind: "FOODGROUP", foodGroup: "Drinks" });
+
+      component.toggleFocus("Drinks");
       await fixture.whenStable();
       expect(component.focusedSegment()).toBe("Drinks");
       expect(row("Groceries").getAttribute("data-dimmed")).toBe("true");

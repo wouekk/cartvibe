@@ -1,43 +1,63 @@
 <app-dialog [headerText]="data.title">
+  <ng-template #productRows let-list let-testId="testId">
+    <table class="w-full border-collapse text-sm [&_td]:border-b [&_td]:border-border [&_td]:px-1.5 [&_td]:py-2 [&_td]:text-left [&_td]:align-top [&_th]:border-b [&_th]:border-border [&_th]:px-1.5 [&_th]:py-2 [&_th]:text-left [&_th]:align-top [&_td.text-right]:text-right [&_th.text-right]:text-right" [attr.data-testid]="testId">
+      <thead>
+        <tr>
+          <th scope="col">{{ 'Product' | t }}</th>
+          <th scope="col">{{ 'Receipt' | t }}</th>
+          <th scope="col" class="text-right">{{ 'Amount' | t }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (product of list; track product.id) {
+          <tr>
+            <td class="font-semibold">
+              {{ product.name }}
+              @if (product.quantity) {
+                <span class="text-muted-foreground">{{ product.quantity }}</span>
+              }
+            </td>
+            <td>
+              <a [routerLink]="['/receipts', product.receiptId, 'view']" (click)="close()">{{ product.receiptName }}</a>
+              <span class="ml-1.5 whitespace-nowrap text-muted-foreground">{{ product.receiptDate | appDate : "MMM d" : "calendar" }}</span>
+            </td>
+            <td class="text-right font-semibold">
+              @if (product.amount) {
+                {{ product.amount | displayCurrency }}
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </ng-template>
+
   @if (loading()) {
     <p class="text-muted-foreground">{{ 'Loading…' | t }}</p>
   } @else if (failed()) {
     <p class="text-muted-foreground" data-testid="overview-detail-failed">{{ 'This could not be loaded.' | t }}</p>
+  } @else if (data.kind === 'OTHER') {
+    @if (sections().length === 0) {
+      <p class="text-muted-foreground" data-testid="overview-detail-empty">{{ 'Nothing here.' | t }}</p>
+    } @else {
+      <div class="flex max-h-[60vh] flex-col gap-5 overflow-auto" data-testid="overview-detail-sections">
+        @for (section of sections(); track section.name) {
+          <section [attr.data-testid]="'overview-detail-section-' + section.name">
+            <h3 class="mb-1 flex items-baseline justify-between gap-3 text-sm font-semibold">
+              <span>{{ section.name | t }}</span>
+              <span class="tabular-nums">{{ section.total | displayCurrency }}</span>
+            </h3>
+            <ng-container *ngTemplateOutlet="productRows; context: { $implicit: section.products, testId: 'overview-detail-products-' + section.name }"></ng-container>
+          </section>
+        }
+      </div>
+    }
   } @else {
     @if (products().length === 0) {
       <p class="text-muted-foreground" data-testid="overview-detail-empty">{{ 'Nothing here.' | t }}</p>
     } @else {
       <div class="max-h-[60vh] overflow-auto">
-        <table class="w-full border-collapse text-sm [&_td]:border-b [&_td]:border-border [&_td]:px-1.5 [&_td]:py-2 [&_td]:text-left [&_td]:align-top [&_th]:border-b [&_th]:border-border [&_th]:px-1.5 [&_th]:py-2 [&_th]:text-left [&_th]:align-top [&_td.text-right]:text-right [&_th.text-right]:text-right" data-testid="overview-detail-products">
-          <thead>
-            <tr>
-              <th scope="col">{{ 'Product' | t }}</th>
-              <th scope="col">{{ 'Receipt' | t }}</th>
-              <th scope="col" class="text-right">{{ 'Amount' | t }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (product of products(); track product.id) {
-              <tr>
-                <td class="font-semibold">
-                  {{ product.name }}
-                  @if (product.quantity) {
-                    <span class="text-muted-foreground">{{ product.quantity }}</span>
-                  }
-                </td>
-                <td>
-                  <a [routerLink]="['/receipts', product.receiptId, 'view']" (click)="close()">{{ product.receiptName }}</a>
-                  <span class="ml-1.5 whitespace-nowrap text-muted-foreground">{{ product.receiptDate | appDate : "MMM d" : "calendar" }}</span>
-                </td>
-                <td class="text-right font-semibold">
-                  @if (product.amount) {
-                    {{ product.amount | displayCurrency }}
-                  }
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
+        <ng-container *ngTemplateOutlet="productRows; context: { $implicit: products(), testId: 'overview-detail-products' }"></ng-container>
       </div>
     }
   }

@@ -82,3 +82,23 @@ describe("PeriodPickerComponent", () => {
     expect(emitted[emitted.length - 1]).toBeUndefined();
   });
 });
+
+describe("PeriodPickerComponent with a starting range", () => {
+  it("opens on that range as a custom one and emits it, never this month first", async () => {
+    await TestBed.configureTestingModule({
+      imports: [PeriodPickerComponent, NgxsModule.forRoot([SystemSettingsState])],
+      providers: [provideZonelessChangeDetection()],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(PeriodPickerComponent);
+    const emitted: unknown[] = [];
+    fixture.componentInstance.periodChange.subscribe((period) => emitted.push(period));
+    fixture.componentRef.setInput("initial", { from: "2026-09-01", to: "2026-09-30" });
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.preset()).toBe("CUSTOM");
+    expect(fixture.componentInstance.fromText()).toBe("01/09/2026");
+    expect(fixture.componentInstance.toText()).toBe("30/09/2026");
+    expect(emitted).toHaveLength(1);
+    expect(emitted[0]).toMatchObject({ from: "2026-09-01", to: "2026-09-30" });
+  });
+});

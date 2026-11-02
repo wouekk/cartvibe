@@ -20,6 +20,9 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 - **A Save button with changes waiting is highlighted.** Every Save that knows its form has changed since it was saved (edit forms, the AI page and its backup,
   System Settings, the Dashboard layout, a receipt's warranty) wears a soft halo in the theme's focus colour until the changes are saved. It stays still with
   reduced motion and never shows on a disabled or add-form Save.
+- **Dashboard drill-down (#8).** A click on a spending-donut slice, or anywhere on its legend row, opens the products
+  behind it. **Other** now opens too, with every category it folds as its own section and subtotal. The Spent tile and
+  each month or day bar of the trend open the receipts list on that date range (the Receipts tile on the period shown).
 
 ### Changed
 - **No AI model is chosen for you.** The AI page leaves the Model box empty until you pick one (it used to start on Claude Opus, Gemini 2.5 Flash or

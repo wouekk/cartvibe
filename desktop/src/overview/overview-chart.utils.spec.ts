@@ -62,6 +62,21 @@ describe("overview chart utils", () => {
       expect(segments[5].total).toBe(10);
     });
 
+    it("keeps the categories folded into Other, and gives no other slice members", () => {
+      const segments = buildDonutSegments([
+        { name: "A", total: "60" },
+        { name: "B", total: "50" },
+        { name: "C", total: "40" },
+        { name: "D", total: "30" },
+        { name: "E", total: "20" },
+        { name: "F", categoryId: 7, total: "6" },
+        { name: "G", total: "4" },
+      ]);
+
+      expect(segments[5].members).toEqual([{ name: "F", categoryId: 7 }, { name: "G" }]);
+      expect(segments.slice(0, 5).every((segment) => segment.members === undefined)).toBe(true);
+    });
+
     it("draws nothing for a month without spending", () => {
       expect(buildDonutSegments([])).toEqual([]);
       expect(buildDonutSegments([{ name: "A", total: "0" }])).toEqual([]);
