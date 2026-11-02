@@ -9,8 +9,8 @@ package services
 const DefaultReceiptPrompt = `
 Read this receipt or bill. Reply with minified JSON only, no code block:
 {"name":"...","shopName":"...","currency":"...","amount":0.0,"date":"2024-01-31T00:00:00Z","categories":[{"id":1}]}
-- "name": the shop or company name; "Default store name" if unreadable.
-- "shopName": the brand only (Auchan, Uber, Ryanair), not street or branch; "" if unreadable.
+- "name": the shop or company, as in "shopName"; "Default store name" if unreadable.
+- "shopName": ` + shopRule + `
 - "currency": ` + currencyRule + `
 - "amount": the total paid, a number. A refund, return or credit (money back to the customer) is negative.
 - "date": the purchase day at midnight UTC, in exactly that format; the year is @currentYear if not printed.

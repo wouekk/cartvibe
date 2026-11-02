@@ -30,7 +30,7 @@ import (
 const productExtractionPromptTemplate = `List every purchased line on this receipt or bill and classify each for a household in %s; the current month is %s.
 Reply with minified JSON only, no code block:
 {"shop":"...","currency":"...","products":[{"name":"...","displayName":"...","amount":0.0,"quantity":"...","health":"...","foodGroup":"...","seasonality":"..."}]}
-- "shop": the brand only (Auchan, Uber, Ryanair), not street or branch; "" if unreadable.
+- "shop": ` + shopRule + `
 - "currency": ` + currencyRule + `
 %s
 Not a receipt or bill: {"shop":"","currency":"","products":[]}.`
@@ -43,6 +43,11 @@ Also add a "products" key to the same JSON object: every purchased line, classif
 "products":[{"name":"...","displayName":"...","amount":0.0,"quantity":"...","health":"...","foodGroup":"...","seasonality":"..."}]
 %s
 Not a receipt or bill: "products":[].`
+
+// shopRule is how both receipt prompts name the shop: its own brand, never the shopping centre it sits in (a Leclerc in a
+// mall reads "Leclerc" every time), and read off the logo when the name is only a picture (receipts printed from a web
+// shop). One definition, so the receipt read and the product sweep cannot disagree about the same shop.
+const shopRule = `the shop's own brand alone (Auchan, Uber, Leclerc), never the shopping centre, mall, street or branch it is in, and never joined to them; if the name is only a logo, read the logo; "" if unreadable.`
 
 // currencyRule is how both receipt prompts read the currency.
 const currencyRule = `ISO 4217 code as printed: zł/zl/PLN=PLN, £/pounds=GBP, CHF/Fr./SFr.=CHF, $=USD, €=EUR; "" if none. Give every amount exactly as printed, never converted.`

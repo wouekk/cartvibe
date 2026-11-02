@@ -25,6 +25,9 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
   each month or day bar of the trend open the receipts list on that date range (the Receipts tile on the period shown).
 
 ### Changed
+- **A shop in a shopping centre is read by its own name.** The receipt prompt now says to name the shop's own brand, never
+  the shopping centre it sits in or the two joined (a Leclerc in a mall was sometimes read as the centre), and to read the
+  name from the logo when a web-generated receipt prints it only as a picture. Receipts already read keep their names.
 - **No AI model is chosen for you.** The AI page leaves the Model box empty until you pick one (it used to start on Claude Opus, Gemini 2.5 Flash or
   GPT-5 mini), the hint no longer names a model, and the server no longer falls back to one: a cloud provider's settings need a model to be saved, and a
   setting without one reports "no model was chosen" instead of silently calling the most expensive one. Choose one on the AI page after an update if a

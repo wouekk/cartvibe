@@ -26,6 +26,10 @@ the "Prompts" table and the prompt a processing setting names are kept for upstr
 - **A starter category list is seeded once** (`repositories/starter_categories.go`, through the data-migration ledger):
   groceries plus everyday spending (Restaurant, Taxi, Airlines, Bills, Travel, ...). An install with a list gets no
   English examples in the prompt (see `foodGroupRule`); the examples remain for a household that empties its list.
+- **A shop is named by its own brand, never the shopping centre around it** (`shopRule`, `services/receipt_product_extraction.go`,
+  used by the receipt read's `shopName` and the product sweep's `shop`): a Leclerc in a mall is "Leclerc" every time, not
+  the centre's name and not the two joined; a name printed only as a logo (receipts generated from a web shop) is read
+  from the logo. One sentence in one place so the two prompts cannot disagree; `TestShopNameRuleStaysShort` keeps it cheap.
 - **Prompts are short, answers are minified JSON.** Output tokens set most of the latency; keys that would be empty are
   left out and the parsers default them.
 - **AI is optional and fallible.** Nothing may block or fail because the AI is missing, slow or wrong: record a status,
