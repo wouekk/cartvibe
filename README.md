@@ -9,7 +9,7 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/wouekk/cartvibe/ci.yml?branch=main&label=CI&logo=githubactions&logoColor=white)](https://github.com/wouekk/cartvibe/actions/workflows/ci.yml)
 [![Image](https://img.shields.io/badge/ghcr.io-wouekk%2Fcartvibe-2496ED?logo=docker&logoColor=white)](https://github.com/wouekk/cartvibe/pkgs/container/cartvibe)
 
-[Project page](https://cartvibe.app/) · [Quick start](#quick-start) · [Synology guide](#on-a-synology-nas-container-manager-or-dockhand) · [API keys](#getting-your-api-keys) · [Changelog](CHANGELOG.md) · [Credits](NOTICE.md) · [Issues](https://github.com/wouekk/cartvibe/issues)
+[Project page](https://cartvibe.app/) · [Quick start](#quick-start) · [Synology guide](#on-a-synology-nas-container-manager-or-dockhand) · [FAQ](#faq) · [Changelog](CHANGELOG.md) · [Credits](NOTICE.md) · [Issues](https://github.com/wouekk/cartvibe/issues)
 
 </div>
 
@@ -94,10 +94,11 @@ Keep the `.env` file somewhere safe too, and include it in your backups: without
 docker compose up -d
 ```
 
-Open `http://<your-server>:8091` and sign in with `admin` / `admin`, then **change that password straight away**.
+Open `http://<your-server>:8091` and sign in with `admin` / `admin`, then **change that password straight away** ([how](docs/faq.md#how-do-i-change-a-password)).
 The welcome screen asks for your language, theme, and currency, and the AI page is where you add a Claude, Gemini, or
-ChatGPT key (or a local model at home) so receipts can be read. [Getting your API keys](#getting-your-api-keys) shows where to create
-one and which cheap model to choose.
+ChatGPT key (or a local model at home) so receipts can be read. The [FAQ](docs/faq.md#how-do-i-add-ai-api-keys) shows where to create
+a key and which cheap model to choose. Shop logos need an optional Logo.dev key, also
+in the [FAQ](docs/faq.md#how-do-i-add-a-logodev-api-key).
 
 ### Updating
 
@@ -170,55 +171,14 @@ back up the `docker` shared folder on a schedule, but stop the stack for a momen
   before it starts.
 * **You start with an empty database after an update.** `DB_FILENAME` must still be `app.db`, and `./sqlite` must still point at the same folder.
 
-## Getting your API keys
+## FAQ
 
-CartVibe only needs an API key for two optional things: the AI that reads your receipts, and shop logos. You create the key on the provider's
-website, then paste it into CartVibe. Each link goes straight to the provider's keys page; it asks you to sign in first.
+Answers live in [docs/faq.md](docs/faq.md):
 
-| Provider | Create the key here | Paste it in CartVibe |
-| :--- | :--- | :--- |
-| **Claude** (Anthropic) | [platform.claude.com/settings/keys](https://platform.claude.com/settings/keys) | **AI** page, provider **Claude** |
-| **Gemini** (Google) | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) | **AI** page, provider **Gemini** |
-| **ChatGPT** (OpenAI) | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) | **AI** page, provider **ChatGPT** |
-| **Logo.dev** (shop logos) | [logo.dev/dashboard/api-keys](https://www.logo.dev/dashboard/api-keys) | **System Settings**, **Shop logos** card |
-
-A model you run yourself (**Local LM**, such as LM Studio or Ollama) needs no key from these sites: choose it on the same **AI** page and enter its address.
-
-### Step by step
-
-* **Claude:** Open the link and sign in (or create a Claude Console account). Click **Create key**, give it a name such as `cartvibe`, and pick an
-  expiration. Choose a long one or **Never**, because an expired key quietly stops the receipt reading. Copy the key straight away: it is shown only once.
-  A Claude chat subscription does not include the API; API use is billed separately in the Console.
-* **Gemini:** Open the link and sign in with a Google account. Click **Create API key** and choose a Google Cloud project when it asks.
-  Copy the key. You can view it again later on the same page. Read Google's data-use terms for the free tier before you send family receipts through it.
-* **ChatGPT (OpenAI):** Open the link, sign in, and click **Create new secret key**. Name it, pick a project, and leave the permissions on **All**. Copy the key now: it is
-  shown only once. A ChatGPT subscription does not include the API; add credit under **Billing** in the OpenAI dashboard first.
-* **Logo.dev:** Sign up, open the link, and copy the **secret key**. It starts with `sk_`; the publishable `pk_` key will not work. There is a free plan, and CartVibe then shows
-  "Logos provided by Logo.dev" on the login page.
-
-Then sign in to CartVibe as an admin, open the **AI** page, choose the provider, paste the key, pick a model (see below), and press **Test connection**.
-CartVibe stores the key encrypted with your `ENCRYPTION_KEY`, so it never goes in `docker-compose.yml` or `.env`.
-
-### Which model to pick (the cheapest that works)
-
-Reading a receipt is a small job: one photo in, a short list of lines out, a few thousand tokens in total. The small models are enough, and a receipt typically costs well under a cent.
-The cheapest picks below accept photos.
-
-| Provider | Cheapest good pick (enter this model) | Price per million tokens, input / output | A step up if lines are misread |
-| :--- | :--- | :--- | :--- |
-| **Gemini** | `gemini-3.5-flash-lite` (stable, has a free tier) | $0.30 / $2.50 | `gemini-3.8-flash`: $0.75 / $3.75 until 31 Dec 2026, then $1.50 / $7.50 |
-| **Claude** | `claude-haiku-5-5` | $0.10 / $0.50 | `claude-sonnet-5-5`: $2 / $10 |
-| **ChatGPT** | `gpt-6-luna` | $0.10 / $0.50 | `gpt-5.4-mini`: $0.75 / $4.50 |
-
-* **You choose the model.** CartVibe does not pre-select one: the Model box stays empty until you pick, because models are billed by the token at very different prices
-  (Claude Opus costs about 40 times as much as Haiku). For Gemini, pick a current model from the table: Google lists the older 2.5 models as available only to accounts
-  that already used them, so a new key may be refused on them.
-* **Names change.** `gemini-3.5-flash` no longer exists; Google's current small models are the **Flash-Lite** ones. Prices and names were checked on 2 November 2026,
-  so compare them with the provider's own list before you settle: [Gemini](https://ai.google.dev/gemini-api/docs/pricing) ·
-  [Claude](https://platform.claude.com/docs/en/about-claude/pricing) · [OpenAI](https://developers.openai.com/api/docs/pricing).
-* **Test before you trust it.** Scan three or four real receipts with the cheap model and check the lines. If it misreads them, move one step up; do not jump to the biggest model.
-* **Keep keys private and capped.** A key is a password that spends your money. Do not post it or commit it, set a monthly spending limit in the provider's console if it
-  offers one, and delete the key on the same page if it ever leaks.
+* [How do I rename a household?](docs/faq.md#how-do-i-rename-a-household)
+* [How do I change a password?](docs/faq.md#how-do-i-change-a-password)
+* [How do I add AI API keys?](docs/faq.md#how-do-i-add-ai-api-keys): where to create a Claude, Gemini or ChatGPT key, and which cheap model to pick
+* [How do I add a Logo.dev API key?](docs/faq.md#how-do-i-add-a-logodev-api-key): shop logos
 
 ## Features
 
@@ -268,7 +228,7 @@ The same tour, with screenshots and a live demo, is on [cartvibe.app](https://ca
 | `api/` | Go backend (Chi router, GORM, Asynq background workers on Valkey) |
 | `desktop/` | Angular web app, installable as a PWA and built for phones first |
 | `docker/` | One production image: nginx serves the app and proxies the Go API |
-| `docs/` | Developer setup, the AI prompts, themes, and these screenshots |
+| `docs/` | The [FAQ](docs/faq.md), developer setup, the AI prompts, themes, and these screenshots |
 | `site/` | The project page (static Astro site, see [docs/site.md](docs/site.md)) |
 
 Working notes for contributors and AI agents: [CLAUDE.md](CLAUDE.md), [AGENTS.md](AGENTS.md), [DESIGN.md](DESIGN.md), [docs/dev-setup.md](docs/dev-setup.md).
