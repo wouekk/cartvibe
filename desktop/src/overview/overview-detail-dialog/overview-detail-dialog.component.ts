@@ -64,6 +64,15 @@ export class OverviewDetailDialogComponent implements OnInit {
 
   private readonly overviewService = inject(OverviewService);
 
+  /** Cell rules for both tables: hairline rows, the column header stuck to the top, a group band without a rule, a gap between groups. */
+  public readonly tableClass =
+    "[&_td]:break-words [&_td]:border-b [&_td]:border-border [&_td]:px-1.5 [&_td]:py-2 [&_td]:text-left [&_td]:align-top " +
+    "[&_th]:border-b [&_th]:border-border [&_th]:px-1.5 [&_th]:py-2 [&_th]:text-left [&_th]:align-top " +
+    "[&_td.text-right]:text-right [&_th.text-right]:text-right " +
+    "[&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:z-10 [&_thead_th]:bg-popover " +
+    "[&_.detail-group_>*]:border-b-0 [&_.detail-group_>*]:py-2.5 [&_.detail-group_th]:rounded-l-md [&_.detail-group_td]:rounded-r-md " +
+    "[&_.detail-gap_td]:h-3 [&_.detail-gap_td]:border-0 [&_.detail-gap_td]:p-0 [&_.detail-gap:last-child_td]:hidden";
+
   public readonly loading = signal(true);
 
   public readonly failed = signal(false);

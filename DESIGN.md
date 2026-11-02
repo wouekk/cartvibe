@@ -70,6 +70,7 @@ Banned: Angular Material, Bootstrap classes (`d-flex`, `col-*`, `mb-3`), `mat-*`
   reduced motion). `app-submit-button` adds it for an edit form (`mode` edit, or `[highlightUnsaved]`, which `app-form` sets when editing); a custom Save
   adds `[class.cv-unsaved]` from its own dirty state. Never on a disabled Save (nothing to save), an add form (nothing saved yet) or a focused button.
 - Settings: always editable; Save in the card footer on the right, status text left (`cv-card__status`), dimmed while pristine (`[mode]="FormMode.edit"`). No floating save bar.
+- Grouped lists in a dialog (the Dashboard's Other list): one `table-fixed` table, so the column header (sticky) and amounts line up from the first line to the last; each group opens with a `bg-muted/60` band (a surface step, not a rule) holding its name and subtotal, with a small gap before the next group.
 - Dialog footer: hairline `border-t`, actions right: outline Cancel, primary Save. A confirmation's button names the action ("Delete", "Remove"), not "Confirm", and is red for those two.
 - Empty: centered, `py-10`, icon in a `size-10 rounded-full bg-muted text-muted-foreground` circle, one `text-sm text-muted-foreground` line, then the page's own add button. Whole-page empty: same inside `rounded-xl border border-dashed`.
 - Loading: render nothing or `–` placeholders until loaded (`isLoaded()`), spinner inline for actions; each panel loads and fails on its own. Error: toast via `SnackbarService`; field errors in `--destructive`.

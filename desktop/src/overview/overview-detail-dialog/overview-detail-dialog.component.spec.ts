@@ -80,6 +80,10 @@ describe("OverviewDetailDialogComponent", () => {
       ]);
       expect(fixture.nativeElement.querySelector('[data-testid="overview-detail-section-Pets"]')).not.toBeNull();
       expect(fixture.nativeElement.querySelector('[data-testid="overview-detail-section-Gifts"]')).toBeNull();
+      // One table, one column layout, a shaded band per category.
+      expect(fixture.nativeElement.querySelectorAll('table').length).toBe(1);
+      expect(fixture.nativeElement.querySelectorAll('tbody tr.detail-group').length).toBe(2);
+      expect(fixture.nativeElement.querySelectorAll('thead').length).toBe(1);
     });
 
     it("says it could not load, rather than showing a short list, when one category fails", async () => {

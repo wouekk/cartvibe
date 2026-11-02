@@ -1,35 +1,39 @@
 <app-dialog [headerText]="data.title">
-  <ng-template #productRows let-list let-testId="testId">
-    <table class="w-full border-collapse text-sm [&_td]:border-b [&_td]:border-border [&_td]:px-1.5 [&_td]:py-2 [&_td]:text-left [&_td]:align-top [&_th]:border-b [&_th]:border-border [&_th]:px-1.5 [&_th]:py-2 [&_th]:text-left [&_th]:align-top [&_td.text-right]:text-right [&_th.text-right]:text-right" [attr.data-testid]="testId">
-      <thead>
-        <tr>
-          <th scope="col">{{ 'Product' | t }}</th>
-          <th scope="col">{{ 'Receipt' | t }}</th>
-          <th scope="col" class="text-right">{{ 'Amount' | t }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (product of list; track product.id) {
-          <tr>
-            <td class="font-semibold">
-              {{ product.name }}
-              @if (product.quantity) {
-                <span class="text-muted-foreground">{{ product.quantity }}</span>
-              }
-            </td>
-            <td>
-              <a [routerLink]="['/receipts', product.receiptId, 'view']" (click)="close()">{{ product.receiptName }}</a>
-              <span class="ml-1.5 whitespace-nowrap text-muted-foreground">{{ product.receiptDate | appDate : "MMM d" : "calendar" }}</span>
-            </td>
-            <td class="text-right font-semibold">
-              @if (product.amount) {
-                {{ product.amount | displayCurrency }}
-              }
-            </td>
-          </tr>
+  <!-- One product line; the flat list and every group of the Other list draw it the same way. -->
+  <ng-template #line let-product>
+    <tr>
+      <td class="font-semibold">
+        {{ product.name }}
+        @if (product.quantity) {
+          <span class="text-muted-foreground">{{ product.quantity }}</span>
         }
-      </tbody>
-    </table>
+      </td>
+      <td>
+        <a [routerLink]="['/receipts', product.receiptId, 'view']" (click)="close()">{{ product.receiptName }}</a>
+        <span class="ml-1.5 whitespace-nowrap text-muted-foreground">{{ product.receiptDate | appDate : "MMM d" : "calendar" }}</span>
+      </td>
+      <td class="text-right font-semibold">
+        @if (product.amount) {
+          {{ product.amount | displayCurrency }}
+        }
+      </td>
+    </tr>
+  </ng-template>
+
+  <ng-template #columns>
+    <!-- Fixed columns: one table, so the headers and amounts line up from the first line to the last. -->
+    <colgroup>
+      <col />
+      <col class="w-[36%]" />
+      <col class="w-28" />
+    </colgroup>
+    <thead>
+      <tr>
+        <th scope="col">{{ 'Product' | t }}</th>
+        <th scope="col">{{ 'Receipt' | t }}</th>
+        <th scope="col" class="text-right">{{ 'Amount' | t }}</th>
+      </tr>
+    </thead>
   </ng-template>
 
   @if (loading()) {
@@ -40,24 +44,38 @@
     @if (sections().length === 0) {
       <p class="text-muted-foreground" data-testid="overview-detail-empty">{{ 'Nothing here.' | t }}</p>
     } @else {
-      <div class="flex max-h-[60vh] flex-col gap-5 overflow-auto" data-testid="overview-detail-sections">
-        @for (section of sections(); track section.name) {
-          <section [attr.data-testid]="'overview-detail-section-' + section.name">
-            <h3 class="mb-1 flex items-baseline justify-between gap-3 text-sm font-semibold">
-              <span>{{ section.name | t }}</span>
-              <span class="tabular-nums">{{ section.total | displayCurrency }}</span>
-            </h3>
-            <ng-container *ngTemplateOutlet="productRows; context: { $implicit: section.products, testId: 'overview-detail-products-' + section.name }"></ng-container>
-          </section>
-        }
+      <div class="max-h-[60vh] overflow-auto pr-2" data-testid="overview-detail-sections">
+        <table class="w-full table-fixed border-collapse text-sm" [class]="tableClass" data-testid="overview-detail-products">
+          <ng-container *ngTemplateOutlet="columns"></ng-container>
+          @for (section of sections(); track section.name) {
+            <!-- Each category opens with a shaded band (a surface step, not a rule) carrying its name and subtotal. -->
+            <tbody [attr.data-testid]="'overview-detail-section-' + section.name">
+              <tr class="detail-group">
+                <th scope="rowgroup" colspan="2" class="bg-muted/60 text-sm font-semibold">{{ section.name | t }}</th>
+                <td class="bg-muted/60 text-right font-semibold tabular-nums">{{ section.total | displayCurrency }}</td>
+              </tr>
+              @for (product of section.products; track product.id) {
+                <ng-container *ngTemplateOutlet="line; context: { $implicit: product }"></ng-container>
+              }
+              <tr aria-hidden="true" class="detail-gap"><td colspan="3"></td></tr>
+            </tbody>
+          }
+        </table>
       </div>
     }
   } @else {
     @if (products().length === 0) {
       <p class="text-muted-foreground" data-testid="overview-detail-empty">{{ 'Nothing here.' | t }}</p>
     } @else {
-      <div class="max-h-[60vh] overflow-auto">
-        <ng-container *ngTemplateOutlet="productRows; context: { $implicit: products(), testId: 'overview-detail-products' }"></ng-container>
+      <div class="max-h-[60vh] overflow-auto pr-2">
+        <table class="w-full table-fixed border-collapse text-sm" [class]="tableClass" data-testid="overview-detail-products">
+          <ng-container *ngTemplateOutlet="columns"></ng-container>
+          <tbody>
+            @for (product of products(); track product.id) {
+              <ng-container *ngTemplateOutlet="line; context: { $implicit: product }"></ng-container>
+            }
+          </tbody>
+        </table>
       </div>
     }
   }
