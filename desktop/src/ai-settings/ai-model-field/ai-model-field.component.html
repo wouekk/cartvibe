@@ -6,13 +6,14 @@
       optionDisplayKey="displayValue"
       [attr.data-testid]="testId()"
       [options]="options()"
+      [placeholder]="'Choose a model' | t"
       [inputFormControl]="modelControl()"
     ></app-select>
   } @else {
     <app-input
       [label]="'Model' | t"
       [attr.data-testid]="testId()"
-      [hint]="'For example {model}' | t: example()"
+      [hint]="'Press the button to list the models this key can use, or type the name of one.' | t"
       [inputFormControl]="modelControl()"
     ></app-input>
   }

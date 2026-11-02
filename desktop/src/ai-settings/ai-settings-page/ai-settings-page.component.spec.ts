@@ -121,14 +121,32 @@ describe("AiSettingsPageComponent", () => {
     );
   });
 
-  it("picking another provider moves to its default model and empties the key box", async () => {
+  it("starts with no model chosen, for every provider, and will not save until one is picked", async () => {
     await setUp({});
-    component.form.controls.key.setValue("gemini-key");
+    component.form.controls.key.setValue("secret");
+
+    expect(component.form.controls.model.value).toBe("");
+    expect(component.form.controls.model.valid).toBe(false);
+
+    for (const aiType of [AiType.Gemini, AiType.Anthropic, AiType.OpenAi]) {
+      component.form.controls.aiType.markAsDirty();
+      component.form.controls.aiType.setValue(aiType);
+      expect(component.form.controls.model.value).toBe("");
+    }
+
+    component.save();
+
+    expect(processingService["createReceiptProcessingSettings"]).not.toHaveBeenCalled();
+  });
+
+  it("picking another provider clears the model and empties the key box", async () => {
+    await setUp({});
+    component.form.patchValue({ model: "a-gemini-model", key: "gemini-key" });
 
     component.form.controls.aiType.markAsDirty();
     component.form.controls.aiType.setValue(AiType.Anthropic);
 
-    expect(component.form.controls.model.value).toBe("claude-opus-5-5");
+    expect(component.form.controls.model.value).toBe("");
     expect(component.form.controls.key.value).toBe("");
   });
 
@@ -136,6 +154,7 @@ describe("AiSettingsPageComponent", () => {
     await setUp({ receiptProcessingSettingsId: 3 }, { id: 3, name: "Old", aiType: AiType.Gemini, model: "m" });
     component.form.controls.aiType.markAsDirty();
     component.form.controls.aiType.setValue(AiType.Anthropic);
+    component.form.controls.model.setValue("a-claude-model");
 
     expect(component.canTest()).toBe(false);
     component.save();
@@ -146,6 +165,7 @@ describe("AiSettingsPageComponent", () => {
 
   it("asks for a Gemini key before the first save", async () => {
     await setUp({});
+    component.form.controls.model.setValue("a-gemini-model");
 
     component.save();
 

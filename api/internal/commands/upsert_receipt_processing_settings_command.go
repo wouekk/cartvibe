@@ -6,6 +6,7 @@ import (
 	"cartvibe/api/internal/utils"
 	"encoding/json"
 	"net/http"
+	"strings"
 )
 
 type UpsertReceiptProcessingSettingsCommand struct {
@@ -57,6 +58,11 @@ func (command *UpsertReceiptProcessingSettingsCommand) Validate(updateKey bool) 
 	if command.AiType == models.OPEN_AI_NEW || command.AiType == models.GEMINI_NEW || command.AiType == models.ANTHROPIC {
 		if command.Key == "" && updateKey {
 			errors["key"] = "key is required"
+		}
+
+		// No model is assumed for a person: models are billed by the token at very different prices.
+		if strings.TrimSpace(command.Model) == "" {
+			errors["model"] = "model is required"
 		}
 
 		if command.Url != "" {

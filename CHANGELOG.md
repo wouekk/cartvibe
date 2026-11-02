@@ -17,6 +17,16 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 - **Safer outbound fetches.** `internal/netguard` vets every connection the server makes for a typed address (after DNS and
   on each redirect) and is shared with the PDF renderer's external-resource check; nginx throttles the recipe preview.
 
+- **A Save button with changes waiting is highlighted.** Every Save that knows its form has changed since it was saved (edit forms, the AI page and its backup,
+  System Settings, the Dashboard layout, a receipt's warranty) wears a soft halo in the theme's focus colour until the changes are saved. It stays still with
+  reduced motion and never shows on a disabled or add-form Save.
+
+### Changed
+- **No AI model is chosen for you.** The AI page leaves the Model box empty until you pick one (it used to start on Claude Opus, Gemini 2.5 Flash or
+  GPT-5 mini), the hint no longer names a model, and the server no longer falls back to one: a cloud provider's settings need a model to be saved, and a
+  setting without one reports "no model was chosen" instead of silently calling the most expensive one. Choose one on the AI page after an update if a
+  receipt read reports it. A selection box can now show a placeholder ("Choose a model").
+
 ### Fixed
 - **Two multi-line text fields on one page no longer share an id**, so each label points at its own field.
 

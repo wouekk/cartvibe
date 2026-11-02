@@ -1,5 +1,6 @@
-import { Component, TemplateRef, input, output, ChangeDetectionStrategy } from "@angular/core";
+import { Component, TemplateRef, computed, input, output, ChangeDetectionStrategy } from "@angular/core";
 import { FormGroup } from "@angular/forms";
+import { FormMode } from "src/enums/form-mode.enum";
 import { FormConfig } from "src/interfaces";
 
 @Component({
@@ -30,6 +31,9 @@ export class FormComponent {
   public readonly settingsTitle = input<string>("");
 
   public readonly submitButtonDisabled = input(false);
+
+  /** Editing a saved record (not adding one): its Save wears the unsaved-changes halo once the form changes. */
+  public readonly editing = computed(() => this.formConfig().mode === FormMode.edit);
 
   public readonly submitted = output<void>();
 }

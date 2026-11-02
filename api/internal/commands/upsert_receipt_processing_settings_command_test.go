@@ -16,6 +16,7 @@ func TestUpsertReceiptProcessingSettingsCommand_Validate_ValidInputs(t *testing.
 				Name:          "Test",
 				AiType:        models.OPEN_AI_NEW,
 				Key:           "test-key",
+				Model:         "a-model",
 				IsVisionModel: true,
 			},
 			updateKey: true,
@@ -25,6 +26,7 @@ func TestUpsertReceiptProcessingSettingsCommand_Validate_ValidInputs(t *testing.
 				Name:          "Test",
 				AiType:        models.GEMINI_NEW,
 				Key:           "test-key",
+				Model:         "a-model",
 				IsVisionModel: true,
 			},
 			updateKey: true,
@@ -51,6 +53,7 @@ func TestUpsertReceiptProcessingSettingsCommand_Validate_ValidInputs(t *testing.
 			command: UpsertReceiptProcessingSettingsCommand{
 				Name:          "Test",
 				AiType:        models.OPEN_AI_NEW,
+				Model:         "a-model",
 				IsVisionModel: true,
 			},
 			updateKey: false,
@@ -220,7 +223,7 @@ func TestUpsertReceiptProcessingSettingsCommand_Validate_ClaudeNeedsAKeyAndNoUrl
 		utils.PrintTestError(t, "error should exist for field", "url")
 	}
 
-	valid := UpsertReceiptProcessingSettingsCommand{Name: "Test", AiType: models.ANTHROPIC, Key: "k", IsVisionModel: true}
+	valid := UpsertReceiptProcessingSettingsCommand{Name: "Test", AiType: models.ANTHROPIC, Key: "k", Model: "a-model", IsVisionModel: true}
 	if errs := valid.Validate(true).Errors; len(errs) > 0 {
 		t.Fatalf("expected valid, got %v", errs)
 	}
@@ -229,5 +232,27 @@ func TestUpsertReceiptProcessingSettingsCommand_Validate_ClaudeNeedsAKeyAndNoUrl
 func TestAiClientTypeValueAcceptsClaude(t *testing.T) {
 	if _, err := models.ANTHROPIC.Value(); err != nil {
 		t.Fatalf("ANTHROPIC must be storable: %v", err)
+	}
+}
+
+// No model is assumed for a person: a cloud provider's setting without one is refused, whichever provider it is, and a
+// model of only spaces counts as none.
+func TestUpsertReceiptProcessingSettingsCommand_Validate_CloudProviderNeedsAModel(t *testing.T) {
+	for _, aiType := range []models.AiClientType{models.OPEN_AI_NEW, models.GEMINI_NEW, models.ANTHROPIC} {
+		for _, model := range []string{"", "   "} {
+			command := UpsertReceiptProcessingSettingsCommand{Name: "Test", AiType: aiType, Key: "k", Model: model, IsVisionModel: true}
+			if _, exists := command.Validate(true).Errors["model"]; !exists {
+				utils.PrintTestError(t, "error should exist for field", "model")
+			}
+		}
+	}
+}
+
+func TestUpsertReceiptProcessingSettingsCommand_Validate_ChosenModelIsAccepted(t *testing.T) {
+	for _, aiType := range []models.AiClientType{models.OPEN_AI_NEW, models.GEMINI_NEW, models.ANTHROPIC} {
+		command := UpsertReceiptProcessingSettingsCommand{Name: "Test", AiType: aiType, Key: "k", Model: "any-model-name", IsVisionModel: true}
+		if errs := command.Validate(true).Errors; len(errs) > 0 {
+			t.Fatalf("%s: expected valid, got %v", aiType, errs)
+		}
 	}
 }

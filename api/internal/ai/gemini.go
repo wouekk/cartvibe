@@ -58,6 +58,10 @@ func (gemini GeminiClient) GetChatCompletion() (structs.ChatCompletionResult, er
 		return result, err
 	}
 
+	if strings.TrimSpace(gemini.ReceiptProcessingSettings.Model) == "" {
+		return result, ErrNoModelChosen
+	}
+
 	parts := make([]*genai.Part, 0)
 	for _, aiMessage := range gemini.Options.Messages {
 		parts = append(parts, genai.NewPartFromText(aiMessage.Content))

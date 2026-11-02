@@ -119,11 +119,22 @@ describe("AiFallbackCardComponent", () => {
 
   it("asks for a key before the first save", async () => {
     await setUp({ receiptProcessingSettingsId: 1 });
-    component.form.patchValue({ enabled: true });
+    component.form.patchValue({ enabled: true, model: "a-model" });
 
     component.save();
 
     expect(snackbar.error).toHaveBeenCalledWith("Paste the Gemini API key for the backup AI.");
+    expect(processingService["createReceiptProcessingSettings"]).not.toHaveBeenCalled();
+  });
+
+  it("chooses no model for anyone: it saves nothing until one is picked", async () => {
+    await setUp({ receiptProcessingSettingsId: 1 });
+    component.form.patchValue({ enabled: true, key: "secret" });
+
+    expect(component.form.controls.model.value).toBe("");
+
+    component.save();
+
     expect(processingService["createReceiptProcessingSettings"]).not.toHaveBeenCalled();
   });
 

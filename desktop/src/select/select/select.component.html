@@ -12,7 +12,7 @@
   } @else {
     <hlm-select [formControl]="inputFormControl" [itemToString]="itemToString">
       <hlm-select-trigger class="w-full" [buttonId]="triggerId" (blur)="inputBlur.emit($event)">
-        <hlm-select-value />
+        <hlm-select-value [placeholder]="(placeholder ?? '') | t" />
       </hlm-select-trigger>
       <hlm-select-content *hlmSelectPortal>
         @if (addEmptyOption()) {

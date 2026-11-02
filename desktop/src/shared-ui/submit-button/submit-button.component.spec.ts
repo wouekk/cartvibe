@@ -12,7 +12,7 @@ import { SubmitButtonComponent } from "./submit-button.component";
   template: `
     <form [formGroup]="form">
       <input formControlName="name" />
-      <app-submit-button [mode]="mode()"></app-submit-button>
+      <app-submit-button [mode]="mode()" [highlightUnsaved]="highlight()"></app-submit-button>
     </form>
   `,
   standalone: false,
@@ -20,6 +20,7 @@ import { SubmitButtonComponent } from "./submit-button.component";
 class HostComponent {
   public readonly form = new FormGroup({ name: new FormControl("Milk") });
   public readonly mode = signal<FormMode>(FormMode.edit);
+  public readonly highlight = signal(false);
 }
 
 describe("SubmitButtonComponent", () => {
@@ -86,6 +87,48 @@ describe("SubmitButtonComponent", () => {
       host.detectChanges();
       await host.whenStable();
       expect(saveButton().disabled).toBe(false);
+    });
+
+    describe("the unsaved-changes halo", () => {
+      const change = async () => {
+        host.componentInstance.form.get("name")!.setValue("Bread");
+        host.componentInstance.form.markAsDirty();
+        host.detectChanges();
+        await host.whenStable();
+      };
+
+      it("is off while nothing has changed", () => {
+        expect(saveButton().classList.contains("cv-unsaved")).toBe(false);
+      });
+
+      it("comes on with the first change and goes once the form is saved", async () => {
+        await change();
+        expect(saveButton().classList.contains("cv-unsaved")).toBe(true);
+
+        host.componentInstance.form.markAsPristine();
+        host.detectChanges();
+        await host.whenStable();
+        expect(saveButton().classList.contains("cv-unsaved")).toBe(false);
+      });
+
+      it("glows for an edit form that passes no mode and so is not dimmed while unchanged", async () => {
+        host.componentInstance.mode.set(undefined as unknown as FormMode);
+        host.componentInstance.highlight.set(true);
+        host.detectChanges();
+        await host.whenStable();
+        expect(saveButton().classList.contains("cv-unsaved")).toBe(false);
+
+        await change();
+        expect(saveButton().disabled).toBe(false);
+        expect(saveButton().classList.contains("cv-unsaved")).toBe(true);
+      });
+
+      it("is not shown on an add form: nothing is saved yet, so nothing is unsaved", async () => {
+        host.componentInstance.mode.set(FormMode.add);
+        await change();
+        expect(saveButton().disabled).toBe(false);
+        expect(saveButton().classList.contains("cv-unsaved")).toBe(false);
+      });
     });
   });
 });

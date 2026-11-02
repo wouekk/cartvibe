@@ -8,19 +8,6 @@ import { marker } from "../i18n/marker";
 /** What a new household AI setting is called; a processing setting's name must be unique. */
 export const AI_SETTINGS_NAME = "Household AI";
 
-export const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
-
-/** The model a new setting starts on, per provider; the model dropdown then lists what the key can use. */
-const DEFAULT_MODELS: Record<string, string> = {
-  [AiType.Anthropic]: "claude-opus-5-5",
-  [AiType.Gemini]: DEFAULT_GEMINI_MODEL,
-  [AiType.OpenAi]: "gpt-5-mini",
-};
-
-export function defaultModelFor(aiType: AiType | null | undefined): string {
-  return DEFAULT_MODELS[aiType ?? ""] ?? "";
-}
-
 /** The providers the AI page offers, in this order. Brand names stay as they are in every language. */
 export const AI_PROVIDER_OPTIONS: { value: AiType; displayValue: string }[] = [
   { value: AiType.Anthropic, displayValue: "Claude" },
@@ -85,7 +72,8 @@ export type AiProviderValue = {
 export function buildAiProviderControls(formBuilder: FormBuilder, aiType: AiType = AiType.Gemini): AiProviderControls {
   return {
     aiType: formBuilder.control<AiType | null>(aiType, Validators.required),
-    model: formBuilder.control<string | null>(defaultModelFor(aiType), Validators.required),
+    // No model is chosen for anyone: models are billed by the token at very different prices, so a person picks one.
+    model: formBuilder.control<string | null>("", Validators.required),
     url: formBuilder.control<string | null>(""),
     key: formBuilder.control<string | null>(""),
     isVisionModel: formBuilder.control<boolean | null>(true),
@@ -105,7 +93,8 @@ export function providerValueFrom(settings: ReceiptProcessingSettings): Required
 
 /**
  * Keeps the provider's rules on the form: a local server needs a URL. When a person picks another provider, the model
- * moves to that provider's default and the key box empties, so a key typed for one company is never sent to another.
+ * and the key box empty (another company's model name means nothing here, and a key typed for one company must never
+ * be sent to another).
  */
 export function watchProviderRules(controls: AiProviderControls, destroyRef: DestroyRef): void {
   const apply = (aiType: AiType | null) => {
@@ -119,9 +108,9 @@ export function watchProviderRules(controls: AiProviderControls, destroyRef: Des
 
   controls.aiType.valueChanges.pipe(takeUntilDestroyed(destroyRef)).subscribe((aiType) => {
     apply(aiType);
-    // A reset (loading saved settings) leaves the control pristine; only a person's pick moves the model.
+    // A reset (loading saved settings) leaves the control pristine; only a person's pick clears the model.
     if (controls.aiType.dirty) {
-      controls.model.setValue(defaultModelFor(aiType));
+      controls.model.setValue("");
       controls.key.setValue("");
     }
   });

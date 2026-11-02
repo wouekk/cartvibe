@@ -2,6 +2,7 @@ package ai
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -135,20 +136,19 @@ func TestOpenAiGetChatCompletion_EnforceJsonResponseFormat(t *testing.T) {
 	}
 }
 
-func TestOpenAiGetChatCompletion_DefaultModelWhenEmpty(t *testing.T) {
+// No model is assumed: an empty one is an error, and nothing is sent to the server.
+func TestOpenAiGetChatCompletion_NoModelIsAnError(t *testing.T) {
 	server, captured := newMockOpenAiServer(t, http.StatusOK, openAiSuccessBody("ok"))
 
-	// Empty model → default gpt-3.5-turbo.
-	client := newOpenAiClient(server.URL, "", "test-key", false, []structs.AiClientMessage{
+	client := newOpenAiClient(server.URL, "  ", "test-key", false, []structs.AiClientMessage{
 		{Role: "user", Content: "hi"},
 	})
 	_, err := client.GetChatCompletion()
-	if err != nil {
-		utils.PrintTestError(t, err, nil)
+	if !errors.Is(err, ErrNoModelChosen) {
+		utils.PrintTestError(t, err, ErrNoModelChosen)
 	}
-
-	if captured.Body["model"] != "gpt-3.5-turbo" {
-		utils.PrintTestError(t, captured.Body["model"], "gpt-3.5-turbo")
+	if captured.Body != nil {
+		utils.PrintTestError(t, captured.Body, nil)
 	}
 }
 

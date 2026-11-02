@@ -186,6 +186,7 @@
     "Check your parentheses": "Vérifiez vos parenthèses",
     "Cheese": "Fromage",
     "Choose a group to read older receipts for": "Choisissez un groupe pour lequel lire les anciens tickets",
+    "Choose a model": "Choisir un modèle",
     "Choose a named currency above (Euro, Zloty, Pound, Franc or Dollar) to convert other currencies into it.": "Choisissez ci-dessus une devise nommée (euro, zloty, livre, franc ou dollar) pour y convertir les autres devises.",
     "Choose a photo or PDF of the receipt": "Choisissez une photo ou un PDF du ticket",
     "Choose and arrange the dashboard panels": "Choisir et organiser les panneaux du tableau de bord",
@@ -410,7 +411,6 @@
     "Flavour enhancer": "Exhausteur de goût",
     "Font, icons and UI": "Police, icônes et interface",
     "Footer / notes": "Pied de page / notes",
-    "For example {model}": "Par exemple {model}",
     "Format": "Format",
     "Formats": "Formats",
     "Formerly:": "Anciennement :",
@@ -732,6 +732,7 @@
     "Polish złoty (12,99 zł)": "Złoty polonais (12,99 zł)",
     "Portion multiplier": "Multiplicateur de portions",
     "Preservative": "Conservateur",
+    "Press the button to list the models this key can use, or type the name of one.": "Appuyez sur le bouton pour lister les modèles que cette clé peut utiliser, ou saisissez le nom de l’un d’eux.",
     "Preview": "Aperçu",
     "Preview role": "Aperçu du rôle",
     "Preview size": "Taille de l’aperçu",
@@ -1521,6 +1522,9 @@
     "Filter by month": {
       "value": "Filtrer par mois",
       "closest": "Month by month"
+    },
+    "For example {model}": {
+      "value": "Par exemple {model}"
     },
     "General & Currency": {
       "value": "Général et devise",

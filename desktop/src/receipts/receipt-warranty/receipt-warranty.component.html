@@ -4,7 +4,7 @@
   @if (editing()) {
     <div class="flex flex-wrap items-end gap-2">
       <app-datepicker class="w-full sm:w-56" data-testid="receipt-warranty-date" [inputFormControl]="control"></app-datepicker>
-      <button hlmBtn type="button" class="h-9" data-testid="receipt-warranty-save" [disabled]="saving()" (click)="save()">{{ 'Save' | t }}</button>
+      <button hlmBtn type="button" class="h-9" data-testid="receipt-warranty-save" [class.cv-unsaved]="control.dirty && !saving()" [disabled]="saving()" (click)="save()">{{ 'Save' | t }}</button>
       <button hlmBtn variant="outline" type="button" class="h-9" (click)="cancel()">{{ 'Cancel' | t }}</button>
     </div>
   } @else if (warrantyUntil(); as until) {

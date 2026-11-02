@@ -48,4 +48,15 @@ describe("FormComponent", () => {
   it("should create", () => {
     expect(component).toBeTruthy();
   });
+
+  it("says it is editing only for a saved record, so only then does its Save show unsaved changes", () => {
+    for (const [mode, editing] of [
+      [FormMode.add, false],
+      [FormMode.view, false],
+      [FormMode.edit, true],
+    ] as const) {
+      fixture.componentRef.setInput("formConfig", { headerText: "test", mode });
+      expect(component.editing()).toBe(editing);
+    }
+  });
 });

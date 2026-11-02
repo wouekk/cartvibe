@@ -123,6 +123,14 @@ app-checkbox label span {
   animation: app-progress-sweep 1.2s ease-in-out infinite;
 }
 
+@keyframes cv-unsaved-halo {
+  50% { box-shadow: 0 0 0 5px color-mix(in oklab, var(--ring) 18%, transparent); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cv-unsaved:not(:disabled, :focus-visible) { animation: none; }
+}
+
 @keyframes app-progress-sweep {
   from { transform: translateX(-100%); }
   to { transform: translateX(260%); }
@@ -324,6 +332,14 @@ select {
   }
   .cv-card__status {
     @apply me-auto text-[13px] text-muted-foreground;
+  }
+  /* A Save button with changes waiting: a halo in the focus colour that breathes slowly, so an unsaved edit is seen before
+     it is lost. Theme tokens only (`--ring` is neutral in Zinc and the accent in the other palettes). It is not drawn
+     on a disabled button (nothing to save) or while the button has focus (the focus ring takes its place), and under
+     reduced motion the halo stays still. */
+  .cv-unsaved:not(:disabled, :focus-visible) {
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 50%, transparent);
+    animation: cv-unsaved-halo 2.4s ease-in-out infinite;
   }
   .cv-card--destructive {
     @apply border-destructive/40;

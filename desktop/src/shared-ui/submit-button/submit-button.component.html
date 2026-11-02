@@ -5,6 +5,7 @@
   [buttonText]="buttonText() ?? 'Save'"
   [type]="type() || 'submit'"
   [tooltip]="tooltip ?? 'Save'"
+  [buttonClass]="unsaved() ? 'cv-unsaved' : ''"
   (clicked)="clicked.emit()"
   [disabled]="effectiveDisabled()"
 ></app-button>
@@ -16,6 +17,7 @@
   [buttonText]="buttonText() ?? 'Save'"
   [type]="type() || 'submit'"
   [tooltip]="tooltip ?? ''"
+  [buttonClass]="unsaved() ? 'cv-unsaved' : ''"
   (clicked)="clicked.emit()"
   [disabled]="effectiveDisabled()"
 ></app-button>

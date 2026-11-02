@@ -288,7 +288,10 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
 - **AI page** (`/ai`, every member): `app-ai-provider-fields` is the one provider block (main card and
   `app-ai-fallback-card`); cloud providers get a model list from the API. A saved key shows as
   `SAVED_KEY_PLACEHOLDER`; Test connection works on the form as typed. Saving refreshes the feature config so Quick
-  Scan works at once.
+  Scan works at once. **No model is chosen for anyone**: the Model control starts empty (and is required), picking
+  another provider empties it and the key, and the API refuses a cloud setting without a model and returns
+  `ai.ErrNoModelChosen` instead of falling back (the old fallbacks were Claude Opus and `gpt-3.5-turbo`). Save buttons
+  take `.cv-unsaved` from the form's dirty state (`../DESIGN.md`).
 - **Roles:** the UI offers Admin and User only (`src/utils/family-roles.ts`); user and member forms load assignable
   roles with `loadAssignableRoles` and show names via `RoleNamePipe`, which matches on id **and** scope (app and group
   role ids collide). There is no role editor.

@@ -2,6 +2,7 @@ package ai
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -142,6 +143,19 @@ func TestGeminiAsksAgainWithoutThinkingWhenTheModelRefusesIt(t *testing.T) {
 	}
 	if (*requests)[1].Config["thinkingConfig"] != nil {
 		t.Errorf("expected no thinking setting on the second call, got %v", (*requests)[1].Config)
+	}
+}
+
+// No model is assumed: an empty one is an error, and nothing is sent.
+func TestGeminiWithoutAModelIsAnErrorAndSendsNothing(t *testing.T) {
+	requests := newFakeGemini(t, http.StatusOK)
+
+	_, err := geminiClientFor("  ").GetChatCompletion()
+	if !errors.Is(err, ErrNoModelChosen) {
+		t.Fatalf("expected ErrNoModelChosen, got %v", err)
+	}
+	if len(*requests) != 0 {
+		t.Fatalf("no request may be sent without a model, got %d", len(*requests))
 	}
 }
 

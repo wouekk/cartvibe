@@ -3,6 +3,7 @@ package ai
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -101,14 +102,17 @@ func TestAnthropicSendsTheReceiptAndReturnsTheText(t *testing.T) {
 	}
 }
 
-func TestAnthropicFallsBackToTheDefaultModel(t *testing.T) {
+// No model is assumed: Claude models differ in price by a factor of forty, so a setting without one is an error and
+// nothing is sent.
+func TestAnthropicWithoutAModelIsAnErrorAndSendsNothing(t *testing.T) {
 	requests := newFakeAnthropic(t, http.StatusOK, anthropicMessage("end_turn", `[{"type": "text", "text": "hello"}]`))
 
-	if _, err := anthropicClientFor("  ").GetChatCompletion(); err != nil {
-		t.Fatalf("unexpected error: %v", err)
+	_, err := anthropicClientFor("  ").GetChatCompletion()
+	if !errors.Is(err, ErrNoModelChosen) {
+		t.Fatalf("expected ErrNoModelChosen, got %v", err)
 	}
-	if (*requests)[0].Body["model"] != DefaultAnthropicModel {
-		t.Fatalf("expected %s, got %v", DefaultAnthropicModel, (*requests)[0].Body["model"])
+	if len(*requests) != 0 {
+		t.Fatalf("no request may be sent without a model, got %d", len(*requests))
 	}
 }
 

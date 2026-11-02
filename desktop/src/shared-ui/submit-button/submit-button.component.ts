@@ -60,6 +60,21 @@ export class SubmitButtonComponent extends FormButtonComponent implements OnInit
     return this.disabled();
   });
 
+  /**
+   * For an edit form that does not pass `mode` (and so is not dimmed while unchanged, as `FormMode.edit` makes it): the
+   * button still wears the unsaved-changes halo once the form changes.
+   */
+  public readonly highlightUnsaved = input<boolean>(false);
+
+  /**
+   * An edit form with changes waiting: the button is live and wears the `cv-unsaved` halo until the form is saved (and so
+   * pristine again). An add form has nothing saved yet, and a disabled button has nothing to save, so neither glows.
+   */
+  public readonly unsaved = computed(
+    () =>
+      (this.mode() === FormMode.edit || this.highlightUnsaved()) && !this.formPristine() && !this.effectiveDisabled()
+  );
+
   public ngOnInit(): void {
     // The form is an input of its directive, so it is only set by now. Every
     // event re-reads pristine from the form itself: a child's event carries the

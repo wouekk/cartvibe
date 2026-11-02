@@ -3,6 +3,8 @@ package ai
 import (
 	"encoding/json"
 	"errors"
+	"strings"
+
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/structs"
 
@@ -81,9 +83,9 @@ func (openAi OpenAiClient) GetChatCompletion() (structs.ChatCompletionResult, er
 		}
 	}
 
-	model := openAi.ReceiptProcessingSettings.Model
+	model := strings.TrimSpace(openAi.ReceiptProcessingSettings.Model)
 	if len(model) == 0 {
-		model = openai.GPT3Dot5Turbo
+		return result, ErrNoModelChosen
 	}
 
 	request := openai.ChatCompletionRequest{

@@ -35,7 +35,7 @@ import {
 } from "../ai-settings-shared";
 import { marker } from "../../i18n/marker";
 
-export { AI_SETTINGS_NAME, DEFAULT_GEMINI_MODEL, describeConnection } from "../ai-settings-shared";
+export { AI_SETTINGS_NAME, describeConnection } from "../ai-settings-shared";
 export type { ConnectionResult } from "../ai-settings-shared";
 
 /**

@@ -51,7 +51,7 @@
         <app-icon name="wifi_tethering"></app-icon>
         {{ (testing() ? 'Testing…' : 'Test connection') | t }}
       </button>
-      <button hlmBtn color="primary" type="submit" data-testid="ai-fallback-save" [disabled]="!canSave()">
+      <button hlmBtn color="primary" type="submit" data-testid="ai-fallback-save" [class.cv-unsaved]="form.dirty && canSave()" [disabled]="!canSave()">
         {{ 'Save changes' | t }}
       </button>
     </div>

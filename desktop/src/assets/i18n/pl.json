@@ -186,6 +186,7 @@
     "Check your parentheses": "Sprawdź nawiasy",
     "Cheese": "Sery",
     "Choose a group to read older receipts for": "Wybierz grupę, dla której wczytać starsze paragony",
+    "Choose a model": "Wybierz model",
     "Choose a named currency above (Euro, Zloty, Pound, Franc or Dollar) to convert other currencies into it.": "Wybierz powyżej nazwaną walutę (euro, złoty, funt, frank lub dolar), aby na nią przeliczać inne waluty.",
     "Choose a photo or PDF of the receipt": "Wybierz zdjęcie lub plik PDF paragonu",
     "Choose and arrange the dashboard panels": "Wybierz i ułóż panele pulpitu",
@@ -410,7 +411,6 @@
     "Flavour enhancer": "Wzmacniacz smaku",
     "Font, icons and UI": "Czcionka, ikony i interfejs",
     "Footer / notes": "Stopka / uwagi",
-    "For example {model}": "Na przykład {model}",
     "Format": "Format",
     "Formats": "Formaty",
     "Formerly:": "Wcześniej:",
@@ -732,6 +732,7 @@
     "Polish złoty (12,99 zł)": "Polski złoty (12,99 zł)",
     "Portion multiplier": "Mnożnik porcji",
     "Preservative": "Konserwant",
+    "Press the button to list the models this key can use, or type the name of one.": "Naciśnij przycisk, aby wyświetlić modele dostępne dla tego klucza, albo wpisz nazwę modelu.",
     "Preview": "Podgląd",
     "Preview role": "Podgląd roli",
     "Preview size": "Rozmiar podglądu",
@@ -1536,6 +1537,9 @@
     "Filter by month": {
       "value": "Filtruj według miesiąca",
       "closest": "Month by month"
+    },
+    "For example {model}": {
+      "value": "Na przykład {model}"
     },
     "General & Currency": {
       "value": "Ogólne i waluta",

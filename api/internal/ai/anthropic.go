@@ -17,8 +17,9 @@ import (
 	"github.com/anthropics/anthropic-sdk-go/option"
 )
 
-// DefaultAnthropicModel is what a new Claude setting starts on; the AI page lists the others the key can use.
-const DefaultAnthropicModel = "claude-opus-5-5"
+// ErrNoModelChosen is returned when a cloud AI setting has no model. No model is assumed on a person's behalf: a model is
+// billed by the token at very different prices, so the AI page makes them pick one.
+var ErrNoModelChosen = errors.New("no model was chosen: pick one on the AI page")
 
 // anthropicMaxTokens leaves room for a long receipt's product list. Current Claude models think before they
 // answer, and the thinking counts toward it too.
@@ -91,7 +92,7 @@ func (claude AnthropicClient) GetChatCompletion() (structs.ChatCompletionResult,
 
 	model := strings.TrimSpace(claude.ReceiptProcessingSettings.Model)
 	if model == "" {
-		model = DefaultAnthropicModel
+		return result, ErrNoModelChosen
 	}
 
 	client := newAnthropicSdkClient(key)

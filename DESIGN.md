@@ -66,6 +66,9 @@ Banned: Angular Material, Bootstrap classes (`d-flex`, `col-*`, `mb-3`), `mat-*`
   (`app-settings-tabs` pills plus `size-9` outline icon buttons, all `h-9`), then `min-h-11` rows with a checkbox, the
   data text (`min-w-0 break-words`, never translated) and a right-aligned `tabular-nums` value; a reason to fall back sits
   in a `cv-inset` with an `info` icon. `app-dialog-footer [submitDisabled]` dims Save while nothing is selected.
+- Unsaved changes: a Save with changes waiting takes `.cv-unsaved` (`tailwind.css`), a halo in `--ring` that breathes between 3 and 5px (still under
+  reduced motion). `app-submit-button` adds it for an edit form (`mode` edit, or `[highlightUnsaved]`, which `app-form` sets when editing); a custom Save
+  adds `[class.cv-unsaved]` from its own dirty state. Never on a disabled Save (nothing to save), an add form (nothing saved yet) or a focused button.
 - Settings: always editable; Save in the card footer on the right, status text left (`cv-card__status`), dimmed while pristine (`[mode]="FormMode.edit"`). No floating save bar.
 - Dialog footer: hairline `border-t`, actions right: outline Cancel, primary Save. A confirmation's button names the action ("Delete", "Remove"), not "Confirm", and is red for those two.
 - Empty: centered, `py-10`, icon in a `size-10 rounded-full bg-muted text-muted-foreground` circle, one `text-sm text-muted-foreground` line, then the page's own add button. Whole-page empty: same inside `rounded-xl border border-dashed`.

@@ -367,6 +367,7 @@
         color="primary"
         type="submit"
         data-testid="settings-save"
+        [class.cv-unsaved]="hasUnsavedChanges() && !form.invalid"
         [disabled]="!hasUnsavedChanges() || form.invalid"
       >
         {{ (section === 'logos' ? 'Save key' : 'Save changes') | t }}

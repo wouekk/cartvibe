@@ -9,7 +9,7 @@ import { PipesModule } from "../../pipes/pipes.module";
 import { SelectModule } from "../../select/select.module";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { marker } from "../../i18n/marker";
-import { defaultModelFor, providerCompany } from "../ai-settings-shared";
+import { providerCompany } from "../ai-settings-shared";
 
 /**
  * The model field for a cloud provider (Claude, Gemini, ChatGPT): a dropdown of the models the API key can use, fetched
@@ -46,8 +46,6 @@ export class AiModelFieldComponent {
   public readonly error = signal<string | undefined>(undefined);
 
   public readonly company = computed(() => ({ company: providerCompany(this.aiType()) }));
-
-  public readonly example = computed(() => ({ model: defaultModelFor(this.aiType()) }));
 
   /** The loaded models, plus the current value when the provider no longer lists it, so opening the page never loses it. */
   public readonly options = computed(() => {

@@ -14,7 +14,11 @@
       <ng-template [ngTemplateOutlet]="formTemplate()"></ng-template>
       @if (!(formConfig().mode | inputReadonly)) {
         <div sectionFooter class="cv-card__footer" data-testid="form-button-bar">
-          <app-submit-button [disabled]="submitButtonDisabled()" [onlyIcon]="false"></app-submit-button>
+          <app-submit-button
+            [disabled]="submitButtonDisabled()"
+            [highlightUnsaved]="editing()"
+            [onlyIcon]="false"
+          ></app-submit-button>
         </div>
       }
     </app-settings-section>
@@ -34,6 +38,7 @@
         *ngIf="!(formConfig().mode | inputReadonly)"
         class="mb-4"
         [disabled]="submitButtonDisabled()"
+        [highlightUnsaved]="editing()"
         [onlyIcon]="false"
       ></app-submit-button>
     </app-form-button-bar>
