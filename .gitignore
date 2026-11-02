@@ -1,5 +1,13 @@
 .claude
 
+# A deployment's own files, created next to docker-compose.yml / docker-compose.vps.yml when the repository is cloned
+# onto a server: the keys and passwords (.env), the database and the receipt files. Never commit them.
+/.env
+/.env.*
+!/.env.example
+/data/
+/sqlite/
+
 # Redis snapshot, written wherever redis-server is started from
 dump.rdb
 
