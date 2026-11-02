@@ -6,6 +6,7 @@ Short answers for running a CartVibe household. Setup, updating and the Synology
 - [How do I change a password?](#how-do-i-change-a-password)
 - [How do I add AI API keys?](#how-do-i-add-ai-api-keys)
 - [How do I add a Logo.dev API key?](#how-do-i-add-a-logodev-api-key)
+- [How do I use CartVibe as an app on my phone?](#how-do-i-use-cartvibe-as-an-app-on-my-phone)
 
 ## How do I rename a household?
 
@@ -87,3 +88,50 @@ Logo.dev supplies the shop logos shown next to receipts. It is optional: without
 
 The server downloads and stores the logos itself; browsers never contact Logo.dev. The key is stored encrypted with your
 `ENCRYPTION_KEY`, like the AI keys. **Delete logos** on the same tab removes them again.
+
+## How do I use CartVibe as an app on my phone?
+
+CartVibe installs from the browser as a web app: its own icon on the home screen, full screen with no address bar, and
+(on Android) a place in the share sheet for recipe links. There is nothing to download from a store. This is separate from
+the planned CartVibe for iPhone app.
+
+**It needs HTTPS.** Browsers only offer to install a web app that is served over `https://` (or from `localhost`), and the
+offline shell, update check and notifications also need it. On a plain `http://192.168...` address Android's Chrome usually
+offers only a shortcut to a browser tab, and no browser can run the offline shell or notifications. So give CartVibe an HTTPS
+address first.
+
+### 1. Put CartVibe behind HTTPS
+
+You need a name for your server (a domain, or a free DDNS name from your NAS maker) and a certificate for it.
+
+* **Synology NAS:** in DSM open **Control Panel → Security → Certificate**, press **Add** and choose a Let's Encrypt
+  certificate for your name (port 80 must be reachable from the internet, for the check and the renewals). Then open
+  **Control Panel → Login Portal → Advanced → Reverse Proxy** and **Create** a rule: source **HTTPS**, your host name, port
+  **443**; destination **HTTP**, **localhost**, port **8091** (the port in your `docker-compose.yml`). Open `https://<your name>`
+  to check it. If DSM keeps showing its default certificate, assign the new one under the certificate **Settings** button.
+* **A rented server (VPS):** the `docker-compose.vps.yml` stack already runs Caddy, which gets the certificate for you
+  ([docs/vps-deploy.md](vps-deploy.md)).
+
+Then, signed in over the HTTPS address as an admin, open **System Settings → Auth & Security → Cookies** and turn on
+**Use secure cookies (HTTPS only)**. Only do this while you are on the HTTPS address: with it on, the login cookies are
+dropped over plain HTTP, so nobody reaching CartVibe that way can sign in until it is switched off again.
+
+### 2. Install it
+
+* **Android (Chrome):** open your `https://` address and sign in. Open Chrome's **⋮** menu and choose **Install app**
+  (on some versions it is **Add to Home screen**, then **Install**), and confirm. CartVibe appears on the home screen and
+  in the app drawer, and opens full screen. To send it a recipe, share a recipe link from any app and pick **CartVibe**.
+  Samsung Internet can install it too.
+* **iPhone and iPad (Safari):** open your `https://` address and sign in. Tap the **Share** button, choose **Add to Home
+  Screen**, and tap **Add**. The icon opens CartVibe full screen. On iOS 16.4 and later the Share menu of Chrome, Edge and
+  Firefox has the same entry.
+* **Computer (Chrome or Edge):** an install icon appears at the end of the address bar; click it. Safari on macOS has
+  **File → Add to Dock**.
+
+### Good to know
+
+* **Updates:** after you deploy a new image, the app notices the next time you open it and loads the new version on the
+  following page change. Close and reopen it if a screen still looks old.
+* **Remove it:** press and hold the icon, then choose to uninstall (Android) or **Remove App** (iPhone).
+* **The server still has to be reachable.** Only the app shell is kept on the phone; receipts, lists and scans always come
+  from your server, so the app needs your network (or your HTTPS address from outside the house) to show your data.

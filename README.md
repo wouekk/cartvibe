@@ -179,6 +179,7 @@ Answers live in [docs/faq.md](docs/faq.md):
 * [How do I change a password?](docs/faq.md#how-do-i-change-a-password)
 * [How do I add AI API keys?](docs/faq.md#how-do-i-add-ai-api-keys): where to create a Claude, Gemini or ChatGPT key, and which cheap model to pick
 * [How do I add a Logo.dev API key?](docs/faq.md#how-do-i-add-a-logodev-api-key): shop logos
+* [How do I use CartVibe as an app on my phone?](docs/faq.md#how-do-i-use-cartvibe-as-an-app-on-my-phone): HTTPS, then install on Android and iPhone
 
 ## Features
 
