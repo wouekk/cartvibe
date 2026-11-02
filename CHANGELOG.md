@@ -8,7 +8,15 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-11-02
+
+Drill into the Dashboard, import a recipe, a sturdier shop name, and an FAQ.
+
 ### Added
+- **Dashboard drill-down ([#8](https://github.com/wouekk/cartvibe/issues/8)).** A click on a spending-donut slice, or anywhere on its
+  legend row, opens the products behind it. **Other** now opens too: every category it folds is its own section with a
+  subtotal, in one table with one column header so the columns line up. The Spent tile and each month or day bar of the
+  trend open the receipts list on that date range (the Receipts tile on the period shown).
 - **Import a recipe into a shopping list.** *Import recipe* on a list reads the ingredients of a recipe page (JSON-LD or
   microdata) or of pasted text, shows them with a portion bar (0.5× to 3×, or servings) and ticks to untick (salt, oil),
   marks what is already on the list, and merges the ticked rows: quantities add up, a crossed-off item comes back, an
@@ -16,18 +24,17 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
   pasting. On Android the installed app also accepts a recipe link from the share sheet.
 - **Safer outbound fetches.** `internal/netguard` vets every connection the server makes for a typed address (after DNS and
   on each redirect) and is shared with the PDF renderer's external-resource check; nginx throttles the recipe preview.
-
 - **A Save button with changes waiting is highlighted.** Every Save that knows its form has changed since it was saved (edit forms, the AI page and its backup,
   System Settings, the Dashboard layout, a receipt's warranty) wears a soft halo in the theme's focus colour until the changes are saved. It stays still with
   reduced motion and never shows on a disabled or add-form Save.
-- **Dashboard drill-down (#8).** A click on a spending-donut slice, or anywhere on its legend row, opens the products
-  behind it. **Other** now opens too, with every category it folds as its own section and subtotal. The Spent tile and
-  each month or day bar of the trend open the receipts list on that date range (the Receipts tile on the period shown).
+- **An FAQ** ([docs/faq.md](docs/faq.md), and four new questions on the project page): renaming a household, changing a
+  password, adding AI API keys and adding a Logo.dev key. The README's "Getting your API keys" section moved there.
 
 ### Changed
-- **A shop in a shopping centre is read by its own name.** The receipt prompt now says to name the shop's own brand, never
+- **A shop in a shopping centre is read by its own name ([#9](https://github.com/wouekk/cartvibe/issues/9)).** The receipt prompt now says to name the shop's own brand, never
   the shopping centre it sits in or the two joined (a Leclerc in a mall was sometimes read as the centre), and to read the
   name from the logo when a web-generated receipt prints it only as a picture. Receipts already read keep their names.
+- **The sign-in page** has the project site's grid-and-glow background (the glow in the brand emerald) instead of a grey box.
 - **No AI model is chosen for you.** The AI page leaves the Model box empty until you pick one (it used to start on Claude Opus, Gemini 2.5 Flash or
   GPT-5 mini), the hint no longer names a model, and the server no longer falls back to one: a cloud provider's settings need a model to be saved, and a
   setting without one reports "no model was chosen" instead of silently calling the most expensive one. Choose one on the AI page after an update if a
