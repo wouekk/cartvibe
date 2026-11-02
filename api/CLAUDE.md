@@ -131,9 +131,17 @@ handle).
   Inline `data:` URIs load. Report HTML contains no scripts and no external resources.
 - External loads are blocked by default (`network.SetBlockedURLs` takes URLPattern strings: spell out `scheme://*:*/*`;
   `http://*` blocks nothing on another port or path). `CHROMIUM_ALLOW_EXTERNAL_RESOURCES=true` lets only public hosts
-  through Fetch interception (`isRequestAllowed`, `ipIsInternal`).
+  through Fetch interception (`isRequestAllowed`, `netguard.HostIsInternal`).
 - The Chromium sandbox is off by default although the API runs as uid 10001: it needs user namespaces, which Docker's
   default security profile and some NAS kernels refuse. `CHROMIUM_SANDBOX=true` opts in.
+
+### Outbound fetches of a user-chosen URL (`internal/netguard`, `internal/recipeimport/fetch.go`)
+
+- Any request to an address a person typed (today: the recipe import) goes through `netguard`: `Control` vets the
+  **resolved** address on the dialer, for every connection and redirect hop, so DNS rebinding and a redirect into the LAN
+  cannot get past it. `http.Transport.Proxy` stays nil (an environment proxy would make the hook judge the proxy). Refusals
+  surface as a plain "unreachable"; never leak which range matched. Tests inject a `Guard` to let `httptest` servers through;
+  production uses `netguard.PublicOnly`.
 
 ## 4. Permissions and roles
 
@@ -227,7 +235,8 @@ which day an instant falls on and what "today" means.
   must pass `ValidatePushEndpoint` (the server posts to it).
 
 - A shopping-list item has no group id; it is resolved through its list (`GetGroupIdForShoppingListItem`). `unit` must
-  be in `models.ShoppingListUnits`, kept in step with the desktop's `SHOPPING_LIST_UNITS`.
+  be in `models.ShoppingListUnits`, kept in step with the desktop's `SHOPPING_LIST_UNITS`. The recipe import honours that:
+  other units go into the free-text `quantity` (`docs/domain.md`).
 - **SSE** (`ShoppingListHub`, in-process, single container): publish after the write commits and never block; never
   close `Events` (a racing publisher would panic), only `Dropped`. The stream clears its write deadline and returns
   `(0, nil)` so `HandleRequest` writes no error body mid-stream.

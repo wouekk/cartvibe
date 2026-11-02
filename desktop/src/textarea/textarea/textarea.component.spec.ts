@@ -43,4 +43,20 @@ describe("TextareaComponent", () => {
 
     expect(component.inputFormControl.value).toBe("hello");
   });
+
+  it("gives each textarea its own id and points its label at it", async () => {
+    fixture.componentRef.setInput("label", "Comment");
+    const other = TestBed.createComponent(TextareaComponent);
+    other.componentRef.setInput("label", "Other");
+    await fixture.whenStable();
+    await other.whenStable();
+
+    const first: HTMLTextAreaElement = fixture.nativeElement.querySelector("textarea");
+    const second: HTMLTextAreaElement = other.nativeElement.querySelector("textarea");
+
+    expect(first.id).not.toBe("");
+    expect(first.id).not.toBe(second.id);
+    expect(fixture.nativeElement.querySelector("label").getAttribute("for")).toBe(first.id);
+    expect(other.nativeElement.querySelector("label").getAttribute("for")).toBe(second.id);
+  });
 });

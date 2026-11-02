@@ -7,6 +7,11 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
+  "share_target": {
+    "action": "/shopping-lists",
+    "method": "GET",
+    "params": { "title": "recipeTitle", "text": "recipeText", "url": "recipeUrl" }
+  },
   "background_color": "#151920",
   "theme_color": "#151920",
   "icons": [

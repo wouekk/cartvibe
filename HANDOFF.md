@@ -11,6 +11,9 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   `/privacy/`, `/support/` (`docs/site.md`). DNS, DKIM, DMARC and the GitHub domain verification live in
   `cartvibe-cloud/iac/launch/records.tf`. Around 2026-11-16: if the DMARC reports to `support@` show only OVH passing,
   move DMARC to `p=quarantine`.
+- **Recipe import** is on `feature/recipe-import` (CHANGELOG `[Unreleased]`). Run locally: new Go packages, shopping
+  handlers, Vitest, `ng build`, `i18n:check`, the demo in the browser. Not run: CI, the full Go suite (no cgo libraries on
+  the Mac), the new Playwright specs.
 - Next real task: a restore drill of the NAS family data (never run; it is the only real data).
 - `e2e-smoke` fails now and then with `HTTP 503` on an API login (nginx login limit, 30 a minute); re-running the job passes.
 - Not run anywhere: Safari and Firefox on desktop, Lighthouse, Web Push on a real device (needs HTTPS and VAPID keys).
@@ -26,6 +29,8 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   barcode read, a touch drag on the Dashboard customise screen.
 - CSP: if the NAS console stays clean, rename `Content-Security-Policy-Report-Only` to `Content-Security-Policy` in
   `docker/default.conf`. Check the login rate limit still keys per visitor behind the Synology proxy.
+- Recipe import (new image: nginx `recipe` zone): a link (Allrecipes answers 403 and Kwestia Smaku has no recipe data, so
+  both fall back to pasting), pasted text, and on Android the share sheet after reinstalling the app.
 
 ## Backlog (own branch each, not started)
 

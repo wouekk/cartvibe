@@ -154,6 +154,23 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
   the clipboard, `navigator.vibrate?.(10)` on crossing off, and `OnlineStatusService` driving the
   `shopping-list-offline` notice. Menu entries are hidden where the browser lacks the API.
 
+- **Import recipe** (`recipe-import-dialog/`, button `shopping-list-import-recipe` beside Going shopping, needs
+  `group.shopping-lists.update` and an open list). Two steps in one `AppDialog`: input (`app-settings-tabs` *Recipe URL* /
+  *Paste ingredients*, `previewShoppingListRecipe`) and preview (title, portion bar, one `hlm-checkbox` row per
+  ingredient, `importShoppingListRecipe`). A page that cannot be read (`failureReason`) switches to the paste tab with a
+  hint, without a toast; a 429 or 503 from nginx's throttle shows the "busy" hint. `recipe-scaling.ts` holds the maths:
+  the base quantity is never changed, `quantity = base × multiplier`, within 0.02 of a whole or a half it snaps (⅓ × 3 =
+  1), else two decimals; a row without a quantity is not scaled. Servings (when the recipe has them) change the
+  multiplier by `target / base`. A row says "On list" when an **open** item has the same normalised name (the API merges
+  under the same rule). Names and units are the recipe's own words and are never translated. The merged list comes back
+  whole and goes through `ApplyShoppingListEvent` (`LIST_UPDATED`). The demo backend answers both endpoints with a canned
+  recipe (an address containing "blocked" shows the fallback).
+- **Share target:** `manifest.webmanifest` has a GET `share_target` to `/shopping-lists` (`url`→`recipeUrl`,
+  `text`→`recipeText`, `title`→`recipeTitle`). `shoppingListGroupGuard` keeps the query string when it redirects to a
+  group; the page reads it like `?new=list`, strips it, waits for the lists, and opens the dialog asking which list.
+  Limits: Android Chrome only, and only for the installed app (reinstall after the manifest changes); iOS Safari has no
+  Web Share Target; a logged-out visitor loses the link at the login redirect.
+
 ## Reports (`src/reports/`)
 
 Templates list at `/reports`, builder at `/reports/new` and `/reports/:id/edit` (full-height route). Row actions gate

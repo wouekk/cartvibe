@@ -149,6 +149,51 @@ test.describe('Shopping lists', () => {
       ).toHaveText('1.5 kg');
     });
 
+    test('imports pasted ingredients: sums onto an item, adds the rest, keeps a unit it cannot store as text', async ({ page }) => {
+      const listName = uniqueName('recipe');
+      await withAdminApi(async (api) => {
+        const res = await api.post(`/api/shopping-list/group/${groupId}`, { data: { name: listName } });
+        expect(res.ok()).toBe(true);
+        const list = (await res.json()) as { id: number };
+        const flour = await api.post(`/api/shopping-list/${list.id}/item`, { data: { name: 'Flour', amount: '500', unit: 'g' } });
+        expect(flour.ok()).toBe(true);
+      });
+
+      await openShoppingLists(page, groupId);
+      await selectList(page, listName);
+
+      await page.getByTestId('shopping-list-import-recipe').click();
+      const dialog = page.getByRole('dialog').filter({ hasText: 'Import recipe' });
+      await dialog.getByTestId('recipe-import-mode-text').click();
+      // Copied from a grid: the quantity and the name arrive on separate lines.
+      await dialog.getByTestId('recipe-import-text').getByRole('textbox').fill('For the batter:\n• 1 kg\nflour\n2 eggs\n3 tbsp sugar');
+      await dialog.getByTestId('dialog-submit-button').click();
+
+      await expect(dialog.getByTestId('recipe-import-preview-step')).toBeVisible();
+      await expect(dialog.getByTestId('recipe-row-name-0')).toContainText('flour');
+      await expect(dialog.getByTestId('recipe-row-on-list-0')).toBeVisible();
+      await dialog.getByTestId('recipe-multiplier-2').click();
+      await expect(dialog.getByTestId('recipe-row-quantity-0')).toHaveText('2 kg');
+
+      await dialog.getByTestId('dialog-submit-button').click();
+      await expect(dialog).toBeHidden();
+
+      const items = page.getByTestId('shopping-list-active-items');
+      await expect(items.getByText('2500 g')).toBeVisible(); // 500 g + 2 kg, in the row's own unit
+      await expect(items.getByText('eggs')).toBeVisible();
+      await expect(items.getByText('6 tbsp')).toBeVisible(); // a unit the list cannot store stays as the recipe wrote it
+    });
+
+    test('a recipe link shared to the app opens the import with the link filled in', async ({ page }) => {
+      await stubTokenRefresh(page);
+      await page.goto(`/shopping-lists/group/${groupId}?recipeUrl=${encodeURIComponent('https://example.com/pancakes')}`);
+
+      const dialog = page.getByRole('dialog').filter({ hasText: 'Import recipe' });
+      await expect(dialog).toBeVisible();
+      await expect(dialog.getByTestId('recipe-import-url').getByRole('textbox')).toHaveValue('https://example.com/pancakes');
+      await expect(page).not.toHaveURL(/recipeUrl/);
+    });
+
     test('syncs a change to another open browser without a reload', async ({ page, browser }) => {
       const listName = uniqueName('sync');
       await openShoppingLists(page, groupId);
@@ -191,6 +236,7 @@ test.describe('Shopping lists', () => {
 
     await expect(page.getByLabel('Add an item')).toHaveCount(0);
     await expect(page.getByTestId('shopping-list-add')).toHaveCount(0);
+    await expect(page.getByTestId('shopping-list-import-recipe')).toHaveCount(0);
     // The list menu stays (Share, Keep screen on are read-only actions) but offers no rename or copy.
     await page.getByTestId('shopping-list-menu').click();
     await expect(page.getByTestId('shopping-list-share')).toBeVisible();

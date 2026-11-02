@@ -16,6 +16,7 @@ func BuildShoppingListRouter() *chi.Mux {
 	shoppingListRouter.Get("/group/{groupId}/stream", handlers.StreamShoppingListEvents)
 	shoppingListRouter.Post("/group/{groupId}", handlers.CreateShoppingList)
 	shoppingListRouter.Post("/group/{groupId}/going-shopping", handlers.AnnounceGoingShopping)
+	shoppingListRouter.Post("/group/{groupId}/recipe/preview", handlers.PreviewShoppingListRecipe)
 
 	shoppingListRouter.Put("/item/{itemId}", handlers.UpdateShoppingListItem)
 	shoppingListRouter.Put("/item/{itemId}/checked", handlers.SetShoppingListItemChecked)
@@ -28,6 +29,7 @@ func BuildShoppingListRouter() *chi.Mux {
 	shoppingListRouter.Put("/{listId}", handlers.UpdateShoppingList)
 	shoppingListRouter.Delete("/{listId}", handlers.DeleteShoppingList)
 	shoppingListRouter.Post("/{listId}/item", handlers.AddShoppingListItem)
+	shoppingListRouter.Post("/{listId}/recipe/import", handlers.ImportShoppingListRecipe)
 	shoppingListRouter.Post("/{listId}/clearChecked", handlers.ClearCheckedShoppingListItems)
 	shoppingListRouter.Put("/{listId}/checked", handlers.SetShoppingListChecked)
 	shoppingListRouter.Get("/{listId}/trip", handlers.GetShoppingTrips)

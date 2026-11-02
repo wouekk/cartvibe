@@ -76,6 +76,9 @@ model/groupOverviewTag.ts
 model/groupReceiptSettings.ts
 model/groupStatus.ts
 model/icon.ts
+model/importShoppingListRecipeCommand.ts
+model/importShoppingListRecipeItem.ts
+model/importShoppingListRecipeResult.ts
 model/internalErrorResponse.ts
 model/loginCommand.ts
 model/logoutCommand.ts
@@ -94,6 +97,7 @@ model/pagedRequestCommand.ts
 model/permission.ts
 model/permissionDescriptor.ts
 model/permissionScope.ts
+model/previewShoppingListRecipeCommand.ts
 model/pushSubscriptionCommand.ts
 model/pushSubscriptionCommandKeys.ts
 model/queueName.ts
@@ -108,6 +112,8 @@ model/receiptProductsView.ts
 model/receiptRequirements.ts
 model/receiptSearchMatch.ts
 model/receiptStatus.ts
+model/recipePreview.ts
+model/recipePreviewItem.ts
 model/renameReceiptCommand.ts
 model/reportColumn.ts
 model/reportDetail.ts

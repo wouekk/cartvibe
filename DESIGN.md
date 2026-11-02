@@ -62,6 +62,10 @@ Banned: Angular Material, Bootstrap classes (`d-flex`, `col-*`, `mb-3`), `mat-*`
 - Finished/archived card: `bg-muted/30 text-muted-foreground`, a `history` icon before the name, and its actions in a
   `more_vert` ghost icon button placed beside the card button (absolute, top right), never nested inside it. A group
   of them folds away behind a chevron toggle (`expand_more`, rotated when open) with its count, like Crossed off.
+- Preview dialogs (recipe import): a muted title and count line, one `border-b border-border/60` bar for the controls
+  (`app-settings-tabs` pills plus `size-9` outline icon buttons, all `h-9`), then `min-h-11` rows with a checkbox, the
+  data text (`min-w-0 break-words`, never translated) and a right-aligned `tabular-nums` value; a reason to fall back sits
+  in a `cv-inset` with an `info` icon. `app-dialog-footer [submitDisabled]` dims Save while nothing is selected.
 - Settings: always editable; Save in the card footer on the right, status text left (`cv-card__status`), dimmed while pristine (`[mode]="FormMode.edit"`). No floating save bar.
 - Dialog footer: hairline `border-t`, actions right: outline Cancel, primary Save. A confirmation's button names the action ("Delete", "Remove"), not "Confirm", and is red for those two.
 - Empty: centered, `py-10`, icon in a `size-10 rounded-full bg-muted text-muted-foreground` circle, one `text-sm text-muted-foreground` line, then the page's own add button. Whole-page empty: same inside `rounded-xl border border-dashed`.

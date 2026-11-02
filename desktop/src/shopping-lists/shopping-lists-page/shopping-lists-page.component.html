@@ -65,6 +65,19 @@
                 <app-icon name="notifications_active"></app-icon>
                 <span class="@max-lg:sr-only">{{ 'Going shopping' | t }}</span>
               </button>
+              <!-- The ingredients of a recipe (a page or pasted text), previewed before anything is added. -->
+              <button
+                hlmBtn
+                variant="outline"
+                type="button"
+                class="h-9 shrink-0"
+                data-testid="shopping-list-import-recipe"
+                [attr.title]="'Add the ingredients of a recipe to this list' | t"
+                (click)="importRecipe()"
+              >
+                <app-icon name="restaurant"></app-icon>
+                <span class="@max-lg:sr-only">{{ 'Import recipe' | t }}</span>
+              </button>
               @if (toBuyCount() > 0) {
                 <!-- Everything bought as planned: crosses the whole list off without ticking item by item. -->
                 <button

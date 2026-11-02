@@ -244,6 +244,67 @@ describe("DemoBackend", () => {
   });
 
   describe("shopping lists", () => {
+    it("previews a recipe link, falls back to pasting for a blocked site, and reads pasted text", () => {
+      const page = json<{ title: string; servings: number; failureReason: string; items: { name: string; quantity?: string; unit: string }[] }>(
+        call(backend, "POST", "/shopping-list/group/1/recipe/preview", { url: "https://example.com/pancakes" }),
+      );
+      expect(page.title).toBe("Sunday pancakes");
+      expect(page.servings).toBe(4);
+      expect(page.failureReason).toBe("");
+      expect(page.items.length).toBeGreaterThan(3);
+
+      const blocked = json<{ failureReason: string; items: unknown[] }>(
+        call(backend, "POST", "/shopping-list/group/1/recipe/preview", { url: "https://blocked.example/x" }),
+      );
+      expect(blocked.failureReason).toBe("blocked");
+      expect(blocked.items).toEqual([]);
+
+      const text = json<{ items: { name: string; quantity?: string; unit: string }[] }>(
+        call(backend, "POST", "/shopping-list/group/1/recipe/preview", { text: "For the dough:\n• 200 g flour\n1,5 l milk\nsalt" }),
+      );
+      expect(text.items.map((row) => [row.name, row.quantity, row.unit])).toEqual([
+        ["flour", "200", "g"],
+        ["milk", "1.5", "l"],
+        ["salt", undefined, ""],
+      ]);
+
+      expect(json<{ failureReason: string }>(call(backend, "POST", "/shopping-list/group/1/recipe/preview", { text: "  " })).failureReason).toBe(
+        "no_ingredients",
+      );
+    });
+
+    it("merges a recipe into a list: sums onto an open item, revives a crossed-off one, adds the rest", () => {
+      const list = json<{ id: number }>(call(backend, "POST", "/shopping-list/group/1", { name: "Recipe test" }));
+      const flour = json<{ id: number }>(call(backend, "POST", `/shopping-list/${list.id}/item`, { name: "Flour", amount: "500", unit: "g" }));
+      const sugar = json<{ id: number }>(call(backend, "POST", `/shopping-list/${list.id}/item`, { name: "Sugar", amount: "1", unit: "kg" }));
+      call(backend, "PUT", `/shopping-list/item/${sugar.id}/checked`, { isChecked: true });
+
+      const result = json<{
+        added: number;
+        merged: number;
+        revived: number;
+        list: { items: { id: number; name: string; amount?: string; unit: string; quantity: string; isChecked: boolean }[] };
+      }>(
+        call(backend, "POST", `/shopping-list/${list.id}/recipe/import`, {
+          items: [
+            { name: "flour", amount: "250", unit: "g" },
+            { name: "SUGAR", amount: "100", unit: "g" },
+            { name: "eggs", amount: "2", unit: "" },
+            { name: "cream", amount: "2", unit: "łyżki" },
+          ],
+        }),
+      );
+
+      expect([result.added, result.merged, result.revived]).toEqual([2, 1, 1]);
+      const byName = Object.fromEntries(result.list.items.map((entry) => [entry.name.toLowerCase(), entry]));
+      expect(byName["flour"]).toMatchObject({ id: flour.id, amount: "750", unit: "g" });
+      expect(byName["sugar"]).toMatchObject({ amount: "100", unit: "g", isChecked: false });
+      expect(byName["eggs"]).toMatchObject({ amount: "2", unit: "" });
+      expect(byName["cream"]).toMatchObject({ unit: "", quantity: "2 łyżki" });
+
+      expect(call(backend, "POST", "/shopping-list/9999/recipe/import", { items: [] }).status).toBe(404);
+    });
+
     it("adds an item with a stand-in classification, crosses it off and completes the list", () => {
       const item = json<{ id: number; health: string; foodGroup: string; shoppingListId: number }>(
         call(backend, "POST", "/shopping-list/1/item", { name: "Cherry tomatoes", quantity: "1" }),

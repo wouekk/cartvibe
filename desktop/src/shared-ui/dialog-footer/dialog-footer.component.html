@@ -15,7 +15,7 @@
     [buttonText]="submitButtonTooltip()"
     [destructive]="submitDestructive()"
     [disabled]="
-      disableWhenProgressBarIsShown() ? showProgressBar() ?? false : false
+      submitDisabled() || (disableWhenProgressBarIsShown() ? showProgressBar() ?? false : false)
     "
     [type]="submitButtonType()"
     (clicked)="submitClicked.emit()"

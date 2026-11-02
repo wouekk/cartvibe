@@ -1,6 +1,10 @@
 import {
   AttachShoppingTripReceiptCommand,
+  ImportShoppingListRecipeCommand,
+  ImportShoppingListRecipeResult,
+  PreviewShoppingListRecipeCommand,
   Receipt,
+  RecipePreview,
   ReceiptStatus,
   SetFoodClassificationCommand,
   SetShoppingListCheckedCommand,
@@ -114,6 +118,105 @@ function compareTrip(db: DemoDb, list: ShoppingList, receipt: Receipt): Shopping
   return view;
 }
 
+/**
+ * The demo has no network and no parser. A web address answers with one canned recipe (an address containing "blocked"
+ * shows the fallback to pasting), and pasted text is read line by line as "200 g flour" / "2 eggs".
+ */
+const DEMO_RECIPE: RecipePreview = {
+  title: "Sunday pancakes",
+  sourceUrl: "https://example.com/sunday-pancakes",
+  servings: 4,
+  source: "jsonld",
+  failureReason: "",
+  items: [
+    { name: "plain flour", quantity: "250", unit: "g", original: "250 g plain flour" },
+    { name: "milk", quantity: "0.5", unit: "l", original: "0.5 l milk" },
+    { name: "eggs", quantity: "2", unit: "", original: "2 eggs" },
+    { name: "butter", quantity: "0.33", unit: "cup", original: "⅓ cup butter" },
+    { name: "salt", quantity: undefined as unknown as string, unit: "", original: "salt" },
+  ],
+};
+
+function previewRecipe(command: PreviewShoppingListRecipeCommand): RecipePreview {
+  if (command.url) {
+    return command.url.includes("blocked")
+      ? { title: "", sourceUrl: command.url, servings: undefined as unknown as number, source: "", failureReason: "blocked", items: [] }
+      : DEMO_RECIPE;
+  }
+
+  const items = (command.text ?? "")
+    .split("\n")
+    .map((line) => line.replace(/^[\s•*-]+/, "").trim())
+    .filter((line) => line !== "" && !line.endsWith(":"))
+    .map((line) => {
+      const match = /^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l|tsp|tbsp|cup|cups)?\s+(.+)$/i.exec(line);
+      return match
+        ? { name: match[3], quantity: match[1].replace(",", "."), unit: (match[2] ?? "").toLowerCase(), original: line }
+        : { name: line, quantity: undefined as unknown as string, unit: "", original: line };
+    });
+  return {
+    title: "",
+    sourceUrl: "",
+    servings: undefined as unknown as number,
+    source: "text",
+    failureReason: items.length === 0 ? "no_ingredients" : "",
+    items,
+  };
+}
+
+/** The demo's merge: g/kg/ml/l fill the amount, a bare count the amount alone, any other unit the free-text quantity. */
+function stored(amount: string | undefined, unit: string): Pick<ShoppingListItem, "amount" | "unit" | "quantity"> {
+  if (!amount) {
+    return { amount: undefined, unit: "", quantity: "" };
+  }
+  if (["g", "kg", "ml", "l"].includes(unit)) {
+    return { amount, unit, quantity: "" };
+  }
+  return unit === "" ? { amount, unit: "", quantity: "" } : { amount: undefined, unit: "", quantity: `${amount} ${unit}` };
+}
+
+function importRecipe(ctx: DemoContext, list: ShoppingList, command: ImportShoppingListRecipeCommand): ImportShoppingListRecipeResult {
+  const result = { added: 0, merged: 0, revived: 0 };
+  for (const row of command.items) {
+    const key = row.name.trim().toLowerCase();
+    const same = list.items.filter((item) => item.name.trim().toLowerCase() === key);
+    const unchecked = same.find((item) => !item.isChecked);
+    const next = stored(row.amount ?? undefined, (row.unit ?? "").toLowerCase());
+
+    if (unchecked && !unchecked.amount && !unchecked.quantity) {
+      Object.assign(unchecked, next);
+      result.merged++;
+    } else if (unchecked && unchecked.amount && next.amount && unchecked.unit === next.unit) {
+      unchecked.amount = String(Math.round((Number(unchecked.amount) + Number(next.amount)) * 1000) / 1000);
+      result.merged++;
+    } else if (!unchecked && same.length > 0) {
+      const crossedOff = same[0];
+      Object.assign(crossedOff, next);
+      setChecked(ctx.db, crossedOff, false);
+      result.revived++;
+    } else {
+      const item: ShoppingListItem = {
+        id: nextId(ctx.db, "item"),
+        shoppingListId: list.id,
+        name: row.name.trim(),
+        note: "",
+        isChecked: false,
+        health: "",
+        foodGroup: "",
+        seasonality: "NOT_PRODUCE",
+        classificationOverridden: false,
+        createdAt: instantOn(ctx.db.today),
+        createdBy: ctx.db.currentUserId,
+        ...next,
+      };
+      Object.assign(item, classify(item.name));
+      list.items.push(item);
+      result.added++;
+    }
+  }
+  return { list, ...result };
+}
+
 const tripRow = (view: ShoppingTripView): ShoppingTrip => ({
   id: view.id,
   shoppingListId: view.shoppingListId,
@@ -134,6 +237,7 @@ export function registerShopping(router: DemoRouter): void {
     return ok();
   });
   router.get("/shopping-list/group/:groupId/stream", () => ok(""));
+  router.post("/shopping-list/group/:groupId/recipe/preview", (ctx) => previewRecipe(body<PreviewShoppingListRecipeCommand>(ctx)));
   router.post("/shopping-list/group/:groupId", (ctx) => {
     const list: ShoppingList = {
       id: nextId(ctx.db, "list"),
@@ -219,6 +323,13 @@ export function registerShopping(router: DemoRouter): void {
     item.classifiedAt = item.health ? instantOn(ctx.db.today) : undefined;
     list.items.push(item);
     return item;
+  });
+  router.post("/shopping-list/:listId/recipe/import", (ctx) => {
+    const list = findList(ctx);
+    if (!list) {
+      return notFound("List not found");
+    }
+    return importRecipe(ctx, list, body<ImportShoppingListRecipeCommand>(ctx));
   });
   router.post("/shopping-list/:listId/clearChecked", (ctx) => {
     const list = findList(ctx);

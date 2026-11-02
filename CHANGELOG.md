@@ -8,6 +8,18 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+### Added
+- **Import a recipe into a shopping list.** *Import recipe* on a list reads the ingredients of a recipe page (JSON-LD or
+  microdata) or of pasted text, shows them with a portion bar (0.5× to 3×, or servings) and ticks to untick (salt, oil),
+  marks what is already on the list, and merges the ticked rows: quantities add up, a crossed-off item comes back, an
+  incompatible unit becomes its own row. Rule-based, no AI, nothing translated. A site that blocks reading hands over to
+  pasting. On Android the installed app also accepts a recipe link from the share sheet.
+- **Safer outbound fetches.** `internal/netguard` vets every connection the server makes for a typed address (after DNS and
+  on each redirect) and is shared with the PDF renderer's external-resource check; nginx throttles the recipe preview.
+
+### Fixed
+- **Two multi-line text fields on one page no longer share an id**, so each label points at its own field.
+
 ## [0.15.0] - 2026-11-01
 
 A sturdier AI read, a project page with a roadmap and a live demo, and groundwork for hosting.

@@ -20,8 +20,8 @@ describe("shoppingListGroupGuard", () => {
   let store: Store;
   let router: Router;
 
-  const routeFor = (groupId?: string) =>
-    ({ params: groupId === undefined ? {} : { groupId } }) as unknown as ActivatedRouteSnapshot;
+  const routeFor = (groupId?: string, queryParams: Record<string, string> = {}) =>
+    ({ params: groupId === undefined ? {} : { groupId }, queryParams }) as unknown as ActivatedRouteSnapshot;
 
   const redirectOf = (result: ReturnType<CanActivateFn>) => router.serializeUrl(result as UrlTree);
 
@@ -56,6 +56,21 @@ describe("shoppingListGroupGuard", () => {
 
     expect(redirectOf(executeGuard(routeFor("1"), {} as any))).toBe("/shopping-lists/group/2");
     expect(redirectOf(executeGuard(routeFor(), {} as any))).toBe("/shopping-lists/group/2");
+  });
+
+  it("keeps the query string when it redirects, so a shared recipe survives the hop to a group", () => {
+    store.dispatch(new SetPermissions([], { 2: [Permission.GroupShoppingListsRead] }));
+
+    const shared = { recipeUrl: "https://example.com/pancakes?id=3", recipeText: "Pancakes https://example.com/pancakes" };
+    const url = redirectOf(executeGuard(routeFor(undefined, shared), {} as any)) as string;
+    const parsed = router.parseUrl(url);
+
+    expect(parsed.root.children["primary"].segments.map((segment) => segment.path)).toEqual([
+      "shopping-lists",
+      "group",
+      "2",
+    ]);
+    expect(parsed.queryParams).toEqual(shared);
   });
 
   it("sends a user who can read no group's lists to the receipt list", () => {

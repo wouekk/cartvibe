@@ -34,6 +34,8 @@ import {
 } from "../../store/shopping-list.state.actions";
 import { hasAll } from "../../utils/permission.utils";
 import { activeLists, recentPastLists } from "../shopping-list-groups";
+import { RecipeImportDialogComponent, RecipeImportDialogData } from "../recipe-import-dialog/recipe-import-dialog.component";
+import { extractRecipeUrl } from "../recipe-import-dialog/recipe-scaling";
 import { shoppingListToText } from "../shopping-list-share";
 import { ShoppingListFormDialogComponent } from "../shopping-list-form-dialog/shopping-list-form-dialog.component";
 import { TranslationService } from "../../i18n/translation.service";
@@ -156,6 +158,9 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
 
   public readonly canShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
 
+  /** A recipe shared from a phone's share sheet, waiting for the lists to load before the import dialog opens on it. */
+  private readonly pendingShare = signal<{ url?: string; text?: string } | undefined>(undefined);
+
   constructor(
     private activatedRoute: ActivatedRoute,
     private router: Router,
@@ -173,18 +178,42 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
         this.shoppingListStreamService.connect(groupId);
       });
     });
+
+    // The share target lands here before the lists have arrived; the dialog needs them to offer a list.
+    effect(() => {
+      const share = this.pendingShare();
+      if (!share || !this.isLoaded()) {
+        return;
+      }
+
+      untracked(() => {
+        this.pendingShare.set(undefined);
+        this.importSharedRecipe(share);
+      });
+    });
   }
 
-  /** The Dashboard's "New list" lands here with `?new=list` and opens the dialog straight away. */
+  /**
+   * Two things land here with a query: the Dashboard's "New list" (`?new=list`) opens the new-list dialog, and a
+   * recipe shared from a phone (`?recipeUrl=` / `?recipeText=`, the manifest's share target) opens the import dialog.
+   */
   public ngOnInit(): void {
-    if (this.activatedRoute.snapshot?.queryParamMap.get("new") !== "list") {
+    const query = this.activatedRoute.snapshot?.queryParamMap;
+    const newList = query?.get("new") === "list";
+    const sharedText = query?.get("recipeText") ?? "";
+    const sharedUrl = extractRecipeUrl(query?.get("recipeUrl")) ?? extractRecipeUrl(sharedText);
+    const shared = sharedUrl ? { url: sharedUrl } : sharedText.trim() ? { text: sharedText.trim() } : undefined;
+    if (!newList && !shared) {
       return;
     }
 
     // Dropped from the URL, so a reload or Back does not open it again.
     this.router.navigate([], { relativeTo: this.activatedRoute, queryParams: {}, replaceUrl: true });
-    if (this.canCreate()) {
+    if (newList && this.canCreate()) {
       this.addList();
+    }
+    if (shared) {
+      this.pendingShare.set(shared);
     }
   }
 
@@ -268,6 +297,45 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
         // The interceptor toasts the refusal.
         error: () => this.completing.set(false),
       });
+  }
+
+  /** Opens the recipe import for the open list. */
+  public importRecipe(): void {
+    const list = this.selectedList();
+    if (list && this.canUpdate()) {
+      this.openRecipeImport(list, {});
+    }
+  }
+
+  /** A recipe shared from another app: asks which list it is for, since none was chosen first. */
+  private importSharedRecipe(share: { url?: string; text?: string }): void {
+    const list = this.selectedList();
+    if (!list) {
+      this.snackbarService.hint("Create a shopping list first, then share the recipe again.");
+      return;
+    }
+    if (!this.canUpdate()) {
+      this.snackbarService.hint("You cannot add items to these lists.");
+      return;
+    }
+
+    this.openRecipeImport(list, { ...share, askForList: true });
+  }
+
+  private openRecipeImport(list: ShoppingList, extra: Partial<RecipeImportDialogData>): void {
+    // The lists still being shopped, plus the open one in case it is a finished list.
+    const lists = activeLists(this.lists());
+    this.matDialog.open(RecipeImportDialogComponent, {
+      width: "min(calc(100vw - 2rem), 36rem)",
+      // The field is what a person came to fill in; the first tabbable thing is the mode tab above it.
+      autoFocus: '[data-testid="recipe-import-url"] input, [data-testid="recipe-import-text"] textarea',
+      data: {
+        groupId: this.groupId(),
+        lists: lists.some((candidate) => candidate.id === list.id) ? lists : [list, ...lists],
+        listId: list.id,
+        ...extra,
+      } satisfies RecipeImportDialogData,
+    });
   }
 
   public addList(): void {

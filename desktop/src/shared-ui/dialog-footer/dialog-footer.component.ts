@@ -17,6 +17,8 @@ export class DialogFooterComponent {
   // Red Save for a dialog whose action deletes or removes.
   public readonly submitDestructive = input<boolean>(false);
   public readonly disableWhenProgressBarIsShown = input<boolean>(false);
+  // Dims and blocks Save while the dialog has nothing to submit (an import with no row ticked).
+  public readonly submitDisabled = input<boolean>(false);
   // Set when the dialog edits something that exists: Save is then dimmed while the form is unchanged.
   public readonly editing = input<boolean>(false);
   public readonly submitMode = computed(() => (this.editing() ? FormMode.edit : undefined));

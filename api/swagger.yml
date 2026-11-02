@@ -3402,6 +3402,48 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
+  /shopping-list/group/{groupId}/recipe/preview:
+    parameters:
+      - in: path
+        name: groupId
+        schema:
+          type: integer
+        required: true
+        description: Id of the group the recipe is being imported into
+    post:
+      tags:
+        - ShoppingList
+      summary: Preview a recipe's ingredients
+      description: >-
+        Reads the ingredients of a recipe page (a URL) or of pasted text and returns them as rows, without
+        writing anything [group.shopping-lists.update]. Send exactly one of url and text. The parsing is
+        rule-based (schema.org Recipe data on the page, or plain lines of text): no AI is called and nothing
+        is translated, so names and units stay in the recipe's language. A page that cannot be read still
+        answers 200, with an empty items array and a failureReason; the client then asks for pasted text.
+        Fetches never reach private networks. Not available for the All group.
+      operationId: previewShoppingListRecipe
+      requestBody:
+        description: The recipe page or text to read
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PreviewShoppingListRecipeCommand"
+      responses:
+        200:
+          description: The parsed ingredients, or why none could be read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecipePreview"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
   /shopping-list/{listId}:
     parameters:
       - in: path
@@ -3484,6 +3526,49 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ShoppingListItem"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+  /shopping-list/{listId}/recipe/import:
+    parameters:
+      - in: path
+        name: listId
+        schema:
+          type: integer
+        required: true
+        description: Id of the shopping list to add the recipe's ingredients to
+    post:
+      tags:
+        - ShoppingList
+      summary: Add recipe ingredients to a shopping list
+      description: >-
+        Merges the chosen preview rows into a list in one step [group.shopping-lists.update]. A row whose name
+        (ignoring case and spacing) matches an unchecked item with a compatible unit adds its quantity onto that
+        item; a match with an incompatible unit is added as its own row; a match with a crossed-off item
+        un-checks it and replaces its quantity. g, kg, ml and l fill the item's amount and unit (dag, mg, cl
+        and dl are converted); a bare count is an amount with no unit; any other unit stays in the recipe's
+        language in the item's free-text quantity. The list is sent to the group's event stream once, as
+        LIST_UPDATED.
+      operationId: importShoppingListRecipe
+      requestBody:
+        description: The rows to add, with their final (scaled) amounts
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportShoppingListRecipeCommand"
+      responses:
+        200:
+          description: The list after the merge and how many rows were handled each way
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportShoppingListRecipeResult"
         400:
           $ref: "#/components/responses/BadRequest"
         403:
@@ -4549,6 +4634,116 @@ components:
         note:
           type: string
           maxLength: 500
+    PreviewShoppingListRecipeCommand:
+      type: object
+      description: Exactly one of url and text.
+      properties:
+        url:
+          type: string
+          maxLength: 2048
+          description: An http or https page carrying a recipe
+        text:
+          type: string
+          description: Pasted ingredient lines, at most 200 KB
+    RecipePreview:
+      type: object
+      required:
+        - title
+        - sourceUrl
+        - servings
+        - source
+        - failureReason
+        - items
+      properties:
+        title:
+          type: string
+          description: The recipe's name when the page gave one
+        sourceUrl:
+          type: string
+          description: The page that was read, after redirects; empty for pasted text
+        servings:
+          type: integer
+          nullable: true
+          description: The first whole number from 1 to 100 in the page's recipeYield, when there is one
+        source:
+          type: string
+          description: Where the rows came from (jsonld, microdata or text); empty when nothing was read
+        failureReason:
+          type: string
+          description: >-
+            Empty when items can be shown. Otherwise why not, for example blocked, timeout, unreachable,
+            not_found, not_html, too_large, invalid_url, no_recipe, no_ingredients or busy. Open string.
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecipePreviewItem"
+    RecipePreviewItem:
+      type: object
+      required:
+        - name
+        - quantity
+        - unit
+        - original
+      properties:
+        name:
+          type: string
+          description: The ingredient in the recipe's own language
+        quantity:
+          type: string
+          nullable: true
+          description: A decimal string; null when the line gave none ("salt to taste")
+        unit:
+          type: string
+          description: The unit as the recipe wrote it; open string, empty for none
+        original:
+          type: string
+          description: The cleaned source line
+    ImportShoppingListRecipeCommand:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            $ref: "#/components/schemas/ImportShoppingListRecipeItem"
+    ImportShoppingListRecipeItem:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 200
+        amount:
+          type: string
+          nullable: true
+          description: Already scaled, as a decimal string; greater than 0, below 100000, at most 3 decimals
+        unit:
+          type: string
+          maxLength: 50
+          description: The recipe's own word for the unit; open string, not limited to the item units
+    ImportShoppingListRecipeResult:
+      type: object
+      required:
+        - list
+        - added
+        - merged
+        - revived
+      properties:
+        list:
+          $ref: "#/components/schemas/ShoppingList"
+        added:
+          type: integer
+          description: Rows inserted as new items
+        merged:
+          type: integer
+          description: Existing unchecked items that took a quantity (or already had the item)
+        revived:
+          type: integer
+          description: Crossed-off items that were put back on the list
     SetShoppingListItemCheckedCommand:
       type: object
       required:

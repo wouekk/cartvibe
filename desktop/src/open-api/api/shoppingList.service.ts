@@ -19,7 +19,15 @@ import { Observable }                                        from 'rxjs';
 // @ts-ignore
 import { AttachShoppingTripReceiptCommand } from '../model/attachShoppingTripReceiptCommand';
 // @ts-ignore
+import { ImportShoppingListRecipeCommand } from '../model/importShoppingListRecipeCommand';
+// @ts-ignore
+import { ImportShoppingListRecipeResult } from '../model/importShoppingListRecipeResult';
+// @ts-ignore
 import { InternalErrorResponse } from '../model/internalErrorResponse';
+// @ts-ignore
+import { PreviewShoppingListRecipeCommand } from '../model/previewShoppingListRecipeCommand';
+// @ts-ignore
+import { RecipePreview } from '../model/recipePreview';
 // @ts-ignore
 import { SetFoodClassificationCommand } from '../model/setFoodClassificationCommand';
 // @ts-ignore
@@ -875,6 +883,178 @@ export class ShoppingListService {
         return this.httpClient.request<Array<ShoppingTripView>>('get', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
+                responseType: <any>responseType_,
+                withCredentials: this.configuration.withCredentials,
+                headers: localVarHeaders,
+                observe: observe,
+                transferCache: localVarTransferCache,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Add recipe ingredients to a shopping list
+     * Merges the chosen preview rows into a list in one step [group.shopping-lists.update]. A row whose name (ignoring case and spacing) matches an unchecked item with a compatible unit adds its quantity onto that item; a match with an incompatible unit is added as its own row; a match with a crossed-off item un-checks it and replaces its quantity. g, kg, ml and l fill the item\&#39;s amount and unit (dag, mg, cl and dl are converted); a bare count is an amount with no unit; any other unit stays in the recipe\&#39;s language in the item\&#39;s free-text quantity. The list is sent to the group\&#39;s event stream once, as LIST_UPDATED.
+     * @param listId Id of the shopping list to add the recipe\&#39;s ingredients to
+     * @param importShoppingListRecipeCommand The rows to add, with their final (scaled) amounts
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public importShoppingListRecipe(listId: number, importShoppingListRecipeCommand: ImportShoppingListRecipeCommand, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ImportShoppingListRecipeResult>;
+    public importShoppingListRecipe(listId: number, importShoppingListRecipeCommand: ImportShoppingListRecipeCommand, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ImportShoppingListRecipeResult>>;
+    public importShoppingListRecipe(listId: number, importShoppingListRecipeCommand: ImportShoppingListRecipeCommand, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ImportShoppingListRecipeResult>>;
+    public importShoppingListRecipe(listId: number, importShoppingListRecipeCommand: ImportShoppingListRecipeCommand, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (listId === null || listId === undefined) {
+            throw new Error('Required parameter listId was null or undefined when calling importShoppingListRecipe.');
+        }
+        if (importShoppingListRecipeCommand === null || importShoppingListRecipeCommand === undefined) {
+            throw new Error('Required parameter importShoppingListRecipeCommand was null or undefined when calling importShoppingListRecipe.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        let localVarCredential: string | undefined;
+        // authentication (bearerAuth) required
+        localVarCredential = this.configuration.lookupCredential('bearerAuth');
+        if (localVarCredential) {
+            localVarHeaders = localVarHeaders.set('Authorization', 'Bearer ' + localVarCredential);
+        }
+
+        let localVarHttpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (localVarHttpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            localVarHttpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        let localVarHttpContext: HttpContext | undefined = options && options.context;
+        if (localVarHttpContext === undefined) {
+            localVarHttpContext = new HttpContext();
+        }
+
+        let localVarTransferCache: boolean | undefined = options && options.transferCache;
+        if (localVarTransferCache === undefined) {
+            localVarTransferCache = true;
+        }
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/shopping-list/${this.configuration.encodeParam({name: "listId", value: listId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}/recipe/import`;
+        return this.httpClient.request<ImportShoppingListRecipeResult>('post', `${this.configuration.basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: importShoppingListRecipeCommand,
+                responseType: <any>responseType_,
+                withCredentials: this.configuration.withCredentials,
+                headers: localVarHeaders,
+                observe: observe,
+                transferCache: localVarTransferCache,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Preview a recipe\&#39;s ingredients
+     * Reads the ingredients of a recipe page (a URL) or of pasted text and returns them as rows, without writing anything [group.shopping-lists.update]. Send exactly one of url and text. The parsing is rule-based (schema.org Recipe data on the page, or plain lines of text): no AI is called and nothing is translated, so names and units stay in the recipe\&#39;s language. A page that cannot be read still answers 200, with an empty items array and a failureReason; the client then asks for pasted text. Fetches never reach private networks. Not available for the All group.
+     * @param groupId Id of the group the recipe is being imported into
+     * @param previewShoppingListRecipeCommand The recipe page or text to read
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public previewShoppingListRecipe(groupId: number, previewShoppingListRecipeCommand: PreviewShoppingListRecipeCommand, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<RecipePreview>;
+    public previewShoppingListRecipe(groupId: number, previewShoppingListRecipeCommand: PreviewShoppingListRecipeCommand, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<RecipePreview>>;
+    public previewShoppingListRecipe(groupId: number, previewShoppingListRecipeCommand: PreviewShoppingListRecipeCommand, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<RecipePreview>>;
+    public previewShoppingListRecipe(groupId: number, previewShoppingListRecipeCommand: PreviewShoppingListRecipeCommand, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (groupId === null || groupId === undefined) {
+            throw new Error('Required parameter groupId was null or undefined when calling previewShoppingListRecipe.');
+        }
+        if (previewShoppingListRecipeCommand === null || previewShoppingListRecipeCommand === undefined) {
+            throw new Error('Required parameter previewShoppingListRecipeCommand was null or undefined when calling previewShoppingListRecipe.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        let localVarCredential: string | undefined;
+        // authentication (bearerAuth) required
+        localVarCredential = this.configuration.lookupCredential('bearerAuth');
+        if (localVarCredential) {
+            localVarHeaders = localVarHeaders.set('Authorization', 'Bearer ' + localVarCredential);
+        }
+
+        let localVarHttpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (localVarHttpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            localVarHttpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        let localVarHttpContext: HttpContext | undefined = options && options.context;
+        if (localVarHttpContext === undefined) {
+            localVarHttpContext = new HttpContext();
+        }
+
+        let localVarTransferCache: boolean | undefined = options && options.transferCache;
+        if (localVarTransferCache === undefined) {
+            localVarTransferCache = true;
+        }
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/shopping-list/group/${this.configuration.encodeParam({name: "groupId", value: groupId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}/recipe/preview`;
+        return this.httpClient.request<RecipePreview>('post', `${this.configuration.basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: previewShoppingListRecipeCommand,
                 responseType: <any>responseType_,
                 withCredentials: this.configuration.withCredentials,
                 headers: localVarHeaders,

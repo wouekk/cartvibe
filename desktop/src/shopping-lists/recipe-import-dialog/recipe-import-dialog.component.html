@@ -1,0 +1,178 @@
+<app-dialog [headerText]="'Import recipe'">
+  @if (step() === 'input') {
+    <form class="flex min-w-0 flex-col gap-4" data-testid="recipe-import-input-step" [formGroup]="inputForm" (ngSubmit)="loadPreview()">
+      <app-settings-tabs
+        data-testid="recipe-import-mode"
+        [ariaLabel]="'Where the ingredients come from' | t"
+        [tabs]="modeTabs"
+        [value]="mode()"
+        (valueChange)="setMode($event)"
+      ></app-settings-tabs>
+
+      @if (hint(); as message) {
+        <!-- Why a page could not be read (or what to change in the text), with the way forward: paste the ingredients. -->
+        <div class="cv-inset flex min-w-0 items-start gap-2 text-sm" role="status" data-testid="recipe-import-hint">
+          <app-icon name="info" class="mt-0.5 shrink-0 text-muted-foreground"></app-icon>
+          <p class="m-0 min-w-0 break-words">{{ message | t }}</p>
+        </div>
+      }
+
+      @if (mode() === 'url') {
+        <app-input
+          type="url"
+          data-testid="recipe-import-url"
+          [label]="'Recipe URL' | t"
+          [hint]="'Paste the link of a recipe page. Its ingredients are read from the page.'"
+          [inputFormControl]="urlControl"
+        ></app-input>
+      } @else {
+        <app-textarea
+          data-testid="recipe-import-text"
+          [label]="'Ingredients' | t"
+          [hint]="'One ingredient per line, for example “200 g flour”.'"
+          [inputFormControl]="textControl"
+        ></app-textarea>
+      }
+
+      @if (data.askForList && data.lists.length > 1) {
+        <!-- Opened from a phone's share sheet, where no list was chosen first. -->
+        <app-select
+          data-testid="recipe-import-list"
+          [label]="'Add to list' | t"
+          [options]="listOptions()"
+          optionValueKey="id"
+          optionDisplayKey="name"
+          [inputFormControl]="listControl"
+        ></app-select>
+      }
+
+      <app-dialog-footer
+        submitButtonTooltip="Preview"
+        [submitDisabled]="!canPreview() || loading()"
+        [additionalButtonsTemplate]="inputActions"
+        (cancelClicked)="close()"
+      ></app-dialog-footer>
+    </form>
+  } @else {
+    <div class="flex min-w-0 flex-col" data-testid="recipe-import-preview-step">
+      <div class="min-w-0 pb-3">
+        @if (preview()?.title; as title) {
+          <h3 class="m-0 text-base font-semibold break-words" data-testid="recipe-import-title">{{ title }}</h3>
+        }
+        <p class="m-0 text-xs text-muted-foreground tabular-nums" data-testid="recipe-import-selected">
+          {{ '{selected} of {total} selected' | t: { selected: selectedCount(), total: rows().length } }}
+        </p>
+      </div>
+
+      <!-- Portions: a multiplier, and the servings when the recipe states them. -->
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3" data-testid="recipe-import-scaling">
+        <app-settings-tabs
+          data-testid="recipe-import-multipliers"
+          [ariaLabel]="'Portion multiplier' | t"
+          [tabs]="multiplierTabs"
+          [value]="multiplierValue()"
+          (valueChange)="setMultiplier($event)"
+        ></app-settings-tabs>
+
+        @if (targetServings(); as servings) {
+          <div class="flex items-center gap-1" data-testid="recipe-servings">
+            <button
+              hlmBtn
+              variant="outline"
+              size="icon"
+              type="button"
+              class="size-9"
+              data-testid="recipe-servings-decrement"
+              [disabled]="servings <= 1"
+              [attr.aria-label]="'Fewer servings' | t"
+              (click)="changeServings(-1)"
+            >
+              <app-icon name="remove"></app-icon>
+            </button>
+            <span class="min-w-20 px-1 text-center text-sm tabular-nums" aria-live="polite" data-testid="recipe-servings-value">
+              {{ servings }} {{ servings | plural: 'serving' : 'servings' }}
+            </span>
+            <button
+              hlmBtn
+              variant="outline"
+              size="icon"
+              type="button"
+              class="size-9"
+              data-testid="recipe-servings-increment"
+              [attr.aria-label]="'More servings' | t"
+              (click)="changeServings(1)"
+            >
+              <app-icon name="add"></app-icon>
+            </button>
+          </div>
+        }
+      </div>
+
+      <ul class="m-0 list-none p-0" data-testid="recipe-import-rows">
+        @for (row of displayRows(); track row.index) {
+          <li
+            class="flex min-h-11 items-center border-b border-border/40 transition-colors duration-150 last:border-b-0 hover:bg-muted/40 motion-reduce:transition-none"
+            [attr.data-testid]="'recipe-row-' + row.index"
+          >
+            <label class="flex min-w-0 flex-1 cursor-pointer items-center gap-3 px-1 py-2">
+              <hlm-checkbox
+                [checked]="row.checked"
+                [attr.data-testid]="'recipe-row-check-' + row.index"
+                (checkedChange)="toggle(row.index, $event)"
+              />
+              <!-- The name is the recipe's own text, so it is shown as it is and never run through the translator. -->
+              <span class="min-w-0 flex-1 text-sm break-words" [attr.data-testid]="'recipe-row-name-' + row.index">
+                {{ row.name }}
+                @if (row.onList) {
+                  <app-badge
+                    class="ml-1 align-middle"
+                    tone="slate"
+                    [text]="onListText"
+                    [attr.data-testid]="'recipe-row-on-list-' + row.index"
+                  ></app-badge>
+                }
+              </span>
+              <span class="shrink-0 text-right text-sm text-muted-foreground tabular-nums" [attr.data-testid]="'recipe-row-quantity-' + row.index">
+                {{ row.quantityText }} {{ row.unit }}
+              </span>
+            </label>
+          </li>
+        }
+      </ul>
+
+      @if (selectedCount() === 0) {
+        <p class="m-0 pt-3 text-sm text-muted-foreground" data-testid="recipe-import-none-selected">
+          {{ 'Tick at least one ingredient to add.' | t }}
+        </p>
+      }
+
+      <app-dialog-footer
+        submitButtonType="button"
+        [submitButtonTooltip]="submitText()"
+        [submitDisabled]="selectedCount() === 0 || importing()"
+        [additionalButtonsTemplate]="previewActions"
+        (cancelClicked)="close()"
+        (submitClicked)="addSelected()"
+      ></app-dialog-footer>
+    </div>
+  }
+</app-dialog>
+
+<ng-template #inputActions>
+  @if (loading()) {
+    <span class="inline-flex items-center gap-2 text-sm text-muted-foreground" data-testid="recipe-import-loading">
+      <hlm-spinner class="text-base" [aria-label]="'Reading the recipe' | t" />
+      {{ 'Reading the recipe…' | t }}
+    </span>
+  }
+</ng-template>
+
+<ng-template #previewActions>
+  @if (importing()) {
+    <hlm-spinner class="text-base" data-testid="recipe-import-adding" [aria-label]="'Adding to the list' | t" />
+  }
+  <button hlmBtn variant="ghost" type="button" data-testid="recipe-import-back" [disabled]="importing()" (click)="backToInput()">
+    <app-icon name="arrow_back"></app-icon>
+    <span>{{ 'Back' | t }}</span>
+  </button>
+</ng-template>

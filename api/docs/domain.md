@@ -26,6 +26,26 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   `TRIPS_CHANGED` (no payload); clients refetch.
 - Notifications (`services/shopping_notifications.go`): new lists, added items (one bell per 15 min per message) and
   `POST /shopping-list/group/{id}/going-shopping` notify the rest of the group, never the actor; best-effort.
+- **Recipe import** (`internal/recipeimport/`, no AI, nothing translated; names and units stay in the recipe's language).
+  `POST /shopping-list/group/{groupId}/recipe/preview` takes `{url}` or `{text}` and writes nothing (`update`
+  permission, All group refused). A page is fetched by `Fetcher` (http/https only, 8 s, 5 MB cut, ≤5 redirects, no env
+  proxy, every connection vetted by `netguard.Control` after DNS), then read as schema.org Recipe JSON-LD (object, array,
+  `@graph`, `@type` a string or array, `Recipe` or a full URL) or `itemprop` microdata; text goes straight to the parser.
+  A page that cannot be read still answers 200 with an empty `items` and a `failureReason` (`blocked`, `timeout`,
+  `unreachable`, `not_found`, `not_html`, `too_large`, `invalid_url`, `no_recipe`, `no_ingredients`, `busy`: an open
+  string) so the desktop moves to pasting without a toast; a refused internal address is plain `unreachable`. nginx throttles the
+  path (`recipe` zone, 10/min, 429) and `recipeFetchSlots` caps four fetches at once. Lines are normalised (entities,
+  bullets, checkboxes, section headers, a quantity-only line merged into the next), parsed by `ParseLine` (quantity
+  forms `½`, `1 ½`, `1/2`, `1,5`, ranges to the upper bound; the unit table in `units.go`; `de` / `d'` connectors;
+  notes after a comma or in brackets dropped) and consolidated (same name + compatible unit summed, g↔kg, ml↔l).
+  `servings` is the first whole number 1..100 in `recipeYield`.
+  `POST /shopping-list/{listId}/recipe/import` merges the chosen rows in one transaction (`PlanMerge`, pure): an unchecked
+  same-name item with a compatible unit gets the quantities summed; an incompatible unit adds a new row; a crossed-off item
+  is un-checked and takes the new quantity. Names are compared in Go (`NormalizeName`: SQLite's `LOWER()` does not fold
+  "Żurek"). **Unit storage:** g, kg, ml, l (and dag, mg, cl, dl, converted) fill `amount` + `unit`; a bare count (`szt`,
+  `pcs`, `Stück` …) is an amount with no unit; any other unit stays in the recipe's language in the legacy `quantity`
+  text (`2 szklanki`, ≤50 chars), which `PlanMerge` re-reads to sum, so `ShoppingListUnits` and the unit picker are
+  untouched. One `LIST_UPDATED` is sent with the whole list.
 - Group deletion removes lists, items, trips and classification corrections inside its transaction.
 
 ## Receipt products, classification and trips
