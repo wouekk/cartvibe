@@ -22,9 +22,15 @@
 > AI assistant and are maintained by me for my household as a hobby project. Not affiliated with the original authors.
 > Details in [NOTICE.md](NOTICE.md).
 
-Would rather not run a server? **CartVibe for iPhone** is on its way to the App Store. It is a separate app: your data stays
-on the phone, or in your own iCloud if you turn on sync, and it does not connect to a self-hosted CartVibe. You can follow its progress
-in [issue #1](https://github.com/wouekk/cartvibe/issues/1).
+## Platforms
+
+* **The web app (this repository)** is self-hosted, licensed AGPL-3.0, and the reference product: new features land here
+  first, and [docs/FEATURES.md](docs/FEATURES.md) lists what it does, release by release.
+* **CartVibe for iPhone** is on its way to the App Store. It is a separate, proprietary app with its own code, not part
+  of this repository. It follows the web app's features, keeps your data on the phone, and syncs through your own iCloud
+  if you turn that on. It does not connect to a self-hosted CartVibe today; an optional pairing with one is planned.
+  Follow its progress in [issue #1](https://github.com/wouekk/cartvibe/issues/1).
+* **There is no hosted CartVibe.** An earlier plan for a hosted service was dropped; to use the web app you run it yourself.
 
 ## Quick start
 
@@ -229,10 +235,10 @@ The same tour, with screenshots and a live demo, is on [cartvibe.app](https://ca
 | `api/` | Go backend (Chi router, GORM, Asynq background workers on Valkey) |
 | `desktop/` | Angular web app, installable as a PWA and built for phones first |
 | `docker/` | One production image: nginx serves the app and proxies the Go API |
-| `docs/` | The [FAQ](docs/faq.md), developer setup, the AI prompts, themes, and these screenshots |
+| `docs/` | The [FAQ](docs/faq.md), the [feature registry](docs/FEATURES.md), developer setup, the AI prompts, themes, and these screenshots |
 | `site/` | The project page (static Astro site, see [docs/site.md](docs/site.md)) |
 
-Working notes for contributors and AI agents: [CLAUDE.md](CLAUDE.md), [AGENTS.md](AGENTS.md), [DESIGN.md](DESIGN.md), [docs/dev-setup.md](docs/dev-setup.md).
+Want to help or ask for a feature? See [CONTRIBUTING.md](CONTRIBUTING.md). Working notes for contributors and AI agents: [CLAUDE.md](CLAUDE.md), [AGENTS.md](AGENTS.md), [DESIGN.md](DESIGN.md), [docs/dev-setup.md](docs/dev-setup.md).
 
 ## Versions
 

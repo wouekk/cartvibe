@@ -22,7 +22,8 @@ are offered; the UI ships in five languages.
 
 - **Web first:** all UI of this app is in `desktop/`, responsive for phones; there is no mobile app in this repository.
   CartVibe for iPhone is a separate closed-source app with its own data (on the device and in the user's iCloud); nothing is
-  copied between the two, and nothing here connects to it.
+  copied between the two, and nothing here connects to it. This repository leads: the iPhone app follows the behaviour
+  listed in `docs/FEATURES.md`, so keep that registry current; it is the only bridge.
 - **SQLite on the NAS:** new models are SQLite-safe; migrations are additive.
 - **AI is optional and fallible:** nothing blocks or fails because the AI is missing, slow or out of credits; record a
   status, retry later, degrade to "planned" / "unknown".

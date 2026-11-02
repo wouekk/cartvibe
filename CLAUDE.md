@@ -56,6 +56,8 @@ The look of every UI change: `DESIGN.md`. Local toolchains and manual steps: `do
 
 - A change to behaviour, configuration or conventions updates the component guide (or its `docs/` note) in the same
   branch; a change to the look updates `DESIGN.md`.
+- A user-visible change also updates `docs/FEATURES.md` in behaviour terms (rules at its top) and cites the feature IDs in
+  its `CHANGELOG.md` entry. Never read, name or link the iPhone app's repository or code from here.
 - Before ending a session, update `HANDOFF.md` (session state only; permanent knowledge goes in a guide).
 - Keep always-loaded files short: state each rule once, in one place, and point to it.
 

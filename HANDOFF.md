@@ -18,6 +18,9 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   behind them. The `:preview` image is not published yet.
 - **Dashboard drill-down (#8)** is on `preview` (CHANGELOG `[Unreleased]`), not pushed to `main`: specs, i18n check and `ng build` pass; the
   Playwright `dashboard-charts` spec and a look at phone width, day/night and the accent palettes are still to do.
+- **Feature registry** (`docs/FEATURES.md`, CONTRIBUTING, feature request form, README Platforms) is on
+  `feature/features-registry`, waiting for the owner's review. Rows were drawn from the changelog and checked against
+  `desktop/docs/features.md`; a pass over the live app is still to do. Keep it current with every user-visible change.
 - Next real task: a restore drill of the NAS family data (never run; it is the only real data).
 - `e2e-smoke` fails now and then with `HTTP 503` on an API login (nginx login limit, 30 a minute); re-running the job passes.
 - Not run anywhere: Safari and Firefox on desktop, Lighthouse, Web Push on a real device (needs HTTPS and VAPID keys).
