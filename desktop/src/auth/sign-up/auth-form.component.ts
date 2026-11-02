@@ -16,7 +16,7 @@ import { SignInTransitionService } from "../../services/sign-in-transition.servi
 @Component({
     selector: "app-auth-form",
     templateUrl: "./auth-form.component.html",
-    host: { class: "relative flex min-h-dvh items-center justify-center bg-gradient-to-br from-muted via-accent to-muted p-6 max-sm:p-3" },
+    host: { class: "cv-auth-bg relative isolate flex min-h-dvh items-center justify-center bg-background p-6 max-sm:p-3" },
     providers: [UserValidators],
     changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false

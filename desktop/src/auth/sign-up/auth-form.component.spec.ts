@@ -108,6 +108,14 @@ describe('AuthForm', () => {
     expect(transition.active()).toBe(false);
   });
 
+  it('sits on the sign-in backdrop, not on a grey gradient box', () => {
+    const host: HTMLElement = fixture.nativeElement;
+
+    expect(host.classList.contains('cv-auth-bg')).toBe(true);
+    expect(host.classList.contains('bg-background')).toBe(true);
+    expect(Array.from(host.classList).some((name) => name.startsWith('bg-gradient') || name.startsWith('from-'))).toBe(false);
+  });
+
   it('clears the splash and restores the populated form when login fails', async () => {
     const httpTesting = TestBed.inject(HttpTestingController);
     component.form.setValue({

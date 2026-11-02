@@ -169,6 +169,30 @@ canvas.cv-chart {
   font-variant-numeric: tabular-nums;
 }
 
+/* The sign-in page's backdrop: the project site's hairline grid and soft spotlight (site/src/styles/global.css,
+   .bg-canvas), the glow in the brand emerald whatever the palette, faded to --background at the edges. Tokens only, so
+   Day and Night follow. It is still: no scroll on a login page, and nothing to switch off for reduced motion. The rest of
+   the app keeps a plain --background (DESIGN.md). */
+.cv-auth-bg {
+  --glow-strength: 6%;
+}
+.dark .cv-auth-bg {
+  --glow-strength: 9%;
+}
+.cv-auth-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(ellipse 85% 65% at 50% 35%, transparent 15%, var(--background) 80%),
+    radial-gradient(circle at 50% 30%, color-mix(in oklab, var(--brand-bar-bottom) var(--glow-strength), transparent), transparent 65%),
+    linear-gradient(to right, color-mix(in oklab, var(--border) 55%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--border) 55%, transparent) 1px, transparent 1px);
+  background-size: auto, auto, 48px 48px, 48px 48px;
+}
+
 /* Cards and tiles (Dashboard and elsewhere): the shadcn card, rising in one after the other. */
 .cv-tile {
   @apply flex flex-col gap-1.5 rounded-xl bg-card p-5 text-card-foreground no-underline shadow-xs ring-1 ring-foreground/10 animate-in fade-in-0 slide-in-from-bottom-2 duration-500 fill-mode-both;
