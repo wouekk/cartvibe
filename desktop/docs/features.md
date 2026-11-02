@@ -16,8 +16,12 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
   months on (`WARRANTY_ENDING_SOON_MONTHS`), nearest first, one row per product (`warrantyRows` over the list's
   `warrantyProducts`; the shop and dates on a receipt's first row), and a Days left column ("Today", then `N days`; a
   week or less in `text-warning-text`). It loads once per group, whatever the period. The Warranties page uses the same
-  rows. Both tables are `table-fixed` so long names end in an ellipsis, and phones drop the monogram and date columns. Unhealthy, Not on the list, tags and real categories open
-  `OverviewDetailDialogComponent` ("Other", "Uncategorized", "(Restricted)" do not).
+  rows. Both tables are `table-fixed` so long names end in an ellipsis, and phones drop the monogram and date columns. Unhealthy, Not on the list, tags and every donut slice open
+  `OverviewDetailDialogComponent`. **Other** (`DonutSegment.members`, the categories folded past `MAX_DONUT_SEGMENTS`)
+  opens kind `OTHER`: one `FOODGROUP` request per member, one section with a subtotal each, and a failed member fails the
+  whole list rather than showing a short one. The **Spent** tile (a stretched link, the goal controls sit above it), the
+  **Receipts** tile and a **trend bar** (`openBar`, `barRange`) open the receipts list on `?from=&to=`; the receipts page
+  reads them (`parseDayRange`) into `app-period-picker [initial]`, which starts there as a custom range.
 - **Monthly goal** (`UserPreferences.monthlySpendingGoal`, computed client-side only): edited on the Spent card and in
   User Settings → Budget. Saving sends the whole preferences object (that endpoint replaces it); gated on
   `app.user-preferences.update`.
@@ -27,8 +31,8 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
 - **Donut:** `CATEGORY_COLORS` are `var(--chart-1..5)` plus `--muted-foreground` for "Other"; bars use the primary
   token, faded muted when not selected and destructive over the goal; Unhealthy text is `text-warning-text`. Charts
   read tokens at draw time (`readChartColors()`); `app-chart` (Chart.js on a canvas, `shared-ui/chart/`) recolours in
-  place on a theme change, without a rebuild or a replayed entry animation. Click a slice or legend dot to focus
-  (`focusedSegment`); hover sets `hoveredSegment`. The wrapper's `activeIndex` input (`activeSegmentIndex`) is what the
+  place on a theme change, without a rebuild or a replayed entry animation. Click a slice or anywhere on its legend row to
+  open its product list; the legend dot toggles the focus highlight (`focusedSegment`); hover sets `hoveredSegment`. The wrapper's `activeIndex` input (`activeSegmentIndex`) is what the
   chart emphasises (the slice slides out, the others fade, the middle names it) without rebuilding, and shows as
   `data-active-index` on the host: a canvas has no DOM, so specs and Playwright read that.
 - **Chart.js traps** (`shared-ui/chart/`): the lazy chunk is `chart-lazy.ts` with static named imports (`await

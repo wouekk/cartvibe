@@ -128,7 +128,12 @@ test.describe('dashboard charts', () => {
     await expect(donut).not.toHaveAttribute('data-active-index', /.*/);
   });
 
-  test('hovering a slice shows our tooltip card, and a click focuses it for good', async ({ page }) => {
+  test('hovering a slice shows our tooltip card, a click opens its list, and the dot focuses it for good', async ({ page }) => {
+    await page.route(/\/api\/overview\/group\/\d+\/products/, (route) =>
+      route.fulfill({
+        json: [{ id: 1, receiptId: 9, receiptName: 'Corner shop', receiptDate: '2026-10-12', name: 'Milk', quantity: '', health: 'HEALTHY', amount: '1.20' }],
+      })
+    );
     await openDashboard(page);
     const donut = page.getByTestId('overview-donut');
     const slice0 = await slicePoint(donut, SHARES[0], SHARES[1]);
@@ -142,6 +147,10 @@ test.describe('dashboard charts', () => {
     await expect(tooltip).toContainText('33.4%');
 
     await page.mouse.click(slice1.x, slice1.y);
+    await expect(page.getByTestId('overview-detail-products')).toContainText('Milk');
+    await page.getByTestId('overview-detail-close').click();
+
+    await page.getByTestId('overview-donut-focus-Dairy & eggs').click();
     await expect(page.getByTestId('overview-donut-focus-Dairy & eggs')).toHaveAttribute('aria-pressed', 'true');
     // The focused slice stays emphasised after the pointer left the ring.
     await page.mouse.move(1, 1);
@@ -150,6 +159,22 @@ test.describe('dashboard charts', () => {
     await page.getByTestId('overview-donut-focus-Dairy & eggs').click();
     await page.mouse.move(1, 1);
     await expect(donut).not.toHaveAttribute('data-active-index', /.*/);
+  });
+
+  test('Other opens the categories it folds, one section each, from its legend row', async ({ page }) => {
+    const byCategory: Record<string, string> = { '6': 'Cola', '7': 'Crisps' };
+    await page.route(/\/api\/overview\/group\/\d+\/products/, (route) => {
+      const categoryId = new URL(route.request().url()).searchParams.get('categoryId') ?? '';
+      return route.fulfill({
+        json: [{ id: Number(categoryId), receiptId: 9, receiptName: 'Corner shop', receiptDate: '2026-10-12', name: byCategory[categoryId] ?? '?', quantity: '', health: 'UNKNOWN', amount: '2.00' }],
+      });
+    });
+    await openDashboard(page);
+
+    await page.getByTestId('overview-donut-row-Other').click();
+
+    await expect(page.getByTestId('overview-detail-section-Drinks')).toContainText('Cola');
+    await expect(page.getByTestId('overview-detail-section-Snacks')).toContainText('Crisps');
   });
 
   test('the bars label every month and show the month card on hover', async ({ page }) => {

@@ -7,7 +7,7 @@ import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { DONE_STATUSES } from "../../utils/receipt-status";
-import { ResolvedPeriod } from "../../overview/overview-period";
+import { parseDayRange, ResolvedPeriod } from "../../overview/overview-period";
 import { catchError, debounceTime, distinctUntilChanged, EMPTY, filter as rxFilter, map, Subject, switchMap, take, tap } from "rxjs";
 import { ReceiptFilterService } from "src/services/receipt-filter.service";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
@@ -208,7 +208,12 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
   protected readonly Permission = Permission;
 
+  /** A range the Dashboard opened this list on (`?from=&to=`, "yyyy-MM-dd"); the period picker starts there. */
+  public initialPeriod?: { from: string; to: string };
+
   public ngOnInit(): void {
+    const query = this.activatedRoute.snapshot.queryParamMap;
+    this.initialPeriod = parseDayRange(query.get("from"), query.get("to"));
     this.groupId = this.store
       .selectSnapshot(GroupState.selectedGroupId)
       ?.toString();

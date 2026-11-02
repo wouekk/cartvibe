@@ -128,7 +128,7 @@
 <!-- The same period row as the Dashboard: quick ranges plus From / To (they set the Receipt Date filter), then the
      filter and its reset. It starts under the title, left-aligned, rather than wrapping on the right of the header. -->
 <div class="mb-4 mt-4 flex flex-wrap items-center gap-2" data-testid="receipts-period-row">
-  <app-period-picker data-testid="receipts-period" (periodChange)="periodSelected($event)"></app-period-picker>
+  <app-period-picker data-testid="receipts-period" [initial]="initialPeriod" (periodChange)="periodSelected($event)"></app-period-picker>
   <app-button
     class="relative inline-flex size-9 flex-none items-center justify-center self-center [&_button]:size-9 [&_button]:p-0"
     data-testid="receipts-filter"

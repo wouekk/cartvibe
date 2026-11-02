@@ -31,10 +31,18 @@ const DONUT_CIRCUMFERENCE = 2 * Math.PI * DONUT_RADIUS;
 /** The gap between slices, in px along the ring. */
 const DONUT_GAP = 2;
 
+/** A category folded into "Other", named as the slice list names it. */
+export interface DonutMember {
+  name: string;
+  categoryId?: number;
+}
+
 export interface DonutSegment {
   name: string;
   /** The slice's category; absent for Uncategorized, "Other" and a name kept from a deleted category. */
   categoryId?: number;
+  /** Only on "Other": the categories folded into it, largest first. */
+  members?: DonutMember[];
   total: number;
   share: string;
   color: string;
@@ -78,14 +86,18 @@ export function monthDayRange(month: FilterMonth): [string, string] {
  * the slices (the categories of the period's product lines, plus what they leave Uncategorized).
  */
 export function buildDonutSegments(categories: GroupOverviewCategory[]): DonutSegment[] {
-  const parsed: { name: string; categoryId?: number; total: number }[] = categories
+  const parsed: { name: string; categoryId?: number; total: number; members?: DonutMember[] }[] = categories
     .map((category) => ({ name: category.name, categoryId: category.categoryId ?? undefined, total: Number(category.total) }))
     .filter((category) => category.total > 0);
 
   const head = parsed.slice(0, MAX_DONUT_SEGMENTS);
   const rest = parsed.slice(MAX_DONUT_SEGMENTS);
   if (rest.length > 0) {
-    head.push({ name: marker("Other"), total: rest.reduce((sum, category) => sum + category.total, 0) });
+    head.push({
+      name: marker("Other"),
+      total: rest.reduce((sum, category) => sum + category.total, 0),
+      members: rest.map((category) => ({ name: category.name, ...(category.categoryId !== undefined ? { categoryId: category.categoryId } : {}) })),
+    });
   }
 
   const sum = head.reduce((total, category) => total + category.total, 0);
@@ -100,6 +112,7 @@ export function buildDonutSegments(categories: GroupOverviewCategory[]): DonutSe
     const segment: DonutSegment = {
       name: category.name,
       ...(category.categoryId !== undefined ? { categoryId: category.categoryId } : {}),
+      ...(category.members ? { members: category.members } : {}),
       total: category.total,
       share: `${Math.round((category.total / sum) * 1000) / 10}%`,
       color: CATEGORY_COLORS[index % CATEGORY_COLORS.length],

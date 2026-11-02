@@ -11,6 +11,8 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   `/privacy/`, `/support/` (`docs/site.md`). DNS, DKIM, DMARC and the GitHub domain verification live in
   `cartvibe-cloud/iac/launch/records.tf`. Around 2026-11-16: if the DMARC reports to `support@` show only OVH passing,
   move DMARC to `p=quarantine`.
+- **Dashboard drill-down (#8)** is on `feature/dashboard-drill-down`, uncommitted: specs, i18n check and `ng build` pass; the
+  Playwright `dashboard-charts` spec and a look at phone width, day/night and the accent palettes are still to do.
 - Next real task: a restore drill of the NAS family data (never run; it is the only real data).
 - `e2e-smoke` fails now and then with `HTTP 503` on an API login (nginx login limit, 30 a minute); re-running the job passes.
 - Not run anywhere: Safari and Firefox on desktop, Lighthouse, Web Push on a real device (needs HTTPS and VAPID keys).

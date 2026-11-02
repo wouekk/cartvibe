@@ -104,7 +104,7 @@ import {
   OverviewDetailKind,
 } from "../overview-detail-dialog/overview-detail-dialog.component";
 import { summarizeShoppingLists } from "../overview-lists";
-import { isWholeCalendarMonth, previousLabel, resolvePeriod, ResolvedPeriod } from "../overview-period";
+import { barRange, isWholeCalendarMonth, previousLabel, resolvePeriod, ResolvedPeriod } from "../overview-period";
 import { marker } from "../../i18n/marker";
 import { formatDateInput, parseDateInput } from "../../datepicker/date-input.directive";
 import { addCalendarMonths, WARRANTY_ENDING_SOON_MONTHS, warrantyRows } from "../../utils/warranty-period";
@@ -160,8 +160,7 @@ const LIBRARY_GROUPS: { key: PanelGroup; label: string }[] = [
 /** How many item names a shopping list card spells out before "and N more". */
 const LIST_PREVIEW_ITEMS = 3;
 
-/** The Dashboard's names for the folded and the unknown food group. */
-const OTHER_SEGMENT = "Other";
+/** The Dashboard's name for the unknown food group. */
 const UNCATEGORIZED = marker("Uncategorized");
 
 /**
@@ -195,6 +194,12 @@ export class OverviewPageComponent {
   public readonly period = signal<ResolvedPeriod | undefined>(
     resolvePeriod("THIS_MONTH", todayInZone(this.store.selectSnapshot(SystemSettingsState.timeZone)))
   );
+
+  /** The receipts list opened from a Dashboard figure starts on the period on show. */
+  public readonly receiptsQuery = computed(() => {
+    const period = this.period();
+    return period ? { from: period.from, to: period.to } : {};
+  });
 
   public readonly periodLabel = computed(() => this.translation.months(this.period()?.label ?? ""));
 
@@ -510,6 +515,7 @@ export class OverviewPageComponent {
         responsive: true,
         maintainAspectRatio: false,
         cutout: "76%",
+        onHover: (event, elements) => this.setPointer(event, elements.length > 0),
         // Chart.js 4.5 does not reserve the hover offset in the ring's size: the grown slice would be cut at the edge.
         layout: { padding: DONUT_POP_OUT_OFFSET },
         animation: { duration: 400 },
@@ -536,7 +542,7 @@ export class OverviewPageComponent {
             click: (index) => {
               const segment = this.segments()[index];
               if (segment) {
-                this.toggleFocus(segment.name);
+                this.openCategory(segment);
               }
             },
             active: () => this.activeSegmentIndex(),
@@ -602,6 +608,13 @@ export class OverviewPageComponent {
         animation: { duration: 500 },
         transitions: { active: { animation: { duration: 0 } } },
         interaction: { mode: "index", intersect: false },
+        // A bar opens the receipts of its month (or day).
+        onHover: (event, elements) => this.setPointer(event, elements.length > 0),
+        onClick: (_event, elements) => {
+          if (elements.length > 0) {
+            this.openBar(elements[0].index);
+          }
+        },
         layout: { padding: { left: 8, right: 8 } },
         scales: {
           x: {
@@ -1424,9 +1437,13 @@ export class OverviewPageComponent {
     this.openDetail(kind, kind === "UNHEALTHY" ? marker("Unhealthy products") : marker("Products not on the list"));
   }
 
-  /** Opens the product lines of one category slice (the split is by line, by category id when there is one). */
+  /**
+   * Opens the product lines of one category slice (the split is by line, by category id when there is one). "Other"
+   * opens the several categories it folds, one section each.
+   */
   public openCategory(segment: DonutSegment): void {
-    if (!this.isOpenable(segment)) {
+    if (segment.members) {
+      this.openDetail("OTHER", segment.name, { members: segment.members });
       return;
     }
     this.openDetail("FOODGROUP", segment.name, {
@@ -1435,14 +1452,26 @@ export class OverviewPageComponent {
     });
   }
 
+  /** Opens the receipts of one trend bar's month or day. */
+  public openBar(index: number): void {
+    const key = this.chartBars()[index]?.key;
+    const range = key ? barRange(key) : undefined;
+    if (range) {
+      void this.router.navigate(["/receipts/group", this.groupId()], { queryParams: range });
+    }
+  }
+
+  /** A pointer cursor over what a click opens; the canvas is the only element, so it is set on it. */
+  private setPointer(event: { native: Event | null }, over: boolean): void {
+    const target = event.native?.target;
+    if (target instanceof HTMLElement) {
+      target.style.cursor = over ? "pointer" : "default";
+    }
+  }
+
   /** Opens the product lines behind a tag tile. */
   public openTag(tile: { tagId: number; name: string }): void {
     this.openDetail("TAG", tile.name, { tagId: tile.tagId });
-  }
-
-  /** "Other" folds several groups together, so there is no single list behind it. */
-  public isOpenable(segment: DonutSegment): boolean {
-    return segment.name !== OTHER_SEGMENT;
   }
 
   /** Without an AI key the launcher asks whether to add one instead of opening the scan dialog. */
@@ -1458,7 +1487,7 @@ export class OverviewPageComponent {
   private openDetail(
     kind: OverviewDetailKind,
     title: string,
-    filter: Pick<OverviewDetailDialogData, "categoryId" | "foodGroup" | "tagId"> = {}
+    filter: Pick<OverviewDetailDialogData, "categoryId" | "foodGroup" | "tagId" | "members"> = {}
   ): void {
     const period = this.period();
     if (!period) {

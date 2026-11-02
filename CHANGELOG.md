@@ -8,6 +8,11 @@ Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original p
 
 ## [Unreleased]
 
+### Added
+- **Dashboard drill-down (#8).** A click on a spending-donut slice, or anywhere on its legend row, opens the products
+  behind it. **Other** now opens too, with every category it folds as its own section and subtotal. The Spent tile and
+  each month or day bar of the trend open the receipts list on that date range (the Receipts tile on the period shown).
+
 ## [0.15.0] - 2026-11-01
 
 A sturdier AI read, a project page with a roadmap and a live demo, and groundwork for hosting.

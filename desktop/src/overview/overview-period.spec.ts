@@ -1,4 +1,4 @@
-import { formatDay, isWholeCalendarMonth, parseDayMonthYear, previousLabel, resolvePeriod } from "./overview-period";
+import { barRange, formatDay, isWholeCalendarMonth, parseDayMonthYear, parseDayRange, previousLabel, resolvePeriod } from "./overview-period";
 
 describe("resolvePeriod", () => {
   const today = new Date(2026, 9, 20); // Tuesday 20 Oct 2026
@@ -72,5 +72,34 @@ describe("isWholeCalendarMonth", () => {
     expect(isWholeCalendarMonth("2026-10-02", "2026-10-31")).toBe(false);
     expect(isWholeCalendarMonth("2026-01-01", "2026-12-31")).toBe(false);
     expect(isWholeCalendarMonth(undefined, "2026-10-31")).toBe(false);
+  });
+});
+
+describe("parseDayRange", () => {
+  it("takes two real days in order", () => {
+    expect(parseDayRange("2026-10-01", "2026-10-31")).toEqual({ from: "2026-10-01", to: "2026-10-31" });
+    expect(parseDayRange("2026-10-05", "2026-10-05")).toEqual({ from: "2026-10-05", to: "2026-10-05" });
+  });
+
+  it("refuses a missing, malformed, impossible or backwards range", () => {
+    expect(parseDayRange(null, "2026-10-31")).toBeUndefined();
+    expect(parseDayRange("2026-10-01", undefined)).toBeUndefined();
+    expect(parseDayRange("1/10/2026", "2026-10-31")).toBeUndefined();
+    expect(parseDayRange("2026-02-30", "2026-03-01")).toBeUndefined();
+    expect(parseDayRange("2026-10-31", "2026-10-01")).toBeUndefined();
+  });
+});
+
+describe("barRange", () => {
+  it("gives a month bar its whole calendar month, leap February included", () => {
+    expect(barRange("2026-10")).toEqual({ from: "2026-10-01", to: "2026-10-31" });
+    expect(barRange("2026-09")).toEqual({ from: "2026-09-01", to: "2026-09-30" });
+    expect(barRange("2028-02")).toEqual({ from: "2028-02-01", to: "2028-02-29" });
+  });
+
+  it("gives a day bar that one day, and nothing for a key it cannot read", () => {
+    expect(barRange("2026-10-21")).toEqual({ from: "2026-10-21", to: "2026-10-21" });
+    expect(barRange("2026-13")).toBeUndefined();
+    expect(barRange("October")).toBeUndefined();
   });
 });
