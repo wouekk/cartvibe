@@ -1,0 +1,29 @@
+name: Feature request
+description: Suggest something CartVibe should do
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What do you want to do?
+      description: Describe the situation and what is hard or missing today. Leave out how it should be built.
+    validations:
+      required: true
+  - type: textarea
+    id: behaviour
+    attributes:
+      label: What should happen?
+      description: What you would see and do, step by step, and how you would know it works.
+    validations:
+      required: true
+  - type: dropdown
+    id: ios
+    attributes:
+      label: Should the iPhone app follow?
+      description: Optional. A hint for features that would make sense in a pocket app too; not a promise.
+      options:
+        - No opinion
+        - Yes, it would be useful on the phone app too
+        - No, this only makes sense for a self-hosted server
+    validations:
+      required: false

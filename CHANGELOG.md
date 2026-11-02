@@ -6,7 +6,15 @@ All notable changes to CartVibe. Format: [Keep a Changelog](https://keepachangel
 CartVibe was forked from [Receipt Wrangler](https://github.com/Receipt-Wrangler/receipt-wrangler) at v7.2.0 (by
 Noah Hall and contributors, AGPL-3.0). Everything before 0.1.0 is the original project's history.
 
+From the first release after 0.16.0, every user-visible entry names the feature IDs it touches in
+[docs/FEATURES.md](docs/FEATURES.md), for example *(LIST-16)*; earlier entries are not back-filled.
+
 ## [Unreleased]
+
+### Added
+- **A feature registry** ([docs/FEATURES.md](docs/FEATURES.md)): every feature in plain words, with a stable ID, the version
+  that introduced it and how to tell it works; [CONTRIBUTING.md](CONTRIBUTING.md) and a feature request form; a Platforms
+  section in the README.
 
 ## [0.16.0] - 2026-11-02
 
