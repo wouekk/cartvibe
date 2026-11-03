@@ -46,34 +46,37 @@ func TestTimeZoneIsAnOpenOptionalStringOnTheContract(t *testing.T) {
 		t.Fatalf("parse swagger.yml: %v", err)
 	}
 
-	for _, name := range []string{"SystemSettings", "UpsertSystemSettingsCommand", "AppData"} {
-		t.Run(name, func(t *testing.T) {
-			found, ok := doc.Components.Schemas[name]
-			if !ok {
-				t.Fatalf("swagger.yml is missing the %s schema", name)
-			}
+	// dateFormat follows the same rule: a format added later must not fail an older client's login.
+	for _, field := range []string{"timeZone", "dateFormat"} {
+		for _, name := range []string{"SystemSettings", "UpsertSystemSettingsCommand", "AppData"} {
+			t.Run(field+"/"+name, func(t *testing.T) {
+				found, ok := doc.Components.Schemas[name]
+				if !ok {
+					t.Fatalf("swagger.yml is missing the %s schema", name)
+				}
 
-			parts := append([]schemaPart{found.schemaPart}, found.AllOf...)
-			declared := false
-			for _, part := range parts {
-				for _, required := range part.Required {
-					if required == "timeZone" {
-						t.Error("timeZone must stay optional: older servers and clients omit it")
+				parts := append([]schemaPart{found.schemaPart}, found.AllOf...)
+				declared := false
+				for _, part := range parts {
+					for _, required := range part.Required {
+						if required == field {
+							t.Errorf("%s must stay optional: older servers and clients omit it", field)
+						}
+					}
+					property, ok := part.Properties[field]
+					if !ok {
+						continue
+					}
+					declared = true
+					if property.Type != "string" || len(property.Enum) > 0 || property.Ref != "" {
+						t.Errorf("%s must be a plain string, got type=%q enum=%v $ref=%q",
+							field, property.Type, property.Enum, property.Ref)
 					}
 				}
-				timeZone, ok := part.Properties["timeZone"]
-				if !ok {
-					continue
+				if !declared {
+					t.Errorf("%s does not declare %s", name, field)
 				}
-				declared = true
-				if timeZone.Type != "string" || len(timeZone.Enum) > 0 || timeZone.Ref != "" {
-					t.Errorf("timeZone must be a plain string, got type=%q enum=%v $ref=%q",
-						timeZone.Type, timeZone.Enum, timeZone.Ref)
-				}
-			}
-			if !declared {
-				t.Errorf("%s does not declare timeZone", name)
-			}
-		})
+			})
+		}
 	}
 }

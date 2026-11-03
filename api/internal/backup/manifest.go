@@ -43,6 +43,7 @@ type HouseholdSetting struct {
 	CurrencySymbolPosition       string `json:"currencySymbolPosition"`
 	CurrencyHideDecimalPlaces    bool   `json:"currencyHideDecimalPlaces"`
 	TimeZone                     string `json:"timeZone"`
+	DateFormat                   string `json:"dateFormat"`
 }
 
 // ManifestEntry describes one file in the ZIP. Rows is set for tables only.

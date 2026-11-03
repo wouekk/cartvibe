@@ -242,6 +242,9 @@ func (run *importRun) writeHouseholdSettings() error {
 	if _, err := time.LoadLocation(household.TimeZone); err == nil && household.TimeZone != "" && household.TimeZone != "Local" {
 		updates["time_zone"] = household.TimeZone
 	}
+	if models.IsDateFormat(household.DateFormat) {
+		updates["date_format"] = household.DateFormat
+	}
 	if len(updates) == 0 {
 		return nil
 	}
