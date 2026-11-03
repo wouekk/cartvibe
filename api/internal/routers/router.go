@@ -131,6 +131,10 @@ func BuildRootRouter() *chi.Mux {
 	exportRouter := BuildExportRouter()
 	rootRouter.Mount("/api/export", exportRouter)
 
+	// Household export router
+	backupRouter := BuildBackupRouter()
+	rootRouter.Mount("/api/backup", backupRouter)
+
 	// Report router
 	reportRouter := BuildReportRouter()
 	rootRouter.Mount("/api/report", reportRouter)

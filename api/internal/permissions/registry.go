@@ -42,6 +42,10 @@ const (
 
 	AppSystemTasksRead = "app.system-tasks.read"
 
+	// The backup keys are a whole-household dump and restore: they skip paid-by and
+	// member isolation on purpose, so they stay out of FamilyUserAppKeys (admin only).
+	AppBackupExport = "app.backup.export"
+	AppBackupImport = "app.backup.import"
 
 	AppGroupsCreate = "app.groups.create"
 	AppGroupsRead   = "app.groups.read"
@@ -153,6 +157,8 @@ var registry = []Descriptor{
 	{AppReceiptProcessingSettingsDelete, "Delete Receipt Processing Configs", "Remove OCR/AI processing configurations.", "System", ScopeApp},
 
 	{AppSystemTasksRead, "Read System Tasks", "Inspect the system-wide activity log.", "System", ScopeApp},
+	{AppBackupExport, "Export Household", "Download the whole household (every member's receipts, lists and settings, without secrets) as a ZIP.", "System", ScopeApp},
+	{AppBackupImport, "Import Household", "Import a household export into an empty server.", "System", ScopeApp},
 
 	{AppGroupsCreate, "Create Groups", "Create new groups.", "Group Management", ScopeApp},
 	{AppGroupsRead, "Read All Groups", "List and look up groups across the system, including ones the calling user is not a member of.", "Group Management", ScopeApp},

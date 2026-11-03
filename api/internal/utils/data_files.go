@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -128,6 +129,27 @@ func ReadDataFile(path string) ([]byte, error) {
 	}
 
 	return os.ReadFile(path)
+}
+
+// ErrDataFileMissing is returned by DataFileSize for a path that does not exist.
+var ErrDataFileMissing = errors.New("data file missing")
+
+// DataFileSize returns the size of a file inside the data directory, refusing any path that would
+// escape it, and ErrDataFileMissing when it is not there.
+func DataFileSize(path string) (int64, error) {
+	if err := AssertWithinDataDir(path); err != nil {
+		return 0, err
+	}
+
+	info, err := os.Stat(path)
+	if errors.Is(err, os.ErrNotExist) {
+		return 0, ErrDataFileMissing
+	}
+	if err != nil {
+		return 0, err
+	}
+
+	return info.Size(), nil
 }
 
 // IsSafePathComponent reports whether name is safe to embed in a single
