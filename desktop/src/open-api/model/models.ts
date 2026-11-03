@@ -7,6 +7,8 @@ export * from './appLogEntry';
 export * from './associatedEntityType';
 export * from './associatedGroup';
 export * from './attachShoppingTripReceiptCommand';
+export * from './backupEntityCount';
+export * from './backupSummary';
 export * from './baseModel';
 export * from './bulkStatusUpdateCommand';
 export * from './bulkUserDeleteCommand';

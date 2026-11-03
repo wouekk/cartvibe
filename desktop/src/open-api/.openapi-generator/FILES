@@ -3,6 +3,7 @@ README.md
 api.module.ts
 api/api.ts
 api/auth.service.ts
+api/backup.service.ts
 api/category.service.ts
 api/comment.service.ts
 api/dashboardLayout.service.ts
@@ -42,6 +43,8 @@ model/appLogEntry.ts
 model/associatedEntityType.ts
 model/associatedGroup.ts
 model/attachShoppingTripReceiptCommand.ts
+model/backupEntityCount.ts
+model/backupSummary.ts
 model/baseModel.ts
 model/bulkStatusUpdateCommand.ts
 model/bulkUserDeleteCommand.ts
