@@ -168,6 +168,7 @@ sudo docker compose pull && sudo docker compose up -d
 
 Then hard-refresh the browser. Back up as described under [Updating](#updating) first when a release changes the database. Hyper Backup can
 back up the `docker` shared folder on a schedule, but stop the stack for a moment before a copy you mean to restore from, so the database files match.
+To try a restore without touching the live install, see the [FAQ](docs/faq.md#how-do-i-check-that-my-backup-really-restores).
 
 **Troubleshooting**
 
@@ -186,6 +187,7 @@ Answers live in [docs/faq.md](docs/faq.md):
 * [How do I add AI API keys?](docs/faq.md#how-do-i-add-ai-api-keys): where to create a Claude, Gemini or ChatGPT key, and which cheap model to pick
 * [How do I add a Logo.dev API key?](docs/faq.md#how-do-i-add-a-logodev-api-key): shop logos
 * [How do I use CartVibe as an app on my phone?](docs/faq.md#how-do-i-use-cartvibe-as-an-app-on-my-phone): HTTPS, then install on Android and iPhone
+* [How do I check that my backup really restores?](docs/faq.md#how-do-i-check-that-my-backup-really-restores): a test restore from Hyper Backup, without touching the live install
 
 ## Features
 

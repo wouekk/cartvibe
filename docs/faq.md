@@ -7,6 +7,7 @@ Short answers for running a CartVibe household. Setup, updating and the Synology
 - [How do I add AI API keys?](#how-do-i-add-ai-api-keys)
 - [How do I add a Logo.dev API key?](#how-do-i-add-a-logodev-api-key)
 - [How do I use CartVibe as an app on my phone?](#how-do-i-use-cartvibe-as-an-app-on-my-phone)
+- [How do I check that my backup really restores?](#how-do-i-check-that-my-backup-really-restores)
 
 ## How do I rename a household?
 
@@ -135,3 +136,58 @@ dropped over plain HTTP, so nobody reaching CartVibe that way can sign in until 
 * **Remove it:** press and hold the icon, then choose to uninstall (Android) or **Remove App** (iPhone).
 * **The server still has to be reachable.** Only the app shell is kept on the phone; receipts, lists and scans always come
   from your server, so the app needs your network (or your HTTPS address from outside the house) to show your data.
+
+## How do I check that my backup really restores?
+
+A backup you have never restored is a hope, not a backup. Try it once after you set it up, then every few months and before
+a release that changes the database. The check below works on a copy, so the live CartVibe keeps running and nothing in it
+changes. It is written for a Synology with Hyper Backup; with another backup tool, only step 1 differs.
+
+What a backup has to hold, all from the same moment (stop the stack for a minute before the backup runs, or the database
+files will not match):
+
+* the `sqlite` folder: `app.db` with its `app.db-wal` and `app.db-shm` files, which belong together;
+* the `data` folder: the receipt images and PDFs;
+* your `SECRET_KEY` and `ENCRYPTION_KEY` (in Dockhand's variables or your `.env`): without the original `ENCRYPTION_KEY`
+  the saved AI and Logo.dev keys cannot be read again. Keep a copy somewhere outside the NAS, such as a password manager.
+
+### 1. Copy the latest backup to a test folder
+
+In **Hyper Backup**, select the backup task and open **Backup Explorer**. Pick the newest version, open the `docker` folder,
+select `cartvibe` and choose **Copy to**. Copy it into a new, empty folder, for example `/docker/cartvibe-restore-test`. Never copy
+it over `/docker/cartvibe`.
+
+### 2. Check the database
+
+Over SSH, run this (change `volume2` to your volume). It starts a throwaway Alpine container that opens the copy read-only:
+
+```bash
+sudo docker run --rm -v /volume2/docker/cartvibe-restore-test/cartvibe/sqlite:/db:ro alpine sh -c "apk add -q sqlite && sqlite3 -readonly /db/app.db 'PRAGMA integrity_check; SELECT count(*) FROM receipts; SELECT count(*) FROM file_data; SELECT max(date) FROM receipts;'"
+```
+
+It should print `ok`, then the number of receipts, the number of receipt images, and the date of your newest receipt. In
+CartVibe, the **Receipts** page on **All time** shows the same receipt count; the newest date tells you how old the backup is.
+If the copy has no `app.db-wal` file, the newest changes may be missing: the backup ran while CartVibe was writing.
+
+### 3. Check the images
+
+```bash
+sudo find /volume2/docker/cartvibe-restore-test/cartvibe/data -type f | wc -l
+```
+
+```bash
+sudo find /volume2/docker/cartvibe/data -type f | wc -l
+```
+
+The two numbers should be close (the live one is higher by what was added since the backup). Open two or three files from
+the test folder in File Station to see that they are real images.
+
+### 4. Clean up
+
+Delete `/docker/cartvibe-restore-test`. Write down the date you checked and the counts, so the next check has something to
+compare with.
+
+**Restoring for real** (a broken disk or a bad update): stop the stack, move the broken `sqlite` and `data` folders aside
+(rename them, do not delete them yet), copy both folders from the backup into `/docker/cartvibe`, keep `SECRET_KEY` and
+`ENCRYPTION_KEY` as they were, then start the stack and hard-refresh the browser. Everyone may need to sign in again. A
+rented server with `docker-compose.vps.yml` restores differently: see [docs/vps-deploy.md](vps-deploy.md#restore-drill-do-it-once-after-setup-then-every-few-months).

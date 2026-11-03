@@ -31,7 +31,9 @@ Functional checks (clicking through, screenshots) are done in English; switch th
 ## MacBook
 
 May have more toolchains than the PC; check before assuming. The commands above work unchanged once Go and Node are on
-the PATH.
+the PATH. The full Go suite with cgo runs there after `brew install imagemagick tesseract ghostscript pkg-config`, with
+`CGO_CPPFLAGS=-I/opt/homebrew/include CGO_LDFLAGS=-L/opt/homebrew/lib`; the whole Playwright suite runs against a native
+API and Valkey.
 
 ## Cloud sandbox
 

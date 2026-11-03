@@ -15,6 +15,13 @@ From the first release after 0.16.0, every user-visible entry names the feature 
 - **A feature registry** ([docs/FEATURES.md](docs/FEATURES.md)): every feature in plain words, with a stable ID, the version
   that introduced it and how to tell it works; [CONTRIBUTING.md](CONTRIBUTING.md) and a feature request form; a Platforms
   section in the README.
+- **Two new FAQ answers** ([docs/faq.md](docs/faq.md)): using CartVibe as an app on a phone (HTTPS on a Synology, secure
+  cookies, installing on Android and iPhone), and checking that a backup really restores, on a copy, without touching the
+  live install.
+
+### Changed
+- **A clone of the repository used for a deployment ignores its `.env`, `data` and `sqlite` folders**, so a stray
+  `git add -A` can no longer commit the keys or the database.
 
 ### Fixed
 - **Check product: the camera no longer hops between lenses ([#11](https://github.com/wouekk/cartvibe/issues/11), FOOD-01).**
