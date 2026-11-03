@@ -14,7 +14,7 @@ import {
   SetUsers,
 } from "../store";
 import { SetAbout } from "../store/about.state.actions";
-import { SetCurrencyData, SetCurrencyDisplay, SetTimeZone } from "../store/system-settings.state.actions";
+import { SetCurrencyData, SetCurrencyDisplay, SetDateFormat, SetTimeZone } from "../store/system-settings.state.actions";
 import { DEFAULT_APP_TIME_ZONE } from "./app-time-zone";
 
 export function setAppData(store: Store, appData: AppData): Observable<any[]> {
@@ -47,6 +47,7 @@ export function setAppData(store: Store, appData: AppData): Observable<any[]> {
       appData.currencyHideDecimalPlaces ?? false
     )),
     store.dispatch(new SetTimeZone(appData.timeZone || DEFAULT_APP_TIME_ZONE)),
+    store.dispatch(new SetDateFormat(appData.dateFormat ?? "")),
     store.dispatch(new SetIcons(appData.icons)),
     store.dispatch(new SetAbout(appData.about)),
     selectedGroupIdObservable,

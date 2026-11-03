@@ -36,7 +36,7 @@ handle).
   to catch the omission.
 - **Pointer command fields** where "omitted" must differ from "zero": an omitted key is listed by `OmittedColumns()` and
   dropped from the UPDATE, not copied from the stored row (`docs/sessions-cookies.md`).
-- Open strings on the contract: `AiType`, `timeZone`, report `dateField`, OIDC error codes, extraction and trip
+- Open strings on the contract: `AiType`, `timeZone`, `dateFormat`, report `dateField`, OIDC error codes, extraction and trip
   statuses, `AppLogEntry.level` and every effective-permission string are `type: string`. A Go type may still guard what
   is stored (`AiClientType.Value()`).
 - Migrations are AutoMigrate plus additive columns; a new column's GORM default must reproduce the old behaviour. A
@@ -62,7 +62,7 @@ handle).
 - Group and receipt files live under `data/<groupId>-<groupName>/`; the group name is user-controlled (CWE-22,
   GHSA-966v-m9rv-j5cx). **Every data path goes through `internal/utils/data_files.go`** (`GetDataDir`,
   `BuildGroupPathString` / `FileRepository.BuildFilePath`, `MakeDataDirectory`, `WriteDataFile`, `ReadDataFile`,
-  `RemoveDataPath`, `RemoveAllInDataDir`, `RenameDataPath`), each re-asserting containment. No ad-hoc sanitizing and no
+  `RemoveDataPath`, `RemoveAllInDataDir`, `RenameDataPath`, `DataFileSize`), each re-asserting containment. No ad-hoc sanitizing and no
   raw `os.*` on a data path. `UpsertGroupCommand.Validate` also rejects separators and `.`/`..` in names.
 - Server-built paths (`temp/`, `logs/`, `sqlite/`, OCR and PDF scratch) may use the generic helpers. A `temp/` path read
   back out of an asynq payload is attacker-adjacent: assert it with `FileRepository.AssertWithinTempDirectory` before
@@ -191,7 +191,8 @@ which day an instant falls on and what "today" means.
 ## 7. Background work and AI
 
 - Queues: `quick_scan` and `system_clean_up` only. New periodic work is a task on the clean-up queue, not a new queue
-  or `SystemTaskType`. Sweep rows are claimed with a conditional UPDATE and a lease (`claimDue`); schedules and the
+  or `SystemTaskType`; so is one-off work an admin starts (the household import keeps its own job row instead of a
+  system task, and its progress in memory while its transaction holds the write lock: `docs/domain.md`). Sweep rows are claimed with a conditional UPDATE and a lease (`claimDue`); schedules and the
   quick-scan pipeline: `docs/domain.md`.
 - **AI is fallible:** no AI configured means nothing is called and nothing counted. A failed call or unreadable answer
   counts an attempt; extraction and trips give up after 3 or 14 days. Classification never fails a product on an outage

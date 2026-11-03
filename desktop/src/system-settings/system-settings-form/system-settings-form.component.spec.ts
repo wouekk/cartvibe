@@ -122,6 +122,8 @@ describe("SystemSettingsFormComponent", () => {
       currency: "CUSTOM",
       // Unset on the wire (an older server): seeds the server's own default.
       timeZone: "UTC",
+      // Unset on the wire (an older server): the default.
+      dateFormat: "DD/MM/YYYY",
       pdfDpi: null,
       taskConcurrency: null,
       taskQueueConfigurations: [
@@ -177,6 +179,7 @@ describe("SystemSettingsFormComponent", () => {
       currencySymbolPosition: CurrencySymbolPosition.Start,
       currencyHideDecimalPlaces: true,
       timeZone: "America/New_York",
+      dateFormat: "YYYY-MM-DD",
       pdfDpi: 300,
       taskConcurrency: 12,
       taskQueueConfigurations: [{
@@ -206,6 +209,7 @@ describe("SystemSettingsFormComponent", () => {
       currencyHideDecimalPlaces: true,
       currency: "CUSTOM",
       timeZone: "America/New_York",
+      dateFormat: "YYYY-MM-DD",
       pdfDpi: 300,
       taskConcurrency: 12,
       taskQueueConfigurations: [{
@@ -431,6 +435,7 @@ describe("SystemSettingsFormComponent", () => {
       currencySymbolPosition: CurrencySymbolPosition.Start,
       currencyHideDecimalPlaces: false,
       timeZone: "Europe/Berlin",
+      dateFormat: "MM/DD/YYYY",
       pdfDpi: "300",
       taskConcurrency: "12",
       mcpEnabled: true,
@@ -465,6 +470,7 @@ describe("SystemSettingsFormComponent", () => {
       currencySymbolPosition: CurrencySymbolPosition.Start,
       currencyHideDecimalPlaces: false,
       timeZone: "Europe/Berlin",
+      dateFormat: "MM/DD/YYYY",
       pdfDpi: 300,
       taskConcurrency: 12,
       taskQueueConfigurations: [
@@ -612,6 +618,24 @@ describe("SystemSettingsFormComponent", () => {
       expect(store.selectSnapshot(SystemSettingsState.timeZone)).toEqual("America/New_York");
     });
 
+    it("saves the picked date format and applies it to the app at once", () => {
+      const systemSettingsService = TestBed.inject(SystemSettingsService);
+      const featureConfigService = TestBed.inject(FeatureConfigService);
+      vi.spyOn(systemSettingsService, "updateSystemSettings").mockReturnValue(of(null as any));
+      vi.spyOn(featureConfigService, "getFeatureConfig").mockReturnValue(of({} as any));
+
+      setRouteSettings({ dateFormat: "DD/MM/YYYY" });
+      component.ngOnInit();
+      expect(component.dateFormats.map((option) => option.value)).toEqual(["DD/MM/YYYY", "MM/DD/YYYY", "YYYY/MM/DD", "DD.MM.YYYY", "YYYY-MM-DD"]);
+      component.form.get("dateFormat")!.setValue("YYYY-MM-DD");
+      component.submit();
+
+      expect(systemSettingsService.updateSystemSettings).toHaveBeenCalledWith(
+        expect.objectContaining({ dateFormat: "YYYY-MM-DD" })
+      );
+      expect(store.selectSnapshot(SystemSettingsState.dateFormat)).toEqual("YYYY-MM-DD");
+    });
+
     it("does not dispatch a zone the server rejected", async () => {
       // The component leaves the failure to the interceptor, so RxJS reports it as unhandled on a timer; absorb it.
       config.onUnhandledError = () => {};
@@ -651,7 +675,7 @@ describe("SystemSettingsFormComponent", () => {
     it("shows every settings card when it is not placed on a tab", () => {
       place(undefined);
 
-      expect(cards()).toEqual(["currency", "regional", "shop-logos", "signup-session", "worker", "queues"]);
+      expect(cards()).toEqual(["regional", "currency", "shop-logos", "signup-session", "worker", "queues"]);
     });
 
     it("Shop Logos holds the Logo.dev key with how to get it and the attribution", () => {
@@ -663,10 +687,10 @@ describe("SystemSettingsFormComponent", () => {
       expect(fixture.nativeElement.textContent).toContain("Logos provided by Logo.dev");
     });
 
-    it("Currency & Time Zone holds the currency (with rates) and the time zone", () => {
+    it("General holds the date format and time zone first, then the currency (with rates)", () => {
       place("general");
 
-      expect(cards()).toEqual(["currency", "regional"]);
+      expect(cards()).toEqual(["regional", "currency"]);
       expect(fixture.nativeElement.querySelector("app-exchange-rates")).not.toBeNull();
       expect(fixture.nativeElement.querySelector("[data-testid=system-settings-time-zone]")).not.toBeNull();
     });

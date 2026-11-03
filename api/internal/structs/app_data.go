@@ -14,7 +14,9 @@ type AppData struct {
 	CurrencyHideDecimalPlaces    bool                          `json:"currencyHideDecimalPlaces"`
 	// TimeZone is the resolved app time zone (an IANA name, "UTC" when unset or
 	// invalid) clients work out "today" and display instants in.
-	TimeZone         string                     `json:"timeZone"`
+	TimeZone string `json:"timeZone"`
+	// DateFormat is the household's date format (one of models.DateFormats; the default when unset).
+	DateFormat       string                     `json:"dateFormat"`
 	Categories       []models.Category          `json:"categories"`
 	Tags             []models.Tag               `json:"tags"`
 	GroupCategories  map[uint][]models.Category `json:"groupCategories"`

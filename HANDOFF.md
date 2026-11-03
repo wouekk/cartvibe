@@ -16,7 +16,13 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   today") fail on `main` too, with 15 skipped behind them. Not looked into.
 - Dashboard drill-down (#8, 0.16.0): the Playwright `dashboard-charts` spec and a look at phone width, day/night and the
   accent palettes are still to do. `docs/FEATURES.md` still needs one pass over the live app; keep it current.
-- Next real task: the Backup tab (#4), planned first with a separate agent.
+- Backup tab (#4), shown as *Export & import* (plan: `docs/plans/backup.md`, untracked). Export (ADM-11) and import into
+  an empty server (ADM-12) are built on `feature/backup-import` (it contains `feature/backup-export`); neither is on
+  `main`. A local round trip (export, fresh server, import) gave identical receipts and totals.
+  `e2e/export-import.spec.ts` passed locally (not in smoke). Merging into a non-empty household (phase 3) is not planned.
+- Date format (ADM-13) on `feature/date-format` (cut from `preview`, so it carries the backup branches): a household
+  setting, default DD/MM/YYYY, applied by the `appDate` pipe. `app-time-zone` and `report-period-date-field` e2e specs
+  were updated to the new default but not run. Native date inputs still follow the browser's language.
 - `e2e-smoke` fails now and then with `HTTP 503` on an API login (nginx login limit, 30 a minute); re-running the job passes.
 - Not run anywhere: Safari and Firefox on desktop, Lighthouse, Web Push on a real device (needs HTTPS and VAPID keys).
 
@@ -30,13 +36,14 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   phone and desktop, day and night. Report any queue error seen since the Valkey move.
 - Behind the Synology HTTPS proxy: install on iPhone and Android, keep-screen-on, Share, the barcode scanner (#11: one
   lens, reads only between the `[ ]`), recipe import (a link, pasted text, the Android share sheet), a touch drag on the
-  Dashboard customise screen, and the login rate limit keyed per visitor.
+  Dashboard customise screen, the login rate limit keyed per visitor, and whether the proxy limits upload size (the
+  import takes up to 4 GB). On `:preview`: download an export with photos and open a CSV; try an import only on a spare
+  empty server, never the family one.
 - CSP: if the NAS console stays clean, rename `Content-Security-Policy-Report-Only` to `Content-Security-Policy` in
   `docker/default.conf`.
 
 ## Backlog (own branch each, not started)
 
-- A **Backup** tab under System Settings: export the household's data as CSV and import it again.
 - Litestream 0.3.13 to 0.5.x, only for the self-hosters' `docker-compose.vps.yml` (new LTX format cannot restore 0.3
   backups; `replicas` becomes `replica`); do it with a restore drill of that stack.
 

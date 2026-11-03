@@ -81,3 +81,29 @@ export function downloadFile(blob: Blob, filename: string): void {
   link.click();
   document.body.removeChild(link);
 }
+
+/**
+ * Starts a browser download of a same-origin URL without loading the file into memory (the page stays; the
+ * server's Content-Disposition names the file). Used for downloads that can be gigabytes, such as the household
+ * export, where a Blob would hold everything in the phone's memory first.
+ */
+export function downloadUrl(url: string): void {
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", "");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+/** "840 KB", "2.1 MB", "1.3 GB": a size for people, in binary units. */
+export function formatByteSize(bytes: number): string {
+  const megabyte = 1024 * 1024;
+  if (bytes >= 1024 * megabyte) {
+    return (bytes / (1024 * megabyte)).toFixed(1) + " GB";
+  }
+  if (bytes >= megabyte) {
+    return (bytes / megabyte).toFixed(1) + " MB";
+  }
+  return Math.max(bytes > 0 ? 1 : 0, Math.round(bytes / 1024)) + " KB";
+}

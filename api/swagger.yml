@@ -554,6 +554,184 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
+  /backup/summary:
+    get:
+      tags:
+        - Backup
+      summary: What a household export would hold
+      description: Row counts per export file and the bytes of the photos and PDFs. Admin only (app.backup.export).
+      operationId: getBackupSummary
+      responses:
+        200:
+          description: The summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackupSummary"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+  /backup/export:
+    get:
+      tags:
+        - Backup
+      summary: Export the whole household
+      description:
+        Streams a ZIP with manifest.json, one CSV per entity and, with includeFiles, the receipt photos and PDFs.
+        No secrets are included. Admin only (app.backup.export); paid-by and member visibility are not applied.
+      operationId: exportBackup
+      parameters:
+        - in: query
+          name: includeFiles
+          required: false
+          description: Include the receipt photos, PDFs and shopping-trip photos (default false)
+          schema:
+            type: boolean
+      responses:
+        200:
+          description: The ZIP stream
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+  /backup/import:
+    get:
+      tags:
+        - Backup
+      summary: The latest household imports
+      description: The newest five imports, newest first. Admin only (app.backup.import).
+      operationId: getBackupImports
+      responses:
+        200:
+          description: The imports
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BackupImportJob"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+    post:
+      tags:
+        - Backup
+      summary: Upload a household export and preview the import
+      description:
+        Streams the ZIP to the server (up to 4 GB), checks it against its manifest and answers what the import would
+        do. Nothing is written to the household. A file that is not an export, is damaged or comes from a newer
+        CartVibe answers 400. Admin only (app.backup.import).
+      operationId: previewBackupImport
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/BackupImportUploadCommand"
+      responses:
+        200:
+          description: What the import would do
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackupImportPreview"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+  /backup/import/{jobId}:
+    parameters:
+      - in: path
+        name: jobId
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Backup
+      summary: One household import, with its progress
+      operationId: getBackupImport
+      responses:
+        200:
+          description: The import
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackupImportJob"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+    delete:
+      tags:
+        - Backup
+      summary: Drop a previewed import and its file
+      operationId: deleteBackupImport
+      responses:
+        200:
+          $ref: "#/components/responses/Ok"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+  /backup/import/{jobId}/start:
+    parameters:
+      - in: path
+        name: jobId
+        required: true
+        schema:
+          type: integer
+    post:
+      tags:
+        - Backup
+      summary: Start a previewed import
+      description:
+        Queues the import. It runs once in the background, into an empty household only; a failure changes nothing.
+      operationId: startBackupImport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BackupImportStartCommand"
+      responses:
+        202:
+          description: The queued import
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackupImportJob"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
   /export/{groupId}:
     post:
       tags:
@@ -4432,6 +4610,8 @@ components:
         - "app.receipt-processing-settings.update"
         - "app.receipt-processing-settings.delete"
         - "app.system-tasks.read"
+        - "app.backup.export"
+        - "app.backup.import"
         - "app.groups.create"
         - "app.groups.read"
         - "app.groups.delete"
@@ -7258,6 +7438,12 @@ components:
             invalid). Clients work out "today" and display instants (Added At, Resolved Date) in
             it. A receipt's Date is a calendar day and is always read in UTC. A plain string, not
             an enum, so a released client never fails the payload on a zone it does not know.
+        dateFormat:
+          type: string
+          description: >-
+            How the household shows dates: DD/MM/YYYY (the default), MM/DD/YYYY, YYYY/MM/DD,
+            DD.MM.YYYY or YYYY-MM-DD. Display only; dates on the wire stay ISO. A plain string, not
+            an enum, so a client treats a format it does not know as the default.
         icons:
           type: array
           description: Icons in the system
@@ -7492,6 +7678,189 @@ components:
       required:
         - name
         - displayName
+    BackupEntityCount:
+      type: object
+      description: The rows one export file would hold. The name is a plain string (file names may be added).
+      properties:
+        name:
+          type: string
+          description: The CSV file name without extension, e.g. receipts
+        count:
+          type: integer
+      required:
+        - name
+        - count
+    BackupSummary:
+      type: object
+      properties:
+        counts:
+          type: array
+          items:
+            $ref: "#/components/schemas/BackupEntityCount"
+        fileCount:
+          type: integer
+          description: Receipt files plus shopping-trip photos
+        fileBytes:
+          type: integer
+          format: int64
+          description: Their size in bytes as recorded (receipt files) or on disk (trip photos)
+        formatVersion:
+          type: integer
+      required:
+        - counts
+        - fileCount
+        - fileBytes
+        - formatVersion
+    BackupImportUploadCommand:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+      required:
+        - file
+    BackupImportPerson:
+      type: object
+      description: A person in the export and what the import does with them.
+      properties:
+        sourceId:
+          type: integer
+        username:
+          type: string
+        displayName:
+          type: string
+        match:
+          type: string
+          description: account (an account with this username exists) or name_only (kept as a name without a sign-in)
+      required:
+        - sourceId
+        - username
+        - displayName
+        - match
+    BackupImportPreview:
+      type: object
+      properties:
+        jobId:
+          type: integer
+        fileName:
+          type: string
+        exportedAt:
+          type: string
+        appVersion:
+          type: string
+        includesFiles:
+          type: boolean
+        currencyDisplay:
+          type: string
+        timeZone:
+          type: string
+        counts:
+          type: array
+          items:
+            $ref: "#/components/schemas/BackupEntityCount"
+        fileCount:
+          type: integer
+        people:
+          type: array
+          items:
+            $ref: "#/components/schemas/BackupImportPerson"
+        suggestedMeSourceId:
+          type: integer
+          nullable: true
+          description: The person whose username is the importing admin's, if any
+        categoriesMatched:
+          type: integer
+        categoriesNew:
+          type: integer
+        tagsMatched:
+          type: integer
+        tagsNew:
+          type: integer
+        warnings:
+          type: array
+          description: Open strings, e.g. currency_set, time_zone_set, files_not_included, files_missing
+          items:
+            type: string
+        blockers:
+          type: array
+          description: Open strings that stop the import, e.g. household_not_empty, invalid_rows
+          items:
+            type: string
+        problems:
+          type: array
+          description: "Rows that cannot be imported, each as: file, row, column and reason"
+          items:
+            type: string
+      required:
+        - jobId
+        - fileName
+        - exportedAt
+        - appVersion
+        - includesFiles
+        - currencyDisplay
+        - timeZone
+        - counts
+        - fileCount
+        - people
+        - categoriesMatched
+        - categoriesNew
+        - tagsMatched
+        - tagsNew
+        - warnings
+        - blockers
+        - problems
+    BackupImportStartCommand:
+      type: object
+      properties:
+        meSourceUserId:
+          type: integer
+          nullable: true
+          description: The person in the export who is the importing admin; none keeps everyone as in the file
+    BackupImportJob:
+      type: object
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+          description: previewed, queued, running, succeeded or failed (an open string)
+        phase:
+          type: string
+          description: While running, staging_files or writing (an open string)
+        processed:
+          type: integer
+        total:
+          type: integer
+        fileName:
+          type: string
+        fileSize:
+          type: integer
+          format: int64
+        error:
+          type: string
+        imported:
+          type: array
+          items:
+            $ref: "#/components/schemas/BackupEntityCount"
+        createdAt:
+          type: string
+        startedAt:
+          type: string
+          nullable: true
+        endedAt:
+          type: string
+          nullable: true
+      required:
+        - id
+        - status
+        - phase
+        - processed
+        - total
+        - fileName
+        - fileSize
+        - error
+        - imported
+        - createdAt
     AppLogEntry:
       type: object
       description: One entry of the application log. The level is a plain string on purpose.
@@ -7597,6 +7966,12 @@ components:
                 periods) is worked out in it. A receipt's Date is a calendar day and never shifts
                 with it.
               default: UTC
+            dateFormat:
+              type: string
+              description: >-
+                How the household shows dates: DD/MM/YYYY, MM/DD/YYYY, YYYY/MM/DD, DD.MM.YYYY or
+                YYYY-MM-DD. Display only; dates on the wire stay ISO.
+              default: DD/MM/YYYY
             secureCookies:
               type: boolean
               description: >-
@@ -7697,6 +8072,11 @@ components:
             The app time zone, an IANA name such as America/New_York that the server can load
             (an unknown name is a 400 under the timeZone key). Omit the key entirely to leave the
             currently configured value unchanged.
+        dateFormat:
+          type: string
+          description: >-
+            One of DD/MM/YYYY, MM/DD/YYYY, YYYY/MM/DD, DD.MM.YYYY or YYYY-MM-DD (anything else is a
+            400 under the dateFormat key). Omit the key entirely to leave the current value unchanged.
         secureCookies:
           type: boolean
           description: >-

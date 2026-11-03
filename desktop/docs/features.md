@@ -274,8 +274,8 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
   four (`activeUnder`); a household's or user's own pages keep their own headers. Routes with `data: { fullHeight: true }` get a
   bounded full-bleed content area.
 - **User Settings** (`/settings`): User Profile and User Preferences, each gated on its read permission.
-- **System Settings** has five tabs: Currency & Time Zone (route `general`), Shop Logos (`logos`), Auth & Security,
-  Tasks & Storage, Logs. The first four render
+- **System Settings** has six tabs: Currency & Time Zone (route `general`), Shop Logos (`logos`), Auth & Security,
+  Tasks & Storage, Export & import (`export-import`, only with `app.backup.export`), Logs. The first four render
   `SystemSettingsFormComponent` (route data `section` picks the cards); the form holds every control whatever the tab,
   so a save sends the whole payload. A new tab goes into `system-settings.component.ts`'s `allTabs` and the landing
   guard order. Old paths redirect. Embedded tables sit outside the `<form>`.
@@ -291,8 +291,27 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
     which reloads the feature config on open) shows "Logos provided by Logo.dev" while logos are on.
   - Time zone: a typeahead over `UTC` + `Intl.supportedValuesOf('timeZone')` with `timeZoneDisplayWith`; after save
     `SetTimeZone` (and `SetCurrencyData` for currency) repaint the open app.
+  - Date format (`system-settings-date-format`, first on General, then the time zone, then the currency card): one of
+    `APP_DATE_FORMATS` (`src/utils/app-date-format.ts`, kept in step with the API's `models.DateFormats`), each option
+    showing today's date. `SystemSettingsState.dateFormat` (resolved, so a slice persisted before the key existed reads
+    the default) is read by the `appDate` pipe, which rewrites whole dates (`mediumDate`, `MMM d, y`, …), `MMM d` and
+    the `short` / `medium` date-times through `appDatePattern`; month names and day numbers on their own (chart axes,
+    date blocks) pass through. Filter chips use the same pattern. The native `<input type="date">` cannot be
+    reformatted and follows the browser's language.
   - Secure cookies (`system-settings-secure-cookies`): seeded `?? false`; warns while ticked over plain http.
   - Session and MCP token lifetimes, temp-file retention: the duration rules above.
+  - Export & import (`src/system-settings/export-import/`): the counts from `GET /backup/summary`, an *Include photos and
+    PDFs* switch (on by default) and Download. Download asks for the summary again first (through the interceptors, so an
+    expired session is renewed), then starts a plain same-origin download of `/api/backup/export?includeFiles=…`
+    (`downloadUrl` in `utils/file.ts`): the ZIP streams to disk instead of into a Blob. The demo answers the summary and
+    refuses the download with a toast. The Import card (`backup-import-card`, only with `app.backup.import`): a native
+    `<label>` around a hidden `.zip` input (styled with `buttonVariants`, the barcode-photo precedent), an XHR upload with
+    progress (`previewBackupImport(file, "events", true)`), then `BackupImportPreviewDialogComponent` (opened with
+    `autoFocus: "dialog"` so a blocker at the top is seen): counts, people with *Account* / *Name only* badges, "Which
+    person in the file are you?" (seeded with `suggestedMeSourceId`), known warnings only, blockers and problems; Import is
+    dimmed while anything blocks; Cancel deletes the uploaded file. A started import is polled every 2 s until it ends;
+    the card shows the last finished one (never a mere upload) with next steps or "Nothing was changed". Errors come from
+    the interceptor (the server's `errorMsg`). The demo refuses the upload with a toast.
   - Logs (`src/system-settings/logs/`): the newest 300 app-log lines, the first place to look for a reported error.
   - System Tasks: `system-tasks.md`.
 - **AI page** (`/ai`, every member): `app-ai-provider-fields` is the one provider block (main card and

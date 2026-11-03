@@ -210,7 +210,7 @@ test.describe.serial('Report Builder — drill-in across time zones', () => {
     const drillIn = page.getByRole('dialog');
     await expect(drillIn.getByTestId('report-receipt-row')).toHaveCount(1);
     await expect(drillIn.getByText(receiptName).first()).toBeVisible();
-    // Shown as its calendar day, not as the browser's (Dec 31, 2023).
-    await expect(drillIn.getByTestId('report-receipt-row')).toContainText('Jan 1, 2024');
+    // Shown as its calendar day, not as the browser's (31/12/2023).
+    await expect(drillIn.getByTestId('report-receipt-row')).toContainText('01/01/2024');
   });
 });

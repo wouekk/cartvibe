@@ -77,6 +77,15 @@ describe("SystemSettingsComponent", () => {
     ]);
   });
 
+  it("adds Export & import before Logs only for who may export the household", () => {
+    store.dispatch(new SetPermissions([Permission.AppSystemSettingsRead, Permission.AppBackupExport], {}));
+
+    fixture.detectChanges();
+
+    expect(component.tabs.map((tab) => tab.name)).toEqual(["general", "logos", "security", "tasks", "export-import", "logs"]);
+    expect(component.filterTabs[4].label).toBe("Export & import");
+  });
+
   it("opens a tab's route when it is picked", () => {
     store.dispatch(new SetPermissions([Permission.AppSystemSettingsRead], {}));
     fixture.detectChanges();

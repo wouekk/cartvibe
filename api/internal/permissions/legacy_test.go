@@ -320,3 +320,16 @@ func utilPrint(t *testing.T, actual any, expected any) {
 	t.Helper()
 	t.Errorf("Test failed!\nExpected: %v\nActual: %v\n", expected, actual)
 }
+
+func TestHouseholdBackupKeysAreAdminOnly(t *testing.T) {
+	// The export skips paid-by and member isolation, so only admins (Legacy Admin holds every app
+	// key) may export or import; the family User role and Legacy User never get them.
+	for _, key := range []string{AppBackupExport, AppBackupImport} {
+		if !slices.Contains(LegacyAppAdminKeys(), key) {
+			utilPrint(t, "Legacy Admin missing "+key, "present")
+		}
+		if slices.Contains(LegacyAppUserKeys(), key) || slices.Contains(FamilyUserAppKeys(), key) {
+			utilPrint(t, "a user role contains "+key, "absent")
+		}
+	}
+}

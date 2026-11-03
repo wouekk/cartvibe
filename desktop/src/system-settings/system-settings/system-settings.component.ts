@@ -62,7 +62,8 @@ export class SystemSettingsComponent implements OnInit {
 
   private initTabs(): void {
     // The four settings tabs are one form each, so they share the settings permission; the tables inside
-    // them (system emails, OIDC providers, tasks) are shown only to who may read them.
+    // them (system emails, OIDC providers, tasks) are shown only to who may read them. Export & import has
+    // its own permission (a whole-household dump).
     const allTabs: SystemSettingsTab[] = [
       {
         label: marker("Currency & Time Zone"),
@@ -87,6 +88,12 @@ export class SystemSettingsComponent implements OnInit {
         routerLink: "tasks",
         name: "tasks",
         readPermission: Permission.AppSystemSettingsRead,
+      },
+      {
+        label: marker("Export & import"),
+        routerLink: "export-import",
+        name: "export-import",
+        readPermission: Permission.AppBackupExport,
       },
       {
         label: "Logs",

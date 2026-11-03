@@ -266,6 +266,7 @@ func migrateSchema(target *gorm.DB) error {
 		&models.ProductClassificationOverride{},
 		&models.WarrantyReminder{},
 		&models.PushSubscription{},
+		&models.BackupImportJob{},
 	)
 
 	return err

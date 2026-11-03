@@ -1,0 +1,82 @@
+<app-settings-section
+  testId="settings-card-export"
+  title="Export"
+  description="Download the whole household as a ZIP of CSV files: to keep your own copy, open it in a spreadsheet, or move to another CartVibe server."
+>
+  <div class="cv-section" data-testid="export-contents">
+    <div class="cv-section__head">
+      <h3 class="cv-section__title">{{ 'What goes in' | t }}</h3>
+      <p class="cv-section__desc">
+        {{ 'Receipts with their products and comments, shopping lists, categories, tags, goals, exchange rates, report templates and the household settings.' | t }}
+      </p>
+    </div>
+    <ul class="cv-list cv-inset text-sm">
+      @for (row of rows(); track row.label) {
+        <li>
+          <span class="text-muted-foreground">{{ row.label | t }}</span>
+          <span class="font-medium text-foreground tabular-nums" data-testid="export-count">{{ loading() ? '–' : (row.count ?? 0) }}</span>
+        </li>
+      }
+    </ul>
+  </div>
+
+  <div class="cv-section" data-testid="export-files">
+    <div class="flex items-start justify-between gap-4">
+      <div class="cv-section__head min-w-0">
+        <h3 class="cv-section__title">{{ 'Include photos and PDFs' | t }}</h3>
+        <p class="cv-section__desc" data-testid="export-file-size">
+          @if (loading()) {
+            –
+          } @else {
+            {{ fileCount() }} {{ fileCount() | plural: 'file' : 'files' }}, {{ fileSize() }}.
+            {{ 'Without them the file stays small; the receipts keep their data.' | t }}
+          }
+        </p>
+      </div>
+      <hlm-switch
+        class="shrink-0"
+        data-testid="export-include-files"
+        [aria-label]="'Include photos and PDFs' | t"
+        [checked]="includeFiles()"
+        (checkedChange)="includeFiles.set($event)"
+      ></hlm-switch>
+    </div>
+  </div>
+
+  <div class="cv-section" data-testid="export-notes">
+    <div class="cv-section__head">
+      <h3 class="cv-section__title">{{ 'Good to know' | t }}</h3>
+    </div>
+    <ul class="m-0 flex list-disc flex-col gap-1 pl-5 text-sm text-muted-foreground">
+      <li>{{ 'The file holds everyone\'s receipts and lists, whoever paid. Keep it somewhere private.' | t }}</li>
+      <li>{{ 'Passwords, AI keys and the Logo.dev key are never in it: on another server they are set up again.' | t }}</li>
+      <li>{{ 'It is not the server backup. Keep backing up the sqlite and data folders as the FAQ describes; only that keeps everything.' | t }}</li>
+    </ul>
+  </div>
+
+  <div sectionFooter class="cv-card__footer">
+    <p class="cv-card__status" data-testid="export-status">
+      @if (started()) {
+        {{ 'The download has started. With photos it can take a few minutes.' | t }}
+      }
+    </p>
+    <button
+      hlmBtn
+      type="button"
+      data-testid="export-download"
+      [disabled]="loading() || preparing()"
+      (click)="download()"
+    >
+      <app-icon name="download"></app-icon>
+      @if (preparing()) {
+        {{ 'Preparing…' | t }}
+      } @else {
+        {{ 'Download' | t }}
+      }
+    </button>
+  </div>
+</app-settings-section>
+
+@if (canImport) {
+  <app-backup-import-card></app-backup-import-card>
+}

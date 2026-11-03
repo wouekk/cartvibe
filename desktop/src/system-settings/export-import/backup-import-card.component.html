@@ -1,0 +1,86 @@
+<app-settings-section
+  testId="settings-card-import"
+  title="Import"
+  description="Bring a household exported from another CartVibe server into this one. It only goes into an empty household: a new server, before anyone adds receipts or lists."
+>
+  @if (job(); as current) {
+    <div class="cv-section" data-testid="import-status" [attr.data-status]="current.status">
+      @if (active()) {
+        <div class="flex min-w-0 flex-col gap-2" role="status">
+          <p class="m-0 text-sm font-medium">{{ phaseText() | t }}</p>
+          @if (percent() !== null) {
+            <div class="h-2 overflow-hidden rounded-full bg-muted">
+              <div class="h-full bg-primary transition-[width] duration-200 motion-reduce:transition-none" [style.width.%]="percent()"></div>
+            </div>
+          } @else {
+            <div class="app-progress-indeterminate"></div>
+          }
+          <p class="m-0 text-[13px] text-muted-foreground">{{ 'You can leave this page; the import goes on in the background.' | t }}</p>
+        </div>
+      } @else if (current.status === 'succeeded') {
+        <div class="flex min-w-0 flex-col gap-3">
+          <p class="m-0 flex items-center gap-2 text-sm font-medium text-success-text">
+            <app-icon name="check_circle"></app-icon>
+            {{ 'The household was imported.' | t }}
+          </p>
+          @if (imported().length > 0) {
+            <ul class="cv-list cv-inset text-sm" data-testid="import-result">
+              @for (row of imported(); track row.label) {
+                <li>
+                  <span class="text-muted-foreground">{{ row.label | t }}</span>
+                  <span class="font-medium text-foreground tabular-nums">{{ row.count }}</span>
+                </li>
+              }
+            </ul>
+          }
+          <ul class="m-0 flex list-disc flex-col gap-1 pl-5 text-sm text-muted-foreground" data-testid="import-next-steps">
+            <li>{{ 'People kept as a name cannot sign in yet: under Management → Users, use Convert to normal user to give them a password.' | t }}</li>
+            <li>{{ 'Set up the AI and the Logo.dev key again: keys never travel in the file.' | t }}</li>
+            <li>{{ 'Reload the page to see the household everywhere.' | t }}</li>
+          </ul>
+        </div>
+      } @else if (current.status === 'failed') {
+        <div class="flex min-w-0 flex-col gap-1 rounded-lg bg-destructive/10 p-3 text-sm text-destructive" role="alert">
+          <p class="m-0 font-medium">{{ 'The import stopped. Nothing was changed.' | t }}</p>
+          <p class="m-0 break-words" data-testid="import-error">{{ current.error }}</p>
+        </div>
+      }
+    </div>
+  }
+
+  <div class="cv-section" data-testid="import-notes">
+    <ul class="m-0 flex list-disc flex-col gap-1 pl-5 text-sm text-muted-foreground">
+      <li>{{ 'Choose a file made with Download above. You see what it holds before anything is written.' | t }}</li>
+      <li>{{ 'People are matched by username. Someone with no account here keeps their name on their receipts.' | t }}</li>
+      <li>{{ 'A file with photos can be large: upload it over Wi-Fi, from a computer if you can.' | t }}</li>
+    </ul>
+  </div>
+
+  <div sectionFooter class="cv-card__footer">
+    <p class="cv-card__status" data-testid="import-upload-status">
+      @if (uploading()) {
+        {{ 'Uploading: {percent}%' | t: { percent: uploadPercent() } }}
+      }
+    </p>
+    <!-- A native label around the hidden input: phones ignore a programmatic click on a file input. -->
+    <label
+      data-testid="import-choose-file"
+      [class]="chooseButtonClass"
+      class="cursor-pointer focus-within:ring-3 focus-within:ring-ring/50"
+      [class.pointer-events-none]="busy()"
+      [class.opacity-50]="busy()"
+      [attr.aria-disabled]="busy()"
+    >
+      <app-icon name="upload"></app-icon>
+      {{ 'Choose file…' | t }}
+      <input
+        type="file"
+        class="sr-only"
+        accept=".zip,application/zip"
+        data-testid="import-file-input"
+        [disabled]="busy()"
+        (change)="chooseFile($event)"
+      />
+    </label>
+  </div>
+</app-settings-section>

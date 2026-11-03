@@ -4,6 +4,7 @@ import { TranslationService } from "../i18n/translation.service";
 import { Store } from "@ngxs/store";
 import { SystemSettingsState } from "../store/system-settings.state";
 import { calendarDayToLocalDate, offsetAt } from "../utils/app-time-zone";
+import { AppDateFormat, appDatePattern } from "../utils/app-date-format";
 
 /**
  * - `instant` (the default): a moment in time (`createdAt`, `resolvedDate`,
@@ -28,9 +29,14 @@ export function formatAppDate(
   mode: AppDateMode,
   zone: string,
   locale: string,
+  dateFormat?: AppDateFormat,
 ): string | null {
   if (value === null || value === undefined || value === "") {
     return null;
+  }
+
+  if (dateFormat) {
+    format = appDatePattern(format, dateFormat, locale);
   }
 
   try {
@@ -50,8 +56,10 @@ export function formatAppDate(
 
 /**
  * `value | appDate[:format[:'calendar']]` — Angular's `DatePipe` with the app
- * time zone applied. `format` takes the same strings as `DatePipe` and defaults
- * to `mediumDate`.
+ * time zone and the household date format applied. `format` takes the same
+ * strings as `DatePipe` and defaults to `mediumDate`; whole dates, `MMM d` and
+ * the `short` / `medium` date-times are rewritten to the household format
+ * (`appDatePattern`).
  *
  * `DatePipe` only accepts a UTC offset, never an IANA name, and the offset
  * depends on DST at that particular instant — so it is computed per value with
@@ -75,6 +83,8 @@ export class AppDatePipe implements PipeTransform {
 
   private readonly timeZone = inject(Store).selectSignal(SystemSettingsState.timeZone);
 
+  private readonly dateFormat = inject(Store).selectSignal(SystemSettingsState.dateFormat);
+
   private lastKey: unknown[] | null = null;
 
   private lastResult: string | null = null;
@@ -87,15 +97,16 @@ export class AppDatePipe implements PipeTransform {
     // Read before any early return, so the dependency is tracked on every pass.
     const zone = this.timeZone();
     const locale = this.translation.locale();
+    const dateFormat = this.dateFormat();
     const valueKey = value instanceof Date ? value.getTime() : value;
-    const key = [valueKey, format, mode, zone, locale];
+    const key = [valueKey, format, mode, zone, locale, dateFormat];
 
     if (this.lastKey && key.every((part, index) => part === this.lastKey![index])) {
       return this.lastResult;
     }
 
     this.lastKey = key;
-    this.lastResult = formatAppDate(value, format, mode, zone, locale);
+    this.lastResult = formatAppDate(value, format, mode, zone, locale, dateFormat);
 
     return this.lastResult;
   }

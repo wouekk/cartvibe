@@ -66,6 +66,10 @@ export interface AppData {
      */
     timeZone?: string;
     /**
+     * How the household shows dates: DD/MM/YYYY (the default), MM/DD/YYYY, YYYY/MM/DD, DD.MM.YYYY or YYYY-MM-DD. Display only; dates on the wire stay ISO. A plain string, not an enum, so a client treats a format it does not know as the default.
+     */
+    dateFormat?: string;
+    /**
      * Icons in the system
      */
     icons: Array<Icon>;

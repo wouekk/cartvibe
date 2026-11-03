@@ -97,6 +97,10 @@ sentinel.
 - **Search** applies `ApplyPaidByDisjunction` in SQL before its `LIMIT`: a post-filter would let hidden receipts fill the
   limit.
 - Write-side (which payer one may set) is governed by member isolation below, not by paid-by.
+- **The household export** (`GET /backup/export`, `app.backup.export`) is the one read that applies none of these layers:
+  it is a whole-household dump for moving servers, so the key is admin-only (Legacy Admin, never `FamilyUserAppKeys`).
+  The import (`app.backup.import`, admin-only too) writes payers and memberships as the file has them, without the
+  creator-visibility check; it only runs into an empty household.
 
 ## The All group read gate
 

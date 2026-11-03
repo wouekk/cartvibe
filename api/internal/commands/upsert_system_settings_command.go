@@ -67,6 +67,8 @@ type UpsertSystemSettingsCommand struct {
 	// as the lifetimes above: a client that does not know the field (an older
 	// build) must not reset a configured zone to "".
 	TimeZone *string `json:"timeZone"`
+	// DateFormat is one of models.DateFormats; a pointer for the same omitted-key reason as TimeZone.
+	DateFormat *string `json:"dateFormat"`
 	// SecureCookies is a pointer for the same omitted-key reason, and it matters
 	// more for a security toggle than for a lifetime: a client that does not send
 	// it must not silently turn Secure cookies back off.
@@ -181,6 +183,10 @@ func (command *UpsertSystemSettingsCommand) Validate() structs.ValidatorError {
 
 	if msg := validateTimeZone(command.TimeZone); len(msg) > 0 {
 		errorMap["timeZone"] = msg
+	}
+
+	if command.DateFormat != nil && !models.IsDateFormat(*command.DateFormat) {
+		errorMap["dateFormat"] = "Date format must be one of " + strings.Join(models.DateFormats, ", ")
 	}
 
 	if msg := validateShopLogoKey(command.ShopLogoKey); len(msg) > 0 {
@@ -349,6 +355,10 @@ func (command *UpsertSystemSettingsCommand) OmittedColumns() []string {
 		columns = append(columns, "TimeZone")
 	}
 
+	if command.DateFormat == nil {
+		columns = append(columns, "DateFormat")
+	}
+
 	if command.SecureCookies == nil {
 		columns = append(columns, "SecureCookies")
 	}
@@ -386,6 +396,10 @@ func (command *UpsertSystemSettingsCommand) ApplyOmittedValues(existing models.S
 
 	if command.TimeZone == nil {
 		updated.TimeZone = existing.TimeZone
+	}
+
+	if command.DateFormat == nil {
+		updated.DateFormat = existing.DateFormat
 	}
 
 	if command.SecureCookies == nil {

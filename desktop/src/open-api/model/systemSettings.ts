@@ -90,6 +90,10 @@ export interface SystemSettings {
      */
     timeZone?: string;
     /**
+     * How the household shows dates: DD/MM/YYYY, MM/DD/YYYY, YYYY/MM/DD, DD.MM.YYYY or YYYY-MM-DD. Display only; dates on the wire stay ISO.
+     */
+    dateFormat?: string;
+    /**
      * Marks every cookie the server sets as Secure, so browsers only send them over HTTPS. Recommended for any install served over HTTPS. Off by default, because a browser drops a Secure cookie set over plain HTTP, which breaks login.
      */
     secureCookies?: boolean;
