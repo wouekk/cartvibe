@@ -22,4 +22,8 @@ const (
 	// WarrantyReminderSweep sends the warranty reminders whose day has come (see
 	// services.FireDueWarrantyReminders). Same queue, same reason.
 	WarrantyReminderSweep = "system_clean_up:warranty_reminders"
+	// BackupImport runs one household import an admin started (see backup.RunImportJob): a one-off task,
+	// not a sweep. Same queue, same reason. Its payload names the job only; the temp sweep never reads
+	// clean-up payloads (tempFileQueues).
+	BackupImport = "system_clean_up:backup_import"
 )

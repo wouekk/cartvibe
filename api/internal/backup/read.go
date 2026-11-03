@@ -149,3 +149,11 @@ func safeEntryName(name string) bool {
 	cleaned := path.Clean(name)
 	return cleaned == name && cleaned != ".." && !strings.HasPrefix(cleaned, "../")
 }
+
+// Has reports whether the manifest lists an entry (a photo can be listed in a table but missing from
+// the ZIP when it was deleted while the export ran).
+func (archive *Archive) Has(entryName string) bool {
+	_, listed := archive.entries[entryName]
+	_, present := archive.files[entryName]
+	return listed && present
+}

@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"path/filepath"
 	"strings"
@@ -149,7 +150,8 @@ func seedHousehold(t *testing.T) seeded {
 	goal := decimal.RequireFromString("1500.00")
 	mustCreate(&models.UserPrefernces{UserId: admin.ID, MonthlySpendingGoal: &goal, Language: "pl"})
 	mustCreate(&models.ExchangeRate{Code: "EUR", Rate: &rate})
-	template := models.ReportTemplate{Name: "Monthly", Configuration: json.RawMessage(`{"groupIds":[1]}`), ConfigurationVersion: 1}
+	template := models.ReportTemplate{Name: "Monthly", ConfigurationVersion: 1,
+		Configuration: json.RawMessage(fmt.Sprintf(`{"groupIds":["%d"],"filter":{"paidBy":{"operation":"CONTAINS","value":[%d]},"categories":{"operation":"CONTAINS","value":[%d]}}}`, household.ID, partner.ID, dairy.ID))}
 	mustCreate(&template)
 	mustCreate(&models.ReportTemplateGroup{ReportTemplateID: template.ID, GroupID: household.ID})
 
