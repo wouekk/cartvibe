@@ -36,7 +36,7 @@ handle).
   to catch the omission.
 - **Pointer command fields** where "omitted" must differ from "zero": an omitted key is listed by `OmittedColumns()` and
   dropped from the UPDATE, not copied from the stored row (`docs/sessions-cookies.md`).
-- Open strings on the contract: `AiType`, `timeZone`, report `dateField`, OIDC error codes, extraction and trip
+- Open strings on the contract: `AiType`, `timeZone`, `dateFormat`, report `dateField`, OIDC error codes, extraction and trip
   statuses, `AppLogEntry.level` and every effective-permission string are `type: string`. A Go type may still guard what
   is stored (`AiClientType.Value()`).
 - Migrations are AutoMigrate plus additive columns; a new column's GORM default must reproduce the old behaviour. A

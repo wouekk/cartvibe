@@ -53,6 +53,9 @@ type SystemSettings struct {
 	// resolves to UTC (see repositories.GetAppLocation), which is also the
 	// default, so an existing install behaves exactly as before.
 	TimeZone string `json:"timeZone" gorm:"default:UTC"`
+	// DateFormat is how dates are shown in the app (one of DateFormats, e.g. "DD/MM/YYYY"). Display only: the wire
+	// and the database keep ISO dates. Empty or unknown reads as DefaultDateFormat (ResolveDateFormat).
+	DateFormat string `json:"dateFormat" gorm:"default:'DD/MM/YYYY'"`
 	// SecureCookies marks every cookie the API sets as Secure, so browsers only
 	// send them over HTTPS. Off by default because plain-http self-hosting (a LAN
 	// address, a bare IP) is supported, and a browser silently drops a Secure

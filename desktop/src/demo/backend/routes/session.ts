@@ -62,6 +62,7 @@ export function buildAppData(db: DemoDb): AppData {
     currencySymbolPosition: db.settings.currencySymbolPosition ?? CurrencySymbolPosition.Start,
     currencyHideDecimalPlaces: db.settings.currencyHideDecimalPlaces ?? false,
     timeZone: db.settings.timeZone ?? "UTC",
+    dateFormat: db.settings.dateFormat ?? "DD/MM/YYYY",
     icons: ICONS,
     appPermissions: APP_PERMISSIONS,
     groupPermissions: groupMap(GROUP_PERMISSIONS),

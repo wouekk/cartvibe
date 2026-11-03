@@ -117,6 +117,7 @@ func TakeSnapshot(db *gorm.DB, options Options) (*Snapshot, error) {
 			CurrencySymbolPosition:       string(settings.CurrencySymbolPosition),
 			CurrencyHideDecimalPlaces:    settings.CurrencyHideDecimalPlaces,
 			TimeZone:                     settings.TimeZone,
+			DateFormat:                   settings.DateFormat,
 		}
 
 		if err := tx.Model(models.Group{}).Where("is_all_group = ?", true).Order("id").Pluck("id", &snapshot.Manifest.AllGroupIds).Error; err != nil {

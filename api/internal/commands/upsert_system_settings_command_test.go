@@ -370,32 +370,32 @@ func TestOmittedColumnsNamesEveryUnsentField(t *testing.T) {
 	}{
 		"all omitted": {
 			modify:   func(cmd *UpsertSystemSettingsCommand) {},
-			expected: []string{"RefreshTokenValidForHours", "McpRefreshTokenValidForHours", "TempFileRetentionHours", "ServerPublicUrl", "TimeZone", "SecureCookies", "ShopLogoKey"},
+			expected: []string{"RefreshTokenValidForHours", "McpRefreshTokenValidForHours", "TempFileRetentionHours", "ServerPublicUrl", "TimeZone", "DateFormat", "SecureCookies", "ShopLogoKey"},
 		},
 		"retention sent, lifetimes omitted": {
 			modify: func(cmd *UpsertSystemSettingsCommand) {
 				cmd.TempFileRetentionHours = intPtr(48)
 			},
-			expected: []string{"RefreshTokenValidForHours", "McpRefreshTokenValidForHours", "ServerPublicUrl", "TimeZone", "SecureCookies", "ShopLogoKey"},
+			expected: []string{"RefreshTokenValidForHours", "McpRefreshTokenValidForHours", "ServerPublicUrl", "TimeZone", "DateFormat", "SecureCookies", "ShopLogoKey"},
 		},
 		"lifetimes sent, retention omitted": {
 			modify: func(cmd *UpsertSystemSettingsCommand) {
 				cmd.RefreshTokenValidForHours = intPtr(24)
 				cmd.McpRefreshTokenValidForHours = intPtr(24)
 			},
-			expected: []string{"TempFileRetentionHours", "ServerPublicUrl", "TimeZone", "SecureCookies", "ShopLogoKey"},
+			expected: []string{"TempFileRetentionHours", "ServerPublicUrl", "TimeZone", "DateFormat", "SecureCookies", "ShopLogoKey"},
 		},
 		"only time zone sent": {
 			modify: func(cmd *UpsertSystemSettingsCommand) {
 				cmd.TimeZone = stringPtr("America/New_York")
 			},
-			expected: []string{"RefreshTokenValidForHours", "McpRefreshTokenValidForHours", "TempFileRetentionHours", "ServerPublicUrl", "SecureCookies", "ShopLogoKey"},
+			expected: []string{"RefreshTokenValidForHours", "McpRefreshTokenValidForHours", "TempFileRetentionHours", "ServerPublicUrl", "DateFormat", "SecureCookies", "ShopLogoKey"},
 		},
 		"only secure cookies sent, as false": {
 			modify: func(cmd *UpsertSystemSettingsCommand) {
 				cmd.SecureCookies = boolPtr(false)
 			},
-			expected: []string{"RefreshTokenValidForHours", "McpRefreshTokenValidForHours", "TempFileRetentionHours", "ServerPublicUrl", "TimeZone", "ShopLogoKey"},
+			expected: []string{"RefreshTokenValidForHours", "McpRefreshTokenValidForHours", "TempFileRetentionHours", "ServerPublicUrl", "TimeZone", "DateFormat", "ShopLogoKey"},
 		},
 		"all sent": {
 			modify: func(cmd *UpsertSystemSettingsCommand) {
@@ -404,6 +404,7 @@ func TestOmittedColumnsNamesEveryUnsentField(t *testing.T) {
 				cmd.TempFileRetentionHours = intPtr(48)
 				cmd.ServerPublicUrl = stringPtr("https://receipts.example.com")
 				cmd.TimeZone = stringPtr("UTC")
+				cmd.DateFormat = stringPtr("MM/DD/YYYY")
 				cmd.SecureCookies = boolPtr(true)
 				cmd.ShopLogoKey = stringPtr("")
 			},
@@ -528,6 +529,41 @@ func TestUpsertSystemSettingsCommand_Validate_TimeZone(t *testing.T) {
 				t.Errorf("expected a timeZone error for %q, got %v", name, vErr.Errors)
 			}
 		})
+	}
+}
+
+// A sent date format must be one of models.DateFormats; omitting it is always valid.
+func TestUpsertSystemSettingsCommand_Validate_DateFormat(t *testing.T) {
+	cmd := validSystemSettingsCommand()
+	if vErr := cmd.Validate(); len(vErr.Errors) > 0 {
+		t.Errorf("omitted date format: unexpected errors %v", vErr.Errors)
+	}
+
+	for _, format := range models.DateFormats {
+		cmd := validSystemSettingsCommand()
+		cmd.DateFormat = stringPtr(format)
+		if vErr := cmd.Validate(); len(vErr.Errors) > 0 {
+			t.Errorf("%q: unexpected errors %v", format, vErr.Errors)
+		}
+	}
+
+	for _, format := range []string{"", "dd/MM/yyyy", "D/M/YY", "mediumDate"} {
+		cmd := validSystemSettingsCommand()
+		cmd.DateFormat = stringPtr(format)
+		if _, exists := cmd.Validate().Errors["dateFormat"]; !exists {
+			t.Errorf("expected a dateFormat error for %q", format)
+		}
+	}
+}
+
+func TestApplyOmittedValuesEchoesTheStoredDateFormat(t *testing.T) {
+	existing := models.SystemSettings{DateFormat: "YYYY-MM-DD"}
+
+	omitted := UpsertSystemSettingsCommand{}
+	updated := models.SystemSettings{}
+	omitted.ApplyOmittedValues(existing, &updated)
+	if updated.DateFormat != "YYYY-MM-DD" {
+		t.Errorf("omitted date format = %q, want the stored YYYY-MM-DD", updated.DateFormat)
 	}
 }
 

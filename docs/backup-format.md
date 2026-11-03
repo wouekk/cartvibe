@@ -29,7 +29,7 @@ already); the CSVs are deflated.
 | `formatVersion` | `1`. Changes only for a breaking change (below). |
 | `appVersion`, `exportedAt`, `exportId` | The server's version, the moment in RFC 3339 UTC, a random UUID. |
 | `includesFiles` | Whether `files/` is there. |
-| `household` | The currency display, its ISO code (empty for a custom symbol), separators, symbol position, hidden decimals and the time zone. |
+| `household` | The currency display, its ISO code (empty for a custom symbol), separators, symbol position, hidden decimals, the time zone and the date format. |
 | `allGroupIds` | The ids of the synthetic All group, which is never exported as a group; a report template covering it names it. |
 | `entries` | Every other entry with its `kind` (`table` or `file`), `rows` (tables), `bytes` and `sha256`. |
 | `missingFiles` | Photos deleted while the export ran; they have a row in `files.csv` but no entry. |
@@ -83,4 +83,4 @@ keep:
   the import does not start.
 - People are matched by `username`, categories by name or any old name in `aliases`, tags by name (case-insensitive).
 - A receipt file row is written only when its photo is in the ZIP, so no receipt points at a missing image.
-- `manifest.household` sets the currency and time zone of the server it is imported into.
+- `manifest.household` sets the currency, time zone and date format of the server it is imported into.

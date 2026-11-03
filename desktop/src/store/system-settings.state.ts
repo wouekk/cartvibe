@@ -1,8 +1,9 @@
 import { Injectable } from "@angular/core";
 import { Action, Selector, State, StateContext, } from "@ngxs/store";
 import { CurrencySeparator, CurrencySymbolPosition } from "../open-api/index";
+import { AppDateFormat, DEFAULT_APP_DATE_FORMAT, resolveAppDateFormat } from "../utils/app-date-format";
 import { DEFAULT_APP_TIME_ZONE } from "../utils/app-time-zone";
-import { SetCurrencyData, SetCurrencyDisplay, SetTimeZone } from "./system-settings.state.actions";
+import { SetCurrencyData, SetCurrencyDisplay, SetDateFormat, SetTimeZone } from "./system-settings.state.actions";
 
 export interface SystemSettingsStateInterface {
   currencyDisplay: string;
@@ -12,6 +13,8 @@ export interface SystemSettingsStateInterface {
   currencyHideDecimalPlaces: boolean;
   /** The app time zone (IANA name). See `src/utils/app-time-zone.ts`. */
   timeZone: string;
+  /** The household date format. See `src/utils/app-date-format.ts`. */
+  dateFormat: AppDateFormat;
 }
 
 @State<SystemSettingsStateInterface>({
@@ -23,6 +26,7 @@ export interface SystemSettingsStateInterface {
     currencySymbolPosition: CurrencySymbolPosition.Start,
     currencyHideDecimalPlaces: false,
     timeZone: DEFAULT_APP_TIME_ZONE,
+    dateFormat: DEFAULT_APP_DATE_FORMAT,
   },
 })
 @Injectable()
@@ -62,6 +66,12 @@ export class SystemSettingsState {
     return state?.timeZone || DEFAULT_APP_TIME_ZONE;
   }
 
+  /** Resolved here too, for a slice persisted before this key existed (see `timeZone`). */
+  @Selector()
+  static dateFormat(state: SystemSettingsStateInterface): AppDateFormat {
+    return resolveAppDateFormat(state?.dateFormat);
+  }
+
   @Selector()
   static state(state: SystemSettingsStateInterface): SystemSettingsStateInterface {
     return state;
@@ -87,6 +97,16 @@ export class SystemSettingsState {
       currencyThousandthsSeparator: payload.currencyThousandthsSeparator,
       currencyDecimalSeparator: payload.currencyDecimalSeparator,
       currencyHideDecimalPlaces: payload.currencyHideDecimalPlaces
+    });
+  }
+
+  @Action(SetDateFormat)
+  setDateFormat(
+    { patchState }: StateContext<SystemSettingsStateInterface>,
+    payload: SetDateFormat
+  ) {
+    patchState({
+      dateFormat: resolveAppDateFormat(payload.dateFormat),
     });
   }
 

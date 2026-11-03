@@ -1,4 +1,5 @@
 import { AfterViewInit, Component, DestroyRef, ElementRef, inject, OnInit, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
+import { formatDate } from "@angular/common";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormArray, FormBuilder, FormGroup, ValidatorFn, Validators } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -26,7 +27,8 @@ import { SAVED_KEY_PLACEHOLDER } from "../../ai-settings/ai-settings-shared";
 import { InputReadonlyPipe } from "../../pipes/input-readonly.pipe";
 import { SnackbarService } from "../../services";
 import { AuthState, SetFeatureConfig } from "../../store";
-import { SetCurrencyData, SetCurrencyDisplay, SetTimeZone } from "../../store/system-settings.state.actions";
+import { SetCurrencyData, SetCurrencyDisplay, SetDateFormat, SetTimeZone } from "../../store/system-settings.state.actions";
+import { APP_DATE_FORMATS, appDatePattern, resolveAppDateFormat } from "../../utils/app-date-format";
 import { DurationUnit, maxForUnit, minForUnit, splitHours, toHours } from "../../utils";
 import { DEFAULT_APP_TIME_ZONE, timeZoneOptions } from "../../utils/app-time-zone";
 import { absoluteUrlValidator, durationValueValidator } from "../../validators";
@@ -165,6 +167,12 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
       value: CurrencySeparator.Period
     }
   ];
+
+  // Each format with today's date in it, e.g. "DD/MM/YYYY (03/11/2026)". Digits only, so the language does not matter.
+  public readonly dateFormats = APP_DATE_FORMATS.map((format) => ({
+    value: format,
+    displayValue: `${format} (${formatDate(new Date(), appDatePattern("mediumDate", format, "en-US"), "en-US")})`,
+  }));
 
   // Plain IANA names (~420): the autocomplete filters and renders bare strings
   // itself, so there is no value/display split to model. Built once — the list
@@ -317,6 +325,7 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
       // Form-only: a named currency that fills the five fields above (Phase 3 M7).
       currency: [matchCurrencyPreset(this.originalSystemSettings ?? {})],
       timeZone: [this.originalSystemSettings?.timeZone || DEFAULT_APP_TIME_ZONE, [Validators.required]],
+      dateFormat: [resolveAppDateFormat(this.originalSystemSettings?.dateFormat), [Validators.required]],
       receiptProcessingSettingsId: [this.originalSystemSettings?.receiptProcessingSettingsId],
       fallbackReceiptProcessingSettingsId: [this.originalSystemSettings?.fallbackReceiptProcessingSettingsId],
       pdfDpi: [this.originalSystemSettings?.pdfDpi, [Validators.min(72), Validators.max(1200)]],
@@ -351,6 +360,7 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
       this.form.get("currencyHideDecimalPlaces")?.disable();
       this.form.get("currency")?.disable();
       this.form.get("timeZone")?.disable();
+      this.form.get("dateFormat")?.disable();
       this.form.get("mcpEnabled")?.disable();
       this.form.get("mcpPublicUrl")?.disable();
       this.form.get("serverPublicUrl")?.disable();
@@ -604,6 +614,7 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
         // Every appDate pipe and "today" reads the zone from the store, so the
         // app repaints in the new zone without a reload.
         switchMap(() => this.store.dispatch(new SetTimeZone(formValue["timeZone"]))),
+        switchMap(() => this.store.dispatch(new SetDateFormat(formValue["dateFormat"]))),
       )
       .subscribe();
   }

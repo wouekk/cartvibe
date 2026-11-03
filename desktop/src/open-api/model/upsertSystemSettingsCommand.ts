@@ -79,6 +79,10 @@ export interface UpsertSystemSettingsCommand {
      */
     timeZone?: string;
     /**
+     * One of DD/MM/YYYY, MM/DD/YYYY, YYYY/MM/DD, DD.MM.YYYY or YYYY-MM-DD (anything else is a 400 under the dateFormat key). Omit the key entirely to leave the current value unchanged.
+     */
+    dateFormat?: string;
+    /**
      * Marks every cookie the server sets as Secure. Only turn it on when the app is served over HTTPS: a browser drops a Secure cookie set over plain HTTP, which breaks login. Omit the key entirely to leave the currently configured value unchanged.
      */
     secureCookies?: boolean;
