@@ -20,6 +20,9 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   an empty server (ADM-12) are built on `feature/backup-import` (it contains `feature/backup-export`); neither is on
   `main`. A local round trip (export, fresh server, import) gave identical receipts and totals.
   `e2e/export-import.spec.ts` passed locally (not in smoke). Merging into a non-empty household (phase 3) is not planned.
+- Date format (ADM-13) on `feature/date-format` (cut from `preview`, so it carries the backup branches): a household
+  setting, default DD/MM/YYYY, applied by the `appDate` pipe. `app-time-zone` and `report-period-date-field` e2e specs
+  were updated to the new default but not run. Native date inputs still follow the browser's language.
 - `e2e-smoke` fails now and then with `HTTP 503` on an API login (nginx login limit, 30 a minute); re-running the job passes.
 - Not run anywhere: Safari and Firefox on desktop, Lighthouse, Web Push on a real device (needs HTTPS and VAPID keys).
 
