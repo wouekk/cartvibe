@@ -44,6 +44,10 @@ model/associatedEntityType.ts
 model/associatedGroup.ts
 model/attachShoppingTripReceiptCommand.ts
 model/backupEntityCount.ts
+model/backupImportJob.ts
+model/backupImportPerson.ts
+model/backupImportPreview.ts
+model/backupImportStartCommand.ts
 model/backupSummary.ts
 model/baseModel.ts
 model/bulkStatusUpdateCommand.ts
