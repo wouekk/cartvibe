@@ -7782,7 +7782,7 @@ components:
             type: string
         problems:
           type: array
-          description: Rows that cannot be imported, as "file row N column: reason"
+          description: "Rows that cannot be imported, each as: file, row, column and reason"
           items:
             type: string
       required:
