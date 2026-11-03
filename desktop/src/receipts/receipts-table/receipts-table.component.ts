@@ -7,6 +7,8 @@ import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { DONE_STATUSES } from "../../utils/receipt-status";
+import { appDatePattern } from "../../utils/app-date-format";
+import { SystemSettingsState } from "../../store/system-settings.state";
 import { parseDayRange, ResolvedPeriod } from "../../overview/overview-period";
 import { catchError, debounceTime, distinctUntilChanged, EMPTY, filter as rxFilter, map, Subject, switchMap, take, tap } from "rxjs";
 import { ReceiptFilterService } from "src/services/receipt-filter.service";
@@ -128,6 +130,8 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
   private users = this.store.selectSignal(UserState.users);
 
+  private dateFormat = this.store.selectSignal(SystemSettingsState.dateFormat);
+
   private receiptFilter = computed(
     () => this.filter()?.filter as ReceiptPagedRequestFilter | undefined
   );
@@ -151,8 +155,11 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
         // Not appDate: a filter value is the day the user PICKED, held as a
         // local-midnight Date (or its ISO string once persisted), so it is read
         // on the browser's calendar — the same day toDateWireFilter sends.
-        // In the app's language (the period picker's dates already are), never DatePipe's default en-US.
-        formatDate: (value) => this.datePipe.transform(value as string, "mediumDate", undefined, this.translation.locale()) ?? "",
+        // In the household date format and the app's language, never DatePipe's default en-US.
+        formatDate: (value) => {
+          const locale = this.translation.locale();
+          return this.datePipe.transform(value as string, appDatePattern("mediumDate", this.dateFormat(), locale), undefined, locale) ?? "";
+        },
         formatCurrency: (value) => this.customCurrencyPipe.transform(value as number),
         translate: (text) => this.translation.t(text),
       }

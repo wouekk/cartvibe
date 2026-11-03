@@ -23,6 +23,9 @@ From the first release after 0.16.0, every user-visible entry names the feature 
   into an empty household only, and either brings everything over (receipts, totals, photos, lists, goals) or changes
   nothing. People without an account keep their name on their receipts and get a sign-in later through *Convert to
   normal user*.
+- **Date format (ADM-13).** System Settings → General now starts with a date format for the household: DD/MM/YYYY (the
+  default), MM/DD/YYYY, YYYY/MM/DD, DD.MM.YYYY or YYYY-MM-DD. Every date in the app follows it, the Dashboard and
+  reports included. The time zone comes next and the currency moves to the bottom of the tab.
 - **A feature registry** ([docs/FEATURES.md](docs/FEATURES.md)): every feature in plain words, with a stable ID, the version
   that introduced it and how to tell it works; [CONTRIBUTING.md](CONTRIBUTING.md) and a feature request form; a Platforms
   section in the README.

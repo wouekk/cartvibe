@@ -13,6 +13,8 @@ import { SystemTaskTableService } from "../../services/system-task-table.service
 import { TaskTableComponent } from "../../shared-ui/task-table/task-table.component";
 import { UserState } from "../../store";
 import { SystemTaskTableState } from "../../store/system-task-table.state";
+import { SystemSettingsState } from "../../store/system-settings.state";
+import { appDatePattern } from "../../utils/app-date-format";
 import {
   ResetSystemTaskFilter,
   SetPage,
@@ -57,13 +59,18 @@ export class SystemTaskTableComponent implements OnInit {
 
   private users = this.store.selectSignal(UserState.users);
 
+  private dateFormat = this.store.selectSignal(SystemSettingsState.dateFormat);
+
   public filterChips = computed<SystemTaskFilterChip[]>(() =>
     buildSystemTaskFilterChips(this.filter(), {
       users: this.users(),
       // Not appDate: a filter value is the day the user PICKED, held as a
       // local-midnight Date (or its ISO string once persisted), so it is read
       // on the browser's calendar — the same day toDateWireFilter sends.
-      formatDate: (value) => this.datePipe.transform(value as string) ?? "",
+      formatDate: (value) => {
+        const locale = this.translation.locale();
+        return this.datePipe.transform(value as string, appDatePattern("mediumDate", this.dateFormat(), locale), undefined, locale) ?? "";
+      },
       translate: (text) => this.translation.t(text),
     })
   );

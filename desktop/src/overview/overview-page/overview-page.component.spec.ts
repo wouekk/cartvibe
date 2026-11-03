@@ -755,7 +755,7 @@ describe("OverviewPageComponent", () => {
       // The router directives are not loaded here (the shop name link has no href either); the date is now a link.
       const dateLink = fixture.nativeElement.querySelector('[data-testid="overview-receipt-date-link"]') as HTMLAnchorElement;
       expect(dateLink.tagName).toBe("A");
-      expect(dateLink.textContent).toContain("Jan 3");
+      expect(dateLink.textContent).toContain("03/01");
     });
 
     it("follows the saved order and sizes, and leaves hidden panels out", async () => {

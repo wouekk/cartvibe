@@ -38,15 +38,16 @@ const NEW_YORK = 'America/New_York';
 const UTC = 'UTC';
 
 /**
- * [instant] as Angular's en-US "medium" format renders it in [timeZone]:
- * `MMM d, y, h:mm:ss a`, e.g. "Oct 8, 2026, 2:15:30 PM". Assembled from parts
+ * [instant] as the app's "medium" format renders it in [timeZone] with the default
+ * DD/MM/YYYY date format and English times:
+ * `dd/MM/yyyy h:mm:ss a`, e.g. "08/10/2026 2:15:30 PM". Assembled from parts
  * rather than Intl's own joiners, which vary by ICU version (", " vs " at ").
  */
 function mediumInZone(instant: string, timeZone: string): string {
   const parts = new Intl.DateTimeFormat('en-US', {
     timeZone,
-    month: 'short',
-    day: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
     year: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
@@ -56,7 +57,7 @@ function mediumInZone(instant: string, timeZone: string): string {
   const part = (type: Intl.DateTimeFormatPartTypes) =>
     parts.find((p) => p.type === type)?.value ?? '';
 
-  return `${part('month')} ${part('day')}, ${part('year')}, ${part('hour')}:${part('minute')}:${part('second')} ${part('dayPeriod')}`;
+  return `${part('day')}/${part('month')}/${part('year')} ${part('hour')}:${part('minute')}:${part('second')} ${part('dayPeriod')}`;
 }
 
 /** Collapses every whitespace run — Angular's CLDR data puts a U+202F before AM/PM. */

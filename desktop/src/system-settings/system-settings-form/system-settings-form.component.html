@@ -24,8 +24,43 @@
   [formGroup]="form"
   (ngSubmit)="submit()"
 >
-  <!-- Currency & Time Zone -->
+  <!-- General: date format and time zone, then currency -->
   @if (shows("general")) {
+    <app-settings-section testId="settings-card-regional" title="Regional & time zone">
+      <div class="cv-section" data-testid="settings-section-date-format">
+        <div class="cv-section__head">
+          <h3 class="cv-section__title">{{ 'Date format' | t }}</h3>
+          <p class="cv-section__desc">{{ 'How dates are shown everywhere in the app, for everyone in the household.' | t }}</p>
+        </div>
+        <app-select
+          [label]="'Date format' | t"
+          optionValueKey="value"
+          optionDisplayKey="displayValue"
+          data-testid="system-settings-date-format"
+          [inputFormControl]="form | formGet:'dateFormat'"
+          [options]="dateFormats"
+        ></app-select>
+      </div>
+      <div class="cv-section" data-testid="settings-section-time-zone">
+        <div class="cv-section__head">
+          <h3 class="cv-section__title">{{ 'Time zone' | t }}</h3>
+          <p class="cv-section__desc">
+            {{ 'Decides which day a moment in time falls on: when a receipt was added or resolved, what "today" and "last month" mean in reports and filters, and how times are shown. A receipt\'s own Date is a calendar day and never shifts with this setting.' | t }}
+          </p>
+        </div>
+        <app-autocomlete
+          data-testid="system-settings-time-zone"
+          [label]="'Time zone' | t"
+          hint="An IANA time zone, e.g. America/New_York. Takes effect immediately, no restart required."
+          [inputFormControl]="form | formGet:'timeZone'"
+          [options]="timeZones"
+          [displayWith]="timeZoneDisplayWith"
+          [creatable]="false"
+          [readonly]="formConfig.mode | inputReadonly"
+        ></app-autocomlete>
+      </div>
+      <div sectionFooter class="cv-card__footer"><ng-container *ngTemplateOutlet="saveActions"></ng-container></div>
+    </app-settings-section>
     <app-settings-section testId="settings-card-currency" title="Currency & exchange rates">
       <div class="cv-section" data-testid="settings-section-currency">
         <div class="cv-section__head">
@@ -86,27 +121,6 @@
         </ul>
       </div>
       <app-exchange-rates></app-exchange-rates>
-      <div sectionFooter class="cv-card__footer"><ng-container *ngTemplateOutlet="saveActions"></ng-container></div>
-    </app-settings-section>
-    <app-settings-section testId="settings-card-regional" title="Regional & time zone">
-      <div class="cv-section" data-testid="settings-section-time-zone">
-        <div class="cv-section__head">
-          <h3 class="cv-section__title">{{ 'Time zone' | t }}</h3>
-          <p class="cv-section__desc">
-            {{ 'Decides which day a moment in time falls on: when a receipt was added or resolved, what "today" and "last month" mean in reports and filters, and how times are shown. A receipt\'s own Date is a calendar day and never shifts with this setting.' | t }}
-          </p>
-        </div>
-        <app-autocomlete
-          data-testid="system-settings-time-zone"
-          [label]="'Time zone' | t"
-          hint="An IANA time zone, e.g. America/New_York. Takes effect immediately, no restart required."
-          [inputFormControl]="form | formGet:'timeZone'"
-          [options]="timeZones"
-          [displayWith]="timeZoneDisplayWith"
-          [creatable]="false"
-          [readonly]="formConfig.mode | inputReadonly"
-        ></app-autocomlete>
-      </div>
       <div sectionFooter class="cv-card__footer"><ng-container *ngTemplateOutlet="saveActions"></ng-container></div>
     </app-settings-section>
   }

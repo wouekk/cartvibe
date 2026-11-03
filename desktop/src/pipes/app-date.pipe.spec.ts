@@ -2,7 +2,7 @@ import { Component, provideZonelessChangeDetection, signal } from "@angular/core
 import { TestBed } from "@angular/core/testing";
 import { NgxsModule, Store } from "@ngxs/store";
 import { SystemSettingsState } from "../store/system-settings.state";
-import { SetTimeZone } from "../store/system-settings.state.actions";
+import { SetDateFormat, SetTimeZone } from "../store/system-settings.state.actions";
 import { AppDatePipe, formatAppDate } from "./app-date.pipe";
 
 @Component({
@@ -70,10 +70,19 @@ describe("AppDatePipe", () => {
     const text = (fixture: any, id: string): string =>
       fixture.nativeElement.querySelector(`#${id}`).textContent.trim();
 
-    it("defaults to mediumDate and the UTC zone", () => {
+    it("defaults to a whole date in the default DD/MM/YYYY format and the UTC zone", () => {
       const pipe = TestBed.runInInjectionContext(() => new AppDatePipe());
 
-      expect(pipe.transform("2026-10-01T01:00:00Z")).toBe("Oct 1, 2026");
+      expect(pipe.transform("2026-10-01T01:00:00Z")).toBe("01/10/2026");
+    });
+
+    it("re-renders when the household date format changes", () => {
+      const pipe = TestBed.runInInjectionContext(() => new AppDatePipe());
+      expect(pipe.transform("2026-10-01", "mediumDate", "calendar")).toBe("01/10/2026");
+
+      TestBed.inject(Store).dispatch(new SetDateFormat("MM/DD/YYYY"));
+
+      expect(pipe.transform("2026-10-01", "mediumDate", "calendar")).toBe("10/01/2026");
     });
 
     // The zone is store state an admin can change with the page open; every
@@ -82,13 +91,13 @@ describe("AppDatePipe", () => {
       const fixture = TestBed.createComponent(HostComponent);
       await fixture.whenStable();
       expect(text(fixture, "instant")).toBe("2026-10-01 01:00");
-      expect(text(fixture, "calendar")).toBe("Sep 30, 2026");
+      expect(text(fixture, "calendar")).toBe("30/09/2026");
 
       TestBed.inject(Store).dispatch(new SetTimeZone("America/New_York"));
       await fixture.whenStable();
 
       expect(text(fixture, "instant")).toBe("2026-09-30 21:00");
-      expect(text(fixture, "calendar")).toBe("Sep 30, 2026");
+      expect(text(fixture, "calendar")).toBe("30/09/2026");
     });
 
     it("re-renders when the value changes", async () => {

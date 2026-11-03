@@ -23,3 +23,9 @@ export class SetTimeZone {
 
   constructor(public timeZone: string) {}
 }
+
+export class SetDateFormat {
+  static readonly type = "[SystemSettingsState] Set Date Format";
+
+  constructor(public dateFormat: string) {}
+}

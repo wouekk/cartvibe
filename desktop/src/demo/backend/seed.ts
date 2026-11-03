@@ -695,6 +695,7 @@ export function createDemoDb(today: string): DemoDb {
       mcpRefreshTokenValidForHours: 720,
       tempFileRetentionHours: 24,
       timeZone: "UTC",
+      dateFormat: "DD/MM/YYYY",
       secureCookies: false,
       shopLogoKeySet: false,
     },

@@ -115,7 +115,8 @@ feature.
 - **One toast per error, and the server's `errorMsg` wins.** The generic `HttpErrorResponse.message` is a fallback
   only for a 5xx with no `errorMsg`. A form with two writes toasts success only after both land.
 - **App time zone** (`SystemSettingsState.timeZone`, helpers in `src/utils/app-time-zone.ts`): display with the
-  `appDate` pipe (never a bare `| date`; `:'calendar'` for calendar days), `formatAppDate` outside templates,
+  `appDate` pipe (never a bare `| date`; it also applies the household date format, `utils/app-date-format.ts`;
+  `:'calendar'` for calendar days), `formatAppDate` outside templates,
   `todayInZone(zone)` for today. Receipt dates go out as `toMidnightUtc` and load with `calendarDayToLocalDate`.
 - **Wire dates are `yyyy-MM-dd`,** converted by `toDateWireFilter` at the request, never in the store (the persisted
   value goes back to the datepicker, which would read a bare day as UTC midnight).

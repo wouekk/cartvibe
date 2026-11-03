@@ -291,6 +291,13 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
     which reloads the feature config on open) shows "Logos provided by Logo.dev" while logos are on.
   - Time zone: a typeahead over `UTC` + `Intl.supportedValuesOf('timeZone')` with `timeZoneDisplayWith`; after save
     `SetTimeZone` (and `SetCurrencyData` for currency) repaint the open app.
+  - Date format (`system-settings-date-format`, first on General, then the time zone, then the currency card): one of
+    `APP_DATE_FORMATS` (`src/utils/app-date-format.ts`, kept in step with the API's `models.DateFormats`), each option
+    showing today's date. `SystemSettingsState.dateFormat` (resolved, so a slice persisted before the key existed reads
+    the default) is read by the `appDate` pipe, which rewrites whole dates (`mediumDate`, `MMM d, y`, …), `MMM d` and
+    the `short` / `medium` date-times through `appDatePattern`; month names and day numbers on their own (chart axes,
+    date blocks) pass through. Filter chips use the same pattern. The native `<input type="date">` cannot be
+    reformatted and follows the browser's language.
   - Secure cookies (`system-settings-secure-cookies`): seeded `?? false`; warns while ticked over plain http.
   - Session and MCP token lifetimes, temp-file retention: the duration rules above.
   - Export & import (`src/system-settings/export-import/`): the counts from `GET /backup/summary`, an *Include photos and
