@@ -1,12 +1,13 @@
 import { Injectable } from "@angular/core";
 import { asBarcode } from "./barcode";
+import { centreInFrame, frameInVideo } from "./scan-frame";
 
 export interface ScanHandle {
   stop(): void;
 }
 
 interface NativeBarcodeDetector {
-  detect(source: HTMLVideoElement): Promise<{ rawValue: string }[]>;
+  detect(source: HTMLVideoElement): Promise<{ rawValue: string; cornerPoints?: { x: number; y: number }[] }[]>;
 }
 
 type NativeBarcodeDetectorConstructor = new (options: { formats: string[] }) => NativeBarcodeDetector;
@@ -23,7 +24,8 @@ export function canUseCamera(): boolean {
  * Finds a product barcode in a live camera stream. Browsers with the native `BarcodeDetector` (Chrome, Edge, Android) use
  * it; the rest (iOS Safari, Firefox) load `@zxing/browser` on demand, so its code is a separate chunk that nobody pays
  * for until the camera is opened. A read only counts once it passes the EAN/UPC check digit, so a misread never opens a
- * wrong product.
+ * wrong product, and only when the barcode sits between the brackets of the scan frame (`scan-frame.ts`), so another
+ * code in view cannot be read by mistake.
  */
 @Injectable({ providedIn: "root" })
 export class BarcodeScannerService {
@@ -46,7 +48,11 @@ export class BarcodeScannerService {
       }
       try {
         const found = await detector.detect(video);
-        const code = found.map((item) => asBarcode(item.rawValue)).find((value) => !!value);
+        const frame = frameInVideo(video);
+        const code = found
+          .filter((item) => centreInFrame(frame, item.cornerPoints ?? []))
+          .map((item) => asBarcode(item.rawValue))
+          .find((value) => !!value);
         if (code && !stopped) {
           onCode(code);
 
@@ -70,7 +76,8 @@ export class BarcodeScannerService {
     const { BrowserMultiFormatReader } = await this.loadZxing();
     const reader = new BrowserMultiFormatReader();
     const controls = await reader.decodeFromStream(stream, video, (result) => {
-      const code = result ? asBarcode(result.getText()) : null;
+      const points = (result?.getResultPoints?.() ?? []).map((point) => ({ x: point.getX(), y: point.getY() }));
+      const code = result && centreInFrame(frameInVideo(video), points) ? asBarcode(result.getText()) : null;
       if (code) {
         onCode(code);
       }

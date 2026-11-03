@@ -5,6 +5,8 @@ import { TranslatePipe } from "../i18n/translate.pipe";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { BarcodePhotoActionsComponent } from "./barcode-photo-actions.component";
 import { BarcodeScannerService, canUseCamera, ScanHandle } from "./barcode-scanner.service";
+import { pickMainCameraId } from "./main-camera";
+import { SCAN_FRAME } from "./scan-frame";
 
 export type ScannerState = "starting" | "scanning" | "denied" | "unavailable";
 
@@ -29,7 +31,19 @@ export type ScannerState = "starting" | "scanning" | "denied" | "unavailable";
       <div class="relative aspect-[4/3] w-full overflow-hidden rounded-xl border border-border bg-muted">
         <video #video class="size-full object-cover" playsinline muted></video>
         @if (state() === 'scanning') {
-          <div class="pointer-events-none absolute inset-x-8 top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-primary/70"></div>
+          <!-- The scan frame: the shadow dims everything outside it, the brackets are where the barcode goes. -->
+          <div
+            class="pointer-events-none absolute flex justify-between shadow-[0_0_0_100vmax_rgb(0_0_0/0.45)]"
+            data-testid="barcode-scanner-frame"
+            [style.left.%]="frame.x * 100"
+            [style.top.%]="frame.y * 100"
+            [style.width.%]="frame.width * 100"
+            [style.height.%]="frame.height * 100"
+          >
+            <span class="h-full w-6 rounded-l-lg border-y-4 border-l-4 border-primary"></span>
+            <span class="h-full w-6 rounded-r-lg border-y-4 border-r-4 border-primary"></span>
+            <span class="absolute inset-x-8 top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-primary/70"></span>
+          </div>
         }
       </div>
 
@@ -38,7 +52,7 @@ export type ScannerState = "starting" | "scanning" | "denied" | "unavailable";
           <p class="m-0 text-sm text-muted-foreground" data-testid="barcode-scanner-starting">{{ 'Starting the camera…' | t }}</p>
         }
         @case ('scanning') {
-          <p class="m-0 text-sm text-muted-foreground" data-testid="barcode-scanner-hint">{{ 'Point the camera at the barcode.' | t }}</p>
+          <!-- No hint: the brackets say it. The case stays so that scanning does not fall through to the error below. -->
         }
         @case ('denied') {
           <p class="m-0 text-sm text-destructive" role="alert" data-testid="barcode-scanner-denied">
@@ -71,6 +85,7 @@ export class BarcodeScannerDialogComponent implements AfterViewInit, OnDestroy {
 
   public readonly state = signal<ScannerState>("starting");
   public readonly photoFailed = signal(false);
+  protected readonly frame = SCAN_FRAME;
 
   private stream: MediaStream | null = null;
   private handle: ScanHandle | null = null;
@@ -84,7 +99,7 @@ export class BarcodeScannerDialogComponent implements AfterViewInit, OnDestroy {
     }
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+      const stream = await this.openMainCamera();
       if (this.done) {
         stream.getTracks().forEach((track) => track.stop());
 
@@ -121,6 +136,28 @@ export class BarcodeScannerDialogComponent implements AfterViewInit, OnDestroy {
     this.done = true;
     this.release();
     this.dialogRef.close(code);
+  }
+
+  /**
+   * The back camera, pinned to its main lens. The first request only lets the browser pick a back camera (and gives the
+   * permission that makes device labels readable); when that is a virtual camera that hops between lenses, the stream is
+   * reopened on the single main lens. Any failure of the second step keeps the first stream.
+   */
+  private async openMainCamera(): Promise<MediaStream> {
+    const first = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+
+    try {
+      const mainId = pickMainCameraId(await navigator.mediaDevices.enumerateDevices());
+      if (!mainId || first.getVideoTracks()[0]?.getSettings().deviceId === mainId) {
+        return first;
+      }
+      const main = await navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: mainId } }, audio: false });
+      first.getTracks().forEach((track) => track.stop());
+
+      return main;
+    } catch {
+      return first;
+    }
   }
 
   private release(): void {

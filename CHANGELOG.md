@@ -16,6 +16,11 @@ From the first release after 0.16.0, every user-visible entry names the feature 
   that introduced it and how to tell it works; [CONTRIBUTING.md](CONTRIBUTING.md) and a feature request form; a Platforms
   section in the README.
 
+### Fixed
+- **Check product: the camera no longer hops between lenses ([#11](https://github.com/wouekk/cartvibe/issues/11), FOOD-01).**
+  The scanner stays on the phone's main lens instead of the lens-switching camera, so the barcode no longer jumps out of
+  view while it focuses. The view now shows two brackets, `[ ]`, and only a barcode held between them is read.
+
 ## [0.16.0] - 2026-11-02
 
 Drill into the Dashboard, import a recipe, a sturdier shop name, and an FAQ.

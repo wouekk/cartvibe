@@ -20,6 +20,11 @@ describe("BarcodeScannerDialogComponent", () => {
   let onCode: (code: string) => void;
   let getUserMedia: Mock;
   let decode: Mock;
+  let enumerateDevices: Mock;
+
+  const streamOf = (cameraTrack: { stop: Mock }, deviceId: string) =>
+    ({ getTracks: () => [cameraTrack], getVideoTracks: () => [{ ...cameraTrack, getSettings: () => ({ deviceId }) }] }) as unknown as MediaStream;
+  const camera = (deviceId: string, label: string) => ({ deviceId, label, kind: "videoinput" }) as MediaDeviceInfo;
 
   const state = (): string => fixture.componentInstance.state();
 
@@ -28,8 +33,9 @@ describe("BarcodeScannerDialogComponent", () => {
     track = { stop: vi.fn() };
     stopScan = vi.fn();
     decode = vi.fn();
-    getUserMedia = vi.fn().mockResolvedValue({ getTracks: () => [track] });
-    Object.defineProperty(globalThis.navigator, "mediaDevices", { value: { getUserMedia }, configurable: true });
+    getUserMedia = vi.fn().mockResolvedValue(streamOf(track, "triple"));
+    enumerateDevices = vi.fn().mockResolvedValue([]);
+    Object.defineProperty(globalThis.navigator, "mediaDevices", { value: { getUserMedia, enumerateDevices }, configurable: true });
     setSecureContext(true);
     vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
 
@@ -74,6 +80,51 @@ describe("BarcodeScannerDialogComponent", () => {
 
     expect(getUserMedia).toHaveBeenCalledWith({ video: { facingMode: "environment" }, audio: false });
     expect(state()).toBe("scanning");
+  });
+
+  describe("the main lens", () => {
+    const devices = [camera("triple", "Back Triple Camera"), camera("main", "Back Camera"), camera("front", "Front Camera")];
+
+    it("reopens the stream on the main lens when the browser picked a lens-switching camera", async () => {
+      const mainTrack = { stop: vi.fn() };
+      enumerateDevices.mockResolvedValue(devices);
+      getUserMedia.mockResolvedValueOnce(streamOf(track, "triple")).mockResolvedValueOnce(streamOf(mainTrack, "main"));
+
+      await start();
+
+      expect(getUserMedia).toHaveBeenNthCalledWith(2, { video: { deviceId: { exact: "main" } }, audio: false });
+      expect(track.stop).toHaveBeenCalled();
+      expect(mainTrack.stop).not.toHaveBeenCalled();
+      expect(state()).toBe("scanning");
+    });
+
+    it("keeps the first stream when it is already the main lens", async () => {
+      enumerateDevices.mockResolvedValue(devices);
+      getUserMedia.mockResolvedValueOnce(streamOf(track, "main"));
+
+      await start();
+
+      expect(getUserMedia).toHaveBeenCalledTimes(1);
+      expect(track.stop).not.toHaveBeenCalled();
+    });
+
+    it("keeps the first stream when the main lens cannot be opened", async () => {
+      enumerateDevices.mockResolvedValue(devices);
+      getUserMedia.mockResolvedValueOnce(streamOf(track, "triple")).mockRejectedValueOnce({ name: "OverconstrainedError" });
+
+      await start();
+
+      expect(track.stop).not.toHaveBeenCalled();
+      expect(state()).toBe("scanning");
+    });
+  });
+
+  it("shows the brackets to put the barcode between while scanning", async () => {
+    await start();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[data-testid="barcode-scanner-frame"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="barcode-scanner-unavailable"]')).toBeNull();
   });
 
   it("closes with the barcode it found and stops the camera", async () => {

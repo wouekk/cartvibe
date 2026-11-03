@@ -80,6 +80,18 @@ describe("ProductCheckDialogComponent", () => {
     expect(text("product-check-nova")).toContain("4");
   });
 
+  it("drops the previous product's photo when the next product has none", async () => {
+    service.showProduct(sampleProduct({ imageUrl: "https://images.openfoodfacts.org/nutella.jpg" }));
+    await render();
+    expect(element("product-check-product")?.querySelector("img")?.getAttribute("src")).toBe("https://images.openfoodfacts.org/nutella.jpg");
+
+    service.showProduct(sampleProduct({ code: "5449000000996", name: "Cola", imageUrl: null }));
+    await render();
+
+    expect(text("product-check-name")).toBe("Cola");
+    expect(element("product-check-product")?.querySelector("img")).toBeNull();
+  });
+
   it("lists additives from the highest risk down, each with its category", async () => {
     service.showProduct(sampleProduct());
     await render();

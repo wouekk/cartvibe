@@ -194,6 +194,12 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
 - The live scanner needs `canUseCamera()` (`isSecureContext` + `getUserMedia`). Photo inputs are native `<label>`s
   around hidden file inputs, never a button calling `input.click()` (mobile browsers ignore a click made after an
   `await`). `BarcodeImageService` shrinks to 1280px, tries `BarcodeDetector`, then zxing (loaded on demand).
+- The scanner opens the back camera with `facingMode: "environment"` (that grants the permission, so device labels are
+  readable), then `pickMainCameraId` (`main-camera.ts`) looks for the plain main lens by label and reopens the stream on
+  that `deviceId` if the browser gave a virtual triple/dual camera (an iPhone Pro's hops between lenses while focusing).
+  Any failure keeps the first stream. The viewfinder draws `[ ]` brackets (`SCAN_FRAME` in `scan-frame.ts`, fractions of
+  the box); `BarcodeScannerService` ignores a read whose centre is outside them, mapping the frame through the video's
+  `object-fit: cover` crop (`frameInVideo`). Photo decoding is unaffected.
 - Scoring (`health-score.ts`, pure): 60% Nutri-Score + 40% NOVA, minus additive penalties from `e-additives.ts`.
 
 ## Translations (`src/i18n/`, `src/assets/i18n/`, `scripts/i18n/`)

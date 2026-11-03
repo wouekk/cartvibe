@@ -133,7 +133,7 @@ in by hand and the AI is retried later.
 
 | ID | Feature | Behaviour and acceptance | Since | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| FOOD-01 | Check a product | *Check product* reads a barcode with the camera, from a photo of it, or typed in, and shows the product's Nutri-Score, NOVA level, additives and nutrition from Open Food Facts in a side panel (a bottom sheet on a phone). Nothing is stored. | 0.4.0 | released |
+| FOOD-01 | Check a product | *Check product* reads a barcode with the camera, from a photo of it, or typed in. The live camera stays on the phone's main lens (it never hops between lenses while focusing) and shows two brackets: only a barcode held between them is read. It shows the product's Nutri-Score, NOVA level, additives and nutrition from Open Food Facts in a side panel (a bottom sheet on a phone). Nothing is stored. | 0.4.0 | released |
 
 ## Notifications (NOTE)
 

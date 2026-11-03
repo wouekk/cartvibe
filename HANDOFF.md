@@ -34,6 +34,9 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
 - A phone Quick Scan once failed with `multipart: NextPart: EOF` (the log line carries the Content-Length).
 - Installable app behind the Synology proxy: install on iPhone Safari and Android Chrome, keep-screen-on, Share, a real
   barcode read, a touch drag on the Dashboard customise screen.
+- Check product scanner ([#11](https://github.com/wouekk/cartvibe/issues/11)): on a real phone the camera must stay on one
+  lens and read only a barcode between the `[ ]` brackets. The issue's second half (a product without a photo keeps the
+  previous product's photo) did not reproduce in a spec; if it happens, note the barcode.
 - CSP: if the NAS console stays clean, rename `Content-Security-Policy-Report-Only` to `Content-Security-Policy` in
   `docker/default.conf`. Check the login rate limit still keys per visitor behind the Synology proxy.
 - Recipe import (new image: nginx `recipe` zone): a link (Allrecipes answers 403 and Kwestia Smaku has no recipe data, so

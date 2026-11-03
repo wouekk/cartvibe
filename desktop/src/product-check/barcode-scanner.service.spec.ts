@@ -72,6 +72,29 @@ describe("BarcodeScannerService", () => {
     expect(codes).toEqual(["5449000000996"]);
   });
 
+  it("ignores a native read outside the scan frame", async () => {
+    vi.useFakeTimers();
+    const box = { clientWidth: 400, clientHeight: 300, videoWidth: 1600, videoHeight: 1200 } as HTMLVideoElement;
+    const corners = (x: number, y: number) => [
+      { x: x - 100, y },
+      { x: x + 100, y },
+    ];
+    const reads = [
+      [{ rawValue: "3017620422003", cornerPoints: corners(800, 100) }],
+      [{ rawValue: "5449000000996", cornerPoints: corners(800, 600) }],
+    ];
+    (globalThis as any).BarcodeDetector = class {
+      public detect = vi.fn(async () => reads.shift() ?? []);
+    };
+    const service = TestBed.inject(BarcodeScannerService) as TestScanner;
+    const codes: string[] = [];
+
+    await service.start(stream, box, (code) => codes.push(code));
+    await vi.advanceTimersByTimeAsync(400);
+
+    expect(codes).toEqual(["5449000000996"]);
+  });
+
   it("stops looking when stopped", async () => {
     vi.useFakeTimers();
     const detect = vi.fn(async () => []);
