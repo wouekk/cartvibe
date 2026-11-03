@@ -191,7 +191,8 @@ which day an instant falls on and what "today" means.
 ## 7. Background work and AI
 
 - Queues: `quick_scan` and `system_clean_up` only. New periodic work is a task on the clean-up queue, not a new queue
-  or `SystemTaskType`. Sweep rows are claimed with a conditional UPDATE and a lease (`claimDue`); schedules and the
+  or `SystemTaskType`; so is one-off work an admin starts (the household import keeps its own job row instead of a
+  system task, and its progress in memory while its transaction holds the write lock: `docs/domain.md`). Sweep rows are claimed with a conditional UPDATE and a lease (`claimDue`); schedules and the
   quick-scan pipeline: `docs/domain.md`.
 - **AI is fallible:** no AI configured means nothing is called and nothing counted. A failed call or unreadable answer
   counts an attempt; extraction and trips give up after 3 or 14 days. Classification never fails a product on an outage

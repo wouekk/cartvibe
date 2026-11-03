@@ -1,0 +1,92 @@
+<app-dialog [headerText]="'Import into this server'">
+  <div class="flex min-w-0 flex-col gap-4" data-testid="import-preview">
+    <p class="m-0 text-sm text-muted-foreground break-words" data-testid="import-preview-file">
+      {{ preview.fileName }} · {{ preview.exportedAt.slice(0, 10) }}
+      @if (preview.appVersion && preview.appVersion !== 'unknown') {
+        · CartVibe {{ preview.appVersion }}
+      }
+    </p>
+
+    @if (blockers.length > 0) {
+      <div class="flex min-w-0 flex-col gap-1 rounded-lg bg-destructive/10 p-3 text-sm text-destructive" role="alert" data-testid="import-preview-blockers">
+        @for (blocker of blockers; track blocker) {
+          <p class="m-0 break-words">{{ blocker | t }}</p>
+        }
+        @if (preview.problems.length > 0) {
+          <ul class="m-0 list-disc pl-5" data-testid="import-preview-problems">
+            @for (problem of preview.problems; track $index) {
+              <li class="break-words">{{ problem }}</li>
+            }
+          </ul>
+        }
+      </div>
+    }
+
+    <ul class="cv-list cv-inset text-sm" data-testid="import-preview-counts">
+      @for (row of rows; track row.label) {
+        <li>
+          <span class="text-muted-foreground">{{ row.label | t }}</span>
+          <span class="font-medium text-foreground tabular-nums">{{ row.count }}</span>
+        </li>
+      }
+      <li>
+        <span class="text-muted-foreground">{{ 'Photos and PDFs' | t }}</span>
+        <span class="font-medium text-foreground tabular-nums">{{ preview.fileCount }}</span>
+      </li>
+    </ul>
+
+    <p class="m-0 text-sm text-muted-foreground" data-testid="import-preview-catalog">
+      {{ 'Categories: {matched} already here, {created} new. Tags: {tagsMatched} already here, {tagsCreated} new.' | t: { matched: preview.categoriesMatched, created: preview.categoriesNew, tagsMatched: preview.tagsMatched, tagsCreated: preview.tagsNew } }}
+    </p>
+
+    <div class="flex min-w-0 flex-col gap-2">
+      <h3 class="cv-section__title m-0">{{ 'People' | t }}</h3>
+      <ul class="m-0 flex min-w-0 list-none flex-col p-0" data-testid="import-preview-people">
+        @for (person of preview.people; track person.sourceId) {
+          <li class="flex min-h-11 min-w-0 items-center justify-between gap-3 border-b border-border/40 last:border-b-0">
+            <span class="min-w-0 break-words text-sm">
+              {{ person.displayName || person.username }}
+              <span class="text-muted-foreground">({{ person.username }})</span>
+            </span>
+            @if (person.match === 'account') {
+              <app-badge [text]="'Account' | t" tone="green"></app-badge>
+            } @else {
+              <app-badge [text]="'Name only' | t" tone="slate"></app-badge>
+            }
+          </li>
+        }
+      </ul>
+      <p class="m-0 text-[13px] text-muted-foreground">
+        {{ 'A person with no account here keeps their name on their receipts but cannot sign in. Give them a password later under Users.' | t }}
+      </p>
+    </div>
+
+    <app-select
+      data-testid="import-preview-me"
+      [label]="'Which person in the file are you?' | t"
+      [options]="meOptions"
+      optionValueKey="value"
+      optionDisplayKey="label"
+      [inputFormControl]="meControl"
+    ></app-select>
+
+    @if (warnings.length > 0) {
+      <div class="cv-inset flex min-w-0 items-start gap-2 text-sm" role="status" data-testid="import-preview-warnings">
+        <app-icon name="info" class="mt-0.5 shrink-0 text-muted-foreground"></app-icon>
+        <ul class="m-0 flex min-w-0 list-none flex-col gap-1 p-0">
+          @for (warning of warnings; track warning) {
+            <li class="break-words">{{ warning | t }}</li>
+          }
+        </ul>
+      </div>
+    }
+
+    <app-dialog-footer
+      submitButtonTooltip="Import"
+      submitButtonType="button"
+      [submitDisabled]="!canImport()"
+      (submitClicked)="start()"
+      (cancelClicked)="cancel()"
+    ></app-dialog-footer>
+  </div>
+</app-dialog>

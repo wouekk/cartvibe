@@ -1,6 +1,7 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { of, throwError } from "rxjs";
+import { Store } from "@ngxs/store";
 import { BackupService, BackupSummary } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { formatByteSize } from "../../utils/file";
@@ -33,6 +34,8 @@ describe("ExportImportPageComponent", () => {
       imports: [ExportImportPageComponent],
       providers: [
         provideZonelessChangeDetection(),
+        // No import permission: the Import card stays out of these specs.
+        { provide: Store, useValue: { selectSnapshot: () => false } },
         { provide: BackupService, useValue: backupService },
         { provide: SnackbarService, useValue: snackbar },
       ],

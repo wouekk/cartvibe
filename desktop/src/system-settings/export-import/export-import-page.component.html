@@ -51,7 +51,6 @@
       <li>{{ 'The file holds everyone\'s receipts and lists, whoever paid. Keep it somewhere private.' | t }}</li>
       <li>{{ 'Passwords, AI keys and the Logo.dev key are never in it: on another server they are set up again.' | t }}</li>
       <li>{{ 'It is not the server backup. Keep backing up the sqlite and data folders as the FAQ describes; only that keeps everything.' | t }}</li>
-      <li>{{ 'Importing a file into a new server comes in a later update.' | t }}</li>
     </ul>
   </div>
 
@@ -77,3 +76,7 @@
     </button>
   </div>
 </app-settings-section>
+
+@if (canImport) {
+  <app-backup-import-card></app-backup-import-card>
+}

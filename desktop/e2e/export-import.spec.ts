@@ -91,5 +91,43 @@ test.describe('Export & import (System Settings)', () => {
     await page.goto('/system-settings/export-import');
     await expect(page).not.toHaveURL(/export-import/);
     await context.close();
+
+    const importStatus = await withApiAs('user', async (api) => (await api.get('/api/backup/import')).status());
+    expect(importStatus).toBe(403);
+  });
+
+  // The shared e2e server always has receipts, so an import can only be previewed and refused here; the full
+  // import into an empty server is the Go round-trip test.
+  test('an import into a server with data is previewed, refused and changes nothing', async ({ browser }) => {
+    const zip = await withAdminApi(async (api) => (await api.get('/api/backup/export?includeFiles=false')).body());
+
+    const context = await browser.newContext({ storageState: 'e2e/.auth/admin.json' });
+    const page = await context.newPage();
+    await stubTokenRefresh(page);
+    await page.goto('/system-settings/export-import');
+    await expect(page.getByTestId('settings-card-import')).toBeVisible();
+
+    await page.getByTestId('import-file-input').setInputFiles({ name: 'cartvibe-backup.zip', mimeType: 'application/zip', buffer: zip });
+    const dialog = page.getByTestId('import-preview');
+    await expect(dialog).toBeVisible();
+    await expect(page.getByTestId('import-preview-blockers')).toContainText('already has receipts');
+    await expect(page.getByRole('button', { name: 'Import', exact: true })).toBeDisabled();
+
+    await page.getByRole('button', { name: 'Cancel' }).click();
+    await expect(dialog).toBeHidden();
+
+    // Nothing was queued, and Cancel dropped the uploaded file's job.
+    await expect
+      .poll(async () => {
+        const jobs = await withAdminApi(async (api) => (await api.get('/api/backup/import')).json());
+        return jobs.filter((job: { status: string }) => job.status !== 'failed').length;
+      })
+      .toBe(0);
+
+    // A file that is not an export is refused with the server's reason.
+    await page.getByTestId('import-file-input').setInputFiles({ name: 'notes.zip', mimeType: 'application/zip', buffer: Buffer.from('not a zip') });
+    await expect(page.getByText('This file is not a CartVibe export.')).toBeVisible();
+
+    await context.close();
   });
 });

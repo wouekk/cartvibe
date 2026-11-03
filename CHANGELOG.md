@@ -15,8 +15,14 @@ From the first release after 0.16.0, every user-visible entry names the feature 
 - **Export the household ([#4](https://github.com/wouekk/cartvibe/issues/4), ADM-11).** A new *Export & import* tab under
   System Settings downloads everything the household has (receipts with their products and comments, shopping lists,
   categories, tags, goals, exchange rates, report templates, the household settings and, if you like, the photos and
-  PDFs) as one ZIP of CSV files you can open in a spreadsheet. Passwords and keys are never in it. Admins only. Importing
-  the file into a new server comes next; the format is described in [docs/backup-format.md](docs/backup-format.md).
+  PDFs) as one ZIP of CSV files you can open in a spreadsheet. Passwords and keys are never in it. Admins only. The
+  format is described in [docs/backup-format.md](docs/backup-format.md).
+- **Import the household into a new server (#4, ADM-12).** On the same tab, upload an export (up to 4 GB) and see what
+  it holds before anything is written: the counts, each person (an account here, or kept as a name only), matching
+  categories and tags, and what changes. Pick which person in the file you are, then import: it runs in the background,
+  into an empty household only, and either brings everything over (receipts, totals, photos, lists, goals) or changes
+  nothing. People without an account keep their name on their receipts and get a sign-in later through *Convert to
+  normal user*.
 - **A feature registry** ([docs/FEATURES.md](docs/FEATURES.md)): every feature in plain words, with a stable ID, the version
   that introduced it and how to tell it works; [CONTRIBUTING.md](CONTRIBUTING.md) and a feature request form; a Platforms
   section in the README.

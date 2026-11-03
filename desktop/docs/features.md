@@ -297,7 +297,14 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
     PDFs* switch (on by default) and Download. Download asks for the summary again first (through the interceptors, so an
     expired session is renewed), then starts a plain same-origin download of `/api/backup/export?includeFiles=…`
     (`downloadUrl` in `utils/file.ts`): the ZIP streams to disk instead of into a Blob. The demo answers the summary and
-    refuses the download with a toast. The import is not built yet (`../../docs/plans/backup.md`, phase 2).
+    refuses the download with a toast. The Import card (`backup-import-card`, only with `app.backup.import`): a native
+    `<label>` around a hidden `.zip` input (styled with `buttonVariants`, the barcode-photo precedent), an XHR upload with
+    progress (`previewBackupImport(file, "events", true)`), then `BackupImportPreviewDialogComponent` (opened with
+    `autoFocus: "dialog"` so a blocker at the top is seen): counts, people with *Account* / *Name only* badges, "Which
+    person in the file are you?" (seeded with `suggestedMeSourceId`), known warnings only, blockers and problems; Import is
+    dimmed while anything blocks; Cancel deletes the uploaded file. A started import is polled every 2 s until it ends;
+    the card shows the last finished one (never a mere upload) with next steps or "Nothing was changed". Errors come from
+    the interceptor (the server's `errorMsg`). The demo refuses the upload with a toast.
   - Logs (`src/system-settings/logs/`): the newest 300 app-log lines, the first place to look for a reported error.
   - System Tasks: `system-tasks.md`.
 - **AI page** (`/ai`, every member): `app-ai-provider-fields` is the one provider block (main card and

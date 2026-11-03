@@ -70,3 +70,17 @@ data-migration ledger and the shop logos (downloaded again).
 - A breaking change (a renamed or re-meant column) bumps it, and the reader gets an upcaster from the older version.
 - A reader refuses a `formatVersion` newer than its own ("update CartVibe first"), an entry name that could leave a
   folder (`..`, an absolute path, a backslash), and an entry whose size or SHA-256 differs from the manifest.
+
+## How an import reads it
+
+`api/internal/backup/parse.go` reads the tables back; `import.go` writes them. The rules a change to the format must
+keep:
+
+- Every id in the file is the exporting server's. The import gives each row a new id and rewrites the references,
+  including the ids inside a report template's `configuration` (`groupIds`, the filter's `group`, `paidBy`, `categories`,
+  `tags`) and the tag panels (`tag:<id>`) of a Dashboard `layout`. A template whose ids cannot be mapped is skipped.
+- A row that cannot be read, or that points at a row the file does not have, is a *problem*: the preview lists it and
+  the import does not start.
+- People are matched by `username`, categories by name or any old name in `aliases`, tags by name (case-insensitive).
+- A receipt file row is written only when its photo is in the ZIP, so no receipt points at a missing image.
+- `manifest.household` sets the currency and time zone of the server it is imported into.

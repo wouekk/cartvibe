@@ -6,11 +6,14 @@ import { HlmSwitchImports } from "@spartan-ng/helm/switch";
 import { DEMO_MODE } from "../../demo/demo-runtime";
 import { marker } from "../../i18n/marker";
 import { PluralPipe, TranslatePipe } from "../../i18n/translate.pipe";
-import { BackupService, BackupSummary } from "../../open-api";
+import { Store } from "@ngxs/store";
+import { BackupService, BackupSummary, Permission } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
+import { AuthState } from "../../store";
 import { downloadUrl, formatByteSize } from "../../utils/file";
+import { BackupImportCardComponent } from "./backup-import-card.component";
 
 /** The export's tables shown on the card, by their file name in the ZIP. */
 export const EXPORT_SUMMARY_ROWS = [
@@ -34,16 +37,19 @@ export function exportDownloadUrl(includeFiles: boolean): string {
  */
 @Component({
   selector: "app-export-import-page",
-  host: { class: "block" },
+  host: { class: "flex flex-col gap-6" },
   templateUrl: "./export-import-page.component.html",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [SharedUiModule, TranslatePipe, PluralPipe, CommonModule, HlmButton, AppIconComponent, ...HlmSwitchImports],
+  imports: [SharedUiModule, TranslatePipe, PluralPipe, CommonModule, HlmButton, AppIconComponent, ...HlmSwitchImports, BackupImportCardComponent],
 })
 export class ExportImportPageComponent implements OnInit {
   private readonly backupService = inject(BackupService);
   private readonly snackbarService = inject(SnackbarService);
   private readonly destroyRef = inject(DestroyRef);
+
+  /** The Import card is for who may import (an admin); the server checks again. */
+  public readonly canImport = inject(Store).selectSnapshot(AuthState.hasAppPermission(Permission.AppBackupImport));
 
   public readonly summary = signal<BackupSummary | null>(null);
   public readonly loading = signal(true);

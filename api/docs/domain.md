@@ -198,9 +198,41 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
 - Never exported: password hashes, AI processing settings and keys, the Logo.dev key, OIDC providers and identities,
   push subscriptions, tokens and OAuth rows, notifications, system tasks, extraction rows, warranty reminders, roles and
   grants, shop logos. `TestExportNeverContainsSecrets` scans every entry for seeded secrets.
-- A new table or column the household would miss after a move goes into `tableSpecs` (`backup/export.go`) and the format
-  note in the same branch; an additive column keeps `FormatVersion`.
-- The import (phase 2 of `../../docs/plans/backup.md`) is not built: `app.backup.import` is reserved for it.
+- A new table or column the household would miss after a move goes into `tableSpecs` (`backup/export.go`), the reader
+  (`backup/parse.go`), the writer (`backup/import.go`) and the format note in the same branch; an additive column keeps
+  `FormatVersion`.
+
+### Import (`app.backup.import`)
+
+- **Into an empty household only:** no receipts and no shopping lists (`HouseholdIsEmpty`), checked at the preview, at
+  start and again inside the transaction, so a second import of the same file adds nothing.
+- `POST /backup/import` streams the multipart part to `temp/backups/<jobId>.zip` (`MaxUploadBytes` 4 GB; nginx passes
+  `/api/backup/import` unbuffered with the same cap) after clearing the read and write deadlines. It opens the ZIP,
+  checks every entry's size and SHA-256 against the manifest, parses every table (`Parse`: a cell that cannot be read or
+  a reference to a missing row is a *problem*, listed in the preview) and answers `BuildPreview`. A file that is not an
+  export, is damaged or comes from a newer format answers 400 and leaves no job. Previewed jobs older than a day are
+  dropped with their file on the next upload. Entry names are never used as paths; a ZIP with `..`, an absolute name or a
+  backslash is refused.
+- `BackupImportJob` (`status`: previewed, queued, running, succeeded, failed: plain strings) is the import's record: no
+  `SystemTaskType` was added. `POST /backup/import/{id}/start` queues `system_clean_up:backup_import` (payload: the job
+  id only) on the existing clean-up queue. The worker claims the job with a conditional UPDATE (a `running` job is taken
+  over after a two-hour lease), returns `asynq.SkipRetry` on failure (a failed import changed nothing) and records the
+  error on the job and in `logs/app.log`.
+- `Import`: photos are staged under `data/.import-<jobId>/` first, outside the transaction; then **one transaction**
+  writes every row with new ids (in-memory maps from the file's ids) and moves each staged photo to `BuildFilePath`.
+  A failure rolls the rows back and moves the photos back; the staging folder is always removed. `failWriteForTest`
+  proves it. Progress lives in memory (`CurrentProgress`), because the transaction holds the write lock.
+- **Matching:** people by username; the person picked as "you" (`meSourceUserId`) becomes the importer; anyone else
+  without an account becomes a **name-only person** (`is_dummy_user`, no password, the family User role, an All group),
+  who cannot sign in until an admin uses *Convert to normal user*. Categories by name or old name (aliases), tags by name,
+  case-insensitively; the rest are created. A group with the same name as an existing real group (on a new server, the
+  Household) is reused, others are created; the importer is added to every group. An unknown group role becomes Member.
+- Written as stored: receipt dates (midnight UTC), amounts and conversions (never recomputed), `created_at`, statuses,
+  product classification and `planned`. Nothing goes through `CreateReceiptImage`, so no product read is queued and the
+  AI never replaces the imported lines. Report templates and Dashboard layouts have their ids rewritten (a template with
+  an id that cannot be mapped is skipped; a starter template with the same name is replaced); goals, language and
+  layouts are carried for the name-only people and the importer only. The currency and time zone are set from the file;
+  `SyncAllWarrantyReminders` runs after the commit.
 
 ## Sweeps and quick scan
 

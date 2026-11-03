@@ -16,9 +16,10 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   today") fail on `main` too, with 15 skipped behind them. Not looked into.
 - Dashboard drill-down (#8, 0.16.0): the Playwright `dashboard-charts` spec and a look at phone width, day/night and the
   accent palettes are still to do. `docs/FEATURES.md` still needs one pass over the live app; keep it current.
-- Backup tab (#4), shown as *Export & import*, planned in `docs/plans/backup.md` (untracked, owner's answers in it).
-  Phase 1 (export, ADM-11) is built on `feature/backup-export`; `e2e/backup-export.spec.ts` passed locally once (not in
-  smoke). Next: phase 2, the import into an empty server, on `feature/backup-import`.
+- Backup tab (#4), shown as *Export & import* (plan: `docs/plans/backup.md`, untracked). Export (ADM-11) and import into
+  an empty server (ADM-12) are built on `feature/backup-import` (it contains `feature/backup-export`); neither is on
+  `main`. A local round trip (export, fresh server, import) gave identical receipts and totals.
+  `e2e/export-import.spec.ts` passed locally (not in smoke). Merging into a non-empty household (phase 3) is not planned.
 - `e2e-smoke` fails now and then with `HTTP 503` on an API login (nginx login limit, 30 a minute); re-running the job passes.
 - Not run anywhere: Safari and Firefox on desktop, Lighthouse, Web Push on a real device (needs HTTPS and VAPID keys).
 
@@ -33,7 +34,8 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
 - Behind the Synology HTTPS proxy: install on iPhone and Android, keep-screen-on, Share, the barcode scanner (#11: one
   lens, reads only between the `[ ]`), recipe import (a link, pasted text, the Android share sheet), a touch drag on the
   Dashboard customise screen, the login rate limit keyed per visitor, and whether the proxy limits upload size (the
-  import takes up to 4 GB).
+  import takes up to 4 GB). On `:preview`: download an export with photos and open a CSV; try an import only on a spare
+  empty server, never the family one.
 - CSP: if the NAS console stays clean, rename `Content-Security-Policy-Report-Only` to `Content-Security-Policy` in
   `docker/default.conf`.
 

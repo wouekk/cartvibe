@@ -9,6 +9,7 @@ Short answers for running a CartVibe household. Setup, updating and the Synology
 - [How do I use CartVibe as an app on my phone?](#how-do-i-use-cartvibe-as-an-app-on-my-phone)
 - [How do I check that my backup really restores?](#how-do-i-check-that-my-backup-really-restores)
 - [How do I keep my own copy of the household?](#how-do-i-keep-my-own-copy-of-the-household)
+- [How do I move CartVibe to another server?](#how-do-i-move-cartvibe-to-another-server)
 
 ## How do I rename a household?
 
@@ -194,9 +195,10 @@ compare with.
 rented server with `docker-compose.vps.yml` restores differently: see [docs/vps-deploy.md](vps-deploy.md#restore-drill-do-it-once-after-setup-then-every-few-months).
 
 **The Export & import tab is not this backup.** System Settings → Export & import downloads the household's receipts,
-lists, categories and photos as spreadsheet files: handy as your own copy, and the way to move to another server once
-the import is there. It leaves out sign-ins, keys and history, so keep backing up the `sqlite` and `data` folders as
-above. See [How do I keep my own copy of the household?](#how-do-i-keep-my-own-copy-of-the-household)
+lists, categories and photos as spreadsheet files: handy as your own copy, and a way to move to another server. It
+leaves out sign-ins, keys and history, so keep backing up the `sqlite` and `data` folders as above. See
+[How do I keep my own copy of the household?](#how-do-i-keep-my-own-copy-of-the-household) and
+[How do I move CartVibe to another server?](#how-do-i-move-cartvibe-to-another-server)
 
 ## How do I keep my own copy of the household?
 
@@ -210,5 +212,24 @@ Excel, Numbers or LibreOffice, the photos under `files/`, and `manifest.json`, w
 checksum. Amounts are written with a dot (`43.21`) and dates as `2026-11-03`, whatever the language of the app.
 
 Keep the file somewhere private: it holds everyone's receipts, whoever paid them. Passwords, AI keys and the Logo.dev key
-are never in it. Importing it into a new server comes in a later update; until then, moving to another server means
-copying the `sqlite` and `data` folders as described under restoring above.
+are never in it.
+
+## How do I move CartVibe to another server?
+
+There are two ways. **Copying the `sqlite` and `data` folders** (as under restoring above) moves everything, sign-ins and
+keys included, but the new server must run the same CartVibe version with the same `ENCRYPTION_KEY`. **Export and
+import** moves the household's data between any two versions, without sign-ins or keys:
+
+1. On the old server: **System Settings → Export & import**, leave **Include photos and PDFs** on, **Download**.
+2. Set up the new server and sign in with its first admin account. Add nothing yet: an import only goes into an empty
+   household (no receipts, no shopping lists).
+3. On the new server: **System Settings → Export & import → Choose file…** and pick the ZIP. A large file uploads best
+   over Wi-Fi from a computer. If the new server sits behind a reverse proxy (Synology's included), make sure it accepts
+   uploads that large.
+4. Check the preview: the counts, the people, what will change (the currency and time zone come from the file). Under
+   **Which person in the file are you?**, pick yourself, so your receipts and goal become your account's. Press
+   **Import**. It runs in the background; you can leave the page.
+5. Afterwards: people kept as a name show on their receipts but cannot sign in. Under **Management → Users**, use
+   **Convert to normal user** to give each a password. Set up the AI and the Logo.dev key again. Reload the page.
+
+If the import stops, nothing was changed: fix what the message says and try again.

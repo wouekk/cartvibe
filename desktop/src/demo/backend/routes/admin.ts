@@ -61,6 +61,8 @@ export function registerAdmin(router: DemoRouter): void {
     formatVersion: 1,
   }));
   router.get("/backup/export", () => badRequest(NOT_IN_DEMO));
+  router.get("/backup/import", () => []);
+  router.post("/backup/import", () => badRequest(NOT_IN_DEMO));
   router.get("/exchangeRate", ({ db }): CurrencyRateTable => ({ mainCurrency: "EUR", rates: db.exchangeRates }));
   router.put("/exchangeRate", (ctx) => {
     const table = body<CurrencyRateTable>(ctx);
