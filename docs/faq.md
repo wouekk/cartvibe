@@ -8,6 +8,7 @@ Short answers for running a CartVibe household. Setup, updating and the Synology
 - [How do I add a Logo.dev API key?](#how-do-i-add-a-logodev-api-key)
 - [How do I use CartVibe as an app on my phone?](#how-do-i-use-cartvibe-as-an-app-on-my-phone)
 - [How do I check that my backup really restores?](#how-do-i-check-that-my-backup-really-restores)
+- [How do I keep my own copy of the household?](#how-do-i-keep-my-own-copy-of-the-household)
 
 ## How do I rename a household?
 
@@ -191,3 +192,23 @@ compare with.
 (rename them, do not delete them yet), copy both folders from the backup into `/docker/cartvibe`, keep `SECRET_KEY` and
 `ENCRYPTION_KEY` as they were, then start the stack and hard-refresh the browser. Everyone may need to sign in again. A
 rented server with `docker-compose.vps.yml` restores differently: see [docs/vps-deploy.md](vps-deploy.md#restore-drill-do-it-once-after-setup-then-every-few-months).
+
+**The Export & import tab is not this backup.** System Settings → Export & import downloads the household's receipts,
+lists, categories and photos as spreadsheet files: handy as your own copy, and the way to move to another server once
+the import is there. It leaves out sign-ins, keys and history, so keep backing up the `sqlite` and `data` folders as
+above. See [How do I keep my own copy of the household?](#how-do-i-keep-my-own-copy-of-the-household)
+
+## How do I keep my own copy of the household?
+
+An admin opens **System Settings → Export & import**. The card shows what the file will hold (receipts, products, lists,
+categories, tags, people) and how large the photos and PDFs are. Leave **Include photos and PDFs** on for a complete copy,
+or switch it off for a small file with the data only, then press **Download**. The file is named
+`cartvibe-backup-<date>.zip`.
+
+Inside are one CSV file per kind of thing (`receipts.csv`, `receipt_products.csv`, `shopping_lists.csv` …), which open in
+Excel, Numbers or LibreOffice, the photos under `files/`, and `manifest.json`, which lists every file with its size and a
+checksum. Amounts are written with a dot (`43.21`) and dates as `2026-11-03`, whatever the language of the app.
+
+Keep the file somewhere private: it holds everyone's receipts, whoever paid them. Passwords, AI keys and the Logo.dev key
+are never in it. Importing it into a new server comes in a later update; until then, moving to another server means
+copying the `sqlite` and `data` folders as described under restoring above.

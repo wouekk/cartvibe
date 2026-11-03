@@ -184,6 +184,24 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
 - Failed quick-scan uploads can be previewed, downloaded and rerun from the activity list; the temp sweep, flags and
   authorization order are in `api/docs/activity-source-files.md`.
 
+## Household export (Export & import tab)
+
+- `internal/backup` writes the format described in `../../docs/backup-format.md`. `GET /backup/summary` and
+  `GET /backup/export?includeFiles=` need `app.backup.export` (admin only, not in `FamilyUserAppKeys`).
+- `TakeSnapshot` reads every table into CSV bytes inside **one transaction**. With `_txlock=immediate` a read transaction
+  holds the write lock, so it holds rows only; `WriteZip` streams the photos after it closes and lists a file deleted in
+  between under `missingFiles`. The handler clears the write deadline (like the SSE stream), and nginx passes
+  `/api/backup/export` unbuffered.
+- Rows are read straight from the tables, not through `GetPagedReceiptsByGroupId`: a whole-household dump behind an
+  admin key, so paid-by and member isolation do not apply (`authorization.md`). The All group is never written; its ids
+  are in the manifest for report templates that cover it.
+- Never exported: password hashes, AI processing settings and keys, the Logo.dev key, OIDC providers and identities,
+  push subscriptions, tokens and OAuth rows, notifications, system tasks, extraction rows, warranty reminders, roles and
+  grants, shop logos. `TestExportNeverContainsSecrets` scans every entry for seeded secrets.
+- A new table or column the household would miss after a move goes into `tableSpecs` (`backup/export.go`) and the format
+  note in the same branch; an additive column keeps `FormatVersion`.
+- The import (phase 2 of `../../docs/plans/backup.md`) is not built: `app.backup.import` is reserved for it.
+
 ## Sweeps and quick scan
 
 - **Quick scan** (`HandleQuickScanTask`): one scan at a time (package mutex), 3 tries then archived; the uploader is

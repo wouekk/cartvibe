@@ -7,6 +7,7 @@ import { FormConfig } from "../interfaces";
 import { Permission } from "../open-api";
 import { allReceiptProcessingSettingsResolver } from "./resolvers/receipt-processing-settings.resolver";
 import { systemSettingsResolver } from "./resolvers/system-settings.resolver";
+import { ExportImportPageComponent } from "./export-import/export-import-page.component";
 import { LogsPageComponent } from "./logs/logs-page.component";
 import { SystemSettingsFormComponent } from "./system-settings-form/system-settings-form.component";
 import { SystemSettingsComponent } from "./system-settings/system-settings.component";
@@ -46,6 +47,14 @@ const routes: Routes = [
       { path: "settings/edit", redirectTo: "general", pathMatch: "full" },
       { path: "integrations", redirectTo: "general", pathMatch: "full" },
       { path: "system-tasks", redirectTo: "tasks", pathMatch: "full" },
+      {
+        path: "export-import",
+        component: ExportImportPageComponent,
+        canActivate: [appPermissionGuard],
+        data: {
+          appPermissions: [Permission.AppBackupExport],
+        },
+      },
       {
         path: "logs",
         component: LogsPageComponent,

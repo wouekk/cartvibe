@@ -62,7 +62,7 @@ handle).
 - Group and receipt files live under `data/<groupId>-<groupName>/`; the group name is user-controlled (CWE-22,
   GHSA-966v-m9rv-j5cx). **Every data path goes through `internal/utils/data_files.go`** (`GetDataDir`,
   `BuildGroupPathString` / `FileRepository.BuildFilePath`, `MakeDataDirectory`, `WriteDataFile`, `ReadDataFile`,
-  `RemoveDataPath`, `RemoveAllInDataDir`, `RenameDataPath`), each re-asserting containment. No ad-hoc sanitizing and no
+  `RemoveDataPath`, `RemoveAllInDataDir`, `RenameDataPath`, `DataFileSize`), each re-asserting containment. No ad-hoc sanitizing and no
   raw `os.*` on a data path. `UpsertGroupCommand.Validate` also rejects separators and `.`/`..` in names.
 - Server-built paths (`temp/`, `logs/`, `sqlite/`, OCR and PDF scratch) may use the generic helpers. A `temp/` path read
   back out of an asynq payload is attacker-adjacent: assert it with `FileRepository.AssertWithinTempDirectory` before

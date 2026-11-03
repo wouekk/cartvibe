@@ -178,6 +178,7 @@ These exist only for whoever runs a self-hosted CartVibe. They have no meaning i
 | ADM-06 | Logs and tasks | An admin can see the server's activity log and background tasks. | 0.1.0 | web-only |
 | ADM-07 | Shop logos setup | An admin enters the household's free Logo.dev key, sees how many logos are downloaded, downloads now, or deletes the logos while keeping the key. | 0.13.0 | web-only |
 | ADM-08 | Backups and deployment | Running on a NAS or a rented server, updating and restoring from backups, as described in the README and the VPS guide. | 0.13.0 | web-only |
+| ADM-11 | Export the household | Under System Settings → Export & import, an admin sees how many receipts, products, lists, categories, tags and people there are and how large the photos are, then downloads the whole household as one ZIP of spreadsheet files, with or without the photos and PDFs. The files open in a spreadsheet with every value as it was entered. No passwords or keys are in it. Only admins see the tab; it is not a replacement for backing up the server. | – | unreleased |
 
 ## Retired
 

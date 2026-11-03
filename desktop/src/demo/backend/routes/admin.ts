@@ -1,5 +1,6 @@
 import {
   AiModel,
+  BackupSummary,
   CurrencyRateTable,
   ReceiptProcessingSettings,
   SystemSettings,
@@ -41,6 +42,25 @@ export function registerAdmin(router: DemoRouter): void {
     ctx.db.settings = next;
     return next;
   });
+  // Household export: the summary answers from the demo's data; the download itself is switched off (the
+  // page says so instead of navigating to a server the demo does not have).
+  router.get("/backup/summary", ({ db }): BackupSummary => ({
+    counts: [
+      { name: "users", count: db.users.length },
+      { name: "groups", count: db.groups.length },
+      { name: "categories", count: db.categories.length },
+      { name: "tags", count: db.tags.length },
+      { name: "receipts", count: db.receipts.length },
+      { name: "receipt_products", count: db.products.length },
+      { name: "shopping_lists", count: db.lists.length },
+      { name: "shopping_list_items", count: db.lists.reduce((sum, list) => sum + (list.items?.length ?? 0), 0) },
+      { name: "report_templates", count: db.reportTemplates.length },
+    ],
+    fileCount: db.receipts.reduce((sum, receipt) => sum + (receipt.imageFiles?.length ?? 0), 0),
+    fileBytes: 0,
+    formatVersion: 1,
+  }));
+  router.get("/backup/export", () => badRequest(NOT_IN_DEMO));
   router.get("/exchangeRate", ({ db }): CurrencyRateTable => ({ mainCurrency: "EUR", rates: db.exchangeRates }));
   router.put("/exchangeRate", (ctx) => {
     const table = body<CurrencyRateTable>(ctx);
