@@ -198,6 +198,13 @@ which day an instant falls on and what "today" means.
   counts an attempt; extraction and trips give up after 3 or 14 days. Classification never fails a product on an outage
   but backs off in memory (`outageBackoff`). Guessing "unplanned" on an incomplete trip answer is forbidden (it would
   overstate spend). Primary processing settings are tried, then the fallback.
+- **Quick Scan never loses the upload:** the queue calls `QuickScanKeepingThePhoto`; when the AI cannot read the photo
+  the receipt is saved with it ("Receipt <today>", today, no total, the configured status and payer), a FAILED
+  `QUICK_SCAN` task says why, and the task is not retried. `QuickScan` (shopping trips) still returns the AI error.
+  Magic Fill answers 409 (no AI) or 502 (the AI failed) with an `errorMsg`, never a bare 500.
+- Every provider call is bounded by `constants.AiHttpTimeout` (HTTP client and context). The frequent sweeps are
+  scheduled with `sweepOptions()` (`asynq.Unique` + `asynq.Timeout`, 30 min like the claim lease) and their handlers
+  honour a cancelled context. A product read is stored in one transaction against the receipt as it is then.
 - **Providers** (`internal/ai/`): Gemini, Claude (`ANTHROPIC`; no temperature, ```json fences stripped, a refusal is an
   error so the backup takes over), ChatGPT (`OPEN_AI`, JSON mode), OpenAI-compatible servers and Ollama. SDK retries are
   off everywhere: the sweeps count every try. A stored key is used only for the provider it was saved under.

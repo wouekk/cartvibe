@@ -75,7 +75,8 @@ Receipt read (keys left out when not read with confidence):
 ```
 - `date` must be RFC 3339 at midnight UTC (a receipt date is a calendar day).
 - `amount` negative for a refund/return/credit.
-- `categories`: up to 2 ids from the offered list (`[{id, name, description?}]`); id-only answers are resolved to names.
+- `categories`: up to 2 ids from the offered list (`[{id, name, description?}]`); id-only answers are resolved to names,
+  and Quick Scan drops one switched off for the AI (a person's own pick is kept).
 - `customFields`: one value per field by type (`stringValue`, `dateValue` yyyy-MM-dd, `selectValue` option id,
   `currencyValue`, `booleanValue`); read leniently, a bad value is dropped, never fails the receipt.
 - `products` only with the inline part (Quick Scan).
@@ -108,6 +109,12 @@ product is an error (guessing "unplanned" would overstate unplanned spend).
 
 - **Outage** (no AI configured, network, out of credits): status UNAVAILABLE, retried hourly, not counted as an attempt;
   product reads give up after 14 days.
+- **Quick Scan** never retries the AI: when the receipt read fails (outage or unreadable answer) the receipt is saved
+  with the photo ("Receipt <today>", today, no total) for a person to fill in, and the product sweep reads it later.
+  A read that leaves out `name` or `date` gets the shop's name or "Receipt <today>" and today. A product read does not
+  mark a receipt with no total Done, nor one whose status a person changed while the AI was reading.
+- **Magic Fill** answers 409 when no AI is configured and 502 when the AI failed or its answer was unreadable.
+- Every provider call times out after `constants.AiHttpTimeout`.
 - **Unreadable answer**: retried after 10 minutes, FAILED after 3 attempts (classification: 3 attempts per product, then
   left unclassified).
 - Sweeps claim rows with a conditional UPDATE and a 30-minute lease, so two sweeps never read the same receipt.
@@ -120,7 +127,8 @@ product is an error (guessing "unplanned" would overstate unplanned spend).
 1. Keep the answer keys the parsers read (above), or change the parser in the same commit.
 2. Keep the anchors code relies on: the receipt prompt's `"\nReceipt text: "` (the inline products go before it) and the
    template variables `@categories`, `@currentYear`, `@ocrText` (`structs/prompt_template_variable.go`;
-   `@tags` still exists but the default prompt does not use it; the prompt is code, there is no stored-prompt table).
+   `@tags` still exists but is no longer filled, since the AI never assigns tags; the prompt is code, there is no
+   stored-prompt table).
 3. Prefer editing a shared rule block over copying text into one prompt.
 4. Run the tests that pin prompt content and parsing: `services/receipt_prompt_test.go`, `food_classification_test.go`,
    `food_group_categories_test.go`, `receipt_product_extraction_test.go`, `receipt_product_inline_read_test.go`,
