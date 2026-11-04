@@ -868,6 +868,7 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
 
     dialogRef.componentInstance.headerText = marker("Duplicate Receipt");
     dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you would like to duplicate the receipt {name}?", { name: this.originalReceipt?.name });
+    dialogRef.componentInstance.confirmText = marker("Duplicate");
 
     dialogRef
       .afterClosed()

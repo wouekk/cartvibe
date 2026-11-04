@@ -1,4 +1,4 @@
-<app-dialog [headerText]="data.name || 'Source file'">
+<app-dialog [headerText]="data.name || ('Source File' | t)">
   <app-image-viewer [imageBase64]="data.encodedImage"></app-image-viewer>
   <div class="flex justify-end mt-4">
     <app-button

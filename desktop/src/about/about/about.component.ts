@@ -12,6 +12,7 @@ import { marker } from "../../i18n/marker";
 interface Link {
   url: string;
   label: string;
+  testId: string;
 }
 
 @Component({
@@ -32,11 +33,13 @@ export class AboutComponent {
   public links: Link[] = [
     {
       label: marker("Source Code"),
-      url: "https://github.com/wouekk/cartvibe"
+      url: "https://github.com/wouekk/cartvibe",
+      testId: "about-source-link"
     },
     {
       label: marker("Project page"),
-      url: "https://cartvibe.app/"
+      url: "https://cartvibe.app/",
+      testId: "about-site-link"
     }
   ];
 

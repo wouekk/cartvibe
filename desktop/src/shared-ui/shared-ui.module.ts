@@ -68,6 +68,7 @@ import { IconAutocompleteComponent } from './icon-autocomplete/icon-autocomplete
 import { CartVibeLogoComponent } from './cartvibe-logo/cartvibe-logo.component';
 import { BadgeComponent } from './badge/badge.component';
 import { ImageCanvasComponent } from './image-canvas/image-canvas.component';
+import { MoneyComponent } from './money/money.component';
 
 import { SettingsPageComponent } from './settings/settings-page.component';
 import { SettingsSectionComponent } from './settings/settings-section.component';
@@ -153,6 +154,7 @@ import { ManagementTabsComponent } from './management-tabs/management-tabs.compo
     CartVibeLogoComponent,
     BadgeComponent,
     ImageCanvasComponent,
+    MoneyComponent,
   ],
   exports: [
     AddButtonComponent,
@@ -205,6 +207,7 @@ import { ManagementTabsComponent } from './management-tabs/management-tabs.compo
     CartVibeLogoComponent,
     BadgeComponent,
     ImageCanvasComponent,
+    MoneyComponent,
   ],
   providers: [CurrencyPipe],
 })

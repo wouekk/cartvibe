@@ -3,6 +3,7 @@ import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
 
+import { HlmButton } from "@spartan-ng/helm/button";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { ColorPickerModule } from "src/color-picker/color-picker.module";
 import { PipesModule } from "src/pipes/pipes.module";
@@ -38,6 +39,7 @@ import { UserShortcutComponent } from './user-shortcut/user-shortcut.component';
     CommonModule,
     DirectivesModule,
     InputModule,
+    HlmButton,
     AppIconComponent,
     ...HlmTooltipImports,
     PipesModule,

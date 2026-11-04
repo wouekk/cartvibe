@@ -79,6 +79,11 @@ export class TaskTableComponent implements OnInit, AfterViewInit {
 
   public totalCount = signal(0);
 
+  /** Set after the first answer, so the empty state never shows before the list has loaded. */
+  public readonly loaded = signal(false);
+
+  public readonly emptyText = marker("No activity to show.");
+
   /**
    * RECEIPT_UPDATED rows whose description parses, keyed by task id. Parsed
    * once per page rather than per change-detection pass, since each one holds
@@ -208,6 +213,7 @@ export class TaskTableComponent implements OnInit, AfterViewInit {
         tap((pagedData) => {
           this.dataSource.set(new TableDataSource<SystemTask>((pagedData.data as any[]) as SystemTask[]));
           this.totalCount.set(pagedData.totalCount);
+          this.loaded.set(true);
         }),
         takeUntilDestroyed(),
       )

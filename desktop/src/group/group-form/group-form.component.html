@@ -27,11 +27,13 @@
     ></app-audit-detail-section>
     <app-form-section [panel]="true" [headerText]="'Group Details' | t" [indent]="true">
       <app-input
+        data-testid="group-name"
         [label]="'Group Name' | t"
         [readonly]="formConfig.mode | inputReadonly"
         [inputFormControl]="form | formGet : 'name'"
       ></app-input>
       <app-select
+        data-testid="group-status"
         [label]="'Status' | t"
         optionValueKey="value"
         optionDisplayKey="displayValue"
@@ -39,6 +41,7 @@
         [options]="groupStatusOptions"
       ></app-select>
       <app-checkbox
+        data-testid="group-isolate-members"
         [label]="'Isolate members' | t"
         [helpText]="'When on, members of this group can\'t see each other. Members with a role that can see all members remain visible to everyone.' | t"
         [readonly]="formConfig.mode | inputReadonly"
@@ -92,6 +95,7 @@
     ></app-edit-button>
     <app-delete-button
       *ngIf="canDeleteGroupMembers()"
+      data-testid="group-member-remove"
       [tooltip]="'Remove group member' | t"
       [disabled]="disableDeleteButton"
       (clicked)="removeGroupMember(index)"

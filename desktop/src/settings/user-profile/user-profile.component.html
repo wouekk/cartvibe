@@ -43,7 +43,9 @@
     <div sectionFooter class="cv-card__footer">
       <button
         type="button"
-        class="inline-flex h-9 items-center justify-center rounded-lg bg-destructive px-4 text-sm font-medium text-white transition-colors hover:bg-destructive/90"
+        hlmBtn
+        variant="destructive"
+        data-testid="account-delete"
         (click)="deleteAccount()"
       >
         {{ 'Delete Account' | t }}

@@ -74,7 +74,7 @@
               </div>
               <p class="m-0 mt-0.5 text-xs text-muted-foreground" data-testid="shopping-trip-status">
                 @if (row.status.kind === "unplanned" && row.trip.unplannedAmount) {
-                  <strong class="font-semibold tabular-nums text-destructive">{{ row.trip.unplannedAmount | customCurrency }}</strong>
+                  <app-money class="text-destructive" [value]="row.trip.unplannedAmount"></app-money>
                 }
                 {{ row.status.text | t: row.status.params }}
               </p>

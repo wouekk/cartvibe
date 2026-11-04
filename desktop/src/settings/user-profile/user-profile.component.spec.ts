@@ -76,6 +76,7 @@ describe("UserProfileComponent", () => {
     await fixture.whenStable();
 
     expect(fixture.nativeElement.querySelector("[data-testid=danger-zone]")).toBeTruthy();
+    expect(fixture.nativeElement.querySelector("[data-testid=account-delete]")?.textContent).toContain("Delete Account");
   });
 
   it("gates the edit button on app.account.update", () => {

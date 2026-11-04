@@ -1,6 +1,6 @@
 <div class="flex flex-col">
   <app-table-header
-    [headerText]="'Reports' | t"
+    headerText="Reports"
     subtitle="Saved report templates — open one in the builder, generate it, duplicate it, or delete it."
   >
     @if (canEnterBuilder()) {
@@ -20,16 +20,17 @@
       [displayedColumns]="displayedColumns"
       [pagination]="true"
       [length]="totalCount()"
-      [page]="((baseTableService.page$ | async) || 1) - 1"
-      [pageSize]="(baseTableService.pageSize$ | async) || 50"
+      [page]="(page() || 1) - 1"
+      [pageSize]="pageSize() || 50"
       (sorted)="sorted($event)"
       (pageChange)="pageChanged($event)"
     ></app-table>
   } @else if (loaded()) {
-    <div class="flex flex-col items-center gap-2 rounded-lg border border-border bg-card p-12 text-center shadow-md [&_h2]:m-0 [&_h2]:text-lg [&_p]:mb-2 [&_p]:max-w-105 [&_p]:text-sm [&_p]:text-muted-foreground">
-      <span class="mb-1 inline-flex size-14 items-center justify-center rounded-xl bg-accent text-foreground [&_app-icon]:size-7 [&_app-icon]:text-[28px]"><app-icon name="summarize"></app-icon></span>
-      <h2>{{ 'No report templates yet' | t }}</h2>
-      <p>{{ 'Build a report and save it as a template to reuse it later.' | t }}</p>
+    <div class="mt-6 flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-card px-6 py-10 text-center" data-testid="report-template-empty">
+      <span class="inline-flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground [&_app-icon]:size-5" aria-hidden="true">
+        <app-icon name="summarize"></app-icon>
+      </span>
+      <p class="m-0 max-w-sm text-sm text-muted-foreground">{{ 'No report templates yet. Build a report and save it as a template to reuse it later.' | t }}</p>
       @if (canEnterBuilder()) {
         <app-add-button
           [buttonText]="'Add Report' | t"
@@ -47,7 +48,7 @@
     class="text-sm font-semibold"
     data-testid="report-template-name"
     [routerLink]="['/reports', element.id, 'edit']"
-  >{{ element.name | t }}</a>
+  >{{ element.name | tData }}</a>
   <div class="mt-0.5 text-xs text-muted-foreground">
     {{ columnCountFor(element) }} {{ (columnCountFor(element) === 1 ? 'column' : 'columns') | t }}
   </div>

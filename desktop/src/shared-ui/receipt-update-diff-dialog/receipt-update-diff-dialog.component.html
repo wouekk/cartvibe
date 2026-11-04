@@ -6,25 +6,18 @@
   <div class="receipt-diff-scroll">
     @if (beforeState !== "complete") {
       <div
-        class="receipt-diff__notice rounded-lg border px-4 py-3 text-sm"
+        class="mb-3 rounded-lg border px-4 py-3 text-[13px] text-foreground"
         role="note"
         data-testid="receipt-diff-version-notice"
         [attr.data-before-state]="beforeState"
-        [class.border-sky-300]="beforeState === 'rebuilt'" [class.bg-sky-50]="beforeState === 'rebuilt'" [class.text-sky-900]="beforeState === 'rebuilt'"
-        [class.border-amber-300]="beforeState === 'incomplete'" [class.bg-amber-50]="beforeState === 'incomplete'" [class.text-amber-900]="beforeState === 'incomplete'"
+        [ngClass]="beforeState === 'incomplete' ? 'border-warning-text/40 bg-warning-text/10' : 'border-border bg-muted'"
       >
         @if (beforeSource) {
-          This change was recorded by an older version, whose own copy of the
-          receipt before the change is incomplete. <strong>{{ 'Before' | t }}</strong> shows
-          the receipt as saved
-          {{ (beforeSource.type === SystemTaskType.ReceiptUploaded ? 'when it was created' : 'by the previous update') | t }}
-          ({{ beforeSource.recordedAt | appDate: "medium" }}) instead. Changes made
-          without editing the receipt, such as bulk status updates, can also
-          show here.
+          {{ 'This change was recorded by an older version, whose own copy of the receipt before the change is incomplete.' | t }}
+          {{ (beforeSource.type === SystemTaskType.ReceiptUploaded ? 'The Before side shows the receipt as saved when it was created ({date}) instead.' : 'The Before side shows the receipt as saved by the previous update ({date}) instead.') | t: { date: (beforeSource.recordedAt | appDate: "medium") } }}
+          {{ 'Changes made without editing the receipt, such as bulk status updates, can also show here.' | t }}
         } @else {
-          This change was recorded by an older version, and no earlier complete
-          copy of this receipt exists. Item categories and tags and shares
-          can show as changed when they weren't.
+          {{ 'This change was recorded by an older version, and no earlier complete copy of this receipt exists. Item categories and tags can show as changed when they were not.' | t }}
         }
       </div>
     }
@@ -38,13 +31,13 @@
       <thead>
         <tr>
           <th colspan="2">
-            Before
+            {{ 'Before' | t }}
             @if (beforeUpdatedAt) {
               <span class="receipt-diff__timestamp">{{ beforeUpdatedAt | appDate: "medium" }}</span>
             }
           </th>
           <th colspan="2" class="receipt-diff__right-start">
-            After
+            {{ 'After' | t }}
             @if (afterUpdatedAt) {
               <span class="receipt-diff__timestamp">{{ afterUpdatedAt | appDate: "medium" }}</span>
             }

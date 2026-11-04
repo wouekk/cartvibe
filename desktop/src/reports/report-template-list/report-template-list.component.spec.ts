@@ -1,4 +1,5 @@
-import { TranslatePipe } from "../../i18n/translate.pipe";
+import { TranslateDataPipe, TranslatePipe } from "../../i18n/translate.pipe";
+import { ReportTemplateTableState } from "../../store/report-template-table.state";
 import { CommonModule } from "@angular/common";
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal, WritableSignal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
@@ -81,9 +82,12 @@ describe("ReportTemplateListComponent", () => {
       // group list) and AuthState.hasAnyAppPermission([...]) (the builder-entry gate).
       // Route the group one to an empty list and everything else to the canEnterBuilder
       // signal.
-      selectSignal: vi.fn((selector: unknown) =>
-        selector === GroupState.groupsWithoutAll ? signal([]) : canEnterBuilder,
-      ),
+      selectSignal: vi.fn((selector: unknown) => {
+        if (selector === GroupState.groupsWithoutAll) return signal([]);
+        if (selector === ReportTemplateTableState.page) return signal(1);
+        if (selector === ReportTemplateTableState.pageSize) return signal(50);
+        return canEnterBuilder;
+      }),
       selectSnapshot: vi.fn(() => ({ page: 1, pageSize: 50, orderBy: "updated_at", sortDirection: "desc" })),
       select: vi.fn(() => of(1)),
       dispatch: vi.fn(),
@@ -97,7 +101,7 @@ describe("ReportTemplateListComponent", () => {
 
     await TestBed.configureTestingModule({
       declarations: [ReportTemplateListComponent],
-      imports: [TranslatePipe, CommonModule],
+      imports: [TranslatePipe, TranslateDataPipe, CommonModule],
       providers: [
         provideZonelessChangeDetection(),
         { provide: ReportRunnerService, useValue: runner },
@@ -168,6 +172,7 @@ describe("ReportTemplateListComponent", () => {
 
     const el = emptyFixture.nativeElement as HTMLElement;
     expect(el.querySelector('[data-testid="report-template-add-empty"]')).not.toBeNull();
+    expect(el.querySelector('[data-testid="report-template-empty"]')?.textContent).toContain("No report templates yet.");
   });
 
   it("hides the empty-state New Report button without report access (read/readAll)", async () => {
