@@ -84,6 +84,7 @@ in by hand and the AI is retried later.
 | SCAN-07 | Categories and health, never tags | The AI assigns categories and a health rating only. It never assigns tags (they are the household's own labels) and never uses a category an admin has switched off for it. | 0.5.0 | released |
 | SCAN-08 | Backup AI | A second AI takes over when the main one fails. | 0.2.0 | released |
 | SCAN-09 | Scan without an AI | With no AI set up, Quick Scan stays visible and asks whether to add one. | 0.6.0 | released |
+| SCAN-10 | AI language | Under Settings → Language each person picks the language the AI writes product names and new categories in, or keeps "Same as the interface" (English when that is not known). A receipt is read in the language of whoever added it; names as printed on the receipt stay as printed, and receipts read earlier keep their names. | – | unreleased |
 
 ## Categories and tags (ORG)
 

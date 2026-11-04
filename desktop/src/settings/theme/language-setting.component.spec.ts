@@ -53,4 +53,35 @@ describe("LanguageSettingComponent", () => {
     const request = http.expectOne((candidate) => candidate.method === "PUT" && candidate.url.includes("userPreferences"));
     expect(request.request.body.language).toBe("pl");
   });
+
+  it("follows the interface language for the AI until another one is picked", () => {
+    expect(el("ai-language-same").getAttribute("aria-checked")).toBe("true");
+    expect(el("ai-language-pl").getAttribute("aria-checked")).toBe("false");
+  });
+
+  it("saves the AI language with the account and shows it once saved, leaving the interface language alone", async () => {
+    el("ai-language-pl").click();
+    await settle();
+
+    const request = http.expectOne((candidate) => candidate.method === "PUT" && candidate.url.includes("userPreferences"));
+    expect(request.request.body.aiLanguage).toBe("pl");
+    expect(request.request.body.language).toBe("en");
+    request.flush({ language: "en", aiLanguage: "pl" });
+    await settle();
+
+    expect(el("ai-language-pl").getAttribute("aria-checked")).toBe("true");
+    expect(el("ai-language-same").getAttribute("aria-checked")).toBe("false");
+    expect(translation.language()).toBe("en");
+  });
+
+  it("goes back to following the interface language", async () => {
+    TestBed.inject(Store).dispatch(new SetUserPreferences({ language: "en", aiLanguage: "de" } as never));
+    await settle();
+
+    el("ai-language-same").click();
+    await settle();
+
+    const request = http.expectOne((candidate) => candidate.method === "PUT" && candidate.url.includes("userPreferences"));
+    expect(request.request.body.aiLanguage).toBe("");
+  });
 });

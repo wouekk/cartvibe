@@ -87,6 +87,9 @@ From the first release after 0.16.0, every user-visible entry names the feature 
   - Disabled controls no longer show a "not allowed" cursor.
   - Settings section titles are muted capitals, as designed.
   - On desktop, text in form fields is 14px; phones keep 16px.
+- **The AI writes in your language (SCAN-10).** Under Settings → Language, pick the language the AI writes product
+  names and new categories in when it reads your receipts, or keep "Same as the interface". Each receipt is read in the
+  language of whoever added it.
 - **Big screens use the space (APP-06).** On a window wider than 1920 pixels the whole app grows with it, text and
   charts included, and fills about 82% of it, like browser zoom: a 4K screen at 100% scaling looks like a laptop at
   200%. Phones, tablets and laptops are unchanged. If you already zoom the browser for CartVibe, set it back to 100%.
