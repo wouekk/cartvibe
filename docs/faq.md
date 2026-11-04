@@ -1,6 +1,6 @@
 # CartVibe FAQ
 
-Short answers for running a CartVibe household. Setup, updating and the Synology guide are in the [README](../README.md).
+Short answers for running a [CartVibe](https://cartvibe.app/) household. Setup, updating and the Synology guide are in the [README](../README.md).
 
 - [How do I rename a household?](#how-do-i-rename-a-household)
 - [How do I change a password?](#how-do-i-change-a-password)

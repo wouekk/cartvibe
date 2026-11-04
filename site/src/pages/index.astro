@@ -3,6 +3,7 @@ import Base from "../layouts/Base.astro";
 import Icon from "../components/Icon.astro";
 import Shots from "../components/Shots.astro";
 import Roadmap from "../components/Roadmap.astro";
+import { socialImageUrl } from "../lib/social-image";
 
 const repo = "https://github.com/wouekk/cartvibe";
 // News about the iPhone app goes on its roadmap issue until there is an App Store page to link to.
@@ -144,15 +145,79 @@ const faq = [
   { q: "Can the whole family use it?", a: "Yes. Accounts are either Admin or User, everyone in the household can add receipts and list items, and nobody has to split bills or approve anything." },
 ];
 
-const btnPrimary = "inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:bg-primary/80 active:scale-[0.98]";
+// Search and sharing (docs/site.md): the page's title and description, and one JSON-LD @graph that ties this site and the
+// GitHub repository together as one piece of software. The FAQPage is built from `faq`, so it always matches the page.
+const title = "CartVibe — Household Receipts, Shared Shopping Lists & Spending Insights";
+const description =
+  "Self-hosted and open-source (AGPL-3.0) app for household receipts, AI receipt OCR, shared shopping lists, warranty tracking, and spending insights. CartVibe for iPhone coming soon.";
+const home = new URL("/", Astro.site).href;
+const agpl = "https://www.gnu.org/licenses/agpl-3.0.html";
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${home}#organization`,
+      name: "CartVibe",
+      url: home,
+      logo: new URL("/brand/icon-light.svg", Astro.site).href,
+      email: "support@cartvibe.app",
+      sameAs: [repo],
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${home}#website`,
+      name: "CartVibe",
+      url: home,
+      inLanguage: "en",
+      publisher: { "@id": `${home}#organization` },
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": `${home}#app`,
+      name: "CartVibe",
+      url: home,
+      description,
+      image: await socialImageUrl(Astro.site),
+      applicationCategory: "FinanceApplication",
+      operatingSystem: "Web, Docker, Linux, iOS (coming soon)",
+      license: agpl,
+      isAccessibleForFree: true,
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      publisher: { "@id": `${home}#organization` },
+      isBasedOn: { "@id": `${home}#source` },
+      sameAs: [repo],
+    },
+    {
+      "@type": "SoftwareSourceCode",
+      "@id": `${home}#source`,
+      name: "CartVibe",
+      url: repo,
+      codeRepository: repo,
+      programmingLanguage: ["Go", "TypeScript"],
+      runtimePlatform: "Docker",
+      license: agpl,
+      targetProduct: { "@id": `${home}#app` },
+      publisher: { "@id": `${home}#organization` },
+    },
+    {
+      "@type": "FAQPage",
+      "@id": `${home}#faq`,
+      mainEntity: faq.map((f) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
+    },
+  ],
+};
+
+const btnPrimary ="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:bg-primary/80 active:scale-[0.98]";
 const btnOutline = "inline-flex h-9 items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-medium transition-colors duration-150 hover:bg-accent active:scale-[0.98]";
 const tick = "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground";
 ---
 
-<Base
-  title="CartVibe: household spending, shared shopping lists, AI receipt scanning"
-  description="Track household spending, share live shopping lists and scan receipts with AI. Open source and free to self-host, with CartVibe for iPhone coming to the App Store."
->
+<Base title={title} description={description} jsonLd={jsonLd}>
   <!-- Hero -->
   <section data-testid="hero">
     <div class="page pb-16 pt-14 text-center sm:pt-20 lg:pb-24">
