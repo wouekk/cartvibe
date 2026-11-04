@@ -98,7 +98,7 @@ func TestProductExtractionReadsClassificationFromTheSameAnswer(t *testing.T) {
 
 func TestBuildProductExtractionPromptCarriesTheMonthCategoriesAndCorrections(t *testing.T) {
 	prompt := buildProductExtractionPrompt(
-		day("2026-10-01"), "Choose \"foodGroup\" from these categories: Dairy.", map[string]string{"dark chocolate": models.HEALTH_MEDIUM},
+		day("2026-10-01"), "Choose \"foodGroup\" from these categories: Dairy.", map[string]string{"dark chocolate": models.HEALTH_MEDIUM}, "English",
 	)
 
 	for _, expected := range []string{"October 2026", "Western Europe", "Choose \"foodGroup\" from these categories: Dairy.", "dark chocolate: MEDIUM", `"shop"`} {
@@ -111,8 +111,8 @@ func TestBuildProductExtractionPromptCarriesTheMonthCategoriesAndCorrections(t *
 func TestProductPromptsReadBillsForServicesNotOnlyShopReceipts(t *testing.T) {
 	month := day("2026-10-01")
 	for name, prompt := range map[string]string{
-		"standalone": buildProductExtractionPrompt(month, "", nil),
-		"inline":     buildInlineProductPrompt(month, "", nil),
+		"standalone": buildProductExtractionPrompt(month, "", nil, "English"),
+		"inline":     buildInlineProductPrompt(month, "", nil, "English"),
 	} {
 		if strings.Contains(prompt, "shop receipt") {
 			t.Errorf("%s: a taxi or flight bill must not read as \"not a shop receipt\"", name)
@@ -127,7 +127,7 @@ func TestProductPromptsReadBillsForServicesNotOnlyShopReceipts(t *testing.T) {
 }
 
 func TestProductPromptsOfferExampleCategoriesOnlyWithoutAList(t *testing.T) {
-	withList := buildProductExtractionPrompt(day("2026-10-01"), "Choose \"foodGroup\" from these categories: Nabiał.", nil)
+	withList := buildProductExtractionPrompt(day("2026-10-01"), "Choose \"foodGroup\" from these categories: Nabiał.", nil, "English")
 	if strings.Contains(withList, `"sweets & snacks"`) {
 		t.Error("English example categories must not compete with the household's own list")
 	}
@@ -135,7 +135,7 @@ func TestProductPromptsOfferExampleCategoriesOnlyWithoutAList(t *testing.T) {
 		t.Error("expected the food group to point at the list")
 	}
 
-	withoutList := buildProductExtractionPrompt(day("2026-10-01"), "", nil)
+	withoutList := buildProductExtractionPrompt(day("2026-10-01"), "", nil, "English")
 	if !strings.Contains(withoutList, `"sweets & snacks"`) {
 		t.Error("a household without categories gets examples to start its list")
 	}

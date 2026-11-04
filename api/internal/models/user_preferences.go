@@ -27,6 +27,9 @@ type UserPrefernces struct {
 	// Language is the interface language this person chose ("en", "pl", ...; any code the desktop knows); "" follows the browser. A plain string so a new
 	// language is never a new value in a closed enum.
 	Language string `gorm:"size:8" json:"language"`
+	// AiLanguage is the language the AI writes this person's product names and new categories in (a language code such as
+	// "pl"); "" follows Language, and English when that is unknown too. A plain string, like Language.
+	AiLanguage string `gorm:"size:8" json:"aiLanguage"`
 	// OnboardingPending is true until the person has been through the first sign-in welcome (language, theme and, for
 	// an admin, the household currency). New accounts start with it on; accounts from before it existed never see it.
 	OnboardingPending bool `gorm:"not null;default:false" json:"onboardingPending"`

@@ -898,6 +898,7 @@ func (run *importRun) writePersonalSettings() error {
 			"close_chip_select_on_select":   preferences.CloseChipSelectOnSelect,
 			"monthly_spending_goal":         preferences.MonthlySpendingGoal,
 			"language":                      preferences.Language,
+			"ai_language":                   preferences.AiLanguage,
 			"region":                        preferences.Region,
 			"onboarding_pending":            preferences.OnboardingPending,
 			"warranty_period_years":         preferences.WarrantyPeriodYears,

@@ -79,6 +79,7 @@ func (repository UserPreferncesRepository) UpdateUserPreferences(userId uint, us
 	userPreferencesToUpdate.DisplayCurrency = strings.ToUpper(strings.TrimSpace(userPreferences.DisplayCurrency))
 	userPreferencesToUpdate.DisplayCurrencyRate = userPreferences.DisplayCurrencyRate
 	userPreferencesToUpdate.Language = normalizeLanguage(userPreferences.Language)
+	userPreferencesToUpdate.AiLanguage = normalizeLanguage(userPreferences.AiLanguage)
 	userPreferencesToUpdate.OnboardingPending = userPreferences.OnboardingPending
 	userPreferencesToUpdate.UserShortcuts = userPreferences.UserShortcuts
 	userPreferencesToUpdate.Region = normalizeRegion(userPreferences.Region)

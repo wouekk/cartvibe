@@ -226,7 +226,7 @@ func Parse(archive *Archive) (*Household, error) {
 				QuickScanDefaultGroupId: c.idPtr("quick_scan_default_group_id"), QuickScanDefaultPaidById: c.idPtr("quick_scan_default_paid_by_id"),
 				QuickScanDefaultStatus: models.ReceiptStatus(c.text("quick_scan_default_status")),
 				CloseChipSelectOnSelect: c.boolean("close_chip_select_on_select"), MonthlySpendingGoal: c.decimalPtr("monthly_spending_goal"),
-				Language: c.text("language"), Region: c.text("region"), OnboardingPending: c.boolean("onboarding_pending"),
+				Language: c.text("language"), AiLanguage: c.text("ai_language"), Region: c.text("region"), OnboardingPending: c.boolean("onboarding_pending"),
 				WarrantyPeriodYears: c.intPtr("warranty_period_years"), WarrantyReminderLeadDays: c.intPtr("warranty_reminder_lead_days")})
 		}},
 		{"dashboard_layouts", func(c cells) {

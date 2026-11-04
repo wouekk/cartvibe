@@ -90,10 +90,10 @@ func TestApplyInlineReadNeverTakesAReceiptTheSweepHolds(t *testing.T) {
 
 func TestInlineProductPromptSharesTheProductRules(t *testing.T) {
 	month := time.Date(2026, time.October, 1, 0, 0, 0, 0, time.UTC)
-	inline := buildInlineProductPrompt(month, "", nil)
-	standalone := buildProductExtractionPrompt(month, "", nil)
+	inline := buildInlineProductPrompt(month, "", nil, "English")
+	standalone := buildProductExtractionPrompt(month, "", nil, "English")
 
-	rules := productLineRules("October 2026", "", nil)
+	rules := productLineRules("October 2026", "", nil, "English")
 	if !strings.Contains(inline, rules) || !strings.Contains(standalone, rules) {
 		t.Fatalf("both prompts must carry the same product rules")
 	}

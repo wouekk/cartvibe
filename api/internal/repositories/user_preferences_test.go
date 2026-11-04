@@ -167,6 +167,34 @@ func TestUpdateUserPreferencesStoresWellFormedLanguageCodes(t *testing.T) {
 	}
 }
 
+// The AI language is stored like the interface language (lower-cased, junk cleared) and is its own field: setting
+// one never changes the other, and clearing it sticks.
+func TestUpdateUserPreferencesStoresTheAiLanguage(t *testing.T) {
+	defer TruncateTestDb()
+	CreateTestUser()
+
+	repository := NewUserPreferencesRepository(ImplicitCell(), nil)
+	if _, err := repository.GetUserPreferencesOrCreate(1); err != nil {
+		t.Fatal(err)
+	}
+
+	updated, err := repository.UpdateUserPreferences(1, models.UserPrefernces{Language: "en", AiLanguage: " PL "})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if updated.Language != "en" || updated.AiLanguage != "pl" {
+		t.Fatalf("want language en and AI language pl, got %q and %q", updated.Language, updated.AiLanguage)
+	}
+
+	cleared, err := repository.UpdateUserPreferences(1, models.UserPrefernces{Language: "en", AiLanguage: ""})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cleared.AiLanguage != "" {
+		t.Errorf("clearing the AI language should stick, got %q", cleared.AiLanguage)
+	}
+}
+
 // A new account is greeted once (language, theme, currency); preferences created later for an older
 // account are not, and the desktop turns the flag off through the ordinary update.
 func TestOnboardingPendingIsOnForNewAccountsAndTurnsOff(t *testing.T) {

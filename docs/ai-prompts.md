@@ -32,6 +32,10 @@ the "Prompts" table and the prompt a processing setting names are kept for upstr
   from the logo. One sentence in one place so the two prompts cannot disagree; `TestShopNameRuleStaysShort` keeps it cheap.
 - **Prompts are short, answers are minified JSON.** Output tokens set most of the latency; keys that would be empty are
   left out and the parsers default them.
+- **The AI writes in each person's language** (Settings → Language → AI language; empty follows their interface
+  language, then English; `services/ai_language.go`). Product `displayName`s, and new category names when the household
+  has no list, are asked for in it: Quick Scan uses the uploader's, the product sweep the receipt's author (else payer).
+  The health classification mixes several people's lines, so it stays English; `name` is always as printed.
 - **AI is optional and fallible.** Nothing may block or fail because the AI is missing, slow or wrong: record a status,
   retry later, degrade (see "Failure handling").
 
@@ -85,7 +89,7 @@ Product line (inline or sweep; sweep answers also carry `shop` and `currency`):
 ```json
 {"name":"LAIT DEMI-ECR 1L","displayName":"Semi-skimmed milk 1 L","amount":1.09,"quantity":"1","health":"HEALTHY","foodGroup":"Nabiał","seasonality":"SEASONAL"}
 ```
-- `name` as printed (required; a nameless line is dropped), `displayName` plain English.
+- `name` as printed (required; a nameless line is dropped), `displayName` in the person's AI language (see Decisions).
 - `amount` after the line's own discount; text like "1,09 €" is accepted.
 - `quantity`, `seasonality` may be left out. A line without a usable `health` is left for the classification sweep.
 

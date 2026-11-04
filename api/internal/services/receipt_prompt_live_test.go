@@ -104,7 +104,7 @@ func livePromptFor(t *testing.T, receiptText string) string {
 		"@currentYear", "2026",
 	).Replace(DefaultReceiptPrompt)
 	month := time.Date(2026, time.October, 1, 0, 0, 0, 0, time.UTC)
-	prompt = strings.Replace(prompt, "\nReceipt text: ", buildInlineProductPrompt(month, "", nil)+"\n\nReceipt text: ", 1)
+	prompt = strings.Replace(prompt, "\nReceipt text: ", buildInlineProductPrompt(month, "", nil, "English")+"\n\nReceipt text: ", 1)
 	return strings.Replace(prompt, "@ocrText", receiptText, 1)
 }
 

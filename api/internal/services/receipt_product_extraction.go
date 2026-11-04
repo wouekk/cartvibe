@@ -62,25 +62,26 @@ const healthRules = `HEALTHY, MEDIUM, UNHEALTHY, or NOT_FOOD (not food or drink)
 // seasonalityRuleTemplate: the %s slots are the region and the month.
 const seasonalityRuleTemplate = `only for fresh fruit and vegetables: SEASONAL if in season in %s in %s, OUT_OF_SEASON if then most likely imported from another continent; leave it out for everything else (also frozen and canned).`
 
-// foodGroupExamples names example categories only for a household without a category list: with one, English
+// foodGroupExamplesTemplate names example categories only for a household without a category list: with one, English
 // examples would tempt the AI to answer outside it, and every unknown name becomes a new category.
-const foodGroupExamples = `a short lowercase category, e.g. "fresh produce", "dairy", "bakery", "meat", "drinks", "sweets & snacks", "alcohol", "household", "restaurant", "taxi", "airlines", "bills".`
+const foodGroupExamplesTemplate = `a short lowercase category in %s, e.g. "fresh produce", "dairy", "bakery", "meat", "drinks", "sweets & snacks", "alcohol", "household", "restaurant", "taxi", "airlines", "bills".`
 
 const foodGroupFromList = `the category, from the list below.`
 
-// foodGroupRule picks the "foodGroup" line for a category block (see foodGroupResolver.PromptBlock).
-func foodGroupRule(categoryBlock string) string {
+// foodGroupRule picks the "foodGroup" line for a category block (see foodGroupResolver.PromptBlock); a new
+// category is named in the person's AI language.
+func foodGroupRule(categoryBlock string, language string) string {
 	if categoryBlock == "" {
-		return foodGroupExamples
+		return fmt.Sprintf(foodGroupExamplesTemplate, language)
 	}
 	return foodGroupFromList
 }
 
-// productLineRulesTemplate describes one product line. The %s slots are the food group rule, the seasonality
-// rule, the category rules and the household's earlier corrections.
+// productLineRulesTemplate describes one product line. The %s slots are the language of "displayName", the food
+// group rule, the seasonality rule, the category rules and the household's earlier corrections.
 const productLineRulesTemplate = `For each product line:
 - "name": the line exactly as printed.
-- "displayName": a short plain English name, e.g. "Semi-skimmed milk 1 L" for "LAIT DEMI-ECR 1L".
+- "displayName": a short plain name in %s, e.g. "Semi-skimmed milk 1 L" in English for "LAIT DEMI-ECR 1L".
 - "amount": the line's total as a number, after its own printed discount and including its VAT (when prices are printed before tax, e.g. "HT", "net", "excl. VAT", add the line's tax); leave it out if the line has no price.
 - "quantity": the quantity or weight if printed ("2", "1.25 kg"); leave it out otherwise.
 - "health": ` + healthRules + `
@@ -91,32 +92,32 @@ A bill for a service (ride, flight, ticket, toll, stay, meal, utility) is one li
 Skip totals, subtotals, separately printed tax summaries, payments, change, loyalty points, bottle deposits and coupons.`
 
 // buildProductExtractionPrompt fills the template for a receipt bought in the given month.
-func buildProductExtractionPrompt(month time.Time, categoryBlock string, corrections map[string]string) string {
+func buildProductExtractionPrompt(month time.Time, categoryBlock string, corrections map[string]string, language string) string {
 	monthName := month.Format("January 2006")
 	return fmt.Sprintf(
 		productExtractionPromptTemplate,
-		foodClassificationRegion, monthName, productLineRules(monthName, categoryBlock, corrections),
+		foodClassificationRegion, monthName, productLineRules(monthName, categoryBlock, corrections, language),
 	)
 }
 
 // buildInlineProductPrompt is the part a quick scan adds to its receipt prompt (see inlineProductPromptTemplate).
-func buildInlineProductPrompt(month time.Time, categoryBlock string, corrections map[string]string) string {
+func buildInlineProductPrompt(month time.Time, categoryBlock string, corrections map[string]string, language string) string {
 	monthName := month.Format("January 2006")
 	return fmt.Sprintf(
 		inlineProductPromptTemplate,
-		foodClassificationRegion, monthName, productLineRules(monthName, categoryBlock, corrections),
+		foodClassificationRegion, monthName, productLineRules(monthName, categoryBlock, corrections, language),
 	)
 }
 
-func productLineRules(monthName string, categoryBlock string, corrections map[string]string) string {
-	foodGroup := foodGroupRule(categoryBlock)
+func productLineRules(monthName string, categoryBlock string, corrections map[string]string, language string) string {
+	foodGroup := foodGroupRule(categoryBlock, language)
 	if categoryBlock != "" {
 		categoryBlock += "\n"
 	}
 
 	return fmt.Sprintf(
 		productLineRulesTemplate,
-		foodGroup, fmt.Sprintf(seasonalityRuleTemplate, foodClassificationRegion, monthName), categoryBlock, correctionExamples(corrections),
+		language, foodGroup, fmt.Sprintf(seasonalityRuleTemplate, foodClassificationRegion, monthName), categoryBlock, correctionExamples(corrections),
 	)
 }
 
@@ -144,7 +145,7 @@ func correctionExamples(corrections map[string]string) string {
 
 // InlineProductPrompt is the products part of a quick scan's prompt for one group: its categories and its
 // remembered corrections, for a receipt bought this month (app time zone).
-func InlineProductPrompt(tx *gorm.DB, groupId uint) (string, error) {
+func InlineProductPrompt(tx *gorm.DB, groupId uint, language string) (string, error) {
 	resolver, err := newFoodGroupResolver(tx)
 	if err != nil {
 		return "", err
@@ -155,7 +156,7 @@ func InlineProductPrompt(tx *gorm.DB, groupId uint) (string, error) {
 	}
 	now := time.Now().In(repositories.GetAppLocation())
 	month := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
-	return buildInlineProductPrompt(month, resolver.PromptBlock(), corrections), nil
+	return buildInlineProductPrompt(month, resolver.PromptBlock(), corrections, language), nil
 }
 
 const (
@@ -251,7 +252,8 @@ func (service ReceiptProductExtractionService) extract(extraction models.Receipt
 	// The receipt's own month, as a calendar day stored as midnight UTC.
 	boughtOn := receipt.Date.UTC()
 	month := time.Date(boughtOn.Year(), boughtOn.Month(), 1, 0, 0, 0, 0, time.UTC)
-	prompt := buildProductExtractionPrompt(month, resolver.PromptBlock(), corrections)
+	// Product names and new categories in the language of whoever added the receipt (their payer for a system one).
+	prompt := buildProductExtractionPrompt(month, resolver.PromptBlock(), corrections, AiAnswerLanguage(service.TX, receiptAuthor(receipt)))
 
 	products, shopName, currency, aiErr, answerErr := service.readProducts(receipt.GroupId, imagePaths, prompt)
 	switch {

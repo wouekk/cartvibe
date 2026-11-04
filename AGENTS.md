@@ -29,7 +29,7 @@ are offered; the UI ships in five languages.
   status, retry later, degrade to "planned" / "unknown".
 - **The AI assigns categories and health, never tags** (tags are the household's own labels), and never a category
   switched off under Manage Categories. Prompts are code and kept short; read `docs/ai-prompts.md` before changing one.
-- The AI answers in one language for the household.
+- The AI writes product names and new categories in each person's chosen AI language (Settings → Language).
 - Reports cut by a line field count a receipt once per bucket it falls into (totals stay exact).
 - Do not rename lightly: the JWT issuer/audience `https://cartvibe.app` (since 2026-11-02; a change signs everyone out
   and breaks MCP tokens). Upstream Receipt Wrangler names are gone from code (2026-11-04); only the credits in

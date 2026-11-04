@@ -443,14 +443,14 @@ var tableSpecs = []tableSpec{
 	{
 		name: "user_preferences",
 		columns: []string{"user_id", "quick_scan_default_group_id", "quick_scan_default_paid_by_id", "quick_scan_default_status",
-			"close_chip_select_on_select", "monthly_spending_goal", "language", "region", "onboarding_pending",
+			"close_chip_select_on_select", "monthly_spending_goal", "language", "ai_language", "region", "onboarding_pending",
 			"warranty_period_years", "warranty_reminder_lead_days"},
 		write: func(state *exportState, table *tableWriter) error {
 			return eachInBatches(state.tx.Model(models.UserPrefernces{}), func(preferences models.UserPrefernces) error {
 				return table.write(formatUint(preferences.UserId), formatUintPtr(preferences.QuickScanDefaultGroupId),
 					formatUintPtr(preferences.QuickScanDefaultPaidById), string(preferences.QuickScanDefaultStatus),
 					formatBool(preferences.CloseChipSelectOnSelect), formatDecimalPtr(preferences.MonthlySpendingGoal),
-					preferences.Language, preferences.Region, formatBool(preferences.OnboardingPending),
+					preferences.Language, preferences.AiLanguage, preferences.Region, formatBool(preferences.OnboardingPending),
 					formatIntPtr(preferences.WarrantyPeriodYears), formatIntPtr(preferences.WarrantyReminderLeadDays))
 			})
 		},

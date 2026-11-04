@@ -281,7 +281,8 @@ func (service FoodClassificationService) saveCorrection(
 func buildClassificationPrompt(batch classificationBatch, corrections map[string]string, categoryBlock string) string {
 	month := batch.month.Format("January 2006")
 
-	foodGroup := foodGroupRule(categoryBlock)
+	// A batch mixes several people's lines and list items, so a new category here is named in English.
+	foodGroup := foodGroupRule(categoryBlock, defaultAiLanguage)
 	examples := correctionExamples(corrections)
 	if categoryBlock != "" {
 		examples = categoryBlock + "\n" + examples

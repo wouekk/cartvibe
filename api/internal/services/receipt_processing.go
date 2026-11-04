@@ -442,7 +442,7 @@ func (service ReceiptProcessingService) buildPrompt(
 	// The products part goes before the receipt text, so the text stays last. Without it the products are
 	// read by the sweep as before, so a failure here never fails the scan.
 	if service.IncludeProducts && service.Group.ID > 0 {
-		productPrompt, productErr := InlineProductPrompt(service.TX, service.Group.ID)
+		productPrompt, productErr := InlineProductPrompt(service.TX, service.Group.ID, AiAnswerLanguage(service.TX, service.UserId))
 		if productErr != nil {
 			logging.LogStd(logging.LOG_LEVEL_ERROR, "receipt products: could not build the inline prompt: "+productErr.Error())
 		} else {
