@@ -148,7 +148,9 @@ type lineBucket struct {
 // account for (the whole amount, for a receipt without lines) is one more row with
 // those fields empty, which the engine shows as (None). So a receipt's rows add
 // back up to its amount, except for the deliberate tag fan-out; see allocateToLines
-// for lines that add up to more than the receipt.
+// for lines that add up to more than the receipt. Several rows of one receipt can
+// share a bucket (an uncategorized line and the rest both land in (None)); the
+// catalog's record identity (receipt_id) makes COUNT count the receipt once there.
 func (s Source) RowsWithLines(receipts []models.Receipt, lines [][]Line, dimensions LineDimensions) ([]reporting.Row, []int) {
 	rows := make([]reporting.Row, 0, len(receipts))
 	perReceipt := make([]int, len(receipts))
@@ -355,6 +357,17 @@ func allocateToLines(amount decimal.Decimal, lines []Line) ([]decimal.Decimal, d
 		weights[index] = line.Amount
 	}
 	return allocateProportionally(amount, weights, sum), decimal.Zero
+}
+
+// AllocateToReceipt is allocateToLines over bare line amounts, for a caller that
+// must divide a receipt exactly as reports do (the Dashboard's category slices and
+// tiles): each line's share, in order, and what is left over.
+func AllocateToReceipt(amount decimal.Decimal, lineAmounts []decimal.Decimal) ([]decimal.Decimal, decimal.Decimal) {
+	lines := make([]Line, len(lineAmounts))
+	for index, lineAmount := range lineAmounts {
+		lines[index] = Line{Amount: lineAmount}
+	}
+	return allocateToLines(amount, lines)
 }
 
 // allocateProportionally divides total in proportion to weights (which add up to

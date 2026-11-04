@@ -2,13 +2,6 @@ package structs
 
 import "cartvibe/api/internal/models"
 
-type EmailSettings struct {
-	Host     string
-	Port     int
-	Username string
-	Password string
-}
-
 type AiSettings struct {
 	AiType     models.AiClientType `json:"type"`
 	Key        string              `json:"key"`
@@ -56,10 +49,9 @@ type DebugConfig struct {
 }
 
 type Config struct {
-	SecretKey     string          `json:"secretKey"`
-	AiSettings    AiSettings      `json:"aiSettings"`
-	EmailSettings []EmailSettings `json:"emailSettings"`
-	Features      FeatureConfig   `json:"features"`
-	Database      DatabaseConfig  `json:"database"`
-	Debug         DebugConfig     `json:"debug"`
+	SecretKey  string         `json:"secretKey"`
+	AiSettings AiSettings     `json:"aiSettings"`
+	Features   FeatureConfig  `json:"features"`
+	Database   DatabaseConfig `json:"database"`
+	Debug      DebugConfig    `json:"debug"`
 }

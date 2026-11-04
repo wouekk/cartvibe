@@ -28,9 +28,17 @@ type accumulator struct {
 	values int64
 
 	// records counts the rows attributed to this node, and is what COUNT
-	// reports. A row that fans out across two buckets is counted once in each,
-	// so a multi-value dimension double-counts on purpose.
+	// reports when no row carries a record identity. A row that fans out across
+	// two buckets is counted once in each, so a multi-value dimension
+	// double-counts on purpose.
 	records int64
+
+	// identities holds the record identities of the rows that carried one (see
+	// FieldCatalog.RecordIdentity), and identified counts those rows. COUNT
+	// reports each identity once, so a record split into several rows that land
+	// in one bucket counts once there; rows without an identity count one each.
+	identities map[string]struct{}
+	identified int64
 
 	minimum decimal.Decimal
 	maximum decimal.Decimal
@@ -73,12 +81,39 @@ func (a *accumulator) add(value Value) {
 	}
 }
 
+// addIdentified is add for a row belonging to the record named by identity (a
+// bucket key). COUNT counts that record once however many of its rows arrive.
+func (a *accumulator) addIdentified(value Value, identity string) {
+	a.add(value)
+	a.identified++
+	if a.identities == nil {
+		a.identities = map[string]struct{}{}
+	}
+	a.identities[identity] = struct{}{}
+}
+
+// count is what COUNT reports: the rows, with the rows of one record counted
+// once.
+func (a accumulator) count() int64 {
+	return a.records - a.identified + int64(len(a.identities))
+}
+
 // merge folds a child subtree's accumulator into this one. It is associative
 // and commutative, so the order children are merged in cannot affect the result.
+// The identity set is copied, never shared, so a parent never writes into a
+// child's set.
 func (a *accumulator) merge(other accumulator) {
 	a.records += other.records
 	a.values += other.values
 	a.sum = a.sum.Add(other.sum)
+
+	a.identified += other.identified
+	if len(other.identities) > 0 && a.identities == nil {
+		a.identities = make(map[string]struct{}, len(other.identities))
+	}
+	for identity := range other.identities {
+		a.identities[identity] = struct{}{}
+	}
 
 	if !other.seen {
 		return
@@ -108,7 +143,7 @@ func (a accumulator) finalize(divisionScale int32) Value {
 		return Num(a.sum)
 
 	case AggCount:
-		return Num(decimal.NewFromInt(a.records))
+		return Num(decimal.NewFromInt(a.count()))
 
 	case AggAvg:
 		if a.values == 0 {

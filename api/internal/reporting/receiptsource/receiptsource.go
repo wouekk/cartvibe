@@ -134,6 +134,12 @@ func New(location *time.Location, tr i18n.Translator) (Source, error) {
 	if err != nil {
 		return Source{}, err
 	}
+	// A receipt cut by its product lines becomes several rows; COUNT counts the
+	// receipt, once per bucket, not its rows.
+	catalog, err = catalog.WithRecordIdentity(KeyReceiptID)
+	if err != nil {
+		return Source{}, err
+	}
 
 	return Source{catalog: catalog, location: location, tr: tr}, nil
 }
