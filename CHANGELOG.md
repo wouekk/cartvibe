@@ -12,6 +12,9 @@ From the first release after 0.16.0, every user-visible entry names the feature 
 ## [Unreleased]
 
 ### Added
+- **The project page is easier to find.** [cartvibe.app](https://cartvibe.app/) now has a `robots.txt`, a sitemap, a
+  sharing picture with full Open Graph and X card tags, and structured data that ties the page to this repository. The
+  README and the FAQ link their first "CartVibe" to the page, and the page's palette menu lists Zinc first.
 - **Export the household ([#4](https://github.com/wouekk/cartvibe/issues/4), ADM-11).** A new *Export & import* tab under
   System Settings downloads everything the household has (receipts with their products and comments, shopping lists,
   categories, tags, goals, exchange rates, report templates, the household settings and, if you like, the photos and

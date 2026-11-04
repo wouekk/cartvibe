@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="desktop/src/assets/brand/banner-wordmark.svg" alt="CartVibe: receipt tracking" width="720" />
+<a href="https://cartvibe.app/"><img src="desktop/src/assets/brand/banner-wordmark.svg" alt="CartVibe: receipt tracking" width="720" /></a>
 
-**CartVibe is a self-hosted household app for receipts, shopping lists, and spending insights.**
+**[CartVibe](https://cartvibe.app/) is a self-hosted household app for receipts, shopping lists, and spending insights.**
 
 [![Release](https://img.shields.io/github/v/release/wouekk/cartvibe?color=16C976&logo=github)](https://github.com/wouekk/cartvibe/releases)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-fab005)](LICENSE)
