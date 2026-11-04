@@ -12,10 +12,6 @@ export interface RoleTypeMeta {
   name: string;
   /** Material icon name. */
   icon: string;
-  /** Accent foreground color for the icon tile. */
-  color: string;
-  /** Accent background color for the icon tile. */
-  tint: string;
   description: string;
   scope: PermissionScope;
 }
@@ -26,8 +22,6 @@ export interface RolePreset {
   description: string;
   /** Material icon name. */
   icon: string;
-  color: string;
-  tint: string;
   /**
    * Resolves the preset to a set of permission keys. The full registry keys
    * (already filtered to the active scope) are passed in so presets can be
@@ -36,21 +30,11 @@ export interface RolePreset {
   resolve: (scopeKeys: readonly string[]) => Set<string>;
 }
 
-// Violet "Group" accent literals, matching the role-list page.
-const GROUP_TINT = "#ede9fe";
-const GROUP_COLOR = "#6d28d9";
-
-// Primary tint/color literals (sky blue) sourced from variables.scss.
-const PRIMARY_TINT = "#ccecff";
-const PRIMARY_COLOR = "#0086d4";
-
 export const ROLE_TYPES: RoleTypeMeta[] = [
   {
     id: "app",
     name: marker("Application role"),
     icon: "apps",
-    color: PRIMARY_COLOR,
-    tint: PRIMARY_TINT,
     description:
       marker("Controls app-wide capabilities — users, settings, prompts and more."),
     scope: PermissionScope.App,
@@ -59,8 +43,6 @@ export const ROLE_TYPES: RoleTypeMeta[] = [
     id: "group",
     name: marker("Group role"),
     icon: "workspaces",
-    color: GROUP_COLOR,
-    tint: GROUP_TINT,
     description:
       marker("Controls what a member can do inside a group — receipts, dashboards, activity."),
     scope: PermissionScope.Group,
@@ -129,8 +111,6 @@ export const APP_PRESETS: RolePreset[] = [
     name: marker("Administrator"),
     description: marker("Everything in the app"),
     icon: "shield_person",
-    color: PRIMARY_COLOR,
-    tint: PRIMARY_TINT,
     resolve: (keys) => new Set(keys),
   },
   {
@@ -138,8 +118,6 @@ export const APP_PRESETS: RolePreset[] = [
     name: marker("User Manager"),
     description: marker("Manage users & keys"),
     icon: "manage_accounts",
-    color: PRIMARY_COLOR,
-    tint: PRIMARY_TINT,
     resolve: (keys) =>
       new Set(keys.filter((k) => USER_MANAGER_RESOURCES.has(resourceKeyOf(k)))),
   },
@@ -148,8 +126,6 @@ export const APP_PRESETS: RolePreset[] = [
     name: marker("Read Only"),
     description: marker("View settings only"),
     icon: "visibility",
-    color: "#10b981",
-    tint: "#d1fae5",
     resolve: (keys) => new Set(keys.filter((k) => k.endsWith(".read"))),
   },
   {
@@ -157,8 +133,6 @@ export const APP_PRESETS: RolePreset[] = [
     name: "Custom",
     description: marker("Start from scratch"),
     icon: "tune",
-    color: "#64748b",
-    tint: "#f1f5f9",
     resolve: () => new Set<string>(),
   },
 ];
@@ -169,8 +143,6 @@ export const GROUP_PRESETS: RolePreset[] = [
     name: marker("Group Manager"),
     description: marker("Run groups & receipts"),
     icon: "workspaces",
-    color: GROUP_COLOR,
-    tint: GROUP_TINT,
     resolve: (keys) => intersect(GROUP_MANAGER_KEYS, keys),
   },
   {
@@ -178,8 +150,6 @@ export const GROUP_PRESETS: RolePreset[] = [
     name: marker("Receipt Editor"),
     description: marker("Add & edit receipts"),
     icon: "edit_note",
-    color: "#10b981",
-    tint: "#d1fae5",
     resolve: (keys) => intersect(RECEIPT_EDITOR_KEYS, keys),
   },
   {
@@ -187,8 +157,6 @@ export const GROUP_PRESETS: RolePreset[] = [
     name: marker("Viewer"),
     description: marker("Read-only access"),
     icon: "visibility",
-    color: "#64748b",
-    tint: "#f1f5f9",
     resolve: (keys) => intersect(VIEWER_KEYS, keys),
   },
   {
@@ -196,8 +164,6 @@ export const GROUP_PRESETS: RolePreset[] = [
     name: "Custom",
     description: marker("Start from scratch"),
     icon: "tune",
-    color: "#64748b",
-    tint: "#f1f5f9",
     resolve: () => new Set<string>(),
   },
 ];

@@ -23,7 +23,7 @@ const ICONS: Record<ToastKind, string> = {
       @for (toast of toasts.toasts(); track toast.id) {
         <div
           role="status"
-          class="pointer-events-auto flex w-full max-w-md items-start gap-3 rounded-lg border bg-popover p-4 text-sm text-popover-foreground shadow-lg animate-in fade-in-0 slide-in-from-top-2 duration-200"
+          class="pointer-events-auto flex w-full max-w-md items-start gap-3 rounded-lg border bg-popover p-4 text-sm text-popover-foreground shadow-lg animate-in fade-in-0 slide-in-from-top-2 duration-200 motion-reduce:animate-none"
           [class.border-destructive]="toast.kind === 'error'"
           [attr.data-kind]="toast.kind"
           [attr.data-testid]="'toast-' + toast.kind"

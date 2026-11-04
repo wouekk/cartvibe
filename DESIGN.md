@@ -24,7 +24,7 @@ Banned: Angular Material, Bootstrap classes (`d-flex`, `col-*`, `mb-3`), `mat-*`
 - Text: `text-foreground`, `text-muted-foreground`, `text-card-foreground`, `text-primary-foreground`.
 - Lines: every border defaults to `--border` (base layer). Hairlines: `border-border`, `border-border/70` (panels), `/60` (dividers), `/40` (list rows). Focus: `ring-ring/50`, `ring-3`.
 - Primary: `bg-primary` is monochrome in Zinc (neutral-950 by day), near-white at night, and the hue in Blue / Indigo / Emerald / Violet (600-700 by day, 400 at night, with `text-primary-foreground` kept at 4.5:1). Hover `bg-primary/80`. `text-primary` (links, "blue" badge) must hold 4.5:1 on background, card and accent.
-- Status: `text-destructive` / `bg-destructive/10`; `text-warning-text` (orange: rises, unhealthy, "to check"); `text-success-text` (green: falls, done); `bg-warning text-warning-foreground` (filled warning); `nutri-a..e` (health score only).
+- Status: `text-destructive` / `bg-destructive/10`; `text-warning-text` (orange: rises, unhealthy, "to check"); `text-success-text` (green: falls, done); `bg-warning text-warning-foreground` (filled warning); `nutri-a..e` with `text-nutri-a..e-foreground` (health score only).
 - Charts: `--chart-1..5` + `--muted-foreground` ("Other") via `readChartColors()` (`shared-ui/chart/chart-colors.ts`); bars: `colors.primary` selected, faded muted otherwise, `colors.destructive` over goal. Grid `colors.border`, dashed 3. The donut's active slice slides 8px out of the ring while the others fade to 45%; the tooltip is our own HTML card on the theme tokens (`tooltipCard`).
 - Brand: `--brand-*` only for the logo/icon/loader components. Never reuse them in UI. The wordmark's "Vibe" (`cartvibe-logo`) matches the project site: brand emerald in Zinc (`#16C976` at night, `#047857` by day, since the brand green is 2.1:1 on the light canvas), the palette's `--primary` in Blue, Indigo, Emerald and Violet.
 
@@ -32,7 +32,7 @@ Banned: Angular Material, Bootstrap classes (`d-flex`, `col-*`, `mb-3`), `mat-*`
 - Spacing: Tailwind 4px steps; gaps 2/3/4/6 (8/12/16/24px). Page gutter `p-4 sm:p-6`; content width `--page-max` 1240px (set once in the shell).
 - Radius (`--radius` 10px): buttons/inputs `rounded-md` (8), field boxes/insets `rounded-lg` (10), cards/panels/dialogs `rounded-xl` (14), pills/counts `rounded-full`.
 - Controls: buttons, inputs, selects, tab strips `h-9` (36px); `size="sm"` h-8; icon button `size-9`. Row targets on touch lists `min-h-11`..`min-h-14`.
-- Motion: `duration-150` default, 200ms for emphasis; enter = `animate-in fade-in-0` (+ `slide-in-from-bottom-2`). Always add `motion-reduce:` / `prefers-reduced-motion`. Press: buttons get `active:scale-[0.98]` from helm.
+- Motion: `duration-150` default, 200ms for emphasis; enter = `animate-in fade-in-0` (+ `slide-in-from-bottom-2`). Always add `motion-reduce:` / `prefers-reduced-motion`; a base-layer rule in `tailwind.css` also stills every animation and transition under reduced motion (spinners and `.app-progress-indeterminate` only slow down). Press: buttons get `active:scale-[0.98]` from helm.
 
 ## Typography
 - Font: Geist Variable (`--font-sans`). Headings 600, tight tracking (base layer).
@@ -52,7 +52,7 @@ Banned: Angular Material, Bootstrap classes (`d-flex`, `col-*`, `mb-3`), `mat-*`
 - Buttons: `hlmBtn` (primary), `variant="outline|ghost"` for toggles/menus/icon rows, `variant="destructive"` (red) for every delete and remove: buttons, row icons, menu items (`hlmDropdownMenuItem variant="destructive"`) and the confirm button of a Delete / Remove dialog. Save = `app-submit-button`; Cancel = `app-cancel-button`, neutral `outline` (white by day, black at night), never red.
 - Dialogs: `AppDialog` (`src/dialog/app-dialog.ts`) + `app-dialog-footer`; confirm with `ConfirmationDialogComponent`.
 - Fields: `app-input`, `app-select`, `app-textarea`, `app-checkbox`, `app-datepicker`, `app-autocomlete`, `app-form-section [panel]`.
-- Menus `hlmDropdownMenuTrigger`; tips `hlmTooltip` (the popover surface with a hairline, no arrow, not an inverted black box); toggles `hlm-switch`; badges `app-badge` (tones slate/blue/green); status `app-status-chip`; shops `app-shop-monogram`; toasts `SnackbarService`; loading `hlm-spinner`, `.app-progress-indeterminate`; required-empty `shakeInvalid()`.
+- Menus `hlmDropdownMenuTrigger`; tips `hlmTooltip` (the popover surface with a hairline, no arrow, not an inverted black box); toggles `hlm-switch`; badges `app-badge` (tones slate/blue/green); status `app-status-chip`; shops `app-shop-monogram` (a logo sits on a white tile with a `ring-border` hairline: the one allowed fixed colour, since logo art assumes white); toasts `SnackbarService`; loading `hlm-spinner`, `.app-progress-indeterminate`; required-empty `shakeInvalid()`.
 
 ## Patterns
 - Page: header row (`h1` + muted context left, actions right, `flex-wrap gap-2`), then `flex flex-col gap-6`. Text flex children need `min-w-0`; headings `break-words`.

@@ -41,11 +41,10 @@ describe("ShopMonogramComponent", () => {
     expect(await render(undefined)).toBe("?");
   });
 
-  it("draws the letter white on black by day and black on white at night", async () => {
+  it("draws the letter tile for a shop without a logo", async () => {
     const host: HTMLElement = (await create("zzz unknown shop")).nativeElement;
 
-    expect(host.classList).toContain("bg-foreground");
-    expect(host.classList).toContain("text-background");
+    expect(host.getAttribute("data-tile")).toBe("letter");
   });
 
   it("shows only the letter while the server has no logos (no Logo.dev key)", async () => {
@@ -55,14 +54,13 @@ describe("ShopMonogramComponent", () => {
     expect(fixture.nativeElement.textContent.trim()).toBe("L");
   });
 
-  it("loads a downloaded logo from this server, on a white tile with a foreground ring", async () => {
+  it("loads a downloaded logo from this server, on the logo tile", async () => {
     candidates.set(buildCandidates([lidl]));
     const fixture = await create("LIDL Polska sp. z o.o.");
     const image: HTMLImageElement = fixture.nativeElement.querySelector('[data-testid="shop-logo"]');
 
     expect(image.getAttribute("src")).toBe("/api/shopLogo/lidl");
-    expect(fixture.nativeElement.classList).toContain("bg-white");
-    expect(fixture.nativeElement.classList).toContain("ring-foreground");
+    expect(fixture.nativeElement.getAttribute("data-tile")).toBe("logo");
   });
 
   it("falls back to the letter when the logo fails to load", async () => {

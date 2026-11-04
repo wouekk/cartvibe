@@ -112,8 +112,12 @@ const patches = [
   ["tabs/lib/hlm-tabs-trigger.ts", /data-active:/g, () => "data-[state=active]:"],
   // A tip is a small popover like the menus (popover surface, hairline), not an inverted black box in the day palette:
   // no arrow, since a bordered arrow would break the hairline.
-  ["tooltip/lib/hlm-tooltip.ts", /bg-foreground text-background/g, () => "bg-popover text-popover-foreground border border-border shadow-md"],
+  ["tooltip/lib/hlm-tooltip.ts", /bg-foreground text-background/g, () => "bg-popover text-popover-foreground border border-border"],
   ["tooltip/lib/hlm-tooltip.ts", "'bg-foreground fill-foreground z-50 block", "'hidden z-50"],
+  // A disabled control is dimmed and takes no pointer, with no not-allowed cursor (DESIGN.md, Patterns → Disabled).
+  ...["select/lib/hlm-select-trigger.ts", "checkbox/lib/hlm-checkbox.ts", "switch/lib/hlm-switch.ts", "radio-group/lib/hlm-radio.ts", "textarea/lib/hlm-textarea.ts"].map(
+    (file) => [file, /(disabled:|data-disabled:|data-\[disabled=true\]:)cursor-not-allowed/g, (_match, variant) => `${variant}pointer-events-none`],
+  ),
 ];
 for (const [file, from, to] of patches) {
   const target = path.join(outRoot, file);
