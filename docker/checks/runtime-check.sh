@@ -26,11 +26,12 @@ magick -list format | grep -qi heic || fail "ImageMagick has no HEIC coder"
 magick /tmp/checks/tiny.heic heic.png 2>heic.err || { cat heic.err >&2; fail "a HEIC file does not decode"; }
 [ "$(magick identify -format %w heic.png 2>/dev/null)" = "16" ] || fail "the decoded HEIC has the wrong size"
 
-# Text through ImageMagick's standard Helvetica (ghostscript fonts), into a PDF, back to pixels through ghostscript,
-# and read by Tesseract: the path of a PDF receipt, with fonts, ghostscript and OCR in one chain.
+# A PDF with text, made by ghostscript with its own fonts (the API never draws text with ImageMagick), read back to
+# pixels by ImageMagick through ghostscript and read by Tesseract: the path of a PDF receipt, in one chain.
 gs --version >/dev/null || fail "ghostscript is missing"
-magick -size 700x160 xc:white -font Helvetica -pointsize 90 -fill black -draw "text 20,115 'RECEIPT'" text.pdf 2>text.err \
-  || { cat text.err >&2; fail "ImageMagick cannot draw text and write a PDF"; }
+gs -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE=pdfwrite -dDEVICEWIDTHPOINTS=500 -dDEVICEHEIGHTPOINTS=120 -o text.pdf \
+  -c "/Helvetica findfont 72 scalefont setfont 20 30 moveto (RECEIPT) show showpage" 2>text.err \
+  || { cat text.err >&2; fail "ghostscript cannot write a PDF with text"; }
 magick -density 150 text.pdf text.png 2>pdf.err || { cat pdf.err >&2; fail "a PDF does not convert to an image"; }
 tesseract text.png ocr >/dev/null 2>&1 || fail "Tesseract cannot read an image"
 grep -qi receipt ocr.txt 2>/dev/null || fail "Tesseract did not read the word drawn into the PDF"
@@ -41,6 +42,22 @@ magick -size 40x40 xc:white blank.pdf && magick blank.pdf blank.jpg || fail "a b
 if magick -size 40x40 xc:white check.eps 2>/dev/null; then
   fail "ImageMagick policy.xml allows EPS"
 fi
+
+# docker/imagemagick/policy.xml: the receipt formats round-trip, everything else and oversized images are refused,
+# and the limits are the ones the file sets (not Debian's).
+magick -size 40x40 xc:white check.tiff && magick check.tiff tiff.png || fail "a TIFF does not convert"
+magick -size 40x40 xc:white check.webp && magick check.webp webp.png || fail "a WebP does not convert"
+if magick -size 40x40 xc:white check.psd 2>/dev/null; then
+  fail "ImageMagick policy.xml allows PSD (only receipt formats may be read or written)"
+fi
+if magick -size 40x40 xc:white check.bmp 2>/dev/null; then
+  fail "ImageMagick policy.xml allows BMP (only receipt formats may be read or written)"
+fi
+if magick -size 17000x10 xc:white wide.png 2>/dev/null; then
+  fail "ImageMagick policy.xml allows an image wider than 16K pixels"
+fi
+magick -list policy > policy.txt 2>&1
+grep -q "16KP" policy.txt || { cat policy.txt >&2; fail "ImageMagick is not using docker/imagemagick/policy.xml"; }
 
 # Chromium renders report HTML to a PDF (no sandbox, as the API runs it by default) and ghostscript finds the text in it.
 chromium --version >/dev/null || fail "Chromium is missing"

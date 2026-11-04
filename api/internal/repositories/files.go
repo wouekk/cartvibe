@@ -180,21 +180,26 @@ func (repository FileRepository) IsPdf(imageData []byte) (bool, error) {
 	return isPdf, nil
 }
 
+// receiptFileTypes are the formats a receipt file may have, detected from its bytes. ImageMagick reads every upload,
+// so this list matches the modules docker/imagemagick/policy.xml allows; keep the two in step. Anything else (BMP,
+// PSD, SVG, JPEG 2000, ICO and the rest) never reaches a decoder.
+var receiptFileTypes = map[string]bool{
+	"image/jpeg":             true,
+	"image/png":              true,
+	"image/webp":             true,
+	"image/gif":              true,
+	"image/tiff":             true,
+	"image/heic":             true,
+	"image/heic-sequence":    true,
+	"image/heif":             true,
+	"image/heif-sequence":    true,
+	constants.ApplicationPdf: true,
+}
+
 func (repository FileRepository) ValidateFileType(bytes []byte) (string, error) {
 	fileType := utils.GetMimeType(bytes).String()
-	acceptedFileTypes := []string{constants.AnyImage, constants.ApplicationPdf}
-
-	// SVG is markup that can carry script; receipts are photos and PDFs.
-	if strings.Contains(fileType, "svg") {
-		return "", errors.New("invalid file type")
-	}
-
-	for _, acceptedFileType := range acceptedFileTypes {
-		matched, _ := regexp.Match(acceptedFileType, []byte(fileType))
-
-		if matched {
-			return fileType, nil
-		}
+	if receiptFileTypes[fileType] {
+		return fileType, nil
 	}
 
 	return "", errors.New("invalid file type")

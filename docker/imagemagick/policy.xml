@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policymap [
+  <!ELEMENT policymap (policy)*>
+  <!ATTLIST policymap xmlns CDATA #FIXED "">
+  <!ELEMENT policy EMPTY>
+  <!ATTLIST policy
+    xmlns   CDATA   #FIXED ""
+    domain  NMTOKEN #REQUIRED
+    name    NMTOKEN #IMPLIED
+    pattern CDATA   #IMPLIED
+    rights  NMTOKEN #IMPLIED
+    stealth NMTOKEN #IMPLIED
+    value   CDATA   #IMPLIED
+  >
+]>
+<!--
+  CartVibe's ImageMagick policy, replacing Debian's (docker/Dockerfile copies it to /etc/ImageMagick-7/policy.xml).
+  It follows https://imagemagick.org/security-policy/ : deny by default, then allow what receipts need. The last
+  matching rule wins, so every allow comes after its deny. docker/checks/runtime-check.sh proves at build time that
+  HEIC, PDF and TIFF still convert and that other formats and oversized images are refused.
+
+  The API's upload check (FileRepository.ValidateFileType) accepts the same formats; keep the two lists in step.
+-->
+<policymap>
+  <!-- Resource limits, sized for receipts: phone photos up to 48 MP (8064 x 6048) and multi-page PDF invoices.
+       Above memory/map, the pixel cache moves to disk, up to the disk limit; width and height refuse larger images. -->
+  <policy domain="resource" name="memory" value="256MiB"/>
+  <policy domain="resource" name="map" value="512MiB"/>
+  <policy domain="resource" name="disk" value="1GiB"/>
+  <policy domain="resource" name="area" value="128MP"/>
+  <policy domain="resource" name="width" value="16KP"/>
+  <policy domain="resource" name="height" value="16KP"/>
+  <policy domain="resource" name="list-length" value="64"/>
+  <policy domain="resource" name="file" value="768"/>
+  <policy domain="resource" name="time" value="120"/>
+
+  <!-- Pixel cache: anonymous memory, and flush to disk at once (an error instead of SIGBUS when the disk fills). -->
+  <policy domain="cache" name="memory-map" value="anonymous"/>
+  <policy domain="cache" name="synchronize" value="true"/>
+
+  <!-- Formats: only what a receipt is. Ghostscript renders a PDF page to PNG or PNM, so those modules stay;
+       XC (a plain colour canvas) is used by the build check only. -->
+  <policy domain="module" rights="none" pattern="*"/>
+  <policy domain="module" rights="read | write" pattern="{JPEG,PNG,WEBP,GIF,HEIC,TIFF,PDF,PNM,XC}"/>
+
+  <!-- External programs: none, except Ghostscript for PDF pages. -->
+  <policy domain="delegate" rights="none" pattern="*"/>
+  <policy domain="delegate" rights="execute" pattern="{gs,ps:alpha,ps:cmyk,ps:color,ps:mono}"/>
+
+  <!-- Image filter modules (not resize filters): none are used. -->
+  <policy domain="filter" rights="none" pattern="*"/>
+
+  <!-- Paths: no stdin, file descriptors, system files, parent-directory walks, file lists or pipes. The API reads
+       its own data and temp files only. -->
+  <policy domain="path" rights="none" pattern="-"/>
+  <policy domain="path" rights="none" pattern="[Ff][Dd]:*"/>
+  <policy domain="path" rights="none" pattern="/etc/*"/>
+  <policy domain="path" rights="none" pattern="*../*"/>
+  <policy domain="path" rights="none" pattern="@*"/>
+  <policy domain="path" rights="none" pattern="|*"/>
+
+  <!-- System: cap single allocations and embedded profiles (ICC, EXIF, XMP), no SVG entities. Symlinks are
+       followed: Debian reaches the Ghostscript fonts (Helvetica) through them. -->
+  <policy domain="system" name="memory-map" value="anonymous"/>
+  <policy domain="system" name="max-memory-request" value="1GiB"/>
+  <policy domain="system" name="max-profile-size" value="16MiB"/>
+  <policy domain="system" name="max-profile-count" value="16"/>
+  <policy domain="system" name="svg" rights="none" pattern="substitute-entities"/>
+</policymap>

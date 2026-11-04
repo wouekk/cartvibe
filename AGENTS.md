@@ -48,8 +48,9 @@ build, run the specs, and check desktop and phone widths in day and night (Zinc 
 - **One monolith image** from `docker/Dockerfile` (nginx :80 → Go :8081); never add per-component Dockerfiles.
   Dependencies install from their manifests before the source is copied, so code-only builds reuse the cached layers;
   keep `VERSION`, `BUILD_DATE` and source copies below them.
-- **Hardening, keep all of it:** the API runs as uid 10001 through `setpriv`; ImageMagick's `policy.xml` denies the
-  coders receipts never need (the build proves PDF still converts); nginx sends `server_tokens off` and the security
+- **Hardening, keep all of it:** the API runs as uid 10001 through `setpriv`; our ImageMagick policy
+  (`docker/imagemagick/policy.xml`) allows only the receipt formats, Ghostscript and receipt-sized limits, and the
+  upload check accepts the same formats (the build proves HEIC, PDF and TIFF still convert); nginx sends `server_tokens off` and the security
   headers; the image is rebuilt weekly without the cache, with a grype report.
 - **The runtime stage installs no Recommends.** What the API needs (Tesseract, ghostscript, the fonts, the HEIC and
   Chromium pieces) is named in the Dockerfile and proved by `docker/checks/runtime-check.sh` at build time. A new
