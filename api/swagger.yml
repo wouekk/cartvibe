@@ -4697,6 +4697,7 @@ components:
         - "app.backup.import"
         - "app.groups.create"
         - "app.groups.read"
+        - "app.groups.update"
         - "app.groups.delete"
         - "app.oidc-providers.create"
         - "app.oidc-providers.read"

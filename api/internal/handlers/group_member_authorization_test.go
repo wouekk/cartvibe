@@ -207,3 +207,40 @@ func TestUpdateGroupRejectsCrossGroupMemberInjection(t *testing.T) {
 		t.Fatalf("cross-group member injection persisted into group 2 (count=%d)", strayCount)
 	}
 }
+
+// An app admin holding app.groups.update renames a household they only joined as a Member (a role without
+// group.update), as the first admin of an install often has; without that app permission the same Member is refused.
+func TestUpdateGroupLetsAnAppAdminRenameAHouseholdTheyOnlyJoinedAsMember(t *testing.T) {
+	defer tearDownGroupTests()
+	repositories.GetDB().Create(&models.Group{})
+	grantAllGroupPerms(t, 1, 1)
+	grantGroupPerms(t, 2, 1, permissions.GroupView, permissions.GroupReceiptsRead)
+	ownerRoleId, memberRoleId := groupMemberRoleId(t, 1, 1), groupMemberRoleId(t, 2, 1)
+
+	rename := func(name string) *http.Response {
+		return callUpdateGroup(2, 1, commands.UpsertGroupCommand{
+			Name:   name,
+			Status: models.GROUP_ACTIVE,
+			GroupMembers: []commands.UpsertGroupMemberCommand{
+				{UserID: 1, GroupID: 1, GroupRoleID: ownerRoleId},
+				{UserID: 2, GroupID: 1, GroupRoleID: memberRoleId},
+			},
+		})
+	}
+
+	if resp := rename("by-a-member"); resp.StatusCode != http.StatusForbidden {
+		utils.PrintTestError(t, resp.StatusCode, http.StatusForbidden)
+	}
+
+	grantAppPerms(t, 2, permissions.AppGroupsUpdate)
+	if resp := rename("by-an-admin"); resp.StatusCode != http.StatusOK {
+		utils.PrintTestError(t, resp.StatusCode, http.StatusOK)
+	}
+	var renamed models.Group
+	if err := repositories.GetDB().First(&renamed, 1).Error; err != nil {
+		t.Fatalf("reload group: %v", err)
+	}
+	if renamed.Name != "by-an-admin" {
+		t.Fatalf("rename did not persist: got %q", renamed.Name)
+	}
+}

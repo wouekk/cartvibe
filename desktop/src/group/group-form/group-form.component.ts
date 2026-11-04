@@ -103,7 +103,7 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
     if (
       this.formConfig.mode === FormMode.view &&
       this.originalGroup &&
-      this.store.selectSnapshot(AuthState.hasGroupPermission(this.originalGroup.id, Permission.GroupUpdate))
+      this.store.selectSnapshot(AuthState.hasGroupPermission(this.originalGroup.id, Permission.GroupUpdate, [Permission.AppGroupsUpdate]))
     ) {
       this.formConfig = { ...this.formConfig, mode: FormMode.edit };
     }
