@@ -5,8 +5,7 @@
 #
 # :latest only ever holds a commit whose CI passed on main: after a green CI run (workflow_run), and for the weekly
 # rebuild or a manual run on main, the commit of the newest CI run on main, only when that run succeeded. A manual run
-# from another branch publishes :preview. The upstream project publishes to Docker Hub from ci.yml instead; this
-# workflow is fork-only.
+# from another branch publishes :preview. A manual run can skip the layer cache (no-cache), like the weekly rebuild.
 name: Publish image
 
 on:
@@ -15,6 +14,11 @@ on:
     types: [completed]
     branches: [main]
   workflow_dispatch:
+    inputs:
+      no-cache:
+        description: Rebuild without the layer cache, so Debian security updates are picked up now
+        type: boolean
+        default: false
   # Weekly rebuild of main without the layer cache, so Debian security updates reach :latest even when no code changed
   # (the cached apt layers would otherwise keep the packages of the first build for ever).
   schedule:
@@ -124,7 +128,7 @@ jobs:
           cache-to: type=gha,mode=max
           # Always fetch the newest base images; the weekly run also rebuilds every layer.
           pull: true
-          no-cache: ${{ github.event_name == 'schedule' }}
+          no-cache: ${{ github.event_name == 'schedule' || inputs.no-cache == true }}
       # The full vulnerability report for what was just published (the run's Artifacts). It never fails the run: most
       # findings are Debian packages without a fix yet, and the report is read, not gated on.
       - name: Scan the image
