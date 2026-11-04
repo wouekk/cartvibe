@@ -1,145 +1,29 @@
-/* Modern, clean CartVibe styles */
-@use "sass:map";
-@use "./variables.scss" as variables;
+/* Global styles. Every rule sits in a cascade layer so a Tailwind utility on the element wins (DESIGN.md: no unlayered
+   global CSS). Element defaults (html, body, headings) live in the base layer of skin.css, after Tailwind's preflight. */
 @use "@fontsource-variable/geist";
 
 @layer theme, base, components, utilities;
 
-.cursor-pointer {
-  cursor: pointer !important;
-}
-
-// Modern font stack with better readability
-$font-family: 'Geist Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-
-html,
-body {
-  height: 100%;
-  scroll-behavior: smooth;
-}
-
-body {
-  margin: 0;
-  background-color: var(--background);
-  color: var(--foreground);
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-.content-width {
-  // TODO: Revisit min-width: 75%;
-  width: 100% !important;
-  // emax-width: 100%;
-}
-
-// Global Style Changes
-hr {
-  color: var(--border);
-  width: 100%;
-}
-
-
-.json-string {
-  white-space: normal !important;
-}
-
-// Headings are base styles: in the base layer a utility class (text-lg, mb-4) on a heading wins over them.
 @layer base {
-  h1, h2, h3, h4, h5, h6 {
-    margin: 0;
-    font-weight: 600;
-    letter-spacing: -0.025em;
-    color: var(--foreground);
+  // Thin scrollbars on the theme's hairline colour.
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
   }
 
-  h1 {
-    font-size: clamp(1.75rem, 7vw, 2.25rem);
-    line-height: 1.2;
+  ::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: calc(var(--radius) - 2px);
   }
 
-  h2 {
-    font-size: clamp(1.4rem, 5.5vw, 1.875rem);
-    line-height: 1.3;
-  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: calc(var(--radius) - 2px);
+    transition: background-color 0.2s ease-in-out;
 
-  h3 {
-    font-size: clamp(1.2rem, 4.5vw, 1.5rem);
-    line-height: 1.4;
-  }
-}
-
-// Enhanced cards
-.dashboard-card {
-  width: 100%;
-  height: 100%;
-}
-
-// Utility classes for consistent spacing
-.space-y-1 > * + * {
-  margin-top: variables.$spacing-xs;
-}
-
-.space-y-2 > * + * {
-  margin-top: variables.$spacing-sm;
-}
-
-.space-y-4 > * + * {
-  margin-top: variables.$spacing-md;
-}
-
-.space-y-6 > * + * {
-  margin-top: variables.$spacing-lg;
-}
-
-.space-x-2 > * + * {
-  margin-left: variables.$spacing-sm;
-}
-
-.space-x-4 > * + * {
-  margin-left: variables.$spacing-md;
-}
-
-// Modern scrollbar styling
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-  border-radius: variables.$border-radius-md;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: variables.$border-radius-md;
-  transition: all 0.2s ease-in-out;
-  
-  &:hover {
-    background: var(--muted-foreground);
-  }
-}
-
-// Form button bar spacing - prevent fixed button bar from covering content
-// Target content containers when they contain an active form button bar
-.drawer-content:has(app-form-button-bar.form-button-bar-active) {
-  padding-bottom: 160px; // Account for backdrop (80px) + content (72px) + margins
-}
-
-// Alternative approach using descendant selector for broader browser support
-.drawer-content:has(.form-button-bar-active) {
-  padding-bottom: 160px;
-}
-
-// Responsive spacing for mobile
-@media (max-width: 768px) {
-  .drawer-content:has(app-form-button-bar.form-button-bar-active) {
-    padding-bottom: 180px; // More space on mobile
-  }
-  
-  .drawer-content:has(.form-button-bar-active) {
-    padding-bottom: 180px;
+    &:hover {
+      background: var(--muted-foreground);
+    }
   }
 }
 
@@ -164,20 +48,32 @@ hr {
   }
 }
 
-.cv-shake {
-  animation: cv-shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-}
+@layer components {
+  // The host class of a few full-width pages (constants/components.constant.ts).
+  .content-width {
+    width: 100%;
+  }
 
-.cv-field-error input,
-.cv-field-error textarea,
-.cv-field-error [data-slot=input-group] {
-  border-color: var(--destructive) !important;
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--destructive) 25%, transparent);
-  transition: box-shadow 0.2s ease;
-}
+  // pretty-print-json wraps long strings (its own stylesheet keeps each line `pre`).
+  .json-string {
+    white-space: normal !important;
+  }
 
-@media (prefers-reduced-motion: reduce) {
   .cv-shake {
-    animation: none;
+    animation: cv-shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  }
+
+  .cv-field-error input,
+  .cv-field-error textarea,
+  .cv-field-error [data-slot=input-group] {
+    border-color: var(--destructive) !important;
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--destructive) 25%, transparent);
+    transition: box-shadow 0.2s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cv-shake {
+      animation: none;
+    }
   }
 }
