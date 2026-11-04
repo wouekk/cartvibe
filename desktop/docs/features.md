@@ -275,6 +275,9 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
 - **Sidebar** (`src/layout/sidebar/`, `mainNavItems` / `manageNavItems`): everyday pages, then Settings: System
   Settings, Management, User Settings, AI, Theme (`/theme`), Language (`/language`), each behind its permission
   (Language and Theme need none and are top-level routes; `/settings/theme` redirects). Each entry has a `nav-*` test id.
+  Collapsed or open is remembered in `localStorage` (`cartvibe.sidebarOpen`), never a cookie: the Spartan service
+  writes a `sidebar_state` cookie, which `tools/spartan-add.cjs` patches out (an old cookie is read once and deleted).
+  The app sets no cookie of its own besides the login cookies; the demo and the project site set none.
 - **Management** is Categories (`/categories`), Tags (`/tags`), Users (`/users`) and Households (`/groups`) as tabs:
   each list page keeps its own route and module, is titled "Management" and puts `app-management-tabs` in its
   `settingsTabs` slot (`MANAGEMENT_TABS`, `allowedManagementTabs`, `managementTabForUrl` in
