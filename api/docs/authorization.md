@@ -72,7 +72,8 @@ if neither narrows                          -> unrestricted
 - **Caching.** The role layer is cached by group-role id (`services/grant_cache.go`); the member layer is not (one
   indexed lookup, batched per group by `newReceiptGrantFilter`).
 - **Enforcement** is `services/grant_filter.go`: reads strip (`FilterReceiptCategoriesTags*`); aggregations substitute a
-  `(Restricted)` bucket (`SubstituteRestrictedCategoriesTags`, used by the Dashboard overview; reports do it per line);
+  `(Restricted)` bucket (`SubstituteRestrictedCategoriesTags` for receipt-level ones; reports and the Dashboard do it
+  per product line in the line's receipt group, and the Dashboard shows no tile for a hidden tag);
   writes check `ValidateCategoryTagSelection` (403), and a new-by-name category/tag needs `app.categories.create` /
   `app.tags.create`; list/export filters are narrowed by `IntersectReceiptFilterWithGrants` so a hidden id cannot probe
   existence. Holders of `app.categories.read` / `app.tags.read` bypass (`userBypassesGrants`).

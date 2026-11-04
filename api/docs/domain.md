@@ -85,9 +85,15 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   of whole months before, else the same number of days. Trend is daily under 28 days, else monthly (≤24). Receipt dates
   are bucketed in UTC; "current" uses the app zone. Every month in the window is seeded and arrays are never null.
 - `categories` are grouped by the lines' `category_id` (current names; the uncovered rest and unread receipts are
-  Uncategorized). `unhealthyTotal` and `unplannedTotal` sum priced lines; `tags[]` gives a tile per tag with
-  `showOnDashboard` (a line counts toward each of its tags). `GET /overview/group/{id}/products?kind=UNHEALTHY|UNPLANNED|
-  FOODGROUP|TAG` lists the lines behind a tile. Open receipts are OPEN, NEEDS_ATTENTION and DRAFT.
+  Uncategorized, a name the desktop matches and translates, so it stays English). Every line counts as its share of
+  the receipt, divided as reports do (`receiptsource.AllocateToReceipt`: lines over the receipt or pointing the other
+  way are scaled to it), so the slices always add up to `total`. `unhealthyTotal`, `unplannedTotal` and `tags[]` add
+  the same shares; `tags[]` gives a tile per tag with `showOnDashboard` (a line counts toward each of its tags).
+  `GET /overview/group/{id}/products?kind=UNHEALTHY|UNPLANNED|FOODGROUP|TAG` lists the lines behind a tile. Open
+  receipts are OPEN, NEEDS_ATTENTION and DRAFT.
+- Category/tag grants apply per receipt group (`overviewGrants`): a hidden line category becomes the `(Restricted)`
+  slice; a hidden tag gets no tile (a tile needs the tag visible in the group, or for All in one readable real group)
+  and its lines do not count; a drill-down by a hidden category or tag id lists nothing.
 - `GET/PUT /dashboardLayout`: one row per user; `layout` is a client-owned JSON document. The API checks only the
   envelope (`ValidateDashboardLayout`: object, numeric version, ≤16 KB). It is not a `UserPreferences` field because
   `PUT /userPreferences` replaces the whole object and would erase it from any client that does not know it.
