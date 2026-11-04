@@ -60,7 +60,8 @@ piece of software (an unrelated shop has a similar name).
 - **Head.** `Base.astro` gives every page a description, an absolute canonical, `robots` `index, follow`, Open Graph
   (`og:site_name`, `og:image` and its size and alt) and X card tags. The sharing picture is the demo Dashboard (day), cut to a
   1200 × 630 PNG at build time by `src/lib/social-image.ts`; redo the screenshots and it follows.
-- **Home page.** The title and description are fixed in `index.astro` (the description matches the repository's). The page
+- **Home page.** The title and description are fixed in `index.astro`, within Bing's limits (title 70 characters, description
+  25-160; tested). Every image has alt text, the night copy of a screenshot too (the hidden copy is `display: none`). The page
   passes one JSON-LD `@graph` to `Base.astro` (`jsonLd` prop): `Organization` (`sameAs` the repository), `WebSite`,
   `SoftwareApplication` and `SoftwareSourceCode` (linked both ways by `isBasedOn` and `targetProduct`; `codeRepository` lives on
   the source code, where schema.org defines it) and a `FAQPage` built from the `faq` array. Never write FAQ markup by hand: it
