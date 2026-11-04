@@ -24,8 +24,8 @@ export interface PaletteDefinition {
 }
 
 export const PALETTES: readonly PaletteDefinition[] = [
-  { key: "blue", label: marker("Blue") },
   { key: "zinc", label: marker("Zinc") },
+  { key: "blue", label: marker("Blue") },
   { key: "indigo", label: marker("Indigo") },
   { key: "emerald", label: marker("Emerald") },
   { key: "violet", label: marker("Violet") },

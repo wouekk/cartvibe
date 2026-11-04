@@ -45,6 +45,10 @@ From the first release after 0.16.0, every user-visible entry names the feature 
   photo folder with it, or is refused and changes nothing if the folder cannot move, and new accounts keep joining the
   renamed household.
 - **Settings menu order (APP-10):** System Settings, Management, User Settings, AI, Theme, then Language.
+- **Zinc comes first in every palette picker (APP-02)**: the header menu, Settings → Theme and the welcome. It was
+  already the default.
+- **Filter chips read "field: condition"** in every language, for example *Receipt Date: between 01/11/2026 –
+  30/11/2026* (RCPT-10, ADM-06).
 - **A clone of the repository used for a deployment ignores its `.env`, `data` and `sqlite` folders**, so a stray
   `git add -A` can no longer commit the keys or the database.
 - **The last upstream names are gone from the code.**

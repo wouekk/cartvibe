@@ -84,7 +84,7 @@ describe("WelcomeDialogComponent", () => {
 
   it("applies a palette at once and keeps the mode", async () => {
     await create();
-    for (const key of ["blue", "zinc", "indigo", "emerald", "violet"]) {
+    for (const key of ["zinc", "blue", "indigo", "emerald", "violet"]) {
       expect(element(`welcome-palette-${key}`)).not.toBeNull();
     }
 
