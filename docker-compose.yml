@@ -16,9 +16,10 @@ services:
     environment:
       - TZ=Europe/Paris
       # Set both in Dockhand's environment variables. Use letters and digits only: compose reads a
-      # "$" as the start of a variable name and silently drops it (write "$$" for a literal one).
-      - SECRET_KEY=${SECRET_KEY}
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      # "$" as the start of a variable name and silently drops it (write "$$" for a literal one). The deploy stops
+      # with the message below when one is missing, rather than starting the app with an empty key.
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:?ENCRYPTION_KEY must be set}
       # Database: the built-in SQLite engine. The file lives in the sqlite volume below,
       # so keep DB_FILENAME the same across updates or the app starts with an empty database.
       - DB_ENGINE=sqlite

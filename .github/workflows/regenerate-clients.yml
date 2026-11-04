@@ -17,15 +17,17 @@ concurrency:
   group: regenerate-clients-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: write
-  actions: write
+permissions: {}
 
 jobs:
   regenerate:
     # Never commit to main from CI; regenerate on the feature branch and merge.
     if: github.ref != 'refs/heads/main'
     runs-on: ubuntu-latest
+    # Pushes the regenerated clients, then dispatches ci.yml.
+    permissions:
+      contents: write
+      actions: write
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v6

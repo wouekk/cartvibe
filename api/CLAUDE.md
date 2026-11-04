@@ -268,3 +268,5 @@ The database is fresh-only since the clean-schema rework; these are gone from co
   import/export, the template render endpoint.
 - The Flutter mobile app, its client and the OIDC mobile branch.
 - The old one-time data migrations and `GroupMember.GroupRole`.
+- The MySQL/MariaDB and PostgreSQL engines, their drivers and `DB_HOST`/`DB_PORT`/`DB_USER`/`DB_PASSWORD`/`DB_NAME`:
+  `DB_ENGINE` must be `sqlite`, and any other value (or none) stops the boot with an error naming the fix.

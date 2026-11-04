@@ -4,6 +4,7 @@ import (
 	"cartvibe/api/internal/constants"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"strings"
 	"sync"
 	"testing"
 
@@ -168,41 +169,31 @@ func TestUseTestDbWithoutForeignKeysForTests(t *testing.T) {
 	}
 }
 
-func TestShouldCreateTheCorrectMariaDbString(t *testing.T) {
-	defer teardownDbTests()
-
-	dbConfig := structs.DatabaseConfig{
-		User:     "root",
-		Password: "password",
-		Host:     "db",
-		Port:     3306,
-		Name:     "cartvibe",
+// The app is SQLite-only: any other DB_ENGINE, or none, stops the boot with a message naming the fix
+// instead of falling back to SQLite (which would start an empty database next to the intended one).
+func TestConnectRefusesEveryEngineButSqlite(t *testing.T) {
+	if err := checkDatabaseEngine("sqlite"); err != nil {
+		t.Fatalf("sqlite must be accepted, got %v", err)
 	}
 
-	connectionString := BuildMariaDbConnectionString(dbConfig)
-	expected := "root:password@tcp(db:3306)/cartvibe?charset=utf8mb4&parseTime=True&loc=Local"
+	for _, engine := range []string{"", "mysql", "mariadb", "postgresql", "SQLITE", "sqlite3"} {
+		t.Run(engine, func(t *testing.T) {
+			previous := db
+			t.Chdir(t.TempDir())
+			t.Setenv(string(constants.DbEngine), engine)
+			t.Setenv(string(constants.DbFileName), "app.db")
 
-	if connectionString != expected {
-		utils.PrintTestError(t, connectionString, expected)
-	}
-}
-
-func TestShouldCreateTheCorrectPostgresqlString(t *testing.T) {
-	defer teardownDbTests()
-
-	dbConfig := structs.DatabaseConfig{
-		User:     "root",
-		Password: "password",
-		Host:     "db",
-		Port:     3306,
-		Name:     "cartvibe",
-	}
-
-	connectionString := BuildPostgresqlConnectionString(dbConfig)
-	expected := "host=db user=root password=password dbname=cartvibe port=3306 sslmode=disable"
-
-	if connectionString != expected {
-		utils.PrintTestError(t, connectionString, expected)
+			err := Connect()
+			if err == nil {
+				t.Fatalf("Connect accepted DB_ENGINE=%q", engine)
+			}
+			if !strings.Contains(err.Error(), "DB_ENGINE=sqlite") {
+				t.Fatalf("the error should name the fix, got %q", err.Error())
+			}
+			if db != previous {
+				t.Fatalf("a refused engine must leave the database untouched")
+			}
+		})
 	}
 }
 

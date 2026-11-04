@@ -10,11 +10,6 @@ const (
 	// VapidSubject is the contact the push services see ("mailto:you@example.com" or an https URL).
 	VapidSubject  EnvironmentVariable = "VAPID_SUBJECT"
 	SecretKey     EnvironmentVariable = "SECRET_KEY"
-	DbUser        EnvironmentVariable = "DB_USER"
-	DbPassword    EnvironmentVariable = "DB_PASSWORD"
-	DbHost        EnvironmentVariable = "DB_HOST"
-	DbPort        EnvironmentVariable = "DB_PORT"
-	DbName        EnvironmentVariable = "DB_NAME"
 	DbFileName    EnvironmentVariable = "DB_FILENAME"
 	DbEngine      EnvironmentVariable = "DB_ENGINE"
 	ValkeyHost     EnvironmentVariable = "VALKEY_HOST"
