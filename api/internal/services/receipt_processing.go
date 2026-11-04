@@ -36,6 +36,10 @@ func NewSystemReceiptProcessingService(tx *gorm.DB, groupId string) (ReceiptProc
 	systemReceiptProcessingSettings, err := systemSettingsRepository.GetSystemReceiptProcessingSettings()
 	group := models.Group{}
 	if err != nil {
+		// Tell "no AI chosen on the AI page" from a database error, so callers can say so instead of failing.
+		if settings, settingsErr := systemSettingsRepository.GetSystemSettings(); settingsErr == nil && settings.ReceiptProcessingSettings.ID == 0 {
+			return ReceiptProcessingService{}, errNoAiConfigured
+		}
 		return ReceiptProcessingService{}, err
 	}
 
@@ -94,6 +98,11 @@ func (service ReceiptProcessingService) readReceipt(
 ) (commands.UpsertReceiptCommand, commands.ReceiptProcessingMetadata, error) {
 	var receipt commands.UpsertReceiptCommand
 	metadata := commands.ReceiptProcessingMetadata{}
+
+	// No AI configured: nothing to call, so no OCR is run for it either.
+	if service.ReceiptProcessingSettings.ID == 0 {
+		return receipt, metadata, errNoAiConfigured
+	}
 
 	result, err := service.processImages(
 		imagePaths,

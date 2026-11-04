@@ -174,6 +174,11 @@ const (
 // errNoAiConfigured marks the "nothing to call" outage, which is retried like any other.
 var errNoAiConfigured = errors.New("no AI is configured in the receipt processing settings")
 
+// IsNoAiConfigured reports whether err means no AI is chosen on the AI page, so nothing was called.
+func IsNoAiConfigured(err error) bool {
+	return errors.Is(err, errNoAiConfigured)
+}
+
 type ReceiptProductExtractionService struct {
 	BaseService
 }

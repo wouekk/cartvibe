@@ -267,7 +267,61 @@ type QuickScanParams struct {
 	AsynqTaskId      string
 }
 
+// QuickScan reads an uploaded photo with the AI and saves the receipt. When the AI cannot read it (none
+// configured, out of credits, down, an unreadable answer) it returns that error and saves nothing, so the caller
+// can try again later (the shopping trip sweep does).
 func (service ReceiptService) QuickScan(params QuickScanParams) (models.Receipt, error) {
+	receipt, aiErr, err := service.quickScan(params, false)
+	if err != nil {
+		return models.Receipt{}, err
+	}
+	if aiErr != nil {
+		return models.Receipt{}, aiErr
+	}
+	return receipt, nil
+}
+
+// QuickScanKeepingThePhoto is QuickScan for an upload that exists nowhere else (the Quick Scan queue): when the AI
+// cannot read the photo, the receipt is still saved with the photo and safe defaults (a "Receipt <today>" name,
+// today's date, no total, the configured status and payer) for a person to fill in, and aiErr says why. Asking the
+// AI again would not help a missing key or credit, and the product sweep reads the photo again on its own schedule
+// (it fills the shop and name once the AI answers). err is only for what kept the receipt from being saved.
+func (service ReceiptService) QuickScanKeepingThePhoto(params QuickScanParams) (receipt models.Receipt, aiErr error, err error) {
+	return service.quickScan(params, true)
+}
+
+// quickScanDefaultName is the name a quick-scanned receipt gets when the AI gave none, the one the receipt form
+// gives a new receipt ("Receipt 20 Oct 2026", a placeholder the product sweep replaces with the shop's name).
+func quickScanDefaultName(today time.Time) string {
+	return "Receipt " + today.Format("2 Jan 2006")
+}
+
+// fillQuickScanDefaults gives an AI answer that left out the name or the date what the receipt form would: the
+// shop's name or "Receipt <today>", and today in the app time zone (a calendar day, midnight UTC). Without them
+// validation would refuse the receipt and the photo would be lost.
+func fillQuickScanDefaults(command *commands.UpsertReceiptCommand, now time.Time, location *time.Location) {
+	local := now.In(location)
+	today := time.Date(local.Year(), local.Month(), local.Day(), 0, 0, 0, 0, time.UTC)
+
+	if strings.TrimSpace(command.Name) == "" {
+		command.Name = strings.TrimSpace(command.ShopName)
+		if command.Name == "" {
+			command.Name = quickScanDefaultName(today)
+		}
+	}
+	if command.Date.IsZero() {
+		command.Date = today
+	}
+}
+
+// errQuickScanCreateFailed marks a failure of CreateReceipt inside the quick scan transaction, so the failure is
+// recorded after the rollback.
+type errQuickScanCreateFailed struct{ err error }
+
+func (e errQuickScanCreateFailed) Error() string { return e.err.Error() }
+func (e errQuickScanCreateFailed) Unwrap() error { return e.err }
+
+func (service ReceiptService) quickScan(params QuickScanParams, keepPhotoOnAiFailure bool) (models.Receipt, error, error) {
 	token := params.Token
 	groupId := params.GroupId
 	db := repositories.GetDB()
@@ -277,17 +331,17 @@ func (service ReceiptService) QuickScan(params QuickScanParams) (models.Receipt,
 	fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), service.TX)
 	fileBytes, err := utils.ReadFile(params.TempPath)
 	if err != nil {
-		return models.Receipt{}, err
+		return models.Receipt{}, nil, err
 	}
 
 	fileInfo, err := os.Stat(params.TempPath)
 	if err != nil {
-		return models.Receipt{}, err
+		return models.Receipt{}, nil, err
 	}
 
 	validatedFileType, err := fileRepository.ValidateFileType(fileBytes)
 	if err != nil {
-		return models.Receipt{}, err
+		return models.Receipt{}, nil, err
 	}
 
 	magicFillCommand := commands.MagicFillCommand{
@@ -313,12 +367,37 @@ func (service ReceiptService) QuickScan(params QuickScanParams) (models.Receipt,
 		&groupId,
 		params.AsynqTaskId, nil)
 	if taskErr != nil {
-		return models.Receipt{}, taskErr
+		return models.Receipt{}, nil, taskErr
 	}
 
 	if magicFillErr != nil {
-		return models.Receipt{}, magicFillErr
+		if !keepPhotoOnAiFailure {
+			return models.Receipt{}, magicFillErr, nil
+		}
+
+		// The AI could not read it: the receipt is saved with the photo for a person to fill in. Nothing the AI
+		// answered is used, not even part of it.
+		logging.LogStd(logging.LOG_LEVEL_ERROR, "quick scan: the AI could not read the photo, saving it to fill in by hand: "+magicFillErr.Error())
+		receiptCommand = commands.UpsertReceiptCommand{}
+
+		// With no AI configured nothing ran, so no task says why: record the failed scan the activity shows.
+		if quickScanSystemTasks.SystemTask.ID == 0 && quickScanSystemTasks.FallbackSystemTask.ID == 0 {
+			failedScan, taskErr := systemTaskService.CreateSystemTaskFromError(commands.UpsertSystemTaskCommand{
+				Type:                 models.QUICK_SCAN,
+				AssociatedEntityType: models.NOOP_ENTITY_TYPE,
+				StartedAt:            now,
+				AsynqTaskId:          params.AsynqTaskId,
+				RanByUserId:          &token.UserId,
+				GroupId:              &groupId,
+			}, magicFillErr)
+			if taskErr != nil {
+				return models.Receipt{}, nil, taskErr
+			}
+			quickScanSystemTasks.SystemTask = failedScan
+		}
 	}
+
+	fillQuickScanDefaults(&receiptCommand, finishedAt, repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), service.TX).AppLocation())
 
 	if receiptCommand.PaidByUserID == 0 {
 		receiptCommand.PaidByUserID = params.PaidByUserId
@@ -367,12 +446,12 @@ func (service ReceiptService) QuickScan(params QuickScanParams) (models.Receipt,
 	// isn't allowed to see are dropped too (defense-in-depth alongside the prompt's grant filter).
 	receiptCommand.Categories, err = service.resolveQuickScanCategories(receiptCommand.Categories, params.CategoryIds, token.UserId, groupId)
 	if err != nil {
-		return models.Receipt{}, recordEarlyQuickScanFailure(err)
+		return models.Receipt{}, nil, recordEarlyQuickScanFailure(err)
 	}
 
 	receiptCommand.Tags, err = service.resolveQuickScanTags(receiptCommand.Tags, params.TagIds, token.UserId, groupId)
 	if err != nil {
-		return models.Receipt{}, recordEarlyQuickScanFailure(err)
+		return models.Receipt{}, nil, recordEarlyQuickScanFailure(err)
 	}
 
 	// Append the user's quick-scan comment rather than replacing whatever the AI produced: the
@@ -392,7 +471,7 @@ func (service ReceiptService) QuickScan(params QuickScanParams) (models.Receipt,
 	vErr := receiptCommand.Validate(token.UserId, true)
 	if len(vErr.Errors) > 0 {
 		errBytes, _ := json.Marshal(vErr.Errors)
-		return models.Receipt{}, recordEarlyQuickScanFailure(fmt.Errorf("receipt validation failed: %s", string(errBytes)))
+		return models.Receipt{}, nil, recordEarlyQuickScanFailure(fmt.Errorf("receipt validation failed: %s", string(errBytes)))
 	}
 
 	err = db.Transaction(func(tx *gorm.DB) error {
@@ -401,19 +480,20 @@ func (service ReceiptService) QuickScan(params QuickScanParams) (models.Receipt,
 		systemTaskService.SetTransaction(tx)
 		uploadStart := time.Now()
 
+		// A failed create rolls the whole transaction back (a receipt half written must not be committed and then
+		// written again by the retry); the failure is recorded once the transaction is over.
 		createdReceipt, err = receiptRepository.CreateReceipt(receiptCommand, token.UserId, false)
+		if err != nil {
+			return errQuickScanCreateFailed{err: err}
+		}
 		_, taskErr := systemTaskService.CreateReceiptUploadedSystemTask(
-			err,
+			nil,
 			createdReceipt,
 			quickScanSystemTasks,
 			uploadStart,
 		)
 		if taskErr != nil {
 			return taskErr
-		}
-		if err != nil {
-			tx.Commit()
-			return err
 		}
 
 		taskErr = systemTaskService.AssociateProcessingSystemTasksToReceipt(quickScanSystemTasks, createdReceipt.ID)
@@ -434,22 +514,29 @@ func (service ReceiptService) QuickScan(params QuickScanParams) (models.Receipt,
 
 		return nil
 	})
+	systemTaskService.SetTransaction(service.TX)
 	if err != nil {
-		return models.Receipt{}, err
+		var createErr errQuickScanCreateFailed
+		if errors.As(err, &createErr) {
+			return models.Receipt{}, nil, recordEarlyQuickScanFailure(createErr.err)
+		}
+		return models.Receipt{}, nil, err
 	}
 
 	// The answer usually carries the products too: store them now instead of a second AI call from the sweep.
 	// Best-effort: the receipt is saved, and anything not applied here the sweep reads as before.
-	aiAnswer := receiptProcessingMetadata.RawResponse
-	if !receiptProcessingMetadata.DidReceiptProcessingSettingsSucceed {
-		aiAnswer = receiptProcessingMetadata.FallbackRawResponse
-	}
-	if _, inlineErr := NewReceiptProductExtractionService(nil).ApplyInlineRead(createdReceipt.ID, aiAnswer); inlineErr != nil {
-		logging.LogStd(logging.LOG_LEVEL_ERROR, "receipt products: could not apply the quick scan's products: "+inlineErr.Error())
+	if magicFillErr == nil {
+		aiAnswer := receiptProcessingMetadata.RawResponse
+		if !receiptProcessingMetadata.DidReceiptProcessingSettingsSucceed {
+			aiAnswer = receiptProcessingMetadata.FallbackRawResponse
+		}
+		if _, inlineErr := NewReceiptProductExtractionService(nil).ApplyInlineRead(createdReceipt.ID, aiAnswer); inlineErr != nil {
+			logging.LogStd(logging.LOG_LEVEL_ERROR, "receipt products: could not apply the quick scan's products: "+inlineErr.Error())
+		}
 	}
 
 	os.Remove(params.TempPath)
-	return createdReceipt, nil
+	return createdReceipt, magicFillErr, nil
 }
 
 // combineEarlyFailureErrors keeps failureErr as the primary, inspectable cause (the reason no receipt
@@ -467,7 +554,8 @@ func combineEarlyFailureErrors(failureErr, taskErr error) error {
 // the database so each carries its real name — the AI returns ids only, which would otherwise fail
 // receipt validation. Ids that don't resolve are dropped (hallucinated / deleted), and ids the
 // triggering user isn't allowed to see are dropped too (defense-in-depth alongside the prompt's grant
-// filter). Returns an empty slice when there is nothing to resolve.
+// filter). An AI-assigned category switched off for the AI (Manage Categories) is dropped too, unless the
+// person picked it as well. Returns an empty slice when there is nothing to resolve.
 func (service ReceiptService) resolveQuickScanCategories(
 	aiCategories []commands.UpsertCategoryCommand,
 	userCategoryIds []uint,
@@ -476,6 +564,7 @@ func (service ReceiptService) resolveQuickScanCategories(
 ) ([]commands.UpsertCategoryCommand, error) {
 	orderedIds := make([]uint, 0, len(aiCategories)+len(userCategoryIds))
 	seen := make(map[uint]bool)
+	pickedByPerson := make(map[uint]bool, len(userCategoryIds))
 	appendId := func(id uint) {
 		if !seen[id] {
 			seen[id] = true
@@ -488,6 +577,7 @@ func (service ReceiptService) resolveQuickScanCategories(
 		}
 	}
 	for _, id := range userCategoryIds {
+		pickedByPerson[id] = true
 		appendId(id)
 	}
 	if len(orderedIds) == 0 {
@@ -514,6 +604,9 @@ func (service ReceiptService) resolveQuickScanCategories(
 		record, ok := recordsById[id]
 		if !ok {
 			continue // id did not resolve to a real category
+		}
+		if record.Skipped && !pickedByPerson[id] {
+			continue // switched off for the AI (Manage Categories); a person may still pick it
 		}
 		if !unrestricted {
 			if _, visible := allowed[id]; !visible {
